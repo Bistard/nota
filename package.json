@@ -1,0 +1,26 @@
+{
+  "name": "markdownnote",
+  "version": "0.0.1",
+  "description": "an open-sourced markdown editor",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "test": "test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Bistard/MarkdownNote.git"
+  },
+  "keywords": [
+    "markdownnote"
+  ],
+  "author": "sihanli",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Bistard/MarkdownNote/issues"
+  },
+  "homepage": "https://github.com/Bistard/MarkdownNote#readme",
+  "devDependencies": {
+    "electron": "^13.1.7"
+  }
+}
