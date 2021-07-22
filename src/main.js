@@ -1,10 +1,10 @@
 const OS = require('os');
 const path = require('path');
+
 const Electron = require('electron');
 const { default : Vditor } = require('vditor');
 
-const Notification = require('./js/notification');
-const leftOutline = require('./js/leftOutline');
+const Notification = require('./common/notification');
 
 function createMainApp(width, height) {
     const winMain = new Electron.BrowserWindow({
@@ -16,21 +16,22 @@ function createMainApp(width, height) {
         webPreferences: {
             nodeIntegration: true,
             contextIsolation: false,
-            preload: path.join(__dirname, 'preload.js')
+            devTools: true,
+            preload: path.join(__dirname + '/utils', 'preload.js')
         },
 
         show : false, 
         frame: false
     });
 
-    const view = new Electron.BrowserView();
-    winMain.setBrowserView(view);
-    view.setBounds( {x:0, y:0, width:300, height:300 } );
-    view.webContents.loadURL('https://electronjs.org');
-    
     winMain.loadFile('./src/index.html');
     winMain.once('ready-to-show', () => {
         winMain.show();
+    })
+
+    /* testing purpose */
+    Electron.ipcMain.on('test', () => {
+        console.log("test");
     })
 
     Electron.ipcMain.on('minApp', () => {

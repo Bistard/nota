@@ -1,0 +1,38 @@
+.funcText {
+    cursor: pointer;
+    user-select: none; 
+}
+
+.pureText {
+    user-select: none; /* cannot select character */
+}
+
+.vertical-center {
+    margin: 0;
+    position: relative;
+    top: 50%;
+    -ms-transform: translateY(-50%);
+    transform: translateY(-50%);
+}
+
+.topButton {
+    -webkit-app-region: no-drag;
+    background-color: white;
+    background-repeat: no-repeat;
+    background-position: center;
+    transition: 0.2s;
+    cursor: pointer;
+}
+
+.toggleButton {
+    border: none;
+    outline: none;
+}
+
+.toggleButton:hover {
+    background-color: darkgrey;
+}
+
+.toggleButton:active {
+    background-color: black;
+}

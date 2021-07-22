@@ -7,35 +7,49 @@
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'">
   <meta http-equiv="X-Content-Security-Policy" content="default-src 'self'; script-src 'self'">
   
-  <link rel="stylesheet" href="./css/contentArea.css">
-  <link rel="stylesheet" href="./css/titleBar.css">
+  <link rel="stylesheet" href="./index.css">
+  <link rel="stylesheet" href="./css/common.css">
+  <link rel="stylesheet" href="./css/folderView/folderView.css">
+  <link rel="stylesheet" href="./css/titleBar/titleBar.css">
 
   <title>Markdown Note</title>
 </head>
 
 <body>
-  <script defer src="./js/titleBar.js"></script>
-
+  <!-- 'defer' specifies the script is executed when the page has finished parsing. -->
+  <script defer src="./layout/titleBar.js"></script>
+  <script defer src="./layout/folderView/folderView.js"></script>
+  <!-- BUG: only the first loaded .js file will work -->
+  
   <div id="mainApp">
 
     <div id="titleBar">
       <div id="toolBar">
-        <button id="menu" class="toggleButton"></button>
+        <button id="menu" class="topButton toggleButton"></button>
       </div>
 
-      <div id="titleText">
+      <div id="titleText" class="pureText">
         Markdown Note
       </div>
       
       <div id="titleBarButtons">
-        <button id="minButton" class="toggleButton"></button>
-        <button id="maxButton" class="toggleButton"></button>
-        <button id="closeButton" class="toggleButton"></button>
+        <button id="minButton" class="topButton toggleButton"></button>
+        <button id="maxButton" class="topButton toggleButton"></button>
+        <button id="closeButton" class="topButton toggleButton"></button>
       </div>  
     </div>
 
     <div id="contentArea">
-      <div id="leftOutline">
+      <div id="folderView">
+        <div id="folderNavBar">
+          <div id="folderButton">
+            <div class="vertical-center funcText">Files</div>
+          </div>
+          <div id="outlineButton">
+            <div class="vertical-center funcText">Outline</div>
+          </div>
+        </div>
+        <div id="folderTree" class="vertical-center funcText">open a folder</div>
       </div>
   
       <div id="rightMarkdown">

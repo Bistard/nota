@@ -24,6 +24,7 @@
     "electron": "^13.1.7"
   },
   "dependencies": {
+    "animate.css": "^4.1.1",
     "vditor": "^3.8.6"
   }
 }
