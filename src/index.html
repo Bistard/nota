@@ -6,16 +6,46 @@
   <!-- https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP -->
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'">
   <meta http-equiv="X-Content-Security-Policy" content="default-src 'self'; script-src 'self'">
-  <title>Hello World!</title>
+  
+  <link rel="stylesheet" href="./css/contentArea.css">
+  <link rel="stylesheet" href="./css/titleBar.css">
+
+  <title>MarkdownNote</title>
 </head>
 
 <body>
-  <!-- <script type="module" src="./js/notification.js"></script> -->
+  <script defer src="./js/titleBarFunction.js"></script>
 
-  <h1>Hello World!</h1>
-  I am using Node.js <span id="node-version"></span>,
-  Chromium <span id="chrome-version"></span>,
-  and Electron <span id="electron-version"></span>,
-  and vditor <span id="vditor-version"></span>.
+  <div class="mainApp">
 
+    <div class="titleBar">
+
+      <div class="toolBar">
+        <button id="menu" class="toggleButton"></button>
+      </div>
+
+      <div id="titleText">
+        Markdown Note
+      </div>
+      
+      <div class="titleBarButtons">
+        <button id="minButton" class="toggleButton"></button>
+        <button id="maxButton" class="toggleButton"></button>
+        <button id="closeButton" class="toggleButton"></button>
+      </div>  
+
+    </div>
+
+    <div class="contentArea">
+      <div id="leftOutline">
+        
+      </div>
+  
+      <div id="rightMarkdown">
+        
+      </div>
+    </div>
+
+  </div>
+  
 </body>
