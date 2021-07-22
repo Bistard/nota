@@ -17,12 +17,11 @@ function createWindow() {
         },
 
         show : false, 
-        titleBarStyle: 'customButtonsOnHover', 
         frame: false
     });
     
-    WINDOW.show();
     WINDOW.loadFile('./src/index.html');
+    WINDOW.show();
 
     Electron.ipcMain.on('minApp', () => {
         WINDOW.minimize();
