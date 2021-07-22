@@ -1,9 +1,11 @@
 const { ipcRenderer } = require('electron');
 
+const titleBar = document.getElementById('titleBar');
 const leftOutline = document.getElementById('leftOutline');
 
 var isLeftOutlineActive = true;
 
+// titleBar listener
 minButton.addEventListener('click', () => {
     ipcRenderer.send('minApp');
 })

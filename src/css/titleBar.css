@@ -17,7 +17,7 @@
     background-color: black;
 }
 
-.mainApp > .titleBar {
+div[id="mainApp"] > div[id="titleBar"] {
     display: grid;
     grid-template-columns: 1fr 1fr 1fr;
     width: 100%;
@@ -29,14 +29,14 @@
     -webkit-app-region: drag; /* draggable */
 }
 
-.titleBar > .toolBar {
+div[id="titleBar"] > div[id="toolBar"] {
     display: flex;
     flex-direction: row;
     align-items: center;
     width: 100%;
 }
 
-.toolBar > button[id="menu"] {
+div[id="toolBar"] > button[id="menu"] {
     margin: 10px;
     width: 25px;
     height: 25px;
@@ -45,14 +45,14 @@
     -webkit-mask-repeat: no-repeat;
 }
 
-.titleBar > div[id="titleText"] {
+div[id="titleBar"] > div[id="titleText"] {
     text-align: center;
     line-height: 40px;
     font-size: large;
 }
 
 
-.titleBar > .titleBarButtons {
+div[id="titleBar"] > div[id="titleBarButtons"] {
     position: absolute;
     right: 0px;
     width: auto;
@@ -62,7 +62,7 @@
     align-items: center;
 }
 
-.titleBarButtons > button[id="minButton"] {
+div[id="titleBarButtons"] > button[id="minButton"] {
     margin: 10px;
     width: 15px;
     height: 15px;
@@ -71,7 +71,7 @@
     -webkit-mask-repeat: no-repeat;
 }
 
-.titleBarButtons > button[id="maxButton"] {
+div[id="titleBarButtons"] > button[id="maxButton"] {
     margin: 10px;
     width: 15px;
     height: 15px;
@@ -80,7 +80,7 @@
     -webkit-mask-repeat: no-repeat;  
 }
 
-.titleBarButtons > button[id="closeButton"] {
+div[id="titleBarButtons"] > button[id="closeButton"] {
     margin: 10px;
     width: 15px;
     height: 15px;

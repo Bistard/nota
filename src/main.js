@@ -29,7 +29,9 @@ function createMainApp(width, height) {
     view.webContents.loadURL('https://electronjs.org');
     
     winMain.loadFile('./src/index.html');
-    winMain.show();
+    winMain.once('ready-to-show', () => {
+        winMain.show();
+    })
 
     Electron.ipcMain.on('minApp', () => {
         winMain.minimize();
