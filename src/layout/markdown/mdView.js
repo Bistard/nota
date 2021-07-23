@@ -2,98 +2,13 @@
 
 import '../../../node_modules/vditor/dist/index.css';
 
-menuButton.addEventListener('click', () => {
+menuBtn.addEventListener('click', () => {
     ipcRenderer.send('test');
 }) */
+const { ipcRenderer } = require('electron');
 
-const md = document.getElementById('md');
-
-window.onload = function () {
-    var vditor = new Vditor(md, {
-        toolbar,
-        mode: 'wysiwyg',
-        height: window.innerHeight + 100,
-        outline: {
-            enable: true,
-            position: 'right',
-        },
-        cache: {
-            id: 'vditor'
-        },
-        debugger: true,
-        typewriterMode: true,
-        placeholder: 'Hello, Vditor!',
-        preview: {
-            markdown: {
-                toc: true,
-                mark: true,
-                footnotes: true,
-                autoSpace: true,
-            },
-            math: {
-                engine: 'KaTeX',
-            },
-        },
-        toolbarConfig: {
-            pin: true,
-        },
-        counter: {
-            enable: true,
-            type: 'text',
-        },
-        hint: {
-            emojiPath: 'https://cdn.jsdelivr.net/npm/vditor@1.8.3/dist/images/emoji',
-            emojiTail: '<a href="https://ld246.com/settings/function" target="_blank">设置常用表情</a>',
-            emoji: {
-                'sd': '💔',
-                'j': 'https://unpkg.com/vditor@1.3.1/dist/images/emoji/j.png',
-            },
-            parse: false,
-            extend: [
-                {
-                    key: '@',
-                    hint: (key) => {
-                        console.log(key)
-                        if ('vanessa'.indexOf(key.toLocaleLowerCase()) > -1) {
-                            return [
-                                {
-                                    value: '@Vanessa',
-                                    html: '<img src="https://avatars0.githubusercontent.com/u/970828?s=60&v=4"/> Vanessa',
-                                }]
-                        }
-                        return []
-                    },
-                },
-                {
-                    key: '#',
-                    hint: (key) => {
-                        console.log(key)
-                        if ('vditor'.indexOf(key.toLocaleLowerCase()) > -1) {
-                            return [
-                                {
-                                    value: '#Vditor',
-                                    html: '<span style="color: #999;">#Vditor</span> ♏ 一款浏览器端的 Markdown 编辑器，支持所见即所得（富文本）、即时渲染（类似 Typora）和分屏预览模式。',
-                                }]
-                        }
-                        return []
-                    },
-                }],
-        },
-        tab: '\t',
-        upload: {
-            accept: 'image/*,.mp3, .wav, .rar',
-            token: 'test',
-            url: '/api/upload/editor',
-            linkToImgUrl: '/api/upload/fetch',
-            filename(name) {
-                return name.replace(/[^(a-zA-Z0-9\u4e00-\u9fa5\.)]/g, '').
-                    replace(/[\?\\/:|<>\*\[\]\(\)\$%\{\}@~]/g, '').
-                    replace('/\\s/g', '')
-            },
-        },
-    })
-    md.append(vditor);
-}
+const markdown = document.getElementById('md');
+const vditorToolBar = markdown.firstChild;
 
 let toolbar;
 if (window.innerWidth < 768) {
@@ -141,3 +56,102 @@ if (window.innerWidth < 768) {
         }]
 }
 
+window.onload = function () {
+    window.vditor = new Vditor(markdown, {
+        toolbar,
+        toolbarConfig: {
+            hide: false,
+            pin: true,
+        },
+        mode: 'ir',
+        height: window.innerHeight,
+        width: 'auto',
+        outline: {
+            enable: false,
+            position: 'right',
+        },
+        cache: {
+            enable: true,
+            id: 'vditor'
+        },
+        comment: {
+            enable: false,
+        },
+        debugger: true,
+        typewriterMode: true,
+        placeholder: 'Hello, MarkdownNote!',
+        preview: {
+            mode: 'editor',
+            hljs: {
+                enable: true,
+                style: 'github',
+                lineNumber: true,
+            },
+            markdown: {
+                toc: true,
+                mark: true,
+                footnotes: true,
+                autoSpace: true,
+            },
+            math: {
+                engine: 'KaTeX',
+            },
+        },
+        counter: {
+            enable: true,
+            type: 'text',
+        },
+        hint: {
+            emojiPath: 'https://cdn.jsdelivr.net/npm/vditor@1.8.3/dist/images/emoji',
+            emojiTail: '<a href="https://ld246.com/settings/function" target="_blank">设置常用表情</a>',
+            emoji: {
+                'sd': '💔',
+                'j': 'https://unpkg.com/vditor@1.3.1/dist/images/emoji/j.png',
+            },
+            parse: false,
+            extend: [
+                {
+                    key: '@',
+                    hint: (key) => {
+                        console.log(key)
+                        if ('vanessa'.indexOf(key.toLocaleLowerCase()) > -1) {
+                            return [
+                                {
+                                    value: '@Vanessa',
+                                    html: '<img src="https://avatars0.githubusercontent.com/u/970828?s=60&v=4"/> Vanessa',
+                                }]
+                        }
+                        return []
+                    },
+                },
+                {
+                    key: '#',
+                    hint: (key) => {
+                        console.log(key)
+                        if ('vditor'.indexOf(key.toLocaleLowerCase()) > -1) {
+                            return [
+                                {
+                                    value: '#Vditor',
+                                    html: '<span style="color: #999;">#Vditor</span> ♏ 一款浏览器端的 Markdown 编辑器，支持所见即所得（富文本）、即时渲染（类似 Typora）和分屏预览模式。',
+                                }]
+                        }
+                        return []
+                    },
+                }],
+        },
+        tab: '\t',
+        icon: 'material',
+        upload: {
+            accept: 'image/*,.mp3, .wav, .rar',
+            token: 'test',
+            url: '/api/upload/editor',
+            linkToImgUrl: '/api/upload/fetch',
+            filename(name) {
+                return name.replace(/[^(a-zA-Z0-9\u4e00-\u9fa5\.)]/g, '').
+                    replace(/[\?\\/:|<>\*\[\]\(\)\$%\{\}@~]/g, '').
+                    replace('/\\s/g', '')
+            },
+        },
+    })
+    markdown.append(window.vditor);
+}

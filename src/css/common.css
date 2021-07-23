@@ -15,24 +15,21 @@
     transform: translateY(-50%);
 }
 
-.topButton {
+.toggleBtn {
     -webkit-app-region: no-drag;
     background-color: white;
     background-repeat: no-repeat;
     background-position: center;
     transition: 0.2s;
     cursor: pointer;
-}
-
-.toggleButton {
     border: none;
     outline: none;
 }
 
-.toggleButton:hover {
+.toggleBtn:hover {
     background-color: darkgrey;
 }
 
-.toggleButton:active {
+.toggleBtn:active {
     background-color: black;
 }

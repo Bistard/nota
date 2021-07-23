@@ -10,8 +10,8 @@ function createMainApp(width, height) {
     const winMain = new Electron.BrowserWindow({
         width: width,
         height: height,
-        minWidth: 600,
-        minHeight: 400,
+        minWidth: 300,
+        minHeight: 200,
 
         webPreferences: {
             nodeIntegration: true,
@@ -36,17 +36,30 @@ function createMainApp(width, height) {
         console.log("test");
     })
 
+    Electron.ipcMain.on('test', (event, data) => {
+        console.log(data);
+    })
+
     Electron.ipcMain.on('minApp', () => {
         winMain.minimize();
     })
 
-    Electron.ipcMain.on('maxApp', () => {
+    Electron.ipcMain.on('maxResApp', () => {
         if (winMain.isMaximized()) {
             winMain.restore();
         } else {
             winMain.maximize();
         }
     })
+
+    winMain.on('maximize', () => {
+        winMain.webContents.send('isMaximized');
+    })
+
+    winMain.on('unmaximize', () => {
+        winMain.webContents.send('isRestored');
+    })
+
 
     Electron.ipcMain.on('closeApp', () => {
         winMain.close();
@@ -83,8 +96,8 @@ Electron.app.on('window-all-closed', function () {
     }
 })
 
-const rootdir = 'D:\\dev\\MarkdownNote'; /* testing */
 function scanDirectory(window) {
+    const rootdir = 'D:\\dev\\MarkdownNote'; /* testing */
     walkdir('src', {})
         .on('file', (fn, stat) => {
             window.webContents.send('file', fn.slice(rootdir.length + 1), stat);

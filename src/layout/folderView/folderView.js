@@ -1,10 +1,10 @@
 var isFileClicked = true;
 var isOutlineClicked = false;
 
-const folderButton = document.getElementById('folderButton');
-const outlineButton = document.getElementById('outlineButton');
+const folderBtn = document.getElementById('folderBtn');
+const outlineBtn = document.getElementById('outlineBtn');
 
-buttonSelected(folderButton, outlineButton);
+buttonSelected(folderBtn, outlineBtn);
 
 function buttonSelected (button, others) {
     button.style.color = '#65655F';
@@ -16,19 +16,19 @@ function buttonSelected (button, others) {
     others.style.borderBottom = '4px solid transparent';
 }
 
-folderButton.addEventListener('click', () => {
+folderBtn.addEventListener('click', () => {
     if (isFileClicked == false) {
         isFileClicked = true;
         isOutlineClicked = false;
-        buttonSelected(folderButton, outlineButton);
+        buttonSelected(folderBtn, outlineBtn);
     }
 })
 
-outlineButton.addEventListener('click', () => {
+outlineBtn.addEventListener('click', () => {
     if (isOutlineClicked == false) {
         isOutlineClicked = true;
         isFileClicked = false;
-        buttonSelected(outlineButton, folderButton);
+        buttonSelected(outlineBtn, folderBtn);
     }
 })
 

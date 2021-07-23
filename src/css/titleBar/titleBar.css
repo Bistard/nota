@@ -2,7 +2,7 @@ div[id="mainApp"] > div[id="titleBar"] {
     display: grid;
     grid-template-columns: 1fr 1fr 1fr;
     width: 100%;
-    height: 40px;
+    height: 30px;
     /* border-bottom: 3px solid #474747; */
     background-color: #65655F;
     
@@ -14,12 +14,13 @@ div[id="titleBar"] > div[id="toolBar"] {
     flex-direction: row;
     align-items: center;
     width: 100%;
+    height: 30px;
 }
 
-div[id="toolBar"] > button[id="menuButton"] {
+div[id="toolBar"] > button[id="menuBtn"] {
     margin: 10px;
-    width: 25px;
-    height: 25px;
+    width: 18px;
+    height: 18px;
     -webkit-mask-image: url(../../assets/icons/menu.svg);
     -webkit-mask-size: cover;
     -webkit-mask-repeat: no-repeat;
@@ -28,44 +29,42 @@ div[id="toolBar"] > button[id="menuButton"] {
 div[id="titleBar"] > div[id="titleText"] {
     color: rgb(214, 214, 214);
     text-align: center;
-    line-height: 40px;
+    line-height: 30px;
     font-size: 14px;
 }
 
 
-div[id="titleBar"] > div[id="titleBarButtons"] {
+div[id="titleBar"] > div[id="titleBarBtns"] {
     position: absolute;
     right: 0px;
     width: auto;
-    height: 40px;
+    height: 30px;
     display: flex;
     flex-direction: row;
     align-items: center;
 }
 
-div[id="titleBarButtons"] > button[id="minButton"] {
-    margin: 10px;
-    width: 15px;
-    height: 15px;
+.titleFuncBtn {
+    margin: 5px;
+    margin-right: 25px;
+    width: 12px;
+    height: 12px;
+    -webkit-mask-size: cover;
+    -webkit-mask-repeat: no-repeat;
+}
+
+.minBtn {
     -webkit-mask-image: url(../../assets/icons/min.svg);
-    -webkit-mask-size: cover;
-    -webkit-mask-repeat: no-repeat;
 }
 
-div[id="titleBarButtons"] > button[id="maxButton"] {
-    margin: 10px;
-    width: 15px;
-    height: 15px;
-    -webkit-mask-image: url(../../assets/icons/max.svg);
-    -webkit-mask-size: cover;
-    -webkit-mask-repeat: no-repeat;  
+.maxBtn {
+    -webkit-mask-image: url(../../assets/icons/max.svg);  
 }
 
-div[id="titleBarButtons"] > button[id="closeButton"] {
-    margin: 10px;
-    width: 15px;
-    height: 15px;
-    -webkit-mask-image: url(../../assets/icons/close.svg);
-    -webkit-mask-size: cover;
-    -webkit-mask-repeat: no-repeat;
+.restoreBtn {
+    -webkit-mask-image: url(../../assets/icons/max-restore.svg);  
+}
+
+.closeBtn {
+    -webkit-mask-image: url(../../assets/icons/close.svg);   
 }

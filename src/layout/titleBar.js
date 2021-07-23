@@ -1,25 +1,39 @@
 const { ipcRenderer } = require('electron');
 
+const maxBtn = document.getElementById('maxBtn');
 const folderView = document.getElementById('folderView');
 let folderViewChilds = Array.from(folderView.childNodes);
 
 var isfolderViewActive = true;
 
 // titleBar listener
-minButton.addEventListener('click', () => {
+minBtn.addEventListener('click', () => {
     ipcRenderer.send('minApp');
 })
 
-maxButton.addEventListener('click', () => {
-    ipcRenderer.send('maxApp');
+maxBtn.addEventListener('click', () => {
+    ipcRenderer.send('maxResApp');
 })
 
-closeButton.addEventListener('click', () => {
+closeBtn.addEventListener('click', () => {
     ipcRenderer.send('closeApp');
 })
 
-// menuButton listener
-menuButton.addEventListener('click', () => {
+function changeMaxResBtn(isMaxApp) {
+    if (isMaxApp) {
+        maxBtn.classList.remove('maxBtn');
+        maxBtn.classList.add('restoreBtn');
+    } else {
+        maxBtn.classList.remove('restoreBtn');
+        maxBtn.classList.add('maxBtn');
+    }
+}
+
+ipcRenderer.on('isMaximized', () => { changeMaxResBtn(true) })
+ipcRenderer.on('isRestored', () => { changeMaxResBtn(false) })
+
+// menuBtn listener
+menuBtn.addEventListener('click', () => {
     if (isfolderViewActive) {
         closeMenu();
     } else {
