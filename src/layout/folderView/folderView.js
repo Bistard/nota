@@ -8,6 +8,7 @@ const folderBtn = document.getElementById('folderBtn');
 const outlineBtn = document.getElementById('outlineBtn');
 const emptyFolderTag = document.getElementById('emptyFolderTag');
 const folderView = document.getElementById('folderView');
+const markdownView = document.getElementById('mdView');
 
 folderBtnSelected(true);
 
@@ -24,7 +25,7 @@ function folderBtnSelected(isFolderSelected) {
         outlineBtn.style.color = '#9f9f95';
         outlineBtn.style.fontWeight = 'normal';
         outlineBtn.style.borderBottom = '4px solid transparent';
-        
+
         emptyFolderTag.addEventListener('click', openNewFolder)
     } else {
         outlineBtn.style.color = '#65655F';
@@ -54,3 +55,22 @@ outlineBtn.addEventListener('click', () => {
         folderBtnSelected(false);
     }
 })
+
+// resizing folderView
+var m_pos;
+const resize = document.getElementById("resize");
+
+function resizeFolderView(e) {
+    var dx = m_pos - e.x;
+    m_pos = e.x;
+    folderView.style.width = (parseInt(getComputedStyle(folderView, '').width) - dx) + "px";
+}
+
+resize.addEventListener("mousedown", function (e) {
+    m_pos = e.x;
+    document.addEventListener("mousemove", resizeFolderView, false);
+}, false);
+
+document.addEventListener("mouseup", function () {
+    document.removeEventListener("mousemove", resizeFolderView, false);
+}, false);
