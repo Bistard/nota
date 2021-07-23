@@ -24,14 +24,22 @@ closeButton.addEventListener('click', () => {
 // menu listener
 menu.addEventListener('click', () => {
     if (isfolderViewActive) {
-        folderView.style.width = '0px';
-        folderView.innerHTML = '';
-        isfolderViewActive = false;
+        closeMenu();
     } else {
-        folderView.style.width = '300px';
-        for (let i in folderViewChilds) {
-            folderView.appendChild(folderViewChilds[i]);
-        }
-        isfolderViewActive = true;
+        openMenu();
     }
 })
+
+function closeMenu() {
+    folderView.style.width = '0px';
+    folderView.innerHTML = '';
+    isfolderViewActive = false;
+}
+
+function openMenu() {
+    folderView.style.width = '300px';
+    for (let i in folderViewChilds) {
+        folderView.appendChild(folderViewChilds[i]);
+    }
+    isfolderViewActive = true;
+}
