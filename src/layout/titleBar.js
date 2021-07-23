@@ -2,7 +2,9 @@ const { ipcRenderer } = require('electron');
 
 const titleBar = document.getElementById('titleBar');
 const folderView = document.getElementById('folderView');
+let folderViewChilds = Array.from(folderView.childNodes);
 const folderNavBar = document.getElementById('folderNavBar');
+const folderTree = document.getElementById('folderTree');
 
 var isfolderViewActive = true;
 
@@ -23,23 +25,13 @@ closeButton.addEventListener('click', () => {
 menu.addEventListener('click', () => {
     if (isfolderViewActive) {
         folderView.style.width = '0px';
-        closeMenu();
+        folderView.innerHTML = '';
         isfolderViewActive = false;
     } else {
         folderView.style.width = '300px';
-        openMenu();
+        for (let i in folderViewChilds) {
+            folderView.appendChild(folderViewChilds[i]);
+        }
         isfolderViewActive = true;
     }
 })
-
-// BUG
-
-function closeMenu(folderView) {
-    while (folderView.firstChild) {
-        folderView.removeChild(element.firstChild);
-    }
-}
-
-function openMenu(folderView) {
-    folderView.appendChild(folderNavBar);
-}

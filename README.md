@@ -5,7 +5,7 @@ An open-sourced markdown editor.
 * [x] config
   * [ ] loading config
 * [x] titleBar
-  * [ ] bug: cannot remove menu properly
+  * [x] ~~bug: cannot remove menu properly~~
   * [x] icon
     * [ ] switch mask-image to sth else
     * [x] maxButton
