@@ -32,12 +32,25 @@ div[id="folderNavBar"] > *:active {
 }
 
 div[id="folderTree"] {
+    width: auto;
+    height: 100%;
+}
+
+div[id="emptyFolderTag"] {
     color: transparent;
+    font-size: 10pt;
     text-align: center;
     transition: 0.1s;
 }
 
-div[id="folderView"]:hover > div[id="folderTree"] {
-    font-size: 10pt;
+div[id="folderTree"]:hover > div[id="emptyFolderTag"] {
+    color: black;
+}
+
+div[id="folderTree"]:hover > div[id="emptyFolderTag"]:hover {
+    color: rgb(202, 202, 202);
+}
+
+div[id="folderTree"]:hover > div[id="emptyFolderTag"]:active {
     color: black;
 }

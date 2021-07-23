@@ -1,18 +1,22 @@
+const { ipcRenderer } = require('electron');
+const ipc = ipcRenderer;
+
 var isFileClicked = true;
 var isOutlineClicked = false;
 
 const folderBtn = document.getElementById('folderBtn');
 const outlineBtn = document.getElementById('outlineBtn');
-const folderTree = document.getElementById('folderTree');
+const emptyFolderTag = document.getElementById('emptyFolderTag');
+const folderView = document.getElementById('folderView');
 
-folderBtnSelected(folderBtn, outlineBtn);
+folderBtnSelected(true);
 
 function folderBtnSelected(isFolderSelected) {
     if (isFolderSelected) {
         folderBtn.style.color = '#65655F';
         folderBtn.style.fontWeight = 'bold';
         folderBtn.style.borderBottom = '4px solid #5b5b55';
-        folderTree.innerHTML = 'open a folder';
+        emptyFolderTag.innerHTML = 'open a folder';
         outlineBtn.style.color = '#9f9f95';
         outlineBtn.style.fontWeight = 'normal';
         outlineBtn.style.borderBottom = '4px solid transparent';
@@ -20,7 +24,7 @@ function folderBtnSelected(isFolderSelected) {
         outlineBtn.style.color = '#65655F';
         outlineBtn.style.fontWeight = 'bold';
         outlineBtn.style.borderBottom = '4px solid #5b5b55';
-        folderTree.innerHTML = 'outline is empty';
+        emptyFolderTag.innerHTML = 'outline is empty';
         folderBtn.style.color = '#9f9f95';
         folderBtn.style.fontWeight = 'normal';
         folderBtn.style.borderBottom = '4px solid transparent';
@@ -43,3 +47,6 @@ outlineBtn.addEventListener('click', () => {
     }
 })
 
+emptyFolderTag.addEventListener('click', () => {
+    ipc.send('openNewFolder');
+})

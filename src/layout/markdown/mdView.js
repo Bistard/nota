@@ -1,11 +1,5 @@
-/* const { default: Vditor } = require('vditor');
-
-import '../../../node_modules/vditor/dist/index.css';
-
-menuBtn.addEventListener('click', () => {
-    ipcRenderer.send('test');
-}) */
 const { ipcRenderer } = require('electron');
+const ipc = ipcRenderer;
 
 const markdown = document.getElementById('md');
 const vditorToolBar = markdown.firstChild;

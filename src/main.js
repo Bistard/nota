@@ -3,8 +3,10 @@ const path = require('path');
 const walkdir = require('walkdir');
 
 const Electron = require('electron');
+const globalShortcut = Electron.globalShortcut;
 
 const Notification = require('./common/notification');
+const Config = require('./config');
 
 function createMainApp(width, height) {
     const winMain = new Electron.BrowserWindow({
@@ -28,6 +30,7 @@ function createMainApp(width, height) {
     scanDirectory(winMain);
 
     winMain.once('ready-to-show', () => {
+        /* Electron.dialog.showOpenDialog(); */
         winMain.show();
     })
 
@@ -60,9 +63,16 @@ function createMainApp(width, height) {
         winMain.webContents.send('isRestored');
     })
 
-
     Electron.ipcMain.on('closeApp', () => {
         winMain.close();
+    })
+
+    Electron.ipcMain.on('openNewFolder', () => {
+        Electron.dialog.showOpenDialog(winMain, 
+            Config.OpenFolderDialogConfig
+            ).then((result) => {
+            console.warn("result", result);
+        });
     })
 
     return winMain;
