@@ -21,8 +21,8 @@ closeButton.addEventListener('click', () => {
     ipcRenderer.send('closeApp');
 })
 
-// menu listener
-menu.addEventListener('click', () => {
+// menuButton listener
+menuButton.addEventListener('click', () => {
     if (isfolderViewActive) {
         closeMenu();
     } else {

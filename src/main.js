@@ -2,7 +2,6 @@ const OS = require('os');
 const path = require('path');
 
 const Electron = require('electron');
-const { default : Vditor } = require('vditor');
 
 const Notification = require('./common/notification');
 
@@ -29,9 +28,11 @@ function createMainApp(width, height) {
         winMain.show();
     })
 
+    winMain.vditor = 5;
+
     /* testing purpose */
     Electron.ipcMain.on('test', () => {
-        console.log("test");
+        console.log(winMain.vditor);
     })
 
     Electron.ipcMain.on('minApp', () => {

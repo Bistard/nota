@@ -1,7 +1,7 @@
 # MarkdownNote
 An open-sourced markdown editor.
 
-# coming up
+# to do
 * [x] config
   * [ ] loading config
 * [x] titleBar
@@ -18,7 +18,8 @@ An open-sourced markdown editor.
 * [x] rightMarkdown
   * [ ] vditor preview
 * [x] preload.js
-  * [ ] error: winMian is not found
+  * [x] error: winMian is not found
+  * [ ] create a MarkdownNoteClass
 
 # ChangeLog
 * 💙 => 'debug'

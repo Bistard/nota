@@ -19,13 +19,13 @@
   <!-- 'defer' specifies the script is executed when the page has finished parsing. -->
   <script defer src="./layout/titleBar.js"></script>
   <script defer src="./layout/folderView/folderView.js"></script>
-  <!-- BUG: only the first loaded .js file will work -->
+  <script defer src="./layout/editor/editorView.js"></script>
   
   <div id="mainApp">
 
     <div id="titleBar">
       <div id="toolBar">
-        <button id="menu" class="topButton toggleButton"></button>
+        <button id="menuButton" class="topButton toggleButton"></button>
       </div>
 
       <div id="titleText" class="pureText">

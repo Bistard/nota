@@ -16,7 +16,7 @@ div[id="titleBar"] > div[id="toolBar"] {
     width: 100%;
 }
 
-div[id="toolBar"] > button[id="menu"] {
+div[id="toolBar"] > button[id="menuButton"] {
     margin: 10px;
     width: 25px;
     height: 25px;
