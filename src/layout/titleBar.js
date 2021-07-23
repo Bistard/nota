@@ -1,10 +1,7 @@
 const { ipcRenderer } = require('electron');
 
-const titleBar = document.getElementById('titleBar');
 const folderView = document.getElementById('folderView');
 let folderViewChilds = Array.from(folderView.childNodes);
-const folderNavBar = document.getElementById('folderNavBar');
-const folderTree = document.getElementById('folderTree');
 
 var isfolderViewActive = true;
 

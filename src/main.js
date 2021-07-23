@@ -1,5 +1,6 @@
 const OS = require('os');
 const path = require('path');
+const walkdir = require('walkdir');
 
 const Electron = require('electron');
 
@@ -11,7 +12,7 @@ function createMainApp(width, height) {
         height: height,
         minWidth: 600,
         minHeight: 400,
-        
+
         webPreferences: {
             nodeIntegration: true,
             contextIsolation: false,
@@ -19,20 +20,20 @@ function createMainApp(width, height) {
             preload: path.join(__dirname + '/utils', 'preload.js')
         },
 
-        show : false, 
+        show: false,
         frame: false
     });
 
     winMain.loadFile('./src/index.html');
+    scanDirectory(winMain);
+
     winMain.once('ready-to-show', () => {
         winMain.show();
     })
 
-    winMain.vditor = 5;
-
     /* testing purpose */
     Electron.ipcMain.on('test', () => {
-        console.log(winMain.vditor);
+        console.log("test");
     })
 
     Electron.ipcMain.on('minApp', () => {
@@ -46,11 +47,11 @@ function createMainApp(width, height) {
             winMain.maximize();
         }
     })
-    
+
     Electron.ipcMain.on('closeApp', () => {
         winMain.close();
     })
-    
+
     return winMain;
 }
 
@@ -66,6 +67,11 @@ Electron.app.whenReady().then(() => {
         }
     })
 
+    // This catches any unhandle promise rejection errors
+    process.on('unhandledRejection', (reason, p) => {
+        console.error(`Unhandled Rejection at: ${util.inspect(p)} reason: ${reason}`);
+    });
+
 })
 
 // Quit when all windows are closed, except on macOS. There, it's common
@@ -76,3 +82,21 @@ Electron.app.on('window-all-closed', function () {
         Electron.app.quit();
     }
 })
+
+const rootdir = 'D:\\dev\\MarkdownNote'; /* testing */
+function scanDirectory(window) {
+    walkdir('src', {})
+        .on('file', (fn, stat) => {
+            window.webContents.send('file', fn.slice(rootdir.length + 1), stat);
+        })
+        .on('directory', (fn, stat) => {
+            window.webContents.send('directory', fn.slice(rootdir.length + 1), stat);
+        })
+        .on('error', (fn, err) => {
+            console.error(`!!!! ${fn} ${err}`);
+        });
+    
+    Electron.ipcMain.on('rescan-directory', () => {
+        scanDirectory();
+    });
+}

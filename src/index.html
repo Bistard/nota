@@ -2,25 +2,29 @@
 <html>
 
 <head>
+  <title>Markdown Note</title>
+
   <meta charset="UTF-8">
   <!-- https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP -->
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'">
-  <meta http-equiv="X-Content-Security-Policy" content="default-src 'self'; script-src 'self'">
+  <!-- <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'">
+       <meta http-equiv="X-Content-Security-Policy" content="default-src 'self'; script-src 'self'"> -->
   
   <link rel="stylesheet" href="./index.css">
   <link rel="stylesheet" href="./css/common.css">
   <link rel="stylesheet" href="./css/folderView/folderView.css">
+  <link rel="stylesheet" href="./css/mdView/mdView.css">
   <link rel="stylesheet" href="./css/titleBar/titleBar.css">
-
-  <title>Markdown Note</title>
+  <link rel="stylesheet" href="../node_modules/vditor/dist/index.css" />
+  
+  <!-- 'defer' specifies the script is executed when the page has finished parsing. -->
+  <script defer src="../node_modules/vditor/dist/index.min.js"></script>
+  <script defer type="module" src="./layout/titleBar.js"></script>
+  <script defer type="module" src="./layout/folderView/folderView.js"></script>
+  <script defer type="module" src="./layout/markdown/mdView.js"></script>
+  
 </head>
 
 <body>
-  <!-- 'defer' specifies the script is executed when the page has finished parsing. -->
-  <script defer src="./layout/titleBar.js"></script>
-  <script defer src="./layout/folderView/folderView.js"></script>
-  <script defer src="./layout/editor/editorView.js"></script>
-  
   <div id="mainApp">
 
     <div id="titleBar">
@@ -52,10 +56,14 @@
         <div id="folderTree" class="vertical-center funcText">open a folder</div>
       </div>
   
-      <div id="rightMarkdown">
+      <div id="mdView">
+        <div id="md" class="vditor"></div>
       </div>
     </div>
 
   </div>
-  
+
+<script>
+
+</script>
 </body>
