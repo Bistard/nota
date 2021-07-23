@@ -15,8 +15,9 @@ An open-sourced markdown editor.
 * [x] folderView
   * [ ] interactive size
   * [ ] folder tree view
-* [x] rightMarkdown
-  * [ ] vditor preview
+* [x] mdView
+  * [x] vditor preview
+    * [ ] 
 * [x] preload.js
   * [x] error: winMian is not found
   * [ ] create a MarkdownNoteClass
