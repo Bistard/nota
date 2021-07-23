@@ -7,8 +7,7 @@ An open-sourced markdown editor.
   * [x] icon
     * [ ] switch mask-image to sth else?
     * [x] maxBtn
-      * [ ] maxBtn switch to restoreBtn
-      * [ ] display text on the button when hovering
+      * [x] maxBtn switch to restoreBtn
       * [ ] holding onclick can change to mode 'always on top'
 * [x] folderView
   * [ ] interactive size
