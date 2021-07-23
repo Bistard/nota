@@ -11,6 +11,10 @@ const folderView = document.getElementById('folderView');
 
 folderBtnSelected(true);
 
+function openNewFolder() {
+    ipc.send('openNewFolder');
+}
+
 function folderBtnSelected(isFolderSelected) {
     if (isFolderSelected) {
         folderBtn.style.color = '#65655F';
@@ -20,6 +24,8 @@ function folderBtnSelected(isFolderSelected) {
         outlineBtn.style.color = '#9f9f95';
         outlineBtn.style.fontWeight = 'normal';
         outlineBtn.style.borderBottom = '4px solid transparent';
+        
+        emptyFolderTag.addEventListener('click', openNewFolder)
     } else {
         outlineBtn.style.color = '#65655F';
         outlineBtn.style.fontWeight = 'bold';
@@ -28,6 +34,8 @@ function folderBtnSelected(isFolderSelected) {
         folderBtn.style.color = '#9f9f95';
         folderBtn.style.fontWeight = 'normal';
         folderBtn.style.borderBottom = '4px solid transparent';
+
+        emptyFolderTag.removeEventListener('click', openNewFolder);
     }
 }
 
@@ -45,8 +53,4 @@ outlineBtn.addEventListener('click', () => {
         isFileClicked = false;
         folderBtnSelected(false);
     }
-})
-
-emptyFolderTag.addEventListener('click', () => {
-    ipc.send('openNewFolder');
 })
