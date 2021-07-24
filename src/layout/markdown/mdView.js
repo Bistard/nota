@@ -62,7 +62,7 @@ window.onload = function () {
             position: 'right',
         },
         cache: {
-            enable: true, // BUG: occurs when false
+            enable: false, // BUG: occurs when false
             id: 'vditor'
         },
         comment: {
