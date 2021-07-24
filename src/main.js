@@ -35,10 +35,6 @@ function createMainApp(width, height) {
     })
 
     /* testing purpose */
-    Electron.ipcMain.on('test', () => {
-        console.log("test");
-    })
-
     Electron.ipcMain.on('test', (event, data) => {
         console.log(data);
     })

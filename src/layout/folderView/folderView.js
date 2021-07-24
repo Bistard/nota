@@ -63,8 +63,10 @@ const resize = document.getElementById("resize");
 function resizeFolderView(event) {
     let dx = oldX - event.x;
     oldX = event.x;
-    folderView.style.width = (parseInt(getComputedStyle(folderView, '').width) - dx) + "px";
-    mdView.style.width = (parseInt(getComputedStyle(mdView, '').width) + dx) + "px";
+    let folderViewNewX = parseInt(getComputedStyle(folderView, '').width) - dx;
+    let mdViewNewX = parseInt(getComputedStyle(mdView, '').width) + dx;
+    folderView.style.width = folderViewNewX + "px";
+    mdView.style.width = mdViewNewX + "px";
 }
 
 resize.addEventListener("mousedown", function (event) {
