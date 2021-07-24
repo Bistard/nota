@@ -11,6 +11,7 @@ An open-sourced markdown editor.
       * [ ] holding onclick can change to mode 'always on top'
 * [x] folderView
   * [x] interactive size
+    * [ ] middle three point button style
   * [ ] folder tree view
     * [x] open empty folder dialog
 * [x] mdView
