@@ -56,7 +56,7 @@ window.onload = function () {
         },
         mode: 'ir',
         height: 'auto',
-        width: 'auto',
+        width: 'auto', // BUG: window does not fit the whole window
         outline: {
             enable: false,
             position: 'right',
