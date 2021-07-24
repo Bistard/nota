@@ -1,12 +1,10 @@
+/* 
 const { ipcRenderer } = require('electron');
 const ipc = ipcRenderer;
-
+ */
 const markdown = document.getElementById('md');
-const vditorToolBar = markdown.firstChild;
 
-let toolbar;
-if (window.innerWidth < 768) {
-    toolbar = [
+let toolbar = [
         'emoji',
         'headings',
         'bold',
@@ -48,24 +46,23 @@ if (window.innerWidth < 768) {
                 'help',
             ],
         }]
-}
 
 window.onload = function () {
-    window.vditor = new Vditor(markdown, {
+    let vditor = new Vditor(markdown, {
         toolbar,
         toolbarConfig: {
             hide: false,
-            pin: true,
+            pin: false,
         },
         mode: 'ir',
-        height: window.innerHeight,
+        height: 'auto',
         width: 'auto',
         outline: {
             enable: false,
             position: 'right',
         },
         cache: {
-            enable: true,
+            enable: true, // BUG: occurs when false
             id: 'vditor'
         },
         comment: {
@@ -73,9 +70,9 @@ window.onload = function () {
         },
         debugger: true,
         typewriterMode: true,
-        placeholder: 'Hello, MarkdownNote!',
         preview: {
-            mode: 'editor',
+            mode: 'both',
+            maxWidth: 800,
             hljs: {
                 enable: true,
                 style: 'github',
@@ -147,5 +144,5 @@ window.onload = function () {
             },
         },
     })
-    markdown.append(window.vditor);
+    markdown.append(vditor);
 }

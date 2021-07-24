@@ -4,7 +4,6 @@
     width: 300px;
     height: 100%;
     background-color: #F5F5EE; /* CECEC5 */
-    transition: 0.2s;
 }
 
 #resize {
@@ -32,16 +31,16 @@
     color: #9f9f95;
     text-align: center;
     font-size: 14px;
-    border-bottom: 4px solid transparent;
+    border-bottom: 2px solid transparent;
     transition: 0.2s;
 }
 
 #folderNavBar > *:hover {
-    border-bottom: 4px solid #919188;
+    border-bottom: 2px solid #919188;
 }
 
 #folderNavBar > *:active {
-    border-bottom: 4px solid #5b5b55;
+    border-bottom: 2px solid #5b5b55;
 }
 
 #folderTree {

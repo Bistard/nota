@@ -8,7 +8,7 @@ const folderBtn = document.getElementById('folderBtn');
 const outlineBtn = document.getElementById('outlineBtn');
 const emptyFolderTag = document.getElementById('emptyFolderTag');
 const folderView = document.getElementById('folderView');
-const markdownView = document.getElementById('mdView');
+/* const markdownView = document.getElementById('mdView'); */
 
 folderBtnSelected(true);
 
@@ -20,21 +20,21 @@ function folderBtnSelected(isFolderSelected) {
     if (isFolderSelected) {
         folderBtn.style.color = '#65655F';
         folderBtn.style.fontWeight = 'bold';
-        folderBtn.style.borderBottom = '4px solid #5b5b55';
+        folderBtn.style.borderBottom = '2px solid #5b5b55';
         emptyFolderTag.innerHTML = 'open a folder';
         outlineBtn.style.color = '#9f9f95';
         outlineBtn.style.fontWeight = 'normal';
-        outlineBtn.style.borderBottom = '4px solid transparent';
+        outlineBtn.style.borderBottom = '2px solid transparent';
 
         emptyFolderTag.addEventListener('click', openNewFolder)
     } else {
         outlineBtn.style.color = '#65655F';
         outlineBtn.style.fontWeight = 'bold';
-        outlineBtn.style.borderBottom = '4px solid #5b5b55';
+        outlineBtn.style.borderBottom = '2px solid #5b5b55';
         emptyFolderTag.innerHTML = 'outline is empty';
         folderBtn.style.color = '#9f9f95';
         folderBtn.style.fontWeight = 'normal';
-        folderBtn.style.borderBottom = '4px solid transparent';
+        folderBtn.style.borderBottom = '2px solid transparent';
 
         emptyFolderTag.removeEventListener('click', openNewFolder);
     }
@@ -57,17 +57,17 @@ outlineBtn.addEventListener('click', () => {
 })
 
 // resizing folderView
-var m_pos;
+let oldX;
 const resize = document.getElementById("resize");
 
-function resizeFolderView(e) {
-    var dx = m_pos - e.x;
-    m_pos = e.x;
+function resizeFolderView(event) {
+    let dx = oldX - event.x;
+    oldX = event.x;
     folderView.style.width = (parseInt(getComputedStyle(folderView, '').width) - dx) + "px";
 }
 
-resize.addEventListener("mousedown", function (e) {
-    m_pos = e.x;
+resize.addEventListener("mousedown", function (event) {
+    oldX = event.x;
     document.addEventListener("mousemove", resizeFolderView, false);
 }, false);
 

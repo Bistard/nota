@@ -10,13 +10,16 @@ An open-sourced markdown editor.
       * [x] maxBtn switch to restoreBtn
       * [ ] holding onclick can change to mode 'always on top'
 * [x] folderView
-  * [ ] interactive size
+  * [x] interactive size
   * [ ] folder tree view
+    * [x] open empty folder dialog
 * [x] mdView
   * [x] vditor preview
   * [ ] vditor needs to be rendered before window created
   * [x] tool bar
     * [ ] remove default tool bar
+  * [ ] tab bar
+    * [ ] different color
 * [x] preload.js
   * [x] error: winMian is not found
 * [x] Organiize Code

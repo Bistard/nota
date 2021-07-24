@@ -2,17 +2,17 @@ body {
     margin: 0px;
     padding: 0px;
     font-size: 10pt;
+    background-color: white;
 }
 
 div[id="mainApp"] {
     display: flex;
     flex-direction: column;
     flex-wrap: nowrap;
-    height:100vh;
     width:100vw;
+    height:100vh;
     overflow: hidden;
     box-sizing: border-box;
-    background-color: white;
 }
 
 div[id="contentArea"] {
@@ -20,11 +20,4 @@ div[id="contentArea"] {
     flex-direction: row;
     width: 100%;
     height: 100%;
-}
-
-div[id="mdView"] {
-    width: 100%;
-    height: 100%;
-    /* background-color: #F5F5EE; */
-    background-color: white;
 }
