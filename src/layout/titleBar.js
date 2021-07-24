@@ -40,9 +40,6 @@ menuBtn.addEventListener('click', () => {
     } else {
         openMenu();
     }
-    // testing
-    /* let md = document.getElementById('md');
-    md.style.width = toString(window.innerWidth); */
 })
 
 function closeMenu() {
