@@ -28,6 +28,8 @@ An open-sourced markdown editor.
   * [ ] Settings (Config)
     * [ ] UI
 
+# bugs
+* [ ] disabled vditor cache will displays some weird text
 # ChangeLog
 * 💙 => 'debug'
 * 💛 => 'unstable'

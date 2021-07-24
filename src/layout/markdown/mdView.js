@@ -56,13 +56,13 @@ window.onload = function () {
         },
         mode: 'ir',
         height: 'auto',
-        width: 'auto', // BUG: vditor does not fit the whole window
+        width: 'auto',
         outline: {
             enable: false,
             position: 'right',
         },
         cache: {
-            enable: false, // BUG: occurs when false
+            enable: true, // BUG: occurs when false
             id: 'vditor'
         },
         comment: {

@@ -8,7 +8,7 @@ const folderBtn = document.getElementById('folderBtn');
 const outlineBtn = document.getElementById('outlineBtn');
 const emptyFolderTag = document.getElementById('emptyFolderTag');
 const folderView = document.getElementById('folderView');
-/* const markdownView = document.getElementById('mdView'); */
+const mdView = document.getElementById('mdView');
 
 folderBtnSelected(true);
 
@@ -64,6 +64,7 @@ function resizeFolderView(event) {
     let dx = oldX - event.x;
     oldX = event.x;
     folderView.style.width = (parseInt(getComputedStyle(folderView, '').width) - dx) + "px";
+    mdView.style.width = (parseInt(getComputedStyle(mdView, '').width) + dx) + "px";
 }
 
 resize.addEventListener("mousedown", function (event) {
