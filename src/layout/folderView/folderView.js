@@ -16,6 +16,20 @@ function openNewFolder() {
     ipc.send('openNewFolder')
 }
 
+ipcRenderer.on('openFile', (event, path) => {
+    let rawFile = new XMLHttpRequest()
+    rawFile.open("GET", path, false)
+    rawFile.onreadystatechange = function () {
+        if (rawFile.readyState == 4) {
+            if (rawFile.status == 200 || rawFile.status == 0) {
+                let plainText = rawFile.responseText;
+                window.vditor.insertValue(plainText, true);
+            }
+        }
+    }
+    rawFile.send(null)
+})
+
 function folderBtnSelected(isFolderSelected) {
     if (isFolderSelected) {
         folderBtn.style.color = '#65655F'

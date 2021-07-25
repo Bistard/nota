@@ -68,8 +68,9 @@ function createMainApp(width, height) {
             winMain,
             Config.OpenFolderDialogConfig
         ).then((path) => {
-            console.warn("result", path)
-            Electron.ipcMain.webContents.send(path)
+            if (!path.canceled) {
+                winMain.webContents.send('openFile', 'file:\\\\' + path.filePaths)
+            }
         })
     })
 

@@ -10,7 +10,7 @@ let OpenFolderDialogConfig = {
     properties: [
         'openFile',/* not working here */
         'showHiddenFiles',
-        'openDirectory',
+        /* 'openDirectory', */
     ],
 }
 
