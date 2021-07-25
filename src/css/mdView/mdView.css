@@ -2,8 +2,15 @@ div[id="mdView"] {
     background-color: white;
     width: 100%;
     height: 100%;
+
+    /* Use box-sizing so that element's outerwidth will match width property */
+    box-sizing: border-box; 
+
+    /* Allow view to grow and shrink, and ensure they are all equally sized */
+    flex: 1 1 auto;
 }
 
 div[id="md"] {
+    width: 100%;
     height: 100%;
 }

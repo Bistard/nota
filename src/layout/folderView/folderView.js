@@ -63,6 +63,8 @@ const resize = document.getElementById("resize");
 function resizeFolderView(event) {
     let dx = oldX - event.x;
     oldX = event.x;
+    /* new X has to be calculated first, than concatenates with "px", otherwise
+       the string will be like newX = "1000+2px" and losing accuracy */
     let folderViewNewX = parseInt(getComputedStyle(folderView, '').width) - dx;
     let mdViewNewX = parseInt(getComputedStyle(mdView, '').width) + dx;
     folderView.style.width = folderViewNewX + "px";

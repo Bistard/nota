@@ -30,7 +30,9 @@ function changeMaxResBtn(isMaxApp) {
     }
 }
 
-ipc.on('isMaximized', () => { changeMaxResBtn(true) })
+ipc.on('isMaximized', () => { 
+    changeMaxResBtn(true);
+})
 ipc.on('isRestored', () => { changeMaxResBtn(false) })
 
 // menuBtn listener
