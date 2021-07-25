@@ -14,7 +14,7 @@ function openNewFolder() {
     ipc.send('openNewFolder')
 }
 
-ipcRenderer.on('openFile', (event, path) => {
+ipcRenderer.on('openFile', (event, path, stat) => {
     let rawFile = new XMLHttpRequest()
     rawFile.open("GET", path, false)
     rawFile.onreadystatechange = function () {
@@ -28,7 +28,7 @@ ipcRenderer.on('openFile', (event, path) => {
     rawFile.send(null)
 })
 
-ipcRenderer.on('openFolder', (event, path) => {
+ipcRenderer.on('openFolder', (event, path, stat) => {
     
 })
 

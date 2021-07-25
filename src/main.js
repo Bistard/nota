@@ -27,7 +27,6 @@ function createMainApp(width, height) {
     })
 
     winMain.loadFile('./src/index.html')
-    scanDirectory(winMain)
 
     winMain.once('ready-to-show', () => {
         /* Electron.dialog.showOpenDialog() */
@@ -69,8 +68,18 @@ function createMainApp(width, height) {
             Config.OpenFolderDialogConfig
         ).then((path) => {
             if (!path.canceled) {
-                /* winMain.webContents.send('openFile', 'file:\\\\' + path.filePaths) */
-                winMain.webContents.send('openFolder', path.filePaths)
+                let rootdir = path.filePaths[0]
+                walkdir(rootdir, {})
+                    .on('file', (fn, stat) => {
+                        winMain.webContents.send('openFile', 'file:\\\\' + rootdir, stat)
+                    })
+                    .on('directory', (fn, stat) => {
+                        console.warn(fn.slice(rootdir.length + 1))
+                        winMain.webContents.send('openFolder', fn.slice(rootdir.length + 1), stat)
+                    })
+                    .on('error', (fn, err) => {
+                        console.error(`!!!! ${fn} ${err}`)
+                    })
             }
         })
     })
@@ -105,21 +114,3 @@ Electron.app.on('window-all-closed', function () {
         Electron.app.quit()
     }
 })
-
-function scanDirectory(window) {
-    const rootdir = 'D:\\dev\\MarkdownNote' /* testing */
-    walkdir('src', {})
-        .on('file', (fn, stat) => {
-            window.webContents.send('file', fn.slice(rootdir.length + 1), stat)
-        })
-        .on('directory', (fn, stat) => {
-            window.webContents.send('directory', fn.slice(rootdir.length + 1), stat)
-        })
-        .on('error', (fn, err) => {
-            console.error(`!!!! ${fn} ${err}`)
-        })
-
-    Electron.ipcMain.on('rescan-directory', () => {
-        scanDirectory()
-    })
-}
