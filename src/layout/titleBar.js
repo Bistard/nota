@@ -23,11 +23,9 @@ closeBtn.addEventListener('click', () => {
 
 function changeMaxResBtn(isMaxApp) {
     if (isMaxApp) {
-        maxBtn.classList.remove('maxBtn')
-        maxBtn.classList.add('restoreBtn')
+        document.getElementById('maxBtnImg').src='assets/icons/max-restore.svg'
     } else {
-        maxBtn.classList.remove('restoreBtn')
-        maxBtn.classList.add('maxBtn')
+        document.getElementById('maxBtnImg').src='assets/icons/max.svg'
     }
 }
 
@@ -36,7 +34,7 @@ ipc.on('isMaximized', () => {
 })
 ipc.on('isRestored', () => { changeMaxResBtn(false) })
 
-// menuBtn listener
+///////////////////////////// menuBtn listener /////////////////////////////////
 menuBtn.addEventListener('click', () => {
     if (isfolderViewActive) {
         closeMenu()
@@ -48,8 +46,8 @@ menuBtn.addEventListener('click', () => {
 function closeMenu() {
     folderView.style.width = '0px'
     folderView.innerHTML = ''
-    isfolderViewActive = false
     resize.style.width = '0px'
+    isfolderViewActive = false
 }
 
 function openMenu() {
@@ -57,6 +55,6 @@ function openMenu() {
     for (let i in folderViewChilds) {
         folderView.appendChild(folderViewChilds[i])
     }
-    resize.style.width = '6px'
+    resize.style.width = '4px'
     isfolderViewActive = true
 }

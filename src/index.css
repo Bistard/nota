@@ -5,6 +5,14 @@ body {
     background-color: white;
 }
 
+img {
+    -webkit-user-drag: none;
+    -khtml-user-drag: none;
+    -moz-user-drag: none;
+    -o-user-drag: none;
+    user-drag: none;
+}
+
 div[id="mainApp"] {
     display: flex;
     flex-direction: column;

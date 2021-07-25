@@ -3,15 +3,15 @@
     flex-direction: column;
     width: 300px;
     height: 100%;
-    background-color: #F5F5EE;
+    background-color: #f8f8f8;
 }
 
 #resize {
-    width: 6px;
+    width: 4px;
     height: 100%;
     position: relative;
     cursor: w-resize;
-    background-color: #F5F5EE;
+    background-color: #f8f8f8;
     transition: 0.2s;
 }
 
@@ -25,17 +25,19 @@
     transition: 0.2s;
 }
 
+/* removed resizeBtn (ugly) */
+/* 
 #resize:hover > .resizeBtn-style {
     background-color: #9f9f95;
 }
-
+ */
 #resize:hover {
     background-color: #ccc;
 }
 
 #folderNavBar {
     width: 100%;
-    height: 50px;
+    height: 40px;
     background-color: transparent;
     display: grid;
     grid-template-columns: 1fr 1fr;

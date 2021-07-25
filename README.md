@@ -5,7 +5,7 @@ An open-sourced markdown editor.
 * [x] titleBar
   * [x] ~~bug: cannot remove menu properly~~
   * [x] icon
-    * [ ] switch mask-image to sth else?
+    * [x] switch mask-image to sth else
     * [x] maxBtn
       * [x] maxBtn switch to restoreBtn
       * [ ] holding onclick can change to mode 'always on top'

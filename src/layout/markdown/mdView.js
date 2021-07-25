@@ -6,7 +6,7 @@ const ipc = ipcRenderer
  */
 const markdown = document.getElementById('md')
 
-let toolbar =
+let toolbar = 
     [
         'emoji',
         'headings',

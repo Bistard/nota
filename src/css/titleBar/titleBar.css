@@ -1,69 +1,59 @@
-div[id="mainApp"] > div[id="titleBar"] {
+#mainApp > #titleBar {
     display: grid;
     grid-template-columns: 1fr 1fr 1fr;
     width: 100%;
-    height: 30px;
-    /* border-bottom: 3px solid #474747; */
-    background-color: #65655F;
+    height: 25px;
+    background-color: white;
+    border-bottom: 1px solid rgb(230, 230, 230);
     
     -webkit-app-region: drag; /* draggable */
 }
 
-div[id="titleBar"] > div[id="toolBar"] {
-    display: flex;
-    flex-direction: row;
+#titleBar > #toolBar {
+    display: grid;
+    grid-template-columns: 1fr;
     align-items: center;
-    width: 100%;
-    height: 30px;
+    width: auto;
+    height: 25px;
 }
 
-div[id="toolBar"] > button[id="menuBtn"] {
-    margin: 10px;
-    width: 18px;
-    height: 18px;
-    -webkit-mask-image: url(../../assets/icons/menu.svg);
-    -webkit-mask-size: cover;
-    -webkit-mask-repeat: no-repeat;
+#toolBar > #menuBtn {
+    width: 40px;
+    height: 100%;
 }
 
-div[id="titleBar"] > div[id="titleText"] {
-    color: rgb(214, 214, 214);
+#toolBar > #menuBtn > img {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    width: 20px;
+    height: 20px;
+}
+
+#titleBar > #titleText {
+    color: black;
+    font-weight: bold;
     text-align: center;
-    line-height: 30px;
+    line-height: 25px;
     font-size: 14px;
 }
 
-div[id="titleBar"] > div[id="titleBarBtns"] {
+#titleBar > #titleBarBtns {
     position: absolute;
     right: 0px;
+    
     width: auto;
-    height: 30px;
-    display: flex;
-    flex-direction: row;
+    height: 25px;
+    
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
     align-items: center;
 }
 
-.titleFuncBtn {
-    margin: 5px;
-    margin-right: 25px;
+#titleBar > #titleBarBtns > * > img {
+    margin-left: 15px;
+    margin-right: 15px;
     width: 12px;
-    height: 12px;
-    -webkit-mask-size: cover;
-    -webkit-mask-repeat: no-repeat;
+    height: 100%;
 }
 
-.minBtn {
-    -webkit-mask-image: url(../../assets/icons/min.svg);
-}
-
-.maxBtn {
-    -webkit-mask-image: url(../../assets/icons/max.svg);  
-}
-
-.restoreBtn {
-    -webkit-mask-image: url(../../assets/icons/max-restore.svg);  
-}
-
-.closeBtn {
-    -webkit-mask-image: url(../../assets/icons/close.svg);   
-}
