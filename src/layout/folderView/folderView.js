@@ -70,7 +70,7 @@ outlineBtn.addEventListener('click', () => {
     }
 })
 
-// resizing folderView
+//////////////////////////// resizing folderView ///////////////////////////////
 let oldX
 const resize = document.getElementById("resize")
 

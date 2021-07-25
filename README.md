@@ -31,7 +31,8 @@ An open-sourced markdown editor.
     * [ ] UI
 
 # bugs
-* [ ] disabled vditor cache will displays some weird text
+* [x] disabled vditor cache will displays some weird text
+* [ ] since opening file is essentially inserting text, we need to clean history immediately
 # ChangeLog
 * 💙 => 'debug'
 * 💛 => 'unstable'
