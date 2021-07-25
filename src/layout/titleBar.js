@@ -3,6 +3,7 @@ const ipc = ipcRenderer;
 
 const maxBtn = document.getElementById('maxBtn');
 const folderView = document.getElementById('folderView');
+const resize = document.getElementById('resize');
 let folderViewChilds = Array.from(folderView.childNodes);
 
 var isfolderViewActive = true;
@@ -48,6 +49,7 @@ function closeMenu() {
     folderView.style.width = '0px';
     folderView.innerHTML = '';
     isfolderViewActive = false;
+    resize.style.width = '0px';
 }
 
 function openMenu() {
@@ -55,5 +57,6 @@ function openMenu() {
     for (let i in folderViewChilds) {
         folderView.appendChild(folderViewChilds[i]);
     }
+    resize.style.width = '6px';
     isfolderViewActive = true;
 }

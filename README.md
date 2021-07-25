@@ -11,7 +11,7 @@ An open-sourced markdown editor.
       * [ ] holding onclick can change to mode 'always on top'
 * [x] folderView
   * [x] interactive size
-    * [ ] middle three point button style
+    * [x] middle three point button style
   * [ ] folder tree view
     * [x] open empty folder dialog
 * [x] mdView
@@ -24,6 +24,7 @@ An open-sourced markdown editor.
 * [x] preload.js
   * [x] error: winMian is not found
 * [x] Organiize Code
+  * [ ] should all const element variable be placed in one place to reduce memory usage
   * [ ] create a MarkdownNoteClass
   * [ ] Settings (Config)
     * [ ] UI
