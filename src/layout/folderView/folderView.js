@@ -10,8 +10,6 @@ const emptyFolderTag = document.getElementById('emptyFolderTag')
 const folderView = document.getElementById('folderView')
 const mdView = document.getElementById('mdView')
 
-folderBtnSelected(true)
-
 function openNewFolder() {
     ipc.send('openNewFolder')
 }
@@ -29,6 +27,12 @@ ipcRenderer.on('openFile', (event, path) => {
     }
     rawFile.send(null)
 })
+
+ipcRenderer.on('openFolder', (event, path) => {
+    
+})
+
+folderBtnSelected(true)
 
 function folderBtnSelected(isFolderSelected) {
     if (isFolderSelected) {

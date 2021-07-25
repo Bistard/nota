@@ -14,7 +14,8 @@
     background-color: #f8f8f8;
     transition: 0.2s;
 }
-
+/* removed resizeBtn (ugly) */
+/* 
 .resizeBtn-style {
     width: 10px;
     height: 20px;
@@ -25,8 +26,6 @@
     transition: 0.2s;
 }
 
-/* removed resizeBtn (ugly) */
-/* 
 #resize:hover > .resizeBtn-style {
     background-color: #9f9f95;
 }
@@ -72,7 +71,7 @@
 }
 
 #folderTree:hover > #emptyFolderTag {
-    color: black;
+    color: #9f9f95;
 }
 
 #folderTree:hover > #emptyFolderTag:hover {
@@ -80,5 +79,5 @@
 }
 
 #folderTree:hover > #emptyFolderTag:active {
-    color: black;
+    color: #9f9f95;
 }

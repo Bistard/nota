@@ -69,7 +69,8 @@ function createMainApp(width, height) {
             Config.OpenFolderDialogConfig
         ).then((path) => {
             if (!path.canceled) {
-                winMain.webContents.send('openFile', 'file:\\\\' + path.filePaths)
+                /* winMain.webContents.send('openFile', 'file:\\\\' + path.filePaths) */
+                winMain.webContents.send('openFolder', path.filePaths)
             }
         })
     })

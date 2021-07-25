@@ -8,9 +8,8 @@ let OpenFolderDialogConfig = {
     defaultPath: app.getPath('desktop'),
     buttonLabel: 'open a file or folder',
     properties: [
-        'openFile',/* not working here */
-        'showHiddenFiles',
-        /* 'openDirectory', */
+        /* 'openFile', */
+        'openDirectory',
     ],
 }
 

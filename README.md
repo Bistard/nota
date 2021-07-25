@@ -5,6 +5,7 @@ An open-sourced markdown editor.
 * [x] titleBar
   * [x] ~~bug: cannot remove menu properly~~
   * [x] icon
+  * [ ] dynamically change .svg color
     * [x] switch mask-image to sth else
     * [x] maxBtn
       * [x] maxBtn switch to restoreBtn
