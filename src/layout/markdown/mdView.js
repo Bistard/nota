@@ -1,10 +1,13 @@
+const { ipcRenderer } = require("electron")
+
 /* 
 const { ipcRenderer } = require('electron')
 const ipc = ipcRenderer
  */
 const markdown = document.getElementById('md')
 
-let toolbar = [
+let toolbar =
+    [
         'emoji',
         'headings',
         'bold',
@@ -38,14 +41,16 @@ let toolbar = [
         'export',
         {
             name: 'more',
-            toolbar: [
-                'fullscreen',
-                'both',
-                'preview',
-                'info',
-                'help',
-            ],
-        }]
+            toolbar:
+                [
+                    'fullscreen',
+                    'both',
+                    'preview',
+                    'info',
+                    'help',
+                ],
+        }
+    ]
 
 window.onload = function () {
     window.vditor = new Vditor(markdown, {
@@ -62,7 +67,7 @@ window.onload = function () {
             position: 'right',
         },
         cache: {
-            enable: true, // BUG: occurs when false
+            enable: false, // BUG: occurs when false
             id: 'vditor'
         },
         comment: {
@@ -95,11 +100,11 @@ window.onload = function () {
         hint: {
             emojiPath: 'https://cdn.jsdelivr.net/npm/vditor@1.8.3/dist/images/emoji',
             emojiTail: '<a href="https://ld246.com/settings/function" target="_blank">设置常用表情</a>',
-            emoji: { 
-                '+1': '👍', 
-                '-1': '👎', 
-                'heart': '❤️', 
-                'cold_sweat': '😰' 
+            emoji: {
+                '+1': '👍',
+                '-1': '👎',
+                'heart': '❤️',
+                'cold_sweat': '😰'
             },
             parse: true,
             extend: [
@@ -146,5 +151,4 @@ window.onload = function () {
             },
         },
     })
-    markdown.append(window.vditor)
 }
