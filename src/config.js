@@ -1,8 +1,8 @@
-const { app }= require('electron');
+const { app }= require('electron')
 
 // titleBar
-const TITLE_BAR_HEIGHT = '100px';
-const FOLDER_VIEW_WIDHT = 300;
+const TITLE_BAR_HEIGHT = '100px'
+const FOLDER_VIEW_WIDHT = 300
 
 let OpenFolderDialogConfig = {
     defaultPath: app.getPath('desktop'),
@@ -14,4 +14,4 @@ let OpenFolderDialogConfig = {
     ],
 }
 
-module.exports = { OpenFolderDialogConfig };
+module.exports = { OpenFolderDialogConfig }

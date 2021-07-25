@@ -17,6 +17,7 @@ An open-sourced markdown editor.
 * [x] mdView
   * [x] vditor preview
   * [ ] vditor needs to be rendered before window created
+  * [ ] open and render a .md file
   * [x] tool bar
     * [ ] remove default tool bar
   * [ ] tab bar

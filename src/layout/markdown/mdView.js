@@ -1,8 +1,8 @@
 /* 
-const { ipcRenderer } = require('electron');
-const ipc = ipcRenderer;
+const { ipcRenderer } = require('electron')
+const ipc = ipcRenderer
  */
-const markdown = document.getElementById('md');
+const markdown = document.getElementById('md')
 
 let toolbar = [
         'emoji',
@@ -48,7 +48,7 @@ let toolbar = [
         }]
 
 window.onload = function () {
-    let vditor = new Vditor(markdown, {
+    window.vditor = new Vditor(markdown, {
         toolbar,
         toolbarConfig: {
             hide: false,
@@ -95,11 +95,13 @@ window.onload = function () {
         hint: {
             emojiPath: 'https://cdn.jsdelivr.net/npm/vditor@1.8.3/dist/images/emoji',
             emojiTail: '<a href="https://ld246.com/settings/function" target="_blank">设置常用表情</a>',
-            emoji: {
-                'sd': '💔',
-                'j': 'https://unpkg.com/vditor@1.3.1/dist/images/emoji/j.png',
+            emoji: { 
+                '+1': '👍', 
+                '-1': '👎', 
+                'heart': '❤️', 
+                'cold_sweat': '😰' 
             },
-            parse: false,
+            parse: true,
             extend: [
                 {
                     key: '@',
@@ -123,7 +125,7 @@ window.onload = function () {
                             return [
                                 {
                                     value: '#Vditor',
-                                    html: '<span style="color: #999;">#Vditor</span> ♏ 一款浏览器端的 Markdown 编辑器，支持所见即所得（富文本）、即时渲染（类似 Typora）和分屏预览模式。',
+                                    html: '<span style="color: #999">#Vditor</span> ♏ 一款浏览器端的 Markdown 编辑器，支持所见即所得（富文本）、即时渲染（类似 Typora）和分屏预览模式。',
                                 }]
                         }
                         return []
@@ -144,5 +146,5 @@ window.onload = function () {
             },
         },
     })
-    markdown.append(vditor);
+    markdown.append(window.vditor)
 }
