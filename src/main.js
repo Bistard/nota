@@ -5,7 +5,7 @@ const walkdir = require('walkdir')
 const Electron = require('electron')
 const globalShortcut = Electron.globalShortcut
 
-const Notification = require('./common/notification')
+const Notification = require('./js/notification')
 const Config = require('./config')
 
 function createMainApp(width, height) {
@@ -19,7 +19,7 @@ function createMainApp(width, height) {
             nodeIntegration: true,
             contextIsolation: false,
             devTools: true,
-            preload: path.join(__dirname + '/utils', 'preload.js')
+            preload: path.join(__dirname + '/js', 'preload.js')
         },
 
         show: false,
