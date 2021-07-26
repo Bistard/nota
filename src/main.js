@@ -1,9 +1,7 @@
 const OS = require('os')
 const path = require('path')
-const walkdir = require('walkdir')
 
 const Electron = require('electron')
-const globalShortcut = Electron.globalShortcut
 
 const Notification = require('./js/notification')
 const Config = require('./config')
@@ -69,17 +67,7 @@ function createMainApp(width, height) {
         ).then((path) => {
             if (!path.canceled) {
                 let rootdir = path.filePaths[0]
-                walkdir(rootdir, {})
-                    .on('file', (fn, stat) => {
-                        winMain.webContents.send('openFile', 'file:\\\\' + rootdir, stat)
-                    })
-                    .on('directory', (fn, stat) => {
-                        console.warn(fn.slice(rootdir.length + 1))
-                        winMain.webContents.send('openFolder', fn.slice(rootdir.length + 1), stat)
-                    })
-                    .on('error', (fn, err) => {
-                        console.error(`!!!! ${fn} ${err}`)
-                    })
+                winMain.webContents.send('openFolder', rootdir)
             }
         })
     })

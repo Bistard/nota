@@ -1,6 +1,8 @@
 const { ipcRenderer } = require('electron')
 const ipc = ipcRenderer
 
+const folderTreeModule = require('./foldertree')
+
 var isFileClicked = true
 var isOutlineClicked = false
 
@@ -29,7 +31,8 @@ ipcRenderer.on('openFile', (event, path, stat) => {
 })
 
 ipcRenderer.on('openFolder', (event, path, stat) => {
-    
+    let tree = folderTreeModule.getFolderTree(path)
+    // TODO: display tree
 })
 
 folderBtnSelected(true)
