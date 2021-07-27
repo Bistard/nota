@@ -81,6 +81,7 @@ class FolderService {
         ipcRenderer.on('openFolder', (event, path, stat) => {
             let tree = this.FolderTree.getFolderTree(path)
             let treeList = this.FolderTree.getFolderTreeList(tree)
+            // Testing
             ipcRenderer.send('test', treeList)
             this.displayFolderTree(tree)
         })

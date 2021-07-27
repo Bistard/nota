@@ -4,10 +4,11 @@ const path = require('path')
 const Electron = require('electron')
 
 const Notification = require('./js/notification')
-const Config = require('./config')
+const ConfigModule = require('./config')
 
 class Main {
     constructor() {
+        this.ConfigModule = new ConfigModule.ConfigModule()
         this.winMain = null
         this.createWindow()
         this.setListeners()
@@ -76,7 +77,7 @@ class Main {
             Electron.ipcMain.on('openNewFolder', () => {
                 Electron.dialog.showOpenDialog(
                     this.winMain,
-                    Config.OpenFolderDialogConfig
+                    this.ConfigModule.OpenFolderDialogConfig
                 ).then((path) => {
                     if (!path.canceled) {
                         let rootdir = path.filePaths[0]
