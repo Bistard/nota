@@ -8,6 +8,7 @@ const Config = require('./config')
 
 class Main {
     constructor() {
+        this.winMain = null
         this.createWindow()
         this.setAppEvents()
     }
