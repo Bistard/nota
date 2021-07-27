@@ -8,42 +8,48 @@ const Config = require('./config')
 
 class Main {
     constructor() {
-
-        this.setEvents()
+        this.createWindow()
+        this.setAppEvents()
     }
 
     createWindow() {
-        this.winMain = new Electron.BrowserWindow({
-            width: 1200,
-            height: 800,
-            minWidth: 300,
-            minHeight: 200,
-    
-            webPreferences: {
-                nodeIntegration: true,
-                contextIsolation: false,
-                devTools: true,
-                preload: path.join(__dirname + '/js', 'preload.js')
-            },
-    
-            show: false,
-            frame: false
-        })
-
-        global.winMain = this.winMain
-        this.winMain.loadFile('./src/index.html')
-
-        this.winMain.webContents.on('did-finish-load', () => 
-            this.winMain.show()
-        );
-		this.winMain.on('closed', () => (this.winMain = null));
-    }
-
-    setEvents() {
-
         Electron.app.whenReady().then(() => {
             
-            this.createWindow()
+            this.winMain = new Electron.BrowserWindow({
+                width: 1200,
+                height: 800,
+                minWidth: 300,
+                minHeight: 200,
+        
+                webPreferences: {
+                    nodeIntegration: true,
+                    contextIsolation: false,
+                    devTools: true,
+                    preload: path.join(__dirname + '/js', 'preload.js')
+                },
+        
+                show: false,
+                frame: false
+            })
+    
+            global.winMain = this.winMain
+            this.winMain.loadFile('./src/index.html')
+    
+            this.winMain.webContents.on('did-finish-load', () => 
+                this.winMain.show()
+            )
+    
+            this.winMain.on('maximize', () => {
+                this.winMain.webContents.send('isMaximized')
+            })
+
+            this.winMain.on('unmaximize', () => {
+                this.winMain.webContents.send('isRestored')
+            })
+
+            this.winMain.on('closed', () => {
+                this.winMain = null
+            })
 
             /* testing purpose */
             Electron.ipcMain.on('test', (event, data) => {
@@ -62,14 +68,6 @@ class Main {
                 }
             })
 
-            this.winMain.on('maximize', () => {
-                this.winMain.webContents.send('isMaximized')
-            })
-
-            this.winMain.on('unmaximize', () => {
-                this.winMain.webContents.send('isRestored')
-            })
-
             Electron.ipcMain.on('closeApp', () => {
                 this.winMain.close()
             })
@@ -86,6 +84,13 @@ class Main {
                 })
             })
         })
+    }
+
+    setAppEvents() {
+        // This catches any unhandle promise rejection errors
+        process.on('unhandledRejection', (reason, p) => {
+            console.error(`Unhandled Rejection at: ${util.inspect(p)} reason: ${reason}`)
+        })
 
         Electron.app.on('activate', function () {
             // On macOS it's common to re-create a window in the app when the
@@ -95,11 +100,6 @@ class Main {
             }
         })
     
-        // This catches any unhandle promise rejection errors
-        process.on('unhandledRejection', (reason, p) => {
-            console.error(`Unhandled Rejection at: ${util.inspect(p)} reason: ${reason}`)
-        })
-        
         // Quit when all windows are closed, except on macOS. There, it's common
         // for applications and their menu bar to stay active until the user quits
         // explicitly with Cmd + Q.
