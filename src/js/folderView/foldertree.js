@@ -10,6 +10,7 @@ class FolderTreeModule {
     }
 
     getFolderTree(path) {
+        
         const baseName = Path.basename(path)
         if (fs.lstatSync(path).isDirectory()) {
             let name = baseName.replace(/_/g, ' ')
@@ -27,9 +28,7 @@ class FolderTreeModule {
 
             files.forEach(file => {
                 const tree = this.getFolderTree(Path.join(path, file))
-                if (tree && (!tree.isFolder || (tree.nodes && Object.values(tree.nodes).length > 0))) {
-                    node.nodes[file] = tree
-                }
+                node.nodes[file] = tree
             })
             return node
 
@@ -39,9 +38,11 @@ class FolderTreeModule {
                 return { isFolder: false, name, baseName, path}
             }
         }
-        return null
+        // reaches if no suffix or not .md
+        return { isFolder: false, baseName, baseName, path}
     }
 
+    // FIX
     getFolderTreeList(tree, list = []) {
         if (tree.isFolder) {
 			for (const [key, node] of Object.entries(tree.nodes)) {

@@ -3,8 +3,10 @@ const FolderTreeModule = require('./foldertree')
 
 const folderBtn = document.getElementById('folderBtn')
 const outlineBtn = document.getElementById('outlineBtn')
-const emptyFolderTag = document.getElementById('emptyFolderTag')
 const folderView = document.getElementById('folderView')
+const folderTree = document.getElementById('folderTree')
+const treeView = document.getElementById('treeView')
+const emptyFolderTag = document.getElementById('emptyFolderTag')
 const mdView = document.getElementById('mdView')
 const resize = document.getElementById("resize")
 
@@ -20,12 +22,51 @@ class FolderModule {
         this.setListeners()
     }
 
-    displayFolderTree(tree) {
-        // TODO
+    displayFolderTree(root) {
+        folderTree.removeChild(emptyFolderTag)                                  // FIX
+        this.insertRoot(root)
+        this.displayTree(root.nodes)
     }
 
-    openNewFolder() {
-        ipcRenderer.send('openNewFolder')
+    displayTree(tree) {
+        for (const [name, node] of Object.entries(tree)) {
+            if (node.isFolder) {
+                this.insertFolder(node)
+                this.displayTree(node.nodes)
+            } else {
+                this.insertFile(node)
+            }
+        }
+    }
+
+    insertRoot(rootNode) {
+        let element = document.createElement('div')
+        
+        element.classList.add('tree-node')
+        element.classList.add('is-root')
+        element.innerHTML = rootNode.baseName
+
+        treeView.appendChild(element)
+    }
+
+    insertFolder(folderNode) {
+        let element = document.createElement('div')
+        
+        element.classList.add('tree-node')
+        element.classList.add('is-folder')
+        element.innerHTML = folderNode.baseName
+
+        treeView.appendChild(element)
+    }
+
+    insertFile(fileNode) {
+        let element = document.createElement('div')
+        
+        element.classList.add('tree-node')
+        element.classList.add('is-file')
+        element.innerHTML = fileNode.baseName
+
+        treeView.appendChild(element)
     }
 
     folderBtnSelected(isFolderSelected) {
@@ -38,6 +79,8 @@ class FolderModule {
             outlineBtn.style.fontWeight = 'normal'
             outlineBtn.style.borderBottom = '2px solid transparent'
     
+            folderTree.appendChild(treeView)
+
             emptyFolderTag.addEventListener('click', this.openNewFolder)
         } else {
             outlineBtn.style.color = '#65655F'
@@ -48,8 +91,14 @@ class FolderModule {
             folderBtn.style.fontWeight = 'normal'
             folderBtn.style.borderBottom = '2px solid transparent'
     
+            folderTree.removeChild(treeView)
+
             emptyFolderTag.removeEventListener('click', this.openNewFolder)
         }
+    }
+
+    openNewFolder() {
+        ipcRenderer.send('openNewFolder')
     }
 
     resizeFolderView(event) {
@@ -81,9 +130,10 @@ class FolderModule {
         
         ipcRenderer.on('openFolder', (event, path, stat) => {
             this.FolderTree.tree = this.FolderTree.getFolderTree(path)
-            this.FolderTree.treeList = this.FolderTree.getFolderTreeList(this.FolderTree.tree)
+            /* this.FolderTree.treeList = this.FolderTree.getFolderTreeList(this.FolderTree.tree) */
 
-            ipcRenderer.send('test', this.FolderTree.treeList)                  // Testing
+            ipcRenderer.send('test', this.FolderTree.tree)                      // TEST
+            /* ipcRenderer.send('test', this.FolderTree.treeList)                  // TEST */
             this.displayFolderTree(this.FolderTree.tree)
         })
         

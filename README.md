@@ -16,6 +16,7 @@ An open-sourced markdown editor.
   * [x] folder tree view
     * [x] open empty folder dialog
     * [ ] display current working directory
+  * [ ] filter folders/files functionality
 * [x] mdView
   * [x] vditor preview
   * [ ] vditor needs to be rendered before window created
@@ -35,6 +36,7 @@ An open-sourced markdown editor.
 # bugs
 * [x] disabled vditor cache will displays some weird text
 * [ ] since opening file is essentially inserting text, we need to clean history immediately
+* [ ] fix - folderView.js - remove emptyFolderTag correctly
 # ChangeLog
 * 💙 => 'debug'
 * 💛 => 'unstable'

@@ -1,0 +1,44 @@
+.tree-body {
+    display: flex;
+    flex-direction: column;
+    margin: 0px;
+    width: 100%;
+    height: auto;
+}
+
+.tree-node {
+    position: relative;
+    width: 100%;
+    height: 20px;
+    line-height: 20px;
+    cursor: pointer;
+    user-select: none;
+}
+
+.is-root {
+    background-color: gray;
+}
+
+.is-folder {
+    background-color: lightcoral;
+}
+
+.is-folder:hover {
+    background-color: coral;
+}
+
+.is-folder:active {
+    background-color: sienna;
+}
+
+.is-file {
+    background-color: lightgreen;
+}
+
+.is-file:hover {
+    background-color: greenyellow;
+}
+
+.is-file:active {
+    background-color: green;
+}
