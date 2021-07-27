@@ -13,23 +13,24 @@ An open-sourced markdown editor.
 * [x] folderView
   * [x] interactive size
     * [x] middle three point button style
-  * [ ] folder tree view
+  * [x] folder tree view
     * [x] open empty folder dialog
+    * [ ] display current working directory
 * [x] mdView
   * [x] vditor preview
   * [ ] vditor needs to be rendered before window created
   * [x] open and render a .md file (by inserting plainText)
   * [x] tool bar
     * [ ] remove default tool bar
-  * [ ] tab bar
+  * [ ] file tab bar
     * [ ] different color
 * [x] preload.js
   * [x] error: winMian is not found
 * [x] Organiize Code
-  * [ ] should all const element variable be placed in one place to reduce memory usage
-  * [ ] using classes
-  * [ ] Settings (Config)
-    * [ ] UI
+  * [ ] reduce suing document.getElementById()
+  * [x] using classes
+  * [X] Settings (Config)
+    * [ ] UI config
 
 # bugs
 * [x] disabled vditor cache will displays some weird text
