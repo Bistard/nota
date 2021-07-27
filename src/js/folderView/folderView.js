@@ -103,6 +103,8 @@ class FolderModule {
     }
 
     resizeFolderView(event) {
+        if (event.x < 100)
+            return
         let dx = this.resizeX - event.x
         this.resizeX = event.x
         /* new X has to be calculated first, than concatenates with "px", otherwise
