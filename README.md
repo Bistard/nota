@@ -27,7 +27,7 @@ An open-sourced markdown editor.
   * [x] error: winMian is not found
 * [x] Organiize Code
   * [ ] should all const element variable be placed in one place to reduce memory usage
-  * [ ] create a MarkdownNoteClass
+  * [ ] using classes
   * [ ] Settings (Config)
     * [ ] UI
 

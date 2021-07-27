@@ -8,7 +8,6 @@ function getFolderTree(filePath) {
     if (fs.lstatSync(filePath).isDirectory()) {
 
         let name = baseName.replace(/_/g, ' ')
-
         const node = {
             nodes: {},
             isFolder: true,
@@ -16,9 +15,7 @@ function getFolderTree(filePath) {
             baseName,
         }
 
-        const files = fs
-            .readdirSync(filePath)
-
+        const files = fs.readdirSync(filePath)
         files.forEach(file => {
             const tree = getFolderTree(path.join(filePath, file));
             if (tree && (!tree.isFolder || (tree.nodes && Object.values(tree.nodes).length > 0))) {
@@ -31,12 +28,7 @@ function getFolderTree(filePath) {
     } else {
         if (/\.md$/i.test(filePath)) {
             let name = baseName.replace(/_/g, ' ').replace(/\.md$/, '').trim();
-
-            return {
-                name,
-                baseName,
-                filePath,
-            }
+            return { name, baseName, filePath}
         }
     }
     return null
