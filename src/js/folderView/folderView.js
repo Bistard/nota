@@ -1,5 +1,5 @@
 const { ipcRenderer } = require('electron')
-const FolderTreeService = require('./foldertree')
+const FolderTreeModule = require('./foldertree')
 
 const folderBtn = document.getElementById('folderBtn')
 const outlineBtn = document.getElementById('outlineBtn')
@@ -8,9 +8,9 @@ const folderView = document.getElementById('folderView')
 const mdView = document.getElementById('mdView')
 const resize = document.getElementById("resize")
 
-class FolderService {
+class FolderModule {
     constructor() {
-        this.FolderTree = new FolderTreeService.FolderTreeService()
+        this.FolderTree = new FolderTreeModule.FolderTreeModule()
         this.isFileClicked = true
         this.isOutlineClicked = false
         this.resizeX = null
@@ -113,6 +113,6 @@ class FolderService {
     }
 }
 
-new FolderService()
+new FolderModule()
 
-module.exports = { FolderService }
+module.exports = { FolderModule }

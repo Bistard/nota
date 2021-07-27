@@ -2,7 +2,7 @@ const { ipcRenderer } = require('electron')
 const fs = require('fs')
 const Path = require('path')
 
-class FolderTreeService {
+class FolderTreeModule {
     constructor() {
         
     }
@@ -53,4 +53,4 @@ class FolderTreeService {
 
 }
 
-module.exports = { FolderTreeService }
+module.exports = { FolderTreeModule }
