@@ -6,39 +6,57 @@
     height: auto;
 }
 
-.tree-node {
+.node {
     position: relative;
+    align-items: center;
+    vertical-align: baseline;
+    display: flex;
+    flex-direction: row;
+
     width: 100%;
-    height: 20px;
-    line-height: 20px;
+    height: 18px;
+
     cursor: pointer;
     user-select: none;
+    background-color: transparent;
+
+    overflow: hidden;
+}
+
+.node:hover {
+    background-color: #e6e6e6;
+}
+
+.node:active {
+    background-color: #d8d8d8;
+}
+
+.node-icon {
+    vertical-align: baseline;
+    margin-left: 2px;
+    margin-right: 2px;
+    width: 10px;
+    height: 10px;
+}
+
+.node-text {
+    vertical-align: baseline;
+    width: auto;
+    height: 100%;
+    font-size: 12px;
+    line-height: 18px;
 }
 
 .is-root {
-    background-color: gray;
+    font-weight: bold;
+    background-color: transparent;
 }
 
 .is-folder {
-    background-color: lightcoral;
+    background-color: transparent;
 }
 
-.is-folder:hover {
-    background-color: coral;
-}
-
-.is-folder:active {
-    background-color: sienna;
-}
 
 .is-file {
-    background-color: lightgreen;
-}
-
-.is-file:hover {
-    background-color: greenyellow;
-}
-
-.is-file:active {
-    background-color: green;
+    background-color: transparent;
 }

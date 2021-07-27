@@ -35,10 +35,10 @@ class FolderTreeModule {
 
         } else if (/\.md$/i.test(path)) {
             let name = baseName.replace(/_/g, ' ').replace(/\.md$/, '').trim()
-            return { isFolder: false, name: name, baseName: baseName, path: path, level: lev}
+            return { nodes: {}, isFolder: false, name: name, baseName: baseName, path: path, level: lev}
         }
         // reaches if no suffix or not .md
-        return { isFolder: false, name: baseName, baseName: baseName, path: path, level: lev}
+        return { nodes: {}, isFolder: false, name: baseName, baseName: baseName, path: path, level: lev}
     }
 
     // FIX

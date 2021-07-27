@@ -14,6 +14,7 @@ class FolderModule {
     
     constructor() {
         this.FolderTree = new FolderTreeModule.FolderTreeModule()
+
         this.isFileClicked = true
         this.isOutlineClicked = false
         this.resizeX = null
@@ -24,49 +25,49 @@ class FolderModule {
 
     displayFolderTree(root) {
         folderTree.removeChild(emptyFolderTag)                                  // FIX
-        this.insertRoot(root)
+        this.insertNode(root, 'root')
         this.displayTree(root.nodes)
     }
 
     displayTree(tree) {
         for (const [name, node] of Object.entries(tree)) {
             if (node.isFolder) {
-                this.insertFolder(node)
+                this.insertNode(node, 'folder')
                 this.displayTree(node.nodes)
             } else {
-                this.insertFile(node)
+                this.insertNode(node, 'file')
             }
         }
     }
 
-    insertRoot(rootNode) {
-        let element = document.createElement('div')
+    insertNode(node, state) {
+        const element = document.createElement('div')
+        const icon = document.createElement('img')
+        const text = document.createElement('div')
         
-        element.classList.add('tree-node')
-        element.classList.add('is-root')
-        element.innerHTML = rootNode.baseName
+        element.classList.add('node')
+        icon.classList.add('node-icon')
+        const leftMarinNum = node.level * 6 + 5;
+        icon.style.marginLeft = leftMarinNum + 'px'
 
-        treeView.appendChild(element)
-    }
+        text.classList.add('node-text')
+        text.innerHTML = node.baseName
 
-    insertFolder(folderNode) {
-        let element = document.createElement('div')
+        if (state == 'file') {
+            element.classList.add('is-file')
+            icon.src = 'assets/icons/file-icon.svg'
+        } else if (state == 'folder') {
+            element.classList.add('is-folder')
+            icon.src = 'assets/icons/angle-icon.svg'
+        } else if (state == 'root') {
+            element.classList.add('is-root')
+            icon.src = 'assets/icons/angle-icon.svg'
+        }
         
-        element.classList.add('tree-node')
-        element.classList.add('is-folder')
-        element.innerHTML = folderNode.baseName
-
+        element.appendChild(icon)
+        element.appendChild(text)
         treeView.appendChild(element)
-    }
-
-    insertFile(fileNode) {
-        let element = document.createElement('div')
         
-        element.classList.add('tree-node')
-        element.classList.add('is-file')
-        element.innerHTML = fileNode.baseName
-
-        treeView.appendChild(element)
     }
 
     folderBtnSelected(isFolderSelected) {
