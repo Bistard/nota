@@ -19,8 +19,6 @@
     cursor: pointer;
     user-select: none;
     background-color: transparent;
-
-    overflow: hidden;
 }
 
 .node:hover {
@@ -40,6 +38,9 @@
 }
 
 .node-text {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
     vertical-align: baseline;
     width: auto;
     height: 100%;
