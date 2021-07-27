@@ -10,7 +10,7 @@ class Main {
     constructor() {
         this.winMain = null
         this.createWindow()
-        this.setAppEvents()
+        this.setListeners()
     }
 
     createWindow() {
@@ -88,7 +88,7 @@ class Main {
         })
     }
 
-    setAppEvents() {
+    setListeners() {
         // This catches any unhandle promise rejection errors
         process.on('unhandledRejection', (reason, p) => {
             console.error(`Unhandled Rejection at: ${util.inspect(p)} reason: ${reason}`)

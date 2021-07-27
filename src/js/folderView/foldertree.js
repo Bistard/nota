@@ -2,16 +2,14 @@ const { ipcRenderer } = require('electron')
 const fs = require('fs')
 const Path = require('path')
 
-class FolderTree {
+class FolderTreeService {
     constructor() {
         
     }
 
     getFolderTree(path) {
         const baseName = Path.basename(path)
-        
         if (fs.lstatSync(path).isDirectory()) {
-    
             let name = baseName.replace(/_/g, ' ')
             const node = {
                 nodes: {},
@@ -21,15 +19,14 @@ class FolderTree {
             }
     
             const files = fs.readdirSync(path, {
-                encoding: 'utf8', /* default: utf8 */
+                encoding: 'utf8',
                 withFileTypes: false
             })
 
             files.forEach(file => {
-                /* ipcRenderer.send('test', 'fileName: ' + file) */
                 const tree = this.getFolderTree(Path.join(path, file))
                 if (tree && (!tree.isFolder || (tree.nodes && Object.values(tree.nodes).length > 0))) {
-                    node.nodes[/* (tree.isFolder ? '0-' : '1-') +  */file] = tree
+                    node.nodes[file] = tree
                 }
             })
             return node
@@ -37,7 +34,7 @@ class FolderTree {
         } else {
             if (/\.md$/i.test(path)) {
                 let name = baseName.replace(/_/g, ' ').replace(/\.md$/, '').trim()
-                return { name, baseName, path}
+                return { isFolder: false, name, baseName, path}
             }
         }
         return null
@@ -56,4 +53,4 @@ class FolderTree {
 
 }
 
-module.exports = { FolderTree }
+module.exports = { FolderTreeService }
