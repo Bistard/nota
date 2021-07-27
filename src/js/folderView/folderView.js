@@ -55,13 +55,21 @@ class FolderModule {
 
         if (state == 'file') {
             element.classList.add('is-file')
-            icon.src = 'assets/icons/file-icon.svg'
+            icon.src = 'assets/icons/file.svg'
         } else if (state == 'folder') {
             element.classList.add('is-folder')
-            icon.src = 'assets/icons/angle-icon.svg'
+            if (node.isExpand) {
+                icon.src = 'assets/icons/angle-down.svg'    
+            } else {
+                icon.src = 'assets/icons/angle-right.svg'
+            }
         } else if (state == 'root') {
             element.classList.add('is-root')
-            icon.src = 'assets/icons/angle-icon.svg'
+            if (node.isExpand) {
+                icon.src = 'assets/icons/angle-down.svg'    
+            } else {
+                icon.src = 'assets/icons/angle-right.svg'
+            }
         }
         
         element.appendChild(icon)

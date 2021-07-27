@@ -2,6 +2,11 @@ const { ipcRenderer } = require('electron')
 const fs = require('fs')
 const Path = require('path')
 
+class treeNode {
+    constructor(nodes, isFolder, name, baseName, path, level, isExpand) {
+        Object.assign(this, {nodes, isFolder, name, baseName, path, level, isExpand})
+    }
+}
 class FolderTreeModule {
     
     constructor() {
@@ -13,15 +18,10 @@ class FolderTreeModule {
 
         const baseName = Path.basename(path)
         if (fs.lstatSync(path).isDirectory()) {
+            
             let name = baseName.replace(/_/g, ' ')
-            const node = {
-                nodes: {},
-                isFolder: true,
-                name,
-                baseName,
-                level: lev,
-            }
-    
+            const node = new treeNode({}, true, name, baseName, path, lev, true)
+            
             const files = fs.readdirSync(path, {
                 encoding: 'utf8',
                 withFileTypes: false
@@ -35,10 +35,10 @@ class FolderTreeModule {
 
         } else if (/\.md$/i.test(path)) {
             let name = baseName.replace(/_/g, ' ').replace(/\.md$/, '').trim()
-            return { nodes: {}, isFolder: false, name: name, baseName: baseName, path: path, level: lev}
+            return new treeNode({}, false, name, baseName, path, lev, false)
         }
         // reaches if no suffix or not .md
-        return { nodes: {}, isFolder: false, name: baseName, baseName: baseName, path: path, level: lev}
+        return new treeNode({}, false, baseName, baseName, path, lev, false)
     }
 
     // FIX
