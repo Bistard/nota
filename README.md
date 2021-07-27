@@ -15,8 +15,19 @@ An open-sourced markdown editor.
     * [x] middle three point button style
   * [x] folder tree view
     * [x] open empty folder dialog
-    * [ ] display current working directory
-  * [ ] filter folders/files functionality
+    * [x] display current working directory
+      * [ ] new UI
+      * [ ] scrollable
+      * [ ] indent
+      * [ ] node functionality
+        * [ ] expand
+        * [ ] close
+        * [ ] manual move order
+  * [ ] functionality
+    * [ ] filter folders/files
+    * [ ] right-click
+    * [ ] config
+      * [ ] directory config with local save
 * [x] mdView
   * [x] vditor preview
   * [ ] vditor needs to be rendered before window created
