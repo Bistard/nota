@@ -9,8 +9,8 @@ class FolderTreeModule {
         this.treeList = null
     }
 
-    getFolderTree(path) {
-        
+    getFolderTree(path, lev) {
+
         const baseName = Path.basename(path)
         if (fs.lstatSync(path).isDirectory()) {
             let name = baseName.replace(/_/g, ' ')
@@ -19,6 +19,7 @@ class FolderTreeModule {
                 isFolder: true,
                 name,
                 baseName,
+                level: lev,
             }
     
             const files = fs.readdirSync(path, {
@@ -27,19 +28,17 @@ class FolderTreeModule {
             })
 
             files.forEach(file => {
-                const tree = this.getFolderTree(Path.join(path, file))
+                const tree = this.getFolderTree(Path.join(path, file), lev + 1)
                 node.nodes[file] = tree
             })
             return node
 
-        } else {
-            if (/\.md$/i.test(path)) {
-                let name = baseName.replace(/_/g, ' ').replace(/\.md$/, '').trim()
-                return { isFolder: false, name, baseName, path}
-            }
+        } else if (/\.md$/i.test(path)) {
+            let name = baseName.replace(/_/g, ' ').replace(/\.md$/, '').trim()
+            return { isFolder: false, name: name, baseName: baseName, path: path, level: lev}
         }
         // reaches if no suffix or not .md
-        return { isFolder: false, baseName, baseName, path}
+        return { isFolder: false, name: baseName, baseName: baseName, path: path, level: lev}
     }
 
     // FIX

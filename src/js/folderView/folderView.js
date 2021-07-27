@@ -129,7 +129,7 @@ class FolderModule {
         // })
         
         ipcRenderer.on('openFolder', (event, path, stat) => {
-            this.FolderTree.tree = this.FolderTree.getFolderTree(path)
+            this.FolderTree.tree = this.FolderTree.getFolderTree(path, 0)
             /* this.FolderTree.treeList = this.FolderTree.getFolderTreeList(this.FolderTree.tree) */
 
             ipcRenderer.send('test', this.FolderTree.tree)                      // TEST
