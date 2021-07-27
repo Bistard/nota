@@ -153,14 +153,14 @@ class FolderModule {
             }
         })
 
-        resize.addEventListener("mousedown", function (event) {
+        resize.addEventListener("mousedown", (event) => {
             this.resizeX = event.x
             document.addEventListener("mousemove", this.resizeFolderView, false)
         }, false)
         
-        document.addEventListener("mouseup", function () {
+        document.addEventListener("mouseup", () => {
             document.removeEventListener("mousemove", this.resizeFolderView, false)
-        }, false)        
+        }, false)
     }
 }
 
