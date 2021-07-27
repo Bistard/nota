@@ -3,8 +3,10 @@ const fs = require('fs')
 const Path = require('path')
 
 class FolderTreeModule {
+    
     constructor() {
-        
+        this.tree = null
+        this.treeList = null
     }
 
     getFolderTree(path) {

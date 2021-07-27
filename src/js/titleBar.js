@@ -10,6 +10,7 @@ const resize = document.getElementById('resize')
 const folderViewChilds = Array.from(folderView.childNodes)
 
 class TitleBarModule {
+    
     constructor() {
         this.isFolderViewActive = true
         this.setListeners()

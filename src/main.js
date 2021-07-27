@@ -7,6 +7,7 @@ const Notification = require('./js/notification')
 const ConfigModule = require('./config')
 
 class Main {
+    
     constructor() {
         this.ConfigModule = new ConfigModule.ConfigModule()
         this.winMain = null

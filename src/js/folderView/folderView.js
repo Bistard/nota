@@ -9,6 +9,7 @@ const mdView = document.getElementById('mdView')
 const resize = document.getElementById("resize")
 
 class FolderModule {
+    
     constructor() {
         this.FolderTree = new FolderTreeModule.FolderTreeModule()
         this.isFileClicked = true
@@ -79,11 +80,11 @@ class FolderModule {
         // })
         
         ipcRenderer.on('openFolder', (event, path, stat) => {
-            let tree = this.FolderTree.getFolderTree(path)
-            let treeList = this.FolderTree.getFolderTreeList(tree)
-            // Testing
-            ipcRenderer.send('test', treeList)
-            this.displayFolderTree(tree)
+            this.FolderTree.tree = this.FolderTree.getFolderTree(path)
+            this.FolderTree.treeList = this.FolderTree.getFolderTreeList(this.FolderTree.tree)
+
+            ipcRenderer.send('test', this.FolderTree.treeList)                  // Testing
+            this.displayFolderTree(this.FolderTree.tree)
         })
         
         folderBtn.addEventListener('click', () => {
