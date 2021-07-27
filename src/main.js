@@ -80,6 +80,7 @@ class Main {
                 ).then((path) => {
                     if (!path.canceled) {
                         let rootdir = path.filePaths[0]
+                        console.log("rootdir: ", rootdir)
                         this.winMain.webContents.send('openFolder', rootdir)
                     }
                 })

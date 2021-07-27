@@ -1,16 +1,16 @@
-const fs = require('fs');
-const path = require('path');
+const { ipcRenderer } = require('electron')
+const fs = require('fs')
+const Path = require('path')
 
 class FolderTree {
     constructor() {
         
     }
 
-    getFolderTree(filePath) {
-
-        const baseName = path.basename(filePath)
-    
-        if (fs.lstatSync(filePath).isDirectory()) {
+    getFolderTree(path) {
+        const baseName = Path.basename(path)
+        
+        if (fs.lstatSync(path).isDirectory()) {
     
             let name = baseName.replace(/_/g, ' ')
             const node = {
@@ -20,19 +20,24 @@ class FolderTree {
                 baseName,
             }
     
-            const files = fs.readdirSync(filePath)
+            const files = fs.readdirSync(path, {
+                encoding: 'utf8', /* default: utf8 */
+                withFileTypes: false
+            })
+
             files.forEach(file => {
-                const tree = this.getFolderTree(path.join(filePath, file));
+                /* ipcRenderer.send('test', 'fileName: ' + file) */
+                const tree = this.getFolderTree(Path.join(path, file))
                 if (tree && (!tree.isFolder || (tree.nodes && Object.values(tree.nodes).length > 0))) {
-                    node.nodes[(tree.isFolder ? '0-' : '1-') + file] = tree;
+                    node.nodes[/* (tree.isFolder ? '0-' : '1-') +  */file] = tree
                 }
             })
             return node
 
         } else {
-            if (/\.md$/i.test(filePath)) {
-                let name = baseName.replace(/_/g, ' ').replace(/\.md$/, '').trim();
-                return { name, baseName, filePath}
+            if (/\.md$/i.test(path)) {
+                let name = baseName.replace(/_/g, ' ').replace(/\.md$/, '').trim()
+                return { name, baseName, path}
             }
         }
         return null
@@ -41,12 +46,12 @@ class FolderTree {
     getFolderTreeList(tree, list = []) {
         if (tree.isFolder) {
 			for (const [key, node] of Object.entries(tree.nodes)) {
-				this.getFolderTreeList(node, list);
+				this.getFolderTreeList(node, list)
 			}
 		} else {
-			list.push(tree.filePath);
+			list.push(tree.path)
 		}
-		return list;
+		return list
     }
 
 }

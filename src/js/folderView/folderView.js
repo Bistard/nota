@@ -33,9 +33,9 @@ ipcRenderer.on('openFile', (event, path, stat) => {
 
 ipcRenderer.on('openFolder', (event, path, stat) => {
     let tree = FolderTree.getFolderTree(path)
-    // TODO: display tree
-    /* let treeList = FolderTree.getFolderTreeList(tree) */
+
     ipc.send('test', tree)
+    /* let treeList = FolderTree.getFolderTreeList(tree) */
 })
 
 folderBtnSelected(true)

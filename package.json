@@ -4,7 +4,7 @@
   "description": "an open-sourced markdown editor",
   "main": "./src/main.js",
   "scripts": {
-    "start": "electron .",
+    "start": "chcp 65001 && electron .",
     "test": "test"
   },
   "repository": {
