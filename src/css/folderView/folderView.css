@@ -1,4 +1,5 @@
 #folderView {
+    position: relative;
     display: flex;
     flex-direction: column;
     width: 300px;
@@ -56,28 +57,4 @@
 
 #folderNavBar > *:active {
     border-bottom: 2px solid #5b5b55;
-}
-
-#folderTree {
-    width: auto;
-    height: 100%;
-}
-
-#emptyFolderTag {
-    color: transparent;
-    font-size: 10pt;
-    text-align: center;
-    transition: 0.1s;
-}
-
-#folderTree:hover > #emptyFolderTag {
-    color: #9f9f95;
-}
-
-#folderTree:hover > #emptyFolderTag:hover {
-    color: rgb(202, 202, 202);
-}
-
-#folderTree:hover > #emptyFolderTag:active {
-    color: #9f9f95;
 }

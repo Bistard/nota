@@ -5,7 +5,7 @@ const folderBtn = document.getElementById('folderBtn')
 const outlineBtn = document.getElementById('outlineBtn')
 const folderView = document.getElementById('folderView')
 const folderTree = document.getElementById('folderTree')
-const treeView = document.getElementById('treeView')
+const tree = document.getElementById('tree')
 const emptyFolderTag = document.getElementById('emptyFolderTag')
 const mdView = document.getElementById('mdView')
 const resize = document.getElementById("resize")
@@ -19,12 +19,18 @@ class FolderModule {
         this.isOutlineClicked = false
         this.resizeX = null
 
-        this.folderBtnSelected(true)
+        this.isFolderOpened = false
+
+        this.initFolderView()
         this.setListeners()
     }
 
+    initFolderView() {
+        this.folderBtnSelected(true)
+        folderTree.removeChild(tree)
+    }
+
     displayFolderTree(root) {
-        folderTree.removeChild(emptyFolderTag)                                  // FIX
         this.insertNode(root, 'root')
         this.displayTree(root.nodes)
     }
@@ -56,26 +62,23 @@ class FolderModule {
         if (state == 'file') {
             element.classList.add('is-file')
             icon.src = 'assets/icons/file.svg'
-        } else if (state == 'folder') {
-            element.classList.add('is-folder')
+        } else if (state == 'folder' || state == 'root') {
             if (node.isExpand) {
                 icon.src = 'assets/icons/angle-down.svg'    
             } else {
                 icon.src = 'assets/icons/angle-right.svg'
             }
-        } else if (state == 'root') {
-            element.classList.add('is-root')
-            if (node.isExpand) {
-                icon.src = 'assets/icons/angle-down.svg'    
+            
+            if (state == 'folder') {
+                element.classList.add('is-folder')
             } else {
-                icon.src = 'assets/icons/angle-right.svg'
+                element.classList.add('is-root')
             }
         }
-        
+
         element.appendChild(icon)
         element.appendChild(text)
-        treeView.appendChild(element)
-        
+        tree.appendChild(element)        
     }
 
     folderBtnSelected(isFolderSelected) {
@@ -88,7 +91,7 @@ class FolderModule {
             outlineBtn.style.fontWeight = 'normal'
             outlineBtn.style.borderBottom = '2px solid transparent'
     
-            folderTree.appendChild(treeView)
+            folderView.appendChild(folderTree)
 
             emptyFolderTag.addEventListener('click', this.openNewFolder)
         } else {
@@ -100,7 +103,7 @@ class FolderModule {
             folderBtn.style.fontWeight = 'normal'
             folderBtn.style.borderBottom = '2px solid transparent'
     
-            folderTree.removeChild(treeView)
+            folderView.removeChild(folderTree)
 
             emptyFolderTag.removeEventListener('click', this.openNewFolder)
         }
@@ -140,11 +143,14 @@ class FolderModule {
         // })
         
         ipcRenderer.on('openFolder', (event, path, stat) => {
+            this.isFolderOpened = true
             this.FolderTree.tree = this.FolderTree.getFolderTree(path, 0)
             /* this.FolderTree.treeList = this.FolderTree.getFolderTreeList(this.FolderTree.tree) */
-
-            ipcRenderer.send('test', this.FolderTree.tree)                      // TEST
+            /* ipcRenderer.send('test', this.FolderTree.tree)                      // TEST */
             /* ipcRenderer.send('test', this.FolderTree.treeList)                  // TEST */
+            
+            folderTree.removeChild(emptyFolderTag)
+            folderTree.appendChild(tree)
             this.displayFolderTree(this.FolderTree.tree)
         })
         

@@ -1,9 +1,35 @@
-.tree-body {
+#folderTree {
+    position: relative;
+    width: 100%;
+    height: 100%;
+}
+
+#tree {
+    position: absolute;
     display: flex;
     flex-direction: column;
-    margin: 0px;
     width: 100%;
-    height: auto;
+    height: 100%;
+    overflow-y: auto;
+}
+
+#emptyFolderTag {
+    color: transparent;
+    font-size: 10pt;
+    text-align: center;
+    transition: 0.1s;
+}
+
+#folderTree:hover > #emptyFolderTag {
+    color: #9f9f95;
+}
+
+#folderTree:hover > #emptyFolderTag:hover {
+    color: rgb(202, 202, 202);
+}
+
+#folderTree:hover > #emptyFolderTag:active {
+    color: #9f9f95;
 }
 
 .node {
