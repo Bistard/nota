@@ -16,11 +16,6 @@
   <link rel="stylesheet" href="./css/folderView/folderTree.css">
   <link rel="stylesheet" href="./css/mdView/mdView.css">
   <link rel="stylesheet" href="./css/titleBar/titleBar.css">
-  
-  <!-- 'defer' specifies the script is executed when the page has finished parsing. -->
-  <script defer src="../node_modules/vditor/dist/index.min.js"></script>
-  <script defer src="../src/main.module.js"></script>
-  
 </head>
 
 <body>
@@ -65,7 +60,7 @@
           <div id="tree"></div>
           <div id="emptyFolderTag" class="vertical-center funcText"></div>
         </div>
-        
+
       </div>
       
       <div id="resize">
@@ -78,5 +73,11 @@
     </div>
 
   </div>
-
+  
+  <!-- 'defer' specifies the script is executed when the page has finished parsing. -->
+  <script> if (typeof module === 'object') {window.module = module; module = undefined;} </script>
+  <script defer src="../node_modules/jquery/dist/jquery.min.js"></script>    
+  <script defer src="../node_modules/vditor/dist/index.min.js"></script>
+  <script defer src="../src/main.module.js"></script>
+  <script> if (window.module) module = window.module; </script>
 </body>
