@@ -40,14 +40,14 @@
     color: #9f9f95;
 }
 
+/*                              DO TOUCH ABOVE                                  */
+
 .node {
     position: relative;
-    align-items: center;
-    vertical-align: baseline;
-    display: flex;
-    flex-direction: row;
+    display: inline-block;
 
     width: 100%;
+    margin-left: 6px;
     height: 22px;
 
     cursor: pointer;
@@ -64,18 +64,17 @@
 }
 
 .node-icon {
-    vertical-align: baseline;
-    margin-left: 2px;
-    margin-right: 2px;
+    display: inline-block;
+    vertical-align: middle;
     width: 10px;
     height: 10px;
 }
 
 .node-text {
+    display: inline-block;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    vertical-align: baseline;
     width: auto;
     height: 100%;
     font-size: 12px;
@@ -83,14 +82,12 @@
 }
 
 .is-root {
-    font-weight: bold;
     background-color: transparent;
 }
 
 .is-folder {
     background-color: transparent;
 }
-
 
 .is-file {
     background-color: transparent;

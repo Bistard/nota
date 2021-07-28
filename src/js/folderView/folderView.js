@@ -20,6 +20,7 @@ class FolderModule {
         this.resizeX = null
 
         this.isFolderOpened = false
+        this.treeNodeCount = 0
 
         this.initFolderView()
         this.setListeners()
@@ -31,31 +32,33 @@ class FolderModule {
     }
 
     displayFolderTree(root) {
-        this.insertNode(root, 'root')
-        this.displayTree(root.nodes)
+        let current = this.insertNode($('#tree'), root, 'root')
+        this.displayTree(current, root.nodes)
     }
 
-    displayTree(tree) {
+    displayTree(parent, tree) {
         for (const [name, node] of Object.entries(tree)) {
             if (node.isFolder) {
-                this.insertNode(node, 'folder')
-                this.displayTree(node.nodes)
+                let current = this.insertNode(parent, node, 'folder')
+                this.displayTree(current, node.nodes)
             } else {
-                this.insertNode(node, 'file')
+                this.insertNode(parent, node, 'file')
             }
         }
     }
 
-    insertNode(node, state) {
+    insertNode(parent, node, state) {
         const element = document.createElement('div')
         const icon = document.createElement('img')
         const text = document.createElement('div')
         
         element.classList.add('node')
-        icon.classList.add('node-icon')
-        const leftMarinNum = node.level * 6 + 5;
-        icon.style.marginLeft = leftMarinNum + 'px'
+        
+        let nodeNum = this.treeNodeCount.toString()
+        element.setAttribute('nodeNum', nodeNum)
+        this.treeNodeCount++
 
+        icon.classList.add('node-icon')
         text.classList.add('node-text')
         text.innerHTML = node.baseName
 
@@ -78,7 +81,42 @@ class FolderModule {
 
         element.appendChild(icon)
         element.appendChild(text)
-        tree.appendChild(element)        
+        parent.append(element)
+        return element
+    }
+
+    changeExpandStatus(node){
+        var elements = [];
+        $(node).each(function(){
+            elements.push($(node).nextAll());
+        });
+
+        for (var i = 0; i < elements.length; i++) {
+            if (elements[i].css('display') == 'none'){
+                elements[i].fadeIn(0);
+            }else{
+                elements[i].fadeOut(0);
+            }
+        }
+        
+        if (elements[0].css('display') != 'none') {
+            $(node).addClass('active');
+        }else{
+            $(node).removeClass('active');
+        }
+    }
+
+    nodeLeftClicked(htmlElement, node) {
+        node.isExpand ^= true
+
+        changeExpandStatus(htmlElement)
+        
+        /* ipcRenderer.send('test', node) */
+    }
+
+    expandFolder(node) {
+        this.FolderTree.expandFolder(node)
+
     }
 
     folderBtnSelected(isFolderSelected) {
@@ -92,7 +130,6 @@ class FolderModule {
             outlineBtn.style.borderBottom = '2px solid transparent'
     
             folderView.appendChild(folderTree)
-
             emptyFolderTag.addEventListener('click', this.openNewFolder)
         } else {
             outlineBtn.style.color = '#65655F'
@@ -104,7 +141,6 @@ class FolderModule {
             folderBtn.style.borderBottom = '2px solid transparent'
     
             folderView.removeChild(folderTree)
-
             emptyFolderTag.removeEventListener('click', this.openNewFolder)
         }
     }
@@ -144,14 +180,27 @@ class FolderModule {
         
         ipcRenderer.on('openFolder', (event, path, stat) => {
             this.isFolderOpened = true
-            this.FolderTree.tree = this.FolderTree.getFolderTree(path, 0)
-            /* this.FolderTree.treeList = this.FolderTree.getFolderTreeList(this.FolderTree.tree) */
-            /* ipcRenderer.send('test', this.FolderTree.tree)                      // TEST */
-            /* ipcRenderer.send('test', this.FolderTree.treeList)                  // TEST */
+            this.FolderTree.tree = this.FolderTree.createFolderTree(path, 0)
+            this.FolderTree.treeList = this.FolderTree.getFolderTreeList(this.FolderTree.tree)
             
             folderTree.removeChild(emptyFolderTag)
             folderTree.appendChild(tree)
             this.displayFolderTree(this.FolderTree.tree)
+
+            $('.node').click({folderViewClass: this}, function(event) {
+                let that = event.data.folderViewClass
+
+                let nodeNum = this.getAttribute('nodeNum')
+                let node = that.FolderTree.treeList[parseInt(nodeNum)]
+                that.nodeLeftClicked($(this), node)
+            })
+            // Array.from(document.getElementsByClassName('node')).forEach((element) => {
+            //     let nodeNum = element.getAttribute('nodeNum')
+            //     let node = this.FolderTree.treeList[parseInt(nodeNum)]
+            //     element.addEventListener('click', () => {
+            //         this.nodeLeftClicked(node)
+            //     })
+            // })
         })
         
         folderBtn.addEventListener('click', () => {

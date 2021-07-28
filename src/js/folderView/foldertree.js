@@ -10,11 +10,11 @@ class treeNode {
 class FolderTreeModule {
     
     constructor() {
-        this.tree = null
-        this.treeList = null
+        this.tree = {}
+        this.treeList = []
     }
 
-    getFolderTree(path, lev) {
+    createFolderTree(path, lev) {
 
         const baseName = Path.basename(path)
         if (fs.lstatSync(path).isDirectory()) {
@@ -28,7 +28,7 @@ class FolderTreeModule {
             })
 
             files.forEach(file => {
-                const tree = this.getFolderTree(Path.join(path, file), lev + 1)
+                const tree = this.createFolderTree(Path.join(path, file), lev + 1)
                 node.nodes[file] = tree
             })
             return node
@@ -41,18 +41,25 @@ class FolderTreeModule {
         return new treeNode({}, false, baseName, baseName, path, lev, false)
     }
 
-    // FIX
     getFolderTreeList(tree, list = []) {
         if (tree.isFolder) {
+            list.push(tree)
 			for (const [key, node] of Object.entries(tree.nodes)) {
 				this.getFolderTreeList(node, list)
 			}
 		} else {
-			list.push(tree.path)
+			list.push(tree)
 		}
 		return list
     }
 
+    expandFolder(node) {
+        Object.values(node.nodes).forEach((node) => {
+            if (node.isFolder) {
+                this.expandFolder(node)
+            }
+        })
+    }
 }
 
 module.exports = { FolderTreeModule }
