@@ -20,7 +20,7 @@ An open-sourced markdown editor.
       * [x] new UI
       * [x] scrollable
       * [x] indent
-      * [ ] node functionality
+      * [x] node functionality
         * [ ] expand
         * [ ] close
         * [ ] focus

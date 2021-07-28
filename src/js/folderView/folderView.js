@@ -11,7 +11,7 @@ const mdView = document.getElementById('mdView')
 const resize = document.getElementById("resize")
 
 class FolderModule {
-    
+
     constructor() {
         this.FolderTree = new FolderTreeModule.FolderTreeModule()
 
@@ -51,9 +51,9 @@ class FolderModule {
         const element = document.createElement('div')
         const icon = document.createElement('img')
         const text = document.createElement('div')
-        
+
         element.classList.add('node')
-        
+
         let nodeNum = this.treeNodeCount.toString()
         element.setAttribute('nodeNum', nodeNum)
         this.treeNodeCount++
@@ -67,11 +67,11 @@ class FolderModule {
             icon.src = 'assets/icons/file.svg'
         } else if (state == 'folder' || state == 'root') {
             if (node.isExpand) {
-                icon.src = 'assets/icons/angle-down.svg'    
+                icon.src = 'assets/icons/angle-down.svg'
             } else {
                 icon.src = 'assets/icons/angle-right.svg'
             }
-            
+
             if (state == 'folder') {
                 element.classList.add('is-folder')
             } else {
@@ -85,40 +85,39 @@ class FolderModule {
         return element
     }
 
-    changeExpandStatus(node){
+    changeExpandStatus(element) {
+        element
+
         var elements = [];
-        $(node).each(function(){
-            elements.push($(node).nextAll());
+        $(element).each(function () {
+            elements.push($(element).nextAll());
         });
 
         for (var i = 0; i < elements.length; i++) {
-            if (elements[i].css('display') == 'none'){
+            if (elements[i].css('display') == 'none') {
                 elements[i].fadeIn(0);
-            }else{
+            } else {
                 elements[i].fadeOut(0);
             }
         }
-        
+
         if (elements[0].css('display') != 'none') {
-            $(node).addClass('active');
-        }else{
-            $(node).removeClass('active');
+            $(element).addClass('active');
+        } else {
+            $(element).removeClass('active');
         }
     }
 
-    nodeLeftClicked(htmlElement, node) {
+    nodeLeftClicked(element, node) {
         node.isExpand ^= true
 
-        changeExpandStatus(htmlElement)
-        
-        /* ipcRenderer.send('test', node) */
+        /* this.changeExpandStatus(element) */
     }
-
+/* 
     expandFolder(node) {
         this.FolderTree.expandFolder(node)
-
     }
-
+ */
     folderBtnSelected(isFolderSelected) {
         if (isFolderSelected) {
             folderBtn.style.color = '#65655F'
@@ -128,7 +127,7 @@ class FolderModule {
             outlineBtn.style.color = '#9f9f95'
             outlineBtn.style.fontWeight = 'normal'
             outlineBtn.style.borderBottom = '2px solid transparent'
-    
+
             folderView.appendChild(folderTree)
             emptyFolderTag.addEventListener('click', this.openNewFolder)
         } else {
@@ -139,7 +138,7 @@ class FolderModule {
             folderBtn.style.color = '#9f9f95'
             folderBtn.style.fontWeight = 'normal'
             folderBtn.style.borderBottom = '2px solid transparent'
-    
+
             folderView.removeChild(folderTree)
             emptyFolderTag.removeEventListener('click', this.openNewFolder)
         }
@@ -177,32 +176,25 @@ class FolderModule {
         //     }
         //     rawFile.send(null)
         // })
-        
+
         ipcRenderer.on('openFolder', (event, path, stat) => {
             this.isFolderOpened = true
             this.FolderTree.tree = this.FolderTree.createFolderTree(path, 0)
             this.FolderTree.treeList = this.FolderTree.getFolderTreeList(this.FolderTree.tree)
-            
+
             folderTree.removeChild(emptyFolderTag)
             folderTree.appendChild(tree)
             this.displayFolderTree(this.FolderTree.tree)
 
-            $('.node').click({folderViewClass: this}, function(event) {
+            $('.is-folder').click({ folderViewClass: this }, function (event) {
                 let that = event.data.folderViewClass
 
                 let nodeNum = this.getAttribute('nodeNum')
                 let node = that.FolderTree.treeList[parseInt(nodeNum)]
                 that.nodeLeftClicked($(this), node)
             })
-            // Array.from(document.getElementsByClassName('node')).forEach((element) => {
-            //     let nodeNum = element.getAttribute('nodeNum')
-            //     let node = this.FolderTree.treeList[parseInt(nodeNum)]
-            //     element.addEventListener('click', () => {
-            //         this.nodeLeftClicked(node)
-            //     })
-            // })
         })
-        
+
         folderBtn.addEventListener('click', () => {
             if (this.isFileClicked == false) {
                 this.isFileClicked = true
@@ -223,7 +215,7 @@ class FolderModule {
             this.resizeX = event.x
             document.addEventListener("mousemove", this.resizeFolderView, false)
         }, false)
-        
+
         document.addEventListener("mouseup", () => {
             document.removeEventListener("mousemove", this.resizeFolderView, false)
         }, false)

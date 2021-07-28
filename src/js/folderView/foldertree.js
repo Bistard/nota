@@ -52,7 +52,7 @@ class FolderTreeModule {
 		}
 		return list
     }
-
+    /* 
     expandFolder(node) {
         Object.values(node.nodes).forEach((node) => {
             if (node.isFolder) {
@@ -60,6 +60,7 @@ class FolderTreeModule {
             }
         })
     }
+     */
 }
 
 module.exports = { FolderTreeModule }
