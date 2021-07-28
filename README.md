@@ -1,17 +1,28 @@
 # MarkdownNote
 An open-sourced markdown editor.
 
+# next TimeLine
+* folderView
+  * expand && collapse
+* markdownView
+  * remove default toolBar
+* tabView
+  * UI
+  * open tab
+* markdownView
+  * show tab
 # to do
-* [ ] theme
+* [ ] ⭐theme
   * [ ] dynamically change .svg color
-* [x] titleBar
+* [x] ⭐titleBarView
   * [x] ~~bug: cannot remove menu properly~~
   * [x] icon
     * [x] switch mask-image to sth else
     * [x] maxBtn
       * [x] maxBtn switch to restoreBtn
       * [ ] holding onclick can change to mode 'always on top'
-* [x] folderView
+  * [ ] more
+* [x] ⭐folderView
   * [x] interactive size
     * [x] middle three point button style
   * [x] folder tree view
@@ -22,7 +33,7 @@ An open-sourced markdown editor.
       * [x] indent
       * [x] node functionality
         * [ ] expand
-        * [ ] close
+        * [ ] collapse
         * [ ] focus
         * [ ] manual move order
   * [ ] functionality
@@ -30,18 +41,19 @@ An open-sourced markdown editor.
     * [ ] right-click
     * [ ] config
       * [ ] directory config with local save
-* [ ] gitView
-  * [ ] functionality
-    * [ ] .git
-  * [ ] timeline view
-* [x] mdView
+* [x] ⭐markdownView
   * [x] vditor preview
   * [ ] vditor needs to be rendered before window created
   * [x] open and render a .md file (by inserting plainText)
   * [x] tool bar
     * [ ] remove default tool bar
-* [ ] file tab bar
+* [ ] ⭐tabView
+  * [ ] UI
   * [ ] color
+* [ ] ⭐gitView
+  * [ ] functionality
+    * [ ] .git
+  * [ ] timeline view
 * [x] preload.js
   * [x] error: winMian is not found
 * [x] Organiize Code
