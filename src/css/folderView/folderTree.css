@@ -10,6 +10,7 @@
     flex-direction: column;
     width: 100%;
     height: 100%;
+    overflow-x: hidden;
     overflow-y: auto;
 }
 
@@ -40,7 +41,7 @@
     color: #9f9f95;
 }
 
-/*                              DO TOUCH ABOVE                                  */
+/*                              DO NOT TOUCH ABOVE                              */
 
 .node {
     position: relative;
@@ -64,6 +65,8 @@
 }
 
 .node-icon {
+    margin-left: 4px;
+    margin-right: 4px;
     width: 10px;
     height: 10px;
 }
@@ -71,6 +74,7 @@
 .node-text {
     display: inline-block;
     text-overflow: ellipsis;
+
     white-space: nowrap;
 
     font-size: 12px;
@@ -86,5 +90,6 @@
 }
 
 .is-file {
+    white-space: nowrap;
     background-color: transparent;
 }
