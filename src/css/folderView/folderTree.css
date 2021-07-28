@@ -47,8 +47,8 @@
     display: inline-block;
 
     width: 100%;
-    margin-left: 6px;
     height: 22px;
+    margin-left: 6px;
 
     cursor: pointer;
     user-select: none;
@@ -64,19 +64,15 @@
 }
 
 .node-icon {
-    display: inline-block;
-    vertical-align: middle;
     width: 10px;
     height: 10px;
 }
 
 .node-text {
     display: inline-block;
-    overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    width: auto;
-    height: 100%;
+
     font-size: 12px;
     line-height: 22px;
 }
