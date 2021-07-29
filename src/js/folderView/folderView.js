@@ -85,81 +85,30 @@ class FolderModule {
         return element
     }
 
-    changeExpandStatus(element) {
-        element
-
-        var elements = [];
-        $(element).each(function () {
-            elements.push($(element).nextAll());
-        });
-
-        for (var i = 0; i < elements.length; i++) {
-            if (elements[i].css('display') == 'none') {
-                elements[i].fadeIn(0);
-            } else {
-                elements[i].fadeOut(0);
-            }
-        }
-
-        if (elements[0].css('display') != 'none') {
-            $(element).addClass('active');
+    changeExpandStatus(element, shouldExpand) {
+        if (shouldExpand) {
+            element.children(":first").attr('src', 'assets/icons/angle-right.svg')
+            element.find('*').slice(2).each(function() {
+                $(this).hide(0)
+            })
         } else {
-            $(element).removeClass('active');
+            element.css('background-color', 'transparent')
+            element.children(':first').attr('src', 'assets/icons/angle-down.svg')
+            element.find('*').slice(2).each(function() {
+                $(this).show(0)
+            })
         }
     }
 
     nodeLeftClicked(element, node) {
-        node.isExpand ^= true
-
-        /* this.changeExpandStatus(element) */
+        node.isExpand ^= 1
+        this.changeExpandStatus(element, node.isExpand)
     }
 /* 
     expandFolder(node) {
         this.FolderTree.expandFolder(node)
     }
  */
-    folderBtnSelected(isFolderSelected) {
-        if (isFolderSelected) {
-            folderBtn.style.color = '#65655F'
-            folderBtn.style.fontWeight = 'bold'
-            folderBtn.style.borderBottom = '2px solid #5b5b55'
-            emptyFolderTag.innerHTML = 'open a folder'
-            outlineBtn.style.color = '#9f9f95'
-            outlineBtn.style.fontWeight = 'normal'
-            outlineBtn.style.borderBottom = '2px solid transparent'
-
-            folderView.appendChild(folderTree)
-            emptyFolderTag.addEventListener('click', this.openNewFolder)
-        } else {
-            outlineBtn.style.color = '#65655F'
-            outlineBtn.style.fontWeight = 'bold'
-            outlineBtn.style.borderBottom = '2px solid #5b5b55'
-            emptyFolderTag.innerHTML = 'outline is empty'
-            folderBtn.style.color = '#9f9f95'
-            folderBtn.style.fontWeight = 'normal'
-            folderBtn.style.borderBottom = '2px solid transparent'
-
-            folderView.removeChild(folderTree)
-            emptyFolderTag.removeEventListener('click', this.openNewFolder)
-        }
-    }
-
-    openNewFolder() {
-        ipcRenderer.send('openNewFolder')
-    }
-
-    resizeFolderView(event) {
-        if (event.x < 100)
-            return
-        let dx = this.resizeX - event.x
-        this.resizeX = event.x
-        /* new X has to be calculated first, than concatenates with "px", otherwise
-           the string will be like newX = "1000+2px" and losing accuracy */
-        let folderViewNewX = parseInt(getComputedStyle(folderView, '').width) - dx
-        let mdViewNewX = parseInt(getComputedStyle(mdView, '').width) + dx
-        folderView.style.width = folderViewNewX + "px"
-        mdView.style.width = mdViewNewX + "px"
-    }
 
     setListeners() {
 
@@ -186,7 +135,7 @@ class FolderModule {
             folderTree.appendChild(tree)
             this.displayFolderTree(this.FolderTree.tree)
 
-            $('.is-folder').click({ folderViewClass: this }, function (event) {
+            $('.is-folder').on('click', { folderViewClass: this }, function (event) {
                 let that = event.data.folderViewClass
 
                 let nodeNum = this.getAttribute('nodeNum')
@@ -219,6 +168,49 @@ class FolderModule {
         document.addEventListener("mouseup", () => {
             document.removeEventListener("mousemove", this.resizeFolderView, false)
         }, false)
+    }
+
+    openNewFolder() {
+        ipcRenderer.send('openNewFolder')
+    }
+
+    resizeFolderView(event) {
+        if (event.x < 100)
+            return
+        let dx = this.resizeX - event.x
+        this.resizeX = event.x
+        /* new X has to be calculated first, than concatenates with "px", otherwise
+           the string will be like newX = "1000+2px" and losing accuracy */
+        let folderViewNewX = parseInt(getComputedStyle(folderView, '').width) - dx
+        let mdViewNewX = parseInt(getComputedStyle(mdView, '').width) + dx
+        folderView.style.width = folderViewNewX + "px"
+        mdView.style.width = mdViewNewX + "px"
+    }
+
+    folderBtnSelected(isFolderSelected) {
+        if (isFolderSelected) {
+            folderBtn.style.color = '#65655F'
+            folderBtn.style.fontWeight = 'bold'
+            folderBtn.style.borderBottom = '2px solid #5b5b55'
+            emptyFolderTag.innerHTML = 'open a folder'
+            outlineBtn.style.color = '#9f9f95'
+            outlineBtn.style.fontWeight = 'normal'
+            outlineBtn.style.borderBottom = '2px solid transparent'
+
+            folderView.appendChild(folderTree)
+            emptyFolderTag.addEventListener('click', this.openNewFolder)
+        } else {
+            outlineBtn.style.color = '#65655F'
+            outlineBtn.style.fontWeight = 'bold'
+            outlineBtn.style.borderBottom = '2px solid #5b5b55'
+            emptyFolderTag.innerHTML = 'outline is empty'
+            folderBtn.style.color = '#9f9f95'
+            folderBtn.style.fontWeight = 'normal'
+            folderBtn.style.borderBottom = '2px solid transparent'
+
+            folderView.removeChild(folderTree)
+            emptyFolderTag.removeEventListener('click', this.openNewFolder)
+        }
     }
 }
 
