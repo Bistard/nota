@@ -14,8 +14,11 @@
     overflow-y: auto;
 }
 
-#tree ul, #tree li {
-    padding-left: 10px;
+#tree ul {
+    padding-left: 6px;
+}
+#tree li {
+    padding-left: 14px;
 }
 
 #tree::-webkit-scrollbar {
@@ -45,7 +48,7 @@
     color: #9f9f95;
 }
 
-/*                         ABOVE ARE STABLE CODE                              */
+/*                           ABOVE ARE STABLE CODE                            */
 
 .node-root {
     margin: 0;
@@ -56,6 +59,8 @@
     margin: 0;
     text-align: left;
     list-style-type: none;
+    
+    border-left: 1px solid #e6e6e6;
 }
 
 .node-text {
@@ -64,7 +69,6 @@
     list-style-type: none;
     cursor: pointer;
     user-select: none;
-    padding-left: 0px;
     margin-left: -10px;
     overflow-x: hidden;
     text-overflow: ellipsis;
@@ -76,7 +80,6 @@
     display: inline-block;
     width: 10px;
     height: 10px;
-    margin-left: 4px;
     margin-right: 4px;
 }
 
@@ -85,7 +88,6 @@
     display: inline-block;
     width: 10px;
     height: 10px;
-    margin-left: 4px;
     margin-right: 4px;
 }
 
@@ -94,7 +96,6 @@
     display: inline-block;
     width: 10px;
     height: 10px;
-    margin-left: 4px;
     margin-right: 4px;
 }
 
@@ -104,6 +105,8 @@
     cursor: pointer;
     list-style-type: none;
     user-select: none;
+
+    border-left: 1px solid #e6e6e6;
 }
 
 .node-file:hover, .node-text:hover {

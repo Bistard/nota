@@ -142,6 +142,8 @@ class FolderModule {
                 let nodeInfo = that.FolderTree.treeList[parseInt(nodeNum)]
                 if (nodeInfo.isFolder) {
                     that.nodeLeftClicked($(this), nodeInfo)
+                } else { // is file
+                    // TODO: open file
                 }
             })
         })
