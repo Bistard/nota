@@ -82,13 +82,13 @@ class FolderModule {
 
     changeExpandStatus(element, shouldExpand) {
         if (shouldExpand) {
-            element.children(":first").attr('src', 'assets/icons/angle-right.svg')
+            /* element.children(":first").attr('src', 'assets/icons/angle-right.svg') */
             element.find('*').slice(2).each(function() {
                 $(this).hide(0)
             })
         } else {
             element.css('background-color', 'transparent')
-            element.children(':first').attr('src', 'assets/icons/angle-down.svg')
+            /* element.children(':first').attr('src', 'assets/icons/angle-down.svg') */
             element.find('*').slice(2).each(function() {
                 $(this).show(0)
             })
@@ -135,7 +135,7 @@ class FolderModule {
 
                 let nodeNum = this.getAttribute('nodeNum')
                 let node = that.FolderTree.treeList[parseInt(nodeNum)]
-                /* that.nodeLeftClicked($(this), node) */
+                that.nodeLeftClicked($(this), node)
             })
         })
 

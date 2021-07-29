@@ -59,7 +59,8 @@
 }
 
 .node-text {
-    height: 22px;
+    height: 30px;
+    line-height: 30px;
     list-style-type: none;
     cursor: pointer;
     user-select: none;
@@ -114,10 +115,8 @@
 
 .node-file:hover, .node-text:hover {
     background-color: #e6e6e6;
-    
 }
 
 .node-file:active, .node-text:active {
     background-color: #d8d8d8;
-    
 }
