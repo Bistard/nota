@@ -2,8 +2,6 @@
 An open-sourced markdown editor && noteTaking desktop application based on .md
 
 # next TimeLine
-* markdownView
-  * remove default toolBar
 * tabView
   * UI
   * open tab
@@ -47,7 +45,7 @@ An open-sourced markdown editor && noteTaking desktop application based on .md
   * [ ] vditor needs to be rendered before window created (not sure if still necessary)
   * [x] open and render a .md file (by inserting plainText)
   * [x] tool bar
-    * [ ] remove default tool bar
+    * [x] remove default tool bar
 * [ ] ⭐tabView
   * [ ] UI
   * [ ] color
@@ -55,9 +53,10 @@ An open-sourced markdown editor && noteTaking desktop application based on .md
   * [ ] functionality
     * [ ] .git
   * [ ] timeline view
-* [x] preload.js
-  * [x] error: winMian is not found
-* [x] Organiize Code
+* [x] ⭐Others
+  * [x] preload.js
+  * [ ] remove using document.getElementById() instead using JQuery
+    * [x] error: winMian is not found
   * [ ] reduce frequency of using document.getElementById()
   * [x] using classes
   * [X] Settings (Config)
