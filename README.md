@@ -30,6 +30,7 @@ An open-sourced markdown editor.
     * [x] display current working directory
     * [x] functionality 
       * [x] new UI
+        * [ ] folder indent line
       * [x] scrollable
       * [x] indent
       * [x] node functionality
