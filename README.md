@@ -28,6 +28,7 @@ An open-sourced markdown editor.
   * [x] folder tree view
     * [x] open empty folder dialog
     * [x] display current working directory
+    * [x] functionality 
       * [x] new UI
       * [x] scrollable
       * [x] indent
