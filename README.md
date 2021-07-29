@@ -68,6 +68,7 @@ An open-sourced markdown editor && noteTaking desktop application based on .md
 * [ ] (debug state) since opening file is essentially inserting text, we need to clean history immediately
 * [x] fix - folderView.js - remove emptyFolderTag correctly
 # ChangeLog
+* ⭐ => 'big update'
 * 💙 => 'debug'
 * 💛 => 'unstable'
 * 💚 => 'stable'

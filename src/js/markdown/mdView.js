@@ -4,12 +4,17 @@ const markdown = document.getElementById('md')
 
 class MarkDownViewModule {
     constructor() {
+        this.toolBar = null
         this.vditor = this.createMarkdownEditor(this.initToolBarConfig())
+        this.setListeners()
+    }
+
+    setListeners() {
+        
     }
 
     initToolBarConfig() {
-        let toolBar =
-            [
+        let toolBar = [
                 'emoji',
                 'headings',
                 'bold',
@@ -43,14 +48,13 @@ class MarkDownViewModule {
                 'export',
                 {
                     name: 'more',
-                    toolbar:
-                        [
-                            'fullscreen',
-                            'both',
-                            'preview',
-                            'info',
-                            'help',
-                        ],
+                    toolbar: [
+                        'fullscreen',
+                        'both',
+                        'preview',
+                        'info',
+                        'help',
+                    ],
                 }
             ]
         return toolBar
@@ -161,8 +165,14 @@ class MarkDownViewModule {
 
 }
 
+let markDownModule = new MarkDownViewModule()
+window.vditor = markDownModule.vditor
+    
 window.onload = function () {
-    new MarkDownViewModule()
+    let toolBar = document.getElementsByClassName('vditor-toolbar')[0]
+    markdown.removeChild(toolBar)
 }
+
+
 
 module.exports = { MarkDownViewModule }

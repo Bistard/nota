@@ -38,9 +38,9 @@ class Main {
             global.winMain = this.winMain
             this.winMain.loadFile('./src/index.html')
     
-            this.winMain.webContents.on('did-finish-load', () => 
+            this.winMain.webContents.on('did-finish-load', () => {
                 this.winMain.show()
-            )
+            })
     
             this.winMain.on('maximize', () => {
                 this.winMain.webContents.send('isMaximized')
@@ -116,3 +116,4 @@ class Main {
 }
 
 new Main()
+
