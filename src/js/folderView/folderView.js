@@ -48,38 +48,33 @@ class FolderModule {
     }
 
     insertNode(parent, node, state) {
-        const element = document.createElement('div')
-        const icon = document.createElement('img')
-        const text = document.createElement('div')
+        let element;
+        if (state == 'root' || state == 'folder') {
+            element = document.createElement('ul')
+        } else {
+            element = document.createElement('li')
+        }
 
         element.classList.add('node')
-
         let nodeNum = this.treeNodeCount.toString()
         element.setAttribute('nodeNum', nodeNum)
         this.treeNodeCount++
 
-        icon.classList.add('node-icon')
+        const text = document.createElement('li')
         text.classList.add('node-text')
         text.innerHTML = node.baseName
-
+        
         if (state == 'file') {
-            element.classList.add('is-file')
-            icon.src = 'assets/icons/file.svg'
-        } else if (state == 'folder' || state == 'root') {
-            if (node.isExpand) {
-                icon.src = 'assets/icons/angle-down.svg'
-            } else {
-                icon.src = 'assets/icons/angle-right.svg'
-            }
-
-            if (state == 'folder') {
-                element.classList.add('is-folder')
-            } else {
-                element.classList.add('is-root')
-            }
+            element.classList.add('node-file')
+            text.classList.add('file-icon')
+        } else if (state == 'folder') {
+            element.classList.add('node-folder')
+            text.classList.add('folder-icon-expand')
+        } else if (state == 'root') {
+            element.classList.add('node-root')
+            text.classList.add('root-icon-expand')
         }
-
-        element.appendChild(icon)
+        
         element.appendChild(text)
         parent.append(element)
         return element
@@ -135,12 +130,12 @@ class FolderModule {
             folderTree.appendChild(tree)
             this.displayFolderTree(this.FolderTree.tree)
 
-            $('.is-folder').on('click', { folderViewClass: this }, function (event) {
+            $('.node-folder').on('click', { folderViewClass: this }, function (event) {
                 let that = event.data.folderViewClass
 
                 let nodeNum = this.getAttribute('nodeNum')
                 let node = that.FolderTree.treeList[parseInt(nodeNum)]
-                that.nodeLeftClicked($(this), node)
+                /* that.nodeLeftClicked($(this), node) */
             })
         })
 
@@ -168,6 +163,10 @@ class FolderModule {
         document.addEventListener("mouseup", () => {
             document.removeEventListener("mousemove", this.resizeFolderView, false)
         }, false)
+    }
+
+    createfolderIconString(fileName) {
+        return "<style>.node-text::before {content: url('assets/icons/" + fileName + "');display: inline-block;width: 10px;height: 10px;margin-left: 4px;margin-right: 4px;}</style>"
     }
 
     openNewFolder() {
