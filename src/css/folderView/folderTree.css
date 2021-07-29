@@ -80,7 +80,7 @@
     margin-right: 4px;
 }
 
-.root-icon-expand::before, .folder-icon-expand::before {
+.folder-icon-expand::before {
     content: url('../../assets/icons/angle-down.svg');
     display: inline-block;
     width: 10px;
@@ -89,7 +89,7 @@
     margin-right: 4px;
 }
 
-.root-icon-collapse::before, .folder-icon-collapse::before {
+.folder-icon-collapse::before {
     content: url('../../assets/icons/angle-right.svg');
     display: inline-block;
     width: 10px;

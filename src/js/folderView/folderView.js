@@ -67,12 +67,18 @@ class FolderModule {
         if (state == 'file') {
             element.classList.add('node-file')
             text.classList.add('file-icon')
-        } else if (state == 'folder') {
-            element.classList.add('node-folder')
-            text.classList.add('folder-icon-expand')
-        } else if (state == 'root') {
-            element.classList.add('node-root')
-            text.classList.add('root-icon-expand')
+        } else if (state == 'folder' || state == 'root') {
+            if (state == 'folder') {
+                element.classList.add('node-folder')
+            } else {
+                element.classList.add('node-root')
+            }
+            
+            if (node.isExpand) {
+                text.classList.add('folder-icon-expand')
+            } else {
+                text.classList.add('folder-icon-collapse')
+            }  
         }
         
         element.appendChild(text)
@@ -80,25 +86,29 @@ class FolderModule {
         return element
     }
 
-    expandOrCollapseFolder(node, shouldExpand) {
+    expandOrCollapseFolder(element, shouldExpand) {
         if (shouldExpand) {
-            $(node).each(function(){
-                $(node).nextAll().each(function() {
+            element.removeClass('folder-icon-collapse')
+            element.addClass('folder-icon-expand')
+            element.each(function() {
+                element.nextAll().each(function() {
                     $(this).show(0)
                 })
             })
         } else {
-            $(node).each(function(){
-                $(node).nextAll().each(function() {
+            element.addClass('folder-icon-collapse')
+            element.removeClass('folder-icon-expand')
+            element.each(function() {
+                element.nextAll().each(function() {
                     $(this).hide(0)
                 })
             })
         }
     }
 
-    nodeLeftClicked(element, node) {
-        node.isExpand ^= 1
-        this.expandOrCollapseFolder(element, node.isExpand)
+    nodeLeftClicked(element, nodeInfo) {
+        nodeInfo.isExpand ^= 1
+        this.expandOrCollapseFolder(element, nodeInfo.isExpand)
     }
 
     setListeners() {
@@ -129,8 +139,10 @@ class FolderModule {
             $('.node-text').on('click', { folderViewClass: this }, function (event) {
                 let that = event.data.folderViewClass
                 let nodeNum = this.parentNode.getAttribute('nodeNum')
-                let node = that.FolderTree.treeList[parseInt(nodeNum)]
-                that.nodeLeftClicked($(this), node)
+                let nodeInfo = that.FolderTree.treeList[parseInt(nodeNum)]
+                if (nodeInfo.isFolder) {
+                    that.nodeLeftClicked($(this), nodeInfo)
+                }
             })
         })
 
