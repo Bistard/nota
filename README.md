@@ -33,8 +33,8 @@ An open-sourced markdown editor.
       * [x] scrollable
       * [x] indent
       * [x] node functionality
-        * [ ] expand
-        * [ ] collapse
+        * [x] expand
+        * [x] collapse
         * [ ] focus
         * [ ] manual move order
   * [ ] functionality

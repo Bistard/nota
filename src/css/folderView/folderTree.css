@@ -71,13 +71,6 @@
     white-space: nowrap;
 }
 
-.node-icon {
-    width: 10px;
-    height: 10px;
-    margin-left: 4px;
-    margin-right: 4px;
-}
-
 .file-icon::before {
     content: url('../../assets/icons/file.svg');
     display: inline-block;

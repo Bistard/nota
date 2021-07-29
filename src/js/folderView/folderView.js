@@ -80,30 +80,26 @@ class FolderModule {
         return element
     }
 
-    changeExpandStatus(element, shouldExpand) {
+    expandOrCollapseFolder(node, shouldExpand) {
         if (shouldExpand) {
-            /* element.children(":first").attr('src', 'assets/icons/angle-right.svg') */
-            element.find('*').slice(2).each(function() {
-                $(this).hide(0)
+            $(node).each(function(){
+                $(node).nextAll().each(function() {
+                    $(this).show(0)
+                })
             })
         } else {
-            element.css('background-color', 'transparent')
-            /* element.children(':first').attr('src', 'assets/icons/angle-down.svg') */
-            element.find('*').slice(2).each(function() {
-                $(this).show(0)
+            $(node).each(function(){
+                $(node).nextAll().each(function() {
+                    $(this).hide(0)
+                })
             })
         }
     }
 
     nodeLeftClicked(element, node) {
         node.isExpand ^= 1
-        this.changeExpandStatus(element, node.isExpand)
+        this.expandOrCollapseFolder(element, node.isExpand)
     }
-/* 
-    expandFolder(node) {
-        this.FolderTree.expandFolder(node)
-    }
- */
 
     setListeners() {
 
@@ -130,10 +126,9 @@ class FolderModule {
             folderTree.appendChild(tree)
             this.displayFolderTree(this.FolderTree.tree)
 
-            $('.node-folder').on('click', { folderViewClass: this }, function (event) {
+            $('.node-text').on('click', { folderViewClass: this }, function (event) {
                 let that = event.data.folderViewClass
-
-                let nodeNum = this.getAttribute('nodeNum')
+                let nodeNum = this.parentNode.getAttribute('nodeNum')
                 let node = that.FolderTree.treeList[parseInt(nodeNum)]
                 that.nodeLeftClicked($(this), node)
             })
