@@ -46,8 +46,9 @@ An open-sourced markdown editor && noteTaking desktop application based on .md
   * [x] open and render a .md file (by inserting plainText)
   * [x] tool bar
     * [x] remove default tool bar
-* [ ] ⭐tabView
-  * [ ] UI
+* [x] ⭐tabView
+  * [x] UI
+    * [ ] scrollable
   * [ ] color
 * [ ] ⭐gitView
   * [ ] functionality

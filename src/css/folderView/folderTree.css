@@ -64,8 +64,8 @@
 }
 
 .node-text {
-    height: 30px;
-    line-height: 30px;
+    height: 26px;
+    line-height: 26px;
     list-style-type: none;
     cursor: pointer;
     user-select: none;

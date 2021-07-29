@@ -1,5 +1,6 @@
 const { ipcRenderer } = require('electron')
-const FolderTreeModule = require('./foldertree')
+const FolderTreeModule = require('./folderTree')
+const TabBarModule = require('./tabBar.js')
 
 const folderBtn = document.getElementById('folderBtn')
 const outlineBtn = document.getElementById('outlineBtn')
@@ -14,6 +15,7 @@ class FolderModule {
 
     constructor() {
         this.FolderTree = new FolderTreeModule.FolderTreeModule()
+        this.tabBar = new TabBarModule.TabBarModule()
 
         this.isFileClicked = true
         this.isOutlineClicked = false
@@ -81,7 +83,7 @@ class FolderModule {
             }  
         }
         
-        element.appendChild(text)
+        element.append(text)
         parent.append(element)
         return element
     }
@@ -107,12 +109,13 @@ class FolderModule {
     }
 
     folderLeftClicked(element, nodeInfo) {
-        nodeInfo.isExpand ^= 1
+        nodeInfo.isExpand ^= true
         this.expandOrCollapseFolder(element, nodeInfo.isExpand)
     }
 
     fileLeftClicked(element, nodeInfo) {
-        
+        const newTab = this.tabBar.initTab(nodeInfo)
+        this.tabBar.insertTab(newTab)
     }
 
     setListeners() {
@@ -147,7 +150,6 @@ class FolderModule {
                 if (nodeInfo.isFolder) {
                     that.folderLeftClicked($(this), nodeInfo)
                 } else { 
-                    // TODO: open file
                     that.fileLeftClicked($(this), nodeInfo)
                 }
             })
