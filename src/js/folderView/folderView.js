@@ -106,9 +106,13 @@ class FolderModule {
         }
     }
 
-    nodeLeftClicked(element, nodeInfo) {
+    folderLeftClicked(element, nodeInfo) {
         nodeInfo.isExpand ^= 1
         this.expandOrCollapseFolder(element, nodeInfo.isExpand)
+    }
+
+    fileLeftClicked(element, nodeInfo) {
+        
     }
 
     setListeners() {
@@ -141,9 +145,10 @@ class FolderModule {
                 let nodeNum = this.parentNode.getAttribute('nodeNum')
                 let nodeInfo = that.FolderTree.treeList[parseInt(nodeNum)]
                 if (nodeInfo.isFolder) {
-                    that.nodeLeftClicked($(this), nodeInfo)
-                } else { // is file
+                    that.folderLeftClicked($(this), nodeInfo)
+                } else { 
                     // TODO: open file
+                    that.fileLeftClicked($(this), nodeInfo)
                 }
             })
         })

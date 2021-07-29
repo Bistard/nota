@@ -2,8 +2,6 @@
 An open-sourced markdown editor.
 
 # next TimeLine
-* folderView
-  * expand && collapse
 * markdownView
   * remove default toolBar
 * tabView
@@ -30,7 +28,7 @@ An open-sourced markdown editor.
     * [x] display current working directory
     * [x] functionality 
       * [x] new UI
-        * [ ] folder indent line
+        * [x] folder indent line
       * [x] scrollable
       * [x] indent
       * [x] node functionality
