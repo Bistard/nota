@@ -37,6 +37,7 @@ An open-sourced markdown editor.
         * [ ] focus
         * [ ] manual move order
   * [ ] functionality
+    * [ ] expandALL/collapseALL
     * [ ] filter folders/files
     * [ ] right-click
     * [ ] config

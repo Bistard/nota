@@ -2,7 +2,7 @@
     position: relative;
     display: flex;
     flex-direction: column;
-    width: 300px;
+    width: 400px;
     height: 100%;
     background-color: #f8f8f8;
 }
@@ -15,22 +15,7 @@
     background-color: #f8f8f8;
     transition: 0.2s;
 }
-/* removed resizeBtn (ugly) */
-/* 
-.resizeBtn-style {
-    width: 10px;
-    height: 20px;
-    background-color: transparent;
-    -webkit-mask-image: url(../../assets/icons/resize-vertical.svg);
-    -webkit-mask-size: auto;
-    -webkit-mask-repeat: no-repeat;
-    transition: 0.2s;
-}
 
-#resize:hover > .resizeBtn-style {
-    background-color: #9f9f95;
-}
- */
 #resize:hover {
     background-color: #ccc;
 }
