@@ -1,5 +1,5 @@
 # MarkdownNote
-An open-sourced markdown editor.
+An open-sourced markdown editor && noteTaking desktop application based on .md
 
 # next TimeLine
 * markdownView
@@ -44,7 +44,7 @@ An open-sourced markdown editor.
       * [ ] directory config with local save
 * [x] ⭐markdownView
   * [x] vditor preview
-  * [ ] vditor needs to be rendered before window created
+  * [ ] vditor needs to be rendered before window created (not sure if still necessary)
   * [x] open and render a .md file (by inserting plainText)
   * [x] tool bar
     * [ ] remove default tool bar
@@ -65,7 +65,7 @@ An open-sourced markdown editor.
 
 # bugs
 * [x] disabled vditor cache will displays some weird text
-* [ ] since opening file is essentially inserting text, we need to clean history immediately
+* [ ] (debug state) since opening file is essentially inserting text, we need to clean history immediately
 * [x] fix - folderView.js - remove emptyFolderTag correctly
 # ChangeLog
 * 💙 => 'debug'
