@@ -116,6 +116,20 @@ class FolderModule {
     fileLeftClicked(element, nodeInfo) {
         const newTab = this.tabBar.initTab(nodeInfo)
         this.tabBar.insertTab(newTab)
+        
+        let rawFile = new XMLHttpRequest()
+        rawFile.open("GET", nodeInfo.path, false)
+        rawFile.onreadystatechange = function () {
+            if (rawFile.readyState == 4) {
+                if (rawFile.status == 200 || rawFile.status == 0) {
+                    let plainText = rawFile.responseText;
+                    // DEBUG: insert all the text into vditor
+                    window.vditor.insertValue(plainText, true);
+                }
+            }
+        }
+        rawFile.send(null)
+        
     }
 
     setListeners() {

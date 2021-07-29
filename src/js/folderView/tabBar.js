@@ -7,6 +7,11 @@ class TabBarModule {
 
     initTab(nodeInfo) {
         const newTab = document.createElement('div')
+        newTab.classList.add('tab')
+        if (this.emptyTab) {
+            newTab.classList.add('tab-clicked')
+            this.emptyTab = false
+        }
         newTab.addEventListener('click', () => {
             $('.tab').each(function() {
                 $(this).removeClass('tab-clicked')
@@ -20,12 +25,6 @@ class TabBarModule {
             // TODO: close tab
         })
         
-        newTab.classList.add('tab')
-        if (this.emptyTab) {
-            newTab.classList.add('tab-clicked')
-            this.emptyTab = false
-        }
-
         tabText.classList.add('tab-text')
         tabText.innerHTML = nodeInfo.name
         tabCloseIcon.classList.add('tab-close-icon')
@@ -42,10 +41,6 @@ class TabBarModule {
     }
 
     closeTab(index) {
-
-    }
-
-    tabClicked() {
 
     }
 }

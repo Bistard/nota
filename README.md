@@ -49,7 +49,11 @@ An open-sourced markdown editor && noteTaking desktop application based on .md
 * [x] ⭐tabView
   * [x] UI
     * [ ] scrollable
-  * [ ] color
+    * [x] color
+  * [x] basic functionality
+    * [ ] right lick menu
+    * [ ] change order
+    * [ ] close tab
 * [ ] ⭐gitView
   * [ ] functionality
     * [ ] .git
