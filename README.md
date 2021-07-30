@@ -1,7 +1,12 @@
 # MarkdownNote
 An open-sourced markdown editor && noteTaking desktop application based on .md
+(still in progress)
 
-# next TimeLine
+# expect feature
+* supports WYSIWYG (rich text), instant rendering, tranditional split view editing
+* supports git and github
+* provides great noteTaking-like user experience
+# next
 * tabView
   * functionalities
   * show tab on markdownView
