@@ -1,15 +1,25 @@
 #mdView {
-    background-color: white;
+    position: relative;
     width: 100%;
     height: 100%;
+    
+    display: flex;
+    flex-direction: column;
+
+    background-color: white;
     /* Use box-sizing so that element's outerwidth will match width property */
     box-sizing: border-box; 
-    /* Allow view to grow and shrink, and ensure they are all equally sized */
+    /* Allow view to grow and shrink, and ensure they are all equally sized, equivalent to flex: auto */
     flex: 1 1 auto;
 }
 
 #md {
+    position: absolute;
+    top: 28px; /* save space for tabBar */
     width: 100%;
     height: 100%;
+
+    min-width: 100%;
+    max-width: 100%;
     border: 0px;
 }

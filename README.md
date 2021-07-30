@@ -54,7 +54,7 @@ An open-sourced markdown editor && noteTaking desktop application based on .md
     * [ ] good design - https://freefrontend.com/css-tab-bars/
     * [ ] 🏃 invisible when no tab is opened
     * [x] horizontal scroll
-      * [ ] 🏃 more fluent animation
+      * [x] more fluent animation
       * [ ] 🏃 use middle mouse to scroll
     * [x] color
   * [x] basic functionality

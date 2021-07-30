@@ -1,14 +1,15 @@
 
 #tabBar-container {
+    position: absolute;
     width: 100%;
     height: 28px;
     
-    background-color: #f8f8f8;
+    background-color: whitesmoke;
     
     display: flex;
     flex-direction: row;
-    overflow-y: hidden;
     overflow-x: auto;
+    overflow-y: hidden;
 
     /* animation scrollBar */
     color: rgba(0, 0, 0, 0);

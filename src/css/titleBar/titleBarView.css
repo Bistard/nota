@@ -57,3 +57,27 @@
     height: 100%;
 }
 
+.toggleBtn {
+    width: 100%;
+    height: 100%;
+    -webkit-app-region: no-drag;
+    transition: 0.2s;
+    cursor: pointer;
+    user-select: none;
+}
+
+.toggleBtn:hover {
+    background-color: rgb(230, 230, 230);
+}
+
+.toggleBtn:active {
+    background-color: rgb(245, 245, 245);
+}
+
+.closeToggleBtn:hover {
+    background-color: rgb(255, 27, 27);
+}
+
+.closeToggleBtn:active {
+    background-color: rgb(255, 126, 126);
+}
