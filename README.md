@@ -54,6 +54,7 @@ An open-sourced markdown editor && noteTaking desktop application based on .md
     * [ ] right lick menu
     * [ ] change order
     * [ ] close tab
+    * [ ] shortcut
 * [ ] ⭐gitView
   * [ ] functionality
     * [ ] .git

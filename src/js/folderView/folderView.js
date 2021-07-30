@@ -115,8 +115,10 @@ class FolderModule {
 
     fileLeftClicked(element, nodeInfo) {
         const newTab = this.tabBar.initTab(nodeInfo)
-        this.tabBar.insertTab(newTab)
-        
+        if (newTab) {
+            this.tabBar.insertTab(newTab, nodeInfo)
+        }
+
         let rawFile = new XMLHttpRequest()
         rawFile.open("GET", nodeInfo.path, false)
         rawFile.onreadystatechange = function () {
