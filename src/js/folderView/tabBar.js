@@ -54,6 +54,7 @@ class TabBarModule {
             $(this).removeClass('tab-clicked')
         })
         tab.classList.add('tab-clicked')
+        // TODO: calling openTab() here
     }
 
     openTab() {
@@ -61,7 +62,9 @@ class TabBarModule {
     }
 
     closeTab(element, nodeInfo) {
-        document.getElementById('tabBar-container').removeChild(element)
+        const tabBar = document.getElementById('tabBar-container')
+        tabBar.removeChild(element)
+        
         this.tabOpenedCount--
         if (this.tabOpenedCount == 0) {
             this.emptyTab = true
@@ -70,8 +73,12 @@ class TabBarModule {
         let index = this.openedTabInfo.indexOf(nodeInfo)
         this.openedTabInfo.splice(index, 1)
 
+        // focus will move to the next avaliable tab
         if (!this.emptyTab) {
-            const nextTab = document.getElementById('tabBar-container').childNodes[index]
+            if (index >= tabBar.childElementCount) {
+                index = tabBar.childElementCount - 1
+            }
+            const nextTab = tabBar.childNodes[index]
             this.focusTab(nextTab)
         }
     }

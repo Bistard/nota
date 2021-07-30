@@ -28,6 +28,7 @@ An open-sourced markdown editor && noteTaking desktop application based on .md
       * [x] new UI
         * [x] folder indent line
         * [x] more fluent scroll bar animation
+        * [ ] when open a newTab, tabBar will scroll to the newTab position
       * [x] scrollable
       * [x] indent
       * [x] node functionality
@@ -35,6 +36,7 @@ An open-sourced markdown editor && noteTaking desktop application based on .md
         * [x] collapse
         * [ ] focus
         * [ ] manual move order
+        * [ ] ...
   * [ ] functionality
     * [ ] expandALL/collapseALL
     * [ ] refresh
