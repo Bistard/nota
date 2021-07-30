@@ -2,13 +2,15 @@
     position: relative;
     display: flex;
     flex-direction: column;
-    width: 400px;
+    width: 300px;
+    min-width: 300px; /* prevent resizing */
     height: 100%;
     background-color: #f8f8f8;
 }
 
 #resize {
     width: 4px;
+    min-width: 4px; /* prevent resizing */
     height: 100%;
     position: relative;
     cursor: w-resize;

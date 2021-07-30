@@ -202,6 +202,7 @@ class FolderViewModule {
         let folderViewNewX = parseInt(getComputedStyle(folderView, '').width) - dx
         let mdViewNewX = parseInt(getComputedStyle(mdView, '').width) + dx
         folderView.style.width = folderViewNewX + "px"
+        folderView.style.minWidth = folderViewNewX + "px"
         mdView.style.width = mdViewNewX + "px"
     }
 

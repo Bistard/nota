@@ -53,7 +53,9 @@ An open-sourced markdown editor && noteTaking desktop application based on .md
     * [x] remove default tool bar
 * [x] ⭐tabView
   * [x] UI
-    * [ ] horizontal scroll
+    * [ ] good design - https://freefrontend.com/css-tab-bars/
+    * [x] horizontal scroll
+      * [ ] use middle mouse to scroll
     * [x] color
   * [x] basic functionality
     * [ ] right lick menu
@@ -73,6 +75,7 @@ An open-sourced markdown editor && noteTaking desktop application based on .md
   * [x] using classes
   * [X] Settings (Config)
     * [ ] UI config
+  * [ ] get used of 'github issue'
 
 # bugs
 * [x] disabled vditor cache will displays some weird text

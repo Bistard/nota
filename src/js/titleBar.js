@@ -26,13 +26,15 @@ class TitleBarModule {
     
     closeMenu() {
         folderView.style.width = '0px'
+        folderView.style.minWidth = '0px'
         folderView.innerHTML = ''
         resize.style.width = '0px'
         this.isFolderViewActive = false
     }
     
     openMenu() {
-        folderView.style.width = '400px'
+        folderView.style.width = '300px'
+        folderView.style.minWidth = '300px'
         for (let i in folderViewChilds) {
             folderView.appendChild(folderViewChilds[i])
         }
