@@ -3,10 +3,10 @@ An open-sourced markdown editor && noteTaking desktop application based on .md
 
 # next TimeLine
 * tabView
-  * UI
-  * open tab
-* markdownView
-  * show tab
+  * functionalities
+  * show tab on markdownView
+* folderView
+  * filter folders by config
 # to do
 * [ ] ⭐theme
   * [ ] dynamically change .svg color
@@ -53,7 +53,7 @@ An open-sourced markdown editor && noteTaking desktop application based on .md
   * [x] basic functionality
     * [ ] right lick menu
     * [ ] change order
-    * [ ] close tab
+    * [x] close tab
     * [ ] shortcut
 * [ ] ⭐gitView
   * [ ] functionality

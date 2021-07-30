@@ -9,21 +9,19 @@ class TabBarModule {
 
     initTab(nodeInfo) {
         for (let i = 0; i < this.tabOpenedCount; i++) {
-            
+            if (nodeInfo.path == this.openedTabInfo[i].path) {
+                return null
+            }
         }
 
         const newTab = document.createElement('div')
         newTab.classList.add('tab')
-        if (this.emptyTab) {
-            newTab.classList.add('tab-clicked')
-            this.emptyTab = false
-        }
+        this.focusTab(newTab)
+
         newTab.addEventListener('click', () => {
-            $('.tab').each(function() {
-                $(this).removeClass('tab-clicked')
-            })
-            newTab.classList.add('tab-clicked')
+            this.focusTab(newTab)
             // TODO: display on vditor
+            this.openTab(nodeInfo)
         })
 
         const tabText = document.createElement('div')
@@ -48,7 +46,17 @@ class TabBarModule {
         this.tabOpenedCount++
         this.emptyTab = false
         this.openedTabInfo.push(nodeInfo)
-        ipcRenderer.send('test', this.openedTabInfo)
+    }
+
+    focusTab(tab) {
+        $('.tab').each(function() {
+            $(this).removeClass('tab-clicked')
+        })
+        tab.classList.add('tab-clicked')
+    }
+
+    openTab() {
+        //TODO: complete
     }
 
     closeTab(element, nodeInfo) {
@@ -60,7 +68,6 @@ class TabBarModule {
 
         let index = this.openedTabInfo.indexOf(nodeInfo)
         this.openedTabInfo.splice(index, 1)
-        ipcRenderer.send('test', this.openedTabInfo)
     }
 }
 
