@@ -59,6 +59,8 @@
     overflow-x: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+
+    margin-left: 4px;
 }
 
 .tab-close-icon {

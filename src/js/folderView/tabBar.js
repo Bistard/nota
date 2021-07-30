@@ -5,6 +5,7 @@ class TabBarModule {
         this.emptyTab = true
         this.tabOpenedCount = 0
         this.openedTabInfo = []
+        this.setListeners()
     }
 
     initTab(nodeInfo) {
@@ -68,6 +69,13 @@ class TabBarModule {
 
         let index = this.openedTabInfo.indexOf(nodeInfo)
         this.openedTabInfo.splice(index, 1)
+    }
+
+    setListeners() {
+        const tabBar = document.getElementById('tabBar-container')
+        tabBar.addEventListener('wheel', (event) => {
+            tabBar.scrollLeft += event.deltaY
+        })
     }
 }
 
