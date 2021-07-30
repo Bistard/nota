@@ -69,6 +69,11 @@ class TabBarModule {
 
         let index = this.openedTabInfo.indexOf(nodeInfo)
         this.openedTabInfo.splice(index, 1)
+
+        if (!this.emptyTab) {
+            const nextTab = document.getElementById('tabBar-container').childNodes[index]
+            this.focusTab(nextTab)
+        }
     }
 
     setListeners() {

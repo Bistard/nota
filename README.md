@@ -55,7 +55,7 @@ An open-sourced markdown editor && noteTaking desktop application based on .md
     * [ ] 🏃 invisible when no tab is opened
     * [x] horizontal scroll
       * [x] more fluent animation
-      * [x] 🏃 use middle mouse to scroll
+      * [x] use middle mouse to scroll
     * [x] color
   * [x] basic functionality
     * [ ] right lick menu
