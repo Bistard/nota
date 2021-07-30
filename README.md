@@ -6,12 +6,7 @@ An open-sourced markdown editor && noteTaking desktop application based on .md
 * supports WYSIWYG (rich text), instant rendering, tranditional split view editing
 * supports git and github
 * provides great noteTaking-like user experience
-# next
-* tabView
-  * functionalities
-  * show tab on markdownView
-* folderView
-  * filter folders by config
+
 # to do
 * [ ] ⭐theme
   * [ ] dynamically change .svg color
@@ -22,7 +17,7 @@ An open-sourced markdown editor && noteTaking desktop application based on .md
     * [x] maxBtn
       * [x] maxBtn switch to restoreBtn
       * [ ] holding onclick can change to mode 'always on top'
-  * [ ] more
+  * [ ] ...
 * [x] ⭐folderView
   * [x] interactive size
     * [x] middle three point button style
@@ -32,6 +27,7 @@ An open-sourced markdown editor && noteTaking desktop application based on .md
     * [x] functionality 
       * [x] new UI
         * [x] folder indent line
+        * [x] more fluent scroll bar animation
       * [x] scrollable
       * [x] indent
       * [x] node functionality
@@ -41,6 +37,7 @@ An open-sourced markdown editor && noteTaking desktop application based on .md
         * [ ] manual move order
   * [ ] functionality
     * [ ] expandALL/collapseALL
+    * [ ] refresh
     * [ ] filter folders/files
     * [ ] right-click
     * [ ] config
@@ -51,12 +48,14 @@ An open-sourced markdown editor && noteTaking desktop application based on .md
   * [x] open and render a .md file (by inserting plainText)
   * [x] tool bar
     * [x] remove default tool bar
+  * [ ] 🏃‍ edit file
 * [x] ⭐tabView
   * [x] UI
     * [ ] good design - https://freefrontend.com/css-tab-bars/
+    * [ ] 🏃 invisible when no tab is opened
     * [x] horizontal scroll
-      * [ ] more fluent animation
-      * [ ] use middle mouse to scroll
+      * [ ] 🏃 more fluent animation
+      * [ ] 🏃 use middle mouse to scroll
     * [x] color
   * [x] basic functionality
     * [ ] right lick menu
@@ -68,6 +67,7 @@ An open-sourced markdown editor && noteTaking desktop application based on .md
   * [ ] functionality
     * [ ] .git
   * [ ] timeline view
+  * [ ] ...
 * [x] ⭐Others
   * [x] preload.js
   * [ ] remove using document.getElementById() instead using JQuery (maybe? check performance)
