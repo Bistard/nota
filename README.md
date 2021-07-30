@@ -53,20 +53,21 @@ An open-sourced markdown editor && noteTaking desktop application based on .md
     * [x] remove default tool bar
 * [x] ⭐tabView
   * [x] UI
-    * [ ] scrollable
+    * [ ] horizontal scroll
     * [x] color
   * [x] basic functionality
     * [ ] right lick menu
     * [ ] change order
     * [x] close tab
     * [ ] shortcut
+    * [ ] empty click create temp file
 * [ ] ⭐gitView
   * [ ] functionality
     * [ ] .git
   * [ ] timeline view
 * [x] ⭐Others
   * [x] preload.js
-  * [ ] remove using document.getElementById() instead using JQuery
+  * [ ] remove using document.getElementById() instead using JQuery (maybe? check performance)
     * [x] error: winMian is not found
   * [ ] reduce frequency of using document.getElementById()
   * [x] using classes

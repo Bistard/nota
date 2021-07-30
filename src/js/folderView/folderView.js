@@ -64,7 +64,7 @@ class FolderViewModule {
 
         const text = document.createElement('li')
         text.classList.add('node-text')
-        text.innerHTML = nodeInfo.baseName
+        text.innerHTML = nodeInfo.name
         
         if (state == 'file') {
             element.classList.add('node-file')
@@ -74,6 +74,7 @@ class FolderViewModule {
                 element.classList.add('node-folder')
             } else {
                 element.classList.add('node-root')
+                text.classList.add('node-root-text')
             }
             
             if (nodeInfo.isExpand) {
@@ -126,8 +127,7 @@ class FolderViewModule {
             if (rawFile.readyState == 4) {
                 if (rawFile.status == 200 || rawFile.status == 0) {
                     let plainText = rawFile.responseText;
-                    // DEBUG: insert all the text into vditor
-                    window.vditor.insertValue(plainText, true);
+                    /* window.vditor.insertValue(plainText, true); */ // DEBUG: insert all the text into vditor
                 }
             }
         }

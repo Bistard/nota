@@ -42,7 +42,7 @@ class TabBarModule {
     }
 
     insertTab(element, nodeInfo) {
-        $('#tabBar').append(element)
+        $('#tabBar-container').append(element)
         this.tabOpenedCount++
         this.emptyTab = false
         this.openedTabInfo.push(nodeInfo)
@@ -60,7 +60,7 @@ class TabBarModule {
     }
 
     closeTab(element, nodeInfo) {
-        document.getElementById('tabBar').removeChild(element)
+        document.getElementById('tabBar-container').removeChild(element)
         this.tabOpenedCount--
         if (this.tabOpenedCount == 0) {
             this.emptyTab = true

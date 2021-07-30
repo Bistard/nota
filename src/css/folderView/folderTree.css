@@ -26,7 +26,7 @@
 }
 
 #tree::-webkit-scrollbar-thumb {
-    background: #d3d3c3;
+    background-color: #d3d3c3;
 }
 
 #emptyFolderTag {
@@ -74,6 +74,11 @@
     overflow-x: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+}
+
+.node-root-text {
+    font-weight: bold;
+    box-shadow: 0px 3px 3px 0px rgba(0, 0, 0, 0.1);
 }
 
 .file-icon::before {

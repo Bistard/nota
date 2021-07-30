@@ -76,7 +76,7 @@ class MarkDownViewModule {
                     position: 'right',
                 },
                 cache: {
-                    enable: false, // BUG: occurs when false
+                    enable: false,
                     id: 'vditor'
                 },
                 comment: {
