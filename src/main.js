@@ -111,6 +111,22 @@ class Main {
                 Electron.app.quit()
             }
         })
+
+        this.setShortCutListeners()
+    }
+
+    setShortCutListeners() {
+        const menu = new Electron.Menu()
+        menu.append(new Electron.MenuItem({
+            label: 'Electron',
+            submenu: [{
+                role: 'help',
+                accelerator: process.platform === 'darwin' ? "Alt+Cmd+I": "Alt+Shift+I",
+                click: () => { console.log('shortcut') }
+            }]
+        }))
+
+        Electron.Menu.setApplicationMenu(menu)
     }
 
 }

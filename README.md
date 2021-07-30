@@ -10,6 +10,7 @@ An open-sourced markdown editor && noteTaking desktop application based on .md
 # to do
 * [ ] ⭐theme
   * [ ] dynamically change .svg color
+  * [ ] UI redesign (big update)
 * [x] ⭐titleBarView
   * [x] ~~bug: cannot remove menu properly~~
   * [x] icon
@@ -54,7 +55,7 @@ An open-sourced markdown editor && noteTaking desktop application based on .md
 * [x] ⭐tabView
   * [x] UI
     * [ ] good design - https://freefrontend.com/css-tab-bars/
-    * [ ] 🏃 invisible when no tab is opened
+    * [ ] ~~invisible when no tab is opened (included in UI redesign)~~
     * [x] horizontal scroll
       * [x] more fluent animation
       * [x] use middle mouse to scroll
