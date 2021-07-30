@@ -20,7 +20,7 @@ class FolderTreeModule {
         if (fs.lstatSync(path).isDirectory()) {
             
             let name = baseName.replace(/_/g, ' ')
-            const node = new treeNode({}, true, name, baseName, path, lev, true)
+            const node = new treeNode({}, true, name, baseName, path, lev, false)
             
             const files = fs.readdirSync(path, {
                 encoding: 'utf8',

@@ -11,7 +11,7 @@ const emptyFolderTag = document.getElementById('emptyFolderTag')
 const mdView = document.getElementById('mdView')
 const resize = document.getElementById("resize")
 
-class FolderModule {
+class FolderViewModule {
 
     constructor() {
         this.FolderTree = new FolderTreeModule.FolderTreeModule()
@@ -49,7 +49,7 @@ class FolderModule {
         }
     }
 
-    insertNode(parent, node, state) {
+    insertNode(parent, nodeInfo, state) {
         let element;
         if (state == 'root' || state == 'folder') {
             element = document.createElement('ul')
@@ -64,7 +64,7 @@ class FolderModule {
 
         const text = document.createElement('li')
         text.classList.add('node-text')
-        text.innerHTML = node.baseName
+        text.innerHTML = nodeInfo.baseName
         
         if (state == 'file') {
             element.classList.add('node-file')
@@ -76,7 +76,7 @@ class FolderModule {
                 element.classList.add('node-root')
             }
             
-            if (node.isExpand) {
+            if (nodeInfo.isExpand) {
                 text.classList.add('folder-icon-expand')
             } else {
                 text.classList.add('folder-icon-collapse')
@@ -114,6 +114,7 @@ class FolderModule {
     }
 
     fileLeftClicked(element, nodeInfo) {
+        // TODO: folerView focus
         const newTab = this.tabBar.initTab(nodeInfo)
         if (newTab) {
             this.tabBar.insertTab(newTab, nodeInfo)
@@ -135,20 +136,6 @@ class FolderModule {
     }
 
     setListeners() {
-
-        // ipcRenderer.on('openFile', (event, path, stat) => {
-        //     let rawFile = new XMLHttpRequest()
-        //     rawFile.open("GET", path, false)
-        //     rawFile.onreadystatechange = function () {
-        //         if (rawFile.readyState == 4) {
-        //             if (rawFile.status == 200 || rawFile.status == 0) {
-        //                 let plainText = rawFile.responseText;
-        //                 window.vditor.insertValue(plainText, true);
-        //             }
-        //         }
-        //     }
-        //     rawFile.send(null)
-        // })
 
         ipcRenderer.on('openFolder', (event, path, stat) => {
             this.isFolderOpened = true
@@ -245,6 +232,6 @@ class FolderModule {
     }
 }
 
-new FolderModule()
+new FolderViewModule()
 
-module.exports = { FolderModule }
+module.exports = { FolderViewModule }

@@ -46,7 +46,6 @@
 
 .tab:hover {
     border-bottom: 1px solid #65655F;
-    background-color: greenyellow; /* debug */
 }
 
 .tab-clicked {

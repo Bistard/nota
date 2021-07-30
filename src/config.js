@@ -10,7 +10,7 @@ class ConfigModule {
         
         this.OpenFolderDialogConfig = {
             /* defaultPath: app.getPath('desktop'), */
-            defaultPath: 'D:\\dev\\AllNote',                                    // TEST
+            defaultPath: 'D:\\dev\\AllNote',                                    // DEBUG
             buttonLabel: 'open a file or folder',
             properties: [
                 /* 'openFile', */

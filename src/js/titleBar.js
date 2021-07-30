@@ -32,7 +32,7 @@ class TitleBarModule {
     }
     
     openMenu() {
-        folderView.style.width = '300px'
+        folderView.style.width = '400px'
         for (let i in folderViewChilds) {
             folderView.appendChild(folderViewChilds[i])
         }

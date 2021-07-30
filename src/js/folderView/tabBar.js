@@ -20,13 +20,13 @@ class TabBarModule {
 
         newTab.addEventListener('click', () => {
             this.focusTab(newTab)
-            // TODO: display on vditor
             this.openTab(nodeInfo)
         })
 
         const tabText = document.createElement('div')
         const tabCloseIcon = document.createElement('img')
-        tabCloseIcon.addEventListener('click', () => {
+        tabCloseIcon.addEventListener('click', (event) => {
+            event.stopPropagation() // prevent parent click when clicked on child
             this.closeTab(newTab, nodeInfo)
         })
         
