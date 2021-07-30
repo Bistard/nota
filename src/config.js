@@ -1,4 +1,4 @@
-const { app }= require('electron')
+const { app, globalShortcut, ipcMain, ipcRenderer }= require('electron')
 
 class ConfigModule {
     constructor() {
@@ -18,6 +18,10 @@ class ConfigModule {
             ],
         }
 
+    }
+
+    handleShortCut(event) {
+        console.log(event.key)
     }
 }
 

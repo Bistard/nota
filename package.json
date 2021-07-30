@@ -27,6 +27,7 @@
     "@vue/cli": "^4.5.13",
     "animate.css": "^4.1.1",
     "buefy": "^0.9.8",
+    "electron-localshortcut": "^3.2.1",
     "jquery": "^3.6.0",
     "path-directories": "^1.0.2",
     "sl-vue-tree": "^1.8.5",

@@ -1,10 +1,12 @@
 const OS = require('os')
 const path = require('path')
 
-const Electron = require('electron')
+const { BrowserWindow, ipcMain, app, dialog, globalShortcut } = require('electron')
+const electronLocalshortcut = require('electron-localshortcut');
 
 const Notification = require('./js/notification')
-const ConfigModule = require('./config')
+const ConfigModule = require('./config');
+const { Console } = require('console');
 
 class Main {
     
@@ -16,9 +18,9 @@ class Main {
     }
 
     createWindow() {
-        Electron.app.whenReady().then(() => {
+        app.whenReady().then(() => {
             
-            this.winMain = new Electron.BrowserWindow({
+            this.winMain = new BrowserWindow({
                 width: 1200,
                 height: 800,
                 minWidth: 300,
@@ -54,16 +56,11 @@ class Main {
                 this.winMain = null
             })
 
-            /* testing purpose */
-            Electron.ipcMain.on('test', (event, data) => {
-                console.log(data)
-            })
-
-            Electron.ipcMain.on('minApp', () => {
+            ipcMain.on('minApp', () => {
                 this.winMain.minimize()
             })
 
-            Electron.ipcMain.on('maxResApp', () => {
+            ipcMain.on('maxResApp', () => {
                 if (this.winMain.isMaximized()) {
                     this.winMain.restore()
                 } else {
@@ -71,12 +68,12 @@ class Main {
                 }
             })
 
-            Electron.ipcMain.on('closeApp', () => {
+            ipcMain.on('closeApp', () => {
                 this.winMain.close()
             })
 
-            Electron.ipcMain.on('openNewFolder', () => {
-                Electron.dialog.showOpenDialog(
+            ipcMain.on('openNewFolder', () => {
+                dialog.showOpenDialog(
                     this.winMain,
                     this.ConfigModule.OpenFolderDialogConfig
                 ).then((path) => {
@@ -86,6 +83,12 @@ class Main {
                     }
                 })
             })
+            
+            /* testing purpose */
+            ipcMain.on('test', (event, data) => {
+                console.log(data)
+            })
+
         })
     }
 
@@ -95,10 +98,10 @@ class Main {
             console.error(`Unhandled Rejection at: ${util.inspect(p)} reason: ${reason}`)
         })
 
-        Electron.app.on('activate', function () {
+        app.on('activate', function () {
             // On macOS it's common to re-create a window in the app when the
             // dock icon is clicked and there are no other windows open.
-            if (Electron.BrowserWindow.getAllWindows().length === 0) {
+            if (BrowserWindow.getAllWindows().length === 0) {
                 createWindow()
             }
         })
@@ -106,27 +109,17 @@ class Main {
         // Quit when all windows are closed, except on macOS. There, it's common
         // for applications and their menu bar to stay active until the user quits
         // explicitly with Cmd + Q.
-        Electron.app.on('window-all-closed', function () {
+        app.on('window-all-closed', function () {
             if (process.platform !== 'darwin') {
-                Electron.app.quit()
+                app.quit()
             }
         })
 
-        this.setShortCutListeners()
-    }
-
-    setShortCutListeners() {
-        const menu = new Electron.Menu()
-        menu.append(new Electron.MenuItem({
-            label: 'Electron',
-            submenu: [{
-                role: 'help',
-                accelerator: process.platform === 'darwin' ? "Alt+Cmd+I": "Alt+Shift+I",
-                click: () => { console.log('shortcut') }
-            }]
-        }))
-
-        Electron.Menu.setApplicationMenu(menu)
+        app.whenReady().then(() => {
+            electronLocalshortcut.register(this.winMain, 'Ctrl+Tab', () => {
+                console.log("pressed")
+            })
+        })
     }
 
 }
