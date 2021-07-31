@@ -1,13 +1,13 @@
 const OS = require('os')
 const path = require('path')
 
-const { BrowserWindow, ipcMain, app, dialog } = require('electron')
+const { BrowserWindow, ipcMain, app, dialog, Menu, MenuItem } = require('electron')
 const ElectronLocalshortcut = require('electron-localshortcut')
 
 const ConfigModule = require('./js/config')
 
 class Main {
-    
+
     constructor() {
         this.ConfigModule = new ConfigModule.ConfigModule()
         this.winMain = null
@@ -17,32 +17,33 @@ class Main {
 
     createWindow() {
         app.whenReady().then(() => {
-            
+
             this.winMain = new BrowserWindow({
                 width: 1200,
                 height: 800,
                 minWidth: 300,
                 minHeight: 200,
-        
+
                 webPreferences: {
                     nodeIntegration: true,
                     contextIsolation: false,
                     devTools: true,
                     preload: path.join(__dirname + '/js', 'preload.js')
                 },
-        
+
                 show: false,
                 frame: false
             })
-    
+
             global.winMain = this.winMain
-            /* this.winMain.setMenu(null) */
+            this.winMain.setMenu(null)
+
             this.winMain.loadFile('./src/index.html')
-    
+
             this.winMain.webContents.on('did-finish-load', () => {
                 this.winMain.show()
             })
-    
+
             this.winMain.on('maximize', () => {
                 this.winMain.webContents.send('isMaximized')
             })
@@ -82,7 +83,7 @@ class Main {
                     }
                 })
             })
-            
+
             /* testing purpose */
             ipcMain.on('test', (event, data) => {
                 console.log(data)
@@ -93,9 +94,9 @@ class Main {
 
     setListeners() {
         // This catches any unhandle promise rejection errors
-        process.on('unhandledRejection', (reason, p) => {
-            console.error(`Unhandled Rejection at: ${util.inspect(p)} reason: ${reason}`)
-        })
+        // process.on('unhandledRejection', (reason, p) => {
+        //     console.error(`Unhandled Rejection at: ${util.inspect(p)} reason: ${reason}`)
+        // })
 
         app.on('activate', function () {
             // On macOS it's common to re-create a window in the app when the
@@ -104,7 +105,7 @@ class Main {
                 createWindow()
             }
         })
-    
+
         // Quit when all windows are closed, except on macOS. There, it's common
         // for applications and their menu bar to stay active until the user quits
         // explicitly with Cmd + Q.
@@ -113,9 +114,20 @@ class Main {
                 app.quit()
             }
         })
-        
+
         // set local shortcuts
         app.whenReady().then(() => {
+
+            // common
+            ElectronLocalshortcut.register(this.winMain, 'Ctrl+Shift+I', () => {
+                this.winMain.webContents.toggleDevTools()
+            })
+
+            ElectronLocalshortcut.register(this.winMain, 'Ctrl+R', () => {
+                this.winMain.webContents.reload()
+            })
+
+            // tab bar
             ElectronLocalshortcut.register(this.winMain, 'Ctrl+Tab', () => {
                 this.winMain.webContents.send('Ctrl+Tab')
             })
@@ -131,6 +143,7 @@ class Main {
             ElectronLocalshortcut.register(this.winMain, 'Ctrl+S', () => {
                 this.winMain.webContents.send('Ctrl+S')
             })
+
         })
 
     }
