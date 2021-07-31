@@ -49,8 +49,8 @@ An open-sourced markdown editor && noteTaking desktop application based on .md
     * [ ] config
       * [ ] directory config with local save
 * [x] ⭐markdownView
-  * [x] vditor preview
-  * [ ] vditor needs to be rendered before window created (not sure if still necessary)
+  * [x] md preview
+  * [ ] md needs to be rendered before window created (not sure if still necessary)
   * [x] open and render a .md file (by inserting plainText)
   * [x] tool bar
     * [x] remove default tool bar
@@ -71,9 +71,7 @@ An open-sourced markdown editor && noteTaking desktop application based on .md
     * [ ] change order
     * [x] close tab
     * [x] shortcut
-      * ~~globalShortCut~~
       * [x] using lib
-      * [ ] new UI like vscode does (also prevents insert tab into vditor)
     * [ ] empty click create temp file
 * [ ] ⭐gitView
   * [ ] functionality
@@ -91,7 +89,6 @@ An open-sourced markdown editor && noteTaking desktop application based on .md
   * [ ] get used of 'github issue'
 
 # bugs
-* [x] disabled vditor cache will displays some weird text
 * [ ] (debug state) since opening file is essentially inserting text, we need to clean history immediately
 * [x] fix - folderView.js - remove emptyFolderTag correctly
 # ChangeLog

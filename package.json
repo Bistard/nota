@@ -24,6 +24,7 @@
     "electron": "^13.1.7"
   },
   "dependencies": {
+    "@toast-ui/editor": "^2.5.3",
     "@vue/cli": "^4.5.13",
     "animate.css": "^4.1.1",
     "buefy": "^0.9.8",

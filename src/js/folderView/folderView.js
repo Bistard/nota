@@ -127,7 +127,6 @@ class FolderViewModule {
             if (rawFile.readyState == 4) {
                 if (rawFile.status == 200 || rawFile.status == 0) {
                     let plainText = rawFile.responseText;
-                    /* window.vditor.insertValue(plainText, true); */ // DEBUG: insert all the text into vditor
                 }
             }
         }
