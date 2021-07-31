@@ -3,13 +3,14 @@ const { app, ipcRenderer } = require("electron")
 class TabBarModule {
     constructor() {
         this.emptyTab = true
-        this.tabOpenedCount = 0
+        this.openedTabCount = 0
         this.openedTabInfo = []
+        this.currFocusTabIndex = -1
         this.setListeners()
     }
 
     initTab(nodeInfo) {
-        for (let i = 0; i < this.tabOpenedCount; i++) {
+        for (let i = 0; i < this.openedTabCount; i++) {
             if (nodeInfo.path == this.openedTabInfo[i].path) {
                 return null
             }
@@ -44,12 +45,14 @@ class TabBarModule {
 
     insertTab(element, nodeInfo) {
         $('#tabBar-container').append(element)
-        this.tabOpenedCount++
+        this.currFocusTabIndex = this.openedTabCount
+        this.openedTabCount++
         this.emptyTab = false
         this.openedTabInfo.push(nodeInfo)
     }
 
     focusTab(tab) {
+        // TODO: improve efficiency
         $('.tab').each(function() {
             $(this).removeClass('tab-clicked')
         })
@@ -62,25 +65,26 @@ class TabBarModule {
     }
 
     closeTab(element, nodeInfo) {
+        ipcRenderer.send('test', this.currFocusTabIndex)
         const tabBar = document.getElementById('tabBar-container')
         tabBar.removeChild(element)
         
-        this.tabOpenedCount--
-        if (this.tabOpenedCount == 0) {
+        this.openedTabCount--
+        if (this.openedTabCount == 0) {
             this.emptyTab = true
         }
 
         let index = this.openedTabInfo.indexOf(nodeInfo)
         this.openedTabInfo.splice(index, 1)
 
-        // focus will move to the next avaliable tab
-        if (!this.emptyTab) {
-            if (index >= tabBar.childElementCount) {
-                index = tabBar.childElementCount - 1
-            }
-            const nextTab = tabBar.childNodes[index]
-            this.focusTab(nextTab)
+        if (index == this.currFocusTabIndex) {
+            this.currFocusTabIndex = --index
+            const nextFocusTab = tabBar.childNodes[index]
+            this.focusTab(nextFocusTab)
+        } else if (index < this.currFocusTabIndex) {
+            this.currFocusTabIndex--
         }
+        
     }
 
     setListeners() {
@@ -92,8 +96,12 @@ class TabBarModule {
         })
 
         // shortcut handling
-        ipcRenderer.on('Ctrl+Tab', (event) => {
-            ipcRenderer.send('test', 'reached')
+        ipcRenderer.on('Ctrl+Tab', () => {
+            
+        })
+
+        ipcRenderer.on('Ctrl+Shift+Tab', () => {
+            
         })
 
     }
