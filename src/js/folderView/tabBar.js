@@ -19,20 +19,10 @@ class TabBarModule {
         }
 
         const newTab = document.createElement('div')
-        newTab.classList.add('tab')
-        
-        newTab.addEventListener('click', () => {
-            let index = this.openedTabInfo.indexOf(nodeInfo)
-            this.openTab(newTab, index, nodeInfo)
-        })
-
         const tabText = document.createElement('div')
         const tabCloseIcon = document.createElement('img')
-        tabCloseIcon.addEventListener('click', (event) => {
-            event.stopPropagation() // prevent parent click when clicked on child
-            this.closeTab(newTab, nodeInfo)
-        })
         
+        newTab.classList.add('tab')
         tabText.classList.add('tab-text')
         tabText.innerHTML = nodeInfo.name
         tabCloseIcon.classList.add('tab-close-icon')
@@ -40,6 +30,16 @@ class TabBarModule {
 
         newTab.append(tabText)
         newTab.append(tabCloseIcon)
+
+        newTab.addEventListener('click', () => {
+            let index = this.openedTabInfo.indexOf(nodeInfo)
+            this.openTab(newTab, index, nodeInfo)
+        })
+
+        tabCloseIcon.addEventListener('click', (event) => {
+            event.stopPropagation() // prevent parent click when clicked on child
+            this.closeTab(newTab, nodeInfo)
+        })
         
         return [false, i, newTab]
     }
@@ -71,6 +71,9 @@ class TabBarModule {
         
         tabBar.removeChild(element)
         
+        let index = this.openedTabInfo.indexOf(nodeInfo)
+        this.openedTabInfo.splice(index, 1)
+        
         this.openedTabCount--
         if (this.openedTabCount == 0) {
             this.emptyTab = true
@@ -79,9 +82,6 @@ class TabBarModule {
             return
         }
 
-        let index = this.openedTabInfo.indexOf(nodeInfo)
-        this.openedTabInfo.splice(index, 1)
-        
         if (index == this.currFocusTabIndex) {
             if (index == this.openedTabCount) {
                 index--

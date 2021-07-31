@@ -36,7 +36,7 @@ class Main {
             })
     
             global.winMain = this.winMain
-            this.winMain.setMenu(null)
+            /* this.winMain.setMenu(null) */
             this.winMain.loadFile('./src/index.html')
     
             this.winMain.webContents.on('did-finish-load', () => {
@@ -124,12 +124,12 @@ class Main {
                 this.winMain.webContents.send('Ctrl+Shift+Tab')
             })
 
-            ElectronLocalshortcut.register(this.winMain, 'Ctrl+S', () => {
-                this.winMain.webContents.send('Ctrl+S')
-            })
-
             ElectronLocalshortcut.register(this.winMain, 'Ctrl+W', () => {
                 this.winMain.webContents.send('Ctrl+W')
+            })
+
+            ElectronLocalshortcut.register(this.winMain, 'Ctrl+S', () => {
+                this.winMain.webContents.send('Ctrl+S')
             })
         })
 

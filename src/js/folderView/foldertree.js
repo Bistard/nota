@@ -17,6 +17,7 @@ class treeNode {
 class FolderTreeModule {
     
     constructor() {
+        // TODO: reduce memory usage (.tree .treeList might overlap)
         this.tree = {}
         this.treeList = []
     }
