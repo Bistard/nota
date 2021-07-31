@@ -1,4 +1,4 @@
-const { app, globalShortcut, ipcMain, ipcRenderer }= require('electron')
+const { app, ipcRenderer }= require('electron')
 
 class ConfigModule {
     constructor() {
@@ -20,9 +20,6 @@ class ConfigModule {
 
     }
 
-    handleShortCut(event) {
-        console.log(event.key)
-    }
 }
 
 module.exports = { ConfigModule }

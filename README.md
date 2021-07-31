@@ -1,6 +1,6 @@
-# MarkdownNote
-An open-sourced markdown editor && noteTaking desktop application based on .md
-(still in progress)
+# MarkdownNote (still in progress)
+An open-sourced markdown editor && noteTaking desktop application based on .md.
+基于markdown编辑与读写的笔记软件
 
 # expect feature
 * supports WYSIWYG (rich text), instant rendering, tranditional split view editing
@@ -64,7 +64,9 @@ An open-sourced markdown editor && noteTaking desktop application based on .md
     * [ ] right lick menu
     * [ ] change order
     * [x] close tab
-    * [ ] shortcut
+    * [x] shortcut
+      * ~~globalShortCut~~
+      * [ ] using lib
     * [ ] empty click create temp file
 * [ ] ⭐gitView
   * [ ] functionality

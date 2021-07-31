@@ -1,4 +1,4 @@
-const { ipcRenderer } = require("electron")
+const { app, ipcRenderer } = require("electron")
 
 class TabBarModule {
     constructor() {
@@ -84,10 +84,18 @@ class TabBarModule {
     }
 
     setListeners() {
+        
+        // able to scroll horizontally using middle mouse
         const tabBar = document.getElementById('tabBar-container')
         tabBar.addEventListener('wheel', (event) => {
             tabBar.scrollLeft += event.deltaY
         })
+
+        // shortcut handling
+        ipcRenderer.on('Ctrl+Tab', (event) => {
+            ipcRenderer.send('test', 'reached')
+        })
+
     }
 }
 

@@ -1,6 +1,6 @@
-const { ipcRenderer } = require('electron')
+const { app, ipcRenderer } = require('electron')
 const FolderTreeModule = require('./folderTree')
-const TabBarModule = require('./tabBar.js')
+const TabBarModule = require('./tabBar')
 
 const folderBtn = document.getElementById('folderBtn')
 const outlineBtn = document.getElementById('outlineBtn')
