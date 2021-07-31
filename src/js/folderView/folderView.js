@@ -117,16 +117,17 @@ class FolderViewModule {
     fileLeftClicked(element, nodeInfo) {
         const tabInfo = this.tabBar.initTab(nodeInfo)
         const isExist = tabInfo[0]
-        const newTab = tabInfo[1]
+        const tabIndex = tabInfo[1]
+        const newTab = tabInfo[2]
         
         this.focusFile(newTab)
-        this.tabBar.focusTab(newTab, nodeInfo)
+
         if (!isExist) {
             this.tabBar.insertTab(newTab, nodeInfo)
         }
         
         if (nodeInfo.plainText !== "") {
-            this.tabBar.displayTab(newTab, nodeInfo)
+            this.tabBar.openTab(newTab, tabIndex, nodeInfo)
         } else {
             let rawFile = new XMLHttpRequest()
             rawFile.open("GET", nodeInfo.path, false)
@@ -136,7 +137,7 @@ class FolderViewModule {
                         nodeInfo.plainText = rawFile.responseText
                         // might copy the whole plainText into the function
                         //  REQUIRE performance check
-                        this.tabBar.displayTab(newTab, nodeInfo)
+                        this.tabBar.openTab(newTab, tabIndex, nodeInfo)
                     }
                 }
             }

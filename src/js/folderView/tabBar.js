@@ -11,18 +11,19 @@ class TabBarModule {
     }
 
     initTab(nodeInfo) {
-        for (let i = 0; i < this.openedTabCount; i++) {
+        let i = 0
+        for (i = 0; i < this.openedTabCount; i++) {
             if (nodeInfo.path == this.openedTabInfo[i].path) {
-                return [true, tabBar.childNodes[i]]
+                return [true, i, tabBar.childNodes[i]]
             }
         }
 
         const newTab = document.createElement('div')
         newTab.classList.add('tab')
-        this.focusTab(newTab, nodeInfo)
-
+        
         newTab.addEventListener('click', () => {
-            this.focusTab(newTab, nodeInfo)
+            let index = this.openedTabInfo.indexOf(nodeInfo)
+            this.openTab(newTab, index, nodeInfo)
         })
 
         const tabText = document.createElement('div')
@@ -40,7 +41,7 @@ class TabBarModule {
         newTab.append(tabText)
         newTab.append(tabCloseIcon)
         
-        return [false, newTab]
+        return [false, i, newTab]
     }
 
     insertTab(element, nodeInfo) {
@@ -51,13 +52,14 @@ class TabBarModule {
         this.openedTabInfo.push(nodeInfo)
     }
 
-    focusTab(tab, nodeInfo) {
+    openTab(tab, index, nodeInfo) {
         // TODO: improve efficiency
         $('.tab').each(function() {
             $(this).removeClass('tab-clicked')
         })
         tab.classList.add('tab-clicked')
         
+        this.currFocusTabIndex = index
         this.displayTab(tab, nodeInfo)
     }
 
@@ -72,24 +74,24 @@ class TabBarModule {
         this.openedTabCount--
         if (this.openedTabCount == 0) {
             this.emptyTab = true
+            this.currFocusTabIndex = -1
+            this.displayTab(null, '')
+            return
         }
 
         let index = this.openedTabInfo.indexOf(nodeInfo)
         this.openedTabInfo.splice(index, 1)
-        if (index == 0) {
-            this.currFocusTabIndex = 0
+        
+        if (index == this.currFocusTabIndex) {
+            if (index == this.openedTabCount) {
+                index--
+            }
             const nextFocusTab = tabBar.childNodes[index]
-            let nextFocustabInfo = this.openedTabInfo[index]
-            this.focusTab(nextFocusTab, nextFocustabInfo)
-        } else if (index == this.currFocusTabIndex) {
-            this.currFocusTabIndex = --index
-            const nextFocusTab = tabBar.childNodes[index]
-            let nextFocustabInfo = this.openedTabInfo[index]
-            this.focusTab(nextFocusTab, nextFocustabInfo)
+            const nextFocustabInfo = this.openedTabInfo[index]
+            this.openTab(nextFocusTab, index, nextFocustabInfo)
         } else if (index < this.currFocusTabIndex) {
             this.currFocusTabIndex--
         }
-
     }
 
     setListeners() {
@@ -102,19 +104,19 @@ class TabBarModule {
         // shortcut handling
         ipcRenderer.on('Ctrl+Tab', () => {
             if (!this.emptyTab && this.openedTabCount != 1) {
-                this.currFocusTabIndex = (this.currFocusTabIndex + 1) % this.openedTabCount
-                const tab = tabBar.childNodes[this.currFocusTabIndex]
-                let nodeInfo = this.openedTabInfo[this.currFocusTabIndex]
-                this.focusTab(tab, nodeInfo)
+                const index = (this.currFocusTabIndex + 1) % this.openedTabCount
+                const tab = tabBar.childNodes[index]
+                let nodeInfo = this.openedTabInfo[index]
+                this.openTab(tab, index, nodeInfo)
             }
         })
 
         ipcRenderer.on('Ctrl+Shift+Tab', () => {
             if (!this.emptyTab && this.openedTabCount != 1) {
-                this.currFocusTabIndex = (this.currFocusTabIndex - 1 + this.openedTabCount) % this.openedTabCount
-                const tab = tabBar.childNodes[this.currFocusTabIndex]
-                let nodeInfo = this.openedTabInfo[this.currFocusTabIndex]
-                this.focusTab(tab, nodeInfo)
+                const index = (this.currFocusTabIndex - 1 + this.openedTabCount) % this.openedTabCount
+                const tab = tabBar.childNodes[index]
+                let nodeInfo = this.openedTabInfo[index]
+                this.openTab(tab, index, nodeInfo)
             }
         })
 

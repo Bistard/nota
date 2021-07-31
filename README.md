@@ -64,7 +64,7 @@ An open-sourced markdown editor && noteTaking desktop application based on .md
     * [x] horizontal scroll
       * [x] more fluent animation
       * [x] use middle mouse to scroll
-      * [ ] tab view follows focusTab
+      * [ ] tab view follows openTab
     * [x] color
   * [x] basic functionality
     * [ ] right lick menu
