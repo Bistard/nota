@@ -36,6 +36,7 @@ class Main {
             })
     
             global.winMain = this.winMain
+            this.winMain.setMenu(null)
             this.winMain.loadFile('./src/index.html')
     
             this.winMain.webContents.on('did-finish-load', () => {

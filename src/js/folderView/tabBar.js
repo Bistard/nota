@@ -121,7 +121,11 @@ class TabBarModule {
         })
 
         ipcRenderer.on('Ctrl+W', () => {
-
+            if (!this.emptyTab) {
+                const tab = tabBar.childNodes[this.currFocusTabIndex]
+                let nodeInfo = this.openedTabInfo[this.currFocusTabIndex]
+                this.closeTab(tab, nodeInfo)
+            }
         })
 
         ipcRenderer.on('Ctrl+S', () => {
