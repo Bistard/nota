@@ -115,23 +115,38 @@ class FolderViewModule {
     }
 
     fileLeftClicked(element, nodeInfo) {
-        // TODO: folerView focus
-        const newTab = this.tabBar.initTab(nodeInfo)
-        if (newTab) {
+        const tabInfo = this.tabBar.initTab(nodeInfo)
+        const isExist = tabInfo[0]
+        const newTab = tabInfo[1]
+        
+        this.focusFile(newTab)
+        this.tabBar.focusTab(newTab, nodeInfo)
+        if (!isExist) {
             this.tabBar.insertTab(newTab, nodeInfo)
         }
-
-        let rawFile = new XMLHttpRequest()
-        rawFile.open("GET", nodeInfo.path, false)
-        rawFile.onreadystatechange = function () {
-            if (rawFile.readyState == 4) {
-                if (rawFile.status == 200 || rawFile.status == 0) {
-                    let plainText = rawFile.responseText;
+        
+        if (nodeInfo.plainText !== "") {
+            this.tabBar.displayTab(newTab, nodeInfo)
+        } else {
+            let rawFile = new XMLHttpRequest()
+            rawFile.open("GET", nodeInfo.path, false)
+            rawFile.onreadystatechange = () => {
+                if (rawFile.readyState == 4) {
+                    if (rawFile.status == 200 || rawFile.status == 0) {
+                        nodeInfo.plainText = rawFile.responseText
+                        // might copy the whole plainText into the function
+                        //  REQUIRE performance check
+                        this.tabBar.displayTab(newTab, nodeInfo)
+                    }
                 }
             }
+            rawFile.send(null)
         }
-        rawFile.send(null)
-        
+
+    }
+
+    focusFile(tab) {
+        // TODO: complete
     }
 
     setListeners() {

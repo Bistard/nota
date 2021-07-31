@@ -13,17 +13,16 @@ class TabBarModule {
     initTab(nodeInfo) {
         for (let i = 0; i < this.openedTabCount; i++) {
             if (nodeInfo.path == this.openedTabInfo[i].path) {
-                return null
+                return [true, tabBar.childNodes[i]]
             }
         }
 
         const newTab = document.createElement('div')
         newTab.classList.add('tab')
-        this.focusTab(newTab)
+        this.focusTab(newTab, nodeInfo)
 
         newTab.addEventListener('click', () => {
-            this.focusTab(newTab)
-            this.openTab(nodeInfo)
+            this.focusTab(newTab, nodeInfo)
         })
 
         const tabText = document.createElement('div')
@@ -41,7 +40,7 @@ class TabBarModule {
         newTab.append(tabText)
         newTab.append(tabCloseIcon)
         
-        return newTab
+        return [false, newTab]
     }
 
     insertTab(element, nodeInfo) {
@@ -52,17 +51,18 @@ class TabBarModule {
         this.openedTabInfo.push(nodeInfo)
     }
 
-    focusTab(tab) {
+    focusTab(tab, nodeInfo) {
         // TODO: improve efficiency
         $('.tab').each(function() {
             $(this).removeClass('tab-clicked')
         })
         tab.classList.add('tab-clicked')
-        // TODO: calling openTab() here
+        
+        this.displayTab(tab, nodeInfo)
     }
 
-    openTab() {
-        //TODO: complete
+    displayTab(netTab, nodeInfo) {
+        window.editor.setMarkdown(nodeInfo.plainText, false)
     }
 
     closeTab(element, nodeInfo) {
@@ -76,11 +76,16 @@ class TabBarModule {
 
         let index = this.openedTabInfo.indexOf(nodeInfo)
         this.openedTabInfo.splice(index, 1)
-
-        if (index == this.currFocusTabIndex) {
+        if (index == 0) {
+            this.currFocusTabIndex = 0
+            const nextFocusTab = tabBar.childNodes[index]
+            let nextFocustabInfo = this.openedTabInfo[index]
+            this.focusTab(nextFocusTab, nextFocustabInfo)
+        } else if (index == this.currFocusTabIndex) {
             this.currFocusTabIndex = --index
             const nextFocusTab = tabBar.childNodes[index]
-            this.focusTab(nextFocusTab)
+            let nextFocustabInfo = this.openedTabInfo[index]
+            this.focusTab(nextFocusTab, nextFocustabInfo)
         } else if (index < this.currFocusTabIndex) {
             this.currFocusTabIndex--
         }
@@ -98,19 +103,23 @@ class TabBarModule {
         ipcRenderer.on('Ctrl+Tab', () => {
             if (!this.emptyTab && this.openedTabCount != 1) {
                 this.currFocusTabIndex = (this.currFocusTabIndex + 1) % this.openedTabCount
-                this.focusTab(tabBar.childNodes[this.currFocusTabIndex])
+                const tab = tabBar.childNodes[this.currFocusTabIndex]
+                let nodeInfo = this.openedTabInfo[this.currFocusTabIndex]
+                this.focusTab(tab, nodeInfo)
             }
         })
 
         ipcRenderer.on('Ctrl+Shift+Tab', () => {
             if (!this.emptyTab && this.openedTabCount != 1) {
                 this.currFocusTabIndex = (this.currFocusTabIndex - 1 + this.openedTabCount) % this.openedTabCount
-                this.focusTab(tabBar.childNodes[this.currFocusTabIndex])
+                const tab = tabBar.childNodes[this.currFocusTabIndex]
+                let nodeInfo = this.openedTabInfo[this.currFocusTabIndex]
+                this.focusTab(tab, nodeInfo)
             }
         })
 
         ipcRenderer.on('Ctrl+W', () => {
-            
+
         })
 
         ipcRenderer.on('Ctrl+S', () => {

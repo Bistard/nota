@@ -6,7 +6,8 @@ const markdown = document.getElementById('md')
 class MarkDownViewModule {
     constructor() {
         this.toolBar = null
-        this.editor = this.createMarkdownEditor()
+        this.editor = null
+        this.createMarkdownEditor()
         this.setListeners()
     }
 
@@ -18,10 +19,23 @@ class MarkDownViewModule {
         this.editor = new Editor({
             el: markdown,
             height: '100%',
-            language: 'zh_CN',
-            initialEditType: 'wysiwyg',
+            language: 'zh-CN',
             previewStyle: 'tab',
             hideModeSwitch: true,
+            initialEditType: 'wysiwyg',
+            events: {
+                /* 
+                load: null,
+                change: null,
+                focus: null,
+                blur: null,
+                keydown: null,
+                keyup: null 
+                */
+            },
+            useCommandShortcut: true,
+            placeholder: '',
+            previewHighlight: false,
           });
 
         this.editor.getMarkdown();
@@ -29,14 +43,7 @@ class MarkDownViewModule {
 
 }
 
-let markDownModule = new MarkDownViewModule()
+var markDownModule = new MarkDownViewModule()
 window.editor = markDownModule.editor
     
-window.onload = function () {
-    /* let toolBar = document.getElementsByClassName('vditor-toolbar')[0]
-    markdown.removeChild(toolBar) */
-}
-
-
-
 module.exports = { MarkDownViewModule }

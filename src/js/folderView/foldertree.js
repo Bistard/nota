@@ -3,8 +3,15 @@ const fs = require('fs')
 const Path = require('path')
 
 class treeNode {
-    constructor(nodes, isFolder, name, baseName, path, level, isExpand) {
-        Object.assign(this, {nodes, isFolder, name, baseName, path, level, isExpand})
+    constructor(nodes, 
+                isFolder, 
+                name, 
+                baseName, 
+                path, 
+                level, 
+                isExpand, 
+                plainText) {
+        Object.assign(this, {nodes, isFolder, name, baseName, path, level, isExpand, plainText})
     }
 }
 class FolderTreeModule {
@@ -20,7 +27,7 @@ class FolderTreeModule {
         if (fs.lstatSync(path).isDirectory()) {
             
             let name = baseName.replace(/_/g, ' ')
-            const node = new treeNode({}, true, name, baseName, path, lev, false)
+            const node = new treeNode({}, true, name, baseName, path, lev, false, '')
             
             const files = fs.readdirSync(path, {
                 encoding: 'utf8',
@@ -35,10 +42,10 @@ class FolderTreeModule {
 
         } else if (/\.md$/i.test(path)) {
             let name = baseName.replace(/_/g, ' ').replace(/\.md$/, '').trim()
-            return new treeNode({}, false, name, baseName, path, lev, false)
+            return new treeNode({}, false, name, baseName, path, lev, false, '')
         }
         // reaches if no suffix or not .md
-        return new treeNode({}, false, baseName, baseName, path, lev, false)
+        return new treeNode({}, false, baseName, baseName, path, lev, false, '')
     }
 
     getFolderTreeList(tree, list = []) {

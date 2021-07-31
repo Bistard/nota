@@ -4,8 +4,7 @@ const path = require('path')
 const { BrowserWindow, ipcMain, app, dialog } = require('electron')
 const ElectronLocalshortcut = require('electron-localshortcut')
 
-const Notification = require('./js/notification')
-const ConfigModule = require('./config')
+const ConfigModule = require('./js/config')
 
 class Main {
     
