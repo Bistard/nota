@@ -1,5 +1,6 @@
 const { app, ipcRenderer } = require("electron")
 
+const tabBar = document.getElementById('tabBar-container')
 class TabBarModule {
     constructor() {
         this.emptyTab = true
@@ -65,8 +66,7 @@ class TabBarModule {
     }
 
     closeTab(element, nodeInfo) {
-        ipcRenderer.send('test', this.currFocusTabIndex)
-        const tabBar = document.getElementById('tabBar-container')
+        
         tabBar.removeChild(element)
         
         this.openedTabCount--
@@ -84,24 +84,29 @@ class TabBarModule {
         } else if (index < this.currFocusTabIndex) {
             this.currFocusTabIndex--
         }
-        
+
     }
 
     setListeners() {
         
         // able to scroll horizontally using middle mouse
-        const tabBar = document.getElementById('tabBar-container')
         tabBar.addEventListener('wheel', (event) => {
             tabBar.scrollLeft += event.deltaY
         })
 
         // shortcut handling
         ipcRenderer.on('Ctrl+Tab', () => {
-            
+            if (!this.emptyTab && this.openedTabCount != 1) {
+                this.currFocusTabIndex = (this.currFocusTabIndex + 1) % this.openedTabCount
+                this.focusTab(tabBar.childNodes[this.currFocusTabIndex])
+            }
         })
 
         ipcRenderer.on('Ctrl+Shift+Tab', () => {
-            
+            if (!this.emptyTab && this.openedTabCount != 1) {
+                this.currFocusTabIndex = (this.currFocusTabIndex - 1 + this.openedTabCount) % this.openedTabCount
+                this.focusTab(tabBar.childNodes[this.currFocusTabIndex])
+            }
         })
 
     }
