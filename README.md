@@ -1,8 +1,10 @@
 # MarkdownNote (still in progress)
-An open-sourced markdown editor && noteTaking desktop application based on .md.
-基于markdown编辑与读写的笔记软件
+An open-sourced markdown editor && noteTaking desktop application based on .md
+
+基于markdown管理的笔记软件
 
 # expect feature
+
 * supports WYSIWYG (rich text), instant rendering, tranditional split view editing
 * supports git and github
 * provides great noteTaking-like user experience
@@ -39,6 +41,7 @@ An open-sourced markdown editor && noteTaking desktop application based on .md.
         * [ ] manual move order
         * [ ] ...
   * [ ] functionality
+    * [ ] auto update folder tree
     * [ ] expandALL/collapseALL
     * [ ] refresh
     * [ ] filter folders/files
@@ -51,7 +54,9 @@ An open-sourced markdown editor && noteTaking desktop application based on .md.
   * [x] open and render a .md file (by inserting plainText)
   * [x] tool bar
     * [x] remove default tool bar
-  * [ ] 🏃‍edit file
+    * [ ] disable ctrl+R shortcut
+  * [x] functionality
+    * [ ] 🏃‍edit file
 * [x] ⭐tabView
   * [x] UI
     * [ ] good design - https://freefrontend.com/css-tab-bars/

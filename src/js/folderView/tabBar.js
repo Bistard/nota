@@ -109,6 +109,13 @@ class TabBarModule {
             }
         })
 
+        ipcRenderer.on('Ctrl+W', () => {
+            
+        })
+
+        ipcRenderer.on('Ctrl+S', () => {
+            
+        })
     }
 }
 

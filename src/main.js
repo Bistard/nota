@@ -5,7 +5,7 @@ const { BrowserWindow, ipcMain, app, dialog } = require('electron')
 const ElectronLocalshortcut = require('electron-localshortcut')
 
 const Notification = require('./js/notification')
-const ConfigModule = require('./config');
+const ConfigModule = require('./config')
 
 class Main {
     
@@ -114,19 +114,24 @@ class Main {
             }
         })
         
-        // set local shortcut
+        // set local shortcuts
         app.whenReady().then(() => {
             ElectronLocalshortcut.register(this.winMain, 'Ctrl+Tab', () => {
                 this.winMain.webContents.send('Ctrl+Tab')
             })
-        })
 
-        app.whenReady().then(() => {
             ElectronLocalshortcut.register(this.winMain, 'Ctrl+Shift+Tab', () => {
                 this.winMain.webContents.send('Ctrl+Shift+Tab')
             })
-        })
 
+            ElectronLocalshortcut.register(this.winMain, 'Ctrl+S', () => {
+                this.winMain.webContents.send('Ctrl+S')
+            })
+
+            ElectronLocalshortcut.register(this.winMain, 'Ctrl+W', () => {
+                this.winMain.webContents.send('Ctrl+W')
+            })
+        })
 
     }
 
