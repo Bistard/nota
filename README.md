@@ -51,7 +51,7 @@ An open-sourced markdown editor && noteTaking desktop application based on .md.
   * [x] open and render a .md file (by inserting plainText)
   * [x] tool bar
     * [x] remove default tool bar
-  * [ ] 🏃‍ edit file
+  * [ ] 🏃‍edit file
 * [x] ⭐tabView
   * [x] UI
     * [ ] good design - https://freefrontend.com/css-tab-bars/
@@ -59,6 +59,7 @@ An open-sourced markdown editor && noteTaking desktop application based on .md.
     * [x] horizontal scroll
       * [x] more fluent animation
       * [x] use middle mouse to scroll
+      * [ ] tab view follows focusTab
     * [x] color
   * [x] basic functionality
     * [ ] right lick menu
@@ -66,7 +67,8 @@ An open-sourced markdown editor && noteTaking desktop application based on .md.
     * [x] close tab
     * [x] shortcut
       * ~~globalShortCut~~
-      * [ ] using lib
+      * [x] using lib
+      * [ ] new UI like vscode does (also prevents insert tab into vditor)
     * [ ] empty click create temp file
 * [ ] ⭐gitView
   * [ ] functionality
