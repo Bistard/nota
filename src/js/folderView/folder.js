@@ -11,7 +11,7 @@ const emptyFolderTag = document.getElementById('emptyFolderTag')
 const mdView = document.getElementById('mdView')
 const resize = document.getElementById("resize")
 
-class FolderViewModule {
+class FolderModule {
 
     constructor() {
         this.FolderTree = new FolderTreeModule.FolderTreeModule()
@@ -248,6 +248,4 @@ class FolderViewModule {
     }
 }
 
-new FolderViewModule()
-
-module.exports = { FolderViewModule }
+module.exports = { FolderModule }

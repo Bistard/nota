@@ -50,17 +50,19 @@ An open-sourced markdown editor && noteTaking desktop application based on .md
       * [ ] directory config with local save
 * [x] ⭐markdownView
   * [x] md preview
-  * [ ] md needs to be rendered before window created (not sure if still necessary)
+  * ~~md needs to be rendered before window created (not sure if still necessary)~~
   * [x] open and render a .md file (by inserting plainText)
   * [x] tool bar
-    * [x] remove default tool bar
-    * [ ] disable ctrl+R shortcut
+    * [ ] remove default tool bar
+    * [x] disable ctrl+R shortcut
   * [x] functionality
+    * [x] display file
     * [ ] 🏃‍edit file
+    * [ ] shortcut
 * [x] ⭐tabView
   * [x] UI
     * [ ] good design - https://freefrontend.com/css-tab-bars/
-    * [ ] ~~invisible when no tab is opened (included in UI redesign)~~
+    * ~~invisible when no tab is opened (included in UI redesign)~~
     * [x] horizontal scroll
       * [x] more fluent animation
       * [x] use middle mouse to scroll

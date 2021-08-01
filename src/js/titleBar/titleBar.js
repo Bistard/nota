@@ -75,6 +75,4 @@ class TitleBarModule {
     }
 }
 
-new TitleBarModule()
-
 module.exports = { TitleBarModule }
