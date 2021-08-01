@@ -5,6 +5,7 @@ const Editor = require('@toast-ui/editor')
 const markdown = document.getElementById('md')
 
 /**
+ * @typedef {import('../config').ConfigModule} ConfigModule
  * @typedef {import('../folderView/folder').FolderModule} FolderModule
  */
 
@@ -15,11 +16,16 @@ const markdown = document.getElementById('md')
 class MarkdownModule {
     
     /**
+     * @param {ConfigModule} ConfigModule
      * @param {FolderModule} FolderModule
      */
-    constructor(FolderModule) {
-        
+    constructor(ConfigModule, FolderModule) {
+        this.Config = ConfigModule
         this.Folder = FolderModule
+
+        /**
+         * @type {Editor}
+         */
         this.editor = null
         
         /**
@@ -47,57 +53,78 @@ class MarkdownModule {
             el: markdown,               // HTMLElement container for md editor
             height: '100%',
             language: 'zh-CN',
-            previewStyle: 'tab',
-            previewHighlight: true,
+            /**
+             * @argument 'tab'
+             * @argument 'vertical'
+             */
+            previewStyle: 'vertical',
+            previewHighlight: false,
             useCommandShortcut: true,
-            hideModeSwitch: false,      // hide ModeSwitch Button
-            initialEditType: 'wysiwyg', // 'what you see is what you get' mode
-            
-            // this 'events' attribute handles callback functions to serval 
-            // editor events.
+            usageStatistics: true,      // send hostname to google analytics
+            hideModeSwitch: false,
+            /**
+             * @argument 'wysiwyg' = 'what you see is what you get'
+             * @argument 'markdown'
+             */
+            initialEditType: 'wysiwyg', 
+            /**
+             * @readonly this 'events' attribute handles callback functions to 
+             * serval editor events.
+             * 
+             * @member load
+             * @member change
+             * @member focus
+             * @member blur
+             * @member keydown
+             * @member keyup
+             */
             events: {
-                // load: null,
-
                 /**
                  * @description It would be emitted when content changed.
                  * 
-                 * @type {function}
+                 * @type {Function}
                  */
                 change: () => {
-                    // if content is changed before the previous timeout has 
-                    // reached, clear the preivous one.
-                    if (this.saveFileTimeout) {
-                        clearTimeout(this.saveFileTimeout)
+                    // check if file-auto-save is ON
+                    if (this.Config.fileAutoSaveOn) {
+                        // if content is changed before the previous timeout has 
+                        // reached, clear the preivous one.
+                        if (this.saveFileTimeout) {
+                            clearTimeout(this.saveFileTimeout)
+                        }
+                        // set a new timer with 1000 microseconds
+                        this.saveFileTimeout = setTimeout(() => {
+                            this.markdownSaveFile()
+                        }, 1000)
                     }
-                    // set a new timer with 1000 microseconds delay
-                    this.saveFileTimeout = setTimeout(() => {
-                        this.markdownSaveFile()
-                    }, 1000)
                 },
-                // focus: null,
-                // blur: null,
-                // keydown: null,
-                // keyup: null 
             },
             placeholder: '',
+            plugins: [],
         })
 
         editor.getMarkdown()
         this.editor = editor
+        window.editor = editor // set as global value
 
-        // set as global value
-        window.editor = editor
+        // spellcheck config check
+        if (!this.Config.markdownSpellCheckOn) {
+            const md = document.getElementById('md')
+            md.setAttribute('spellcheck', 'false')
+        }
+
     }
 
     /**
-     * @description calling saveFiles() from FolderModule.
+     * @description calling saveFile() from FolderModule.
      * 
      * @returns {void} void
      */
     markdownSaveFile() {
-        const index = this.Folder.TabBar.currFocusTabIndex
-        const nodeInfo = this.Folder.TabBar.openedTabInfo[index]
-        this.Folder.saveFile(nodeInfo)
+        const index = this.Folder.TabBar.currFocusTabIndex       /** @type {Number} */
+        const nodeInfo = this.Folder.TabBar.openedTabInfo[index] /** @type {TreeNode} */
+        const newText = this.editor.getMarkdown()                /** @type {String} */
+        this.Folder.saveFile(nodeInfo, newText)
     }
 
     /**
