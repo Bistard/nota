@@ -1,5 +1,7 @@
 const { ipcRenderer } = require('electron')
 
+const fs = require('fs')
+
 const folderBtn = document.getElementById('folderBtn')
 const outlineBtn = document.getElementById('outlineBtn')
 const folderView = document.getElementById('folderView')
@@ -183,7 +185,7 @@ class FolderModule {
         const tabIndex = tabInfo[1]
         const newTab = tabInfo[2]
         
-        this.focusFile(newTab)
+        this.focusFileWhenLeftClick(nodeInfo)
 
         if (!isExist) {
             this.TabBar.insertTab(newTab, nodeInfo)
@@ -192,21 +194,27 @@ class FolderModule {
         if (nodeInfo.plainText !== "") {
             this.TabBar.openTab(newTab, tabIndex, nodeInfo)
         } else {
-            let rawFile = new XMLHttpRequest()
-            rawFile.open("GET", nodeInfo.path, false)
-            rawFile.onreadystatechange = () => {
-                if (rawFile.readyState == 4) {
-                    if (rawFile.status == 200 || rawFile.status == 0) {
-                        // might copy the whole plainText into the function
-                        //  REQUIRE performance check
-                        nodeInfo.plainText = rawFile.responseText
-                        this.TabBar.openTab(newTab, tabIndex, nodeInfo)
-                    }
-                }
-            }
-            rawFile.send(null)
+            this.openFile(newTab, tabIndex, nodeInfo)
         }
 
+    }
+
+    /**
+     * @description open the given file.
+     * 
+     * @param {HTMLElement} newTab
+     * @param {number} tabIndex
+     * @param {TreeNode} nodeInfo 
+     * @returns {Void} void
+     */
+    openFile(newTab, tabIndex, nodeInfo) {
+        fs.readFile(nodeInfo.path, 'utf-8', (err, text) => {
+            if (err) {
+                throw err
+            }
+            nodeInfo.plainText = text
+            this.TabBar.openTab(newTab, tabIndex, nodeInfo)
+        })
     }
 
     /**
@@ -216,17 +224,18 @@ class FolderModule {
      * @return 
      */
     saveFile(nodeInfo) {
-        // TODO: complete
-        ipcRenderer.send('test', nodeInfo)
+        
+        
+        ipcRenderer.send('test', 'auto saved')
     }
 
     /**
      * @description display focus on the given tab.
      * 
-     * @param {HTMLElement} tab 
+     * @param {TreeNode} nodeInfo 
      * @returns {void} void
      */
-    focusFile(tab) {
+    focusFileWhenLeftClick(nodeInfo) {
         // TODO: complete
     }
 
@@ -236,8 +245,38 @@ class FolderModule {
      * ipcRenderer and ipcMain. See more details about Electron/remote on 
      * https://www.electronjs.org/docs/api/remote
      */
-     openDirectory() {
+     sendOpenDirMsg() {
         ipcRenderer.send('openDir')
+    }
+
+    /**
+     * @description Opennign a directory and it does the following things:
+     *  - displays the whole folder tree.
+     *  - set each TreeNode a click listeners.
+     *  - if clicked, check if is foler or file, calls the corresponding click function.
+     * 
+     * @param {string} path 
+     * @returns {void} void
+     */
+    openDirecory(path) {
+        this.isFolderOpened = true
+        this.FolderTree.tree = this.FolderTree.createFolderTree(path, 0)
+        this.FolderTree.treeList = this.FolderTree.createFolderTreeList(this.FolderTree.tree)
+
+        folderTree.removeChild(emptyFolderTag)
+        folderTree.appendChild(tree)
+        this.displayFolderTree(this.FolderTree.tree)
+
+        $('.node-text').on('click', { folderViewClass: this }, function (event) {
+            let that = event.data.folderViewClass
+            let nodeNum = this.parentNode.getAttribute('nodeNum')
+            let nodeInfo = that.FolderTree.treeList[parseInt(nodeNum)]
+            if (nodeInfo.isFolder) {
+                that.folderLeftClick($(this), nodeInfo)
+            } else { 
+                that.fileLeftClick($(this), nodeInfo)
+            }
+        })
     }
 
     /**
@@ -247,31 +286,9 @@ class FolderModule {
      */
     setListeners() {
 
-         /**
-          * when a directory is opened, it does the following things:
-          * - displays the whole folder tree.
-          * - set each TreeNode a click listeners.
-          * - if clicked, check if is foler or file, calls the corresponding click function.
-          */
+        // set openDir listener to get response back from main.js
         ipcRenderer.on('openDir', (event, path, stat) => {
-            this.isFolderOpened = true
-            this.FolderTree.tree = this.FolderTree.createFolderTree(path, 0)
-            this.FolderTree.treeList = this.FolderTree.getFolderTreeList(this.FolderTree.tree)
-
-            folderTree.removeChild(emptyFolderTag)
-            folderTree.appendChild(tree)
-            this.displayFolderTree(this.FolderTree.tree)
-
-            $('.node-text').on('click', { folderViewClass: this }, function (event) {
-                let that = event.data.folderViewClass
-                let nodeNum = this.parentNode.getAttribute('nodeNum')
-                let nodeInfo = that.FolderTree.treeList[parseInt(nodeNum)]
-                if (nodeInfo.isFolder) {
-                    that.folderLeftClick($(this), nodeInfo)
-                } else { 
-                    that.fileLeftClick($(this), nodeInfo)
-                }
-            })
+            this.openDirecory(path)
         })
 
         /**
@@ -358,7 +375,7 @@ class FolderModule {
             outlineBtn.style.borderBottom = '2px solid transparent'
 
             folderView.appendChild(folderTree)
-            emptyFolderTag.addEventListener('click', this.openDirectory)
+            emptyFolderTag.addEventListener('click', this.sendOpenDirMsg)
         } else {
             outlineBtn.style.color = '#65655F'
             outlineBtn.style.fontWeight = 'bold'
@@ -369,7 +386,7 @@ class FolderModule {
             folderBtn.style.borderBottom = '2px solid transparent'
 
             folderView.removeChild(folderTree)
-            emptyFolderTag.removeEventListener('click', this.openDirectory)
+            emptyFolderTag.removeEventListener('click', this.sendOpenDirMsg)
         }
     }
 }

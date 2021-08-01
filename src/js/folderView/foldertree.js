@@ -91,11 +91,11 @@ class FolderTreeModule {
      * @param {TreeNode[]} list 
      * @returns {TreeNode[]} an array of TreeNode
      */
-    getFolderTreeList(tree, list = []) {
+    createFolderTreeList(tree, list = []) {
         if (tree.isFolder) {
             list.push(tree)
 			for (const [key, node] of Object.entries(tree.nodes)) {
-				this.getFolderTreeList(node, list)
+				this.createFolderTreeList(node, list)
 			}
 		} else {
 			list.push(tree)

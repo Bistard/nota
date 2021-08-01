@@ -86,6 +86,8 @@ An open-sourced markdown editor && noteTaking desktop application based on .md
   * [ ] timeline view
   * [ ] ...
 * [x] ⭐Others
+  * [ ] error handling
+    * [ ] local log system
   * [x] code comments
   * [ ] implement MVC (modle / view / controller) - https://stackoverflow.com/questions/16736483/best-way-to-organize-jquery-javascript-code-2013
   * [x] preload.js

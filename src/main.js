@@ -93,6 +93,10 @@ class Main {
                     this.winMain,
                     this.ConfigModule.OpenDirConfig
                 ).then((path) => {
+                    if (path === undefined) {
+                        throw 'opened path is undefined'
+                    }
+
                     if (!path.canceled) {
                         let rootdir = path.filePaths[0]
                         this.winMain.webContents.send('openDir', rootdir)
