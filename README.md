@@ -10,10 +10,10 @@ An open-sourced markdown editor && noteTaking desktop application based on .md
 * provides great noteTaking-like user experience
 
 # portal
-- [✔Todo](src/TODO.md)
+- [✔Todo✔](src/TODO.md)
 
 # bugs
-- [ ] when open a new or existed file, auto-save will be emit
+- [ ] when open a new or existed file / switching tabs, auto-save will be emit (should be avoid due to the performance)
 
 # ChangeLog
 * ⭐ => 'big update'

@@ -1,6 +1,6 @@
 const { ipcRenderer } = require('electron')
 
-const fs = require('fs')
+const {readFile, writeFile } = require('fs')
 
 const folderBtn = document.getElementById('folderBtn')
 const outlineBtn = document.getElementById('outlineBtn')
@@ -215,7 +215,7 @@ class FolderModule {
      * @returns {Void} void
      */
     openFile(newTab, tabIndex, nodeInfo) {
-        fs.readFile(nodeInfo.path, 'utf-8', (err, text) => {
+        readFile(nodeInfo.path, 'utf-8', (err, text) => {
             if (err) {
                 throw err
             }
@@ -234,14 +234,15 @@ class FolderModule {
     saveFile(nodeInfo, newText) {
 
         if (nodeInfo !== undefined) {
-            fs.writeFile(nodeInfo.path, newText, (err) => {
+            writeFile(nodeInfo.path, newText, (err) => {
                 if (err) {
                     throw err
                 }
                 ipcRenderer.send('test', 'auto saved')
             })
+        } else {
+            ipcRenderer.send('test', 'auto saved but undefined')
         }
-        ipcRenderer.send('test', 'auto saved but undefined')
     }
 
     /**

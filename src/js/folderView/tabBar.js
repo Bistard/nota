@@ -1,9 +1,12 @@
 const { ipcRenderer } = require("electron")
 
+const {readFile, writeFile } = require('fs')
+
 const tabBar = document.getElementById('tabBar-container')
 
 /**
  * @typedef {import('../folderView/folderTree').TreeNode} TreeNode
+ * @typedef {import('../config').ConfigModule} ConfigModule
  */
 
 /**
@@ -13,7 +16,12 @@ const tabBar = document.getElementById('tabBar-container')
  */
 class TabBarModule {
 
-    constructor() {
+    /**
+     * @param {ConfigModule} ConfigModule 
+     */
+    constructor(ConfigModule) {
+
+        this.Config = ConfigModule
         this.emptyTab = true
         this.openedTabCount = 0
         
@@ -142,7 +150,19 @@ class TabBarModule {
     closeTab(element, nodeInfo) {
         
         tabBar.removeChild(element)
-        
+
+        // save current change
+        if (this.Config.fileAutoSaveOn) {
+            writeFile(nodeInfo.path, window.editor.getMarkdown(), (err) => {
+                if (err) {
+                    throw err
+                }
+                ipcRenderer.send('test', 'close saved')
+            })
+        } else {
+
+        }
+        nodeInfo.plainText = ''
         let index = this.openedTabInfo.indexOf(nodeInfo)
         this.openedTabInfo.splice(index, 1)
         
@@ -150,7 +170,7 @@ class TabBarModule {
         if (this.openedTabCount == 0) {
             this.emptyTab = true
             this.currFocusTabIndex = -1
-            this.displayTab('') // FIX: this will cause editor.event.load callback
+            this.displayTab('')
             return
         }
 

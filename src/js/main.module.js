@@ -16,7 +16,7 @@ class mainMoudle {
         this.Config = new ConfigModule.ConfigModule()
         this.TitleBar = new TitleBarModule.TitleBarModule()
         this.FolderTree = new FolderTreeModule.FolderTreeModule()
-        this.TabBar = new TabBarModule.TabBarModule()
+        this.TabBar = new TabBarModule.TabBarModule(this.Config)
         this.Folder = new FolderModule.FolderModule(this.FolderTree, this.TabBar)
         this.Markdown = new MarkdownModule.MarkdownModule(this.Config, this.Folder)
     }
