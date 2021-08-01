@@ -221,12 +221,18 @@ class FolderModule {
      * @description write the current focused tab's content into the file.
      * 
      * @param {TreeNode} nodeInfo 
-     * @return 
+     * @param {string} newText
+     * @return {void} void
      */
-    saveFile(nodeInfo) {
-        
-        
-        ipcRenderer.send('test', 'auto saved')
+    saveFile(nodeInfo, newText) {
+        if (nodeInfo !== undefined) {
+            fs.writeFile(nodeInfo.path, newText, (err) => {
+                if (err) {
+                    throw err
+                }
+                ipcRenderer.send('test', 'auto saved')
+            })
+        }
     }
 
     /**

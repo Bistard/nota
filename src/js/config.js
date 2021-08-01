@@ -6,15 +6,14 @@ const { app, ipcRenderer }= require('electron')
  */
 class ConfigModule {
     constructor() {
-        this.OpenDirConfig = null
-        this.initConfig()
-    }
+        
+        /**
+         * @readonly used for file/folder reading and writing.
+         */
 
-    initConfig() {
         
         this.OpenDirConfig = {
             /* defaultPath: app.getPath('desktop'), */
-            // DEBUG: remove later
             defaultPath: 'D:\\dev\\AllNote',
             buttonLabel: 'open a file or folder',
             properties: [
@@ -22,6 +21,8 @@ class ConfigModule {
                 'openDirectory',
             ],
         }
+        this.fileAutoSaveOn = true
+        this.markdownSpellCheckOn = false
 
     }
 

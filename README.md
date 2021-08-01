@@ -56,10 +56,14 @@ An open-sourced markdown editor && noteTaking desktop application based on .md
   * [x] tool bar
     * [ ] remove default tool bar
     * [x] disable ctrl+R shortcut
+  * [ ] plugin
+    * [ ] Plugin to highlight code syntax
+    * [ ] Plugin to color editing text
+    * [ ] Plugin to merge table columns
   * [x] functionality
     * [x] display file
       * [ ] default: displaying xxxx lines, if needed, see more in settings
-    * [ ] 🏃‍edit file
+    * [x] edit file
       * [x] delay callback
     * [ ] shortcut (ctrl+z || ctrl+shift+z and so on)
 * [x] ⭐tabView
@@ -75,6 +79,7 @@ An open-sourced markdown editor && noteTaking desktop application based on .md
     * [ ] right lick menu
     * [ ] change order
     * [x] close tab
+      * [ ] if auto-save is on, close tab will save file async
     * [x] shortcut
       * [x] using lib
     * [ ] empty click create temp file
@@ -99,9 +104,6 @@ An open-sourced markdown editor && noteTaking desktop application based on .md
     * [ ] UI config
   * [ ] get used of 'github issue'
 
-# bugs
-* [ ] (debug state) since opening file is essentially inserting text, we need to clean history immediately
-* [x] fix - folderView.js - remove emptyFolderTag correctly
 # ChangeLog
 * ⭐ => 'big update'
 * 💙 => 'debug'

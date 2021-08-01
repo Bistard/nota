@@ -114,17 +114,16 @@ class TabBarModule {
         tab.classList.add('tab-clicked')
         
         this.currFocusTabIndex = index
-        this.displayTab(tab, nodeInfo)
+        this.displayTab(nodeInfo)
     }
 
     /**
      * @description displays a new string content onto the markdown view.
      * 
-     * @param {HTMLElement} netTab 
      * @param {TreeNode} nodeInfo 
      * @returns {void} void
      */
-    displayTab(netTab, nodeInfo) {
+    displayTab(nodeInfo) {
         window.editor.setMarkdown(nodeInfo.plainText, false)
     }
 
@@ -147,7 +146,7 @@ class TabBarModule {
         if (this.openedTabCount == 0) {
             this.emptyTab = true
             this.currFocusTabIndex = -1
-            this.displayTab(null, '')
+            this.displayTab('') // FIX: this will cause editor.event.load callback
             return
         }
 
