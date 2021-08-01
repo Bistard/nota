@@ -57,6 +57,7 @@ An open-sourced markdown editor && noteTaking desktop application based on .md
     * [x] disable ctrl+R shortcut
   * [x] functionality
     * [x] display file
+      * [ ] default: displaying xxxx lines, if needed, see more in settings
     * [ ] 🏃‍edit file
       * [x] delay callback
     * [ ] shortcut (ctrl+z || ctrl+shift+z and so on)
@@ -76,6 +77,8 @@ An open-sourced markdown editor && noteTaking desktop application based on .md
     * [x] shortcut
       * [x] using lib
     * [ ] empty click create temp file
+* [ ] ⭐settingView
+  * [ ] ...
 * [ ] ⭐gitView
   * [ ] functionality
     * [ ] .git

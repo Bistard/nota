@@ -1,4 +1,5 @@
 const { ipcRenderer } = require("electron")
+// see more details on this library: https://github.com/nhn/tui.editor#-packages
 const Editor = require('@toast-ui/editor')
 
 const markdown = document.getElementById('md')
