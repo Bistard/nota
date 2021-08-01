@@ -6,13 +6,13 @@ const { app, ipcRenderer }= require('electron')
  */
 class ConfigModule {
     constructor() {
-        this.OpenFolderDialogConfig = null
+        this.OpenDirConfig = null
         this.initConfig()
     }
 
     initConfig() {
         
-        this.OpenFolderDialogConfig = {
+        this.OpenDirConfig = {
             /* defaultPath: app.getPath('desktop'), */
             // DEBUG: remove later
             defaultPath: 'D:\\dev\\AllNote',

@@ -44,6 +44,7 @@ An open-sourced markdown editor && noteTaking desktop application based on .md
     * [ ] auto update folder tree
     * [ ] expandALL/collapseALL
     * [ ] refresh
+    * [ ] search
     * [ ] filter folders/files
     * [ ] right-click
     * [ ] config

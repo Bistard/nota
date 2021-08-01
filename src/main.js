@@ -88,14 +88,14 @@ class Main {
 
             // response to FolderModule, default path is 'desktop' and only can
             // open directory.
-            ipcMain.on('openNewFolder', () => {
+            ipcMain.on('openDir', () => {
                 dialog.showOpenDialog(
                     this.winMain,
-                    this.ConfigModule.OpenFolderDialogConfig
+                    this.ConfigModule.OpenDirConfig
                 ).then((path) => {
                     if (!path.canceled) {
                         let rootdir = path.filePaths[0]
-                        this.winMain.webContents.send('openFolder', rootdir)
+                        this.winMain.webContents.send('openDir', rootdir)
                     }
                 })
             })

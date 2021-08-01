@@ -231,6 +231,16 @@ class FolderModule {
     }
 
     /**
+     * @readonly Since remote is deprecated and dialog can only be used in the 
+     * main process, to communicate between main process and renderer is to use 
+     * ipcRenderer and ipcMain. See more details about Electron/remote on 
+     * https://www.electronjs.org/docs/api/remote
+     */
+     openDirectory() {
+        ipcRenderer.send('openDir')
+    }
+
+    /**
      * @description set folder event listeners.
      * 
      * @returns {void} void
@@ -243,7 +253,7 @@ class FolderModule {
           * - set each TreeNode a click listeners.
           * - if clicked, check if is foler or file, calls the corresponding click function.
           */
-        ipcRenderer.on('openFolder', (event, path, stat) => {
+        ipcRenderer.on('openDir', (event, path, stat) => {
             this.isFolderOpened = true
             this.FolderTree.tree = this.FolderTree.createFolderTree(path, 0)
             this.FolderTree.treeList = this.FolderTree.getFolderTreeList(this.FolderTree.tree)
@@ -305,16 +315,7 @@ class FolderModule {
     createfolderIconString(fileName) {
         return "<style>.node-text::before {content: url('assets/icons/" + fileName + "');display: inline-block;width: 10px;height: 10px;margin-left: 4px;margin-right: 4px;}</style>"
     }
-
-    /**
-     * @readonly The reason that folder.js send 'openNewFolder' to main.js and
-     * later on main.js will send back with 'openFolder' which is still handling
-     * inside folder.js, beacuse ... TODO: fix this stupid design issue.
-     */
-    openNewFolder() {
-        ipcRenderer.send('openNewFolder')
-    }
-
+    
     /**
      * @description callback functions for resize folder view.
      * 
@@ -357,7 +358,7 @@ class FolderModule {
             outlineBtn.style.borderBottom = '2px solid transparent'
 
             folderView.appendChild(folderTree)
-            emptyFolderTag.addEventListener('click', this.openNewFolder)
+            emptyFolderTag.addEventListener('click', this.openDirectory)
         } else {
             outlineBtn.style.color = '#65655F'
             outlineBtn.style.fontWeight = 'bold'
@@ -368,7 +369,7 @@ class FolderModule {
             folderBtn.style.borderBottom = '2px solid transparent'
 
             folderView.removeChild(folderTree)
-            emptyFolderTag.removeEventListener('click', this.openNewFolder)
+            emptyFolderTag.removeEventListener('click', this.openDirectory)
         }
     }
 }
