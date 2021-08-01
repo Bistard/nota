@@ -23,14 +23,12 @@ class Main {
                 height: 800,
                 minWidth: 300,
                 minHeight: 200,
-
                 webPreferences: {
                     nodeIntegration: true,
                     contextIsolation: false,
                     devTools: true,
                     preload: path.join(__dirname + '/js', 'preload.js')
                 },
-
                 show: false,
                 frame: false
             })

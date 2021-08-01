@@ -1,4 +1,4 @@
-const { app, ipcRenderer } = require("electron")
+const { ipcRenderer } = require("electron")
 
 const tabBar = document.getElementById('tabBar-container')
 class TabBarModule {
@@ -128,9 +128,6 @@ class TabBarModule {
             }
         })
 
-        ipcRenderer.on('Ctrl+S', () => {
-            
-        })
     }
 }
 

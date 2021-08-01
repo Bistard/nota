@@ -4,16 +4,17 @@ const Editor = require('@toast-ui/editor')
 const markdown = document.getElementById('md')
 
 class MarkDownModule {
-    constructor() {
-        this.toolBar = null
+    
+    constructor(FolderModule) {
+        this.Folder = FolderModule
         this.editor = null
         this.saveFileTimeout = null
-        this.saveFileCallback = null
         this.createMarkdownEditor()
+        this.setListeners()
     }
 
     createMarkdownEditor() {
-        this.editor = new Editor({
+        let editor = new Editor({
             el: markdown,
             height: '100%',
             language: 'zh-CN',
@@ -24,30 +25,42 @@ class MarkDownModule {
             initialEditType: 'wysiwyg',
             events: {
                 // load: null,
-                // change: this.setSaveFileTimeout,
+                change: () => {
+                    if (this.saveFileTimeout) {
+                        clearTimeout(this.saveFileTimeout)
+                    }
+                    this.saveFileTimeout = setTimeout(() => {
+                        this.markdownSaveFile()
+                    }, 1000) // 1 sec delay
+                },
                 // focus: null,
                 // blur: null,
                 // keydown: null,
                 // keyup: null 
             },
             placeholder: '',
-          })
+        })
 
-        this.editor.getMarkdown()
-        window.editor = this.editor
+        editor.getMarkdown()
+        this.editor = editor
+        window.editor = editor
     }
 
-    setSaveFileTimeout() {
-        if (this.saveFileTimeout) {
-            clearTimeout(this.saveFileTimeout)
-        }
-        if (this.saveFileCallback) {
-            this.saveFileTimeout = setTimeout(this.saveFileCallback, 1000)
-        }
+    markdownSaveFile() {
+        const index = this.Folder.TabBar.currFocusTabIndex
+        const nodeInfo = this.Folder.TabBar.openedTabInfo[index]
+        this.Folder.saveFile(nodeInfo)
     }
 
-    setSaveFileCallback(callback) {
-        this.saveFileCallback = callback
+    setListeners() {
+
+        ipcRenderer.on('Ctrl+S', () => {
+            if (!this.Folder.TabBar.emptyTab) {
+                clearTimeout(this.saveFileTimeout)
+                this.markdownSaveFile()
+            }
+        })
+
     }
 
 }

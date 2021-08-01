@@ -1,6 +1,4 @@
 const { app, ipcRenderer } = require('electron')
-const FolderTreeModule = require('./folderTree')
-const TabBarModule = require('./tabBar')
 
 const folderBtn = document.getElementById('folderBtn')
 const outlineBtn = document.getElementById('outlineBtn')
@@ -13,9 +11,9 @@ const resize = document.getElementById("resize")
 
 class FolderModule {
 
-    constructor() {
-        this.FolderTree = new FolderTreeModule.FolderTreeModule()
-        this.tabBar = new TabBarModule.TabBarModule()
+    constructor(FolderTreeModule, tabBarModule) {
+        this.FolderTree = FolderTreeModule
+        this.TabBar = tabBarModule
 
         this.isFileClicked = true
         this.isOutlineClicked = false
@@ -115,7 +113,7 @@ class FolderModule {
     }
 
     fileLeftClicked(element, nodeInfo) {
-        const tabInfo = this.tabBar.initTab(nodeInfo)
+        const tabInfo = this.TabBar.initTab(nodeInfo)
         const isExist = tabInfo[0]
         const tabIndex = tabInfo[1]
         const newTab = tabInfo[2]
@@ -123,27 +121,31 @@ class FolderModule {
         this.focusFile(newTab)
 
         if (!isExist) {
-            this.tabBar.insertTab(newTab, nodeInfo)
+            this.TabBar.insertTab(newTab, nodeInfo)
         }
         
         if (nodeInfo.plainText !== "") {
-            this.tabBar.openTab(newTab, tabIndex, nodeInfo)
+            this.TabBar.openTab(newTab, tabIndex, nodeInfo)
         } else {
             let rawFile = new XMLHttpRequest()
             rawFile.open("GET", nodeInfo.path, false)
             rawFile.onreadystatechange = () => {
                 if (rawFile.readyState == 4) {
                     if (rawFile.status == 200 || rawFile.status == 0) {
-                        nodeInfo.plainText = rawFile.responseText
                         // might copy the whole plainText into the function
                         //  REQUIRE performance check
-                        this.tabBar.openTab(newTab, tabIndex, nodeInfo)
+                        nodeInfo.plainText = rawFile.responseText
+                        this.TabBar.openTab(newTab, tabIndex, nodeInfo)
                     }
                 }
             }
             rawFile.send(null)
         }
 
+    }
+
+    saveFile(nodeInfo) {
+        ipcRenderer.send('test', nodeInfo)
     }
 
     focusFile(tab) {
