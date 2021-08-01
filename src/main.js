@@ -9,7 +9,7 @@ const ConfigModule = require('./js/config')
 "use strict";
 
 /**
- * @description main electron startup class, instantiates at end of the file
+ * @description main electron startup class, instantiates at end of the file.
  */
 class Main {
 
@@ -21,7 +21,7 @@ class Main {
     }
 
     /**
-     * @description instantiates the winMain and seutup a few window relevant
+     * @description instantiates the winMain and seutup a few window relevant.
      * listeners.
      * @returns {void} void
      */
@@ -115,7 +115,7 @@ class Main {
      */
     setListeners() {
         /**
-         * @readonly comments for now, not convinent for develop
+         * @readonly comments for now, not convinent for develop.
          */
         // This catches any unhandle promise rejection errors.
         // process.on('unhandledRejection', (reason, p) => {

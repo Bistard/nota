@@ -1,5 +1,4 @@
 const { ipcRenderer } = require('electron')
-const ipc = ipcRenderer
 
 const menuBtn = document.getElementById('menuBtn')
 const minBtn = document.getElementById('minBtn')
@@ -70,22 +69,22 @@ class TitleBarModule {
     setListeners() {
         
         minBtn.addEventListener('click', () => {
-            ipc.send('minApp')
+            ipcRenderer.send('minApp')
         })
         
         maxBtn.addEventListener('click', () => {
-            ipc.send('maxResApp')
+            ipcRenderer.send('maxResApp')
         })
         
         closeBtn.addEventListener('click', () => {
-            ipc.send('closeApp')
+            ipcRenderer.send('closeApp')
         })
 
-        ipc.on('isMaximized', () => { 
+        ipcRenderer.on('isMaximized', () => { 
             this.changeMaxResBtn(true)
         })
 
-        ipc.on('isRestored', () => { 
+        ipcRenderer.on('isRestored', () => { 
             this.changeMaxResBtn(false) 
         })
         

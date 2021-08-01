@@ -1,4 +1,3 @@
-const { ipcRenderer } = require('electron')
 const fs = require('fs')
 const Path = require('path')
 

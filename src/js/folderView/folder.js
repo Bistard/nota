@@ -1,4 +1,4 @@
-const { app, ipcRenderer } = require('electron')
+const { ipcRenderer } = require('electron')
 
 const folderBtn = document.getElementById('folderBtn')
 const outlineBtn = document.getElementById('outlineBtn')
@@ -237,11 +237,12 @@ class FolderModule {
      */
     setListeners() {
 
-        // when a directory is opened, it does the following things:
-        // * displays the whole folder tree
-        // * set each TreeNode a click listeners
-        //   * if clicked, check if is foler or file, calls the corresponding 
-        //     click function
+         /**
+          * when a directory is opened, it does the following things:
+          * - displays the whole folder tree.
+          * - set each TreeNode a click listeners.
+          * - if clicked, check if is foler or file, calls the corresponding click function.
+          */
         ipcRenderer.on('openFolder', (event, path, stat) => {
             this.isFolderOpened = true
             this.FolderTree.tree = this.FolderTree.createFolderTree(path, 0)
@@ -263,7 +264,10 @@ class FolderModule {
             })
         })
 
-        // button event listensers
+        /**
+         * @readonly button event listensers
+         */
+
         folderBtn.addEventListener('click', () => {
             if (this.isFileBtnClicked == false) {
                 this.isFileBtnClicked = true
