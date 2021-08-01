@@ -84,20 +84,7 @@ class MarkdownModule {
                  * 
                  * @type {Function}
                  */
-                change: () => {
-                    // check if file-auto-save is ON
-                    if (this.Config.fileAutoSaveOn) {
-                        // if content is changed before the previous timeout has 
-                        // reached, clear the preivous one.
-                        if (this.saveFileTimeout) {
-                            clearTimeout(this.saveFileTimeout)
-                        }
-                        // set a new timer with 1000 microseconds
-                        this.saveFileTimeout = setTimeout(() => {
-                            this.markdownSaveFile()
-                        }, 1000)
-                    }
-                },
+                change: () => { this.onChange() },
             },
             placeholder: '',
             plugins: [],
@@ -113,6 +100,26 @@ class MarkdownModule {
             md.setAttribute('spellcheck', 'false')
         }
 
+    }
+
+    /**
+     * @description callback function for 'editor.event.change'.
+     * 
+     * @returns {void} void
+     */
+    onChange() {
+        // check if file-auto-save is ON
+        if (this.Config.fileAutoSaveOn) {
+            // if content is changed before the previous timeout has 
+            // reached, clear the preivous one.
+            if (this.saveFileTimeout) {
+                clearTimeout(this.saveFileTimeout)
+            }
+            // set a new timer with 1000 microseconds
+            this.saveFileTimeout = setTimeout(() => {
+                this.markdownSaveFile()
+            }, 1000)
+        }
     }
 
     /**

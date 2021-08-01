@@ -18,7 +18,7 @@ class mainMoudle {
         this.FolderTree = new FolderTreeModule.FolderTreeModule()
         this.TabBar = new TabBarModule.TabBarModule()
         this.Folder = new FolderModule.FolderModule(this.FolderTree, this.TabBar)
-        this.Markdown = new MarkdownModule.MarkdownModule(this.Folder)
+        this.Markdown = new MarkdownModule.MarkdownModule(this.Config, this.Folder)
     }
 
 }

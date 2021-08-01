@@ -179,8 +179,13 @@ class FolderModule {
      * @param {TreeNode} nodeInfo 
      * @returns {void} void
      */
+    // FIX: when open a new or existed file, auto-save will be emit (write the exact same content to the original file)
     fileLeftClick(element, nodeInfo) {
         const tabInfo = this.TabBar.initTab(nodeInfo)
+        /**
+         * @readonly if 'isExist' is false, 'tabIndex' is set as last one. See
+         * more details in TabBarModule.initTab()
+         */
         const isExist = tabInfo[0]
         const tabIndex = tabInfo[1]
         const newTab = tabInfo[2]
@@ -192,15 +197,17 @@ class FolderModule {
         }
         
         if (nodeInfo.plainText !== "") {
+            // text is still in the cache
             this.TabBar.openTab(newTab, tabIndex, nodeInfo)
         } else {
+            // never opened before, read the file
             this.openFile(newTab, tabIndex, nodeInfo)
         }
 
     }
 
     /**
-     * @description open the given file.
+     * @description open the given file and calls TabBarModule.openTab().
      * 
      * @param {HTMLElement} newTab
      * @param {number} tabIndex
@@ -225,6 +232,7 @@ class FolderModule {
      * @return {void} void
      */
     saveFile(nodeInfo, newText) {
+
         if (nodeInfo !== undefined) {
             fs.writeFile(nodeInfo.path, newText, (err) => {
                 if (err) {
@@ -233,6 +241,7 @@ class FolderModule {
                 ipcRenderer.send('test', 'auto saved')
             })
         }
+        ipcRenderer.send('test', 'auto saved but undefined')
     }
 
     /**
@@ -283,49 +292,6 @@ class FolderModule {
                 that.fileLeftClick($(this), nodeInfo)
             }
         })
-    }
-
-    /**
-     * @description set folder event listeners.
-     * 
-     * @returns {void} void
-     */
-    setListeners() {
-
-        // set openDir listener to get response back from main.js
-        ipcRenderer.on('openDir', (event, path, stat) => {
-            this.openDirecory(path)
-        })
-
-        /**
-         * @readonly button event listensers
-         */
-
-        folderBtn.addEventListener('click', () => {
-            if (this.isFileBtnClicked == false) {
-                this.isFileBtnClicked = true
-                this.isOutlineBtnClicked = false
-                this.folderBtnSelected(true)
-            }
-        })
-
-        outlineBtn.addEventListener('click', () => {
-            if (this.isOutlineBtnClicked == false) {
-                this.isOutlineBtnClicked = true
-                this.isFileBtnClicked = false
-                this.folderBtnSelected(false)
-            }
-        })
-
-        // folder view resizeBar listeners
-        resize.addEventListener("mousedown", (event) => {
-            this.resizeX = event.x
-            document.addEventListener("mousemove", this.resizeFolderView, false)
-        }, false)
-
-        document.addEventListener("mouseup", () => {
-            document.removeEventListener("mousemove", this.resizeFolderView, false)
-        }, false)
     }
 
     /**
@@ -395,6 +361,50 @@ class FolderModule {
             emptyFolderTag.removeEventListener('click', this.sendOpenDirMsg)
         }
     }
+    
+    /**
+     * @description set folder event listeners.
+     * 
+     * @returns {void} void
+     */
+     setListeners() {
+
+        // set openDir listener to get response back from main.js
+        ipcRenderer.on('openDir', (event, path, stat) => {
+            this.openDirecory(path)
+        })
+
+        /**
+         * @readonly button event listensers
+         */
+
+        folderBtn.addEventListener('click', () => {
+            if (this.isFileBtnClicked == false) {
+                this.isFileBtnClicked = true
+                this.isOutlineBtnClicked = false
+                this.folderBtnSelected(true)
+            }
+        })
+
+        outlineBtn.addEventListener('click', () => {
+            if (this.isOutlineBtnClicked == false) {
+                this.isOutlineBtnClicked = true
+                this.isFileBtnClicked = false
+                this.folderBtnSelected(false)
+            }
+        })
+
+        // folder view resizeBar listeners
+        resize.addEventListener("mousedown", (event) => {
+            this.resizeX = event.x
+            document.addEventListener("mousemove", this.resizeFolderView, false)
+        }, false)
+
+        document.addEventListener("mouseup", () => {
+            document.removeEventListener("mousemove", this.resizeFolderView, false)
+        }, false)
+    }
+
 }
 
 module.exports = { FolderModule }

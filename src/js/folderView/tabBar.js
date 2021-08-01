@@ -32,7 +32,7 @@ class TabBarModule {
     /**
      * @description By the given TreeNode, initializes a new HTMLElement tab 
      * and sets 'click' listeners. The 1st return value indicates if the tab is
-     * already opened. The following 2 return values indicates its coressponding 
+     * already opened. The following return values indicates its coressponding 
      * information.
      * 
      * @param {TreeNode} nodeInfo 
@@ -124,12 +124,16 @@ class TabBarModule {
      * @returns {void} void
      */
     displayTab(nodeInfo) {
+        // setMarkdown() will emit Editor.event.change callback
         window.editor.setMarkdown(nodeInfo.plainText, false)
     }
 
     /**
      * @description Given a HTMLElement, close that given tab. Switches to the 
      * next avaliable tab and displays its content.
+     * 
+     * If auto-save is on, current changes will be async auto-saved.
+     * If auto-save is off, closing tab will pop up a warning to warn you to save or not // TODO: comeplete
      * 
      * @param {HTMLElement} element 
      * @param {TreeNode} nodeInfo 
