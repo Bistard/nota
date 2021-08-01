@@ -2,6 +2,19 @@ const { ipcRenderer } = require('electron')
 const fs = require('fs')
 const Path = require('path')
 
+/**
+ * @description the object is to store and maintain the data for each 
+ * folder/tree/root.
+ * 
+ * @param {treeNode[]} nodes 
+ * @param {boolean} isFolder 
+ * @param {string} name 
+ * @param {string} baseName 
+ * @param {string} path 
+ * @param {number} level 
+ * @param {boolean} isExpand 
+ * @param {string} plainText 
+ */
 class treeNode {
     constructor(nodes, 
                 isFolder, 
@@ -14,6 +27,12 @@ class treeNode {
         Object.assign(this, {nodes, isFolder, name, baseName, path, level, isExpand, plainText})
     }
 }
+
+/**
+ * @description FolderTreeModule is responsible for storing data for each node 
+ * in the opened folder tree. Only deals with dada handling, searching and 
+ * storing.
+ */
 class FolderTreeModule {
     
     constructor() {
@@ -22,6 +41,13 @@ class FolderTreeModule {
         this.treeList = []
     }
 
+    /**
+     * @description Searches and creates a complete folder tree.
+     * 
+     * @param {string} path path to the folder/file
+     * @param {number} lev represents the level of that folder
+     * @returns {treeNode} the complete folder tree
+     */
     createFolderTree(path, lev) {
 
         const baseName = Path.basename(path)
@@ -45,10 +71,19 @@ class FolderTreeModule {
             let name = baseName.replace(/_/g, ' ').replace(/\.md$/, '').trim()
             return new treeNode({}, false, name, baseName, path, lev, false, '')
         }
+        
         // reaches if no suffix or not .md
         return new treeNode({}, false, baseName, baseName, path, lev, false, '')
     }
 
+    /**
+     * @description traversing and returns an array version of folder tree 
+     * using pre-order.
+     * 
+     * @param {treeNode} tree 
+     * @param {treeNode[]} list 
+     * @returns {treeNode[]} an array of treeNode
+     */
     getFolderTreeList(tree, list = []) {
         if (tree.isFolder) {
             list.push(tree)

@@ -9,6 +9,10 @@ const folderView = document.getElementById('folderView')
 const resize = document.getElementById('resize')
 const folderViewChilds = Array.from(folderView.childNodes)
 
+/**
+ * @description TitleBarModule stores and handles all the titleBar relevant 
+ * business. 
+ */
 class TitleBarModule {
     
     constructor() {
@@ -16,6 +20,12 @@ class TitleBarModule {
         this.setListeners()
     }
 
+    /**
+     * @description handling .svg of maxResButton
+     * 
+     * @param {boolean} isMaxApp is winMain maximized or not
+     * @returns {void} void
+     */
     changeMaxResBtn(isMaxApp) {
         if (isMaxApp) {
             document.getElementById('maxBtnImg').src='assets/icons/max-restore.svg'
@@ -24,6 +34,11 @@ class TitleBarModule {
         }
     }
     
+    /**
+     * @description NOT displaying menu.
+     * 
+     * @returns {void} void
+     */
     closeMenu() {
         folderView.style.width = '0px'
         folderView.style.minWidth = '0px'
@@ -32,6 +47,11 @@ class TitleBarModule {
         this.isFolderViewActive = false
     }
     
+    /**
+     * @description Display menu.
+     * 
+     * @returns {void} void
+     */
     openMenu() {
         folderView.style.width = '300px'
         folderView.style.minWidth = '300px'
@@ -42,6 +62,11 @@ class TitleBarModule {
         this.isFolderViewActive = true
     }
 
+    /**
+     * @description mianly setting up button listeners for the titleBar.
+     * 
+     * @returns {void} void
+     */
     setListeners() {
         
         minBtn.addEventListener('click', () => {

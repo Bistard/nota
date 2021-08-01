@@ -9,14 +9,25 @@ const emptyFolderTag = document.getElementById('emptyFolderTag')
 const mdView = document.getElementById('mdView')
 const resize = document.getElementById("resize")
 
+/**
+ * @description FolderModule mainly controlling folder/file system. Also 
+ * interacts with FolderTreeModule and TabBarModule.
+ */
 class FolderModule {
 
-    constructor(FolderTreeModule, tabBarModule) {
+    /**
+     * @param {FolderTreeModule} FolderTreeModule 
+     * @param {TabBarModule} TabBarModule 
+     */
+    constructor(FolderTreeModule, TabBarModule) {
         this.FolderTree = FolderTreeModule
-        this.TabBar = tabBarModule
+        this.TabBar = TabBarModule
 
-        this.isFileClicked = true
-        this.isOutlineClicked = false
+        this.isFileBtnClicked = true
+        this.isOutlineBtnClicked = false
+        
+        // this variable is to store the x-coordinate of the resizeBar in the 
+        // folder view
         this.resizeX = null
 
         this.isFolderOpened = false
@@ -26,11 +37,20 @@ class FolderModule {
         this.setListeners()
     }
 
+    /**
+     * @description initialize display of folder view.
+     * 
+     * @return {void} void
+     */
     initFolderView() {
         this.folderBtnSelected(true)
         folderTree.removeChild(tree)
     }
 
+    /**
+     * 
+     * @param {*} root 
+     */
     displayFolderTree(root) {
         let current = this.insertNode($('#tree'), root, 'root')
         this.displayTree(current, root.nodes)
@@ -145,6 +165,7 @@ class FolderModule {
     }
 
     saveFile(nodeInfo) {
+        // TODO: complete
         ipcRenderer.send('test', nodeInfo)
     }
 
@@ -176,17 +197,17 @@ class FolderModule {
         })
 
         folderBtn.addEventListener('click', () => {
-            if (this.isFileClicked == false) {
-                this.isFileClicked = true
-                this.isOutlineClicked = false
+            if (this.isFileBtnClicked == false) {
+                this.isFileBtnClicked = true
+                this.isOutlineBtnClicked = false
                 this.folderBtnSelected(true)
             }
         })
 
         outlineBtn.addEventListener('click', () => {
-            if (this.isOutlineClicked == false) {
-                this.isOutlineClicked = true
-                this.isFileClicked = false
+            if (this.isOutlineBtnClicked == false) {
+                this.isOutlineBtnClicked = true
+                this.isFileBtnClicked = false
                 this.folderBtnSelected(false)
             }
         })

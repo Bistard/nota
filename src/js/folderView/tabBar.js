@@ -1,23 +1,52 @@
 const { ipcRenderer } = require("electron")
 
 const tabBar = document.getElementById('tabBar-container')
+
+/**
+ * @description TabBarModule stores all the opened tabs data and handles all the 
+ * tabBar relevant listeners.
+ * business.
+ */
 class TabBarModule {
+
     constructor() {
         this.emptyTab = true
         this.openedTabCount = 0
+        
+        /**
+         * Array to store all the opened tab information using class treeNode.
+         * 
+         * @see 'folderTree.js'
+         * @type {treeNode[]}
+         */
         this.openedTabInfo = []
+        
         this.currFocusTabIndex = -1
+        
         this.setListeners()
     }
 
+    /**
+     * @description By the given treeNode, initializes a new HTMLElement tab 
+     * and sets 'click' listeners. The 1st return value indicates if the tab is
+     * already opened. The following 2 return values indicates its coressponding 
+     * information.
+     * 
+     * @param {treeNode} nodeInfo 
+     * @returns {[boolean, number, HTMLElement]} [isExist, exsistedIndex, tab]
+     */
     initTab(nodeInfo) {
+
+        // loop to search if the tab is existed or not
         let i = 0
         for (i = 0; i < this.openedTabCount; i++) {
             if (nodeInfo.path == this.openedTabInfo[i].path) {
+                // tab exists
                 return [true, i, tabBar.childNodes[i]]
             }
         }
 
+        // initializes a new HTMLElement tab
         const newTab = document.createElement('div')
         const tabText = document.createElement('div')
         const tabCloseIcon = document.createElement('img')
@@ -31,19 +60,32 @@ class TabBarModule {
         newTab.append(tabText)
         newTab.append(tabCloseIcon)
 
+        /// when the tab is clicked, switch to that tab
         newTab.addEventListener('click', () => {
             let index = this.openedTabInfo.indexOf(nodeInfo)
             this.openTab(newTab, index, nodeInfo)
         })
 
+        // close tab listeners
         tabCloseIcon.addEventListener('click', (event) => {
-            event.stopPropagation() // prevent parent click when clicked on child
+            // prevent parent click when clicked on child
+            event.stopPropagation()
+
             this.closeTab(newTab, nodeInfo)
         })
         
+        // the tab is not opened, newTab will be inserted at the end of the 
+        // tabBar
         return [false, i, newTab]
     }
 
+    /**
+     * @description Given a HTMLElement, inserts it into the tabBar.
+     * 
+     * @param {HTMLElement} element the tab to be inserted
+     * @param {treeNode} nodeInfo tabInfo
+     * @returns {void} void
+     */
     insertTab(element, nodeInfo) {
         $('#tabBar-container').append(element)
         this.currFocusTabIndex = this.openedTabCount
@@ -52,6 +94,15 @@ class TabBarModule {
         this.openedTabInfo.push(nodeInfo)
     }
 
+    /**
+     * @description Given a HTMLElement, switches to that tab and displays its 
+     * content on the markdown view.
+     * 
+     * @param {HTMLElement} tab tab to be opened
+     * @param {number} index index in the tabBar
+     * @param {treeNode} nodeInfo tabInfo
+     * @returns {void} void
+     */
     openTab(tab, index, nodeInfo) {
         // TODO: improve efficiency
         $('.tab').each(function() {
@@ -63,10 +114,25 @@ class TabBarModule {
         this.displayTab(tab, nodeInfo)
     }
 
+    /**
+     * @description displays a new string content onto the markdown view.
+     * 
+     * @param {HTMLElement} netTab 
+     * @param {treeNode} nodeInfo 
+     * @returns {void} void
+     */
     displayTab(netTab, nodeInfo) {
         window.editor.setMarkdown(nodeInfo.plainText, false)
     }
 
+    /**
+     * @description Given a HTMLElement, close that given tab. Switches to the 
+     * next avaliable tab and displays its content.
+     * 
+     * @param {HTMLElement} element 
+     * @param {treeNode} nodeInfo 
+     * @returns {void} void
+     */
     closeTab(element, nodeInfo) {
         
         tabBar.removeChild(element)
@@ -94,6 +160,11 @@ class TabBarModule {
         }
     }
 
+    /**
+     * @description setup tabBar relevant listeners.
+     * 
+     * @returns {void} void
+     */
     setListeners() {
         
         // able to scroll horizontally using middle mouse
@@ -101,7 +172,7 @@ class TabBarModule {
             tabBar.scrollLeft += event.deltaY
         })
 
-        // shortcut handling
+        // switch tab forwards
         ipcRenderer.on('Ctrl+Tab', () => {
             if (!this.emptyTab && this.openedTabCount != 1) {
                 const index = (this.currFocusTabIndex + 1) % this.openedTabCount
@@ -111,6 +182,7 @@ class TabBarModule {
             }
         })
 
+        // switch tab backwards
         ipcRenderer.on('Ctrl+Shift+Tab', () => {
             if (!this.emptyTab && this.openedTabCount != 1) {
                 const index = (this.currFocusTabIndex - 1 + this.openedTabCount) % this.openedTabCount
@@ -120,6 +192,7 @@ class TabBarModule {
             }
         })
 
+        // close current focused tab
         ipcRenderer.on('Ctrl+W', () => {
             if (!this.emptyTab) {
                 const tab = tabBar.childNodes[this.currFocusTabIndex]

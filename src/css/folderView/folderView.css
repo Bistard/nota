@@ -10,7 +10,6 @@
 
 #resize {
     width: 4px;
-    min-width: 4px; /* prevent resizing */
     height: 100%;
     position: relative;
     cursor: w-resize;

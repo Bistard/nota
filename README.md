@@ -58,7 +58,8 @@ An open-sourced markdown editor && noteTaking desktop application based on .md
   * [x] functionality
     * [x] display file
     * [ ] 🏃‍edit file
-    * [ ] shortcut
+      * [x] delay callback
+    * [ ] shortcut (ctrl+z || ctrl+shift+z and so on)
 * [x] ⭐tabView
   * [x] UI
     * [ ] good design - https://freefrontend.com/css-tab-bars/
@@ -81,6 +82,8 @@ An open-sourced markdown editor && noteTaking desktop application based on .md
   * [ ] timeline view
   * [ ] ...
 * [x] ⭐Others
+  * [x] code comments
+  * [ ] implement MVC (modle / view / controller) - https://stackoverflow.com/questions/16736483/best-way-to-organize-jquery-javascript-code-2013
   * [x] preload.js
   * [ ] remove using document.getElementById() instead using JQuery (maybe? check performance)
     * [x] error: winMian is not found
