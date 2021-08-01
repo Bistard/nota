@@ -10,6 +10,12 @@ const mdView = document.getElementById('mdView')
 const resize = document.getElementById("resize")
 
 /**
+ * @typedef {import('../folderView/folderTree').TreeNode} TreeNode
+ * @typedef {import('../folderView/folderTree').FolderTreeModule} FolderTreeModule
+ * @typedef {import('../folderView/tabBar').TabBarModule} TabBarModule
+ */
+
+/**
  * @description FolderModule mainly controlling folder/file system. Also 
  * interacts with FolderTreeModule and TabBarModule.
  */
@@ -28,7 +34,7 @@ class FolderModule {
         
         // this variable is to store the x-coordinate of the resizeBar in the 
         // folder view
-        this.resizeX = null
+        this.resizeX = 0
 
         this.isFolderOpened = false
         this.treeNodeCount = 0
@@ -48,14 +54,23 @@ class FolderModule {
     }
 
     /**
+     * @description warpper function for displayTree().
      * 
-     * @param {*} root 
+     * @param {HTMLElement} root 
+     * @returns {void} void
      */
     displayFolderTree(root) {
         let current = this.insertNode($('#tree'), root, 'root')
         this.displayTree(current, root.nodes)
     }
 
+    /**
+     * @description recursively display the whole folder tree.
+     * 
+     * @param {TreeNode} parent 
+     * @param {TreeNode[]} tree 
+     * @returns {void} void
+     */
     displayTree(parent, tree) {
         for (const [name, node] of Object.entries(tree)) {
             if (node.isFolder) {
@@ -67,6 +82,15 @@ class FolderModule {
         }
     }
 
+    /**
+     * @description Initializes a new foler/file node of HTMLElement and inserts
+     * into the given parent.
+     * 
+     * @param {HTMLElement} parent 
+     * @param {TreeNode} nodeInfo 
+     * @param {string} state root/folder/file
+     * @returns {HTMLElement} node
+     */
     insertNode(parent, nodeInfo, state) {
         let element;
         if (state == 'root' || state == 'folder') {
@@ -107,6 +131,13 @@ class FolderModule {
         return element
     }
 
+    /**
+     * @description Expands or collapses folder in the folder view.
+     * 
+     * @param {HTMLElement} element 
+     * @param {boolean} shouldExpand 
+     * @returns {void} void
+     */
     expandOrCollapseFolder(element, shouldExpand) {
         if (shouldExpand) {
             element.removeClass('folder-icon-collapse')
@@ -127,12 +158,26 @@ class FolderModule {
         }
     }
 
-    folderLeftClicked(element, nodeInfo) {
+    /**
+     * @description wrapper function for left clicking a folder.
+     * 
+     * @param {HTMLElement} element 
+     * @param {TreeNode} nodeInfo 
+     * @returns {void} void
+     */
+    folderLeftClick(element, nodeInfo) {
         nodeInfo.isExpand ^= true
         this.expandOrCollapseFolder(element, nodeInfo.isExpand)
     }
 
-    fileLeftClicked(element, nodeInfo) {
+    /**
+     * @description wrapper function for left clicking a file.
+     * 
+     * @param {HTMLElement} element 
+     * @param {TreeNode} nodeInfo 
+     * @returns {void} void
+     */
+    fileLeftClick(element, nodeInfo) {
         const tabInfo = this.TabBar.initTab(nodeInfo)
         const isExist = tabInfo[0]
         const tabIndex = tabInfo[1]
@@ -164,17 +209,39 @@ class FolderModule {
 
     }
 
+    /**
+     * @description write the current focused tab's content into the file.
+     * 
+     * @param {TreeNode} nodeInfo 
+     * @return 
+     */
     saveFile(nodeInfo) {
         // TODO: complete
         ipcRenderer.send('test', nodeInfo)
     }
 
+    /**
+     * @description display focus on the given tab.
+     * 
+     * @param {HTMLElement} tab 
+     * @returns {void} void
+     */
     focusFile(tab) {
         // TODO: complete
     }
 
+    /**
+     * @description set folder event listeners.
+     * 
+     * @returns {void} void
+     */
     setListeners() {
 
+        // when a directory is opened, it does the following things:
+        // * displays the whole folder tree
+        // * set each TreeNode a click listeners
+        //   * if clicked, check if is foler or file, calls the corresponding 
+        //     click function
         ipcRenderer.on('openFolder', (event, path, stat) => {
             this.isFolderOpened = true
             this.FolderTree.tree = this.FolderTree.createFolderTree(path, 0)
@@ -189,13 +256,14 @@ class FolderModule {
                 let nodeNum = this.parentNode.getAttribute('nodeNum')
                 let nodeInfo = that.FolderTree.treeList[parseInt(nodeNum)]
                 if (nodeInfo.isFolder) {
-                    that.folderLeftClicked($(this), nodeInfo)
+                    that.folderLeftClick($(this), nodeInfo)
                 } else { 
-                    that.fileLeftClicked($(this), nodeInfo)
+                    that.fileLeftClick($(this), nodeInfo)
                 }
             })
         })
 
+        // button event listensers
         folderBtn.addEventListener('click', () => {
             if (this.isFileBtnClicked == false) {
                 this.isFileBtnClicked = true
@@ -212,6 +280,7 @@ class FolderModule {
             }
         })
 
+        // folder view resizeBar listeners
         resize.addEventListener("mousedown", (event) => {
             this.resizeX = event.x
             document.addEventListener("mousemove", this.resizeFolderView, false)
@@ -222,28 +291,57 @@ class FolderModule {
         }, false)
     }
 
+    /**
+     * @description helper functions for creating string-formatted .css style 
+     * for folderIcon usage
+     * 
+     * @param {string} fileName 
+     * @returns {string} string-formatted .css style
+     */
     createfolderIconString(fileName) {
         return "<style>.node-text::before {content: url('assets/icons/" + fileName + "');display: inline-block;width: 10px;height: 10px;margin-left: 4px;margin-right: 4px;}</style>"
     }
 
+    /**
+     * @readonly The reason that folder.js send 'openNewFolder' to main.js and
+     * later on main.js will send back with 'openFolder' which is still handling
+     * inside folder.js, beacuse ... TODO: fix this stupid design issue.
+     */
     openNewFolder() {
         ipcRenderer.send('openNewFolder')
     }
 
+    /**
+     * @description callback functions for resize folder view.
+     * 
+     * @param {MouseEvent} event 
+     * @returns {void} void
+     */
     resizeFolderView(event) {
+
+        // minimum width for folder view to be resized
         if (event.x < 100)
             return
+        
         let dx = this.resizeX - event.x
         this.resizeX = event.x
         /* new X has to be calculated first, than concatenates with "px", otherwise
            the string will be like newX = "1000+2px" and losing accuracy */
         let folderViewNewX = parseInt(getComputedStyle(folderView, '').width) - dx
         let mdViewNewX = parseInt(getComputedStyle(mdView, '').width) + dx
+        
         folderView.style.width = folderViewNewX + "px"
         folderView.style.minWidth = folderViewNewX + "px"
         mdView.style.width = mdViewNewX + "px"
     }
 
+    /**
+     * @description set which button is selected. Function will be called at 
+     * first time when FolderModule is instantiated.
+     * 
+     * @param {boolean} isFolderSelected 
+     * @returns {void} void
+     */
     folderBtnSelected(isFolderSelected) {
         if (isFolderSelected) {
             folderBtn.style.color = '#65655F'

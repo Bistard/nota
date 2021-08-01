@@ -4,6 +4,10 @@ const Editor = require('@toast-ui/editor')
 const markdown = document.getElementById('md')
 
 /**
+ * @typedef {import('../folderView/folder').FolderModule} FolderModule
+ */
+
+/**
  * @description MarkdownModule initializes markdown renderer and windows and
  * handling a few other shortcuts as well.
  */

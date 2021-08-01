@@ -3,6 +3,10 @@ const { ipcRenderer } = require("electron")
 const tabBar = document.getElementById('tabBar-container')
 
 /**
+ * @typedef {import('../folderView/folderTree').TreeNode} TreeNode
+ */
+
+/**
  * @description TabBarModule stores all the opened tabs data and handles all the 
  * tabBar relevant listeners.
  * business.
@@ -14,10 +18,9 @@ class TabBarModule {
         this.openedTabCount = 0
         
         /**
-         * Array to store all the opened tab information using class treeNode.
+         * Array to store all the opened tab information using class TreeNode.
          * 
-         * @see 'folderTree.js'
-         * @type {treeNode[]}
+         * @type {TreeNode[]}
          */
         this.openedTabInfo = []
         
@@ -27,12 +30,12 @@ class TabBarModule {
     }
 
     /**
-     * @description By the given treeNode, initializes a new HTMLElement tab 
+     * @description By the given TreeNode, initializes a new HTMLElement tab 
      * and sets 'click' listeners. The 1st return value indicates if the tab is
      * already opened. The following 2 return values indicates its coressponding 
      * information.
      * 
-     * @param {treeNode} nodeInfo 
+     * @param {TreeNode} nodeInfo 
      * @returns {[boolean, number, HTMLElement]} [isExist, exsistedIndex, tab]
      */
     initTab(nodeInfo) {
@@ -83,7 +86,7 @@ class TabBarModule {
      * @description Given a HTMLElement, inserts it into the tabBar.
      * 
      * @param {HTMLElement} element the tab to be inserted
-     * @param {treeNode} nodeInfo tabInfo
+     * @param {TreeNode} nodeInfo tabInfo
      * @returns {void} void
      */
     insertTab(element, nodeInfo) {
@@ -100,7 +103,7 @@ class TabBarModule {
      * 
      * @param {HTMLElement} tab tab to be opened
      * @param {number} index index in the tabBar
-     * @param {treeNode} nodeInfo tabInfo
+     * @param {TreeNode} nodeInfo tabInfo
      * @returns {void} void
      */
     openTab(tab, index, nodeInfo) {
@@ -118,7 +121,7 @@ class TabBarModule {
      * @description displays a new string content onto the markdown view.
      * 
      * @param {HTMLElement} netTab 
-     * @param {treeNode} nodeInfo 
+     * @param {TreeNode} nodeInfo 
      * @returns {void} void
      */
     displayTab(netTab, nodeInfo) {
@@ -130,7 +133,7 @@ class TabBarModule {
      * next avaliable tab and displays its content.
      * 
      * @param {HTMLElement} element 
-     * @param {treeNode} nodeInfo 
+     * @param {TreeNode} nodeInfo 
      * @returns {void} void
      */
     closeTab(element, nodeInfo) {

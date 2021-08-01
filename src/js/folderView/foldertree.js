@@ -6,7 +6,7 @@ const Path = require('path')
  * @description the object is to store and maintain the data for each 
  * folder/tree/root.
  * 
- * @param {treeNode[]} nodes 
+ * @param {TreeNode[]} nodes 
  * @param {boolean} isFolder 
  * @param {string} name 
  * @param {string} baseName 
@@ -15,7 +15,7 @@ const Path = require('path')
  * @param {boolean} isExpand 
  * @param {string} plainText 
  */
-class treeNode {
+class TreeNode {
     constructor(nodes, 
                 isFolder, 
                 name, 
@@ -37,16 +37,24 @@ class FolderTreeModule {
     
     constructor() {
         // TODO: reduce memory usage (.tree .treeList might overlap)
+        
+        /**
+         * @type {TreeNode}
+         */
         this.tree = {}
+        
+        /**
+         * @type {TreeNode[]}
+         */
         this.treeList = []
     }
 
     /**
-     * @description Searches and creates a complete folder tree.
+     * @description Recursively searches and creates a complete folder tree.
      * 
      * @param {string} path path to the folder/file
      * @param {number} lev represents the level of that folder
-     * @returns {treeNode} the complete folder tree
+     * @returns {TreeNode} the complete folder tree
      */
     createFolderTree(path, lev) {
 
@@ -54,7 +62,7 @@ class FolderTreeModule {
         if (fs.lstatSync(path).isDirectory()) {
             
             let name = baseName.replace(/_/g, ' ')
-            const node = new treeNode({}, true, name, baseName, path, lev, false, '')
+            const node = new TreeNode({}, true, name, baseName, path, lev, false, '')
             
             const files = fs.readdirSync(path, {
                 encoding: 'utf8',
@@ -69,20 +77,20 @@ class FolderTreeModule {
 
         } else if (/\.md$/i.test(path)) {
             let name = baseName.replace(/_/g, ' ').replace(/\.md$/, '').trim()
-            return new treeNode({}, false, name, baseName, path, lev, false, '')
+            return new TreeNode({}, false, name, baseName, path, lev, false, '')
         }
         
         // reaches if no suffix or not .md
-        return new treeNode({}, false, baseName, baseName, path, lev, false, '')
+        return new TreeNode({}, false, baseName, baseName, path, lev, false, '')
     }
 
     /**
      * @description traversing and returns an array version of folder tree 
      * using pre-order.
      * 
-     * @param {treeNode} tree 
-     * @param {treeNode[]} list 
-     * @returns {treeNode[]} an array of treeNode
+     * @param {TreeNode} tree 
+     * @param {TreeNode[]} list 
+     * @returns {TreeNode[]} an array of TreeNode
      */
     getFolderTreeList(tree, list = []) {
         if (tree.isFolder) {
@@ -98,4 +106,4 @@ class FolderTreeModule {
 
 }
 
-module.exports = { FolderTreeModule }
+module.exports = { TreeNode, FolderTreeModule }
