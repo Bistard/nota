@@ -1,7 +1,7 @@
 #action-view {
     position: relative;
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     width: 300px;
     min-width: 300px; /* prevent resizing */
     height: 100%;

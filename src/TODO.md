@@ -10,34 +10,48 @@
       * [x] maxBtn switch to restoreBtn
       * [ ] holding onclick can change to mode 'always on top'
   * [ ] ...
-* [x] ⭐folderView
-  * [x] interactive size
-    * [x] middle three point button style
-  * [x] folder tree view
-    * [x] open empty folder dialog
-    * [x] display current working directory
-    * [x] functionality 
-      * [x] new UI
-        * [x] folder indent line
-        * [x] more fluent scroll bar animation
-        * [ ] when open a newTab, tabBar will scroll to the newTab position
-      * [x] scrollable
-      * [x] indent
-      * [x] node functionality
-        * [x] expand
-        * [x] collapse
-        * [ ] focus
-        * [ ] manual move order
-        * [ ] ...
-  * [ ] functionality
-    * [ ] auto update folder tree
-    * [ ] expandALL/collapseALL
-    * [ ] refresh
-    * [ ] search
-    * [ ] filter folders/files
-    * [ ] right-click
-    * [ ] config
-      * [ ] directory config with local save
+* [x] ⭐actionView
+  * [x] UI
+    * [x] folderView
+    * [ ] outlineView
+    * [ ] searchView
+    * [ ] gitView
+    * [ ] ...
+  * [ ] ...
+  * [x] functionality
+    * [x] focus
+    * [ ] switch
+* [ ] ⭐actionView
+  * [x] folderView
+    * [x] interactive size
+      * [x] middle three point button style
+    * [x] folder tree view
+      * [x] open empty folder dialog
+      * [x] display current working directory
+      * [x] functionality 
+        * [x] new UI
+          * [x] folder indent line
+          * [x] more fluent scroll bar animation
+          * [ ] when open a newTab, tabBar will scroll to the newTab position
+        * [x] scrollable
+        * [x] indent
+        * [x] node functionality
+          * [x] expand
+          * [x] collapse
+          * [ ] focus
+          * [ ] manual move order
+          * [ ] ...
+      * [ ] functionality
+        * [ ] auto update folder tree
+        * [ ] expandALL/collapseALL
+        * [ ] refresh
+        * [ ] search
+        * [ ] filter folders/files
+        * [ ] right-click
+        * [ ] config
+          * [ ] directory config with local save
+    * [ ] outlineView
+      * [ ] ...
 * [x] ⭐markdownView
   * [x] md preview
     * [x] update @toast-editor to v3.0

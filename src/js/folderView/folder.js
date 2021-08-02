@@ -6,7 +6,7 @@ const folderView = document.getElementById('action-view')
 const folderTree = document.getElementById('folderTree')
 const tree = document.getElementById('tree')
 const emptyFolderTag = document.getElementById('emptyFolderTag')
-const mdView = document.getElementById('markdown-view')
+const contentView = document.getElementById('content-view')
 const resize = document.getElementById("resize")
 
 /**
@@ -129,7 +129,7 @@ class FolderModule {
     /**
      * @description Expands or collapses folder in the folder view.
      * 
-     * @param {HTMLElement} element 
+     * @param {JQuery} element 
      * @param {boolean} shouldExpand 
      * @returns {void} void
      */
@@ -156,7 +156,7 @@ class FolderModule {
     /**
      * @description wrapper function for left clicking a folder.
      * 
-     * @param {HTMLElement} element 
+     * @param {JQuery} element 
      * @param {TreeNode} nodeInfo 
      * @returns {void} void
      */
@@ -168,7 +168,7 @@ class FolderModule {
     /**
      * @description wrapper function for left clicking a file.
      * 
-     * @param {HTMLElement} element 
+     * @param {JQuery} element 
      * @param {TreeNode} nodeInfo 
      * @returns {void} void
      */
@@ -295,7 +295,7 @@ class FolderModule {
      * @param {MouseEvent} event 
      * @returns {void} void
      */
-    resizeFolderView(event) {
+    resizeContentView(event) {
 
         // minimum width for folder view to be resized
         if (event.x < 200)
@@ -306,11 +306,11 @@ class FolderModule {
         /* new X has to be calculated first, than concatenates with "px", otherwise
            the string will be like newX = "1000+2px" and losing accuracy */
         let folderViewNewX = parseInt(getComputedStyle(folderView, '').width) - dx
-        let mdViewNewX = parseInt(getComputedStyle(mdView, '').width) + dx
+        let contentViewNewX = parseInt(getComputedStyle(contentView, '').width) + dx
         
         folderView.style.width = folderViewNewX + "px"
         folderView.style.minWidth = folderViewNewX + "px"
-        mdView.style.width = mdViewNewX + "px"
+        contentView.style.width = contentViewNewX + "px"
     }
 
     /**
@@ -338,11 +338,11 @@ class FolderModule {
         // folder view resizeBar listeners
         resize.addEventListener("mousedown", (event) => {
             this.resizeX = event.x
-            document.addEventListener("mousemove", this.resizeFolderView, false)
+            document.addEventListener("mousemove", this.resizeContentView, false)
         }, false)
 
         document.addEventListener("mouseup", () => {
-            document.removeEventListener("mousemove", this.resizeFolderView, false)
+            document.removeEventListener("mousemove", this.resizeContentView, false)
         }, false)
     }
 

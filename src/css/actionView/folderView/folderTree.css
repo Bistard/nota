@@ -67,7 +67,7 @@
 }
 
 .file-icon::before {
-    content: url('../../assets/icons/file.svg');
+    content: url('../../../assets/icons/file.svg');
     display: inline-block;
     width: 10px;
     height: 10px;
@@ -75,7 +75,7 @@
 }
 
 .folder-icon-expand::before {
-    content: url('../../assets/icons/angle-down.svg');
+    content: url('../../../assets/icons/angle-down.svg');
     display: inline-block;
     width: 10px;
     height: 10px;
@@ -83,7 +83,7 @@
 }
 
 .folder-icon-collapse::before {
-    content: url('../../assets/icons/angle-right.svg');
+    content: url('../../../assets/icons/angle-right.svg');
     display: inline-block;
     width: 10px;
     height: 10px;

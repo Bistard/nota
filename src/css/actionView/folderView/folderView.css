@@ -18,11 +18,11 @@
 }
 
 #resize {
-    width: 4px;
+    width: 2px;
     height: 100%;
     position: relative;
     cursor: w-resize;
-    background-color: whitesmoke;
+    background-color: #eceadd;
     transition: 0.2s;
 }
 

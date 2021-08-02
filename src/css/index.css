@@ -24,8 +24,14 @@ img {
 }
 
 #content-view {
+    position: relative;
     display: flex;
     flex-direction: column;
     width: 100%;
     height: 100%;
+
+    /* Use box-sizing so that element's outerwidth will match width property */
+    box-sizing: border-box; 
+    /* Allow view to grow and shrink, and ensure they are all equally sized, equivalent to flex: auto */
+    flex: 1 1 auto;
 }
