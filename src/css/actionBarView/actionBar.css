@@ -19,6 +19,18 @@
     height: 40px;
 }
 
+.action-button:hover {
+    background-color: #d1232a;
+}
+
+.action-button:active {
+    opacity: 70%;
+}
+
+.action-button-focus {
+    background-color: #d1232a;
+}
+
 .action-button > img {
     display: block;
     margin-left: auto;

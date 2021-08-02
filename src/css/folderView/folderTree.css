@@ -31,25 +31,6 @@
     padding-left: 14px;
 }
 
-#emptyFolderTag {
-    color: transparent;
-    font-size: 10pt;
-    text-align: center;
-    transition: 0.1s;
-}
-
-#folderTree:hover > #emptyFolderTag {
-    color: #9f9f95;
-}
-
-#folderTree:hover > #emptyFolderTag:hover {
-    color: rgb(202, 202, 202);
-}
-
-#folderTree:hover > #emptyFolderTag:active {
-    color: #9f9f95;
-}
-
 /*                           ABOVE ARE STABLE CODE                            */
 
 .node-root {
@@ -69,9 +50,11 @@
 .node-text {
     height: 26px;
     line-height: 26px;
+    
     list-style-type: none;
     cursor: pointer;
     user-select: none;
+    
     margin-left: -10px;
     overflow-x: hidden;
     text-overflow: ellipsis;

@@ -1,4 +1,5 @@
 const ConfigModule = require('./js/config')
+const ActionBarModule = require('./js/actionBar/actionBar')
 const TitleBarModule = require('./js/titleBar/titleBar')
 const FolderTreeModule = require('./js/folderView/folderTree')
 const TabBarModule = require('./js/folderView/tabBar')
@@ -14,6 +15,7 @@ class mainMoudle {
 
     constructor() {
         this.Config = new ConfigModule.ConfigModule()
+        this.ActionBar = new ActionBarModule.ActionBarModule()
         this.TitleBar = new TitleBarModule.TitleBarModule()
         this.FolderTree = new FolderTreeModule.FolderTreeModule()
         this.TabBar = new TabBarModule.TabBarModule(this.Config)

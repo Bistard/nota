@@ -96,8 +96,7 @@ class FolderModule {
         }
 
         element.classList.add('node')
-        let nodeNum = this.treeNodeCount.toString()
-        element.setAttribute('nodeNum', nodeNum)
+        element.setAttribute('nodeNum', this.treeNodeCount.toString())
         this.treeNodeCount++
 
         const text = document.createElement('li')
@@ -267,8 +266,8 @@ class FolderModule {
         folderTree.appendChild(tree)
         this.displayFolderTree(this.FolderTree.tree)
 
-        $('.node-text').on('click', { folderViewClass: this }, function (event) {
-            let that = event.data.folderViewClass
+        $('.node-text').on('click', { FolderViewClass: this }, function (event) {
+            let that = event.data.FolderViewClass
             let nodeNum = this.parentNode.getAttribute('nodeNum')
             let nodeInfo = that.FolderTree.treeList[parseInt(nodeNum)]
             if (nodeInfo.isFolder) {

@@ -203,7 +203,7 @@ class TabBarModule {
         ipcRenderer.on('Ctrl+Tab', () => {
             if (!this.emptyTab && this.openedTabCount != 1) {
                 const index = (this.currFocusTabIndex + 1) % this.openedTabCount
-                const tab = tabBar.childNodes[index]
+                const tab = tabBar.children[index]
                 let nodeInfo = this.openedTabInfo[index]
                 this.openTab(tab, index, nodeInfo)
             }
@@ -213,7 +213,7 @@ class TabBarModule {
         ipcRenderer.on('Ctrl+Shift+Tab', () => {
             if (!this.emptyTab && this.openedTabCount != 1) {
                 const index = (this.currFocusTabIndex - 1 + this.openedTabCount) % this.openedTabCount
-                const tab = tabBar.childNodes[index]
+                const tab = tabBar.children[index]
                 let nodeInfo = this.openedTabInfo[index]
                 this.openTab(tab, index, nodeInfo)
             }
@@ -222,7 +222,7 @@ class TabBarModule {
         // close current focused tab
         ipcRenderer.on('Ctrl+W', () => {
             if (!this.emptyTab) {
-                const tab = tabBar.childNodes[this.currFocusTabIndex]
+                const tab = tabBar.children[this.currFocusTabIndex]
                 let nodeInfo = this.openedTabInfo[this.currFocusTabIndex]
                 this.closeTab(tab, nodeInfo)
             }
