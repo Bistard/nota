@@ -10,27 +10,3 @@
 #resize:hover {
     background-color: #ccc;
 }
-
-#folderNavBar {
-    width: 100%;
-    height: 28px;
-    background-color: transparent;
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-}
-
-#folderNavBar > * {
-    color: white;
-    text-align: center;
-    font-size: 14px;
-    border-bottom: 2px solid transparent;
-    transition: 0.2s;
-}
-
-#folderNavBar > *:hover {
-    border-bottom: 2px solid #919188;
-}
-
-#folderNavBar > *:active {
-    border-bottom: 2px solid #5b5b55;
-}

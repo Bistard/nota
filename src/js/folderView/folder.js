@@ -2,8 +2,6 @@ const { ipcRenderer } = require('electron')
 
 const {readFile, writeFile } = require('fs')
 
-const folderBtn = document.getElementById('folderBtn')
-const outlineBtn = document.getElementById('outlineBtn')
 const folderView = document.getElementById('action-view')
 const folderTree = document.getElementById('folderTree')
 const tree = document.getElementById('tree')
@@ -31,9 +29,6 @@ class FolderModule {
         this.FolderTree = FolderTreeModule
         this.TabBar = TabBarModule
 
-        this.isFileBtnClicked = true
-        this.isOutlineBtnClicked = false
-        
         // this variable is to store the x-coordinate of the resizeBar in the 
         // folder view
         this.resizeX = 0
@@ -51,8 +46,7 @@ class FolderModule {
      * @return {void} void
      */
     initFolderView() {
-        this.folderBtnSelected(true)
-        folderTree.removeChild(tree)
+        // TODO: comeplete
     }
 
     /**
@@ -256,16 +250,6 @@ class FolderModule {
     }
 
     /**
-     * @readonly Since remote is deprecated and dialog can only be used in the 
-     * main process, to communicate between main process and renderer is to use 
-     * ipcRenderer and ipcMain. See more details about Electron/remote on 
-     * https://www.electronjs.org/docs/api/remote
-     */
-     sendOpenDirMsg() {
-        ipcRenderer.send('openDir')
-    }
-
-    /**
      * @description Opennign a directory and it does the following things:
      *  - displays the whole folder tree.
      *  - set each TreeNode a click listeners.
@@ -331,64 +315,25 @@ class FolderModule {
     }
 
     /**
-     * @description set which button is selected. Function will be called at 
-     * first time when FolderModule is instantiated.
-     * 
-     * @param {boolean} isFolderSelected 
-     * @returns {void} void
-     */
-    folderBtnSelected(isFolderSelected) {
-        if (isFolderSelected) {
-            folderBtn.style.fontWeight = 'bold'
-            folderBtn.style.borderBottom = '2px solid #5b5b55'
-            emptyFolderTag.innerHTML = 'open a folder'
-            outlineBtn.style.fontWeight = 'normal'
-            outlineBtn.style.borderBottom = '2px solid transparent'
-
-            folderView.appendChild(folderTree)
-            emptyFolderTag.addEventListener('click', this.sendOpenDirMsg)
-        } else {
-            outlineBtn.style.fontWeight = 'bold'
-            outlineBtn.style.borderBottom = '2px solid #5b5b55'
-            emptyFolderTag.innerHTML = 'outline is empty'
-            folderBtn.style.fontWeight = 'normal'
-            folderBtn.style.borderBottom = '2px solid transparent'
-
-            folderView.removeChild(folderTree)
-            emptyFolderTag.removeEventListener('click', this.sendOpenDirMsg)
-        }
-    }
-    
-    /**
      * @description set folder event listeners.
      * 
      * @returns {void} void
      */
      setListeners() {
 
+        /**
+         * @readonly Since remote is deprecated and dialog can only be used in 
+         * the main process, to communicate between main process and renderer is 
+         * to use ipcRenderer and ipcMain. See more details about Electron/remote 
+         * on https://www.electronjs.org/docs/api/remote
+         */
+        emptyFolderTag.addEventListener('click', () => {
+            ipcRenderer.send('openDir')
+        })
+
         // set openDir listener to get response back from main.js
         ipcRenderer.on('openDir', (event, path, stat) => {
             this.openDirecory(path)
-        })
-
-        /**
-         * @readonly button event listensers
-         */
-
-        folderBtn.addEventListener('click', () => {
-            if (this.isFileBtnClicked == false) {
-                this.isFileBtnClicked = true
-                this.isOutlineBtnClicked = false
-                this.folderBtnSelected(true)
-            }
-        })
-
-        outlineBtn.addEventListener('click', () => {
-            if (this.isOutlineBtnClicked == false) {
-                this.isOutlineBtnClicked = true
-                this.isFileBtnClicked = false
-                this.folderBtnSelected(false)
-            }
         })
 
         // folder view resizeBar listeners
