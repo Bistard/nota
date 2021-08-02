@@ -41,14 +41,16 @@
 * [x] ⭐markdownView
   * [x] md preview
     * [x] update @toast-editor to v3.0
+    * [ ] reading mode (using viewer from v3.0)
   * ~~md needs to be rendered before window created (not sure if still necessary)~~
   * [x] open and render a .md file (by inserting plainText)
   * [x] tool bar
     * [ ] remove default tool bar
+      * [ ] our own custom toolbar
     * [x] disable ctrl+R shortcut
-  * [ ] plugin
-    * [ ] Plugin to highlight code syntax
-    * [ ] Plugin to color editing text
+  * [x] plugin
+    * [x] Plugin to highlight code syntax
+    * [x] Plugin to color editing text
     * [ ] Plugin to merge table columns
   * [x] functionality
     * [x] display file
