@@ -40,6 +40,7 @@
       * [ ] directory config with local save
 * [x] ⭐markdownView
   * [x] md preview
+    * [x] update @toast-editor to v3.0
   * ~~md needs to be rendered before window created (not sure if still necessary)~~
   * [x] open and render a .md file (by inserting plainText)
   * [x] tool bar
@@ -54,7 +55,8 @@
       * [ ] default: displaying xxxx lines, if needed, see more in settings
     * [x] edit file
       * [x] delay callback
-    * [ ] shortcut (ctrl+z || ctrl+shift+z and so on)
+    * [x] shortcut (ctrl+z || ctrl+shift+z and so on)
+    * [ ] paste with plain text
 * [x] ⭐tabView
   * [x] UI
     * [ ] good design - https://freefrontend.com/css-tab-bars/

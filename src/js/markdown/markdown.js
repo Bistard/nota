@@ -1,6 +1,9 @@
 const { ipcRenderer } = require("electron")
+
 // see more details on this library: https://github.com/nhn/tui.editor#-packages
 const Editor = require('@toast-ui/editor')
+const Prism = require('../../../node_modules/prismjs/prism')
+const codeSyntaxHighlight = require('@toast-ui/editor-plugin-code-syntax-highlight');
 
 const markdown = document.getElementById('md')
 
@@ -61,7 +64,7 @@ class MarkdownModule {
             previewHighlight: false,
             useCommandShortcut: true,
             usageStatistics: true,      // send hostname to google analytics
-            hideModeSwitch: false,
+            hideModeSwitch: true,
             /**
              * @argument 'wysiwyg' = 'what you see is what you get'
              * @argument 'markdown'
@@ -87,7 +90,9 @@ class MarkdownModule {
                 change: () => { this.onChange() },
             },
             placeholder: '',
-            plugins: [],
+            plugins: [
+                [codeSyntaxHighlight, { highlighter: Prism }],
+            ],
         })
 
         editor.getMarkdown()

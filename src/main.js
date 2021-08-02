@@ -39,6 +39,7 @@ class Main {
                     devTools: true,
                     preload: path.join(__dirname + '/js', 'preload.js')
                 },
+                resizable: true,
                 show: false,
                 frame: false
             })
@@ -50,6 +51,8 @@ class Main {
             // remove the default menu. Shortcuts like reload and developer-tool
             // are set in the later
             this.winMain.setMenu(null)
+
+            /* const gotTheLock = app.requestSingleInstanceLock(); */
 
             // loads index.html first and displays when ready
             this.winMain.loadFile('./src/index.html')

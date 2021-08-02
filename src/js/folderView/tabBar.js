@@ -133,6 +133,7 @@ class TabBarModule {
      */
     displayTab(nodeInfo) {
         // setMarkdown() will emit Editor.event.change callback
+        ipcRenderer.send('test', 'setMarkdown()')
         window.editor.setMarkdown(nodeInfo.plainText, false)
     }
 
@@ -151,7 +152,7 @@ class TabBarModule {
         
         tabBar.removeChild(element)
 
-        // save current change
+        // save current change immediately
         if (this.Config.fileAutoSaveOn) {
             writeFile(nodeInfo.path, window.editor.getMarkdown(), (err) => {
                 if (err) {

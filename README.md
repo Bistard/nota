@@ -3,19 +3,19 @@ An open-sourced markdown editor && noteTaking desktop application based on .md
 
 基于markdown管理的笔记软件
 
-# expect feature
+# 💖expect feature
 
-* supports WYSIWYG (rich text), instant rendering, tranditional split view editing
+* supports WYSIWYG (rich text), ~~instant rendering~~, tranditional split view editing
 * supports git and github
 * provides great noteTaking-like user experience
 
-# portal
-- [✔Todo✔](src/TODO.md)
+# 🚪portal
+- [✔Todo](src/TODO.md)
 
-# bugs
+# 🐛bugs
 - [ ] when open a new or existed file / switching tabs, auto-save will be emit (should be avoid due to the performance)
 
-# ChangeLog
+# 💬ChangeLog
 * ⭐ => 'big update'
 * 💙 => 'debug'
 * 💛 => 'unstable'
