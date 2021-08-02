@@ -4,6 +4,7 @@ const { ipcRenderer } = require("electron")
 const Editor = require('@toast-ui/editor')
 const Prism = require('../../../node_modules/prismjs/prism')
 const codeSyntaxHighlight = require('@toast-ui/editor-plugin-code-syntax-highlight');
+const colorSyntax = require('@toast-ui/editor-plugin-color-syntax');
 
 const markdown = document.getElementById('md')
 
@@ -39,6 +40,19 @@ class MarkdownModule {
          * @type {NodeJS.Timeout}
          */
         this.saveFileTimeout = null
+
+        /**
+         * The object is a preset color choices for color-syntax plugin.
+         */
+        this.colorSyntaxOptions = {
+            preset: ['#ff0000', // red
+                     '#ff8f00', // orange
+                     '#fff600', // yellow
+                     '#52ff00', // green
+                     '#007dff', // blue
+                     '#5200ff', // indigo
+                     '#ad00ff'] // violet
+        };
 
         this.createMarkdownEditor()
         this.setListeners()
@@ -92,6 +106,7 @@ class MarkdownModule {
             placeholder: '',
             plugins: [
                 [codeSyntaxHighlight, { highlighter: Prism }],
+                [colorSyntax, this.colorSyntaxOptions]
             ],
         })
 
