@@ -1,0 +1,11 @@
+#action-view {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    width: 300px;
+    min-width: 300px; /* prevent resizing */
+    height: 100%;
+    background-color: #273137;
+
+    color: white;
+}

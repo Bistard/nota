@@ -46,7 +46,7 @@
   * [x] open and render a .md file (by inserting plainText)
   * [x] tool bar
     * [ ] remove default tool bar
-      * [ ] our own custom toolbar
+      * [ ] our own custom action-buttion-container
     * [x] disable ctrl+R shortcut
   * [x] plugin
     * [x] Plugin to highlight code syntax

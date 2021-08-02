@@ -1,4 +1,4 @@
-#mainApp > #titleBar {
+#titleBar {
     display: grid;
     grid-template-columns: 1fr 1fr 1fr;
     width: 100%;
@@ -7,27 +7,6 @@
     border-bottom: 1px solid rgb(230, 230, 230);
     
     -webkit-app-region: drag; /* draggable */
-}
-
-#titleBar > #toolBar {
-    display: grid;
-    grid-template-columns: 1fr;
-    align-items: center;
-    width: auto;
-    height: 25px;
-}
-
-#toolBar > #menuBtn {
-    width: 40px;
-    height: 100%;
-}
-
-#toolBar > #menuBtn > img {
-    display: block;
-    margin-left: auto;
-    margin-right: auto;
-    width: 20px;
-    height: 20px;
 }
 
 #titleBar > #titleText {

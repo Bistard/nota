@@ -1,13 +1,3 @@
-#folderView {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    width: 300px;
-    min-width: 300px; /* prevent resizing */
-    height: 100%;
-    background-color: whitesmoke;
-}
-
 #resize {
     width: 4px;
     height: 100%;
@@ -30,7 +20,7 @@
 }
 
 #folderNavBar > * {
-    color: #9f9f95;
+    color: white;
     text-align: center;
     font-size: 14px;
     border-bottom: 2px solid transparent;

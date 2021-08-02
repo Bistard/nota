@@ -15,8 +15,10 @@
   <link rel="stylesheet" href="../node_modules/tui-color-picker/dist/tui-color-picker.css">
   <link rel="stylesheet" href="../node_modules/@toast-ui/editor-plugin-color-syntax/dist/toastui-editor-plugin-color-syntax.css">
 
-  <link rel="stylesheet" href="./index.css">
+  <link rel="stylesheet" href="./css/index.css">
   <link rel="stylesheet" href="./css/common.css">
+  <link rel="stylesheet" href="./css/actionBarView/actionBar.css">
+  <link rel="stylesheet" href="./css/actionView/actionView.css">
   <link rel="stylesheet" href="./css/folderView/folderView.css">
   <link rel="stylesheet" href="./css/folderView/tabBarView.css">
   <link rel="stylesheet" href="./css/folderView/folderTree.css">
@@ -27,56 +29,68 @@
 <body>
   <div id="mainApp">
 
-    <div id="titleBar">
-      <div id="toolBar">
-        <div id="menuBtn" class="toggleBtn">
-          <img src="assets/icons/menu.svg" class="vertical-center"></img>
+    <div id="action-bar">
+      <div id="action-buttion-container">
+        
+        <div id="folder-button" class="action-button toggleBtn">
+          <img src="assets/icons/book.svg" class="vertical-center"></img>
         </div>
-      </div>
 
-      <div id="titleText" class="pureText">Markdown Note</div>
-      
-      <div id="titleBarBtns">
-        <div id="minBtn" class="toggleBtn">
-          <img src="assets/icons/min.svg" class="vertical-center"></img>
+        <div id="outline-button" class="action-button toggleBtn">
+          <img src="assets/icons/list.svg" class="vertical-center"></img>
         </div>
-        <div id="maxBtn" class="toggleBtn">
-          <img id="maxBtnImg" src="assets/icons/max.svg" class="vertical-center"></img>
-        </div>
-        <div id="closeBtn" class="toggleBtn closeToggleBtn">
-          <img src="assets/icons/close.svg" class="vertical-center"></img>
-        </div>
+
       </div>
     </div>
 
-    <div id="contentArea">
-
-      <div id="folderView">
+    <div id="action-view">
         
-        <div id="folderNavBar">
-          <div id="folderBtn">
-            <div class="vertical-center funcText">Files</div>
-          </div>
-          <div id="outlineBtn">
-            <div class="vertical-center funcText">Outline</div>
-          </div>
+      <div id="folderNavBar">
+        <div id="folderBtn">
+          <div class="vertical-center funcText">Files</div>
         </div>
-
-        <div id="folderTree" class="tree-body">
-          <div id="tree"></div>
-          <div id="emptyFolderTag" class="vertical-center funcText"></div>
+        <div id="outlineBtn">
+          <div class="vertical-center funcText">Outline</div>
         </div>
-
-      </div>
-      
-      <div id="resize">
-        <div class="resizeBtn-style vertical-center"></div>
       </div>
 
-      <div id="mdView">
+      <div id="folderTree" class="tree-body">
+        <div id="tree"></div>
+        <div id="emptyFolderTag" class="vertical-center funcText"></div>
+      </div>
+
+    </div>
+    
+    <div id="resize">
+      <div class="resizeBtn-style vertical-center"></div>
+    </div>
+
+    <div id="content-view">
+
+      <div id="titleBar">
+        
+        <div id="space-container"></div>
+  
+        <div id="titleText" class="pureText">Markdown Note</div>
+        
+        <div id="titleBarBtns">
+          <div id="minBtn" class="toggleBtn">
+            <img src="assets/icons/min.svg" class="vertical-center"></img>
+          </div>
+          <div id="maxBtn" class="toggleBtn">
+            <img id="maxBtnImg" src="assets/icons/max.svg" class="vertical-center"></img>
+          </div>
+          <div id="closeBtn" class="toggleBtn closeToggleBtn">
+            <img src="assets/icons/close.svg" class="vertical-center"></img>
+          </div>
+        </div>
+      </div>
+
+      <div id="markdown-view">
         <div id="tabBar-container"></div>
         <div id="md"></div>
       </div>
+      
     </div>
 
   </div>

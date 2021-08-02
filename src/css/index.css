@@ -15,7 +15,7 @@ img {
 
 #mainApp {
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     flex-wrap: nowrap;
     width:100vw;
     height:100vh;
@@ -23,9 +23,9 @@ img {
     box-sizing: border-box;
 }
 
-#contentArea {
+#content-view {
     display: flex;
-    flex-direction: row;
+    flex-direction: column;
     width: 100%;
     height: 100%;
 }

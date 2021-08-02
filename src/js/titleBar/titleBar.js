@@ -1,10 +1,10 @@
 const { ipcRenderer } = require('electron')
 
-const menuBtn = document.getElementById('menuBtn')
+const folderButton = document.getElementById('folder-button')
 const minBtn = document.getElementById('minBtn')
 const maxBtn = document.getElementById('maxBtn')
 const closeBtn = document.getElementById('closeBtn')
-const folderView = document.getElementById('folderView')
+const folderView = document.getElementById('action-view')
 const resize = document.getElementById('resize')
 const folderViewChilds = Array.from(folderView.childNodes)
 
@@ -88,7 +88,7 @@ class TitleBarModule {
             this.changeMaxResBtn(false) 
         })
         
-        menuBtn.addEventListener('click', () => {
+        folderButton.addEventListener('click', () => {
             if (this.isFolderViewActive) {
                 this.closeMenu()
             } else {

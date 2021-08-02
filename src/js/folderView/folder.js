@@ -4,11 +4,11 @@ const {readFile, writeFile } = require('fs')
 
 const folderBtn = document.getElementById('folderBtn')
 const outlineBtn = document.getElementById('outlineBtn')
-const folderView = document.getElementById('folderView')
+const folderView = document.getElementById('action-view')
 const folderTree = document.getElementById('folderTree')
 const tree = document.getElementById('tree')
 const emptyFolderTag = document.getElementById('emptyFolderTag')
-const mdView = document.getElementById('mdView')
+const mdView = document.getElementById('markdown-view')
 const resize = document.getElementById("resize")
 
 /**
@@ -315,7 +315,7 @@ class FolderModule {
     resizeFolderView(event) {
 
         // minimum width for folder view to be resized
-        if (event.x < 100)
+        if (event.x < 200)
             return
         
         let dx = this.resizeX - event.x
@@ -339,22 +339,18 @@ class FolderModule {
      */
     folderBtnSelected(isFolderSelected) {
         if (isFolderSelected) {
-            folderBtn.style.color = '#65655F'
             folderBtn.style.fontWeight = 'bold'
             folderBtn.style.borderBottom = '2px solid #5b5b55'
             emptyFolderTag.innerHTML = 'open a folder'
-            outlineBtn.style.color = '#9f9f95'
             outlineBtn.style.fontWeight = 'normal'
             outlineBtn.style.borderBottom = '2px solid transparent'
 
             folderView.appendChild(folderTree)
             emptyFolderTag.addEventListener('click', this.sendOpenDirMsg)
         } else {
-            outlineBtn.style.color = '#65655F'
             outlineBtn.style.fontWeight = 'bold'
             outlineBtn.style.borderBottom = '2px solid #5b5b55'
             emptyFolderTag.innerHTML = 'outline is empty'
-            folderBtn.style.color = '#9f9f95'
             folderBtn.style.fontWeight = 'normal'
             folderBtn.style.borderBottom = '2px solid transparent'
 
