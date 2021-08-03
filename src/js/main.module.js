@@ -1,9 +1,9 @@
 const ConfigModule = require('./js/config')
 const ActionBarModule = require('./js/actionBar/actionBar')
 const TitleBarModule = require('./js/titleBar/titleBar')
-const FolderTreeModule = require('./js/folderView/folderTree')
-const TabBarModule = require('./js/folderView/tabBar')
-const FolderModule = require('./js/folderView/folder')
+const FolderTreeModule = require('./js/actionView/folderView/folderTree')
+const TabBarModule = require('./js/actionView/folderView/tabBar')
+const FolderModule = require('./js/actionView/folderView/folder')
 const MarkdownModule = require('./js/markdown/markdown')
 
 /**

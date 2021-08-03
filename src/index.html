@@ -22,7 +22,7 @@
   <link rel="stylesheet" href="./css/actionView/folderView/folderView.css">
   <link rel="stylesheet" href="./css/actionView/folderView/tabBarView.css">
   <link rel="stylesheet" href="./css/actionView/folderView/folderTree.css">
-  <link rel="stylesheet" href="./css/mdView/mdView.css">
+  <link rel="stylesheet" href="./css/markdownView/markdownView.css">
   <link rel="stylesheet" href="./css/titleBar/titleBarView.css">
 </head>
 
@@ -41,15 +41,25 @@
           <img src="assets/icons/list.svg" class="vertical-center filter-white"></img>
         </div>
 
+        <div id="setting-button" class="button action-button">
+          <img src="assets/icons/setting.svg" class="vertical-center filter-white"></img>
+        </div>
+
       </div>
 
     </div>
 
     <div id="action-view">
-
-      <div id="folderTree" class="tree-body">
-        <div id="tree"></div>
-        <div id="emptyFolderTag" class="vertical-center funcText">open a folder</div>
+      <div id="action-view-container">
+        <div id="action-view-top">
+          <div class="pureText">NoteBook</div>
+          <img src="assets/icons/three-dots.svg" class="vertical-center filter-white"></img>
+        </div>
+  
+        <div id="tree-container">
+          <div id="tree"></div>
+          <div id="emptyFolderTag" class="vertical-center funcText">open a folder</div>
+        </div>
       </div>
 
       <div id="resize">
@@ -64,8 +74,6 @@
 
       <div id="titleBar">
         
-        <div id="space-container"></div>
-  
         <div id="titleText" class="pureText">Markdown Note</div>
         
         <div id="titleBarBtns">
@@ -79,6 +87,7 @@
             <img src="assets/icons/close.svg" class="vertical-center"></img>
           </div>
         </div>
+        
       </div>
 
       <div id="markdown-view">

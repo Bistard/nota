@@ -1,4 +1,3 @@
-
 #tabBar-container {
     position: absolute;
     width: 100%;
@@ -64,7 +63,7 @@
 }
 
 .tab-close-icon {
-    content: url('../../assets/icons/close.svg');
+    content: url('../../../assets/icons/close.svg');
     width: 8px;
     height: 8px;
     

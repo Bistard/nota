@@ -1,4 +1,4 @@
-#folderTree {
+#tree-container {
     position: relative;
     width: 100%;
     height: 100%;
@@ -16,12 +16,12 @@
 
     /* animation scrollBar */
     color: rgba(0, 0, 0, 0);
-    text-shadow: 0 0 black;
+    text-shadow: 0 0 rgb(255, 255, 255);
     transition: color 0.2s ease;
 }
 
 #tree:hover {
-    color: rgba(0, 0, 0, 0.3);
+    color: rgba(255, 255, 255, 0.8); /* shoud matches text-shadow */
 }
 
 #tree ul {
@@ -31,20 +31,33 @@
     padding-left: 14px;
 }
 
-/*                           ABOVE ARE STABLE CODE                            */
-
 .node-root {
     margin: 0;
     text-align: left;
 }
 
 .node-folder {
+    color: rgb(220, 220, 220);
+    font-weight: bold;
+    
     display: none;
     margin: 0;
     text-align: left;
     list-style-type: none;
-    
-    border-left: 1px solid #e6e6e6;
+    border-left: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.node-file {
+    color: rgb(200, 200, 200);
+    font-weight: normal;
+
+    display: none;
+    word-wrap: break-word;
+    white-space: pre-wrap;
+    cursor: pointer;
+    list-style-type: none;
+    user-select: none;
+    border-left: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .node-text {
@@ -72,6 +85,7 @@
     width: 10px;
     height: 10px;
     margin-right: 4px;
+    filter: invert(100%) sepia(0%) saturate(0%) hue-rotate(55deg) brightness(102%) contrast(101%);
 }
 
 .folder-icon-expand::before {
@@ -80,6 +94,7 @@
     width: 10px;
     height: 10px;
     margin-right: 4px;
+    filter: invert(100%) sepia(0%) saturate(0%) hue-rotate(55deg) brightness(102%) contrast(101%);
 }
 
 .folder-icon-collapse::before {
@@ -88,17 +103,7 @@
     width: 10px;
     height: 10px;
     margin-right: 4px;
-}
-
-.node-file {
-    display: none;
-    word-wrap: break-word;
-    white-space: pre-wrap;
-    cursor: pointer;
-    list-style-type: none;
-    user-select: none;
-
-    border-left: 1px solid #e6e6e6;
+    filter: invert(100%) sepia(0%) saturate(0%) hue-rotate(55deg) brightness(102%) contrast(101%);
 }
 
 .node-file:hover, .node-text:hover {

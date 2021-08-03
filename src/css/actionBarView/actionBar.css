@@ -11,7 +11,7 @@
     flex-direction: column;
     align-items: center;
     width: 100%;
-    height: 80px;
+    height: 100%;
 }
 
 .action-button {
@@ -37,4 +37,9 @@
     margin-right: auto;
     width: 20px;
     height: 20px;
+}
+
+#setting-button {
+    position: absolute;
+    bottom: 0px;
 }

@@ -10,12 +10,14 @@
       * [x] maxBtn switch to restoreBtn
       * [ ] holding onclick can change to mode 'always on top'
   * [ ] ...
-* [x] ⭐actionView
+* [x] ⭐actionBarView
   * [x] UI
+    * [ ] app icon
     * [x] folderView
     * [ ] outlineView
     * [ ] searchView
     * [ ] gitView
+    * [ ] settings
     * [ ] ...
   * [ ] ...
   * [x] functionality

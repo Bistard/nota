@@ -5,27 +5,14 @@
     transition: 0.1s;
 }
 
-#folderTree:hover > #emptyFolderTag {
+#tree:hover > #emptyFolderTag {
     color: #9f9f95;
 }
 
-#folderTree:hover > #emptyFolderTag:hover {
+#tree:hover > #emptyFolderTag:hover {
     color: rgb(202, 202, 202);
 }
 
-#folderTree:hover > #emptyFolderTag:active {
+#tree:hover > #emptyFolderTag:active {
     color: #9f9f95;
-}
-
-#resize {
-    width: 2px;
-    height: 100%;
-    position: relative;
-    cursor: w-resize;
-    background-color: #eceadd;
-    transition: 0.2s;
-}
-
-#resize:hover {
-    background-color: #ccc;
 }

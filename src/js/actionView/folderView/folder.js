@@ -3,15 +3,15 @@ const { ipcRenderer } = require('electron')
 const {readFile, writeFile } = require('fs')
 
 const folderView = document.getElementById('action-view')
-const folderTree = document.getElementById('folderTree')
+const treeContainer = document.getElementById('tree-container')
 const tree = document.getElementById('tree')
 const emptyFolderTag = document.getElementById('emptyFolderTag')
 const contentView = document.getElementById('content-view')
 const resize = document.getElementById("resize")
 
 /**
- * @typedef {import('../folderView/folderTree').TreeNode} TreeNode
- * @typedef {import('../folderView/folderTree').FolderTreeModule} FolderTreeModule
+ * @typedef {import('../folderView/foldertree').TreeNode} TreeNode
+ * @typedef {import('../folderView/foldertree').FolderTreeModule} FolderTreeModule
  * @typedef {import('../folderView/tabBar').TabBarModule} TabBarModule
  */
 
@@ -262,8 +262,8 @@ class FolderModule {
         this.FolderTree.tree = this.FolderTree.createFolderTree(path, 0)
         this.FolderTree.treeList = this.FolderTree.createFolderTreeList(this.FolderTree.tree)
 
-        folderTree.removeChild(emptyFolderTag)
-        folderTree.appendChild(tree)
+        treeContainer.removeChild(emptyFolderTag)
+        
         this.displayFolderTree(this.FolderTree.tree)
 
         $('.node-text').on('click', { FolderViewClass: this }, function (event) {

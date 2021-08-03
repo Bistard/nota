@@ -5,8 +5,8 @@ const {readFile, writeFile } = require('fs')
 const tabBar = document.getElementById('tabBar-container')
 
 /**
- * @typedef {import('../folderView/folderTree').TreeNode} TreeNode
- * @typedef {import('../config').ConfigModule} ConfigModule
+ * @typedef {import('./folderTree').TreeNode} TreeNode
+ * @typedef {import('../../config').ConfigModule} ConfigModule
  */
 
 /**
