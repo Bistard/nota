@@ -119,9 +119,10 @@ class MarkdownModule {
         }
 
         // removing default markdown tool bar
-        $('.toastui-editor-toolbar').each(function() {
+        /* $('.toastui-editor-toolbar').each(function() {
             $(this).hide(0)
-        })
+        }) */
+
 
     }
 
