@@ -97,9 +97,7 @@ class MarkdownModule {
              */
             events: {
                 /**
-                 * @description It would be emitted when content changed.
-                 * 
-                 * @type {Function}
+                 * @readonly It would be emitted when content changed.
                  */
                 change: () => { this.onChange() },
             },
@@ -119,6 +117,11 @@ class MarkdownModule {
             const md = document.getElementById('md')
             md.setAttribute('spellcheck', 'false')
         }
+
+        // removing default markdown tool bar
+        $('.toastui-editor-toolbar').each(function() {
+            $(this).hide(0)
+        })
 
     }
 

@@ -2,7 +2,7 @@ const { ipcRenderer } = require("electron")
 
 const {readFile, writeFile } = require('fs')
 
-const tabBar = document.getElementById('tabBar-container')
+const tabBar = document.getElementById('tabBar')
 
 /**
  * @typedef {import('./folderTree').TreeNode} TreeNode
@@ -81,7 +81,6 @@ class TabBarModule {
         tabCloseIcon.addEventListener('click', (event) => {
             // prevent parent click when clicked on child
             event.stopPropagation()
-
             this.closeTab(newTab, nodeInfo)
         })
         
@@ -98,7 +97,7 @@ class TabBarModule {
      * @returns {void} void
      */
     insertTab(element, nodeInfo) {
-        $('#tabBar-container').append(element)
+        $('#tabBar').append(element)
         this.currFocusTabIndex = this.openedTabCount
         this.openedTabCount++
         this.emptyTab = false
@@ -142,7 +141,7 @@ class TabBarModule {
      * next avaliable tab and displays its content.
      * 
      * If auto-save is on, current changes will be async auto-saved.
-     * If auto-save is off, closing tab will pop up a warning to warn you to save or not // TODO: comeplete
+     * If auto-save is off, closing tab will pop up a warning to warn you to save or not.
      * 
      * @param {HTMLElement} element 
      * @param {TreeNode} nodeInfo 
@@ -154,14 +153,19 @@ class TabBarModule {
 
         // save current change immediately
         if (this.Config.fileAutoSaveOn) {
-            writeFile(nodeInfo.path, window.editor.getMarkdown(), (err) => {
+            /**
+             * TODO: currently, written texts are from nodeInfo.plainText. If we decide to use 
+             * mutiple threads for each tab, the texts should read from window.editor.getMarkdown()
+             */
+            writeFile(nodeInfo.path, nodeInfo.plainText, (err) => {
                 if (err) {
                     throw err
                 }
                 ipcRenderer.send('test', 'close saved')
             })
         } else {
-
+            // pop up a warning window
+            // TODO: complete
         }
         nodeInfo.plainText = ''
         let index = this.openedTabInfo.indexOf(nodeInfo)

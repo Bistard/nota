@@ -1,8 +1,8 @@
 #titleBar {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr 3fr 1fr;
     width: 100%;
-    height: 25px;
+    height: 40px;
     background-color: white;
     
     -webkit-app-region: drag; /* draggable */
@@ -12,7 +12,7 @@
     color: black;
     font-weight: bold;
     text-align: center;
-    line-height: 25px;
+    line-height: 40px;
     font-size: 14px;
 }
 
@@ -21,7 +21,7 @@
     right: 0px;
     
     width: auto;
-    height: 25px;
+    height: 40px;
     
     display: grid;
     grid-template-columns: 1fr 1fr 1fr;

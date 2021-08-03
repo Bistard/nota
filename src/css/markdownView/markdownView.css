@@ -11,7 +11,6 @@
 
 #md {
     position: absolute;
-    top: 28px; /* save space for tabBar */
     width: 100%;
     height: 100%;
 

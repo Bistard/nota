@@ -30,7 +30,8 @@ class ActionBarModule {
             element.setAttribute('btnNum', index.toString())
         })
         
-        this.closeActionView()
+        // this.closeActionView()
+        this.clickActionBtn(document.getElementById('folder-button'))
     }
 
     /**

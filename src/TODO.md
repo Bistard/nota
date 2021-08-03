@@ -1,7 +1,7 @@
 # to do
 * [x] ⭐theme
   * [x] dynamically change .svg color
-  * [ ] UI redesign (big update)
+  * [x] UI redesign (big update)
 * [x] ⭐titleBarView
   * [x] ~~bug: cannot remove menu properly~~
   * [x] icon

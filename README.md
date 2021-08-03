@@ -13,7 +13,8 @@ An open-sourced markdown editor && noteTaking desktop application based on .md
 - [✔Todo](src/TODO.md)
 
 # 🐛bugs
-- [ ] when open a new or existed file / switching tabs, auto-save will be emit (should be avoid due to the performance)
+- [ ] refactor: read/write files
+- [ ] fix: supports all languages for code syntax highlight
 
 # 💬ChangeLog
 * ⭐ => 'big update'
