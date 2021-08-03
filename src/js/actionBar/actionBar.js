@@ -10,7 +10,7 @@ class ActionBarModule {
     constructor() {
 
         // indicates which action button is focused, -1 if none.
-        this.currFocusActionBtnIndex = 0
+        this.currFocusActionBtnIndex = -1
 
         // indicates whether action view is opened or not.
         this.isActionViewActive = false
@@ -29,6 +29,8 @@ class ActionBarModule {
         $('.action-button').each(function(index, element) {
             element.setAttribute('btnNum', index.toString())
         })
+        
+        this.closeActionView()
     }
 
     /**
@@ -61,7 +63,7 @@ class ActionBarModule {
             throw 'error'
         }
     }
-    
+
     /**
      * @description NOT displaying action view.
      * 

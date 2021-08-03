@@ -31,11 +31,11 @@
 #action-view-top > .pureText {
     position: absolute;
     
-    color: white;
+    color: grey;
     
     text-align: center;
     line-height: 30px;
-    font-size: 12px;
+    font-size: 14px;
     font-weight: normal;
 
     margin-left: 20px;

@@ -1,6 +1,6 @@
 # to do
-* [ ] ⭐theme
-  * [ ] dynamically change .svg color
+* [x] ⭐theme
+  * [x] dynamically change .svg color
   * [ ] UI redesign (big update)
 * [x] ⭐titleBarView
   * [x] ~~bug: cannot remove menu properly~~
@@ -24,6 +24,9 @@
     * [x] focus
     * [ ] switch
 * [ ] ⭐actionView
+  * [ ] functionality
+    * [ ] switch action view
+    * [ ] ...
   * [x] folderView
     * [x] interactive size
       * [x] middle three point button style
