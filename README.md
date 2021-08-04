@@ -9,6 +9,10 @@ An open-sourced markdown editor && noteTaking desktop application based on .md
 * supports git and github
 * provides great noteTaking-like user experience
 
+# 👁‍🗨Screen Shots
+⬜⬜⬜🔳🔳🔳🔳🔳🔳🔳
+![screenshot](../../dev/MarkdownNote/src/assets/readme/2021.8.5.png)
+
 # 🚪portal
 - [✔Todo](src/TODO.md)
 
