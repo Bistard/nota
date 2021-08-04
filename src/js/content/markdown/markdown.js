@@ -125,12 +125,6 @@ class MarkdownModule {
             md.setAttribute('spellcheck', 'false')
         }
 
-        // removing default markdown tool bar
-        $('.toastui-editor-toolbar').each(function() {
-            $(this).hide(0)
-        })
-
-
     }
 
     /**

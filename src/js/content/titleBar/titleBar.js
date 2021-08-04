@@ -50,6 +50,10 @@ class TitleBarModule {
         if (this.isToolBarExpand == false) {
             this.toolBarStateChange(false)
         }
+
+        if (this.isMarkdownToolExpand == false) {
+            $('.toastui-editor-toolbar').first().hide(0)
+        }
     }
 
     /**
@@ -61,11 +65,17 @@ class TitleBarModule {
      */
      markdownModeSwitch(mode) {
         if (mode == 'wysiwyg') {
-
+            $('#mode-switch').removeClass('tool-button-focus')
+            $('#mode-switch > img').attr('src', 'assets/icons/toolBarView/md-split.svg')
+            this.Markdown.editor.changeMode('markdown', true)
+            this.markdownMode = 'split'
         } else if (mode == 'instant') {
-
-        } else { // (mode == 'split-view')
-
+            // TODO: complete instant-mode (big update)
+        } else { // (mode == 'split')
+            $('#mode-switch').addClass('tool-button-focus')
+            $('#mode-switch > img').attr('src', 'assets/icons/toolBarView/md-wysiwyg.svg')
+            this.Markdown.editor.changeMode('wysiwyg', true)
+            this.markdownMode = 'wysiwyg'
         }
     }
 
@@ -79,11 +89,12 @@ class TitleBarModule {
         if (shouldExpand) {
             $('.toastui-editor-toolbar').show(100)
             $('#md-tool').addClass('tool-button-focus')
+            this.isMarkdownToolExpand = true
         } else {
             $('.toastui-editor-toolbar').hide(100)
             $('#md-tool').removeClass('tool-button-focus')
+            this.isMarkdownToolExpand = false
         }
-        this.isMarkdownToolExpand ^= true
     }
 
     /**
@@ -96,11 +107,12 @@ class TitleBarModule {
         if (shouldExpand) {
             $('#tool-bar').show(100)
             $('#expand-collapse > img').attr('src', 'assets/icons/toolBarView/caret-left.svg')
+            this.isToolBarExpand = true
         } else {
             $('#tool-bar').hide(100)
             $('#expand-collapse > img').attr('src', 'assets/icons/toolBarView/caret-right.svg')
+            this.isToolBarExpand = false
         }
-        this.isToolBarExpand ^= true
     }
 
     /**
