@@ -1,4 +1,4 @@
-#tool-bar {
+#tool-bar-container {
     position: relative;
     height: 40px;
     width: 100%;
@@ -9,8 +9,18 @@
     -webkit-app-region: drag; /* draggable */
 }
 
+#tool-bar {
+    position: relative;
+    height: 40px;
+    width: auto;
+    
+    display: flex;
+    flex-direction: row;
+    
+}
+
 .tool-button,
-#expand-collpase {
+#expand-collapse {
     width: 40px;
     height: 40px;
     -webkit-app-region: no-drag;
@@ -29,7 +39,7 @@
 }
 
 .tool-button > img,
-#expand-collpase > img {
+#expand-collapse > img {
     display: block;
     margin-left: auto;
     margin-right: auto;

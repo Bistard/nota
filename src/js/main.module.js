@@ -1,9 +1,10 @@
 const ConfigModule = require('./js/config')
 const ActionBarModule = require('./js/actionBar/actionBar')
-const TitleBarModule = require('./js/content/titleBar/titleBar')
 const FolderTreeModule = require('./js/actionView/folderView/folderTree')
-const TabBarModule = require('./js/actionView/folderView/tabBar')
 const FolderModule = require('./js/actionView/folderView/folder')
+const ToolBarModule = require('./js/content/titleBar/toolBar')
+const TitleBarModule = require('./js/content/titleBar/titleBar')
+const TabBarModule = require('./js/actionView/folderView/tabBar')
 const MarkdownModule = require('./js/content/markdown/markdown')
 
 /**
@@ -16,10 +17,11 @@ class mainMoudle {
     constructor() {
         this.Config = new ConfigModule.ConfigModule()
         this.ActionBar = new ActionBarModule.ActionBarModule()
-        this.TitleBar = new TitleBarModule.TitleBarModule()
         this.FolderTree = new FolderTreeModule.FolderTreeModule()
         this.TabBar = new TabBarModule.TabBarModule(this.Config)
         this.Folder = new FolderModule.FolderModule(this.FolderTree, this.TabBar)
+        this.TitleBar = new TitleBarModule.TitleBarModule()
+        this.ToolBar = new ToolBarModule.ToolBarModule(this.Config)
         this.Markdown = new MarkdownModule.MarkdownModule(this.Config, this.Folder)
     }
 

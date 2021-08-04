@@ -10,7 +10,6 @@ class ConfigModule {
         /**
          * @readonly used for file/folder reading and writing.
          */
-
         
         this.OpenDirConfig = {
             /* defaultPath: app.getPath('desktop'), */
@@ -22,7 +21,19 @@ class ConfigModule {
             ],
         }
         this.fileAutoSaveOn = true
+        
+        /**
+         * @readonly titleBarView config
+         */
+
+        this.defaultMarkdownMode = 'wysiwyg'
+        this.isToolBarExpand = true
+
+        /**
+         * @readonly markdownView config
+         */
         this.markdownSpellCheckOn = false
+        
 
     }
 
