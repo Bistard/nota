@@ -8,6 +8,9 @@ const colorSyntax = require('@toast-ui/editor-plugin-color-syntax');
 
 const markdown = document.getElementById('md')
 
+// language pack requirement
+/* require('../../../node_modules/@toast-ui/editor/dist/i18n//zh-cn') */
+
 /**
  * @typedef {import('../config').ConfigModule} ConfigModule
  * @typedef {import('../folderView/folder').FolderModule} FolderModule
@@ -69,7 +72,7 @@ class MarkdownModule {
         let editor = new Editor({
             el: markdown,               // HTMLElement container for md editor
             height: '100%',
-            language: 'zh-CN',
+            language: 'en-US',
             /**
              * @argument 'tab'
              * @argument 'vertical'
@@ -107,6 +110,8 @@ class MarkdownModule {
                 [colorSyntax, this.colorSyntaxOptions]
             ],
         })
+
+        
 
         editor.getMarkdown()
         this.editor = editor
