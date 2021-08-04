@@ -27,10 +27,10 @@
 }
 
 .tab {
-    height: 40px;
+    height: 37px; /* saving 3px for scrollbar */
     width: fit-content;
-    max-width: 300px;
-    line-height: 40px;
+    max-width: 100px;
+    line-height: 37px;
 
     display: flex;
     flex-direction: row;
@@ -56,8 +56,10 @@
 }
 
 .tab-text {
-    display: inline-block;
     font-size: 12px;
+    
+    display: inline-block;
+    text-align: center;
     overflow-x: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;

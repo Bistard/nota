@@ -59,9 +59,9 @@
         * [ ] holding onclick can change to mode 'always on top'
     * [x] toolBarView
       * [x] UI
-        * [ ] modeSwitch
-        * [ ] markdownToolBar
-        * [x] tabView
+        * [x] modeSwitch
+        * [x] markdownToolBar
+        * [x] tabBarView
           * [x] UI
             * [ ] good design - https://freefrontend.com/css-tab-bars/
             * ~~invisible when no tab is opened (included in UI redesign)~~
@@ -87,8 +87,8 @@
     * ~~md needs to be rendered before window created (not sure if still necessary)~~
     * [x] open and render a .md file (by inserting plainText)
     * [x] tool bar
-      * [ ] remove default tool bar
-        * [ ] custom tool bar
+      * [x] remove default tool bar
+        * [x] custom tool bar
       * [x] disable ctrl+R shortcut
     * [x] plugin
       * [x] Plugin to highlight code syntax
