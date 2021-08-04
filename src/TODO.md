@@ -69,6 +69,7 @@
     * [x] disable ctrl+R shortcut
   * [x] plugin
     * [x] Plugin to highlight code syntax
+      * [ ] import all languages
     * [x] Plugin to color editing text
     * [ ] Plugin to merge table columns
   * [x] functionality
@@ -78,6 +79,11 @@
       * [x] delay callback
     * [x] shortcut (ctrl+z || ctrl+shift+z and so on)
     * [ ] paste with plain text
+* [ ] ⭐outlineView
+  * [ ] UI
+    * [ ] ...
+  * [ ] Functionality
+    * [ ] ..
 * [x] ⭐tabView
   * [x] UI
     * [ ] good design - https://freefrontend.com/css-tab-bars/

@@ -224,8 +224,8 @@ class FolderModule {
      * @return {void} void
      */
     saveFile(nodeInfo, newText) {
-
-        if (nodeInfo !== undefined) {
+        // FIX: disable for now
+        /* if (nodeInfo !== undefined) {
             writeFile(nodeInfo.path, newText, (err) => {
                 if (err) {
                     throw err
@@ -234,7 +234,7 @@ class FolderModule {
             })
         } else {
             ipcRenderer.send('test', 'auto saved but undefined')
-        }
+        } */
     }
 
     /**
