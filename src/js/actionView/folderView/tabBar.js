@@ -132,7 +132,7 @@ class TabBarModule {
      */
     displayTab(nodeInfo) {
         // setMarkdown() will emit Editor.event.change callback
-        ipcRenderer.send('test', 'setMarkdown()')
+        // ipcRenderer.send('test', 'setMarkdown()')
         window.editor.setMarkdown(nodeInfo.plainText, false)
     }
 
@@ -161,7 +161,7 @@ class TabBarModule {
                 if (err) {
                     throw err
                 }
-                ipcRenderer.send('test', 'close saved')
+                // ipcRenderer.send('test', 'close saved')
             })
         } else {
             // pop up a warning window

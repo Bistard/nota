@@ -1,14 +1,19 @@
 const { ipcRenderer } = require("electron")
 
-// see more details on this library: https://github.com/nhn/tui.editor#-packages
+// @toast-ui: see more details on this library: https://github.com/nhn/tui.editor#-packages
 const Editor = require('@toast-ui/editor')
+
+// @toast-ui-plugin: code syntax highlight
 const Prism = require('../../../node_modules/prismjs/prism')
-const codeSyntaxHighlight = require('@toast-ui/editor-plugin-code-syntax-highlight');
+const codeSyntaxHighlight = require('../../../node_modules/@toast-ui/editor-plugin-code-syntax-highlight/dist/toastui-editor-plugin-code-syntax-highlight-all');
+
+// @toast-ui-plugin: color syntax 
 const colorSyntax = require('@toast-ui/editor-plugin-color-syntax');
+
 
 const markdown = document.getElementById('md')
 
-// language pack requirement
+// @toast-ui-plugin: language pack require
 /* require('../../../node_modules/@toast-ui/editor/dist/i18n//zh-cn') */
 
 /**
