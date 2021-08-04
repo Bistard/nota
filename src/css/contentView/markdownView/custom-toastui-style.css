@@ -1,5 +1,10 @@
 /*//////////////////////// CUSTOM TOASTUI EDITOR UI //////////////////////////*/
 
+.toastui-editor-defaultUI {
+    border-radius: 0px;
+    border: 0px solid transparent;
+}
+
 .toastui-editor-contents {
     /* fixes chinese characers are not displayed well (using 雅黑 for now) */
     font-family: "Microsoft Yahei", 'Open Sans', 'Helvetica Neue', 'Helvetica', 'Arial', '나눔바른고딕',

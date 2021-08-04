@@ -22,9 +22,10 @@
   <link rel="stylesheet" href="./css/actionView/folderView/folderView.css">
   <link rel="stylesheet" href="./css/actionView/folderView/tabBarView.css">
   <link rel="stylesheet" href="./css/actionView/folderView/folderTree.css">
+  <link rel="stylesheet" href="./css/contentView/titleBar/titleBarView.css">
+  <link rel="stylesheet" href="./css/contentView/titleBar/toolBarView.css">
   <link rel="stylesheet" href="./css/contentView/markdownView/markdownView.css">
   <link rel="stylesheet" href="./css/contentView/markdownView/custom-toastui-style.css">
-  <link rel="stylesheet" href="./css/contentView/titleBar/titleBarView.css">
 </head>
 
 <body>
@@ -71,8 +72,25 @@
     <div id="content-view">
 
       <div id="titleBar">
-        <div id="titleText" class="pureText">Markdown Note</div>
         
+        <div id="tool-bar">
+          <div id="mode-switch" class="button tool-button">
+            <img src="assets/icons/toolBarView/wysiwyg-on.svg" class="vertical-center filter-black"></img>
+          </div>
+
+          <div id="md-tool" class="button tool-button">
+            <img src="assets/icons/toolBarView/text.svg" class="vertical-center filter-black"></img>
+          </div>
+
+          <div id="tabs" class="button tool-button">
+            <img src="assets/icons/toolBarView/tabs.svg" class="vertical-center filter-black"></img>
+          </div>
+
+          <div id="expand-collpase" class="button">
+            <img src="assets/icons/toolBarView/caret-left.svg" class="vertical-center filter-black"></img>
+          </div>
+        </div>
+
         <div id="tab-bar-container">
           <div id="tabBar"></div>
         </div>

@@ -7,14 +7,14 @@ const Editor = require('@toast-ui/editor')
 /* require('../../../node_modules/@toast-ui/editor/dist/i18n//zh-cn') */
 
 // @toast-ui-plugin: code syntax highlight (all languages pack are loaded here)
-const Prism = require('../../../node_modules/prismjs/prism')
-const codeSyntaxHighlight = require('../../../node_modules/@toast-ui/editor-plugin-code-syntax-highlight/dist/toastui-editor-plugin-code-syntax-highlight-all');
+const Prism = require('prismjs')
+const codeSyntaxHighlight = require('@toast-ui/editor-plugin-code-syntax-highlight/dist/toastui-editor-plugin-code-syntax-highlight-all');
 
 // @toast-ui-plugin: color syntax 
 const colorSyntax = require('@toast-ui/editor-plugin-color-syntax');
 
 /**
- * @typedef {import('../config').ConfigModule} ConfigModule
+ * @typedef {import('../../config').ConfigModule} ConfigModule
  * @typedef {import('../folderView/folder').FolderModule} FolderModule
  */
 
@@ -106,7 +106,7 @@ class MarkdownModule {
                  */
                 change: () => { this.onChange() },
             },
-            placeholder: '',
+            placeholder: 'type your magic word...',
             plugins: [
                 [codeSyntaxHighlight, { highlighter: Prism }],
                 [colorSyntax, this.colorSyntaxOptions]
@@ -126,9 +126,9 @@ class MarkdownModule {
         }
 
         // removing default markdown tool bar
-        /* $('.toastui-editor-toolbar').each(function() {
+        $('.toastui-editor-toolbar').each(function() {
             $(this).hide(0)
-        }) */
+        })
 
 
     }
