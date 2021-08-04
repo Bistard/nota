@@ -18,8 +18,8 @@ An open-sourced markdown editor && noteTaking desktop application based on .md
 
 # 🐛bugs
 - [ ] refactor: read/write files
-- [x] fix: supports all languages for code syntax highlight
-- [x] fix: chinese character display error (2021.8.5)
+- [x] (2021.8.5) fix: supports all languages for code syntax highlight
+- [x] (2021.8.5) fix: chinese character display error 
 
 # 💬ChangeLog
 * ⭐ => 'big update'

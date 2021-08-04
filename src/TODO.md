@@ -65,11 +65,11 @@
   * [x] open and render a .md file (by inserting plainText)
   * [x] tool bar
     * [ ] remove default tool bar
-      * [ ] our own custom action-buttion-container
+      * [ ] custom tool bar
     * [x] disable ctrl+R shortcut
   * [x] plugin
     * [x] Plugin to highlight code syntax
-      * [ ] import all languages
+      * [x] import all languages
     * [x] Plugin to color editing text
     * [ ] Plugin to merge table columns
   * [x] functionality
