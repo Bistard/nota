@@ -14,10 +14,11 @@
   * [ ] ...
   * [x] functionality
     * [x] focus
-    * [ ] switch
+    * [x] switch
 * [x] ⭐actionView
-  * [ ] functionality
-    * [ ] switch action view
+  * [x] functionality
+    * [x] switch action view
+      * [ ] UI
     * [ ] ...
   * [x] folderView
     * [x] interactive size
@@ -36,7 +37,7 @@
           * [x] expand
           * [x] collapse
           * [ ] focus
-          * [ ] manual move order
+          * [ ] manually switch file/folder's order
           * [ ] ...
       * [ ] functionality
         * [ ] auto update folder tree
@@ -47,7 +48,11 @@
         * [ ] right-click
         * [ ] config
           * [ ] directory config with local save
-    * [ ] outlineView
+    * [x] outlineView
+      * [ ] UI
+        * [ ] ...
+      * [ ] functionality
+        * [ ] ...
       * [ ] ...
 * [x] ⭐contentView
   * [x] titleBarView
@@ -78,8 +83,8 @@
             * [x] shortcut
               * [x] using lib
             * [ ] empty click create temp file
-      * [ ] functionality
-        * [ ] able to expand and collapse
+      * [x] functionality
+        * [x] able to expand and collapse
   * [x] markdownView
     * [x] md preview
       * [x] update @toast-editor to v3.0
@@ -103,7 +108,7 @@
       * [x] shortcut (ctrl+z || ctrl+shift+z and so on)
       * [ ] paste with plain text
 * [x] ⭐Others
-  * [ ] error handling
+  * [x] error handling
     * [ ] local log system
   * [x] code comments
   * [ ] implement MVC (modle / view / controller) - https://stackoverflow.com/questions/16736483/best-way-to-organize-jquery-javascript-code-2013

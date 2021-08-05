@@ -3,7 +3,7 @@ const { ipcRenderer } = require('electron')
 const {readFile, writeFile } = require('fs')
 
 const folderView = document.getElementById('action-view')
-const treeContainer = document.getElementById('action-view-content')
+const treeContainer = document.getElementById('folder-tree-container')
 const emptyFolderTag = document.getElementById('emptyFolderTag')
 const contentView = document.getElementById('content-view')
 const resize = document.getElementById("resize")

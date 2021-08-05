@@ -28,12 +28,12 @@ class ActionViewModule {
         }
         
         this.displayActionViewTopText(actionViewName)
-        // this.hideActionViewContent()
+        this.hideActionViewContent()
         
         if (actionViewName == 'folder') {
-            
+            $('#folder-tree-container').show(0)
         } else if (actionViewName == 'outline') {
-        
+            $('#outline-container').show(0)
         } else if (actionViewName == 'search') {
 
         } else if (actionViewName == 'git') {
@@ -67,7 +67,7 @@ class ActionViewModule {
      * @returns {void} void
      */
     hideActionViewContent() {
-        $('#action-view-container').children().each(function() {
+        $('#action-view-content').children().each(function() {
             $(this).hide(0)
         })
     }

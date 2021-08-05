@@ -1,3 +1,12 @@
+#folder-tree-container {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 100%;
+    background-color: #273137;
+}
+
 #emptyFolderTag {
     color: transparent;
     font-size: 10pt;
@@ -5,14 +14,14 @@
     transition: 0.1s;
 }
 
-#action-view-content:hover > #emptyFolderTag {
+#folder-tree-container:hover > #emptyFolderTag {
     color: #9f9f95;
 }
 
-#action-view-content:hover > #emptyFolderTag:hover {
+#folder-tree-container:hover > #emptyFolderTag:hover {
     color: rgb(202, 202, 202);
 }
 
-#action-view-content:hover > #emptyFolderTag:active {
+#folder-tree-container:hover > #emptyFolderTag:active {
     color: #9f9f95;
 }
