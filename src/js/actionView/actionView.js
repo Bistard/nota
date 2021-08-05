@@ -62,7 +62,7 @@ class ActionViewModule {
     }
 
     /**
-     * @description simple function for hiding the content of action view.
+     * @description simple function for hiding the current content of action view.
      * 
      * @returns {void} void
      */
