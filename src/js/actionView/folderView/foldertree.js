@@ -2,19 +2,24 @@ const fs = require('fs')
 const Path = require('path')
 
 /**
+ * @typedef {import('../folderView/foldertree').TreeNode} TreeNode
+ */
+
+/**
  * @description the object is to store and maintain the data for each 
  * folder/tree/root.
- * 
- * @param {TreeNode[]} nodes 
- * @param {boolean} isFolder 
- * @param {string} name 
- * @param {string} baseName 
- * @param {string} path 
- * @param {number} level 
- * @param {boolean} isExpand 
- * @param {string} plainText 
  */
 class TreeNode {
+    /**
+     * @param {TreeNode[]} nodes 
+     * @param {boolean} isFolder 
+     * @param {string} name 
+     * @param {string} baseName 
+     * @param {string} path 
+     * @param {number} level 
+     * @param {boolean} isExpand 
+     * @param {string} plainText 
+     */
     constructor(nodes, 
                 isFolder, 
                 name, 
@@ -36,7 +41,6 @@ class FolderTreeModule {
     
     constructor() {
         // TODO: reduce memory usage (.tree .treeList might overlap)
-        
         /**
          * @type {TreeNode}
          */

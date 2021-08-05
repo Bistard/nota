@@ -76,10 +76,11 @@
               * [ ] tab view follows openTab
             * [x] color
           * [x] basic functionality
+            * [ ] open tab will create a new markdown editor
             * [ ] right lick menu
             * [ ] change order
             * [x] close tab
-              * [ ] if auto-save is on, close tab will save file async
+              * [x] if auto-save is on, close tab will save file async
             * [x] shortcut
               * [x] using lib
             * [ ] empty click create temp file
@@ -105,9 +106,11 @@
         * [ ] default: displaying xxxx lines, if needed, see more in settings
       * [x] edit file
         * [x] delay callback
+        * [ ] read/write behaviours depending on the size of file
       * [x] shortcut (ctrl+z || ctrl+shift+z and so on)
       * [ ] paste with plain text
 * [x] ⭐Others
+  * [ ] author preface
   * [x] error handling
     * [ ] local log system
   * [x] code comments

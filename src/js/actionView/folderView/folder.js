@@ -1,6 +1,6 @@
 const { ipcRenderer } = require('electron')
 
-const {readFile, writeFile } = require('fs')
+const { readFile, writeFile } = require('fs')
 
 const folderView = document.getElementById('action-view')
 const treeContainer = document.getElementById('folder-tree-container')
@@ -207,7 +207,13 @@ class FolderModule {
      * @returns {Void} void
      */
     openFile(newTab, tabIndex, nodeInfo) {
-        readFile(nodeInfo.path, 'utf-8', (err, text) => {
+
+        let readOption = {
+            encoding: 'utf-8',
+            flag: 'r'
+        }
+
+        readFile(nodeInfo.path, readOption, (err, text) => {
             if (err) {
                 throw err
             }
@@ -224,9 +230,14 @@ class FolderModule {
      * @return {void} void
      */
     saveFile(nodeInfo, newText) {
-        // FIX: disable for now
-        /* if (nodeInfo !== undefined) {
-            writeFile(nodeInfo.path, newText, (err) => {
+        if (nodeInfo !== undefined) {
+
+            let writeOption = {
+                encoding: 'utf-8',
+                flag: 'w'
+            }
+
+            writeFile(nodeInfo.path, newText, writeOption, (err) => {
                 if (err) {
                     throw err
                 }
@@ -234,7 +245,7 @@ class FolderModule {
             })
         } else {
             ipcRenderer.send('test', 'auto saved but undefined')
-        } */
+        }
     }
 
     /**

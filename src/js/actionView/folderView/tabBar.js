@@ -157,11 +157,17 @@ class TabBarModule {
              * TODO: currently, written texts are from nodeInfo.plainText. If we decide to use 
              * mutiple threads for each tab, the texts should read from window.editor.getMarkdown()
              */
-            writeFile(nodeInfo.path, nodeInfo.plainText, (err) => {
+
+            let writeOption = {
+                encoding: 'utf-8',
+                flag: 'w'
+            }
+            // FIX: shouldn't be nodeInfo.plainText, 
+            writeFile(nodeInfo.path, nodeInfo.plainText, writeOption, (err) => {
                 if (err) {
                     throw err
                 }
-                // ipcRenderer.send('test', 'close saved')
+                ipcRenderer.send('test', 'close saved')
             })
         } else {
             // pop up a warning window
@@ -219,6 +225,7 @@ class TabBarModule {
                 const index = (this.currFocusTabIndex - 1 + this.openedTabCount) % this.openedTabCount
                 const tab = tabBar.children[index]
                 let nodeInfo = this.openedTabInfo[index]
+                this.saveTab(nodeInfo)
                 this.openTab(tab, index, nodeInfo)
             }
         })
@@ -228,6 +235,7 @@ class TabBarModule {
             if (!this.emptyTab) {
                 const tab = tabBar.children[this.currFocusTabIndex]
                 let nodeInfo = this.openedTabInfo[this.currFocusTabIndex]
+                this.saveTab(nodeInfo)
                 this.closeTab(tab, nodeInfo)
             }
         })
