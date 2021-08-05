@@ -34,6 +34,8 @@ class ActionViewModule {
             
         } else if (actionViewName == 'outline') {
         
+        } else if (actionViewName == 'search') {
+
         } else if (actionViewName == 'git') {
         
         } else {
@@ -52,6 +54,8 @@ class ActionViewModule {
     displayActionViewTopText(name) {
         if (name == 'folder') {
             $('#action-view-top-text').html('Notebook')
+        } else if (name == 'git') {
+            $('#action-view-top-text').html('Git Control')
         } else {
             $('#action-view-top-text').html(name)
         }

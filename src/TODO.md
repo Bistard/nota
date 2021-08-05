@@ -6,7 +6,7 @@
   * [x] UI
     * [ ] app icon
     * [x] folderView
-    * [ ] outlineView
+    * [x] outlineView
     * [ ] searchView
     * [ ] gitView
     * [ ] settings
@@ -15,7 +15,7 @@
   * [x] functionality
     * [x] focus
     * [ ] switch
-* [ ] ⭐actionView
+* [x] ⭐actionView
   * [ ] functionality
     * [ ] switch action view
     * [ ] ...
