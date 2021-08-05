@@ -20,6 +20,7 @@ class ConfigModule {
                 'openDirectory',
             ],
         }
+        
         this.fileAutoSaveOn = true
         
         /**
