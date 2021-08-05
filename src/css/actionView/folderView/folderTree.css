@@ -1,4 +1,4 @@
-#action-view-container {
+#action-view-content {
     position: relative;
     width: 100%;
     height:100%;
@@ -80,7 +80,7 @@
 }
 
 .file-icon::before {
-    content: url('../../../assets/icons/file.svg');
+    content: url('../../../assets/icons/actionBarView/file.svg');
     display: inline-block;
     width: 10px;
     height: 10px;

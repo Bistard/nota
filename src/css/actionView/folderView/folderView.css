@@ -5,14 +5,14 @@
     transition: 0.1s;
 }
 
-#action-view-container:hover > #emptyFolderTag {
+#action-view-content:hover > #emptyFolderTag {
     color: #9f9f95;
 }
 
-#action-view-container:hover > #emptyFolderTag:hover {
+#action-view-content:hover > #emptyFolderTag:hover {
     color: rgb(202, 202, 202);
 }
 
-#action-view-container:hover > #emptyFolderTag:active {
+#action-view-content:hover > #emptyFolderTag:active {
     color: #9f9f95;
 }
