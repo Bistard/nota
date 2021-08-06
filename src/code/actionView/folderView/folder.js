@@ -9,9 +9,9 @@ const contentView = document.getElementById('content-view')
 const resize = document.getElementById("resize")
 
 /**
- * @typedef {import('../folderView/foldertree').TreeNode} TreeNode
- * @typedef {import('../folderView/foldertree').FolderTreeModule} FolderTreeModule
- * @typedef {import('../folderView/tabBar').TabBarModule} TabBarModule
+ * @typedef {import('./foldertree').TreeNode} TreeNode
+ * @typedef {import('./foldertree').FolderTreeModule} FolderTreeModule
+ * @typedef {import('./tabBar').TabBarModule} TabBarModule
  */
 
 /**

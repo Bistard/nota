@@ -1,7 +1,7 @@
 const { ipcRenderer } = require("electron")
 
 /**
- * @typedef {import('../../js/actionView/actionView').ActionViewModule} ActionViewModule
+ * @typedef {import('../actionView/actionView').ActionViewModule} ActionViewModule
  */
 
 /**

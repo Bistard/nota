@@ -1,11 +1,11 @@
-const ConfigModule = require('./js/config')
-const ActionViewModule = require('./js/actionView/actionView')
-const ActionBarModule = require('./js/actionBar/actionBar')
-const FolderTreeModule = require('./js/actionView/folderView/folderTree')
-const FolderModule = require('./js/actionView/folderView/folder')
-const TitleBarModule = require('./js/content/titleBar/titleBar')
-const TabBarModule = require('./js/actionView/folderView/tabBar')
-const MarkdownModule = require('./js/content/markdown/markdown')
+const ConfigModule = require('./code/config')
+const ActionViewModule = require('./code/actionView/actionView')
+const ActionBarModule = require('./code/actionBar/actionBar')
+const FolderTreeModule = require('./code/actionView/folderView/folderTree')
+const FolderModule = require('./code/actionView/folderView/folder')
+const TitleBarModule = require('./code/content/titleBar/titleBar')
+const TabBarModule = require('./code/actionView/folderView/tabBar')
+const MarkdownModule = require('./code/content/markdown/markdown')
 
 /**
  * @description this module is loaded by the web directly. Most of the modules 

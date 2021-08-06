@@ -4,7 +4,7 @@ const path = require('path')
 const { BrowserWindow, ipcMain, app, dialog } = require('electron')
 const ElectronLocalshortcut = require('electron-localshortcut')
 
-const ConfigModule = require('./js/config')
+const ConfigModule = require('./code/config')
 
 "use strict";
 
@@ -37,7 +37,7 @@ class Main {
                     nodeIntegration: true,
                     contextIsolation: false,
                     devTools: true,
-                    preload: path.join(__dirname + '/js', 'preload.js'),
+                    preload: path.join(__dirname + '/code', 'preload.js'),
                 },
                 resizable: true,
                 show: false,

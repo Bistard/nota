@@ -2,7 +2,7 @@ const { ipcRenderer } = require('electron')
 
 /**
  * @typedef {import('../../config').ConfigModule} ConfigModule
- * @typedef {import('../../content/markdown/markdown').MarkdownModule} MarkdownModule
+ * @typedef {import('../markdown/markdown').MarkdownModule} MarkdownModule
  */
 
 /**

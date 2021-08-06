@@ -2,7 +2,7 @@ const fs = require('fs')
 const Path = require('path')
 
 /**
- * @typedef {import('../folderView/foldertree').TreeNode} TreeNode
+ * @typedef {import('./foldertree').TreeNode} TreeNode
  */
 
 /**
