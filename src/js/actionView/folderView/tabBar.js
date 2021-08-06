@@ -5,7 +5,7 @@ const {readFile, writeFile } = require('fs')
 const tabBar = document.getElementById('tabBar')
 
 /**
- * @typedef {import('./folderTree').TreeNode} TreeNode
+ * @typedef {import('../folderView/foldertree').TreeNode} TreeNode
  * @typedef {import('../../config').ConfigModule} ConfigModule
  */
 
@@ -225,7 +225,6 @@ class TabBarModule {
                 const index = (this.currFocusTabIndex - 1 + this.openedTabCount) % this.openedTabCount
                 const tab = tabBar.children[index]
                 let nodeInfo = this.openedTabInfo[index]
-                this.saveTab(nodeInfo)
                 this.openTab(tab, index, nodeInfo)
             }
         })
@@ -235,7 +234,6 @@ class TabBarModule {
             if (!this.emptyTab) {
                 const tab = tabBar.children[this.currFocusTabIndex]
                 let nodeInfo = this.openedTabInfo[this.currFocusTabIndex]
-                this.saveTab(nodeInfo)
                 this.closeTab(tab, nodeInfo)
             }
         })

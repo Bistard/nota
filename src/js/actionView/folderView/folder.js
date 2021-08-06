@@ -230,7 +230,7 @@ class FolderModule {
      * @return {void} void
      */
     saveFile(nodeInfo, newText) {
-        if (nodeInfo !== undefined) {
+        /* if (nodeInfo !== undefined) {
 
             let writeOption = {
                 encoding: 'utf-8',
@@ -245,7 +245,7 @@ class FolderModule {
             })
         } else {
             ipcRenderer.send('test', 'auto saved but undefined')
-        }
+        } */
     }
 
     /**

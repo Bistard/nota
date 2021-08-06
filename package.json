@@ -2,9 +2,10 @@
   "name": "markdownnote",
   "version": "0.0.1",
   "description": "an open-sourced markdown editor",
-  "main": "./src/main.js",
+  "main": "./dist/main.js",
   "scripts": {
-    "start": "chcp 65001 && electron .",
+    "build": "tsc",
+    "start": "npm run build && electron .",
     "test": "test"
   },
   "repository": {
@@ -21,6 +22,8 @@
   },
   "homepage": "https://github.com/Bistard/MarkdownNote#readme",
   "devDependencies": {
+    "typescript": "^4.3.5",
+    "@types/electron": "^1.6.10",
     "electron": "^13.1.7"
   },
   "dependencies": {
