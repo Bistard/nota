@@ -1,4 +1,4 @@
-type markdownRenderMode = 'wysiwyg' | 'instant' | 'split';
+import { markdownRenderMode } from 'mdnote';
 
 /**
  * @description config module. Only for storing some default data, config or 

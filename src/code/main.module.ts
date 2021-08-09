@@ -1,6 +1,6 @@
-import { ConfigModule } from "./config.js"
-import { ActionViewModule } from "./actionView/actionView.js"
-// import { ActionBarModule } from "./actionBar/actionBar.js"
+import { ConfigModule } from "./config.js";
+import { ActionViewModule } from "./actionView/actionView.js";
+import { ActionBarModule } from "./actionBar/actionBar.js";
 // import { FolderModule } from "./actionView/folderView/folder.js"
 // import { FolderTreeModule } from "./actionView/folderView/foldertree.js"
 // import { TabBarModule } from "./actionView/folderView/tabBar.js"
@@ -16,7 +16,7 @@ class mainMoudle {
 
     Config: ConfigModule;
     ActionView: ActionViewModule;
-    // ActionBar: ActionBarModule;
+    ActionBar: ActionBarModule;
     // FolderTree: FolderTreeModule;
     // TabBar: TabBarModule;
     // Folder: FolderModule;
@@ -25,18 +25,18 @@ class mainMoudle {
 
     constructor() {
         this.Config = new ConfigModule();
-        this.ActionView = new ActionViewModule()
-        // this.ActionBar = new ActionBarModule(this.ActionView)
-        // this.FolderTree = new FolderTreeModule()
-        // this.TabBar = new TabBarModule(this.Config)
-        // this.Folder = new FolderModule(this.FolderTree, this.TabBar)
-        // this.Markdown = new MarkdownModule(this.Config, this.Folder)
-        // this.TitleBar = new TitleBarModule(this.Config, this.Markdown)
+        this.ActionView = new ActionViewModule();
+        this.ActionBar = new ActionBarModule(this.ActionView);
+        // this.FolderTree = new FolderTreeModule();
+        // this.TabBar = new TabBarModule(this.Config);
+        // this.Folder = new FolderModule(this.FolderTree, this.TabBar);
+        // this.Markdown = new MarkdownModule(this.Config, this.Folder);
+        // this.TitleBar = new TitleBarModule(this.Config, this.Markdown);
     }
 
 }
 
 // since it is loaded by the web which is sepreated by the main.js, it needs to 
 // be instantiated individually.
-new mainMoudle()
+new mainMoudle();
 
