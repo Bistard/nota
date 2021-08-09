@@ -111,6 +111,8 @@
       * [ ] paste with plain text
 * [x] ⭐Others
   * [ ] author preface
+  * [x] install typescript
+    * [ ] refactor all javascript codes
   * [x] error handling
     * [ ] local log system
   * [x] code comments

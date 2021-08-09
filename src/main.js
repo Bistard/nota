@@ -4,17 +4,12 @@ const path = require('path')
 const { BrowserWindow, ipcMain, app, dialog } = require('electron')
 const ElectronLocalshortcut = require('electron-localshortcut')
 
-const ConfigModule = require('./code/config')
-
-"use strict";
-
 /**
  * @description main electron startup class, instantiates at end of the file.
  */
 class Main {
 
     constructor() {
-        this.ConfigModule = new ConfigModule.ConfigModule()
         this.winMain = null
         this.createWindow()
         this.setListeners()
@@ -94,7 +89,15 @@ class Main {
             ipcMain.on('openDir', () => {
                 dialog.showOpenDialog(
                     this.winMain,
-                    this.ConfigModule.OpenDirConfig
+                    {
+                        /* defaultPath: app.getPath('desktop'), */
+                        defaultPath: 'D:\\dev\\AllNote',
+                        buttonLabel: 'open a file or folder',
+                        properties: [
+                            /* 'openFile', */
+                            'openDirectory',
+                        ],
+                    }
                 ).then((path) => {
                     if (path === undefined) {
                         throw 'opened path is undefined'
