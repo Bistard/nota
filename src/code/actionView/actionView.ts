@@ -1,28 +1,23 @@
-const { ipcRenderer } = require("electron")
+type ActionViewType = 'none' | 'folder' | 'outline' | 'search' | 'git';
 
 /**
  * @description ActionViewModule displays different action view such as 
  * folderView, outlineView, gitView and so on.
  */
-class ActionViewModule {
+export class ActionViewModule {
+
+    public whichActionView: ActionViewType;
 
     constructor() {
 
-        /** 
-         * @readonly 'folder', 'outline', 'git'
-         * @type {String} 
-         * */
-        this.whichActionView = ''
+        this.whichActionView = 'none'
 
     }
 
     /**
      * @description switch to that action view given a specific name.
-     * 
-     * @param {String} actionViewName 
-     * @returns {void} void
      */
-    switchToActionView(actionViewName) {
+    public switchToActionView(actionViewName: ActionViewType): void {
         if (actionViewName == this.whichActionView) {
             return
         }
@@ -47,11 +42,8 @@ class ActionViewModule {
 
     /**
      * @description display given text on the action view top.
-     * 
-     * @param {String} name
-     * @returns {void} void
      */
-    displayActionViewTopText(name) {
+    public displayActionViewTopText(name: string): void {
         if (name == 'folder') {
             $('#action-view-top-text').html('Notebook')
         } else if (name == 'git') {
@@ -63,10 +55,8 @@ class ActionViewModule {
 
     /**
      * @description simple function for hiding the current content of action view.
-     * 
-     * @returns {void} void
      */
-    hideActionViewContent() {
+    public hideActionViewContent(): void {
         $('#action-view-content').children().each(function() {
             $(this).hide(0)
         })
@@ -74,27 +64,18 @@ class ActionViewModule {
 
     /**
      * @description NOT displaying action view.
-     * 
-     * @returns {void} void
      */
-     closeActionView() {
+    public closeActionView(): void {
         $('#action-view').hide(0)
         $('#resize').hide(0)
-        this.isActionViewActive = false
     }
     
     /**
      * @description displays action view.
-     * 
-     * @returns {void} void
      */
-    openActionView() {
+    public openActionView(): void {
         $('#action-view').show(0)
         $('#resize').show(0)
-        this.isActionViewActive = true
     }
 
-
 }
-
-module.exports = { ActionViewModule }
