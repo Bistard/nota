@@ -1,5 +1,5 @@
-const fs = require('fs')
-const Path = require('path')
+import { fs } from '../../util.js';
+import { Path } from '../../util.js';
 
 /**
  * @description the object is to store and maintain the data for each 

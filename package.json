@@ -4,7 +4,7 @@
   "description": "an open-sourced markdown editor",
   "main": "./dist/main.js",
   "scripts": {
-    "build": "rm -rf ./dist && tsc",
+    "build": "rd /s /q \"./dist\" && tsc",
     "watch": "tsc -w",
     "start": "npm run build && electron .",
     "test": "test"

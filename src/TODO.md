@@ -110,10 +110,11 @@
       * [x] shortcut (ctrl+z || ctrl+shift+z and so on)
       * [ ] paste with plain text
 * [x] ⭐Others
-  * [ ] author preface
+  * [ ] author preface (Chinese version)
   * [x] install typescript
     * [ ] refactor all javascript codes
       * [x] config.ts && main.module.ts
+  * [ ] code big refactoring
   * [x] error handling
     * [ ] local log system
   * [x] code comments
@@ -126,3 +127,13 @@
   * [X] Settings (Config)
     * [ ] UI config
   * [ ] get used of 'github issue'
+
+## main topic
+* html
+* css
+* javascript
+* typescript
+* nodejs
+* electron
+* webpack
+* jquery

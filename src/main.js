@@ -94,7 +94,6 @@ class Main {
                         defaultPath: 'D:\\dev\\AllNote',
                         buttonLabel: 'open a file or folder',
                         properties: [
-                            /* 'openFile', */
                             'openDirectory',
                         ],
                     }
