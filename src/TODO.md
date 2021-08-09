@@ -113,6 +113,7 @@
   * [ ] author preface
   * [x] install typescript
     * [ ] refactor all javascript codes
+      * [x] config.ts && main.module.ts
   * [x] error handling
     * [ ] local log system
   * [x] code comments
