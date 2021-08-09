@@ -2,33 +2,30 @@ const fs = require('fs')
 const Path = require('path')
 
 /**
- * @typedef {import('./foldertree').TreeNode} TreeNode
- */
-
-/**
  * @description the object is to store and maintain the data for each 
  * folder/tree/root.
  */
-class TreeNode {
-    /**
-     * @param {TreeNode[]} nodes 
-     * @param {boolean} isFolder 
-     * @param {string} name 
-     * @param {string} baseName 
-     * @param {string} path 
-     * @param {number} level 
-     * @param {boolean} isExpand 
-     * @param {string} plainText 
-     */
-    constructor(nodes, 
-                isFolder, 
-                name, 
-                baseName, 
-                path, 
-                level, 
-                isExpand, 
-                plainText) {
-        Object.assign(this, {nodes, isFolder, name, baseName, path, level, isExpand, plainText})
+export class TreeNode {
+    public nodes: {[propName: string]: TreeNode};
+    public isFolder: boolean;
+    public name: string;
+    public baseName: string;
+    public path: string;
+    public level: number;
+    public isExpand: boolean
+    public plainText: string; 
+
+    constructor(nodes: {[propName: string]: TreeNode}, isFolder: boolean, 
+                name: string, baseName: string, path: string, level: number, 
+                isExpand: boolean, plainText: string) {
+        this.nodes = nodes;
+        this.isFolder = isFolder;
+        this.name = name;
+        this.baseName = baseName;
+        this.path = path;
+        this.level = level;
+        this.isExpand = isExpand;
+        this.plainText = plainText;
     }
 }
 
@@ -37,31 +34,24 @@ class TreeNode {
  * in the opened folder tree. Only deals with dada handling, searching and 
  * storing.
  */
-class FolderTreeModule {
+export class FolderTreeModule {
     
+    public tree: TreeNode | {};
+    public treeList: TreeNode[] | [];
+
+
     constructor() {
         // TODO: reduce memory usage (.tree .treeList might overlap)
-        /**
-         * @type {TreeNode}
-         */
         this.tree = {}
-        
-        /**
-         * @type {TreeNode[]}
-         */
         this.treeList = []
     }
 
     /**
      * @description Recursively searches and creates a complete folder tree.
-     * 
-     * @param {string} path path to the folder/file
-     * @param {number} lev represents the level of that folder
-     * @returns {TreeNode} the complete folder tree
      */
-    createFolderTree(path, lev) {
-
+    public createFolderTree(path: string, lev: number): TreeNode {
         const baseName = Path.basename(path)
+        
         if (fs.lstatSync(path).isDirectory()) {
             
             let name = baseName.replace(/_/g, ' ')
@@ -72,7 +62,7 @@ class FolderTreeModule {
                 withFileTypes: false
             })
 
-            files.forEach(file => {
+            files.forEach((file: string) => {
                 const tree = this.createFolderTree(Path.join(path, file), lev + 1)
                 node.nodes[file] = tree
             })
@@ -90,15 +80,11 @@ class FolderTreeModule {
     /**
      * @description traversing and returns an array version of folder tree 
      * using pre-order.
-     * 
-     * @param {TreeNode} tree 
-     * @param {TreeNode[]} list 
-     * @returns {TreeNode[]} an array of TreeNode
      */
-    createFolderTreeList(tree, list = []) {
+    public createFolderTreeList(tree: TreeNode, list: TreeNode[] = []): TreeNode[] {
         if (tree.isFolder) {
             list.push(tree)
-			for (const [key, node] of Object.entries(tree.nodes)) {
+			for (const [_key, node] of Object.entries(tree.nodes)) {
 				this.createFolderTreeList(node, list)
 			}
 		} else {
@@ -108,5 +94,3 @@ class FolderTreeModule {
     }
 
 }
-
-module.exports = { TreeNode, FolderTreeModule }

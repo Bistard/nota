@@ -1,8 +1,8 @@
 import { ConfigModule } from "./config.js";
 import { ActionViewModule } from "./actionView/actionView.js";
 import { ActionBarModule } from "./actionBar/actionBar.js";
+import { FolderTreeModule } from "./actionView/folderView/foldertree.js"
 // import { FolderModule } from "./actionView/folderView/folder.js"
-// import { FolderTreeModule } from "./actionView/folderView/foldertree.js"
 // import { TabBarModule } from "./actionView/folderView/tabBar.js"
 // import { MarkdownModule } from "./content/markdown/markdown.js"
 // import { TitleBarModule } from "./content/titleBar/titleBar.js"
@@ -17,7 +17,7 @@ class mainMoudle {
     Config: ConfigModule;
     ActionView: ActionViewModule;
     ActionBar: ActionBarModule;
-    // FolderTree: FolderTreeModule;
+    FolderTree: FolderTreeModule;
     // TabBar: TabBarModule;
     // Folder: FolderModule;
     // Markdown: MarkdownModule;
@@ -27,7 +27,7 @@ class mainMoudle {
         this.Config = new ConfigModule();
         this.ActionView = new ActionViewModule();
         this.ActionBar = new ActionBarModule(this.ActionView);
-        // this.FolderTree = new FolderTreeModule();
+        this.FolderTree = new FolderTreeModule();
         // this.TabBar = new TabBarModule(this.Config);
         // this.Folder = new FolderModule(this.FolderTree, this.TabBar);
         // this.Markdown = new MarkdownModule(this.Config, this.Folder);
