@@ -111,6 +111,10 @@
       * [ ] paste with plain text
 * [x] ⭐Others
   * [ ] author preface (Chinese version)
+  * [ ] new folders
+    * [ ] Doc
+    * [ ] Test
+    * [ ] src/code/ui
   * [x] install typescript
     * [ ] refactor all javascript codes
       * [x] config.ts && main.module.ts

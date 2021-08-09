@@ -1,4 +1,4 @@
-import { markdownRenderMode } from 'mdnote';
+import { MarkdownRenderMode } from 'mdnote';
 
 /**
  * @description config module. Only for storing some default data, config or 
@@ -18,7 +18,7 @@ export class ConfigModule {
      * @readonly titleBarView config
      */
 
-    public defaultMarkdownMode: markdownRenderMode;
+    public defaultMarkdownMode: MarkdownRenderMode;
 
     public isToolBarExpand: boolean;
 
