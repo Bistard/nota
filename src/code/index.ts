@@ -5,7 +5,7 @@ import { FolderTreeModule } from "./actionView/folderView/foldertree";
 import { TabBarModule } from "./actionView/folderView/tabBar";
 import { FolderModule } from "./actionView/folderView/folder";
 import { MarkdownModule } from "./content/markdown/markdown";
-// import { TitleBarModule } from "./content/titleBar/titleBar";
+import { TitleBarModule } from "./content/titleBar/titleBar";
 
 /**
  * @description this module is loaded by the web directly. Most of the modules 
@@ -21,7 +21,7 @@ class mainMoudle {
     TabBar: TabBarModule;
     Folder: FolderModule;
     Markdown: MarkdownModule;
-    // TitleBar: TitleBarModule;
+    TitleBar: TitleBarModule;
 
     constructor() {
         this.Config = new ConfigModule();
@@ -31,7 +31,7 @@ class mainMoudle {
         this.TabBar = new TabBarModule(this.Config);
         this.Folder = new FolderModule(this.FolderTree, this.TabBar);
         this.Markdown = new MarkdownModule(this.Config, this.Folder);
-        // this.TitleBar = new TitleBarModule(this.Config, this.Markdown);
+        this.TitleBar = new TitleBarModule(this.Config, this.Markdown);
     }
 
 }
