@@ -1,50 +1,57 @@
-const { ipcRenderer } = require("electron")
+import { ipcRenderer } from '../../util';
 
 // @toast-ui: see more details on this library: https://github.com/nhn/tui.editor#-packages
-const Editor = require('@toast-ui/editor')
+import Editor from '@toast-ui/editor';
 
 // @toast-ui: language pack require
 /* require('../../../node_modules/@toast-ui/editor/dist/i18n//zh-cn') */
 
 // @toast-ui-plugin: code syntax highlight (all languages pack are loaded here)
-const Prism = require('prismjs')
-const codeSyntaxHighlight = require('@toast-ui/editor-plugin-code-syntax-highlight/dist/toastui-editor-plugin-code-syntax-highlight-all');
+import Prism from 'prismjs';
+import '@toast-ui/editor-plugin-code-syntax-highlight';
+import codeSyntaxHighlight from '@toast-ui/editor-plugin-code-syntax-highlight';
+
+// @toast-ui-plugin: import language files of Prism.js that you need
+import 'prismjs/components/prism-c';
+import 'prismjs/components/prism-cpp';
+import 'prismjs/components/prism-typescript';
+import 'prismjs/components/prism-javascript';
+import 'prismjs/components/prism-python';
+import 'prismjs/components/prism-java';
 
 // @toast-ui-plugin: color syntax 
-const colorSyntax = require('@toast-ui/editor-plugin-color-syntax');
-
-/**
- * @typedef {import('../../config').ConfigModule} ConfigModule
- * @typedef {import('../folderView/folder').FolderModule} FolderModule
- */
+import colorSyntax from '@toast-ui/editor-plugin-color-syntax';
+import { ConfigModule } from '../../config';
+import { FolderModule } from '../../actionView/folderView/folder';
+import { TreeNode } from '../../actionView/folderView/foldertree';
 
 /**
  * @description MarkdownModule initializes markdown renderer and windows and
  * handling a few other shortcuts as well.
  */
-class MarkdownModule {
+export class MarkdownModule {
     
-    /**
-     * @param {ConfigModule} ConfigModule
-     * @param {FolderModule} FolderModule
-     */
-    constructor(ConfigModule, FolderModule) {
-        this.Config = ConfigModule
-        this.Folder = FolderModule
+    Config: ConfigModule;
+    Folder: FolderModule;
 
-        /**
-         * @type {Editor}
-         */
-        this.editor = null
+    editor: Editor | null;
+
+    saveFileTimeout: NodeJS.Timeout | null;
+
+    colorSyntaxOptions: any;
+
+    constructor(ConfigModule: ConfigModule, FolderModule: FolderModule) {
+        this.Config = ConfigModule;
+        this.Folder = FolderModule;
+
+        this.editor = null;
         
         /**
          * after markdown content is changed, a timeout will be set when the 
          * auto-save mode is turned on. When the time has arrived, file will be
          * auto saved.
-         * 
-         * @type {NodeJS.Timeout}
          */
-        this.saveFileTimeout = null
+        this.saveFileTimeout = null;
 
         /**
          * The object is a preset color choices for color-syntax plugin.
@@ -59,20 +66,18 @@ class MarkdownModule {
                      '#ad00ff'] // violet
         };
 
-        this.createMarkdownEditor()
-        this.setListeners()
+        this.createMarkdownEditor();
+        this.setListeners();
     }
 
     /**
      * @description instantiates editor constructor and markdown view. Editor's
      * events's callback functions will also be set here.
-     * 
-     * @returns {void} void
      */
-    createMarkdownEditor() {
+    createMarkdownEditor(): void {
 
         let editor = new Editor({
-            el: document.getElementById('md'), // HTMLElement container for md editor
+            el: document.getElementById('md') as HTMLElement, // HTMLElement container for md editor
             height: '100%',
             language: 'en-US',
             /**
@@ -115,66 +120,61 @@ class MarkdownModule {
 
         
 
-        editor.getMarkdown()
-        this.editor = editor
-        window.editor = editor // set as global value
+        editor.getMarkdown();
+        this.editor = editor;
+        (window as any).editor = editor; // set as global value
 
         // spellcheck config check
         if (!this.Config.markdownSpellCheckOn) {
-            const md = document.getElementById('md')
-            md.setAttribute('spellcheck', 'false')
+            const md = document.getElementById('md') as HTMLElement;
+            md.setAttribute('spellcheck', 'false');
         }
 
     }
 
     /**
      * @description callback function for 'editor.event.change'.
-     * 
-     * @returns {void} void
      */
-    onChange() {
+    onChange(): void {
         // check if file-auto-save is ON
         if (this.Config.fileAutoSaveOn) {
             // if content is changed before the previous timeout has 
             // reached, clear the preivous one.
             if (this.saveFileTimeout) {
-                clearTimeout(this.saveFileTimeout)
+                clearTimeout(this.saveFileTimeout);
             }
             // set a new timer with 1000 microseconds
             this.saveFileTimeout = setTimeout(() => {
                 this.markdownSaveFile()
-            }, 1000)
+            }, 1000);
         }
     }
 
     /**
      * @description calling saveFile() from FolderModule.
-     * 
-     * @returns {void} void
      */
-    markdownSaveFile() {
-        const index = this.Folder.TabBar.currFocusTabIndex       /** @type {Number} */
-        const nodeInfo = this.Folder.TabBar.openedTabInfo[index] /** @type {TreeNode} */
-        const newText = this.editor.getMarkdown()                /** @type {String} */
-        this.Folder.saveFile(nodeInfo, newText)
+    markdownSaveFile(): void {
+        const index = this.Folder.TabBar.currFocusTabIndex;
+        const nodeInfo = this.Folder.TabBar.openedTabInfo[index] as TreeNode;
+        const newText = this.editor!.getMarkdown();
+        this.Folder.saveFile(nodeInfo, newText);
     }
 
     /**
      * @description setup markdown relevant listeners.
-     * 
-     * @returns {void} void
      */
-    setListeners() {
+    setListeners(): void {
 
         ipcRenderer.on('Ctrl+S', () => {
             if (!this.Folder.TabBar.emptyTab) {
-                clearTimeout(this.saveFileTimeout)
-                this.markdownSaveFile()
+                if (this.saveFileTimeout) {
+                    clearTimeout(this.saveFileTimeout);
+                }
+                this.markdownSaveFile();
             }
         })
 
     }
 
 }
-    
-module.exports = { MarkdownModule }
+

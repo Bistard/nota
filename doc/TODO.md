@@ -111,8 +111,8 @@
       * [ ] paste with plain text
 * [x] ⭐Others
   * [ ] author preface (Chinese version)
-  * [ ] new folders
-    * [ ] Doc
+  * [x] new folders
+    * [x] Doc
     * [ ] Test
     * [ ] src/code/ui
   * [x] install typescript

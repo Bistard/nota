@@ -4,7 +4,7 @@ import { ActionBarModule } from "./actionBar/actionBar";
 import { FolderTreeModule } from "./actionView/folderView/foldertree";
 import { TabBarModule } from "./actionView/folderView/tabBar";
 import { FolderModule } from "./actionView/folderView/folder";
-// import { MarkdownModule } from "./content/markdown/markdown";
+import { MarkdownModule } from "./content/markdown/markdown";
 // import { TitleBarModule } from "./content/titleBar/titleBar";
 
 /**
@@ -20,7 +20,7 @@ class mainMoudle {
     FolderTree: FolderTreeModule;
     TabBar: TabBarModule;
     Folder: FolderModule;
-    // Markdown: MarkdownModule;
+    Markdown: MarkdownModule;
     // TitleBar: TitleBarModule;
 
     constructor() {
@@ -30,7 +30,7 @@ class mainMoudle {
         this.FolderTree = new FolderTreeModule();
         this.TabBar = new TabBarModule(this.Config);
         this.Folder = new FolderModule(this.FolderTree, this.TabBar);
-        // this.Markdown = new MarkdownModule(this.Config, this.Folder);
+        this.Markdown = new MarkdownModule(this.Config, this.Folder);
         // this.TitleBar = new TitleBarModule(this.Config, this.Markdown);
     }
 
