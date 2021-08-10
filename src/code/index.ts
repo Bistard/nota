@@ -1,11 +1,11 @@
-import { ConfigModule } from "./code/config.js";
-import { ActionViewModule } from "./code/actionView/actionView.js";
-import { ActionBarModule } from "./code/actionBar/actionBar.js";
-import { FolderTreeModule } from "./code/actionView/folderView/foldertree.js";
-import { TabBarModule } from "./code/actionView/folderView/tabBar.js";
-import { FolderModule } from "./code/actionView/folderView/folder.js"
-// import { MarkdownModule } from "./content/markdown/markdown.js"
-// import { TitleBarModule } from "./content/titleBar/titleBar.js"
+import { ConfigModule } from "./config";
+import { ActionViewModule } from "./actionView/actionView";
+import { ActionBarModule } from "./actionBar/actionBar";
+import { FolderTreeModule } from "./actionView/folderView/foldertree";
+import { TabBarModule } from "./actionView/folderView/tabBar";
+import { FolderModule } from "./actionView/folderView/folder";
+// import { MarkdownModule } from "./content/markdown/markdown";
+// import { TitleBarModule } from "./content/titleBar/titleBar";
 
 /**
  * @description this module is loaded by the web directly. Most of the modules 

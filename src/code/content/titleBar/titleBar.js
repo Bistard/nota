@@ -66,14 +66,14 @@ class TitleBarModule {
      markdownModeSwitch(mode) {
         if (mode == 'wysiwyg') {
             $('#mode-switch').removeClass('tool-button-focus')
-            $('#mode-switch > img').attr('src', 'assets/icons/titleBarView/md-split.svg')
+            $('#mode-switch > img').attr('src', 'assets/svg/titleBarView/md-split.svg')
             this.Markdown.editor.changeMode('markdown', true)
             this.markdownMode = 'split'
         } else if (mode == 'instant') {
             // TODO: complete instant-mode (big update)
         } else { // (mode == 'split')
             $('#mode-switch').addClass('tool-button-focus')
-            $('#mode-switch > img').attr('src', 'assets/icons/titleBarView/md-wysiwyg.svg')
+            $('#mode-switch > img').attr('src', 'assets/svg/titleBarView/md-wysiwyg.svg')
             this.Markdown.editor.changeMode('wysiwyg', true)
             this.markdownMode = 'wysiwyg'
         }
@@ -106,11 +106,11 @@ class TitleBarModule {
      toolBarStateChange(shouldExpand) {
         if (shouldExpand) {
             $('#tool-bar').show(100)
-            $('#expand-collapse > img').attr('src', 'assets/icons/titleBarView/caret-left.svg')
+            $('#expand-collapse > img').attr('src', 'assets/svg/titleBarView/caret-left.svg')
             this.isToolBarExpand = true
         } else {
             $('#tool-bar').hide(100)
-            $('#expand-collapse > img').attr('src', 'assets/icons/titleBarView/caret-right.svg')
+            $('#expand-collapse > img').attr('src', 'assets/svg/titleBarView/caret-right.svg')
             this.isToolBarExpand = false
         }
     }
@@ -123,9 +123,9 @@ class TitleBarModule {
      */
     changeMaxResBtn(isMaxApp) {
         if (isMaxApp) {
-            document.getElementById('maxBtnImg').src='assets/icons/titleBarView/max-restore.svg'
+            document.getElementById('maxBtnImg').src='assets/svg/titleBarView/max-restore.svg'
         } else {
-            document.getElementById('maxBtnImg').src='assets/icons/titleBarView/max.svg'
+            document.getElementById('maxBtnImg').src='assets/svg/titleBarView/max.svg'
         }
     }
 

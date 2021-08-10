@@ -1,7 +1,7 @@
 import { TreeNodeType } from 'mdnote';
-import { ipcRenderer, fs } from '../../util.js';
-import { FolderTreeModule, TreeNode } from './foldertree.js';
-import { TabBarModule } from './tabBar.js';
+import { ipcRenderer, fs } from '../../util';
+import { FolderTreeModule, TreeNode } from './foldertree';
+import { TabBarModule } from './tabBar';
 import { TreeNodesType } from 'mdnote';
 
 const folderView = document.getElementById('action-view') as HTMLElement;
@@ -258,7 +258,7 @@ export class FolderModule {
      */
     createfolderIconString(fileName: string): string {
         // FIX
-        return "<style>.node-text::before {content: url('assets/icons/" + fileName + "');display: inline-block;width: 10px;height: 10px;margin-left: 4px;margin-right: 4px;}</style>"
+        return "<style>.node-text::before {content: url('assets/svg/" + fileName + "');display: inline-block;width: 10px;height: 10px;margin-left: 4px;margin-right: 4px;}</style>"
     }
     
     /**

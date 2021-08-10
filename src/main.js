@@ -50,7 +50,7 @@ class Main {
             /* const gotTheLock = app.requestSingleInstanceLock(); */
 
             // loads index.html first and displays when ready
-            this.winMain.loadFile('./src/index.html')
+            this.winMain.loadFile('./index.html')
             this.winMain.webContents.on('did-finish-load', () => {
                 this.winMain.show()
             })

@@ -3,8 +3,7 @@ An open-sourced markdown editor && noteTaking desktop application based on .md
 
 基于markdown管理的笔记软件
 
-## 💖expect feature
-
+## 💖feature
 * supports ✔WYSIWYG (rich text), ❌instant rendering, ✔ tranditional split view editing
 * supports git and github
 * provides great noteTaking-like user experience
@@ -13,7 +12,7 @@ An open-sourced markdown editor && noteTaking desktop application based on .md
 ![screenshot](./src/assets/readme/2021.8.5.png)
 
 ## 🚪portal
-- [✔Todo](src/TODO.md)
+- [✔Todo](doc/TODO.md)
 
 ## 🐛bugs
 - [x] (2021.8.5) fix: supports all languages for code syntax highlight

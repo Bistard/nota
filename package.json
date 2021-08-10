@@ -2,9 +2,9 @@
   "name": "markdownnote",
   "version": "0.0.1",
   "description": "an open-sourced markdown editor",
-  "main": "./dist/main.js",
+  "main": "./dist/main-bundle.js",
   "scripts": {
-    "build": "rd /s /q \"./dist\" && tsc",
+    "build": "rm -rf ./dist/* && webpack --config webpack.config.js",
     "watch": "tsc -w",
     "start": "npm run build && electron .",
     "test": "test"
@@ -26,7 +26,10 @@
     "@types/electron": "^1.6.10",
     "@types/jquery": "^3.5.6",
     "electron": "^13.1.7",
-    "typescript": "^4.3.5"
+    "ts-loader": "^9.2.5",
+    "typescript": "^4.3.5",
+    "webpack": "^5.50.0",
+    "webpack-cli": "^4.7.2"
   },
   "dependencies": {
     "@toast-ui/editor": "^3.0.1",
