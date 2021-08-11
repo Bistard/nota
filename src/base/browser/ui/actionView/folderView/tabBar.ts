@@ -1,5 +1,5 @@
 import { Editor } from '@toast-ui/editor/types/editor';
-import { ipcRenderer, fs } from 'src/base/browser/util';
+import { ipcRenderer, fs } from '../../../util';
 import { WriteFileOptions } from 'original-fs';
 import { ConfigModule } from 'src/base/config';
 import { TreeNode } from 'src/base/browser/ui/actionView/folderView/foldertree';

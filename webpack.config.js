@@ -37,7 +37,7 @@ module.exports = [
     Object.assign({}, common_config, {
         target: 'electron-renderer',
         entry: {
-            renderer: './src/code/browser.ts',
+            renderer: './src/code/workbench.ts',
         },
         output: {
             filename: '[name]-bundle.js',

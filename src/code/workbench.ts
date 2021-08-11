@@ -12,7 +12,7 @@ import { TitleBarModule } from "../base/browser/ui/content/titleBar/titleBar";
  * are instantiating in here. Also convinents for passing diferent modules into
  * others.
  */
-class mainMoudle {
+class WorkbenchModule {
 
     Config: ConfigModule;
     ActionView: ActionViewModule;
@@ -38,5 +38,5 @@ class mainMoudle {
 
 // since it is loaded by the web which is sepreated by the main.js, it needs to 
 // be instantiated individually.
-new mainMoudle();
+new WorkbenchModule();
 

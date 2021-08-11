@@ -8,7 +8,6 @@ import Editor from '@toast-ui/editor';
 
 // @toast-ui-plugin: code syntax highlight (all languages pack are loaded here)
 import Prism from 'prismjs';
-import '@toast-ui/editor-plugin-code-syntax-highlight';
 import codeSyntaxHighlight from '@toast-ui/editor-plugin-code-syntax-highlight';
 
 // @toast-ui-plugin: import language files of Prism.js that you need
@@ -21,7 +20,7 @@ import 'prismjs/components/prism-java';
 
 // @toast-ui-plugin: color syntax 
 import colorSyntax from '@toast-ui/editor-plugin-color-syntax';
-import { ConfigModule } from '../../../config';
+import { ConfigModule } from 'src/base/config';
 import { FolderModule } from '../../actionView/folderView/folder';
 import { TreeNode } from '../../actionView/folderView/foldertree';
 

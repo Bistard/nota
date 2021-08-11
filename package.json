@@ -5,7 +5,7 @@
   "main": "./dist/main-bundle.js",
   "scripts": {
     "test": "test",
-    "build": "rm -rf ./dist/* && webpack --config webpack.config.js",
+    "build": "webpack --config webpack.config.js --stats-error-details",
     "start": "npm run build && electron ."
   },
   "repository": {
