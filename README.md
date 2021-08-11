@@ -9,7 +9,7 @@ An open-sourced markdown editor && noteTaking desktop application based on .md
 * provides great noteTaking-like user experience
 
 ## 👁‍🗨Screen shots
-![screenshot](./dist/readme/2021.8.5.png)
+![screenshot](./doc/assets/2021.8.5.png)
 
 ## 🚪portal
 - [✔Todo](doc/TODO.md)

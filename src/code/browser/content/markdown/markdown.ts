@@ -1,4 +1,4 @@
-import { ipcRenderer } from '../../util';
+import { ipcRenderer } from '../../../util';
 
 // @toast-ui: see more details on this library: https://github.com/nhn/tui.editor#-packages
 import Editor from '@toast-ui/editor';
@@ -21,7 +21,7 @@ import 'prismjs/components/prism-java';
 
 // @toast-ui-plugin: color syntax 
 import colorSyntax from '@toast-ui/editor-plugin-color-syntax';
-import { ConfigModule } from '../../config';
+import { ConfigModule } from '../../../config';
 import { FolderModule } from '../../actionView/folderView/folder';
 import { TreeNode } from '../../actionView/folderView/foldertree';
 

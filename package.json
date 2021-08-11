@@ -4,10 +4,9 @@
   "description": "an open-sourced markdown editor",
   "main": "./dist/main-bundle.js",
   "scripts": {
+    "test": "test",
     "build": "rm -rf ./dist/* && webpack --config webpack.config.js",
-    "watch": "tsc -w",
-    "start": "npm run build && electron .",
-    "test": "test"
+    "start": "npm run build && electron ."
   },
   "repository": {
     "type": "git",

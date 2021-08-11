@@ -1,5 +1,5 @@
-import { ipcRenderer } from '../../util';
-import { ConfigModule } from '../../config';
+import { ipcRenderer } from '../../../util';
+import { ConfigModule } from '../../../config';
 import { MarkdownModule } from '../markdown/markdown';
 import { MarkdownRenderMode } from 'mdnote';
 

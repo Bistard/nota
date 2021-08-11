@@ -112,9 +112,10 @@
 * [x] ⭐Others
   * [ ] author preface (Chinese version)
   * [x] new folders
-    * [x] Doc
-    * [ ] Test
-    * [ ] src/code/ui
+    * [x] doc
+    * [ ] test
+    * [ ] script
+    * [x] src/code/browser
   * [x] install typescript
     * [ ] refactor all javascript codes
       * [x] config.ts && main.module.ts
