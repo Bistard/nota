@@ -1,8 +1,8 @@
 import { Editor } from '@toast-ui/editor/types/editor';
-import { ipcRenderer, fs } from '../../../util';
+import { ipcRenderer, fs } from 'src/base/browser/util';
 import { WriteFileOptions } from 'original-fs';
-import { ConfigModule } from '../../../config';
-import { TreeNode } from './foldertree';
+import { ConfigModule } from 'src/base/config';
+import { TreeNode } from 'src/base/browser/ui/actionView/folderView/foldertree';
 
 const tabBar = document.getElementById('tabBar') as HTMLElement;
 

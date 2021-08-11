@@ -1,11 +1,11 @@
-import { ConfigModule } from "./config";
-import { ActionViewModule } from "./browser/actionView/actionView";
-import { ActionBarModule } from "./browser/actionBar/actionBar";
-import { FolderTreeModule } from "./browser/actionView/folderView/foldertree";
-import { TabBarModule } from "./browser/actionView/folderView/tabBar";
-import { FolderModule } from "./browser/actionView/folderView/folder";
-import { MarkdownModule } from "./browser/content/markdown/markdown";
-import { TitleBarModule } from "./browser/content/titleBar/titleBar";
+import { ConfigModule } from "../base/config";
+import { ActionViewModule } from "../base/browser/ui/actionView/actionView";
+import { ActionBarModule } from "../base/browser/ui/actionBar/actionBar";
+import { FolderTreeModule } from "../base/browser/ui/actionView/folderView/foldertree";
+import { TabBarModule } from "../base/browser/ui/actionView/folderView/tabBar";
+import { FolderModule } from "../base/browser/ui/actionView/folderView/folder";
+import { MarkdownModule } from "../base/browser/ui/content/markdown/markdown";
+import { TitleBarModule } from "../base/browser/ui/content/titleBar/titleBar";
 
 /**
  * @description this module is loaded by the web directly. Most of the modules 
