@@ -1,5 +1,5 @@
 import { TreeNodeType } from 'mdnote';
-import { ipcRenderer, fs } from '../../../util';
+import { ipcRenderer, fs } from '../../../../util';
 import { FolderTreeModule, TreeNode } from './foldertree';
 import { TabBarModule } from './tabBar';
 import { TreeNodesType } from 'mdnote';

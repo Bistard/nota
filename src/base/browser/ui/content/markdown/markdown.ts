@@ -1,4 +1,4 @@
-import { ipcRenderer } from '../../../util';
+import { ipcRenderer } from '../../../../util';
 
 // @toast-ui: see more details on this library: https://github.com/nhn/tui.editor#-packages
 import Editor from '@toast-ui/editor';

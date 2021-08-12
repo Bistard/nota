@@ -109,6 +109,8 @@
         * [ ] read/write behaviours depending on the size of file
       * [x] shortcut (ctrl+z || ctrl+shift+z and so on)
       * [ ] paste with plain text
+* [x] ⭐Refactoring
+  * [ ] register
 * [x] ⭐Others
   * [ ] author preface (Chinese version)
   * [x] new folders
@@ -117,9 +119,9 @@
     * [ ] script
     * [x] src/code/browser
   * [x] install typescript
-    * [ ] refactor all javascript codes
+    * [x] refactor all javascript codes
       * [x] config.ts && main.module.ts
-  * [ ] code big refactoring
+  * [x] code big refactoring
   * [x] error handling
     * [ ] local log system
   * [x] code comments

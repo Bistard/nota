@@ -1,4 +1,4 @@
-import { ipcRenderer } from '../../../util';
+import { ipcRenderer } from '../../../../util';
 import { ConfigModule } from 'src/base/config';
 import { MarkdownModule } from 'src/base/browser/ui/content/markdown/markdown';
 import { MarkdownRenderMode } from 'mdnote';
