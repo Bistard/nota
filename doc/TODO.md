@@ -110,7 +110,9 @@
       * [x] shortcut (ctrl+z || ctrl+shift+z and so on)
       * [ ] paste with plain text
 * [x] ⭐Refactoring
-  * [ ] register
+  * [x] register
+  * [ ] clean index.html
+    * [ ] add element programmatically
 * [x] ⭐Others
   * [ ] author preface (Chinese version)
   * [x] new folders
@@ -122,6 +124,7 @@
     * [x] refactor all javascript codes
       * [x] config.ts && main.module.ts
   * [x] code big refactoring
+    * [ ] dispose pattern
   * [x] error handling
     * [ ] local log system
   * [x] code comments

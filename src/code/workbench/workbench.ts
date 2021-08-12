@@ -14,6 +14,10 @@ import { TitleBarModule } from "src/code/workbench/content/titleBar/titleBar";
  */
 class WorkbenchModule {
 
+    readonly mainAppContainer: HTMLElement = document.createElement('div');
+
+    // private readonly parts = new Map<string, any>();
+
     Config: ConfigModule;
     ActionView: ActionViewModule;
     ActionBar: ActionBarModule;
