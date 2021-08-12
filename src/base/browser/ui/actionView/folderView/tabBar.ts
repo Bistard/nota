@@ -1,8 +1,9 @@
 import { Editor } from '@toast-ui/editor/types/editor';
-import { ipcRenderer, fs } from '../../../../util';
+import { fs } from 'src/base/util';
 import { WriteFileOptions } from 'original-fs';
 import { ConfigModule } from 'src/base/config';
 import { TreeNode } from 'src/base/browser/ui/actionView/folderView/foldertree';
+import { ipcRendererOn, ipcRendererSendTest } from 'src/base/ipc/register';
 
 const tabBar = document.getElementById('tabBar') as HTMLElement;
 
@@ -155,7 +156,7 @@ export class TabBarModule {
                 if (err) {
                     throw err;
                 }
-                ipcRenderer.send('test', 'close saved');
+                ipcRendererSendTest('close saved');
             })
         } else {
             // pop up a warning window
@@ -191,38 +192,40 @@ export class TabBarModule {
     private _setListeners(): void {
         
         // able to scroll horizontally using middle mouse
+        // TODO: complete
         tabBar.addEventListener('wheel', (event) => {
             tabBar.scrollLeft += event.deltaY;
         })
 
         // switch tab forwards
-        ipcRenderer.on('Ctrl+Tab', () => {
+        ipcRendererOn('Ctrl+Tab', () => {
             if (!this.emptyTab && this.openedTabCount != 1) {
                 const index = (this.currFocusTabIndex + 1) % this.openedTabCount;
                 const tab = tabBar.children[index] as HTMLElement;
                 let nodeInfo = this.openedTabInfo[index] as TreeNode;
                 this.openTab(tab, index, nodeInfo);
             }
-        })
-
+        });
+        
         // switch tab backwards
-        ipcRenderer.on('Ctrl+Shift+Tab', () => {
+        ipcRendererOn('Ctrl+Shift+Tab', () => {
             if (!this.emptyTab && this.openedTabCount != 1) {
                 const index = (this.currFocusTabIndex - 1 + this.openedTabCount) % this.openedTabCount;
                 const tab = tabBar.children[index] as HTMLElement;
                 let nodeInfo = this.openedTabInfo[index] as TreeNode;
                 this.openTab(tab, index, nodeInfo);
             }
-        })
-
+        });
+        
         // close current focused tab
-        ipcRenderer.on('Ctrl+W', () => {
+        
+        ipcRendererOn('Ctrl+W', () => {
             if (!this.emptyTab) {
                 const tab = tabBar.children[this.currFocusTabIndex] as HTMLElement;
                 let nodeInfo = this.openedTabInfo[this.currFocusTabIndex] as TreeNode;
                 this.closeTab(tab, nodeInfo);
             }
-        })
+        });
 
     }
 }

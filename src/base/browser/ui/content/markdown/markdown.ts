@@ -1,5 +1,3 @@
-import { ipcRenderer } from '../../../../util';
-
 // @toast-ui: see more details on this library: https://github.com/nhn/tui.editor#-packages
 import Editor from '@toast-ui/editor';
 
@@ -21,8 +19,9 @@ import 'prismjs/components/prism-java';
 // @toast-ui-plugin: color syntax 
 import colorSyntax from '@toast-ui/editor-plugin-color-syntax';
 import { ConfigModule } from 'src/base/config';
-import { FolderModule } from '../../actionView/folderView/folder';
-import { TreeNode } from '../../actionView/folderView/foldertree';
+import { FolderModule } from 'src/base/browser/ui/actionView/folderView/folder';
+import { TreeNode } from 'src/base/browser/ui/actionView/folderView/foldertree';
+import { ipcRendererOn } from 'src/base/ipc/register';
 
 /**
  * @description MarkdownModule initializes markdown renderer and windows and
@@ -164,7 +163,7 @@ export class MarkdownModule {
      */
     setListeners(): void {
 
-        ipcRenderer.on('Ctrl+S', () => {
+        ipcRendererOn('Ctrl+S', () => {
             if (!this.Folder.TabBar.emptyTab) {
                 if (this.saveFileTimeout) {
                     clearTimeout(this.saveFileTimeout);

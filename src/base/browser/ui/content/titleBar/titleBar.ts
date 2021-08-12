@@ -1,7 +1,7 @@
-import { ipcRenderer } from '../../../../util';
 import { ConfigModule } from 'src/base/config';
 import { MarkdownModule } from 'src/base/browser/ui/content/markdown/markdown';
 import { MarkdownRenderMode } from 'mdnote';
+import { domNodeByIdAddListener, ipcRendererOn, ipcRendererSend } from 'src/base/ipc/register';
 
 /**
  * @description TitleBarModule stores and handles all the titleBar and toolBar 
@@ -118,35 +118,35 @@ export class TitleBarModule {
      */
     setListeners(): void {
         
-        $('#mode-switch').on('click', () => {
+        domNodeByIdAddListener('mode-switch', 'click', () => {
             this.markdownModeSwitch(this.markdownMode);
-        })
+        });
 
-        $('#md-tool').on('click', () => {
+        domNodeByIdAddListener('md-tool', 'click', () => {
             this.mdToolStateChange(!this.isMarkdownToolExpand);
-        })
-
-        $('#expand-collapse').on('click', () => {
+        });
+        
+        domNodeByIdAddListener('expand-collapse', 'click', () => {
             this.toolBarStateChange(!this.isToolBarExpand);
-        })
-
-        $('#minBtn').on('click', () => {
-            ipcRenderer.send('minApp');
-        })
+        });
         
-        $('#maxBtn').on('click', () => {
-            ipcRenderer.send('maxResApp');
-        })
+        domNodeByIdAddListener('minBtn', 'click', () => {
+            ipcRendererSend('minApp');
+        });
         
-        $('#closeBtn').on('click', () => {
-            ipcRenderer.send('closeApp');
-        })
-
-        ipcRenderer.on('isMaximized', () => { 
+        domNodeByIdAddListener('maxBtn', 'click', () => {
+            ipcRendererSend('maxResApp');
+        });
+        
+        domNodeByIdAddListener('closeBtn', 'click', () => {
+            ipcRendererSend('closeApp');
+        });
+        
+        ipcRendererOn('isMaximized', () => { 
             this.changeMaxResBtn(true);
         })
 
-        ipcRenderer.on('isRestored', () => { 
+        ipcRendererOn('isRestored', () => { 
             this.changeMaxResBtn(false); 
         })
         

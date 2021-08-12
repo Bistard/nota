@@ -1,5 +1,5 @@
-import { fs } from '../../../../util';
-import { Path } from '../../../../util';
+import { fs } from 'src/base/util';
+import { Path } from 'src/base/util';
 
 /**
  * @description the object is to store and maintain the data for each 

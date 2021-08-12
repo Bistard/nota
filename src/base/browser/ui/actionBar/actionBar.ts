@@ -1,5 +1,5 @@
 import { ActionViewType } from 'mdnote';
-import { ActionViewModule } from "../actionView/actionView";
+import { ActionViewModule } from "src/base/browser/ui/actionView/actionView";
 
 /**
  * @description ActionBarModule provides access to each action view and handles 
@@ -80,6 +80,7 @@ export class ActionBarModule {
      * @description set actionBar listeners.
      */
     private _setListeners(): void {
+        // TODO: comeplete using my own API
         $('.action-button').on('click', { ActionBarModule: this }, function (event) {
             let that = event.data.ActionBarModule;
             that.clickActionBtn(this);

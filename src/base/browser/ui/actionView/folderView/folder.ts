@@ -1,8 +1,9 @@
 import { TreeNodeType } from 'mdnote';
-import { ipcRenderer, fs } from '../../../../util';
-import { FolderTreeModule, TreeNode } from './foldertree';
-import { TabBarModule } from './tabBar';
+import { fs } from 'src/base/util';
+import { FolderTreeModule, TreeNode } from 'src/base/browser/ui/actionView/folderView/foldertree';
+import { TabBarModule } from 'src/base/browser/ui/actionView/folderView/tabBar';
 import { TreeNodesType } from 'mdnote';
+import { domNodeByIdAddListener, ipcRendererOn, ipcRendererSend } from 'src/base/ipc/register';
 
 const folderView = document.getElementById('action-view') as HTMLElement;
 const treeContainer = document.getElementById('folder-tree-container') as HTMLElement;
@@ -294,16 +295,17 @@ export class FolderModule {
          * to use ipcRenderer and ipcMain. See more details about Electron/remote 
          * on https://www.electronjs.org/docs/api/remote
          */
-        emptyFolderTag.addEventListener('click', () => {
-            ipcRenderer.send('openDir');
+        domNodeByIdAddListener('emptyFolderTag', 'click', () => {
+            ipcRendererSend('openDir');
         })
 
         // set openDir listener to get response back from main.js
-        ipcRenderer.on('openDir', (_event, path, _stat) => {
+        ipcRendererOn('openDir', (_event, path, _stat) => {
             this.openDirecory(path);
-        })
-
+        });
+        
         // folder view resizeBar listeners
+        // TODO: complete
         resize.addEventListener("mousedown", (event) => {
             this.resizeX = event.x;
             document.addEventListener("mousemove", this.resizeContentView, false);
