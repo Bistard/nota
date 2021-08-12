@@ -125,11 +125,12 @@
   * [x] error handling
     * [ ] local log system
   * [x] code comments
-  * [ ] implement MVC (modle / view / controller) - https://stackoverflow.com/questions/16736483/best-way-to-organize-jquery-javascript-code-2013
+  * ~~implement MVC (modle / view / controller) - https://stackoverflow.com/questions/16736483/best-way-to-organize-jquery-javascript-code-2013~~
   * [x] preload.js
   * [ ] remove using document.getElementById() instead using JQuery (maybe? check performance)
     * [x] error: winMian is not found
-  * [ ] reduce frequency of using document.getElementById()
+  * ~~reduce frequency of using document.getElementById()~~
+    * still use document.getelementbyid() instead of jquery because it is faster
   * [x] using classes
   * [X] Settings (Config)
     * [ ] UI config
