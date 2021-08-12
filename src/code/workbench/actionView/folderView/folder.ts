@@ -1,7 +1,7 @@
 import { TreeNodeType } from 'mdnote';
 import { fs } from 'src/base/util';
-import { FolderTreeModule, TreeNode } from 'src/base/browser/ui/actionView/folderView/foldertree';
-import { TabBarModule } from 'src/base/browser/ui/actionView/folderView/tabBar';
+import { FolderTreeModule, TreeNode } from 'src/code/workbench/actionView/folderView/foldertree';
+import { TabBarModule } from 'src/code/workbench/actionView/folderView/tabBar';
 import { TreeNodesType } from 'mdnote';
 import { domNodeByIdAddListener, ipcRendererOn, ipcRendererSend } from 'src/base/ipc/register';
 

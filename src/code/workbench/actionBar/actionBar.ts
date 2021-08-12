@@ -1,5 +1,5 @@
 import { ActionViewType } from 'mdnote';
-import { ActionViewModule } from "src/base/browser/ui/actionView/actionView";
+import { ActionViewModule } from "src/code/workbench/actionView/actionView";
 
 /**
  * @description ActionBarModule provides access to each action view and handles 

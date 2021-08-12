@@ -19,8 +19,8 @@ import 'prismjs/components/prism-java';
 // @toast-ui-plugin: color syntax 
 import colorSyntax from '@toast-ui/editor-plugin-color-syntax';
 import { ConfigModule } from 'src/base/config';
-import { FolderModule } from 'src/base/browser/ui/actionView/folderView/folder';
-import { TreeNode } from 'src/base/browser/ui/actionView/folderView/foldertree';
+import { FolderModule } from 'src/code/workbench/actionView/folderView/folder';
+import { TreeNode } from 'src/code/workbench/actionView/folderView/foldertree';
 import { ipcRendererOn } from 'src/base/ipc/register';
 
 /**

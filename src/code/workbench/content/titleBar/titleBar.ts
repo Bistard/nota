@@ -1,5 +1,5 @@
 import { ConfigModule } from 'src/base/config';
-import { MarkdownModule } from 'src/base/browser/ui/content/markdown/markdown';
+import { MarkdownModule } from 'src/code/workbench/content/markdown/markdown';
 import { MarkdownRenderMode } from 'mdnote';
 import { domNodeByIdAddListener, ipcRendererOn, ipcRendererSend } from 'src/base/ipc/register';
 
