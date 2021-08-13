@@ -33,7 +33,7 @@ class Main {
                     nodeIntegration: true,
                     contextIsolation: false,
                     devTools: true,
-                    preload: path.join(__dirname + '/code', 'preload.js'),
+                    preload: path.join(__dirname, 'preload.js'),
                 },
                 resizable: true,
                 show: false,
