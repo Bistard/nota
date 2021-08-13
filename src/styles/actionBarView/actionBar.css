@@ -7,7 +7,7 @@
     -webkit-app-region: drag; /* draggable */
 }
 
-#action-buttion-container {
+#action-button-container {
     display: flex;
     flex-direction: column;
     align-items: center;
