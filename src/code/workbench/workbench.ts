@@ -3,8 +3,8 @@ import { Component, ComponentType } from "src/code/workbench/browser/component";
 import { IWorkbenchService } from "src/code/workbench/service/workbenchService";
 import { ActionViewComponent } from "src/code/workbench/browser/actionView/actionView";
 import { ActionBarComponent } from "src/code/workbench/browser/actionBar/actionBar";
-// import { FolderTreeModule } from "src/code/workbench/browser/actionView/folderView/foldertree";
-// import { TabBarModule } from "src/code/workbench/browser/actionView/folderView/tabBar";
+import { FolderTree } from "src/code/workbench/browser/actionView/folderView/foldertree";
+import { TabBarComponent } from "src/code/workbench/browser/actionView/folderView/tabBar";
 // import { FolderModule } from "src/code/workbench/browser/actionView/folderView/folder";
 // import { MarkdownModule } from "src/code/workbench/browser/content/markdown/markdown";
 // import { TitleBarModule } from "src/code/workbench/browser/content/titleBar/titleBar";
@@ -25,8 +25,8 @@ class Workbench implements IWorkbenchService {
     Config: ConfigModule;
     actionViewComponent!: ActionViewComponent;
     actionBarComponent!: ActionBarComponent;
-    // FolderTree: FolderTreeModule;
-    // TabBar: TabBarModule;
+    folderTree!: FolderTree;
+    tabBarComponent!: TabBarComponent;
     // Folder: FolderModule;
     // Markdown: MarkdownModule;
     // TitleBar: TitleBarModule;
@@ -45,22 +45,21 @@ class Workbench implements IWorkbenchService {
     private initComponents(): void {
         this.actionViewComponent = new ActionViewComponent(this);
         this.actionBarComponent = new ActionBarComponent(this, this.actionViewComponent);
+        this.tabBarComponent = new TabBarComponent(this, this.Config);
     }
 
     private renderComponents(): void {
         [
             {id: ComponentType.ActionBar, classes: []},
             {id: ComponentType.ActionView, classes: []},
+            {id: ComponentType.TabBar, classes: []},
             // {id: ComponentType.ContentView, classes: []},
         ]
         .forEach(({ id, classes }) => {
-            const componentContainer = this.initComponentContainer(id, classes);
-            this.mainAppContainer.appendChild(componentContainer);
-
             const component = this.getComponentById(id);
             
             // 
-            component.create(componentContainer);
+            component.create(this.mainAppContainer);
             
             // 
             component.register();

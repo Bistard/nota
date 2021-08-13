@@ -30,11 +30,11 @@ export class TreeNode {
 }
 
 /**
- * @description FolderTreeModule is responsible for storing data for each node 
+ * @description FolderTree is responsible for storing data for each node 
  * in the opened folder tree. Only deals with dada handling, searching and 
  * storing.
  */
-export class FolderTreeModule {
+export class FolderTree {
     
     public tree: TreeNode | {};
     public treeList: TreeNode[] | [];

@@ -32,15 +32,16 @@ export class ActionBarComponent extends Component {
         this.isActionViewActive = false;
     }
 
-    /**
-     * @description function to create the actual html layout and will be called
-     * by 'create()' from the Component class.
-     */
-    public override _createContentArea(parent: HTMLElement): HTMLElement {
-        this.parent = parent;
-        
-        const contentArea = document.createElement('div');
-        contentArea.id = 'action-button-container';
+    protected override _createContainer(): void {
+        this.parent.appendChild(this.container);
+        // customize...
+        this._createContentArea();
+    }
+
+    protected override _createContentArea(): void {
+        this.contentArea = document.createElement('div');
+        this.contentArea.id = 'action-button-container';
+        this.container.appendChild(this.contentArea);
 
         [
             {id: 'folder-button', src: 'file'},
@@ -50,21 +51,16 @@ export class ActionBarComponent extends Component {
             {id: 'setting-button', src: 'setting'},
         ]
         .forEach(({ id, src }) => {
-            const button = new Button(id, contentArea);
+            const button = new Button(id, this.contentArea!);
             button.setClass('button', 'action-button');
             button.setImage(src);
             button.setImageClass('vertical-center', 'filter-white');
 
             this._buttonGroups.push(button);
         });
-
-        return contentArea;
     }
 
-    /**
-     * @description set actionBar listeners.
-     */
-     protected override _registerListensers(): void {
+    protected override _registerListensers(): void {
 
         // TODO: remove later
         // give every actionButton a unique number.

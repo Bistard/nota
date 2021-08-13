@@ -4,34 +4,31 @@ export const enum ComponentType {
     ActionBar = 'action-bar',
     ActionView = 'action-view',
     ContentView = 'content-view',
+    TabBar = 'tab-bar',
 }
 
 export abstract class Component {
     
-    public id: string;
+    protected parent!: HTMLElement;
+    protected container: HTMLElement = document.createElement('div');
+    protected contentArea: HTMLElement | undefined;
 
-    public parent: HTMLElement | undefined;
-    public container: HTMLElement;
-    public contentArea: HTMLElement | undefined;
+    protected workbenchService!: IWorkbenchService;
 
     constructor(id: string,
                 workbenchService: IWorkbenchService) {
-        this.id = id;
-        this.container = document.createElement('div');
+        this.container.id = id;
+        this.workbenchService = workbenchService;
         
         workbenchService.registerComponent(this);
     }
 
     /**
-     * @description gneric function for every subclasses to be created.
+     * @description gneric function for every subclasses object to be created.
      */
     public create(parent: HTMLElement): void {
         this.parent = parent;
-        this.contentArea = this._createContentArea(parent);
-
-        if (this.parent && this.contentArea) {
-            this.parent.appendChild(this.contentArea);
-        }
+        this._createContainer();
     }
 
     /**
@@ -43,22 +40,36 @@ export abstract class Component {
     }
 
     /**
-     * @description subclasses override this function to create the actual 
-     * content.
+     * @description function to create the actual html layout and will be called
+     * by 'create()' from the Component class to create the whole component.
+     * 
+     * subclasses should override this function.
      */
-    protected _createContentArea(_parent: HTMLElement): HTMLElement | undefined {
+    protected _createContainer(): void {
+        return;
+    }
+
+    /**
+     * @description if needed, this function will be called inside the function
+     * '_createContainer()' to create the actual content of the component.
+     * 
+     * subclasses should override this function.
+     */
+    protected _createContentArea(): void {
         return undefined;
     }
 
     /**
-     * @description subclasses override this function to register listeners.
+     * @description to register listeners for the component and its content.
+     * 
+     * subclasses should override this function.
      */
     protected _registerListensers(): void {
         return;
     }
 
     public getId(): string {
-        return this.id;
+        return this.container.id;
     }
 
 }

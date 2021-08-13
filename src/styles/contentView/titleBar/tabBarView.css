@@ -1,10 +1,10 @@
-#tab-bar-container {
+#tab-bar {
     position: relative;
     width: 100%;
     height: 100%;
 }
 
-#tabBar {
+#tab-container {
     position: absolute;
     width: 100%;
     height: 40px;
@@ -22,7 +22,7 @@
     transition: color 0.2s ease;
 }
 
-#tabBar:hover {
+#tab-container:hover {
     color: rgba(0, 0, 0, 0.3);
 }
 

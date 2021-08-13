@@ -18,23 +18,22 @@ export class ActionViewComponent extends Component implements IActionViewService
         this.whichActionView = 'none';
     }
 
-    // TODO: complete
-    /**
-     * @description function to create the actual html layout and will be called
-     * by 'create()' from the Component class.
-     */
-     public override _createContentArea(parent: HTMLElement): HTMLElement {
-        this.parent = parent;
-        
-        const contentArea = document.createElement('div');
-        contentArea.id = 'action-view-container';
+    protected override _createContainer(): void {
+        this.parent.appendChild(this.container);
+        // customize...
+        this._createContentArea();
+    }
+
+    protected override _createContentArea(): void {
+        this.contentArea = document.createElement('div');
+        this.contentArea.id = 'action-view-container';
+        this.container.appendChild(this.contentArea);
 
         const actionViewTop = this._createActionViewTop();
         const actionViewContent = this._createActionViewContent();
 
-        contentArea.appendChild(actionViewTop);
-        contentArea.appendChild(actionViewContent);
-        return contentArea;
+        this.contentArea.appendChild(actionViewTop);
+        this.contentArea.appendChild(actionViewContent);
     }
 
     // TODO: genericize

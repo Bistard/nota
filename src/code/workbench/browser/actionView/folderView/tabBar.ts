@@ -4,14 +4,14 @@ import { WriteFileOptions } from 'original-fs';
 import { ConfigModule } from 'src/base/config';
 import { TreeNode } from 'src/code/workbench/browser/actionView/folderView/foldertree';
 import { ipcRendererOn, ipcRendererSendTest } from 'src/base/ipc/register';
-
-const tabBar = document.getElementById('tabBar') as HTMLElement;
+import { Component, ComponentType } from 'src/code/workbench/browser/component';
+import { IWorkbenchService } from 'src/code/workbench/service/workbenchService';
 
 /**
- * @description TabBarModule stores all the opened tabs data and handles all the 
+ * @description TabBarComponent stores all the opened tabs data and handles all the 
  * tabBar relevant listeners and business.
  */
-export class TabBarModule {
+export class TabBarComponent extends Component {
 
     public Config: ConfigModule;
     
@@ -21,14 +21,67 @@ export class TabBarModule {
     public openedTabInfo: TreeNode[];
     currFocusTabIndex: number;
 
-    constructor(ConfigModule: ConfigModule) {
+    constructor(workbenchService: IWorkbenchService, 
+                ConfigModule: ConfigModule) {
+        super(ComponentType.TabBar, workbenchService);
+
         this.Config = ConfigModule;
         this.emptyTab = true;
         this.openedTabCount = 0;
         this.openedTabInfo = [];
         this.currFocusTabIndex = -1;
+    }
+
+    protected override _createContainer(): void {
+        this.parent.appendChild(this.container);
+        // customize...
+        this._createContentArea();
+    }
+
+    protected override _createContentArea(): void {
+        this.contentArea = document.createElement('div');
+        this.contentArea.id = 'tab-container';
+        this.container.appendChild(this.contentArea);
+    }
+
+    protected override _registerListensers(): void {
         
-        this._setListeners();
+        // able to scroll horizontally using middle mouse
+        // TODO: complete
+        this.contentArea!.addEventListener('wheel', (event) => {
+            this.contentArea!.scrollLeft += event.deltaY;
+        })
+
+        // switch tab forwards
+        ipcRendererOn('Ctrl+Tab', () => {
+            if (!this.emptyTab && this.openedTabCount != 1) {
+                const index = (this.currFocusTabIndex + 1) % this.openedTabCount;
+                const tab = this.contentArea!.children[index] as HTMLElement;
+                let nodeInfo = this.openedTabInfo[index] as TreeNode;
+                this.openTab(tab, index, nodeInfo);
+            }
+        });
+        
+        // switch tab backwards
+        ipcRendererOn('Ctrl+Shift+Tab', () => {
+            if (!this.emptyTab && this.openedTabCount != 1) {
+                const index = (this.currFocusTabIndex - 1 + this.openedTabCount) % this.openedTabCount;
+                const tab = this.contentArea!.children[index] as HTMLElement;
+                let nodeInfo = this.openedTabInfo[index] as TreeNode;
+                this.openTab(tab, index, nodeInfo);
+            }
+        });
+        
+        // close current focused tab
+        
+        ipcRendererOn('Ctrl+W', () => {
+            if (!this.emptyTab) {
+                const tab = this.contentArea!.children[this.currFocusTabIndex] as HTMLElement;
+                let nodeInfo = this.openedTabInfo[this.currFocusTabIndex] as TreeNode;
+                this.closeTab(tab, nodeInfo);
+            }
+        });
+
     }
 
     /**
@@ -45,7 +98,7 @@ export class TabBarModule {
         for (i = 0; i < this.openedTabCount; i++) {
             if (nodeInfo.path == (this.openedTabInfo[i] as TreeNode).path) {
                 // tab exists
-                return [true, i, tabBar.childNodes[i] as HTMLElement];
+                return [true, i, this.contentArea!.childNodes[i] as HTMLElement];
             }
         }
 
@@ -138,7 +191,7 @@ export class TabBarModule {
      */
     public closeTab(element: HTMLElement, nodeInfo: TreeNode): void {
         
-        tabBar.removeChild(element);
+        this.contentArea!.removeChild(element);
 
         // save current change immediately
         if (this.Config.fileAutoSaveOn) {
@@ -178,7 +231,7 @@ export class TabBarModule {
             if (index == this.openedTabCount) {
                 index--;
             }
-            const nextFocusTab = tabBar.childNodes[index] as HTMLElement;
+            const nextFocusTab = this.contentArea!.childNodes[index] as HTMLElement;
             const nextFocustabInfo = this.openedTabInfo[index] as TreeNode;
             this.openTab(nextFocusTab, index, nextFocustabInfo);
         } else if (index < this.currFocusTabIndex) {
@@ -186,46 +239,4 @@ export class TabBarModule {
         }
     }
 
-    /**
-     * @description setup tabBar relevant listeners.
-     */
-    private _setListeners(): void {
-        
-        // able to scroll horizontally using middle mouse
-        // TODO: complete
-        tabBar.addEventListener('wheel', (event) => {
-            tabBar.scrollLeft += event.deltaY;
-        })
-
-        // switch tab forwards
-        ipcRendererOn('Ctrl+Tab', () => {
-            if (!this.emptyTab && this.openedTabCount != 1) {
-                const index = (this.currFocusTabIndex + 1) % this.openedTabCount;
-                const tab = tabBar.children[index] as HTMLElement;
-                let nodeInfo = this.openedTabInfo[index] as TreeNode;
-                this.openTab(tab, index, nodeInfo);
-            }
-        });
-        
-        // switch tab backwards
-        ipcRendererOn('Ctrl+Shift+Tab', () => {
-            if (!this.emptyTab && this.openedTabCount != 1) {
-                const index = (this.currFocusTabIndex - 1 + this.openedTabCount) % this.openedTabCount;
-                const tab = tabBar.children[index] as HTMLElement;
-                let nodeInfo = this.openedTabInfo[index] as TreeNode;
-                this.openTab(tab, index, nodeInfo);
-            }
-        });
-        
-        // close current focused tab
-        
-        ipcRendererOn('Ctrl+W', () => {
-            if (!this.emptyTab) {
-                const tab = tabBar.children[this.currFocusTabIndex] as HTMLElement;
-                let nodeInfo = this.openedTabInfo[this.currFocusTabIndex] as TreeNode;
-                this.closeTab(tab, nodeInfo);
-            }
-        });
-
-    }
 }

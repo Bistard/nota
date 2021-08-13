@@ -1,7 +1,7 @@
 import { TreeNodeType } from 'mdnote';
 import { fs } from 'src/base/util';
-import { FolderTreeModule, TreeNode } from 'src/code/workbench/browser/actionView/folderView/foldertree';
-import { TabBarModule } from 'src/code/workbench/browser/actionView/folderView/tabBar';
+import { FolderTree, TreeNode } from 'src/code/workbench/browser/actionView/folderView/foldertree';
+import { TabBarComponent } from 'src/code/workbench/browser/actionView/folderView/tabBar';
 import { TreeNodesType } from 'mdnote';
 import { domNodeByIdAddListener, ipcRendererOn, ipcRendererSend } from 'src/base/ipc/register';
 
@@ -13,20 +13,20 @@ const resize = document.getElementById("resize") as HTMLElement;
 
 /**
  * @description FolderModule mainly controlling folder/file system. Also 
- * interacts with FolderTreeModule and TabBarModule.
+ * interacts with FolderTree and TabBarComponent.
  */
 export class FolderModule {
 
-    public FolderTree: FolderTreeModule;
-    public TabBar: TabBarModule;
+    public FolderTree: FolderTree;
+    public TabBar: TabBarComponent;
 
     public resizeX: number;
     public isFolderOpened: boolean;
     public treeNodeCount: number;
 
-    constructor(FolderTreeModule: FolderTreeModule, TabBarModule: TabBarModule) {
-        this.FolderTree = FolderTreeModule;
-        this.TabBar = TabBarModule;
+    constructor(FolderTree: FolderTree, TabBarComponent: TabBarComponent) {
+        this.FolderTree = FolderTree;
+        this.TabBar = TabBarComponent;
 
         // this variable is to store the x-coordinate of the resizeBar in the 
         // folder view
@@ -150,7 +150,7 @@ export class FolderModule {
         const tabInfo = this.TabBar.initTab(nodeInfo)
         /**
          * @readonly if 'isExist' is false, 'tabIndex' is set as last one. See
-         * more details in TabBarModule.initTab()
+         * more details in TabBarComponent.initTab()
          */
         const isExist = tabInfo[0]
         const tabIndex = tabInfo[1]
@@ -173,7 +173,7 @@ export class FolderModule {
     }
 
     /**
-     * @description open the given file and calls TabBarModule.openTab().
+     * @description open the given file and calls TabBarComponent.openTab().
      */
     openFile(newTab: HTMLElement, tabIndex: number, nodeInfo: TreeNode): void {
 
