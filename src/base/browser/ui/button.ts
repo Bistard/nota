@@ -1,1 +1,49 @@
-/* type, interface, class for a button element */
+import { getSvgPathByName } from "src/base/common/string";
+
+// TODO: complete
+export interface IButtonStyles {
+
+}
+
+export interface IButtonOptions extends IButtonStyles {
+
+}
+
+export interface IButton {
+
+}
+
+export class Button implements IButton {
+    
+    public element: HTMLElement;
+    public imgElement?: HTMLImageElement;
+    // private _options: IButtonOptions;
+
+    constructor(id: string, container: HTMLElement, /* options?: IButtonOptions */) {
+        this.element = document.createElement('div');
+        this.element.id = id;
+        
+        // this._options = options || Object.create(null);
+        // ...
+        
+        container.appendChild(this.element);
+    }
+
+    public setClass(...classes: string[]): void {
+        this.element.classList.add(...classes);
+    }
+
+    public setImage(src: string): void {
+        this.imgElement = document.createElement('img');
+        this.imgElement.src = getSvgPathByName(src);
+        
+        this.element.appendChild(this.imgElement);
+    }
+
+    public setImageClass(...classes: string[]): void {
+        if (this.imgElement) {
+            this.imgElement.classList.add(...classes);
+        }
+    }
+
+}
