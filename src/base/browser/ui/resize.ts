@@ -1,11 +1,13 @@
+import { IWidget } from "src/base/browser/ui/widget";
 
-export interface IResize {
+export interface IResize extends IWidget {
 
 }
 
 // TODO: complete
 export class Resize implements IResize {
 
+    public id: string = 'resize';
     public element: HTMLElement;
 
     constructor() {

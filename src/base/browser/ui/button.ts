@@ -1,3 +1,4 @@
+import { IWidget } from "src/base/browser/ui/widget";
 import { getSvgPathByName } from "src/base/common/string";
 
 // TODO: complete
@@ -9,12 +10,13 @@ export interface IButtonOptions extends IButtonStyles {
 
 }
 
-export interface IButton {
+export interface IButton extends IWidget {
 
 }
 
 export class Button implements IButton {
     
+    public id: string = 'button';
     public element: HTMLElement;
     public imgElement?: HTMLImageElement;
     // private _options: IButtonOptions;
