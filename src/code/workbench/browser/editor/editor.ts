@@ -1,12 +1,12 @@
 import { Component, ComponentType } from "src/code/workbench/browser/component";
 import { MarkdownComponent } from "src/code/workbench/browser/editor/markdown/markdown";
-import { TitleBarModule } from "src/code/workbench/browser/editor/titleBar/titleBar";
+import { TitleBarComponent } from "src/code/workbench/browser/editor/titleBar/titleBar";
 import { IRegisterService } from "src/code/workbench/service/registerService";
 
 export class EditorComponent extends Component {
 
     titleBarView!: HTMLElement;
-    titleBarComponent!: TitleBarModule;
+    titleBarComponent!: TitleBarComponent;
 
     markdownView!: HTMLElement;
     markdownComponent!: MarkdownComponent;
@@ -39,8 +39,7 @@ export class EditorComponent extends Component {
     protected override _registerListeners(): void {
         
         this.markdownComponent.registerListeners();
-
-        // register title bar
+        this.titleBarComponent.registerListeners();
 
     }
 
@@ -49,8 +48,8 @@ export class EditorComponent extends Component {
         const titleBar = document.createElement('div');
         titleBar.id = 'title-bar';
 
-        const toolBar = document.createElement('div');
-        toolBar.id = 'tool-bar';
+        this.titleBarComponent = new TitleBarComponent(this);
+        this.titleBarComponent.create(titleBar);
 
         this.titleBarView = titleBar;
     }

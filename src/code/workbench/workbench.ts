@@ -4,7 +4,7 @@ import { ActionViewComponent } from "src/code/workbench/browser/actionView/actio
 import { ActionBarComponent } from "src/code/workbench/browser/actionBar/actionBar";
 import { EditorComponent } from "src/code/workbench/browser/editor/editor";
 // import { MarkdownComponent } from "src/code/workbench/browser/content/markdown/markdown";
-// import { TitleBarModule } from "src/code/workbench/browser/content/titleBar/titleBar";
+// import { TitleBarComponent } from "src/code/workbench/browser/content/titleBar/titleBar";
 
 
 

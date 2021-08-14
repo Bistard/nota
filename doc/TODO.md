@@ -59,8 +59,8 @@
     * [x] ~~bug: cannot remove menu properly~~
     * [x] icon
       * [x] switch mask-image to sth else
-      * [x] maxBtn
-        * [x] maxBtn switch to restoreBtn
+      * [x] max-btn
+        * [x] max-btn switch to restoreBtn
         * [ ] holding onclick can change to mode 'always on top'
     * [x] toolBarView
       * [x] UI
@@ -124,7 +124,8 @@
     * [x] refactor all javascript codes
       * [x] config.ts && main.module.ts
   * [x] code big refactoring
-    * [ ] rewrite comments
+    * [x] rewrite comments
+      * [ ] rewrite foldertree.ts
     * [x] services
       * [ ] using services to interact between components
     * [ ] dispose pattern
