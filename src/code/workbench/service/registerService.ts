@@ -1,6 +1,6 @@
 import { Component } from "src/code/workbench/browser/component";
 
-export interface IWorkbenchService {
+export interface IRegisterService {
 
     registerComponent(component: Component): void;
 
