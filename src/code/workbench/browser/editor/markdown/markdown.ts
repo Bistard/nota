@@ -22,15 +22,16 @@ import { ConfigModule } from 'src/base/config';
 import { FolderViewComponent } from 'src/code/workbench/browser/actionView/folder/folder';
 import { TreeNode } from 'src/code/workbench/browser/actionView/folder/foldertree';
 import { ipcRendererOn } from 'src/base/ipc/register';
+import { Component } from 'src/code/workbench/browser/component';
+import { IRegisterService } from 'src/code/workbench/service/registerService';
 
 /**
- * @description MarkdownModule initializes markdown renderer and windows and
+ * @description MarkdownComponent initializes markdown renderer and windows and
  * handling a few other shortcuts as well.
  */
-export class MarkdownModule {
+export class MarkdownComponent extends Component {
     
-    Config: ConfigModule;
-    folderViewComponent: FolderViewComponent;
+    // folderViewComponent: FolderViewComponent;
 
     editor: Editor | null;
 
@@ -38,9 +39,10 @@ export class MarkdownModule {
 
     colorSyntaxOptions: any;
 
-    constructor(ConfigModule: ConfigModule, folderViewComponent: FolderViewComponent) {
-        this.Config = ConfigModule;
-        this.folderViewComponent = folderViewComponent;
+    constructor(registerService: IRegisterService) {
+        super('markdown', registerService);
+
+        // this.folderViewComponent = folderViewComponent;
 
         this.editor = null;
         
@@ -63,9 +65,26 @@ export class MarkdownModule {
                      '#5200ff', // indigo
                      '#ad00ff'] // violet
         };
+    }
 
+    protected override _createContainer(): void {
+        this.parent.appendChild(this.container);
+        // customize...
+        this._createContentArea();
+    }
+
+    protected override _createContentArea(): void {
         this.createMarkdownEditor();
-        this.setListeners();
+    }
+    protected override _registerListeners(): void {
+        // ipcRendererOn('Ctrl+S', () => {
+        //     if (!this.folderViewComponent.TabBar.emptyTab) {
+        //         if (this.saveFileTimeout) {
+        //             clearTimeout(this.saveFileTimeout);
+        //         }
+        //         this.markdownSaveFile();
+        //     }
+        // })
     }
 
     /**
@@ -75,7 +94,7 @@ export class MarkdownModule {
     createMarkdownEditor(): void {
 
         let editor = new Editor({
-            el: document.getElementById('md') as HTMLElement, // HTMLElement container for md editor
+            el: this.container, // HTMLElement container for markdown editor
             height: '100%',
             language: 'en-US',
             /**
@@ -116,16 +135,14 @@ export class MarkdownModule {
             ],
         })
 
-        
-
         editor.getMarkdown();
         this.editor = editor;
-        (window as any).editor = editor; // set as global value
+        (window as any).editor = editor; // set as global value TODO: remove later
 
         // spellcheck config check
-        if (!this.Config.markdownSpellCheckOn) {
-            const md = document.getElementById('md') as HTMLElement;
-            md.setAttribute('spellcheck', 'false');
+        if (ConfigModule.markdownSpellCheckOn) {
+            const markdown = document.getElementById('markdown') as HTMLElement;
+            markdown.setAttribute('spellcheck', 'false');
         }
 
     }
@@ -135,7 +152,7 @@ export class MarkdownModule {
      */
     onChange(): void {
         // check if file-auto-save is ON
-        if (this.Config.fileAutoSaveOn) {
+        if (ConfigModule.fileAutoSaveOn) {
             // if content is changed before the previous timeout has 
             // reached, clear the preivous one.
             if (this.saveFileTimeout) {
@@ -156,22 +173,6 @@ export class MarkdownModule {
         // const nodeInfo = this.folderViewComponent.TabBar.openedTabInfo[index] as TreeNode;
         // const newText = this.editor!.getMarkdown();
         // this.folderViewComponent.saveFile(nodeInfo, newText);
-    }
-
-    /**
-     * @description setup markdown relevant listeners.
-     */
-    setListeners(): void {
-
-        // ipcRendererOn('Ctrl+S', () => {
-        //     if (!this.folderViewComponent.TabBar.emptyTab) {
-        //         if (this.saveFileTimeout) {
-        //             clearTimeout(this.saveFileTimeout);
-        //         }
-        //         this.markdownSaveFile();
-        //     }
-        // })
-
     }
 
 }

@@ -13,19 +13,15 @@ import { IRegisterService } from 'src/code/workbench/service/registerService';
  */
 export class TabBarComponent extends Component {
 
-    public Config: ConfigModule;
-    
     public emptyTab: boolean;
     public openedTabCount: number;
 
     public openedTabInfo: TreeNode[];
     currFocusTabIndex: number;
 
-    constructor(registerService: IRegisterService, 
-                ConfigModule: ConfigModule) {
+    constructor(registerService: IRegisterService) {
         super('tab-bar', registerService);
 
-        this.Config = ConfigModule;
         this.emptyTab = true;
         this.openedTabCount = 0;
         this.openedTabInfo = [];
@@ -194,7 +190,7 @@ export class TabBarComponent extends Component {
         this.contentArea!.removeChild(element);
 
         // save current change immediately
-        if (this.Config.fileAutoSaveOn) {
+        if (ConfigModule.fileAutoSaveOn) {
             /**
              * TODO: currently, written texts are from nodeInfo.plainText. If we decide to use 
              * mutiple threads for each tab, the texts should read from window.editor.getMarkdown()

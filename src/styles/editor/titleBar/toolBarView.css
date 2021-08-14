@@ -1,4 +1,4 @@
-#tool-bar-container {
+#tool-bar {
     position: relative;
     height: 40px;
     width: 100%;
@@ -9,7 +9,7 @@
     -webkit-app-region: drag; /* draggable */
 }
 
-#tool-bar {
+#tool-bar-container {
     position: relative;
     height: 40px;
     width: auto;

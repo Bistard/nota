@@ -65,7 +65,7 @@ export class ActionViewComponent extends Component {
 
     protected override _registerListeners(): void {
 
-        this._registerActionViewContent();
+        this.folderViewComponent.registerListeners();
 
         // register topView icon
 
@@ -107,7 +107,6 @@ export class ActionViewComponent extends Component {
         .forEach((name) => {
             const subView = document.createElement('div');
             subView.id = name;
-            actionViewContent.appendChild(subView);
             switch (subView.id) {
                 case 'folder-container':
                     this.folderViewComponent = new FolderViewComponent(this);
@@ -122,13 +121,10 @@ export class ActionViewComponent extends Component {
                 default:
                     break;
             }
+            actionViewContent.appendChild(subView);
         });
 
         return actionViewContent;
-    }
-
-    private _registerActionViewContent(): void {
-        this.folderViewComponent.registerListeners();
     }
 
     /**

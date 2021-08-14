@@ -1,5 +1,5 @@
 import { ConfigModule } from 'src/base/config';
-import { MarkdownModule } from 'src/code/workbench/browser/editor/markdown/markdown';
+import { MarkdownComponent } from 'src/code/workbench/browser/editor/markdown/markdown';
 import { MarkdownRenderMode } from 'mdnote';
 import { domNodeByIdAddListener, ipcRendererOn, ipcRendererSend } from 'src/base/ipc/register';
 
@@ -9,8 +9,7 @@ import { domNodeByIdAddListener, ipcRendererOn, ipcRendererSend } from 'src/base
  */
 export class TitleBarModule {
     
-    Config: ConfigModule;
-    Markdown: MarkdownModule;
+    Markdown: MarkdownComponent;
 
     markdownMode: MarkdownRenderMode;
 
@@ -18,14 +17,13 @@ export class TitleBarModule {
     isMarkdownToolExpand: boolean;
     isTabBarExpand: boolean;
 
-    constructor(ConfigModule: ConfigModule, MarkdownModule: MarkdownModule) {
+    constructor(MarkdownComponent: MarkdownComponent) {
         
-        this.Config = ConfigModule;
-        this.Markdown = MarkdownModule;
+        this.Markdown = MarkdownComponent;
 
-        this.markdownMode = this.Config.defaultMarkdownMode;
+        this.markdownMode = ConfigModule.defaultMarkdownMode;
         
-        this.isToolBarExpand = this.Config.isToolBarExpand;
+        this.isToolBarExpand = ConfigModule.isToolBarExpand;
         this.isMarkdownToolExpand = false;
         this.isTabBarExpand = false;
 
@@ -90,11 +88,11 @@ export class TitleBarModule {
      */
      toolBarStateChange(shouldExpand: boolean): void {
         if (shouldExpand) {
-            $('#tool-bar').show(100);
+            $('#tool-bar-container').show(100);
             $('#expand-collapse > img').attr('src', './src/assets/svg/titleBarView/caret-left.svg');
             this.isToolBarExpand = true;
         } else {
-            $('#tool-bar').hide(100);
+            $('#tool-bar-container').hide(100);
             $('#expand-collapse > img').attr('src', './src/assets/svg/titleBarView/caret-right.svg');
             this.isToolBarExpand = false;
         }

@@ -1,10 +1,9 @@
-import { ConfigModule } from "src/base/config";
 import { Component, ComponentType } from "src/code/workbench/browser/component";
 import { IRegisterService } from "src/code/workbench/service/registerService";
 import { ActionViewComponent } from "src/code/workbench/browser/actionView/actionView";
 import { ActionBarComponent } from "src/code/workbench/browser/actionBar/actionBar";
 import { EditorComponent } from "src/code/workbench/browser/editor/editor";
-// import { MarkdownModule } from "src/code/workbench/browser/content/markdown/markdown";
+// import { MarkdownComponent } from "src/code/workbench/browser/content/markdown/markdown";
 // import { TitleBarModule } from "src/code/workbench/browser/content/titleBar/titleBar";
 
 
@@ -21,14 +20,11 @@ class Workbench implements IRegisterService {
 
     private componentMap = new Map<string, Component>();
 
-    Config: ConfigModule;
     actionViewComponent!: ActionViewComponent;
     actionBarComponent!: ActionBarComponent;
     editorComponent!: EditorComponent;
     
-    constructor() {
-        this.Config = new ConfigModule();
-        
+    constructor() {    
         this.initComponents();
         this.renderComponents();
     }
