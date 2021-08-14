@@ -24,7 +24,7 @@ img {
     box-sizing: border-box;
 }
 
-#content-view {
+#editor-view {
     position: relative;
     display: flex;
     flex-direction: column;

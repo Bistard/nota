@@ -15,10 +15,7 @@ export class ActionBarComponent extends Component {
     
     actionViewComponent: ActionViewComponent;
 
-    // indicates which action button is focused, -1 if none.
     currFocusActionBtnIndex: number;
-
-    // indicates whether action view is opened or not.
     isActionViewActive: boolean;
 
     constructor(registerService: IRegisterService,

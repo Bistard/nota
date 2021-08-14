@@ -3,6 +3,7 @@ import { Component, ComponentType } from "src/code/workbench/browser/component";
 import { IRegisterService } from "src/code/workbench/service/registerService";
 import { ActionViewComponent } from "src/code/workbench/browser/actionView/actionView";
 import { ActionBarComponent } from "src/code/workbench/browser/actionBar/actionBar";
+import { EditorComponent } from "src/code/workbench/browser/editor/editor";
 // import { MarkdownModule } from "src/code/workbench/browser/content/markdown/markdown";
 // import { TitleBarModule } from "src/code/workbench/browser/content/titleBar/titleBar";
 
@@ -23,7 +24,7 @@ class Workbench implements IRegisterService {
     Config: ConfigModule;
     actionViewComponent!: ActionViewComponent;
     actionBarComponent!: ActionBarComponent;
-    // Markdown: MarkdownModule;
+    editorComponent!: EditorComponent;
     
     constructor() {
         this.Config = new ConfigModule();
@@ -39,13 +40,14 @@ class Workbench implements IRegisterService {
     private initComponents(): void {
         this.actionViewComponent = new ActionViewComponent(this);
         this.actionBarComponent = new ActionBarComponent(this, this.actionViewComponent);
+        this.editorComponent = new EditorComponent(this);
     }
 
     private renderComponents(): void {
         [
             {id: ComponentType.ActionBar, classes: []},
             {id: ComponentType.ActionView, classes: []},
-            // {id: ComponentType.ContentView, classes: []},
+            {id: ComponentType.editor, classes: []},
         ]
         .forEach(({ id, classes }) => {
             const component = this.getComponentById(id);

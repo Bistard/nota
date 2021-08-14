@@ -1,0 +1,27 @@
+#folder-container {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 100%;
+    background-color: #273137;
+}
+
+#emptyFolderTag {
+    color: transparent;
+    font-size: 10pt;
+    text-align: center;
+    transition: 0.1s;
+}
+
+#folder-container:hover > #emptyFolderTag {
+    color: #9f9f95;
+}
+
+#folder-container:hover > #emptyFolderTag:hover {
+    color: rgb(202, 202, 202);
+}
+
+#folder-container:hover > #emptyFolderTag:active {
+    color: #9f9f95;
+}

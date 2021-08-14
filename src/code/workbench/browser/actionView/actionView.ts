@@ -2,7 +2,7 @@ import { ActionViewType } from 'mdnote';
 import { getSvgPathByName } from 'src/base/common/string';
 import { Component, ComponentType } from 'src/code/workbench/browser/component';
 import { IRegisterService } from 'src/code/workbench/service/registerService';
-import { FolderViewComponent } from "src/code/workbench/browser/actionView/folderView/folder";
+import { FolderViewComponent } from "src/code/workbench/browser/actionView/folder/folder";
 
 export enum ActionViewComponentType {
     FolderView = 'folder-container',

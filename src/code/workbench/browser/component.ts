@@ -3,8 +3,7 @@ import { IRegisterService } from "src/code/workbench/service/registerService";
 export const enum ComponentType {
     ActionBar = 'action-bar',
     ActionView = 'action-view',
-    ContentView = 'content-view',
-    TabBar = 'tab-bar',
+    editor = 'editor-view',
 }
 
 export interface IComponent {

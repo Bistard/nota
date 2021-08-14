@@ -1,0 +1,47 @@
+/*//////////////////////// CUSTOM TOASTUI EDITOR UI //////////////////////////*/
+
+.toastui-editor-defaultUI {
+    border-radius: 0px;
+    border: 0px solid transparent;
+}
+
+.toastui-editor-contents {
+    /* fixes chinese characers are not displayed well (using 雅黑 for now) */
+    font-family: "Microsoft Yahei", 'Open Sans', 'Helvetica Neue', 'Helvetica', 'Arial', '나눔바른고딕',
+    'Nanum Barun Gothic', '맑은고딕', 'Malgun Gothic', sans-serif;
+}
+/* 
+.toastui-editor-contents {
+    font-size: 16px;
+}
+
+.toastui-editor-contents h1 {
+    font-size: 34px;
+    line-height: 38px;
+}
+
+.toastui-editor-contents h2 {
+    font-size: 30px;
+    line-height: 31px;
+}
+
+.toastui-editor-contents h3 {
+    font-size: 28px;
+    line-height: 25px;
+}
+
+.toastui-editor-contents h4 {
+    font-size: 25px;
+    line-height: 25px;
+}
+
+.toastui-editor-contents h5 {
+    font-size: 22px;
+    line-height: 20px;
+}
+
+.toastui-editor-contents h6 {
+    font-size: 20px;
+    line-height: 20px;
+}
+ */
