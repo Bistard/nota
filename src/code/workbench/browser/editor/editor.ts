@@ -1,13 +1,15 @@
 import { Component, ComponentType } from "src/code/workbench/browser/component";
+import { MarkdownComponent } from "src/code/workbench/browser/editor/markdown/markdown";
+import { TitleBarModule } from "src/code/workbench/browser/editor/titleBar/titleBar";
 import { IRegisterService } from "src/code/workbench/service/registerService";
 
 export class EditorComponent extends Component {
 
-    // titleBarComponent...
-    titleBarComponent!: any;
+    titleBarView!: HTMLElement;
+    titleBarComponent!: TitleBarModule;
 
-    // markdownComponent...
-    markdownComponent!: any;
+    markdownView!: HTMLElement;
+    markdownComponent!: MarkdownComponent;
 
     constructor(registerService: IRegisterService) {
         super(ComponentType.editor, registerService);
@@ -25,25 +27,42 @@ export class EditorComponent extends Component {
         this.contentArea = document.createElement('div');
         this.contentArea.id = 'editor-view-container';
 
-        this.titleBarComponent = this._createTitleBarComponent();
-        this.markdownComponent = this._createMarkdownComponent();
+        this._createTitleBar();
+        this._createMarkdown();
 
-        this.contentArea.appendChild(this.titleBarComponent);
-        this.contentArea.appendChild(this.markdownComponent);
-        
+        this.contentArea.appendChild(this.titleBarView);
+        this.contentArea.appendChild(this.markdownView);
+
         this.container.appendChild(this.contentArea);
     }
 
     protected override _registerListeners(): void {
         
+        this.markdownComponent.registerListeners();
+
+        // register title bar
+
     }
 
-    private _createTitleBarComponent(): void {
+    // TODO
+    private _createTitleBar(): void {
+        const titleBar = document.createElement('div');
+        titleBar.id = 'title-bar';
 
+        const toolBar = document.createElement('div');
+        toolBar.id = 'tool-bar';
+
+        this.titleBarView = titleBar;
     }
 
-    private _createMarkdownComponent(): void {
+    private _createMarkdown(): void {
+        const markdownView = document.createElement('div');
+        markdownView.id = 'markdown-view';
 
+        this.markdownComponent = new MarkdownComponent(this);
+        this.markdownComponent.create(markdownView);
+
+        this.markdownView = markdownView;
     }
 
 }
