@@ -10,38 +10,29 @@ export class ConfigModule {
      * @readonly used for file/folder reading and writing.
      */
     
-    public OpenDirConfig: Electron.OpenDialogOptions;
+    public static OpenDirConfig: Electron.OpenDialogOptions = {
+        /* defaultPath: app.getPath('desktop'), */
+        defaultPath: 'D:\\dev\\AllNote',
+        buttonLabel: 'open a file or folder',
+        properties: [
+            /* 'openFile', */
+            'openDirectory',
+        ],
+    };
 
-    public fileAutoSaveOn: boolean;
+    public static fileAutoSaveOn: boolean = true;
     
     /**
      * @readonly titleBarView config
      */
 
-    public defaultMarkdownMode: MarkdownRenderMode;
+    public static defaultMarkdownMode: MarkdownRenderMode = 'wysiwyg';
 
-    public isToolBarExpand: boolean;
+    public static isToolBarExpand: boolean = true;
 
     /**
      * @readonly markdownView config
      */
-    public markdownSpellCheckOn: boolean;
-    
-    constructor() {
-        
-        this.OpenDirConfig = {
-            /* defaultPath: app.getPath('desktop'), */
-            defaultPath: 'D:\\dev\\AllNote',
-            buttonLabel: 'open a file or folder',
-            properties: [
-                /* 'openFile', */
-                'openDirectory',
-            ],
-        }
-        this.fileAutoSaveOn = true;
-        this.defaultMarkdownMode = 'wysiwyg';
-        this.isToolBarExpand = true;
-        this.markdownSpellCheckOn = false;
-    }
+    public static markdownSpellCheckOn: boolean = false;
 
 }
