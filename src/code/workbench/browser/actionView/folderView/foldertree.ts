@@ -15,9 +15,14 @@ export class TreeNode {
     public isExpand: boolean
     public plainText: string; 
 
-    constructor(nodes: {[propName: string]: TreeNode}, isFolder: boolean, 
-                name: string, baseName: string, path: string, level: number, 
-                isExpand: boolean, plainText: string) {
+    constructor(nodes: {[propName: string]: TreeNode}, 
+                isFolder: boolean, 
+                name: string, 
+                baseName: string, 
+                path: string, 
+                level: number, 
+                isExpand: boolean, 
+                plainText: string) {
         this.nodes = nodes;
         this.isFolder = isFolder;
         this.name = name;

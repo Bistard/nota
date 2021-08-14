@@ -2,7 +2,7 @@ import { ActionViewType } from 'mdnote';
 import { Button, IButton } from 'src/base/browser/ui/button';
 import { ActionViewComponent } from "src/code/workbench/browser/actionView/actionView";
 import { Component, ComponentType } from 'src/code/workbench/browser/component';
-import { IWorkbenchService } from 'src/code/workbench/service/workbenchService';
+import { IRegisterService } from 'src/code/workbench/service/registerService';
 
 /**
  * @description ActionBarComponent provides access to each action view and handles 
@@ -12,7 +12,7 @@ import { IWorkbenchService } from 'src/code/workbench/service/workbenchService';
 export class ActionBarComponent extends Component {
 
     private _buttonGroups: IButton[] = [];
-
+    
     actionViewComponent: ActionViewComponent;
 
     // indicates which action button is focused, -1 if none.
@@ -21,9 +21,9 @@ export class ActionBarComponent extends Component {
     // indicates whether action view is opened or not.
     isActionViewActive: boolean;
 
-    constructor(workbenchService: IWorkbenchService,
+    constructor(registerService: IRegisterService,
                 ActionViewComponent: ActionViewComponent) {
-        super(ComponentType.ActionBar, workbenchService);
+        super(ComponentType.ActionBar, registerService);
         
         this.actionViewComponent = ActionViewComponent;
 
@@ -60,7 +60,7 @@ export class ActionBarComponent extends Component {
         });
     }
 
-    protected override _registerListensers(): void {
+    protected override _registerListeners(): void {
 
         // TODO: remove later
         // give every actionButton a unique number.

@@ -1,19 +1,34 @@
 import { ActionViewType } from 'mdnote';
 import { getSvgPathByName } from 'src/base/common/string';
 import { Component, ComponentType } from 'src/code/workbench/browser/component';
-import { IActionViewService } from 'src/code/workbench/service/actionViewService';
-import { IWorkbenchService } from 'src/code/workbench/service/workbenchService';
+import { IRegisterService } from 'src/code/workbench/service/registerService';
+import { FolderViewComponent } from "src/code/workbench/browser/actionView/folderView/folder";
+
+export enum ActionViewComponentType {
+    FolderView = 'folder-container',
+    OutlineView = 'outline-container',
+    SearchView = 'search-container',
+    GitView = 'git-container',
+}
 
 /**
  * @description ActionViewComponent displays different action view such as 
  * folderView, outlineView, gitView and so on.
  */
-export class ActionViewComponent extends Component implements IActionViewService {
+export class ActionViewComponent extends Component {
 
     public whichActionView: ActionViewType;
+    
+    private actionViewContentContainer!: HTMLElement;
+    private resize!: HTMLElement;
+    private actionViewTop!: HTMLElement;
+    private actionViewContent!: HTMLElement;
 
-    constructor(workbenchService: IWorkbenchService) {
-        super(ComponentType.ActionView, workbenchService);
+    private folderViewComponent!: FolderViewComponent;
+    // Others...
+
+    constructor(registerService: IRegisterService) {
+        super(ComponentType.ActionView, registerService);
         
         this.whichActionView = 'none';
     }
@@ -27,13 +42,34 @@ export class ActionViewComponent extends Component implements IActionViewService
     protected override _createContentArea(): void {
         this.contentArea = document.createElement('div');
         this.contentArea.id = 'action-view-container';
+        
+        this.actionViewContentContainer = document.createElement('div');
+        this.actionViewContentContainer.id = 'action-content-container';
+
+        this.resize = document.createElement('div');
+        this.resize.id = 'resize';
+        this.resize.classList.add('resizeBtn-style', 'vertical-center');
+
+        this.actionViewTop = this._createActionViewTop();
+        this.actionViewContent = this._createActionViewContent();
+
+        this.actionViewContentContainer.appendChild(this.actionViewTop);
+        this.actionViewContentContainer.appendChild(this.actionViewContent);
+        
+        this.contentArea.appendChild(this.actionViewContentContainer);
+        this.contentArea.appendChild(this.resize);
+        
         this.container.appendChild(this.contentArea);
 
-        const actionViewTop = this._createActionViewTop();
-        const actionViewContent = this._createActionViewContent();
+    }
 
-        this.contentArea.appendChild(actionViewTop);
-        this.contentArea.appendChild(actionViewContent);
+    protected override _registerListeners(): void {
+
+        this._registerActionViewContent();
+
+        // register topView icon
+
+        // register right click
     }
 
     // TODO: genericize
@@ -63,19 +99,36 @@ export class ActionViewComponent extends Component implements IActionViewService
 
         // TODO: maybe not to initialize them all
         [
-            'folder-tree-container',
+            'folder-container',
             'outline-container',
             'search-container',
             'git-container',
         ]
-        .forEach(name => {
+        .forEach((name) => {
             const subView = document.createElement('div');
             subView.id = name;
-
             actionViewContent.appendChild(subView);
+            switch (subView.id) {
+                case 'folder-container':
+                    this.folderViewComponent = new FolderViewComponent(this);
+                    this.folderViewComponent.create(subView);
+                    break;
+                case 'outline-container':
+                    break;
+                case 'search-container':
+                    break;
+                case 'git-container':
+                    break;
+                default:
+                    break;
+            }
         });
 
         return actionViewContent;
+    }
+
+    private _registerActionViewContent(): void {
+        this.folderViewComponent.registerListeners();
     }
 
     /**
@@ -86,17 +139,17 @@ export class ActionViewComponent extends Component implements IActionViewService
             return;
         }
         
-        this.displayActionViewTopText(actionViewName);
+        this.actionViewTopTextOnChange(actionViewName);
         this.hideActionViewContent();
         
         if (actionViewName == 'folder') {
-            $('#folder-tree-container').show(0);
+            $('#folder-container').show(0);
         } else if (actionViewName == 'outline') {
             $('#outline-container').show(0);
         } else if (actionViewName == 'search') {
-
+            $('#search-container').show(0);
         } else if (actionViewName == 'git') {
-        
+            $('#git-container').show(0);
         } else {
             throw 'error';
         }
@@ -107,7 +160,7 @@ export class ActionViewComponent extends Component implements IActionViewService
     /**
      * @description display given text on the action view top.
      */
-    public displayActionViewTopText(name: string): void {
+    public actionViewTopTextOnChange(name: string): void {
         if (name == 'folder') {
             $('#action-view-top-text').html('Notebook');
         } else if (name == 'git') {
