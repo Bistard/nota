@@ -128,7 +128,7 @@
     * [x] services
       * [ ] using services to interact between components
     * [ ] dispose pattern
-    * [ ] Workbench extends Component
+    * ~~Workbench extends Component~~
   * [x] error handling
     * [ ] local log system
   * [x] code comments
