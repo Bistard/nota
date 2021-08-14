@@ -5,7 +5,7 @@ import { ConfigModule } from 'src/base/config';
 import { TreeNode } from 'src/code/workbench/browser/actionView/folderView/foldertree';
 import { ipcRendererOn, ipcRendererSendTest } from 'src/base/ipc/register';
 import { Component, ComponentType } from 'src/code/workbench/browser/component';
-import { IWorkbenchService } from 'src/code/workbench/service/workbenchService';
+import { IRegisterService } from 'src/code/workbench/service/registerService';
 
 /**
  * @description TabBarComponent stores all the opened tabs data and handles all the 
@@ -21,9 +21,9 @@ export class TabBarComponent extends Component {
     public openedTabInfo: TreeNode[];
     currFocusTabIndex: number;
 
-    constructor(workbenchService: IWorkbenchService, 
+    constructor(registerService: IRegisterService, 
                 ConfigModule: ConfigModule) {
-        super(ComponentType.TabBar, workbenchService);
+        super(ComponentType.TabBar, registerService);
 
         this.Config = ConfigModule;
         this.emptyTab = true;
@@ -44,7 +44,7 @@ export class TabBarComponent extends Component {
         this.container.appendChild(this.contentArea);
     }
 
-    protected override _registerListensers(): void {
+    protected override _registerListeners(): void {
         
         // able to scroll horizontally using middle mouse
         // TODO: complete
