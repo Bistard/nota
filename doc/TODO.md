@@ -124,7 +124,11 @@
     * [x] refactor all javascript codes
       * [x] config.ts && main.module.ts
   * [x] code big refactoring
+    * [ ] rewrite comments
+    * [x] services
+      * [ ] using services to interact between components
     * [ ] dispose pattern
+    * [ ] Workbench extends Component
   * [x] error handling
     * [ ] local log system
   * [x] code comments

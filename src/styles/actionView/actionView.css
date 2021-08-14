@@ -14,8 +14,30 @@
     position: relative;
     width: 100%;
     height: 100%;
+}
+
+#action-content-container {
+    position: relative;
+    width: 100%;
+    height: 100%;
     display: flex;
     flex-direction: column;
+}
+
+#resize {
+    position: absolute;
+    right: 0px;
+
+    width: 2px;
+    height: 100%;
+    
+    cursor: w-resize;
+    background-color: #273137;
+    transition: 0.2s;
+}
+
+#resize:hover {
+    background-color: #ccc;
 }
 
 #action-view-top {
@@ -62,20 +84,4 @@
 
 #action-view-top > img:hover {
     background-color: #e0e0e0;
-}
-
-#resize {
-    position: absolute;
-    right: 0px;
-
-    width: 2px;
-    height: 100%;
-    
-    cursor: w-resize;
-    background-color: #273137;
-    transition: 0.2s;
-}
-
-#resize:hover {
-    background-color: #ccc;
 }

@@ -19,7 +19,7 @@ import 'prismjs/components/prism-java';
 // @toast-ui-plugin: color syntax 
 import colorSyntax from '@toast-ui/editor-plugin-color-syntax';
 import { ConfigModule } from 'src/base/config';
-import { FolderModule } from 'src/code/workbench/browser/actionView/folderView/folder';
+import { FolderViewComponent } from 'src/code/workbench/browser/actionView/folderView/folder';
 import { TreeNode } from 'src/code/workbench/browser/actionView/folderView/foldertree';
 import { ipcRendererOn } from 'src/base/ipc/register';
 
@@ -30,7 +30,7 @@ import { ipcRendererOn } from 'src/base/ipc/register';
 export class MarkdownModule {
     
     Config: ConfigModule;
-    Folder: FolderModule;
+    folderViewComponent: FolderViewComponent;
 
     editor: Editor | null;
 
@@ -38,9 +38,9 @@ export class MarkdownModule {
 
     colorSyntaxOptions: any;
 
-    constructor(ConfigModule: ConfigModule, FolderModule: FolderModule) {
+    constructor(ConfigModule: ConfigModule, folderViewComponent: FolderViewComponent) {
         this.Config = ConfigModule;
-        this.Folder = FolderModule;
+        this.folderViewComponent = folderViewComponent;
 
         this.editor = null;
         
@@ -149,13 +149,13 @@ export class MarkdownModule {
     }
 
     /**
-     * @description calling saveFile() from FolderModule.
+     * @description calling saveFile() from folderViewComponent.
      */
     markdownSaveFile(): void {
-        const index = this.Folder.TabBar.currFocusTabIndex;
-        const nodeInfo = this.Folder.TabBar.openedTabInfo[index] as TreeNode;
-        const newText = this.editor!.getMarkdown();
-        this.Folder.saveFile(nodeInfo, newText);
+        // const index = this.folderViewComponent.TabBar.currFocusTabIndex;
+        // const nodeInfo = this.folderViewComponent.TabBar.openedTabInfo[index] as TreeNode;
+        // const newText = this.editor!.getMarkdown();
+        // this.folderViewComponent.saveFile(nodeInfo, newText);
     }
 
     /**
@@ -163,14 +163,14 @@ export class MarkdownModule {
      */
     setListeners(): void {
 
-        ipcRendererOn('Ctrl+S', () => {
-            if (!this.Folder.TabBar.emptyTab) {
-                if (this.saveFileTimeout) {
-                    clearTimeout(this.saveFileTimeout);
-                }
-                this.markdownSaveFile();
-            }
-        })
+        // ipcRendererOn('Ctrl+S', () => {
+        //     if (!this.folderViewComponent.TabBar.emptyTab) {
+        //         if (this.saveFileTimeout) {
+        //             clearTimeout(this.saveFileTimeout);
+        //         }
+        //         this.markdownSaveFile();
+        //     }
+        // })
 
     }
 

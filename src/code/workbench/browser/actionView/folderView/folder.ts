@@ -1,41 +1,86 @@
 import { TreeNodeType } from 'mdnote';
 import { fs } from 'src/base/util';
 import { FolderTree, TreeNode } from 'src/code/workbench/browser/actionView/folderView/foldertree';
-import { TabBarComponent } from 'src/code/workbench/browser/actionView/folderView/tabBar';
+import { TabBarComponent } from 'src/code/workbench/browser/content/titleBar/tabBar';
 import { TreeNodesType } from 'mdnote';
 import { domNodeByIdAddListener, ipcRendererOn, ipcRendererSend } from 'src/base/ipc/register';
-
-const folderView = document.getElementById('action-view') as HTMLElement;
-const treeContainer = document.getElementById('folder-tree-container') as HTMLElement;
-const emptyFolderTag = document.getElementById('emptyFolderTag') as HTMLElement;
-const contentView = document.getElementById('content-view') as HTMLElement;
-const resize = document.getElementById("resize") as HTMLElement;
+import { Component } from 'src/code/workbench/browser/component';
+import { ActionViewComponentType } from 'src/code/workbench/browser/actionView/actionView';
+import { IRegisterService } from 'src/code/workbench/service/registerService';
 
 /**
- * @description FolderModule mainly controlling folder/file system. Also 
- * interacts with FolderTree and TabBarComponent.
+ * @description FolderViewComponent 
  */
-export class FolderModule {
+export class FolderViewComponent extends Component {
 
-    public FolderTree: FolderTree;
-    public TabBar: TabBarComponent;
+    public folderTree: FolderTree;
+    // public TabBar: TabBarComponent;
 
     public resizeX: number;
     public isFolderOpened: boolean;
     public treeNodeCount: number;
 
-    constructor(FolderTree: FolderTree, TabBarComponent: TabBarComponent) {
-        this.FolderTree = FolderTree;
-        this.TabBar = TabBarComponent;
+    constructor(registerService: IRegisterService) {
+        super(ActionViewComponentType.FolderView, registerService);
+        
+        this.folderTree = new FolderTree();
+        // this.TabBar = TabBarComponent;
 
-        // this variable is to store the x-coordinate of the resizeBar in the 
-        // folder view
+        // this variable is to store the x-coordinate of the resizeBar in the folder view
         this.resizeX = 0;
 
         this.isFolderOpened = false;
         this.treeNodeCount = 0;
 
-        this._setListeners();
+    }
+
+    protected override _createContainer(): void {
+        this.parent.appendChild(this.container);
+        // customize...
+        this._createContentArea();
+    }
+
+    protected override _createContentArea(): void {
+        const tree = document.createElement('div');
+        tree.id = 'tree';
+        
+        const emptyFolderTag = document.createElement('div');
+        emptyFolderTag.id = 'emptyFolderTag';
+        emptyFolderTag.innerHTML = 'open a folder';
+        emptyFolderTag.classList.add('vertical-center', 'funcText');
+
+        this.container.appendChild(tree);
+        this.container.appendChild(emptyFolderTag);
+    }
+
+    protected override _registerListeners(): void {
+
+        /**
+         * @readonly Since remote is deprecated and dialog can only be used in 
+         * the main process, to communicate between main process and renderer is 
+         * to use ipcRenderer and ipcMain. See more details about Electron/remote 
+         * on https://www.electronjs.org/docs/api/remote
+         */
+        domNodeByIdAddListener('emptyFolderTag', 'click', () => {
+            ipcRendererSend('openDir');
+        })
+
+        // set openDir listener to get response back from main.js
+        ipcRendererOn('openDir', (_event, path, _stat) => {
+            this.openDirecory(path);
+        });
+        
+        // folder view resizeBar listeners
+        // TODO: complete
+        const resize = document.getElementById("resize") as HTMLElement;
+        resize.addEventListener("mousedown", (event) => {
+            this.resizeX = event.x;
+            document.addEventListener("mousemove", this.resizeContentView, false);
+        }, false)
+
+        document.addEventListener("mouseup", () => {
+            document.removeEventListener("mousemove", this.resizeContentView, false);
+        }, false)
     }
 
     /**
@@ -147,28 +192,28 @@ export class FolderModule {
      */
     // FIX: when open a new or existed file, auto-save will be emit (write the exact same content to the original file)
     fileLeftClick(_element: JQuery<HTMLElement>, nodeInfo: TreeNode): void {
-        const tabInfo = this.TabBar.initTab(nodeInfo)
-        /**
-         * @readonly if 'isExist' is false, 'tabIndex' is set as last one. See
-         * more details in TabBarComponent.initTab()
-         */
-        const isExist = tabInfo[0]
-        const tabIndex = tabInfo[1]
-        const newTab = tabInfo[2]
+        // const tabInfo = this.TabBar.initTab(nodeInfo)
+        // /**
+        //  * @readonly if 'isExist' is false, 'tabIndex' is set as last one. See
+        //  * more details in TabBarComponent.initTab()
+        //  */
+        // const isExist = tabInfo[0]
+        // const tabIndex = tabInfo[1]
+        // const newTab = tabInfo[2]
         
-        this.focusFileWhenLeftClick(nodeInfo)
+        // this.focusFileWhenLeftClick(nodeInfo)
 
-        if (!isExist) {
-            this.TabBar.insertTab(newTab, nodeInfo)
-        }
+        // if (!isExist) {
+        //     this.TabBar.insertTab(newTab, nodeInfo)
+        // }
         
-        if (nodeInfo.plainText !== "") {
-            // text is still in the cache
-            this.TabBar.openTab(newTab, tabIndex, nodeInfo)
-        } else {
-            // never opened before, read the file
-            this.openFile(newTab, tabIndex, nodeInfo)
-        }
+        // if (nodeInfo.plainText !== "") {
+        //     // text is still in the cache
+        //     this.TabBar.openTab(newTab, tabIndex, nodeInfo)
+        // } else {
+        //     // never opened before, read the file
+        //     this.openFile(newTab, tabIndex, nodeInfo)
+        // }
 
     }
 
@@ -187,7 +232,7 @@ export class FolderModule {
                 throw err;
             }
             nodeInfo.plainText = text;
-            this.TabBar.openTab(newTab, tabIndex, nodeInfo);
+            // this.TabBar.openTab(newTab, tabIndex, nodeInfo);
         })
     }
 
@@ -235,16 +280,19 @@ export class FolderModule {
      */
     public openDirecory(path: string): void {
         this.isFolderOpened = true;
-        this.FolderTree.tree = this.FolderTree.createFolderTree(path, 0);
-        this.FolderTree.treeList = this.FolderTree.createFolderTreeList(this.FolderTree.tree as TreeNode);
+        this.folderTree.tree = this.folderTree.createFolderTree(path, 0);
+        this.folderTree.treeList = this.folderTree.createFolderTreeList(this.folderTree.tree as TreeNode);
 
+        // remove later
+        const treeContainer = document.getElementById('folder-container') as HTMLElement;
+        const emptyFolderTag = document.getElementById('emptyFolderTag') as HTMLElement;
         treeContainer.removeChild(emptyFolderTag);
-        this.displayFolderTree(this.FolderTree.tree as TreeNode);
+        this.displayFolderTree(this.folderTree.tree as TreeNode);
 
         $('.node-text').on('click', { FolderViewClass: this }, function (event) {
             let that = event.data.FolderViewClass;
             let nodeNum = (this.parentNode as HTMLElement).getAttribute('nodeNum') as string;
-            let nodeInfo = that.FolderTree.treeList[parseInt(nodeNum)] as TreeNode;
+            let nodeInfo = that.folderTree.treeList[parseInt(nodeNum)] as TreeNode;
             if (nodeInfo.isFolder) {
                 that.folderLeftClick($(this), nodeInfo);
             } else { 
@@ -271,7 +319,9 @@ export class FolderModule {
         if (event.x < 200) {
             return;
         }
-        
+        // TODO: remove later
+        const folderView = document.getElementById('action-view') as HTMLElement;
+        const contentView = document.getElementById('content-view') as HTMLElement;
         let dx = this.resizeX - event.x;
         this.resizeX = event.x;
         /* new X has to be calculated first, than concatenates with "px", otherwise
@@ -282,38 +332,6 @@ export class FolderModule {
         folderView.style.width = folderViewNewX + "px";
         folderView.style.minWidth = folderViewNewX + "px";
         contentView.style.width = contentViewNewX + "px";
-    }
-
-    /**
-     * @description set folder event listeners.
-     */
-     private _setListeners(): void {
-
-        /**
-         * @readonly Since remote is deprecated and dialog can only be used in 
-         * the main process, to communicate between main process and renderer is 
-         * to use ipcRenderer and ipcMain. See more details about Electron/remote 
-         * on https://www.electronjs.org/docs/api/remote
-         */
-        domNodeByIdAddListener('emptyFolderTag', 'click', () => {
-            ipcRendererSend('openDir');
-        })
-
-        // set openDir listener to get response back from main.js
-        ipcRendererOn('openDir', (_event, path, _stat) => {
-            this.openDirecory(path);
-        });
-        
-        // folder view resizeBar listeners
-        // TODO: complete
-        resize.addEventListener("mousedown", (event) => {
-            this.resizeX = event.x;
-            document.addEventListener("mousemove", this.resizeContentView, false);
-        }, false)
-
-        document.addEventListener("mouseup", () => {
-            document.removeEventListener("mousemove", this.resizeContentView, false);
-        }, false)
     }
 
 }

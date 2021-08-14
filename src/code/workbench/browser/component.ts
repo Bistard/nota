@@ -1,4 +1,4 @@
-import { IWorkbenchService } from "src/code/workbench/service/workbenchService";
+import { IRegisterService } from "src/code/workbench/service/registerService";
 
 export const enum ComponentType {
     ActionBar = 'action-bar',
@@ -7,20 +7,25 @@ export const enum ComponentType {
     TabBar = 'tab-bar',
 }
 
-export abstract class Component {
+export interface IComponent {
+    
+}
+
+export abstract class Component implements IComponent, IRegisterService {
     
     protected parent!: HTMLElement;
     protected container: HTMLElement = document.createElement('div');
     protected contentArea: HTMLElement | undefined;
-
-    protected workbenchService!: IWorkbenchService;
+    protected contentAreaMap: Map<string, Component> = new Map();
+    
+    protected registerService!: IRegisterService;
 
     constructor(id: string,
-                workbenchService: IWorkbenchService) {
+                registerService: IRegisterService) {
         this.container.id = id;
-        this.workbenchService = workbenchService;
+        this.registerService = registerService;
         
-        workbenchService.registerComponent(this);
+        registerService.registerComponent(this);
     }
 
     /**
@@ -35,8 +40,19 @@ export abstract class Component {
      * @description after 'create()' has been called, HTMLElements are ready to
      * be registered with events.
      */
-    public register(): void {
-        this._registerListensers();
+    public registerListeners(): void {
+        this._registerListeners();
+    }
+
+    /**
+     * @description register component into mapping.
+     */
+    public registerComponent(component: Component): void {
+        if (this.contentAreaMap) {
+            this.contentAreaMap.set(component.getId(), component);
+        } else {
+            throw new Error('contentAreaMap is undefined, cannot register component');
+        }
     }
 
     /**
@@ -46,7 +62,7 @@ export abstract class Component {
      * subclasses should override this function.
      */
     protected _createContainer(): void {
-        return;
+        this._createContentArea();
     }
 
     /**
@@ -64,7 +80,7 @@ export abstract class Component {
      * 
      * subclasses should override this function.
      */
-    protected _registerListensers(): void {
+    protected _registerListeners(): void {
         return;
     }
 

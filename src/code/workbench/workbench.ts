@@ -1,11 +1,8 @@
 import { ConfigModule } from "src/base/config";
 import { Component, ComponentType } from "src/code/workbench/browser/component";
-import { IWorkbenchService } from "src/code/workbench/service/workbenchService";
+import { IRegisterService } from "src/code/workbench/service/registerService";
 import { ActionViewComponent } from "src/code/workbench/browser/actionView/actionView";
 import { ActionBarComponent } from "src/code/workbench/browser/actionBar/actionBar";
-import { FolderTree } from "src/code/workbench/browser/actionView/folderView/foldertree";
-import { TabBarComponent } from "src/code/workbench/browser/actionView/folderView/tabBar";
-// import { FolderModule } from "src/code/workbench/browser/actionView/folderView/folder";
 // import { MarkdownModule } from "src/code/workbench/browser/content/markdown/markdown";
 // import { TitleBarModule } from "src/code/workbench/browser/content/titleBar/titleBar";
 
@@ -16,7 +13,8 @@ import { TabBarComponent } from "src/code/workbench/browser/actionView/folderVie
  * are instantiating in here. Also convinents for passing diferent modules into
  * others.
  */
-class Workbench implements IWorkbenchService {
+
+class Workbench implements IRegisterService {
 
     private mainAppContainer = document.getElementById('mainApp') as HTMLElement;
 
@@ -25,12 +23,8 @@ class Workbench implements IWorkbenchService {
     Config: ConfigModule;
     actionViewComponent!: ActionViewComponent;
     actionBarComponent!: ActionBarComponent;
-    folderTree!: FolderTree;
-    tabBarComponent!: TabBarComponent;
-    // Folder: FolderModule;
     // Markdown: MarkdownModule;
-    // TitleBar: TitleBarModule;
-
+    
     constructor() {
         this.Config = new ConfigModule();
         
@@ -45,14 +39,12 @@ class Workbench implements IWorkbenchService {
     private initComponents(): void {
         this.actionViewComponent = new ActionViewComponent(this);
         this.actionBarComponent = new ActionBarComponent(this, this.actionViewComponent);
-        this.tabBarComponent = new TabBarComponent(this, this.Config);
     }
 
     private renderComponents(): void {
         [
             {id: ComponentType.ActionBar, classes: []},
             {id: ComponentType.ActionView, classes: []},
-            {id: ComponentType.TabBar, classes: []},
             // {id: ComponentType.ContentView, classes: []},
         ]
         .forEach(({ id, classes }) => {
@@ -62,16 +54,8 @@ class Workbench implements IWorkbenchService {
             component.create(this.mainAppContainer);
             
             // 
-            component.register();
+            component.registerListeners();
         });
-    }
-
-    private initComponentContainer(id: ComponentType, classes: string[]): HTMLElement {
-        const component = document.createElement('div');
-        component.classList.add(...classes);
-        component.id = id;
-        
-        return component;
     }
 
     public getComponentById(id: string): Component {
