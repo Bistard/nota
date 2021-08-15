@@ -49,7 +49,7 @@ export class ActionBarComponent extends Component {
         ]
         .forEach(({ id, src }) => {
             const button = new Button(id, this.contentArea!);
-            button.setClass('button', 'action-button');
+            button.setClass(['button', 'action-button']);
             button.setImage(src);
             button.setImageClass('vertical-center', 'filter-white');
 

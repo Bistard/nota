@@ -18,22 +18,16 @@ export class WindowBarComponent extends Component {
     }
 
     protected override _createContentArea(): void {
-        
         [
-            {id: 'min-btn', src: 'min'},
-            {id: 'max-btn', src: 'max'},
-            {id: 'close-btn', src: 'close'},
+            {id: 'min-btn', src: 'min', classes: ['toggleBtn']},
+            {id: 'max-btn', src: 'max', classes: ['toggleBtn']},
+            {id: 'close-btn', src: 'close', classes: ['toggleBtn', 'closeToggleBtn']},
         ]
-        .forEach(({id, src}) => {
+        .forEach(( {id, src, classes} ) => {
             const button = new Button(id, this.container);
-            button.setClass('toggleBtn');
+            button.setClass(classes);
             button.setImage(src);
             button.setImageClass('vertical-center');
-            if (id == 'max-btn') {
-                button.setImageID('maxBtnImg');
-            } else if (id == 'close-btn') {
-                button.setClass('closeToggleBtn');
-            }
         })
 
     }
@@ -65,7 +59,8 @@ export class WindowBarComponent extends Component {
      * @description handling .svg of maxResButton
      */
      changeMaxResBtn(isMaxApp: boolean): void {
-        const maxBtnImg = document.getElementById('maxBtnImg') as HTMLImageElement;
+        const maxBtn = document.getElementById('max-btn') as HTMLElement;
+        const maxBtnImg = maxBtn.childNodes[0] as  HTMLImageElement;
         if (isMaxApp) {
             maxBtnImg.src = getSvgPathByName('max-restore');
         } else {

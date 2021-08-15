@@ -96,13 +96,13 @@ export class TitleBarComponent extends Component {
             {id: 'tabs', src: 'tabs'},
         ].forEach(({id, src}) => {
             const button = new Button(id, parent);
-            button.setClass('button', 'tool-button');
+            button.setClass(['button', 'tool-button']);
             button.setImage(src);
             button.setImageClass('vertical-center', 'filter-black');
         })
         
         const button = new Button('expand-collapse', this.toolBarView);
-        button.setClass('button');
+        button.setClass(['button']);
         button.setImage('caret-left');
         button.setImageClass('vertical-center', 'filter-black');
     }

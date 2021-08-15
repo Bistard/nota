@@ -31,7 +31,7 @@ export class Button implements IButton {
         container.appendChild(this.element);
     }
 
-    public setClass(...classes: string[]): void {
+    public setClass(classes: string[]): void {
         this.element.classList.add(...classes);
     }
 
