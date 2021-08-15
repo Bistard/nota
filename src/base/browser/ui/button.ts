@@ -42,6 +42,12 @@ export class Button implements IButton {
         this.element.appendChild(this.imgElement);
     }
 
+    public setImageID(id: string): void {
+        if (this.imgElement) {
+            this.imgElement.id = id;
+        }
+    }
+
     public setImageClass(...classes: string[]): void {
         if (this.imgElement) {
             this.imgElement.classList.add(...classes);

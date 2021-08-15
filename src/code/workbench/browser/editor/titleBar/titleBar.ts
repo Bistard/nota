@@ -6,6 +6,8 @@ import { Component } from 'src/code/workbench/browser/component';
 import { IRegisterService } from 'src/code/workbench/service/registerService';
 import { getSvgPathByName } from 'src/base/common/string';
 import { Button } from 'src/base/browser/ui/button';
+import { TabBarComponent } from 'src/code/workbench/browser/editor/titleBar/tabBar';
+import { WindowBarComponent } from 'src/code/workbench/browser/editor/titleBar/windowBar';
 
 /**
  * @description TitleBarComponent stores and handles all the titleBar and toolBar 
@@ -13,8 +15,11 @@ import { Button } from 'src/base/browser/ui/button';
  */
 export class TitleBarComponent extends Component {
     
-    // Markdown: MarkdownComponent;
     toolBarView!: HTMLElement;
+    
+    // toolBarComponent!: ToolBarComponent:
+    tabBarComponent!: TabBarComponent;
+    windowBarComponent!: WindowBarComponent;
 
     markdownMode: MarkdownRenderMode;
 
@@ -52,16 +57,22 @@ export class TitleBarComponent extends Component {
         toolBarContainer.id = 'tool-bar-container';
         
         this._createToolBar(toolBarContainer);
-        
-        // tab-bar
-
-        // title
-
         this.toolBarView.appendChild(toolBarContainer);
         this.container.appendChild(this.toolBarView);
+
+        // tab-bar
+        this._createTabBar(this.container);
+
+        // window-bar
+        this._createWindowBar(this.container);
+        
     }
 
     protected override _registerListeners(): void {
+        
+        // component registration
+        this.tabBarComponent.registerListeners();
+        this.windowBarComponent.registerListeners();
         
         domNodeByIdAddListener('mode-switch', 'click', () => {
             this.markdownModeSwitch(this.markdownMode);
@@ -75,25 +86,6 @@ export class TitleBarComponent extends Component {
             this.toolBarStateChange(!this.isToolBarExpand);
         });
         
-        domNodeByIdAddListener('min-btn', 'click', () => {
-            ipcRendererSend('minApp');
-        });
-        
-        domNodeByIdAddListener('max-btn', 'click', () => {
-            ipcRendererSend('maxResApp');
-        });
-        
-        domNodeByIdAddListener('close-btn', 'click', () => {
-            ipcRendererSend('closeApp');
-        });
-        
-        ipcRendererOn('isMaximized', () => { 
-            this.changeMaxResBtn(true);
-        })
-
-        ipcRendererOn('isRestored', () => { 
-            this.changeMaxResBtn(false); 
-        })
     }
 
     private _createToolBar(parent: HTMLElement): void {
@@ -113,6 +105,16 @@ export class TitleBarComponent extends Component {
         button.setClass('button');
         button.setImage('caret-left');
         button.setImageClass('vertical-center', 'filter-black');
+    }
+
+    private _createTabBar(parent: HTMLElement): void {
+        this.tabBarComponent = new TabBarComponent(this);
+        this.tabBarComponent.create(parent);
+    }
+
+    private _createWindowBar(parent: HTMLElement): void {
+        this.windowBarComponent = new WindowBarComponent(this);
+        this.windowBarComponent.create(parent);
     }
     
     /**
@@ -179,18 +181,6 @@ export class TitleBarComponent extends Component {
             $('#tool-bar-container').hide(100);
             $('#expand-collapse > img').attr('src', getSvgPathByName('caret-right'));
             this.isToolBarExpand = false;
-        }
-    }
-
-    /**
-     * @description handling .svg of maxResButton
-     */
-    changeMaxResBtn(isMaxApp: boolean): void {
-        const maxBtnImg = document.getElementById('maxBtnImg') as HTMLImageElement;
-        if (isMaxApp) {
-            maxBtnImg.src='./src/assets/svg/max-restore.svg';
-        } else {
-            maxBtnImg.src='./src/assets/svg/max.svg';
         }
     }
 

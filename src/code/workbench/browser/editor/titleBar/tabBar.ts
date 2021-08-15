@@ -4,7 +4,7 @@ import { WriteFileOptions } from 'original-fs';
 import { ConfigModule } from 'src/base/config';
 import { TreeNode } from 'src/code/workbench/browser/actionView/folder/foldertree';
 import { ipcRendererOn, ipcRendererSendTest } from 'src/base/ipc/register';
-import { Component, ComponentType } from 'src/code/workbench/browser/component';
+import { Component } from 'src/code/workbench/browser/component';
 import { IRegisterService } from 'src/code/workbench/service/registerService';
 
 /**
