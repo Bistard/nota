@@ -111,8 +111,8 @@
       * [ ] paste with plain text
 * [x] ⭐Refactoring
   * [x] register
-  * [ ] clean index.html
-    * [ ] add element programmatically
+  * [x] clean index.html
+    * [x] add element programmatically
 * [x] ⭐Others
   * [ ] author preface (Chinese version)
   * [x] new folders
@@ -127,6 +127,7 @@
     * [x] rewrite comments
       * [ ] rewrite foldertree.ts
     * [x] services
+      * [ ] complete src/base/node/file.ts
       * [ ] using services to interact between components
     * [ ] dispose pattern
     * ~~Workbench extends Component~~
