@@ -3,17 +3,12 @@ import { IRegisterService } from "src/code/workbench/service/registerService";
 import { ActionViewComponent } from "src/code/workbench/browser/actionView/actionView";
 import { ActionBarComponent } from "src/code/workbench/browser/actionBar/actionBar";
 import { EditorComponent } from "src/code/workbench/browser/editor/editor";
-// import { MarkdownComponent } from "src/code/workbench/browser/content/markdown/markdown";
-// import { TitleBarComponent } from "src/code/workbench/browser/content/titleBar/titleBar";
-
-
 
 /**
  * @description this module is loaded by the web directly. Most of the modules 
  * are instantiating in here. Also convinents for passing diferent modules into
  * others.
  */
-
 class Workbench implements IRegisterService {
 
     private mainAppContainer = document.getElementById('mainApp') as HTMLElement;

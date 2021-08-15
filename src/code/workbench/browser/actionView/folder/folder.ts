@@ -1,7 +1,6 @@
 import { TreeNodeType } from 'mdnote';
 import { fs } from 'src/base/util';
 import { FolderTree, TreeNode } from 'src/code/workbench/browser/actionView/folder/foldertree';
-import { TabBarComponent } from 'src/code/workbench/browser/editor/titleBar/tabBar';
 import { TreeNodesType } from 'mdnote';
 import { domNodeByIdAddListener, ipcRendererOn, ipcRendererSend } from 'src/base/ipc/register';
 import { Component } from 'src/code/workbench/browser/component';
@@ -16,9 +15,10 @@ export class FolderViewComponent extends Component {
     public folderTree: FolderTree;
     // public TabBar: TabBarComponent;
 
-    public resizeX: number;
     public isFolderOpened: boolean;
     public treeNodeCount: number;
+
+    public resizeX: number;
 
     constructor(registerService: IRegisterService) {
         super(ActionViewComponentType.FolderView, registerService);
@@ -26,12 +26,11 @@ export class FolderViewComponent extends Component {
         this.folderTree = new FolderTree();
         // this.TabBar = TabBarComponent;
 
-        // this variable is to store the x-coordinate of the resizeBar in the folder view
-        this.resizeX = 0;
-
         this.isFolderOpened = false;
         this.treeNodeCount = 0;
 
+        // this variable is to store the x-coordinate of the resizeBar in the folder view
+        this.resizeX = 0;
     }
 
     protected override _createContainer(): void {
@@ -76,11 +75,11 @@ export class FolderViewComponent extends Component {
         resize.addEventListener("mousedown", (event) => {
             this.resizeX = event.x;
             document.addEventListener("mousemove", this.resizeContentView, false);
-        }, false)
+        })
 
         document.addEventListener("mouseup", () => {
             document.removeEventListener("mousemove", this.resizeContentView, false);
-        }, false)
+        })
     }
 
     /**
@@ -88,7 +87,7 @@ export class FolderViewComponent extends Component {
      */
     public displayFolderTree(root: TreeNode): void {
         let current = this.insertNode($('#tree'), root, 'root') as HTMLElement;
-        this.displayTree(current, root.nodes as TreeNodesType)
+        this.displayTree(current, root.nodes as TreeNodesType);
     }
 
     /**

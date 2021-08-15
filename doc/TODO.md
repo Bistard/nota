@@ -124,12 +124,18 @@
     * [x] refactor all javascript codes
       * [x] config.ts && main.module.ts
   * [x] code big refactoring
-    * [x] rewrite comments
-      * [ ] rewrite foldertree.ts
+    * [ ] rewrite comments
+    * [ ] rewrite foldertree.ts
     * [x] services
       * [ ] complete src/base/node/file.ts
+        * [ ] folder.ts
+        * [ ] markdown.ts
+        * [ ] tabBar.ts
       * [ ] using services to interact between components
+        * [ ] toolBar.ts
     * [ ] dispose pattern
+    * [ ] base/browser/ui
+      * [ ] resize.ts
     * ~~Workbench extends Component~~
   * [x] error handling
     * [ ] local log system

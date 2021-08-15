@@ -72,7 +72,6 @@ export class ActionViewComponent extends Component {
         // register right click
     }
 
-    // TODO: genericize
     private _createActionViewTop(): HTMLElement {
         const actionViewTop = document.createElement('div');
         actionViewTop.id = 'action-view-top';
@@ -92,37 +91,20 @@ export class ActionViewComponent extends Component {
         return actionViewTop;
     }
 
-    // TODO: genericize
     private _createActionViewContent(): HTMLElement {
         const actionViewContent = document.createElement('div');
         actionViewContent.id = 'action-view-content';
 
-        // TODO: maybe not to initialize them all
-        [
-            'folder-container',
-            'outline-container',
-            'search-container',
-            'git-container',
-        ]
-        .forEach((name) => {
-            const subView = document.createElement('div');
-            subView.id = name;
-            switch (subView.id) {
-                case 'folder-container':
-                    this.folderViewComponent = new FolderViewComponent(this);
-                    this.folderViewComponent.create(subView);
-                    break;
-                case 'outline-container':
-                    break;
-                case 'search-container':
-                    break;
-                case 'git-container':
-                    break;
-                default:
-                    break;
-            }
-            actionViewContent.appendChild(subView);
-        });
+        this.folderViewComponent = new FolderViewComponent(this);
+        this.folderViewComponent.create(actionViewContent);
+
+        // outlineViewComponent...
+        
+        // searchViewComponent...
+
+        // gitViewComponent...
+
+        // settingViewComponent...
 
         return actionViewContent;
     }
