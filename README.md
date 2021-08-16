@@ -1,7 +1,7 @@
 # 📕MarkdownNote (still in progress)
 An open-sourced markdown editor && noteTaking desktop application based on .md
 
-基于markdown管理的笔记软件
+基于markdown管理的笔记软件 (缺人手ing😥)
 
 ## 💖feature
 * supports ✔WYSIWYG (rich text), ❌instant rendering, ✔ tranditional split view editing
