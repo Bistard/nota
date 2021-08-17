@@ -91,10 +91,11 @@ export class ActionViewComponent extends Component {
         return actionViewTop;
     }
 
+    // TODO: only render the view (DOM elements) when it is actually in is visible to user
     private _createActionViewContent(): HTMLElement {
         const actionViewContent = document.createElement('div');
         actionViewContent.id = 'action-view-content';
-
+        
         this.folderViewComponent = new FolderViewComponent(this);
         this.folderViewComponent.create(actionViewContent);
 

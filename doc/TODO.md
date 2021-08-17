@@ -114,7 +114,8 @@
   * [x] clean index.html
     * [x] add element programmatically
 * [x] ⭐Others
-  * [ ] author preface (Chinese version)
+  * [x] wiki
+    * [ ] author preface (Chinese version)
   * [x] new folders
     * [x] doc
     * [ ] test
@@ -123,19 +124,30 @@
   * [x] install typescript
     * [x] refactor all javascript codes
       * [x] config.ts && main.module.ts
+  * [x] vscode source code
+    * [x] workbench.ts
+    * [x] lifecycle.ts
+    * [ ] editorAutosave.ts
+    * [ ] instantiationService (dependency injection)
+      * [ ] src/vs/platform/instantiation/common/instantiation.ts
+      * [ ] createDecorator<>()
+    * [x] absolute path
   * [x] code big refactoring
     * [ ] rewrite comments
     * [ ] rewrite foldertree.ts
+    * [ ] implement MVVM (Model-View-Modelview)
+      * [ ] model <----> viewmodel <--data binding--> view
+      * [ ] achieve data binding
     * [x] services
       * [ ] complete src/base/node/file.ts
         * [ ] folder.ts
         * [ ] markdown.ts
         * [ ] tabBar.ts
-      * [ ] using services to interact between components
         * [ ] toolBar.ts
     * [ ] dispose pattern
     * [ ] base/browser/ui
       * [ ] resize.ts
+      * [ ] scrollbar.ts
     * ~~Workbench extends Component~~
   * [x] error handling
     * [ ] local log system

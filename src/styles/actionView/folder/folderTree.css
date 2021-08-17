@@ -80,7 +80,7 @@
 }
 
 .file-icon::before {
-    content: url('../../../assets/svg/actionBarView/file.svg');
+    content: url('../../../assets/svg/file.svg');
     display: inline-block;
     width: 10px;
     height: 10px;

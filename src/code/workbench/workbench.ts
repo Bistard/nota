@@ -15,8 +15,8 @@ class Workbench implements IRegisterService {
 
     private componentMap = new Map<string, Component>();
 
-    actionViewComponent!: ActionViewComponent;
     actionBarComponent!: ActionBarComponent;
+    actionViewComponent!: ActionViewComponent;
     editorComponent!: EditorComponent;
     
     constructor() {    
@@ -65,7 +65,7 @@ class Workbench implements IRegisterService {
 
 }
 
-// since it is loaded by the web which is sepreated by the main.js, it needs to 
+// since it is loaded by the web which is sepreated from main.js, it needs to 
 // be instantiated individually.
 new Workbench();
 

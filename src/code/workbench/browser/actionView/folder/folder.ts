@@ -301,15 +301,6 @@ export class FolderViewComponent extends Component {
     }
 
     /**
-     * @description helper functions for creating string-formatted .css style 
-     * for folderIcon usage
-     */
-    createfolderIconString(fileName: string): string {
-        // FIX
-        return "<style>.node-text::before {content: url('assets/svg/" + fileName + "');display: inline-block;width: 10px;height: 10px;margin-left: 4px;margin-right: 4px;}</style>"
-    }
-    
-    /**
      * @description callback functions for resize folder view.
      */
     public resizeContentView(event: MouseEvent): void {
