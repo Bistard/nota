@@ -1,25 +1,82 @@
-# to do
-* [x] ⭐theme
-  * [x] dynamically change .svg color
-  * [x] UI redesign (big update)
-* [x] ⭐actionBarView
-  * [x] UI
+# 🏃‍to do
+This todo list is currently maintained by Chris Li (@Bistard), Jody Zhou (@JodyZ0203), Sherry Li (@lixiaoru611), Cindy Yang (@cindy-cyber).
+
+| mark        | Description |
+| ----------- | ----------- |
+| bullet      | not started |
+| check mark  | completed   |
+| 🚴‍♂️          | on-going    |
+| 🚳          | not for now |
+| ...         | lots of unfinished |
+
+## Performance && Security
+* [ ] ...
+## Extension
+* [ ] ...
+## UI
+* [x] Workbench
+  * [ ] theme
+    * [ ] light theme
+    * [ ] dark theme
     * [ ] app icon
-    * [x] folderView
-    * [x] outlineView
-    * [ ] searchView
-    * [ ] gitView
-    * [ ] settings
-    * [ ] ...
+* [x] actionBar
   * [ ] ...
-  * [x] functionality
-    * [x] focus
-    * [x] switch
-* [x] ⭐actionView
-  * [x] functionality
-    * [x] switch action view
-      * [ ] UI
+* [x] actionView
+  * [x] folderView
+    * [x] open empty folder dialog
+    * [x] display current working directory
+    * [ ] auto update folder tree/note tree
+    * [x] tranditional folder tree explorer
+        * [ ] styles when a file is selected
+        * [ ] ...
+    * [ ] note-taking-like explorer
+      * [ ] custom order
+      * [ ] custom indent
+      * [ ] ...
+  * [ ] outlineView
     * [ ] ...
+  * [ ] searchView
+    * [ ] ...
+  * [ ] gitView
+    * [ ] ...
+  * [ ] settingView
+    * [ ] ...
+* [x] editor
+  * [ ] ...
+
+## Core Code
+* [ ] 🚴‍♂️implement MVVM framework
+* [x] workbench
+  * [x] actionBar
+    * [x] ...
+  * [x] actionView
+    * [ ] refresh
+    * [x] able to switch
+    * [x] resizeable
+      * [ ] complete resize.ts
+    * [x] node functionality
+        * [x] expand
+        * [x] collapse
+        * [ ] right click functionalities
+          * [ ] ...
+        * [ ] ...
+    * [x] able to open a dir
+      * [ ] ...
+  * [x] editor
+    * [x] ...
+  * [x] titleBar
+    * [x] toolBar
+      * [ ] ...
+    * [x] tabBar
+      * [ ] tabBar will scroll to the new tab position
+      * [ ] ...
+    * [x] windowBar
+      * [x] basic functionality
+      * [ ] 
+
+
+
+
   * [x] folderView
     * [x] interactive size
       * [x] middle three point button style
@@ -163,12 +220,8 @@
     * [ ] UI config
   * [ ] get used of 'github issue'
 
-## main topic
-* html
-* css
-* javascript
-* typescript
-* nodejs
-* electron
-* webpack
-* jquery
+## 🐛bugs
+- [x] (2021.8.5) fix: supports all languages for code syntax highlight
+- [x] (2021.8.5) fix: chinese character display error 
+- [ ] fix: code highlight symbol render error
+- [ ] fix: markdown toolbar auto collapses
