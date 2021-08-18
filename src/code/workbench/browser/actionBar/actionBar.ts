@@ -19,7 +19,7 @@ export class ActionBarComponent extends Component {
     isActionViewActive: boolean;
 
     constructor(registerService: IRegisterService,
-                ActionViewComponent: ActionViewComponent) {
+                ActionViewComponent: ActionViewComponent /* FIX: this parameter will be removed later */) {
         super(ComponentType.ActionBar, registerService);
         
         this.actionViewComponent = ActionViewComponent;

@@ -30,6 +30,7 @@ class Workbench implements IRegisterService {
      */
     private initComponents(): void {
         this.actionViewComponent = new ActionViewComponent(this);
+        // FIX: shoundn't passing component into another component to achieve communication btw components. Passing services instead.
         this.actionBarComponent = new ActionBarComponent(this, this.actionViewComponent);
         this.editorComponent = new EditorComponent(this);
     }
@@ -54,7 +55,7 @@ class Workbench implements IRegisterService {
     public getComponentById(id: string): Component {
         const component = this.componentMap.get(id);
         if (!component) {
-            throw new Error(`trying to get unknown component ${id}`);
+            throw new Error(`trying to get an unknown component ${id}`);
         }
         return component;
     }
