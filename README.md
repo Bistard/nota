@@ -12,7 +12,7 @@ An open-sourced markdown editor && noteTaking desktop application based on .md
 ![screenshot](./doc/assets/2021.8.5.png)
 
 ## 🚪portal
-- [✔Todo](doc/TODO.md)
+- [✔wiki](https://github.com/Bistard/MarkdownNote/wiki)
 
 ## 💬ChangeLog
 * ⭐ => 'big update'
