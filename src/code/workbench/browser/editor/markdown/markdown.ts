@@ -77,6 +77,13 @@ export class MarkdownComponent extends Component {
         this.createMarkdownEditor();
     }
     protected override _registerListeners(): void {
+        
+        // spellcheck config check
+        if (!ConfigModule.markdownSpellCheckOn) {
+            const markdown = document.getElementById('markdown') as HTMLElement;
+            markdown.setAttribute('spellcheck', 'false');
+        }
+        
         // ipcRendererOn('Ctrl+S', () => {
         //     if (!this.folderViewComponent.TabBar.emptyTab) {
         //         if (this.saveFileTimeout) {
@@ -138,12 +145,6 @@ export class MarkdownComponent extends Component {
         editor.getMarkdown();
         this.editor = editor;
         (window as any).editor = editor; // set as global value TODO: remove later
-
-        // spellcheck config check
-        if (ConfigModule.markdownSpellCheckOn) {
-            const markdown = document.getElementById('markdown') as HTMLElement;
-            markdown.setAttribute('spellcheck', 'false');
-        }
 
     }
 

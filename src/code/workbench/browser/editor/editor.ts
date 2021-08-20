@@ -8,11 +8,11 @@ export class EditorComponent extends Component {
 
     private _eventEmitter: IEventEmitter;
 
-    titleBarView!: HTMLElement;
-    titleBarComponent!: TitleBarComponent;
-
-    markdownView!: HTMLElement;
-    markdownComponent!: MarkdownComponent;
+    public titleBarView!: HTMLElement;
+    public markdownView!: HTMLElement;
+    
+    private titleBarComponent!: TitleBarComponent;
+    private markdownComponent!: MarkdownComponent;
 
     constructor(registerService: IRegisterService,
                 _eventEmitter: IEventEmitter
@@ -49,7 +49,6 @@ export class EditorComponent extends Component {
 
     }
 
-    // TODO
     private _createTitleBar(): void {
         const titleBar = document.createElement('div');
         titleBar.id = 'title-bar';
