@@ -1,11 +1,12 @@
 import { TreeNodeType } from 'mdnote';
-import { fs } from 'src/base/util';
-import { FolderTree, TreeNode } from 'src/code/workbench/browser/actionView/folder/foldertree';
+import { FolderTree, TreeNode } from 'src/base/node/foldertree';
 import { TreeNodesType } from 'mdnote';
 import { domNodeByIdAddListener, ipcRendererOn, ipcRendererSend } from 'src/base/ipc/register';
 import { Component } from 'src/code/workbench/browser/component';
 import { ActionViewComponentType } from 'src/code/workbench/browser/actionView/actionView';
 import { IRegisterService } from 'src/code/workbench/service/registerService';
+import { IEventEmitter } from 'src/base/common/event';
+import { readMarkdownFile, readMarkdownFileOption } from 'src/base/node/file';
 
 /**
  * @description FolderViewComponent 
@@ -13,18 +14,20 @@ import { IRegisterService } from 'src/code/workbench/service/registerService';
 export class FolderViewComponent extends Component {
 
     public folderTree: FolderTree;
-    // public TabBar: TabBarComponent;
+    private _eventEmitter: IEventEmitter;
 
     public isFolderOpened: boolean;
     public treeNodeCount: number;
 
     public resizeX: number;
 
-    constructor(registerService: IRegisterService) {
+    constructor(registerService: IRegisterService,
+                _eventEmitter: IEventEmitter
+    ) {
         super(ActionViewComponentType.FolderView, registerService);
         
+        this._eventEmitter = _eventEmitter;
         this.folderTree = new FolderTree();
-        // this.TabBar = TabBarComponent;
 
         this.isFolderOpened = false;
         this.treeNodeCount = 0;
@@ -122,7 +125,7 @@ export class FolderViewComponent extends Component {
 
         const text = document.createElement('li');
         text.classList.add('node-text');
-        text.innerHTML = nodeInfo.name;
+        text.innerHTML = nodeInfo.file.name;
         
         if (state == 'file') {
             element.classList.add('node-file');
@@ -181,7 +184,7 @@ export class FolderViewComponent extends Component {
      * @param {TreeNode} nodeInfo 
      * @returns {void} void
      */
-    folderLeftClick(element: JQuery, nodeInfo: TreeNode): void {
+    folderOnClick(element: JQuery, nodeInfo: TreeNode): void {
         (nodeInfo.isExpand as any) ^= 1;
         this.expandOrCollapseFolder(element, nodeInfo.isExpand);
     }
@@ -190,48 +193,25 @@ export class FolderViewComponent extends Component {
      * @description wrapper function for left clicking a file.
      */
     // FIX: when open a new or existed file, auto-save will be emit (write the exact same content to the original file)
-    fileLeftClick(_element: JQuery<HTMLElement>, nodeInfo: TreeNode): void {
-        // const tabInfo = this.TabBar.initTab(nodeInfo)
-        // /**
-        //  * @readonly if 'isExist' is false, 'tabIndex' is set as last one. See
-        //  * more details in TabBarComponent.initTab()
-        //  */
-        // const isExist = tabInfo[0]
-        // const tabIndex = tabInfo[1]
-        // const newTab = tabInfo[2]
+    // TODO: currently disable relevant codes with tabBarComponent, more features should be added here
+    fileOnClick(element: JQuery<HTMLElement>, nodeInfo: TreeNode): void {
         
-        // this.focusFileWhenLeftClick(nodeInfo)
-
-        // if (!isExist) {
-        //     this.TabBar.insertTab(newTab, nodeInfo)
-        // }
+        this.focusFileWhenLeftClick(nodeInfo);
         
-        // if (nodeInfo.plainText !== "") {
-        //     // text is still in the cache
-        //     this.TabBar.openTab(newTab, tabIndex, nodeInfo)
-        // } else {
-        //     // never opened before, read the file
-        //     this.openFile(newTab, tabIndex, nodeInfo)
-        // }
-
-    }
-
-    /**
-     * @description open the given file and calls TabBarComponent.openTab().
-     */
-    openFile(newTab: HTMLElement, tabIndex: number, nodeInfo: TreeNode): void {
-
-        let readOption: any = {
+        let readOption: readMarkdownFileOption = {
             encoding: 'utf-8',
             flag: 'r'
         };
 
-        fs.readFile(nodeInfo.path, readOption, (err, text: string) => {
-            if (err) {
-                throw err;
-            }
-            nodeInfo.plainText = text;
-            // this.TabBar.openTab(newTab, tabIndex, nodeInfo);
+        /**
+         * @readonly use async reading prevents when facing a huge .md file
+         * will cause not response to the whole app.
+         */
+        readMarkdownFile(nodeInfo, readOption).then(() => {
+            this._eventEmitter.emit('EMarkdownDisplayFile', nodeInfo);
+        }).catch(err => {
+            // do log here
+            throw err;
         })
     }
 
@@ -293,9 +273,9 @@ export class FolderViewComponent extends Component {
             let nodeNum = (this.parentNode as HTMLElement).getAttribute('nodeNum') as string;
             let nodeInfo = that.folderTree.treeList[parseInt(nodeNum)] as TreeNode;
             if (nodeInfo.isFolder) {
-                that.folderLeftClick($(this), nodeInfo);
+                that.folderOnClick($(this), nodeInfo);
             } else { 
-                that.fileLeftClick($(this), nodeInfo);
+                that.fileOnClick($(this), nodeInfo);
             }
         })
     }

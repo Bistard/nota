@@ -20,7 +20,8 @@ export abstract class Component implements IComponent, IRegisterService {
     protected registerService!: IRegisterService;
 
     constructor(id: string,
-                registerService: IRegisterService) {
+                registerService: IRegisterService
+    ) {
         this.container.id = id;
         this.registerService = registerService;
         

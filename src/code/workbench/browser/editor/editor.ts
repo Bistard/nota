@@ -63,7 +63,7 @@ export class EditorComponent extends Component {
         const markdownView = document.createElement('div');
         markdownView.id = 'markdown-view';
 
-        this.markdownComponent = new MarkdownComponent(this);
+        this.markdownComponent = new MarkdownComponent(this, this._eventEmitter);
         this.markdownComponent.create(markdownView);
 
         this.markdownView = markdownView;
