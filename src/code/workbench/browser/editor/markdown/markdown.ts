@@ -19,11 +19,11 @@ import 'prismjs/components/prism-java';
 // @toast-ui-plugin: color syntax 
 import colorSyntax from '@toast-ui/editor-plugin-color-syntax';
 import { ConfigModule } from 'src/base/config';
-import { FolderViewComponent } from 'src/code/workbench/browser/actionView/folder/folder';
-import { TreeNode } from 'src/code/workbench/browser/actionView/folder/foldertree';
+import { TreeNode } from 'src/base/node/foldertree';
 import { ipcRendererOn } from 'src/base/ipc/register';
 import { Component } from 'src/code/workbench/browser/component';
 import { IRegisterService } from 'src/code/workbench/service/registerService';
+import { IEventEmitter } from 'src/base/common/event';
 
 /**
  * @description MarkdownComponent initializes markdown renderer and windows and
@@ -31,23 +31,22 @@ import { IRegisterService } from 'src/code/workbench/service/registerService';
  */
 export class MarkdownComponent extends Component {
     
-    // folderViewComponent: FolderViewComponent;
+    private _eventEmitter: IEventEmitter;
 
-    editor: Editor | null;
+    private editor: Editor | null;
+    private saveFileTimeout: NodeJS.Timeout | null;
+    private colorSyntaxOptions: any;
 
-    saveFileTimeout: NodeJS.Timeout | null;
-
-    colorSyntaxOptions: any;
-
-    constructor(registerService: IRegisterService) {
+    constructor(registerService: IRegisterService,
+                _eventEmitter: IEventEmitter
+    ) {
         super('markdown', registerService);
 
-        // this.folderViewComponent = folderViewComponent;
-
+        this._eventEmitter = _eventEmitter;
         this.editor = null;
         
         /**
-         * after markdown content is changed, a timeout will be set when the 
+         * after markdown content is changed, a timeout will be set if the 
          * auto-save mode is turned on. When the time has arrived, file will be
          * auto saved.
          */
@@ -83,6 +82,8 @@ export class MarkdownComponent extends Component {
             const markdown = document.getElementById('markdown') as HTMLElement;
             markdown.setAttribute('spellcheck', 'false');
         }
+
+        this._eventEmitter.register('EMarkdownDisplayFile', (nodeInfo: TreeNode) => this.markdownDisplayFile(nodeInfo));
         
         // ipcRendererOn('Ctrl+S', () => {
         //     if (!this.folderViewComponent.TabBar.emptyTab) {
@@ -98,7 +99,7 @@ export class MarkdownComponent extends Component {
      * @description instantiates editor constructor and markdown view. Editor's
      * events's callback functions will also be set here.
      */
-    createMarkdownEditor(): void {
+    public createMarkdownEditor(): void {
 
         let editor = new Editor({
             el: this.container, // HTMLElement container for markdown editor
@@ -133,7 +134,7 @@ export class MarkdownComponent extends Component {
                 /**
                  * @readonly It would be emitted when content changed.
                  */
-                change: () => { this.onChange() },
+                change: () => { this.onTextChange() },
             },
             placeholder: 'type your magic word...',
             plugins: [
@@ -144,18 +145,18 @@ export class MarkdownComponent extends Component {
 
         editor.getMarkdown();
         this.editor = editor;
-        (window as any).editor = editor; // set as global value TODO: remove later
+        // TODO: remove later
+        (window as any).editor = editor; // set as global value 
 
     }
 
     /**
      * @description callback function for 'editor.event.change'.
      */
-    onChange(): void {
-        // check if file-auto-save is ON
+    public onTextChange(): void {
         if (ConfigModule.fileAutoSaveOn) {
-            // if content is changed before the previous timeout has 
-            // reached, clear the preivous one.
+            // if content is changed before the previous timeout has reached, 
+            // clear the preivous one.
             if (this.saveFileTimeout) {
                 clearTimeout(this.saveFileTimeout);
             }
@@ -167,9 +168,27 @@ export class MarkdownComponent extends Component {
     }
 
     /**
+     * @description will be registered into eventEmitter as 'EMarkdownDisplayFile' 
+     * event.
+     */
+    public markdownDisplayFile(nodeInfo: TreeNode): void {
+        if (!this.editor) {
+            // do log here.
+            return;
+        }
+
+        if (nodeInfo) {
+            this.editor.setMarkdown(nodeInfo.file.plainText, false);
+        } else {
+            this.editor.setMarkdown('', false);
+        }
+    }
+    
+    /**
      * @description calling saveFile() from folderViewComponent.
      */
-    markdownSaveFile(): void {
+    // TODO: remove later
+    public markdownSaveFile(): void {
         // const index = this.folderViewComponent.TabBar.currFocusTabIndex;
         // const nodeInfo = this.folderViewComponent.TabBar.openedTabInfo[index] as TreeNode;
         // const newText = this.editor!.getMarkdown();

@@ -72,9 +72,9 @@ export class ActionViewComponent extends Component {
 
         this.folderViewComponent.registerListeners();
 
-        this._eventEmitter.register('onActionViewChange', (name) => this.onActionViewChange(name));
-        this._eventEmitter.register('onActionViewOpen', () => this.openActionView());
-        this._eventEmitter.register('onActionViewClose', () => this.closeActionView());
+        this._eventEmitter.register('EOnActionViewChange', (name) => this.onActionViewChange(name));
+        this._eventEmitter.register('EOnActionViewOpen', () => this.openActionView());
+        this._eventEmitter.register('EOnActionViewClose', () => this.closeActionView());
     }
 
     private _createActionViewTop(): HTMLElement {
@@ -101,7 +101,7 @@ export class ActionViewComponent extends Component {
         const actionViewContent = document.createElement('div');
         actionViewContent.id = 'action-view-content';
         
-        this.folderViewComponent = new FolderViewComponent(this);
+        this.folderViewComponent = new FolderViewComponent(this, this._eventEmitter);
         this.folderViewComponent.create(actionViewContent);
 
         // outlineViewComponent...

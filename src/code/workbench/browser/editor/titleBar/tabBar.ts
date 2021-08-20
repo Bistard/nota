@@ -1,8 +1,8 @@
 import { Editor } from '@toast-ui/editor/types/editor';
-import { fs } from 'src/base/util';
+import * as fs from 'fs';
 import { WriteFileOptions } from 'original-fs';
 import { ConfigModule } from 'src/base/config';
-import { TreeNode } from 'src/code/workbench/browser/actionView/folder/foldertree';
+import { TreeNode } from 'src/base/node/foldertree';
 import { ipcRendererOn, ipcRendererSendTest } from 'src/base/ipc/register';
 import { Component } from 'src/code/workbench/browser/component';
 import { IRegisterService } from 'src/code/workbench/service/registerService';
@@ -11,6 +11,7 @@ import { IRegisterService } from 'src/code/workbench/service/registerService';
  * @description TabBarComponent stores all the opened tabs data and handles all the 
  * tabBar relevant listeners and business.
  */
+// FIX: currently this component is DISABLED. No need to read this right now.
 export class TabBarComponent extends Component {
 
     public emptyTab: boolean;
@@ -92,7 +93,7 @@ export class TabBarComponent extends Component {
         // loop to search if the tab is existed or not
         let i = 0;
         for (i = 0; i < this.openedTabCount; i++) {
-            if (nodeInfo.path == (this.openedTabInfo[i] as TreeNode).path) {
+            if (nodeInfo.file.path == (this.openedTabInfo[i] as TreeNode).file.path) {
                 // tab exists
                 return [true, i, this.contentArea!.childNodes[i] as HTMLElement];
             }
@@ -105,7 +106,7 @@ export class TabBarComponent extends Component {
         
         newTab.classList.add('tab');
         tabText.classList.add('tab-text');
-        tabText.innerHTML = nodeInfo.name;
+        tabText.innerHTML = nodeInfo.file.name;
         tabCloseIcon.classList.add('tab-close-icon');
         tabCloseIcon.classList.add('vertical-center');
 
@@ -172,7 +173,7 @@ export class TabBarComponent extends Component {
         // setMarkdown() will emit Editor.event.change callback
         // ipcRenderer.send('test', 'setMarkdown()')
         if (nodeInfo) {
-            ((window as any).editor as Editor).setMarkdown(nodeInfo.plainText, false);
+            ((window as any).editor as Editor).setMarkdown(nodeInfo.file.plainText, false);
         } else {
             ((window as any).editor as Editor).setMarkdown('', false);
         }
@@ -201,7 +202,7 @@ export class TabBarComponent extends Component {
                 flag: 'w'
             };
             // FIX: shouldn't be nodeInfo.plainText, 
-            fs.writeFile(nodeInfo.path, nodeInfo.plainText, writeOption, (err) => {
+            fs.writeFile(nodeInfo.file.path, nodeInfo.file.plainText, writeOption, (err) => {
                 if (err) {
                     throw err;
                 }
@@ -211,7 +212,7 @@ export class TabBarComponent extends Component {
             // pop up a warning window
             // TODO: complete
         }
-        nodeInfo.plainText = '';
+        nodeInfo.file.plainText = '';
         let index = this.openedTabInfo.indexOf(nodeInfo);
         this.openedTabInfo.splice(index, 1);
         
