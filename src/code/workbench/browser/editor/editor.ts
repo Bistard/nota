@@ -1,3 +1,4 @@
+import { IEventEmitter } from "src/base/common/event";
 import { Component, ComponentType } from "src/code/workbench/browser/component";
 import { MarkdownComponent } from "src/code/workbench/browser/editor/markdown/markdown";
 import { TitleBarComponent } from "src/code/workbench/browser/editor/titleBar/titleBar";
@@ -5,15 +6,20 @@ import { IRegisterService } from "src/code/workbench/service/registerService";
 
 export class EditorComponent extends Component {
 
-    titleBarView!: HTMLElement;
-    titleBarComponent!: TitleBarComponent;
+    private _eventEmitter: IEventEmitter;
 
-    markdownView!: HTMLElement;
-    markdownComponent!: MarkdownComponent;
+    public titleBarView!: HTMLElement;
+    public markdownView!: HTMLElement;
+    
+    private titleBarComponent!: TitleBarComponent;
+    private markdownComponent!: MarkdownComponent;
 
-    constructor(registerService: IRegisterService) {
+    constructor(registerService: IRegisterService,
+                _eventEmitter: IEventEmitter
+    ) {
         super(ComponentType.editor, registerService);
 
+        this._eventEmitter = _eventEmitter;
         this.registerService = registerService;
     }
 
@@ -43,7 +49,6 @@ export class EditorComponent extends Component {
 
     }
 
-    // TODO
     private _createTitleBar(): void {
         const titleBar = document.createElement('div');
         titleBar.id = 'title-bar';

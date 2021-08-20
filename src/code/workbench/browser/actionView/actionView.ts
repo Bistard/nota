@@ -3,6 +3,7 @@ import { getSvgPathByName } from 'src/base/common/string';
 import { Component, ComponentType } from 'src/code/workbench/browser/component';
 import { IRegisterService } from 'src/code/workbench/service/registerService';
 import { FolderViewComponent } from "src/code/workbench/browser/actionView/folder/folder";
+import { IEventEmitter } from 'src/base/common/event';
 
 export enum ActionViewComponentType {
     FolderView = 'folder-container',
@@ -25,11 +26,15 @@ export class ActionViewComponent extends Component {
     private actionViewContent!: HTMLElement;
 
     private folderViewComponent!: FolderViewComponent;
+    private _eventEmitter: IEventEmitter;
     // Others...
 
-    constructor(registerService: IRegisterService) {
+    constructor(registerService: IRegisterService,
+                _eventEmitter: IEventEmitter    
+    ) {
         super(ComponentType.ActionView, registerService);
         
+        this._eventEmitter = _eventEmitter;
         this.whichActionView = 'none';
     }
 
@@ -67,9 +72,9 @@ export class ActionViewComponent extends Component {
 
         this.folderViewComponent.registerListeners();
 
-        // register topView icon
-
-        // register right click
+        this._eventEmitter.register('onActionViewChange', (name) => this.onActionViewChange(name));
+        this._eventEmitter.register('onActionViewOpen', () => this.openActionView());
+        this._eventEmitter.register('onActionViewClose', () => this.closeActionView());
     }
 
     private _createActionViewTop(): HTMLElement {
@@ -113,21 +118,21 @@ export class ActionViewComponent extends Component {
     /**
      * @description switch to that action view given a specific name.
      */
-    public switchToActionView(actionViewName: ActionViewType): void {
-        if (actionViewName == this.whichActionView) {
+    public onActionViewChange(actionViewName: ActionViewType): void {
+        if (actionViewName === this.whichActionView) {
             return;
         }
         
         this.actionViewTopTextOnChange(actionViewName);
         this.hideActionViewContent();
         
-        if (actionViewName == 'folder') {
+        if (actionViewName === 'folder') {
             $('#folder-container').show(0);
-        } else if (actionViewName == 'outline') {
+        } else if (actionViewName === 'outline') {
             $('#outline-container').show(0);
-        } else if (actionViewName == 'search') {
+        } else if (actionViewName === 'search') {
             $('#search-container').show(0);
-        } else if (actionViewName == 'git') {
+        } else if (actionViewName === 'git') {
             $('#git-container').show(0);
         } else {
             throw 'error';
