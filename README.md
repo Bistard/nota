@@ -5,20 +5,12 @@ An open-sourced markdown editor && noteTaking desktop application based on .md
 
 ## 💖feature
 * supports ✔WYSIWYG (rich text), ❌instant rendering, ✔ tranditional split view editing
-* supports git and github
+* supports git extension
 * provides great noteTaking-like user experience
 
 ## 👁‍🗨Screen shots (2021.8.5)
 ![screenshot](./doc/assets/2021.8.5.png)
 
 ## 🚪portal
-- [✔wiki](https://github.com/Bistard/MarkdownNote/wiki)
-
-## 💬ChangeLog
-* ⭐ => 'big update'
-* 💙 => 'debug'
-* 💛 => 'unstable'
-* 💚 => 'stable'
-* 🧡 => 'bug found'
-* 🖤 => 'bug fix'
-* 🤍 => 'others'
+- [📚wiki](https://github.com/Bistard/MarkdownNote/wiki)
+- [🚕roadMap](https://github.com/Bistard/MarkdownNote/wiki/RoadMap)

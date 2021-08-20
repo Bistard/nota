@@ -3,7 +3,7 @@ export interface IEventEmitter {
     /**
      * @description register an event.
      * 
-     * to avoid losing 'this' scope, please passs the callback using an arrow 
+     * to avoid losing 'this' scope, please pass the callback using an arrow 
      * wrapper function such as: '_eventEmitter.register(id, (...params) => callback(params));'
      */
      register(id: string, callback: (...params: any[]) => void): boolean;
