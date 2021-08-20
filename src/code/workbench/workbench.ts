@@ -3,6 +3,7 @@ import { IRegisterService } from "src/code/workbench/service/registerService";
 import { ActionViewComponent } from "src/code/workbench/browser/actionView/actionView";
 import { ActionBarComponent } from "src/code/workbench/browser/actionBar/actionBar";
 import { EditorComponent } from "src/code/workbench/browser/editor/editor";
+import { EventEmitter, IEventEmitter } from "src/base/common/event";
 
 /**
  * @description this module is loaded by the web directly. Most of the modules 
@@ -15,11 +16,14 @@ class Workbench implements IRegisterService {
 
     private componentMap = new Map<string, Component>();
 
+    private _eventEmitter: IEventEmitter;
+
     actionBarComponent!: ActionBarComponent;
     actionViewComponent!: ActionViewComponent;
     editorComponent!: EditorComponent;
     
-    constructor() {    
+    constructor() {
+        this._eventEmitter = new EventEmitter();
         this.initComponents();
         this.renderComponents();
     }
@@ -29,10 +33,9 @@ class Workbench implements IRegisterService {
      * rendering.
      */
     private initComponents(): void {
-        this.actionViewComponent = new ActionViewComponent(this);
-        // FIX: shoundn't passing component into another component to achieve communication btw components. Passing services instead.
-        this.actionBarComponent = new ActionBarComponent(this, this.actionViewComponent);
-        this.editorComponent = new EditorComponent(this);
+        this.actionBarComponent = new ActionBarComponent(this, this._eventEmitter);
+        this.actionViewComponent = new ActionViewComponent(this, this._eventEmitter);
+        this.editorComponent = new EditorComponent(this, this._eventEmitter);
     }
 
     private renderComponents(): void {
