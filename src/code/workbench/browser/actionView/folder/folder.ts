@@ -7,6 +7,7 @@ import { ActionViewComponentType } from 'src/code/workbench/browser/actionView/a
 import { IRegisterService } from 'src/code/workbench/service/registerService';
 import { IEventEmitter } from 'src/base/common/event';
 import { readMarkdownFile, readMarkdownFileOption } from 'src/base/node/file';
+import { NoteBookManager } from 'src/code/common/notebookManger';
 
 /**
  * @description FolderViewComponent 
@@ -67,8 +68,14 @@ export class FolderViewComponent extends Component {
             ipcRendererSend('openDir');
         })
 
-        // set openDir listener to get response back from main.js
+        /**
+         * set openDir listener to get response back from main.js.
+         * eg. D:\dev\AllNote
+         */
         ipcRendererOn('openDir', (_event, path, _stat) => {
+            // DEBUG: remove
+            const nbm = new NoteBookManager(path);
+            nbm.init();
             this.openDirecory(path);
         });
         
