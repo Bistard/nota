@@ -24,6 +24,7 @@ import { ipcRendererOn } from 'src/base/ipc/register';
 import { Component } from 'src/code/workbench/browser/component';
 import { IRegisterService } from 'src/code/workbench/service/registerService';
 import { IEventEmitter } from 'src/base/common/event';
+import { saveMarkdownFile } from 'src/base/node/file';
 
 /**
  * @description MarkdownComponent initializes markdown renderer and windows and
@@ -189,10 +190,9 @@ export class MarkdownComponent extends Component {
      */
     // TODO: remove later
     public markdownSaveFile(): void {
-        // const index = this.folderViewComponent.TabBar.currFocusTabIndex;
-        // const nodeInfo = this.folderViewComponent.TabBar.openedTabInfo[index] as TreeNode;
-        // const newText = this.editor!.getMarkdown();
-        // this.folderViewComponent.saveFile(nodeInfo, newText);
+        
+        const newText = this.editor!.getMarkdown();
+        // saveMarkdownFile();
     }
 
 }

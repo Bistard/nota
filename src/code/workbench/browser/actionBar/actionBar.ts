@@ -14,8 +14,8 @@ export class ActionBarComponent extends Component {
     private _buttonGroups: IButton[] = [];
     private _eventEmitter: IEventEmitter;
     
+    // if value is -1, it means actionView is not shown.
     private currFocusActionBtnIndex: number;
-    private isActionViewActive: boolean;
 
     constructor(registerService: IRegisterService,
                 _eventEmitter: IEventEmitter        
@@ -25,8 +25,6 @@ export class ActionBarComponent extends Component {
         this._eventEmitter = _eventEmitter;
         
         this.currFocusActionBtnIndex = -1;
-
-        this.isActionViewActive = false;
     }
 
     protected override _createContainer(): void {

@@ -45,6 +45,7 @@ export class ActionViewComponent extends Component {
     }
 
     protected override _createContentArea(): void {
+        
         this.contentArea = document.createElement('div');
         this.contentArea.id = 'action-view-container';
         

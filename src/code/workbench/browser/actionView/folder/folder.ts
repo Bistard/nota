@@ -203,42 +203,12 @@ export class FolderViewComponent extends Component {
             flag: 'r'
         };
 
-        /**
-         * @readonly use async reading prevents when facing a huge .md file
-         * will cause not response to the whole app.
-         */
         readMarkdownFile(nodeInfo, readOption).then(() => {
             this._eventEmitter.emit('EMarkdownDisplayFile', nodeInfo);
         }).catch(err => {
             // do log here
             throw err;
         })
-    }
-
-    /**
-     * @description write the current focused tab's content into the file.
-     * 
-     * @param {TreeNode} nodeInfo 
-     * @param {string} newText
-     * @return {void} void
-     */
-    saveFile(_nodeInfo: TreeNode, _newText: string): void {
-        /* if (nodeInfo !== undefined) {
-
-            let writeOption = {
-                encoding: 'utf-8',
-                flag: 'w'
-            }
-
-            fs.writeFile(nodeInfo.path, newText, writeOption, (err) => {
-                if (err) {
-                    throw err
-                }
-                ipcRenderer.send('test', 'auto saved')
-            })
-        } else {
-            ipcRenderer.send('test', 'auto saved but undefined')
-        } */
     }
 
     /**
