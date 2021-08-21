@@ -104,6 +104,7 @@ class Main {
                     }
 
                     if (!path.canceled) {
+                        // eg. D:\dev\AllNote
                         let rootdir = path.filePaths[0];
                         this.winMain!.webContents.send('openDir', rootdir);
                     }

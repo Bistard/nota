@@ -19,11 +19,12 @@ import 'prismjs/components/prism-java';
 // @toast-ui-plugin: color syntax 
 import colorSyntax from '@toast-ui/editor-plugin-color-syntax';
 import { ConfigModule } from 'src/base/config';
-import { TreeNode } from 'src/base/node/foldertree';
+import { FileNode } from 'src/base/node/fileTree';
 import { ipcRendererOn } from 'src/base/ipc/register';
 import { Component } from 'src/code/workbench/browser/component';
 import { IRegisterService } from 'src/code/workbench/service/registerService';
 import { IEventEmitter } from 'src/base/common/event';
+import { saveMarkdownFile } from 'src/base/node/file';
 
 /**
  * @description MarkdownComponent initializes markdown renderer and windows and
@@ -83,10 +84,10 @@ export class MarkdownComponent extends Component {
             markdown.setAttribute('spellcheck', 'false');
         }
 
-        this._eventEmitter.register('EMarkdownDisplayFile', (nodeInfo: TreeNode) => this.markdownDisplayFile(nodeInfo));
+        this._eventEmitter.register('EMarkdownDisplayFile', (nodeInfo: FileNode) => this.markdownDisplayFile(nodeInfo));
         
         // ipcRendererOn('Ctrl+S', () => {
-        //     if (!this.folderViewComponent.TabBar.emptyTab) {
+        //     if (!this.explorerViewComponent.TabBar.emptyTab) {
         //         if (this.saveFileTimeout) {
         //             clearTimeout(this.saveFileTimeout);
         //         }
@@ -171,7 +172,7 @@ export class MarkdownComponent extends Component {
      * @description will be registered into eventEmitter as 'EMarkdownDisplayFile' 
      * event.
      */
-    public markdownDisplayFile(nodeInfo: TreeNode): void {
+    public markdownDisplayFile(nodeInfo: FileNode): void {
         if (!this.editor) {
             // do log here.
             return;
@@ -185,14 +186,13 @@ export class MarkdownComponent extends Component {
     }
     
     /**
-     * @description calling saveFile() from folderViewComponent.
+     * @description calling saveFile() from explorerViewComponent.
      */
     // TODO: remove later
     public markdownSaveFile(): void {
-        // const index = this.folderViewComponent.TabBar.currFocusTabIndex;
-        // const nodeInfo = this.folderViewComponent.TabBar.openedTabInfo[index] as TreeNode;
-        // const newText = this.editor!.getMarkdown();
-        // this.folderViewComponent.saveFile(nodeInfo, newText);
+        
+        const newText = this.editor!.getMarkdown();
+        // saveMarkdownFile();
     }
 
 }

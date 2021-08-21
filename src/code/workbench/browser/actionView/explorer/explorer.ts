@@ -1,5 +1,5 @@
 import { TreeNodeType } from 'mdnote';
-import { FolderTree, TreeNode } from 'src/base/node/foldertree';
+import { FileTree, FileNode } from 'src/base/node/fileTree';
 import { TreeNodesType } from 'mdnote';
 import { domNodeByIdAddListener, ipcRendererOn, ipcRendererSend } from 'src/base/ipc/register';
 import { Component } from 'src/code/workbench/browser/component';
@@ -7,13 +7,14 @@ import { ActionViewComponentType } from 'src/code/workbench/browser/actionView/a
 import { IRegisterService } from 'src/code/workbench/service/registerService';
 import { IEventEmitter } from 'src/base/common/event';
 import { readMarkdownFile, readMarkdownFileOption } from 'src/base/node/file';
+import { NoteBookManager } from 'src/code/common/notebookManger';
 
 /**
- * @description FolderViewComponent 
+ * @description ExplorerViewComponent 
  */
-export class FolderViewComponent extends Component {
+export class ExplorerViewComponent extends Component {
 
-    public folderTree: FolderTree;
+    public fileTree: FileTree;
     private _eventEmitter: IEventEmitter;
 
     public isFolderOpened: boolean;
@@ -24,15 +25,15 @@ export class FolderViewComponent extends Component {
     constructor(registerService: IRegisterService,
                 _eventEmitter: IEventEmitter
     ) {
-        super(ActionViewComponentType.FolderView, registerService);
+        super(ActionViewComponentType.ExplorerView, registerService);
         
         this._eventEmitter = _eventEmitter;
-        this.folderTree = new FolderTree();
+        this.fileTree = new FileTree();
 
         this.isFolderOpened = false;
         this.treeNodeCount = 0;
 
-        // this variable is to store the x-coordinate of the resizeBar in the folder view
+        // this variable is to store the x-coordinate of the resizeBar in the explorer view
         this.resizeX = 0;
     }
 
@@ -67,8 +68,14 @@ export class FolderViewComponent extends Component {
             ipcRendererSend('openDir');
         })
 
-        // set openDir listener to get response back from main.js
+        /**
+         * set openDir listener to get response back from main.js.
+         * eg. D:\dev\AllNote
+         */
         ipcRendererOn('openDir', (_event, path, _stat) => {
+            // DEBUG: remove
+            const nbm = new NoteBookManager(path);
+            nbm.init();
             this.openDirecory(path);
         });
         
@@ -88,7 +95,7 @@ export class FolderViewComponent extends Component {
     /**
      * @description warpper function for displayTree().
      */
-    public displayFolderTree(root: TreeNode): void {
+    public displayFolderTree(root: FileNode): void {
         let current = this.insertNode($('#tree'), root, 'root') as HTMLElement;
         this.displayTree(current, root.nodes as TreeNodesType);
     }
@@ -111,7 +118,7 @@ export class FolderViewComponent extends Component {
      * @description Initializes a new foler/file node of HTMLElement and inserts
      * into the given parent.
      */
-    public insertNode(parent: JQuery<HTMLElement> | HTMLElement, nodeInfo: TreeNode, state: TreeNodeType): HTMLElement {
+    public insertNode(parent: JQuery<HTMLElement> | HTMLElement, nodeInfo: FileNode, state: TreeNodeType): HTMLElement {
         let element: HTMLElement;
         if (state == 'root' || state == 'folder') {
             element = document.createElement('ul');
@@ -181,10 +188,10 @@ export class FolderViewComponent extends Component {
      * @description wrapper function for left clicking a folder.
      * 
      * @param {JQuery} element 
-     * @param {TreeNode} nodeInfo 
+     * @param {FileNode} nodeInfo 
      * @returns {void} void
      */
-    folderOnClick(element: JQuery, nodeInfo: TreeNode): void {
+    folderOnClick(element: JQuery, nodeInfo: FileNode): void {
         (nodeInfo.isExpand as any) ^= 1;
         this.expandOrCollapseFolder(element, nodeInfo.isExpand);
     }
@@ -194,7 +201,7 @@ export class FolderViewComponent extends Component {
      */
     // FIX: when open a new or existed file, auto-save will be emit (write the exact same content to the original file)
     // TODO: currently disable relevant codes with tabBarComponent, more features should be added here
-    fileOnClick(element: JQuery<HTMLElement>, nodeInfo: TreeNode): void {
+    fileOnClick(element: JQuery<HTMLElement>, nodeInfo: FileNode): void {
         
         this.focusFileWhenLeftClick(nodeInfo);
         
@@ -203,10 +210,6 @@ export class FolderViewComponent extends Component {
             flag: 'r'
         };
 
-        /**
-         * @readonly use async reading prevents when facing a huge .md file
-         * will cause not response to the whole app.
-         */
         readMarkdownFile(nodeInfo, readOption).then(() => {
             this._eventEmitter.emit('EMarkdownDisplayFile', nodeInfo);
         }).catch(err => {
@@ -216,62 +219,36 @@ export class FolderViewComponent extends Component {
     }
 
     /**
-     * @description write the current focused tab's content into the file.
-     * 
-     * @param {TreeNode} nodeInfo 
-     * @param {string} newText
-     * @return {void} void
-     */
-    saveFile(_nodeInfo: TreeNode, _newText: string): void {
-        /* if (nodeInfo !== undefined) {
-
-            let writeOption = {
-                encoding: 'utf-8',
-                flag: 'w'
-            }
-
-            fs.writeFile(nodeInfo.path, newText, writeOption, (err) => {
-                if (err) {
-                    throw err
-                }
-                ipcRenderer.send('test', 'auto saved')
-            })
-        } else {
-            ipcRenderer.send('test', 'auto saved but undefined')
-        } */
-    }
-
-    /**
      * @description display focus on the given tab.
      * 
-     * @param {TreeNode} nodeInfo 
+     * @param {FileNode} nodeInfo 
      * @returns {void} void
      */
-    focusFileWhenLeftClick(_nodeInfo: TreeNode): void {
+    focusFileWhenLeftClick(nodeInfo: FileNode): void {
         // TODO: complete
     }
 
     /**
      * @description Opennign a directory and it does the following things:
      *  - displays the whole folder tree.
-     *  - set each TreeNode a click listeners.
+     *  - set each FileNode a click listeners.
      *  - if clicked, check if is foler or file, calls the corresponding click function.
      */
     public openDirecory(path: string): void {
         this.isFolderOpened = true;
-        this.folderTree.tree = this.folderTree.createFolderTree(path, 0);
-        this.folderTree.treeList = this.folderTree.createFolderTreeList(this.folderTree.tree as TreeNode);
+        this.fileTree.createFolderTree(path, 0);
+        this.fileTree.createFolderTreeList(this.fileTree.tree as FileNode);
 
         // remove later
-        const treeContainer = document.getElementById('folder-container') as HTMLElement;
+        const treeContainer = document.getElementById('explorer-container') as HTMLElement;
         const emptyFolderTag = document.getElementById('emptyFolderTag') as HTMLElement;
         treeContainer.removeChild(emptyFolderTag);
-        this.displayFolderTree(this.folderTree.tree as TreeNode);
+        this.displayFolderTree(this.fileTree.tree as FileNode);
 
-        $('.node-text').on('click', { FolderViewClass: this }, function (event) {
-            let that = event.data.FolderViewClass;
+        $('.node-text').on('click', { explorerViewClass: this }, function (event) {
+            let that = event.data.explorerViewClass;
             let nodeNum = (this.parentNode as HTMLElement).getAttribute('nodeNum') as string;
-            let nodeInfo = that.folderTree.treeList[parseInt(nodeNum)] as TreeNode;
+            let nodeInfo = that.fileTree.treeList[parseInt(nodeNum)] as FileNode;
             if (nodeInfo.isFolder) {
                 that.folderOnClick($(this), nodeInfo);
             } else { 
@@ -290,17 +267,17 @@ export class FolderViewComponent extends Component {
             return;
         }
         // TODO: remove later
-        const folderView = document.getElementById('action-view') as HTMLElement;
+        const explorerView = document.getElementById('action-view') as HTMLElement;
         const contentView = document.getElementById('editor-view') as HTMLElement;
         let dx = this.resizeX - event.x;
         this.resizeX = event.x;
         /* new X has to be calculated first, than concatenates with "px", otherwise
            the string will be like newX = "1000+2px" and losing accuracy */
-        let folderViewNewX = parseInt(getComputedStyle(folderView, '').width) - dx;
+        let explorerViewNewX = parseInt(getComputedStyle(explorerView, '').width) - dx;
         let contentViewNewX = parseInt(getComputedStyle(contentView, '').width) + dx;
         
-        folderView.style.width = folderViewNewX + "px";
-        folderView.style.minWidth = folderViewNewX + "px";
+        explorerView.style.width = explorerViewNewX + "px";
+        explorerView.style.minWidth = explorerViewNewX + "px";
         contentView.style.width = contentViewNewX + "px";
     }
 

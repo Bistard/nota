@@ -1,12 +1,13 @@
-import { ActionViewType } from 'mdnote';
 import { getSvgPathByName } from 'src/base/common/string';
 import { Component, ComponentType } from 'src/code/workbench/browser/component';
 import { IRegisterService } from 'src/code/workbench/service/registerService';
-import { FolderViewComponent } from "src/code/workbench/browser/actionView/folder/folder";
+import { ExplorerViewComponent } from "src/code/workbench/browser/actionView/explorer/explorer";
 import { IEventEmitter } from 'src/base/common/event';
 
+export type ActionViewType = 'none' | 'explorer' | 'outline' | 'search' | 'git';
+
 export enum ActionViewComponentType {
-    FolderView = 'folder-container',
+    ExplorerView = 'explorer-container',
     OutlineView = 'outline-container',
     SearchView = 'search-container',
     GitView = 'git-container',
@@ -14,7 +15,7 @@ export enum ActionViewComponentType {
 
 /**
  * @description ActionViewComponent displays different action view such as 
- * folderView, outlineView, gitView and so on.
+ * explorerView, outlineView, gitView and so on.
  */
 export class ActionViewComponent extends Component {
 
@@ -25,7 +26,7 @@ export class ActionViewComponent extends Component {
     private actionViewTop!: HTMLElement;
     private actionViewContent!: HTMLElement;
 
-    private folderViewComponent!: FolderViewComponent;
+    private explorerViewComponent!: ExplorerViewComponent;
     private _eventEmitter: IEventEmitter;
     // Others...
 
@@ -45,6 +46,7 @@ export class ActionViewComponent extends Component {
     }
 
     protected override _createContentArea(): void {
+        
         this.contentArea = document.createElement('div');
         this.contentArea.id = 'action-view-container';
         
@@ -70,7 +72,7 @@ export class ActionViewComponent extends Component {
 
     protected override _registerListeners(): void {
 
-        this.folderViewComponent.registerListeners();
+        this.explorerViewComponent.registerListeners();
 
         this._eventEmitter.register('EOnActionViewChange', (name) => this.onActionViewChange(name));
         this._eventEmitter.register('EOnActionViewOpen', () => this.openActionView());
@@ -83,7 +85,7 @@ export class ActionViewComponent extends Component {
 
         const topText = document.createElement('div');
         topText.id = 'action-view-top-text';
-        topText.innerHTML = 'Notebook';
+        topText.innerHTML = 'Explorer';
         topText.classList.add('pureText', 'captialize');
 
         const topIcon = document.createElement('img');
@@ -101,8 +103,8 @@ export class ActionViewComponent extends Component {
         const actionViewContent = document.createElement('div');
         actionViewContent.id = 'action-view-content';
         
-        this.folderViewComponent = new FolderViewComponent(this, this._eventEmitter);
-        this.folderViewComponent.create(actionViewContent);
+        this.explorerViewComponent = new ExplorerViewComponent(this, this._eventEmitter);
+        this.explorerViewComponent.create(actionViewContent);
 
         // outlineViewComponent...
         
@@ -126,8 +128,8 @@ export class ActionViewComponent extends Component {
         this.actionViewTopTextOnChange(actionViewName);
         this.hideActionViewContent();
         
-        if (actionViewName === 'folder') {
-            $('#folder-container').show(0);
+        if (actionViewName === 'explorer') {
+            $('#explorer-container').show(0);
         } else if (actionViewName === 'outline') {
             $('#outline-container').show(0);
         } else if (actionViewName === 'search') {

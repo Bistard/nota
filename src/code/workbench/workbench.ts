@@ -38,6 +38,9 @@ class Workbench implements IRegisterService {
         this.editorComponent = new EditorComponent(this, this._eventEmitter);
     }
 
+    /**
+     * @description calls 'create()' and 'registerListeners()' for each component.
+     */
     private renderComponents(): void {
         [
             {id: ComponentType.ActionBar, classes: []},

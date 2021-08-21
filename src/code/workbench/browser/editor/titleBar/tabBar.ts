@@ -2,7 +2,7 @@ import { Editor } from '@toast-ui/editor/types/editor';
 import * as fs from 'fs';
 import { WriteFileOptions } from 'original-fs';
 import { ConfigModule } from 'src/base/config';
-import { TreeNode } from 'src/base/node/foldertree';
+import { FileNode } from 'src/base/node/fileTree';
 import { ipcRendererOn, ipcRendererSendTest } from 'src/base/ipc/register';
 import { Component } from 'src/code/workbench/browser/component';
 import { IRegisterService } from 'src/code/workbench/service/registerService';
@@ -17,7 +17,7 @@ export class TabBarComponent extends Component {
     public emptyTab: boolean;
     public openedTabCount: number;
 
-    public openedTabInfo: TreeNode[];
+    public openedTabInfo: FileNode[];
     currFocusTabIndex: number;
 
     constructor(registerService: IRegisterService) {
@@ -54,7 +54,7 @@ export class TabBarComponent extends Component {
             if (!this.emptyTab && this.openedTabCount != 1) {
                 const index = (this.currFocusTabIndex + 1) % this.openedTabCount;
                 const tab = this.contentArea!.children[index] as HTMLElement;
-                let nodeInfo = this.openedTabInfo[index] as TreeNode;
+                let nodeInfo = this.openedTabInfo[index] as FileNode;
                 this.openTab(tab, index, nodeInfo);
             }
         });
@@ -64,7 +64,7 @@ export class TabBarComponent extends Component {
             if (!this.emptyTab && this.openedTabCount != 1) {
                 const index = (this.currFocusTabIndex - 1 + this.openedTabCount) % this.openedTabCount;
                 const tab = this.contentArea!.children[index] as HTMLElement;
-                let nodeInfo = this.openedTabInfo[index] as TreeNode;
+                let nodeInfo = this.openedTabInfo[index] as FileNode;
                 this.openTab(tab, index, nodeInfo);
             }
         });
@@ -74,7 +74,7 @@ export class TabBarComponent extends Component {
         ipcRendererOn('Ctrl+W', () => {
             if (!this.emptyTab) {
                 const tab = this.contentArea!.children[this.currFocusTabIndex] as HTMLElement;
-                let nodeInfo = this.openedTabInfo[this.currFocusTabIndex] as TreeNode;
+                let nodeInfo = this.openedTabInfo[this.currFocusTabIndex] as FileNode;
                 this.closeTab(tab, nodeInfo);
             }
         });
@@ -82,18 +82,18 @@ export class TabBarComponent extends Component {
     }
 
     /**
-     * @description By the given TreeNode, initializes a new HTMLElement tab 
+     * @description By the given FileNode, initializes a new HTMLElement tab 
      * and sets 'click' listeners. The 1st return value indicates if the tab is
      * already opened. The following return values indicates its coressponding 
      * information.
      * 
      * @returns {[boolean, number, HTMLElement]} [isExist, exsistedIndex, tab]
      */
-    public initTab(nodeInfo: TreeNode): [boolean, number, HTMLElement] {
+    public initTab(nodeInfo: FileNode): [boolean, number, HTMLElement] {
         // loop to search if the tab is existed or not
         let i = 0;
         for (i = 0; i < this.openedTabCount; i++) {
-            if (nodeInfo.file.path == (this.openedTabInfo[i] as TreeNode).file.path) {
+            if (nodeInfo.file.path == (this.openedTabInfo[i] as FileNode).file.path) {
                 // tab exists
                 return [true, i, this.contentArea!.childNodes[i] as HTMLElement];
             }
@@ -135,10 +135,10 @@ export class TabBarComponent extends Component {
      * @description Given a HTMLElement, inserts it into the tabBar.
      * 
      * @param {HTMLElement} element the tab to be inserted
-     * @param {TreeNode} nodeInfo tabInfo
+     * @param {FileNode} nodeInfo tabInfo
      * @returns {void} void
      */
-    public insertTab(element: HTMLElement, nodeInfo: TreeNode): void {
+    public insertTab(element: HTMLElement, nodeInfo: FileNode): void {
         $('#tabBar').append(element);
         this.currFocusTabIndex = this.openedTabCount;
         this.openedTabCount++;
@@ -152,10 +152,10 @@ export class TabBarComponent extends Component {
      * 
      * @param {HTMLElement} tab tab to be opened
      * @param {number} index index in the tabBar
-     * @param {TreeNode} nodeInfo tabInfo
+     * @param {FileNode} nodeInfo tabInfo
      * @returns {void} void
      */
-    public openTab(tab: HTMLElement, index: number, nodeInfo: TreeNode): void {
+    public openTab(tab: HTMLElement, index: number, nodeInfo: FileNode): void {
         // TODO: improve efficiency
         $('.tab').each(function() {
             $(this).removeClass('tab-clicked');
@@ -169,7 +169,7 @@ export class TabBarComponent extends Component {
     /**
      * @description displays a new string content onto the markdown view.
      */
-    public displayTab(nodeInfo: TreeNode | null): void {
+    public displayTab(nodeInfo: FileNode | null): void {
         // setMarkdown() will emit Editor.event.change callback
         // ipcRenderer.send('test', 'setMarkdown()')
         if (nodeInfo) {
@@ -186,7 +186,7 @@ export class TabBarComponent extends Component {
      * If auto-save is on, current changes will be async auto-saved.
      * If auto-save is off, closing tab will pop up a warning to warn you to save or not.
      */
-    public closeTab(element: HTMLElement, nodeInfo: TreeNode): void {
+    public closeTab(element: HTMLElement, nodeInfo: FileNode): void {
         
         this.contentArea!.removeChild(element);
 
@@ -229,7 +229,7 @@ export class TabBarComponent extends Component {
                 index--;
             }
             const nextFocusTab = this.contentArea!.childNodes[index] as HTMLElement;
-            const nextFocustabInfo = this.openedTabInfo[index] as TreeNode;
+            const nextFocustabInfo = this.openedTabInfo[index] as FileNode;
             this.openTab(nextFocusTab, index, nextFocustabInfo);
         } else if (index < this.currFocusTabIndex) {
             this.currFocusTabIndex--;

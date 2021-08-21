@@ -22,7 +22,7 @@ This todo list is currently maintained by Chris Li (@Bistard), Jody Zhou (@JodyZ
 * [x] actionBar
   * [ ] ...
 * [x] actionView
-  * [x] folderView
+  * [x] explorerView
     * [x] open empty folder dialog
     * [x] display current working directory
     * [ ] auto update folder tree/note tree
@@ -77,7 +77,7 @@ This todo list is currently maintained by Chris Li (@Bistard), Jody Zhou (@JodyZ
 
 
 
-  * [x] folderView
+  * [x] explorerView
     * [x] interactive size
       * [x] middle three point button style
     * [x] folder tree view

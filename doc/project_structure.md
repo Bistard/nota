@@ -15,7 +15,7 @@
 │  └─workbench
 │      ├─actionBar
 │      ├─actionView
-│      │  ├─folderView
+│      │  ├─explorerView
 │      │  └─outline
 │      └─content
 │          ├─markdown
@@ -23,7 +23,7 @@
 └─styles
     ├─actionBarView
     ├─actionView
-    │  ├─folderView
+    │  ├─explorerView
     │  └─outlineView
     ├─contentView
     │  ├─markdownView
