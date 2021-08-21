@@ -245,8 +245,8 @@ export class ExplorerViewComponent extends Component {
         treeContainer.removeChild(emptyFolderTag);
         this.displayFolderTree(this.fileTree.tree as FileNode);
 
-        $('.node-text').on('click', { FolderViewClass: this }, function (event) {
-            let that = event.data.FolderViewClass;
+        $('.node-text').on('click', { explorerViewClass: this }, function (event) {
+            let that = event.data.explorerViewClass;
             let nodeNum = (this.parentNode as HTMLElement).getAttribute('nodeNum') as string;
             let nodeInfo = that.fileTree.treeList[parseInt(nodeNum)] as FileNode;
             if (nodeInfo.isFolder) {
@@ -267,17 +267,17 @@ export class ExplorerViewComponent extends Component {
             return;
         }
         // TODO: remove later
-        const folderView = document.getElementById('action-view') as HTMLElement;
+        const explorerView = document.getElementById('action-view') as HTMLElement;
         const contentView = document.getElementById('editor-view') as HTMLElement;
         let dx = this.resizeX - event.x;
         this.resizeX = event.x;
         /* new X has to be calculated first, than concatenates with "px", otherwise
            the string will be like newX = "1000+2px" and losing accuracy */
-        let folderViewNewX = parseInt(getComputedStyle(folderView, '').width) - dx;
+        let explorerViewNewX = parseInt(getComputedStyle(explorerView, '').width) - dx;
         let contentViewNewX = parseInt(getComputedStyle(contentView, '').width) + dx;
         
-        folderView.style.width = folderViewNewX + "px";
-        folderView.style.minWidth = folderViewNewX + "px";
+        explorerView.style.width = explorerViewNewX + "px";
+        explorerView.style.minWidth = explorerViewNewX + "px";
         contentView.style.width = contentViewNewX + "px";
     }
 

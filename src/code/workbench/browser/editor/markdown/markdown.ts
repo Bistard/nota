@@ -87,7 +87,7 @@ export class MarkdownComponent extends Component {
         this._eventEmitter.register('EMarkdownDisplayFile', (nodeInfo: FileNode) => this.markdownDisplayFile(nodeInfo));
         
         // ipcRendererOn('Ctrl+S', () => {
-        //     if (!this.folderViewComponent.TabBar.emptyTab) {
+        //     if (!this.explorerViewComponent.TabBar.emptyTab) {
         //         if (this.saveFileTimeout) {
         //             clearTimeout(this.saveFileTimeout);
         //         }
@@ -186,7 +186,7 @@ export class MarkdownComponent extends Component {
     }
     
     /**
-     * @description calling saveFile() from folderViewComponent.
+     * @description calling saveFile() from explorerViewComponent.
      */
     // TODO: remove later
     public markdownSaveFile(): void {
