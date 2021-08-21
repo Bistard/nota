@@ -1,6 +1,6 @@
-import { ActionViewType } from 'mdnote';
 import { Button, IButton } from 'src/base/browser/ui/button';
 import { IEventEmitter } from 'src/base/common/event';
+import { ActionViewType } from 'src/code/workbench/browser/actionView/actionView';
 import { Component, ComponentType } from 'src/code/workbench/browser/component';
 import { IRegisterService } from 'src/code/workbench/service/registerService';
 
@@ -39,7 +39,7 @@ export class ActionBarComponent extends Component {
         this.container.appendChild(this.contentArea);
 
         [
-            {id: 'folder-button', src: 'file'},
+            {id: 'explorer-button', src: 'file'},
             {id: 'outline-button', src: 'list'},
             {id: 'search-button', src: 'search'},
             {id: 'git-button', src: 'git'},
@@ -58,12 +58,13 @@ export class ActionBarComponent extends Component {
     protected override _registerListeners(): void {
 
         // TODO: remove later
-        // give every actionButton a unique number.
+        // give every actionButton a unique number
         $('.action-button').each(function(index, element) {
             element.setAttribute('btnNum', index.toString());
         })
         
-        this.clickActionBtn(document.getElementById('folder-button') as HTMLElement);
+        // default with openning explorer view
+        this.clickActionBtn(document.getElementById('explorer-button') as HTMLElement);
 
         // TODO: comeplete using my own API
         $('.action-button').on('click', { ActionBarComponent: this }, function (event) {

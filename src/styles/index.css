@@ -10,8 +10,8 @@
 @import "./common.css";
 @import "./actionBar/actionBar.css";
 @import "./actionView/actionView.css";
-@import "./actionView/folder/folderView.css";
-@import "./actionView/folder/fileTree.css";
+@import "./actionView/explorer/explorerView.css";
+@import "./actionView/explorer/fileTree.css";
 @import "./actionView/outline/outlineView.css";
 @import "./editor/titleBar/titleBarView.css";
 @import "./editor/titleBar/toolBarView.css";

@@ -1,4 +1,4 @@
-#folder-container {
+#explorer-container {
     position: relative;
     display: flex;
     flex-direction: column;
@@ -13,14 +13,14 @@
     transition: 0.1s;
 }
 
-#folder-container:hover > #emptyFolderTag {
+#explorer-container:hover > #emptyFolderTag {
     color: #9f9f95;
 }
 
-#folder-container:hover > #emptyFolderTag:hover {
+#explorer-container:hover > #emptyFolderTag:hover {
     color: rgb(202, 202, 202);
 }
 
-#folder-container:hover > #emptyFolderTag:active {
+#explorer-container:hover > #emptyFolderTag:active {
     color: #9f9f95;
 }

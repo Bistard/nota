@@ -10,9 +10,9 @@ import { readMarkdownFile, readMarkdownFileOption } from 'src/base/node/file';
 import { NoteBookManager } from 'src/code/common/notebookManger';
 
 /**
- * @description FolderViewComponent 
+ * @description ExplorerViewComponent 
  */
-export class FolderViewComponent extends Component {
+export class ExplorerViewComponent extends Component {
 
     public fileTree: FileTree;
     private _eventEmitter: IEventEmitter;
@@ -25,7 +25,7 @@ export class FolderViewComponent extends Component {
     constructor(registerService: IRegisterService,
                 _eventEmitter: IEventEmitter
     ) {
-        super(ActionViewComponentType.FolderView, registerService);
+        super(ActionViewComponentType.ExplorerView, registerService);
         
         this._eventEmitter = _eventEmitter;
         this.fileTree = new FileTree();
@@ -33,7 +33,7 @@ export class FolderViewComponent extends Component {
         this.isFolderOpened = false;
         this.treeNodeCount = 0;
 
-        // this variable is to store the x-coordinate of the resizeBar in the folder view
+        // this variable is to store the x-coordinate of the resizeBar in the explorer view
         this.resizeX = 0;
     }
 
@@ -240,7 +240,7 @@ export class FolderViewComponent extends Component {
         this.fileTree.createFolderTreeList(this.fileTree.tree as FileNode);
 
         // remove later
-        const treeContainer = document.getElementById('folder-container') as HTMLElement;
+        const treeContainer = document.getElementById('explorer-container') as HTMLElement;
         const emptyFolderTag = document.getElementById('emptyFolderTag') as HTMLElement;
         treeContainer.removeChild(emptyFolderTag);
         this.displayFolderTree(this.fileTree.tree as FileNode);
