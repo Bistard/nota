@@ -2,7 +2,7 @@ import { Abortable } from 'events';
 import * as fs from 'fs';
 import * as Path from 'path';
 import { getFileType } from 'src/base/common/string';
-import { TreeNode } from 'src/base/node/foldertree';
+import { FileNode } from 'src/base/node/fileTree';
 
 export function isMarkdownFile(filename: string): boolean {
     return getFileType(filename) === FileType.MARKDOWN;
@@ -59,9 +59,9 @@ export function readFile(
 }
 
 /**
- * @description asynchronously reads a single .md file and stores the text into TreeNode.
+ * @description asynchronously reads a single .md file and stores the text into FileNode.
  */
-export async function readMarkdownFile(nodeInfo: TreeNode, opt: readMarkdownFileOption): Promise<void> {
+export async function readMarkdownFile(nodeInfo: FileNode, opt: readMarkdownFileOption): Promise<void> {
     return new Promise((resolve, reject) => {
         if (!nodeInfo) {
             reject('wrong given nodeInfo');
@@ -80,11 +80,11 @@ export async function readMarkdownFile(nodeInfo: TreeNode, opt: readMarkdownFile
 }
 
 /**
- * @description synchronously reads .md file and stores the text into TreeNode.
+ * @description synchronously reads .md file and stores the text into FileNode.
  * 
  * NOT RECOMMENDED TO USE THIS.
  */
- export function readMarkdownFileSync(nodeInfo: TreeNode, opt: readMarkdownFileOption): void {
+ export function readMarkdownFileSync(nodeInfo: FileNode, opt: readMarkdownFileOption): void {
     if (!nodeInfo) {
         throw 'read .md file error';
     } else if (!isMarkdownFile(nodeInfo.file.baseName)) {
@@ -93,4 +93,30 @@ export async function readMarkdownFile(nodeInfo: TreeNode, opt: readMarkdownFile
     }
     
     nodeInfo.file.plainText = fs.readFileSync(nodeInfo.file.path, opt);
+}
+
+/**
+ * @description synchronously saves .md file.
+ */
+export async function saveMarkdownFile(nodeInfo: FileNode, newPlainText: string): Promise<void> {
+    return new Promise((resolve, reject) => {
+        if (nodeInfo !== undefined) {
+
+            let writeOption: fs.WriteFileOptions = {
+                encoding: 'utf-8',
+                flag: 'w'
+            };
+    
+            fs.writeFile(nodeInfo.file.path, newPlainText, writeOption, (err) => {
+                if (err) {
+                    reject(err);
+                }
+                console.log('auto saved');
+                resolve();
+            });
+        } else {
+            console.log('auto saved but undefined');
+            resolve();
+        }
+    })
 }

@@ -19,7 +19,7 @@ import 'prismjs/components/prism-java';
 // @toast-ui-plugin: color syntax 
 import colorSyntax from '@toast-ui/editor-plugin-color-syntax';
 import { ConfigModule } from 'src/base/config';
-import { TreeNode } from 'src/base/node/foldertree';
+import { FileNode } from 'src/base/node/fileTree';
 import { ipcRendererOn } from 'src/base/ipc/register';
 import { Component } from 'src/code/workbench/browser/component';
 import { IRegisterService } from 'src/code/workbench/service/registerService';
@@ -84,7 +84,7 @@ export class MarkdownComponent extends Component {
             markdown.setAttribute('spellcheck', 'false');
         }
 
-        this._eventEmitter.register('EMarkdownDisplayFile', (nodeInfo: TreeNode) => this.markdownDisplayFile(nodeInfo));
+        this._eventEmitter.register('EMarkdownDisplayFile', (nodeInfo: FileNode) => this.markdownDisplayFile(nodeInfo));
         
         // ipcRendererOn('Ctrl+S', () => {
         //     if (!this.folderViewComponent.TabBar.emptyTab) {
@@ -172,7 +172,7 @@ export class MarkdownComponent extends Component {
      * @description will be registered into eventEmitter as 'EMarkdownDisplayFile' 
      * event.
      */
-    public markdownDisplayFile(nodeInfo: TreeNode): void {
+    public markdownDisplayFile(nodeInfo: FileNode): void {
         if (!this.editor) {
             // do log here.
             return;

@@ -1,5 +1,5 @@
 import { TreeNodeType } from 'mdnote';
-import { FolderTree, TreeNode } from 'src/base/node/foldertree';
+import { FileTree, FileNode } from 'src/base/node/fileTree';
 import { TreeNodesType } from 'mdnote';
 import { domNodeByIdAddListener, ipcRendererOn, ipcRendererSend } from 'src/base/ipc/register';
 import { Component } from 'src/code/workbench/browser/component';
@@ -13,7 +13,7 @@ import { readMarkdownFile, readMarkdownFileOption } from 'src/base/node/file';
  */
 export class FolderViewComponent extends Component {
 
-    public folderTree: FolderTree;
+    public fileTree: FileTree;
     private _eventEmitter: IEventEmitter;
 
     public isFolderOpened: boolean;
@@ -27,7 +27,7 @@ export class FolderViewComponent extends Component {
         super(ActionViewComponentType.FolderView, registerService);
         
         this._eventEmitter = _eventEmitter;
-        this.folderTree = new FolderTree();
+        this.fileTree = new FileTree();
 
         this.isFolderOpened = false;
         this.treeNodeCount = 0;
@@ -88,7 +88,7 @@ export class FolderViewComponent extends Component {
     /**
      * @description warpper function for displayTree().
      */
-    public displayFolderTree(root: TreeNode): void {
+    public displayFolderTree(root: FileNode): void {
         let current = this.insertNode($('#tree'), root, 'root') as HTMLElement;
         this.displayTree(current, root.nodes as TreeNodesType);
     }
@@ -111,7 +111,7 @@ export class FolderViewComponent extends Component {
      * @description Initializes a new foler/file node of HTMLElement and inserts
      * into the given parent.
      */
-    public insertNode(parent: JQuery<HTMLElement> | HTMLElement, nodeInfo: TreeNode, state: TreeNodeType): HTMLElement {
+    public insertNode(parent: JQuery<HTMLElement> | HTMLElement, nodeInfo: FileNode, state: TreeNodeType): HTMLElement {
         let element: HTMLElement;
         if (state == 'root' || state == 'folder') {
             element = document.createElement('ul');
@@ -181,10 +181,10 @@ export class FolderViewComponent extends Component {
      * @description wrapper function for left clicking a folder.
      * 
      * @param {JQuery} element 
-     * @param {TreeNode} nodeInfo 
+     * @param {FileNode} nodeInfo 
      * @returns {void} void
      */
-    folderOnClick(element: JQuery, nodeInfo: TreeNode): void {
+    folderOnClick(element: JQuery, nodeInfo: FileNode): void {
         (nodeInfo.isExpand as any) ^= 1;
         this.expandOrCollapseFolder(element, nodeInfo.isExpand);
     }
@@ -194,7 +194,7 @@ export class FolderViewComponent extends Component {
      */
     // FIX: when open a new or existed file, auto-save will be emit (write the exact same content to the original file)
     // TODO: currently disable relevant codes with tabBarComponent, more features should be added here
-    fileOnClick(element: JQuery<HTMLElement>, nodeInfo: TreeNode): void {
+    fileOnClick(element: JQuery<HTMLElement>, nodeInfo: FileNode): void {
         
         this.focusFileWhenLeftClick(nodeInfo);
         
@@ -214,34 +214,34 @@ export class FolderViewComponent extends Component {
     /**
      * @description display focus on the given tab.
      * 
-     * @param {TreeNode} nodeInfo 
+     * @param {FileNode} nodeInfo 
      * @returns {void} void
      */
-    focusFileWhenLeftClick(_nodeInfo: TreeNode): void {
+    focusFileWhenLeftClick(nodeInfo: FileNode): void {
         // TODO: complete
     }
 
     /**
      * @description Opennign a directory and it does the following things:
      *  - displays the whole folder tree.
-     *  - set each TreeNode a click listeners.
+     *  - set each FileNode a click listeners.
      *  - if clicked, check if is foler or file, calls the corresponding click function.
      */
     public openDirecory(path: string): void {
         this.isFolderOpened = true;
-        this.folderTree.tree = this.folderTree.createFolderTree(path, 0);
-        this.folderTree.treeList = this.folderTree.createFolderTreeList(this.folderTree.tree as TreeNode);
+        this.fileTree.createFolderTree(path, 0);
+        this.fileTree.createFolderTreeList(this.fileTree.tree as FileNode);
 
         // remove later
         const treeContainer = document.getElementById('folder-container') as HTMLElement;
         const emptyFolderTag = document.getElementById('emptyFolderTag') as HTMLElement;
         treeContainer.removeChild(emptyFolderTag);
-        this.displayFolderTree(this.folderTree.tree as TreeNode);
+        this.displayFolderTree(this.fileTree.tree as FileNode);
 
         $('.node-text').on('click', { FolderViewClass: this }, function (event) {
             let that = event.data.FolderViewClass;
             let nodeNum = (this.parentNode as HTMLElement).getAttribute('nodeNum') as string;
-            let nodeInfo = that.folderTree.treeList[parseInt(nodeNum)] as TreeNode;
+            let nodeInfo = that.fileTree.treeList[parseInt(nodeNum)] as FileNode;
             if (nodeInfo.isFolder) {
                 that.folderOnClick($(this), nodeInfo);
             } else { 
