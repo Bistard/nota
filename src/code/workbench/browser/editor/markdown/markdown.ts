@@ -20,11 +20,9 @@ import 'prismjs/components/prism-java';
 import colorSyntax from '@toast-ui/editor-plugin-color-syntax';
 import { ConfigModule } from 'src/base/config';
 import { FileNode } from 'src/base/node/fileTree';
-import { ipcRendererOn } from 'src/base/ipc/register';
 import { Component } from 'src/code/workbench/browser/component';
 import { IRegisterService } from 'src/code/workbench/service/registerService';
 import { IEventEmitter } from 'src/base/common/event';
-import { saveMarkdownFile } from 'src/base/node/file';
 import { MarkdownRenderMode } from 'mdnote';
 import { getSvgPathByName } from 'src/base/common/string';
 

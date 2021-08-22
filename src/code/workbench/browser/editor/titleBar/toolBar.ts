@@ -1,4 +1,3 @@
-import { MarkdownRenderMode } from "mdnote";
 import { Button } from "src/base/browser/ui/button";
 import { IEventEmitter } from "src/base/common/event";
 import { getSvgPathByName } from "src/base/common/string";
@@ -23,7 +22,7 @@ export class ToolBarComponent extends Component {
         this._eventEmitter = _eventEmitter;
         
         this.isToolBarExpand = ConfigModule.isToolBarExpand;
-        this.isMarkdownToolExpand = false;
+        this.isMarkdownToolExpand = ConfigModule.isMarkdownToolExpand;
         this.isTabBarExpand = false;
 
     }

@@ -26,13 +26,14 @@ export class ConfigModule {
      * @readonly titleBarView config
      */
 
-    public static defaultMarkdownMode: MarkdownRenderMode = 'wysiwyg';
-
+    
     public static isToolBarExpand: boolean = true;
+    public static isMarkdownToolExpand: boolean = false;
 
     /**
      * @readonly markdownView config
      */
+    public static defaultMarkdownMode: MarkdownRenderMode = 'wysiwyg';
     public static markdownSpellCheckOn: boolean = false;
 
 }
