@@ -1,7 +1,7 @@
 const OS = require('os')
 const path = require('path')
 
-const { BrowserWindow, ipcMain, app, dialog } = require('electron')
+const { BrowserWindow, ipcMain, app, dialog. Mennu } = require('electron')
 const ElectronLocalshortcut = require('electron-localshortcut')
 
 /**
@@ -110,6 +110,20 @@ class Main {
                     }
                 })
             })
+
+           this.winMain!.webContents.on('context-menu', () => {
+            console.log(webContents)
+            const template: Electron.MenuItemConstructorOptions[] = [{
+                role: 'editMenu'
+        ];   
+            
+            const createContextMenu = () => {
+                   return Menu.buildFromTemplate(
+                        template
+                   )
+               }
+             createContextMenu().popup()
+           })
 
             // only for testing purpose, can be removed in release version
             ipcMain.on('test', (_event, data) => {
