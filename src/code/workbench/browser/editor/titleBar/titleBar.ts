@@ -20,7 +20,7 @@ export class TitleBarComponent extends Component {
     constructor(registerService: IRegisterService,
                 _eventEmitter: IEventEmitter
     ) {
-        super('title-bar-container', registerService);
+        super('title-bar', registerService);
 
         this._eventEmitter = _eventEmitter;
     }
