@@ -3,6 +3,7 @@ import { IRegisterService } from 'src/code/workbench/service/registerService';
 import { TabBarComponent } from 'src/code/workbench/browser/editor/titleBar/tabBar';
 import { WindowBarComponent } from 'src/code/workbench/browser/editor/titleBar/windowBar';
 import { ToolBarComponent } from 'src/code/workbench/browser/editor/titleBar/toolBar';
+import { IEventEmitter } from 'src/base/common/event';
 
 /**
  * @description TitleBarComponent stores and handles all the titleBar and toolBar 
@@ -10,12 +11,18 @@ import { ToolBarComponent } from 'src/code/workbench/browser/editor/titleBar/too
  */
 export class TitleBarComponent extends Component {
     
+    private _eventEmitter: IEventEmitter;
+
     toolBarComponent!: ToolBarComponent;
     tabBarComponent!: TabBarComponent;
     windowBarComponent!: WindowBarComponent;
 
-    constructor(registerService: IRegisterService) {
+    constructor(registerService: IRegisterService,
+                _eventEmitter: IEventEmitter
+    ) {
         super('title-bar-container', registerService);
+
+        this._eventEmitter = _eventEmitter;
     }
 
     protected override _createContainer(): void {
@@ -42,7 +49,7 @@ export class TitleBarComponent extends Component {
     }
 
     private _createToolBar(): void {
-        this.toolBarComponent = new ToolBarComponent(this);
+        this.toolBarComponent = new ToolBarComponent(this, this._eventEmitter);
         this.toolBarComponent.create(this.container);
     }
 

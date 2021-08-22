@@ -53,7 +53,7 @@ export class EditorComponent extends Component {
         const titleBar = document.createElement('div');
         titleBar.id = 'title-bar';
 
-        this.titleBarComponent = new TitleBarComponent(this);
+        this.titleBarComponent = new TitleBarComponent(this, this._eventEmitter);
         this.titleBarComponent.create(titleBar);
 
         this.titleBarView = titleBar;
