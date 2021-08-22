@@ -20,6 +20,24 @@ export class ConfigModule {
         ],
     };
 
+    /**
+     * @readonly if wants to excludes file, remember to add file format.
+     * eg. 'config.json'. This has lower priority than 'parserIncludeDir'.
+     * 
+     * '.*' represents any folders starts with '.'.
+     */
+    public static parserExcludeDir: string[] = [
+        '.*',
+    ];
+
+    /**
+     * @readonly if wants to includes file, remember to add file format such as
+     * 'config.json'. This has higher priority than 'parserExcludeDir'.
+     */
+    public static parserIncludeDir: string[] = [
+        
+    ];
+
     public static fileAutoSaveOn: boolean = true;
     
     /**

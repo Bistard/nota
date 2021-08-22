@@ -20,4 +20,8 @@ export class NoteBook {
         this.fileTree.createFolderTreeList(this.fileTree.tree as FileNode);
     }
 
+    public destory(): void {
+        
+    }
+
 }

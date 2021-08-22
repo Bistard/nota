@@ -1,8 +1,9 @@
 import { Abortable } from 'events';
 import * as fs from 'fs';
 import * as Path from 'path';
-import { getFileType } from 'src/base/common/string';
+import { nameIncludeCheckWithRule, getFileType } from 'src/base/common/string';
 import { FileNode } from 'src/base/node/fileTree';
+import { NoteBook } from 'src/code/common/notebook';
 
 export const CHAR_DIR_SEPARATOR = '/';
 
@@ -55,7 +56,10 @@ export type readMarkdownFileOption = readFileOption;
 /**
  * @description asynchronously reads a single .md file and stores the text into FileNode.
  */
-export async function readMarkdownFile(nodeInfo: FileNode, opt: readMarkdownFileOption): Promise<void | NodeJS.ErrnoException | string> {
+export async function readMarkdownFile(
+    nodeInfo: FileNode, 
+    opt: readMarkdownFileOption): Promise<void | NodeJS.ErrnoException | string> 
+{
     return new Promise((resolve, reject) => {
         if (!nodeInfo) {
             reject('wrong given nodeInfo');
@@ -78,7 +82,10 @@ export async function readMarkdownFile(nodeInfo: FileNode, opt: readMarkdownFile
  * 
  * NOT RECOMMENDED TO USE THIS.
  */
- export function readMarkdownFileSync(nodeInfo: FileNode, opt: readMarkdownFileOption): void {
+ export function readMarkdownFileSync(
+     nodeInfo: FileNode, 
+     opt: readMarkdownFileOption): void 
+{
     if (!nodeInfo) {
         throw 'read .md file error';
     } else if (!isMarkdownFile(nodeInfo.file.baseName)) {
@@ -92,7 +99,9 @@ export async function readMarkdownFile(nodeInfo: FileNode, opt: readMarkdownFile
 /**
  * @description asynchronously saves .md file.
  */
-export async function saveMarkdownFile(nodeInfo: FileNode, newPlainText: string): Promise<void | NodeJS.ErrnoException> 
+export async function saveMarkdownFile(
+    nodeInfo: FileNode, 
+    newPlainText: string): Promise<void | NodeJS.ErrnoException> 
 {
     return new Promise((resolve, reject) => {
         if (nodeInfo !== undefined) {
@@ -121,7 +130,10 @@ export async function saveMarkdownFile(nodeInfo: FileNode, newPlainText: string)
  * 
  * @param path eg. D:\dev\AllNote
  */
-export async function isFileExisted(path: string, fileName: string): Promise<boolean | NodeJS.ErrnoException> {
+export async function isFileExisted(
+    path: string, 
+    fileName: string): Promise<boolean | NodeJS.ErrnoException> 
+{
     return new Promise((resolve, reject) => {
         fs.readdir(path, (err, files: string[]) => {
             if (err) {
@@ -145,7 +157,11 @@ export async function isFileExisted(path: string, fileName: string): Promise<boo
  * @param fileName eg. log.json
  * @param content plainText ready to be written
  */
-export async function createFile(path: string, fileName: string, content?: string): Promise<void | NodeJS.ErrnoException> {
+export async function createFile(
+    path: string, 
+    fileName: string, 
+    content?: string): Promise<void | NodeJS.ErrnoException> 
+{
     return new Promise((resolve, reject) => {
         // write an empty content to the file
         let text = content === undefined ? '' : content;
@@ -160,12 +176,13 @@ export async function createFile(path: string, fileName: string, content?: strin
 
 /**
  * @description asynchronously reads the whole text from a general file.
+ * 
+ * @param path eg. D:\dev\AllNote
  */
  export function readFromFile(
-    path:string, 
+    path: string, 
     opt: readFileOption, 
-    callback: (err: NodeJS.ErrnoException | null, data: string) => void
-): void 
+    callback: (err: NodeJS.ErrnoException | null, data: string) => void): void 
 {
     fs.readFile(path, opt, callback);
 }
@@ -177,7 +194,10 @@ export async function createFile(path: string, fileName: string, content?: strin
  * @param fileName eg. log.json
  * @param content plainText ready to be written
  */
-export async function writeToFile(path: string, fileName: string, content: string): Promise<void | NodeJS.ErrnoException> 
+export async function writeToFile(
+    path: string, 
+    fileName: string, 
+    content: string): Promise<void | NodeJS.ErrnoException> 
 {
     return createFile(path, fileName, content);
 }
@@ -192,7 +212,10 @@ export async function writeToFile(path: string, fileName: string, content: strin
  * @param path eg. D:\dev\AllNote
  * @param dirName eg. .mdnote
  */
- export async function createDir(path: string, dirName: string): Promise<void | NodeJS.ErrnoException> {
+ export async function createDir(
+     path: string, 
+     dirName: string): Promise<void | NodeJS.ErrnoException> 
+{
     return new Promise((resolve, reject) => {
         fs.mkdir(path + CHAR_DIR_SEPARATOR + dirName, {recursive: true}, (err) => {
             if (err) {
@@ -209,6 +232,51 @@ export async function writeToFile(path: string, fileName: string, content: strin
  * @param path eg. D:\dev\AllNote
  * @param dirName eg. .mdnote
  */
- export async function isDirExisted(path: string, dirName: string): Promise<boolean | NodeJS.ErrnoException> {
+ export async function isDirExisted(
+     path: string, 
+     dirName: string): Promise<boolean | NodeJS.ErrnoException> 
+{
     return isFileExisted(path, dirName);
 }
+
+/**
+ * @description TODO:
+ * 
+ * @param path eg. D:\dev\AllNote
+ * @param excludes array of folders/files to be excluded
+ * @param includes array of folders/files to be included
+ * @returns 
+ */
+export async function directoryNoteBookParser(
+    path: string, 
+    parserExcludeDir: string[] = [], 
+    parserIncludeDir: string[] = []): Promise<string[]> 
+{
+    let acceptableTarget: string[] = [];
+    return new Promise((resolve, reject) => {
+        fs.readdir(path, {withFileTypes: true}, (err, dirEntries: fs.Dirent[]) => {
+            if (err) {
+                reject(err);
+            }
+
+            for (let dirEntry of dirEntries) {
+                
+                if (dirEntry.isDirectory()) {
+                    
+                    // ignores the excluded directory
+                    if (!nameIncludeCheckWithRule(dirEntry.name, parserIncludeDir) && 
+                        nameIncludeCheckWithRule(dirEntry.name, parserExcludeDir))
+                    {
+                        continue;
+                    }
+
+                    acceptableTarget.push(dirEntry.name);
+                } else {
+                    // currently, there is no need to parser file in the rootdir
+                }
+            };
+            
+            resolve(acceptableTarget);
+        });
+    })
+} 
