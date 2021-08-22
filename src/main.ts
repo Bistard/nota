@@ -111,6 +111,34 @@ class Main {
                 })
             })
 
+           ipcMain.on('showContextMenu', () => {
+               //this.winMain!.webContents.send('showContextMenu')
+               const template: Electron.MenuItemConstructorOptions[] = [{
+                role: 'editMenu',
+            }]  
+            
+            const createContextMenu = () => {
+                   return Menu.buildFromTemplate(
+                        template
+                   )
+               }
+             createContextMenu().popup()
+           })
+
+           ipcMain.on('showContextMenuView', () => {
+            //this.winMain!.webContents.send('showContextMenu')
+            const template: Electron.MenuItemConstructorOptions[] = [{
+             role: 'fileMenu',
+         }]  
+         
+         const createContextMenu = () => {
+                return Menu.buildFromTemplate(
+                     template
+                )
+            }
+          createContextMenu().popup()
+        })
+/*
            this.winMain!.webContents.on('context-menu', () => {
             const template: Electron.MenuItemConstructorOptions[] = [{
                 role: 'editMenu',
@@ -123,7 +151,7 @@ class Main {
                }
              createContextMenu().popup()
            })
-
+*/
             // only for testing purpose, can be removed in release version
             ipcMain.on('test', (_event, data) => {
                 console.log(data);

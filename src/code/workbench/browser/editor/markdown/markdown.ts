@@ -20,7 +20,7 @@ import 'prismjs/components/prism-java';
 import colorSyntax from '@toast-ui/editor-plugin-color-syntax';
 import { ConfigModule } from 'src/base/config';
 import { FileNode } from 'src/base/node/fileTree';
-import { ipcRendererOn } from 'src/base/ipc/register';
+import { ipcRendererOn, ipcRendererSend, domNodeByIdAddListener } from 'src/base/ipc/register';
 import { Component } from 'src/code/workbench/browser/component';
 import { IRegisterService } from 'src/code/workbench/service/registerService';
 import { IEventEmitter } from 'src/base/common/event';
@@ -77,7 +77,23 @@ export class MarkdownComponent extends Component {
         this.createMarkdownEditor();
     }
     protected override _registerListeners(): void {
-        
+       
+        domNodeByIdAddListener('markdown', 'contextmenu', (event) => {
+            event.preventDefault()
+            console.log('right clicked on markdown')
+            //console.log(event.target)
+            //console.log(event.currentTarget)
+            ipcRendererSend('showContextMenu')        
+        })
+/*
+        document.addEventListener('contextmenu', (event) => {
+            event.preventDefault()
+            console.log('right clicked on markdown')
+            //console.log(event.target)
+            //console.log(event.currentTarget)
+            ipcRendererSend('showContextMenu')
+        })
+*/
         // spellcheck config check
         if (!ConfigModule.markdownSpellCheckOn) {
             const markdown = document.getElementById('markdown') as HTMLElement;
