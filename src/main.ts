@@ -1,7 +1,7 @@
 const OS = require('os')
 const path = require('path')
 
-const { BrowserWindow, ipcMain, app, dialog. Mennu } = require('electron')
+const { BrowserWindow, ipcMain, app, dialog, Menu } = require('electron')
 const ElectronLocalshortcut = require('electron-localshortcut')
 
 /**
@@ -112,10 +112,9 @@ class Main {
             })
 
            this.winMain!.webContents.on('context-menu', () => {
-            console.log(webContents)
             const template: Electron.MenuItemConstructorOptions[] = [{
-                role: 'editMenu'
-        ];   
+                role: 'editMenu',
+            }]  
             
             const createContextMenu = () => {
                    return Menu.buildFromTemplate(
