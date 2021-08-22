@@ -7,30 +7,31 @@ import { ActionViewComponentType } from 'src/code/workbench/browser/actionView/a
 import { IRegisterService } from 'src/code/workbench/service/registerService';
 import { IEventEmitter } from 'src/base/common/event';
 import { readMarkdownFile, readMarkdownFileOption } from 'src/base/node/file';
-import { NoteBookManager } from 'src/code/common/notebookManger';
+import { INoteBookManager, NoteBookManager } from 'src/code/common/notebookManger';
+import { NoteBook } from 'src/code/common/notebook';
 
 /**
  * @description ExplorerViewComponent 
  */
 export class ExplorerViewComponent extends Component {
 
-    public fileTree: FileTree;
     private _eventEmitter: IEventEmitter;
+    private _noteBookManager: INoteBookManager;
 
-    public isFolderOpened: boolean;
+    // FIX: this design is stupid, should be removed
     public treeNodeCount: number;
 
     public resizeX: number;
 
     constructor(registerService: IRegisterService,
-                _eventEmitter: IEventEmitter
+                _eventEmitter: IEventEmitter,
+                _noteBookManger: INoteBookManager
     ) {
         super(ActionViewComponentType.ExplorerView, registerService);
         
         this._eventEmitter = _eventEmitter;
-        this.fileTree = new FileTree();
+        this._noteBookManager = _noteBookManger;
 
-        this.isFolderOpened = false;
         this.treeNodeCount = 0;
 
         // this variable is to store the x-coordinate of the resizeBar in the explorer view
@@ -73,10 +74,7 @@ export class ExplorerViewComponent extends Component {
          * eg. D:\dev\AllNote
          */
         ipcRendererOn('openDir', (_event, path, _stat) => {
-            // DEBUG: remove
-            const nbm = new NoteBookManager(path);
-            nbm.init();
-            this.openDirecory(path);
+            this.openNoteBookManager(path);
         });
         
         // folder view resizeBar listeners
@@ -93,9 +91,10 @@ export class ExplorerViewComponent extends Component {
     }
 
     /**
-     * @description warpper function for displayTree().
+     * @description display the entire noteBook.
      */
-    public displayFolderTree(root: FileNode): void {
+    public displayNoteBook(noteBook: NoteBook): void {
+        const root = noteBook.fileTree.tree as FileNode;
         let current = this.insertNode($('#tree'), root, 'root') as HTMLElement;
         this.displayTree(current, root.nodes as TreeNodesType);
     }
@@ -234,27 +233,34 @@ export class ExplorerViewComponent extends Component {
      *  - set each FileNode a click listeners.
      *  - if clicked, check if is foler or file, calls the corresponding click function.
      */
-    public openDirecory(path: string): void {
-        this.isFolderOpened = true;
-        this.fileTree.createFolderTree(path, 0);
-        this.fileTree.createFolderTreeList(this.fileTree.tree as FileNode);
+    public async openNoteBookManager(path: string): Promise<void> {
 
-        // remove later
-        const treeContainer = document.getElementById('explorer-container') as HTMLElement;
-        const emptyFolderTag = document.getElementById('emptyFolderTag') as HTMLElement;
-        treeContainer.removeChild(emptyFolderTag);
-        this.displayFolderTree(this.fileTree.tree as FileNode);
+        this._noteBookManager.init(path)
+        .then(() => {
+            // remove later
+            const treeContainer = document.getElementById('explorer-container') as HTMLElement;
+            const emptyFolderTag = document.getElementById('emptyFolderTag') as HTMLElement;
+            treeContainer.removeChild(emptyFolderTag);
+            
+            this._noteBookManager.noteBookMap.forEach((noteBook: NoteBook, name: string) => {
+                this.displayNoteBook(noteBook);
+                this.treeNodeCount = 0;
 
-        $('.node-text').on('click', { explorerViewClass: this }, function (event) {
-            let that = event.data.explorerViewClass;
-            let nodeNum = (this.parentNode as HTMLElement).getAttribute('nodeNum') as string;
-            let nodeInfo = that.fileTree.treeList[parseInt(nodeNum)] as FileNode;
-            if (nodeInfo.isFolder) {
-                that.folderOnClick($(this), nodeInfo);
-            } else { 
-                that.fileOnClick($(this), nodeInfo);
-            }
-        })
+                $('.node-text').on('click', { explorerViewClass: this, noteBook: noteBook }, function (event) {
+                    
+                    const self = event.data.explorerViewClass;
+                    const noteBook = event.data.noteBook;
+                    const nodeNum = (this.parentNode as HTMLElement).getAttribute('nodeNum') as string;
+                    const nodeInfo = noteBook.fileTree.treeList[parseInt(nodeNum)] as FileNode;
+                    
+                    if (nodeInfo.isFolder) {
+                        self.folderOnClick($(this), nodeInfo);
+                    } else { 
+                        self.fileOnClick($(this), nodeInfo);
+                    }
+                })
+            })
+        });
     }
 
     /**

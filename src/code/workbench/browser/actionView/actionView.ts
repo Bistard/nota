@@ -3,6 +3,7 @@ import { Component, ComponentType } from 'src/code/workbench/browser/component';
 import { IRegisterService } from 'src/code/workbench/service/registerService';
 import { ExplorerViewComponent } from "src/code/workbench/browser/actionView/explorer/explorer";
 import { IEventEmitter } from 'src/base/common/event';
+import { INoteBookManager } from 'src/code/common/notebookManger';
 
 export type ActionViewType = 'none' | 'explorer' | 'outline' | 'search' | 'git';
 
@@ -27,15 +28,19 @@ export class ActionViewComponent extends Component {
     private actionViewContent!: HTMLElement;
 
     private explorerViewComponent!: ExplorerViewComponent;
+    
     private _eventEmitter: IEventEmitter;
+    private _noteBookManager: INoteBookManager;
     // Others...
 
     constructor(registerService: IRegisterService,
-                _eventEmitter: IEventEmitter    
+                _eventEmitter: IEventEmitter,
+                _noteBookManager: INoteBookManager
     ) {
         super(ComponentType.ActionView, registerService);
         
         this._eventEmitter = _eventEmitter;
+        this._noteBookManager = _noteBookManager;
         this.whichActionView = 'none';
     }
 
@@ -103,7 +108,7 @@ export class ActionViewComponent extends Component {
         const actionViewContent = document.createElement('div');
         actionViewContent.id = 'action-view-content';
         
-        this.explorerViewComponent = new ExplorerViewComponent(this, this._eventEmitter);
+        this.explorerViewComponent = new ExplorerViewComponent(this, this._eventEmitter, this._noteBookManager);
         this.explorerViewComponent.create(actionViewContent);
 
         // outlineViewComponent...

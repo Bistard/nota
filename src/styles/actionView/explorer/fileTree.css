@@ -82,7 +82,6 @@
 
 .node-root-text {
     font-weight: bold;
-    box-shadow: 0px 3px 3px 0px rgba(0, 0, 0, 0.1);
 }
 
 .file-icon::before {

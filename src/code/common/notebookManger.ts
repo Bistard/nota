@@ -1,46 +1,84 @@
-import { CHAR_DIR_SEPARATOR, createDir, createFile, isDirExisted, isFileExisted } from "src/base/node/file";
+import { ConfigModule } from "src/base/config";
+import { CHAR_DIR_SEPARATOR, createDir, createFile, directoryNoteBookParser, isDirExisted, isFileExisted } from "src/base/node/file";
 import { NoteBook } from "src/code/common/notebook";
 
 export const MDNOTE_LOCAL_DIR_NAME = '.mdnote';
+
+export interface INoteBookManager {
+    readonly noteBookMap: Map<string, NoteBook>;
+    readonly noteBookConfig: Object;
+
+    /**
+     * @description once this function is called, a '.mdnote' directory will be
+     * loaded.
+     * 
+     * @param path eg. D:\dev\AllNote
+     */
+    init(path: string): Promise<void>;
+
+    addExistedNoteBook(noteBook: NoteBook): void;
+
+    getExistedNoteBook(noteBookName: string): NoteBook | null;
+}
 
 /**
  * @description reads local configuration and build corresponding notebook 
  * structure.
  */
-export class NoteBookManager {
+export class NoteBookManager implements INoteBookManager {
 
     public readonly noteBookMap: Map<string, NoteBook>;
     public readonly noteBookConfig!: Object;
 
-    private _noteBookDir: string;
+    private _noteBookDir!: string;
 
-    constructor(path: string) {
+    constructor() {
         this.noteBookMap = new Map<string, NoteBook>();
-
-        this._noteBookDir = path;
     }
 
-    /**
-     * @description once this function is called, a '.mdnote' directory will be
-     * loaded.
-     */
-    public init(): void {
-        isFileExisted(this._noteBookDir, MDNOTE_LOCAL_DIR_NAME)
-        .then((isExisted) => {
-            if (isExisted) {
-                this._importNoteBookConfig();
-            } else {
-                this._createNoteBookConfig();
-            }
-        }).catch((err) => {
-            // do log here.
-            throw err;
+    public async init(path: string): Promise<void> {
+        return new Promise(async (resolve, reject) => {
+            this._noteBookDir = path;
+            await this._directoryParser();
+            
+            await isFileExisted(this._noteBookDir, MDNOTE_LOCAL_DIR_NAME)
+            .then((isExisted) => {
+                if (isExisted) {
+                    this._importNoteBookConfig();
+                } else {
+                    this._createNoteBookConfig();
+                }
+                resolve();
+            }).catch((err) => {
+                // do log here.
+                reject(err);
+            })
         })
     }
 
-    private _importNoteBookConfig(): void {
+    private async _directoryParser(): Promise<void> {
+        return new Promise((resolve, reject) => {
+            directoryNoteBookParser(this._noteBookDir, ConfigModule.parserExcludeDir, ConfigModule.parserIncludeDir)
+            .then((targets: string[]) => {
+                
+                for (let target of targets) {
+                    // create NoteBook Object for each subdirectory
+                    const noteBook = new NoteBook(target, this._noteBookDir + '\\' + target);
+                    this.noteBookMap.set(target, noteBook);
+                }
+
+                resolve();
+
+            })
+            .catch((err) => {
+                reject(err);
+            })
+        })
+    }
+
+    private async _importNoteBookConfig(): Promise<void> {
         
-        this._validateNoteBookConfig();
+        return this._validateNoteBookConfig();
 
     }
 
@@ -79,7 +117,14 @@ export class NoteBookManager {
     }
 
     public addExistedNoteBook(noteBook: NoteBook): void {
-        this.noteBookMap.set(noteBook.noteBookName, noteBook);
+        const prevNoteBook = this.noteBookMap.get(noteBook.noteBookName);
+        if (prevNoteBook) {
+            prevNoteBook.destory();
+            this.noteBookMap.set(noteBook.noteBookName, noteBook);
+        } else {
+            this.noteBookMap.set(noteBook.noteBookName, noteBook);
+        }
+        
     }
 
     public getExistedNoteBook(noteBookName: string): NoteBook | null {

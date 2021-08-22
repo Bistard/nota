@@ -3,7 +3,6 @@ import * as fs from 'fs';
 import * as Path from 'path';
 import { nameIncludeCheckWithRule, getFileType } from 'src/base/common/string';
 import { FileNode } from 'src/base/node/fileTree';
-import { NoteBook } from 'src/code/common/notebook';
 
 export const CHAR_DIR_SEPARATOR = '/';
 
@@ -240,9 +239,10 @@ export async function writeToFile(
 }
 
 /**
- * @description TODO:
+ * @description asynchronously read each noteBook information and returns 
+ * them as an array of string.
  * 
- * @param path eg. D:\dev\AllNote
+ * @param path the rootdir of all noteBooks, eg. D:\dev\AllNote
  * @param excludes array of folders/files to be excluded
  * @param includes array of folders/files to be included
  * @returns 
@@ -269,7 +269,6 @@ export async function directoryNoteBookParser(
                     {
                         continue;
                     }
-
                     acceptableTarget.push(dirEntry.name);
                 } else {
                     // currently, there is no need to parser file in the rootdir

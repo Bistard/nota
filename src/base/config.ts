@@ -9,6 +9,8 @@ export class ConfigModule {
     /**
      * @readonly used for file/folder reading and writing.
      */
+
+    public static startWithPreviousNoteBookDir: boolean = false;
     
     public static OpenDirConfig: Electron.OpenDialogOptions = {
         /* defaultPath: app.getPath('desktop'), */
