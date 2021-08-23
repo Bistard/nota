@@ -1,7 +1,7 @@
 const OS = require('os')
 const path = require('path')
 
-const { BrowserWindow, ipcMain, app, dialog } = require('electron')
+const { BrowserWindow, ipcMain, app, dialog, Menu } = require('electron')
 const ElectronLocalshortcut = require('electron-localshortcut')
 
 /**
