@@ -84,6 +84,57 @@ class Main {
             ipcMain.on('closeApp', () => {
                 this.winMain!.close();
             })
+            
+            ipcMain.on('showContextMenuEditor', () => {
+                const template: Electron.MenuItemConstructorOptions[] = [
+                 {role: 'editMenu'},
+                 {label: 'Inspect Element', role: 'toggleDevTools'}
+                 ]  
+             
+                const createContextMenu = () => {
+                    return Menu.buildFromTemplate(
+                         template
+                    )
+                }
+               createContextMenu().popup()
+             })
+ 
+           ipcMain.on('showContextMenuExplorer', () => {
+
+             const template: Electron.MenuItemConstructorOptions[] = [
+              {role: 'fileMenu' },
+              {label: 'Menu Item 2', type: 'checkbox', checked: true },
+              {label: 'Menu Item 3', type: 'checkbox', checked: false }
+                ]  
+          
+            const createContextMenu = () => {
+                 return Menu.buildFromTemplate(
+                      template
+                 )
+             }
+            createContextMenu().popup()
+         })
+
+         ipcMain.on('showContextMenuActionBar', (_event, data) => {
+            
+            const template: Electron.MenuItemConstructorOptions[] = [
+                 {label: 'File Explorer', type: 'checkbox', checked: data.options[0],    
+                 click: () => { this.winMain!.webContents.send('context-menu-command', data, "explorer-button", 0); }},
+                 {label: 'Outline', type: 'checkbox', checked: data.options[1], 
+                 click: () => { this.winMain!.webContents.send('context-menu-command', data, "outline-button", 1); }},
+                 {label: 'Search', type: 'checkbox', checked: data.options[2],
+                 click: () => { this.winMain!.webContents.send('context-menu-command', data, "search-button", 2); }},
+                 {label: 'Git', type: 'checkbox', checked: data.options[3], 
+                 click: () => { this.winMain!.webContents.send('context-menu-command', data, "git-button", 3); }},
+             ]  
+
+            const createContextMenu = () => {
+                    return Menu.buildFromTemplate(
+                         template
+                    )
+                }
+            createContextMenu().popup()
+        })
 
             // response to FolderModule, default path is 'desktop' and only can
             // open directory.
