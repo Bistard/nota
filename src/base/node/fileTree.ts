@@ -39,11 +39,14 @@ export class FileNode {
  */
 export class FileTree {
     
+    public readonly path: string;
+
     public tree: FileNode | {};
     public treeList: FileNode[] | [];
 
 
-    constructor() {
+    constructor(path: string) {
+        this.path = path;
         // TODO: reduce memory usage (tree && treeList might overlap)
         this.tree = {};
         this.treeList = [];
@@ -53,10 +56,24 @@ export class FileTree {
      * @description Recursively searches and creates a complete folder tree.
      */
     // TODO: refactor using while to avoid recursive (reduce run-timememory usage)
-    public createFolderTree(path: string, level: number): void {
-        this.tree = this._createFolderTreeRecursive(path, level);
+    public createFolderTree(): void {
+        this.tree = this._createFolderTreeRecursive(this.path, 0);
+    }
+
+    /**
+     * @description traversing and returns an array version of folder tree 
+     * using pre-order.
+     */
+     public createFolderTreeList(): void {
+        this.treeList = this._createFolderTreeListRecursive(this.tree as FileNode, []);
     }
     
+    /**
+     * @description synchronously reading the whole folder tree.
+     * 
+     * @param path eg. D:\dev\AllNote
+     * @param level the depth of current treenode
+     */
     private _createFolderTreeRecursive(path: string, level: number): FileNode {
         
         const baseName = Path.basename(path); // eg. 'markdown.md'
@@ -87,14 +104,6 @@ export class FileTree {
         // reaches if no suffix or not .md
         const mdFile = new MarkdownFile(path, baseName, baseName);
         return new FileNode(mdFile, {}, false, level, false);
-    }
-
-    /**
-     * @description traversing and returns an array version of folder tree 
-     * using pre-order.
-     */
-    public createFolderTreeList(tree: FileNode, list: FileNode[] = []): void {
-        this.treeList = this._createFolderTreeListRecursive(tree, list);
     }
 
     private _createFolderTreeListRecursive(tree: FileNode, list: FileNode[] = []): FileNode[] {

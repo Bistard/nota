@@ -1,3 +1,4 @@
+import { IEventEmitter } from "src/base/common/event";
 import { MarkdownRenderMode } from "mdnote";
 import { Button } from "src/base/browser/basic/button";
 import { getSvgPathByName } from "src/base/common/string";
@@ -8,19 +9,21 @@ import { IRegisterService } from "src/code/workbench/service/registerService";
 
 export class ToolBarComponent extends Component {
 
-    markdownMode: MarkdownRenderMode;
+    private _eventEmitter: IEventEmitter;
 
     isToolBarExpand: boolean;
     isMarkdownToolExpand: boolean;
     isTabBarExpand: boolean;
 
-    constructor(registerService: IRegisterService) {
+    constructor(registerService: IRegisterService,
+                _eventEmitter: IEventEmitter
+    ) {
         super('tool-bar', registerService);
 
-        this.markdownMode = ConfigModule.defaultMarkdownMode;
-
+        this._eventEmitter = _eventEmitter;
+        
         this.isToolBarExpand = ConfigModule.isToolBarExpand;
-        this.isMarkdownToolExpand = false;
+        this.isMarkdownToolExpand = ConfigModule.isMarkdownToolExpand;
         this.isTabBarExpand = false;
 
     }
@@ -57,7 +60,7 @@ export class ToolBarComponent extends Component {
         this.initToolBar();
 
         domNodeByIdAddListener('mode-switch', 'click', () => {
-            this.markdownModeSwitch(this.markdownMode);
+            this._eventEmitter.emit('EMarkdownModeSwitch');
         });
 
         domNodeByIdAddListener('md-tool', 'click', () => {
@@ -73,7 +76,7 @@ export class ToolBarComponent extends Component {
      * @description function calls when the ToolBarModule is initialized.
      */
      initToolBar(): void {
-        if (this.markdownMode == 'wysiwyg') {
+        if (ConfigModule.defaultMarkdownMode == 'wysiwyg') {
             $('#mode-switch').addClass('tool-button-focus');
         }
 
@@ -83,26 +86,6 @@ export class ToolBarComponent extends Component {
 
         if (this.isMarkdownToolExpand == false) {
             $('.toastui-editor-toolbar').first().hide(0);
-        }
-    }
-
-    /**
-     * @description change the mode of markdown renderering method. They are 
-     * 'wysiwyg', 'instant' and 'split'.
-     */
-    markdownModeSwitch(mode: MarkdownRenderMode): void {
-        if (mode == 'wysiwyg') {
-            $('#mode-switch').removeClass('tool-button-focus');
-            $('#mode-switch > img').attr('src', getSvgPathByName('md-split'));
-            // this.Markdown.editor!.changeMode('markdown', true);
-            this.markdownMode = 'split';
-        } else if (mode == 'instant') {
-            // TODO: complete instant-mode (big update)
-        } else { // (mode == 'split')
-            $('#mode-switch').addClass('tool-button-focus');
-            $('#mode-switch > img').attr('src', getSvgPathByName('md-wysiwyg'));
-            // this.Markdown.editor!.changeMode('wysiwyg', true);
-            this.markdownMode = 'wysiwyg';
         }
     }
 

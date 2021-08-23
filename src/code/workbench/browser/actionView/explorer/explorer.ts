@@ -1,5 +1,5 @@
 import { TreeNodeType } from 'mdnote';
-import { FileTree, FileNode } from 'src/base/node/fileTree';
+import { FileNode } from 'src/base/node/fileTree';
 import { TreeNodesType } from 'mdnote';
 import { domNodeByIdAddListener, ipcRendererOn, ipcRendererSend } from 'src/base/ipc/register';
 import { Component } from 'src/code/workbench/browser/component';
@@ -7,31 +7,27 @@ import { ActionViewComponentType } from 'src/code/workbench/browser/actionView/a
 import { IRegisterService } from 'src/code/workbench/service/registerService';
 import { IEventEmitter } from 'src/base/common/event';
 import { readMarkdownFile, readMarkdownFileOption } from 'src/base/node/file';
-import { NoteBookManager } from 'src/code/common/notebookManger';
+import { INoteBookManager } from 'src/code/common/notebookManger';
+import { NoteBook } from 'src/code/common/notebook';
 
 /**
  * @description ExplorerViewComponent 
  */
 export class ExplorerViewComponent extends Component {
 
-    public fileTree: FileTree;
     private _eventEmitter: IEventEmitter;
-
-    public isFolderOpened: boolean;
-    public treeNodeCount: number;
+    private _noteBookManager: INoteBookManager;
 
     public resizeX: number;
 
     constructor(registerService: IRegisterService,
-                _eventEmitter: IEventEmitter
+                _eventEmitter: IEventEmitter,
+                _noteBookManger: INoteBookManager
     ) {
         super(ActionViewComponentType.ExplorerView, registerService);
         
         this._eventEmitter = _eventEmitter;
-        this.fileTree = new FileTree();
-
-        this.isFolderOpened = false;
-        this.treeNodeCount = 0;
+        this._noteBookManager = _noteBookManger;
 
         // this variable is to store the x-coordinate of the resizeBar in the explorer view
         this.resizeX = 0;
@@ -73,10 +69,7 @@ export class ExplorerViewComponent extends Component {
          * eg. D:\dev\AllNote
          */
         ipcRendererOn('openDir', (_event, path, _stat) => {
-            // DEBUG: remove
-            const nbm = new NoteBookManager(path);
-            nbm.init();
-            this.openDirecory(path);
+            this.openNoteBookManager(path);
         });
         
         // folder view resizeBar listeners
@@ -93,9 +86,10 @@ export class ExplorerViewComponent extends Component {
     }
 
     /**
-     * @description warpper function for displayTree().
+     * @description display the entire noteBook.
      */
-    public displayFolderTree(root: FileNode): void {
+    public displayNoteBook(noteBook: NoteBook): void {
+        const root = noteBook.fileTree.tree as FileNode;
         let current = this.insertNode($('#tree'), root, 'root') as HTMLElement;
         this.displayTree(current, root.nodes as TreeNodesType);
     }
@@ -127,9 +121,7 @@ export class ExplorerViewComponent extends Component {
         }
         
         element.classList.add('node');
-        element.setAttribute('nodeNum', this.treeNodeCount.toString());
-        this.treeNodeCount++;
-
+        
         const text = document.createElement('li');
         text.classList.add('node-text');
         text.innerHTML = nodeInfo.file.name;
@@ -234,27 +226,34 @@ export class ExplorerViewComponent extends Component {
      *  - set each FileNode a click listeners.
      *  - if clicked, check if is foler or file, calls the corresponding click function.
      */
-    public openDirecory(path: string): void {
-        this.isFolderOpened = true;
-        this.fileTree.createFolderTree(path, 0);
-        this.fileTree.createFolderTreeList(this.fileTree.tree as FileNode);
+    public async openNoteBookManager(path: string): Promise<void> {
 
-        // remove later
-        const treeContainer = document.getElementById('explorer-container') as HTMLElement;
-        const emptyFolderTag = document.getElementById('emptyFolderTag') as HTMLElement;
-        treeContainer.removeChild(emptyFolderTag);
-        this.displayFolderTree(this.fileTree.tree as FileNode);
+        this._noteBookManager.init(path)
+        .then(() => {
+            // remove later
+            const treeContainer = document.getElementById('explorer-container') as HTMLElement;
+            const emptyFolderTag = document.getElementById('emptyFolderTag') as HTMLElement;
+            treeContainer.removeChild(emptyFolderTag);
+            
+            this._noteBookManager.noteBookMap.forEach((noteBook: NoteBook, name: string) => {
+                this.displayNoteBook(noteBook);
 
-        $('.node-text').on('click', { explorerViewClass: this }, function (event) {
-            let that = event.data.explorerViewClass;
-            let nodeNum = (this.parentNode as HTMLElement).getAttribute('nodeNum') as string;
-            let nodeInfo = that.fileTree.treeList[parseInt(nodeNum)] as FileNode;
-            if (nodeInfo.isFolder) {
-                that.folderOnClick($(this), nodeInfo);
-            } else { 
-                that.fileOnClick($(this), nodeInfo);
-            }
-        })
+                // FIX: use two-way data binding 
+                // $('.node-text').on('click', { explorerViewClass: this, noteBook: noteBook }, function (event) {
+                    
+                //     const self = event.data.explorerViewClass;
+                //     const noteBook = event.data.noteBook;
+                //     const nodeNum = (this.parentNode as HTMLElement).getAttribute('nodeNum') as string;
+                //     const nodeInfo = noteBook.fileTree.treeList[parseInt(nodeNum)] as FileNode;
+                    
+                //     if (nodeInfo.isFolder) {
+                //         self.folderOnClick($(this), nodeInfo);
+                //     } else { 
+                //         self.fileOnClick($(this), nodeInfo);
+                //     }
+                // })
+            })
+        });
     }
 
     /**

@@ -21,3 +21,53 @@ export function getFileType(fileFullName: string): FileType {
     }
     return FileType.OTHERS;
 }
+
+/**
+ * @description check if the given name is included in the given array of rules.
+ * These are the different types of rules:
+ *  - exact name                         eg. '.vscode'
+ *  - name starts with given strings     eg. '.*' means any name starts with '.'
+ *  - name ends with given strings       eg. '*-module' means any name ends '-module'
+ * 
+ * @param name directory or file to be checked (filename could have format type)
+ * @param rules rules to be applied to 'name'
+ */
+export function nameIncludeCheckWithRule(name: string, rules: string[]): boolean {
+    
+    for (let rule of rules) {
+        
+        let asteriskFound = false;
+        let prefix = '';
+        let postfix = '';
+
+        for (let i = 0; i < rule.length; i++) {
+            const char = rule[i];
+            if (char !== '*') {
+                if (!asteriskFound) {
+                    prefix += char;
+                } else {
+                    postfix += char;
+                }
+            } else if (asteriskFound) {
+                throw 'mutiple asterisk has found';
+            } else {
+                asteriskFound = true;
+                continue;
+            }
+        }
+
+        if (!asteriskFound) {
+            if (name == rule) {
+                return true;
+            }
+        } else {
+            if (prefix != '' && name.startsWith(prefix)) {
+                return true;
+            } else if (postfix != '' && name.endsWith(postfix)) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+

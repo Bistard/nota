@@ -4,6 +4,7 @@ import { ActionViewComponent } from "src/code/workbench/browser/actionView/actio
 import { ActionBarComponent } from "src/code/workbench/browser/actionBar/actionBar";
 import { EditorComponent } from "src/code/workbench/browser/editor/editor";
 import { EventEmitter, IEventEmitter } from "src/base/common/event";
+import { INoteBookManager, NoteBookManager } from "src/code/common/notebookManger";
 
 /**
  * @description this module is loaded by the web directly. Most of the modules 
@@ -17,6 +18,7 @@ class Workbench implements IRegisterService {
     private componentMap = new Map<string, Component>();
 
     private _eventEmitter: IEventEmitter;
+    private _noteBookManager: INoteBookManager;
 
     actionBarComponent!: ActionBarComponent;
     actionViewComponent!: ActionViewComponent;
@@ -24,6 +26,8 @@ class Workbench implements IRegisterService {
     
     constructor() {
         this._eventEmitter = new EventEmitter();
+        this._noteBookManager = new NoteBookManager();
+
         this.initComponents();
         this.renderComponents();
     }
@@ -34,7 +38,7 @@ class Workbench implements IRegisterService {
      */
     private initComponents(): void {
         this.actionBarComponent = new ActionBarComponent(this, this._eventEmitter);
-        this.actionViewComponent = new ActionViewComponent(this, this._eventEmitter);
+        this.actionViewComponent = new ActionViewComponent(this, this._eventEmitter, this._noteBookManager);
         this.editorComponent = new EditorComponent(this, this._eventEmitter);
     }
 

@@ -20,11 +20,11 @@ import 'prismjs/components/prism-java';
 import colorSyntax from '@toast-ui/editor-plugin-color-syntax';
 import { ConfigModule } from 'src/base/config';
 import { FileNode } from 'src/base/node/fileTree';
-import { ipcRendererOn } from 'src/base/ipc/register';
 import { Component } from 'src/code/workbench/browser/component';
 import { IRegisterService } from 'src/code/workbench/service/registerService';
 import { IEventEmitter } from 'src/base/common/event';
-import { saveMarkdownFile } from 'src/base/node/file';
+import { MarkdownRenderMode } from 'mdnote';
+import { getSvgPathByName } from 'src/base/common/string';
 
 /**
  * @description MarkdownComponent initializes markdown renderer and windows and
@@ -38,12 +38,16 @@ export class MarkdownComponent extends Component {
     private saveFileTimeout: NodeJS.Timeout | null;
     private colorSyntaxOptions: any;
 
+    private mode: MarkdownRenderMode;
+
     constructor(registerService: IRegisterService,
                 _eventEmitter: IEventEmitter
     ) {
         super('markdown', registerService);
 
         this._eventEmitter = _eventEmitter;
+        this.mode = ConfigModule.defaultMarkdownMode;
+        
         this.editor = null;
         
         /**
@@ -85,7 +89,7 @@ export class MarkdownComponent extends Component {
         }
 
         this._eventEmitter.register('EMarkdownDisplayFile', (nodeInfo: FileNode) => this.markdownDisplayFile(nodeInfo));
-        
+        this._eventEmitter.register('EMarkdownModeSwitch', () => this.markdownModeSwitch());
         // ipcRendererOn('Ctrl+S', () => {
         //     if (!this.explorerViewComponent.TabBar.emptyTab) {
         //         if (this.saveFileTimeout) {
@@ -182,6 +186,26 @@ export class MarkdownComponent extends Component {
             this.editor.setMarkdown(nodeInfo.file.plainText, false);
         } else {
             this.editor.setMarkdown('', false);
+        }
+    }
+
+    /**
+     * @description change the mode of markdown renderering method. They are 
+     * 'wysiwyg', 'instant' and 'split'.
+     */
+     public markdownModeSwitch(): void {
+        if (this.mode == 'wysiwyg') {
+            $('#mode-switch').removeClass('tool-button-focus');
+            $('#mode-switch > img').attr('src', getSvgPathByName('md-split'));
+            this.editor!.changeMode('markdown', true);
+            this.mode = 'split';
+        } else if (this.mode == 'instant') {
+            // ...
+        } else { // (mode == 'split')
+            $('#mode-switch').addClass('tool-button-focus');
+            $('#mode-switch > img').attr('src', getSvgPathByName('md-wysiwyg'));
+            this.editor!.changeMode('wysiwyg', true);
+            this.mode = 'wysiwyg';
         }
     }
     
