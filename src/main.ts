@@ -96,7 +96,7 @@ class Main {
                          template
                     )
                 }
-               createContextMenu().popup()
+               createContextMenu().popup();
              })
  
            ipcMain.on('showContextMenuExplorer', () => {
@@ -105,14 +105,14 @@ class Main {
               {role: 'fileMenu' },
               {label: 'Menu Item 2', type: 'checkbox', checked: true },
               {label: 'Menu Item 3', type: 'checkbox', checked: false }
-                ]  
+            ]  
           
             const createContextMenu = () => {
                  return Menu.buildFromTemplate(
                       template
                  )
              }
-            createContextMenu().popup()
+            createContextMenu().popup();
          })
 
          ipcMain.on('showContextMenuActionBar', (_event, data) => {
@@ -133,7 +133,7 @@ class Main {
                          template
                     )
                 }
-            createContextMenu().popup()
+            createContextMenu().popup();
         })
 
             // response to FolderModule, default path is 'desktop' and only can

@@ -61,22 +61,21 @@ export class ActionBarComponent extends Component {
         var actionBarSettings= { options: [true, true, true, true] } 
 
         domNodeByIdAddListener('action-button-container', 'contextmenu', (event) => {
-            event.preventDefault()
-            
-            ipcRendererSendData('showContextMenuActionBar', actionBarSettings)     
+            event.preventDefault();
+            ipcRendererSendData('showContextMenuActionBar', actionBarSettings);     
      
         })
 
         // TODO: add an array that stores user preference for action buttons 
         ipcRendererOn('context-menu-command', (_options, Settings, tag, index) => {
-            const actionButton = document.getElementById(tag)
-            console.log(actionButton?.style.display)
+            const actionButton = document.getElementById(tag);
+            console.log(actionButton?.style.display);
             if (actionButton!.style.display == 'initial') {
-                actionButton!.style.display = 'none'
+                actionButton!.style.display = 'none';
                 actionBarSettings.options[index] = false;
-                console.log(actionBarSettings)
+                console.log(actionBarSettings);
             } else {
-                actionButton!.style.display = 'initial'
+                actionButton!.style.display = 'initial';
                 actionBarSettings.options[index] = true;
             }         
         })
