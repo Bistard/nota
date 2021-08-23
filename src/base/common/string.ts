@@ -48,11 +48,11 @@ export function nameIncludeCheckWithRule(name: string, rules: string[]): boolean
                 } else {
                     postfix += char;
                 }
-            } else if (asteriskFound) {
-                throw 'mutiple asterisk has found';
             } else {
                 asteriskFound = true;
-                continue;
+                if (i + 1 !== rule.length && i !== 0) {
+                    throw 'wrong rules is applied to be included';
+                }
             }
         }
 

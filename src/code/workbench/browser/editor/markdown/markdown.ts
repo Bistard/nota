@@ -22,7 +22,7 @@ import { ConfigModule } from 'src/base/config';
 import { FileNode } from 'src/base/node/fileTree';
 import { Component } from 'src/code/workbench/browser/component';
 import { IRegisterService } from 'src/code/workbench/service/registerService';
-import { IEventEmitter } from 'src/base/common/event';
+import { EVENT_EMITTER } from 'src/base/common/event';
 import { MarkdownRenderMode } from 'mdnote';
 import { getSvgPathByName } from 'src/base/common/string';
 
@@ -31,8 +31,6 @@ import { getSvgPathByName } from 'src/base/common/string';
  * handling a few other shortcuts as well.
  */
 export class MarkdownComponent extends Component {
-    
-    private _eventEmitter: IEventEmitter;
 
     private editor: Editor | null;
     private saveFileTimeout: NodeJS.Timeout | null;
@@ -40,12 +38,9 @@ export class MarkdownComponent extends Component {
 
     private mode: MarkdownRenderMode;
 
-    constructor(registerService: IRegisterService,
-                _eventEmitter: IEventEmitter
-    ) {
+    constructor(registerService: IRegisterService) {
         super('markdown', registerService);
 
-        this._eventEmitter = _eventEmitter;
         this.mode = ConfigModule.defaultMarkdownMode;
         
         this.editor = null;
@@ -88,8 +83,8 @@ export class MarkdownComponent extends Component {
             markdown.setAttribute('spellcheck', 'false');
         }
 
-        this._eventEmitter.register('EMarkdownDisplayFile', (nodeInfo: FileNode) => this.markdownDisplayFile(nodeInfo));
-        this._eventEmitter.register('EMarkdownModeSwitch', () => this.markdownModeSwitch());
+        EVENT_EMITTER.register('EMarkdownDisplayFile', (nodeInfo: FileNode) => this.markdownDisplayFile(nodeInfo));
+        EVENT_EMITTER.register('EMarkdownModeSwitch', () => this.markdownModeSwitch());
         // ipcRendererOn('Ctrl+S', () => {
         //     if (!this.explorerViewComponent.TabBar.emptyTab) {
         //         if (this.saveFileTimeout) {
@@ -182,8 +177,8 @@ export class MarkdownComponent extends Component {
             return;
         }
 
-        if (nodeInfo) {
-            this.editor.setMarkdown(nodeInfo.file.plainText, false);
+        if (nodeInfo && !nodeInfo.isFolder) {
+            this.editor.setMarkdown(nodeInfo.file!.plainText, false);
         } else {
             this.editor.setMarkdown('', false);
         }

@@ -5,8 +5,8 @@ An open-sourced markdown editor && noteTaking desktop application based on .md
 
 ## 💖feature
 * supports ✔WYSIWYG (rich text), ❌instant rendering, ✔ tranditional split view editing
-* supports git extension
-* provides great noteTaking-like user experience
+* ❌supports git extension
+* ❌provides great noteTaking-like user experience
 
 ## 👁‍🗨Screen shots (2021.8.5)
 ![screenshot](./doc/assets/2021.8.5.png)

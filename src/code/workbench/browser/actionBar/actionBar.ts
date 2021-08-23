@@ -1,5 +1,5 @@
 import { Button, IButton } from 'src/base/browser/basic/button';
-import { IEventEmitter } from 'src/base/common/event';
+import { EVENT_EMITTER } from 'src/base/common/event';
 import { ActionViewType } from 'src/code/workbench/browser/actionView/actionView';
 import { Component, ComponentType } from 'src/code/workbench/browser/component';
 import { IRegisterService } from 'src/code/workbench/service/registerService';
@@ -13,17 +13,12 @@ import { domNodeByIdAddListener, ipcRendererOn, ipcRendererSendData } from 'src/
 export class ActionBarComponent extends Component {
 
     private _buttonGroups: IButton[] = [];
-    private _eventEmitter: IEventEmitter;
     
     // if value is -1, it means actionView is not shown.
     private currFocusActionBtnIndex: number;
 
-    constructor(registerService: IRegisterService,
-                _eventEmitter: IEventEmitter        
-    ) {
+    constructor(registerService: IRegisterService) {
         super(ComponentType.ActionBar, registerService);
-        
-        this._eventEmitter = _eventEmitter;
         
         this.currFocusActionBtnIndex = -1;
     }
@@ -106,7 +101,7 @@ export class ActionBarComponent extends Component {
         const actionName = clickedBtn.id.slice(0, -"-button".length) as ActionViewType;
         
         // switch to the action view
-        this._eventEmitter.emit('EOnActionViewChange', actionName);
+        EVENT_EMITTER.emit('EOnActionViewChange', actionName);
 
         // focus the action button and reverse the state of action view
         const clickedBtnIndex = parseInt(clickedBtn.getAttribute('btnNum') as string);
@@ -116,12 +111,12 @@ export class ActionBarComponent extends Component {
         if (this.currFocusActionBtnIndex == -1) {
             // none of action button is focused, open the action view
             this.currFocusActionBtnIndex = clickedBtnIndex;
-            this._eventEmitter.emit('EOnActionViewOpen');
+            EVENT_EMITTER.emit('EOnActionViewOpen');
             clickedBtn.classList.add('action-button-focus');
         } else if (this.currFocusActionBtnIndex == clickedBtnIndex) {
             // if the current focused button is clicked again, close action view.
             this.currFocusActionBtnIndex = -1;
-            this._eventEmitter.emit('EOnActionViewClose');
+            EVENT_EMITTER.emit('EOnActionViewClose');
             currBtn.classList.remove('action-button-focus');
         } else if (this.currFocusActionBtnIndex >= 0) {
             // other action button is clicked, only change the style

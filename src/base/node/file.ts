@@ -20,22 +20,11 @@ export enum FileType {
 }
 
 export class MarkdownFile {
-
-    public readonly path: string;
-    public readonly name: string;
-    public readonly baseName: string;
     public plainText: string;
     
     public readonly type: FileType;
 
-    constructor(path: string,
-                name: string,
-                baseName: string,
-                plainText?: string
-    ) {
-        this.path = path;
-        this.name = name;
-        this.baseName = baseName;
+    constructor(baseName: string, plainText?: string) {
         this.plainText = plainText || '';
 
         this.type = getFileType(baseName);
@@ -60,17 +49,18 @@ export async function readMarkdownFile(
     opt: readMarkdownFileOption): Promise<void | NodeJS.ErrnoException | string> 
 {
     return new Promise((resolve, reject) => {
-        if (!nodeInfo) {
-            reject('wrong given nodeInfo');
-        } else if (!isMarkdownFile(nodeInfo.file.baseName)) {
-            reject('not markdown file');
+        
+        if (!nodeInfo || nodeInfo.isFolder) {
+            reject('given wrong nodeInfo or it is a folder');
+        } else if (!isMarkdownFile(nodeInfo.baseName)) {
+            reject('not a markdown file');
         }
 
-        fs.readFile(nodeInfo.file.path, opt, (err, text: string) => {
+        fs.readFile(nodeInfo.path, opt, (err, text: string) => {
             if (err) {
                 reject(err);
             }
-            nodeInfo.file.plainText = text;
+            nodeInfo.file!.plainText = text;
             resolve();
         });
     })
@@ -85,14 +75,14 @@ export async function readMarkdownFile(
      nodeInfo: FileNode, 
      opt: readMarkdownFileOption): void 
 {
-    if (!nodeInfo) {
-        throw 'read .md file error';
-    } else if (!isMarkdownFile(nodeInfo.file.baseName)) {
+    if (!nodeInfo || nodeInfo.isFolder) {
+        throw 'given wrong nodeInfo or it is a folder';
+    } else if (!isMarkdownFile(nodeInfo.baseName)) {
         // do log here
         return;
     }
     
-    nodeInfo.file.plainText = fs.readFileSync(nodeInfo.file.path, opt);
+    nodeInfo.file!.plainText = fs.readFileSync(nodeInfo.path, opt);
 }
 
 /**
@@ -103,23 +93,21 @@ export async function saveMarkdownFile(
     newPlainText: string): Promise<void | NodeJS.ErrnoException> 
 {
     return new Promise((resolve, reject) => {
-        if (nodeInfo !== undefined) {
+        if (nodeInfo !== undefined && !nodeInfo.isFolder) {
 
             let writeOption: fs.WriteFileOptions = {
                 encoding: 'utf-8',
                 flag: 'w'
             };
     
-            fs.writeFile(nodeInfo.file.path, newPlainText, writeOption, (err) => {
+            fs.writeFile(nodeInfo.path, newPlainText, writeOption, (err) => {
                 if (err) {
                     reject(err);
                 }
-                console.log('auto saved');
                 resolve();
             });
         } else {
-            console.log('auto saved but undefined');
-            resolve();
+            reject('given wrong nodeInfo or it is a folder');
         }
     })
 }

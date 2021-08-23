@@ -4,7 +4,7 @@
     height:100%;
 }
 
-#tree {
+#fileTree-container {
     position: absolute;
     width: 100%;
     height: 100%;
@@ -20,14 +20,14 @@
     transition: color 0.2s ease;
 }
 
-#tree:hover {
+#fileTree-container:hover {
     color: rgba(0, 0, 0, 0.8); /* shoud matches text-shadow */
 }
 
-#tree ul {
+#fileTree-container ul {
     padding-left: 6px;
 }
-#tree li {
+#fileTree-container li {
     padding-left: 6px;
 }
 

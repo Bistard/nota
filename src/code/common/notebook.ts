@@ -1,4 +1,4 @@
-import { FileTree, FileNode } from "src/base/node/fileTree";
+import { FileTree } from "src/base/node/fileTree";
 
 export interface INoteBook {
     readonly noteBookName: string;
@@ -6,18 +6,28 @@ export interface INoteBook {
     readonly firstCreatedDate?: Date;
     readonly fileTree: FileTree;
 
+    /**
+     * @description synchronously building the whole notebook folder tree and
+     * display it.
+     * 
+     * @param parent fileTree appends to this parent HTMLElement
+     */
+    create(parent: HTMLElement): void;
+    
+    /**
+     * @description destroy the notebook instance.
+     */
     destory(): void;
 }
 
 /**
- * @description NoteBook is considered as 
+ * @description TODO: complete comments
  */
 export class NoteBook {
 
     public readonly noteBookName: string;
     public readonly noteBookDir: string;
 
-    public readonly firstCreatedDate?: Date;
     public readonly fileTree: FileTree;
 
     /**
@@ -29,8 +39,10 @@ export class NoteBook {
         this.noteBookDir = path;
         
         this.fileTree = new FileTree(path);
-        this.fileTree.createFolderTree();
-        this.fileTree.createFolderTreeList();
+    }
+
+    public create(parent: HTMLElement): void {
+        this.fileTree.create(parent);
     }
 
     public destory(): void {

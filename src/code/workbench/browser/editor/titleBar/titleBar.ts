@@ -11,18 +11,12 @@ import { IEventEmitter } from 'src/base/common/event';
  */
 export class TitleBarComponent extends Component {
     
-    private _eventEmitter: IEventEmitter;
-
     toolBarComponent!: ToolBarComponent;
     tabBarComponent!: TabBarComponent;
     windowBarComponent!: WindowBarComponent;
 
-    constructor(registerService: IRegisterService,
-                _eventEmitter: IEventEmitter
-    ) {
+    constructor(registerService: IRegisterService) {
         super('title-bar', registerService);
-
-        this._eventEmitter = _eventEmitter;
     }
 
     protected override _createContainer(): void {
@@ -49,7 +43,7 @@ export class TitleBarComponent extends Component {
     }
 
     private _createToolBar(): void {
-        this.toolBarComponent = new ToolBarComponent(this, this._eventEmitter);
+        this.toolBarComponent = new ToolBarComponent(this);
         this.toolBarComponent.create(this.container);
     }
 
