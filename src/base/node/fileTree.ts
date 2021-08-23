@@ -1,34 +1,142 @@
-import { MarkdownFile } from 'src/base/node/file';
+import { MarkdownFile, readMarkdownFile, readMarkdownFileOption } from 'src/base/node/file';
 import * as fs from 'fs';
 import * as Path from 'path';
+import { EVENT_EMITTER } from 'src/base/common/event';
 
 /**
  * @description the object is to store and maintain the data for each 
  * folder/tree/root.
  */
-// TODO: rename FileNode as FileNode
-// TODO: for folder/root FileNode, they still have attribute 'file' which does not make sense
 export class FileNode {
 
-    public readonly file: MarkdownFile;
-    
-    public nodes: {[propName: string]: FileNode};
-    public isFolder: boolean;
-    public level: number;
-    public isExpand: boolean;
+    public readonly element: HTMLElement;
+    public readonly file: MarkdownFile | null;
 
-    constructor(file: MarkdownFile,
-                nodes: {[propName: string]: FileNode}, 
-                isFolder: boolean,
+    public readonly path: string;
+    public readonly name: string;
+    public readonly baseName: string;
+    
+    public readonly nodes: Map<string, FileNode> | null;
+    public readonly level: number;
+    public readonly isFolder: boolean;
+    public readonly isExpand: boolean;
+
+    constructor(path: string,
+                name: string,
+                baseName: string,
+                nodes: Map<string, FileNode> | null, 
                 level: number, 
+                isFolder: boolean,
                 isExpand: boolean
     ) {
-        this.file = file;
+        this.path = path;
+        this.name = name;
+        this.baseName = baseName;
 
+        if (isFolder) {
+            this.element = document.createElement('ul');
+            this.file = new MarkdownFile(baseName);
+            this.element.addEventListener('click', () => {
+                EVENT_EMITTER.emit('EFolderOnClick', this);
+            });
+        } else {
+            this.element = document.createElement('li');
+            this.file = null;
+            this.element.addEventListener('click', () => {
+                EVENT_EMITTER.emit('EFileOnClick', this);
+            });
+        }
+
+        // note that 'nodes' will always be an empty map
         this.nodes = nodes;
-        this.isFolder = isFolder;
+        
         this.level = level;
+        this.isFolder = isFolder;
         this.isExpand = isExpand;
+
+        this._render();
+    }
+
+    /**
+     * @description append the given child to the current fileNode, not just its 
+     * data, but also appends the child's HTMLElement.
+     */
+    public append(childName: string, child: FileNode): void {
+        this.nodes!.set(childName, child);
+        this.element.appendChild(child.element);
+    }
+
+    private _render(): void {
+        this.element.classList.add('node');
+
+        const text = document.createElement('li');
+        text.classList.add('node-text');
+        text.innerHTML = this.name;
+
+        if (!this.isFolder) {
+            // is file
+            this.element.classList.add('node-file');
+            text.classList.add('file-icon');
+        } else if (this.isFolder || !this.level) {
+            if (!this.level) {
+                // is root
+                this.element.classList.add('node-root');
+                text.classList.add('node-root-text');
+            } else {
+                // is folder
+                this.element.classList.add('node-folder');
+            }
+            
+            if (this.isExpand) {
+                text.classList.add('folder-icon-expand');
+            } else {
+                text.classList.add('folder-icon-collapse');
+            }
+        }
+        this.element.appendChild(text);
+    }
+
+    /**
+     * @description TODO: complete comments
+     */
+     public static folderOnClick(nodeInfo: FileNode): void {
+        (nodeInfo.isExpand as any) ^= 1;
+        const element: JQuery<HTMLElement> = $(nodeInfo.element);
+        if (nodeInfo.isExpand) {
+            element.removeClass('folder-icon-collapse');
+            element.addClass('folder-icon-expand');
+            element.each(function() {
+                element.nextAll().each(function() {
+                    $(this).show(0);
+                });
+            });
+        } else {
+            element.addClass('folder-icon-collapse');
+            element.removeClass('folder-icon-expand');
+            element.each(function() {
+                element.nextAll().each(function() {
+                    $(this).hide(0);
+                })
+            })
+        }
+    }
+
+    /**
+     * @description TODO: complete comments
+     */
+    public static fileOnClick(nodeInfo: FileNode): void {
+        
+        let readOption: readMarkdownFileOption = {
+            encoding: 'utf-8',
+            flag: 'r'
+        };
+
+        readMarkdownFile(nodeInfo, readOption).then(() => {
+            EVENT_EMITTER.emit('EMarkdownDisplayFile', nodeInfo);
+        }).catch(err => {
+            // do log here
+            throw err;
+        })
     }
 }
 
@@ -41,80 +149,63 @@ export class FileTree {
     
     public readonly path: string;
 
-    public tree: FileNode | {};
-    public treeList: FileNode[] | [];
+    public tree: FileNode | null;
 
+    // Unused
+    public readonly nodeCount: number;
+    public readonly depth: number;
 
     constructor(path: string) {
         this.path = path;
-        // TODO: reduce memory usage (tree && treeList might overlap)
-        this.tree = {};
-        this.treeList = [];
+        this.tree = null;
+
+        this.nodeCount = 0;
+        this.depth = -1;
     }
 
     /**
-     * @description Recursively searches and creates a complete folder tree.
+     * @description reads and creates a complete folder tree.
      */
-    // TODO: refactor using while to avoid recursive (reduce run-timememory usage)
-    public createFolderTree(): void {
-        this.tree = this._createFolderTreeRecursive(this.path, 0);
+    public create(parent: HTMLElement): void {
+        this.tree = this._createRecursive(this.path, 0);
+        parent.appendChild(this.tree.element);
     }
 
-    /**
-     * @description traversing and returns an array version of folder tree 
-     * using pre-order.
-     */
-     public createFolderTreeList(): void {
-        this.treeList = this._createFolderTreeListRecursive(this.tree as FileNode, []);
-    }
-    
     /**
      * @description synchronously reading the whole folder tree.
      * 
      * @param path eg. D:\dev\AllNote
      * @param level the depth of current treenode
      */
-    private _createFolderTreeRecursive(path: string, level: number): FileNode {
+    private _createRecursive(path: string, level: number): FileNode {
         
-        const baseName = Path.basename(path); // eg. 'markdown.md'
+        // eg. 'markdown.md'
+        const baseName = Path.basename(path);
         
         if (fs.lstatSync(path).isDirectory()) {
-            
+            // directory
             let name = baseName.replace(/_/g, ' ');
-            const mdFile = new MarkdownFile(path, name, baseName);
-            const node = new FileNode(mdFile, {}, true, level, false);
+            const fileNode = new FileNode(path, name, baseName, new Map<string, FileNode>(), level, true, false);
             
-            const filesText = fs.readdirSync(path, {
+            const filesNames = fs.readdirSync(path, {
                 encoding: 'utf8',
                 withFileTypes: false
-            })
+            });
 
-            filesText.forEach((filename: string) => {
-                const tree = this._createFolderTreeRecursive(Path.join(path, filename), level + 1);
-                node.nodes[filename] = tree;
-            })
-            return node;
+            for (let filename of filesNames) {
+                const tree = this._createRecursive(Path.join(path, filename), level + 1);
+                fileNode.append(filename, tree);
+            };
+
+            return fileNode;
 
         } else if (/\.md$/i.test(path)) {
+            // markdown file
             let name = baseName.replace(/_/g, ' ').replace(/\.md$/, '').trim();
-            const mdFile = new MarkdownFile(path, name, baseName);
-            return new FileNode(mdFile, {}, false, level, false);
+            return new FileNode(path, name, baseName, null, level, false, false);
         }
-        
-        // reaches if no suffix or not .md
-        const mdFile = new MarkdownFile(path, baseName, baseName);
-        return new FileNode(mdFile, {}, false, level, false);
+        // other file type
+        return new FileNode(path, baseName, baseName, null, level, false, false);
     }
 
-    private _createFolderTreeListRecursive(tree: FileNode, list: FileNode[] = []): FileNode[] {
-        if (tree.isFolder) {
-            list.push(tree);
-			for (const [key, node] of Object.entries(tree.nodes)) {
-				this._createFolderTreeListRecursive(node, list);
-			}
-		} else {
-			list.push(tree);
-		}
-		return list;
-    }
 }

@@ -32,8 +32,12 @@ export class NoteBookManager implements INoteBookManager {
 
     private _noteBookDir!: string;
 
+    // not used
+    private _mdNoteFolderFound: boolean;
+
     constructor() {
         this.noteBookMap = new Map<string, NoteBook>();
+        this._mdNoteFolderFound = false;
     }
 
     public async init(path: string): Promise<void> {
@@ -48,6 +52,7 @@ export class NoteBookManager implements INoteBookManager {
                 } else {
                     this._createNoteBookConfig();
                 }
+                this._mdNoteFolderFound = true;
                 resolve();
             }).catch((err) => {
                 // do log here.

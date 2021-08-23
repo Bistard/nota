@@ -13,7 +13,7 @@ export interface IComponent {
 export abstract class Component implements IComponent, IRegisterService {
     
     protected parent!: HTMLElement;
-    protected container: HTMLElement = document.createElement('div');
+    protected readonly container: HTMLElement = document.createElement('div');
     protected contentArea: HTMLElement | undefined;
     protected contentAreaMap: Map<string, Component> = new Map();
     
