@@ -1,4 +1,4 @@
-import { Button, IButton } from 'src/base/browser/ui/button';
+import { Button, IButton } from 'src/base/browser/basic/button';
 import { IEventEmitter } from 'src/base/common/event';
 import { ActionViewType } from 'src/code/workbench/browser/actionView/actionView';
 import { Component, ComponentType } from 'src/code/workbench/browser/component';

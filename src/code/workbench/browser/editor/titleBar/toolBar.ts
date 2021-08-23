@@ -1,5 +1,6 @@
-import { Button } from "src/base/browser/ui/button";
 import { IEventEmitter } from "src/base/common/event";
+import { MarkdownRenderMode } from "mdnote";
+import { Button } from "src/base/browser/basic/button";
 import { getSvgPathByName } from "src/base/common/string";
 import { ConfigModule } from "src/base/config";
 import { domNodeByIdAddListener } from "src/base/ipc/register";

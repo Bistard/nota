@@ -1,4 +1,4 @@
-import { IWidget } from "src/base/browser/ui/widget";
+import { IWidget } from "src/base/browser/basic/widget";
 import { getSvgPathByName } from "src/base/common/string";
 
 // TODO: complete
