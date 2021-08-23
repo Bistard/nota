@@ -1,5 +1,5 @@
 import { TreeNodeType } from 'mdnote';
-import { FileTree, FileNode } from 'src/base/node/fileTree';
+import { FileNode } from 'src/base/node/fileTree';
 import { TreeNodesType } from 'mdnote';
 import { domNodeByIdAddListener, ipcRendererOn, ipcRendererSend } from 'src/base/ipc/register';
 import { Component } from 'src/code/workbench/browser/component';
@@ -7,7 +7,7 @@ import { ActionViewComponentType } from 'src/code/workbench/browser/actionView/a
 import { IRegisterService } from 'src/code/workbench/service/registerService';
 import { IEventEmitter } from 'src/base/common/event';
 import { readMarkdownFile, readMarkdownFileOption } from 'src/base/node/file';
-import { INoteBookManager, NoteBookManager } from 'src/code/common/notebookManger';
+import { INoteBookManager } from 'src/code/common/notebookManger';
 import { NoteBook } from 'src/code/common/notebook';
 
 /**
@@ -17,9 +17,6 @@ export class ExplorerViewComponent extends Component {
 
     private _eventEmitter: IEventEmitter;
     private _noteBookManager: INoteBookManager;
-
-    // FIX: this design is stupid, should be removed
-    public treeNodeCount: number;
 
     public resizeX: number;
 
@@ -31,8 +28,6 @@ export class ExplorerViewComponent extends Component {
         
         this._eventEmitter = _eventEmitter;
         this._noteBookManager = _noteBookManger;
-
-        this.treeNodeCount = 0;
 
         // this variable is to store the x-coordinate of the resizeBar in the explorer view
         this.resizeX = 0;
@@ -126,9 +121,7 @@ export class ExplorerViewComponent extends Component {
         }
         
         element.classList.add('node');
-        element.setAttribute('nodeNum', this.treeNodeCount.toString());
-        this.treeNodeCount++;
-
+        
         const text = document.createElement('li');
         text.classList.add('node-text');
         text.innerHTML = nodeInfo.file.name;
@@ -244,21 +237,21 @@ export class ExplorerViewComponent extends Component {
             
             this._noteBookManager.noteBookMap.forEach((noteBook: NoteBook, name: string) => {
                 this.displayNoteBook(noteBook);
-                this.treeNodeCount = 0;
 
-                $('.node-text').on('click', { explorerViewClass: this, noteBook: noteBook }, function (event) {
+                // FIX: use two-way data binding 
+                // $('.node-text').on('click', { explorerViewClass: this, noteBook: noteBook }, function (event) {
                     
-                    const self = event.data.explorerViewClass;
-                    const noteBook = event.data.noteBook;
-                    const nodeNum = (this.parentNode as HTMLElement).getAttribute('nodeNum') as string;
-                    const nodeInfo = noteBook.fileTree.treeList[parseInt(nodeNum)] as FileNode;
+                //     const self = event.data.explorerViewClass;
+                //     const noteBook = event.data.noteBook;
+                //     const nodeNum = (this.parentNode as HTMLElement).getAttribute('nodeNum') as string;
+                //     const nodeInfo = noteBook.fileTree.treeList[parseInt(nodeNum)] as FileNode;
                     
-                    if (nodeInfo.isFolder) {
-                        self.folderOnClick($(this), nodeInfo);
-                    } else { 
-                        self.fileOnClick($(this), nodeInfo);
-                    }
-                })
+                //     if (nodeInfo.isFolder) {
+                //         self.folderOnClick($(this), nodeInfo);
+                //     } else { 
+                //         self.fileOnClick($(this), nodeInfo);
+                //     }
+                // })
             })
         });
     }
