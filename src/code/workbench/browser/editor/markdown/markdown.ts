@@ -25,6 +25,7 @@ import { IRegisterService } from 'src/code/workbench/service/registerService';
 import { EVENT_EMITTER } from 'src/base/common/event';
 import { MarkdownRenderMode } from 'mdnote';
 import { getSvgPathByName } from 'src/base/common/string';
+import { ipcRendererOn, domNodeByIdAddListener, ipcRendererSend } from 'src/base/ipc/register';
 
 /**
  * @description MarkdownComponent initializes markdown renderer and windows and
@@ -93,6 +94,23 @@ export class MarkdownComponent extends Component {
         //         this.markdownSaveFile();
         //     }
         // })
+
+        domNodeByIdAddListener('markdown', 'contextmenu', (event) => {
+            event.preventDefault();          
+            const element = event.target as HTMLElement;
+            const tagName = element.tagName;
+            const parentElement = element.parentElement?.tagName;
+            const menu = document.querySelector(".toastui-editor-context-menu") as HTMLElement;
+           // if (tagName == 'TD' || tagName == 'TH' || parentElement == 'TD' || parentElement == 'TH' ) {
+            if (tagName == 'TD' || tagName == 'TH') {
+                console.log('Chart Context Menu')
+            }else if (tagName == 'P') {
+                menu.style.display = 'none';  
+                ipcRendererSend('showContextMenuEditor');
+            } else {
+                ipcRendererSend('showContextMenuEditor');     
+            }   
+        })
     }
 
     /**

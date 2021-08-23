@@ -88,7 +88,7 @@ class Main {
             ipcMain.on('showContextMenuEditor', () => {
                 const template: Electron.MenuItemConstructorOptions[] = [
                  {role: 'editMenu'},
-                 {label: 'Inspect Element', role: 'toggleDevTools'}
+                 {label: 'Inspect', role: 'toggleDevTools'}
                  ]  
              
                 const createContextMenu = () => {
