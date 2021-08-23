@@ -3,7 +3,6 @@ import { IRegisterService } from "src/code/workbench/service/registerService";
 import { ActionViewComponent } from "src/code/workbench/browser/actionView/actionView";
 import { ActionBarComponent } from "src/code/workbench/browser/actionBar/actionBar";
 import { EditorComponent } from "src/code/workbench/browser/editor/editor";
-import { EventEmitter, IEventEmitter } from "src/base/common/event";
 import { INoteBookManager, NoteBookManager } from "src/code/common/notebookManger";
 
 /**
@@ -17,7 +16,6 @@ class Workbench implements IRegisterService {
 
     private componentMap = new Map<string, Component>();
 
-    private _eventEmitter: IEventEmitter;
     private _noteBookManager: INoteBookManager;
 
     actionBarComponent!: ActionBarComponent;
@@ -25,7 +23,6 @@ class Workbench implements IRegisterService {
     editorComponent!: EditorComponent;
     
     constructor() {
-        this._eventEmitter = new EventEmitter();
         this._noteBookManager = new NoteBookManager();
 
         this.initComponents();
@@ -37,9 +34,9 @@ class Workbench implements IRegisterService {
      * rendering.
      */
     private initComponents(): void {
-        this.actionBarComponent = new ActionBarComponent(this, this._eventEmitter);
-        this.actionViewComponent = new ActionViewComponent(this, this._eventEmitter, this._noteBookManager);
-        this.editorComponent = new EditorComponent(this, this._eventEmitter);
+        this.actionBarComponent = new ActionBarComponent(this);
+        this.actionViewComponent = new ActionViewComponent(this, this._noteBookManager);
+        this.editorComponent = new EditorComponent(this);
     }
 
     /**

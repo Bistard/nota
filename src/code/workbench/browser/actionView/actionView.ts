@@ -2,7 +2,7 @@ import { getSvgPathByName } from 'src/base/common/string';
 import { Component, ComponentType } from 'src/code/workbench/browser/component';
 import { IRegisterService } from 'src/code/workbench/service/registerService';
 import { ExplorerViewComponent } from "src/code/workbench/browser/actionView/explorer/explorer";
-import { IEventEmitter } from 'src/base/common/event';
+import { EVENT_EMITTER } from 'src/base/common/event';
 import { INoteBookManager } from 'src/code/common/notebookManger';
 
 export type ActionViewType = 'none' | 'explorer' | 'outline' | 'search' | 'git';
@@ -29,17 +29,14 @@ export class ActionViewComponent extends Component {
 
     private explorerViewComponent!: ExplorerViewComponent;
     
-    private _eventEmitter: IEventEmitter;
     private _noteBookManager: INoteBookManager;
     // Others...
 
     constructor(registerService: IRegisterService,
-                _eventEmitter: IEventEmitter,
                 _noteBookManager: INoteBookManager
     ) {
         super(ComponentType.ActionView, registerService);
         
-        this._eventEmitter = _eventEmitter;
         this._noteBookManager = _noteBookManager;
         this.whichActionView = 'none';
     }
@@ -79,9 +76,9 @@ export class ActionViewComponent extends Component {
 
         this.explorerViewComponent.registerListeners();
 
-        this._eventEmitter.register('EOnActionViewChange', (name) => this.onActionViewChange(name));
-        this._eventEmitter.register('EOnActionViewOpen', () => this.openActionView());
-        this._eventEmitter.register('EOnActionViewClose', () => this.closeActionView());
+        EVENT_EMITTER.register('EOnActionViewChange', (name) => this.onActionViewChange(name));
+        EVENT_EMITTER.register('EOnActionViewOpen', () => this.openActionView());
+        EVENT_EMITTER.register('EOnActionViewClose', () => this.closeActionView());
     }
 
     private _createActionViewTop(): HTMLElement {
@@ -108,7 +105,7 @@ export class ActionViewComponent extends Component {
         const actionViewContent = document.createElement('div');
         actionViewContent.id = 'action-view-content';
         
-        this.explorerViewComponent = new ExplorerViewComponent(this, this._eventEmitter, this._noteBookManager);
+        this.explorerViewComponent = new ExplorerViewComponent(this, this._noteBookManager);
         this.explorerViewComponent.create(actionViewContent);
 
         // outlineViewComponent...

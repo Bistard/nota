@@ -1,6 +1,5 @@
-import { IEventEmitter } from "src/base/common/event";
-import { MarkdownRenderMode } from "mdnote";
 import { Button } from "src/base/browser/basic/button";
+import { EVENT_EMITTER } from "src/base/common/event";
 import { getSvgPathByName } from "src/base/common/string";
 import { ConfigModule } from "src/base/config";
 import { domNodeByIdAddListener } from "src/base/ipc/register";
@@ -9,18 +8,13 @@ import { IRegisterService } from "src/code/workbench/service/registerService";
 
 export class ToolBarComponent extends Component {
 
-    private _eventEmitter: IEventEmitter;
-
     isToolBarExpand: boolean;
     isMarkdownToolExpand: boolean;
     isTabBarExpand: boolean;
 
-    constructor(registerService: IRegisterService,
-                _eventEmitter: IEventEmitter
+    constructor(registerService: IRegisterService
     ) {
         super('tool-bar', registerService);
-
-        this._eventEmitter = _eventEmitter;
         
         this.isToolBarExpand = ConfigModule.isToolBarExpand;
         this.isMarkdownToolExpand = ConfigModule.isMarkdownToolExpand;
@@ -60,7 +54,7 @@ export class ToolBarComponent extends Component {
         this.initToolBar();
 
         domNodeByIdAddListener('mode-switch', 'click', () => {
-            this._eventEmitter.emit('EMarkdownModeSwitch');
+            EVENT_EMITTER.emit('EMarkdownModeSwitch');
         });
 
         domNodeByIdAddListener('md-tool', 'click', () => {

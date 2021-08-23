@@ -93,7 +93,7 @@ export class TabBarComponent extends Component {
         // loop to search if the tab is existed or not
         let i = 0;
         for (i = 0; i < this.openedTabCount; i++) {
-            if (nodeInfo.file.path == (this.openedTabInfo[i] as FileNode).file.path) {
+            if (nodeInfo.path == (this.openedTabInfo[i] as FileNode).path) {
                 // tab exists
                 return [true, i, this.contentArea!.childNodes[i] as HTMLElement];
             }
@@ -106,7 +106,7 @@ export class TabBarComponent extends Component {
         
         newTab.classList.add('tab');
         tabText.classList.add('tab-text');
-        tabText.innerHTML = nodeInfo.file.name;
+        tabText.innerHTML = nodeInfo.name;
         tabCloseIcon.classList.add('tab-close-icon');
         tabCloseIcon.classList.add('vertical-center');
 
@@ -172,8 +172,8 @@ export class TabBarComponent extends Component {
     public displayTab(nodeInfo: FileNode | null): void {
         // setMarkdown() will emit Editor.event.change callback
         // ipcRenderer.send('test', 'setMarkdown()')
-        if (nodeInfo) {
-            ((window as any).editor as Editor).setMarkdown(nodeInfo.file.plainText, false);
+        if (nodeInfo && !nodeInfo.isFolder) {
+            ((window as any).editor as Editor).setMarkdown(nodeInfo.file!.plainText, false);
         } else {
             ((window as any).editor as Editor).setMarkdown('', false);
         }
@@ -202,7 +202,7 @@ export class TabBarComponent extends Component {
                 flag: 'w'
             };
             // FIX: shouldn't be nodeInfo.plainText, 
-            fs.writeFile(nodeInfo.file.path, nodeInfo.file.plainText, writeOption, (err) => {
+            fs.writeFile(nodeInfo.path, nodeInfo.file!.plainText, writeOption, (err) => {
                 if (err) {
                     throw err;
                 }
@@ -212,7 +212,7 @@ export class TabBarComponent extends Component {
             // pop up a warning window
             // TODO: complete
         }
-        nodeInfo.file.plainText = '';
+        nodeInfo.file!.plainText = '';
         let index = this.openedTabInfo.indexOf(nodeInfo);
         this.openedTabInfo.splice(index, 1);
         
