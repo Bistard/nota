@@ -3,6 +3,7 @@ import { IEventEmitter } from 'src/base/common/event';
 import { ActionViewType } from 'src/code/workbench/browser/actionView/actionView';
 import { Component, ComponentType } from 'src/code/workbench/browser/component';
 import { IRegisterService } from 'src/code/workbench/service/registerService';
+import { domNodeByIdAddListener, ipcRendererOn, ipcRendererSendData } from 'src/base/ipc/register';
 
 /**
  * @description ActionBarComponent provides access to each action view and handles 
@@ -56,6 +57,29 @@ export class ActionBarComponent extends Component {
     }
 
     protected override _registerListeners(): void {
+
+        var actionBarSettings= { options: [true, true, true, true] } 
+
+        domNodeByIdAddListener('action-button-container', 'contextmenu', (event) => {
+            event.preventDefault()
+            
+            ipcRendererSendData('showContextMenuActionBar', actionBarSettings)     
+     
+        })
+
+        // TODO: add an array that stores user preference for action buttons 
+        ipcRendererOn('context-menu-command', (_options, Settings, tag, index) => {
+            const actionButton = document.getElementById(tag)
+            console.log(actionButton?.style.display)
+            if (actionButton!.style.display == 'initial') {
+                actionButton!.style.display = 'none'
+                actionBarSettings.options[index] = false;
+                console.log(actionBarSettings)
+            } else {
+                actionButton!.style.display = 'initial'
+                actionBarSettings.options[index] = true;
+            }         
+        })
 
         // TODO: remove later
         // give every actionButton a unique number
