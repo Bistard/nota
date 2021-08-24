@@ -2,6 +2,7 @@ import { MarkdownFile, readMarkdownFile } from 'src/base/node/file';
 import * as fs from 'fs';
 import * as Path from 'path';
 import { EVENT_EMITTER } from 'src/base/common/event';
+import { NoteBookManager } from 'src/code/common/notebookManger';
 
 /**
  * @description the object is to store and maintain the data for each 
@@ -141,6 +142,13 @@ export class FileNode {
      */
     public static fileOnClick(nodeInfo: FileNode): void {
         
+        // fileNode style on change
+        if (NoteBookManager.focusedFileNode !== null) {
+            NoteBookManager.focusedFileNode.classList.remove('node-file-clicked');   
+        }
+        NoteBookManager.focusedFileNode = nodeInfo.element;
+        nodeInfo.element.classList.add('node-file-clicked');
+
         readMarkdownFile(nodeInfo)
         .then(() => {
             EVENT_EMITTER.emit('EMarkdownDisplayFile', nodeInfo);

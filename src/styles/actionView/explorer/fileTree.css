@@ -38,7 +38,7 @@
 
 .node-folder {
     color: rgb(0, 0, 0);
-    font-weight: bold;
+    /* font-weight: bold; */
     
     display: none;
     margin: 0;
@@ -67,8 +67,8 @@
 }
 
 .node-text {
-    height: 26px;
-    line-height: 26px;
+    height: 34px;
+    line-height: 34px;
     
     list-style-type: none;
     cursor: pointer;

@@ -6,6 +6,7 @@ import { INoteBook, NoteBook } from "src/code/common/notebook";
 export const MDNOTE_LOCAL_DIR_NAME = '.mdnote';
 
 export interface INoteBookManager {
+    
     readonly noteBookMap: Map<string, NoteBook>;
     readonly noteBookConfig: Object;
 
@@ -32,6 +33,8 @@ export class NoteBookManager implements INoteBookManager {
     public readonly noteBookMap: Map<string, NoteBook>;
     // not used
     public readonly noteBookConfig!: Object;
+
+    public static focusedFileNode: HTMLElement | null = null;
 
     private _rootPath!: string;
 
