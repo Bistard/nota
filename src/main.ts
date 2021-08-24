@@ -98,9 +98,15 @@ class Main {
             ipcMain.on('showContextMenuExplorer', () => {
 
                 const template: Electron.MenuItemConstructorOptions[] = [
-                    {role: 'fileMenu' },
-                    {label: 'Menu Item 2', type: 'checkbox', checked: true },
-                    {label: 'Menu Item 3', type: 'checkbox', checked: false }
+                    {label: 'New File'},
+                    {label: 'New Folder'},
+                    {type: 'separator'},
+                    {label: 'Copy', role:'copy'},
+                    {label: 'Paste', role: 'paste'},
+                    {label: 'Cut', role: 'cut'},
+                    {type: 'separator'},
+                    {label: 'Rename'},
+                    {label: 'Delete'},
                 ];
                 Menu.buildFromTemplate(template).popup();
             });

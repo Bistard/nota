@@ -79,6 +79,12 @@ export class ExplorerViewComponent extends Component {
 
         EVENT_EMITTER.register('EFileOnClick', (nodeInfo: FileNode) => FileNode.fileOnClick(nodeInfo));
         EVENT_EMITTER.register('EFolderOnClick', (nodeInfo: FileNode) => FileNode.folderOnClick(nodeInfo));
+
+
+        domNodeByIdAddListener('explorer-container', 'contextmenu', (event) => {
+            event.preventDefault();
+            ipcRendererSend('showContextMenuExplorer');
+        });
     }
 
     /**
