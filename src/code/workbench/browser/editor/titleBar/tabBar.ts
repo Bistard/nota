@@ -191,7 +191,7 @@ export class TabBarComponent extends Component {
         this.contentArea!.removeChild(element);
 
         // save current change immediately
-        if (ConfigModule.fileAutoSaveOn) {
+        if (ConfigModule.Instance.fileAutoSaveOn) {
             /**
              * TODO: currently, written texts are from nodeInfo.plainText. If we decide to use 
              * mutiple threads for each tab, the texts should read from window.editor.getMarkdown()

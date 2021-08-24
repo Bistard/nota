@@ -42,7 +42,7 @@ export class MarkdownComponent extends Component {
     constructor(registerService: IRegisterService) {
         super('markdown', registerService);
 
-        this.mode = ConfigModule.defaultMarkdownMode;
+        this.mode = ConfigModule.Instance.defaultMarkdownMode;
         
         this.editor = null;
         
@@ -79,7 +79,7 @@ export class MarkdownComponent extends Component {
     protected override _registerListeners(): void {
         
         // spellcheck config check
-        if (!ConfigModule.markdownSpellCheckOn) {
+        if (!ConfigModule.Instance.markdownSpellCheckOn) {
             const markdown = document.getElementById('markdown') as HTMLElement;
             markdown.setAttribute('spellcheck', 'false');
         }
@@ -106,7 +106,7 @@ export class MarkdownComponent extends Component {
             const menu = document.querySelector(".toastui-editor-context-menu") as HTMLElement;
            // if (tagName == 'TD' || tagName == 'TH' || parentElement == 'TD' || parentElement == 'TH' ) {
             if (tagName == 'TD' || tagName == 'TH') {
-                console.log('Chart Context Menu');
+                // console.log('Chart Context Menu');
             }else if (tagName == 'P') {
                 menu.style.display = 'none';
                 ipcRendererSend('showContextMenuEditor');
@@ -175,7 +175,7 @@ export class MarkdownComponent extends Component {
      * @description callback function for 'editor.event.change'.
      */
     public onTextChange(): void {
-        if (ConfigModule.fileAutoSaveOn) {
+        if (ConfigModule.Instance.fileAutoSaveOn) {
             // if content is changed before the previous timeout has reached, 
             // clear the preivous one.
             if (this.saveFileTimeout) {

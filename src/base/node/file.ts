@@ -1,7 +1,7 @@
 import { Abortable } from 'events';
 import * as fs from 'fs';
 import * as Path from 'path';
-import { nameIncludeCheckWithRule, getFileType } from 'src/base/common/string';
+import { nameIncludeCheckWithRule, getFileType, pathJoin } from 'src/base/common/string';
 import { FileNode } from 'src/base/node/fileTree';
 
 export const CHAR_DIR_SEPARATOR = '/';
@@ -41,12 +41,17 @@ export type readFileOption =
 
 export type readMarkdownFileOption = readFileOption;
 
+const defaultReadFileOpt: readMarkdownFileOption = {
+    encoding: 'utf-8',
+    flag: 'r'
+};
+
 /**
  * @description asynchronously reads a single .md file and stores the text into FileNode.
  */
 export async function readMarkdownFile(
     nodeInfo: FileNode, 
-    opt: readMarkdownFileOption): Promise<void | NodeJS.ErrnoException | string> 
+    opt: readMarkdownFileOption = defaultReadFileOpt): Promise<void | string> 
 {
     return new Promise((resolve, reject) => {
         
@@ -63,7 +68,7 @@ export async function readMarkdownFile(
             nodeInfo.file!.plainText = text;
             resolve();
         });
-    })
+    });
 }
 
 /**
@@ -90,7 +95,7 @@ export async function readMarkdownFile(
  */
 export async function saveMarkdownFile(
     nodeInfo: FileNode, 
-    newPlainText: string): Promise<void | NodeJS.ErrnoException> 
+    newPlainText: string): Promise<void> 
 {
     return new Promise((resolve, reject) => {
         if (nodeInfo !== undefined && !nodeInfo.isFolder) {
@@ -109,7 +114,7 @@ export async function saveMarkdownFile(
         } else {
             reject('given wrong nodeInfo or it is a folder');
         }
-    })
+    });
 }
 
 /**
@@ -119,7 +124,7 @@ export async function saveMarkdownFile(
  */
 export async function isFileExisted(
     path: string, 
-    fileName: string): Promise<boolean | NodeJS.ErrnoException> 
+    fileName: string): Promise<boolean>
 {
     return new Promise((resolve, reject) => {
         fs.readdir(path, (err, files: string[]) => {
@@ -131,10 +136,10 @@ export async function isFileExisted(
                 if (file == fileName) {
                     resolve(true);
                 }
-            })
+            });
             resolve(false);
-        })
-    })
+        });
+    });
 }
 
 /**
@@ -147,18 +152,16 @@ export async function isFileExisted(
 export async function createFile(
     path: string, 
     fileName: string, 
-    content?: string): Promise<void | NodeJS.ErrnoException> 
+    content: string = ''): Promise<void> 
 {
     return new Promise((resolve, reject) => {
-        // write an empty content to the file
-        let text = content === undefined ? '' : content;
-        fs.writeFile(path + CHAR_DIR_SEPARATOR + fileName, text, (err) => {
+        fs.writeFile(pathJoin(path, fileName), content, (err) => {
             if (err) {
                 reject(err);
             }
             resolve();
-        })
-    })
+        });
+    });
 }
 
 /**
@@ -166,13 +169,32 @@ export async function createFile(
  * 
  * @param path eg. D:\dev\AllNote
  */
- export function readFromFile(
+ export async function readFromFile(
     path: string, 
-    opt: readFileOption, 
-    callback: (err: NodeJS.ErrnoException | null, data: string) => void): void 
+    opt: readFileOption = defaultReadFileOpt): Promise<string>
 {
-    fs.readFile(path, opt, callback);
+    return new Promise((resolve, reject) => {
+        fs.readFile(path, opt, (err, text: string) => {
+            if (err) {
+                reject(err);
+            }
+            resolve(text);
+        });
+    });
 }
+
+/**
+ * @description synchronously reads the whole text from a general file.
+ * 
+ * @param path eg. D:\dev\AllNote
+ */
+ export function readFromFileSync(
+    path: string, 
+    opt: readFileOption = defaultReadFileOpt): string
+{
+    return fs.readFileSync(path, opt);
+}
+
 
 /**
  * @description asynchronously writes to a file.
@@ -184,9 +206,24 @@ export async function createFile(
 export async function writeToFile(
     path: string, 
     fileName: string, 
-    content: string): Promise<void | NodeJS.ErrnoException> 
+    content: string): Promise<void> 
 {
     return createFile(path, fileName, content);
+}
+
+/**
+ * @description pass this function to JSON.stringify so that it is able to convert
+ * native 'Map' type to JSON file.
+ */
+export function mapToJsonReplacer(key: any, value: any) {
+    if (value instanceof Map) {
+        return {
+            dataType: 'Map',
+            value: Array.from(value.entries()), // or with spread: value: [...value]
+        };
+    } else {
+      return value;
+    }
 }
 
 /*******************************************************************************
@@ -201,16 +238,16 @@ export async function writeToFile(
  */
  export async function createDir(
      path: string, 
-     dirName: string): Promise<void | NodeJS.ErrnoException> 
+     dirName: string): Promise<void> 
 {
     return new Promise((resolve, reject) => {
-        fs.mkdir(path + CHAR_DIR_SEPARATOR + dirName, {recursive: true}, (err) => {
+        fs.mkdir(pathJoin(path, dirName), {recursive: true}, (err) => {
             if (err) {
                 reject(err);
             }
             resolve();
-        })
-    })
+        });
+    });
 }
 
 /**
@@ -221,7 +258,7 @@ export async function writeToFile(
  */
  export async function isDirExisted(
      path: string, 
-     dirName: string): Promise<boolean | NodeJS.ErrnoException> 
+     dirName: string): Promise<boolean> 
 {
     return isFileExisted(path, dirName);
 }
@@ -229,6 +266,10 @@ export async function writeToFile(
 /**
  * @description asynchronously read each noteBook information and returns 
  * them as an array of string.
+ * 
+ * NoteBookParser currently ONLY detect folder, ignores ALL the files. That is,
+ * if you open a rootdir with a bunch of .md files, they won't be treated as
+ * noteBook.
  * 
  * @param path the rootdir of all noteBooks, eg. D:\dev\AllNote
  * @param excludes array of folders/files to be excluded

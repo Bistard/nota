@@ -1,10 +1,18 @@
-import { FileType } from "src/base/node/file";
+import { CHAR_DIR_SEPARATOR, FileType } from "src/base/node/file";
 
 // TODO: this 'BASE_PATH' could be auto defined using 'Path' nodeJS API;
 const BASE_PATH = './src/assets/svg/';
 
+export function pathJoin(root: string, ...paths: string[]): string {
+    let absolutePath = root;
+    for (let path of paths) {
+        absolutePath += CHAR_DIR_SEPARATOR + path;
+    }
+    return absolutePath;
+}
+
 export function getSvgPathByName(name: string): string {
-    return BASE_PATH + name + '.svg';
+    return pathJoin(BASE_PATH, name + '.svg');
 }
 
 /**

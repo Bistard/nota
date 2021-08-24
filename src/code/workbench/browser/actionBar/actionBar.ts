@@ -85,7 +85,6 @@ export class ActionBarComponent extends Component {
             if (actionButton!.style.display == 'none') {
                 actionButton!.style.display = 'initial';
                 actionBarOpts.options[index] = true;
-                console.log(actionBarOpts);
             } else {
                 actionButton!.style.display = 'none';
                 actionBarOpts.options[index] = false;

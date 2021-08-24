@@ -1,4 +1,6 @@
 import { MarkdownRenderMode } from 'mdnote';
+import { pathJoin } from 'src/base/common/string';
+import { readFromFileSync, writeToFile } from 'src/base/node/file';
 
 /**
  * @description config module. Only for storing some default data, config or 
@@ -6,13 +8,47 @@ import { MarkdownRenderMode } from 'mdnote';
  */
 export class ConfigModule {
 
+    /***************************************************************************
+     *                               singleton
+     **************************************************************************/
+    
+    private static _instance: ConfigModule;
+
+    private constructor() {}
+
+    public static get Instance() {
+        return this._instance || (this._instance = new this());
+    }
+
+    private static set Instance(object) {
+        this._instance = object;
+    }
+
+    /***************************************************************************
+     *                            static function
+     **************************************************************************/
+
+    public async readFromJSON(path: string, fileName: string): Promise<void> {
+        const text = readFromFileSync(pathJoin(path, fileName));
+        const jsonObject: Object = JSON.parse(text);
+        ConfigModule.Instance = jsonObject as ConfigModule;
+    }
+
+    public async writeToJSON(path: string, fileName: string): Promise<void> {
+        writeToFile(path, fileName, JSON.stringify(ConfigModule.Instance, null, 2));
+    }
+
+    /***************************************************************************
+     *                            Config Settings
+     **************************************************************************/
+
     /**
      * @readonly used for file/folder reading and writing.
      */
 
-    public static startWithPreviousNoteBookDir: boolean = false;
+    public startWithPreviousNoteBookDir: boolean = false;
     
-    public static OpenDirConfig: Electron.OpenDialogOptions = {
+    public OpenDirConfig: Electron.OpenDialogOptions = {
         /* defaultPath: app.getPath('desktop'), */
         defaultPath: 'D:\\dev\\AllNote',
         buttonLabel: 'open a file or folder',
@@ -28,7 +64,7 @@ export class ConfigModule {
      * 
      * '.*' represents any folders starts with '.'.
      */
-    public static parserExcludeDir: string[] = [
+    public parserExcludeDir: string[] = [
         '.*',
     ];
 
@@ -36,24 +72,24 @@ export class ConfigModule {
      * @readonly if wants to includes file, remember to add file format such as
      * 'config.json'. This has higher priority than 'parserExcludeDir'.
      */
-    public static parserIncludeDir: string[] = [
+    public parserIncludeDir: string[] = [
         
     ];
 
-    public static fileAutoSaveOn: boolean = true;
+    public fileAutoSaveOn: boolean = true;
     
     /**
      * @readonly titleBarView config
      */
 
-    
-    public static isToolBarExpand: boolean = true;
-    public static isMarkdownToolExpand: boolean = false;
+    public isToolBarExpand: boolean = true;
+    public isMarkdownToolExpand: boolean = false;
 
     /**
      * @readonly markdownView config
      */
-    public static defaultMarkdownMode: MarkdownRenderMode = 'wysiwyg';
-    public static markdownSpellCheckOn: boolean = false;
+    
+    public defaultMarkdownMode: MarkdownRenderMode = 'wysiwyg';
+    public markdownSpellCheckOn: boolean = false;
 
 }

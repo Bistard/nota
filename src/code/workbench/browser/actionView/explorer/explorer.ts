@@ -5,10 +5,9 @@ import { ActionViewComponentType } from 'src/code/workbench/browser/actionView/a
 import { IRegisterService } from 'src/code/workbench/service/registerService';
 import { EVENT_EMITTER } from 'src/base/common/event';
 import { INoteBookManager } from 'src/code/common/notebookManger';
-import { INoteBook } from 'src/code/common/notebook';
 
 /**
- * @description ExplorerViewComponent 
+ * @description TODO: complete comments
  */
 export class ExplorerViewComponent extends Component {
 
@@ -57,14 +56,14 @@ export class ExplorerViewComponent extends Component {
          */
         domNodeByIdAddListener('emptyFolderTag', 'click', () => {
             ipcRendererSend('openDir');
-        })
+        });
 
         /**
          * set openDir listener to get response back from main.js.
          * eg. D:\dev\AllNote
          */
         ipcRendererOn('openDir', (_event, path, _stat) => {
-            this._openNoteBookManager(path);
+            this._initNoteBookManager(path);
         });
         
         // folder view resizeBar listeners
@@ -72,30 +71,30 @@ export class ExplorerViewComponent extends Component {
         resize.addEventListener("mousedown", (event) => {
             this.resizeX = event.x;
             document.addEventListener("mousemove", this._resizeView, false);
-        })
+        });
 
         document.addEventListener("mouseup", () => {
             document.removeEventListener("mousemove", this._resizeView, false);
-        })
+        });
 
         EVENT_EMITTER.register('EFileOnClick', (nodeInfo: FileNode) => FileNode.fileOnClick(nodeInfo));
         EVENT_EMITTER.register('EFolderOnClick', (nodeInfo: FileNode) => FileNode.folderOnClick(nodeInfo));
     }
 
     /**
-     * @description TODO: complete comments
+     * @description initialize and display the noteBookManger.
+     * 
+     * function will be called when 'openDir' message is sended from the main thread.
      * 
      * @param path eg. D:\dev\AllNote
      */
-    private async _openNoteBookManager(path: string): Promise<void> {
-        this._noteBookManager.init(path)
-        .then(() => {
+    private async _initNoteBookManager(path: string): Promise<void> {
+        try {
+            await this._noteBookManager.init(path);
             this.container.removeChild(this.emptyFolderTag);
-            
-            this._noteBookManager.noteBookMap.forEach((noteBook: INoteBook, name: string) => {
-                noteBook.create(this.fileTreeContainer);
-            });
-        });
+        } catch(err) {
+            throw err;
+        }
     }
 
     /**

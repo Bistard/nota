@@ -1,7 +1,8 @@
-import { MarkdownFile, readMarkdownFile, readMarkdownFileOption } from 'src/base/node/file';
+import { MarkdownFile, readMarkdownFile } from 'src/base/node/file';
 import * as fs from 'fs';
 import * as Path from 'path';
 import { EVENT_EMITTER } from 'src/base/common/event';
+import { NoteBookManager } from 'src/code/common/notebookManger';
 
 /**
  * @description the object is to store and maintain the data for each 
@@ -9,7 +10,9 @@ import { EVENT_EMITTER } from 'src/base/common/event';
  */
 export class FileNode {
 
-    public readonly element: HTMLElement;
+    public element: HTMLElement;
+    public textElement!: HTMLLIElement;
+
     public readonly file: MarkdownFile | null;
 
     public readonly path: string;
@@ -21,40 +24,42 @@ export class FileNode {
     public readonly isFolder: boolean;
     public readonly isExpand: boolean;
 
-    constructor(path: string,
-                name: string,
-                baseName: string,
-                nodes: Map<string, FileNode> | null, 
-                level: number, 
-                isFolder: boolean,
-                isExpand: boolean
+    constructor(
+        path: string,
+        name: string,
+        baseName: string,
+        nodes: Map<string, FileNode> | null, 
+        level: number, 
+        isFolder: boolean,
+        isExpand: boolean
     ) {
         this.path = path;
         this.name = name;
         this.baseName = baseName;
-
-        if (isFolder) {
-            this.element = document.createElement('ul');
-            this.file = new MarkdownFile(baseName);
-            this.element.addEventListener('click', () => {
-                EVENT_EMITTER.emit('EFolderOnClick', this);
-            });
-        } else {
-            this.element = document.createElement('li');
-            this.file = null;
-            this.element.addEventListener('click', () => {
-                EVENT_EMITTER.emit('EFileOnClick', this);
-            });
-        }
-
+        
         // note that 'nodes' will always be an empty map
         this.nodes = nodes;
-        
+
         this.level = level;
         this.isFolder = isFolder;
         this.isExpand = isExpand;
 
-        this._render();
+        if (isFolder) {
+            this.element = document.createElement('ul');
+            this.file = null;
+        } else {
+            this.element = document.createElement('li');
+            this.file = new MarkdownFile(baseName);
+        }
+
+        this._render(); // this.textElement is created from here
+
+        const elementText = this.element.firstChild as ChildNode;
+        if (isFolder) {
+            elementText.addEventListener('click', () => { EVENT_EMITTER.emit('EFolderOnClick', this); });
+        } else {
+            elementText.addEventListener('click', () => { EVENT_EMITTER.emit('EFileOnClick', this); });
+        }
     }
 
     /**
@@ -66,42 +71,49 @@ export class FileNode {
         this.element.appendChild(child.element);
     }
 
+    /**
+     * @description TODO: complete comments
+     */
     private _render(): void {
         this.element.classList.add('node');
-
-        const text = document.createElement('li');
-        text.classList.add('node-text');
-        text.innerHTML = this.name;
-
+        
+        this.textElement = document.createElement('li');
+        this.textElement.classList.add('node-text');
+        this.textElement.innerHTML = this.name;
+        
         if (!this.isFolder) {
             // is file
             this.element.classList.add('node-file');
-            text.classList.add('file-icon');
+            this.textElement.classList.add('file-icon');
         } else if (this.isFolder || !this.level) {
             if (!this.level) {
                 // is root
                 this.element.classList.add('node-root');
-                text.classList.add('node-root-text');
+                this.textElement.classList.add('node-root-text');
             } else {
                 // is folder
                 this.element.classList.add('node-folder');
             }
             
             if (this.isExpand) {
-                text.classList.add('folder-icon-expand');
+                this.textElement.classList.add('folder-icon-expand');
             } else {
-                text.classList.add('folder-icon-collapse');
+                this.textElement.classList.add('folder-icon-collapse');
             }
         }
-        this.element.appendChild(text);
+        this.element.appendChild(this.textElement);
     }
 
     /**
-     * @description TODO: complete comments
+     * @description folder node on click callback function. It expands or collapses
+     * the clicked folder.
+     * 
+     * static function will be registered in EVENT_EMITTER at explorerViewComponent 
+     * and emits when the folder node is clicked.
      */
      public static folderOnClick(nodeInfo: FileNode): void {
         (nodeInfo.isExpand as any) ^= 1;
-        const element: JQuery<HTMLElement> = $(nodeInfo.element);
+        const element: JQuery<HTMLElement> = $(nodeInfo.textElement);
         if (nodeInfo.isExpand) {
             element.removeClass('folder-icon-collapse');
             element.addClass('folder-icon-expand');
@@ -116,27 +128,34 @@ export class FileNode {
             element.each(function() {
                 element.nextAll().each(function() {
                     $(this).hide(0);
-                })
-            })
+                });
+            });
         }
     }
 
     /**
-     * @description TODO: complete comments
+     * @description file node on click callback function. It reads the file and
+     * displays the text to the markdown editor (calls 'EMarkdownDisplayFile').
+     * 
+     * static function will be registered in EVENT_EMITTER at explorerViewComponent 
+     * and emits when the file node is clicked.
      */
     public static fileOnClick(nodeInfo: FileNode): void {
         
-        let readOption: readMarkdownFileOption = {
-            encoding: 'utf-8',
-            flag: 'r'
-        };
+        // fileNode style on change
+        if (NoteBookManager.focusedFileNode !== null) {
+            NoteBookManager.focusedFileNode.classList.remove('node-file-clicked');   
+        }
+        NoteBookManager.focusedFileNode = nodeInfo.element;
+        nodeInfo.element.classList.add('node-file-clicked');
 
-        readMarkdownFile(nodeInfo, readOption).then(() => {
+        readMarkdownFile(nodeInfo)
+        .then(() => {
             EVENT_EMITTER.emit('EMarkdownDisplayFile', nodeInfo);
         }).catch(err => {
             // do log here
             throw err;
-        })
+        });
     }
 }
 

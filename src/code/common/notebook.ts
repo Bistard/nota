@@ -1,3 +1,4 @@
+import { mapToJsonReplacer } from "src/base/node/file";
 import { FileTree } from "src/base/node/fileTree";
 
 export interface INoteBook {
@@ -15,13 +16,18 @@ export interface INoteBook {
     create(parent: HTMLElement): void;
     
     /**
+     * @description converts the whole file tree into JSON format.
+     */
+    toJSON(): string;
+
+    /**
      * @description destroy the notebook instance.
      */
     destory(): void;
 }
 
 /**
- * @description TODO: complete comments
+ * @description A class for each noteBook.
  */
 export class NoteBook {
 
@@ -43,6 +49,10 @@ export class NoteBook {
 
     public create(parent: HTMLElement): void {
         this.fileTree.create(parent);
+    }
+
+    public toJSON(): string {
+        return JSON.stringify(this.fileTree.tree, mapToJsonReplacer, 2);
     }
 
     public destory(): void {
