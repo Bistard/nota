@@ -1,4 +1,4 @@
-import { MapToJsonReplacer } from "src/base/node/file";
+import { mapToJsonReplacer } from "src/base/node/file";
 import { FileTree } from "src/base/node/fileTree";
 
 export interface INoteBook {
@@ -52,7 +52,7 @@ export class NoteBook {
     }
 
     public toJSON(): string {
-        return JSON.stringify(this.fileTree.tree, MapToJsonReplacer, 2);
+        return JSON.stringify(this.fileTree.tree, mapToJsonReplacer, 2);
     }
 
     public destory(): void {

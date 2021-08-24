@@ -202,7 +202,7 @@ export async function writeToFile(
  * @description pass this function to JSON.stringify so that it is able to convert
  * native 'Map' type to JSON file.
  */
-export function MapToJsonReplacer(key: any, value: any) {
+export function mapToJsonReplacer(key: any, value: any) {
     if (value instanceof Map) {
         return {
             dataType: 'Map',
