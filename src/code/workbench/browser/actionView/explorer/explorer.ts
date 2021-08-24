@@ -5,10 +5,9 @@ import { ActionViewComponentType } from 'src/code/workbench/browser/actionView/a
 import { IRegisterService } from 'src/code/workbench/service/registerService';
 import { EVENT_EMITTER } from 'src/base/common/event';
 import { INoteBookManager } from 'src/code/common/notebookManger';
-import { INoteBook } from 'src/code/common/notebook';
 
 /**
- * @description ExplorerViewComponent 
+ * @description TODO: complete comments
  */
 export class ExplorerViewComponent extends Component {
 
@@ -64,7 +63,7 @@ export class ExplorerViewComponent extends Component {
          * eg. D:\dev\AllNote
          */
         ipcRendererOn('openDir', (_event, path, _stat) => {
-            this._openNoteBookManager(path);
+            this._initNoteBookManager(path);
         });
         
         // folder view resizeBar listeners
@@ -89,15 +88,13 @@ export class ExplorerViewComponent extends Component {
      * 
      * @param path eg. D:\dev\AllNote
      */
-    private async _openNoteBookManager(path: string): Promise<void> {
-        this._noteBookManager.init(path)
-        .then(() => {
+    private async _initNoteBookManager(path: string): Promise<void> {
+        try {
+            await this._noteBookManager.init(path);
             this.container.removeChild(this.emptyFolderTag);
-            
-            this._noteBookManager.noteBookMap.forEach((noteBook: INoteBook, name: string) => {
-                noteBook.create(this.fileTreeContainer);
-            });
-        });
+        } catch(err) {
+            throw err;
+        }
     }
 
     /**
