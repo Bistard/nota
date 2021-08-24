@@ -21,7 +21,7 @@ export interface INoteBook {
 }
 
 /**
- * @description TODO: complete comments
+ * @description A class for each noteBook.
  */
 export class NoteBook {
 

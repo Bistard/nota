@@ -57,7 +57,7 @@ export class ExplorerViewComponent extends Component {
          */
         domNodeByIdAddListener('emptyFolderTag', 'click', () => {
             ipcRendererSend('openDir');
-        })
+        });
 
         /**
          * set openDir listener to get response back from main.js.
@@ -72,18 +72,20 @@ export class ExplorerViewComponent extends Component {
         resize.addEventListener("mousedown", (event) => {
             this.resizeX = event.x;
             document.addEventListener("mousemove", this._resizeView, false);
-        })
+        });
 
         document.addEventListener("mouseup", () => {
             document.removeEventListener("mousemove", this._resizeView, false);
-        })
+        });
 
         EVENT_EMITTER.register('EFileOnClick', (nodeInfo: FileNode) => FileNode.fileOnClick(nodeInfo));
         EVENT_EMITTER.register('EFolderOnClick', (nodeInfo: FileNode) => FileNode.folderOnClick(nodeInfo));
     }
 
     /**
-     * @description TODO: complete comments
+     * @description initialize and display the noteBookManger.
+     * 
+     * function will be called when 'openDir' message is sended from the main thread.
      * 
      * @param path eg. D:\dev\AllNote
      */

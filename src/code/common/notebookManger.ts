@@ -23,7 +23,8 @@ export interface INoteBookManager {
 
 /**
  * @description reads local configuration and build corresponding notebook 
- * structure.
+ * structure. It maintains the data and states changes for every NoteBook 
+ * instance.
  */
 export class NoteBookManager implements INoteBookManager {
 
@@ -57,10 +58,13 @@ export class NoteBookManager implements INoteBookManager {
             }).catch((err) => {
                 // do log here.
                 reject(err);
-            })
-        })
+            });
+        });
     }
 
+    /**
+     * @description TODO: complete comments
+     */
     private async _directoryParser(): Promise<void> {
         return new Promise((resolve, reject) => {
             directoryNoteBookParser(this._noteBookDir, ConfigModule.parserExcludeDir, ConfigModule.parserIncludeDir)
@@ -77,16 +81,22 @@ export class NoteBookManager implements INoteBookManager {
             })
             .catch((err) => {
                 reject(err);
-            })
-        })
+            });
+        });
     }
 
+    /**
+     * @description TODO: complete comments
+     */
     private async _importNoteBookConfig(): Promise<void> {
         
         return this._validateNoteBookConfig();
 
     }
 
+    /**
+     * @description TODO: complete comments
+     */
     private async _createNoteBookConfig(): Promise<void> {
         try {
             const ROOT = this._noteBookDir + CHAR_DIR_SEPARATOR + MDNOTE_LOCAL_DIR_NAME;

@@ -63,7 +63,7 @@ export async function readMarkdownFile(
             nodeInfo.file!.plainText = text;
             resolve();
         });
-    })
+    });
 }
 
 /**
@@ -109,7 +109,7 @@ export async function saveMarkdownFile(
         } else {
             reject('given wrong nodeInfo or it is a folder');
         }
-    })
+    });
 }
 
 /**
@@ -131,10 +131,10 @@ export async function isFileExisted(
                 if (file == fileName) {
                     resolve(true);
                 }
-            })
+            });
             resolve(false);
-        })
-    })
+        });
+    });
 }
 
 /**
@@ -157,8 +157,8 @@ export async function createFile(
                 reject(err);
             }
             resolve();
-        })
-    })
+        });
+    });
 }
 
 /**
@@ -209,8 +209,8 @@ export async function writeToFile(
                 reject(err);
             }
             resolve();
-        })
-    })
+        });
+    });
 }
 
 /**

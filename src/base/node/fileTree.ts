@@ -69,6 +69,9 @@ export class FileNode {
         this.element.appendChild(child.element);
     }
 
+    /**
+     * @description TODO: complete comments
+     */
     private _render(): void {
         this.element.classList.add('node');
         
@@ -100,7 +103,11 @@ export class FileNode {
     }
 
     /**
-     * @description TODO: complete comments
+     * @description folder node on click callback function. It expands or collapses
+     * the clicked folder.
+     * 
+     * static function will be registered in EVENT_EMITTER at explorerViewComponent 
+     * and emits when the folder node is clicked.
      */
      public static folderOnClick(nodeInfo: FileNode): void {
         (nodeInfo.isExpand as any) ^= 1;
@@ -119,13 +126,17 @@ export class FileNode {
             element.each(function() {
                 element.nextAll().each(function() {
                     $(this).hide(0);
-                })
-            })
+                });
+            });
         }
     }
 
     /**
-     * @description TODO: complete comments
+     * @description file node on click callback function. It reads the file and
+     * displays the text to the markdown editor (calls 'EMarkdownDisplayFile').
+     * 
+     * static function will be registered in EVENT_EMITTER at explorerViewComponent 
+     * and emits when the file node is clicked.
      */
     public static fileOnClick(nodeInfo: FileNode): void {
         
@@ -140,7 +151,7 @@ export class FileNode {
         }).catch(err => {
             // do log here
             throw err;
-        })
+        });
     }
 }
 
