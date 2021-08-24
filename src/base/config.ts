@@ -1,6 +1,6 @@
 import { MarkdownRenderMode } from 'mdnote';
 import { pathJoin } from 'src/base/common/string';
-import { readFromFile, writeToFile } from 'src/base/node/file';
+import { readFromFileSync, writeToFile } from 'src/base/node/file';
 
 /**
  * @description config module. Only for storing some default data, config or 
@@ -29,7 +29,7 @@ export class ConfigModule {
      **************************************************************************/
 
     public async readFromJSON(path: string, fileName: string): Promise<void> {
-        const text = await readFromFile(pathJoin(path, fileName));
+        const text = readFromFileSync(pathJoin(path, fileName));
         const jsonObject: Object = JSON.parse(text);
         ConfigModule.Instance = jsonObject as ConfigModule;
     }

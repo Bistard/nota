@@ -184,6 +184,19 @@ export async function createFile(
 }
 
 /**
+ * @description synchronously reads the whole text from a general file.
+ * 
+ * @param path eg. D:\dev\AllNote
+ */
+ export function readFromFileSync(
+    path: string, 
+    opt: readFileOption = defaultReadFileOpt): string
+{
+    return fs.readFileSync(path, opt);
+}
+
+
+/**
  * @description asynchronously writes to a file.
  * 
  * @param path eg. D:\dev\AllNote
