@@ -1,10 +1,10 @@
 import { IActionBarOptions } from "src/code/workbench/browser/actionBar/actionBar";
 
-const OS = require('os')
-const path = require('path')
+import * as OS from 'os';
+import * as Path from'path';
 
-const { BrowserWindow, ipcMain, app, dialog, Menu } = require('electron')
-const ElectronLocalshortcut = require('electron-localshortcut')
+import { BrowserWindow, ipcMain, app, dialog, Menu } from 'electron';
+import * as ElectronLocalshortcut from 'electron-localshortcut';
 
 /**
  * @description main electron startup class, instantiates at end of the file.
@@ -35,7 +35,7 @@ class Main {
                     nodeIntegration: true,
                     contextIsolation: false,
                     devTools: true,
-                    preload: path.join(__dirname, 'preload.js'),
+                    preload: Path.join(__dirname, 'preload.js'),
                 },
                 resizable: true,
                 show: false,

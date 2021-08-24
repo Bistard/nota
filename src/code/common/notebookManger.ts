@@ -68,7 +68,7 @@ export class NoteBookManager implements INoteBookManager {
                 
                 for (let target of targets) {
                     // create NoteBook Object for each subdirectory
-                    const noteBook = new NoteBook(target, this._noteBookDir + '\\' + target);
+                    const noteBook = new NoteBook(target, this._noteBookDir + '/' + target);
                     this.noteBookMap.set(target, noteBook);
                 }
 

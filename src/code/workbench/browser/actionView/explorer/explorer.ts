@@ -84,6 +84,8 @@ export class ExplorerViewComponent extends Component {
 
     /**
      * @description TODO: complete comments
+     * 
+     * @param path eg. D:\dev\AllNote
      */
     private async _openNoteBookManager(path: string): Promise<void> {
         this._noteBookManager.init(path)
