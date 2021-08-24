@@ -9,7 +9,9 @@ import { EVENT_EMITTER } from 'src/base/common/event';
  */
 export class FileNode {
 
-    public readonly element: HTMLElement;
+    public element: HTMLElement;
+    public textElement!: HTMLLIElement;
+
     public readonly file: MarkdownFile | null;
 
     public readonly path: string;
@@ -32,29 +34,30 @@ export class FileNode {
         this.path = path;
         this.name = name;
         this.baseName = baseName;
-
-        if (isFolder) {
-            this.element = document.createElement('ul');
-            this.file = new MarkdownFile(baseName);
-            this.element.addEventListener('click', () => {
-                EVENT_EMITTER.emit('EFolderOnClick', this);
-            });
-        } else {
-            this.element = document.createElement('li');
-            this.file = null;
-            this.element.addEventListener('click', () => {
-                EVENT_EMITTER.emit('EFileOnClick', this);
-            });
-        }
-
+        
         // note that 'nodes' will always be an empty map
         this.nodes = nodes;
-        
+
         this.level = level;
         this.isFolder = isFolder;
         this.isExpand = isExpand;
 
-        this._render();
+        if (isFolder) {
+            this.element = document.createElement('ul');
+            this.file = new MarkdownFile(baseName);
+        } else {
+            this.element = document.createElement('li');
+            this.file = null;
+        }
+
+        this._render(); // this.textElement is created from here
+
+        const elementText = this.element.firstChild as ChildNode;
+        if (isFolder) {
+            elementText.addEventListener('click', () => { EVENT_EMITTER.emit('EFolderOnClick', this); });
+        } else {
+            elementText.addEventListener('click', () => { EVENT_EMITTER.emit('EFileOnClick', this); });
+        }
     }
 
     /**
@@ -68,32 +71,37 @@ export class FileNode {
 
     private _render(): void {
         this.element.classList.add('node');
+        
+        console.log('===========');
+        console.log('isFolder: ', this.isFolder);
+        console.log('level: ', this.level);
 
-        const text = document.createElement('li');
-        text.classList.add('node-text');
-        text.innerHTML = this.name;
-
+        
+        this.textElement = document.createElement('li');
+        this.textElement.classList.add('node-text');
+        this.textElement.innerHTML = this.name;
+        
         if (!this.isFolder) {
             // is file
             this.element.classList.add('node-file');
-            text.classList.add('file-icon');
+            this.textElement.classList.add('file-icon');
         } else if (this.isFolder || !this.level) {
             if (!this.level) {
                 // is root
                 this.element.classList.add('node-root');
-                text.classList.add('node-root-text');
+                this.textElement.classList.add('node-root-text');
             } else {
                 // is folder
                 this.element.classList.add('node-folder');
             }
             
             if (this.isExpand) {
-                text.classList.add('folder-icon-expand');
+                this.textElement.classList.add('folder-icon-expand');
             } else {
-                text.classList.add('folder-icon-collapse');
+                this.textElement.classList.add('folder-icon-collapse');
             }
         }
-        this.element.appendChild(text);
+        this.element.appendChild(this.textElement);
     }
 
     /**
@@ -101,7 +109,7 @@ export class FileNode {
      */
      public static folderOnClick(nodeInfo: FileNode): void {
         (nodeInfo.isExpand as any) ^= 1;
-        const element: JQuery<HTMLElement> = $(nodeInfo.element);
+        const element: JQuery<HTMLElement> = $(nodeInfo.textElement);
         if (nodeInfo.isExpand) {
             element.removeClass('folder-icon-collapse');
             element.addClass('folder-icon-expand');
