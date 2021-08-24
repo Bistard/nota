@@ -4,15 +4,28 @@
     height:100%;
 }
 
+#fileTree-container::-webkit-scrollbar, 
+#fileTree-container::-webkit-scrollbar-thumb {
+    width: 8px;
+    border-radius: 8px;
+    background-clip: border-box;
+}
+
+#fileTree-container::-webkit-scrollbar-thumb {        
+    box-shadow: inset 0 0 0 10px;
+}
+
 #fileTree-container {
     position: absolute;
     width: 100%;
     height: 100%;
     
     display: flex;
+    
     flex-direction: column;
     overflow-x: hidden;
-    overflow-y: auto;
+    /* scrollbar able to overlap contents */
+    overflow-y: overlay;
 
     /* animation scrollBar */
     color: rgba(0, 0, 0, 0);
@@ -21,7 +34,7 @@
 }
 
 #fileTree-container:hover {
-    color: rgba(0, 0, 0, 0.8); /* shoud matches text-shadow */
+    color: rgba(0, 0, 0, 0.2); /* shoud matches text-shadow */
 }
 
 #fileTree-container ul {
@@ -58,12 +71,6 @@
     list-style-type: none;
     user-select: none;
     border-left: 1px solid rgba(0, 0, 0, 0.1);
-}
-
-.node-file-clicked {
-    border-right: 2px solid #d1232a;
-
-    background-color: #d8d8d8;
 }
 
 .node-text {
@@ -112,9 +119,15 @@
 }
 
 .node-file:hover, .node-text:hover {
-    background-color: #e6e6e6;
+    background-color: #eeeeee;
 }
 
 .node-file:active, .node-text:active {
-    background-color: #d8d8d8;
+    background-color: #e6e6e6;
+}
+
+.node-file-clicked {
+    border-right: 5px solid #d1232a;
+
+    background-color: #eeeeee;
 }

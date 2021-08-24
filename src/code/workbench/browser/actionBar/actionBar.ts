@@ -54,7 +54,7 @@ export class ActionBarComponent extends Component {
             const button = new Button(id, this.contentArea!);
             button.setClass(['button', 'action-button']);
             button.setImage(src);
-            button.setImageClass('vertical-center', 'filter-white');
+            button.setImageClass('vertical-center', 'filter-black');
 
             this._buttonGroups.push(button);
         });

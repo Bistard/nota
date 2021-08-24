@@ -149,6 +149,7 @@ export class FileNode {
         NoteBookManager.focusedFileNode = nodeInfo.element;
         nodeInfo.element.classList.add('node-file-clicked');
 
+        // display content
         readMarkdownFile(nodeInfo)
         .then(() => {
             EVENT_EMITTER.emit('EMarkdownDisplayFile', nodeInfo);
