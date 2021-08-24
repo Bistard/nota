@@ -65,14 +65,14 @@ export class ActionBarComponent extends Component {
         ipcRendererOn('context-menu-command', (_options, Settings, tag, index) => {
             const actionButton = document.getElementById(tag);
             console.log(actionButton?.style.display);
-            if (actionButton!.style.display == 'initial') {
-                actionButton!.style.display = 'none';
-                actionBarSettings.options[index] = false;
-                console.log(actionBarSettings);
-            } else {
+            if (actionButton!.style.display == 'none') {
                 actionButton!.style.display = 'initial';
                 actionBarSettings.options[index] = true;
-            }         
+                console.log(actionBarSettings);
+            } else {
+                actionButton!.style.display = 'none';
+                actionBarSettings.options[index] = false;
+            }        
         })
 
         // TODO: remove later
