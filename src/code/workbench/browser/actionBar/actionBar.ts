@@ -5,6 +5,15 @@ import { Component, ComponentType } from 'src/code/workbench/browser/component';
 import { IRegisterService } from 'src/code/workbench/service/registerService';
 import { domNodeByIdAddListener, ipcRendererOn, ipcRendererSendData } from 'src/base/ipc/register';
 
+export interface IActionBarOptions {
+    options: [
+        isExplorerChecked: boolean,
+        isOutlineCheckd:   boolean,
+        isSearchChecked:   boolean,
+        isGitChecked:      boolean,
+    ];
+}
+
 /**
  * @description ActionBarComponent provides access to each action view and handles 
  * the state transition between each action button and display coressponding 
@@ -53,33 +62,41 @@ export class ActionBarComponent extends Component {
 
     protected override _registerListeners(): void {
 
-        var actionBarSettings= { options: [true, true, true, true] } 
+        const actionBarOpts: IActionBarOptions = { 
+            options: [true, true, true, true],
+        };
 
-        domNodeByIdAddListener('action-button-container', 'contextmenu', (event) => {
+        /**
+         * @readonly register context menu listeners (right click menu)
+         */
+        domNodeByIdAddListener('action-button-container', 'contextmenu', (event: Event) => {
             event.preventDefault();
-            ipcRendererSendData('showContextMenuActionBar', actionBarSettings);     
-     
-        })
+            ipcRendererSendData('showContextMenuActionBar', actionBarOpts);     
+        });
 
-        // TODO: add an array that stores user preference for action buttons 
-        ipcRendererOn('context-menu-command', (_options, Settings, tag, index) => {
-            const actionButton = document.getElementById(tag);
+        // TODO: add an array that stores user preference for action buttons (could be stored in config.ts)
+        /**
+         * @readonly once user clicked the menu in the main thread and sending 
+         * the message back, we listens to that action.
+         */
+        ipcRendererOn('context-menu-command', (_ev: Electron.IpcRendererEvent, _opt: IActionBarOptions, elementID: string, index: number) => {
+            const actionButton = document.getElementById(elementID);
             console.log(actionButton?.style.display);
             if (actionButton!.style.display == 'none') {
                 actionButton!.style.display = 'initial';
-                actionBarSettings.options[index] = true;
-                console.log(actionBarSettings);
+                actionBarOpts.options[index] = true;
+                console.log(actionBarOpts);
             } else {
                 actionButton!.style.display = 'none';
-                actionBarSettings.options[index] = false;
+                actionBarOpts.options[index] = false;
             }        
-        })
+        });
 
         // TODO: remove later
         // give every actionButton a unique number
         $('.action-button').each(function(index, element) {
             element.setAttribute('btnNum', index.toString());
-        })
+        });
         
         // default with openning explorer view
         this.clickActionBtn(document.getElementById('explorer-button') as HTMLElement);
@@ -88,7 +105,7 @@ export class ActionBarComponent extends Component {
         $('.action-button').on('click', { ActionBarComponent: this }, function (event) {
             let that = event.data.ActionBarComponent;
             that.clickActionBtn(this);
-        })
+        });
     }
 
     /**

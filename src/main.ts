@@ -1,3 +1,5 @@
+import { IActionBarOptions } from "src/code/workbench/browser/actionBar/actionBar";
+
 const OS = require('os')
 const path = require('path')
 
@@ -54,24 +56,24 @@ class Main {
             this.winMain.loadFile('./index.html');
             this.winMain.webContents.on('did-finish-load', () => {
                 this.winMain!.show();
-            })
+            });
 
             // titleBar listeners
             this.winMain.on('maximize', () => {
                 this.winMain!.webContents.send('isMaximized');
-            })
+            });
 
             this.winMain.on('unmaximize', () => {
                 this.winMain!.webContents.send('isRestored');
-            })
+            });
 
             this.winMain.on('closed', () => {
                 this.winMain = null;
-            })
+            });
 
             ipcMain.on('minApp', () => {
                 this.winMain!.minimize();
-            })
+            });
 
             ipcMain.on('maxResApp', () => {
                 if (this.winMain!.isMaximized()) {
@@ -79,62 +81,48 @@ class Main {
                 } else {
                     this.winMain!.maximize();
                 }
-            })
+            });
 
             ipcMain.on('closeApp', () => {
                 this.winMain!.close();
-            })
+            });
             
             ipcMain.on('showContextMenuEditor', () => {
                 const template: Electron.MenuItemConstructorOptions[] = [
-                 {role: 'editMenu'},
-                 {label: 'Inspect', role: 'toggleDevTools'}
-                 ]  
-             
-                const createContextMenu = () => {
-                    return Menu.buildFromTemplate(
-                         template
-                    )
-                }
-               createContextMenu().popup();
-             })
+                    {role: 'editMenu'},
+                    {label: 'Inspect', role: 'toggleDevTools'}
+                ];
+                Menu.buildFromTemplate(template).popup();
+             });
  
-           ipcMain.on('showContextMenuExplorer', () => {
+            ipcMain.on('showContextMenuExplorer', () => {
 
-             const template: Electron.MenuItemConstructorOptions[] = [
-              {role: 'fileMenu' },
-              {label: 'Menu Item 2', type: 'checkbox', checked: true },
-              {label: 'Menu Item 3', type: 'checkbox', checked: false }
-            ]  
-          
-            const createContextMenu = () => {
-                 return Menu.buildFromTemplate(
-                      template
-                 )
-             }
-            createContextMenu().popup();
-         })
+                const template: Electron.MenuItemConstructorOptions[] = [
+                    {role: 'fileMenu' },
+                    {label: 'Menu Item 2', type: 'checkbox', checked: true },
+                    {label: 'Menu Item 3', type: 'checkbox', checked: false }
+                ];
+                Menu.buildFromTemplate(template).popup();
+            });
 
-         ipcMain.on('showContextMenuActionBar', (_event, data) => {
-            
-            const template: Electron.MenuItemConstructorOptions[] = [
-                 {label: 'File Explorer', type: 'checkbox', checked: data.options[0],    
-                 click: () => { this.winMain!.webContents.send('context-menu-command', data, "explorer-button", 0); }},
-                 {label: 'Outline', type: 'checkbox', checked: data.options[1], 
-                 click: () => { this.winMain!.webContents.send('context-menu-command', data, "outline-button", 1); }},
-                 {label: 'Search', type: 'checkbox', checked: data.options[2],
-                 click: () => { this.winMain!.webContents.send('context-menu-command', data, "search-button", 2); }},
-                 {label: 'Git', type: 'checkbox', checked: data.options[3], 
-                 click: () => { this.winMain!.webContents.send('context-menu-command', data, "git-button", 3); }},
-             ]  
+            /**
+             * @readonly responses to the listener from actionBarComponent
+             */
+            ipcMain.on('showContextMenuActionBar', (_event, actionBarOpts: IActionBarOptions) => {
+                
+                const template: Electron.MenuItemConstructorOptions[] = [
+                    {label: 'File Explorer', type: 'checkbox', checked: actionBarOpts.options[0],    
+                        click: () => { this.winMain!.webContents.send('context-menu-command', actionBarOpts, "explorer-button", 0); }},
+                    {label: 'Outline', type: 'checkbox', checked: actionBarOpts.options[1], 
+                        click: () => { this.winMain!.webContents.send('context-menu-command', actionBarOpts, "outline-button", 1); }},
+                    {label: 'Search', type: 'checkbox', checked: actionBarOpts.options[2],
+                        click: () => { this.winMain!.webContents.send('context-menu-command', actionBarOpts, "search-button", 2); }},
+                    {label: 'Git', type: 'checkbox', checked: actionBarOpts.options[3], 
+                        click: () => { this.winMain!.webContents.send('context-menu-command', actionBarOpts, "git-button", 3); }},
+                ];
 
-            const createContextMenu = () => {
-                    return Menu.buildFromTemplate(
-                         template
-                    )
-                }
-            createContextMenu().popup();
-        })
+                Menu.buildFromTemplate(template).popup();
+            });
 
             // response to FolderModule, default path is 'desktop' and only can
             // open directory.
@@ -160,14 +148,14 @@ class Main {
                         this.winMain!.webContents.send('openDir', rootdir);
                     }
                 })
-            })
+            });
 
             // only for testing purpose, can be removed in release version
             ipcMain.on('test', (_event, data) => {
                 console.log(data);
-            })
+            });
 
-        })
+        });
     }
 
     /**
@@ -189,7 +177,7 @@ class Main {
             if (BrowserWindow.getAllWindows().length === 0) {
                 this.createWindow();
             }
-        })
+        });
 
         // Quit when all windows are closed, except on macOS. There, it's common
         // for applications and their menu bar to stay active until the user 
@@ -198,7 +186,7 @@ class Main {
             if (process.platform !== 'darwin') {
                 app.quit();
             }
-        })
+        });
 
         // Setting local shortcuts. Many thanks to ElectronLocalshortcut library
         app.whenReady().then(() => {
@@ -240,7 +228,7 @@ class Main {
             // close the current focused tab
             ElectronLocalshortcut.register(this.winMain, 'Ctrl+W', () => {
                 this.winMain!.webContents.send('Ctrl+W')
-            })
+            });
 
             // save the current changes to the current focused tab
             ElectronLocalshortcut.register(this.winMain, 'Ctrl+S', () => {
