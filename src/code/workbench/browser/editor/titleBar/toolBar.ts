@@ -16,8 +16,8 @@ export class ToolBarComponent extends Component {
     ) {
         super('tool-bar', registerService);
         
-        this.isToolBarExpand = ConfigModule.isToolBarExpand;
-        this.isMarkdownToolExpand = ConfigModule.isMarkdownToolExpand;
+        this.isToolBarExpand = ConfigModule.Instance.isToolBarExpand;
+        this.isMarkdownToolExpand = ConfigModule.Instance.isMarkdownToolExpand;
         this.isTabBarExpand = false;
 
     }
@@ -70,7 +70,7 @@ export class ToolBarComponent extends Component {
      * @description function calls when the ToolBarModule is initialized.
      */
      initToolBar(): void {
-        if (ConfigModule.defaultMarkdownMode == 'wysiwyg') {
+        if (ConfigModule.Instance.defaultMarkdownMode == 'wysiwyg') {
             $('#mode-switch').addClass('tool-button-focus');
         }
 
