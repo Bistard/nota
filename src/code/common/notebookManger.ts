@@ -30,6 +30,7 @@ export interface INoteBookManager {
 export class NoteBookManager implements INoteBookManager {
 
     public readonly noteBookMap: Map<string, NoteBook>;
+    // not used
     public readonly noteBookConfig!: Object;
 
     private _rootPath!: string;

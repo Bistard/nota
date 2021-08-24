@@ -82,13 +82,13 @@ export class ConfigModule {
      * @readonly titleBarView config
      */
 
-    
     public isToolBarExpand: boolean = true;
     public isMarkdownToolExpand: boolean = false;
 
     /**
      * @readonly markdownView config
      */
+    
     public defaultMarkdownMode: MarkdownRenderMode = 'wysiwyg';
     public markdownSpellCheckOn: boolean = false;
 

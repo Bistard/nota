@@ -1,4 +1,4 @@
-import { MarkdownFile, readMarkdownFile, readMarkdownFileOption } from 'src/base/node/file';
+import { MarkdownFile, readMarkdownFile } from 'src/base/node/file';
 import * as fs from 'fs';
 import * as Path from 'path';
 import { EVENT_EMITTER } from 'src/base/common/event';
@@ -23,13 +23,14 @@ export class FileNode {
     public readonly isFolder: boolean;
     public readonly isExpand: boolean;
 
-    constructor(path: string,
-                name: string,
-                baseName: string,
-                nodes: Map<string, FileNode> | null, 
-                level: number, 
-                isFolder: boolean,
-                isExpand: boolean
+    constructor(
+        path: string,
+        name: string,
+        baseName: string,
+        nodes: Map<string, FileNode> | null, 
+        level: number, 
+        isFolder: boolean,
+        isExpand: boolean
     ) {
         this.path = path;
         this.name = name;
