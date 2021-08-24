@@ -44,10 +44,10 @@ export class FileNode {
 
         if (isFolder) {
             this.element = document.createElement('ul');
-            this.file = new MarkdownFile(baseName);
+            this.file = null;
         } else {
             this.element = document.createElement('li');
-            this.file = null;
+            this.file = new MarkdownFile(baseName);
         }
 
         this._render(); // this.textElement is created from here
@@ -71,11 +71,6 @@ export class FileNode {
 
     private _render(): void {
         this.element.classList.add('node');
-        
-        console.log('===========');
-        console.log('isFolder: ', this.isFolder);
-        console.log('level: ', this.level);
-
         
         this.textElement = document.createElement('li');
         this.textElement.classList.add('node-text');
@@ -134,12 +129,13 @@ export class FileNode {
      */
     public static fileOnClick(nodeInfo: FileNode): void {
         
-        let readOption: readMarkdownFileOption = {
+        let readMarkdownOpt: readMarkdownFileOption = {
             encoding: 'utf-8',
             flag: 'r'
         };
 
-        readMarkdownFile(nodeInfo, readOption).then(() => {
+        readMarkdownFile(nodeInfo, readMarkdownOpt)
+        .then(() => {
             EVENT_EMITTER.emit('EMarkdownDisplayFile', nodeInfo);
         }).catch(err => {
             // do log here
