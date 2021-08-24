@@ -93,7 +93,7 @@ export class ActionViewComponent extends Component {
         const topIcon = document.createElement('img');
         topIcon.id = 'action-view-top-icon';
         topIcon.src = getSvgPathByName('three-dots');
-        topIcon.classList.add('vertical-center', 'filter-white');
+        topIcon.classList.add('vertical-center', 'filter-black');
 
         actionViewTop.appendChild(topText);
         actionViewTop.appendChild(topIcon);
