@@ -140,12 +140,7 @@ export class FileNode {
      */
     public static fileOnClick(nodeInfo: FileNode): void {
         
-        let readMarkdownOpt: readMarkdownFileOption = {
-            encoding: 'utf-8',
-            flag: 'r'
-        };
-
-        readMarkdownFile(nodeInfo, readMarkdownOpt)
+        readMarkdownFile(nodeInfo)
         .then(() => {
             EVENT_EMITTER.emit('EMarkdownDisplayFile', nodeInfo);
         }).catch(err => {
