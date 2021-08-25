@@ -145,8 +145,9 @@ export class GlobalConfigModule implements IConfigModule {
      public previousNoteBookManagerDir: string = '';
 
     /**
-     * If false, each NoteBookManager will create a local file in 
-     * '.mdnote/config.json' which will overwrite coressponding global config.
+     * If true, NoteBookManager will take the default config in '<appRootPath>/config.json'.
+     * If false, NoteBookManager will create a local conig in '.mdnote/config.json'.
+     * 
      */
     public defaultConfigOn: boolean = false;
 

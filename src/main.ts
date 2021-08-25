@@ -1,6 +1,5 @@
 import { IActionBarOptions } from "src/code/workbench/browser/actionBar/actionBar";
 
-import * as OS from 'os';
 import * as Path from'path';
 
 import { BrowserWindow, ipcMain, app, dialog, Menu } from 'electron';

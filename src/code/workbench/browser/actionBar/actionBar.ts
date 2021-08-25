@@ -26,14 +26,14 @@ export class ActionBarComponent extends Component {
     // if value is -1, it means actionView is not shown.
     private currFocusActionBtnIndex: number;
 
-    constructor(registerService: IRegisterService) {
-        super(ComponentType.ActionBar, registerService);
+    constructor(parent: HTMLElement, 
+                registerService: IRegisterService) {
+        super(ComponentType.ActionBar, parent, registerService);
         
         this.currFocusActionBtnIndex = -1;
     }
 
     protected override _createContainer(): void {
-        this.parent.appendChild(this.container);
         // customize...
         this._createContentArea();
     }
@@ -79,7 +79,12 @@ export class ActionBarComponent extends Component {
          * @readonly once user clicked the menu in the main thread and sending 
          * the message back, we listens to that action.
          */
-        ipcRendererOn('context-menu-command', (_ev: Electron.IpcRendererEvent, _opt: IActionBarOptions, elementID: string, index: number) => {
+        ipcRendererOn('context-menu-command', (
+            _ev: Electron.IpcRendererEvent, 
+            _opt: IActionBarOptions, 
+            elementID: string, 
+            index: number
+        ) => {
             const actionButton = document.getElementById(elementID);
             console.log(actionButton?.style.display);
             if (actionButton!.style.display == 'none') {

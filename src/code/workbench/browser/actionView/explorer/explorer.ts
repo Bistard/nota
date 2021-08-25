@@ -18,10 +18,11 @@ export class ExplorerViewComponent extends Component {
     public fileTreeContainer: HTMLElement = document.createElement('div');
     public emptyFolderTag: HTMLElement = document.createElement('div');
 
-    constructor(registerService: IRegisterService,
+    constructor(parent: HTMLElement,
+                registerService: IRegisterService,
                 _noteBookManger: NoteBookManager
     ) {
-        super(ActionViewComponentType.ExplorerView, registerService);
+        super(ActionViewComponentType.ExplorerView, parent, registerService);
         
         this._noteBookManager = _noteBookManger;
 
@@ -30,7 +31,6 @@ export class ExplorerViewComponent extends Component {
     }
 
     protected override _createContainer(): void {
-        this.parent.appendChild(this.container);
         // customize...
         this._createContentArea();
     }

@@ -25,7 +25,7 @@ import { IRegisterService } from 'src/code/workbench/service/registerService';
 import { EVENT_EMITTER } from 'src/base/common/event';
 import { MarkdownRenderMode } from 'mdnote';
 import { getSvgPathByName } from 'src/base/common/string';
-import { ipcRendererOn, domNodeByIdAddListener, ipcRendererSend } from 'src/base/electron/register';
+import { domNodeByIdAddListener, ipcRendererSend } from 'src/base/electron/register';
 
 /**
  * @description MarkdownComponent initializes markdown renderer and windows and
@@ -39,8 +39,9 @@ export class MarkdownComponent extends Component {
 
     private mode: MarkdownRenderMode;
 
-    constructor(registerService: IRegisterService) {
-        super('markdown', registerService);
+    constructor(parent: HTMLElement,
+                registerService: IRegisterService) {
+        super('markdown', parent, registerService);
 
         this.mode = ConfigModule.Instance.defaultMarkdownMode;
         

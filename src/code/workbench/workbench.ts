@@ -40,9 +40,9 @@ class Workbench implements IRegisterService {
      * rendering.
      */
     private initComponents(): void {
-        this.actionBarComponent = new ActionBarComponent(this);
-        this.actionViewComponent = new ActionViewComponent(this, this.noteBookManager);
-        this.editorComponent = new EditorComponent(this);
+        this.actionBarComponent = new ActionBarComponent(this.mainAppContainer, this);
+        this.actionViewComponent = new ActionViewComponent(this.mainAppContainer, this, this.noteBookManager);
+        this.editorComponent = new EditorComponent(this.mainAppContainer, this);
     }
 
     /**
@@ -56,11 +56,7 @@ class Workbench implements IRegisterService {
         ]
         .forEach(({ id, classes }) => {
             const component = this.getComponentById(id);
-            
-            // 
-            component.create(this.mainAppContainer);
-            
-            // 
+            component.create();
             component.registerListeners();
         });
     }

@@ -3,13 +3,21 @@ import { MarkdownComponent } from "src/code/workbench/browser/editor/markdown/ma
 import { TitleBarComponent } from "src/code/workbench/browser/editor/titleBar/titleBar";
 import { IRegisterService } from "src/code/workbench/service/registerService";
 
+export enum EditorComponentType {
+    tabBar = 'tab-bar',
+    titleBar = 'title-bar',
+    toolBar = 'tool-bar',
+    windowBar = 'window-bar',
+}
+
 export class EditorComponent extends Component {
 
     private titleBarComponent!: TitleBarComponent;
     private markdownComponent!: MarkdownComponent;
 
-    constructor(registerService: IRegisterService) {
-        super(ComponentType.editor, registerService);
+    constructor(parent: HTMLElement,
+                registerService: IRegisterService) {
+        super(ComponentType.editor, parent, registerService);
 
         this.registerService = registerService;
     }
@@ -33,16 +41,16 @@ export class EditorComponent extends Component {
     }
 
     private _createTitleBar(): void {
-        this.titleBarComponent = new TitleBarComponent(this);
-        this.titleBarComponent.create(this.container);
+        this.titleBarComponent = new TitleBarComponent(this.container, this);
+        this.titleBarComponent.create();
     }
 
     private _createMarkdown(): void {
         const markdownView = document.createElement('div');
         markdownView.id = 'markdown-view';
 
-        this.markdownComponent = new MarkdownComponent(this);
-        this.markdownComponent.create(markdownView);
+        this.markdownComponent = new MarkdownComponent(markdownView, this);
+        this.markdownComponent.create();
 
         this.container.appendChild(markdownView);
     }

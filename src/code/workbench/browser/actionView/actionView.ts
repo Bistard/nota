@@ -32,17 +32,17 @@ export class ActionViewComponent extends Component {
     private _noteBookManager: NoteBookManager;
     // Others...
 
-    constructor(registerService: IRegisterService,
+    constructor(parent: HTMLElement,
+                registerService: IRegisterService,
                 _noteBookManager: NoteBookManager
     ) {
-        super(ComponentType.ActionView, registerService);
+        super(ComponentType.ActionView, parent, registerService);
         
         this._noteBookManager = _noteBookManager;
         this.whichActionView = 'none';
     }
 
     protected override _createContainer(): void {
-        this.parent.appendChild(this.container);
         // customize...
         this._createContentArea();
     }
@@ -105,8 +105,8 @@ export class ActionViewComponent extends Component {
         const actionViewContent = document.createElement('div');
         actionViewContent.id = 'action-view-content';
         
-        this.explorerViewComponent = new ExplorerViewComponent(this, this._noteBookManager);
-        this.explorerViewComponent.create(actionViewContent);
+        this.explorerViewComponent = new ExplorerViewComponent(actionViewContent, this, this._noteBookManager);
+        this.explorerViewComponent.create();
 
         // outlineViewComponent...
         
