@@ -34,6 +34,7 @@ class Main {
                 webPreferences: {
                     nodeIntegration: true,
                     contextIsolation: false,
+                    enableRemoteModule: true,
                     devTools: true,
                     preload: Path.join(__dirname, 'preload.js'),
                 },
@@ -55,6 +56,11 @@ class Main {
             // loads index.html first and displays when ready
             this.winMain.loadFile('./index.html');
             this.winMain.webContents.on('did-finish-load', () => {
+                
+                // send app path to the renderer process
+                this.winMain!.webContents.send('get-app-path', app.getAppPath());
+                
+                // display window
                 this.winMain!.show();
             });
 
@@ -129,7 +135,7 @@ class Main {
 
                 Menu.buildFromTemplate(template).popup();
             });
-
+            
             // response to FolderModule, default path is 'desktop' and only can
             // open directory.
             ipcMain.on('openDir', () => {
