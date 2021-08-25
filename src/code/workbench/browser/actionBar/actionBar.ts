@@ -69,7 +69,7 @@ export class ActionBarComponent extends Component {
         /**
          * @readonly register context menu listeners (right click menu)
          */
-        domNodeByIdAddListener('action-button-container', 'contextmenu', (event: Event) => {
+        domNodeByIdAddListener('action-bar', 'contextmenu', (event: Event) => {
             event.preventDefault();
             ipcRendererSendData('showContextMenuActionBar', actionBarOpts);     
         });
