@@ -18,8 +18,6 @@ export class EditorComponent extends Component {
     constructor(parent: HTMLElement,
                 registerService: IRegisterService) {
         super(ComponentType.editor, parent, registerService);
-
-        this.registerService = registerService;
     }
 
     protected override _createContainer(): void {
