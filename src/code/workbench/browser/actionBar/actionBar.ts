@@ -3,7 +3,7 @@ import { EVENT_EMITTER } from 'src/base/common/event';
 import { ActionViewType } from 'src/code/workbench/browser/actionView/actionView';
 import { Component, ComponentType } from 'src/code/workbench/browser/component';
 import { IRegisterService } from 'src/code/workbench/service/registerService';
-import { domNodeByIdAddListener, ipcRendererOn, ipcRendererSendData } from 'src/base/ipc/register';
+import { domNodeByIdAddListener, ipcRendererOn, ipcRendererSendData } from 'src/base/electron/register';
 
 export interface IActionBarOptions {
     options: [

@@ -25,7 +25,7 @@ import { IRegisterService } from 'src/code/workbench/service/registerService';
 import { EVENT_EMITTER } from 'src/base/common/event';
 import { MarkdownRenderMode } from 'mdnote';
 import { getSvgPathByName } from 'src/base/common/string';
-import { ipcRendererOn, domNodeByIdAddListener, ipcRendererSend } from 'src/base/ipc/register';
+import { ipcRendererOn, domNodeByIdAddListener, ipcRendererSend } from 'src/base/electron/register';
 
 /**
  * @description MarkdownComponent initializes markdown renderer and windows and

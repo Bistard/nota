@@ -2,7 +2,7 @@ import { Button } from "src/base/browser/basic/button";
 import { EVENT_EMITTER } from "src/base/common/event";
 import { getSvgPathByName } from "src/base/common/string";
 import { ConfigModule } from "src/base/config";
-import { domNodeByIdAddListener } from "src/base/ipc/register";
+import { domNodeByIdAddListener } from "src/base/electron/register";
 import { Component } from "src/code/workbench/browser/component";
 import { IRegisterService } from "src/code/workbench/service/registerService";
 

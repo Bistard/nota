@@ -1,5 +1,5 @@
 import { FileNode } from 'src/base/node/fileTree';
-import { domNodeByIdAddListener, ipcRendererOn, ipcRendererSend } from 'src/base/ipc/register';
+import { domNodeByIdAddListener, ipcRendererOn, ipcRendererSend } from 'src/base/electron/register';
 import { Component } from 'src/code/workbench/browser/component';
 import { ActionViewComponentType } from 'src/code/workbench/browser/actionView/actionView';
 import { IRegisterService } from 'src/code/workbench/service/registerService';
@@ -63,7 +63,7 @@ export class ExplorerViewComponent extends Component {
          * eg. D:\dev\AllNote
          */
         ipcRendererOn('openDir', (_event, path, _stat) => {
-            this._initNoteBookManager(path);
+            this._openDirectory(path);
         });
         
         // folder view resizeBar listeners
@@ -88,15 +88,15 @@ export class ExplorerViewComponent extends Component {
     }
 
     /**
-     * @description initialize and display the noteBookManger.
+     * @description display the noteBookManger.
      * 
      * function will be called when 'openDir' message is sended from the main thread.
      * 
      * @param path eg. D:\dev\AllNote
      */
-    private async _initNoteBookManager(path: string): Promise<void> {
+    private async _openDirectory(path: string): Promise<void> {
         try {
-            await this._noteBookManager.init(path);
+            await this._noteBookManager.open(path);
             this.container.removeChild(this.emptyFolderTag);
         } catch(err) {
             throw err;

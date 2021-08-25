@@ -3,7 +3,7 @@ import * as fs from 'fs';
 import { WriteFileOptions } from 'original-fs';
 import { ConfigModule } from 'src/base/config';
 import { FileNode } from 'src/base/node/fileTree';
-import { ipcRendererOn, ipcRendererSendTest } from 'src/base/ipc/register';
+import { ipcRendererOn, ipcRendererSendTest } from 'src/base/electron/register';
 import { Component } from 'src/code/workbench/browser/component';
 import { IRegisterService } from 'src/code/workbench/service/registerService';
 

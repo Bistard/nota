@@ -4,6 +4,7 @@ import { ActionViewComponent } from "src/code/workbench/browser/actionView/actio
 import { ActionBarComponent } from "src/code/workbench/browser/actionBar/actionBar";
 import { EditorComponent } from "src/code/workbench/browser/editor/editor";
 import { INoteBookManager, NoteBookManager } from "src/code/common/notebookManger";
+import { APP_ROOT_PATH } from "src/base/electron/app";
 
 /**
  * @description this module is loaded by the web directly. Most of the modules 
@@ -23,7 +24,7 @@ class Workbench implements IRegisterService {
     editorComponent!: EditorComponent;
     
     constructor() {
-        this._noteBookManager = new NoteBookManager();
+        this._noteBookManager = new NoteBookManager(APP_ROOT_PATH);
 
         this.initComponents();
         this.renderComponents();

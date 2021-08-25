@@ -1,6 +1,6 @@
 import { Button } from "src/base/browser/basic/button";
 import { getSvgPathByName } from "src/base/common/string";
-import { domNodeByIdAddListener, ipcRendererOn, ipcRendererSend } from "src/base/ipc/register";
+import { domNodeByIdAddListener, ipcRendererOn, ipcRendererSend } from "src/base/electron/register";
 import { Component } from "src/code/workbench/browser/component";
 import { IRegisterService } from "src/code/workbench/service/registerService";
 
