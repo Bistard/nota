@@ -55,11 +55,11 @@ export class ToolBarComponent extends Component {
         });
 
         domNodeByIdAddListener('md-tool', 'click', () => {
-            this.mdToolStateChange(ToolBarComponent.isMarkdownToolExpand);
+            this.mdToolStateChange(!ToolBarComponent.isMarkdownToolExpand);
         });
         
         domNodeByIdAddListener('expand-collapse', 'click', () => {
-            this.toolBarStateChange(ToolBarComponent.isToolBarExpand);
+            this.toolBarStateChange(!ToolBarComponent.isToolBarExpand);
         });
     }
 
@@ -83,30 +83,30 @@ export class ToolBarComponent extends Component {
     /**
      * @description change the state of view of markdown tool.
      */
-    mdToolStateChange(isExpand: boolean): void {
-        if (isExpand) {
+    mdToolStateChange(shouldExpand: boolean): void {
+        if (shouldExpand) {
             $('.toastui-editor-toolbar').show(100);
             $('#md-tool').addClass('tool-button-focus');
-            ToolBarComponent.isMarkdownToolExpand = false;
+            ToolBarComponent.isMarkdownToolExpand = true;
         } else {
             $('.toastui-editor-toolbar').hide(100);
             $('#md-tool').removeClass('tool-button-focus');
-            ToolBarComponent.isMarkdownToolExpand = true;
+            ToolBarComponent.isMarkdownToolExpand = false;
         }
     }
 
     /**
      * @description change the state of view of toolBar.
      */
-    toolBarStateChange(isExpand: boolean): void {
-        if (isExpand) {
+    toolBarStateChange(shouldExpand: boolean): void {
+        if (shouldExpand) {
             $('#tool-bar-container').show(100);
             $('#expand-collapse > img').attr('src', getSvgPathByName('caret-left'));
-            ToolBarComponent.isToolBarExpand = false;
+            ToolBarComponent.isToolBarExpand = true;
         } else {
             $('#tool-bar-container').hide(100);
             $('#expand-collapse > img').attr('src', getSvgPathByName('caret-right'));
-            ToolBarComponent.isToolBarExpand = true;
+            ToolBarComponent.isToolBarExpand = false;
         }
     }
     
