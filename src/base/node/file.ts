@@ -235,17 +235,19 @@ export function mapToJsonReplacer(key: any, value: any) {
  * 
  * @param path eg. D:\dev\AllNote
  * @param dirName eg. .mdnote
+ * @returns {string} the path to the new directory
  */
  export async function createDir(
      path: string, 
-     dirName: string): Promise<void> 
+     dirName: string): Promise<string> 
 {
     return new Promise((resolve, reject) => {
-        fs.mkdir(pathJoin(path, dirName), {recursive: true}, (err) => {
+        const newDir: string = pathJoin(path, dirName);
+        fs.mkdir(newDir, {recursive: true}, (err) => {
             if (err) {
                 reject(err);
             }
-            resolve();
+            resolve(newDir);
         });
     });
 }
@@ -264,22 +266,18 @@ export function mapToJsonReplacer(key: any, value: any) {
 }
 
 /**
- * @description asynchronously read each noteBook information and returns 
- * them as an array of string.
+ * @description asynchronously read each file/dir in the given path, filters out
+ * a result with given exclude/include rules.
  * 
- * NoteBookParser currently ONLY detect folder, ignores ALL the files. That is,
- * if you open a rootdir with a bunch of .md files, they won't be treated as
- * noteBook.
- * 
- * @param path the rootdir of all noteBooks, eg. D:\dev\AllNote
+ * @param path rootdir, eg. D:\dev\AllNote
  * @param excludes array of folders/files to be excluded
  * @param includes array of folders/files to be included
  * @returns 
  */
-export async function directoryNoteBookParser(
+export async function dirFilter(
     path: string, 
-    parserExcludeDir: string[] = [], 
-    parserIncludeDir: string[] = []): Promise<string[]> 
+    noteBookManagerExclude: string[] = [], 
+    noteBookManagerInclude: string[] = []): Promise<string[]> 
 {
     let acceptableTarget: string[] = [];
     return new Promise((resolve, reject) => {
@@ -293,8 +291,8 @@ export async function directoryNoteBookParser(
                 if (dirEntry.isDirectory()) {
                     
                     // ignores the excluded directory
-                    if (!nameIncludeCheckWithRule(dirEntry.name, parserIncludeDir) && 
-                        nameIncludeCheckWithRule(dirEntry.name, parserExcludeDir))
+                    if (!nameIncludeCheckWithRule(dirEntry.name, noteBookManagerInclude) && 
+                        nameIncludeCheckWithRule(dirEntry.name, noteBookManagerExclude))
                     {
                         continue;
                     }

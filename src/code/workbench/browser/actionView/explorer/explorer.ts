@@ -63,7 +63,7 @@ export class ExplorerViewComponent extends Component {
          * eg. D:\dev\AllNote
          */
         ipcRendererOn('openDir', (_event, path, _stat) => {
-            this._openDirectory(path);
+            this.openNoteBookManager(path);
         });
         
         // folder view resizeBar listeners
@@ -80,6 +80,8 @@ export class ExplorerViewComponent extends Component {
         EVENT_EMITTER.register('EFileOnClick', (nodeInfo: FileNode) => FileNode.fileOnClick(nodeInfo));
         EVENT_EMITTER.register('EFolderOnClick', (nodeInfo: FileNode) => FileNode.folderOnClick(nodeInfo));
 
+        EVENT_EMITTER.register('EOpenNoteBookManager', (path: string) => this.openNoteBookManager(path));
+
 
         domNodeByIdAddListener('explorer-container', 'contextmenu', (event) => {
             event.preventDefault();
@@ -94,7 +96,7 @@ export class ExplorerViewComponent extends Component {
      * 
      * @param path eg. D:\dev\AllNote
      */
-    private async _openDirectory(path: string): Promise<void> {
+    public async openNoteBookManager(path: string): Promise<void> {
         try {
             await this._noteBookManager.open(path);
             this.container.removeChild(this.emptyFolderTag);

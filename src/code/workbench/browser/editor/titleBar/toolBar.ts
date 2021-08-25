@@ -8,18 +8,13 @@ import { IRegisterService } from "src/code/workbench/service/registerService";
 
 export class ToolBarComponent extends Component {
 
-    isToolBarExpand: boolean;
-    isMarkdownToolExpand: boolean;
-    isTabBarExpand: boolean;
+    public static isToolBarExpand: boolean = true;
+    public static isMarkdownToolExpand: boolean = false;
+    public static isTabBarExpand: boolean = false;
 
     constructor(registerService: IRegisterService
     ) {
         super('tool-bar', registerService);
-        
-        this.isToolBarExpand = ConfigModule.Instance.isToolBarExpand;
-        this.isMarkdownToolExpand = ConfigModule.Instance.isMarkdownToolExpand;
-        this.isTabBarExpand = false;
-
     }
 
     protected override _createContainer(): void {
@@ -58,11 +53,11 @@ export class ToolBarComponent extends Component {
         });
 
         domNodeByIdAddListener('md-tool', 'click', () => {
-            this.mdToolStateChange(!this.isMarkdownToolExpand);
+            this.mdToolStateChange(ToolBarComponent.isMarkdownToolExpand);
         });
         
         domNodeByIdAddListener('expand-collapse', 'click', () => {
-            this.toolBarStateChange(!this.isToolBarExpand);
+            this.toolBarStateChange(ToolBarComponent.isToolBarExpand);
         });
     }
 
@@ -74,11 +69,11 @@ export class ToolBarComponent extends Component {
             $('#mode-switch').addClass('tool-button-focus');
         }
 
-        if (this.isToolBarExpand == false) {
+        if (ToolBarComponent.isToolBarExpand == false) {
             this.toolBarStateChange(false);
         }
 
-        if (this.isMarkdownToolExpand == false) {
+        if (ToolBarComponent.isMarkdownToolExpand == false) {
             $('.toastui-editor-toolbar').first().hide(0);
         }
     }
@@ -90,11 +85,11 @@ export class ToolBarComponent extends Component {
         if (shouldExpand) {
             $('.toastui-editor-toolbar').show(100);
             $('#md-tool').addClass('tool-button-focus');
-            this.isMarkdownToolExpand = true;
+            ToolBarComponent.isMarkdownToolExpand = true;
         } else {
             $('.toastui-editor-toolbar').hide(100);
             $('#md-tool').removeClass('tool-button-focus');
-            this.isMarkdownToolExpand = false;
+            ToolBarComponent.isMarkdownToolExpand = false;
         }
     }
 
@@ -105,11 +100,11 @@ export class ToolBarComponent extends Component {
         if (shouldExpand) {
             $('#tool-bar-container').show(100);
             $('#expand-collapse > img').attr('src', getSvgPathByName('caret-left'));
-            this.isToolBarExpand = true;
+            ToolBarComponent.isToolBarExpand = true;
         } else {
             $('#tool-bar-container').hide(100);
             $('#expand-collapse > img').attr('src', getSvgPathByName('caret-right'));
-            this.isToolBarExpand = false;
+            ToolBarComponent.isToolBarExpand = false;
         }
     }
     

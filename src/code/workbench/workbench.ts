@@ -3,8 +3,11 @@ import { IRegisterService } from "src/code/workbench/service/registerService";
 import { ActionViewComponent } from "src/code/workbench/browser/actionView/actionView";
 import { ActionBarComponent } from "src/code/workbench/browser/actionBar/actionBar";
 import { EditorComponent } from "src/code/workbench/browser/editor/editor";
-import { NoteBookManager } from "src/code/common/notebookManger";
+import { LOCAL_MDNOTE_DIR_NAME, NoteBookManager } from "src/code/common/notebookManger";
 import { APP_ROOT_PATH } from "src/base/electron/app";
+import { ipcRendererOn, ipcRendererSend } from "src/base/electron/register";
+import { ConfigModule, DEFAULT_CONFIG_FILE_NAME, DEFAULT_CONFIG_PATH, GlobalConfigModule, GLOBAL_CONFIG_FILE_NAME, GLOBAL_CONFIG_PATH, LOCAL_CONFIG_FILE_NAME } from "src/base/config";
+import { pathJoin } from "src/base/common/string";
 
 /**
  * @description this module is loaded by the web directly. Most of the modules 
@@ -17,18 +20,19 @@ class Workbench implements IRegisterService {
 
     private componentMap = new Map<string, Component>();
 
-    private _noteBookManager: NoteBookManager;
+    private noteBookManager: NoteBookManager;
 
     actionBarComponent!: ActionBarComponent;
     actionViewComponent!: ActionViewComponent;
     editorComponent!: EditorComponent;
     
     constructor() {
-        this._noteBookManager = new NoteBookManager();
-        this._noteBookManager.init(APP_ROOT_PATH);
+        this.noteBookManager = new NoteBookManager();
+        this.noteBookManager.init(APP_ROOT_PATH);
 
         this.initComponents();
         this.renderComponents();
+        this.registerListeners();
     }
 
     /**
@@ -37,7 +41,7 @@ class Workbench implements IRegisterService {
      */
     private initComponents(): void {
         this.actionBarComponent = new ActionBarComponent(this);
-        this.actionViewComponent = new ActionViewComponent(this, this._noteBookManager);
+        this.actionViewComponent = new ActionViewComponent(this, this.noteBookManager);
         this.editorComponent = new EditorComponent(this);
     }
 
@@ -59,6 +63,39 @@ class Workbench implements IRegisterService {
             // 
             component.registerListeners();
         });
+    }
+
+    /**
+     * @description register renderer process global listeners.
+     */
+    private registerListeners(): void {
+
+        // once the main process notifies this renderer process, we try to 
+        // finish the following job.
+        ipcRendererOn('closingApp', () => {
+            
+            // save global configuration first
+            GlobalConfigModule.Instance.previousNoteBookManagerDir = this.noteBookManager.noteBookManagerRootPath;
+            GlobalConfigModule.Instance.writeToJSON(GLOBAL_CONFIG_PATH, GLOBAL_CONFIG_FILE_NAME)
+            .then(() => {
+                // save local or default configuration
+                if (GlobalConfigModule.Instance.defaultConfigOn) {
+                    return ConfigModule.Instance.writeToJSON(
+                        DEFAULT_CONFIG_PATH, 
+                        DEFAULT_CONFIG_FILE_NAME
+                    );
+                }
+                return ConfigModule.Instance.writeToJSON(
+                    pathJoin(this.noteBookManager.noteBookManagerRootPath, LOCAL_MDNOTE_DIR_NAME), 
+                    LOCAL_CONFIG_FILE_NAME
+                );
+            })
+            .then(() => {
+                ipcRendererSend('rendererReadyForClosingApp');
+            });
+
+        });
+
     }
 
     public getComponentById(id: string): Component {

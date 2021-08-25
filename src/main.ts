@@ -89,7 +89,13 @@ class Main {
                 }
             });
 
+            // notify the renderer process before actual closing
             ipcMain.on('closeApp', () => {
+                this.winMain!.webContents.send('closingApp');
+            });
+
+            // once renderer process is ready, we do the actual closing
+            ipcMain.on('rendererReadyForClosingApp', () => {
                 this.winMain!.close();
             });
             
@@ -175,6 +181,7 @@ class Main {
      * funcitons to handle responses or register shortcuts.
      */
     private _setListeners(): void {
+        
         /**
          * @readonly comments for now, not convinent for develop.
          */
