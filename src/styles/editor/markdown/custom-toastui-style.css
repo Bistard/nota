@@ -45,3 +45,25 @@
     line-height: 20px;
 }
  */
+
+.toastui-editor-contents {
+    /* animation scrollBar */
+    color: rgba(0, 0, 0, 0);
+    text-shadow: 0 0 rgb(0, 0, 0);
+    transition: color 0.2s ease;
+}
+
+.toastui-editor-contents:hover {
+    color: rgba(0, 0, 0, 0.2); /* shoud matches text-shadow */
+}
+
+.toastui-editor-contents::-webkit-scrollbar, 
+.toastui-editor-contents::-webkit-scrollbar-thumb {
+    width: 8px;
+    border-radius: 8px;
+    background-clip: border-box;
+}
+
+.toastui-editor-contents::-webkit-scrollbar-thumb {        
+    box-shadow: inset 0 0 0 10px;
+}

@@ -34,7 +34,7 @@
 }
 
 #fileTree-container:hover {
-    color: rgba(0, 0, 0, 0.2); /* shoud matches text-shadow */
+    color: rgba(0, 0, 0, 0.4); /* shoud matches text-shadow */
 }
 
 #fileTree-container ul {
