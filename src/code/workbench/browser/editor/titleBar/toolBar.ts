@@ -4,6 +4,7 @@ import { getSvgPathByName } from "src/base/common/string";
 import { ConfigModule } from "src/base/config";
 import { domNodeByIdAddListener } from "src/base/electron/register";
 import { Component } from "src/code/workbench/browser/component";
+import { EditorComponentType } from "src/code/workbench/browser/editor/editor";
 import { IRegisterService } from "src/code/workbench/service/registerService";
 
 export class ToolBarComponent extends Component {
@@ -12,9 +13,10 @@ export class ToolBarComponent extends Component {
     public static isMarkdownToolExpand: boolean = false;
     public static isTabBarExpand: boolean = false;
 
-    constructor(registerService: IRegisterService
+    constructor(parent: HTMLElement,
+                registerService: IRegisterService
     ) {
-        super('tool-bar', registerService);
+        super(EditorComponentType.toolBar, parent, registerService);
     }
 
     protected override _createContainer(): void {
@@ -81,30 +83,30 @@ export class ToolBarComponent extends Component {
     /**
      * @description change the state of view of markdown tool.
      */
-    mdToolStateChange(shouldExpand: boolean): void {
-        if (shouldExpand) {
+    mdToolStateChange(isExpand: boolean): void {
+        if (isExpand) {
             $('.toastui-editor-toolbar').show(100);
             $('#md-tool').addClass('tool-button-focus');
-            ToolBarComponent.isMarkdownToolExpand = true;
+            ToolBarComponent.isMarkdownToolExpand = false;
         } else {
             $('.toastui-editor-toolbar').hide(100);
             $('#md-tool').removeClass('tool-button-focus');
-            ToolBarComponent.isMarkdownToolExpand = false;
+            ToolBarComponent.isMarkdownToolExpand = true;
         }
     }
 
     /**
      * @description change the state of view of toolBar.
      */
-    toolBarStateChange(shouldExpand: boolean): void {
-        if (shouldExpand) {
+    toolBarStateChange(isExpand: boolean): void {
+        if (isExpand) {
             $('#tool-bar-container').show(100);
             $('#expand-collapse > img').attr('src', getSvgPathByName('caret-left'));
-            ToolBarComponent.isToolBarExpand = true;
+            ToolBarComponent.isToolBarExpand = false;
         } else {
             $('#tool-bar-container').hide(100);
             $('#expand-collapse > img').attr('src', getSvgPathByName('caret-right'));
-            ToolBarComponent.isToolBarExpand = false;
+            ToolBarComponent.isToolBarExpand = true;
         }
     }
     
