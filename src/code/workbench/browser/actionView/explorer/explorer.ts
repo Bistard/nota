@@ -4,14 +4,14 @@ import { Component } from 'src/code/workbench/browser/component';
 import { ActionViewComponentType } from 'src/code/workbench/browser/actionView/actionView';
 import { IRegisterService } from 'src/code/workbench/service/registerService';
 import { EVENT_EMITTER } from 'src/base/common/event';
-import { INoteBookManager } from 'src/code/common/notebookManger';
+import { NoteBookManager } from 'src/code/common/notebookManger';
 
 /**
  * @description TODO: complete comments
  */
 export class ExplorerViewComponent extends Component {
 
-    private _noteBookManager: INoteBookManager;
+    private _noteBookManager: NoteBookManager;
 
     public resizeX: number;
 
@@ -19,7 +19,7 @@ export class ExplorerViewComponent extends Component {
     public emptyFolderTag: HTMLElement = document.createElement('div');
 
     constructor(registerService: IRegisterService,
-                _noteBookManger: INoteBookManager
+                _noteBookManger: NoteBookManager
     ) {
         super(ActionViewComponentType.ExplorerView, registerService);
         
