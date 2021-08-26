@@ -88,3 +88,17 @@
 .toastui-editor-contents .operator {
     background: none;
 }
+
+.toastui-editor-defaultUI-toolbar {
+    background-color: white;
+    border-bottom: 0px;
+    
+}
+
+.toastui-editor-defaultUI-toolbar > .toastui-editor-toolbar-group {
+    
+}
+
+.toastui-editor-toolbar-group > button {
+    border: 1px solid white;
+}

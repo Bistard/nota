@@ -19,7 +19,7 @@
 @import "./workbench/editor/titleBar/windowBarView.css";
 @import "./workbench/editor/editor.css";
 @import "./workbench/editor/markdown/markdownView.css";
-@import "./workbench/editor/markdown/custom-toastui-style.css";
+@import "./workbench/editor/markdown/customToastuiStyle.css";
 
 body {
     margin: 0px;
