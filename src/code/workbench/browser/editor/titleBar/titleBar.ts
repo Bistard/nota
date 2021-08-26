@@ -11,8 +11,8 @@ import { EditorComponentType } from 'src/code/workbench/browser/editor/editor';
  */
 export class TitleBarComponent extends Component {
     
-    toolBarComponent!: ToolBarComponent;
-    tabBarComponent!: TabBarComponent;
+    // toolBarComponent!: ToolBarComponent;
+    // tabBarComponent!: TabBarComponent;
     windowBarComponent!: WindowBarComponent;
 
     constructor(parent: HTMLElement,
@@ -22,14 +22,13 @@ export class TitleBarComponent extends Component {
 
     protected override _createContainer(): void {
         this.parent.appendChild(this.container);
-        // customize..
         this._createContentArea();
     }
 
     protected override _createContentArea(): void {
         
-        this._createToolBar();
-        this._createTabBar();
+        // this._createToolBar();
+        // this._createTabBar();
         this._createWindowBar();
         
     }
@@ -37,21 +36,21 @@ export class TitleBarComponent extends Component {
     protected override _registerListeners(): void {
         
         // component registration
-        this.toolBarComponent.registerListeners();
-        this.tabBarComponent.registerListeners();
+        // this.toolBarComponent.registerListeners();
+        // this.tabBarComponent.registerListeners();
         this.windowBarComponent.registerListeners();
         
     }
 
-    private _createToolBar(): void {
-        this.toolBarComponent = new ToolBarComponent(this.container, this);
-        this.toolBarComponent.create();
-    }
-
-    private _createTabBar(): void {
-        this.tabBarComponent = new TabBarComponent(this.container, this);
-        this.tabBarComponent.create();
-    }
+    // private _createToolBar(): void {
+    //     this.toolBarComponent = new ToolBarComponent(this.container, this);
+    //     this.toolBarComponent.create();
+    // }
+    // 
+    // private _createTabBar(): void {
+    //     this.tabBarComponent = new TabBarComponent(this.container, this);
+    //     this.tabBarComponent.create();
+    // }
 
     private _createWindowBar(): void {
         this.windowBarComponent = new WindowBarComponent(this.container, this);
