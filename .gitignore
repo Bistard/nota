@@ -1,0 +1,6 @@
+/node_modules
+/.vscode
+/dist
+/.VSCodeCounter
+/.mdnote.config.json
+/.config.json
