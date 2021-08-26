@@ -55,10 +55,11 @@ export class FileNode {
         this._render(); // this.textElement is created from here
 
         const elementText = this.element.firstChild as ChildNode;
+        // FIX: no need EVENT_EMITTER HERE
         if (isFolder) {
-            elementText.addEventListener('click', () => { EVENT_EMITTER.emit('EFolderOnClick', this); });
+            elementText.addEventListener('click', () => FileNode.folderOnClick(this));
         } else {
-            elementText.addEventListener('click', () => { EVENT_EMITTER.emit('EFileOnClick', this); });
+            elementText.addEventListener('click', () => FileNode.fileOnClick(this));
         }
     }
 

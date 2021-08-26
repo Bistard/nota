@@ -77,6 +77,7 @@ export class ExplorerViewComponent extends Component {
             document.removeEventListener("mousemove", this._resizeView, false);
         });
 
+        // not used for now
         EVENT_EMITTER.register('EFileOnClick', (nodeInfo: FileNode) => FileNode.fileOnClick(nodeInfo));
         EVENT_EMITTER.register('EFolderOnClick', (nodeInfo: FileNode) => FileNode.folderOnClick(nodeInfo));
 

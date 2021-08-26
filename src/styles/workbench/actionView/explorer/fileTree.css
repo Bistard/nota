@@ -7,12 +7,16 @@
 #fileTree-container::-webkit-scrollbar, 
 #fileTree-container::-webkit-scrollbar-thumb {
     width: 8px;
-    border-radius: 8px;
+    /* border-radius: 8px; */
     background-clip: border-box;
 }
 
 #fileTree-container::-webkit-scrollbar-thumb {        
     box-shadow: inset 0 0 0 10px;
+}
+
+#fileTree-container::-webkit-scrollbar-thumb:active {
+    color: rgba(0, 0, 0, 0.3); /* shoud matches text-shadow */
 }
 
 #fileTree-container {
@@ -34,7 +38,7 @@
 }
 
 #fileTree-container:hover {
-    color: rgba(0, 0, 0, 0.4); /* shoud matches text-shadow */
+    color: rgba(0, 0, 0, 0.2); /* shoud matches text-shadow */
 }
 
 #fileTree-container ul {
