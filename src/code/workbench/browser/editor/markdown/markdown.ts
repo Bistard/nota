@@ -212,14 +212,14 @@ export class MarkdownComponent extends Component {
      */
      public markdownModeSwitch(): void {
         if (this.mode == 'wysiwyg') {
-            $('#mode-switch').removeClass('tool-button-focus');
+            $('#mode-switch').removeClass('function-button-focus');
             $('#mode-switch > img').attr('src', getSvgPathByName('md-split'));
             this.editor!.changeMode('markdown', true);
             this.mode = 'split';
         } else if (this.mode == 'instant') {
             // ...
         } else { // (mode == 'split')
-            $('#mode-switch').addClass('tool-button-focus');
+            $('#mode-switch').addClass('function-button-focus');
             $('#mode-switch > img').attr('src', getSvgPathByName('md-wysiwyg'));
             this.editor!.changeMode('wysiwyg', true);
             this.mode = 'wysiwyg';

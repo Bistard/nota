@@ -6,7 +6,7 @@ import { IRegisterService } from "src/code/workbench/service/registerService";
 export enum EditorComponentType {
     tabBar = 'tab-bar',
     titleBar = 'title-bar',
-    toolBar = 'tool-bar',
+    functionBar = 'function-bar',
     windowBar = 'window-bar',
 }
 

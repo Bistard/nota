@@ -7,16 +7,16 @@ import { Component } from "src/code/workbench/browser/component";
 import { EditorComponentType } from "src/code/workbench/browser/editor/editor";
 import { IRegisterService } from "src/code/workbench/service/registerService";
 
-export class ToolBarComponent extends Component {
+export class FunctionBarComponent extends Component {
 
-    public static isToolBarExpand: boolean = true;
-    public static isMarkdownToolExpand: boolean = false;
-    public static isTabBarExpand: boolean = false;
+    public static isfunctionBarExpand: boolean = true;
+    public static isToolBarExpand: boolean = false;
+    // public static isTabBarExpand: boolean = false;
 
     constructor(parent: HTMLElement,
                 registerService: IRegisterService
     ) {
-        super(EditorComponentType.toolBar, parent, registerService);
+        super(EditorComponentType.functionBar, parent, registerService);
     }
 
     protected override _createContainer(): void {
@@ -26,7 +26,7 @@ export class ToolBarComponent extends Component {
 
     protected override _createContentArea(): void {
         this.contentArea = document.createElement('div');
-        this.contentArea.id = 'tool-bar-container';
+        this.contentArea.id = 'function-bar-container';
         this.container.appendChild(this.contentArea);
 
         [
@@ -35,7 +35,7 @@ export class ToolBarComponent extends Component {
             {id: 'tabs', src: 'tabs'},
         ].forEach(({id, src}) => {
             const button = new Button(id, this.contentArea!);
-            button.setClass(['button', 'tool-button']);
+            button.setClass(['button', 'function-button']);
             button.setImage(src);
             button.setImageClass('vertical-center', 'filter-black');
         })
@@ -48,34 +48,34 @@ export class ToolBarComponent extends Component {
 
     protected override _registerListeners(): void {
 
-        this.initToolBar();
+        this.initfunctionBar();
 
         domNodeByIdAddListener('mode-switch', 'click', () => {
             EVENT_EMITTER.emit('EMarkdownModeSwitch');
         });
 
         domNodeByIdAddListener('md-tool', 'click', () => {
-            this.mdToolStateChange(!ToolBarComponent.isMarkdownToolExpand);
+            this.mdToolStateChange(!FunctionBarComponent.isToolBarExpand);
         });
         
         domNodeByIdAddListener('expand-collapse', 'click', () => {
-            this.toolBarStateChange(!ToolBarComponent.isToolBarExpand);
+            this.functionBarStateChange(!FunctionBarComponent.isfunctionBarExpand);
         });
     }
 
     /**
-     * @description function calls when the ToolBarModule is initialized.
+     * @description function calls when the functionBarModule is initialized.
      */
-     initToolBar(): void {
+     initfunctionBar(): void {
         if (ConfigModule.Instance.defaultMarkdownMode == 'wysiwyg') {
-            $('#mode-switch').addClass('tool-button-focus');
+            $('#mode-switch').addClass('function-button-focus');
         }
 
-        if (ToolBarComponent.isToolBarExpand == false) {
-            this.toolBarStateChange(false);
+        if (FunctionBarComponent.isfunctionBarExpand == false) {
+            this.functionBarStateChange(false);
         }
 
-        if (ToolBarComponent.isMarkdownToolExpand == false) {
+        if (FunctionBarComponent.isToolBarExpand == false) {
             $('.toastui-editor-toolbar').first().hide(0);
         }
     }
@@ -86,27 +86,27 @@ export class ToolBarComponent extends Component {
     mdToolStateChange(shouldExpand: boolean): void {
         if (shouldExpand) {
             $('.toastui-editor-toolbar').show(100);
-            $('#md-tool').addClass('tool-button-focus');
-            ToolBarComponent.isMarkdownToolExpand = true;
+            $('#md-tool').addClass('function-button-focus');
+            FunctionBarComponent.isToolBarExpand = true;
         } else {
             $('.toastui-editor-toolbar').hide(100);
-            $('#md-tool').removeClass('tool-button-focus');
-            ToolBarComponent.isMarkdownToolExpand = false;
+            $('#md-tool').removeClass('function-button-focus');
+            FunctionBarComponent.isToolBarExpand = false;
         }
     }
 
     /**
-     * @description change the state of view of toolBar.
+     * @description change the state of view of functionBar.
      */
-    toolBarStateChange(shouldExpand: boolean): void {
+    functionBarStateChange(shouldExpand: boolean): void {
         if (shouldExpand) {
-            $('#tool-bar-container').show(100);
+            $('#function-bar-container').show(100);
             $('#expand-collapse > img').attr('src', getSvgPathByName('caret-left'));
-            ToolBarComponent.isToolBarExpand = true;
+            FunctionBarComponent.isfunctionBarExpand = true;
         } else {
-            $('#tool-bar-container').hide(100);
+            $('#function-bar-container').hide(100);
             $('#expand-collapse > img').attr('src', getSvgPathByName('caret-right'));
-            ToolBarComponent.isToolBarExpand = false;
+            FunctionBarComponent.isfunctionBarExpand = false;
         }
     }
     

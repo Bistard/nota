@@ -1,4 +1,4 @@
-#tool-bar {
+#function-bar {
     position: relative;
     height: 40px;
     width: 100%;
@@ -9,7 +9,7 @@
     -webkit-app-region: drag; /* draggable */
 }
 
-#tool-bar-container {
+#function-bar-container {
     position: relative;
     height: 40px;
     width: auto;
@@ -19,26 +19,26 @@
     
 }
 
-.tool-button,
+.function-button,
 #expand-collapse {
     width: 40px;
     height: 40px;
     -webkit-app-region: no-drag;
 }
 
-.tool-button:hover {
+.function-button:hover {
     background-color: rgb(230, 230, 230);
 }
 
-.tool-button:active {
+.function-button:active {
     background-color: rgb(245, 245, 245);
 }
 
-.tool-button-focus {
+.function-button-focus {
     background-color: rgb(230, 230, 230);
 }
 
-.tool-button > img,
+.function-button > img,
 #expand-collapse > img {
     display: block;
     margin-left: auto;

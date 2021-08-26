@@ -14,7 +14,7 @@
 @import "./workbench/actionView/explorer/fileTree.css";
 @import "./workbench/actionView/outline/outlineView.css";
 @import "./workbench/editor/titleBar/titleBarView.css";
-@import "./workbench/editor/titleBar/toolBarView.css";
+@import "./workbench/editor/titleBar/functionBarView.css";
 @import "./workbench/editor/titleBar/tabBarView.css";
 @import "./workbench/editor/titleBar/windowBarView.css";
 @import "./workbench/editor/editor.css";
