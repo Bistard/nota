@@ -8,18 +8,18 @@
 @import "../../node_modules/@toast-ui/editor-plugin-color-syntax/dist/toastui-editor-plugin-color-syntax.css";
 
 @import "./common.css";
-@import "./actionBar/actionBar.css";
-@import "./actionView/actionView.css";
-@import "./actionView/explorer/explorerView.css";
-@import "./actionView/explorer/fileTree.css";
-@import "./actionView/outline/outlineView.css";
-@import "./editor/titleBar/titleBarView.css";
-@import "./editor/titleBar/toolBarView.css";
-@import "./editor/titleBar/tabBarView.css";
-@import "./editor/titleBar/windowBarView.css";
-@import "./editor/editor.css";
-@import "./editor/markdown/markdownView.css";
-@import "./editor/markdown/custom-toastui-style.css";
+@import "./workbench/actionBar/actionBar.css";
+@import "./workbench/actionView/actionView.css";
+@import "./workbench/actionView/explorer/explorerView.css";
+@import "./workbench/actionView/explorer/fileTree.css";
+@import "./workbench/actionView/outline/outlineView.css";
+@import "./workbench/editor/titleBar/titleBarView.css";
+@import "./workbench/editor/titleBar/toolBarView.css";
+@import "./workbench/editor/titleBar/tabBarView.css";
+@import "./workbench/editor/titleBar/windowBarView.css";
+@import "./workbench/editor/editor.css";
+@import "./workbench/editor/markdown/markdownView.css";
+@import "./workbench/editor/markdown/custom-toastui-style.css";
 
 body {
     margin: 0px;
@@ -46,4 +46,9 @@ img {
     height:100vh;
     overflow: hidden;
     box-sizing: border-box;
+}
+
+*::selection {
+    text-shadow: none;
+    background: #b3d4fc;
 }
