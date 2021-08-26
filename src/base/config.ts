@@ -95,6 +95,11 @@ export class ConfigModule implements IConfigModule {
     public defaultMarkdownMode: MarkdownRenderMode = 'wysiwyg';
     public markdownSpellCheckOn: boolean = false;
 
+    /**
+     * @readonly TitleBar Config
+     */
+
+    public defaultMarkdownToolBarOn: boolean = false;
 }
 
 /**

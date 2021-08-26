@@ -10,7 +10,7 @@ import { IRegisterService } from "src/code/workbench/service/registerService";
 export class ToolBarComponent extends Component {
 
     public static isToolBarExpand: boolean = true;
-    public static isMarkdownToolExpand: boolean = false;
+    public static isMarkdownToolExpand: boolean = ConfigModule.Instance.defaultMarkdownToolBarOn;
     public static isTabBarExpand: boolean = false;
 
     constructor(parent: HTMLElement,
@@ -38,7 +38,7 @@ export class ToolBarComponent extends Component {
             button.setClass(['button', 'tool-button']);
             button.setImage(src);
             button.setImageClass('vertical-center', 'filter-black');
-        })
+        });
         
         const button = new Button('expand-collapse', this.container);
         button.setClass(['button']);
