@@ -2,5 +2,5 @@
 /.vscode
 /dist
 /.VSCodeCounter
-/.mdnote.config.json
-/.config.json
+/mdnote.config.json
+/config.json
