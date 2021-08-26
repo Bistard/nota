@@ -12,7 +12,7 @@ import { EditorComponentType } from 'src/code/workbench/browser/editor/editor';
 export class TitleBarComponent extends Component {
     
     functionBarComponent!: FunctionBarComponent;
-    tabBarComponent!: TabBarComponent;
+    // tabBarComponent!: TabBarComponent;
     windowBarComponent!: WindowBarComponent;
 
     constructor(parent: HTMLElement,
@@ -29,7 +29,7 @@ export class TitleBarComponent extends Component {
     protected override _createContentArea(): void {
         
         this._createfunctionBar();
-        this._createTabBar();
+        // this._createTabBar();
         this._createWindowBar();
         
     }
@@ -38,7 +38,7 @@ export class TitleBarComponent extends Component {
         
         // component registration
         this.functionBarComponent.registerListeners();
-        this.tabBarComponent.registerListeners();
+        // this.tabBarComponent.registerListeners();
         this.windowBarComponent.registerListeners();
         
     }
@@ -48,10 +48,10 @@ export class TitleBarComponent extends Component {
         this.functionBarComponent.create();
     }
 
-    private _createTabBar(): void {
-        this.tabBarComponent = new TabBarComponent(this.container, this);
-        this.tabBarComponent.create();
-    }
+    // private _createTabBar(): void {
+    //     this.tabBarComponent = new TabBarComponent(this.container, this);
+    //     this.tabBarComponent.create();
+    // }
 
     private _createWindowBar(): void {
         this.windowBarComponent = new WindowBarComponent(this.container, this);
