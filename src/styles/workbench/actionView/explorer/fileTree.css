@@ -92,7 +92,7 @@
 }
 
 .file-icon::before {
-    content: url('../../../assets/svg/file.svg');
+    content: url('../../../../assets/svg/file.svg');
     display: inline-block;
     width: 10px;
     height: 10px;
@@ -101,7 +101,7 @@
 }
 
 .folder-icon-expand::before {
-    content: url('../../../assets/svg/angle-down.svg');
+    content: url('../../../../assets/svg/angle-down.svg');
     display: inline-block;
     width: 10px;
     height: 10px;
@@ -110,7 +110,7 @@
 }
 
 .folder-icon-collapse::before {
-    content: url('../../../assets/svg/angle-right.svg');
+    content: url('../../../../assets/svg/angle-right.svg');
     display: inline-block;
     width: 10px;
     height: 10px;

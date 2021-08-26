@@ -18,13 +18,14 @@
 }
 
 .toastui-editor-contents:hover {
-    color: rgba(0, 0, 0, 0.5); /* shoud matches text-shadow */
+    /* should matches text-shadow */
+    color: rgba(0, 0, 0, 0.2);
 }
 
 .toastui-editor-contents::-webkit-scrollbar, 
 .toastui-editor-contents::-webkit-scrollbar-thumb {
-    width: 8px;
-    border-radius: 8px;
+    width: 12px;
+    /* border-radius: 4px; */
     background-clip: border-box;
 }
 
