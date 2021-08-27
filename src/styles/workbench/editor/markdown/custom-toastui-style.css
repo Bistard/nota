@@ -61,11 +61,6 @@
     color: rgba(0, 0, 0, 0.3);
 }
 
-.toastui-editor-contents > h1:first-of-type, 
-.toastui-editor-contents > div > div:first-of-type h1 {
-    margin-top: 0px;
-}
-
 .toastui-editor-contents h1 {
     font-size: 34px;
     line-height: 38px;
@@ -99,4 +94,16 @@
 
 .toastui-editor-contents .operator {
     background: none;
+}
+
+.toastui-editor-defaultUI-toolbar {
+    background-color: white;
+}
+
+.toastui-editor-defaultUI-toolbar button {
+    border: 1px solid white;
+}
+
+.toastui-editor-dropdown-toolbar {
+    background-color: white;
 }

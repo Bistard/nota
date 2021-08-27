@@ -80,7 +80,7 @@ export class FileNode {
         
         this.textElement = document.createElement('li');
         this.textElement.classList.add('node-text');
-        this.textElement.innerHTML = this.name;
+        this.textElement.innerHTML = this.baseName;
         
         if (!this.isFolder) {
             // is file

@@ -32,7 +32,6 @@ export class FunctionBarComponent extends Component {
         [
             {id: 'mode-switch', src: 'md-wysiwyg'},
             {id: 'md-tool', src: 'text'},
-            {id: 'tabs', src: 'tabs'},
         ].forEach(({id, src}) => {
             const button = new Button(id, this.contentArea!);
             button.setClass(['button', 'function-button']);

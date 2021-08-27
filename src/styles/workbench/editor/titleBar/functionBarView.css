@@ -27,15 +27,15 @@
 }
 
 .function-button:hover {
-    background-color: rgb(230, 230, 230);
+    filter: invert(15%) sepia(100%) saturate(2427%) hue-rotate(343deg) brightness(112%) contrast(97%);
 }
 
 .function-button:active {
-    background-color: rgb(245, 245, 245);
+    filter: invert(35%) sepia(100%) saturate(2427%) hue-rotate(343deg) brightness(112%) contrast(97%);
 }
 
 .function-button-focus {
-    background-color: rgb(230, 230, 230);
+    filter: invert(15%) sepia(100%) saturate(2427%) hue-rotate(343deg) brightness(112%) contrast(97%);
 }
 
 .function-button > img,
@@ -45,8 +45,4 @@
     margin-right: auto;
     width: 20px;
     height: 20px;
-}
-
-#mode-switch {
-
 }
