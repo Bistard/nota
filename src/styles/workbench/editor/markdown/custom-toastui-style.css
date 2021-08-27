@@ -5,6 +5,12 @@
     border: 0px solid transparent;
 }
 
+.toastui-editor-defaultUI .ProseMirror,
+.toastui-editor-defaultUI .toastui-editor-contents {
+    padding: 0 10%;
+    padding-top: 40px;
+}
+
 .ProseMirror,
 .toastui-editor-md-preview,
 .toastui-editor-contents {
@@ -57,7 +63,7 @@
 
 .toastui-editor-contents > h1:first-of-type, 
 .toastui-editor-contents > div > div:first-of-type h1 {
-    margin-top: 40px;
+    margin-top: 0px;
 }
 
 .toastui-editor-contents h1 {

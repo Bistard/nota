@@ -1,6 +1,6 @@
 import { Button } from "src/base/browser/basic/button";
 import { EVENT_EMITTER } from "src/base/common/event";
-import { getSvgPathByName } from "src/base/common/string";
+import { getSvgPathByName, SvgType } from "src/base/common/string";
 import { ConfigModule } from "src/base/config";
 import { domNodeByIdAddListener } from "src/base/electron/register";
 import { Component } from "src/code/workbench/browser/component";
@@ -9,7 +9,7 @@ import { IRegisterService } from "src/code/workbench/service/registerService";
 
 export class FunctionBarComponent extends Component {
 
-    public static isfunctionBarExpand: boolean = true;
+    public static isfunctionBarExpand: boolean = false;
     public static isToolBarExpand: boolean = false;
     // public static isTabBarExpand: boolean = false;
 
@@ -36,14 +36,14 @@ export class FunctionBarComponent extends Component {
         ].forEach(({id, src}) => {
             const button = new Button(id, this.contentArea!);
             button.setClass(['button', 'function-button']);
-            button.setImage(src);
-            button.setImageClass('vertical-center', 'filter-black');
+            button.setImage(getSvgPathByName(SvgType.base, src));
+            button.setImageClass(['vertical-center', 'filter-black']);
         })
         
         const button = new Button('expand-collapse', this.container);
         button.setClass(['button']);
-        button.setImage('caret-left');
-        button.setImageClass('vertical-center', 'filter-black');
+        button.setImage(getSvgPathByName(SvgType.base, 'caret-left'));
+        button.setImageClass(['vertical-center', 'filter-black']);
     }
 
     protected override _registerListeners(): void {
@@ -101,11 +101,11 @@ export class FunctionBarComponent extends Component {
     functionBarStateChange(shouldExpand: boolean): void {
         if (shouldExpand) {
             $('#function-bar-container').show(100);
-            $('#expand-collapse > img').attr('src', getSvgPathByName('caret-left'));
+            $('#expand-collapse > img').attr('src', getSvgPathByName(SvgType.base, 'caret-left'));
             FunctionBarComponent.isfunctionBarExpand = true;
         } else {
             $('#function-bar-container').hide(100);
-            $('#expand-collapse > img').attr('src', getSvgPathByName('caret-right'));
+            $('#expand-collapse > img').attr('src', getSvgPathByName(SvgType.base, 'caret-right'));
             FunctionBarComponent.isfunctionBarExpand = false;
         }
     }

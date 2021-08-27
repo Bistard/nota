@@ -1,5 +1,5 @@
 import { Button } from "src/base/browser/basic/button";
-import { getSvgPathByName } from "src/base/common/string";
+import { getSvgPathByName, SvgType } from "src/base/common/string";
 import { domNodeByIdAddListener, ipcRendererOn, ipcRendererSend } from "src/base/electron/register";
 import { Component } from "src/code/workbench/browser/component";
 import { EditorComponentType } from "src/code/workbench/browser/editor/editor";
@@ -28,8 +28,8 @@ export class WindowBarComponent extends Component {
         .forEach(( {id, src, classes} ) => {
             const button = new Button(id, this.container);
             button.setClass(classes);
-            button.setImage(src);
-            button.setImageClass('vertical-center');
+            button.setImage(getSvgPathByName(SvgType.base, src));
+            button.setImageClass(['vertical-center']);
         })
 
     }
@@ -64,9 +64,9 @@ export class WindowBarComponent extends Component {
         const maxBtn = document.getElementById('max-btn') as HTMLElement;
         const maxBtnImg = maxBtn.childNodes[0] as  HTMLImageElement;
         if (isMaxApp) {
-            maxBtnImg.src = getSvgPathByName('max-restore');
+            maxBtnImg.src = getSvgPathByName(SvgType.base, 'max-restore');
         } else {
-            maxBtnImg.src = getSvgPathByName('max');
+            maxBtnImg.src = getSvgPathByName(SvgType.base, 'max');
         }
     }
 

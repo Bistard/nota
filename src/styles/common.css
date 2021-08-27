@@ -8,7 +8,7 @@
 }
 
 .button {
-    transition: 0.2s;
+    transition: 0.1s;
     -webkit-app-region: no-drag;
     cursor: pointer;
     user-select: none;
@@ -41,4 +41,8 @@
 
 .filter-black {
     filter: invert(0%) sepia(97%) saturate(0%) hue-rotate(42deg) brightness(93%) contrast(103%);
+}
+
+.filter-red {
+    filter: invert(15%) sepia(100%) saturate(2427%) hue-rotate(343deg) brightness(112%) contrast(97%);
 }

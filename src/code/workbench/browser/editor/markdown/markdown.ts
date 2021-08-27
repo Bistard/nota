@@ -24,7 +24,7 @@ import { Component } from 'src/code/workbench/browser/component';
 import { IRegisterService } from 'src/code/workbench/service/registerService';
 import { EVENT_EMITTER } from 'src/base/common/event';
 import { MarkdownRenderMode } from 'mdnote';
-import { getSvgPathByName } from 'src/base/common/string';
+import { getSvgPathByName, SvgType } from 'src/base/common/string';
 import { domNodeByIdAddListener, ipcRendererSend } from 'src/base/electron/register';
 
 /**
@@ -213,14 +213,14 @@ export class MarkdownComponent extends Component {
      public markdownModeSwitch(): void {
         if (this.mode == 'wysiwyg') {
             $('#mode-switch').removeClass('function-button-focus');
-            $('#mode-switch > img').attr('src', getSvgPathByName('md-split'));
+            $('#mode-switch > img').attr('src', getSvgPathByName(SvgType.base, 'md-split'));
             this.editor!.changeMode('markdown', true);
             this.mode = 'split';
         } else if (this.mode == 'instant') {
             // ...
         } else { // (mode == 'split')
             $('#mode-switch').addClass('function-button-focus');
-            $('#mode-switch > img').attr('src', getSvgPathByName('md-wysiwyg'));
+            $('#mode-switch > img').attr('src', getSvgPathByName(SvgType.base, 'md-wysiwyg'));
             this.editor!.changeMode('wysiwyg', true);
             this.mode = 'wysiwyg';
         }

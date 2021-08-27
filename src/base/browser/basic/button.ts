@@ -37,7 +37,7 @@ export class Button implements IButton {
 
     public setImage(src: string): void {
         this.imgElement = document.createElement('img');
-        this.imgElement.src = getSvgPathByName(src);
+        this.imgElement.src = src;
         
         this.element.appendChild(this.imgElement);
     }
@@ -48,7 +48,7 @@ export class Button implements IButton {
         }
     }
 
-    public setImageClass(...classes: string[]): void {
+    public setImageClass(classes: string[]): void {
         if (this.imgElement) {
             this.imgElement.classList.add(...classes);
         }

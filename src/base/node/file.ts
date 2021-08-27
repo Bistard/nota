@@ -4,8 +4,6 @@ import * as Path from 'path';
 import { nameIncludeCheckWithRule, getFileType, pathJoin } from 'src/base/common/string';
 import { FileNode } from 'src/base/node/fileTree';
 
-export const CHAR_DIR_SEPARATOR = '/';
-
 /*******************************************************************************
  *                              file related code
  ******************************************************************************/

@@ -1,4 +1,4 @@
-import { getSvgPathByName } from 'src/base/common/string';
+import { getSvgPathByName, SvgType } from 'src/base/common/string';
 import { Component, ComponentType } from 'src/code/workbench/browser/component';
 import { IRegisterService } from 'src/code/workbench/service/registerService';
 import { ExplorerViewComponent } from "src/code/workbench/browser/actionView/explorer/explorer";
@@ -97,7 +97,7 @@ export class ActionViewComponent extends Component {
 
         const topIcon = document.createElement('img');
         topIcon.id = 'action-view-top-icon';
-        topIcon.src = getSvgPathByName('three-dots');
+        topIcon.src = getSvgPathByName(SvgType.base, 'three-dots');
         topIcon.classList.add('vertical-center', 'filter-black');
 
         actionViewTop.appendChild(topText);
@@ -176,16 +176,16 @@ export class ActionViewComponent extends Component {
      * @description NOT displaying action view.
      */
     public closeActionView(): void {
-        $('#action-view').hide(0);
-        $('#resize').hide(0);
+        $('#action-view').hide(100);
+        $('#resize').hide(100);
     }
     
     /**
      * @description displays action view.
      */
     public openActionView(): void {
-        $('#action-view').show(0);
-        $('#resize').show(0);
+        $('#action-view').show(100);
+        $('#resize').show(100);
     }
 
 }

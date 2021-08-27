@@ -4,6 +4,7 @@ import { ActionViewType } from 'src/code/workbench/browser/actionView/actionView
 import { Component, ComponentType } from 'src/code/workbench/browser/component';
 import { IRegisterService } from 'src/code/workbench/service/registerService';
 import { domNodeByIdAddListener, ipcRendererOn, ipcRendererSendData } from 'src/base/electron/register';
+import { getSvgPathByName, SvgType } from 'src/base/common/string';
 
 export interface IActionBarOptions {
     options: [
@@ -53,8 +54,8 @@ export class ActionBarComponent extends Component {
         .forEach(({ id, src }) => {
             const button = new Button(id, this.contentArea!);
             button.setClass(['button', 'action-button']);
-            button.setImage(src);
-            button.setImageClass('vertical-center', 'filter-black');
+            button.setImage(getSvgPathByName(SvgType.base, src));
+            button.setImageClass(['vertical-center', 'filter-black']);
 
             this._buttonGroups.push(button);
         });
