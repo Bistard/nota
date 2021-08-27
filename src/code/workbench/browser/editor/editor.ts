@@ -1,7 +1,6 @@
 import { Component, ComponentType } from "src/code/workbench/browser/component";
 import { MarkdownComponent } from "src/code/workbench/browser/editor/markdown/markdown";
 import { TitleBarComponent } from "src/code/workbench/browser/editor/titleBar/titleBar";
-import { ToolBarComponent } from "src/code/workbench/browser/editor/toolBar/toolBar";
 import { IRegisterService } from "src/code/workbench/service/registerService";
 
 export enum EditorComponentType {
@@ -9,13 +8,11 @@ export enum EditorComponentType {
     functionBar = 'function-bar',
     tabBar = 'tab-bar',
     windowBar = 'window-bar',
-    toolBar = 'tool-bar',
 }
 
 export class EditorComponent extends Component {
 
     private titleBarComponent!: TitleBarComponent;
-    private toolBarComponent!: ToolBarComponent;
     private markdownComponent!: MarkdownComponent;
 
     constructor(parent: HTMLElement,
@@ -31,24 +28,17 @@ export class EditorComponent extends Component {
 
     protected override _createContentArea(): void {
         this._createTitleBar();
-        // this._createToolBar();
         this._createMarkdown();
     }
 
     protected override _registerListeners(): void {
         this.titleBarComponent.registerListeners();
-        // this.toolBarComponent.registerListeners();
         this.markdownComponent.registerListeners();
     }
 
     private _createTitleBar(): void {
         this.titleBarComponent = new TitleBarComponent(this.container, this);
         this.titleBarComponent.create();
-    }
-
-    private _createToolBar(): void {
-        this.toolBarComponent = new ToolBarComponent(this.container, this);
-        this.toolBarComponent.create();
     }
 
     private _createMarkdown(): void {
