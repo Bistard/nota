@@ -3,8 +3,8 @@ import { Component, ComponentType } from 'src/code/workbench/browser/component';
 import { IRegisterService } from 'src/code/workbench/service/registerService';
 import { ExplorerViewComponent } from "src/code/workbench/browser/actionView/explorer/explorer";
 import { EVENT_EMITTER } from 'src/base/common/event';
-import { NoteBookManager } from 'src/code/common/notebookManger';
-import { domNodeByIdAddListener, ipcRendererOn, ipcRendererSend } from 'src/base/electron/register';
+import { NoteBookManager } from 'src/code/common/model/notebookManger';
+import { domNodeByIdAddListener } from 'src/base/electron/register';
 
 export type ActionViewType = 'none' | 'explorer' | 'outline' | 'search' | 'git';
 

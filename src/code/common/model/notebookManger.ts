@@ -2,7 +2,7 @@ import { EVENT_EMITTER } from "src/base/common/event";
 import { pathJoin } from "src/base/common/string";
 import { ConfigModule, DEFAULT_CONFIG_FILE_NAME, DEFAULT_CONFIG_PATH, GlobalConfigModule, GLOBAL_CONFIG_FILE_NAME, LOCAL_CONFIG_FILE_NAME } from "src/base/config";
 import { createDir, createFile, dirFilter, isDirExisted, isFileExisted } from "src/base/node/file";
-import { NoteBook } from "src/code/common/notebook";
+import { NoteBook } from "src/code/common/model/notebook";
 
 export const LOCAL_MDNOTE_DIR_NAME = '.mdnote';
 
@@ -31,8 +31,9 @@ export class NoteBookManager {
     }
 
     /**
-     * @description initialize a 'config.json' in the root directory of 
-     * application.
+     * @description the function first try to reads the global config named as 
+     * 'mdnote.config.json' at application root directory. NoteBookManager will
+     * either do nothing or start the most recent opened directory.
      * 
      * @param appRootPath app root dir eg. D:\dev\MarkdownNote
      */
@@ -59,8 +60,8 @@ export class NoteBookManager {
     /**
      * @description when opening a directory to the NoteBooks, a '.mdnote' 
      * directory will be loaded or created. And each NoteBook will be detected 
-     * or initialized. If 'config.json' exists in the given directory, global
-     * config.json will be overwritten.
+     * or initialized. If global config says no use of default config, a 
+     * '.mdnote/config.json' will be created.
      * 
      * @param path eg. D:\dev\AllNote
      */
@@ -101,8 +102,8 @@ export class NoteBookManager {
     }
 
     /**
-     * @description calls only when folder'.mdnote' exists, we first check if the 
-     * structure is correct. 
+     * @description calls only when folder '.mdnote' exists, we first check if 
+     * the structure is correct. 
      * 
      * Then we check if each notebook has its coressponding `structure`.json, if
      * not, we initialize one. If exists, we import that into the cache.
@@ -154,7 +155,7 @@ export class NoteBookManager {
     }
 
     /**
-     * @description calls only when folder'.mdnote' does not exists, we create
+     * @description calls only when folder '.mdnote' does not exists, we create
      * the default '.mdnote' structure, initialize each notebook `structure`.json.
      * 
      * If defaultConfigOn is true, we read or create default config. Otherwise

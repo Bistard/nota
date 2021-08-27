@@ -2,7 +2,7 @@ import { MarkdownFile, readMarkdownFile } from 'src/base/node/file';
 import * as fs from 'fs';
 import * as Path from 'path';
 import { EVENT_EMITTER } from 'src/base/common/event';
-import { NoteBookManager } from 'src/code/common/notebookManger';
+import { NoteBookManager } from 'src/code/common/model/notebookManger';
 
 /**
  * @description the object is to store and maintain the data for each 

@@ -18,7 +18,6 @@
 @import "./workbench/editor/titleBar/functionBarView.css";
 @import "./workbench/editor/titleBar/tabBarView.css";
 @import "./workbench/editor/titleBar/windowBarView.css";
-@import "./workbench/editor/toolBar/toolBarView.css";
 @import "./workbench/editor/markdown/markdownView.css";
 @import "./workbench/editor/markdown/custom-toastui-style.css";
 

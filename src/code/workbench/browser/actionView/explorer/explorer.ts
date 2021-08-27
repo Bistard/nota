@@ -4,7 +4,7 @@ import { Component } from 'src/code/workbench/browser/component';
 import { ActionViewComponentType } from 'src/code/workbench/browser/actionView/actionView';
 import { IRegisterService } from 'src/code/workbench/service/registerService';
 import { EVENT_EMITTER } from 'src/base/common/event';
-import { NoteBookManager } from 'src/code/common/notebookManger';
+import { NoteBookManager } from 'src/code/common/model/notebookManger';
 
 /**
  * @description TODO: complete comments
