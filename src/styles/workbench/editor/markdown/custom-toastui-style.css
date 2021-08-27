@@ -8,7 +8,7 @@
 .ProseMirror,
 .toastui-editor-md-preview,
 .toastui-editor-contents {
-    font-family: 'Microsoft Yahei', 'Open Sans', 'Helvetica Neue', 'Helvetica', 'Arial', '나눔바른고딕', 'Nanum Barun Gothic', '맑은고딕', 'Malgun Gothic', sans-serif;
+    font-family: 'Microsoft Yahei', '微软雅黑', 'Open Sans', 'Helvetica Neue', 'Helvetica', 'Arial', '나눔바른고딕', 'Nanum Barun Gothic', '맑은고딕', 'Malgun Gothic', sans-serif;
     font-size: 16px;
     color: #333;
     font-weight: lighter;
@@ -17,6 +17,12 @@
     color: rgba(0, 0, 0, 0);
     text-shadow: 0 0 rgb(0, 0, 0);
     transition: color 0.2s ease;
+}
+
+.toastui-editor-md-code-block-line-background,
+.toastui-editor-contents pre,
+.toastui-editor-contents code {
+    font-family: 'Consolas', 'Microsoft Yahei', '微软雅黑', 'Open Sans', 'Helvetica Neue', 'Helvetica', 'Arial', '나눔바른고딕', 'Nanum Barun Gothic', '맑은고딕', 'Malgun Gothic', sans-serif;
 }
 
 .ProseMirror:hover,
