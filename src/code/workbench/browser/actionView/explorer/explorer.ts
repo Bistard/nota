@@ -29,12 +29,7 @@ export class ExplorerViewComponent extends Component {
         this.resizeX = 0;
     }
 
-    protected override _createContainer(): void {
-        // customize...
-        this._createContentArea();
-    }
-
-    protected override _createContentArea(): void {
+    protected override _createContent(): void {
         this.fileTreeContainer.id = 'fileTree-container';
         
         this.emptyFolderTag.id = 'emptyFolderTag';

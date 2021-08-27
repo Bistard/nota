@@ -68,12 +68,7 @@ export class MarkdownComponent extends Component {
         };
     }
 
-    protected override _createContainer(): void {
-        // customize...
-        this._createContentArea();
-    }
-
-    protected override _createContentArea(): void {
+    protected override _createContent(): void {
         this.createMarkdownEditor();
     }
     protected override _registerListeners(): void {

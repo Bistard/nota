@@ -11,12 +11,7 @@ export class WindowBarComponent extends Component {
 
     }
 
-    protected override _createContainer(): void {
-        // customize...
-        this._createContentArea();
-    }
-
-    protected override _createContentArea(): void {
+    protected override _createContent(): void {
         [
             {id: 'min-btn', src: 'min', classes: ['toggleBtn']},
             {id: 'max-btn', src: 'max', classes: ['toggleBtn']},

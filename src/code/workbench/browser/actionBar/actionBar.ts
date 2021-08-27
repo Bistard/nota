@@ -32,12 +32,7 @@ export class ActionBarComponent extends Component {
         this.currFocusActionBtnIndex = -1;
     }
 
-    protected override _createContainer(): void {
-        // customize...
-        this._createContentArea();
-    }
-
-    protected override _createContentArea(): void {
+    protected override _createContent(): void {
         this.contentArea = document.createElement('div');
         this.contentArea.id = 'action-button-container';
         this.container.appendChild(this.contentArea);

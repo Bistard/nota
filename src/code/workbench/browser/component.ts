@@ -46,7 +46,7 @@ export abstract class Component implements IComponent {
      */
     public create(): void {
         this.parent?.appendChild(this.container);
-        this._createContainer();
+        this._createContent();
     }
 
     /**
@@ -54,6 +54,7 @@ export abstract class Component implements IComponent {
      * be registered with events.
      */
     public registerListeners(): void {
+        // customize later
         this._registerListeners();
     }
 
@@ -69,22 +70,12 @@ export abstract class Component implements IComponent {
     }
 
     /**
-     * @description function to create the actual html layout and will be called
-     * by 'create()' from the Component class to create the whole component.
-     * 
-     * subclasses should override this function.
-     */
-    protected _createContainer(): void {
-        this._createContentArea();
-    }
-
-    /**
      * @description if needed, this function will be called inside the function
      * '_createContainer()' to create the actual content of the component.
      * 
      * subclasses should override this function.
      */
-    protected _createContentArea(): void {
+    protected _createContent(): void {
         return undefined;
     }
 

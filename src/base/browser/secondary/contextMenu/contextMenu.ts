@@ -35,7 +35,7 @@ export abstract class ContextMenu extends Component implements IContextMenu {
         this.dimension = dimension;
     }
 
-    protected override _createContainer(): void {
+    protected override _createContent(): void {
         this.container.style.position = 'fixed';
         // always generates a context menu to the bottom-right of the click
         this.container.style.left = this.dimension.coordinateX.toString();
@@ -44,10 +44,6 @@ export abstract class ContextMenu extends Component implements IContextMenu {
         this.container.style.height = this.dimension.height.toString();
         
         this.container.style.background = LIGHT_RED.toString();
-    }
-
-    protected override _createContentArea(): void {
-
     }
 
     protected override _registerListeners(): void {

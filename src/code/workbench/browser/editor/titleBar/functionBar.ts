@@ -17,11 +17,7 @@ export class FunctionBarComponent extends Component {
         super(EditorComponentType.functionBar, parentComponent);
     }
 
-    protected override _createContainer(): void {
-        this._createContentArea();
-    }
-
-    protected override _createContentArea(): void {
+    protected override _createContent(): void {
         this.contentArea = document.createElement('div');
         this.contentArea.id = 'function-bar-container';
         this.container.appendChild(this.contentArea);

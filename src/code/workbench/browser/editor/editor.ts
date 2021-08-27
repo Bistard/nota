@@ -18,12 +18,7 @@ export class EditorComponent extends Component {
         super(ComponentType.editor, parentComponent);
     }
 
-    protected override _createContainer(): void {
-        // customize...
-        this._createContentArea();
-    }
-
-    protected override _createContentArea(): void {
+    protected override _createContent(): void {
         this._createTitleBar();
         this._createMarkdown();
     }

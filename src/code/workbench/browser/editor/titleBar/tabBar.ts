@@ -29,12 +29,7 @@ export class TabBarComponent extends Component {
         this.currFocusTabIndex = -1;
     }
 
-    protected override _createContainer(): void {
-        // customize...
-        this._createContentArea();
-    }
-
-    protected override _createContentArea(): void {
+    protected override _createContent(): void {
         this.contentArea = document.createElement('div');
         this.contentArea.id = 'tab-container';
         this.container.appendChild(this.contentArea);

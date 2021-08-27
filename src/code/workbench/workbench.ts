@@ -31,20 +31,13 @@ class Workbench extends Component {
     }
 
     /**
-     * @description only initialize the class object, not ready for actual 
-     * rendering.
+     * @description calls 'create()' and '_registerListeners()' for each component.
      */
-    protected override _createContainer(): void {
+    protected override _createContent(): void {
         this.actionBarComponent = new ActionBarComponent(this);
         this.actionViewComponent = new ActionViewComponent(this, this._noteBookManager);
         this.editorComponent = new EditorComponent(this);
-        this._createContentArea();
-    }
-
-    /**
-     * @description calls 'create()' and '_registerListeners()' for each component.
-     */
-    protected override _createContentArea(): void {
+        
         [
             {id: ComponentType.ActionBar, classes: []},
             {id: ComponentType.ActionView, classes: []},
