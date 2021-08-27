@@ -2,7 +2,6 @@ import { Button, IButton } from 'src/base/browser/basic/button';
 import { EVENT_EMITTER } from 'src/base/common/event';
 import { ActionViewType } from 'src/code/workbench/browser/actionView/actionView';
 import { Component, ComponentType } from 'src/code/workbench/browser/component';
-import { IRegisterService } from 'src/code/workbench/service/registerService';
 import { domNodeByIdAddListener, ipcRendererOn, ipcRendererSendData } from 'src/base/electron/register';
 import { getSvgPathByName, SvgType } from 'src/base/common/string';
 
@@ -27,9 +26,8 @@ export class ActionBarComponent extends Component {
     // if value is -1, it means actionView is not shown.
     private currFocusActionBtnIndex: number;
 
-    constructor(parent: HTMLElement, 
-                registerService: IRegisterService) {
-        super(ComponentType.ActionBar, parent, registerService);
+    constructor(parentComponent: Component) {
+        super(ComponentType.ActionBar, parentComponent);
         
         this.currFocusActionBtnIndex = -1;
     }

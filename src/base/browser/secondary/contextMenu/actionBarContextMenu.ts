@@ -1,14 +1,13 @@
 import { ContextMenu, ContextMenuType, Dimension } from "src/base/browser/secondary/contextMenu/contextMenu";
-import { IRegisterService } from "src/code/workbench/service/registerService";
+import { Component } from "src/code/workbench/browser/component";
 
 
 export class ActionBarContextMenu extends ContextMenu {
 
     constructor(dimension: Dimension,
-                parent: HTMLElement,
-                registerService: IRegisterService
+                parentComponent: Component
     ) {
-        super(ContextMenuType.actionBarMenu, dimension, parent, registerService);
+        super(ContextMenuType.actionBarMenu, dimension, parentComponent);
     }
 
     

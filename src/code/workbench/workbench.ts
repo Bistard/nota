@@ -1,5 +1,4 @@
 import { Component, ComponentType } from "src/code/workbench/browser/component";
-import { IRegisterService } from "src/code/workbench/service/registerService";
 import { ActionViewComponent } from "src/code/workbench/browser/actionView/actionView";
 import { ActionBarComponent } from "src/code/workbench/browser/actionBar/actionBar";
 import { EditorComponent } from "src/code/workbench/browser/editor/editor";
@@ -14,11 +13,7 @@ import { pathJoin } from "src/base/common/string";
  * are instantiating in here. Also convinents for passing diferent modules into
  * others.
  */
-class Workbench implements IRegisterService {
-
-    private _mainAppContainer = document.getElementById('mainApp') as HTMLElement;
-
-    private _componentMap = new Map<string, Component>();
+class Workbench extends Component {
 
     private _noteBookManager: NoteBookManager;
 
@@ -27,28 +22,29 @@ class Workbench implements IRegisterService {
     editorComponent!: EditorComponent;
     
     constructor() {
+        super('mainApp', null, document.body);
         this._noteBookManager = new NoteBookManager();
         this._noteBookManager.init(APP_ROOT_PATH);
 
-        this._initComponents();
-        this._renderComponents();
-        this._registerListeners();
+        this.create();
+        this.registerListeners();
     }
 
     /**
      * @description only initialize the class object, not ready for actual 
      * rendering.
      */
-    private _initComponents(): void {
-        this.actionBarComponent = new ActionBarComponent(this._mainAppContainer, this);
-        this.actionViewComponent = new ActionViewComponent(this._mainAppContainer, this, this._noteBookManager);
-        this.editorComponent = new EditorComponent(this._mainAppContainer, this);
+    protected override _createContainer(): void {
+        this.actionBarComponent = new ActionBarComponent(this);
+        this.actionViewComponent = new ActionViewComponent(this, this._noteBookManager);
+        this.editorComponent = new EditorComponent(this);
+        this._createContentArea();
     }
 
     /**
      * @description calls 'create()' and '_registerListeners()' for each component.
      */
-    private _renderComponents(): void {
+    protected override _createContentArea(): void {
         [
             {id: ComponentType.ActionBar, classes: []},
             {id: ComponentType.ActionView, classes: []},
@@ -64,7 +60,7 @@ class Workbench implements IRegisterService {
     /**
      * @description register renderer process global listeners.
      */
-    private _registerListeners(): void {
+    protected override _registerListeners(): void {
 
         // once the main process notifies this renderer process, we try to 
         // finish the following job.
@@ -95,15 +91,11 @@ class Workbench implements IRegisterService {
     }
 
     public getComponentById(id: string): Component {
-        const component = this._componentMap.get(id);
+        const component = this.componentMap.get(id);
         if (!component) {
             throw new Error(`trying to get an unknown component ${id}`);
         }
         return component;
-    }
-
-    public registerComponent(component: Component): void {
-        this._componentMap.set(component.getId(), component);
     }
 
 }

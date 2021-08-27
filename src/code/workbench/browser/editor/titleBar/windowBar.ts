@@ -3,18 +3,15 @@ import { getSvgPathByName, SvgType } from "src/base/common/string";
 import { domNodeByIdAddListener, ipcRendererOn, ipcRendererSend } from "src/base/electron/register";
 import { Component } from "src/code/workbench/browser/component";
 import { EditorComponentType } from "src/code/workbench/browser/editor/editor";
-import { IRegisterService } from "src/code/workbench/service/registerService";
 
 export class WindowBarComponent extends Component {
 
-    constructor(parent: HTMLElement,
-                registerService: IRegisterService) {
-        super(EditorComponentType.windowBar, parent, registerService);
+    constructor(parentComponent: Component) {
+        super(EditorComponentType.windowBar, parentComponent);
 
     }
 
     protected override _createContainer(): void {
-        this.parent.appendChild(this.container);
         // customize...
         this._createContentArea();
     }

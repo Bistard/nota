@@ -1,6 +1,5 @@
 import { LIGHT_RED } from "src/base/common/color";
 import { Component } from "src/code/workbench/browser/component";
-import { IRegisterService } from "src/code/workbench/service/registerService";
 
 export enum ContextMenuType {
     actionBarMenu,
@@ -29,10 +28,9 @@ export abstract class ContextMenu extends Component implements IContextMenu {
 
     constructor(type: ContextMenuType,
                 dimension: Dimension,
-                parent: HTMLElement,
-                registerService: IRegisterService
+                parentComponnet: Component
     ) {
-        super('context-menu', parent, registerService);
+        super('context-menu', parentComponnet);
         this.type = type;
         this.dimension = dimension;
     }

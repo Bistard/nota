@@ -1,5 +1,3 @@
-import { IRegisterService } from "src/code/workbench/service/registerService";
-
 export const enum ComponentType {
     ActionBar = 'action-bar',
     ActionView = 'action-view',
@@ -7,34 +5,47 @@ export const enum ComponentType {
 }
 
 export interface IComponent {
-    
+    create(): void;
+    registerListeners(): void;
+    registerComponent(component: Component): void;
+    getId(): string;
 }
 
-export abstract class Component implements IComponent, IRegisterService {
+export abstract class Component implements IComponent {
     
-    protected parent: HTMLElement;
-    protected readonly container: HTMLElement = document.createElement('div');
-    protected contentArea: HTMLElement | undefined;
-    protected contentAreaMap: Map<string, Component> = new Map();
-    
-    protected registerService!: IRegisterService;
+    public readonly parentComponent: Component | null;
+    public readonly parent: HTMLElement | null;
 
-    constructor(id: string,
-                parent: HTMLElement,
-                registerService: IRegisterService
+    public readonly container: HTMLElement = document.createElement('div');
+
+    protected contentArea: HTMLElement | undefined;
+    protected componentMap: Map<string, Component> = new Map();
+
+    constructor(id: string, 
+                parentComponent: Component | null = null,
+                // this parameter gives chance to customize parentElement
+                parentElement?: HTMLElement 
     ) {
         this.container.id = id;
-        this.parent = parent;
-        this.registerService = registerService;
         
-        registerService.registerComponent(this);
+        this.parentComponent = parentComponent;
+        if (parentComponent) {
+            this.parent = parentComponent.container;
+            parentComponent.registerComponent(this);
+        } else {
+            this.parent = null;
+        }
+
+        if (parentElement) {
+            this.parent = parentElement;
+        }
     }
 
     /**
      * @description gneric function for every subclasses object to be created.
      */
     public create(): void {
-        this.parent.appendChild(this.container);
+        this.parent?.appendChild(this.container);
         this._createContainer();
     }
 
@@ -50,10 +61,10 @@ export abstract class Component implements IComponent, IRegisterService {
      * @description register component into mapping.
      */
     public registerComponent(component: Component): void {
-        if (this.contentAreaMap) {
-            this.contentAreaMap.set(component.getId(), component);
+        if (this.componentMap) {
+            this.componentMap.set(component.getId(), component);
         } else {
-            throw new Error('contentAreaMap is undefined, cannot register component');
+            throw new Error('componentMap is undefined, cannot register component');
         }
     }
 

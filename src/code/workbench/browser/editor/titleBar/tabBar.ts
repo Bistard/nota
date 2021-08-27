@@ -5,7 +5,6 @@ import { ConfigModule } from 'src/base/config';
 import { FileNode } from 'src/base/node/fileTree';
 import { ipcRendererOn, ipcRendererSendTest } from 'src/base/electron/register';
 import { Component } from 'src/code/workbench/browser/component';
-import { IRegisterService } from 'src/code/workbench/service/registerService';
 import { EditorComponentType } from 'src/code/workbench/browser/editor/editor';
 
 /**
@@ -21,9 +20,8 @@ export class TabBarComponent extends Component {
     public openedTabInfo: FileNode[];
     currFocusTabIndex: number;
 
-    constructor(parent: HTMLElement,
-                registerService: IRegisterService) {
-        super(EditorComponentType.tabBar, parent, registerService);
+    constructor(parentComponent: Component) {
+        super(EditorComponentType.tabBar, parentComponent);
 
         this.emptyTab = true;
         this.openedTabCount = 0;
@@ -32,7 +30,6 @@ export class TabBarComponent extends Component {
     }
 
     protected override _createContainer(): void {
-        this.parent.appendChild(this.container);
         // customize...
         this._createContentArea();
     }

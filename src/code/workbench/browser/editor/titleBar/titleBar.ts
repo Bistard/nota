@@ -1,6 +1,4 @@
 import { Component } from 'src/code/workbench/browser/component';
-import { IRegisterService } from 'src/code/workbench/service/registerService';
-import { TabBarComponent } from 'src/code/workbench/browser/editor/titleBar/tabBar';
 import { WindowBarComponent } from 'src/code/workbench/browser/editor/titleBar/windowBar';
 import { FunctionBarComponent } from 'src/code/workbench/browser/editor/titleBar/functionBar';
 import { EditorComponentType } from 'src/code/workbench/browser/editor/editor';
@@ -15,13 +13,11 @@ export class TitleBarComponent extends Component {
     // tabBarComponent!: TabBarComponent;
     windowBarComponent!: WindowBarComponent;
 
-    constructor(parent: HTMLElement,
-                registerService: IRegisterService) {
-        super(EditorComponentType.titleBar, parent, registerService);
+    constructor(parentComponent: Component) {
+        super(EditorComponentType.titleBar, parentComponent);
     }
 
     protected override _createContainer(): void {
-        this.parent.appendChild(this.container);
         // customize..
         this._createContentArea();
     }
@@ -44,17 +40,17 @@ export class TitleBarComponent extends Component {
     }
 
     private _createfunctionBar(): void {
-        this.functionBarComponent = new FunctionBarComponent(this.container, this);
+        this.functionBarComponent = new FunctionBarComponent(this);
         this.functionBarComponent.create();
     }
 
     // private _createTabBar(): void {
-    //     this.tabBarComponent = new TabBarComponent(this.container, this);
+    //     this.tabBarComponent = new TabBarComponent(this);
     //     this.tabBarComponent.create();
     // }
 
     private _createWindowBar(): void {
-        this.windowBarComponent = new WindowBarComponent(this.container, this);
+        this.windowBarComponent = new WindowBarComponent(this);
         this.windowBarComponent.create();
     }
     
