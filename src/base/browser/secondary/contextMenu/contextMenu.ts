@@ -49,6 +49,7 @@ export abstract class ContextMenu extends Component implements IContextMenu {
     }
 
     protected override _createContentArea(): void {
+        this._createContentArea();
 
     }
 
