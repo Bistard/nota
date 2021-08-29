@@ -7,6 +7,8 @@ import { APP_ROOT_PATH } from "src/base/electron/app";
 import { ipcRendererOn, ipcRendererSend } from "src/base/electron/register";
 import { ConfigModule, DEFAULT_CONFIG_FILE_NAME, DEFAULT_CONFIG_PATH, GlobalConfigModule, GLOBAL_CONFIG_FILE_NAME, GLOBAL_CONFIG_PATH, LOCAL_CONFIG_FILE_NAME } from "src/base/config";
 import { pathJoin } from "src/base/common/string";
+import { CONTEXT_MENU_SERVICE } from 'src/code/workbench/service/contextMenuService';
+
 
 /**
  * @description this module is loaded by the web directly. Most of the modules 
@@ -79,6 +81,10 @@ class Workbench extends Component {
                 ipcRendererSend('rendererReadyForClosingApp');
             });
 
+        });
+
+        document.getElementById('mainApp')!.addEventListener('click', (ev: MouseEvent) => {
+            CONTEXT_MENU_SERVICE.removeContextMenu();
         });
 
     }

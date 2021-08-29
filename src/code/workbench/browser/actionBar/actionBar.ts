@@ -77,10 +77,6 @@ export class ActionBarComponent extends Component {
             CONTEXT_MENU_SERVICE.createContextMenu(ContextMenuType.actionBar, dimension);
         });
 
-        document.getElementById('mainApp')!.addEventListener('click', (ev: MouseEvent) => {
-            CONTEXT_MENU_SERVICE.removeContextMenu();
-        });
-
         // TODO: add an array that stores user preference for action buttons (could be stored in config.ts)
         /**
          * @readonly once user clicked the menu in the main thread and sending 

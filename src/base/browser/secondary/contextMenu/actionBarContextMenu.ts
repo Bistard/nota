@@ -1,4 +1,5 @@
 import { ContextMenu, ContextMenuType, Dimension } from "src/base/browser/secondary/contextMenu/contextMenu";
+import { CONTEXT_MENU_SERVICE } from 'src/code/workbench/service/contextMenuService';
 
 export class ActionBarContextMenu extends ContextMenu {
     
@@ -28,7 +29,9 @@ export class ActionBarContextMenu extends ContextMenu {
             } else {
                 actionButton!.style.display = 'none';
                 actionButtonContextMenu!.style.filter = 'invert(88%) sepia(73%) saturate(4498%) hue-rotate(184deg) brightness(128%) contrast(93%)';
-            } 
+            }
+            CONTEXT_MENU_SERVICE.removeContextMenu();
+ 
         })
     } 
 }
