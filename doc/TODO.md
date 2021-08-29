@@ -65,7 +65,7 @@ This todo list is currently maintained by Chris Li (@Bistard), Jody Zhou (@JodyZ
   * [x] editor
     * [x] ...
   * [x] titleBar
-    * [x] toolBar
+    * [x] functionBar
       * [ ] ...
     * [x] tabBar
       * [ ] tabBar will scroll to the new tab position
@@ -119,10 +119,10 @@ This todo list is currently maintained by Chris Li (@Bistard), Jody Zhou (@JodyZ
       * [x] max-btn
         * [x] max-btn switch to restoreBtn
         * [ ] holding onclick can change to mode 'always on top'
-    * [x] toolBarView
+    * [x] functionBarView
       * [x] UI
         * [x] modeSwitch
-        * [x] markdownToolBar
+        * [x] markdownfunctionBar
         * [x] tabBarView
           * [x] UI
             * [ ] good design - https://freefrontend.com/css-tab-bars/
@@ -200,7 +200,7 @@ This todo list is currently maintained by Chris Li (@Bistard), Jody Zhou (@JodyZ
         * [ ] folder.ts
         * [ ] markdown.ts
         * [ ] tabBar.ts
-        * [ ] toolBar.ts
+        * [ ] functionBar.ts
     * [ ] dispose pattern
     * [ ] base/browser/ui
       * [ ] resize.ts
@@ -224,4 +224,4 @@ This todo list is currently maintained by Chris Li (@Bistard), Jody Zhou (@JodyZ
 - [x] (2021.8.5) fix: supports all languages for code syntax highlight
 - [x] (2021.8.5) fix: chinese character display error 
 - [ ] fix: code highlight symbol render error
-- [ ] fix: markdown toolbar auto collapses
+- [ ] fix: markdown functionBar auto collapses

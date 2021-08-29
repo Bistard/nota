@@ -1,10 +1,8 @@
 import { Abortable } from 'events';
 import * as fs from 'fs';
 import * as Path from 'path';
-import { getFileType } from 'src/base/common/string';
+import { nameIncludeCheckWithRule, getFileType, pathJoin } from 'src/base/common/string';
 import { FileNode } from 'src/base/node/fileTree';
-
-export const CHAR_DIR_SEPARATOR = '/';
 
 /*******************************************************************************
  *                              file related code
@@ -20,22 +18,11 @@ export enum FileType {
 }
 
 export class MarkdownFile {
-
-    public readonly path: string;
-    public readonly name: string;
-    public readonly baseName: string;
     public plainText: string;
     
     public readonly type: FileType;
 
-    constructor(path: string,
-                name: string,
-                baseName: string,
-                plainText?: string
-    ) {
-        this.path = path;
-        this.name = name;
-        this.baseName = baseName;
+    constructor(baseName: string, plainText?: string) {
         this.plainText = plainText || '';
 
         this.type = getFileType(baseName);
@@ -52,25 +39,34 @@ export type readFileOption =
 
 export type readMarkdownFileOption = readFileOption;
 
+const defaultReadFileOpt: readMarkdownFileOption = {
+    encoding: 'utf-8',
+    flag: 'r'
+};
+
 /**
  * @description asynchronously reads a single .md file and stores the text into FileNode.
  */
-export async function readMarkdownFile(nodeInfo: FileNode, opt: readMarkdownFileOption): Promise<void | NodeJS.ErrnoException | string> {
+export async function readMarkdownFile(
+    nodeInfo: FileNode, 
+    opt: readMarkdownFileOption = defaultReadFileOpt): Promise<void | string> 
+{
     return new Promise((resolve, reject) => {
-        if (!nodeInfo) {
-            reject('wrong given nodeInfo');
-        } else if (!isMarkdownFile(nodeInfo.file.baseName)) {
-            reject('not markdown file');
+        
+        if (!nodeInfo || nodeInfo.isFolder) {
+            reject('given wrong nodeInfo or it is a folder');
+        } else if (!isMarkdownFile(nodeInfo.baseName)) {
+            reject('not a markdown file');
         }
 
-        fs.readFile(nodeInfo.file.path, opt, (err, text: string) => {
+        fs.readFile(nodeInfo.path, opt, (err, text: string) => {
             if (err) {
                 reject(err);
             }
-            nodeInfo.file.plainText = text;
+            nodeInfo.file!.plainText = text;
             resolve();
         });
-    })
+    });
 }
 
 /**
@@ -78,42 +74,45 @@ export async function readMarkdownFile(nodeInfo: FileNode, opt: readMarkdownFile
  * 
  * NOT RECOMMENDED TO USE THIS.
  */
- export function readMarkdownFileSync(nodeInfo: FileNode, opt: readMarkdownFileOption): void {
-    if (!nodeInfo) {
-        throw 'read .md file error';
-    } else if (!isMarkdownFile(nodeInfo.file.baseName)) {
+ export function readMarkdownFileSync(
+     nodeInfo: FileNode, 
+     opt: readMarkdownFileOption): void 
+{
+    if (!nodeInfo || nodeInfo.isFolder) {
+        throw 'given wrong nodeInfo or it is a folder';
+    } else if (!isMarkdownFile(nodeInfo.baseName)) {
         // do log here
         return;
     }
     
-    nodeInfo.file.plainText = fs.readFileSync(nodeInfo.file.path, opt);
+    nodeInfo.file!.plainText = fs.readFileSync(nodeInfo.path, opt);
 }
 
 /**
  * @description asynchronously saves .md file.
  */
-export async function saveMarkdownFile(nodeInfo: FileNode, newPlainText: string): Promise<void | NodeJS.ErrnoException> 
+export async function saveMarkdownFile(
+    nodeInfo: FileNode, 
+    newPlainText: string): Promise<void> 
 {
     return new Promise((resolve, reject) => {
-        if (nodeInfo !== undefined) {
+        if (nodeInfo !== undefined && !nodeInfo.isFolder) {
 
             let writeOption: fs.WriteFileOptions = {
                 encoding: 'utf-8',
                 flag: 'w'
             };
     
-            fs.writeFile(nodeInfo.file.path, newPlainText, writeOption, (err) => {
+            fs.writeFile(nodeInfo.path, newPlainText, writeOption, (err) => {
                 if (err) {
                     reject(err);
                 }
-                console.log('auto saved');
                 resolve();
             });
         } else {
-            console.log('auto saved but undefined');
-            resolve();
+            reject('given wrong nodeInfo or it is a folder');
         }
-    })
+    });
 }
 
 /**
@@ -121,7 +120,10 @@ export async function saveMarkdownFile(nodeInfo: FileNode, newPlainText: string)
  * 
  * @param path eg. D:\dev\AllNote
  */
-export async function isFileExisted(path: string, fileName: string): Promise<boolean | NodeJS.ErrnoException> {
+export async function isFileExisted(
+    path: string, 
+    fileName: string): Promise<boolean>
+{
     return new Promise((resolve, reject) => {
         fs.readdir(path, (err, files: string[]) => {
             if (err) {
@@ -132,10 +134,10 @@ export async function isFileExisted(path: string, fileName: string): Promise<boo
                 if (file == fileName) {
                     resolve(true);
                 }
-            })
+            });
             resolve(false);
-        })
-    })
+        });
+    });
 }
 
 /**
@@ -145,30 +147,52 @@ export async function isFileExisted(path: string, fileName: string): Promise<boo
  * @param fileName eg. log.json
  * @param content plainText ready to be written
  */
-export async function createFile(path: string, fileName: string, content?: string): Promise<void | NodeJS.ErrnoException> {
+export async function createFile(
+    path: string, 
+    fileName: string, 
+    content: string = ''): Promise<void> 
+{
     return new Promise((resolve, reject) => {
-        // write an empty content to the file
-        let text = content === undefined ? '' : content;
-        fs.writeFile(path + CHAR_DIR_SEPARATOR + fileName, text, (err) => {
+        fs.writeFile(pathJoin(path, fileName), content, (err) => {
             if (err) {
                 reject(err);
             }
             resolve();
-        })
-    })
+        });
+    });
 }
 
 /**
  * @description asynchronously reads the whole text from a general file.
+ * 
+ * @param path eg. D:\dev\AllNote
  */
- export function readFromFile(
-    path:string, 
-    opt: readFileOption, 
-    callback: (err: NodeJS.ErrnoException | null, data: string) => void
-): void 
+ export async function readFromFile(
+    path: string, 
+    opt: readFileOption = defaultReadFileOpt): Promise<string>
 {
-    fs.readFile(path, opt, callback);
+    return new Promise((resolve, reject) => {
+        fs.readFile(path, opt, (err, text: string) => {
+            if (err) {
+                reject(err);
+            }
+            resolve(text);
+        });
+    });
 }
+
+/**
+ * @description synchronously reads the whole text from a general file.
+ * 
+ * @param path eg. D:\dev\AllNote
+ */
+ export function readFromFileSync(
+    path: string, 
+    opt: readFileOption = defaultReadFileOpt): string
+{
+    return fs.readFileSync(path, opt);
+}
+
 
 /**
  * @description asynchronously writes to a file.
@@ -177,9 +201,27 @@ export async function createFile(path: string, fileName: string, content?: strin
  * @param fileName eg. log.json
  * @param content plainText ready to be written
  */
-export async function writeToFile(path: string, fileName: string, content: string): Promise<void | NodeJS.ErrnoException> 
+export async function writeToFile(
+    path: string, 
+    fileName: string, 
+    content: string): Promise<void> 
 {
     return createFile(path, fileName, content);
+}
+
+/**
+ * @description pass this function to JSON.stringify so that it is able to convert
+ * native 'Map' type to JSON file.
+ */
+export function mapToJsonReplacer(key: any, value: any) {
+    if (value instanceof Map) {
+        return {
+            dataType: 'Map',
+            value: Array.from(value.entries()), // or with spread: value: [...value]
+        };
+    } else {
+      return value;
+    }
 }
 
 /*******************************************************************************
@@ -191,16 +233,21 @@ export async function writeToFile(path: string, fileName: string, content: strin
  * 
  * @param path eg. D:\dev\AllNote
  * @param dirName eg. .mdnote
+ * @returns {string} the path to the new directory
  */
- export async function createDir(path: string, dirName: string): Promise<void | NodeJS.ErrnoException> {
+ export async function createDir(
+     path: string, 
+     dirName: string): Promise<string> 
+{
     return new Promise((resolve, reject) => {
-        fs.mkdir(path + CHAR_DIR_SEPARATOR + dirName, {recursive: true}, (err) => {
+        const newDir: string = pathJoin(path, dirName);
+        fs.mkdir(newDir, {recursive: true}, (err) => {
             if (err) {
                 reject(err);
             }
-            resolve();
-        })
-    })
+            resolve(newDir);
+        });
+    });
 }
 
 /**
@@ -209,6 +256,51 @@ export async function writeToFile(path: string, fileName: string, content: strin
  * @param path eg. D:\dev\AllNote
  * @param dirName eg. .mdnote
  */
- export async function isDirExisted(path: string, dirName: string): Promise<boolean | NodeJS.ErrnoException> {
+ export async function isDirExisted(
+     path: string, 
+     dirName: string): Promise<boolean> 
+{
     return isFileExisted(path, dirName);
 }
+
+/**
+ * @description asynchronously read each file/dir in the given path, filters out
+ * a result with given exclude/include rules.
+ * 
+ * @param path rootdir, eg. D:\dev\AllNote
+ * @param excludes array of folders/files to be excluded
+ * @param includes array of folders/files to be included
+ * @returns 
+ */
+export async function dirFilter(
+    path: string, 
+    noteBookManagerExclude: string[] = [], 
+    noteBookManagerInclude: string[] = []): Promise<string[]> 
+{
+    let acceptableTarget: string[] = [];
+    return new Promise((resolve, reject) => {
+        fs.readdir(path, {withFileTypes: true}, (err, dirEntries: fs.Dirent[]) => {
+            if (err) {
+                reject(err);
+            }
+
+            for (let dirEntry of dirEntries) {
+                
+                if (dirEntry.isDirectory()) {
+                    
+                    // ignores the excluded directory
+                    if (!nameIncludeCheckWithRule(dirEntry.name, noteBookManagerInclude) && 
+                        nameIncludeCheckWithRule(dirEntry.name, noteBookManagerExclude))
+                    {
+                        continue;
+                    }
+                    acceptableTarget.push(dirEntry.name);
+                } else {
+                    // currently, there is no need to parser file in the rootdir
+                }
+            };
+            
+            resolve(acceptableTarget);
+        });
+    })
+} 

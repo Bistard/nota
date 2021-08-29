@@ -9,3 +9,7 @@
 ### Checklist
 
 - [ ] Have you fully tested your branch locally?
+
+### Screenshots
+
+> If applicable

@@ -1,59 +1,49 @@
-import { TreeNodeType } from 'mdnote';
-import { FileTree, FileNode } from 'src/base/node/fileTree';
-import { TreeNodesType } from 'mdnote';
-import { domNodeByIdAddListener, ipcRendererOn, ipcRendererSend } from 'src/base/ipc/register';
+import { FileNode } from 'src/base/node/fileTree';
+import { domNodeByIdAddListener, ipcRendererOn, ipcRendererSend } from 'src/base/electron/register';
 import { Component } from 'src/code/workbench/browser/component';
 import { ActionViewComponentType } from 'src/code/workbench/browser/actionView/actionView';
 import { IRegisterService } from 'src/code/workbench/service/registerService';
-import { IEventEmitter } from 'src/base/common/event';
-import { readMarkdownFile, readMarkdownFileOption } from 'src/base/node/file';
-import { NoteBookManager } from 'src/code/common/notebookManger';
+import { EVENT_EMITTER } from 'src/base/common/event';
+import { NoteBookManager } from 'src/code/common/model/notebookManger';
 
 /**
- * @description ExplorerViewComponent 
+ * @description TODO: complete comments
  */
 export class ExplorerViewComponent extends Component {
 
-    public fileTree: FileTree;
-    private _eventEmitter: IEventEmitter;
-
-    public isFolderOpened: boolean;
-    public treeNodeCount: number;
+    private _noteBookManager: NoteBookManager;
 
     public resizeX: number;
 
-    constructor(registerService: IRegisterService,
-                _eventEmitter: IEventEmitter
-    ) {
-        super(ActionViewComponentType.ExplorerView, registerService);
-        
-        this._eventEmitter = _eventEmitter;
-        this.fileTree = new FileTree();
+    public fileTreeContainer: HTMLElement = document.createElement('div');
+    public emptyFolderTag: HTMLElement = document.createElement('div');
 
-        this.isFolderOpened = false;
-        this.treeNodeCount = 0;
+    constructor(parent: HTMLElement,
+                registerService: IRegisterService,
+                _noteBookManger: NoteBookManager
+    ) {
+        super(ActionViewComponentType.ExplorerView, parent, registerService);
+        
+        this._noteBookManager = _noteBookManger;
 
         // this variable is to store the x-coordinate of the resizeBar in the explorer view
         this.resizeX = 0;
     }
 
     protected override _createContainer(): void {
-        this.parent.appendChild(this.container);
         // customize...
         this._createContentArea();
     }
 
     protected override _createContentArea(): void {
-        const tree = document.createElement('div');
-        tree.id = 'tree';
+        this.fileTreeContainer.id = 'fileTree-container';
         
-        const emptyFolderTag = document.createElement('div');
-        emptyFolderTag.id = 'emptyFolderTag';
-        emptyFolderTag.innerHTML = 'open a folder';
-        emptyFolderTag.classList.add('vertical-center', 'funcText');
+        this.emptyFolderTag.id = 'emptyFolderTag';
+        this.emptyFolderTag.innerHTML = 'open a folder';
+        this.emptyFolderTag.classList.add('vertical-center', 'funcText');
 
-        this.container.appendChild(tree);
-        this.container.appendChild(emptyFolderTag);
+        this.container.appendChild(this.fileTreeContainer);
+        this.container.appendChild(this.emptyFolderTag);
     }
 
     protected override _registerListeners(): void {
@@ -75,201 +65,60 @@ export class ExplorerViewComponent extends Component {
 
         domNodeByIdAddListener('emptyFolderTag', 'click', () => {
             ipcRendererSend('openDir');
-        })
+        });
 
         /**
          * set openDir listener to get response back from main.js.
          * eg. D:\dev\AllNote
          */
         ipcRendererOn('openDir', (_event, path, _stat) => {
-            // DEBUG: remove
-            const nbm = new NoteBookManager(path);
-            nbm.init();
-            this.openDirecory(path);
+            this.openNoteBookManager(path);
         });
         
         // folder view resizeBar listeners
-        // TODO: complete
         const resize = document.getElementById("resize") as HTMLElement;
         resize.addEventListener("mousedown", (event) => {
             this.resizeX = event.x;
-            document.addEventListener("mousemove", this.resizeContentView, false);
-        })
+            document.addEventListener("mousemove", this._resizeView, false);
+        });
 
         document.addEventListener("mouseup", () => {
-            document.removeEventListener("mousemove", this.resizeContentView, false);
-        })
+            document.removeEventListener("mousemove", this._resizeView, false);
+        });
+
+        // not used for now
+        EVENT_EMITTER.register('EFileOnClick', (nodeInfo: FileNode) => FileNode.fileOnClick(nodeInfo));
+        EVENT_EMITTER.register('EFolderOnClick', (nodeInfo: FileNode) => FileNode.folderOnClick(nodeInfo));
+
+        EVENT_EMITTER.register('EOpenNoteBookManager', (path: string) => this.openNoteBookManager(path));
+
+
+        domNodeByIdAddListener('explorer-container', 'contextmenu', (event) => {
+            event.preventDefault();
+            ipcRendererSend('showContextMenuExplorer');
+        });
     }
 
     /**
-     * @description warpper function for displayTree().
-     */
-    public displayFolderTree(root: FileNode): void {
-        let current = this.insertNode($('#tree'), root, 'root') as HTMLElement;
-        this.displayTree(current, root.nodes as TreeNodesType);
-    }
-
-    /**
-     * @description recursively display the whole folder tree.
-     */
-    public displayTree(parent: HTMLElement, tree: TreeNodesType): void {
-        for (const [/* name */, node] of Object.entries(tree)) {
-            if (node.isFolder) {
-                let current = this.insertNode(parent, node, 'folder') as HTMLElement;
-                this.displayTree(current, node.nodes as TreeNodesType)
-            } else {
-                this.insertNode(parent, node, 'file')
-            }
-        }
-    }
-
-    /**
-     * @description Initializes a new foler/file node of HTMLElement and inserts
-     * into the given parent.
-     */
-    public insertNode(parent: JQuery<HTMLElement> | HTMLElement, nodeInfo: FileNode, state: TreeNodeType): HTMLElement {
-        let element: HTMLElement;
-        if (state == 'root' || state == 'folder') {
-            element = document.createElement('ul');
-        } else {
-            element = document.createElement('li');
-        }
-        
-        element.classList.add('node');
-        element.setAttribute('nodeNum', this.treeNodeCount.toString());
-        this.treeNodeCount++;
-
-        const text = document.createElement('li');
-        text.classList.add('node-text');
-        text.innerHTML = nodeInfo.file.name;
-        
-        if (state == 'file') {
-            element.classList.add('node-file');
-            text.classList.add('file-icon');
-        } else if (state == 'folder' || state == 'root') {
-            if (state == 'folder') {
-                element.classList.add('node-folder');
-            } else {
-                element.classList.add('node-root');
-                text.classList.add('node-root-text');
-            }
-            
-            if (nodeInfo.isExpand) {
-                text.classList.add('folder-icon-expand');
-            } else {
-                text.classList.add('folder-icon-collapse');
-            }  
-        }
-        
-        element.append(text);
-        parent.append(element);
-        return element;
-    }
-
-    /**
-     * @description Expands or collapses folder in the folder view.
+     * @description display the noteBookManger.
      * 
-     * @param {JQuery} element 
-     * @param {boolean} shouldExpand 
-     * @returns {void} void
-     */
-    public expandOrCollapseFolder(element: JQuery, shouldExpand: boolean): void {
-        if (shouldExpand) {
-            element.removeClass('folder-icon-collapse')
-            element.addClass('folder-icon-expand')
-            element.each(function() {
-                element.nextAll().each(function() {
-                    $(this).show(0)
-                })
-            })
-        } else {
-            element.addClass('folder-icon-collapse')
-            element.removeClass('folder-icon-expand')
-            element.each(function() {
-                element.nextAll().each(function() {
-                    $(this).hide(0)
-                })
-            })
-        }
-    }
-
-    /**
-     * @description wrapper function for left clicking a folder.
+     * function will be called when 'openDir' message is sended from the main thread.
      * 
-     * @param {JQuery} element 
-     * @param {FileNode} nodeInfo 
-     * @returns {void} void
+     * @param path eg. D:\dev\AllNote
      */
-    folderOnClick(element: JQuery, nodeInfo: FileNode): void {
-        (nodeInfo.isExpand as any) ^= 1;
-        this.expandOrCollapseFolder(element, nodeInfo.isExpand);
-    }
-
-    /**
-     * @description wrapper function for left clicking a file.
-     */
-    // FIX: when open a new or existed file, auto-save will be emit (write the exact same content to the original file)
-    // TODO: currently disable relevant codes with tabBarComponent, more features should be added here
-    fileOnClick(element: JQuery<HTMLElement>, nodeInfo: FileNode): void {
-        
-        this.focusFileWhenLeftClick(nodeInfo);
-        
-        let readOption: readMarkdownFileOption = {
-            encoding: 'utf-8',
-            flag: 'r'
-        };
-
-        readMarkdownFile(nodeInfo, readOption).then(() => {
-            this._eventEmitter.emit('EMarkdownDisplayFile', nodeInfo);
-        }).catch(err => {
-            // do log here
+    public async openNoteBookManager(path: string): Promise<void> {
+        try {
+            await this._noteBookManager.open(path);
+            this.container.removeChild(this.emptyFolderTag);
+        } catch(err) {
             throw err;
-        })
-    }
-
-    /**
-     * @description display focus on the given tab.
-     * 
-     * @param {FileNode} nodeInfo 
-     * @returns {void} void
-     */
-    focusFileWhenLeftClick(nodeInfo: FileNode): void {
-        // TODO: complete
-    }
-
-    /**
-     * @description Opennign a directory and it does the following things:
-     *  - displays the whole folder tree.
-     *  - set each FileNode a click listeners.
-     *  - if clicked, check if is foler or file, calls the corresponding click function.
-     */
-    public openDirecory(path: string): void {
-        this.isFolderOpened = true;
-        this.fileTree.createFolderTree(path, 0);
-        this.fileTree.createFolderTreeList(this.fileTree.tree as FileNode);
-
-        // remove later
-        const treeContainer = document.getElementById('explorer-container') as HTMLElement;
-        const emptyFolderTag = document.getElementById('emptyFolderTag') as HTMLElement;
-        treeContainer.removeChild(emptyFolderTag);
-        this.displayFolderTree(this.fileTree.tree as FileNode);
-
-        $('.node-text').on('click', { explorerViewClass: this }, function (event) {
-            let that = event.data.explorerViewClass;
-            let nodeNum = (this.parentNode as HTMLElement).getAttribute('nodeNum') as string;
-            let nodeInfo = that.fileTree.treeList[parseInt(nodeNum)] as FileNode;
-            if (nodeInfo.isFolder) {
-                that.folderOnClick($(this), nodeInfo);
-            } else { 
-                that.fileOnClick($(this), nodeInfo);
-            }
-        })
+        }
     }
 
     /**
      * @description callback functions for resize folder view.
      */
-    public resizeContentView(event: MouseEvent): void {
+    private _resizeView(event: MouseEvent): void {
 
         // minimum width for folder view to be resized
         if (event.x < 200) {

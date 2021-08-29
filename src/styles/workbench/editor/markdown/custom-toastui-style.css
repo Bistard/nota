@@ -1,0 +1,109 @@
+/*//////////////////////// CUSTOM TOASTUI EDITOR UI //////////////////////////*/
+
+.toastui-editor-defaultUI {
+    border-radius: 0px;
+    border: 0px solid transparent;
+}
+
+.toastui-editor-defaultUI .ProseMirror,
+.toastui-editor-defaultUI .toastui-editor-contents {
+    padding: 0 10%;
+    padding-top: 40px;
+}
+
+.ProseMirror,
+.toastui-editor-md-preview,
+.toastui-editor-contents {
+    font-family: 'Microsoft Yahei', '微软雅黑', 'Open Sans', 'Helvetica Neue', 'Helvetica', 'Arial', '나눔바른고딕', 'Nanum Barun Gothic', '맑은고딕', 'Malgun Gothic', sans-serif;
+    font-size: 16px;
+    color: #333;
+    font-weight: lighter;
+
+    /* animation scrollBar */
+    color: rgba(0, 0, 0, 0);
+    text-shadow: 0 0 rgb(0, 0, 0);
+    transition: color 0.2s ease;
+}
+
+.toastui-editor-md-code-block-line-background,
+.toastui-editor-contents pre,
+.toastui-editor-contents code {
+    font-family: 'Consolas', 'Microsoft Yahei', '微软雅黑', 'Open Sans', 'Helvetica Neue', 'Helvetica', 'Arial', '나눔바른고딕', 'Nanum Barun Gothic', '맑은고딕', 'Malgun Gothic', sans-serif;
+}
+
+.ProseMirror:hover,
+.toastui-editor-md-preview:hover,
+.toastui-editor-contents:hover {
+    /* should matches text-shadow */
+    color: rgba(0, 0, 0, 0.2);
+}
+
+.ProseMirror::-webkit-scrollbar,
+.ProseMirror::-webkit-scrollbar-thumb,
+.toastui-editor-md-preview::-webkit-scrollbar,
+.toastui-editor-md-preview::-webkit-scrollbar-thumb,
+.toastui-editor-contents::-webkit-scrollbar, 
+.toastui-editor-contents::-webkit-scrollbar-thumb {
+    width: 12px;
+    /* border-radius: 4px; */
+    background-clip: border-box;
+}
+
+.ProseMirror::-webkit-scrollbar-thumb,
+.toastui-editor-md-preview::-webkit-scrollbar-thumb,
+.toastui-editor-contents::-webkit-scrollbar-thumb {
+    box-shadow: inset 0 0 0 10px;
+}
+
+.ProseMirror::-webkit-scrollbar-thumb:active,
+.toastui-editor-md-preview::-webkit-scrollbar-thumb:active,
+.toastui-editor-contents::-webkit-scrollbar-thumb:active {
+    color: rgba(0, 0, 0, 0.3);
+}
+
+.toastui-editor-contents h1 {
+    font-size: 34px;
+    line-height: 38px;
+    border-bottom: 0.03em solid rgb(214, 214, 214);
+}
+
+.toastui-editor-contents h2 {
+    font-size: 30px;
+    line-height: 31px;
+}
+
+.toastui-editor-contents h3 {
+    font-size: 28px;
+    line-height: 25px;
+}
+
+.toastui-editor-contents h4 {
+    font-size: 25px;
+    line-height: 25px;
+}
+
+.toastui-editor-contents h5 {
+    font-size: 22px;
+    line-height: 20px;
+}
+
+.toastui-editor-contents h6 {
+    font-size: 20px;
+    line-height: 20px;
+}
+
+.toastui-editor-contents .operator {
+    background: none;
+}
+
+.toastui-editor-defaultUI-toolbar {
+    background-color: white;
+}
+
+.toastui-editor-defaultUI-toolbar button {
+    border: 1px solid white;
+}
+
+.toastui-editor-dropdown-toolbar {
+    background-color: white;
+}

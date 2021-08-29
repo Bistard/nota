@@ -1,8 +1,14 @@
-const OS = require('os')
-const path = require('path')
+import { IActionBarOptions } from "src/code/workbench/browser/actionBar/actionBar";
 
+<<<<<<< HEAD
 const { BrowserWindow, ipcMain, app, dialog, Menu } = require('electron')
 const ElectronLocalshortcut = require('electron-localshortcut')
+=======
+import * as Path from'path';
+
+import { BrowserWindow, ipcMain, app, dialog, Menu } from 'electron';
+import * as ElectronLocalshortcut from 'electron-localshortcut';
+>>>>>>> master
 
 /**
  * @description main electron startup class, instantiates at end of the file.
@@ -32,8 +38,9 @@ class Main {
                 webPreferences: {
                     nodeIntegration: true,
                     contextIsolation: false,
+                    enableRemoteModule: true,
                     devTools: true,
-                    preload: path.join(__dirname, 'preload.js'),
+                    preload: Path.join(__dirname, 'preload.js'),
                 },
                 resizable: true,
                 show: false,
@@ -53,25 +60,30 @@ class Main {
             // loads index.html first and displays when ready
             this.winMain.loadFile('./index.html');
             this.winMain.webContents.on('did-finish-load', () => {
+                
+                // send app path to the renderer process
+                this.winMain!.webContents.send('get-app-path', app.getAppPath());
+                
+                // display window
                 this.winMain!.show();
-            })
+            });
 
             // titleBar listeners
             this.winMain.on('maximize', () => {
                 this.winMain!.webContents.send('isMaximized');
-            })
+            });
 
             this.winMain.on('unmaximize', () => {
                 this.winMain!.webContents.send('isRestored');
-            })
+            });
 
             this.winMain.on('closed', () => {
                 this.winMain = null;
-            })
+            });
 
             ipcMain.on('minApp', () => {
                 this.winMain!.minimize();
-            })
+            });
 
             ipcMain.on('maxResApp', () => {
                 if (this.winMain!.isMaximized()) {
@@ -79,12 +91,61 @@ class Main {
                 } else {
                     this.winMain!.maximize();
                 }
-            })
+            });
 
+            // notify the renderer process before actual closing
             ipcMain.on('closeApp', () => {
-                this.winMain!.close();
-            })
+                this.winMain!.webContents.send('closingApp');
+            });
 
+            // once renderer process is ready, we do the actual closing
+            ipcMain.on('rendererReadyForClosingApp', () => {
+                this.winMain!.close();
+            });
+            
+            ipcMain.on('showContextMenuEditor', () => {
+                const template: Electron.MenuItemConstructorOptions[] = [
+                    {role: 'editMenu'},
+                    {label: 'Inspect', role: 'toggleDevTools'}
+                ];
+                Menu.buildFromTemplate(template).popup();
+             });
+ 
+            ipcMain.on('showContextMenuExplorer', () => {
+
+                const template: Electron.MenuItemConstructorOptions[] = [
+                    {label: 'New File'},
+                    {label: 'New Folder'},
+                    {type: 'separator'},
+                    {label: 'Copy', role:'copy'},
+                    {label: 'Paste', role: 'paste'},
+                    {label: 'Cut', role: 'cut'},
+                    {type: 'separator'},
+                    {label: 'Rename'},
+                    {label: 'Delete'},
+                ];
+                Menu.buildFromTemplate(template).popup();
+            });
+
+            /**
+             * @readonly responses to the listener from actionBarComponent
+             */
+            ipcMain.on('showContextMenuActionBar', (_event, actionBarOpts: IActionBarOptions) => {
+                
+                const template: Electron.MenuItemConstructorOptions[] = [
+                    {label: 'File Explorer', type: 'checkbox', checked: actionBarOpts.options[0],    
+                        click: () => { this.winMain!.webContents.send('context-menu-command', actionBarOpts, "explorer-button", 0); }},
+                    {label: 'Outline', type: 'checkbox', checked: actionBarOpts.options[1], 
+                        click: () => { this.winMain!.webContents.send('context-menu-command', actionBarOpts, "outline-button", 1); }},
+                    {label: 'Search', type: 'checkbox', checked: actionBarOpts.options[2],
+                        click: () => { this.winMain!.webContents.send('context-menu-command', actionBarOpts, "search-button", 2); }},
+                    {label: 'Git', type: 'checkbox', checked: actionBarOpts.options[3], 
+                        click: () => { this.winMain!.webContents.send('context-menu-command', actionBarOpts, "git-button", 3); }},
+                ];
+
+                Menu.buildFromTemplate(template).popup();
+            });
+            
             // response to FolderModule, default path is 'desktop' and only can
             // open directory.
             ipcMain.on('openDir', () => {
@@ -109,7 +170,7 @@ class Main {
                         this.winMain!.webContents.send('openDir', rootdir);
                     }
                 })
-            })
+            });
 
            ipcMain.on('showContextMenu', () => {
                //this.winMain!.webContents.send('showContextMenu')
@@ -155,9 +216,9 @@ class Main {
             // only for testing purpose, can be removed in release version
             ipcMain.on('test', (_event, data) => {
                 console.log(data);
-            })
+            });
 
-        })
+        });
     }
 
     /**
@@ -165,6 +226,7 @@ class Main {
      * funcitons to handle responses or register shortcuts.
      */
     private _setListeners(): void {
+        
         /**
          * @readonly comments for now, not convinent for develop.
          */
@@ -179,7 +241,7 @@ class Main {
             if (BrowserWindow.getAllWindows().length === 0) {
                 this.createWindow();
             }
-        })
+        });
 
         // Quit when all windows are closed, except on macOS. There, it's common
         // for applications and their menu bar to stay active until the user 
@@ -188,7 +250,7 @@ class Main {
             if (process.platform !== 'darwin') {
                 app.quit();
             }
-        })
+        });
 
         // Setting local shortcuts. Many thanks to ElectronLocalshortcut library
         app.whenReady().then(() => {
@@ -230,7 +292,7 @@ class Main {
             // close the current focused tab
             ElectronLocalshortcut.register(this.winMain, 'Ctrl+W', () => {
                 this.winMain!.webContents.send('Ctrl+W')
-            })
+            });
 
             // save the current changes to the current focused tab
             ElectronLocalshortcut.register(this.winMain, 'Ctrl+S', () => {

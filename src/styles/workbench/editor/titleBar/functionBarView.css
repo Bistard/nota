@@ -1,4 +1,4 @@
-#tool-bar {
+#function-bar {
     position: relative;
     height: 40px;
     width: 100%;
@@ -9,7 +9,7 @@
     -webkit-app-region: drag; /* draggable */
 }
 
-#tool-bar-container {
+#function-bar-container {
     position: relative;
     height: 40px;
     width: auto;
@@ -19,34 +19,30 @@
     
 }
 
-.tool-button,
+.function-button,
 #expand-collapse {
     width: 40px;
     height: 40px;
     -webkit-app-region: no-drag;
 }
 
-.tool-button:hover {
-    background-color: rgb(230, 230, 230);
+.function-button:hover {
+    filter: invert(15%) sepia(100%) saturate(2427%) hue-rotate(343deg) brightness(112%) contrast(97%);
 }
 
-.tool-button:active {
-    background-color: rgb(245, 245, 245);
+.function-button:active {
+    filter: invert(35%) sepia(100%) saturate(2427%) hue-rotate(343deg) brightness(112%) contrast(97%);
 }
 
-.tool-button-focus {
-    background-color: rgb(230, 230, 230);
+.function-button-focus {
+    filter: invert(15%) sepia(100%) saturate(2427%) hue-rotate(343deg) brightness(112%) contrast(97%);
 }
 
-.tool-button > img,
+.function-button > img,
 #expand-collapse > img {
     display: block;
     margin-left: auto;
     margin-right: auto;
     width: 20px;
     height: 20px;
-}
-
-#mode-switch {
-
 }

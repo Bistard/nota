@@ -8,24 +8,25 @@
 @import "../../node_modules/@toast-ui/editor-plugin-color-syntax/dist/toastui-editor-plugin-color-syntax.css";
 
 @import "./common.css";
-@import "./actionBar/actionBar.css";
-@import "./actionView/actionView.css";
-@import "./actionView/explorer/explorerView.css";
-@import "./actionView/explorer/fileTree.css";
-@import "./actionView/outline/outlineView.css";
-@import "./editor/titleBar/titleBarView.css";
-@import "./editor/titleBar/toolBarView.css";
-@import "./editor/titleBar/tabBarView.css";
-@import "./editor/titleBar/windowBarView.css";
-@import "./editor/editor.css";
-@import "./editor/markdown/markdownView.css";
-@import "./editor/markdown/custom-toastui-style.css";
+@import "./workbench/actionBar/actionBar.css";
+@import "./workbench/actionView/actionView.css";
+@import "./workbench/actionView/explorer/explorerView.css";
+@import "./workbench/actionView/explorer/fileTree.css";
+@import "./workbench/actionView/outline/outlineView.css";
+@import "./workbench/editor/editor.css";
+@import "./workbench/editor/titleBar/titleBarView.css";
+@import "./workbench/editor/titleBar/functionBarView.css";
+@import "./workbench/editor/titleBar/tabBarView.css";
+@import "./workbench/editor/titleBar/windowBarView.css";
+@import "./workbench/editor/markdown/markdownView.css";
+@import "./workbench/editor/markdown/custom-toastui-style.css";
 
 body {
     margin: 0px;
     padding: 0px;
     font-size: 10pt;
     background-color: white;
+    font-family: 'Microsoft Yahei', '微软雅黑', 'Open Sans', 'Helvetica Neue', 'Helvetica', 'Arial', '나눔바른고딕', 'Nanum Barun Gothic', '맑은고딕', 'Malgun Gothic', sans-serif;
 }
 
 img {
@@ -45,4 +46,22 @@ img {
     height:100vh;
     overflow: hidden;
     box-sizing: border-box;
+}
+
+#contextMenu {
+    position: absolute;
+    width: auto;
+    min-width: 197px;
+    color: #333;
+    box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.08);
+    z-index: 100;
+    padding: 5px 0;
+    background-color:#F5F5F5;
+    border-radius: 10px;
+    cursor: pointer;
+}
+
+*::selection {
+    text-shadow: none;
+    background: #b3d4fc;
 }

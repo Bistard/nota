@@ -20,30 +20,31 @@ import 'prismjs/components/prism-java';
 import colorSyntax from '@toast-ui/editor-plugin-color-syntax';
 import { ConfigModule } from 'src/base/config';
 import { FileNode } from 'src/base/node/fileTree';
-import { ipcRendererOn, ipcRendererSend, domNodeByIdAddListener } from 'src/base/ipc/register';
 import { Component } from 'src/code/workbench/browser/component';
 import { IRegisterService } from 'src/code/workbench/service/registerService';
-import { IEventEmitter } from 'src/base/common/event';
-import { saveMarkdownFile } from 'src/base/node/file';
+import { EVENT_EMITTER } from 'src/base/common/event';
+import { MarkdownRenderMode } from 'mdnote';
+import { getSvgPathByName, SvgType } from 'src/base/common/string';
+import { domNodeByIdAddListener, ipcRendererSend } from 'src/base/electron/register';
 
 /**
  * @description MarkdownComponent initializes markdown renderer and windows and
  * handling a few other shortcuts as well.
  */
 export class MarkdownComponent extends Component {
-    
-    private _eventEmitter: IEventEmitter;
 
     private editor: Editor | null;
     private saveFileTimeout: NodeJS.Timeout | null;
     private colorSyntaxOptions: any;
 
-    constructor(registerService: IRegisterService,
-                _eventEmitter: IEventEmitter
-    ) {
-        super('markdown', registerService);
+    private mode: MarkdownRenderMode;
 
-        this._eventEmitter = _eventEmitter;
+    constructor(parent: HTMLElement,
+                registerService: IRegisterService) {
+        super('markdown', parent, registerService);
+
+        this.mode = ConfigModule.Instance.defaultMarkdownMode;
+        
         this.editor = null;
         
         /**
@@ -95,13 +96,13 @@ export class MarkdownComponent extends Component {
         })
 */
         // spellcheck config check
-        if (!ConfigModule.markdownSpellCheckOn) {
+        if (!ConfigModule.Instance.markdownSpellCheckOn) {
             const markdown = document.getElementById('markdown') as HTMLElement;
             markdown.setAttribute('spellcheck', 'false');
         }
 
-        this._eventEmitter.register('EMarkdownDisplayFile', (nodeInfo: FileNode) => this.markdownDisplayFile(nodeInfo));
-        
+        EVENT_EMITTER.register('EMarkdownDisplayFile', (nodeInfo: FileNode) => this.markdownDisplayFile(nodeInfo));
+        EVENT_EMITTER.register('EMarkdownModeSwitch', () => this.markdownModeSwitch());
         // ipcRendererOn('Ctrl+S', () => {
         //     if (!this.explorerViewComponent.TabBar.emptyTab) {
         //         if (this.saveFileTimeout) {
@@ -110,6 +111,26 @@ export class MarkdownComponent extends Component {
         //         this.markdownSaveFile();
         //     }
         // })
+
+        /**
+         * @readonly registers right click menu listeners
+         */
+        domNodeByIdAddListener('markdown', 'contextmenu', (event) => {
+            event.preventDefault();
+            const element = event.target as HTMLElement;
+            const tagName = element.tagName;
+            const parentElement = element.parentElement?.tagName;
+            const menu = document.querySelector(".toastui-editor-context-menu") as HTMLElement;
+           // if (tagName == 'TD' || tagName == 'TH' || parentElement == 'TD' || parentElement == 'TH' ) {
+            if (tagName == 'TD' || tagName == 'TH') {
+                // console.log('Chart Context Menu');
+            }else if (tagName == 'P') {
+                menu.style.display = 'none';
+                ipcRendererSend('showContextMenuEditor');
+            } else {
+                ipcRendererSend('showContextMenuEditor');     
+            }
+        });
     }
 
     /**
@@ -171,7 +192,7 @@ export class MarkdownComponent extends Component {
      * @description callback function for 'editor.event.change'.
      */
     public onTextChange(): void {
-        if (ConfigModule.fileAutoSaveOn) {
+        if (ConfigModule.Instance.fileAutoSaveOn) {
             // if content is changed before the previous timeout has reached, 
             // clear the preivous one.
             if (this.saveFileTimeout) {
@@ -194,10 +215,30 @@ export class MarkdownComponent extends Component {
             return;
         }
 
-        if (nodeInfo) {
-            this.editor.setMarkdown(nodeInfo.file.plainText, false);
+        if (nodeInfo && !nodeInfo.isFolder) {
+            this.editor.setMarkdown(nodeInfo.file!.plainText, false);
         } else {
             this.editor.setMarkdown('', false);
+        }
+    }
+
+    /**
+     * @description change the mode of markdown renderering method. They are 
+     * 'wysiwyg', 'instant' and 'split'.
+     */
+     public markdownModeSwitch(): void {
+        if (this.mode == 'wysiwyg') {
+            $('#mode-switch').removeClass('function-button-focus');
+            $('#mode-switch > img').attr('src', getSvgPathByName(SvgType.base, 'md-split'));
+            this.editor!.changeMode('markdown', true);
+            this.mode = 'split';
+        } else if (this.mode == 'instant') {
+            // ...
+        } else { // (mode == 'split')
+            $('#mode-switch').addClass('function-button-focus');
+            $('#mode-switch > img').attr('src', getSvgPathByName(SvgType.base, 'md-wysiwyg'));
+            this.editor!.changeMode('wysiwyg', true);
+            this.mode = 'wysiwyg';
         }
     }
     

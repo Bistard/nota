@@ -3,9 +3,10 @@ import * as fs from 'fs';
 import { WriteFileOptions } from 'original-fs';
 import { ConfigModule } from 'src/base/config';
 import { FileNode } from 'src/base/node/fileTree';
-import { ipcRendererOn, ipcRendererSendTest } from 'src/base/ipc/register';
+import { ipcRendererOn, ipcRendererSendTest } from 'src/base/electron/register';
 import { Component } from 'src/code/workbench/browser/component';
 import { IRegisterService } from 'src/code/workbench/service/registerService';
+import { EditorComponentType } from 'src/code/workbench/browser/editor/editor';
 
 /**
  * @description TabBarComponent stores all the opened tabs data and handles all the 
@@ -20,8 +21,9 @@ export class TabBarComponent extends Component {
     public openedTabInfo: FileNode[];
     currFocusTabIndex: number;
 
-    constructor(registerService: IRegisterService) {
-        super('tab-bar', registerService);
+    constructor(parent: HTMLElement,
+                registerService: IRegisterService) {
+        super(EditorComponentType.tabBar, parent, registerService);
 
         this.emptyTab = true;
         this.openedTabCount = 0;
@@ -93,7 +95,7 @@ export class TabBarComponent extends Component {
         // loop to search if the tab is existed or not
         let i = 0;
         for (i = 0; i < this.openedTabCount; i++) {
-            if (nodeInfo.file.path == (this.openedTabInfo[i] as FileNode).file.path) {
+            if (nodeInfo.path == (this.openedTabInfo[i] as FileNode).path) {
                 // tab exists
                 return [true, i, this.contentArea!.childNodes[i] as HTMLElement];
             }
@@ -106,7 +108,7 @@ export class TabBarComponent extends Component {
         
         newTab.classList.add('tab');
         tabText.classList.add('tab-text');
-        tabText.innerHTML = nodeInfo.file.name;
+        tabText.innerHTML = nodeInfo.name;
         tabCloseIcon.classList.add('tab-close-icon');
         tabCloseIcon.classList.add('vertical-center');
 
@@ -172,8 +174,8 @@ export class TabBarComponent extends Component {
     public displayTab(nodeInfo: FileNode | null): void {
         // setMarkdown() will emit Editor.event.change callback
         // ipcRenderer.send('test', 'setMarkdown()')
-        if (nodeInfo) {
-            ((window as any).editor as Editor).setMarkdown(nodeInfo.file.plainText, false);
+        if (nodeInfo && !nodeInfo.isFolder) {
+            ((window as any).editor as Editor).setMarkdown(nodeInfo.file!.plainText, false);
         } else {
             ((window as any).editor as Editor).setMarkdown('', false);
         }
@@ -191,7 +193,7 @@ export class TabBarComponent extends Component {
         this.contentArea!.removeChild(element);
 
         // save current change immediately
-        if (ConfigModule.fileAutoSaveOn) {
+        if (ConfigModule.Instance.fileAutoSaveOn) {
             /**
              * TODO: currently, written texts are from nodeInfo.plainText. If we decide to use 
              * mutiple threads for each tab, the texts should read from window.editor.getMarkdown()
@@ -202,7 +204,7 @@ export class TabBarComponent extends Component {
                 flag: 'w'
             };
             // FIX: shouldn't be nodeInfo.plainText, 
-            fs.writeFile(nodeInfo.file.path, nodeInfo.file.plainText, writeOption, (err) => {
+            fs.writeFile(nodeInfo.path, nodeInfo.file!.plainText, writeOption, (err) => {
                 if (err) {
                     throw err;
                 }
@@ -212,7 +214,7 @@ export class TabBarComponent extends Component {
             // pop up a warning window
             // TODO: complete
         }
-        nodeInfo.file.plainText = '';
+        nodeInfo.file!.plainText = '';
         let index = this.openedTabInfo.indexOf(nodeInfo);
         this.openedTabInfo.splice(index, 1);
         

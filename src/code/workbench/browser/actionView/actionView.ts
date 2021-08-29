@@ -1,8 +1,10 @@
-import { getSvgPathByName } from 'src/base/common/string';
+import { getSvgPathByName, SvgType } from 'src/base/common/string';
 import { Component, ComponentType } from 'src/code/workbench/browser/component';
 import { IRegisterService } from 'src/code/workbench/service/registerService';
 import { ExplorerViewComponent } from "src/code/workbench/browser/actionView/explorer/explorer";
-import { IEventEmitter } from 'src/base/common/event';
+import { EVENT_EMITTER } from 'src/base/common/event';
+import { NoteBookManager } from 'src/code/common/model/notebookManger';
+import { domNodeByIdAddListener } from 'src/base/electron/register';
 
 export type ActionViewType = 'none' | 'explorer' | 'outline' | 'search' | 'git';
 
@@ -27,20 +29,21 @@ export class ActionViewComponent extends Component {
     private actionViewContent!: HTMLElement;
 
     private explorerViewComponent!: ExplorerViewComponent;
-    private _eventEmitter: IEventEmitter;
+    
+    private _noteBookManager: NoteBookManager;
     // Others...
 
-    constructor(registerService: IRegisterService,
-                _eventEmitter: IEventEmitter    
+    constructor(parent: HTMLElement,
+                registerService: IRegisterService,
+                _noteBookManager: NoteBookManager
     ) {
-        super(ComponentType.ActionView, registerService);
+        super(ComponentType.ActionView, parent, registerService);
         
-        this._eventEmitter = _eventEmitter;
+        this._noteBookManager = _noteBookManager;
         this.whichActionView = 'none';
     }
 
     protected override _createContainer(): void {
-        this.parent.appendChild(this.container);
         // customize...
         this._createContentArea();
     }
@@ -74,9 +77,13 @@ export class ActionViewComponent extends Component {
 
         this.explorerViewComponent.registerListeners();
 
-        this._eventEmitter.register('EOnActionViewChange', (name) => this.onActionViewChange(name));
-        this._eventEmitter.register('EOnActionViewOpen', () => this.openActionView());
-        this._eventEmitter.register('EOnActionViewClose', () => this.closeActionView());
+        EVENT_EMITTER.register('EOnActionViewChange', (name) => this.onActionViewChange(name));
+        EVENT_EMITTER.register('EOnActionViewOpen', () => this.openActionView());
+        EVENT_EMITTER.register('EOnActionViewClose', () => this.closeActionView());
+
+        domNodeByIdAddListener('action-view-content', 'contextmenu', (event: Event) => {
+            event.preventDefault();
+        });
     }
 
     private _createActionViewTop(): HTMLElement {
@@ -90,8 +97,8 @@ export class ActionViewComponent extends Component {
 
         const topIcon = document.createElement('img');
         topIcon.id = 'action-view-top-icon';
-        topIcon.src = getSvgPathByName('three-dots');
-        topIcon.classList.add('vertical-center', 'filter-white');
+        topIcon.src = getSvgPathByName(SvgType.base, 'three-dots');
+        topIcon.classList.add('vertical-center', 'filter-black');
 
         actionViewTop.appendChild(topText);
         actionViewTop.appendChild(topIcon);
@@ -103,8 +110,8 @@ export class ActionViewComponent extends Component {
         const actionViewContent = document.createElement('div');
         actionViewContent.id = 'action-view-content';
         
-        this.explorerViewComponent = new ExplorerViewComponent(this, this._eventEmitter);
-        this.explorerViewComponent.create(actionViewContent);
+        this.explorerViewComponent = new ExplorerViewComponent(actionViewContent, this, this._noteBookManager);
+        this.explorerViewComponent.create();
 
         // outlineViewComponent...
         
@@ -169,16 +176,16 @@ export class ActionViewComponent extends Component {
      * @description NOT displaying action view.
      */
     public closeActionView(): void {
-        $('#action-view').hide(0);
-        $('#resize').hide(0);
+        $('#action-view').hide(100);
+        $('#resize').hide(100);
     }
     
     /**
      * @description displays action view.
      */
     public openActionView(): void {
-        $('#action-view').show(0);
-        $('#resize').show(0);
+        $('#action-view').show(100);
+        $('#resize').show(100);
     }
 
 }

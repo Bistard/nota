@@ -2,20 +2,22 @@ import { Component } from 'src/code/workbench/browser/component';
 import { IRegisterService } from 'src/code/workbench/service/registerService';
 import { TabBarComponent } from 'src/code/workbench/browser/editor/titleBar/tabBar';
 import { WindowBarComponent } from 'src/code/workbench/browser/editor/titleBar/windowBar';
-import { ToolBarComponent } from 'src/code/workbench/browser/editor/titleBar/toolBar';
+import { FunctionBarComponent } from 'src/code/workbench/browser/editor/titleBar/functionBar';
+import { EditorComponentType } from 'src/code/workbench/browser/editor/editor';
 
 /**
- * @description TitleBarComponent stores and handles all the titleBar and toolBar 
+ * @description TitleBarComponent stores and handles all the titleBar and functionBar 
  * relevant business. 
  */
 export class TitleBarComponent extends Component {
     
-    toolBarComponent!: ToolBarComponent;
-    tabBarComponent!: TabBarComponent;
+    functionBarComponent!: FunctionBarComponent;
+    // tabBarComponent!: TabBarComponent;
     windowBarComponent!: WindowBarComponent;
 
-    constructor(registerService: IRegisterService) {
-        super('title-bar-container', registerService);
+    constructor(parent: HTMLElement,
+                registerService: IRegisterService) {
+        super(EditorComponentType.titleBar, parent, registerService);
     }
 
     protected override _createContainer(): void {
@@ -26,8 +28,8 @@ export class TitleBarComponent extends Component {
 
     protected override _createContentArea(): void {
         
-        this._createToolBar();
-        this._createTabBar();
+        this._createfunctionBar();
+        // this._createTabBar();
         this._createWindowBar();
         
     }
@@ -35,25 +37,25 @@ export class TitleBarComponent extends Component {
     protected override _registerListeners(): void {
         
         // component registration
-        this.toolBarComponent.registerListeners();
-        this.tabBarComponent.registerListeners();
+        this.functionBarComponent.registerListeners();
+        // this.tabBarComponent.registerListeners();
         this.windowBarComponent.registerListeners();
         
     }
 
-    private _createToolBar(): void {
-        this.toolBarComponent = new ToolBarComponent(this);
-        this.toolBarComponent.create(this.container);
+    private _createfunctionBar(): void {
+        this.functionBarComponent = new FunctionBarComponent(this.container, this);
+        this.functionBarComponent.create();
     }
 
-    private _createTabBar(): void {
-        this.tabBarComponent = new TabBarComponent(this);
-        this.tabBarComponent.create(this.container);
-    }
+    // private _createTabBar(): void {
+    //     this.tabBarComponent = new TabBarComponent(this.container, this);
+    //     this.tabBarComponent.create();
+    // }
 
     private _createWindowBar(): void {
-        this.windowBarComponent = new WindowBarComponent(this);
-        this.windowBarComponent.create(this.container);
+        this.windowBarComponent = new WindowBarComponent(this.container, this);
+        this.windowBarComponent.create();
     }
     
 }

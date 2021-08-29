@@ -12,17 +12,19 @@ export interface IComponent {
 
 export abstract class Component implements IComponent, IRegisterService {
     
-    protected parent!: HTMLElement;
-    protected container: HTMLElement = document.createElement('div');
+    protected parent: HTMLElement;
+    protected readonly container: HTMLElement = document.createElement('div');
     protected contentArea: HTMLElement | undefined;
     protected contentAreaMap: Map<string, Component> = new Map();
     
     protected registerService!: IRegisterService;
 
     constructor(id: string,
+                parent: HTMLElement,
                 registerService: IRegisterService
     ) {
         this.container.id = id;
+        this.parent = parent;
         this.registerService = registerService;
         
         registerService.registerComponent(this);
@@ -31,8 +33,8 @@ export abstract class Component implements IComponent, IRegisterService {
     /**
      * @description gneric function for every subclasses object to be created.
      */
-    public create(parent: HTMLElement): void {
-        this.parent = parent;
+    public create(): void {
+        this.parent.appendChild(this.container);
         this._createContainer();
     }
 

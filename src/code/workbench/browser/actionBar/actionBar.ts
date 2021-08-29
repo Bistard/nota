@@ -1,8 +1,21 @@
-import { Button, IButton } from 'src/base/browser/ui/button';
-import { IEventEmitter } from 'src/base/common/event';
+import { Button, IButton } from 'src/base/browser/basic/button';
+import { EVENT_EMITTER } from 'src/base/common/event';
 import { ActionViewType } from 'src/code/workbench/browser/actionView/actionView';
 import { Component, ComponentType } from 'src/code/workbench/browser/component';
 import { IRegisterService } from 'src/code/workbench/service/registerService';
+import { domNodeByIdAddListener, ipcRendererOn, ipcRendererSendData, domNodeByIdMouseEventAddListener } from 'src/base/electron/register';
+import { getSvgPathByName, SvgType } from 'src/base/common/string';
+import { ActionBarContextMenu } from 'src/base/browser/secondary/contextMenu/actionBarContextMenu';
+import { Dimension } from 'src/base/browser/secondary/contextMenu/contextMenu';
+
+export interface IActionBarOptions {
+    options: [
+        isExplorerChecked: boolean,
+        isOutlineCheckd:   boolean,
+        isSearchChecked:   boolean,
+        isGitChecked:      boolean,
+    ];
+}
 
 /**
  * @description ActionBarComponent provides access to each action view and handles 
@@ -11,24 +24,20 @@ import { IRegisterService } from 'src/code/workbench/service/registerService';
  */
 export class ActionBarComponent extends Component {
 
+    private actionBarContextMenu!: ActionBarContextMenu;
     private _buttonGroups: IButton[] = [];
-    private _eventEmitter: IEventEmitter;
     
     // if value is -1, it means actionView is not shown.
     private currFocusActionBtnIndex: number;
 
-    constructor(registerService: IRegisterService,
-                _eventEmitter: IEventEmitter        
-    ) {
-        super(ComponentType.ActionBar, registerService);
-        
-        this._eventEmitter = _eventEmitter;
+    constructor(parent: HTMLElement, 
+                registerService: IRegisterService) {
+        super(ComponentType.ActionBar, parent, registerService);
         
         this.currFocusActionBtnIndex = -1;
     }
 
     protected override _createContainer(): void {
-        this.parent.appendChild(this.container);
         // customize...
         this._createContentArea();
     }
@@ -48,20 +57,85 @@ export class ActionBarComponent extends Component {
         .forEach(({ id, src }) => {
             const button = new Button(id, this.contentArea!);
             button.setClass(['button', 'action-button']);
-            button.setImage(src);
-            button.setImageClass('vertical-center', 'filter-white');
+            button.setImage(getSvgPathByName(SvgType.base, src));
+            button.setImageClass(['vertical-center', 'filter-black']);
 
             this._buttonGroups.push(button);
         });
     }
 
     protected override _registerListeners(): void {
+        //this.actionBarContextMenu.registerListeners();
+        const actionBarOpts: IActionBarOptions = { 
+            options: [true, true, true, true],
+        };
+
+        /**
+         * @readonly register context menu listeners (right click menu)
+         */
+        document.getElementById('mainApp')!.addEventListener('contextmenu', (ev: MouseEvent) => {
+            ev.preventDefault();
+
+            console.log(ev.pageX, ev.pageY)
+            let dimension: Dimension = {
+                coordinateX: ev.pageX,
+                coordinateY: ev.pageY,
+                width: 20,
+                height: 150,
+            };
+            console.log(dimension)
+            const prevContextMenu = document.getElementById("context-menu");
+            if ( prevContextMenu === null) {
+                this._createContextMenu(dimension);
+                this.actionBarContextMenu.registerListeners();
+
+            } 
+
+            //this._createContextMenu(dimension);
+            //document.execCommand("cut");
+            //console.log()
+            //ipcRendererSendData('showContextMenuActionBar', actionBarOpts);    
+        })
+
+        document.getElementById('mainApp')!.addEventListener('click', (ev: MouseEvent) => {
+            const prevContextMenu = document.getElementById("context-menu");
+            if ( prevContextMenu === null) {
+                return;
+            } 
+            prevContextMenu!.remove();
+            const mainContextMenu = document.getElementById("contextMenu");
+
+            mainContextMenu!.style.display = 'none';
+
+        })
+
+        // TODO: add an array that stores user preference for action buttons (could be stored in config.ts)
+        /**
+         * @readonly once user clicked the menu in the main thread and sending 
+         * the message back, we listens to that action.
+         */
+        ipcRendererOn('context-menu-command', (
+            _ev: Electron.IpcRendererEvent, 
+            _opt: IActionBarOptions, 
+            elementID: string, 
+            index: number
+        ) => {
+            const actionButton = document.getElementById(elementID);
+            console.log(actionButton?.style.display);
+            if (actionButton!.style.display == 'none') {
+                actionButton!.style.display = 'initial';
+                actionBarOpts.options[index] = true;
+            } else {
+                actionButton!.style.display = 'none';
+                actionBarOpts.options[index] = false;
+            }        
+        });
 
         // TODO: remove later
         // give every actionButton a unique number
         $('.action-button').each(function(index, element) {
             element.setAttribute('btnNum', index.toString());
-        })
+        });
         
         // default with openning explorer view
         this.clickActionBtn(document.getElementById('explorer-button') as HTMLElement);
@@ -70,7 +144,7 @@ export class ActionBarComponent extends Component {
         $('.action-button').on('click', { ActionBarComponent: this }, function (event) {
             let that = event.data.ActionBarComponent;
             that.clickActionBtn(this);
-        })
+        });
     }
 
     /**
@@ -83,7 +157,7 @@ export class ActionBarComponent extends Component {
         const actionName = clickedBtn.id.slice(0, -"-button".length) as ActionViewType;
         
         // switch to the action view
-        this._eventEmitter.emit('EOnActionViewChange', actionName);
+        EVENT_EMITTER.emit('EOnActionViewChange', actionName);
 
         // focus the action button and reverse the state of action view
         const clickedBtnIndex = parseInt(clickedBtn.getAttribute('btnNum') as string);
@@ -93,12 +167,12 @@ export class ActionBarComponent extends Component {
         if (this.currFocusActionBtnIndex == -1) {
             // none of action button is focused, open the action view
             this.currFocusActionBtnIndex = clickedBtnIndex;
-            this._eventEmitter.emit('EOnActionViewOpen');
+            EVENT_EMITTER.emit('EOnActionViewOpen');
             clickedBtn.classList.add('action-button-focus');
         } else if (this.currFocusActionBtnIndex == clickedBtnIndex) {
             // if the current focused button is clicked again, close action view.
             this.currFocusActionBtnIndex = -1;
-            this._eventEmitter.emit('EOnActionViewClose');
+            EVENT_EMITTER.emit('EOnActionViewClose');
             currBtn.classList.remove('action-button-focus');
         } else if (this.currFocusActionBtnIndex >= 0) {
             // other action button is clicked, only change the style
@@ -108,6 +182,23 @@ export class ActionBarComponent extends Component {
         } else {
             throw 'error';
         }
+    }
+
+    private _createContextMenu(dimension: Dimension): void {
+        //.createElement('div');
+        //actionButtonContextMenu.id = 'action-button-context-menu';
+        const actionButtonContextMenu = document.getElementById('contextMenu');
+        if (actionButtonContextMenu === null) {
+            return;
+        }
+        this.actionBarContextMenu = new ActionBarContextMenu(dimension, actionButtonContextMenu, this);
+        this.actionBarContextMenu.create();
+        actionButtonContextMenu.style.top = `${dimension.coordinateY}px`;
+        actionButtonContextMenu.style.left =`${dimension.coordinateX}px`;
+        actionButtonContextMenu.style.width = `${dimension.width}px`;
+        actionButtonContextMenu.style.height = `${dimension.height}px`;
+        actionButtonContextMenu.style.display = 'initial';
+
     }
 
 }
