@@ -1,0 +1,35 @@
+
+
+#context-menu {
+    position: absolute;
+    width: auto;
+    min-width: 197px;
+    color: #333;
+    box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.08);
+    z-index: 100;
+    padding: 5px 0;
+    background-color:#F5F5F5;
+    border-radius: 10px;
+    cursor: pointer;
+}
+
+#context-menu-container {
+    list-style: none;
+    text-align: match-parent;
+    padding: 0px;
+    margin: 0px;
+}
+
+.context-menu-button {
+    width: 20px;
+    height: 20px;
+    font-weight: normal;
+    font-size: 14px;
+    padding: 10px 40px 10px 20px;
+    cursor: pointer;
+}
+
+.context-menu-button:hover{
+    filter: invert(15%) sepia(100%) saturate(2427%) hue-rotate(343deg) brightness(112%) contrast(97%);
+
+}
