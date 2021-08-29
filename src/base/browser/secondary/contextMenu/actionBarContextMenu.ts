@@ -1,6 +1,5 @@
 import { ContextMenu, ContextMenuType, Dimension } from "src/base/browser/secondary/contextMenu/contextMenu";
 import { Component } from "src/code/workbench/browser/component";
-import { IRegisterService } from "src/code/workbench/service/registerService";
 import { IMenuItem, MenuItem, Role } from "src/base/browser/secondary/contextMenu/menuItem"
 
 export class ActionBarContextMenu extends ContextMenu {
@@ -12,19 +11,9 @@ export class ActionBarContextMenu extends ContextMenu {
         super(ContextMenuType.actionBarMenu, dimension, parentComponent);
     }
 
-    protected override _createContainer(): void {
-        //this.container.style.position = 'absolute'
-        //this.container.style.top = `${this.dimension.coordinateX}px`;
-        //this.container.style.left =`${this.dimension.coordinateY}px`;
-        this.container.style.display = 'block'
-       // this.container.style.width = `${this.dimension.width}px`;
-       // this.container.style.height = `${this.dimension.height}px`;
-       // this.container.style.zIndex = '100';
-       this.container.style.backgroundColor  = 'F5F5F5';
-       this._createContentArea();
-    }
-
-    protected override _createContentArea(): void {
+    protected override _createContent(): void {
+        this.container.style.display = 'block';
+        this.container.style.backgroundColor  = 'F5F5F5';
         /*
         this.parent.appendChild(this.container);
         // customize...
