@@ -52,7 +52,6 @@ export class MenuItem implements IMenuItem {
         }
         switch (opt.role) {
             case 'normal':
-                this.setClass(['context-menu-button']);
                 break;
             case 'checkBox':
                 break;
