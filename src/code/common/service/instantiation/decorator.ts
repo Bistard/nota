@@ -1,4 +1,4 @@
-import { ServiceDescriptor } from "src/code/common/service/descriptor";
+import { ServiceDescriptor } from "src/code/common/service/instantiation/descriptor";
 
 export namespace _ServiceUtil {
     export const serviceIdentifiers = new Map<string, ServiceIdentifier<any>>();
