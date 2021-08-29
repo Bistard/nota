@@ -1,10 +1,10 @@
-import { LIGHT_RED } from "src/base/common/color";
+import { IMenuItem, IMenuItemOption, MenuItem } from "src/base/browser/secondary/contextMenu/menuItem";
 import { Component } from "src/code/workbench/browser/component";
 
 export enum ContextMenuType {
-    actionBarMenu,
-    actionViewMenu,
-    editorMenu,
+    actionBar,
+    actionView,
+    editor,
     // more and more...
 }
 
@@ -14,6 +14,7 @@ export type Dimension = {
     width: number;
     height: number;
 }
+
 export interface IContextMenu {
     
     readonly type: ContextMenuType;
@@ -21,28 +22,50 @@ export interface IContextMenu {
 
 }
 
+export interface IContextMenuOption {
+    contextMenuItems: IMenuItemOption[];
+}
+
 export abstract class ContextMenu extends Component implements IContextMenu {
 
     public readonly type: ContextMenuType;
     public readonly dimension: Dimension;
-
+    
+    public readonly menuItemGroups: IMenuItem[];
+    public readonly menuItemOptions: IMenuItemOption[];
+    
     constructor(type: ContextMenuType,
                 dimension: Dimension,
-                parentComponnet: Component
+                menuItemOptions: IMenuItemOption[],
     ) {
-        super('context-menu', parentComponnet);
+        super('context-menu', null, document.body);
         this.type = type;
         this.dimension = dimension;
+        this.menuItemGroups = [];
+        this.menuItemOptions = menuItemOptions;
+    }
+
+    public setNewPosition(dimension: Dimension): void {
+        this.container.style.top = `${dimension.coordinateY}px`;
+        this.container.style.left =`${dimension.coordinateX}px`;
+        this.container.style.width = `${dimension.width}px`;
+        this.container.style.height = `${dimension.height}px`;
     }
 
     protected override _createContent(): void {
-        this.container.style.position = 'fixed';
-        // always generates a context menu to the bottom-right of the click
-        this.container.style.left = this.dimension.coordinateX.toString();
-        this.container.style.right = this.dimension.coordinateY.toString();
-        this.container.style.width = this.dimension.width.toString();
-        this.container.style.height = this.dimension.height.toString();
+        this.setNewPosition(this.dimension);
         
-        this.container.style.background = LIGHT_RED.toString();
+        this.contentArea = document.createElement('ul');
+        this.contentArea.id = 'context-menu-container';
+        this.container.appendChild(this.contentArea);
+
+        this._createMenuItems(this.menuItemOptions);
+    }
+
+    private _createMenuItems(menuItemOptions: IMenuItemOption[]): void {
+        for (const opt of menuItemOptions) {
+            const item = new MenuItem(this.contentArea!, opt);
+            this.menuItemGroups.push(item);
+        }
     }
 }

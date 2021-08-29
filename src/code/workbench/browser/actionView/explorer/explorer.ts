@@ -48,6 +48,15 @@ export class ExplorerViewComponent extends Component {
          * to use ipcRenderer and ipcMain. See more details about Electron/remote 
          * on https://www.electronjs.org/docs/api/remote
          */
+
+         domNodeByIdAddListener('action-view-content', 'contextmenu', (event) => {
+            event.preventDefault()
+            console.log('right clicked on action view')
+            //console.log(event.target)
+            //console.log(event.currentTarget)
+            ipcRendererSend('showContextMenuView')        
+        })
+
         domNodeByIdAddListener('emptyFolderTag', 'click', () => {
             ipcRendererSend('openDir');
         });

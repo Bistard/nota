@@ -2,12 +2,11 @@ import { Button, IButton } from 'src/base/browser/basic/button';
 import { EVENT_EMITTER } from 'src/base/common/event';
 import { ActionViewType } from 'src/code/workbench/browser/actionView/actionView';
 import { Component, ComponentType } from 'src/code/workbench/browser/component';
-import { domNodeByIdAddListener, ipcRendererOn, ipcRendererSendData } from 'src/base/electron/register';
-import { IRegisterService } from 'src/code/workbench/service/registerService';
-import { domNodeByIdAddListener, ipcRendererOn, ipcRendererSendData, domNodeByIdMouseEventAddListener } from 'src/base/electron/register';
+import { ipcRendererOn } from 'src/base/electron/register';
 import { getSvgPathByName, SvgType } from 'src/base/common/string';
 import { ActionBarContextMenu } from 'src/base/browser/secondary/contextMenu/actionBarContextMenu';
-import { Dimension } from 'src/base/browser/secondary/contextMenu/contextMenu';
+import { ContextMenuType, Dimension } from 'src/base/browser/secondary/contextMenu/contextMenu';
+import { CONTEXT_MENU_SERVICE } from 'src/code/workbench/service/contextMenuService';
 
 export interface IActionBarOptions {
     options: [
@@ -25,7 +24,6 @@ export interface IActionBarOptions {
  */
 export class ActionBarComponent extends Component {
 
-    private actionBarContextMenu!: ActionBarContextMenu;
     private _buttonGroups: IButton[] = [];
     
     // if value is -1, it means actionView is not shown.
@@ -60,7 +58,7 @@ export class ActionBarComponent extends Component {
     }
 
     protected override _registerListeners(): void {
-        //this.actionBarContextMenu.registerListeners();
+
         const actionBarOpts: IActionBarOptions = { 
             options: [true, true, true, true],
         };
@@ -70,39 +68,18 @@ export class ActionBarComponent extends Component {
          */
         document.getElementById('mainApp')!.addEventListener('contextmenu', (ev: MouseEvent) => {
             ev.preventDefault();
-
-            console.log(ev.pageX, ev.pageY)
             let dimension: Dimension = {
                 coordinateX: ev.pageX,
                 coordinateY: ev.pageY,
                 width: 20,
                 height: 150,
             };
-            console.log(dimension)
-            const prevContextMenu = document.getElementById("context-menu");
-            if ( prevContextMenu === null) {
-                this._createContextMenu(dimension);
-                this.actionBarContextMenu.registerListeners();
-
-            } 
-
-            //this._createContextMenu(dimension);
-            //document.execCommand("cut");
-            //console.log()
-            //ipcRendererSendData('showContextMenuActionBar', actionBarOpts);    
-        })
+            CONTEXT_MENU_SERVICE.createContextMenu(ContextMenuType.actionBar, dimension);
+        });
 
         document.getElementById('mainApp')!.addEventListener('click', (ev: MouseEvent) => {
-            const prevContextMenu = document.getElementById("context-menu");
-            if ( prevContextMenu === null) {
-                return;
-            } 
-            prevContextMenu!.remove();
-            const mainContextMenu = document.getElementById("contextMenu");
-
-            mainContextMenu!.style.display = 'none';
-
-        })
+            CONTEXT_MENU_SERVICE.removeContextMenu();
+        });
 
         // TODO: add an array that stores user preference for action buttons (could be stored in config.ts)
         /**
@@ -123,7 +100,7 @@ export class ActionBarComponent extends Component {
             } else {
                 actionButton!.style.display = 'none';
                 actionBarOpts.options[index] = false;
-            }        
+            }
         });
 
         // TODO: remove later
@@ -135,7 +112,6 @@ export class ActionBarComponent extends Component {
         // default with openning explorer view
         this.clickActionBtn(document.getElementById('explorer-button') as HTMLElement);
 
-        // TODO: comeplete using my own API
         $('.action-button').on('click', { ActionBarComponent: this }, function (event) {
             let that = event.data.ActionBarComponent;
             that.clickActionBtn(this);
@@ -177,23 +153,6 @@ export class ActionBarComponent extends Component {
         } else {
             throw 'error';
         }
-    }
-
-    private _createContextMenu(dimension: Dimension): void {
-        //.createElement('div');
-        //actionButtonContextMenu.id = 'action-button-context-menu';
-        const actionButtonContextMenu = document.getElementById('contextMenu');
-        if (actionButtonContextMenu === null) {
-            return;
-        }
-        this.actionBarContextMenu = new ActionBarContextMenu(dimension, actionButtonContextMenu, this);
-        this.actionBarContextMenu.create();
-        actionButtonContextMenu.style.top = `${dimension.coordinateY}px`;
-        actionButtonContextMenu.style.left =`${dimension.coordinateX}px`;
-        actionButtonContextMenu.style.width = `${dimension.width}px`;
-        actionButtonContextMenu.style.height = `${dimension.height}px`;
-        actionButtonContextMenu.style.display = 'initial';
-
     }
 
 }

@@ -7,6 +7,8 @@
 @import "../../node_modules/tui-color-picker/dist/tui-color-picker.css";
 @import "../../node_modules/@toast-ui/editor-plugin-color-syntax/dist/toastui-editor-plugin-color-syntax.css";
 
+@import "../base/browser/secondary/contextMenu/contextMenu.css";
+
 @import "./common.css";
 @import "./workbench/actionBar/actionBar.css";
 @import "./workbench/actionView/actionView.css";
@@ -46,19 +48,6 @@ img {
     height:100vh;
     overflow: hidden;
     box-sizing: border-box;
-}
-
-#contextMenu {
-    position: absolute;
-    width: auto;
-    min-width: 197px;
-    color: #333;
-    box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.08);
-    z-index: 100;
-    padding: 5px 0;
-    background-color:#F5F5F5;
-    border-radius: 10px;
-    cursor: pointer;
 }
 
 *::selection {

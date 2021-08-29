@@ -72,7 +72,23 @@ export class MarkdownComponent extends Component {
         this.createMarkdownEditor();
     }
     protected override _registerListeners(): void {
-        
+       
+        domNodeByIdAddListener('markdown', 'contextmenu', (event) => {
+            event.preventDefault()
+            console.log('right clicked on markdown')
+            //console.log(event.target)
+            //console.log(event.currentTarget)
+            ipcRendererSend('showContextMenu')        
+        })
+/*
+        document.addEventListener('contextmenu', (event) => {
+            event.preventDefault()
+            console.log('right clicked on markdown')
+            //console.log(event.target)
+            //console.log(event.currentTarget)
+            ipcRendererSend('showContextMenu')
+        })
+*/
         // spellcheck config check
         if (!ConfigModule.Instance.markdownSpellCheckOn) {
             const markdown = document.getElementById('markdown') as HTMLElement;

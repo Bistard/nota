@@ -8,8 +8,6 @@ import { ipcRendererOn, ipcRendererSend } from "src/base/electron/register";
 import { ConfigModule, DEFAULT_CONFIG_FILE_NAME, DEFAULT_CONFIG_PATH, GlobalConfigModule, GLOBAL_CONFIG_FILE_NAME, GLOBAL_CONFIG_PATH, LOCAL_CONFIG_FILE_NAME } from "src/base/config";
 import { pathJoin } from "src/base/common/string";
 
-// DEBUG: 
-
 /**
  * @description this module is loaded by the web directly. Most of the modules 
  * are instantiating in here. Also convinents for passing diferent modules into

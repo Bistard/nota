@@ -1,3 +1,4 @@
+
 import { IActionBarOptions } from "src/code/workbench/browser/actionBar/actionBar";
 
 import * as Path from'path';
@@ -164,9 +165,34 @@ class Main {
                         let rootdir = path.filePaths[0];
                         this.winMain!.webContents.send('openDir', rootdir);
                     }
-                })
+                });
             });
 
+             ipcMain.on('showContextMenu', () => {
+                // this.winMain!.webContents.send('showContextMenu')
+                const template: Electron.MenuItemConstructorOptions[] = [{role: 'editMenu',}];
+                return Menu.buildFromTemplate(template).popup();
+             });
+
+            ipcMain.on('showContextMenuView', () => {
+            // this.winMain!.webContents.send('showContextMenu');
+            const template: Electron.MenuItemConstructorOptions[] = [{role: 'fileMenu',}];
+            return Menu.buildFromTemplate(template).popup();
+        });
+/*
+           this.winMain!.webContents.on('context-menu', () => {
+            const template: Electron.MenuItemConstructorOptions[] = [{
+                role: 'editMenu',
+            }]  
+            
+            const createContextMenu = () => {
+                   return Menu.buildFromTemplate(
+                        template
+                   )
+               }
+             createContextMenu().popup()
+           })
+*/
             // only for testing purpose, can be removed in release version
             ipcMain.on('test', (_event, data) => {
                 console.log(data);
@@ -263,4 +289,3 @@ class Main {
  * @readonly '❤hello, world!❤'
  */
 new Main();
-
