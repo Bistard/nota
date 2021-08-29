@@ -10,6 +10,7 @@ export class ActionBarContextMenu extends ContextMenu {
                 {id: 'select-explorer-button', classes: ['menu-item'], text: 'File Explorer', role: 'checkBox'},
                 {id: 'select-outline-button', classes: ['menu-item'], text: 'Outline', role: 'checkBox'},
                 {id: 'select-search-button', classes: ['menu-item'], text: 'Search', role: 'normal'},
+                {text: 'seperator', role: 'seperator'},
                 {id: 'select-git-button', classes: ['menu-item'], text: 'Git', role: 'normal'},
             ],
         );

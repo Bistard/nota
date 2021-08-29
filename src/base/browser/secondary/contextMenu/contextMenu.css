@@ -45,3 +45,8 @@
     margin-right: 10px;
     display: initial;
 }
+
+.seperator {
+    filter: contrast(2);
+    margin: 1px;
+}
