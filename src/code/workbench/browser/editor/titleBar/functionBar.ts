@@ -5,7 +5,6 @@ import { ConfigModule } from "src/base/config";
 import { domNodeByIdAddListener } from "src/base/electron/register";
 import { Component } from "src/code/workbench/browser/component";
 import { EditorComponentType } from "src/code/workbench/browser/editor/editor";
-import { IRegisterService } from "src/code/workbench/service/registerService";
 
 export class FunctionBarComponent extends Component {
 
@@ -13,18 +12,12 @@ export class FunctionBarComponent extends Component {
     public static isToolBarExpand: boolean = false;
     // public static isTabBarExpand: boolean = false;
 
-    constructor(parent: HTMLElement,
-                registerService: IRegisterService
+    constructor(parentComponent: Component
     ) {
-        super(EditorComponentType.functionBar, parent, registerService);
+        super(EditorComponentType.functionBar, parentComponent);
     }
 
-    protected override _createContainer(): void {
-        this.parent.appendChild(this.container);
-        this._createContentArea();
-    }
-
-    protected override _createContentArea(): void {
+    protected override _createContent(): void {
         this.contentArea = document.createElement('div');
         this.contentArea.id = 'function-bar-container';
         this.container.appendChild(this.contentArea);

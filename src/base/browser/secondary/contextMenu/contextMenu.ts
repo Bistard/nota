@@ -1,6 +1,5 @@
 import { LIGHT_RED } from "src/base/common/color";
 import { Component } from "src/code/workbench/browser/component";
-import { IRegisterService } from "src/code/workbench/service/registerService";
 
 export enum ContextMenuType {
     actionBarMenu,
@@ -29,15 +28,14 @@ export abstract class ContextMenu extends Component implements IContextMenu {
 
     constructor(type: ContextMenuType,
                 dimension: Dimension,
-                parent: HTMLElement,
-                registerService: IRegisterService
+                parentComponnet: Component
     ) {
-        super('context-menu', parent, registerService);
+        super('context-menu', parentComponnet);
         this.type = type;
         this.dimension = dimension;
     }
 
-    protected override _createContainer(): void {
+    protected override _createContent(): void {
         this.container.style.position = 'fixed';
         // always generates a context menu to the bottom-right of the click
         this.container.style.left = this.dimension.coordinateX.toString();
@@ -47,14 +45,4 @@ export abstract class ContextMenu extends Component implements IContextMenu {
         
         this.container.style.background = LIGHT_RED.toString();
     }
-
-    protected override _createContentArea(): void {
-        this._createContentArea();
-
-    }
-
-    protected override _registerListeners(): void {
-
-    }
-
 }

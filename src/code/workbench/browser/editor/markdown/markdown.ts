@@ -21,7 +21,6 @@ import colorSyntax from '@toast-ui/editor-plugin-color-syntax';
 import { ConfigModule } from 'src/base/config';
 import { FileNode } from 'src/base/node/fileTree';
 import { Component } from 'src/code/workbench/browser/component';
-import { IRegisterService } from 'src/code/workbench/service/registerService';
 import { EVENT_EMITTER } from 'src/base/common/event';
 import { MarkdownRenderMode } from 'mdnote';
 import { getSvgPathByName, SvgType } from 'src/base/common/string';
@@ -39,9 +38,10 @@ export class MarkdownComponent extends Component {
 
     private mode: MarkdownRenderMode;
 
-    constructor(parent: HTMLElement,
-                registerService: IRegisterService) {
-        super('markdown', parent, registerService);
+    constructor(parentComponent: Component,
+                parentElement?: HTMLElement
+        ) {
+        super('markdown', parentComponent, parentElement);
 
         this.mode = ConfigModule.Instance.defaultMarkdownMode;
         
@@ -68,13 +68,7 @@ export class MarkdownComponent extends Component {
         };
     }
 
-    protected override _createContainer(): void {
-        this.parent.appendChild(this.container);
-        // customize...
-        this._createContentArea();
-    }
-
-    protected override _createContentArea(): void {
+    protected override _createContent(): void {
         this.createMarkdownEditor();
     }
     protected override _registerListeners(): void {

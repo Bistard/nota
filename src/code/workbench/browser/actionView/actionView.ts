@@ -1,6 +1,5 @@
 import { getSvgPathByName, SvgType } from 'src/base/common/string';
 import { Component, ComponentType } from 'src/code/workbench/browser/component';
-import { IRegisterService } from 'src/code/workbench/service/registerService';
 import { ExplorerViewComponent } from "src/code/workbench/browser/actionView/explorer/explorer";
 import { EVENT_EMITTER } from 'src/base/common/event';
 import { NoteBookManager } from 'src/code/common/model/notebookManger';
@@ -33,22 +32,16 @@ export class ActionViewComponent extends Component {
     private _noteBookManager: NoteBookManager;
     // Others...
 
-    constructor(parent: HTMLElement,
-                registerService: IRegisterService,
+    constructor(parentComponent: Component,
                 _noteBookManager: NoteBookManager
     ) {
-        super(ComponentType.ActionView, parent, registerService);
+        super(ComponentType.ActionView, parentComponent);
         
         this._noteBookManager = _noteBookManager;
         this.whichActionView = 'none';
     }
 
-    protected override _createContainer(): void {
-        // customize...
-        this._createContentArea();
-    }
-
-    protected override _createContentArea(): void {
+    protected override _createContent(): void {
         
         this.contentArea = document.createElement('div');
         this.contentArea.id = 'action-view-container';
@@ -110,7 +103,7 @@ export class ActionViewComponent extends Component {
         const actionViewContent = document.createElement('div');
         actionViewContent.id = 'action-view-content';
         
-        this.explorerViewComponent = new ExplorerViewComponent(actionViewContent, this, this._noteBookManager);
+        this.explorerViewComponent = new ExplorerViewComponent(this, actionViewContent, this._noteBookManager);
         this.explorerViewComponent.create();
 
         // outlineViewComponent...

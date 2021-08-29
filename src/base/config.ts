@@ -32,10 +32,6 @@ export class ConfigModule implements IConfigModule {
         return this._instance || (this._instance = new this());
     }
 
-    private static set Instance(object) {
-        this._instance = object;
-    }
-
     public async readFromJSON(path: string, fileName: string): Promise<void> {
         try {
             const text = readFromFileSync(pathJoin(path, fileName));
@@ -115,10 +111,6 @@ export class GlobalConfigModule implements IConfigModule {
         return this._instance || (this._instance = new this());
     }
 
-    private static set Instance(object) {
-        this._instance = object;
-    }
-
     public async readFromJSON(path: string, fileName: string): Promise<void> {
         try {
             const text = readFromFileSync(pathJoin(path, fileName));
@@ -141,8 +133,8 @@ export class GlobalConfigModule implements IConfigModule {
      *                        Global Config Settings
      **************************************************************************/
 
-     public startPreviousNoteBookManagerDir: boolean = true;
-     public previousNoteBookManagerDir: string = '';
+    public startPreviousNoteBookManagerDir: boolean = true;
+    public previousNoteBookManagerDir: string = '';
 
     /**
      * If true, NoteBookManager will take the default config in '<appRootPath>/config.json'.
