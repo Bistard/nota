@@ -5,7 +5,7 @@
     width: auto;
     min-width: 200px;
     color: #333;
-    box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.08);
+    box-shadow: 0 0 5px 2px lightgrey;
     z-index: 100;
     background-color:#f5f5f5;
     border-radius: 10px;
