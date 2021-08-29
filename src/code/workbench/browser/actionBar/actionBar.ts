@@ -66,7 +66,7 @@ export class ActionBarComponent extends Component {
         /**
          * @readonly register context menu listeners (right click menu)
          */
-        document.getElementById('mainApp')!.addEventListener('contextmenu', (ev: MouseEvent) => {
+        document.getElementById('action-bar')!.addEventListener('contextmenu', (ev: MouseEvent) => {
             ev.preventDefault();
             let dimension: Dimension = {
                 coordinateX: ev.pageX,
