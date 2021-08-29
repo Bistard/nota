@@ -1,16 +1,17 @@
 import { ContextMenu, ContextMenuType, Dimension } from "src/base/browser/secondary/contextMenu/contextMenu";
+import { Component } from "src/code/workbench/browser/component";
 import { IRegisterService } from "src/code/workbench/service/registerService";
 import { Button, IButton } from "../../basic/button";
 import { getSvgPathByName, SvgType } from 'src/base/common/string';
 import { IMenuItem, MenuItem, Role } from "src/base/browser/secondary/contextMenu/menuItem"
+
 export class ActionBarContextMenu extends ContextMenu {
     private _menuItemGroups: IMenuItem[] = [];
 
     constructor(dimension: Dimension,
-                parent: HTMLElement,
-                registerService: IRegisterService
+                parentComponent: Component
     ) {
-        super(ContextMenuType.actionBarMenu, dimension, parent, registerService);
+        super(ContextMenuType.actionBarMenu, dimension, parentComponent);
     }
 
     protected override _createContainer(): void {

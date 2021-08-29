@@ -2,7 +2,6 @@ import { FileNode } from 'src/base/node/fileTree';
 import { domNodeByIdAddListener, ipcRendererOn, ipcRendererSend } from 'src/base/electron/register';
 import { Component } from 'src/code/workbench/browser/component';
 import { ActionViewComponentType } from 'src/code/workbench/browser/actionView/actionView';
-import { IRegisterService } from 'src/code/workbench/service/registerService';
 import { EVENT_EMITTER } from 'src/base/common/event';
 import { NoteBookManager } from 'src/code/common/model/notebookManger';
 
@@ -18,11 +17,11 @@ export class ExplorerViewComponent extends Component {
     public fileTreeContainer: HTMLElement = document.createElement('div');
     public emptyFolderTag: HTMLElement = document.createElement('div');
 
-    constructor(parent: HTMLElement,
-                registerService: IRegisterService,
+    constructor(parentComponent: Component,
+                parentElement: HTMLElement,
                 _noteBookManger: NoteBookManager
     ) {
-        super(ActionViewComponentType.ExplorerView, parent, registerService);
+        super(ActionViewComponentType.ExplorerView, parentComponent, parentElement);
         
         this._noteBookManager = _noteBookManger;
 
@@ -30,12 +29,7 @@ export class ExplorerViewComponent extends Component {
         this.resizeX = 0;
     }
 
-    protected override _createContainer(): void {
-        // customize...
-        this._createContentArea();
-    }
-
-    protected override _createContentArea(): void {
+    protected override _createContent(): void {
         this.fileTreeContainer.id = 'fileTree-container';
         
         this.emptyFolderTag.id = 'emptyFolderTag';
