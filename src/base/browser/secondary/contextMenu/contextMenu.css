@@ -39,3 +39,9 @@
 .menu-item > span {
     user-select: none;
 }
+
+.check-box {
+    height: 15px;
+    margin-right: 10px;
+    display: initial;
+}
