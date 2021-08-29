@@ -45,9 +45,4 @@ export abstract class ContextMenu extends Component implements IContextMenu {
         
         this.container.style.background = LIGHT_RED.toString();
     }
-
-    protected override _registerListeners(): void {
-
-    }
-
 }
