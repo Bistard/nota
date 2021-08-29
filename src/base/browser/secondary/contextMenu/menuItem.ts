@@ -23,6 +23,7 @@ export class MenuItem implements IMenuItem {
     public readonly element: HTMLElement;
     public imgElement?: HTMLImageElement;
     public spanElement?: HTMLSpanElement;
+    public hrElement?: HTMLHRElement;
     
     public readonly option: IMenuItemOption;
 
@@ -60,6 +61,10 @@ export class MenuItem implements IMenuItem {
                 this.setImageClass(['filter-black', 'check-box']);
                 this.setImageID(opt.id + "-check-mark");
                 this.setItem(opt.text);
+                break;
+            case 'seperator':
+                this.setSeperator();
+                this.setSeperatorClass(['seperator']);
                 break;
             default:
                console.log(`Invalid Menu Item Type`);
@@ -109,6 +114,18 @@ export class MenuItem implements IMenuItem {
 
     public setTip(tip: string): void {
 
+    }
+
+    public setSeperator(): void {
+        this.hrElement = document.createElement('hr');
+        
+        this.element.appendChild(this.hrElement); 
+    }
+
+    public setSeperatorClass(classes: string[]): void {
+        if (this.hrElement) {
+            this.hrElement.classList.add(...classes);
+        }
     }
 
 }
