@@ -3,7 +3,7 @@ import { EVENT_EMITTER } from 'src/base/common/event';
 import { ActionViewType } from 'src/code/workbench/browser/actionView/actionView';
 import { Component, ComponentType } from 'src/code/workbench/browser/component';
 import { IRegisterService } from 'src/code/workbench/service/registerService';
-import { domNodeByIdAddListener, ipcRendererOn, ipcRendererSendData, domNodeByIdMouseEventAddListener } from 'src/base/electron/register';
+import { ipcRendererOn } from 'src/base/electron/register';
 import { getSvgPathByName, SvgType } from 'src/base/common/string';
 import { ActionBarContextMenu } from 'src/base/browser/secondary/contextMenu/actionBarContextMenu';
 import { Dimension } from 'src/base/browser/secondary/contextMenu/contextMenu';

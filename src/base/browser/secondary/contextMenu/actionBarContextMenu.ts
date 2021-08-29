@@ -1,7 +1,5 @@
 import { ContextMenu, ContextMenuType, Dimension } from "src/base/browser/secondary/contextMenu/contextMenu";
 import { IRegisterService } from "src/code/workbench/service/registerService";
-import { Button, IButton } from "../../basic/button";
-import { getSvgPathByName, SvgType } from 'src/base/common/string';
 import { IMenuItem, MenuItem, Role } from "src/base/browser/secondary/contextMenu/menuItem"
 export class ActionBarContextMenu extends ContextMenu {
     private _menuItemGroups: IMenuItem[] = [];
