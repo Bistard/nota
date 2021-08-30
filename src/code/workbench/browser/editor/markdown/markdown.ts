@@ -25,6 +25,8 @@ import { EVENT_EMITTER } from 'src/base/common/event';
 import { MarkdownRenderMode } from 'mdnote';
 import { getSvgPathByName, SvgType } from 'src/base/common/string';
 import { domNodeByIdAddListener, ipcRendererSend } from 'src/base/electron/register';
+import { ContextMenuType, Dimension } from 'src/base/browser/secondary/contextMenu/contextMenu';
+import { CONTEXT_MENU_SERVICE } from 'src/code/workbench/service/contextMenuService';
 
 /**
  * @description MarkdownComponent initializes markdown renderer and windows and
@@ -72,7 +74,7 @@ export class MarkdownComponent extends Component {
         this.createMarkdownEditor();
     }
     protected override _registerListeners(): void {
-       
+       /*
         domNodeByIdAddListener('markdown', 'contextmenu', (event) => {
             event.preventDefault()
             console.log('right clicked on markdown')
@@ -80,15 +82,22 @@ export class MarkdownComponent extends Component {
             //console.log(event.currentTarget)
             ipcRendererSend('showContextMenu')        
         })
-/*
-        document.addEventListener('contextmenu', (event) => {
-            event.preventDefault()
-            console.log('right clicked on markdown')
-            //console.log(event.target)
-            //console.log(event.currentTarget)
-            ipcRendererSend('showContextMenu')
-        })
-*/
+        */
+        
+        /**
+         * @readonly register context menu listeners (right click menu)
+         */
+        document.getElementById('markdown')!.addEventListener('contextmenu', (ev: MouseEvent) => {
+            ev.preventDefault();
+            let dimension: Dimension = {
+                coordinateX: ev.pageX,
+                coordinateY: ev.pageY,
+                width: 20,
+                height: 150,
+            };
+            CONTEXT_MENU_SERVICE.createContextMenu(ContextMenuType.editor, dimension);
+        });
+
         // spellcheck config check
         if (!ConfigModule.Instance.markdownSpellCheckOn) {
             const markdown = document.getElementById('markdown') as HTMLElement;
@@ -109,6 +118,8 @@ export class MarkdownComponent extends Component {
         /**
          * @readonly registers right click menu listeners
          */
+
+        /*
         domNodeByIdAddListener('markdown', 'contextmenu', (event) => {
             event.preventDefault();
             const element = event.target as HTMLElement;
@@ -125,6 +136,7 @@ export class MarkdownComponent extends Component {
                 ipcRendererSend('showContextMenuEditor');     
             }
         });
+        */
     }
 
     /**

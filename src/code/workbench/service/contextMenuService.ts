@@ -1,5 +1,6 @@
 import { ActionBarContextMenu } from "src/base/browser/secondary/contextMenu/actionBarContextMenu";
 import { ContextMenu, ContextMenuType, Dimension } from "src/base/browser/secondary/contextMenu/contextMenu";
+import { EditorContextMenu } from "src/base/browser/secondary/contextMenu/editorContextMenu";
 
 export class ContextMenuService {
 
@@ -23,7 +24,7 @@ export class ContextMenuService {
 
                 break;
             case ContextMenuType.editor:
-
+                this._contextMenu = new EditorContextMenu(dimension);
                 break;
         }
         this._contextMenu!.create();

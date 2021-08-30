@@ -66,7 +66,7 @@ export class ActionBarComponent extends Component {
         /**
          * @readonly register context menu listeners (right click menu)
          */
-        document.getElementById('mainApp')!.addEventListener('contextmenu', (ev: MouseEvent) => {
+        document.getElementById('action-bar')!.addEventListener('contextmenu', (ev: MouseEvent) => {
             ev.preventDefault();
             let dimension: Dimension = {
                 coordinateX: ev.pageX,
@@ -75,10 +75,6 @@ export class ActionBarComponent extends Component {
                 height: 150,
             };
             CONTEXT_MENU_SERVICE.createContextMenu(ContextMenuType.actionBar, dimension);
-        });
-
-        document.getElementById('mainApp')!.addEventListener('click', (ev: MouseEvent) => {
-            CONTEXT_MENU_SERVICE.removeContextMenu();
         });
 
         // TODO: add an array that stores user preference for action buttons (could be stored in config.ts)

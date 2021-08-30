@@ -1,4 +1,5 @@
 import { IWidget } from "src/base/browser/basic/widget";
+import { getSvgPathByName, SvgType } from 'src/base/common/string';
 
 export type Role = "normal" | "seperator" | "subMenu" | "checkBox";
 
@@ -22,6 +23,7 @@ export class MenuItem implements IMenuItem {
     public readonly element: HTMLElement;
     public imgElement?: HTMLImageElement;
     public spanElement?: HTMLSpanElement;
+    public hrElement?: HTMLHRElement;
     
     public readonly option: IMenuItemOption;
 
@@ -34,7 +36,7 @@ export class MenuItem implements IMenuItem {
 
     public apply(opt: IMenuItemOption): void {
         
-        this.setItem(opt.text);
+        //this.setItem(opt.text);
         if (opt.id) {
             this.element.id = opt.id;
         }
@@ -52,8 +54,17 @@ export class MenuItem implements IMenuItem {
         }
         switch (opt.role) {
             case 'normal':
+                this.setItem(opt.text);
                 break;
             case 'checkBox':
+                this.setImage(getSvgPathByName(SvgType.base, 'check-mark'));
+                this.setImageClass(['filter-black', 'check-box']);
+                this.setImageID(opt.id + "-check-mark");
+                this.setItem(opt.text);
+                break;
+            case 'seperator':
+                this.setSeperator();
+                this.setSeperatorClass(['seperator']);
                 break;
             default:
                console.log(`Invalid Menu Item Type`);
@@ -65,24 +76,24 @@ export class MenuItem implements IMenuItem {
         this.element.classList.add(...classes);
     }
 
-    // public setImage(src: string): void {
-    //     this.imgElement = document.createElement('img');
-    //     this.imgElement.src = src;
+    public setImage(src: string): void {
+         this.imgElement = document.createElement('img');
+         this.imgElement.src = src;
         
-    //     this.element.appendChild(this.imgElement);
-    // }
+         this.element.appendChild(this.imgElement);
+     }
 
-    // public setImageID(id: string): void {
-    //     if (this.imgElement) {
-    //         this.imgElement.id = id;
-    //     }
-    // }
+    public setImageID(id: string): void {
+         if (this.imgElement) {
+             this.imgElement.id = id;
+         }
+     }
 
-    // public setImageClass(classes: string[]): void {
-    //     if (this.imgElement) {
-    //         this.imgElement.classList.add(...classes);
-    //     }
-    // }
+    public setImageClass(classes: string[]): void {
+         if (this.imgElement) {
+             this.imgElement.classList.add(...classes);
+         }
+     }
 
     public setItem(textContent: string): void {
         this.spanElement = document.createElement('span');
@@ -103,6 +114,18 @@ export class MenuItem implements IMenuItem {
 
     public setTip(tip: string): void {
 
+    }
+
+    public setSeperator(): void {
+        this.hrElement = document.createElement('hr');
+        
+        this.element.appendChild(this.hrElement); 
+    }
+
+    public setSeperatorClass(classes: string[]): void {
+        if (this.hrElement) {
+            this.hrElement.classList.add(...classes);
+        }
     }
 
 }
