@@ -4,7 +4,7 @@ import { ActionViewType } from 'src/code/workbench/browser/actionView/actionView
 import { Component, ComponentType } from 'src/code/workbench/browser/component';
 import { ipcRendererOn } from 'src/base/electron/register';
 import { getSvgPathByName, SvgType } from 'src/base/common/string';
-import { ActionBarContextMenu } from 'src/base/browser/secondary/contextMenu/actionBarContextMenu';
+import { ActionBarContextMenu } from 'src/base/browser/secondary/contextMenu/actionBar/actionBarContextMenu';
 import { ContextMenuType, Dimension } from 'src/base/browser/secondary/contextMenu/contextMenu';
 import { CONTEXT_MENU_SERVICE } from 'src/code/workbench/service/contextMenuService';
 
