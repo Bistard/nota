@@ -105,7 +105,7 @@ export class ActionBarComponent extends Component {
         
         // default with openning explorer view
         this.clickActionBtn(document.getElementById('explorer-button') as HTMLElement);
-
+        
         $('.action-button').on('click', { ActionBarComponent: this }, function (event) {
             let that = event.data.ActionBarComponent;
             that.clickActionBtn(this);

@@ -56,7 +56,7 @@ class Workbench extends Component {
      * @description register renderer process global listeners.
      */
     protected override _registerListeners(): void {
-
+        
         // once the main process notifies this renderer process, we try to 
         // finish the following job.
         ipcRendererOn('closingApp', () => {

@@ -6,23 +6,25 @@ export interface IEventEmitter {
      * to avoid losing 'this' scope, please pass the callback using an arrow 
      * wrapper function such as: '_eventEmitter.register(id, (...params) => callback(params));'
      */
-     register(id: string, callback: (...params: any[]) => void): boolean;
+    register(id: string, callback: (...params: any[]) => any): boolean;
     
     /**
      * @description emits an event
      */
-     emit(id: string, ...params: any[]): boolean;
+    emit(id: string, ...params: any[]): boolean;
 }
 
 export class EventEmitter implements IEventEmitter {
 
-    private _events: { [key: string]: { (): void }[] };
+    private _events: { 
+        [key: string]: { (): any }[]
+    };
 
     constructor() {
         this._events = {};
     }
     
-    public register(id: string, callback: (...params: any[]) => void): boolean {
+    public register(id: string, callback: (...params: any[]) => any): boolean {
         if (this._events[id]) {
             this._events[id]!.push(callback);
         } else {
@@ -33,7 +35,7 @@ export class EventEmitter implements IEventEmitter {
 
     public emit(id: string, ...params: any[]): boolean {
         if (this._events[id]) {
-            this._events[id]?.forEach(callback => {
+            this._events[id]!.forEach(callback => {
                 callback.apply(null, params as []);
             });
             return true;
