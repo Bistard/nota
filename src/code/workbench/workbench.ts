@@ -9,7 +9,8 @@ import { ConfigModule, DEFAULT_CONFIG_FILE_NAME, DEFAULT_CONFIG_PATH, GlobalConf
 import { pathJoin } from "src/base/common/string";
 import { CONTEXT_MENU_SERVICE } from 'src/code/workbench/service/contextMenuService';
 
-import "src/code/common/service/instantiation/util";
+// DEBUG: import "src/code/common/service/instantiation/util";
+
 /**
  * @description this module is loaded by the web directly. Most of the modules 
  * are instantiating in here. Also convinents for passing diferent modules into
