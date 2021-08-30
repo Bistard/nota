@@ -11,8 +11,6 @@ export enum ContextMenuType {
 export type Dimension = {
     coordinateX: number;
     coordinateY: number;
-    width: number;
-    height: number;
 }
 
 export interface IContextMenu {
@@ -48,8 +46,6 @@ export abstract class ContextMenu extends Component implements IContextMenu {
     public setNewPosition(dimension: Dimension): void {
         this.container.style.top = `${dimension.coordinateY}px`;
         this.container.style.left =`${dimension.coordinateX}px`;
-        this.container.style.width = `${dimension.width}px`;
-        this.container.style.height = `${dimension.height}px`;
     }
 
     protected override _createContent(): void {

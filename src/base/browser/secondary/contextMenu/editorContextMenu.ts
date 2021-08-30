@@ -1,5 +1,6 @@
 import { ContextMenu, ContextMenuType, Dimension } from "src/base/browser/secondary/contextMenu/contextMenu";
 import { CONTEXT_MENU_SERVICE } from 'src/code/workbench/service/contextMenuService';
+import { ipcRendererSend } from "src/base/electron/register";
 
 export class EditorContextMenu extends ContextMenu {
     
@@ -12,7 +13,7 @@ export class EditorContextMenu extends ContextMenu {
                 {id: 'paste', classes: ['menu-item'], text: 'Paste', role: 'normal'},
                 {id: 'cut', classes: ['menu-item'], text: 'Cut', role: 'normal'},
                 {text: 'seperator', role: 'seperator'},
-                {id: 'select-git-button', classes: ['menu-item'], text: 'Git', role: 'normal'},
+                {id: 'Delete', classes: ['menu-item'], text: 'Delete', role: 'normal', enable: false},
             ],
         );
     }
@@ -20,21 +21,24 @@ export class EditorContextMenu extends ContextMenu {
     protected override _registerListeners(): void {
         document.getElementById('copy')!.addEventListener('click', (ev) => {
             ev.preventDefault();
-            document.execCommand("copy");
+            //document.execCommand("copy");
+            ipcRendererSend('copy');
             CONTEXT_MENU_SERVICE.removeContextMenu();
 
         })
 
         document.getElementById('paste')!.addEventListener('click', (ev) => {
             ev.preventDefault();
-            document.execCommand("paste");
+            //document.execCommand("paste");
+            ipcRendererSend('context-menu');
             CONTEXT_MENU_SERVICE.removeContextMenu();
 
         })
 
         document.getElementById('cut')!.addEventListener('click', (ev) => {
             ev.preventDefault();
-            document.execCommand("cut");
+            document.execCommand("delete");
+            ipcRendererSend('delete');
             CONTEXT_MENU_SERVICE.removeContextMenu();
 
         })

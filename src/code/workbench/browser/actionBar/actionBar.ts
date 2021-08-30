@@ -71,8 +71,6 @@ export class ActionBarComponent extends Component {
             let dimension: Dimension = {
                 coordinateX: ev.pageX,
                 coordinateY: ev.pageY,
-                width: 20,
-                height: 150,
             };
             CONTEXT_MENU_SERVICE.createContextMenu(ContextMenuType.actionBar, dimension);
         });

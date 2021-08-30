@@ -43,9 +43,6 @@ export class MenuItem implements IMenuItem {
         if (opt.classes) {
             this.setClass(opt.classes);
         }
-        if (opt.enable) {
-            // TODO: menuItem turns grey
-        }
         if (opt.shortcut) {
             this.setShortcut(opt.shortcut);
         }
@@ -68,6 +65,12 @@ export class MenuItem implements IMenuItem {
                 break;
             default:
                console.log(`Invalid Menu Item Type`);
+        }
+
+        if (opt.enable == false) {
+            this.element.style.pointerEvents= 'none';
+            const disableButton = document.getElementById(opt.text+'-id');
+            disableButton!.style.color = 'darkgrey';
         }
 
     }
@@ -97,6 +100,7 @@ export class MenuItem implements IMenuItem {
 
     public setItem(textContent: string): void {
         this.spanElement = document.createElement('span');
+        this.spanElement.id= textContent + '-id';
         this.spanElement.textContent = textContent;
         
         this.element.appendChild(this.spanElement);
