@@ -1,17 +1,17 @@
 import { MarkdownFile, readMarkdownFile } from 'src/base/node/file';
-import * as fs from 'fs';
+import * as fs from 'fs'; 
 import * as Path from 'path';
 import { EVENT_EMITTER } from 'src/base/common/event';
 import { NoteBookManager } from 'src/code/common/model/notebookManger';
 
 /**
  * @description the object is to store and maintain the data for each 
- * folder/tree/root.
+ * folder/file/root.
  */
 export class FileNode {
 
     public element: HTMLElement;
-    public textElement!: HTMLLIElement;
+    public textElement!: HTMLElement;
 
     public readonly file: MarkdownFile | null;
 
@@ -36,7 +36,7 @@ export class FileNode {
         this.path = path;
         this.name = name;
         this.baseName = baseName;
-        
+
         // note that 'nodes' will always be an empty map
         this.nodes = nodes;
 

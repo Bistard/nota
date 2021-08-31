@@ -4,11 +4,9 @@ import { ActionViewType } from 'src/code/workbench/browser/actionView/actionView
 import { Component, ComponentType } from 'src/code/workbench/browser/component';
 import { ipcRendererOn } from 'src/base/electron/register';
 import { getSvgPathByName, SvgType } from 'src/base/common/string';
-import { ActionBarContextMenu } from 'src/base/browser/secondary/contextMenu/actionBarContextMenu';
+import { ActionBarContextMenu } from 'src/base/browser/secondary/contextMenu/actionBar/actionBarContextMenu';
 import { ContextMenuDimension, ContextMenuType, Dimension } from 'src/base/browser/secondary/contextMenu/contextMenu';
-import { ContextMenuService, CONTEXT_MENU_SERVICE } from 'src/code/workbench/service/contextMenuService';
-import { remote } from "electron";
-
+import { CONTEXT_MENU_SERVICE } from 'src/code/workbench/service/contextMenuService';
 
 export interface IActionBarOptions {
     options: [
@@ -120,7 +118,7 @@ export class ActionBarComponent extends Component {
         
         // default with openning explorer view
         this.clickActionBtn(document.getElementById('explorer-button') as HTMLElement);
-
+        
         $('.action-button').on('click', { ActionBarComponent: this }, function (event) {
             let that = event.data.ActionBarComponent;
             that.clickActionBtn(this);

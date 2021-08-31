@@ -3,6 +3,7 @@ import { ServiceIdentifier } from "src/code/common/service/instantiation/decorat
 
 export class ServiceCollection {
 
+	// stores either T | ServiceDescriptor<T>
     private _services: Map<ServiceIdentifier<any>, any> = new Map();
 
     constructor(...services: [ServiceIdentifier<any>, any][]) {

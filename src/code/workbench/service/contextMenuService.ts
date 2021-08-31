@@ -1,8 +1,16 @@
-import { ActionBarContextMenu } from "src/base/browser/secondary/contextMenu/actionBarContextMenu";
-import { ContextMenu, ContextMenuDimension, ContextMenuType, Dimension } from "src/base/browser/secondary/contextMenu/contextMenu";
-import { EditorContextMenu } from "src/base/browser/secondary/contextMenu/editorContextMenu";
+import { ActionBarContextMenu } from "src/base/browser/secondary/contextMenu/actionBar/actionBarContextMenu";
+import { ContextMenu, ContextMenuType, Dimension, ContextMenuDimension } from "src/base/browser/secondary/contextMenu/contextMenu";
+import { EditorContextMenu } from "src/base/browser/secondary/contextMenu/editor/editorContextMenu";
 
-export class ContextMenuService {
+export interface IContextMenuService {
+    
+    createContextMenu(type: ContextMenuType, dimension: Dimension): void;
+    removeContextMenu(): void;
+    isContextMenuOn(): boolean;
+
+}
+
+export class ContextMenuService implements IContextMenuService {
 
     private _contextMenu: ContextMenu | null;
 

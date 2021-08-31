@@ -9,7 +9,6 @@ import { ConfigModule, DEFAULT_CONFIG_FILE_NAME, DEFAULT_CONFIG_PATH, GlobalConf
 import { pathJoin } from "src/base/common/string";
 import { CONTEXT_MENU_SERVICE } from 'src/code/workbench/service/contextMenuService';
 
-
 /**
  * @description this module is loaded by the web directly. Most of the modules 
  * are instantiating in here. Also convinents for passing diferent modules into
@@ -56,7 +55,7 @@ class Workbench extends Component {
      * @description register renderer process global listeners.
      */
     protected override _registerListeners(): void {
-
+        
         // once the main process notifies this renderer process, we try to 
         // finish the following job.
         ipcRendererOn('closingApp', () => {
