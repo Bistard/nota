@@ -13,6 +13,14 @@ export type Dimension = {
     coordinateY: number;
 }
 
+export type ContextMenuDimension = {
+    coordinates: Dimension;
+    windowHeight: number;
+    windowWidth: number;
+    contextMenuHeight: number;
+    contextMenuWidth: number;
+}
+
 export interface IContextMenu {
     
     readonly type: ContextMenuType;

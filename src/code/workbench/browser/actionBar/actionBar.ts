@@ -5,7 +5,7 @@ import { Component, ComponentType } from 'src/code/workbench/browser/component';
 import { ipcRendererOn } from 'src/base/electron/register';
 import { getSvgPathByName, SvgType } from 'src/base/common/string';
 import { ActionBarContextMenu } from 'src/base/browser/secondary/contextMenu/actionBar/actionBarContextMenu';
-import { ContextMenuType, Dimension } from 'src/base/browser/secondary/contextMenu/contextMenu';
+import { ContextMenuDimension, ContextMenuType, Dimension } from 'src/base/browser/secondary/contextMenu/contextMenu';
 import { CONTEXT_MENU_SERVICE } from 'src/code/workbench/service/contextMenuService';
 
 export interface IActionBarOptions {
@@ -73,7 +73,19 @@ export class ActionBarComponent extends Component {
                 coordinateX: ev.pageX,
                 coordinateY: ev.pageY,
             };
+
             CONTEXT_MENU_SERVICE.createContextMenu(ContextMenuType.actionBar, dimension);
+            
+           let menuDimension: ContextMenuDimension = {
+            coordinates: dimension,
+            windowHeight: document.getElementById('mainApp')!.getBoundingClientRect().height,
+            windowWidth: document.getElementById('mainApp')!.getBoundingClientRect().width,
+            contextMenuHeight: document.getElementById('context-menu')!.getBoundingClientRect().height,
+            contextMenuWidth: document.getElementById('context-menu')!.getBoundingClientRect().width, 
+           };
+           
+           CONTEXT_MENU_SERVICE.removeContextMenu();
+           CONTEXT_MENU_SERVICE.createContextMenu(ContextMenuType.actionBar, CONTEXT_MENU_SERVICE.edgeDetection(menuDimension));
         });
 
         // TODO: add an array that stores user preference for action buttons (could be stored in config.ts)
