@@ -4,12 +4,10 @@ import { ActionBarComponent } from "src/code/workbench/browser/actionBar/actionB
 import { EditorComponent } from "src/code/workbench/browser/editor/editor";
 import { LOCAL_MDNOTE_DIR_NAME, NoteBookManager } from "src/code/common/model/notebookManger";
 import { APP_ROOT_PATH } from "src/base/electron/app";
-import { ipcRendererOn, ipcRendererSend, ipcRendererSendTest } from "src/base/electron/register";
+import { ipcRendererOn, ipcRendererSend } from "src/base/electron/register";
 import { ConfigModule, DEFAULT_CONFIG_FILE_NAME, DEFAULT_CONFIG_PATH, GlobalConfigModule, GLOBAL_CONFIG_FILE_NAME, GLOBAL_CONFIG_PATH, LOCAL_CONFIG_FILE_NAME } from "src/base/config";
 import { pathJoin } from "src/base/common/string";
 import { CONTEXT_MENU_SERVICE } from 'src/code/workbench/service/contextMenuService';
-
-import "src/code/common/service/instantiation/util";
 
 /**
  * @description this module is loaded by the web directly. Most of the modules 
