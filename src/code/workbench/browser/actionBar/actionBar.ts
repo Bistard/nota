@@ -68,6 +68,7 @@ export class ActionBarComponent extends Component {
          */
         document.getElementById('action-bar')!.addEventListener('contextmenu', (ev: MouseEvent) => {
             ev.preventDefault();
+            CONTEXT_MENU_SERVICE.removeContextMenu();
             let dimension: Dimension = {
                 coordinateX: ev.pageX,
                 coordinateY: ev.pageY,

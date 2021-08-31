@@ -3,7 +3,7 @@
 #context-menu {
     position: absolute;
     width: auto;
-    min-width: 200px;
+    min-width: 0px;
     color: #333;
     box-shadow: 0 0 5px 2px lightgrey;
     z-index: 100;
@@ -26,6 +26,7 @@
     font-size: 12px;
     padding: 10px 40px 10px 20px;
     cursor: pointer;
+    height: 10px;
 }
 
 .menu-item:hover {
