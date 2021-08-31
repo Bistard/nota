@@ -1,6 +1,6 @@
-import { ActionBarContextMenu } from "src/base/browser/secondary/contextMenu/actionBarContextMenu";
+import { ActionBarContextMenu } from "src/base/browser/secondary/contextMenu/actionBar/actionBarContextMenu";
 import { ContextMenu, ContextMenuType, Dimension } from "src/base/browser/secondary/contextMenu/contextMenu";
-import { EditorContextMenu } from "src/base/browser/secondary/contextMenu/editorContextMenu";
+import { EditorContextMenu } from "src/base/browser/secondary/contextMenu/editor/editorContextMenu";
 
 export interface IContextMenuService {
     

@@ -36,6 +36,7 @@
     "@toast-ui/editor-plugin-code-syntax-highlight": "^3.0.0",
     "@toast-ui/editor-plugin-color-syntax": "^3.0.1",
     "@types/node": "^16.4.13",
+    "@types/requestidlecallback": "^0.3.4",
     "electron-localshortcut": "^3.2.1",
     "jquery": "^3.6.0",
     "path-directories": "^1.0.2"
