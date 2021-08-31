@@ -1,5 +1,5 @@
 import { ActionBarContextMenu } from "src/base/browser/secondary/contextMenu/actionBarContextMenu";
-import { ContextMenu, ContextMenuType, Dimension } from "src/base/browser/secondary/contextMenu/contextMenu";
+import { ContextMenu, ContextMenuDimension, ContextMenuType, Dimension } from "src/base/browser/secondary/contextMenu/contextMenu";
 import { EditorContextMenu } from "src/base/browser/secondary/contextMenu/editorContextMenu";
 
 export class ContextMenuService {
@@ -40,6 +40,22 @@ export class ContextMenuService {
 
     public isContextMenuOn(): boolean {
         return this._contextMenu !== null;
+    }
+
+    public edgeDetection(menuDimension: ContextMenuDimension): Dimension {
+        if (menuDimension.coordinates.coordinateX + menuDimension.contextMenuWidth <= menuDimension.windowWidth){
+             if (menuDimension.coordinates.coordinateY + menuDimension.contextMenuHeight > menuDimension.windowHeight){
+                 menuDimension.coordinates.coordinateY -= menuDimension.contextMenuHeight;
+             }  
+        } else {
+            if (menuDimension.coordinates.coordinateY + menuDimension.contextMenuHeight > menuDimension.windowHeight){
+                menuDimension.coordinates.coordinateY -= menuDimension.contextMenuHeight;
+                menuDimension.coordinates.coordinateX -= menuDimension.contextMenuWidth;
+            } else{
+                menuDimension.coordinates.coordinateX -= menuDimension.contextMenuWidth;
+            }
+        }
+        return menuDimension.coordinates
     }
 
 }
