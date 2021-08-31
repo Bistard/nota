@@ -1,6 +1,7 @@
 import { ServiceIdentifier, _ServiceUtil } from "src/code/common/service/instantiation/decorator";
 import { Graph, Node } from "src/code/common/service/instantiation/dependencyGraph";
 import { ServiceDescriptor } from "src/code/common/service/instantiation/descriptor";
+import { IdleValue } from "src/code/common/service/instantiation/idle";
 import { ServiceCollection } from "src/code/common/service/instantiation/serviceCollection";
 
 export class InstantiationService {
@@ -108,7 +109,9 @@ export class InstantiationService {
 			}
         }
 
-        return <T>;
+        console.log(dependencyGraph.toString());
+
+        return <T>this._serviceCollections.get(id);
     }
 
     private _setServiceInstance<T>(

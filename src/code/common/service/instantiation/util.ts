@@ -21,11 +21,12 @@ class HelloService implements IHelloService {
     }
 }
 
-// Declare that the MyService class is the type that is instantiated when an IHelloService is needed.
-serviceCollection.set(IHelloService, new ServiceDescriptor(HelloService));
-
 // This works!!
 // serviceCollection.set(IHelloService, new HelloService());
+
+// What about this one?
+// Seems working!!
+serviceCollection.set(IHelloService, new ServiceDescriptor(HelloService));
 
 const instantiationService = new InstantiationService(serviceCollection);
 
