@@ -89,6 +89,8 @@ export class MarkdownComponent extends Component {
          */
         document.getElementById('markdown')!.addEventListener('contextmenu', (ev: MouseEvent) => {
             ev.preventDefault();
+            CONTEXT_MENU_SERVICE.removeContextMenu();
+
             let dimension: Dimension = {
                 coordinateX: ev.pageX,
                 coordinateY: ev.pageY,
