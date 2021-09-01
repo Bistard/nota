@@ -1,6 +1,9 @@
 import { IWidget } from "src/base/browser/basic/widget";
 import { getSvgPathByName, SvgType } from 'src/base/common/string';
 
+export const CONTEXT_MENU_ITEM_HEIGHT = 30;
+export const CONTEXT_MENU_WIDTH = 150;
+
 export type Role = "normal" | "seperator" | "subMenu" | "checkBox";
 
 export interface IMenuItem extends IWidget {
@@ -36,7 +39,7 @@ export class MenuItem implements IMenuItem {
 
     public apply(opt: IMenuItemOption): void {
         
-        //this.setItem(opt.text);
+        //this.setText(opt.text);
         if (opt.id) {
             this.element.id = opt.id;
         }
@@ -51,20 +54,22 @@ export class MenuItem implements IMenuItem {
         }
         switch (opt.role) {
             case 'normal':
-                this.setItem(opt.text);
+                this.setText(opt.text);
+                this.setTextClass(['menu-item-text']);
                 break;
             case 'checkBox':
                 this.setImage(getSvgPathByName(SvgType.base, 'check-mark'));
                 this.setImageClass(['filter-black', 'check-box']);
                 this.setImageID(opt.id + "-check-mark");
-                this.setItem(opt.text);
+                this.setText(opt.text);
                 break;
             case 'seperator':
                 this.setSeperator();
                 this.setSeperatorClass(['seperator']);
                 break;
             case 'subMenu':
-                this.setItem(opt.text); 
+                this.setText(opt.text);
+                this.setTextClass(['menu-item-text']);
                 this.setImage(getSvgPathByName(SvgType.base, 'caret-right'));
                 this.setImageClass(['filter-black', 'caret-right']);
                 this.setImageID(opt.id + "-caret-right");
@@ -104,7 +109,7 @@ export class MenuItem implements IMenuItem {
          }
      }
 
-    public setItem(textContent: string): void {
+    public setText(textContent: string): void {
         this.spanElement = document.createElement('span');
         this.spanElement.id= textContent + '-id';
         this.spanElement.textContent = textContent;
@@ -112,9 +117,9 @@ export class MenuItem implements IMenuItem {
         this.element.appendChild(this.spanElement);
     }
 
-    public setItemClass(classes: string[]): void {
-        if (this.imgElement) {
-            this.imgElement.classList.add(...classes);
+    public setTextClass(classes: string[]): void {
+        if (this.spanElement) {
+            this.spanElement.classList.add(...classes);
         }
     }
 

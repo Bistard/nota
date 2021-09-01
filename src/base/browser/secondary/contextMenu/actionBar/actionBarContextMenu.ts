@@ -1,12 +1,12 @@
-import { ContextMenu, ContextMenuType, Dimension } from "src/base/browser/secondary/contextMenu/contextMenu";
+import { ContextMenu, ContextMenuType, Coordinate, IContextMenu } from "src/base/browser/secondary/contextMenu/contextMenu";
 import { CONTEXT_MENU_SERVICE } from 'src/code/workbench/service/contextMenuService';
 
-export class ActionBarContextMenu extends ContextMenu {
+export class ActionBarContextMenu extends ContextMenu implements IContextMenu {
     
-    constructor(dimension: Dimension) {
+    constructor(coordinate: Coordinate) {
         super(
             ContextMenuType.actionBar, 
-            dimension,
+            coordinate,
             [
                 {id: 'select-explorer-button', classes: ['menu-item'], text: 'File Explorer', role: 'checkBox'},
                 {id: 'select-outline-button', classes: ['menu-item'], text: 'Outline', role: 'checkBox'},

@@ -1,13 +1,13 @@
-import { ContextMenu, ContextMenuType, Dimension } from "src/base/browser/secondary/contextMenu/contextMenu";
+import { ContextMenu, ContextMenuType, Coordinate, IContextMenu } from "src/base/browser/secondary/contextMenu/contextMenu";
 import { CONTEXT_MENU_SERVICE } from 'src/code/workbench/service/contextMenuService';
 import { ipcRendererSend } from "src/base/electron/register";
 
-export class EditorContextMenu extends ContextMenu {
+export class EditorContextMenu extends ContextMenu implements IContextMenu {
     
-    constructor(dimension: Dimension) {
+    constructor(coordinate: Coordinate) {
         super(
             ContextMenuType.actionBar, 
-            dimension,
+            coordinate,
             [
                 {id: 'copy', classes: ['menu-item'], text: 'Copy', role: 'normal'},
                 {id: 'paste', classes: ['menu-item'], text: 'Paste', role: 'normal'},

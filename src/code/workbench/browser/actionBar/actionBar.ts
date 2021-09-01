@@ -5,7 +5,7 @@ import { Component, ComponentType } from 'src/code/workbench/browser/component';
 import { ipcRendererOn } from 'src/base/electron/register';
 import { getSvgPathByName, SvgType } from 'src/base/common/string';
 import { ActionBarContextMenu } from 'src/base/browser/secondary/contextMenu/actionBar/actionBarContextMenu';
-import { ContextMenuDimension, ContextMenuType, Dimension } from 'src/base/browser/secondary/contextMenu/contextMenu';
+import { ContextMenuDimension, ContextMenuType, Coordinate } from 'src/base/browser/secondary/contextMenu/contextMenu';
 import { CONTEXT_MENU_SERVICE } from 'src/code/workbench/service/contextMenuService';
 
 export interface IActionBarOptions {
@@ -69,12 +69,12 @@ export class ActionBarComponent extends Component {
         document.getElementById('action-bar')!.addEventListener('contextmenu', (ev: MouseEvent) => {
             ev.preventDefault();
             CONTEXT_MENU_SERVICE.removeContextMenu();
-            let dimension: Dimension = {
+            let coordinate: Coordinate = {
                 coordinateX: ev.pageX,
                 coordinateY: ev.pageY,
             };
 
-            CONTEXT_MENU_SERVICE.createContextMenuWithEdgeDetection(ContextMenuType.actionBar, dimension);
+            CONTEXT_MENU_SERVICE.createContextMenu(ContextMenuType.actionBar, coordinate);
 
         });
 

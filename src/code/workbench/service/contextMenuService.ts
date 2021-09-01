@@ -1,40 +1,67 @@
 import { ActionBarContextMenu } from "src/base/browser/secondary/contextMenu/actionBar/actionBarContextMenu";
-import { ContextMenu, ContextMenuType, Dimension, ContextMenuDimension } from "src/base/browser/secondary/contextMenu/contextMenu";
+import { ContextMenuType, Coordinate, ContextMenuDimension, IContextMenu } from "src/base/browser/secondary/contextMenu/contextMenu";
 import { EditorContextMenu } from "src/base/browser/secondary/contextMenu/editor/editorContextMenu";
 
 export interface IContextMenuService {
     
-    createContextMenu(type: ContextMenuType, dimension: Dimension): void;
+    /**
+     * @description 
+     */
+    createContextMenu(type: ContextMenuType, coordinate: Coordinate): void;
+    
+    /**
+     * @description 
+     */
     removeContextMenu(): void;
+
     isContextMenuOn(): boolean;
 
 }
 
 export class ContextMenuService implements IContextMenuService {
 
-    private _contextMenu: ContextMenu | null;
+    private _contextMenu: IContextMenu | null;
 
     constructor() {
         this._contextMenu = null;
     }
 
-    public createContextMenu(type: ContextMenuType, dimension: Dimension): void {
-        if (this._contextMenu !== null) {
-            this._contextMenu.setNewPosition(dimension);
-            return;
-        }
-        
+    private _initContextMenu(type: ContextMenuType, coordinate: Coordinate): void {
         switch (type) {
             case ContextMenuType.actionBar:
-                this._contextMenu = new ActionBarContextMenu(dimension);
+                this._contextMenu = new ActionBarContextMenu(coordinate);
                 break;
             case ContextMenuType.actionView:
 
                 break;
             case ContextMenuType.editor:
-                this._contextMenu = new EditorContextMenu(dimension);
+                this._contextMenu = new EditorContextMenu(coordinate);
                 break;
         }
+    }
+
+    public createContextMenu(type: ContextMenuType, coordinate: Coordinate): void {
+        
+        // if the previous contextMenu is right clicked twice, we simply set a new position
+        if (this._contextMenu !== null && type === this._contextMenu.type) {
+            this._contextMenu.setNewPosition(coordinate);
+            return;
+        }
+
+        this.removeContextMenu();
+        this._initContextMenu(type, coordinate);
+
+        let menuDimension: ContextMenuDimension = {
+            coordinates: coordinate,
+            windowHeight: document.getElementById('mainApp')!.getBoundingClientRect().height,
+            windowWidth: document.getElementById('mainApp')!.getBoundingClientRect().width,
+            contextMenuHeight: this._contextMenu!.getHeight(),
+            contextMenuWidth: this._contextMenu!.getWidth(), 
+        };
+
+        const newCoordinate = this.edgeDetection(menuDimension);
+        this._contextMenu!.setCoordinate(newCoordinate);
+        
         this._contextMenu!.create();
         this._contextMenu!.registerListeners();
     }
@@ -50,36 +77,21 @@ export class ContextMenuService implements IContextMenuService {
         return this._contextMenu !== null;
     }
 
-
-    public createContextMenuWithEdgeDetection(type: ContextMenuType, dimension: Dimension): void {
-        this.createContextMenu(type, dimension);
-            
-        let menuDimension: ContextMenuDimension = {
-         coordinates: dimension,
-         windowHeight: document.getElementById('mainApp')!.getBoundingClientRect().height,
-         windowWidth: document.getElementById('mainApp')!.getBoundingClientRect().width,
-         contextMenuHeight: document.getElementById('context-menu')!.getBoundingClientRect().height,
-         contextMenuWidth: document.getElementById('context-menu')!.getBoundingClientRect().width, 
-        };
-        
-        this.removeContextMenu();
-        this.createContextMenu(type, this.edgeDetection(menuDimension));
-    }
-
-    public edgeDetection(menuDimension: ContextMenuDimension): Dimension {
-        if (menuDimension.coordinates.coordinateX + menuDimension.contextMenuWidth <= menuDimension.windowWidth){
-             if (menuDimension.coordinates.coordinateY + menuDimension.contextMenuHeight > menuDimension.windowHeight){
-                 menuDimension.coordinates.coordinateY -= menuDimension.contextMenuHeight;
+    public edgeDetection(menuDimension: ContextMenuDimension): Coordinate {
+        const cooridates = menuDimension.coordinates;
+        if (cooridates.coordinateX + menuDimension.contextMenuWidth <= menuDimension.windowWidth){
+             if (cooridates.coordinateY + menuDimension.contextMenuHeight > menuDimension.windowHeight){
+                 cooridates.coordinateY -= menuDimension.contextMenuHeight;
              }  
         } else {
-            if (menuDimension.coordinates.coordinateY + menuDimension.contextMenuHeight > menuDimension.windowHeight){
-                menuDimension.coordinates.coordinateY -= menuDimension.contextMenuHeight;
-                menuDimension.coordinates.coordinateX -= menuDimension.contextMenuWidth;
+            if (cooridates.coordinateY + menuDimension.contextMenuHeight > menuDimension.windowHeight){
+                cooridates.coordinateY -= menuDimension.contextMenuHeight;
+                cooridates.coordinateX -= menuDimension.contextMenuWidth;
             } else{
-                menuDimension.coordinates.coordinateX -= menuDimension.contextMenuWidth;
+                cooridates.coordinateX -= menuDimension.contextMenuWidth;
             }
         }
-        return menuDimension.coordinates
+        return cooridates;
     }
 
 }

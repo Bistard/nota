@@ -5,6 +5,11 @@ export const enum ComponentType {
 }
 
 export interface IComponent {
+
+    readonly parentComponent: Component | null;
+    readonly parent: HTMLElement | null;
+    readonly container: HTMLElement;
+
     create(): void;
     registerListeners(): void;
     registerComponent(component: Component): void;

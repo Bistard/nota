@@ -25,7 +25,7 @@ import { EVENT_EMITTER } from 'src/base/common/event';
 import { MarkdownRenderMode } from 'mdnote';
 import { getSvgPathByName, SvgType } from 'src/base/common/string';
 import { domNodeByIdAddListener, ipcRendererSend } from 'src/base/electron/register';
-import { ContextMenuDimension, ContextMenuType, Dimension } from 'src/base/browser/secondary/contextMenu/contextMenu';
+import { ContextMenuDimension, ContextMenuType, Coordinate } from 'src/base/browser/secondary/contextMenu/contextMenu';
 import { ContextMenuService, CONTEXT_MENU_SERVICE } from 'src/code/workbench/service/contextMenuService';
 
 /**
@@ -91,12 +91,12 @@ export class MarkdownComponent extends Component {
             ev.preventDefault();
             CONTEXT_MENU_SERVICE.removeContextMenu();
 
-            let dimension: Dimension = {
+            let coordinate: Coordinate = {
                 coordinateX: ev.pageX,
                 coordinateY: ev.pageY,
            };
            
-           CONTEXT_MENU_SERVICE.createContextMenuWithEdgeDetection(ContextMenuType.editor, dimension);
+           CONTEXT_MENU_SERVICE.createContextMenu(ContextMenuType.editor, coordinate);
     
         });
 
