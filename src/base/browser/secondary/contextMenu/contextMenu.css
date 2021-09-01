@@ -38,7 +38,7 @@
 }
 
 .menu-item > .menu-item-text {
-    position: absolute;
+    position: relative;
     user-select: none;
     line-height: 30px;
     left: 10px;
