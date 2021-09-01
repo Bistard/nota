@@ -27,6 +27,8 @@ export class Browser {
 
         // sets all the services here...
 
+        // logService
+
         const instantiationService = new InstantiationService(serviceCollection);
         return instantiationService;
     }

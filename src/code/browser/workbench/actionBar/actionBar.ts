@@ -1,12 +1,19 @@
 import { Button, IButton } from 'src/base/browser/basic/button';
 import { EVENT_EMITTER } from 'src/base/common/event';
 import { ActionViewType } from 'src/code/browser/workbench/actionView/actionView';
-import { Component, ComponentType } from 'src/code/browser/workbench/component';
+import { Component, ComponentType, IComponent } from 'src/code/browser/workbench/component';
 import { ipcRendererOn } from 'src/base/electron/register';
 import { getSvgPathByName, SvgType } from 'src/base/common/string';
-import { ActionBarContextMenu } from 'src/base/browser/secondary/contextMenu/actionBar/actionBarContextMenu';
-import { ContextMenuDimension, ContextMenuType, Coordinate } from 'src/base/browser/secondary/contextMenu/contextMenu';
+import { ContextMenuType, Coordinate } from 'src/base/browser/secondary/contextMenu/contextMenu';
 import { CONTEXT_MENU_SERVICE } from 'src/code/browser/service/contextMenuService';
+import { createDecorator } from 'src/code/common/service/instantiation/decorator';
+
+export const IActionBarService = createDecorator<IActionBarService>('actionBar-service');
+export interface IActionBarService extends IComponent {
+    
+    clickActionBtn(clickedBtn: HTMLElement): void;
+
+}
 
 export interface IActionBarOptions {
     options: [
@@ -22,14 +29,16 @@ export interface IActionBarOptions {
  * the state transition between each action button and display coressponding 
  * action view.
  */
-export class ActionBarComponent extends Component {
+export class ActionBarComponent extends Component implements IActionBarService {
 
     private _buttonGroups: IButton[] = [];
     
     // if value is -1, it means actionView is not shown.
     private currFocusActionBtnIndex: number;
 
-    constructor(parentComponent: Component) {
+    constructor(
+        parentComponent: Component,
+    ) {
         super(ComponentType.ActionBar, parentComponent);
         
         this.currFocusActionBtnIndex = -1;

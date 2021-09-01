@@ -1,9 +1,10 @@
 import { getSvgPathByName, SvgType } from 'src/base/common/string';
-import { Component, ComponentType } from 'src/code/browser/workbench/component';
+import { Component, ComponentType, IComponent } from 'src/code/browser/workbench/component';
 import { ExplorerViewComponent } from "src/code/browser/workbench/actionView/explorer/explorer";
 import { EVENT_EMITTER } from 'src/base/common/event';
 import { NoteBookManager } from 'src/code/common/model/notebookManger';
 import { domNodeByIdAddListener } from 'src/base/electron/register';
+import { createDecorator } from 'src/code/common/service/instantiation/decorator';
 
 export type ActionViewType = 'none' | 'explorer' | 'outline' | 'search' | 'git';
 
@@ -14,11 +15,24 @@ export enum ActionViewComponentType {
     GitView = 'git-container',
 }
 
+export const IActionViewService = createDecorator<IActionViewService>('actionView-service');
+
+export interface IActionViewService extends IComponent {
+
+    whichActionView: ActionViewType;
+
+    onActionViewChange(actionViewName: ActionViewType): void;
+    actionViewTopTextOnChange(name: string): void;
+    hideActionViewContent(): void;
+    closeActionView(): void;
+    openActionView(): void;
+}
+
 /**
  * @description ActionViewComponent displays different action view such as 
  * explorerView, outlineView, gitView and so on.
  */
-export class ActionViewComponent extends Component {
+export class ActionViewComponent extends Component implements IActionViewService {
 
     public whichActionView: ActionViewType;
     

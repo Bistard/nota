@@ -1,7 +1,7 @@
 import { Component, ComponentType } from "src/code/browser/workbench/component";
-import { ActionViewComponent } from "src/code/browser/workbench/actionView/actionView";
-import { ActionBarComponent } from "src/code/browser/workbench/actionBar/actionBar";
-import { EditorComponent } from "src/code/browser/workbench/editor/editor";
+import { ActionViewComponent, IActionViewService } from "src/code/browser/workbench/actionView/actionView";
+import { ActionBarComponent, IActionBarService } from "src/code/browser/workbench/actionBar/actionBar";
+import { EditorComponent, IEditorService } from "src/code/browser/workbench/editor/editor";
 import { LOCAL_MDNOTE_DIR_NAME, NoteBookManager } from "src/code/common/model/notebookManger";
 import { APP_ROOT_PATH } from "src/base/electron/app";
 import { ipcRendererOn, ipcRendererSend } from "src/base/electron/register";
@@ -9,6 +9,7 @@ import { ConfigModule, DEFAULT_CONFIG_FILE_NAME, DEFAULT_CONFIG_PATH, GlobalConf
 import { pathJoin } from "src/base/common/string";
 import { CONTEXT_MENU_SERVICE } from 'src/code/browser/service/contextMenuService';
 import { IInstantiationService } from "src/code/common/service/instantiation/instantiation";
+import { ServiceDescriptor } from "src/code/common/service/instantiation/descriptor";
 
 /**
  * @description Workbench represents all the Components in the web browser.
@@ -33,6 +34,15 @@ export class Workbench extends Component {
 
     public initServices(): void {
 
+        // ActionBarService (ActionBarComponent)
+        this.instantiationService.serviceCollections.set(IActionBarService, new ServiceDescriptor(ActionBarComponent));
+
+        // ActionViewService (ActionViewComponent)
+        this.instantiationService.serviceCollections.set(IActionViewService, new ServiceDescriptor(ActionViewComponent));
+
+        // EditorService (EditorComponent)
+        this.instantiationService.serviceCollections.set(IEditorService, new ServiceDescriptor(EditorComponent));
+
         // ContextMenuService
 
         // ComponentService
@@ -43,9 +53,10 @@ export class Workbench extends Component {
      * @description calls 'create()' and '_registerListeners()' for each component.
      */
     protected override _createContent(): void {
-        this.actionBarComponent = new ActionBarComponent(this);
-        this.actionViewComponent = new ActionViewComponent(this, this._noteBookManager);
-        this.editorComponent = new EditorComponent(this);
+        
+        this.actionBarComponent = this.instantiationService.createInstance(ActionBarComponent, this);
+        this.actionViewComponent = this.instantiationService.createInstance(ActionViewComponent, this, this._noteBookManager);
+        this.editorComponent = this.instantiationService.createInstance(EditorComponent, this);
         
         [
             {id: ComponentType.ActionBar, classes: []},
