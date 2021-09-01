@@ -8,13 +8,12 @@ import { ipcRendererOn, ipcRendererSend } from "src/base/electron/register";
 import { ConfigModule, DEFAULT_CONFIG_FILE_NAME, DEFAULT_CONFIG_PATH, GlobalConfigModule, GLOBAL_CONFIG_FILE_NAME, GLOBAL_CONFIG_PATH, LOCAL_CONFIG_FILE_NAME } from "src/base/config";
 import { pathJoin } from "src/base/common/string";
 import { CONTEXT_MENU_SERVICE } from 'src/code/browser/service/contextMenuService';
+import { IInstantiationService } from "src/code/common/service/instantiation/instantiation";
 
 /**
- * @description this module is loaded by the web directly. Most of the modules 
- * are instantiating in here. Also convinents for passing diferent modules into
- * others.
+ * @description Workbench represents all the Components in the web browser.
  */
-class Workbench extends Component {
+export class Workbench extends Component {
 
     private _noteBookManager: NoteBookManager;
 
@@ -22,22 +21,21 @@ class Workbench extends Component {
     actionViewComponent!: ActionViewComponent;
     editorComponent!: EditorComponent;
     
-    constructor() {
+    constructor(private readonly instantiationService: IInstantiationService) {
         super('mainApp', null, document.body);
         this._noteBookManager = new NoteBookManager();
         this._noteBookManager.init(APP_ROOT_PATH);
 
-        this.startup();
-        
-    }
-
-    public startup(): void {
         this.initServices();
         this.create();
         this.registerListeners();
     }
 
-    private initServices(): void {
+    public initServices(): void {
+
+        // ContextMenuService
+
+        // ComponentService
 
     }
 
@@ -107,8 +105,3 @@ class Workbench extends Component {
     }
 
 }
-
-// since it is loaded by the web which is sepreated from main.js, it needs to 
-// be instantiated individually.
-new Workbench();
-

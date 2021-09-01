@@ -4,18 +4,28 @@ import { ServiceDescriptor } from "src/code/common/service/instantiation/descrip
 import { IdleValue } from "src/code/common/service/instantiation/idle";
 import { ServiceCollection } from "src/code/common/service/instantiation/serviceCollection";
 
-export class InstantiationService {
-
-    private readonly _serviceCollections: ServiceCollection;
-
-    constructor(serviceCollections: ServiceCollection = new ServiceCollection()) {
-        this._serviceCollections = serviceCollections;
-    }
+export interface IInstantiationService {
+    
+    readonly serviceCollections: ServiceCollection;
 
     /**
-     * @description passing into a constructor or ServiceDescriptor<any> to 
+     * @description passing into a constructor or a ServiceDescriptor<any> to 
      * create an instance.
+     * 
+     * @param ctorOrDescriptor 
+     * @param rest 
      */
+    createInstance(ctorOrDescriptor: any | ServiceDescriptor<any>, ...rest: any[]): any;
+}
+
+export class InstantiationService {
+
+    public readonly serviceCollections: ServiceCollection;
+
+    constructor(serviceCollections: ServiceCollection = new ServiceCollection()) {
+        this.serviceCollections = serviceCollections;
+    }
+
     public createInstance(
         ctorOrDescriptor: any | ServiceDescriptor<any>, 
         ...rest: any[]): any 
@@ -49,7 +59,7 @@ export class InstantiationService {
     }
 
     private _getOrCreateDependencyInstance<T>(id: ServiceIdentifier<T>): T {
-        let instanceOrDesc = this._serviceCollections.get(id);
+        let instanceOrDesc = this.serviceCollections.get(id);
         if (instanceOrDesc instanceof ServiceDescriptor) {
             return this._createAndCacheServiceInstance(id, instanceOrDesc)!;
         } else {
@@ -76,7 +86,7 @@ export class InstantiationService {
             const dependencies = _ServiceUtil.getServiceDependencies(currDependency.id);
             for (const subDependency of dependencies) {
                 
-                const instanceOrDesc = this._serviceCollections.get(subDependency.id);
+                const instanceOrDesc = this.serviceCollections.get(subDependency.id);
                 if (instanceOrDesc instanceof ServiceDescriptor) {
                     const uninstantiatedDependency = {id: subDependency.id, desc: instanceOrDesc};
                     dependencyGraph.insertEdge(currDependency, uninstantiatedDependency);
@@ -111,15 +121,15 @@ export class InstantiationService {
 
         console.log(dependencyGraph.toString());
 
-        return <T>this._serviceCollections.get(id);
+        return <T>this.serviceCollections.get(id);
     }
 
     private _setServiceInstance<T>(
         id: ServiceIdentifier<T>, 
         instance: T): void 
     {
-		if (this._serviceCollections.get(id) instanceof ServiceDescriptor) {
-			this._serviceCollections.set(id, instance);
+		if (this.serviceCollections.get(id) instanceof ServiceDescriptor) {
+			this.serviceCollections.set(id, instance);
 		} else {
 			throw new Error('duplicate setting service instance');
 		}
@@ -131,7 +141,7 @@ export class InstantiationService {
         args: any[] = [], 
         supportsDelayedInstantiation: boolean): T 
     {
-		if (this._serviceCollections.get(id) instanceof ServiceDescriptor) {
+		if (this.serviceCollections.get(id) instanceof ServiceDescriptor) {
 			return this._createServiceInstance(ctor, args, supportsDelayedInstantiation);
 		} else {
 			throw new Error(`creating UNKNOWN service instance ${ctor.name}`);
