@@ -3,8 +3,8 @@ import { EVENT_EMITTER } from "src/base/common/event";
 import { getSvgPathByName, SvgType } from "src/base/common/string";
 import { ConfigModule } from "src/base/config";
 import { domNodeByIdAddListener } from "src/base/electron/register";
-import { Component } from "src/code/workbench/browser/component";
-import { EditorComponentType } from "src/code/workbench/browser/editor/editor";
+import { Component } from "src/code/browser/workbench/component";
+import { EditorComponentType } from "src/code/browser/workbench/editor/editor";
 
 export class FunctionBarComponent extends Component {
 

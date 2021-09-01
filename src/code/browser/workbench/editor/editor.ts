@@ -1,6 +1,7 @@
-import { Component, ComponentType } from "src/code/workbench/browser/component";
-import { MarkdownComponent } from "src/code/workbench/browser/editor/markdown/markdown";
-import { TitleBarComponent } from "src/code/workbench/browser/editor/titleBar/titleBar";
+import { Component, ComponentType, IComponent } from "src/code/browser/workbench/component";
+import { MarkdownComponent } from "src/code/browser/workbench/editor/markdown/markdown";
+import { TitleBarComponent } from "src/code/browser/workbench/editor/titleBar/titleBar";
+import { createDecorator } from "src/code/common/service/instantiation/decorator";
 
 export enum EditorComponentType {
     titleBar = 'title-bar',
@@ -9,7 +10,13 @@ export enum EditorComponentType {
     windowBar = 'window-bar',
 }
 
-export class EditorComponent extends Component {
+export const IEditorService = createDecorator<IEditorService>('editor-service');
+
+export interface IEditorService extends IComponent {
+
+}
+
+export class EditorComponent extends Component implements IEditorService {
 
     private titleBarComponent!: TitleBarComponent;
     private markdownComponent!: MarkdownComponent;

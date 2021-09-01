@@ -20,13 +20,13 @@ import 'prismjs/components/prism-java';
 import colorSyntax from '@toast-ui/editor-plugin-color-syntax';
 import { ConfigModule } from 'src/base/config';
 import { FileNode } from 'src/base/node/fileTree';
-import { Component } from 'src/code/workbench/browser/component';
+import { Component } from 'src/code/browser/workbench/component';
 import { EVENT_EMITTER } from 'src/base/common/event';
 import { MarkdownRenderMode } from 'mdnote';
 import { getSvgPathByName, SvgType } from 'src/base/common/string';
 import { domNodeByIdAddListener, ipcRendererSend } from 'src/base/electron/register';
 import { ContextMenuDimension, ContextMenuType, Coordinate } from 'src/base/browser/secondary/contextMenu/contextMenu';
-import { ContextMenuService, CONTEXT_MENU_SERVICE } from 'src/code/workbench/service/contextMenuService';
+import { ContextMenuService, CONTEXT_MENU_SERVICE } from 'src/code/browser/service/contextMenuService';
 
 /**
  * @description MarkdownComponent initializes markdown renderer and windows and

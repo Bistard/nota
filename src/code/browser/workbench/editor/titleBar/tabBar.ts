@@ -4,8 +4,8 @@ import { WriteFileOptions } from 'original-fs';
 import { ConfigModule } from 'src/base/config';
 import { FileNode } from 'src/base/node/fileTree';
 import { ipcRendererOn, ipcRendererSendTest } from 'src/base/electron/register';
-import { Component } from 'src/code/workbench/browser/component';
-import { EditorComponentType } from 'src/code/workbench/browser/editor/editor';
+import { Component } from 'src/code/browser/workbench/component';
+import { EditorComponentType } from 'src/code/browser/workbench/editor/editor';
 
 /**
  * @description TabBarComponent stores all the opened tabs data and handles all the 

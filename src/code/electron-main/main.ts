@@ -1,5 +1,5 @@
 
-import { IActionBarOptions } from "src/code/workbench/browser/actionBar/actionBar";
+import { IActionBarOptions } from "src/code/browser/workbench/actionBar/actionBar";
 
 import * as Path from'path';
 

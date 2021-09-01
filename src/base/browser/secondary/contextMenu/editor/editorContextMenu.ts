@@ -1,5 +1,5 @@
 import { ContextMenu, ContextMenuType, Coordinate, IContextMenu } from "src/base/browser/secondary/contextMenu/contextMenu";
-import { CONTEXT_MENU_SERVICE } from 'src/code/workbench/service/contextMenuService';
+import { CONTEXT_MENU_SERVICE } from 'src/code/browser/service/contextMenuService';
 import { ipcRendererSend } from "src/base/electron/register";
 
 export class EditorContextMenu extends ContextMenu implements IContextMenu {
