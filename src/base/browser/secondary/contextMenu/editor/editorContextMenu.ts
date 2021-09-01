@@ -14,6 +14,7 @@ export class EditorContextMenu extends ContextMenu {
                 {id: 'cut', classes: ['menu-item'], text: 'Cut', role: 'normal'},
                 {text: 'seperator', role: 'seperator'},
                 {id: 'Delete', classes: ['menu-item'], text: 'Delete', role: 'normal', enable: false},
+                {id: 'Sub Menu', classes: ['menu-item'], text: 'Sub Menu', role: 'subMenu'},
             ],
         );
     }
