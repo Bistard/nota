@@ -50,6 +50,22 @@ export class ContextMenuService implements IContextMenuService {
         return this._contextMenu !== null;
     }
 
+
+    public createContextMenuWithEdgeDetection(type: ContextMenuType, dimension: Dimension): void {
+        this.createContextMenu(type, dimension);
+            
+        let menuDimension: ContextMenuDimension = {
+         coordinates: dimension,
+         windowHeight: document.getElementById('mainApp')!.getBoundingClientRect().height,
+         windowWidth: document.getElementById('mainApp')!.getBoundingClientRect().width,
+         contextMenuHeight: document.getElementById('context-menu')!.getBoundingClientRect().height,
+         contextMenuWidth: document.getElementById('context-menu')!.getBoundingClientRect().width, 
+        };
+        
+        this.removeContextMenu();
+        this.createContextMenu(type, this.edgeDetection(menuDimension));
+    }
+
     public edgeDetection(menuDimension: ContextMenuDimension): Dimension {
         if (menuDimension.coordinates.coordinateX + menuDimension.contextMenuWidth <= menuDimension.windowWidth){
              if (menuDimension.coordinates.coordinateY + menuDimension.contextMenuHeight > menuDimension.windowHeight){
