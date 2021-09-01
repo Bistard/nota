@@ -17,9 +17,9 @@ export class Browser {
     private startUp() {
         const instantiationService = this.initServices();
         
-        this.registerListeners();
-
         this.workbench = new Workbench(instantiationService);
+        
+        this.registerListeners();
     }
 
     private initServices(): IInstantiationService {
@@ -34,7 +34,7 @@ export class Browser {
     }
 
     private registerListeners(): void {
-        // 
+        // none for now
     }
 
 }
