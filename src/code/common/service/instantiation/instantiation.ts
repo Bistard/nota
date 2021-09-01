@@ -9,6 +9,23 @@ export interface IInstantiationService {
     readonly serviceCollections: ServiceCollection;
 
     /**
+     * @description register a service either using an instance or the 
+     * ServiceDescriptor for delaying instantiation.
+     * 
+     * @param serviceIdentifier decorator to the service which is created by createDecorator()
+     * @param ctorOrDescriptor constructor or ServiceDescriptor of the service
+     */
+    register<T>(serviceIdentifier: ServiceIdentifier<T>, ctorOrDescriptor: T | ServiceDescriptor<T>): void;
+
+    /**
+     * @description try to get the instance of the service (if not, this will 
+     * not automatically create one for you).
+     * 
+     * @param serviceIdentifier serviceIdentifier to that service
+     */
+    getService<T>(serviceIdentifier: ServiceIdentifier<T>): T | null;
+
+    /**
      * @description passing into a constructor or a ServiceDescriptor<any> to 
      * create an instance.
      * 
@@ -24,6 +41,21 @@ export class InstantiationService {
 
     constructor(serviceCollections: ServiceCollection = new ServiceCollection()) {
         this.serviceCollections = serviceCollections;
+    }
+
+    public register<T>(
+        serviceIdentifier: ServiceIdentifier<T>, 
+        ctorOrDescriptor: T | ServiceDescriptor<T>): void 
+    {
+        this.serviceCollections.set(serviceIdentifier, ctorOrDescriptor);
+    }
+
+    public getService<T>(serviceIdentifier: ServiceIdentifier<T>): T | null {
+        const service = this.serviceCollections.get(serviceIdentifier);
+        if (service === undefined || service instanceof ServiceDescriptor) {
+            return null;
+        }
+        return service;
     }
 
     public createInstance(

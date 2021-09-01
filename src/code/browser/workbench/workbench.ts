@@ -35,13 +35,13 @@ export class Workbench extends Component {
     public initServices(): void {
 
         // ActionBarService (ActionBarComponent)
-        this.instantiationService.serviceCollections.set(IActionBarService, new ServiceDescriptor(ActionBarComponent));
+        this.instantiationService.register(IActionBarService, new ServiceDescriptor(ActionBarComponent));
 
         // ActionViewService (ActionViewComponent)
-        this.instantiationService.serviceCollections.set(IActionViewService, new ServiceDescriptor(ActionViewComponent));
+        this.instantiationService.register(IActionViewService, new ServiceDescriptor(ActionViewComponent));
 
         // EditorService (EditorComponent)
-        this.instantiationService.serviceCollections.set(IEditorService, new ServiceDescriptor(EditorComponent));
+        this.instantiationService.register(IEditorService, new ServiceDescriptor(EditorComponent));
 
         // ContextMenuService
 
