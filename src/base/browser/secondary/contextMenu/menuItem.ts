@@ -16,6 +16,7 @@ export interface IMenuItemOption {
     shortcut?: string;
     tip?: string;
     enable?: boolean;
+    subMenuItem?: IMenuItemOption[],
 }
 
 export class MenuItem implements IMenuItem {
@@ -77,6 +78,13 @@ export class MenuItem implements IMenuItem {
             this.element.style.pointerEvents= 'none';
             const disableButton = document.getElementById(opt.text+'-id');
             disableButton!.style.color = 'darkgrey';
+        }
+
+        if (opt.subMenuItem) {
+            opt.subMenuItem
+            .forEach((item) => {
+                this.apply(item);
+            })
         }
 
     }
