@@ -12,8 +12,8 @@ export interface IInstantiationService {
      * @description passing into a constructor or a ServiceDescriptor<any> to 
      * create an instance.
      * 
-     * @param ctorOrDescriptor 
-     * @param rest 
+     * @param ctorOrDescriptor constructor or ServiceDescriptor of the service
+     * @param rest all the arguments for that service
      */
     createInstance(ctorOrDescriptor: any | ServiceDescriptor<any>, ...rest: any[]): any;
 }
@@ -118,8 +118,6 @@ export class InstantiationService {
 				dependencyGraph.removeNode(data);
 			}
         }
-
-        console.log(dependencyGraph.toString());
 
         return <T>this.serviceCollections.get(id);
     }
