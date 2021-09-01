@@ -1,6 +1,6 @@
-import { Component, ComponentType } from "src/code/workbench/browser/component";
-import { MarkdownComponent } from "src/code/workbench/browser/editor/markdown/markdown";
-import { TitleBarComponent } from "src/code/workbench/browser/editor/titleBar/titleBar";
+import { Component, ComponentType } from "src/code/browser/workbench/component";
+import { MarkdownComponent } from "src/code/browser/workbench/editor/markdown/markdown";
+import { TitleBarComponent } from "src/code/browser/workbench/editor/titleBar/titleBar";
 
 export enum EditorComponentType {
     titleBar = 'title-bar',

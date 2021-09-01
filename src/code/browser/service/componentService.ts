@@ -1,5 +1,20 @@
-import { Component } from "src/code/workbench/browser/component";
+import { createDecorator } from "src/code/common/service/instantiation/decorator";
+import { Component } from "src/code/browser/workbench/component";
 
+export const IComponentService = createDecorator<IComponentService>('component-service');
+
+export interface IComponentService {
+    
+    readonly componentMap: Map<string, Component>;
+
+    register(component: Component, force?: boolean): void;
+    getComponent(id: string): Component | null;
+}
+
+/**
+ * @description This service is used to store and track all the registered 
+ * Component.
+ */
 export class ComponentService {
 
     public readonly componentMap: Map<string, Component>;

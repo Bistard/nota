@@ -1,7 +1,7 @@
 import { FileNode } from 'src/base/node/fileTree';
 import { domNodeByIdAddListener, ipcRendererOn, ipcRendererSend } from 'src/base/electron/register';
-import { Component } from 'src/code/workbench/browser/component';
-import { ActionViewComponentType } from 'src/code/workbench/browser/actionView/actionView';
+import { Component } from 'src/code/browser/workbench/component';
+import { ActionViewComponentType } from 'src/code/browser/workbench/actionView/actionView';
 import { EVENT_EMITTER } from 'src/base/common/event';
 import { NoteBookManager } from 'src/code/common/model/notebookManger';
 

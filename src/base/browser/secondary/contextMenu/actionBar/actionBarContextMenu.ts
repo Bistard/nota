@@ -1,5 +1,5 @@
 import { ContextMenu, ContextMenuType, Coordinate, IContextMenu } from "src/base/browser/secondary/contextMenu/contextMenu";
-import { CONTEXT_MENU_SERVICE } from 'src/code/workbench/service/contextMenuService';
+import { CONTEXT_MENU_SERVICE } from 'src/code/browser/service/contextMenuService';
 
 export class ActionBarContextMenu extends ContextMenu implements IContextMenu {
     

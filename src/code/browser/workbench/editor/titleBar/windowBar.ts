@@ -1,8 +1,8 @@
 import { Button } from "src/base/browser/basic/button";
 import { getSvgPathByName, SvgType } from "src/base/common/string";
 import { domNodeByIdAddListener, ipcRendererOn, ipcRendererSend } from "src/base/electron/register";
-import { Component } from "src/code/workbench/browser/component";
-import { EditorComponentType } from "src/code/workbench/browser/editor/editor";
+import { Component } from "src/code/browser/workbench/component";
+import { EditorComponentType } from "src/code/browser/workbench/editor/editor";
 
 export class WindowBarComponent extends Component {
 
