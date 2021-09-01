@@ -3,7 +3,7 @@
 #context-menu {
     position: absolute;
     width: auto;
-    min-width: 0px;
+    min-width: 130px;
     color: #333;
     box-shadow: 0 0 5px 2px lightgrey;
     z-index: 100;
@@ -24,7 +24,7 @@
 .menu-item {
     font-weight: normal;
     font-size: 12px;
-    padding: 10px 40px 10px 20px;
+    padding: 10px 25px 10px 20px;
     cursor: pointer;
     height: 10px;
 }
@@ -44,6 +44,11 @@
 .check-box {
     height: 15px;
     margin-right: 10px;
+}
+
+.caret-right {
+    height: 14px;
+    margin-left: 10px
 }
 
 .seperator {

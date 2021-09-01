@@ -63,6 +63,12 @@ export class MenuItem implements IMenuItem {
                 this.setSeperator();
                 this.setSeperatorClass(['seperator']);
                 break;
+            case 'subMenu':
+                this.setItem(opt.text); 
+                this.setImage(getSvgPathByName(SvgType.base, 'caret-right'));
+                this.setImageClass(['filter-black', 'caret-right']);
+                this.setImageID(opt.id + "-caret-right");
+                break
             default:
                console.log(`Invalid Menu Item Type`);
         }

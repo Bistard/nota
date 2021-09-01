@@ -74,18 +74,8 @@ export class ActionBarComponent extends Component {
                 coordinateY: ev.pageY,
             };
 
-            CONTEXT_MENU_SERVICE.createContextMenu(ContextMenuType.actionBar, dimension);
-            
-           let menuDimension: ContextMenuDimension = {
-            coordinates: dimension,
-            windowHeight: document.getElementById('mainApp')!.getBoundingClientRect().height,
-            windowWidth: document.getElementById('mainApp')!.getBoundingClientRect().width,
-            contextMenuHeight: document.getElementById('context-menu')!.getBoundingClientRect().height,
-            contextMenuWidth: document.getElementById('context-menu')!.getBoundingClientRect().width, 
-           };
-           
-           CONTEXT_MENU_SERVICE.removeContextMenu();
-           CONTEXT_MENU_SERVICE.createContextMenu(ContextMenuType.actionBar, CONTEXT_MENU_SERVICE.edgeDetection(menuDimension));
+            CONTEXT_MENU_SERVICE.createContextMenuWithEdgeDetection(ContextMenuType.actionBar, dimension);
+
         });
 
         // TODO: add an array that stores user preference for action buttons (could be stored in config.ts)

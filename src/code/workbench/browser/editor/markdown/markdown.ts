@@ -26,7 +26,7 @@ import { MarkdownRenderMode } from 'mdnote';
 import { getSvgPathByName, SvgType } from 'src/base/common/string';
 import { domNodeByIdAddListener, ipcRendererSend } from 'src/base/electron/register';
 import { ContextMenuDimension, ContextMenuType, Dimension } from 'src/base/browser/secondary/contextMenu/contextMenu';
-import { CONTEXT_MENU_SERVICE } from 'src/code/workbench/service/contextMenuService';
+import { ContextMenuService, CONTEXT_MENU_SERVICE } from 'src/code/workbench/service/contextMenuService';
 
 /**
  * @description MarkdownComponent initializes markdown renderer and windows and
@@ -95,20 +95,9 @@ export class MarkdownComponent extends Component {
                 coordinateX: ev.pageX,
                 coordinateY: ev.pageY,
            };
-
-           CONTEXT_MENU_SERVICE.createContextMenu(ContextMenuType.editor, dimension);
-
-           let menuDimension: ContextMenuDimension = {
-               coordinates: dimension,
-               windowHeight: document.getElementById('mainApp')!.getBoundingClientRect().height,
-               windowWidth: document.getElementById('mainApp')!.getBoundingClientRect().width,
-               contextMenuHeight: document.getElementById('context-menu')!.getBoundingClientRect().height,
-               contextMenuWidth: document.getElementById('context-menu')!.getBoundingClientRect().width, 
-           };
            
-            CONTEXT_MENU_SERVICE.removeContextMenu();
-            CONTEXT_MENU_SERVICE.createContextMenu(ContextMenuType.editor, CONTEXT_MENU_SERVICE.edgeDetection(menuDimension));
-
+           CONTEXT_MENU_SERVICE.createContextMenuWithEdgeDetection(ContextMenuType.editor, dimension);
+    
         });
 
         // spellcheck config check
