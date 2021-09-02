@@ -25,7 +25,6 @@ export class EditorComponent extends Component implements IEditorService {
     constructor(
         parentComponent: Component,
         @IContextMenuService private readonly contextMenuService: IContextMenuService,
-        
     ) {
         super(ComponentType.editor, parentComponent);
     }
