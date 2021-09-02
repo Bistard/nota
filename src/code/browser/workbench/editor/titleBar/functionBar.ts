@@ -3,6 +3,7 @@ import { EVENT_EMITTER } from "src/base/common/event";
 import { getSvgPathByName, SvgType } from "src/base/common/string";
 import { ConfigModule } from "src/base/config";
 import { domNodeByIdAddListener } from "src/base/electron/register";
+import { IComponentService } from "src/code/browser/service/componentService";
 import { Component } from "src/code/browser/workbench/component";
 import { EditorComponentType } from "src/code/browser/workbench/editor/editor";
 
@@ -12,9 +13,11 @@ export class FunctionBarComponent extends Component {
     public static isToolBarExpand: boolean = false;
     // public static isTabBarExpand: boolean = false;
 
-    constructor(parentComponent: Component
+    constructor(
+        parentComponent: Component,
+        @IComponentService componentService: IComponentService,
     ) {
-        super(EditorComponentType.functionBar, parentComponent);
+        super(EditorComponentType.functionBar, parentComponent, null, componentService);
     }
 
     protected override _createContent(): void {

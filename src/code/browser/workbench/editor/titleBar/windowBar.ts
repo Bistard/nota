@@ -1,13 +1,17 @@
 import { Button } from "src/base/browser/basic/button";
 import { getSvgPathByName, SvgType } from "src/base/common/string";
 import { domNodeByIdAddListener, ipcRendererOn, ipcRendererSend } from "src/base/electron/register";
+import { IComponentService } from "src/code/browser/service/componentService";
 import { Component } from "src/code/browser/workbench/component";
 import { EditorComponentType } from "src/code/browser/workbench/editor/editor";
 
 export class WindowBarComponent extends Component {
 
-    constructor(parentComponent: Component) {
-        super(EditorComponentType.windowBar, parentComponent);
+    constructor(
+        parentComponent: Component,
+        @IComponentService componentService: IComponentService,
+    ) {
+        super(EditorComponentType.windowBar, parentComponent, null, componentService);
 
     }
 

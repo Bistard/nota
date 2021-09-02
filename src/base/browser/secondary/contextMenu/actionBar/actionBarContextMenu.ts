@@ -1,4 +1,5 @@
 import { ContextMenu, ContextMenuType, Coordinate, IContextMenu } from "src/base/browser/secondary/contextMenu/contextMenu";
+import { IComponentService } from "src/code/browser/service/componentService";
 import { IContextMenuService } from "src/code/browser/service/contextMenuService";
 
 export class ActionBarContextMenu extends ContextMenu implements IContextMenu {
@@ -6,6 +7,7 @@ export class ActionBarContextMenu extends ContextMenu implements IContextMenu {
     constructor(
         coordinate: Coordinate,
         private readonly contextMenuService: IContextMenuService,
+        @IComponentService componentService: IComponentService,
     ) {
         super(
             ContextMenuType.actionBar, 
@@ -17,6 +19,7 @@ export class ActionBarContextMenu extends ContextMenu implements IContextMenu {
                 {text: 'seperator', role: 'seperator'},
                 {id: 'select-git-button', classes: ['menu-item'], text: 'Git', role: 'normal'},
             ],
+            componentService,
         );
     }
 

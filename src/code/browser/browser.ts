@@ -1,4 +1,6 @@
+import { ComponentService, IComponentService } from "src/code/browser/service/componentService";
 import { Workbench } from "src/code/browser/workbench/workbench";
+import { ServiceDescriptor } from "src/code/common/service/instantiation/descriptor";
 import { IInstantiationService, InstantiationService } from "src/code/common/service/instantiation/instantiation";
 import { ServiceCollection } from "src/code/common/service/instantiation/serviceCollection";
 
@@ -24,12 +26,13 @@ export class Browser {
 
     private initServices(): IInstantiationService {
         const serviceCollection = new ServiceCollection();
-
-        // sets all the services here...
-
-        // logService
-
         const instantiationService = new InstantiationService(serviceCollection);
+
+        // LogService
+
+        // ComponentService
+        instantiationService.register(IComponentService, new ServiceDescriptor(ComponentService));
+
         return instantiationService;
     }
 

@@ -4,6 +4,7 @@ import { Component } from 'src/code/browser/workbench/component';
 import { ActionViewComponentType } from 'src/code/browser/workbench/actionView/actionView';
 import { EVENT_EMITTER } from 'src/base/common/event';
 import { NoteBookManager } from 'src/code/common/model/notebookManger';
+import { IComponentService } from 'src/code/browser/service/componentService';
 
 /**
  * @description TODO: complete comments
@@ -19,9 +20,10 @@ export class ExplorerViewComponent extends Component {
 
     constructor(parentComponent: Component,
                 parentElement: HTMLElement,
-                _noteBookManger: NoteBookManager
+                _noteBookManger: NoteBookManager,
+                @IComponentService componentService: IComponentService,
     ) {
-        super(ActionViewComponentType.ExplorerView, parentComponent, parentElement);
+        super(ActionViewComponentType.ExplorerView, parentComponent, parentElement, componentService);
         
         this._noteBookManager = _noteBookManger;
 

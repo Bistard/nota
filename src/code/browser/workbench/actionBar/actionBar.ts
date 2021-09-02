@@ -7,6 +7,7 @@ import { getSvgPathByName, SvgType } from 'src/base/common/string';
 import { ContextMenuType, Coordinate } from 'src/base/browser/secondary/contextMenu/contextMenu';
 import { createDecorator } from 'src/code/common/service/instantiation/decorator';
 import { IContextMenuService } from 'src/code/browser/service/contextMenuService';
+import { IComponentService } from 'src/code/browser/service/componentService';
 
 export const IActionBarService = createDecorator<IActionBarService>('action-bar-service');
 
@@ -39,9 +40,10 @@ export class ActionBarComponent extends Component implements IActionBarService {
 
     constructor(
         parentComponent: Component,
-        @IContextMenuService private readonly contextMenuService: IContextMenuService
+        @IComponentService componentService: IComponentService,
+        @IContextMenuService private readonly contextMenuService: IContextMenuService,
     ) {
-        super(ComponentType.ActionBar, parentComponent);
+        super(ComponentType.ActionBar, parentComponent, null, componentService);
         
         this.currFocusActionBtnIndex = -1;
     }
@@ -131,7 +133,6 @@ export class ActionBarComponent extends Component implements IActionBarService {
      * focused. Moreover, switch to that action view.
      */
     public clickActionBtn(clickedBtn: HTMLElement): void {
-        
         // get which action button is clicking
         const actionName = clickedBtn.id.slice(0, -"-button".length) as ActionViewType;
         
