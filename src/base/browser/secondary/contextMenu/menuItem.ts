@@ -3,6 +3,7 @@ import { getSvgPathByName, SvgType } from 'src/base/common/string';
 
 export const CONTEXT_MENU_ITEM_HEIGHT = 30;
 export const CONTEXT_MENU_WIDTH = 150;
+export const CONTEXT_MENU_SEPERATOR_HEIGHT = 4;
 
 export type Role = "normal" | "seperator" | "subMenu" | "checkBox";
 
