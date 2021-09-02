@@ -1,3 +1,4 @@
+import { IContextMenuService } from "src/code/browser/service/contextMenuService";
 import { Component, ComponentType, IComponent } from "src/code/browser/workbench/component";
 import { MarkdownComponent } from "src/code/browser/workbench/editor/markdown/markdown";
 import { TitleBarComponent } from "src/code/browser/workbench/editor/titleBar/titleBar";
@@ -21,7 +22,11 @@ export class EditorComponent extends Component implements IEditorService {
     private titleBarComponent!: TitleBarComponent;
     private markdownComponent!: MarkdownComponent;
 
-    constructor(parentComponent: Component) {
+    constructor(
+        parentComponent: Component,
+        @IContextMenuService private readonly contextMenuService: IContextMenuService,
+        
+    ) {
         super(ComponentType.editor, parentComponent);
     }
 
@@ -44,7 +49,7 @@ export class EditorComponent extends Component implements IEditorService {
         const markdownView = document.createElement('div');
         markdownView.id = 'markdown-view';
 
-        this.markdownComponent = new MarkdownComponent(this, markdownView);
+        this.markdownComponent = new MarkdownComponent(this, markdownView, this.contextMenuService);
         this.markdownComponent.create();
 
         this.container.appendChild(markdownView);

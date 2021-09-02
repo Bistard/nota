@@ -7,7 +7,7 @@ import { APP_ROOT_PATH } from "src/base/electron/app";
 import { ipcRendererOn, ipcRendererSend } from "src/base/electron/register";
 import { ConfigModule, DEFAULT_CONFIG_FILE_NAME, DEFAULT_CONFIG_PATH, GlobalConfigModule, GLOBAL_CONFIG_FILE_NAME, GLOBAL_CONFIG_PATH, LOCAL_CONFIG_FILE_NAME } from "src/base/config";
 import { pathJoin } from "src/base/common/string";
-import { CONTEXT_MENU_SERVICE } from 'src/code/browser/service/contextMenuService';
+import { ContextMenuService, IContextMenuService } from 'src/code/browser/service/contextMenuService';
 import { IInstantiationService } from "src/code/common/service/instantiation/instantiation";
 import { ServiceDescriptor } from "src/code/common/service/instantiation/descriptor";
 
@@ -44,6 +44,7 @@ export class Workbench extends Component {
         this.instantiationService.register(IEditorService, new ServiceDescriptor(EditorComponent));
 
         // ContextMenuService
+        this.instantiationService.register(IContextMenuService, new ServiceDescriptor(ContextMenuService));
 
         // ComponentService
 
@@ -102,7 +103,7 @@ export class Workbench extends Component {
         });
 
         document.getElementById('mainApp')!.addEventListener('click', (ev: MouseEvent) => {
-            CONTEXT_MENU_SERVICE.removeContextMenu();
+            this.instantiationService.getService(IContextMenuService)!.removeContextMenu();
         });
 
     }

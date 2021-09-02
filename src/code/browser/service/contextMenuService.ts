@@ -1,21 +1,15 @@
 import { ActionBarContextMenu } from "src/base/browser/secondary/contextMenu/actionBar/actionBarContextMenu";
 import { ContextMenuType, Coordinate, ContextMenuDimension, IContextMenu } from "src/base/browser/secondary/contextMenu/contextMenu";
 import { EditorContextMenu } from "src/base/browser/secondary/contextMenu/editor/editorContextMenu";
+import { createDecorator } from "src/code/common/service/instantiation/decorator";
+
+export const IContextMenuService = createDecorator<IContextMenuService>('context-menu-service');
 
 export interface IContextMenuService {
-    
-    /**
-     * @description 
-     */
     createContextMenu(type: ContextMenuType, coordinate: Coordinate): void;
-    
-    /**
-     * @description 
-     */
     removeContextMenu(): void;
-
     isContextMenuOn(): boolean;
-
+    edgeDetection(menuDimension: ContextMenuDimension): Coordinate;
 }
 
 export class ContextMenuService implements IContextMenuService {
@@ -29,13 +23,13 @@ export class ContextMenuService implements IContextMenuService {
     private _initContextMenu(type: ContextMenuType, coordinate: Coordinate): void {
         switch (type) {
             case ContextMenuType.actionBar:
-                this._contextMenu = new ActionBarContextMenu(coordinate);
+                this._contextMenu = new ActionBarContextMenu(coordinate, this);
                 break;
             case ContextMenuType.actionView:
 
                 break;
             case ContextMenuType.editor:
-                this._contextMenu = new EditorContextMenu(coordinate);
+                this._contextMenu = new EditorContextMenu(coordinate, this);
                 break;
         }
     }
@@ -95,6 +89,3 @@ export class ContextMenuService implements IContextMenuService {
     }
 
 }
-
-// TODO: add this to the DI in the future
-export const CONTEXT_MENU_SERVICE = new ContextMenuService();

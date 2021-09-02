@@ -1,9 +1,12 @@
 import { ContextMenu, ContextMenuType, Coordinate, IContextMenu } from "src/base/browser/secondary/contextMenu/contextMenu";
-import { CONTEXT_MENU_SERVICE } from 'src/code/browser/service/contextMenuService';
+import { IContextMenuService } from "src/code/browser/service/contextMenuService";
 
 export class ActionBarContextMenu extends ContextMenu implements IContextMenu {
     
-    constructor(coordinate: Coordinate) {
+    constructor(
+        coordinate: Coordinate,
+        private readonly contextMenuService: IContextMenuService,
+    ) {
         super(
             ContextMenuType.actionBar, 
             coordinate,
@@ -30,7 +33,7 @@ export class ActionBarContextMenu extends ContextMenu implements IContextMenu {
                 actionButton!.style.display = 'none';
                 actionButtonContextMenu!.style.filter = 'invert(88%) sepia(73%) saturate(4498%) hue-rotate(184deg) brightness(128%) contrast(93%)';
             }
-            CONTEXT_MENU_SERVICE.removeContextMenu();
+            this.contextMenuService.removeContextMenu();
  
         })
     } 

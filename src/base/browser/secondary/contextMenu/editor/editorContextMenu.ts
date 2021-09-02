@@ -1,10 +1,13 @@
 import { ContextMenu, ContextMenuType, Coordinate, IContextMenu } from "src/base/browser/secondary/contextMenu/contextMenu";
-import { CONTEXT_MENU_SERVICE } from 'src/code/browser/service/contextMenuService';
 import { ipcRendererSend } from "src/base/electron/register";
+import { IContextMenuService } from "src/code/browser/service/contextMenuService";
 
 export class EditorContextMenu extends ContextMenu implements IContextMenu {
     
-    constructor(coordinate: Coordinate) {
+    constructor(
+        coordinate: Coordinate,
+        private readonly contextMenuService: IContextMenuService,
+    ) {
         super(
             ContextMenuType.actionBar, 
             coordinate,
@@ -24,7 +27,7 @@ export class EditorContextMenu extends ContextMenu implements IContextMenu {
             ev.preventDefault();
             //document.execCommand("copy");
             ipcRendererSend('copy');
-            CONTEXT_MENU_SERVICE.removeContextMenu();
+            this.contextMenuService.removeContextMenu();
 
         })
 
@@ -32,7 +35,7 @@ export class EditorContextMenu extends ContextMenu implements IContextMenu {
             ev.preventDefault();
             //document.execCommand("paste");
             ipcRendererSend('context-menu');
-            CONTEXT_MENU_SERVICE.removeContextMenu();
+            this.contextMenuService.removeContextMenu();
 
         })
 
@@ -40,7 +43,7 @@ export class EditorContextMenu extends ContextMenu implements IContextMenu {
             ev.preventDefault();
             document.execCommand("delete");
             ipcRendererSend('delete');
-            CONTEXT_MENU_SERVICE.removeContextMenu();
+            this.contextMenuService.removeContextMenu();
 
         })
     } 
