@@ -10,6 +10,7 @@ import { pathJoin } from "src/base/common/string";
 import { ContextMenuService, IContextMenuService } from 'src/code/browser/service/contextMenuService';
 import { IInstantiationService } from "src/code/common/service/instantiation/instantiation";
 import { ServiceDescriptor } from "src/code/common/service/instantiation/descriptor";
+import { ComponentService } from "src/code/browser/service/componentService";
 
 /**
  * @description Workbench represents all the Components in the web browser.
@@ -22,8 +23,10 @@ export class Workbench extends Component {
     actionViewComponent!: ActionViewComponent;
     editorComponent!: EditorComponent;
     
-    constructor(private readonly instantiationService: IInstantiationService) {
-        super('mainApp', null, document.body);
+    constructor(
+        private readonly instantiationService: IInstantiationService,
+    ) {
+        super('mainApp', null, document.body, instantiationService.createInstance(ComponentService));
         this._noteBookManager = new NoteBookManager();
         this._noteBookManager.init(APP_ROOT_PATH);
 

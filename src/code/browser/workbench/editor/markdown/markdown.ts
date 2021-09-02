@@ -27,6 +27,7 @@ import { getSvgPathByName, SvgType } from 'src/base/common/string';
 import { ContextMenuType, Coordinate } from 'src/base/browser/secondary/contextMenu/contextMenu';
 import { IContextMenuService } from 'src/code/browser/service/contextMenuService';
 import { createDecorator } from 'src/code/common/service/instantiation/decorator';
+import { IComponentService } from 'src/code/browser/service/componentService';
 
 export const IMarkdownService = createDecorator<IMarkdownService>('markdown-service');
 
@@ -51,9 +52,10 @@ export class MarkdownComponent extends Component implements IMarkdownService {
 
     constructor(parentComponent: Component,
                 parentElement: HTMLElement,
+                @IComponentService componentService: IComponentService,
                 @IContextMenuService private readonly contextMenuService: IContextMenuService,
         ) {
-        super('markdown', parentComponent, parentElement);
+        super('markdown', parentComponent, parentElement, componentService);
 
         this.mode = ConfigModule.Instance.defaultMarkdownMode;
         

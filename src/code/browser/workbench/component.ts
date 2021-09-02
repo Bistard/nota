@@ -1,3 +1,5 @@
+import { IComponentService } from "src/code/browser/service/componentService";
+
 export const enum ComponentType {
     ActionBar = 'action-bar',
     ActionView = 'action-view',
@@ -28,8 +30,8 @@ export abstract class Component implements IComponent {
 
     constructor(id: string, 
                 parentComponent: Component | null = null,
-                // this parameter gives chance to customize parentElement
-                parentElement?: HTMLElement 
+                parentElement: HTMLElement | null = null,
+                protected readonly componentService: IComponentService,
     ) {
         this.container.id = id;
         
@@ -44,6 +46,8 @@ export abstract class Component implements IComponent {
         if (parentElement) {
             this.parent = parentElement;
         }
+
+        this.componentService.register(this);
     }
 
     /**
