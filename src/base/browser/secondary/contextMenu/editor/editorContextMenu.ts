@@ -1,10 +1,13 @@
 import { ContextMenu, ContextMenuType, Coordinate, IContextMenu } from "src/base/browser/secondary/contextMenu/contextMenu";
-import { CONTEXT_MENU_SERVICE } from 'src/code/browser/service/contextMenuService';
 import { ipcRendererSend } from "src/base/electron/register";
+import { IContextMenuService } from "src/code/browser/service/contextMenuService";
 
 export class EditorContextMenu extends ContextMenu implements IContextMenu {
     
-    constructor(coordinate: Coordinate) {
+    constructor(
+        coordinate: Coordinate,
+        private readonly contextMenuService: IContextMenuService,
+    ) {
         super(
             ContextMenuType.actionBar, 
             coordinate,
@@ -22,26 +25,25 @@ export class EditorContextMenu extends ContextMenu implements IContextMenu {
     }
 
     protected override _registerListeners(): void {
+        
         document.getElementById('copy')!.addEventListener('click', (ev) => {
             document.execCommand("copy");
-            CONTEXT_MENU_SERVICE.removeContextMenu();
-
+            this.contextMenuService.removeContextMenu();
         });
 
         document.getElementById('paste')!.addEventListener('click', (ev) => {
             document.execCommand("paste");
-            CONTEXT_MENU_SERVICE.removeContextMenu();
-
+            this.contextMenuService.removeContextMenu();
         });
 
         document.getElementById('cut')!.addEventListener('click', (ev) => {
             document.execCommand("cut");
-            CONTEXT_MENU_SERVICE.removeContextMenu();
+            this.contextMenuService.removeContextMenu();
         });
 
         document.getElementById('select all')!.addEventListener('click', (ev) => {
             document.execCommand("selectAll");
-            CONTEXT_MENU_SERVICE.removeContextMenu();
+            this.contextMenuService..removeContextMenu();
         });
 
     } 

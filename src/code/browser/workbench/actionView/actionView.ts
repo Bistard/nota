@@ -15,7 +15,7 @@ export enum ActionViewComponentType {
     GitView = 'git-container',
 }
 
-export const IActionViewService = createDecorator<IActionViewService>('actionView-service');
+export const IActionViewService = createDecorator<IActionViewService>('action-view-service');
 
 export interface IActionViewService extends IComponent {
 

@@ -5,10 +5,11 @@ import { Component, ComponentType, IComponent } from 'src/code/browser/workbench
 import { ipcRendererOn } from 'src/base/electron/register';
 import { getSvgPathByName, SvgType } from 'src/base/common/string';
 import { ContextMenuType, Coordinate } from 'src/base/browser/secondary/contextMenu/contextMenu';
-import { CONTEXT_MENU_SERVICE } from 'src/code/browser/service/contextMenuService';
 import { createDecorator } from 'src/code/common/service/instantiation/decorator';
+import { IContextMenuService } from 'src/code/browser/service/contextMenuService';
 
-export const IActionBarService = createDecorator<IActionBarService>('actionBar-service');
+export const IActionBarService = createDecorator<IActionBarService>('action-bar-service');
+
 export interface IActionBarService extends IComponent {
     
     clickActionBtn(clickedBtn: HTMLElement): void;
@@ -38,6 +39,7 @@ export class ActionBarComponent extends Component implements IActionBarService {
 
     constructor(
         parentComponent: Component,
+        @IContextMenuService private readonly contextMenuService: IContextMenuService
     ) {
         super(ComponentType.ActionBar, parentComponent);
         
@@ -77,13 +79,13 @@ export class ActionBarComponent extends Component implements IActionBarService {
          */
         document.getElementById('action-bar')!.addEventListener('contextmenu', (ev: MouseEvent) => {
             ev.preventDefault();
-            CONTEXT_MENU_SERVICE.removeContextMenu();
+            this.contextMenuService.removeContextMenu();
             let coordinate: Coordinate = {
                 coordinateX: ev.pageX,
                 coordinateY: ev.pageY,
             };
 
-            CONTEXT_MENU_SERVICE.createContextMenu(ContextMenuType.actionBar, coordinate);
+            this.contextMenuService.createContextMenu(ContextMenuType.actionBar, coordinate);
 
         });
 
