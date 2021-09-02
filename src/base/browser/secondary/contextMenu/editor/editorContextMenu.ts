@@ -43,7 +43,7 @@ export class EditorContextMenu extends ContextMenu implements IContextMenu {
 
         document.getElementById('select all')!.addEventListener('click', (ev) => {
             document.execCommand("selectAll");
-            this.contextMenuService..removeContextMenu();
+            this.contextMenuService.removeContextMenu();
         });
 
     } 
