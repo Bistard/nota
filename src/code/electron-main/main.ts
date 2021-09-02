@@ -141,24 +141,6 @@ class Main {
 
                 Menu.buildFromTemplate(template).popup();
             });
-
-            ipcMain.on('copy', () => {
-                this.winMain!.webContents.copy();
-
-            })
-
-            this.winMain!.webContents.on('context-menu', (event, param) => {
-                    console.log(param.editFlags.canPaste)
-                    param.editFlags.canPaste = true
-                    this.winMain!.webContents.paste();
-
-            })
-                
-
-            ipcMain.on('delete', () => {
-                this.winMain!.webContents.delete();
-                
-            })
             
             // response to FolderModule, default path is 'desktop' and only can
             // open directory.

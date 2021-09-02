@@ -29,13 +29,11 @@ export class EditorContextMenu extends ContextMenu implements IContextMenu {
         document.getElementById('copy')!.addEventListener('click', (ev) => {
             document.execCommand("copy");
             this.contextMenuService.removeContextMenu();
-
         });
 
         document.getElementById('paste')!.addEventListener('click', (ev) => {
             document.execCommand("paste");
             this.contextMenuService.removeContextMenu();
-
         });
 
         document.getElementById('cut')!.addEventListener('click', (ev) => {
