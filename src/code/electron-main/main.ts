@@ -77,6 +77,10 @@ class Main {
                 this.winMain = null;
             });
 
+            this.winMain.on('blur', () => {
+                this.winMain!.webContents.send('closeContextMenu');
+            });
+
             ipcMain.on('minApp', () => {
                 this.winMain!.minimize();
             });
