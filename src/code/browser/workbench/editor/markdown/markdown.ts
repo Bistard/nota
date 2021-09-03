@@ -28,6 +28,7 @@ import { ContextMenuType, Coordinate } from 'src/base/browser/secondary/contextM
 import { IContextMenuService } from 'src/code/browser/service/contextMenuService';
 import { createDecorator } from 'src/code/common/service/instantiation/decorator';
 import { IComponentService } from 'src/code/browser/service/componentService';
+import { EditorComponentType } from 'src/code/browser/workbench/editor/editor';
 
 export const IMarkdownService = createDecorator<IMarkdownService>('markdown-service');
 
@@ -55,7 +56,7 @@ export class MarkdownComponent extends Component implements IMarkdownService {
                 @IComponentService componentService: IComponentService,
                 @IContextMenuService private readonly contextMenuService: IContextMenuService,
         ) {
-        super('markdown', parentComponent, parentElement, componentService);
+        super(EditorComponentType.markdown, parentComponent, parentElement, componentService);
 
         this.mode = ConfigService.Instance.defaultMarkdownMode;
         

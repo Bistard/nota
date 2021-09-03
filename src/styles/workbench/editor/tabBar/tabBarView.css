@@ -1,13 +1,13 @@
 #tab-bar {
     position: relative;
     width: 100%;
-    height: 100%;
+    height: 30px;
 }
 
 #tab-container {
     position: absolute;
     width: 100%;
-    height: 40px;
+    height: 100%;
     
     background-color: white;
     
@@ -27,10 +27,10 @@
 }
 
 .tab {
-    height: 37px; /* saving 3px for scrollbar */
+    height: 27px; /* saving 3px for scrollbar */
     width: fit-content;
     max-width: 100px;
-    line-height: 37px;
+    line-height: 27px;
 
     display: flex;
     flex-direction: row;

@@ -2,14 +2,14 @@ import { IComponentService } from "src/code/browser/service/componentService";
 import { IContextMenuService } from "src/code/browser/service/contextMenuService";
 import { Component, ComponentType, IComponent } from "src/code/browser/workbench/component";
 import { MarkdownComponent } from "src/code/browser/workbench/editor/markdown/markdown";
+import { TabBarComponent } from "src/code/browser/workbench/editor/tabBar/tabBar";
 import { TitleBarComponent } from "src/code/browser/workbench/editor/titleBar/titleBar";
 import { createDecorator } from "src/code/common/service/instantiation/decorator";
 
 export enum EditorComponentType {
     titleBar = 'title-bar',
-    functionBar = 'function-bar',
     tabBar = 'tab-bar',
-    windowBar = 'window-bar',
+    markdown = 'markdown',
 }
 
 export const IEditorService = createDecorator<IEditorService>('editor-service');
@@ -21,6 +21,7 @@ export interface IEditorService extends IComponent {
 export class EditorComponent extends Component implements IEditorService {
 
     private titleBarComponent!: TitleBarComponent;
+    private tabBarComponent!: TabBarComponent;
     private markdownComponent!: MarkdownComponent;
 
     constructor(
@@ -33,17 +34,24 @@ export class EditorComponent extends Component implements IEditorService {
 
     protected override _createContent(): void {
         this._createTitleBar();
+        this._createTabBar();
         this._createMarkdown();
     }
 
     protected override _registerListeners(): void {
         this.titleBarComponent.registerListeners();
+        this.tabBarComponent.registerListeners();
         this.markdownComponent.registerListeners();
     }
 
     private _createTitleBar(): void {
         this.titleBarComponent = new TitleBarComponent(this, this.componentService);
         this.titleBarComponent.create();
+    }
+
+    private _createTabBar(): void {
+        this.tabBarComponent = new TabBarComponent(this, this.componentService);
+        this.tabBarComponent.create();
     }
 
     private _createMarkdown(): void {

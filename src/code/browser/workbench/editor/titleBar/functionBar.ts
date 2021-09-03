@@ -5,7 +5,7 @@ import { ConfigService } from "src/code/common/service/configService";
 import { domNodeByIdAddListener } from "src/base/electron/register";
 import { IComponentService } from "src/code/browser/service/componentService";
 import { Component } from "src/code/browser/workbench/component";
-import { EditorComponentType } from "src/code/browser/workbench/editor/editor";
+import { TitleBarComponentType } from "src/code/browser/workbench/editor/titleBar/titleBar";
 
 export class FunctionBarComponent extends Component {
 
@@ -17,7 +17,7 @@ export class FunctionBarComponent extends Component {
         parentComponent: Component,
         @IComponentService componentService: IComponentService,
     ) {
-        super(EditorComponentType.functionBar, parentComponent, null, componentService);
+        super(TitleBarComponentType.functionBar, parentComponent, null, componentService);
     }
 
     protected override _createContent(): void {
