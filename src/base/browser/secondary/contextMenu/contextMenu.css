@@ -44,6 +44,13 @@
     left: 10px;
 }
 
+.menu-item > .menu-item-shortCut {
+    position: relative;
+    user-select: none;
+    line-height: 30px;
+    left: 10px;
+}
+
 .check-box {
     height: 15px;
     margin-right: 10px;

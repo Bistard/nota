@@ -49,9 +49,6 @@ export class MenuItem implements IMenuItem {
         if (opt.classes) {
             this.setClass(opt.classes);
         }
-        if (opt.shortcut) {
-            this.setShortcut(opt.shortcut);
-        }
         if (opt.tip) {
             this.setTip(opt.tip);
         }
@@ -65,12 +62,14 @@ export class MenuItem implements IMenuItem {
                 if (opt.checked){
                     this.setImageClass(['filter-black', 'check-box']);
                     this.setImageID(opt.id + "-check-mark");
-                    this.setText(opt.text); 
                 } else {
                     this.setImageClass(['filter-grey', 'check-box']);
                     this.setImageID(opt.id + "-check-mark");
-                    this.setText(opt.text);
                 }
+                this.setText(opt.text);
+                this.setTextClass(['menu-item-text']);
+
+
                 break;
             case 'seperator':
                 this.setSeperator();
@@ -91,6 +90,10 @@ export class MenuItem implements IMenuItem {
             this.element.style.pointerEvents= 'none';
             const disableButton = document.getElementById(opt.text+'-id');
             disableButton!.style.color = 'darkgrey';
+        }
+
+        if (opt.shortcut) {
+            this.setShortcut(opt.shortcut);
         }
 
         if (opt.subMenuItem) {
@@ -140,12 +143,14 @@ export class MenuItem implements IMenuItem {
     }
 
     public setShortcut(shortCut: string): void {
+        this.setText(shortCut);
+        this.setTextClass(['menu-item-shortcut']);
+   }
 
-    }
-
-    public setTip(tip: string): void {
-
-    }
+   // TODO
+   public setTip(tip: string): void {
+      
+   }
 
     public setSeperator(): void {
         this.hrElement = document.createElement('hr');
