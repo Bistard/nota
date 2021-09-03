@@ -133,6 +133,7 @@ export class MarkdownComponent extends Component implements IMarkdownService {
 
         EVENT_EMITTER.register('EMarkdownDisplayFile', (nodeInfo: FileNode) => this.markdownDisplayFile(nodeInfo));
         EVENT_EMITTER.register('EMarkdownModeSwitch', () => this.markdownModeSwitch());
+        EVENT_EMITTER.register('EMarkdownGetText', (): string => { return this.getEditorText() });
         // ipcRendererOn('Ctrl+S', () => {
         //     if (!this.explorerViewComponent.TabBar.emptyTab) {
         //         if (this.saveFileTimeout) {
@@ -283,6 +284,10 @@ export class MarkdownComponent extends Component implements IMarkdownService {
         
         const newText = this.editor!.getMarkdown();
         // saveMarkdownFile();
+    }
+
+    public getEditorText(): string {
+        return this.editor!.getMarkdown();
     }
 
 }
