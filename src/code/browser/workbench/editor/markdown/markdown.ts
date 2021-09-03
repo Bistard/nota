@@ -18,7 +18,7 @@ import 'prismjs/components/prism-java';
 
 // @toast-ui-plugin: color syntax 
 import colorSyntax from '@toast-ui/editor-plugin-color-syntax';
-import { ConfigModule } from 'src/base/config';
+import { ConfigService } from 'src/code/common/service/configService';
 import { FileNode } from 'src/base/node/fileTree';
 import { Component, IComponent } from 'src/code/browser/workbench/component';
 import { EVENT_EMITTER } from 'src/base/common/event';
@@ -57,7 +57,7 @@ export class MarkdownComponent extends Component implements IMarkdownService {
         ) {
         super('markdown', parentComponent, parentElement, componentService);
 
-        this.mode = ConfigModule.Instance.defaultMarkdownMode;
+        this.mode = ConfigService.Instance.defaultMarkdownMode;
         
         this.editor = null;
         
@@ -113,7 +113,7 @@ export class MarkdownComponent extends Component implements IMarkdownService {
         });
 
         // spellcheck config check
-        if (!ConfigModule.Instance.markdownSpellCheckOn) {
+        if (!ConfigService.Instance.markdownSpellCheckOn) {
             const markdown = document.getElementById('markdown') as HTMLElement;
             markdown.setAttribute('spellcheck', 'false');
         }
@@ -212,7 +212,7 @@ export class MarkdownComponent extends Component implements IMarkdownService {
      * @description callback function for 'editor.event.change'.
      */
     public onTextChange(): void {
-        if (ConfigModule.Instance.fileAutoSaveOn) {
+        if (ConfigService.Instance.fileAutoSaveOn) {
             // if content is changed before the previous timeout has reached, 
             // clear the preivous one.
             if (this.saveFileTimeout) {
