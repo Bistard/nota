@@ -107,8 +107,17 @@ export class MarkdownComponent extends Component implements IMarkdownService {
                 coordinateX: ev.pageX,
                 coordinateY: ev.pageY,
            };
-           
-           this.contextMenuService.createContextMenu(ContextMenuType.editor, coordinate);
+           const element = ev.target as HTMLElement;
+            const tagName = element.tagName;
+            const parentElement = element.parentElement?.tagName;
+            const menu = document.querySelector(".toastui-editor-context-menu") as HTMLElement;
+            if (tagName == 'TD' || tagName == 'TH') {
+            }else if (tagName == 'P') {
+                menu.style.display = 'none';
+                this.contextMenuService.createContextMenu(ContextMenuType.editor, coordinate);
+            } else {
+                this.contextMenuService.createContextMenu(ContextMenuType.editor, coordinate);
+            } 
     
         });
 
