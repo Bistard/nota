@@ -12,7 +12,7 @@ export class ServiceCollection {
         }
     }
 
-    set<T>(id: ServiceIdentifier<T>, instanceOrDescriptor: T | ServiceDescriptor<T>): T | ServiceDescriptor<T> {
+    set<T>(id: ServiceIdentifier<T>, instanceOrDescriptor: T | ServiceDescriptor<T>): T | ServiceDescriptor<T> | undefined {
 		const result = this._services.get(id);
 		this._services.set(id, instanceOrDescriptor);
 		return result;

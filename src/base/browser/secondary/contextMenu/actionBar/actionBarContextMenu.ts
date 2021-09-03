@@ -1,19 +1,24 @@
-import { ContextMenu, ContextMenuType, Dimension } from "src/base/browser/secondary/contextMenu/contextMenu";
-import { CONTEXT_MENU_SERVICE } from 'src/code/workbench/service/contextMenuService';
+import { ContextMenu, ContextMenuType, Coordinate, IContextMenu } from "src/base/browser/secondary/contextMenu/contextMenu";
+import { IComponentService } from "src/code/browser/service/componentService";
+import { IContextMenuService } from "src/code/browser/service/contextMenuService";
 
-export class ActionBarContextMenu extends ContextMenu {
+export class ActionBarContextMenu extends ContextMenu implements IContextMenu {
     
-    constructor(dimension: Dimension) {
+    constructor(
+        coordinate: Coordinate,
+        private readonly contextMenuService: IContextMenuService,
+        @IComponentService componentService: IComponentService,
+    ) {
         super(
             ContextMenuType.actionBar, 
-            dimension,
+            coordinate,
             [
                 {id: 'select-explorer-button', classes: ['menu-item'], text: 'File Explorer', role: 'checkBox'},
                 {id: 'select-outline-button', classes: ['menu-item'], text: 'Outline', role: 'checkBox'},
                 {id: 'select-search-button', classes: ['menu-item'], text: 'Search', role: 'normal'},
-                {text: 'seperator', role: 'seperator'},
                 {id: 'select-git-button', classes: ['menu-item'], text: 'Git', role: 'normal'},
             ],
+            componentService,
         );
     }
 
@@ -30,7 +35,7 @@ export class ActionBarContextMenu extends ContextMenu {
                 actionButton!.style.display = 'none';
                 actionButtonContextMenu!.style.filter = 'invert(88%) sepia(73%) saturate(4498%) hue-rotate(184deg) brightness(128%) contrast(93%)';
             }
-            CONTEXT_MENU_SERVICE.removeContextMenu();
+            this.contextMenuService.removeContextMenu();
  
         })
     } 

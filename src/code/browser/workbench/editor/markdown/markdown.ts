@@ -20,19 +20,29 @@ import 'prismjs/components/prism-java';
 import colorSyntax from '@toast-ui/editor-plugin-color-syntax';
 import { ConfigModule } from 'src/base/config';
 import { FileNode } from 'src/base/node/fileTree';
-import { Component } from 'src/code/workbench/browser/component';
+import { Component, IComponent } from 'src/code/browser/workbench/component';
 import { EVENT_EMITTER } from 'src/base/common/event';
 import { MarkdownRenderMode } from 'mdnote';
 import { getSvgPathByName, SvgType } from 'src/base/common/string';
-import { domNodeByIdAddListener, ipcRendererSend } from 'src/base/electron/register';
-import { ContextMenuDimension, ContextMenuType, Dimension } from 'src/base/browser/secondary/contextMenu/contextMenu';
-import { ContextMenuService, CONTEXT_MENU_SERVICE } from 'src/code/workbench/service/contextMenuService';
+import { ContextMenuType, Coordinate } from 'src/base/browser/secondary/contextMenu/contextMenu';
+import { IContextMenuService } from 'src/code/browser/service/contextMenuService';
+import { createDecorator } from 'src/code/common/service/instantiation/decorator';
+import { IComponentService } from 'src/code/browser/service/componentService';
+
+export const IMarkdownService = createDecorator<IMarkdownService>('markdown-service');
+
+export interface IMarkdownService extends IComponent {
+    createMarkdownEditor(): void;
+    onTextChange(): void;
+    markdownDisplayFile(nodeInfo: FileNode): void;
+    markdownModeSwitch(): void;
+}
 
 /**
  * @description MarkdownComponent initializes markdown renderer and windows and
  * handling a few other shortcuts as well.
  */
-export class MarkdownComponent extends Component {
+export class MarkdownComponent extends Component implements IMarkdownService {
 
     private editor: Editor | null;
     private saveFileTimeout: NodeJS.Timeout | null;
@@ -41,9 +51,11 @@ export class MarkdownComponent extends Component {
     private mode: MarkdownRenderMode;
 
     constructor(parentComponent: Component,
-                parentElement?: HTMLElement
+                parentElement: HTMLElement,
+                @IComponentService componentService: IComponentService,
+                @IContextMenuService private readonly contextMenuService: IContextMenuService,
         ) {
-        super('markdown', parentComponent, parentElement);
+        super('markdown', parentComponent, parentElement, componentService);
 
         this.mode = ConfigModule.Instance.defaultMarkdownMode;
         
@@ -89,14 +101,14 @@ export class MarkdownComponent extends Component {
          */
         document.getElementById('markdown')!.addEventListener('contextmenu', (ev: MouseEvent) => {
             ev.preventDefault();
-            CONTEXT_MENU_SERVICE.removeContextMenu();
+            this.contextMenuService.removeContextMenu();
 
-            let dimension: Dimension = {
+            let coordinate: Coordinate = {
                 coordinateX: ev.pageX,
                 coordinateY: ev.pageY,
            };
            
-           CONTEXT_MENU_SERVICE.createContextMenuWithEdgeDetection(ContextMenuType.editor, dimension);
+           this.contextMenuService.createContextMenu(ContextMenuType.editor, coordinate);
     
         });
 

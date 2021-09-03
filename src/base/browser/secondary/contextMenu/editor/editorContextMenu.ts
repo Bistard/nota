@@ -1,47 +1,67 @@
-import { ContextMenu, ContextMenuType, Dimension } from "src/base/browser/secondary/contextMenu/contextMenu";
-import { CONTEXT_MENU_SERVICE } from 'src/code/workbench/service/contextMenuService';
+import { ContextMenu, ContextMenuType, Coordinate, IContextMenu } from "src/base/browser/secondary/contextMenu/contextMenu";
 import { ipcRendererSend } from "src/base/electron/register";
+import { IComponentService } from "src/code/browser/service/componentService";
+import { IContextMenuService } from "src/code/browser/service/contextMenuService";
+const { clipboard } = require('electron')
+const electron = require('electron');
 
-export class EditorContextMenu extends ContextMenu {
+export class EditorContextMenu extends ContextMenu implements IContextMenu {
     
-    constructor(dimension: Dimension) {
+    constructor(
+        coordinate: Coordinate,
+        private readonly contextMenuService: IContextMenuService,
+        @IComponentService componentService: IComponentService,
+    ) {
         super(
             ContextMenuType.actionBar, 
-            dimension,
+            coordinate,
             [
                 {id: 'copy', classes: ['menu-item'], text: 'Copy', role: 'normal'},
                 {id: 'paste', classes: ['menu-item'], text: 'Paste', role: 'normal'},
                 {id: 'cut', classes: ['menu-item'], text: 'Cut', role: 'normal'},
                 {text: 'seperator', role: 'seperator'},
+                {id: 'select all', classes: ['menu-item'], text: 'Select All', role: 'normal'},
+                {id: 'search', classes: ['menu-item'], text: 'Search With Google', role: 'normal'},
+                {text: 'seperator', role: 'seperator'},
                 {id: 'Delete', classes: ['menu-item'], text: 'Delete', role: 'normal', enable: false},
                 {id: 'Sub Menu', classes: ['menu-item'], text: 'Sub Menu', role: 'subMenu', subMenuItem: [   {id: 'paste', classes: ['menu-item'], text: 'Paste', role: 'normal'},]},
             ],
+            componentService,
         );
     }
 
     protected override _registerListeners(): void {
+        
         document.getElementById('copy')!.addEventListener('click', (ev) => {
-            ev.preventDefault();
-            //document.execCommand("copy");
-            ipcRendererSend('copy');
-            CONTEXT_MENU_SERVICE.removeContextMenu();
-
-        })
+            document.execCommand("copy");
+            this.contextMenuService.removeContextMenu();
+        });
 
         document.getElementById('paste')!.addEventListener('click', (ev) => {
-            ev.preventDefault();
-            //document.execCommand("paste");
-            ipcRendererSend('context-menu');
-            CONTEXT_MENU_SERVICE.removeContextMenu();
-
-        })
+            document.execCommand("paste");
+            this.contextMenuService.removeContextMenu();
+        });
 
         document.getElementById('cut')!.addEventListener('click', (ev) => {
-            ev.preventDefault();
-            document.execCommand("delete");
-            ipcRendererSend('delete');
-            CONTEXT_MENU_SERVICE.removeContextMenu();
+            document.execCommand("cut");
+            this.contextMenuService.removeContextMenu();
+        });
 
-        })
+        document.getElementById('select all')!.addEventListener('click', (ev) => {
+            document.execCommand("selectAll");
+            this.contextMenuService.removeContextMenu();
+        });
+
+        document.getElementById('search')!.addEventListener('click', (ev) => {
+            const url = new URL('https://www.google.com/search');
+            //const text = clipboard.readText()
+            const selection = window.getSelection()!.toString();
+            if (selection != ''){
+                url.searchParams.set('q', selection);
+                electron.shell.openExternal(url.toString());
+                this.contextMenuService.removeContextMenu();
+            };
+        });
+
     } 
 }

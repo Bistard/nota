@@ -4,8 +4,9 @@ import { WriteFileOptions } from 'original-fs';
 import { ConfigModule } from 'src/base/config';
 import { FileNode } from 'src/base/node/fileTree';
 import { ipcRendererOn, ipcRendererSendTest } from 'src/base/electron/register';
-import { Component } from 'src/code/workbench/browser/component';
-import { EditorComponentType } from 'src/code/workbench/browser/editor/editor';
+import { Component } from 'src/code/browser/workbench/component';
+import { EditorComponentType } from 'src/code/browser/workbench/editor/editor';
+import { IComponentService } from 'src/code/browser/service/componentService';
 
 /**
  * @description TabBarComponent stores all the opened tabs data and handles all the 
@@ -20,8 +21,11 @@ export class TabBarComponent extends Component {
     public openedTabInfo: FileNode[];
     currFocusTabIndex: number;
 
-    constructor(parentComponent: Component) {
-        super(EditorComponentType.tabBar, parentComponent);
+    constructor(
+        parentComponent: Component,
+        @IComponentService componentService: IComponentService,
+    ) {
+        super(EditorComponentType.tabBar, parentComponent, null, componentService);
 
         this.emptyTab = true;
         this.openedTabCount = 0;

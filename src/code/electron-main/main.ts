@@ -1,5 +1,5 @@
 
-import { IActionBarOptions } from "src/code/workbench/browser/actionBar/actionBar";
+import { IActionBarOptions } from "src/code/browser/workbench/actionBar/actionBar";
 
 import * as Path from'path';
 
@@ -77,6 +77,10 @@ class Main {
                 this.winMain = null;
             });
 
+            this.winMain.on('blur', () => {
+                this.winMain!.webContents.send('closeContextMenu');
+            });
+
             ipcMain.on('minApp', () => {
                 this.winMain!.minimize();
             });
@@ -141,24 +145,6 @@ class Main {
 
                 Menu.buildFromTemplate(template).popup();
             });
-
-            ipcMain.on('copy', () => {
-                this.winMain!.webContents.copy();
-
-            })
-
-            this.winMain!.webContents.on('context-menu', (event, param) => {
-                    console.log(param.editFlags.canPaste)
-                    param.editFlags.canPaste = true
-                    this.winMain!.webContents.paste();
-
-            })
-                
-
-            ipcMain.on('delete', () => {
-                this.winMain!.webContents.delete();
-                
-            })
             
             // response to FolderModule, default path is 'desktop' and only can
             // open directory.

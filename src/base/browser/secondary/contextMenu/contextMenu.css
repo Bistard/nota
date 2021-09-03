@@ -1,9 +1,8 @@
-
-
 #context-menu {
     position: absolute;
-    width: auto;
-    min-width: 130px;
+    
+    width: 150px;
+    
     color: #333;
     box-shadow: 0 0 5px 2px lightgrey;
     z-index: 100;
@@ -22,11 +21,12 @@
 }
 
 .menu-item {
+    position: relative;
     font-weight: normal;
     font-size: 12px;
-    padding: 10px 25px 10px 20px;
+    height: 30px;
+    
     cursor: pointer;
-    height: 10px;
 }
 
 .menu-item:hover {
@@ -37,8 +37,11 @@
     background-color: rgb(220, 220, 220);
 }
 
-.menu-item > span {
+.menu-item > .menu-item-text {
+    position: relative;
     user-select: none;
+    line-height: 30px;
+    left: 10px;
 }
 
 .check-box {
