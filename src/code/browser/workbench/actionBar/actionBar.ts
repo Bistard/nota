@@ -72,10 +72,6 @@ export class ActionBarComponent extends Component implements IActionBarService {
 
     protected override _registerListeners(): void {
 
-        const actionBarOpts: IActionBarOptions = { 
-            options: [true, true, true, true],
-        };
-
         /**
          * @readonly register context menu listeners (right click menu)
          */
@@ -89,28 +85,6 @@ export class ActionBarComponent extends Component implements IActionBarService {
 
             this.contextMenuService.createContextMenu(ContextMenuType.actionBar, coordinate);
 
-        });
-
-        // TODO: add an array that stores user preference for action buttons (could be stored in config.ts)
-        /**
-         * @readonly once user clicked the menu in the main thread and sending 
-         * the message back, we listens to that action.
-         */
-        ipcRendererOn('context-menu-command', (
-            _ev: Electron.IpcRendererEvent, 
-            _opt: IActionBarOptions, 
-            elementID: string, 
-            index: number
-        ) => {
-            const actionButton = document.getElementById(elementID);
-            console.log(actionButton?.style.display);
-            if (actionButton!.style.display == 'none') {
-                actionButton!.style.display = 'initial';
-                actionBarOpts.options[index] = true;
-            } else {
-                actionButton!.style.display = 'none';
-                actionBarOpts.options[index] = false;
-            }
         });
 
         // TODO: remove later

@@ -1,4 +1,4 @@
-import { CONTEXT_MENU_ITEM_HEIGHT, CONTEXT_MENU_WIDTH, IMenuItem, IMenuItemOption, MenuItem } from "src/base/browser/secondary/contextMenu/menuItem";
+import { CONTEXT_MENU_ITEM_HEIGHT, CONTEXT_MENU_SEPERATOR_HEIGHT, CONTEXT_MENU_WIDTH, IMenuItem, IMenuItemOption, MenuItem } from "src/base/browser/secondary/contextMenu/menuItem";
 import { IComponentService } from "src/code/browser/service/componentService";
 import { Component, IComponent } from "src/code/browser/workbench/component";
 
@@ -72,7 +72,7 @@ export abstract class ContextMenu extends Component implements IContextMenu {
 
     public readonly menuItemGroups: IMenuItem[];
     public readonly menuItemOptions: IMenuItemOption[];
-
+    
     private _dimension: Dimension = { width: CONTEXT_MENU_WIDTH, height: 0 }
     private _coordinate: Coordinate;
     
@@ -88,7 +88,12 @@ export abstract class ContextMenu extends Component implements IContextMenu {
         this.menuItemOptions = menuItemOptions;
 
         for (const _menuItemOpt of menuItemOptions) {
-            this._dimension.height += CONTEXT_MENU_ITEM_HEIGHT;
+            console.log(_menuItemOpt.role);
+            if (_menuItemOpt.role != 'seperator'){
+                this._dimension.height += CONTEXT_MENU_ITEM_HEIGHT;
+            } else {
+                this._dimension.height += CONTEXT_MENU_SEPERATOR_HEIGHT; 
+            }
         }
     }
 

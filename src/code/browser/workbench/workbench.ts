@@ -108,6 +108,10 @@ export class Workbench extends Component {
             this.instantiationService.getService(IContextMenuService)!.removeContextMenu();
         });
 
+        ipcRendererOn('closeContextMenu', () => {
+            this.instantiationService.getService(IContextMenuService)!.removeContextMenu();
+        })
+
     }
 
     public getComponentById(id: string): Component {
