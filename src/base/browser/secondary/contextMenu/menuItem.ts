@@ -13,7 +13,7 @@ export interface IMenuItem extends IWidget {
 }
 
 export interface IMenuItemOption {
-    id?: string;
+    id: string;
     classes?: string[],
     text: string;
     role: Role;

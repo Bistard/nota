@@ -19,7 +19,7 @@ export interface IInstantiationService {
 
     /**
      * @description try to get the instance of the service (if not, this will 
-     * not automatically create one for you).
+     * not automatically create one for you YET).
      * 
      * @param serviceIdentifier serviceIdentifier to that service
      */

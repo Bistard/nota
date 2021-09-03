@@ -4,6 +4,11 @@ import { FunctionBarComponent } from 'src/code/browser/workbench/editor/titleBar
 import { EditorComponentType } from 'src/code/browser/workbench/editor/editor';
 import { IComponentService } from 'src/code/browser/service/componentService';
 
+export enum TitleBarComponentType {
+    functionBar = 'function-bar',
+    windowBar = 'window-bar',
+}
+
 /**
  * @description TitleBarComponent stores and handles all the titleBar and functionBar 
  * relevant business. 
@@ -11,7 +16,6 @@ import { IComponentService } from 'src/code/browser/service/componentService';
 export class TitleBarComponent extends Component {
     
     functionBarComponent!: FunctionBarComponent;
-    // tabBarComponent!: TabBarComponent;
     windowBarComponent!: WindowBarComponent;
 
     constructor(
@@ -24,7 +28,6 @@ export class TitleBarComponent extends Component {
     protected override _createContent(): void {
         
         this._createfunctionBar();
-        // this._createTabBar();
         this._createWindowBar();
         
     }
@@ -33,7 +36,6 @@ export class TitleBarComponent extends Component {
         
         // component registration
         this.functionBarComponent.registerListeners();
-        // this.tabBarComponent.registerListeners();
         this.windowBarComponent.registerListeners();
         
     }
@@ -42,11 +44,6 @@ export class TitleBarComponent extends Component {
         this.functionBarComponent = new FunctionBarComponent(this, this.componentService);
         this.functionBarComponent.create();
     }
-
-    // private _createTabBar(): void {
-    //     this.tabBarComponent = new TabBarComponent(this);
-    //     this.tabBarComponent.create();
-    // }
 
     private _createWindowBar(): void {
         this.windowBarComponent = new WindowBarComponent(this, this.componentService);

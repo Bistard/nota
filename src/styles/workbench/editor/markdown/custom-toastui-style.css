@@ -8,7 +8,7 @@
 .toastui-editor-defaultUI .ProseMirror,
 .toastui-editor-defaultUI .toastui-editor-contents {
     padding: 0 10%;
-    padding-top: 40px;
+    padding-top: 10px;
 }
 
 .ProseMirror,

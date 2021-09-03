@@ -28,6 +28,7 @@ import { ContextMenuType, Coordinate } from 'src/base/browser/secondary/contextM
 import { IContextMenuService } from 'src/code/browser/service/contextMenuService';
 import { createDecorator } from 'src/code/common/service/instantiation/decorator';
 import { IComponentService } from 'src/code/browser/service/componentService';
+import { EditorComponentType } from 'src/code/browser/workbench/editor/editor';
 
 export const IMarkdownService = createDecorator<IMarkdownService>('markdown-service');
 
@@ -36,6 +37,7 @@ export interface IMarkdownService extends IComponent {
     onTextChange(): void;
     markdownDisplayFile(nodeInfo: FileNode): void;
     markdownModeSwitch(): void;
+    getEditorText(): string;
 }
 
 /**
@@ -55,7 +57,7 @@ export class MarkdownComponent extends Component implements IMarkdownService {
                 @IComponentService componentService: IComponentService,
                 @IContextMenuService private readonly contextMenuService: IContextMenuService,
         ) {
-        super('markdown', parentComponent, parentElement, componentService);
+        super(EditorComponentType.markdown, parentComponent, parentElement, componentService);
 
         this.mode = ConfigService.Instance.defaultMarkdownMode;
         
@@ -99,20 +101,24 @@ export class MarkdownComponent extends Component implements IMarkdownService {
         /**
          * @readonly register context menu listeners (right click menu)
          */
-        document.getElementById('markdown')!.addEventListener('contextmenu', (ev: MouseEvent) => {
+        this.container.addEventListener('contextmenu', (ev: MouseEvent) => {
+            
             ev.preventDefault();
             this.contextMenuService.removeContextMenu();
 
             let coordinate: Coordinate = {
                 coordinateX: ev.pageX,
                 coordinateY: ev.pageY,
-           };
-           const element = ev.target as HTMLElement;
+            };
+            
+            const element = ev.target as HTMLElement;
             const tagName = element.tagName;
             const parentElement = element.parentElement?.tagName;
             const menu = document.querySelector(".toastui-editor-context-menu") as HTMLElement;
+            
             if (tagName == 'TD' || tagName == 'TH') {
-            }else if (tagName == 'P') {
+
+            } else if (tagName == 'P') {
                 menu.style.display = 'none';
                 this.contextMenuService.createContextMenu(ContextMenuType.editor, coordinate);
             } else {
@@ -123,12 +129,12 @@ export class MarkdownComponent extends Component implements IMarkdownService {
 
         // spellcheck config check
         if (!ConfigService.Instance.markdownSpellCheckOn) {
-            const markdown = document.getElementById('markdown') as HTMLElement;
-            markdown.setAttribute('spellcheck', 'false');
+            this.container.setAttribute('spellcheck', 'false');
         }
 
-        EVENT_EMITTER.register('EMarkdownDisplayFile', (nodeInfo: FileNode) => this.markdownDisplayFile(nodeInfo));
+        EVENT_EMITTER.register('EMarkdownDisplayFile', (nodeInfo: FileNode | null) => this.markdownDisplayFile(nodeInfo));
         EVENT_EMITTER.register('EMarkdownModeSwitch', () => this.markdownModeSwitch());
+        EVENT_EMITTER.register('EMarkdownGetText', (): string => { return this.getEditorText() });
         // ipcRendererOn('Ctrl+S', () => {
         //     if (!this.explorerViewComponent.TabBar.emptyTab) {
         //         if (this.saveFileTimeout) {
@@ -238,7 +244,7 @@ export class MarkdownComponent extends Component implements IMarkdownService {
      * @description will be registered into eventEmitter as 'EMarkdownDisplayFile' 
      * event.
      */
-    public markdownDisplayFile(nodeInfo: FileNode): void {
+    public markdownDisplayFile(nodeInfo: FileNode | null): void {
         if (!this.editor) {
             // do log here.
             return;
@@ -279,6 +285,10 @@ export class MarkdownComponent extends Component implements IMarkdownService {
         
         const newText = this.editor!.getMarkdown();
         // saveMarkdownFile();
+    }
+
+    public getEditorText(): string {
+        return this.editor!.getMarkdown();
     }
 
 }

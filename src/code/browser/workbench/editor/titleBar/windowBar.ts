@@ -3,7 +3,7 @@ import { getSvgPathByName, SvgType } from "src/base/common/string";
 import { domNodeByIdAddListener, ipcRendererOn, ipcRendererSend } from "src/base/electron/register";
 import { IComponentService } from "src/code/browser/service/componentService";
 import { Component } from "src/code/browser/workbench/component";
-import { EditorComponentType } from "src/code/browser/workbench/editor/editor";
+import { TitleBarComponentType } from "src/code/browser/workbench/editor/titleBar/titleBar";
 
 export class WindowBarComponent extends Component {
 
@@ -11,7 +11,7 @@ export class WindowBarComponent extends Component {
         parentComponent: Component,
         @IComponentService componentService: IComponentService,
     ) {
-        super(EditorComponentType.windowBar, parentComponent, null, componentService);
+        super(TitleBarComponentType.windowBar, parentComponent, null, componentService);
 
     }
 

@@ -264,6 +264,11 @@ class Main {
                 this.winMain!.webContents.send('Ctrl+S');
             });
 
+            // open previous closed tab
+            ElectronLocalshortcut.register(this.winMain, 'Ctrl+Shift+T', () => {
+                this.winMain!.webContents.send('Ctrl+Shift+T');
+            });
+
         });
 
     }

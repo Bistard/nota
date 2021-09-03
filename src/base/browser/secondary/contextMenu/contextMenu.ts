@@ -1,6 +1,7 @@
 import { CONTEXT_MENU_ITEM_HEIGHT, CONTEXT_MENU_SEPERATOR_HEIGHT, CONTEXT_MENU_WIDTH, IMenuItem, IMenuItemOption, MenuItem } from "src/base/browser/secondary/contextMenu/menuItem";
 import { IComponentService } from "src/code/browser/service/componentService";
 import { Component, IComponent } from "src/code/browser/workbench/component";
+import { Dimension, IDimension } from "../../../common/domNode";
 
 export enum ContextMenuType {
     actionBar,
@@ -12,11 +13,6 @@ export enum ContextMenuType {
 export type Coordinate = {
     coordinateX: number;
     coordinateY: number;
-}
-
-export type Dimension = {
-    width: number;
-    height: number;
 }
 
 export type ContextMenuDimension = {
@@ -70,10 +66,10 @@ export abstract class ContextMenu extends Component implements IContextMenu {
 
     public readonly type: ContextMenuType;
 
-    public readonly menuItemGroups: IMenuItem[];
-    public readonly menuItemOptions: IMenuItemOption[];
+    protected readonly _menuItemGroups: Map<string, IMenuItem>;
+    protected readonly _menuItemOptions: IMenuItemOption[];
     
-    private _dimension: Dimension = { width: CONTEXT_MENU_WIDTH, height: 0 }
+    private _dimension: Dimension = new Dimension(CONTEXT_MENU_WIDTH, 0);
     private _coordinate: Coordinate;
     
     constructor(type: ContextMenuType,
@@ -84,12 +80,12 @@ export abstract class ContextMenu extends Component implements IContextMenu {
         super('context-menu', null, document.body, componentService);
         this.type = type;
         this._coordinate = coordinate;
-        this.menuItemGroups = [];
-        this.menuItemOptions = menuItemOptions;
+        this._menuItemGroups = new Map();
+        this._menuItemOptions = menuItemOptions;
 
-        for (const _menuItemOpt of menuItemOptions) {
-            console.log(_menuItemOpt.role);
-            if (_menuItemOpt.role != 'seperator'){
+        for (const menuItemOpt of menuItemOptions) {
+            console.log(menuItemOpt.role);
+            if (menuItemOpt.role != 'seperator'){
                 this._dimension.height += CONTEXT_MENU_ITEM_HEIGHT;
             } else {
                 this._dimension.height += CONTEXT_MENU_SEPERATOR_HEIGHT; 
@@ -129,13 +125,13 @@ export abstract class ContextMenu extends Component implements IContextMenu {
         this.contentArea.id = 'context-menu-container';
         this.container.appendChild(this.contentArea);
 
-        this._createMenuItems(this.menuItemOptions);
+        this._createMenuItems(this._menuItemOptions);
     }
 
     private _createMenuItems(menuItemOptions: IMenuItemOption[]): void {
         for (const opt of menuItemOptions) {
             const item = new MenuItem(this.contentArea!, opt);
-            this.menuItemGroups.push(item);
+            this._menuItemGroups.set(opt.id, item);
         }
     }
 }

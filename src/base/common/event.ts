@@ -9,9 +9,9 @@ export interface IEventEmitter {
     register(id: string, callback: (...params: any[]) => any): boolean;
     
     /**
-     * @description emits an event
+     * @description emits an event, returns an array of return values for each registered callbacks.
      */
-    emit(id: string, ...params: any[]): boolean;
+    emit(id: string, ...params: any[]): any[] | any;
 }
 
 export class EventEmitter implements IEventEmitter {
@@ -33,14 +33,20 @@ export class EventEmitter implements IEventEmitter {
         return true;
     }
 
-    public emit(id: string, ...params: any[]): boolean {
+    public emit(id: string, ...params: any[]): any[] | any {
+        const returnValues: any[] = [];
         if (this._events[id]) {
             this._events[id]!.forEach(callback => {
-                callback.apply(null, params as []);
+                const res = callback.apply(null, params as []);
+                if (res) {
+                    returnValues.push(res);
+                }
             });
-            return true;
         }
-        return false;
+        if (returnValues.length === 1) {
+            return returnValues[0];
+        }
+        return returnValues;
     }
 
 }

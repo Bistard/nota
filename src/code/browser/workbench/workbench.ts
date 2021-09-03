@@ -104,12 +104,18 @@ export class Workbench extends Component {
 
         });
 
-        document.getElementById('mainApp')!.addEventListener('click', (ev: MouseEvent) => {
-            this.instantiationService.getService(IContextMenuService)!.removeContextMenu();
+        this.container.addEventListener('click', (ev: MouseEvent) => {
+            const service = this.instantiationService.getService(IContextMenuService);
+            if (service) {
+                service.removeContextMenu();
+            }
         });
 
         ipcRendererOn('closeContextMenu', () => {
-            this.instantiationService.getService(IContextMenuService)!.removeContextMenu();
+            const service = this.instantiationService.getService(IContextMenuService);
+            if (service) {
+                service.removeContextMenu();
+            }
         })
 
     }
