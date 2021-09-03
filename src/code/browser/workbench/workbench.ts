@@ -109,6 +109,8 @@ export class Workbench extends Component {
             if (service) {
                 service.removeContextMenu();
             }
+            const menu = document.querySelector(".toastui-editor-context-menu") as HTMLElement;
+            menu.style.display = 'none';
         });
 
         ipcRendererOn('closeContextMenu', () => {

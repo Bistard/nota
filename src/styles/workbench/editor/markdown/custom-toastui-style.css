@@ -119,3 +119,20 @@
     cursor: pointer;
 }
 
+.toastui-editor-context-menu .menu-group {
+    height: 100%;
+    width: 100%;
+    list-style: none;
+    text-align: match-parent;
+    padding: 0px;
+    margin: 0px;
+}
+
+.toastui-editor-context-menu .menu-item {
+    position: relative;
+    font-weight: normal;
+    font-size: 12px;
+    height: 30px;
+    
+    cursor: pointer;
+}
