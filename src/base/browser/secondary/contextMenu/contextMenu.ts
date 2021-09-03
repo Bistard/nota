@@ -1,6 +1,7 @@
 import { CONTEXT_MENU_ITEM_HEIGHT, CONTEXT_MENU_SEPERATOR_HEIGHT, CONTEXT_MENU_WIDTH, IMenuItem, IMenuItemOption, MenuItem } from "src/base/browser/secondary/contextMenu/menuItem";
 import { IComponentService } from "src/code/browser/service/componentService";
 import { Component, IComponent } from "src/code/browser/workbench/component";
+import { Dimension, IDimension } from "../../../common/domNode";
 
 export enum ContextMenuType {
     actionBar,
@@ -12,11 +13,6 @@ export enum ContextMenuType {
 export type Coordinate = {
     coordinateX: number;
     coordinateY: number;
-}
-
-export type Dimension = {
-    width: number;
-    height: number;
 }
 
 export type ContextMenuDimension = {
@@ -73,7 +69,7 @@ export abstract class ContextMenu extends Component implements IContextMenu {
     protected readonly _menuItemGroups: Map<string, IMenuItem>;
     protected readonly _menuItemOptions: IMenuItemOption[];
     
-    private _dimension: Dimension = { width: CONTEXT_MENU_WIDTH, height: 0 }
+    private _dimension: Dimension = new Dimension(CONTEXT_MENU_WIDTH, 0);
     private _coordinate: Coordinate;
     
     constructor(type: ContextMenuType,
