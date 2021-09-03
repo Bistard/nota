@@ -81,6 +81,7 @@ export class TabBarComponent extends Component {
 
     private static readonly TAB_HEIGHT = 27;
     private static readonly TAB_BAR_HEIGHT = 30;
+    private static readonly TAB_BAR_SCROLL_BAR_HEIGHT = 3;
 
     private readonly _openedTab: Tab[];
     
