@@ -2,6 +2,8 @@ import { ContextMenu, ContextMenuType, Coordinate, IContextMenu } from "src/base
 import { ipcRendererSend } from "src/base/electron/register";
 import { IComponentService } from "src/code/browser/service/componentService";
 import { IContextMenuService } from "src/code/browser/service/contextMenuService";
+const { clipboard } = require('electron')
+const electron = require('electron');
 
 export class EditorContextMenu extends ContextMenu implements IContextMenu {
     
@@ -19,6 +21,7 @@ export class EditorContextMenu extends ContextMenu implements IContextMenu {
                 {id: 'cut', classes: ['menu-item'], text: 'Cut', role: 'normal'},
                 {text: 'seperator', role: 'seperator'},
                 {id: 'select all', classes: ['menu-item'], text: 'Select All', role: 'normal'},
+                {id: 'search', classes: ['menu-item'], text: 'Search With Google', role: 'normal'},
                 {text: 'seperator', role: 'seperator'},
                 {id: 'Delete', classes: ['menu-item'], text: 'Delete', role: 'normal', enable: false},
                 {id: 'Sub Menu', classes: ['menu-item'], text: 'Sub Menu', role: 'subMenu'},
@@ -47,6 +50,17 @@ export class EditorContextMenu extends ContextMenu implements IContextMenu {
         document.getElementById('select all')!.addEventListener('click', (ev) => {
             document.execCommand("selectAll");
             this.contextMenuService.removeContextMenu();
+        });
+
+        document.getElementById('search')!.addEventListener('click', (ev) => {
+            const url = new URL('https://www.google.com/search');
+            //const text = clipboard.readText()
+            const selection = window.getSelection()!.toString();
+            if (selection != ''){
+                url.searchParams.set('q', selection);
+                electron.shell.openExternal(url.toString());
+                this.contextMenuService.removeContextMenu();
+            };
         });
 
     } 
