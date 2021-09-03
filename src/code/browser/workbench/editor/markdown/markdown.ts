@@ -37,6 +37,7 @@ export interface IMarkdownService extends IComponent {
     onTextChange(): void;
     markdownDisplayFile(nodeInfo: FileNode): void;
     markdownModeSwitch(): void;
+    getEditorText(): string;
 }
 
 /**
@@ -131,7 +132,7 @@ export class MarkdownComponent extends Component implements IMarkdownService {
             this.container.setAttribute('spellcheck', 'false');
         }
 
-        EVENT_EMITTER.register('EMarkdownDisplayFile', (nodeInfo: FileNode) => this.markdownDisplayFile(nodeInfo));
+        EVENT_EMITTER.register('EMarkdownDisplayFile', (nodeInfo: FileNode | null) => this.markdownDisplayFile(nodeInfo));
         EVENT_EMITTER.register('EMarkdownModeSwitch', () => this.markdownModeSwitch());
         EVENT_EMITTER.register('EMarkdownGetText', (): string => { return this.getEditorText() });
         // ipcRendererOn('Ctrl+S', () => {
@@ -243,7 +244,7 @@ export class MarkdownComponent extends Component implements IMarkdownService {
      * @description will be registered into eventEmitter as 'EMarkdownDisplayFile' 
      * event.
      */
-    public markdownDisplayFile(nodeInfo: FileNode): void {
+    public markdownDisplayFile(nodeInfo: FileNode | null): void {
         if (!this.editor) {
             // do log here.
             return;
