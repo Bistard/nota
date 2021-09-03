@@ -72,7 +72,7 @@ export abstract class ContextMenu extends Component implements IContextMenu {
 
     public readonly menuItemGroups: IMenuItem[];
     public readonly menuItemOptions: IMenuItemOption[];
-
+    
     private _dimension: Dimension = { width: CONTEXT_MENU_WIDTH, height: 0 }
     private _coordinate: Coordinate;
     

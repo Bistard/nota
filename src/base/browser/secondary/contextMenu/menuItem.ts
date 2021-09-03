@@ -20,6 +20,7 @@ export interface IMenuItemOption {
     shortcut?: string;
     tip?: string;
     enable?: boolean;
+    checked?: boolean;
     subMenuItem?: IMenuItemOption[],
 }
 
@@ -61,9 +62,15 @@ export class MenuItem implements IMenuItem {
                 break;
             case 'checkBox':
                 this.setImage(getSvgPathByName(SvgType.base, 'check-mark'));
-                this.setImageClass(['filter-black', 'check-box']);
-                this.setImageID(opt.id + "-check-mark");
-                this.setText(opt.text);
+                if (opt.checked){
+                    this.setImageClass(['filter-black', 'check-box']);
+                    this.setImageID(opt.id + "-check-mark");
+                    this.setText(opt.text); 
+                } else {
+                    this.setImageClass(['filter-grey', 'check-box']);
+                    this.setImageID(opt.id + "-check-mark");
+                    this.setText(opt.text);
+                }
                 break;
             case 'seperator':
                 this.setSeperator();
