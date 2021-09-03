@@ -1,6 +1,6 @@
 import { FileNode } from 'src/base/node/fileTree';
 import { ipcRendererOn } from 'src/base/electron/register';
-import { Component } from 'src/code/browser/workbench/component';
+import { Component, IComponent } from 'src/code/browser/workbench/component';
 import { EditorComponentType } from 'src/code/browser/workbench/editor/editor';
 import { IComponentService } from 'src/code/browser/service/componentService';
 import { pathJoin } from 'src/base/common/string';
@@ -73,11 +73,29 @@ export class Tab {
     
 }
 
+export interface ITabBarComponent extends IComponent {
+    focusTabIndex: number;
+    
+    switchOrCreateTab(nodeInfo: FileNode): Tab;
+    
+    createTab(index: number, nodeInfo: FileNode): Tab;
+    
+    switchToTab(index: number): Tab;
+
+    /**
+     * @description check if the tab is opened, if true, we return the index of 
+     * the tab, otherwise we return a negative number.
+     */
+    isTabExisted(nodeInfoOrTab: FileNode | Tab): number;
+
+    closeTab(tab: Tab): void;
+}
+
 /**
  * @description TabBarComponent stores all the opened tabs data and handles all the 
  * tabBar relevant listeners and business.
  */
-export class TabBarComponent extends Component {
+export class TabBarComponent extends Component implements ITabBarComponent {
 
     private static readonly TAB_HEIGHT = 27;
     private static readonly TAB_BAR_HEIGHT = 30;
@@ -216,10 +234,6 @@ export class TabBarComponent extends Component {
         return this._openedTab[index]!;
     }
 
-    /**
-     * @description check if the tab is opened, if true, we return the index of 
-     * the tab, otherwise we return a negative number.
-     */
     public isTabExisted(nodeInfoOrTab: FileNode | Tab): number {
         
         let i: number;
