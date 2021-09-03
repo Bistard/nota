@@ -24,7 +24,7 @@ export class EditorContextMenu extends ContextMenu implements IContextMenu {
                 {id: 'search', classes: ['menu-item'], text: 'Search With Google', role: 'normal'},
                 {text: 'seperator', role: 'seperator'},
                 {id: 'Delete', classes: ['menu-item'], text: 'Delete', role: 'normal', enable: false},
-                {id: 'Sub Menu', classes: ['menu-item'], text: 'Sub Menu', role: 'subMenu'},
+                {id: 'Sub Menu', classes: ['menu-item'], text: 'Sub Menu', role: 'subMenu', subMenuItem: [   {id: 'paste', classes: ['menu-item'], text: 'Paste', role: 'normal'},]},
             ],
             componentService,
         );

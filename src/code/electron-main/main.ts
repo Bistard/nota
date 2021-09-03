@@ -126,25 +126,6 @@ class Main {
                 ];
                 Menu.buildFromTemplate(template).popup();
             });
-
-            /**
-             * @readonly responses to the listener from actionBarComponent
-             */
-            ipcMain.on('showContextMenuActionBar', (_event, actionBarOpts: IActionBarOptions) => {
-                
-                const template: Electron.MenuItemConstructorOptions[] = [
-                    {label: 'File Explorer', type: 'checkbox', checked: actionBarOpts.options[0],    
-                        click: () => { this.winMain!.webContents.send('context-menu-command', actionBarOpts, "explorer-button", 0); }},
-                    {label: 'Outline', type: 'checkbox', checked: actionBarOpts.options[1], 
-                        click: () => { this.winMain!.webContents.send('context-menu-command', actionBarOpts, "outline-button", 1); }},
-                    {label: 'Search', type: 'checkbox', checked: actionBarOpts.options[2],
-                        click: () => { this.winMain!.webContents.send('context-menu-command', actionBarOpts, "search-button", 2); }},
-                    {label: 'Git', type: 'checkbox', checked: actionBarOpts.options[3], 
-                        click: () => { this.winMain!.webContents.send('context-menu-command', actionBarOpts, "git-button", 3); }},
-                ];
-
-                Menu.buildFromTemplate(template).popup();
-            });
             
             // response to FolderModule, default path is 'desktop' and only can
             // open directory.
