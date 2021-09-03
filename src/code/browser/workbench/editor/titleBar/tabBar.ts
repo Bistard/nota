@@ -1,7 +1,7 @@
 import { Editor } from '@toast-ui/editor/types/editor';
 import * as fs from 'fs';
 import { WriteFileOptions } from 'original-fs';
-import { ConfigModule } from 'src/base/config';
+import { ConfigService } from 'src/code/common/service/configService';
 import { FileNode } from 'src/base/node/fileTree';
 import { ipcRendererOn, ipcRendererSendTest } from 'src/base/electron/register';
 import { Component } from 'src/code/browser/workbench/component';
@@ -189,7 +189,7 @@ export class TabBarComponent extends Component {
         this.contentArea!.removeChild(element);
 
         // save current change immediately
-        if (ConfigModule.Instance.fileAutoSaveOn) {
+        if (ConfigService.Instance.fileAutoSaveOn) {
             /**
              * TODO: currently, written texts are from nodeInfo.plainText. If we decide to use 
              * mutiple threads for each tab, the texts should read from window.editor.getMarkdown()
