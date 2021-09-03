@@ -28,8 +28,8 @@ export class ActionBarContextMenu extends ContextMenu implements IContextMenu {
     }
 
     protected override _registerListeners(): void {
-    
-        document.getElementById('select-explorer-button')!.addEventListener('click', (ev) => {
+        
+        this._menuItemGroups.get('select-explorer-button')!.element.addEventListener('click', (ev) => {
             const actionButton = document.getElementById("explorer-button");
             console.log(actionButton?.style.display);
             if (actionButton!.style.display == 'none') {
@@ -43,7 +43,7 @@ export class ActionBarContextMenu extends ContextMenu implements IContextMenu {
  
         });
 
-        document.getElementById('select-outline-button')!.addEventListener('click', (ev) => {
+        this._menuItemGroups.get('select-outline-button')!.element.addEventListener('click', (ev) => {
             const actionButton = document.getElementById("outline-button");
             console.log(actionButton?.style.display);
             if (actionButton!.style.display == 'none') {
@@ -57,7 +57,7 @@ export class ActionBarContextMenu extends ContextMenu implements IContextMenu {
  
         });
 
-        document.getElementById('select-search-button')!.addEventListener('click', (ev) => {
+        this._menuItemGroups.get('select-search-button')!.element.addEventListener('click', (ev) => {
             const actionButton = document.getElementById("search-button");
             console.log(actionButton?.style.display);
             if (actionButton!.style.display == 'none') {
@@ -71,7 +71,7 @@ export class ActionBarContextMenu extends ContextMenu implements IContextMenu {
  
         });
 
-        document.getElementById('select-git-button')!.addEventListener('click', (ev) => {
+        this._menuItemGroups.get('select-git-button')!.element.addEventListener('click', (ev) => {
             const actionButton = document.getElementById("git-button");
             console.log(actionButton?.style.display);
             if (actionButton!.style.display == 'none') {

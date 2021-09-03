@@ -99,20 +99,24 @@ export class MarkdownComponent extends Component implements IMarkdownService {
         /**
          * @readonly register context menu listeners (right click menu)
          */
-        document.getElementById('markdown')!.addEventListener('contextmenu', (ev: MouseEvent) => {
+        this.container.addEventListener('contextmenu', (ev: MouseEvent) => {
+            
             ev.preventDefault();
             this.contextMenuService.removeContextMenu();
 
             let coordinate: Coordinate = {
                 coordinateX: ev.pageX,
                 coordinateY: ev.pageY,
-           };
-           const element = ev.target as HTMLElement;
+            };
+            
+            const element = ev.target as HTMLElement;
             const tagName = element.tagName;
             const parentElement = element.parentElement?.tagName;
             const menu = document.querySelector(".toastui-editor-context-menu") as HTMLElement;
+            
             if (tagName == 'TD' || tagName == 'TH') {
-            }else if (tagName == 'P') {
+
+            } else if (tagName == 'P') {
                 menu.style.display = 'none';
                 this.contextMenuService.createContextMenu(ContextMenuType.editor, coordinate);
             } else {
@@ -123,8 +127,7 @@ export class MarkdownComponent extends Component implements IMarkdownService {
 
         // spellcheck config check
         if (!ConfigService.Instance.markdownSpellCheckOn) {
-            const markdown = document.getElementById('markdown') as HTMLElement;
-            markdown.setAttribute('spellcheck', 'false');
+            this.container.setAttribute('spellcheck', 'false');
         }
 
         EVENT_EMITTER.register('EMarkdownDisplayFile', (nodeInfo: FileNode) => this.markdownDisplayFile(nodeInfo));
