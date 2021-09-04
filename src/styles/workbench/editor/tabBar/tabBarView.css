@@ -13,7 +13,7 @@
     
     display: flex;
     flex-direction: row;
-    overflow-x: auto;
+    overflow-x: overlay;
     overflow-y: hidden;
 
     /* animation scrollBar */
@@ -60,13 +60,13 @@
     cursor: pointer;
 }
 
-.tab:hover {
-    
+.tab:hover > .tab-icon-container > .tab-icon {
+    display: inline-block;
 }
 
 .tab-focused {
-    color: rgb(233, 233, 233);
-    background-color: #828282;
+    color: #333;
+    border-bottom: 1px solid #cf5e5e;
 }
 
 .tab-text-container {
@@ -98,6 +98,7 @@
 }
 
 .tab-icon {
+    display: none;
     content: url('../../../../assets/svg/close.svg');
     width: 8px;
     height: 8px;
