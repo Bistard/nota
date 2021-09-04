@@ -33,27 +33,27 @@ export class EditorContextMenu extends ContextMenu implements IContextMenu {
 
     protected override _registerListeners(): void {
         
-        this._menuItemGroups.get('copy')!.element.addEventListener('click', (ev) => {
+        this._menuItemGroups.get('copy')!.element.addEventListener('click', () => {
             document.execCommand("copy");
             this.contextMenuService.removeContextMenu();
         });
 
-        this._menuItemGroups.get('paste')!.element.addEventListener('click', (ev) => {
+        this._menuItemGroups.get('paste')!.element.addEventListener('click', () => {
             document.execCommand("paste");
             this.contextMenuService.removeContextMenu();
         });
 
-        this._menuItemGroups.get('cut')!.element.addEventListener('click', (ev) => {
+        this._menuItemGroups.get('cut')!.element.addEventListener('click', () => {
             document.execCommand("cut");
             this.contextMenuService.removeContextMenu();
         });
 
-        this._menuItemGroups.get('select all')!.element.addEventListener('click', (ev) => {
+        this._menuItemGroups.get('select all')!.element.addEventListener('click', () => {
             document.execCommand("selectAll");
             this.contextMenuService.removeContextMenu();
         });
 
-        this._menuItemGroups.get('search')!.element.addEventListener('click', (ev) => {
+        this._menuItemGroups.get('search')!.element.addEventListener('click', () => {
             const url = new URL('https://www.google.com/search');
             //const text = clipboard.readText()
             const selection = window.getSelection()!.toString();

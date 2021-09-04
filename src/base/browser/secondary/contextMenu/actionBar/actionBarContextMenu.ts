@@ -34,7 +34,7 @@ export class ActionBarContextMenu extends ContextMenu implements IContextMenu {
 
     protected override _registerListeners(): void {
         
-        this._menuItemGroups.get('select-explorer-button')!.element.addEventListener('click', (ev) => {
+        this._menuItemGroups.get('select-explorer-button')!.element.addEventListener('click', () => {
             const actionButton = document.getElementById("explorer-button");
             console.log(actionButton?.style.display);
             if (actionButton!.style.display == 'none') {
@@ -48,7 +48,7 @@ export class ActionBarContextMenu extends ContextMenu implements IContextMenu {
             this.contextMenuService.removeContextMenu();
         });
 
-        this._menuItemGroups.get('select-outline-button')!.element.addEventListener('click', (ev) => {
+        this._menuItemGroups.get('select-outline-button')!.element.addEventListener('click', () => {
             const actionButton = document.getElementById("outline-button");
             console.log(actionButton?.style.display);
             if (actionButton!.style.display == 'none') {
@@ -62,7 +62,7 @@ export class ActionBarContextMenu extends ContextMenu implements IContextMenu {
             this.contextMenuService.removeContextMenu();
         });
 
-        this._menuItemGroups.get('select-search-button')!.element.addEventListener('click', (ev) => {
+        this._menuItemGroups.get('select-search-button')!.element.addEventListener('click', () => {
             const actionButton = document.getElementById("search-button");
             console.log(actionButton?.style.display);
             if (actionButton!.style.display == 'none') {
@@ -76,7 +76,7 @@ export class ActionBarContextMenu extends ContextMenu implements IContextMenu {
             this.contextMenuService.removeContextMenu();
         });
 
-        this._menuItemGroups.get('select-git-button')!.element.addEventListener('click', (ev) => {
+        this._menuItemGroups.get('select-git-button')!.element.addEventListener('click', () => {
             const actionButton = document.getElementById("git-button");
             console.log(actionButton?.style.display);
             if (actionButton!.style.display == 'none') {
@@ -108,15 +108,14 @@ export class ActionBarContextMenu extends ContextMenu implements IContextMenu {
         const state = checker(actionBarOpts.options);
         const countTrue = actionBarOpts.options.filter(Boolean).length;
 
-        if (state){
+        if (state) {
             currFocusActionBtnIndex.index = -1;
             EVENT_EMITTER.emit('EOnActionViewClose');
             currBtn.classList.remove('action-button-focus'); 
-            
         } else if (countTrue == 1) {
-            let i:number;
-            for (i = 0; i < 4; i++){
-                if (actionBarOpts.options[i]){
+            let i: number;
+            for (i = 0; i < 4; i++) {
+                if (actionBarOpts.options[i]) {
                     currFocusActionBtnIndex.index = i;
                     EVENT_EMITTER.emit('EOnActionViewOpen');
                     const checkedBtn = actionBtnContainer.children[i] as HTMLElement;
@@ -124,30 +123,30 @@ export class ActionBarContextMenu extends ContextMenu implements IContextMenu {
                     EVENT_EMITTER.emit('EOnActionViewChange', actionBarOpts.id[i]);  
                 }
             }
-        } else if (clickedBtnIndex >= 0){
-            let i:number;
-            for(i = clickedBtnIndex;i < 4;i++) {
-               if (actionBarOpts.options[i]){
-                currFocusActionBtnIndex.index = i;
-                const checkedBtn = actionBtnContainer.children[i] as HTMLElement;
-                currBtn.classList.remove('action-button-focus');
-                checkedBtn.classList.add('action-button-focus');
-                EVENT_EMITTER.emit('EOnActionViewChange', actionBarOpts.id[i]);   
-                return;
+        } else if (clickedBtnIndex >= 0) {
+            let i: number;
+            for (i = clickedBtnIndex; i < 4; i++) {
+                if (actionBarOpts.options[i]) {
+                    currFocusActionBtnIndex.index = i;
+                    const checkedBtn = actionBtnContainer.children[i] as HTMLElement;
+                    currBtn.classList.remove('action-button-focus');
+                    checkedBtn.classList.add('action-button-focus');
+                    EVENT_EMITTER.emit('EOnActionViewChange', actionBarOpts.id[i]);   
+                    return;
                }
-            };
-            for(i = clickedBtnIndex;i >= 0;i--) {
-                if (actionBarOpts.options[i]){
-                 currFocusActionBtnIndex.index = i;
-                 const checkedBtn = actionBtnContainer.children[i] as HTMLElement;
-                 currBtn.classList.remove('action-button-focus');
-                 checkedBtn.classList.add('action-button-focus');  
-                 EVENT_EMITTER.emit('EOnActionViewChange', actionBarOpts.id[i]);  
-                 return;
+            }
+            for (i = clickedBtnIndex; i >= 0; i--) {
+                if (actionBarOpts.options[i]) {
+                    currFocusActionBtnIndex.index = i;
+                    const checkedBtn = actionBtnContainer.children[i] as HTMLElement;
+                    currBtn.classList.remove('action-button-focus');
+                    checkedBtn.classList.add('action-button-focus');  
+                    EVENT_EMITTER.emit('EOnActionViewChange', actionBarOpts.id[i]);  
+                    return;
                 }
-             };
+            }
         } else {
-            throw 'error'
+            throw 'error';
         }
     }  
 }
