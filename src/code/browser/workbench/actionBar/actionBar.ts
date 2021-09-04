@@ -2,7 +2,6 @@ import { Button, IButton } from 'src/base/browser/basic/button';
 import { EVENT_EMITTER } from 'src/base/common/event';
 import { ActionViewType } from 'src/code/browser/workbench/actionView/actionView';
 import { Component, ComponentType, IComponent } from 'src/code/browser/workbench/component';
-import { ipcRendererOn } from 'src/base/electron/register';
 import { getSvgPathByName, SvgType } from 'src/base/common/string';
 import { ContextMenuType, Coordinate } from 'src/base/browser/secondary/contextMenu/contextMenu';
 import { createDecorator } from 'src/code/common/service/instantiation/decorator';
@@ -13,7 +12,10 @@ export const IActionBarService = createDecorator<IActionBarService>('action-bar-
 
 export interface IActionBarService extends IComponent {
     
+    readonly buttonGroups: IButton[];
+
     clickActionBtn(clickedBtn: HTMLElement): void;
+    getButton(id: string): IButton | null;
 
 }
 
@@ -45,7 +47,7 @@ export let currFocusActionBtnIndex = {
  */
 export class ActionBarComponent extends Component implements IActionBarService {
 
-    private _buttonGroups: IButton[] = [];
+    public readonly buttonGroups: IButton[] = [];
     
     // if value is -1, it means actionView is not shown.
     //public currFocusActionBtnIndex: number;
@@ -78,7 +80,7 @@ export class ActionBarComponent extends Component implements IActionBarService {
             button.setImage(getSvgPathByName(SvgType.base, src));
             button.setImageClass(['vertical-center', 'filter-black']);
 
-            this._buttonGroups.push(button);
+            this.buttonGroups.push(button);
         });
     }
 
@@ -148,6 +150,15 @@ export class ActionBarComponent extends Component implements IActionBarService {
         } else {
             throw 'error';
         }
+    }
+
+    public getButton(id: string): IButton | null {
+        for (const button of this.buttonGroups) {
+            if (button.id === id) {
+                return button;
+            }
+        }
+        return null;
     }
 
 }

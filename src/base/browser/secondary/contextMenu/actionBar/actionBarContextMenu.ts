@@ -1,11 +1,10 @@
 import { ContextMenu, ContextMenuType, Coordinate, IContextMenu } from "src/base/browser/secondary/contextMenu/contextMenu";
 import { IComponentService } from "src/code/browser/service/componentService";
 import { IContextMenuService } from "src/code/browser/service/contextMenuService";
-import { IActionBarOptions } from "src/code/browser/workbench/actionBar/actionBar";
+import { IActionBarOptions, IActionBarService } from "src/code/browser/workbench/actionBar/actionBar";
 import { ActionViewType } from "src/code/browser/workbench/actionView/actionView";
 import { EVENT_EMITTER } from "src/base/common/event";
 import { currFocusActionBtnIndex } from "src/code/browser/workbench/actionBar/actionBar";
-import { Button } from "src/base/browser/basic/button";
 
 const actionBarOpts: IActionBarOptions = { 
     options: [true, true, true, true],
@@ -34,59 +33,61 @@ export class ActionBarContextMenu extends ContextMenu implements IContextMenu {
 
     protected override _registerListeners(): void {
         
+        const actionBarService = this.componentService.get('action-bar') as IActionBarService;
+
         this._menuItemGroups.get('select-explorer-button')!.element.addEventListener('click', () => {
-            const actionButton = document.getElementById("explorer-button");
-            console.log(actionButton?.style.display);
-            if (actionButton!.style.display == 'none') {
-                actionButton!.style.display = 'initial';
+            const actionButton = actionBarService.getButton("explorer-button")!;
+            console.log(actionButton.element.style.display);
+            if (actionButton.element.style.display == 'none') {
+                actionButton.element.style.display = 'initial';
                 actionBarOpts.options[0] = true;
             } else {
-                actionButton!.style.display = 'none';
+                actionButton.element.style.display = 'none';
                 actionBarOpts.options[0] = false;
             }
-            this.switchActionBtn(actionButton as HTMLElement);
+            this.switchActionBtn(actionButton.element);
             this.contextMenuService.removeContextMenu();
         });
 
         this._menuItemGroups.get('select-outline-button')!.element.addEventListener('click', () => {
-            const actionButton = document.getElementById("outline-button");
-            console.log(actionButton?.style.display);
-            if (actionButton!.style.display == 'none') {
-                actionButton!.style.display = 'initial';
+            const actionButton = actionBarService.getButton("outline-button")!;
+            console.log(actionButton.element.style.display);
+            if (actionButton.element.style.display == 'none') {
+                actionButton.element.style.display = 'initial';
                 actionBarOpts.options[1] = true;
             } else {
-                actionButton!.style.display = 'none';
+                actionButton.element.style.display = 'none';
                 actionBarOpts.options[1] = false;
             }
-            this.switchActionBtn(actionButton as HTMLElement);
+            this.switchActionBtn(actionButton.element);
             this.contextMenuService.removeContextMenu();
         });
 
         this._menuItemGroups.get('select-search-button')!.element.addEventListener('click', () => {
-            const actionButton = document.getElementById("search-button");
-            console.log(actionButton?.style.display);
-            if (actionButton!.style.display == 'none') {
-                actionButton!.style.display = 'initial';
+            const actionButton = actionBarService.getButton("search-button")!;
+            console.log(actionButton.element.style.display);
+            if (actionButton.element.style.display == 'none') {
+                actionButton.element.style.display = 'initial';
                 actionBarOpts.options[2] = true;
             } else {
-                actionButton!.style.display = 'none';
+                actionButton.element.style.display = 'none';
                 actionBarOpts.options[2] = false;
             }
-            this.switchActionBtn(actionButton as HTMLElement);
+            this.switchActionBtn(actionButton.element);
             this.contextMenuService.removeContextMenu();
         });
 
         this._menuItemGroups.get('select-git-button')!.element.addEventListener('click', () => {
-            const actionButton = document.getElementById("git-button");
-            console.log(actionButton?.style.display);
-            if (actionButton!.style.display == 'none') {
-                actionButton!.style.display = 'initial';
+            const actionButton = actionBarService.getButton("git-button")!;
+            console.log(actionButton.element.style.display);
+            if (actionButton.element.style.display == 'none') {
+                actionButton.element.style.display = 'initial';
                 actionBarOpts.options[3] = true;
             } else {
-                actionButton!.style.display = 'none';
+                actionButton.element.style.display = 'none';
                 actionBarOpts.options[3] = false;
             }
-            this.switchActionBtn(actionButton as HTMLElement);
+            this.switchActionBtn(actionButton.element);
             this.contextMenuService.removeContextMenu();
         });
     } 
@@ -104,7 +105,7 @@ export class ActionBarContextMenu extends ContextMenu implements IContextMenu {
         const actionBtnContainer = clickedBtn.parentNode as HTMLElement;
         const currBtn = actionBtnContainer.children[currFocusActionBtnIndex.index] as HTMLElement;
             
-        let checker = arr => arr.every(v => v === false);
+        let checker = (arr: boolean[]) => arr.every(v => v === false);
         const state = checker(actionBarOpts.options);
         const countTrue = actionBarOpts.options.filter(Boolean).length;
 
