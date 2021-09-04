@@ -45,9 +45,9 @@ export class InstantiationService {
 
     public register<T>(
         serviceIdentifier: ServiceIdentifier<T>, 
-        ctorOrDescriptor: T | ServiceDescriptor<T>): void 
+        instanceOrDescriptor: T | ServiceDescriptor<T>): void 
     {
-        this.serviceCollections.set(serviceIdentifier, ctorOrDescriptor);
+        this.serviceCollections.set(serviceIdentifier, instanceOrDescriptor);
     }
 
     public getService<T>(serviceIdentifier: ServiceIdentifier<T>): T | null {

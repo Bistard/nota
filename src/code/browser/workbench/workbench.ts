@@ -2,7 +2,7 @@ import { Component, ComponentType } from "src/code/browser/workbench/component";
 import { ActionViewComponent, IActionViewService } from "src/code/browser/workbench/actionView/actionView";
 import { ActionBarComponent, IActionBarService } from "src/code/browser/workbench/actionBar/actionBar";
 import { EditorComponent, IEditorService } from "src/code/browser/workbench/editor/editor";
-import { LOCAL_MDNOTE_DIR_NAME, NoteBookManager } from "src/code/common/model/notebookManger";
+import { INoteBookManagerService, LOCAL_MDNOTE_DIR_NAME, NoteBookManager } from "src/code/common/model/notebookManger";
 import { APP_ROOT_PATH } from "src/base/electron/app";
 import { ipcRendererOn, ipcRendererSend } from "src/base/electron/register";
 import { ConfigService, DEFAULT_CONFIG_FILE_NAME, DEFAULT_CONFIG_PATH, GLOBAL_CONFIG_FILE_NAME, GLOBAL_CONFIG_PATH, LOCAL_CONFIG_FILE_NAME } from "src/code/common/service/configService";
@@ -18,7 +18,7 @@ import { GlobalConfigService } from "src/code/common/service/globalConfigService
  */
 export class Workbench extends Component {
 
-    private _noteBookManager: NoteBookManager;
+    private _noteBookManager!: NoteBookManager;
 
     actionBarComponent!: ActionBarComponent;
     actionViewComponent!: ActionViewComponent;
@@ -28,9 +28,7 @@ export class Workbench extends Component {
         private readonly instantiationService: IInstantiationService,
     ) {
         super('mainApp', null, document.body, instantiationService.createInstance(ComponentService));
-        this._noteBookManager = new NoteBookManager();
-        this._noteBookManager.init(APP_ROOT_PATH);
-
+        
         this.initServices();
         this.create();
         this.registerListeners();
@@ -49,6 +47,11 @@ export class Workbench extends Component {
 
         // ContextMenuService
         this.instantiationService.register(IContextMenuService, new ServiceDescriptor(ContextMenuService));
+
+        // NoteBookManagerService
+        this._noteBookManager = new NoteBookManager();
+        this._noteBookManager.init(APP_ROOT_PATH);
+        this.instantiationService.register(INoteBookManagerService, this._noteBookManager);
 
     }
 

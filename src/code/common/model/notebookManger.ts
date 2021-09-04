@@ -4,15 +4,33 @@ import { ConfigService, DEFAULT_CONFIG_FILE_NAME, DEFAULT_CONFIG_PATH, GLOBAL_CO
 import { createDir, createFile, dirFilter, isDirExisted, isFileExisted } from "src/base/node/file";
 import { NoteBook } from "src/code/common/model/notebook";
 import { GlobalConfigService } from "src/code/common/service/globalConfigService";
+import { createDecorator } from "../service/instantiation/decorator";
 
 export const LOCAL_MDNOTE_DIR_NAME = '.mdnote';
+
+export const INoteBookManagerService = createDecorator<INoteBookManagerService>('notebook-manager-service');
+
+export interface INoteBookManagerService {
+
+    readonly noteBookMap: Map<string, NoteBook>;
+    readonly noteBookConfig: Object;
+    noteBookManagerRootPath: string;
+    mdNoteFolderFound: boolean;
+
+    init(appRootPath: string): Promise<void>;
+    open(path: string): Promise<void>;
+    addExistedNoteBook(noteBook: NoteBook): void;
+    getExistedNoteBook(noteBookName: string): NoteBook | null;
+    readOrCreateConfigJSON(path: string, configNameWtihType: string): Promise<void>;
+    readOrCreateGlobalConfigJSON(path: string, configNameWtihType: string): Promise<void>;
+}
 
 /**
  * @description reads local configuration and build corresponding notebook 
  * structure. It maintains the data and states changes for every NoteBook 
  * instance.
  */
-export class NoteBookManager {
+export class NoteBookManager implements INoteBookManagerService {
 
     public readonly noteBookMap: Map<string, NoteBook>;
     // not used
