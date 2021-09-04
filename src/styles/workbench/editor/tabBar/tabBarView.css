@@ -66,7 +66,7 @@
 
 .tab-focused {
     color: #333;
-    border-bottom: 1px solid #cf5e5e;
+    border-bottom: 2px solid #cf5e5e;
 }
 
 .tab-text-container {
