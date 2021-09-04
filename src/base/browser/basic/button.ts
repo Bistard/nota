@@ -15,10 +15,12 @@ export interface IButton extends IWidget {
 
 export class Button implements IButton {
     
+    public readonly id: string;
     public element: HTMLElement;
     public imgElement?: HTMLImageElement;
 
     constructor(id: string, container: HTMLElement) {
+        this.id = id;
         this.element = document.createElement('div');
         this.element.id = id;
         
