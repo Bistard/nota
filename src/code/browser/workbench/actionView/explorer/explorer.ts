@@ -3,7 +3,7 @@ import { domNodeByIdAddListener, ipcRendererOn, ipcRendererSend } from 'src/base
 import { Component } from 'src/code/browser/workbench/component';
 import { ActionViewComponentType } from 'src/code/browser/workbench/actionView/actionView';
 import { EVENT_EMITTER } from 'src/base/common/event';
-import { NoteBookManager } from 'src/code/common/model/notebookManger';
+import { NoteBookManager } from 'src/code/common/model/notebookManager';
 
 /**
  * @description TODO: complete comments
