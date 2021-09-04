@@ -11,6 +11,8 @@ export interface IComponent {
     readonly parentComponent: Component | null;
     readonly parent: HTMLElement | null;
     readonly container: HTMLElement;
+    contentArea: HTMLElement | undefined;
+    readonly componentMap: Map<string, Component>;
 
     create(): void;
     registerListeners(): void;
@@ -24,9 +26,9 @@ export abstract class Component implements IComponent {
     public readonly parent: HTMLElement | null;
 
     public readonly container: HTMLElement = document.createElement('div');
+    public contentArea: HTMLElement | undefined;
 
-    protected contentArea: HTMLElement | undefined;
-    protected componentMap: Map<string, Component> = new Map();
+    public readonly componentMap: Map<string, Component> = new Map();
 
     constructor(id: string, 
                 parentComponent: Component | null = null,
