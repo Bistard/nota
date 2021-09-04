@@ -24,6 +24,18 @@ export interface IActionBarOptions {
         isSearchChecked:   boolean,
         isGitChecked:      boolean,
     ];
+    id: [
+       explorerId: string,
+       outlineId: string,
+       searchId: string,
+       gitId: string,
+    ];
+}
+
+//export let currFocusActionBtnIndex = -1;
+
+export let currFocusActionBtnIndex = {
+    index : -1 as number
 }
 
 /**
@@ -36,7 +48,7 @@ export class ActionBarComponent extends Component implements IActionBarService {
     private _buttonGroups: IButton[] = [];
     
     // if value is -1, it means actionView is not shown.
-    private currFocusActionBtnIndex: number;
+    //public currFocusActionBtnIndex: number;
 
     constructor(
         parentComponent: Component,
@@ -45,7 +57,7 @@ export class ActionBarComponent extends Component implements IActionBarService {
     ) {
         super(ComponentType.ActionBar, parentComponent, null, componentService);
         
-        this.currFocusActionBtnIndex = -1;
+        //this.currFocusActionBtnIndex = -1;
     }
 
     protected override _createContent(): void {
@@ -116,21 +128,21 @@ export class ActionBarComponent extends Component implements IActionBarService {
         // focus the action button and reverse the state of action view
         const clickedBtnIndex = parseInt(clickedBtn.getAttribute('btnNum') as string);
         const actionBtnContainer = clickedBtn.parentNode as HTMLElement;
-        const currBtn = actionBtnContainer.children[this.currFocusActionBtnIndex] as HTMLElement;
+        const currBtn = actionBtnContainer.children[currFocusActionBtnIndex.index] as HTMLElement;
             
-        if (this.currFocusActionBtnIndex == -1) {
+        if (currFocusActionBtnIndex.index == -1) {
             // none of action button is focused, open the action view
-            this.currFocusActionBtnIndex = clickedBtnIndex;
+            currFocusActionBtnIndex.index = clickedBtnIndex;
             EVENT_EMITTER.emit('EOnActionViewOpen');
             clickedBtn.classList.add('action-button-focus');
-        } else if (this.currFocusActionBtnIndex == clickedBtnIndex) {
+        } else if (currFocusActionBtnIndex.index == clickedBtnIndex) {
             // if the current focused button is clicked again, close action view.
-            this.currFocusActionBtnIndex = -1;
+            currFocusActionBtnIndex.index = -1;
             EVENT_EMITTER.emit('EOnActionViewClose');
             currBtn.classList.remove('action-button-focus');
-        } else if (this.currFocusActionBtnIndex >= 0) {
+        } else if (currFocusActionBtnIndex.index >= 0) {
             // other action button is clicked, only change the style
-            this.currFocusActionBtnIndex = clickedBtnIndex;
+            currFocusActionBtnIndex.index = clickedBtnIndex;
             currBtn.classList.remove('action-button-focus');
             clickedBtn.classList.add('action-button-focus');
         } else {

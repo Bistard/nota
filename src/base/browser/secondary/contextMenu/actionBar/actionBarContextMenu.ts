@@ -2,9 +2,14 @@ import { ContextMenu, ContextMenuType, Coordinate, IContextMenu } from "src/base
 import { IComponentService } from "src/code/browser/service/componentService";
 import { IContextMenuService } from "src/code/browser/service/contextMenuService";
 import { IActionBarOptions } from "src/code/browser/workbench/actionBar/actionBar";
+import { ActionViewType } from "src/code/browser/workbench/actionView/actionView";
+import { EVENT_EMITTER } from "src/base/common/event";
+import { currFocusActionBtnIndex } from "src/code/browser/workbench/actionBar/actionBar";
+import { Button } from "src/base/browser/basic/button";
 
 const actionBarOpts: IActionBarOptions = { 
     options: [true, true, true, true],
+    id: ['explorer', 'outline', 'search', 'git'],
 }
 
 export class ActionBarContextMenu extends ContextMenu implements IContextMenu {
@@ -39,8 +44,8 @@ export class ActionBarContextMenu extends ContextMenu implements IContextMenu {
                 actionButton!.style.display = 'none';
                 actionBarOpts.options[0] = false;
             }
+            this.switchActionBtn(actionButton as HTMLElement);
             this.contextMenuService.removeContextMenu();
- 
         });
 
         this._menuItemGroups.get('select-outline-button')!.element.addEventListener('click', (ev) => {
@@ -53,8 +58,8 @@ export class ActionBarContextMenu extends ContextMenu implements IContextMenu {
                 actionButton!.style.display = 'none';
                 actionBarOpts.options[1] = false;
             }
+            this.switchActionBtn(actionButton as HTMLElement);
             this.contextMenuService.removeContextMenu();
- 
         });
 
         this._menuItemGroups.get('select-search-button')!.element.addEventListener('click', (ev) => {
@@ -67,8 +72,8 @@ export class ActionBarContextMenu extends ContextMenu implements IContextMenu {
                 actionButton!.style.display = 'none';
                 actionBarOpts.options[2] = false;
             }
+            this.switchActionBtn(actionButton as HTMLElement);
             this.contextMenuService.removeContextMenu();
- 
         });
 
         this._menuItemGroups.get('select-git-button')!.element.addEventListener('click', (ev) => {
@@ -81,8 +86,68 @@ export class ActionBarContextMenu extends ContextMenu implements IContextMenu {
                 actionButton!.style.display = 'none';
                 actionBarOpts.options[3] = false;
             }
+            this.switchActionBtn(actionButton as HTMLElement);
             this.contextMenuService.removeContextMenu();
- 
         });
     } 
+
+    /**
+     * @description unchecks a given button. If it is not focused, set it as 
+     * focused. Moreover, switch to that action view.
+     */
+     public switchActionBtn(clickedBtn: HTMLElement): void {
+        // get which action button is clicking
+        const actionName = clickedBtn.id.slice(0, -"-button".length) as ActionViewType;
+
+        // focus the action button and reverse the state of action view
+        const clickedBtnIndex = parseInt(clickedBtn.getAttribute('btnNum') as string);
+        const actionBtnContainer = clickedBtn.parentNode as HTMLElement;
+        const currBtn = actionBtnContainer.children[currFocusActionBtnIndex.index] as HTMLElement;
+            
+        let checker = arr => arr.every(v => v === false);
+        const state = checker(actionBarOpts.options);
+        const countTrue = actionBarOpts.options.filter(Boolean).length;
+
+        if (state){
+            currFocusActionBtnIndex.index = -1;
+            EVENT_EMITTER.emit('EOnActionViewClose');
+            currBtn.classList.remove('action-button-focus'); 
+            
+        } else if (countTrue == 1) {
+            let i:number;
+            for (i = 0; i < 4; i++){
+                if (actionBarOpts.options[i]){
+                    currFocusActionBtnIndex.index = i;
+                    EVENT_EMITTER.emit('EOnActionViewOpen');
+                    const checkedBtn = actionBtnContainer.children[i] as HTMLElement;
+                    checkedBtn.classList.add('action-button-focus');
+                    EVENT_EMITTER.emit('EOnActionViewChange', actionBarOpts.id[i]);  
+                }
+            }
+        } else if (clickedBtnIndex >= 0){
+            let i:number;
+            for(i = clickedBtnIndex;i < 4;i++) {
+               if (actionBarOpts.options[i]){
+                currFocusActionBtnIndex.index = i;
+                const checkedBtn = actionBtnContainer.children[i] as HTMLElement;
+                currBtn.classList.remove('action-button-focus');
+                checkedBtn.classList.add('action-button-focus');
+                EVENT_EMITTER.emit('EOnActionViewChange', actionBarOpts.id[i]);   
+                return;
+               }
+            };
+            for(i = clickedBtnIndex;i >= 0;i--) {
+                if (actionBarOpts.options[i]){
+                 currFocusActionBtnIndex.index = i;
+                 const checkedBtn = actionBtnContainer.children[i] as HTMLElement;
+                 currBtn.classList.remove('action-button-focus');
+                 checkedBtn.classList.add('action-button-focus');  
+                 EVENT_EMITTER.emit('EOnActionViewChange', actionBarOpts.id[i]);  
+                 return;
+                }
+             };
+        } else {
+            throw 'error'
+        }
+    }  
 }
