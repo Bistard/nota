@@ -77,6 +77,10 @@ class Main {
                 this.winMain = null;
             });
 
+            this.winMain.on('blur', () => {
+                this.winMain!.webContents.send('closeContextMenu');
+            });
+
             ipcMain.on('minApp', () => {
                 this.winMain!.minimize();
             });
@@ -122,25 +126,6 @@ class Main {
                 ];
                 Menu.buildFromTemplate(template).popup();
             });
-
-            /**
-             * @readonly responses to the listener from actionBarComponent
-             */
-            ipcMain.on('showContextMenuActionBar', (_event, actionBarOpts: IActionBarOptions) => {
-                
-                const template: Electron.MenuItemConstructorOptions[] = [
-                    {label: 'File Explorer', type: 'checkbox', checked: actionBarOpts.options[0],    
-                        click: () => { this.winMain!.webContents.send('context-menu-command', actionBarOpts, "explorer-button", 0); }},
-                    {label: 'Outline', type: 'checkbox', checked: actionBarOpts.options[1], 
-                        click: () => { this.winMain!.webContents.send('context-menu-command', actionBarOpts, "outline-button", 1); }},
-                    {label: 'Search', type: 'checkbox', checked: actionBarOpts.options[2],
-                        click: () => { this.winMain!.webContents.send('context-menu-command', actionBarOpts, "search-button", 2); }},
-                    {label: 'Git', type: 'checkbox', checked: actionBarOpts.options[3], 
-                        click: () => { this.winMain!.webContents.send('context-menu-command', actionBarOpts, "git-button", 3); }},
-                ];
-
-                Menu.buildFromTemplate(template).popup();
-            });
             
             // response to FolderModule, default path is 'desktop' and only can
             // open directory.
@@ -179,20 +164,7 @@ class Main {
             const template: Electron.MenuItemConstructorOptions[] = [{role: 'fileMenu',}];
             return Menu.buildFromTemplate(template).popup();
         });
-/*
-           this.winMain!.webContents.on('context-menu', () => {
-            const template: Electron.MenuItemConstructorOptions[] = [{
-                role: 'editMenu',
-            }]  
-            
-            const createContextMenu = () => {
-                   return Menu.buildFromTemplate(
-                        template
-                   )
-               }
-             createContextMenu().popup()
-           })
-*/
+        
             // only for testing purpose, can be removed in release version
             ipcMain.on('test', (_event, data) => {
                 console.log(data);
@@ -277,6 +249,11 @@ class Main {
             // save the current changes to the current focused tab
             ElectronLocalshortcut.register(this.winMain, 'Ctrl+S', () => {
                 this.winMain!.webContents.send('Ctrl+S');
+            });
+
+            // open previous closed tab
+            ElectronLocalshortcut.register(this.winMain, 'Ctrl+Shift+T', () => {
+                this.winMain!.webContents.send('Ctrl+Shift+T');
             });
 
         });

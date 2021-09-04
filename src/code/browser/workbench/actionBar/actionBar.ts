@@ -2,17 +2,20 @@ import { Button, IButton } from 'src/base/browser/basic/button';
 import { EVENT_EMITTER } from 'src/base/common/event';
 import { ActionViewType } from 'src/code/browser/workbench/actionView/actionView';
 import { Component, ComponentType, IComponent } from 'src/code/browser/workbench/component';
-import { ipcRendererOn } from 'src/base/electron/register';
 import { getSvgPathByName, SvgType } from 'src/base/common/string';
 import { ContextMenuType, Coordinate } from 'src/base/browser/secondary/contextMenu/contextMenu';
 import { createDecorator } from 'src/code/common/service/instantiation/decorator';
 import { IContextMenuService } from 'src/code/browser/service/contextMenuService';
+import { IComponentService } from 'src/code/browser/service/componentService';
 
 export const IActionBarService = createDecorator<IActionBarService>('action-bar-service');
 
 export interface IActionBarService extends IComponent {
     
+    readonly buttonGroups: IButton[];
+
     clickActionBtn(clickedBtn: HTMLElement): void;
+    getButton(id: string): IButton | null;
 
 }
 
@@ -23,6 +26,18 @@ export interface IActionBarOptions {
         isSearchChecked:   boolean,
         isGitChecked:      boolean,
     ];
+    id: [
+       explorerId: string,
+       outlineId: string,
+       searchId: string,
+       gitId: string,
+    ];
+}
+
+//export let currFocusActionBtnIndex = -1;
+
+export let currFocusActionBtnIndex = {
+    index : -1 as number
 }
 
 /**
@@ -32,18 +47,19 @@ export interface IActionBarOptions {
  */
 export class ActionBarComponent extends Component implements IActionBarService {
 
-    private _buttonGroups: IButton[] = [];
+    public readonly buttonGroups: IButton[] = [];
     
     // if value is -1, it means actionView is not shown.
-    private currFocusActionBtnIndex: number;
+    //public currFocusActionBtnIndex: number;
 
     constructor(
         parentComponent: Component,
-        @IContextMenuService private readonly contextMenuService: IContextMenuService
+        @IComponentService componentService: IComponentService,
+        @IContextMenuService private readonly contextMenuService: IContextMenuService,
     ) {
-        super(ComponentType.ActionBar, parentComponent);
+        super(ComponentType.ActionBar, parentComponent, null, componentService);
         
-        this.currFocusActionBtnIndex = -1;
+        //this.currFocusActionBtnIndex = -1;
     }
 
     protected override _createContent(): void {
@@ -64,15 +80,11 @@ export class ActionBarComponent extends Component implements IActionBarService {
             button.setImage(getSvgPathByName(SvgType.base, src));
             button.setImageClass(['vertical-center', 'filter-black']);
 
-            this._buttonGroups.push(button);
+            this.buttonGroups.push(button);
         });
     }
 
     protected override _registerListeners(): void {
-
-        const actionBarOpts: IActionBarOptions = { 
-            options: [true, true, true, true],
-        };
 
         /**
          * @readonly register context menu listeners (right click menu)
@@ -87,28 +99,6 @@ export class ActionBarComponent extends Component implements IActionBarService {
 
             this.contextMenuService.createContextMenu(ContextMenuType.actionBar, coordinate);
 
-        });
-
-        // TODO: add an array that stores user preference for action buttons (could be stored in config.ts)
-        /**
-         * @readonly once user clicked the menu in the main thread and sending 
-         * the message back, we listens to that action.
-         */
-        ipcRendererOn('context-menu-command', (
-            _ev: Electron.IpcRendererEvent, 
-            _opt: IActionBarOptions, 
-            elementID: string, 
-            index: number
-        ) => {
-            const actionButton = document.getElementById(elementID);
-            console.log(actionButton?.style.display);
-            if (actionButton!.style.display == 'none') {
-                actionButton!.style.display = 'initial';
-                actionBarOpts.options[index] = true;
-            } else {
-                actionButton!.style.display = 'none';
-                actionBarOpts.options[index] = false;
-            }
         });
 
         // TODO: remove later
@@ -131,7 +121,6 @@ export class ActionBarComponent extends Component implements IActionBarService {
      * focused. Moreover, switch to that action view.
      */
     public clickActionBtn(clickedBtn: HTMLElement): void {
-        
         // get which action button is clicking
         const actionName = clickedBtn.id.slice(0, -"-button".length) as ActionViewType;
         
@@ -141,26 +130,35 @@ export class ActionBarComponent extends Component implements IActionBarService {
         // focus the action button and reverse the state of action view
         const clickedBtnIndex = parseInt(clickedBtn.getAttribute('btnNum') as string);
         const actionBtnContainer = clickedBtn.parentNode as HTMLElement;
-        const currBtn = actionBtnContainer.children[this.currFocusActionBtnIndex] as HTMLElement;
+        const currBtn = actionBtnContainer.children[currFocusActionBtnIndex.index] as HTMLElement;
             
-        if (this.currFocusActionBtnIndex == -1) {
+        if (currFocusActionBtnIndex.index == -1) {
             // none of action button is focused, open the action view
-            this.currFocusActionBtnIndex = clickedBtnIndex;
+            currFocusActionBtnIndex.index = clickedBtnIndex;
             EVENT_EMITTER.emit('EOnActionViewOpen');
             clickedBtn.classList.add('action-button-focus');
-        } else if (this.currFocusActionBtnIndex == clickedBtnIndex) {
+        } else if (currFocusActionBtnIndex.index == clickedBtnIndex) {
             // if the current focused button is clicked again, close action view.
-            this.currFocusActionBtnIndex = -1;
+            currFocusActionBtnIndex.index = -1;
             EVENT_EMITTER.emit('EOnActionViewClose');
             currBtn.classList.remove('action-button-focus');
-        } else if (this.currFocusActionBtnIndex >= 0) {
+        } else if (currFocusActionBtnIndex.index >= 0) {
             // other action button is clicked, only change the style
-            this.currFocusActionBtnIndex = clickedBtnIndex;
+            currFocusActionBtnIndex.index = clickedBtnIndex;
             currBtn.classList.remove('action-button-focus');
             clickedBtn.classList.add('action-button-focus');
         } else {
             throw 'error';
         }
+    }
+
+    public getButton(id: string): IButton | null {
+        for (const button of this.buttonGroups) {
+            if (button.id === id) {
+                return button;
+            }
+        }
+        return null;
     }
 
 }

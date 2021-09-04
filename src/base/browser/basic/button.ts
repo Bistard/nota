@@ -1,5 +1,4 @@
 import { IWidget } from "src/base/browser/basic/widget";
-import { getSvgPathByName } from "src/base/common/string";
 
 // TODO: complete
 export interface IButtonStyles {
@@ -16,17 +15,14 @@ export interface IButton extends IWidget {
 
 export class Button implements IButton {
     
-    public id: string = 'button';
+    public readonly id: string;
     public element: HTMLElement;
     public imgElement?: HTMLImageElement;
-    // private _options: IButtonOptions;
 
-    constructor(id: string, container: HTMLElement, /* options?: IButtonOptions */) {
+    constructor(id: string, container: HTMLElement) {
+        this.id = id;
         this.element = document.createElement('div');
         this.element.id = id;
-        
-        // this._options = options || Object.create(null);
-        // ...
         
         container.appendChild(this.element);
     }

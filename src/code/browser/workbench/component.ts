@@ -1,3 +1,5 @@
+import { IComponentService } from "src/code/browser/service/componentService";
+
 export const enum ComponentType {
     ActionBar = 'action-bar',
     ActionView = 'action-view',
@@ -9,6 +11,8 @@ export interface IComponent {
     readonly parentComponent: Component | null;
     readonly parent: HTMLElement | null;
     readonly container: HTMLElement;
+    contentArea: HTMLElement | undefined;
+    readonly componentMap: Map<string, Component>;
 
     create(): void;
     registerListeners(): void;
@@ -22,14 +26,14 @@ export abstract class Component implements IComponent {
     public readonly parent: HTMLElement | null;
 
     public readonly container: HTMLElement = document.createElement('div');
+    public contentArea: HTMLElement | undefined;
 
-    protected contentArea: HTMLElement | undefined;
-    protected componentMap: Map<string, Component> = new Map();
+    public readonly componentMap: Map<string, Component> = new Map();
 
     constructor(id: string, 
                 parentComponent: Component | null = null,
-                // this parameter gives chance to customize parentElement
-                parentElement?: HTMLElement 
+                parentElement: HTMLElement | null = null,
+                protected readonly componentService: IComponentService,
     ) {
         this.container.id = id;
         
@@ -44,6 +48,8 @@ export abstract class Component implements IComponent {
         if (parentElement) {
             this.parent = parentElement;
         }
+
+        this.componentService.register(this);
     }
 
     /**

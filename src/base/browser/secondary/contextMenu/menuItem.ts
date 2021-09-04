@@ -3,6 +3,7 @@ import { getSvgPathByName, SvgType } from 'src/base/common/string';
 
 export const CONTEXT_MENU_ITEM_HEIGHT = 30;
 export const CONTEXT_MENU_WIDTH = 150;
+export const CONTEXT_MENU_SEPERATOR_HEIGHT = 4;
 
 export type Role = "normal" | "seperator" | "subMenu" | "checkBox";
 
@@ -12,13 +13,15 @@ export interface IMenuItem extends IWidget {
 }
 
 export interface IMenuItemOption {
-    id?: string;
+    id: string;
     classes?: string[],
     text: string;
     role: Role;
     shortcut?: string;
     tip?: string;
     enable?: boolean;
+    checked?: boolean;
+    subMenuItem?: IMenuItemOption[],
 }
 
 export class MenuItem implements IMenuItem {
@@ -46,9 +49,6 @@ export class MenuItem implements IMenuItem {
         if (opt.classes) {
             this.setClass(opt.classes);
         }
-        if (opt.shortcut) {
-            this.setShortcut(opt.shortcut);
-        }
         if (opt.tip) {
             this.setTip(opt.tip);
         }
@@ -59,9 +59,17 @@ export class MenuItem implements IMenuItem {
                 break;
             case 'checkBox':
                 this.setImage(getSvgPathByName(SvgType.base, 'check-mark'));
-                this.setImageClass(['filter-black', 'check-box']);
-                this.setImageID(opt.id + "-check-mark");
+                if (opt.checked){
+                    this.setImageClass(['filter-black', 'check-box']);
+                    this.setImageID(opt.id + "-check-mark");
+                } else {
+                    this.setImageClass(['filter-grey', 'check-box']);
+                    this.setImageID(opt.id + "-check-mark");
+                }
                 this.setText(opt.text);
+                this.setTextClass(['menu-item-text']);
+
+
                 break;
             case 'seperator':
                 this.setSeperator();
@@ -82,6 +90,17 @@ export class MenuItem implements IMenuItem {
             this.element.style.pointerEvents= 'none';
             const disableButton = document.getElementById(opt.text+'-id');
             disableButton!.style.color = 'darkgrey';
+        }
+
+        if (opt.shortcut) {
+            this.setShortcut(opt.shortcut);
+        }
+
+        if (opt.subMenuItem) {
+            opt.subMenuItem
+            .forEach((item) => {
+                this.apply(item);
+            })
         }
 
     }
@@ -124,12 +143,14 @@ export class MenuItem implements IMenuItem {
     }
 
     public setShortcut(shortCut: string): void {
+        this.setText(shortCut);
+        this.setTextClass(['menu-item-shortcut']);
+   }
 
-    }
-
-    public setTip(tip: string): void {
-
-    }
+   // TODO
+   public setTip(tip: string): void {
+      
+   }
 
     public setSeperator(): void {
         this.hrElement = document.createElement('hr');
