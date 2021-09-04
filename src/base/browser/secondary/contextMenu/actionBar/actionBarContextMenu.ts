@@ -5,6 +5,7 @@ import { IActionBarOptions, IActionBarService } from "src/code/browser/workbench
 import { ActionViewType } from "src/code/browser/workbench/actionView/actionView";
 import { EVENT_EMITTER } from "src/base/common/event";
 import { currFocusActionBtnIndex } from "src/code/browser/workbench/actionBar/actionBar";
+import { IButton } from "src/base/browser/basic/button";
 
 const actionBarOpts: IActionBarOptions = { 
     options: [true, true, true, true],
@@ -45,7 +46,7 @@ export class ActionBarContextMenu extends ContextMenu implements IContextMenu {
                 actionButton.element.style.display = 'none';
                 actionBarOpts.options[0] = false;
             }
-            this.switchActionBtn(actionButton.element);
+            this.switchActionBtnAndActionView(actionBarService, actionButton, 0);
             this.contextMenuService.removeContextMenu();
         });
 
@@ -59,7 +60,7 @@ export class ActionBarContextMenu extends ContextMenu implements IContextMenu {
                 actionButton.element.style.display = 'none';
                 actionBarOpts.options[1] = false;
             }
-            this.switchActionBtn(actionButton.element);
+            this.switchActionBtnAndActionView(actionBarService, actionButton, 1);
             this.contextMenuService.removeContextMenu();
         });
 
@@ -73,7 +74,7 @@ export class ActionBarContextMenu extends ContextMenu implements IContextMenu {
                 actionButton.element.style.display = 'none';
                 actionBarOpts.options[2] = false;
             }
-            this.switchActionBtn(actionButton.element);
+            this.switchActionBtnAndActionView(actionBarService, actionButton, 2);
             this.contextMenuService.removeContextMenu();
         });
 
@@ -87,7 +88,7 @@ export class ActionBarContextMenu extends ContextMenu implements IContextMenu {
                 actionButton.element.style.display = 'none';
                 actionBarOpts.options[3] = false;
             }
-            this.switchActionBtn(actionButton.element);
+            this.switchActionBtnAndActionView(actionBarService, actionButton, 3);
             this.contextMenuService.removeContextMenu();
         });
     } 
@@ -96,51 +97,51 @@ export class ActionBarContextMenu extends ContextMenu implements IContextMenu {
      * @description unchecks a given button. If it is not focused, set it as 
      * focused. Moreover, switch to that action view.
      */
-     public switchActionBtn(clickedBtn: HTMLElement): void {
+    public switchActionBtnAndActionView(actionBarService: IActionBarService, clickedBtn: IButton, clickedIndex: number): void {
         // get which action button is clicking
-        const actionName = clickedBtn.id.slice(0, -"-button".length) as ActionViewType;
+        // const actionName = clickedBtn.id;
 
         // focus the action button and reverse the state of action view
-        const clickedBtnIndex = parseInt(clickedBtn.getAttribute('btnNum') as string);
-        const actionBtnContainer = clickedBtn.parentNode as HTMLElement;
-        const currBtn = actionBtnContainer.children[currFocusActionBtnIndex.index] as HTMLElement;
+        const actionBtnContainer = actionBarService.contentArea!;
+        const currFocusBtn = actionBtnContainer.children[currFocusActionBtnIndex.index] as HTMLElement;
             
-        let checker = (arr: boolean[]) => arr.every(v => v === false);
-        const state = checker(actionBarOpts.options);
-        const countTrue = actionBarOpts.options.filter(Boolean).length;
-
-        if (state) {
+        let activeBtnCount = 0;
+        const activeBtnIndex: number[] = [];
+        for (let i = 0; i < actionBarOpts.options.length; i++) {
+            if (actionBarOpts.options[i] === true) {
+                activeBtnCount++;
+                activeBtnIndex.push(i);
+            }
+        }
+        
+        if (activeBtnCount === 0) {
             currFocusActionBtnIndex.index = -1;
             EVENT_EMITTER.emit('EOnActionViewClose');
-            currBtn.classList.remove('action-button-focus'); 
-        } else if (countTrue == 1) {
-            let i: number;
-            for (i = 0; i < 4; i++) {
-                if (actionBarOpts.options[i]) {
-                    currFocusActionBtnIndex.index = i;
-                    EVENT_EMITTER.emit('EOnActionViewOpen');
-                    const checkedBtn = actionBtnContainer.children[i] as HTMLElement;
-                    checkedBtn.classList.add('action-button-focus');
-                    EVENT_EMITTER.emit('EOnActionViewChange', actionBarOpts.id[i]);  
-                }
-            }
-        } else if (clickedBtnIndex >= 0) {
-            let i: number;
-            for (i = clickedBtnIndex; i < 4; i++) {
+            currFocusBtn.classList.remove('action-button-focus'); 
+        } else if (activeBtnCount == 1) {
+            // reaches when re-displaying actionBarButton
+            const i = activeBtnIndex[0]!;
+            currFocusActionBtnIndex.index = i;
+            EVENT_EMITTER.emit('EOnActionViewOpen');
+            const checkedBtn = actionBtnContainer.children[i] as HTMLElement;
+            checkedBtn.classList.add('action-button-focus');
+            EVENT_EMITTER.emit('EOnActionViewChange', actionBarOpts.id[i]);  
+        } else if (clickedIndex >= 0) {
+            for (let i = clickedIndex; i < 4; i++) {
                 if (actionBarOpts.options[i]) {
                     currFocusActionBtnIndex.index = i;
                     const checkedBtn = actionBtnContainer.children[i] as HTMLElement;
-                    currBtn.classList.remove('action-button-focus');
+                    currFocusBtn.classList.remove('action-button-focus');
                     checkedBtn.classList.add('action-button-focus');
-                    EVENT_EMITTER.emit('EOnActionViewChange', actionBarOpts.id[i]);   
+                    EVENT_EMITTER.emit('EOnActionViewChange', actionBarOpts.id[i]);
                     return;
                }
             }
-            for (i = clickedBtnIndex; i >= 0; i--) {
+            for (let i = clickedIndex; i >= 0; i--) {
                 if (actionBarOpts.options[i]) {
                     currFocusActionBtnIndex.index = i;
                     const checkedBtn = actionBtnContainer.children[i] as HTMLElement;
-                    currBtn.classList.remove('action-button-focus');
+                    currFocusBtn.classList.remove('action-button-focus');
                     checkedBtn.classList.add('action-button-focus');  
                     EVENT_EMITTER.emit('EOnActionViewChange', actionBarOpts.id[i]);  
                     return;
