@@ -16,8 +16,8 @@ export class FileNode {
     public readonly file: MarkdownFile | null;
 
     public readonly path: string;
-    public readonly name: string;
-    public readonly baseName: string;
+    public readonly name: string; // eg. 'markdown'
+    public readonly baseName: string; // eg. 'markdown.md'
     
     public readonly nodes: Map<string, FileNode> | null;
     public readonly level: number;
@@ -153,6 +153,7 @@ export class FileNode {
         // display content
         readMarkdownFile(nodeInfo)
         .then(() => {
+            EVENT_EMITTER.emit('ETabBarSwitchOrCreateTab', nodeInfo);
             EVENT_EMITTER.emit('EMarkdownDisplayFile', nodeInfo);
         }).catch(err => {
             // do log here

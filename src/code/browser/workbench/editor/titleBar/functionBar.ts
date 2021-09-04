@@ -1,10 +1,11 @@
 import { Button } from "src/base/browser/basic/button";
 import { EVENT_EMITTER } from "src/base/common/event";
 import { getSvgPathByName, SvgType } from "src/base/common/string";
-import { ConfigModule } from "src/base/config";
+import { ConfigService } from "src/code/common/service/configService";
 import { domNodeByIdAddListener } from "src/base/electron/register";
+import { IComponentService } from "src/code/browser/service/componentService";
 import { Component } from "src/code/browser/workbench/component";
-import { EditorComponentType } from "src/code/browser/workbench/editor/editor";
+import { TitleBarComponentType } from "src/code/browser/workbench/editor/titleBar/titleBar";
 
 export class FunctionBarComponent extends Component {
 
@@ -12,9 +13,11 @@ export class FunctionBarComponent extends Component {
     public static isToolBarExpand: boolean = false;
     // public static isTabBarExpand: boolean = false;
 
-    constructor(parentComponent: Component
+    constructor(
+        parentComponent: Component,
+        @IComponentService componentService: IComponentService,
     ) {
-        super(EditorComponentType.functionBar, parentComponent);
+        super(TitleBarComponentType.functionBar, parentComponent, null, componentService);
     }
 
     protected override _createContent(): void {
@@ -59,7 +62,7 @@ export class FunctionBarComponent extends Component {
      * @description function calls when the functionBarModule is initialized.
      */
      initfunctionBar(): void {
-        if (ConfigModule.Instance.defaultMarkdownMode == 'wysiwyg') {
+        if (ConfigService.Instance.defaultMarkdownMode == 'wysiwyg') {
             $('#mode-switch').addClass('function-button-focus');
         }
 

@@ -2,6 +2,12 @@ import { Component } from 'src/code/browser/workbench/component';
 import { WindowBarComponent } from 'src/code/browser/workbench/editor/titleBar/windowBar';
 import { FunctionBarComponent } from 'src/code/browser/workbench/editor/titleBar/functionBar';
 import { EditorComponentType } from 'src/code/browser/workbench/editor/editor';
+import { IComponentService } from 'src/code/browser/service/componentService';
+
+export enum TitleBarComponentType {
+    functionBar = 'function-bar',
+    windowBar = 'window-bar',
+}
 
 /**
  * @description TitleBarComponent stores and handles all the titleBar and functionBar 
@@ -10,17 +16,18 @@ import { EditorComponentType } from 'src/code/browser/workbench/editor/editor';
 export class TitleBarComponent extends Component {
     
     functionBarComponent!: FunctionBarComponent;
-    // tabBarComponent!: TabBarComponent;
     windowBarComponent!: WindowBarComponent;
 
-    constructor(parentComponent: Component) {
-        super(EditorComponentType.titleBar, parentComponent);
+    constructor(
+        parentComponent: Component,
+        @IComponentService componentService: IComponentService,
+    ) {
+        super(EditorComponentType.titleBar, parentComponent, null, componentService);
     }
 
     protected override _createContent(): void {
         
         this._createfunctionBar();
-        // this._createTabBar();
         this._createWindowBar();
         
     }
@@ -29,23 +36,17 @@ export class TitleBarComponent extends Component {
         
         // component registration
         this.functionBarComponent.registerListeners();
-        // this.tabBarComponent.registerListeners();
         this.windowBarComponent.registerListeners();
         
     }
 
     private _createfunctionBar(): void {
-        this.functionBarComponent = new FunctionBarComponent(this);
+        this.functionBarComponent = new FunctionBarComponent(this, this.componentService);
         this.functionBarComponent.create();
     }
 
-    // private _createTabBar(): void {
-    //     this.tabBarComponent = new TabBarComponent(this);
-    //     this.tabBarComponent.create();
-    // }
-
     private _createWindowBar(): void {
-        this.windowBarComponent = new WindowBarComponent(this);
+        this.windowBarComponent = new WindowBarComponent(this, this.componentService);
         this.windowBarComponent.create();
     }
     

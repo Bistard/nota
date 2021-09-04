@@ -1,19 +1,19 @@
 #tab-bar {
     position: relative;
     width: 100%;
-    height: 100%;
+    height: 30px;
 }
 
-#tab-container {
+#tab-bar-container {
     position: absolute;
     width: 100%;
-    height: 40px;
+    height: 100%;
     
     background-color: white;
     
     display: flex;
     flex-direction: row;
-    overflow-x: auto;
+    overflow-x: overlay;
     overflow-y: hidden;
 
     /* animation scrollBar */
@@ -22,15 +22,29 @@
     transition: color 0.2s ease;
 }
 
-#tab-container:hover {
+#tab-bar-container:hover {
+    /* should matches text-shadow */
+    color: rgba(0, 0, 0, 0.2);
+}
+
+#tab-bar-container::-webkit-scrollbar, 
+#tab-bar-container::-webkit-scrollbar-thumb {
+    height: 3px;
+    background-clip: border-box;
+}
+
+#tab-bar-container::-webkit-scrollbar-thumb {
+    box-shadow: inset 0 0 0 10px;
+}
+
+#tab-bar-container::-webkit-scrollbar-thumb:active {
     color: rgba(0, 0, 0, 0.3);
 }
 
 .tab {
-    height: 37px; /* saving 3px for scrollbar */
+    height: 27px; /* saving 3px for scrollbar */
     width: fit-content;
-    max-width: 100px;
-    line-height: 37px;
+    line-height: 27px;
 
     display: flex;
     flex-direction: row;
@@ -46,16 +60,23 @@
     cursor: pointer;
 }
 
-.tab:hover {
-    
+.tab:hover > .tab-icon-container > .tab-icon {
+    display: inline-block;
 }
 
-.tab-clicked {
-    color: rgb(233, 233, 233);
-    background-color: #828282;
+.tab-focused {
+    color: #333;
+    border-bottom: 1px solid #cf5e5e;
+}
+
+.tab-text-container {
+    width: auto;
+    max-width: 150px;
 }
 
 .tab-text {
+    width: 100%;
+
     font-size: 12px;
     
     display: inline-block;
@@ -67,8 +88,18 @@
     margin-left: 4px;
 }
 
-.tab-close-icon {
-    content: url('../../../assets/svg/titleBarView/close.svg');
+.tab-icon-container {
+    width: 18px;
+    height: 100%;
+    
+    
+    margin-left: 4px;
+    margin-right: 4px;
+}
+
+.tab-icon {
+    display: none;
+    content: url('../../../../assets/svg/close.svg');
     width: 8px;
     height: 8px;
     
@@ -79,6 +110,6 @@
     margin-right: 4px;
 }
 
-.tab-close-icon:hover {
+.tab-icon:hover {
     background-color: #e0e0e0;
 }
