@@ -3,7 +3,9 @@ import { pathJoin } from "src/base/common/string";
 import { ConfigModule, DEFAULT_CONFIG_FILE_NAME, DEFAULT_CONFIG_PATH, GlobalConfigModule, GLOBAL_CONFIG_FILE_NAME, LOCAL_CONFIG_FILE_NAME } from "src/base/config";
 import { createDir, createFile, dirFilter, isDirExisted, isFileExisted } from "src/base/node/file";
 import { NoteBook } from "src/code/common/model/notebook";
-
+import { LogServiceManager } from "src/code/common/service/logServiceManager";
+import { FileLogService } from "src/code/common/service/fileLogService";
+import { LogPathType } from "src/code/common/service/logInfo";
 export const LOCAL_MDNOTE_DIR_NAME = '.mdnote';
 
 /**
@@ -33,27 +35,29 @@ export class NoteBookManager {
     /**
      * @description the function first try to reads the global config named as 
      * 'mdnote.config.json' at application root directory. NoteBookManager will
-     * either do nothing or start the most recent opened directory.
+     * either do nothing or start the most recently opened directory.
      * 
      * @param appRootPath app root dir eg. D:\dev\MarkdownNote
      */
     public async init(appRootPath: string): Promise<void> {
+
         try {
             // read global configuration
             await this.readOrCreateGlobalConfigJSON(appRootPath, GLOBAL_CONFIG_FILE_NAME);
 
             if (GlobalConfigModule.Instance.startPreviousNoteBookManagerDir) {
-            
+                
                 const prevOpenedPath = GlobalConfigModule.Instance.previousNoteBookManagerDir;
                 if (prevOpenedPath == '') {
                     // user never opened one before, we ignore this request
                 } else {
-                    EVENT_EMITTER.emit('EOpenNoteBookManager', prevOpenedPath);
+                    EVENT_EMITTER.emit('EOpenNoteBookManager', prevOpenedPath);  // will call open
                 }
             }
 
         } catch(err) {
-            throw err;
+            FileLogService.Instance.error(err, new Date(), LogPathType.APP);
+            //throw err;
         }
     }
 
