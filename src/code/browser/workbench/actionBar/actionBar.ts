@@ -11,11 +11,14 @@ import { IComponentService } from 'src/code/browser/service/componentService';
 export const IActionBarService = createDecorator<IActionBarService>('action-bar-service');
 
 export interface IActionBarService extends IComponent {
+    contentArea: any;
     
     readonly buttonGroups: IButton[];
 
     clickActionBtn(clickedBtn: HTMLElement): void;
     getButton(id: string): IButton | null;
+    modifyFocusIndex (position: number): void;
+    getFocusIndex (n: number): number;
 
 }
 
@@ -36,9 +39,9 @@ export interface IActionBarOptions {
 
 //export let currFocusActionBtnIndex = -1;
 
-export let currFocusActionBtnIndex = {
-    index : -1 as number
-}
+//export let currFocusActionBtnIndex = {
+//    index : -1 as number
+//}
 
 /**
  * @description ActionBarComponent provides access to each action view and handles 
@@ -49,8 +52,8 @@ export class ActionBarComponent extends Component implements IActionBarService {
 
     public readonly buttonGroups: IButton[] = [];
     
-    // if value is -1, it means actionView is not shown.
-    //public currFocusActionBtnIndex: number;
+   // if value is -1, it means actionView is not shown.
+    public currFocusActionBtnIndex: number;
 
     constructor(
         parentComponent: Component,
@@ -59,7 +62,8 @@ export class ActionBarComponent extends Component implements IActionBarService {
     ) {
         super(ComponentType.ActionBar, parentComponent, null, componentService);
         
-        //this.currFocusActionBtnIndex = -1;
+        this.currFocusActionBtnIndex = -1;
+
     }
 
     protected override _createContent(): void {
@@ -130,26 +134,27 @@ export class ActionBarComponent extends Component implements IActionBarService {
         // focus the action button and reverse the state of action view
         const clickedBtnIndex = parseInt(clickedBtn.getAttribute('btnNum') as string);
         const actionBtnContainer = clickedBtn.parentNode as HTMLElement;
-        const currBtn = actionBtnContainer.children[currFocusActionBtnIndex.index] as HTMLElement;
+        const currBtn = actionBtnContainer.children[this.currFocusActionBtnIndex] as HTMLElement;
             
-        if (currFocusActionBtnIndex.index == -1) {
+        if (this.currFocusActionBtnIndex == -1) {
             // none of action button is focused, open the action view
-            currFocusActionBtnIndex.index = clickedBtnIndex;
+            this.currFocusActionBtnIndex = clickedBtnIndex;
             EVENT_EMITTER.emit('EOnActionViewOpen');
             clickedBtn.classList.add('action-button-focus');
-        } else if (currFocusActionBtnIndex.index == clickedBtnIndex) {
+        } else if (this.currFocusActionBtnIndex == clickedBtnIndex) {
             // if the current focused button is clicked again, close action view.
-            currFocusActionBtnIndex.index = -1;
+            this.currFocusActionBtnIndex = -1;
             EVENT_EMITTER.emit('EOnActionViewClose');
             currBtn.classList.remove('action-button-focus');
-        } else if (currFocusActionBtnIndex.index >= 0) {
+        } else if (this.currFocusActionBtnIndex >= 0) {
             // other action button is clicked, only change the style
-            currFocusActionBtnIndex.index = clickedBtnIndex;
+            this.currFocusActionBtnIndex = clickedBtnIndex;
             currBtn.classList.remove('action-button-focus');
             clickedBtn.classList.add('action-button-focus');
         } else {
             throw 'error';
         }
+        
     }
 
     public getButton(id: string): IButton | null {
@@ -159,6 +164,18 @@ export class ActionBarComponent extends Component implements IActionBarService {
             }
         }
         return null;
+    }
+
+    public modifyFocusIndex(position: number): void{
+        this.currFocusActionBtnIndex = position;
+        console.log(this.currFocusActionBtnIndex);
+    }
+
+    public getFocusIndex(n : number): number {
+        //console.log("get" + this.currFocusActionBtnIndex);
+        const index = this.currFocusActionBtnIndex
+        console.log(index)
+        return index as number;
     }
 
 }

@@ -3,7 +3,6 @@ import { IComponentService } from "src/code/browser/service/componentService";
 import { IContextMenuService } from "src/code/browser/service/contextMenuService";
 import { IActionBarOptions, IActionBarService } from "src/code/browser/workbench/actionBar/actionBar";
 import { EVENT_EMITTER } from "src/base/common/event";
-import { currFocusActionBtnIndex } from "src/code/browser/workbench/actionBar/actionBar";
 import { IButton } from "src/base/browser/basic/button";
 
 const actionBarOpts: IActionBarOptions = { 
@@ -61,7 +60,10 @@ export class ActionBarContextMenu extends ContextMenu implements IContextMenu {
 
         // focus the action button and reverse the state of action view
         const actionBtnContainer = actionBarService.contentArea!;
-        const currFocusBtn = actionBtnContainer.children[currFocusActionBtnIndex.index] as HTMLElement;
+        console.log(actionBarService.getFocusIndex);
+        const currFocus = (actionBarService.getFocusIndex as unknown) as number;
+        console.log(currFocus as number)
+        const currFocusBtn = actionBtnContainer.children[currFocus] as HTMLElement;
         
         let activeBtnCount = 0;
         const activeBtnIndex: number[] = [];
@@ -73,13 +75,15 @@ export class ActionBarContextMenu extends ContextMenu implements IContextMenu {
         }
         
         if (activeBtnCount === 0) {
-            currFocusActionBtnIndex.index = -1;
+            //currFocusActionBtnIndex.index = -1;
+            actionBarService.modifyFocusIndex(-1);
             EVENT_EMITTER.emit('EOnActionViewClose');
             currFocusBtn.classList.remove('action-button-focus'); 
         } else if (activeBtnCount == 1) {
             // reaches when re-displaying actionBarButton
             const i = activeBtnIndex[0]!;
-            currFocusActionBtnIndex.index = i;
+            //currFocusActionBtnIndex.index = i;
+            actionBarService.modifyFocusIndex(i);
             EVENT_EMITTER.emit('EOnActionViewOpen');
             const checkedBtn = actionBtnContainer.children[i] as HTMLElement;
             checkedBtn.classList.add('action-button-focus');
@@ -87,7 +91,8 @@ export class ActionBarContextMenu extends ContextMenu implements IContextMenu {
         } else if (clickedIndex >= 0) {
             for (let i = clickedIndex; i < 4; i++) {
                 if (actionBarOpts.options[i]) {
-                    currFocusActionBtnIndex.index = i;
+                    //currFocusActionBtnIndex.index = i;
+                    actionBarService.modifyFocusIndex(i);
                     const checkedBtn = actionBtnContainer.children[i] as HTMLElement;
                     currFocusBtn.classList.remove('action-button-focus');
                     checkedBtn.classList.add('action-button-focus');
@@ -97,7 +102,8 @@ export class ActionBarContextMenu extends ContextMenu implements IContextMenu {
             }
             for (let i = clickedIndex; i >= 0; i--) {
                 if (actionBarOpts.options[i]) {
-                    currFocusActionBtnIndex.index = i;
+                    //currFocusActionBtnIndex.index = i;
+                    actionBarService.modifyFocusIndex(i);
                     const checkedBtn = actionBtnContainer.children[i] as HTMLElement;
                     currFocusBtn.classList.remove('action-button-focus');
                     checkedBtn.classList.add('action-button-focus');  
