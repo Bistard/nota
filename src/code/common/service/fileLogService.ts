@@ -1,7 +1,14 @@
-import { LogInfo, LogPathType, LogService } from "src/code/common/service/logService";
-import { INoteBookManagerService } from "../model/notebookManager";
+import { ILogService, LogInfo, LogPathType, LogService } from "src/code/common/service/logService";
+import { INoteBookManagerService } from "src/code/common/model/notebookManager";
+import { createDecorator } from "src/code/common/service/instantiation/decorator";
 
-export class FileLogService extends LogService {
+export const IFileLogService = createDecorator<IFileLogService>('file-log-service');
+
+export interface IFileLogService extends ILogService {
+    
+}
+
+export class FileLogService extends LogService implements IFileLogService {
     
     // whether opened by a manager OR just a tab
     // private _hasNoteBookManager: boolean;
@@ -20,9 +27,9 @@ export class FileLogService extends LogService {
     //     this._loggerPath = loggerPath;
     // }
     constructor(
-        @INoteBookManagerService _noteBookManagerService: INoteBookManagerService,
+        @INoteBookManagerService noteBookManagerService: INoteBookManagerService,
     ) {
-        super(_noteBookManagerService);
+        super(noteBookManagerService);
     }
 
     override trace(message: string, ...args: any[]): void {
