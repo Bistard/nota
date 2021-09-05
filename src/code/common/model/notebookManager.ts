@@ -4,7 +4,9 @@ import { ConfigService, DEFAULT_CONFIG_FILE_NAME, DEFAULT_CONFIG_PATH, GLOBAL_CO
 import { createDir, createFile, dirFilter, isDirExisted, isFileExisted } from "src/base/node/file";
 import { NoteBook } from "src/code/common/model/notebook";
 import { GlobalConfigService } from "src/code/common/service/globalConfigService";
-import { createDecorator } from "../service/instantiation/decorator";
+import { createDecorator } from "src/code/common/service/instantiation/decorator";
+import { IFileLogService } from "src/code/common/service/fileLogService";
+
 export const LOCAL_MDNOTE_DIR_NAME = '.mdnote';
 
 export const INoteBookManagerService = createDecorator<INoteBookManagerService>('notebook-manager-service');
@@ -42,7 +44,9 @@ export class NoteBookManager implements INoteBookManagerService {
     // not used
     public mdNoteFolderFound: boolean;
 
-    constructor() {
+    constructor(
+        
+    ) {
         this.noteBookMap = new Map<string, NoteBook>();
         
         this.mdNoteFolderFound = false;

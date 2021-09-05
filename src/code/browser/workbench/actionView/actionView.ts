@@ -1,11 +1,13 @@
 import { getSvgPathByName, SvgType } from 'src/base/common/string';
 import { Component, ComponentType, IComponent } from 'src/code/browser/workbench/component';
-import { ExplorerViewComponent } from "src/code/browser/workbench/actionView/explorer/explorer";
+import { ExplorerViewComponent, IExplorerViewService } from "src/code/browser/workbench/actionView/explorer/explorer";
 import { EVENT_EMITTER } from 'src/base/common/event';
-import { NoteBookManager } from 'src/code/common/model/notebookManager';
+import { INoteBookManagerService } from 'src/code/common/model/notebookManager';
 import { domNodeByIdAddListener } from 'src/base/electron/register';
 import { createDecorator } from 'src/code/common/service/instantiation/decorator';
 import { IComponentService } from 'src/code/browser/service/componentService';
+import { IInstantiationService } from 'src/code/common/service/instantiation/instantiation';
+import { ServiceDescriptor } from 'src/code/common/service/instantiation/descriptor';
 
 export type ActionViewType = 'none' | 'explorer' | 'outline' | 'search' | 'git';
 
@@ -43,17 +45,15 @@ export class ActionViewComponent extends Component implements IActionViewService
     private actionViewContent!: HTMLElement;
 
     private explorerViewComponent!: ExplorerViewComponent;
-    
-    private _noteBookManager: NoteBookManager;
+
     // Others...
 
     constructor(parentComponent: Component,
-                _noteBookManager: NoteBookManager,
+                @IInstantiationService private readonly instantiationService: IInstantiationService,
                 @IComponentService componentService: IComponentService,
     ) {
         super(ComponentType.ActionView, parentComponent, null, componentService);
         
-        this._noteBookManager = _noteBookManager;
         this.whichActionView = 'none';
     }
 
@@ -119,7 +119,7 @@ export class ActionViewComponent extends Component implements IActionViewService
         const actionViewContent = document.createElement('div');
         actionViewContent.id = 'action-view-content';
         
-        this.explorerViewComponent = new ExplorerViewComponent(this, actionViewContent, this._noteBookManager, this.componentService);
+        this.explorerViewComponent = this.instantiationService.createInstance(ExplorerViewComponent, this, actionViewContent);
         this.explorerViewComponent.create();
 
         // outlineViewComponent...

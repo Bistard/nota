@@ -3,15 +3,23 @@ import { domNodeByIdAddListener, ipcRendererOn, ipcRendererSend } from 'src/base
 import { Component } from 'src/code/browser/workbench/component';
 import { ActionViewComponentType } from 'src/code/browser/workbench/actionView/actionView';
 import { EVENT_EMITTER } from 'src/base/common/event';
-import { NoteBookManager } from 'src/code/common/model/notebookManager';
+import { INoteBookManagerService } from 'src/code/common/model/notebookManager';
 import { IComponentService } from 'src/code/browser/service/componentService';
+import { createDecorator } from 'src/code/common/service/instantiation/decorator';
+
+export const IExplorerViewService = createDecorator<IExplorerViewService>('explorer-view-service');
+
+export interface IExplorerViewService {
+    resizeX: number;
+    fileTreeContainer: HTMLElement;
+    emptyFolderTag: HTMLElement;
+    openNoteBookManager(path: string): Promise<void>;
+}
 
 /**
  * @description TODO: complete comments
  */
-export class ExplorerViewComponent extends Component {
-
-    private _noteBookManager: NoteBookManager;
+export class ExplorerViewComponent extends Component implements IExplorerViewService {
 
     public resizeX: number;
 
@@ -20,12 +28,10 @@ export class ExplorerViewComponent extends Component {
 
     constructor(parentComponent: Component,
                 parentElement: HTMLElement,
-                _noteBookManger: NoteBookManager,
+                @INoteBookManagerService private readonly noteBookManagerService: INoteBookManagerService,
                 @IComponentService componentService: IComponentService,
     ) {
         super(ActionViewComponentType.ExplorerView, parentComponent, parentElement, componentService);
-        
-        this._noteBookManager = _noteBookManger;
 
         // this variable is to store the x-coordinate of the resizeBar in the explorer view
         this.resizeX = 0;
@@ -104,7 +110,7 @@ export class ExplorerViewComponent extends Component {
      */
     public async openNoteBookManager(path: string): Promise<void> {
         try {
-            await this._noteBookManager.open(path);
+            await this.noteBookManagerService.open(path);
             this.container.removeChild(this.emptyFolderTag);
         } catch(err) {
             throw err;

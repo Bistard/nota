@@ -1,8 +1,10 @@
-import { ServiceIdentifier, _ServiceUtil } from "src/code/common/service/instantiation/decorator";
+import { createDecorator, ServiceIdentifier, _ServiceUtil } from "src/code/common/service/instantiation/decorator";
 import { Graph, Node } from "src/code/common/service/instantiation/dependencyGraph";
 import { ServiceDescriptor } from "src/code/common/service/instantiation/descriptor";
 import { IdleValue } from "src/code/common/service/instantiation/idle";
 import { ServiceCollection } from "src/code/common/service/instantiation/serviceCollection";
+
+export const IInstantiationService = createDecorator<IInstantiationService>('instantiation-service');
 
 export interface IInstantiationService {
     
@@ -35,7 +37,7 @@ export interface IInstantiationService {
     createInstance(ctorOrDescriptor: any | ServiceDescriptor<any>, ...rest: any[]): any;
 }
 
-export class InstantiationService {
+export class InstantiationService implements IInstantiationService {
 
     public readonly serviceCollections: ServiceCollection;
 
