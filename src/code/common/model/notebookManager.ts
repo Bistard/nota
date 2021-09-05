@@ -5,9 +5,6 @@ import { createDir, createFile, dirFilter, isDirExisted, isFileExisted } from "s
 import { NoteBook } from "src/code/common/model/notebook";
 import { GlobalConfigService } from "src/code/common/service/globalConfigService";
 import { createDecorator } from "../service/instantiation/decorator";
-import { LogServiceManager } from "src/code/common/service/logServiceManager";
-import { FileLogService } from "src/code/common/service/fileLogService";
-import { LogPathType } from "src/code/common/service/logInfo";
 export const LOCAL_MDNOTE_DIR_NAME = '.mdnote';
 
 export const INoteBookManagerService = createDecorator<INoteBookManagerService>('notebook-manager-service');

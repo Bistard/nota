@@ -4,9 +4,7 @@ import { Component, ComponentType, IComponent } from "src/code/browser/workbench
 import { MarkdownComponent } from "src/code/browser/workbench/editor/markdown/markdown";
 import { TabBarComponent } from "src/code/browser/workbench/editor/tabBar/tabBar";
 import { TitleBarComponent } from "src/code/browser/workbench/editor/titleBar/titleBar";
-import { INoteBookManagerService, NoteBookManager } from "src/code/common/model/notebookManger";
 import { createDecorator } from "src/code/common/service/instantiation/decorator";
-
 
 export enum EditorComponentType {
     titleBar = 'title-bar',

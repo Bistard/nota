@@ -1,9 +1,8 @@
-import { LogService } from "src/code/common/service/logService";
-import { LogServiceManager } from "src/code/common/service/logServiceManager";
-import { LogPathType, LogInfo } from "src/code/common/service/logInfo";
+import { LogInfo, LogPathType, LogService } from "src/code/common/service/logService";
+import { INoteBookManagerService } from "../model/notebookManager";
 
 export class FileLogService extends LogService {
-    private static _instance: FileLogService;
+    
     // whether opened by a manager OR just a tab
     // private _hasNoteBookManager: boolean;
 
@@ -20,12 +19,10 @@ export class FileLogService extends LogService {
     //     this._noteBookLogDir = noteBookLogDir;
     //     this._loggerPath = loggerPath;
     // }
-    private constructor() {
-        super();
-    }
-
-    public static get Instance() {
-        return this._instance || (this._instance = new this());
+    constructor(
+        @INoteBookManagerService _noteBookManagerService: INoteBookManagerService,
+    ) {
+        super(_noteBookManagerService);
     }
 
     override trace(message: string, ...args: any[]): void {
@@ -49,7 +46,7 @@ export class FileLogService extends LogService {
         let writeToDir = LogPathType.NOTEBOOKMANAGER;
         const formatted_msg: string = `[error] ${dateInfo}
         Log Message: ${err.name}  ${err.message} ${err.stack}`;
-        LogServiceManager.Instance.addLogService({message: formatted_msg, date: date, path: underDir} as LogInfo);
+        this._logServiceManager.pushLogInfo({message: formatted_msg, date: date, path: underDir} as LogInfo);
     }
 
 	override info(message: string, ...args: any[]): void {
