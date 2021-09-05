@@ -5,6 +5,9 @@ import { ActionViewComponentType } from 'src/code/browser/workbench/actionView/a
 import { EVENT_EMITTER } from 'src/base/common/event';
 import { NoteBookManager } from 'src/code/common/model/notebookManager';
 import { IComponentService } from 'src/code/browser/service/componentService';
+import { ContextMenuType, Coordinate } from 'src/base/browser/secondary/contextMenu/contextMenu';
+import { createDecorator } from 'src/code/common/service/instantiation/decorator';
+import { IContextMenuService } from 'src/code/browser/service/contextMenuService';
 
 /**
  * @description TODO: complete comments
@@ -22,6 +25,7 @@ export class ExplorerViewComponent extends Component {
                 parentElement: HTMLElement,
                 _noteBookManger: NoteBookManager,
                 @IComponentService componentService: IComponentService,
+                @IContextMenuService private readonly contextMenuService: IContextMenuService,
     ) {
         super(ActionViewComponentType.ExplorerView, parentComponent, parentElement, componentService);
         
@@ -51,6 +55,22 @@ export class ExplorerViewComponent extends Component {
          * on https://www.electronjs.org/docs/api/remote
          */
 
+        /**
+                 * @readonly register context menu listeners (right click menu)
+                 */
+        document.getElementById('action-view-content')!.addEventListener('contextmenu', (ev: MouseEvent) => {
+            ev.preventDefault();
+            this.contextMenuService.removeContextMenu();
+            let coordinate: Coordinate = {
+                coordinateX: ev.pageX,
+                coordinateY: ev.pageY,
+            };
+
+            this.contextMenuService.createContextMenu(ContextMenuType.actionView, coordinate);
+
+        });
+/*
+
          domNodeByIdAddListener('action-view-content', 'contextmenu', (event) => {
             event.preventDefault()
             console.log('right clicked on action view')
@@ -58,6 +78,7 @@ export class ExplorerViewComponent extends Component {
             //console.log(event.currentTarget)
             ipcRendererSend('showContextMenuView')        
         })
+        */
 
         domNodeByIdAddListener('emptyFolderTag', 'click', () => {
             ipcRendererSend('openDir');

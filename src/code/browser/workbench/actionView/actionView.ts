@@ -6,6 +6,7 @@ import { NoteBookManager } from 'src/code/common/model/notebookManager';
 import { domNodeByIdAddListener } from 'src/base/electron/register';
 import { createDecorator } from 'src/code/common/service/instantiation/decorator';
 import { IComponentService } from 'src/code/browser/service/componentService';
+import { IContextMenuService } from '../../service/contextMenuService';
 
 export type ActionViewType = 'none' | 'explorer' | 'outline' | 'search' | 'git';
 
@@ -50,6 +51,8 @@ export class ActionViewComponent extends Component implements IActionViewService
     constructor(parentComponent: Component,
                 _noteBookManager: NoteBookManager,
                 @IComponentService componentService: IComponentService,
+                @IContextMenuService private readonly contextMenuService: IContextMenuService,
+
     ) {
         super(ComponentType.ActionView, parentComponent, null, componentService);
         
@@ -119,7 +122,7 @@ export class ActionViewComponent extends Component implements IActionViewService
         const actionViewContent = document.createElement('div');
         actionViewContent.id = 'action-view-content';
         
-        this.explorerViewComponent = new ExplorerViewComponent(this, actionViewContent, this._noteBookManager, this.componentService);
+        this.explorerViewComponent = new ExplorerViewComponent(this, actionViewContent, this._noteBookManager, this.componentService, this.contextMenuService);
         this.explorerViewComponent.create();
 
         // outlineViewComponent...
