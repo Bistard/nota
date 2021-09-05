@@ -28,6 +28,9 @@ export class Browser {
         const serviceCollection = new ServiceCollection();
         const instantiationService = new InstantiationService(serviceCollection);
 
+        // InstantiationService
+        instantiationService.register(IInstantiationService, instantiationService);
+
         // LogService
 
         // ComponentService
