@@ -20,7 +20,7 @@ export class FileLogService extends LogService {
     //     this._noteBookLogDir = noteBookLogDir;
     //     this._loggerPath = loggerPath;
     // }
-    constructor() {
+    private constructor() {
         super();
     }
 

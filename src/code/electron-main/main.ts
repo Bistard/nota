@@ -152,6 +152,7 @@ class Main {
                     }
                 });
             });
+            
 
              ipcMain.on('showContextMenu', () => {
                 // this.winMain!.webContents.send('showContextMenu')

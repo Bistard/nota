@@ -13,13 +13,16 @@ export class LogServiceManager {
     private _LogInfos: LogInfo[]; 
     private _ongoing: boolean = false;
 
-    constructor() {
+    private constructor(
+        @INoteBookManagerService private readonly noteBookManagerService: INoteBookManagerService
+    ) {
         this._LogInfos = [];
         setInterval(this.checkServiceQueue.bind(this), 1000);
     }
 
     public static get Instance() {
-        return this._instance || (this._instance = new this());
+        return this._instance;
+        //|| (this._instance = new this());
     }
 
     public isEmpty() {
@@ -75,7 +78,12 @@ export class LogServiceManager {
         } else {
             // 拿notebookmanager的path然后join "mdnote/log"
             //dir = ;
-            dir = "";
+            dir = this.noteBookManagerService.noteBookManagerRootPath;
+            if (!isDirExisted(dir, "log")) {
+                createDir(dir, "log");
+            }
+
+            path = pathJoin(dir, "log");
         }
 
         writeToFile(dir, logInfo!.date.toISOString().slice(0, 10), logInfo!.message)
@@ -89,3 +97,4 @@ export class LogServiceManager {
     }
 }
 
+//

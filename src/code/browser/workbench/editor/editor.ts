@@ -28,7 +28,6 @@ export class EditorComponent extends Component implements IEditorService {
 
     constructor(
         parentComponent: Component,
-        @INoteBookManagerService noteBookManagerService: INoteBookManagerService,
         @IComponentService componentService: IComponentService,
         @IContextMenuService private readonly contextMenuService: IContextMenuService,
     ) {

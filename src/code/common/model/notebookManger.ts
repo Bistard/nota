@@ -75,8 +75,8 @@ export class NoteBookManager implements INoteBookManagerService {
             }
 
         } catch(err) {
-            FileLogService.Instance.error(err, new Date(), LogPathType.APP);
-            //throw err;
+            // FileLogService.Instance.error(err, new Date(), LogPathType.APP);
+            // throw err;
         }
     }
 
