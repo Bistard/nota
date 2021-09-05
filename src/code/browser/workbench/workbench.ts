@@ -12,13 +12,15 @@ import { IInstantiationService } from "src/code/common/service/instantiation/ins
 import { ServiceDescriptor } from "src/code/common/service/instantiation/descriptor";
 import { ComponentService } from "src/code/browser/service/componentService";
 import { GlobalConfigService } from "src/code/common/service/globalConfigService";
+import { FileLogService, IFileLogService } from "src/code/common/service/fileLogService";
+import { ExplorerViewComponent, IExplorerViewService } from "./actionView/explorer/explorer";
 
 /**
  * @description Workbench represents all the Components in the web browser.
  */
 export class Workbench extends Component {
 
-    private _noteBookManager!: NoteBookManager;
+    private _noteBookManager!: INoteBookManagerService;
 
     actionBarComponent!: ActionBarComponent;
     actionViewComponent!: ActionViewComponent;
@@ -36,22 +38,24 @@ export class Workbench extends Component {
 
     public initServices(): void {
 
-        // ActionBarService (ActionBarComponent)
+        // ActionBarService
         this.instantiationService.register(IActionBarService, new ServiceDescriptor(ActionBarComponent));
 
-        // ActionViewService (ActionViewComponent)
+        // ActionViewService
         this.instantiationService.register(IActionViewService, new ServiceDescriptor(ActionViewComponent));
 
-        // EditorService (EditorComponent)
+        // EditorService && ExplorerViewService
         this.instantiationService.register(IEditorService, new ServiceDescriptor(EditorComponent));
+        this.instantiationService.register(IExplorerViewService, new ServiceDescriptor(ExplorerViewComponent));
 
         // ContextMenuService
         this.instantiationService.register(IContextMenuService, new ServiceDescriptor(ContextMenuService));
 
         // NoteBookManagerService
-        this._noteBookManager = new NoteBookManager();
-        this._noteBookManager.init(APP_ROOT_PATH);
-        this.instantiationService.register(INoteBookManagerService, this._noteBookManager);
+        this.instantiationService.register(INoteBookManagerService, new ServiceDescriptor(NoteBookManager));
+        
+        // FileLogService
+        this.instantiationService.register(IFileLogService, new ServiceDescriptor(FileLogService));
 
     }
 
@@ -60,8 +64,11 @@ export class Workbench extends Component {
      */
     protected override _createContent(): void {
         
+        this._noteBookManager = this.instantiationService.createInstance(NoteBookManager);
+        this._noteBookManager.init(APP_ROOT_PATH);
+
         this.actionBarComponent = this.instantiationService.createInstance(ActionBarComponent, this);
-        this.actionViewComponent = this.instantiationService.createInstance(ActionViewComponent, this, this._noteBookManager);
+        this.actionViewComponent = this.instantiationService.createInstance(ActionViewComponent, this);
         this.editorComponent = this.instantiationService.createInstance(EditorComponent, this);
         
         [
