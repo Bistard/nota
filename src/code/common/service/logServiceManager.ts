@@ -2,7 +2,7 @@ import { APP_ROOT_PATH } from "src/base/electron/app";
 import { isDirExisted, createDir, writeToFile } from "src/base/node/file";
 import { LogPathType, LogInfo } from "src/code/common/service/logInfo";
 import { pathJoin } from "src/base/common/string";
-import { INoteBookManagerService, NoteBookManager } from "src/code/common/model/notebookManger";
+import { INoteBookManagerService, NoteBookManager } from "src/code/common/model/notebookManager";
 
 
 // in another module
