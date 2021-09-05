@@ -6,8 +6,6 @@ rename: file.ts to io.ts
 
 ### 9.4 changeLog
 
-#8. 
-
 #7. fix: 重命名`notebookManger.ts`为`notebookManager.ts`.
 
 #6. `workbench.ts`: 将NotebookManager注册进了Dependency Injection，新接口`INoteBookManagerService`:
