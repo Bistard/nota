@@ -6,6 +6,8 @@ import { EVENT_EMITTER } from 'src/base/common/event';
 import { INoteBookManagerService } from 'src/code/common/model/notebookManager';
 import { IComponentService } from 'src/code/browser/service/componentService';
 import { createDecorator } from 'src/code/common/service/instantiation/decorator';
+import { ContextMenuType, Coordinate } from 'src/base/browser/secondary/contextMenu/contextMenu';
+import { IContextMenuService } from 'src/code/browser/service/contextMenuService';
 
 export const IExplorerViewService = createDecorator<IExplorerViewService>('explorer-view-service');
 
@@ -30,6 +32,7 @@ export class ExplorerViewComponent extends Component implements IExplorerViewSer
                 parentElement: HTMLElement,
                 @INoteBookManagerService private readonly noteBookManagerService: INoteBookManagerService,
                 @IComponentService componentService: IComponentService,
+                @IContextMenuService private readonly contextMenuService: IContextMenuService,
     ) {
         super(ActionViewComponentType.ExplorerView, parentComponent, parentElement, componentService);
 
@@ -57,6 +60,22 @@ export class ExplorerViewComponent extends Component implements IExplorerViewSer
          * on https://www.electronjs.org/docs/api/remote
          */
 
+    /**
+                 * @readonly register context menu listeners (right click menu)
+                 */
+     document.getElementById('explorer-container')!.addEventListener('contextmenu', (ev: MouseEvent) => {
+        ev.preventDefault();
+        this.contextMenuService.removeContextMenu();
+        let coordinate: Coordinate = {
+            coordinateX: ev.pageX,
+            coordinateY: ev.pageY,
+        };
+
+        this.contextMenuService.createContextMenu(ContextMenuType.actionView, coordinate);
+
+    });
+/*
+
          domNodeByIdAddListener('action-view-content', 'contextmenu', (event) => {
             event.preventDefault()
             console.log('right clicked on action view')
@@ -64,6 +83,7 @@ export class ExplorerViewComponent extends Component implements IExplorerViewSer
             //console.log(event.currentTarget)
             ipcRendererSend('showContextMenuView')        
         })
+        */
 
         domNodeByIdAddListener('emptyFolderTag', 'click', () => {
             ipcRendererSend('openDir');
@@ -94,11 +114,12 @@ export class ExplorerViewComponent extends Component implements IExplorerViewSer
 
         EVENT_EMITTER.register('EOpenNoteBookManager', (path: string) => this.openNoteBookManager(path));
 
-
+/*
         domNodeByIdAddListener('explorer-container', 'contextmenu', (event) => {
             event.preventDefault();
             ipcRendererSend('showContextMenuExplorer');
         });
+        */
     }
 
     /**

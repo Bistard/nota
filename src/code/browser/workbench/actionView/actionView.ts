@@ -8,6 +8,7 @@ import { createDecorator } from 'src/code/common/service/instantiation/decorator
 import { IComponentService } from 'src/code/browser/service/componentService';
 import { IInstantiationService } from 'src/code/common/service/instantiation/instantiation';
 import { ServiceDescriptor } from 'src/code/common/service/instantiation/descriptor';
+import { IContextMenuService } from '../../service/contextMenuService';
 
 export type ActionViewType = 'none' | 'explorer' | 'outline' | 'search' | 'git';
 
@@ -51,6 +52,7 @@ export class ActionViewComponent extends Component implements IActionViewService
     constructor(parentComponent: Component,
                 @IInstantiationService private readonly instantiationService: IInstantiationService,
                 @IComponentService componentService: IComponentService,
+                @IContextMenuService private readonly contextMenuService: IContextMenuService,
     ) {
         super(ComponentType.ActionView, parentComponent, null, componentService);
         
@@ -89,10 +91,11 @@ export class ActionViewComponent extends Component implements IActionViewService
         EVENT_EMITTER.register('EOnActionViewChange', (name) => this.onActionViewChange(name));
         EVENT_EMITTER.register('EOnActionViewOpen', () => this.openActionView());
         EVENT_EMITTER.register('EOnActionViewClose', () => this.closeActionView());
-
+/*
         domNodeByIdAddListener('action-view-content', 'contextmenu', (event: Event) => {
             event.preventDefault();
         });
+        */
     }
 
     private _createActionViewTop(): HTMLElement {
