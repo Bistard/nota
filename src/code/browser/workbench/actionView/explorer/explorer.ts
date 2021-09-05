@@ -60,21 +60,21 @@ export class ExplorerViewComponent extends Component implements IExplorerViewSer
          * on https://www.electronjs.org/docs/api/remote
          */
 
-    /**
-                 * @readonly register context menu listeners (right click menu)
-                 */
-     document.getElementById('explorer-container')!.addEventListener('contextmenu', (ev: MouseEvent) => {
-        ev.preventDefault();
-        this.contextMenuService.removeContextMenu();
-        let coordinate: Coordinate = {
-            coordinateX: ev.pageX,
-            coordinateY: ev.pageY,
-        };
+        /**
+         * @readonly register context menu listeners (right click menu)
+        */
+        document.getElementById('explorer-container')!.addEventListener('contextmenu', (ev: MouseEvent) => {
+            ev.preventDefault();
+            this.contextMenuService.removeContextMenu();
+            let coordinate: Coordinate = {
+                coordinateX: ev.pageX,
+                coordinateY: ev.pageY,
+            };
 
-        this.contextMenuService.createContextMenu(ContextMenuType.actionView, coordinate);
+            this.contextMenuService.createContextMenu(ContextMenuType.actionView, coordinate);
 
-    });
-/*
+        });
+        /*
 
          domNodeByIdAddListener('action-view-content', 'contextmenu', (event) => {
             event.preventDefault()
