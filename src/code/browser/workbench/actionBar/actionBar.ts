@@ -18,7 +18,7 @@ export interface IActionBarService extends IComponent {
     clickActionBtn(clickedBtn: HTMLElement): void;
     getButton(id: string): IButton | null;
     modifyFocusIndex (position: number): void;
-    getFocusIndex (n: number): number;
+    getFocusIndex (): number;
 
 }
 
@@ -36,12 +36,6 @@ export interface IActionBarOptions {
        gitId: string,
     ];
 }
-
-//export let currFocusActionBtnIndex = -1;
-
-//export let currFocusActionBtnIndex = {
-//    index : -1 as number
-//}
 
 /**
  * @description ActionBarComponent provides access to each action view and handles 
@@ -168,14 +162,10 @@ export class ActionBarComponent extends Component implements IActionBarService {
 
     public modifyFocusIndex(position: number): void{
         this.currFocusActionBtnIndex = position;
-        console.log(this.currFocusActionBtnIndex);
     }
 
-    public getFocusIndex(n : number): number {
-        //console.log("get" + this.currFocusActionBtnIndex);
-        const index = this.currFocusActionBtnIndex
-        console.log(index)
-        return index as number;
+    public getFocusIndex(): number {
+        return this.currFocusActionBtnIndex;
     }
 
 }
