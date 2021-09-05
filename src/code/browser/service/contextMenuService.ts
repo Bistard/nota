@@ -1,4 +1,5 @@
 import { ActionBarContextMenu } from "src/base/browser/secondary/contextMenu/actionBar/actionBarContextMenu";
+import { ExplorerViewContextMenu } from "src/base/browser/secondary/contextMenu/actionView/explorerViewContextMenu";
 import { ContextMenuType, Coordinate, ContextMenuDimension, IContextMenu } from "src/base/browser/secondary/contextMenu/contextMenu";
 import { EditorContextMenu } from "src/base/browser/secondary/contextMenu/editor/editorContextMenu";
 import { IComponentService } from "src/code/browser/service/componentService";
@@ -29,7 +30,9 @@ export class ContextMenuService implements IContextMenuService {
                 this._contextMenu = new ActionBarContextMenu(coordinate, this, this.componentService);
                 break;
             case ContextMenuType.actionView:
-
+                break;
+            case ContextMenuType.explorerView:
+                this._contextMenu = new ExplorerViewContextMenu(coordinate, this, this.componentService);
                 break;
             case ContextMenuType.editor:
                 this._contextMenu = new EditorContextMenu(coordinate, this, this.componentService);

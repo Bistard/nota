@@ -7,6 +7,7 @@ export enum ContextMenuType {
     actionBar,
     actionView,
     editor,
+    explorerView,
     // more and more...
 }
 
