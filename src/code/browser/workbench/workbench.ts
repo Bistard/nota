@@ -2,7 +2,7 @@ import { Component, ComponentType } from "src/code/browser/workbench/component";
 import { ActionViewComponent, IActionViewService } from "src/code/browser/workbench/actionView/actionView";
 import { ActionBarComponent, IActionBarService } from "src/code/browser/workbench/actionBar/actionBar";
 import { EditorComponent, IEditorService } from "src/code/browser/workbench/editor/editor";
-import { INoteBookManagerService, LOCAL_MDNOTE_DIR_NAME, NoteBookManager } from "src/code/common/model/notebookManger";
+import { INoteBookManagerService, LOCAL_MDNOTE_DIR_NAME, NoteBookManager } from "src/code/common/model/notebookManager";
 import { APP_ROOT_PATH } from "src/base/electron/app";
 import { ipcRendererOn, ipcRendererSend } from "src/base/electron/register";
 import { ConfigService, DEFAULT_CONFIG_FILE_NAME, DEFAULT_CONFIG_PATH, GLOBAL_CONFIG_FILE_NAME, GLOBAL_CONFIG_PATH, LOCAL_CONFIG_FILE_NAME } from "src/code/common/service/configService";

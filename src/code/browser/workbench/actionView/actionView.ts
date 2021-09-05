@@ -2,7 +2,7 @@ import { getSvgPathByName, SvgType } from 'src/base/common/string';
 import { Component, ComponentType, IComponent } from 'src/code/browser/workbench/component';
 import { ExplorerViewComponent } from "src/code/browser/workbench/actionView/explorer/explorer";
 import { EVENT_EMITTER } from 'src/base/common/event';
-import { NoteBookManager } from 'src/code/common/model/notebookManger';
+import { NoteBookManager } from 'src/code/common/model/notebookManager';
 import { domNodeByIdAddListener } from 'src/base/electron/register';
 import { createDecorator } from 'src/code/common/service/instantiation/decorator';
 import { IComponentService } from 'src/code/browser/service/componentService';

@@ -2,7 +2,6 @@ import { ContextMenu, ContextMenuType, Coordinate, IContextMenu } from "src/base
 import { IComponentService } from "src/code/browser/service/componentService";
 import { IContextMenuService } from "src/code/browser/service/contextMenuService";
 import { IActionBarOptions, IActionBarService } from "src/code/browser/workbench/actionBar/actionBar";
-import { ActionViewType } from "src/code/browser/workbench/actionView/actionView";
 import { EVENT_EMITTER } from "src/base/common/event";
 import { currFocusActionBtnIndex } from "src/code/browser/workbench/actionBar/actionBar";
 import { IButton } from "src/base/browser/basic/button";
@@ -36,75 +35,34 @@ export class ActionBarContextMenu extends ContextMenu implements IContextMenu {
         
         const actionBarService = this.componentService.get('action-bar') as IActionBarService;
 
-        this._menuItemGroups.get('select-explorer-button')!.element.addEventListener('click', () => {
-            const actionButton = actionBarService.getButton("explorer-button")!;
-            console.log(actionButton.element.style.display);
-            if (actionButton.element.style.display == 'none') {
-                actionButton.element.style.display = 'initial';
-                actionBarOpts.options[0] = true;
-            } else {
-                actionButton.element.style.display = 'none';
-                actionBarOpts.options[0] = false;
-            }
-            this.switchActionBtnAndActionView(actionBarService, actionButton, 0);
-            this.contextMenuService.removeContextMenu();
+        [
+            { contextMenuBtn: this._menuItemGroups.get('select-explorer-button')!, actionBtn: actionBarService.getButton("explorer-button")! },
+            { contextMenuBtn: this._menuItemGroups.get('select-outline-button')!, actionBtn: actionBarService.getButton("outline-button")! },
+            { contextMenuBtn: this._menuItemGroups.get('select-search-button')!, actionBtn: actionBarService.getButton("search-button")! },
+            { contextMenuBtn: this._menuItemGroups.get('select-git-button')!, actionBtn: actionBarService.getButton("git-button")! },
+        ]
+        .forEach(({contextMenuBtn, actionBtn}, index: number ) => {
+            contextMenuBtn.element.addEventListener('click', () => {
+                const closeOrOpen = this.switchButtonDisplay(actionBtn, index);
+                this.switchActionViewDisplay(actionBarService, actionBtn, closeOrOpen, index);
+                this.contextMenuService.removeContextMenu();
+            });
         });
 
-        this._menuItemGroups.get('select-outline-button')!.element.addEventListener('click', () => {
-            const actionButton = actionBarService.getButton("outline-button")!;
-            console.log(actionButton.element.style.display);
-            if (actionButton.element.style.display == 'none') {
-                actionButton.element.style.display = 'initial';
-                actionBarOpts.options[1] = true;
-            } else {
-                actionButton.element.style.display = 'none';
-                actionBarOpts.options[1] = false;
-            }
-            this.switchActionBtnAndActionView(actionBarService, actionButton, 1);
-            this.contextMenuService.removeContextMenu();
-        });
-
-        this._menuItemGroups.get('select-search-button')!.element.addEventListener('click', () => {
-            const actionButton = actionBarService.getButton("search-button")!;
-            console.log(actionButton.element.style.display);
-            if (actionButton.element.style.display == 'none') {
-                actionButton.element.style.display = 'initial';
-                actionBarOpts.options[2] = true;
-            } else {
-                actionButton.element.style.display = 'none';
-                actionBarOpts.options[2] = false;
-            }
-            this.switchActionBtnAndActionView(actionBarService, actionButton, 2);
-            this.contextMenuService.removeContextMenu();
-        });
-
-        this._menuItemGroups.get('select-git-button')!.element.addEventListener('click', () => {
-            const actionButton = actionBarService.getButton("git-button")!;
-            console.log(actionButton.element.style.display);
-            if (actionButton.element.style.display == 'none') {
-                actionButton.element.style.display = 'initial';
-                actionBarOpts.options[3] = true;
-            } else {
-                actionButton.element.style.display = 'none';
-                actionBarOpts.options[3] = false;
-            }
-            this.switchActionBtnAndActionView(actionBarService, actionButton, 3);
-            this.contextMenuService.removeContextMenu();
-        });
     } 
 
     /**
      * @description unchecks a given button. If it is not focused, set it as 
      * focused. Moreover, switch to that action view.
      */
-    public switchActionBtnAndActionView(actionBarService: IActionBarService, clickedBtn: IButton, clickedIndex: number): void {
+    public switchActionViewDisplay(actionBarService: IActionBarService, clickedBtn: IButton, closeOrOpen: boolean, clickedIndex: number): void {
         // get which action button is clicking
         // const actionName = clickedBtn.id;
 
         // focus the action button and reverse the state of action view
         const actionBtnContainer = actionBarService.contentArea!;
         const currFocusBtn = actionBtnContainer.children[currFocusActionBtnIndex.index] as HTMLElement;
-            
+        
         let activeBtnCount = 0;
         const activeBtnIndex: number[] = [];
         for (let i = 0; i < actionBarOpts.options.length; i++) {
@@ -151,4 +109,16 @@ export class ActionBarContextMenu extends ContextMenu implements IContextMenu {
             throw 'error';
         }
     }  
+
+    public switchButtonDisplay(button: IButton, index: number): boolean {
+        if (button.element.style.display == 'none') {
+            button.element.style.display = 'initial';
+            actionBarOpts.options[index] = true;
+            return true;
+        } else {
+            button.element.style.display = 'none';
+            actionBarOpts.options[index] = false;
+            return false;
+        }
+    }
 }
