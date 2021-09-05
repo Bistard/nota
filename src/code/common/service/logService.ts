@@ -4,7 +4,7 @@ import { format } from "path/posix";
 import { APP_ROOT_PATH } from "src/base/electron/app";
 import { isDirExisted, createDir, writeToFile } from "src/base/node/file";
 import { pathJoin } from "src/base/common/string";
-import { INoteBookManagerService } from "../model/notebookManager";
+import { INoteBookManagerService } from "src/code/common/model/notebookManager";
 
 enum LogLevel {
     TRACE,
@@ -55,7 +55,7 @@ export abstract class LogService implements ILogService {
     constructor(
         protected readonly _noteBookManagerService: INoteBookManagerService,
     ) {
-        this._logServiceManager = new LogServiceManager(this._noteBookManagerService);
+        this._logServiceManager = createOrGetLogServiceManager(this._noteBookManagerService);
     }
 
     
@@ -89,6 +89,15 @@ export abstract class LogService implements ILogService {
     }
 }
 
+function createOrGetLogServiceManager(...args: any[]): LogServiceManager {
+    if (_logServiceManagerInstance === null) {
+        _logServiceManagerInstance = new LogServiceManager(args as any);
+    }
+    return _logServiceManagerInstance;
+}
+
+let _logServiceManagerInstance: LogServiceManager| null = null;
+
 // 用 setInterval来持续check queue里的状态
 /**
  * @internal
@@ -99,7 +108,7 @@ class LogServiceManager {
     private _ongoing: boolean = false;
 
     constructor(
-        @INoteBookManagerService private readonly noteBookManagerService: INoteBookManagerService,
+        private readonly noteBookManagerService: INoteBookManagerService,
     ) {
         this._queue = [];
         setInterval(this.checkQueue.bind(this), 1000);
