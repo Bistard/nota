@@ -1,7 +1,7 @@
 import { MarkdownRenderMode } from 'mdnote';
 import { pathJoin } from 'src/base/common/string';
 import { APP_ROOT_PATH, DESKTOP_ROOT_PATH } from 'src/base/electron/app';
-import { readFromFileSync, writeToFile } from 'src/base/node/file';
+import { readFromFileSync, writeToFile } from 'src/base/node/io';
 
 export const DEFAULT_CONFIG_PATH = APP_ROOT_PATH;
 export const GLOBAL_CONFIG_PATH = APP_ROOT_PATH;

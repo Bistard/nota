@@ -1,4 +1,4 @@
-import { MarkdownFile, readMarkdownFile } from 'src/base/node/file';
+import { MarkdownFile, readMarkdownFile } from 'src/base/node/io';
 import * as fs from 'fs'; 
 import * as Path from 'path';
 import { EVENT_EMITTER } from 'src/base/common/event';

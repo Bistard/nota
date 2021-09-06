@@ -1,7 +1,7 @@
 import { EVENT_EMITTER } from "src/base/common/event";
 import { pathJoin } from "src/base/common/string";
 import { ConfigService, DEFAULT_CONFIG_FILE_NAME, DEFAULT_CONFIG_PATH, GLOBAL_CONFIG_FILE_NAME, LOCAL_CONFIG_FILE_NAME } from "src/code/common/service/configService";
-import { createDir, createFile, dirFilter, isDirExisted, isFileExisted } from "src/base/node/file";
+import { createDir, createFile, dirFilter, isDirExisted, isFileExisted } from "src/base/node/io";
 import { NoteBook } from "src/code/common/model/notebook";
 import { GlobalConfigService } from "src/code/common/service/globalConfigService";
 import { createDecorator } from "src/code/common/service/instantiation/decorator";

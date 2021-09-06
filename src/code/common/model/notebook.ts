@@ -1,4 +1,4 @@
-import { mapToJsonReplacer } from "src/base/node/file";
+import { mapToJsonReplacer } from "src/base/node/io";
 import { FileTree } from "src/base/node/fileTree";
 
 /**
