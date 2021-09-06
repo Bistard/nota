@@ -85,7 +85,6 @@ export abstract class ContextMenu extends Component implements IContextMenu {
         this._menuItemOptions = menuItemOptions;
 
         for (const menuItemOpt of menuItemOptions) {
-            console.log(menuItemOpt.role);
             if (menuItemOpt.role != 'seperator'){
                 this._dimension.height += CONTEXT_MENU_ITEM_HEIGHT;
             } else {

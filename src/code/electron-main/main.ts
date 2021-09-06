@@ -103,30 +103,6 @@ class Main {
                 this.winMain!.close();
             });
             
-            ipcMain.on('showContextMenuEditor', () => {
-                const template: Electron.MenuItemConstructorOptions[] = [
-                    {role: 'editMenu'},
-                    {label: 'Inspect', role: 'toggleDevTools'}
-                ];
-                Menu.buildFromTemplate(template).popup();
-             });
- 
-            ipcMain.on('showContextMenuExplorer', () => {
-
-                const template: Electron.MenuItemConstructorOptions[] = [
-                    {label: 'New File'},
-                    {label: 'New Folder'},
-                    {type: 'separator'},
-                    {label: 'Copy', role:'copy'},
-                    {label: 'Paste', role: 'paste'},
-                    {label: 'Cut', role: 'cut'},
-                    {type: 'separator'},
-                    {label: 'Rename'},
-                    {label: 'Delete'},
-                ];
-                Menu.buildFromTemplate(template).popup();
-            });
-            
             // response to FolderModule, default path is 'desktop' and only can
             // open directory.
             ipcMain.on('openDir', () => {
@@ -152,18 +128,6 @@ class Main {
                     }
                 });
             });
-
-             ipcMain.on('showContextMenu', () => {
-                // this.winMain!.webContents.send('showContextMenu')
-                const template: Electron.MenuItemConstructorOptions[] = [{role: 'editMenu',}];
-                return Menu.buildFromTemplate(template).popup();
-             });
-
-            ipcMain.on('showContextMenuView', () => {
-            // this.winMain!.webContents.send('showContextMenu');
-            const template: Electron.MenuItemConstructorOptions[] = [{role: 'fileMenu',}];
-            return Menu.buildFromTemplate(template).popup();
-        });
         
             // only for testing purpose, can be removed in release version
             ipcMain.on('test', (_event, data) => {
