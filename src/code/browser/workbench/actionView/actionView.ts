@@ -2,11 +2,10 @@ import { getSvgPathByName, SvgType } from 'src/base/common/string';
 import { Component, ComponentType, IComponent } from 'src/code/browser/workbench/component';
 import { ExplorerViewComponent } from "src/code/browser/workbench/actionView/explorer/explorer";
 import { EVENT_EMITTER } from 'src/base/common/event';
-import { NoteBookManager } from 'src/code/common/model/notebookManager';
-import { domNodeByIdAddListener } from 'src/base/electron/register';
 import { createDecorator } from 'src/code/common/service/instantiation/decorator';
 import { IComponentService } from 'src/code/browser/service/componentService';
-import { IContextMenuService } from '../../service/contextMenuService';
+import { IContextMenuService } from 'src/code/browser/service/contextMenuService';
+import { IInstantiationService } from 'src/code/common/service/instantiation/instantiation';
 
 export type ActionViewType = 'none' | 'explorer' | 'outline' | 'search' | 'git';
 
@@ -45,17 +44,16 @@ export class ActionViewComponent extends Component implements IActionViewService
 
     private explorerViewComponent!: ExplorerViewComponent;
     
-    private _noteBookManager: NoteBookManager;
     // Others...
 
     constructor(parentComponent: Component,
-                _noteBookManager: NoteBookManager,
+                // @INoteBookManagerService private readonly noteBookManagerService: INoteBookManagerService,
+                @IInstantiationService private readonly instantiationService: IInstantiationService,
                 @IComponentService componentService: IComponentService,
                 @IContextMenuService private readonly contextMenuService: IContextMenuService,
     ) {
         super(ComponentType.ActionView, parentComponent, null, componentService);
         
-        this._noteBookManager = _noteBookManager;
         this.whichActionView = 'none';
     }
 
@@ -91,11 +89,7 @@ export class ActionViewComponent extends Component implements IActionViewService
         EVENT_EMITTER.register('EOnActionViewChange', (name) => this.onActionViewChange(name));
         EVENT_EMITTER.register('EOnActionViewOpen', () => this.openActionView());
         EVENT_EMITTER.register('EOnActionViewClose', () => this.closeActionView());
-/*
-        domNodeByIdAddListener('action-view-content', 'contextmenu', (event: Event) => {
-            event.preventDefault();
-        });
-        */
+
     }
 
     private _createActionViewTop(): HTMLElement {
@@ -122,7 +116,8 @@ export class ActionViewComponent extends Component implements IActionViewService
         const actionViewContent = document.createElement('div');
         actionViewContent.id = 'action-view-content';
         
-        this.explorerViewComponent = new ExplorerViewComponent(this, actionViewContent, this._noteBookManager, this.componentService, this.contextMenuService);
+        // this.explorerViewComponent = new ExplorerViewComponent(this, actionViewContent, this._noteBookManager, this.componentService, this.contextMenuService);
+        this.explorerViewComponent = this.instantiationService.createInstance(ExplorerViewComponent, this, actionViewContent);
         this.explorerViewComponent.create();
 
         // outlineViewComponent...
