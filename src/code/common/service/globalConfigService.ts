@@ -2,6 +2,8 @@ import { pathJoin } from "src/base/common/string";
 import { readFromFileSync, writeToFile } from "src/base/node/file";
 import { IConfigService } from "src/code/common/service/configService";
 
+export type AppMode = 'debug' | 'release';
+
 /**
  * @description 'global' config module stores configuration that only stored at
  * application root path.
@@ -41,6 +43,8 @@ import { IConfigService } from "src/code/common/service/configService";
     /***************************************************************************
      *                        Global Config Settings
      **************************************************************************/
+
+    public appMode: AppMode = 'debug';
 
     public startPreviousNoteBookManagerDir: boolean = true;
     public previousNoteBookManagerDir: string = '';
