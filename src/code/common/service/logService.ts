@@ -153,25 +153,31 @@ class LogServiceManager {
      * @description remove the log that has finished writing, then call next log's startR
      */
     public async processQueue(): Promise<void> {
-        
+        console.log("Reached processQueue");
         try {
             this._ongoing = true;
             const logInfo = this._queue[0]!;
             
             let dir: string;
             if (logInfo.path = LogPathType.APP) {
-                dir = APP_ROOT_PATH;
+                dir = APP_ROOT_PATH;   
             } else {
                 dir = this.noteBookManagerService.noteBookManagerRootPath;
+                console.log(dir);
             }
+            
+            console.log(APP_ROOT_PATH);
+            
 
             const res = await isDirExisted(dir, "log");
-            if (res) {
+            if (!res) {
                 await createDir(dir, "log");
             }
-            const path = pathJoin(dir, "log");
 
-            writeToFile(path, logInfo.date.toISOString().slice(0, 10), logInfo.message)
+            
+            const path = pathJoin(dir, "log");
+            
+            writeToFile(path, logInfo.date.toISOString().slice(0, 10) + '.json', logInfo.message)
             .then(() => {
                 this._queue.shift();
                 this._ongoing = false;

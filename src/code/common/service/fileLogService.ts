@@ -49,8 +49,8 @@ export class FileLogService extends LogService implements IFileLogService {
      */
     override error(err: Error, date: Date, underDir: LogPathType): void {
         const dateInfo = date.getHours() + ":" + date.getMinutes() + ":" + date.getSeconds() + ":" + date.getMilliseconds;
-        //date.toISOString().slice(0, 10);
-        let writeToDir = LogPathType.NOTEBOOKMANAGER;
+        // date.toISOString().slice(0, 10);
+        // let writeToDir = LogPathType.NOTEBOOKMANAGER;
         const formatted_msg: string = `[error] ${dateInfo}
         Log Message: ${err.name}  ${err.message} ${err.stack}`;
         this._logServiceManager.pushLogInfo({message: formatted_msg, date: date, path: underDir} as LogInfo);

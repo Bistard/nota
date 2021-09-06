@@ -1,6 +1,7 @@
 import { pathJoin } from "src/base/common/string";
 import { readFromFileSync, writeToFile } from "src/base/node/io";
 import { IConfigService } from "src/code/common/service/configService";
+import { IFileLogService } from "src/code/common/service/fileLogService";
 
 export type AppMode = 'debug' | 'release';
 
@@ -16,7 +17,7 @@ export type AppMode = 'debug' | 'release';
     
     private static _instance: GlobalConfigService;
 
-    private constructor() {}
+    private constructor(/*@IFileLogService private readonly fileLogService: IFileLogService*/) {}
 
     public static get Instance() {
         return this._instance || (this._instance = new this());
