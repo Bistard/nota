@@ -1,3 +1,4 @@
+import { shell } from 'electron';
 import { Abortable } from 'events';
 import * as fs from 'fs';
 import * as Path from 'path';
@@ -159,6 +160,46 @@ export async function createFile(
             }
             resolve();
         });
+    });
+}
+
+/**
+ * @description asynchronously deletes a file.
+ * 
+ * @param path eg. D:\dev\AllNote
+ */
+ export async function deleteFile(
+    path: string): Promise<void> 
+{
+    return new Promise((resolve, reject) => {
+        if (fs.existsSync(path)) {
+            fs.unlink(path, (err) => {
+                if (err) {
+                    reject(err);
+                }
+                resolve();
+            });
+        } else {
+            alert("This file doesn't exist, cannot delete");
+        }
+    });
+}
+
+/**
+ * @description asynchronously moves a file to trash.
+ * 
+ * @param path eg. D:\dev\AllNote
+ */
+ export async function moveFileToTrash(
+    path: string): Promise<void> 
+{
+    return new Promise((resolve, reject) => {
+        if (fs.existsSync(path)) {
+            shell.trashItem(path);
+            resolve();
+        } else {
+            alert("This file doesn't exist, cannot move to trash");
+        }
     });
 }
 
