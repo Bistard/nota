@@ -52,7 +52,6 @@ export class ActionViewComponent extends Component implements IActionViewService
     constructor(parentComponent: Component,
                 @IInstantiationService private readonly instantiationService: IInstantiationService,
                 @IComponentService componentService: IComponentService,
-                @IContextMenuService private readonly contextMenuService: IContextMenuService,
     ) {
         super(ComponentType.ActionView, parentComponent, null, componentService);
         

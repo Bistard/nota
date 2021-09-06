@@ -32,7 +32,7 @@ export class ExplorerViewComponent extends Component implements IExplorerViewSer
                 parentElement: HTMLElement,
                 @INoteBookManagerService private readonly noteBookManagerService: INoteBookManagerService,
                 @IComponentService componentService: IComponentService,
-                @IContextMenuService private readonly contextMenuService: IContextMenuService,
+                // @IContextMenuService private readonly contextMenuService: IContextMenuService,
     ) {
         super(ActionViewComponentType.ExplorerView, parentComponent, parentElement, componentService);
 
@@ -63,17 +63,18 @@ export class ExplorerViewComponent extends Component implements IExplorerViewSer
         /**
          * @readonly register context menu listeners (right click menu)
         */
-        document.getElementById('explorer-container')!.addEventListener('contextmenu', (ev: MouseEvent) => {
-            ev.preventDefault();
-            this.contextMenuService.removeContextMenu();
-            let coordinate: Coordinate = {
-                coordinateX: ev.pageX,
-                coordinateY: ev.pageY,
-            };
+        // document.getElementById('explorer-container')!.addEventListener('contextmenu', (ev: MouseEvent) => {
+        //     ev.preventDefault();
+        //     this.contextMenuService.removeContextMenu();
+        //     let coordinate: Coordinate = {
+        //         coordinateX: ev.pageX,
+        //         coordinateY: ev.pageY,
+        //     };
 
-            this.contextMenuService.createContextMenu(ContextMenuType.actionView, coordinate);
+        //     this.contextMenuService.createContextMenu(ContextMenuType.actionView, coordinate);
 
-        });
+        // });
+        
         /*
 
          domNodeByIdAddListener('action-view-content', 'contextmenu', (event) => {

@@ -41,12 +41,12 @@ export class Workbench extends Component {
         // ActionBarService
         this.instantiationService.register(IActionBarService, new ServiceDescriptor(ActionBarComponent));
 
-        // ActionViewService
+        // ActionViewService && ExplorerViewService
         this.instantiationService.register(IActionViewService, new ServiceDescriptor(ActionViewComponent));
-
-        // EditorService && ExplorerViewService
-        this.instantiationService.register(IEditorService, new ServiceDescriptor(EditorComponent));
         this.instantiationService.register(IExplorerViewService, new ServiceDescriptor(ExplorerViewComponent));
+
+        // EditorService
+        this.instantiationService.register(IEditorService, new ServiceDescriptor(EditorComponent));
 
         // ContextMenuService
         this.instantiationService.register(IContextMenuService, new ServiceDescriptor(ContextMenuService));
