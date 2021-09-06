@@ -12,6 +12,7 @@ import { IInstantiationService } from "src/code/common/service/instantiation/ins
 import { ServiceDescriptor } from "src/code/common/service/instantiation/descriptor";
 import { ComponentService } from "src/code/browser/service/componentService";
 import { GlobalConfigService } from "src/code/common/service/globalConfigService";
+import { ExplorerViewComponent, IExplorerViewService } from "src/code/browser/workbench/actionView/explorer/explorer";
 
 /**
  * @description Workbench represents all the Components in the web browser.
@@ -41,6 +42,7 @@ export class Workbench extends Component {
 
         // ActionViewService (ActionViewComponent)
         this.instantiationService.register(IActionViewService, new ServiceDescriptor(ActionViewComponent));
+        this.instantiationService.register(IExplorerViewService, new ServiceDescriptor(ExplorerViewComponent));
 
         // EditorService (EditorComponent)
         this.instantiationService.register(IEditorService, new ServiceDescriptor(EditorComponent));
@@ -49,9 +51,7 @@ export class Workbench extends Component {
         this.instantiationService.register(IContextMenuService, new ServiceDescriptor(ContextMenuService));
 
         // NoteBookManagerService
-        this._noteBookManager = new NoteBookManager();
-        this._noteBookManager.init(APP_ROOT_PATH);
-        this.instantiationService.register(INoteBookManagerService, this._noteBookManager);
+        this.instantiationService.register(INoteBookManagerService, new ServiceDescriptor(NoteBookManager));
 
     }
 
@@ -59,9 +59,12 @@ export class Workbench extends Component {
      * @description calls 'create()' and '_registerListeners()' for each component.
      */
     protected override _createContent(): void {
+        this._noteBookManager = this.instantiationService.createInstance(NoteBookManager);
+        this._noteBookManager.init(APP_ROOT_PATH);
+        
         
         this.actionBarComponent = this.instantiationService.createInstance(ActionBarComponent, this);
-        this.actionViewComponent = this.instantiationService.createInstance(ActionViewComponent, this, this._noteBookManager);
+        this.actionViewComponent = this.instantiationService.createInstance(ActionViewComponent, this);
         this.editorComponent = this.instantiationService.createInstance(EditorComponent, this);
         
         [
