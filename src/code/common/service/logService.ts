@@ -154,7 +154,11 @@ class LogServiceManager {
             /*if (logInfo.path = LogPathType.APP) {
                 
             } */else {
+                //dir = "/Users/apple/Desktop/filesForTesting";
                 dir = this.noteBookManagerService.noteBookManagerRootPath;
+                //console.log(dir);
+                dir = pathJoin(dir, ".mdnote");
+                
                 console.log(dir);
             }
             

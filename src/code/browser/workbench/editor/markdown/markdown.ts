@@ -258,9 +258,9 @@ export class MarkdownComponent extends Component implements IMarkdownService {
             return;
         }
 
-        //GlobalConfigService.Instance.defaultConfigOn = true;
+        GlobalConfigService.Instance.defaultConfigOn = false;
         //console.log(GlobalConfigService.Instance.defaultConfigOn);
-        const err = Error("No Editor Found!");
+        const err = new Error("No Editor Found!");
         this.fileLogService.error(err, new Date(), LogPathType.APP);
 
         if (nodeInfo && !nodeInfo.isFolder) {

@@ -132,6 +132,7 @@ export class ExplorerViewComponent extends Component implements IExplorerViewSer
         try {
             await this.noteBookManagerService.open(path);
             this.container.removeChild(this.emptyFolderTag);
+            console.log("removeChild successfully");
         } catch(err) {
             throw err;
         }

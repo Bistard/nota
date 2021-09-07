@@ -65,10 +65,10 @@ export class NoteBookManager implements INoteBookManagerService {
             if (GlobalConfigService.Instance.startPreviousNoteBookManagerDir) {
                 
                 const prevOpenedPath = GlobalConfigService.Instance.previousNoteBookManagerDir;
-                console.log(prevOpenedPath);
+                // console.log(prevOpenedPath);
                 if (prevOpenedPath == '') {
-                    const OpenPath = "/Users/apple/Desktop/filesForTesting";
-                    EVENT_EMITTER.emit('EOpenNoteBookManager', OpenPath);
+                    // const OpenPath = "/Users/apple/Desktop/filesForTesting";
+                    // EVENT_EMITTER.emit('EOpenNoteBookManager', OpenPath);
                     // user never opened one before, we ignore this request
                 } else {
                     EVENT_EMITTER.emit('EOpenNoteBookManager', prevOpenedPath);
@@ -109,8 +109,10 @@ export class NoteBookManager implements INoteBookManagerService {
             // data in cache for each NoteBook is now ready.
             
             // try to find .mdnote
+           
             const isExisted = await isDirExisted(path, LOCAL_MDNOTE_DIR_NAME);
             
+            console.log(this.noteBookManagerRootPath);
             if (isExisted) {
                 await this._importNoteBookConfig();
             } else {
