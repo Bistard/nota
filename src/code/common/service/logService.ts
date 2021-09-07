@@ -149,7 +149,6 @@ class LogServiceManager {
             }
             
             dir = pathJoin(dir, ".mdnote");
-            console.log(dir);
             const res = await isDirExisted(dir, "log");
             if (!res) {
                 await createDir(dir, "log");
