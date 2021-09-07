@@ -1,4 +1,4 @@
-import { FileType } from "src/base/node/io";
+import { FileType } from "src/base/node/file";
 
 export const CHAR_DIR_SEPARATOR = '/';
 
