@@ -26,5 +26,26 @@ export class ServiceCollection {
 		return this._services.get(id);
 	}
 
+}
 
+/*******************************************************************************
+ *                       singleton dependency injection
+ ******************************************************************************/
+
+/**
+ * @internal
+ */
+const _singletonDependencies: [ServiceIdentifier<any>, ServiceDescriptor<any>][] = [];
+
+export function registerSingleton<T, Services>(id: ServiceIdentifier<T>, ctor: new (...services: Services[]) => T, supportsDelayedInstantiation?: boolean): void;
+export function registerSingleton<T, Services>(id: ServiceIdentifier<T>, descriptor: ServiceDescriptor<any>): void;
+export function registerSingleton<T, Services>(id: ServiceIdentifier<T>, ctorOrDescriptor: { new(...services: Services[]): T } | ServiceDescriptor<any>, supportsDelayedInstantiation?: boolean): void {
+	if (!(ctorOrDescriptor instanceof ServiceDescriptor)) {
+		ctorOrDescriptor = new ServiceDescriptor<T>(ctorOrDescriptor as new (...args: any[]) => T, [], supportsDelayedInstantiation);
+	}
+	_singletonDependencies.push([id, ctorOrDescriptor]);
+}
+
+export function getSingletonServiceDescriptors(): [ServiceIdentifier<any>, ServiceDescriptor<any>][] {
+	return _singletonDependencies;
 }

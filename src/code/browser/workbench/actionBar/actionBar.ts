@@ -47,7 +47,7 @@ export class ActionBarComponent extends Component implements IActionBarService {
     public readonly buttonGroups: IButton[] = [];
     
    // if value is -1, it means actionView is not shown.
-    public currFocusActionBtnIndex: number;
+    private currFocusActionBtnIndex: number;
 
     constructor(
         parentComponent: Component,

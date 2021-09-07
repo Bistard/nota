@@ -13,6 +13,15 @@ import { ServiceDescriptor } from "src/code/common/service/instantiation/descrip
 import { ComponentService } from "src/code/browser/service/componentService";
 import { GlobalConfigService } from "src/code/common/service/globalConfigService";
 import { ExplorerViewComponent, IExplorerViewService } from "src/code/browser/workbench/actionView/explorer/explorer";
+import { getSingletonServiceDescriptors, registerSingleton } from "src/code/common/service/instantiation/serviceCollection";
+
+// ActionBarService
+registerSingleton(IActionBarService, new ServiceDescriptor(ActionBarComponent));
+// ActionViewService
+registerSingleton(IActionViewService, new ServiceDescriptor(ActionViewComponent));
+registerSingleton(IExplorerViewService, new ServiceDescriptor(ExplorerViewComponent));
+// EditorService
+registerSingleton(IEditorService, new ServiceDescriptor(EditorComponent));
 
 /**
  * @description Workbench represents all the Components in the web browser.
@@ -37,21 +46,18 @@ export class Workbench extends Component {
 
     public initServices(): void {
 
-        // ActionBarService (ActionBarComponent)
-        this.instantiationService.register(IActionBarService, new ServiceDescriptor(ActionBarComponent));
-
-        // ActionViewService (ActionViewComponent)
-        this.instantiationService.register(IActionViewService, new ServiceDescriptor(ActionViewComponent));
-        this.instantiationService.register(IExplorerViewService, new ServiceDescriptor(ExplorerViewComponent));
-
-        // EditorService (EditorComponent)
-        this.instantiationService.register(IEditorService, new ServiceDescriptor(EditorComponent));
+        for (let [serviceIdentifer, serviceDescriptor] of getSingletonServiceDescriptors()) {
+			this.instantiationService.register(serviceIdentifer, serviceDescriptor);
+		}
 
         // ContextMenuService
         this.instantiationService.register(IContextMenuService, new ServiceDescriptor(ContextMenuService));
 
         // NoteBookManagerService
-        this.instantiationService.register(INoteBookManagerService, new ServiceDescriptor(NoteBookManager));
+        this._noteBookManager = new NoteBookManager();
+        this._noteBookManager.init(APP_ROOT_PATH);
+        
+        this.instantiationService.register(INoteBookManagerService, this._noteBookManager);
 
     }
 
@@ -59,9 +65,6 @@ export class Workbench extends Component {
      * @description calls 'create()' and '_registerListeners()' for each component.
      */
     protected override _createContent(): void {
-        this._noteBookManager = this.instantiationService.createInstance(NoteBookManager);
-        this._noteBookManager.init(APP_ROOT_PATH);
-        
         
         this.actionBarComponent = this.instantiationService.createInstance(ActionBarComponent, this);
         this.actionViewComponent = this.instantiationService.createInstance(ActionViewComponent, this);
