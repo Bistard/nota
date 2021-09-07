@@ -1,8 +1,0 @@
-[error] 16:0:46:function getMilliseconds() { [native code] }
-        Log Message: Error  No Editor Found! Error: No Editor Found!
-    at MarkdownComponent.markdownDisplayFile (webpack://markdownnote/./src/code/browser/workbench/editor/markdown/markdown.ts?:228:21)
-    at eval (webpack://markdownnote/./src/code/browser/workbench/editor/markdown/markdown.ts?:117:83)
-    at eval (webpack://markdownnote/./src/base/common/event.ts?:21:38)
-    at Array.forEach (<anonymous>)
-    at EventEmitter.emit (webpack://markdownnote/./src/base/common/event.ts?:20:30)
-    at eval (webpack://markdownnote/./src/base/node/fileTree.ts?:148:35)
