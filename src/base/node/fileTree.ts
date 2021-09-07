@@ -1,8 +1,9 @@
-import { MarkdownFile, readMarkdownFile } from 'src/base/node/io';
+import { readMarkdownFile } from 'src/base/node/io';
 import * as fs from 'fs'; 
 import * as Path from 'path';
 import { EVENT_EMITTER } from 'src/base/common/event';
 import { NoteBookManager } from 'src/code/common/model/notebookManager';
+import { File } from 'src/base/node/file';
 
 /**
  * @description the object is to store and maintain the data for each 
@@ -13,7 +14,7 @@ export class FileNode {
     public element: HTMLElement;
     public textElement!: HTMLElement;
 
-    public readonly file: MarkdownFile | null;
+    public readonly file: File | null;
 
     public readonly path: string;
     public readonly name: string; // eg. 'markdown'
@@ -49,7 +50,7 @@ export class FileNode {
             this.file = null;
         } else {
             this.element = document.createElement('li');
-            this.file = new MarkdownFile(baseName);
+            this.file = new File(baseName);
         }
 
         this._render(); // this.textElement is created from here

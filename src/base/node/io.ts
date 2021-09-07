@@ -3,6 +3,7 @@ import { Abortable } from 'events';
 import * as fs from 'fs';
 import * as Path from 'path';
 import { nameIncludeCheckWithRule, getFileType, pathJoin } from 'src/base/common/string';
+import { FileType } from 'src/base/node/file';
 import { FileNode } from 'src/base/node/fileTree';
 
 /*******************************************************************************
@@ -11,24 +12,6 @@ import { FileNode } from 'src/base/node/fileTree';
 
 export function isMarkdownFile(filename: string): boolean {
     return getFileType(filename) === FileType.MARKDOWN;
-}
-
-export enum FileType {
-    MARKDOWN,
-    OTHERS,
-}
-
-export class MarkdownFile {
-    public plainText: string;
-    
-    public readonly type: FileType;
-
-    constructor(baseName: string, plainText?: string) {
-        this.plainText = plainText || '';
-
-        this.type = getFileType(baseName);
-    }
-
 }
 
 export type readFileOption = 
