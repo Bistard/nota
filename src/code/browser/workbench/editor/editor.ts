@@ -33,7 +33,6 @@ export class EditorComponent extends Component implements IEditorService {
         @IFileLogService private readonly fileLogService: IFileLogService,
     ) {
         super(ComponentType.editor, parentComponent, null, componentService);
-        //this.fileLogService.error('EditorComponent is using FileLogService');
     }
 
     protected override _createContent(): void {

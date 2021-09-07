@@ -4,7 +4,7 @@ import { format } from "path/posix";
 import { APP_ROOT_PATH } from "src/base/electron/app";
 import { isDirExisted, createDir, writeToFile } from "src/base/node/io";
 import { pathJoin } from "src/base/common/string";
-import { INoteBookManagerService } from "src/code/common/model/notebookManager";
+import { INoteBookManagerService, NoteBookManager } from "src/code/common/model/notebookManager";
 import { GlobalConfigService } from "src/code/common/service/globalConfigService";
 enum LogLevel {
     TRACE,
@@ -104,13 +104,12 @@ let _logServiceManagerInstance: LogServiceManager| null = null;
  */
 class LogServiceManager {
     
-    private _queue: LogInfo[]; 
+    private _queue: LogInfo[] = [];
     private _ongoing: boolean = false;
 
     constructor(
-        private readonly noteBookManagerService: INoteBookManagerService,
+        @INoteBookManagerService private readonly noteBookManagerService: INoteBookManagerService,
     ) {
-        this._queue = [];
         setInterval(this.checkQueue.bind(this), 1000);
     }
 
@@ -118,13 +117,11 @@ class LogServiceManager {
         return !this._queue.length;
     }
 
-
     public checkQueue(): void {
         if (!this.isEmpty() && !this._ongoing) {
             this.processQueue();
         }
     }
-
 
     // add a new logService to _logServices
     public pushLogInfo(logInfo: LogInfo): void {
@@ -146,22 +143,19 @@ class LogServiceManager {
                 if (!mdNoteExists) {
                     await createDir(dir, ".mdnote");
                 }  
-                dir = pathJoin(dir, ".mdnote");
             } else {
-                dir = this.noteBookManagerService.noteBookManagerRootPath;
-                console.log(this.noteBookManagerService);
-                dir = pathJoin(dir, ".mdnote");
+                // dir = this.noteBookManagerService.getRootPath();
+                dir = NoteBookManager.rootPath;
             }
             
-            
+            dir = pathJoin(dir, ".mdnote");
+            console.log(dir);
             const res = await isDirExisted(dir, "log");
             if (!res) {
                 await createDir(dir, "log");
             }
-
             
             const path = pathJoin(dir, "log");
-            
             writeToFile(path, logInfo.date.toISOString().slice(0, 10) + '.json', logInfo.message)
             .then(() => {
                 this._queue.shift();
