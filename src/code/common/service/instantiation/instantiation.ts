@@ -117,7 +117,7 @@ export class InstantiationService implements IInstantiationService {
             const currDependency: dependencyNode = stack.pop()!;
             dependencyGraph.getOrInsertNode(currDependency);
 
-            const dependencies = _ServiceUtil.getServiceDependencies(currDependency.id);
+            const dependencies = _ServiceUtil.getServiceDependencies(currDependency.desc.ctor);
             for (const subDependency of dependencies) {
                 
                 const instanceOrDesc = this.serviceCollections.get(subDependency.id);
