@@ -74,15 +74,6 @@ export class ExplorerViewComponent extends Component implements IExplorerViewSer
                 this.contextMenuService.createContextMenu(ContextMenuType.explorerView, coordinate);
 
         });
-        /*
-         domNodeByIdAddListener('action-view-content', 'contextmenu', (event) => {
-            event.preventDefault()
-            console.log('right clicked on action view')
-            //console.log(event.target)
-            //console.log(event.currentTarget)
-            ipcRendererSend('showContextMenuView')        
-        })
-        */
 
         domNodeByIdAddListener('emptyFolderTag', 'click', () => {
             ipcRendererSend('openDir');
@@ -132,7 +123,6 @@ export class ExplorerViewComponent extends Component implements IExplorerViewSer
         try {
             await this.noteBookManagerService.open(path);
             this.container.removeChild(this.emptyFolderTag);
-            console.log("removeChild successfully");
         } catch(err) {
             throw err;
         }

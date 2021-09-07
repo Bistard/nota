@@ -1,9 +1,10 @@
 import { IComponentService } from "src/code/browser/service/componentService";
 import { IContextMenuService } from "src/code/browser/service/contextMenuService";
 import { Component, ComponentType, IComponent } from "src/code/browser/workbench/component";
-import { MarkdownComponent } from "src/code/browser/workbench/editor/markdown/markdown";
+import { IMarkdownService, MarkdownComponent } from "src/code/browser/workbench/editor/markdown/markdown";
 import { TabBarComponent } from "src/code/browser/workbench/editor/tabBar/tabBar";
 import { TitleBarComponent } from "src/code/browser/workbench/editor/titleBar/titleBar";
+import { INoteBookManagerService } from "src/code/common/model/notebookManager";
 import { IFileLogService } from "src/code/common/service/fileLogService";
 import { createDecorator } from "src/code/common/service/instantiation/decorator";
 

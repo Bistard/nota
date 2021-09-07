@@ -54,9 +54,9 @@ export abstract class LogService implements ILogService {
 
     // solves singletion problem, so we always have at most one LogServiceManager when we create a logService
     constructor(
-        protected readonly _noteBookManagerService: INoteBookManagerService,
+        @INoteBookManagerService protected readonly noteBookManagerService: INoteBookManagerService,
     ) {
-        this._logServiceManager = createOrGetLogServiceManager(this._noteBookManagerService);
+        this._logServiceManager = createOrGetLogServiceManager(this.noteBookManagerService);
     }
 
     
@@ -97,10 +97,8 @@ function createOrGetLogServiceManager(...args: any[]): LogServiceManager {
     return _logServiceManagerInstance;
 }
 
-export let _logServiceManagerInstance: LogServiceManager| null = null;
+let _logServiceManagerInstance: LogServiceManager| null = null;
 
-
-// 用 setInterval来持续check queue里的状态
 /**
  * @internal
  */
@@ -110,7 +108,7 @@ class LogServiceManager {
     private _ongoing: boolean = false;
 
     constructor(
-        @INoteBookManagerService private readonly noteBookManagerService: INoteBookManagerService,
+        private readonly noteBookManagerService: INoteBookManagerService,
     ) {
         this._queue = [];
         setInterval(this.checkQueue.bind(this), 1000);
@@ -137,7 +135,6 @@ class LogServiceManager {
      * @description remove the log that has finished writing, then call next log's startR
      */
     public async processQueue(): Promise<void> {
-        console.log("Reached processQueue");
         try {
             this._ongoing = true;
             const logInfo = this._queue[0]!;
@@ -149,17 +146,11 @@ class LogServiceManager {
                 if (!mdNoteExists) {
                     await createDir(dir, ".mdnote");
                 }  
-                dir = pathJoin(dir, "/.mdnote");
-            }
-            /*if (logInfo.path = LogPathType.APP) {
-                
-            } */else {
-                //dir = "/Users/apple/Desktop/filesForTesting";
-                dir = this.noteBookManagerService.noteBookManagerRootPath;
-                //console.log(dir);
                 dir = pathJoin(dir, ".mdnote");
-                
-                console.log(dir);
+            } else {
+                dir = this.noteBookManagerService.noteBookManagerRootPath;
+                console.log(this.noteBookManagerService);
+                dir = pathJoin(dir, ".mdnote");
             }
             
             
