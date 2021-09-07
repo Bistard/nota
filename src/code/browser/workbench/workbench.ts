@@ -5,13 +5,13 @@ import { EditorComponent, IEditorService } from "src/code/browser/workbench/edit
 import { INoteBookManagerService, LOCAL_MDNOTE_DIR_NAME, NoteBookManager } from "src/code/common/model/notebookManager";
 import { APP_ROOT_PATH } from "src/base/electron/app";
 import { ipcRendererOn, ipcRendererSend } from "src/base/electron/register";
-import { ConfigService, DEFAULT_CONFIG_FILE_NAME, DEFAULT_CONFIG_PATH, GLOBAL_CONFIG_FILE_NAME, GLOBAL_CONFIG_PATH, LOCAL_CONFIG_FILE_NAME } from "src/code/common/service/configService";
+import { ConfigService, DEFAULT_CONFIG_FILE_NAME, DEFAULT_CONFIG_PATH, GLOBAL_CONFIG_FILE_NAME, GLOBAL_CONFIG_PATH, LOCAL_CONFIG_FILE_NAME } from "src/code/common/service/configService/configService";
 import { pathJoin } from "src/base/common/string";
 import { ContextMenuService, IContextMenuService } from 'src/code/browser/service/contextMenuService';
 import { IInstantiationService } from "src/code/common/service/instantiation/instantiation";
 import { ServiceDescriptor } from "src/code/common/service/instantiation/descriptor";
 import { ComponentService } from "src/code/browser/service/componentService";
-import { GlobalConfigService } from "src/code/common/service/globalConfigService";
+import { GlobalConfigService } from "src/code/common/service/configService/globalConfigService";
 import { ExplorerViewComponent, IExplorerViewService } from "src/code/browser/workbench/actionView/explorer/explorer";
 import { getSingletonServiceDescriptors, registerSingleton } from "src/code/common/service/instantiation/serviceCollection";
 

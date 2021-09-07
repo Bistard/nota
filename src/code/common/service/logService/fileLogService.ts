@@ -1,4 +1,4 @@
-import { ILogService, LogInfo, LogPathType, LogService } from "src/code/common/service/logService";
+import { ILogService, LogInfo, LogPathType, LogService } from "src/code/common/service/logService/logService";
 import { INoteBookManagerService } from "src/code/common/model/notebookManager";
 import { createDecorator } from "src/code/common/service/instantiation/decorator";
 
