@@ -57,14 +57,18 @@ export class NoteBookManager implements INoteBookManagerService {
      * @param appRootPath app root dir eg. D:\dev\MarkdownNote
      */
     public async init(appRootPath: string): Promise<void> {
+
         try {
             // read global configuration
             await this.readOrCreateGlobalConfigJSON(appRootPath, GLOBAL_CONFIG_FILE_NAME);
 
             if (GlobalConfigService.Instance.startPreviousNoteBookManagerDir) {
-            
+                
                 const prevOpenedPath = GlobalConfigService.Instance.previousNoteBookManagerDir;
+                console.log(prevOpenedPath);
                 if (prevOpenedPath == '') {
+                    const OpenPath = "/Users/apple/Desktop/filesForTesting";
+                    EVENT_EMITTER.emit('EOpenNoteBookManager', OpenPath);
                     // user never opened one before, we ignore this request
                 } else {
                     EVENT_EMITTER.emit('EOpenNoteBookManager', prevOpenedPath);

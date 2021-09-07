@@ -1,6 +1,6 @@
-[error] 0:39:7:function getMilliseconds() { [native code] }
-        Log Message: Error  Found an ERROR! Error: Found an ERROR!
-    at MarkdownComponent.markdownDisplayFile (webpack://markdownnote/./src/code/browser/workbench/editor/markdown/markdown.ts?:225:21)
+[error] 15:25:43:function getMilliseconds() { [native code] }
+        Log Message: Error  No Editor Found! Error: No Editor Found!
+    at MarkdownComponent.markdownDisplayFile (webpack://markdownnote/./src/code/browser/workbench/editor/markdown/markdown.ts?:227:21)
     at eval (webpack://markdownnote/./src/code/browser/workbench/editor/markdown/markdown.ts?:116:83)
     at eval (webpack://markdownnote/./src/base/common/event.ts?:21:38)
     at Array.forEach (<anonymous>)

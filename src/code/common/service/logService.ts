@@ -5,7 +5,7 @@ import { APP_ROOT_PATH } from "src/base/electron/app";
 import { isDirExisted, createDir, writeToFile } from "src/base/node/io";
 import { pathJoin } from "src/base/common/string";
 import { INoteBookManagerService } from "src/code/common/model/notebookManager";
-
+import { GlobalConfigService } from "src/code/common/service/globalConfigService";
 enum LogLevel {
     TRACE,
     DEBUG,
@@ -110,7 +110,7 @@ class LogServiceManager {
     private _ongoing: boolean = false;
 
     constructor(
-        private readonly noteBookManagerService: INoteBookManagerService,
+        @INoteBookManagerService private readonly noteBookManagerService: INoteBookManagerService,
     ) {
         this._queue = [];
         setInterval(this.checkQueue.bind(this), 1000);
@@ -125,23 +125,7 @@ class LogServiceManager {
         if (!this.isEmpty() && !this._ongoing) {
             this.processQueue();
         }
-        //setInterval(this.processQueue(), 1000);
     }
-
-    
-    // public pop():void {
-    //     // const item = this._logServices.pop()!;
-    //     // const service = item.service;
-    //     // switch (item.type) {
-    //     //     case 'fino':
-                
-    //     //         break;
-        
-    //     //     default:
-    //     //         break;
-    //     // }
-    //     // service.info(item.message);
-    // }
 
 
     // add a new logService to _logServices
@@ -159,16 +143,22 @@ class LogServiceManager {
             const logInfo = this._queue[0]!;
             
             let dir: string;
-            if (logInfo.path = LogPathType.APP) {
-                dir = APP_ROOT_PATH;   
-            } else {
+            if (GlobalConfigService.Instance.defaultConfigOn) {
+                dir = APP_ROOT_PATH; 
+                const mdNoteExists = await isDirExisted(dir, ".mdnote");
+                if (!mdNoteExists) {
+                    await createDir(dir, ".mdnote");
+                }  
+                dir = pathJoin(dir, "/.mdnote");
+            }
+            /*if (logInfo.path = LogPathType.APP) {
+                
+            } */else {
                 dir = this.noteBookManagerService.noteBookManagerRootPath;
                 console.log(dir);
             }
             
-            console.log(APP_ROOT_PATH);
             
-
             const res = await isDirExisted(dir, "log");
             if (!res) {
                 await createDir(dir, "log");
