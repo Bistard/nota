@@ -54,7 +54,10 @@ export class Workbench extends Component {
         this.instantiationService.register(IContextMenuService, new ServiceDescriptor(ContextMenuService));
 
         // NoteBookManagerService
-        this.instantiationService.register(INoteBookManagerService, new ServiceDescriptor(NoteBookManager));
+        this._noteBookManager = new NoteBookManager();
+        this._noteBookManager.init(APP_ROOT_PATH);
+        
+        this.instantiationService.register(INoteBookManagerService, this._noteBookManager);
 
     }
 
@@ -62,9 +65,6 @@ export class Workbench extends Component {
      * @description calls 'create()' and '_registerListeners()' for each component.
      */
     protected override _createContent(): void {
-        this._noteBookManager = this.instantiationService.createInstance(NoteBookManager);
-        this._noteBookManager.init(APP_ROOT_PATH);
-        
         
         this.actionBarComponent = this.instantiationService.createInstance(ActionBarComponent, this);
         this.actionViewComponent = this.instantiationService.createInstance(ActionViewComponent, this);
