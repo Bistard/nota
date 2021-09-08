@@ -111,6 +111,7 @@ class Main {
                     {
                         /* defaultPath: app.getPath('desktop'), */
                         defaultPath: 'D:\\dev\\AllNote',
+                        //defaultPath: '/Users/apple/markdownNote_latest/forTestingOnly',
                         buttonLabel: 'open a file or folder',
                         properties: [
                             'openDirectory',

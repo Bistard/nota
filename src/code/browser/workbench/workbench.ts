@@ -53,10 +53,9 @@ export class Workbench extends Component {
         // ContextMenuService
         this.instantiationService.register(IContextMenuService, new ServiceDescriptor(ContextMenuService));
 
-        // NoteBookManagerService
+        // NoteBookManagerService (async)
         this._noteBookManager = new NoteBookManager();
         this._noteBookManager.init(APP_ROOT_PATH);
-        
         this.instantiationService.register(INoteBookManagerService, this._noteBookManager);
 
     }
@@ -92,7 +91,7 @@ export class Workbench extends Component {
         ipcRendererOn('closingApp', () => {
             
             // save global configuration first
-            GlobalConfigService.Instance.previousNoteBookManagerDir = this._noteBookManager.noteBookManagerRootPath;
+            GlobalConfigService.Instance.previousNoteBookManagerDir = this._noteBookManager.getRootPath();
             GlobalConfigService.Instance.writeToJSON(GLOBAL_CONFIG_PATH, GLOBAL_CONFIG_FILE_NAME)
             .then(() => {
                 // save local or default configuration
@@ -103,7 +102,7 @@ export class Workbench extends Component {
                     );
                 }
                 return ConfigService.Instance.writeToJSON(
-                    pathJoin(this._noteBookManager.noteBookManagerRootPath, LOCAL_MDNOTE_DIR_NAME), 
+                    pathJoin(this._noteBookManager.getRootPath(), LOCAL_MDNOTE_DIR_NAME), 
                     LOCAL_CONFIG_FILE_NAME
                 );
             })

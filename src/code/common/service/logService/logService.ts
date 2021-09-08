@@ -4,8 +4,8 @@ import { format } from "path/posix";
 import { APP_ROOT_PATH } from "src/base/electron/app";
 import { isDirExisted, createDir, writeToFile } from "src/base/node/io";
 import { pathJoin } from "src/base/common/string";
-import { INoteBookManagerService } from "src/code/common/model/notebookManager";
-
+import { INoteBookManagerService, NoteBookManager } from "src/code/common/model/notebookManager";
+import { GlobalConfigService } from "src/code/common/service/globalConfigService";
 enum LogLevel {
     TRACE,
     DEBUG,
@@ -54,9 +54,9 @@ export abstract class LogService implements ILogService {
 
     // solves singletion problem, so we always have at most one LogServiceManager when we create a logService
     constructor(
-        protected readonly _noteBookManagerService: INoteBookManagerService,
+        @INoteBookManagerService protected readonly noteBookManagerService: INoteBookManagerService,
     ) {
-        this._logServiceManager = createOrGetLogServiceManager(this._noteBookManagerService);
+        this._logServiceManager = createOrGetLogServiceManager(this.noteBookManagerService);
     }
 
     
@@ -97,22 +97,19 @@ function createOrGetLogServiceManager(...args: any[]): LogServiceManager {
     return _logServiceManagerInstance;
 }
 
-export let _logServiceManagerInstance: LogServiceManager| null = null;
+let _logServiceManagerInstance: LogServiceManager| null = null;
 
-
-// 用 setInterval来持续check queue里的状态
 /**
  * @internal
  */
 class LogServiceManager {
     
-    private _queue: LogInfo[]; 
+    private _queue: LogInfo[] = [];
     private _ongoing: boolean = false;
 
     constructor(
-        private readonly noteBookManagerService: INoteBookManagerService,
+        @INoteBookManagerService private readonly noteBookManagerService: INoteBookManagerService,
     ) {
-        this._queue = [];
         setInterval(this.checkQueue.bind(this), 1000);
     }
 
@@ -120,29 +117,11 @@ class LogServiceManager {
         return !this._queue.length;
     }
 
-
     public checkQueue(): void {
         if (!this.isEmpty() && !this._ongoing) {
             this.processQueue();
         }
-        //setInterval(this.processQueue(), 1000);
     }
-
-    
-    // public pop():void {
-    //     // const item = this._logServices.pop()!;
-    //     // const service = item.service;
-    //     // switch (item.type) {
-    //     //     case 'fino':
-                
-    //     //         break;
-        
-    //     //     default:
-    //     //         break;
-    //     // }
-    //     // service.info(item.message);
-    // }
-
 
     // add a new logService to _logServices
     public pushLogInfo(logInfo: LogInfo): void {
@@ -153,25 +132,30 @@ class LogServiceManager {
      * @description remove the log that has finished writing, then call next log's startR
      */
     public async processQueue(): Promise<void> {
-        
         try {
             this._ongoing = true;
             const logInfo = this._queue[0]!;
             
             let dir: string;
-            if (logInfo.path = LogPathType.APP) {
-                dir = APP_ROOT_PATH;
+            if (GlobalConfigService.Instance.defaultConfigOn) {
+                dir = APP_ROOT_PATH; 
+                const mdNoteExists = await isDirExisted(dir, ".mdnote");
+                if (!mdNoteExists) {
+                    await createDir(dir, ".mdnote");
+                }  
             } else {
-                dir = this.noteBookManagerService.noteBookManagerRootPath;
+                // dir = this.noteBookManagerService.getRootPath();
+                dir = NoteBookManager.rootPath;
             }
-
+            
+            dir = pathJoin(dir, ".mdnote");
             const res = await isDirExisted(dir, "log");
-            if (res) {
+            if (!res) {
                 await createDir(dir, "log");
             }
+            
             const path = pathJoin(dir, "log");
-
-            writeToFile(path, logInfo.date.toISOString().slice(0, 10), logInfo.message)
+            writeToFile(path, logInfo.date.toISOString().slice(0, 10) + '.json', logInfo.message)
             .then(() => {
                 this._queue.shift();
                 this._ongoing = false;

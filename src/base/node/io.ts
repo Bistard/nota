@@ -5,6 +5,7 @@ import * as Path from 'path';
 import { nameIncludeCheckWithRule, getFileType, pathJoin } from 'src/base/common/string';
 import { FileType } from 'src/base/common/file/file';
 import { FileNode } from 'src/base/node/fileTree';
+import { IFileLogService } from "src/code/common/service/fileLogService";
 
 /*******************************************************************************
  *                              file related code
@@ -53,6 +54,7 @@ export async function readMarkdownFile(
     });
 }
 
+
 /**
  * @description synchronously reads .md file and stores the text into FileNode.
  * 
@@ -60,7 +62,7 @@ export async function readMarkdownFile(
  */
  export function readMarkdownFileSync(
      nodeInfo: FileNode, 
-     opt: readMarkdownFileOption): void 
+     opt: readMarkdownFileOption): void    
 {
     if (!nodeInfo || nodeInfo.isFolder) {
         throw 'given wrong nodeInfo or it is a folder';
@@ -68,6 +70,9 @@ export async function readMarkdownFile(
         // do log here
         return;
     }
+
+    // const err = new Error("Found an error");
+    // this.fileLogService.error(err);
     
     nodeInfo.file!.plainText = fs.readFileSync(nodeInfo.path, opt);
 }

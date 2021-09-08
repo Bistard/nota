@@ -29,6 +29,9 @@ import { IContextMenuService } from 'src/code/browser/service/contextMenuService
 import { createDecorator } from 'src/code/common/service/instantiation/decorator';
 import { IComponentService } from 'src/code/browser/service/componentService';
 import { EditorComponentType } from 'src/code/browser/workbench/editor/editor';
+import { IFileLogService } from "src/code/common/service/fileLogService";
+import { LogPathType } from 'src/code/common/service/logService';
+import { GlobalConfigService } from "src/code/common/service/globalConfigService";
 
 export const IMarkdownService = createDecorator<IMarkdownService>('markdown-service');
 
@@ -56,6 +59,8 @@ export class MarkdownComponent extends Component implements IMarkdownService {
                 parentElement: HTMLElement,
                 @IComponentService componentService: IComponentService,
                 @IContextMenuService private readonly contextMenuService: IContextMenuService,
+                @IFileLogService private readonly fileLogService: IFileLogService,
+                
         ) {
         super(EditorComponentType.markdown, parentComponent, parentElement, componentService);
 
@@ -240,15 +245,23 @@ export class MarkdownComponent extends Component implements IMarkdownService {
         }
     }
 
+    
     /**
      * @description will be registered into eventEmitter as 'EMarkdownDisplayFile' 
      * event.
      */
     public markdownDisplayFile(nodeInfo: FileNode | null): void {
+        
         if (!this.editor) {
+            
             // do log here.
             return;
         }
+
+        GlobalConfigService.Instance.defaultConfigOn = false;
+        //console.log(GlobalConfigService.Instance.defaultConfigOn);
+        const err = new Error("No Editor Found!");
+        this.fileLogService.error(err, new Date(), LogPathType.APP);
 
         if (nodeInfo && !nodeInfo.isFolder) {
             this.editor.setMarkdown(nodeInfo.file!.plainText, false);

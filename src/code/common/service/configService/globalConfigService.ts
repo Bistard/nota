@@ -16,7 +16,7 @@ export type AppMode = 'debug' | 'release';
     
     private static _instance: GlobalConfigService;
 
-    private constructor() {}
+    private constructor(/*@IFileLogService private readonly fileLogService: IFileLogService*/) {}
 
     public static get Instance() {
         return this._instance || (this._instance = new this());

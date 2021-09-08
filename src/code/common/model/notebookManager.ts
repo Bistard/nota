@@ -14,11 +14,11 @@ export interface INoteBookManagerService {
 
     readonly noteBookMap: Map<string, NoteBook>;
     readonly noteBookConfig: Object;
-    noteBookManagerRootPath: string;
     mdNoteFolderFound: boolean;
 
     init(appRootPath: string): Promise<void>;
     open(path: string): Promise<void>;
+    getRootPath(): string;
     addExistedNoteBook(noteBook: NoteBook): void;
     getExistedNoteBook(noteBookName: string): NoteBook | null;
     readOrCreateConfigJSON(path: string, configNameWtihType: string): Promise<void>;
@@ -38,7 +38,8 @@ export class NoteBookManager implements INoteBookManagerService {
 
     public static focusedFileNode: HTMLElement | null = null;
 
-    public noteBookManagerRootPath: string = '';
+    public static rootPath: string;
+    private _noteBookManagerRootPath: string = '';
 
     // not used
     public mdNoteFolderFound: boolean;
@@ -57,14 +58,17 @@ export class NoteBookManager implements INoteBookManagerService {
      * @param appRootPath app root dir eg. D:\dev\MarkdownNote
      */
     public async init(appRootPath: string): Promise<void> {
+
         try {
             // read global configuration
             await this.readOrCreateGlobalConfigJSON(appRootPath, GLOBAL_CONFIG_FILE_NAME);
 
             if (GlobalConfigService.Instance.startPreviousNoteBookManagerDir) {
-            
+                
                 const prevOpenedPath = GlobalConfigService.Instance.previousNoteBookManagerDir;
                 if (prevOpenedPath == '') {
+                    // const OpenPath = "/Users/apple/Desktop/filesForTesting";
+                    // EVENT_EMITTER.emit('EOpenNoteBookManager', OpenPath);
                     // user never opened one before, we ignore this request
                 } else {
                     EVENT_EMITTER.emit('EOpenNoteBookManager', prevOpenedPath);
@@ -86,7 +90,8 @@ export class NoteBookManager implements INoteBookManagerService {
      */
     public async open(path: string): Promise<void> {
         try {
-            this.noteBookManagerRootPath = path;
+            this._noteBookManagerRootPath = path;
+            NoteBookManager.rootPath = path;
             
             // get valid NoteBook names in the given dir
             const noteBooks: string[] = await dirFilter(
@@ -106,7 +111,6 @@ export class NoteBookManager implements INoteBookManagerService {
             
             // try to find .mdnote
             const isExisted = await isDirExisted(path, LOCAL_MDNOTE_DIR_NAME);
-            
             if (isExisted) {
                 await this._importNoteBookConfig();
             } else {
@@ -133,7 +137,7 @@ export class NoteBookManager implements INoteBookManagerService {
     private async _importNoteBookConfig(): Promise<void> {
         
         try {
-            const ROOT = pathJoin(this.noteBookManagerRootPath, LOCAL_MDNOTE_DIR_NAME);
+            const ROOT = pathJoin(this._noteBookManagerRootPath, LOCAL_MDNOTE_DIR_NAME);
         
             // check validation for the .mdnote structure
             await this._validateNoteBookConfig();
@@ -183,7 +187,7 @@ export class NoteBookManager implements INoteBookManagerService {
     private async _createNoteBookConfig(): Promise<void> {
         try {
             // init folder structure
-            const ROOT = await createDir(this.noteBookManagerRootPath, LOCAL_MDNOTE_DIR_NAME);
+            const ROOT = await createDir(this._noteBookManagerRootPath, LOCAL_MDNOTE_DIR_NAME);
             
             await createDir(ROOT, 'structure');
             await createDir(ROOT, 'log');
@@ -220,7 +224,7 @@ export class NoteBookManager implements INoteBookManagerService {
      */
     private async _validateNoteBookConfig(): Promise<void> {
         try {
-            const ROOT = pathJoin(this.noteBookManagerRootPath, LOCAL_MDNOTE_DIR_NAME);
+            const ROOT = pathJoin(this._noteBookManagerRootPath, LOCAL_MDNOTE_DIR_NAME);
             if (await isDirExisted(ROOT, 'structure') === false) {
                 await createDir(ROOT, 'structure');
             }
@@ -293,11 +297,15 @@ export class NoteBookManager implements INoteBookManagerService {
      */
     private async _noteBookWriteToJSON(notebook: NoteBook, name: string): Promise<void> {
         try {
-            const rootpath = pathJoin(this.noteBookManagerRootPath, LOCAL_MDNOTE_DIR_NAME, 'structure');
+            const rootpath = pathJoin(this._noteBookManagerRootPath, LOCAL_MDNOTE_DIR_NAME, 'structure');
             await createFile(rootpath, name + '.json', notebook.toJSON());
         } catch(err) {
             throw err;
         }
+    }
+
+    public getRootPath(): string {
+        return this._noteBookManagerRootPath;
     }
 
 }

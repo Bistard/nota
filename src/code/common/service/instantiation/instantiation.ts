@@ -15,9 +15,9 @@ export interface IInstantiationService {
      * ServiceDescriptor for delaying instantiation.
      * 
      * @param serviceIdentifier decorator to the service which is created by createDecorator()
-     * @param ctorOrDescriptor constructor or ServiceDescriptor of the service
+     * @param instanceOrDescriptor instance or ServiceDescriptor of the service
      */
-    register<T>(serviceIdentifier: ServiceIdentifier<T>, ctorOrDescriptor: T | ServiceDescriptor<T>): void;
+    register<T>(serviceIdentifier: ServiceIdentifier<T>, instanceOrDescriptor: T | ServiceDescriptor<T>): void;
 
     /**
      * @description try to get the instance of the service (if not, this will 
@@ -117,7 +117,7 @@ export class InstantiationService implements IInstantiationService {
             const currDependency: dependencyNode = stack.pop()!;
             dependencyGraph.getOrInsertNode(currDependency);
 
-            const dependencies = _ServiceUtil.getServiceDependencies(currDependency.id);
+            const dependencies = _ServiceUtil.getServiceDependencies(currDependency.desc.ctor);
             for (const subDependency of dependencies) {
                 
                 const instanceOrDesc = this.serviceCollections.get(subDependency.id);

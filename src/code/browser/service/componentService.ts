@@ -1,5 +1,7 @@
 import { createDecorator } from "src/code/common/service/instantiation/decorator";
 import { IComponent } from "src/code/browser/workbench/component";
+import { IFileLogService } from "src/code/common/service/fileLogService";
+import { LogPathType } from "src/code/common/service/logService";
 
 export const IComponentService = createDecorator<IComponentService>('component-service');
 
@@ -25,7 +27,9 @@ export class ComponentService {
     public register(component: IComponent, force?: boolean): void {
         if (this._componentMap.has(component.getId()) && force === false) {
             // do log her
-            throw Error('component has been already registered');
+            const err = Error("Found an ERROR!");
+            //this.fileLogService.error(err, new Date(), LogPathType.NOTEBOOKMANAGER);
+            //throw Error('component has been already registered');
         }
         this._componentMap.set(component.getId(), component);
     }
