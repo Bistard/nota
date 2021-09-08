@@ -29,9 +29,9 @@ import { IContextMenuService } from 'src/code/browser/service/contextMenuService
 import { createDecorator } from 'src/code/common/service/instantiationService/decorator';
 import { IComponentService } from 'src/code/browser/service/componentService';
 import { EditorComponentType } from 'src/code/browser/workbench/editor/editor';
-import { IFileLogService } from "src/code/common/service/fileLogService";
-import { LogPathType } from 'src/code/common/service/logService';
-import { GlobalConfigService } from "src/code/common/service/globalConfigService";
+import { IFileLogService } from 'src/code/common/service/logService/fileLogService';
+import { LogPathType } from 'src/code/common/service/logService/logService';
+import { GlobalConfigService } from 'src/code/common/service/configService/globalConfigService';
 
 export const IMarkdownService = createDecorator<IMarkdownService>('markdown-service');
 

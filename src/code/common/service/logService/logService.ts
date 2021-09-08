@@ -5,7 +5,8 @@ import { APP_ROOT_PATH } from "src/base/electron/app";
 import { isDirExisted, createDir, writeToFile } from "src/base/node/io";
 import { pathJoin } from "src/base/common/string";
 import { INoteBookManagerService, NoteBookManager } from "src/code/common/model/notebookManager";
-import { GlobalConfigService } from "src/code/common/service/globalConfigService";
+import { GlobalConfigService } from "src/code/common/service/configService/globalConfigService";
+
 enum LogLevel {
     TRACE,
     DEBUG,
