@@ -1,5 +1,5 @@
-import { ServiceDescriptor } from "src/code/common/service//instantiation/descriptor";
-import { ServiceIdentifier } from "src/code/common/service/instantiation/decorator";
+import { ServiceDescriptor } from "src/code/common/service/instantiationService/descriptor";
+import { ServiceIdentifier } from "src/code/common/service/instantiationService/decorator";
 
 export class ServiceCollection {
 

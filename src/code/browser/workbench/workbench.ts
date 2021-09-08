@@ -8,12 +8,12 @@ import { ipcRendererOn, ipcRendererSend } from "src/base/electron/register";
 import { ConfigService, DEFAULT_CONFIG_FILE_NAME, DEFAULT_CONFIG_PATH, GLOBAL_CONFIG_FILE_NAME, GLOBAL_CONFIG_PATH, LOCAL_CONFIG_FILE_NAME } from "src/code/common/service/configService/configService";
 import { pathJoin } from "src/base/common/string";
 import { ContextMenuService, IContextMenuService } from 'src/code/browser/service/contextMenuService';
-import { IInstantiationService } from "src/code/common/service/instantiation/instantiation";
-import { ServiceDescriptor } from "src/code/common/service/instantiation/descriptor";
+import { IInstantiationService } from "src/code/common/service/instantiationService/instantiation";
+import { ServiceDescriptor } from "src/code/common/service/instantiationService/descriptor";
 import { ComponentService } from "src/code/browser/service/componentService";
 import { GlobalConfigService } from "src/code/common/service/configService/globalConfigService";
 import { ExplorerViewComponent, IExplorerViewService } from "src/code/browser/workbench/actionView/explorer/explorer";
-import { getSingletonServiceDescriptors, registerSingleton } from "src/code/common/service/instantiation/serviceCollection";
+import { getSingletonServiceDescriptors, registerSingleton } from "src/code/common/service/instantiationService/serviceCollection";
 
 // ActionBarService
 registerSingleton(IActionBarService, new ServiceDescriptor(ActionBarComponent));

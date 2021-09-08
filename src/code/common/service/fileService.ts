@@ -1,5 +1,5 @@
 import { IFileSystemProvider } from "src/base/common/file/file";
-import { createDecorator } from "src/code/common/service/instantiation/decorator";
+import { createDecorator } from "src/code/common/service/instantiationService/decorator";
 
 export const IFileService = createDecorator<IFileService>('file-service');
 

@@ -4,7 +4,7 @@ import { ConfigService, DEFAULT_CONFIG_FILE_NAME, DEFAULT_CONFIG_PATH, GLOBAL_CO
 import { createDir, createFile, dirFilter, isDirExisted, isFileExisted } from "src/base/node/io";
 import { NoteBook } from "src/code/common/model/notebook";
 import { GlobalConfigService } from "src/code/common/service/configService/globalConfigService";
-import { createDecorator } from "src/code/common/service/instantiation/decorator";
+import { createDecorator } from "src/code/common/service/instantiationService/decorator";
 
 export const LOCAL_MDNOTE_DIR_NAME = '.mdnote';
 
