@@ -18,7 +18,7 @@ import 'prismjs/components/prism-java';
 
 // @toast-ui-plugin: color syntax 
 import colorSyntax from '@toast-ui/editor-plugin-color-syntax';
-import { ConfigService } from 'src/code/common/service/configService';
+import { ConfigService } from 'src/code/common/service/configService/configService';
 import { FileNode } from 'src/base/node/fileTree';
 import { Component, IComponent } from 'src/code/browser/workbench/component';
 import { EVENT_EMITTER } from 'src/base/common/event';
