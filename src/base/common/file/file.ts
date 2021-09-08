@@ -133,16 +133,16 @@ export const enum FileSystemProviderCapability {
  *                        InMemoryFileSystemProvider
  ******************************************************************************/
 
-export class InMemoryFileSystemProvider implements IFileSystemProviderWithFileReadWrite {
+// export class InMemoryFileSystemProvider implements IFileSystemProviderWithFileReadWrite {
 
-	public readonly capabilities = 
-		FileSystemProviderCapability.FileReadWrite |
-		FileSystemProviderCapability.PathCaseSensitive;
+// 	public readonly capabilities = 
+// 		FileSystemProviderCapability.FileReadWrite |
+// 		FileSystemProviderCapability.PathCaseSensitive;
 	
-	public readonly root: Directory = new Directory('');
+// 	public readonly root: Directory = new Directory('');
 
-	constructor() {}
+// 	constructor() {}
 
 	
 
-}
+// }
