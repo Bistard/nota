@@ -3,7 +3,7 @@ import * as fs from 'fs';
 import * as Path from 'path';
 import { EVENT_EMITTER } from 'src/base/common/event';
 import { NoteBookManager } from 'src/code/common/model/notebookManager';
-import { File } from 'src/base/node/file';
+import { File } from 'src/base/common/file';
 
 /**
  * @description the object is to store and maintain the data for each 
