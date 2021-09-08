@@ -6,7 +6,7 @@ import { TabBarComponent } from "src/code/browser/workbench/editor/tabBar/tabBar
 import { TitleBarComponent } from "src/code/browser/workbench/editor/titleBar/titleBar";
 import { INoteBookManagerService } from "src/code/common/model/notebookManager";
 import { IFileLogService } from "src/code/common/service/fileLogService";
-import { createDecorator } from "src/code/common/service/instantiation/decorator";
+import { createDecorator } from "src/code/common/service/instantiationService/decorator";
 
 export enum EditorComponentType {
     titleBar = 'title-bar',

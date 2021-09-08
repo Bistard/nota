@@ -4,7 +4,7 @@ import { ActionViewType } from 'src/code/browser/workbench/actionView/actionView
 import { Component, ComponentType, IComponent } from 'src/code/browser/workbench/component';
 import { getSvgPathByName, SvgType } from 'src/base/common/string';
 import { ContextMenuType, Coordinate } from 'src/base/browser/secondary/contextMenu/contextMenu';
-import { createDecorator } from 'src/code/common/service/instantiation/decorator';
+import { createDecorator } from 'src/code/common/service/instantiationService/decorator';
 import { IContextMenuService } from 'src/code/browser/service/contextMenuService';
 import { IComponentService } from 'src/code/browser/service/componentService';
 

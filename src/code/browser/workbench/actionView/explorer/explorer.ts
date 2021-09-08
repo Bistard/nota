@@ -7,7 +7,7 @@ import { INoteBookManagerService } from 'src/code/common/model/notebookManager';
 import { IComponentService } from 'src/code/browser/service/componentService';
 import { ContextMenuType, Coordinate } from 'src/base/browser/secondary/contextMenu/contextMenu';
 import { IContextMenuService } from 'src/code/browser/service/contextMenuService';
-import { createDecorator } from 'src/code/common/service/instantiation/decorator';
+import { createDecorator } from 'src/code/common/service/instantiationService/decorator';
 
 export const IExplorerViewService = createDecorator<IExplorerViewService>('explorer-view-service');
 

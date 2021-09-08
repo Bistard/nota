@@ -1,7 +1,7 @@
-import { ServiceDescriptor } from "src/code/common/service/instantiation/descriptor";
-import { createDecorator, ServiceIdentifier } from "src/code/common/service/instantiation/decorator";
-import { InstantiationService } from "src/code/common/service/instantiation/instantiation";
-import { ServiceCollection } from "src/code/common/service/instantiation/serviceCollection";
+import { ServiceDescriptor } from "src/code/common/service/instantiationService/descriptor";
+import { createDecorator, ServiceIdentifier } from "src/code/common/service/instantiationService/decorator";
+import { InstantiationService } from "src/code/common/service/instantiationService/instantiation";
+import { ServiceCollection } from "src/code/common/service/instantiationService/serviceCollection";
 
 ////////////////////////////////////////////////////////////////////////////////
 

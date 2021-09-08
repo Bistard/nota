@@ -1,4 +1,4 @@
-import { createDecorator } from "src/code/common/service/instantiation/decorator";
+import { createDecorator } from "src/code/common/service/instantiationService/decorator";
 import { IComponent } from "src/code/browser/workbench/component";
 import { IFileLogService } from "src/code/common/service/fileLogService";
 import { LogPathType } from "src/code/common/service/logService";

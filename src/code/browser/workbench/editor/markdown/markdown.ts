@@ -26,7 +26,7 @@ import { MarkdownRenderMode } from 'mdnote';
 import { getSvgPathByName, SvgType } from 'src/base/common/string';
 import { ContextMenuType, Coordinate } from 'src/base/browser/secondary/contextMenu/contextMenu';
 import { IContextMenuService } from 'src/code/browser/service/contextMenuService';
-import { createDecorator } from 'src/code/common/service/instantiation/decorator';
+import { createDecorator } from 'src/code/common/service/instantiationService/decorator';
 import { IComponentService } from 'src/code/browser/service/componentService';
 import { EditorComponentType } from 'src/code/browser/workbench/editor/editor';
 import { IFileLogService } from "src/code/common/service/fileLogService";
