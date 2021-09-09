@@ -14,3 +14,6 @@ import * as os from 'os';
  * The return value is equivalent to `process.platform`.
  */
 export const OPERATOR_SYSTEM = os.platform();
+
+export const IS_WINDOWS = OPERATOR_SYSTEM === 'win32';
+export const IS_LINUX = OPERATOR_SYSTEM === 'linux';
