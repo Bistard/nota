@@ -1,7 +1,7 @@
 import { getSvgPathByName, SvgType } from 'src/base/common/string';
 import { Component, ComponentType, IComponent } from 'src/code/browser/workbench/component';
 import { ExplorerViewComponent } from "src/code/browser/workbench/actionView/explorer/explorer";
-import { EVENT_EMITTER } from 'src/base/common/event';
+import { Emitter, EVENT_EMITTER, EVENT_EMITTER_TEST } from 'src/base/common/event';
 import { createDecorator } from 'src/code/common/service/instantiationService/decorator';
 import { IComponentService } from 'src/code/browser/service/componentService';
 import { IContextMenuService } from 'src/code/browser/service/contextMenuService';
@@ -86,7 +86,10 @@ export class ActionViewComponent extends Component implements IActionViewService
 
         this.explorerViewComponent.registerListeners();
 
+        EVENT_EMITTER_TEST.event(this.closeActionView)
+ 
         EVENT_EMITTER.register('EOnActionViewChange', (name) => this.onActionViewChange(name));
+
         EVENT_EMITTER.register('EOnActionViewOpen', () => this.openActionView());
         EVENT_EMITTER.register('EOnActionViewClose', () => this.closeActionView());
 

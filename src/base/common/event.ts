@@ -1,4 +1,3 @@
-import { listeners } from "process";
 import { LinkedList } from "./linkedList";
 
 export interface IEventEmitter {
@@ -83,8 +82,7 @@ export class Emitter<T> {
 					this._listeners = new LinkedList();
 				};
 
-				// remove is used to dispose event listeners
-                const remove = this._listeners.push(!thisArgs ? listener : [listener, thisArgs]);
+                this._listeners.push(!thisArgs ? listener : [listener, thisArgs]);
 
 				if (this._options && this._options.onListenerDidAdd) {
 					this._options.onListenerDidAdd(this, listener, thisArgs);
@@ -113,6 +111,8 @@ export class Emitter<T> {
 
 			while (this._deliveryQueue.size > 0) {
 				const [listener, event] = this._deliveryQueue.shift()!;
+                console.log(listener)
+                console.log(event)
 				try {
 					if (typeof listener === 'function') {
 						listener.call(undefined, event);
@@ -131,3 +131,4 @@ export class Emitter<T> {
 
 
 export const EVENT_EMITTER = new EventEmitter();
+export const EVENT_EMITTER_TEST = new Emitter<void>();

@@ -1,5 +1,5 @@
 import { Button, IButton } from 'src/base/browser/basic/button';
-import { EVENT_EMITTER } from 'src/base/common/event';
+import { Emitter, EVENT_EMITTER, EVENT_EMITTER_TEST } from 'src/base/common/event';
 import { ActionViewType } from 'src/code/browser/workbench/actionView/actionView';
 import { Component, ComponentType, IComponent } from 'src/code/browser/workbench/component';
 import { getSvgPathByName, SvgType } from 'src/base/common/string';
@@ -125,6 +125,8 @@ export class ActionBarComponent extends Component implements IActionBarService {
         // switch to the action view
         EVENT_EMITTER.emit('EOnActionViewChange', actionName);
 
+
+
         // focus the action button and reverse the state of action view
         const clickedBtnIndex = parseInt(clickedBtn.getAttribute('btnNum') as string);
         const actionBtnContainer = clickedBtn.parentNode as HTMLElement;
@@ -134,11 +136,14 @@ export class ActionBarComponent extends Component implements IActionBarService {
             // none of action button is focused, open the action view
             this.currFocusActionBtnIndex = clickedBtnIndex;
             EVENT_EMITTER.emit('EOnActionViewOpen');
+
             clickedBtn.classList.add('action-button-focus');
         } else if (this.currFocusActionBtnIndex == clickedBtnIndex) {
             // if the current focused button is clicked again, close action view.
             this.currFocusActionBtnIndex = -1;
-            EVENT_EMITTER.emit('EOnActionViewClose');
+            //EVENT_EMITTER.emit('EOnActionViewClose');
+            EVENT_EMITTER_TEST.fire()
+
             currBtn.classList.remove('action-button-focus');
         } else if (this.currFocusActionBtnIndex >= 0) {
             // other action button is clicked, only change the style
