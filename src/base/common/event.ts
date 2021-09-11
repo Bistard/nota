@@ -64,10 +64,6 @@ export interface EmitterOptions {
 	onFirstListenerDidAdd?: Function;
 	onListenerDidAdd?: Function;
 	onLastListenerRemove?: Function;
-	leakWarningThreshold?: number;
-
-	/** ONLY enable this during development */
-	_profName?: string
 }
 
 export class Emitter<T> {
@@ -87,17 +83,8 @@ export class Emitter<T> {
 					this._listeners = new LinkedList();
 				};
 
-                const initialListener = this._listeners.isEmpty();
-
-                if (initialListener && this._options && this._options.onFirstListenerAdd) {
-					this._options.onFirstListenerAdd(this);
-				}
-
+				// remove is used to dispose event listeners
                 const remove = this._listeners.push(!thisArgs ? listener : [listener, thisArgs]);
-
-				if (initialListener && this._options && this._options.onFirstListenerDidAdd) {
-					this._options.onFirstListenerDidAdd(this);
-				}
 
 				if (this._options && this._options.onListenerDidAdd) {
 					this._options.onListenerDidAdd(this, listener, thisArgs);
