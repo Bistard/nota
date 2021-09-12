@@ -1,7 +1,7 @@
 import { getSvgPathByName, SvgType } from 'src/base/common/string';
 import { Component, ComponentType, IComponent } from 'src/code/browser/workbench/component';
 import { ExplorerViewComponent } from "src/code/browser/workbench/actionView/explorer/explorer";
-import { Emitter, EVENT_EMITTER, EVENT_EMITTER_TEST } from 'src/base/common/event';
+import { Emitter, EVENT_EMITTER, } from 'src/base/common/event';
 import { createDecorator } from 'src/code/common/service/instantiationService/decorator';
 import { IComponentService } from 'src/code/browser/service/componentService';
 import { IContextMenuService } from 'src/code/browser/service/contextMenuService';
@@ -17,6 +17,10 @@ export enum ActionViewComponentType {
 }
 
 export const IActionViewService = createDecorator<IActionViewService>('action-view-service');
+export const EOnActionViewChange = new Emitter<ActionViewType>();
+export const EOnActionViewOpen = new Emitter<void>();
+export const EOnActionViewClose = new Emitter<void>();
+
 
 export interface IActionViewService extends IComponent {
 
@@ -86,12 +90,11 @@ export class ActionViewComponent extends Component implements IActionViewService
 
         this.explorerViewComponent.registerListeners();
 
-        EVENT_EMITTER_TEST.event(this.closeActionView)
- 
+        EOnActionViewClose.event(this.closeActionView);
+        EOnActionViewChange.event(this.onActionViewChange);
+        EOnActionViewOpen.event(this.openActionView);
+        
         EVENT_EMITTER.register('EOnActionViewChange', (name) => this.onActionViewChange(name));
-
-        EVENT_EMITTER.register('EOnActionViewOpen', () => this.openActionView());
-        EVENT_EMITTER.register('EOnActionViewClose', () => this.closeActionView());
 
     }
 
@@ -141,7 +144,7 @@ export class ActionViewComponent extends Component implements IActionViewService
         if (actionViewName === this.whichActionView) {
             return;
         }
-        
+        console.log(typeof actionViewName)
         this.actionViewTopTextOnChange(actionViewName);
         this.hideActionViewContent();
         

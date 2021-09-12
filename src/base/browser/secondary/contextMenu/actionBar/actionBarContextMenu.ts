@@ -4,6 +4,7 @@ import { IContextMenuService } from "src/code/browser/service/contextMenuService
 import { IActionBarOptions, IActionBarService } from "src/code/browser/workbench/actionBar/actionBar";
 import { EVENT_EMITTER } from "src/base/common/event";
 import { IButton } from "src/base/browser/basic/button";
+import { EOnActionViewClose, EOnActionViewOpen } from "src/code/browser/workbench/actionView/actionView";
 
 const actionBarOpts: IActionBarOptions = { 
     options: [true, true, true, true],
@@ -72,13 +73,15 @@ export class ActionBarContextMenu extends ContextMenu implements IContextMenu {
         
         if (activeBtnCount === 0) {
             actionBarService.modifyFocusIndex(-1);
-            EVENT_EMITTER.emit('EOnActionViewClose');
+            //EVENT_EMITTER.emit('EOnActionViewClose');
+            EOnActionViewClose.fire()
             currFocusBtn.classList.remove('action-button-focus'); 
         } else if (activeBtnCount == 1) {
             // reaches when re-displaying actionBarButton
             const i = activeBtnIndex[0]!;
             actionBarService.modifyFocusIndex(i);
-            EVENT_EMITTER.emit('EOnActionViewOpen');
+            //EVENT_EMITTER.emit('EOnActionViewOpen');
+            EOnActionViewOpen.fire()
             const checkedBtn = actionBtnContainer.children[i] as HTMLElement;
             checkedBtn.classList.add('action-button-focus');
             EVENT_EMITTER.emit('EOnActionViewChange', actionBarOpts.id[i]);  
