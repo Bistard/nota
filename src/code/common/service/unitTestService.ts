@@ -35,12 +35,7 @@ export class UnitTestService implements IUnitTestService {
 
     public importModules(newModules: string[] = []): void {
         for (const module of newModules) {
-            import(
-                /* webpackChunkName: "my-chunk-name" */
-                /* webpackMode: "lazy" */
-                /* webpackExports: ["default", "named"] */
-                module
-            );
+            // import(module);
             this.modules.push(module);
         }
         
@@ -49,21 +44,11 @@ export class UnitTestService implements IUnitTestService {
         }
 
         for (const module of this.modules) {
-            import(
-                /* webpackChunkName: "my-chunk-name" */
-                /* webpackMode: "lazy" */
-                /* webpackExports: ["default", "named"] */
-                module
-            );
+            // import(module);
         }
 
         for (const module of _staticModules) {
-            import(
-                /* webpackChunkName: "my-chunk-name" */
-                /* webpackMode: "lazy" */
-                /* webpackExports: ["default", "named"] */
-                module
-            );
+            // import(module);
         }
 
         this._didImport = true;
