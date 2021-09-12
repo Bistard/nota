@@ -1,7 +1,7 @@
 import { getSvgPathByName, SvgType } from 'src/base/common/string';
 import { Component, ComponentType, IComponent } from 'src/code/browser/workbench/component';
 import { ExplorerViewComponent } from "src/code/browser/workbench/actionView/explorer/explorer";
-import { Emitter, EVENT_EMITTER, } from 'src/base/common/event';
+import { Emitter, EVENT_EMITTER, Event } from 'src/base/common/event';
 import { createDecorator } from 'src/code/common/service/instantiationService/decorator';
 import { IComponentService } from 'src/code/browser/service/componentService';
 import { IContextMenuService } from 'src/code/browser/service/contextMenuService';
@@ -17,9 +17,6 @@ export enum ActionViewComponentType {
 }
 
 export const IActionViewService = createDecorator<IActionViewService>('action-view-service');
-export const EOnActionViewChange = new Emitter<ActionViewType>();
-export const EOnActionViewOpen = new Emitter<void>();
-export const EOnActionViewClose = new Emitter<void>();
 
 
 export interface IActionViewService extends IComponent {
@@ -31,6 +28,11 @@ export interface IActionViewService extends IComponent {
     hideActionViewContent(): void;
     closeActionView(): void;
     openActionView(): void;
+
+    EOnActionViewOpen: Emitter<void>;
+    EOnActionViewClose: Emitter<void>;
+    EOnActionViewChange: Emitter<ActionViewType>;
+
 }
 
 /**
@@ -47,6 +49,10 @@ export class ActionViewComponent extends Component implements IActionViewService
     private actionViewContent!: HTMLElement;
 
     private explorerViewComponent!: ExplorerViewComponent;
+
+    public readonly EOnActionViewOpen = new Emitter<void>();
+    public readonly EOnActionViewClose = new Emitter<void>();
+    public readonly EOnActionViewChange = new Emitter<ActionViewType>();
     
     // Others...
 
@@ -54,11 +60,13 @@ export class ActionViewComponent extends Component implements IActionViewService
                 // @INoteBookManagerService private readonly noteBookManagerService: INoteBookManagerService,
                 @IInstantiationService private readonly instantiationService: IInstantiationService,
                 @IComponentService componentService: IComponentService,
-                @IContextMenuService private readonly contextMenuService: IContextMenuService,
     ) {
         super(ComponentType.ActionView, parentComponent, null, componentService);
         
         this.whichActionView = 'none';
+        this.EOnActionViewClose.event;
+        this.EOnActionViewOpen.event;
+        this.EOnActionViewChange.event;
     }
 
     protected override _createContent(): void {
@@ -90,10 +98,10 @@ export class ActionViewComponent extends Component implements IActionViewService
 
         this.explorerViewComponent.registerListeners();
 
-        EOnActionViewClose.event(this.closeActionView);
-        EOnActionViewChange.event(this.onActionViewChange);
-        EOnActionViewOpen.event(this.openActionView);
-        
+        this.EOnActionViewClose.event(this.closeActionView);
+        this.EOnActionViewOpen.event(this.openActionView);
+        //this.EOnActionViewChange.event(this.onActionViewChange)
+    
         EVENT_EMITTER.register('EOnActionViewChange', (name) => this.onActionViewChange(name));
 
     }

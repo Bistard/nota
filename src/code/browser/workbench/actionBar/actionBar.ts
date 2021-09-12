@@ -1,6 +1,6 @@
 import { Button, IButton } from 'src/base/browser/basic/button';
 import { Emitter, EVENT_EMITTER, } from 'src/base/common/event';
-import { ActionViewType, EOnActionViewChange, EOnActionViewClose, EOnActionViewOpen } from 'src/code/browser/workbench/actionView/actionView';
+import { ActionViewType, IActionViewService } from 'src/code/browser/workbench/actionView/actionView';
 import { Component, ComponentType, IComponent } from 'src/code/browser/workbench/component';
 import { getSvgPathByName, SvgType } from 'src/base/common/string';
 import { ContextMenuType, Coordinate } from 'src/base/browser/secondary/contextMenu/contextMenu';
@@ -82,7 +82,7 @@ export class ActionBarComponent extends Component implements IActionBarService {
         });
     }
 
-    protected override _registerListeners(): void {
+    protected override _registerListeners(): void {     
 
         /**
          * @readonly register context menu listeners (right click menu)
@@ -121,10 +121,11 @@ export class ActionBarComponent extends Component implements IActionBarService {
     public clickActionBtn(clickedBtn: HTMLElement): void {
         // get which action button is clicking
         const actionName = clickedBtn.id.slice(0, -"-button".length) as ActionViewType;
-        
+        const actionViewService = this.componentService.get('action-view') as IActionViewService;
+ 
         // switch to the action view
         EVENT_EMITTER.emit('EOnActionViewChange', actionName);
-        //EOnActionViewChange.fire(actionName)
+        //actionViewService.EOnActionViewChange.fire(actionName)
 
 
 
@@ -136,13 +137,13 @@ export class ActionBarComponent extends Component implements IActionBarService {
         if (this.currFocusActionBtnIndex == -1) {
             // none of action button is focused, open the action view
             this.currFocusActionBtnIndex = clickedBtnIndex;
-            EOnActionViewOpen.fire();
+            actionViewService.EOnActionViewOpen.fire();
 
             clickedBtn.classList.add('action-button-focus');
         } else if (this.currFocusActionBtnIndex == clickedBtnIndex) {
             // if the current focused button is clicked again, close action view.
             this.currFocusActionBtnIndex = -1;
-            EOnActionViewClose.fire();
+            actionViewService.EOnActionViewClose.fire();
 
             currBtn.classList.remove('action-button-focus');
         } else if (this.currFocusActionBtnIndex >= 0) {
