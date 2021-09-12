@@ -49,6 +49,13 @@ export class DataBuffer {
         return new DataBuffer(referencedData as Uint8Array);
     }
 
+    public slice(start?: number, end?: number): DataBuffer {
+		// IMPORTANT: use subarray instead of slice because TypedArray#slice
+		// creates shallow copy and NodeBuffer#slice doesn't. The use of subarray
+		// ensures the same, performance, behaviour.
+		return new DataBuffer(this.buffer.subarray(start, end));
+	}
+
     /**
      * @internal
      */
