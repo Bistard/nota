@@ -332,3 +332,27 @@ export async function dirFilter(
         });
     })
 } 
+
+
+/*******************************************************************************
+ * File Mode Permissions
+ ******************************************************************************/
+ 
+export const FileMode = {
+ 
+    /**
+     * Corresponds to octal: 0o400
+     */
+    readable: fs.constants.S_IRUSR,
+ 
+    /**
+     * Corresponds to octal: 0o200
+     */
+    writable: fs.constants.S_IWUSR,
+
+    /**
+     * Corresponds to octal: 0o100
+     */
+    executable: fs.constants.S_IXUSR,
+ 
+ }
