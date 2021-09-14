@@ -1,9 +1,9 @@
 import { EVENT_EMITTER } from "src/base/common/event";
 import { pathJoin } from "src/base/common/string";
-import { ConfigService, DEFAULT_CONFIG_FILE_NAME, DEFAULT_CONFIG_PATH, GLOBAL_CONFIG_FILE_NAME, LOCAL_CONFIG_FILE_NAME } from "src/code/common/service/configService/configService";
+import { ConfigService, DEFAULT_CONFIG_FILE_NAME, DEFAULT_CONFIG_PATH, IConfigService, LOCAL_CONFIG_FILE_NAME } from "src/code/common/service/configService/configService";
 import { createDir, createFile, dirFilter, isDirExisted, isFileExisted } from "src/base/node/io";
 import { NoteBook } from "src/code/common/model/notebook";
-import { GlobalConfigService } from "src/code/common/service/configService/globalConfigService";
+import { GlobalConfigService, IGlobalConfigService } from "src/code/common/service/configService/globalConfigService";
 import { createDecorator } from "src/code/common/service/instantiationService/decorator";
 
 export const LOCAL_MDNOTE_DIR_NAME = '.mdnote';
@@ -16,13 +16,11 @@ export interface INoteBookManagerService {
     readonly noteBookConfig: Object;
     mdNoteFolderFound: boolean;
 
-    init(appRootPath: string): Promise<void>;
+    init(): Promise<void>;
     open(path: string): Promise<void>;
     getRootPath(): string;
     addExistedNoteBook(noteBook: NoteBook): void;
     getExistedNoteBook(noteBookName: string): NoteBook | null;
-    readOrCreateConfigJSON(path: string, configNameWtihType: string): Promise<void>;
-    readOrCreateGlobalConfigJSON(path: string, configNameWtihType: string): Promise<void>;
 }
 
 /**
@@ -44,9 +42,11 @@ export class NoteBookManager implements INoteBookManagerService {
     // not used
     public mdNoteFolderFound: boolean;
 
-    constructor() {
+    constructor(
+        @IGlobalConfigService private readonly globalConfigService: GlobalConfigService,
+        @IConfigService private readonly configService: ConfigService,
+    ) {
         this.noteBookMap = new Map<string, NoteBook>();
-        
         this.mdNoteFolderFound = false;
     }
 
@@ -54,18 +54,14 @@ export class NoteBookManager implements INoteBookManagerService {
      * @description the function first try to reads the global config named as 
      * 'mdnote.config.json' at application root directory. NoteBookManager will
      * either do nothing or start the most recent opened directory.
-     * 
-     * @param appRootPath app root dir eg. D:\dev\MarkdownNote
      */
-    public async init(appRootPath: string): Promise<void> {
+    public async init(): Promise<void> {
 
         try {
-            // read global configuration
-            await this.readOrCreateGlobalConfigJSON(appRootPath, GLOBAL_CONFIG_FILE_NAME);
-
-            if (GlobalConfigService.Instance.startPreviousNoteBookManagerDir) {
+            
+            if (this.globalConfigService.startPreviousNoteBookManagerDir) {
                 
-                const prevOpenedPath = GlobalConfigService.Instance.previousNoteBookManagerDir;
+                const prevOpenedPath = this.globalConfigService.previousNoteBookManagerDir;
                 if (prevOpenedPath == '') {
                     // const OpenPath = "/Users/apple/Desktop/filesForTesting";
                     // EVENT_EMITTER.emit('EOpenNoteBookManager', OpenPath);
@@ -96,8 +92,8 @@ export class NoteBookManager implements INoteBookManagerService {
             // get valid NoteBook names in the given dir
             const noteBooks: string[] = await dirFilter(
                 path, 
-                ConfigService.Instance.noteBookManagerExclude, 
-                ConfigService.Instance.noteBookManagerInclude,
+                this.configService.noteBookManagerExclude, 
+                this.configService.noteBookManagerInclude,
             );
             
             // create NoteBook Object for each subdirectory
@@ -142,18 +138,9 @@ export class NoteBookManager implements INoteBookManagerService {
             // check validation for the .mdnote structure
             await this._validateNoteBookConfig();
             
-            if (GlobalConfigService.Instance.defaultConfigOn) {
-                // read default config
-                await this.readOrCreateConfigJSON(
-                    DEFAULT_CONFIG_PATH,
-                    DEFAULT_CONFIG_FILE_NAME
-                );
-            } else {
+            if (this.globalConfigService.defaultConfigOn === false) {
                 // read local config
-                await this.readOrCreateConfigJSON(
-                    ROOT,
-                    LOCAL_CONFIG_FILE_NAME
-                );
+                await this.configService.init(ROOT);
             }
 
             // check if missing any NoteBook structure in '.mdnote/structure'
@@ -192,19 +179,10 @@ export class NoteBookManager implements INoteBookManagerService {
             await createDir(ROOT, 'structure');
             await createDir(ROOT, 'log');
             
-            if (GlobalConfigService.Instance.defaultConfigOn) {
-                // read default config.json
-                await this.readOrCreateConfigJSON(
-                    DEFAULT_CONFIG_PATH,
-                    DEFAULT_CONFIG_FILE_NAME
-                );
-            } else {
+            if (this.globalConfigService.defaultConfigOn === false) {
                 // init local config.json
                 await createFile(ROOT, LOCAL_CONFIG_FILE_NAME);
-                await ConfigService.Instance.writeToJSON(
-                    ROOT, 
-                    LOCAL_CONFIG_FILE_NAME
-                );
+                await this.configService.writeToJSON(ROOT, LOCAL_CONFIG_FILE_NAME);
             }
 
             // init noteBook structure
@@ -249,46 +227,6 @@ export class NoteBookManager implements INoteBookManagerService {
     public getExistedNoteBook(noteBookName: string): NoteBook | null {
         const res = this.noteBookMap.get(noteBookName);
         return res === undefined ? null : res;
-    }
-
-    /**
-     * @description reads or creates a `configNameWtihType` file in the given 
-     * path, then creates the singleton instance of a ConfigService.
-     * 
-     * @param path eg. D:\dev\AllNote
-     * @param configNameWtihType eg. D:\dev\AllNote\config.json
-     */
-    public async readOrCreateConfigJSON(path: string, configNameWtihType: string): Promise<void> {
-        try {
-            if (await isFileExisted(path, configNameWtihType) === false) {
-                await createFile(path, configNameWtihType);
-                await ConfigService.Instance.writeToJSON(path, configNameWtihType);
-            } else {
-                await ConfigService.Instance.readFromJSON(path, configNameWtihType);
-            }
-        } catch(err) {
-            throw err;
-        }
-    }
-
-    /**
-     * @description function does exact same thing as 'this.readOrCreateConfigJSON()' 
-     * does, the only difference is that this function is for GlobalConfigService.
-     * 
-     * @param path eg. D:\dev\MarkdownNote
-     * @param configNameWtihType eg. D:\dev\AllNote\mdnote.config.json
-     */
-     public async readOrCreateGlobalConfigJSON(path: string, configNameWtihType: string): Promise<void> {
-        try {
-            if (await isFileExisted(path, configNameWtihType) === false) {
-                await createFile(path, configNameWtihType);
-                await GlobalConfigService.Instance.writeToJSON(path, configNameWtihType);
-            } else {
-                await GlobalConfigService.Instance.readFromJSON(path, configNameWtihType);
-            }
-        } catch(err) {
-            throw err;
-        }
     }
 
     /**

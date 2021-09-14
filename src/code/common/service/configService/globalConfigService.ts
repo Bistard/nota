@@ -1,8 +1,11 @@
 import { pathJoin } from "src/base/common/string";
-import { readFromFileSync, writeToFile } from "src/base/node/io";
-import { IConfigService } from "src/code/common/service/configService/configService";
+import { createFile, isFileExisted, readFromFileSync, writeToFile } from "src/base/node/io";
+import { GLOBAL_CONFIG_FILE_NAME, IConfigService } from "src/code/common/service/configService/configService";
+import { createDecorator } from "src/code/common/service/instantiationService/decorator";
 
 export type AppMode = 'debug' | 'release';
+
+export const IGlobalConfigService = createDecorator<IConfigService>('global-config-service');
 
 /**
  * @description 'global' config module stores configuration that only stored at
@@ -10,23 +13,33 @@ export type AppMode = 'debug' | 'release';
  */
  export class GlobalConfigService implements IConfigService {
 
-    /***************************************************************************
-     *                               singleton
-     **************************************************************************/
-    
-    private static _instance: GlobalConfigService;
+    constructor() {}
 
-    private constructor(/*@IFileLogService private readonly fileLogService: IFileLogService*/) {}
-
-    public static get Instance() {
-        return this._instance || (this._instance = new this());
+    /**
+     * @description reads or creates a mdnote.config.json file in the given 
+     * path, then creates the singleton instance of a GlobalConfigService.
+     * 
+     * @param path eg. D:\dev\AllNote
+     * @param configNameWtihType eg. D:\dev\AllNote\config.json
+     */
+    public async init(path: string): Promise<void> {
+        try {
+            if (await isFileExisted(path, GLOBAL_CONFIG_FILE_NAME) === false) {
+                await createFile(path, GLOBAL_CONFIG_FILE_NAME);
+                await this.writeToJSON(path, GLOBAL_CONFIG_FILE_NAME);
+            } else {
+                await this.readFromJSON(path, GLOBAL_CONFIG_FILE_NAME);
+            }
+        } catch(err) {
+            throw err;
+        }
     }
 
     public async readFromJSON(path: string, fileName: string): Promise<void> {
         try {
             const text = readFromFileSync(pathJoin(path, fileName));
             const jsonObject: Object = JSON.parse(text);
-            Object.assign(GlobalConfigService.Instance, jsonObject);
+            Object.assign(this, jsonObject);
         } catch(err) {
             // TODO: if some specific config is missing. CHECK EACH ONE OF THE CONFIG (lots of work)
         }
@@ -34,7 +47,7 @@ export type AppMode = 'debug' | 'release';
 
     public async writeToJSON(path: string, fileName: string): Promise<void> {
         try {
-            writeToFile(path, fileName, JSON.stringify(GlobalConfigService.Instance, null, 2));
+            writeToFile(path, fileName, JSON.stringify(this, null, 2));
         } catch(err) {
             // do log here
         }

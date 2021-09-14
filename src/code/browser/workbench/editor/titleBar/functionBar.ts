@@ -1,7 +1,7 @@
 import { Button } from "src/base/browser/basic/button";
 import { EVENT_EMITTER } from "src/base/common/event";
 import { getSvgPathByName, SvgType } from "src/base/common/string";
-import { ConfigService } from "src/code/common/service/configService/configService";
+import { ConfigService, IConfigService } from "src/code/common/service/configService/configService";
 import { domNodeByIdAddListener } from "src/base/electron/register";
 import { IComponentService } from "src/code/browser/service/componentService";
 import { Component } from "src/code/browser/workbench/component";
@@ -16,6 +16,7 @@ export class FunctionBarComponent extends Component {
     constructor(
         parentComponent: Component,
         @IComponentService componentService: IComponentService,
+        @IConfigService private readonly configService: ConfigService,
     ) {
         super(TitleBarComponentType.functionBar, parentComponent, null, componentService);
     }
@@ -62,7 +63,7 @@ export class FunctionBarComponent extends Component {
      * @description function calls when the functionBarModule is initialized.
      */
      initfunctionBar(): void {
-        if (ConfigService.Instance.defaultMarkdownMode == 'wysiwyg') {
+        if (this.configService.defaultMarkdownMode == 'wysiwyg') {
             $('#mode-switch').addClass('function-button-focus');
         }
 

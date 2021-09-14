@@ -5,7 +5,7 @@ import { APP_ROOT_PATH } from "src/base/electron/app";
 import { isDirExisted, createDir, writeToFile } from "src/base/node/io";
 import { pathJoin } from "src/base/common/string";
 import { INoteBookManagerService, NoteBookManager } from "src/code/common/model/notebookManager";
-import { GlobalConfigService } from "src/code/common/service/configService/globalConfigService";
+import { GlobalConfigService, IGlobalConfigService } from "src/code/common/service/configService/globalConfigService";
 
 enum LogLevel {
     TRACE,
@@ -55,9 +55,10 @@ export abstract class LogService implements ILogService {
 
     // solves singletion problem, so we always have at most one LogServiceManager when we create a logService
     constructor(
-        @INoteBookManagerService protected readonly noteBookManagerService: INoteBookManagerService,
+        @INoteBookManagerService noteBookManagerService: INoteBookManagerService,
+        @IGlobalConfigService globalConfigService: GlobalConfigService,
     ) {
-        this._logServiceManager = createOrGetLogServiceManager(this.noteBookManagerService);
+        this._logServiceManager = createOrGetLogServiceManager(noteBookManagerService, globalConfigService);
     }
 
     
@@ -91,9 +92,9 @@ export abstract class LogService implements ILogService {
     }
 }
 
-function createOrGetLogServiceManager(...args: any[]): LogServiceManager {
+function createOrGetLogServiceManager(noteBookManagerService: INoteBookManagerService, globalConfigService: GlobalConfigService): LogServiceManager {
     if (_logServiceManagerInstance === null) {
-        _logServiceManagerInstance = new LogServiceManager(args as any);
+        _logServiceManagerInstance = new LogServiceManager(noteBookManagerService, globalConfigService);
     }
     return _logServiceManagerInstance;
 }
@@ -109,7 +110,8 @@ class LogServiceManager {
     private _ongoing: boolean = false;
 
     constructor(
-        @INoteBookManagerService private readonly noteBookManagerService: INoteBookManagerService,
+        private readonly noteBookManagerService: INoteBookManagerService,
+        private readonly globalConfigService: GlobalConfigService,
     ) {
         setInterval(this.checkQueue.bind(this), 1000);
     }
@@ -138,7 +140,7 @@ class LogServiceManager {
             const logInfo = this._queue[0]!;
             
             let dir: string;
-            if (GlobalConfigService.Instance.defaultConfigOn) {
+            if (this.globalConfigService.defaultConfigOn) {
                 dir = APP_ROOT_PATH; 
                 const mdNoteExists = await isDirExisted(dir, ".mdnote");
                 if (!mdNoteExists) {
