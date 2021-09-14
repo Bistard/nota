@@ -80,9 +80,9 @@ export interface IFileSystemProvider {
 	readFile?(resource: URI): Promise<Uint8Array>;
 	writeFile?(resource: URI, content: Uint8Array): Promise<void>;
 
-	readFileStream?(resource: URI): any;
+	readFileStream?(resource: URI, opt?: IFileReadStreamOptions): any;
 
-	open?(resource: URI): Promise<number>;
+	open?(resource: URI, opts?: IFileOpenOptions): Promise<number>;
 	close?(fd: number): Promise<void>;
 	read?(fd: number, pos: number, data: Uint8Array, offset: number, length: number): Promise<number>;
 	write?(fd: number, pos: number, data: Uint8Array, offset: number, length: number): Promise<number>;
@@ -98,7 +98,7 @@ export interface IFileSystemProviderWithFileReadWrite extends IFileSystemProvide
 }
 
 export interface IFileSystemProviderWithOpenReadWriteClose extends IFileSystemProvider {
-	open(resource: URI): Promise<number>;
+	open(resource: URI, opts: IFileOpenOptions): Promise<number>;
 	close(fd: number): Promise<void>;
 	read(fd: number, pos: number, data: Uint8Array, offset: number, length: number): Promise<number>;
 	write(fd: number, pos: number, data: Uint8Array, offset: number, length: number): Promise<number>;
@@ -109,7 +109,7 @@ export interface IFileSystemProviderWithCopy extends IFileSystemProvider {
 }
 
 export interface IFileSystemProviderWithFileReadStream extends IFileSystemProvider {
-	readFileStream(resource: URI): any;
+	readFileStream(resource: URI, opts?: IFileReadStreamOptions): any;
 }
 
 export type FileSystemProviderAbleToRead = 
@@ -166,4 +166,55 @@ export function hasCopyCapability(provider: IFileSystemProvider): provider is IF
 
 export function hasFileReadStreamCapability(provider: IFileSystemProvider): provider is IFileSystemProviderWithFileReadStream {
 	return !!(provider.capabilities & FileSystemProviderCapability.FileReadStream);
+}
+
+/*******************************************************************************
+ * Options
+ ******************************************************************************/
+
+export interface IFileOpenOptions {
+
+	/**
+	 * false: file should be opened for reading.
+	 * true:file should be opened for reading and writing.
+	 */
+	 readonly create: boolean;
+
+	/**
+	 * Set to `true` to try to remove any write locks the file might
+	 * have. A file that is write locked will throw an error for any
+	 * attempt to write to unless `unlock: true` is provided.
+	 */
+	 readonly unlock: boolean;
+}
+
+export interface IFileReadStreamOptions {
+
+	/**
+	 * Is an integer specifying where to begin reading from in the file. If position is undefined,
+	 * data will be read from the current file position.
+	 */
+	readonly position?: number;
+
+	/**
+	 * Is an integer specifying how many bytes to read from the file. By default, all bytes
+	 * will be read.
+	 */
+	readonly length?: number;
+
+	/**
+	 * If provided, the size of the file will be checked against the limits.
+	 */
+	limits?: {
+		readonly size?: number;
+		readonly memory?: number;
+	};
+}
+
+export interface ICreateReadStreamOptions extends IFileReadStreamOptions {
+
+	/**
+	 * The size of the buffer to use before sending to the stream.
+	 */
+	bufferSize: number;
 }
