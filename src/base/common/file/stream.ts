@@ -1,5 +1,5 @@
 import { DataBuffer } from "src/base/common/file/buffer";
-import { IFileSystemProviderWithOpenReadWriteClose } from "src/base/common/file/file";
+import { ICreateReadStreamOptions, IFileSystemProviderWithOpenReadWriteClose } from "src/base/common/file/file";
 import { URI } from "src/base/common/file/uri";
 
 export interface IStreamEvent<T> {
@@ -90,19 +90,18 @@ export interface IDataConverter<original, target> {
     (data: original): target;
 }
 
-export async function ReadFileIntoStream<T>(
+export async function readFileIntoStream<T>(
     provider: IFileSystemProviderWithOpenReadWriteClose, 
     resource: URI, 
     stream: IStream<T>, 
     dataConverter: IDataConverter<DataBuffer, T>, 
-    options: any
+    options: ICreateReadStreamOptions
 ): Promise<void> {
 
     let error: Error | undefined = undefined;
-
     try {
 
-        await doReadFileIntoStream(provider, resource, stream, dataConverter, options);
+        await _doReadFileIntoStream(provider, resource, stream, dataConverter, options);
 
     } catch(err: any) {
         
@@ -118,15 +117,15 @@ export async function ReadFileIntoStream<T>(
     }
 }
 
-export async function doReadFileIntoStream<T>(
+async function _doReadFileIntoStream<T>(
     provider: IFileSystemProviderWithOpenReadWriteClose, 
     resource: URI, 
     stream: IStream<T>, 
     dataConverter: IDataConverter<DataBuffer, T>, 
-    options: any
+    options: ICreateReadStreamOptions
 ): Promise<void> {
     
-    const handle = await provider.open(resource);
+    const fd = await provider.open(resource, { create: false, unlock: false } );
 
     try {
         
@@ -140,9 +139,9 @@ export async function doReadFileIntoStream<T>(
         let posInBuffer = 0;
 
         do {
-            // read from source (handle) at current position (posInFile) into buffer (buffer) at
+            // read from source (fd) at current position (posInFile) into buffer (buffer) at
 			// buffer position (posInBuffer) up to the size of the buffer (buffer.byteLength).
-			bytesRead = await provider.read(handle, posInFile, buffer.buffer, posInBuffer, buffer.bufferLength - posInBuffer);
+			bytesRead = await provider.read(fd, posInFile, buffer.buffer, posInBuffer, buffer.bufferLength - posInBuffer);
 
             posInFile += bytesRead;   
             posInBuffer += bytesRead;
@@ -176,10 +175,9 @@ export async function doReadFileIntoStream<T>(
 
     } finally {
 
-        await provider.close(handle);
+        await provider.close(fd);
 
     }
-
 }
 
 /**
@@ -193,11 +191,23 @@ export interface IConcatenater<T> {
     (data: T[]): T; 
 }
 
+/**
+ * @description helper function to create a new stream instance.
+ */
 export function newStream<T>(concatenater: IConcatenater<T>): IStream<T> {
     return new Stream<T>(concatenater);
 }
 
-// TODO: currently functionality is identical to WriteableStream
+/**
+ * @description helper function to create a new buffer stream instance.
+ */
+export function newBufferStream(): IStream<DataBuffer> {
+	return newStream<DataBuffer>(chunks => DataBuffer.concat(chunks));
+}
+
+/**
+ * @description a stream for handling data flowing between buffer and consumers
+ */
 export class Stream<T> implements IStream<T> {
 
     private readonly concatenater: IConcatenater<T>;
@@ -451,4 +461,78 @@ export class Stream<T> implements IStream<T> {
 		return false;
 	}
 
+}
+
+/**
+ * Helper to fully read a T stream into a T or consuming
+ * a stream fully, awaiting all the events without caring
+ * about the data.
+ */
+export function streamToBuffer<T>(stream: IStream<DataBuffer>): Promise<DataBuffer> {
+    return consumeStream(stream, chunks => DataBuffer.concat(chunks));
+}
+
+export function consumeStream<T>(stream: IStream<T>, concatenater: IConcatenater<T>): Promise<T>;
+export function consumeStream(stream: IStream<unknown>): Promise<undefined>;
+export function consumeStream<T>(stream: IStream<T>, concatenater?: IConcatenater<T>): Promise<T | undefined> {
+	return new Promise((resolve, reject) => {
+		
+        const chunks: T[] = [];
+		listenStream(stream, {
+			onData: chunk => {
+				if (concatenater) {
+					chunks.push(chunk);
+				}
+			},
+			onError: error => {
+				if (concatenater) {
+					reject(error);
+				} else {
+					resolve(undefined);
+				}
+			},
+			onEnd: () => {
+				if (concatenater) {
+					resolve(concatenater(chunks));
+				} else {
+					resolve(undefined);
+				}
+			}
+		});
+	});
+}
+
+export interface IStreamListener<T> {
+
+	/**
+	 * The 'data' event is emitted whenever the stream is
+	 * relinquishing ownership of a chunk of data to a consumer.
+	 */
+	onData(data: T): void;
+
+	/**
+	 * Emitted when any error occurs.
+	 */
+	onError(err: Error): void;
+
+	/**
+	 * The 'end' event is emitted when there is no more data
+	 * to be consumed from the stream. The 'end' event will
+	 * not be emitted unless the data is completely consumed.
+	 */
+	onEnd(): void;
+}
+
+/**
+ * Helper to listen to all events of a T stream in proper order.
+ */
+ export function listenStream<T>(stream: IStream<T>, listener: IStreamListener<T>): void {
+	stream.on('error', error => listener.onError(error));
+	stream.on('end', () => listener.onEnd());
+    /**
+     * Adding the `data` listener will turn the stream
+     * into flowing mode. As such it is important to
+     * add this listener last (DO NOT CHANGE!)
+     */
+	stream.on('data', data => listener.onData(data));
 }
