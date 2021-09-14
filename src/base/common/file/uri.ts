@@ -118,12 +118,12 @@ export class URI implements IURI {
 	/**
 	 * Compute `fsPath` for the given uri
 	 */
-	public static toFsPath(uri: URI, keepDriveLetterCasing: boolean): string {
+	public static toFsPath(uri: URI, keepDriveLetterCasing: boolean = true): string {
 
 		let value: string;
 		if (uri.authority && uri.path.length > 1 && uri.scheme === 'file') {
 			// unc path: file://shares/c$/far/boo
-			value = `//${uri.authority}${uri.path}`;
+			value = `${uri.authority}${uri.path}`;
 		} else if (
 			uri.path.charCodeAt(0) === CharCode.Slash
 			&& (uri.path.charCodeAt(1) >= CharCode.A && uri.path.charCodeAt(1) <= CharCode.Z || uri.path.charCodeAt(1) >= CharCode.a && uri.path.charCodeAt(1) <= CharCode.z)

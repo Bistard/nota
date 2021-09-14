@@ -59,7 +59,7 @@ export class DataBuffer {
     /**
      * @internal
      */
-     private constructor(buffer: Uint8Array) {
+    private constructor(buffer: Uint8Array) {
         this.buffer = buffer;
         this.bufferLength = this.buffer.length;
     }
