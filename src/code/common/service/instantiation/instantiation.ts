@@ -80,7 +80,7 @@ export class InstantiationService implements IInstantiationService {
         let serviceDependencies = _ServiceUtil.getServiceDependencies(ctor).sort((a, b) => a.index  - b.index);
         let servicesArgs: any[] = [];
         for (const dependency of serviceDependencies) {
-            let service = this._getOrCreateDependencyInstance(dependency.id);
+            let service: any = this._getOrCreateDependencyInstance(dependency.id);
             if (!service && !dependency.optional) {
 				throw new Error(`[createInstance] ${ctor.name} depends on UNKNOWN service ${dependency.id}.`);
 			}

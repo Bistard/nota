@@ -38,7 +38,7 @@ export class Workbench extends Component {
         private readonly instantiationService: IInstantiationService,
     ) {
         super('mainApp', null, document.body, instantiationService.createInstance(ComponentService));
-        
+
         this.initServices();
         this.create();
         this.registerListeners();
