@@ -40,7 +40,7 @@ export class Workbench extends Component {
         
     ) {
         super('mainApp', null, document.body, instantiationService.createInstance(ComponentService));
-        
+
         this.initServices();
         this.create();
         this.registerListeners();
