@@ -3,7 +3,6 @@ import { ActionViewComponent, IActionViewService } from "src/code/browser/workbe
 import { ActionBarComponent, IActionBarService } from "src/code/browser/workbench/actionBar/actionBar";
 import { EditorComponent, IEditorService } from "src/code/browser/workbench/editor/editor";
 import { INoteBookManagerService, LOCAL_MDNOTE_DIR_NAME, NoteBookManager } from "src/code/common/model/notebookManager";
-import { APP_ROOT_PATH } from "src/base/electron/app";
 import { ipcRendererOn, ipcRendererSend } from "src/base/electron/register";
 import { ConfigService, DEFAULT_CONFIG_FILE_NAME, DEFAULT_CONFIG_PATH, GLOBAL_CONFIG_FILE_NAME, GLOBAL_CONFIG_PATH, LOCAL_CONFIG_FILE_NAME } from "src/code/common/service/configService/configService";
 import { pathJoin } from "src/base/common/string";
@@ -36,6 +35,9 @@ export class Workbench extends Component {
     
     constructor(
         private readonly instantiationService: IInstantiationService,
+        private readonly globalConfigService: GlobalConfigService,
+        private readonly configService: ConfigService,
+        
     ) {
         super('mainApp', null, document.body, instantiationService.createInstance(ComponentService));
         
@@ -54,8 +56,8 @@ export class Workbench extends Component {
         this.instantiationService.register(IContextMenuService, new ServiceDescriptor(ContextMenuService));
 
         // NoteBookManagerService (async)
-        this._noteBookManager = new NoteBookManager();
-        this._noteBookManager.init(APP_ROOT_PATH);
+        this._noteBookManager = this.instantiationService.createInstance(NoteBookManager);
+        this._noteBookManager.init();
         this.instantiationService.register(INoteBookManagerService, this._noteBookManager);
 
     }
@@ -91,17 +93,17 @@ export class Workbench extends Component {
         ipcRendererOn('closingApp', () => {
             
             // save global configuration first
-            GlobalConfigService.Instance.previousNoteBookManagerDir = this._noteBookManager.getRootPath();
-            GlobalConfigService.Instance.writeToJSON(GLOBAL_CONFIG_PATH, GLOBAL_CONFIG_FILE_NAME)
+            this.globalConfigService.previousNoteBookManagerDir = this._noteBookManager.getRootPath();
+            this.globalConfigService.writeToJSON(GLOBAL_CONFIG_PATH, GLOBAL_CONFIG_FILE_NAME)
             .then(() => {
                 // save local or default configuration
-                if (GlobalConfigService.Instance.defaultConfigOn) {
-                    return ConfigService.Instance.writeToJSON(
+                if (this.globalConfigService.defaultConfigOn) {
+                    return this.configService.writeToJSON(
                         DEFAULT_CONFIG_PATH, 
                         DEFAULT_CONFIG_FILE_NAME
                     );
                 }
-                return ConfigService.Instance.writeToJSON(
+                return this.configService.writeToJSON(
                     pathJoin(this._noteBookManager.getRootPath(), LOCAL_MDNOTE_DIR_NAME), 
                     LOCAL_CONFIG_FILE_NAME
                 );

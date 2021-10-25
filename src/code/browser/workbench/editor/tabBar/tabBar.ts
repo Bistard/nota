@@ -5,7 +5,7 @@ import { EditorComponentType } from 'src/code/browser/workbench/editor/editor';
 import { IComponentService } from 'src/code/browser/service/componentService';
 import { pathJoin } from 'src/base/common/string';
 import { EVENT_EMITTER } from 'src/base/common/event';
-import { ConfigService } from 'src/code/common/service/configService/configService';
+import { ConfigService, IConfigService } from 'src/code/common/service/configService/configService';
 
 export class Tab {
     public readonly container: HTMLElement = document.createElement('div');
@@ -137,6 +137,7 @@ export class TabBarComponent extends Component implements ITabBarComponent {
     constructor(
         parentComponent: Component,
         @IComponentService componentService: IComponentService,
+        @IConfigService private readonly configService: ConfigService,
     ) {
         super(EditorComponentType.tabBar, parentComponent, null, componentService);
 
@@ -258,7 +259,7 @@ export class TabBarComponent extends Component implements ITabBarComponent {
         this.contentArea!.removeChild(tab.container);
 
         // // save current change immediately
-        if (ConfigService.Instance.fileAutoSaveOn) {
+        if (this.configService.fileAutoSaveOn) {
             
             // TODO: efficiency issue (string passed mutiple times)
             const index = this._openedTab.indexOf(tab);

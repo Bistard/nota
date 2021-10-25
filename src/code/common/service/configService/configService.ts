@@ -1,7 +1,8 @@
 import { MarkdownRenderMode } from 'mdnote';
 import { pathJoin } from 'src/base/common/string';
 import { APP_ROOT_PATH, DESKTOP_ROOT_PATH } from 'src/base/electron/app';
-import { readFromFileSync, writeToFile } from 'src/base/node/io';
+import { createFile, isFileExisted, readFromFileSync, writeToFile } from 'src/base/node/io';
+import { createDecorator } from 'src/code/common/service/instantiationService/decorator';
 
 export const DEFAULT_CONFIG_PATH = APP_ROOT_PATH;
 export const GLOBAL_CONFIG_PATH = APP_ROOT_PATH;
@@ -10,7 +11,10 @@ export const DEFAULT_CONFIG_FILE_NAME = 'config.json';
 export const LOCAL_CONFIG_FILE_NAME = DEFAULT_CONFIG_FILE_NAME;
 export const GLOBAL_CONFIG_FILE_NAME = 'mdnote.config.json';
 
+export const IConfigService = createDecorator<IConfigService>('config-service');
+
 export interface IConfigService {
+    init(path: string): Promise<void>;
     readFromJSON(path: string, fileName: string): Promise<void>;
     writeToJSON(path: string, fileName: string): Promise<void>;
 }
@@ -19,24 +23,33 @@ export interface IConfigService {
  * @description config module to store 'local' or 'default' configuration.
  */
 export class ConfigService implements IConfigService {
-
-    /***************************************************************************
-     *                               singleton
-     **************************************************************************/
     
-    private static _instance: ConfigService;
+    constructor() {}
 
-    private constructor() {}
-
-    public static get Instance() {
-        return this._instance || (this._instance = new this());
+    /**
+     * @description reads or creates a config.json file in the given 
+     * path, then creates the singleton instance of a ConfigService.
+     * 
+     * @param path eg. D:\dev\AllNote
+     */
+    public async init(path: string): Promise<void> {
+        try {
+            if (await isFileExisted(path, DEFAULT_CONFIG_FILE_NAME) === false) {
+                await createFile(path, DEFAULT_CONFIG_FILE_NAME);
+                await this.writeToJSON(path, DEFAULT_CONFIG_FILE_NAME);
+            } else {
+                await this.readFromJSON(path, DEFAULT_CONFIG_FILE_NAME);
+            }
+        } catch(err) {
+            throw err;
+        }
     }
 
     public async readFromJSON(path: string, fileName: string): Promise<void> {
         try {
             const text = readFromFileSync(pathJoin(path, fileName));
             const jsonObject: Object = JSON.parse(text);
-            Object.assign(ConfigService.Instance, jsonObject);
+            Object.assign(this, jsonObject);
         } catch(err) {
             // TODO: if some specific config is missing. CHECK EACH ONE OF THE CONFIG (lots of work)
         }
@@ -44,7 +57,7 @@ export class ConfigService implements IConfigService {
 
     public async writeToJSON(path: string, fileName: string): Promise<void> {
         try {
-            writeToFile(path, fileName, JSON.stringify(ConfigService.Instance, null, 2));
+            writeToFile(path, fileName, JSON.stringify(this, null, 2));
         } catch(err) {
             // do log here
         }

@@ -1,3 +1,4 @@
+import { URI } from "src/base/common/file/uri";
 import { getFileType } from "src/base/common/string";
 
 export enum FileType {
@@ -68,44 +69,57 @@ export interface IFileSystemProvider {
 	// readonly onDidChangeFile: Event<readonly IFileChange[]>;
 	// watch(resource: string, opts: IWatchOptions): IDisposable;
 
-	stat(resource: string): Promise<IStat>;
-	mkdir(resource: string): Promise<void>;
-	readdir(resource: string): Promise<[string, FileType][]>;
-	delete(resource: string, opts: any): Promise<void>;
+	stat(resource: URI): Promise<IStat>;
+	mkdir(resource: URI): Promise<void>;
+	readdir(resource: URI): Promise<[string, FileType][]>;
+	delete(resource: URI): Promise<void>;
 
-	rename(from: string, to: string, opts: any): Promise<void>;
-	copy?(from: string, to: string, opts: any): Promise<void>;
+	rename(from: string, to: string): Promise<void>;
+	copy?(from: string, to: string): Promise<void>;
 
-	readFile?(resource: string): Promise<Uint8Array>;
-	writeFile?(resource: string, content: Uint8Array, opts: any): Promise<void>;
+	readFile?(resource: URI): Promise<Uint8Array>;
+	writeFile?(resource: URI, content: Uint8Array): Promise<void>;
 
-	readFileStream?(resource: string, opts: any, token: any): any;
+	readFileStream?(resource: URI, opt?: IFileReadStreamOptions): any;
 
-	open?(resource: string, opts: any): Promise<number>;
+	open?(resource: URI, opts?: IFileOpenOptions): Promise<number>;
 	close?(fd: number): Promise<void>;
 	read?(fd: number, pos: number, data: Uint8Array, offset: number, length: number): Promise<number>;
 	write?(fd: number, pos: number, data: Uint8Array, offset: number, length: number): Promise<number>;
 }
 
 /*******************************************************************************
- *                        specific FileSystemProviders
+ * specific FileSystemProviders
  ******************************************************************************/
 
 export interface IFileSystemProviderWithFileReadWrite extends IFileSystemProvider {
-	readFile(resource: string): Promise<Uint8Array>;
-	writeFile(resource: string, content: Uint8Array, opts: any): Promise<void>;
+	readFile(resource: URI): Promise<Uint8Array>;
+	writeFile(resource: URI, content: Uint8Array): Promise<void>;
 }
 
 export interface IFileSystemProviderWithOpenReadWriteClose extends IFileSystemProvider {
-	open(resource: string, opts: any): Promise<number>;
+	open(resource: URI, opts: IFileOpenOptions): Promise<number>;
 	close(fd: number): Promise<void>;
 	read(fd: number, pos: number, data: Uint8Array, offset: number, length: number): Promise<number>;
 	write(fd: number, pos: number, data: Uint8Array, offset: number, length: number): Promise<number>;
 }
 
 export interface IFileSystemProviderWithCopy extends IFileSystemProvider {
-	copy(from: string, to: string, opts: any): Promise<void>;
+	copy(from: string, to: string): Promise<void>;
 }
+
+export interface IFileSystemProviderWithFileReadStream extends IFileSystemProvider {
+	readFileStream(resource: URI, opts?: IFileReadStreamOptions): any;
+}
+
+export type FileSystemProviderAbleToRead = 
+	IFileSystemProviderWithFileReadWrite | 
+	IFileSystemProviderWithOpenReadWriteClose | 
+	IFileSystemProviderWithFileReadStream;
+
+/*******************************************************************************
+ * FileSystemProviders Types
+ ******************************************************************************/
 
 export const enum FileSystemProviderCapability {
 	/**
@@ -127,22 +141,80 @@ export const enum FileSystemProviderCapability {
 	 * Provider is path case sensitive.
 	 */
 	PathCaseSensitive = 1 << 4,
+
+	/**
+	 * Provider supports stream based reading.
+	 */
+	FileReadStream = 1 << 5,
 }
 
 /*******************************************************************************
- *                        InMemoryFileSystemProvider
+ * FileSystemProvider Capability Validation Helper Functions
  ******************************************************************************/
 
-// export class InMemoryFileSystemProvider implements IFileSystemProviderWithFileReadWrite {
+export function hasReadWriteCapability(provider: IFileSystemProvider): provider is IFileSystemProviderWithFileReadWrite {
+	return !!(provider.capabilities & FileSystemProviderCapability.FileReadWrite);
+}
 
-// 	public readonly capabilities = 
-// 		FileSystemProviderCapability.FileReadWrite |
-// 		FileSystemProviderCapability.PathCaseSensitive;
-	
-// 	public readonly root: Directory = new Directory('');
+export function hasOpenReadWriteCloseCapability(provider: IFileSystemProvider): provider is IFileSystemProviderWithOpenReadWriteClose {
+	return !!(provider.capabilities & FileSystemProviderCapability.FileOpenReadWriteClose);
+}
 
-// 	constructor() {}
+export function hasCopyCapability(provider: IFileSystemProvider): provider is IFileSystemProviderWithCopy {
+	return !!(provider.capabilities & FileSystemProviderCapability.FileFolderCopy);
+}
 
-	
+export function hasFileReadStreamCapability(provider: IFileSystemProvider): provider is IFileSystemProviderWithFileReadStream {
+	return !!(provider.capabilities & FileSystemProviderCapability.FileReadStream);
+}
 
-// }
+/*******************************************************************************
+ * Options
+ ******************************************************************************/
+
+export interface IFileOpenOptions {
+
+	/**
+	 * false: file should be opened for reading.
+	 * true:file should be opened for reading and writing.
+	 */
+	 readonly create: boolean;
+
+	/**
+	 * Set to `true` to try to remove any write locks the file might
+	 * have. A file that is write locked will throw an error for any
+	 * attempt to write to unless `unlock: true` is provided.
+	 */
+	 readonly unlock: boolean;
+}
+
+export interface IFileReadStreamOptions {
+
+	/**
+	 * Is an integer specifying where to begin reading from in the file. If position is undefined,
+	 * data will be read from the current file position.
+	 */
+	readonly position?: number;
+
+	/**
+	 * Is an integer specifying how many bytes to read from the file. By default, all bytes
+	 * will be read.
+	 */
+	readonly length?: number;
+
+	/**
+	 * If provided, the size of the file will be checked against the limits.
+	 */
+	limits?: {
+		readonly size?: number;
+		readonly memory?: number;
+	};
+}
+
+export interface ICreateReadStreamOptions extends IFileReadStreamOptions {
+
+	/**
+	 * The size of the buffer to use before sending to the stream.
+	 */
+	bufferSize: number;
+}

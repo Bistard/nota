@@ -1,6 +1,7 @@
 import { ILogService, LogInfo, LogPathType, LogService } from "src/code/common/service/logService/logService";
 import { INoteBookManagerService } from "src/code/common/model/notebookManager";
 import { createDecorator } from "src/code/common/service/instantiationService/decorator";
+import { GlobalConfigService, IGlobalConfigService } from "src/code/common/service/configService/globalConfigService";
 
 export const IFileLogService = createDecorator<IFileLogService>('file-log-service');
 
@@ -28,8 +29,10 @@ export class FileLogService extends LogService implements IFileLogService {
     // }
     constructor(
         @INoteBookManagerService noteBookManagerService: INoteBookManagerService,
+        @IGlobalConfigService globalConfigService: GlobalConfigService,
+
     ) {
-        super(noteBookManagerService);
+        super(noteBookManagerService, globalConfigService);
     }
 
     override trace(message: string, ...args: any[]): void {

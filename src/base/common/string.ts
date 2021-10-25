@@ -13,6 +13,10 @@ export function pathJoin(root: string, ...paths: string[]): string {
     return absolutePath;
 }
 
+export function isAbsolutePath(path: string): boolean {
+    return !!path && path[0] === '/';
+}
+
 export enum SvgType {
     base = '',
     toolBar = 'toolBar',
