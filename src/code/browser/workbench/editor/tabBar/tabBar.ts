@@ -5,7 +5,7 @@ import { EditorComponentType } from 'src/code/browser/workbench/editor/editor';
 import { IComponentService } from 'src/code/browser/service/componentService';
 import { pathJoin } from 'src/base/common/string';
 import { EVENT_EMITTER } from 'src/base/common/event';
-import { ConfigService } from 'src/code/common/service/configService';
+import { ConfigService } from 'src/code/common/service/configService/configService';
 
 export class Tab {
     public readonly container: HTMLElement = document.createElement('div');

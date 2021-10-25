@@ -18,7 +18,7 @@ import 'prismjs/components/prism-java';
 
 // @toast-ui-plugin: color syntax 
 import colorSyntax from '@toast-ui/editor-plugin-color-syntax';
-import { ConfigService } from 'src/code/common/service/configService';
+import { ConfigService } from 'src/code/common/service/configService/configService';
 import { FileNode } from 'src/base/node/fileTree';
 import { Component, IComponent } from 'src/code/browser/workbench/component';
 import { EVENT_EMITTER } from 'src/base/common/event';
@@ -26,12 +26,12 @@ import { MarkdownRenderMode } from 'mdnote';
 import { getSvgPathByName, SvgType } from 'src/base/common/string';
 import { ContextMenuType, Coordinate } from 'src/base/browser/secondary/contextMenu/contextMenu';
 import { IContextMenuService } from 'src/code/browser/service/contextMenuService';
-import { createDecorator } from 'src/code/common/service/instantiation/decorator';
+import { createDecorator } from 'src/code/common/service/instantiationService/decorator';
 import { IComponentService } from 'src/code/browser/service/componentService';
 import { EditorComponentType } from 'src/code/browser/workbench/editor/editor';
-import { IFileLogService } from "src/code/common/service/fileLogService";
-import { LogPathType } from 'src/code/common/service/logService';
-import { GlobalConfigService } from "src/code/common/service/globalConfigService";
+import { IFileLogService } from 'src/code/common/service/logService/fileLogService';
+import { LogPathType } from 'src/code/common/service/logService/logService';
+import { GlobalConfigService } from 'src/code/common/service/configService/globalConfigService';
 
 export const IMarkdownService = createDecorator<IMarkdownService>('markdown-service');
 

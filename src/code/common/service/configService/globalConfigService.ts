@@ -1,7 +1,6 @@
 import { pathJoin } from "src/base/common/string";
 import { readFromFileSync, writeToFile } from "src/base/node/io";
-import { IConfigService } from "src/code/common/service/configService";
-import { IFileLogService } from "src/code/common/service/fileLogService";
+import { IConfigService } from "src/code/common/service/configService/configService";
 
 export type AppMode = 'debug' | 'release';
 

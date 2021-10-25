@@ -3,9 +3,8 @@ import { Abortable } from 'events';
 import * as fs from 'fs';
 import * as Path from 'path';
 import { nameIncludeCheckWithRule, getFileType, pathJoin } from 'src/base/common/string';
-import { FileType } from 'src/base/node/file';
+import { FileType } from 'src/base/common/file/file';
 import { FileNode } from 'src/base/node/fileTree';
-import { IFileLogService } from "src/code/common/service/fileLogService";
 
 /*******************************************************************************
  *                              file related code
