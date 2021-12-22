@@ -9,7 +9,7 @@ An open-sourced markdown editor && noteTaking desktop application based on .md
 * ❌provides great noteTaking-like user experience
 
 ## 👁‍🗨Screen shots (2021.8.26)
-![screenshot](./doc/assets/2021.8.26.png)
+![screenshot](./doc/images/2021.8.26.png)
 
 ## 🚪portal
 - [📚wiki](https://github.com/Bistard/MarkdownNote/wiki)

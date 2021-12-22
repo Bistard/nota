@@ -24,7 +24,7 @@ export class Browser {
         this.startUp();
     }
 
-    private startUp() {
+    private startUp(): void {
         this.initServices().then(() => {
 
             this.workbench = new Workbench(this.instantiationService, this.globalConfigService  , this.configService);
