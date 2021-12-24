@@ -5,16 +5,19 @@ export class DataBuffer {
     public readonly bufferLength: number;
 
     /**
-     * @description allocates and returns a new DataBuffer to hold given byte size of data.
+     * @description allocates and returns a new DataBuffer to hold given byte 
+     * size of data.
      */
     public static alloc(byteSize: number): DataBuffer {
         return new DataBuffer(new Uint8Array(byteSize));
     }
 
     /**
-     * @description concatenates given array of DataBuffer into one single DataBuffer.
+     * @description concatenates given array of DataBuffer into one single 
+     * DataBuffer.
      * 
-     * @param totalLength this gives the choice to avoid recalculate totalLength of all the DataBuffers.
+     * @param totalLength this gives the choice to avoid recalculate totalLength 
+     * of all the DataBuffers.
      */
     public static concat(buffers: DataBuffer[], totalLength?: number): DataBuffer {
 
@@ -40,11 +43,12 @@ export class DataBuffer {
     }
 
     /**
-     * @description create a 'reference' DataBuffer which contains the original data.
-     * The returned DataBuffer shares the memory with the given 'Uint8Array'.
+     * @description create a 'reference' DataBuffer which contains the original 
+     * data. The returned DataBuffer shares the memory with the given 'Uint8Array'.
      */
     public static wrap(originalData: Uint8Array): DataBuffer {
-        // this line of code is to create a 'reference' or a 'pointer' to the original data without copying values.
+        // this line of code is to create a 'reference' or a 'pointer' to the 
+        // original data without copying values.
         const referencedData = Buffer.from(originalData.buffer, originalData.byteOffset, originalData.byteLength);
         return new DataBuffer(referencedData as Uint8Array);
     }
@@ -56,9 +60,7 @@ export class DataBuffer {
 		return new DataBuffer(this.buffer.subarray(start, end));
 	}
 
-    /**
-     * @internal
-     */
+    /** @internal */
     private constructor(buffer: Uint8Array) {
         this.buffer = buffer;
         this.bufferLength = this.buffer.length;

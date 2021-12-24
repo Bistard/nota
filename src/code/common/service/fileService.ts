@@ -1,8 +1,9 @@
 import { DataBuffer } from "src/base/common/file/buffer";
-import { FileSystemProviderAbleToRead, hasFileReadStreamCapability, hasOpenReadWriteCloseCapability, hasReadWriteCapability, IFileReadStreamOptions, IFileSystemProvider, IFileSystemProviderWithFileReadStream, IFileSystemProviderWithFileReadWrite, IFileSystemProviderWithOpenReadWriteClose } from "src/base/common/file/file";
-import { IStream, newBufferStream, newStream, readFileIntoStream, streamToBuffer } from "src/base/common/file/stream";
+import { FileSystemProviderAbleToRead, hasOpenReadWriteCloseCapability, hasReadWriteCapability, IReadFileOptions, IFileSystemProvider, IFileSystemProviderWithFileReadWrite, IFileSystemProviderWithOpenReadWriteClose } from "src/base/common/file/file";
+import { IWriteableStream, newWriteableBufferStream, newWriteableStream, streamToBuffer } from "src/base/common/file/stream";
 import { URI } from "src/base/common/file/uri";
 import { isAbsolutePath } from "src/base/common/string";
+import { readFileIntoStream, readFileIntoStreamAsync } from "src/base/node/io";
 import { createDecorator } from "src/code/common/service/instantiationService/decorator";
 
 export const IFileService = createDecorator<IFileService>('file-service');
@@ -15,42 +16,42 @@ export class FileService implements IFileService {
 
     private readonly _providers: Map<string, IFileSystemProvider> = new Map();
 
-    private readonly bufferSize = 64 * 1024;
+    /** @readonly read into chunks of 256kb each to reduce IPC overhead */
+    private readonly bufferSize = 256 * 1024;
 
     constructor(
         /* IFileLogService private readonly fileLogService: IFileLogService */
-    ) {
-
-    }
+    ) { }
 
     /***************************************************************************
      * public API
      **************************************************************************/
     
-    public async readFileStream(resource: URI, opts: IFileReadStreamOptions = Object.create(null)): Promise<IStream<DataBuffer>> {
-        const provider = await this._getReadProvider(resource);
-        return this._doReadFileStream(provider, resource, opts);
-    }
-
-    public async readFile(resource: URI, opts: IFileReadStreamOptions = Object.create(null)): Promise<DataBuffer> {
-        const provider = await this._getReadProvider(resource);
-        return this._doReadFile(provider, resource, opts);
+    public async readFile(
+        uri: URI, 
+        opts: IReadFileOptions = Object.create(null)): Promise<DataBuffer> 
+    {
+        const provider = await this.__getReadProvider(uri);
+        return this.__readFile(provider, uri, opts);
     }
     
-    public async writeFile(resource: URI): Promise<void> {
-        const provider = await this._getWriteProvider(resource);
+    public async writeFile(uri: URI): Promise<void> 
+    {
+        const provider = await this.__getWriteProvider(uri);
         // TODO
     }
 
-    public async createFile(resource: URI): Promise<void> {
-    
+    public async createFile(uri: URI): Promise<void> {
+        // TODO
     }
 
-    public async isFileExist(resource: URI): Promise<boolean> {
+    public async isFileExist(uri: URI): Promise<boolean> {
+        // TODO
         return false;
     }
 
-    public async isFolderExist(resource: URI): Promise<boolean> {
+    public async isFolderExist(uri: URI): Promise<boolean> {
+        // TODO
         return false;
     }
 
@@ -63,97 +64,46 @@ export class FileService implements IFileService {
     }
 
     /***************************************************************************
-     * private/helper API
+     * Reading/Writing files related helper methods.
      **************************************************************************/
-    
-    private async _getReadProvider(resource: URI): 
-        Promise<IFileSystemProviderWithFileReadWrite | 
-        IFileSystemProviderWithOpenReadWriteClose> 
-    {
-		const provider = await this._getProvider(resource);
 
-		if (hasOpenReadWriteCloseCapability(provider) || hasReadWriteCapability(provider)) {
-			return provider;
-		}
-
-		throw new Error(`Filesystem provider for scheme '${resource.scheme}' neither has FileReadWrite nor FileOpenReadWriteClose capability which is needed for the read operation.`);
-	}
-
-    private async _getWriteProvider(resource: URI): 
-        Promise<IFileSystemProviderWithFileReadWrite | 
-        IFileSystemProviderWithOpenReadWriteClose> 
-    {
-		const provider = await this._getProvider(resource);
-
-		if (hasOpenReadWriteCloseCapability(provider) || hasReadWriteCapability(provider)) {
-			return provider;
-		}
-
-		throw new Error(`Filesystem provider for scheme '${resource.scheme}' neither has FileReadWrite nor FileOpenReadWriteClose capability which is needed for the write operation.`);
-	}
-
-    private async _getProvider(resource: URI): Promise<IFileSystemProvider> {
-
-		// Assert path is absolute
-        if (!isAbsolutePath(resource.path)) {
-			throw new Error(`Unable to resolve filesystem provider with relative file path '${resource.path}`);
-		}
-
-        // REVIEW: figure out what this process is actually doing here in vscode, if no such functionality is required,
-        // this function then is NO need to by async.
-        // this.activateProvider(resource.scheme);
-
-		// Assert provider
-		const provider = this._providers.get(resource.scheme);
-		if (!provider) {
-			throw new Error(`noProviderFound given ${resource.scheme.toString()}`);
-		}
-
-		return provider;
-	}
-
-    private async _doReadFile(
+    private async __readFile(
         provider: FileSystemProviderAbleToRead, 
-        resource: URI,
-        opts: IFileReadStreamOptions
-    ): Promise<DataBuffer> {
-        const stream = await this._doReadFileStream(provider, resource, opts);
+        uri: URI,
+        opts: IReadFileOptions): Promise<DataBuffer> 
+    {
+        const stream = await this.__readFileStream(provider, uri, opts);
 
         return streamToBuffer(stream);
     }
 
-    private async _doReadFileStream(
+    private async __readFileStream(
         provider: FileSystemProviderAbleToRead, 
-        resource: URI, 
-        opts: IFileReadStreamOptions
-    ): Promise<IStream<DataBuffer>> {
+        uri: URI, 
+        opts: IReadFileOptions): Promise<IWriteableStream<DataBuffer>> 
+    {
         
-        const validateStat = this._validateURI(resource);
+        const validateStat = this.__validateURI(uri);
 
-        let stream: IStream<DataBuffer> | undefined = undefined;
+        let writeableStream: IWriteableStream<DataBuffer> | undefined = undefined;
 
         try {
 
-            if (!(hasOpenReadWriteCloseCapability(provider) || hasFileReadStreamCapability(provider)) || (hasReadWriteCapability(provider))) {
-                
-                // read unbuffered (only if either preferred, or the provider has no buffered read capability)
-                // DEBUG: stream = this._readFileUnbuffered(provider, resource);
-                stream = this._readFileBuffered(provider as any, resource, opts);
+            if (!hasOpenReadWriteCloseCapability(provider) || 
+                hasReadWriteCapability(provider))
+            {    
+                // read unbuffered (only if either preferred, or the provider has 
+                // no buffered read capability)
+                writeableStream = this.__readFileUnbuffered(provider, uri, opts);
+            } 
 
-            } else if (hasFileReadStreamCapability(provider)) {
-                
-                // read streamed
-                stream = this._readFileStreamed(provider, resource ,opts);
-
-            } else {
-
+            else {
                 // read buffered
-                stream = this._readFileBuffered(provider, resource, opts);
-
+                writeableStream = this.__readFileBuffered(provider, uri, opts);
             }
 
             await validateStat;
-            return stream;
+            return writeableStream;
             
         } catch(err) {
 
@@ -163,44 +113,95 @@ export class FileService implements IFileService {
 
     }
 
-    private _readFileUnbuffered(
+    /** @description Read the file directly into the memory in one time. */
+    private __readFileUnbuffered(
         provider: IFileSystemProviderWithFileReadWrite, 
-        resource: URI,
-        opts: IFileReadStreamOptions
-    ): IStream<DataBuffer> {
-        const readableStream = newBufferStream();
-        // TODO:
-        return readableStream;
-    }
-
-    private _readFileStreamed(
-        provider: IFileSystemProviderWithFileReadStream, 
-        resource: URI,
-        opts: IFileReadStreamOptions
-    ): IStream<DataBuffer> {
-        const readableStream = provider.readFileStream(resource);
+        uri: URI,
+        opts: IReadFileOptions): IWriteableStream<DataBuffer> 
+    {
+        const writeableStream = newWriteableBufferStream();
         
-        // return transform(fileStream, {
-		// 	data: data => data instanceof VSBuffer ? data : VSBuffer.wrap(data),
-		// 	error: error => new FileOperationError(localize('err.read', "Unable to read file '{0}' ({1})", this.resourceForError(resource), ensureFileSystemProviderError(error).toString()), toFileOperationResult(error), options)
-		// }, data => VSBuffer.concat(data));
-        return readableStream;
+        readFileIntoStreamAsync(
+            provider, 
+            uri, 
+            writeableStream, 
+            opts
+        );
+
+        return writeableStream;
     }
 
-    private _readFileBuffered(
+    /** @description Read the file using buffer I/O. */
+    private __readFileBuffered(
         provider: IFileSystemProviderWithOpenReadWriteClose, 
-        resource: URI,
-        opts: IFileReadStreamOptions
-    ): IStream<DataBuffer> {
-        const readableStream = newBufferStream();
+        uri: URI,
+        opts: IReadFileOptions): IWriteableStream<DataBuffer> 
+    {
+        const writeableStream = newWriteableBufferStream();
 
-        readFileIntoStream(provider, resource, readableStream, data => data, { ...opts, bufferSize: this.bufferSize });
+        readFileIntoStream(
+            provider, 
+            uri, 
+            writeableStream, 
+            data => data, 
+            { ...opts, bufferSize: this.bufferSize }
+        );
 
-        return readableStream;
+        return writeableStream;
     }
 
-    private async _validateURI(resource: URI): Promise<void> {
+    private async __validateURI(uri: URI): Promise<void> {
         return;
     }
+
+    /***************************************************************************
+     * Provider related helper methods.
+     **************************************************************************/
+
+    private async __getReadProvider(uri: URI): 
+        Promise<IFileSystemProviderWithFileReadWrite | 
+        IFileSystemProviderWithOpenReadWriteClose> 
+    {
+		const provider = await this.__getProvider(uri);
+
+		if (hasOpenReadWriteCloseCapability(provider) || hasReadWriteCapability(provider)) {
+			return provider;
+		}
+
+		throw new Error(`Filesystem provider for scheme '${uri.scheme}' neither has FileReadWrite nor FileOpenReadWriteClose capability which is needed for the read operation.`);
+	}
+
+    private async __getWriteProvider(uri: URI): 
+        Promise<IFileSystemProviderWithFileReadWrite | 
+                IFileSystemProviderWithOpenReadWriteClose> 
+    {
+		const provider = await this.__getProvider(uri);
+
+		if (hasOpenReadWriteCloseCapability(provider) || hasReadWriteCapability(provider)) {
+			return provider;
+		}
+
+		throw new Error(`Filesystem provider for scheme '${uri.scheme}' neither has FileReadWrite nor FileOpenReadWriteClose capability which is needed for the write operation.`);
+	}
+
+    private async __getProvider(uri: URI): Promise<IFileSystemProvider> {
+
+		// Assert path is absolute
+        if (!isAbsolutePath(uri.path)) {
+			throw new Error(`Unable to resolve filesystem provider with relative file path '${uri.path}`);
+		}
+
+        // REVIEW: figure out what this process is actually doing here in vscode, if no such functionality is required,
+        // this function then is NO need to by async.
+        // this.activateProvider(uri.scheme);
+
+		// Assert provider
+		const provider = this._providers.get(uri.scheme);
+		if (!provider) {
+			throw new Error(`noProviderFound given ${uri.scheme.toString()}`);
+		}
+
+		return provider;
+	}
 
 }

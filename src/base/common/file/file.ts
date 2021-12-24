@@ -57,9 +57,7 @@ export class Directory implements IStat {
 	}
 }
 
-/**
- * @description the base interface for any other FileSystemProvider
- */
+/** @description the base interface for any other FileSystemProvider. */
 export interface IFileSystemProvider {
 
 	readonly capabilities: FileSystemProviderCapability;
@@ -80,7 +78,7 @@ export interface IFileSystemProvider {
 	readFile?(resource: URI): Promise<Uint8Array>;
 	writeFile?(resource: URI, content: Uint8Array): Promise<void>;
 
-	readFileStream?(resource: URI, opt?: IFileReadStreamOptions): any;
+	readFileStream?(resource: URI, opt?: IReadFileOptions): any;
 
 	open?(resource: URI, opts?: IFileOpenOptions): Promise<number>;
 	close?(fd: number): Promise<void>;
@@ -89,7 +87,7 @@ export interface IFileSystemProvider {
 }
 
 /*******************************************************************************
- * specific FileSystemProviders
+ * Specific FileSystemProviders
  ******************************************************************************/
 
 export interface IFileSystemProviderWithFileReadWrite extends IFileSystemProvider {
@@ -108,14 +106,9 @@ export interface IFileSystemProviderWithCopy extends IFileSystemProvider {
 	copy(from: string, to: string): Promise<void>;
 }
 
-export interface IFileSystemProviderWithFileReadStream extends IFileSystemProvider {
-	readFileStream(resource: URI, opts?: IFileReadStreamOptions): any;
-}
-
 export type FileSystemProviderAbleToRead = 
 	IFileSystemProviderWithFileReadWrite | 
-	IFileSystemProviderWithOpenReadWriteClose | 
-	IFileSystemProviderWithFileReadStream;
+	IFileSystemProviderWithOpenReadWriteClose;
 
 /*******************************************************************************
  * FileSystemProviders Types
@@ -164,10 +157,6 @@ export function hasCopyCapability(provider: IFileSystemProvider): provider is IF
 	return !!(provider.capabilities & FileSystemProviderCapability.FileFolderCopy);
 }
 
-export function hasFileReadStreamCapability(provider: IFileSystemProvider): provider is IFileSystemProviderWithFileReadStream {
-	return !!(provider.capabilities & FileSystemProviderCapability.FileReadStream);
-}
-
 /*******************************************************************************
  * Options
  ******************************************************************************/
@@ -188,17 +177,17 @@ export interface IFileOpenOptions {
 	 readonly unlock: boolean;
 }
 
-export interface IFileReadStreamOptions {
+export interface IReadFileOptions {
 
 	/**
-	 * Is an integer specifying where to begin reading from in the file. If position is undefined,
-	 * data will be read from the current file position.
+	 * Is an integer specifying where to begin reading from in the file. If 
+	 * position is undefined, data will be read from the current file position.
 	 */
 	readonly position?: number;
 
 	/**
-	 * Is an integer specifying how many bytes to read from the file. By default, all bytes
-	 * will be read.
+	 * Is an integer specifying how many bytes to read from the file. By default, 
+	 * all bytes will be read.
 	 */
 	readonly length?: number;
 
@@ -211,7 +200,7 @@ export interface IFileReadStreamOptions {
 	};
 }
 
-export interface ICreateReadStreamOptions extends IFileReadStreamOptions {
+export interface ICreateReadStreamOptions extends IReadFileOptions {
 
 	/**
 	 * The size of the buffer to use before sending to the stream.

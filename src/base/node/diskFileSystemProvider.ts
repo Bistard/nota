@@ -1,14 +1,11 @@
-import { DataBuffer } from "src/base/common/file/buffer";
-import { File, IFileOpenOptions, FileSystemProviderCapability, FileType, IFileSystemProviderWithFileReadStream, IFileSystemProviderWithFileReadWrite, IFileSystemProviderWithOpenReadWriteClose, IStat, IFileReadStreamOptions } from "src/base/common/file/file";
-import { IStream, newStream, readFileIntoStream } from "src/base/common/file/stream";
+import { File, IFileOpenOptions, FileSystemProviderCapability, FileType, IFileSystemProviderWithFileReadWrite, IFileSystemProviderWithOpenReadWriteClose, IStat, IReadFileOptions } from "src/base/common/file/file";
 import { URI } from "src/base/common/file/uri";
 import * as fs from "fs";
 import { FileMode } from "src/base/node/io";
 
 export class DiskFileSystemProvider implements 
     IFileSystemProviderWithFileReadWrite,
-    IFileSystemProviderWithOpenReadWriteClose,
-    IFileSystemProviderWithFileReadStream {
+    IFileSystemProviderWithOpenReadWriteClose {
 
     /**
      * @readonly DiskFileSystemProvider has fully permission to deal with disk
@@ -20,16 +17,23 @@ export class DiskFileSystemProvider implements
         FileSystemProviderCapability.FileReadStream |
         FileSystemProviderCapability.FileFolderCopy;
 
-    private readonly bufferSize = 64 * 1024;
+    private readonly bufferSize = 256 * 1024;
 
     // empty
     constructor() {}
 
-    public async readFile(resource: URI): Promise<Uint8Array> {
-        return new Uint8Array();
+    public async readFile(uri: URI): Promise<Uint8Array> {
+        try {
+            
+            const filePath = URI.toFsPath(uri);
+            return fs.readFileSync(filePath);
+
+        } catch (err) {
+            throw err;
+        }
     }
 
-	public async writeFile(resource: URI, content: Uint8Array): Promise<void> {
+	public async writeFile(uri: URI, content: Uint8Array): Promise<void> {
         return;
     }
 
@@ -38,10 +42,10 @@ export class DiskFileSystemProvider implements
      * 
      * @returns fd (file descriptor)
      */
-    public async open(resource: URI, opts: IFileOpenOptions): Promise<number> {
+    public async open(uri: URI, opts: IFileOpenOptions): Promise<number> {
         
         try {
-            const filePath = URI.toFsPath(resource);
+            const filePath = URI.toFsPath(uri);
 
             // determine wether to unlock the file (write mode only)
             if (opts.create === true && opts.unlock === true) {
@@ -123,26 +127,19 @@ export class DiskFileSystemProvider implements
         return;
     }
 
-    public readFileStream(resource: URI, opts: IFileReadStreamOptions): IStream<Uint8Array>  {
-        const stream = newStream<Uint8Array>(data => DataBuffer.concat(data.map((data: Uint8Array) => DataBuffer.wrap(data))).buffer);
-
-        readFileIntoStream(this, resource, stream, data => data.buffer, { ...opts, bufferSize: this.bufferSize });
-        return stream;
-    }
-
-    public async stat(resource: URI): Promise<IStat> {
+    public async stat(uri: URI): Promise<IStat> {
         return new File('undefined');
     }
 
-	public async mkdir(resource: URI): Promise<void> {
+	public async mkdir(uri: URI): Promise<void> {
         return;
     }
 
-	public async readdir(resource: URI): Promise<[string, FileType][]> {
+	public async readdir(uri: URI): Promise<[string, FileType][]> {
         return[];
     }
 	
-    public async delete(resource: URI): Promise<void> {
+    public async delete(uri: URI): Promise<void> {
         return;
     }
 

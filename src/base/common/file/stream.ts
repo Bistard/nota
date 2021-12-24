@@ -2,17 +2,17 @@ import { DataBuffer } from "src/base/common/file/buffer";
 import { ICreateReadStreamOptions, IFileSystemProviderWithOpenReadWriteClose } from "src/base/common/file/file";
 import { URI } from "src/base/common/file/uri";
 
-export interface IStreamEvent<T> {
+export interface IReadableStreamEvent<T> {
 
     /**
 	 * The 'data' event is emitted whenever the stream is
 	 * relinquishing ownership of a chunk of data to a consumer.
 	 *
-	 * NOTE: PLEASE UNDERSTAND THAT ADDING A DATA LISTENER CAN
+	 * @warning PLEASE UNDERSTAND THAT ADDING A DATA LISTENER CAN
 	 * TURN THE STREAM INTO FLOWING MODE. IT IS THEREFOR THE
 	 * LAST LISTENER THAT SHOULD BE ADDED AND NOT THE FIRST
 	 *
-	 * Use `listenStream` as a helper method to listen to
+	 * @note Use `listenStream` as a helper method to listen to
 	 * stream events in the right order.
 	 */
     on(event: 'data', callback: (data: T) => void): void;
@@ -30,7 +30,21 @@ export interface IStreamEvent<T> {
     on(event: 'end', callback: () => void): void;
 }
 
-export interface IStream<T> extends IStreamEvent<T> {
+export interface IReadableStream<T> extends IReadableStreamEvent<T> {
+	/** Stops emitting any events until resume() is called. */
+	pause(): void;
+
+	/** Starts emitting events again after pause() was called. */
+	resume(): void;
+
+	/** Destroys the stream and stops emitting any event. */
+	destroy(): void;
+
+	/** Allows to remove a listener that was previously added. */
+	removeListener(event: string, callback: Function): void;
+}
+
+export interface IWriteableStream<T> extends IReadableStream<T> {
     
     /**
 	 * Writing data to the stream will trigger the on('data')
@@ -61,154 +75,40 @@ export interface IStream<T> extends IStreamEvent<T> {
 	 * otherwise until the stream is flowing.
 	 */
 	end(result?: T): void;
-
-    /**
-	 * Stops emitting any events until resume() is called.
-	 */
-	pause(): void;
-
-	/**
-	 * Starts emitting events again after pause() was called.
-	 */
-	resume(): void;
-
-	/**
-	 * Destroys the stream and stops emitting any event.
-	 */
-	destroy(): void;
-
-	/**
-	 * Allows to remove a listener that was previously added.
-	 */
-	removeListener(event: string, callback: Function): void;
 }
 
-/**
- * @description a function to convert the original data type to the target data type.
-*/
+/** @description A function to convert the original datatype to the target datatype. */
 export interface IDataConverter<original, target> {
     (data: original): target;
 }
 
-export async function readFileIntoStream<T>(
-    provider: IFileSystemProviderWithOpenReadWriteClose, 
-    resource: URI, 
-    stream: IStream<T>, 
-    dataConverter: IDataConverter<DataBuffer, T>, 
-    options: ICreateReadStreamOptions
-): Promise<void> {
-
-    let error: Error | undefined = undefined;
-    try {
-
-        await _doReadFileIntoStream(provider, resource, stream, dataConverter, options);
-
-    } catch(err: any) {
-        
-        error = err;
-
-    } finally {
-
-        if (error) {
-            stream.error(error);
-        }
-
-        stream.end();
-    }
-}
-
-async function _doReadFileIntoStream<T>(
-    provider: IFileSystemProviderWithOpenReadWriteClose, 
-    resource: URI, 
-    stream: IStream<T>, 
-    dataConverter: IDataConverter<DataBuffer, T>, 
-    options: ICreateReadStreamOptions
-): Promise<void> {
-    
-    const fd = await provider.open(resource, { create: false, unlock: false } );
-
-    try {
-        
-        let totalBytesRead = 0;
-        let bytesRead = 0;
-        let allowedRemainingBytes = (options && typeof options.length === 'number') ? options.length : undefined;
-
-        let buffer = DataBuffer.alloc(Math.min(options.bufferSize, typeof allowedRemainingBytes === 'number' ? allowedRemainingBytes : options.bufferSize));
-
-        let posInFile = options && typeof options.position === 'number' ? options.position : 0;
-        let posInBuffer = 0;
-
-        do {
-            // read from source (fd) at current position (posInFile) into buffer (buffer) at
-			// buffer position (posInBuffer) up to the size of the buffer (buffer.byteLength).
-			bytesRead = await provider.read(fd, posInFile, buffer.buffer, posInBuffer, buffer.bufferLength - posInBuffer);
-
-            posInFile += bytesRead;   
-            posInBuffer += bytesRead;
-            totalBytesRead += bytesRead;
-
-            if (typeof allowedRemainingBytes === 'number') {
-				allowedRemainingBytes -= bytesRead;
-			}
-
-            // when buffer full, create a new one and emit it through stream
-			if (posInBuffer === buffer.bufferLength) {
-                await stream.write(dataConverter(buffer));
-				buffer = DataBuffer.alloc(Math.min(options.bufferSize, typeof allowedRemainingBytes === 'number' ? allowedRemainingBytes : options.bufferSize));
-				posInBuffer = 0;
-			}
-
-        } while(bytesRead > 0 && (typeof allowedRemainingBytes !== 'number' || allowedRemainingBytes > 0));
-
-        // wrap up with last buffer and write to the stream
-		if (posInBuffer > 0) {
-			let lastChunkLength = posInBuffer;
-			if (typeof allowedRemainingBytes === 'number') {
-				lastChunkLength = Math.min(posInBuffer, allowedRemainingBytes);
-			}
-			stream.write(dataConverter(buffer.slice(0, lastChunkLength)));
-		}
-
-    } catch(err) {
-        
-        throw err;
-
-    } finally {
-
-        await provider.close(fd);
-
-    }
-}
-
 /**
- * @readonly just an identifier to point out this is a concatenater function 
- * which to combine all the buffers into the single one buffer.
+ * @description Just an identifier to point out this is a concatenater function 
+ * which to combine all the buffers into a new single one buffer.
  */
 export interface IConcatenater<T> {
     /**
-     * a function which takes one parameter called 'data' with type of 'T[]' and return type is 'T'.
+     * a function which takes one parameter called 'data' with type of 'T[]' and 
+	 * return type is 'T'.
      */
     (data: T[]): T; 
 }
 
-/**
- * @description helper function to create a new stream instance.
- */
-export function newStream<T>(concatenater: IConcatenater<T>): IStream<T> {
-    return new Stream<T>(concatenater);
+/** @description helper function to create a new buffer stream instance. */
+export function newWriteableBufferStream(): IWriteableStream<DataBuffer> {
+	return newWriteableStream<DataBuffer>(chunks => DataBuffer.concat(chunks));
+}
+
+/** @description helper function to create a new stream instance. */
+export function newWriteableStream<T>(concatenater: IConcatenater<T>): IWriteableStream<T> {
+    return new WriteableStream<T>(concatenater);
 }
 
 /**
- * @description helper function to create a new buffer stream instance.
+ * @description A writeable stream for handling data flowing between buffer and 
+ * consumers.
  */
-export function newBufferStream(): IStream<DataBuffer> {
-	return newStream<DataBuffer>(chunks => DataBuffer.concat(chunks));
-}
-
-/**
- * @description a stream for handling data flowing between buffer and consumers
- */
-export class Stream<T> implements IStream<T> {
+export class WriteableStream<T> implements IWriteableStream<T> {
 
     private readonly concatenater: IConcatenater<T>;
     private readonly highWaterMark: number | undefined;
@@ -238,7 +138,7 @@ export class Stream<T> implements IStream<T> {
     }
 
     /***************************************************************************
-     * Notifitying listeners
+     * Manipulation on stream buffer
      **************************************************************************/
     
     public write(data: T): void | Promise<void> {
@@ -301,7 +201,7 @@ export class Stream<T> implements IStream<T> {
     }
 
     /***************************************************************************
-     * Manipulation to stream
+     * Manipulation on stream state
      **************************************************************************/
 
 	public pause(): void {
@@ -343,32 +243,26 @@ export class Stream<T> implements IStream<T> {
     }
 
 	public removeListener(event: string, callback: Function): void {
-
+		// TODO
     }
 
     /***************************************************************************
-     * Actual Notifying Listeners with data
+     * Notifying Listeners with data buffer
      **************************************************************************/
 
     // slice to avoid listener mutation from delivering event
 
-    /**
-     * @description notifying and firing data to the listeners
-     */
+    /** @description notifying and firing data to the listeners */
     private _fireData(data: T): void {
         this.listeners.listener.slice(0).forEach(listener => listener(data));
     }
 
-    /**
-     * @description notifying and firing error to the listeners
-     */
+    /** @description notifying and firing error to the listeners */
     private _fireError(error: Error): void {
         this.listeners.error.slice(0).forEach(listener => listener(error));
     }
 
-    /**
-     * @description notifying the listeners that the stream is reached to the end
-     */
+    /** @description notifying the listeners that the stream is reached to the end */
     private _fireEnd(): void {
         this.listeners.end.slice(0).forEach(listener => listener());
     }
@@ -377,11 +271,11 @@ export class Stream<T> implements IStream<T> {
      * Listening to stream event
      **************************************************************************/
 
-     on(event: 'data', callback: (data: T) => void): void;
-     on(event: 'error', callback: (err: Error) => void): void;
-     on(event: 'end', callback: () => void): void;
-     on(event: 'data' | 'error' | 'end', listener: (_arg?: any) => void): void {
-
+     public on(event: 'data', callback: (data: T) => void): void;
+     public on(event: 'error', callback: (err: Error) => void): void;
+     public on(event: 'end', callback: () => void): void;
+     public on(event: 'data' | 'error' | 'end', listener: (_arg?: any) => void): void 
+	 {
         if (this.state.destroyed) {
 			return;
 		}
@@ -464,41 +358,25 @@ export class Stream<T> implements IStream<T> {
 }
 
 /**
- * Helper to fully read a T stream into a T or consuming
- * a stream fully, awaiting all the events without caring
- * about the data.
+ * @description Helper to fully read a T stream into a T or consuming a stream 
+ * fully, awaiting all the events without caring about the data.
  */
-export function streamToBuffer<T>(stream: IStream<DataBuffer>): Promise<DataBuffer> {
+export function streamToBuffer<T>(stream: IWriteableStream<DataBuffer>): Promise<DataBuffer> {
     return consumeStream(stream, chunks => DataBuffer.concat(chunks));
 }
 
-export function consumeStream<T>(stream: IStream<T>, concatenater: IConcatenater<T>): Promise<T>;
-export function consumeStream(stream: IStream<unknown>): Promise<undefined>;
-export function consumeStream<T>(stream: IStream<T>, concatenater?: IConcatenater<T>): Promise<T | undefined> {
+export function consumeStream<T>(stream: IWriteableStream<T>, concatenater: IConcatenater<T>): Promise<T> {
 	return new Promise((resolve, reject) => {
 		
         const chunks: T[] = [];
-		listenStream(stream, {
-			onData: chunk => {
-				if (concatenater) {
-					chunks.push(chunk);
-				}
-			},
-			onError: error => {
-				if (concatenater) {
-					reject(error);
-				} else {
-					resolve(undefined);
-				}
-			},
-			onEnd: () => {
-				if (concatenater) {
-					resolve(concatenater(chunks));
-				} else {
-					resolve(undefined);
-				}
+		listenStream(
+			stream, 
+			{
+				onData: chunk => chunks.push(chunk),
+				onError: error => reject(error),
+				onEnd: () => resolve(concatenater(chunks))
 			}
-		});
+		);
 	});
 }
 
@@ -510,9 +388,7 @@ export interface IStreamListener<T> {
 	 */
 	onData(data: T): void;
 
-	/**
-	 * Emitted when any error occurs.
-	 */
+	/** Emitted when any error occurs. */
 	onError(err: Error): void;
 
 	/**
@@ -524,9 +400,9 @@ export interface IStreamListener<T> {
 }
 
 /**
- * Helper to listen to all events of a T stream in proper order.
+ * @description Helper to listen to all events of a T stream in proper order.
  */
- export function listenStream<T>(stream: IStream<T>, listener: IStreamListener<T>): void {
+ export function listenStream<T>(stream: IWriteableStream<T>, listener: IStreamListener<T>): void {
 	stream.on('error', error => listener.onError(error));
 	stream.on('end', () => listener.onEnd());
     /**

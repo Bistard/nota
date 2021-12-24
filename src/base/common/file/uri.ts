@@ -115,9 +115,7 @@ export class URI implements IURI {
         this.fragment = fragment;
     }
 
-	/**
-	 * Compute `fsPath` for the given uri
-	 */
+	/** @description Compute `fsPath` for the given uri. */
 	public static toFsPath(uri: URI, keepDriveLetterCasing: boolean = true): string {
 
 		let value: string;
