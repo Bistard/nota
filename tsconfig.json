@@ -3,7 +3,7 @@
     "./src/**/*",
   ],
   "exclude": [
-    "./node_modules"
+    "./node_modules",
   ],
   "compilerOptions": {
     /* Visit https://aka.ms/tsconfig.json to read more about this file */
@@ -81,5 +81,8 @@
     /* Advanced Options */
     "skipLibCheck": true,                           /* Skip type checking of declaration files. */
     "forceConsistentCasingInFileNames": true        /* Disallow inconsistently-cased references to the same file. */
+  },
+  "ts-node": {
+    "require": ["tsconfig-paths/register"]
   }
 }
