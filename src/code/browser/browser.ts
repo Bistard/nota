@@ -4,7 +4,6 @@ import { FileLogService, IFileLogService } from "src/code/common/service/logServ
 import { ServiceDescriptor } from "src/code/common/service/instantiationService/descriptor";
 import { IInstantiationService, InstantiationService } from "src/code/common/service/instantiationService/instantiation";
 import { ServiceCollection } from "src/code/common/service/instantiationService/serviceCollection";
-import { IUnitTestService, UnitTestService } from "src/code/common/service/unitTestService";
 import { ConfigService, IConfigService } from "src/code/common/service/configService/configService";
 import { GlobalConfigService, IGlobalConfigService } from "src/code/common/service/configService/globalConfigService";
 import { APP_ROOT_PATH } from "src/base/electron/app";
@@ -58,9 +57,6 @@ export class Browser {
         this.instantiationService.register(IComponentService, new ServiceDescriptor(ComponentService));
 
         // more and more...
-        
-        // UnitTestService
-        this.instantiationService.register(IUnitTestService, new UnitTestService(this.globalConfigService));
         
     }
 
