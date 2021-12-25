@@ -13,10 +13,10 @@ suite('fileService-test', () => {
         const service = new FileService();
         const provider = new DiskFileSystemProvider();
         
-        service.registerProvider('file', provider);
-        const uri = URI.parse("file://D:/dev/MarkdownNote/src/code/common/service/test/temp/file.test-tiny.txt");
-        const buffer = await service.readFile(uri);
-        assert.strictEqual(buffer.toString(), 'Hello World');
+        // service.registerProvider('file', provider);
+        // const uri = URI.parse("file://D:/dev/MarkdownNote/src/code/common/service/test/temp/file.test-tiny.txt");
+        // const buffer = await service.readFile(uri);
+        // assert.strictEqual(buffer.toString(), 'Hello World');
     });
 
     test('writeFile', async () => {
