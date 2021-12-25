@@ -1,34 +1,22 @@
-import { assert } from "console";
-import { URI } from "src/base/common/file/uri";
+import * as assert from 'assert';
+import { URI } from 'src/base/common/file/uri';
 
-function _testToString(testString: string, print?: boolean): void {
+suite('URI-test', () => {
     
-    const uri = URI.parse(testString);
-    const toStr = uri.toString();
+    const testStr1 = 'foo://example.com:8042/over/there?name=ferret#nose';
+    const testStr2 = 'urn:example:animal:ferret:nose';
+    const testStr3 = 'file://d:/dev/MarkdownNote/src/code/common/service/test/file.test.txt';
 
-    if (print) {
-        console.log(`original: ${testString}`);
-        console.log(`toString(): ${toStr}`);
-    }
+    test('URI#toString()', () => {
+        assert.strictEqual(URI.parse(testStr1).toString(), testStr1);
+        assert.strictEqual(URI.parse(testStr2).toString(), testStr2);
+        assert.strictEqual(URI.parse(testStr3).toString(), testStr3);
+    });
 
-    assert(toStr === testString);
-}
+    test('URI#toFsPath()', () => {
+        // assert.strictEqual(URI.toFsPath(URI.parse(testStr1)), '');
+        // assert.strictEqual(URI.toFsPath(URI.parse(testStr2)), '');
+        assert.strictEqual(URI.toFsPath(URI.parse(testStr3)), 'd:\\dev\\MarkdownNote\\src\\code\\common\\service\\test\\file.test.txt');
+    });
 
-function _testToFsPath(str: string, print?: boolean): void {
-    const uri = URI.parse(str);
-    const toFsPath = URI.toFsPath(uri);
-
-    if (print) {
-        console.log(`original: ${str}`);
-        console.log(`toFsPath(): ${toFsPath}`);
-    }
-}
-
-const testStr1 = 'foo://example.com:8042/over/there?name=ferret#nose';
-const testStr2 = 'urn:example:animal:ferret:nose';
-const testStr3 = 'file://D:/dev/MarkdownNote/src/code/common/service/test/file.test.txt';
-
-_testToString(testStr1, true);
-_testToString(testStr2, true);
-
-_testToFsPath(testStr3, true);
+});
