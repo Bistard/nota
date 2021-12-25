@@ -16,7 +16,7 @@ An open-sourced markdown editor && noteTaking desktop application based on .md
 - [🚕roadMap](https://github.com/Bistard/MarkdownNote/wiki/RoadMap)
 
 
-## Get Started
+## 🏃 Get Started
 
 First Clone this Repository
 ```
@@ -27,7 +27,6 @@ Then cd into it
 ```
 cd MarkdownNote
 ```
-
 
 ```
 npm install
