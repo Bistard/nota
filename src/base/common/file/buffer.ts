@@ -60,6 +60,15 @@ export class DataBuffer {
     }
 
     /**
+     * @description Copys a clone of the given buffer.
+     */
+    public static copy(buffer: DataBuffer): DataBuffer {
+        const newBuffer = DataBuffer.alloc(buffer.bufferLength);
+        newBuffer.set(buffer);
+        return newBuffer;
+    }
+
+    /**
      * @description Construct a DataBuffer from a given string.
      */
     public static fromString(content: string): DataBuffer {

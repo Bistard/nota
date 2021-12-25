@@ -1,6 +1,4 @@
 import { DataBuffer } from "src/base/common/file/buffer";
-import { ICreateReadStreamOptions, IFileSystemProviderWithOpenReadWriteClose } from "src/base/common/file/file";
-import { URI } from "src/base/common/file/uri";
 
 export interface IReadableStreamEvent<T> {
 
@@ -242,8 +240,33 @@ export class WriteableStream<T> implements IWriteableStream<T> {
 		}
     }
 
-	public removeListener(event: string, callback: Function): void {
-		// TODO
+	public removeListener(event: string, listener: Function): void {
+		if (this.state.destroyed) {
+			return;
+		}
+
+		let listeners: unknown[] | undefined = undefined;
+
+		switch (event) {
+			case 'data':
+				listeners = this.listeners.listener;
+				break;
+
+			case 'end':
+				listeners = this.listeners.end;
+				break;
+
+			case 'error':
+				listeners = this.listeners.error;
+				break;
+		}
+
+		if (listeners) {
+			const index = listeners.indexOf(listener);
+			if (index >= 0) {
+				listeners.splice(index, 1);
+			}
+		}
     }
 
     /***************************************************************************
@@ -271,9 +294,9 @@ export class WriteableStream<T> implements IWriteableStream<T> {
      * Listening to stream event
      **************************************************************************/
 
-     public on(event: 'data', callback: (data: T) => void): void;
-     public on(event: 'error', callback: (err: Error) => void): void;
-     public on(event: 'end', callback: () => void): void;
+     public on(event: 'data', listener: (data: T) => void): void;
+     public on(event: 'error', listener: (err: Error) => void): void;
+     public on(event: 'end', listener: () => void): void;
      public on(event: 'data' | 'error' | 'end', listener: (_arg?: any) => void): void 
 	 {
         if (this.state.destroyed) {
@@ -379,18 +402,33 @@ export function streamToBuffer<T>(stream: IReadableStream<DataBuffer>): Promise<
     return consumeStream(stream, chunks => DataBuffer.concat(chunks));
 }
 
-export function consumeStream<T>(stream: IReadableStream<T>, concatenater: IConcatenater<T>): Promise<T> {
+export function consumeStream<T>(stream: IReadableStreamEvent<T>, reducer: IConcatenater<T>): Promise<T>;
+export function consumeStream(stream: IReadableStreamEvent<unknown>): Promise<undefined>;
+export function consumeStream<T>(stream: IReadableStreamEvent<T>, reducer?: IConcatenater<T>): Promise<T | undefined> {
 	return new Promise((resolve, reject) => {
-		
-        const chunks: T[] = [];
-		listenStream(
-			stream, 
-			{
-				onData: chunk => chunks.push(chunk),
-				onError: error => reject(error),
-				onEnd: () => resolve(concatenater(chunks))
+		const chunks: T[] = [];
+
+		listenStream(stream, {
+			onData: chunk => {
+				if (reducer) {
+					chunks.push(chunk);
+				}
+			},
+			onError: error => {
+				if (reducer) {
+					reject(error);
+				} else {
+					resolve(undefined);
+				}
+			},
+			onEnd: () => {
+				if (reducer) {
+					resolve(reducer(chunks));
+				} else {
+					resolve(undefined);
+				}
 			}
-		);
+		});
 	});
 }
 
@@ -416,7 +454,7 @@ export interface IStreamListener<T> {
 /**
  * @description Helper to listen to all events of a T stream in proper order.
  */
- export function listenStream<T>(stream: IReadableStream<T>, listener: IStreamListener<T>): void {
+ export function listenStream<T>(stream: IReadableStreamEvent<T>, listener: IStreamListener<T>): void {
 	stream.on('error', error => listener.onError(error));
 	stream.on('end', () => listener.onEnd());
     /**

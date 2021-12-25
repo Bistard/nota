@@ -1,7 +1,8 @@
-import { File, IFileOpenOptions, FileSystemProviderCapability, FileType, IFileSystemProviderWithFileReadWrite, IFileSystemProviderWithOpenReadWriteClose, IStat, IReadFileOptions } from "src/base/common/file/file";
+import { File, IFileOpenOptions, FileSystemProviderCapability, FileType, IFileSystemProviderWithFileReadWrite, IFileSystemProviderWithOpenReadWriteClose, IStat, IReadFileOptions, IWriteFileOptions } from "src/base/common/file/file";
 import { URI } from "src/base/common/file/uri";
 import * as fs from "fs";
-import { FileMode } from "src/base/node/io";
+import { fileExists, FileMode } from "src/base/node/io";
+import { retry } from "src/base/common/async";
 
 export class DiskFileSystemProvider implements 
     IFileSystemProviderWithFileReadWrite,
@@ -25,16 +26,58 @@ export class DiskFileSystemProvider implements
     public async readFile(uri: URI): Promise<Uint8Array> {
         try {
             
-            const filePath = URI.toFsPath(uri);
-            return fs.readFileSync(filePath);
+            const path = URI.toFsPath(uri);
+            return fs.readFileSync(path);
 
         } catch (err) {
             throw err;
         }
     }
 
-	public async writeFile(uri: URI, content: Uint8Array): Promise<void> {
-        return;
+	public async writeFile(
+        uri: URI, 
+        content: Uint8Array, 
+        opts: IWriteFileOptions): Promise<void> 
+    {
+        let fd: number | undefined = undefined;
+        
+        try {
+            const path = URI.toFsPath(uri);
+
+            // validation
+            if (opts.create == false || opts.overwrite == false) {
+                const exist = fileExists(path);
+
+                if (exist) {
+                    if (opts.overwrite == false) {
+                        throw "File already exists";
+                    }
+                } 
+                
+                else {
+                    if (opts.create == false) {
+                        throw "File does not exist";
+                    }
+                }
+            }
+
+            // open the file
+            fd = await this.open(uri, { create: true, unlock: opts.unlock });
+
+            // write the content at once (write from beginning)
+            await this.write(fd, 0, content, 0, content.byteLength);
+        } 
+        
+        catch (error) {
+            throw "provider write file error";
+        }
+        
+        finally {
+            if (typeof fd === 'number') {
+                await this.close(fd);
+            }
+        }
+
     }
 
     /**
@@ -45,17 +88,17 @@ export class DiskFileSystemProvider implements
     public async open(uri: URI, opts: IFileOpenOptions): Promise<number> {
         
         try {
-            const filePath = URI.toFsPath(uri);
+            const path = URI.toFsPath(uri);
 
             // determine wether to unlock the file (write mode only)
             if (opts.create === true && opts.unlock === true) {
                 
                 try {
-                    let stat = fs.statSync(filePath);
+                    let stat = fs.statSync(path);
                 
                     /* File mode indicating writable by owner */
                     if (!(stat.mode & 0o200)) {
-                        fs.chmodSync(filePath, stat.mode | FileMode.writable);
+                        fs.chmodSync(path, stat.mode | FileMode.writable);
                     }
                 } catch(err) {
                     throw err;
@@ -71,23 +114,21 @@ export class DiskFileSystemProvider implements
                 flag = 'r';
             }
 
-            const fd = fs.openSync(filePath, flag);
-
+            const fd = fs.openSync(path, flag);
             return fd;
-
-        } catch(err) {
+        } 
+        
+        catch(err) {
             throw err;
         }
     }
 	
     /**
      * @description close the file.
-     * 
      * @param fd file descriptor
      */
     public async close(fd: number): Promise<void> {
         try {
-            // fs.fdatasyncSync(fd);
             fs.closeSync(fd);
         } catch(err) {
             throw err;
@@ -119,8 +160,18 @@ export class DiskFileSystemProvider implements
         }
     }
 
-	public async write(fd: number, pos: number, buffer: Uint8Array, offset: number, length: number): Promise<number> {
-        return -1;
+	public async write(
+        fd: number, 
+        pos: number, 
+        buffer: Uint8Array, 
+        offset: number, 
+        length: number): Promise<number> 
+    {
+        /**
+         * @readonly Retry for maximum 3 times for writing to a file to ensure 
+         * the write operation succeeds.
+         */
+        return retry(() => this.__write(fd, pos, buffer, offset, length), 100, 3);
     }
 
     public async copy(from: string, to: string): Promise<void> {
@@ -147,4 +198,25 @@ export class DiskFileSystemProvider implements
         return;
     }
 
+    /***************************************************************************
+     * Helper Functions
+     **************************************************************************/
+
+    private async __write(
+        fd: number, 
+        pos: number, 
+        data: Uint8Array, 
+        offset: number, 
+        length: number): Promise<number> 
+    {
+		try {
+			const written = fs.writeSync(fd, data, offset, length, pos);
+			return written;
+		} 
+        
+        catch (error) {
+			throw error;
+		} 
+        
+    }
 }

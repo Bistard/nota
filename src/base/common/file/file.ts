@@ -65,43 +65,67 @@ export interface IFileSystemProvider {
 	// readonly onDidChangeCapabilities: Event<void>;
 	// readonly onDidErrorOccur?: Event<string>;
 	// readonly onDidChangeFile: Event<readonly IFileChange[]>;
-	// watch(resource: string, opts: IWatchOptions): IDisposable;
+	// watch(uri: string, opts: IWatchOptions): IDisposable;
 
-	stat(resource: URI): Promise<IStat>;
-	mkdir(resource: URI): Promise<void>;
-	readdir(resource: URI): Promise<[string, FileType][]>;
-	delete(resource: URI): Promise<void>;
+	stat(uri: URI): Promise<IStat>;
+	mkdir(uri: URI): Promise<void>;
+	readdir(uri: URI): Promise<[string, FileType][]>;
+	delete(uri: URI): Promise<void>;
 
 	rename(from: string, to: string): Promise<void>;
 	copy?(from: string, to: string): Promise<void>;
 
-	readFile?(resource: URI): Promise<Uint8Array>;
-	writeFile?(resource: URI, content: Uint8Array): Promise<void>;
+	readFile?(uri: URI): Promise<Uint8Array>;
+	writeFile?(uri: URI, content: Uint8Array, opts: IWriteFileOptions): Promise<void>;
 
-	readFileStream?(resource: URI, opt?: IReadFileOptions): any;
+	readFileStream?(uri: URI, opt?: IReadFileOptions): any;
 
-	open?(resource: URI, opts?: IFileOpenOptions): Promise<number>;
+	open?(uri: URI, opts?: IFileOpenOptions): Promise<number>;
 	close?(fd: number): Promise<void>;
 	read?(fd: number, pos: number, data: Uint8Array, offset: number, length: number): Promise<number>;
 	write?(fd: number, pos: number, data: Uint8Array, offset: number, length: number): Promise<number>;
 }
 
 /*******************************************************************************
+ * FileSystemProviders Types
+ ******************************************************************************/
+
+export const enum FileSystemProviderCapability {
+	/** Provider supports unbuffered read/write. */
+	FileReadWrite = 1 << 1,
+
+	/** Provider supports open/read/write/close low level file operations. */
+	FileOpenReadWriteClose = 1 << 2,
+
+	/** Provider supports copy operation. */
+	FileFolderCopy = 1 << 3,
+
+	/** Provider is path case sensitive. */
+	PathCaseSensitive = 1 << 4,
+
+	/** Provider supports stream based reading. */
+	FileReadStream = 1 << 5,
+}
+
+/*******************************************************************************
  * Specific FileSystemProviders
  ******************************************************************************/
 
-export interface IFileSystemProviderWithFileReadWrite extends IFileSystemProvider {
-	readFile(resource: URI): Promise<Uint8Array>;
-	writeFile(resource: URI, content: Uint8Array): Promise<void>;
+/** @readonly Corressponds to FileSystemProviderCapability.FileReadWrite */
+ export interface IFileSystemProviderWithFileReadWrite extends IFileSystemProvider {
+	readFile(uri: URI): Promise<Uint8Array>;
+	writeFile(uri: URI, content: Uint8Array, opts: IWriteFileOptions): Promise<void>;
 }
 
+/** @readonly Corressponds to FileSystemProviderCapability.FileOpenReadWriteClose */
 export interface IFileSystemProviderWithOpenReadWriteClose extends IFileSystemProvider {
-	open(resource: URI, opts: IFileOpenOptions): Promise<number>;
+	open(uri: URI, opts: IFileOpenOptions): Promise<number>;
 	close(fd: number): Promise<void>;
 	read(fd: number, pos: number, data: Uint8Array, offset: number, length: number): Promise<number>;
 	write(fd: number, pos: number, data: Uint8Array, offset: number, length: number): Promise<number>;
 }
 
+/** @readonly Corressponds to FileSystemProviderCapability.FileFolderCopy */
 export interface IFileSystemProviderWithCopy extends IFileSystemProvider {
 	copy(from: string, to: string): Promise<void>;
 }
@@ -109,37 +133,6 @@ export interface IFileSystemProviderWithCopy extends IFileSystemProvider {
 export type FileSystemProviderAbleToRead = 
 	IFileSystemProviderWithFileReadWrite | 
 	IFileSystemProviderWithOpenReadWriteClose;
-
-/*******************************************************************************
- * FileSystemProviders Types
- ******************************************************************************/
-
-export const enum FileSystemProviderCapability {
-	/**
-	 * Provider supports unbuffered read/write.
-	 */
-	FileReadWrite = 1 << 1,
-
-	/**
-	 * Provider supports open/read/write/close low level file operations.
-	 */
-	FileOpenReadWriteClose = 1 << 2,
-
-	/**
-	 * Provider supports copy operation.
-	 */
-	FileFolderCopy = 1 << 3,
-
-	/**
-	 * Provider is path case sensitive.
-	 */
-	PathCaseSensitive = 1 << 4,
-
-	/**
-	 * Provider supports stream based reading.
-	 */
-	FileReadStream = 1 << 5,
-}
 
 /*******************************************************************************
  * FileSystemProvider Capability Validation Helper Functions
@@ -198,6 +191,28 @@ export interface IReadFileOptions {
 		readonly size?: number;
 		readonly memory?: number;
 	};
+}
+
+export interface IWriteFileOptions {
+
+	/**
+	 * Set to `true` to create a file when it does not exist. Will
+	 * throw an error otherwise if the file does not exist.
+	 */
+	readonly create: boolean;
+
+	/**
+	 * Set to `true` to overwrite a file if it exists. Will
+	 * throw an error otherwise if the file does exist.
+	 */
+	readonly overwrite: boolean;
+
+	 /**
+	 * Set to `true` to try to remove any write locks the file might
+	 * have. A file that is write locked will throw an error for any
+	 * attempt to write to unless `unlock: true` is provided.
+	 */
+	readonly unlock: boolean;
 }
 
 export interface ICreateReadStreamOptions extends IReadFileOptions {

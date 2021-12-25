@@ -1,6 +1,6 @@
 import { DataBuffer } from "src/base/common/file/buffer";
-import { FileSystemProviderAbleToRead, hasOpenReadWriteCloseCapability, hasReadWriteCapability, IReadFileOptions, IFileSystemProvider, IFileSystemProviderWithFileReadWrite, IFileSystemProviderWithOpenReadWriteClose } from "src/base/common/file/file";
-import { IWriteableStream, newWriteableBufferStream, newWriteableStream, streamToBuffer } from "src/base/common/file/stream";
+import { FileSystemProviderAbleToRead, hasOpenReadWriteCloseCapability, hasReadWriteCapability, IReadFileOptions, IFileSystemProvider, IFileSystemProviderWithFileReadWrite, IFileSystemProviderWithOpenReadWriteClose, IWriteFileOptions } from "src/base/common/file/file";
+import { bufferToStream, IReadableStream, IWriteableStream, listenStream, newWriteableBufferStream, newWriteableStream, streamToBuffer } from "src/base/common/file/stream";
 import { URI } from "src/base/common/file/uri";
 import { isAbsolutePath } from "src/base/common/string";
 import { readFileIntoStream, readFileIntoStreamAsync } from "src/base/node/io";
@@ -24,36 +24,8 @@ export class FileService implements IFileService {
     ) { }
 
     /***************************************************************************
-     * public API
+     * public API - Provider Operations
      **************************************************************************/
-    
-    public async readFile(
-        uri: URI, 
-        opts: IReadFileOptions = Object.create(null)): Promise<DataBuffer> 
-    {
-        const provider = await this.__getReadProvider(uri);
-        return this.__readFile(provider, uri, opts);
-    }
-    
-    public async writeFile(uri: URI): Promise<void> 
-    {
-        const provider = await this.__getWriteProvider(uri);
-        // TODO
-    }
-
-    public async createFile(uri: URI): Promise<void> {
-        // TODO
-    }
-
-    public async isFileExist(uri: URI): Promise<boolean> {
-        // TODO
-        return false;
-    }
-
-    public async isFolderExist(uri: URI): Promise<boolean> {
-        // TODO
-        return false;
-    }
 
     public registerProvider(scheme: string, provider: IFileSystemProvider): void {
         this._providers.set(scheme, provider);
@@ -64,7 +36,71 @@ export class FileService implements IFileService {
     }
 
     /***************************************************************************
-     * Reading/Writing files related helper methods.
+     * public API - File Operations
+     **************************************************************************/
+    
+    public async readFile(
+        uri: URI, 
+        opts: IReadFileOptions = Object.create(null)): Promise<DataBuffer> 
+    {
+        const provider = await this.__getReadProvider(uri);
+        return this.__readFile(provider, uri, opts);
+    }
+    
+    public async writeFile(
+        uri: URI, 
+        bufferOrStream: DataBuffer | IReadableStream<DataBuffer>,
+        opts: IWriteFileOptions): Promise<void> 
+    {
+        const provider = await this.__getWriteProvider(uri);
+        
+        try {
+            // TODO
+            // validateWriteOperation()
+
+            // mkdir()
+
+            // optimization
+
+            /**
+             * write file: unbuffered (only if data to write is a buffer, or the 
+             * provider has no buffered write capability).
+             */
+			if ((hasReadWriteCapability(provider) && bufferOrStream instanceof DataBuffer) ||
+                !hasOpenReadWriteCloseCapability(provider))
+            {
+				await this.__writeUnbuffered(provider, uri, opts, bufferOrStream);
+			}
+
+			// write file: buffered
+			else {
+				await this.__writeBuffered(provider, uri, opts, bufferOrStream instanceof DataBuffer ? bufferToStream(bufferOrStream) : bufferOrStream);
+			}
+
+        }
+
+        catch (error) {
+
+        }
+
+    }
+
+    public async createFile(uri: URI): Promise<void> {
+        
+    }
+
+    public async isFileExist(uri: URI): Promise<boolean> {
+        
+        return false;
+    }
+
+    public async isFolderExist(uri: URI): Promise<boolean> {
+        
+        return false;
+    }
+
+    /***************************************************************************
+     * Reading files related helper methods.
      **************************************************************************/
 
     private async __readFile(
@@ -149,6 +185,93 @@ export class FileService implements IFileService {
 
         return writeableStream;
     }
+
+    /***************************************************************************
+     * Writing files related helper methods.
+     **************************************************************************/
+
+    private async __writeUnbuffered(
+        provider: IFileSystemProviderWithFileReadWrite, 
+        uri: URI, 
+        opts: IWriteFileOptions | undefined, 
+        bufferOrStream: DataBuffer | IReadableStream<DataBuffer>): Promise<void> 
+    {
+        let buffer: DataBuffer;
+        
+        if (bufferOrStream instanceof DataBuffer) {
+            buffer = bufferOrStream;
+        } else {
+            buffer = await streamToBuffer(bufferOrStream);
+        }
+
+        // write through a provider
+        await provider.writeFile(uri, buffer.buffer, { create: true, overwrite: true, unlock: opts?.unlock ?? false });
+    }
+
+    private async __writeBuffered(
+        provider: IFileSystemProviderWithOpenReadWriteClose, 
+        uri: URI, 
+        opts: IWriteFileOptions | undefined, 
+        stream: IReadableStream<DataBuffer>): Promise<void>
+    {
+        return (async () => {
+            // open the file
+			const fd = await provider.open(uri, { create: true, unlock: opts?.unlock ?? false });
+
+            try {
+                let posInFile = 0;
+
+                return new Promise((resolve, reject) => {
+                    listenStream(stream, {
+                        onData: async (chunk: DataBuffer) => {
+        
+                            // pause stream to perform async write operation
+                            stream.pause();
+        
+                            try {
+                                await this.__writeBuffer(provider, fd, chunk, chunk.bufferLength, posInFile, 0);
+                            } catch (error) {
+                                return reject(error);
+                            }
+        
+                            posInFile += chunk.bufferLength;
+        
+                            // resume stream now that we have successfully written
+                            // run this on the next tick to prevent increasing the
+                            // execution stack because resume() may call the event
+                            // handler again before finishing.
+                            setTimeout(() => stream.resume());
+                        },
+                        onError: error => reject(error),
+                        onEnd: () => resolve()
+                    });
+                });
+            } 
+            
+            catch (error) {
+                throw error;
+            } 
+            
+            finally {
+                // alaways close the file
+                await provider.close(fd);    
+            }
+        })();
+    }
+
+    private async __writeBuffer(
+        provider: IFileSystemProviderWithOpenReadWriteClose, 
+        fs: number, 
+        buffer: DataBuffer, 
+        length: number, 
+        posInFile: number, 
+        posInBuffer: number): Promise<void> 
+    {
+		let totalWritten = 0;
+		while (totalWritten < length) {
+			totalWritten += await provider.write(fs, posInFile + totalWritten, buffer.buffer, posInBuffer + totalWritten, length - totalWritten);
+		}
+	}
 
     private async __validateURI(uri: URI): Promise<void> {
         return;
