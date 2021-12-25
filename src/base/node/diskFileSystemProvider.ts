@@ -1,4 +1,4 @@
-import { File, IFileOpenOptions, FileSystemProviderCapability, FileType, IFileSystemProviderWithFileReadWrite, IFileSystemProviderWithOpenReadWriteClose, IStat, IReadFileOptions, IWriteFileOptions } from "src/base/common/file/file";
+import { File, IFileOpenOptions, FileSystemProviderCapability, FileType, IFileSystemProviderWithFileReadWrite, IFileSystemProviderWithOpenReadWriteClose, IStat, IWriteFileOptions } from "src/base/common/file/file";
 import { URI } from "src/base/common/file/uri";
 import * as fs from "fs";
 import { fileExists, FileMode } from "src/base/node/io";

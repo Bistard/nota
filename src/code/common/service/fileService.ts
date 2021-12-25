@@ -214,49 +214,47 @@ export class FileService implements IFileService {
         opts: IWriteFileOptions | undefined, 
         stream: IReadableStream<DataBuffer>): Promise<void>
     {
-        return (async () => {
-            // open the file
-			const fd = await provider.open(uri, { create: true, unlock: opts?.unlock ?? false });
+        // open the file
+        const fd = await provider.open(uri, { create: true, unlock: opts?.unlock ?? false });
 
-            try {
-                let posInFile = 0;
+        try {
+            let posInFile = 0;
 
-                return new Promise((resolve, reject) => {
-                    listenStream(stream, {
-                        onData: async (chunk: DataBuffer) => {
-        
-                            // pause stream to perform async write operation
-                            stream.pause();
-        
-                            try {
-                                await this.__writeBuffer(provider, fd, chunk, chunk.bufferLength, posInFile, 0);
-                            } catch (error) {
-                                return reject(error);
-                            }
-        
-                            posInFile += chunk.bufferLength;
-        
-                            // resume stream now that we have successfully written
-                            // run this on the next tick to prevent increasing the
-                            // execution stack because resume() may call the event
-                            // handler again before finishing.
-                            setTimeout(() => stream.resume());
-                        },
-                        onError: error => reject(error),
-                        onEnd: () => resolve()
-                    });
+            return new Promise((resolve, reject) => {
+                listenStream(stream, {
+                    onData: async (chunk: DataBuffer) => {
+    
+                        // pause stream to perform async write operation
+                        stream.pause();
+    
+                        try {
+                            await this.__writeBuffer(provider, fd, chunk, chunk.bufferLength, posInFile, 0);
+                        } catch (error) {
+                            return reject(error);
+                        }
+    
+                        posInFile += chunk.bufferLength;
+    
+                        // resume stream now that we have successfully written
+                        // run this on the next tick to prevent increasing the
+                        // execution stack because resume() may call the event
+                        // handler again before finishing.
+                        setTimeout(() => stream.resume());
+                    },
+                    onError: error => reject(error),
+                    onEnd: () => resolve()
                 });
-            } 
-            
-            catch (error) {
-                throw error;
-            } 
-            
-            finally {
-                // alaways close the file
-                await provider.close(fd);    
-            }
-        })();
+            });
+        } 
+   
+        catch (error) {
+            throw error;
+        } 
+        
+        finally {
+            // alaways close the file
+            await provider.close(fd);    
+        }
     }
 
     private async __writeBuffer(

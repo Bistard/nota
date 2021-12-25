@@ -1,15 +1,21 @@
-import { setTimeout } from "timers/promises";
 
 export interface ITask<T> {
 	(): T; // any functions that returns `T`
 }
 
 /**
- * @description Helper functions for retrying a given task for given retry rounds. 
+ * @description Delays for given milliseconds.
+ * @param ms Milliseconds.
+ */
+export async function delayFor(ms: number): Promise<void> {
+    return new Promise( resolve => setTimeout(resolve, ms) );
+}
 
- * @param task Task function
- * @param delay Delay ms
- * @param retries Retry rounds
+/**
+ * @description Helper functions for retrying a given task for given retry rounds. 
+ * @param task Task function.
+ * @param delay Delay ms.
+ * @param retries Retry rounds.
  */
 export async function retry<T>(task: ITask<Promise<T>>, delay: number, retries: number): Promise<T> {
 	let lastError: Error | unknown;
@@ -24,7 +30,7 @@ export async function retry<T>(task: ITask<Promise<T>>, delay: number, retries: 
         catch (error) {
             // if not, we delay for a while and will retry the task.
 			lastError = error;
-			await setTimeout(delay);
+			await delayFor(delay);
 		}
 
 	}
