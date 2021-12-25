@@ -15,7 +15,7 @@ export class DataBuffer {
      * size of data.
      */
     public static alloc(byteSize: number): DataBuffer {
-        return new DataBuffer(new Uint8Array(byteSize));
+        return new DataBuffer(Buffer.allocUnsafe(byteSize));
     }
 
     /**
