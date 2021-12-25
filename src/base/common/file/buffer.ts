@@ -4,6 +4,12 @@ export class DataBuffer {
     public readonly buffer: Uint8Array;
     public readonly bufferLength: number;
 
+    /** @internal */
+    private constructor(buffer: Uint8Array) {
+        this.buffer = buffer;
+        this.bufferLength = this.buffer.length;
+    }
+
     /**
      * @description allocates and returns a new DataBuffer to hold given byte 
      * size of data.
@@ -21,7 +27,7 @@ export class DataBuffer {
      */
     public static concat(buffers: DataBuffer[], totalLength?: number): DataBuffer {
 
-        // if no totalLength is given, we calculate by ourself
+        // if no totalLength is given, we calculate by ourself.
         if (typeof totalLength === 'undefined') {
 			totalLength = 0;
 			for (let i = 0, len = buffers.length; i < len; i++) {
@@ -31,9 +37,9 @@ export class DataBuffer {
 
         const newBuffer = DataBuffer.alloc(totalLength);
         
-        // do the actual data concatenation
+        // do the actual data concatenation.
         let offset = 0;
-        for (let i = 0; i < buffers.length; i++) {
+        for (let i = 0, len = buffers.length; i < len; i++) {
             const subBuffer = buffers[i]!;
             newBuffer.set(subBuffer, offset);
             offset += subBuffer.bufferLength;
@@ -53,6 +59,13 @@ export class DataBuffer {
         return new DataBuffer(referencedData as Uint8Array);
     }
 
+    /**
+     * @description Construct a DataBuffer from a given string.
+     */
+    public static fromString(content: string): DataBuffer {
+        return new DataBuffer(Buffer.from(content));
+    }
+
     public slice(start?: number, end?: number): DataBuffer {
 		// IMPORTANT: use subarray instead of slice because TypedArray#slice
 		// creates shallow copy and NodeBuffer#slice doesn't. The use of subarray
@@ -60,16 +73,10 @@ export class DataBuffer {
 		return new DataBuffer(this.buffer.subarray(start, end));
 	}
 
-    /** @internal */
-    private constructor(buffer: Uint8Array) {
-        this.buffer = buffer;
-        this.bufferLength = this.buffer.length;
-    }
-
-    /***************************************************************************
-     * Helper Functions
-     **************************************************************************/
-
+    /** 
+     * @description Returns a string representation of an array. 
+     * @example DataBuffer.fromString('Hello').toString() => 'Hello'
+     */
     public toString(): string {
         return this.buffer.toString();
     }
@@ -78,7 +85,7 @@ export class DataBuffer {
      * @description Sets (writes) a value or an array of values to this buffer 
      * starting from the given offset.
      */
-	set(arrayLike: DataBuffer | Uint8Array, offset?: number): void {
+	public set(arrayLike: DataBuffer | Uint8Array, offset?: number): void {
 		if (arrayLike instanceof DataBuffer) {
 			this.buffer.set(arrayLike.buffer, offset);
 		} else {

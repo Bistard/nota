@@ -358,6 +358,20 @@ export class WriteableStream<T> implements IWriteableStream<T> {
 }
 
 /**
+ * @description Helper to convert an existed buffer into a readableStream.
+ */
+export function bufferToStream(buffer: DataBuffer): IReadableStream<DataBuffer> {
+	return toStream<DataBuffer>(buffer, chunks => DataBuffer.concat(chunks));
+}
+
+export function toStream<T>(buffer: T, concatenater: IConcatenater<T>): IReadableStream<T>
+{
+	const stream = newWriteableStream<T>(concatenater);
+	stream.end(buffer);
+	return stream;
+}
+
+/**
  * @description Helper to fully read a T stream into a T or consuming a stream 
  * fully, awaiting all the events without caring about the data.
  */
