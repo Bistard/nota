@@ -13,10 +13,12 @@ import { DataBuffer } from 'src/base/common/file/buffer';
  *                              file related code
  ******************************************************************************/
 
+/** @deprecated The method should not be used */
 export function isMarkdownFile(filename: string): boolean {
     return getFileType(filename) === FileType.MARKDOWN;
 }
 
+/** @deprecated The method should not be used */
 export type readFileOption = 
     | ({
         encoding: BufferEncoding;
@@ -26,11 +28,13 @@ export type readFileOption =
 
 export type readMarkdownFileOption = readFileOption;
 
+/** @deprecated The method should not be used */
 const defaultReadFileOpt: readMarkdownFileOption = {
     encoding: 'utf-8',
     flag: 'r'
 };
 
+/** @deprecated The method should not be used */
 /**
  * @description asynchronously reads a single .md file and stores the text into FileNode.
  */
@@ -56,7 +60,7 @@ export async function readMarkdownFile(
     });
 }
 
-
+/** @deprecated The method should not be used */
 /**
  * @description synchronously reads .md file and stores the text into FileNode.
  * 
@@ -79,6 +83,7 @@ export async function readMarkdownFile(
     nodeInfo.file!.plainText = fs.readFileSync(nodeInfo.path, opt);
 }
 
+/** @deprecated The method should not be used */
 /**
  * @description asynchronously saves .md file.
  */
@@ -106,6 +111,7 @@ export async function saveMarkdownFile(
     });
 }
 
+/** @deprecated The method should not be used */
 /**
  * @description asynchronously check the existance of given file in the given path.
  * 
@@ -131,6 +137,7 @@ export async function isFileExisted(
     });
 }
 
+/** @deprecated The method should not be used */
 /**
  * @description asynchronously creates a file.
  * 
@@ -153,6 +160,7 @@ export async function createFile(
     });
 }
 
+/** @deprecated The method should not be used */
 /**
  * @description asynchronously deletes a file.
  * 
@@ -175,6 +183,7 @@ export async function createFile(
     });
 }
 
+/** @deprecated The method should not be used */
 /**
  * @description asynchronously moves a file to trash.
  * 
@@ -193,6 +202,7 @@ export async function createFile(
     });
 }
 
+/** @deprecated The method should not be used */
 /**
  * @description asynchronously reads the whole text from a general file.
  * 
@@ -212,6 +222,7 @@ export async function createFile(
     });
 }
 
+/** @deprecated The method should not be used */
 /**
  * @description synchronously reads the whole text from a general file.
  * 
@@ -224,7 +235,7 @@ export async function createFile(
     return fs.readFileSync(path, opt);
 }
 
-
+/** @deprecated The method should not be used */
 /**
  * @description asynchronously writes to a file.
  * 
@@ -259,6 +270,7 @@ export function mapToJsonReplacer(key: any, value: any) {
  *                            directory related code
  ******************************************************************************/
 
+/** @deprecated The method should not be used */
 /**
  * @description asynchronously creates a directory.
  * 
@@ -281,6 +293,7 @@ export function mapToJsonReplacer(key: any, value: any) {
     });
 }
 
+/** @deprecated The method should not be used */
 /**
  * @description asynchronously check the existance of given directory in the given path.
  * 
@@ -294,6 +307,7 @@ export function mapToJsonReplacer(key: any, value: any) {
     return isFileExisted(path, dirName);
 }
 
+/** @deprecated The method should not be used */
 /**
  * @description asynchronously read each file/dir in the given path, filters out
  * a result with given exclude/include rules.
