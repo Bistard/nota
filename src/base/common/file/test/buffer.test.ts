@@ -19,9 +19,7 @@ suite('buffer-test', () => {
         const content1 = DataBuffer.fromString('Hello');
         const content2 = DataBuffer.fromString(' ');
         const content3 = DataBuffer.fromString('World');
-        
-        const res = DataBuffer.wrap(DataBuffer.concat([content1, content2, content3]).buffer).toString();
-        assert.deepStrictEqual(res, 'Hello World');
+        assert.deepStrictEqual(DataBuffer.concat([content1, content2, content3]).toString(), 'Hello World');
     });
 
 });

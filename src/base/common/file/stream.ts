@@ -375,11 +375,11 @@ export function toStream<T>(buffer: T, concatenater: IConcatenater<T>): IReadabl
  * @description Helper to fully read a T stream into a T or consuming a stream 
  * fully, awaiting all the events without caring about the data.
  */
-export function streamToBuffer<T>(stream: IWriteableStream<DataBuffer>): Promise<DataBuffer> {
+export function streamToBuffer<T>(stream: IReadableStream<DataBuffer>): Promise<DataBuffer> {
     return consumeStream(stream, chunks => DataBuffer.concat(chunks));
 }
 
-export function consumeStream<T>(stream: IWriteableStream<T>, concatenater: IConcatenater<T>): Promise<T> {
+export function consumeStream<T>(stream: IReadableStream<T>, concatenater: IConcatenater<T>): Promise<T> {
 	return new Promise((resolve, reject) => {
 		
         const chunks: T[] = [];
@@ -416,7 +416,7 @@ export interface IStreamListener<T> {
 /**
  * @description Helper to listen to all events of a T stream in proper order.
  */
- export function listenStream<T>(stream: IWriteableStream<T>, listener: IStreamListener<T>): void {
+ export function listenStream<T>(stream: IReadableStream<T>, listener: IStreamListener<T>): void {
 	stream.on('error', error => listener.onError(error));
 	stream.on('end', () => listener.onEnd());
     /**
