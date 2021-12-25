@@ -1,4 +1,3 @@
-import { mapToJsonReplacer } from "src/base/node/io";
 import { FileTree } from "src/base/node/fileTree";
 
 /**
@@ -36,7 +35,7 @@ export class NoteBook {
      * @description converts the whole file tree into JSON format.
      */
     public toJSON(): string {
-        return JSON.stringify(this.fileTree.tree, mapToJsonReplacer, 2);
+        return JSON.stringify(this.fileTree.tree, this.__mapToJsonReplacer, 2);
     }
 
     /**
@@ -45,5 +44,20 @@ export class NoteBook {
     public destory(): void {
         
     }
+
+    /**
+     * @description pass this function to JSON.stringify so that it is able to convert
+     * native 'Map' type to JSON file.
+     */
+    private __mapToJsonReplacer(key: any, value: any) {
+    if (value instanceof Map) {
+        return {
+            dataType: 'Map',
+            value: Array.from(value.entries()), // or with spread: value: [...value]
+        };
+    } else {
+      return value;
+    }
+}
 
 }

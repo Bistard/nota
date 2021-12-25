@@ -251,21 +251,6 @@ export async function writeToFile(
     return createFile(path, fileName, content);
 }
 
-/**
- * @description pass this function to JSON.stringify so that it is able to convert
- * native 'Map' type to JSON file.
- */
-export function mapToJsonReplacer(key: any, value: any) {
-    if (value instanceof Map) {
-        return {
-            dataType: 'Map',
-            value: Array.from(value.entries()), // or with spread: value: [...value]
-        };
-    } else {
-      return value;
-    }
-}
-
 /*******************************************************************************
  *                            directory related code
  ******************************************************************************/
@@ -370,7 +355,10 @@ export const FileMode = {
     visible: fs.constants.F_OK,
  }
 
- 
+/*******************************************************************************
+ * Path Handling
+ ******************************************************************************/
+
 /**
  * @description Check the existance of the file in the given path.
  */
