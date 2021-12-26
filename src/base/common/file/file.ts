@@ -106,6 +106,9 @@ export const enum FileSystemProviderCapability {
 
 	/** Provider supports stream based reading. */
 	FileReadStream = 1 << 5,
+
+	/** Provider only supports reading. */
+	Readonly = 1 << 6,
 }
 
 /*******************************************************************************

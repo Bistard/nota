@@ -1,5 +1,5 @@
 import { DataBuffer } from "src/base/common/file/buffer";
-import { FileSystemProviderAbleToRead, hasOpenReadWriteCloseCapability, hasReadWriteCapability, IReadFileOptions, IFileSystemProvider, IFileSystemProviderWithFileReadWrite, IFileSystemProviderWithOpenReadWriteClose, IWriteFileOptions, IStat, FileType, IFileOperationError } from "src/base/common/file/file";
+import { FileSystemProviderAbleToRead, hasOpenReadWriteCloseCapability, hasReadWriteCapability, IReadFileOptions, IFileSystemProvider, IFileSystemProviderWithFileReadWrite, IFileSystemProviderWithOpenReadWriteClose, IWriteFileOptions, IStat, FileType, IFileOperationError, FileSystemProviderCapability, IDeleteFileOptions } from "src/base/common/file/file";
 import { basename, dirname, join } from "src/base/common/file/path";
 import { bufferToStream, IReadableStream, IWriteableStream, listenStream, newWriteableBufferStream, streamToBuffer } from "src/base/common/file/stream";
 import { URI } from "src/base/common/file/uri";
@@ -10,7 +10,44 @@ import { createDecorator } from "src/code/common/service/instantiationService/de
 export const IFileService = createDecorator<IFileService>('file-service');
 
 export interface IFileService {
-    // TODO:
+    
+    /** @description Registers a file system provider for a given scheme. */
+    registerProvider(scheme: string, provider: IFileSystemProvider): void;
+
+    /** @description Gets a file system provider for a given scheme. */
+    getProvider(scheme: string): IFileSystemProvider | undefined;
+
+    /** @description Read the file unbuffered. */
+    readFile(uri: URI, opts?: IReadFileOptions): Promise<DataBuffer>;
+    
+    /** @description Read the file buffered using stream. */
+    readFileStream(uri: URI, opts?: IReadFileOptions): Promise<IReadableStream<DataBuffer>>;
+
+    /** @description Write to the file. */
+    writeFile(uri: URI, bufferOrStream: DataBuffer | IReadableStream<DataBuffer>, opts?: IWriteFileOptions): Promise<void>;
+    
+    /** @description Determines if the file/directory exists. */
+    exist(uri: URI): Promise<boolean>;
+    
+    /** @description Creates a file described by a given URI. */
+    createFile(uri: URI, bufferOrStream: DataBuffer | IReadableStream<DataBuffer>, opts: IWriteFileOptions): Promise<void>;
+    
+    /** @description Creates a directory described by a given URI. */
+    createDir(uri: URI): Promise<void>;
+    
+    // TODO
+    /** @description Moves a file/directory to a new location described by a given URI. */
+    moveTo(from: URI, to: URI, overwrite?: boolean): Promise<void>;
+    
+    // TODO
+    /** @description Copys a file/directory to a new location. */
+    copyTo(from: URI, to: URI, overwrite?: boolean): Promise<void>;
+    
+    /** @description Deletes a file/directory described by a given URI. */
+    delete(uri: URI, opts?: IDeleteFileOptions): Promise<void>;
+    
+    // TODO
+    watch(uri: URI): void;
 }
 
 export class FileService implements IFileService {
@@ -43,6 +80,11 @@ export class FileService implements IFileService {
     public async readFile(uri: URI, opts?: IReadFileOptions): Promise<DataBuffer> {
         const provider = await this.__getReadProvider(uri);
         return this.__readFile(provider, uri, opts);
+    }
+
+    public async readFileStream(uri: URI, opts?: IReadFileOptions): Promise<IReadableStream<DataBuffer>> {
+        const provider = await this.__getReadProvider(uri);
+        return this.__readFileStream(provider, uri, opts);
     }
     
     public async writeFile(uri: URI, bufferOrStream: DataBuffer | IReadableStream<DataBuffer>, opts?: IWriteFileOptions): Promise<void> 
@@ -82,18 +124,66 @@ export class FileService implements IFileService {
 
     }
 
-    public async createFile(uri: URI): Promise<void> {
+    public async exist(uri: URI): Promise<boolean> {
+        const provider = await this.__getProvider(uri);
+        
+        try {
+            const stat = await provider.stat(uri);
+        } catch (err) {
+            return false;
+        }
+
+        return true;
+    }
+
+    public async createFile(
+        uri: URI, 
+        bufferOrStream: DataBuffer | IReadableStream<DataBuffer>, 
+        opts: IWriteFileOptions): Promise<void> 
+    {
+        // validation
+        await this.__validateCreate(uri, opts);
+
+        // write operation
+        await this.writeFile(uri, bufferOrStream, opts);
+    }
+
+    public async createDir(uri: URI): Promise<void> {
+        // get access to a provider
+        const provider = this.__throwIfProviderIsReadonly(await this.__getProvider(uri));
+
+        // create directory recursively
+        await this.__mkdirRecursive(provider, uri);
+    }
+
+    public async moveTo(from: URI, to: URI, overwrite?: boolean): Promise<void> {
+        // get access to providers
+        const fromProvider = this.__throwIfProviderIsReadonly(await this.__getWriteProvider(from));
+        const toProvider = this.__throwIfProviderIsReadonly(await this.__getWriteProvider(to));
+
+        // move operation
         
     }
 
-    public async isFileExist(uri: URI): Promise<boolean> {
+    public async copyTo(from: URI, to: URI, overwrite?: boolean): Promise<void> {
+        // get access to providers
+        const fromProvider = this.__throwIfProviderIsReadonly(await this.__getWriteProvider(from));
+        const toProvider = this.__throwIfProviderIsReadonly(await this.__getWriteProvider(to));
+
+        // copy operation
         
-        return false;
     }
 
-    public async isFolderExist(uri: URI): Promise<boolean> {
+    public async delete(uri: URI, opts?: IDeleteFileOptions): Promise<void> {
+        // validation
+        const provider = await this.__validateDelete(uri, opts);
+        
+        // delete operation
+        await provider.delete(uri, { useTrash: !!opts?.useTrash, recursive: !!opts?.recursive });
+    }
 
-        return false;
+    public watch(uri: URI): void {
+        
     }
 
     /***************************************************************************
@@ -105,23 +195,24 @@ export class FileService implements IFileService {
         uri: URI,
         opts?: IReadFileOptions): Promise<DataBuffer> 
     {
-        const stream = await this.__readFileStream(provider, uri, opts);
+        const stream = await this.__readFileStream(provider, uri, { ...opts, preferUnbuffered: true });
         return streamToBuffer(stream);
     }
 
     private async __readFileStream(
         provider: FileSystemProviderAbleToRead, 
         uri: URI, 
-        opts?: IReadFileOptions): Promise<IWriteableStream<DataBuffer>> 
+        opts?: IReadFileOptions & { preferUnbuffered?: boolean; }
+    ): Promise<IWriteableStream<DataBuffer>>  
     {
         const stat = this.__validateRead(provider, uri, opts);
         
         let writeableStream: IWriteableStream<DataBuffer> | undefined = undefined;
         try {
 
-            if (!hasOpenReadWriteCloseCapability(provider) || 
-                hasReadWriteCapability(provider))
-            {    
+            if (!hasOpenReadWriteCloseCapability(provider) ||
+                (hasReadWriteCapability(provider) && opts?.preferUnbuffered)
+            ) {
                 // read unbuffered (only if either preferred, or the provider has 
                 // no buffered read capability)
                 writeableStream = this.__readFileUnbuffered(provider, uri, opts);
@@ -133,14 +224,12 @@ export class FileService implements IFileService {
             }
 
             await stat;
-            return writeableStream;
-            
-        } catch(err) {
-
+            return writeableStream;   
+        } 
+        
+        catch(err) {
             throw err;
-
         }
-
     }
 
     /** @description Read the file directly into the memory in one time. */
@@ -249,78 +338,6 @@ export class FileService implements IFileService {
 		}
 	}
 
-    private async __validateRead(
-        provider: IFileSystemProvider, 
-        uri: URI, 
-        opts?: IReadFileOptions): Promise<void> 
-    {
-        const stat = await provider.stat(uri);
-        if (!stat) {
-            throw new Error('target URI does not exist');
-        } else if (stat.type & FileType.DIRECTORY) {
-            throw new Error('cannot read a directory');
-        }
-
-        this.__validateReadLimit(stat.byteSize, opts);
-    }
-
-    private __validateReadLimit(size: number, opts?: IReadFileOptions): void {
-        if (opts?.limits) {
-            
-            let tooLargeErrorResult: IFileOperationError | undefined = undefined;
-
-			if (typeof opts.limits.memory === 'number' && size > opts.limits.memory) {
-				tooLargeErrorResult = IFileOperationError.FILE_EXCEEDS_MEMORY_LIMIT;
-			}
-
-			if (typeof opts.limits.size === 'number' && size > opts.limits.size) {
-				tooLargeErrorResult = IFileOperationError.FILE_TOO_LARGE;
-			}
-
-			if (typeof tooLargeErrorResult === 'number') {
-				if (tooLargeErrorResult === IFileOperationError.FILE_EXCEEDS_MEMORY_LIMIT) {
-                    throw new Error('read file exceeds memory limit');
-                } else {
-                    throw new Error('read file is too large');
-                }
-			}
-        }
-    }
-
-    /**
-     * @description Validates if the write operation is legal under the given 
-     * provider. Returns the stat of the file. Throws if it is a directory or it 
-     * is a readonly file.
-     * @returns The stat of the file. Returns undefined if file does not exists.
-     */
-    private async __validateWrite(
-        provider: IFileSystemProvider, 
-        uri: URI, 
-        opts?: IWriteFileOptions): Promise<IStat | undefined> 
-    {
-        // REVIEW: Validate unlock support (use `opts`)
-
-        // get the stat of the file
-        let stat: IStat | undefined = undefined;
-		try {
-			stat = await provider.stat(uri);
-		} catch (error) {
-			return undefined; // file might not exist
-		}
-
-        // cannot be a directory
-        if (stat.type & FileType.DIRECTORY) {
-            throw new Error('unable to write file which is actually a directory');
-        }
-
-        // cannot be readonly file
-        if (stat.readonly ?? false) {
-            throw new Error('unable to write file which is readonly');
-        }
-
-        return stat;
-    }
-
     /**
      * @description Create directory recursively if not existed.
      */
@@ -385,20 +402,20 @@ export class FileService implements IFileService {
         Promise<IFileSystemProviderWithFileReadWrite | 
                 IFileSystemProviderWithOpenReadWriteClose> 
     {
-		const provider = await this.__getProvider(uri);
+		const provider = this.__throwIfProviderIsReadonly(await this.__getProvider(uri));
 
 		if (hasOpenReadWriteCloseCapability(provider) || hasReadWriteCapability(provider)) {
 			return provider;
 		}
 
-		throw new Error(`Filesystem provider for scheme '${uri.scheme}' neither has FileReadWrite nor FileOpenReadWriteClose capability which is needed for the write operation.`);
+		throw new Error(`filesystem provider for scheme '${uri.scheme}' neither has FileReadWrite nor FileOpenReadWriteClose capability which is needed for the write operation.`);
 	}
 
     private async __getProvider(uri: URI): Promise<IFileSystemProvider> {
 
 		// Assert path is absolute
         if (!isAbsolutePath(uri.path)) {
-			throw new Error(`Unable to resolve filesystem provider with relative file path '${uri.path}`);
+			throw new Error(`unable to resolve filesystem provider with relative file path '${uri.path}`);
 		}
 
         // REVIEW: figure out what this process is actually doing here in vscode, if no such functionality is required,
@@ -408,10 +425,124 @@ export class FileService implements IFileService {
 		// Assert provider
 		const provider = this._providers.get(uri.scheme);
 		if (!provider) {
-			throw new Error(`noProviderFound given ${uri.scheme.toString()}`);
+			throw new Error(`no provider found given ${uri.scheme.toString()}`);
 		}
 
 		return provider;
 	}
+
+    /***************************************************************************
+     * Validation
+     **************************************************************************/
+
+     private async __validateRead(
+        provider: IFileSystemProvider, 
+        uri: URI, 
+        opts?: IReadFileOptions): Promise<void> 
+    {
+        const stat = await provider.stat(uri);
+        if (!stat) {
+            throw new Error('target URI does not exist');
+        } else if (stat.type & FileType.DIRECTORY) {
+            throw new Error('cannot read a directory');
+        }
+
+        this.__validateReadLimit(stat.byteSize, opts);
+    }
+
+    /**
+     * @description Validates if the write operation is legal under the given 
+     * provider. Returns the stat of the file. Throws if it is a directory or it 
+     * is a readonly file.
+     * @returns The stat of the file. Returns undefined if file does not exists.
+     */
+    private async __validateWrite(
+        provider: IFileSystemProvider, 
+        uri: URI, 
+        opts?: IWriteFileOptions): Promise<IStat | undefined> 
+    {
+        // REVIEW: Validate unlock support (use `opts`)
+
+        // get the stat of the file
+        let stat: IStat | undefined = undefined;
+		try {
+			stat = await provider.stat(uri);
+		} catch (error) {
+			return undefined; // file might not exist
+		}
+
+        // cannot be a directory
+        if (stat.type & FileType.DIRECTORY) {
+            throw new Error('unable to write file which is actually a directory');
+        }
+
+        // cannot be readonly file
+        if (stat.readonly ?? false) {
+            throw new Error('unable to write file which is readonly');
+        }
+
+        return stat;
+    }
+    
+    private __validateReadLimit(size: number, opts?: IReadFileOptions): void {
+        if (opts?.limits) {
+            
+            let tooLargeErrorResult: IFileOperationError | undefined = undefined;
+
+			if (typeof opts.limits.memory === 'number' && size > opts.limits.memory) {
+				tooLargeErrorResult = IFileOperationError.FILE_EXCEEDS_MEMORY_LIMIT;
+			}
+
+			if (typeof opts.limits.size === 'number' && size > opts.limits.size) {
+				tooLargeErrorResult = IFileOperationError.FILE_TOO_LARGE;
+			}
+
+			if (typeof tooLargeErrorResult === 'number') {
+				if (tooLargeErrorResult === IFileOperationError.FILE_EXCEEDS_MEMORY_LIMIT) {
+                    throw new Error('read file exceeds memory limit');
+                } else {
+                    throw new Error('read file is too large');
+                }
+			}
+        }
+    }
+
+    private async __validateCreate(uri: URI, opts: IWriteFileOptions): Promise<void> 
+    {
+        // if file exists and is not allowed to overwrite, we throw
+        if (await this.exist(uri) && opts?.overwrite === false) {
+            throw new Error('file already exists');
+        }
+    }
+
+    private async __validateDelete(uri: URI, opts?: IDeleteFileOptions): Promise<IFileSystemProvider> {
+        const provider = this.__throwIfProviderIsReadonly(await this.__getWriteProvider(uri));
+        
+        // delete validation
+        let stat: IStat | undefined = undefined;
+        try {
+            stat = await provider.stat(uri);
+        } catch (err) {
+            throw new Error('file does not exist');
+        }
+
+        // validate if it is readonly
+        this.__throwIfFileIsReadonly(stat);
+        
+        return provider;
+    }
+
+    private __throwIfProviderIsReadonly(provider: IFileSystemProvider): IFileSystemProvider {
+        if (provider.capabilities & FileSystemProviderCapability.Readonly) {
+            throw new Error('file system provider is readonly');
+        }
+        return provider;
+    }
+
+    private __throwIfFileIsReadonly(stat: IStat): void {
+        if (typeof stat.readonly === 'boolean' && stat.readonly == true) {
+            throw new Error('unable to modify a readonly file');
+        }
+    }
 
 }
