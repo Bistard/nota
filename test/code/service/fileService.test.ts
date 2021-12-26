@@ -6,7 +6,7 @@ import { DiskFileSystemProvider } from 'src/base/node/diskFileSystemProvider';
 import { fileExists } from 'src/base/node/io';
 import { FileService } from 'src/code/common/service/fileService';
 import * as fs from "fs";
-suite('fileService-test', () => {
+suite('fileService-test-disk-unbuffered', () => {
 
     test('provider registration', async () => {
         // TODO
@@ -229,6 +229,8 @@ suite('fileService-test', () => {
         }
     });
 
-    // TODO: others...
 });
 
+suite('fileService-test-disk-buffered', () => {
+    // TODO
+});
