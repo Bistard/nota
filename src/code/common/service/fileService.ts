@@ -1,5 +1,6 @@
 import { DataBuffer } from "src/base/common/file/buffer";
-import { FileSystemProviderAbleToRead, hasOpenReadWriteCloseCapability, hasReadWriteCapability, IReadFileOptions, IFileSystemProvider, IFileSystemProviderWithFileReadWrite, IFileSystemProviderWithOpenReadWriteClose, IWriteFileOptions } from "src/base/common/file/file";
+import { FileSystemProviderAbleToRead, hasOpenReadWriteCloseCapability, hasReadWriteCapability, IReadFileOptions, IFileSystemProvider, IFileSystemProviderWithFileReadWrite, IFileSystemProviderWithOpenReadWriteClose, IWriteFileOptions, IStat, FileType } from "src/base/common/file/file";
+import { basename, dirname, join } from "src/base/common/file/path";
 import { bufferToStream, IReadableStream, IWriteableStream, listenStream, newWriteableBufferStream, streamToBuffer } from "src/base/common/file/stream";
 import { URI } from "src/base/common/file/uri";
 import { isAbsolutePath } from "src/base/common/string";
@@ -55,12 +56,16 @@ export class FileService implements IFileService {
         const provider = await this.__getWriteProvider(uri);
         
         try {
-            // TODO
-            // validateWriteOperation()
-
-            // mkdir()
-
-            // optimization
+            
+            // validate write operation, returns the stat of the file.
+            const stat = await this.__validateWrite(provider, uri, opts);
+            
+            // create recursive directory if necessary.
+            if (!stat) {
+                await this.__mkdirRecursive(provider, uri);
+            }
+            
+            // REVIEW: optimization?
 
             /**
              * write file: unbuffered (only if data to write is a buffer, or the 
@@ -272,6 +277,82 @@ export class FileService implements IFileService {
 
     private async __validateURI(uri: URI): Promise<void> {
         return;
+    }
+
+    /**
+     * @description Validates if the write operation is legal under the given 
+     * provider. Returns the stat of the file. Throws if it is a directory or it 
+     * is a readonly file.
+     * @returns The stat of the file. Returns undefined if file does not exists.
+     */
+    private async __validateWrite(
+        provider: IFileSystemProvider, 
+        uri: URI, 
+        opts?: IWriteFileOptions): Promise<IStat | undefined> 
+    {
+        // REVIEW: Validate unlock support (use `opts`)
+
+        // get the stat of the file
+        let stat: IStat | undefined = undefined;
+		try {
+			stat = await provider.stat(uri);
+		} catch (error) {
+			return undefined; // file might not exist
+		}
+
+        // cannot be a directory
+        if ((stat.type & FileType.DIRECTORY) !== 0) {
+            throw new Error('unable to write file which is actually a directory');
+        }
+
+        // cannot be readonly file
+        if (stat.readonly ?? false) {
+            throw new Error('unable to write file which is readonly');
+        }
+
+        return stat;
+    }
+
+    /**
+     * @description Create directory recursively if not existed.
+     */
+    public async __mkdirRecursive(
+        provider: IFileSystemProvider, 
+        dir: URI): Promise<void> 
+    {
+        const dirWaitToBeCreate: string[] = [];
+        let path = dirname(URI.toFsPath(dir)); // remove the file name
+        
+        while (true) {
+            try {
+                // try to find a directory that exists
+                let stat: IStat;
+                while (stat = await provider.stat(URI.fromFile(path))) {
+                    if (stat) break;
+                }
+
+                if ((stat.type & FileType.DIRECTORY) === 0) {
+                    throw new Error('undable to create directory that already exists but is not a directory');
+                }
+
+                // we reaches a existed directory, we break the loop.
+                break;
+            } catch (err) {
+                // we reaches a not existed directory, we remember it.
+                dirWaitToBeCreate.push(basename(path));
+                path = dirname(path);
+            }
+        }
+
+        for (let i = dirWaitToBeCreate.length - 1; i >= 0; i--) {
+            path = join(path, dirWaitToBeCreate[i]!);
+
+            try {
+                provider.mkdir(URI.fromFile(path));
+            } catch (err) {
+                throw err;
+            }
+        }
     }
 
     /***************************************************************************

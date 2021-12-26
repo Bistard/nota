@@ -3,7 +3,6 @@ import { URI } from "src/base/common/file/uri";
 import * as fs from "fs";
 import { fileExists, FileMode } from "src/base/node/io";
 import { retry } from "src/base/common/async";
-import { pathJoin } from "src/base/common/string";
 import { join } from "path";
 
 export class DiskFileSystemProvider implements 
@@ -113,7 +112,7 @@ export class DiskFileSystemProvider implements
                 flag = 'r';
             }
 
-            const fd = (await fs.promises.open(path, flag)).fd;
+            const fd = fs.openSync(path, flag);
             return fd;
         } 
         
@@ -192,11 +191,11 @@ export class DiskFileSystemProvider implements
     public async delete(uri: URI, opts: IDeleteFileOptions): Promise<void> {
         try {
             const path = URI.toFsPath(uri);
-
+            
             if (opts.recursive) {
-                await fs.promises.rm(path);
+                await fs.promises.rm(path, { recursive: opts.recursive });
             } else {
-                await fs.promises.unlink(path);;
+                await fs.promises.unlink(path);
             }
         } catch (err) {
             throw err;

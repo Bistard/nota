@@ -1,11 +1,11 @@
 import * as assert from 'assert';
 import { DataBuffer } from 'src/base/common/file/buffer';
-import { posix } from 'src/base/common/file/path';
+import { dirname, posix } from 'src/base/common/file/path';
 import { URI } from 'src/base/common/file/uri';
 import { DiskFileSystemProvider } from 'src/base/node/diskFileSystemProvider';
-import { deleteFile, fileExists } from 'src/base/node/io';
+import { fileExists } from 'src/base/node/io';
 import { FileService } from 'src/code/common/service/fileService';
-
+import * as fs from "fs";
 suite('fileService-test', () => {
 
     test('provider registration', async () => {
@@ -79,7 +79,27 @@ suite('fileService-test', () => {
         await service.writeFile(uri, write2, { create: true, overwrite: false, unlock: true });
         const read2 = await service.readFile(uri);
         assert.strictEqual(read2.toString(), 'create new file');
-        await deleteFile(uri.toString().slice('file://'.length)); // REVIEW
+        await provider.delete(uri, { recursive: true, useTrash: false });
+    });
+
+    test('writeFile - create recursive', async () => {
+        const service = new FileService();
+        const provider = new DiskFileSystemProvider();
+        service.registerProvider('file', provider);
+
+        const uri = URI.parse('file://' + posix.resolve('test/code/service/temp/recursive', 'fileService-create.txt'));
+        
+        // { create: false }
+        const write1 = DataBuffer.fromString('create new file recursively');
+        await service.writeFile(uri, write1, { create: false, overwrite: false, unlock: true });
+        assert.strictEqual(fileExists(uri.toString().slice('file://'.length)), false);
+
+        // { create: true } 
+        const write2 = DataBuffer.fromString('create new file recursively');
+        await service.writeFile(uri, write2, { create: true, overwrite: false, unlock: true });
+        const read2 = await service.readFile(uri);
+        assert.strictEqual(read2.toString(), 'create new file recursively');
+        await provider.delete(URI.fromFile(dirname(URI.toFsPath(uri))), { recursive: true, useTrash: false });
     });
 
     test('writeFile - overwrite', async () => {
