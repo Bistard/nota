@@ -71,7 +71,11 @@ suite('fileService-test', () => {
         
         // { create: false }
         const write1 = DataBuffer.fromString('create new file');
-        await service.writeFile(uri, write1, { create: false, overwrite: false, unlock: true });
+        try {
+            await service.writeFile(uri, write1, { create: false, overwrite: false, unlock: true });
+        } catch (err) {
+            // ignore cannot create error
+        }
         assert.strictEqual(fileExists(uri.toString().slice('file://'.length)), false);
 
         // { create: true } 
@@ -79,6 +83,7 @@ suite('fileService-test', () => {
         await service.writeFile(uri, write2, { create: true, overwrite: false, unlock: true });
         const read2 = await service.readFile(uri);
         assert.strictEqual(read2.toString(), 'create new file');
+
         await provider.delete(uri, { recursive: true, useTrash: false });
     });
 
@@ -91,7 +96,11 @@ suite('fileService-test', () => {
         
         // { create: false }
         const write1 = DataBuffer.fromString('create new file recursively');
-        await service.writeFile(uri, write1, { create: false, overwrite: false, unlock: true });
+        try {
+            await service.writeFile(uri, write1, { create: false, overwrite: false, unlock: true });
+        } catch (err) {
+            // ignore cannot create error
+        }
         assert.strictEqual(fileExists(uri.toString().slice('file://'.length)), false);
 
         // { create: true } 
@@ -99,6 +108,7 @@ suite('fileService-test', () => {
         await service.writeFile(uri, write2, { create: true, overwrite: false, unlock: true });
         const read2 = await service.readFile(uri);
         assert.strictEqual(read2.toString(), 'create new file recursively');
+        
         await provider.delete(URI.fromFile(dirname(URI.toFsPath(uri))), { recursive: true, useTrash: false });
     });
 
@@ -109,7 +119,11 @@ suite('fileService-test', () => {
 
         const uri = URI.parse('file://' + posix.resolve('test/code/service/temp', 'fileService-hello.txt'));
         const write1 = DataBuffer.fromString('Goodbye World');
-        await service.writeFile(uri, write1, { create: true, overwrite: false, unlock: true });
+        try {
+            await service.writeFile(uri, write1, { create: true, overwrite: false, unlock: true });
+        } catch (err) {
+            // ignore cannot overwrite error
+        }
         const read1 = await service.readFile(uri);
         assert.strictEqual(read1.toString(), 'Hello World');
     });

@@ -1,5 +1,5 @@
 import { DataBuffer } from "src/base/common/file/buffer";
-import { FileSystemProviderAbleToRead, hasOpenReadWriteCloseCapability, hasReadWriteCapability, IReadFileOptions, IFileSystemProvider, IFileSystemProviderWithFileReadWrite, IFileSystemProviderWithOpenReadWriteClose, IWriteFileOptions, IStat, FileType } from "src/base/common/file/file";
+import { FileSystemProviderAbleToRead, hasOpenReadWriteCloseCapability, hasReadWriteCapability, IReadFileOptions, IFileSystemProvider, IFileSystemProviderWithFileReadWrite, IFileSystemProviderWithOpenReadWriteClose, IWriteFileOptions, IStat, FileType, IFileOperationError } from "src/base/common/file/file";
 import { basename, dirname, join } from "src/base/common/file/path";
 import { bufferToStream, IReadableStream, IWriteableStream, listenStream, newWriteableBufferStream, streamToBuffer } from "src/base/common/file/stream";
 import { URI } from "src/base/common/file/uri";
@@ -40,23 +40,16 @@ export class FileService implements IFileService {
      * public API - File Operations
      **************************************************************************/
     
-    public async readFile(
-        uri: URI, 
-        opts?: IReadFileOptions): Promise<DataBuffer> 
-    {
+    public async readFile(uri: URI, opts?: IReadFileOptions): Promise<DataBuffer> {
         const provider = await this.__getReadProvider(uri);
         return this.__readFile(provider, uri, opts);
     }
     
-    public async writeFile(
-        uri: URI, 
-        bufferOrStream: DataBuffer | IReadableStream<DataBuffer>,
-        opts?: IWriteFileOptions): Promise<void> 
+    public async writeFile(uri: URI, bufferOrStream: DataBuffer | IReadableStream<DataBuffer>, opts?: IWriteFileOptions): Promise<void> 
     {
         const provider = await this.__getWriteProvider(uri);
         
-        try {
-            
+        try {    
             // validate write operation, returns the stat of the file.
             const stat = await this.__validateWrite(provider, uri, opts);
             
@@ -81,11 +74,10 @@ export class FileService implements IFileService {
 			else {
 				await this.__writeBuffered(provider, uri, opts, bufferOrStream instanceof DataBuffer ? bufferToStream(bufferOrStream) : bufferOrStream);
 			}
-
         }
 
         catch (error) {
-
+            throw error;
         }
 
     }
@@ -100,7 +92,7 @@ export class FileService implements IFileService {
     }
 
     public async isFolderExist(uri: URI): Promise<boolean> {
-        
+
         return false;
     }
 
@@ -114,7 +106,6 @@ export class FileService implements IFileService {
         opts?: IReadFileOptions): Promise<DataBuffer> 
     {
         const stream = await this.__readFileStream(provider, uri, opts);
-
         return streamToBuffer(stream);
     }
 
@@ -123,11 +114,9 @@ export class FileService implements IFileService {
         uri: URI, 
         opts?: IReadFileOptions): Promise<IWriteableStream<DataBuffer>> 
     {
+        const stat = this.__validateRead(provider, uri, opts);
         
-        const validateStat = this.__validateURI(uri);
-
         let writeableStream: IWriteableStream<DataBuffer> | undefined = undefined;
-
         try {
 
             if (!hasOpenReadWriteCloseCapability(provider) || 
@@ -143,7 +132,7 @@ export class FileService implements IFileService {
                 writeableStream = this.__readFileBuffered(provider, uri, opts);
             }
 
-            await validateStat;
+            await stat;
             return writeableStream;
             
         } catch(err) {
@@ -160,16 +149,9 @@ export class FileService implements IFileService {
         uri: URI,
         opts?: IReadFileOptions): IWriteableStream<DataBuffer> 
     {
-        const writeableStream = newWriteableBufferStream();
-        
-        readFileIntoStreamAsync(
-            provider, 
-            uri, 
-            writeableStream, 
-            opts
-        );
-
-        return writeableStream;
+        const stream = newWriteableBufferStream();
+        readFileIntoStreamAsync(provider, uri, stream, opts);
+        return stream;
     }
 
     /** @description Read the file using buffer I/O. */
@@ -178,17 +160,9 @@ export class FileService implements IFileService {
         uri: URI,
         opts?: IReadFileOptions): IWriteableStream<DataBuffer> 
     {
-        const writeableStream = newWriteableBufferStream();
-
-        readFileIntoStream(
-            provider, 
-            uri, 
-            writeableStream, 
-            data => data, 
-            { ...opts, bufferSize: this.bufferSize }
-        );
-
-        return writeableStream;
+        const stream = newWriteableBufferStream();
+        readFileIntoStream(provider, uri, stream, data => data, { ...opts, bufferSize: this.bufferSize });
+        return stream;
     }
 
     /***************************************************************************
@@ -275,8 +249,42 @@ export class FileService implements IFileService {
 		}
 	}
 
-    private async __validateURI(uri: URI): Promise<void> {
-        return;
+    private async __validateRead(
+        provider: IFileSystemProvider, 
+        uri: URI, 
+        opts?: IReadFileOptions): Promise<void> 
+    {
+        const stat = await provider.stat(uri);
+        if (!stat) {
+            throw new Error('target URI does not exist');
+        } else if (stat.type & FileType.DIRECTORY) {
+            throw new Error('cannot read a directory');
+        }
+
+        this.__validateReadLimit(stat.byteSize, opts);
+    }
+
+    private __validateReadLimit(size: number, opts?: IReadFileOptions): void {
+        if (opts?.limits) {
+            
+            let tooLargeErrorResult: IFileOperationError | undefined = undefined;
+
+			if (typeof opts.limits.memory === 'number' && size > opts.limits.memory) {
+				tooLargeErrorResult = IFileOperationError.FILE_EXCEEDS_MEMORY_LIMIT;
+			}
+
+			if (typeof opts.limits.size === 'number' && size > opts.limits.size) {
+				tooLargeErrorResult = IFileOperationError.FILE_TOO_LARGE;
+			}
+
+			if (typeof tooLargeErrorResult === 'number') {
+				if (tooLargeErrorResult === IFileOperationError.FILE_EXCEEDS_MEMORY_LIMIT) {
+                    throw new Error('read file exceeds memory limit');
+                } else {
+                    throw new Error('read file is too large');
+                }
+			}
+        }
     }
 
     /**
@@ -301,7 +309,7 @@ export class FileService implements IFileService {
 		}
 
         // cannot be a directory
-        if ((stat.type & FileType.DIRECTORY) !== 0) {
+        if (stat.type & FileType.DIRECTORY) {
             throw new Error('unable to write file which is actually a directory');
         }
 
@@ -330,7 +338,8 @@ export class FileService implements IFileService {
                 while (stat = await provider.stat(URI.fromFile(path))) {
                     if (stat) break;
                 }
-
+                
+                // not a directory
                 if ((stat.type & FileType.DIRECTORY) === 0) {
                     throw new Error('undable to create directory that already exists but is not a directory');
                 }
