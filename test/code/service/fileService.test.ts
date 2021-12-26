@@ -5,7 +5,7 @@ import { URI } from 'src/base/common/file/uri';
 import { DiskFileSystemProvider } from 'src/base/node/diskFileSystemProvider';
 import { fileExists } from 'src/base/node/io';
 import { FileService } from 'src/code/common/service/fileService';
-import * as fs from "fs";
+
 suite('fileService-test-disk-unbuffered', () => {
 
     test('provider registration', async () => {
@@ -92,7 +92,7 @@ suite('fileService-test-disk-unbuffered', () => {
         const provider = new DiskFileSystemProvider();
         service.registerProvider('file', provider);
 
-        const uri = URI.parse('file://' + posix.resolve('test/code/service/temp/recursive', 'fileService-create.txt'));
+        const uri = URI.parse('file://' + posix.resolve('test/code/service/temp/recursive/recursive1/recursive2', 'fileService-create.txt'));
         
         // { create: false }
         const write1 = DataBuffer.fromString('create new file recursively');
@@ -109,7 +109,8 @@ suite('fileService-test-disk-unbuffered', () => {
         const read2 = await service.readFile(uri);
         assert.strictEqual(read2.toString(), 'create new file recursively');
         
-        await provider.delete(URI.fromFile(dirname(URI.toFsPath(uri))), { recursive: true, useTrash: false });
+        // await provider.delete(URI.fromFile(dirname(URI.toFsPath(uri))), { recursive: true, useTrash: false });
+        await provider.delete(URI.fromFile(dirname(dirname(dirname(URI.toFsPath(uri))))), { recursive: true, useTrash: false });
     });
 
     test('writeFile - overwrite', async () => {
