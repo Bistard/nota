@@ -1,4 +1,4 @@
-import { IOpenFileOptions, FileSystemProviderCapability, FileType, IFileSystemProviderWithFileReadWrite, IFileSystemProviderWithOpenReadWriteClose, IStat, IWriteFileOptions, IDeleteFileOptions, IOverwriteFileOptions } from "src/base/common/file/file";
+import { IOpenFileOptions, FileSystemProviderCapability, FileType, IFileSystemProviderWithFileReadWrite, IFileSystemProviderWithOpenReadWriteClose, IStat, IWriteFileOptions, IDeleteFileOptions, IOverwriteFileOptions, IFileOperationError, FileSystemProviderError } from "src/base/common/file/file";
 import { URI } from "src/base/common/file/uri";
 import * as fs from "fs";
 import { fileExists, FileMode } from "src/base/node/io";
@@ -48,16 +48,16 @@ export class DiskFileSystemProvider implements
         try {
             const path = URI.toFsPath(uri);
 
-            // validation
-            if (opts.create == false || opts.overwrite == false) {
+            // validation {overwrite, create}
+            if (opts.create === false || opts.overwrite === false) {
                 const exist = fileExists(path);
                 
-                if (exist && opts.overwrite == false) {
-                    throw 'File already exists';
+                if (exist && opts.overwrite === false) {
+                    throw new FileSystemProviderError('File already exists', IFileOperationError.FILE_EXISTS);
                 } 
                 
-                else if (!exist && opts.create == false) {
-                    throw 'File does not exist';
+                else if (!exist && opts.create === false) {
+                    throw new FileSystemProviderError('File does not exist', IFileOperationError.FILE_NOT_FOUND);
                 }
             }
             
@@ -69,7 +69,7 @@ export class DiskFileSystemProvider implements
         } 
         
         catch (error) {
-            throw "provider write file error";
+            throw error;
         }
         
         finally {
@@ -129,10 +129,9 @@ export class DiskFileSystemProvider implements
         }
     }
 	
-    public async read(fd: number, pos: number, buffer: Uint8Array, offset: number, length: number): Promise<number> {
-    
+    public async read(fd: number, pos: number, buffer: Uint8Array, offset: number, length: number): Promise<number> 
+    {
         let bytesRead: number | null = null;
-
         try {
             const read = fs.readSync(fd, buffer, offset, length, pos);            
             

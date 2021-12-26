@@ -241,3 +241,26 @@ export interface ICreateReadStreamOptions extends IReadFileOptions {
 	 */
 	bufferSize: number;
 }
+
+/*******************************************************************************
+ * Error Handling
+ ******************************************************************************/
+
+export const enum IFileOperationError {
+	FILE_EXCEEDS_MEMORY_LIMIT,
+	FILE_TOO_LARGE,
+	FILE_EXISTS,
+	FILE_NOT_FOUND
+}
+
+export class FileSystemProviderError extends Error {
+
+	constructor(
+		message: string,
+		public readonly operation: IFileOperationError
+	) {
+		super(message);
+	}
+
+}
+
