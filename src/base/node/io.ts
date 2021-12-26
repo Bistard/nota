@@ -170,7 +170,7 @@ export async function createFile(
     path: string): Promise<void> 
 {
     return new Promise((resolve, reject) => {
-        if (fs.existsSync(path)) {
+        if (fileExists(path)) {
             fs.unlink(path, (err) => {
                 if (err) {
                     reject(err);
@@ -178,7 +178,7 @@ export async function createFile(
                 resolve();
             });
         } else {
-            alert("This file doesn't exist, cannot delete");
+            resolve();
         }
     });
 }

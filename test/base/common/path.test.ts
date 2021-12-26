@@ -31,7 +31,7 @@ import * as assert from 'assert';
 import * as path from 'src/base/common/file/path';
 import { IS_WINDOWS } from 'src/base/node/os';
 
-suite('Paths (Node Implementation)', () => {
+suite('path-test (Node Implementation)', () => {
 	const __filename = 'path.test.js';
 	test('join', () => {
 		const failures = [] as string[];
@@ -359,7 +359,7 @@ suite('Paths (Node Implementation)', () => {
 		assert.strictEqual(path.extname('far.boo/boo'), '');
 	});
 
-	(IS_WINDOWS ? test.skip : test)('resolve', () => { // TODO@sbatten fails on windows & browser only
+	test('resolve', () => {
 		const failures = [] as string[];
 		const slashRE = /\//g;
 		const backslashRE = /\\/g;

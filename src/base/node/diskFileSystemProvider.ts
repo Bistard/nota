@@ -23,11 +23,11 @@ export class DiskFileSystemProvider implements
 
     public async readFile(uri: URI): Promise<Uint8Array> {
         try {
-            
             const path = URI.toFsPath(uri);
             return fs.readFileSync(path);
-
-        } catch (err) {
+        } 
+        
+        catch (err) {
             throw err;
         }
     }
@@ -94,6 +94,7 @@ export class DiskFileSystemProvider implements
                     }
                 } catch(err) {
                     // ignore any errors here and try to just write
+                    // TODO: this.logService.trace(error);
                 }
 
             }
@@ -105,7 +106,7 @@ export class DiskFileSystemProvider implements
             } else {
                 flag = 'r';
             }
-            
+
             const fd = fs.openSync(path, flag);
             return fd;
         } 
