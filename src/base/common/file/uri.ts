@@ -69,13 +69,22 @@ export class URI implements IURI {
 	public readonly query!: string;
 	public readonly fragment!: string;
 
+	/** @internal */
+    private constructor(scheme: string, authority: string, path: string, query: string, fragment: string) {
+        this.scheme = scheme;
+        this.authority = authority;
+        this.path = path;
+        this.query = query;
+        this.fragment = fragment;
+    }
+
     /**
 	 * Creates a new URI from a string, e.g. `http://www.msft.com/some/path`,
 	 * `file:///usr/home`, or `scheme:with/path`.
 	 *
 	 * @param value A string which represents an URI (see `URI#toString`).
 	 */
-	static parse(value: string): URI {
+	public static parse(value: string): URI {
 		const match = _regexp.exec(value);
 		if (!match) {
 			return new URI(_empty, _empty, _empty, _empty, _empty);
@@ -103,17 +112,6 @@ export class URI implements IURI {
 			&& typeof (<URI>thing).scheme === 'string'
 			&& typeof (<URI>thing).toString === 'function';
 	}
-
-    /**
-     * @internal
-     */
-    private constructor(scheme: string, authority: string, path: string, query: string, fragment: string) {
-        this.scheme = scheme;
-        this.authority = authority;
-        this.path = path;
-        this.query = query;
-        this.fragment = fragment;
-    }
 
 	/** @description Compute `fsPath` for the given uri. */
 	public static toFsPath(uri: URI, keepDriveLetterCasing: boolean = true): string {
@@ -144,6 +142,54 @@ export class URI implements IURI {
 	}
 
 	/**
+	 * Creates a new URI from a file system path, e.g. `c:\my\files`,
+	 * `/usr/home`, or `\\server\share\some\path`.
+	 *
+	 * The *difference* between `URI#parse` and `URI#file` is that the latter treats the argument
+	 * as path, not as stringified-uri. E.g. `URI.file(path)` is **not the same as**
+	 * `URI.parse('file://' + path)` because the path might contain characters that are
+	 * interpreted (# and ?). See the following sample:
+	 * ```ts
+		const good = URI.file('/coding/c#/project1');
+		good.scheme === 'file';
+		good.path === '/coding/c#/project1';
+		good.fragment === '';
+		const bad = URI.parse('file://' + '/coding/c#/project1');
+		bad.scheme === 'file';
+		bad.path === '/coding/c'; // path is now broken
+		bad.fragment === '/project1';
+		```
+	 *
+	 * @param path A file system path (see `URI#fsPath`)
+	 */
+	static fromFile(path: string): URI {
+
+		let authority = _empty;
+
+		// normalize to fwd-slashes on windows,
+		// on other systems bwd-slashes are valid
+		// filename character, eg /f\oo/ba\r.txt
+		if (IS_WINDOWS) {
+			path = path.replace(/\\/g, _slash);
+		}
+
+		// check for authority as used in UNC shares
+		// or use the path as given
+		if (path[0] === _slash && path[1] === _slash) {
+			const idx = path.indexOf(_slash, 2);
+			if (idx === -1) {
+				authority = path.substring(2);
+				path = _slash;
+			} else {
+				authority = path.substring(2, idx);
+				path = path.substring(idx) || _slash;
+			}
+		}
+
+		return new URI('file', authority, path, _empty, _empty);
+	}
+
+	/**
 	 * Creates a string representation for this URI. It's guaranteed that calling
 	 * `URI.parse` with the result of this function creates an URI which is equal
 	 * to this URI.
@@ -157,7 +203,6 @@ export class URI implements IURI {
 	 public toString(skipEncoding: boolean = true): string {
         return _toString(this, skipEncoding);
     }
-
 }
 
 /*******************************************************************************

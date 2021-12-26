@@ -36,11 +36,11 @@ export function getSvgPathByName(type: SvgType, name: string): string {
 export function getFileType(fileFullName: string): FileType {
     const index = fileFullName.lastIndexOf('.');
     if (index === undefined) {
-        return FileType.OTHERS;
+        return FileType.UNKNOWN;
     } else if (fileFullName.slice(index) === '.md') {
-        return FileType.MARKDOWN;
+        return FileType.FILE;
     }
-    return FileType.OTHERS;
+    return FileType.DIRECTORY;
 }
 
 /**

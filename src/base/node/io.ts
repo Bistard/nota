@@ -15,7 +15,7 @@ import { DataBuffer } from 'src/base/common/file/buffer';
 
 /** @deprecated The method should not be used */
 export function isMarkdownFile(filename: string): boolean {
-    return getFileType(filename) === FileType.MARKDOWN;
+    return getFileType(filename) === FileType.FILE;
 }
 
 /** @deprecated The method should not be used */

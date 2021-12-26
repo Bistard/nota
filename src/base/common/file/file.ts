@@ -2,15 +2,16 @@ import { URI } from "src/base/common/file/uri";
 import { getFileType } from "src/base/common/string";
 
 export enum FileType {
-    MARKDOWN,
-    OTHERS,
+    UNKNOWN,
+	FILE,
+	DIRECTORY
 }
 
 export interface IStat {
 
 	readonly type: FileType;
-	readonly createTime: number;
-    readonly modifyTime: number;
+	readonly createTime: number; // ms
+    readonly modifyTime: number; // ms
 	readonly byteSize: number;
 	readonly readonly?: boolean;
 }
@@ -70,17 +71,17 @@ export interface IFileSystemProvider {
 	stat(uri: URI): Promise<IStat>;
 	mkdir(uri: URI): Promise<void>;
 	readdir(uri: URI): Promise<[string, FileType][]>;
-	delete(uri: URI): Promise<void>;
+	delete(uri: URI, opts: IDeleteFileOptions): Promise<void>;
 
-	rename(from: string, to: string): Promise<void>;
-	copy?(from: string, to: string): Promise<void>;
+	rename(from: URI, to: URI, opts: IOverwriteFileOptions): Promise<void>;
+	copy?(from: URI, to: URI, opts: IOverwriteFileOptions): Promise<void>;
 
 	readFile?(uri: URI): Promise<Uint8Array>;
 	writeFile?(uri: URI, content: Uint8Array, opts: IWriteFileOptions): Promise<void>;
 
 	readFileStream?(uri: URI, opt?: IReadFileOptions): any;
 
-	open?(uri: URI, opts?: IFileOpenOptions): Promise<number>;
+	open?(uri: URI, opts?: IOpenFileOptions): Promise<number>;
 	close?(fd: number): Promise<void>;
 	read?(fd: number, pos: number, data: Uint8Array, offset: number, length: number): Promise<number>;
 	write?(fd: number, pos: number, data: Uint8Array, offset: number, length: number): Promise<number>;
@@ -119,7 +120,7 @@ export const enum FileSystemProviderCapability {
 
 /** @readonly Corressponds to FileSystemProviderCapability.FileOpenReadWriteClose */
 export interface IFileSystemProviderWithOpenReadWriteClose extends IFileSystemProvider {
-	open(uri: URI, opts: IFileOpenOptions): Promise<number>;
+	open(uri: URI, opts: IOpenFileOptions): Promise<number>;
 	close(fd: number): Promise<void>;
 	read(fd: number, pos: number, data: Uint8Array, offset: number, length: number): Promise<number>;
 	write(fd: number, pos: number, data: Uint8Array, offset: number, length: number): Promise<number>;
@@ -127,7 +128,7 @@ export interface IFileSystemProviderWithOpenReadWriteClose extends IFileSystemPr
 
 /** @readonly Corressponds to FileSystemProviderCapability.FileFolderCopy */
 export interface IFileSystemProviderWithCopy extends IFileSystemProvider {
-	copy(from: string, to: string): Promise<void>;
+	copy(from: URI, to: URI, opts: IOverwriteFileOptions): Promise<void>;
 }
 
 export type FileSystemProviderAbleToRead = 
@@ -154,7 +155,7 @@ export function hasCopyCapability(provider: IFileSystemProvider): provider is IF
  * Options
  ******************************************************************************/
 
-export interface IFileOpenOptions {
+export interface IOpenFileOptions {
 
 	/**
 	 * false: file should be opened for reading.
@@ -193,19 +194,21 @@ export interface IReadFileOptions {
 	};
 }
 
-export interface IWriteFileOptions {
+export interface IOverwriteFileOptions {
+	/**
+	 * Set to `true` to overwrite a file if it exists. Will
+	 * throw an error otherwise if the file does exist.
+	 */
+	 readonly overwrite: boolean;
+}
+
+export interface IWriteFileOptions extends IOverwriteFileOptions {
 
 	/**
 	 * Set to `true` to create a file when it does not exist. Will
 	 * throw an error otherwise if the file does not exist.
 	 */
 	readonly create: boolean;
-
-	/**
-	 * Set to `true` to overwrite a file if it exists. Will
-	 * throw an error otherwise if the file does exist.
-	 */
-	readonly overwrite: boolean;
 
 	 /**
 	 * Set to `true` to try to remove any write locks the file might
@@ -215,6 +218,22 @@ export interface IWriteFileOptions {
 	readonly unlock: boolean;
 }
 
+export interface IDeleteFileOptions {
+	/**
+	 * Set to `true` to recursively delete any children of the file. This
+	 * only applies to folders and can lead to an error unless provided
+	 * if the folder is not empty.
+	 */
+	 readonly recursive: boolean;
+
+	 /**
+	  * Set to `true` to attempt to move the file to trash
+	  * instead of deleting it permanently from disk. This
+	  * option maybe not be supported on all providers.
+	  */
+	 readonly useTrash: boolean;
+}
+
 export interface ICreateReadStreamOptions extends IReadFileOptions {
 
 	/**
@@ -222,3 +241,26 @@ export interface ICreateReadStreamOptions extends IReadFileOptions {
 	 */
 	bufferSize: number;
 }
+
+/*******************************************************************************
+ * Error Handling
+ ******************************************************************************/
+
+export const enum IFileOperationError {
+	FILE_EXCEEDS_MEMORY_LIMIT,
+	FILE_TOO_LARGE,
+	FILE_EXISTS,
+	FILE_NOT_FOUND
+}
+
+export class FileSystemProviderError extends Error {
+
+	constructor(
+		message: string,
+		public readonly operation: IFileOperationError
+	) {
+		super(message);
+	}
+
+}
+
