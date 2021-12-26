@@ -380,7 +380,7 @@ export async function readFileIntoStreamAsync(
     provider: IFileSystemProviderWithFileReadWrite, 
     resource: URI, 
     stream: IWriteableStream<DataBuffer>, 
-    opts: IReadFileOptions): Promise<void> 
+    opts?: IReadFileOptions): Promise<void> 
 {
     try {
         let buffer = await provider.readFile(resource);
