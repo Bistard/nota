@@ -170,7 +170,7 @@ export async function createFile(
     path: string): Promise<void> 
 {
     return new Promise((resolve, reject) => {
-        if (fs.existsSync(path)) {
+        if (fileExists(path)) {
             fs.unlink(path, (err) => {
                 if (err) {
                     reject(err);
@@ -178,7 +178,7 @@ export async function createFile(
                 resolve();
             });
         } else {
-            alert("This file doesn't exist, cannot delete");
+            resolve();
         }
     });
 }
@@ -249,21 +249,6 @@ export async function writeToFile(
     content: string): Promise<void> 
 {
     return createFile(path, fileName, content);
-}
-
-/**
- * @description pass this function to JSON.stringify so that it is able to convert
- * native 'Map' type to JSON file.
- */
-export function mapToJsonReplacer(key: any, value: any) {
-    if (value instanceof Map) {
-        return {
-            dataType: 'Map',
-            value: Array.from(value.entries()), // or with spread: value: [...value]
-        };
-    } else {
-      return value;
-    }
 }
 
 /*******************************************************************************
@@ -370,7 +355,10 @@ export const FileMode = {
     visible: fs.constants.F_OK,
  }
 
- 
+/*******************************************************************************
+ * Path Handling
+ ******************************************************************************/
+
 /**
  * @description Check the existance of the file in the given path.
  */
@@ -392,7 +380,7 @@ export async function readFileIntoStreamAsync(
     provider: IFileSystemProviderWithFileReadWrite, 
     resource: URI, 
     stream: IWriteableStream<DataBuffer>, 
-    opts: IReadFileOptions): Promise<void> 
+    opts?: IReadFileOptions): Promise<void> 
 {
     try {
         let buffer = await provider.readFile(resource);

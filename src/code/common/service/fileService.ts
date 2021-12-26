@@ -1,6 +1,6 @@
 import { DataBuffer } from "src/base/common/file/buffer";
 import { FileSystemProviderAbleToRead, hasOpenReadWriteCloseCapability, hasReadWriteCapability, IReadFileOptions, IFileSystemProvider, IFileSystemProviderWithFileReadWrite, IFileSystemProviderWithOpenReadWriteClose, IWriteFileOptions } from "src/base/common/file/file";
-import { bufferToStream, IReadableStream, IWriteableStream, listenStream, newWriteableBufferStream, newWriteableStream, streamToBuffer } from "src/base/common/file/stream";
+import { bufferToStream, IReadableStream, IWriteableStream, listenStream, newWriteableBufferStream, streamToBuffer } from "src/base/common/file/stream";
 import { URI } from "src/base/common/file/uri";
 import { isAbsolutePath } from "src/base/common/string";
 import { readFileIntoStream, readFileIntoStreamAsync } from "src/base/node/io";
@@ -41,7 +41,7 @@ export class FileService implements IFileService {
     
     public async readFile(
         uri: URI, 
-        opts: IReadFileOptions = Object.create(null)): Promise<DataBuffer> 
+        opts?: IReadFileOptions): Promise<DataBuffer> 
     {
         const provider = await this.__getReadProvider(uri);
         return this.__readFile(provider, uri, opts);
@@ -50,7 +50,7 @@ export class FileService implements IFileService {
     public async writeFile(
         uri: URI, 
         bufferOrStream: DataBuffer | IReadableStream<DataBuffer>,
-        opts: IWriteFileOptions): Promise<void> 
+        opts?: IWriteFileOptions): Promise<void> 
     {
         const provider = await this.__getWriteProvider(uri);
         
@@ -106,7 +106,7 @@ export class FileService implements IFileService {
     private async __readFile(
         provider: FileSystemProviderAbleToRead, 
         uri: URI,
-        opts: IReadFileOptions): Promise<DataBuffer> 
+        opts?: IReadFileOptions): Promise<DataBuffer> 
     {
         const stream = await this.__readFileStream(provider, uri, opts);
 
@@ -116,7 +116,7 @@ export class FileService implements IFileService {
     private async __readFileStream(
         provider: FileSystemProviderAbleToRead, 
         uri: URI, 
-        opts: IReadFileOptions): Promise<IWriteableStream<DataBuffer>> 
+        opts?: IReadFileOptions): Promise<IWriteableStream<DataBuffer>> 
     {
         
         const validateStat = this.__validateURI(uri);
@@ -153,7 +153,7 @@ export class FileService implements IFileService {
     private __readFileUnbuffered(
         provider: IFileSystemProviderWithFileReadWrite, 
         uri: URI,
-        opts: IReadFileOptions): IWriteableStream<DataBuffer> 
+        opts?: IReadFileOptions): IWriteableStream<DataBuffer> 
     {
         const writeableStream = newWriteableBufferStream();
         
@@ -171,7 +171,7 @@ export class FileService implements IFileService {
     private __readFileBuffered(
         provider: IFileSystemProviderWithOpenReadWriteClose, 
         uri: URI,
-        opts: IReadFileOptions): IWriteableStream<DataBuffer> 
+        opts?: IReadFileOptions): IWriteableStream<DataBuffer> 
     {
         const writeableStream = newWriteableBufferStream();
 
@@ -197,7 +197,6 @@ export class FileService implements IFileService {
         bufferOrStream: DataBuffer | IReadableStream<DataBuffer>): Promise<void> 
     {
         let buffer: DataBuffer;
-        
         if (bufferOrStream instanceof DataBuffer) {
             buffer = bufferOrStream;
         } else {
@@ -205,7 +204,7 @@ export class FileService implements IFileService {
         }
 
         // write through a provider
-        await provider.writeFile(uri, buffer.buffer, { create: true, overwrite: true, unlock: opts?.unlock ?? false });
+        await provider.writeFile(uri, buffer.buffer, { create: opts?.create ?? false, overwrite: opts?.overwrite ?? false, unlock: opts?.unlock ?? false });
     }
 
     private async __writeBuffered(
@@ -265,9 +264,9 @@ export class FileService implements IFileService {
         posInFile: number, 
         posInBuffer: number): Promise<void> 
     {
-		let totalWritten = 0;
-		while (totalWritten < length) {
-			totalWritten += await provider.write(fs, posInFile + totalWritten, buffer.buffer, posInBuffer + totalWritten, length - totalWritten);
+		let written = 0;
+		while (written < length) {
+			written += await provider.write(fs, posInFile + written, buffer.buffer, posInBuffer + written, length - written);
 		}
 	}
 

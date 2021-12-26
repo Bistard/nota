@@ -18,18 +18,16 @@ export class DiskFileSystemProvider implements
         FileSystemProviderCapability.FileReadStream |
         FileSystemProviderCapability.FileFolderCopy;
 
-    private readonly bufferSize = 256 * 1024;
-
     // empty
     constructor() {}
 
     public async readFile(uri: URI): Promise<Uint8Array> {
         try {
-            
             const path = URI.toFsPath(uri);
             return fs.readFileSync(path);
-
-        } catch (err) {
+        } 
+        
+        catch (err) {
             throw err;
         }
     }
@@ -47,23 +45,19 @@ export class DiskFileSystemProvider implements
             // validation
             if (opts.create == false || opts.overwrite == false) {
                 const exist = fileExists(path);
-
-                if (exist) {
-                    if (opts.overwrite == false) {
-                        throw "File already exists";
-                    }
+                
+                if (exist && opts.overwrite == false) {
+                    throw 'File already exists';
                 } 
                 
-                else {
-                    if (opts.create == false) {
-                        throw "File does not exist";
-                    }
+                else if (!exist && opts.create == false) {
+                    throw 'File does not exist';
                 }
             }
-
+            
             // open the file
             fd = await this.open(uri, { create: true, unlock: opts.unlock });
-
+            
             // write the content at once (write from beginning)
             await this.write(fd, 0, content, 0, content.byteLength);
         } 
@@ -92,16 +86,15 @@ export class DiskFileSystemProvider implements
 
             // determine wether to unlock the file (write mode only)
             if (opts.create === true && opts.unlock === true) {
-                
                 try {
-                    let stat = fs.statSync(path);
-                
+                    const stat = fs.statSync(path);
                     /* File mode indicating writable by owner */
                     if (!(stat.mode & 0o200)) {
                         fs.chmodSync(path, stat.mode | FileMode.writable);
                     }
                 } catch(err) {
-                    throw err;
+                    // ignore any errors here and try to just write
+                    // TODO: this.logService.trace(error);
                 }
 
             }
