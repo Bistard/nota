@@ -1,6 +1,3 @@
-import { debug } from "console";
-import { Debugger } from "electron";
-import { format } from "path/posix";
 import { APP_ROOT_PATH } from "src/base/electron/app";
 import { isDirExisted, createDir, writeToFile } from "src/base/node/io";
 import { pathJoin } from "src/base/common/string";
@@ -58,7 +55,7 @@ export abstract class LogService implements ILogService {
         @INoteBookManagerService noteBookManagerService: INoteBookManagerService,
         @IGlobalConfigService globalConfigService: GlobalConfigService,
     ) {
-        this._logServiceManager = createOrGetLogServiceManager(noteBookManagerService, globalConfigService);
+        this._logServiceManager = createOrGetLogServiceManager(LogServiceManager, noteBookManagerService, globalConfigService);
     }
 
     
@@ -92,9 +89,15 @@ export abstract class LogService implements ILogService {
     }
 }
 
-function createOrGetLogServiceManager(noteBookManagerService: INoteBookManagerService, globalConfigService: GlobalConfigService): LogServiceManager {
+/**
+ * @description The only valid way to construct a manager.
+ * @param ctor A constructor.
+ * @param args Arguments for constructing a manager.
+ * @returns Returns a existed manager or a newly constructed one.
+ */
+function createOrGetLogServiceManager<T extends LogServiceManager>(ctor: any, ...args: any[]): LogServiceManager {
     if (_logServiceManagerInstance === null) {
-        _logServiceManagerInstance = new LogServiceManager(noteBookManagerService, globalConfigService);
+        _logServiceManagerInstance = <T>new ctor(...args);
     }
     return _logServiceManagerInstance;
 }
