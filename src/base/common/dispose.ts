@@ -8,12 +8,15 @@ export interface IDisposable {
  * disposable object can be registered into another disposable object.
  * 
  * Calling this.dispose() will dispose the object and all its registered ones. 
- * The client requires to implement their own this.dispose() method to make sure
- * that all the resources are disposed properly 
+ * The client requires to implement their own this.dispose() method by overriding 
+ * to make sure that all the resources are disposed properly.
  * 
  * Essentially is the idea of implementing a new this.dispose() method is to 
  * reduce the reference count of all the resources to zero and then the garbage 
  * collection will do the rest of the jobs for us.
+ * 
+ * @note When overriding this.dispose() method, remember to to call super.dispose() 
+ * at some time.
  */
 export class Disposable implements IDisposable {
 
