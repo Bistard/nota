@@ -7,6 +7,7 @@ import { ServiceCollection } from "src/code/common/service/instantiationService/
 import { ConfigService, IConfigService } from "src/code/common/service/configService/configService";
 import { GlobalConfigService, IGlobalConfigService } from "src/code/common/service/configService/globalConfigService";
 import { APP_ROOT_PATH } from "src/base/electron/app";
+import { IFileService } from "src/code/common/service/fileService";
 
 /**
  * @description This the main entry in the renderer process.
@@ -16,6 +17,7 @@ export class Browser {
     public workbench: Workbench | null = null;
 
     private instantiationService!: IInstantiationService;
+    private fileService!: IFileService;
     private globalConfigService!: GlobalConfigService;
     private configService!: ConfigService;
 
@@ -40,6 +42,9 @@ export class Browser {
         // InstantiationService
         this.instantiationService.register(IInstantiationService, this.instantiationService);
 
+        // fileService
+        this.instantiationService.register(IFileService, this.fileService);
+        
         // GlobalConfigService
         this.globalConfigService = new GlobalConfigService();
         this.instantiationService.register(IGlobalConfigService, this.globalConfigService);
