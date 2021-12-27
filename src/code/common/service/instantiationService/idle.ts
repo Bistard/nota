@@ -1,4 +1,4 @@
-import { IDisposable } from "src/base/common/lifecycle";
+import { IDisposable } from "src/base/common/dispose";
 
 export interface IdleDeadline {
 	readonly didTimeout: boolean;

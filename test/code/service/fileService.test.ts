@@ -6,7 +6,7 @@ import { DiskFileSystemProvider } from 'src/base/node/diskFileSystemProvider';
 import { fileExists } from 'src/base/node/io';
 import { FileService } from 'src/code/common/service/fileService';
 
-suite('fileService-test-disk-unbuffered', () => {
+suite('FileService-disk-unbuffered-test', () => {
 
     test('provider registration', async () => {
         // TODO
