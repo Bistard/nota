@@ -3,6 +3,18 @@ export interface IDisposable {
 	dispose(): void;
 }
 
+/**
+ * @readonly The lifecyle of a disposable object is controlled by the client. A
+ * disposable object can be registered into another disposable object.
+ * 
+ * Calling this.dispose() will dispose the object and all its registered ones. 
+ * The client requires to implement their own this.dispose() method to make sure
+ * that all the resources are disposed properly 
+ * 
+ * Essentially is the idea of implementing a new this.dispose() method is to 
+ * reduce the reference count of all the resources to zero and then the garbage 
+ * collection will do the rest of the jobs for us.
+ */
 export class Disposable implements IDisposable {
 
 	private _disposableManager = new DisposableManager();
@@ -37,6 +49,7 @@ export class Disposable implements IDisposable {
 	}
 }
 
+/** @description A manager to maintain all the registered disposables. */
 export class DisposableManager implements IDisposable {
 
 	private _disposables = new Set<IDisposable>();
