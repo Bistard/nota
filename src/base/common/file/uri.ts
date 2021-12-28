@@ -145,8 +145,8 @@ export class URI implements IURI {
 	 * Creates a new URI from a file system path, e.g. `c:\my\files`,
 	 * `/usr/home`, or `\\server\share\some\path`.
 	 *
-	 * The *difference* between `URI#parse` and `URI#file` is that the latter treats the argument
-	 * as path, not as stringified-uri. E.g. `URI.file(path)` is **not the same as**
+	 * The *difference* between `URI#parse` and `URI#fromFile` is that the latter treats the argument
+	 * as path, not as stringified-uri. E.g. `URI.fromFile(path)` is **not the same as**
 	 * `URI.parse('file://' + path)` because the path might contain characters that are
 	 * interpreted (# and ?). See the following sample:
 	 * ```ts
