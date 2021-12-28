@@ -6,6 +6,8 @@ import { TabBarComponent } from "src/code/browser/workbench/editor/tabBar/tabBar
 import { TitleBarComponent } from "src/code/browser/workbench/editor/titleBar/titleBar";
 import { IFileLogService } from "src/code/common/service/logService/fileLogService";
 import { createDecorator } from "src/code/common/service/instantiationService/decorator";
+import { GlobalConfigService, IGlobalConfigService } from "src/code/common/service/configService/globalConfigService";
+import { ConfigService, IConfigService } from "src/code/common/service/configService/configService";
 
 export enum EditorComponentType {
     titleBar = 'title-bar',
@@ -30,6 +32,8 @@ export class EditorComponent extends Component implements IEditorService {
         @IComponentService componentService: IComponentService,
         @IContextMenuService private readonly contextMenuService: IContextMenuService,
         @IFileLogService private readonly fileLogService: IFileLogService,
+        @IGlobalConfigService private readonly globalConfigService: GlobalConfigService,
+        @IConfigService private readonly configService: ConfigService,
     ) {
         super(ComponentType.editor, parentComponent, null, componentService);
     }
@@ -47,12 +51,12 @@ export class EditorComponent extends Component implements IEditorService {
     }
 
     private _createTitleBar(): void {
-        this.titleBarComponent = new TitleBarComponent(this, this.componentService);
+        this.titleBarComponent = new TitleBarComponent(this, this.componentService, this.configService);
         this.titleBarComponent.create();
     }
 
     private _createTabBar(): void {
-        this.tabBarComponent = new TabBarComponent(this, this.componentService);
+        this.tabBarComponent = new TabBarComponent(this, this.componentService, this.configService);
         this.tabBarComponent.create();
     }
 
@@ -60,7 +64,7 @@ export class EditorComponent extends Component implements IEditorService {
         const markdownView = document.createElement('div');
         markdownView.id = 'markdown-view';
 
-        this.markdownComponent = new MarkdownComponent(this, markdownView, this.componentService, this.contextMenuService, this.fileLogService);
+        this.markdownComponent = new MarkdownComponent(this, markdownView, this.componentService, this.contextMenuService, this.fileLogService, this.globalConfigService, this.configService);
         this.markdownComponent.create();
 
         this.container.appendChild(markdownView);

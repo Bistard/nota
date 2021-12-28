@@ -13,6 +13,10 @@ export function pathJoin(root: string, ...paths: string[]): string {
     return absolutePath;
 }
 
+export function isAbsolutePath(path: string): boolean {
+    return !!path && path[0] === '/';
+}
+
 export enum SvgType {
     base = '',
     toolBar = 'toolBar',
@@ -32,11 +36,11 @@ export function getSvgPathByName(type: SvgType, name: string): string {
 export function getFileType(fileFullName: string): FileType {
     const index = fileFullName.lastIndexOf('.');
     if (index === undefined) {
-        return FileType.OTHERS;
+        return FileType.UNKNOWN;
     } else if (fileFullName.slice(index) === '.md') {
-        return FileType.MARKDOWN;
+        return FileType.FILE;
     }
-    return FileType.OTHERS;
+    return FileType.DIRECTORY;
 }
 
 /**

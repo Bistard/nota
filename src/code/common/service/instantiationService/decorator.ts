@@ -10,6 +10,12 @@ export namespace _ServiceUtil {
     }
 }
 
+/**
+ * @readonly a template function interface for functions with any parameters which does not return value.
+ * 
+ * @note (...args: any[]): any; - functions with any parameters which can return type
+ *       (): any;               - functions with no parameters which can return type
+ */
 export interface ServiceIdentifier<T> {
 	(...args: any[]): void;
 	type: T;
@@ -47,8 +53,11 @@ export function createDecorator<T>(serviceId: string): ServiceIdentifier<T> {
         return returnedServiceIdentifier;
     }
 
-    // decorator 
-    // (will be applied when the 'target' has been decleared, not when instantiated)
+    // decorator (will be applied when the 'target' class has been DECLEARED, not when INSTANTIATED)
+    /**
+     * @param target the class
+     * @param index the index of the parameter
+     */
     const serviceIdentifier = <any>function (target: Function, key: string, index: number): any {
         if (arguments.length !== 3) {
             throw new Error('@IServiceName-decorator can only be used to decorate a parameter.');

@@ -18,7 +18,7 @@ import 'prismjs/components/prism-java';
 
 // @toast-ui-plugin: color syntax 
 import colorSyntax from '@toast-ui/editor-plugin-color-syntax';
-import { ConfigService } from 'src/code/common/service/configService/configService';
+import { ConfigService, IConfigService } from 'src/code/common/service/configService/configService';
 import { FileNode } from 'src/base/node/fileTree';
 import { Component, IComponent } from 'src/code/browser/workbench/component';
 import { EVENT_EMITTER } from 'src/base/common/event';
@@ -31,7 +31,7 @@ import { IComponentService } from 'src/code/browser/service/componentService';
 import { EditorComponentType } from 'src/code/browser/workbench/editor/editor';
 import { IFileLogService } from 'src/code/common/service/logService/fileLogService';
 import { LogPathType } from 'src/code/common/service/logService/logService';
-import { GlobalConfigService } from 'src/code/common/service/configService/globalConfigService';
+import { GlobalConfigService, IGlobalConfigService } from 'src/code/common/service/configService/globalConfigService';
 
 export const IMarkdownService = createDecorator<IMarkdownService>('markdown-service');
 
@@ -60,11 +60,13 @@ export class MarkdownComponent extends Component implements IMarkdownService {
                 @IComponentService componentService: IComponentService,
                 @IContextMenuService private readonly contextMenuService: IContextMenuService,
                 @IFileLogService private readonly fileLogService: IFileLogService,
+                @IGlobalConfigService private readonly globalConfigService: GlobalConfigService,
+                @IConfigService private readonly configService: ConfigService,
                 
         ) {
         super(EditorComponentType.markdown, parentComponent, parentElement, componentService);
 
-        this.mode = ConfigService.Instance.defaultMarkdownMode;
+        this.mode = this.configService.defaultMarkdownMode;
         
         this.editor = null;
         
@@ -133,7 +135,7 @@ export class MarkdownComponent extends Component implements IMarkdownService {
         });
 
         // spellcheck config check
-        if (!ConfigService.Instance.markdownSpellCheckOn) {
+        if (!this.configService.markdownSpellCheckOn) {
             this.container.setAttribute('spellcheck', 'false');
         }
 
@@ -232,7 +234,7 @@ export class MarkdownComponent extends Component implements IMarkdownService {
      * @description callback function for 'editor.event.change'.
      */
     public onTextChange(): void {
-        if (ConfigService.Instance.fileAutoSaveOn) {
+        if (this.configService.fileAutoSaveOn) {
             // if content is changed before the previous timeout has reached, 
             // clear the preivous one.
             if (this.saveFileTimeout) {
@@ -258,8 +260,6 @@ export class MarkdownComponent extends Component implements IMarkdownService {
             return;
         }
 
-        GlobalConfigService.Instance.defaultConfigOn = false;
-        //console.log(GlobalConfigService.Instance.defaultConfigOn);
         const err = new Error("No Editor Found!");
         this.fileLogService.error(err, new Date(), LogPathType.APP);
 

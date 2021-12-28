@@ -1,3 +1,5 @@
+
+// TODO: 'remote' is deprecated, use others instead
 import { remote } from "electron";
 
 export const APP_ROOT_PATH = remote.app.getAppPath();

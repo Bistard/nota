@@ -1,6 +1,5 @@
 const path = require('path');
 
-console.log(__dirname);
 let common_config = {
     node: {
         __dirname: true

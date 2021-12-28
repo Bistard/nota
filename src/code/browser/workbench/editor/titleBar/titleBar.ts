@@ -3,6 +3,7 @@ import { WindowBarComponent } from 'src/code/browser/workbench/editor/titleBar/w
 import { FunctionBarComponent } from 'src/code/browser/workbench/editor/titleBar/functionBar';
 import { EditorComponentType } from 'src/code/browser/workbench/editor/editor';
 import { IComponentService } from 'src/code/browser/service/componentService';
+import { ConfigService, IConfigService } from 'src/code/common/service/configService/configService';
 
 export enum TitleBarComponentType {
     functionBar = 'function-bar',
@@ -21,6 +22,7 @@ export class TitleBarComponent extends Component {
     constructor(
         parentComponent: Component,
         @IComponentService componentService: IComponentService,
+        @IConfigService private readonly configService: ConfigService,
     ) {
         super(EditorComponentType.titleBar, parentComponent, null, componentService);
     }
@@ -41,7 +43,7 @@ export class TitleBarComponent extends Component {
     }
 
     private _createfunctionBar(): void {
-        this.functionBarComponent = new FunctionBarComponent(this, this.componentService);
+        this.functionBarComponent = new FunctionBarComponent(this, this.componentService, this.configService);
         this.functionBarComponent.create();
     }
 
