@@ -39,7 +39,7 @@ export class Browser {
         const serviceCollection = new ServiceCollection();
         this.instantiationService = new InstantiationService(serviceCollection);
 
-        // InstantiationService
+        // InstantiationService (itself)
         this.instantiationService.register(IInstantiationService, this.instantiationService);
 
         // fileService

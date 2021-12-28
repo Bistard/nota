@@ -1,5 +1,5 @@
 import * as assert from 'assert';
-import { Disposable, DisposableManager, disposeAll, IDisposable, MultiDisposeError, toDisposable } from 'src/base/common/dispose';
+import { Disposable, DisposableManager, disposeAll, MultiDisposeError, toDisposable } from 'src/base/common/dispose';
 
 suite('dispose-test', () => {
 
