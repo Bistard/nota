@@ -2,6 +2,7 @@
  *  Thank you Microsoft and vs code
  *--------------------------------------------------------------------------------------------*/
 
+/** @deprecated Use Emitter instead */
 class Node<E> {
 
 	static readonly Undefined = new Node<any>(undefined);
@@ -17,6 +18,7 @@ class Node<E> {
 	}
 }
 
+/** @deprecated Use Emitter instead */
 export class LinkedList<E> {
 
 	private _first: Node<E> = Node.Undefined;

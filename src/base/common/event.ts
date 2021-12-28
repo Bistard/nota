@@ -1,7 +1,9 @@
 import { LinkedList } from "./linkedList";
 import { Disposable, DisposableManager, IDisposable, toDisposable } from "./dispose";
 import { listeners } from "process";
+import { List } from "src/base/common/list";
 
+/** @deprecated Use Emitter instead */
 export interface IEventEmitter {
     /**
      * @description register an event.
@@ -17,6 +19,7 @@ export interface IEventEmitter {
     emit(id: string, ...params: any[]): any[] | any;
 }
 
+/** @deprecated Use Emitter instead */
 export class EventEmitter implements IEventEmitter {
 
     private _events: { 
@@ -54,38 +57,52 @@ export class EventEmitter implements IEventEmitter {
 
 }
 
+/** @description A listener is a function that has a parameter of that specific event type T. */
+export type Listener<T> = (e: T) => any;
+
+/**
+ * // TODO
+ */
 export interface Event<T> {
-	(listener: (e: T) => any, disposables?: IDisposable[]): IDisposable;
+	(listener: Listener<T>, disposables?: IDisposable[]): IDisposable;
 }
 
-export type Listener<T> = [(e: T) => void, any] | ((e: T) => void);
-
-
-export class Emitter<T> {
+/**
+ * // TODO
+ */
+export class Emitter<T> implements IDisposable {
+    
     private _disposed: boolean = false;
-    private _event?: Event<T>
+    private _event?: Event<T>;
 	protected _listeners?: LinkedList<Listener<T>>;
 
+    /**
+     * @description // TODO
+     */
     get event(): Event<T> {
+        if (this._disposed) {
+            throw new Error('emitter is already disposed, cannot register a new listener');
+        }
+
         if (!this._event) {
-			this._event = (listener: (e: T) => any, disposables?: IDisposable[]) => {
+			this._event = (listener: Listener<T>, disposables?: IDisposable[]) => {
 				if (!this._listeners) {
-					this._listeners = new LinkedList();
+					this._listeners = new LinkedList<Listener<T>>();
 				}
 
-				const remove = this._listeners.push(listener);
-
+				// const node = this._listeners.push_back(listener);
+                const remove = this._listeners.push(listener);
 
 				const result = toDisposable(() => {
 					if (!this._disposed) {
-						remove();
+						// this._listeners?.remove(node);
+                        remove();
 					}
 				});
 
-				if (Array.isArray(disposables)) {
+				if (disposables) {
 					disposables.push(result);
 				}
-				
 
 				return result;
 			};
@@ -93,26 +110,33 @@ export class Emitter<T> {
 		return this._event;
     }
 
-    fire(event: T): void {
-		if (this._listeners) {
-			// put all [listener,event]-pairs into delivery queue
-			// then emit all event. an inner/nested event might be
-			// the driver of this
-            for (let listener of this._listeners) {
+    /**
+     * @description // TODO
+     * @param event 
+     * @returns 
+     */
+    public fire(event: T): any[] {
+		const errors: any[] = [];
+
+        if (this._listeners) {
+
+            for (const listener of this._listeners) {
 				try {
-					if (typeof listener === 'function') {
-						listener.call(undefined, event);
-					} else {
-						listener[0].call(listener[1], event);
-					}
+                    listener(event);
 				} catch (e) {
-					console.error(e);
+					errors.push(e);
 				}
 			}
+
 		}
+
+        return errors;
 	}
 
-    dispose() {
+    /**
+     * // TODO
+     */
+    public dispose() {
 		if (!this._disposed) {
 			this._disposed = true;
 			this._listeners?.clear();
@@ -120,5 +144,5 @@ export class Emitter<T> {
 	}
 }
 
-
+/** @deprecated Use Emitter instead */
 export const EVENT_EMITTER = new EventEmitter();
