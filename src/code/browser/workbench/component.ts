@@ -1,3 +1,4 @@
+import { Disposable } from "src/base/common/dispose";
 import { IComponentService } from "src/code/browser/service/componentService";
 
 export const enum ComponentType {
@@ -20,7 +21,7 @@ export interface IComponent {
     getId(): string;
 }
 
-export abstract class Component implements IComponent {
+export abstract class Component extends Disposable implements IComponent {
     
     public readonly parentComponent: Component | null;
     public readonly parent: HTMLElement | null;
@@ -35,6 +36,8 @@ export abstract class Component implements IComponent {
                 parentElement: HTMLElement | null = null,
                 protected readonly componentService: IComponentService,
     ) {
+        super();
+        
         this.container.id = id;
         
         this.parentComponent = parentComponent;

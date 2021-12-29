@@ -4,7 +4,6 @@ import { ExplorerViewComponent } from "src/code/browser/workbench/actionView/exp
 import { Emitter, EVENT_EMITTER } from 'src/base/common/event';
 import { createDecorator } from 'src/code/common/service/instantiationService/decorator';
 import { IComponentService } from 'src/code/browser/service/componentService';
-import { IContextMenuService } from 'src/code/browser/service/contextMenuService';
 import { IInstantiationService } from 'src/code/common/service/instantiationService/instantiation';
 
 export type ActionViewType = 'none' | 'explorer' | 'outline' | 'search' | 'git';
