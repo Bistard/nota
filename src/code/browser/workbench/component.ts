@@ -1,4 +1,5 @@
 import { Disposable } from "src/base/common/dispose";
+import { Emitter } from "src/base/common/event";
 import { IComponentService } from "src/code/browser/service/componentService";
 
 export const enum ComponentType {
@@ -23,6 +24,13 @@ export interface IComponent {
 
 export abstract class Component extends Disposable implements IComponent {
     
+    /* events */
+    
+    private readonly _onDidVisibilityChange = this.__register( new Emitter<boolean>() );
+    public readonly onDidVisibilityChange = this._onDidVisibilityChange.registerListener;
+
+    /* end */
+
     public readonly parentComponent: Component | null;
     public readonly parent: HTMLElement | null;
 
@@ -37,7 +45,7 @@ export abstract class Component extends Disposable implements IComponent {
                 protected readonly componentService: IComponentService,
     ) {
         super();
-        
+
         this.container.id = id;
         
         this.parentComponent = parentComponent;
@@ -89,18 +97,14 @@ export abstract class Component extends Disposable implements IComponent {
      * 
      * subclasses should override this function.
      */
-    protected _createContent(): void {
-        return undefined;
-    }
+    protected abstract _createContent(): void;
 
     /**
      * @description to register listeners for the component and its content.
      * 
      * subclasses should override this function.
      */
-    protected _registerListeners(): void {
-        return;
-    }
+    protected abstract _registerListeners(): void;
 
     public getId(): string {
         return this.container.id;

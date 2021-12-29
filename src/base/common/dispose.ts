@@ -44,7 +44,7 @@ export class Disposable implements IDisposable {
 	 * If this object is already disposed, a console warning will be printed.
 	 * If self-registering is encountered, an error will be thrown.
 	 */
-	public register<T extends IDisposable>(obj: T): T {
+	protected __register<T extends IDisposable>(obj: T): T {
 		if (obj && (obj as any as Disposable) === this) {
 			throw new Error('cannot register the disposable object to itself');
 		}
