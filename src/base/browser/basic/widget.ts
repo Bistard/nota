@@ -1,4 +1,6 @@
 
 export interface IWidget {
-    id: string;
+    id?: string;
+    element: HTMLElement;
+    imgElement?: HTMLImageElement;
 }

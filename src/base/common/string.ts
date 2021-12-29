@@ -1,17 +1,31 @@
-import { CHAR_DIR_SEPARATOR, FileType } from "src/base/node/file";
+import { FileType } from "src/base/common/file/file";
 
-const BASE_PATH = './src/assets/svg/';
+export const CHAR_DIR_SEPARATOR = '/';
 
 export function pathJoin(root: string, ...paths: string[]): string {
     let absolutePath = root;
     for (let path of paths) {
+        if (path === '') {
+            continue;
+        }
         absolutePath += CHAR_DIR_SEPARATOR + path;
     }
     return absolutePath;
 }
 
-export function getSvgPathByName(name: string): string {
-    return pathJoin(BASE_PATH, name + '.svg');
+export function isAbsolutePath(path: string): boolean {
+    return !!path && path[0] === '/';
+}
+
+export enum SvgType {
+    base = '',
+    toolBar = 'toolBar',
+}
+
+const BASE_PATH = './src/assets/svg/';
+
+export function getSvgPathByName(type: SvgType, name: string): string {
+    return pathJoin(BASE_PATH, type, name + '.svg');
 }
 
 /**
@@ -22,11 +36,11 @@ export function getSvgPathByName(name: string): string {
 export function getFileType(fileFullName: string): FileType {
     const index = fileFullName.lastIndexOf('.');
     if (index === undefined) {
-        return FileType.OTHERS;
+        return FileType.UNKNOWN;
     } else if (fileFullName.slice(index) === '.md') {
-        return FileType.MARKDOWN;
+        return FileType.FILE;
     }
-    return FileType.OTHERS;
+    return FileType.DIRECTORY;
 }
 
 /**

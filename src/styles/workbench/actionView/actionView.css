@@ -5,7 +5,7 @@
     width: 300px;
     min-width: 300px; /* prevent resizing */
     height: 100%;
-    background-color: #ffffff;
+    background-color: #f8f9f9;
 
     color: white;
 }
@@ -28,7 +28,7 @@
     position: absolute;
     right: 0px;
 
-    background-color: #f1f1f1;
+    background-color: #f8f9f9;
     
     width: 2px;
     height: 100%;

@@ -7,17 +7,19 @@
 @import "../../node_modules/tui-color-picker/dist/tui-color-picker.css";
 @import "../../node_modules/@toast-ui/editor-plugin-color-syntax/dist/toastui-editor-plugin-color-syntax.css";
 
+@import "../base/browser/secondary/contextMenu/contextMenu.css";
+
 @import "./common.css";
 @import "./workbench/actionBar/actionBar.css";
 @import "./workbench/actionView/actionView.css";
 @import "./workbench/actionView/explorer/explorerView.css";
 @import "./workbench/actionView/explorer/fileTree.css";
 @import "./workbench/actionView/outline/outlineView.css";
-@import "./workbench/editor/titleBar/titleBarView.css";
-@import "./workbench/editor/titleBar/toolBarView.css";
-@import "./workbench/editor/titleBar/tabBarView.css";
-@import "./workbench/editor/titleBar/windowBarView.css";
 @import "./workbench/editor/editor.css";
+@import "./workbench/editor/titleBar/titleBarView.css";
+@import "./workbench/editor/titleBar/functionBarView.css";
+@import "./workbench/editor/titleBar/windowBarView.css";
+@import "./workbench/editor/tabBar/tabBarView.css";
 @import "./workbench/editor/markdown/markdownView.css";
 @import "./workbench/editor/markdown/customToastuiStyle.css";
 
@@ -26,7 +28,7 @@ body {
     padding: 0px;
     font-size: 10pt;
     background-color: white;
-    font-family: 'Microsoft Yahei';
+    font-family: 'Microsoft Yahei', '微软雅黑', 'Open Sans', 'Helvetica Neue', 'Helvetica', 'Arial', '나눔바른고딕', 'Nanum Barun Gothic', '맑은고딕', 'Malgun Gothic', sans-serif;
 }
 
 img {

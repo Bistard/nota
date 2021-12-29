@@ -3,10 +3,8 @@
     width: 40px;
     min-width: 40px;
     height: 100%;
-    background-color: #ffffff;
+    background-color: #f8f9f9;
     -webkit-app-region: drag; /* draggable */
-
-    border-right: #f1f1f1 2px solid;
 }
 
 #action-button-container {
@@ -23,7 +21,7 @@
 }
 
 .action-button:hover {
-    background-color: #d1232a;
+    filter: invert(15%) sepia(100%) saturate(2427%) hue-rotate(343deg) brightness(112%) contrast(97%);
 }
 
 .action-button:active {
@@ -31,7 +29,7 @@
 }
 
 .action-button-focus {
-    background-color: #d1232a;
+    filter: invert(15%) sepia(100%) saturate(2427%) hue-rotate(343deg) brightness(112%) contrast(97%);
 }
 
 .action-button > img {

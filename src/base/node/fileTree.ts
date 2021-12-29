@@ -1,23 +1,24 @@
-import { MarkdownFile, readMarkdownFile } from 'src/base/node/file';
-import * as fs from 'fs';
+import { readMarkdownFile } from 'src/base/node/io';
+import * as fs from 'fs'; 
 import * as Path from 'path';
 import { EVENT_EMITTER } from 'src/base/common/event';
-import { NoteBookManager } from 'src/code/common/notebookManger';
+import { NoteBookManager } from 'src/code/common/model/notebookManager';
+import { File } from 'src/base/common/file/file';
 
 /**
  * @description the object is to store and maintain the data for each 
- * folder/tree/root.
+ * folder/file/root.
  */
 export class FileNode {
 
     public element: HTMLElement;
-    public textElement!: HTMLLIElement;
+    public textElement!: HTMLElement;
 
-    public readonly file: MarkdownFile | null;
+    public readonly file: File | null;
 
     public readonly path: string;
-    public readonly name: string;
-    public readonly baseName: string;
+    public readonly name: string; // eg. 'markdown'
+    public readonly baseName: string; // eg. 'markdown.md'
     
     public readonly nodes: Map<string, FileNode> | null;
     public readonly level: number;
@@ -36,7 +37,7 @@ export class FileNode {
         this.path = path;
         this.name = name;
         this.baseName = baseName;
-        
+
         // note that 'nodes' will always be an empty map
         this.nodes = nodes;
 
@@ -49,7 +50,7 @@ export class FileNode {
             this.file = null;
         } else {
             this.element = document.createElement('li');
-            this.file = new MarkdownFile(baseName);
+            this.file = new File(baseName);
         }
 
         this._render(); // this.textElement is created from here
@@ -80,7 +81,7 @@ export class FileNode {
         
         this.textElement = document.createElement('li');
         this.textElement.classList.add('node-text');
-        this.textElement.innerHTML = this.name;
+        this.textElement.innerHTML = this.baseName;
         
         if (!this.isFolder) {
             // is file
@@ -153,6 +154,7 @@ export class FileNode {
         // display content
         readMarkdownFile(nodeInfo)
         .then(() => {
+            EVENT_EMITTER.emit('ETabBarSwitchOrCreateTab', nodeInfo);
             EVENT_EMITTER.emit('EMarkdownDisplayFile', nodeInfo);
         }).catch(err => {
             // do log here

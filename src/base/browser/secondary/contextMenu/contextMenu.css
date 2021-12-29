@@ -1,0 +1,67 @@
+#context-menu {
+    position: absolute;
+    
+    width: 150px;
+    
+    color: #333;
+    box-shadow: 0 0 5px 2px lightgrey;
+    z-index: 100;
+    background-color:#f5f5f5;
+    border-radius: 10px;
+    cursor: pointer;
+}
+
+#context-menu-container {
+    height: 100%;
+    width: 100%;
+    list-style: none;
+    text-align: match-parent;
+    padding: 0px;
+    margin: 0px;
+}
+
+.menu-item {
+    position: relative;
+    font-weight: normal;
+    font-size: 12px;
+    height: 30px;
+    
+    cursor: pointer;
+}
+
+.menu-item:hover {
+    background-color: rgb(233, 233, 233);
+}
+
+.menu-item:active {
+    background-color: rgb(220, 220, 220);
+}
+
+.menu-item > .menu-item-text {
+    position: relative;
+    user-select: none;
+    line-height: 30px;
+    left: 10px;
+}
+
+.menu-item > .menu-item-shortCut {
+    position: relative;
+    user-select: none;
+    line-height: 30px;
+    left: 10px;
+}
+
+.check-box {
+    height: 15px;
+    margin-right: 10px;
+}
+
+.caret-right {
+    height: 14px;
+    margin-left: 10px
+}
+
+.seperator {
+    filter: contrast(2);
+    margin: 1px;
+}

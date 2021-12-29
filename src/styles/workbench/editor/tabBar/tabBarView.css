@@ -1,0 +1,115 @@
+#tab-bar {
+    position: relative;
+    width: 100%;
+    height: 30px;
+}
+
+#tab-bar-container {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    
+    background-color: white;
+    
+    display: flex;
+    flex-direction: row;
+    overflow-x: overlay;
+    overflow-y: hidden;
+
+    /* animation scrollBar */
+    color: rgba(0, 0, 0, 0);
+    text-shadow: 0 0 black;
+    transition: color 0.2s ease;
+}
+
+#tab-bar-container:hover {
+    /* should matches text-shadow */
+    color: rgba(0, 0, 0, 0.2);
+}
+
+#tab-bar-container::-webkit-scrollbar, 
+#tab-bar-container::-webkit-scrollbar-thumb {
+    height: 3px;
+    background-clip: border-box;
+}
+
+#tab-bar-container::-webkit-scrollbar-thumb {
+    box-shadow: inset 0 0 0 10px;
+}
+
+#tab-bar-container::-webkit-scrollbar-thumb:active {
+    color: rgba(0, 0, 0, 0.3);
+}
+
+.tab {
+    height: 27px; /* saving 3px for scrollbar */
+    width: fit-content;
+    line-height: 27px;
+
+    display: flex;
+    flex-direction: row;
+    
+    color: grey;
+    box-sizing: border-box; /* needed to display border-bottom */
+    
+    padding-left: 3px;
+    padding-right: 3px;
+    
+    user-select: none;
+    -webkit-app-region: no-drag; /* not draggable */
+    cursor: pointer;
+}
+
+.tab:hover > .tab-icon-container > .tab-icon {
+    display: inline-block;
+}
+
+.tab-focused {
+    color: #333;
+    border-bottom: 2px solid #cf5e5e;
+}
+
+.tab-text-container {
+    width: auto;
+    max-width: 150px;
+}
+
+.tab-text {
+    width: 100%;
+
+    font-size: 12px;
+    
+    display: inline-block;
+    text-align: center;
+    overflow-x: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+
+    margin-left: 4px;
+}
+
+.tab-icon-container {
+    width: 18px;
+    height: 100%;
+    
+    
+    margin-left: 4px;
+    margin-right: 4px;
+}
+
+.tab-icon {
+    display: none;
+    content: url('../../../../assets/svg/close.svg');
+    width: 8px;
+    height: 8px;
+    
+    padding: 5px;
+    border-radius: 5px;
+    
+    margin-left: 4px;
+    margin-right: 4px;
+}
+
+.tab-icon:hover {
+    background-color: #e0e0e0;
+}

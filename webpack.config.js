@@ -1,6 +1,5 @@
 const path = require('path');
 
-console.log(__dirname);
 let common_config = {
     node: {
         __dirname: true
@@ -30,7 +29,7 @@ module.exports = [
     Object.assign({}, common_config, {
         target: 'electron-main',
         entry: {
-            main: './src/main.ts',
+            main: './src/code/electron-main/main.ts',
         },
         output: {
             filename: '[name]-bundle.js',
@@ -40,7 +39,7 @@ module.exports = [
     Object.assign({}, common_config, {
         target: 'electron-renderer',
         entry: {
-            renderer: './src/code/workbench/workbench.ts',
+            renderer: './src/code/browser/browser.ts',
         },
         output: {
             filename: '[name]-bundle.js',

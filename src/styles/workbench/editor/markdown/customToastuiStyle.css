@@ -5,10 +5,16 @@
     border: 0px solid transparent;
 }
 
+.toastui-editor-defaultUI .ProseMirror,
+.toastui-editor-defaultUI .toastui-editor-contents {
+    padding: 0 10%;
+    padding-top: 10px;
+}
+
 .ProseMirror,
 .toastui-editor-md-preview,
 .toastui-editor-contents {
-    font-family: 'Microsoft Yahei', 'Open Sans', 'Helvetica Neue', 'Helvetica', 'Arial', '나눔바른고딕', 'Nanum Barun Gothic', '맑은고딕', 'Malgun Gothic', sans-serif;
+    font-family: 'Microsoft Yahei', '微软雅黑', 'Open Sans', 'Helvetica Neue', 'Helvetica', 'Arial', '나눔바른고딕', 'Nanum Barun Gothic', '맑은고딕', 'Malgun Gothic', sans-serif;
     font-size: 16px;
     color: #333;
     font-weight: lighter;
@@ -17,6 +23,12 @@
     color: rgba(0, 0, 0, 0);
     text-shadow: 0 0 rgb(0, 0, 0);
     transition: color 0.2s ease;
+}
+
+.toastui-editor-md-code-block-line-background,
+.toastui-editor-contents pre,
+.toastui-editor-contents code {
+    font-family: 'Consolas', 'Microsoft Yahei', '微软雅黑', 'Open Sans', 'Helvetica Neue', 'Helvetica', 'Arial', '나눔바른고딕', 'Nanum Barun Gothic', '맑은고딕', 'Malgun Gothic', sans-serif;
 }
 
 .ProseMirror:hover,
@@ -47,11 +59,6 @@
 .toastui-editor-md-preview::-webkit-scrollbar-thumb:active,
 .toastui-editor-contents::-webkit-scrollbar-thumb:active {
     color: rgba(0, 0, 0, 0.3);
-}
-
-.toastui-editor-contents > h1:first-of-type, 
-.toastui-editor-contents > div > div:first-of-type h1 {
-    margin-top: 40px;
 }
 
 .toastui-editor-contents h1 {
@@ -91,14 +98,41 @@
 
 .toastui-editor-defaultUI-toolbar {
     background-color: white;
-    border-bottom: 0px;
-    
 }
 
-.toastui-editor-defaultUI-toolbar > .toastui-editor-toolbar-group {
-    
-}
-
-.toastui-editor-toolbar-group > button {
+.toastui-editor-defaultUI-toolbar button {
     border: 1px solid white;
+}
+
+.toastui-editor-dropdown-toolbar {
+    background-color: white;
+}
+
+.toastui-editor-context-menu {
+    position: absolute;
+    width: 150px;
+    color: #333;
+    box-shadow: 0 0 5px 2px lightgrey;
+    z-index: 100;
+    background-color:#f5f5f5;
+    border-radius: 10px;
+    cursor: pointer;
+}
+
+.toastui-editor-context-menu .menu-group {
+    height: 100%;
+    width: 100%;
+    list-style: none;
+    text-align: match-parent;
+    padding: 0px;
+    margin: 0px;
+}
+
+.toastui-editor-context-menu .menu-item {
+    position: relative;
+    font-weight: normal;
+    font-size: 12px;
+    height: 30px;
+    
+    cursor: pointer;
 }
