@@ -95,9 +95,9 @@ export class ActionViewComponent extends Component implements IActionViewService
 
         this.explorerViewComponent.registerListeners();
 
-        this.EOnActionViewClose.register(this.closeActionView);
-        this.EOnActionViewOpen.register(this.openActionView);
-        //this.EOnActionViewChange.register(this.onActionViewChange)
+        this.EOnActionViewClose.registerListener(this.closeActionView);
+        this.EOnActionViewOpen.registerListener(this.openActionView);
+        //this.EOnActionViewChange.registerListener(this.onActionViewChange)
     
         EVENT_EMITTER.register('EOnActionViewChange', (name) => this.onActionViewChange(name));
 

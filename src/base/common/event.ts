@@ -95,7 +95,7 @@ export class Emitter<T> implements IDisposable {
      * @returns A register (a function) that requires a listener (callback) to 
      * be registered.
      */
-    get register(): Register<T> {
+    get registerListener(): Register<T> {
         if (this._disposed) {
             throw new Error('emitter is already disposed, cannot register a new listener');
         }
