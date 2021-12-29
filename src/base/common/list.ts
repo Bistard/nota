@@ -60,6 +60,13 @@ export interface IList<T> {
      * @param node The node to be removed.
      */
     remove(node: ListNode<T>): void;
+
+    /**
+     * @description Determines if the given data is in the list.
+     * @param data Data for determining purpose.
+     * @returns The result of existance.
+     */
+    exist(data: T): boolean;
 }
 
 export class ListNode<T> {
@@ -73,7 +80,8 @@ export class ListNode<T> {
 }
 
 /**
- * @description A doubly linked list.
+ * @description A doubly linked list. List<T> supports initializer list 
+ * constructor.
  */
 export class List<T> {
 
@@ -81,7 +89,11 @@ export class List<T> {
     private _last: ListNode<T> | undefined = undefined;
     private _size: number = 0;
 
-    constructor() {}
+    constructor(...elements: T[]) {
+        for (let data of elements) {
+            this.push_back(data);
+        }
+    }
 
     public empty(): boolean {
         return !!this._size;
@@ -159,7 +171,7 @@ export class List<T> {
         // pops out the node from the back
         const node = this._last;
         this._last.prev!.next = undefined;
-        this._last = undefined;
+        this._last = this._last.prev;
         this._size--;
         return node;
     }
@@ -180,7 +192,7 @@ export class List<T> {
         // pops out the node from the front
         const node = this._first;
         this._first.next!.prev = undefined;
-        this._first = undefined;
+        this._first = this._first.next;
         this._size--;
         return node;
     }
@@ -209,24 +221,41 @@ export class List<T> {
     }
 
     public remove(node: ListNode<T>): void {
-        const prev = node.prev;
-        const next = node.next;
-
-        if (prev) {
-            node.prev = next ? next : undefined;
-        } else {
-            // removing the first node
-            this._first = next;
+        // only one node in the list
+        if (this.__popIfOnlyOneNode() !== undefined) {
+            return;
         }
 
-        if (next) {
-            node.next = prev ? prev : undefined;
-        } else {
-            // removing the last node
-            this._last = prev;
+        // removing the first node
+        if (node === this._first) {
+            node.next!.prev = undefined;
+            this._first = node.next;
+        }
+
+        // removing the last node
+        else if (node === this._last) {
+            node.prev!.next = undefined;
+            this._last = node.prev;
+        }
+
+        // removing from middle
+        else {
+            node.prev!.next = node.next;
+            node.next!.prev = node.prev;
         }
 
         this._size--;
+    }
+
+    public exist(data: T): boolean {
+        let curr = this._first;
+        while (curr) {
+            if (curr.data === data) {
+                return true;
+            }
+            curr = curr.next;
+        }
+        return false;
     }
 
     /***************************************************************************
@@ -317,4 +346,14 @@ export class List<T> {
         return undefined;
     }
 
+    /**
+     * @readonly Mark the class as iterable.
+     */
+    *[Symbol.iterator](): Iterator<T> {
+		let node = this._first;
+		while (node !== undefined) {
+			yield node.data;
+			node = node.next;
+		}
+	}
 }

@@ -341,7 +341,7 @@ export class FileService implements IFileService {
     /**
      * @description Create directory recursively if not existed.
      */
-    public async __mkdirRecursive(
+    private async __mkdirRecursive(
         provider: IFileSystemProvider, 
         dir: URI): Promise<void> 
     {
