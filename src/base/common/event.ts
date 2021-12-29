@@ -1,6 +1,4 @@
-import { LinkedList } from "./linkedList";
-import { Disposable, DisposableManager, IDisposable, toDisposable } from "./dispose";
-import { listeners } from "process";
+import { IDisposable, toDisposable } from "./dispose";
 import { List } from "src/base/common/list";
 
 /** @deprecated Use Emitter instead */
@@ -74,7 +72,7 @@ export class Emitter<T> implements IDisposable {
     
     private _disposed: boolean = false;
     private _event?: Event<T>;
-	protected _listeners?: LinkedList<Listener<T>>;
+	protected _listeners?: List<Listener<T>>;
 
     /**
      * @description // TODO
@@ -87,16 +85,16 @@ export class Emitter<T> implements IDisposable {
         if (!this._event) {
 			this._event = (listener: Listener<T>, disposables?: IDisposable[]) => {
 				if (!this._listeners) {
-					this._listeners = new LinkedList<Listener<T>>();
+					this._listeners = new List<Listener<T>>();
 				}
 
-				// const node = this._listeners.push_back(listener);
-                const remove = this._listeners.push(listener);
+				const node = this._listeners.push_back(listener);
+                let removed = false;
 
 				const result = toDisposable(() => {
-					if (!this._disposed) {
-						// this._listeners?.remove(node);
-                        remove();
+					if (!this._disposed && removed === false) {
+						this._listeners?.remove(node);
+                        removed = true;
 					}
 				});
 
