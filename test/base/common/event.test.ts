@@ -12,7 +12,7 @@ suite('event-test', () => {
 
         const emitter = new Emitter<undefined>();
 
-        const registration1 = emitter.event(callback);
+        const registration1 = emitter.register(callback);
         
         emitter.fire(undefined);
         assert.strictEqual(counter, 1);
@@ -29,7 +29,7 @@ suite('event-test', () => {
 
         const emitter = new Emitter<undefined>();
 
-        const registration1 = emitter.event(callback);
+        const registration1 = emitter.register(callback);
         
         emitter.fire(undefined);
         assert.strictEqual(counter, 1);
@@ -50,8 +50,8 @@ suite('event-test', () => {
 
         const emitter = new Emitter<undefined>();
 
-        const registration1 = emitter.event(callback);
-        const registration2 = emitter.event(callback);
+        const registration1 = emitter.register(callback);
+        const registration2 = emitter.register(callback);
 
         emitter.fire(undefined);
         assert.strictEqual(counter, 2);
@@ -75,8 +75,8 @@ suite('event-test', () => {
         const emitter = new Emitter<undefined>();
         const disposables: IDisposable[] = [];
 
-        const registration1 = emitter.event(callback, disposables);
-        const registration2 = emitter.event(callback, disposables);
+        const registration1 = emitter.register(callback, disposables);
+        const registration2 = emitter.register(callback, disposables);
 
         emitter.fire(undefined);
         assert.strictEqual(counter, 2);
@@ -104,7 +104,7 @@ suite('event-test', () => {
 
         const emitter = new Emitter<undefined>();
 
-        const registration1 = emitter.event(callback);
+        const registration1 = emitter.register(callback);
         
         emitter.fire(undefined);
         assert.strictEqual(counter, 1);
@@ -118,7 +118,7 @@ suite('event-test', () => {
 
         emitter.dispose();
         try {
-            const registration2 = emitter.event(callback);
+            const registration2 = emitter.register(callback);
         } catch (err) {
             assert.ok(true);
         }
@@ -132,9 +132,9 @@ suite('event-test', () => {
 
         const emitter = new Emitter<undefined>();
 
-        const registration1 = emitter.event(callback);
-        const registration2 = emitter.event(() => { throw new Error('expect error'); });
-        const registration3 = emitter.event(callback);
+        const registration1 = emitter.register(callback);
+        const registration2 = emitter.register(() => { throw new Error('expect error'); });
+        const registration3 = emitter.register(callback);
 
         const errors = emitter.fire(undefined);
         assert.strictEqual(errors.length, 1);

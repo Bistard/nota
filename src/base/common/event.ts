@@ -55,35 +55,53 @@ export class EventEmitter implements IEventEmitter {
 
 }
 
-/** @description A listener is a function that has a parameter of that specific event type T. */
+/** 
+ * @readonly A listener is a callback function that once the callback is invoked,
+ * the required event type will be returned as a parameter.
+ */
 export type Listener<T> = (e: T) => any;
 
 /**
- * // TODO
+ * @readonly A register is essentially a function that registers a listener to 
+ * the event type T.
+ * 
+ * @param listener The `listener` to be registered.
+ * @param disposables The `disposables` is used to store all the `listener`s as 
+ * disposables after registrations.
  */
-export interface Event<T> {
+export interface Register<T> {
 	(listener: Listener<T>, disposables?: IDisposable[]): IDisposable;
 }
 
 /**
- * // TODO
+ * @readonly An event emitter binds to a specific event T. All the listeners who 
+ * is listening to the event T will be notified once the event occurs.
+ * 
+ * To listen to this event T, use this.register(listener) where `listener` is a
+ * callback function.
+ * 
+ * To trigger the event occurs and notifies all the listeners, use this.fire(event) 
+ * where `event` is the type T.
  */
 export class Emitter<T> implements IDisposable {
     
     private _disposed: boolean = false;
-    private _event?: Event<T>;
+    private _register?: Register<T>;
 	protected _listeners?: List<Listener<T>>;
 
     /**
-     * @description // TODO
+     * @description For the purpose of registering new listener.
+     * 
+     * @returns A register (a function) that requires a listener (callback) to 
+     * be registered.
      */
-    get event(): Event<T> {
+    get register(): Register<T> {
         if (this._disposed) {
             throw new Error('emitter is already disposed, cannot register a new listener');
         }
 
-        if (!this._event) {
-			this._event = (listener: Listener<T>, disposables?: IDisposable[]) => {
+        if (!this._register) {
+			this._register = (listener: Listener<T>, disposables?: IDisposable[]) => {
 				if (!this._listeners) {
 					this._listeners = new List<Listener<T>>();
 				}
@@ -105,13 +123,17 @@ export class Emitter<T> implements IDisposable {
 				return result;
 			};
 		}
-		return this._event;
+		return this._register;
     }
 
     /**
-     * @description // TODO
-     * @param event 
-     * @returns 
+     * @description Fires the event T and notifies all the registered listeners.
+     * 
+     * @note fire() guarantees all the registered listeners (callback) will be 
+     * invoked / notified. Any errors will be stored and returned as an array.
+     * 
+     * @param event The event T to be notified to all listeners.
+     * @returns An array of errors.
      */
     public fire(event: T): any[] {
 		const errors: any[] = [];
@@ -132,9 +154,13 @@ export class Emitter<T> implements IDisposable {
 	}
 
     /**
-     * // TODO
+     * @description Disposes the whole event emitter. All the registered 
+     * listeners will be cleaned. 
+     * 
+     * @warn Registering a listener after dispose() is invoked will throw an 
+     * error.
      */
-    public dispose() {
+    public dispose(): void {
 		if (!this._disposed) {
 			this._disposed = true;
 			this._listeners?.clear();
