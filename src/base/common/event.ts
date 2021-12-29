@@ -86,43 +86,48 @@ export interface Register<T> {
 export class Emitter<T> implements IDisposable {
     
     private _disposed: boolean = false;
-    private _register?: Register<T>;
-	protected _listeners?: List<Listener<T>>;
+    private _listeners: List<Listener<T>> = new List<Listener<T>>();
 
+    /** @readonly Using function closures here. */
+    private _register?: Register<T>;
+	
     /**
      * @description For the purpose of registering new listener.
      * 
+     * @warn If the emitter is already disposed, an error will throw.
      * @returns A register (a function) that requires a listener (callback) to 
      * be registered.
      */
     get registerListener(): Register<T> {
+        
+        // cannot register to a disposed emitter
         if (this._disposed) {
             throw new Error('emitter is already disposed, cannot register a new listener');
         }
 
-        if (!this._register) {
+        if (this._register === undefined) {
 			this._register = (listener: Listener<T>, disposables?: IDisposable[]) => {
-				if (!this._listeners) {
-					this._listeners = new List<Listener<T>>();
-				}
-
+				
+                // register the listener (callback)
 				const node = this._listeners.push_back(listener);
                 let removed = false;
 
-				const result = toDisposable(() => {
+                // returns a disposable inorder to control when to stop listening
+				const unRegister = toDisposable(() => {
 					if (!this._disposed && removed === false) {
-						this._listeners?.remove(node);
+						this._listeners.remove(node);
                         removed = true;
 					}
 				});
 
 				if (disposables) {
-					disposables.push(result);
+					disposables.push(unRegister);
 				}
 
-				return result;
+				return unRegister;
 			};
 		}
+        
 		return this._register;
     }
 
@@ -136,19 +141,16 @@ export class Emitter<T> implements IDisposable {
      * @returns An array of errors.
      */
     public fire(event: T): any[] {
-		const errors: any[] = [];
+		
+        const errors: any[] = [];
 
-        if (this._listeners) {
-
-            for (const listener of this._listeners) {
-				try {
-                    listener(event);
-				} catch (e) {
-					errors.push(e);
-				}
-			}
-
-		}
+        for (const listener of this._listeners) {
+            try {
+                listener(event);
+            } catch (e) {
+                errors.push(e);
+            }
+        }
 
         return errors;
 	}
@@ -163,7 +165,7 @@ export class Emitter<T> implements IDisposable {
     public dispose(): void {
 		if (!this._disposed) {
 			this._disposed = true;
-			this._listeners?.clear();
+			this._listeners.clear();
 		}
 	}
 }
