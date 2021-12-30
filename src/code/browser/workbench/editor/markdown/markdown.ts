@@ -22,7 +22,6 @@ import { ConfigService, IConfigService } from 'src/code/common/service/configSer
 import { FileNode } from 'src/base/node/fileTree';
 import { Component, IComponent } from 'src/code/browser/workbench/component';
 import { EVENT_EMITTER } from 'src/base/common/event';
-import { MarkdownRenderMode } from 'mdnote';
 import { getSvgPathByName, SvgType } from 'src/base/common/string';
 import { ContextMenuType, Coordinate } from 'src/base/browser/secondary/contextMenu/contextMenu';
 import { IContextMenuService } from 'src/code/browser/service/contextMenuService';
@@ -42,6 +41,8 @@ export interface IMarkdownService extends IComponent {
     markdownModeSwitch(): void;
     getEditorText(): string;
 }
+
+export type MarkdownRenderMode = 'wysiwyg' | 'instant' | 'split';
 
 /**
  * @description MarkdownComponent initializes markdown renderer and windows and
