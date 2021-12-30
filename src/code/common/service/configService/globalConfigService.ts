@@ -7,11 +7,12 @@ export type AppMode = 'debug' | 'release';
 
 export const IGlobalConfigService = createDecorator<IConfigService>('global-config-service');
 
+/** @deprecated */
 /**
  * @description 'global' config module stores configuration that only stored at
  * application root path.
  */
- export class GlobalConfigService implements IConfigService {
+ export class GlobalConfigService {
 
     constructor() {}
 

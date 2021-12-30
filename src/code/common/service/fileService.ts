@@ -30,7 +30,7 @@ export interface IFileService {
     exist(uri: URI): Promise<boolean>;
     
     /** @description Creates a file described by a given URI. */
-    createFile(uri: URI, bufferOrStream: DataBuffer | IReadableStream<DataBuffer>, opts: IWriteFileOptions): Promise<void>;
+    createFile(uri: URI, bufferOrStream: DataBuffer | IReadableStream<DataBuffer>, opts?: IWriteFileOptions): Promise<void>;
     
     /** @description Creates a directory described by a given URI. */
     createDir(uri: URI): Promise<void>;
@@ -139,10 +139,15 @@ export class FileService implements IFileService {
     public async createFile(
         uri: URI, 
         bufferOrStream: DataBuffer | IReadableStream<DataBuffer>, 
-        opts: IWriteFileOptions): Promise<void> 
+        opts?: IWriteFileOptions): Promise<void> 
     {
         // validation
         await this.__validateCreate(uri, opts);
+
+        // do nothing if no buffer given.
+        if (bufferOrStream instanceof DataBuffer && bufferOrStream.bufferLength === 0) {
+            return;
+        }
 
         // write operation
         await this.writeFile(uri, bufferOrStream, opts);
@@ -507,7 +512,7 @@ export class FileService implements IFileService {
         }
     }
 
-    private async __validateCreate(uri: URI, opts: IWriteFileOptions): Promise<void> 
+    private async __validateCreate(uri: URI, opts?: IWriteFileOptions): Promise<void> 
     {
         // if file exists and is not allowed to overwrite, we throw
         if (await this.exist(uri) && opts?.overwrite === false) {
