@@ -5,6 +5,7 @@
 
 import { CharCode } from "src/base/common/charCode";
 import { IS_WINDOWS } from "src/base/node/os";
+import * as paths from "src/base/common/file/path";
 
 /**
  * Uniform Resource Identifier (URI) http://tools.ietf.org/html/rfc3986.
@@ -55,6 +56,11 @@ export interface IURI {
      * returns a single string form of the URI
      */
     toString(): string;
+}
+
+export enum Schemas {
+	FILE = 'file',
+	HTTP = 'http'
 }
 
 const _empty = '';
@@ -400,4 +406,20 @@ function _toString(uri: URI, skipEncoding: boolean): string {
 		res += !skipEncoding ? encodeURIComponentFast(fragment, false) : fragment;
 	}
 	return res;
+}
+
+/*******************************************************************************
+ * URI Helper Functions
+ ******************************************************************************/
+
+export function isAbsoluteURI(uri: URI): boolean {
+	return !!uri.path && uri.path[0] !== '.';
+}
+
+export function resolveURI(uri: URI, path: string): URI {
+	if (uri.scheme === Schemas.FILE) {
+		const newURI = URI.fromFile(paths.resolve(URI.toFsPath(uri), path));
+		return newURI;
+	}
+	throw new Error('given uri is not legal');
 }

@@ -47,7 +47,7 @@ export class DiskFileSystemProvider implements
         
         try {
             const path = URI.toFsPath(uri);
-
+            
             // validation {overwrite, create}
             if (opts.create === false || opts.overwrite === false) {
                 const exist = fileExists(path);

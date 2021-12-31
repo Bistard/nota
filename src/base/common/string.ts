@@ -13,6 +13,7 @@ export function pathJoin(root: string, ...paths: string[]): string {
     return absolutePath;
 }
 
+/** @deprecated */
 export function isAbsolutePath(path: string): boolean {
     return !!path && path[0] === '/';
 }

@@ -2,8 +2,7 @@ import { DataBuffer } from "src/base/common/file/buffer";
 import { FileSystemProviderAbleToRead, hasOpenReadWriteCloseCapability, hasReadWriteCapability, IReadFileOptions, IFileSystemProvider, IFileSystemProviderWithFileReadWrite, IFileSystemProviderWithOpenReadWriteClose, IWriteFileOptions, IStat, FileType, IFileOperationError, FileSystemProviderCapability, IDeleteFileOptions } from "src/base/common/file/file";
 import { basename, dirname, join } from "src/base/common/file/path";
 import { bufferToStream, IReadableStream, IWriteableStream, listenStream, newWriteableBufferStream, streamToBuffer } from "src/base/common/file/stream";
-import { URI } from "src/base/common/file/uri";
-import { isAbsolutePath } from "src/base/common/string";
+import { isAbsoluteURI, URI } from "src/base/common/file/uri";
 import { readFileIntoStream, readFileIntoStreamAsync } from "src/base/node/io";
 import { createDecorator } from "src/code/common/service/instantiationService/decorator";
 
@@ -17,19 +16,31 @@ export interface IFileService {
     /** @description Gets a file system provider for a given scheme. */
     getProvider(scheme: string): IFileSystemProvider | undefined;
 
-    /** @description Read the file unbuffered. */
+    /** 
+     * @description Read the file unbuffered. 
+     * @note Options is set to false if it is not given.
+     */
     readFile(uri: URI, opts?: IReadFileOptions): Promise<DataBuffer>;
     
-    /** @description Read the file buffered using stream. */
+    /** 
+     * @description Read the file buffered using stream. 
+     * @note Options is set to false if it is not given.
+     */
     readFileStream(uri: URI, opts?: IReadFileOptions): Promise<IReadableStream<DataBuffer>>;
 
-    /** @description Write to the file. */
+    /** 
+     * @description Write to the file. 
+     * @note Options is set to false if it is not given.
+     */
     writeFile(uri: URI, bufferOrStream: DataBuffer | IReadableStream<DataBuffer>, opts?: IWriteFileOptions): Promise<void>;
     
     /** @description Determines if the file/directory exists. */
     exist(uri: URI): Promise<boolean>;
     
-    /** @description Creates a file described by a given URI. */
+    /** 
+     * @description Creates a file described by a given URI. 
+     * @note Options is set to false if it is not given.
+     */
     createFile(uri: URI, bufferOrStream: DataBuffer | IReadableStream<DataBuffer>, opts?: IWriteFileOptions): Promise<void>;
     
     /** @description Creates a directory described by a given URI. */
@@ -91,7 +102,7 @@ export class FileService implements IFileService {
     {
         const provider = await this.__getWriteProvider(uri);
         
-        try {    
+        try {
             // validate write operation, returns the stat of the file.
             const stat = await this.__validateWrite(provider, uri, opts);
             
@@ -109,7 +120,7 @@ export class FileService implements IFileService {
 			if ((hasReadWriteCapability(provider) && bufferOrStream instanceof DataBuffer) ||
                 !hasOpenReadWriteCloseCapability(provider))
             {
-				await this.__writeUnbuffered(provider, uri, opts, bufferOrStream);
+                await this.__writeUnbuffered(provider, uri, opts, bufferOrStream);
 			}
 
 			// write file: buffered
@@ -143,11 +154,6 @@ export class FileService implements IFileService {
     {
         // validation
         await this.__validateCreate(uri, opts);
-
-        // do nothing if no buffer given.
-        if (bufferOrStream instanceof DataBuffer && bufferOrStream.bufferLength === 0) {
-            return;
-        }
 
         // write operation
         await this.writeFile(uri, bufferOrStream, opts);
@@ -417,9 +423,9 @@ export class FileService implements IFileService {
 	}
 
     private async __getProvider(uri: URI): Promise<IFileSystemProvider> {
-
+        
 		// Assert path is absolute
-        if (!isAbsolutePath(uri.path)) {
+        if (isAbsoluteURI(uri) === false) {
 			throw new Error(`unable to resolve filesystem provider with relative file path '${uri.path}`);
 		}
 
