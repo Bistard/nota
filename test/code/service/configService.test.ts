@@ -1,4 +1,5 @@
 import * as assert from 'assert';
+import { Emitter } from 'src/base/common/event';
 import { ConfigModel, IConfigType } from "src/code/common/service/configService/configModel";
 import { ConfigServiceBase } from "src/code/common/service/configService/configServiceBase";
 import { FileService } from "src/code/common/service/fileService";
@@ -49,8 +50,19 @@ class EmptyConfigModel extends ConfigModel {
 
 class EmptyConfigService extends ConfigServiceBase {
     
+    private readonly _onDidChangeCustomConfig = this.__register( new Emitter<any>() );
+    public readonly onDidChangeCustomConfig = this._onDidChangeCustomConfig.registerListener;
+
     constructor() {
         super(IConfigType.TEST, new EmptyConfigModel(), new FileService());
+    }
+
+    protected override __fireOnSpecificEvent(section: string, change: any): void {
+        switch (section) 
+        {
+            case 'custom.test.section':
+                this._onDidChangeCustomConfig.fire(change);
+        }
     }
 
 }
@@ -140,6 +152,20 @@ suite('configService - test', () => {
         configService.set(Section.human, createHuman(1, 'chris', true));
         assert.strictEqual(type, IConfigType.TEST);
         assert.strictEqual(changes[0]!, Section.class);
+    });
+
+    test('customConfiguration event', () => {
+        const configService = new EmptyConfigService();
+
+        let newValue: any;
+        const listener = configService.onDidChangeCustomConfig((e) => {
+            newValue = e;
+        });
+
+        configService.set('custom.test.section', { a: 1, b: '2', c: true });
+        assert.strictEqual(newValue.a, { a: 1, b: '2', c: true }.a);
+        assert.strictEqual(newValue.b, { a: 1, b: '2', c: true }.b);
+        assert.strictEqual(newValue.c, { a: 1, b: '2', c: true }.c);
     });
 
 });
