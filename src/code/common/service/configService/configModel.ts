@@ -1,13 +1,19 @@
-import { DESKTOP_ROOT_PATH } from "src/base/electron/app";
 import { MarkdownRenderMode } from "src/code/browser/workbench/editor/markdown/markdown";
-import { AppMode } from "src/code/common/service/configService/globalConfigService";
+import { AppMode } from "src/code/common/service/configService/configService";
 
+/**
+ * @readonly The type of configService.
+ */
 export enum IConfigType {
     USER,
     GLOBAL,
     TEST,
 }
 
+/**
+ * @readonly Interface corresponds to the event `onDidChangeConfiguration` in 
+ * `configServiceBase`.
+ */
 export interface IConfigChangeEvent {
 
     readonly type: IConfigType;
@@ -16,18 +22,30 @@ export interface IConfigChangeEvent {
 }
 
 export interface IConfigChange {
-    keys: string[],
+    sections: string[],
 }
 
-export interface IConfigModel {
+/*******************************************************************************
+ * Configuration Model
+ ******************************************************************************/
 
+ export interface IConfigModel {
+
+    /** @readonly get the inner structure of the configuration (a javascript object) */
     object: any;
 
     get<T>(section: string | undefined): T | undefined;
+
     set(section: string | undefined, value: any): void;
 
 }
 
+/**
+ * The data structure to stores the actual configruration. Each `configServiceBase`
+ * consists exact one ConfigModel.
+ * 
+ * The default constructor is a null javascript object.
+ */
 export class ConfigModel implements IConfigModel {
 
     constructor(
@@ -81,151 +99,13 @@ export class ConfigModel implements IConfigModel {
 
         let currentSection = config;
         for (const subSection of sections) {
-            currentSection = currentSection[subSection];
+            let curr = currentSection[subSection];
+            if (typeof curr === 'undefined') {
+                curr = currentSection[subSection] = Object.create(null);
+            }
+            currentSection = curr;
         }
 
         currentSection[lastSection] = value;
     }
-}
-
-/*******************************************************************************
- * Global Configurations
- ******************************************************************************/
-
-/** @SettingSection */
-export enum EGlobalSettings {
-    
-    Markdown = 'markdown',
-
-}
-
-/** @SettingInterface */
-export interface IGlobalMarkdownSettings {
-
-    /**
-     * The application mode.
-     */
-    appMode: AppMode;
-    
-    /**
-     * A boolean to determine whether opened the previous opened notebook manager directory.
-     */
-    startPreviousNoteBookManagerDir: boolean;
-    
-    /**
-     * Stores the previous opened notebook manager directory path.
-     */
-    previousNoteBookManagerDir: string;
-    
-    /**
-     * When true, NoteBookManager will read or create the default configuration in 
-     * '<appRootPath>/config.json'.
-     * 
-     * When false, NoteBookManager will read or create a local configuration file 
-     * in '<notebookManagerPath>/.mdnote/config.json'.
-     */
-    defaultConfigOn: boolean;
-
-}
-
-export class DefaultGlobalConfigModel extends ConfigModel {
-    
-    constructor() {
-        super();
-        this.__setObject(this.createDefault());
-    }
-
-    private createDefault(): any {
-        return {
-            'markdown': 
-            {
-                appMode: 'debug' as AppMode,
-                startPreviousNoteBookManagerDir: true,
-                previousNoteBookManagerDir: '',
-                defaultConfigOn: false
-            }
-        };
-    }
-
-}
-
-/*******************************************************************************
- * User Configurations
- ******************************************************************************/
-
-/** @SettingSection */
-export enum EUserSettings {
-    
-    Notebook = 'notebook',
-
-}
-
-/** @SettingInterface */
-export interface UserNotebookSettings {
-
-    /**
-     * Used for file/directory reading and writing.
-     */
-    OpenDirConfig: Electron.OpenDialogOptions;
-    
-    /**
-     * If wants to excludes file, remember to add file format.
-     * eg. 'config.json'. This has lower priority than 'noteBookManagerInclude'.
-     * 
-     * '.*' represents any folders starts with '.'.
-     */
-    noteBookManagerExclude: string[];
-    
-    /**
-     * If wants to includes file, remember to add file format such as
-     * 'config.json'. This has higher priority than 'noteBookManagerExclude'.
-     */
-    noteBookManagerInclude: string[];
-    
-    /** auto file save option */
-    fileAutoSaveOn: boolean;
-    
-    /** the default markdown render mode every time when the applicaiton starts */
-    defaultMarkdownMode: MarkdownRenderMode;
-
-    /** @deprecated */
-    /** markdown spell check option (binds to specific notebook) */
-    markdownSpellCheckOn: boolean;
-    
-}
-
-export class DefaultUserConfigModel extends ConfigModel {
-
-    constructor() {
-        super();
-        this.__setObject(this.createDefault());
-        
-    }
-
-    private createDefault(): any {
-        return {
-            "notebook": 
-            {
-                OpenDirConfig:  {
-                    defaultPath: DESKTOP_ROOT_PATH,
-                    buttonLabel: "select a directory",
-                    properties: [
-                        /* "openFile", */
-                        "openDirectory"
-                    ]
-                } as Electron.OpenDialogOptions,
-                noteBookManagerExclude: [
-                    ".*",
-                ],
-                noteBookManagerInclude: [
-
-                ],
-                fileAutoSaveOn: true,
-                defaultMarkdownMode: 'wysiwyg' as MarkdownRenderMode,
-                markdownSpellCheckOn: false,
-            },
-            // more and more...
-        };
-    }
-
 }

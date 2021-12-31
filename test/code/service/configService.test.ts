@@ -1,6 +1,6 @@
 import * as assert from 'assert';
 import { ConfigModel, IConfigType } from "src/code/common/service/configService/configModel";
-import { ConfigServiceBase } from "src/code/common/service/configService/configService";
+import { ConfigServiceBase } from "src/code/common/service/configService/configServiceBase";
 import { FileService } from "src/code/common/service/fileService";
 
 function createHuman(id: number = -1, name: string = 'unknown', male: boolean = false): ITestHumanSettings {
@@ -104,6 +104,20 @@ suite('configService - test', () => {
         assertHumans(config2.teacher, createHuman(1, 'chris', true));
     });
 
+    test('set / get - unknown section', () => {
+        const configService = new EmptyConfigService();
+
+        configService.set('brand.new.section', { a: 1, b: '2', c: true });
+
+        const newConfig = configService.get<any>('brand.new.section');
+        assert.strictEqual(newConfig.a, 1);
+        assert.strictEqual(newConfig.b, '2');
+        assert.strictEqual(newConfig.c, true);
+
+        const unknownConfig = configService.get<any>('unknown.section');
+        assert.strictEqual(unknownConfig, undefined);
+    });
+
     test('onDidChangeConfiguration event', () => {
         const configService = new EmptyConfigService();
 
@@ -111,7 +125,7 @@ suite('configService - test', () => {
         let changes: string[] = [];
         const listener = configService.onDidChangeConfiguration((e) => {
             type = e.type;
-            changes = e.changes.keys;
+            changes = e.changes.sections;
         });
 
         configService.set(Section.human, createHuman(1, 'chris', true));
