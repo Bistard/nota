@@ -18,7 +18,6 @@ import 'prismjs/components/prism-java';
 
 // @toast-ui-plugin: color syntax 
 import colorSyntax from '@toast-ui/editor-plugin-color-syntax';
-import { ConfigService, IConfigService } from 'src/code/common/service/configService/configService';
 import { FileNode } from 'src/base/node/fileTree';
 import { Component, IComponent } from 'src/code/browser/workbench/component';
 import { EVENT_EMITTER } from 'src/base/common/event';
@@ -30,7 +29,8 @@ import { IComponentService } from 'src/code/browser/service/componentService';
 import { EditorComponentType } from 'src/code/browser/workbench/editor/editor';
 import { IFileLogService } from 'src/code/common/service/logService/fileLogService';
 import { LogPathType } from 'src/code/common/service/logService/logService';
-import { GlobalConfigService, IGlobalConfigService } from 'src/code/common/service/configService/globalConfigService';
+import { IGlobalConfigService, IUserConfigService } from 'src/code/common/service/configService/configService';
+import { EUserSettings, IUserMarkdownSettings } from 'src/code/common/service/configService/configService';
 
 export const IMarkdownService = createDecorator<IMarkdownService>('markdown-service');
 
@@ -54,21 +54,20 @@ export class MarkdownComponent extends Component implements IMarkdownService {
     private saveFileTimeout: NodeJS.Timeout | null;
     private colorSyntaxOptions: any;
 
-    private mode: MarkdownRenderMode;
+    private userMarkdownSettings: IUserMarkdownSettings;
+    private currentMode: MarkdownRenderMode;
 
     constructor(parentComponent: Component,
                 parentElement: HTMLElement,
                 @IComponentService componentService: IComponentService,
                 @IContextMenuService private readonly contextMenuService: IContextMenuService,
                 @IFileLogService private readonly fileLogService: IFileLogService,
-                @IGlobalConfigService private readonly globalConfigService: GlobalConfigService,
-                @IConfigService private readonly configService: ConfigService,
+                @IGlobalConfigService private readonly globalConfigService: IGlobalConfigService,
+                @IUserConfigService private readonly userConfigService: IUserConfigService,
                 
         ) {
         super(EditorComponentType.markdown, parentComponent, parentElement, componentService);
 
-        this.mode = this.configService.defaultMarkdownMode;
-        
         this.editor = null;
         
         /**
@@ -90,13 +89,27 @@ export class MarkdownComponent extends Component implements IMarkdownService {
                      '#5200ff', // indigo
                      '#ad00ff'] // violet
         };
+
+        /** 
+         * Retrives configurations 
+         */
+        this.userMarkdownSettings = this.userConfigService.get<IUserMarkdownSettings>(EUserSettings.Markdown)!;
+        this.currentMode = this.userMarkdownSettings.defaultMarkdownMode;
     }
 
     protected override _createContent(): void {
         this.createMarkdownEditor();
     }
     protected override _registerListeners(): void {
-       /*
+       
+        /**
+         * Listens to configuraion modification.
+         */
+        this.userConfigService.onDidChangeMarkdownSettings(newSettings => {
+            this.userMarkdownSettings = newSettings;
+        });
+
+        /*
         domNodeByIdAddListener('markdown', 'contextmenu', (event) => {
             event.preventDefault()
             console.log('right clicked on markdown')
@@ -134,11 +147,6 @@ export class MarkdownComponent extends Component implements IMarkdownService {
             } 
     
         });
-
-        // spellcheck config check
-        if (!this.configService.markdownSpellCheckOn) {
-            this.container.setAttribute('spellcheck', 'false');
-        }
 
         EVENT_EMITTER.register('EMarkdownDisplayFile', (nodeInfo: FileNode | null) => this.markdownDisplayFile(nodeInfo));
         EVENT_EMITTER.register('EMarkdownModeSwitch', () => this.markdownModeSwitch());
@@ -235,7 +243,7 @@ export class MarkdownComponent extends Component implements IMarkdownService {
      * @description callback function for 'editor.event.change'.
      */
     public onTextChange(): void {
-        if (this.configService.fileAutoSaveOn) {
+        if (this.userMarkdownSettings.fileAutoSaveOn) {
             // if content is changed before the previous timeout has reached, 
             // clear the preivous one.
             if (this.saveFileTimeout) {
@@ -276,18 +284,18 @@ export class MarkdownComponent extends Component implements IMarkdownService {
      * 'wysiwyg', 'instant' and 'split'.
      */
      public markdownModeSwitch(): void {
-        if (this.mode == 'wysiwyg') {
+        if (this.currentMode == 'wysiwyg') {
             $('#mode-switch').removeClass('function-button-focus');
             $('#mode-switch > img').attr('src', getSvgPathByName(SvgType.base, 'md-split'));
             this.editor!.changeMode('markdown', true);
-            this.mode = 'split';
-        } else if (this.mode == 'instant') {
+            this.currentMode = 'split';
+        } else if (this.currentMode == 'instant') {
             // ...
         } else { // (mode == 'split')
             $('#mode-switch').addClass('function-button-focus');
             $('#mode-switch > img').attr('src', getSvgPathByName(SvgType.base, 'md-wysiwyg'));
             this.editor!.changeMode('wysiwyg', true);
-            this.mode = 'wysiwyg';
+            this.currentMode = 'wysiwyg';
         }
     }
     

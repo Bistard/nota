@@ -83,7 +83,7 @@ export class MenuItem implements IMenuItem {
                 this.setImageID(opt.id + "-caret-right");
                 break
             default:
-               console.log(`Invalid Menu Item Type`);
+               throw new Error(`Invalid Menu Item Type`);
         }
 
         if (opt.enable == false) {

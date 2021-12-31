@@ -101,7 +101,6 @@ export class ExplorerViewComponent extends Component implements IExplorerViewSer
         // not used for now
         EVENT_EMITTER.register('EFileOnClick', (nodeInfo: FileNode) => FileNode.fileOnClick(nodeInfo));
         EVENT_EMITTER.register('EFolderOnClick', (nodeInfo: FileNode) => FileNode.folderOnClick(nodeInfo));
-
         EVENT_EMITTER.register('EOpenNoteBookManager', (path: string) => this.openNoteBookManager(path));
 
         /*

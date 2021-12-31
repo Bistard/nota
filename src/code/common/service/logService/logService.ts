@@ -2,7 +2,7 @@ import { APP_ROOT_PATH } from "src/base/electron/app";
 import { isDirExisted, createDir, writeToFile } from "src/base/node/io";
 import { pathJoin } from "src/base/common/string";
 import { INoteBookManagerService, NoteBookManager } from "src/code/common/model/notebookManager";
-import { GlobalConfigService, IGlobalConfigService } from "src/code/common/service/configService/globalConfigService";
+import { IGlobalConfigService } from "src/code/common/service/configService/configService";
 
 enum LogLevel {
     TRACE,
@@ -53,7 +53,7 @@ export abstract class LogService implements ILogService {
     // solves singletion problem, so we always have at most one LogServiceManager when we create a logService
     constructor(
         @INoteBookManagerService noteBookManagerService: INoteBookManagerService,
-        @IGlobalConfigService globalConfigService: GlobalConfigService,
+        @IGlobalConfigService globalConfigService: IGlobalConfigService,
     ) {
         this._logServiceManager = createOrGetLogServiceManager(LogServiceManager, noteBookManagerService, globalConfigService);
     }
@@ -114,7 +114,7 @@ class LogServiceManager {
 
     constructor(
         private readonly noteBookManagerService: INoteBookManagerService,
-        private readonly globalConfigService: GlobalConfigService,
+        private readonly globalConfigService: IGlobalConfigService,
     ) {
         setInterval(this.checkQueue.bind(this), 1000);
     }
@@ -139,33 +139,33 @@ class LogServiceManager {
      */
     public async processQueue(): Promise<void> {
         try {
-            this._ongoing = true;
-            const logInfo = this._queue[0]!;
+            // this._ongoing = true;
+            // const logInfo = this._queue[0]!;
             
-            let dir: string;
-            if (this.globalConfigService.defaultConfigOn) {
-                dir = APP_ROOT_PATH; 
-                const mdNoteExists = await isDirExisted(dir, ".mdnote");
-                if (!mdNoteExists) {
-                    await createDir(dir, ".mdnote");
-                }  
-            } else {
-                // dir = this.noteBookManagerService.getRootPath();
-                dir = NoteBookManager.rootPath;
-            }
+            // let dir: string;
+            // if (this.globalConfigService.defaultConfigOn) {
+            //     dir = APP_ROOT_PATH; 
+            //     const mdNoteExists = await isDirExisted(dir, ".mdnote");
+            //     if (!mdNoteExists) {
+            //         await createDir(dir, ".mdnote");
+            //     }  
+            // } else {
+            //     // dir = this.noteBookManagerService.getRootPath();
+            //     dir = NoteBookManager.rootPath;
+            // }
             
-            dir = pathJoin(dir, ".mdnote");
-            const res = await isDirExisted(dir, "log");
-            if (!res) {
-                await createDir(dir, "log");
-            }
+            // dir = pathJoin(dir, ".mdnote");
+            // const res = await isDirExisted(dir, "log");
+            // if (!res) {
+            //     await createDir(dir, "log");
+            // }
             
-            const path = pathJoin(dir, "log");
-            writeToFile(path, logInfo.date.toISOString().slice(0, 10) + '.json', logInfo.message)
-            .then(() => {
-                this._queue.shift();
-                this._ongoing = false;
-            });
+            // const path = pathJoin(dir, "log");
+            // writeToFile(path, logInfo.date.toISOString().slice(0, 10) + '.json', logInfo.message)
+            // .then(() => {
+            //     this._queue.shift();
+            //     this._ongoing = false;
+            // });
         } catch (err) {
             // do log here
         }

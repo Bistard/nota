@@ -3,9 +3,9 @@ import { ipcRendererOn } from 'src/base/electron/register';
 import { Component, IComponent } from 'src/code/browser/workbench/component';
 import { EditorComponentType } from 'src/code/browser/workbench/editor/editor';
 import { IComponentService } from 'src/code/browser/service/componentService';
-import { pathJoin } from 'src/base/common/string';
 import { EVENT_EMITTER } from 'src/base/common/event';
-import { ConfigService, IConfigService } from 'src/code/common/service/configService/configService';
+import { IUserConfigService } from 'src/code/common/service/configService/configService';
+import { resolve } from 'src/base/common/file/path';
 
 export class Tab {
     public readonly container: HTMLElement = document.createElement('div');
@@ -137,7 +137,7 @@ export class TabBarComponent extends Component implements ITabBarComponent {
     constructor(
         parentComponent: Component,
         @IComponentService componentService: IComponentService,
-        @IConfigService private readonly configService: ConfigService,
+        @IUserConfigService private readonly userConfigService: IUserConfigService,
     ) {
         super(EditorComponentType.tabBar, parentComponent, null, componentService);
 
@@ -217,7 +217,7 @@ export class TabBarComponent extends Component implements ITabBarComponent {
         const newTab = new Tab(this.contentArea!, nodeInfo);
         
         if (this.isTabExisted(nodeInfo) >= 0) {
-            newTab.setText(pathJoin(nodeInfo.path, nodeInfo.baseName));
+            newTab.setText(resolve(nodeInfo.path, nodeInfo.baseName));
         } else {
             newTab.setText(nodeInfo.baseName);
         }
@@ -259,7 +259,7 @@ export class TabBarComponent extends Component implements ITabBarComponent {
         this.contentArea!.removeChild(tab.container);
 
         // // save current change immediately
-        if (this.configService.fileAutoSaveOn) {
+        if (/* this.userConfigService.fileAutoSaveOn */ true) { // TODO
             
             // TODO: efficiency issue (string passed mutiple times)
             const index = this._openedTab.indexOf(tab);

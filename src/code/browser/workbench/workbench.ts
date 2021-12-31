@@ -4,15 +4,16 @@ import { ActionBarComponent, IActionBarService } from "src/code/browser/workbenc
 import { EditorComponent, IEditorService } from "src/code/browser/workbench/editor/editor";
 import { INoteBookManagerService, LOCAL_MDNOTE_DIR_NAME, NoteBookManager } from "src/code/common/model/notebookManager";
 import { ipcRendererOn, ipcRendererSend } from "src/base/electron/register";
-import { ConfigService, DEFAULT_CONFIG_FILE_NAME, DEFAULT_CONFIG_PATH, GLOBAL_CONFIG_FILE_NAME, GLOBAL_CONFIG_PATH, LOCAL_CONFIG_FILE_NAME } from "src/code/common/service/configService/configService";
-import { pathJoin } from "src/base/common/string";
 import { ContextMenuService, IContextMenuService } from 'src/code/browser/service/contextMenuService';
 import { IInstantiationService } from "src/code/common/service/instantiationService/instantiation";
 import { ServiceDescriptor } from "src/code/common/service/instantiationService/descriptor";
 import { ComponentService } from "src/code/browser/service/componentService";
-import { GlobalConfigService } from "src/code/common/service/configService/globalConfigService";
 import { ExplorerViewComponent, IExplorerViewService } from "src/code/browser/workbench/actionView/explorer/explorer";
 import { getSingletonServiceDescriptors, registerSingleton } from "src/code/common/service/instantiationService/serviceCollection";
+import { DEFAULT_CONFIG_FILE_NAME, DEFAULT_CONFIG_PATH, GLOBAL_CONFIG_FILE_NAME, GLOBAL_CONFIG_PATH, IGlobalConfigService, IUserConfigService, LOCAL_CONFIG_FILE_NAME } from "src/code/common/service/configService/configService";
+import { URI } from "src/base/common/file/uri";
+import { resolve } from "src/base/common/file/path";
+import { EGlobalSettings, IGlobalApplicationSettings, IGlobalNotebookManagerSettings } from "src/code/common/service/configService/configService";
 
 // ActionBarService
 registerSingleton(IActionBarService, new ServiceDescriptor(ActionBarComponent));
@@ -35,8 +36,8 @@ export class Workbench extends Component {
     
     constructor(
         private readonly instantiationService: IInstantiationService,
-        private readonly globalConfigService: GlobalConfigService,
-        private readonly configService: ConfigService,
+        private readonly globalConfigService: IGlobalConfigService,
+        private readonly userConfigService: IUserConfigService,
         
     ) {
         super('mainApp', null, document.body, instantiationService.createInstance(ComponentService));
@@ -92,21 +93,27 @@ export class Workbench extends Component {
         // finish the following job.
         ipcRendererOn('closingApp', () => {
             
+            // get notebook configuration
+            const notebookConfig = this.globalConfigService.get<IGlobalNotebookManagerSettings>(EGlobalSettings.NotebookManager);
+            if (notebookConfig === undefined) {
+                throw new Error('cannot get configuration');
+            }
+
             // save global configuration first
-            this.globalConfigService.previousNoteBookManagerDir = this._noteBookManager.getRootPath();
-            this.globalConfigService.writeToJSON(GLOBAL_CONFIG_PATH, GLOBAL_CONFIG_FILE_NAME)
+            notebookConfig.previousNoteBookManagerDir = this._noteBookManager.getRootPath();
+            this.globalConfigService.save(URI.fromFile(resolve(GLOBAL_CONFIG_PATH, GLOBAL_CONFIG_FILE_NAME)))
             .then(() => {
-                // save local or default configuration
-                if (this.globalConfigService.defaultConfigOn) {
-                    return this.configService.writeToJSON(
-                        DEFAULT_CONFIG_PATH, 
-                        DEFAULT_CONFIG_FILE_NAME
-                    );
+                // get application configuration
+                const appConfig = this.globalConfigService.get<IGlobalApplicationSettings>(EGlobalSettings.Application);
+                if (appConfig === undefined) {
+                    throw new Error('cannot get configuration');
                 }
-                return this.configService.writeToJSON(
-                    pathJoin(this._noteBookManager.getRootPath(), LOCAL_MDNOTE_DIR_NAME), 
-                    LOCAL_CONFIG_FILE_NAME
-                );
+
+                // save local or default configuration
+                if (appConfig.defaultConfigOn) {
+                    return this.userConfigService.save(URI.fromFile(resolve(DEFAULT_CONFIG_PATH, DEFAULT_CONFIG_FILE_NAME)));
+                }
+                return this.userConfigService.save(URI.fromFile(resolve(this._noteBookManager.getRootPath(), LOCAL_MDNOTE_DIR_NAME, LOCAL_CONFIG_FILE_NAME)));
             })
             .then(() => {
                 ipcRendererSend('rendererReadyForClosingApp');

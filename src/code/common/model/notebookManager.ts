@@ -1,9 +1,11 @@
 import { EVENT_EMITTER } from "src/base/common/event";
-import { pathJoin } from "src/base/common/string";
-import { ConfigService, DEFAULT_CONFIG_FILE_NAME, DEFAULT_CONFIG_PATH, IConfigService, LOCAL_CONFIG_FILE_NAME } from "src/code/common/service/configService/configService";
+import { resolve } from "src/base/common/file/path";
+import { URI } from "src/base/common/file/uri";
 import { createDir, createFile, dirFilter, isDirExisted, isFileExisted } from "src/base/node/io";
 import { NoteBook } from "src/code/common/model/notebook";
-import { GlobalConfigService, IGlobalConfigService } from "src/code/common/service/configService/globalConfigService";
+import { EGlobalSettings, EUserSettings, IGlobalApplicationSettings, IGlobalNotebookManagerSettings, IUserNotebookManagerSettings } from "src/code/common/service/configService/configService";
+import { DEFAULT_CONFIG_FILE_NAME, IUserConfigService, LOCAL_CONFIG_FILE_NAME } from "src/code/common/service/configService/configService";
+import { IGlobalConfigService } from "src/code/common/service/configService/configService";
 import { createDecorator } from "src/code/common/service/instantiationService/decorator";
 
 export const LOCAL_MDNOTE_DIR_NAME = '.mdnote';
@@ -43,8 +45,8 @@ export class NoteBookManager implements INoteBookManagerService {
     public mdNoteFolderFound: boolean;
 
     constructor(
-        @IGlobalConfigService private readonly globalConfigService: GlobalConfigService,
-        @IConfigService private readonly configService: ConfigService,
+        @IGlobalConfigService private readonly globalConfigService: IGlobalConfigService,
+        @IUserConfigService private readonly userConfigService: IUserConfigService,
     ) {
         this.noteBookMap = new Map<string, NoteBook>();
         this.mdNoteFolderFound = false;
@@ -55,13 +57,16 @@ export class NoteBookManager implements INoteBookManagerService {
      * 'mdnote.config.json' at application root directory. NoteBookManager will
      * either do nothing or start the most recent opened directory.
      */
-    public async init(): Promise<void> {
+public async init(): Promise<void> {
 
         try {
+            const config = this.globalConfigService.get<IGlobalNotebookManagerSettings>(EGlobalSettings.NotebookManager)!;
             
-            if (this.globalConfigService.startPreviousNoteBookManagerDir) {
+            // FIXME: it seems like this function is invoked before the userConfigService.init(local path) is invoked.
+
+            if (config.startPreviousNoteBookManagerDir) {
                 
-                const prevOpenedPath = this.globalConfigService.previousNoteBookManagerDir;
+                const prevOpenedPath = config.previousNoteBookManagerDir;
                 if (prevOpenedPath == '') {
                     // const OpenPath = "/Users/apple/Desktop/filesForTesting";
                     // EVENT_EMITTER.emit('EOpenNoteBookManager', OpenPath);
@@ -88,29 +93,35 @@ export class NoteBookManager implements INoteBookManagerService {
         try {
             this._noteBookManagerRootPath = path;
             NoteBookManager.rootPath = path;
+
+            // get configuration
+            const config = this.userConfigService.get<IUserNotebookManagerSettings>(EUserSettings.NotebookManager)!;
             
             // get valid NoteBook names in the given dir
             const noteBooks: string[] = await dirFilter(
                 path, 
-                this.configService.noteBookManagerExclude, 
-                this.configService.noteBookManagerInclude,
+                config.noteBookManagerExclude, 
+                config.noteBookManagerInclude,
             );
             
             // create NoteBook Object for each subdirectory
             for (let name of noteBooks) {
-                const noteBook = new NoteBook(name, pathJoin(path, name));
+                const noteBook = new NoteBook(name, resolve(path, name));
                 this.noteBookMap.set(name, noteBook);
                 noteBook.create(document.getElementById('fileTree-container')!);
             }
 
             // data in cache for each NoteBook is now ready.
             
+            // get global configuration first
+            const globalConfig = this.globalConfigService.get<IGlobalApplicationSettings>(EGlobalSettings.Application)!;
+
             // try to find .mdnote
             const isExisted = await isDirExisted(path, LOCAL_MDNOTE_DIR_NAME);
             if (isExisted) {
-                await this._importNoteBookConfig();
+                await this._importNoteBookConfig(globalConfig);
             } else {
-                await this._createNoteBookConfig();
+                await this._createNoteBookConfig(globalConfig);
             }
 
             this.mdNoteFolderFound = true;
@@ -130,21 +141,21 @@ export class NoteBookManager implements INoteBookManagerService {
      * If defaultConfigOn is true, we read default config, otherwise we read 
      * local config.
      */
-    private async _importNoteBookConfig(): Promise<void> {
+    private async _importNoteBookConfig(setting: IGlobalApplicationSettings): Promise<void> {
         
         try {
-            const ROOT = pathJoin(this._noteBookManagerRootPath, LOCAL_MDNOTE_DIR_NAME);
+            const ROOT = resolve(this._noteBookManagerRootPath, LOCAL_MDNOTE_DIR_NAME);
         
             // check validation for the .mdnote structure
             await this._validateNoteBookConfig();
             
-            if (this.globalConfigService.defaultConfigOn === false) {
+            if (setting.defaultConfigOn === false) {
                 // read local config
-                await this.configService.init(ROOT);
+                await this.userConfigService.init(URI.fromFile(resolve(ROOT, DEFAULT_CONFIG_FILE_NAME)));
             }
 
             // check if missing any NoteBook structure in '.mdnote/structure'
-            const structureRoot = pathJoin(ROOT, 'structure');
+            const structureRoot = resolve(ROOT, 'structure');
             for (let pair of this.noteBookMap) {
                 const name = pair[0];
                 const noteBook = pair[1];
@@ -171,7 +182,7 @@ export class NoteBookManager implements INoteBookManagerService {
      * If defaultConfigOn is true, we read or create default config. Otherwise
      * we create a new local config.
      */
-    private async _createNoteBookConfig(): Promise<void> {
+    private async _createNoteBookConfig(setting: IGlobalApplicationSettings): Promise<void> {
         try {
             // init folder structure
             const ROOT = await createDir(this._noteBookManagerRootPath, LOCAL_MDNOTE_DIR_NAME);
@@ -179,10 +190,10 @@ export class NoteBookManager implements INoteBookManagerService {
             await createDir(ROOT, 'structure');
             await createDir(ROOT, 'log');
             
-            if (this.globalConfigService.defaultConfigOn === false) {
+            if (setting.defaultConfigOn === false) {
                 // init local config.json
                 await createFile(ROOT, LOCAL_CONFIG_FILE_NAME);
-                await this.configService.writeToJSON(ROOT, LOCAL_CONFIG_FILE_NAME);
+                await this.userConfigService.save(URI.fromFile(resolve(ROOT, LOCAL_CONFIG_FILE_NAME)));
             }
 
             // init noteBook structure
@@ -202,7 +213,7 @@ export class NoteBookManager implements INoteBookManagerService {
      */
     private async _validateNoteBookConfig(): Promise<void> {
         try {
-            const ROOT = pathJoin(this._noteBookManagerRootPath, LOCAL_MDNOTE_DIR_NAME);
+            const ROOT = resolve(this._noteBookManagerRootPath, LOCAL_MDNOTE_DIR_NAME);
             if (await isDirExisted(ROOT, 'structure') === false) {
                 await createDir(ROOT, 'structure');
             }
@@ -235,7 +246,7 @@ export class NoteBookManager implements INoteBookManagerService {
      */
     private async _noteBookWriteToJSON(notebook: NoteBook, name: string): Promise<void> {
         try {
-            const rootpath = pathJoin(this._noteBookManagerRootPath, LOCAL_MDNOTE_DIR_NAME, 'structure');
+            const rootpath = resolve(this._noteBookManagerRootPath, LOCAL_MDNOTE_DIR_NAME, 'structure');
             await createFile(rootpath, name + '.json', notebook.toJSON());
         } catch(err) {
             throw err;

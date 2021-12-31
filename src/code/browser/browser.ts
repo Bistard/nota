@@ -4,10 +4,12 @@ import { FileLogService, IFileLogService } from "src/code/common/service/logServ
 import { ServiceDescriptor } from "src/code/common/service/instantiationService/descriptor";
 import { IInstantiationService, InstantiationService } from "src/code/common/service/instantiationService/instantiation";
 import { ServiceCollection } from "src/code/common/service/instantiationService/serviceCollection";
-import { ConfigService, IConfigService } from "src/code/common/service/configService/configService";
-import { GlobalConfigService, IGlobalConfigService } from "src/code/common/service/configService/globalConfigService";
 import { APP_ROOT_PATH } from "src/base/electron/app";
-import { IFileService } from "src/code/common/service/fileService";
+import { FileService, IFileService } from "src/code/common/service/fileService";
+import { GlobalConfigService, IGlobalConfigService, IUserConfigService, UserConfigService } from "src/code/common/service/configService/configService";
+import { Schemas, URI } from "src/base/common/file/uri";
+import { DiskFileSystemProvider } from "src/base/node/diskFileSystemProvider";
+import { resolve } from "src/base/common/file/path";
 
 /**
  * @description This the main entry in the renderer process.
@@ -19,7 +21,7 @@ export class Browser {
     private instantiationService!: IInstantiationService;
     private fileService!: IFileService;
     private globalConfigService!: GlobalConfigService;
-    private configService!: ConfigService;
+    private userConfigService!: UserConfigService;
 
     constructor() {
         this.startUp();
@@ -28,7 +30,7 @@ export class Browser {
     private startUp(): void {
         this.initServices().then(() => {
 
-            this.workbench = new Workbench(this.instantiationService, this.globalConfigService  , this.configService);
+            this.workbench = new Workbench(this.instantiationService, this.globalConfigService, this.userConfigService);
             
             this.registerListeners();
 
@@ -43,17 +45,23 @@ export class Browser {
         this.instantiationService.register(IInstantiationService, this.instantiationService);
 
         // fileService
+        this.fileService = new FileService();
+        this.fileService.registerProvider(Schemas.FILE, new DiskFileSystemProvider());
         this.instantiationService.register(IFileService, this.fileService);
         
         // GlobalConfigService
-        this.globalConfigService = new GlobalConfigService();
+        this.globalConfigService = new GlobalConfigService(this.fileService);
         this.instantiationService.register(IGlobalConfigService, this.globalConfigService);
-        await this.globalConfigService.init(APP_ROOT_PATH);
+        await this.globalConfigService.init();
+
+        console.log('finish globalConfigService');
 
         // ConfigService
-        this.configService = new ConfigService();
-        this.instantiationService.register(IConfigService, this.configService);
-        await this.configService.init(APP_ROOT_PATH);
+        this.userConfigService = new UserConfigService(this.fileService);
+        this.instantiationService.register(IUserConfigService, this.userConfigService);
+        await this.userConfigService.init();
+
+        console.log('finish userConfigService');
 
         // LogService
         this.instantiationService.register(IFileLogService, new ServiceDescriptor(FileLogService));
