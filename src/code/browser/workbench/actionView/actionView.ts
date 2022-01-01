@@ -8,13 +8,6 @@ import { IInstantiationService } from 'src/code/common/service/instantiationServ
 
 export type ActionViewType = 'none' | 'explorer' | 'outline' | 'search' | 'git';
 
-export enum ActionViewComponentType {
-    ExplorerView = 'explorer-container',
-    OutlineView = 'outline-container',
-    SearchView = 'search-container',
-    GitView = 'git-container',
-}
-
 export const IActionViewService = createDecorator<IActionViewService>('action-view-service');
 
 
@@ -98,6 +91,7 @@ export class ActionViewComponent extends Component implements IActionViewService
         this.EOnActionViewOpen.registerListener(this.openActionView);
         //this.EOnActionViewChange.registerListener(this.onActionViewChange)
     
+        // remove later
         EVENT_EMITTER.register('EOnActionViewChange', (name) => this.onActionViewChange(name));
 
     }
@@ -126,7 +120,6 @@ export class ActionViewComponent extends Component implements IActionViewService
         const actionViewContent = document.createElement('div');
         actionViewContent.id = 'action-view-content';
         
-        // this.explorerViewComponent = new ExplorerViewComponent(this, actionViewContent, this._noteBookManager, this.componentService, this.contextMenuService);
         this.explorerViewComponent = this.instantiationService.createInstance(ExplorerViewComponent, this, actionViewContent);
         this.explorerViewComponent.create();
 

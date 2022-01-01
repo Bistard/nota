@@ -82,10 +82,10 @@ export class ActionBarComponent extends Component implements IActionBarService {
         });
     }
 
-    protected override _registerListeners(): void {     
-
+    protected override _registerListeners(): void {
+        
         /**
-         * @readonly register context menu listeners (right click menu)
+         * @readonly register context menu listeners (right click menu) // review
          */
         document.getElementById('action-bar')!.addEventListener('contextmenu', (ev: MouseEvent) => {
             ev.preventDefault();
@@ -108,10 +108,11 @@ export class ActionBarComponent extends Component implements IActionBarService {
         // default with openning explorer view
         this.clickActionBtn(document.getElementById('explorer-button') as HTMLElement);
         
-        $('.action-button').on('click', { ActionBarComponent: this }, function (event) {
-            let that = event.data.ActionBarComponent;
-            that.clickActionBtn(this);
-        });
+        // TODO: remove later
+        // $('.action-button').on('click', { ActionBarComponent: this }, function (event) {
+        //     let that = event.data.ActionBarComponent;
+        //     that.clickActionBtn(this);
+        // });
     }
 
     /**

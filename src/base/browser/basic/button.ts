@@ -20,7 +20,10 @@ export interface IButton extends IWidget {
     enabled: boolean;
 
     onDidClick: Register<Event>;
-    
+    setClass(classes: string[]): void;
+    setImage(src: string): void;
+    setImageID(id: string): void;
+    setImageClass(classes: string[]): void;
 }
 
 export class Button extends Disposable implements IButton {

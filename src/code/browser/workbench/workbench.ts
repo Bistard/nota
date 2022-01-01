@@ -7,13 +7,14 @@ import { ipcRendererOn, ipcRendererSend } from "src/base/electron/register";
 import { ContextMenuService, IContextMenuService } from 'src/code/browser/service/contextMenuService';
 import { IInstantiationService } from "src/code/common/service/instantiationService/instantiation";
 import { ServiceDescriptor } from "src/code/common/service/instantiationService/descriptor";
-import { ComponentService } from "src/code/browser/service/componentService";
+import { ComponentService, IComponentService } from "src/code/browser/service/componentService";
 import { ExplorerViewComponent, IExplorerViewService } from "src/code/browser/workbench/actionView/explorer/explorer";
 import { getSingletonServiceDescriptors, registerSingleton } from "src/code/common/service/instantiationService/serviceCollection";
 import { DEFAULT_CONFIG_FILE_NAME, DEFAULT_CONFIG_PATH, GLOBAL_CONFIG_FILE_NAME, GLOBAL_CONFIG_PATH, IGlobalConfigService, IUserConfigService, LOCAL_CONFIG_FILE_NAME } from "src/code/common/service/configService/configService";
 import { URI } from "src/base/common/file/uri";
 import { resolve } from "src/base/common/file/path";
 import { EGlobalSettings, IGlobalApplicationSettings, IGlobalNotebookManagerSettings } from "src/code/common/service/configService/configService";
+import { WorkbenchLayout } from "src/code/browser/workbench/layout";
 
 // ActionBarService
 registerSingleton(IActionBarService, new ServiceDescriptor(ActionBarComponent));
@@ -26,7 +27,7 @@ registerSingleton(IEditorService, new ServiceDescriptor(EditorComponent));
 /**
  * @description Workbench represents all the Components in the web browser.
  */
-export class Workbench extends Component {
+export class Workbench extends WorkbenchLayout {
 
     private _noteBookManager!: NoteBookManager;
 
@@ -35,12 +36,13 @@ export class Workbench extends Component {
     editorComponent!: EditorComponent;
     
     constructor(
-        private readonly instantiationService: IInstantiationService,
-        private readonly globalConfigService: IGlobalConfigService,
-        private readonly userConfigService: IUserConfigService,
+        @IInstantiationService private readonly instantiationService: IInstantiationService,
+        @IGlobalConfigService private readonly globalConfigService: IGlobalConfigService,
+        @IUserConfigService private readonly userConfigService: IUserConfigService,
+        @IComponentService componentService: IComponentService
         
     ) {
-        super('mainApp', null, document.body, instantiationService.createInstance(ComponentService));
+        super(componentService);
 
         this.initServices();
         this.create();
@@ -82,6 +84,8 @@ export class Workbench extends Component {
             component.create();
             component.registerListeners();
         });
+
+        this._createLayout();
     }
 
     /**
@@ -137,14 +141,6 @@ export class Workbench extends Component {
             }
         })
 
-    }
-
-    public getComponentById(id: string): Component {
-        const component = this.componentMap.get(id);
-        if (!component) {
-            throw new Error(`trying to get an unknown component ${id}`);
-        }
-        return component;
     }
 
 }

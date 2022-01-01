@@ -51,7 +51,7 @@ export class ContextMenuService implements IContextMenuService {
         this.removeContextMenu();
         this._initContextMenu(type, coordinate);
 
-        const windowData = document.getElementById('mainApp')!.getBoundingClientRect();
+        const windowData = document.getElementById('workbench')!.getBoundingClientRect();
 
         let menuDimension: ContextMenuDimension = {
             coordinates: coordinate,

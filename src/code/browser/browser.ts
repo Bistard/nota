@@ -4,12 +4,10 @@ import { FileLogService, IFileLogService } from "src/code/common/service/logServ
 import { ServiceDescriptor } from "src/code/common/service/instantiationService/descriptor";
 import { IInstantiationService, InstantiationService } from "src/code/common/service/instantiationService/instantiation";
 import { ServiceCollection } from "src/code/common/service/instantiationService/serviceCollection";
-import { APP_ROOT_PATH } from "src/base/electron/app";
 import { FileService, IFileService } from "src/code/common/service/fileService";
 import { GlobalConfigService, IGlobalConfigService, IUserConfigService, UserConfigService } from "src/code/common/service/configService/configService";
-import { Schemas, URI } from "src/base/common/file/uri";
+import { Schemas } from "src/base/common/file/uri";
 import { DiskFileSystemProvider } from "src/base/node/diskFileSystemProvider";
-import { resolve } from "src/base/common/file/path";
 
 /**
  * @description This the main entry in the renderer process.
@@ -22,6 +20,7 @@ export class Browser {
     private fileService!: IFileService;
     private globalConfigService!: GlobalConfigService;
     private userConfigService!: UserConfigService;
+    private componentService!: ComponentService;
 
     constructor() {
         this.startUp();
@@ -30,7 +29,7 @@ export class Browser {
     private startUp(): void {
         this.initServices().then(() => {
 
-            this.workbench = new Workbench(this.instantiationService, this.globalConfigService, this.userConfigService);
+            this.workbench = new Workbench(this.instantiationService, this.globalConfigService, this.userConfigService, this.componentService);
             
             this.registerListeners();
 
@@ -38,6 +37,8 @@ export class Browser {
     }
 
     private async initServices(): Promise<void> {
+        
+        // create a instantiationService
         const serviceCollection = new ServiceCollection();
         this.instantiationService = new InstantiationService(serviceCollection);
 
@@ -54,20 +55,17 @@ export class Browser {
         this.instantiationService.register(IGlobalConfigService, this.globalConfigService);
         await this.globalConfigService.init();
 
-        console.log('finish globalConfigService');
-
-        // ConfigService
+        // UserConfigService
         this.userConfigService = new UserConfigService(this.fileService);
         this.instantiationService.register(IUserConfigService, this.userConfigService);
         await this.userConfigService.init();
-
-        console.log('finish userConfigService');
 
         // LogService
         this.instantiationService.register(IFileLogService, new ServiceDescriptor(FileLogService));
 
         // ComponentService
-        this.instantiationService.register(IComponentService, new ServiceDescriptor(ComponentService));
+        this.componentService = new ComponentService();
+        this.instantiationService.register(IComponentService, this.componentService);
 
         // more and more...
         

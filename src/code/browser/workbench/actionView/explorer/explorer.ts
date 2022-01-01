@@ -1,7 +1,6 @@
 import { FileNode } from 'src/base/node/fileTree';
 import { domNodeByIdAddListener, ipcRendererOn, ipcRendererSend } from 'src/base/electron/register';
-import { Component, IComponent } from 'src/code/browser/workbench/component';
-import { ActionViewComponentType } from 'src/code/browser/workbench/actionView/actionView';
+import { Component, ComponentType, IComponent } from 'src/code/browser/workbench/component';
 import { EVENT_EMITTER } from 'src/base/common/event';
 import { INoteBookManagerService } from 'src/code/common/model/notebookManager';
 import { IComponentService } from 'src/code/browser/service/componentService';
@@ -34,7 +33,7 @@ export class ExplorerViewComponent extends Component implements IExplorerViewSer
                 @IComponentService componentService: IComponentService,
                 @IContextMenuService private readonly contextMenuService: IContextMenuService,
     ) {
-        super(ActionViewComponentType.ExplorerView, parentComponent, parentElement, componentService);
+        super(ComponentType.ExplorerView, parentComponent, parentElement, componentService);
     
         // this variable is to store the x-coordinate of the resizeBar in the explorer view
         this.resizeX = 0;

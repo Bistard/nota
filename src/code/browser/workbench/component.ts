@@ -6,6 +6,10 @@ export const enum ComponentType {
     ActionBar = 'action-bar',
     ActionView = 'action-view',
     editor = 'editor-view',
+    ExplorerView = 'explorer-container',
+    OutlineView = 'outline-container',
+    SearchView = 'search-container',
+    GitView = 'git-container',
 }
 
 export interface IComponent {
@@ -108,6 +112,30 @@ export abstract class Component extends Disposable implements IComponent {
 
     public getId(): string {
         return this.container.id;
+    }
+
+    /**
+     * @description Triggers the onDidVisibilityChange event.
+     * @param value to visible or invisible.
+     */
+    public setVisible(value: boolean): void {
+        this._onDidVisibilityChange.fire(value);
+    }
+
+    /**
+     * @description Returns the sub component by id.
+     * 
+     * @warn If no such component exists, an error throws.
+     * 
+     * @param id The string ID of the component.
+     * @returns The required Component.
+     */
+    public getComponentById(id: string): Component {
+        const component = this.componentMap.get(id);
+        if (!component) {
+            throw new Error(`trying to get an unknown component ${id}`);
+        }
+        return component;
     }
 
 }

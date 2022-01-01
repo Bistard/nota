@@ -40,7 +40,7 @@ img {
     user-select: none;
 }
 
-#mainApp {
+#workbench {
     display: flex;
     flex-direction: row;
     flex-wrap: nowrap;
