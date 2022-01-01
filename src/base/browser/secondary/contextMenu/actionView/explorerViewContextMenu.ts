@@ -1,9 +1,6 @@
 import { ContextMenu, ContextMenuType, Coordinate, IContextMenu } from "src/base/browser/secondary/contextMenu/contextMenu";
 import { IComponentService } from "src/code/browser/service/componentService";
 import { IContextMenuService } from "src/code/browser/service/contextMenuService";
-import { ActionViewType } from "src/code/browser/workbench/actionView/actionView";
-import { EVENT_EMITTER } from "src/base/common/event";
-import { IButton } from "src/base/browser/basic/button";
 
 
 export class ExplorerViewContextMenu extends ContextMenu implements IContextMenu {
