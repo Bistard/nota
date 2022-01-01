@@ -5,17 +5,16 @@ import { Emitter, EVENT_EMITTER } from 'src/base/common/event';
 import { createDecorator } from 'src/code/common/service/instantiationService/decorator';
 import { IComponentService } from 'src/code/browser/service/componentService';
 import { IInstantiationService } from 'src/code/common/service/instantiationService/instantiation';
-
-export type ActionViewType = 'none' | 'explorer' | 'outline' | 'search' | 'git';
+import { ActionType } from 'src/code/browser/workbench/actionBar/actionBar';
 
 export const IActionViewService = createDecorator<IActionViewService>('action-view-service');
 
 
 export interface IActionViewService extends IComponent {
 
-    whichActionView: ActionViewType;
+    whichActionView: ActionType;
 
-    onActionViewChange(actionViewName: ActionViewType): void;
+    onActionViewChange(actionViewName: ActionType): void;
     actionViewTopTextOnChange(name: string): void;
     hideActionViewContent(): void;
     closeActionView(): void;
@@ -23,7 +22,7 @@ export interface IActionViewService extends IComponent {
 
     EOnActionViewOpen: Emitter<void>;
     EOnActionViewClose: Emitter<void>;
-    EOnActionViewChange: Emitter<ActionViewType>;
+    EOnActionViewChange: Emitter<ActionType>;
 
 }
 
@@ -33,7 +32,7 @@ export interface IActionViewService extends IComponent {
  */
 export class ActionViewComponent extends Component implements IActionViewService {
 
-    public whichActionView: ActionViewType;
+    public whichActionView: ActionType;
     
     private actionViewContentContainer!: HTMLElement;
     private resize!: HTMLElement;
@@ -44,7 +43,7 @@ export class ActionViewComponent extends Component implements IActionViewService
 
     public readonly EOnActionViewOpen = new Emitter<void>();
     public readonly EOnActionViewClose = new Emitter<void>();
-    public readonly EOnActionViewChange = new Emitter<ActionViewType>();
+    public readonly EOnActionViewChange = new Emitter<ActionType>();
     
     // Others...
 
@@ -55,7 +54,7 @@ export class ActionViewComponent extends Component implements IActionViewService
     ) {
         super(ComponentType.ActionView, parentComponent, null, componentService);
         
-        this.whichActionView = 'none';
+        this.whichActionView = ActionType.NONE;
     }
 
     protected override _createContent(): void {
@@ -137,11 +136,11 @@ export class ActionViewComponent extends Component implements IActionViewService
     /**
      * @description switch to that action view given a specific name.
      */
-    public onActionViewChange(actionViewName: ActionViewType): void {
+    public onActionViewChange(actionViewName: ActionType): void {
         if (actionViewName === this.whichActionView) {
             return;
         }
-        console.log(typeof actionViewName)
+        
         this.actionViewTopTextOnChange(actionViewName);
         this.hideActionViewContent();
         

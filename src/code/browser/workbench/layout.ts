@@ -1,7 +1,7 @@
 import { Button } from "src/base/browser/basic/button";
 import { IComponentService } from "src/code/browser/service/componentService";
-import { ActionBarComponent } from "src/code/browser/workbench/actionBar/actionBar";
-import { ActionViewComponent, ActionViewType } from "src/code/browser/workbench/actionView/actionView";
+import { ActionBarComponent, ActionType } from "src/code/browser/workbench/actionBar/actionBar";
+import { ActionViewComponent } from "src/code/browser/workbench/actionView/actionView";
 import { ExplorerViewComponent } from "src/code/browser/workbench/actionView/explorer/explorer";
 import { Component, ComponentType } from "src/code/browser/workbench/component";
 
@@ -22,28 +22,31 @@ export abstract class WorkbenchLayout extends Component {
         // ...
 
         /**
-         * Listens to action bar button click listener and notifies the 
-         * actionView to swtich the view.
+         * @readonly Listens to action bar button click and notifies the actionView 
+         * to swtich the view.
          */
         const actionBar = this.componentService.get(ComponentType.ActionBar) as ActionBarComponent;
         const actionView = this.componentService.get(ComponentType.ActionView) as ActionViewComponent;
-        const [explorer, outline, search, git] = [actionBar.buttonGroups[0]!, actionBar.buttonGroups[1]!, actionBar.buttonGroups[2]!, actionBar.buttonGroups[3]!];
+        const [explorer, outline, search, git] = [
+            actionBar.getButton(ActionType.EXPLORER)!, actionBar.getButton(ActionType.OUTLINE)!, 
+            actionBar.getButton(ActionType.SEARCH)!, actionBar.getButton(ActionType.GIT)!
+        ];
         
         [
-            [explorer, 'explorer'],
-            [outline, 'outline'],
-            [outline, 'search'],
-            [outline, 'git'],
+            [explorer, ActionType.EXPLORER],
+            [outline, ActionType.OUTLINE],
+            [search, ActionType.SEARCH],
+            [git, ActionType.GIT],
         ]
         .forEach(pair => {
             const button = pair[0] as Button;
-            const type = pair[1] as ActionViewType;
+            const type = pair[1] as ActionType;
 
             this.__register(button.onDidClick((event: Event) => {
                 actionView.onActionViewChange(type);
+                actionBar.onActionButtonClick(type);
             }));
         });
-        
         
 
         // todo...
@@ -53,6 +56,7 @@ export abstract class WorkbenchLayout extends Component {
         // this.__register(explorer.onDidVisibilityChange((visible: boolean) => {
         //     
         // }));
+
 
         // ...
 

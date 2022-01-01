@@ -1,6 +1,4 @@
 import { Button, IButton } from 'src/base/browser/basic/button';
-import { Emitter, EVENT_EMITTER, } from 'src/base/common/event';
-import { ActionViewType, IActionViewService } from 'src/code/browser/workbench/actionView/actionView';
 import { Component, ComponentType, IComponent } from 'src/code/browser/workbench/component';
 import { getSvgPathByName, SvgType } from 'src/base/common/string';
 import { ContextMenuType, Coordinate } from 'src/base/browser/secondary/contextMenu/contextMenu';
@@ -10,16 +8,31 @@ import { IComponentService } from 'src/code/browser/service/componentService';
 
 export const IActionBarService = createDecorator<IActionBarService>('action-bar-service');
 
+export enum ActionType {
+    NONE = 'none',
+    EXPLORER = 'explorer',
+    OUTLINE = 'outline',
+    SEARCH = 'search',
+    GIT = 'git',
+    SETTINGS = 'setting',
+}
+
 export interface IActionBarService extends IComponent {
-    contentArea: any;
     
-    readonly buttonGroups: IButton[];
-
-    clickActionBtn(clickedBtn: HTMLElement): void;
-    getButton(id: string): IButton | null;
-    modifyFocusIndex (position: number): void;
-    getFocusIndex (): number;
-
+    /**
+     * @description Invoked when the action button is clicked. The button will 
+     * be focus.
+     * @param clickedType The type of buttion is clicked.
+     */
+    onActionButtonClick(clickedType: ActionType): void;
+    
+    /**
+     * @description Returns a button by provided a buttion type.
+     * @param type The type of the required button.
+     * @returns The required button. Returns undefined if it does not exists.
+     */
+    getButton(type: ActionType): IButton | undefined;
+    
 }
 
 export interface IActionBarOptions {
@@ -44,10 +57,9 @@ export interface IActionBarOptions {
  */
 export class ActionBarComponent extends Component implements IActionBarService {
 
-    public readonly buttonGroups: IButton[] = [];
+    private readonly _buttonGroups = new Map<ActionType, IButton>();
     
-   // if value is -1, it means actionView is not shown.
-    private currFocusActionBtnIndex: number;
+    private currFocusButton: ActionType;
 
     constructor(
         parentComponent: Component,
@@ -56,7 +68,7 @@ export class ActionBarComponent extends Component implements IActionBarService {
     ) {
         super(ComponentType.ActionBar, parentComponent, null, componentService);
         
-        this.currFocusActionBtnIndex = -1;
+        this.currFocusButton = ActionType.NONE;
 
     }
 
@@ -66,11 +78,10 @@ export class ActionBarComponent extends Component implements IActionBarService {
         this.container.appendChild(this.contentArea);
 
         [
-            {id: 'explorer-button', src: 'file'},
-            {id: 'outline-button', src: 'list'},
-            {id: 'search-button', src: 'search'},
-            {id: 'git-button', src: 'git'},
-            {id: 'setting-button', src: 'setting'},
+            {id: ActionType.EXPLORER, src: 'file'},
+            {id: ActionType.OUTLINE, src: 'list'},
+            {id: ActionType.SEARCH, src: 'search'},
+            {id: ActionType.GIT, src: 'git'},
         ]
         .forEach(({ id, src }) => {
             const button = new Button(id, this.contentArea!);
@@ -78,7 +89,7 @@ export class ActionBarComponent extends Component implements IActionBarService {
             button.setImage(getSvgPathByName(SvgType.base, src));
             button.setImageClass(['vertical-center', 'filter-black']);
 
-            this.buttonGroups.push(button);
+            this._buttonGroups.set(id, button);
         });
     }
 
@@ -99,80 +110,40 @@ export class ActionBarComponent extends Component implements IActionBarService {
 
         });
 
-        // TODO: remove later
-        // give every actionButton a unique number
-        $('.action-button').each(function(index, element) {
-            element.setAttribute('btnNum', index.toString());
-        });
-        
         // default with openning explorer view
-        this.clickActionBtn(document.getElementById('explorer-button') as HTMLElement);
-        
-        // TODO: remove later
-        // $('.action-button').on('click', { ActionBarComponent: this }, function (event) {
-        //     let that = event.data.ActionBarComponent;
-        //     that.clickActionBtn(this);
-        // });
+        this.onActionButtonClick(ActionType.EXPLORER);
     }
 
     /**
-     * @description clicks a given button. If it is not focused, set it as 
-     * focused. Moreover, switch to that action view.
+     * @description Clicks a given button. 
+     * @param clickedType Specify which button to be clicked.
      */
-    public clickActionBtn(clickedBtn: HTMLElement): void {
-        // get which action button is clicking
-        const actionName = clickedBtn.id.slice(0, -"-button".length) as ActionViewType;
-        const actionViewService = this.componentService.get('action-view') as IActionViewService;
- 
-        // switch to the action view
-        EVENT_EMITTER.emit('EOnActionViewChange', actionName);
-        //actionViewService.EOnActionViewChange.fire(actionName)
-
-
-
-        // focus the action button and reverse the state of action view
-        const clickedBtnIndex = parseInt(clickedBtn.getAttribute('btnNum') as string);
-        const actionBtnContainer = clickedBtn.parentNode as HTMLElement;
-        const currBtn = actionBtnContainer.children[this.currFocusActionBtnIndex] as HTMLElement;
-            
-        if (this.currFocusActionBtnIndex == -1) {
-            // none of action button is focused, open the action view
-            this.currFocusActionBtnIndex = clickedBtnIndex;
-            actionViewService.EOnActionViewOpen.fire();
-
-            clickedBtn.classList.add('action-button-focus');
-        } else if (this.currFocusActionBtnIndex == clickedBtnIndex) {
-            // if the current focused button is clicked again, close action view.
-            this.currFocusActionBtnIndex = -1;
-            actionViewService.EOnActionViewClose.fire();
-
-            currBtn.classList.remove('action-button-focus');
-        } else if (this.currFocusActionBtnIndex >= 0) {
-            // other action button is clicked, only change the style
-            this.currFocusActionBtnIndex = clickedBtnIndex;
-            currBtn.classList.remove('action-button-focus');
-            clickedBtn.classList.add('action-button-focus');
-        } else {
-            throw 'error';
-        }
+    public onActionButtonClick(clickedType: ActionType): void {
+        const button = this._buttonGroups.get(clickedType)!;
         
-    }
-
-    public getButton(id: string): IButton | null {
-        for (const button of this.buttonGroups) {
-            if (button.id === id) {
-                return button;
-            }
+        // none of action button is focused, open the action view
+        if (this.currFocusButton == ActionType.NONE) {
+            this.currFocusButton = clickedType;
+            button.element.classList.add('action-button-focus');
+        } 
+        
+        // if the current focused button is clicked again, close action view.
+        else if (this.currFocusButton == clickedType) {
+            this.currFocusButton = ActionType.NONE;
+            button.element.classList.remove('action-button-focus');
+        } 
+        
+        // other action button is clicked, only change the style
+        else {
+            const prevButton = this._buttonGroups.get(this.currFocusButton)!;
+            prevButton.element.classList.remove('action-button-focus');
+            this.currFocusButton = clickedType;
+            button.element.classList.add('action-button-focus');
         }
-        return null;
     }
 
-    public modifyFocusIndex(position: number): void{
-        this.currFocusActionBtnIndex = position;
-    }
-
-    public getFocusIndex(): number {
-        return this.currFocusActionBtnIndex;
+    public getButton(type: ActionType): IButton | undefined {
+        return this._buttonGroups.get(type);
     }
 
 }
