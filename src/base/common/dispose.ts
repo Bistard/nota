@@ -136,7 +136,8 @@ export function disposeAll<T extends IDisposable>(disposables: IterableDisposabl
 }
 
 /**
- * @description Transfer a given function into a disposable object.
+ * @description Transfer a given function into a disposable object. The dispose()
+ * method is the given function.
  */
 export function toDisposable(fn: () => any): IDisposable {
 	return {

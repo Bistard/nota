@@ -1,3 +1,4 @@
+import { IDisposable, toDisposable } from "src/base/common/dispose";
 
 export interface IDimension {
     width: number;
@@ -42,4 +43,28 @@ export class Dimension implements IDimension {
 		}
 		return a.width === b.width && a.height === b.height;
 	}
+}
+
+/**
+ * @description Given a `EventTarget` (eg. HTMLElement), we add a `eventType` 
+ * listener to the target with the provided callback. The function returns a 
+ * disposable to remove the listener.
+ * 
+ * @param domNode The target to be listening.
+ * @param eventType The event type.
+ * @param callback The callback function when the event happens.
+ * @returns A disposable to remove the listener from the target.
+ */
+export function addDisposableListener(domNode: EventTarget, eventType: string, callback: (event: any) => void): IDisposable {
+	domNode.addEventListener(eventType, callback);
+
+	let disposed = false;
+
+	return toDisposable(() => {
+		if (disposed) {
+			return;
+		}
+
+		domNode.removeEventListener(eventType, callback);
+	});
 }
