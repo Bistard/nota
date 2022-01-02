@@ -1,4 +1,4 @@
-import { Button } from "src/base/browser/basic/button";
+import { Button } from "src/base/browser/basic/button/button";
 import { IComponentService } from "src/code/browser/service/componentService";
 import { ActionBarComponent, ActionType } from "src/code/browser/workbench/actionBar/actionBar";
 import { ActionViewComponent } from "src/code/browser/workbench/actionView/actionView";

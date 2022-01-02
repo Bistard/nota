@@ -1,4 +1,4 @@
-import { Button } from "src/base/browser/basic/button";
+import { Button } from "src/base/browser/basic/button/button";
 import { getSvgPathByName, SvgType } from "src/base/common/string";
 import { domNodeByIdAddListener, ipcRendererOn, ipcRendererSend } from "src/base/electron/register";
 import { IComponentService } from "src/code/browser/service/componentService";

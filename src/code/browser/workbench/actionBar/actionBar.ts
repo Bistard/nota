@@ -1,10 +1,11 @@
-import { Button, IButton } from 'src/base/browser/basic/button';
+import { Button } from 'src/base/browser/basic/button/button';
 import { Component, ComponentType, IComponent } from 'src/code/browser/workbench/component';
 import { getSvgPathByName, SvgType } from 'src/base/common/string';
 import { ContextMenuType, Coordinate } from 'src/base/browser/secondary/contextMenu/contextMenu';
 import { createDecorator } from 'src/code/common/service/instantiationService/decorator';
 import { IContextMenuService } from 'src/code/browser/service/contextMenuService';
 import { IComponentService } from 'src/code/browser/service/componentService';
+import { ActionButton } from 'src/code/browser/workbench/actionBar/actionButton';
 
 export const IActionBarService = createDecorator<IActionBarService>('action-bar-service');
 
@@ -31,7 +32,7 @@ export interface IActionBarService extends IComponent {
      * @param type The type of the required button.
      * @returns The required button. Returns undefined if it does not exists.
      */
-    getButton(type: ActionType): IButton | undefined;
+    getButton(type: ActionType): ActionButton | undefined;
     
 }
 
@@ -57,7 +58,7 @@ export interface IActionBarOptions {
  */
 export class ActionBarComponent extends Component implements IActionBarService {
 
-    private readonly _buttonGroups = new Map<ActionType, IButton>();
+    private readonly _buttonGroups = new Map<ActionType, ActionButton>();
     
     private _currFocusButton: ActionType;
 
@@ -84,11 +85,8 @@ export class ActionBarComponent extends Component implements IActionBarService {
             {id: ActionType.GIT, src: 'git'},
         ]
         .forEach(({ id, src }) => {
-            const button = new Button(id, this.contentArea!);
-            button.setClass(['button', 'action-button']);
-            button.setImage(getSvgPathByName(SvgType.base, src));
-            button.setImageClass(['vertical-center', 'filter-black']);
-
+            const button = new ActionButton(id, this.contentArea!);
+            button.render(src);
             this._buttonGroups.set(id, button);
         });
     }
@@ -142,7 +140,7 @@ export class ActionBarComponent extends Component implements IActionBarService {
         }
     }
 
-    public getButton(type: ActionType): IButton | undefined {
+    public getButton(type: ActionType): ActionButton | undefined {
         return this._buttonGroups.get(type);
     }
 

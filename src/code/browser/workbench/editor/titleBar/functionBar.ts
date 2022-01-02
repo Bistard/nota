@@ -1,4 +1,4 @@
-import { Button } from "src/base/browser/basic/button";
+import { Button } from "src/base/browser/basic/button/button";
 import { EVENT_EMITTER } from "src/base/common/event";
 import { getSvgPathByName, SvgType } from "src/base/common/string";
 import { domNodeByIdAddListener } from "src/base/electron/register";

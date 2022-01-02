@@ -3,7 +3,7 @@ import { IComponentService } from "src/code/browser/service/componentService";
 import { IContextMenuService } from "src/code/browser/service/contextMenuService";
 import { ActionType, IActionBarOptions, IActionBarService } from "src/code/browser/workbench/actionBar/actionBar";
 import { EVENT_EMITTER } from "src/base/common/event";
-import { IButton } from "src/base/browser/basic/button";
+import { IButton } from "src/base/browser/basic/button/button";
 import { IActionViewService } from "src/code/browser/workbench/actionView/actionView";
 import { ComponentType } from "src/code/browser/workbench/component";
 

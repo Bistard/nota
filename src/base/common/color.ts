@@ -25,8 +25,14 @@ export class RGBA {
 		this.a = roundFloat(Math.max(Math.min(1, a), 0), 3);
 	}
 
+	private _string?: string;
+
     public toString(): string {
-        return 'rgb(' + this.r + ',' + this.g + ',' + this.b + ',' + this.a + ')';
+		if (this._string) {
+			return this._string;
+		}
+        this._string = 'rgb(' + this.r + ',' + this.g + ',' + this.b + ',' + this.a + ')';
+		return this._string;
     }
 
 	public static equals(a: RGBA, b: RGBA): boolean {

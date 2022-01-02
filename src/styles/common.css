@@ -7,17 +7,6 @@
     user-select: none; /* cannot select character */
 }
 
-.button {
-    transition: 0.1s;
-    -webkit-app-region: no-drag;
-    cursor: pointer;
-    user-select: none;
-
-    text-align: center;
-    line-height: 40px;
-    font-size: 12px;
-}
-
 .vertical-center {
     position: relative;
     top: 50%;
