@@ -8,18 +8,19 @@ import { Emitter } from "src/base/common/event";
  * widget.
  * 
  * @note When invokes onXXX() series of methods, it will automaticaly invokes 
- * all the corresponding event onDidXXX() methods.
+ * all the corresponding event onDidXXX() methods. Briefly speaking, events will
+ * be fired automatically.
  */
 export class Widget extends Disposable {
     
     /* Events */
-    protected readonly _onDidClick = this.__register( new Emitter<Event>() );
+    private readonly _onDidClick = this.__register( new Emitter<Event>() );
     public readonly onDidClick = this._onDidClick.registerListener;
 
-    protected readonly _onDidMouseover = this.__register( new Emitter<Event>() );
+    private readonly _onDidMouseover = this.__register( new Emitter<Event>() );
     public readonly onDidMouseover = this._onDidMouseover.registerListener;
 
-    protected readonly _onDidMouseout = this.__register( new Emitter<Event>() );
+    private readonly _onDidMouseout = this.__register( new Emitter<Event>() );
     public readonly onDidMouseout = this._onDidMouseout.registerListener;
 
     /* Registers a callback function when the provided element is clicked */
