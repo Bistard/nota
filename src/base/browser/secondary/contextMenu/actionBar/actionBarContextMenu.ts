@@ -88,7 +88,7 @@ export class ActionBarContextMenu extends ContextMenu implements IContextMenu {
     //         actionViewService.EOnActionViewOpen.fire();
     //         const checkedBtn = actionBtnContainer.children[i] as HTMLElement;
     //         checkedBtn.classList.add('action-button-focus');
-    //         EVENT_EMITTER.emit('EOnActionViewChange', actionBarOpts.id[i]);  
+    //         EVENT_EMITTER.emit('onActionViewChange', actionBarOpts.id[i]);  
     //     } else if (clickedIndex >= 0) {
     //         for (let i = clickedIndex; i < 4; i++) {
     //             if (actionBarOpts.options[i]) {
@@ -96,7 +96,7 @@ export class ActionBarContextMenu extends ContextMenu implements IContextMenu {
     //                 const checkedBtn = actionBtnContainer.children[i] as HTMLElement;
     //                 currFocusBtn.classList.remove('action-button-focus');
     //                 checkedBtn.classList.add('action-button-focus');
-    //                 EVENT_EMITTER.emit('EOnActionViewChange', actionBarOpts.id[i]);
+    //                 EVENT_EMITTER.emit('onActionViewChange', actionBarOpts.id[i]);
     //                 return;
     //            }
     //         }
@@ -106,7 +106,7 @@ export class ActionBarContextMenu extends ContextMenu implements IContextMenu {
     //                 const checkedBtn = actionBtnContainer.children[i] as HTMLElement;
     //                 currFocusBtn.classList.remove('action-button-focus');
     //                 checkedBtn.classList.add('action-button-focus');  
-    //                 EVENT_EMITTER.emit('EOnActionViewChange', actionBarOpts.id[i]);  
+    //                 EVENT_EMITTER.emit('onActionViewChange', actionBarOpts.id[i]);  
     //                 return;
     //             }
     //         }
