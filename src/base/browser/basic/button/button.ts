@@ -39,7 +39,6 @@ export class Button extends Widget implements IButton {
             if (this.enabled === false) {
                 return;
             }
-            this._onDidClick.fire(event);
         });
 
         // add mouseover event listener

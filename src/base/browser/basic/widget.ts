@@ -4,7 +4,11 @@ import { Emitter } from "src/base/common/event";
 
 /**
  * @description Gives easy abilities to listen to the provided element specific 
- * event type. Moreover, other listeners can listen to the same event from this widget.
+ * event type. Moreover, other listeners can listen to the same event from this 
+ * widget.
+ * 
+ * @note When invokes onXXX() series of methods, it will automaticaly invokes 
+ * all the corresponding event onDidXXX() methods.
  */
 export class Widget extends Disposable {
     
