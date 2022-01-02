@@ -24,7 +24,7 @@ export interface IActionBarService extends IComponent {
      * be focus.
      * @param clickedType The type of buttion is clicked.
      */
-    onActionButtonClick(clickedType: ActionType): void;
+    actionButtonClick(clickedType: ActionType): void;
     
     /**
      * @description Returns a button by provided a buttion type.
@@ -59,7 +59,7 @@ export class ActionBarComponent extends Component implements IActionBarService {
 
     private readonly _buttonGroups = new Map<ActionType, IButton>();
     
-    private currFocusButton: ActionType;
+    private _currFocusButton: ActionType;
 
     constructor(
         parentComponent: Component,
@@ -68,7 +68,7 @@ export class ActionBarComponent extends Component implements IActionBarService {
     ) {
         super(ComponentType.ActionBar, parentComponent, null, componentService);
         
-        this.currFocusButton = ActionType.NONE;
+        this._currFocusButton = ActionType.NONE;
 
     }
 
@@ -111,33 +111,33 @@ export class ActionBarComponent extends Component implements IActionBarService {
         });
 
         // default with openning explorer view
-        this.onActionButtonClick(ActionType.EXPLORER);
+        this.actionButtonClick(ActionType.EXPLORER);
     }
 
     /**
      * @description Clicks a given button. 
-     * @param clickedType Specify which button to be clicked.
+     * @param buttonType Specify which button to be clicked.
      */
-    public onActionButtonClick(clickedType: ActionType): void {
-        const button = this._buttonGroups.get(clickedType)!;
+    public actionButtonClick(buttonType: ActionType): void {
+        const button = this._buttonGroups.get(buttonType)!;
         
         // none of action button is focused, open the action view
-        if (this.currFocusButton == ActionType.NONE) {
-            this.currFocusButton = clickedType;
+        if (this._currFocusButton == ActionType.NONE) {
+            this._currFocusButton = buttonType;
             button.element.classList.add('action-button-focus');
         } 
         
         // if the current focused button is clicked again, close action view.
-        else if (this.currFocusButton == clickedType) {
-            this.currFocusButton = ActionType.NONE;
+        else if (this._currFocusButton == buttonType) {
+            this._currFocusButton = ActionType.NONE;
             button.element.classList.remove('action-button-focus');
         } 
         
         // other action button is clicked, only change the style
         else {
-            const prevButton = this._buttonGroups.get(this.currFocusButton)!;
+            const prevButton = this._buttonGroups.get(this._currFocusButton)!;
             prevButton.element.classList.remove('action-button-focus');
-            this.currFocusButton = clickedType;
+            this._currFocusButton = buttonType;
             button.element.classList.add('action-button-focus');
         }
     }

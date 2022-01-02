@@ -3,6 +3,7 @@ import { Emitter } from "src/base/common/event";
 import { IComponentService } from "src/code/browser/service/componentService";
 
 export const enum ComponentType {
+    Workbench = 'workbench',
     ActionBar = 'action-bar',
     ActionView = 'action-view',
     editor = 'editor-view',

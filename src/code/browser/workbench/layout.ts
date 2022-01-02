@@ -2,7 +2,6 @@ import { Button } from "src/base/browser/basic/button";
 import { IComponentService } from "src/code/browser/service/componentService";
 import { ActionBarComponent, ActionType } from "src/code/browser/workbench/actionBar/actionBar";
 import { ActionViewComponent } from "src/code/browser/workbench/actionView/actionView";
-import { ExplorerViewComponent } from "src/code/browser/workbench/actionView/explorer/explorer";
 import { Component, ComponentType } from "src/code/browser/workbench/component";
 
 /**
@@ -14,7 +13,7 @@ export abstract class WorkbenchLayout extends Component {
     constructor(
         componentService: IComponentService
     ) {
-        super('workbench', null, document.body, componentService);
+        super(ComponentType.Workbench, null, document.body, componentService);
     }
 
     protected _createLayout(): void {
@@ -22,8 +21,8 @@ export abstract class WorkbenchLayout extends Component {
         // ...
 
         /**
-         * @readonly Listens to action bar button click and notifies the actionView 
-         * to swtich the view.
+         * @readonly Listens to each ActionBar button click events and notifies 
+         * the actionView to swtich the view.
          */
         const actionBar = this.componentService.get(ComponentType.ActionBar) as ActionBarComponent;
         const actionView = this.componentService.get(ComponentType.ActionView) as ActionViewComponent;
@@ -43,8 +42,8 @@ export abstract class WorkbenchLayout extends Component {
             const type = pair[1] as ActionType;
 
             this.__register(button.onDidClick((event: Event) => {
-                actionView.onActionViewChange(type);
-                actionBar.onActionButtonClick(type);
+                actionBar.actionButtonClick(type);
+                actionView.actionViewChange(type);
             }));
         });
         

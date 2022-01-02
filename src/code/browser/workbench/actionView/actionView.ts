@@ -1,7 +1,7 @@
 import { getSvgPathByName, SvgType } from 'src/base/common/string';
 import { Component, ComponentType, IComponent } from 'src/code/browser/workbench/component';
 import { ExplorerViewComponent } from "src/code/browser/workbench/actionView/explorer/explorer";
-import { Emitter, EVENT_EMITTER } from 'src/base/common/event';
+import { Emitter, EVENT_EMITTER, Register } from 'src/base/common/event';
 import { createDecorator } from 'src/code/common/service/instantiationService/decorator';
 import { IComponentService } from 'src/code/browser/service/componentService';
 import { IInstantiationService } from 'src/code/common/service/instantiationService/instantiation';
@@ -9,21 +9,15 @@ import { ActionType } from 'src/code/browser/workbench/actionBar/actionBar';
 
 export const IActionViewService = createDecorator<IActionViewService>('action-view-service');
 
-
 export interface IActionViewService extends IComponent {
 
-    whichActionView: ActionType;
-
-    onActionViewChange(actionViewName: ActionType): void;
+    actionViewChange(actionViewName: ActionType): void;
     actionViewTopTextOnChange(name: string): void;
     hideActionViewContent(): void;
     closeActionView(): void;
     openActionView(): void;
 
-    EOnActionViewOpen: Emitter<void>;
-    EOnActionViewClose: Emitter<void>;
-    EOnActionViewChange: Emitter<ActionType>;
-
+    onActionViewChange: Register<ActionType>;
 }
 
 /**
@@ -32,7 +26,7 @@ export interface IActionViewService extends IComponent {
  */
 export class ActionViewComponent extends Component implements IActionViewService {
 
-    public whichActionView: ActionType;
+    private _currFocusView: ActionType;
     
     private actionViewContentContainer!: HTMLElement;
     private resize!: HTMLElement;
@@ -41,12 +35,9 @@ export class ActionViewComponent extends Component implements IActionViewService
 
     private explorerViewComponent!: ExplorerViewComponent;
 
-    public readonly EOnActionViewOpen = new Emitter<void>();
-    public readonly EOnActionViewClose = new Emitter<void>();
-    public readonly EOnActionViewChange = new Emitter<ActionType>();
+    private readonly _onActionViewChange = this.__register( new Emitter<ActionType>() );
+    public readonly onActionViewChange = this._onActionViewChange.registerListener;
     
-    // Others...
-
     constructor(parentComponent: Component,
                 // @INoteBookManagerService private readonly noteBookManagerService: INoteBookManagerService,
                 @IInstantiationService private readonly instantiationService: IInstantiationService,
@@ -54,7 +45,7 @@ export class ActionViewComponent extends Component implements IActionViewService
     ) {
         super(ComponentType.ActionView, parentComponent, null, componentService);
         
-        this.whichActionView = ActionType.NONE;
+        this._currFocusView = ActionType.NONE;
     }
 
     protected override _createContent(): void {
@@ -85,13 +76,6 @@ export class ActionViewComponent extends Component implements IActionViewService
     protected override _registerListeners(): void {
 
         this.explorerViewComponent.registerListeners();
-
-        this.EOnActionViewClose.registerListener(this.closeActionView);
-        this.EOnActionViewOpen.registerListener(this.openActionView);
-        //this.EOnActionViewChange.registerListener(this.onActionViewChange)
-    
-        // remove later
-        EVENT_EMITTER.register('EOnActionViewChange', (name) => this.onActionViewChange(name));
 
     }
 
@@ -136,39 +120,42 @@ export class ActionViewComponent extends Component implements IActionViewService
     /**
      * @description switch to that action view given a specific name.
      */
-    public onActionViewChange(actionViewName: ActionType): void {
-        if (actionViewName === this.whichActionView) {
+    public actionViewChange(viewType: ActionType): void {
+        if (viewType === this._currFocusView) {
             return;
         }
         
-        this.actionViewTopTextOnChange(actionViewName);
+        this.actionViewTopTextOnChange(viewType);
         this.hideActionViewContent();
         
-        if (actionViewName === 'explorer') {
+        if (viewType === ActionType.EXPLORER) {
             $('#explorer-container').show(0);
-        } else if (actionViewName === 'outline') {
+        } else if (viewType === ActionType.OUTLINE) {
             $('#outline-container').show(0);
-        } else if (actionViewName === 'search') {
+        } else if (viewType === ActionType.SEARCH) {
             $('#search-container').show(0);
-        } else if (actionViewName === 'git') {
+        } else if (viewType === ActionType.GIT) {
             $('#git-container').show(0);
         } else {
             throw 'error';
         }
 
-        this.whichActionView = actionViewName;
+        this._currFocusView = viewType;
+        this._onActionViewChange.fire(viewType);
     }
 
     /**
      * @description display given text on the action view top.
      */
-    public actionViewTopTextOnChange(name: string): void {
-        if (name == 'folder') {
+    public actionViewTopTextOnChange(name: ActionType): void {
+        if (name === ActionType.EXPLORER) {
             $('#action-view-top-text').html('Notebook');
-        } else if (name == 'git') {
+        } else if (name === ActionType.OUTLINE) {
+            $('#action-view-top-text').html('Outline');
+        } else if (name === ActionType.SEARCH) {
+            $('#action-view-top-text').html('Search');
+        } else if (name === ActionType.GIT) {
             $('#action-view-top-text').html('Git Control');
-        } else {
-            $('#action-view-top-text').html(name);
         }
     }
 
