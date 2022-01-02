@@ -1,6 +1,5 @@
-import { IWidget } from "src/base/browser/basic/widget";
 
-export interface IResize extends IWidget {
+export interface IResize {
 
 }
 

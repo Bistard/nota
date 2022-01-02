@@ -1,5 +1,6 @@
+import { Widget } from "src/base/browser/basic/widget";
 import { Disposable } from "src/base/common/dispose";
-import { addDisposableListener } from "src/base/common/domNode";
+import { addDisposableListener, EventType } from "src/base/common/domNode";
 import { Emitter, Register } from "src/base/common/event";
 
 
@@ -20,7 +21,7 @@ export interface IButton {
     setImageClass(classes: string[]): void;
 }
 
-export class Button extends Disposable implements IButton {
+export class Button extends Widget implements IButton {
     
     /* Events */
     private readonly _onDidClick = this.__register( new Emitter<Event>() );
@@ -40,26 +41,26 @@ export class Button extends Disposable implements IButton {
         container.appendChild(this.element);
 
         // add onClick event listener
-        this.__register(addDisposableListener(this.element, 'click', (event: any) => {
+        this.onClick(this.element, (event: any) => {
             if (this.enabled === false) {
                 return;
             }
             this._onDidClick.fire(event);
-        }));
+        });
 
         // add mouseover event listener
-        this.__register(addDisposableListener(this.element, 'mouseover', (event: any) => {
+        this.onMouseover(this.element, (event: any) => {
             if (!this.element.classList.contains('disabled')) {
 				// TODO:
                 // this.setHoverBackground();
 			}
-        }));
+        });
 
         // add mouseout event listener (restore standard styles)
-        this.__register(addDisposableListener(this.element, 'mouseout', (event: any) => {
+        this.onMouseout(this.element, (event: any) => {
             // TODO:
             // this.applyStyles();
-		}));
+		});
     }
 
     set enabled(value: boolean) {

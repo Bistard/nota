@@ -46,6 +46,15 @@ export class Dimension implements IDimension {
 }
 
 /**
+ * @readonly A enumeration of all HTMLElement event types.
+ */
+export enum EventType {
+	click = 'click',
+	mouseover = 'mouseover',
+	mouseout = 'mouseout',
+}
+
+/**
  * @description Given a `EventTarget` (eg. HTMLElement), we add a `eventType` 
  * listener to the target with the provided callback. The function returns a 
  * disposable to remove the listener.

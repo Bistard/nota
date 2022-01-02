@@ -1,4 +1,3 @@
-import { IWidget } from "src/base/browser/basic/widget";
 import { getSvgPathByName, SvgType } from 'src/base/common/string';
 
 export const CONTEXT_MENU_ITEM_HEIGHT = 30;
@@ -7,7 +6,7 @@ export const CONTEXT_MENU_SEPERATOR_HEIGHT = 4;
 
 export type Role = "normal" | "seperator" | "subMenu" | "checkBox";
 
-export interface IMenuItem extends IWidget {
+export interface IMenuItem {
     element: HTMLElement;
     option: IMenuItemOption;
 }
