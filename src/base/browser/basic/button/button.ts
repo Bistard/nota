@@ -1,7 +1,5 @@
 import { Widget } from "src/base/browser/basic/widget";
-import { Disposable } from "src/base/common/dispose";
-import { addDisposableListener, EventType } from "src/base/common/domNode";
-import { Emitter, Register } from "src/base/common/event";
+import { Register } from "src/base/common/event";
 
 
 export interface IButtonOptions {
@@ -23,10 +21,6 @@ export interface IButton {
 
 export class Button extends Widget implements IButton {
     
-    /* Events */
-    private readonly _onDidClick = this.__register( new Emitter<Event>() );
-    public readonly onDidClick = this._onDidClick.registerListener;
-
     public element: HTMLElement;
     public imgElement?: HTMLImageElement;
 
