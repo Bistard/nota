@@ -1,24 +1,26 @@
-import { Button, IButtonOptions } from "src/base/browser/basic/button/button";
+import { Button, IButtonOptions } from "src/base/browser/basic/button/button"
 import { getSvgPathByName, SvgType } from "src/base/common/string";
+import { ipcRendererSend } from "src/base/electron/register";
 
-export interface IActionButtonOptions extends IButtonOptions {
-    
+export interface IWindowButtonOptions extends IButtonOptions {
+    ipcMessage: string
 }
 
-/**
- * @description A simple encapsulation on the buttons from actionBarCompoent.
- */
-export class ActionButton extends Button {
+export class WindowButton extends Button {
 
-    constructor(opts?: IActionButtonOptions) {
+    private _ipcMessage: string;
+
+    constructor(opts: IWindowButtonOptions) {
         super(opts);
+
+        this._ipcMessage = opts.ipcMessage;
     }
-    
+
     /**
      * @description Sets up all the CSS attributes and icon to this action button.
      * @param src The icon name of the icon.
      */
-    public override render(container: HTMLElement): void {
+     public override render(container: HTMLElement): void {
         super.render(container);
 
         if (this._element === undefined) {
@@ -30,21 +32,10 @@ export class ActionButton extends Button {
             if (this.enabled === false) {
                 return;
             }
-        });
 
-        // add mouseover event listener
-        this.onMouseover(this._element, (event: any) => {
-            if (this._element!.classList.contains('disabled') === false) {
-				// TODO:
-                // this.setHoverBackground();
-			}
+            // send message to the main process
+            ipcRendererSend(this._ipcMessage);
         });
-
-        // add mouseout event listener (restore standard styles)
-        this.onMouseout(this._element, (event: any) => {
-            // TODO:
-            // this.applyStyles();
-		});
 
         this.applyStyle();
     }
@@ -61,10 +52,13 @@ export class ActionButton extends Button {
         this._element.appendChild(this._imgElement);
 
         // set element classes
-        this._element?.classList.add(...['button', 'action-button']);
+        this._element.classList.add(...['toggleBtn']);
+        if (this.opts.classes) {
+            this._element.classList.add(...this.opts.classes);
+        }
 
         // set image element classes
-        this._imgElement.classList.add(...['vertical-center', 'filter-black']);
+        this._imgElement.classList.add(...['vertical-center']);
     }
-    // TODO: a hover listener to show a message box
+
 }

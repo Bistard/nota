@@ -21,10 +21,12 @@ export function ipcRendererOn(message: string, listener: (event: IpcRendererEven
     ipcRenderer.on(message, listener);
 }
 
+/** @deprecated */
 export function domNodeAddListener<T extends HTMLElement>(node: T, eventType: string, listener: EventListenerOrEventListenerObject): void {
     node.addEventListener(eventType, listener);
 }
 
+/** @deprecated */
 export function domNodeByIdAddListener(nodeName: string, eventType: string, listener: EventListenerOrEventListenerObject): void {
     const domNode = document.getElementById(nodeName);
     if (domNode === null) {
@@ -33,6 +35,7 @@ export function domNodeByIdAddListener(nodeName: string, eventType: string, list
     domNode.addEventListener(eventType, listener);
 }
 
+/** @deprecated */
 export function domNodeByClassAddListener(className: string, eventType: string, listener: EventListenerOrEventListenerObject): void {
     const domNodes: HTMLCollectionOf<Element> = document.getElementsByClassName(className);
     if (!domNodes.length) {

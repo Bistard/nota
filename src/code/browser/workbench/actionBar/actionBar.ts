@@ -80,9 +80,13 @@ export class ActionBarComponent extends Component implements IActionBarService {
     }
 
     protected _createWidgetBar(container: HTMLElement): WidgetBar<ActionButton> {
+        
+        // constructs a new widgetBar
         const widgetBar = new WidgetBar<ActionButton>(container, {
             orientation: Orientation.Vertical
         });
+
+        // creates all the action buttons
         [
             {id: ActionType.EXPLORER, src: 'file'},
             {id: ActionType.OUTLINE, src: 'list'},
