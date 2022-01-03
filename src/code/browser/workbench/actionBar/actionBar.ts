@@ -1,12 +1,11 @@
-import { Button } from 'src/base/browser/basic/button/button';
 import { Component, ComponentType, IComponent } from 'src/code/browser/workbench/component';
-import { getSvgPathByName, SvgType } from 'src/base/common/string';
 import { ContextMenuType, Coordinate } from 'src/base/browser/secondary/contextMenu/contextMenu';
 import { createDecorator } from 'src/code/common/service/instantiationService/decorator';
 import { IContextMenuService } from 'src/code/browser/service/contextMenuService';
 import { IComponentService } from 'src/code/browser/service/componentService';
 import { ActionButton } from 'src/code/browser/workbench/actionBar/actionButton';
-import { WidgetBar, WidgetBarOrientation } from 'src/base/browser/secondary/widgetBar/widgetBar';
+import { WidgetBar } from 'src/base/browser/secondary/widgetBar/widgetBar';
+import { Orientation } from 'src/base/common/domNode';
 
 export const IActionBarService = createDecorator<IActionBarService>('action-bar-service');
 
@@ -58,6 +57,7 @@ export interface IActionBarOptions {
  */
 export class ActionBarComponent extends Component implements IActionBarService {
 
+    /* Stores all the action buttons. */
     private _widgetBar: WidgetBar<ActionButton> | undefined;
     private _currFocusButton: ActionType;
 
@@ -81,7 +81,7 @@ export class ActionBarComponent extends Component implements IActionBarService {
 
     protected _createWidgetBar(container: HTMLElement): WidgetBar<ActionButton> {
         const widgetBar = new WidgetBar<ActionButton>(container, {
-            orientation: WidgetBarOrientation.Vertical
+            orientation: Orientation.Vertical
         });
         [
             {id: ActionType.EXPLORER, src: 'file'},
@@ -91,7 +91,11 @@ export class ActionBarComponent extends Component implements IActionBarService {
         ]
         .forEach(({ id, src }) => {
             const button = new ActionButton({src: src});
-            widgetBar.addItem(button);
+            widgetBar.addItem({
+                id: id, 
+                item: button,
+                dispose: button.dispose
+            });
         });
 
         return widgetBar;
@@ -154,20 +158,7 @@ export class ActionBarComponent extends Component implements IActionBarService {
     }
 
     public getButton(type: ActionType): ActionButton | undefined {
-        if (this._widgetBar === undefined) {
-            return undefined;
-        }
-
-        switch (type) {
-            case ActionType.EXPLORER:
-                return this._widgetBar.items[0];
-            case ActionType.OUTLINE:
-                return this._widgetBar.items[1];
-            case ActionType.SEARCH:
-                return this._widgetBar.items[2];
-            case ActionType.GIT:
-                return this._widgetBar.items[3];
-        }
+        return this._widgetBar?.getItem(type);
     }
 
 }

@@ -56,6 +56,14 @@ export enum EventType {
 }
 
 /**
+ * @readonly Either displaying vertically or horizontally.
+ */
+export enum Orientation {
+    Horizontal,
+    Vertical
+}
+
+/**
  * @description Given a `EventTarget` (eg. HTMLElement), we add a `eventType` 
  * listener to the target with the provided callback. The function returns a 
  * disposable to remove the listener.

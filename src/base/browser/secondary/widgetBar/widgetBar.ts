@@ -1,35 +1,92 @@
-import { IWidget, Widget } from "src/base/browser/basic/widget";
-import { Disposable, disposeAll } from "src/base/common/dispose";
-import { addDisposableListener, clearChildrenNodes, EventType } from "src/base/common/domNode";
+import { IWidget } from "src/base/browser/basic/widget";
+import { Disposable, disposeAll, IDisposable } from "src/base/common/dispose";
+import { addDisposableListener, clearChildrenNodes, EventType, Orientation } from "src/base/common/domNode";
 
-export interface IWidgetBarItem extends IWidget {
-    // right now, is equivalent with a IWidget.
+/**
+ * @readonly An interface that stores widget and will be stored inside the widget bar.
+ */
+export interface IWidgetBarItem<T> extends IDisposable {
+    id: string
+    item: T,
+    dispose: () => void;
 }
 
-export interface IWidgetBar extends IWidget {
-    // TODO
+export interface IWidgetBar<T extends IWidget> extends IWidget {
+    /* The array container to contains all the widgets */
+    items: IWidgetBarItem<T>[];
+
+    /* The HTMLElement of the widget bar which contains `viewContainer` */
+    container: HTMLElement;
+
+    /* The list HTMLElement to stores all the actual HTMLElements of each widget */
+    viewsContainer: HTMLElement;
+
+    /**
+     * @description Inserts the provided widget item into the bar.
+     * @param item The widget item to be added.
+     * @param index The index to be inserted at. If not given, pushes to the back 
+     *  as default.
+     */
+    addItem(item: IWidgetBarItem<T>, index?: number): void;
+    
+    /**
+     * @description Removes an existed widget item from the bar.
+     * @param index The index to be removed. If index is invalid, a false will 
+     * be returned.
+     * @returns Tells wether the operation success.
+     */
+    removeItem(index: number): boolean;
+    
+    /**
+     * @description Gets the widget item by their id.
+     * @param id The id of the widget item.
+     * @returns Returns the coressponding widget, undefined if widget does not
+     * exist.
+     */
+    getItem(id: string): T | undefined;
+    
+    /**
+     * @description Gets the index of the widget which has the provided id.
+     * @param id The id of the widget item.
+     * @returns Returns the index of the widget in the bar. -1 if wdiget does not
+     * exist.
+     */
+    getItemIndex(id: string): number;
+    
+    // hide(): void;
+
+    /** 
+     * @description Clears all the existed widget items. 
+     * @returns Returns the number of cleared widget items. */
+    clear(): number;
+
+    /** @description Returns the size of the bar. */
+    size(): number;
+
+    /** @description Determines if the bar is empty. */
+    empty(): boolean;
 }
 
-export enum WidgetBarOrientation {
-    Horizontal,
-    Vertical
-}
-
+/** 
+ * @readonly The options for the WidgetBar. 
+ */
 export interface IWidgetBarOptions {
-    orientation: WidgetBarOrientation
+    orientation: Orientation // displaying vertical or horizontal
+    // more and more...
 }
 
 /**
- * // TODO rename to WidgetBar
+ * @description A convenient tool to stores a sequence of Widgets and displays 
+ * them in s sequential order.
  */
 export class WidgetBar<T extends IWidget> extends Disposable {
 
     protected readonly _container: HTMLElement;
     protected readonly _itemsContainer: HTMLElement;
-    public items: T[];
-
     protected opts: IWidgetBarOptions;
 
+    public items: IWidgetBarItem<T>[];
+    
     constructor(
         parentContainer: HTMLElement,
         opts: IWidgetBarOptions
@@ -45,7 +102,7 @@ export class WidgetBar<T extends IWidget> extends Disposable {
         this._itemsContainer = document.createElement('ui');
         this._itemsContainer.classList.add('widget-list');
 
-        if (this.opts.orientation === WidgetBarOrientation.Vertical) {
+        if (this.opts.orientation === Orientation.Vertical) {
             this._itemsContainer.style.display = 'block';
         }
 
@@ -68,14 +125,14 @@ export class WidgetBar<T extends IWidget> extends Disposable {
         super.dispose();
     }
 
-    public addItem(item: T, index?: number): void {
+    public addItem(item: IWidgetBarItem<T>, index?: number): void {
 
         // create a new view HTMLElement
         const newViewElement = document.createElement('li');
         newViewElement.classList.add('widget-item');
 
         // render the viewItem
-        item.render(newViewElement);
+        item.item.render(newViewElement);
 
         // prevent native context menu on the viewElement
         this.__register(addDisposableListener(newViewElement, EventType.contextmenu, (e) => {
@@ -108,19 +165,24 @@ export class WidgetBar<T extends IWidget> extends Disposable {
         return true;
     }
 
-    // public getItem(id: string): T {
-    //     // TODO use this.items.filter
+    public getItem(id: string): T | undefined {
+        return this.items.filter(item => item.id === id)[0]?.item;
+    }
+
+    public getItemIndex(id: string): number {
+        for (let index = 0; index < this.items.length; index++) {
+			if (this.items[index]!.id === id) {
+				return index;
+			}
+		}
+		return -1;
+    }
+
+    // public hide(): void {
+    //   // TODO
     // }
 
-    // public getItemIndex(id: string): number {
-
-    // }
-
-    // public hideItems(): void {
-
-    // }
-
-    public clearItems(): number {
+    public clear(): number {
         disposeAll(this.items);
         this.items = [];
         return clearChildrenNodes(this._itemsContainer);
@@ -132,26 +194,6 @@ export class WidgetBar<T extends IWidget> extends Disposable {
 
     public empty(): boolean {
         return this.items.length === 0;
-    }
-
-    public getItemWidth(index: number): number {
-        // index is invalid
-        if (index < 0 || index >= this._itemsContainer.children.length) {
-            return -1;
-        }
-
-        const viewElement = this._itemsContainer.children[index]!;
-        return viewElement.clientWidth;
-    }
-
-    public getItemHeight(index: number): number {
-        // index is invalid
-        if (index < 0 || index >= this._itemsContainer.children.length) {
-            return -1;
-        }
-
-        const viewElement = this._itemsContainer.children[index]!;
-        return viewElement.clientHeight;
     }
 
 }
