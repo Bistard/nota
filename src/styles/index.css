@@ -8,6 +8,7 @@
 @import "../../node_modules/@toast-ui/editor-plugin-color-syntax/dist/toastui-editor-plugin-color-syntax.css";
 
 @import "../base/browser/basic/button/button.css";
+@import "../base/browser/secondary/widgetBar/WidgetBar.css";
 @import "../base/browser/secondary/contextMenu/contextMenu.css";
 
 @import "./common.css";

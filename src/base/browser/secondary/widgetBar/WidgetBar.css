@@ -1,0 +1,22 @@
+
+.composite-bar {
+    white-space: nowrap;
+	height: 100%;
+}
+
+.composite-bar > .composite-list {
+	display: flex;
+	margin: 0 auto;
+	padding: 0;
+	height: 100%;
+	width: 100%;
+	align-items: center;
+}
+
+.composite-list > .composite-item {
+    display: block;
+	align-items: center;
+	justify-content: center;
+	cursor: pointer;
+	position: relative;  /* DO NOT REMOVE */
+}
