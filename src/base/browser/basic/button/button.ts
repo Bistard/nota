@@ -3,7 +3,8 @@ import { Register } from "src/base/common/event";
 
 
 export interface IButtonOptions {
-    src: string
+    src: string,
+    classes?: string[],
 }
 
 export interface IButton {
@@ -45,31 +46,6 @@ export class Button extends Widget implements IButton {
 
     public override render(container: HTMLElement): void {
         super.render(container);
-
-        if (this._element === undefined) {
-            return;
-        }
-
-        // add onClick event listener
-        this.onClick(this._element, (event: any) => {
-            if (this.enabled === false) {
-                return;
-            }
-        });
-
-        // add mouseover event listener
-        this.onMouseover(this._element, (event: any) => {
-            if (this._element!.classList.contains('disabled') === false) {
-				// TODO:
-                // this.setHoverBackground();
-			}
-        });
-
-        // add mouseout event listener (restore standard styles)
-        this.onMouseout(this._element, (event: any) => {
-            // TODO:
-            // this.applyStyles();
-		});
     }
 
 }
