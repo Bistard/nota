@@ -50,6 +50,7 @@ export class Dimension implements IDimension {
  */
 export enum EventType {
 	click = 'click',
+	contextmenu = 'contextmenu',
 	mouseover = 'mouseover',
 	mouseout = 'mouseout',
 }
@@ -76,4 +77,18 @@ export function addDisposableListener(domNode: EventTarget, eventType: string, c
 
 		domNode.removeEventListener(eventType, callback);
 	});
+}
+
+/**
+ * @description Clears all the children DOM nodes from a provided node.
+ * @param node The parent DOM node.
+ * @returns The number of cleared nodes.
+ */
+export function clearChildrenNodes(node: HTMLElement): number {
+	let cnt = 0;
+	while (node.firstChild) {
+		node.firstChild.remove();
+		cnt++;
+	}
+	return cnt;
 }

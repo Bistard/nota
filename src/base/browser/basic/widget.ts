@@ -1,6 +1,19 @@
-import { Disposable } from "src/base/common/dispose";
+import { Disposable, IDisposable } from "src/base/common/dispose";
 import { addDisposableListener, EventType } from "src/base/common/domNode";
-import { Emitter } from "src/base/common/event";
+import { Emitter, Register } from "src/base/common/event";
+
+export interface IWidget extends IDisposable {
+    
+    readonly onDidClick: Register<Event>;
+    readonly onDidMouseover: Register<Event>;
+    readonly onDidMouseout: Register<Event>;
+
+    onClick(element: HTMLElement, callback: (event: any) => void): void;
+    onMouseover(element: HTMLElement, callback: (event: any) => void): void;
+    onMouseout(element: HTMLElement, callback: (event: any) => void): void;
+
+    render(container: HTMLElement): void;
+}
 
 /**
  * @description Gives easy abilities to listen to the provided element specific 
@@ -11,8 +24,9 @@ import { Emitter } from "src/base/common/event";
  * all the corresponding event onDidXXX() methods. Briefly speaking, events will
  * be fired automatically.
  */
-export class Widget extends Disposable {
+export abstract class Widget extends Disposable implements IWidget {
     
+    // REVIEW: causes extra memory usage if the derived classes are not listening to some provided events
     /* Events */
     private readonly _onDidClick = this.__register( new Emitter<Event>() );
     public readonly onDidClick = this._onDidClick.registerListener;
@@ -22,6 +36,19 @@ export class Widget extends Disposable {
 
     private readonly _onDidMouseout = this.__register( new Emitter<Event>() );
     public readonly onDidMouseout = this._onDidMouseout.registerListener;
+
+    /* other attributes */
+
+    protected _element: HTMLElement | undefined = undefined;
+
+    /* constructor */
+    constructor() {
+        super();
+    }
+
+    get element(): HTMLElement | undefined {
+        return this._element;
+    }
 
     /* Registers a callback function when the provided element is clicked */
     public onClick(element: HTMLElement, callback: (event: any) => void): void {
@@ -47,4 +74,20 @@ export class Widget extends Disposable {
         }));
     }
 
+    public render(container: HTMLElement): void {
+        this._element = container;
+    }
+
+    public applyStyle(): void {
+        /* override by the derived classes */
+    }
+
+    override dispose(): void {
+		if (this._element) {
+			this._element.remove();
+			this._element = undefined;
+		}
+
+		super.dispose();
+	}
 }
