@@ -3,7 +3,6 @@ import { WindowBarComponent } from 'src/code/browser/workbench/editor/titleBar/w
 import { FunctionBarComponent } from 'src/code/browser/workbench/editor/titleBar/functionBar';
 import { EditorComponentType } from 'src/code/browser/workbench/editor/editor';
 import { IComponentService } from 'src/code/browser/service/componentService';
-import { IUserConfigService } from 'src/code/common/service/configService/configService';
 
 export enum TitleBarComponentType {
     functionBar = 'function-bar',

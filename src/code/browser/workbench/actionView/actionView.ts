@@ -30,11 +30,12 @@ export class ActionViewComponent extends Component implements IActionViewService
     
     private actionViewContentContainer!: HTMLElement;
     private resize!: HTMLElement;
-    private actionViewTop!: HTMLElement;
+    private actionViewTitle!: HTMLElement;
     private actionViewContent!: HTMLElement;
 
     private explorerViewComponent!: ExplorerViewComponent;
 
+    /* Events fired when the action view is switched to others */
     private readonly _onActionViewChange = this.__register( new Emitter<ActionType>() );
     public readonly onActionViewChange = this._onActionViewChange.registerListener;
     
@@ -60,10 +61,10 @@ export class ActionViewComponent extends Component implements IActionViewService
         this.resize.id = 'resize';
         this.resize.classList.add('resizeBtn-style', 'vertical-center');
 
-        this.actionViewTop = this._createActionViewTop();
+        this.actionViewTitle = this._createActionViewTop();
         this.actionViewContent = this._createActionViewContent();
 
-        this.actionViewContentContainer.appendChild(this.actionViewTop);
+        this.actionViewContentContainer.appendChild(this.actionViewTitle);
         this.actionViewContentContainer.appendChild(this.actionViewContent);
         
         this.contentArea.appendChild(this.actionViewContentContainer);
@@ -80,8 +81,8 @@ export class ActionViewComponent extends Component implements IActionViewService
     }
 
     private _createActionViewTop(): HTMLElement {
-        const actionViewTop = document.createElement('div');
-        actionViewTop.id = 'action-view-top';
+        const actionViewTitle = document.createElement('div');
+        actionViewTitle.id = 'action-view-top';
 
         const topText = document.createElement('div');
         topText.id = 'action-view-top-text';
@@ -93,9 +94,9 @@ export class ActionViewComponent extends Component implements IActionViewService
         topIcon.src = getSvgPathByName(SvgType.base, 'three-dots');
         topIcon.classList.add('vertical-center', 'filter-black');
 
-        actionViewTop.appendChild(topText);
-        actionViewTop.appendChild(topIcon);
-        return actionViewTop;
+        actionViewTitle.appendChild(topText);
+        actionViewTitle.appendChild(topIcon);
+        return actionViewTitle;
     }
 
     // TODO: only render the view (DOM elements) when it is actually in is visible to user

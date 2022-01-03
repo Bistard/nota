@@ -116,14 +116,16 @@ export class ActionBarContextMenu extends ContextMenu implements IContextMenu {
     // }  
 
     public switchButtonDisplay(button: IButton, index: number): boolean {
-        if (button.element.style.display == 'none') {
-            button.element.style.display = 'initial';
-            actionBarOpts.options[index] = true;
-            return true;
-        } else {
-            button.element.style.display = 'none';
-            actionBarOpts.options[index] = false;
-            return false;
-        }
+        return false;
+        // TODO: refactor
+        // if (button.element.style.display == 'none') {
+        //     button.element.style.display = 'initial';
+        //     actionBarOpts.options[index] = true;
+        //     return true;
+        // } else {
+        //     button.element.style.display = 'none';
+        //     actionBarOpts.options[index] = false;
+        //     return false;
+        // }
     }
 }

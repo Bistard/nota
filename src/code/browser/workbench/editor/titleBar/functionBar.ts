@@ -28,16 +28,18 @@ export class FunctionBarComponent extends Component {
             {id: 'mode-switch', src: 'md-wysiwyg'},
             {id: 'md-tool', src: 'text'},
         ].forEach(({id, src}) => {
-            const button = new Button(id, this.contentArea!);
-            button.setClass(['button', 'function-button']);
-            button.setImage(getSvgPathByName(SvgType.base, src));
-            button.setImageClass(['vertical-center', 'filter-black']);
+            // TODO: refactor
+            // const button = new Button(id, this.contentArea!);
+            // button.setClass(['button', 'function-button']);
+            // button.setImage(getSvgPathByName(SvgType.base, src));
+            // button.setImageClass(['vertical-center', 'filter-black']);
         })
         
-        const button = new Button('expand-collapse', this.container);
-        button.setClass(['button']);
-        button.setImage(getSvgPathByName(SvgType.base, 'caret-left'));
-        button.setImageClass(['vertical-center', 'filter-black']);
+        // TODO: refactor
+        // const button = new Button('expand-collapse', this.container);
+        // button.setClass(['button']);
+        // button.setImage(getSvgPathByName(SvgType.base, 'caret-left'));
+        // button.setImageClass(['vertical-center', 'filter-black']);
     }
 
     protected override _registerListeners(): void {

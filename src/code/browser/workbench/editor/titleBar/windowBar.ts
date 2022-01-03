@@ -22,10 +22,11 @@ export class WindowBarComponent extends Component {
             {id: 'close-btn', src: 'close', classes: ['toggleBtn', 'closeToggleBtn']},
         ]
         .forEach(( {id, src, classes} ) => {
-            const button = new Button(id, this.container);
-            button.setClass(classes);
-            button.setImage(getSvgPathByName(SvgType.base, src));
-            button.setImageClass(['vertical-center']);
+            // TODO: refactor
+            // const button = new Button(id, this.container);
+            // button.setClass(classes);
+            // button.setImage(getSvgPathByName(SvgType.base, src));
+            // button.setImageClass(['vertical-center']);
         })
 
     }
