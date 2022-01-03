@@ -6,6 +6,7 @@ import { createDecorator } from 'src/code/common/service/instantiationService/de
 import { IContextMenuService } from 'src/code/browser/service/contextMenuService';
 import { IComponentService } from 'src/code/browser/service/componentService';
 import { ActionButton } from 'src/code/browser/workbench/actionBar/actionButton';
+import { WidgetBar, WidgetBarOrientation } from 'src/base/browser/secondary/widgetBar/widgetBar';
 
 export const IActionBarService = createDecorator<IActionBarService>('action-bar-service');
 
@@ -21,19 +22,18 @@ export enum ActionType {
 export interface IActionBarService extends IComponent {
     
     /**
+     * @description Returns a button by provided a buttion type.
+     * @param type The type of the required button.
+     * @returns The required button. Returns undefined if it does not exists.
+     */
+     getButton(type: ActionType): ActionButton | undefined;
+
+    /**
      * @description Invoked when the action button is clicked. The button will 
      * be focus.
      * @param clickedType The type of buttion is clicked.
      */
     actionButtonClick(clickedType: ActionType): void;
-    
-    /**
-     * @description Returns a button by provided a buttion type.
-     * @param type The type of the required button.
-     * @returns The required button. Returns undefined if it does not exists.
-     */
-    getButton(type: ActionType): ActionButton | undefined;
-    
 }
 
 export interface IActionBarOptions {
@@ -58,8 +58,7 @@ export interface IActionBarOptions {
  */
 export class ActionBarComponent extends Component implements IActionBarService {
 
-    private readonly _buttonGroups = new Map<ActionType, ActionButton>();
-    
+    private _widgetBar: WidgetBar<ActionButton> | undefined;
     private _currFocusButton: ActionType;
 
     constructor(
@@ -70,7 +69,6 @@ export class ActionBarComponent extends Component implements IActionBarService {
         super(ComponentType.ActionBar, parentComponent, null, componentService);
         
         this._currFocusButton = ActionType.NONE;
-
     }
 
     protected override _createContent(): void {
@@ -78,6 +76,13 @@ export class ActionBarComponent extends Component implements IActionBarService {
         this.contentArea.id = 'action-button-container';
         this.container.appendChild(this.contentArea);
 
+        this._widgetBar = this.__register(this._createWidgetBar(this.contentArea));
+    }
+
+    protected _createWidgetBar(container: HTMLElement): WidgetBar<ActionButton> {
+        const widgetBar = new WidgetBar<ActionButton>(container, {
+            orientation: WidgetBarOrientation.Vertical
+        });
         [
             {id: ActionType.EXPLORER, src: 'file'},
             {id: ActionType.OUTLINE, src: 'list'},
@@ -85,10 +90,11 @@ export class ActionBarComponent extends Component implements IActionBarService {
             {id: ActionType.GIT, src: 'git'},
         ]
         .forEach(({ id, src }) => {
-            const button = new ActionButton(id, this.contentArea!);
-            button.render(src);
-            this._buttonGroups.set(id, button);
+            const button = new ActionButton({src: src});
+            widgetBar.addItem(button);
         });
+
+        return widgetBar;
     }
 
     protected override _registerListeners(): void {
@@ -117,9 +123,14 @@ export class ActionBarComponent extends Component implements IActionBarService {
      * @param buttonType Specify which button to be clicked.
      */
     public actionButtonClick(buttonType: ActionType): void {
-        const button = this._buttonGroups.get(buttonType)!;
+        const button = this.getButton(buttonType)!;
+
+        // has not been rendered yet.
+        if (button.element === undefined) {
+            return;
+        }
         
-        // none of action button is focused, open the action view
+        // none of action button is focused, open the action view.
         if (this._currFocusButton == ActionType.NONE) {
             this._currFocusButton = buttonType;
             button.element.classList.add('action-button-focus');
@@ -131,17 +142,32 @@ export class ActionBarComponent extends Component implements IActionBarService {
             button.element.classList.remove('action-button-focus');
         } 
         
-        // other action button is clicked, only change the style
+        // other action button is clicked, only change the style.
         else {
-            const prevButton = this._buttonGroups.get(this._currFocusButton)!;
-            prevButton.element.classList.remove('action-button-focus');
+            // the previous button must be rendered.
+            const prevButton = this.getButton(this._currFocusButton)!;
+            prevButton.element!.classList.remove('action-button-focus');
+            
             this._currFocusButton = buttonType;
             button.element.classList.add('action-button-focus');
         }
     }
 
     public getButton(type: ActionType): ActionButton | undefined {
-        return this._buttonGroups.get(type);
+        if (this._widgetBar === undefined) {
+            return undefined;
+        }
+
+        switch (type) {
+            case ActionType.EXPLORER:
+                return this._widgetBar.items[0];
+            case ActionType.OUTLINE:
+                return this._widgetBar.items[1];
+            case ActionType.SEARCH:
+                return this._widgetBar.items[2];
+            case ActionType.GIT:
+                return this._widgetBar.items[3];
+        }
     }
 
 }
