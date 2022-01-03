@@ -12,7 +12,9 @@ export interface IWidget extends IDisposable {
     onMouseover(element: HTMLElement, callback: (event: any) => void): void;
     onMouseout(element: HTMLElement, callback: (event: any) => void): void;
 
+    readonly element: HTMLElement | undefined;
     render(container: HTMLElement): void;
+    applyStyle(): void;
 }
 
 /**

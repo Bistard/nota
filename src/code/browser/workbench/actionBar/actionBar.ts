@@ -25,7 +25,7 @@ export interface IActionBarService extends IComponent {
      * @param type The type of the required button.
      * @returns The required button. Returns undefined if it does not exists.
      */
-     getButton(type: ActionType): ActionButton | undefined;
+    getButton(type: ActionType): ActionButton | undefined;
 
     /**
      * @description Invoked when the action button is clicked. The button will 
