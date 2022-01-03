@@ -40,10 +40,10 @@ export class WidgetBar<T extends IWidget> extends Disposable {
         this.opts = opts;
 
         this._container = document.createElement('div');
-        this._container.classList.add('composite-bar');
+        this._container.classList.add('widget-bar');
 
         this._itemsContainer = document.createElement('ui');
-        this._itemsContainer.classList.add('composite-list');
+        this._itemsContainer.classList.add('widget-list');
 
         if (this.opts.orientation === WidgetBarOrientation.Vertical) {
             this._itemsContainer.style.display = 'block';
@@ -72,7 +72,7 @@ export class WidgetBar<T extends IWidget> extends Disposable {
 
         // create a new view HTMLElement
         const newViewElement = document.createElement('li');
-        newViewElement.classList.add('composite-item');
+        newViewElement.classList.add('widget-item');
 
         // render the viewItem
         item.render(newViewElement);
