@@ -4,10 +4,11 @@
   "description": "an open-sourced markdown editor",
   "main": "./dist/main-bundle.js",
   "scripts": {
+    "start": "npm run build && electron .",
+    "test-start": "npm run test && npm start",
     "test": "mocha --ui tdd",
     "build": "webpack --config webpack.config.js --stats-error-details",
-    "test-start": "npm run test && npm start",
-    "start": "npm run build && electron ."
+    "gen-icons": "fantasticon -c .fantasticonrc.js"
   },
   "repository": {
     "type": "git",
@@ -28,6 +29,7 @@
     "@types/prismjs": "^1.16.6",
     "cross-env": "^7.0.3",
     "electron": "^13.1.7",
+    "fantasticon": "^1.2.3",
     "mocha": "^9.1.3",
     "ts-loader": "^9.2.5",
     "ts-node": "^10.4.0",

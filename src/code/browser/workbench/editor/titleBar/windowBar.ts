@@ -68,14 +68,15 @@ export class WindowBarComponent extends Component {
     /**
      * @description handling .svg of maxResButton
      */
-    changeMaxResBtn(isMaxApp: boolean): void {
-        const maxBtn = document.getElementById('max-btn') as HTMLElement;
-        const maxBtnImg = maxBtn.childNodes[0] as  HTMLImageElement;
-        if (isMaxApp) {
-            maxBtnImg.src = getSvgPathByName(SvgType.base, 'max-restore');
-        } else {
-            maxBtnImg.src = getSvgPathByName(SvgType.base, 'max');
-        }
+    public changeMaxResBtn(isMaxApp: boolean): void {
+        // TODO: refactor
+        // const maxBtn = document.getElementById('max-btn') as HTMLElement;
+        // const maxBtnImg = maxBtn.childNodes[0] as HTMLImageElement;
+        // if (isMaxApp) {
+        //     maxBtnImg.src = getSvgPathByName(SvgType.base, 'multi-layer');
+        // } else {
+        //     maxBtnImg.src = getSvgPathByName(SvgType.base, 'max');
+        // }
     }
 
 }

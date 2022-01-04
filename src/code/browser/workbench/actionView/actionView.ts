@@ -91,7 +91,7 @@ export class ActionViewComponent extends Component implements IActionViewService
 
         const topIcon = document.createElement('img');
         topIcon.id = 'action-view-top-icon';
-        topIcon.src = getSvgPathByName(SvgType.base, 'three-dots');
+        topIcon.src = getSvgPathByName(SvgType.base, 'three-dots-horizontal');
         topIcon.classList.add('vertical-center', 'filter-black');
 
         actionViewTitle.appendChild(topText);
