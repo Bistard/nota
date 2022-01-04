@@ -11,6 +11,9 @@
 #window-bar .widget-item {
     width: 40px;
     height: 40px;
+    align-content: center;
+    display: flex;
+
 }
 
 #window-bar .widget-item .icon {
