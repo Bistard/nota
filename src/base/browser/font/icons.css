@@ -1,7 +1,7 @@
 @font-face {
     font-family: "icons";
-    src: url("src/base/browser/font/icons.woff?9f67214ed25105b16c7eb5e4666f33d6") format("woff"),
-url("src/base/browser/font/icons.woff2?9f67214ed25105b16c7eb5e4666f33d6") format("woff2");
+    src: url("src/base/browser/font/icons.woff?160764a3a80536205802fca138fe3a27") format("woff"),
+url("src/base/browser/font/icons.woff2?160764a3a80536205802fca138fe3a27") format("woff2");
 }
 
 i[class^="icon-"]:before, i[class*=" icon-"]:before {
@@ -45,36 +45,33 @@ i[class^="icon-"]:before, i[class*=" icon-"]:before {
 .icon-list:before {
     content: "\f10a";
 }
-.icon-max-restore:before {
+.icon-max:before {
     content: "\f10b";
 }
-.icon-max:before {
+.icon-md-split:before {
     content: "\f10c";
 }
-.icon-md-split:before {
+.icon-md-wysiwyg:before {
     content: "\f10d";
 }
-.icon-md-wysiwyg:before {
+.icon-min:before {
     content: "\f10e";
 }
-.icon-min:before {
+.icon-multi-layer:before {
     content: "\f10f";
 }
-.icon-resize-vertical:before {
+.icon-search:before {
     content: "\f110";
 }
-.icon-search:before {
+.icon-setting:before {
     content: "\f111";
 }
-.icon-setting:before {
+.icon-text:before {
     content: "\f112";
 }
-.icon-tabs:before {
+.icon-three-dots-horizontal:before {
     content: "\f113";
 }
-.icon-text:before {
+.icon-three-dots-vertical:before {
     content: "\f114";
-}
-.icon-three-dots:before {
-    content: "\f115";
 }
