@@ -5,20 +5,16 @@
     width: auto;
     height: 40px;
     
-    display: grid;
     align-items: center;
 }
 
 #window-bar .widget-item {
-    /* margin-left: 15px;
-    margin-right: 15px; */
     width: 40px;
     height: 40px;
 }
 
-#window-bar .widget-item > img {
-    margin-left: 14px;
-    margin-right: 14px;
+#window-bar .widget-item .icon {
+    font-size: 16px;
 }
 
 .toggleBtn {

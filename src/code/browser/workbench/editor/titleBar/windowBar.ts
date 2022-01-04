@@ -1,7 +1,7 @@
+import { Icons } from "src/base/browser/icon/icons";
 import { WidgetBar } from "src/base/browser/secondary/widgetBar/widgetBar";
-import { addDisposableListener, Orientation } from "src/base/common/domNode";
-import { getSvgPathByName, SvgType } from "src/base/common/string";
-import { domNodeByIdAddListener, ipcRendererOn, ipcRendererSend } from "src/base/electron/register";
+import { Orientation } from "src/base/common/domNode";
+import { ipcRendererOn } from "src/base/electron/register";
 import { IComponentService } from "src/code/browser/service/componentService";
 import { Component } from "src/code/browser/workbench/component";
 import { TitleBarComponentType } from "src/code/browser/workbench/editor/titleBar/titleBar";
@@ -34,13 +34,13 @@ export class WindowBarComponent extends Component {
         
         // creates all the window buttons
         [
-            {id: 'min-btn', src: 'min', message: 'minApp', classes: []},
-            {id: 'max-btn', src: 'max', message: 'maxResApp', classes: []},
-            {id: 'close-btn', src: 'close', message: 'closeApp', classes: ['closeToggleBtn']},
+            {id: 'min-btn', icon: Icons.Min, message: 'minApp', classes: []},
+            {id: 'max-btn', icon: Icons.Max, message: 'maxResApp', classes: []},
+            {id: 'close-btn', icon: Icons.Close, message: 'closeApp', classes: ['closeToggleBtn']},
         ]
-        .forEach(( {id, src, message, classes} ) => {
+        .forEach(( {id, icon, message, classes} ) => {
             const button = new WindowButton({
-                src: src, 
+                icon: icon, 
                 classes: classes, 
                 ipcMessage: message
             });

@@ -1,9 +1,10 @@
 import { Widget } from "src/base/browser/basic/widget";
+import { Icons } from "src/base/browser/icon/icons";
 import { Register } from "src/base/common/event";
 
 
 export interface IButtonOptions {
-    src: string,
+    icon?: Icons,
     classes?: string[],
 }
 
@@ -16,7 +17,6 @@ export interface IButton {
 
 export class Button extends Widget implements IButton {
     
-    protected _imgElement: HTMLImageElement | undefined;
     public opts: IButtonOptions | undefined;
 
     /** @readonly Constructor */

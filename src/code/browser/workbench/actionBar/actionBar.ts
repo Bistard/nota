@@ -6,6 +6,7 @@ import { IComponentService } from 'src/code/browser/service/componentService';
 import { ActionButton } from 'src/code/browser/workbench/actionBar/actionButton';
 import { WidgetBar } from 'src/base/browser/secondary/widgetBar/widgetBar';
 import { Orientation } from 'src/base/common/domNode';
+import { Icons } from 'src/base/browser/icon/icons';
 
 export const IActionBarService = createDecorator<IActionBarService>('action-bar-service');
 
@@ -88,13 +89,13 @@ export class ActionBarComponent extends Component implements IActionBarService {
 
         // creates all the action buttons
         [
-            {id: ActionType.EXPLORER, src: 'file'},
-            {id: ActionType.OUTLINE, src: 'list'},
-            {id: ActionType.SEARCH, src: 'search'},
-            {id: ActionType.GIT, src: 'git'},
+            {id: ActionType.EXPLORER, icon: Icons.File},
+            {id: ActionType.OUTLINE, icon: Icons.List},
+            {id: ActionType.SEARCH, icon: Icons.Search},
+            {id: ActionType.GIT, icon: Icons.Git},
         ]
-        .forEach(({ id, src }) => {
-            const button = new ActionButton({src: src});
+        .forEach(({ id, icon }) => {
+            const button = new ActionButton({icon: icon});
             widgetBar.addItem({
                 id: id, 
                 item: button,

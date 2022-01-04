@@ -1,5 +1,5 @@
 import { Button, IButtonOptions } from "src/base/browser/basic/button/button";
-import { getSvgPathByName, SvgType } from "src/base/common/string";
+import { getBuiltInIconStyle } from "src/base/browser/icon/iconRegistry";
 
 export interface IActionButtonOptions extends IButtonOptions {
     
@@ -55,16 +55,19 @@ export class ActionButton extends Button {
             return;
         }
 
-        // create a image element
-        this._imgElement = document.createElement('img');
-        this._imgElement.src = getSvgPathByName(SvgType.base, this.opts.src);
-        this._element.appendChild(this._imgElement);
-
+        // set icon
+        if (this.opts.icon) {
+            const iconElement = document.createElement('i');
+            iconElement.classList.add('icon');
+            iconElement.classList.add(getBuiltInIconStyle(this.opts.icon));
+            this._element.appendChild(iconElement);
+        }
+        
         // set element classes
-        this._element?.classList.add(...['button', 'action-button']);
+        this._element.classList.add(...['button', 'action-button']);
 
         // set image element classes
-        this._imgElement.classList.add(...['vertical-center', 'filter-black']);
+        // this._imgElement.classList.add(...['vertical-center', 'filter-black']);
     }
     // TODO: a hover listener to show a message box
 }
