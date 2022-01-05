@@ -44,6 +44,7 @@
 #fileTree-container ul {
     padding-left: 6px;
 }
+
 #fileTree-container li {
     padding-left: 6px;
 }
@@ -51,6 +52,15 @@
 .node-root {
     margin: 0;
     text-align: left;
+}
+
+.node-root-text > .icon {
+    font-size: 14px;
+    position: absolute;
+    right: 0px;
+    
+    margin-top: 4px;
+    margin-right: 6px;
 }
 
 .node-folder {
@@ -94,34 +104,6 @@
 .node-root-text {
     font-weight: bold;
 }
-
-/** @deprecated */
-/* .file-icon::before {
-    content: url('../../../../assets/svg/file.svg');
-    display: inline-block;
-    width: 10px;
-    height: 10px;
-    margin-right: 4px;
-    filter: invert(0%) sepia(97%) saturate(0%) hue-rotate(42deg) brightness(93%) contrast(103%);
-}
-
-.folder-icon-expand::before {
-    content: url('../../../../assets/svg/angle-down.svg');
-    display: inline-block;
-    width: 10px;
-    height: 10px;
-    margin-right: 4px;
-    filter: invert(0%) sepia(97%) saturate(0%) hue-rotate(42deg) brightness(93%) contrast(103%);
-}
-
-.folder-icon-collapse::before {
-    content: url('../../../../assets/svg/angle-right.svg');
-    display: inline-block;
-    width: 10px;
-    height: 10px;
-    margin-right: 4px;
-    filter: invert(0%) sepia(97%) saturate(0%) hue-rotate(42deg) brightness(93%) contrast(103%);
-} */
 
 .node-file:hover, .node-text:hover {
     background-color: #eeeeee;

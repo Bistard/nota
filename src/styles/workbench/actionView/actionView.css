@@ -5,7 +5,11 @@
     width: 300px;
     min-width: 300px; /* prevent resizing */
     height: 100%;
-    background-color: #f8f9f9;
+    background-color: #f9f9f9;
+    
+    border-width: 1px;
+    border-style: solid;
+    border-color: #f1f1f1;
 
     color: white;
 }
@@ -54,7 +58,7 @@
 .action-view-title > .action-view-title-container {
     position: relative;
     
-    color: grey;
+    color: rgb(59, 59, 59);
     line-height: 60px;
     font-size: 18px;
     font-weight: normal;

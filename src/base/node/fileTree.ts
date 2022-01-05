@@ -85,26 +85,35 @@ export class FileNode {
         this.textElement.classList.add('node-text');
         this.textElement.innerHTML = this.baseName;
         
+        // is file
         if (!this.isFolder) {
-            // is file
             this.element.classList.add('node-file');
-            this.textElement.classList.add(getBuiltInIconClass(Icons.File));
-        } else if (this.isFolder || !this.level) {
+            // this.textElement.classList.add(getBuiltInIconClass(Icons.File));
+        } 
+        
+        else {
+            
+            // is root
             if (!this.level) {
-                // is root
                 this.element.classList.add('node-root');
                 this.textElement.classList.add('node-root-text');
-            } else {
-                // is folder
-                this.element.classList.add('node-folder');
-            }
+
+                const iconElement = document.createElement('i');
+                iconElement.classList.add('icon', getBuiltInIconClass(Icons.AngleDown));
+                this.textElement.appendChild(iconElement);
+            } 
             
-            if (this.isExpand) {
-                this.textElement.classList.add(getBuiltInIconClass(Icons.AngleDown));
-            } else {
-                this.textElement.classList.add(getBuiltInIconClass(Icons.AngleRight));
+            // is folder
+            else {
+                this.element.classList.add('node-folder');
+
+                // TODO: icon should appear on the left
+                // const iconElement = document.createElement('i');
+                // iconElement.classList.add('icon', getBuiltInIconClass(Icons.AngleRight));
+                // this.textElement.appendChild(iconElement);
             }
         }
+
         this.element.appendChild(this.textElement);
     }
 
@@ -116,19 +125,19 @@ export class FileNode {
      * and emits when the folder node is clicked.
      */
      public static folderOnClick(nodeInfo: FileNode): void {
-        (nodeInfo.isExpand as any) ^= 1;
+        (nodeInfo.isExpand as unknown as number) ^= 1;
         const element: JQuery<HTMLElement> = $(nodeInfo.textElement);
         if (nodeInfo.isExpand) {
-            element.removeClass(getBuiltInIconClass(Icons.AngleRight));
-            element.addClass(getBuiltInIconClass(Icons.AngleDown));
+            // element.removeClass(getBuiltInIconClass(Icons.AngleRight));
+            // element.addClass(getBuiltInIconClass(Icons.AngleDown));
             element.each(function() {
                 element.nextAll().each(function() {
                     $(this).show(0);
                 });
             });
         } else {
-            element.addClass(getBuiltInIconClass(Icons.AngleDown));
-            element.removeClass(getBuiltInIconClass(Icons.AngleDown));
+            // element.addClass(getBuiltInIconClass(Icons.AngleDown));
+            // element.removeClass(getBuiltInIconClass(Icons.AngleDown));
             element.each(function() {
                 element.nextAll().each(function() {
                     $(this).hide(0);
