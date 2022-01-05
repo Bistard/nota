@@ -30,12 +30,12 @@ export class Button extends Widget implements IButton {
     set enabled(value: boolean) {
 		if (this._element) {
             if (value) {
+                this._element.classList.add('disabled');
+                this._element.setAttribute('disabled', String(true));
+            } else {
                 this._element.classList.remove('disabled');
                 this._element.setAttribute('disabled', String(false));
                 this._element.tabIndex = 0;
-            } else {
-                this._element.classList.add('disabled');
-                this._element.setAttribute('disabled', String(true));
             }
         }
 	}

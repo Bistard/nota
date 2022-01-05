@@ -4,6 +4,8 @@ import * as Path from 'path';
 import { EVENT_EMITTER } from 'src/base/common/event';
 import { NoteBookManager } from 'src/code/common/model/notebookManager';
 import { File } from 'src/base/common/file/file';
+import { getBuiltInIconClass } from 'src/base/browser/icon/iconRegistry';
+import { Icons } from 'src/base/browser/icon/icons';
 
 /**
  * @description the object is to store and maintain the data for each 
@@ -86,7 +88,7 @@ export class FileNode {
         if (!this.isFolder) {
             // is file
             this.element.classList.add('node-file');
-            this.textElement.classList.add('file-icon');
+            this.textElement.classList.add(getBuiltInIconClass(Icons.File));
         } else if (this.isFolder || !this.level) {
             if (!this.level) {
                 // is root
@@ -98,9 +100,9 @@ export class FileNode {
             }
             
             if (this.isExpand) {
-                this.textElement.classList.add('folder-icon-expand');
+                this.textElement.classList.add(getBuiltInIconClass(Icons.AngleDown));
             } else {
-                this.textElement.classList.add('folder-icon-collapse');
+                this.textElement.classList.add(getBuiltInIconClass(Icons.AngleRight));
             }
         }
         this.element.appendChild(this.textElement);

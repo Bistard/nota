@@ -3,19 +3,11 @@
     user-select: none; 
 }
 
-.pureText {
-    user-select: none; /* cannot select character */
-}
-
 .vertical-center {
     position: relative;
     top: 50%;
     -ms-transform: translateY(-50%);
     transform: translateY(-50%);
-}
-
-.captialize {
-    text-transform: capitalize;
 }
 
 @keyframes fade-in {
@@ -44,4 +36,8 @@
 
 .filter-grey {
     filter: invert(88%) sepia(73%) saturate(4498%) hue-rotate(184deg) brightness(128%) contrast(93%);
+}
+
+.disabled {
+    display: none;
 }

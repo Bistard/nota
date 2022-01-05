@@ -34,9 +34,9 @@ export class WindowBarComponent extends Component {
         
         // creates all the window buttons
         [
-            {id: 'min-btn', icon: Icons.Min, message: 'minApp', classes: []},
-            {id: 'max-btn', icon: Icons.Max, message: 'maxResApp', classes: []},
-            {id: 'close-btn', icon: Icons.Close, message: 'closeApp', classes: ['closeToggleBtn']},
+            {id: 'min-btn', icon: Icons.Minus, message: 'minApp', classes: []},
+            {id: 'max-btn', icon: Icons.Square, message: 'maxResApp', classes: []},
+            {id: 'close-btn', icon: Icons.Cross, message: 'closeApp', classes: ['closeToggleBtn']},
         ]
         .forEach(( {id, icon, message, classes} ) => {
             const button = new WindowButton({

@@ -89,10 +89,10 @@ export class ActionBarComponent extends Component implements IActionBarService {
 
         // creates all the action buttons
         [
-            {id: ActionType.EXPLORER, icon: Icons.File},
+            {id: ActionType.EXPLORER, icon: Icons.Book},
             {id: ActionType.OUTLINE, icon: Icons.List},
             {id: ActionType.SEARCH, icon: Icons.Search},
-            {id: ActionType.GIT, icon: Icons.Git},
+            {id: ActionType.GIT, icon: Icons.Share},
         ]
         .forEach(({ id, icon }) => {
             const button = new ActionButton({icon: icon});

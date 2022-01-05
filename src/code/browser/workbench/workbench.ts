@@ -1,4 +1,4 @@
-import { Component, ComponentType } from "src/code/browser/workbench/component";
+import { ComponentType } from "src/code/browser/workbench/component";
 import { ActionViewComponent, IActionViewService } from "src/code/browser/workbench/actionView/actionView";
 import { ActionBarComponent, IActionBarService } from "src/code/browser/workbench/actionBar/actionBar";
 import { EditorComponent, IEditorService } from "src/code/browser/workbench/editor/editor";
@@ -7,7 +7,7 @@ import { ipcRendererOn, ipcRendererSend } from "src/base/electron/register";
 import { ContextMenuService, IContextMenuService } from 'src/code/browser/service/contextMenuService';
 import { IInstantiationService } from "src/code/common/service/instantiationService/instantiation";
 import { ServiceDescriptor } from "src/code/common/service/instantiationService/descriptor";
-import { ComponentService, IComponentService } from "src/code/browser/service/componentService";
+import { IComponentService } from "src/code/browser/service/componentService";
 import { ExplorerViewComponent, IExplorerViewService } from "src/code/browser/workbench/actionView/explorer/explorer";
 import { getSingletonServiceDescriptors, registerSingleton } from "src/code/common/service/instantiationService/serviceCollection";
 import { DEFAULT_CONFIG_FILE_NAME, DEFAULT_CONFIG_PATH, GLOBAL_CONFIG_FILE_NAME, GLOBAL_CONFIG_PATH, IGlobalConfigService, IUserConfigService, LOCAL_CONFIG_FILE_NAME } from "src/code/common/service/configService/configService";

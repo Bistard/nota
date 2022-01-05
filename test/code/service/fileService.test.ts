@@ -233,4 +233,21 @@ suite('FileService-disk-unbuffered-test', () => {
 
 suite('fileService-test-disk-buffered', () => {
     // TODO
+
+    test('rename-svg-icons-in-batch', async () => {
+        const service = new FileService();
+        const provider = new DiskFileSystemProvider();
+        service.registerProvider('file', provider);
+        
+        // read directory
+        const dir = URI.fromFile('D:/dev/MarkdownNote/src/assets/svg');
+        const read = await provider.readdir(dir);
+        
+        for (const pair of read) {
+            const file = pair[0]!;
+            const buffer = await service.readFile(URI.fromFile(URI.toFsPath(dir) + '/' + file));
+            await service.writeFile(URI.fromFile('D:/dev/MarkdownNote/src/assets/save/' + file.slice(6)), buffer, {create: true, overwrite: true, unlock: true});
+        }
+    });
+
 });

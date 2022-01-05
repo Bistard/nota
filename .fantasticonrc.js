@@ -1,3 +1,8 @@
+/**
+ * @description This is a configuration file for generating a series of built-in 
+ * font icons using `fantasticon`.
+ */
+
 module.exports = {
     inputDir: 'src/assets/svg', // (required)
     outputDir: 'src/base/browser/icon', // (required)
