@@ -95,7 +95,8 @@
     font-weight: bold;
 }
 
-.file-icon::before {
+/** @deprecated */
+/* .file-icon::before {
     content: url('../../../../assets/svg/file.svg');
     display: inline-block;
     width: 10px;
@@ -120,7 +121,7 @@
     height: 10px;
     margin-right: 4px;
     filter: invert(0%) sepia(97%) saturate(0%) hue-rotate(42deg) brightness(93%) contrast(103%);
-}
+} */
 
 .node-file:hover, .node-text:hover {
     background-color: #eeeeee;

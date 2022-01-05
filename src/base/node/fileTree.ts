@@ -119,16 +119,16 @@ export class FileNode {
         (nodeInfo.isExpand as any) ^= 1;
         const element: JQuery<HTMLElement> = $(nodeInfo.textElement);
         if (nodeInfo.isExpand) {
-            element.removeClass('folder-icon-collapse');
-            element.addClass('folder-icon-expand');
+            element.removeClass(getBuiltInIconClass(Icons.AngleRight));
+            element.addClass(getBuiltInIconClass(Icons.AngleDown));
             element.each(function() {
                 element.nextAll().each(function() {
                     $(this).show(0);
                 });
             });
         } else {
-            element.addClass('folder-icon-collapse');
-            element.removeClass('folder-icon-expand');
+            element.addClass(getBuiltInIconClass(Icons.AngleDown));
+            element.removeClass(getBuiltInIconClass(Icons.AngleDown));
             element.each(function() {
                 element.nextAll().each(function() {
                     $(this).hide(0);

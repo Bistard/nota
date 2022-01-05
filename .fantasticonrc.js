@@ -4,7 +4,7 @@
  */
 
 module.exports = {
-    inputDir: 'src/assets/svg', // (required)
+    inputDir: 'assets/svg', // (required)
     outputDir: 'src/base/browser/icon', // (required)
     fontTypes: [/* 'ttf', 'woff', */ 'woff2'],
     assetTypes: ['ts', 'css', /* 'json', 'html' */],

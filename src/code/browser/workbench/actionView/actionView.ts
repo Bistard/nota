@@ -1,11 +1,13 @@
-import { getSvgPathByName, SvgType } from 'src/base/common/string';
 import { Component, ComponentType, IComponent } from 'src/code/browser/workbench/component';
 import { ExplorerViewComponent } from "src/code/browser/workbench/actionView/explorer/explorer";
-import { Emitter, EVENT_EMITTER, Register } from 'src/base/common/event';
+import { Emitter, Register } from 'src/base/common/event';
 import { createDecorator } from 'src/code/common/service/instantiationService/decorator';
 import { IComponentService } from 'src/code/browser/service/componentService';
 import { IInstantiationService } from 'src/code/common/service/instantiationService/instantiation';
 import { ActionType } from 'src/code/browser/workbench/actionBar/actionBar';
+import { Disposable } from 'src/base/common/dispose';
+import { getBuiltInIconClass } from 'src/base/browser/icon/iconRegistry';
+import { Icons } from 'src/base/browser/icon/icons';
 
 export const IActionViewService = createDecorator<IActionViewService>('action-view-service');
 
@@ -30,8 +32,8 @@ export class ActionViewComponent extends Component implements IActionViewService
     
     private actionViewContentContainer!: HTMLElement;
     private resize!: HTMLElement;
-    private actionViewTitle!: HTMLElement;
-    private actionViewContent!: HTMLElement;
+
+    private actionViewTitlePart: ActionViewTitlePart | undefined;
 
     private explorerViewComponent!: ExplorerViewComponent;
 
@@ -51,27 +53,31 @@ export class ActionViewComponent extends Component implements IActionViewService
 
     protected override _createContent(): void {
         
+        // wrapper
         this.contentArea = document.createElement('div');
         this.contentArea.id = 'action-view-container';
         
+        // action-view content
         this.actionViewContentContainer = document.createElement('div');
         this.actionViewContentContainer.id = 'action-content-container';
 
+        // action-view-title part
+        this.actionViewTitlePart = this.__register(new ExplorerTitlePart());
+        this.actionViewTitlePart.render(this.actionViewContentContainer);
+        
+        // action-view-content part
+        // TODO
+        this._createActionViewContent(this.actionViewContentContainer);
+
+        // resize
         this.resize = document.createElement('div');
         this.resize.id = 'resize';
         this.resize.classList.add('resizeBtn-style', 'vertical-center');
 
-        this.actionViewTitle = this._createActionViewTop();
-        this.actionViewContent = this._createActionViewContent();
-
-        this.actionViewContentContainer.appendChild(this.actionViewTitle);
-        this.actionViewContentContainer.appendChild(this.actionViewContent);
-        
+        // render them
         this.contentArea.appendChild(this.actionViewContentContainer);
         this.contentArea.appendChild(this.resize);
-        
         this.container.appendChild(this.contentArea);
-
     }
 
     protected override _registerListeners(): void {
@@ -80,27 +86,7 @@ export class ActionViewComponent extends Component implements IActionViewService
 
     }
 
-    private _createActionViewTop(): HTMLElement {
-        const actionViewTitle = document.createElement('div');
-        actionViewTitle.id = 'action-view-top';
-
-        const topText = document.createElement('div');
-        topText.id = 'action-view-top-text';
-        topText.innerHTML = 'Explorer';
-        topText.classList.add('pureText', 'captialize');
-
-        const topIcon = document.createElement('img');
-        topIcon.id = 'action-view-top-icon';
-        topIcon.src = getSvgPathByName(SvgType.base, 'three-dots-horizontal');
-        topIcon.classList.add('vertical-center', 'filter-black');
-
-        actionViewTitle.appendChild(topText);
-        actionViewTitle.appendChild(topIcon);
-        return actionViewTitle;
-    }
-
-    // TODO: only render the view (DOM elements) when it is actually in is visible to user
-    private _createActionViewContent(): HTMLElement {
+    private _createActionViewContent(container: HTMLElement): void {
         const actionViewContent = document.createElement('div');
         actionViewContent.id = 'action-view-content';
         
@@ -113,9 +99,7 @@ export class ActionViewComponent extends Component implements IActionViewService
 
         // gitViewComponent...
 
-        // settingViewComponent...
-
-        return actionViewContent;
+        container.appendChild(actionViewContent);
     }
 
     /**
@@ -149,15 +133,16 @@ export class ActionViewComponent extends Component implements IActionViewService
      * @description display given text on the action view top.
      */
     public actionViewTopTextOnChange(name: ActionType): void {
-        if (name === ActionType.EXPLORER) {
-            $('#action-view-top-text').html('Notebook');
-        } else if (name === ActionType.OUTLINE) {
-            $('#action-view-top-text').html('Outline');
-        } else if (name === ActionType.SEARCH) {
-            $('#action-view-top-text').html('Search');
-        } else if (name === ActionType.GIT) {
-            $('#action-view-top-text').html('Git Control');
-        }
+        this.actionViewTitlePart!.hide(true);
+        // if (name === ActionType.EXPLORER) {
+        //     $('.title-text').html('Notebook');
+        // } else if (name === ActionType.OUTLINE) {
+        //     $('.title-text').html('Outline');
+        // } else if (name === ActionType.SEARCH) {
+        //     $('.title-text').html('Search');
+        // } else if (name === ActionType.GIT) {
+        //     $('.title-text').html('Git Control');
+        // }
     }
 
     /**
@@ -183,6 +168,92 @@ export class ActionViewComponent extends Component implements IActionViewService
     public openActionView(): void {
         $('#action-view').show(100);
         $('#resize').show(100);
+    }
+
+}
+
+/**
+ * @description The base class for top view part in the action view.
+ */
+export class ActionViewTitlePart extends Disposable {
+
+    protected _element: HTMLElement;
+
+    constructor() {
+        super();
+
+        this._element = document.createElement('div');
+        this._element.className = 'action-view-title';
+    }
+    
+    /**
+     * @description Renders the title part into the provided container.
+     * @param container The HTMLElement to be inserted below.
+     */
+    public render(container: HTMLElement): void {
+        if (this._element === undefined) {
+            return;
+        }
+        
+        container.appendChild(this._element);
+    }
+    
+    public hide(value: boolean): void {
+        if (this._element) {
+            if (value) {
+                this._element.classList.add('disabled');
+                this._element.setAttribute('disabled', String(true));
+            } else {
+                this._element.classList.remove('disabled');
+                this._element.setAttribute('disabled', String(false));
+                this._element.tabIndex = 0;
+            }
+        }
+    }
+
+    public hidden(): boolean {
+        return this._element?.classList.contains('disabled') === false;
+    }
+}
+
+export class ExplorerTitlePart extends ActionViewTitlePart {
+
+    constructor() {
+        super();
+    }
+
+    public override render(container: HTMLElement): void {
+        super.render(container);
+        
+        if (this._element === undefined) {
+            return;
+        }
+
+        // wrapper
+        const wrapper = document.createElement('div');
+        wrapper.className = 'action-view-title-container';
+
+        // notebook icon
+        // const iconElement = document.createElement('i');
+        // iconElement.classList.add('icon');
+        // iconElement.classList.add(getBuiltInIconClass(Icons.Book));
+        // this._element.appendChild(iconElement);
+
+        // title text
+        const topText = document.createElement('div');
+        topText.className = 'title-text';
+        topText.innerHTML = 'Notebook';
+
+        // dropdown icon
+        const dropdownIcon = document.createElement('i');
+        dropdownIcon.classList.add('icon');
+        dropdownIcon.classList.add(getBuiltInIconClass(Icons.CaretDown));
+        this._element.appendChild(dropdownIcon);
+
+        // wrapper.append(iconElement);
+        wrapper.append(topText);
+        wrapper.append(dropdownIcon);
+        this._element.appendChild(wrapper);
     }
 
 }
