@@ -13,8 +13,8 @@ import { Icons } from 'src/base/browser/icon/icons';
  */
 export class FileNode {
 
-    public element: HTMLElement;
-    public textElement!: HTMLElement;
+    public container: HTMLElement;
+    public node!: HTMLElement;
 
     public readonly file: File | null;
 
@@ -48,21 +48,21 @@ export class FileNode {
         this.isExpand = isExpand;
 
         if (isFolder) {
-            this.element = document.createElement('ul');
+            this.container = document.createElement('ul');
             this.file = null;
         } else {
-            this.element = document.createElement('li');
+            this.container = document.createElement('li');
             this.file = new File(baseName);
         }
 
-        this._render(); // this.textElement is created from here
+        this._render(); // this.node is created from here
 
-        const elementText = this.element.firstChild as ChildNode;
+        const node = this.container.firstChild as ChildNode;
         // FIX: no need EVENT_EMITTER HERE
         if (isFolder) {
-            elementText.addEventListener('click', () => FileNode.folderOnClick(this));
+            node.addEventListener('click', () => FileNode.folderOnClick(this));
         } else {
-            elementText.addEventListener('click', () => FileNode.fileOnClick(this));
+            node.addEventListener('click', () => FileNode.fileOnClick(this));
         }
     }
 
@@ -72,49 +72,49 @@ export class FileNode {
      */
     public append(childName: string, child: FileNode): void {
         this.nodes!.set(childName, child);
-        this.element.appendChild(child.element);
+        this.container.appendChild(child.container);
     }
 
     /**
      * @description TODO: complete comments
      */
     private _render(): void {
-        this.element.classList.add('node');
+        this.container.classList.add('node-container');
         
-        this.textElement = document.createElement('li');
-        this.textElement.classList.add('node-text');
-        this.textElement.innerHTML = this.baseName;
+        this.node = document.createElement('li');
+        this.node.classList.add('node');
+        this.node.innerHTML = this.baseName;
         
         // is file
         if (!this.isFolder) {
-            this.element.classList.add('node-file');
-            // this.textElement.classList.add(getBuiltInIconClass(Icons.File));
+            this.container.classList.add('node-file');
+            // this.node.classList.add(getBuiltInIconClass(Icons.File));
         } 
         
-        else {
+        else {  
             
             // is root
             if (!this.level) {
-                this.element.classList.add('node-root');
-                this.textElement.classList.add('node-root-text');
+                this.container.classList.add('node-root');
+                this.node.classList.add('node-root-text');
 
                 const iconElement = document.createElement('i');
                 iconElement.classList.add('icon', getBuiltInIconClass(Icons.AngleDown));
-                this.textElement.appendChild(iconElement);
+                this.node.appendChild(iconElement);
             } 
             
             // is folder
             else {
-                this.element.classList.add('node-folder');
+                this.container.classList.add('node-folder');
 
                 // TODO: icon should appear on the left
                 // const iconElement = document.createElement('i');
                 // iconElement.classList.add('icon', getBuiltInIconClass(Icons.AngleRight));
-                // this.textElement.appendChild(iconElement);
+                // this.node.appendChild(iconElement);
             }
         }
 
-        this.element.appendChild(this.textElement);
+        this.container.appendChild(this.node);
     }
 
     /**
@@ -126,20 +126,20 @@ export class FileNode {
      */
      public static folderOnClick(nodeInfo: FileNode): void {
         (nodeInfo.isExpand as unknown as number) ^= 1;
-        const element: JQuery<HTMLElement> = $(nodeInfo.textElement);
+        const container: JQuery<HTMLElement> = $(nodeInfo.node);
         if (nodeInfo.isExpand) {
-            // element.removeClass(getBuiltInIconClass(Icons.AngleRight));
-            // element.addClass(getBuiltInIconClass(Icons.AngleDown));
-            element.each(function() {
-                element.nextAll().each(function() {
+            // container.removeClass(getBuiltInIconClass(Icons.AngleRight));
+            // container.addClass(getBuiltInIconClass(Icons.AngleDown));
+            container.each(function() {
+                container.nextAll().each(function() {
                     $(this).show(0);
                 });
             });
         } else {
-            // element.addClass(getBuiltInIconClass(Icons.AngleDown));
-            // element.removeClass(getBuiltInIconClass(Icons.AngleDown));
-            element.each(function() {
-                element.nextAll().each(function() {
+            // container.addClass(getBuiltInIconClass(Icons.AngleDown));
+            // container.removeClass(getBuiltInIconClass(Icons.AngleDown));
+            container.each(function() {
+                container.nextAll().each(function() {
                     $(this).hide(0);
                 });
             });
@@ -159,8 +159,8 @@ export class FileNode {
         if (NoteBookManager.focusedFileNode !== null) {
             NoteBookManager.focusedFileNode.classList.remove('node-file-clicked');   
         }
-        NoteBookManager.focusedFileNode = nodeInfo.element;
-        nodeInfo.element.classList.add('node-file-clicked');
+        NoteBookManager.focusedFileNode = nodeInfo.container;
+        nodeInfo.container.classList.add('node-file-clicked');
 
         // display content
         readMarkdownFile(nodeInfo)
@@ -202,7 +202,7 @@ export class FileTree {
      */
     public create(parent: HTMLElement): void {
         this.tree = this._createRecursive(this.path, 0);
-        parent.appendChild(this.tree.element);
+        parent.appendChild(this.tree.container);
     }
 
     /**

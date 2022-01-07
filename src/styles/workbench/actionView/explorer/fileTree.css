@@ -42,11 +42,11 @@
 }
 
 #fileTree-container ul {
-    padding-left: 6px;
+    padding-left: 14px; /* indentation */
 }
 
 #fileTree-container li {
-    padding-left: 6px;
+    padding-left: 14px; /* indentation */
 }
 
 .node-root {
@@ -87,29 +87,35 @@
     border-left: 1px solid rgba(0, 0, 0, 0.1);
 }
 
-.node-text {
+.node {
     height: 34px;
     line-height: 34px;
     
     list-style-type: none;
     cursor: pointer;
-    user-select: none;
     
     margin-left: -10px;
+}
+
+.node > .node-text {
+    height: 100%;
+    font-size: 13px;
+    user-select: none;
     overflow-x: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
 }
 
 .node-root-text {
-    font-weight: bold;
+    font-size: 14px;
+    /* font-weight: bold; */
 }
 
-.node-file:hover, .node-text:hover {
+.node-file:hover, .node:hover {
     background-color: #eeeeee;
 }
 
-.node-file:active, .node-text:active {
+.node-file:active, .node:active {
     background-color: #e6e6e6;
 }
 

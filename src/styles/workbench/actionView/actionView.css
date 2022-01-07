@@ -26,6 +26,8 @@
     height: 100%;
     display: flex;
     flex-direction: column;
+
+    /* font-size: 12px; */
 }
 
 #resize {
@@ -80,29 +82,3 @@
     margin-top: 3px;
     font-size: 14px;
 }
-
-/* 
-#action-view-title > img {
-    position: absolute;
-    right: 0px;
-    
-    width: 10px;
-    height: 10px;
-
-    cursor: pointer;
-
-    padding: 5px;
-    border-radius: 5px;
-
-    margin-right: 20px;
-    
-    -webkit-app-region: no-drag;
-}
-
-#action-view-title > img:hover {
-    background-color: #e0e0e0;
-}
-
-#action-view-title > img:active {
-    background-color: #c5c5c5;
-} */
