@@ -83,12 +83,17 @@ export class FileNode {
         
         this.node = document.createElement('li');
         this.node.classList.add('node');
-        this.node.innerHTML = this.baseName;
+        
+        const text = document.createElement('div');
+        text.innerHTML = this.baseName;
+        text.classList.add('node-text');
         
         // is file
         if (!this.isFolder) {
             this.container.classList.add('node-file');
-            // this.node.classList.add(getBuiltInIconClass(Icons.File));
+
+            // render node
+            this.node.appendChild(text);
         } 
         
         else {  
@@ -96,21 +101,26 @@ export class FileNode {
             // is root
             if (!this.level) {
                 this.container.classList.add('node-root');
-                this.node.classList.add('node-root-text');
+                text.classList.add('node-root-text');
 
-                const iconElement = document.createElement('i');
-                iconElement.classList.add('icon', getBuiltInIconClass(Icons.AngleDown));
-                this.node.appendChild(iconElement);
+                const icon = document.createElement('i');
+                icon.classList.add('root-icon', getBuiltInIconClass(Icons.AngleDown));
+                
+                // render node
+                this.node.appendChild(text);
+                this.node.appendChild(icon);
             } 
             
             // is folder
             else {
                 this.container.classList.add('node-folder');
 
-                // TODO: icon should appear on the left
-                // const iconElement = document.createElement('i');
-                // iconElement.classList.add('icon', getBuiltInIconClass(Icons.AngleRight));
-                // this.node.appendChild(iconElement);
+                const icon = document.createElement('i');
+                icon.classList.add('icon', getBuiltInIconClass(Icons.CaretRight));
+                
+                // render node
+                this.node.appendChild(icon);
+                this.node.appendChild(text);
             }
         }
 

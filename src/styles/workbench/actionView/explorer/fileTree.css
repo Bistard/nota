@@ -51,10 +51,9 @@
 
 .node-root {
     margin: 0;
-    text-align: left;
 }
 
-.node-root-text > .icon {
+.node-root .root-icon {
     font-size: 14px;
     position: absolute;
     right: 0px;
@@ -84,7 +83,8 @@
     cursor: pointer;
     list-style-type: none;
     user-select: none;
-    border-left: 1px solid rgba(0, 0, 0, 0.1);
+    /* left horizontal-line display */
+    /* border-left: 1px solid rgba(0, 0, 0, 0.1); */
 }
 
 .node {
@@ -95,20 +95,29 @@
     cursor: pointer;
     
     margin-left: -10px;
+
+    display: flex;
+    flex-direction: row;
 }
 
 .node > .node-text {
     height: 100%;
-    font-size: 13px;
+    font-size: 14px;
     user-select: none;
     overflow-x: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
 }
 
-.node-root-text {
+.node > .icon {
+    margin-left: 0px;
+    margin-top: 2px;
+    margin-right: 4px;
+    color: gray;
+}
+
+.node > .node-root-text {
     font-size: 14px;
-    /* font-weight: bold; */
 }
 
 .node-file:hover, .node:hover {
