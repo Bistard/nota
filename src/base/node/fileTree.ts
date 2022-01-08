@@ -6,6 +6,7 @@ import { NoteBookManager } from 'src/code/common/model/notebookManager';
 import { File } from 'src/base/common/file/file';
 import { getBuiltInIconClass } from 'src/base/browser/icon/iconRegistry';
 import { Icons } from 'src/base/browser/icon/icons';
+import { createSpan } from 'src/base/common/dom';
 
 /**
  * @description the object is to store and maintain the data for each 
@@ -85,12 +86,12 @@ export class FileNode {
         this.node.classList.add('node');
         
         const text = document.createElement('div');
-        text.innerHTML = "<span style='color: red;'>**Message</span>";
-        text.classList.add('node-text');
+        text.innerHTML = createSpan(this.baseName);
         
         // is file
         if (!this.isFolder) {
             this.container.classList.add('node-file');
+            text.classList.add('node-text');
 
             // render node
             this.node.appendChild(text);
@@ -114,6 +115,7 @@ export class FileNode {
             // is folder
             else {
                 this.container.classList.add('node-folder');
+                text.classList.add('node-text');
 
                 const icon = document.createElement('i');
                 icon.classList.add('icon', getBuiltInIconClass(Icons.CaretRight));

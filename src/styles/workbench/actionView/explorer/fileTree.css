@@ -98,18 +98,18 @@
 
     display: flex;
     flex-direction: row;
+
+    user-select: none;
+    overflow-x: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .node > .node-text {
     height: 100%;
     
-    font-size: 14px;
-    color: rebeccapurple;
-    
-    user-select: none;
-    overflow-x: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    font-size: 13px;
+    color: #696969;
 }
 
 .node > .icon {
@@ -121,7 +121,7 @@
 
 .node > .node-root-text {
     font-size: 14px;
-    color: rebeccapurple;
+    color: #636363;
 }
 
 .node-file:hover, .node:hover {
