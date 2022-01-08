@@ -1,94 +1,148 @@
 import * as assert from 'assert';
+import { createDecorator } from 'src/code/common/service/instantiationService/decorator';
+import { ServiceDescriptor } from 'src/code/common/service/instantiationService/descriptor';
+import { InstantiationService } from 'src/code/common/service/instantiationService/instantiation';
+import { ServiceCollection } from 'src/code/common/service/instantiationService/serviceCollection';
+
+let IService1 = createDecorator<IService1>('service1');
+
+interface IService1 {
+	c: number;
+}
+
+class Service1 implements IService1 {
+	c = 1;
+}
+
+let IService2 = createDecorator<IService2>('service2');
+
+interface IService2 {
+	d: boolean;
+}
+
+class Service2 implements IService2 {
+	d = true;
+}
+
+let IService3 = createDecorator<IService3>('service3');
+
+interface IService3 {
+	s: string;
+}
+
+class Service3 implements IService3 {
+	s = 'farboo';
+}
+
+let IDependentService = createDecorator<IDependentService>('dependentService');
+
+interface IDependentService {
+	name: string;
+}
+
+class DependentService implements IDependentService {
+	constructor(@IService1 service: IService1) {
+		assert.strictEqual(service.c, 1);
+	}
+	name = 'farboo';
+}
+
+class Service1Consumer {
+
+	constructor(@IService1 service1: IService1) {
+		assert.ok(service1);
+		assert.strictEqual(service1.c, 1);
+	}
+}
+
+class Target2Dep {
+
+	constructor(@IService1 service1: IService1, @IService2 service2: Service2) {
+		assert.ok(service1 instanceof Service1);
+		assert.ok(service2 instanceof Service2);
+	}
+}
+
+class TargetWithStaticParam {
+	constructor(v: boolean, @IService1 service1: IService1) {
+		assert.ok(v);
+		assert.ok(service1);
+		assert.strictEqual(service1.c, 1);
+	}
+}
+
+class DependentServiceTarget {
+	constructor(@IDependentService d: IDependentService) {
+		assert.ok(d);
+		assert.strictEqual(d.name, 'farboo');
+	}
+}
+
+class DependentServiceTarget2 {
+	constructor(@IDependentService d: IDependentService, @IService1 s: IService1) {
+		assert.ok(d);
+		assert.strictEqual(d.name, 'farboo');
+		assert.ok(s);
+		assert.strictEqual(s.c, 1);
+	}
+}
 
 suite('instantiationService-test', () => {
 
-    // TODO
+    test('service collection, cannot overwrite', () => {
+		let collection = new ServiceCollection();
+		let result = collection.set(IService1, null!);
+		assert.strictEqual(result, undefined);
+		result = collection.set(IService1, new Service1());
+		assert.strictEqual(result, null);
+	});
 
+	test('service collection, add/has', () => {
+		let collection = new ServiceCollection();
+		collection.set(IService1, null!);
+		assert.ok(collection.has(IService1));
+
+		collection.set(IService2, null!);
+		assert.ok(collection.has(IService1));
+		assert.ok(collection.has(IService2));
+	});
+
+	test('@Param - simple clase', () => {
+		let collection = new ServiceCollection();
+		let service = new InstantiationService(collection);
+		service.register(IService1, new Service1());
+		service.register(IService2, new Service2());
+		service.register(IService3, new Service3());
+
+		service.createInstance(Service1Consumer);
+	});
+
+	test('@Param - fixed args', () => {
+		let collection = new ServiceCollection();
+		let service = new InstantiationService(collection);
+		service.register(IService1, new Service1());
+		service.register(IService2, new Service2());
+		service.register(IService3, new Service3());
+
+		service.createInstance(TargetWithStaticParam, true);
+	});
+
+    test('@Param - two dependencies', () => {
+        let collection = new ServiceCollection();
+		let service = new InstantiationService(collection);
+        service.register(IService1, new Service1());
+        service.register(IService2, new Service2());
+        
+        service.createInstance(Target2Dep);
+    });
+
+    test('@Param - service descriptor', () => {
+        let collection = new ServiceCollection();
+		let service = new InstantiationService(collection);
+        service.register(IService1, new Service1());
+        service.register(IDependentService, new ServiceDescriptor(DependentService));
+
+        service.createInstance(DependentServiceTarget);
+        service.createInstance(DependentServiceTarget2);
+    });
 });
-
-// import { ServiceDescriptor } from "src/code/common/service/instantiationService/descriptor";
-// import { createDecorator, ServiceIdentifier } from "src/code/common/service/instantiationService/decorator";
-// import { InstantiationService } from "src/code/common/service/instantiationService/instantiation";
-// import { ServiceCollection } from "src/code/common/service/instantiationService/serviceCollection";
-
-// ////////////////////////////////////////////////////////////////////////////////
-
-// interface IHelloService1 {
-//     sayHello(): void;
-// }
-
-// // Create a decorator used to reference the interface type.
-// const IHelloService1: ServiceIdentifier<IHelloService1> = createDecorator<IHelloService1>('helloService1');
-
-// // Create a service collection where concrete implementation types are registered.
-// const serviceCollection = new ServiceCollection();
-
-// class HelloService1 implements IHelloService1 { 
-//     sayHello() {
-//         console.log('Hello#1!');
-//     }
-// }
-
-// // register an instance
-// serviceCollection.set(IHelloService1, new HelloService1());
-
-// const instantiationService = new InstantiationService(serviceCollection);
-
-// // This is a class that requires an instance of IHelloService1 when created.
-// export class MyDependentClass {
-//     private _myService: IHelloService1;
-
-//     // The myService parameter is annotated with the IHelloService1 decorator.
-//     constructor(@IHelloService1 myService: IHelloService1) {
-//         this._myService = myService;
-//     }
-
-//     makeMyServiceSayHello() {
-//         this._myService.sayHello();
-//     }
-// }
-
-// // Create an instance of myDependentClass.
-// console.log('======Test round #1======');
-// const myDependentClass = instantiationService.createInstance(MyDependentClass);
-// myDependentClass.makeMyServiceSayHello();
-
-
-// ////////////////////////////////////////////////////////////////////////////////
-
-// interface IHelloService2 {
-//     sayHello(): void;
-// }
-
-// const IHelloService2: ServiceIdentifier<IHelloService2> = createDecorator<IHelloService2>('helloService2');
-
-// class HelloService2 implements IHelloService2 { 
-
-//     constructor(@IHelloService1 private myService1: IHelloService1) {
-   
-//     }
-
-//     sayHello() {
-//         this.myService1.sayHello();
-//         console.log('Hello#2!');
-//     }
-// }
-
-// //register a ServiceDescriptor
-// serviceCollection.set(IHelloService2, new ServiceDescriptor(HelloService2));
-
-// export class MyDependentTreeClass {
-
-//     // The myService parameter is annotated with the IHelloService1 decorator.
-//     constructor(@IHelloService2 private myService2: IHelloService2) {
-
-//     }
-
-//     makeMyServiceSayHello() {
-//         this.myService2.sayHello();
-//     }
-// }
-
-// console.log('======Test round #2======');
-// const myDependenTreeClass = instantiationService.createInstance(MyDependentTreeClass);
-// myDependenTreeClass.makeMyServiceSayHello();
