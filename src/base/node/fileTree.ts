@@ -85,7 +85,7 @@ export class FileNode {
         this.node.classList.add('node');
         
         const text = document.createElement('div');
-        text.innerHTML = this.baseName;
+        text.innerHTML = "<span style='color: red;'>**Message</span>";
         text.classList.add('node-text');
         
         // is file
@@ -134,9 +134,12 @@ export class FileNode {
      * static function will be registered in EVENT_EMITTER at explorerViewComponent 
      * and emits when the folder node is clicked.
      */
-     public static folderOnClick(nodeInfo: FileNode): void {
+    // TODO: stop using JQuery
+    public static folderOnClick(nodeInfo: FileNode): void {
         (nodeInfo.isExpand as unknown as number) ^= 1;
         const container: JQuery<HTMLElement> = $(nodeInfo.node);
+        const node = container
+
         if (nodeInfo.isExpand) {
             // container.removeClass(getBuiltInIconClass(Icons.AngleRight));
             // container.addClass(getBuiltInIconClass(Icons.AngleDown));

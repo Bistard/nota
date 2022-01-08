@@ -1,6 +1,6 @@
 import { IWidget } from "src/base/browser/basic/widget";
 import { Disposable, disposeAll, IDisposable } from "src/base/common/dispose";
-import { addDisposableListener, clearChildrenNodes, EventType, Orientation } from "src/base/common/domNode";
+import { addDisposableListener, clearChildrenNodes, EventType, Orientation } from "src/base/common/dom";
 
 /**
  * @readonly An interface that stores widget and will be stored inside the widget bar.

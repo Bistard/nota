@@ -102,7 +102,10 @@
 
 .node > .node-text {
     height: 100%;
+    
     font-size: 14px;
+    color: rebeccapurple;
+    
     user-select: none;
     overflow-x: hidden;
     text-overflow: ellipsis;
@@ -118,6 +121,7 @@
 
 .node > .node-root-text {
     font-size: 14px;
+    color: rebeccapurple;
 }
 
 .node-file:hover, .node:hover {

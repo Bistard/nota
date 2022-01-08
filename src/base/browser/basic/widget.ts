@@ -1,5 +1,5 @@
 import { Disposable, IDisposable } from "src/base/common/dispose";
-import { addDisposableListener, EventType } from "src/base/common/domNode";
+import { addDisposableListener, EventType } from "src/base/common/dom";
 import { Emitter, Register } from "src/base/common/event";
 
 export interface IWidget extends IDisposable {

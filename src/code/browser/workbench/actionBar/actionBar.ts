@@ -5,7 +5,7 @@ import { IContextMenuService } from 'src/code/browser/service/contextMenuService
 import { IComponentService } from 'src/code/browser/service/componentService';
 import { ActionButton } from 'src/code/browser/workbench/actionBar/actionButton';
 import { WidgetBar } from 'src/base/browser/secondary/widgetBar/widgetBar';
-import { Orientation } from 'src/base/common/domNode';
+import { Orientation } from 'src/base/common/dom';
 import { Icons } from 'src/base/browser/icon/icons';
 
 export const IActionBarService = createDecorator<IActionBarService>('action-bar-service');

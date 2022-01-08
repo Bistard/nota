@@ -1,6 +1,6 @@
 import { Icons } from "src/base/browser/icon/icons";
 import { WidgetBar } from "src/base/browser/secondary/widgetBar/widgetBar";
-import { Orientation } from "src/base/common/domNode";
+import { Orientation } from "src/base/common/dom";
 import { ipcRendererOn } from "src/base/electron/register";
 import { IComponentService } from "src/code/browser/service/componentService";
 import { Component } from "src/code/browser/workbench/component";
