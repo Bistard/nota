@@ -58,6 +58,10 @@ export class Graph<T> {
         return res;
     }
 
+    public getNode(data: T): Node<T> | undefined {
+        return this._nodes[this._getName(data)];
+    }
+
     public getOrInsertNode(data: T): Node<T> {
         const key = this._getName(data);
         let val = this._nodes[key];
