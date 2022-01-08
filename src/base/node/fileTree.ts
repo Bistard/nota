@@ -140,7 +140,6 @@ export class FileNode {
     public static folderOnClick(nodeInfo: FileNode): void {
         (nodeInfo.isExpand as unknown as number) ^= 1;
         const container: JQuery<HTMLElement> = $(nodeInfo.node);
-        const node = container
 
         if (nodeInfo.isExpand) {
             // container.removeClass(getBuiltInIconClass(Icons.AngleRight));

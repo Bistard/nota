@@ -55,6 +55,8 @@
     
     display: flex;
     flex-direction: row;
+
+    border-bottom: 1px solid #dfdfdf;
 }
 
 .action-view-title > .action-view-title-container {

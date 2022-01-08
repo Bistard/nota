@@ -41,16 +41,11 @@
     color: rgba(0, 0, 0, 0.2); /* shoud matches text-shadow */
 }
 
-#fileTree-container ul {
-    padding-left: 14px; /* indentation */
-}
-
-#fileTree-container li {
-    padding-left: 14px; /* indentation */
-}
-
 .node-root {
+    padding-left: 0px; /* indentation */
+    
     margin: 0;
+    border-bottom: 1px solid #dfdfdf;
 }
 
 .node-root .root-icon {
@@ -63,6 +58,8 @@
 }
 
 .node-folder {
+    padding-left: 14px; /* indentation */
+
     color: rgb(0, 0, 0);
     /* font-weight: bold; */
     
@@ -70,10 +67,13 @@
     margin: 0;
     text-align: left;
     list-style-type: none;
-    border-left: 1px solid rgba(0, 0, 0, 0.1);
+    /* border-left: 1px solid rgba(0, 0, 0, 0.1); */
 }
 
 .node-file {
+    padding-left: 14px; /* indentation */
+    margin-left: 10px;
+
     color: rgb(0, 0, 0);
     font-weight: normal;
 
@@ -94,7 +94,7 @@
     list-style-type: none;
     cursor: pointer;
     
-    margin-left: -10px;
+    /* margin-left: -10px; */
 
     display: flex;
     flex-direction: row;
@@ -120,6 +120,7 @@
 }
 
 .node > .node-root-text {
+    padding-left: 10px;
     font-size: 14px;
     color: #636363;
 }
