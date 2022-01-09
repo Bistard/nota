@@ -41,10 +41,6 @@
     color: rgba(0, 0, 0, 0.2); /* shoud matches text-shadow */
 }
 
-/* .node-container {
-    width: 100%;
-} */
-
 .node-root {
     padding-left: 0px; /* indentation */
     
@@ -65,12 +61,12 @@
     padding-left: 14px; /* indentation */
 
     color: rgb(0, 0, 0);
-    /* font-weight: bold; */
     
     display: none;
     margin: 0;
     text-align: left;
     list-style-type: none;
+    /* left horizontal-line display */
     /* border-left: 1px solid rgba(0, 0, 0, 0.1); */
 }
 
@@ -103,20 +99,20 @@
     list-style-type: none;
     cursor: pointer;
     
-    /* margin-left: -10px; */
-
     display: flex;
     flex-direction: row;
 
     user-select: none;
-    overflow-x: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    
 }
 
 .node > .node-text {
     height: 100%;
     
+    overflow-x: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+
     font-size: 13px;
     color: #868686;
 }
