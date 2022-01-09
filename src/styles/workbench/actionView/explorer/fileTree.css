@@ -118,7 +118,7 @@
     height: 100%;
     
     font-size: 13px;
-    color: #696969;
+    color: #868686;
 }
 
 .node > .icon {
@@ -130,8 +130,8 @@
 
 .node > .node-root-text {
     padding-left: 10px;
-    font-size: 14px;
-    color: #636363;
+    font-size: 13px;
+    color: #808080;
 }
 
 .node-file:hover, .node:hover {
