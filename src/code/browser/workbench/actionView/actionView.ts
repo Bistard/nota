@@ -28,6 +28,9 @@ export interface IActionViewService extends IComponent {
  */
 export class ActionViewComponent extends Component implements IActionViewService {
 
+    // this variable is to store the x-coordinate of the resizeBar in the explorer view
+    private _resizeX: number = 0;
+
     private _currFocusView: ActionType;
     
     private actionViewContentContainer!: HTMLElement;
@@ -83,6 +86,17 @@ export class ActionViewComponent extends Component implements IActionViewService
     protected override _registerListeners(): void {
 
         this.explorerViewComponent.registerListeners();
+
+        // folder view resizeBar listeners
+        const resize = document.getElementById("resize") as HTMLElement;
+        resize.addEventListener("mousedown", (event) => {
+            this._resizeX = event.x;
+            document.addEventListener("mousemove", this._resizeView, false);
+        });
+
+        document.addEventListener("mouseup", () => {
+            document.removeEventListener("mousemove", this._resizeView, false);
+        });
 
     }
 
@@ -168,6 +182,34 @@ export class ActionViewComponent extends Component implements IActionViewService
     public openActionView(): void {
         $('#action-view').show(100);
         $('#resize').show(100);
+    }
+
+    /***************************************************************************
+     * Private Helper Functions
+     **************************************************************************/
+
+    /**
+     * @description callback functions for resize folder view.
+     */
+    private _resizeView(event: MouseEvent): void {
+
+        // minimum width for folder view to be resized
+        if (event.x < 200) {
+            return;
+        }
+
+        const explorerView = document.getElementById('action-view') as HTMLElement;
+        const contentView = document.getElementById('editor-view') as HTMLElement;
+        let dx = this._resizeX - event.x;
+        this._resizeX = event.x;
+        /* new X has to be calculated first, than concatenates with "px", otherwise
+           the string will be like newX = "1000+2px" and losing accuracy */
+        let explorerViewNewX = parseInt(getComputedStyle(explorerView, '').width) - dx;
+        let contentViewNewX = parseInt(getComputedStyle(contentView, '').width) + dx;
+        
+        explorerView.style.width = explorerViewNewX + "px";
+        explorerView.style.minWidth = explorerViewNewX + "px";
+        contentView.style.width = contentViewNewX + "px";
     }
 
 }

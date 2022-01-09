@@ -11,7 +11,6 @@ import { createDecorator } from 'src/code/common/service/instantiationService/de
 export const IExplorerViewService = createDecorator<IExplorerViewService>('explorer-view-service');
 
 export interface IExplorerViewService extends IComponent {
-    resizeX: number;
     fileTreeContainer: HTMLElement;
     emptyFolderTag: HTMLElement;
     openNoteBookManager(path: string): Promise<void>;
@@ -21,8 +20,6 @@ export interface IExplorerViewService extends IComponent {
  * @description TODO: complete comments
  */
 export class ExplorerViewComponent extends Component implements IExplorerViewService {
-
-    public resizeX: number;
 
     public fileTreeContainer: HTMLElement = document.createElement('div');
     public emptyFolderTag: HTMLElement = document.createElement('div');
@@ -34,9 +31,6 @@ export class ExplorerViewComponent extends Component implements IExplorerViewSer
                 @IContextMenuService private readonly contextMenuService: IContextMenuService,
     ) {
         super(ComponentType.ExplorerView, parentComponent, parentElement, componentService);
-    
-        // this variable is to store the x-coordinate of the resizeBar in the explorer view
-        this.resizeX = 0;
     }
 
     protected override _createContent(): void {
@@ -86,17 +80,6 @@ export class ExplorerViewComponent extends Component implements IExplorerViewSer
             this.openNoteBookManager(path);
         });
         
-        // folder view resizeBar listeners
-        const resize = document.getElementById("resize") as HTMLElement;
-        resize.addEventListener("mousedown", (event) => {
-            this.resizeX = event.x;
-            document.addEventListener("mousemove", this._resizeView, false);
-        });
-
-        document.addEventListener("mouseup", () => {
-            document.removeEventListener("mousemove", this._resizeView, false);
-        });
-
         // not used for now
         EVENT_EMITTER.register('EFileOnClick', (nodeInfo: FileNode) => FileNode.fileOnClick(nodeInfo));
         EVENT_EMITTER.register('EFolderOnClick', (nodeInfo: FileNode) => FileNode.folderOnClick(nodeInfo));
@@ -124,30 +107,6 @@ export class ExplorerViewComponent extends Component implements IExplorerViewSer
         } catch(err) {
             throw err;
         }
-    }
-
-    /**
-     * @description callback functions for resize folder view.
-     */
-    private _resizeView(event: MouseEvent): void {
-
-        // minimum width for folder view to be resized
-        if (event.x < 200) {
-            return;
-        }
-        // TODO: remove later
-        const explorerView = document.getElementById('action-view') as HTMLElement;
-        const contentView = document.getElementById('editor-view') as HTMLElement;
-        let dx = this.resizeX - event.x;
-        this.resizeX = event.x;
-        /* new X has to be calculated first, than concatenates with "px", otherwise
-           the string will be like newX = "1000+2px" and losing accuracy */
-        let explorerViewNewX = parseInt(getComputedStyle(explorerView, '').width) - dx;
-        let contentViewNewX = parseInt(getComputedStyle(contentView, '').width) + dx;
-        
-        explorerView.style.width = explorerViewNewX + "px";
-        explorerView.style.minWidth = explorerViewNewX + "px";
-        contentView.style.width = contentViewNewX + "px";
     }
 
 }
