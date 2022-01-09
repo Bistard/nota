@@ -275,7 +275,7 @@ export class DefaultUserConfigModel extends ConfigModel {
             },
             'markdown':
             {
-                fileAutoSaveOn: true,
+                fileAutoSaveOn: false,
                 defaultMarkdownMode: 'wysiwyg' as MarkdownRenderMode,
             }
         };
