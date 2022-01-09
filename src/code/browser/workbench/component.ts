@@ -27,6 +27,11 @@ export interface IComponent {
     getId(): string;
 }
 
+export interface Createable {
+    create(): void;
+    registerListeners(): void;
+}
+
 export abstract class Component extends Disposable implements IComponent {
     
     /* events */
@@ -44,6 +49,12 @@ export abstract class Component extends Disposable implements IComponent {
 
     public readonly componentMap: Map<string, Component> = new Map();
 
+    /**
+     * @param id The id for the Component.
+     * @param parentComponent The parent Component.
+     * @param parentElement If provided, parentElement will replace the HTMLElement from the provided parentComponent.
+     * @param componentService ComponentService for the registration purpose.
+     */
     constructor(id: string, 
                 parentComponent: Component | null,
                 parentElement: HTMLElement | null,

@@ -1,4 +1,4 @@
-import { Component, ComponentType } from "src/code/browser/workbench/component";
+import { Component, ComponentType, Createable } from "src/code/browser/workbench/component";
 import { ActionViewComponent, IActionViewService } from "src/code/browser/workbench/actionView/actionView";
 import { ActionBarComponent, IActionBarService } from "src/code/browser/workbench/actionBar/actionBar";
 import { EditorComponent, IEditorService } from "src/code/browser/workbench/editor/editor";
@@ -69,7 +69,9 @@ export class Workbench extends WorkbenchLayout {
      * @description calls 'create()' and '_registerListeners()' for each component.
      */
     protected override _createContent(): void {
-        
+
+        this._createLayout();
+
         this.actionBarComponent = this.instantiationService.createInstance(ActionBarComponent, this);
         this.actionViewComponent = this.instantiationService.createInstance(ActionViewComponent, this);
         this.editorComponent = this.instantiationService.createInstance(EditorComponent, this);
@@ -77,14 +79,30 @@ export class Workbench extends WorkbenchLayout {
         [
             this.actionBarComponent,
             this.actionViewComponent,
+            {
+                create: () => {
+                    this.resize = document.createElement('div');
+                    this.resize.classList.add('sash', 'resizeBtn-style', 'vertical-center');
+                    this.container.append(this.resize);
+                },
+                registerListeners: () => {
+                    this.resize.addEventListener("mousedown", (event) => {
+                        this._resizeX = event.x;
+                        document.addEventListener("mousemove", this._resizeSash, false);
+                    });
+
+                    document.addEventListener("mouseup", () => {
+                        document.removeEventListener("mousemove", this._resizeSash, false);
+                    });
+                }
+            },
             this.editorComponent
         ]
-        .forEach((component: Component) => {
+        .forEach((component: Createable) => {
             component.create();
             component.registerListeners();
         });
 
-        this._createLayout();
     }
 
     /**
@@ -92,6 +110,8 @@ export class Workbench extends WorkbenchLayout {
      */
     protected override _registerListeners(): void {
         
+        this._registerLayout();
+
         // once the main process notifies this renderer process, we try to 
         // finish the following job.
         ipcRendererOn('closingApp', () => {

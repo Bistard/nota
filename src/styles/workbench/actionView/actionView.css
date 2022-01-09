@@ -28,23 +28,6 @@
     flex-direction: column;
 }
 
-#resize {
-    position: absolute;
-    right: 0px;
-
-    background-color: #f8f9f9;
-    
-    width: 2px;
-    height: 100%;
-    
-    cursor: w-resize;
-    transition: 0.2s;
-}
-
-#resize:hover {
-    background-color: #d1d1d1;
-}
-
 .action-view-title {
     position: relative;
     

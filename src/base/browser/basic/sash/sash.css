@@ -1,0 +1,15 @@
+.sash {
+    position: relative;
+
+    background-color: #f8f9f9;
+    
+    width: 3px;
+    height: 100%;
+    
+    cursor: w-resize;
+    transition: 0.2s;
+}
+
+.sash:hover {
+    background-color: #d1d1d1;
+}
