@@ -1,4 +1,4 @@
-import { ComponentType } from "src/code/browser/workbench/component";
+import { Component, ComponentType } from "src/code/browser/workbench/component";
 import { ActionViewComponent, IActionViewService } from "src/code/browser/workbench/actionView/actionView";
 import { ActionBarComponent, IActionBarService } from "src/code/browser/workbench/actionBar/actionBar";
 import { EditorComponent, IEditorService } from "src/code/browser/workbench/editor/editor";
@@ -75,12 +75,11 @@ export class Workbench extends WorkbenchLayout {
         this.editorComponent = this.instantiationService.createInstance(EditorComponent, this);
         
         [
-            {id: ComponentType.ActionBar, classes: []},
-            {id: ComponentType.ActionView, classes: []},
-            {id: ComponentType.editor, classes: []},
+            this.actionBarComponent,
+            this.actionViewComponent,
+            this.editorComponent
         ]
-        .forEach(({ id, classes }) => {
-            const component = this.getComponentById(id);
+        .forEach((component: Component) => {
             component.create();
             component.registerListeners();
         });

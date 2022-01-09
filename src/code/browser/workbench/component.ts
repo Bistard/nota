@@ -36,8 +36,8 @@ export abstract class Component extends Disposable implements IComponent {
 
     /* end */
 
-    public readonly parentComponent: Component | null;
-    public readonly parent: HTMLElement | null;
+    public readonly parentComponent: Component | null = null;
+    public readonly parent: HTMLElement | null = null;
 
     public readonly container: HTMLElement = document.createElement('div');
     public contentArea: HTMLElement | undefined;
@@ -45,8 +45,8 @@ export abstract class Component extends Disposable implements IComponent {
     public readonly componentMap: Map<string, Component> = new Map();
 
     constructor(id: string, 
-                parentComponent: Component | null = null,
-                parentElement: HTMLElement | null = null,
+                parentComponent: Component | null,
+                parentElement: HTMLElement | null,
                 protected readonly componentService: IComponentService,
     ) {
         super();
@@ -57,8 +57,6 @@ export abstract class Component extends Disposable implements IComponent {
         if (parentComponent) {
             this.parent = parentComponent.container;
             parentComponent.registerComponent(this);
-        } else {
-            this.parent = null;
         }
 
         if (parentElement) {
