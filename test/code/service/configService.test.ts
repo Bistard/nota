@@ -2,7 +2,7 @@ import * as assert from 'assert';
 import { Emitter } from 'src/base/common/event';
 import { ConfigModel, IConfigType } from "src/code/common/service/configService/configModel";
 import { ConfigServiceBase } from "src/code/common/service/configService/configServiceBase";
-import { FileService } from "src/code/common/service/fileService";
+import { FileService } from "src/code/common/service/fileService/fileService";
 
 function createHuman(id: number = -1, name: string = 'unknown', male: boolean = false): ITestHumanSettings {
     return {

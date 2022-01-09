@@ -41,6 +41,10 @@
     color: rgba(0, 0, 0, 0.2); /* shoud matches text-shadow */
 }
 
+/* .node-container {
+    width: 100%;
+} */
+
 .node-root {
     padding-left: 0px; /* indentation */
     
@@ -85,6 +89,11 @@
     user-select: none;
     /* left horizontal-line display */
     /* border-left: 1px solid rgba(0, 0, 0, 0.1); */
+}
+
+.node-root > .node {
+    height: 40px;
+    line-height: 40px;
 }
 
 .node {

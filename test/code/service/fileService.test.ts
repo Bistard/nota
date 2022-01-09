@@ -4,7 +4,7 @@ import { dirname, posix } from 'src/base/common/file/path';
 import { URI } from 'src/base/common/file/uri';
 import { DiskFileSystemProvider } from 'src/base/node/diskFileSystemProvider';
 import { fileExists } from 'src/base/node/io';
-import { FileService } from 'src/code/common/service/fileService';
+import { FileService } from 'src/code/common/service/fileService/fileService';
 
 suite('FileService-disk-unbuffered-test', () => {
 

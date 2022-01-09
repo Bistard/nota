@@ -4,7 +4,7 @@ import { FileLogService, IFileLogService } from "src/code/common/service/logServ
 import { ServiceDescriptor } from "src/code/common/service/instantiationService/descriptor";
 import { IInstantiationService, InstantiationService } from "src/code/common/service/instantiationService/instantiation";
 import { ServiceCollection } from "src/code/common/service/instantiationService/serviceCollection";
-import { FileService, IFileService } from "src/code/common/service/fileService";
+import { FileService, IFileService } from "src/code/common/service/fileService/fileService";
 import { GlobalConfigService, IGlobalConfigService, IUserConfigService, UserConfigService } from "src/code/common/service/configService/configService";
 import { Schemas } from "src/base/common/file/uri";
 import { DiskFileSystemProvider } from "src/base/node/diskFileSystemProvider";

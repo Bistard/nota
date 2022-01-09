@@ -5,7 +5,7 @@ import { APP_ROOT_PATH, DESKTOP_ROOT_PATH } from "src/base/electron/app";
 import { MarkdownRenderMode } from "src/code/browser/workbench/editor/markdown/markdown";
 import { ConfigModel, IConfigType } from "src/code/common/service/configService/configModel";
 import { ConfigServiceBase, IConfigService } from "src/code/common/service/configService/configServiceBase";
-import { IFileService } from "src/code/common/service/fileService";
+import { IFileService } from "src/code/common/service/fileService/fileService";
 import { createDecorator } from "src/code/common/service/instantiationService/decorator";
 
 export const DEFAULT_CONFIG_PATH = APP_ROOT_PATH;
