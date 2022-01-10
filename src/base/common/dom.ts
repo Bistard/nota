@@ -53,6 +53,9 @@ export enum EventType {
 	contextmenu = 'contextmenu',
 	mouseover = 'mouseover',
 	mouseout = 'mouseout',
+	mousedown = 'mousedown',
+	mouseup = 'mouseup',
+	mousemove = 'mousemove',
 }
 
 /**

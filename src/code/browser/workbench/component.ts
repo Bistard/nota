@@ -6,30 +6,28 @@ export const enum ComponentType {
     Workbench = 'workbench',
     ActionBar = 'action-bar',
     ActionView = 'action-view',
-    editor = 'editor-view',
+    Editor = 'editor-view',
     ExplorerView = 'explorer-container',
     OutlineView = 'outline-container',
     SearchView = 'search-container',
     GitView = 'git-container',
 }
 
-export interface IComponent {
+export interface ICreateable {
+    create(): void;
+    registerListeners(): void;
+}
+
+export interface IComponent extends ICreateable {
 
     readonly parentComponent: Component | null;
     readonly parent: HTMLElement | null;
-    readonly container: HTMLElement;
+    container: HTMLElement;
     contentArea: HTMLElement | undefined;
     readonly componentMap: Map<string, Component>;
 
-    create(): void;
-    registerListeners(): void;
     registerComponent(component: Component): void;
     getId(): string;
-}
-
-export interface Createable {
-    create(): void;
-    registerListeners(): void;
 }
 
 export abstract class Component extends Disposable implements IComponent {
@@ -44,7 +42,7 @@ export abstract class Component extends Disposable implements IComponent {
     public readonly parentComponent: Component | null = null;
     public readonly parent: HTMLElement | null = null;
 
-    public readonly container: HTMLElement = document.createElement('div');
+    public container: HTMLElement = document.createElement('div');
     public contentArea: HTMLElement | undefined;
 
     public readonly componentMap: Map<string, Component> = new Map();

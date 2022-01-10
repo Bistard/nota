@@ -10,10 +10,6 @@ import { Component, ComponentType } from "src/code/browser/workbench/component";
  */
 export abstract class WorkbenchLayout extends Component {
 
-    // this variable is to store the x-coordinate of the resizeBar in the explorer view
-    protected _resizeX: number = 0;
-    protected resize!: HTMLElement;
-
     constructor(
         componentService: IComponentService
     ) {
@@ -21,7 +17,7 @@ export abstract class WorkbenchLayout extends Component {
     }
 
     protected _createLayout(): void {
-
+        
     }
 
     protected _registerLayout(): void {
@@ -52,34 +48,6 @@ export abstract class WorkbenchLayout extends Component {
                 actionView.actionViewChange(type);
             }));
         });
-    }
-
-    /***************************************************************************
-     * Private Helper Functions
-     **************************************************************************/
-
-    /**
-     * @description callback functions for resize folder view.
-     */
-    protected _resizeSash(event: MouseEvent): void {
-
-        // minimum width for folder view to be resized
-        if (event.x < 200) {
-            return;
-        }
-
-        const explorerView = document.getElementById('action-view') as HTMLElement;
-        const contentView = document.getElementById('editor-view') as HTMLElement;
-        let dx = this._resizeX - event.x;
-        this._resizeX = event.x;
-        /* new X has to be calculated first, than concatenates with "px", otherwise
-           the string will be like newX = "1000+2px" and losing accuracy */
-        let explorerViewNewX = parseInt(getComputedStyle(explorerView, '').width) - dx;
-        let contentViewNewX = parseInt(getComputedStyle(contentView, '').width) + dx;
-        
-        explorerView.style.width = explorerViewNewX + "px";
-        explorerView.style.minWidth = explorerViewNewX + "px";
-        contentView.style.width = contentViewNewX + "px";
     }
 
 }

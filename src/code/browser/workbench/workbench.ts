@@ -1,4 +1,4 @@
-import { Component, ComponentType, Createable } from "src/code/browser/workbench/component";
+import { ComponentType, ICreateable } from "src/code/browser/workbench/component";
 import { ActionViewComponent, IActionViewService } from "src/code/browser/workbench/actionView/actionView";
 import { ActionBarComponent, IActionBarService } from "src/code/browser/workbench/actionBar/actionBar";
 import { EditorComponent, IEditorService } from "src/code/browser/workbench/editor/editor";
@@ -15,6 +15,7 @@ import { URI } from "src/base/common/file/uri";
 import { resolve } from "src/base/common/file/path";
 import { EGlobalSettings, IGlobalApplicationSettings, IGlobalNotebookManagerSettings } from "src/code/common/service/configService/configService";
 import { WorkbenchLayout } from "src/code/browser/workbench/layout";
+import { Sash } from "src/base/browser/basic/sash/sash";
 
 // ActionBarService
 registerSingleton(IActionBarService, new ServiceDescriptor(ActionBarComponent));
@@ -79,26 +80,10 @@ export class Workbench extends WorkbenchLayout {
         [
             this.actionBarComponent,
             this.actionViewComponent,
-            {
-                create: () => {
-                    this.resize = document.createElement('div');
-                    this.resize.classList.add('sash', 'resizeBtn-style', 'vertical-center');
-                    this.container.append(this.resize);
-                },
-                registerListeners: () => {
-                    this.resize.addEventListener("mousedown", (event) => {
-                        this._resizeX = event.x;
-                        document.addEventListener("mousemove", this._resizeSash, false);
-                    });
-
-                    document.addEventListener("mouseup", () => {
-                        document.removeEventListener("mousemove", this._resizeSash, false);
-                    });
-                }
-            },
+            new Sash(this.container, ComponentType.ActionView, ComponentType.Editor),
             this.editorComponent
         ]
-        .forEach((component: Createable) => {
+        .forEach((component: ICreateable) => {
             component.create();
             component.registerListeners();
         });

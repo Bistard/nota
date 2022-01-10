@@ -34,7 +34,7 @@ export class EditorComponent extends Component implements IEditorService {
         @IGlobalConfigService private readonly globalConfigService: GlobalConfigService,
         @IUserConfigService private readonly userConfigService: UserConfigService,
     ) {
-        super(ComponentType.editor, parentComponent, null, componentService);
+        super(ComponentType.Editor, parentComponent, null, componentService);
     }
 
     protected override _createContent(): void {
