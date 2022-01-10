@@ -1,34 +1,25 @@
-# 📕MarkdownNote (IN PROGRESS)
-An open-sourced markdown editor && noteTaking desktop application based on .md
+# 📕MarkdownNote (IN PROGRESS - 开发中)
+An open-sourced note-taking application / markdown editor that provides WYSIWYG and noteTaking-like user experience.
 
 基于markdown管理的笔记软件.
 
-## 💖feature
-* supports ✔WYSIWYG (rich text), ❌instant rendering, ✔ tranditional split view editing
+## 💖features
+* supports ✔WYSIWYG (rich text), ✔ tranditional split view editing
 * ❌supports git extension
 * ❌provides great noteTaking-like user experience
 
-## 👁‍🗨Screen shots (2021.8.26)
-![screenshot](./doc/images/2021.8.26.png)
+## 👁‍🗨Screen shots (2022.1.9)
+![screenshot](./doc/images/2022.1.9.png)
 
 ## 🚪portal
 - [📚wiki](https://github.com/Bistard/MarkdownNote/wiki)
-- [🚕roadMap](https://github.com/Bistard/MarkdownNote/wiki/RoadMap)
-
+- [🚕Milestone](https://github.com/Bistard/MarkdownNote/wiki/Milestone)
 
 ## 🏃 Get Started
-
-First Clone this Repository
+How to run the application from the source code:
 ```
 git clone https://github.com/Bistard/MarkdownNote.git
-```
-
-Then cd into it
-```
 cd MarkdownNote
-```
-
-```
 npm install
 npm start
 ```
