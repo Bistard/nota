@@ -1,10 +1,31 @@
 import { Disposable } from "src/base/common/dispose";
 import { addDisposableListener, EventType, Orientation } from "src/base/common/dom";
+import { Emitter, Register } from "src/base/common/event";
 import { ICreateable } from "src/code/browser/workbench/component";
 
 
 export interface ISashOpts {
     orientation: Orientation;
+}
+
+export interface ISashEvent {
+    /* The start coordinate */
+    readonly startX: number;
+	readonly startY: number;
+    
+    /* The current coordinate */
+    readonly currentX: number;
+	readonly currentY: number;
+}
+
+export interface ISash {
+    readonly onDidStart: Register<ISashEvent>;
+    readonly onDidMove: Register<ISashEvent>;
+    readonly onDidEnd: Register<void>;
+    
+    dispose(): void;
+    create(): void;
+    registerListeners(): void;
 }
 
 /**
@@ -21,6 +42,28 @@ export class Sash extends Disposable implements ICreateable {
     private parentElement: HTMLElement;
 
     private disposed: boolean = false;
+
+    /* Events */
+
+    /* An event which fires whenever the user starts dragging this sash. */
+	private readonly _onDidStart = this.__register(new Emitter<ISashEvent>());
+    public readonly onDidStart: Register<ISashEvent> = this._onDidStart.registerListener;
+
+	/* An event which fires whenever the user moves the mouse while dragging this sash. */
+    private readonly _onDidMove = this.__register(new Emitter<ISashEvent>());
+	public readonly onDidMove: Register<ISashEvent> = this._onDidMove.registerListener;
+
+    // TODO:
+	/* An event which fires whenever the user double clicks this sash. */
+    // private readonly _onDidReset = this.__register(new Emitter<void>());
+	// public readonly onDidReset: Register<void> = this._onDidReset.registerListener;
+
+	/* An event which fires whenever the user stops dragging this sash. */
+	private readonly _onDidEnd = this.__register(new Emitter<void>());
+	public readonly onDidEnd: Register<void> = this._onDidEnd.registerListener;
+
+
+    /* End */
 
     /** 
      * {@link Orientation.Horizontal} means dragging horizontally.
@@ -65,7 +108,13 @@ export class Sash extends Disposable implements ICreateable {
         
         this.__register(addDisposableListener(this.element, EventType.mousedown, 
             // using anonymous callback to avoid `this` argument ambiguous.
-            (e) => { 
+            (e: MouseEvent) => { 
+                this._onDidStart.fire({
+                    startX: e.clientX,
+                    startY: e.clientY,
+                    currentX: e.clientX,
+                    currentY: e.clientY
+                });
                 this._initDrag(e);
             }
         ));
@@ -96,13 +145,20 @@ export class Sash extends Disposable implements ICreateable {
         // draging horizontally
         if (this.orientation === Orientation.Horizontal) {
 
-            const doDragHelper = (event: MouseEvent) => {
-                this.element!.style.left = (this.startDimention + event.clientX - this.startCoordinate) + 'px';
+            const doDragHelper = (e: MouseEvent) => {
+                this.element!.style.left = (this.startDimention + e.clientX - this.startCoordinate) + 'px';
+                this._onDidMove.fire({
+                    startX: event.clientX,
+                    startY: event.clientY,
+                    currentX: e.clientX,
+                    currentY: e.clientY
+                });
             };
     
             const stopDragHelper = () => {
                 document.documentElement.removeEventListener(EventType.mousemove, doDragHelper, false);
                 document.documentElement.removeEventListener(EventType.mouseup, stopDragHelper, false);
+                this._onDidEnd.fire();
             }
 
             this.startCoordinate = event.clientX;
