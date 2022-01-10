@@ -29,7 +29,7 @@ export class Browser {
     private startUp(): void {
         this.initServices().then(() => {
 
-            this.workbench = new Workbench(this.instantiationService, this.globalConfigService, this.userConfigService, this.componentService);
+            this.workbench = new Workbench(this.instantiationService, this.componentService, this.globalConfigService, this.userConfigService);
             
             this.registerListeners();
 

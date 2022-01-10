@@ -1,8 +1,11 @@
 import { Button } from "src/base/browser/basic/button/button";
+import { Sash } from "src/base/browser/basic/sash/sash";
 import { IComponentService } from "src/code/browser/service/componentService";
 import { ActionBarComponent, ActionType } from "src/code/browser/workbench/actionBar/actionBar";
 import { ActionViewComponent } from "src/code/browser/workbench/actionView/actionView";
-import { Component, ComponentType } from "src/code/browser/workbench/component";
+import { Component, ComponentType, ICreateable } from "src/code/browser/workbench/component";
+import { EditorComponent } from "src/code/browser/workbench/editor/editor";
+import { IInstantiationService } from "src/code/common/service/instantiationService/instantiation";
 
 /**
  * @description A base class for Workbench to create and manage the behaviour of
@@ -10,7 +13,12 @@ import { Component, ComponentType } from "src/code/browser/workbench/component";
  */
 export abstract class WorkbenchLayout extends Component {
 
+    protected actionBarComponent!: ActionBarComponent;
+    protected actionViewComponent!: ActionViewComponent;
+    protected editorComponent!: EditorComponent;
+    
     constructor(
+        protected readonly instantiationService: IInstantiationService,
         componentService: IComponentService
     ) {
         super(ComponentType.Workbench, null, document.body, componentService);
@@ -18,6 +26,24 @@ export abstract class WorkbenchLayout extends Component {
 
     protected _createLayout(): void {
         
+        /**
+         * Constructs each component of the workbench.
+         */
+        this.actionBarComponent = this.instantiationService.createInstance(ActionBarComponent, this);
+        this.actionViewComponent = this.instantiationService.createInstance(ActionViewComponent, this);
+        this.editorComponent = this.instantiationService.createInstance(EditorComponent, this);
+        
+        [
+            this.actionBarComponent,
+            this.actionViewComponent,
+            new Sash(this.container),
+            this.editorComponent
+        ]
+        .forEach((component: ICreateable) => {
+            component.create();
+            component.registerListeners();
+        });
+
     }
 
     protected _registerLayout(): void {
@@ -48,6 +74,13 @@ export abstract class WorkbenchLayout extends Component {
                 actionView.actionViewChange(type);
             }));
         });
+
+        /**
+         * @readonly
+         */
+
+
+
     }
 
 }
