@@ -1,4 +1,3 @@
-import { ComponentType, ICreateable } from "src/code/browser/workbench/component";
 import { ActionViewComponent, IActionViewService } from "src/code/browser/workbench/actionView/actionView";
 import { ActionBarComponent, IActionBarService } from "src/code/browser/workbench/actionBar/actionBar";
 import { EditorComponent, IEditorService } from "src/code/browser/workbench/editor/editor";
@@ -15,7 +14,6 @@ import { URI } from "src/base/common/file/uri";
 import { resolve } from "src/base/common/file/path";
 import { EGlobalSettings, IGlobalApplicationSettings, IGlobalNotebookManagerSettings } from "src/code/common/service/configService/configService";
 import { WorkbenchLayout } from "src/code/browser/workbench/layout";
-import { Sash } from "src/base/browser/basic/sash/sash";
 
 // ActionBarService
 registerSingleton(IActionBarService, new ServiceDescriptor(ActionBarComponent));
@@ -32,18 +30,13 @@ export class Workbench extends WorkbenchLayout {
 
     private _noteBookManager!: NoteBookManager;
 
-    actionBarComponent!: ActionBarComponent;
-    actionViewComponent!: ActionViewComponent;
-    editorComponent!: EditorComponent;
-    
     constructor(
-        @IInstantiationService private readonly instantiationService: IInstantiationService,
-        @IGlobalConfigService private readonly globalConfigService: IGlobalConfigService,
-        @IUserConfigService private readonly userConfigService: IUserConfigService,
-        @IComponentService componentService: IComponentService
-        
+        instantiationService: IInstantiationService,
+        componentService: IComponentService,
+        private readonly globalConfigService: IGlobalConfigService,
+        private readonly userConfigService: IUserConfigService,
     ) {
-        super(componentService);
+        super(instantiationService, componentService);
 
         this.initServices();
         this.create();
@@ -71,22 +64,7 @@ export class Workbench extends WorkbenchLayout {
      */
     protected override _createContent(): void {
 
-        this._createLayout();
-
-        this.actionBarComponent = this.instantiationService.createInstance(ActionBarComponent, this);
-        this.actionViewComponent = this.instantiationService.createInstance(ActionViewComponent, this);
-        this.editorComponent = this.instantiationService.createInstance(EditorComponent, this);
-        
-        [
-            this.actionBarComponent,
-            this.actionViewComponent,
-            new Sash(this.container),
-            this.editorComponent
-        ]
-        .forEach((component: ICreateable) => {
-            component.create();
-            component.registerListeners();
-        });
+        this.createLayout();
 
     }
 
@@ -95,7 +73,7 @@ export class Workbench extends WorkbenchLayout {
      */
     protected override _registerListeners(): void {
         
-        this._registerLayout();
+        this.registerLayout();
 
         // once the main process notifies this renderer process, we try to 
         // finish the following job.

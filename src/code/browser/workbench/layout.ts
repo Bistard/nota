@@ -17,6 +17,9 @@ export abstract class WorkbenchLayout extends Component {
     protected actionViewComponent!: ActionViewComponent;
     protected editorComponent!: EditorComponent;
     
+    protected sashContainer: HTMLElement | undefined;
+    protected sashMap = new Map<string, Sash>();
+
     constructor(
         protected readonly instantiationService: IInstantiationService,
         componentService: IComponentService
@@ -24,7 +27,7 @@ export abstract class WorkbenchLayout extends Component {
         super(ComponentType.Workbench, null, document.body, componentService);
     }
 
-    protected _createLayout(): void {
+    protected createLayout(): void {
         
         /**
          * Constructs each component of the workbench.
@@ -36,7 +39,6 @@ export abstract class WorkbenchLayout extends Component {
         [
             this.actionBarComponent,
             this.actionViewComponent,
-            new Sash(this.container),
             this.editorComponent
         ]
         .forEach((component: ICreateable) => {
@@ -44,19 +46,19 @@ export abstract class WorkbenchLayout extends Component {
             component.registerListeners();
         });
 
+        this._createSashContainer();
+
     }
 
-    protected _registerLayout(): void {
+    protected registerLayout(): void {
         
         /**
          * @readonly Listens to each ActionBar button click events and notifies 
          * the actionView to swtich the view.
          */
-        const actionBar = this.componentService.get(ComponentType.ActionBar) as ActionBarComponent;
-        const actionView = this.componentService.get(ComponentType.ActionView) as ActionViewComponent;
         const [explorer, outline, search, git] = [
-            actionBar.getButton(ActionType.EXPLORER)!, actionBar.getButton(ActionType.OUTLINE)!, 
-            actionBar.getButton(ActionType.SEARCH)!, actionBar.getButton(ActionType.GIT)!
+            this.actionBarComponent.getButton(ActionType.EXPLORER)!, this.actionBarComponent.getButton(ActionType.OUTLINE)!, 
+            this.actionBarComponent.getButton(ActionType.SEARCH)!, this.actionBarComponent.getButton(ActionType.GIT)!
         ];
         
         [
@@ -70,8 +72,8 @@ export abstract class WorkbenchLayout extends Component {
             const type = pair[1] as ActionType;
 
             this.__register(button.onDidClick((event: Event) => {
-                actionBar.actionButtonClick(type);
-                actionView.actionViewChange(type);
+                this.actionBarComponent.actionButtonClick(type);
+                this.actionViewComponent.actionViewChange(type);
             }));
         });
 
@@ -79,7 +81,35 @@ export abstract class WorkbenchLayout extends Component {
          * @readonly
          */
 
+    }
 
+    /***************************************************************************
+     * Private Helper Functions
+     **************************************************************************/
+
+    private _registerSash(id: string, sash: Sash): Sash {
+        this.sashMap.set(id, sash);
+        return sash;
+    }
+
+    private _createSashContainer(): void {
+
+        if (this.sashContainer) {
+            return;
+        }
+
+        // create sash containers to DOM (document.body)
+        this.sashContainer = document.createElement('div');
+        this.sashContainer.classList.add('sash-container');
+        this.container.append(this.sashContainer);
+
+        [
+            this._registerSash('a', new Sash(this.sashContainer)),
+        ]
+        .forEach((sash: Sash) => {
+            sash.create();
+            sash.registerListeners();
+        });
 
     }
 

@@ -66,8 +66,8 @@ export class Sash extends Disposable implements ICreateable {
     /* End */
 
     /** 
-     * {@link Orientation.Horizontal} means dragging horizontally.
-     * {@link Orientation.vertical} means dragging vertically.
+     * {@link Orientation.Horizontal} means sash lays out horizontally.
+     * {@link Orientation.vertical} means lays out vertically.
      */
     private orientation: Orientation;
 
@@ -80,7 +80,7 @@ export class Sash extends Disposable implements ICreateable {
         if (opts) {
             this.orientation = opts.orientation;
         } else {
-            this.orientation = Orientation.Horizontal;
+            this.orientation = Orientation.Vertical;
         }
     }
 
@@ -99,6 +99,12 @@ export class Sash extends Disposable implements ICreateable {
         this.element = document.createElement('div');
         this.element.classList.add('sash');
         this.parentElement.append(this.element);
+
+        if (this.orientation === Orientation.Vertical) {
+            this.element.classList.add('sash-vertical');
+        } else {
+            this.element.classList.add('sash-horizontal');
+        }
     }
 
     public registerListeners(): void {
@@ -143,7 +149,7 @@ export class Sash extends Disposable implements ICreateable {
          */
 
         // draging horizontally
-        if (this.orientation === Orientation.Horizontal) {
+        if (this.orientation === Orientation.Vertical) {
 
             const doDragHelper = (e: MouseEvent) => {
                 this.element!.style.left = (this.startDimention + e.clientX - this.startCoordinate) + 'px';
