@@ -80,7 +80,7 @@ export class Workbench extends WorkbenchLayout {
         [
             this.actionBarComponent,
             this.actionViewComponent,
-            new Sash(this.container, ComponentType.ActionView, ComponentType.Editor),
+            new Sash(this.container),
             this.editorComponent
         ]
         .forEach((component: ICreateable) => {
