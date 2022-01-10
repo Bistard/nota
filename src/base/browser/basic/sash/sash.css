@@ -5,9 +5,11 @@
     
     width: 2px;
     height: 100%;
+
+    z-index: 101;
     
     cursor: w-resize;
-    transition: 0.2s;
+    /* transition: 0.2s; */
 }
 
 .sash:hover {
