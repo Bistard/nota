@@ -199,7 +199,8 @@ export class Sash extends Disposable implements ICreateable, ISash {
         /**
          * @readonly Comments on implementation of using local variable callbacks.
          *  1. So that listener can be removed properly.
-         *  2. So that `this` argument is referring to Sash object instead of the actual HTMLElement.
+         *  2. So that `this` argument is referring to the {@link Sash} object 
+         *     instead of the actual HTMLElement.
          */
 
         let doDragHelper: (e: MouseEvent) => void;
