@@ -58,6 +58,12 @@ export interface IActionBarOptions {
  */
 export class ActionBarComponent extends Component implements IActionBarService {
 
+    /* static property */
+
+    public static readonly width: number = 50;
+
+    /* Ends */
+
     /* Stores all the action buttons. */
     private _widgetBar: WidgetBar<ActionButton> | undefined;
     private _currFocusButton: ActionType;

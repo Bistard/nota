@@ -28,6 +28,12 @@ export interface IActionViewService extends IComponent {
  */
 export class ActionViewComponent extends Component implements IActionViewService {
 
+    /* Static Property */
+
+    public static readonly width: number = 300;
+
+    /* Ends */
+
     private _currFocusView: ActionType;
     
     private actionViewContentContainer!: HTMLElement;

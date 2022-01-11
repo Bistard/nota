@@ -1,5 +1,6 @@
 import { Button } from "src/base/browser/basic/button/button";
-import { Sash } from "src/base/browser/basic/sash/sash";
+import { ISashEvent, Sash } from "src/base/browser/basic/sash/sash";
+import { Orientation } from "src/base/common/dom";
 import { IComponentService } from "src/code/browser/service/componentService";
 import { ActionBarComponent, ActionType } from "src/code/browser/workbench/actionBar/actionBar";
 import { ActionViewComponent } from "src/code/browser/workbench/actionView/actionView";
@@ -78,9 +79,16 @@ export abstract class WorkbenchLayout extends Component {
         });
 
         /**
-         * @readonly
+         * @readonly Registers {@link Sash} listeners.
          */
 
+        const sash = this.sashMap.get('sash-1')!;
+        sash.onDidMove((e: ISashEvent) => {
+            
+            const newX = e.currentX - ActionBarComponent.width;
+            this.actionViewComponent.container.style.width = newX + 'px';
+            this.actionViewComponent.container.style.minWidth = newX + 'px';
+        });
     }
 
     /***************************************************************************
@@ -104,7 +112,11 @@ export abstract class WorkbenchLayout extends Component {
         this.container.append(this.sashContainer);
 
         [
-            this._registerSash('a', new Sash(this.sashContainer)),
+            this._registerSash('sash-1', new Sash(this.sashContainer, {
+                orientation: Orientation.Vertical, 
+                startPixel: ActionBarComponent.width + ActionViewComponent.width + 3, 
+                range: [200, -1]
+            })),
         ]
         .forEach((sash: Sash) => {
             sash.create();

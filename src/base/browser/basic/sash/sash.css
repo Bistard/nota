@@ -5,26 +5,21 @@
 
 .sash {
     position: relative;
-
     background-color: none;
-    
-    left: 352px;
     height: 100%;
 
     touch-action: none;
-    pointer-events: initial;
+    pointer-events: auto;
 }
 
 .sash-vertical {
     cursor: ew-resize;
-	top: 0;
 	width: var(--sash-size);
 	height: 100%;
 }
 
 .sash-horizontal {
     cursor: ns-resize;
-	left: 0;
 	width: 100%;
 	height: var(--sash-size);
 }
