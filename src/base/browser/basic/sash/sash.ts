@@ -217,14 +217,11 @@ export class Sash extends Disposable implements ICreateable, ISash {
                 if (this.range && (e.clientX < this.range[0] || (e.clientX > this.range[1] && this.range[1] !== -1))) {
                     return;
                 }
+
+                e.preventDefault();
                 
                 this.element!.style.left = (this.startDimention + e.pageX - this.startCoordinate) + 'px';
-                this._onDidMove.fire({
-                    startX: event.pageX,
-                    startY: event.pageY,
-                    currentX: e.pageX,
-                    currentY: e.pageY
-                });
+                this._onDidMove.fire({ startX: event.pageX, startY: event.pageY, currentX: e.pageX, currentY: e.pageY });
             };
     
             this.startCoordinate = event.pageX;
@@ -239,13 +236,10 @@ export class Sash extends Disposable implements ICreateable, ISash {
                     return;
                 }
 
+                e.preventDefault();
+
                 this.element!.style.top = (this.startDimention + event.pageY - this.startCoordinate) + 'px';
-                this._onDidMove.fire({
-                    startX: event.pageX,
-                    startY: event.pageY,
-                    currentX: e.pageX,
-                    currentY: e.pageY
-                });
+                this._onDidMove.fire({ startX: event.pageX, startY: event.pageY, currentX: e.pageX, currentY: e.pageY });
             };
     
             this.startCoordinate = event.pageY;
