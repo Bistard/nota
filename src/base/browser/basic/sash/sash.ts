@@ -99,10 +99,11 @@ export class Sash extends Disposable implements ICreateable, ISash {
 	private readonly _onDidEnd = this.__register(new Emitter<void>());
 	public readonly onDidEnd: Register<void> = this._onDidEnd.registerListener;
 
-    // TODO:
-	/* An event which fires whenever the user double clicks this sash. */
-    // private readonly _onDidReset = this.__register(new Emitter<void>());
-	// public readonly onDidReset: Register<void> = this._onDidReset.registerListener;
+    /**
+     * An event which fires whenever the user double clicks this sash. 
+     */
+    private readonly _onDidReset = this.__register(new Emitter<void>());
+	public readonly onDidReset: Register<void> = this._onDidReset.registerListener;
 
     /* End */
 
@@ -169,13 +170,30 @@ export class Sash extends Disposable implements ICreateable, ISash {
         this.__register(addDisposableListener(this.element, EventType.mousedown, 
             // using anonymous callback to avoid `this` argument ambiguous.
             (e: MouseEvent) => { 
+                // start dragging
+                this._initDrag(e);
+                
+                // fire event
                 this._onDidStart.fire({
                     startX: e.pageX,
                     startY: e.pageY,
                     currentX: e.pageX,
                     currentY: e.pageY
                 });
-                this._initDrag(e);
+            }
+        ));
+
+        this.__register(addDisposableListener(this.element, EventType.doubleclick,
+            () => {
+                // reset position
+                if (this.orientation === Orientation.Vertical) {
+                    this.element!.style.left = this.startPixel + 'px';
+                } else {
+                    this.element!.style.top = this.startPixel + 'px';
+                }
+                
+                // fire event
+                this._onDidReset.fire();
             }
         ));
     }

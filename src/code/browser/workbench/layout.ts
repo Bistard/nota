@@ -84,10 +84,14 @@ export abstract class WorkbenchLayout extends Component {
 
         const sash = this.sashMap.get('sash-1')!;
         sash.onDidMove((e: ISashEvent) => {
-            
             const newX = e.currentX - ActionBarComponent.width;
             this.actionViewComponent.container.style.width = newX + 'px';
             this.actionViewComponent.container.style.minWidth = newX + 'px';
+        });
+
+        sash.onDidReset(() => {
+            this.actionViewComponent.container.style.width = ActionViewComponent.width + 'px';
+            this.actionViewComponent.container.style.minWidth = ActionViewComponent.width + 'px';
         });
     }
 
