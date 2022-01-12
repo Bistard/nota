@@ -60,7 +60,7 @@ export class NoteBookManager implements INoteBookManagerService {
 public async init(): Promise<void> {
 
         try {
-            const config = this.globalConfigService.get<IGlobalNotebookManagerSettings>(EGlobalSettings.NotebookManager)!;
+            const config = this.globalConfigService.get<IGlobalNotebookManagerSettings>(EGlobalSettings.NotebookManager);
             
             // FIXME: it seems like this function is invoked before the userConfigService.init(local path) is invoked.
 
@@ -95,7 +95,7 @@ public async init(): Promise<void> {
             NoteBookManager.rootPath = path;
 
             // get configuration
-            const config = this.userConfigService.get<IUserNotebookManagerSettings>(EUserSettings.NotebookManager)!;
+            const config = this.userConfigService.get<IUserNotebookManagerSettings>(EUserSettings.NotebookManager);
             
             // get valid NoteBook names in the given dir
             const noteBooks: string[] = await dirFilter(
@@ -114,7 +114,7 @@ public async init(): Promise<void> {
             // data in cache for each NoteBook is now ready.
             
             // get global configuration first
-            const globalConfig = this.globalConfigService.get<IGlobalApplicationSettings>(EGlobalSettings.Application)!;
+            const globalConfig = this.globalConfigService.get<IGlobalApplicationSettings>(EGlobalSettings.Application);
 
             // try to find .mdnote
             const isExisted = await isDirExisted(path, LOCAL_MDNOTE_DIR_NAME);

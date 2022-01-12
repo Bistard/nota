@@ -93,7 +93,7 @@ export class MarkdownComponent extends Component implements IMarkdownService {
         /** 
          * Retrives configurations 
          */
-        this.userMarkdownSettings = this.userConfigService.get<IUserMarkdownSettings>(EUserSettings.Markdown)!;
+        this.userMarkdownSettings = this.userConfigService.get<IUserMarkdownSettings>(EUserSettings.Markdown);
         this.currentMode = this.userMarkdownSettings.defaultMarkdownMode;
     }
 

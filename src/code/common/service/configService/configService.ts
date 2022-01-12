@@ -7,6 +7,7 @@ import { ConfigModel, IConfigType } from "src/code/common/service/configService/
 import { ConfigServiceBase, IConfigService } from "src/code/common/service/configService/configServiceBase";
 import { IFileService } from "src/code/common/service/fileService/fileService";
 import { createDecorator } from "src/code/common/service/instantiationService/decorator";
+import { Language } from "src/code/platform/i18n/i18n";
 
 export const DEFAULT_CONFIG_PATH = APP_ROOT_PATH;
 export const GLOBAL_CONFIG_PATH = APP_ROOT_PATH;
@@ -154,6 +155,11 @@ export interface IGlobalApplicationSettings {
      * The current application mode.
      */
     appMode: AppMode;
+
+    /**
+     * The current display language.
+     */
+    displayLanguage: Language,
     
     /**
      * When true, NoteBookManager will read or create the default configuration in 
@@ -196,6 +202,7 @@ export class DefaultGlobalConfigModel extends ConfigModel {
             'application':
             {
                 appMode: 'debug' as AppMode,
+                displayLanguage: 'en',
                 defaultConfigOn: false,
                 OpenDirConfig:  {
                     defaultPath: DESKTOP_ROOT_PATH,

@@ -15,11 +15,12 @@ export interface IConfigService {
      * and get the corresponding configuration and treated as the type T. If the
      * section path is never been set, a undefined will be returned.
      * 
-     * @note nothrow guarantee.
+     * @warn Once the section is not found, an error will be thrown.
+     * 
      * @param section The section path, eg. 'window.markdown.file'
-     * @returns The required type T configuration or undefined.
+     * @returns The required type T configuration.
      */
-    get<T>(section: string | undefined): T | undefined;
+    get<T>(section: string | undefined): T;
     
     /**
      * @description Given the section path of the configuration (seperated by .)
@@ -95,8 +96,12 @@ export abstract class ConfigServiceBase extends Disposable implements IConfigSer
         super();
     }
 
-    public get<T>(section: string | undefined): T | undefined {
-        return this.configModel.get<T>(section);
+    public get<T>(section: string | undefined): T {
+        const result = this.configModel.get<T>(section);
+        if (result === undefined) {
+            throw new ConfigurationError(section, this.configType);
+        }
+        return result;
     }
 
     public set(sections: string[] | undefined, values: any[]): void;
@@ -169,4 +174,25 @@ export abstract class ConfigServiceBase extends Disposable implements IConfigSer
      * @param change The modified value that is about to be fired.
      */
     protected __fireOnSpecificEvent(section: string, change: any): void { /* empty */ }
+}
+
+function configTypeToString(type: IConfigType): string {
+    switch (type) {
+        case IConfigType.GLOBAL:
+            return 'global configuration';
+        case IConfigType.USER:
+            return 'user configuration';
+        case IConfigType.TEST:
+            return 'test configuration';
+        default:
+            return 'unknown configuration';
+    }
+}
+
+export class ConfigurationError extends Error {
+
+    constructor(section: string | undefined, configType: IConfigType) {
+        super(`section "${section}" is not found in ${configTypeToString(configType)}`);
+    }
+
 }
