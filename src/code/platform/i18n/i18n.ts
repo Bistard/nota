@@ -3,7 +3,7 @@ import { URI } from "src/base/common/file/uri";
 import * as path from "src/base/common/file/path";
 import { IFileService } from "src/code/common/service/fileService/fileService";
 import { isArray, isObject } from "src/base/common/type";
-import { Section } from "src/code/platform/section";
+import { Section } from "src/code/platform/i18n/section";
 
 /* the default path where to read locales. */
 const DefaultLocalesPath = 'assets/locales';
