@@ -7,6 +7,8 @@ import { IComponentService } from 'src/code/browser/service/componentService';
 import { ContextMenuType, Coordinate } from 'src/base/browser/secondary/contextMenu/contextMenu';
 import { IContextMenuService } from 'src/code/browser/service/contextMenuService';
 import { createDecorator } from 'src/code/common/service/instantiationService/decorator';
+import { Ii18nService } from 'src/code/platform/i18n/i18n';
+import { Section } from 'src/code/platform/i18n/section';
 
 export const IExplorerViewService = createDecorator<IExplorerViewService>('explorer-view-service');
 
@@ -26,6 +28,7 @@ export class ExplorerViewComponent extends Component implements IExplorerViewSer
 
     constructor(parentComponent: Component,
                 parentElement: HTMLElement,
+                @Ii18nService private readonly i18nService: Ii18nService,
                 @INoteBookManagerService private readonly noteBookManagerService: INoteBookManagerService,
                 @IComponentService componentService: IComponentService,
                 @IContextMenuService private readonly contextMenuService: IContextMenuService,
@@ -37,7 +40,7 @@ export class ExplorerViewComponent extends Component implements IExplorerViewSer
         this.fileTreeContainer.id = 'fileTree-container';
         
         this.emptyFolderTag.id = 'emptyFolderTag';
-        this.emptyFolderTag.innerHTML = 'open a folder';
+        this.emptyFolderTag.innerHTML = this.i18nService.trans(Section.Explorer, 'openDirectory');
         this.emptyFolderTag.classList.add('vertical-center', 'funcText');
 
         this.container.appendChild(this.fileTreeContainer);

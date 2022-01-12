@@ -4,9 +4,14 @@ import * as path from "src/base/common/file/path";
 import { IFileService } from "src/code/common/service/fileService/fileService";
 import { isArray, isObject } from "src/base/common/type";
 import { Section } from "src/code/platform/i18n/section";
+import { createDecorator } from "src/code/common/service/instantiationService/decorator";
+
+export const Ii18nService = createDecorator<Ii18nService>('i18n-service');
 
 /* the default path where to read locales. */
 const DefaultLocalesPath = 'assets/locales';
+const DefaultLanguage = 'en';
+const DefaultExtension = '.json';
 const DefaultLocalesPrefix = '{';
 const DefaultLocalesSuffix = '}';
 
@@ -66,7 +71,7 @@ export interface ILocaleOpts {
 
 }
 
-export interface Ii18n {
+export interface Ii18nService {
 
     readonly language: Language;
 
@@ -120,7 +125,7 @@ export interface Ii18n {
  * Internationalization (i18n) is the process that it can support local 
  * languages and cultural settings.
  */
-export class i18n implements Ii18n {
+export class i18n implements Ii18nService {
 
     // [Attributes]
 
@@ -160,17 +165,17 @@ export class i18n implements Ii18n {
 
     constructor(
         opts: Ii18nOpts,
-        @IFileService private readonly fileService: IFileService,
+        private readonly fileService: IFileService,
     ) {
         // i18n related
-        this._language = opts.language || 'en';
-        this._path = opts.directory || path.resolve(DefaultLocalesPath);
+        this._language   = opts.language   || DefaultLanguage;
+        this._path       = opts.directory  || path.resolve(DefaultLocalesPath);
         this._autoReload = opts.autoReload || false;
         
         // locales related
-        this._extension = opts.localeOpts.extension || '.json';
-        this._prefix = opts.localeOpts.prefix || DefaultLocalesPrefix;
-        this._suffix = opts.localeOpts.suffix || DefaultLocalesSuffix;
+        this._extension  = opts.localeOpts.extension || DefaultExtension;
+        this._prefix     = opts.localeOpts.prefix    || DefaultLocalesPrefix;
+        this._suffix     = opts.localeOpts.suffix    || DefaultLocalesSuffix;
     }
 
     // [Methods]
@@ -304,6 +309,7 @@ export class i18n implements Ii18n {
             const buffer = await this.fileService.readFile(uri);
             const jsonObject: Object = JSON.parse(buffer.toString());
             Object.assign(this._model, jsonObject);
+            console.log(this._model);
         } catch (err) {
             // TODO: logService and pops up notification window
             throw err;

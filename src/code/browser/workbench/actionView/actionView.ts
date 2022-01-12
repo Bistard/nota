@@ -8,6 +8,8 @@ import { ActionType } from 'src/code/browser/workbench/actionBar/actionBar';
 import { Disposable } from 'src/base/common/dispose';
 import { getBuiltInIconClass } from 'src/base/browser/icon/iconRegistry';
 import { Icons } from 'src/base/browser/icon/icons';
+import { Ii18nService } from 'src/code/platform/i18n/i18n';
+import { Section } from 'src/code/platform/i18n/section';
 
 export const IActionViewService = createDecorator<IActionViewService>('action-view-service');
 
@@ -47,7 +49,7 @@ export class ActionViewComponent extends Component implements IActionViewService
     public readonly onActionViewChange = this._onActionViewChange.registerListener;
     
     constructor(parentComponent: Component,
-                // @INoteBookManagerService private readonly noteBookManagerService: INoteBookManagerService,
+                @Ii18nService private readonly i18nService: Ii18nService,
                 @IInstantiationService private readonly instantiationService: IInstantiationService,
                 @IComponentService componentService: IComponentService,
     ) {
@@ -67,7 +69,7 @@ export class ActionViewComponent extends Component implements IActionViewService
         this.actionViewContentContainer.id = 'action-content-container';
 
         // action-view-title part
-        this.actionViewTitlePart = this.__register(new ExplorerTitlePart());
+        this.actionViewTitlePart = this.__register(new ExplorerTitlePart(this.i18nService));
         this.actionViewTitlePart.render(this.actionViewContentContainer);
         
         // action-view-content part
@@ -217,7 +219,9 @@ export class ActionViewTitlePart extends Disposable {
 
 export class ExplorerTitlePart extends ActionViewTitlePart {
 
-    constructor() {
+    constructor(
+        private readonly i18nService: Ii18nService,
+    ) {
         super();
     }
 
@@ -241,7 +245,7 @@ export class ExplorerTitlePart extends ActionViewTitlePart {
         // title text
         const topText = document.createElement('div');
         topText.className = 'title-text';
-        topText.innerHTML = 'Notebook';
+        topText.innerHTML = this.i18nService.trans(Section.Explorer, 'notebook');
 
         // dropdown icon
         const dropdownIcon = document.createElement('i');

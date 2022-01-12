@@ -14,6 +14,8 @@ import { URI } from "src/base/common/file/uri";
 import { resolve } from "src/base/common/file/path";
 import { EGlobalSettings, IGlobalApplicationSettings, IGlobalNotebookManagerSettings } from "src/code/common/service/configService/configService";
 import { WorkbenchLayout } from "src/code/browser/workbench/layout";
+import { i18n, Ii18nOpts, Ii18nService } from "src/code/platform/i18n/i18n";
+import { IFileService } from "src/code/common/service/fileService/fileService";
 
 // ActionBarService
 registerSingleton(IActionBarService, new ServiceDescriptor(ActionBarComponent));
@@ -38,23 +40,40 @@ export class Workbench extends WorkbenchLayout {
     ) {
         super(instantiationService, componentService);
 
-        this.initServices();
-        this.create();
-        this.registerListeners();
+        this.initServices().then(() => {
+            
+            this.create();
+            this.registerListeners();
+            
+        });
     }
 
-    public initServices(): void {
+    public async initServices(): Promise<void> {
 
         for (let [serviceIdentifer, serviceDescriptor] of getSingletonServiceDescriptors()) {
 			this.instantiationService.register(serviceIdentifer, serviceDescriptor);
 		}
+
+        // i18nService
+        const i18nOption: Ii18nOpts = {
+            language: 'en',
+            localeOpts: {
+                extension: '.json',
+                prefix: '{',
+                suffix: '}',
+            }
+        };
+        
+        const i18nService = new i18n(i18nOption, this.instantiationService.getService(IFileService)!);
+        await i18nService.init();
+        this.instantiationService.register(Ii18nService, i18nService);
 
         // ContextMenuService
         this.instantiationService.register(IContextMenuService, new ServiceDescriptor(ContextMenuService));
 
         // NoteBookManagerService (async)
         this._noteBookManager = this.instantiationService.createInstance(NoteBookManager);
-        this._noteBookManager.init();
+        await this._noteBookManager.init();
         this.instantiationService.register(INoteBookManagerService, this._noteBookManager);
 
     }
