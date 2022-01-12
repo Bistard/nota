@@ -55,8 +55,9 @@ export class Workbench extends WorkbenchLayout {
 		}
 
         // i18nService
+        const appConfig = this.globalConfigService.get<IGlobalApplicationSettings>(EGlobalSettings.Application);
         const i18nOption: Ii18nOpts = {
-            language: 'en',
+            language: appConfig.displayLanguage,
             localeOpts: {
                 extension: '.json',
                 prefix: '{',
