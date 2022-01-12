@@ -3,20 +3,20 @@ import { URI } from "src/base/common/file/uri";
 import * as path from "src/base/common/file/path";
 import { IFileService } from "src/code/common/service/fileService/fileService";
 import { isArray, isObject } from "src/base/common/type";
+import { Section } from "src/code/platform/section";
 
-
-/** The path where to read locales. */
+/* the default path where to read locales. */
 const DefaultLocalesPath = 'assets/locales';
 const DefaultLocalesPrefix = '{';
 const DefaultLocalesSuffix = '}';
 
-export type Language = string;
+export type Language = 
+    'en' |      // english
+    'zh-cn' |   // Chinese (Simplified)
+    'zh-tw'     // Chinese (Traditional)
+;
 
-export const defaultLanguages: Language[] = [
-    /* english is no needed since all the plain texts are written in english. */
-    'zh-cn', // Chinese (Simplified)
-    'zh-tw', // Chinese (Traditional)
-];
+export type Ii18nSection = { [key: string]: string }
 
 export interface Ii18nOpts {
 
@@ -47,19 +47,19 @@ export interface Ii18nOpts {
 export interface ILocaleOpts {
 
     /**
-     * The extension of the locales.
+     * The extension of a locale. (including the `dot`)
      *  - defaults to `.json`
      */
     readonly extension?: string;
 
     /**
-     * The prefix to identify a variable in the locale json file.
+     * The prefix to identify a variable in a locale json file.
      *  - defaults to {@link DefaultLocalesPrefix}
      */
     readonly prefix?: string;
 
     /**
-     * The suffix to identify a variable in the locale json file.
+     * The suffix to identify a variable in a locale json file.
      *  - defaults to {@link DefaultLocalesSuffix}
      */
     readonly suffix?: string;
@@ -94,16 +94,20 @@ export interface Ii18n {
     setLanguage(lang: Language): void;
     
     /**
-     * Gets the corresponding translation unit from the provided key, then 
-     * replacing variables if exists using provided interpolation.
+     * Gets the corresponding translation unit from the current locale, then 
+     * replaces translation unit variables if exists by using provided 
+     * interpolation.
+     * @param section The idenfitier as a subsection of the current locale.
      * @param key The key to the request tranlation unit.
      * @param interpolation Variable replacement.
      * 
-     * @example see `i18n.test.ts`
+     * @example see `i18n.test.ts`.
+     * 
+     * @note trans stands for 'translation'.
      */
-    trans(key: string, interpolation?: string[]): string;
-    trans(key: string, interpolation?: { [key: string]: string }): string;
-    trans(key: string, interpolation?: string[] | { [key: string]: string }): string;
+    trans(section: Section, key: string, interpolation?: string[]): string;
+    trans(section: Section, key: string, interpolation?: { [key: string]: string }): string;
+    trans(section: Section, key: string, interpolation?: string[] | { [key: string]: string }): string;
 
     // TODO
     /**
@@ -112,15 +116,22 @@ export interface Ii18n {
     reloadLocale(): Promise<void>;
 }
 
+/**
+ * Internationalization (i18n) is the process that it can support local 
+ * languages and cultural settings.
+ */
 export class i18n implements Ii18n {
 
     // [Attributes]
 
+    /* the actual javascript object to store the locale */
+    protected _model: { [key: string]: Ii18nSection } = Object.create(null);
+
+    /* the current display language */
     protected _language: Language | undefined;
 
-    protected _model: { [key: string]: string } = Object.create(null);
-
-    protected _path: string; // the absolute path to locales
+    /* the absolute directory path to locales */
+    protected _path: string;
 
     protected _autoReload: boolean;
 
@@ -188,19 +199,24 @@ export class i18n implements Ii18n {
         this._onDidChange.fire();
     }
 
-    public trans(key: string, interpolation?: string[]): string;
-    public trans(key: string, interpolation?: { [key: string]: string }): string;
-    public trans(key: string, interpolation?: string[] | { [key: string]: string }): string {
+    public trans(section: Section, key: string, interpolation?: string[]): string;
+    public trans(section: Section, key: string, interpolation?: { [key: string]: string }): string;
+    public trans(section: Section, key: string, interpolation?: string[] | { [key: string]: string }): string {
         
-        const value = this._model[key];
+        const subsection = this._model[section];
+        if (subsection === undefined) {
+            throw new Error(`not found the given section "${section}" from the current locale "${this._language}"`);
+        }
+
+        const value = subsection[key];
         if (value === undefined) {
-            throw new Error(`not found the given i18n key "${key}" from the current locale`);
+            throw new Error(`not found the given i18n key "${key}" from the current section "${section}"`);
         }
 
         if (interpolation === undefined) {
             return value;
         }
-
+        
         let get: (key: string) => string | undefined;
 
         if (isArray(interpolation)) {
