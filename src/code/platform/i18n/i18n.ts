@@ -309,7 +309,6 @@ export class i18n implements Ii18nService {
             const buffer = await this.fileService.readFile(uri);
             const jsonObject: Object = JSON.parse(buffer.toString());
             Object.assign(this._model, jsonObject);
-            console.log(this._model);
         } catch (err) {
             // TODO: logService and pops up notification window
             throw err;
