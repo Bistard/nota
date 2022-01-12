@@ -1,5 +1,4 @@
 
-
 export function isObject(obj: any): obj is any {
     return typeof obj === "object"
         && obj !== null
@@ -20,4 +19,8 @@ export function isEmptyObject(obj: any): boolean {
     }
 
     return true;
+}
+
+export function isArray(array: any): array is any[] {
+	return Array.isArray(array);
 }
