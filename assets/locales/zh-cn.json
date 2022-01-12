@@ -1,0 +1,9 @@
+{
+    "src/code/browser/workbench/actionView": {
+        
+    },
+    "src/code/browser/workbench/actionView/explorer": {
+        "notebook": "笔记本",
+        "openDirectory": "打开文件夹"
+    }
+}

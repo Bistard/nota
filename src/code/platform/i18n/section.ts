@@ -6,7 +6,10 @@
 export enum Section {
 
     ActionBar = 'src/code/browser/workbench/actionBar',
+    
     ActionView = 'src/code/browser/workbench/actionView',
+    Explorer = 'src/code/browser/workbench/actionView/explorer',
+
     Editor = 'src/code/browser/workbench/editor',
 
 }
