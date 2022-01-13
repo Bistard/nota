@@ -16,7 +16,7 @@ const DefaultLocalesPrefix = '{';
 const DefaultLocalesSuffix = '}';
 
 export type Language = 
-    'en' |      // english
+    'en' |      // English
     'zh-cn' |   // Chinese (Simplified)
     'zh-tw'     // Chinese (Traditional)
 ;

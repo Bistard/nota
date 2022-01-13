@@ -10,7 +10,7 @@
     /* Allow view to grow and shrink, and ensure they are all equally sized, equivalent to flex: auto */
     flex: 1 1 auto;
     
-    box-shadow: 5px 0px 10px 0px #888888;
+    box-shadow: 5px 0px 30px 0px #e2e2e2;
 }
 
 #editor-view-container {
