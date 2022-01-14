@@ -1,6 +1,6 @@
 import { Widget } from "src/base/browser/basic/widget";
 import { Icons } from "src/base/browser/icon/icons";
-import { Register } from "src/base/common/event";
+import { Emitter, Register } from "src/base/common/event";
 
 
 export interface IButtonOptions {
@@ -17,11 +17,14 @@ export interface IButton {
 
 export class Button extends Widget implements IButton {
     
+    /* Events */
+    protected readonly _onDidClick = this.__register( new Emitter<Event>() );
+    public readonly onDidClick = this._onDidClick.registerListener;
+
     public opts: IButtonOptions | undefined;
 
     /** @readonly Constructor */
     constructor(opts?: IButtonOptions) {
-        
         super();
 
         this.opts = opts;
@@ -46,6 +49,18 @@ export class Button extends Widget implements IButton {
 
     public override render(container: HTMLElement): void {
         super.render(container);
+
+        this._registerListeners();
     }
+    
+    protected _registerListeners(): void {
+
+        // left click event
+        this.onClick(this._element!, (e) => {
+            this._onDidClick.fire(e);
+        });
+
+    }
+
 
 }
