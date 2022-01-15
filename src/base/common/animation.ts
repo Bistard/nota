@@ -19,6 +19,8 @@ const _simulateRequestAnimationFrame = (callback: Function) => callback();
  * no point to render animation when it is invisible).
  * 
  * @link more details from http://www.javascriptkit.com/javatutors/requestanimationframe.shtml
+ * 
+ * @returns A number handle for cancellation.
  */
 export const requestAnimationFrame: (callback: FrameRequestCallback) => number = 
     window.requestAnimationFrame ||
@@ -30,6 +32,7 @@ export const requestAnimationFrame: (callback: FrameRequestCallback) => number =
 /**
  * @readonly The method may be passed into a handle which is returned when the 
  * request was succeed to cancel the corresponding callback animation.
+ * @param handle A number handle returned by requestAnimationFrame().
  */
 export const cancelAnimationFrame: (handle: number) => void = 
     window.cancelAnimationFrame;
