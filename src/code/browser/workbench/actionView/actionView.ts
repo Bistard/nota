@@ -231,31 +231,24 @@ export class ExplorerTitlePart extends ActionViewTitlePart {
         if (this._element === undefined) {
             return;
         }
-
+        
         // wrapper
         const wrapper = document.createElement('div');
         wrapper.className = 'action-view-title-container';
 
-        // notebook icon
-        // const iconElement = document.createElement('i');
-        // iconElement.classList.add('icon');
-        // iconElement.classList.add(getBuiltInIconClass(Icons.Book));
-        // this._element.appendChild(iconElement);
+        // dropdown icon
+        const dropdownIcon = document.createElement('i');
+        dropdownIcon.classList.add('icon');
+        dropdownIcon.classList.add(getBuiltInIconClass(Icons.AddressBook));
+        this._element.appendChild(dropdownIcon);
 
         // title text
         const topText = document.createElement('div');
         topText.className = 'title-text';
         topText.innerHTML = this.i18nService.trans(Section.Explorer, 'notebook');
 
-        // dropdown icon
-        const dropdownIcon = document.createElement('i');
-        dropdownIcon.classList.add('icon');
-        dropdownIcon.classList.add(getBuiltInIconClass(Icons.CaretDown));
-        this._element.appendChild(dropdownIcon);
-
-        // wrapper.append(iconElement);
-        wrapper.append(topText);
         wrapper.append(dropdownIcon);
+        wrapper.append(topText);
         this._element.appendChild(wrapper);
     }
 
