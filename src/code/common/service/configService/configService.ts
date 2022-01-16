@@ -34,7 +34,7 @@ export interface IGlobalConfigService extends IConfigService {
 }
 
 /**
- * @description The user configuration service relates to the unique file named
+ * @class The user configuration service relates to the unique file named
  * `config.json` which will be placed in either:
  *      - the .mdnote directory in the opened directory (user customized) OR
  *      - the root directory of the application which will be considered as the 
@@ -74,7 +74,7 @@ export class UserConfigService extends ConfigServiceBase implements IUserConfigS
 }
 
 /**
- * @description The global configuration service relates to the unique file named
+ * @class The global configuration service relates to the unique file named
  * `mdnote.config.json` which will be placed in the root directory of the 
  * application.
  */

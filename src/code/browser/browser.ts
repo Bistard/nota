@@ -10,7 +10,7 @@ import { Schemas } from "src/base/common/file/uri";
 import { DiskFileSystemProvider } from "src/base/node/diskFileSystemProvider";
 
 /**
- * @description This the main entry in the renderer process.
+ * @class This the main entry in the renderer process.
  */
 export class Browser {
 

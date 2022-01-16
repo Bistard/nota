@@ -26,9 +26,8 @@ export interface INoteBookManagerService {
 }
 
 /**
- * @description reads local configuration and build corresponding notebook 
- * structure. It maintains the data and states changes for every NoteBook 
- * instance.
+ * @class reads local configuration and build corresponding notebook structure. 
+ * It maintains the data and states changes for every NoteBook instance.
  */
 export class NoteBookManager implements INoteBookManagerService {
 

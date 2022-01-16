@@ -59,10 +59,10 @@ export interface ISash {
 }
 
 /**
- * @description A {@link Sash} is a UI component that allows the user to resize
- * other components (using events). It's usually an invisible horizontal or 
- * vertical line which, when hovered, becomes highlighted and can be dragged 
- * along the perpendicular dimension to its direction.
+ * @class A {@link Sash} is a UI component that allows the user to resize other 
+ * components (using events). It's usually an invisible horizontal or vertical 
+ * line which, when hovered, becomes highlighted and can be dragged along the 
+ * perpendicular dimension to its direction.
  */
 export class Sash extends Disposable implements ICreateable, ISash {
 

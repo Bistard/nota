@@ -19,7 +19,7 @@ export interface IExplorerViewService extends IComponent {
 }
 
 /**
- * @description TODO: complete comments
+ * @class TODO: complete comments
  */
 export class ExplorerViewComponent extends Component implements IExplorerViewService {
 

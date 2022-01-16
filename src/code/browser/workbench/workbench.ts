@@ -26,7 +26,7 @@ registerSingleton(IExplorerViewService, new ServiceDescriptor(ExplorerViewCompon
 registerSingleton(IEditorService, new ServiceDescriptor(EditorComponent));
 
 /**
- * @description Workbench represents all the Components in the web browser.
+ * @class Workbench represents all the Components in the web browser.
  */
 export class Workbench extends WorkbenchLayout {
 

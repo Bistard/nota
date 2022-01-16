@@ -1,4 +1,8 @@
 
+/**
+ * @class A class to simulate a real buffer which provides the functionality to
+ * stores the actual data as a sequence of unsigned int (8 bits).
+ */
 export class DataBuffer {
 
     public readonly buffer: Uint8Array;

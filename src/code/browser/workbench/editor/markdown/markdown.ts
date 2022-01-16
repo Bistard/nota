@@ -45,7 +45,7 @@ export interface IMarkdownService extends IComponent {
 export type MarkdownRenderMode = 'wysiwyg' | 'instant' | 'split';
 
 /**
- * @description MarkdownComponent initializes markdown renderer and windows and
+ * @class MarkdownComponent initializes markdown renderer and windows and
  * handling a few other shortcuts as well.
  */
 export class MarkdownComponent extends Component implements IMarkdownService {

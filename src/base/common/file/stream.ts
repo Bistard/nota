@@ -103,7 +103,7 @@ export function newWriteableStream<T>(concatenater: IConcatenater<T>): IWriteabl
 }
 
 /**
- * @description A writeable stream for handling data flowing between buffer and 
+ * @class A writeable stream for handling data flowing between buffer and 
  * consumers.
  */
 export class WriteableStream<T> implements IWriteableStream<T> {

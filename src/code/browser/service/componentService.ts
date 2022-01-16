@@ -11,8 +11,7 @@ export interface IComponentService {
 }
 
 /**
- * @description This service is used to store and track all the registered 
- * Component.
+ * @class This service is used to store and track all the registered Component.
  */
 export class ComponentService {
 

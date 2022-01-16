@@ -4,7 +4,7 @@ export interface IDisposable {
 }
 
 /**
- * @readonly The lifecyle of a disposable object is controlled by the client. A
+ * @class The lifecyle of a disposable object is controlled by the client. A
  * disposable object can be registered into another disposable object.
  * 
  * Calling this.dispose() will dispose the object and all its registered ones. 
@@ -52,7 +52,7 @@ export class Disposable implements IDisposable {
 	}
 }
 
-/** @description A manager to maintain all the registered disposables. */
+/** @class A manager to maintain all the registered disposables. */
 export class DisposableManager implements IDisposable {
 
 	private _disposables = new Set<IDisposable>();

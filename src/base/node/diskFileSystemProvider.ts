@@ -5,9 +5,7 @@ import { fileExists, FileMode } from "src/base/node/io";
 import { retry } from "src/base/common/async";
 import { join } from "path";
 
-export class DiskFileSystemProvider implements 
-    IFileSystemProviderWithFileReadWrite,
-    IFileSystemProviderWithOpenReadWriteClose {
+export class DiskFileSystemProvider implements IFileSystemProviderWithFileReadWrite, IFileSystemProviderWithOpenReadWriteClose {
 
     /**
      * @readonly DiskFileSystemProvider has fully permission to deal with disk
@@ -20,7 +18,7 @@ export class DiskFileSystemProvider implements
         FileSystemProviderCapability.FileFolderCopy |
         FileSystemProviderCapability.PathCaseSensitive;
 
-    // empty
+    // [constructor]
     constructor() {}
 
     /***************************************************************************

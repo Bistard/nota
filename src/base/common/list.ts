@@ -80,8 +80,7 @@ export class ListNode<T> {
 }
 
 /**
- * @description A doubly linked list. List<T> supports initializer list 
- * constructor.
+ * @class A doubly linked list. List<T> supports initializer list constructor.
  */
 export class List<T> {
 

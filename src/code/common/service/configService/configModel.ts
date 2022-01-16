@@ -41,7 +41,7 @@ export interface IConfigChange {
 }
 
 /**
- * The data structure to stores the actual configruration. Each `configServiceBase`
+ * @class The data structure to stores the actual configruration. Each `configServiceBase`
  * consists exact one ConfigModel.
  * 
  * The default constructor is a null javascript object.

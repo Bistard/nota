@@ -74,8 +74,8 @@ export interface Register<T> {
 }
 
 /**
- * @readonly An event emitter binds to a specific event T. All the listeners who 
- * is listening to the event T will be notified once the event occurs.
+ * @class An event emitter binds to a specific event T. All the listeners who is 
+ * listening to the event T will be notified once the event occurs.
  * 
  * To listen to this event T, use this.register(listener) where `listener` is a
  * callback function.

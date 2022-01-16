@@ -52,7 +52,7 @@ export interface IActionBarOptions {
 }
 
 /**
- * @description ActionBarComponent provides access to each action view and handles 
+ * @class ActionBarComponent provides access to each action view and handles 
  * the state transition between each action button and display coressponding 
  * action view.
  */

@@ -92,7 +92,7 @@ export interface ITabBarComponent extends IComponent {
 }
 
 /**
- * @description TabBarComponent stores all the opened tabs data and handles all the 
+ * @class TabBarComponent stores all the opened tabs data and handles all the 
  * tabBar relevant listeners and business.
  */
 export class TabBarComponent extends Component implements ITabBarComponent {

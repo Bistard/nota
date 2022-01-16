@@ -10,7 +10,7 @@ export enum TitleBarComponentType {
 }
 
 /**
- * @description TitleBarComponent stores and handles all the titleBar and functionBar 
+ * @class TitleBarComponent stores and handles all the titleBar and functionBar 
  * relevant business. 
  */
 export class TitleBarComponent extends Component {

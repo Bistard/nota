@@ -6,7 +6,7 @@ export interface IActionButtonOptions extends IButtonOptions {
 }
 
 /**
- * @description A simple encapsulation on the buttons from actionBarCompoent.
+ * @class A simple encapsulation on the buttons from actionBarCompoent.
  */
 export class ActionButton extends Button {
 

@@ -25,7 +25,7 @@ export interface IActionViewService extends IComponent {
 }
 
 /**
- * @description ActionViewComponent displays different action view such as 
+ * @class ActionViewComponent displays different action view such as 
  * explorerView, outlineView, gitView and so on.
  */
 export class ActionViewComponent extends Component implements IActionViewService {
@@ -174,7 +174,7 @@ export class ActionViewComponent extends Component implements IActionViewService
 }
 
 /**
- * @description The base class for top view part in the action view.
+ * @class The base class for top view part in the action view.
  */
 export class ActionViewTitlePart extends Disposable {
 

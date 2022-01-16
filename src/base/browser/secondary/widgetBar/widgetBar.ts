@@ -76,8 +76,8 @@ export interface IWidgetBarOptions {
 }
 
 /**
- * @description A convenient tool to stores a sequence of Widgets and displays 
- * them in s sequential order.
+ * @class A convenient tool to stores a sequence of Widgets and displays them in 
+ * sequential order.
  */
 export class WidgetBar<T extends IWidget> extends Disposable {
 

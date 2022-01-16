@@ -1,7 +1,7 @@
 import { FileTree } from "src/base/node/fileTree";
 
 /**
- * @description A class for each noteBook.
+ * @class A class for each noteBook.
  */
 export class NoteBook {
 

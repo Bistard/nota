@@ -50,7 +50,7 @@ declare function cancelIdleCallback(handle: number): void;
 })();
 
 /**
- * An implementation of the "idle-until-urgent"-strategy as introduced
+ * @class An implementation of the "idle-until-urgent"-strategy as introduced
  * here: https://philipwalton.com/articles/idle-until-urgent/
  */
 export class IdleValue<T> {

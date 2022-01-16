@@ -9,8 +9,7 @@ import { Icons } from 'src/base/browser/icon/icons';
 import { createSpan } from 'src/base/common/dom';
 
 /**
- * @description the object is to store and maintain the data for each 
- * folder/file/root.
+ * @class the object is to store and maintain the data for each folder/file/root.
  */
 export class FileNode {
 
@@ -202,9 +201,8 @@ export class FileNode {
 }
 
 /**
- * @description FileTree is responsible for storing data for each node 
- * in the opened folder tree. Only deals with dada handling, searching and 
- * storing.
+ * @class FileTree is responsible for storing data for each node in the opened 
+ * folder tree. Only deals with dada handling, searching and storing.
  */
 export class FileTree {
     

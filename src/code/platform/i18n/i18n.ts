@@ -122,7 +122,7 @@ export interface Ii18nService {
 }
 
 /**
- * Internationalization (i18n) is the process that it can support local 
+ * @class Internationalization (i18n) is the process that it can support local 
  * languages and cultural settings.
  */
 export class i18n implements Ii18nService {
