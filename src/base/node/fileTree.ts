@@ -58,7 +58,7 @@ export class FileNode {
 
         this._render(); // this.node is created from here
 
-        const node = this.container.firstChild as ChildNode;
+        const node = this.container.firstChild!;
         // FIX: no need EVENT_EMITTER HERE
         if (isFolder) {
             node.addEventListener('click', () => FileNode.folderOnClick(this));
@@ -140,18 +140,31 @@ export class FileNode {
     public static folderOnClick(nodeInfo: FileNode): void {
         (nodeInfo.isExpand as unknown as number) ^= 1;
         const container: JQuery<HTMLElement> = $(nodeInfo.node);
+        let node = nodeInfo.level ? container.children(':first') : container.children(':nth-child(2)');
 
         if (nodeInfo.isExpand) {
-            // container.removeClass(getBuiltInIconClass(Icons.AngleRight));
-            // container.addClass(getBuiltInIconClass(Icons.AngleDown));
+            if (nodeInfo.level === 0) {
+                node.removeClass(getBuiltInIconClass(Icons.AngleDown));
+                node.addClass(getBuiltInIconClass(Icons.AngleUp));
+            } else {
+                node.removeClass(getBuiltInIconClass(Icons.CaretRight));
+                node.addClass(getBuiltInIconClass(Icons.CaretDown));
+            }
+            
             container.each(function() {
                 container.nextAll().each(function() {
                     $(this).show(0);
                 });
             });
         } else {
-            // container.addClass(getBuiltInIconClass(Icons.AngleDown));
-            // container.removeClass(getBuiltInIconClass(Icons.AngleDown));
+            if (nodeInfo.level === 0) {
+                node.removeClass(getBuiltInIconClass(Icons.AngleUp));
+                node.addClass(getBuiltInIconClass(Icons.AngleDown));
+            } else {
+                node.removeClass(getBuiltInIconClass(Icons.CaretDown));
+                node.addClass(getBuiltInIconClass(Icons.CaretRight));
+            }
+            
             container.each(function() {
                 container.nextAll().each(function() {
                     $(this).hide(0);
