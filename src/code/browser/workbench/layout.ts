@@ -118,8 +118,8 @@ export abstract class WorkbenchLayout extends Component {
         [
             this._registerSash('sash-1', new Sash(this.sashContainer, {
                 orientation: Orientation.Vertical, 
-                startPixel: ActionBarComponent.width + ActionViewComponent.width + 3, 
-                range: [200, -1]
+                defaultPosition: ActionBarComponent.width + ActionViewComponent.width + 3, 
+                range: [200, 600]
             })),
         ]
         .forEach((sash: Sash) => {
