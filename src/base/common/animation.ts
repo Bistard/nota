@@ -1,7 +1,7 @@
 
 /**
- * when the current enviroment is too old to support `requestAnimationFrame`, we 
- * try to simulate it (not perfect though).
+ * when the current environment is too old to support `requestAnimationFrame`, 
+ * we try to simulate it (not perfect though).
  */
 const _simulateRequestAnimationFrame = (callback: Function) => callback();
 

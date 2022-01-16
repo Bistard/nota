@@ -16,7 +16,7 @@ export interface ISashOpts {
      * When it is vertical, it is the left-most position (x-axis).
      * When it is horizontal, it is the top-most position (y-axis).
      */
-    readonly startPixel: number;
+    readonly defaultPosition: number;
 
     
     /**
@@ -47,7 +47,7 @@ export interface ISashEvent {
 
 export interface ISash {
     readonly size: number;
-    readonly startPixel: number;
+    readonly defaultPosition: number;
 
     readonly onDidStart: Register<ISashEvent>;
     readonly onDidMove: Register<ISashEvent>;
@@ -75,33 +75,33 @@ export class Sash extends Disposable implements ICreateable, ISash {
 
     /* Options */
 
+    // when vertical: width of the sash
+    // when horizontal: height of the sash
     public readonly size: number;
-    public readonly startPixel: number;
+
+    // when vertical: the default position in x of the sash
+    // when horizontal: the default position in y of the sash
+    public readonly defaultPosition: number;
+
+    // when vertical: the draggable range in x of the sash
+    // when horizontal: the draggable range in y of the sash
     public readonly range: [number, number] | undefined;
 
     /* Events */
 
-    /** 
-     * An event which fires whenever the user starts dragging this sash. 
-     */
+    // An event which fires whenever the user starts dragging this sash. 
 	private readonly _onDidStart = this.__register(new Emitter<ISashEvent>());
     public readonly onDidStart: Register<ISashEvent> = this._onDidStart.registerListener;
 
-	/** 
-     * An event which fires whenever the user moves the mouse while dragging this sash. 
-     */
+	// An event which fires whenever the user moves the mouse while dragging this sash. 
     private readonly _onDidMove = this.__register(new Emitter<ISashEvent>());
 	public readonly onDidMove: Register<ISashEvent> = this._onDidMove.registerListener;
 
-	/** 
-     * An event which fires whenever the user stops dragging this sash. 
-     */
+	// An event which fires whenever the user stops dragging this sash. 
 	private readonly _onDidEnd = this.__register(new Emitter<void>());
 	public readonly onDidEnd: Register<void> = this._onDidEnd.registerListener;
 
-    /**
-     * An event which fires whenever the user double clicks this sash. 
-     */
+    // An event which fires whenever the user double clicks this sash. 
     private readonly _onDidReset = this.__register(new Emitter<void>());
 	public readonly onDidReset: Register<void> = this._onDidReset.registerListener;
 
@@ -121,7 +121,7 @@ export class Sash extends Disposable implements ICreateable, ISash {
 
         /* Options */    
         this.orientation = opts.orientation;
-        this.startPixel = opts.startPixel;
+        this.defaultPosition = opts.defaultPosition;
 
         if (opts.size) {
             this.size = opts.size;
@@ -154,11 +154,11 @@ export class Sash extends Disposable implements ICreateable, ISash {
         if (this.orientation === Orientation.Vertical) {
             this.element.classList.add('sash-vertical');
             this.element.style.width = this.size + 'px';
-            this.element.style.left = this.startPixel + 'px';
+            this.element.style.left = this.defaultPosition + 'px';
         } else {
             this.element.classList.add('sash-horizontal');
             this.element.style.height = this.size + 'px';
-            this.element.style.top = this.startPixel + 'px';
+            this.element.style.top = this.defaultPosition + 'px';
         }
     }
 
@@ -187,9 +187,9 @@ export class Sash extends Disposable implements ICreateable, ISash {
             () => {
                 // reset position
                 if (this.orientation === Orientation.Vertical) {
-                    this.element!.style.left = this.startPixel + 'px';
+                    this.element!.style.left = this.defaultPosition + 'px';
                 } else {
-                    this.element!.style.top = this.startPixel + 'px';
+                    this.element!.style.top = this.defaultPosition + 'px';
                 }
                 
                 // fire event
