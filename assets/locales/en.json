@@ -3,7 +3,7 @@
         
     },
     "src/code/browser/workbench/actionView/explorer": {
-        "notebook": "Notebook",
-        "openDirectory": "open a folder"
+        "notebook": "NOTEBOOK",
+        "openDirectory": "OPEN A FOLDER"
     }
 }
