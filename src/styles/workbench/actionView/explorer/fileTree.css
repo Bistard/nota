@@ -45,7 +45,7 @@
     padding-left: 0px; /* indentation */
     
     margin: 0;
-    border-bottom: 1px solid #dfdfdf;
+    /* border-bottom: 1px solid #dfdfdf; */
 }
 
 .node-root .root-icon {
@@ -88,8 +88,8 @@
 }
 
 .node-root > .node {
-    height: 40px;
-    line-height: 40px;
+    height: 50px;
+    line-height: 50px;
 }
 
 .node {
@@ -113,7 +113,7 @@
     text-overflow: ellipsis;
     white-space: nowrap;
 
-    font-size: 13px;
+    font-size: 14px;
     color: #868686;
 }
 
@@ -126,7 +126,7 @@
 
 .node > .node-root-text {
     padding-left: 10px;
-    font-size: 13px;
+    font-size: 14px;
     color: #808080;
 }
 
