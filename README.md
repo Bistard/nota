@@ -8,8 +8,8 @@ An open-sourced note-taking application / markdown editor that provides WYSIWYG 
 * ❌supports git extension
 * ❌provides great noteTaking-like user experience
 
-## 👁‍🗨Screen shots (2022.1.9)
-![screenshot](./doc/images/2022.1.9.png)
+## 👁‍🗨Screen shots (2022.1.16)
+![screenshot](./doc/images/2022.1.16.png)
 
 ## 🚪portal
 - [📚wiki](https://github.com/Bistard/MarkdownNote/wiki)
