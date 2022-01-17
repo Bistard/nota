@@ -1,3 +1,4 @@
+
 import { Disposable, IDisposable } from "src/base/common/dispose";
 import { addDisposableListener, EventType } from "src/base/common/dom";
 
@@ -48,6 +49,13 @@ export abstract class Widget extends Disposable implements IWidget {
     /* Registers a callback function when the provided element is mouseouted */
     public onMouseout(element: HTMLElement, callback: (event: any) => void): void {
         this.__register(addDisposableListener(element, EventType.mouseout, (e: any) => {
+            callback(e);
+        }));
+    }
+
+    /* Registers a callback function when the provided element is mousedowned */
+    public onMousedown(element: HTMLElement, callback: (event: any) => void): void {
+        this.__register(addDisposableListener(element, EventType.mousedown, (e: any) => {
             callback(e);
         }));
     }
