@@ -60,8 +60,8 @@ export abstract class Widget extends Disposable implements IWidget {
         }));
     }
 
-    public render(container: HTMLElement): void {
-        this._element = container;
+    public render(element: HTMLElement): void {
+        this._element = element;
     }
 
     public applyStyle(): void {
