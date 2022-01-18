@@ -24,3 +24,10 @@ export function isEmptyObject(obj: any): boolean {
 export function isArray(array: any): array is any[] {
 	return Array.isArray(array);
 }
+
+export function ifOrDefault<T>(value: T, defaultValue: T): T {
+    if (typeof value === 'undefined') {
+        return defaultValue;
+    }
+    return value;
+}
