@@ -25,9 +25,16 @@ export function isArray(array: any): array is any[] {
 	return Array.isArray(array);
 }
 
-export function ifOrDefault<T>(value: T, defaultValue: T): T {
+/**
+ * @description Returns value if it is not `undefined`, otherwise returns the 
+ * defaultValue.
+ * @param value provided value which could be `undefined`.
+ * @param defaultValue provided default value which cannot be `undefined`.
+ * @returns the default value.
+ */
+export function ifOrDefault<T>(value: T, defaultValue: NonNullable<T>): NonNullable<T> {
     if (typeof value === 'undefined') {
         return defaultValue;
     }
-    return value;
+    return value as NonNullable<T>;
 }
