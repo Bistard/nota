@@ -1,0 +1,28 @@
+
+.scroll-bar {
+    position: absolute;
+}
+
+.scroll-bar > .scroll-slider {
+    position: absolute;
+    background-color: #d1d1d1;
+    overflow-y: hidden;
+}
+
+.scroll-bar.horizontal {
+    width: 100%;
+    bottom: 0px;
+}
+
+.scroll-bar.horizontal > .scroll-slider {
+    height: 100%;
+}
+
+.scroll-bar.vertical {
+    height: 100%;
+    right: 0px;
+}
+
+.scroll-bar.vertical > .scroll-slider {
+    width: 100%;
+}
