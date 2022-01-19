@@ -21,19 +21,15 @@ export class ActionButton extends Button {
     public override render(container: HTMLElement): void {
         super.render(container);
 
-        if (this._element === undefined) {
-            return;
-        }
-
         // add onClick event listener
-        this.onClick(this._element, (event: any) => {
+        this.onClick(this._element!, (event: any) => {
             if (this.enabled === false) {
                 return;
             }
         });
 
         // add mouseover event listener
-        this.onMouseover(this._element, (event: any) => {
+        this.onMouseover(this._element!, (event: any) => {
             if (this._element!.classList.contains('disabled') === false) {
 				// TODO:
                 // this.setHoverBackground();
@@ -41,7 +37,7 @@ export class ActionButton extends Button {
         });
 
         // add mouseout event listener (restore standard styles)
-        this.onMouseout(this._element, (event: any) => {
+        this.onMouseout(this._element!, (event: any) => {
             // TODO:
             // this.applyStyles();
 		});

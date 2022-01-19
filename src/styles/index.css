@@ -12,6 +12,7 @@
 
 @import "../base/browser/basic/button/button.css";
 @import "../base/browser/basic/sash/sash.css";
+@import "../base/browser/basic/scrollbar/scrollbar.css";
 @import "../base/browser/secondary/widgetBar/WidgetBar.css";
 @import "../base/browser/secondary/contextMenu/contextMenu.css";
 
