@@ -1,5 +1,5 @@
 import { Widget } from "src/base/browser/basic/widget";
-import { Scrollable } from "src/base/common/scrollable";
+import { IScrollEvent, Scrollable } from "src/base/common/scrollable";
 
 export interface IAbstractScrollbarOptions {
     
@@ -33,19 +33,22 @@ export abstract class AbstractScrollbar extends Widget {
 
     /**
      * @description Will be invoked once scrolling happens.
-     * @param event The wheel event.
+     * @param event The scroll event.
      */
-    public abstract onDidScroll(event: WheelEvent): void;
+    public abstract onDidScroll(event: IScrollEvent): void;
 
-     /**
-      * @description Returns the future absolute position. the returned position 
-      * will be resolved if the next animation frame the slider will exceeds the 
-      * scrollbar.
-      *  
-      * @param event The wheel event.
-      * @returns the future legal position.
-      */
-    public abstract getFutureSliderPosition(event: WheelEvent): number;
+    /**
+     * @description Returns the future absolute position. the returned position 
+     * will be resolved if the next animation frame the slider will exceeds the 
+     * scrollbar.
+     * 
+     * @note If future position exceeds the scrollbar, the {@link IScrollEvent.deltaX/deltaY} 
+     * will be resolved to the correct one.
+     *  
+     * @param event The scroll event.
+     * @returns the future legal position.
+     */
+    public abstract getFutureSliderPosition(event: IScrollEvent): number;
 
     /**
      * @description Renders the whole scrollbar.

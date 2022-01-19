@@ -1,5 +1,5 @@
 import { AbstractScrollbar } from "src/base/browser/basic/scrollbar/abstractScrollbar";
-import { Scrollable } from "src/base/common/scrollable";
+import { IScrollEvent, Scrollable } from "src/base/common/scrollable";
 
 export class VerticalScrollbar extends AbstractScrollbar {
 
@@ -9,7 +9,7 @@ export class VerticalScrollbar extends AbstractScrollbar {
 
     // [methods]
 
-    public onDidScroll(event: WheelEvent): void {
+    public onDidScroll(event: IScrollEvent): void {
         // either no changes or not required, we do nothing
         if (event.deltaY === 0 || this._scrollable.required() === false) {
             return;
@@ -17,23 +17,25 @@ export class VerticalScrollbar extends AbstractScrollbar {
         this.rerender();
     }
 
-    public getFutureSliderPosition(event: WheelEvent): number {
-        const newPosition = this._scrollable.getScrollPosition() + event.deltaY;
-        const viewportSize = this._scrollable.getViewportSize();
+    public getFutureSliderPosition(event: IScrollEvent): number {
+        const top = this._scrollable.getSliderPosition();
+        const newTop = top + event.deltaY;
+        const edgeTop = this._scrollable.getViewportSize() - this._scrollable.getSliderSize();
 
         // before the scrollbar
-        if (newPosition < 0) {
+        if (newTop < 0) {
+            event.deltaY = 0 - top;
             return 0;
         }
 
         // after the scrollbar
-        // FIX
-        if (newPosition > viewportSize) {
-            return viewportSize;
+        if (newTop > edgeTop) {
+            event.deltaY = edgeTop - top;
+            return edgeTop;
         } 
         
         // returns as normal
-        return newPosition;
+        return newTop;
     }
 
     // [override abstract methods]

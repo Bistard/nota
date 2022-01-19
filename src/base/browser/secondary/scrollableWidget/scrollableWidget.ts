@@ -3,7 +3,7 @@ import { HorizontalScrollbar } from "src/base/browser/basic/scrollbar/horizontal
 import { VerticalScrollbar } from "src/base/browser/basic/scrollbar/verticalScrollbar";
 import { IWidget, Widget } from "src/base/browser/basic/widget";
 import { IScrollableWidgetCreationOpts, IScrollableWidgetExtensionOpts, IScrollableWidgetOpts, resolveScrollableWidgetExtensionOpts, ScrollbarType } from "src/base/browser/secondary/scrollableWidget/scrollableWidgetOptions";
-import { Scrollable } from "src/base/common/scrollable";
+import { IScrollEvent, Scrollable } from "src/base/common/scrollable";
 
 export interface IAbstractScrollableWidget extends IWidget {
 
@@ -72,16 +72,19 @@ export abstract class AbstractScrollableWidget extends Widget implements IAbstra
 
         this._element.onwheel = (e: WheelEvent): void => {
             
+            const scrollEvent = this._scrollable.createScrollEvent(e);
             const currPosition = this._scrollable.getSliderPosition();
-            const futurePosition = this._scrollbar.getFutureSliderPosition(e);
+
+            // get the next slider position (if exceeds scrollbar, delta position will be update to correct one)
+            const futurePosition = this._scrollbar.getFutureSliderPosition(scrollEvent);
             
-            // scrolling does not change, we do nothing
+            // slider does not move, we do nothing
             if (currPosition === futurePosition) {
                 return;
             }
 
             // did scroll
-            this.__onDidScroll(e);
+            this.__onDidScroll(scrollEvent);
             
         };
 
@@ -100,7 +103,7 @@ export abstract class AbstractScrollableWidget extends Widget implements IAbstra
      * @description Invokes when scroll happens.
      * @param event The wheel event when scroll happens.
      */
-    private __onDidScroll(event: WheelEvent): void {
+    private __onDidScroll(event: IScrollEvent): void {
         
         event.preventDefault();
 

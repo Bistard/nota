@@ -1,11 +1,27 @@
 
+/**
+ * @readonly Scroll wheel event type.
+ */
+ export interface IScrollEvent {
+	deltaX: number;
+    deltaY: number;
+    deltaZ: number;
+	
+	preventDefault(): void;
+	stopPropagation(): void;
+}
+
+export interface IScrollable {
+	// TODO
+}
+
 const MIN_SLIDER_SIZE = 20; // pixels
 
 /**
  * @class A class for storing the numerated data of {@link AbstractScrollbar}.
  * Self-recalculating the correct data of a slider if needed.
  */
-export class Scrollable {
+export class Scrollable implements IScrollable {
 
     // [fields]
 
@@ -128,6 +144,22 @@ export class Scrollable {
     public required(): boolean {
         return this._required;
     }
+
+	// [methods]
+
+	/**
+	 * @description Generates our own defined scroll event.
+	 * @param event The raw {@link WheelEvent}.
+	 */
+	public createScrollEvent(event: WheelEvent): IScrollEvent {
+		return {
+			deltaX: event.deltaX,
+			deltaY: event.deltaY,
+			deltaZ: event.deltaZ,
+			preventDefault: () => event.preventDefault(),
+			stopPropagation: () => event.stopPropagation()
+		};
+	}
 
     // [private methods]
 

@@ -52,8 +52,11 @@ export class EventEmitter implements IEventEmitter {
         }
         return returnValues;
     }
-
 }
+
+/** @deprecated Use Emitter instead */
+export const EVENT_EMITTER = new EventEmitter();
+
 
 /** 
  * @readonly A listener is a callback function that once the callback is invoked,
@@ -74,8 +77,8 @@ export interface Register<T> {
 }
 
 /**
- * @class An event emitter binds to a specific event T. All the listeners who is 
- * listening to the event T will be notified once the event occurs.
+ * @readonly An event emitter binds to a specific event T. All the listeners who 
+ * is listening to the event T will be notified once the event occurs.
  * 
  * To listen to this event T, use this.register(listener) where `listener` is a
  * callback function.
@@ -169,6 +172,3 @@ export class Emitter<T> implements IDisposable {
 		}
 	}
 }
-
-/** @deprecated Use Emitter instead */
-export const EVENT_EMITTER = new EventEmitter();
