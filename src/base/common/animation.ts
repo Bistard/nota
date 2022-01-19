@@ -3,7 +3,7 @@
  * when the current enviroment is too old to support `requestAnimationFrame`, we 
  * try to simulate it (not perfect though).
  */
- const _simulateRequestAnimationFrame = (callback: Function) => callback();
+const _simulateRequestAnimationFrame = (callback: Function) => callback();
 
  /**
   * @readonly Traditionally to create an animation in JavaScript, we relied on 
@@ -45,6 +45,9 @@ requestAnimationFrame = (callback): number => {
   * @readonly The method may be passed into a handle which is returned when the 
   * request was succeed to cancel the corresponding callback animation.
   */
-export let cancelAnimationFrame: (handle: number) => void = 
-    window.cancelAnimationFrame;
+export let cancelAnimationFrame: (handle: number) => void;
+cancelAnimationFrame = (handle: number): void => {
+    window.cancelAnimationFrame(handle);
+}
+    
  
