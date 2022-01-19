@@ -92,9 +92,7 @@ export abstract class AbstractScrollbar extends Widget {
         
         this.__updateSlider(size, position);
         
-        /**
-         * register listeners
-         */
+        // TODO: mouse click drag implementation
 
         this.onMousedown(this._slider, (e) => {
             if (e.leftButton) {
@@ -107,6 +105,7 @@ export abstract class AbstractScrollbar extends Widget {
         this.onClick(this._slider, e => {
 			if (e.leftButton) {
 				e.stopPropagation();
+                console.log('left click');
 			}
 		});
 
