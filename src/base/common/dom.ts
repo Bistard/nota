@@ -105,6 +105,7 @@ export function clearChildrenNodes(node: HTMLElement): number {
 	return cnt;
 }
 
-export function createSpan(text: string): string {
+export function formatSpan(text: string): string {
 	return `<span>${text}</span>`;
 }
+

@@ -6,7 +6,7 @@ import { NoteBookManager } from 'src/code/common/model/notebookManager';
 import { File } from 'src/base/common/file/file';
 import { getBuiltInIconClass } from 'src/base/browser/icon/iconRegistry';
 import { Icons } from 'src/base/browser/icon/icons';
-import { createSpan } from 'src/base/common/dom';
+import { formatSpan } from 'src/base/common/dom';
 
 /**
  * @class the object is to store and maintain the data for each folder/file/root.
@@ -85,7 +85,7 @@ export class FileNode {
         this.node.classList.add('node');
         
         const text = document.createElement('div');
-        text.innerHTML = createSpan(this.baseName);
+        text.innerHTML = formatSpan(this.baseName);
         
         // is file
         if (!this.isFolder) {
