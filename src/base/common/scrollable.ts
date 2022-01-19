@@ -12,7 +12,26 @@
 }
 
 export interface IScrollable {
-	// TODO
+	
+	setScrollbarSize(scrollbarSize: number): void;
+	setViewportSize(viewportSize: number): void;
+	setScrollSize(scrollSize: number): void;
+	setScrollPosition(scrollPosition: number): void;
+
+	getScrollbarSize(): number;
+	getViewportSize(): number;
+	getScrollSize(): number;
+	getScrollPosition(): number;
+	getSliderSize(): number;
+	getSliderPosition(): number;
+	required(): boolean;
+
+	/**
+	 * @description Generates our own defined scroll event.
+	 * @param event The raw {@link WheelEvent}.
+	 */
+	createScrollEvent(event: WheelEvent): IScrollEvent;
+
 }
 
 const MIN_SLIDER_SIZE = 20; // pixels
@@ -147,10 +166,6 @@ export class Scrollable implements IScrollable {
 
 	// [methods]
 
-	/**
-	 * @description Generates our own defined scroll event.
-	 * @param event The raw {@link WheelEvent}.
-	 */
 	public createScrollEvent(event: WheelEvent): IScrollEvent {
 		return {
 			deltaX: event.deltaX,
@@ -164,9 +179,9 @@ export class Scrollable implements IScrollable {
     // [private methods]
 
     /**
-     * Everytime when the {@link Scrollable} changes its fields, this method 
-     * will be invoked to recalculate all the numerated data to display the 
-     * correct scrollbar and its slider.
+     * @description Everytime when the {@link Scrollable} changes its fields, 
+	 * this method will be invoked to recalculate all the numerated data to 
+	 * display the correct scrollbar and its slider.
      */
     private __reCalculate(): void {
 

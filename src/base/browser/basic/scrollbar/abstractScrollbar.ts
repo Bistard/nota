@@ -79,7 +79,7 @@ export abstract class AbstractScrollbar extends Widget {
     }
 
     /**
-     * 
+     * @description Rerenders the scrollbar.
      */
     public rerender(): void {
         this.__renderScrollbar(this._scrollable.getScrollbarSize());
