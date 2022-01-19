@@ -31,6 +31,7 @@ const _simulateRequestAnimationFrame = (callback: Function) => callback();
   * by using `.call()`.
   */
 export let requestAnimationFrame: (callback: FrameRequestCallback) => number;
+
 requestAnimationFrame = (callback): number => {
     let doRequestAnimationFrame = window.requestAnimationFrame ||
         (window as any).mozRequestAnimationFrame || 
@@ -46,6 +47,7 @@ requestAnimationFrame = (callback): number => {
   * request was succeed to cancel the corresponding callback animation.
   */
 export let cancelAnimationFrame: (handle: number) => void;
+
 cancelAnimationFrame = (handle: number): void => {
     window.cancelAnimationFrame(handle);
 }
