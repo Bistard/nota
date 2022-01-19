@@ -33,29 +33,29 @@ export abstract class Widget extends Disposable implements IWidget {
     }
 
     /* Registers a callback function when the provided element is clicked */
-    public onClick(element: HTMLElement, callback: (event: any) => void): void {
-        this.__register(addDisposableListener(element, EventType.click, (e: any) => {
+    public onClick(element: HTMLElement, callback: (event: MouseEvent) => void): void {
+        this.__register(addDisposableListener(element, EventType.click, (e: MouseEvent) => {
             callback(e);
         }));
     }
 
     /* Registers a callback function when the provided element is mouseovered */
-    public onMouseover(element: HTMLElement, callback: (event: any) => void): void {
-        this.__register(addDisposableListener(element, EventType.mouseover, (e: any) => {
+    public onMouseover(element: HTMLElement, callback: (event: MouseEvent) => void): void {
+        this.__register(addDisposableListener(element, EventType.mouseover, (e: MouseEvent) => {
             callback(e);
         }));
     }
 
     /* Registers a callback function when the provided element is mouseouted */
-    public onMouseout(element: HTMLElement, callback: (event: any) => void): void {
-        this.__register(addDisposableListener(element, EventType.mouseout, (e: any) => {
+    public onMouseout(element: HTMLElement, callback: (event: MouseEvent) => void): void {
+        this.__register(addDisposableListener(element, EventType.mouseout, (e: MouseEvent) => {
             callback(e);
         }));
     }
 
     /* Registers a callback function when the provided element is mousedowned */
-    public onMousedown(element: HTMLElement, callback: (event: any) => void): void {
-        this.__register(addDisposableListener(element, EventType.mousedown, (e: any) => {
+    public onMousedown(element: HTMLElement, callback: (event: MouseEvent) => void): void {
+        this.__register(addDisposableListener(element, EventType.mousedown, (e: MouseEvent) => {
             callback(e);
         }));
     }
