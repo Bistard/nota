@@ -5,8 +5,12 @@
 
 .scroll-bar > .scroll-slider {
     position: absolute;
-    background-color: #d1d1d1;
-    overflow-y: hidden;
+    background-color: #b8b8b8;
+    overflow: hidden;
+}
+
+.scroll-bar > .scroll-slider:hover {
+    opacity: 0.70;
 }
 
 .scroll-bar.horizontal {
@@ -25,4 +29,18 @@
 
 .scroll-bar.vertical > .scroll-slider {
     width: 100%;
+}
+
+.scrollable-element > .visible {
+	opacity: 1;
+	transition: opacity 100ms linear;
+}
+
+.scrollable-element > .invisible {
+	opacity: 0;
+	pointer-events: none;
+}
+
+.scrollable-element > .invisible.fade {
+	transition: opacity 600ms linear;
 }

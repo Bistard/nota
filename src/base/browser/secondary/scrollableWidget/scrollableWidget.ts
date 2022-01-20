@@ -56,6 +56,16 @@ export abstract class AbstractScrollableWidget extends Widget implements IAbstra
     public override render(element: HTMLElement): void {
         super.render(element);
         
+        this._element!.classList.add('scrollable-element');
+        
+        // scrollbar visibility
+        this.onMouseover(this._element!, () => {
+            this._scrollbar.show();
+        });
+        this.onMouseout(this._element!, () => {
+            this._scrollbar.hide();
+        });
+
         // register on mouse wheel listener
         this.__onMouseWheel();
 

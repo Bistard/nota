@@ -1,32 +1,13 @@
+import { ScrollbarVisibilityController } from "src/base/browser/basic/visibilityController";
 import { Widget } from "src/base/browser/basic/widget";
 import { IDisposable } from "src/base/common/dispose";
 import { IScrollEvent, Scrollable } from "src/base/common/scrollable";
-
-// /**
-//  * @readonly A {@link ScrollBarHost} is the parent host who actually contains 
-//  * the scrollbar.
-//  */
-// export interface ScrollBarHost {
-//     /**
-//      * callback when slider dragging start. Provided by the host.
-//      */
-//     onDragStart(): void;
-    
-//     /**
-//      * callback when slider dragging stoped. Provided by the host.
-//      */
-//     onDragStop(): void;
-// }
 
 /**
  * The {@link AbstractScrollbar} creation option.
  */
 export interface IAbstractScrollbarOptions {
-    
     scrollable: Scrollable,
-
-    // host: ScrollBarHost,
-
 }
 
 /**
@@ -42,6 +23,8 @@ export abstract class AbstractScrollbar extends Widget {
 
     protected _scrollable: Scrollable;
 
+    private _visibilityController: ScrollbarVisibilityController;
+
     // [constructor]
 
     constructor(opts: IAbstractScrollbarOptions) {
@@ -50,8 +33,8 @@ export abstract class AbstractScrollbar extends Widget {
         this._slider = document.createElement('div');
         this._slider.className = 'scroll-slider';
 
-        // this._host = opts.host;
         this._scrollable = opts.scrollable;
+        this._visibilityController = new ScrollbarVisibilityController('visible', 'invisible', 'fade');
     }
 
     // [abstractions]
@@ -113,6 +96,8 @@ export abstract class AbstractScrollbar extends Widget {
     public override render(element: HTMLElement): void {
         super.render(element);
         
+        this._visibilityController.setDomNode(this._element!);
+
         // render scrollbar
         this.__renderScrollbar(this._scrollable.getScrollbarSize());
 
@@ -131,6 +116,20 @@ export abstract class AbstractScrollbar extends Widget {
     public rerender(): void {
         this.__renderScrollbar(this._scrollable.getScrollbarSize());
         this.__updateSlider(this._scrollable.getSliderSize(), this._scrollable.getSliderPosition());
+    }
+
+    /**
+     * @description Shows the scrollbar with fading animation.
+     */
+    public show(): void {
+        this._visibilityController.setVisibility(true);
+    }
+
+    /**
+     * @description Hides the scrollbar with fading animation.
+     */
+    public hide(): void {
+        this._visibilityController.setVisibility(false);
     }
 
     // [protected methods]
