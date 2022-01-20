@@ -40,6 +40,10 @@ export class VerticalScrollbar extends AbstractScrollbar {
 
     // [override abstract methods]
 
+    public getScrollDelta(event: IScrollEvent): number {
+        return event.deltaY;
+    }
+
     protected __renderScrollbar(size: number): void {
         const element = this._element!;
         element.classList.add('scroll-bar', 'vertical');
@@ -52,4 +56,8 @@ export class VerticalScrollbar extends AbstractScrollbar {
         slider.style.top = position + 'px';
     }
     
+    protected __getMousePosition(event: MouseEvent): number {
+        return event.clientY;
+    }
+
 }

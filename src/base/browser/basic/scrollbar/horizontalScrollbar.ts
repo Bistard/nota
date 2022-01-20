@@ -40,6 +40,10 @@ export class HorizontalScrollbar extends AbstractScrollbar {
 
     // [override abstract methods]
 
+    public getScrollDelta(event: IScrollEvent): number {
+        return event.deltaX;
+    }
+
     protected __renderScrollbar(size: number): void {
         const element = this._element!;
         element.classList.add('scroll-bar', 'horizontal');
@@ -52,4 +56,8 @@ export class HorizontalScrollbar extends AbstractScrollbar {
         slider.style.left = position + 'px';
     }
     
+    protected __getMousePosition(event: MouseEvent): number {
+        return event.clientX;
+    }
+
 }
