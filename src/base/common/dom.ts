@@ -88,6 +88,7 @@ export function addDisposableListener(domNode: EventTarget, eventType: string, c
 		}
 
 		domNode.removeEventListener(eventType, callback);
+		disposed = true;
 	});
 }
 
