@@ -33,29 +33,50 @@ export abstract class Widget extends Disposable implements IWidget {
     }
 
     /* Registers a callback function when the provided element is clicked */
-    public onClick(element: HTMLElement, callback: (event: MouseEvent) => void): void {
-        this.__register(addDisposableListener(element, EventType.click, (e: MouseEvent) => {
+    public onClick(element: HTMLElement, callback: (event: MouseEvent) => void): IDisposable {
+        return this.__register(addDisposableListener(element, EventType.click, (e: MouseEvent) => {
+            callback(e);
+        }));
+    }
+
+    /* Registers a callback function when the provided element is double-clicked */
+    public onDoubleclick(element: HTMLElement, callback: (event: MouseEvent) => void): IDisposable {
+        return this.__register(addDisposableListener(element, EventType.doubleclick, (e: MouseEvent) => {
             callback(e);
         }));
     }
 
     /* Registers a callback function when the provided element is mouseovered */
-    public onMouseover(element: HTMLElement, callback: (event: MouseEvent) => void): void {
-        this.__register(addDisposableListener(element, EventType.mouseover, (e: MouseEvent) => {
+    public onMouseover(element: HTMLElement, callback: (event: MouseEvent) => void): IDisposable {
+        return this.__register(addDisposableListener(element, EventType.mouseover, (e: MouseEvent) => {
             callback(e);
         }));
     }
 
     /* Registers a callback function when the provided element is mouseouted */
-    public onMouseout(element: HTMLElement, callback: (event: MouseEvent) => void): void {
-        this.__register(addDisposableListener(element, EventType.mouseout, (e: MouseEvent) => {
+    public onMouseout(element: HTMLElement, callback: (event: MouseEvent) => void): IDisposable {
+        return this.__register(addDisposableListener(element, EventType.mouseout, (e: MouseEvent) => {
             callback(e);
         }));
     }
 
     /* Registers a callback function when the provided element is mousedowned */
-    public onMousedown(element: HTMLElement, callback: (event: MouseEvent) => void): void {
-        this.__register(addDisposableListener(element, EventType.mousedown, (e: MouseEvent) => {
+    public onMousedown(element: HTMLElement, callback: (event: MouseEvent) => void): IDisposable {
+        return this.__register(addDisposableListener(element, EventType.mousedown, (e: MouseEvent) => {
+            callback(e);
+        }));
+    }
+
+    /* Registers a callback function when the provided element is mouseuped */
+    public onMouseup(element: HTMLElement, callback: (event: MouseEvent) => void): IDisposable {
+        return this.__register(addDisposableListener(element, EventType.mouseup, (e: MouseEvent) => {
+            callback(e);
+        }));
+    }
+
+    /* Registers a callback function when the provided element is mousemoved */
+    public onMousemove(element: HTMLElement, callback: (event: MouseEvent) => void): IDisposable {
+        return this.__register(addDisposableListener(element, EventType.mousemove, (e: MouseEvent) => {
             callback(e);
         }));
     }
