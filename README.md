@@ -3,6 +3,8 @@ An open-sourced note-taking application / markdown editor that provides WYSIWYG 
 
 基于markdown管理的笔记软件.
 
+如果你对该项目感兴趣，非常欢迎联系我😀~ 目前开发周期还很长
+
 ## 💖features
 * supports ✔WYSIWYG (rich text), ✔ tranditional split view editing
 * ❌supports git extension
