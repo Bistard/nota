@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { CharCode } from "src/base/common/charCode";
+import { CharCode } from "src/base/common/char";
 import { IS_WINDOWS } from "src/base/node/os";
 import * as paths from "src/base/common/file/path";
 
@@ -58,7 +58,7 @@ export interface IURI {
     toString(): string;
 }
 
-export enum Schemas {
+export const enum Schemas {
 	FILE = 'file',
 	HTTP = 'http'
 }

@@ -1,7 +1,7 @@
 import { URI } from "src/base/common/file/uri";
 import { getFileType } from "src/base/common/string";
 
-export enum FileType {
+export const enum FileType {
     UNKNOWN,
 	FILE,
 	DIRECTORY

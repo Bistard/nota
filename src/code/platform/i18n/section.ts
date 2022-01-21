@@ -3,7 +3,7 @@
  * A list of identifier to identify different code sections that each corresponds 
  * to the actual project code directory.
  */
-export enum Section {
+export const enum Section {
 
     ActionBar = 'src/code/browser/workbench/actionBar',
     

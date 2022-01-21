@@ -4,7 +4,7 @@ import { AppMode } from "src/code/common/service/configService/configService";
 /**
  * @readonly The type of configService.
  */
-export enum IConfigType {
+export const enum IConfigType {
     USER,
     GLOBAL,
     TEST,

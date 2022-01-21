@@ -13,7 +13,7 @@ enum LogLevel {
     CRITICAL
 }; 
 
-export enum LogPathType {
+export const enum LogPathType {
     APP,
     NOTEBOOKMANAGER
 };

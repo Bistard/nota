@@ -3,7 +3,7 @@ import { IComponentService } from "src/code/browser/service/componentService";
 import { Component, IComponent } from "src/code/browser/workbench/component";
 import { Dimension, IDimension } from "../../../common/dom";
 
-export enum ContextMenuType {
+export const enum ContextMenuType {
     actionBar,
     actionView,
     editor,

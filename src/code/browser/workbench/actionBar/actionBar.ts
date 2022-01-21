@@ -10,7 +10,7 @@ import { Icons } from 'src/base/browser/icon/icons';
 
 export const IActionBarService = createDecorator<IActionBarService>('action-bar-service');
 
-export enum ActionType {
+export const enum ActionType {
     NONE = 'none',
     EXPLORER = 'explorer',
     OUTLINE = 'outline',

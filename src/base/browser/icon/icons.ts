@@ -1,4 +1,4 @@
-export enum Icons {
+export const enum Icons {
   Add = 'add',
   AddressBook = 'address-book',
   AlarmClock = 'alarm-clock',

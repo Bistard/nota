@@ -8,7 +8,7 @@ import { IFileLogService } from "src/code/common/service/logService/fileLogServi
 import { createDecorator } from "src/code/common/service/instantiationService/decorator";
 import { GlobalConfigService, IGlobalConfigService, IUserConfigService, UserConfigService } from "src/code/common/service/configService/configService";
 
-export enum EditorComponentType {
+export const enum EditorComponentType {
     titleBar = 'title-bar',
     tabBar = 'tab-bar',
     markdown = 'markdown',

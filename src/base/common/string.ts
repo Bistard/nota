@@ -18,7 +18,7 @@ export function isAbsolutePath(path: string): boolean {
     return !!path && path[0] === '/';
 }
 
-export enum SvgType {
+export const enum SvgType {
     base = '',
     toolBar = 'toolBar',
 }

@@ -4,7 +4,7 @@ import { FunctionBarComponent } from 'src/code/browser/workbench/editor/titleBar
 import { EditorComponentType } from 'src/code/browser/workbench/editor/editor';
 import { IComponentService } from 'src/code/browser/service/componentService';
 
-export enum TitleBarComponentType {
+export const enum TitleBarComponentType {
     functionBar = 'function-bar',
     windowBar = 'window-bar',
 }

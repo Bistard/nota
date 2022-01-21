@@ -48,7 +48,7 @@ export class Dimension implements IDimension {
 /**
  * @readonly A enumeration of all HTMLElement event types.
  */
-export enum EventType {
+export const enum EventType {
 	click = 'click',
 	contextmenu = 'contextmenu',
 	mouseover = 'mouseover',
@@ -62,7 +62,7 @@ export enum EventType {
 /**
  * @readonly Either displaying vertically or horizontally.
  */
-export enum Orientation {
+export const enum Orientation {
     Horizontal,
     Vertical
 }

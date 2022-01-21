@@ -141,7 +141,7 @@ export function getDefaultUserConfigPath(): URI {
  */
 
 /** @SettingSection */
-export enum EGlobalSettings {
+export const enum EGlobalSettings {
 
     Application = 'application',
     NotebookManager = 'notebookmanager',
@@ -227,7 +227,7 @@ export class DefaultGlobalConfigModel extends ConfigModel {
  */
 
 /** @SettingSection */
-export enum EUserSettings {
+export const enum EUserSettings {
     
     NotebookManager = 'notebookmanager',
     Markdown = 'markdown',
