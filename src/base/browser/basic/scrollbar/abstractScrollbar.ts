@@ -173,6 +173,9 @@ export abstract class AbstractScrollbar extends Widget {
         // tell the host we did a drag motion
         this._host.onSliderDragStart();
 
+        // toggle the slider as active
+        this._slider.classList.toggle('active', true);
+
         // stores the current mouse position
         let currMousePosition = this.__getMousePosition(event);
 
@@ -212,6 +215,8 @@ export abstract class AbstractScrollbar extends Widget {
             mouseoverDisposable.dispose();
             onClickDisposable.dispose();
             
+            this._slider.classList.toggle('active', false);
+
             // tell the host we finish the drag motion
             this._host.onSliderDragStop();
         }
