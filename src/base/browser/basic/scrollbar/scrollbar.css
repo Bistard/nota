@@ -3,6 +3,20 @@
     position: absolute;
 }
 
+.scroll-bar.visible {
+	opacity: 1;
+	transition: opacity 100ms linear;
+}
+
+.scroll-bar.invisible {
+	opacity: 0;
+	pointer-events: none;
+}
+
+.scroll-bar.invisible.fade {
+	transition: opacity 600ms linear;
+}
+
 .scroll-bar > .scroll-slider {
     position: absolute;
     background-color: #b8b8b8;
@@ -29,18 +43,4 @@
 
 .scroll-bar.vertical > .scroll-slider {
     width: 100%;
-}
-
-.scrollable-element > .visible {
-	opacity: 1;
-	transition: opacity 100ms linear;
-}
-
-.scrollable-element > .invisible {
-	opacity: 0;
-	pointer-events: none;
-}
-
-.scrollable-element > .invisible.fade {
-	transition: opacity 600ms linear;
 }

@@ -4,10 +4,27 @@ import { IDisposable } from "src/base/common/dispose";
 import { IScrollEvent, Scrollable } from "src/base/common/scrollable";
 
 /**
+ * @readonly A {@link ScrollBarHost} is the parent host who actually contains 
+ * the scrollbar.
+ */
+export interface ScrollBarHost {
+    /**
+     * callback when slider dragging start. Provided by the host.
+     */
+    onSliderDragStart(): void;
+    
+    /**
+     * callback when slider dragging stoped. Provided by the host.
+     */
+    onSliderDragStop(): void;
+}
+
+/**
  * The {@link AbstractScrollbar} creation option.
  */
 export interface IAbstractScrollbarOptions {
     scrollable: Scrollable,
+    host: ScrollBarHost,
 }
 
 /**
@@ -19,7 +36,7 @@ export abstract class AbstractScrollbar extends Widget {
 
     protected _slider: HTMLElement;
 
-    // protected _host: ScrollBarHost;
+    protected _host: ScrollBarHost;
 
     protected _scrollable: Scrollable;
 
@@ -33,7 +50,9 @@ export abstract class AbstractScrollbar extends Widget {
         this._slider = document.createElement('div');
         this._slider.className = 'scroll-slider';
 
+        this._host = opts.host;
         this._scrollable = opts.scrollable;
+
         this._visibilityController = new ScrollbarVisibilityController('visible', 'invisible', 'fade');
     }
 
@@ -151,6 +170,9 @@ export abstract class AbstractScrollbar extends Widget {
     private __sliderOnDrag(event: MouseEvent): void {
         event.preventDefault();
         
+        // tell the host we did a drag motion
+        this._host.onSliderDragStart();
+
         // stores the current mouse position
         let currMousePosition = this.__getMousePosition(event);
 
@@ -186,8 +208,12 @@ export abstract class AbstractScrollbar extends Widget {
 
         // oncick listener
         const onClick = () => {
+            // dispose listeners
             mouseoverDisposable.dispose();
             onClickDisposable.dispose();
+            
+            // tell the host we finish the drag motion
+            this._host.onSliderDragStop();
         }
 
         // starts register listeners

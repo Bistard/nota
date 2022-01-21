@@ -1,10 +1,13 @@
-import { AbstractScrollbar } from "src/base/browser/basic/scrollbar/abstractScrollbar";
+import { AbstractScrollbar, ScrollBarHost } from "src/base/browser/basic/scrollbar/abstractScrollbar";
 import { IScrollEvent, Scrollable } from "src/base/common/scrollable";
 
 export class VerticalScrollbar extends AbstractScrollbar {
 
-    constructor(scrollable: Scrollable) {
-        super({ scrollable: scrollable });
+    constructor(scrollable: Scrollable, host: ScrollBarHost) {
+        super({ 
+            scrollable: scrollable,
+            host: host
+        });
     }
 
     // [methods]

@@ -1,4 +1,4 @@
-import { AbstractScrollbar } from "src/base/browser/basic/scrollbar/abstractScrollbar";
+import { AbstractScrollbar, ScrollBarHost } from "src/base/browser/basic/scrollbar/abstractScrollbar";
 import { HorizontalScrollbar } from "src/base/browser/basic/scrollbar/horizontalScrollbar";
 import { VerticalScrollbar } from "src/base/browser/basic/scrollbar/verticalScrollbar";
 import { IWidget, Widget } from "src/base/browser/basic/widget";
@@ -20,12 +20,17 @@ export abstract class AbstractScrollableWidget extends Widget implements IAbstra
     protected _scrollable: Scrollable;
     protected _scrollbar: AbstractScrollbar;
 
+    protected _isSliderDragging: boolean;
+    protected _isMouseOver: boolean;
+
     // [constructor]
 
     constructor(opts: IScrollableWidgetCreationOpts, extensionOpts: IScrollableWidgetExtensionOpts) {
         super();
 
         this._opts = resolveScrollableWidgetExtensionOpts(extensionOpts);
+        this._isSliderDragging = false;
+        this._isMouseOver = false;
 
         // scrollable creation
         this._scrollable = new Scrollable(
@@ -36,10 +41,15 @@ export abstract class AbstractScrollableWidget extends Widget implements IAbstra
         );
 
         // scrollbar creation
+        const host: ScrollBarHost = {
+            onSliderDragStart: () => this._onSliderDragStart(),
+            onSliderDragStop: () => this._onSliderDragStop()
+        };
+
         if (this._opts.scrollbarType === ScrollbarType.vertical) {
-            this._scrollbar = new VerticalScrollbar(this._scrollable);
+            this._scrollbar = new VerticalScrollbar(this._scrollable, host);
         } else {
-            this._scrollbar = new HorizontalScrollbar(this._scrollable);
+            this._scrollbar = new HorizontalScrollbar(this._scrollable, host);
         }
     }
 
@@ -59,45 +69,18 @@ export abstract class AbstractScrollableWidget extends Widget implements IAbstra
         this._element!.classList.add('scrollable-element');
         
         // scrollbar visibility
-        this.onMouseover(this._element!, () => {
-            this._scrollbar.show();
-        });
-        this.onMouseout(this._element!, () => {
-            this._scrollbar.hide();
-        });
+        this.onMouseover(this._element!, () => this._onMouseover());
+        this.onMouseout(this._element!, () => this._onMouseout());
 
         // register on mouse wheel listener
-        this.__onMouseWheel();
+        this.__registerMouseWheelListener();
 
         // render scrollbar
         const scrollbarElement = document.createElement('div');
         this._scrollbar.render(scrollbarElement);
+        this._scrollbar.hide();
+
         element.appendChild(scrollbarElement);
-    }
-
-    private __onMouseWheel(): void {
-        if (this._element === undefined) {
-            return;
-        }
-
-        this._element.onwheel = (e: WheelEvent): void => {
-            
-            const scrollEvent = this._scrollable.createScrollEvent(e);
-            const currPosition = this._scrollable.getSliderPosition();
-
-            // get the next slider position (if exceeds scrollbar, delta position will be update to correct one)
-            const futurePosition = this._scrollbar.getFutureSliderPosition(scrollEvent);
-            
-            // slider does not move, we do nothing
-            if (currPosition === futurePosition) {
-                return;
-            }
-
-            // did scroll
-            this.__onDidScroll(scrollEvent);
-            
-        };
-
     }
 
     // [abstraction]
@@ -128,4 +111,56 @@ export abstract class AbstractScrollableWidget extends Widget implements IAbstra
         this.__rerender();
     }
     
+    /**
+     * @description Register mouse wheel listener to the scrollable DOM element.
+     */
+    private __registerMouseWheelListener(): void {
+        if (this._element === undefined) {
+            return;
+        }
+
+        this._element.onwheel = (e: WheelEvent): void => {
+            
+            const scrollEvent = this._scrollable.createScrollEvent(e);
+            const currPosition = this._scrollable.getSliderPosition();
+
+            // get the next slider position (if exceeds scrollbar, delta position will be update to correct one)
+            const futurePosition = this._scrollbar.getFutureSliderPosition(scrollEvent);
+            
+            // slider does not move, we do nothing
+            if (currPosition === futurePosition) {
+                return;
+            }
+
+            // did scroll
+            this.__onDidScroll(scrollEvent);
+            
+        };
+    }
+
+    private _onSliderDragStart(): void {
+        this._isSliderDragging = true;
+    }
+
+    private _onSliderDragStop(): void {
+        this._isSliderDragging = false;
+        
+        // drag stops and mouse is not over the scrollable element, scrollbar should be hide.
+        if (!this._isMouseOver) {
+            this._scrollbar.hide();
+        }
+    }
+
+    private _onMouseover(): void {
+        this._isMouseOver = true;
+        this._scrollbar.show();
+    }
+
+    private _onMouseout(): void {
+        this._isMouseOver = false;
+        if (!this._isSliderDragging) {
+            this._scrollbar.hide();
+        }
+    }
+
 }
