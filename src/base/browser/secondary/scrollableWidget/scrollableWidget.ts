@@ -101,7 +101,8 @@ export abstract class AbstractScrollableWidget extends Widget implements IAbstra
         event.preventDefault();
 
         // updates scrollable position
-        const newScrollPosition = this._scrollable.getScrollPosition() + this._scrollbar.getScrollDelta(event) * this._opts.mouseWheelScrollSensibility;
+        const sliderDelta = this._scrollbar.getScrollDelta(event) * this._opts.mouseWheelScrollSensibility;
+        const newScrollPosition = this._scrollable.getScrollPosition() + sliderDelta / this._scrollable.getSliderRatio();
         this._scrollable.setScrollPosition(newScrollPosition);
 
         // updates scrollbar
