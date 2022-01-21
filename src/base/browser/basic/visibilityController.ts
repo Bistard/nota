@@ -3,7 +3,7 @@
  * @class A simple tool class that controls the visibility of a provided DOM 
  * element.
  */
- export class ScrollbarVisibilityController {
+ export class VisibilityController {
 
     // [fields]
 

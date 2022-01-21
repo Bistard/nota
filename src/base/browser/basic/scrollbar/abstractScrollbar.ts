@@ -1,4 +1,4 @@
-import { ScrollbarVisibilityController } from "src/base/browser/basic/visibilityController";
+import { VisibilityController } from "src/base/browser/basic/visibilityController";
 import { Widget } from "src/base/browser/basic/widget";
 import { IDisposable } from "src/base/common/dispose";
 import { IScrollEvent, Scrollable } from "src/base/common/scrollable";
@@ -40,7 +40,7 @@ export abstract class AbstractScrollbar extends Widget {
 
     protected _scrollable: Scrollable;
 
-    private _visibilityController: ScrollbarVisibilityController;
+    private _visibilityController: VisibilityController;
 
     // [constructor]
 
@@ -53,7 +53,7 @@ export abstract class AbstractScrollbar extends Widget {
         this._host = opts.host;
         this._scrollable = opts.scrollable;
 
-        this._visibilityController = new ScrollbarVisibilityController('visible', 'invisible', 'fade');
+        this._visibilityController = new VisibilityController('visible', 'invisible', 'fade');
     }
 
     // [abstractions]
