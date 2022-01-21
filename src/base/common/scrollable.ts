@@ -50,6 +50,11 @@ export interface IScrollable {
      */
     getScrollPositionFromDelta(delta: number): number;
 
+    /**
+     * @description Manually fires the event on scrolling.
+     * @param event The IScrollEvent to be fired.
+     */
+    fire(event: IScrollEvent): void;
 }
 
 const MIN_SLIDER_SIZE = 20; // pixels
@@ -128,7 +133,7 @@ export class Scrollable implements IScrollable, IDisposable {
         this._sliderRatio = 0;
         this._required = false;
 
-        this.__reCalculate();
+        this.__recalculate();
     }
 
     // [methods - set]
@@ -140,22 +145,21 @@ export class Scrollable implements IScrollable, IDisposable {
     public setViewportSize(viewportSize: number): void {
         if (this._viewportSize !== viewportSize) {
             this._viewportSize = viewportSize;
-            this.__reCalculate();
+            this.__recalculate();
         }
     }
 
     public setScrollSize(scrollSize: number): void {
         if (this._scrollSize !== scrollSize) {
             this._scrollSize = scrollSize;
-            this.__reCalculate();
+            this.__recalculate();
         }
     }
 
-    // TODO: reset scroll position does not need to recalculate slider size
     public setScrollPosition(scrollPosition: number): void {
         if (this._scrollPosition !== scrollPosition) {
             this._scrollPosition = scrollPosition;
-            this.__reCalculate();
+            this.__onlyRecalculateSliderPosition();
         }
     }
 
@@ -227,7 +231,7 @@ export class Scrollable implements IScrollable, IDisposable {
 	 * this method will be invoked to recalculate all the numerated data to 
 	 * display the correct scrollbar and its slider.
      */
-    private __reCalculate(): void {
+    private __recalculate(): void {
 
         /**
          * does not need a scrollbar since the current viewport has enough space 
@@ -263,6 +267,14 @@ export class Scrollable implements IScrollable, IDisposable {
         /**
          * recalculates the position of the slider.
          */
+        this._sliderPosition = Math.round(this._scrollPosition * this._sliderRatio);
+    }
+
+    /**
+     * @description Only recalculates the position of the slider since when 
+     * changing the scroll position, other fields does not need to recalculate.
+     */
+    private __onlyRecalculateSliderPosition(): void {
         this._sliderPosition = Math.round(this._scrollPosition * this._sliderRatio);
     }
 
