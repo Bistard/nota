@@ -3,6 +3,7 @@ import { HorizontalScrollbar } from "src/base/browser/basic/scrollbar/horizontal
 import { VerticalScrollbar } from "src/base/browser/basic/scrollbar/verticalScrollbar";
 import { IWidget, Widget } from "src/base/browser/basic/widget";
 import { IScrollableWidgetCreationOpts, IScrollableWidgetExtensionOpts, IScrollableWidgetOpts, resolveScrollableWidgetExtensionOpts, ScrollbarType } from "src/base/browser/secondary/scrollableWidget/scrollableWidgetOptions";
+import { Emitter } from "src/base/common/event";
 import { IScrollEvent, Scrollable } from "src/base/common/scrollable";
 
 export interface IAbstractScrollableWidget extends IWidget {
@@ -22,6 +23,12 @@ export abstract class AbstractScrollableWidget extends Widget implements IAbstra
 
     protected _isSliderDragging: boolean;
     protected _isMouseOver: boolean;
+
+    /**
+     * fires when scroll happens.
+     */
+    private _onDidScroll = this.__register(new Emitter<IScrollEvent>());
+    public onDidScroll = this._onDidScroll.registerListener;
 
     // [constructor]
 
@@ -75,6 +82,11 @@ export abstract class AbstractScrollableWidget extends Widget implements IAbstra
         // register on mouse wheel listener
         this.__registerMouseWheelListener();
 
+        this._scrollable.onDidScroll((e: IScrollEvent) => {
+            this._onDidScroll.fire(e);
+            console.log(e);
+        });
+
         // render scrollbar
         const scrollbarElement = document.createElement('div');
         this._scrollbar.render(scrollbarElement);
@@ -93,10 +105,10 @@ export abstract class AbstractScrollableWidget extends Widget implements IAbstra
     // [private helper methods]
 
     /**
-     * @description Invokes when scroll happens.
-     * @param event The wheel event when scroll happens.
+     * @description Invokes when mouse wheel scroll happens.
+     * @param event The wheel event when mouse wheel scroll happens.
      */
-    private __onDidScroll(event: IScrollEvent): void {
+    private __onDidWheel(event: IScrollEvent): void {
         
         event.preventDefault();
 
@@ -104,6 +116,7 @@ export abstract class AbstractScrollableWidget extends Widget implements IAbstra
         const sliderDelta = this._scrollbar.getScrollDelta(event) * this._opts.mouseWheelScrollSensibility;
         const newScrollPosition = this._scrollable.getScrollPosition() + sliderDelta / this._scrollable.getSliderRatio();
         this._scrollable.setScrollPosition(newScrollPosition);
+        this._scrollable.fire(event);
 
         // updates scrollbar
         this._scrollbar.onDidScroll(event);
@@ -134,7 +147,7 @@ export abstract class AbstractScrollableWidget extends Widget implements IAbstra
             }
 
             // did scroll
-            this.__onDidScroll(scrollEvent);
+            this.__onDidWheel(scrollEvent);
             
         };
     }

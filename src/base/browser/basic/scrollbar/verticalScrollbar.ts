@@ -53,7 +53,7 @@ export class VerticalScrollbar extends AbstractScrollbar {
         element.style.width = size + 'px';
     }
 
-    protected override __updateSlider(size: number, position: number): void {
+    protected __updateSlider(size: number, position: number): void {
         const slider = this._slider;
         slider.style.height = size + 'px';
         slider.style.top = position + 'px';
@@ -63,4 +63,21 @@ export class VerticalScrollbar extends AbstractScrollbar {
         return event.clientY;
     }
 
+    protected __createScrollEventFromMouseEvent(event: MouseEvent, prevPosition: number): IScrollEvent {
+        return {
+            deltaX: 0,
+            deltaY: event.clientY - prevPosition,
+            preventDefault: () => event.preventDefault(),
+            stopPropagation: () => event.stopPropagation()
+        };
+    }
+
+    protected __createScrollEventFromSliderDelta(event: MouseEvent, prevSliderPosition: number, currSliderPosition: number): IScrollEvent {
+        return {
+            deltaX: 0,
+            deltaY: currSliderPosition - prevSliderPosition,
+            preventDefault: () => event.preventDefault(),
+            stopPropagation: () => event.stopPropagation()
+        };
+    }
 }

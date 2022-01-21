@@ -53,7 +53,7 @@ export class HorizontalScrollbar extends AbstractScrollbar {
         element.style.height = size + 'px';
     }
 
-    protected override __updateSlider(size: number, position: number): void {
+    protected __updateSlider(size: number, position: number): void {
         const slider = this._slider;
         slider.style.width = size + 'px';
         slider.style.left = position + 'px';
@@ -63,4 +63,21 @@ export class HorizontalScrollbar extends AbstractScrollbar {
         return event.clientX;
     }
 
+    protected __createScrollEventFromMouseEvent(event: MouseEvent, prevPosition: number): IScrollEvent {
+        return {
+            deltaX: event.clientX - prevPosition,
+            deltaY: 0,
+            preventDefault: () => event.preventDefault(),
+            stopPropagation: () => event.stopPropagation()
+        };
+    }
+
+    protected __createScrollEventFromSliderDelta(event: MouseEvent, prevSliderPosition: number, currSliderPosition: number): IScrollEvent {
+        return {
+            deltaX: currSliderPosition - prevSliderPosition,
+            deltaY: 0,
+            preventDefault: () => event.preventDefault(),
+            stopPropagation: () => event.stopPropagation()
+        };
+    }
 }

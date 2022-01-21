@@ -1,3 +1,5 @@
+import { IDisposable } from "src/base/common/dispose";
+import { Emitter } from "src/base/common/event";
 
 /**
  * @readonly Scroll wheel event type.
@@ -12,11 +14,6 @@
 	 * double representing the vertical scroll amount.
 	 */
     deltaY: number;
-
-	/**
-	 * double representing the scroll amount for the z-axis.
-	 */
-    deltaZ: number;
 	
 	preventDefault(): void;
 	stopPropagation(): void;
@@ -61,7 +58,7 @@ const MIN_SLIDER_SIZE = 20; // pixels
  * @class A class for storing the numerated data of {@link AbstractScrollbar}.
  * Self-recalculating the correct data of a slider if needed.
  */
-export class Scrollable implements IScrollable {
+export class Scrollable implements IScrollable, IDisposable {
 
     // [fields]
 
@@ -111,6 +108,12 @@ export class Scrollable implements IScrollable {
      * is not required.
      */
     private _required: boolean;
+
+    /**
+     * fires when scroll happens.
+     */
+    private _onDidScroll = new Emitter<IScrollEvent>();
+    public onDidScroll = this._onDidScroll.registerListener;
 
     // [constructor]
 
@@ -196,11 +199,18 @@ export class Scrollable implements IScrollable {
 
 	// [methods]
 
+    public dispose(): void {
+        this._onDidScroll.dispose();
+    }
+
+    public fire(event: IScrollEvent): void {
+        this._onDidScroll.fire(event);
+    }
+
 	public createScrollEvent(event: WheelEvent): IScrollEvent {
 		return {
 			deltaX: event.deltaX,
 			deltaY: event.deltaY,
-			deltaZ: event.deltaZ,
 			preventDefault: () => event.preventDefault(),
 			stopPropagation: () => event.stopPropagation()
 		};
