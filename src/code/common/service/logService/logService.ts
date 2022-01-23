@@ -1,10 +1,13 @@
 import { APP_ROOT_PATH } from "src/base/electron/app";
-import { isDirExisted, createDir, writeToFile } from "src/base/node/io";
-import { pathJoin } from "src/base/common/string";
+import { posix } from 'src/base/common/file/path';
+import { DataBuffer } from 'src/base/common/file/buffer';
 import { INoteBookManagerService, NoteBookManager } from "src/code/common/model/notebookManager";
-import { IGlobalConfigService } from "src/code/common/service/configService/configService";
+import { IGlobalConfigService, GlobalConfigService } from "src/code/common/service/configService/configService";
+import { IFileLogService } from "./fileLogService";
+import { FileService, IFileService } from 'src/code/common/service/fileService/fileService';
+import { URI } from "src/base/common/file/uri";
 
-enum LogLevel {
+export enum LogLevel {
     TRACE,
     DEBUG,
     INFO,
@@ -19,9 +22,8 @@ export const enum LogPathType {
 };
 
 export interface LogInfo {
-    message: string;
-    date: Date;
-    path: LogPathType;    
+    output: string;
+    path: URI;
 };
 
 export interface ILogService {
@@ -49,51 +51,73 @@ export abstract class LogService implements ILogService {
     // }
 
     protected _logServiceManager: LogServiceManager;
+    protected _logLevel: number | undefined;
 
     // solves singletion problem, so we always have at most one LogServiceManager when we create a logService
     constructor(
-        @INoteBookManagerService noteBookManagerService: INoteBookManagerService,
-        @IGlobalConfigService globalConfigService: IGlobalConfigService,
+        // noteBookManagerService: INoteBookManagerService,
+        // globalConfigService: GlobalConfigService,
+        fileService: FileService
     ) {
-        this._logServiceManager = createOrGetLogServiceManager(LogServiceManager, noteBookManagerService, globalConfigService);
+        this._logServiceManager = createOrGetLogServiceManager(
+            /*noteBookManagerService, globalConfigService, */fileService);
     }
 
-    
-    trace(message: string, ...args: any[]): void {
+    /**
+     * __pushLog pushed logInfo to _logServiceManager and prints out the 
+     * output of the logInfo to the console
+     * @param logInfo the logging info
+     */
+    protected __pushLog(logInfo: LogInfo, loggingLevel: number) {
+        if (this._logLevel && loggingLevel >= this._logLevel) { // type-checking
+            this._logServiceManager.pushLogInfo(logInfo);
+            console.log(logInfo.output);
+        }
+        
+    }
 
+    public getPushedLog(): LogInfo{
+        return this._logServiceManager.peek();
+    }
+
+    trace(...args: any[]): void {
     }
 	
-	debug(message: Error, ...args: any[]): void {
+	debug(...args: any[]): void {
         
     }
 
-	info(message: string, ...args: any[]): void {
-        const formatted_msg: string = `[info] [${message}] [${args}]`;
-        this._logServiceManager.pushLogInfo({message: formatted_msg, path: LogPathType.NOTEBOOKMANAGER} as LogInfo);
+	info(...args: any[]): void {
     }
 
-	warn(message: string, ...args: any[]): void {
+	warn(...args: any[]): void {
         
     }
 
-	error(err: Error, date: Date, underDir: LogPathType): void {
-        const dateInfo = date.toISOString().slice(0, 10);
-        let writeToDir = LogPathType.NOTEBOOKMANAGER;
-        const formatted_msg: string = `[info] ${dateInfo}
-        Log Message: ${err.name}  ${err.message} ${err.stack}`;
-        this._logServiceManager.pushLogInfo({message: formatted_msg, date: date, path: underDir} as LogInfo);
+	error(...args: any[]): void {
     }
 
-	critical(message: string | Error, ...args: any[]): void {
-        
+    critical(...args: any[]): void {
+    }
+
+    /**
+     * 
+     * @param level 
+     */
+    public setLevel(level: number) {
+        this._logLevel = level;
+    }
+
+    public getLogLevel(): number {
+        return this._logLevel as number;
     }
 }
 
 /**
- * @description The only valid way to construct a manager.
- * @param ctor A constructor.
- * @param args Arguments for constructing a manager.
- * @returns Returns a existed manager or a newly constructed one.
+ * @description must obtain LogService only from this function
+ * @param ctor a constructor
+ * @param args arguments to be passed to the constructor
+ * @returns an existing LogServiceManager or a newly constructed one
  */
 function createOrGetLogServiceManager<T extends LogServiceManager>(ctor: any, ...args: any[]): LogServiceManager {
     if (_logServiceManagerInstance === null) {
@@ -113,8 +137,9 @@ class LogServiceManager {
     private _ongoing: boolean = false;
 
     constructor(
-        private readonly noteBookManagerService: INoteBookManagerService,
-        private readonly globalConfigService: IGlobalConfigService,
+        // private readonly noteBookManagerService: INoteBookManagerService,
+        // private readonly globalConfigService: GlobalConfigService,
+        private readonly fileService: FileService
     ) {
         setInterval(this.checkQueue.bind(this), 1000);
     }
@@ -127,6 +152,10 @@ class LogServiceManager {
         if (!this.isEmpty() && !this._ongoing) {
             this.processQueue();
         }
+    }
+
+    public peek(): LogInfo {
+        return this._queue[-1] as LogInfo;
     }
 
     // add a new logService to _logServices
@@ -166,6 +195,15 @@ class LogServiceManager {
             //     this._queue.shift();
             //     this._ongoing = false;
             // });
+
+            this._ongoing = true;
+            const logInfo = this._queue[0]!;
+           
+            this.fileService.writeFile(logInfo.path, DataBuffer.fromString(logInfo.output))
+            .then(() => {
+                this._queue.shift();
+                this._ongoing = false;
+            });
         } catch (err) {
             // do log here
         }
