@@ -6,13 +6,13 @@ import { IScrollableWidgetCreationOpts, IScrollableWidgetExtensionOpts, IScrolla
 import { Emitter } from "src/base/common/event";
 import { IScrollEvent, Scrollable } from "src/base/common/scrollable";
 
-export interface IAbstractScrollableWidget extends IWidget {
+export interface IScrollableWidget extends IWidget {
 
     render(element: HTMLElement): void;
     
 }
 
-export abstract class AbstractScrollableWidget extends Widget implements IAbstractScrollableWidget {
+export class ScrollableWidget extends Widget implements IScrollableWidget {
 
     // [fields]
 
@@ -95,13 +95,6 @@ export abstract class AbstractScrollableWidget extends Widget implements IAbstra
         element.appendChild(scrollbarElement);
     }
 
-    // [abstraction]
-
-    /**
-     * @description Rerenders the {@link ScrollableWidget}.
-     */
-    protected abstract __rerender(): void;
-
     // [private helper methods]
 
     /**
@@ -116,13 +109,12 @@ export abstract class AbstractScrollableWidget extends Widget implements IAbstra
         const sliderDelta = this._scrollbar.getScrollDelta(event) * this._opts.mouseWheelScrollSensibility;
         const newScrollPosition = this._scrollable.getScrollPosition() + sliderDelta / this._scrollable.getSliderRatio();
         this._scrollable.setScrollPosition(newScrollPosition);
-        this._scrollable.fire(event);
-
+        
         // updates scrollbar
         this._scrollbar.onDidScroll(event);
 
-        // rerender
-        this.__rerender();
+        // fires the event
+        this._scrollable.fire(event);
     }
     
     /**
