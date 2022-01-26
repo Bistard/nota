@@ -1,0 +1,8 @@
+name: Pull Request Github Actions
+on: [pull_request]
+jobs:
+  Build:
+    runs-on: ubuntu-latest
+    steps:
+      - run: npm run build
+      - run: echo "💡 The ${{ github.repository }} repository has been built successfully."
