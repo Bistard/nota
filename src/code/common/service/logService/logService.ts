@@ -1,116 +1,102 @@
-import { APP_ROOT_PATH } from "src/base/electron/app";
-import { posix } from 'src/base/common/file/path';
 import { DataBuffer } from 'src/base/common/file/buffer';
-import { INoteBookManagerService, NoteBookManager } from "src/code/common/model/notebookManager";
-import { IGlobalConfigService, GlobalConfigService } from "src/code/common/service/configService/configService";
-import { IFileLogService } from "./fileLogService";
-import { FileService, IFileService } from 'src/code/common/service/fileService/fileService';
+import { FileService } from 'src/code/common/service/fileService/fileService';
 import { URI } from "src/base/common/file/uri";
+import { IntervalTimer } from "src/base/common/timer";
 
-export enum LogLevel {
-    TRACE,
-    DEBUG,
-    INFO,
-    WARN,
-    ERROR,
-    CRITICAL
+export const enum LogLevel {
+    TRACE = 0,
+    DEBUG = 1,
+    INFO  = 2,
+    WARN  = 3,
+    ERROR = 4,
+    FATAL = 5
 }; 
 
-export const enum LogPathType {
-    APP,
-    NOTEBOOKMANAGER
-};
-
-export interface LogInfo {
+export interface ILogInfo {
     output: string;
     path: URI;
 };
 
-export interface ILogService {
-    trace(message: string, ...args: any[]): void;
-	
-	debug(message: Error, ...args: any[]): void;
+export interface IAbstractLogService {
+    
+    /**
+     * Pauses handling any incoming log messages.
+     */
+    pause(): void;
 
-	info(message: string, ...args: any[]): void;
+    /**
+     * Resumes to handle any existed or incoming log messages.
+     */
+    resume(): void;
 
-	warn(message: string, ...args: any[]): void;
+    /**
+     * Determines if the service is paused or resumed.
+     */
+    isFlowing(): boolean;
 
-	error(message: string | Error, ...args: any[]): void;
+    /**
+     * Sets the current log level. Any log messages that has lower level than 
+     * the current level will be ignored.
+     * 
+     * Checks {@link LogLevel}.
+     */
+    setLevel(level: LogLevel): void;
 
-	critical(message: string | Error, ...args: any[]): void;
+    /**
+     * Returns the current log level.
+     */
+    getLevel(): LogLevel;
 
-	//flush(): void;
-
-	//format(args: any): string;
 }
 
-export abstract class LogService implements ILogService {
+export abstract class AbstractLogService implements IAbstractLogService {
 
-    // startWriting(message: string, func: (message: string, ...args: any[]) => void, ...args: any[]) {
-    //     func(message, ...args);
-    // }
+    // [fields]
 
-    protected _logServiceManager: LogServiceManager;
-    protected _logLevel: number | undefined;
+    private _logServiceManager: LogServiceManager;
 
-    // solves singletion problem, so we always have at most one LogServiceManager when we create a logService
+    private _level: LogLevel;
+    
+    // [constructor]
+
     constructor(
-        // noteBookManagerService: INoteBookManagerService,
-        // globalConfigService: GlobalConfigService,
-        fileService: FileService
+        fileService: FileService,
+        level: LogLevel = LogLevel.INFO,
     ) {
-        this._logServiceManager = createOrGetLogServiceManager(
-            /*noteBookManagerService, globalConfigService, */fileService);
+        this._logServiceManager = createOrGetLogServiceManager<LogServiceManager>(fileService);
+        this._level = level;
     }
 
-    /**
-     * __pushLog pushed logInfo to _logServiceManager and prints out the 
-     * output of the logInfo to the console
-     * @param logInfo the logging info
-     */
-    protected __pushLog(logInfo: LogInfo, loggingLevel: number) {
-        if (this._logLevel && loggingLevel >= this._logLevel) { // type-checking
-            this._logServiceManager.pushLogInfo(logInfo);
-            console.log(logInfo.output);
+    // [methods]
+
+    public pause(): void {
+        this._logServiceManager.pause();
+    }
+
+    public resume(): void {
+        this._logServiceManager.resume();
+    }
+
+    public isFlowing(): boolean {
+        return this._logServiceManager.isFlowing();
+    }
+    
+    public setLevel(level: LogLevel): void {
+        this._level = level;
+    }
+
+    public getLevel(): LogLevel {
+        return this._level;
+    }
+
+    // [helper methods]
+
+    protected log(level: LogLevel, info: ILogInfo): void {
+        if (level >= this._level) {
+            this._logServiceManager.push(info);
         }
-        
     }
 
-    public getPushedLog(): LogInfo{
-        return this._logServiceManager.peek();
-    }
-
-    trace(...args: any[]): void {
-    }
-	
-	debug(...args: any[]): void {
-        
-    }
-
-	info(...args: any[]): void {
-    }
-
-	warn(...args: any[]): void {
-        
-    }
-
-	error(...args: any[]): void {
-    }
-
-    critical(...args: any[]): void {
-    }
-
-    /**
-     * 
-     * @param level 
-     */
-    public setLevel(level: number) {
-        this._logLevel = level;
-    }
-
-    public getLogLevel(): number {
-        return this._logLevel as number;
-    }
 }
 
 /**
@@ -130,82 +116,90 @@ let _logServiceManagerInstance: LogServiceManager| null = null;
 
 /**
  * @internal
+ * @class An internal class that manages the flow of log messages.
  */
 class LogServiceManager {
     
-    private _queue: LogInfo[] = [];
-    private _ongoing: boolean = false;
+    // [fields]
+
+    /** stores {@link ILogInfo} */
+    private _queue: ILogInfo[];
+    
+    // switch that controls the writing flow
+    private _flowing: boolean;
+    private _timer: IntervalTimer;
+
+    // there is an ongoing log is writting
+    private _ongoing: boolean;
+
+    // [constructor]
 
     constructor(
-        // private readonly noteBookManagerService: INoteBookManagerService,
-        // private readonly globalConfigService: GlobalConfigService,
         private readonly fileService: FileService
     ) {
-        setInterval(this.checkQueue.bind(this), 1000);
+        this._queue = [];
+        this._flowing = true;
+        this._ongoing = false;
+
+        // starts flowing
+        this._timer = new IntervalTimer();
+        this._timer.set(() => this.checkQueue(), 300);
     }
+
+    // [methods]
 
     public isEmpty(): boolean {
         return !this._queue.length;
     }
 
     public checkQueue(): void {
+        if (!this._flowing) {
+            this._timer.cancel();
+            return;
+        }
+
         if (!this.isEmpty() && !this._ongoing) {
-            this.processQueue();
+            this.__processQueue();
         }
     }
 
-    public peek(): LogInfo {
-        return this._queue[-1] as LogInfo;
+    public peek(): ILogInfo | undefined {
+        return this._queue[this._queue.length - 1];
     }
 
-    // add a new logService to _logServices
-    public pushLogInfo(logInfo: LogInfo): void {
+    public push(logInfo: ILogInfo): void {
         this._queue.push(logInfo);
     }
 
-    /**
-     * @description remove the log that has finished writing, then call next log's startR
-     */
-    public async processQueue(): Promise<void> {
-        try {
-            // this._ongoing = true;
-            // const logInfo = this._queue[0]!;
-            
-            // let dir: string;
-            // if (this.globalConfigService.defaultConfigOn) {
-            //     dir = APP_ROOT_PATH; 
-            //     const mdNoteExists = await isDirExisted(dir, ".mdnote");
-            //     if (!mdNoteExists) {
-            //         await createDir(dir, ".mdnote");
-            //     }  
-            // } else {
-            //     // dir = this.noteBookManagerService.getRootPath();
-            //     dir = NoteBookManager.rootPath;
-            // }
-            
-            // dir = pathJoin(dir, ".mdnote");
-            // const res = await isDirExisted(dir, "log");
-            // if (!res) {
-            //     await createDir(dir, "log");
-            // }
-            
-            // const path = pathJoin(dir, "log");
-            // writeToFile(path, logInfo.date.toISOString().slice(0, 10) + '.json', logInfo.message)
-            // .then(() => {
-            //     this._queue.shift();
-            //     this._ongoing = false;
-            // });
+    public pause(): void {
+        this._flowing = false;
+    }
 
+    public resume(): void {
+        this._flowing = true;
+        this._timer.set(() => this.checkQueue(), 1000);
+    }
+
+    public isFlowing(): boolean {
+        return this._flowing;
+    }
+
+    // [private helper methods]
+
+    private async __processQueue(): Promise<void> {
+        try {
             this._ongoing = true;
             const logInfo = this._queue[0]!;
            
-            this.fileService.writeFile(logInfo.path, DataBuffer.fromString(logInfo.output))
-            .then(() => {
-                this._queue.shift();
-                this._ongoing = false;
-            });
-        } catch (err) {
-            // do log here
+            await this.fileService.writeFile(logInfo.path, DataBuffer.fromString(logInfo.output));
+            
+            this._queue.shift();
+            this._ongoing = false;    
+        } 
+        
+        catch (err) {
+            // we throw it out for now, maybe we can catch this error for later.
+            throw err;
         }
 
     }

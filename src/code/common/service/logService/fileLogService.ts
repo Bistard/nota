@@ -1,47 +1,93 @@
 import { APP_ROOT_PATH } from "src/base/electron/app";
-import { ILogService, LogInfo, LogPathType, LogService } from "src/code/common/service/logService/logService";
-import { INoteBookManagerService, NoteBookManager } from "src/code/common/model/notebookManager";
+import { AbstractLogService, IAbstractLogService, LogLevel } from "src/code/common/service/logService/logService";
+import { NoteBookManager } from "src/code/common/model/notebookManager";
 import { createDecorator } from "src/code/common/service/instantiationService/decorator";
-import { EGlobalSettings, GlobalConfigService, IGlobalApplicationSettings, IGlobalConfigService } from "src/code/common/service/configService/configService";
+import { EGlobalSettings, IGlobalApplicationSettings, IGlobalConfigService } from "src/code/common/service/configService/configService";
 import { FileService, IFileService } from 'src/code/common/service/fileService/fileService';
 import { URI } from "src/base/common/file/uri";
-import { FileNode } from "src/base/node/fileTree";
-
+import { getCurrentFormatDate } from "src/base/common/date";
 
 export const IFileLogService = createDecorator<IFileLogService>('file-log-service');
 
-export interface IFileLogService extends ILogService {
+export interface IFileLogService extends IAbstractLogService {
     
+    getPath(): URI;
+    
+    setPath(path: URI): void;
+
+    /**
+     * @description trace logs trace-level (thorough debugging) logging messages.
+     * @param message the output message.
+     * @param filePath the path of the file.
+     * @param path the path to be written in disk.
+     */
+    trace(message: string, filePath: string, path: URI): void;
+	
+    /**
+     * @description debug logs debug-level (normal debugging) logging messages.
+     * @param message the output message.
+     * @param filePath the path of the file.
+     * @param path the path to be written in disk.
+     */
+	debug(message: string, filePath: string, path: URI): void;
+
+    /**
+     * @description info logs info-level (tracking) logging messages.
+     * @param message the output message.
+     * @param filePath the path of the file.
+     * @param path the path to be written in disk.
+     */
+	info(message: string, filePath: string, path: URI): void;
+
+    /**
+     * @description warn logs warn-level (might be a problem) logging messages.
+     * @param message the output message.
+     * @param filePath the path of the file.
+     * @param path the path to be written in disk.
+     */
+	warn(message: string, filePath: string, path: URI): void;
+
+    /**
+     * @description error logs error-level (definitely needs investigation) logging messages.
+     * @param message the output message.
+     * @param err the error catched during execution.
+     * @param filePath the path of the file.
+     * @param path the path to be written in disk.
+     */
+	error(message: string, err: Error, filePath: string, path: URI): void;
+
+    /**
+     * @description fatal logs fatal-level (need urgent investigation) logging messages.
+     * @param message 
+     * @param err the error catched during execution.
+     * @param filePath the path of the file.
+     * @param path the path to be written in disk.
+     */
+	fatal(message: string, err: Error, filePath: string, path: URI): void;
 }
 
-export class FileLogService extends LogService implements IFileLogService {
+/**
+ * @description @class A logger that manages the log messages of the {@link FileService} 
+ * related business.
+ */
+export class FileLogService extends AbstractLogService implements IFileLogService {
     
-    public path: URI;
+    // [fields]
 
-    // whether opened by a manager OR just a tab
-    // private _hasNoteBookManager: boolean;
+    // the path to be written
+    private path: URI;
 
-    // // The Directory whether the log folder for this particular NoteBook is
-    // private _noteBookLogDir: string;
+    // [constructor]
 
-    // // the path where actual log message is placed
-    // private _loggerPath: string;
-
-    // constructor(hasNoteBookManager, noteBookLogDir, loggerPath) {
-    //     super();
-
-    //     this._hasNoteBookManager = hasNoteBookManager;
-    //     this._noteBookLogDir = noteBookLogDir;
-    //     this._loggerPath = loggerPath;
-    // }
     constructor(
-        @IFileService fileService: FileService
+        level: LogLevel,
+        @IFileService fileService: FileService,
+        @IGlobalConfigService private globalConfigService: IGlobalConfigService,
     ) {
-        super(/*noteBookManagerService, globalConfigService, */fileService);
-        const globalConfigService = new GlobalConfigService(fileService);
-        const globalConfig = globalConfigService.get<IGlobalApplicationSettings>(EGlobalSettings.Application)!;
-        const defaultConfigOn = globalConfig.defaultConfigOn;
+        super(fileService, level);
 
+        const globalConfig = this.globalConfigService.get<IGlobalApplicationSettings>(EGlobalSettings.Application);
+        const defaultConfigOn = globalConfig.defaultConfigOn;
         if (defaultConfigOn) {
             this.path = URI.fromFile(APP_ROOT_PATH);
         } else {
@@ -49,87 +95,52 @@ export class FileLogService extends LogService implements IFileLogService {
         }
     }
 
-    /**
-     * trace logs trace-level (thorough debugging) logging messages
-     * @param message 
-     * @param args 
-     */
-    public override trace(message: string, ...args: any[]): void {
+    // [methods - get / set]
+
+    public getPath(): URI {
+        return this.path;
+    }
+
+    public setPath(path: URI): void {
+        this.path = path;
+    }
+
+    // [methods]
+
+    public trace(message: string, filePath: string, path: URI): void {
+        const dateInfo = getCurrentFormatDate();
+        const formatted = `[trace] [file: ${filePath}] [${dateInfo}] - Message: ${message}`;
+        this.log(LogLevel.TRACE, {output: formatted, path: path});
     }
 	
-    /**
-     * debug logs debug-level (normal debugging) logging messages
-     * @param message 
-     * @param args 
-     */
-    public override debug(message: string | Error, ...args: any[]): void {
-        
+    public debug(message: string, filePath: string, path: URI): void {
+        const dateInfo = getCurrentFormatDate();
+        const formatted = `[debug] [file: ${filePath}] [${dateInfo}] - Message: ${message}`;
+        this.log(LogLevel.DEBUG, {output: formatted, path: path});
     }
 
-    /**
-     * error logs error-level (definitely needs investigation) logging messages
-     * @param message the message user wants to log
-     * @param err the error catched during execution
-     * @param filePath the path of the file whose operation causes the error
-     * @param path the path of the file where the logging info will be written
-     */
-    public override error(message: string, err: Error, filePath: string, path: URI = this.path): void {
-        const dateInfo = getDateInfo();
-        const formatted_msg: string = `[error] [file: ${filePath}] ${dateInfo}
-         - Log Message: ${message} Error: ${err.name} ${err.message} ${err.stack}`;
-        this._logServiceManager.pushLogInfo({output: formatted_msg, path: path} as LogInfo);
+    public info(message: string, filePath: string, path: URI = this.path): void {
+        const dateInfo = getCurrentFormatDate();
+        const formatted = `[info] [file: ${filePath}] [${dateInfo}] - Message: ${message}`;
+        this.log(LogLevel.INFO, {output: formatted, path: path});
     }
 
-    /**
-     * info logs info-level (tracking) logging messages
-     * @param message 
-     * @param filePath the path of the file whose operation causes the error
-     * @param path the path of the file where the logging info will be written
-     */
-	public override info(message: string, filePath: string, path: URI = this.path): void {
-        const dateInfo = getDateInfo();
-        const formatted_msg: string = `[info] [file: ${filePath}] ${dateInfo}
-         - Log Message: ${message}`;
-        this._logServiceManager.pushLogInfo({output: formatted_msg, path: path} as LogInfo);
+	public warn(message: string, filePath: string, path: URI = this.path): void {
+        const dateInfo = getCurrentFormatDate();
+        const formatted = `[warning] [file: ${filePath}] [${dateInfo}] - Message: ${message}`;
+        this.log(LogLevel.WARN, {output: formatted, path: path});
     }
 
-    /**
-     * warn logs warn-level (might be a problem) logging messages
-     * @param message 
-     * @param filePath the path of the file whose operation causes the error
-     * @param path the path of the file where the logging info will be written
-     */
-	public override warn(message: string, filePath: string, path: URI = this.path): void {
-        const dateInfo = getDateInfo();
-        const formatted_msg: string = `[warning] [file: ${filePath}] ${dateInfo}
-         - Log Message: ${message}`; // hello world / hello cindy
-        this._logServiceManager.pushLogInfo({output: formatted_msg, path: path} as LogInfo);
+    public error(message: string, err: Error, filePath: string, path: URI = this.path): void {
+        const dateInfo = getCurrentFormatDate();
+        const formatted = `[error] [file: ${filePath}] [${dateInfo}] - Message: ${message} Error: ${err.name} ${err.message} ${err.stack}`;
+        this.log(LogLevel.ERROR, {output: formatted, path: path});
     }
 
-    /**
-     * critical logs critical-level (need urgent investigation) logging messages
-     * @param message 
-     * @param err the error catched during execution
-     * @param filePath the path of the file whose operation causes the error
-     * @param path the path of the file where the logging info will be written
-     */
-	public override critical(message: string, err: Error, filePath: string, path: URI = this.path): void {
-        const dateInfo = getDateInfo();
-        const formatted_msg: string = `[CRITICAL] [file: ${filePath}] ${dateInfo}
-         - Log Message: ${message} Error: ${err.name}  ${err.message} ${err.stack}`;
-        this._logServiceManager.pushLogInfo({output: formatted_msg, path: path} as LogInfo);
+	public fatal(message: string, err: Error, filePath: string, path: URI = this.path): void {
+        const dateInfo = getCurrentFormatDate();
+        const formatted = `[CRITICAL] [file: ${filePath}] [${dateInfo}] - Message: ${message} Error: ${err.name} ${err.message} ${err.stack}`;
+        this.log(LogLevel.FATAL, {output: formatted, path: path});
     }
 
-    
 }
-
-/**
- * 
- * @returns Date Object converted to LocaledString
- * @example "12/29/2021, 12:08:40 PM"
- */
-function getDateInfo(): string {
-    const date = new Date()
-    return date.toLocaleString();
-}
-// onDidLogError
