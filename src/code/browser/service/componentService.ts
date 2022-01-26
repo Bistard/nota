@@ -23,10 +23,7 @@ export class ComponentService {
 
     public register(component: IComponent, force?: boolean): void {
         if (this._componentMap.has(component.getId()) && force === false) {
-            // do log her
-            const err = Error("Found an ERROR!");
-            //this.fileLogService.error(err, new Date(), LogPathType.NOTEBOOKMANAGER);
-            //throw Error('component has been already registered');
+            // do log here
         }
         this._componentMap.set(component.getId(), component);
     }

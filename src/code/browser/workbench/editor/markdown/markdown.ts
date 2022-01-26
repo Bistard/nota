@@ -28,7 +28,6 @@ import { createDecorator } from 'src/code/common/service/instantiationService/de
 import { IComponentService } from 'src/code/browser/service/componentService';
 import { EditorComponentType } from 'src/code/browser/workbench/editor/editor';
 import { IFileLogService } from 'src/code/common/service/logService/fileLogService';
-import { LogPathType } from 'src/code/common/service/logService/logService';
 import { IGlobalConfigService, IUserConfigService } from 'src/code/common/service/configService/configService';
 import { EUserSettings, IUserMarkdownSettings } from 'src/code/common/service/configService/configService';
 
@@ -264,13 +263,9 @@ export class MarkdownComponent extends Component implements IMarkdownService {
     public markdownDisplayFile(nodeInfo: FileNode | null): void {
         
         if (!this.editor) {
-            
             // do log here.
             return;
         }
-
-        const err = new Error("No Editor Found!");
-        this.fileLogService.error(err, new Date(), LogPathType.APP);
 
         if (nodeInfo && !nodeInfo.isFolder) {
             this.editor.setMarkdown(nodeInfo.file!.plainText, false);
