@@ -1,5 +1,6 @@
 import * as assert from 'assert';
 import { URI } from 'src/base/common/file/uri';
+import { IS_WINDOWS } from 'src/base/node/os';
 
 suite('URI-test', () => {
     
@@ -14,9 +15,12 @@ suite('URI-test', () => {
     });
 
     test('URI#toFsPath()', () => {
-        // assert.strictEqual(URI.toFsPath(URI.parse(testStr1)), '');
-        // assert.strictEqual(URI.toFsPath(URI.parse(testStr2)), '');
-        assert.strictEqual(URI.toFsPath(URI.parse(testStr3)), 'd:\\dev\\MarkdownNote\\src\\code\\common\\service\\test\\file.test.txt');
+        if (IS_WINDOWS) {
+            assert.strictEqual(URI.toFsPath(URI.parse(testStr3)), 'd:\\dev\\MarkdownNote\\src\\code\\common\\service\\test\\file.test.txt');
+        } else {
+            assert.strictEqual(URI.toFsPath(URI.parse(testStr3)), 'd:/dev/MarkdownNote/src/code/common/service/test/file.test.txt');
+        }
+        
     });
 
 });
