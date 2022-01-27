@@ -6,7 +6,7 @@
 import * as assert from 'assert';
 import { Scrollable } from 'src/base/common/scrollable';
 
-suite('Scrollable test', () => {
+suite('Scrollable-test', () => {
 	test('inflates slider size', () => {
 		let actual = new Scrollable(14, 339, 42423, 32787);
 

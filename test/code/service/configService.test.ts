@@ -84,7 +84,7 @@ interface ITestClassSettings {
     teacher: ITestHumanSettings;
 }
 
-suite('configService - test', () => {
+suite('configService-test', () => {
 
     test('set / get', () => {
         const configService = new EmptyConfigService();
