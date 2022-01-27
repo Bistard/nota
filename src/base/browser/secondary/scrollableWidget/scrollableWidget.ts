@@ -2,11 +2,15 @@ import { AbstractScrollbar, ScrollBarHost } from "src/base/browser/basic/scrollb
 import { HorizontalScrollbar } from "src/base/browser/basic/scrollbar/horizontalScrollbar";
 import { VerticalScrollbar } from "src/base/browser/basic/scrollbar/verticalScrollbar";
 import { IWidget, Widget } from "src/base/browser/basic/widget";
-import { IScrollableWidgetCreationOpts, IScrollableWidgetExtensionOpts, IScrollableWidgetOpts, resolveScrollableWidgetExtensionOpts, ScrollbarType } from "src/base/browser/secondary/scrollableWidget/scrollableWidgetOptions";
-import { Emitter } from "src/base/common/event";
+import { IScrollableWidgetExtensionOpts, IScrollableWidgetOpts, resolveScrollableWidgetExtensionOpts, ScrollbarType } from "src/base/browser/secondary/scrollableWidget/scrollableWidgetOptions";
+import { Emitter, Register } from "src/base/common/event";
 import { IScrollEvent, Scrollable } from "src/base/common/scrollable";
 
 export interface IScrollableWidget extends IWidget {
+
+    onDidScroll: Register<IScrollEvent>;
+
+    getScrollable(): Scrollable;
 
     render(element: HTMLElement): void;
     
@@ -32,20 +36,14 @@ export class ScrollableWidget extends Widget implements IScrollableWidget {
 
     // [constructor]
 
-    constructor(opts: IScrollableWidgetCreationOpts, extensionOpts: IScrollableWidgetExtensionOpts) {
+    constructor(scrollable: Scrollable, extensionOpts: IScrollableWidgetExtensionOpts) {
         super();
+
+        this._scrollable = scrollable;
 
         this._opts = resolveScrollableWidgetExtensionOpts(extensionOpts);
         this._isSliderDragging = false;
         this._isMouseOver = false;
-
-        // scrollable creation
-        this._scrollable = new Scrollable(
-            this._opts.scrollbarSize,
-            opts.viewportSize,
-            opts.scrollSize,
-            opts.scrollPosition
-        );
 
         // scrollbar creation
         const host: ScrollBarHost = {
