@@ -1,7 +1,7 @@
 import { CONTEXT_MENU_ITEM_HEIGHT, CONTEXT_MENU_SEPERATOR_HEIGHT, CONTEXT_MENU_WIDTH, IMenuItem, IMenuItemOption, MenuItem } from "src/base/browser/secondary/contextMenu/menuItem";
+import { Dimension } from "src/base/common/size";
 import { IComponentService } from "src/code/browser/service/componentService";
 import { Component, IComponent } from "src/code/browser/workbench/component";
-import { Dimension, IDimension } from "../../../common/dom";
 
 export const enum ContextMenuType {
     actionBar,
