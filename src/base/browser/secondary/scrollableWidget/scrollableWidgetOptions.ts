@@ -1,30 +1,8 @@
 import { ifOrDefault } from "src/base/common/type";
 
-export const enum ScrollbarType { 
+export enum ScrollbarType { 
     vertical,
     horizontal
-}
-
-export interface IScrollableWidgetCreationOpts {
-
-    /**
-     * vertical: height of the viewport
-     * horizontal: width of the viewport
-     */
-    viewportSize: number;
-
-    /**
-     * vertical: height of the actual scrolling area
-     * horizontal: width of the actual scrolling area
-     */
-    scrollSize: number;
-
-    /**
-     * vertical: top of the actual scrolling area
-     * horizontal: left of the actual scrolling area
-     */
-    scrollPosition: number;
-
 }
 
 export interface IScrollableWidgetExtensionOpts {
@@ -52,13 +30,6 @@ export interface IScrollableWidgetExtensionOpts {
     mouseWheelFastScrollSensibility?: number;
 
     /**
-     * @readonly When the scrollbar is vertical, means the width of the scrollbar.
-     * When the scrollbar is horizontal, means the height of the scrollbar (in pixel).
-     * @default 10
-     */
-    scrollbarSize?: number;
-
-    /**
      * @readonly When this option is on, mouse wheel goes up, the slider goes 
      * down.
      * @default false
@@ -70,7 +41,6 @@ export interface IScrollableWidgetOpts {
 
     scrollbarType: ScrollbarType;
     mouseWheelScrollSensibility: number;
-    scrollbarSize: number;
     mouseWheelFastScrollSensibility: number;
     reverseMouseWheelDirection: boolean;
 
@@ -88,7 +58,6 @@ export function resolveScrollableWidgetExtensionOpts(opts: IScrollableWidgetExte
         scrollbarType:                   ifOrDefault(opts.scrollbarType, ScrollbarType.vertical),
         mouseWheelScrollSensibility:     ifOrDefault(opts.mouseWheelScrollSensibility, 1),
         mouseWheelFastScrollSensibility: ifOrDefault(opts.mouseWheelFastScrollSensibility, 5),
-        scrollbarSize:                   ifOrDefault(opts.scrollbarSize, 10),
         reverseMouseWheelDirection:      ifOrDefault(opts.reverseMouseWheelDirection, false),
     };
 
