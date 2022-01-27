@@ -142,10 +142,7 @@ export class URI implements IURI {
 			value = uri.path;
 		}
 		if (IS_WINDOWS) {
-			console.log('[this is a windows enviroment]');
 			value = value.replace(/\//g, '\\');
-		} else {
-			console.log('[this is not a windows enviroment]');
 		}
 		return value;
 	}
