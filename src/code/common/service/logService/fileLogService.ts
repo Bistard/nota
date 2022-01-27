@@ -96,7 +96,10 @@ export class FileLogService extends AbstractLogService<IFileLogInfo> implements 
         if (defaultConfigOn) {
             this.path = URI.fromFile(APP_ROOT_PATH);
         } else {
-            this.path = URI.fromFile(NoteBookManager.rootPath);
+            // FIXME
+            this.path = URI.fromFile(APP_ROOT_PATH);
+            // undefined
+            // this.path = URI.fromFile(NoteBookManager.rootPath); 
         }
     }
 

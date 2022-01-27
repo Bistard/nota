@@ -37,6 +37,7 @@ export class NoteBookManager implements INoteBookManagerService {
 
     public static focusedFileNode: HTMLElement | null = null;
 
+    // FIXME: remove later
     public static rootPath: string;
     private _noteBookManagerRootPath: string = '';
 

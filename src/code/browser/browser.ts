@@ -8,6 +8,7 @@ import { FileService, IFileService } from "src/code/common/service/fileService/f
 import { GlobalConfigService, IGlobalConfigService, IUserConfigService, UserConfigService } from "src/code/common/service/configService/configService";
 import { Schemas } from "src/base/common/file/uri";
 import { DiskFileSystemProvider } from "src/base/node/diskFileSystemProvider";
+import { LogLevel } from "src/code/common/service/logService/abstractLogService";
 
 /**
  * @class This the main entry in the renderer process.
@@ -60,8 +61,8 @@ export class Browser {
         this.instantiationService.register(IUserConfigService, this.userConfigService);
         await this.userConfigService.init();
 
-        // LogService
-        this.instantiationService.register(IFileLogService, new ServiceDescriptor(FileLogService));
+        // FileLogService
+        this.instantiationService.register(IFileLogService, new ServiceDescriptor(FileLogService, [LogLevel.INFO]));
 
         // ComponentService
         this.componentService = new ComponentService();

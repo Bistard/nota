@@ -1,5 +1,3 @@
-import { MarkdownRenderMode } from "src/code/browser/workbench/editor/markdown/markdown";
-import { AppMode } from "src/code/common/service/configService/configService";
 
 /**
  * @readonly The type of configService.
