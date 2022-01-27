@@ -5,14 +5,20 @@ import { Emitter } from "src/base/common/event";
  * @readonly Scroll wheel event type.
  */
  export interface IScrollEvent {
-	/**
-	 * double representing the horizontal scroll amount.
-	 */
+
+    /** height of the viewport. */
+    viewportSize: number;
+
+    /** height of the scrolling area. */
+    scrollSize: number;
+
+    /** top position of the viewport. */
+    scrollPosition: number;
+
+    /** double representing the horizontal scroll amount. */
 	deltaX: number;
 
-	/**
-	 * double representing the vertical scroll amount.
-	 */
+	/** double representing the vertical scroll amount. */
     deltaY: number;
 	
 	preventDefault(): void;
@@ -211,8 +217,16 @@ export class Scrollable implements IScrollable, IDisposable {
         this._onDidScroll.fire(event);
     }
 
+    public clone():  Scrollable {
+        return new Scrollable(this._scrollbarSize, this._viewportSize, this._scrollSize, this._scrollPosition);
+    }
+
 	public createScrollEvent(event: WheelEvent): IScrollEvent {
 		return {
+            viewportSize: this._viewportSize,
+            scrollPosition: this._scrollPosition,
+            scrollSize: this._scrollSize,
+
 			deltaX: event.deltaX,
 			deltaY: event.deltaY,
 			preventDefault: () => event.preventDefault(),
