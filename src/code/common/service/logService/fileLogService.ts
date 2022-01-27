@@ -1,13 +1,18 @@
 import { APP_ROOT_PATH } from "src/base/electron/app";
-import { AbstractLogService, IAbstractLogService, LogLevel } from "src/code/common/service/logService/logService";
+import { AbstractLogService, IAbstractLogService, ILogInfo, LogLevel } from "src/code/common/service/logService/abstractLogService";
 import { NoteBookManager } from "src/code/common/model/notebookManager";
 import { createDecorator } from "src/code/common/service/instantiationService/decorator";
 import { EGlobalSettings, IGlobalApplicationSettings, IGlobalConfigService } from "src/code/common/service/configService/configService";
 import { FileService, IFileService } from 'src/code/common/service/fileService/fileService';
 import { URI } from "src/base/common/file/uri";
 import { getCurrentFormatDate } from "src/base/common/date";
+import { DataBuffer } from "src/base/common/file/buffer";
 
 export const IFileLogService = createDecorator<IFileLogService>('file-log-service');
+
+export interface IFileLogInfo extends ILogInfo {
+    path: URI;
+};
 
 export interface IFileLogService extends IAbstractLogService {
     
@@ -70,7 +75,7 @@ export interface IFileLogService extends IAbstractLogService {
  * @description @class A logger that manages the log messages of the {@link FileService} 
  * related business.
  */
-export class FileLogService extends AbstractLogService implements IFileLogService {
+export class FileLogService extends AbstractLogService<IFileLogInfo> implements IFileLogService {
     
     // [fields]
 
@@ -81,10 +86,10 @@ export class FileLogService extends AbstractLogService implements IFileLogServic
 
     constructor(
         level: LogLevel,
-        @IFileService fileService: FileService,
+        @IFileService private fileService: FileService,
         @IGlobalConfigService private globalConfigService: IGlobalConfigService,
     ) {
-        super(fileService, level);
+        super(level);
 
         const globalConfig = this.globalConfigService.get<IGlobalApplicationSettings>(EGlobalSettings.Application);
         const defaultConfigOn = globalConfig.defaultConfigOn;
@@ -143,4 +148,7 @@ export class FileLogService extends AbstractLogService implements IFileLogServic
         this.log(LogLevel.FATAL, {output: formatted, path: path});
     }
 
+    protected async logger(logInfo: IFileLogInfo): Promise<void> {
+        await this.fileService.writeFile(logInfo.path, DataBuffer.fromString(logInfo.output));
+    }
 }
