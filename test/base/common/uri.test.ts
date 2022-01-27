@@ -14,8 +14,6 @@ suite('URI-test', () => {
     });
 
     test('URI#toFsPath()', () => {
-        // assert.strictEqual(URI.toFsPath(URI.parse(testStr1)), '');
-        // assert.strictEqual(URI.toFsPath(URI.parse(testStr2)), '');
         assert.strictEqual(URI.toFsPath(URI.parse(testStr3)), 'd:\\dev\\MarkdownNote\\src\\code\\common\\service\\test\\file.test.txt');
     });
 
