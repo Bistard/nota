@@ -205,6 +205,7 @@ export class RangeTable<T extends IMeasureable> implements ISpliceable<T> {
 	/**
      * @description Removes items from an {@link RangeTable} and, if necessary, 
 	 * inserts new items in their place.
+	 * 
      * @param start The zero-based location in the {@link RangeTable} from which 
 	 * to start removing items.
      * @param deleteCount The number of items to remove.
@@ -212,7 +213,7 @@ export class RangeTable<T extends IMeasureable> implements ISpliceable<T> {
 	 * the deleted items.
      */
 	public splice(index: number, deleteCount: number, items: T[] = []): void {
-
+		
 		// selects all the items before the splice.
 		const before: IRangeList[] = Range.listIntersection({start: 0, end: index}, this._list);
 

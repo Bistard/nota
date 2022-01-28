@@ -62,6 +62,16 @@ export function clearChildrenNodes(node: HTMLElement): number {
 }
 
 /**
+ * @description Removes the given node from its parent in DOM tree.
+ * @param node The given DOMElement.
+ */
+export function removeNodeFromParent(node: HTMLElement): void {
+	if (node.parentElement) {
+		node.parentElement.removeChild(node);
+	}
+}
+
+/**
  * @description Generates a string representation for HTML <span> label to display 
  * text.
  * @param text The text to be displeyed.
