@@ -5,10 +5,9 @@
 
 import * as assert from 'assert';
 import { Range, RangeTable } from 'src/base/common/range';
-import { IMeasureable } from 'src/base/common/size';
 
 suite('RangeTable-test', () => {
-	let rangeMap: RangeTable<IMeasureable>;
+	let rangeMap: RangeTable;
 
 	setup(() => {
 		rangeMap = new RangeTable();
