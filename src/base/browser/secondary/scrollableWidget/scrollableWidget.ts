@@ -82,7 +82,6 @@ export class ScrollableWidget extends Widget implements IScrollableWidget {
 
         this._scrollable.onDidScroll((e: IScrollEvent) => {
             this._onDidScroll.fire(e);
-            console.log(e);
         });
 
         // render scrollbar
