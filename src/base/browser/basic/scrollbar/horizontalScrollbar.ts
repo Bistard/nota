@@ -12,14 +12,6 @@ export class HorizontalScrollbar extends AbstractScrollbar {
 
     // [methods]
 
-    public onDidScroll(event: IScrollEvent): void {
-        // either no changes or not required, we do nothing
-        if (event.deltaX === 0 || this._scrollable.required() === false) {
-            return;
-        }
-        this.rerender();
-    }
-
     public getFutureSliderPosition(event: IScrollEvent): number {
         const left = this._scrollable.getSliderPosition();
         const newLeft = left + event.deltaX;
@@ -45,6 +37,14 @@ export class HorizontalScrollbar extends AbstractScrollbar {
 
     public getScrollDelta(event: IScrollEvent): number {
         return event.deltaX;
+    }
+
+    protected __onDidScroll(event: IScrollEvent): void {
+        // either no changes or not required, we do nothing
+        if (event.deltaX === 0 || this._scrollable.required() === false) {
+            return;
+        }
+        this.rerender();
     }
 
     protected __renderScrollbar(size: number): void {

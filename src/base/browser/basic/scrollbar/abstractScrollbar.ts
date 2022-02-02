@@ -53,16 +53,15 @@ export abstract class AbstractScrollbar extends Widget {
         this._host = opts.host;
         this._scrollable = opts.scrollable;
 
+        this._scrollable.onDidScroll(e => {
+            this.__onDidScroll(e);
+        });
+
         this._visibilityController = new VisibilityController('visible', 'invisible', 'fade');
     }
 
     // [abstractions]
 
-    /**
-     * @description Will be invoked once scrolling happens.
-     * @param event The scroll event.
-     */
-    public abstract onDidScroll(event: IScrollEvent): void;
 
     /**
      * @description Returns the future absolute position. the returned position 
@@ -83,6 +82,12 @@ export abstract class AbstractScrollbar extends Widget {
      * @param event The scroll event.
      */
     public abstract getScrollDelta(event: IScrollEvent): number;
+
+    /**
+     * @description Will be invoked once scrolling happens.
+     * @param event The scroll event.
+     */
+    protected abstract __onDidScroll(event: IScrollEvent): void;
 
     /**
      * @description Renders the whole scrollbar.

@@ -107,9 +107,6 @@ export class ScrollableWidget extends Widget implements IScrollableWidget {
         const newScrollPosition = this._scrollable.getScrollPosition() + sliderDelta / this._scrollable.getSliderRatio();
         this._scrollable.setScrollPosition(newScrollPosition);
         
-        // updates scrollbar
-        this._scrollbar.onDidScroll(event);
-
         // fires the event
         this._scrollable.fire(event);
     }

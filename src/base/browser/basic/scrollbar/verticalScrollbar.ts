@@ -12,14 +12,6 @@ export class VerticalScrollbar extends AbstractScrollbar {
 
     // [methods]
 
-    public onDidScroll(event: IScrollEvent): void {
-        // either no changes or not required, we do nothing
-        if (event.deltaY === 0 || this._scrollable.required() === false) {
-            return;
-        }
-        this.rerender();
-    }
-
     public getFutureSliderPosition(event: IScrollEvent): number {
         const top = this._scrollable.getSliderPosition();
         const newTop = top + event.deltaY;
@@ -45,6 +37,14 @@ export class VerticalScrollbar extends AbstractScrollbar {
 
     public getScrollDelta(event: IScrollEvent): number {
         return event.deltaY;
+    }
+
+    protected __onDidScroll(event: IScrollEvent): void {
+        // either no changes or not required, we do nothing
+        if (event.deltaY === 0 || this._scrollable.required() === false) {
+            return;
+        }
+        this.rerender();
     }
 
     protected __renderScrollbar(size: number): void {
