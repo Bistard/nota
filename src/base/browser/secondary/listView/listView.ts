@@ -452,15 +452,16 @@ export class ListView<T extends IMeasureable> implements IDisposable, ISpliceabl
      * @description 
      */
     private __updateScrollHeight(): void {
-        const newHeight = this.rangeTable.size();
-        this.listContainer.style.height = newHeight + 'px';
+        // FIX: issue https://github.com/Bistard/MarkdownNote/issues/67
+        // const newHeight = this.rangeTable.size();
+        // this.listContainer.style.height = newHeight + 'px';
 
-        if (this.scrollableWidgetNextAnimationFrameHandle === null) {
-            this.scrollableWidgetNextAnimationFrameHandle = requestAnimationFrame(() => {
-                this.scrollable.setScrollSize(newHeight);
-                this.scrollableWidgetNextAnimationFrameHandle = null;
-            });
-        }
+        // if (this.scrollableWidgetNextAnimationFrameHandle === null) {
+        //     this.scrollableWidgetNextAnimationFrameHandle = requestAnimationFrame(() => {
+        //         this.scrollable.setScrollSize(newHeight);
+        //         this.scrollableWidgetNextAnimationFrameHandle = null;
+        //     });
+        // }
     }
 
 }
