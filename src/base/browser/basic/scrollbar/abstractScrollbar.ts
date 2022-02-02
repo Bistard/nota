@@ -150,10 +150,9 @@ export abstract class AbstractScrollbar extends Widget {
     }
 
     /**
-     * @description Rerenders the scrollbar and slider.
+     * @description Rerenders the slider.
      */
     public rerender(): void {
-        this.__renderScrollbar(this._scrollable.getScrollbarSize());
         this.__updateSlider(this._scrollable.getSliderSize(), this._scrollable.getSliderPosition());
     }
 
