@@ -68,6 +68,9 @@ const MIN_SLIDER_SIZE = 20; // pixels
 /**
  * @class A class for storing the numerated data of {@link AbstractScrollbar}.
  * Self-recalculating the correct data of a slider if needed.
+ * 
+ * A {@link Scrollable} only specifies one type of direction, either vertical or
+ * horizontal.
  */
 export class Scrollable implements IScrollable, IDisposable {
 

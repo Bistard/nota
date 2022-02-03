@@ -3,7 +3,7 @@ import { IDisposable, toDisposable } from "src/base/common/dispose";
 /**
  * @readonly A enumeration of all HTMLElement event types.
  */
-export const enum EventType {
+export enum EventType {
 	click = 'click',
 	contextmenu = 'contextmenu',
 	mouseover = 'mouseover',
@@ -11,13 +11,14 @@ export const enum EventType {
 	mousedown = 'mousedown',
 	mouseup = 'mouseup',
 	mousemove = 'mousemove',
-	doubleclick = 'dblclick'
+	doubleclick = 'dblclick',
+	wheel = 'wheel',
 }
 
 /**
  * @readonly Either displaying vertically or horizontally.
  */
-export const enum Orientation {
+export enum Orientation {
     Horizontal,
     Vertical
 }

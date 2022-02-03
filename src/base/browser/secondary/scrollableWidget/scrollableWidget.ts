@@ -102,7 +102,7 @@ export class ScrollableWidget extends Widget implements IScrollableWidget {
             return;
         }
 
-        this._element.onwheel = (e: WheelEvent): void => {
+        this.onWheel(this.element!, (e: WheelEvent): void => {
             
             if (this._scrollable.required() === false) {
                 return;
@@ -123,7 +123,7 @@ export class ScrollableWidget extends Widget implements IScrollableWidget {
             // did scroll
             this.__onDidWheel(scrollEvent);
             
-        };
+        });
     }
 
     /**

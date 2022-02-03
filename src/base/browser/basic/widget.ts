@@ -81,6 +81,12 @@ export abstract class Widget extends Disposable implements IWidget {
         }));
     }
 
+    public onWheel(element: HTMLElement, callback: (event: WheelEvent) => void): IDisposable {
+        return this.__register(addDisposableListener(element, EventType.wheel, (e: WheelEvent) => {
+            callback(e);
+        }));
+    }
+
     public render(element: HTMLElement): void {
         this._element = element;
     }
