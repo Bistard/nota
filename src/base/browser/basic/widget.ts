@@ -81,6 +81,7 @@ export abstract class Widget extends Disposable implements IWidget {
         }));
     }
 
+    /* Registers a callback function when the provided element is on-wheel scrolling */
     public onWheel(element: HTMLElement, callback: (event: WheelEvent) => void): IDisposable {
         return this.__register(addDisposableListener(element, EventType.wheel, (e: WheelEvent) => {
             callback(e);
