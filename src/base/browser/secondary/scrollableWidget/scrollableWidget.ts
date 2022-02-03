@@ -95,23 +95,6 @@ export class ScrollableWidget extends Widget implements IScrollableWidget {
     // [private helper methods]
 
     /**
-     * @description Invokes when mouse wheel scroll happens.
-     * @param event The wheel event when mouse wheel scroll happens.
-     */
-    private __onDidWheel(event: IScrollEvent): void {
-        
-        event.preventDefault();
-
-        // updates scrollable position
-        const sliderDelta = this._scrollbar.getScrollDelta(event) * this._opts.mouseWheelScrollSensibility;
-        const newScrollPosition = this._scrollable.getScrollPosition() + sliderDelta / this._scrollable.getSliderRatio();
-        this._scrollable.setScrollPosition(newScrollPosition);
-        
-        // fires the event
-        this._scrollable.fire(event);
-    }
-    
-    /**
      * @description Register mouse wheel listener to the scrollable DOM element.
      */
     private __registerMouseWheelListener(): void {
@@ -121,6 +104,10 @@ export class ScrollableWidget extends Widget implements IScrollableWidget {
 
         this._element.onwheel = (e: WheelEvent): void => {
             
+            if (this._scrollable.required() === false) {
+                return;
+            }
+
             const scrollEvent = this._scrollable.createScrollEvent(e);
             const currPosition = this._scrollable.getSliderPosition();
 
@@ -136,6 +123,23 @@ export class ScrollableWidget extends Widget implements IScrollableWidget {
             this.__onDidWheel(scrollEvent);
             
         };
+    }
+
+    /**
+     * @description Invokes when mouse wheel scroll happens.
+     * @param event The wheel event when mouse wheel scroll happens.
+     */
+     private __onDidWheel(event: IScrollEvent): void {
+        
+        event.preventDefault();
+
+        // updates scrollable position
+        const sliderDelta = this._scrollbar.getScrollDelta(event) * this._opts.mouseWheelScrollSensibility;
+        const newScrollPosition = this._scrollable.getScrollPosition() + sliderDelta / this._scrollable.getSliderRatio();
+        this._scrollable.setScrollPosition(newScrollPosition);
+        
+        // fires the event
+        this._scrollable.fire(event);
     }
 
     private _onSliderDragStart(): void {

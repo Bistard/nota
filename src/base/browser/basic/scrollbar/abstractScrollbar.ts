@@ -142,6 +142,10 @@ export abstract class AbstractScrollbar extends Widget {
 
         // mouse down on the scrollbar or slider
         this.onMousedown(this._element!, (e) => {
+            if (this._scrollable.required() === false) {
+                return;
+            }
+
             this.__scrollbarOrSliderOnDrag(e);
         });
 

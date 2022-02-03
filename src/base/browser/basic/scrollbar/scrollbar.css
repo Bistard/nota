@@ -1,5 +1,6 @@
 
 .scroll-bar {
+    z-index: 101;
     position: absolute;
 }
 
