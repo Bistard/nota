@@ -4,13 +4,21 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as assert from 'assert';
-import { Range, RangeTable } from 'src/base/common/range';
+import { IRangeList, Range, RangeTable } from 'src/base/common/range';
 
-suite('RangeTable-test', () => {
-	let rangeMap: RangeTable;
+suite('Range-test', () => {
 
-	setup(() => {
-		rangeMap = new RangeTable();
+	test('empty', () => {
+		assert.deepStrictEqual(Range.empty(Range.EMPTY), true);
+		assert.deepStrictEqual(Range.empty({start: 0, end: 0}), true);
+		assert.deepStrictEqual(Range.empty({start: 31, end: 31}), true);
+		assert.deepStrictEqual(Range.empty({start: 0, end: 31}), false);
+		assert.deepStrictEqual(Range.empty({start: 31, end: 0}), true);
+	});
+
+	test('shift', () => {
+		assert.deepStrictEqual(Range.shift(Range.EMPTY, 10), {start: 10, end: 10});
+		assert.deepStrictEqual(Range.shift({start: 0, end: 31}, 10), {start: 10, end: 41});
 	});
 
 	test('intersection', () => {
@@ -30,7 +38,15 @@ suite('RangeTable-test', () => {
 		assert.deepStrictEqual(Range.intersection({ start: 5, end: 15 }, { start: 0, end: 10 }), { start: 5, end: 10 });
 	});
 
-	test('multiIntersect', () => {
+	test('relativeComplement', () => {
+		assert.deepStrictEqual(Range.relativeComplement({start: 50, end: 150}, {start: 0, end: 200}), [{start: 0, end: 50}, {start: 150, end: 200}]);
+		assert.deepStrictEqual(Range.relativeComplement({start: 0, end: 150}, {start: 0, end: 200}), [Range.EMPTY, {start: 150, end: 200}]);
+		assert.deepStrictEqual(Range.relativeComplement({start: 50, end: 150}, {start: 0, end: 150}), [{start: 0, end: 50}, Range.EMPTY]);
+		assert.deepStrictEqual(Range.relativeComplement({start: 50, end: 150}, {start: 50, end: 150}), [Range.EMPTY, Range.EMPTY]);
+		assert.deepStrictEqual(Range.relativeComplement({start: 0, end: 50}, {start: 50, end: 100}), [Range.EMPTY, {start: 50, end: 100}]);
+	});
+
+	test('listIntersection', () => {
 		assert.deepStrictEqual(
 			Range.listIntersection(
 				{ start: 0, end: 0 },
@@ -137,6 +153,32 @@ suite('RangeTable-test', () => {
 				{ range: { start: 10, end: 100 }, size: 2 }
 			]
 		);
+	});
+
+	test('concatenate', () => {
+		const part1: IRangeList[] = [
+			{range: {start: 0, end: 20}, size: 10}, 
+			{range: {start: 10, end: 30}, size: 10}, 
+			{range: {start: 15, end: 20}, size: 10}, 
+		];
+		const part2: IRangeList[] = [
+			{range: {start: 0, end: 20}, size: 10}, 
+			{range: {start: 10, end: 50}, size: 10}, 
+		];
+		assert.deepStrictEqual(Range.concatenate(part1, part2), [{range: {start: 0, end: 50}, size: 10}]);
+
+		const part3: IRangeList[] = [
+			{range: {start: 10, end: 30}, size: 20}, 
+		];
+		assert.deepStrictEqual(Range.concatenate(part1, part2, part3), [{range: {start: 0, end: 50}, size: 10}, {range: {start: 10, end: 30}, size: 20}]);
+	});
+});
+
+suite('RangeTable-test', () => {
+	let rangeMap: RangeTable;
+
+	setup(() => {
+		rangeMap = new RangeTable();
 	});
 
 	test('empty', () => {

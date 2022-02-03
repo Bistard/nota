@@ -33,7 +33,7 @@ export namespace Range {
 	 * @param range The given range.
 	 */
 	export function empty(range: IRange): boolean {
-		return range.end - range.start === 0;
+		return range.end - range.start <= 0;
 	}
 
 	/**
@@ -54,7 +54,8 @@ export namespace Range {
 	 * @param A The range A.
 	 * @param B The range B.
 	 * @returns An array of size 2, the first part is the smaller elements not 
-	 * in A, the second part is the larger elements not in A.
+	 * in A, the second part is the larger elements not in A. If either part is 
+	 * empty, a {@link Range.EMPTY} will be returned.
 	 */
 	export function relativeComplement(A: IRange, B: IRange): [IRange, IRange] {
 		const complement: IRange[] = [];
@@ -68,8 +69,8 @@ export namespace Range {
 			end: B.end
 		};
 
-		Range.empty(before) ? complement.push(before) : complement.push(Range.EMPTY);
-		Range.empty(after) ? complement.push(after) : complement.push(Range.EMPTY);
+		!Range.empty(before) ? complement.push(before) : complement.push(Range.EMPTY);
+		!Range.empty(after) ? complement.push(after) : complement.push(Range.EMPTY);
 		
 		return complement as [IRange, IRange];
 	}
