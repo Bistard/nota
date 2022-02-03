@@ -39,6 +39,10 @@ export class HorizontalScrollbar extends AbstractScrollbar {
         return event.deltaX;
     }
 
+    public updateScrollSensibility(event: IScrollEvent, sensibility: number): void {
+        event.deltaX *= sensibility;
+    }
+
     protected __onDidScroll(event: IScrollEvent): void {
         // either no changes or not required, we do nothing
         if (event.deltaX === 0 || this._scrollable.required() === false) {

@@ -84,6 +84,14 @@ export abstract class AbstractScrollbar extends Widget {
     public abstract getScrollDelta(event: IScrollEvent): number;
 
     /**
+     * @description Mutiply the given sensibility with the delta change in the 
+     * provided event.
+     * @param event The scroll event.
+     * @param sensibility The sensibility.
+     */
+    public abstract updateScrollSensibility(event: IScrollEvent, sensibility: number): void;
+
+    /**
      * @description Will be invoked once scrolling happens.
      * @param event The scroll event.
      */

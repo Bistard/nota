@@ -39,6 +39,10 @@ export class VerticalScrollbar extends AbstractScrollbar {
         return event.deltaY;
     }
 
+    public updateScrollSensibility(event: IScrollEvent, sensibility: number): void {
+        event.deltaY *= sensibility;
+    }
+
     protected __onDidScroll(event: IScrollEvent): void {
         // either no changes or not required, we do nothing
         if (event.deltaY === 0 || this._scrollable.required() === false) {

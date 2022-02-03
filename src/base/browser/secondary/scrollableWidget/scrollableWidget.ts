@@ -109,8 +109,9 @@ export class ScrollableWidget extends Widget implements IScrollableWidget {
             }
 
             const scrollEvent = this._scrollable.createScrollEvent(e);
-            const currPosition = this._scrollable.getSliderPosition();
-
+            const currPosition = this._scrollable.getScrollPosition();
+            this._scrollbar.updateScrollSensibility(scrollEvent, this._opts.mouseWheelScrollSensibility);
+            
             // get the next slider position (if exceeds scrollbar, delta position will be update to correct one)
             const futurePosition = this._scrollbar.getFutureSliderPosition(scrollEvent);
             
@@ -134,7 +135,7 @@ export class ScrollableWidget extends Widget implements IScrollableWidget {
         event.preventDefault();
 
         // updates scrollable position
-        const sliderDelta = this._scrollbar.getScrollDelta(event) * this._opts.mouseWheelScrollSensibility;
+        const sliderDelta = this._scrollbar.getScrollDelta(event);
         const newScrollPosition = this._scrollable.getScrollPosition() + sliderDelta / this._scrollable.getSliderRatio();
         this._scrollable.setScrollPosition(newScrollPosition);
         
