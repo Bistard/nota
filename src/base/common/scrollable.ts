@@ -6,15 +6,6 @@ import { Emitter } from "src/base/common/event";
  */
  export interface IScrollEvent {
 
-    /** height of the viewport. */
-    viewportSize: number;
-
-    /** height of the scrolling area. */
-    scrollSize: number;
-
-    /** top position of the viewport. */
-    scrollPosition: number;
-
     /** double representing the horizontal scroll amount. */
 	deltaX: number;
 
@@ -226,10 +217,6 @@ export class Scrollable implements IScrollable, IDisposable {
 
 	public createScrollEvent(event: WheelEvent): IScrollEvent {
 		return {
-            viewportSize: this._viewportSize,
-            scrollPosition: this._scrollPosition,
-            scrollSize: this._scrollSize,
-
 			deltaX: event.deltaX,
 			deltaY: event.deltaY,
 			preventDefault: () => event.preventDefault(),

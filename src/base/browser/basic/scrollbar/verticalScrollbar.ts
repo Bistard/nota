@@ -69,9 +69,6 @@ export class VerticalScrollbar extends AbstractScrollbar {
 
     protected __createScrollEventFromMouseEvent(event: MouseEvent, prevPosition: number): IScrollEvent {
         return {
-            viewportSize: this._scrollable.getViewportSize(),
-            scrollPosition: this._scrollable.getScrollPosition(),
-            scrollSize: this._scrollable.getScrollSize(),
             deltaX: 0,
             deltaY: event.clientY - prevPosition,
             preventDefault: () => event.preventDefault(),
@@ -81,9 +78,6 @@ export class VerticalScrollbar extends AbstractScrollbar {
 
     protected __createScrollEventFromSliderDelta(event: MouseEvent, prevSliderPosition: number, currSliderPosition: number): IScrollEvent {
         return {
-            viewportSize: this._scrollable.getViewportSize(),
-            scrollPosition: this._scrollable.getScrollPosition(),
-            scrollSize: this._scrollable.getScrollSize(),
             deltaX: 0,
             deltaY: currSliderPosition - prevSliderPosition,
             preventDefault: () => event.preventDefault(),
