@@ -6,14 +6,16 @@ import { Emitter } from "src/base/common/event";
  */
  export interface IScrollEvent {
 
-    /** double representing the horizontal scroll amount. */
-	deltaX: number;
+    prevScrollSize: number;
+    scrollSize: number;
 
-	/** double representing the vertical scroll amount. */
-    deltaY: number;
-	
-	preventDefault(): void;
-	stopPropagation(): void;
+    prevScrollPosition: number;
+    scrollPosition: number;
+
+    delta: number;
+
+    prevViewportSize: number;
+    viewportSize: number;
 }
 
 export interface IScrollable {
@@ -33,12 +35,6 @@ export interface IScrollable {
     getSliderRatio(): number;
 	required(): boolean;
 
-	/**
-	 * @description Generates our own defined scroll event.
-	 * @param event The raw {@link WheelEvent}.
-	 */
-	createScrollEvent(event: WheelEvent): IScrollEvent;
-
     /**
      * @description Computes a new scroll position when the slider / mouse moves
      * a delta amount of pixels.
@@ -48,10 +44,9 @@ export interface IScrollable {
     getScrollPositionFromDelta(delta: number): number;
 
     /**
-     * @description Manually fires the event on scrolling.
-     * @param event The IScrollEvent to be fired.
+     * @description Returns a clone of itself.
      */
-    fire(event: IScrollEvent): void;
+    clone():  Scrollable;
 }
 
 const MIN_SLIDER_SIZE = 20; // pixels
@@ -144,22 +139,35 @@ export class Scrollable implements IScrollable, IDisposable {
 
     public setViewportSize(viewportSize: number): void {
         if (this._viewportSize !== viewportSize) {
+            const prev = this.clone();
+
             this._viewportSize = viewportSize;
             this.__recalculate();
+
+            this._onDidScroll.fire(this.__createScrollEvent(prev));
         }
     }
 
     public setScrollSize(scrollSize: number): void {
         if (this._scrollSize !== scrollSize) {
+            const prev = this.clone();
+
             this._scrollSize = scrollSize;
             this.__recalculate();
+
+            this._onDidScroll.fire(this.__createScrollEvent(prev));
         }
     }
 
     public setScrollPosition(scrollPosition: number): void {
         if (this._scrollPosition !== scrollPosition) {
+            const prev = this.clone();
+            
+            console.log(scrollPosition);
             this._scrollPosition = scrollPosition;
             this.__onlyRecalculateSliderPosition();
+
+            this._onDidScroll.fire(this.__createScrollEvent(prev));
         }
     }
 
@@ -214,15 +222,6 @@ export class Scrollable implements IScrollable, IDisposable {
     public clone():  Scrollable {
         return new Scrollable(this._scrollbarSize, this._viewportSize, this._scrollSize, this._scrollPosition);
     }
-
-	public createScrollEvent(event: WheelEvent): IScrollEvent {
-		return {
-			deltaX: event.deltaX,
-			deltaY: event.deltaY,
-			preventDefault: () => event.preventDefault(),
-			stopPropagation: () => event.stopPropagation()
-		};
-	}
 
     public getScrollPositionFromDelta(delta: number): number {
         return Math.round((this._sliderPosition + delta) / this._sliderRatio);
@@ -281,5 +280,26 @@ export class Scrollable implements IScrollable, IDisposable {
     private __onlyRecalculateSliderPosition(): void {
         this._sliderPosition = Math.round(this._scrollPosition * this._sliderRatio);
     }
+
+    /**
+     * @description Generates a standard scroll event based on a previous 
+     * scrollable status.
+     * @param prev The previous scrollable status.
+     * @returns A standard scroll event.
+     */
+    private __createScrollEvent(prev: Scrollable): IScrollEvent {
+		return {
+            prevScrollSize: prev._scrollSize,
+            scrollSize: this._scrollSize,
+
+            prevScrollPosition: prev._scrollPosition,
+            scrollPosition: this._scrollPosition,
+
+            delta: prev._scrollPosition - this._scrollPosition,
+
+            prevViewportSize: prev._viewportSize,
+            viewportSize: this._viewportSize
+		};
+	}
 
 }

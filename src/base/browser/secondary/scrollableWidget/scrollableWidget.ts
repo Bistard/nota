@@ -102,41 +102,34 @@ export class ScrollableWidget extends Widget implements IScrollableWidget {
             return;
         }
 
-        this.onWheel(this.element!, (e: WheelEvent): void => {
-            
-            if (this._scrollable.required() === false) {
-                return;
-            }
-
-            const scrollEvent = this._scrollable.createScrollEvent(e);
-            const currPosition = this._scrollable.getSliderPosition();
-            this._scrollbar.updateScrollSensibility(scrollEvent, this._opts.mouseWheelScrollSensibility);
-            
-            // get the next slider position (if exceeds scrollbar, delta position will be update to correct one)
-            const futurePosition = this._scrollbar.getFutureSliderPosition(scrollEvent);
-            
-            // slider does not move, we do nothing
-            if (currPosition === futurePosition) {
-                return;
-            }
-
-            // did scroll
-            this.__onDidWheel(scrollEvent);
-            
-        });
+        this.onWheel(this.element!, (event: WheelEvent) => { this.__onDidWheel(event) });
     }
 
     /**
      * @description Invokes when mouse wheel scroll happens.
-     * @param event The wheel event when mouse wheel scroll happens.
+     * @param event The scroll delta.
      */
-     private __onDidWheel(event: IScrollEvent): void {
+     private __onDidWheel(event: WheelEvent): void {
         
         event.preventDefault();
 
-        // updates scrollable position
-        const sliderDelta = this._scrollbar.getScrollDelta(event);
-        
+        // no need for a scrollable (enough viewport for displaying)
+        if (this._scrollable.required() === false) {
+            return;
+        }
+
+        const scrollDelta = this._scrollbar.getDelta(event) * this._opts.mouseWheelScrollSensibility;
+
+        // check if the scroll reaches the edge
+        const currScrollPosition = this._scrollable.getScrollPosition();
+        const maxScrollPosition = this._scrollable.getScrollSize() - this._scrollable.getViewportSize();
+        if (
+            (currScrollPosition >= maxScrollPosition && scrollDelta > 0) ||
+            (currScrollPosition <= 0 && scrollDelta < 0)
+        ) {
+            return;
+        }
+
         /**
          * ceil or floor the position to avoid getting a position less than zero 
          * or larger than maximum after adding the recalculated delta.
@@ -145,16 +138,14 @@ export class ScrollableWidget extends Widget implements IScrollableWidget {
          * in this case.
          */
         let newScrollPosition: number;
-        if (sliderDelta < 0) {
-            newScrollPosition = Math.ceil(this._scrollable.getScrollPosition() + sliderDelta / this._scrollable.getSliderRatio());
+        if (scrollDelta < 0) {
+            newScrollPosition = Math.max(0, Math.ceil(this._scrollable.getScrollPosition() + scrollDelta));
         } else {
-            newScrollPosition = Math.floor(this._scrollable.getScrollPosition() + sliderDelta / this._scrollable.getSliderRatio());
+            newScrollPosition = Math.min(maxScrollPosition, Math.floor(this._scrollable.getScrollPosition() + scrollDelta));
         }
         
         this._scrollable.setScrollPosition(newScrollPosition);
         
-        // fires the event
-        this._scrollable.fire(event);
     }
 
     private _onSliderDragStart(): void {
@@ -181,5 +172,4 @@ export class ScrollableWidget extends Widget implements IScrollableWidget {
             this._scrollbar.hide();
         }
     }
-
 }

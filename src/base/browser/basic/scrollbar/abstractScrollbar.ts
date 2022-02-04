@@ -60,42 +60,13 @@ export abstract class AbstractScrollbar extends Widget {
         this._visibilityController = new VisibilityController('visible', 'invisible', 'fade');
     }
 
-    // [abstractions]
-
-
-    /**
-     * @description Returns the future absolute position. the returned position 
-     * will be resolved if the next animation frame the slider will exceeds the 
-     * scrollbar.
-     * 
-     * @note If future position exceeds the scrollbar, the {@link IScrollEvent.deltaX/deltaY} 
-     * will be resolved to the correct one.
-     *  
-     * @param event The scroll event.
-     * @returns the future legal position.
-     */
-    public abstract getFutureSliderPosition(event: IScrollEvent): number;
+    // [abstraction]
 
     /**
-     * @description Returns the scroll event delta direction (either deltaX or 
-     * deltaY depends on scrollbar direction).
-     * @param event The scroll event.
+     * @description Returns the scroll delta change in the current direction.
+     * @param event The wheel event.
      */
-    public abstract getScrollDelta(event: IScrollEvent): number;
-
-    /**
-     * @description Mutiply the given sensibility with the delta change in the 
-     * provided event.
-     * @param event The scroll event.
-     * @param sensibility The sensibility.
-     */
-    public abstract updateScrollSensibility(event: IScrollEvent, sensibility: number): void;
-
-    /**
-     * @description Will be invoked once scrolling happens.
-     * @param event The scroll event.
-     */
-    protected abstract __onDidScroll(event: IScrollEvent): void;
+    public abstract getDelta(event: WheelEvent): number;
 
     /**
      * @description Renders the whole scrollbar.
@@ -116,21 +87,6 @@ export abstract class AbstractScrollbar extends Widget {
      * @param event The mouse event.
      */
     protected abstract __getMousePosition(event: MouseEvent): number;
-
-    /**
-     * @description Turns a MouseEvent into a IScrollEvent.
-     * @param event The mouse event.
-     * @param prevPosition The previous mouse position.
-     */
-    protected abstract __createScrollEventFromMouseEvent(event: MouseEvent, prevPosition: number): IScrollEvent;
-
-    /**
-     * @description Turns a delta in slider position into a IScrollEvent.
-     * @param event The mouse event.
-     * @param prevSliderPosition The previous slider position.
-     * @param currSliderPosition The current slider position.
-     */
-    protected abstract __createScrollEventFromSliderDelta(event: MouseEvent, prevSliderPosition: number, currSliderPosition: number): IScrollEvent;
 
     // [methods]
 
@@ -181,7 +137,7 @@ export abstract class AbstractScrollbar extends Widget {
     public hide(): void {
         this._visibilityController.setVisibility(false);
     }
-
+    
     // [protected methods]
 
     /**
@@ -192,6 +148,18 @@ export abstract class AbstractScrollbar extends Widget {
     protected __renderSlider(size: number, position: number): void {
         this.__updateSlider(size, position);
         this._element!.appendChild(this._slider);
+    }
+    
+    /**
+     * @description Will be invoked once scrolling happens.
+     * @param event The scroll event.
+     */
+    private __onDidScroll(event: IScrollEvent): void {
+        // either no changes or not required, we do nothing
+        if (event.delta === 0 && this._scrollable.required() === false) {
+            return;
+        }
+        this.rerender();
     }
 
     /**
@@ -229,7 +197,6 @@ export abstract class AbstractScrollbar extends Widget {
             // sets the new scroll position relatives to the delta
             const newScrollPosition = this._scrollable.getScrollPositionFromDelta(deltaMouseChange);
             this._scrollable.setScrollPosition(newScrollPosition);
-            this._scrollable.fire(this.__createScrollEventFromMouseEvent(e, currMousePosition));
             
             // update and rerender
             this.__updateSlider(this._scrollable.getSliderSize(), this._scrollable.getSliderPosition());
@@ -278,8 +245,7 @@ export abstract class AbstractScrollbar extends Widget {
 
         const newScrollPosition = this._scrollable.getScrollPositionFromDelta(newSliderPosition - currSliderPosition);
         this._scrollable.setScrollPosition(newScrollPosition);
-        this._scrollable.fire(this.__createScrollEventFromSliderDelta(event, currSliderPosition, newSliderPosition));
-
+        
         // update and rerender
         this.__updateSlider(this._scrollable.getSliderSize(), this._scrollable.getSliderPosition());
 
