@@ -5,6 +5,7 @@ import { ScrollbarType } from "src/base/browser/secondary/scrollableWidget/scrol
 import { DisposableManager, IDisposable } from "src/base/common/dispose";
 import { DOMSize } from "src/base/common/dom";
 import { Emitter, Register } from "src/base/common/event";
+import { ILabellable } from "src/base/common/label";
 import { IRange, ISpliceable, Range, RangeTable } from "src/base/common/range";
 import { IScrollEvent, Scrollable } from "src/base/common/scrollable";
 import { IMeasureable } from "src/base/common/size";
@@ -48,7 +49,7 @@ let ListViewItemUUID: number = 0;
  * 
  * The performance mainly affects by how the renderers work.
  */
-export class ListView<T extends IMeasureable> implements IDisposable, ISpliceable<T> {
+export class ListView<T extends IMeasureable & ILabellable<ViewItemType>> implements IDisposable, ISpliceable<T> {
 
     // [fields]
 
@@ -233,13 +234,13 @@ export class ListView<T extends IMeasureable> implements IDisposable, ISpliceabl
 
         const insert = items.map<IViewItem<T>>(item => ({
             id: ListViewItemUUID++,
-            type: -1, // TODO: need a way to determine the type of the item
+            type: item.type,
             data: item,
             size: item.size,
             row: null
         }));
 
-        let waitToDelete: IViewItem<T>[]; // TODO: return this later
+        let waitToDelete: IViewItem<T>[];
         if (index === 0 && deleteCount >= this.items.length) {
             // special case: deletes all the items
             this.rangeTable = new RangeTable();
