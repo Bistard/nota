@@ -2,7 +2,6 @@ import { IListViewRow, ListViewCache } from "src/base/browser/secondary/listView
 import { IListViewRenderer, ListViewRendererType } from "src/base/browser/secondary/listView/listRenderer";
 import { ScrollableWidget } from "src/base/browser/secondary/scrollableWidget/scrollableWidget";
 import { ScrollbarType } from "src/base/browser/secondary/scrollableWidget/scrollableWidgetOptions";
-import { requestAnimationFrame } from "src/base/common/animation";
 import { DisposableManager, IDisposable } from "src/base/common/dispose";
 import { DOMSize } from "src/base/common/dom";
 import { Emitter, Register } from "src/base/common/event";
@@ -68,11 +67,9 @@ export class ListView<T extends IMeasureable> implements IDisposable, ISpliceabl
     private items: IViewItem<T>[];
     private cache: ListViewCache<T>;
 
-    private currRenderTop: number;
-    private currRenderHeight: number;
+    private prevRenderTop: number;
+    private prevRenderHeight: number;
 
-    private scrollableWidgetNextAnimationFrameHandle: Number | null;
-    
     // [events]
 
     private _onDidChangeContentHeight = this.disposables.register(new Emitter<void>());
@@ -89,11 +86,9 @@ export class ListView<T extends IMeasureable> implements IDisposable, ISpliceabl
         this.element.className = 'list-view';
 
         this.items = [];
-        this.currRenderTop = 0;
-        this.currRenderHeight = 0;
-        this.scrollableWidgetNextAnimationFrameHandle = null;
-        
         this.rangeTable = new RangeTable();
+        this.prevRenderTop = 0;
+        this.prevRenderHeight = 0;
 
         this.listContainer = document.createElement('div');
         this.listContainer.className = 'list-view-container';
@@ -105,7 +100,7 @@ export class ListView<T extends IMeasureable> implements IDisposable, ISpliceabl
         this.scrollable = new Scrollable(
             opts.scrollbarSize ? opts.scrollbarSize : 10,
             DOMSize.getContentHeight(container),
-            DOMSize.getContentHeight(container) * 10, // TODIO
+            0,
             0
         );
 
@@ -115,7 +110,7 @@ export class ListView<T extends IMeasureable> implements IDisposable, ISpliceabl
             reverseMouseWheelDirection: opts.reverseMouseWheelDirection,
             scrollbarType: ScrollbarType.vertical,
         });
-        this.scrollableWidget.render(document.createElement('div'));
+        this.scrollableWidget.render(this.element);
         this.scrollableWidget.onDidScroll((e: IScrollEvent) => {
             this.__onDidScroll(e);
         });
@@ -127,7 +122,6 @@ export class ListView<T extends IMeasureable> implements IDisposable, ISpliceabl
 
         this.cache = new ListViewCache(this.renderers);
 
-        this.element.appendChild(this.scrollableWidget.element!);
         this.element.appendChild(this.listContainer);
         container.appendChild(this.element);
 
@@ -166,7 +160,7 @@ export class ListView<T extends IMeasureable> implements IDisposable, ISpliceabl
         for (let i = update.start; i < update.end; i++) {
             this.updateItemInDOM(i);
         }
-        
+
         // insert items
         for (const range of insert) {
             for (let i = range.start; i < range.end; i++) {
@@ -181,11 +175,9 @@ export class ListView<T extends IMeasureable> implements IDisposable, ISpliceabl
             }
         }
 
-        // this.listContainer.style.top = -renderTop + 'px';
-        this.__updateScrollHeight();
-
-        this.currRenderTop = renderTop;
-		this.currRenderHeight = renderHeight;
+        this.listContainer.style.top = -renderTop + 'px';
+        this.prevRenderTop = renderTop;
+        this.prevRenderHeight = renderHeight;
     }
 
     /**
@@ -198,7 +190,7 @@ export class ListView<T extends IMeasureable> implements IDisposable, ISpliceabl
      */
     public splice(index: number, deleteCount: number, items: T[] = []): void {
         
-        const prevRenderRange = this.__getRenderRange(this.currRenderTop, this.currRenderHeight);
+        const prevRenderRange = this.__getRenderRange(this.prevRenderTop, this.prevRenderHeight);
         const deleteRange = Range.intersection(prevRenderRange, { start: index, end: index + deleteCount });
 
         /**
@@ -257,18 +249,24 @@ export class ListView<T extends IMeasureable> implements IDisposable, ISpliceabl
             this.rangeTable.splice(index, deleteCount, insert);
             waitToDelete = this.items.splice(index, deleteCount, ...insert);
         }
-
+        this.scrollable.setScrollSize(this.rangeTable.size());
+        
         const offset = items.length - deleteCount;
 
+        // recalcualte the render range (since we have modifed the range table)
+        const renderRange = this.__getRenderRange();
+        this.prevRenderTop = this.rangeTable.positionAt(renderRange.start);
+        this.prevRenderHeight = this.rangeTable.positionAt(renderRange.end) - this.prevRenderTop;
+        
         // find the rest items that are still required rendering, we update them in DOM
         const restRenderedRange = Range.shift(prevRestRenderedRange, offset);
-        const update = Range.intersection(prevRenderRange, restRenderedRange);
+        const update = Range.intersection(renderRange, restRenderedRange);
         for (let i = update.start; i < update.end; i++) {
             this.updateItemInDOM(i);
         }
 
         // find the rest items that does not require rendering anymore, we remove them from DOM
-        const remove = Range.relativeComplement(prevRenderRange, restRenderedRange);
+        const remove = Range.relativeComplement(renderRange, restRenderedRange);
         remove.forEach(range => {
             for (let i = range.start; i < range.end; i++) {
                 this.removeItemInDOM(i);
@@ -277,13 +275,13 @@ export class ListView<T extends IMeasureable> implements IDisposable, ISpliceabl
 
         /**
          * find the rest items that was not rendered, inserting new items in DOM 
-         * since deleting more items than inserting new items. That is, `offset < 0`.
+         * if deleting more items than inserting new items, that is, `offset < 0`.
          * When inserting a new item into the DOM, we try to reuse a row cache 
          * from previous deleted DOM elements.
          */
         const restUnrenderedRange = prevRestUnrenderedRange.map(range => Range.shift(range, offset));
         const elementsRange = { start: index, end: index + items.length };
-		const insertRanges = [elementsRange, ...restUnrenderedRange].map(range => Range.intersection(prevRenderRange, range));
+		const insertRanges = [elementsRange, ...restUnrenderedRange].map(range => Range.intersection(renderRange, range));
 		const beforeElement = this.__getNextElement(insertRanges);
         for (const range of insertRanges) {
 			for (let i = range.start; i < range.end; i++) {
@@ -313,8 +311,6 @@ export class ListView<T extends IMeasureable> implements IDisposable, ISpliceabl
 
         const dom = item.row!.dom;
         dom.style.top = this.positionAt(index) + 'px';
-
-        dom.setAttribute('id', `${item.id}`);
         dom.setAttribute('index', `${index}`);
     }
 
@@ -427,12 +423,16 @@ export class ListView<T extends IMeasureable> implements IDisposable, ISpliceabl
     }
 
     /**
-     * @description Returns a range for rendering by the given top and height.
-     * @param top Top of scrolling area.
-     * @param height Height of viewport.
+     * @description Returns a range for rendering.
+     * 
+     * @note If render top and render height are not provided, returns a render 
+     * range under the current scrollable status.
+     * 
      * @returns A range for rendering.
      */
-    private __getRenderRange(top: number, height: number): IRange {
+    private __getRenderRange(renderTop?: number, renderHeight?: number): IRange {
+        const top = renderTop ?? this.scrollable.getScrollPosition();
+        const height = renderHeight ?? this.scrollable.getViewportSize();
         return {
             start: this.rangeTable.indexAt(top),
             end: this.rangeTable.indexAt(top + height)
@@ -440,28 +440,13 @@ export class ListView<T extends IMeasureable> implements IDisposable, ISpliceabl
     }
 
     /**
-     * @description Invokes when scrolling happens.
+     * @description Invokes when scrolling happens, rerenders the whole view.
      * @param e The event {@link IScrollEvent}.
      */
     private __onDidScroll(e: IScrollEvent): void {
-        const prevRenderRange = this.__getRenderRange(this.currRenderTop, this.currRenderHeight);
-        this.render(prevRenderRange, e.scrollPosition, e.viewportSize);
-    }
-
-    /**
-     * @description 
-     */
-    private __updateScrollHeight(): void {
-        // FIX: issue https://github.com/Bistard/MarkdownNote/issues/67
-        // const newHeight = this.rangeTable.size();
-        // this.listContainer.style.height = newHeight + 'px';
-
-        // if (this.scrollableWidgetNextAnimationFrameHandle === null) {
-        //     this.scrollableWidgetNextAnimationFrameHandle = requestAnimationFrame(() => {
-        //         this.scrollable.setScrollSize(newHeight);
-        //         this.scrollableWidgetNextAnimationFrameHandle = null;
-        //     });
-        // }
+        console.log(this.scrollable.getScrollPosition());
+        const prevRenderRange = this.__getRenderRange(this.prevRenderTop, this.prevRenderHeight);
+        this.render(prevRenderRange, this.scrollable.getScrollPosition(), this.scrollable.getViewportSize());
     }
 
 }
