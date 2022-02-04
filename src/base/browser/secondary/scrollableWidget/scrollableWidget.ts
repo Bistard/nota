@@ -136,7 +136,21 @@ export class ScrollableWidget extends Widget implements IScrollableWidget {
 
         // updates scrollable position
         const sliderDelta = this._scrollbar.getScrollDelta(event);
-        const newScrollPosition = this._scrollable.getScrollPosition() + sliderDelta / this._scrollable.getSliderRatio();
+        
+        /**
+         * ceil or floor the position to avoid getting a position less than zero 
+         * or larger than maximum after adding the recalculated delta.
+         * 
+         * still posible to get a -0 position, but should not make a difference 
+         * in this case.
+         */
+        let newScrollPosition: number;
+        if (sliderDelta < 0) {
+            newScrollPosition = Math.ceil(this._scrollable.getScrollPosition() + sliderDelta / this._scrollable.getSliderRatio());
+        } else {
+            newScrollPosition = Math.floor(this._scrollable.getScrollPosition() + sliderDelta / this._scrollable.getSliderRatio());
+        }
+        
         this._scrollable.setScrollPosition(newScrollPosition);
         
         // fires the event
