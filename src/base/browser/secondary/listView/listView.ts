@@ -10,6 +10,9 @@ import { IRange, ISpliceable, Range, RangeTable } from "src/base/common/range";
 import { IScrollEvent, Scrollable } from "src/base/common/scrollable";
 import { IMeasureable } from "src/base/common/size";
 
+/**
+ * The consturtor options for {@link ListView}.
+ */
 export interface IListViewOpts {
     
     readonly transformOptimization?: boolean;
@@ -20,9 +23,16 @@ export interface IListViewOpts {
 
 }
 
+/**
+ * The type of items are stored in {@link ListView}. 
+ * Using a number is faster than a string.
+ */
 export type ViewItemType = number;
 
-export interface IViewItem<T> {
+/**
+ * The inner data structure wraps each item in {@link ListView}.
+ */
+interface IViewItem<T> {
     readonly id: number;
     readonly type: ViewItemType;
     readonly data: T;
@@ -30,22 +40,90 @@ export interface IViewItem<T> {
     row: IListViewRow | null; // null means this item is currently not rendered.
 }
 
+let ListViewItemUUID: number = 0;
+
+/**
+ * The interface for {@link ListView}.
+ */
 export interface IListView<T> {
+
+    onDidChangeContent: Register<void>;
 
     onDidScroll: Register<IScrollEvent>;
 
     dispose(): void;
 
+    getScrollable(): Scrollable;
+
+    /**
+     * @description Renders all the items in the DOM tree.
+     * 
+     * @param prevRenderRange The render range in the previous render frame.
+     * @param renderTop The top of scrolling area.
+     * @param renderHeight The height of viewport.
+     */
     render(prevRenderRange: IRange, renderTop: number, renderHeight: number): void;
 
-}
+    /**
+     * @description Deletes an amount of elements in the list view at the given 
+     * index, if necessary, inserts the provided items after the given index.
+     * 
+     * @param index The given index.
+     * @param deleteCount The amount of items to be deleted.
+     * @param items The items to be inserted.
+     */
+    splice(index: number, deleteCount: number, items: T[]): T[];
 
-let ListViewItemUUID: number = 0;
+    /**
+     * @description Updates the position (top) and attributes of an item in the 
+     * DOM tree by the index.
+     * 
+     * @param index The index of the item.
+     */
+    updateItemInDOM(index: number): void;
+
+    /**
+     * @description Inserts an item in the DOM tree by the index. If 
+     * `insertBefore` provided, we insert the new HTMLElement before it.
+     * 
+     * @param index The index of the item.
+     * @param insertBefore The HTMLElement to be insert before.
+     * @param row Provided row.
+     */
+    insertItemInDOM(index: number, insertBefore: HTMLElement | null, row?: IListViewRow): void;
+
+    /**
+     * @description Removes an item from the DOM tree by the index.
+     * @param index The index of the item.
+     */
+    removeItemInDOM(index: number): void;
+
+    /**
+     * @description Returns the height of the item in DOM.
+     * @param index The index of the item.
+     */
+    getItemHeight(index: number): number;
+
+    /**
+     * @description Returns the item's DOM position (top) given the index.
+     * @param index The index of the item.
+     */
+    positionAt(index: number): number;
+
+    /**
+     * @description Returns the item's index given the DOM position.
+     * @param position The DOM's position (top).
+     */
+    indexAt(position: number): number;
+}
 
 /**
  * @class A virtual vertical scrolling engine that only renders the items within
  * its viewport. It can hold a large amount of items and still has a great 
  * performance.
+ * 
+ * Provided renderers are responsible for rendering each item with corresponding 
+ * type (each item is {@link ILabellable}).
  * 
  * The performance mainly affects by how the renderers work.
  */
@@ -139,13 +217,6 @@ export class ListView<T extends IMeasureable & ILabellable<ViewItemType>> implem
         this.disposables.dispose();
     }
 
-    /**
-     * @description Renders all the items in the DOM tree.
-     * 
-     * @param prevRenderRange The render range in the previous render frame.
-     * @param renderTop The top of scrolling area.
-     * @param renderHeight The height of viewport.
-     */
     public render(prevRenderRange: IRange, renderTop: number, renderHeight: number): void {
         const renderRange = this.__getRenderRange(renderTop, renderHeight);
 
@@ -183,14 +254,6 @@ export class ListView<T extends IMeasureable & ILabellable<ViewItemType>> implem
         this.prevRenderHeight = renderHeight;
     }
 
-    /**
-     * @description Deletes an amount of elements in the list view at the given 
-     * index, if necessary, inserts the provided items after the given index.
-     * 
-     * @param index The given index.
-     * @param deleteCount The amount of items to be deleted.
-     * @param items The items to be inserted.
-     */
     public splice(index: number, deleteCount: number, items: T[] = []): T[] {
         
         const prevRenderRange = this.__getRenderRange(this.prevRenderTop, this.prevRenderHeight);
@@ -305,12 +368,6 @@ export class ListView<T extends IMeasureable & ILabellable<ViewItemType>> implem
         return waitToDelete.map(item => item.data);
     }
     
-    /**
-     * @description Updates the position (top) and attributes of an item in the 
-     * DOM tree by the index.
-     * 
-     * @param index The index of the item.
-     */
     public updateItemInDOM(index: number): void {
         const item = this.items[index]!;
 
@@ -319,14 +376,6 @@ export class ListView<T extends IMeasureable & ILabellable<ViewItemType>> implem
         dom.setAttribute('index', `${index}`);
     }
 
-    /**
-     * @description Inserts an item in the DOM tree by the index. If 
-     * `insertBefore` provided, we insert the new HTMLElement before it.
-     * 
-     * @param index The index of the item.
-     * @param insertBefore The HTMLElement to be insert before.
-     * @param row Provided row.
-     */
     public insertItemInDOM(index: number, insertBefore: HTMLElement | null, row?: IListViewRow): void {
         const item = this.items[index]!;
         
@@ -354,10 +403,6 @@ export class ListView<T extends IMeasureable & ILabellable<ViewItemType>> implem
         }
     }
 
-    /**
-     * @description Removes an item from the DOM tree by the index.
-     * @param index The index of the item.
-     */
     public removeItemInDOM(index: number): void {
         const item = this.items[index]!;
 
@@ -375,26 +420,14 @@ export class ListView<T extends IMeasureable & ILabellable<ViewItemType>> implem
 
     // [Item Related Methods]
 
-    /**
-     * @description Returns the height of the item in DOM.
-     * @param index The index of the item.
-     */
     public getItemHeight(index: number): number {
         return this.items[index]!.size;
     }
 
-    /**
-     * @description Returns the item's DOM position (top) given the index.
-     * @param index The index of the item.
-     */
     public positionAt(index: number): number {
         return this.rangeTable.positionAt(index);
     }
 
-    /**
-     * @description Returns the item's index given the DOM position.
-     * @param position The DOM's position (top).
-     */
     public indexAt(position: number): number {
         return this.rangeTable.indexAt(position);
     }
