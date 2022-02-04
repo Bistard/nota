@@ -72,8 +72,8 @@ export class ListView<T extends IMeasureable> implements IDisposable, ISpliceabl
 
     // [events]
 
-    private _onDidChangeContentHeight = this.disposables.register(new Emitter<void>());
-    public onDidChangeContentHeight = this._onDidChangeContentHeight.registerListener;
+    private _onDidChangeContent = this.disposables.register(new Emitter<void>());
+    public onDidChangeContent = this._onDidChangeContent.registerListener;
 
     // [getter / setter]
 
@@ -190,7 +190,7 @@ export class ListView<T extends IMeasureable> implements IDisposable, ISpliceabl
      * @param deleteCount The amount of items to be deleted.
      * @param items The items to be inserted.
      */
-    public splice(index: number, deleteCount: number, items: T[] = []): void {
+    public splice(index: number, deleteCount: number, items: T[] = []): T[] {
         
         const prevRenderRange = this.__getRenderRange(this.prevRenderTop, this.prevRenderHeight);
         const deleteRange = Range.intersection(prevRenderRange, { start: index, end: index + deleteCount });
@@ -299,7 +299,9 @@ export class ListView<T extends IMeasureable> implements IDisposable, ISpliceabl
 			}
 		}
 
-        this._onDidChangeContentHeight.fire();
+        this._onDidChangeContent.fire();
+
+        return waitToDelete.map(item => item.data);
     }
     
     /**
