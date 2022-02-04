@@ -163,7 +163,6 @@ export class Scrollable implements IScrollable, IDisposable {
         if (this._scrollPosition !== scrollPosition) {
             const prev = this.clone();
             
-            console.log(scrollPosition);
             this._scrollPosition = scrollPosition;
             this.__onlyRecalculateSliderPosition();
 

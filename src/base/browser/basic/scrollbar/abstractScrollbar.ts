@@ -184,18 +184,24 @@ export abstract class AbstractScrollbar extends Widget {
             e.preventDefault();
             
             // calculates the delta change in mouse move
-            const deltaMouseChange = this.__getMousePosition(e) - currMousePosition;
+            const mouseDelta = this.__getMousePosition(e) - currMousePosition;
             
             // do nothing if reaches the edge
-            if ((this._scrollable.getSliderPosition() >= this._scrollable.getSliderMaxPosition()) && deltaMouseChange > 0) {
+            if ((this._scrollable.getSliderPosition() >= this._scrollable.getSliderMaxPosition()) && mouseDelta > 0) {
                 return;
             }
-            if ((this._scrollable.getSliderPosition() <= 0) && deltaMouseChange < 0) {
+            if ((this._scrollable.getSliderPosition() <= 0) && mouseDelta < 0) {
                 return;
             }
             
             // sets the new scroll position relatives to the delta
-            const newScrollPosition = this._scrollable.getScrollPositionFromDelta(deltaMouseChange);
+            let newScrollPosition: number;
+            if (mouseDelta < 0) {
+                newScrollPosition = Math.max(0, this._scrollable.getScrollPositionFromDelta(mouseDelta));
+            } else {
+                const maxScrollPosition = this._scrollable.getScrollSize() - this._scrollable.getViewportSize();
+                newScrollPosition = Math.min(maxScrollPosition, this._scrollable.getScrollPositionFromDelta(mouseDelta));
+            }
             this._scrollable.setScrollPosition(newScrollPosition);
             
             // update and rerender
