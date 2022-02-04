@@ -282,6 +282,16 @@ export class RangeTable {
 	}
 
 	/**
+	 * @description Returns the index of the item has a index after the item with
+	 * the given position.
+	 * @param position The position of the given item.
+	 * @returns The index of the item that after the provided one.
+	 */
+	indexAfter(position: number): number {
+		return Math.min(this.indexAt(position) + 1, this.count());
+	}
+
+	/**
 	 * @description Returns the start position of the item at the given index.
 	 * @param index The index of the item.
 	 * @returns The start position of the item.

@@ -132,6 +132,8 @@ export class ListView<T extends IMeasureable> implements IDisposable, ISpliceabl
 
     // [methods]
 
+    public getScrollable(): Scrollable { return this.scrollable; }
+
     public dispose(): void {
         this.disposables.dispose();
     }
@@ -231,13 +233,13 @@ export class ListView<T extends IMeasureable> implements IDisposable, ISpliceabl
 
         const insert = items.map<IViewItem<T>>(item => ({
             id: ListViewItemUUID++,
-            type: ListViewRendererType.TEST, // TODO: how to determine the type of the item
+            type: ListViewRendererType.TEST, // TODO: need a way to determine the type of the item
             element: item,
             size: item.size,
             row: null
         }));
 
-        let waitToDelete: IViewItem<T>[];
+        let waitToDelete: IViewItem<T>[]; // TODO: return this later
         if (index === 0 && deleteCount >= this.items.length) {
             // special case: deletes all the items
             this.rangeTable = new RangeTable();
@@ -254,9 +256,7 @@ export class ListView<T extends IMeasureable> implements IDisposable, ISpliceabl
         const offset = items.length - deleteCount;
 
         // recalcualte the render range (since we have modifed the range table)
-        const renderRange = this.__getRenderRange();
-        this.prevRenderTop = this.rangeTable.positionAt(renderRange.start);
-        this.prevRenderHeight = this.rangeTable.positionAt(renderRange.end) - this.prevRenderTop;
+        const renderRange = this.__getRenderRange(this.prevRenderTop, this.prevRenderHeight);
         
         // find the rest items that are still required rendering, we update them in DOM
         const restRenderedRange = Range.shift(prevRestRenderedRange, offset);
@@ -292,7 +292,7 @@ export class ListView<T extends IMeasureable> implements IDisposable, ISpliceabl
 			}
 		}
 
-        // now we release all the caches
+        // now we release all the deleted rows into caches.
 		for (const rows of deleteCache.values()) {
 			for (const row of rows) {
 				this.cache.release(row);
@@ -435,7 +435,7 @@ export class ListView<T extends IMeasureable> implements IDisposable, ISpliceabl
         const height = renderHeight ?? this.scrollable.getViewportSize();
         return {
             start: this.rangeTable.indexAt(top),
-            end: this.rangeTable.indexAt(top + height)
+            end: this.rangeTable.indexAfter(top + height - 1)
         };
     }
 
@@ -444,7 +444,6 @@ export class ListView<T extends IMeasureable> implements IDisposable, ISpliceabl
      * @param e The event {@link IScrollEvent}.
      */
     private __onDidScroll(e: IScrollEvent): void {
-        console.log(this.scrollable.getScrollPosition());
         const prevRenderRange = this.__getRenderRange(this.prevRenderTop, this.prevRenderHeight);
         this.render(prevRenderRange, this.scrollable.getScrollPosition(), this.scrollable.getViewportSize());
     }
