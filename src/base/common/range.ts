@@ -37,6 +37,24 @@ export namespace Range {
 	}
 
 	/**
+	 * @description Determines if the two ranges have exact the same range.
+	 * @param A The given range.
+	 * @param B The given range.
+	 */
+	export function exact(A: IRange, B: IRange): boolean {
+		return (A.start === B.start) && (A.end === B.end);
+	}
+
+	/**
+	 * @description Determines if the two ranges have the same size.
+	 * @param A The given range.
+	 * @param B The given range.
+	 */
+	export function same(A: IRange, B: IRange): boolean {
+		return (A.end - A.start) === (B.end - B.start);
+	}
+
+	/**
 	 * @description Shifts the range by an amount of distance.
 	 * @param range The range.
 	 * @param distance The amount of distance.
