@@ -215,10 +215,6 @@ export class Scrollable implements IScrollable, IDisposable {
         this._onDidScroll.dispose();
     }
 
-    public fire(event: IScrollEvent): void {
-        this._onDidScroll.fire(event);
-    }
-
     public clone():  Scrollable {
         return new Scrollable(this._scrollbarSize, this._viewportSize, this._scrollSize, this._scrollPosition);
     }
