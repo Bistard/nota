@@ -1,5 +1,5 @@
 import { IListViewRow, ListViewCache } from "src/base/browser/secondary/listView/listCache";
-import { IListViewRenderer, ListViewRendererType } from "src/base/browser/secondary/listView/listRenderer";
+import { IListViewRenderer } from "src/base/browser/secondary/listView/listRenderer";
 import { ScrollableWidget } from "src/base/browser/secondary/scrollableWidget/scrollableWidget";
 import { ScrollbarType } from "src/base/browser/secondary/scrollableWidget/scrollableWidgetOptions";
 import { DisposableManager, IDisposable } from "src/base/common/dispose";
@@ -24,7 +24,7 @@ export type ViewItemType = number;
 export interface IViewItem<T> {
     readonly id: number;
     readonly type: ViewItemType;
-    readonly element: T;
+    readonly data: T;
     size: number;
     row: IListViewRow | null; // null means this item is currently not rendered.
 }
@@ -65,7 +65,7 @@ export class ListView<T extends IMeasureable> implements IDisposable, ISpliceabl
     private renderers: Map<ViewItemType, IListViewRenderer>;
     
     private items: IViewItem<T>[];
-    private cache: ListViewCache<T>;
+    private cache: ListViewCache;
 
     private prevRenderTop: number;
     private prevRenderHeight: number;
@@ -233,8 +233,8 @@ export class ListView<T extends IMeasureable> implements IDisposable, ISpliceabl
 
         const insert = items.map<IViewItem<T>>(item => ({
             id: ListViewItemUUID++,
-            type: ListViewRendererType.TEST, // TODO: need a way to determine the type of the item
-            element: item,
+            type: -1, // TODO: need a way to determine the type of the item
+            data: item,
             size: item.size,
             row: null
         }));
@@ -303,7 +303,9 @@ export class ListView<T extends IMeasureable> implements IDisposable, ISpliceabl
     }
     
     /**
-     * @description Updates an item in the DOM tree by the index.
+     * @description Updates the position (top) and attributes of an item in the 
+     * DOM tree by the index.
+     * 
      * @param index The index of the item.
      */
     public updateItemInDOM(index: number): void {
@@ -329,7 +331,7 @@ export class ListView<T extends IMeasureable> implements IDisposable, ISpliceabl
             if (row) {
                 item.row = row;
             } else {
-                item.row = this.cache.get(item.type);
+                item.row = this.cache.get(item.type, item.data);
             }
         }
 
@@ -340,12 +342,12 @@ export class ListView<T extends IMeasureable> implements IDisposable, ISpliceabl
             throw new Error(`no renderer provided for the given type: ${item.type}`);
         }
 
-        renderer.render(item.row.dom, item.element);
+        renderer.update(item.row!.dom, index, item.data);
 
         if (insertBefore) {
-            this.listContainer.insertBefore(item.row.dom, insertBefore);
+            this.listContainer.insertBefore(item.row!.dom, insertBefore);
         } else {
-            this.listContainer.appendChild(item.row.dom);
+            this.listContainer.appendChild(item.row!.dom);
         }
     }
 

@@ -3,8 +3,19 @@ import { ViewItemType } from "src/base/browser/secondary/listView/listView";
 import { IDisposable } from "src/base/common/dispose";
 import { removeNodeFromParent } from "src/base/common/dom";
 
+/**
+ * @description An interface for storing the DOM related element as a cache in 
+ * {@link ListViewCache}.
+ */
 export interface IListViewRow {
-	dom: HTMLElement;
+	/**
+     * The HTMLElement as a cache.
+     */
+    dom: HTMLElement;
+    
+    /**
+     * The type of the item in {@link ListView}, for finding the correct renderer.
+     */
 	type: ViewItemType;
 }
 
@@ -12,7 +23,7 @@ export interface IListViewRow {
  * @class Storage to store all the DOM elements that are not displaying on the 
  * DOM tree.
  */
-export class ListViewCache<T> implements IDisposable {
+export class ListViewCache implements IDisposable {
 
     private cache: Map<ViewItemType, IListViewRow[]>;
     private renderers: Map<ViewItemType, IListViewRenderer>;
@@ -27,9 +38,7 @@ export class ListViewCache<T> implements IDisposable {
     public dispose(): void {
         this.cache.forEach((cache, type) => {
             const renderer = this.renderers.get(type)!;
-            cache.forEach(row => {
-                renderer.dispose(row.dom);
-            });
+            cache.forEach(row => renderer.dispose(row.dom));
         });
 
         this.cache.clear();
@@ -41,18 +50,21 @@ export class ListViewCache<T> implements IDisposable {
      * @param type The type of the row.
      * @returns {IListViewRow}
      */
-    public get(type: ViewItemType): IListViewRow {
+    public get<T>(type: ViewItemType, data: T): IListViewRow {
         let cache = this.__getCache(type);
         let row = cache.pop();
 
         if (row === undefined) {
-            const dom = document.createElement('list-view-item');
+            const dom = document.createElement('div');
+            dom.className = 'list-view-row';
             
-            // const renderer = this.renderers.get(type);
-            // if (renderer === undefined) {
-            //     throw new Error(`no renderer provided for the given type: ${type}`);
-            // }
-            // renderer.render(dom, );
+            // since we are creating a new row, we need to create the DOM structure.
+            const renderer = this.renderers.get(type);
+            if (renderer === undefined) {
+                throw new Error(`no renderer provided for the given type: ${type}`);
+            }
+            renderer.render(dom, data);
+
             row = { dom: dom, type: type };
         }
 
