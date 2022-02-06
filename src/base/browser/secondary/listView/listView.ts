@@ -523,9 +523,9 @@ export class ListView<T extends IMeasureable & ILabellable<ViewItemType>> implem
         const itemHeight = this.getItemHeight(index);
         
         const scrollTop = this.scrollable.getScrollPosition();
-        const maxScrollTop = this.scrollable.getScrollSize() - this.scrollable.getViewportSize();
+        const viewHeight = this.scrollable.getViewportSize();
 
-        if (itemTop < scrollTop || itemTop + itemHeight > maxScrollTop) {
+        if (itemTop < scrollTop || itemTop + itemHeight > scrollTop + viewHeight) {
             return -1;
         }
 
