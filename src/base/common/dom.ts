@@ -33,7 +33,7 @@ export enum Orientation {
  * @param callback The callback function when the event happens.
  * @returns A disposable to remove the listener from the target.
  */
-export function addDisposableListener(domNode: EventTarget, eventType: string, callback: (event: any) => void): IDisposable {
+export function addDisposableListener(domNode: EventTarget, eventType: EventType, callback: (event: any) => void): IDisposable {
 	domNode.addEventListener(eventType, callback);
 
 	let disposed = false;

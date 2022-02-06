@@ -1,5 +1,6 @@
 import { IDisposable, toDisposable } from "./dispose";
 import { List } from "src/base/common/list";
+import { addDisposableListener, EventType } from "src/base/common/dom";
 
 /** @deprecated Use Emitter instead */
 export interface IEventEmitter {
@@ -62,7 +63,7 @@ export const EVENT_EMITTER = new EventEmitter();
  * @readonly A listener is a callback function that once the callback is invoked,
  * the required event type will be returned as a parameter.
  */
-export type Listener<T> = (e: T) => any;
+export type Listener<E> = (e: E) => any;
 
 /**
  * @readonly A register is essentially a function that registers a listener to 
@@ -171,4 +172,29 @@ export class Emitter<T> implements IDisposable {
 			this._listeners.clear();
 		}
 	}
+}
+
+/**
+ * @class A Simple class for register callback on a given HTMLElement using an
+ * {@link Emitter} instead of using raw *addEventListener()* method.
+ */
+export class DomEmitter<E> {
+
+    private emitter: Emitter<E>;
+    private listener: IDisposable;
+
+    get registerListener(): Register<E> {
+        return this.emitter.registerListener;
+    }
+
+    constructor(element: HTMLElement, type: EventType) {
+        this.emitter = new Emitter();
+        this.listener = addDisposableListener(element, type, (e: Event) => this.emitter.fire(e as any));
+    }
+
+    public dispose(): void {
+        this.emitter.dispose();
+        this.listener.dispose();
+    }
+
 }
