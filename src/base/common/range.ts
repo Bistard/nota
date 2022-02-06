@@ -256,7 +256,7 @@ export class RangeTable {
 	/**
 	 * @description Returns the index of the item at the given position.
 	 * @param position The position of the item.
-	 * @returns The index of the item.
+	 * @returns The index of the item. -1 if position is invalid.
 	 */
 	public indexAt(position: number): number {
 		if (position < 0) {
@@ -294,7 +294,7 @@ export class RangeTable {
 	/**
 	 * @description Returns the start position of the item at the given index.
 	 * @param index The index of the item.
-	 * @returns The start position of the item.
+	 * @returns The start position of the item. -1 if index is invalid.
 	 */
 	public positionAt(index: number): number {
 		if (index < 0) {
