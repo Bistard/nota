@@ -20,10 +20,10 @@ import { Emitter } from "src/base/common/event";
 
 export interface IScrollable {
 	
-	setScrollbarSize(scrollbarSize: number): void;
-	setViewportSize(viewportSize: number): void;
-	setScrollSize(scrollSize: number): void;
-	setScrollPosition(scrollPosition: number): void;
+	setScrollbarSize(size: number): void;
+	setViewportSize(size: number): void;
+	setScrollSize(size: number): void;
+	setScrollPosition(position: number): void;
 
 	getScrollbarSize(): number;
 	getViewportSize(): number;
@@ -133,37 +133,37 @@ export class Scrollable implements IScrollable, IDisposable {
 
     // [methods - set]
 
-    public setScrollbarSize(scrollbarSize: number): void {
-        this._scrollbarSize = scrollbarSize;
+    public setScrollbarSize(size: number): void {
+        this._scrollbarSize = size;
     }
 
-    public setViewportSize(viewportSize: number): void {
-        if (this._viewportSize !== viewportSize) {
+    public setViewportSize(size: number): void {
+        if (this._viewportSize !== size) {
             const prev = this.clone();
 
-            this._viewportSize = viewportSize;
+            this._viewportSize = size;
             this.__recalculate();
 
             this._onDidScroll.fire(this.__createScrollEvent(prev));
         }
     }
 
-    public setScrollSize(scrollSize: number): void {
-        if (this._scrollSize !== scrollSize) {
+    public setScrollSize(size: number): void {
+        if (this._scrollSize !== size) {
             const prev = this.clone();
 
-            this._scrollSize = scrollSize;
+            this._scrollSize = size;
             this.__recalculate();
 
             this._onDidScroll.fire(this.__createScrollEvent(prev));
         }
     }
 
-    public setScrollPosition(scrollPosition: number): void {
-        if (this._scrollPosition !== scrollPosition) {
+    public setScrollPosition(position: number): void {
+        if (this._scrollPosition !== position) {
             const prev = this.clone();
             
-            this._scrollPosition = scrollPosition;
+            this._scrollPosition = position;
             this.__onlyRecalculateSliderPosition();
 
             this._onDidScroll.fire(this.__createScrollEvent(prev));

@@ -106,6 +106,8 @@ export abstract class AbstractScrollbar extends Widget {
 
         // mouse down on the scrollbar or slider
         this.onMousedown(this._element!, (e) => {
+            e.stopPropagation();
+
             if (this._scrollable.required() === false) {
                 return;
             }
@@ -167,7 +169,6 @@ export abstract class AbstractScrollbar extends Widget {
      * @param event The mouse event when dragging happens.
      */
     private __sliderOnDrag(event: MouseEvent): void {
-        event.preventDefault();
         
         // tell the host we did a drag motion
         this._host.onSliderDragStart();
@@ -181,7 +182,7 @@ export abstract class AbstractScrollbar extends Widget {
         // mousemove listener
         const onMousemove = (e: MouseEvent) => {
             
-            e.preventDefault();
+            event.stopPropagation();
             
             // calculates the delta change in mouse move
             const mouseDelta = this.__getMousePosition(e) - currMousePosition;
@@ -271,8 +272,6 @@ export abstract class AbstractScrollbar extends Widget {
         const sliderStart = scrollbarTop + this._scrollable.getSliderPosition();
         const sliderEnd = sliderStart + this._scrollable.getSliderSize();
         
-        event.preventDefault();
-
         // treats as slider on drag
         if (sliderStart <= mousePosition && mousePosition <= sliderEnd) {
             this.__sliderOnDrag(event);
