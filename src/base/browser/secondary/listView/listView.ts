@@ -3,8 +3,8 @@ import { IListViewRenderer } from "src/base/browser/secondary/listView/listRende
 import { ScrollableWidget } from "src/base/browser/secondary/scrollableWidget/scrollableWidget";
 import { ScrollbarType } from "src/base/browser/secondary/scrollableWidget/scrollableWidgetOptions";
 import { DisposableManager, IDisposable } from "src/base/common/dispose";
-import { DOMSize } from "src/base/common/dom";
-import { Emitter, Register } from "src/base/common/event";
+import { DOMSize, EventType } from "src/base/common/dom";
+import { DomEmitter, Emitter, Register } from "src/base/common/event";
 import { ILabellable } from "src/base/common/label";
 import { IRange, ISpliceable, Range, RangeTable } from "src/base/common/range";
 import { IScrollEvent, Scrollable } from "src/base/common/scrollable";
@@ -50,13 +50,13 @@ export interface IListView<T> extends IDisposable {
 
     onDidChangeContent: Register<void>;
     onDidScroll: Register<IScrollEvent>;
-    onClick: (element: HTMLElement, callback: (event: MouseEvent) => void) => IDisposable;
-    onDoubleclick: (element: HTMLElement, callback: (event: MouseEvent) => void) => IDisposable;
-    onMouseover: (element: HTMLElement, callback: (event: MouseEvent) => void) => IDisposable;
-    onMouseout: (element: HTMLElement, callback: (event: MouseEvent) => void) => IDisposable;
-    onMousedown: (element: HTMLElement, callback: (event: MouseEvent) => void) => IDisposable;
-    onMouseup: (element: HTMLElement, callback: (event: MouseEvent) => void) => IDisposable;
-    onMousemove: (element: HTMLElement, callback: (event: MouseEvent) => void) => IDisposable;
+    onClick: Register<MouseEvent>;
+    onDoubleclick: Register<MouseEvent>;
+    onMouseover: Register<MouseEvent>;
+    onMouseout: Register<MouseEvent>;
+    onMousedown: Register<MouseEvent>;
+    onMouseup: Register<MouseEvent>;
+    onMousemove: Register<MouseEvent>;
 
     // [methods]
 
@@ -224,13 +224,13 @@ export class ListView<T extends IMeasureable & ILabellable<ViewItemType>> implem
 
     get onDidScroll(): Register<IScrollEvent> { return this.scrollableWidget.onDidScroll; }
     
-    get onClick() { return this.scrollableWidget.onClick; }
-    get onDoubleclick() { return this.scrollableWidget.onDoubleclick; }
-    get onMouseover() { return this.scrollableWidget.onMouseover; }
-    get onMouseout() { return this.scrollableWidget.onMouseout; }
-    get onMousedown() { return this.scrollableWidget.onMousedown; }
-    get onMouseup() { return this.scrollableWidget.onMouseup; }
-    get onMousemove() { return this.scrollableWidget.onMousemove; }
+    get onClick(): Register<MouseEvent> { return this.disposables.register(new DomEmitter<MouseEvent>(this.listContainer, EventType.click)).registerListener; }
+    get onDoubleclick(): Register<MouseEvent> { return this.disposables.register(new DomEmitter<MouseEvent>(this.listContainer, EventType.doubleclick)).registerListener; }
+    get onMouseover(): Register<MouseEvent> { return this.disposables.register(new DomEmitter<MouseEvent>(this.listContainer, EventType.mouseover)).registerListener; }
+    get onMouseout(): Register<MouseEvent> { return this.disposables.register(new DomEmitter<MouseEvent>(this.listContainer, EventType.mouseout)).registerListener; }
+    get onMousedown(): Register<MouseEvent> { return this.disposables.register(new DomEmitter<MouseEvent>(this.listContainer, EventType.mousedown)).registerListener; }
+    get onMouseup(): Register<MouseEvent> { return this.disposables.register(new DomEmitter<MouseEvent>(this.listContainer, EventType.mouseup)).registerListener; }
+    get onMousemove(): Register<MouseEvent> { return this.disposables.register(new DomEmitter<MouseEvent>(this.listContainer, EventType.mousemove)).registerListener; }
 
     // [constructor]
 
