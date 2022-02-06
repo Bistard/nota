@@ -105,7 +105,27 @@ export interface IListView<T> extends IDisposable {
 
     // [Scroll Related Methods]
 
-    // TODO
+    /**
+     * @description Sets the viewport size of the list view.
+     * @param size The size of viewport.
+     */
+    setViewportSize(size: number): void;
+
+    /**
+     * @description Sets the scrollable position (top) of the list view.
+     * @param position 
+     */
+    setScrollPosition(position: number): void;
+
+    /**
+     * @description Returns the viewport size of the list view.
+     */
+    getViewportSize(): number;
+
+    /**
+     * @description Returns the scrollable position (top) of the list view.
+     */
+    getScrollPosition(): number;
 
     // [Item Related Methods]
 
@@ -468,6 +488,22 @@ export class ListView<T extends IMeasureable & ILabellable<ViewItemType>> implem
             this.cache.release(item.row);
             item.row = null;
         }
+    }
+
+    public setViewportSize(size: number): void {
+        this.scrollable.setViewportSize(size);
+    }
+
+    public setScrollPosition(position: number): void {
+        this.scrollable.setScrollPosition(position);
+    }
+
+    public getViewportSize(): number {
+        return this.scrollable.getViewportSize();
+    }
+
+    public getScrollPosition(): number {
+        return this.scrollable.getScrollPosition();
     }
 
     public getItem(index: number): T {
