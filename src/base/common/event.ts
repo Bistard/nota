@@ -58,6 +58,7 @@ export class EventEmitter implements IEventEmitter {
 /** @deprecated Use Emitter instead */
 export const EVENT_EMITTER = new EventEmitter();
 
+/** THE ABOVE CODE ARE ALL @deprecated, will be removed later. */
 
 /** 
  * @readonly A listener is a callback function that once the callback is invoked,
@@ -90,7 +91,7 @@ export interface Register<T> {
 export class Emitter<T> implements IDisposable {
     
     private _disposed: boolean = false;
-    private _listeners: List<Listener<T>> = new List<Listener<T>>();
+    private _listeners: List<Listener<T>> = new List();
 
     /** @readonly Using function closures here. */
     private _register?: Register<T>;
@@ -195,6 +196,29 @@ export class DomEmitter<E> {
     public dispose(): void {
         this.emitter.dispose();
         this.listener.dispose();
+    }
+
+}
+
+/**
+ * @description A series helper functions that relates to {@link Emitter} and 
+ * {@link Register}.
+ */
+export namespace Event {
+
+    /**
+     * @description Creates a new event register by mapping the original event 
+     * type T to the new event type E given the mapping function.
+     * @param register The original event register.
+     * @param to The mapping function.
+     * @returns The new event register.
+     */
+    export function map<T, E>(register: Register<T>, to: (e: T) => E): Register<E> {
+        const newRegister = (listener: Listener<E>, disposibles?: IDisposable[]): IDisposable => {
+            return register((e) => listener(to(e)), disposibles);
+        };
+
+        return newRegister;
     }
 
 }
