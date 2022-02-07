@@ -11,7 +11,7 @@ An open-sourced note-taking desktop application / markdown editor that provides 
 > For users who already has tons of raw markdown files, application can automatically resolve directories and builds the corresponding notebook structures.
 * [ ] side-way outline display
 > Not just like Typora or marktext, you need to click the sidebar to see the outline of the current markdown file, our application is able to render the outline on the sideway directly for convenience purposes.
-* [ ] performant scrolling rendering
+* [x] performant scrolling rendering
 > For any scrolling components, things will only be rendered within the viewport. In our cases, directory displaying and markdown WYSIWYG rendering (in our future version) this technology will be used.
 * [ ] supports git extension
 > Our application will support git (similar to vscode) as default.
