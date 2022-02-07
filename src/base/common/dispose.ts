@@ -4,7 +4,7 @@ export interface IDisposable {
 }
 
 /**
- * @class The lifecyle of a disposable object is controlled by the client. A
+ * @readonly The lifecyle of a disposable object is controlled by the client. A
  * disposable object can be registered into another disposable object.
  * 
  * Calling this.dispose() will dispose the object and all its registered ones. 
@@ -16,7 +16,7 @@ export interface IDisposable {
  * collection will do the rest of the jobs for us.
  * 
  * @note When overriding this.dispose() method, remember to to call super.dispose() 
- * at some time.
+ * at somewhere.
  */
 export class Disposable implements IDisposable {
 
@@ -52,7 +52,7 @@ export class Disposable implements IDisposable {
 	}
 }
 
-/** @class A manager to maintain all the registered disposables. */
+/** @description A manager to maintain all the registered disposables. */
 export class DisposableManager implements IDisposable {
 
 	private _disposables = new Set<IDisposable>();

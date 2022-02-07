@@ -58,6 +58,8 @@ export interface IListView<T> extends IDisposable {
     onMouseup: Register<MouseEvent>;
     onMousemove: Register<MouseEvent>;
 
+    length: number;
+
     // [methods]
 
     /**
@@ -136,6 +138,13 @@ export interface IListView<T> extends IDisposable {
     getItem(index: number): T;
 
     /**
+     * @description Returns the HTMLElement of the item at given index, null if
+     * the item is not rendered yet.
+     * @param index The index of the item.
+     */
+    getElement(index: number): HTMLElement | null;
+    
+    /**
      * @description Returns the height of the item in DOM.
      * @param index The index of the item.
      */
@@ -186,12 +195,17 @@ export interface IListView<T> extends IDisposable {
 /**
  * @class A virtual vertical scrolling engine that only renders the items within
  * its viewport. It can hold a large amount of items and still has a great 
- * performance.
+ * performance. Built on top of {@link ScrollableWidget}.
  * 
  * Provided renderers are responsible for rendering each item with corresponding 
  * type (each item is {@link ILabellable}).
  * 
  * The performance mainly affects by how the renderers work.
+ * 
+ * Functionalities:
+ *  - Vertical scrolling
+ *  - performant template-based rendering
+ *  - mouse support
  */
 export class ListView<T extends IMeasureable & ILabellable<ViewItemType>> implements IDisposable, ISpliceable<T>, IListView<T> {
 
@@ -232,6 +246,7 @@ export class ListView<T extends IMeasureable & ILabellable<ViewItemType>> implem
     get onMouseup(): Register<MouseEvent> { return this.disposables.register(new DomEmitter<MouseEvent>(this.listContainer, EventType.mouseup)).registerListener; }
     get onMousemove(): Register<MouseEvent> { return this.disposables.register(new DomEmitter<MouseEvent>(this.listContainer, EventType.mousemove)).registerListener; }
 
+    get length(): number { return this.items.length; }
     // [constructor]
 
     constructor(container: HTMLElement, renderers: IListViewRenderer[], opts: IListViewOpts) {
@@ -508,9 +523,19 @@ export class ListView<T extends IMeasureable & ILabellable<ViewItemType>> implem
 
     public getItem(index: number): T {
         if (index < 0 || index >= this.items.length) {
-            throw new Error('index is invalid');
+            throw new ListError(`invalid get item index: ${index}`);
         }
         return this.items[index]!.data;
+    }
+
+    public getElement(index: number): HTMLElement | null {
+        if (index < 0 || index >= this.items.length) {
+            throw new ListError(`invalid get item index: ${index}`);
+        }
+        if (this.items[index]!.row) {
+            return this.items[index]!.row!.dom;
+        }
+        return null;
     }
     
     public getItemHeight(index: number): number {
@@ -606,4 +631,13 @@ export class ListView<T extends IMeasureable & ILabellable<ViewItemType>> implem
         this.render(prevRenderRange, this.scrollable.getScrollPosition(), this.scrollable.getViewportSize());
     }
 
+}
+
+/**
+ * @class Type of {@link Error} used in {@link ListView} and {@link ListWidget}.
+ */
+export class ListError extends Error {
+    constructor(message: string) {
+        super('ListError: ' + message);
+    }
 }
