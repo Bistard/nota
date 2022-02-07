@@ -217,7 +217,20 @@ export namespace Event {
         const newRegister = (listener: Listener<E>, disposibles?: IDisposable[]): IDisposable => {
             return register((e) => listener(to(e)), disposibles);
         };
+        return newRegister;
+    }
 
+    /**
+     * @description Creates a new event register by updating the original event 
+     * given the update function.
+     * @param register The original event register.
+     * @param each The update function.
+     * @returns The new event register.
+     */
+    export function each<T>(register: Register<T>, each: (e: T) => T): Register<T> {
+        const newRegister = (listener: Listener<T>, disposibles?: IDisposable[]): IDisposable => {
+            return register((e) => listener(each(e)), disposibles);
+        };
         return newRegister;
     }
 
