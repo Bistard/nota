@@ -5,7 +5,7 @@ An open-sourced note-taking desktop application / markdown editor that provides 
 
 ## 💖features
 * [x] supports markdown WYSIWYG
-> Currently we are using `milkdown` as our markdown WYGIWYS rendering framework. After the most of the functionalities are done, we are aiming to build our own markdown WYSIWYG rendering (more performant).
+> Currently we are using `milkdown` as our markdown WYSIWYG rendering framework. After the most of the functionalities are done, we are aiming to build our own markdown WYSIWYG rendering (more performant).
 * [ ] great note-taking-like user experience
 > For new users, people are able to create different notebooks, and manage their notes (markdown files) by dragging and moving pages easily.
 > For users who already has tons of raw markdown files, application can automatically resolve directories and builds the corresponding notebook structures.
