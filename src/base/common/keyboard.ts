@@ -1,11 +1,25 @@
 
+/**
+ * The standard keyboard event used acroess the application .
+ * (replace {@link KeyboardEvent}).
+ */
 export interface IStandardKeyboardEvent {
     
     readonly browserEvent: KeyboardEvent;
     readonly target: HTMLElement;
 
-    readonly specialKey: KeyCode; // ctrl | alt | shift | meta
-    readonly keyCode: KeyCode;
+    // modifiers
+    readonly ctrl: boolean;
+    readonly shift: boolean;
+    readonly alt: boolean;
+    readonly meta: boolean;
+
+    // pressed key
+    readonly key: KeyCode;
+
+    preventDefault(): void;
+    stopPropagation(): void;
+
 }
 
 /**
@@ -13,19 +27,29 @@ export interface IStandardKeyboardEvent {
  * @param event The original {@link KeyboardEvent}.
  */
 export function createStandardKeyboardEvent(event: KeyboardEvent): IStandardKeyboardEvent {
-    
-    let specialKey: KeyCode;
-    if (event.ctrlKey) specialKey = KeyCode.Ctrl;
-    else if (event.shiftKey) specialKey = KeyCode.Shift;
-    else if (event.altKey) specialKey = KeyCode.Alt;
-    else if (event.metaKey) specialKey = KeyCode.Meta;
-    else specialKey = KeyCode.None;
+    const keycode = getKeyCode(event.keyCode);
 
     return {
         browserEvent: event,
         target: event.target as HTMLElement,
-        specialKey: specialKey,
-        keyCode: getKeyCode(event.keyCode),
+        
+        ctrl: event.ctrlKey || keycode === KeyCode.Ctrl,
+        shift: event.shiftKey  || keycode === KeyCode.Shift,
+        alt: event.altKey  || keycode === KeyCode.Alt,
+        meta: event.metaKey  || keycode === KeyCode.Meta,
+
+        key: keycode,
+
+        preventDefault: () => {
+            if (event && event.preventDefault) {
+                event.preventDefault();
+            }
+        },
+        stopPropagation: () => {
+            if (event && event.stopPropagation) {
+                event.stopPropagation();
+            }
+        }
     }
 }
 
@@ -36,6 +60,39 @@ export function createStandardKeyboardEvent(event: KeyboardEvent): IStandardKeyb
  */
 export function getKeyCode(eventKeyCode: number): KeyCode {
     return keyCodeMap.map[eventKeyCode] || KeyCode.Unknown;
+}
+
+/**
+ * @class A simple class that represents a key binding and treated as shortcut.
+ */
+export class Shortcut {
+
+    public ctrl: boolean;
+    public shift: boolean;
+    public alt: boolean;
+    public meta: boolean;
+    public key: KeyCode;
+
+    constructor(ctrl: boolean, shift: boolean, alt: boolean, meta: boolean, key: KeyCode) {
+        this.ctrl = ctrl;
+        this.shift = shift;
+        this.alt = alt;
+        this.meta = meta;
+        this.key = key;
+    }
+
+    public equal(other: Shortcut): boolean {
+        return false;
+    }
+
+    public toString(): string {
+        const ctrl = this.ctrl ? '1' : '0';
+        const shift = this.ctrl ? '1' : '0';
+        const alt = this.ctrl ? '1' : '0';
+        const meta = this.ctrl ? '1' : '0';
+        return ctrl + shift + alt + meta + this.key.toString();
+    }
+
 }
 
 /**
