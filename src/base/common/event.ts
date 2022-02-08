@@ -188,7 +188,7 @@ export class DomEmitter<E> {
         return this.emitter.registerListener;
     }
 
-    constructor(element: HTMLElement, type: EventType) {
+    constructor(element: EventTarget, type: EventType) {
         this.emitter = new Emitter();
         this.listener = addDisposableListener(element, type, (e: Event) => this.emitter.fire(e as any));
     }

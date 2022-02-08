@@ -1,9 +1,5 @@
-
-import { IActionBarOptions } from "src/code/browser/workbench/actionBar/actionBar";
-
 import * as Path from'path';
-
-import { BrowserWindow, ipcMain, app, dialog, Menu } from 'electron';
+import { BrowserWindow, ipcMain, app, dialog } from 'electron';
 import * as ElectronLocalshortcut from 'electron-localshortcut';
 
 /**
@@ -177,7 +173,7 @@ class Main {
              * when the default menu were removed. Here is just to add them back 
              * individually.
              */
-
+            
             // open developer tools
             ElectronLocalshortcut.register(this.winMain, 'Ctrl+Shift+I', () => {
                 this.winMain!.webContents.toggleDevTools();

@@ -8,8 +8,8 @@
 /**
  * An inlined enum containing useful character codes (to be used with String.charCodeAt).
  * Please leave the const keyword such that it gets inlined when compiled to JavaScript!
- */
- export const enum CharCode {
+ */	
+export const enum CharCode {
 	Null = 0,
 	/**
 	 * The `\b` character.
