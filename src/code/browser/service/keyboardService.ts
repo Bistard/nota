@@ -1,4 +1,4 @@
-import { Disposable, DisposableManager, IDisposable } from "src/base/common/dispose";
+import { DisposableManager, IDisposable } from "src/base/common/dispose";
 import { EventType } from "src/base/common/dom";
 import { createDecorator } from "src/code/common/service/instantiationService/decorator";
 import { DomEmitter, Event, Register } from "src/base/common/event";

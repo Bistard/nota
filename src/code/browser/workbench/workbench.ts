@@ -16,7 +16,12 @@ import { EGlobalSettings, IGlobalApplicationSettings, IGlobalNotebookManagerSett
 import { WorkbenchLayout } from "src/code/browser/workbench/layout";
 import { i18n, Ii18nOpts, Ii18nService } from "src/code/platform/i18n/i18n";
 import { IFileService } from "src/code/common/service/fileService/fileService";
+import { IShortcutService, ShortcutService } from "src/code/browser/service/shortcutService";
+import { IKeyboardService, keyboardService } from "src/code/browser/service/keyboardService";
+import { KeyCode, Shortcut } from "src/base/common/keyboard";
 
+// ShortcutService
+registerSingleton(IKeyboardService, new ServiceDescriptor(keyboardService));
 // ActionBarService
 registerSingleton(IActionBarService, new ServiceDescriptor(ActionBarComponent));
 // ActionViewService
@@ -50,9 +55,14 @@ export class Workbench extends WorkbenchLayout {
 
     public async initServices(): Promise<void> {
 
-        for (let [serviceIdentifer, serviceDescriptor] of getSingletonServiceDescriptors()) {
+        // initializes all the singleton dependencies
+        for (const [serviceIdentifer, serviceDescriptor] of getSingletonServiceDescriptors()) {
 			this.instantiationService.register(serviceIdentifer, serviceDescriptor);
 		}
+
+        // shortcutService
+        const shortcutService: IShortcutService = this.instantiationService.createInstance(ShortcutService);
+        this.instantiationService.register(IShortcutService, shortcutService);
 
         // i18nService
         const appConfig = this.globalConfigService.get<IGlobalApplicationSettings>(EGlobalSettings.Application);
@@ -64,7 +74,6 @@ export class Workbench extends WorkbenchLayout {
                 suffix: '}',
             }
         };
-        
         const i18nService = new i18n(i18nOption, this.instantiationService.getService(IFileService)!);
         await i18nService.init();
         this.instantiationService.register(Ii18nService, i18nService);
