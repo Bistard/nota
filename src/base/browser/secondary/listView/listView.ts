@@ -311,16 +311,16 @@ export class ListView<T extends IMeasureable & ILabellable<ViewItemType>> implem
         const remove = Range.relativeComplement(renderRange, prevRenderRange);
         const update = Range.intersection(prevRenderRange, renderRange);
 
+        // update items
+        for (let i = update.start; i < update.end; i++) {
+            this.updateItemInDOM(i);
+        }
+    
         /**
          * try to get the next element in the given range, so we can insert our 
          * new elements before it one by one.
          */
         const insertBefore = this.__getNextElement(insert);
-
-        // update items
-        for (let i = update.start; i < update.end; i++) {
-            this.updateItemInDOM(i);
-        }
 
         // insert items
         for (const range of insert) {
