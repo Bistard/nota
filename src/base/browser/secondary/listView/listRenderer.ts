@@ -36,3 +36,42 @@ export interface IListViewRenderer {
 	 */
 	dispose(element: HTMLElement): void;
 }
+
+/**
+ * @class A simple integrated renderer for rendering an item by providing 
+ * multiple different renderers.
+ * 
+ * For example, in {@link ListWidget}, not just the provided renderers, each 
+ * item will have some basic renderers for list focusing and selecting purposes.
+ * This is where {@link PipelineRenderer} comes into the place by combining all
+ * the renderers into one single integrated version.
+ */
+export class PipelineRenderer implements IListViewRenderer {
+
+	public readonly type: ViewItemType;
+	private pipeline: IListViewRenderer[];
+	
+	constructor(type: ViewItemType, renderers: IListViewRenderer[]) {
+		this.type = type;
+		this.pipeline = renderers;
+	}
+
+	public render(element: HTMLElement, data: any): void {
+		for (const renderer of this.pipeline) {
+			renderer.render(element, data);
+		}
+	}
+
+	public update(element: HTMLElement, index: number, data: any): void {
+		for (const renderer of this.pipeline) {
+			renderer.update(element, index, data);
+		}
+	}
+ 
+	public dispose(element: HTMLElement): void {
+		for (const renderer of this.pipeline) {
+			renderer.dispose(element);
+		}
+	}
+
+}
