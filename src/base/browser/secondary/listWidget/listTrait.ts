@@ -5,19 +5,24 @@ import { Emitter, Register } from "src/base/common/event";
 import { hash } from "src/base/common/hash";
 
 /**
+ * The index changed in {@link ListTrait}.
+ */
+export type IListTraitEvent = number;
+
+/**
  * @class A {@link ListTrait} implements a set of methods for toggling one type 
  * of the characteristic of items in {@link ListWidget}, such as item selecting
  * and focusing.
  */
- export class ListTrait implements IDisposable {
+export class ListTrait implements IDisposable {
 
     /**
      * A trait is a string that represents an CSS class.
      */
     public trait: string;
 
-    private _onDidChange: Emitter<void> = new Emitter<void>();
-    public onDidChange: Register<void> = this._onDidChange.registerListener;
+    private _onDidChange: Emitter<IListTraitEvent> = new Emitter<IListTraitEvent>();
+    public onDidChange: Register<IListTraitEvent> = this._onDidChange.registerListener;
 
     private indices: Set<number>;
 
@@ -30,8 +35,9 @@ import { hash } from "src/base/common/hash";
      * @description Sets the item with the current trait.
      * @param index The index of the item.
      * @param item The HTMLElement to be rendered.
+     * @param fire If fires the onDidChange event.
      */
-    public set(index: number, item: HTMLElement | null): void {
+    public set(index: number, item: HTMLElement | null, fire: boolean = true): void {
         if (this.indices.has(index)) {
             return;
         }
@@ -41,15 +47,18 @@ import { hash } from "src/base/common/hash";
             item.classList.toggle(this.trait, true);
         }
 
-        this._onDidChange.fire();
+        if (fire) {
+            this._onDidChange.fire(index);
+        }
     }
 
     /**
      * @description Unsets the item with the current trait.
      * @param index The index of the item.
      * @param item The HTMLElement to be unrendered.
+     * @param fire If fires the onDidChange event.
      */
-    public unset(index: number, item: HTMLElement | null): void {
+    public unset(index: number, item: HTMLElement | null, fire: boolean = true): void {
         if (this.indices.has(index) === false) {
             return;
         }
@@ -59,7 +68,9 @@ import { hash } from "src/base/common/hash";
             item.classList.toggle(this.trait, false);
         }
 
-        this._onDidChange.fire();
+        if (fire) {
+            this._onDidChange.fire(index);
+        }
     }
 
     /**

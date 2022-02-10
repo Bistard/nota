@@ -1,6 +1,6 @@
 import { IListViewRenderer, PipelineRenderer } from "src/base/browser/secondary/listView/listRenderer";
 import { IListViewOpts, ListError, ListView, ViewItemType } from "src/base/browser/secondary/listView/listView";
-import { ListTrait, ListTraitRenderer } from "src/base/browser/secondary/listWidget/listTrait";
+import { IListTraitEvent, ListTrait, ListTraitRenderer } from "src/base/browser/secondary/listWidget/listTrait";
 import { DisposableManager, IDisposable } from "src/base/common/dispose";
 import { Event, Register } from "src/base/common/event";
 import { ILabellable } from "src/base/common/label";
@@ -38,7 +38,10 @@ export interface IListWidget<T> extends IDisposable {
     
     // [events / getter]
     
+    length: number;
     onDidScroll: Register<IScrollEvent>;
+    onDidChangeFocus: Register<IListTraitEvent>;
+    onDidChangeSelection: Register<IListTraitEvent>;
     onClick: Register<IListMouseEvent<T>>;
     onDoubleclick: Register<IListMouseEvent<T>>;
     onMouseover: Register<IListMouseEvent<T>>;
@@ -47,8 +50,6 @@ export interface IListWidget<T> extends IDisposable {
     onMouseup: Register<IListMouseEvent<T>>;
     onMousemove: Register<IListMouseEvent<T>>;
 
-    length: number;
-
     // [methods]
 
     splice(index: number, deleteCount: number, items: T[]): T[];
@@ -56,8 +57,8 @@ export interface IListWidget<T> extends IDisposable {
     // [item traits support]
 
     toggleFocus(index: number): void;
-    setSelection(index: number): void;
-    unsetSelection(index: number): void;
+
+    toggleSelection(index: number): void;
 }
 
 /**
@@ -108,29 +109,16 @@ export class ListWidget<T extends IMeasureable & ILabellable<ViewItemType>> impl
     get length(): number { return this.view.length; }
 
     get onDidScroll(): Register<IScrollEvent> { return this.view.onDidScroll; }
+    get onDidChangeFocus(): Register<IListTraitEvent> { return this.focused.onDidChange; }
+    get onDidChangeSelection(): Register<IListTraitEvent> { return this.selected.onDidChange; }    
+    get onClick(): Register<IListMouseEvent<T>> { return Event.map<MouseEvent, IListMouseEvent<T>>(this.view.onClick, (e: MouseEvent) => this.__toListMouseEvent(e)); }    
+    get onDoubleclick(): Register<IListMouseEvent<T>> { return Event.map<MouseEvent, IListMouseEvent<T>>(this.view.onDoubleclick, (e: MouseEvent) => this.__toListMouseEvent(e));  }    
+    get onMouseover(): Register<IListMouseEvent<T>> { return Event.map<MouseEvent, IListMouseEvent<T>>(this.view.onMouseover, (e: MouseEvent) => this.__toListMouseEvent(e)); }    
+    get onMouseout(): Register<IListMouseEvent<T>> { return Event.map<MouseEvent, IListMouseEvent<T>>(this.view.onMouseout, (e: MouseEvent) => this.__toListMouseEvent(e)); }    
+    get onMousedown(): Register<IListMouseEvent<T>> { return Event.map<MouseEvent, IListMouseEvent<T>>(this.view.onMousedown, (e: MouseEvent) => this.__toListMouseEvent(e)); }    
+    get onMouseup(): Register<IListMouseEvent<T>> { return Event.map<MouseEvent, IListMouseEvent<T>>(this.view.onMouseup, (e: MouseEvent) => this.__toListMouseEvent(e)); }    
+    get onMousemove(): Register<IListMouseEvent<T>> { return Event.map<MouseEvent, IListMouseEvent<T>>(this.view.onMousemove, (e: MouseEvent) => this.__toListMouseEvent(e)); }
     
-    get onClick(): Register<IListMouseEvent<T>> { 
-        return Event.map<MouseEvent, IListMouseEvent<T>>(this.view.onClick, (e: MouseEvent) => this.__toListMouseEvent(e));
-    }
-    get onDoubleclick(): Register<IListMouseEvent<T>> { 
-        return Event.map<MouseEvent, IListMouseEvent<T>>(this.view.onDoubleclick, (e: MouseEvent) => this.__toListMouseEvent(e)); 
-    }
-    get onMouseover(): Register<IListMouseEvent<T>> { 
-        return Event.map<MouseEvent, IListMouseEvent<T>>(this.view.onMouseover, (e: MouseEvent) => this.__toListMouseEvent(e)); 
-    }
-    get onMouseout(): Register<IListMouseEvent<T>> { 
-        return Event.map<MouseEvent, IListMouseEvent<T>>(this.view.onMouseout, (e: MouseEvent) => this.__toListMouseEvent(e));
-    }
-    get onMousedown(): Register<IListMouseEvent<T>> { 
-        return Event.map<MouseEvent, IListMouseEvent<T>>(this.view.onMousedown, (e: MouseEvent) => this.__toListMouseEvent(e));
-    }
-    get onMouseup(): Register<IListMouseEvent<T>> { 
-        return Event.map<MouseEvent, IListMouseEvent<T>>(this.view.onMouseup, (e: MouseEvent) => this.__toListMouseEvent(e));
-    }
-    get onMousemove(): Register<IListMouseEvent<T>> { 
-        return Event.map<MouseEvent, IListMouseEvent<T>>(this.view.onMousemove, (e: MouseEvent) => this.__toListMouseEvent(e));
-    }
-
     // [methods]
 
     public dispose(): void {
@@ -167,28 +155,23 @@ export class ListWidget<T extends IMeasureable & ILabellable<ViewItemType>> impl
             if (currIndex === index) return;
 
             const currElement = this.view.getElement(currIndex);
-            this.focused.unset(currIndex, currElement);
+            this.focused.unset(currIndex, currElement, false); // prevent fire twice
         }
         // focus the new item
         this.focused.set(index, element);
     }
 
-    public setSelection(index: number): void {
+    public toggleSelection(index: number): void {
         this.__indexValidity(index);
 
         const element = this.view.getElement(index);
-        if (element) {
-            this.selected.set(index, element);
-        }
-    }
 
-    public unsetSelection(index: number): void {
-        this.__indexValidity(index);
-
-        const element = this.view.getElement(index);
-        if (element) {
-            this.selected.unset(index, element);
+        if (this.selected.has(index) === true) {
+            this.selected.unset(index, element, false); // prevent fire twice
+            return;
         }
+
+        this.selected.set(index, element);
     }
 
     // [private helper methods]
