@@ -1,7 +1,8 @@
-import { IListViewRenderer } from "src/base/browser/secondary/listView/listRenderer";
+import { IListViewRenderer, PipelineRenderer } from "src/base/browser/secondary/listView/listRenderer";
 import { IListViewOpts, ListError, ListView, ViewItemType } from "src/base/browser/secondary/listView/listView";
-import { DisposableManager, disposeAll, IDisposable } from "src/base/common/dispose";
-import { Emitter, Event, Register } from "src/base/common/event";
+import { ListTrait, ListTraitRenderer } from "src/base/browser/secondary/listWidget/listTrait";
+import { DisposableManager, IDisposable } from "src/base/common/dispose";
+import { Event, Register } from "src/base/common/event";
 import { ILabellable } from "src/base/common/label";
 import { IScrollEvent } from "src/base/common/scrollable";
 import { IMeasureable } from "src/base/common/size";
@@ -54,8 +55,7 @@ export interface IListWidget<T> extends IDisposable {
 
     // [item traits support]
 
-    setFocus(index: number): void;
-    unsetFocus(index: number): void;
+    toggleFocus(index: number): void;
     setSelection(index: number): void;
     unsetSelection(index: number): void;
 }
@@ -86,12 +86,19 @@ export class ListWidget<T extends IMeasureable & ILabellable<ViewItemType>> impl
         opts: IListWidgetOpts
     ) {
         this.disposables = new DisposableManager();
-        
-        this.view = new ListView(container, renderers, opts);
 
+        // initializes all the item traits
         this.selected = new ListTrait('selected');
         this.focused = new ListTrait('focused');
 
+        // integrates all the renderers
+        const baseRenderers = [new ListTraitRenderer(this.selected), new ListTraitRenderer(this.focused)];
+        renderers = renderers.map(renderer => new PipelineRenderer(renderer.type, [...baseRenderers, renderer]));
+        
+        // construct list view
+        this.view = new ListView(container, renderers, opts);
+
+        
         this.disposables.register(this.view);
     }
 
@@ -101,8 +108,6 @@ export class ListWidget<T extends IMeasureable & ILabellable<ViewItemType>> impl
 
     get onDidScroll(): Register<IScrollEvent> { return this.view.onDidScroll; }
     
-    // TODO: event should be custom `IListMouseEvent`
-
     get onClick(): Register<IListMouseEvent<T>> { 
         return Event.map<MouseEvent, IListMouseEvent<T>>(this.view.onClick, (e: MouseEvent) => this.__toListMouseEvent(e));
     }
@@ -149,22 +154,19 @@ export class ListWidget<T extends IMeasureable & ILabellable<ViewItemType>> impl
 
     // [item traits support]
 
-    public setFocus(index: number): void {
+    public toggleFocus(index: number): void {
         this.__indexValidity(index);
 
         const element = this.view.getElement(index);
-        if (element) {
-            this.focused.set(index, element);
+        
+        // unfocused the current item
+        if (this.focused.size() === 1) {
+            const currIndex = this.focused.items()[0]!;
+            const currElement = this.view.getElement(currIndex);
+            this.focused.unset(currIndex, currElement);
         }
-    }
-
-    public unsetFocus(index: number): void {
-        this.__indexValidity(index);
-
-        const element = this.view.getElement(index);
-        if (element) {
-            this.focused.unset(index, element);
-        }
+        // focus the new item
+        this.focused.set(index, element);
     }
 
     public setSelection(index: number): void {
@@ -213,65 +215,6 @@ export class ListWidget<T extends IMeasureable & ILabellable<ViewItemType>> impl
             item: item,
             top: viewportTop
         };
-    }
-
-}
-
-/**
- * @class A {@link ListTrait} implements a set of methods for toggling one type 
- * of the characteristic of items in {@link ListWidget}, such as item selection 
- * and focusing.
- */
-export class ListTrait implements IDisposable {
-
-    /**
-     * A trait is a string that represents an CSS class.
-     */
-    public trait: string;
-
-    private _onDidChange: Emitter<void> = new Emitter<void>();
-    public onDidChange: Register<void> = this._onDidChange.registerListener;
-
-    private indices: Set<number>;
-
-    constructor(trait: string) {
-        this.trait = trait;
-        this.indices = new Set();
-    }
-
-    /**
-     * @description Sets the item with the current trait.
-     * @param index The index of the item.
-     * @param item The HTMLElement to be rendered.
-     */
-    public set(index: number, item: HTMLElement): void {
-        if (this.indices.has(index)) {
-            return;
-        }
-
-        this.indices.add(index);
-        item.classList.toggle(this.trait, true);
-
-        this._onDidChange.fire();
-    }
-
-    /**
-     * @description Unsets the item with the current trait.
-     * @param index The index of the item.
-     * @param item The HTMLElement to be unrendered.
-     */
-    public unset(index: number, item: HTMLElement): void {
-        if (this.indices.has(index) === false) {
-            return;
-        }
-
-        this.indices.delete(index);
-        item.classList.toggle(this.trait, false);
-        this._onDidChange.fire();
-    }
-
-    public dispose(): void {
-        disposeAll([this._onDidChange]);
     }
 
 }

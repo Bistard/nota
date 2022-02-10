@@ -16,8 +16,10 @@ export interface IListViewRenderer {
 	 * @param element The HTMLElement to be rendered.
 	 * @param data The provided data for initialization.
 	 * 
-	 * @note This method should be only invoked the a new row is created. The 
-	 * rest of time should only invoke update() for updating attributes or styles.
+	 * @note This method only invoked when a new row is created in {@link ListViewCache}.
+	 * Which is possibly invoked when inserting a new item into {@link ListView}.
+	 * The rest of time should only invoke update() for updating attributes or 
+	 * styles.
 	 */
 	render(element: HTMLElement, data: any): void;
 
@@ -27,12 +29,16 @@ export interface IListViewRenderer {
 	 * @param element The HTMLElement to be updated.
 	 * @param index The index of the item in {@link ListView}.
 	 * @param data The provided data for update purpose.
+	 * 
+	 * @note This method only invoked when inserting a new item into {@link ListView}.
 	 */
 	update(element: HTMLElement, index: number, data: any): void;
 
 	/**
 	 * @description Dispose (destruct) the item.
 	 * @param element The HTMLElement to be disposed.
+	 * 
+	 * @note This method only invoked when removing an existed item from {@link ListView}.
 	 */
 	dispose(element: HTMLElement): void;
 }
