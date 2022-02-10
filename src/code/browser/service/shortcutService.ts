@@ -50,7 +50,6 @@ export class ShortcutService implements IDisposable, IShortcutService {
             const shortcut = new Shortcut(e.ctrl, e.shift, e.alt, e.meta, e.key);
 
             const val = hash(shortcut.toString());
-            console.log(val);
             const emitter = this.emitters.get(val);
             if (emitter !== undefined) {
                 emitter.fire();
