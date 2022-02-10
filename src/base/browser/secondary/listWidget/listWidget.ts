@@ -65,7 +65,8 @@ export interface IListWidget<T> extends IDisposable {
  * features.
  * 
  * Extra Functionalities:
- *  - item traits support (selection / focusing)
+ *  - focus support
+ *  - selection support
  *  - drag and drop support
  */
 export class ListWidget<T extends IMeasureable & ILabellable<ViewItemType>> implements IListWidget<T> {
@@ -162,6 +163,9 @@ export class ListWidget<T extends IMeasureable & ILabellable<ViewItemType>> impl
         // unfocused the current item
         if (this.focused.size() === 1) {
             const currIndex = this.focused.items()[0]!;
+
+            if (currIndex === index) return;
+
             const currElement = this.view.getElement(currIndex);
             this.focused.unset(currIndex, currElement);
         }
