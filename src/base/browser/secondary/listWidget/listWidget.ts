@@ -110,7 +110,7 @@ export class ListWidget<T extends IMeasureable & ILabellable<ViewItemType>> impl
     get length(): number { return this.view.length; }
 
     get onDidScroll(): Register<IScrollEvent> { return this.view.onDidScroll; }
-    get onDidChangeFocus(): Register<boolean> { return this.disposables.register(new SignalEmitter([Event.map(this.view.onDidFocus, () => true), Event.map(this.view.onDidBlur, () => false)], (e: boolean) => e)).registerListener; }
+    get onDidChangeFocus(): Register<boolean> { return this.disposables.register(new SignalEmitter<boolean>([Event.map(this.view.onDidFocus, () => true), Event.map(this.view.onDidBlur, () => false)], (e: boolean) => e)).registerListener; }
     get onDidChangeItemFocus(): Register<IListTraitEvent> { return this.focused.onDidChange; }
     get onDidChangeItemSelection(): Register<IListTraitEvent> { return this.selected.onDidChange; }
 

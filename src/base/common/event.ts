@@ -302,11 +302,11 @@ export class DelayableEmitter<T> extends Emitter<T> {
  * @description A {@link SignalEmitter} consumes a series of {@link Register} and
  * fires a signal (boolean) under a provided logic processing.
  */
-export class SignalEmitter extends Emitter<boolean> { 
+export class SignalEmitter<T> extends Emitter<T> { 
 
     private disposables = new DisposableManager();
 
-    constructor(events: Register<any>[], logicHandler: (eventData: any) => boolean) {
+    constructor(events: Register<any>[], logicHandler: (eventData: any) => T) {
         super();
         
         for (const register of events) {
