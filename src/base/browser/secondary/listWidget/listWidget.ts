@@ -2,7 +2,7 @@ import { IListViewRenderer, PipelineRenderer } from "src/base/browser/secondary/
 import { IListViewOpts, ListError, ListView, ViewItemType } from "src/base/browser/secondary/listView/listView";
 import { IListTraitEvent, ListTrait, ListTraitRenderer } from "src/base/browser/secondary/listWidget/listTrait";
 import { DisposableManager, IDisposable } from "src/base/common/dispose";
-import { Event, Register } from "src/base/common/event";
+import { Event, Register, SignalEmitter } from "src/base/common/event";
 import { ILabellable } from "src/base/common/label";
 import { IScrollEvent } from "src/base/common/scrollable";
 import { IMeasureable } from "src/base/common/size";
@@ -40,8 +40,9 @@ export interface IListWidget<T> extends IDisposable {
     
     length: number;
     onDidScroll: Register<IScrollEvent>;
-    onDidChangeFocus: Register<IListTraitEvent>;
-    onDidChangeSelection: Register<IListTraitEvent>;
+    onDidChangeFocus: Register<boolean>;
+    onDidChangeItemFocus: Register<IListTraitEvent>;
+    onDidChangeItemSelection: Register<IListTraitEvent>;
     onClick: Register<IListMouseEvent<T>>;
     onDoubleclick: Register<IListMouseEvent<T>>;
     onMouseover: Register<IListMouseEvent<T>>;
@@ -109,8 +110,10 @@ export class ListWidget<T extends IMeasureable & ILabellable<ViewItemType>> impl
     get length(): number { return this.view.length; }
 
     get onDidScroll(): Register<IScrollEvent> { return this.view.onDidScroll; }
-    get onDidChangeFocus(): Register<IListTraitEvent> { return this.focused.onDidChange; }
-    get onDidChangeSelection(): Register<IListTraitEvent> { return this.selected.onDidChange; }    
+    get onDidChangeFocus(): Register<boolean> { return this.disposables.register(new SignalEmitter([Event.map(this.view.onDidFocus, () => true), Event.map(this.view.onDidBlur, () => false)], (e: boolean) => e)).registerListener; }
+    get onDidChangeItemFocus(): Register<IListTraitEvent> { return this.focused.onDidChange; }
+    get onDidChangeItemSelection(): Register<IListTraitEvent> { return this.selected.onDidChange; }
+
     get onClick(): Register<IListMouseEvent<T>> { return Event.map<MouseEvent, IListMouseEvent<T>>(this.view.onClick, (e: MouseEvent) => this.__toListMouseEvent(e)); }    
     get onDoubleclick(): Register<IListMouseEvent<T>> { return Event.map<MouseEvent, IListMouseEvent<T>>(this.view.onDoubleclick, (e: MouseEvent) => this.__toListMouseEvent(e));  }    
     get onMouseover(): Register<IListMouseEvent<T>> { return Event.map<MouseEvent, IListMouseEvent<T>>(this.view.onMouseover, (e: MouseEvent) => this.__toListMouseEvent(e)); }    

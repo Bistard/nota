@@ -50,6 +50,9 @@ export interface IListView<T> extends IDisposable {
 
     onDidChangeContent: Register<void>;
     onDidScroll: Register<IScrollEvent>;
+    onDidFocus: Register<void>;
+    onDidBlur: Register<void>;
+
     onClick: Register<MouseEvent>;
     onDoubleclick: Register<MouseEvent>;
     onMouseover: Register<MouseEvent>;
@@ -237,6 +240,8 @@ export class ListView<T extends IMeasureable & ILabellable<ViewItemType>> implem
     // [getter / setter]
 
     get onDidScroll(): Register<IScrollEvent> { return this.scrollableWidget.onDidScroll; }
+    get onDidFocus(): Register<void> { return this.disposables.register(new DomEmitter<void>(this.listContainer, EventType.focus)).registerListener; }
+    get onDidBlur(): Register<void> { return this.disposables.register(new DomEmitter<void>(this.listContainer, EventType.blur)).registerListener; }
     
     get onClick(): Register<MouseEvent> { return this.disposables.register(new DomEmitter<MouseEvent>(this.listContainer, EventType.click)).registerListener; }
     get onDoubleclick(): Register<MouseEvent> { return this.disposables.register(new DomEmitter<MouseEvent>(this.listContainer, EventType.doubleclick)).registerListener; }

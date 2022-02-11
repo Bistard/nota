@@ -17,6 +17,9 @@ export enum EventType {
 	keydown = 'keydown',
 	keyup = 'keyup',
 	keypress = 'keypress',
+
+	focus = 'focus',
+	blur = 'blur',
 }
 
 /**
