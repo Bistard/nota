@@ -1,6 +1,6 @@
 import { ifOrDefault } from "src/base/common/type";
 
-export enum ScrollbarType { 
+export const enum ScrollbarType { 
     vertical,
     horizontal
 }
