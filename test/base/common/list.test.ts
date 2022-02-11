@@ -21,7 +21,12 @@ suite('list-test', () => {
 		assert.strictEqual(elements.length, 0);
 	}
 
-    test('initializer constructor / clear / size / iterable', () => {
+    test('initializer constructor / clear / size / iterable / empty', () => {
+        const list0 = new List<number>();
+        assert.strictEqual(list0.empty(), true);
+        list0.push_back(1);
+        assert.strictEqual(list0.empty(), false);
+        
         const list = new List<number>(0, 1, 2, 3, 4, 5);
         assert.strictEqual(list.front()?.data, 0);
         assert.strictEqual(list.back()?.data, 5);

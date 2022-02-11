@@ -80,7 +80,8 @@ export class ListNode<T> {
 }
 
 /**
- * @class A doubly linked list. List<T> supports initializer list constructor.
+ * @description A doubly linked list. List<T> supports initializer list 
+ * constructor.
  */
 export class List<T> {
 
@@ -95,7 +96,7 @@ export class List<T> {
     }
 
     public empty(): boolean {
-        return !!this._size;
+        return this._size === 0;
     }
 
     public size(): number {
