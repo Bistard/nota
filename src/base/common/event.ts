@@ -279,6 +279,11 @@ export class DelayableEmitter<T> extends Emitter<T> {
         }
     }
 
+    public override dispose(): void {
+        super.dispose();
+        this._delayedEvents.clear();
+    }
+
 }
 
 /**
