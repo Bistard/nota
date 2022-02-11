@@ -1,5 +1,5 @@
 import { IDisposable } from "src/base/common/dispose";
-import { Emitter } from "src/base/common/event";
+import { Emitter, PauseableEmitter, Register } from "src/base/common/event";
 import { hash } from "src/base/common/hash";
 import { Shortcut } from "src/base/common/keyboard";
 import { IKeyboardService } from "src/code/browser/service/keyboardService";
@@ -17,10 +17,11 @@ export interface IShortcutService {
     /**
      * @description Register a {@link Shortcut} with a callback.
      * @param shortcut The shortcut to be registered.
+     * @param when The callback to tell when the shortcut should be turned on.
      * @param callback The callback when the shortcut is pressed.
      * @returns A disposable to unregister the callback itself.
      */
-    register(shortcut: Shortcut, callback: () => any): IDisposable;
+    register(shortcut: Shortcut, when: Register<boolean>, callback: () => any): IDisposable;
     
     /**
      * @description Unregister the given {@link Shortcut} with all its listeners.
@@ -35,7 +36,7 @@ export interface IShortcutService {
 
 export class ShortcutService implements IDisposable, IShortcutService {
 
-    private emitters: Map<number, Emitter<void>>;
+    private emitters: Map<number, PauseableEmitter<void>>;
 
     constructor(
         @IKeyboardService keyboardService: IKeyboardService,
@@ -65,15 +66,25 @@ export class ShortcutService implements IDisposable, IShortcutService {
         this.emitters.clear();
     }
 
-    public register(shortcut: Shortcut, callback: () => any): IDisposable {
-        
+    public register(shortcut: Shortcut, when: Register<boolean>, callback: () => any): IDisposable {
+
         // hash the shortcut into a number for fast future map searching.
         const val = hash(shortcut.toString());
         let emitter = this.emitters.get(val);
         
+        // if the shortcut is never registered, we create one.
         if (emitter === undefined) {
-            emitter = new Emitter<void>();
+            emitter = new PauseableEmitter<void>();
             this.emitters.set(val, emitter);
+            
+            // toggles the emitter's functionality.
+            when((on: boolean) => {
+                if (on) {
+                    emitter!.resume();
+                } else {
+                    emitter!.pause();
+                }
+            });
         }
 
         return emitter.registerListener(callback);
