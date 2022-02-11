@@ -41,7 +41,7 @@ suite('Range-test', () => {
 	test('relativeComplement', () => {
 		assert.deepStrictEqual(Range.relativeComplement({start: 50, end: 150}, {start: 0, end: 200}), [{start: 0, end: 50}, {start: 150, end: 200}]);
 		assert.deepStrictEqual(Range.relativeComplement({start: 0, end: 150}, {start: 0, end: 200}), [Range.EMPTY, {start: 150, end: 200}]);
-		assert.deepStrictEqual(Range.relativeComplement({start: 50, end: 150}, {start: 0, end: 150}), [{start: 0, end: 50}, Range.EMPTY]);
+		assert.deepStrictEqual(Range.relativeComplement({start: 50, end: 150}, {start: 0, end: 150}), [Range.EMPTY, {start: 0, end: 50}]);
 		assert.deepStrictEqual(Range.relativeComplement({start: 50, end: 150}, {start: 50, end: 150}), [Range.EMPTY, Range.EMPTY]);
 		assert.deepStrictEqual(Range.relativeComplement({start: 0, end: 50}, {start: 50, end: 100}), [Range.EMPTY, {start: 50, end: 100}]);
 	});
