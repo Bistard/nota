@@ -179,12 +179,12 @@ export class Emitter<T> implements IDisposable {
  * @class A Simple class for register callback on a given HTMLElement using an
  * {@link Emitter} instead of using raw *addEventListener()* method.
  */
-export class DomEmitter<E> {
+export class DomEmitter<T> {
 
-    private emitter: Emitter<E>;
+    private emitter: Emitter<T>;
     private listener: IDisposable;
 
-    get registerListener(): Register<E> {
+    get registerListener(): Register<T> {
         return this.emitter.registerListener;
     }
 
@@ -196,6 +196,87 @@ export class DomEmitter<E> {
     public dispose(): void {
         this.emitter.dispose();
         this.listener.dispose();
+    }
+
+}
+
+/**
+ * @description An {@link Emitter} that is pauseable and resumable. Note that 
+ * when the emitter is paused, the event will not be saved.
+ */
+export class PauseableEmitter<T> extends Emitter<T> {
+
+    private _paused: boolean = false;
+
+    constructor() {
+        super();
+    }
+
+    public pause(): void {
+        this._paused = true;
+    }
+
+    public resume(): void {
+        this._paused = false;
+    }
+
+    public override fire(event: T): any[] {
+        if (this._paused) {
+            return [];
+        }
+        
+        return super.fire(event);
+    }
+
+}
+
+/**
+ * @description An {@link Emitter} that works the same as {@link PauseableEmitter},
+ * except that when the emitter is paused, the fired event will be saved. When
+ * the emitter is resumed, the saved events will be fired.
+ * 
+ * The provided `reduce` function gives the chance to combine all the saved 
+ * events into one single event and be fired when the emitter is resumed.
+ */
+export class DelayableEmitter<T> extends Emitter<T> {
+
+    private _delayed: boolean = false;
+    private _delayedEvents: List<T> = new List();
+    private _reduceFn?: ((data: T[]) => T);
+
+    constructor(reduce?: ((data: T[]) => T)) {
+        super();
+        this._reduceFn = reduce;
+    }
+
+    public pause(): void {
+        this._delayed = true;
+    }
+
+    public resume(): void {
+        this._delayed = false;
+        if (this._delayedEvents.empty()) {
+            return;
+        }
+
+        // fires the saved events
+        if (this._reduceFn) {
+            super.fire(this._reduceFn(Array.from(this._delayedEvents)));
+            this._delayedEvents.clear();
+        } else {
+            while (this._delayed === false && this._delayedEvents.size() > 0) {
+                super.fire(this._delayedEvents.front()!.data);
+            }
+        }
+    }
+
+    public override fire(event: T): any[] {
+        if (this._delayed) {
+            this._delayedEvents.push_back(event);
+            return [];
+        } else {
+            return super.fire(event);
+        }
     }
 
 }
