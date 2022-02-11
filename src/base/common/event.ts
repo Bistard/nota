@@ -1,4 +1,4 @@
-import { IDisposable, toDisposable } from "./dispose";
+import { IDisposable, toDisposable, DisposableManager } from "./dispose";
 import { List } from "src/base/common/list";
 import { addDisposableListener, EventType } from "src/base/common/dom";
 
@@ -59,6 +59,18 @@ export class EventEmitter implements IEventEmitter {
 export const EVENT_EMITTER = new EventEmitter();
 
 /** THE ABOVE CODE ARE ALL @deprecated, will be removed later. */
+
+/*******************************************************************************
+ * This file contains a series event emitters and related tools for communications 
+ * between different components. 
+ *  - {@link Emitter}
+ *  - {@link DomEmitter}
+ *  - {@link PauseableEmitter}
+ *  - {@link DelayableEmitter}
+ *  - {@link SignalEmitter}
+ * 
+ *  - {@namespace Event}
+ ******************************************************************************/
 
 /** 
  * @readonly A listener is a callback function that once the callback is invoked,
@@ -179,7 +191,7 @@ export class Emitter<T> implements IDisposable {
  * @class A Simple class for register callback on a given HTMLElement using an
  * {@link Emitter} instead of using raw *addEventListener()* method.
  */
-export class DomEmitter<T> {
+export class DomEmitter<T> implements IDisposable {
 
     private emitter: Emitter<T>;
     private listener: IDisposable;
@@ -282,6 +294,33 @@ export class DelayableEmitter<T> extends Emitter<T> {
     public override dispose(): void {
         super.dispose();
         this._delayedEvents.clear();
+    }
+
+}
+
+/**
+ * @description A {@link SignalEmitter} consumes a series of {@link Register} and
+ * fires a signal (boolean) under a provided logic processing.
+ */
+export class SignalEmitter extends Emitter<boolean> { 
+
+    private disposables = new DisposableManager();
+
+    constructor(events: Register<any>[], logicHandler: (eventData: any) => boolean) {
+        super();
+        
+        for (const register of events) {
+            this.disposables.register(
+                register((data: any) => {
+                    this.fire(logicHandler(data));
+                })
+            );
+        }
+    }
+
+    public override dispose(): void {
+        super.dispose();
+        this.disposables.dispose();
     }
 
 }
