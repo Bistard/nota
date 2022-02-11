@@ -278,6 +278,7 @@ export class DelayableEmitter<T> extends Emitter<T> {
         } else {
             while (this._delayed === false && this._delayedEvents.size() > 0) {
                 super.fire(this._delayedEvents.front()!.data);
+                this._delayedEvents.pop_front();
             }
         }
     }
@@ -300,21 +301,21 @@ export class DelayableEmitter<T> extends Emitter<T> {
 
 /**
  * @description A {@link SignalEmitter} consumes a series of {@link Register} and
- * fires a signal (boolean) under a provided logic processing.
+ * fires a new type of event under a provided logic processing.
  * 
- * The {@link SignalEmitter} consumes a series of event with type E, and fires the
- * event with type T.
+ * The {@link SignalEmitter} consumes a series of event with type T, and fires the
+ * event with type E.
  */
-export class SignalEmitter<T, E> extends Emitter<T> { 
+export class SignalEmitter<T, E> extends Emitter<E> { 
 
     private disposables = new DisposableManager();
 
-    constructor(events: Register<E>[], logicHandler: (eventData: E) => T) {
+    constructor(events: Register<T>[], logicHandler: (eventData: T) => E) {
         super();
         
         for (const register of events) {
             this.disposables.register(
-                register((data: any) => {
+                register((data: T) => {
                     this.fire(logicHandler(data));
                 })
             );
