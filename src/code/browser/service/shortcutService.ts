@@ -1,5 +1,5 @@
-import { IDisposable } from "src/base/common/dispose";
-import { Emitter, PauseableEmitter, Register } from "src/base/common/event";
+import { DisposableManager, IDisposable } from "src/base/common/dispose";
+import { PauseableEmitter, Register } from "src/base/common/event";
 import { hash } from "src/base/common/hash";
 import { Shortcut } from "src/base/common/keyboard";
 import { IKeyboardService } from "src/code/browser/service/keyboardService";
@@ -36,6 +36,8 @@ export interface IShortcutService {
 
 export class ShortcutService implements IDisposable, IShortcutService {
 
+    private disposables = new DisposableManager();
+
     private emitters: Map<number, PauseableEmitter<void>>;
 
     constructor(
@@ -60,10 +62,9 @@ export class ShortcutService implements IDisposable, IShortcutService {
     }
 
     public dispose(): void {
-        this.emitters.forEach(emitter => {
-            emitter.dispose();
-        });
+        this.emitters.forEach(emitter => emitter.dispose());
         this.emitters.clear();
+        this.disposables.dispose();
     }
 
     public register(shortcut: Shortcut, when: Register<boolean>, callback: () => any): IDisposable {
@@ -78,13 +79,15 @@ export class ShortcutService implements IDisposable, IShortcutService {
             this.emitters.set(val, emitter);
             
             // toggles the emitter's functionality.
-            when((on: boolean) => {
-                if (on) {
-                    emitter!.resume();
-                } else {
-                    emitter!.pause();
-                }
-            });
+            this.disposables.register(
+                when((on: boolean) => {
+                    if (on) {
+                        emitter!.resume();
+                    } else {
+                        emitter!.pause();
+                    }
+                })
+            );
         }
 
         return emitter.registerListener(callback);
