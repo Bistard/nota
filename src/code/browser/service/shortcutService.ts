@@ -76,6 +76,8 @@ export class ShortcutService implements IDisposable, IShortcutService {
         // if the shortcut is never registered, we create one.
         if (emitter === undefined) {
             emitter = new PauseableEmitter<void>();
+            emitter.pause();
+
             this.emitters.set(val, emitter);
             
             // toggles the emitter's functionality.
