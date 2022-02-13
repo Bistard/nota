@@ -9,6 +9,8 @@ import { IContextMenuService } from 'src/code/browser/service/contextMenuService
 import { createDecorator } from 'src/code/common/service/instantiationService/decorator';
 import { Ii18nService } from 'src/code/platform/i18n/i18n';
 import { Section } from 'src/code/platform/i18n/section';
+import { registerSingleton } from 'src/code/common/service/instantiationService/serviceCollection';
+import { ServiceDescriptor } from 'src/code/common/service/instantiationService/descriptor';
 
 export const IExplorerViewService = createDecorator<IExplorerViewService>('explorer-view-service');
 
@@ -114,3 +116,4 @@ export class ExplorerViewComponent extends Component implements IExplorerViewSer
 
 }
 
+registerSingleton(IExplorerViewService, new ServiceDescriptor(ExplorerViewComponent));

@@ -3,6 +3,7 @@ import { PauseableEmitter, Register } from "src/base/common/event";
 import { hash } from "src/base/common/hash";
 import { Shortcut } from "src/base/common/keyboard";
 import { IKeyboardService } from "src/code/browser/service/keyboardService";
+import { IFileService } from "src/code/common/service/fileService/fileService";
 import { createDecorator } from "src/code/common/service/instantiationService/decorator";
 
 export const IShortcutService = createDecorator<IShortcutService>('shortcut-service');
@@ -42,6 +43,7 @@ export class ShortcutService implements IDisposable, IShortcutService {
 
     constructor(
         @IKeyboardService keyboardService: IKeyboardService,
+        @IFileService fileService: IFileService,
     ) {
         this.emitters = new Map();
 
@@ -55,6 +57,8 @@ export class ShortcutService implements IDisposable, IShortcutService {
             }
         });
 
+        // reads shortcuts from disk
+        
     }
 
     public dispose(): void {

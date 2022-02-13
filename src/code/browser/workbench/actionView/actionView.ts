@@ -10,6 +10,8 @@ import { getBuiltInIconClass } from 'src/base/browser/icon/iconRegistry';
 import { Icons } from 'src/base/browser/icon/icons';
 import { Ii18nService } from 'src/code/platform/i18n/i18n';
 import { Section } from 'src/code/platform/i18n/section';
+import { registerSingleton } from 'src/code/common/service/instantiationService/serviceCollection';
+import { ServiceDescriptor } from 'src/code/common/service/instantiationService/descriptor';
 
 export const IActionViewService = createDecorator<IActionViewService>('action-view-service');
 
@@ -253,3 +255,5 @@ export class ExplorerTitlePart extends ActionViewTitlePart {
     }
 
 }
+
+registerSingleton(IActionViewService, new ServiceDescriptor(ActionViewComponent));

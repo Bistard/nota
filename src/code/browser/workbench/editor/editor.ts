@@ -7,6 +7,8 @@ import { TitleBarComponent } from "src/code/browser/workbench/editor/titleBar/ti
 import { IFileLogService } from "src/code/common/service/logService/fileLogService";
 import { createDecorator } from "src/code/common/service/instantiationService/decorator";
 import { GlobalConfigService, IGlobalConfigService, IUserConfigService, UserConfigService } from "src/code/common/service/configService/configService";
+import { registerSingleton } from "src/code/common/service/instantiationService/serviceCollection";
+import { ServiceDescriptor } from "src/code/common/service/instantiationService/descriptor";
 
 export const enum EditorComponentType {
     titleBar = 'title-bar',
@@ -70,3 +72,5 @@ export class EditorComponent extends Component implements IEditorService {
     }
 
 }
+
+registerSingleton(IEditorService, new ServiceDescriptor(EditorComponent));

@@ -3,6 +3,8 @@ import { EventType } from "src/base/common/dom";
 import { createDecorator } from "src/code/common/service/instantiationService/decorator";
 import { DomEmitter, Event, Register } from "src/base/common/event";
 import { createStandardKeyboardEvent, IStandardKeyboardEvent } from "src/base/common/keyboard";
+import { registerSingleton } from "src/code/common/service/instantiationService/serviceCollection";
+import { ServiceDescriptor } from "src/code/common/service/instantiationService/descriptor";
 
 export const IKeyboardService = createDecorator<IKeyboardService>('keyboard-service');
 
@@ -50,3 +52,5 @@ export class keyboardService implements IDisposable, IKeyboardService {
     }
 
 }
+
+registerSingleton(IKeyboardService, new ServiceDescriptor(keyboardService));

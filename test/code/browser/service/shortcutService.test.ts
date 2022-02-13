@@ -3,6 +3,7 @@ import { Emitter, Register } from 'src/base/common/event';
 import { IStandardKeyboardEvent, KeyCode, Shortcut } from 'src/base/common/keyboard';
 import { IKeyboardService } from 'src/code/browser/service/keyboardService';
 import { ShortcutService } from 'src/code/browser/service/shortcutService';
+import { FileService } from 'src/code/common/service/fileService/fileService';
 
 class TestKeyboardService implements IKeyboardService {
 
@@ -39,7 +40,8 @@ suite('shortcutService-test', () => {
         const windowFocusOnChange = new Emitter<boolean>();
         
         const keyboardService = new TestKeyboardService();
-        const shortcutService = new ShortcutService(keyboardService);
+        const fileService = new FileService();
+        const shortcutService = new ShortcutService(keyboardService, fileService);
         
         const shortcut = new Shortcut(true, false, false, false, KeyCode.Space);
         

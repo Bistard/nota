@@ -1,14 +1,10 @@
-import { ActionViewComponent, IActionViewService } from "src/code/browser/workbench/actionView/actionView";
-import { ActionBarComponent, IActionBarService } from "src/code/browser/workbench/actionBar/actionBar";
-import { EditorComponent, IEditorService } from "src/code/browser/workbench/editor/editor";
 import { INoteBookManagerService, LOCAL_MDNOTE_DIR_NAME, NoteBookManager } from "src/code/common/model/notebookManager";
 import { ipcRendererOn, ipcRendererSend } from "src/base/electron/register";
 import { ContextMenuService, IContextMenuService } from 'src/code/browser/service/contextMenuService';
 import { IInstantiationService } from "src/code/common/service/instantiationService/instantiation";
 import { ServiceDescriptor } from "src/code/common/service/instantiationService/descriptor";
 import { IComponentService } from "src/code/browser/service/componentService";
-import { ExplorerViewComponent, IExplorerViewService } from "src/code/browser/workbench/actionView/explorer/explorer";
-import { getSingletonServiceDescriptors, registerSingleton } from "src/code/common/service/instantiationService/serviceCollection";
+import { getSingletonServiceDescriptors } from "src/code/common/service/instantiationService/serviceCollection";
 import { DEFAULT_CONFIG_FILE_NAME, DEFAULT_CONFIG_PATH, GLOBAL_CONFIG_FILE_NAME, GLOBAL_CONFIG_PATH, IGlobalConfigService, IUserConfigService, LOCAL_CONFIG_FILE_NAME } from "src/code/common/service/configService/configService";
 import { URI } from "src/base/common/file/uri";
 import { resolve } from "src/base/common/file/path";
@@ -17,18 +13,6 @@ import { WorkbenchLayout } from "src/code/browser/workbench/layout";
 import { i18n, Ii18nOpts, Ii18nService } from "src/code/platform/i18n/i18n";
 import { IFileService } from "src/code/common/service/fileService/fileService";
 import { IShortcutService, ShortcutService } from "src/code/browser/service/shortcutService";
-import { IKeyboardService, keyboardService } from "src/code/browser/service/keyboardService";
-import { KeyCode, Shortcut } from "src/base/common/keyboard";
-
-// ShortcutService
-registerSingleton(IKeyboardService, new ServiceDescriptor(keyboardService));
-// ActionBarService
-registerSingleton(IActionBarService, new ServiceDescriptor(ActionBarComponent));
-// ActionViewService
-registerSingleton(IActionViewService, new ServiceDescriptor(ActionViewComponent));
-registerSingleton(IExplorerViewService, new ServiceDescriptor(ExplorerViewComponent));
-// EditorService
-registerSingleton(IEditorService, new ServiceDescriptor(EditorComponent));
 
 /**
  * @class Workbench represents all the Components in the web browser.

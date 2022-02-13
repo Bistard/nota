@@ -7,6 +7,8 @@ import { ActionButton } from 'src/code/browser/workbench/actionBar/actionButton'
 import { WidgetBar } from 'src/base/browser/secondary/widgetBar/widgetBar';
 import { Orientation } from 'src/base/common/dom';
 import { Icons } from 'src/base/browser/icon/icons';
+import { registerSingleton } from 'src/code/common/service/instantiationService/serviceCollection';
+import { ServiceDescriptor } from 'src/code/common/service/instantiationService/descriptor';
 
 export const IActionBarService = createDecorator<IActionBarService>('action-bar-service');
 
@@ -173,3 +175,5 @@ export class ActionBarComponent extends Component implements IActionBarService {
     }
 
 }
+
+registerSingleton(IActionBarService, new ServiceDescriptor(ActionBarComponent));
