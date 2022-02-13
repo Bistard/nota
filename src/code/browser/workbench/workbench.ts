@@ -113,14 +113,14 @@ export class Workbench extends WorkbenchLayout {
             
             // save global configuration first
             notebookConfig.previousNoteBookManagerDir = this._noteBookManager.getRootPath();
-            this.globalConfigService.save(URI.fromFile(resolve(GLOBAL_CONFIG_PATH, GLOBAL_CONFIG_FILE_NAME)))
+            this.globalConfigService.save(URI.fromFile(resolve(GLOBAL_CONFIG_PATH, LOCAL_MDNOTE_DIR_NAME, GLOBAL_CONFIG_FILE_NAME)))
             .then(() => {
                 // get application configuration
                 const appConfig = this.globalConfigService.get<IGlobalApplicationSettings>(EGlobalSettings.Application);
                 
-                // save local or default configuration
+                // save `user.config.json`
                 if (appConfig.defaultConfigOn) {
-                    return this.userConfigService.save(URI.fromFile(resolve(DEFAULT_CONFIG_PATH, DEFAULT_CONFIG_FILE_NAME)));
+                    return this.userConfigService.save(URI.fromFile(resolve(DEFAULT_CONFIG_PATH, LOCAL_MDNOTE_DIR_NAME, DEFAULT_CONFIG_FILE_NAME)));
                 }
                 return this.userConfigService.save(URI.fromFile(resolve(this._noteBookManager.getRootPath(), LOCAL_MDNOTE_DIR_NAME, LOCAL_CONFIG_FILE_NAME)));
             })

@@ -17,7 +17,7 @@ export interface IShortcutService {
     /**
      * @description Register a {@link Shortcut} with a callback.
      * @param shortcut The shortcut to be registered.
-     * @param when The callback to tell when the shortcut should be turned on.
+     * @param when The callback to tell when the shortcut should be turned on or off.
      * @param callback The callback when the shortcut is pressed.
      * @returns A disposable to unregister the callback itself.
      */
@@ -46,10 +46,6 @@ export class ShortcutService implements IDisposable, IShortcutService {
         this.emitters = new Map();
 
         keyboardService.onKeydown(e => {
-            if (this.emitters.size === 0) {
-                return;
-            }
-
             const shortcut = new Shortcut(e.ctrl, e.shift, e.alt, e.meta, e.key);
 
             const val = hash(shortcut.toString());

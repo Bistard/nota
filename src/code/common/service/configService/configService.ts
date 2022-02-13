@@ -3,6 +3,7 @@ import { resolve } from "src/base/common/file/path";
 import { URI } from "src/base/common/file/uri";
 import { APP_ROOT_PATH, DESKTOP_ROOT_PATH } from "src/base/electron/app";
 import { MarkdownRenderMode } from "src/code/browser/workbench/editor/markdown/markdown";
+import { LOCAL_MDNOTE_DIR_NAME } from "src/code/common/model/notebookManager";
 import { ConfigModel, IConfigType } from "src/code/common/service/configService/configModel";
 import { ConfigServiceBase, IConfigService } from "src/code/common/service/configService/configServiceBase";
 import { IFileService } from "src/code/common/service/fileService/fileService";
@@ -11,7 +12,7 @@ import { Language } from "src/code/platform/i18n/i18n";
 
 export const DEFAULT_CONFIG_PATH = APP_ROOT_PATH;
 export const GLOBAL_CONFIG_PATH = APP_ROOT_PATH;
-export const DEFAULT_CONFIG_FILE_NAME = 'config.json';
+export const DEFAULT_CONFIG_FILE_NAME = 'user.config.json';
 export const LOCAL_CONFIG_FILE_NAME = DEFAULT_CONFIG_FILE_NAME;
 export const GLOBAL_CONFIG_FILE_NAME = 'mdnote.config.json';
 
@@ -35,7 +36,7 @@ export interface IGlobalConfigService extends IConfigService {
 
 /**
  * @class The user configuration service relates to the unique file named
- * `config.json` which will be placed in either:
+ * `user.config.json` which will be placed in either:
  *      - the .mdnote directory in the opened directory (user customized) OR
  *      - the root directory of the application which will be considered as the 
  *        default user configuration.
@@ -116,11 +117,11 @@ export class GlobalConfigService extends ConfigServiceBase implements IGlobalCon
  * 'mdnote.config.json' at the root directory of the application.
  */
 export function getDefaultGlobalConfigPath(): URI {
-    return URI.fromFile(resolve(APP_ROOT_PATH, GLOBAL_CONFIG_FILE_NAME));
+    return URI.fromFile(resolve(APP_ROOT_PATH, LOCAL_MDNOTE_DIR_NAME, GLOBAL_CONFIG_FILE_NAME));
 }
 
 export function getDefaultUserConfigPath(): URI {
-    return URI.fromFile(resolve(APP_ROOT_PATH, DEFAULT_CONFIG_FILE_NAME));
+    return URI.fromFile(resolve(APP_ROOT_PATH, LOCAL_MDNOTE_DIR_NAME, DEFAULT_CONFIG_FILE_NAME));
 }
 
 /*******************************************************************************
@@ -163,7 +164,7 @@ export interface IGlobalApplicationSettings {
     
     /**
      * When true, NoteBookManager will read or create the default configuration in 
-     * '<appRootPath>/config.json'.
+     * '<appRootPath>/.mdnote/user.config.json'.
      * 
      * When false, NoteBookManager will read or create a local configuration file 
      * in '<notebookManagerPath>/.mdnote/config.json'.
@@ -239,7 +240,7 @@ export interface IUserNotebookManagerSettings {
 
     /**
      * If wants to excludes file, remember to add file format.
-     * eg. 'config.json'. This has lower priority than 'noteBookManagerInclude'.
+     * eg. 'user.config.json'. This has lower priority than 'noteBookManagerInclude'.
      * 
      * '.*' represents any folders starts with '.'.
      */
@@ -247,7 +248,7 @@ export interface IUserNotebookManagerSettings {
     
     /**
      * If wants to includes file, remember to add file format such as
-     * 'config.json'. This has higher priority than 'noteBookManagerExclude'.
+     * 'user.config.json'. This has higher priority than 'noteBookManagerExclude'.
      */
     noteBookManagerInclude: string[];    
 }

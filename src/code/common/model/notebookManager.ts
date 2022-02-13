@@ -85,7 +85,7 @@ public async init(): Promise<void> {
      * @description when opening a directory to the NoteBooks, a '.mdnote' 
      * directory will be loaded or created. And each NoteBook will be detected 
      * or initialized. If global config says no use of default config, a 
-     * '.mdnote/config.json' will be created.
+     * '.mdnote/user.config.json' will be created.
      * 
      * @param path eg. D:\dev\AllNote
      */
@@ -150,7 +150,7 @@ public async init(): Promise<void> {
             await this._validateNoteBookConfig();
             
             if (setting.defaultConfigOn === false) {
-                // read local config
+                // read `user.config.json`
                 await this.userConfigService.init(URI.fromFile(resolve(ROOT, DEFAULT_CONFIG_FILE_NAME)));
             }
 
@@ -191,7 +191,7 @@ public async init(): Promise<void> {
             await createDir(ROOT, 'log');
             
             if (setting.defaultConfigOn === false) {
-                // init local config.json
+                // init local user.config.json
                 await createFile(ROOT, LOCAL_CONFIG_FILE_NAME);
                 await this.userConfigService.save(URI.fromFile(resolve(ROOT, LOCAL_CONFIG_FILE_NAME)));
             }
