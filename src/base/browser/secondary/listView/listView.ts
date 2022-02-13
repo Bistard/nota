@@ -37,6 +37,12 @@ export interface IViewItem<T> {
     readonly data: T;
     size: number;
     row: IListViewRow | null; // null means this item is currently not rendered.
+    draggable?: IDisposable;
+}
+
+export interface IViewItemChangeEvent<T> {
+    item: IViewItem<T>;
+    index: number;
 }
 
 let ListViewItemUUID: number = 0;
@@ -49,6 +55,10 @@ export interface IListView<T> extends IDisposable {
     // [events / getter]
 
     onDidChangeContent: Register<void>;
+    onInsertItemInDOM: Register<IViewItemChangeEvent<T>>;
+    onUpdateItemInDOM: Register<IViewItemChangeEvent<T>>;
+    onRemoveItemInDOM: Register<IViewItemChangeEvent<T>>;
+
     onDidScroll: Register<IScrollEvent>;
     onDidFocus: Register<void>;
     onDidBlur: Register<void>;
@@ -238,6 +248,15 @@ export class ListView<T extends IMeasureable & ILabellable<ViewItemType>> implem
 
     private _onDidChangeContent: Emitter<void> = this.disposables.register(new Emitter<void>());
     public onDidChangeContent: Register<void> = this._onDidChangeContent.registerListener;
+
+    private _onInsertItemInDOM: Emitter<IViewItemChangeEvent<T>> = this.disposables.register(new Emitter<IViewItemChangeEvent<T>>());
+    public onInsertItemInDOM: Register<IViewItemChangeEvent<T>> = this._onInsertItemInDOM.registerListener;
+
+    private _onUpdateItemInDOM: Emitter<IViewItemChangeEvent<T>> = this.disposables.register(new Emitter<IViewItemChangeEvent<T>>());
+    public onUpdateItemInDOM: Register<IViewItemChangeEvent<T>> = this._onUpdateItemInDOM.registerListener;
+
+    private _onRemoveItemInDOM: Emitter<IViewItemChangeEvent<T>> = this.disposables.register(new Emitter<IViewItemChangeEvent<T>>());
+    public onRemoveItemInDOM: Register<IViewItemChangeEvent<T>> = this._onRemoveItemInDOM.registerListener;
 
     // updateItemInDOM
 
@@ -486,6 +505,7 @@ export class ListView<T extends IMeasureable & ILabellable<ViewItemType>> implem
         dom.style.top = this.positionAt(index) + 'px';
         dom.setAttribute('index', `${index}`);
 
+        this._onUpdateItemInDOM.fire({ item: item, index: index });
     }
 
     public insertItemInDOM(index: number, insertBefore: HTMLElement | null, row?: IListViewRow): void {
@@ -507,6 +527,7 @@ export class ListView<T extends IMeasureable & ILabellable<ViewItemType>> implem
         }
 
         renderer.update(item.row!.dom, index, item.data);
+        this._onInsertItemInDOM.fire({ item: item, index: index });
 
         if (insertBefore) {
             this.listContainer.insertBefore(item.row!.dom, insertBefore);
@@ -529,6 +550,7 @@ export class ListView<T extends IMeasureable & ILabellable<ViewItemType>> implem
             item.row = null;
         }
 
+        this._onRemoveItemInDOM.fire({ item: item, index: index });
     }
 
     public setViewportSize(size: number): void {
