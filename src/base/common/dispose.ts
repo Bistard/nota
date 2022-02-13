@@ -20,6 +20,8 @@ export interface IDisposable {
  */
 export class Disposable implements IDisposable {
 
+	static readonly NONE: IDisposable = Object.create(null);
+
 	private _disposableManager = new DisposableManager();
 
 	constructor() {}
