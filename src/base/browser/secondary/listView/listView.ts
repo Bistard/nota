@@ -2,7 +2,7 @@ import { IListViewRow, ListViewCache } from "src/base/browser/secondary/listView
 import { IListViewRenderer } from "src/base/browser/secondary/listView/listRenderer";
 import { ScrollableWidget } from "src/base/browser/secondary/scrollableWidget/scrollableWidget";
 import { ScrollbarType } from "src/base/browser/secondary/scrollableWidget/scrollableWidgetOptions";
-import { DisposableManager, IDisposable } from "src/base/common/dispose";
+import { Disposable, DisposableManager, IDisposable } from "src/base/common/dispose";
 import { DOMSize, EventType } from "src/base/common/dom";
 import { DomEmitter, Emitter, Register } from "src/base/common/event";
 import { ILabellable } from "src/base/common/label";
@@ -32,7 +32,7 @@ export type ViewItemType = number;
 /**
  * The inner data structure wraps each item in {@link ListView}.
  */
-interface IViewItem<T> {
+export interface IViewItem<T> {
     readonly id: number;
     readonly data: T;
     size: number;
@@ -232,10 +232,14 @@ export class ListView<T extends IMeasureable & ILabellable<ViewItemType>> implem
     private prevRenderTop: number;
     private prevRenderHeight: number;
 
+    private _splicing: boolean;
+
     // [events]
 
-    private _onDidChangeContent = this.disposables.register(new Emitter<void>());
-    public onDidChangeContent = this._onDidChangeContent.registerListener;
+    private _onDidChangeContent: Emitter<void> = this.disposables.register(new Emitter<void>());
+    public onDidChangeContent: Register<void> = this._onDidChangeContent.registerListener;
+
+    // updateItemInDOM
 
     // [getter / setter]
 
@@ -252,6 +256,7 @@ export class ListView<T extends IMeasureable & ILabellable<ViewItemType>> implem
     get onMousemove(): Register<MouseEvent> { return this.disposables.register(new DomEmitter<MouseEvent>(this.listContainer, EventType.mousemove)).registerListener; }
 
     get length(): number { return this.items.length; }
+    
     // [constructor]
 
     constructor(container: HTMLElement, renderers: IListViewRenderer[], opts: IListViewOpts) {
@@ -262,6 +267,7 @@ export class ListView<T extends IMeasureable & ILabellable<ViewItemType>> implem
         this.rangeTable = new RangeTable();
         this.prevRenderTop = 0;
         this.prevRenderHeight = 0;
+        this._splicing = false;
 
         this.listContainer = document.createElement('div');
         this.listContainer.className = 'list-view-container';
@@ -285,7 +291,9 @@ export class ListView<T extends IMeasureable & ILabellable<ViewItemType>> implem
         });
         this.scrollableWidget.render(this.element);
         this.scrollableWidget.onDidScroll((e: IScrollEvent) => {
-            this.__onDidScroll();
+            if (this._splicing === false) {
+                this.__onDidScroll();
+            }
         });
 
         this.renderers = new Map();
@@ -348,6 +356,12 @@ export class ListView<T extends IMeasureable & ILabellable<ViewItemType>> implem
 
     public splice(index: number, deleteCount: number, items: T[] = []): T[] {
         
+        /**
+         * @readonly Note that `splice()` will do some specific optimization on
+         * DOM elements creation process (using cache). Using a 
+         */
+        this._splicing = true;
+
         const prevRenderRange = this.__getRenderRange(this.prevRenderTop, this.prevRenderHeight);
         const deleteRange = Range.intersection(prevRenderRange, { start: index, end: index + deleteCount });
 
@@ -392,7 +406,7 @@ export class ListView<T extends IMeasureable & ILabellable<ViewItemType>> implem
             type: item.type,
             data: item,
             size: item.size,
-            row: null
+            row: null,
         }));
 
         let waitToDelete: IViewItem<T>[];
@@ -407,7 +421,11 @@ export class ListView<T extends IMeasureable & ILabellable<ViewItemType>> implem
             this.rangeTable.splice(index, deleteCount, insert);
             waitToDelete = this.items.splice(index, deleteCount, ...insert);
         }
+        
+        // updates the previous render top and height.
         this.scrollable.setScrollSize(this.rangeTable.size());
+        this.prevRenderTop = this.scrollable.getScrollPosition();
+        this.prevRenderHeight = this.scrollable.getViewportSize();
         
         const offset = items.length - deleteCount;
 
@@ -456,6 +474,7 @@ export class ListView<T extends IMeasureable & ILabellable<ViewItemType>> implem
 		}
 
         this._onDidChangeContent.fire();
+        this._splicing = false;
 
         return waitToDelete.map(item => item.data);
     }
@@ -466,6 +485,7 @@ export class ListView<T extends IMeasureable & ILabellable<ViewItemType>> implem
         const dom = item.row!.dom;
         dom.style.top = this.positionAt(index) + 'px';
         dom.setAttribute('index', `${index}`);
+
     }
 
     public insertItemInDOM(index: number, insertBefore: HTMLElement | null, row?: IListViewRow): void {
@@ -508,6 +528,7 @@ export class ListView<T extends IMeasureable & ILabellable<ViewItemType>> implem
             this.cache.release(item.row);
             item.row = null;
         }
+
     }
 
     public setViewportSize(size: number): void {
