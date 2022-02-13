@@ -2,7 +2,7 @@ import { IListViewRow, ListViewCache } from "src/base/browser/secondary/listView
 import { IListViewRenderer } from "src/base/browser/secondary/listView/listRenderer";
 import { ScrollableWidget } from "src/base/browser/secondary/scrollableWidget/scrollableWidget";
 import { ScrollbarType } from "src/base/browser/secondary/scrollableWidget/scrollableWidgetOptions";
-import { Disposable, DisposableManager, IDisposable } from "src/base/common/dispose";
+import { DisposableManager, IDisposable } from "src/base/common/dispose";
 import { DOMSize, EventType } from "src/base/common/dom";
 import { DomEmitter, Emitter, Register } from "src/base/common/event";
 import { ILabellable } from "src/base/common/label";
@@ -72,6 +72,7 @@ export interface IListView<T> extends IDisposable {
     onMousemove: Register<MouseEvent>;
 
     length: number;
+    DOMelement: HTMLElement;
 
     // [methods]
 
@@ -275,7 +276,8 @@ export class ListView<T extends IMeasureable & ILabellable<ViewItemType>> implem
     get onMousemove(): Register<MouseEvent> { return this.disposables.register(new DomEmitter<MouseEvent>(this.listContainer, EventType.mousemove)).registerListener; }
 
     get length(): number { return this.items.length; }
-    
+    get DOMelement(): HTMLElement { return this.listContainer; }
+
     // [constructor]
 
     constructor(container: HTMLElement, renderers: IListViewRenderer[], opts: IListViewOpts) {

@@ -1,7 +1,8 @@
 import { IListViewRenderer, PipelineRenderer } from "src/base/browser/secondary/listView/listRenderer";
-import { IListViewOpts, ListError, ListView, ViewItemType } from "src/base/browser/secondary/listView/listView";
+import { IListViewOpts, IViewItemChangeEvent, ListError, ListView, ViewItemType } from "src/base/browser/secondary/listView/listView";
 import { IListTraitEvent, ListTrait, ListTraitRenderer } from "src/base/browser/secondary/listWidget/listTrait";
 import { DisposableManager, IDisposable } from "src/base/common/dispose";
+import { addDisposableListener, EventType } from "src/base/common/dom";
 import { Event, Register, SignalEmitter } from "src/base/common/event";
 import { ILabellable } from "src/base/common/label";
 import { IScrollEvent } from "src/base/common/scrollable";
@@ -24,11 +25,22 @@ export interface IListMouseEvent<T> {
     top: number;
 }
 
+export interface IListDragEvent<T> {
+    /** The original brower event {@link DragEvent}. */
+    browserEvent: DragEvent;
+
+    /** The index of the drag / dragover / drop item. */
+    index: number;
+    
+    /** The drag / dragover / drop item. */
+    item: T;
+}
+
 /**
  * The consturtor options for {@link ListWidget}.
  */
 export interface IListWidgetOpts extends IListViewOpts {
-
+    dragAndDropSupport: boolean
 }
 
 /**
@@ -101,7 +113,10 @@ export class ListWidget<T extends IMeasureable & ILabellable<ViewItemType>> impl
         // construct list view
         this.view = new ListView(container, renderers, opts);
 
-        
+        if (opts.dragAndDropSupport) {
+            this.__enableDragAndDropSupport();
+        }
+
         this.disposables.register(this.view);
     }
 
@@ -205,6 +220,61 @@ export class ListWidget<T extends IMeasureable & ILabellable<ViewItemType>> impl
             item: item,
             top: viewportTop
         };
+    }
+
+    /**
+     * @description Enables the drag and drop (dnd) support in {@link ListView}.
+     */
+    private __enableDragAndDropSupport(): void {
+
+        this.disposables.register(addDisposableListener(this.view.DOMelement, EventType.dragover, e => this.__onDragOver(this.__getDragEvent(e))));
+        this.disposables.register(addDisposableListener(this.view.DOMelement, EventType.drop, e => this.__onDrop(this.__getDragEvent(e))));
+        this.disposables.register(addDisposableListener(this.view.DOMelement, EventType.dragleave, e => this.__onDragleave(this.__getDragEvent(e))));
+        this.disposables.register(addDisposableListener(this.view.DOMelement, EventType.dragend, e => this.__onDragend(this.__getDragEvent(e))));
+
+        this.view.onInsertItemInDOM((viewItem: IViewItemChangeEvent<T>) => {
+            const item = viewItem.item;
+            item.draggable?.dispose();
+            item.row!.dom.draggable = true;
+            item.draggable = addDisposableListener(item.row!.dom, EventType.dragstart, (e: DragEvent) => {
+                console.log(e);
+            });
+        });
+
+        this.view.onRemoveItemInDOM((viewItem: IViewItemChangeEvent<T>) => {
+            viewItem.item.draggable?.dispose();
+        });
+
+    }
+
+    /**
+     * @description Transforms a {@link DragEvent} into {@link IListDragEvent}.
+     * @param event 
+     */
+    private __getDragEvent(event: DragEvent): IListDragEvent<T> {
+        const index = this.view.renderIndexAt(event.clientY);
+        const item = this.view.getItem(index);
+        return {
+            browserEvent: event,
+            index: index, 
+            item: item
+        }
+    }
+
+    private __onDragOver(event: IListDragEvent<T>): void {
+        console.log('dragover, ', event);
+    }
+
+    private __onDrop(event: IListDragEvent<T>): void {
+        console.log('drop, ', event);
+    }
+
+    private __onDragleave(event: IListDragEvent<T>): void {
+        console.log('dragleave, ', event);
+    }
+
+    private __onDragend(event: IListDragEvent<T>): void {
+        console.log('dragend, ', event);
     }
 
 }
