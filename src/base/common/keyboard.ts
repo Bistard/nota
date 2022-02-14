@@ -10,15 +10,27 @@ export namespace Keyboard {
      * @description Determines if the given key is {@link KeyboardModifier}.
      * @param key The given {@link KeyCode}.
      */
-    export function isModifier(key: KeyCode): boolean {
-        switch (key) {
-            case KeyCode.Ctrl:
-            case KeyCode.Shift:
-            case KeyCode.Alt:
-            case KeyCode.Meta:
-                return true;
-            default:
-                return false;
+    export function isModifier(key: KeyCode | string): boolean {
+        if (typeof key === 'number') {
+            switch (key) {
+                case KeyCode.Ctrl:
+                case KeyCode.Shift:
+                case KeyCode.Alt:
+                case KeyCode.Meta:
+                    return true;
+                default:
+                    return false;
+            }
+        } else {
+            switch (key) {
+                case 'Ctrl':
+                case 'Shift':
+                case 'Alt':
+                case 'Meta':
+                    return true;
+                default:
+                    return false;
+            }
         }
     }
 
@@ -96,79 +108,6 @@ export function createStandardKeyboardEvent(event: KeyboardEvent): IStandardKeyb
             }
         }
     }
-}
-
-/**
- * @class A simple class that represents a key binding and treated as shortcut.
- */
-export class Shortcut {
-
-    public ctrl: boolean;
-    public shift: boolean;
-    public alt: boolean;
-    public meta: boolean;
-    public key: KeyCode;
-
-    constructor(ctrl: boolean, shift: boolean, alt: boolean, meta: boolean, key: KeyCode) {
-        this.ctrl = ctrl;
-        this.shift = shift;
-        this.alt = alt;
-        this.meta = meta;
-        this.key = key;
-    }
-
-    /**
-     * @description Compares if the two shortcuts are the same.
-     * @param other The other shortcut.
-     */
-    public equal(other: Shortcut): boolean {
-        return this.ctrl === other.ctrl && 
-               this.shift === other.shift && 
-               this.alt === other.alt && 
-               this.meta === other.meta && 
-               this.key === other.key;
-    }
-
-    /**
-     * @description Returns the string form of the shortcut.
-     * @example 'ctrl+shift+alt+D', 'ctrl+PageDown', 'alt+RightArrow', etc...
-     */
-    public toString(): string {
-        let mask = 0;
-        const result: string[] = [];
-        
-        if (this.ctrl) {
-            mask |= KeyCode.Ctrl;
-            result.push('Ctrl');
-        }
-        if (this.shift) {
-            mask |= KeyCode.Shift;
-            result.push('Shift');
-        }
-        if (this.alt) {
-            mask |= KeyCode.Alt;
-            result.push('Alt');
-        }
-        if (this.meta) {
-            mask |= KeyCode.Meta;
-            result.push('Meta');
-        }
-        
-        if ((!Keyboard.isModifier(this.key) || (this.key | mask) !== mask) && 
-            this.key !== KeyCode.None) 
-        {
-            const key = Keyboard.toString(this.key);
-            result.push(key);
-        }
-        
-        return result.join('+');
-    }
-    
-    public static fromString(string: string): Shortcut {
-        // TODO
-        return new Shortcut(false, false, false, false, KeyCode.None);
-    }
-
 }
 
 /**
@@ -429,3 +368,104 @@ const keyCodeStringMap = new KeyCodeStringMap();
     keyCodeMap.map[keycodeNum] = keycode;
     keyCodeStringMap.set(keycode, keycodeStr);
 });
+
+/**
+ * @class A simple class that represents a key binding and treated as shortcut.
+ */
+export class Shortcut {
+
+    public static readonly None = Object.freeze(new Shortcut(false, false, false, false, KeyCode.None));
+
+    public ctrl: boolean;
+    public shift: boolean;
+    public alt: boolean;
+    public meta: boolean;
+    public key: KeyCode;
+
+    constructor(ctrl: boolean, shift: boolean, alt: boolean, meta: boolean, key: KeyCode) {
+        this.ctrl = ctrl;
+        this.shift = shift;
+        this.alt = alt;
+        this.meta = meta;
+        this.key = key;
+    }
+
+    /**
+     * @description Compares if the two shortcuts are the same.
+     * @param other The other shortcut.
+     */
+    public equal(other: Shortcut): boolean {
+        return this.ctrl === other.ctrl && 
+               this.shift === other.shift && 
+               this.alt === other.alt && 
+               this.meta === other.meta && 
+               this.key === other.key;
+    }
+
+    /**
+     * @description Returns the string form of the shortcut.
+     * @example 'ctrl+shift+alt+D', 'ctrl+PageDown', 'alt+RightArrow', etc...
+     */
+    public toString(): string {
+        let mask = 0;
+        const result: string[] = [];
+        
+        if (this.ctrl) {
+            mask |= KeyCode.Ctrl;
+            result.push('Ctrl');
+        }
+        if (this.shift) {
+            mask |= KeyCode.Shift;
+            result.push('Shift');
+        }
+        if (this.alt) {
+            mask |= KeyCode.Alt;
+            result.push('Alt');
+        }
+        if (this.meta) {
+            mask |= KeyCode.Meta;
+            result.push('Meta');
+        }
+        
+        if ((!Keyboard.isModifier(this.key) || (this.key | mask) !== mask) && 
+            this.key !== KeyCode.None) 
+        {
+            const key = Keyboard.toString(this.key);
+            result.push(key);
+        }
+        
+        return result.join('+');
+    }
+    
+    public static fromString(string: string): Shortcut {
+        
+        const shortcut = new Shortcut(false, false, false, false, KeyCode.None);
+
+        const parts = string.split('+');
+        for (const part of parts) {
+            if (part === 'Ctrl') {
+                shortcut.ctrl = true;
+            } else if (part === 'Shift') {
+                shortcut.shift = true;
+            } else if (part === 'Alt') {
+                shortcut.alt = true;
+            } else if (part === 'Meta') {
+                shortcut.meta = true;
+            } else {
+                if (shortcut.key !== KeyCode.None) {
+                    return Shortcut.None;
+                }
+
+                const key = Keyboard.toKeyCode(part);
+                if (key !== KeyCode.None) {
+                    shortcut.key = key;
+                } else {
+                    return Shortcut.None;
+                }
+            }
+        }
+
+        return shortcut;
+    }
+
+}

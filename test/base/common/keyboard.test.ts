@@ -76,6 +76,22 @@ suite('keyboard-test', () => {
             assert.strictEqual(shortcut7.toString(), 'Shift+Meta+Enter');
         });
 
+        test('shortcut fromString/equal', () => {
+            assert.strictEqual(Shortcut.fromString('Ctrl+Tab').equal(new Shortcut(true, false, false, false, KeyCode.Tab)), true);
+            assert.strictEqual(Shortcut.fromString('Ctrl').equal(new Shortcut(true, false, false, false, KeyCode.None)), true);
+            assert.strictEqual(Shortcut.fromString('Ctrl+Shift+Alt+Meta+R').equal(new Shortcut(true, true, true, true, KeyCode.KeyR)), true);
+            assert.strictEqual(Shortcut.fromString('Shift+Ctrl+Meta+Alt+R').equal(new Shortcut(true, true, true, true, KeyCode.KeyR)), true);
+            assert.strictEqual(Shortcut.fromString('PageDown').equal(new Shortcut(false, false, false, false, KeyCode.PageDown)), true);
+            assert.strictEqual(Shortcut.fromString('Ctrl+PageDown').equal(new Shortcut(true, false, false, false, KeyCode.PageDown)), true);
+            assert.strictEqual(Shortcut.fromString('Shift+Alt+0').equal(new Shortcut(false, true, true, false, KeyCode.Digit0)), true);
+
+            assert.strictEqual(Shortcut.fromString('Shift+Tab+0').equal(Shortcut.None), true);
+            assert.strictEqual(Shortcut.fromString('abc').equal(Shortcut.None), true);
+            assert.strictEqual(Shortcut.fromString('Ctrl+abc').equal(Shortcut.None), true);
+            assert.strictEqual(Shortcut.fromString('ctrl').equal(Shortcut.None), true);
+            assert.strictEqual(Shortcut.fromString('00').equal(Shortcut.None), true);
+        });
+
     });
 
 });
