@@ -68,6 +68,7 @@ export const EVENT_EMITTER = new EventEmitter();
  *  - {@link PauseableEmitter}
  *  - {@link DelayableEmitter}
  *  - {@link SignalEmitter}
+ *  - {@link AsyncEmitter}
  * 
  *  - {@namespace Event}
  ******************************************************************************/
@@ -96,6 +97,39 @@ export interface AsyncRegister<T> {
     (listener: AsyncListener<T>, disposables?: IDisposable[]): IDisposable;
 }
 
+export interface IEmitter<T> {
+
+    /**
+     * @description For the purpose of registering new listener.
+     * 
+     * @warn If the emitter is already disposed, an error will throw.
+     * @returns A register (a function) that requires a listener (callback) to 
+     * be registered.
+     */
+    registerListener: Register<T>;
+    
+    /**
+     * @description Fires the event T and notifies all the registered listeners.
+     * 
+     * @note fire() guarantees all the registered listeners (callback) will be 
+     * invoked / notified. Any errors will be stored and returned as an array.
+     * 
+     * @param event The event T to be notified to all listeners.
+     * @returns An array of errors.
+     */
+    fire(event: T): any[];
+    
+    /**
+     * @description Disposes the whole event emitter. All the registered 
+     * listeners will be cleaned. 
+     * 
+     * @warn Registering a listener after dispose() is invoked will throw an 
+     * error.
+     */
+    dispose(): void;
+
+}
+
 /**
  * @readonly An event emitter binds to a specific event T. All the listeners who 
  * is listening to the event T will be notified once the event occurs.
@@ -106,21 +140,14 @@ export interface AsyncRegister<T> {
  * To trigger the event occurs and notifies all the listeners, use this.fire(event) 
  * where `event` is the type T.
  */
-export class Emitter<T> implements IDisposable {
+export class Emitter<T> implements IDisposable, IEmitter<T> {
     
     private _disposed: boolean = false;
-    private _listeners: List<Listener<T>> = new List();
+    protected _listeners: List<Listener<T>> = new List();
 
     /** @readonly Using function closures here. */
     private _register?: Register<T>;
 	
-    /**
-     * @description For the purpose of registering new listener.
-     * 
-     * @warn If the emitter is already disposed, an error will throw.
-     * @returns A register (a function) that requires a listener (callback) to 
-     * be registered.
-     */
     get registerListener(): Register<T> {
         
         // cannot register to a disposed emitter
@@ -154,15 +181,6 @@ export class Emitter<T> implements IDisposable {
 		return this._register;
     }
 
-    /**
-     * @description Fires the event T and notifies all the registered listeners.
-     * 
-     * @note fire() guarantees all the registered listeners (callback) will be 
-     * invoked / notified. Any errors will be stored and returned as an array.
-     * 
-     * @param event The event T to be notified to all listeners.
-     * @returns An array of errors.
-     */
     public fire(event: T): any[] {
 		
         const errors: any[] = [];
@@ -178,13 +196,6 @@ export class Emitter<T> implements IDisposable {
         return errors;
 	}
 
-    /**
-     * @description Disposes the whole event emitter. All the registered 
-     * listeners will be cleaned. 
-     * 
-     * @warn Registering a listener after dispose() is invoked will throw an 
-     * error.
-     */
     public dispose(): void {
 		if (!this._disposed) {
 			this._disposed = true;
@@ -336,54 +347,18 @@ export class SignalEmitter<T, E> extends Emitter<E> {
 }
 
 /**
- * @class Same as {@link Emitter<T>} except that `fire()` is replaced by `fireAsync()`.
+ * @class Same as {@link Emitter<T>} with extra method `fireAsync()`.
  */
-export class AsyncEmitter<T> implements IDisposable {
+export class AsyncEmitter<T> extends Emitter<T> {
 
-    private _disposed: boolean = false;
-    private _listeners: List<AsyncListener<T> | Listener<T>> = new List();
-
-    private _asyncRegister?: AsyncRegister<T> | Register<T>;
-
-    get registerListener(): AsyncRegister<T> | Register<T> {
-        
-        if (this._disposed) {
-            throw new Error('emitter is already disposed, cannot register a new listener');
-        }
-
-        if (this._asyncRegister === undefined) {
-			this._asyncRegister = (listener: AsyncListener<T> | Listener<T>, disposables?: IDisposable[]) => {
-				
-        		const node = this._listeners.push_back(listener);
-                let removed = false;
-
-        		const unRegister = toDisposable(() => {
-					if (!this._disposed && removed === false) {
-						this._listeners.remove(node);
-                        removed = true;
-					}
-				});
-
-				if (disposables) {
-					disposables.push(unRegister);
-				}
-
-				return unRegister;
-			};
-		}
-        
-		return this._asyncRegister;
+    constructor() {
+        super();
     }
 
-    /**
-     * @description Fires the event T and notifies all the registered listeners
-     * using event loop (async).
-     */
     public async fireAsync(event: T): Promise<any[]> {
-		
         const errors: any[] = [];
 
-        for (const listener of this._listeners) {
+        for (const listener of this._listeners as List<AsyncListener<T>>) {
             try {
                 await listener(event);
             } catch (e) {
@@ -392,14 +367,7 @@ export class AsyncEmitter<T> implements IDisposable {
         }
 
         return errors;
-	}
-
-    public dispose(): void {
-		if (!this._disposed) {
-			this._disposed = true;
-			this._listeners.clear();
-		}
-	}
+    }
 
 }
 

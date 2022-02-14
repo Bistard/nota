@@ -1,6 +1,7 @@
 import * as assert from 'assert';
+import { delayFor } from 'src/base/common/async';
 import { IDisposable } from 'src/base/common/dispose';
-import { DelayableEmitter, Emitter, Event, PauseableEmitter, SignalEmitter } from 'src/base/common/event';
+import { AsyncEmitter, DelayableEmitter, Emitter, Event, PauseableEmitter, SignalEmitter } from 'src/base/common/event';
 
 suite('event-test', () => {
 
@@ -227,6 +228,45 @@ suite('event-test', () => {
         result = false;
         consumed1.fire('abcde');
         assert.strictEqual(result, false);
+    });
+
+    test('asyncEmitter - all sync', () => {
+        let result = 0;
+        const loop = 100;
+        const emitter = new AsyncEmitter<void>();
+        
+        emitter.registerListener(() => { for (let i = 0; i < loop; i++) result++; });
+        emitter.registerListener(() => { for (let i = 0; i < loop; i++) result++; });
+        emitter.registerListener(() => { for (let i = 0; i < loop; i++) result++; });
+        emitter.fire();
+
+        assert.strictEqual(result, 300);
+    });
+
+    test('asyncEmitter - all async', async () => {
+        let result = 0;
+        const loop = 100;
+        const emitter = new AsyncEmitter<void>();
+        
+        emitter.registerListener(async () => { for (let i = 0; i < loop; i++) result++; });
+        emitter.registerListener(async () => { for (let i = 0; i < loop; i++) result++; });
+        emitter.registerListener(async () => { for (let i = 0; i < loop; i++) result++; });
+        await emitter.fireAsync();
+
+        assert.strictEqual(result, 300);
+    });
+
+    test('asyncEmitter - partial async', async () => {
+        let result = 0;
+        const loop = 100;
+        const emitter = new AsyncEmitter<void>();
+        
+        emitter.registerListener(() => { for (let i = 0; i < loop; i++) result++; });
+        emitter.registerListener(async () => { for (let i = 0; i < loop; i++) result++; });
+        emitter.registerListener(() => { for (let i = 0; i < loop; i++) result++; });
+        await emitter.fireAsync();
+
+        assert.strictEqual(result, 300);
     });
 
     test('Event::map()', () => {
