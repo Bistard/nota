@@ -6,7 +6,17 @@ import { ServiceCollection } from "src/code/common/service/instantiationService/
 
 export const IInstantiationService = createDecorator<IInstantiationService>('instantiation-service');
 
-export interface IInstantiationService {
+export interface IServiceProvider {
+    /**
+     * @description try to get the instance of the service (if not, this will 
+     * not automatically create one for you YET).
+     * 
+     * @param serviceIdentifier serviceIdentifier to that service
+     */
+    getService<T>(serviceIdentifier: ServiceIdentifier<T>): T | null;
+}
+
+export interface IInstantiationService extends IServiceProvider {
     
     readonly serviceCollections: ServiceCollection;
 
@@ -18,14 +28,6 @@ export interface IInstantiationService {
      * @param instanceOrDescriptor instance or ServiceDescriptor of the service
      */
     register<T>(serviceIdentifier: ServiceIdentifier<T>, instanceOrDescriptor: T | ServiceDescriptor<T>): void;
-
-    /**
-     * @description try to get the instance of the service (if not, this will 
-     * not automatically create one for you YET).
-     * 
-     * @param serviceIdentifier serviceIdentifier to that service
-     */
-    getService<T>(serviceIdentifier: ServiceIdentifier<T>): T | null;
 
     /**
      * @description passing into a constructor or a ServiceDescriptor<any> to 
