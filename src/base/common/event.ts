@@ -232,13 +232,16 @@ export class DomEmitter<T> implements IDisposable {
 /**
  * @class An {@link Emitter} that is pauseable and resumable. Note that 
  * when the emitter is paused, the event will not be saved.
+ * 
+ * @note Default is NOT paused.
  */
 export class PauseableEmitter<T> extends Emitter<T> {
 
-    private _paused: boolean = false;
+    private _paused: boolean;
 
-    constructor() {
+    constructor(activate: boolean = false) {
         super();
+        this._paused = activate;
     }
 
     public pause(): void {
