@@ -1,4 +1,49 @@
 
+export type KeyboardModifier = 'Ctrl' | 'Shift' | 'Alt' | 'Meta';
+
+/**
+ * @description A collection of helper functions that relates to {@link KeyCode}.
+ */
+export namespace Keyboard {
+
+    /**
+     * @description Determines if the given key is {@link KeyboardModifier}.
+     * @param key The given {@link KeyCode}.
+     */
+    export function isModifier(key: KeyCode): boolean {
+        switch (key) {
+            case KeyCode.Ctrl:
+            case KeyCode.Shift:
+            case KeyCode.Alt:
+            case KeyCode.Meta:
+                return true;
+            default:
+                return false;
+        }
+    }
+
+    /**
+     * @description Returns the string form of the {@link KeyCode}.
+     * @param key The given keycode.
+     */
+    export function toString(key: KeyCode): string {
+        return keyCodeStringMap.getString(key);
+    }
+
+    /**
+     * @description Returns the corresponding {@link KeyCode}.
+     * @param key The string form of the keycode or {@link KeyboardEvent.keycode}.
+     */
+    export function toKeyCode(strkeyOrEventkey: string | number): KeyCode {
+        if (typeof strkeyOrEventkey === 'string') {
+            return keyCodeStringMap.getKeyCode(strkeyOrEventkey);
+        } else {
+            return keyCodeMap.map[strkeyOrEventkey] || KeyCode.None;
+        }
+    }
+
+}
+
 /**
  * The standard keyboard event used acroess the application .
  * (replace {@link KeyboardEvent}).
@@ -27,7 +72,7 @@ export interface IStandardKeyboardEvent {
  * @param event The original {@link KeyboardEvent}.
  */
 export function createStandardKeyboardEvent(event: KeyboardEvent): IStandardKeyboardEvent {
-    const keycode = getKeyCode(event.keyCode);
+    const keycode = Keyboard.toKeyCode(event.keyCode);
 
     return {
         browserEvent: event,
@@ -54,15 +99,6 @@ export function createStandardKeyboardEvent(event: KeyboardEvent): IStandardKeyb
 }
 
 /**
- * @description Given the keycode number from {@link KeyboardEvent}, returns the
- * corresponding {@link KeyCode}.
- * @param eventKeyCode {@link KeyboardEvent.keycode}
- */
-export function getKeyCode(eventKeyCode: number): KeyCode {
-    return keyCodeMap.map[eventKeyCode] || KeyCode.Unknown;
-}
-
-/**
  * @class A simple class that represents a key binding and treated as shortcut.
  */
 export class Shortcut {
@@ -81,16 +117,56 @@ export class Shortcut {
         this.key = key;
     }
 
+    /**
+     * @description Compares if the two shortcuts are the same.
+     * @param other The other shortcut.
+     */
     public equal(other: Shortcut): boolean {
-        return false;
+        return this.ctrl === other.ctrl && 
+               this.shift === other.shift && 
+               this.alt === other.alt && 
+               this.meta === other.meta && 
+               this.key === other.key;
     }
 
+    /**
+     * @description Returns the string form of the shortcut.
+     * @example 'ctrl+shift+alt+D', 'ctrl+PageDown', 'alt+RightArrow', etc...
+     */
     public toString(): string {
-        const ctrl = this.ctrl ? '1' : '0';
-        const shift = this.ctrl ? '1' : '0';
-        const alt = this.ctrl ? '1' : '0';
-        const meta = this.ctrl ? '1' : '0';
-        return ctrl + shift + alt + meta + this.key.toString();
+        let mask = 0;
+        const result: string[] = [];
+        
+        if (this.ctrl) {
+            mask |= KeyCode.Ctrl;
+            result.push('Ctrl');
+        }
+        if (this.shift) {
+            mask |= KeyCode.Shift;
+            result.push('Shift');
+        }
+        if (this.alt) {
+            mask |= KeyCode.Alt;
+            result.push('Alt');
+        }
+        if (this.meta) {
+            mask |= KeyCode.Meta;
+            result.push('Meta');
+        }
+        
+        if ((!Keyboard.isModifier(this.key) || (this.key | mask) !== mask) && 
+            this.key !== KeyCode.None) 
+        {
+            const key = Keyboard.toString(this.key);
+            result.push(key);
+        }
+        
+        return result.join('+');
+    }
+    
+    public static fromString(string: string): Shortcut {
+        // TODO
+        return new Shortcut(false, false, false, false, KeyCode.None);
     }
 
 }
@@ -101,7 +177,6 @@ export class Shortcut {
  */
 export const enum KeyCode {
     
-    Unknown = -1,
     None = 0,
 
     F1,          // F1
@@ -212,14 +287,15 @@ export const enum KeyCode {
 }
 
 /**
- * @internal
+ * @internal A mapping from the numerical value to {@link KeyCode}.
  */
 class KeyCodeMap {
-    public map: { [keyCode: number]: KeyCode } = new Array(150);
+    public map: { [keyCode: number]: KeyCode } = new Array(250);
 }
 
 /**
- * @internal
+ * @internal A mapping either from {@link KeyCode} to the string form of keycode 
+ * OR string to {@link KeyCode}.
  */
 class KeyCodeStringMap {
 
@@ -233,11 +309,11 @@ class KeyCodeStringMap {
         this.strToCode[str] = code;
     }
 
-    public keyCode(str: string): KeyCode {
-        return this.strToCode[str] || KeyCode.Unknown;
+    public getKeyCode(str: string): KeyCode {
+        return this.strToCode[str] || KeyCode.None;
     }
 
-    public string(code: KeyCode): string {
+    public getString(code: KeyCode): string {
         return this.codeToStr[code] || '';
     }
 }
@@ -248,8 +324,7 @@ const keyCodeStringMap = new KeyCodeStringMap();
 
 /** @internal */
 [
-    [KeyCode.Unknown, 0, 'unknown'],
-    [KeyCode.None,    0, 'none'],
+    [KeyCode.None,    0, 'None'],
     
     [KeyCode.F1,  112, 'F1'],
     [KeyCode.F2,  113, 'F2'],
