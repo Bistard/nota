@@ -1,14 +1,12 @@
-import { INoteBookManagerService, LOCAL_MDNOTE_DIR_NAME, NoteBookManager } from "src/code/common/model/notebookManager";
-import { ipcRendererOn, ipcRendererSend } from "src/base/electron/register";
+import { INoteBookManagerService, NoteBookManager } from "src/code/common/model/notebookManager";
+import { ipcRendererOn } from "src/base/electron/register";
 import { ContextMenuService, IContextMenuService } from 'src/code/browser/service/contextMenuService';
 import { IInstantiationService } from "src/code/common/service/instantiationService/instantiation";
 import { ServiceDescriptor } from "src/code/common/service/instantiationService/descriptor";
 import { IComponentService } from "src/code/browser/service/componentService";
 import { getSingletonServiceDescriptors } from "src/code/common/service/instantiationService/serviceCollection";
-import { DEFAULT_CONFIG_FILE_NAME, DEFAULT_CONFIG_PATH, GLOBAL_CONFIG_FILE_NAME, GLOBAL_CONFIG_PATH, IGlobalConfigService, IUserConfigService, LOCAL_CONFIG_FILE_NAME } from "src/code/common/service/configService/configService";
-import { URI } from "src/base/common/file/uri";
-import { resolve } from "src/base/common/file/path";
-import { EGlobalSettings, IGlobalApplicationSettings, IGlobalNotebookManagerSettings } from "src/code/common/service/configService/configService";
+import { IGlobalConfigService, IUserConfigService } from "src/code/common/service/configService/configService";
+import { EGlobalSettings, IGlobalApplicationSettings } from "src/code/common/service/configService/configService";
 import { WorkbenchLayout } from "src/code/browser/workbench/layout";
 import { i18n, Ii18nOpts, Ii18nService } from "src/code/platform/i18n/i18n";
 import { IFileService } from "src/code/common/service/fileService/fileService";
@@ -22,10 +20,9 @@ export class Workbench extends WorkbenchLayout {
     private _noteBookManager!: NoteBookManager;
 
     constructor(
-        instantiationService: IInstantiationService,
-        componentService: IComponentService,
-        private readonly globalConfigService: IGlobalConfigService,
-        private readonly userConfigService: IUserConfigService,
+        @IInstantiationService instantiationService: IInstantiationService,
+        @IComponentService componentService: IComponentService,
+        @IGlobalConfigService private readonly globalConfigService: IGlobalConfigService,
     ) {
         super(instantiationService, componentService);
 
@@ -37,7 +34,7 @@ export class Workbench extends WorkbenchLayout {
         });
     }
 
-    public async initServices(): Promise<void> {
+    protected async initServices(): Promise<void> {
 
         // initializes all the singleton dependencies
         for (const [serviceIdentifer, serviceDescriptor] of getSingletonServiceDescriptors()) {
@@ -88,32 +85,6 @@ export class Workbench extends WorkbenchLayout {
         
         this.registerLayout();
 
-        // once the main process notifies this renderer process, we try to 
-        // finish the following job.
-        ipcRendererOn('closingApp', () => {
-            
-            // get notebook configuration
-            const notebookConfig = this.globalConfigService.get<IGlobalNotebookManagerSettings>(EGlobalSettings.NotebookManager);
-            
-            // save global configuration first
-            notebookConfig.previousNoteBookManagerDir = this._noteBookManager.getRootPath();
-            this.globalConfigService.save(URI.fromFile(resolve(GLOBAL_CONFIG_PATH, LOCAL_MDNOTE_DIR_NAME, GLOBAL_CONFIG_FILE_NAME)))
-            .then(() => {
-                // get application configuration
-                const appConfig = this.globalConfigService.get<IGlobalApplicationSettings>(EGlobalSettings.Application);
-                
-                // save `user.config.json`
-                if (appConfig.defaultConfigOn) {
-                    return this.userConfigService.save(URI.fromFile(resolve(DEFAULT_CONFIG_PATH, LOCAL_MDNOTE_DIR_NAME, DEFAULT_CONFIG_FILE_NAME)));
-                }
-                return this.userConfigService.save(URI.fromFile(resolve(this._noteBookManager.getRootPath(), LOCAL_MDNOTE_DIR_NAME, LOCAL_CONFIG_FILE_NAME)));
-            })
-            .then(() => {
-                ipcRendererSend('rendererReadyForClosingApp');
-            });
-
-        });
-
         this.container.addEventListener('click', (ev: MouseEvent) => {
             const service = this.instantiationService.getService(IContextMenuService);
             if (service) {
@@ -128,7 +99,7 @@ export class Workbench extends WorkbenchLayout {
             if (service) {
                 service.removeContextMenu();
             }
-        })
+        });
 
     }
 

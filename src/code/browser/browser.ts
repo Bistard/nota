@@ -9,6 +9,7 @@ import { GlobalConfigService, IGlobalConfigService, IUserConfigService, UserConf
 import { Schemas } from "src/base/common/file/uri";
 import { DiskFileSystemProvider } from "src/base/node/diskFileSystemProvider";
 import { LogLevel } from "src/code/common/service/logService/abstractLogService";
+import { IIpcService, IpcService } from "src/code/browser/service/ipcService";
 
 /**
  * @class This the main entry in the renderer process.
@@ -30,8 +31,7 @@ export class Browser {
     private startUp(): void {
         this.initServices().then(() => {
 
-            this.workbench = new Workbench(this.instantiationService, this.componentService, this.globalConfigService, this.userConfigService);
-            
+            this.workbench = this.instantiationService.createInstance(Workbench);
             this.registerListeners();
 
         });
@@ -45,6 +45,9 @@ export class Browser {
 
         // InstantiationService (itself)
         this.instantiationService.register(IInstantiationService, this.instantiationService);
+
+        // IpcService
+        this.instantiationService.register(IIpcService, new ServiceDescriptor(IpcService));
 
         // fileService
         this.fileService = new FileService();
@@ -73,7 +76,7 @@ export class Browser {
     }
 
     private registerListeners(): void {
-        // none for now
+        // empty for now
     }
 
 }

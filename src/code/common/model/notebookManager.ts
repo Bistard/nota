@@ -2,8 +2,9 @@ import { EVENT_EMITTER } from "src/base/common/event";
 import { resolve } from "src/base/common/file/path";
 import { URI } from "src/base/common/file/uri";
 import { createDir, createFile, dirFilter, isDirExisted, isFileExisted } from "src/base/node/io";
+import { IIpcService } from "src/code/browser/service/ipcService";
 import { NoteBook } from "src/code/common/model/notebook";
-import { EGlobalSettings, EUserSettings, IGlobalApplicationSettings, IGlobalNotebookManagerSettings, IUserNotebookManagerSettings } from "src/code/common/service/configService/configService";
+import { DEFAULT_CONFIG_PATH, EGlobalSettings, EUserSettings, GLOBAL_CONFIG_FILE_NAME, GLOBAL_CONFIG_PATH, IGlobalApplicationSettings, IGlobalNotebookManagerSettings, IUserNotebookManagerSettings } from "src/code/common/service/configService/configService";
 import { DEFAULT_CONFIG_FILE_NAME, IUserConfigService, LOCAL_CONFIG_FILE_NAME } from "src/code/common/service/configService/configService";
 import { IGlobalConfigService } from "src/code/common/service/configService/configService";
 import { createDecorator } from "src/code/common/service/instantiationService/decorator";
@@ -47,9 +48,13 @@ export class NoteBookManager implements INoteBookManagerService {
     constructor(
         @IGlobalConfigService private readonly globalConfigService: IGlobalConfigService,
         @IUserConfigService private readonly userConfigService: IUserConfigService,
+        @IIpcService private readonly ipcService: IIpcService,
+        
     ) {
         this.noteBookMap = new Map<string, NoteBook>();
         this.mdNoteFolderFound = false;
+
+        this.ipcService.onApplicationClose(async () => this.__onApplicationClose());
     }
 
     /**
@@ -57,7 +62,7 @@ export class NoteBookManager implements INoteBookManagerService {
      * 'mdnote.config.json' at application root directory. NoteBookManager will
      * either do nothing or start the most recent opened directory.
      */
-public async init(): Promise<void> {
+    public async init(): Promise<void> {
 
         try {
             const config = this.globalConfigService.get<IGlobalNotebookManagerSettings>(EGlobalSettings.NotebookManager);
@@ -255,6 +260,29 @@ public async init(): Promise<void> {
 
     public getRootPath(): string {
         return this._noteBookManagerRootPath;
+    }
+
+    /**
+     * @description Invokes when the application is about to be closed.
+     */
+    private async __onApplicationClose(): Promise<void> {
+        
+        // get notebook configuration
+        const notebookConfig = this.globalConfigService.get<IGlobalNotebookManagerSettings>(EGlobalSettings.NotebookManager);
+            
+        // save global configuration first
+        notebookConfig.previousNoteBookManagerDir = this.getRootPath();
+        await this.globalConfigService.save(URI.fromFile(resolve(GLOBAL_CONFIG_PATH, LOCAL_MDNOTE_DIR_NAME, GLOBAL_CONFIG_FILE_NAME)));
+        
+        // get application configuration
+        const appConfig = this.globalConfigService.get<IGlobalApplicationSettings>(EGlobalSettings.Application);
+        
+        // save `user.config.json`
+        if (appConfig.defaultConfigOn) {
+            await this.userConfigService.save(URI.fromFile(resolve(DEFAULT_CONFIG_PATH, LOCAL_MDNOTE_DIR_NAME, DEFAULT_CONFIG_FILE_NAME)));
+        }
+        await this.userConfigService.save(URI.fromFile(resolve(this.getRootPath(), LOCAL_MDNOTE_DIR_NAME, LOCAL_CONFIG_FILE_NAME)));
+        
     }
 
 }
