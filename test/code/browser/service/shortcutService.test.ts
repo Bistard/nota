@@ -1,126 +1,126 @@
-import * as assert from 'assert';
-import { Emitter, Register } from 'src/base/common/event';
-import { IStandardKeyboardEvent, KeyCode, Shortcut } from 'src/base/common/keyboard';
-import { IKeyboardService } from 'src/code/browser/service/keyboardService';
-import { ShortcutService } from 'src/code/browser/service/shortcutService';
-import { FileService } from 'src/code/common/service/fileService/fileService';
+// import * as assert from 'assert';
+// import { Emitter, Register } from 'src/base/common/event';
+// import { IStandardKeyboardEvent, KeyCode, Shortcut } from 'src/base/common/keyboard';
+// import { IKeyboardService } from 'src/code/browser/service/keyboardService';
+// import { ShortcutService } from 'src/code/browser/service/shortcutService';
+// import { FileService } from 'src/code/common/service/fileService/fileService';
 
-class TestKeyboardService implements IKeyboardService {
+// class TestKeyboardService implements IKeyboardService {
 
-    private emitter: Emitter<IStandardKeyboardEvent> = new Emitter();
+//     private emitter: Emitter<IStandardKeyboardEvent> = new Emitter();
 
-    constructor() {
+//     constructor() {
         
-    }
+//     }
 
-    public fire(event: IStandardKeyboardEvent): void {
-        this.emitter.fire(event);
-    }
+//     public fire(event: IStandardKeyboardEvent): void {
+//         this.emitter.fire(event);
+//     }
 
-    get onKeydown(): Register<IStandardKeyboardEvent> {
-        return this.emitter.registerListener;
-    }
+//     get onKeydown(): Register<IStandardKeyboardEvent> {
+//         return this.emitter.registerListener;
+//     }
     
-    get onKeyup(): Register<IStandardKeyboardEvent> {
-        return this.emitter.registerListener;
-    }
+//     get onKeyup(): Register<IStandardKeyboardEvent> {
+//         return this.emitter.registerListener;
+//     }
 
-    dispose(): void {
-        this.emitter.dispose();
-    }
+//     dispose(): void {
+//         this.emitter.dispose();
+//     }
 
-}
+// }
 
-suite('shortcutService-test', () => {
+// suite('shortcutService-test', () => {
 
-    test('register and unregister', () => {
+//     test('register and unregister', () => {
         
-        let pressed = 0;
+//         let pressed = 0;
 
-        const windowFocusOnChange = new Emitter<boolean>();
+//         const windowFocusOnChange = new Emitter<boolean>();
         
-        const keyboardService = new TestKeyboardService();
-        const fileService = new FileService();
-        const shortcutService = new ShortcutService(keyboardService, fileService);
+//         const keyboardService = new TestKeyboardService();
+//         const fileService = new FileService();
+//         const shortcutService = new ShortcutService(keyboardService, fileService);
         
-        const shortcut = new Shortcut(true, false, false, false, KeyCode.Space);
+//         const shortcut = new Shortcut(true, false, false, false, KeyCode.Space);
         
-        shortcutService.register(shortcut, windowFocusOnChange.registerListener, () => pressed++);
-        keyboardService.fire({
-            ctrl: true,
-            alt: false,
-            shift: false,
-            meta: false,
-            key: KeyCode.Space,
-            browserEvent: null as unknown as KeyboardEvent,
-            target: null as unknown as HTMLElement,
-            preventDefault: () => {},
-            stopPropagation: () => {},
-        });
+//         shortcutService.register(shortcut, windowFocusOnChange.registerListener, () => pressed++);
+//         keyboardService.fire({
+//             ctrl: true,
+//             alt: false,
+//             shift: false,
+//             meta: false,
+//             key: KeyCode.Space,
+//             browserEvent: null as unknown as KeyboardEvent,
+//             target: null as unknown as HTMLElement,
+//             preventDefault: () => {},
+//             stopPropagation: () => {},
+//         });
 
-        assert.strictEqual(pressed, 0);
+//         assert.strictEqual(pressed, 0);
 
-        windowFocusOnChange.fire(true);
-        keyboardService.fire({
-            ctrl: true,
-            alt: false,
-            shift: false,
-            meta: false,
-            key: KeyCode.Space,
-            browserEvent: null as unknown as KeyboardEvent,
-            target: null as unknown as HTMLElement,
-            preventDefault: () => {},
-            stopPropagation: () => {},
-        });
+//         windowFocusOnChange.fire(true);
+//         keyboardService.fire({
+//             ctrl: true,
+//             alt: false,
+//             shift: false,
+//             meta: false,
+//             key: KeyCode.Space,
+//             browserEvent: null as unknown as KeyboardEvent,
+//             target: null as unknown as HTMLElement,
+//             preventDefault: () => {},
+//             stopPropagation: () => {},
+//         });
 
-        assert.strictEqual(pressed, 1);
+//         assert.strictEqual(pressed, 1);
 
-        windowFocusOnChange.fire(false);
-        keyboardService.fire({
-            ctrl: true,
-            alt: false,
-            shift: false,
-            meta: false,
-            key: KeyCode.Space,
-            browserEvent: null as unknown as KeyboardEvent,
-            target: null as unknown as HTMLElement,
-            preventDefault: () => {},
-            stopPropagation: () => {},
-        });
+//         windowFocusOnChange.fire(false);
+//         keyboardService.fire({
+//             ctrl: true,
+//             alt: false,
+//             shift: false,
+//             meta: false,
+//             key: KeyCode.Space,
+//             browserEvent: null as unknown as KeyboardEvent,
+//             target: null as unknown as HTMLElement,
+//             preventDefault: () => {},
+//             stopPropagation: () => {},
+//         });
 
-        assert.strictEqual(pressed, 1);
+//         assert.strictEqual(pressed, 1);
 
-        windowFocusOnChange.fire(true);
-        keyboardService.fire({
-            ctrl: true,
-            alt: false,
-            shift: false,
-            meta: false,
-            key: KeyCode.Space,
-            browserEvent: null as unknown as KeyboardEvent,
-            target: null as unknown as HTMLElement,
-            preventDefault: () => {},
-            stopPropagation: () => {},
-        });
+//         windowFocusOnChange.fire(true);
+//         keyboardService.fire({
+//             ctrl: true,
+//             alt: false,
+//             shift: false,
+//             meta: false,
+//             key: KeyCode.Space,
+//             browserEvent: null as unknown as KeyboardEvent,
+//             target: null as unknown as HTMLElement,
+//             preventDefault: () => {},
+//             stopPropagation: () => {},
+//         });
 
-        assert.strictEqual(pressed, 2);
+//         assert.strictEqual(pressed, 2);
 
-        shortcutService.unRegister(shortcut);
-        keyboardService.fire({
-            ctrl: true,
-            alt: false,
-            shift: false,
-            meta: false,
-            key: KeyCode.Space,
-            browserEvent: null as unknown as KeyboardEvent,
-            target: null as unknown as HTMLElement,
-            preventDefault: () => {},
-            stopPropagation: () => {},
-        });
+//         shortcutService.unRegister(shortcut);
+//         keyboardService.fire({
+//             ctrl: true,
+//             alt: false,
+//             shift: false,
+//             meta: false,
+//             key: KeyCode.Space,
+//             browserEvent: null as unknown as KeyboardEvent,
+//             target: null as unknown as HTMLElement,
+//             preventDefault: () => {},
+//             stopPropagation: () => {},
+//         });
 
-        assert.strictEqual(pressed, 2);
+//         assert.strictEqual(pressed, 2);
 
 
-    });
+//     });
 
-});
+// });
