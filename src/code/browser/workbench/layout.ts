@@ -1,18 +1,40 @@
 import { Button } from "src/base/browser/basic/button/button";
 import { ISashEvent, Sash } from "src/base/browser/basic/sash/sash";
 import { Orientation } from "src/base/common/dom";
+import { Emitter, Register } from "src/base/common/event";
 import { IComponentService } from "src/code/browser/service/componentService";
 import { ActionBarComponent, ActionType } from "src/code/browser/workbench/actionBar/actionBar";
 import { ActionViewComponent } from "src/code/browser/workbench/actionView/actionView";
 import { Component, ComponentType, ICreateable } from "src/code/browser/workbench/component";
 import { EditorComponent } from "src/code/browser/workbench/editor/editor";
+import { createDecorator } from "src/code/common/service/instantiationService/decorator";
 import { IInstantiationService } from "src/code/common/service/instantiationService/instantiation";
+
+export const IWorkbenchLayoutService = createDecorator<IWorkbenchLayoutService>('workbench-layout-service');
+
+export interface IWorkbenchLayoutService {
+
+    /**
+     * Fires when the essential UI components are finished rendering.
+     */
+    onDidFinishLayout: Register<void>;
+
+}
 
 /**
  * @description A base class for Workbench to create and manage the behaviour of
  * each sub-component.
  */
-export abstract class WorkbenchLayout extends Component {
+export abstract class WorkbenchLayout extends Component implements IWorkbenchLayoutService {
+
+    // [events]
+
+    // TODO: fullscreen emitter
+
+    protected _onDidFinishLayout: Emitter<void> = this.__register(new Emitter<void>());
+    public onDidFinishLayout: Register<void> = this._onDidFinishLayout.registerListener;
+
+    // [fields]
 
     protected actionBarComponent!: ActionBarComponent;
     protected actionViewComponent!: ActionViewComponent;
@@ -21,12 +43,16 @@ export abstract class WorkbenchLayout extends Component {
     protected sashContainer: HTMLElement | undefined;
     protected sashMap = new Map<string, Sash>();
 
+    // [constructor]
+    
     constructor(
         protected readonly instantiationService: IInstantiationService,
         componentService: IComponentService
     ) {
         super(ComponentType.Workbench, null, document.body, componentService);
     }
+
+    // [protected methods]
 
     protected createLayout(): void {
         
@@ -95,9 +121,7 @@ export abstract class WorkbenchLayout extends Component {
         });
     }
 
-    /***************************************************************************
-     * Private Helper Functions
-     **************************************************************************/
+    // [private helper functions]
 
     private _registerSash(id: string, sash: Sash): Sash {
         this.sashMap.set(id, sash);
