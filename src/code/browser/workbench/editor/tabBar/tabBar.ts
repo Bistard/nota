@@ -282,7 +282,7 @@ export class TabBarComponent extends Component implements ITabBarComponent {
         
         // switch tab forwards
         this.shortcutService.register({
-            commandID: 'Tabbar.switch-tab-forward',
+            commandID: 'tabbar.switch-tab-forward',
             whenID: '',
             shortcut: new Shortcut(true, false, false, false, KeyCode.Tab),
             when: null,
@@ -298,7 +298,7 @@ export class TabBarComponent extends Component implements ITabBarComponent {
         
         // switch tab backwards
         this.shortcutService.register({
-            commandID: 'Tabbar.switch-tab-backward',
+            commandID: 'tabbar.switch-tab-backward',
             whenID: '',
             shortcut: new Shortcut(true, true, false, false, KeyCode.Tab),
             when: null,
@@ -314,7 +314,7 @@ export class TabBarComponent extends Component implements ITabBarComponent {
         
         // close current focused tab
         this.shortcutService.register({
-            commandID: 'Tabbar.close-current-tab',
+            commandID: 'tabbar.close-current-tab',
             whenID: '',
             shortcut: new Shortcut(true, false, false, false, KeyCode.KeyW),
             when: null,

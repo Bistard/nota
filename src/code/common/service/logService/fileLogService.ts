@@ -1,12 +1,13 @@
 import { APP_ROOT_PATH } from "src/base/electron/app";
 import { AbstractLogService, IAbstractLogService, ILogInfo, LogLevel } from "src/code/common/service/logService/abstractLogService";
-import { NoteBookManager } from "src/code/common/model/notebookManager";
+import { LOCAL_MDNOTE_DIR_NAME } from "src/code/common/model/notebookManager";
 import { createDecorator } from "src/code/common/service/instantiationService/decorator";
 import { EGlobalSettings, IGlobalApplicationSettings, IGlobalConfigService } from "src/code/common/service/configService/configService";
 import { FileService, IFileService } from 'src/code/common/service/fileService/fileService';
 import { URI } from "src/base/common/file/uri";
 import { getCurrentFormatDate } from "src/base/common/date";
 import { DataBuffer } from "src/base/common/file/buffer";
+import { resolve } from "src/base/common/file/path";
 
 export const IFileLogService = createDecorator<IFileLogService>('file-log-service');
 
@@ -94,10 +95,10 @@ export class FileLogService extends AbstractLogService<IFileLogInfo> implements 
         const globalConfig = this.globalConfigService.get<IGlobalApplicationSettings>(EGlobalSettings.Application);
         const defaultConfigOn = globalConfig.defaultConfigOn;
         if (defaultConfigOn) {
-            this.path = URI.fromFile(APP_ROOT_PATH);
+            this.path = URI.fromFile(resolve(APP_ROOT_PATH, LOCAL_MDNOTE_DIR_NAME));
         } else {
             // FIXME
-            this.path = URI.fromFile(APP_ROOT_PATH);
+            this.path = URI.fromFile(resolve(APP_ROOT_PATH, LOCAL_MDNOTE_DIR_NAME));
             // undefined
             // this.path = URI.fromFile(NoteBookManager.rootPath); 
         }
