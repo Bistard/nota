@@ -20,7 +20,7 @@ class Main {
      * @description instantiates the winMain and seutup a few window relevant.
      * listeners.
      */
-    createWindow(): void {
+    public createWindow(): void {
         app.whenReady().then(() => {
 
             this.winMain = new BrowserWindow({
@@ -135,7 +135,6 @@ class Main {
                 this.winMain!.webContents.reload(); 
             });
         
-            // only for testing purpose, can be removed in release version
             ipcMain.on(IpcCommand.Test, (_event, data) => {
                 console.log(data);
             });
@@ -148,14 +147,6 @@ class Main {
      * funcitons to handle responses or register shortcuts.
      */
     private _setListeners(): void {
-        
-        /**
-         * @readonly comments for now, not convinent for develop.
-         */
-        // This catches any unhandle promise rejection errors.
-        // process.on('unhandledRejection', (reason, p) => {
-        //    console.error(`Unhandled Rejection at: ${util.inspect(p)} reason: ${reason}`)
-        // }) 
         
         app.on('activate', () => {
             // On macOS it's common to re-create a window in the app when the
@@ -183,38 +174,9 @@ class Main {
              * individually.
              */
             
-            /**
-             * @readonly the following shortcuts mainly controlling tabBar state.
-             */
-
-            // open the next tab, if reaches the end, move to the first
-            ElectronLocalshortcut.register(this.winMain, 'Ctrl+Tab', () => {
-                this.winMain!.webContents.send('Ctrl+Tab');
-            });
-
-            // open the previous tab, if reaches the beginning, move to the end
-            ElectronLocalshortcut.register(this.winMain, 'Ctrl+Shift+Tab', () => {
-                this.winMain!.webContents.send('Ctrl+Shift+Tab');
-            });
-
-            /**
-             * @readonly handling current opened file close and write.
-             */
-
-            // close the current focused tab
-            ElectronLocalshortcut.register(this.winMain, 'Ctrl+W', () => {
-                this.winMain!.webContents.send('Ctrl+W')
-            });
-
-            // save the current changes to the current focused tab
-            ElectronLocalshortcut.register(this.winMain, 'Ctrl+S', () => {
-                this.winMain!.webContents.send('Ctrl+S');
-            });
-
-            // open previous closed tab
-            ElectronLocalshortcut.register(this.winMain, 'Ctrl+Shift+T', () => {
-                this.winMain!.webContents.send('Ctrl+Shift+T');
-            });
+            // ElectronLocalshortcut.register(this.winMain, 'Ctrl+Shift+I', () => {
+            //     this.winMain!.webContents.openDevTools();
+            // });
 
         });
 
