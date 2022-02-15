@@ -4,7 +4,7 @@ import { ServiceDescriptor } from 'src/code/common/service/instantiationService/
 import { InstantiationService } from 'src/code/common/service/instantiationService/instantiation';
 import { ServiceCollection } from 'src/code/common/service/instantiationService/serviceCollection';
 
-let IService1 = createDecorator<IService1>('service1');
+const IService1 = createDecorator<IService1>('service1');
 
 interface IService1 {
 	c: number;
@@ -14,7 +14,7 @@ class Service1 implements IService1 {
 	c = 1;
 }
 
-let IService2 = createDecorator<IService2>('service2');
+const IService2 = createDecorator<IService2>('service2');
 
 interface IService2 {
 	d: boolean;
@@ -24,7 +24,7 @@ class Service2 implements IService2 {
 	d = true;
 }
 
-let IService3 = createDecorator<IService3>('service3');
+const IService3 = createDecorator<IService3>('service3');
 
 interface IService3 {
 	s: string;
@@ -34,7 +34,7 @@ class Service3 implements IService3 {
 	s = 'farboo';
 }
 
-let IDependentService = createDecorator<IDependentService>('dependentService');
+const IDependentService = createDecorator<IDependentService>('dependentService');
 
 interface IDependentService {
 	name: string;
