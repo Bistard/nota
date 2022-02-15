@@ -239,9 +239,9 @@ export class PauseableEmitter<T> extends Emitter<T> {
 
     private _paused: boolean;
 
-    constructor(activate: boolean = false) {
+    constructor(activate: boolean = true) {
         super();
-        this._paused = activate;
+        this._paused = !activate;
     }
 
     public pause(): void {
