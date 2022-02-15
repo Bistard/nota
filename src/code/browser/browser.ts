@@ -10,13 +10,14 @@ import { Schemas } from "src/base/common/file/uri";
 import { DiskFileSystemProvider } from "src/base/node/diskFileSystemProvider";
 import { LogLevel } from "src/code/common/service/logService/abstractLogService";
 import { IIpcService, IpcService } from "src/code/browser/service/ipcService";
+import { IWorkbenchLayoutService } from "src/code/browser/workbench/layout";
 
 /**
  * @class This the main entry in the renderer process.
  */
 export class Browser {
 
-    public workbench: Workbench | null = null;
+    public workbench!: Workbench;
 
     private instantiationService!: IInstantiationService;
     private fileService!: IFileService;
@@ -29,9 +30,11 @@ export class Browser {
     }
 
     private startUp(): void {
-        this.initServices().then(() => {
+        this.initServices().then(async () => {
 
             this.workbench = this.instantiationService.createInstance(Workbench);
+            this.instantiationService.register(IWorkbenchLayoutService, this.workbench);
+            await this.workbench.init();
             this.registerListeners();
 
         });
@@ -80,6 +83,5 @@ export class Browser {
     }
 
 }
-
 
 new Browser();

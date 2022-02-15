@@ -1,6 +1,7 @@
 import * as Path from'path';
 import { BrowserWindow, ipcMain, app, dialog } from 'electron';
 import * as ElectronLocalshortcut from 'electron-localshortcut';
+import { IpcCommand } from 'src/base/electron/ipcCommand';
 
 /**
  * @description main electron startup class, instantiates at end of the file.
@@ -125,9 +126,13 @@ class Main {
                     }
                 });
             });
+
+            ipcMain.on(IpcCommand.OpenDevelopTool, () => {
+                this.winMain!.webContents.toggleDevTools();
+            });
         
             // only for testing purpose, can be removed in release version
-            ipcMain.on('test', (_event, data) => {
+            ipcMain.on(IpcCommand.Test, (_event, data) => {
                 console.log(data);
             });
 
@@ -174,11 +179,6 @@ class Main {
              * individually.
              */
             
-            // open developer tools
-            ElectronLocalshortcut.register(this.winMain, 'Ctrl+Shift+I', () => {
-                this.winMain!.webContents.toggleDevTools();
-            });
-
             // reload the page (NOT hard reload)
             ElectronLocalshortcut.register(this.winMain, 'Ctrl+R', () => {
                 this.winMain!.webContents.reload();

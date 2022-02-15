@@ -1,16 +1,18 @@
 import { INoteBookManagerService, NoteBookManager } from "src/code/common/model/notebookManager";
-import { ipcRendererOn } from "src/base/electron/register";
+import { ipcRendererOn, ipcRendererSend } from "src/base/electron/register";
 import { ContextMenuService, IContextMenuService } from 'src/code/browser/service/contextMenuService';
 import { IInstantiationService } from "src/code/common/service/instantiationService/instantiation";
 import { ServiceDescriptor } from "src/code/common/service/instantiationService/descriptor";
 import { IComponentService } from "src/code/browser/service/componentService";
 import { getSingletonServiceDescriptors } from "src/code/common/service/instantiationService/serviceCollection";
-import { IGlobalConfigService, IUserConfigService } from "src/code/common/service/configService/configService";
+import { IGlobalConfigService } from "src/code/common/service/configService/configService";
 import { EGlobalSettings, IGlobalApplicationSettings } from "src/code/common/service/configService/configService";
 import { WorkbenchLayout } from "src/code/browser/workbench/layout";
 import { i18n, Ii18nOpts, Ii18nService } from "src/code/platform/i18n/i18n";
 import { IFileService } from "src/code/common/service/fileService/fileService";
 import { IShortcutService, ShortcutService } from "src/code/browser/service/shortcutService";
+import { KeyCode, Shortcut } from "src/base/common/keyboard";
+import { IpcCommand } from "src/base/electron/ipcCommand";
 
 /**
  * @class Workbench represents all the Components in the web browser.
@@ -25,18 +27,18 @@ export class Workbench extends WorkbenchLayout {
         @IGlobalConfigService private readonly globalConfigService: IGlobalConfigService,
     ) {
         super(instantiationService, componentService);
+    }
 
-        this.initServices().then(() => {
-            
-            this.create();
-            this.registerListeners();
-            
-        });
+    public async init(): Promise<void> {
+        await this.initServices();
+        this.create();
+        this.registerListeners();
+        this._onDidFinishLayout.fire();
     }
 
     protected async initServices(): Promise<void> {
 
-        // initializes all the singleton dependencies
+        // singleton initialization
         for (const [serviceIdentifer, serviceDescriptor] of getSingletonServiceDescriptors()) {
 			this.instantiationService.register(serviceIdentifer, serviceDescriptor);
 		}
@@ -73,9 +75,7 @@ export class Workbench extends WorkbenchLayout {
      * @description calls 'create()' and '_registerListeners()' for each component.
      */
     protected override _createContent(): void {
-
         this.createLayout();
-
     }
 
     /**
@@ -84,6 +84,21 @@ export class Workbench extends WorkbenchLayout {
     protected override _registerListeners(): void {
         
         this.registerLayout();
+
+        const shortcutService = this.instantiationService.getService(IShortcutService)!;
+        shortcutService.register({
+            commandID: 'open-develop-tool',
+            whenID: 'N/A',
+            shortcut: new Shortcut(true, true, false, false, KeyCode.KeyI),
+            when: null,
+            command: () => {
+                ipcRendererSend(IpcCommand.OpenDevelopTool);
+            },
+            override: false,
+            activate: true
+        });
+        
+        // TODO: below codes requires refactor
 
         this.container.addEventListener('click', (ev: MouseEvent) => {
             const service = this.instantiationService.getService(IContextMenuService);
