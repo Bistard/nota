@@ -165,7 +165,7 @@ export class i18n implements Ii18nService {
 
     constructor(
         opts: Ii18nOpts,
-        private readonly fileService: IFileService,
+        @IFileService private readonly fileService: IFileService,
     ) {
         // i18n related
         this._language   = opts.language   || DefaultLanguage;

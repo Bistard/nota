@@ -9,15 +9,15 @@ import { IGlobalConfigService } from "src/code/common/service/configService/conf
 import { EGlobalSettings, IGlobalApplicationSettings } from "src/code/common/service/configService/configService";
 import { WorkbenchLayout } from "src/code/browser/workbench/layout";
 import { i18n, Ii18nOpts, Ii18nService } from "src/code/platform/i18n/i18n";
-import { IFileService } from "src/code/common/service/fileService/fileService";
 import { IShortcutService, ShortcutService } from "src/code/browser/service/shortcutService";
 import { KeyCode, Shortcut } from "src/base/common/keyboard";
 import { IpcCommand } from "src/base/electron/ipcCommand";
+import { IWorkbenchService } from "src/code/browser/service/workbenchService";
 
 /**
  * @class Workbench represents all the Components in the web browser.
  */
-export class Workbench extends WorkbenchLayout {
+export class Workbench extends WorkbenchLayout implements IWorkbenchService {
 
     private _noteBookManager!: NoteBookManager;
 
@@ -38,14 +38,17 @@ export class Workbench extends WorkbenchLayout {
 
     protected async initServices(): Promise<void> {
 
+        // WorkbenchLayoutService (self)
+        this.instantiationService.register(IWorkbenchService, this);
+
+        // TODO: move to browser.ts
         // singleton initialization
         for (const [serviceIdentifer, serviceDescriptor] of getSingletonServiceDescriptors()) {
 			this.instantiationService.register(serviceIdentifer, serviceDescriptor);
 		}
 
         // shortcutService
-        const shortcutService: IShortcutService = this.instantiationService.createInstance(ShortcutService);
-        this.instantiationService.register(IShortcutService, shortcutService);
+        this.instantiationService.register(IShortcutService, new ServiceDescriptor(ShortcutService));
 
         // i18nService
         const appConfig = this.globalConfigService.get<IGlobalApplicationSettings>(EGlobalSettings.Application);
@@ -57,7 +60,7 @@ export class Workbench extends WorkbenchLayout {
                 suffix: '}',
             }
         };
-        const i18nService = new i18n(i18nOption, this.instantiationService.getService(IFileService)!);
+        const i18nService = this.instantiationService.createInstance(i18n, i18nOption);
         await i18nService.init();
         this.instantiationService.register(Ii18nService, i18nService);
 
@@ -116,7 +119,7 @@ export class Workbench extends WorkbenchLayout {
         const shortcutService = this.instantiationService.getService(IShortcutService)!;
 
         shortcutService.register({
-            commandID: 'open-develop-tool',
+            commandID: 'workbench.open-develop-tool',
             whenID: 'N/A',
             shortcut: new Shortcut(true, true, false, false, KeyCode.KeyI),
             when: null,
@@ -128,7 +131,7 @@ export class Workbench extends WorkbenchLayout {
         });
 
         shortcutService.register({
-            commandID: 'reload-window',
+            commandID: 'workbench.reload-window',
             whenID: 'N/A',
             shortcut: new Shortcut(true, false, false, false, KeyCode.KeyR),
             when: null,

@@ -1,15 +1,13 @@
 import { IComponentService } from "src/code/browser/service/componentService";
-import { IContextMenuService } from "src/code/browser/service/contextMenuService";
 import { Component, ComponentType, IComponent } from "src/code/browser/workbench/component";
 import { MarkdownComponent } from "src/code/browser/workbench/editor/markdown/markdown";
 import { TabBarComponent } from "src/code/browser/workbench/editor/tabBar/tabBar";
 import { TitleBarComponent } from "src/code/browser/workbench/editor/titleBar/titleBar";
-import { IFileLogService } from "src/code/common/service/logService/fileLogService";
 import { createDecorator } from "src/code/common/service/instantiationService/decorator";
-import { GlobalConfigService, IGlobalConfigService, IUserConfigService, UserConfigService } from "src/code/common/service/configService/configService";
 import { registerSingleton } from "src/code/common/service/instantiationService/serviceCollection";
 import { ServiceDescriptor } from "src/code/common/service/instantiationService/descriptor";
 import { IInstantiationService } from "src/code/common/service/instantiationService/instantiation";
+import { Register } from "src/base/common/event";
 
 export const enum EditorComponentType {
     titleBar = 'title-bar',
@@ -32,10 +30,6 @@ export class EditorComponent extends Component implements IEditorService {
     constructor(
         parentComponent: Component,
         @IComponentService componentService: IComponentService,
-        @IContextMenuService private readonly contextMenuService: IContextMenuService,
-        @IFileLogService private readonly fileLogService: IFileLogService,
-        @IGlobalConfigService private readonly globalConfigService: GlobalConfigService,
-        @IUserConfigService private readonly userConfigService: UserConfigService,
         @IInstantiationService private readonly instantiationService: IInstantiationService,
     ) {
         super(ComponentType.Editor, parentComponent, null, componentService);

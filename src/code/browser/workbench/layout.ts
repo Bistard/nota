@@ -7,25 +7,13 @@ import { ActionBarComponent, ActionType } from "src/code/browser/workbench/actio
 import { ActionViewComponent } from "src/code/browser/workbench/actionView/actionView";
 import { Component, ComponentType, ICreateable } from "src/code/browser/workbench/component";
 import { EditorComponent } from "src/code/browser/workbench/editor/editor";
-import { createDecorator } from "src/code/common/service/instantiationService/decorator";
 import { IInstantiationService } from "src/code/common/service/instantiationService/instantiation";
-
-export const IWorkbenchLayoutService = createDecorator<IWorkbenchLayoutService>('workbench-layout-service');
-
-export interface IWorkbenchLayoutService {
-
-    /**
-     * Fires when the essential UI components are finished rendering.
-     */
-    onDidFinishLayout: Register<void>;
-
-}
 
 /**
  * @description A base class for Workbench to create and manage the behaviour of
  * each sub-component.
  */
-export abstract class WorkbenchLayout extends Component implements IWorkbenchLayoutService {
+export abstract class WorkbenchLayout extends Component {
 
     // [events]
 

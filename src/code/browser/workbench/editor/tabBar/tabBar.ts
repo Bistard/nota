@@ -1,11 +1,12 @@
 import { FileNode } from 'src/base/node/fileTree';
-import { ipcRendererOn } from 'src/base/electron/register';
 import { Component, IComponent } from 'src/code/browser/workbench/component';
 import { EditorComponentType } from 'src/code/browser/workbench/editor/editor';
 import { IComponentService } from 'src/code/browser/service/componentService';
 import { EVENT_EMITTER } from 'src/base/common/event';
 import { IUserConfigService } from 'src/code/common/service/configService/configService';
 import { resolve } from 'src/base/common/file/path';
+import { IShortcutService } from 'src/code/browser/service/shortcutService';
+import { KeyCode, Shortcut } from 'src/base/common/keyboard';
 
 export class Tab {
     public readonly container: HTMLElement = document.createElement('div');
@@ -137,7 +138,7 @@ export class TabBarComponent extends Component implements ITabBarComponent {
     constructor(
         parentComponent: Component,
         @IComponentService componentService: IComponentService,
-        @IUserConfigService private readonly userConfigService: IUserConfigService,
+        @IShortcutService private readonly shortcutService: IShortcutService,
     ) {
         super(EditorComponentType.tabBar, parentComponent, null, componentService);
 
@@ -163,35 +164,7 @@ export class TabBarComponent extends Component implements ITabBarComponent {
             this.contentArea!.scrollLeft += event.deltaY;
         })
 
-        // switch tab forwards
-        ipcRendererOn('Ctrl+Tab', () => {
-            if (this._openedTab.length >= 2) {
-                const index = (this.focusTabIndex + 1) % this._openedTab.length;
-                this.switchToTab(index);
-            }
-        });
-        
-        // switch tab backwards
-        ipcRendererOn('Ctrl+Shift+Tab', () => {
-            if (this._openedTab.length >= 2) {
-                const index = (this.focusTabIndex - 1 + this._openedTab.length) % this._openedTab.length;
-                this.switchToTab(index);
-            }
-        });
-        
-        // close current focused tab
-        ipcRendererOn('Ctrl+W', () => {
-            if (this.focusTabIndex >= 0) {
-                const focusedTab = this._openedTab[this.focusTabIndex]!;
-                this.closeTab(focusedTab);
-            }
-        });
-
-        // open previous closed tab
-        ipcRendererOn('Ctrl+Shift+T', () => {
-            
-        });
-
+        this._registerShortcuts();
     }
 
     public switchOrCreateTab(nodeInfo: FileNode): Tab {
@@ -301,6 +274,60 @@ export class TabBarComponent extends Component implements ITabBarComponent {
             this.focusTabIndex--;
         }
 
+    }
+
+    // [private helper methods]
+
+    private _registerShortcuts(): void {
+        
+        // switch tab forwards
+        this.shortcutService.register({
+            commandID: 'Tabbar.switch-tab-forward',
+            whenID: '',
+            shortcut: new Shortcut(true, false, false, false, KeyCode.Tab),
+            when: null,
+            command: () => {
+                if (this._openedTab.length >= 2) {
+                    const index = (this.focusTabIndex + 1) % this._openedTab.length;
+                    this.switchToTab(index);
+                }
+            },
+            override: false,
+            activate: true
+        });
+        
+        // switch tab backwards
+        this.shortcutService.register({
+            commandID: 'Tabbar.switch-tab-backward',
+            whenID: '',
+            shortcut: new Shortcut(true, true, false, false, KeyCode.Tab),
+            when: null,
+            command: () => {
+                if (this._openedTab.length >= 2) {
+                    const index = (this.focusTabIndex - 1 + this._openedTab.length) % this._openedTab.length;
+                    this.switchToTab(index);
+                }
+            },
+            override: false,
+            activate: true
+        });
+        
+        // close current focused tab
+        this.shortcutService.register({
+            commandID: 'Tabbar.close-current-tab',
+            whenID: '',
+            shortcut: new Shortcut(true, false, false, false, KeyCode.KeyW),
+            when: null,
+            command: () => {
+                if (this.focusTabIndex >= 0) {
+                    const focusedTab = this._openedTab[this.focusTabIndex]!;
+                    this.closeTab(focusedTab);
+                }
+            },
+            override: false,
+            activate: true
+        });
+        
     }
 
 }

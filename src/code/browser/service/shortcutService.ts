@@ -8,7 +8,7 @@ import { Shortcut } from "src/base/common/keyboard";
 import { APP_ROOT_PATH } from "src/base/electron/app";
 import { IIpcService } from "src/code/browser/service/ipcService";
 import { IKeyboardService } from "src/code/browser/service/keyboardService";
-import { IWorkbenchLayoutService } from "src/code/browser/workbench/layout";
+import { IWorkbenchService } from "src/code/browser/service/workbenchService";
 import { LOCAL_MDNOTE_DIR_NAME } from "src/code/common/model/notebookManager";
 import { IFileService } from "src/code/common/service/fileService/fileService";
 import { createDecorator } from "src/code/common/service/instantiationService/decorator";
@@ -124,7 +124,7 @@ export class ShortcutService implements IDisposable, IShortcutService {
     constructor(
         @IKeyboardService keyboardService: IKeyboardService,
         @IIpcService ipcService: IIpcService,
-        @IWorkbenchLayoutService workbenchLayoutService: IWorkbenchLayoutService,
+        @IWorkbenchService workbenchService: IWorkbenchService,
         @IInstantiationService private readonly instantiaionService: IInstantiationService,
         @IFileService private readonly fileService: IFileService,
         @IFileLogService private readonly fileLogService: IFileLogService,
@@ -146,7 +146,7 @@ export class ShortcutService implements IDisposable, IShortcutService {
          * // TODO: more commands
          * Once the majority
          */
-        workbenchLayoutService.onDidFinishLayout(() => this.__registerShortcuts());
+        workbenchService.onDidFinishLayout(() => this.__registerShortcuts());
         ipcService.onApplicationClose(async () => this.__onApplicationClose());
     }
 
