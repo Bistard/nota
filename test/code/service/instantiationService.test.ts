@@ -1,7 +1,7 @@
 import * as assert from 'assert';
 import { createDecorator } from 'src/code/common/service/instantiationService/decorator';
 import { ServiceDescriptor } from 'src/code/common/service/instantiationService/descriptor';
-import { InstantiationService } from 'src/code/common/service/instantiationService/instantiation';
+import { IInstantiationService, InstantiationService } from 'src/code/common/service/instantiationService/instantiation';
 import { ServiceCollection } from 'src/code/common/service/instantiationService/serviceCollection';
 
 const IService1 = createDecorator<IService1>('service1');
@@ -87,6 +87,62 @@ class DependentServiceTarget2 {
 	}
 }
 
+abstract class DependentVeryBaseService {
+	public base: boolean;
+	constructor(base: boolean) {
+		this.base = base;
+	}
+}
+
+abstract class DependentBaseService extends DependentVeryBaseService {
+	constructor(d: IDependentService, s: IService1, base: boolean) {
+		super(base);
+		assert.ok(d);
+		assert.strictEqual(d.name, 'farboo');
+		assert.ok(s);
+		assert.strictEqual(s.c, 1);
+	}
+}
+
+const IDependentServiceTarget3 = createDecorator<IDependentServiceTarget3>('dependent-service-target-3');
+
+interface IDependentServiceTarget3 {
+	base: boolean;
+}
+
+// workbench
+class DependentServiceTarget3 extends DependentBaseService implements IDependentServiceTarget3 {
+	constructor(@IDependentService d: IDependentService, @IService1 s: IService1) {
+		super(d, s, true);
+		assert.ok(d);
+		assert.strictEqual(d.name, 'farboo');
+		assert.ok(s);
+		assert.strictEqual(s.c, 1);
+		assert.strictEqual(this.base, true);
+	}
+}
+
+const IDependentServiceTarget4 = createDecorator<IDependentServiceTarget4>('dependent-service-target-4');
+
+interface IDependentServiceTarget4 {
+
+}
+
+// shortcutService
+class DependentServiceTarget4 implements IDependentServiceTarget4 {
+	constructor(@IDependentServiceTarget3 d: IDependentServiceTarget3) {
+		assert.ok(d);
+		assert.strictEqual(d.base, true);
+	}
+}
+
+// other places
+class DependentServiceTarget5 {
+	constructor(@IDependentServiceTarget4 d: IDependentServiceTarget4) {
+		assert.ok(d);
+	}
+}
+
 suite('instantiationService-test', () => {
 
     test('service collection, cannot overwrite', () => {
@@ -107,7 +163,7 @@ suite('instantiationService-test', () => {
 		assert.ok(collection.has(IService2));
 	});
 
-	test('@Param - simple clase', () => {
+	test('@Param - simple classes', () => {
 		let collection = new ServiceCollection();
 		let service = new InstantiationService(collection);
 		service.register(IService1, new Service1());
@@ -145,4 +201,57 @@ suite('instantiationService-test', () => {
         service.createInstance(DependentServiceTarget);
         service.createInstance(DependentServiceTarget2);
     });
+
+	test('instantiation inheritence', () => {
+		let collection = new ServiceCollection();
+		let service = new InstantiationService(collection);
+		service.register(IService1, new Service1());
+		service.register(IDependentService, new ServiceDescriptor(DependentService));
+
+		service.createInstance(DependentServiceTarget3);
+	});
+
+	test('@Param - inheritence dependency descriptor', () => {
+		let collection = new ServiceCollection();
+		let service = new InstantiationService(collection);
+		service.register(IService1, new Service1());
+		service.register(IDependentService, new ServiceDescriptor(DependentService));
+		service.register(IDependentServiceTarget3, new ServiceDescriptor(DependentServiceTarget3));
+
+		service.createInstance(DependentServiceTarget4);
+	});
+
+	test('@Param - inheritence dependency instance', () => {
+		let collection = new ServiceCollection();
+		let service = new InstantiationService(collection);
+		service.register(IService1, new Service1());
+		service.register(IDependentService, new ServiceDescriptor(DependentService));
+		
+		const dependentServiceTarget3 = service.createInstance(DependentServiceTarget3);
+		service.register(IDependentServiceTarget3, dependentServiceTarget3);
+
+		service.createInstance(DependentServiceTarget4);
+	});
+
+	test('@Param - recursive inheritence dependency', () => {
+		let collection = new ServiceCollection();
+		let service = new InstantiationService(collection);
+		service.register(IService1, new Service1());
+		service.register(IDependentService, new ServiceDescriptor(DependentService));
+		service.register(IDependentServiceTarget3, new ServiceDescriptor(DependentServiceTarget3));
+		service.register(IDependentServiceTarget4, new ServiceDescriptor(DependentServiceTarget4));
+		
+		service.createInstance(DependentServiceTarget5);
+	});
+
+	// test('@Param - complex self registration', () => {
+	// 	let collection = new ServiceCollection();
+	// 	let service = new InstantiationService(collection);
+	// 	service.register(IService1, new Service1());
+	// 	service.register(IDependentService, new ServiceDescriptor(DependentService));
+	// 	service.createInstance(DependentServiceTarget3, service);
+	// 	service.register(IDependentServiceTarget4, new ServiceDescriptor(DependentServiceTarget4));
+		
+	// 	service.createInstance(DependentServiceTarget5);
+	// });
 });
