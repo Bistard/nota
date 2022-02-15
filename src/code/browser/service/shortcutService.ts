@@ -143,11 +143,10 @@ export class ShortcutService implements IDisposable, IShortcutService {
         });
 
         /**
+         * // TODO: more commands
          * Once the majority
          */
         workbenchLayoutService.onDidFinishLayout(() => this.__registerShortcuts());
-
-
         ipcService.onApplicationClose(async () => this.__onApplicationClose());
     }
 

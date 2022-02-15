@@ -84,20 +84,8 @@ export class Workbench extends WorkbenchLayout {
     protected override _registerListeners(): void {
         
         this.registerLayout();
-
-        const shortcutService = this.instantiationService.getService(IShortcutService)!;
-        shortcutService.register({
-            commandID: 'open-develop-tool',
-            whenID: 'N/A',
-            shortcut: new Shortcut(true, true, false, false, KeyCode.KeyI),
-            when: null,
-            command: () => {
-                ipcRendererSend(IpcCommand.OpenDevelopTool);
-            },
-            override: false,
-            activate: true
-        });
-        
+        this.registerShortcuts();
+            
         // TODO: below codes requires refactor
 
         this.container.addEventListener('click', (ev: MouseEvent) => {
@@ -114,6 +102,41 @@ export class Workbench extends WorkbenchLayout {
             if (service) {
                 service.removeContextMenu();
             }
+        });
+
+    }
+
+    // [private helper methods]
+
+    /**
+     * @description Shortcut registration.
+     */
+    private registerShortcuts(): void {
+
+        const shortcutService = this.instantiationService.getService(IShortcutService)!;
+
+        shortcutService.register({
+            commandID: 'open-develop-tool',
+            whenID: 'N/A',
+            shortcut: new Shortcut(true, true, false, false, KeyCode.KeyI),
+            when: null,
+            command: () => {
+                ipcRendererSend(IpcCommand.OpenDevelopTool);
+            },
+            override: false,
+            activate: true
+        });
+
+        shortcutService.register({
+            commandID: 'reload-window',
+            whenID: 'N/A',
+            shortcut: new Shortcut(true, false, false, false, KeyCode.KeyR),
+            when: null,
+            command: () => {
+                ipcRendererSend(IpcCommand.ReloadWindow);
+            },
+            override: false,
+            activate: true
         });
 
     }

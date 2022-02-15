@@ -130,6 +130,10 @@ class Main {
             ipcMain.on(IpcCommand.OpenDevelopTool, () => {
                 this.winMain!.webContents.toggleDevTools();
             });
+
+            ipcMain.on(IpcCommand.ReloadWindow, () => {
+                this.winMain!.webContents.reload(); 
+            });
         
             // only for testing purpose, can be removed in release version
             ipcMain.on(IpcCommand.Test, (_event, data) => {
@@ -179,11 +183,6 @@ class Main {
              * individually.
              */
             
-            // reload the page (NOT hard reload)
-            ElectronLocalshortcut.register(this.winMain, 'Ctrl+R', () => {
-                this.winMain!.webContents.reload();
-            });
-
             /**
              * @readonly the following shortcuts mainly controlling tabBar state.
              */
