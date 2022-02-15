@@ -9,6 +9,7 @@ import { createDecorator } from "src/code/common/service/instantiationService/de
 import { GlobalConfigService, IGlobalConfigService, IUserConfigService, UserConfigService } from "src/code/common/service/configService/configService";
 import { registerSingleton } from "src/code/common/service/instantiationService/serviceCollection";
 import { ServiceDescriptor } from "src/code/common/service/instantiationService/descriptor";
+import { IInstantiationService } from "src/code/common/service/instantiationService/instantiation";
 
 export const enum EditorComponentType {
     titleBar = 'title-bar',
@@ -35,6 +36,7 @@ export class EditorComponent extends Component implements IEditorService {
         @IFileLogService private readonly fileLogService: IFileLogService,
         @IGlobalConfigService private readonly globalConfigService: GlobalConfigService,
         @IUserConfigService private readonly userConfigService: UserConfigService,
+        @IInstantiationService private readonly instantiationService: IInstantiationService,
     ) {
         super(ComponentType.Editor, parentComponent, null, componentService);
     }
@@ -52,12 +54,12 @@ export class EditorComponent extends Component implements IEditorService {
     }
 
     private _createTitleBar(): void {
-        this.titleBarComponent = new TitleBarComponent(this, this.componentService);
+        this.titleBarComponent = this.instantiationService.createInstance(TitleBarComponent, this);
         this.titleBarComponent.create();
     }
 
     private _createTabBar(): void {
-        this.tabBarComponent = new TabBarComponent(this, this.componentService, this.userConfigService);
+        this.tabBarComponent = this.instantiationService.createInstance(TabBarComponent, this);
         this.tabBarComponent.create();
     }
 
@@ -65,7 +67,7 @@ export class EditorComponent extends Component implements IEditorService {
         const markdownView = document.createElement('div');
         markdownView.id = 'markdown-view';
 
-        this.markdownComponent = new MarkdownComponent(this, markdownView, this.componentService, this.contextMenuService, this.fileLogService, this.globalConfigService, this.userConfigService);
+        this.markdownComponent = this.instantiationService.createInstance(MarkdownComponent, this, markdownView);
         this.markdownComponent.create();
 
         this.container.appendChild(markdownView);

@@ -9,7 +9,7 @@ export function ipcRendererSend(message: string): void {
     ipcRenderer.send(message);
 }
 
-export function ipcRendererSendData(message: string, data: any): void {
+export function ipcRendererSendData(message: string, ...data: any[]): void {
     ipcRenderer.send(message, data);
 }
 
