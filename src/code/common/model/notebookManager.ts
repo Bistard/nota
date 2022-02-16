@@ -4,12 +4,10 @@ import { URI } from "src/base/common/file/uri";
 import { createDir, createFile, dirFilter, isDirExisted, isFileExisted } from "src/base/node/io";
 import { IIpcService } from "src/code/browser/service/ipcService";
 import { NoteBook } from "src/code/common/model/notebook";
-import { DEFAULT_CONFIG_PATH, EGlobalSettings, EUserSettings, GLOBAL_CONFIG_FILE_NAME, GLOBAL_CONFIG_PATH, IGlobalApplicationSettings, IGlobalNotebookManagerSettings, IUserNotebookManagerSettings } from "src/code/common/service/configService/configService";
+import { DEFAULT_CONFIG_PATH, EGlobalSettings, EUserSettings, GLOBAL_CONFIG_FILE_NAME, GLOBAL_CONFIG_PATH, IGlobalApplicationSettings, IGlobalNotebookManagerSettings, IUserNotebookManagerSettings, LOCAL_MDNOTE_DIR_NAME } from "src/code/common/service/configService/configService";
 import { DEFAULT_CONFIG_FILE_NAME, IUserConfigService, LOCAL_CONFIG_FILE_NAME } from "src/code/common/service/configService/configService";
 import { IGlobalConfigService } from "src/code/common/service/configService/configService";
 import { createDecorator } from "src/code/common/service/instantiationService/decorator";
-
-export const LOCAL_MDNOTE_DIR_NAME = '.mdnote';
 
 export const INoteBookManagerService = createDecorator<INoteBookManagerService>('notebook-manager-service');
 

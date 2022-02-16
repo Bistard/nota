@@ -1,8 +1,7 @@
 import { APP_ROOT_PATH } from "src/base/electron/app";
 import { AbstractLogService, IAbstractLogService, ILogInfo, LogLevel } from "src/code/common/service/logService/abstractLogService";
-import { LOCAL_MDNOTE_DIR_NAME } from "src/code/common/model/notebookManager";
 import { createDecorator } from "src/code/common/service/instantiationService/decorator";
-import { EGlobalSettings, IGlobalApplicationSettings, IGlobalConfigService } from "src/code/common/service/configService/configService";
+import { EGlobalSettings, IGlobalApplicationSettings, IGlobalConfigService, LOCAL_MDNOTE_DIR_NAME } from "src/code/common/service/configService/configService";
 import { FileService, IFileService } from 'src/code/common/service/fileService/fileService';
 import { URI } from "src/base/common/file/uri";
 import { getCurrentFormatDate } from "src/base/common/date";

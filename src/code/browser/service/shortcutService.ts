@@ -9,7 +9,7 @@ import { APP_ROOT_PATH } from "src/base/electron/app";
 import { IIpcService } from "src/code/browser/service/ipcService";
 import { IKeyboardService } from "src/code/browser/service/keyboardService";
 import { IWorkbenchService } from "src/code/browser/service/workbenchService";
-import { LOCAL_MDNOTE_DIR_NAME } from "src/code/common/model/notebookManager";
+import { LOCAL_MDNOTE_DIR_NAME } from "src/code/common/service/configService/configService";
 import { IFileService } from "src/code/common/service/fileService/fileService";
 import { createDecorator } from "src/code/common/service/instantiationService/decorator";
 import { IInstantiationService, IServiceProvider } from "src/code/common/service/instantiationService/instantiation";

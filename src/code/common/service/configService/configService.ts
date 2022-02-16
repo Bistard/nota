@@ -3,13 +3,13 @@ import { resolve } from "src/base/common/file/path";
 import { URI } from "src/base/common/file/uri";
 import { APP_ROOT_PATH, DESKTOP_ROOT_PATH } from "src/base/electron/app";
 import { MarkdownRenderMode } from "src/code/browser/workbench/editor/markdown/markdown";
-import { LOCAL_MDNOTE_DIR_NAME } from "src/code/common/model/notebookManager";
 import { ConfigModel, IConfigType } from "src/code/common/service/configService/configModel";
 import { ConfigServiceBase, IConfigService } from "src/code/common/service/configService/configServiceBase";
 import { IFileService } from "src/code/common/service/fileService/fileService";
 import { createDecorator } from "src/code/common/service/instantiationService/decorator";
 import { Language } from "src/code/platform/i18n/i18n";
 
+export const LOCAL_MDNOTE_DIR_NAME = '.mdnote';
 export const DEFAULT_CONFIG_PATH = APP_ROOT_PATH;
 export const GLOBAL_CONFIG_PATH = APP_ROOT_PATH;
 export const DEFAULT_CONFIG_FILE_NAME = 'user.config.json';
