@@ -1,7 +1,6 @@
 import * as Path from'path';
 import { BrowserWindow, ipcMain, app, dialog } from 'electron';
 import { IpcCommand } from 'src/base/electron/ipcCommand';
-import * as ElectronLocalshortcut from 'electron-localshortcut';
 
 /**
  * @description main electron startup class, instantiates at end of the file.
@@ -71,21 +70,6 @@ class Main {
             if (process.platform !== 'darwin') {
                 app.quit();
             }
-        });
-
-        // Setting local shortcuts. Many thanks to ElectronLocalshortcut library
-        app.whenReady().then(() => {
-
-            /**
-             * @readonly the following shortcuts mainly were disabled at first 
-             * when the default menu were removed. Here is just to add them back 
-             * individually.
-             */
-            
-            // ElectronLocalshortcut.register(this.winMain, 'Ctrl+Shift+I', () => {
-            //     this.winMain!.webContents.openDevTools();
-            // });
-
         });
 
     }
