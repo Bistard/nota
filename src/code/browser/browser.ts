@@ -10,6 +10,19 @@ import { Schemas } from "src/base/common/file/uri";
 import { DiskFileSystemProvider } from "src/base/node/diskFileSystemProvider";
 import { LogLevel } from "src/code/common/service/logService/abstractLogService";
 import { IIpcService, IpcService } from "src/code/browser/service/ipcService";
+import { ipcRendererSendData } from "src/base/electron/register";
+import { IpcCommand } from "src/base/electron/ipcCommand";
+import { DEVELOP_ENV } from "src/base/electron/app";
+
+/**
+ * @readonly Needs to be set globally before everything, once an error has been 
+ * captured, we tells the main process to open dev tools.
+ */
+window.onerror = () => {
+    if (DEVELOP_ENV) {
+        ipcRendererSendData(IpcCommand.ErrorInWindow);
+    }
+};
 
 /**
  * @class This the main entry in the renderer process.
@@ -26,6 +39,7 @@ export class Browser {
 
     constructor() {
         this.startUp();
+        throw new Error();        
     }
 
     private startUp(): void {

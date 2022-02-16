@@ -195,6 +195,10 @@ class Main {
         ipcMain.on(IpcCommand.ReloadWindow, () => {
             this.winMain!.webContents.reload(); 
         });
+
+        ipcMain.on(IpcCommand.ErrorInWindow, () => {
+            this.winMain!.webContents.toggleDevTools();
+        });
     
         ipcMain.on(IpcCommand.Test, (_event, data) => {
             console.log(data);
