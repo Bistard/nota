@@ -47,6 +47,7 @@
     "@types/mocha": "^9.0.0",
     "@types/node": "^16.4.13",
     "@types/requestidlecallback": "^0.3.4",
+    "circular-dependency-plugin": "^5.2.2",
     "electron-localshortcut": "^3.2.1",
     "jquery": "^3.6.0",
     "path-directories": "^1.0.2"
