@@ -12,19 +12,7 @@ import { i18n, Ii18nOpts, Ii18nService } from "src/code/platform/i18n/i18n";
 import { IShortcutService, ShortcutService } from "src/code/browser/service/shortcutService";
 import { KeyCode, Shortcut } from "src/base/common/keyboard";
 import { IpcCommand } from "src/base/electron/ipcCommand";
-import { createDecorator } from "src/code/common/service/instantiationService/decorator";
-import { Register } from "src/base/common/event";
-
-export const IWorkbenchService = createDecorator<IWorkbenchService>('workbench-layout-service');
-
-export interface IWorkbenchService {
-
-    /**
-     * Fires when the essential UI components are finished rendering.
-     */
-    onDidFinishLayout: Register<void>;
-
-}
+import { IWorkbenchService } from "src/code/browser/service/workbenchService";
 
 /**
  * @class Workbench represents all the Components in the web browser.
