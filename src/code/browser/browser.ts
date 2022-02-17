@@ -39,7 +39,6 @@ export class Browser {
 
     constructor() {
         this.startUp();
-        throw new Error();        
     }
 
     private startUp(): void {

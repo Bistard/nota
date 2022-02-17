@@ -1,6 +1,7 @@
 import { Disposable } from "src/base/common/dispose";
 import { addDisposableListener, EventType, Orientation } from "src/base/common/dom";
 import { Emitter, Register } from "src/base/common/event";
+import { IRange } from "src/base/common/range";
 import { ICreateable } from "src/code/browser/workbench/component";
 
 export interface ISashOpts {
@@ -27,9 +28,9 @@ export interface ISashOpts {
     /**
      * The range (closed interval) that the {@link Sash} is allowed to move between.
      * 
-     * If -1 provided, means no restrictions.
+     * If -1 provided in any interals, means no restrictions.
      */
-    readonly range?: [number, number];
+    readonly range?: IRange;
 }
 
 /**
@@ -85,7 +86,7 @@ export class Sash extends Disposable implements ICreateable, ISash {
 
     // when vertical: the draggable range in x of the sash
     // when horizontal: the draggable range in y of the sash
-    public readonly range: [number, number] | undefined;
+    public readonly range: IRange | undefined;
 
     /* Events */
 
@@ -233,7 +234,7 @@ export class Sash extends Disposable implements ICreateable, ISash {
 
             doDragHelper = (e: MouseEvent) => {
 
-                if (this.range && (e.clientX < this.range[0] || (e.clientX > this.range[1] && this.range[1] !== -1))) {
+                if (this.range && (e.clientX < this.range.start || (e.clientX > this.range.end && this.range.end !== -1))) {
                     return;
                 }
 
@@ -251,7 +252,7 @@ export class Sash extends Disposable implements ICreateable, ISash {
 
             doDragHelper = (e: MouseEvent) => {
                 
-                if (this.range && (e.clientY < this.range[0] || (e.clientY > this.range[1] && this.range[1] !== -1))) {
+                if (this.range && (e.clientY < this.range.start || (e.clientY > this.range.end && this.range.end !== -1))) {
                     return;
                 }
 
