@@ -126,6 +126,13 @@ class Main {
         this.winMain.on('leave-full-screen', () => {
             this.winMain!.webContents.send(IpcCommand.LeaveFullScreen);
         });
+
+        this.winMain.on('resize', () => {
+            let size = this.winMain!.getSize();
+            let width = size[0]!;
+            let height = size[1]!;
+            this.winMain!.webContents.send(IpcCommand.WindowResize, width, height);
+        });
     }
 
     /**

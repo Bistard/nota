@@ -18,8 +18,6 @@ export abstract class WorkbenchLayout extends Component {
 
     // [events]
 
-    // TODO: fullscreen emitter
-
     protected _onDidFinishLayout: Emitter<void> = this.__register(new Emitter<void>());
     public onDidFinishLayout: Register<void> = this._onDidFinishLayout.registerListener;
 

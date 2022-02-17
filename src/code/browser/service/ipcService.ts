@@ -1,4 +1,5 @@
 import { AsyncEmitter, AsyncRegister, Emitter, Register } from "src/base/common/event";
+import { IDimension } from "src/base/common/size";
 import { IpcCommand } from "src/base/electron/ipcCommand";
 import { ipcRendererOn, ipcRendererSend } from "src/base/electron/register";
 import { createDecorator } from "src/code/common/service/instantiationService/decorator";
@@ -32,6 +33,10 @@ export interface IIpcService {
      */
     onApplicationClose: AsyncRegister<void>;
 
+    /**
+     * Fires when the window is resizing.
+     */
+    onWindowResize: Register<IDimension>;
 }
 
 /**
@@ -55,6 +60,9 @@ export class IpcService implements IIpcService {
     private _onApplicationClose: AsyncEmitter<void> = new AsyncEmitter();
     public onApplicationClose: AsyncRegister<void> = this._onApplicationClose.registerListener;
 
+    private _onWindowResize: Emitter<IDimension> = new Emitter();
+    public onWindowResize: Register<IDimension> = this._onWindowResize.registerListener;
+
     constructor() {
 
         this.registerListeners();
@@ -69,6 +77,8 @@ export class IpcService implements IIpcService {
         
         ipcRendererOn(IpcCommand.EnterFullScreen, () => this._onDidFullScreenChange.fire(true));
         ipcRendererOn(IpcCommand.LeaveFullScreen, () => this._onDidFullScreenChange.fire(false));
+
+        ipcRendererOn(IpcCommand.WindowResize, (_event, width: number, height: number) => this._onWindowResize.fire({ width: width, height: height }));
 
         
         // once the main process notifies this renderer process, we try to 

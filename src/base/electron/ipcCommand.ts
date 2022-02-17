@@ -27,4 +27,6 @@ export const enum IpcCommand {
     RendererReadyForClose = '15',
 
     OpenDirectory =         '16',
+
+    WindowResize =          '17',
 }
