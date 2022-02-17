@@ -36,7 +36,7 @@ export interface IIpcService {
 
 /**
  * @description A very simple service that supports application activity-related 
- * events.
+ * events which communicated using IPC technology.
  */
 export class IpcService implements IIpcService {
     
