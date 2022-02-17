@@ -3,7 +3,7 @@ import { IListViewRenderer } from "src/base/browser/secondary/listView/listRende
 import { ScrollableWidget } from "src/base/browser/secondary/scrollableWidget/scrollableWidget";
 import { ScrollbarType } from "src/base/browser/secondary/scrollableWidget/scrollableWidgetOptions";
 import { DisposableManager, IDisposable } from "src/base/common/dispose";
-import { DOMSize, EventType } from "src/base/common/dom";
+import { DomSize, EventType } from "src/base/common/dom";
 import { DomEmitter, Emitter, Register } from "src/base/common/event";
 import { ILabellable } from "src/base/common/label";
 import { IRange, ISpliceable, Range, RangeTable } from "src/base/common/range";
@@ -299,7 +299,7 @@ export class ListView<T extends IMeasureable & ILabellable<ViewItemType>> implem
         
         this.scrollable = new Scrollable(
             opts.scrollbarSize ? opts.scrollbarSize : 10,
-            DOMSize.getContentHeight(container),
+            DomSize.getContentHeight(container),
             0,
             0
         );

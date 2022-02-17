@@ -108,7 +108,7 @@ export function formatSpan(text: string): string {
  * 	https://stackoverflow.com/questions/5227909/how-to-get-an-elements-padding-value-using-javascript AND
  * 	https://developer.mozilla.org/en-US/docs/Web/API/Window/getComputedStyle
  */
-export namespace DOMSize
+export namespace DomSize
 {
 
 	/**
