@@ -7,6 +7,7 @@
   <a href="doc/readme/zh-cn.md">zh-cn</a>
   |
   <a href="doc/readme/zh-tw.md">zh-tw</a>
+  |
 </div>
 
 An open-sourced note-taking desktop application / markdown editor that provides WYSIWYG and noteTaking-like user experience.
