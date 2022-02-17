@@ -1,4 +1,11 @@
-# 📕MarkdownNote (Developing - 开发中)
+<h1 align="center">Nota (In Developing - 开发中)</h1>
+<br>
+<div align="center">
+    <sub>Translation: </sub>
+  <a href="README.md">en</a>
+  <a href="doc/readme/zh-cn.md">cn</a>
+</div>
+
 An open-sourced note-taking desktop application / markdown editor that provides WYSIWYG and noteTaking-like user experience.
 
 基于markdown管理的笔记软件. (如果你对该项目感兴趣，非常欢迎联系我😀~ 目前开发周期还很长).
