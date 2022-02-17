@@ -11,4 +11,7 @@ export const enum IpcCommand {
     ReloadWindow = '2',
     ErrorInWindow = '3',
 
+    AlwaysOnTopOn = '4',
+    AlwaysOnTopOff = '5',
+    
 }

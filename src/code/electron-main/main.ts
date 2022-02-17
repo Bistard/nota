@@ -19,6 +19,7 @@ class Main {
      * listeners.
      */
     public createWindow(): void {
+
         app.whenReady().then(() => {
 
             this.winMain = new BrowserWindow({
@@ -116,6 +117,16 @@ class Main {
         this.winMain.on('blur', () => {
             this.winMain!.webContents.send('closeContextMenu');
         });
+
+        this.winMain.on('enter-full-screen', () => {
+            console.log('test: enter fullscreen');
+            this.winMain!.webContents.send(IpcCommand.EnterFullScreen);
+        });
+
+        this.winMain.on('leave-full-screen', () => {
+            console.log('test: leave fullscreen');
+            this.winMain!.webContents.send(IpcCommand.LeaveFullScreen);
+        });
     }
 
     /**
@@ -182,6 +193,14 @@ class Main {
 
         ipcMain.on(IpcCommand.ErrorInWindow, () => {
             this.winMain!.webContents.toggleDevTools();
+        });
+
+        ipcMain.on(IpcCommand.AlwaysOnTopOn, () => {
+            this.winMain!.setAlwaysOnTop(true, 'screen-saver');
+        });
+
+        ipcMain.on(IpcCommand.AlwaysOnTopOff, () => {
+            this.winMain!.setAlwaysOnTop(false, 'screen-saver');
         });
     
         ipcMain.on(IpcCommand.Test, (_event, data) => {
