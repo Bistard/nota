@@ -10,19 +10,10 @@ import { Schemas } from "src/base/common/file/uri";
 import { DiskFileSystemProvider } from "src/base/node/diskFileSystemProvider";
 import { LogLevel } from "src/code/common/service/logService/abstractLogService";
 import { IIpcService, IpcService } from "src/code/browser/service/ipcService";
-import { ipcRendererSendData } from "src/base/electron/register";
+import { ipcRendererSend } from "src/base/electron/register";
 import { IpcCommand } from "src/base/electron/ipcCommand";
 import { DEVELOP_ENV } from "src/base/electron/app";
-
-/**
- * @readonly Needs to be set globally before everything, once an error has been 
- * captured, we tells the main process to open dev tools.
- */
-window.onerror = () => {
-    if (DEVELOP_ENV) {
-        ipcRendererSendData(IpcCommand.ErrorInWindow);
-    }
-};
+import { EventType } from "src/base/common/dom";
 
 /**
  * @class This the main entry in the renderer process.
@@ -94,5 +85,18 @@ export class Browser {
     }
 
 }
+
+const onCatchErrors = () => { 
+    if (DEVELOP_ENV) {
+        ipcRendererSend(IpcCommand.ErrorInWindow);
+    }
+}
+
+/**
+ * @readonly Needs to be set globally before everything, once an error has been 
+ * captured, we tells the main process to open dev tools.
+ */
+window.addEventListener(EventType.unhandledrejection, onCatchErrors);
+window.onerror = onCatchErrors;
 
 new Browser();
