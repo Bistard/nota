@@ -11,6 +11,7 @@ import { Ii18nService } from 'src/code/platform/i18n/i18n';
 import { Section } from 'src/code/platform/i18n/section';
 import { registerSingleton } from 'src/code/common/service/instantiationService/serviceCollection';
 import { ServiceDescriptor } from 'src/code/common/service/instantiationService/descriptor';
+import { IpcCommand } from 'src/base/electron/ipcCommand';
 
 export const IExplorerViewService = createDecorator<IExplorerViewService>('explorer-view-service');
 
@@ -74,14 +75,14 @@ export class ExplorerViewComponent extends Component implements IExplorerViewSer
         });
 
         domNodeByIdAddListener('emptyFolderTag', 'click', () => {
-            ipcRendererSend('openDir');
+            ipcRendererSend(IpcCommand.OpenDirectory);
         });
 
         /**
          * set openDir listener to get response back from main.js.
          * eg. D:\dev\AllNote
          */
-        ipcRendererOn('openDir', (_event, path, _stat) => {
+        ipcRendererOn(IpcCommand.OpenDirectory, (_event, path, _stat) => {
             this.openNoteBookManager(path);
         });
         
@@ -101,7 +102,7 @@ export class ExplorerViewComponent extends Component implements IExplorerViewSer
     /**
      * @description display the noteBookManger.
      * 
-     * function will be called when 'openDir' message is sended from the main thread.
+     * function will be called when IpcCommand.OpenDirectory message is sended from the main thread.
      * 
      * @param path eg. D:\dev\AllNote
      */

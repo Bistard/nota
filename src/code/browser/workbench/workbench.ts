@@ -13,6 +13,7 @@ import { IShortcutService, ShortcutService } from "src/code/browser/service/shor
 import { KeyCode, Shortcut } from "src/base/common/keyboard";
 import { IpcCommand } from "src/base/electron/ipcCommand";
 import { IWorkbenchService } from "src/code/browser/service/workbenchService";
+import { IIpcService } from "src/code/browser/service/ipcService";
 
 /**
  * @class Workbench represents all the Components in the web browser.
@@ -25,8 +26,9 @@ export class Workbench extends WorkbenchLayout implements IWorkbenchService {
         @IInstantiationService instantiationService: IInstantiationService,
         @IComponentService componentService: IComponentService,
         @IGlobalConfigService private readonly globalConfigService: IGlobalConfigService,
+        @IIpcService ipcService: IIpcService,
     ) {
-        super(instantiationService, componentService);
+        super(instantiationService, componentService, ipcService);
     }
 
     public async init(): Promise<void> {

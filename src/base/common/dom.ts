@@ -4,6 +4,9 @@ import { IDisposable, toDisposable } from "src/base/common/dispose";
  * @readonly A enumeration of all HTMLElement event types.
  */
 export const enum EventType {
+
+	unhandledrejection = 'unhandledrejection',
+
 	click = 'click',
 	contextmenu = 'contextmenu',
 	mouseover = 'mouseover',

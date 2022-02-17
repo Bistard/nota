@@ -7,7 +7,8 @@ import { IpcCommand } from 'src/base/electron/ipcCommand';
  */
 class Main {
 
-    winMain: Electron.BrowserWindow | null = null;
+    private winMain: Electron.BrowserWindow | null = null;
+    private isDevlToolsOn: boolean = false;
     
     constructor() {
         this.createWindow();
@@ -103,11 +104,11 @@ class Main {
 
         // titleBar listeners
         this.winMain.on('maximize', () => {
-            this.winMain!.webContents.send('isMaximized');
+            this.winMain!.webContents.send(IpcCommand.WindowMaximize);
         });
 
         this.winMain.on('unmaximize', () => {
-            this.winMain!.webContents.send('isRestored');
+            this.winMain!.webContents.send(IpcCommand.WindowUnmaximize);
         });
 
         this.winMain.on('closed', () => {
@@ -119,12 +120,10 @@ class Main {
         });
 
         this.winMain.on('enter-full-screen', () => {
-            console.log('test: enter fullscreen');
             this.winMain!.webContents.send(IpcCommand.EnterFullScreen);
         });
 
         this.winMain.on('leave-full-screen', () => {
-            console.log('test: leave fullscreen');
             this.winMain!.webContents.send(IpcCommand.LeaveFullScreen);
         });
     }
@@ -134,11 +133,12 @@ class Main {
      * process.
      */
     private registerIpcListeners(): void {
-        ipcMain.on('minApp', () => {
+        
+        ipcMain.on(IpcCommand.WindowMinimize, () => {
             this.winMain!.minimize();
         });
 
-        ipcMain.on('maxResApp', () => {
+        ipcMain.on(IpcCommand.WindowRestore, () => {
             if (this.winMain!.isMaximized()) {
                 this.winMain!.restore();
             } else {
@@ -147,18 +147,13 @@ class Main {
         });
 
         // notify the renderer process before actual closing
-        ipcMain.on('closeApp', () => {
-            this.winMain!.webContents.send('closingApp');
+        ipcMain.on(IpcCommand.WindowClose, () => {
+            this.winMain!.webContents.send(IpcCommand.AboutToClose);
         });
 
-        // once renderer process is ready, we do the actual closing
-        ipcMain.on('rendererReadyForClosingApp', () => {
-            this.winMain!.close();
-        });
-        
         // response to FolderModule, default path is 'desktop' and only can
         // open directory.
-        ipcMain.on('openDir', () => {
+        ipcMain.on(IpcCommand.OpenDirectory, () => {
             dialog.showOpenDialog(
                 this.winMain!,
                 {
@@ -178,13 +173,19 @@ class Main {
                 if (!path.canceled) {
                     // eg. D:\dev\AllNote
                     let rootdir = path.filePaths[0];
-                    this.winMain!.webContents.send('openDir', rootdir);
+                    this.winMain!.webContents.send(IpcCommand.OpenDirectory, rootdir);
                 }
             });
         });
 
+        // once renderer process is ready, we do the actual closing
+        ipcMain.on(IpcCommand.RendererReadyForClose, () => {
+            this.winMain!.close();
+        });
+        
         ipcMain.on(IpcCommand.OpenDevelopTool, () => {
             this.winMain!.webContents.toggleDevTools();
+            (this.isDevlToolsOn as any as number) ^= 1;
         });
 
         ipcMain.on(IpcCommand.ReloadWindow, () => {
@@ -192,7 +193,9 @@ class Main {
         });
 
         ipcMain.on(IpcCommand.ErrorInWindow, () => {
-            this.winMain!.webContents.toggleDevTools();
+            if (this.isDevlToolsOn === false) {
+                this.winMain!.webContents.toggleDevTools();
+            }
         });
 
         ipcMain.on(IpcCommand.AlwaysOnTopOn, () => {

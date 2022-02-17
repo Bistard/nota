@@ -1,8 +1,9 @@
 import { Icons } from "src/base/browser/icon/icons";
 import { WidgetBar } from "src/base/browser/secondary/widgetBar/widgetBar";
 import { Orientation } from "src/base/common/dom";
-import { ipcRendererOn } from "src/base/electron/register";
+import { IpcCommand } from "src/base/electron/ipcCommand";
 import { IComponentService } from "src/code/browser/service/componentService";
+import { IIpcService } from "src/code/browser/service/ipcService";
 import { Component } from "src/code/browser/workbench/component";
 import { TitleBarComponentType } from "src/code/browser/workbench/editor/titleBar/titleBar";
 import { WindowButton } from "src/code/browser/workbench/editor/titleBar/windowButton";
@@ -14,6 +15,7 @@ export class WindowBarComponent extends Component {
     constructor(
         parentComponent: Component,
         @IComponentService componentService: IComponentService,
+        @IIpcService private readonly ipcService: IIpcService,
     ) {
         super(TitleBarComponentType.windowBar, parentComponent, null, componentService);
 
@@ -34,9 +36,9 @@ export class WindowBarComponent extends Component {
         
         // creates all the window buttons
         [
-            {id: 'min-btn', icon: Icons.Minus, message: 'minApp', classes: []},
-            {id: 'max-btn', icon: Icons.Square, message: 'maxResApp', classes: []},
-            {id: 'close-btn', icon: Icons.Cross, message: 'closeApp', classes: ['closeToggleBtn']},
+            {id: 'min-btn', icon: Icons.Minus, message: IpcCommand.WindowMinimize, classes: []},
+            {id: 'max-btn', icon: Icons.Square, message: IpcCommand.WindowRestore, classes: []},
+            {id: 'close-btn', icon: Icons.Cross, message: IpcCommand.WindowClose, classes: ['closeToggleBtn']},
         ]
         .forEach(( {id, icon, message, classes} ) => {
             const button = new WindowButton({
@@ -56,13 +58,13 @@ export class WindowBarComponent extends Component {
 
     protected override _registerListeners(): void {
         
-        ipcRendererOn('isMaximized', () => { 
+        this.ipcService.onWindowMaximize(() => {
             this.changeMaxResBtn(true);
-        })
-
-        ipcRendererOn('isRestored', () => { 
+        });
+        
+        this.ipcService.onWindowUnmaximize(() => {
             this.changeMaxResBtn(false); 
-        })
+        });
     }
 
     /**
