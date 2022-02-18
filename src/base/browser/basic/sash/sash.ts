@@ -124,11 +124,8 @@ export class Sash extends Disposable implements ICreateable, ISash {
         this.orientation = opts.orientation;
         this.defaultPosition = opts.defaultPosition;
 
-        if (opts.size) {
-            this.size = opts.size;
-        } else {
-            this.size = 4;
-        }
+        
+        this.size = opts.size ? opts.size : 4;
 
         if (opts.range) {
             this.range = opts.range;

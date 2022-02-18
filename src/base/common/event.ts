@@ -374,6 +374,12 @@ export class AsyncEmitter<T> extends Emitter<T> {
 
 }
 
+export const enum Priority {
+    Low,
+    Normal,
+    High
+}
+
 /**
  * @description A series helper functions that relates to {@link Emitter} and 
  * {@link Register}.
