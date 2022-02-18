@@ -107,6 +107,9 @@ export function formatSpan(text: string): string {
  * @warn The namespace does NOT work for IE8 browser, see 
  * 	https://stackoverflow.com/questions/5227909/how-to-get-an-elements-padding-value-using-javascript AND
  * 	https://developer.mozilla.org/en-US/docs/Web/API/Window/getComputedStyle
+ * 
+ * @warn If the HTMLElement has not been added into the DOM tree, some methods
+ * under the namespace will NOT work properly (returns magic number).
  */
 export namespace DomSize
 {
@@ -122,7 +125,7 @@ export namespace DomSize
 	function __getPropertyValue(element: HTMLElement, property: string): number {
 		let computedStyle: CSSStyleDeclaration = getComputedStyle(element);
 		let value = computedStyle.getPropertyValue(property);
-		return parseFloat(value) || -1;
+		return parseFloat(value) || 0;
 	}
 
 	// [method - padding]
