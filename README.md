@@ -34,14 +34,14 @@ An open-sourced note-taking desktop application / markdown editor that provides 
 ![screenshot](./doc/images/2022.1.16.png)
 
 ## 🚪portal
-- [📚wiki](https://github.com/Bistard/MarkdownNote/wiki)
-- [🚕Milestone](https://github.com/Bistard/MarkdownNote/wiki/Milestone)
+- [📚wiki](https://github.com/Bistard/nota/wiki)
+- [🚕Milestone](https://github.com/Bistard/nota/wiki/Milestone)
 
 ## 🏃 Get Started (still in developing)
 How to run the application from the source code:
 ```
-git clone https://github.com/Bistard/MarkdownNote.git
-cd MarkdownNote
+git clone https://github.com/Bistard/nota.git
+cd nota
 npm install
 npm start
 ```
