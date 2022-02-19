@@ -9,12 +9,12 @@ import { IFileService } from "src/code/common/service/fileService/fileService";
 import { createDecorator } from "src/code/common/service/instantiationService/decorator";
 import { Language } from "src/code/platform/i18n/i18n";
 
-export const LOCAL_MDNOTE_DIR_NAME = '.mdnote';
+export const LOCAL_NOTA_DIR_NAME = '.nota';
 export const DEFAULT_CONFIG_PATH = APP_ROOT_PATH;
 export const GLOBAL_CONFIG_PATH = APP_ROOT_PATH;
 export const DEFAULT_CONFIG_FILE_NAME = 'user.config.json';
 export const LOCAL_CONFIG_FILE_NAME = DEFAULT_CONFIG_FILE_NAME;
-export const GLOBAL_CONFIG_FILE_NAME = 'mdnote.config.json';
+export const GLOBAL_CONFIG_FILE_NAME = 'nota.config.json';
 
 export type AppMode = 'debug' | 'release';
 
@@ -37,7 +37,7 @@ export interface IGlobalConfigService extends IConfigService {
 /**
  * @class The user configuration service relates to the unique file named
  * `user.config.json` which will be placed in either:
- *      - the .mdnote directory in the opened directory (user customized) OR
+ *      - the .nota directory in the opened directory (user customized) OR
  *      - the root directory of the application which will be considered as the 
  *        default user configuration.
  */
@@ -76,7 +76,7 @@ export class UserConfigService extends ConfigServiceBase implements IUserConfigS
 
 /**
  * @class The global configuration service relates to the unique file named
- * `mdnote.config.json` which will be placed in the root directory of the 
+ * `nota.config.json` which will be placed in the root directory of the 
  * application.
  */
 export class GlobalConfigService extends ConfigServiceBase implements IGlobalConfigService {
@@ -114,14 +114,14 @@ export class GlobalConfigService extends ConfigServiceBase implements IGlobalCon
 
 /**
  * @readonly Returns a default URI path of the global config file which is named 
- * 'mdnote.config.json' at the root directory of the application.
+ * 'nota.config.json' at the root directory of the application.
  */
 export function getDefaultGlobalConfigPath(): URI {
-    return URI.fromFile(resolve(APP_ROOT_PATH, LOCAL_MDNOTE_DIR_NAME, GLOBAL_CONFIG_FILE_NAME));
+    return URI.fromFile(resolve(APP_ROOT_PATH, LOCAL_NOTA_DIR_NAME, GLOBAL_CONFIG_FILE_NAME));
 }
 
 export function getDefaultUserConfigPath(): URI {
-    return URI.fromFile(resolve(APP_ROOT_PATH, LOCAL_MDNOTE_DIR_NAME, DEFAULT_CONFIG_FILE_NAME));
+    return URI.fromFile(resolve(APP_ROOT_PATH, LOCAL_NOTA_DIR_NAME, DEFAULT_CONFIG_FILE_NAME));
 }
 
 /*******************************************************************************
@@ -164,10 +164,10 @@ export interface IGlobalApplicationSettings {
     
     /**
      * When true, NoteBookManager will read or create the default configuration in 
-     * '<appRootPath>/.mdnote/user.config.json'.
+     * '<appRootPath>/.nota/user.config.json'.
      * 
      * When false, NoteBookManager will read or create a local configuration file 
-     * in '<notebookManagerPath>/.mdnote/config.json'.
+     * in '<notebookManagerPath>/.nota/config.json'.
      */
     defaultConfigOn: boolean;
 

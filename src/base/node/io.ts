@@ -260,7 +260,7 @@ export async function writeToFile(
  * @description asynchronously creates a directory.
  * 
  * @param path eg. D:\dev\AllNote
- * @param dirName eg. .mdnote
+ * @param dirName eg. .nota
  * @returns {string} the path to the new directory
  */
  export async function createDir(
@@ -283,7 +283,7 @@ export async function writeToFile(
  * @description asynchronously check the existance of given directory in the given path.
  * 
  * @param path eg. D:\dev\AllNote
- * @param dirName eg. .mdnote
+ * @param dirName eg. .nota
  */
  export async function isDirExisted(
      path: string, 

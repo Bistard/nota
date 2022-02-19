@@ -240,13 +240,13 @@ suite('fileService-test-disk-buffered', () => {
     //     service.registerProvider('file', provider);
         
     //     // read directory
-    //     const dir = URI.fromFile('D:/dev/MarkdownNote/src/assets/svg');
+    //     const dir = URI.fromFile('D:/dev/nota/src/assets/svg');
     //     const read = await provider.readdir(dir);
         
     //     for (const pair of read) {
     //         const file = pair[0]!;
     //         const buffer = await service.readFile(URI.fromFile(URI.toFsPath(dir) + '/' + file));
-    //         await service.writeFile(URI.fromFile('D:/dev/MarkdownNote/src/assets/save/' + file.slice(6)), buffer, {create: true, overwrite: true, unlock: true});
+    //         await service.writeFile(URI.fromFile('D:/dev/nota/src/assets/save/' + file.slice(6)), buffer, {create: true, overwrite: true, unlock: true});
     //     }
     // });
 

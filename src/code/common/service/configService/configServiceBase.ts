@@ -47,7 +47,7 @@ export interface IConfigService {
      * exists, if true, we read the the configuration into the memory. Otherwise
      * we create a new file in that location and write into a default configuration.
      * @param path The URI file path to a configuration file. 
-     *  eg. 'mdnote.config.json' or 'user.config.json'
+     *  eg. 'nota.config.json' or 'user.config.json'
      */
     init(path: URI): Promise<void>;
 

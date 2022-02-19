@@ -6,7 +6,7 @@ suite('URI-test', () => {
     
     const testStr1 = 'foo://example.com:8042/over/there?name=ferret#nose';
     const testStr2 = 'urn:example:animal:ferret:nose';
-    const testStr3 = 'file://d:/dev/MarkdownNote/src/code/common/service/test/file.test.txt';
+    const testStr3 = 'file://d:/dev/nota/src/code/common/service/test/file.test.txt';
 
     test('URI#toString()', () => {
         assert.strictEqual(URI.parse(testStr1).toString(), testStr1);
@@ -16,9 +16,9 @@ suite('URI-test', () => {
 
     test('URI#toFsPath()', () => {
         if (IS_WINDOWS) {
-            assert.strictEqual(URI.toFsPath(URI.parse(testStr3)), 'd:\\dev\\MarkdownNote\\src\\code\\common\\service\\test\\file.test.txt');
+            assert.strictEqual(URI.toFsPath(URI.parse(testStr3)), 'd:\\dev\\nota\\src\\code\\common\\service\\test\\file.test.txt');
         } else {
-            assert.strictEqual(URI.toFsPath(URI.parse(testStr3)), 'd:/dev/MarkdownNote/src/code/common/service/test/file.test.txt');
+            assert.strictEqual(URI.toFsPath(URI.parse(testStr3)), 'd:/dev/nota/src/code/common/service/test/file.test.txt');
         }
         
     });

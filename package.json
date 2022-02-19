@@ -1,5 +1,5 @@
 {
-  "name": "markdownnote",
+  "name": "nota",
   "version": "0.0.1",
   "description": "an open-sourced markdown editor",
   "main": "./dist/main-bundle.js",
@@ -12,17 +12,17 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Bistard/MarkdownNote.git"
+    "url": "git+https://github.com/Bistard/nota.git"
   },
   "keywords": [
-    "markdownnote"
+    "nota"
   ],
   "author": "sihanli <1015813038@qq.com>",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/Bistard/MarkdownNote/issues"
+    "url": "https://github.com/Bistard/nota/issues"
   },
-  "homepage": "https://github.com/Bistard/MarkdownNote#readme",
+  "homepage": "https://github.com/Bistard/nota#readme",
   "devDependencies": {
     "@types/electron": "^1.6.10",
     "@types/jquery": "^3.5.6",

@@ -4,7 +4,7 @@ import { URI } from "src/base/common/file/uri";
 import { createDir, createFile, dirFilter, isDirExisted, isFileExisted } from "src/base/node/io";
 import { IIpcService } from "src/code/browser/service/ipcService";
 import { NoteBook } from "src/code/common/model/notebook";
-import { DEFAULT_CONFIG_PATH, EGlobalSettings, EUserSettings, GLOBAL_CONFIG_FILE_NAME, GLOBAL_CONFIG_PATH, IGlobalApplicationSettings, IGlobalNotebookManagerSettings, IUserNotebookManagerSettings, LOCAL_MDNOTE_DIR_NAME } from "src/code/common/service/configService/configService";
+import { DEFAULT_CONFIG_PATH, EGlobalSettings, EUserSettings, GLOBAL_CONFIG_FILE_NAME, GLOBAL_CONFIG_PATH, IGlobalApplicationSettings, IGlobalNotebookManagerSettings, IUserNotebookManagerSettings, LOCAL_NOTA_DIR_NAME } from "src/code/common/service/configService/configService";
 import { DEFAULT_CONFIG_FILE_NAME, IUserConfigService, LOCAL_CONFIG_FILE_NAME } from "src/code/common/service/configService/configService";
 import { IGlobalConfigService } from "src/code/common/service/configService/configService";
 import { createDecorator } from "src/code/common/service/instantiationService/decorator";
@@ -15,7 +15,7 @@ export interface INoteBookManagerService {
 
     readonly noteBookMap: Map<string, NoteBook>;
     readonly noteBookConfig: Object;
-    mdNoteFolderFound: boolean;
+    notaFolderFound: boolean;
 
     init(): Promise<void>;
     open(path: string): Promise<void>;
@@ -41,7 +41,7 @@ export class NoteBookManager implements INoteBookManagerService {
     private _noteBookManagerRootPath: string = '';
 
     // not used
-    public mdNoteFolderFound: boolean;
+    public notaFolderFound: boolean;
 
     constructor(
         @IGlobalConfigService private readonly globalConfigService: IGlobalConfigService,
@@ -50,14 +50,14 @@ export class NoteBookManager implements INoteBookManagerService {
         
     ) {
         this.noteBookMap = new Map<string, NoteBook>();
-        this.mdNoteFolderFound = false;
+        this.notaFolderFound = false;
 
         this.ipcService.onApplicationClose(async () => this.__onApplicationClose());
     }
 
     /**
      * @description the function first try to reads the global config named as 
-     * 'mdnote.config.json' at application root directory. NoteBookManager will
+     * 'nota.config.json' at application root directory. NoteBookManager will
      * either do nothing or start the most recent opened directory.
      */
     public async init(): Promise<void> {
@@ -85,10 +85,10 @@ export class NoteBookManager implements INoteBookManagerService {
     }
 
     /**
-     * @description when opening a directory to the NoteBooks, a '.mdnote' 
+     * @description when opening a directory to the NoteBooks, a '.nota' 
      * directory will be loaded or created. And each NoteBook will be detected 
      * or initialized. If global config says no use of default config, a 
-     * '.mdnote/user.config.json' will be created.
+     * '.nota/user.config.json' will be created.
      * 
      * @param path eg. D:\dev\AllNote
      */
@@ -119,15 +119,15 @@ export class NoteBookManager implements INoteBookManagerService {
             // get global configuration first
             const globalConfig = this.globalConfigService.get<IGlobalApplicationSettings>(EGlobalSettings.Application);
 
-            // try to find .mdnote
-            const isExisted = await isDirExisted(path, LOCAL_MDNOTE_DIR_NAME);
+            // try to find .nota
+            const isExisted = await isDirExisted(path, LOCAL_NOTA_DIR_NAME);
             if (isExisted) {
                 await this._importNoteBookConfig(globalConfig);
             } else {
                 await this._createNoteBookConfig(globalConfig);
             }
 
-            this.mdNoteFolderFound = true;
+            this.notaFolderFound = true;
 
         } catch(err) {
             throw err;
@@ -135,7 +135,7 @@ export class NoteBookManager implements INoteBookManagerService {
     }
 
     /**
-     * @description calls only when folder '.mdnote' exists, we first check if 
+     * @description calls only when folder '.nota' exists, we first check if 
      * the structure is correct. 
      * 
      * Then we check if each notebook has its coressponding `structure`.json, if
@@ -147,9 +147,9 @@ export class NoteBookManager implements INoteBookManagerService {
     private async _importNoteBookConfig(setting: IGlobalApplicationSettings): Promise<void> {
         
         try {
-            const ROOT = resolve(this._noteBookManagerRootPath, LOCAL_MDNOTE_DIR_NAME);
+            const ROOT = resolve(this._noteBookManagerRootPath, LOCAL_NOTA_DIR_NAME);
         
-            // check validation for the .mdnote structure
+            // check validation for the .nota structure
             await this._validateNoteBookConfig();
             
             if (setting.defaultConfigOn === false) {
@@ -157,7 +157,7 @@ export class NoteBookManager implements INoteBookManagerService {
                 await this.userConfigService.init(URI.fromFile(resolve(ROOT, DEFAULT_CONFIG_FILE_NAME)));
             }
 
-            // check if missing any NoteBook structure in '.mdnote/structure'
+            // check if missing any NoteBook structure in '.nota/structure'
             const structureRoot = resolve(ROOT, 'structure');
             for (let pair of this.noteBookMap) {
                 const name = pair[0];
@@ -179,8 +179,8 @@ export class NoteBookManager implements INoteBookManagerService {
     }
 
     /**
-     * @description calls only when folder '.mdnote' does not exists, we create
-     * the default '.mdnote' structure, initialize each notebook `structure`.json.
+     * @description calls only when folder '.nota' does not exists, we create
+     * the default '.nota' structure, initialize each notebook `structure`.json.
      * 
      * If defaultConfigOn is true, we read or create default config. Otherwise
      * we create a new local config.
@@ -188,7 +188,7 @@ export class NoteBookManager implements INoteBookManagerService {
     private async _createNoteBookConfig(setting: IGlobalApplicationSettings): Promise<void> {
         try {
             // init folder structure
-            const ROOT = await createDir(this._noteBookManagerRootPath, LOCAL_MDNOTE_DIR_NAME);
+            const ROOT = await createDir(this._noteBookManagerRootPath, LOCAL_NOTA_DIR_NAME);
             
             await createDir(ROOT, 'structure');
             await createDir(ROOT, 'log');
@@ -216,7 +216,7 @@ export class NoteBookManager implements INoteBookManagerService {
      */
     private async _validateNoteBookConfig(): Promise<void> {
         try {
-            const ROOT = resolve(this._noteBookManagerRootPath, LOCAL_MDNOTE_DIR_NAME);
+            const ROOT = resolve(this._noteBookManagerRootPath, LOCAL_NOTA_DIR_NAME);
             if (await isDirExisted(ROOT, 'structure') === false) {
                 await createDir(ROOT, 'structure');
             }
@@ -245,11 +245,11 @@ export class NoteBookManager implements INoteBookManagerService {
 
     /**
      * @description asynchronously write the notebook structure into the 
-     * .mdnote/structure/`yourNoteBookName`.json.
+     * .nota/structure/`yourNoteBookName`.json.
      */
     private async _noteBookWriteToJSON(notebook: NoteBook, name: string): Promise<void> {
         try {
-            const rootpath = resolve(this._noteBookManagerRootPath, LOCAL_MDNOTE_DIR_NAME, 'structure');
+            const rootpath = resolve(this._noteBookManagerRootPath, LOCAL_NOTA_DIR_NAME, 'structure');
             await createFile(rootpath, name + '.json', notebook.toJSON());
         } catch(err) {
             throw err;
@@ -270,16 +270,16 @@ export class NoteBookManager implements INoteBookManagerService {
             
         // save global configuration first
         notebookConfig.previousNoteBookManagerDir = this.getRootPath();
-        await this.globalConfigService.save(URI.fromFile(resolve(GLOBAL_CONFIG_PATH, LOCAL_MDNOTE_DIR_NAME, GLOBAL_CONFIG_FILE_NAME)));
+        await this.globalConfigService.save(URI.fromFile(resolve(GLOBAL_CONFIG_PATH, LOCAL_NOTA_DIR_NAME, GLOBAL_CONFIG_FILE_NAME)));
         
         // get application configuration
         const appConfig = this.globalConfigService.get<IGlobalApplicationSettings>(EGlobalSettings.Application);
         
         // save `user.config.json`
         if (appConfig.defaultConfigOn) {
-            await this.userConfigService.save(URI.fromFile(resolve(DEFAULT_CONFIG_PATH, LOCAL_MDNOTE_DIR_NAME, DEFAULT_CONFIG_FILE_NAME)));
+            await this.userConfigService.save(URI.fromFile(resolve(DEFAULT_CONFIG_PATH, LOCAL_NOTA_DIR_NAME, DEFAULT_CONFIG_FILE_NAME)));
         }
-        await this.userConfigService.save(URI.fromFile(resolve(this.getRootPath(), LOCAL_MDNOTE_DIR_NAME, LOCAL_CONFIG_FILE_NAME)));
+        await this.userConfigService.save(URI.fromFile(resolve(this.getRootPath(), LOCAL_NOTA_DIR_NAME, LOCAL_CONFIG_FILE_NAME)));
         
     }
 

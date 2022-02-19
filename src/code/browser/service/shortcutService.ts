@@ -9,14 +9,14 @@ import { APP_ROOT_PATH } from "src/base/electron/app";
 import { IIpcService } from "src/code/browser/service/ipcService";
 import { IKeyboardService } from "src/code/browser/service/keyboardService";
 import { IWorkbenchService } from "src/code/browser/service/workbenchService";
-import { LOCAL_MDNOTE_DIR_NAME } from "src/code/common/service/configService/configService";
+import { LOCAL_NOTA_DIR_NAME } from "src/code/common/service/configService/configService";
 import { IFileService } from "src/code/common/service/fileService/fileService";
 import { createDecorator } from "src/code/common/service/instantiationService/decorator";
 import { IInstantiationService, IServiceProvider } from "src/code/common/service/instantiationService/instantiation";
 import { IFileLogService } from "src/code/common/service/logService/fileLogService";
 
 export const SHORTCUT_CONFIG_NAME = 'shortcut.config.json';
-export const SHORTCUT_CONFIG_PATH = resolve(APP_ROOT_PATH, LOCAL_MDNOTE_DIR_NAME, SHORTCUT_CONFIG_NAME);
+export const SHORTCUT_CONFIG_PATH = resolve(APP_ROOT_PATH, LOCAL_NOTA_DIR_NAME, SHORTCUT_CONFIG_NAME);
 
 export interface IShortcutRegistration {
     /**
