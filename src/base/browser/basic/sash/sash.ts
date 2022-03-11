@@ -16,8 +16,9 @@ export interface ISashOpts {
      * 
      * When it is vertical, it is the left-most position (x-axis).
      * When it is horizontal, it is the top-most position (y-axis).
+     * @default value 0
      */
-    readonly defaultPosition: number;
+    readonly defaultPosition?: number;
 
     
     /**
@@ -44,6 +45,10 @@ export interface ISashEvent {
     /* The current coordinate */
     readonly currentX: number;
 	readonly currentY: number;
+
+    /* The change in coordinate */
+    readonly deltaX: number;
+    readonly deltaY: number;
 }
 
 export interface ISash {
@@ -54,8 +59,25 @@ export interface ISash {
     readonly onDidMove: Register<ISashEvent>;
     readonly onDidEnd: Register<void>;
     
+    /**
+     * Disposes the {@link Sash} UI component.
+     */
     dispose(): void;
+
+    /**
+     * Creates the DOM elements.
+     */
     create(): void;
+
+    /**
+     * Relayout the default position of the {@link Sash} and sets to the given 
+     * position.
+     */
+    relayout(position: number): void;
+
+    /**
+     * Registers DOM-related listeners.
+     */
     registerListeners(): void;
 }
 
@@ -82,7 +104,7 @@ export class Sash extends Disposable implements ICreateable, ISash {
 
     // when vertical: the default position in x of the sash
     // when horizontal: the default position in y of the sash
-    public readonly defaultPosition: number;
+    public defaultPosition: number;
 
     // when vertical: the draggable range in x of the sash
     // when horizontal: the draggable range in y of the sash
@@ -120,9 +142,9 @@ export class Sash extends Disposable implements ICreateable, ISash {
 
         this.parentElement = parentElement;
 
-        /* Options */    
+        /* Options */
         this.orientation = opts.orientation;
-        this.defaultPosition = opts.defaultPosition;
+        this.defaultPosition = opts.defaultPosition ?? 0;
 
         
         this.size = opts.size ? opts.size : 4;
@@ -134,9 +156,11 @@ export class Sash extends Disposable implements ICreateable, ISash {
     }
 
     public override dispose(): void {
-        super.dispose();
-        this.element?.remove();
-        this.disposed = true;
+        if (this.disposed === false) {
+            super.dispose();
+            this.element?.remove();
+            this.disposed = true;
+        }
     }
 
     public create(): void {
@@ -160,14 +184,22 @@ export class Sash extends Disposable implements ICreateable, ISash {
         }
     }
 
+    public relayout(defaultPosition: number): void {
+        if (!this.element || this.disposed) {
+            return;
+        }
+        this.defaultPosition = defaultPosition;
+        this.element.style.left = defaultPosition + 'px';
+    }
+
     public registerListeners(): void {
         if (this.element === undefined) {
             return;
         }
-        
+
         this.__register(addDisposableListener(this.element, EventType.mousedown, 
             // using anonymous callback to avoid `this` argument ambiguous.
-            (e: MouseEvent) => { 
+            (e: MouseEvent) => {
                 // start dragging
                 this._initDrag(e);
                 
@@ -176,7 +208,9 @@ export class Sash extends Disposable implements ICreateable, ISash {
                     startX: e.pageX,
                     startY: e.pageY,
                     currentX: e.pageX,
-                    currentY: e.pageY
+                    currentY: e.pageY,
+                    deltaX: 0,
+                    deltaY: 0
                 });
             }
         ));
@@ -200,11 +234,6 @@ export class Sash extends Disposable implements ICreateable, ISash {
      * Private Helper Functions
      **************************************************************************/
 
-    /* The start of coordinate (x / y) when mouse-downed. */
-    private startCoordinate: number = 0;
-    /* The start of dimension (width or height) of the sash when mouse-downed. */
-    private startDimention: number = 0;
-
     /**
      * @description Once the {@link Sash} has been mouse-downed, function will 
      * be invoked to achieve draggable animation.
@@ -212,6 +241,14 @@ export class Sash extends Disposable implements ICreateable, ISash {
      */
     private _initDrag(event: MouseEvent): void {
         
+        // The start of coordinate (x / y) when mouse-downed.
+        let startCoordinate = 0;
+        // The start of dimension (width or height) of the sash when mouse-downed.
+        let startDimention = 0;
+        // The previous coordinate (x / y) when mouse-moved.
+        let firstDrag = true;
+        let prevX = 0, prevY = 0;
+
         /**
          * @readonly Comments on implementation of using local variable callbacks.
          *  1. So that listener can be removed properly.
@@ -234,33 +271,46 @@ export class Sash extends Disposable implements ICreateable, ISash {
                 if (this.range && (e.clientX < this.range.start || (e.clientX > this.range.end && this.range.end !== -1))) {
                     return;
                 }
-
-                e.preventDefault();
                 
-                this.element!.style.left = (this.startDimention + e.pageX - this.startCoordinate) + 'px';
-                this._onDidMove.fire({ startX: event.pageX, startY: event.pageY, currentX: e.pageX, currentY: e.pageY });
+                this.element!.style.left = (startDimention + e.pageX - startCoordinate) + 'px';
+                
+                if (firstDrag === true) {
+                    prevX = e.pageX;
+                    prevY = e.pageY;
+                    firstDrag = false;
+                }
+
+                this._onDidMove.fire({ startX: event.pageX, startY: event.pageY, currentX: e.pageX, currentY: e.pageY, deltaX: e.pageX - prevX, deltaY: e.pageY - prevY });
+                prevX = e.pageX;
+                prevY = e.pageY;
             };
     
-            this.startCoordinate = event.pageX;
-            this.startDimention = parseInt(document.defaultView!.getComputedStyle(this.element!).left, 10);
+            startCoordinate = event.pageX;
+            startDimention = parseInt(document.defaultView!.getComputedStyle(this.element!).left, 10);
         } 
         // draging vertically
         else {
 
             doDragHelper = (e: MouseEvent) => {
-                
                 if (this.range && (e.clientY < this.range.start || (e.clientY > this.range.end && this.range.end !== -1))) {
                     return;
                 }
 
-                e.preventDefault();
+                this.element!.style.top = (startDimention + event.pageY - startCoordinate) + 'px';
+                
+                if (firstDrag === true) {
+                    prevX = e.pageX;
+                    prevY = e.pageY;
+                    firstDrag = false;
+                }
 
-                this.element!.style.top = (this.startDimention + event.pageY - this.startCoordinate) + 'px';
-                this._onDidMove.fire({ startX: event.pageX, startY: event.pageY, currentX: e.pageX, currentY: e.pageY });
+                this._onDidMove.fire({ startX: event.pageX, startY: event.pageY, currentX: e.pageX, currentY: e.pageY, deltaX: e.pageX - prevX, deltaY: e.pageY - prevY });
+                prevX = e.pageX;
+                prevY = e.pageY;
             };
     
-            this.startCoordinate = event.pageY;
-            this.startDimention = parseInt(document.defaultView!.getComputedStyle(this.element!).top, 10);
+            startCoordinate = event.pageY;
+            startDimention = parseInt(document.defaultView!.getComputedStyle(this.element!).top, 10);
         }
 
         // listeners registration
