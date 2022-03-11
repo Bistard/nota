@@ -29,7 +29,8 @@ export interface IViewOpts {
     readonly initSize: number;
     
     /**
-     * When adding/removing view, the view with higher priority will be resized first.
+     * When adding/removing view, the view with higher priority will be resized 
+     * first.
      * Default is {@link Priority.Low}.
      */
     priority?: Priority;
@@ -89,6 +90,11 @@ export class SplitView implements ISplitView {
         container.appendChild(this.element);
     }
 
+    public dispose(): void {
+        this.viewItems.forEach(view => view.dispose());
+        this.sashItems.forEach(sash => sash.dispose());
+    }
+
     public addView(opt: IViewOpts): void {
         this.__doAddView(opt);
         this.__render();
@@ -100,11 +106,6 @@ export class SplitView implements ISplitView {
      */
     public onWindowResize(dimension: IDimension): void {
         // TODO
-    }
-
-
-    public dispose(): void {
-        
     }
 
     // [private helper methods]
@@ -125,23 +126,41 @@ export class SplitView implements ISplitView {
         newView.className = 'split-view-view';
         
         const view = new SplitViewItem(newView, opt);
-        this.viewItems.splice(opt.index!, 0, view);
+        this.viewItems.splice(opt.index, 0, view);
     
         // sash
 
         if (this.viewItems.length > 1) {
             const sash = new Sash(this.sashContainer, {
-                orientation: Orientation.Vertical,
-                defaultPosition: 0,
+                orientation: Orientation.Vertical
             });
             sash.create();
+            sash.registerListeners();
 
-            this.sashItems.splice(opt.index!, 0, sash);
+            sash.onDidMove(e => {
+                const [view1, view2] = this.__getAdjacentViews(sash);
+                view1.size += e.deltaX;
+                view2.size -= e.deltaX;
+                view1.render();
+                view2.render(this.__getViewOffset(view2) + e.deltaX);
+            });
+
+            sash.onDidReset(() => {
+                // TODO
+                const [view1, view2] = this.__getAdjacentViews(sash);
+                console.log('split-view: unfinished part reached');
+                // view1.size = sash.defaultPosition;
+                // view2.size -= e.deltaX;
+                // view1.render();
+                // view2.render(this.__getViewOffset(view2) + e.deltaX);
+            });
+
+            this.sashItems.splice(opt.index, 0, sash);
         }
 
         // rendering process
 
-        if (this.viewItems.length === opt.index!) {
+        if (this.viewItems.length === 0 || this.viewItems.length === opt.index) {
             this.viewContainer.appendChild(newView);
         } else {
             this.viewContainer.insertBefore(newView, this.viewContainer.children.item(opt.index!));
@@ -260,15 +279,47 @@ export class SplitView implements ISplitView {
      * @description 
      */
     private __doRender(): void {
-        let offset: number = 0;
-        for (const view of this.viewItems) {
+        
+        let offset = 0;
+        for (let i = 0; i < this.viewItems.length; i++) {
+            const view = this.viewItems[i]!;
             view.render(offset);
-            offset += view.size;
-        }
 
-        // Sash rendering
+            offset += view.size;
+
+            if (i != this.viewItems.length - 1) {
+                const sash = this.sashItems[i]!;
+                sash.relayout(offset - sash.size / 2);
+            }
+        }
     }
 
+    /**
+     * @description Returns the adjacent split views given the {@link Sash}.
+     */
+    private __getAdjacentViews(sash: Sash): [SplitViewItem, SplitViewItem] {
+        const before = this.sashItems.indexOf(sash);
+        return [this.viewItems[before]!, this.viewItems[before + 1]!];
+    }
+
+    /**
+     * @description Returns the position (offset) of the given split view 
+     * relatives to the whole split view container.
+     */
+    private __getViewOffset(view: SplitViewItem): number {
+        let offset = 0;
+
+        for (let i = 0; i < this.viewItems.length; i++) {
+            
+            if (this.viewItems[i] === view) {
+                return offset;
+            }
+
+            offset += this.viewItems[i]!.size;
+        }
+
+        throw new Error(`view not found in split-view: ${view}`);
+    }
 }
 
 export class SplitViewSpaceError extends Error {
