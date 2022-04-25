@@ -61,6 +61,4 @@ export class Button extends Widget implements IButton {
         });
 
     }
-
-
 }

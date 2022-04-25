@@ -96,12 +96,13 @@ export abstract class Widget extends Disposable implements IWidget {
         /* override by the derived classes */
     }
 
-    override dispose(): void {
+    public override dispose(): void {
 		if (this._element) {
+            // REVIEW: check if remove() will automatically calling `removeEventListener()`.
+            // REVIEW: if yes, we then do not need to register its own event listener at the first place.
 			this._element.remove();
 			this._element = undefined;
 		}
-
-		super.dispose();
+        super.dispose();
 	}
 }
