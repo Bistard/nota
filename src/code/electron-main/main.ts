@@ -191,7 +191,11 @@ class Main {
         });
         
         ipcMain.on(IpcCommand.OpenDevelopTool, () => {
-            this.winMain!.webContents.toggleDevTools();
+            if (this.isDevlToolsOn === false) {
+                this.winMain!.webContents.openDevTools({mode: 'detach', activate: true});
+            } else {
+                this.winMain!.webContents.closeDevTools();
+            }
             (this.isDevlToolsOn as any as number) ^= 1;
         });
 
