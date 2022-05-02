@@ -14,7 +14,7 @@
 An open-sourced note-taking desktop application / markdown editor that provides WYSIWYG and noteTaking-like user experience.
 
 ## 🚪Portal
-- [🌎Why Me](#🌎Why-Me)
+- [🌎Why Me](##🌎Why-Me)
 - [💖Features](#💖features)
 - [👁‍🗨Screenshots](#👁‍🗨screenshots)
 - [✅Get Started](#✅get-started)
