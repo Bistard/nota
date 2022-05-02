@@ -14,13 +14,15 @@
 An open-sourced note-taking desktop application / markdown editor that provides WYSIWYG and noteTaking-like user experience.
 
 ## 🚪Portal
+- [🌎Why Me](#🌎Why-Me)
 - [💖Features](#💖features)
-- [👁‍🗨Screenshots](#👁‍🗨screenshots-2022116)
-- [🏃Get Started](#)
-- [📚Wiki](https://github.com/Bistard/nota/wiki)
+- [👁‍🗨Screenshots](#👁‍🗨screenshots)
+- [✅Get Started](#✅get-started)
+- [📖Wiki](https://github.com/Bistard/nota/wiki)
 - [💭Discussion](https://github.com/Bistard/nota/discussions)
 - [💎Roadmap](https://github.com/Bistard/nota/discussions/88)
 
+## 🌎Why Me
 
 ## 💖Features
 * [x] Supports markdown WYSIWYG
@@ -40,7 +42,7 @@ An open-sourced note-taking desktop application / markdown editor that provides 
 * [ ] Supports themes
 > * We will provide a few default themes. In addition, users may customize their own themes using plugins.
 
-## 👁‍🗨Screenshots (2022.1.16)
+## 👁‍🗨Screenshots
 > * The current (2022.4.30) UI design is far away from GOOD.
 > 
 > * Since we haven't come up with a perfect UI design for *Nota*, we are still working on the foundation (backend) of the applications. That is why the screenshot has not been updated for a while.
@@ -48,7 +50,7 @@ An open-sourced note-taking desktop application / markdown editor that provides 
 
 ![screenshot](./doc/images/2022.1.16.png)
 
-## 🏃Get Started
+## ✅Get Started
 How to run the application from the source code:
 ```
 git clone https://github.com/Bistard/nota.git
