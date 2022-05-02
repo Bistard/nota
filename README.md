@@ -14,10 +14,10 @@
 An open-sourced note-taking desktop application / markdown editor that provides WYSIWYG and noteTaking-like user experience.
 
 ## 🚪Portal
-- [🌎Why Me](https://github.com/Bistard/nota/tree/core/explorerView##%F0%9F%8C%8EWhy-Me)
-- [💖Features](https://github.com/Bistard/nota/tree/core/explorerView#%F0%9F%92%96features)
-- [👁‍🗨Screenshots](https://github.com/Bistard/nota/tree/core/explorerView#%F0%9F%91%81%E2%80%8D%F0%9F%97%A8screenshots)
-- [✅Get Started](https://github.com/Bistard/nota/tree/core/explorerView#%E2%9C%85get-started)
+- [🌎Why Me](#🌎Why-Me)
+- [💖Features](#💖features)
+- [👁‍🗨Screenshots](#👁‍🗨screenshots)
+- [✅Get Started](#✅get-started)
 - [📖Wiki](https://github.com/Bistard/nota/wiki)
 - [💭Discussion](https://github.com/Bistard/nota/discussions)
 - [💎Roadmap](https://github.com/Bistard/nota/discussions/88)
