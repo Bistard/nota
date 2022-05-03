@@ -28,6 +28,7 @@ An open-sourced note-taking desktop application / markdown editor that provides 
 > * You can access all your data freely at any time because it is stored in your local disk.
 > * Since the data and *Nota* have no longer binding to each other, you may use any cloud services to store your data.
 > * You don't need to worry about what happens to your data if *Nota* no longer being updated after 10 years. All you need to do is use another markdown editor to open your local data.
+> * *Nota* supports all the basic writing functionalities from Markdown. If you require more advanced note-taking skills, go try the other rich text applications.
 
 ## 💖Features
 * [x] Supports markdown WYSIWYG
