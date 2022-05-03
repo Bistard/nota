@@ -1,7 +1,7 @@
 <h1 align="center">Nota (In Developing)</h1>
 <div align="center">
   |
-  <a href="README.md">en</a>
+  <a href="README.md">english</a>
   |
   <a href="doc/readme/zh-cn.md">简体</a>
   |
