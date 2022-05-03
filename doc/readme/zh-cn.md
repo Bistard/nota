@@ -23,33 +23,33 @@
 
 
 ## 💖特性
-* [x] Supports markdown WYSIWYG
-> * Currently we are using *milkdown* as our markdown WYSIWYG rendering framework. After the most of the functionalities are done, we are aiming to build our own markdown WYSIWYG rendering (more performant).
-* [ ] Great note-taking-like user experience
-> * *Nota* has potentials to create a neat and powerful notebook structure and users are able to achieve infinitely page nesting.
+* [x] 支持 markdown WYSIWYG(所见即所得)
+> * 现在我们正在使用 *milkdown* 作为我们的 WYSIWYG 渲染框架. 完成大部分的软件功能后，我们的目标是构建自己的markdown渲染器（更高性能）。
+* [ ] 出色的 类笔记式 用户体验
+> * *Nota* 有潜力创造一个整洁而强大的笔记本结构，用户可以实现无限的页面嵌套。
 > 
-> * For new users, people are able to create different notebooks, and manage their notes (markdown files) by dragging and dropping pages easily.
+> * 对于新用户（无原始md文件），ta们可以创建不同的笔记本，并通过拖放页面来管理他们的笔记（markdown 文件），实现文件分级。
 > 
-> * For users who already has tons of raw markdown files, application can automatically resolve directories and builds the corresponding notebook structures.
-* [ ] Side-way outline display
-> * Not just like Typora or marktext, you need to click the sidebar to see the outline of the current markdown file, our application is able to render the outline on the sideway directly for convenience purposes.
-* [x] Performant scrolling rendering
-> * For any scrolling components, things will only be rendered within the viewport. In our cases, directory displaying and markdown WYSIWYG rendering (in our future version) this technology will be used.
-* [ ] Supports git extension
-> * Our application will support git (similar to vscode) as default.
-* [ ] Supports themes
-> * We will provide a few default themes. In addition, users may customize their own themes using plugins.
+> * 对于已经拥有大量原始 markdown 文件的用户，应用程序可以自动解析目录并构建相应的笔记本结构。
+* [ ] 侧面大纲显示
+> * 与 Typora 和 marktext 不同, 你无需点击侧边按钮来显示当前文件大纲，我们的软件将大纲渲染在角落里，以便实时查看与跳转.
+* [x] 高性能的滚动渲染
+> * 对于任何可滚动组件，只有视口内的事物会被渲染。在我们的软件中, 目录显示和 Markdown 所见即所得渲染（在我们未来的版本中）将使用此技术，以此确保视口内同时只有少量事物被渲染。
+* [ ] 支持 git 扩展
+> * 我们的应用程序将默认支持 git（类似于 vscode）。
+* [ ] 支持主题
+> * 我们将提供一些默认主题。 此外，用户可以使用插件自定义自己的页面主题。
 
 ## 👁‍🗨截图 (2022.1.16)
-> * The current (2022.4.30) UI design is far away from GOOD.
+> * 当前（2022.4.30）的UI设计离GOOD还很远。
 > 
-> * Since we haven't come up with a perfect UI design for *Nota*, we are still working on the foundation (backend) of the applications. That is why the screenshot has not been updated for a while.
-> * If you are good at software UI design, you are welcome to contact with me!
+> * 因为还能没有为 *Nota* 提供完美的 UI 设计，我们的重心仍在开发应用程序的基础（后端）。 因此，近期软件截图将暂停更新。
+> * 如果你擅长软件UI设计，欢迎与我联系！
 
 ![screenshot](../../doc/images/2022.1.16.png)
 
 ## 🏃 开始使用！
-How to run the application from the source code:
+如何从源代码运行应用程序：
 ```
 git clone https://github.com/Bistard/nota.git
 cd nota
