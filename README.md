@@ -13,14 +13,13 @@
 
 An open-sourced note-taking desktop application / markdown editor that provides WYSIWYG and noteTaking-like user experience.
 
-## 🚪Portal
+## 🚪Portals
 - [🌎Why Me?](#🌎Why-Me?)
 - [💖Features](#💖features)
 - [👁‍🗨Screenshots](#👁‍🗨screenshots)
 - [✅Get Started](#✅get-started)
-- [📖Wiki](#📖wiki)
-- [💭Discussion](#💭discussion)
-- [💎Roadmap](#💎roadmap)
+- [💌Contributing](#💌contributing)
+- [📦Architecture](#📦Architecture)
 
 ## 🌎Why Me?
 > * *Nota* is a free and open-sourced project. Rich text based note-taking application is not really my thing, that is why I choose Markdown (plain text) as the only way to store our data. 
@@ -65,11 +64,13 @@ npm install
 npm start
 ```
 
-## 📖Wiki
-This is the magic [link](https://github.com/Bistard/nota/wiki) to our Wiki <3.
+## 💌Contributing
+* 🥰Welcome to post any ideas or improvements in our github discussion section which can be found [here](https://github.com/Bistard/nota/discussions).
+* 🤔Report bugs or request new features to [here](https://github.com/Bistard/nota/issues).
+* 😆If you requires further discussions or wanna join us, you may [contact me in personal](https://github.com/Bistard).
 
-## 💭Discussion
-This is the magic [link](https://github.com/Bistard/nota/discussions) to our discussion section <3.
-
-## 💎Roadmap
-This is the magic [link](https://github.com/Bistard/nota/discussions/88) to our roadmap <3.
+## 📦Architecture
+> * First of all, by reading the goodness of vscode source code, *Nota* decided not to use any existing frameworks, instead we are basically building everything from the scratch. If you read the source code of *Nota* carefully, you may find that there are some similarities compared to vscode.
+> * Secondly, there are lots of functionalities that are separated into tons of microservices which are managed by our own DI system (Dependency Injection) to achieve the idea of IoC (Inversion of Control).
+> * Thirdly, some places are built by the idea of MVVM (Model-View-ViewModel), one of them is how we display our tree-like structure.
+> * There should be more to be disscussed, but I guess I will stop from here and do some code now.
