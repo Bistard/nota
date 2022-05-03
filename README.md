@@ -18,9 +18,9 @@ An open-sourced note-taking desktop application / markdown editor that provides 
 - [💖Features](#💖features)
 - [👁‍🗨Screenshots](#👁‍🗨screenshots)
 - [✅Get Started](#✅get-started)
-- [📖Wiki](https://github.com/Bistard/nota/wiki)
-- [💭Discussion](https://github.com/Bistard/nota/discussions)
-- [💎Roadmap](https://github.com/Bistard/nota/discussions/88)
+- [📖Wiki](#📖wiki)
+- [💭Discussion](#💭discussion)
+- [💎Roadmap](#💎roadmap)
 
 ## 🌎Why Me?
 > * *Nota* is a free and open-sourced project. Rich text based note-taking application is not really my thing, that is why I choose Markdown (plain text) as the only way to store our data. 
@@ -63,3 +63,12 @@ cd nota
 npm install
 npm start
 ```
+
+## 📖Wiki
+This is the magic [link](https://github.com/Bistard/nota/wiki) to our Wiki <3.
+
+## 💭Discussion
+This is the magic [link](https://github.com/Bistard/nota/discussions) to our discussion section <3.
+
+## 💎Roadmap
+This is the magic [link](https://github.com/Bistard/nota/discussions/88) to our roadmap <3.
