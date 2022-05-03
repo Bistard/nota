@@ -1,3 +1,4 @@
+<!-- <p align="center"><img src="static/logo-small.png" width="100" height="100"></p> -->
 <h1 align="center">Nota (In Developing)</h1>
 <div align="center">
   |
