@@ -14,7 +14,7 @@
 An open-sourced note-taking desktop application / markdown editor that provides WYSIWYG and noteTaking-like user experience.
 
 ## 🚪Portal
-- [🌎Why Me](#🌎Why-Me)
+- [🌎Why Me?](#🌎Why-Me?)
 - [💖Features](#💖features)
 - [👁‍🗨Screenshots](#👁‍🗨screenshots)
 - [✅Get Started](#✅get-started)
@@ -22,7 +22,12 @@ An open-sourced note-taking desktop application / markdown editor that provides 
 - [💭Discussion](https://github.com/Bistard/nota/discussions)
 - [💎Roadmap](https://github.com/Bistard/nota/discussions/88)
 
-## 🌎Why Me
+## 🌎Why Me?
+> * *Nota* is a free and open-sourced project. Rich text based note-taking application is not really my thing, that is why I choose Markdown (plain text) as the only way to store our data. 
+> * For users who do not know about Markdown, don't worry about it because *Nota* provides a great user experience that makes you can work just like the others.
+> * You can access all your data freely at any time because it is stored in your local disk.
+> * Since the data and *Nota* have no longer binding to each other, you may use any cloud services to store your data.
+> * You don't need to worry about what happens to your data if *Nota* no longer being updated after 10 years. All you need to do is use another markdown editor to open your local data.
 
 ## 💖Features
 * [x] Supports markdown WYSIWYG
