@@ -3,9 +3,9 @@
   |
   <a href="README.md">en</a>
   |
-  <a href="doc/readme/zh-cn.md">zh-cn</a>
+  <a href="doc/readme/zh-cn.md">简体</a>
   |
-  <a href="doc/readme/zh-tw.md">zh-tw</a>
+  <a href="doc/readme/zh-tw.md">繁体</a>
   |
 </div>
 
