@@ -53,12 +53,12 @@ export interface ITreeNodeElement<T> {
      * Determines if the tree node is collapsible. eg. the folder is 
      * collapsible and a file vice versa. 
      * @default false
+     * @note If it's collapsed, this member will set to true.
      */
     collapsible?: boolean;
 
     /** 
      * Determines if the tree node is collapsed. 
-     * @warn If it's not collapsible, this member does not mean anything.
      */
     collapsed?: boolean;
 

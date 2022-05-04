@@ -30,9 +30,7 @@ export interface IIndexTreeModel<T, TFilter = void> extends ITreeModel<T, TFilte
 /**
  * An {@link IndexTreeModel} is a type of {@link ITreeModel}. 
  * The tree model represents a multiway tree-like structure. The prefix `index` 
- * has two meanings:
- *  1. means the tree node can be found by a series of indices.
- *  2. means each children has its internal order.
+ * means the tree node can be found by a series of indices
  */
 export class IndexTreeModel<T, TFilter = void> implements IIndexTreeModel<T, TFilter> {
 
@@ -56,7 +54,7 @@ export class IndexTreeModel<T, TFilter = void> implements IIndexTreeModel<T, TFi
             parent: null,
             children: [],
             depth: 0,
-            visible: false,
+            visible: true,
             collapsible: true,
             collapsed: false,
             visibleNodeCount: 0,
@@ -64,10 +62,7 @@ export class IndexTreeModel<T, TFilter = void> implements IIndexTreeModel<T, TFi
 
     }
 
-    /** 
-     * [methods] 
-     * - Detailed documents see {@link ITreeModel} or {@link IIndexTreeModel}
-     */
+    // [methods]
     
     public splice(
         location: number[], 
@@ -80,8 +75,7 @@ export class IndexTreeModel<T, TFilter = void> implements IIndexTreeModel<T, TFi
         const treeNodeToInsert: IIndexTreeNode<T, TFilter>[] = [];
         
         itemsToInsert.forEach(element => {
-            const newChild = this.__createNode(element, node);
-            treeNodeToInsert.push(newChild);
+            const newChild = this.__createNode(element, node, treeNodeToInsert);
             visibleNodeCountChange += newChild.visibleNodeCount;
         });
 
@@ -201,14 +195,16 @@ export class IndexTreeModel<T, TFilter = void> implements IIndexTreeModel<T, TFi
      * Creates a new {@link IIndexTreeNode}.
      * @param element The provided {@link ITreeNodeElement<T>} for construction.
      * @param parent The parent of the new tree node.
+     * @param treeNodeList To stores all the created tree nodes into a list.
      */
     private __createNode(
         element: ITreeNodeElement<T>, 
         parent: IIndexTreeNode<T, TFilter>,
+        treeNodeList: IIndexTreeNode<T, TFilter>[],
     ): IIndexTreeNode<T, TFilter> 
     {
-        const collapsible = typeof element.collapsible === 'boolean' ? element.collapsible : false;
         const collapsed = typeof element.collapsed === 'boolean' ? element.collapsed : false;
+        const collapsible = typeof element.collapsible === 'boolean' ? element.collapsible : collapsed;
 
         // construct the new node
         const newNode: IIndexTreeNode<T, TFilter> = {
@@ -221,14 +217,19 @@ export class IndexTreeModel<T, TFilter = void> implements IIndexTreeModel<T, TFi
             children: [],
             visibleNodeCount: 1
         };
+        
+        if (parent.collapsed === false) {
+            treeNodeList.push(newNode);
+        }
 
         // construct the children nodes recursively
         let visibleNodeCount = 1;
         
         const childrenElements: ITreeNodeElement<T>[]  = element.children || [];
         childrenElements.forEach(element => {
-            const child = this.__createNode(element, newNode);
+            const child = this.__createNode(element, newNode, treeNodeList);
             newNode.children.push(child);
+            
             visibleNodeCount += child.visibleNodeCount;
         });
 
@@ -248,9 +249,10 @@ export class IndexTreeModel<T, TFilter = void> implements IIndexTreeModel<T, TFi
      * 
      * @param location The location representation of the node.
      * @param node The parent node to start with, default is the root.
-     * @returns An object that contains three info.
+     * @returns An object that contains three info:
      *  node: the corresponding node.
      *  listIndex: the index of the node in the tree when traversing in pre-order.
+     *  visible: if the node is visible.
      * @warn If node is not found, an {@link Error} is thrown.
      */
     private __getNodeWithListIndex(
@@ -258,28 +260,35 @@ export class IndexTreeModel<T, TFilter = void> implements IIndexTreeModel<T, TFi
         node: IIndexTreeNode<T, TFilter> = this._root
     ): {node: IIndexTreeNode<T, TFilter>, listIndex: number, visible: boolean} 
     {
-
-        let parent = node;
         let listIndex = 0;
         let visible = true;
         
         for (let i = 0; i < location.length; i++) {
             let index = location[i]!;
             
-            if (index < 0 || index >= parent.children.length) {
+            if (index < 0 || index > node.children.length) {
                 throw new Error('invalid location');
             }
 
             for (let j = 0; j < index; j++) {
-                listIndex += parent.children[j]!.visibleNodeCount;
+                listIndex += node.children[j]!.visibleNodeCount;
             }
             
-            visible = visible && parent.visible;
-            parent = parent.children[index]!;
+            visible = visible && node.visible;
+
+            if (i === location.length - 1) {
+                return {
+                    node: node,
+                    listIndex: listIndex,
+                    visible: visible
+                };
+            }
+
+            node = node.children[index]!;
         }
 
         return {
-            node: parent,
+            node: node,
             listIndex: listIndex,
             visible: visible
         };
