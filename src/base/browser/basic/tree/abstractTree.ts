@@ -1,5 +1,4 @@
-import { ITreeModel } from "./tree";
-
+import { ITreeModel } from "src/base/common/tree/tree";
 
 /**
  * @class An {@link AbstractTree} is the base class for any tree-like structure.
