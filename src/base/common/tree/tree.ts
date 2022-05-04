@@ -44,7 +44,7 @@ export interface ITreeNode<T, TFilter = void> {
  * A user-side created object as input for splicing elements into the tree-like 
  * structure. Allows users to splice nested tree nodes.
  */
-export interface ITreeNodeElement<T> {
+export interface ITreeNodeItem<T> {
     
     /** The corresponding stored user-defined data. */
     data: T;
@@ -66,7 +66,7 @@ export interface ITreeNodeElement<T> {
      * The children of the current element. 
      * @default empty
      */
-    children?: ITreeNodeElement<T>[];
+    children?: ITreeNodeItem<T>[];
 }
 
 /**
@@ -90,10 +90,9 @@ export interface ITreeModel<T, TFilter = void, TRef = number[]> {
     /**
      * Try to get an existed node given the location of the node.
      * @param location The location representation of the node.
-     * @returns Returns undefined if not found, returns {@link ITreeNode} vice 
-     * versa.
+     * @returns Returns the expected tree node.
      */
-    getNode(location: TRef): ITreeNode<T, TFilter> | undefined;
+    getNode(location: TRef): ITreeNode<T, TFilter>;
 
     /**
      * Returns the location corresponding to the given {@link ITreeNode}.
@@ -108,8 +107,6 @@ export interface ITreeModel<T, TFilter = void, TRef = number[]> {
      * @warn If node is not found, an {@link Error} is thrown.
      */
     getNodeListIndex(location: TRef): number;
-
-    // TODO...
 
     /**
      * Determines if the given location of a node is collapsible.
@@ -126,6 +123,5 @@ export interface ITreeModel<T, TFilter = void, TRef = number[]> {
      *          returned.
      */
     isCollapsed(location: TRef): boolean;
-
 
 }
