@@ -50,7 +50,7 @@ let ListViewItemUUID: number = 0;
 /**
  * The interface for {@link ListView}.
  */
-export interface IListView<T> extends IDisposable {
+export interface IListView<T> extends IDisposable, ISpliceable<T> {
 
     // [events / getter]
 

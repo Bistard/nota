@@ -1,13 +1,14 @@
+import { ISpliceable } from "src/base/common/range";
 import { ITreeModel, ITreeNode, ITreeNodeElement } from "./tree";
 
 export interface IIndexTreeNode<T, TFilter = void> extends ITreeNode<T, TFilter> {
     
-    /** override for specifying other nodes type. */
+    /** override for specifying nodes type. */
     parent: IIndexTreeNode<T, TFilter> | null;
     children: IIndexTreeNode<T, TFilter>[];
     
-    /** counts how many nodes are actually rendered (includes itself). */
-    renderNodeCount: number;
+    /** counts how many nodes are actually visible / rendered (includes itself). */
+    visibleNodeCount: number;
 
 }
 
@@ -40,9 +41,15 @@ export class IndexTreeModel<T, TFilter = void> implements IIndexTreeModel<T, TFi
     /** Root does not refer to any specific tree node. */
     private _root: IIndexTreeNode<T, TFilter>;
 
+    /** The corresponding list-like view component. */
+    private _view: ISpliceable<IIndexTreeNode<T, TFilter>>;
+
     // [constructor]
 
-    constructor() {
+    constructor(
+        view: ISpliceable<IIndexTreeNode<T, TFilter>>,
+    ) {
+        this._view = view;
         
         this._root = {
             data: null,
@@ -52,7 +59,7 @@ export class IndexTreeModel<T, TFilter = void> implements IIndexTreeModel<T, TFi
             visible: false,
             collapsible: true,
             collapsed: false,
-            renderNodeCount: 0,
+            visibleNodeCount: 0,
         };
 
     }
@@ -69,14 +76,30 @@ export class IndexTreeModel<T, TFilter = void> implements IIndexTreeModel<T, TFi
     ): void 
     {
         let { node, listIndex, visible } = this.__getNodeWithListIndex(location, this._root);
-        
+        let visibleNodeCountChange = 0;
         const treeNodeToInsert: IIndexTreeNode<T, TFilter>[] = [];
+        
         itemsToInsert.forEach(element => {
-            const newNode = this.__createNode(element, node);
-            treeNodeToInsert.push(newNode);
+            const newChild = this.__createNode(element, node);
+            treeNodeToInsert.push(newChild);
+            visibleNodeCountChange += newChild.visibleNodeCount;
         });
 
-        // TODO: finish this
+        const lastIndex = location[location.length - 1]!;
+        const deletedChildren = node.children.splice(lastIndex, deleteCount, ...treeNodeToInsert);
+        let deletedVisibleNodeCount = 0;
+
+        deletedChildren.forEach(child => {
+            if (child.visible) {
+                deletedVisibleNodeCount += child.visibleNodeCount;
+            }
+        });
+        
+        if (visible) {
+            this.__updateAncestorVisibleNodeCount(node, visibleNodeCountChange - deletedVisibleNodeCount);
+            this._view.splice(listIndex, deletedVisibleNodeCount, treeNodeToInsert);
+        }
+        
     }
 
     public hasNode(location: number[]): boolean {
@@ -135,16 +158,14 @@ export class IndexTreeModel<T, TFilter = void> implements IIndexTreeModel<T, TFi
         node: IIndexTreeNode<T, TFilter> = this._root,
     ): boolean 
     {
-        let parent = node;
-        
         for (let i = 0; i < location.length; i++) {
             let index = location[i]!;
             
-            if (index < 0 || index >= parent.children.length) {
+            if (index < 0 || index >= node.children.length) {
                 return false;
             }
 
-            parent = parent.children[index]!;
+            node = node.children[index]!;
         }
 
         return true;
@@ -163,19 +184,17 @@ export class IndexTreeModel<T, TFilter = void> implements IIndexTreeModel<T, TFi
         node: IIndexTreeNode<T, TFilter> = this._root,
     ): IIndexTreeNode<T, TFilter> | undefined 
     {
-        let parent = node;
-        
         for (let i = 0; i < location.length; i++) {
             let index = location[i]!;
             
-            if (index < 0 || index >= parent.children.length) {
+            if (index < 0 || index >= node.children.length) {
                 return undefined;
             }
 
-            parent = parent.children[index]!;
+            node = node.children[index]!;
         }
 
-        return parent;
+        return node;
     }
 
     /**
@@ -200,26 +219,26 @@ export class IndexTreeModel<T, TFilter = void> implements IIndexTreeModel<T, TFi
             collapsible: collapsible,
             collapsed: collapsible ? collapsed : false,
             children: [],
-            renderNodeCount: 1
+            visibleNodeCount: 1
         };
 
         // construct the children nodes recursively
-        let renderNodeCount = 1;
+        let visibleNodeCount = 1;
         
         const childrenElements: ITreeNodeElement<T>[]  = element.children || [];
         childrenElements.forEach(element => {
             const child = this.__createNode(element, newNode);
             newNode.children.push(child);
-            renderNodeCount += child.renderNodeCount;
+            visibleNodeCount += child.visibleNodeCount;
         });
 
         // if the collapsible setting somehow sets to false, we may correct it here.
         newNode.collapsible = newNode.collapsible || newNode.children.length > 0;
         
         if (newNode.visible === false) {
-            newNode.renderNodeCount = 0;
+            newNode.visibleNodeCount = 0;
         } else if (newNode.collapsed === false) {
-            newNode.renderNodeCount = renderNodeCount;
+            newNode.visibleNodeCount = visibleNodeCount;
         }
 
         return newNode;
@@ -252,7 +271,7 @@ export class IndexTreeModel<T, TFilter = void> implements IIndexTreeModel<T, TFi
             }
 
             for (let j = 0; j < index; j++) {
-                listIndex += parent.children[j]!.renderNodeCount;
+                listIndex += parent.children[j]!.visibleNodeCount;
             }
             
             visible = visible && parent.visible;
@@ -264,5 +283,25 @@ export class IndexTreeModel<T, TFilter = void> implements IIndexTreeModel<T, TFi
             listIndex: listIndex,
             visible: visible
         };
+    }
+
+    /**
+     * Updates `visibleNodeCount` of all the ancestors of the provided node.
+     * @param node The provided tree node.
+     * @param diff The difference to the new visibleNodeCount.
+     */
+    private __updateAncestorVisibleNodeCount(
+        node: IIndexTreeNode<T, TFilter>, 
+        diff: number
+    ): void 
+    {
+        if (diff === 0) {
+            return;
+        }
+
+        while (node.parent !== null) {
+            node.visibleNodeCount += diff;
+            node = node.parent;
+        }
     }
 }
