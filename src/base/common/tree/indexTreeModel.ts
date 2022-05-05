@@ -67,7 +67,7 @@ export class IndexTreeModel<T, TFilter = void> implements IIndexTreeModel<T, TFi
     public splice(location: number[], deleteCount: number, itemsToInsert: ITreeNodeItem<T>[]): void 
     {
         // finds out the parent node and its listIndex.
-        let { parent, listIndex, visible } = this.__getNodeWithListIndex(location, this._root);
+        let { parent, listIndex, visible } = this.__getParentNodeWithListIndex(location, this._root);
         
         // 1st array will store all the new nodes including nested ones.
         // 2nd array only store the new nodes under the parent node.
@@ -80,16 +80,18 @@ export class IndexTreeModel<T, TFilter = void> implements IIndexTreeModel<T, TFi
             visibleNodeCountChange += newChild.visibleNodeCount;
         });
 
+        // splice new nodes which directly under the parent node.
         const lastIndex = location[location.length - 1]!;
         const deletedChildren = parent.children.splice(lastIndex, deleteCount, ...treeNodeChildrenToInsert);
+        
         let deletedVisibleNodeCount = 0;
-
         deletedChildren.forEach(child => {
             if (child.visible) {
                 deletedVisibleNodeCount += child.visibleNodeCount;
             }
         });
         
+        // update view and ancestors data.
         if (visible) {
             this.__updateAncestorVisibleNodeCount(parent, visibleNodeCountChange - deletedVisibleNodeCount);
             this._view.splice(listIndex, deletedVisibleNodeCount, treeNodeListToInsert);
@@ -123,7 +125,8 @@ export class IndexTreeModel<T, TFilter = void> implements IIndexTreeModel<T, TFi
     }
 
     public getNodeListIndex(location: number[]): number {
-        return this.__getNodeWithListIndex(location, this._root).listIndex;
+        // TODO
+        return -1;
     }
     
     public isCollapsible(location: number[]): boolean {
@@ -255,7 +258,7 @@ export class IndexTreeModel<T, TFilter = void> implements IIndexTreeModel<T, TFi
     }
 
     /**
-     * 
+     * Rerturns the list index of the parent of the given location.
      * @param location The location representation of the node.
      * @param node The parent node to start with, default is the root.
      * @returns An object that contains three info:
@@ -264,7 +267,7 @@ export class IndexTreeModel<T, TFilter = void> implements IIndexTreeModel<T, TFi
      *  visible: if the node is visible.
      * @warn If node is not found, an {@link Error} is thrown.
      */
-    private __getNodeWithListIndex(
+    private __getParentNodeWithListIndex(
         location: number[], 
         node: IIndexTreeNode<T, TFilter> = this._root
     ): {parent: IIndexTreeNode<T, TFilter>, listIndex: number, visible: boolean} 
