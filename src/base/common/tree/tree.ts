@@ -81,35 +81,36 @@ export interface ITreeNodeItem<T> {
 export interface ITreeModel<T, TFilter = void, TRef = number[]> {
 
     /**
-     * Check if the given node is existed.
+     * @description Check if the given node is existed.
      * @param location The location representation of the node.
      * @returns If the node exists.
      */
     hasNode(location: TRef): boolean;
     
     /**
-     * Try to get an existed node given the location of the node.
+     * @description Try to get an existed node given the location of the node.
      * @param location The location representation of the node.
      * @returns Returns the expected tree node.
      */
     getNode(location: TRef): ITreeNode<T, TFilter>;
 
     /**
-     * Returns the location corresponding to the given {@link ITreeNode}.
+     * @description Returns the location corresponding to the given {@link ITreeNode}.
      * @param node The provided tree node.
      * @returns The location of the given tree node.
      */
     getNodeLocation(node: ITreeNode<T, TFilter>): TRef;
 
     /**
-     * Returns the index of the node in the tree when traversing in pre-order.
+     * @description Returns the index of the node in the tree when traversing in 
+     * pre-order. If node is invisible, returns -1.
      * @param location The location representation of the node.
      * @warn If node is not found, an {@link Error} is thrown.
      */
     getNodeListIndex(location: TRef): number;
 
     /**
-     * Determines if the given location of a node is collapsible.
+     * @description Determines if the given location of a node is collapsible.
      * @param location The location representation of the node.
      * @returns If it is collapsible. If the location is not found, false is 
      *          returned.
@@ -117,11 +118,31 @@ export interface ITreeModel<T, TFilter = void, TRef = number[]> {
     isCollapsible(location: TRef): boolean;
 
     /**
-     * Determines if the given location of a node is collapsed.
+     * @description Sets the given location of a node to a provided collapsible state.
+     * @param location The location representation of the node.
+     * @param collapsible The collapsible state, if not provided, toggles the 
+     *                    current state of the node.
+     * @returns If the operation was made.
+     */
+    setCollapsible(location: TRef, collapsible?: boolean): boolean;
+
+    /**
+     * @description Determines if the given location of a node is collapsed.
      * @param location The location representation of the node.
      * @returns If it is collapsed. If the location is not found, false is 
      *          returned.
      */
     isCollapsed(location: TRef): boolean;
+
+    /**
+     * @description Sets the given location of a node to a provided collapsed state.
+     * @param location The location representation of the node.
+     * @param collapsed The collapsed state, if not provided, toggles the 
+     *                  current state of the node.
+     * @param recursive Determines if the operation is recursive. if not provided, 
+     *                  sets to false as default.
+     * @returns If the operation was made.
+     */
+    setCollapsed(location: TRef, collapsed?: boolean, recursive?: boolean): boolean;
 
 }

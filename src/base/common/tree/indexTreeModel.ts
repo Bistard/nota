@@ -28,9 +28,11 @@ export interface IIndexTreeModel<T, TFilter = void> extends ITreeModel<T, TFilte
 }
 
 /**
- * An {@link IndexTreeModel} is a type of {@link ITreeModel}. 
+ * An {@link IndexTreeModel} is a type of {@link ITreeModel}. This is not the 
+ * same structure as Index Binary Tree (IBT).
+ * 
  * The tree model represents a multiway tree-like structure. The prefix `index` 
- * means the tree node can be found by a series of indices
+ * means the tree node can be found by a series of indices.
  */
 export class IndexTreeModel<T, TFilter = void> implements IIndexTreeModel<T, TFilter> {
 
@@ -93,7 +95,7 @@ export class IndexTreeModel<T, TFilter = void> implements IIndexTreeModel<T, TFi
         
         // update view and ancestors data.
         if (visible) {
-            this.__updateAncestorVisibleNodeCount(parent, visibleNodeCountChange - deletedVisibleNodeCount);
+            this.__updateAncestorsVisibleNodeCount(parent, visibleNodeCountChange - deletedVisibleNodeCount);
             this._view.splice(listIndex, deletedVisibleNodeCount, treeNodeListToInsert);
         }
         
@@ -125,8 +127,8 @@ export class IndexTreeModel<T, TFilter = void> implements IIndexTreeModel<T, TFi
     }
 
     public getNodeListIndex(location: number[]): number {
-        // TODO
-        return -1;
+        const {listIndex, visible} = this.__getNodeWithListIndex(location, this._root);
+        return visible ? listIndex : -1;
     }
     
     public isCollapsible(location: number[]): boolean {
@@ -139,6 +141,17 @@ export class IndexTreeModel<T, TFilter = void> implements IIndexTreeModel<T, TFi
         return node.collapsible;
     }
 
+    public setCollapsible(location: number[], collapsible?: boolean): boolean {
+        const node = this.getNode(location);
+
+        // if not provided, we toggle the current state.
+        if (typeof collapsible === 'undefined') {
+            collapsible = !node.collapsible;
+        }
+
+        return this.__setCollapsible(location, collapsible);
+    }
+
     public isCollapsed(location: number[]): boolean {
         const node = this.__getNode(location, this._root);
         
@@ -149,18 +162,26 @@ export class IndexTreeModel<T, TFilter = void> implements IIndexTreeModel<T, TFi
         return node.collapsible && node.collapsed;
     }
 
+    public setCollapsed(location: number[], collapsed?: boolean, recursive?: boolean): boolean  {
+        const node = this.getNode(location);
+
+        // if not provided, we toggle the current state.
+        if (typeof collapsed === 'undefined') {
+            collapsed = !node.collapsed;
+        }
+
+        return this.__setCollapsed(location, collapsed, recursive ? recursive : false);
+    }
+
     // [private helper methods]
 
     /**
-     * Check if the provided location is existed under the given node.
+     * @description Check if the provided location is existed under the given node.
      * @param location The location representation of the node.
-     * @param node The parent node to start with, default is the root.
+     * @param node The node to start with, default is the root.
      * @returns If the node exists.
      */
-    private __hasNode(
-        location: number[], 
-        node: IIndexTreeNode<T, TFilter> = this._root,
-    ): boolean 
+    private __hasNode(location: number[], node: IIndexTreeNode<T, TFilter> = this._root): boolean 
     {
         for (let i = 0; i < location.length; i++) {
             let index = location[i]!;
@@ -176,17 +197,14 @@ export class IndexTreeModel<T, TFilter = void> implements IIndexTreeModel<T, TFi
     }
 
     /**
-     * Try to get an existed node from the provided the location under the given 
-     * parent node.
+     * @description Try to get an existed node from the provided the location 
+     * under the given parent node.
      * @param location The location representation of the node.
-     * @param node The parent node to start with, default is the root.
+     * @param node The node to start with, default is the root.
      * @returns Returns undefined if not found, returns {@link IIndexTreeNode} vice 
      * versa.
      */
-    private __getNode(
-        location: number[], 
-        node: IIndexTreeNode<T, TFilter> = this._root,
-    ): IIndexTreeNode<T, TFilter> | undefined 
+    private __getNode(location: number[], node: IIndexTreeNode<T, TFilter> = this._root): IIndexTreeNode<T, TFilter> | undefined 
     {
         for (let i = 0; i < location.length; i++) {
             let index = location[i]!;
@@ -202,7 +220,7 @@ export class IndexTreeModel<T, TFilter = void> implements IIndexTreeModel<T, TFi
     }
 
     /**
-     * Creates a new {@link IIndexTreeNode}.
+     * @description Creates a new {@link IIndexTreeNode}.
      * @param element The provided {@link ITreeNodeItem<T>} for construction.
      * @param parent The parent of the new tree node.
      * @param toBeRendered To stores all the new created tree nodes which should
@@ -258,9 +276,10 @@ export class IndexTreeModel<T, TFilter = void> implements IIndexTreeModel<T, TFi
     }
 
     /**
-     * Rerturns the list index of the parent of the given location.
+     * @description Rerturns the list index of the parent of the given location.
      * @param location The location representation of the node.
-     * @param node The parent node to start with, default is the root.
+     * @param node The node to start with, default is the root.
+     * 
      * @returns An object that contains three info:
      *  node: the corresponding node.
      *  listIndex: the index of the node in the tree when traversing in pre-order.
@@ -308,24 +327,210 @@ export class IndexTreeModel<T, TFilter = void> implements IIndexTreeModel<T, TFi
     }
 
     /**
-     * Updates `visibleNodeCount` of all the ancestors of the provided node.
-     * @param node The provided tree node.
+     * @description Rerturns the list index of the given location.
+     * @param location The location representation of the node.
+     * @param node The node to start with, default is the root.
+     * 
+     * @returns An object that contains three info:
+     *  node: the corresponding node.
+     *  listIndex: the index of the node in the tree when traversing in pre-order.
+     *  visible: if the node is visible.
+     * @warn If node is not found, an {@link Error} is thrown.
+     */
+    private __getNodeWithListIndex(
+        location: number[], 
+        node: IIndexTreeNode<T, TFilter> = this._root
+    ): {node: IIndexTreeNode<T, TFilter>, listIndex: number, visible: boolean} 
+    {
+        if (location.length === 0) {
+            return {
+                node: this._root, 
+                listIndex: -1,
+                visible: false
+            };
+        }
+
+        const {parent, listIndex, visible} = this.__getParentNodeWithListIndex(location, this._root);
+        const lastIndex = location[location.length - 1]!;
+
+        if (lastIndex < 0 || lastIndex > node.children.length) {
+            throw new Error('invalid location');
+        }
+
+        const requiredNode = parent.children[lastIndex]!;
+        return {
+            node: requiredNode,
+            listIndex: listIndex,
+            visible: visible && requiredNode.visible
+        };
+    }
+
+    /**
+     * @description Updates `visibleNodeCount` of all the ancestors of the 
+     * provided node.
+     * @param node The provided parent tree node.
      * @param diff The difference to the new visibleNodeCount.
      * 
      * @note time complexity: O(h)
      */
-    private __updateAncestorVisibleNodeCount(
-        node: IIndexTreeNode<T, TFilter>, 
-        diff: number
-    ): void 
-    {
+    private __updateAncestorsVisibleNodeCount(node: IIndexTreeNode<T, TFilter> | null, diff: number): void {
         if (diff === 0) {
             return;
         }
 
-        while (node.parent !== null) {
+        while (node !== null) {
             node.visibleNodeCount += diff;
             node = node.parent;
         }
     }
+
+    /**
+     * @description Sets the provided collapsed state to the given location.
+     * @param location The location representation of the node.
+     * @param collapsed The new collapsed state.
+     * @param recursive Determines if the operation is recursive.
+     * 
+     * @returns if the collapsed state changed.
+     */
+    private __setCollapsed(location: number[], collapsed: boolean, recursive: boolean): boolean {
+        const { node, listIndex } = this.__getNodeWithListIndex(location, this._root);
+
+        // we try to update the tree node state first
+        const changed = this.__setTreeNodeCollapsed(node, collapsed, recursive);
+
+        // if the state changed, we need to update other nodes.
+        if (changed && node.visible) {
+
+            const prevVisibleNodeCount = node.visibleNodeCount;
+
+            // update visibleRenderCount of its children and ancestors.
+            const visibleNodes = this.__updateTreeNodeAfterCollapsed(node);
+
+            // also updates the list node state.
+            this.__updateListNodeCollapsed(listIndex, prevVisibleNodeCount, visibleNodes);
+
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * @description Sets the given tree node to the provided collapsed state.
+     * @param node The provided tree node.
+     * @param collapsed The provided collapsed state.
+     * @param recursive If the operation is recursive.
+     * 
+     * @returns if the collapsed state changed.
+     */
+    private __setTreeNodeCollapsed(node: IIndexTreeNode<T, TFilter>, collapsed: boolean, recursive: boolean): boolean {
+
+        let changed = false;
+
+        // if node is not even collapsible, we skip it.
+        if (node.collapsible === false) {
+            return false;
+        }
+
+        // the actual collapsed state update
+        changed = (node.collapsed !== collapsed);
+        node.collapsed = collapsed;
+
+        // update children
+        if (recursive) {
+            for (const child of node.children) {
+                changed = changed || this.__setTreeNodeCollapsed(child, collapsed, recursive);
+            }
+        }
+
+        return changed;
+    }
+
+    /**
+     * @description Updates the visibleRenderCount of children and ancestors 
+     * when the collapsed state of the given tree node has changed.
+     * @param node The given tree node.
+     * 
+     * @note only be called when `__setTreeNodeCollapsed` returns true.
+     */
+    private __updateTreeNodeAfterCollapsed(node: IIndexTreeNode<T, TFilter>): IIndexTreeNode<T, TFilter>[] {
+        const previousRenderNodeCount = node.visibleNodeCount;
+		
+        const visibleNodes: IIndexTreeNode<T, TFilter>[] = [];
+		this.__updateChildrenVNCAfterCollapsed(node, visibleNodes);
+        this.__updateAncestorsVisibleNodeCount(node.parent, visibleNodes.length - previousRenderNodeCount); // __updateAncestorVNCAfterCollapsed()
+
+		return visibleNodes;
+    }
+
+    /**
+     * @description Updates the list node after the node with the given listIndex 
+     * is collapsed.
+     * @param listIndex The list index of the provided tree node.
+     * @param prevVisibleNodeCount The previous VNC of the tree node.
+     * @param visibleNodes The array which stores all the visible nodes.
+     * 
+     * @note only be called when `__setTreeNodeCollapsed` returns true.
+     */
+    private __updateListNodeCollapsed(listIndex: number, prevVisibleNodeCount: number, visibleNodes: IIndexTreeNode<T, TFilter>[]): void {
+        const deleteCount = prevVisibleNodeCount - (listIndex === -1 ? 0 : 1);
+        this._view.splice(listIndex + 1, deleteCount, visibleNodes.slice(1));
+    }
+
+    /**
+     * @description Updates the visibleNodeCount of all the nested children 
+     * (include the provided node) after the provided tree node has changed its 
+     * collapsed state.
+     * @param node The provided tree node.
+     * @param visibleNodes Will stores all the visible tree node into this array
+     *                     for later rendering.
+     */
+    private __updateChildrenVNCAfterCollapsed(node: IIndexTreeNode<T, TFilter>, visibleNodes: IIndexTreeNode<T, TFilter>[]): void {
+
+        const visited = new Set();
+        const stack = [node];
+
+        while (stack.length > 0) {
+            
+            const node = stack[stack.length - 1]!;
+            
+            if (node.visible === false) {
+                stack.pop();
+                continue;
+            }
+
+            visibleNodes.push(node);
+            node.visibleNodeCount = 1;
+
+            if (node.children.length > 0) {
+                if (visited.has(node)) {
+                    node.visibleNodeCount += node.children.reduce((vnc, node) => vnc + node.visibleNodeCount, 0);
+                    stack.pop();
+                } else {
+                    for (const child of node.children) {
+                        stack.push(child);
+                    }
+                    visited.add(node);
+                }
+            } else {
+                stack.pop();
+            }
+        }
+    }
+
+    /**
+     * @description Sets the provided collapsible state to the given location.
+     * @param location The location representation of the node.
+     * @param collapsible The new collapsible state.
+     */
+    private __setCollapsible(location: number[], collapsible: boolean): boolean {
+
+        const { node } = this.__getNodeWithListIndex(location, this._root);
+
+        const changed = (node.collapsible !== collapsible);
+        node.collapsible = collapsible;
+
+        return changed;
+    }
+
 }
