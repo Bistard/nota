@@ -199,6 +199,8 @@ export class IndexTreeModel<T, TFilter = void> implements IIndexTreeModel<T, TFi
      * @param location The location representation of the node.
      * @param node The node to start with, default is the root.
      * @returns If the node exists.
+     * 
+     * @complexity O(h) - h: length of location
      */
     private __hasNode(location: number[], node: IIndexTreeNode<T, TFilter> = this._root): boolean 
     {
@@ -222,6 +224,8 @@ export class IndexTreeModel<T, TFilter = void> implements IIndexTreeModel<T, TFi
      * @param node The node to start with, default is the root.
      * @returns Returns undefined if not found, returns {@link IIndexTreeNode} vice 
      * versa.
+     * 
+     * @complexity O(h) - h: length of location
      */
     private __getNode(location: number[], node: IIndexTreeNode<T, TFilter> = this._root): IIndexTreeNode<T, TFilter> | undefined 
     {
@@ -304,6 +308,8 @@ export class IndexTreeModel<T, TFilter = void> implements IIndexTreeModel<T, TFi
      *  listIndex: the index of the node in the tree when traversing in pre-order.
      *  visible: if the node is visible.
      * @warn If node is not found, an {@link Error} is thrown.
+     * 
+     * @complexity O(h) - h: length of location
      */
     private __getParentNodeWithListIndex(
         location: number[], 
@@ -355,6 +361,8 @@ export class IndexTreeModel<T, TFilter = void> implements IIndexTreeModel<T, TFi
      *  listIndex: the index of the node in the tree when traversing in pre-order.
      *  visible: if the node is visible.
      * @warn If node is not found, an {@link Error} is thrown.
+     * 
+     * @complexity O(h) - h: length of location
      */
     private __getNodeWithListIndex(
         location: number[], 
@@ -390,7 +398,7 @@ export class IndexTreeModel<T, TFilter = void> implements IIndexTreeModel<T, TFi
      * @param node The provided parent tree node.
      * @param diff The difference to the new visibleNodeCount.
      * 
-     * @note time complexity: O(h)
+     * @note time complexity: O(h) - h: height of the node
      */
     private __updateAncestorsVisibleNodeCount(node: IIndexTreeNode<T, TFilter> | null, diff: number): void {
         if (diff === 0) {
@@ -550,6 +558,8 @@ export class IndexTreeModel<T, TFilter = void> implements IIndexTreeModel<T, TFi
      * @description Sets the provided collapsible state to the given location.
      * @param location The location representation of the node.
      * @param collapsible The new collapsible state.
+     * 
+     * @complexity O(h) - h: length of location
      */
     private __setCollapsible(location: number[], collapsible: boolean): boolean {
 
