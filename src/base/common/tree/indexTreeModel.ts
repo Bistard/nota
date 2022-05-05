@@ -83,6 +83,7 @@ export class IndexTreeModel<T, TFilter = void> implements IIndexTreeModel<T, TFi
         });
 
         // splice new nodes which directly under the parent node.
+        const prevParentHasChildren = parent.children.length > 0;
         const lastIndex = location[location.length - 1]!;
         const deletedChildren = parent.children.splice(lastIndex, deleteCount, ...treeNodeChildrenToInsert);
         
@@ -99,6 +100,11 @@ export class IndexTreeModel<T, TFilter = void> implements IIndexTreeModel<T, TFi
             this._view.splice(listIndex, deletedVisibleNodeCount, treeNodeListToInsert);
         }
         
+        // update the ancestors' collapsible state
+        const currParentHasChildren = parent.children.length > 0;
+        if (prevParentHasChildren !== currParentHasChildren) {
+            this.setCollapsible(location.slice(0, -1), currParentHasChildren);
+        }
     }
 
     public hasNode(location: number[]): boolean {
@@ -439,7 +445,7 @@ export class IndexTreeModel<T, TFilter = void> implements IIndexTreeModel<T, TFi
         // update children
         if (recursive) {
             for (const child of node.children) {
-                changed = changed || this.__setTreeNodeCollapsed(child, collapsed, recursive);
+                changed = this.__setTreeNodeCollapsed(child, collapsed, recursive) || changed;
             }
         }
 
@@ -491,31 +497,40 @@ export class IndexTreeModel<T, TFilter = void> implements IIndexTreeModel<T, TFi
         const stack = [node];
 
         while (stack.length > 0) {
-            
             const node = stack[stack.length - 1]!;
             
+            if (node.parent) {
+                if (!node.parent.visible || (node.parent.collapsible && node.parent.collapsed)) {
+                    node.visible = false;
+                    node.visibleNodeCount = 0;
+                }
+                if (node.parent.visible && (node.parent.collapsible && !node.parent.collapsed)) {
+                    node.visible = true;
+                }
+            }
+
             if (node.visible === false) {
                 stack.pop();
                 continue;
             }
 
-            visibleNodes.push(node);
-            node.visibleNodeCount = 1;
-
-            if (node.children.length > 0) {
-                if (visited.has(node)) {
+            if (visited.has(node)) {
+                visibleNodes.push(node);
+                if (node.collapsed === false) {
                     node.visibleNodeCount += node.children.reduce((vnc, node) => vnc + node.visibleNodeCount, 0);
-                    stack.pop();
-                } else {
-                    for (const child of node.children) {
-                        stack.push(child);
-                    }
-                    visited.add(node);
                 }
-            } else {
                 stack.pop();
+            } else {
+                visited.add(node);
+                node.visibleNodeCount = 1;
+
+                for (const child of node.children) {
+                    stack.push(child);
+                }
             }
         }
+
+        visibleNodes.reverse();
     }
 
     /**
@@ -525,10 +540,19 @@ export class IndexTreeModel<T, TFilter = void> implements IIndexTreeModel<T, TFi
      */
     private __setCollapsible(location: number[], collapsible: boolean): boolean {
 
-        const { node } = this.__getNodeWithListIndex(location, this._root);
+        let parent: IIndexTreeNode<T, TFilter> = this._root;
+        let changed = false;
 
-        const changed = (node.collapsible !== collapsible);
-        node.collapsible = collapsible;
+        for (let i = 0; i < location.length; i++) {
+            const index = location[i]!;
+            const node = parent.children[index];
+            if (node === undefined) {
+                throw new Error('invalid location');
+            }
+
+            changed = (node.collapsible !== collapsible);
+            node.collapsible = collapsible;
+        }
 
         return changed;
     }
