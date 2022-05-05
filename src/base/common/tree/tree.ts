@@ -142,7 +142,15 @@ export interface ITreeModel<T, TFilter = void, TRef = number[]> {
      * @param recursive Determines if the operation is recursive. if not provided, 
      *                  sets to false as default.
      * @returns If the operation was made.
+     * 
+     * @note Recursive meaning all the nested the children will also be collapsed.
      */
     setCollapsed(location: TRef, collapsed?: boolean, recursive?: boolean): boolean;
+
+    /**
+     * @description Expands to the tree node with the given location.
+     * @param location The location representation of the node.
+     */
+    setExpandTo(location: TRef): void;
 
 }

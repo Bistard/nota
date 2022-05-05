@@ -179,6 +179,19 @@ export class IndexTreeModel<T, TFilter = void> implements IIndexTreeModel<T, TFi
         return this.__setCollapsed(location, collapsed, recursive ? recursive : false);
     }
 
+    public setExpandTo(location: number[]): void {
+        // This methods expand the tree node from bottom to top.
+        let node = this.getNode(location);
+        while (node.parent) {
+            node = node.parent;
+            location = location.slice(0, location.length - 1);
+
+            if (node.collapsed) {
+                this.setCollapsed(location, false, false);
+            }
+        }
+    }
+
     // [private helper methods]
 
     /**
@@ -540,18 +553,20 @@ export class IndexTreeModel<T, TFilter = void> implements IIndexTreeModel<T, TFi
      */
     private __setCollapsible(location: number[], collapsible: boolean): boolean {
 
-        let parent: IIndexTreeNode<T, TFilter> = this._root;
+        let node: IIndexTreeNode<T, TFilter> | undefined = this._root;
         let changed = false;
 
         for (let i = 0; i < location.length; i++) {
             const index = location[i]!;
-            const node = parent.children[index];
+            node = node.children[index];
             if (node === undefined) {
                 throw new Error('invalid location');
             }
 
-            changed = (node.collapsible !== collapsible);
-            node.collapsible = collapsible;
+            changed = changed || (node.collapsible !== collapsible);
+            if (i === location.length - 1) {
+                node.collapsible = collapsible;
+            }
         }
 
         return changed;
