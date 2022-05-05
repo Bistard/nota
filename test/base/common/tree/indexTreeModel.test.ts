@@ -186,7 +186,7 @@ suite('indexTreeModel-test', () => {
                     {data: 5}
                 ]
             },
-            { data: 7 }
+            {   data: 7 }
         ]);
         assert.deepStrictEqual(list.length, 7);
 
@@ -247,7 +247,7 @@ suite('indexTreeModel-test', () => {
                     {data: 5}
                 ]
             },
-            { data: 7 }
+            {   data: 7 }
         ]);
         assert.deepStrictEqual(list.length, 3);
 
@@ -279,9 +279,245 @@ suite('indexTreeModel-test', () => {
                     {data: 5}
                 ]
             },
-            { data: 7 }
+            {   data: 7 }
         ]);
         assert.deepStrictEqual(list.length, 7);
+
+        model.setCollapsed([0], true);
+        assert.deepStrictEqual(list.length, 5);
+        assert.deepStrictEqual(list[0]!.data, 1);
+		assert.deepStrictEqual(list[0]!.collapsed, true);
+		assert.deepStrictEqual(list[0]!.depth, 1);
+        assert.deepStrictEqual(list[0]!.visibleNodeCount, 1);
+
+        assert.deepStrictEqual(list[1]!.data, 4);
+		assert.deepStrictEqual(list[1]!.collapsed, false);
+		assert.deepStrictEqual(list[1]!.depth, 1);
+        assert.deepStrictEqual(list[1]!.visibleNodeCount, 3);
+
+        assert.deepStrictEqual(list[2]!.data, 6);
+		assert.deepStrictEqual(list[2]!.collapsed, false);
+		assert.deepStrictEqual(list[2]!.depth, 2);
+        assert.deepStrictEqual(list[2]!.visibleNodeCount, 1);
+
+        assert.deepStrictEqual(list[3]!.data, 5);
+		assert.deepStrictEqual(list[3]!.collapsed, false);
+		assert.deepStrictEqual(list[3]!.depth, 2);
+        assert.deepStrictEqual(list[3]!.visibleNodeCount, 1);
+
+        assert.deepStrictEqual(list[4]!.data, 7);
+		assert.deepStrictEqual(list[4]!.collapsed, false);
+		assert.deepStrictEqual(list[4]!.depth, 1);
+        assert.deepStrictEqual(list[4]!.visibleNodeCount, 1);
+    });
+
+    test('set-nested-collapsed', () => {
+        const list: IIndexTreeNode<number>[] = [];
+        const model = new IndexTreeModel<number>(toList(list));
+
+        model.splice([0], 0, [
+            {
+                data: 1, 
+                children: [
+                    {data: 3},
+                    {data: 2, children: [
+                        { data: 4 },
+                        { data: 6 },
+                        { data: 5 },
+                    ]},
+                ]
+            }, 
+            {   data: 7 }
+        ]);
+        assert.deepStrictEqual(list.length, 7);
+
+        model.setCollapsed([0], true);
+        assert.deepStrictEqual(list.length, 2);
+        
+        assert.deepStrictEqual(list[0]!.data, 1);
+        assert.deepStrictEqual(list[0]!.collapsed, true);
+		assert.deepStrictEqual(list[0]!.depth, 1);
+        assert.deepStrictEqual(list[0]!.visibleNodeCount, 1);
+
+        assert.deepStrictEqual(list[1]!.data, 7);
+        assert.deepStrictEqual(list[1]!.collapsed, false);
+		assert.deepStrictEqual(list[1]!.depth, 1);
+        assert.deepStrictEqual(list[1]!.visibleNodeCount, 1);
+
+        model.setCollapsed([0], false);
+        assert.deepStrictEqual(list.length, 7);
+
+        assert.deepStrictEqual(list[0]!.data, 1);
+        assert.deepStrictEqual(list[0]!.collapsed, false);
+		assert.deepStrictEqual(list[0]!.depth, 1);
+        assert.deepStrictEqual(list[0]!.visibleNodeCount, 6);
+
+        assert.deepStrictEqual(list[1]!.data, 3);
+        assert.deepStrictEqual(list[1]!.collapsed, false);
+		assert.deepStrictEqual(list[1]!.depth, 2);
+        assert.deepStrictEqual(list[1]!.visibleNodeCount, 1);
+
+        assert.deepStrictEqual(list[2]!.data, 2);
+        assert.deepStrictEqual(list[2]!.collapsed, false);
+		assert.deepStrictEqual(list[2]!.depth, 2);
+        assert.deepStrictEqual(list[2]!.visibleNodeCount, 4);
+    });
+
+    test('set-collapsed-recursive', () => {
+        const list: IIndexTreeNode<number>[] = [];
+        const model = new IndexTreeModel<number>(toList(list));
+
+        model.splice([0], 0, [
+            {
+                data: 1, 
+                children: [
+                    {data: 3},
+                    {data: 2, children: [
+                        { data: 4 },
+                        { data: 6 },
+                        { data: 5 },
+                    ]},
+                ]
+            }, 
+            {   data: 7 }
+        ]);
+        assert.deepStrictEqual(list.length, 7);
+        assert.deepStrictEqual(list[0]!.data, 1);
+		assert.deepStrictEqual(list[0]!.collapsed, false);
+		assert.deepStrictEqual(list[0]!.depth, 1);
+        assert.deepStrictEqual(list[0]!.visibleNodeCount, 6);
+
+        model.setCollapsed([0], true, true);
+        assert.deepStrictEqual(list.length, 2);
+
+        assert.deepStrictEqual(list[0]!.data, 1);
+		assert.deepStrictEqual(list[0]!.collapsed, true);
+		assert.deepStrictEqual(list[0]!.depth, 1);
+        assert.deepStrictEqual(list[0]!.visibleNodeCount, 1);
+
+        assert.deepStrictEqual(list[1]!.data, 7);
+		assert.deepStrictEqual(list[1]!.collapsed, false);
+		assert.deepStrictEqual(list[1]!.depth, 1);
+        assert.deepStrictEqual(list[1]!.visibleNodeCount, 1);
+
+        model.setCollapsed([0], false, true);
+        assert.deepStrictEqual(list.length, 7);
+
+        assert.deepStrictEqual(list[0]!.data, 1);
+		assert.deepStrictEqual(list[0]!.collapsed, false);
+		assert.deepStrictEqual(list[0]!.depth, 1);
+        assert.deepStrictEqual(list[0]!.visibleNodeCount, 6);
+        
+        assert.deepStrictEqual(list[1]!.data, 3);
+		assert.deepStrictEqual(list[1]!.collapsed, false);
+		assert.deepStrictEqual(list[1]!.depth, 2);
+        assert.deepStrictEqual(list[1]!.visibleNodeCount, 1);
+
+        assert.deepStrictEqual(list[2]!.data, 2);
+		assert.deepStrictEqual(list[2]!.collapsed, false);
+		assert.deepStrictEqual(list[2]!.depth, 2);
+        assert.deepStrictEqual(list[2]!.visibleNodeCount, 4);
+
+        assert.deepStrictEqual(list[3]!.data, 4);
+		assert.deepStrictEqual(list[3]!.collapsed, false);
+		assert.deepStrictEqual(list[3]!.depth, 3);
+        assert.deepStrictEqual(list[3]!.visibleNodeCount, 1);
+        
+        assert.deepStrictEqual(list[4]!.data, 6);
+		assert.deepStrictEqual(list[4]!.collapsed, false);
+		assert.deepStrictEqual(list[4]!.depth, 3);
+        assert.deepStrictEqual(list[4]!.visibleNodeCount, 1);
+        
+        assert.deepStrictEqual(list[5]!.data, 5);
+		assert.deepStrictEqual(list[5]!.collapsed, false);
+		assert.deepStrictEqual(list[5]!.depth, 3);
+        assert.deepStrictEqual(list[5]!.visibleNodeCount, 1);
+    });
+
+    test('set-collapsible', () => {
+        const list: IIndexTreeNode<number>[] = [];
+        const model = new IndexTreeModel<number>(toList(list));
+
+        model.splice([0], 0, [
+            { data: 1, children: [
+                { data: 2 }
+            ]}
+        ]);
+        assert.deepStrictEqual(list.length, 2);
+        
+        model.setCollapsible([0], false);
+        assert.deepStrictEqual(list.length, 2);
+        assert.deepStrictEqual(list[0]!.data, 1);
+		assert.deepStrictEqual(list[0]!.collapsible, false);
+		assert.deepStrictEqual(list[0]!.collapsed, false);
+		assert.deepStrictEqual(list[1]!.data, 2);
+		assert.deepStrictEqual(list[1]!.collapsible, false);
+		assert.deepStrictEqual(list[1]!.collapsed, false);
+
+        assert.deepStrictEqual(model.setCollapsed([0], true), false);
+        assert.deepStrictEqual(list[0]!.data, 1);
+		assert.deepStrictEqual(list[0]!.collapsible, false);
+		assert.deepStrictEqual(list[0]!.collapsed, false);
+		assert.deepStrictEqual(list[1]!.data, 2);
+		assert.deepStrictEqual(list[1]!.collapsible, false);
+		assert.deepStrictEqual(list[1]!.collapsed, false);
+
+        assert.deepStrictEqual(model.setCollapsed([0], false), false);
+        assert.deepStrictEqual(list[0]!.data, 1);
+		assert.deepStrictEqual(list[0]!.collapsible, false);
+		assert.deepStrictEqual(list[0]!.collapsed, false);
+		assert.deepStrictEqual(list[1]!.data, 2);
+		assert.deepStrictEqual(list[1]!.collapsible, false);
+		assert.deepStrictEqual(list[1]!.collapsed, false);
+
+        model.setCollapsible([0], true);
+        assert.deepStrictEqual(list.length, 2);
+        assert.deepStrictEqual(list[0]!.data, 1);
+		assert.deepStrictEqual(list[0]!.collapsible, true);
+		assert.deepStrictEqual(list[0]!.collapsed, false);
+		assert.deepStrictEqual(list[1]!.data, 2);
+		assert.deepStrictEqual(list[1]!.collapsible, false);
+		assert.deepStrictEqual(list[1]!.collapsed, false);
+
+        assert.deepStrictEqual(model.setCollapsed([0], true), true);
+        assert.deepStrictEqual(list.length, 1);
+        assert.deepStrictEqual(list[0]!.data, 1);
+		assert.deepStrictEqual(list[0]!.collapsible, true);
+		assert.deepStrictEqual(list[0]!.collapsed, true);
+
+        assert.deepStrictEqual(model.setCollapsed([0], false), true);
+        assert.deepStrictEqual(list[0]!.data, 1);
+		assert.deepStrictEqual(list[0]!.collapsible, true);
+		assert.deepStrictEqual(list[0]!.collapsed, false);
+		assert.deepStrictEqual(list[1]!.data, 2);
+		assert.deepStrictEqual(list[1]!.collapsible, false);
+		assert.deepStrictEqual(list[1]!.collapsed, false);
+    });
+
+    test('auto-update-collapsible', () => {
+        const list: IIndexTreeNode<number>[] = [];
+        const model = new IndexTreeModel<number>(toList(list));
+
+        model.splice([0], 0, [
+            { data: 1, children: [
+                { data: 2 }
+            ]}
+        ]);
+
+        assert.strictEqual(list[0]!.collapsible, true);
+        assert.strictEqual(list[1]!.collapsible, false);
+
+        model.splice([0, 0], 1, []);
+        assert.strictEqual(list.length, 1);
+        assert.strictEqual(list[0]!.data, 1);
+        assert.strictEqual(list[0]!.collapsible, false);
+
+        model.splice([0, 0], 0, [{ data: 2 }]);
+        assert.strictEqual(list[0]!.collapsible, true);
+        assert.strictEqual(list[1]!.collapsible, false);
+    });
+
+    test('expand', () => {
 
     });
 
