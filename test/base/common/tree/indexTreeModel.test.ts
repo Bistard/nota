@@ -99,6 +99,35 @@ suite('indexTreeModel-test', () => {
         assert.deepStrictEqual(list[5]!.visibleNodeCount, 1);
     });
 
+    test('getNodeLocation', () => {
+        const list: IIndexTreeNode<number>[] = [];
+        const model = new IndexTreeModel<number>(toList(list));
+
+        model.splice([0], 0, [
+            {
+                data: 1, 
+                children: [
+                    {data: 3},
+                    {data: 2},
+                ]
+            }, {
+                data: 4,
+                children: [
+                    {data: 6},
+                    {data: 5}
+                ]
+            }
+        ]);
+
+        assert.deepStrictEqual(list.length, 6);
+        assert.deepStrictEqual(model.getNodeLocation(list[0]!), [0]);
+        assert.deepStrictEqual(model.getNodeLocation(list[1]!), [0, 0]);
+        assert.deepStrictEqual(model.getNodeLocation(list[2]!), [0, 1]);
+        assert.deepStrictEqual(model.getNodeLocation(list[3]!), [1]);
+        assert.deepStrictEqual(model.getNodeLocation(list[4]!), [1, 0]);
+        assert.deepStrictEqual(model.getNodeLocation(list[5]!), [1, 1]);
+    });
+
     test('nest-insert-collapsed', () => {
         const list: IIndexTreeNode<number>[] = [];
         const model = new IndexTreeModel<number>(toList(list));
