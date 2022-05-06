@@ -1,12 +1,12 @@
 import { IListViewRenderer, PipelineRenderer } from "src/base/browser/secondary/listView/listRenderer";
-import { IListViewOpts, IViewItemChangeEvent, ListError, ListView, ViewItemType } from "src/base/browser/secondary/listView/listView";
+import { IListViewOpts, IViewItemChangeEvent, ListError, ListView } from "src/base/browser/secondary/listView/listView";
 import { IListTraitEvent, ListTrait, ListTraitRenderer } from "src/base/browser/secondary/listWidget/listTrait";
 import { DisposableManager, IDisposable } from "src/base/common/dispose";
 import { addDisposableListener, EventType } from "src/base/common/dom";
 import { Event, Register, SignalEmitter } from "src/base/common/event";
-import { ILabellable } from "src/base/common/label";
 import { IScrollEvent } from "src/base/common/scrollable";
-import { IMeasureable } from "src/base/common/size";
+import { IListItemProvider } from "../listView/listItemProvider";
+
 
 /**
  * A standard mouse event interface used in {@link ListWidget}.
@@ -83,7 +83,7 @@ export interface IListWidget<T> extends IDisposable {
  *  - selection support
  *  - drag and drop support
  */
-export class ListWidget<T extends IMeasureable & ILabellable<ViewItemType>> implements IListWidget<T> {
+export class ListWidget<T> implements IListWidget<T> {
 
     // [fields]
 
@@ -97,7 +97,8 @@ export class ListWidget<T extends IMeasureable & ILabellable<ViewItemType>> impl
 
     constructor(
         container: HTMLElement,
-        renderers: IListViewRenderer[],
+        renderers: IListViewRenderer<any>[],
+        itemProvider: IListItemProvider<T>, 
         opts: IListWidgetOpts
     ) {
         this.disposables = new DisposableManager();
@@ -111,7 +112,7 @@ export class ListWidget<T extends IMeasureable & ILabellable<ViewItemType>> impl
         renderers = renderers.map(renderer => new PipelineRenderer(renderer.type, [...baseRenderers, renderer]));
         
         // construct list view
-        this.view = new ListView(container, renderers, opts);
+        this.view = new ListView(container, renderers, itemProvider, opts);
 
         if (opts.dragAndDropSupport) {
             this.__enableDragAndDropSupport();

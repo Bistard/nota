@@ -1,5 +1,5 @@
 import { IListViewRenderer } from "src/base/browser/secondary/listView/listRenderer";
-import { ViewItemType } from "src/base/browser/secondary/listView/listView";
+import { ListItemType } from "src/base/browser/secondary/listView/listView";
 import { disposeAll, IDisposable } from "src/base/common/dispose";
 import { Emitter, Register } from "src/base/common/event";
 import { hash } from "src/base/common/hash";
@@ -106,9 +106,9 @@ export class ListTrait implements IDisposable {
 
 }
 
-export class ListTraitRenderer implements IListViewRenderer {
+export class ListTraitRenderer implements IListViewRenderer<null> {
 
-    public readonly type: ViewItemType;
+    public readonly type: ListItemType;
 
     private _trait: ListTrait;
 
@@ -117,7 +117,7 @@ export class ListTraitRenderer implements IListViewRenderer {
         this.type = hash(this._trait.trait);
     }
 
-    public render(element: HTMLElement, _data: null): void {
+    public render(element: HTMLElement): void {
         // do nothing
     }
 
