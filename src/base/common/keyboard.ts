@@ -2,6 +2,15 @@
 export type KeyboardModifier = 'Ctrl' | 'Shift' | 'Alt' | 'Meta';
 
 /**
+ * Used to compare with {@link MouseEvent.button}.
+ */
+export const enum MouseClick {
+    leftClick = 0,
+    middleClick = 1,
+    rightClick = 2
+}
+
+/**
  * @description A collection of helper functions that relates to {@link KeyCode}.
  */
 export namespace Keyboard {

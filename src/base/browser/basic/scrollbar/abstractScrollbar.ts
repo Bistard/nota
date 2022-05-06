@@ -1,6 +1,7 @@
 import { VisibilityController } from "src/base/browser/basic/visibilityController";
 import { Widget } from "src/base/browser/basic/widget";
 import { IDisposable } from "src/base/common/dispose";
+import { MouseClick } from "src/base/common/keyboard";
 import { IScrollEvent, Scrollable } from "src/base/common/scrollable";
 
 /**
@@ -170,6 +171,9 @@ export abstract class AbstractScrollbar extends Widget {
      */
     private __sliderOnDrag(event: MouseEvent): void {
         
+        // when dragging, prevent triggers any other events.
+        event.preventDefault();
+
         // tell the host we did a drag motion
         this._host.onSliderDragStart();
 
@@ -274,7 +278,9 @@ export abstract class AbstractScrollbar extends Widget {
         
         // treats as slider on drag
         if (sliderStart <= mousePosition && mousePosition <= sliderEnd) {
-            this.__sliderOnDrag(event);
+            if (event.button === MouseClick.leftClick) {
+                this.__sliderOnDrag(event);
+            }
         } 
         
         // treats as scrollbar on drag
