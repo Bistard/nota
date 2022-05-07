@@ -1,5 +1,18 @@
 import { ISpliceable } from "src/base/common/range";
+import { Emitter, Register } from "../event";
 import { ITreeModel, ITreeNode, ITreeNodeItem } from "./tree";
+
+/**
+ * Type of event when the {@link IIndexTreeModel} splice did happen.
+ */
+export interface ITreeModelSpliceEvent<T, TFilter> {
+    
+    /** Inserted nodes */
+    inserted: IIndexTreeNode<T, TFilter>[];
+	
+    /** Deleted nodes */
+    deleted: IIndexTreeNode<T, TFilter>[];
+}
 
 export interface IIndexTreeNode<T, TFilter = void> extends ITreeNode<T, TFilter> {
     
@@ -16,6 +29,11 @@ export interface IIndexTreeNode<T, TFilter = void> extends ITreeNode<T, TFilter>
  * Interface only for {@link IndexTreeModel}.
  */
 export interface IIndexTreeModel<T, TFilter = void> extends ITreeModel<T, TFilter, number[]> {
+
+    /**
+     * Events when tree splice did happen.
+     */
+    onDidSplice: Register<ITreeModelSpliceEvent<T, TFilter>>;
 
     /**
      * To insert or delete items in the tree by given the location.
@@ -66,6 +84,11 @@ export class IndexTreeModel<T, TFilter = void> implements IIndexTreeModel<T, TFi
 
     }
 
+    // [events]
+
+    private readonly _onDidSplice = new Emitter<ITreeModelSpliceEvent<T, TFilter>>();
+	readonly onDidSplice = this._onDidSplice.registerListener;
+
     // [methods]
     
     public splice(location: number[], deleteCount: number, itemsToInsert: ITreeNodeItem<T>[]): void 
@@ -107,6 +130,12 @@ export class IndexTreeModel<T, TFilter = void> implements IIndexTreeModel<T, TFi
         if (prevParentHasChildren !== currParentHasChildren) {
             this.setCollapsible(location.slice(0, -1), currParentHasChildren);
         }
+
+        // fire events
+        this._onDidSplice.fire({
+            inserted: treeNodeListToInsert,
+            deleted: deletedChildren
+        });
     }
 
     public hasNode(location: number[]): boolean {
