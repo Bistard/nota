@@ -51,6 +51,7 @@ export interface IListWidget<T> extends IDisposable {
     
     // [events / getter]
     
+    DOMElement: HTMLElement;
     length: number;
     onDidScroll: Register<IScrollEvent>;
     onDidChangeFocus: Register<boolean>;
@@ -139,6 +140,7 @@ export class ListWidget<T> implements IListWidget<T> {
 
     // [getter / setter]
 
+    get DOMElement(): HTMLElement { return this.view.DOMElement; }
     get length(): number { return this.view.length; }
 
     get onDidScroll(): Register<IScrollEvent> { return this.view.onDidScroll; }

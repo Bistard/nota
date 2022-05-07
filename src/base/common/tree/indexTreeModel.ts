@@ -38,6 +38,8 @@ export class IndexTreeModel<T, TFilter = void> implements IIndexTreeModel<T, TFi
 
     // [fields]
 
+    public readonly root: number[] = [];
+
     /** Root does not refer to any specific tree node. */
     private _root: IIndexTreeNode<T, TFilter>;
 

@@ -81,6 +81,11 @@ export interface ITreeNodeItem<T> {
 export interface ITreeModel<T, TFilter = void, TRef = number[]> {
 
     /**
+     * Represents the root of the tree.
+     */
+    readonly root: TRef;
+
+    /**
      * @description Check if the given node is existed.
      * @param location The location representation of the node.
      * @returns If the node exists.
