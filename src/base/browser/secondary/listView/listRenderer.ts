@@ -83,8 +83,8 @@ export class PipelineRenderer<TMetadata> implements IListViewRenderer<TMetadata>
 }
 
 /**
- * @class A basic renderer that only handles rendering the size of the list item
- * in the list view.
+ * @class A basic renderer that only rendering the size of the list item in the 
+ * {@link IListView}.
  */
 export class ListItemRenderer implements IListViewRenderer<null> {
 

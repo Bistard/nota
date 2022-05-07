@@ -7,18 +7,22 @@ import { DomSize, EventType } from "src/base/common/dom";
 import { DomEmitter, Emitter, Register } from "src/base/common/event";
 import { IRange, ISpliceable, Range, RangeTable } from "src/base/common/range";
 import { IScrollEvent, Scrollable } from "src/base/common/scrollable";
-import { IListItemProvider } from "./listItemProvider";
+import { IListItemProvider } from "src/base/browser/secondary/listView/listItemProvider";
+import { IListDragAndDropProvider } from "src/base/browser/secondary/listWidget/listWidgetDragAndDrop";
+
 
 /**
  * The consturtor options for {@link ListView}.
  */
-export interface IListViewOpts {
+export interface IListViewOpts<T> {
     
     readonly transformOptimization?: boolean;
     readonly mouseWheelScrollSensitivity?: number;
 	readonly fastScrollSensitivity?: number;
     readonly reverseMouseWheelDirection?: boolean;
     readonly scrollbarSize?: number;
+    
+    dragAndDropProvider?: IListDragAndDropProvider<T>;
 
 }
 
@@ -37,7 +41,7 @@ export interface IViewItem<T> {
     readonly type: ListItemType;
     size: number;
     row: IListViewRow | null; // null means this item is currently not rendered.
-    draggable?: IDisposable;
+    dragStart?: IDisposable;
 }
 
 export interface IViewItemChangeEvent<T> {
@@ -72,7 +76,7 @@ export interface IListView<T> extends IDisposable {
     onMousemove: Register<MouseEvent>;
 
     length: number;
-    DOMelement: HTMLElement;
+    DOMElement: HTMLElement;
 
     // [methods]
 
@@ -221,7 +225,6 @@ export interface IListView<T> extends IDisposable {
  *  - performant template-based rendering
  *  - mouse support
  */
-// TODO: 需要一个新的template类型， 叫做TItemType */
 export class ListView<T> implements IDisposable, ISpliceable<T>, IListView<T> {
 
     // [fields]
@@ -236,6 +239,7 @@ export class ListView<T> implements IDisposable, ISpliceable<T>, IListView<T> {
 
     private rangeTable: RangeTable;
 
+    private dnd: IListDragAndDropProvider<T>;
     private renderers: Map<ListItemType, IListViewRenderer<any>>;
     private itemProvider: IListItemProvider<T>;
     
@@ -278,15 +282,15 @@ export class ListView<T> implements IDisposable, ISpliceable<T>, IListView<T> {
     get onMousemove(): Register<MouseEvent> { return this.disposables.register(new DomEmitter<MouseEvent>(this.listContainer, EventType.mousemove)).registerListener; }
 
     get length(): number { return this.items.length; }
-    get DOMelement(): HTMLElement { return this.listContainer; }
+    get DOMElement(): HTMLElement { return this.listContainer; }
 
     // [constructor]
 
     constructor(
         container: HTMLElement, 
         renderers: IListViewRenderer<any>[], 
-        itemProvider: IListItemProvider<T>, 
-        opts: IListViewOpts
+        itemProvider: IListItemProvider<T>,
+        opts: IListViewOpts<T>
     ) {
         this.element = document.createElement('div');
         this.element.className = 'list-view';
@@ -335,6 +339,12 @@ export class ListView<T> implements IDisposable, ISpliceable<T>, IListView<T> {
         this.itemProvider = itemProvider;
 
         this.cache = new ListViewCache(this.renderers);
+
+        // drag-and-drop support
+        this.dnd = opts.dragAndDropProvider || { 
+            // default dnd
+            getDragData: () => null,
+        };
 
         this.element.appendChild(this.listContainer);
         container.appendChild(this.element);
@@ -541,13 +551,14 @@ export class ListView<T> implements IDisposable, ISpliceable<T>, IListView<T> {
         }
 
         renderer.update(item.row!.dom, index, item.data, item.size);
-        this._onInsertItemInDOM.fire({ item: item, index: index });
 
         if (insertBefore) {
             this.listContainer.insertBefore(item.row!.dom, insertBefore);
         } else {
             this.listContainer.appendChild(item.row!.dom);
         }
+
+        this._onInsertItemInDOM.fire({ item: item, index: index });
     }
 
     public removeItemInDOM(index: number): void {
@@ -638,6 +649,10 @@ export class ListView<T> implements IDisposable, ISpliceable<T>, IListView<T> {
 
     public renderIndexAfter(visiblePosition: number): number {
         return this.rangeTable.indexAfter(this.prevRenderTop + visiblePosition);
+    }
+
+    public getDnd(): IListDragAndDropProvider<T> {
+        return this.dnd;
     }
 
     // [private helper methods]
