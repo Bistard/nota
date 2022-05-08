@@ -13,7 +13,7 @@
 export interface ITreeNode<T, TFilter = void> {
 
     /** The corresponding stored user-defined data. */
-    data: T | null;
+    data: T;
 
     /** The parent of the tree node. */
     parent: ITreeNode<T, TFilter> | null;
@@ -100,6 +100,11 @@ export interface ITreeModel<T, TFilter = void, TRef = number[]> {
     getNode(location: TRef): ITreeNode<T, TFilter>;
 
     /**
+     * @description Returns the root of the tree model.
+     */
+    getRoot(): ITreeNode<T, TFilter>;
+
+    /**
      * @description Returns the location corresponding to the given {@link ITreeNode}.
      * @param node The provided tree node.
      * @returns The location of the given tree node.
@@ -158,4 +163,9 @@ export interface ITreeModel<T, TFilter = void, TRef = number[]> {
      */
     setExpandTo(location: TRef): void;
 
+    /**
+     * @description Rerenders the corresponding node with the given location.
+     * @param location The location representation of the node.
+     */
+    rerender(location: TRef): void;
 }

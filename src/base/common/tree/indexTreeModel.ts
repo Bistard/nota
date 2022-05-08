@@ -1,6 +1,6 @@
+import { Emitter, Register } from "src/base/common/event";
 import { ISpliceable } from "src/base/common/range";
-import { Emitter, Register } from "../event";
-import { ITreeModel, ITreeNode, ITreeNodeItem } from "./tree";
+import { ITreeModel, ITreeNode, ITreeNodeItem } from "src/base/common/tree/tree";
 
 /**
  * Type of event when the {@link IIndexTreeModel} splice did happen.
@@ -14,6 +14,26 @@ export interface ITreeModelSpliceEvent<T, TFilter> {
     deleted: IIndexTreeNode<T, TFilter>[];
 }
 
+/**
+ * Option type for ITreeModel.splice().
+ */
+export interface ITreeModelSpliceOptions<T, TFilter> {
+    
+    /**
+     * Invokes when the tree node is created.
+     */
+    onDidCreateNode?: (node: ITreeNode<T, TFilter>) => void;
+
+    /**
+     * Invokes when the tree node is deleted.
+     */
+    onDidDeleteNode?: (node: ITreeNode<T, TFilter>) => void;
+}
+
+/**
+ * An internal data structure for {@link IIndexTreeModel}. Represents each tree 
+ * node.
+ */
 export interface IIndexTreeNode<T, TFilter = void> extends ITreeNode<T, TFilter> {
     
     /** override for specifying nodes type. */
@@ -27,6 +47,8 @@ export interface IIndexTreeNode<T, TFilter = void> extends ITreeNode<T, TFilter>
 
 /**
  * Interface only for {@link IndexTreeModel}.
+ * 
+ * TRef: number[]
  */
 export interface IIndexTreeModel<T, TFilter = void> extends ITreeModel<T, TFilter, number[]> {
 
@@ -40,14 +62,15 @@ export interface IIndexTreeModel<T, TFilter = void> extends ITreeModel<T, TFilte
      * @param location The location representation of the node.
      * @param deleteCount number of deleted nodes after the given location.
      * @param itemsToInsert number of items to be inserted after the given location.
+     * @param opts The option for splicing.
      */
-    splice(location: number[], deleteCount: number, itemsToInsert: ITreeNodeItem<T>[]): void;
+    splice(location: number[], deleteCount: number, itemsToInsert: ITreeNodeItem<T>[], opts: ITreeModelSpliceOptions<T, TFilter>): void;
 
 }
 
 /**
  * An {@link IndexTreeModel} is a type of {@link ITreeModel}. This is not the 
- * same structure as Index Binary Tree (IBT).
+ * same data structure as Index Binary Tree (IBT).
  * 
  * The tree model represents a multiway tree-like structure. The prefix `index` 
  * means the tree node can be found by a series of indices.
@@ -62,17 +85,18 @@ export class IndexTreeModel<T, TFilter = void> implements IIndexTreeModel<T, TFi
     private _root: IIndexTreeNode<T, TFilter>;
 
     /** The corresponding list-like view component. */
-    private _view: ISpliceable<IIndexTreeNode<T, TFilter>>;
+    private _view: ISpliceable<ITreeNode<T, TFilter>>;
 
     // [constructor]
 
     constructor(
-        view: ISpliceable<IIndexTreeNode<T, TFilter>>,
+        rootData: T,
+        view: ISpliceable<ITreeNode<T, TFilter>>,
     ) {
         this._view = view;
         
         this._root = {
-            data: null,
+            data: rootData,
             parent: null,
             children: [],
             depth: 0,
@@ -91,8 +115,12 @@ export class IndexTreeModel<T, TFilter = void> implements IIndexTreeModel<T, TFi
 
     // [methods]
     
-    public splice(location: number[], deleteCount: number, itemsToInsert: ITreeNodeItem<T>[]): void 
-    {
+    public splice(
+        location: number[], 
+        deleteCount: number, 
+        itemsToInsert: ITreeNodeItem<T>[],
+        opts: ITreeModelSpliceOptions<T, TFilter> = {}
+    ): void {
         // finds out the parent node and its listIndex.
         let { parent, listIndex, visible } = this.__getParentNodeWithListIndex(location, this._root);
         
@@ -102,7 +130,7 @@ export class IndexTreeModel<T, TFilter = void> implements IIndexTreeModel<T, TFi
         const treeNodeChildrenToInsert: IIndexTreeNode<T, TFilter>[] = [];
         let visibleNodeCountChange = 0;
         itemsToInsert.forEach(element => {
-            const newChild = this.__createNode(element, parent, treeNodeListToInsert);
+            const newChild = this.__createNode(element, parent, treeNodeListToInsert, opts.onDidCreateNode);
             treeNodeChildrenToInsert.push(newChild);
             visibleNodeCountChange += newChild.visibleNodeCount;
         });
@@ -131,6 +159,11 @@ export class IndexTreeModel<T, TFilter = void> implements IIndexTreeModel<T, TFi
             this.setCollapsible(location.slice(0, -1), currParentHasChildren);
         }
 
+        // deletion callback
+        if (opts.onDidDeleteNode) {
+            deletedChildren.forEach(node => opts.onDidDeleteNode!(node));
+        }
+
         // fire events
         this._onDidSplice.fire({
             inserted: treeNodeListToInsert,
@@ -150,6 +183,10 @@ export class IndexTreeModel<T, TFilter = void> implements IIndexTreeModel<T, TFi
         }
 
         return node;
+    }
+
+    public getRoot(): IIndexTreeNode<T, TFilter> {
+        return this._root;
     }
 
     public getNodeLocation(node: IIndexTreeNode<T, TFilter>): number[] {
@@ -223,6 +260,23 @@ export class IndexTreeModel<T, TFilter = void> implements IIndexTreeModel<T, TFi
         }
     }
 
+    public rerender(location: number[]): void {
+        
+        /**
+         * To achieve rerendering, we simply delete dn reinsert the same item 
+         * into the same position.
+         */
+
+        if (location.length === 0) {
+            throw new Error('invalid tree location');
+        }
+        
+        const { node, listIndex, visible } = this.__getNodeWithListIndex(location, this._root);
+        if (visible) {
+            this._view.splice(listIndex, 1, [node]);
+        }
+    }
+
     // [private helper methods]
 
     /**
@@ -279,11 +333,13 @@ export class IndexTreeModel<T, TFilter = void> implements IIndexTreeModel<T, TFi
      * @param parent The parent of the new tree node.
      * @param toBeRendered To stores all the new created tree nodes which should
      * be rendered.
+     * @param onDidCreateNode Callback after creating new tree node.
      */
     private __createNode(
         element: ITreeNodeItem<T>, 
         parent: IIndexTreeNode<T, TFilter>,
         toBeRendered: IIndexTreeNode<T, TFilter>[],
+        onDidCreateNode?: (node: ITreeNode<T, TFilter>) => void
     ): IIndexTreeNode<T, TFilter> 
     {
         const collapsed = typeof element.collapsed === 'boolean' ? element.collapsed : false;
@@ -324,6 +380,11 @@ export class IndexTreeModel<T, TFilter = void> implements IIndexTreeModel<T, TFi
             newNode.visibleNodeCount = 0;
         } else if (newNode.collapsed === false) {
             newNode.visibleNodeCount = visibleNodeCount;
+        }
+
+        // callback
+        if (onDidCreateNode) {
+            onDidCreateNode(newNode);
         }
 
         return newNode;

@@ -1,9 +1,9 @@
+import { IListItemProvider } from "src/base/browser/secondary/listView/listItemProvider";
+import { IListViewRenderer } from "src/base/browser/secondary/listView/listRenderer";
+import { IListWidget, ListWidget } from "src/base/browser/secondary/listWidget/listWidget";
+import { IListDragAndDropProvider } from "src/base/browser/secondary/listWidget/listWidgetDragAndDrop";
 import { DisposableManager, IDisposable } from "src/base/common/dispose";
 import { ITreeModel, ITreeNode } from "src/base/common/tree/tree";
-import { IListItemProvider } from "../../secondary/listView/listItemProvider";
-import { IListViewRenderer } from "../../secondary/listView/listRenderer";
-import { IListWidget, ListWidget } from "../../secondary/listWidget/listWidget";
-import { IListDragAndDropProvider } from "../../secondary/listWidget/listWidgetDragAndDrop";
 
 /**
  * An interface for the constructor options of the {@link AbstractTree}.
