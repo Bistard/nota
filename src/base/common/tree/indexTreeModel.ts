@@ -162,6 +162,7 @@ export class IndexTreeModel<T, TFilter = void> implements IIndexTreeModel<T, TFi
         // deletion callback
         if (opts.onDidDeleteNode) {
             deletedChildren.forEach(node => opts.onDidDeleteNode!(node));
+            deletedChildren.forEach(node => node.children.forEach(child => opts.onDidDeleteNode!(child)));
         }
 
         // fire events

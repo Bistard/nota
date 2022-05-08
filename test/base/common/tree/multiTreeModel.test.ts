@@ -83,7 +83,7 @@ suite('multiTreeModel-test', () => {
 		assert.deepStrictEqual(toArray(list), [0, 1, 2]);
 		assert.strictEqual(model.size(), 3);
 
-		model.splice(null, 0);
+		model.splice(null, Number.MAX_VALUE);
 		assert.deepStrictEqual(toArray(list), []);
 		assert.strictEqual(model.size(), 0);
     });
