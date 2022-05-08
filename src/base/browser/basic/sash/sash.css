@@ -3,11 +3,10 @@
 }
 
 .sash {
-    position: relative;
+    position: absolute;
     background-color: none;
-    height: 100%;
 
-    background-color: aquamarine;
+    background-color: black;
 
     pointer-events: initial;
     user-select: none;
@@ -26,5 +25,5 @@
 }
 
 .sash:hover {
-    background-color: #c5ffec;
+    background-color: blue;
 }

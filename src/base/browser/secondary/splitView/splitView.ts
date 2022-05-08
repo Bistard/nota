@@ -78,8 +78,8 @@ export class SplitView implements ISplitView {
         this.sashItems = [];
         
         if (views) {
-            for (const opt of views) {
-                this.__doAddView(opt);
+            for (const view of views) {
+                this.__doAddView(view);
             }
         }
         
@@ -160,7 +160,7 @@ export class SplitView implements ISplitView {
 
         // rendering process
 
-        if (this.viewItems.length === 0 || this.viewItems.length === opt.index) {
+        if (this.viewItems.length === 1 || this.viewItems.length === opt.index + 1) {
             this.viewContainer.appendChild(newView);
         } else {
             this.viewContainer.insertBefore(newView, this.viewContainer.children.item(opt.index!));

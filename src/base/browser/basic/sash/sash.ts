@@ -171,7 +171,6 @@ export class Sash extends Disposable implements ICreateable, ISash {
         // render
         this.element = document.createElement('div');
         this.element.classList.add('sash');
-        this.parentElement.append(this.element);
 
         if (this.orientation === Orientation.Vertical) {
             this.element.classList.add('sash-vertical');
@@ -182,6 +181,8 @@ export class Sash extends Disposable implements ICreateable, ISash {
             this.element.style.height = this.size + 'px';
             this.element.style.top = this.defaultPosition + 'px';
         }
+
+        this.parentElement.append(this.element);
     }
 
     public relayout(defaultPosition: number): void {
@@ -274,6 +275,7 @@ export class Sash extends Disposable implements ICreateable, ISash {
                 
                 this.element!.style.left = (startDimention + e.pageX - startCoordinate) + 'px';
                 
+                // To prevent firing the wrong onDidMove event at the first time.
                 if (firstDrag === true) {
                     prevX = e.pageX;
                     prevY = e.pageY;
