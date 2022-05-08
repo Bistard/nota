@@ -367,7 +367,7 @@ export class IndexTreeModel<T, TFilter = void> implements IIndexTreeModel<T, TFi
         
         const childrenElements: ITreeNodeItem<T>[]  = element.children || [];
         childrenElements.forEach(element => {
-            const child = this.__createNode(element, newNode, toBeRendered);
+            const child = this.__createNode(element, newNode, toBeRendered, onDidCreateNode);
             newNode.children.push(child);
             
             visibleNodeCount += child.visibleNodeCount;
