@@ -34,7 +34,7 @@ export interface IMultiTreeModel<T, TFilter> extends ITreeModel<T | null, TFilte
  * tree nodes so that caller can do searching without knowing the location of the 
  * actual tree node.
  */
-export class MultiTreeModel<T, TFilter> implements IMultiTreeModel<T, TFilter> {
+export class MultiTreeModel<T, TFilter = void> implements IMultiTreeModel<T, TFilter> {
 
     // [field]
 
@@ -68,8 +68,10 @@ export class MultiTreeModel<T, TFilter> implements IMultiTreeModel<T, TFilter> {
         children: ITreeNodeItem<T>[] = [],
         opts: ITreeModelSpliceOptions<T, TFilter> = {}
     ): void {
-        const location = this.__getNodeLocation(item); // the location in indexTreeModel
         
+        const location = this.__getNodeLocation(item); // the location in indexTreeModel
+        const inserted = new Set<T>();
+
         // callback #1
         const onDidCreateNode = (node: ITreeNode<T | null, TFilter>): void => {
             
@@ -80,6 +82,7 @@ export class MultiTreeModel<T, TFilter> implements IMultiTreeModel<T, TFilter> {
 
             // remember the mapping
             this._nodes.set(node.data, node as ITreeNode<T, TFilter>);
+            inserted.add(node.data);
 
             // other callback
             if (opts.onDidCreateNode) {
@@ -95,7 +98,10 @@ export class MultiTreeModel<T, TFilter> implements IMultiTreeModel<T, TFilter> {
 				return;
 			}
 
-            this._nodes.delete(node.data);
+            // prevent accidently delete what we just inserted.
+            if (inserted.has(node.data) === false) {
+                this._nodes.delete(node.data);
+            }
 
             // other callback
             if (opts.onDidDeleteNode) {
@@ -105,7 +111,7 @@ export class MultiTreeModel<T, TFilter> implements IMultiTreeModel<T, TFilter> {
 
         // the actual splicing
         this._model.splice(
-            location,
+            [...location, 0],
             deleteCount,
             children,
             { onDidCreateNode: onDidCreateNode, onDidDeleteNode: onDidDeleteNode }
