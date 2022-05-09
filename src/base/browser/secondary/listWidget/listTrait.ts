@@ -106,7 +106,7 @@ export class ListTrait implements IDisposable {
 
 }
 
-export class ListTraitRenderer implements IListViewRenderer<null> {
+export class ListTraitRenderer<T> implements IListViewRenderer<T, HTMLElement> {
 
     public readonly type: ListItemType;
 
@@ -117,15 +117,15 @@ export class ListTraitRenderer implements IListViewRenderer<null> {
         this.type = hash(this._trait.trait);
     }
 
-    public render(element: HTMLElement): void {
-        // do nothing
+    public render(element: HTMLElement): HTMLElement {
+        return element;
     }
 
-    public update(element: HTMLElement, index: number, _data: null): void {
+    public update(item: T, index: number, data: HTMLElement, size?: number): void {
         if (this._trait.has(index)) {
-            element.classList.toggle(this._trait.trait, true);
+            data.classList.toggle(this._trait.trait, true);
         } else {
-            element.classList.toggle(this._trait.trait, false);
+            data.classList.toggle(this._trait.trait, false);
         }
     }
 
