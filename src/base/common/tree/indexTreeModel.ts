@@ -30,6 +30,15 @@ export interface ITreeModelSpliceOptions<T, TFilter> {
     onDidDeleteNode?: (node: ITreeNode<T, TFilter>) => void;
 }
 
+export interface IIndexTreeCreationOptions {
+    
+    /**
+     * When inserting new node, if sets to collapsed to default.
+     */
+    collapsedByDefault?: boolean;
+
+}
+
 /**
  * An internal data structure for {@link IIndexTreeModel}. Represents each tree 
  * node.
@@ -87,11 +96,15 @@ export class IndexTreeModel<T, TFilter = void> implements IIndexTreeModel<T, TFi
     /** The corresponding list-like view component. */
     private _view: ISpliceable<ITreeNode<T, TFilter>>;
 
+    /** Defaults to false */
+    private _collapsedByDefault: boolean;
+
     // [constructor]
 
     constructor(
         rootData: T,
         view: ISpliceable<ITreeNode<T, TFilter>>,
+        opt: IIndexTreeCreationOptions = {}
     ) {
         this._view = view;
         
@@ -106,6 +119,16 @@ export class IndexTreeModel<T, TFilter = void> implements IIndexTreeModel<T, TFi
             visibleNodeCount: 0,
         };
 
+        this._collapsedByDefault = false;
+
+        // option assignment
+        if (opt) {
+
+            if (opt.collapsedByDefault) {
+                this._collapsedByDefault = opt.collapsedByDefault;
+            }
+
+        }
     }
 
     // [events]
@@ -343,7 +366,7 @@ export class IndexTreeModel<T, TFilter = void> implements IIndexTreeModel<T, TFi
         onDidCreateNode?: (node: ITreeNode<T, TFilter>) => void
     ): IIndexTreeNode<T, TFilter> 
     {
-        const collapsed = typeof element.collapsed === 'boolean' ? element.collapsed : false;
+        const collapsed = typeof element.collapsed === 'boolean' ? element.collapsed : this._collapsedByDefault;
         const collapsible = typeof element.collapsible === 'boolean' ? element.collapsible : collapsed;
         const visible = parent.visible ? !parent.collapsed : false;
 

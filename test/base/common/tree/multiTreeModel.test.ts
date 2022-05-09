@@ -88,4 +88,52 @@ suite('multiTreeModel-test', () => {
 		assert.strictEqual(model.size(), 0);
     });
 
+    test('splice on collapsed node', () => {
+        const list: ITreeNode<number>[] = [];
+		const model = new MultiTreeModel<number>(toList(list));
+
+		model.splice(null, Number.MAX_VALUE, [
+			{ data: 0, collapsed: true }
+		]);
+
+		assert.deepStrictEqual(toArray(list), [0]);
+
+		model.splice(0, Number.MAX_VALUE, [
+			{ data: 1 },
+			{ data: 2 }
+		]);
+
+		assert.deepStrictEqual(toArray(list), [0]);
+
+		model.setCollapsed(0, false);
+		assert.deepStrictEqual(toArray(list), [0, 1, 2]);
+    });
+
+    test('expandTo', () => {
+        const list: ITreeNode<number>[] = [];
+		const model = new MultiTreeModel<number>(toList(list), { collapsedByDefault: true });
+
+		model.splice(null, Number.MAX_VALUE, [
+			{
+				data: 0, children: [
+					{ data: 10, children: [{ 
+                        data: 100, 
+                        children: [{ 
+                            data: 1000 
+                        }] 
+                    }] 
+                },
+					{ data: 11 },
+					{ data: 12 },
+				]
+			},
+			{ data: 1 },
+			{ data: 2 }
+		]);
+
+		assert.deepStrictEqual(toArray(list), [0, 1, 2]);
+		model.setExpandTo(1000);
+		assert.deepStrictEqual(toArray(list), [0, 10, 100, 1000, 11, 12, 1, 2]);
+    });
+
 });

@@ -1,6 +1,6 @@
 import { Register } from "src/base/common/event";
 import { ISpliceable } from "src/base/common/range";
-import { IIndexTreeModel, IndexTreeModel, ITreeModelSpliceEvent, ITreeModelSpliceOptions } from "src/base/common/tree/indexTreeModel";
+import { IIndexTreeCreationOptions, IIndexTreeModel, IndexTreeModel, ITreeModelSpliceEvent, ITreeModelSpliceOptions } from "src/base/common/tree/indexTreeModel";
 import { ITreeModel, ITreeNode, ITreeNodeItem } from "src/base/common/tree/tree";
 
 /**
@@ -47,9 +47,10 @@ export class MultiTreeModel<T, TFilter = void> implements IMultiTreeModel<T, TFi
 
     constructor(
         view: ISpliceable<ITreeNode<T, TFilter>>,
+        opts: IIndexTreeCreationOptions = {}
     ) {
 
-        this._model = new IndexTreeModel(null, view);
+        this._model = new IndexTreeModel(null, view, opts);
         this._nodes = new Map();
 
         this.onDidSplice = this._model.onDidSplice;
