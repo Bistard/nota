@@ -1,6 +1,6 @@
+import { ITreeListViewRenderer, TreeListItemRenderer } from "src/base/browser/basic/tree/treeListViewRenderer";
 import { ITreeListWidget, TreeListWidget } from "src/base/browser/basic/tree/treeListWidget";
 import { IListItemProvider, TreeListItemProvider } from "src/base/browser/secondary/listView/listItemProvider";
-import { IListViewRenderer } from "src/base/browser/secondary/listView/listRenderer";
 import { IListDragAndDropProvider } from "src/base/browser/secondary/listWidget/listWidgetDragAndDrop";
 import { DisposableManager, IDisposable } from "src/base/common/dispose";
 import { ISpliceable } from "src/base/common/range";
@@ -49,6 +49,10 @@ export interface IAbstractTree<T, TFilter, TRef> {
  * MVVM is used in the related classes. Built upon a model {@link ITreeModel}
  * where the inherited class needs to overwrite the protected method 
  * `createModel()`.
+ * 
+ * T: type of item in the tree.
+ * TFilter: type of filter data for filtering nodes in the tree.
+ * TRef: a reference leads to find the corresponding tree node.
  */
 export abstract class AbstractTree<T, TFilter, TRef> implements IAbstractTree<T, TFilter, TRef>, IDisposable {
 
@@ -65,10 +69,13 @@ export abstract class AbstractTree<T, TFilter, TRef> implements IAbstractTree<T,
 
     constructor(
         container: HTMLElement,
-        renderers: IListViewRenderer<T>[],
+        renderers: ITreeListViewRenderer<T, TFilter, any>[],
         itemProvider: IListItemProvider<T>,
         opts: IAbstractTreeOptions<T> = {}
     ) {
+
+        // wraps each tree list view renderer with a basic tree item renderer.
+        renderers = renderers.map(renderer => new TreeListItemRenderer<T, TFilter, any>(renderer));
 
         this._view = new TreeListWidget<T, TFilter>(
             container, 

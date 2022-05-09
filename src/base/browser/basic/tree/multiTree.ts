@@ -1,5 +1,5 @@
 import { AbstractTree, IAbstractTree, IAbstractTreeOptions } from "src/base/browser/basic/tree/abstractTree";
-import { TreeListViewRenderer } from "src/base/browser/basic/tree/treeListViewRenderer";
+import { TreeListItemRenderer } from "src/base/browser/basic/tree/treeListViewRenderer";
 import { IListItemProvider } from "src/base/browser/secondary/listView/listItemProvider";
 import { IListWidget } from "src/base/browser/secondary/listWidget/listWidget";
 import { ITreeModelSpliceOptions } from "src/base/common/tree/indexTreeModel";
@@ -33,7 +33,7 @@ export interface IMultiTree<T, TFilter = void> extends IAbstractTree<T | null, T
  * Almost has nothing new, mainly having this class for wrapping 
  * {@link IMultiTreeModel} and inheriting {@link AbstractTree} away from abstract.
  */
-export class MultiTree<T, TFilter> extends AbstractTree<T | null, TFilter, T | null> implements IMultiTree<T, TFilter> {
+export class MultiTree<T, TFilter = void> extends AbstractTree<T | null, TFilter, T | null> implements IMultiTree<T, TFilter> {
 
     // [field]
 
@@ -44,7 +44,7 @@ export class MultiTree<T, TFilter> extends AbstractTree<T | null, TFilter, T | n
 
     constructor(
         container: HTMLElement,
-        renderers: TreeListViewRenderer<T, TFilter>[],
+        renderers: TreeListItemRenderer<T, TFilter, any>[],
         itemProvider: IListItemProvider<T>,
         opts: IAbstractTreeOptions<T> = {}
     ) {

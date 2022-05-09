@@ -240,7 +240,7 @@ export class ListView<T> implements IDisposable, ISpliceable<T>, IListView<T> {
     private rangeTable: RangeTable;
 
     private dnd: IListDragAndDropProvider<T>;
-    private renderers: Map<ListItemType, IListViewRenderer<any>>;
+    private renderers: Map<ListItemType, IListViewRenderer<T, any>>;
     private itemProvider: IListItemProvider<T>;
     
     private items: IViewItem<T>[];
@@ -288,7 +288,7 @@ export class ListView<T> implements IDisposable, ISpliceable<T>, IListView<T> {
 
     constructor(
         container: HTMLElement, 
-        renderers: IListViewRenderer<any>[], 
+        renderers: IListViewRenderer<any, any>[], 
         itemProvider: IListItemProvider<T>,
         opts: IListViewOpts<T>
     ) {
@@ -427,7 +427,7 @@ export class ListView<T> implements IDisposable, ISpliceable<T>, IListView<T> {
 
                 const renderer = this.renderers.get(item.type);
                 if (renderer) {
-                    renderer.dispose(item.row.dom);
+                    renderer.dispose(item.row!.metadata);
                 }
 
                 rowCache.push(item.row);
@@ -550,7 +550,7 @@ export class ListView<T> implements IDisposable, ISpliceable<T>, IListView<T> {
             throw new Error(`no renderer provided for the given type: ${item.type}`);
         }
 
-        renderer.update(item.row!.dom, index, item.data, item.size);
+        renderer.update(item.data, index, item.row!.metadata, item.size);
 
         if (insertBefore) {
             this.listContainer.insertBefore(item.row!.dom, insertBefore);

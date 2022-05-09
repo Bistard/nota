@@ -17,6 +17,13 @@ export interface IListViewRow {
      * The type of the item in {@link ListView}, for finding the correct renderer.
      */
 	type: ListItemType;
+
+    /**
+     * The user-defined data which will be returned after the method 
+     * `renderer.render()` invoked. This is used for later `renderer.update()` / 
+     * `renderer.dispose()`.
+     */
+    metadata: any;
 }
 
 /**
@@ -26,10 +33,10 @@ export interface IListViewRow {
 export class ListViewCache implements IDisposable {
 
     private cache: Map<ListItemType, IListViewRow[]>;
-    private renderers: Map<ListItemType, IListViewRenderer<any>>;
+    private renderers: Map<ListItemType, IListViewRenderer<any, any>>;
 
     constructor(
-        renderers: Map<ListItemType, IListViewRenderer<any>>
+        renderers: Map<ListItemType, IListViewRenderer<any, any>>
     ) {
         this.cache = new Map();
         this.renderers = renderers;
@@ -62,9 +69,9 @@ export class ListViewCache implements IDisposable {
             if (renderer === undefined) {
                 throw new Error(`no renderer provided for the given type: ${type}`);
             }
-            renderer.render(dom);
+            const metadata = renderer.render(dom);
 
-            row = { dom: dom, type: type };
+            row = { dom: dom, type: type, metadata: metadata };
         }
 
         return row;

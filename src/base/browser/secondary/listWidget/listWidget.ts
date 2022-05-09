@@ -109,7 +109,7 @@ export class ListWidget<T> implements IListWidget<T> {
 
     constructor(
         container: HTMLElement,
-        renderers: IListViewRenderer<any>[],
+        renderers: IListViewRenderer<any, any>[],
         itemProvider: IListItemProvider<T>, 
         opts: IListWidgetOpts<T>
     ) {
