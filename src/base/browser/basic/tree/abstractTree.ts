@@ -43,8 +43,12 @@ export interface IAbstractTree<T, TFilter, TRef> {
 }
 
 /**
- * @class An {@link AbstractTree} is the base class for any tree-like structure.
- * MVVM is used in these related classes. Built upon a model {@link ITreeModel}.
+ * @class An {@link AbstractTree} is the base class for any tree-like structure
+ * that can do expand / collapse / selection to nodes.
+ * 
+ * MVVM is used in the related classes. Built upon a model {@link ITreeModel}
+ * where the inherited class needs to overwrite the protected method 
+ * `createModel()`.
  */
 export abstract class AbstractTree<T, TFilter, TRef> implements IAbstractTree<T, TFilter, TRef>, IDisposable {
 

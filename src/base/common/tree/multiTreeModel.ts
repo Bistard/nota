@@ -31,8 +31,8 @@ export interface IMultiTreeModel<T, TFilter> extends ITreeModel<T | null, TFilte
  * 
  * Unlike {@link IndexTreeModel} searching is determined by a series of indices,
  * {@link MultiTreeModel} has an internal binding between user-defined data and 
- * tree nodes so that caller can do searching without knowing the location of the 
- * actual tree node.
+ * internal treenode type, so that the caller can do searching without knowing 
+ * the location of the actual tree node.
  */
 export class MultiTreeModel<T, TFilter = void> implements IMultiTreeModel<T, TFilter> {
 
