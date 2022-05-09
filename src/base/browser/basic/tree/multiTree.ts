@@ -1,5 +1,5 @@
 import { AbstractTree, IAbstractTree, IAbstractTreeOptions } from "src/base/browser/basic/tree/abstractTree";
-import { ITreeRenderer } from "src/base/browser/basic/tree/treeRenderer";
+import { TreeListViewRenderer } from "src/base/browser/basic/tree/treeListViewRenderer";
 import { IListItemProvider } from "src/base/browser/secondary/listView/listItemProvider";
 import { IListWidget } from "src/base/browser/secondary/listWidget/listWidget";
 import { ITreeModelSpliceOptions } from "src/base/common/tree/indexTreeModel";
@@ -44,7 +44,7 @@ export class MultiTree<T, TFilter> extends AbstractTree<T | null, TFilter, T | n
 
     constructor(
         container: HTMLElement,
-        renderers: ITreeRenderer<T>[],
+        renderers: TreeListViewRenderer<T, TFilter>[],
         itemProvider: IListItemProvider<T>,
         opts: IAbstractTreeOptions<T> = {}
     ) {

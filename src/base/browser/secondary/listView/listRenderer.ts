@@ -7,6 +7,7 @@ import { ListItemType } from "src/base/browser/secondary/listView/listView";
  * TMetadata: the user-defined data.
  */
 export interface IListViewRenderer<TMetadata> {
+	
 	/**
 	 * The type of item that the renderer is responsible for.
 	 */

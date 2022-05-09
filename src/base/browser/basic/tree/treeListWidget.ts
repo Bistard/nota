@@ -1,4 +1,4 @@
-import { ITreeRenderer } from "src/base/browser/basic/tree/treeRenderer";
+import { ITreeRenderer } from "src/base/browser/basic/tree/treeListViewRenderer";
 import { IListItemProvider } from "src/base/browser/secondary/listView/listItemProvider";
 import { IListWidget, IListWidgetOpts, ListWidget } from "src/base/browser/secondary/listWidget/listWidget";
 import { ITreeNode } from "src/base/common/tree/tree";
