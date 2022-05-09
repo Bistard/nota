@@ -1,3 +1,4 @@
+import { ITreeNode } from "src/base/common/tree/tree";
 import { ListItemType } from "./listView";
 
 
@@ -21,4 +22,34 @@ export interface IListItemProvider<T> {
      * @param data The provided data.
      */
     getType(data: T): ListItemType;
+}
+
+/**
+ * @class A wrapper class simply for {@link IListItemProvider}. It simply converts
+ * the functionality of object with type {@link IListItemProvider<T>} to 
+ * {@link IListItemProvider<ITreeNode<T>>}.
+ */
+export class TreeListItemProvider<T> implements IListItemProvider<ITreeNode<T>> {
+
+    // [field]
+
+    private _provider: IListItemProvider<T>;
+
+    // [constructor]
+
+    constructor(provider: IListItemProvider<T>) {
+        this._provider = provider;
+    }
+
+    // [method]
+
+    
+    public getSize(node: ITreeNode<T>): number {
+        return this._provider.getSize(node.data);
+    }
+
+    public getType(node: ITreeNode<T>): ListItemType {
+        return this._provider.getType(node.data);
+    }
+
 }

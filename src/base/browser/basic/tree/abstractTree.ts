@@ -1,8 +1,9 @@
-import { IListItemProvider } from "src/base/browser/secondary/listView/listItemProvider";
+import { ITreeListWidget, TreeListWidget } from "src/base/browser/basic/tree/treeListWidget";
+import { IListItemProvider, TreeListItemProvider } from "src/base/browser/secondary/listView/listItemProvider";
 import { IListViewRenderer } from "src/base/browser/secondary/listView/listRenderer";
-import { IListWidget, ListWidget } from "src/base/browser/secondary/listWidget/listWidget";
 import { IListDragAndDropProvider } from "src/base/browser/secondary/listWidget/listWidgetDragAndDrop";
 import { DisposableManager, IDisposable } from "src/base/common/dispose";
+import { ISpliceable } from "src/base/common/range";
 import { ITreeModel, ITreeNode } from "src/base/common/tree/tree";
 
 /**
@@ -54,7 +55,7 @@ export abstract class AbstractTree<T, TFilter, TRef> implements IAbstractTree<T,
     /** the raw data model of the tree. */
     protected _model: ITreeModel<T, TFilter, TRef>;
 
-    protected _view: IListWidget<T>;
+    protected _view: ITreeListWidget<T, TFilter>;
 
     // [constructor]
 
@@ -65,15 +66,15 @@ export abstract class AbstractTree<T, TFilter, TRef> implements IAbstractTree<T,
         opts: IAbstractTreeOptions<T> = {}
     ) {
 
-        this._model = this.createModel();
-        this._view = new ListWidget(
+        this._view = new TreeListWidget<T, TFilter>(
             container, 
             renderers, 
-            itemProvider, 
+            new TreeListItemProvider(itemProvider), 
             {
                 // TODO:
             }
         );
+        this._model = this.createModel(this._view);
 
 
         // dispose registration
@@ -83,7 +84,7 @@ export abstract class AbstractTree<T, TFilter, TRef> implements IAbstractTree<T,
 
     // [abstract methods]
 
-    protected abstract createModel(): ITreeModel<T, TFilter, TRef>;
+    protected abstract createModel(view: ISpliceable<ITreeNode<T, TFilter>>): ITreeModel<T, TFilter, TRef>;
 
     // [methods - tree]
 

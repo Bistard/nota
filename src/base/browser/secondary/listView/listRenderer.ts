@@ -3,6 +3,8 @@ import { ListItemType } from "src/base/browser/secondary/listView/listView";
 /**
  * @description An interface that describes how to render an item in 
  * {@link ListView} with an specific type.
+ * 
+ * TMetadata: the user-defined data.
  */
 export interface IListViewRenderer<TMetadata> {
 	/**

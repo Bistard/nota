@@ -40,7 +40,7 @@ export interface IListDragEvent<T> {
  * The consturtor options for {@link ListWidget}.
  */
 export interface IListWidgetOpts<T> extends IListViewOpts<T> {
-    
+    // TODO
 }
 
 // TODO: method comments
