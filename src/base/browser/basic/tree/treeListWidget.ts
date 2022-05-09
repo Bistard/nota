@@ -1,4 +1,4 @@
-import { ITreeRenderer } from "src/base/browser/basic/tree/treeListViewRenderer";
+import { ITreeListViewRenderer } from "src/base/browser/basic/tree/treeListViewRenderer";
 import { IListItemProvider } from "src/base/browser/secondary/listView/listItemProvider";
 import { IListWidget, IListWidgetOpts, ListWidget } from "src/base/browser/secondary/listWidget/listWidget";
 import { ITreeNode } from "src/base/common/tree/tree";
@@ -17,7 +17,7 @@ export class TreeListWidget<T, TFilter> extends ListWidget<ITreeNode<T>> impleme
 
     constructor(
         container: HTMLElement,
-        renderers: ITreeRenderer<T>[],
+        renderers: ITreeListViewRenderer<T, TFilter>[],
         itemProvider: IListItemProvider<ITreeNode<T, TFilter>>,
         opts: IListWidgetOpts<ITreeNode<T>> = {}
     ) {
