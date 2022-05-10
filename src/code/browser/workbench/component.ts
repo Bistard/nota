@@ -30,7 +30,6 @@ export interface IComponent extends ICreateable {
     readonly parent: HTMLElement | null;
     container: HTMLElement;
     contentArea: HTMLElement | undefined;
-    readonly componentMap: Map<string, Component>;
 
     /**
      * @description Renders the component itself.
@@ -43,11 +42,24 @@ export interface IComponent extends ICreateable {
     registerListeners(): void;
 
     /**
-     * @description after 'create()' has been called, HTMLElements are ready to
-     * be registered with events.
+     * @description Register a child {@link Component} into the current Component.
+     * @param override If sets to true, it will override the existed one which 
+     *                 has the same component id. Defaults to false.
+     * 
+     * @warn Throws an error if the component has already been registered and
+     *       override sets to false.
      */
-    registerComponent(component: Component): void;
+    registerComponent(component: Component, override: boolean): void;
     
+    /**
+     * @description Determines if the component with the given id has been 
+     * registered in the current component.
+     * @param id The id of the component.
+     * 
+     * @returns If the component founded.
+     */
+    hasComponent(id: string): boolean;
+
     /**
      * @description Returns the sub component by id.
      * 
@@ -56,7 +68,7 @@ export interface IComponent extends ICreateable {
      * @param id The string ID of the component.
      * @returns The required Component.
      */
-    getComponentById(id: string): Component;
+    getComponent(id: string): Component;
 
     /**
      * @description Triggers the onDidVisibilityChange event.
@@ -92,11 +104,12 @@ export abstract class Component extends Disposable implements IComponent {
     
     public readonly parentComponent: Component | null = null;
     public readonly parent: HTMLElement | null = null;
-
     public container: HTMLElement = document.createElement('div');
+    
+    // TODO: try to remove this stupid stuff
     public contentArea: HTMLElement | undefined;
 
-    public readonly componentMap: Map<string, Component> = new Map();
+    private readonly _componentMap: Map<string, Component> = new Map();
 
     private _created: boolean = false;
     private _registered: boolean = false;
@@ -176,12 +189,20 @@ export abstract class Component extends Disposable implements IComponent {
         this._registered = true;
     }
 
-    public registerComponent(component: Component): void {
-        if (this.componentMap) {
-            this.componentMap.set(component.getId(), component);
-        } else {
-            throw new Error('componentMap is undefined, cannot register component');
+    public registerComponent(component: Component, override: boolean = false): void {
+        const id = component.getId();
+        const registered = this._componentMap.has(id);
+        
+        if (registered && !override) {
+            throw new Error('component has been already registered');
         }
+
+        if (registered && override) {
+            const deprecated = this._componentMap.get(id)!;
+            deprecated.dispose();
+        }
+
+        this._componentMap.set(id, component);
     }
 
     public getId(): string {
@@ -192,8 +213,12 @@ export abstract class Component extends Disposable implements IComponent {
         this._onDidVisibilityChange.fire(value);
     }
 
-    public getComponentById(id: string): Component {
-        const component = this.componentMap.get(id);
+    public hasComponent(id: string): boolean {
+        return this._componentMap.has(id);
+    }
+
+    public getComponent(id: string): Component {
+        const component = this._componentMap.get(id);
         if (!component) {
             throw new Error(`trying to get an unknown component ${id}`);
         }
@@ -201,7 +226,7 @@ export abstract class Component extends Disposable implements IComponent {
     }
 
     public override dispose(): void {
-        for (const child of this.componentMap.values()) {
+        for (const child of this._componentMap.values()) {
             child.dispose();
         }
         super.dispose();
