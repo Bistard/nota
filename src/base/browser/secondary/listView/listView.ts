@@ -1,25 +1,28 @@
 import { IListViewRow, ListViewCache } from "src/base/browser/secondary/listView/listCache";
-import { IListViewRenderer } from "src/base/browser/secondary/listView/listRenderer";
+import { IListViewRenderer, ListItemRenderer, PipelineRenderer } from "src/base/browser/secondary/listView/listRenderer";
 import { ScrollableWidget } from "src/base/browser/secondary/scrollableWidget/scrollableWidget";
 import { ScrollbarType } from "src/base/browser/secondary/scrollableWidget/scrollableWidgetOptions";
 import { DisposableManager, IDisposable } from "src/base/common/dispose";
 import { DomSize, EventType } from "src/base/common/dom";
 import { DomEmitter, Emitter, Register } from "src/base/common/event";
-import { ILabellable } from "src/base/common/label";
 import { IRange, ISpliceable, Range, RangeTable } from "src/base/common/range";
 import { IScrollEvent, Scrollable } from "src/base/common/scrollable";
-import { IMeasureable } from "src/base/common/size";
+import { IListItemProvider } from "src/base/browser/secondary/listView/listItemProvider";
+import { IListDragAndDropProvider } from "src/base/browser/secondary/listWidget/listWidgetDragAndDrop";
+
 
 /**
  * The consturtor options for {@link ListView}.
  */
-export interface IListViewOpts {
+export interface IListViewOpts<T> {
     
     readonly transformOptimization?: boolean;
     readonly mouseWheelScrollSensitivity?: number;
 	readonly fastScrollSensitivity?: number;
     readonly reverseMouseWheelDirection?: boolean;
-    readonly scrollbarSize?: number
+    readonly scrollbarSize?: number;
+    
+    dragAndDropProvider?: IListDragAndDropProvider<T>;
 
 }
 
@@ -27,7 +30,7 @@ export interface IListViewOpts {
  * The type of items are stored in {@link ListView}. 
  * Using a number is faster than a string.
  */
-export type ViewItemType = number;
+export type ListItemType = number;
 
 /**
  * The inner data structure wraps each item in {@link ListView}.
@@ -35,9 +38,10 @@ export type ViewItemType = number;
 export interface IViewItem<T> {
     readonly id: number;
     readonly data: T;
+    readonly type: ListItemType;
     size: number;
     row: IListViewRow | null; // null means this item is currently not rendered.
-    draggable?: IDisposable;
+    dragStart?: IDisposable;
 }
 
 export interface IViewItemChangeEvent<T> {
@@ -72,7 +76,7 @@ export interface IListView<T> extends IDisposable {
     onMousemove: Register<MouseEvent>;
 
     length: number;
-    DOMelement: HTMLElement;
+    DOMElement: HTMLElement;
 
     // [methods]
 
@@ -221,7 +225,7 @@ export interface IListView<T> extends IDisposable {
  *  - performant template-based rendering
  *  - mouse support
  */
-export class ListView<T extends IMeasureable & ILabellable<ViewItemType>> implements IDisposable, ISpliceable<T>, IListView<T> {
+export class ListView<T> implements IDisposable, ISpliceable<T>, IListView<T> {
 
     // [fields]
 
@@ -235,7 +239,9 @@ export class ListView<T extends IMeasureable & ILabellable<ViewItemType>> implem
 
     private rangeTable: RangeTable;
 
-    private renderers: Map<ViewItemType, IListViewRenderer>;
+    private dnd: IListDragAndDropProvider<T>;
+    private renderers: Map<ListItemType, IListViewRenderer<T, any>>;
+    private itemProvider: IListItemProvider<T>;
     
     private items: IViewItem<T>[];
     private cache: ListViewCache;
@@ -276,11 +282,16 @@ export class ListView<T extends IMeasureable & ILabellable<ViewItemType>> implem
     get onMousemove(): Register<MouseEvent> { return this.disposables.register(new DomEmitter<MouseEvent>(this.listContainer, EventType.mousemove)).registerListener; }
 
     get length(): number { return this.items.length; }
-    get DOMelement(): HTMLElement { return this.listContainer; }
+    get DOMElement(): HTMLElement { return this.listContainer; }
 
     // [constructor]
 
-    constructor(container: HTMLElement, renderers: IListViewRenderer[], opts: IListViewOpts) {
+    constructor(
+        container: HTMLElement, 
+        renderers: IListViewRenderer<any, any>[], 
+        itemProvider: IListItemProvider<T>,
+        opts: IListViewOpts<T>
+    ) {
         this.element = document.createElement('div');
         this.element.className = 'list-view';
 
@@ -317,12 +328,23 @@ export class ListView<T extends IMeasureable & ILabellable<ViewItemType>> implem
             }
         });
 
+        // integrates all the renderers
+        renderers = renderers.map(renderer => new PipelineRenderer(renderer.type, [new ListItemRenderer(), renderer]));
+
         this.renderers = new Map();
         for (let renderer of renderers) {
             this.renderers.set(renderer.type, renderer);
         }
 
+        this.itemProvider = itemProvider;
+
         this.cache = new ListViewCache(this.renderers);
+
+        // drag-and-drop support
+        this.dnd = opts.dragAndDropProvider || { 
+            // default dnd
+            getDragData: () => null,
+        };
 
         this.element.appendChild(this.listContainer);
         container.appendChild(this.element);
@@ -391,21 +413,21 @@ export class ListView<T extends IMeasureable & ILabellable<ViewItemType>> implem
          * When we do the insertion, we try to reuse these `row`s to improve 
          * efficiency.
          */
-        const deleteCache = new Map<ViewItemType, IListViewRow[]>();
+        const deleteCache = new Map<ListItemType, IListViewRow[]>();
         for (let i = deleteRange.start; i < deleteRange.end; i++) {
             const item = this.items[i]!;
 
             if (item.row) {
-                let rowCache = deleteCache.get(item.data.type);
+                let rowCache = deleteCache.get(item.type);
 
                 if (rowCache === undefined) {
                     rowCache = [];
-                    deleteCache.set(item.data.type,rowCache);
+                    deleteCache.set(item.type, rowCache);
                 }
 
-                const renderer = this.renderers.get(item.data.type);
+                const renderer = this.renderers.get(item.type);
                 if (renderer) {
-                    renderer.dispose(item.row.dom);
+                    renderer.dispose(item.row!.metadata);
                 }
 
                 rowCache.push(item.row);
@@ -424,9 +446,9 @@ export class ListView<T extends IMeasureable & ILabellable<ViewItemType>> implem
 
         const insert = items.map<IViewItem<T>>(item => ({
             id: ListViewItemUUID++,
-            type: item.type,
+            type: this.itemProvider.getType(item),
             data: item,
-            size: item.size,
+            size: this.itemProvider.getSize(item),
             row: null,
         }));
 
@@ -481,7 +503,7 @@ export class ListView<T extends IMeasureable & ILabellable<ViewItemType>> implem
         for (const range of insertRanges) {
 			for (let i = range.start; i < range.end; i++) {
 				const item = this.items[i]!;
-				const rows = deleteCache.get(item.data.type);
+				const rows = deleteCache.get(item.type);
 				const row = rows?.pop();
 				this.insertItemInDOM(i, beforeElement, row);
 			}
@@ -517,32 +539,33 @@ export class ListView<T extends IMeasureable & ILabellable<ViewItemType>> implem
             if (row) {
                 item.row = row;
             } else {
-                item.row = this.cache.get(item.data.type, item.data);
+                item.row = this.cache.get(item.type);
             }
         }
 
         this.updateItemInDOM(index);
 
-        const renderer = this.renderers.get(item.data.type);
+        const renderer = this.renderers.get(item.type);
         if (renderer === undefined) {
-            throw new Error(`no renderer provided for the given type: ${item.data.type}`);
+            throw new Error(`no renderer provided for the given type: ${item.type}`);
         }
 
-        renderer.update(item.row!.dom, index, item.data);
-        this._onInsertItemInDOM.fire({ item: item, index: index });
+        renderer.update(item.data, index, item.row!.metadata, item.size);
 
         if (insertBefore) {
             this.listContainer.insertBefore(item.row!.dom, insertBefore);
         } else {
             this.listContainer.appendChild(item.row!.dom);
         }
+
+        this._onInsertItemInDOM.fire({ item: item, index: index });
     }
 
     public removeItemInDOM(index: number): void {
         const item = this.items[index]!;
 
         if (item.row) {
-            const renderer = this.renderers.get(item.data.type);
+            const renderer = this.renderers.get(item.type);
 
             if (renderer) {
                 renderer.dispose(item.row.dom);
@@ -590,7 +613,7 @@ export class ListView<T extends IMeasureable & ILabellable<ViewItemType>> implem
     
     public getItemHeight(index: number): number {
         const item = this.getItem(index);
-        return item.size;
+        return this.itemProvider.getSize(item);
     }
 
     public getItemRenderTop(index: number): number {
@@ -626,6 +649,10 @@ export class ListView<T extends IMeasureable & ILabellable<ViewItemType>> implem
 
     public renderIndexAfter(visiblePosition: number): number {
         return this.rangeTable.indexAfter(this.prevRenderTop + visiblePosition);
+    }
+
+    public getDnd(): IListDragAndDropProvider<T> {
+        return this.dnd;
     }
 
     // [private helper methods]

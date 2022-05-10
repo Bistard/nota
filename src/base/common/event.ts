@@ -1,5 +1,5 @@
 import { IDisposable, toDisposable, DisposableManager } from "./dispose";
-import { List } from "src/base/common/list";
+import { LinkedList } from "src/base/common/linkedList";
 import { addDisposableListener, EventType } from "src/base/common/dom";
 
 /** @deprecated Use Emitter instead */
@@ -143,7 +143,7 @@ export interface IEmitter<T> {
 export class Emitter<T> implements IDisposable, IEmitter<T> {
     
     private _disposed: boolean = false;
-    protected _listeners: List<Listener<T>> = new List();
+    protected _listeners: LinkedList<Listener<T>> = new LinkedList();
 
     /** @readonly Using function closures here. */
     private _register?: Register<T>;
@@ -273,7 +273,7 @@ export class PauseableEmitter<T> extends Emitter<T> {
 export class DelayableEmitter<T> extends Emitter<T> {
 
     private _delayed: boolean = false;
-    private _delayedEvents: List<T> = new List();
+    private _delayedEvents: LinkedList<T> = new LinkedList();
     private _reduceFn?: ((data: T[]) => T);
 
     constructor(reduce?: ((data: T[]) => T)) {
@@ -361,7 +361,7 @@ export class AsyncEmitter<T> extends Emitter<T> {
     public async fireAsync(event: T): Promise<any[]> {
         const errors: any[] = [];
 
-        for (const listener of this._listeners as List<AsyncListener<T>>) {
+        for (const listener of this._listeners as LinkedList<AsyncListener<T>>) {
             try {
                 await listener(event);
             } catch (e) {

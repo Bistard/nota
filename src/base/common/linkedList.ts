@@ -1,5 +1,5 @@
 
-export interface IList<T> {
+export interface ILinkedList<T> {
 
     /** @description Determines if the list is empty. */
     empty(): boolean;
@@ -80,10 +80,10 @@ export class ListNode<T> {
 }
 
 /**
- * @description A doubly linked list. List<T> supports initializer list 
+ * @description A doubly linked list. LinkedList<T> supports initializer list 
  * constructor.
  */
-export class List<T> {
+export class LinkedList<T> {
 
     private _first: ListNode<T> | undefined = undefined;
     private _last: ListNode<T> | undefined = undefined;

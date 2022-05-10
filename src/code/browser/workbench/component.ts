@@ -2,6 +2,9 @@ import { Disposable } from "src/base/common/dispose";
 import { Emitter } from "src/base/common/event";
 import { IComponentService } from "src/code/browser/service/componentService";
 
+/**
+ * List of all the types of {@link Component}.
+ */
 export const enum ComponentType {
     Workbench = 'workbench',
     ActionBar = 'action-bar',
@@ -18,39 +21,112 @@ export interface ICreateable {
     registerListeners(): void;
 }
 
+/**
+ * An interface only for {@link Component}.
+ */
 export interface IComponent extends ICreateable {
 
     readonly parentComponent: Component | null;
     readonly parent: HTMLElement | null;
     container: HTMLElement;
     contentArea: HTMLElement | undefined;
-    readonly componentMap: Map<string, Component>;
 
-    registerComponent(component: Component): void;
+    /**
+     * @description Renders the component itself.
+     */
+    create(): void;
+
+    /**
+     * @description Registers any listeners in the component.
+     */
+    registerListeners(): void;
+
+    /**
+     * @description Register a child {@link Component} into the current Component.
+     * @param override If sets to true, it will override the existed one which 
+     *                 has the same component id. Defaults to false.
+     * 
+     * @warn Throws an error if the component has already been registered and
+     *       override sets to false.
+     */
+    registerComponent(component: Component, override: boolean): void;
+    
+    /**
+     * @description Determines if the component with the given id has been 
+     * registered in the current component.
+     * @param id The id of the component.
+     * 
+     * @returns If the component founded.
+     */
+    hasComponent(id: string): boolean;
+
+    /**
+     * @description Returns the sub component by id.
+     * 
+     * @warn If no such component exists, an error throws.
+     * 
+     * @param id The string ID of the component.
+     * @returns The required Component.
+     */
+    getComponent(id: string): Component;
+
+    /**
+     * @description Triggers the onDidVisibilityChange event.
+     * @param value to visible or invisible.
+     */
+    setVisible(value: boolean): void;
+
+    /**
+     * @description Returns the string id of the component.
+     */
     getId(): string;
+
+    /**
+     * @description Disposes the current component and all its children 
+     * components.
+     */
+    dispose(): void;
+
 }
 
+/**
+ * @class Abstract base class for every composed / complicated UI component.
+ * {@link Component} has ability to nest other {@link Component}s.
+ * 
+ * {@link Component} is disposable, once it get disposed, all its children will
+ * also be disposed.
+ * 
+ * {@link Component} cannot be disposed / create() / registerListener() twice.
+ */
 export abstract class Component extends Disposable implements IComponent {
     
-    /* events */
+    // [field]
+    
+    public readonly parentComponent: Component | null = null;
+    public readonly parent: HTMLElement | null = null;
+    public container: HTMLElement = document.createElement('div');
+    
+    // TODO: try to remove this stupid stuff
+    public contentArea: HTMLElement | undefined;
+
+    private readonly _componentMap: Map<string, Component> = new Map();
+
+    private _created: boolean = false;
+    private _registered: boolean = false;
+
+    // [event]
     
     private readonly _onDidVisibilityChange = this.__register( new Emitter<boolean>() );
     public readonly onDidVisibilityChange = this._onDidVisibilityChange.registerListener;
 
-    /* end */
-
-    public readonly parentComponent: Component | null = null;
-    public readonly parent: HTMLElement | null = null;
-
-    public container: HTMLElement = document.createElement('div');
-    public contentArea: HTMLElement | undefined;
-
-    public readonly componentMap: Map<string, Component> = new Map();
+    // [constructor]
 
     /**
      * @param id The id for the Component.
      * @param parentComponent The parent Component.
-     * @param parentElement If provided, parentElement will replace the HTMLElement from the provided parentComponent.
+     * @param parentElement If provided, parentElement will replace the HTMLElement 
+     *                      from the provided parentComponent. Else defaults to 
+     *                      `document.body`.
      * @param componentService ComponentService for the registration purpose.
      */
     constructor(id: string, 
@@ -75,33 +151,7 @@ export abstract class Component extends Disposable implements IComponent {
         this.componentService.register(this);
     }
 
-    /**
-     * @description gneric function for every subclasses object to be created.
-     */
-    public create(): void {
-        this.parent?.appendChild(this.container);
-        this._createContent();
-    }
-
-    /**
-     * @description after 'create()' has been called, HTMLElements are ready to
-     * be registered with events.
-     */
-    public registerListeners(): void {
-        // customize later
-        this._registerListeners();
-    }
-
-    /**
-     * @description register component into mapping.
-     */
-    public registerComponent(component: Component): void {
-        if (this.componentMap) {
-            this.componentMap.set(component.getId(), component);
-        } else {
-            throw new Error('componentMap is undefined, cannot register component');
-        }
-    }
+    // [abstract method]
 
     /**
      * @description if needed, this function will be called inside the function
@@ -118,32 +168,68 @@ export abstract class Component extends Disposable implements IComponent {
      */
     protected abstract _registerListeners(): void;
 
+    // [method]
+
+    public create(): void {
+        if (this.isDisposed() || this._created) {
+            return; 
+        }
+        
+        this.parent?.appendChild(this.container); //TODO: try to remove `?`
+        this._createContent();
+        this._created = true;
+    }
+
+    public registerListeners(): void {
+        if (this.isDisposed() || this._registered || !this._created) {
+            return; 
+        }
+        
+        this._registerListeners();
+        this._registered = true;
+    }
+
+    public registerComponent(component: Component, override: boolean = false): void {
+        const id = component.getId();
+        const registered = this._componentMap.has(id);
+        
+        if (registered && !override) {
+            throw new Error('component has been already registered');
+        }
+
+        if (registered && override) {
+            const deprecated = this._componentMap.get(id)!;
+            deprecated.dispose();
+        }
+
+        this._componentMap.set(id, component);
+    }
+
     public getId(): string {
         return this.container.id;
     }
 
-    /**
-     * @description Triggers the onDidVisibilityChange event.
-     * @param value to visible or invisible.
-     */
     public setVisible(value: boolean): void {
         this._onDidVisibilityChange.fire(value);
     }
 
-    /**
-     * @description Returns the sub component by id.
-     * 
-     * @warn If no such component exists, an error throws.
-     * 
-     * @param id The string ID of the component.
-     * @returns The required Component.
-     */
-    public getComponentById(id: string): Component {
-        const component = this.componentMap.get(id);
+    public hasComponent(id: string): boolean {
+        return this._componentMap.has(id);
+    }
+
+    public getComponent(id: string): Component {
+        const component = this._componentMap.get(id);
         if (!component) {
             throw new Error(`trying to get an unknown component ${id}`);
         }
         return component;
+    }
+
+    public override dispose(): void {
+        for (const child of this._componentMap.values()) {
+            child.dispose();
+        }
+        super.dispose();
     }
 
 }

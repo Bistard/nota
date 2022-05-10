@@ -1,9 +1,9 @@
 import * as assert from 'assert';
-import { List } from 'src/base/common/list';
+import { LinkedList } from 'src/base/common/linkedList';
 
 suite('list-test', () => {
 
-    function assertElements<E>(list: List<E>, ...elements: E[]) {
+    function assertElements<E>(list: LinkedList<E>, ...elements: E[]) {
 
 		// check size
 		assert.strictEqual(list.size(), elements.length);
@@ -22,12 +22,12 @@ suite('list-test', () => {
 	}
 
     test('initializer constructor / clear / size / iterable / empty', () => {
-        const list0 = new List<number>();
+        const list0 = new LinkedList<number>();
         assert.strictEqual(list0.empty(), true);
         list0.push_back(1);
         assert.strictEqual(list0.empty(), false);
         
-        const list = new List<number>(0, 1, 2, 3, 4, 5);
+        const list = new LinkedList<number>(0, 1, 2, 3, 4, 5);
         assert.strictEqual(list.front()?.data, 0);
         assert.strictEqual(list.back()?.data, 5);
         
@@ -40,7 +40,7 @@ suite('list-test', () => {
     });
 
 	test('push_front / push_back', () => {
-		const list = new List<number>();
+		const list = new LinkedList<number>();
         list.push_front(2);
         list.push_front(1);
         list.push_front(0);
@@ -53,7 +53,7 @@ suite('list-test', () => {
 	});
 
     test('pop_front / pop_end', () => {
-        const list = new List<number>(1, 2, 3, 4, 5);
+        const list = new LinkedList<number>(1, 2, 3, 4, 5);
         
         assert.strictEqual(list.pop_front()?.data, 1);
         assert.strictEqual(list.pop_back()?.data, 5);
@@ -69,7 +69,7 @@ suite('list-test', () => {
     });
 
     test('remove', () => {
-        const list = new List<number>();
+        const list = new LinkedList<number>();
 
         const num2 = list.push_front(2);
         const num1 = list.push_front(1);
@@ -102,7 +102,7 @@ suite('list-test', () => {
     });
 
     test('insert', () => {
-        const list = new List<number>();
+        const list = new LinkedList<number>();
 
         const num2 = list.push_front(2);
         const num1 = list.push_front(1);
@@ -129,7 +129,7 @@ suite('list-test', () => {
     });
 
 	test('front / back', () => {
-        const list = new List<number>();
+        const list = new LinkedList<number>();
 
         list.push_front(2);
         assert.strictEqual(list.front()?.data, 2);
@@ -157,7 +157,7 @@ suite('list-test', () => {
     });
 
     test('exist', () => {
-        const list = new List<number>(1, 2, 3, 4, 5);
+        const list = new LinkedList<number>(1, 2, 3, 4, 5);
 
         assert.strictEqual(list.exist(0), false);
         assert.strictEqual(list.exist(1), true);

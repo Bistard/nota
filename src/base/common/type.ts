@@ -1,8 +1,13 @@
 
 /**
+ * Represents an array contains only 2 items.
+ */
+export type Pair<T, R> = [T, R];
+
+/**
  * @description Checks if it is the type `object`.
  */
- export function isObject(obj: any): obj is any {
+export function isObject(obj: any): obj is any {
     return typeof obj === "object"
         && obj !== null
         && !Array.isArray(obj)
@@ -31,7 +36,7 @@ export function isEmptyObject(obj: any): boolean {
  * @description Checks if it is an array.
  */
 export function isArray(array: any): array is any[] {
-	return Array.isArray(array);
+    return Array.isArray(array);
 }
 
 /**

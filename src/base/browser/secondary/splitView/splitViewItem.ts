@@ -21,6 +21,9 @@ export class SplitViewItem {
         this.container = container;
         this.maximumSize = opt.maximumSize;
         this.minimumSize = opt.minimumSize;
+        if (opt.maximumSize < opt.minimumSize) {
+            throw new Error('Provided maxSize is smaller than provided minSize');
+        }
         
         this.resizePriority = opt.priority!;
 

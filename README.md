@@ -1,3 +1,4 @@
+<!-- <p align="center"><img src="static/logo-small.png" width="100" height="100"></p> -->
 <h1 align="center">Nota (In Developing)</h1>
 <div align="center">
   |
@@ -68,6 +69,7 @@ npm start
 * 🥰Welcome to post any ideas or improvements in our github discussion section which can be found [here](https://github.com/Bistard/nota/discussions).
 * 🤔Report bugs or request new features to [here](https://github.com/Bistard/nota/issues).
 * 😆If you requires further discussions or wanna join us, you may [contact me in personal](https://github.com/Bistard).
+* 🧐We post our monthly roadmap to the github discussion section which you may check what are we doing everyday.
 
 ## 📦Architecture
 > * First of all, by reading the goodness of vscode source code, *Nota* decided not to use any existing frameworks, instead we are basically building everything from the scratch. If you read the source code of *Nota* carefully, you may find that there are some similarities compared to vscode.

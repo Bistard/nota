@@ -1,0 +1,24 @@
+
+
+.tree-list-row {
+	position: relative;
+    display: flex;
+	height: 100%;
+    align-items: center;
+}
+
+.tree-list-row > .tree-list-indent {
+    position: absolute;
+    height: 100%;
+	
+    top: 0;
+	left: 16px;
+	
+    pointer-events: none;
+}
+
+.tree-list-row > .tree-list-content {
+    flex: 1;
+	height: 100%;
+    overflow: hidden;
+}

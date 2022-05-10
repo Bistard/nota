@@ -1,5 +1,5 @@
 import { IListViewRenderer } from "src/base/browser/secondary/listView/listRenderer";
-import { ViewItemType } from "src/base/browser/secondary/listView/listView";
+import { ListItemType } from "src/base/browser/secondary/listView/listView";
 import { IDisposable } from "src/base/common/dispose";
 import { removeNodeFromParent } from "src/base/common/dom";
 
@@ -16,7 +16,14 @@ export interface IListViewRow {
     /**
      * The type of the item in {@link ListView}, for finding the correct renderer.
      */
-	type: ViewItemType;
+	type: ListItemType;
+
+    /**
+     * The user-defined data which will be returned after the method 
+     * `renderer.render()` invoked. This is used for later `renderer.update()` / 
+     * `renderer.dispose()`.
+     */
+    metadata: any;
 }
 
 /**
@@ -25,11 +32,11 @@ export interface IListViewRow {
  */
 export class ListViewCache implements IDisposable {
 
-    private cache: Map<ViewItemType, IListViewRow[]>;
-    private renderers: Map<ViewItemType, IListViewRenderer>;
+    private cache: Map<ListItemType, IListViewRow[]>;
+    private renderers: Map<ListItemType, IListViewRenderer<any, any>>;
 
     constructor(
-        renderers: Map<ViewItemType, IListViewRenderer>
+        renderers: Map<ListItemType, IListViewRenderer<any, any>>
     ) {
         this.cache = new Map();
         this.renderers = renderers;
@@ -50,9 +57,8 @@ export class ListViewCache implements IDisposable {
      * @param type The type of the row.
      * @returns {IListViewRow}
      */
-    public get<T>(type: ViewItemType, data: T): IListViewRow {
-        let cache = this.__getCache(type);
-        let row = cache.pop();
+    public get<T>(type: ListItemType): IListViewRow {
+        let row = this.__getCache(type).pop();
 
         if (row === undefined) {
             const dom = document.createElement('div');
@@ -63,9 +69,9 @@ export class ListViewCache implements IDisposable {
             if (renderer === undefined) {
                 throw new Error(`no renderer provided for the given type: ${type}`);
             }
-            renderer.render(dom, data);
+            const metadata = renderer.render(dom);
 
-            row = { dom: dom, type: type };
+            row = { dom: dom, type: type, metadata: metadata };
         }
 
         return row;
@@ -83,7 +89,7 @@ export class ListViewCache implements IDisposable {
         cache.push(row);
     }
 
-    private __getCache(type: ViewItemType): IListViewRow[] {
+    private __getCache(type: ListItemType): IListViewRow[] {
         let cache = this.cache.get(type);
 
         if (cache === undefined) {
