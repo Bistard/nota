@@ -33,7 +33,8 @@ interface ITreeListItemMetadata<T> {
  * 
  * T: the type of item for rendering.
  * TFilter: type of filter data for filtering nodes in the tree.
- * TMetadata: type of the user-defined value which returned value by the method `render()` for later updating / disposing.
+ * TMetadata: type of the user-defined value which returned value by the method 
+ *            `render()` for later updating / disposing.
  * 
  * @note Since we are wrapping another renderer, the TMetadata we are returning
  * is also a wrapper, see {@link ITreeListItemMetadata}.

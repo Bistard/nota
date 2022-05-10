@@ -16,7 +16,7 @@ import { DEVELOP_ENV } from "src/base/electron/app";
 import { EventType } from "src/base/common/dom";
 
 /**
- * @class This the main entry in the renderer process.
+ * @class This is the main entry of the renderer process.
  */
 export class Browser {
 

@@ -23,7 +23,7 @@ export interface IMultiTree<T, TFilter = void> extends IAbstractTree<T | null, T
     /**
      * @description Returns the number of nodes in the current tree model.
      */
-     size(): number;
+    size(): number;
 }
 
 /**
@@ -68,7 +68,7 @@ export class MultiTree<T, TFilter = void> extends AbstractTree<T | null, TFilter
 
     // [private helper method]
 
-    protected createModel(view: IListWidget<ITreeNode<T, TFilter>>): ITreeModel<T | null, TFilter, T | null> {
+    protected override createModel(view: IListWidget<ITreeNode<T, TFilter>>): ITreeModel<T | null, TFilter, T | null> {
         return new MultiTreeModel(view);
     }
 
