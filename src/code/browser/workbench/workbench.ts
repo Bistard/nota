@@ -20,8 +20,6 @@ import { IIpcService } from "src/code/browser/service/ipcService";
  */
 export class Workbench extends WorkbenchLayout implements IWorkbenchService {
 
-    private _noteBookManager!: NoteBookManager;
-
     constructor(
         @IInstantiationService instantiationService: IInstantiationService,
         @IComponentService componentService: IComponentService,
@@ -69,10 +67,8 @@ export class Workbench extends WorkbenchLayout implements IWorkbenchService {
         // ContextMenuService
         this.instantiationService.register(IContextMenuService, new ServiceDescriptor(ContextMenuService));
 
-        // NoteBookManagerService (async)
-        this._noteBookManager = this.instantiationService.createInstance(NoteBookManager);
-        await this._noteBookManager.init();
-        this.instantiationService.register(INoteBookManagerService, this._noteBookManager);
+        // NoteBookManagerService
+        this.instantiationService.register(INoteBookManagerService, new ServiceDescriptor(NoteBookManager));
 
     }
 
