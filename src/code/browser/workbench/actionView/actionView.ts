@@ -15,15 +15,41 @@ import { ServiceDescriptor } from 'src/code/common/service/instantiationService/
 
 export const IActionViewService = createDecorator<IActionViewService>('action-view-service');
 
+export interface IActionViewChangeEvent {
+
+    /**
+     * The type of view is displaying.
+     */
+     type: ActionType;
+
+     /**
+      * The previous type of view was displaying.
+      */
+     prevType: ActionType;
+
+}
+
+/**
+ * Representing components which only belongs to {@link ActionViewComponent}.
+ */
+export interface IActionViewComponent extends IComponent {
+    // empty
+}
+
+/**
+ * An interface only for {@link ActionViewComponent}.
+ */
 export interface IActionViewService extends IComponent {
 
-    actionViewChange(actionViewName: ActionType): void;
-    actionViewTopTextOnChange(name: string): void;
-    hideActionViewContent(): void;
-    closeActionView(): void;
-    openActionView(): void;
+    /** 
+     * Events fired when the current action view has changed.
+     */
+    onDidActionViewChange: Register<IActionViewChangeEvent>;
 
-    onActionViewChange: Register<ActionType>;
+    /**
+     * @description Switch to the action view by the provided type.
+     */
+    setActionView(viewType: ActionType): void;
 }
 
 /**
@@ -32,33 +58,46 @@ export interface IActionViewService extends IComponent {
  */
 export class ActionViewComponent extends Component implements IActionViewService {
 
-    /* Static Property */
+    // [field]
 
     public static readonly width: number = 300;
 
-    /* Ends */
-
-    private _currFocusView: ActionType;
-    
     private actionViewContentContainer!: HTMLElement;
-    
-    private actionViewTitlePart: ActionViewTitlePart | undefined;
 
-    private explorerViewComponent!: ExplorerViewComponent;
+    private _currentViewType: ActionType;
+    private _defaultViewType: ActionType;
 
-    /* Events fired when the action view is switched to others */
-    private readonly _onActionViewChange = this.__register( new Emitter<ActionType>() );
-    public readonly onActionViewChange = this._onActionViewChange.registerListener;
+    private _components: Map<string, IActionViewComponent>;
+
+    private actionViewTitlePart!: ActionViewTitlePart;
+
+    // [event]
+
+    private readonly _onActionViewChange = this.__register( new Emitter<IActionViewChangeEvent>() );
+    public readonly onDidActionViewChange = this._onActionViewChange.registerListener;
     
+    // [constructor]
+
     constructor(parentComponent: Component,
+                defaultView: ActionType,
                 @Ii18nService private readonly i18nService: Ii18nService,
                 @IInstantiationService private readonly instantiationService: IInstantiationService,
                 @IComponentService componentService: IComponentService,
     ) {
         super(ComponentType.ActionView, parentComponent, null, componentService);
         
-        this._currFocusView = ActionType.NONE;
+        this._defaultViewType = defaultView;
+        this._currentViewType = ActionType.NONE; // TODO: read from config
+        this._components = new Map();
     }
+
+    // [method]
+
+    public setActionView(viewType: ActionType): void {
+        this.__switchToActionView(viewType);
+    }
+
+    // [protected override methods]
 
     protected override _createContent(): void {
         
@@ -70,14 +109,11 @@ export class ActionViewComponent extends Component implements IActionViewService
         this.actionViewContentContainer = document.createElement('div');
         this.actionViewContentContainer.id = 'action-content-container';
 
-        // action-view-title part
-        this.actionViewTitlePart = this.__register(new ExplorerTitlePart(this.i18nService));
+        // action-view-title
+        this.actionViewTitlePart = this.__register(new ExplorerTitlePart(this.i18nService)); // TODO
         this.actionViewTitlePart.render(this.actionViewContentContainer);
-        
-        // action-view-content part
-        // TODO
-        this._createActionViewContent(this.actionViewContentContainer);
 
+        this.__switchToActionView(this._defaultViewType);
         
         // render them
         this.contentArea.appendChild(this.actionViewContentContainer);
@@ -86,93 +122,91 @@ export class ActionViewComponent extends Component implements IActionViewService
 
     protected override _registerListeners(): void {
 
-        this.explorerViewComponent.registerListeners();
+        for (const component of this._components.values()) {
+            component.registerListeners();
+        }
         
     }
 
-    private _createActionViewContent(container: HTMLElement): void {
-        const actionViewContent = document.createElement('div');
-        actionViewContent.id = 'action-view-content';
-        
-        this.explorerViewComponent = this.instantiationService.createInstance(ExplorerViewComponent, this, actionViewContent);
-        this.explorerViewComponent.create();
-
-        // outlineViewComponent...
-        
-        // searchViewComponent...
-
-        // gitViewComponent...
-
-        container.appendChild(actionViewContent);
-    }
+    // [private helper methods]
 
     /**
-     * @description switch to that action view given a specific name.
+     * @description A helper method to switch to the {@link IActionViewComponent}
+     * by the provided {@link ActionType}.
+     * @param viewType The {@link ActionType} determines which view to display.
      */
-    public actionViewChange(viewType: ActionType): void {
-        if (viewType === this._currFocusView) {
+    private __switchToActionView(viewType: ActionType): void {
+        if (viewType === this._currentViewType) {
             return;
         }
+
+        let previousView: ActionType = this._currentViewType;
         
-        this.actionViewTopTextOnChange(viewType);
-        this.hideActionViewContent();
-        
-        if (viewType === ActionType.EXPLORER) {
-            $('#explorer-container').show(0);
-        } else if (viewType === ActionType.OUTLINE) {
-            $('#outline-container').show(0);
-        } else if (viewType === ActionType.SEARCH) {
-            $('#search-container').show(0);
-        } else if (viewType === ActionType.GIT) {
-            $('#git-container').show(0);
-        } else {
-            throw 'error';
-        }
+        this.__switchOrCreateActionView(this.actionViewContentContainer, viewType);
 
-        this._currFocusView = viewType;
-        this._onActionViewChange.fire(viewType);
-    }
+        this._currentViewType = viewType;
 
-    /**
-     * @description display given text on the action view top.
-     */
-    public actionViewTopTextOnChange(name: ActionType): void {
-        this.actionViewTitlePart!.hide(true);
-        // if (name === ActionType.EXPLORER) {
-        //     $('.title-text').html('Notebook');
-        // } else if (name === ActionType.OUTLINE) {
-        //     $('.title-text').html('Outline');
-        // } else if (name === ActionType.SEARCH) {
-        //     $('.title-text').html('Search');
-        // } else if (name === ActionType.GIT) {
-        //     $('.title-text').html('Git Control');
-        // }
-    }
-
-    /**
-     * @description simple function for hiding the current content of action view.
-     */
-    public hideActionViewContent(): void {
-        $('#action-view-content').children().each(function() {
-            $(this).hide(0);
+        // fires event
+        this._onActionViewChange.fire({
+            type: viewType,
+            prevType: previousView
         });
     }
 
     /**
-     * @description NOT displaying action view.
+     * @description Switches to the corresponding {@link IActionViewComponent}
+     * by the provided view type.
+     * @param container The HTML container where the new created view to be inserted.
+     * @param viewType The {@link ActionType} type to determine which view to display.
+     * 
+     * @note `switching` means removing the old DOM element and inserting the new one.
+     * @note If the {@link IActionViewComponent} never created before, we will create one.
      */
-    public closeActionView(): void {
-        $('#action-view').hide(100);
-        $('#resize').hide(100);
-    }
+    private __switchOrCreateActionView(container: HTMLElement, viewType: ActionType): void {
+        
+        let prevView = this._components.get(this._currentViewType);
+        let view = this._components.get(viewType);
+        let justCreated = false;
+
+        // if we are switching to a view that is not in memory
+        if (view === undefined) {
+            
+            switch (viewType) {
+                case ActionType.EXPLORER:
+                    view = this.instantiationService.createInstance(ExplorerViewComponent, this, container) as IActionViewComponent;
+                    this._components.set(viewType, view);
+                    break;
     
-    /**
-     * @description displays action view.
-     */
-    public openActionView(): void {
-        $('#action-view').show(100);
-        $('#resize').show(100);
+                case ActionType.OUTLINE:
+                    // TODO
+                    break;
+    
+                case ActionType.SEARCH:
+                    // TODO
+                    break;
+                    
+                case ActionType.GIT:
+                    // TODO
+                    break;
+            }
+            justCreated = true;
+        }
+
+        if (justCreated && view) {
+            view.create();
+        }
+
+        if (prevView) {
+            // prevView.setVisible(false);
+            container.removeChild(prevView.container);
+        }
+        
+        if (view) {
+            container.appendChild(view.container);
+            // view.setVisible(true);
+        }
     }
+
 }
 
 /**

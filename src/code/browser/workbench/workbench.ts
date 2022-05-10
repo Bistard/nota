@@ -1,7 +1,7 @@
 import { INoteBookManagerService, NoteBookManager } from "src/code/common/model/notebookManager";
 import { ipcRendererOn, ipcRendererSend } from "src/base/electron/register";
 import { ContextMenuService, IContextMenuService } from 'src/code/browser/service/contextMenuService';
-import { IInstantiationService } from "src/code/common/service/instantiationService/instantiation";
+import { IInstantiationService, InstantiationError } from "src/code/common/service/instantiationService/instantiation";
 import { ServiceDescriptor } from "src/code/common/service/instantiationService/descriptor";
 import { IComponentService } from "src/code/browser/service/componentService";
 import { getSingletonServiceDescriptors } from "src/code/common/service/instantiationService/serviceCollection";
@@ -30,13 +30,15 @@ export class Workbench extends WorkbenchLayout implements IWorkbenchService {
     }
 
     public async init(): Promise<void> {
-        await this.initServices();
+        await this.__initServices();
+        
         this.create();
         this.registerListeners();
+
         this._onDidFinishLayout.fire();
     }
 
-    protected async initServices(): Promise<void> {
+    protected async __initServices(): Promise<void> {
 
         // WorkbenchLayoutService (self)
         this.instantiationService.register(IWorkbenchService, this);
@@ -76,7 +78,7 @@ export class Workbench extends WorkbenchLayout implements IWorkbenchService {
      * @description calls 'create()' and '_registerListeners()' for each component.
      */
     protected override _createContent(): void {
-        this.createLayout();
+        this.__createLayout();
     }
 
     /**
@@ -84,8 +86,8 @@ export class Workbench extends WorkbenchLayout implements IWorkbenchService {
      */
     protected override _registerListeners(): void {
         
-        this.registerLayout();
-        this.registerShortcuts();
+        this.__registerLayout();
+        this.__registerShortcuts();
             
         // TODO: below codes requires refactor
 
@@ -112,9 +114,12 @@ export class Workbench extends WorkbenchLayout implements IWorkbenchService {
     /**
      * @description Shortcut registration.
      */
-    private registerShortcuts(): void {
+    private __registerShortcuts(): void {
 
-        const shortcutService = this.instantiationService.getService(IShortcutService)!;
+        const shortcutService = this.instantiationService.getService(IShortcutService);
+        if (shortcutService === null) {
+            throw new InstantiationError('workbench', IShortcutService);
+        }
 
         shortcutService.register({
             commandID: 'workbench.open-develop-tool',

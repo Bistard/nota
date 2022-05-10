@@ -11,14 +11,16 @@ export interface IWidgetBarItem<T> extends IDisposable {
     dispose: () => void;
 }
 
-export interface IWidgetBar<T extends IWidget> extends IWidget {
-    /* The array container to contains all the widgets */
-    items: IWidgetBarItem<T>[];
-
-    /* The HTMLElement of the widget bar which contains `viewContainer` */
+export interface IWidgetBar<T extends IWidget> {
+    
+    /** 
+     * The HTMLElement of the widget bar which contains `viewContainer` 
+     */
     container: HTMLElement;
 
-    /* The list HTMLElement to stores all the actual HTMLElements of each widget */
+    /** 
+     * The list HTMLElement to stores all the actual HTMLElements of each widget 
+     */
     viewsContainer: HTMLElement;
 
     /**
@@ -26,6 +28,8 @@ export interface IWidgetBar<T extends IWidget> extends IWidget {
      * @param item The widget item to be added.
      * @param index The index to be inserted at. If not given, pushes to the back 
      *  as default.
+     * 
+     * @note Method will invoke `item.item.render()` automatically.
      */
     addItem(item: IWidgetBarItem<T>, index?: number): void;
     
@@ -45,6 +49,11 @@ export interface IWidgetBar<T extends IWidget> extends IWidget {
      */
     getItem(id: string): T | undefined;
     
+    /**
+     * @description Returns an array of the item.
+     */
+    items(): T[];
+
     /**
      * @description Gets the index of the widget which has the provided id.
      * @param id The id of the widget item.
@@ -79,13 +88,13 @@ export interface IWidgetBarOptions {
  * @class A convenient tool to stores a sequence of Widgets and displays them in 
  * sequential order.
  */
-export class WidgetBar<T extends IWidget> extends Disposable {
+export class WidgetBar<T extends IWidget> extends Disposable implements IWidgetBar<T> {
 
     protected readonly _container: HTMLElement;
     protected readonly _itemsContainer: HTMLElement;
     protected opts: IWidgetBarOptions;
 
-    public items: IWidgetBarItem<T>[];
+    private _items: IWidgetBarItem<T>[];
     
     constructor(
         parentContainer: HTMLElement,
@@ -93,7 +102,7 @@ export class WidgetBar<T extends IWidget> extends Disposable {
     ) {
         super();
 
-        this.items = [];
+        this._items = [];
         this.opts = opts;
 
         this._container = document.createElement('div');
@@ -119,8 +128,8 @@ export class WidgetBar<T extends IWidget> extends Disposable {
     }
 
     public override dispose(): void {
-        disposeAll(this.items);
-        this.items = [];
+        disposeAll(this._items);
+        this._items = [];
         this._container.remove();
         super.dispose();
     }
@@ -142,11 +151,11 @@ export class WidgetBar<T extends IWidget> extends Disposable {
         if (index === undefined || index < 0 || index >= this._itemsContainer.children.length) {
             // index is not valid to be inserted, we insert at the end.
             this._itemsContainer.appendChild(newViewElement);
-            this.items.push(item);
+            this._items.push(item);
         } else {
             // index is valid.
             this._itemsContainer.insertBefore(newViewElement, this._itemsContainer.children[index]!);
-            this.items.splice(index, 0, item);
+            this._items.splice(index, 0, item);
         }
 
     }
@@ -160,18 +169,22 @@ export class WidgetBar<T extends IWidget> extends Disposable {
 
         // remove the viewElement and the corresponding view.
         this._itemsContainer.removeChild(this._itemsContainer.childNodes[index]!);
-        disposeAll(this.items.splice(index, 1));
+        disposeAll(this._items.splice(index, 1));
 
         return true;
     }
 
     public getItem(id: string): T | undefined {
-        return this.items.filter(item => item.id === id)[0]?.item;
+        return this._items.filter(item => item.id === id)[0]?.item;
+    }
+
+    public items(): T[] {
+        return this._items.map(item => item.item);
     }
 
     public getItemIndex(id: string): number {
-        for (let index = 0; index < this.items.length; index++) {
-			if (this.items[index]!.id === id) {
+        for (let index = 0; index < this._items.length; index++) {
+			if (this._items[index]!.id === id) {
 				return index;
 			}
 		}
@@ -183,17 +196,17 @@ export class WidgetBar<T extends IWidget> extends Disposable {
     // }
 
     public clear(): number {
-        disposeAll(this.items);
-        this.items = [];
+        disposeAll(this._items);
+        this._items = [];
         return clearChildrenNodes(this._itemsContainer);
     }
 
     public size(): number {
-        return this.items.length;
+        return this._items.length;
     }
 
     public empty(): boolean {
-        return this.items.length === 0;
+        return this._items.length === 0;
     }
 
 }
