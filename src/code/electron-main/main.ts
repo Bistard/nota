@@ -103,6 +103,10 @@ class Main {
         });
 
         // titleBar listeners
+        this.winMain.webContents.on('devtools-closed', () => {
+            this.isDevlToolsOn = false;
+        });
+
         this.winMain.on('maximize', () => {
             this.winMain!.webContents.send(IpcCommand.WindowMaximize);
         });
