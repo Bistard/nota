@@ -43,18 +43,31 @@ export interface IFileService {
      */
     createFile(uri: URI, bufferOrStream: DataBuffer | IReadableStream<DataBuffer>, opts?: IWriteFileOptions): Promise<void>;
     
-    /** @description Creates a directory described by a given URI. */
+    /**
+     * @description Reads the directory by a given URI.
+     */
+    readDir(uri: URI): Promise<[string, FileType][]>;
+
+    /** 
+     * @description Creates a directory described by a given URI. 
+     */
     createDir(uri: URI): Promise<void>;
     
     // TODO
-    /** @description Moves a file/directory to a new location described by a given URI. */
+    /** 
+     * @description Moves a file/directory to a new location described by a given URI. 
+     */
     moveTo(from: URI, to: URI, overwrite?: boolean): Promise<void>;
     
     // TODO
-    /** @description Copys a file/directory to a new location. */
+    /** 
+     * @description Copys a file/directory to a new location. 
+     */
     copyTo(from: URI, to: URI, overwrite?: boolean): Promise<void>;
     
-    /** @description Deletes a file/directory described by a given URI. */
+    /** 
+     * @description Deletes a file/directory described by a given URI. 
+     */
     delete(uri: URI, opts?: IDeleteFileOptions): Promise<void>;
     
     // TODO
@@ -159,6 +172,12 @@ export class FileService implements IFileService {
         await this.writeFile(uri, bufferOrStream, opts);
     }
 
+    public async readDir(uri: URI): Promise<[string, FileType][]> {
+        const provider = this.__throwIfProviderIsReadonly(await this.__getProvider(uri));
+        
+        return provider.readdir(uri);
+    }
+
     public async createDir(uri: URI): Promise<void> {
         // get access to a provider
         const provider = this.__throwIfProviderIsReadonly(await this.__getProvider(uri));
@@ -168,8 +187,7 @@ export class FileService implements IFileService {
     }
 
     public async moveTo(from: URI, to: URI, overwrite?: boolean): Promise<void> {
-        // get access to providers
-        const fromProvider = this.__throwIfProviderIsReadonly(await this.__getWriteProvider(from));
+        const provider = this.__throwIfProviderIsReadonly(await this.__getWriteProvider(from));
         const toProvider = this.__throwIfProviderIsReadonly(await this.__getWriteProvider(to));
 
         // move operation
@@ -177,8 +195,7 @@ export class FileService implements IFileService {
     }
 
     public async copyTo(from: URI, to: URI, overwrite?: boolean): Promise<void> {
-        // get access to providers
-        const fromProvider = this.__throwIfProviderIsReadonly(await this.__getWriteProvider(from));
+        const provider = this.__throwIfProviderIsReadonly(await this.__getWriteProvider(from));
         const toProvider = this.__throwIfProviderIsReadonly(await this.__getWriteProvider(to));
 
         // copy operation
