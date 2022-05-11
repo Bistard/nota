@@ -21,6 +21,11 @@ export interface IFileService {
      * @note Options is set to false if it is not given.
      */
     readFile(uri: URI, opts?: IReadFileOptions): Promise<DataBuffer>;
+
+    /**
+     * @description Reads the directory by a given URI.
+     */
+     readDir(uri: URI): Promise<[string, FileType][]>;
     
     /** 
      * @description Read the file buffered using stream. 
@@ -43,11 +48,6 @@ export interface IFileService {
      */
     createFile(uri: URI, bufferOrStream: DataBuffer | IReadableStream<DataBuffer>, opts?: IWriteFileOptions): Promise<void>;
     
-    /**
-     * @description Reads the directory by a given URI.
-     */
-    readDir(uri: URI): Promise<[string, FileType][]>;
-
     /** 
      * @description Creates a directory described by a given URI. 
      */
