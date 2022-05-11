@@ -1,7 +1,7 @@
 import { AsyncEmitter, AsyncRegister, Emitter, Register } from "src/base/common/event";
 import { IDimension } from "src/base/common/size";
 import { IpcCommand } from "src/base/electron/ipcCommand";
-import { ipcRendererOn, ipcRendererSend } from "src/base/electron/register";
+import { ipcRendererOn, ipcRendererSend, ipcRendererSendData } from "src/base/electron/register";
 import { createDecorator } from "src/code/common/service/instantiationService/decorator";
 
 export const IIpcService = createDecorator<IIpcService>('ipc-service');
@@ -37,6 +37,17 @@ export interface IIpcService {
      * Fires when the window is resizing.
      */
     onWindowResize: Register<IDimension>;
+
+    /**
+     * Fires when the open directory dialog chosed a path.
+     */
+    onDidOpenDirectoryDialog: Register<string>;
+
+    /**
+     * @description Opens a dialog that can open a directory.
+     * @param path A path that the dialog initially displaying.
+     */
+    openDirectoryDialog(path?: string): void;
 }
 
 /**
@@ -45,30 +56,43 @@ export interface IIpcService {
  */
 export class IpcService implements IIpcService {
     
-    private _onWindowMaximize: Emitter<void> = new Emitter();
-    public onWindowMaximize: Register<void> = this._onWindowMaximize.registerListener;
+    // [event]
 
-    private _onWindowUnmaximize: Emitter<void> = new Emitter();
-    public onWindowUnmaximize: Register<void> = this._onWindowUnmaximize.registerListener;
+    private _onWindowMaximize = new Emitter<void>();
+    public onWindowMaximize = this._onWindowMaximize.registerListener;
 
-    private _onWindowBlur: Emitter<void> = new Emitter();
-    public onWindowBlur: Register<void> = this._onWindowBlur.registerListener;
+    private _onWindowUnmaximize = new Emitter<void>();
+    public onWindowUnmaximize = this._onWindowUnmaximize.registerListener;
 
-    private _onDidFullScreenChange: Emitter<boolean> = new Emitter();
-    public onDidFullScreenChange: Register<boolean> = this._onDidFullScreenChange.registerListener;
+    private _onWindowBlur = new Emitter<void>();
+    public onWindowBlur = this._onWindowBlur.registerListener;
 
-    private _onApplicationClose: AsyncEmitter<void> = new AsyncEmitter();
-    public onApplicationClose: AsyncRegister<void> = this._onApplicationClose.registerListener;
+    private _onDidFullScreenChange = new Emitter<boolean>();
+    public onDidFullScreenChange = this._onDidFullScreenChange.registerListener;
 
-    private _onWindowResize: Emitter<IDimension> = new Emitter();
-    public onWindowResize: Register<IDimension> = this._onWindowResize.registerListener;
+    private _onApplicationClose = new AsyncEmitter<void>();
+    public onApplicationClose = this._onApplicationClose.registerListener;
+
+    private _onWindowResize = new Emitter<IDimension>();
+    public onWindowResize = this._onWindowResize.registerListener;
+
+    private _onDidOpenDirectoryDialog = new Emitter<string>();
+    public onDidOpenDirectoryDialog = this._onDidOpenDirectoryDialog.registerListener;
+    
+    // [constructor]
 
     constructor() {
-
         this.registerListeners();
-
     }
 
+    // [method]
+
+    public openDirectoryDialog(path?: string): void {
+        ipcRendererSendData(IpcCommand.OpenDirectory, path);
+    }
+    
+    // [private helper method]
+    
     private registerListeners(): void {
         
         ipcRendererOn(IpcCommand.WindowMaximize, () => this._onWindowMaximize.fire());
@@ -80,6 +104,7 @@ export class IpcService implements IIpcService {
 
         ipcRendererOn(IpcCommand.WindowResize, (_event, width: number, height: number) => this._onWindowResize.fire({ width: width, height: height }));
 
+        ipcRendererOn(IpcCommand.OpenDirectory, (_event, path: string) => this._onDidOpenDirectoryDialog.fire(path));
         
         // once the main process notifies this renderer process, we try to 
         // finish the following job.
