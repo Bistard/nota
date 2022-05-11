@@ -25,7 +25,7 @@ export interface IFileService {
     /**
      * @description Reads the directory by a given URI.
      */
-     readDir(uri: URI): Promise<[string, FileType][]>;
+    readDir(uri: URI): Promise<[string, FileType][]>;
     
     /** 
      * @description Read the file buffered using stream. 
@@ -39,14 +39,16 @@ export interface IFileService {
      */
     writeFile(uri: URI, bufferOrStream: DataBuffer | IReadableStream<DataBuffer>, opts?: IWriteFileOptions): Promise<void>;
     
-    /** @description Determines if the file/directory exists. */
+    /** 
+     * @description Determines if the file/directory exists. 
+     */
     exist(uri: URI): Promise<boolean>;
     
     /** 
      * @description Creates a file described by a given URI. 
      * @note Options is set to false if it is not given.
      */
-    createFile(uri: URI, bufferOrStream: DataBuffer | IReadableStream<DataBuffer>, opts?: IWriteFileOptions): Promise<void>;
+    createFile(uri: URI, bufferOrStream?: DataBuffer | IReadableStream<DataBuffer>, opts?: IWriteFileOptions): Promise<void>;
     
     /** 
      * @description Creates a directory described by a given URI. 
@@ -162,7 +164,7 @@ export class FileService implements IFileService {
 
     public async createFile(
         uri: URI, 
-        bufferOrStream: DataBuffer | IReadableStream<DataBuffer>, 
+        bufferOrStream: DataBuffer | IReadableStream<DataBuffer> = DataBuffer.alloc(0), 
         opts?: IWriteFileOptions): Promise<void> 
     {
         // validation

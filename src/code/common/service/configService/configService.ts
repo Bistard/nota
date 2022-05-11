@@ -36,10 +36,10 @@ export interface IGlobalConfigService extends IConfigService {
 
 /**
  * @class The user configuration service relates to the unique file named
- * `user.config.json` which will be placed in either:
- *      - the .nota directory in the opened directory (user customized) OR
- *      - the root directory of the application which will be considered as the 
- *        default user configuration.
+ * `user.config.json` which will be placed in the .nota directory that either:
+ *      - in the opened directory (user customized) OR
+ *      - in the root directory of the application which will be considered as 
+ *        the default user configuration path.
  */
 export class UserConfigService extends ConfigServiceBase implements IUserConfigService {
 
@@ -76,8 +76,8 @@ export class UserConfigService extends ConfigServiceBase implements IUserConfigS
 
 /**
  * @class The global configuration service relates to the unique file named
- * `nota.config.json` which will be placed in the root directory of the 
- * application.
+ * `nota.config.json` which will be placed in the .noda folder in the root 
+ * directory of the application.
  */
 export class GlobalConfigService extends ConfigServiceBase implements IGlobalConfigService {
 
@@ -116,11 +116,11 @@ export class GlobalConfigService extends ConfigServiceBase implements IGlobalCon
  * @readonly Returns a default URI path of the global config file which is named 
  * 'nota.config.json' at the root directory of the application.
  */
-export function getDefaultGlobalConfigPath(): URI {
+function getDefaultGlobalConfigPath(): URI {
     return URI.fromFile(resolve(APP_ROOT_PATH, LOCAL_NOTA_DIR_NAME, GLOBAL_CONFIG_FILE_NAME));
 }
 
-export function getDefaultUserConfigPath(): URI {
+function getDefaultUserConfigPath(): URI {
     return URI.fromFile(resolve(APP_ROOT_PATH, LOCAL_NOTA_DIR_NAME, DEFAULT_CONFIG_FILE_NAME));
 }
 
@@ -130,22 +130,27 @@ export function getDefaultUserConfigPath(): URI {
 
 /**
  * The @SettingSection is a set of section paths that global/user default configuration 
- * (see `DefaultGlobalConfigModel` and `DefaultUserConfigModel`) will obtain as
- * default. Each section path corresponds to a @SettingInterface which is a 
- * interface that represents the type of the object in that specific section path.
+ * (see {@link DefaultGlobalConfigModel} and {@link DefaultUserConfigModel})
+ * will obtain as default. 
+ * 
+ * Each section path corresponds to a @SettingInterface which is a javascript 
+ * object that represents the type of the object in that specific section path.
  * 
  * See related usages in `configService.test.ts`.
  */
 
-/**
+/*******************************************************************************
  * @readonly Global Configurations
- */
+ ******************************************************************************/
 
 /** @SettingSection */
 export const enum EGlobalSettings {
 
+    /** {@link IGlobalApplicationSettings} */
     Application = 'application',
-    NotebookManager = 'notebookmanager',
+
+    /** {@link IGlobalNotebookManagerSettings} */
+    NotebookManager = 'notebookManager',
 
 }
 
@@ -181,7 +186,8 @@ export interface IGlobalApplicationSettings {
 export interface IGlobalNotebookManagerSettings {
 
     /**
-     * A boolean to determine whether opened the previous opened notebook manager directory.
+     * When the application started, determine whether to open the previous 
+     * opened directory.
      */
     startPreviousNoteBookManagerDir: boolean;
     
@@ -214,7 +220,7 @@ export class DefaultGlobalConfigModel extends ConfigModel {
                     ]
                 } as Electron.OpenDialogOptions,
             },
-            'notebookmanager': 
+            'notebookManager': 
             {
                 startPreviousNoteBookManagerDir: true,
                 previousNoteBookManagerDir: '',
@@ -223,14 +229,17 @@ export class DefaultGlobalConfigModel extends ConfigModel {
     }
 }
 
-/**
+/*******************************************************************************
  * @readonly User Configurations
- */
+ ******************************************************************************/
 
 /** @SettingSection */
 export const enum EUserSettings {
     
-    NotebookManager = 'notebookmanager',
+    /** {@link IUserNotebookManagerSettings} */
+    NotebookManager = 'notebookManager',
+
+    /** {@link IUserMarkdownSettings} */
     Markdown = 'markdown',
 
 }
@@ -239,26 +248,29 @@ export const enum EUserSettings {
 export interface IUserNotebookManagerSettings {
 
     /**
-     * If wants to excludes file, remember to add file format.
-     * eg. 'user.config.json'. This has lower priority than 'noteBookManagerInclude'.
-     * 
-     * '.*' represents any folders starts with '.'.
+     * To excludes files, please use regular expression form.
+     * @note This has lower priority than 'noteBookManagerInclude'.
      */
     noteBookManagerExclude: string[];
     
     /**
-     * If wants to includes file, remember to add file format such as
-     * 'user.config.json'. This has higher priority than 'noteBookManagerExclude'.
+     * To includes files, please use regular expression form.
+     * @note This has higher priority than 'noteBookManagerExclude'.
      */
     noteBookManagerInclude: string[];    
 }
 
 /** @SettingInterface */
 export interface IUserMarkdownSettings {
-    /** auto file save option */
+
+    /** 
+     * auto file save option 
+     */
     fileAutoSaveOn: boolean;
     
-    /** the default markdown render mode every time when the applicaiton starts */
+    /** 
+     * the default markdown render mode every time when the applicaiton starts 
+     */
     defaultMarkdownMode: MarkdownRenderMode;
 }
 
@@ -272,10 +284,10 @@ export class DefaultUserConfigModel extends ConfigModel {
 
     private createDefault(): any {
         return {
-            'notebookmanager': 
+            'notebookManager': 
             {
                 noteBookManagerExclude: [
-                    '.*',
+                    '^\\..*',
                 ] as string[],
                 noteBookManagerInclude: [
 

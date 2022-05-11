@@ -29,7 +29,9 @@ export interface IConfigChange {
 
  export interface IConfigModel {
 
-    /** @readonly get the inner structure of the configuration (a javascript object) */
+    /** 
+     * @readonly get the inner structure of the configuration (a javascript object) 
+     */
     object: any;
 
     get<T>(section: string | undefined): T | undefined;
