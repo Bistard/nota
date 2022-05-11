@@ -1,7 +1,7 @@
 import * as assert from 'assert';
 import { FileService, IFileService } from 'src/code/common/service/fileService/fileService';
 import { i18n, Ii18nSection } from 'src/code/platform/i18n/i18n';
-import { Section } from 'src/code/platform/i18n/section';
+import { Section } from 'src/code/platform/section';
 
 class i18nTest extends i18n {
 

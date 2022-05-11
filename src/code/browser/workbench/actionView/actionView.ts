@@ -9,7 +9,7 @@ import { Disposable } from 'src/base/common/dispose';
 import { getBuiltInIconClass } from 'src/base/browser/icon/iconRegistry';
 import { Icons } from 'src/base/browser/icon/icons';
 import { Ii18nService } from 'src/code/platform/i18n/i18n';
-import { Section } from 'src/code/platform/i18n/section';
+import { Section } from 'src/code/platform/section';
 import { registerSingleton } from 'src/code/common/service/instantiationService/serviceCollection';
 import { ServiceDescriptor } from 'src/code/common/service/instantiationService/descriptor';
 
