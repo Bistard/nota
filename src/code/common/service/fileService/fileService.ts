@@ -10,10 +10,14 @@ export const IFileService = createDecorator<IFileService>('file-service');
 
 export interface IFileService {
     
-    /** @description Registers a file system provider for a given scheme. */
+    /** 
+     * @description Registers a file system provider for a given scheme. 
+     */
     registerProvider(scheme: string, provider: IFileSystemProvider): void;
 
-    /** @description Gets a file system provider for a given scheme. */
+    /** 
+     * @description Gets a file system provider for a given scheme. 
+     */
     getProvider(scheme: string): IFileSystemProvider | undefined;
 
     /** 
