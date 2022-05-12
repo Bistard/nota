@@ -99,7 +99,7 @@ export class FileLogService extends AbstractLogService<IFileLogInfo> implements 
             // FIXME
             this.path = URI.fromFile(resolve(APP_ROOT_PATH, LOCAL_NOTA_DIR_NAME));
             // undefined
-            // this.path = URI.fromFile(NoteBookManager.rootPath); 
+            // this.path = URI.fromFile(NotebookManager.rootPath); 
         }
     }
 

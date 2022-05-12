@@ -164,12 +164,12 @@ class Main {
 
         // response to FolderModule, default path is 'desktop' and only can
         // open directory.
-        ipcMain.on(IpcCommand.OpenDirectory, (_event, data: string[]) => {
+        ipcMain.on(IpcCommand.OpenDirectory, async (_event, data: string[]) => {
 
             // if default path provided, otherwise we choose desktop.
             const path = data[0] ? data[0] : app.getPath('desktop');
             
-            dialog.showOpenDialog(
+            const res = await dialog.showOpenDialog(
                 this.winMain!,
                 {
                     defaultPath: path,
@@ -178,16 +178,16 @@ class Main {
                         'openDirectory',
                     ],
                 }
-            ).then((path) => {
-                if (path === undefined) {
-                    throw 'opened path is undefined';
-                }
+            )
+            
+            if (res === undefined) {
+                throw 'opened path is undefined';
+            }
 
-                if (!path.canceled) {
-                    let rootdir = path.filePaths[0];
-                    this.winMain!.webContents.send(IpcCommand.OpenDirectory, rootdir);
-                }
-            });
+            if (!res.canceled) {
+                let rootdir = res.filePaths[0];
+                this.winMain!.webContents.send(IpcCommand.OpenDirectory, rootdir);
+            }
         });
 
         // once renderer process is ready, we do the actual closing

@@ -1,4 +1,4 @@
-import { INoteBookManagerService, NoteBookManager } from "src/code/common/model/notebookManager";
+import { INotebookManagerService, NotebookManager } from "src/code/common/model/notebookManager";
 import { ipcRendererOn, ipcRendererSend } from "src/base/electron/register";
 import { ContextMenuService, IContextMenuService } from 'src/code/browser/service/contextMenuService';
 import { IInstantiationService, InstantiationError } from "src/code/common/service/instantiationService/instantiation";
@@ -69,8 +69,8 @@ export class Workbench extends WorkbenchLayout implements IWorkbenchService {
         // ContextMenuService
         this.instantiationService.register(IContextMenuService, new ServiceDescriptor(ContextMenuService));
 
-        // NoteBookManagerService
-        this.instantiationService.register(INoteBookManagerService, new ServiceDescriptor(NoteBookManager));
+        // NotebookManagerService
+        this.instantiationService.register(INotebookManagerService, new ServiceDescriptor(NotebookManager));
 
     }
 

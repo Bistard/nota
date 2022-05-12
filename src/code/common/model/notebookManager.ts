@@ -5,20 +5,20 @@ import { URI } from "src/base/common/file/uri";
 import { Iterable } from "src/base/common/iterable";
 import { String } from "src/base/common/string";
 import { IIpcService } from "src/code/browser/service/ipcService";
-import { NoteBook } from "src/code/common/model/notebook";
-import { DEFAULT_CONFIG_PATH, EGlobalSettings, EUserSettings, GLOBAL_CONFIG_FILE_NAME, GLOBAL_CONFIG_PATH, IGlobalApplicationSettings, IGlobalNotebookManagerSettings, IUserNotebookManagerSettings, LOCAL_NOTA_DIR_NAME } from "src/code/common/service/configService/configService";
+import { Notebook } from "src/code/common/model/notebook";
+import { DEFAULT_CONFIG_PATH, EGlobalSettings, EUserSettings, GLOBAL_CONFIG_FILE_NAME, GLOBAL_CONFIG_PATH, IGlobalNotebookManagerSettings, IUserNotebookManagerSettings, LOCAL_NOTA_DIR_NAME } from "src/code/common/service/configService/configService";
 import { DEFAULT_CONFIG_FILE_NAME, IUserConfigService, LOCAL_CONFIG_FILE_NAME } from "src/code/common/service/configService/configService";
 import { IGlobalConfigService } from "src/code/common/service/configService/configService";
 import { IFileService } from "src/code/common/service/fileService/fileService";
 import { createDecorator } from "src/code/common/service/instantiationService/decorator";
 
-export const INoteBookManagerService = createDecorator<INoteBookManagerService>('notebook-manager-service');
+export const INotebookManagerService = createDecorator<INotebookManagerService>('notebook-manager-service');
 
-export interface INoteBookManagerService {
+export interface INotebookManagerService {
     
     /**
      * @description when opening a directory to the Notebooks, a '.nota' 
-     * directory will be loaded or created. And each NoteBook will be detected 
+     * directory will be loaded or created. And each Notebook will be detected 
      * or initialized. If global config says no use of default config, a 
      * '.nota/user.config.json' will be created.
      * 
@@ -27,23 +27,23 @@ export interface INoteBookManagerService {
      */
     open(container: HTMLElement, path: string): Promise<void>;
 
-    addExistedNoteBook(noteBook: NoteBook): void;
-    getExistedNoteBook(noteBookName: string): NoteBook | null;
+    addExistedNotebook(noteBook: Notebook): void;
+    getExistedNotebook(noteBookName: string): Notebook | null;
 
     getRootPath(): string;
 }
 
 /**
  * @class reads local configuration and build corresponding notebook structure. 
- * It maintains the data and states changes for every NoteBook instance.
+ * It maintains the data and states changes for every Notebook instance.
  */
-export class NoteBookManager implements INoteBookManagerService {
+export class NotebookManager implements INotebookManagerService {
 
     // [field]
 
     public static focusedFileNode: HTMLElement | null = null;
     
-    private readonly _noteBookMap: Map<string, NoteBook>;
+    private readonly _noteBookMap: Map<string, Notebook>;
 
     private _notaFolderFound: boolean; // not used
     private _notebookManagerRootPath: string = '';
@@ -55,7 +55,7 @@ export class NoteBookManager implements INoteBookManagerService {
         @IGlobalConfigService private readonly globalConfigService: IGlobalConfigService,
         
     ) {
-        this._noteBookMap = new Map<string, NoteBook>();
+        this._noteBookMap = new Map<string, Notebook>();
         this._notaFolderFound = false;
 
         this.ipcService.onApplicationClose(async () => this.__onApplicationClose());
@@ -85,9 +85,9 @@ export class NoteBookManager implements INoteBookManagerService {
                 return tot;
             });
 
-            // create NoteBook Object for each sub-directory
+            // create Notebook Object for each sub-directory
             for (let name of notebooks) {
-                const noteBook = new NoteBook(name, resolve(path, name));
+                const noteBook = new Notebook(name, resolve(path, name));
                 this._noteBookMap.set(name, noteBook);
                 noteBook.create(container);
             }
@@ -99,17 +99,17 @@ export class NoteBookManager implements INoteBookManagerService {
         }
     }
 
-    public addExistedNoteBook(noteBook: NoteBook): void {
-        const prevNoteBook = this._noteBookMap.get(noteBook.noteBookName);
-        if (prevNoteBook) {
-            prevNoteBook.destory();
+    public addExistedNotebook(noteBook: Notebook): void {
+        const prevNotebook = this._noteBookMap.get(noteBook.noteBookName);
+        if (prevNotebook) {
+            prevNotebook.destory();
             this._noteBookMap.set(noteBook.noteBookName, noteBook);
         } else {
             this._noteBookMap.set(noteBook.noteBookName, noteBook);
         }
     }
 
-    public getExistedNoteBook(noteBookName: string): NoteBook | null {
+    public getExistedNotebook(noteBookName: string): Notebook | null {
         const res = this._noteBookMap.get(noteBookName);
         return res === undefined ? null : res;
     }
@@ -122,9 +122,9 @@ export class NoteBookManager implements INoteBookManagerService {
 
     /**
      * @description asynchronously write the notebook structure into the 
-     * .nota/structure/`yourNoteBookName`.json.
+     * .nota/structure/`yourNotebookName`.json.
      */
-    private async __notebookWriteToJSON(notebook: NoteBook, name: string): Promise<void> {
+    private async __notebookWriteToJSON(notebook: Notebook, name: string): Promise<void> {
         try {
             const rootpath = resolve(this._notebookManagerRootPath, LOCAL_NOTA_DIR_NAME, 'structure');
             await this.fileService.createFile(
@@ -146,7 +146,7 @@ export class NoteBookManager implements INoteBookManagerService {
         const notebookConfig = this.globalConfigService.get<IGlobalNotebookManagerSettings>(EGlobalSettings.NotebookManager);
             
         // save global configuration first
-        notebookConfig.previousNoteBookManagerDir = this.getRootPath();
+        notebookConfig.previousNotebookManagerDir = this.getRootPath();
         await this.globalConfigService.save(URI.fromFile(resolve(GLOBAL_CONFIG_PATH, LOCAL_NOTA_DIR_NAME, GLOBAL_CONFIG_FILE_NAME)));
         
         // save `user.config.json`

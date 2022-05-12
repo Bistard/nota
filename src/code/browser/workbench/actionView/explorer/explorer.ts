@@ -1,6 +1,6 @@
 import { Component, ComponentType, IComponent } from 'src/code/browser/workbench/component';
 import { DomEmitter, Emitter, Register } from 'src/base/common/event';
-import { INoteBookManagerService } from 'src/code/common/model/notebookManager';
+import { INotebookManagerService } from 'src/code/common/model/notebookManager';
 import { IComponentService } from 'src/code/browser/service/componentService';
 import { ContextMenuType, Coordinate } from 'src/base/browser/secondary/contextMenu/contextMenu';
 import { IContextMenuService } from 'src/code/browser/service/contextMenuService';
@@ -76,7 +76,7 @@ export class ExplorerViewComponent extends Component implements IExplorerViewSer
                 @Ii18nService private readonly i18nService: Ii18nService,
                 @IGlobalConfigService private readonly globalConfigService: IGlobalConfigService,
                 @IUserConfigService private readonly userConfigService: IUserConfigService,
-                @INoteBookManagerService private readonly noteBookManagerService: INoteBookManagerService,
+                @INotebookManagerService private readonly noteBookManagerService: INotebookManagerService,
                 @IComponentService componentService: IComponentService,
                 @IContextMenuService private readonly contextMenuService: IContextMenuService,
     ) {
@@ -101,8 +101,8 @@ export class ExplorerViewComponent extends Component implements IExplorerViewSer
         tag.classList.add('vertical-center', 'funcText');
         this._unopenedView.appendChild(tag);
 
-        if (this._globalConfig.startPreviousNoteBookManagerDir) {
-            this.__createOpenedExplorerView(this._globalConfig.previousNoteBookManagerDir, this._globalConfig.defaultConfigOn, false);
+        if (this._globalConfig.startPreviousNotebookManagerDir) {
+            this.__createOpenedExplorerView(this._globalConfig.previousNotebookManagerDir, this._globalConfig.defaultConfigOn, false);
 
         } else {
             this.__createUnopenedExplorerView();
@@ -131,7 +131,7 @@ export class ExplorerViewComponent extends Component implements IExplorerViewSer
          */
         const tag = this._unopenedView.children[0]!;
         this.__register(new DomEmitter(tag, EventType.click)).registerListener(() => {
-            this.ipcService.openDirectoryDialog(this._globalConfig.previousNoteBookManagerDir);
+            this.ipcService.openDirectoryDialog(this._globalConfig.previousNotebookManagerDir);
         });
 
         /**

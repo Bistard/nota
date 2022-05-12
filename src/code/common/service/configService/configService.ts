@@ -244,10 +244,10 @@ export interface IGlobalApplicationSettings {
 export interface IGlobalNotebookManagerSettings {
 
     /**
-     * When true, NoteBookManager will read or create the default configuration in 
+     * When true, NotebookManager will read or create the default configuration in 
      * '<appRootPath>/.nota/user.config.json'.
      * 
-     * When false, NoteBookManager will read or create a local configuration file 
+     * When false, NotebookManager will read or create a local configuration file 
      * in '<notebookManagerPath>/.nota/config.json'.
      */
      defaultConfigOn: boolean;
@@ -256,12 +256,12 @@ export interface IGlobalNotebookManagerSettings {
      * When the application started, determine whether to open the previous 
      * opened directory.
      */
-    startPreviousNoteBookManagerDir: boolean;
+    startPreviousNotebookManagerDir: boolean;
     
     /**
      * Stores the previous opened notebook manager directory path.
      */
-    previousNoteBookManagerDir: string;
+    previousNotebookManagerDir: string;
 }
 
 export class DefaultGlobalConfigModel extends ConfigModel {
@@ -289,8 +289,8 @@ export class DefaultGlobalConfigModel extends ConfigModel {
             'notebookManager': 
             {
                 defaultConfigOn: false,
-                startPreviousNoteBookManagerDir: true,
-                previousNoteBookManagerDir: '',
+                startPreviousNotebookManagerDir: true,
+                previousNotebookManagerDir: '',
             }
         };
     }

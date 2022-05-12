@@ -2,7 +2,7 @@ import { readMarkdownFile } from 'src/base/node/io';
 import * as fs from 'fs'; 
 import * as Path from 'path';
 import { EVENT_EMITTER } from 'src/base/common/event';
-import { NoteBookManager } from 'src/code/common/model/notebookManager';
+import { NotebookManager } from 'src/code/common/model/notebookManager';
 import { File } from 'src/base/common/file/file';
 import { getBuiltInIconClass } from 'src/base/browser/icon/iconRegistry';
 import { Icons } from 'src/base/browser/icon/icons';
@@ -182,10 +182,10 @@ export class FileNode {
     public static fileOnClick(nodeInfo: FileNode): void {
         
         // fileNode style on change
-        if (NoteBookManager.focusedFileNode !== null) {
-            NoteBookManager.focusedFileNode.classList.remove('node-file-clicked');   
+        if (NotebookManager.focusedFileNode !== null) {
+            NotebookManager.focusedFileNode.classList.remove('node-file-clicked');   
         }
-        NoteBookManager.focusedFileNode = nodeInfo.container;
+        NotebookManager.focusedFileNode = nodeInfo.container;
         nodeInfo.container.classList.add('node-file-clicked');
 
         // display content

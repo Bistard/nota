@@ -3,7 +3,7 @@ import { FileTree } from "src/base/node/fileTree";
 /**
  * @class A class for each noteBook.
  */
-export class NoteBook {
+export class Notebook {
 
     public readonly noteBookName: string;
     public readonly noteBookDir: string;
