@@ -69,7 +69,7 @@ suite('FileService-disk-unbuffered-test', () => {
             const root = URI.fromFile('test/code/service/temp/newDir1');
             const uri = URI.fromFile('test/code/service/temp/newDir1/newDir2');
             await service.createDir(uri);
-            delayFor(500);
+            await delayFor(500);
 
             const dir1 = await service.readDir(root);
             assert.strictEqual(dir1.length, 1);
@@ -106,7 +106,7 @@ suite('FileService-disk-unbuffered-test', () => {
             await service.writeFile(uri, DataBuffer.alloc(0), { create: true, overwrite: true, unlock: true });
 
             await service.delete(uri, { useTrash: true, recursive: true });
-            delayFor(500);
+            await delayFor(500);
 
             const dir = await service.readDir(root);
             assert.strictEqual(dir.length, 4);
@@ -156,7 +156,7 @@ suite('FileService-disk-unbuffered-test', () => {
             await service.writeFile(uri, DataBuffer.alloc(0), { create: true, overwrite: true, unlock: true });
 
             await service.delete(deleted, { useTrash: true, recursive: true });
-            delayFor(500);
+            await delayFor(500);
 
             const dir = await service.readDir(root);
             assert.strictEqual(dir.length, 4);
