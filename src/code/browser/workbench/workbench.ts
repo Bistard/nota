@@ -1,7 +1,7 @@
-import { INoteBookManagerService, NoteBookManager } from "src/code/common/model/notebookManager";
+import { INotebookManagerService, NotebookManager } from "src/code/common/model/notebookManager";
 import { ipcRendererOn, ipcRendererSend } from "src/base/electron/register";
 import { ContextMenuService, IContextMenuService } from 'src/code/browser/service/contextMenuService';
-import { IInstantiationService } from "src/code/common/service/instantiationService/instantiation";
+import { IInstantiationService, InstantiationError } from "src/code/common/service/instantiationService/instantiation";
 import { ServiceDescriptor } from "src/code/common/service/instantiationService/descriptor";
 import { IComponentService } from "src/code/browser/service/componentService";
 import { getSingletonServiceDescriptors } from "src/code/common/service/instantiationService/serviceCollection";
@@ -20,8 +20,6 @@ import { IIpcService } from "src/code/browser/service/ipcService";
  */
 export class Workbench extends WorkbenchLayout implements IWorkbenchService {
 
-    private _noteBookManager!: NoteBookManager;
-
     constructor(
         @IInstantiationService instantiationService: IInstantiationService,
         @IComponentService componentService: IComponentService,
@@ -32,13 +30,15 @@ export class Workbench extends WorkbenchLayout implements IWorkbenchService {
     }
 
     public async init(): Promise<void> {
-        await this.initServices();
+        await this.__initServices();
+        
         this.create();
         this.registerListeners();
+
         this._onDidFinishLayout.fire();
     }
 
-    protected async initServices(): Promise<void> {
+    protected async __initServices(): Promise<void> {
 
         // WorkbenchLayoutService (self)
         this.instantiationService.register(IWorkbenchService, this);
@@ -69,10 +69,8 @@ export class Workbench extends WorkbenchLayout implements IWorkbenchService {
         // ContextMenuService
         this.instantiationService.register(IContextMenuService, new ServiceDescriptor(ContextMenuService));
 
-        // NoteBookManagerService (async)
-        this._noteBookManager = this.instantiationService.createInstance(NoteBookManager);
-        await this._noteBookManager.init();
-        this.instantiationService.register(INoteBookManagerService, this._noteBookManager);
+        // NotebookManagerService
+        this.instantiationService.register(INotebookManagerService, new ServiceDescriptor(NotebookManager));
 
     }
 
@@ -80,7 +78,7 @@ export class Workbench extends WorkbenchLayout implements IWorkbenchService {
      * @description calls 'create()' and '_registerListeners()' for each component.
      */
     protected override _createContent(): void {
-        this.createLayout();
+        this.__createLayout();
     }
 
     /**
@@ -88,8 +86,8 @@ export class Workbench extends WorkbenchLayout implements IWorkbenchService {
      */
     protected override _registerListeners(): void {
         
-        this.registerLayout();
-        this.registerShortcuts();
+        this.__registerLayout();
+        this.__registerShortcuts();
             
         // TODO: below codes requires refactor
 
@@ -116,9 +114,12 @@ export class Workbench extends WorkbenchLayout implements IWorkbenchService {
     /**
      * @description Shortcut registration.
      */
-    private registerShortcuts(): void {
+    private __registerShortcuts(): void {
 
-        const shortcutService = this.instantiationService.getService(IShortcutService)!;
+        const shortcutService = this.instantiationService.getService(IShortcutService);
+        if (shortcutService === null) {
+            throw new InstantiationError('workbench', IShortcutService);
+        }
 
         shortcutService.register({
             commandID: 'workbench.open-develop-tool',

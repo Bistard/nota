@@ -26,7 +26,7 @@ export interface ICreateable {
  */
 export interface IComponent extends ICreateable {
 
-    readonly parentComponent: Component | null;
+    readonly parentComponent: IComponent | null;
     readonly parent: HTMLElement | null;
     container: HTMLElement;
     contentArea: HTMLElement | undefined;
@@ -49,7 +49,7 @@ export interface IComponent extends ICreateable {
      * @warn Throws an error if the component has already been registered and
      *       override sets to false.
      */
-    registerComponent(component: Component, override: boolean): void;
+    registerComponent(component: Component, override?: boolean): void;
     
     /**
      * @description Determines if the component with the given id has been 
@@ -71,7 +71,7 @@ export interface IComponent extends ICreateable {
     getComponent(id: string): Component;
 
     /**
-     * @description Triggers the onDidVisibilityChange event.
+     * @description Sets the visibility of the current component.
      * @param value to visible or invisible.
      */
     setVisible(value: boolean): void;
@@ -102,7 +102,7 @@ export abstract class Component extends Disposable implements IComponent {
     
     // [field]
     
-    public readonly parentComponent: Component | null = null;
+    public readonly parentComponent: IComponent | null = null;
     public readonly parent: HTMLElement | null = null;
     public container: HTMLElement = document.createElement('div');
     
@@ -130,7 +130,7 @@ export abstract class Component extends Disposable implements IComponent {
      * @param componentService ComponentService for the registration purpose.
      */
     constructor(id: string, 
-                parentComponent: Component | null,
+                parentComponent: IComponent | null,
                 parentElement: HTMLElement | null,
                 protected readonly componentService: IComponentService,
     ) {
@@ -210,6 +210,13 @@ export abstract class Component extends Disposable implements IComponent {
     }
 
     public setVisible(value: boolean): void {
+        
+        if (value === true) {
+            this.container.style.visibility = 'visible';
+        } else {
+            this.container.style.visibility = 'hidden';
+        }
+
         this._onDidVisibilityChange.fire(value);
     }
 

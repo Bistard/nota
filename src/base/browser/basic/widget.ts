@@ -6,11 +6,25 @@ export interface IWidget extends IDisposable {
     
     readonly element: HTMLElement | undefined;
 
-    onClick(element: HTMLElement, callback: (event: any) => void): void;
-    onMouseover(element: HTMLElement, callback: (event: any) => void): void;
-    onMouseout(element: HTMLElement, callback: (event: any) => void): void;
-
+    onClick(element: HTMLElement, callback: (event: MouseEvent) => void): IDisposable;
+    onDoubleclick(element: HTMLElement, callback: (event: MouseEvent) => void): IDisposable;
+    onMouseover(element: HTMLElement, callback: (event: MouseEvent) => void): IDisposable;
+    onMouseout(element: HTMLElement, callback: (event: MouseEvent) => void): IDisposable;
+    onMousedown(element: HTMLElement, callback: (event: MouseEvent) => void): IDisposable;    
+    onMouseup(element: HTMLElement, callback: (event: MouseEvent) => void): IDisposable;
+    onMousemove(element: HTMLElement, callback: (event: MouseEvent) => void): IDisposable;
+    onWheel(element: HTMLElement, callback: (event: WheelEvent) => void): IDisposable;
+    
+    /**
+     * @description Renders and auto registers listeners.
+     * @param container The provided HTMLElement of the button.
+     */
     render(container: HTMLElement): void;
+
+     /**
+      * @description Applys the styles to the current HTMLElement. 
+      * May be override by the derived classes.
+      */
     applyStyle(): void;
 }
 
@@ -93,7 +107,7 @@ export abstract class Widget extends Disposable implements IWidget {
     }
 
     public applyStyle(): void {
-        /* override by the derived classes */
+        
     }
 
     public override dispose(): void {

@@ -213,3 +213,9 @@ export class InstantiationService implements IInstantiationService {
 		}
 	}
 }
+
+export class InstantiationError<T> extends Error {
+    constructor(service: string, serviceIdentifier: ServiceIdentifier<T>) {
+        super(`${service}: No instance of the provided service ${serviceIdentifier.type} has been registered`);
+    }
+}

@@ -1,5 +1,6 @@
 import * as assert from 'assert';
 import { DataBuffer } from 'src/base/common/file/buffer';
+import { FileType } from 'src/base/common/file/file';
 import { dirname, posix } from 'src/base/common/file/path';
 import { URI } from 'src/base/common/file/uri';
 import { DiskFileSystemProvider } from 'src/base/node/diskFileSystemProvider';
@@ -224,6 +225,24 @@ suite('FileService-disk-unbuffered-test', () => {
             const buffer = DataBuffer.fromString(str10mb);
             await service.writeFile(uri, buffer, { create: true, overwrite: true, unlock: true });
             assert.strictEqual(true, true);
+        } catch (err) {
+            assert.strictEqual(false, true);
+        }
+    });
+
+    test('readDir', async () => {
+        const service = new FileService();
+        const provider = new DiskFileSystemProvider();
+        service.registerProvider('file', provider);
+
+        try {
+            const uri = URI.fromFile('test/code/service/temp');
+            const dir = await service.readDir(uri);
+            assert.strictEqual(dir.length, 4);
+            assert.strictEqual(dir[0]![1], FileType.FILE);
+            assert.strictEqual(dir[1]![1], FileType.FILE);
+            assert.strictEqual(dir[2]![1], FileType.FILE);
+            assert.strictEqual(dir[3]![1], FileType.FILE);
         } catch (err) {
             assert.strictEqual(false, true);
         }

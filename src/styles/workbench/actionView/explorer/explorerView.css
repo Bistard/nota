@@ -1,4 +1,4 @@
-#explorer-container {
+#explorer-container, .unopened-explorer-container, .opened-explorer-container {
     position: relative;
     display: flex;
     flex-direction: column;
@@ -6,21 +6,21 @@
     height: 100%;
 }
 
-#emptyFolderTag {
+.unopened-explorer-container > .explorer-open-tag {
     color: transparent;
     font-size: 10pt;
     text-align: center;
     transition: 0.1s;
 }
 
-#explorer-container:hover > #emptyFolderTag {
+.unopened-explorer-container:hover > .explorer-open-tag {
     color: #9f9f95;
 }
 
-#explorer-container:hover > #emptyFolderTag:hover {
+.unopened-explorer-container:hover > .explorer-open-tag:hover {
     color: rgb(202, 202, 202);
 }
 
-#explorer-container:hover > #emptyFolderTag:active {
+.unopened-explorer-container:hover > .explorer-open-tag:active {
     color: #9f9f95;
 }

@@ -1,7 +1,7 @@
 import { APP_ROOT_PATH } from "src/base/electron/app";
 import { AbstractLogService, IAbstractLogService, ILogInfo, LogLevel } from "src/code/common/service/logService/abstractLogService";
 import { createDecorator } from "src/code/common/service/instantiationService/decorator";
-import { EGlobalSettings, IGlobalApplicationSettings, IGlobalConfigService, LOCAL_NOTA_DIR_NAME } from "src/code/common/service/configService/configService";
+import { EGlobalSettings, IGlobalConfigService, IGlobalNotebookManagerSettings, LOCAL_NOTA_DIR_NAME } from "src/code/common/service/configService/configService";
 import { FileService, IFileService } from 'src/code/common/service/fileService/fileService';
 import { URI } from "src/base/common/file/uri";
 import { getCurrentFormatDate } from "src/base/common/date";
@@ -91,7 +91,7 @@ export class FileLogService extends AbstractLogService<IFileLogInfo> implements 
     ) {
         super(level);
 
-        const globalConfig = this.globalConfigService.get<IGlobalApplicationSettings>(EGlobalSettings.Application);
+        const globalConfig = this.globalConfigService.get<IGlobalNotebookManagerSettings>(EGlobalSettings.NotebookManager);
         const defaultConfigOn = globalConfig.defaultConfigOn;
         if (defaultConfigOn) {
             this.path = URI.fromFile(resolve(APP_ROOT_PATH, LOCAL_NOTA_DIR_NAME));
@@ -99,7 +99,7 @@ export class FileLogService extends AbstractLogService<IFileLogInfo> implements 
             // FIXME
             this.path = URI.fromFile(resolve(APP_ROOT_PATH, LOCAL_NOTA_DIR_NAME));
             // undefined
-            // this.path = URI.fromFile(NoteBookManager.rootPath); 
+            // this.path = URI.fromFile(NotebookManager.rootPath); 
         }
     }
 

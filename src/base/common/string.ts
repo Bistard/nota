@@ -1,7 +1,9 @@
 import { FileType } from "src/base/common/file/file";
+import { Iterable } from "src/base/common/iterable";
 
 export const CHAR_DIR_SEPARATOR = '/';
 
+/** @deprecated */
 export function pathJoin(root: string, ...paths: string[]): string {
     let absolutePath = root;
     for (let path of paths) {
@@ -18,17 +20,21 @@ export function isAbsolutePath(path: string): boolean {
     return !!path && path[0] === '/';
 }
 
+/** @deprecated */
 export const enum SvgType {
     base = '',
     toolBar = 'toolBar',
 }
 
+/** @deprecated */
 const BASE_PATH = './src/assets/svg/';
 
+/** @deprecated */
 export function getSvgPathByName(type: SvgType, name: string): string {
     return pathJoin(BASE_PATH, type, name + '.svg');
 }
 
+/** @deprecated */
 /**
  * @description determines the type of the file given a name.
  * 
@@ -45,51 +51,19 @@ export function getFileType(fileFullName: string): FileType {
 }
 
 /**
- * @description check if the given name is included in the given array of rules.
- * These are the different types of rules:
- *  - exact name                         eg. '.vscode'
- *  - name starts with given strings     eg. '.*' means any name starts with '.'
- *  - name ends with given strings       eg. '*-module' means any name ends '-module'
- * 
- * @param name directory or file to be checked (filename could have format type)
- * @param rules rules to be applied to 'name'
+ * @namespace String A collection of functions that relates to {@link string}.
  */
-export function nameIncludeCheckWithRule(name: string, rules: string[]): boolean {
-    
-    for (let rule of rules) {
-        
-        let asteriskFound = false;
-        let prefix = '';
-        let postfix = '';
+export namespace String {
 
-        for (let i = 0; i < rule.length; i++) {
-            const char = rule[i];
-            if (char !== '*') {
-                if (!asteriskFound) {
-                    prefix += char;
-                } else {
-                    postfix += char;
-                }
-            } else {
-                asteriskFound = true;
-                if (i + 1 !== rule.length && i !== 0) {
-                    throw 'wrong rules is applied to be included';
-                }
-            }
-        }
-
-        if (!asteriskFound) {
-            if (name == rule) {
-                return true;
-            }
-        } else {
-            if (prefix != '' && name.startsWith(prefix)) {
-                return true;
-            } else if (postfix != '' && name.endsWith(postfix)) {
-                return true;
-            }
-        }
+    /**
+     * @description Check if any of the given {@link RegExp} is applied to the
+     * provided string.
+     * @param str The provided string.
+     * @param rules An array of {@link RegExp}.
+     * @returns If any rules is applied.
+     */
+    export function regExp(str: string, rules: RegExp[]): boolean {
+        return Iterable.reduce<RegExp, boolean>(rules, false, (tot, rule) => tot ? true : rule.test(str));
     }
-    return false;
-}
 
+}

@@ -27,6 +27,7 @@ export abstract class WorkbenchLayout extends Component {
     protected actionViewComponent!: ActionViewComponent;
     protected editorComponent!: EditorComponent;
     
+    // TODO: refactor using SplitView
     protected sashContainer: HTMLElement | undefined;
     protected sashMap = new Map<string, Sash>();
 
@@ -42,13 +43,13 @@ export abstract class WorkbenchLayout extends Component {
 
     // [protected methods]
 
-    protected createLayout(): void {
+    protected __createLayout(): void {
         
         /**
          * Constructs each component of the workbench.
          */
         this.actionBarComponent = this.instantiationService.createInstance(ActionBarComponent, this);
-        this.actionViewComponent = this.instantiationService.createInstance(ActionViewComponent, this);
+        this.actionViewComponent = this.instantiationService.createInstance(ActionViewComponent, this, ActionType.EXPLORER /* // TODO: should read from config */);
         this.editorComponent = this.instantiationService.createInstance(EditorComponent, this);
         
         [
@@ -65,31 +66,14 @@ export abstract class WorkbenchLayout extends Component {
 
     }
 
-    protected registerLayout(): void {
+    protected __registerLayout(): void {
         
         /**
          * @readonly Listens to each ActionBar button click events and notifies 
          * the actionView to swtich the view.
          */
-        const [explorer, outline, search, git] = [
-            this.actionBarComponent.getButton(ActionType.EXPLORER)!, this.actionBarComponent.getButton(ActionType.OUTLINE)!, 
-            this.actionBarComponent.getButton(ActionType.SEARCH)!, this.actionBarComponent.getButton(ActionType.GIT)!
-        ];
-        
-        [
-            [explorer, ActionType.EXPLORER],
-            [outline, ActionType.OUTLINE],
-            [search, ActionType.SEARCH],
-            [git, ActionType.GIT],
-        ]
-        .forEach(pair => {
-            const button = pair[0] as Button;
-            const type = pair[1] as ActionType;
-
-            this.__register(button.onDidClick((event: Event) => {
-                this.actionBarComponent.actionButtonClick(type);
-                this.actionViewComponent.actionViewChange(type);
-            }));
+        this.actionBarComponent.onDidButtonClick(e => {
+            this.actionViewComponent.setActionView(e.type);
         });
 
         /**
@@ -111,11 +95,13 @@ export abstract class WorkbenchLayout extends Component {
 
     // [private helper functions]
 
+    // TODO: remove
     private _registerSash(id: string, sash: Sash): Sash {
         this.sashMap.set(id, sash);
         return sash;
     }
 
+    // TODO: remove
     private _createSashContainer(): void {
 
         if (this.sashContainer) {

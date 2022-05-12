@@ -26,6 +26,17 @@ export interface IUserConfigService extends IConfigService {
     onDidChangeMarkdownSettings: Register<IUserMarkdownSettings>;
     onDidChangeNotebookManagerSettings: Register<IUserNotebookManagerSettings>;
 
+    /**
+     * @description Validate the folder structure named {@link LOCAL_NOTA_DIR_NAME} 
+     * under the opening directory in the explorer view. If missing any directory 
+     * it will recreate them. If defaultConfigOn sets to false and we found a 
+     * {@link LOCAL_CONFIG_FILE_NAME}, we will read it into the memory instead 
+     * using the default one.
+     * @param path The path of the opening directory.
+     * @param defaultConfigOn Check if we are using the local user configuration.
+     */
+    validateLocalUserDirectory(path: string, defaultConfigOn: boolean): Promise<void>;
+
 }
 export interface IGlobalConfigService extends IConfigService {
 
@@ -36,12 +47,14 @@ export interface IGlobalConfigService extends IConfigService {
 
 /**
  * @class The user configuration service relates to the unique file named
- * `user.config.json` which will be placed in either:
- *      - the .nota directory in the opened directory (user customized) OR
- *      - the root directory of the application which will be considered as the 
- *        default user configuration.
+ * `user.config.json` which will be placed in the .nota directory that either:
+ *      - in the opened directory (user customized) OR
+ *      - in the root directory of the application which will be considered as 
+ *        the default user configuration path.
  */
 export class UserConfigService extends ConfigServiceBase implements IUserConfigService {
+
+    // [event]
 
     /* EUserSettings Events */
     private readonly _onDidChangeMarkdownSettings = this.__register( new Emitter<IUserMarkdownSettings>() );
@@ -50,15 +63,42 @@ export class UserConfigService extends ConfigServiceBase implements IUserConfigS
     private readonly _onDidChangeNotebookManagerSettings = this.__register( new Emitter<IUserNotebookManagerSettings>() );
     public readonly onDidChangeNotebookManagerSettings = this._onDidChangeNotebookManagerSettings.registerListener;
     
+    // [constructor]
+
     constructor(
         @IFileService fileService: IFileService
     ) {
         super(IConfigType.USER, new DefaultUserConfigModel(), fileService);
     }
 
+    // [method]
+
     public override async init(path: URI = getDefaultUserConfigPath()): Promise<void> {
         return await super.init(path);
     }
+
+    public async validateLocalUserDirectory(path: string, defaultConfigOn: boolean): Promise<void> {
+
+        path = resolve(path, LOCAL_NOTA_DIR_NAME);
+
+        // validate the folder `.nota`
+        await this.__validateLocalUserDirectory(path);
+        
+        const configPath = URI.fromFile(resolve(path, LOCAL_CONFIG_FILE_NAME));
+        const existed = await this.fileService.exist(configPath);
+        
+        // read the local user configuration
+        if (existed && !defaultConfigOn) {
+            await this.init(configPath);
+        }
+        
+        // initially just a copy of the default one
+        else if (!existed && defaultConfigOn) {
+            await this.save(configPath);
+        }
+    }
+
+    // [protected override method]
 
     /** @override */
     protected override __fireOnSpecificEvent(section: EUserSettings, change: any): void {
@@ -72,12 +112,35 @@ export class UserConfigService extends ConfigServiceBase implements IUserConfigS
                 break;
         }
     }
+
+    // [private helper method]
+
+    /**
+     * @description Validates the structure of {@link LOCAL_NOTA_DIR_NAME} given
+     * the path.
+     * @param path The path to {@link LOCAL_NOTA_DIR_NAME}.
+     * 
+     * @throws An exception will be thrown if cannot create directory properly.
+     */
+    private async __validateLocalUserDirectory(path: string): Promise<void> {
+        
+        try {
+            await this.fileService.createDir(URI.fromFile(path)); // .nota
+
+            await this.fileService.createDir(URI.fromFile(resolve(path, 'log')));
+            await this.fileService.createDir(URI.fromFile(resolve(path, 'ref')));    
+        } catch (err) {
+            throw err;
+        }
+
+    }
+
 }
 
 /**
  * @class The global configuration service relates to the unique file named
- * `nota.config.json` which will be placed in the root directory of the 
- * application.
+ * `nota.config.json` which will be placed in the .noda folder in the root 
+ * directory of the application.
  */
 export class GlobalConfigService extends ConfigServiceBase implements IGlobalConfigService {
 
@@ -113,14 +176,18 @@ export class GlobalConfigService extends ConfigServiceBase implements IGlobalCon
 }
 
 /**
- * @readonly Returns a default URI path of the global config file which is named 
+ * @readonly Returns a default URI of the global config file which is named 
  * 'nota.config.json' at the root directory of the application.
  */
-export function getDefaultGlobalConfigPath(): URI {
+function getDefaultGlobalConfigPath(): URI {
     return URI.fromFile(resolve(APP_ROOT_PATH, LOCAL_NOTA_DIR_NAME, GLOBAL_CONFIG_FILE_NAME));
 }
 
-export function getDefaultUserConfigPath(): URI {
+/**
+ * @readonly Returns a default URI of the global config file which is named 
+ * 'user.config.json' at the root directory of the application.
+ */
+function getDefaultUserConfigPath(): URI {
     return URI.fromFile(resolve(APP_ROOT_PATH, LOCAL_NOTA_DIR_NAME, DEFAULT_CONFIG_FILE_NAME));
 }
 
@@ -130,22 +197,27 @@ export function getDefaultUserConfigPath(): URI {
 
 /**
  * The @SettingSection is a set of section paths that global/user default configuration 
- * (see `DefaultGlobalConfigModel` and `DefaultUserConfigModel`) will obtain as
- * default. Each section path corresponds to a @SettingInterface which is a 
- * interface that represents the type of the object in that specific section path.
+ * (see {@link DefaultGlobalConfigModel} and {@link DefaultUserConfigModel})
+ * will obtain as default. 
+ * 
+ * Each section path corresponds to a @SettingInterface which is a javascript 
+ * object that represents the type of the object in that specific section path.
  * 
  * See related usages in `configService.test.ts`.
  */
 
-/**
+/*******************************************************************************
  * @readonly Global Configurations
- */
+ ******************************************************************************/
 
 /** @SettingSection */
 export const enum EGlobalSettings {
 
+    /** {@link IGlobalApplicationSettings} */
     Application = 'application',
-    NotebookManager = 'notebookmanager',
+
+    /** {@link IGlobalNotebookManagerSettings} */
+    NotebookManager = 'notebookManager',
 
 }
 
@@ -163,15 +235,6 @@ export interface IGlobalApplicationSettings {
     displayLanguage: Language,
     
     /**
-     * When true, NoteBookManager will read or create the default configuration in 
-     * '<appRootPath>/.nota/user.config.json'.
-     * 
-     * When false, NoteBookManager will read or create a local configuration file 
-     * in '<notebookManagerPath>/.nota/config.json'.
-     */
-    defaultConfigOn: boolean;
-
-    /**
      * Used for file/directory reading and writing.
      */
     OpenDirConfig: Electron.OpenDialogOptions;
@@ -181,14 +244,24 @@ export interface IGlobalApplicationSettings {
 export interface IGlobalNotebookManagerSettings {
 
     /**
-     * A boolean to determine whether opened the previous opened notebook manager directory.
+     * When true, NotebookManager will read or create the default configuration in 
+     * '<appRootPath>/.nota/user.config.json'.
+     * 
+     * When false, NotebookManager will read or create a local configuration file 
+     * in '<notebookManagerPath>/.nota/config.json'.
      */
-    startPreviousNoteBookManagerDir: boolean;
+     defaultConfigOn: boolean;
+
+    /**
+     * When the application started, determine whether to open the previous 
+     * opened directory.
+     */
+    startPreviousNotebookManagerDir: boolean;
     
     /**
      * Stores the previous opened notebook manager directory path.
      */
-    previousNoteBookManagerDir: string;
+    previousNotebookManagerDir: string;
 }
 
 export class DefaultGlobalConfigModel extends ConfigModel {
@@ -204,7 +277,6 @@ export class DefaultGlobalConfigModel extends ConfigModel {
             {
                 appMode: 'debug' as AppMode,
                 displayLanguage: 'en',
-                defaultConfigOn: false,
                 OpenDirConfig:  {
                     defaultPath: DESKTOP_ROOT_PATH,
                     buttonLabel: 'select a directory',
@@ -214,23 +286,27 @@ export class DefaultGlobalConfigModel extends ConfigModel {
                     ]
                 } as Electron.OpenDialogOptions,
             },
-            'notebookmanager': 
+            'notebookManager': 
             {
-                startPreviousNoteBookManagerDir: true,
-                previousNoteBookManagerDir: '',
+                defaultConfigOn: false,
+                startPreviousNotebookManagerDir: true,
+                previousNotebookManagerDir: '',
             }
         };
     }
 }
 
-/**
+/*******************************************************************************
  * @readonly User Configurations
- */
+ ******************************************************************************/
 
 /** @SettingSection */
 export const enum EUserSettings {
     
-    NotebookManager = 'notebookmanager',
+    /** {@link IUserNotebookManagerSettings} */
+    NotebookManager = 'notebookManager',
+
+    /** {@link IUserMarkdownSettings} */
     Markdown = 'markdown',
 
 }
@@ -239,26 +315,29 @@ export const enum EUserSettings {
 export interface IUserNotebookManagerSettings {
 
     /**
-     * If wants to excludes file, remember to add file format.
-     * eg. 'user.config.json'. This has lower priority than 'noteBookManagerInclude'.
-     * 
-     * '.*' represents any folders starts with '.'.
+     * To excludes files, please use regular expression form.
+     * @note This has lower priority than 'noteBookManagerInclude'.
      */
     noteBookManagerExclude: string[];
     
     /**
-     * If wants to includes file, remember to add file format such as
-     * 'user.config.json'. This has higher priority than 'noteBookManagerExclude'.
+     * To includes files, please use regular expression form.
+     * @note This has higher priority than 'noteBookManagerExclude'.
      */
     noteBookManagerInclude: string[];    
 }
 
 /** @SettingInterface */
 export interface IUserMarkdownSettings {
-    /** auto file save option */
+
+    /** 
+     * auto file save option 
+     */
     fileAutoSaveOn: boolean;
     
-    /** the default markdown render mode every time when the applicaiton starts */
+    /** 
+     * the default markdown render mode every time when the applicaiton starts 
+     */
     defaultMarkdownMode: MarkdownRenderMode;
 }
 
@@ -272,10 +351,10 @@ export class DefaultUserConfigModel extends ConfigModel {
 
     private createDefault(): any {
         return {
-            'notebookmanager': 
+            'notebookManager': 
             {
                 noteBookManagerExclude: [
-                    '.*',
+                    '^\\..*',
                 ] as string[],
                 noteBookManagerInclude: [
 

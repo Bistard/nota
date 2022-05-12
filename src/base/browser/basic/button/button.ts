@@ -1,4 +1,4 @@
-import { Widget } from "src/base/browser/basic/widget";
+import { IWidget, Widget } from "src/base/browser/basic/widget";
 import { Icons } from "src/base/browser/icon/icons";
 import { Emitter, Register } from "src/base/common/event";
 
@@ -8,7 +8,7 @@ export interface IButtonOptions {
     classes?: string[],
 }
 
-export interface IButton {
+export interface IButton extends IWidget {
     // TODO
     enabled: boolean;
 
@@ -52,7 +52,7 @@ export class Button extends Widget implements IButton {
 
         this._registerListeners();
     }
-    
+
     protected _registerListeners(): void {
 
         // left click event

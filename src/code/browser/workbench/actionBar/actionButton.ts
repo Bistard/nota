@@ -1,32 +1,35 @@
-import { Button, IButtonOptions } from "src/base/browser/basic/button/button";
+import { Button, IButton, IButtonOptions } from "src/base/browser/basic/button/button";
 import { getBuiltInIconClass } from "src/base/browser/icon/iconRegistry";
+import { ActionType } from "src/code/browser/workbench/actionBar/actionBar";
 
 export interface IActionButtonOptions extends IButtonOptions {
     
 }
 
-/**
- * @class A simple encapsulation on the buttons from actionBarCompoent.
- */
-export class ActionButton extends Button {
-
-    constructor(opts?: IActionButtonOptions) {
-        super(opts);
-    }
+export interface IActionButton extends IButton {
     
     /**
-     * @description Sets up all the CSS attributes and icon to this action button.
-     * @param src The icon name of the icon.
+     * The type of the action button.
      */
+    readonly type: ActionType;
+
+}
+
+/**
+ * @class A simple encapsulation built upon {@link IButton} from actionBarCompoent.
+ */
+export class ActionButton extends Button implements IActionButton {
+
+    public readonly type: ActionType;
+
+    constructor(type: ActionType, opts?: IActionButtonOptions) {
+        super(opts);
+
+        this.type = type;
+    }
+    
     public override render(container: HTMLElement): void {
         super.render(container);
-
-        // add onClick event listener
-        this.onClick(this._element!, (event: any) => {
-            if (this.enabled === false) {
-                return;
-            }
-        });
 
         // add mouseover event listener
         this.onMouseover(this._element!, (event: any) => {

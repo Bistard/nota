@@ -84,17 +84,31 @@ export interface IConfigService {
  */
 export abstract class ConfigServiceBase extends Disposable implements IConfigService {
 
-    /* Events */
+    // [field]
+    
+    protected readonly configType: IConfigType;
+    protected readonly configModel: IConfigModel;
+    protected readonly fileService: IFileService;
+
+    // [event]
+
     private readonly _onDidChangeConfiguration = this.__register( new Emitter<IConfigChangeEvent>() );
     public readonly onDidChangeConfiguration = this._onDidChangeConfiguration.registerListener;
 
+    // [constructor]
+
     constructor(
-        protected readonly configType: IConfigType,
-        protected readonly configModel: IConfigModel,
-        protected readonly fileService: IFileService
+        configType: IConfigType,
+        configModel: IConfigModel,
+        fileService: IFileService
     ) {
         super();
+        this.configType = configType;
+        this.configModel = configModel;
+        this.fileService = fileService;
     }
+
+    // [method]
 
     public get<T>(section: string | undefined): T {
         const result = this.configModel.get<T>(section);
@@ -164,16 +178,25 @@ export abstract class ConfigServiceBase extends Disposable implements IConfigSer
         }
     }
 
+    // [private helper method]
+
+    /**
+     * @description Will be fired when any type of configuration was changed.
+     * @param type The type of configuration was fired.
+     * @param changes The sections were changed.
+     */
     private __fireOnAnyEvents(type: IConfigType, changes: IConfigChange): void {
         this._onDidChangeConfiguration.fire( {type: type, changes: changes} );
     }
+
+    // [protected abstract method]
 
     /**
      * @description Overrides this method to fire event on specific section.
      * @param section The modified section that is about to notify.
      * @param change The modified value that is about to be fired.
      */
-    protected __fireOnSpecificEvent(section: string, change: any): void { /* empty */ }
+    protected abstract __fireOnSpecificEvent(section: string, change: any): void;
 }
 
 function configTypeToString(type: IConfigType): string {

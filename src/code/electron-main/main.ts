@@ -103,6 +103,10 @@ class Main {
         });
 
         // titleBar listeners
+        this.winMain.webContents.on('devtools-closed', () => {
+            this.isDevlToolsOn = false;
+        });
+
         this.winMain.on('maximize', () => {
             this.winMain!.webContents.send(IpcCommand.WindowMaximize);
         });
@@ -160,29 +164,30 @@ class Main {
 
         // response to FolderModule, default path is 'desktop' and only can
         // open directory.
-        ipcMain.on(IpcCommand.OpenDirectory, () => {
-            dialog.showOpenDialog(
+        ipcMain.on(IpcCommand.OpenDirectory, async (_event, data: string[]) => {
+
+            // if default path provided, otherwise we choose desktop.
+            const path = data[0] ? data[0] : app.getPath('desktop');
+            
+            const res = await dialog.showOpenDialog(
                 this.winMain!,
                 {
-                    /* defaultPath: app.getPath('desktop'), */
-                    defaultPath: 'D:\\dev\\AllNote',
-                    //defaultPath: '/Users/apple/nota_latest/forTestingOnly',
+                    defaultPath: path,
                     buttonLabel: 'open a file or folder',
                     properties: [
                         'openDirectory',
                     ],
                 }
-            ).then((path) => {
-                if (path === undefined) {
-                    throw 'opened path is undefined';
-                }
+            )
+            
+            if (res === undefined) {
+                throw 'opened path is undefined';
+            }
 
-                if (!path.canceled) {
-                    // eg. D:\dev\AllNote
-                    let rootdir = path.filePaths[0];
-                    this.winMain!.webContents.send(IpcCommand.OpenDirectory, rootdir);
-                }
-            });
+            if (!res.canceled) {
+                let rootdir = res.filePaths[0];
+                this.winMain!.webContents.send(IpcCommand.OpenDirectory, rootdir);
+            }
         });
 
         // once renderer process is ready, we do the actual closing
