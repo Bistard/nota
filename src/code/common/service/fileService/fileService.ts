@@ -127,7 +127,7 @@ export class FileService implements IFileService {
             
             // create recursive directory if necessary.
             if (!stat) {
-                await this.__mkdirRecursive(provider, uri);
+                await this.__mkdirRecursive(provider, URI.fromFile(dirname(URI.toFsPath(uri))));
             }
             
             // REVIEW: optimization?
@@ -380,16 +380,13 @@ export class FileService implements IFileService {
         dir: URI): Promise<void> 
     {
         const dirWaitToBeCreate: string[] = [];
-        let path = dirname(URI.toFsPath(dir)); // remove the file name
+        let path = URI.toFsPath(dir); // remove the file name
         
         while (true) {
             try {
                 // try to find a directory that exists
-                let stat: IStat;
-                while (stat = await provider.stat(URI.fromFile(path))) {
-                    if (stat) break;
-                }
-                
+                let stat: IStat = await provider.stat(URI.fromFile(path));
+                    
                 // not a directory
                 if ((stat.type & FileType.DIRECTORY) === 0) {
                     throw new Error('undable to create directory that already exists but is not a directory');
@@ -397,6 +394,7 @@ export class FileService implements IFileService {
 
                 // we reaches a existed directory, we break the loop.
                 break;
+
             } catch (err) {
                 // we reaches a not existed directory, we remember it.
                 dirWaitToBeCreate.push(basename(path));
@@ -557,7 +555,7 @@ export class FileService implements IFileService {
         try {
             stat = await provider.stat(uri);
         } catch (err) {
-            throw new Error('file does not exist');
+            throw new Error('file or directory does not exist');
         }
 
         // validate if it is readonly
