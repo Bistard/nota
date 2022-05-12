@@ -104,7 +104,6 @@ export class ExplorerViewComponent extends Component implements IExplorerViewSer
         if (this._globalConfig.startPreviousNotebookManagerDir && this._globalConfig.previousNotebookManagerDir !== '') 
         {
             this.__createOpenedExplorerView(this._globalConfig.previousNotebookManagerDir, this._globalConfig.defaultConfigOn, false);
-
         } else {
             this.__createUnopenedExplorerView();
         }
