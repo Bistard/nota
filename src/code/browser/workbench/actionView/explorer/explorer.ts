@@ -1,7 +1,5 @@
-import { FileNode } from 'src/base/node/fileTree';
-import { domNodeByIdAddListener, ipcRendererOn, ipcRendererSend } from 'src/base/electron/register';
 import { Component, ComponentType, IComponent } from 'src/code/browser/workbench/component';
-import { DomEmitter, Emitter, EVENT_EMITTER, Register } from 'src/base/common/event';
+import { DomEmitter, Emitter, Register } from 'src/base/common/event';
 import { INoteBookManagerService } from 'src/code/common/model/notebookManager';
 import { IComponentService } from 'src/code/browser/service/componentService';
 import { ContextMenuType, Coordinate } from 'src/base/browser/secondary/contextMenu/contextMenu';
@@ -11,7 +9,6 @@ import { Ii18nService } from 'src/code/platform/i18n/i18n';
 import { Section } from 'src/code/platform/section';
 import { registerSingleton } from 'src/code/common/service/instantiationService/serviceCollection';
 import { ServiceDescriptor } from 'src/code/common/service/instantiationService/descriptor';
-import { IpcCommand } from 'src/base/electron/ipcCommand';
 import { EGlobalSettings, EUserSettings, IGlobalConfigService, IGlobalNotebookManagerSettings, IUserConfigService, IUserNotebookManagerSettings } from 'src/code/common/service/configService/configService';
 import { IIpcService, IpcService } from 'src/code/browser/service/ipcService';
 import { EventType } from 'src/base/common/dom';
@@ -28,6 +25,15 @@ export interface IExplorerViewService extends IComponent {
      */
     onDidOpenDirectory: Register<IExplorerDirectoryEvent>;
 
+    /**
+     * @description Validate the `.nota` directory and try to open the notebook 
+     * directory by the given path. If repoen sets to true, it will reopen the 
+     * current opeend notebook directory.
+     * @param path The path waiting for opening.
+     * @param reopen If requires reopen a new directory.
+     * 
+     * @returns If the explorer is opened or not.
+     */
     openDirectory(path: string, reopen: boolean): Promise<boolean>;
 }
 
@@ -173,28 +179,28 @@ export class ExplorerViewComponent extends Component implements IExplorerViewSer
     }
 
     /**
-     * @description
+     * @description Apeend the HTML container to the DOM tree and try to remove
+     * the opened container.
      */
     private __createUnopenedExplorerView(): void {
         
         // prevent double append
-        if (this.container.hasChildNodes()) {
+        if (!this._opened && this.container.hasChildNodes()) {
             return;
         }
 
-        if (this._opened) {
-            this.__destroyOpenedExplorerView();
-        }
+        this.__destroyOpenedExplorerView();
 
         this.container.appendChild(this._unopenedView);
         this._opened = false;
     }
 
     /**
-     * 
+     * @description Removes the HTML container from the DOM tree to achieve 
+     * `destroy`.
      */
     private __destroyUnopenedExplorerView(): void {
-        if (this._opened === false && this.container.hasChildNodes()) {
+        if (!this._opened && this.container.hasChildNodes()) {
             this.container.removeChild(this._unopenedView);
         }
     }
@@ -228,16 +234,18 @@ export class ExplorerViewComponent extends Component implements IExplorerViewSer
 
         this.container.appendChild(this._openedView);
         this._opened = true;
+
+        this._onDidOpenDirectory.fire({ path: path });
     }
 
     /**
-     * @description
+     * @description Removes the HTML container from the DOM tree to achieve 
+     * `destroy`.
      */
     private __destroyOpenedExplorerView(): void {
         if (this._opened) {
             this.container.removeChild(this._openedView);
         }
-        // TODO
     }
 
 }
