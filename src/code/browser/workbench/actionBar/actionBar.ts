@@ -139,7 +139,7 @@ export class ActionBarComponent extends Component implements IActionBarService {
         })
         
 
-        // default with openning explorer view
+        // default with opening explorer view
         this.__actionButtonClick(ActionType.EXPLORER);
     }
 
