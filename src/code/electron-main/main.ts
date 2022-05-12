@@ -164,13 +164,15 @@ class Main {
 
         // response to FolderModule, default path is 'desktop' and only can
         // open directory.
-        ipcMain.on(IpcCommand.OpenDirectory, () => {
+        ipcMain.on(IpcCommand.OpenDirectory, (_event, data: string[]) => {
+
+            // if default path provided, otherwise we choose desktop.
+            const path = data[0] ? data[0] : app.getPath('desktop');
+            
             dialog.showOpenDialog(
                 this.winMain!,
                 {
-                    /* defaultPath: app.getPath('desktop'), */
-                    defaultPath: 'D:\\dev\\AllNote',
-                    //defaultPath: '/Users/apple/nota_latest/forTestingOnly',
+                    defaultPath: path,
                     buttonLabel: 'open a file or folder',
                     properties: [
                         'openDirectory',
@@ -182,7 +184,6 @@ class Main {
                 }
 
                 if (!path.canceled) {
-                    // eg. D:\dev\AllNote
                     let rootdir = path.filePaths[0];
                     this.winMain!.webContents.send(IpcCommand.OpenDirectory, rootdir);
                 }
