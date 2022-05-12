@@ -196,22 +196,15 @@ class Main {
         });
         
         ipcMain.on(IpcCommand.OpenDevelopTool, () => {
-            if (this.isDevlToolsOn === false) {
-                this.winMain!.webContents.openDevTools({mode: 'detach', activate: true});
-            } else {
-                this.winMain!.webContents.closeDevTools();
-            }
-            (this.isDevlToolsOn as any as number) ^= 1;
+            this.__toggleDevTool();
+        });
+
+        ipcMain.on(IpcCommand.ErrorInWindow, () => {
+            this.__toggleDevTool();
         });
 
         ipcMain.on(IpcCommand.ReloadWindow, () => {
             this.winMain!.webContents.reload(); 
-        });
-
-        ipcMain.on(IpcCommand.ErrorInWindow, () => {
-            if (this.isDevlToolsOn === false) {
-                this.winMain!.webContents.toggleDevTools();
-            }
         });
 
         ipcMain.on(IpcCommand.AlwaysOnTopOn, () => {
@@ -225,6 +218,17 @@ class Main {
         ipcMain.on(IpcCommand.Test, (_event, data) => {
             console.log(data);
         });
+    }
+
+    // [private helper method]
+
+    private __toggleDevTool(): void {
+        if (this.isDevlToolsOn === false) {
+            this.winMain!.webContents.openDevTools({mode: 'detach', activate: true});
+        } else {
+            this.winMain!.webContents.closeDevTools();
+        }
+        (this.isDevlToolsOn as any as number) ^= 1;
     }
 
 }
