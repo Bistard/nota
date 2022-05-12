@@ -102,12 +102,12 @@ export class NotebookManager implements INotebookManagerService {
     }
 
     public addExistedNotebook(notebook: Notebook): void {
-        const prevNotebook = this._notebookMap.get(notebook.notebookName);
+        const prevNotebook = this._notebookMap.get(notebook.name);
         if (prevNotebook) {
             prevNotebook.destory();
-            this._notebookMap.set(notebook.notebookName, notebook);
+            this._notebookMap.set(notebook.name, notebook);
         } else {
-            this._notebookMap.set(notebook.notebookName, notebook);
+            this._notebookMap.set(notebook.name, notebook);
         }
     }
 

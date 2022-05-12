@@ -59,7 +59,6 @@ suite('FileService-disk-unbuffered-test', () => {
         }
     });
 
-    // TODO
     test('createDir', async () => {
         const service = new FileService();
         const provider = new DiskFileSystemProvider();
@@ -93,7 +92,6 @@ suite('FileService-disk-unbuffered-test', () => {
         assert.strictEqual(await service.exist(URI.fromFile('test/code/service/temp/fileService-1mb')), false);
     });
 
-    // TODO
     test('delete - file', async () => {
         const service = new FileService();
         const provider = new DiskFileSystemProvider();

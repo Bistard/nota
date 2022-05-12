@@ -210,16 +210,9 @@ export class FileTree {
 
     public tree: FileNode | null;
 
-    // Unused
-    public readonly nodeCount: number;
-    public readonly depth: number;
-
     constructor(path: string) {
         this.path = path;
         this.tree = null;
-
-        this.nodeCount = 0;
-        this.depth = -1;
     }
 
     /**
