@@ -24,11 +24,13 @@ export interface INotebookManagerService {
      * 
      * @param container The HTMLElement for rendering the whole notebooks.
      * @param path eg. D:\dev\AllNote
+     * 
+     * @throws An exception will be thrown if cannot open properly.
      */
     open(container: HTMLElement, path: string): Promise<void>;
 
-    addExistedNotebook(noteBook: Notebook): void;
-    getExistedNotebook(noteBookName: string): Notebook | null;
+    addExistedNotebook(notebook: Notebook): void;
+    getExistedNotebook(notebookName: string): Notebook | null;
 
     getRootPath(): string;
 }
@@ -43,7 +45,7 @@ export class NotebookManager implements INotebookManagerService {
 
     public static focusedFileNode: HTMLElement | null = null;
     
-    private readonly _noteBookMap: Map<string, Notebook>;
+    private readonly _notebookMap: Map<string, Notebook>;
 
     private _notaFolderFound: boolean; // not used
     private _notebookManagerRootPath: string = '';
@@ -55,7 +57,7 @@ export class NotebookManager implements INotebookManagerService {
         @IGlobalConfigService private readonly globalConfigService: IGlobalConfigService,
         
     ) {
-        this._noteBookMap = new Map<string, Notebook>();
+        this._notebookMap = new Map<string, Notebook>();
         this._notaFolderFound = false;
 
         this.ipcService.onApplicationClose(async () => this.__onApplicationClose());
@@ -75,8 +77,8 @@ export class NotebookManager implements INotebookManagerService {
                     return tot;
                 }
 
-                if (!String.regExp(str, userConfig.noteBookManagerInclude.map(rule => new RegExp(rule))) && 
-                    String.regExp(str, userConfig.noteBookManagerExclude.map(rule => new RegExp(rule)))
+                if (!String.regExp(str, userConfig.notebookManagerInclude.map(rule => new RegExp(rule))) && 
+                    String.regExp(str, userConfig.notebookManagerExclude.map(rule => new RegExp(rule)))
                 ) {
                     return tot;
                 }
@@ -87,9 +89,9 @@ export class NotebookManager implements INotebookManagerService {
 
             // create Notebook Object for each sub-directory
             for (let name of notebooks) {
-                const noteBook = new Notebook(name, resolve(path, name));
-                this._noteBookMap.set(name, noteBook);
-                noteBook.create(container);
+                const notebook = new Notebook(name, resolve(path, name));
+                this._notebookMap.set(name, notebook);
+                notebook.create(container);
             }
 
             this._notaFolderFound = true;
@@ -99,18 +101,18 @@ export class NotebookManager implements INotebookManagerService {
         }
     }
 
-    public addExistedNotebook(noteBook: Notebook): void {
-        const prevNotebook = this._noteBookMap.get(noteBook.noteBookName);
+    public addExistedNotebook(notebook: Notebook): void {
+        const prevNotebook = this._notebookMap.get(notebook.notebookName);
         if (prevNotebook) {
             prevNotebook.destory();
-            this._noteBookMap.set(noteBook.noteBookName, noteBook);
+            this._notebookMap.set(notebook.notebookName, notebook);
         } else {
-            this._noteBookMap.set(noteBook.noteBookName, noteBook);
+            this._notebookMap.set(notebook.notebookName, notebook);
         }
     }
 
-    public getExistedNotebook(noteBookName: string): Notebook | null {
-        const res = this._noteBookMap.get(noteBookName);
+    public getExistedNotebook(notebookName: string): Notebook | null {
+        const res = this._notebookMap.get(notebookName);
         return res === undefined ? null : res;
     }
 

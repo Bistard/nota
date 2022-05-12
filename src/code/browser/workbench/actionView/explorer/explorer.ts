@@ -76,7 +76,7 @@ export class ExplorerViewComponent extends Component implements IExplorerViewSer
                 @Ii18nService private readonly i18nService: Ii18nService,
                 @IGlobalConfigService private readonly globalConfigService: IGlobalConfigService,
                 @IUserConfigService private readonly userConfigService: IUserConfigService,
-                @INotebookManagerService private readonly noteBookManagerService: INotebookManagerService,
+                @INotebookManagerService private readonly notebookManagerService: INotebookManagerService,
                 @IComponentService componentService: IComponentService,
                 @IContextMenuService private readonly contextMenuService: IContextMenuService,
     ) {
@@ -101,7 +101,8 @@ export class ExplorerViewComponent extends Component implements IExplorerViewSer
         tag.classList.add('vertical-center', 'funcText');
         this._unopenedView.appendChild(tag);
 
-        if (this._globalConfig.startPreviousNotebookManagerDir) {
+        if (this._globalConfig.startPreviousNotebookManagerDir && this._globalConfig.previousNotebookManagerDir !== '') 
+        {
             this.__createOpenedExplorerView(this._globalConfig.previousNotebookManagerDir, this._globalConfig.defaultConfigOn, false);
 
         } else {
@@ -230,7 +231,11 @@ export class ExplorerViewComponent extends Component implements IExplorerViewSer
         this.__destroyUnopenedExplorerView();
 
         // open the directory under the notebook manager
-        await this.noteBookManagerService.open(this._openedView, path);
+        try {
+            await this.notebookManagerService.open(this._openedView, path);
+        } catch (err) {
+            // TODO: complete (pop up a warning dialogBox)
+        }
 
         this.container.appendChild(this._openedView);
         this._opened = true;

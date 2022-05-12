@@ -1,12 +1,12 @@
 import { FileTree } from "src/base/node/fileTree";
 
 /**
- * @class A class for each noteBook.
+ * @class A class for each notebook.
  */
 export class Notebook {
 
-    public readonly noteBookName: string;
-    public readonly noteBookDir: string;
+    public readonly notebookName: string;
+    public readonly notebookDir: string;
 
     public readonly fileTree: FileTree;
 
@@ -15,8 +15,8 @@ export class Notebook {
      * @param path path to the root of the notebook
      */
     constructor(name: string, path: string) {
-        this.noteBookName = name;
-        this.noteBookDir = path;
+        this.notebookName = name;
+        this.notebookDir = path;
         
         this.fileTree = new FileTree(path);
     }
