@@ -58,6 +58,7 @@ suite('FileService-disk-unbuffered-test', () => {
         }
     });
 
+    // TODO
     test('createDir', async () => {
         const service = new FileService();
         const provider = new DiskFileSystemProvider();
@@ -75,6 +76,7 @@ suite('FileService-disk-unbuffered-test', () => {
             
             await service.delete(root, { recursive: true, useTrash: false });
         } catch (err) {
+            console.log('ERROR: ', err);
             assert.strictEqual(false, true);
         }
     });
@@ -90,6 +92,7 @@ suite('FileService-disk-unbuffered-test', () => {
         assert.strictEqual(await service.exist(URI.fromFile('test/code/service/temp/fileService-1mb')), false);
     });
 
+    // TODO
     test('delete - file', async () => {
         const service = new FileService();
         const provider = new DiskFileSystemProvider();
@@ -109,6 +112,7 @@ suite('FileService-disk-unbuffered-test', () => {
             assert.strictEqual(dir[2]![1], FileType.FILE);
             assert.strictEqual(dir[3]![1], FileType.FILE);
         } catch (err) {
+            console.log('ERROR: ', err);
             assert.strictEqual(false, true);
         }
     });
