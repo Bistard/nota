@@ -76,8 +76,8 @@ suite('FileService-disk-unbuffered-test', () => {
             
             await service.delete(root, { recursive: true, useTrash: false });
         } catch (err) {
-            console.log('ERROR: ', err);
-            assert.strictEqual(false, true);
+            throw err;
+            // assert.strictEqual(false, true);
         }
     });
 
@@ -112,8 +112,8 @@ suite('FileService-disk-unbuffered-test', () => {
             assert.strictEqual(dir[2]![1], FileType.FILE);
             assert.strictEqual(dir[3]![1], FileType.FILE);
         } catch (err) {
-            console.log('ERROR: ', err);
-            assert.strictEqual(false, true);
+            throw err;
+            // assert.strictEqual(false, true);
         }
     });
 
