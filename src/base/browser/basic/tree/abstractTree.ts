@@ -1,9 +1,13 @@
 import { ITreeListViewRenderer, TreeListItemRenderer } from "src/base/browser/basic/tree/treeListViewRenderer";
 import { ITreeListWidget, TreeListWidget } from "src/base/browser/basic/tree/treeListWidget";
 import { IListItemProvider, TreeListItemProvider } from "src/base/browser/secondary/listView/listItemProvider";
+import { IListTraitEvent } from "src/base/browser/secondary/listWidget/listTrait";
+import { IListMouseEvent } from "src/base/browser/secondary/listWidget/listWidget";
 import { IListDragAndDropProvider } from "src/base/browser/secondary/listWidget/listWidgetDragAndDrop";
 import { DisposableManager, IDisposable } from "src/base/common/dispose";
+import { Register } from "src/base/common/event";
 import { ISpliceable } from "src/base/common/range";
+import { IScrollEvent } from "src/base/common/scrollable";
 import { ITreeModel, ITreeNode } from "src/base/common/tree/tree";
 
 /**
@@ -21,6 +25,21 @@ export interface IAbstractTreeOptions<T> {
 export interface IAbstractTree<T, TFilter, TRef> {
 
     DOMElement: HTMLElement;
+
+    // [event]
+
+    get onDidScroll(): Register<IScrollEvent>;
+    get onDidChangeFocus(): Register<boolean>;
+    get onDidChangeItemFocus(): Register<IListTraitEvent>;
+    get onDidChangeItemSelection(): Register<IListTraitEvent>;
+
+    get onClick(): Register<IListMouseEvent<ITreeNode<T, TFilter>>>;
+    get onDoubleclick(): Register<IListMouseEvent<ITreeNode<T, TFilter>>>;
+    get onMouseover(): Register<IListMouseEvent<ITreeNode<T, TFilter>>>;
+    get onMouseout(): Register<IListMouseEvent<ITreeNode<T, TFilter>>>;
+    get onMousedown(): Register<IListMouseEvent<ITreeNode<T, TFilter>>>;
+    get onMouseup(): Register<IListMouseEvent<ITreeNode<T, TFilter>>>;
+    get onMousemove(): Register<IListMouseEvent<ITreeNode<T, TFilter>>>;
 
     // [method - general]
 
@@ -93,6 +112,21 @@ export abstract class AbstractTree<T, TFilter, TRef> implements IAbstractTree<T,
 
     }
 
+    // [event]
+
+    get onDidScroll(): Register<IScrollEvent> { return this._view.onDidScroll; }
+    get onDidChangeFocus(): Register<boolean> { return this._view.onDidChangeFocus; }
+    get onDidChangeItemFocus(): Register<IListTraitEvent> { return this._view.onDidChangeItemFocus; }
+    get onDidChangeItemSelection(): Register<IListTraitEvent> { return this._view.onDidChangeItemSelection; }
+
+    get onClick(): Register<IListMouseEvent<ITreeNode<T, TFilter>>> { return this._view.onClick; }
+    get onDoubleclick(): Register<IListMouseEvent<ITreeNode<T, TFilter>>> { return this._view.onDoubleclick; }
+    get onMouseover(): Register<IListMouseEvent<ITreeNode<T, TFilter>>> { return this._view.onMouseover; }
+    get onMouseout(): Register<IListMouseEvent<ITreeNode<T, TFilter>>> { return this._view.onMouseout; }
+    get onMousedown(): Register<IListMouseEvent<ITreeNode<T, TFilter>>> { return this._view.onMousedown; }
+    get onMouseup(): Register<IListMouseEvent<ITreeNode<T, TFilter>>> { return this._view.onMouseup; }
+    get onMousemove(): Register<IListMouseEvent<ITreeNode<T, TFilter>>> { return this._view.onMousemove; }
+    
     // [abstract methods]
 
     protected abstract createModel(view: ISpliceable<ITreeNode<T, TFilter>>): ITreeModel<T, TFilter, TRef>;
