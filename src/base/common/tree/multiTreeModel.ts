@@ -10,6 +10,8 @@ import { ITreeModel, ITreeNode, ITreeNodeItem } from "src/base/common/tree/tree"
  */
 export interface IMultiTreeModel<T, TFilter> extends ITreeModel<T | null, TFilter, T | null> {
 
+    onDidSplice: Register<ITreeModelSpliceEvent<T | null, TFilter>>;
+
     /**
      * @description Returns the number of nodes in the current tree model.
      */
@@ -59,7 +61,7 @@ export class MultiTreeModel<T, TFilter = void> implements IMultiTreeModel<T, TFi
 
     // [event]
 
-    readonly onDidSplice: Register<ITreeModelSpliceEvent<T | null, TFilter>>;
+    public onDidSplice: Register<ITreeModelSpliceEvent<T | null, TFilter>>;
 
     // [method]
 
