@@ -1,6 +1,6 @@
 import * as assert from 'assert';
 import { ISpliceable } from 'src/base/common/range';
-import { IIndexTreeNode, IndexTreeModel } from 'src/base/common/tree/indexTreeModel';
+import { IIndexTreeNode, IndexTreeModel } from 'src/base/browser/basic/tree/indexTreeModel';
 
 function toList<T>(arr: T[]): ISpliceable<T> {
 	return {

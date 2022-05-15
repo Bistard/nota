@@ -1,3 +1,4 @@
+import { ITreeModel, ITreeNode } from "src/base/browser/basic/tree/tree";
 import { ITreeListViewRenderer, TreeListItemRenderer } from "src/base/browser/basic/tree/treeListViewRenderer";
 import { ITreeListWidget, TreeListWidget } from "src/base/browser/basic/tree/treeListWidget";
 import { IListItemProvider, TreeListItemProvider } from "src/base/browser/secondary/listView/listItemProvider";
@@ -8,7 +9,6 @@ import { DisposableManager, IDisposable } from "src/base/common/dispose";
 import { Register } from "src/base/common/event";
 import { ISpliceable } from "src/base/common/range";
 import { IScrollEvent } from "src/base/common/scrollable";
-import { ITreeModel, ITreeNode } from "src/base/common/tree/tree";
 
 /**
  * An interface for the constructor options of the {@link AbstractTree}.

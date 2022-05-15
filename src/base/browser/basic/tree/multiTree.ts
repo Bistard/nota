@@ -2,9 +2,9 @@ import { AbstractTree, IAbstractTree, IAbstractTreeOptions } from "src/base/brow
 import { ITreeListViewRenderer } from "src/base/browser/basic/tree/treeListViewRenderer";
 import { IListItemProvider } from "src/base/browser/secondary/listView/listItemProvider";
 import { IListWidget } from "src/base/browser/secondary/listWidget/listWidget";
-import { ITreeModelSpliceOptions } from "src/base/common/tree/indexTreeModel";
-import { IMultiTreeModel, MultiTreeModel } from "src/base/common/tree/multiTreeModel";
-import { ITreeModel, ITreeNode, ITreeNodeItem } from "src/base/common/tree/tree";
+import { ITreeModelSpliceOptions } from "src/base/browser/basic/tree/indexTreeModel";
+import { IMultiTreeModel, MultiTreeModel } from "src/base/browser/basic/tree/multiTreeModel";
+import { ITreeModel, ITreeNode, ITreeNodeItem } from "src/base/browser/basic/tree/tree";
 
 /**
  * An interface only for {@link MultiTree}.

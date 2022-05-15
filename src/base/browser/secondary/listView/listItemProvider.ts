@@ -1,4 +1,4 @@
-import { ITreeNode } from "src/base/common/tree/tree";
+import { ITreeNode } from "src/base/browser/basic/tree/tree";
 import { ListItemType } from "./listView";
 
 

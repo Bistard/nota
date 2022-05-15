@@ -1,6 +1,6 @@
+import { ITreeModel, ITreeNode, ITreeNodeItem } from "src/base/browser/basic/tree/tree";
 import { Emitter, Register } from "src/base/common/event";
 import { ISpliceable } from "src/base/common/range";
-import { ITreeModel, ITreeNode, ITreeNodeItem } from "src/base/common/tree/tree";
 
 /**
  * Type of event when the {@link IIndexTreeModel} splice did happen.

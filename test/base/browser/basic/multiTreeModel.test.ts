@@ -1,7 +1,7 @@
 import * as assert from 'assert';
+import { MultiTreeModel } from 'src/base/browser/basic/tree/multiTreeModel';
+import { ITreeNode } from 'src/base/browser/basic/tree/tree';
 import { ISpliceable } from 'src/base/common/range';
-import { MultiTreeModel } from 'src/base/common/tree/multiTreeModel';
-import { ITreeNode } from 'src/base/common/tree/tree';
 
 function toList<T>(arr: T[]): ISpliceable<T> {
 	return {
