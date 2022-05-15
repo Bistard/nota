@@ -53,3 +53,28 @@ export class TreeListItemProvider<T> implements IListItemProvider<ITreeNode<T>> 
     }
 
 }
+
+/**
+ * @class A simple wrapper class that wraps a {@link IListItemProvider<T>} so 
+ * that the APIs may given the node with type `R` that contains a type `T`, 
+ * instead of just using `T`.
+ * 
+ * `R`: another type that wraps a type `T` used a field named `data`.
+ */
+ export class composedItemProvider<T, R extends { data: T }> implements IListItemProvider<R> {
+
+    private _provider: IListItemProvider<T>;
+
+    constructor(itemProvider: IListItemProvider<T>) {
+        this._provider = itemProvider;
+    }
+
+    getSize(data: R): number {
+        return this._provider.getSize(data.data);
+    }
+
+    getType(data: R): number {
+        return this._provider.getType(data.data);
+    }
+
+}
