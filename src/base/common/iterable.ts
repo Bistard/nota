@@ -5,6 +5,12 @@
  */
 export namespace Iterable {
 
+	const _emptyRef: Iterable<any> = Object.freeze([]);
+	
+	export function empty<T>(): Iterable<T> {
+		return _emptyRef;
+	}
+
     export function *map<T, R>(iterable: Iterable<T>, fn: (each: T, index: number) => R): Iterable<R> {
         let index = 0;
         for (const item of iterable) {
