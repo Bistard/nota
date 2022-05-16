@@ -150,23 +150,28 @@ export abstract class AbstractTree<T, TFilter, TRef> implements IAbstractTree<T,
     }
 
     public collapse(location: TRef, recursive: boolean = false): boolean {
-        return this._model.setCollapsed(location, true, recursive);
+        this.__throwIfNotSupport(this._model.setCollapsed);
+        return this._model.setCollapsed!(location, true, recursive);
     }
 
     public expand(location: TRef, recursive: boolean = false): boolean {
-        return this._model.setCollapsed(location, false, recursive);
+        this.__throwIfNotSupport(this._model.setCollapsed);
+        return this._model.setCollapsed!(location, false, recursive);
     }
 
     public toggleCollapseOrExpand(location: TRef, recursive: boolean = false): boolean {
-        return this._model.setCollapsed(location, undefined, recursive);
+        this.__throwIfNotSupport!(this._model.setCollapsed);
+        return this._model.setCollapsed!(location, undefined, recursive);
     }
 
     public collapseAll(): void {
-        this._model.setCollapsed(this._model.root, true, true);
+        this.__throwIfNotSupport(this._model.setCollapsed);
+        this._model.setCollapsed!(this._model.root, true, true);
     }
 
     public expandAll(): void {
-        this._model.setCollapsed(this._model.root, false, true);
+        this.__throwIfNotSupport(this._model.setCollapsed);
+        this._model.setCollapsed!(this._model.root, false, true);
     }
 
     public setSelections(items: TRef[]): void {
@@ -189,5 +194,11 @@ export abstract class AbstractTree<T, TFilter, TRef> implements IAbstractTree<T,
     }
 
     // [private helper methods]
+
+    private __throwIfNotSupport(method: any): void {
+        if (!method) {
+            throw new Error(`current tree model does not support: ${method}`);
+        }
+    }
 
 }

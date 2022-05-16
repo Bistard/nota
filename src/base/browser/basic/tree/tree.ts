@@ -77,14 +77,13 @@ export interface ITreeNodeItem<T> {
  * TFilter: represents the type of data for matching purpose, eg. {@link FuzzyScore}.
  * TRef: represents the equivalent way representing node in the tree, default is 
  *       {@link number[]} which representing the location of a node.
- * TRoot: represents the type of data of the root.
  */
-export interface ITreeModel<T, TFilter = void, TRef = number[], TRoot = TRef> {
+export interface ITreeModel<T, TFilter = void, TRef = number[]> {
 
     /**
      * Represents the root of the tree.
      */
-    readonly root: TRoot;
+    readonly root: TRef;
 
     /**
      * @description Check if the given node is existed.
@@ -110,7 +109,7 @@ export interface ITreeModel<T, TFilter = void, TRef = number[], TRoot = TRef> {
      * @param node The provided tree node.
      * @returns The location of the given tree node.
      */
-    getNodeLocation(node: ITreeNode<T, TFilter>): TRef;
+    getNodeLocation?(node: ITreeNode<T, TFilter>): TRef;
 
     /**
      * @description Returns the index of the node in the tree when traversing in 
@@ -118,7 +117,7 @@ export interface ITreeModel<T, TFilter = void, TRef = number[], TRoot = TRef> {
      * @param location The location representation of the node.
      * @warn If node is not found, an {@link Error} is thrown.
      */
-    getNodeListIndex(location: TRef): number;
+    getNodeListIndex?(location: TRef): number;
 
     /**
      * @description Determines if the given location of a node is collapsible.
@@ -135,7 +134,7 @@ export interface ITreeModel<T, TFilter = void, TRef = number[], TRoot = TRef> {
      *                    current state of the node.
      * @returns If the operation was made.
      */
-    setCollapsible(location: TRef, collapsible?: boolean): boolean;
+    setCollapsible?(location: TRef, collapsible?: boolean): boolean;
 
     /**
      * @description Determines if the given location of a node is collapsed.
@@ -156,13 +155,13 @@ export interface ITreeModel<T, TFilter = void, TRef = number[], TRoot = TRef> {
      * 
      * @note Recursive meaning all the nested the children will also be collapsed.
      */
-    setCollapsed(location: TRef, collapsed?: boolean, recursive?: boolean): boolean;
+    setCollapsed?(location: TRef, collapsed?: boolean, recursive?: boolean): boolean;
 
     /**
      * @description Expands to the tree node with the given location.
      * @param location The location representation of the node.
      */
-    setExpandTo(location: TRef): void;
+    setExpandTo?(location: TRef): void;
 
     /**
      * @description Rerenders the corresponding node with the given location.
