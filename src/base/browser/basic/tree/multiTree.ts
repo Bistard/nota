@@ -24,6 +24,14 @@ export interface IMultiTree<T, TFilter = void> extends IAbstractTree<T | null, T
      * @description Returns the number of nodes in the current tree model.
      */
     size(): number;
+
+    /**
+     * @description Rerenders the whole view. If the item is null, the whole 
+     * view will be rerendered. Otherwise will only rerenders the corresponding 
+     * tree node.
+     * @param item The provided item. 
+     */
+    rerender(item: T | null): void;
 }
 
 /**
@@ -60,6 +68,14 @@ export class MultiTree<T, TFilter = void> extends AbstractTree<T | null, TFilter
         opts: ITreeModelSpliceOptions<T, TFilter> = {}
     ): void {
         this._model.splice(item, deleteCount, children, opts);
+    }
+
+    public rerender(item: T | null): void {
+        if (item === null) {
+            this._view.rerender();
+        }
+
+        this._model.rerender(item);
     }
 
     public size(): number {

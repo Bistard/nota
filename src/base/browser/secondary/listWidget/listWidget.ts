@@ -67,6 +67,8 @@ export interface IListWidget<T> extends IDisposable {
 
     // [methods]
 
+    rerender(): void;
+
     splice(index: number, deleteCount: number, items: T[]): T[];
 
     // [item traits support]
@@ -160,6 +162,10 @@ export class ListWidget<T> implements IListWidget<T> {
 
     public dispose(): void {
         this.disposables.dispose();
+    }
+
+    public rerender(): void {
+        this.view.rerender();
     }
 
     public splice(index: number, deleteCount: number, items: T[] = []): T[] {

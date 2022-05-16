@@ -90,6 +90,11 @@ export interface IListView<T> extends IDisposable {
     render(prevRenderRange: IRange, renderTop: number, renderHeight: number): void;
 
     /**
+     * @description Rerenders the whole view.
+     */
+    rerender(): void;
+
+    /**
      * @description Deletes an amount of elements in the list view at the given 
      * index, if necessary, inserts the provided items after the given index.
      * 
@@ -395,6 +400,16 @@ export class ListView<T> implements IDisposable, ISpliceable<T>, IListView<T> {
         this.listContainer.style.top = -renderTop + 'px';
         this.prevRenderTop = renderTop;
         this.prevRenderHeight = renderHeight;
+    }
+
+    public rerender(): void {
+        
+        /**
+         * @note Since each item does not support dynamic height for now, 
+         * rerender will do nothing.
+         */
+
+        return;
     }
 
     public splice(index: number, deleteCount: number, items: T[] = []): T[] {
