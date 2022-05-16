@@ -77,13 +77,14 @@ export interface ITreeNodeItem<T> {
  * TFilter: represents the type of data for matching purpose, eg. {@link FuzzyScore}.
  * TRef: represents the equivalent way representing node in the tree, default is 
  *       {@link number[]} which representing the location of a node.
+ * TRoot: represents the type of data of the root.
  */
-export interface ITreeModel<T, TFilter = void, TRef = number[]> {
+export interface ITreeModel<T, TFilter = void, TRef = number[], TRoot = TRef> {
 
     /**
      * Represents the root of the tree.
      */
-    readonly root: TRef;
+    readonly root: TRoot;
 
     /**
      * @description Check if the given node is existed.
