@@ -361,7 +361,7 @@ suite('FileService-disk-unbuffered-test', () => {
         }
     });
 
-    test('writeFile - 10mb', async () => { // REVIEW: slow (~160ms)
+    test('writeFile - 10mb', async () => {
         const service = new FileService();
         const provider = new DiskFileSystemProvider();
         service.registerProvider('file', provider);
