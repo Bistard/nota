@@ -3,7 +3,7 @@ import { URI } from "src/base/common/file/uri";
 import * as fs from "fs";
 import { fileExists, FileMode } from "src/base/node/io";
 import { retry } from "src/base/common/async";
-import { join } from "path";
+import { join } from "src/base/common/file/path";
 
 export class DiskFileSystemProvider implements IFileSystemProviderWithFileReadWrite, IFileSystemProviderWithOpenReadWriteClose {
 
