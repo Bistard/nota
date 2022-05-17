@@ -375,10 +375,8 @@ export class FileService implements IFileService {
     /**
      * @description Create directory recursively if not existed.
      */
-    private async __mkdirRecursive(
-        provider: IFileSystemProvider, 
-        dir: URI): Promise<void> 
-    {
+    private async __mkdirRecursive(provider: IFileSystemProvider, dir: URI): Promise<void> {
+        
         const dirWaitToBeCreate: string[] = [];
         let path = URI.toFsPath(dir); // remove the file name
         
@@ -406,7 +404,7 @@ export class FileService implements IFileService {
             path = join(path, dirWaitToBeCreate[i]!);
 
             try {
-                provider.mkdir(URI.fromFile(path));
+                await provider.mkdir(URI.fromFile(path));
             } catch (err) {
                 throw err;
             }
