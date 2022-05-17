@@ -45,12 +45,12 @@ export class AsyncMultiTreeModel<T, TFilter = void> implements IAsyncMultiTreeMo
 
     // [field]
 
-    protected readonly _root: IAsyncTreeNode<T>;
-
     private readonly _tree: IMultiTree<IAsyncTreeNode<T>, TFilter>;
+
+    private readonly _root: IAsyncTreeNode<T>;
     private readonly _nodes: Map<T | null, IAsyncTreeNode<T>>;
-    private readonly _unwrapper: AsyncWeakMap<T, TFilter>;
     
+    private readonly _unwrapper: AsyncWeakMap<T, TFilter>;
     private readonly _childrenProvider: IAsyncChildrenProvider<T>;
 
     /**
