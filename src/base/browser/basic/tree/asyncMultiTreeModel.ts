@@ -4,7 +4,9 @@ import { ITreeModel, ITreeNode } from "src/base/browser/basic/tree/tree";
 import { Iterable } from "src/base/common/iterable";
 import { isPromise } from "util/types";
 
-
+/**
+ * An interface only for {@link AsyncMultiTreeModel}.
+ */
 export interface IAsyncMultiTreeModel<T, TFilter> extends ITreeModel<T, TFilter, T> {
     
     /**
@@ -23,7 +25,10 @@ export interface IAsyncMultiTreeModel<T, TFilter> extends ITreeModel<T, TFilter,
 
 }
 
-export class AsyncMultiTreeModel<T, TFilter> implements IAsyncMultiTreeModel<T, TFilter> {
+/**
+ * @class // TODO
+ */
+export class AsyncMultiTreeModel<T, TFilter = void> implements IAsyncMultiTreeModel<T, TFilter> {
 
     // [field]
 
@@ -50,12 +55,13 @@ export class AsyncMultiTreeModel<T, TFilter> implements IAsyncMultiTreeModel<T, 
     // [constructor]
 
     constructor(
+        rootData: T,
         tree: IMultiTree<IAsyncTreeNode<T>, TFilter>,
         childrenProvider: IAsyncChildrenProvider<T>,
         nodemap: AsyncWeakMap<T, TFilter>
     ) {
         
-        this._root = this.__createAsyncTreeNode(undefined!, null);
+        this._root = this.__createAsyncTreeNode(rootData, null);
         this._tree = tree;
         this._nodes = new Map();
         this._nodes.set(null, this._root);
@@ -65,7 +71,6 @@ export class AsyncMultiTreeModel<T, TFilter> implements IAsyncMultiTreeModel<T, 
 
         this._statFetching = new Map();
         this._nodeRefreshing = new Map();
-
     }
 
     // [method]
@@ -73,12 +78,13 @@ export class AsyncMultiTreeModel<T, TFilter> implements IAsyncMultiTreeModel<T, 
     get root() { return this._root.data; }
 
     public async refreshNode(node: IAsyncTreeNode<T>): Promise<void> {
+        
         /**
          * If any ongoing refreshing node has a connection with the current node 
          * (equal, or either one is the ancestor of the other), we have to wait 
          * until it has been done, then we retry the method.
          */
-         for (const [other, refreshing] of this._nodeRefreshing) {
+        for (const [other, refreshing] of this._nodeRefreshing) {
             if (node === other || 
                 this.__isAncestor(node, other) || 
                 this.__isAncestor(other, node)) 
@@ -95,7 +101,7 @@ export class AsyncMultiTreeModel<T, TFilter> implements IAsyncMultiTreeModel<T, 
     }
 
     public getAsyncNode(data: T): IAsyncTreeNode<T> {
-        return this.__getAsyncNode(data);        
+        return this.__getAsyncNode(data);
     }
 
     public getNode(data: T): ITreeNode<T, TFilter> {
@@ -105,28 +111,27 @@ export class AsyncMultiTreeModel<T, TFilter> implements IAsyncMultiTreeModel<T, 
     }
 
     public hasNode(data: T): boolean {
-        const asyncNode = this.__getAsyncNode(data);
-        return this._tree.hasNode(asyncNode === this._root ? null : asyncNode);
-    }
-
-    public getRoot(): ITreeNode<T, TFilter> {
-        const node = this._tree.getNode(this._root);
-        return this._unwrapper.map(node);
+        try {
+            this.__getAsyncNode(data);
+        } catch (err) {
+            return false;
+        }
+        return true;
     }
 
     public isCollapsible(data: T): boolean {
         const asyncNode = this.__getAsyncNode(data);
-        return this._tree.isCollapsible(asyncNode);
+        return this._tree.isCollapsible(asyncNode === this._root ? null : asyncNode);
     }
 
     public isCollapsed(data: T): boolean {
         const asyncNode = this.__getAsyncNode(data);
-        return this._tree.isCollapsed(asyncNode);
+        return this._tree.isCollapsed(asyncNode === this._root ? null : asyncNode);
     }
 
     public rerender(data: T): void {
         const asyncNode = this.__getAsyncNode(data);
-        this._tree.rerender(asyncNode);
+        this._tree.rerender(asyncNode === this._root ? null : asyncNode);
     }
 
     // [private helper method]
@@ -196,7 +201,6 @@ export class AsyncMultiTreeModel<T, TFilter> implements IAsyncMultiTreeModel<T, 
         });
 
         try {
-
             // wait until finish refreshing all its direct children
             const children = await this.__refreshChildren(node);
 
@@ -205,8 +209,13 @@ export class AsyncMultiTreeModel<T, TFilter> implements IAsyncMultiTreeModel<T, 
              * other descendants.
              */
             await Promise.all(children.map(child => this.__refreshNodeAndChildren(child)));
+        }
+        
+        catch (err) {
+            throw err;
+        }
 
-        } finally {
+        finally {
             /**
              * function will do nothing except marking the current node 
              * refreshing state is finished.
@@ -307,12 +316,21 @@ export class AsyncMultiTreeModel<T, TFilter> implements IAsyncMultiTreeModel<T, 
 
         // delete the old children mapping
         for (const oldChild of node.children) {
-            this._nodes.delete(oldChild.data);
+            this.__dfsDelete(oldChild);
         }
         
         node.children.splice(0, node.children.length, ...childrenNodes);
 
         return childrenNodes;
+    }
+
+    /**
+     * @description Recursively deletes the given node and its descendants.
+     * @param node The provided async tree node.
+     */
+    private __dfsDelete(node: IAsyncTreeNode<T>) {
+        this._nodes.delete(node.data);
+        node.children.forEach(child => this._nodes.delete(child.data));
     }
 
 }
