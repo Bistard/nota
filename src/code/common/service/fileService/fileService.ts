@@ -1,5 +1,5 @@
 import { DataBuffer } from "src/base/common/file/buffer";
-import { FileSystemProviderAbleToRead, hasOpenReadWriteCloseCapability, hasReadWriteCapability, IReadFileOptions, IFileSystemProvider, IFileSystemProviderWithFileReadWrite, IFileSystemProviderWithOpenReadWriteClose, IWriteFileOptions, IStat, FileType, IFileOperationError, FileSystemProviderCapability, IDeleteFileOptions } from "src/base/common/file/file";
+import { FileSystemProviderAbleToRead, hasOpenReadWriteCloseCapability, hasReadWriteCapability, IReadFileOptions, IFileSystemProvider, IFileSystemProviderWithFileReadWrite, IFileSystemProviderWithOpenReadWriteClose, IWriteFileOptions, IFileStat, FileType, IFileOperationError, FileSystemProviderCapability, IDeleteFileOptions } from "src/base/common/file/file";
 import { basename, dirname, join } from "src/base/common/file/path";
 import { bufferToStream, IReadableStream, IWriteableStream, listenStream, newWriteableBufferStream, streamToBuffer } from "src/base/common/file/stream";
 import { isAbsoluteURI, URI } from "src/base/common/file/uri";
@@ -383,7 +383,7 @@ export class FileService implements IFileService {
         while (true) {
             try {
                 // try to find a directory that exists
-                let stat: IStat = await provider.stat(URI.fromFile(path));
+                let stat: IFileStat = await provider.stat(URI.fromFile(path));
                     
                 // not a directory
                 if ((stat.type & FileType.DIRECTORY) === 0) {
@@ -489,12 +489,12 @@ export class FileService implements IFileService {
     private async __validateWrite(
         provider: IFileSystemProvider, 
         uri: URI, 
-        opts?: IWriteFileOptions): Promise<IStat | undefined> 
+        opts?: IWriteFileOptions): Promise<IFileStat | undefined> 
     {
         // REVIEW: Validate unlock support (use `opts`)
 
         // get the stat of the file
-        let stat: IStat | undefined = undefined;
+        let stat: IFileStat | undefined = undefined;
 		try {
 			stat = await provider.stat(uri);
 		} catch (error) {
@@ -549,7 +549,7 @@ export class FileService implements IFileService {
         const provider = this.__throwIfProviderIsReadonly(await this.__getWriteProvider(uri));
         
         // delete validation
-        let stat: IStat | undefined = undefined;
+        let stat: IFileStat | undefined = undefined;
         try {
             stat = await provider.stat(uri);
         } catch (err) {
@@ -569,7 +569,7 @@ export class FileService implements IFileService {
         return provider;
     }
 
-    private __throwIfFileIsReadonly(stat: IStat): void {
+    private __throwIfFileIsReadonly(stat: IFileStat): void {
         if (typeof stat.readonly === 'boolean' && stat.readonly == true) {
             throw new Error('unable to modify a readonly file');
         }

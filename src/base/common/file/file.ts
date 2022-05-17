@@ -7,7 +7,7 @@ export const enum FileType {
 	DIRECTORY
 }
 
-export interface IStat {
+export interface IFileStat {
 
 	readonly type: FileType;
 	readonly createTime: number; // ms
@@ -16,7 +16,8 @@ export interface IStat {
 	readonly readonly?: boolean;
 }
 
-export class File implements IStat {
+/** @deprecated */
+export class File implements IFileStat {
 
 	readonly type: FileType;
 	readonly createTime: number;
@@ -37,7 +38,8 @@ export class File implements IStat {
 	}
 }
 
-export class Directory implements IStat {
+/** @deprecated */
+export class Directory implements IFileStat {
 
 	readonly type: FileType;
 	readonly createTime: number;
@@ -68,7 +70,7 @@ export interface IFileSystemProvider {
 	// readonly onDidChangeFile: Event<readonly IFileChange[]>;
 	// watch(uri: string, opts: IWatchOptions): IDisposable;
 
-	stat(uri: URI): Promise<IStat>;
+	stat(uri: URI): Promise<IFileStat>;
 	mkdir(uri: URI): Promise<void>;
 	readdir(uri: URI): Promise<[string, FileType][]>;
 	delete(uri: URI, opts: IDeleteFileOptions): Promise<void>;
