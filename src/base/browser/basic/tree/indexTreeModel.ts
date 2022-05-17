@@ -84,6 +84,8 @@ export interface IIndexTreeModel<T, TFilter = void> extends ITreeModel<T, TFilte
     setCollapsed(location: number[], collapsed?: boolean, recursive?: boolean): boolean;
 
     setExpandTo(location: number[]): void;
+
+    getRoot(): IIndexTreeNode<T, TFilter>;
 }
 
 /**

@@ -21,7 +21,7 @@ export interface ITreeNode<T, TFilter = void> {
     /** The childrens of the tree node. */
     children: ITreeNode<T, TFilter>[];
 
-    /** The depth of the tree node in the whole tree structure. */
+    /** The depth of the tree node in the whole tree structure. First level is 1. */
     depth: number;
 
     /** Determines if the tree node is visible. */
@@ -102,7 +102,7 @@ export interface ITreeModel<T, TFilter = void, TRef = number[]> {
     /**
      * @description Returns the root of the tree model.
      */
-    getRoot(): ITreeNode<T, TFilter>;
+    getRoot?(): ITreeNode<T, TFilter>;
 
     /**
      * @description Returns the location corresponding to the given {@link ITreeNode}.

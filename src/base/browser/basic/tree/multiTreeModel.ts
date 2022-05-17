@@ -25,7 +25,6 @@ export interface IMultiTreeModel<T, TFilter> extends ITreeModel<T | null, TFilte
      * @param opts The option for splicing.
      */
     splice(item: T | null, deleteCount: number, children: ITreeNodeItem<T>[], opts: ITreeModelSpliceOptions<T, TFilter>): void;
-
 }
 
 /**
