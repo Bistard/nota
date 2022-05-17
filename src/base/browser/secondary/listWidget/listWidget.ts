@@ -40,7 +40,7 @@ export interface IListDragEvent<T> {
  * The consturtor options for {@link ListWidget}.
  */
 export interface IListWidgetOpts<T> extends IListViewOpts<T> {
-    // TODO
+    
 }
 
 // TODO: method comments
@@ -51,22 +51,86 @@ export interface IListWidget<T> extends IDisposable {
     
     // [events / getter]
     
+    /**
+     * The container of the whole view.
+     */
     DOMElement: HTMLElement;
+
+    /**
+     * The length (height) of the whole view in pixels.
+     */
     length: number;
+
+    /**
+     * Fires when the {@link IListWidget} is scrolling.
+     */
     onDidScroll: Register<IScrollEvent>;
+    
+    /**
+     * Fires when the {@link IListWidget} itself is blured or focused.
+     */
     onDidChangeFocus: Register<boolean>;
+
+    /**
+     * Fires when the focused items in the {@link IListWidget} is changed.
+     */
     onDidChangeItemFocus: Register<IListTraitEvent>;
+
+    /**
+     * Fires when the selected items in the {@link IListWidget} is changed.
+     */
     onDidChangeItemSelection: Register<IListTraitEvent>;
+
+    /**
+     * Fires when the item in the {@link IListWidget} is clicked.
+     */
     onClick: Register<IListMouseEvent<T>>;
+    
+    /**
+     * Fires when the item in the {@link IListWidget} is double clicked.
+     */
     onDoubleclick: Register<IListMouseEvent<T>>;
+
+    /**
+     * Fires when the item in the {@link IListWidget} is mouseovered.
+     */
     onMouseover: Register<IListMouseEvent<T>>;
+
+    /**
+     * Fires when the item in the {@link IListWidget} is mousedouted.
+     */
     onMouseout: Register<IListMouseEvent<T>>;
+    
+    /**
+     * Fires when the item in the {@link IListWidget} is mousedowned.
+     */
     onMousedown: Register<IListMouseEvent<T>>;
+    
+    /**
+     * Fires when the item in the {@link IListWidget} is mouseuped.
+     */
     onMouseup: Register<IListMouseEvent<T>>;
+
+    /**
+     * Fires when the item in the {@link IListWidget} is mousemoved.
+     */
     onMousemove: Register<IListMouseEvent<T>>;
 
     // [methods]
 
+    /**
+     * @description Rerenders the whole view.
+     */
+    rerender(): void;
+
+    /**
+     * @description Deletes an amount of elements in the {@link IListWidget} at 
+     * the given index, if necessary, inserts the provided items after the given 
+     * index.
+     * @param index The given index.
+     * @param deleteCount The amount of items to be deleted.
+     * @param items The items to be inserted.
+     */
     splice(index: number, deleteCount: number, items: T[]): T[];
 
     // [item traits support]
@@ -160,6 +224,10 @@ export class ListWidget<T> implements IListWidget<T> {
 
     public dispose(): void {
         this.disposables.dispose();
+    }
+
+    public rerender(): void {
+        this.view.rerender();
     }
 
     public splice(index: number, deleteCount: number, items: T[] = []): T[] {

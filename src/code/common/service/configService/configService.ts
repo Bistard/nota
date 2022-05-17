@@ -316,15 +316,15 @@ export interface IUserNotebookManagerSettings {
 
     /**
      * To excludes files, please use regular expression form.
-     * @note This has lower priority than 'noteBookManagerInclude'.
+     * @note This has lower priority than 'notebookManagerInclude'.
      */
-    noteBookManagerExclude: string[];
+    notebookManagerExclude: string[];
     
     /**
      * To includes files, please use regular expression form.
-     * @note This has higher priority than 'noteBookManagerExclude'.
+     * @note This has higher priority than 'notebookManagerExclude'.
      */
-    noteBookManagerInclude: string[];    
+    notebookManagerInclude: string[];    
 }
 
 /** @SettingInterface */
@@ -353,10 +353,10 @@ export class DefaultUserConfigModel extends ConfigModel {
         return {
             'notebookManager': 
             {
-                noteBookManagerExclude: [
+                notebookManagerExclude: [
                     '^\\..*',
                 ] as string[],
-                noteBookManagerInclude: [
+                notebookManagerInclude: [
 
                 ] as string[],
             },

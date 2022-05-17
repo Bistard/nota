@@ -1,5 +1,5 @@
+import { ITreeNode } from "src/base/browser/basic/tree/tree";
 import { IListViewRenderer } from "src/base/browser/secondary/listView/listRenderer";
-import { ITreeNode } from "src/base/common/tree/tree";
 
 /**
  * A type of renderer in {@link IListView} that manages to render tree related 

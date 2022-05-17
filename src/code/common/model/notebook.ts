@@ -1,25 +1,31 @@
 import { FileTree } from "src/base/node/fileTree";
 
-/**
- * @class A class for each noteBook.
- */
-export class Notebook {
+export interface INotebook {
 
-    public readonly noteBookName: string;
-    public readonly noteBookDir: string;
+}
+
+/**
+ * @class A class for each notebook.
+ */
+export class Notebook implements INotebook {
+
+    // [field]
+
+    public readonly name: string;
+    public readonly path: string;
 
     public readonly fileTree: FileTree;
 
-    /**
-     * @param name name of the notebook
-     * @param path path to the root of the notebook
-     */
+    // [constructor]
+
     constructor(name: string, path: string) {
-        this.noteBookName = name;
-        this.noteBookDir = path;
+        this.name = name;
+        this.path = path;
         
         this.fileTree = new FileTree(path);
     }
+
+    // [method]
 
     /**
      * @description synchronously building the whole notebook folder tree and
@@ -44,6 +50,8 @@ export class Notebook {
     public destory(): void {
         
     }
+
+    // [private]
 
     /**
      * @description pass this function to JSON.stringify so that it is able to convert

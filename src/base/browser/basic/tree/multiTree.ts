@@ -1,10 +1,10 @@
 import { AbstractTree, IAbstractTree, IAbstractTreeOptions } from "src/base/browser/basic/tree/abstractTree";
-import { TreeListItemRenderer } from "src/base/browser/basic/tree/treeListViewRenderer";
+import { ITreeListViewRenderer } from "src/base/browser/basic/tree/treeListViewRenderer";
 import { IListItemProvider } from "src/base/browser/secondary/listView/listItemProvider";
 import { IListWidget } from "src/base/browser/secondary/listWidget/listWidget";
-import { ITreeModelSpliceOptions } from "src/base/common/tree/indexTreeModel";
-import { IMultiTreeModel, MultiTreeModel } from "src/base/common/tree/multiTreeModel";
-import { ITreeModel, ITreeNode, ITreeNodeItem } from "src/base/common/tree/tree";
+import { ITreeModelSpliceOptions } from "src/base/browser/basic/tree/indexTreeModel";
+import { IMultiTreeModel, MultiTreeModel } from "src/base/browser/basic/tree/multiTreeModel";
+import { ITreeModel, ITreeNode, ITreeNodeItem } from "src/base/browser/basic/tree/tree";
 
 /**
  * An interface only for {@link MultiTree}.
@@ -24,6 +24,14 @@ export interface IMultiTree<T, TFilter = void> extends IAbstractTree<T | null, T
      * @description Returns the number of nodes in the current tree model.
      */
     size(): number;
+
+    /**
+     * @description Rerenders the whole view. If the item is null, the whole 
+     * view will be rerendered. Otherwise will only rerenders the corresponding 
+     * tree node.
+     * @param item The provided item. 
+     */
+    rerender(item: T | null): void;
 }
 
 /**
@@ -44,7 +52,7 @@ export class MultiTree<T, TFilter = void> extends AbstractTree<T | null, TFilter
 
     constructor(
         container: HTMLElement,
-        renderers: TreeListItemRenderer<T, TFilter, any>[],
+        renderers: ITreeListViewRenderer<T, TFilter, any>[],
         itemProvider: IListItemProvider<T>,
         opts: IAbstractTreeOptions<T> = {}
     ) {
@@ -62,6 +70,14 @@ export class MultiTree<T, TFilter = void> extends AbstractTree<T | null, TFilter
         this._model.splice(item, deleteCount, children, opts);
     }
 
+    public rerender(item: T | null): void {
+        if (item === null) {
+            this._view.rerender();
+        }
+
+        this._model.rerender(item);
+    }
+
     public size(): number {
         return this._model.size();
     }
@@ -69,7 +85,7 @@ export class MultiTree<T, TFilter = void> extends AbstractTree<T | null, TFilter
     // [private helper method]
 
     protected override createModel(view: IListWidget<ITreeNode<T, TFilter>>): ITreeModel<T | null, TFilter, T | null> {
-        return new MultiTreeModel(view);
+        return new MultiTreeModel<T, TFilter>(view);
     }
 
 }
