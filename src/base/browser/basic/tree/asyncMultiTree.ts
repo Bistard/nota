@@ -157,12 +157,19 @@ export interface IAsyncMultiTree<T, TFilter> {
 export type AsyncWeakMap<T, TFilter> = Weakmap<ITreeNode<IAsyncTreeNode<T> | null, TFilter>, ITreeNode<T, TFilter>>;
 
 /**
- * @class Wraps a {@link IMultiTree}, // TODO
+ * @class Built upon a {@link IMultiTree} and {@link IAsyncMultiTreeModel}.
  * 
+ * Different from {@link IMultiTree} and any other tree-like structure, children 
+ * of each node is NOT decided by the caller, instead, caller needs to provider 
+ * a {@link IAsyncChildrenProvider} which is the one that has ability to 
+ * determine the children of each node.
  * 
- * @note Children of each node is NOT decided by the user, instead, creator needs
- * to provider a {@link IAsyncChildrenProvider} which has ability to determine
- * the children of each node.
+ * Since the caller cannot decide the structrue of the tree, once the root data 
+ * is given, the {@link AsyncMultiTree} will build the whole tree under the
+ * provided {@link IAsyncChildrenProvider}, and the whole process is implemented
+ * asynchronously.
+ * 
+ * Constructor is private, use {@link AsyncMultiTree.create} instead.
  */
 export class AsyncMultiTree<T, TFilter = void> implements IAsyncMultiTree<T, TFilter>, IDisposable {
 

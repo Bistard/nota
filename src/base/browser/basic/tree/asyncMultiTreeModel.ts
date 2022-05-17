@@ -26,7 +26,20 @@ export interface IAsyncMultiTreeModel<T, TFilter> extends ITreeModel<T, TFilter,
 }
 
 /**
- * @class // TODO
+ * @class Model relies on a provided {@link IMultiTree} where each tree node has 
+ * a type {@link ITreeNode<IAsyncTreeNode<T>>}.
+ * 
+ * Except the provided {@link IMultiTree}, the model itself will also maintain a 
+ * same tree structure but using {@link IAsyncTreeNode<T>}.
+ * 
+ * The model only maintaining the inner tree structure. The {@link IMultiTree} 
+ * and its view will be maintained by the wrapper class {@link IAsyncMultiTree}.
+ * 
+ * @note Reason for having a same tree structure inside the model, because every
+ * `IMultiTree.splice()` call will rerender the whole view. Each `refresh()` 
+ * call might causes too many render calls. That is why we need to maintain a 
+ * same tree structure, once the build process finished, we only need to render 
+ * once in the {@link IAsyncMultiTree}.
  */
 export class AsyncMultiTreeModel<T, TFilter = void> implements IAsyncMultiTreeModel<T, TFilter> {
 
