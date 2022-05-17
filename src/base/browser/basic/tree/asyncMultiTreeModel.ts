@@ -2,7 +2,7 @@ import { AsyncWeakMap, IAsyncChildrenProvider, IAsyncTreeNode } from "src/base/b
 import { IMultiTree } from "src/base/browser/basic/tree/multiTree";
 import { ITreeModel, ITreeNode } from "src/base/browser/basic/tree/tree";
 import { Iterable } from "src/base/common/iterable";
-import { isPromise } from "util/types";
+import { isIterable } from "src/base/common/type";
 
 /**
  * An interface only for {@link AsyncMultiTreeModel}.
@@ -291,12 +291,10 @@ export class AsyncMultiTreeModel<T, TFilter = void> implements IAsyncMultiTreeMo
 
         const children = this._childrenProvider.getChildren(node.data);
         
-        if (isPromise(children)) {
+        if (!isIterable(children)) {
             this._statFetching.set(node, children);
             return children.finally(() => this._statFetching.delete(node));
-        }
-
-        else {
+        } else {
             return children;
         }
     }

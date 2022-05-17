@@ -40,6 +40,13 @@ export function isArray(array: any): array is any[] {
 }
 
 /**
+ * @returns whether the provided parameter is an Iterable, casting to the given generic
+ */
+ export function isIterable<T>(obj: unknown): obj is Iterable<T> {
+	return !!obj && typeof (obj as any)[Symbol.iterator] === 'function';
+}
+
+/**
  * @description Returns value if it is not `undefined`, otherwise returns the 
  * defaultValue.
  * @param value provided value which could be `undefined`.
