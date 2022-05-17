@@ -76,15 +76,10 @@ export interface IIndexTreeModel<T, TFilter = void> extends ITreeModel<T, TFilte
     splice(location: number[], deleteCount: number, itemsToInsert: ITreeNodeItem<T>[], opts: ITreeModelSpliceOptions<T, TFilter>): void;
 
     getNodeLocation(node: ITreeNode<T, TFilter>): number[];
-    
     getNodeListIndex(location: number[]): number;
-
     setCollapsible(location: number[], collapsible?: boolean): boolean;
-
     setCollapsed(location: number[], collapsed?: boolean, recursive?: boolean): boolean;
-
     setExpandTo(location: number[]): void;
-
     getRoot(): IIndexTreeNode<T, TFilter>;
 }
 

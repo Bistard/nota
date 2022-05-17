@@ -1,4 +1,4 @@
-import { ITreeModel, ITreeNode } from "src/base/browser/basic/tree/tree";
+import { ITreeModel, ITreeMouseEvent, ITreeNode } from "src/base/browser/basic/tree/tree";
 import { ITreeListViewRenderer, TreeListItemRenderer } from "src/base/browser/basic/tree/treeListViewRenderer";
 import { ITreeListWidget, TreeListWidget } from "src/base/browser/basic/tree/treeListWidget";
 import { IListItemProvider, TreeListItemProvider } from "src/base/browser/secondary/listView/listItemProvider";
@@ -6,7 +6,7 @@ import { IListTraitEvent } from "src/base/browser/secondary/listWidget/listTrait
 import { IListMouseEvent } from "src/base/browser/secondary/listWidget/listWidget";
 import { IListDragAndDropProvider } from "src/base/browser/secondary/listWidget/listWidgetDragAndDrop";
 import { DisposableManager, IDisposable } from "src/base/common/dispose";
-import { Register } from "src/base/common/event";
+import { Event, Register } from "src/base/common/event";
 import { ISpliceable } from "src/base/common/range";
 import { IScrollEvent } from "src/base/common/scrollable";
 
@@ -24,41 +24,120 @@ export interface IAbstractTreeOptions<T> {
  */
 export interface IAbstractTree<T, TFilter, TRef> {
 
+    /**
+     * The container of the whole tree.
+     */
     DOMElement: HTMLElement;
 
     // [event]
 
+    /**
+     * Fires when the {@link IAbstractTree} is scrolling.
+     */
     get onDidScroll(): Register<IScrollEvent>;
+
+    /**
+     * Fires when the {@link IAbstractTree} itself is blured or focused.
+     */
     get onDidChangeFocus(): Register<boolean>;
+
+    /**
+     * Fires when the focused tree nodes in the {@link IAbstractTree} is changed.
+     */
     get onDidChangeItemFocus(): Register<IListTraitEvent>;
+
+    /**
+     * Fires when the selected tree nodes in the {@link IAbstractTree} is changed.
+     */
     get onDidChangeItemSelection(): Register<IListTraitEvent>;
 
-    get onClick(): Register<IListMouseEvent<ITreeNode<T, TFilter>>>;
-    get onDoubleclick(): Register<IListMouseEvent<ITreeNode<T, TFilter>>>;
-    get onMouseover(): Register<IListMouseEvent<ITreeNode<T, TFilter>>>;
-    get onMouseout(): Register<IListMouseEvent<ITreeNode<T, TFilter>>>;
-    get onMousedown(): Register<IListMouseEvent<ITreeNode<T, TFilter>>>;
-    get onMouseup(): Register<IListMouseEvent<ITreeNode<T, TFilter>>>;
-    get onMousemove(): Register<IListMouseEvent<ITreeNode<T, TFilter>>>;
-
+    /**
+     * Fires when the tree node in the {@link IAbstractTree} is clicked.
+     */
+    get onClick(): Register<ITreeMouseEvent<T>>;
+    
+    /**
+     * Fires when the tree node in the {@link IAbstractTree} is double clicked.
+     */
+    get onDoubleclick(): Register<ITreeMouseEvent<T>>;
+    
     // [method - general]
 
     dispose(): void;
 
     // [method - tree]
 
+    /**
+     * @description Check if the given node is existed.
+     * @param location The location representation of the node.
+     * @returns If the node exists.
+     */
     hasNode(location: TRef): boolean;
+    
+    /**
+     * @description Try to get an existed node given the location of the node.
+     * @param location The location representation of the node.
+     * @returns Returns the expected tree node.
+     */
     getNode(location: TRef): ITreeNode<T, TFilter>;
+    
+    /**
+     * @description Determines if the given location of a node is collapsed.
+     * @param location The location representation of the node.
+     * @returns If it is collapsed. If the location is not found, false is 
+     *          returned.
+     */
     isCollapsed(location: TRef): boolean;
+    
+    /**
+     * @description Determines if the given location of a node is collapsible.
+     * @param location The location representation of the node.
+     * @returns If it is collapsible. If the location is not found, false is 
+     *          returned.
+     */
     isCollapsible(location: TRef): boolean;
+    
+    /**
+     * @description Collapses to the tree node with the given location.
+     * @param location The location representation of the node.
+     * @param recursive Determines if the operation is recursive (same operation 
+     *                  to its descendants). if not provided, sets to false as 
+     *                  default.
+     */
     collapse(location: TRef, recursive: boolean): boolean;
+
+    /**
+     * @description Expands to the tree node with the given location.
+     * @param location The location representation of the node.
+     * @param recursive Determines if the operation is recursive (same operation 
+     *                  to its descendants). if not provided, sets to false as 
+     *                  default.
+     */
     expand(location: TRef, recursive: boolean): boolean;
+    
+    /**
+     * @description Toggles the state of collapse or expand to the tree node with
+     * the given location.
+     * @param location The location representation of the node.
+     * @param recursive Determines if the operation is recursive (same operation 
+     *                  to its descendants). if not provided, sets to false as 
+     *                  default.
+     */
     toggleCollapseOrExpand(location: TRef, recursive: boolean): boolean;
+    
+    /**
+     * @description Collapses all the tree nodes.
+     */
     collapseAll(): void;
+    
+    /**
+     * @description Expands all the tree nodes.
+     */
     expandAll(): void;
+    
+    // TODO
     setSelections(items: TRef[]): void;
     getSelections(): TRef[];
-
 }
 
 /**
@@ -119,13 +198,8 @@ export abstract class AbstractTree<T, TFilter, TRef> implements IAbstractTree<T,
     get onDidChangeItemFocus(): Register<IListTraitEvent> { return this._view.onDidChangeItemFocus; }
     get onDidChangeItemSelection(): Register<IListTraitEvent> { return this._view.onDidChangeItemSelection; }
 
-    get onClick(): Register<IListMouseEvent<ITreeNode<T, TFilter>>> { return this._view.onClick; }
-    get onDoubleclick(): Register<IListMouseEvent<ITreeNode<T, TFilter>>> { return this._view.onDoubleclick; }
-    get onMouseover(): Register<IListMouseEvent<ITreeNode<T, TFilter>>> { return this._view.onMouseover; }
-    get onMouseout(): Register<IListMouseEvent<ITreeNode<T, TFilter>>> { return this._view.onMouseout; }
-    get onMousedown(): Register<IListMouseEvent<ITreeNode<T, TFilter>>> { return this._view.onMousedown; }
-    get onMouseup(): Register<IListMouseEvent<ITreeNode<T, TFilter>>> { return this._view.onMouseup; }
-    get onMousemove(): Register<IListMouseEvent<ITreeNode<T, TFilter>>> { return this._view.onMousemove; }
+    get onClick(): Register<ITreeMouseEvent<T>> { return Event.map(this._view.onClick, this.__toTreeMouseEvent); }
+    get onDoubleclick(): Register<ITreeMouseEvent<T>> { return Event.map(this._view.onDoubleclick, this.__toTreeMouseEvent); }
     
     // [abstract methods]
 
@@ -195,10 +269,24 @@ export abstract class AbstractTree<T, TFilter, TRef> implements IAbstractTree<T,
 
     // [private helper methods]
 
+    /**
+     * @description Throws {@link Error} if the given method does not exist.
+     */
     private __throwIfNotSupport(method: any): void {
         if (!method) {
             throw new Error(`current tree model does not support: ${method}`);
         }
+    }
+
+    /**
+     * @description Converts the event {@link IListMouseEvent<ITreeNode<T>>} to
+     * {@link ITreeMouseEvent<T>}.
+     */
+    private __toTreeMouseEvent(event: IListMouseEvent<ITreeNode<T, any>>): ITreeMouseEvent<T> {
+        return {
+            event: event.browserEvent,
+            data: event.item.data,
+        };
     }
 
 }

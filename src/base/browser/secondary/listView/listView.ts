@@ -63,19 +63,64 @@ export interface IListView<T> extends IDisposable {
     onUpdateItemInDOM: Register<IViewItemChangeEvent<T>>;
     onRemoveItemInDOM: Register<IViewItemChangeEvent<T>>;
 
+    /**
+     * Fires when the {@link IListView} is scrolling.
+     */
     onDidScroll: Register<IScrollEvent>;
+    
+    /**
+     * Fires when the {@link IListView} itself is focused.
+     */
     onDidFocus: Register<void>;
+
+    /**
+     * Fires when the {@link IListView} itself is blured.
+     */
     onDidBlur: Register<void>;
 
+    /**
+     * Fires when the item in the {@link IListView} is clicked.
+     */
     onClick: Register<MouseEvent>;
+
+    /**
+     * Fires when the item in the {@link IListView} is double clicked.
+     */
     onDoubleclick: Register<MouseEvent>;
+
+    /**
+     * Fires when the item in the {@link IListView} is mouseovered.
+     */
     onMouseover: Register<MouseEvent>;
+    
+    /**
+     * Fires when the item in the {@link IListView} is mousedouted.
+     */
     onMouseout: Register<MouseEvent>;
+    
+    /**
+     * Fires when the item in the {@link IListView} is mousedowned.
+     */
     onMousedown: Register<MouseEvent>;
+    
+    /**
+     * Fires when the item in the {@link IListView} is mouseuped.
+     */
     onMouseup: Register<MouseEvent>;
+    
+    /**
+     * Fires when the item in the {@link IListView} is mousemoved.
+     */
     onMousemove: Register<MouseEvent>;
 
+    /**
+     * The length (height) of the whole view in pixels.
+     */
     length: number;
+
+    /**
+     * The container of the whole view.
+     */
     DOMElement: HTMLElement;
 
     // [methods]
@@ -95,9 +140,9 @@ export interface IListView<T> extends IDisposable {
     rerender(): void;
 
     /**
-     * @description Deletes an amount of elements in the list view at the given 
-     * index, if necessary, inserts the provided items after the given index.
-     * 
+     * @description Deletes an amount of elements in the {@link IListView} at 
+     * the given index, if necessary, inserts the provided items after the given 
+     * index.
      * @param index The given index.
      * @param deleteCount The amount of items to be deleted.
      * @param items The items to be inserted.

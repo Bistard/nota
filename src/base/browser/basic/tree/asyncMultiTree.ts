@@ -3,12 +3,11 @@ import { IMultiTree, MultiTree } from "src/base/browser/basic/tree/multiTree";
 import { ITreeListViewRenderer } from "src/base/browser/basic/tree/treeListViewRenderer";
 import { composedItemProvider, IListItemProvider } from "src/base/browser/secondary/listView/listItemProvider";
 import { IListTraitEvent } from "src/base/browser/secondary/listWidget/listTrait";
-import { IListMouseEvent } from "src/base/browser/secondary/listWidget/listWidget";
 import { DisposableManager, IDisposable } from "src/base/common/dispose";
-import { Register } from "src/base/common/event";
+import { Event, Register } from "src/base/common/event";
 import { Weakmap } from "src/base/common/map";
 import { IScrollEvent } from "src/base/common/scrollable";
-import { ITreeNode, ITreeNodeItem } from "src/base/browser/basic/tree/tree";
+import { ITreeMouseEvent, ITreeNode, ITreeNodeItem } from "src/base/browser/basic/tree/tree";
 import { AsyncMultiTreeModel, IAsyncMultiTreeModel } from "src/base/browser/basic/tree/asyncMultiTreeModel";
 import { Iterable } from "src/base/common/iterable";
 
@@ -67,24 +66,40 @@ export interface IAsyncMultiTree<T, TFilter> {
 
     // [event]
 
+    /**
+     * Fires when the {@link IAsyncMultiTree} is scrolling.
+     */
     get onDidScroll(): Register<IScrollEvent>;
+
+    /**
+     * Fires when the {@link IAsyncMultiTree} itself is blured or focused.
+     */
     get onDidChangeFocus(): Register<boolean>;
+    
+    /**
+     * Fires when the focused tree nodes in the {@link IAsyncMultiTree} is changed.
+     */
     get onDidChangeItemFocus(): Register<IListTraitEvent>;
+    
+    /**
+     * Fires when the selected tree nodes in the {@link IAsyncMultiTree} is changed.
+     */
     get onDidChangeItemSelection(): Register<IListTraitEvent>;
     
-    // TODO
-    // get onClick(): Register<IListMouseEvent<IAsyncTreeNode<T>>>;
-    // get onDoubleclick(): Register<IListMouseEvent<IAsyncTreeNode<T>>>;
-    // get onMouseover(): Register<IListMouseEvent<IAsyncTreeNode<T>>>;
-    // get onMouseout(): Register<IListMouseEvent<IAsyncTreeNode<T>>>;
-    // get onMousedown(): Register<IListMouseEvent<IAsyncTreeNode<T>>>;
-    // get onMouseup(): Register<IListMouseEvent<IAsyncTreeNode<T>>>;
-    // get onMousemove(): Register<IListMouseEvent<IAsyncTreeNode<T>>>;
-
+    /**
+     * Fires when the tree node in the {@link IAsyncMultiTree} is clicked.
+     */
+    get onClick(): Register<ITreeMouseEvent<T>>;
+    
+    /**
+     * Fires when the tree node in the {@link IAsyncMultiTree} is double clicked.
+     */
+    get onDoubleclick(): Register<ITreeMouseEvent<T>>;
+    
     // [method]
 
     /**
-     * Disposes the whole tree (including view).
+     * @description Disposes the whole tree (including view).
      */
     dispose(): void;
 
@@ -97,16 +112,44 @@ export interface IAsyncMultiTree<T, TFilter> {
      */
     refresh(data?: T): Promise<void>;
 
+    /**
+     * @description Try to get an existed node given the corresponding data.
+     * @param data The corresponding data.
+     * @returns Returns the expected tree node.
+     */
     getNode(data: T): ITreeNode<T, TFilter>;
 
+    /**
+     * @description Check if the given node is existed.
+     * @param data The corresponding data.
+     * @returns If the node exists.
+     */
     hasNode(data: T): boolean;
 
+    /**
+     * @description Determines if the corresponding node of the given data is 
+     * collapsible.
+     * @param data The corresponding data.
+     * @returns If it is collapsible. If the data is not found, false is returned.
+     */
     isCollapsible(data: T): boolean;
 
+    /**
+     * @description Determines if the corresponding node of the given data is 
+     * collapsed.
+     * @param data The corresponding data.
+     * @returns If it is collapsed. If the data is not found, false is returned.
+     */
     isCollapsed(data: T): boolean;
 
+    /**
+     * @description Rerenders the whole view.
+     */
     rerender(data: T): void;
 
+    /**
+     * @description Returns the number of nodes in the tree.
+     */
     size(): number;
 }
 
@@ -166,14 +209,9 @@ export class AsyncMultiTree<T, TFilter = void> implements IAsyncMultiTree<T, TFi
     get onDidChangeItemFocus(): Register<IListTraitEvent> { return this._tree.onDidChangeItemFocus; }
     get onDidChangeItemSelection(): Register<IListTraitEvent> { return this._tree.onDidChangeItemSelection; }
     
-    // get onClick(): Register<IListMouseEvent<IAsyncTreeNode<T>>> { return this._tree.onClick; }
-    // get onDoubleclick(): Register<IListMouseEvent<IAsyncTreeNode<T>>> { return this._tree.onDoubleclick; }
-    // get onMouseover(): Register<IListMouseEvent<IAsyncTreeNode<T>>> { return this._tree.onMouseover; }
-    // get onMouseout(): Register<IListMouseEvent<IAsyncTreeNode<T>>> { return this._tree.onMouseout; }
-    // get onMousedown(): Register<IListMouseEvent<IAsyncTreeNode<T>>> { return this._tree.onMousedown; }
-    // get onMouseup(): Register<IListMouseEvent<IAsyncTreeNode<T>>> { return this._tree.onMouseup; }
-    // get onMousemove(): Register<IListMouseEvent<IAsyncTreeNode<T>>> { return this._tree.onMousemove; }
-
+    get onClick(): Register<ITreeMouseEvent<T>> { return Event.map(this._tree.onClick, this.__toTreeMouseEvent); }
+    get onDoubleclick(): Register<ITreeMouseEvent<T>> { return Event.map(this._tree.onDoubleclick, this.__toTreeMouseEvent); }
+    
     // [method]
 
     public async refresh(data: T = this._model.root): Promise<void> {
@@ -283,6 +321,17 @@ export class AsyncMultiTree<T, TFilter = void> implements IAsyncMultiTree<T, TFi
             collapsed: collapsed,
             children: [...children]
         };
+    }
+
+    /**
+     * @description Converts the event with type {@link ITreeMouseEvent<IAsyncTreeNode<T> | null>}
+     * to {@link ITreeMouseEvent<T>}.
+     */
+    private __toTreeMouseEvent(event: ITreeMouseEvent<IAsyncTreeNode<T> | null>): ITreeMouseEvent<T> {
+        return {
+            data: event.data && event.data.data,
+            event: event.event
+        }
     }
     
 }
