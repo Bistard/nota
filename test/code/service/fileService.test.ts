@@ -1,8 +1,7 @@
 import * as assert from 'assert';
-import { resolve } from 'path';
 import { DataBuffer } from 'src/base/common/file/buffer';
 import { FileType } from 'src/base/common/file/file';
-import { dirname, posix } from 'src/base/common/file/path';
+import { dirname, posix, resolve } from 'src/base/common/file/path';
 import { URI } from 'src/base/common/file/uri';
 import { DiskFileSystemProvider } from 'src/base/node/diskFileSystemProvider';
 import { fileExists } from 'src/base/node/io';
@@ -11,7 +10,11 @@ import { FileService } from 'src/code/common/service/fileService/fileService';
 suite('FileService-disk-unbuffered-test', () => {
 
     test('provider registration', async () => {
-        // TODO
+        const service = new FileService();
+        const provider = new DiskFileSystemProvider();
+        service.registerProvider('file', provider);
+
+        assert.strictEqual(provider, service.getProvider('file'));
     });
     
     test('readFile - basic', async () => {
