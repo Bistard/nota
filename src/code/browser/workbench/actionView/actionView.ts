@@ -281,7 +281,7 @@ export class ExplorerTitlePart extends ActionViewTitlePart {
         // title text
         const topText = document.createElement('div');
         topText.className = 'title-text';
-        topText.innerHTML = this.i18nService.trans(Section.Explorer, 'notebook');
+        topText.textContent = this.i18nService.trans(Section.Explorer, 'notebook');
 
         wrapper.append(dropdownIcon);
         wrapper.append(topText);

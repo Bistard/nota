@@ -97,7 +97,7 @@ export class ExplorerViewComponent extends Component implements IExplorerViewSer
         
         const tag = document.createElement('div');
         tag.className = 'explorer-open-tag';        
-        tag.innerHTML = this.i18nService.trans(Section.Explorer, 'openDirectory');
+        tag.textContent = this.i18nService.trans(Section.Explorer, 'openDirectory');
         tag.classList.add('vertical-center', 'funcText');
         this._unopenedView.appendChild(tag);
 
