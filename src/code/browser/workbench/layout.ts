@@ -64,6 +64,7 @@ export abstract class WorkbenchLayout extends Component {
 
         this._createSashContainer();
 
+        this._onDidFinishLayout.fire();
     }
 
     protected __registerLayout(): void {

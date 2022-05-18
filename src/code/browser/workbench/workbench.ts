@@ -34,8 +34,6 @@ export class Workbench extends WorkbenchLayout implements IWorkbenchService {
         
         this.create();
         this.registerListeners();
-
-        this._onDidFinishLayout.fire();
     }
 
     protected async __initServices(): Promise<void> {
@@ -127,7 +125,7 @@ export class Workbench extends WorkbenchLayout implements IWorkbenchService {
             shortcut: new Shortcut(true, true, false, false, KeyCode.KeyI),
             when: null,
             command: () => {
-                ipcRendererSend(IpcCommand.OpenDevelopTool);
+                ipcRendererSend(IpcCommand.ToggleDevelopTool);
             },
             override: false,
             activate: true

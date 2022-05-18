@@ -7,7 +7,7 @@
 export const enum IpcCommand {
 
     Test =                  '0',
-    OpenDevelopTool =       '1',
+    ToggleDevelopTool =       '1',
     ReloadWindow =          '2',
     ErrorInWindow =         '3',
 
