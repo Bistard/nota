@@ -1,3 +1,6 @@
+import { IListItemProvider } from "src/base/browser/secondary/listView/listItemProvider";
+import { RendererType } from "src/base/browser/secondary/listView/listRenderer";
+import { IAsyncChildrenProvider } from "src/base/browser/secondary/tree/asyncMultiTree";
 import { FileType, IResolvedFileStat } from "src/base/common/file/file";
 import { URI } from "src/base/common/file/uri";
 import { Iterable } from "src/base/common/iterable";
@@ -82,5 +85,41 @@ export class ExplorerItem implements IExplorerItem {
     }
 
     // [private method]
+
+}
+
+/**
+ * @class A {@link IListItemProvider} used for {@link ExplorerItem}.
+ */
+export class ExplorerItemProvider implements IListItemProvider<ExplorerItem> {
+
+    public static readonly Size = 30;
+
+    public getSize(data: ExplorerItem): number {
+        return ExplorerItemProvider.Size;
+    }
+
+    public getType(data: ExplorerItem): RendererType {
+        return RendererType.Explorer;
+    }
+
+}
+
+/**
+ * @class A {@link IAsyncChildrenProvider} used for {@link ExplorerItem}.
+ */
+export class ExplorerChildrenProvider implements IAsyncChildrenProvider<ExplorerItem> {
+
+    constructor() {
+
+    }
+
+    public hasChildren(data: ExplorerItem): boolean | Promise<boolean> {
+        return data.children.length > 0;
+    }
+
+    public getChildren(data: ExplorerItem): Iterable<ExplorerItem> | Promise<Iterable<ExplorerItem>> {
+        return data.children;
+    }
 
 }
