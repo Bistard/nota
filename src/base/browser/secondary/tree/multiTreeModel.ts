@@ -1,7 +1,7 @@
 import { Register } from "src/base/common/event";
 import { ISpliceable } from "src/base/common/range";
-import { IIndexTreeModelCreationOptions, IIndexTreeModel, IndexTreeModel, ITreeModelSpliceEvent, ITreeModelSpliceOptions } from "src/base/browser/basic/tree/indexTreeModel";
-import { ITreeModel, ITreeNode, ITreeNodeItem } from "src/base/browser/basic/tree/tree";
+import { IIndexTreeModelCreationOptions, IIndexTreeModel, IndexTreeModel, ITreeModelSpliceEvent, ITreeModelSpliceOptions } from "src/base/browser/secondary/tree/indexTreeModel";
+import { ITreeModel, ITreeNode, ITreeNodeItem } from "src/base/browser/secondary/tree/tree";
 
 /**
  * An interface only for {@link MultiTreeModel}.

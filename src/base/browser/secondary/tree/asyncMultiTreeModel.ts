@@ -1,6 +1,6 @@
-import { AsyncWeakMap, IAsyncChildrenProvider, IAsyncTreeNode } from "src/base/browser/basic/tree/asyncMultiTree";
-import { IMultiTree } from "src/base/browser/basic/tree/multiTree";
-import { ITreeModel, ITreeNode } from "src/base/browser/basic/tree/tree";
+import { AsyncWeakMap, IAsyncChildrenProvider, IAsyncTreeNode } from "src/base/browser/secondary/tree/asyncMultiTree";
+import { IMultiTree } from "src/base/browser/secondary/tree/multiTree";
+import { ITreeModel, ITreeNode } from "src/base/browser/secondary/tree/tree";
 import { Iterable } from "src/base/common/iterable";
 import { isIterable } from "src/base/common/type";
 

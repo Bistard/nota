@@ -1,5 +1,5 @@
 import * as assert from 'assert';
-import { AsyncMultiTree } from 'src/base/browser/basic/tree/asyncMultiTree';
+import { AsyncMultiTree } from 'src/base/browser/secondary/tree/asyncMultiTree';
 
 suite('AsyncMultiTree-test', () => {
 

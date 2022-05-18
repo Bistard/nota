@@ -1,6 +1,6 @@
-import { AsyncWeakMap, IAsyncTreeNode } from "src/base/browser/basic/tree/asyncMultiTree";
-import { ITreeNode } from "src/base/browser/basic/tree/tree";
-import { ITreeListRenderer } from "src/base/browser/basic/tree/treeListRenderer";
+import { AsyncWeakMap, IAsyncTreeNode } from "src/base/browser/secondary/tree/asyncMultiTree";
+import { ITreeNode } from "src/base/browser/secondary/tree/tree";
+import { ITreeListRenderer } from "src/base/browser/secondary/tree/treeListRenderer";
 
 /**
  * @class A wrapper class that wraps another {@link ITreeListRenderer} with 

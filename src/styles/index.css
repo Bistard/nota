@@ -17,6 +17,7 @@
 @import "../base/browser/secondary/contextMenu/contextMenu.css";
 @import "../base/browser/secondary/scrollableWidget/scrollableWidget.css";
 @import "../base/browser/secondary/listView/listView.css";
+@import "../base/browser/basic/tree/tree.css";
 
 @import "./common.css";
 @import "./workbench/actionBar/actionBar.css";

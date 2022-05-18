@@ -6,7 +6,9 @@ import { DomSize } from "src/base/common/dom";
  */
 export const enum RendererType {
 	
-	EXPLORER,
+	ListItem,
+
+	Explorer,
 
 };
 
@@ -126,7 +128,7 @@ export class ListItemRenderer<T> implements IListViewRenderer<T, HTMLElement> {
 	public readonly type: RendererType;
 
 	constructor() {
-		this.type = NaN;
+		this.type = RendererType.ListItem;
 	}
 
 	public render(element: HTMLElement): HTMLElement {
@@ -140,7 +142,7 @@ export class ListItemRenderer<T> implements IListViewRenderer<T, HTMLElement> {
 	}
 
 	public dispose(data: HTMLElement): void {
-		
+		// do nothing
 	}
 
 }

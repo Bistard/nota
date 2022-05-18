@@ -379,8 +379,7 @@ export class ListView<T> implements IDisposable, ISpliceable<T>, IListView<T> {
         });
 
         // integrates all the renderers
-        // REVIEW: disable `ListItemRenderer` for now.
-        // renderers = renderers.map(renderer => new PipelineRenderer(renderer.type, [new ListItemRenderer(), renderer]));
+        renderers = renderers.map(renderer => new PipelineRenderer(renderer.type, [new ListItemRenderer(), renderer]));
 
         this.renderers = new Map();
         for (let renderer of renderers) {

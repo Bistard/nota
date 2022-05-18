@@ -1,16 +1,16 @@
-import { AsyncTreeRenderer } from "src/base/browser/basic/tree/asyncTreeRenderer";
-import { IMultiTree, IMultiTreeOptions, MultiTree } from "src/base/browser/basic/tree/multiTree";
-import { ITreeListRenderer } from "src/base/browser/basic/tree/treeListRenderer";
+import { AsyncTreeRenderer } from "src/base/browser/secondary/tree/asyncTreeRenderer";
+import { IMultiTree, IMultiTreeOptions, MultiTree } from "src/base/browser/secondary/tree/multiTree";
+import { ITreeListRenderer } from "src/base/browser/secondary/tree/treeListRenderer";
 import { composedItemProvider, IListItemProvider } from "src/base/browser/secondary/listView/listItemProvider";
 import { IListTraitEvent } from "src/base/browser/secondary/listWidget/listTrait";
 import { DisposableManager, IDisposable } from "src/base/common/dispose";
 import { Event, Register } from "src/base/common/event";
 import { Weakmap } from "src/base/common/map";
 import { IScrollEvent } from "src/base/common/scrollable";
-import { ITreeMouseEvent, ITreeNode, ITreeNodeItem } from "src/base/browser/basic/tree/tree";
-import { AsyncMultiTreeModel, IAsyncMultiTreeModel } from "src/base/browser/basic/tree/asyncMultiTreeModel";
+import { ITreeMouseEvent, ITreeNode, ITreeNodeItem } from "src/base/browser/secondary/tree/tree";
+import { AsyncMultiTreeModel, IAsyncMultiTreeModel } from "src/base/browser/secondary/tree/asyncMultiTreeModel";
 import { Iterable } from "src/base/common/iterable";
-import { ITreeModelSpliceOptions } from "src/base/browser/basic/tree/indexTreeModel";
+import { ITreeModelSpliceOptions } from "src/base/browser/secondary/tree/indexTreeModel";
 
 /**
  * Provides functionality to determine the children stat of the given data.
