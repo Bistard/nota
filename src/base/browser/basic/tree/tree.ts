@@ -195,4 +195,9 @@ export interface ITreeMouseEvent<T> {
      * The children data.
      */
     children: T[];
+
+    /**
+     * The depth of the data in the tree.
+     */
+    depth: number;
 }

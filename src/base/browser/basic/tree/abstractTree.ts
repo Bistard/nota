@@ -288,6 +288,7 @@ export abstract class AbstractTree<T, TFilter, TRef> implements IAbstractTree<T,
             data: event.item.data,
             parent: event.item.parent?.data || null,
             children: event.item.children.map(child => child.data),
+            depth: event.item.depth
         };
     }
 
