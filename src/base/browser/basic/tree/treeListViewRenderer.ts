@@ -1,34 +1,43 @@
 import { ITreeNode } from "src/base/browser/basic/tree/tree";
-import { IListViewRenderer } from "src/base/browser/secondary/listView/listRenderer";
+import { IListViewMetadata, IListViewRenderer } from "src/base/browser/secondary/listView/listRenderer";
 
 /**
- * A type of renderer in {@link IListView} that manages to render tree related 
- * data.
+ * A basic type of renderer in {@link IListView} that manages to render tree 
+ * related data.
  * 
  * T: the type of item for rendering.
  * TFilter: type of filter data for filtering nodes in the tree.
  * TMetadata: type of the user-defined value which returned value by the method 
  *            `render()` for later updating / disposing.
  */
-export interface ITreeListViewRenderer<T, TFilter, TMetadata> extends IListViewRenderer<ITreeNode<T, TFilter>, TMetadata> {
-
-    // TODO
-
+export interface ITreeListRenderer<T, TFilter = void, TMetadata = void> extends IListViewRenderer<ITreeNode<T, TFilter>, TMetadata> {
+    // nothing here
 }
 
 /**
- * The type of data returned by {@link treeListViewRenderer.render()}.
+ * The type of metadata returned by {@link treeListViewRenderer.render()}.
  */
-interface ITreeListItemMetadata<T> {
-    container: HTMLElement;
+export interface ITreeListItemMetadata<T> extends IListViewMetadata {
+    
+    /**
+     * The HTMLElement container of the indentation part.
+     */
     indentation: HTMLElement;
+
+    /**
+     * The HTMLElement container of the content part.
+     */
     content: HTMLElement;
+
+    /**
+     * Nested renderer's metadata.
+     */
     nestedMetadata: T;
 }
 
 /**
  * @class A basic type of renderer that manages to render each item in 
- * {@link IAbstractTree} as a tree node. It wraps another {@link ITreeListViewRenderer}
+ * {@link IAbstractTree} as a tree node. It wraps another {@link ITreeListRenderer}
  * so that it can work as a decorator.
  * 
  * T: the type of item for rendering.
@@ -38,8 +47,10 @@ interface ITreeListItemMetadata<T> {
  * 
  * @note Since we are wrapping another renderer, the TMetadata we are returning
  * is also a wrapper, see {@link ITreeListItemMetadata}.
+ * 
+ * @warn EXPORT FOR OTHER MODULES USAGE, DO NOT USE DIRECTLY.
  */
-export class TreeListItemRenderer<T, TFilter, TMetadata> implements ITreeListViewRenderer<T, TFilter, ITreeListItemMetadata<TMetadata>> {
+export class TreeItemRenderer<T, TFilter, TMetadata> implements ITreeListRenderer<T, TFilter, ITreeListItemMetadata<TMetadata>> {
 
     // [field]
 
@@ -47,18 +58,18 @@ export class TreeListItemRenderer<T, TFilter, TMetadata> implements ITreeListVie
 
     public readonly type: number;
 
-    private _renderer: ITreeListViewRenderer<T, TFilter, TMetadata>;
+    private _renderer: ITreeListRenderer<T, TFilter, TMetadata>;
 
     private _eachIndentSize: number;
 
     // [constructor]
 
     constructor(
-        nestedRenderer: ITreeListViewRenderer<T, TFilter, TMetadata>
+        nestedRenderer: ITreeListRenderer<T, TFilter, TMetadata>
     ) {
         this._renderer = nestedRenderer;
         this.type = this._renderer.type;
-        this._eachIndentSize = TreeListItemRenderer.defaultIndentation;
+        this._eachIndentSize = TreeItemRenderer.defaultIndentation;
     }
 
     // [public method]
@@ -96,7 +107,7 @@ export class TreeListItemRenderer<T, TFilter, TMetadata> implements ITreeListVie
     }
 
     public update(item: ITreeNode<T, TFilter>, index: number, data: ITreeListItemMetadata<TMetadata>, size?: number): void {
-        const indentSize = TreeListItemRenderer.defaultIndentation + (item.depth - 1) * this._eachIndentSize;
+        const indentSize = TreeItemRenderer.defaultIndentation + (item.depth - 1) * this._eachIndentSize;
 
         data.indentation.style.width = `${indentSize}px`;
 

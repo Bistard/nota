@@ -1,5 +1,5 @@
 import { ITreeModel, ITreeMouseEvent, ITreeNode } from "src/base/browser/basic/tree/tree";
-import { ITreeListViewRenderer, TreeListItemRenderer } from "src/base/browser/basic/tree/treeListViewRenderer";
+import { ITreeListRenderer, TreeItemRenderer } from "src/base/browser/basic/tree/treeListViewRenderer";
 import { ITreeListWidget, TreeListWidget } from "src/base/browser/basic/tree/treeListWidget";
 import { IListItemProvider, TreeListItemProvider } from "src/base/browser/secondary/listView/listItemProvider";
 import { IListTraitEvent } from "src/base/browser/secondary/listWidget/listTrait";
@@ -167,13 +167,13 @@ export abstract class AbstractTree<T, TFilter, TRef> implements IAbstractTree<T,
 
     constructor(
         container: HTMLElement,
-        renderers: ITreeListViewRenderer<T, TFilter, any>[],
+        renderers: ITreeListRenderer<T, TFilter, any>[],
         itemProvider: IListItemProvider<T>,
         opts: IAbstractTreeOptions<T> = {}
     ) {
 
         // wraps each tree list view renderer with a basic tree item renderer.
-        renderers = renderers.map(renderer => new TreeListItemRenderer<T, TFilter, any>(renderer));
+        renderers = renderers.map(renderer => new TreeItemRenderer<T, TFilter, any>(renderer));
 
         this._view = new TreeListWidget<T, TFilter>(
             container, 

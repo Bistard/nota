@@ -2,6 +2,19 @@ import { ListItemType } from "src/base/browser/secondary/listView/listView";
 import { DomSize } from "src/base/common/dom";
 
 /**
+ * A very basic type of metadata that may be used in the renderers relates to 
+ * {@link IListView}.
+ */
+export interface IListViewMetadata {
+	
+	/**
+	 * The HTMLElement container of the related item in the {@link IListView}.
+	 */
+	container: HTMLElement;
+
+}
+
+/**
  * @description An interface that describes how to render an item in 
  * {@link ListView} with an specific type.
  * 
@@ -9,8 +22,8 @@ import { DomSize } from "src/base/common/dom";
  * TMetadata: type of the user-defined value which returned value by the method 
  *            `render()` for later updating / disposing.
  */
+
 export interface IListViewRenderer<T, TMetadata> {
-	
 	/**
 	 * The type of item that the renderer is responsible for.
 	 */
@@ -63,9 +76,9 @@ export interface IListViewRenderer<T, TMetadata> {
 export class PipelineRenderer<T> implements IListViewRenderer<T, any[]> {
 
 	public readonly type: ListItemType;
-	private pipeline: IListViewRenderer<any, any>[];
+	private pipeline: IListViewRenderer<T, any>[];
 	
-	constructor(type: ListItemType, renderers: IListViewRenderer<any, any>[]) {
+	constructor(type: ListItemType, renderers: IListViewRenderer<T, any>[]) {
 		this.type = type;
 		this.pipeline = renderers;
 	}
@@ -111,7 +124,7 @@ export class ListItemRenderer<T> implements IListViewRenderer<T, HTMLElement> {
 		return element;
 	}
 
-	public update(item: T, index: number, data: HTMLElement, size?: number): void {
+	public update(item: T, index: number, data: HTMLElement, size: number): void {
 		if (DomSize.getContentHeight(data) !== size) {
 			data.style.height = size + 'px';
 		}

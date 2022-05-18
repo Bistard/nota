@@ -379,7 +379,8 @@ export class ListView<T> implements IDisposable, ISpliceable<T>, IListView<T> {
         });
 
         // integrates all the renderers
-        renderers = renderers.map(renderer => new PipelineRenderer(renderer.type, [new ListItemRenderer(), renderer]));
+        // REVIEW: disable `ListItemRenderer` for now.
+        // renderers = renderers.map(renderer => new PipelineRenderer(renderer.type, [new ListItemRenderer(), renderer]));
 
         this.renderers = new Map();
         for (let renderer of renderers) {
@@ -504,6 +505,7 @@ export class ListView<T> implements IDisposable, ISpliceable<T>, IListView<T> {
 
         // [delete and insert the items]
 
+        // constructs all the items to {@link IViewItem<T>}.
         const insert = items.map<IViewItem<T>>(item => ({
             id: ListViewItemUUID++,
             type: this.itemProvider.getType(item),

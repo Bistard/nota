@@ -1,19 +1,19 @@
 import { AsyncWeakMap, IAsyncTreeNode } from "src/base/browser/basic/tree/asyncMultiTree";
 import { ITreeNode } from "src/base/browser/basic/tree/tree";
-import { ITreeListViewRenderer } from "src/base/browser/basic/tree/treeListViewRenderer";
+import { ITreeListRenderer } from "src/base/browser/basic/tree/treeListViewRenderer";
 
 /**
- * @class A wrapper class that wraps another {@link ITreeListViewRenderer} with 
+ * @class A wrapper class that wraps another {@link ITreeListRenderer} with 
  * template type `<T>` so that it can also work with the type `<IAsyncTreeNode<T>>`.
  */
-export class AsyncTreeRenderer<T, TFilter, TMetadata> implements ITreeListViewRenderer<IAsyncTreeNode<T>, TFilter, TMetadata> {
+export class AsyncTreeRenderer<T, TFilter, TMetadata> implements ITreeListRenderer<IAsyncTreeNode<T>, TFilter, TMetadata> {
 
     public readonly type: number;
-    private _renderer: ITreeListViewRenderer<T, TFilter, TMetadata>;
+    private _renderer: ITreeListRenderer<T, TFilter, TMetadata>;
     private _nodeMap: AsyncWeakMap<T, TFilter>;
 
     constructor(
-        renderer: ITreeListViewRenderer<T, TFilter, TMetadata>,
+        renderer: ITreeListRenderer<T, TFilter, TMetadata>,
         nodeMap: AsyncWeakMap<T, TFilter>
     ) {
         this.type = renderer.type;

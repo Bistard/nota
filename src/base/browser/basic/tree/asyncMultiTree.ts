@@ -1,6 +1,6 @@
 import { AsyncTreeRenderer } from "src/base/browser/basic/tree/asyncTreeRenderer";
 import { IMultiTree, IMultiTreeOptions, MultiTree } from "src/base/browser/basic/tree/multiTree";
-import { ITreeListViewRenderer } from "src/base/browser/basic/tree/treeListViewRenderer";
+import { ITreeListRenderer } from "src/base/browser/basic/tree/treeListViewRenderer";
 import { composedItemProvider, IListItemProvider } from "src/base/browser/secondary/listView/listItemProvider";
 import { IListTraitEvent } from "src/base/browser/secondary/listWidget/listTrait";
 import { DisposableManager, IDisposable } from "src/base/common/dispose";
@@ -153,7 +153,7 @@ export interface IAsyncMultiTree<T, TFilter> {
     size(): number;
 }
 
-/** EXPORT FOR MODULE USAGE, DO NOT USE DIRECTLY. */
+/** EXPORT FOR OTHER MODULES USAGE, DO NOT USE DIRECTLY. */
 export type AsyncWeakMap<T, TFilter> = Weakmap<ITreeNode<IAsyncTreeNode<T> | null, TFilter>, ITreeNode<T, TFilter>>;
 
 /**
@@ -195,7 +195,7 @@ export class AsyncMultiTree<T, TFilter = void> implements IAsyncMultiTree<T, TFi
     private constructor(
         container: HTMLElement,
         rootData: T,
-        renderers: ITreeListViewRenderer<T, TFilter, any>[],
+        renderers: ITreeListRenderer<T, TFilter, any>[],
         itemProvider: IListItemProvider<T>,
         childrenProvider: IAsyncChildrenProvider<T>,
         opts: IAsyncMultiTreeOptions<T, TFilter> = {},
@@ -219,7 +219,7 @@ export class AsyncMultiTree<T, TFilter = void> implements IAsyncMultiTree<T, TFi
      * @description Creates an instance of {@link AsyncMultiTree}. The only 
      * difference is that the method will call the `refresh()` immediately.
      */
-    public static async create<T, TFilter = void>(container: HTMLElement, rootData: T, renderers: ITreeListViewRenderer<T, TFilter, any>[], itemProvider: IListItemProvider<T>, childrenProvider: IAsyncChildrenProvider<T>): Promise<AsyncMultiTree<T, TFilter>> {
+    public static async create<T, TFilter = void>(container: HTMLElement, rootData: T, renderers: ITreeListRenderer<T, TFilter, any>[], itemProvider: IListItemProvider<T>, childrenProvider: IAsyncChildrenProvider<T>): Promise<AsyncMultiTree<T, TFilter>> {
         const tree = new AsyncMultiTree(container, rootData, renderers, itemProvider, childrenProvider);
         await tree.refresh();
         return tree;
@@ -276,7 +276,7 @@ export class AsyncMultiTree<T, TFilter = void> implements IAsyncMultiTree<T, TFi
      */
     private __createTree(
         container: HTMLElement,
-        renderers: ITreeListViewRenderer<T, TFilter, any>[],
+        renderers: ITreeListRenderer<T, TFilter, any>[],
         itemProvider: IListItemProvider<T>,
         unwrapper: AsyncWeakMap<T, TFilter>
     ): MultiTree<IAsyncTreeNode<T>, TFilter> 
