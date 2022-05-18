@@ -1,5 +1,5 @@
 import { IListViewRow, ListViewCache } from "src/base/browser/secondary/listView/listCache";
-import { IListViewRenderer, ListItemRenderer, PipelineRenderer } from "src/base/browser/secondary/listView/listRenderer";
+import { IListViewRenderer, ListItemRenderer, PipelineRenderer, RendererType } from "src/base/browser/secondary/listView/listRenderer";
 import { ScrollableWidget } from "src/base/browser/secondary/scrollableWidget/scrollableWidget";
 import { ScrollbarType } from "src/base/browser/secondary/scrollableWidget/scrollableWidgetOptions";
 import { DisposableManager, IDisposable } from "src/base/common/dispose";
@@ -27,10 +27,10 @@ export interface IListViewOpts<T> {
 }
 
 /**
- * The type of items are stored in {@link ListView}. 
- * Using a number is faster than a string.
+ * The type of items are stored in {@link IListView}. The item will be rendered
+ * by the renderers which has the same type.
  */
-export type ListItemType = number;
+export type ListItemType = RendererType;
 
 /**
  * The inner data structure wraps each item in {@link ListView}.
@@ -290,7 +290,7 @@ export class ListView<T> implements IDisposable, ISpliceable<T>, IListView<T> {
     private rangeTable: RangeTable;
 
     private dnd: IListDragAndDropProvider<T>;
-    private renderers: Map<ListItemType, IListViewRenderer<T, any>>;
+    private renderers: Map<RendererType, IListViewRenderer<T, any>>;
     private itemProvider: IListItemProvider<T>;
     
     private items: IViewItem<T>[];

@@ -2,6 +2,15 @@ import { ListItemType } from "src/base/browser/secondary/listView/listView";
 import { DomSize } from "src/base/common/dom";
 
 /**
+ * The type of renderers used in {@link IListView}.
+ */
+export const enum RendererType {
+	
+	EXPLORER,
+
+};
+
+/**
  * A very basic type of metadata that may be used in the renderers relates to 
  * {@link IListView}.
  */
@@ -27,7 +36,7 @@ export interface IListViewRenderer<T, TMetadata> {
 	/**
 	 * The type of item that the renderer is responsible for.
 	 */
-	readonly type: ListItemType;
+	readonly type: RendererType;
 
 	/**
 	 * @description Only creates and renders the DOM structure of that item for 
@@ -75,7 +84,7 @@ export interface IListViewRenderer<T, TMetadata> {
  */
 export class PipelineRenderer<T> implements IListViewRenderer<T, any[]> {
 
-	public readonly type: ListItemType;
+	public readonly type: RendererType;
 	private pipeline: IListViewRenderer<T, any>[];
 	
 	constructor(type: ListItemType, renderers: IListViewRenderer<T, any>[]) {
@@ -114,7 +123,7 @@ export class PipelineRenderer<T> implements IListViewRenderer<T, any[]> {
  */
 export class ListItemRenderer<T> implements IListViewRenderer<T, HTMLElement> {
 
-	public readonly type: ListItemType;
+	public readonly type: RendererType;
 
 	constructor() {
 		this.type = NaN;

@@ -1,6 +1,6 @@
 import { AsyncTreeRenderer } from "src/base/browser/basic/tree/asyncTreeRenderer";
 import { IMultiTree, IMultiTreeOptions, MultiTree } from "src/base/browser/basic/tree/multiTree";
-import { ITreeListRenderer } from "src/base/browser/basic/tree/treeListViewRenderer";
+import { ITreeListRenderer } from "src/base/browser/basic/tree/treeListRenderer";
 import { composedItemProvider, IListItemProvider } from "src/base/browser/secondary/listView/listItemProvider";
 import { IListTraitEvent } from "src/base/browser/secondary/listWidget/listTrait";
 import { DisposableManager, IDisposable } from "src/base/common/dispose";

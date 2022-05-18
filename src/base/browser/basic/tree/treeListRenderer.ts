@@ -1,5 +1,5 @@
 import { ITreeNode } from "src/base/browser/basic/tree/tree";
-import { IListViewMetadata, IListViewRenderer } from "src/base/browser/secondary/listView/listRenderer";
+import { IListViewMetadata, IListViewRenderer, RendererType } from "src/base/browser/secondary/listView/listRenderer";
 
 /**
  * A basic type of renderer in {@link IListView} that manages to render tree 
@@ -56,7 +56,7 @@ export class TreeItemRenderer<T, TFilter, TMetadata> implements ITreeListRendere
 
     public static readonly defaultIndentation = 8;
 
-    public readonly type: number;
+    public readonly type: RendererType;
 
     private _renderer: ITreeListRenderer<T, TFilter, TMetadata>;
 

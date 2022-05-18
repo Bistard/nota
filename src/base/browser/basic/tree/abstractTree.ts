@@ -1,5 +1,5 @@
 import { ITreeModel, ITreeMouseEvent, ITreeNode } from "src/base/browser/basic/tree/tree";
-import { ITreeListRenderer, TreeItemRenderer } from "src/base/browser/basic/tree/treeListViewRenderer";
+import { ITreeListRenderer, TreeItemRenderer } from "src/base/browser/basic/tree/treeListRenderer";
 import { ITreeListWidget, TreeListWidget } from "src/base/browser/basic/tree/treeListWidget";
 import { IListItemProvider, TreeListItemProvider } from "src/base/browser/secondary/listView/listItemProvider";
 import { IListTraitEvent } from "src/base/browser/secondary/listWidget/listTrait";
