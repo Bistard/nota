@@ -1,5 +1,5 @@
 import { ListItemType } from "src/base/browser/secondary/listView/listView";
-import { DomSize } from "src/base/common/dom";
+import { DomUtility } from "src/base/common/dom";
 
 /**
  * The type of renderers used in {@link IListView}.
@@ -134,7 +134,7 @@ export class ListItemRenderer<T> implements IListViewRenderer<T, HTMLElement> {
 	}
 
 	public update(item: T, index: number, data: HTMLElement, size: number): void {
-		if (DomSize.getContentHeight(data) !== size) {
+		if (DomUtility.getContentHeight(data) !== size) {
 			data.style.height = size + 'px';
 		}
 	}

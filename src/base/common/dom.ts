@@ -115,7 +115,7 @@ export function formatSpan(text: string): string {
  * @warn If the HTMLElement has not been added into the DOM tree, some methods
  * under the namespace will NOT work properly (returns magic number).
  */
-export namespace DomSize
+export namespace DomUtility
 {
 
 	/**
@@ -202,10 +202,12 @@ export namespace DomSize
 	 * @description Get the width of the content excluding padding and border.
 	 * @param element The HTMLElement.
 	 */
-	 export function getContentWidth(element: HTMLElement): number {
+	export function getContentWidth(element: HTMLElement): number {
 		const padding = getPaddingLeft(element) + getPaddingRight(element);
 		const border  = getBorderLeft(element) + getBorderRight(element);
 		return element.offsetWidth - padding - border;
 	}
+
+	// [method - ]
 
 }

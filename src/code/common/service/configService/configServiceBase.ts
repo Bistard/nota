@@ -28,7 +28,7 @@ export interface IConfigService {
      * 
      * If section is not provided, the whole configuration object will be replaced.
      * 
-     * If the given section path is neever been set, a new section path will
+     * If the given section path is never been set, a new section path will
      * be created and the value will be set as usual.
      * 
      * If the given section path already exists, the provided value will override 
