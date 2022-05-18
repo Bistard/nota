@@ -1,5 +1,5 @@
 import { AsyncTreeRenderer } from "src/base/browser/basic/tree/asyncTreeRenderer";
-import { IMultiTree, MultiTree } from "src/base/browser/basic/tree/multiTree";
+import { IMultiTree, IMultiTreeOptions, MultiTree } from "src/base/browser/basic/tree/multiTree";
 import { ITreeListViewRenderer } from "src/base/browser/basic/tree/treeListViewRenderer";
 import { composedItemProvider, IListItemProvider } from "src/base/browser/secondary/listView/listItemProvider";
 import { IListTraitEvent } from "src/base/browser/secondary/listWidget/listTrait";
@@ -10,6 +10,7 @@ import { IScrollEvent } from "src/base/common/scrollable";
 import { ITreeMouseEvent, ITreeNode, ITreeNodeItem } from "src/base/browser/basic/tree/tree";
 import { AsyncMultiTreeModel, IAsyncMultiTreeModel } from "src/base/browser/basic/tree/asyncMultiTreeModel";
 import { Iterable } from "src/base/common/iterable";
+import { ITreeModelSpliceOptions } from "src/base/browser/basic/tree/indexTreeModel";
 
 /**
  * Provides functionality to determine the children stat of the given data.
@@ -156,6 +157,13 @@ export interface IAsyncMultiTree<T, TFilter> {
 export type AsyncWeakMap<T, TFilter> = Weakmap<ITreeNode<IAsyncTreeNode<T> | null, TFilter>, ITreeNode<T, TFilter>>;
 
 /**
+ * {@link AsyncMultiTree} Constructor option.
+ */
+export interface IAsyncMultiTreeOptions<T, TFilter> extends IMultiTreeOptions<T>, ITreeModelSpliceOptions<IAsyncTreeNode<T>, TFilter> {
+
+}
+
+/**
  * @class Built upon a {@link IMultiTree} and {@link IAsyncMultiTreeModel}.
  * 
  * Different from {@link IMultiTree} and any other tree-like structure, children 
@@ -178,6 +186,9 @@ export class AsyncMultiTree<T, TFilter = void> implements IAsyncMultiTree<T, TFi
 
     protected readonly _tree: IMultiTree<IAsyncTreeNode<T>, TFilter>;
     protected readonly _model: IAsyncMultiTreeModel<T, TFilter>;
+
+    private _onDidCreateNode?: (node: ITreeNode<IAsyncTreeNode<T>, TFilter>) => void;
+    private _onDidDeleteNode?: (node: ITreeNode<IAsyncTreeNode<T>, TFilter>) => void;
     
     // [constructor]
 
@@ -187,6 +198,7 @@ export class AsyncMultiTree<T, TFilter = void> implements IAsyncMultiTree<T, TFi
         renderers: ITreeListViewRenderer<T, TFilter, any>[],
         itemProvider: IListItemProvider<T>,
         childrenProvider: IAsyncChildrenProvider<T>,
+        opts: IAsyncMultiTreeOptions<T, TFilter> = {},
     ) {
         this._disposables = new DisposableManager();
 
@@ -194,6 +206,11 @@ export class AsyncMultiTree<T, TFilter = void> implements IAsyncMultiTree<T, TFi
 
         this._tree = this.__createTree(container, renderers, itemProvider, unwrapper);
         this._model = this.__createModel(rootData, this._tree, childrenProvider, unwrapper);
+
+        // update options
+        
+        this._onDidCreateNode = opts.onDidCreateNode;
+        this._onDidDeleteNode = opts.onDidDeleteNode;
     }
 
     // [static method]
@@ -307,9 +324,14 @@ export class AsyncMultiTree<T, TFilter = void> implements IAsyncMultiTree<T, TFi
      * @param node The provided async tree node.
      */
     private __render(node: IAsyncTreeNode<T>): void {
+        
         const children = node.children.map(child => this.__toTreeNodeItem(child));
+        
         const root = this._model.getAsyncNode(this._model.root);
-        this._tree.splice(node === root ? null : node, Number.MAX_VALUE, children, {});
+        this._tree.splice(node === root ? null : node, Number.MAX_VALUE, children, {
+            onDidCreateNode: this._onDidCreateNode,
+            onDidDeleteNode: this._onDidDeleteNode,
+        });
     }
 
     /**

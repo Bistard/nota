@@ -25,9 +25,10 @@ export interface IFileService {
      * @description Resolves the properties of a file/folder identified by the 
      * given URI.
      * @param uri The given URI.
+     * @param opts Option of the operation.
      * @returns The properties of the specified file/folder.
      */
-    stat(uri: URI): Promise<IFileStat>;
+    stat(uri: URI, opts?: IResolveStatOptions): Promise<IResolvedFileStat>;
 
     /** 
      * @description Read the file unbuffered. 

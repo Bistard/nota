@@ -35,6 +35,13 @@ export interface IMultiTree<T, TFilter = void> extends IAbstractTree<T | null, T
 }
 
 /**
+ * {@link MultiTree} Constructor option.
+ */
+export interface IMultiTreeOptions<T> extends IAbstractTreeOptions<T> {
+
+}
+
+/**
  * @class An inheritance from {@link AbstractTree}, built upon the 
  * {@link IMultiTreeModel}. 
  * 
@@ -54,7 +61,7 @@ export class MultiTree<T, TFilter = void> extends AbstractTree<T | null, TFilter
         container: HTMLElement,
         renderers: ITreeListViewRenderer<T, TFilter, any>[],
         itemProvider: IListItemProvider<T>,
-        opts: IAbstractTreeOptions<T> = {}
+        opts: IMultiTreeOptions<T> = {}
     ) {
         super(container, renderers, itemProvider, opts);
     }
