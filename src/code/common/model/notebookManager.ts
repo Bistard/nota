@@ -99,9 +99,9 @@ export class NotebookManager implements INotebookManagerService {
             const prevNotebook = userConfig.previousOpenedNotebook;
 
             if (prevNotebook && notebooks.indexOf(prevNotebook) !== -1) {
-                this.__switchOrCreateNotebook(container, path, prevNotebook);
+                this.__switchOrCreateNotebook(container, path, userConfig, prevNotebook);
             } else {
-                this.__switchOrCreateNotebook(container, path, notebooks[0]!);
+                this.__switchOrCreateNotebook(container, path, userConfig, notebooks[0]!);
             }
 
         } catch(err) {
@@ -121,9 +121,15 @@ export class NotebookManager implements INotebookManagerService {
      * it in the memory.
      * @param container The container for the creation of the notebook.
      * @param root The root path for the creation of the notebook.
+     * @param config The configuration for later updating.
      * @param name The name of the notebook.
      */
-    private __switchOrCreateNotebook(container: HTMLElement, root: string, name: string): void {
+    private __switchOrCreateNotebook(
+        container: HTMLElement, 
+        root: string, 
+        config: IUserNotebookManagerSettings, 
+        name: string
+    ): void {
         
         // do nothing if the notebook is already displaying.
         if (name === this._currentNotebook) {
@@ -142,13 +148,16 @@ export class NotebookManager implements INotebookManagerService {
             this._notebooks.set(name, notebook);
         }
 
-        // REVIEW
         notebook.onDidCreationFinished(success => {
             if (success) {
-                console.log(`opened the notebook: ${notebook!.name}`);
+                this._currentNotebook = notebook!.name;
+                config.previousOpenedNotebook = this._currentNotebook;
+                
+                this.userConfigService.set(EUserSettings.NotebookManager, config);
+            } else {
+                // this.logService();
             }
-        })
-
+        });
     }
 
     /**
