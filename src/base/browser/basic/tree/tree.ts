@@ -185,4 +185,14 @@ export interface ITreeMouseEvent<T> {
      * The mouse event related data.
      */
     data: T | null;
+
+    /**
+     * The parent data.
+     */
+    parent: T | null;
+
+    /**
+     * The children data.
+     */
+    children: T[];
 }

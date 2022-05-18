@@ -105,10 +105,9 @@ export interface IAsyncMultiTree<T, TFilter> {
 
     /**
      * @description Given the data, re-acquires the stat of the the corresponding 
-     * tree node and then its descendants asynchronousily. The view will be 
+     * tree node and then its descendants asynchronously. The view will be 
      * rerendered after all the tree nodes get refreshed.
      * @param data The provided data with type `T`. Default is the root.
-     * @param rerender Rerenders the tree at the end.
      */
     refresh(data?: T): Promise<void>;
 
@@ -258,7 +257,7 @@ export class AsyncMultiTree<T, TFilter = void> implements IAsyncMultiTree<T, TFi
     /**
      * @description Creates and returns a {@link IMultiTree}.
      */
-     private __createTree(
+    private __createTree(
         container: HTMLElement,
         renderers: ITreeListViewRenderer<T, TFilter, any>[],
         itemProvider: IListItemProvider<T>,
@@ -336,9 +335,11 @@ export class AsyncMultiTree<T, TFilter = void> implements IAsyncMultiTree<T, TFi
      */
     private __toTreeMouseEvent(event: ITreeMouseEvent<IAsyncTreeNode<T> | null>): ITreeMouseEvent<T> {
         return {
+            event: event.event,
             data: event.data && event.data.data,
-            event: event.event
-        }
+            parent: event.parent?.data || null,
+            children: event.children.map(child => child!.data),
+        };
     }
     
 }
