@@ -324,7 +324,12 @@ export interface IUserNotebookManagerSettings {
      * To includes files, please use regular expression form.
      * @note This has higher priority than 'notebookManagerExclude'.
      */
-    notebookManagerInclude: string[];    
+    notebookManagerInclude: string[];
+
+    /**
+     * The previous opened notebook (directory) name.
+     */
+    previousOpenedNotebook: string;
 }
 
 /** @SettingInterface */
@@ -359,6 +364,7 @@ export class DefaultUserConfigModel extends ConfigModel {
                 notebookManagerInclude: [
 
                 ] as string[],
+                previousOpenedNotebook: '',
             },
             'markdown':
             {
