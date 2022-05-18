@@ -7,13 +7,15 @@
 }
 
 .tree-list-row > .tree-list-indent {
-    position: absolute;
-    height: 100%;
-	
-    top: 0;
-	left: 16px;
-	
-    pointer-events: none;
+    font-size: 10px;
+	text-align: right;
+	padding-right: 6px;
+	flex-shrink: 0;
+	width: 16px;
+	display: flex !important;
+	align-items: center;
+	justify-content: center;
+	transform: translateX(3px);
 }
 
 .tree-list-row > .tree-list-content {

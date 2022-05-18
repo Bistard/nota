@@ -11,7 +11,16 @@ import { IListViewMetadata, IListViewRenderer, RendererType } from "src/base/bro
  *            `render()` for later updating / disposing.
  */
 export interface ITreeListRenderer<T, TFilter = void, TMetadata = void> extends IListViewRenderer<ITreeNode<T, TFilter>, TMetadata> {
-    // nothing here
+
+    /**
+     * @description Renders the indentation part if needed.
+     * @param item The tree node with type T for updating.
+     * @param indentElement The HTMLElement of the indentation.
+     * 
+     * @note This method only invoked when (re)inserting the item back to the {@link ListView}.
+     */
+    updateIndent?(item: ITreeNode<T, TFilter>, indentElement: HTMLElement): void;
+
 }
 
 /**
@@ -54,7 +63,7 @@ export class TreeItemRenderer<T, TFilter, TMetadata> implements ITreeListRendere
 
     // [field]
 
-    public static readonly defaultIndentation = 8;
+    public static readonly defaultIndentation = 4;
 
     public readonly type: RendererType;
 
@@ -107,11 +116,28 @@ export class TreeItemRenderer<T, TFilter, TMetadata> implements ITreeListRendere
     }
 
     public update(item: ITreeNode<T, TFilter>, index: number, data: ITreeListItemMetadata<TMetadata>, size?: number): void {
+        
         const indentSize = TreeItemRenderer.defaultIndentation + (item.depth - 1) * this._eachIndentSize;
+        data.indentation.style.paddingLeft = `${indentSize}px`;
 
-        data.indentation.style.width = `${indentSize}px`;
+        this.updateIndent(item, data.indentation);
 
         this._renderer.update(item, index, data.nestedMetadata, size);
+    }
+
+    public updateIndent(item: ITreeNode<T, TFilter>, indentElement: HTMLElement): void {
+
+        if (item.collapsible && item.visibleNodeCount > 0) {
+            indentElement.classList.add('collapsible');
+            indentElement.classList.toggle('collapsed', item.collapsed);
+        } else {
+            indentElement.classList.remove('collapsible', 'collapsed');
+        }
+
+        if (this._renderer.updateIndent) {
+            this._renderer.updateIndent(item, indentElement);
+        }
+
     }
 
     public dispose(data: ITreeListItemMetadata<TMetadata>): void {

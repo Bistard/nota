@@ -23,6 +23,7 @@
 @import "./workbench/actionBar/actionBar.css";
 @import "./workbench/actionView/actionView.css";
 @import "./workbench/actionView/explorer/explorerView.css";
+@import "./workbench/actionView/explorer/explorerItem.css";
 @import "./workbench/actionView/explorer/fileTree.css";
 @import "./workbench/actionView/outline/outlineView.css";
 @import "./workbench/editor/editor.css";

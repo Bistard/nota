@@ -29,6 +29,12 @@ export class AsyncTreeRenderer<T, TFilter, TMetadata> implements ITreeListRender
         this._renderer.update(this._nodeMap.map(item), index, data, size);
     }
 
+    public updateIndent(item: ITreeNode<IAsyncTreeNode<T>, TFilter>, indentElement: HTMLElement): void {
+        if (this._renderer.updateIndent) {
+            this._renderer.updateIndent(this._nodeMap.map(item), indentElement);
+        }
+    }
+
     public dispose(data: TMetadata): void {
         this._renderer.dispose(data);
     }

@@ -1,0 +1,14 @@
+
+.opened-explorer-container > .list-view > .list-view-container > .list-view-row {
+    cursor: pointer;
+}
+
+.explorer-item {
+    position: relative;
+    display: flex;
+    height: 100%;
+    user-select: none;
+
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
