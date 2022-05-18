@@ -9,11 +9,49 @@ export const enum FileType {
 
 export interface IFileStat {
 
+	/**
+	 * The type of the file.
+	 */
 	readonly type: FileType;
-	readonly createTime: number; // ms
-    readonly modifyTime: number; // ms
+
+	/**
+	 * The creation date in milliseconds.
+	 */
+	readonly createTime: number;
+    
+	/**
+	 * The last modified date in milliseconds.
+	 */
+	readonly modifyTime: number;
+
+	/**
+	 * The size of the target in byte.
+	 */
 	readonly byteSize: number;
+
+	/**
+	 * If the target is readonly.
+	 */
 	readonly readonly?: boolean;
+}
+
+export interface IResolvedFileStat extends IFileStat {
+
+	/**
+	 * The name of the target.
+	 */
+	readonly name: string;
+
+	/**
+	 * If the target is readonly.
+	 */
+	readonly readonly: boolean;
+
+	/**
+	 * The direct children of the target.
+	 */
+	children?: Iterable<IResolvedFileStat>;
+
 }
 
 /** @deprecated */
@@ -245,6 +283,20 @@ export interface ICreateReadStreamOptions extends IReadFileOptions {
 	 * The size of the buffer to use before sending to the stream.
 	 */
 	bufferSize: number;
+}
+
+export interface IResolveStatOptions {
+
+	/**
+	 * Resolves the stat of the direct children.
+	 */
+	resolveChildren?: boolean;
+
+	/**
+	 * Resolves the stat of all the descendants.
+	 */
+	resolveChildrenRecursive?: boolean;
+
 }
 
 /*******************************************************************************
