@@ -62,7 +62,7 @@ export interface IListViewRenderer<T, TMetadata> {
 	 * @param data The provided user-defined data for update purpose.
 	 * @param size The size of the rendered item.
 	 * 
-	 * @note This method only invoked when inserting a new item into {@link ListView}.
+	 * @note This method only invoked when (re)inserting the item back to the {@link ListView}.
 	 */
 	update(item: T, index: number, data: TMetadata, size?: number): void;
 
@@ -70,7 +70,7 @@ export interface IListViewRenderer<T, TMetadata> {
 	 * @description Dispose (destruct) the item.
 	 * @param data The user-defined data for disposing.
 	 * 
-	 * @note This method only invoked when removing an existed item from {@link ListView}.
+	 * @note This method only invoked when removing an existed item from the {@link ListView}.
 	 */
 	dispose(data: TMetadata): void;
 }
@@ -102,7 +102,6 @@ export class PipelineRenderer<T> implements IListViewRenderer<T, any[]> {
 		for (let i = 0; i < this.pipeline.length; i++) {
 			const renderer = this.pipeline[i]!;
 			renderer.update(item, index, data[i]!, size);
-			i++;
 		}
 	}
  
@@ -110,7 +109,6 @@ export class PipelineRenderer<T> implements IListViewRenderer<T, any[]> {
 		for (let i = 0; i < this.pipeline.length; i++) {
 			const renderer = this.pipeline[i]!;
 			renderer.dispose(data[i]!);
-			i++;
 		}
 	}
 
