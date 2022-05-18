@@ -2,7 +2,7 @@ import { IListViewRenderer, PipelineRenderer } from "src/base/browser/secondary/
 import { IListViewOpts, IViewItem, IViewItemChangeEvent, ListError, ListView } from "src/base/browser/secondary/listView/listView";
 import { IListTraitEvent, ListTrait } from "src/base/browser/secondary/listWidget/listTrait";
 import { DisposableManager, IDisposable } from "src/base/common/dispose";
-import { addDisposableListener, EventType } from "src/base/common/dom";
+import { addDisposableListener, DomUtility, EventType } from "src/base/common/dom";
 import { Event, Register, SignalEmitter } from "src/base/common/event";
 import { IScrollEvent } from "src/base/common/scrollable";
 import { IListItemProvider } from "src/base/browser/secondary/listView/listItemProvider";
@@ -307,7 +307,8 @@ export class ListWidget<T> implements IListWidget<T> {
      */
     private __toListMouseEvent(e: MouseEvent): IListMouseEvent<T> {
 
-        const index = this.view.renderIndexAt(e.clientY);
+        const [x, y] = DomUtility.getElementRelativeClick(e);
+        const index = this.view.renderIndexAt(y);
         const item = this.view.getItem(index);
         const viewportTop = this.view.getItemRenderTop(index);
         return {
@@ -343,8 +344,6 @@ export class ListWidget<T> implements IListWidget<T> {
      * @returns The transformed event.
      */
     private __toListDragEvent(event: DragEvent): IListDragEvent<T> {
-
-        
 
         const index = this.view.renderIndexAt(event.clientY);
         const item = this.view.getItem(index);

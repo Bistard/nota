@@ -1,4 +1,5 @@
 import { IDisposable, toDisposable } from "src/base/common/dispose";
+import { Pair } from "src/base/common/type";
 
 /**
  * @readonly A enumeration of all HTMLElement event types.
@@ -208,6 +209,18 @@ export namespace DomUtility
 		return element.offsetWidth - padding - border;
 	}
 
-	// [method - ]
+	// [method - click]
+
+	/**
+	 * @description Returns the relative click coordinates to the target element.
+	 * @param event The {@link MouseEvent}.
+	 */
+	export function getElementRelativeClick(event: MouseEvent): Pair<number, number> {
+		const box: DOMRect = (event.currentTarget as HTMLElement).getBoundingClientRect();
+		return [
+			event.clientX - box.left,
+			event.clientY - box.top
+		];
+	}
 
 }
