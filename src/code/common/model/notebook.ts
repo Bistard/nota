@@ -51,11 +51,6 @@ export class Notebook extends Disposable implements INotebook {
     private _container: HTMLElement;
 
     /**
-     * sets to `true` once the tree is created.
-     */
-    private _created: boolean = false;
-
-    /**
      * If the notebook is visible
      */
     private _visible: boolean = false;
@@ -77,13 +72,15 @@ export class Notebook extends Disposable implements INotebook {
         this._container = container;
 
         this.fileService.stat(root, { resolveChildren: true })
-        .then(rootStat => {
+        .then(async rootStat => {
         
             this._root = new ExplorerItem(rootStat, fileService);
-            this.__createTree(container);
+            const creationPromise = this.__createTree(container);
 
-            this._created = true;
+            await creationPromise;
+
             this._visible = true;
+            this.__registerListeners();
             this._onDidCreationFinished.fire(true);
         })
         .catch(err => {
@@ -101,7 +98,7 @@ export class Notebook extends Disposable implements INotebook {
 
     public setVisible(value: boolean): void {
         
-        if (!this._created || this._visible === value) {
+        if (this._visible === value) {
             return;
         }
 
@@ -141,7 +138,7 @@ export class Notebook extends Disposable implements INotebook {
      */
     private async __createTree(container: HTMLElement): Promise<void> {
 
-        this._tree = this.__register(await AsyncMultiTree.create<ExplorerItem, void>(
+        const [tree, treeCreationPromise] = AsyncMultiTree.create<ExplorerItem, void>(
             container, 
             this._root,
             [new ExplorerRenderer()], 
@@ -153,7 +150,22 @@ export class Notebook extends Disposable implements INotebook {
                     asyncNode.data
                 }
             }
-        ));
+        );
+
+        this._tree = tree;
+        return treeCreationPromise;
+    }
+
+    /**
+     * @description Registers a series of listeners to the tree.
+     */
+    private __registerListeners(): void {
+        
+        // REVIEW
+        this.__register(this._tree.onClick(node => {
+            console.log('notebook: ', node);
+        }));
+        
     }
 
     /**

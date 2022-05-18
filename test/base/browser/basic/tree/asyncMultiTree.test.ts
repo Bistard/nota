@@ -14,7 +14,7 @@ suite('AsyncMultiTree-test', () => {
     
     test('constructor / size / getNode / hasNode', async () => {
         const container = document.createElement('div');
-        const tree = await AsyncMultiTree.create<number>(
+        const [tree, promise] = AsyncMultiTree.create<number>(
             container, 
             0,
             [],
@@ -27,6 +27,8 @@ suite('AsyncMultiTree-test', () => {
                 hasChildren: (data) => !!TREE.get(data)!.length
             }
         );
+
+        await promise;
 
         assert.strictEqual(tree.size(), 6);
         
@@ -78,7 +80,7 @@ suite('AsyncMultiTree-test', () => {
     });
 
     test('refresh', async () => {
-        const tree = await AsyncMultiTree.create<number>(
+        const [tree, promise] = AsyncMultiTree.create<number>(
             document.createElement('div'), 
             0,
             [],
@@ -91,6 +93,8 @@ suite('AsyncMultiTree-test', () => {
                 hasChildren: (data) => !!TREE.get(data)!.length
             }
         );
+
+        await promise;
 
         assert.strictEqual(tree.size(), 6);
 

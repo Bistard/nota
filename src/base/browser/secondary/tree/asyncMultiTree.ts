@@ -11,6 +11,7 @@ import { ITreeMouseEvent, ITreeNode, ITreeNodeItem } from "src/base/browser/seco
 import { AsyncMultiTreeModel, IAsyncMultiTreeModel } from "src/base/browser/secondary/tree/asyncMultiTreeModel";
 import { Iterable } from "src/base/common/iterable";
 import { ITreeModelSpliceOptions } from "src/base/browser/secondary/tree/indexTreeModel";
+import { Pair } from "src/base/common/type";
 
 /**
  * Provides functionality to determine the children stat of the given data.
@@ -225,18 +226,18 @@ export class AsyncMultiTree<T, TFilter = void> implements IAsyncMultiTree<T, TFi
      * @description Creates an instance of {@link AsyncMultiTree}. The only 
      * difference is that the method will call the `refresh()` immediately.
      */
-    public static async create<T, TFilter = void>(
+    public static create<T, TFilter = void>(
         container: HTMLElement, 
         rootData: T, 
         renderers: ITreeListRenderer<T, TFilter, any>[], 
         itemProvider: IListItemProvider<T>, 
         childrenProvider: IAsyncChildrenProvider<T>,
         opts: IAsyncMultiTreeOptions<T, TFilter> = {}
-    ): Promise<AsyncMultiTree<T, TFilter>> 
+    ): Pair<AsyncMultiTree<T, TFilter>, Promise<void>>
     {
         const tree = new AsyncMultiTree(container, rootData, renderers, itemProvider, childrenProvider, opts);
-        await tree.refresh();
-        return tree;
+        
+        return [tree, tree.refresh()];
     }
 
     // [event]
