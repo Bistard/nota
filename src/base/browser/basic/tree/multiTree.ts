@@ -1,5 +1,5 @@
 import { AbstractTree, IAbstractTree, IAbstractTreeOptions } from "src/base/browser/basic/tree/abstractTree";
-import { ITreeListRenderer } from "src/base/browser/basic/tree/treeListViewRenderer";
+import { ITreeListRenderer } from "src/base/browser/basic/tree/treeListRenderer";
 import { IListItemProvider } from "src/base/browser/secondary/listView/listItemProvider";
 import { IListWidget } from "src/base/browser/secondary/listWidget/listWidget";
 import { ITreeModelSpliceOptions } from "src/base/browser/basic/tree/indexTreeModel";
