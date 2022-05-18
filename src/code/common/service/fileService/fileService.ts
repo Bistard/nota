@@ -1,8 +1,9 @@
 import { DataBuffer } from "src/base/common/file/buffer";
-import { FileSystemProviderAbleToRead, hasOpenReadWriteCloseCapability, hasReadWriteCapability, IReadFileOptions, IFileSystemProvider, IFileSystemProviderWithFileReadWrite, IFileSystemProviderWithOpenReadWriteClose, IWriteFileOptions, IFileStat, FileType, IFileOperationError, FileSystemProviderCapability, IDeleteFileOptions } from "src/base/common/file/file";
+import { FileSystemProviderAbleToRead, hasOpenReadWriteCloseCapability, hasReadWriteCapability, IReadFileOptions, IFileSystemProvider, IFileSystemProviderWithFileReadWrite, IFileSystemProviderWithOpenReadWriteClose, IWriteFileOptions, IFileStat, FileType, IFileOperationError, FileSystemProviderCapability, IDeleteFileOptions, IResolveStatOptions, IResolvedFileStat } from "src/base/common/file/file";
 import { basename, dirname, join } from "src/base/common/file/path";
 import { bufferToStream, IReadableStream, IWriteableStream, listenStream, newWriteableBufferStream, streamToBuffer } from "src/base/common/file/stream";
 import { isAbsoluteURI, URI } from "src/base/common/file/uri";
+import { Iterable } from "src/base/common/iterable";
 import { readFileIntoStream, readFileIntoStreamAsync } from "src/base/node/io";
 import { createDecorator } from "src/code/common/service/instantiationService/decorator";
 
@@ -19,6 +20,14 @@ export interface IFileService {
      * @description Gets a file system provider for a given scheme. 
      */
     getProvider(scheme: string): IFileSystemProvider | undefined;
+
+    /**
+     * @description Resolves the properties of a file/folder identified by the 
+     * given URI.
+     * @param uri The given URI.
+     * @returns The properties of the specified file/folder.
+     */
+    stat(uri: URI): Promise<IFileStat>;
 
     /** 
      * @description Read the file unbuffered. 
@@ -107,6 +116,12 @@ export class FileService implements IFileService {
      * public API - File Operations
      **************************************************************************/
     
+    public async stat(uri: URI, opts?: IResolveStatOptions): Promise<IResolvedFileStat> {
+        const provider = await this.__getProvider(uri);
+        const stat = await provider.stat(uri);
+        return this.__resolveStat(uri, provider, stat, opts);
+    }
+
     public async readFile(uri: URI, opts?: IReadFileOptions): Promise<DataBuffer> {
         const provider = await this.__getReadProvider(uri);
         return this.__readFile(provider, uri, opts);
@@ -409,6 +424,45 @@ export class FileService implements IFileService {
                 throw err;
             }
         }
+    }
+
+    /**
+     * @description Resolves the {@link IFileStat} and returns as {@link IResolvedFileStat}.
+     */
+    private async __resolveStat(
+        uri: URI, 
+        provider: IFileSystemProvider, 
+        stat: IFileStat, 
+        opts?: IResolveStatOptions
+    ): Promise<IResolvedFileStat> {
+        
+        // the resolved file stat
+        const resolved: IResolvedFileStat = {
+            ...stat,
+            name: basename(URI.toFsPath(uri)),
+            readonly: stat.readonly || Boolean(provider.capabilities & FileSystemProviderCapability.Readonly),
+            children: undefined
+        };
+
+        // resolves the children if needed
+        if (stat.type === FileType.DIRECTORY && opts && (opts.resolveChildren || opts.resolveChildrenRecursive)) {
+            
+            const children = await provider.readdir(uri);
+            const resolvedChildren = await Promise.all(children.map(async ([name, _type]) => {
+                try {
+                    const childUri = URI.fromFile(join(URI.toFsPath(uri), name));
+                    const childStat = await provider.stat(childUri);
+                    return await this.__resolveStat(childUri, provider, childStat, { resolveChildren: opts.resolveChildrenRecursive });
+                } catch (err) {
+                    // this.logService.trace(err);
+                    return null;
+                }
+            }));
+
+            resolved.children = Iterable.filter(resolvedChildren, (child) => !!child);
+        }
+
+        return resolved;
     }
 
     /***************************************************************************

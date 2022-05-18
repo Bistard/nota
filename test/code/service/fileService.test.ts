@@ -3,6 +3,7 @@ import { DataBuffer } from 'src/base/common/file/buffer';
 import { FileType } from 'src/base/common/file/file';
 import { dirname, posix, resolve } from 'src/base/common/file/path';
 import { URI } from 'src/base/common/file/uri';
+import { Iterable } from 'src/base/common/iterable';
 import { DiskFileSystemProvider } from 'src/base/node/diskFileSystemProvider';
 import { fileExists } from 'src/base/node/io';
 import { FileService } from 'src/code/common/service/fileService/fileService';
@@ -16,7 +17,51 @@ suite('FileService-disk-unbuffered-test', () => {
 
         assert.strictEqual(provider, service.getProvider('file'));
     });
+
+    test('stat - basic', async () => {
+        const service = new FileService();
+        const provider = new DiskFileSystemProvider();
+        service.registerProvider('file', provider);
+
+        const stat = await service.stat(URI.fromFile('test/code/service/temp'));
+        assert.strictEqual(stat.type, FileType.DIRECTORY);
+        assert.strictEqual(stat.name, 'temp');
+        assert.strictEqual(stat.byteSize, 0);
+        assert.strictEqual(stat.readonly, false);
+        assert.strictEqual(stat.children, undefined);
+    });
     
+    test('stat - resolve children', async () => {
+        const service = new FileService();
+        const provider = new DiskFileSystemProvider();
+        service.registerProvider('file', provider);
+
+        const stat = await service.stat(URI.fromFile('test/code/service/temp'), { resolveChildren: true });
+        assert.strictEqual(stat.type, FileType.DIRECTORY);
+        assert.strictEqual(stat.name, 'temp');
+        assert.strictEqual(stat.byteSize, 0);
+        assert.strictEqual(stat.readonly, false);
+        assert.strictEqual([...stat.children!].length, 4);
+    });
+
+    test('stat - resolve children recursive', async () => {
+        const service = new FileService();
+        const provider = new DiskFileSystemProvider();
+        service.registerProvider('file', provider);
+
+        const stat = await service.stat(URI.fromFile('test/code/service'), { resolveChildrenRecursive: true });
+        
+        assert.strictEqual(stat.type, FileType.DIRECTORY);
+        assert.strictEqual(stat.name, 'service');
+        assert.strictEqual(stat.byteSize, 0);
+        assert.strictEqual(stat.readonly, false);
+
+        const tempDir = [...stat.children!].filter(child => child.type === FileType.DIRECTORY)[0]!;
+        assert.strictEqual(tempDir.type, FileType.DIRECTORY);
+        assert.strictEqual(tempDir.name, 'temp');
+        assert.strictEqual([...tempDir.children!].length, 4);
+    });
+
     test('readFile - basic', async () => {
         const service = new FileService();
         const provider = new DiskFileSystemProvider();
