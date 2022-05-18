@@ -27,6 +27,7 @@ suite('FileService-disk-unbuffered-test', () => {
         assert.strictEqual(stat.type, FileType.DIRECTORY);
         assert.strictEqual(stat.name, 'temp');
         assert.strictEqual(stat.readonly, false);
+        assert.strictEqual(stat.parent, null);
         assert.strictEqual(stat.children, undefined);
     });
     
@@ -39,6 +40,7 @@ suite('FileService-disk-unbuffered-test', () => {
         assert.strictEqual(stat.type, FileType.DIRECTORY);
         assert.strictEqual(stat.name, 'temp');
         assert.strictEqual(stat.readonly, false);
+        assert.strictEqual(stat.parent, null);
         assert.strictEqual([...stat.children!].length, 4);
     });
 
@@ -56,6 +58,7 @@ suite('FileService-disk-unbuffered-test', () => {
         const tempDir = [...stat.children!].filter(child => child.type === FileType.DIRECTORY)[0]!;
         assert.strictEqual(tempDir.type, FileType.DIRECTORY);
         assert.strictEqual(tempDir.name, 'temp');
+        assert.strictEqual(tempDir.parent, stat);
         assert.strictEqual([...tempDir.children!].length, 4);
     });
 

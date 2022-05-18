@@ -43,9 +43,19 @@ export interface IResolvedFileStat extends IFileStat {
 	readonly name: string;
 
 	/**
+	 * The {@link URI} of the target.
+	 */
+	readonly uri: URI;
+
+	/**
 	 * If the target is readonly.
 	 */
 	readonly readonly: boolean;
+
+	/**
+	 * The parent of the target.
+	 */
+	parent: IResolvedFileStat | null;
 
 	/**
 	 * The direct children of the target.
