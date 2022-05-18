@@ -51,4 +51,43 @@ export namespace Iterable {
 		}
 	}
 
+	/**
+	 * @description Filters the given iterable by the provided predicate and 
+	 * returns a new one. Note that the original iterable is NOT modified.
+	 * @param iterable The given {@link Iterable}.
+	 * @param predicate The filter function.
+	 * @returns The new {@link Iterable}.
+	 * 
+	 * @type T represents the type of items we wish to filter for.
+	 */
+	export function filter<T>(iterable: Iterable<any>, predicate: (value: any, index: number) => boolean): Iterable<T> {
+		let index = 0;
+		const it = iterable[Symbol.iterator]();
+		const result: T[] = [];
+
+		while (true) {
+			const item = it.next();
+
+			if (item.done) {
+				return result;
+			}
+
+			if (predicate(item.value, index)) {
+				result.push(item.value as T);
+			}
+
+			index++;
+		}
+	}
+
+	/**
+	 * @description Returns a new iterable with all falsy removed. Note that the 
+	 * original iterable is NOT modified.
+	 * @param iterable The given {@link Iterable}.
+	 * @returns The new iterable.
+	 */
+	export function coalesce<T = any>(iterable: Iterable<T | undefined | null>): Iterable<T> {
+		return Iterable.filter<T>(iterable, val => !!val);
+	}
+
 }

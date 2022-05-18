@@ -21,4 +21,17 @@ suite('iterable-test', () => {
 		assert.strictEqual(Iterable.equals([2, 1], [1, 2]), false);
     });
 
+    test('filter', () => {
+        assert.strictEqual(Iterable.filter<number>([], val => (val % 2 === 1)), []);
+        assert.strictEqual(Iterable.filter<number>([1, 2, 3, 4], val => (val % 2 === 1)), [1, 3]);
+        assert.strictEqual(Iterable.filter<NonNullable<any>>([null, 2, undefined, 4], val => !!val), [2, 4]);
+    });
+
+    test('coalesce', () => {
+        assert.strictEqual(Iterable.coalesce([]), []);
+        assert.strictEqual(Iterable.coalesce([1, 2, 3, 4]), [1, 2, 3, 4]);
+        assert.strictEqual(Iterable.coalesce([null, 2, undefined, 4]), [2, 4]);
+        assert.strictEqual(Iterable.coalesce([null, 'asd', undefined, 4]), ['asd', 4]);
+    });
+
 });
