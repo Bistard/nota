@@ -108,7 +108,7 @@ export abstract class ConfigServiceBase extends Disposable implements IConfigSer
         this.fileService = fileService;
     }
 
-    // [method]
+    // [public method]
 
     public get<T>(section: string | undefined): T {
         const result = this.configModel.get<T>(section);

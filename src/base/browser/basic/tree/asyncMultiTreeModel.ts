@@ -86,7 +86,7 @@ export class AsyncMultiTreeModel<T, TFilter = void> implements IAsyncMultiTreeMo
         this._nodeRefreshing = new Map();
     }
 
-    // [method]
+    // [public method]
 
     get root() { return this._root.data; }
 

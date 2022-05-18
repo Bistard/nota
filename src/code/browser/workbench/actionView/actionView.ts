@@ -91,7 +91,7 @@ export class ActionViewComponent extends Component implements IActionViewService
         this._components = new Map();
     }
 
-    // [method]
+    // [public method]
 
     public setActionView(viewType: ActionType): void {
         this.__switchToActionView(viewType);

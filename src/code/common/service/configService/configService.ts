@@ -71,7 +71,7 @@ export class UserConfigService extends ConfigServiceBase implements IUserConfigS
         super(IConfigType.USER, new DefaultUserConfigModel(), fileService);
     }
 
-    // [method]
+    // [public method]
 
     public override async init(path: URI = getDefaultUserConfigPath()): Promise<void> {
         return await super.init(path);

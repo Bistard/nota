@@ -85,7 +85,7 @@ export class IpcService implements IIpcService {
         this.registerListeners();
     }
 
-    // [method]
+    // [public method]
 
     public openDirectoryDialog(path?: string): void {
         ipcRendererSendData(IpcCommand.OpenDirectory, path);

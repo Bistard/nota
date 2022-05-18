@@ -41,7 +41,7 @@ export class TreeListItemProvider<T> implements IListItemProvider<ITreeNode<T>> 
         this._provider = provider;
     }
 
-    // [method]
+    // [public method]
 
     
     public getSize(node: ITreeNode<T>): number {

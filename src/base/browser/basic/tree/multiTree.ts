@@ -59,7 +59,7 @@ export class MultiTree<T, TFilter = void> extends AbstractTree<T | null, TFilter
         super(container, renderers, itemProvider, opts);
     }
 
-    // [method]
+    // [public method]
 
     public splice(
         item: T | null, 

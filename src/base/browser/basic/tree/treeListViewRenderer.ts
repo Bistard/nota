@@ -61,7 +61,7 @@ export class TreeListItemRenderer<T, TFilter, TMetadata> implements ITreeListVie
         this._eachIndentSize = TreeListItemRenderer.defaultIndentation;
     }
 
-    // [method]
+    // [public method]
 
     public setEachIndentSize(size: number): void {
         this._eachIndentSize = size;

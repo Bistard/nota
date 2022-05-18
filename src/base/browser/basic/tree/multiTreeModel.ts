@@ -62,7 +62,7 @@ export class MultiTreeModel<T, TFilter = void> implements IMultiTreeModel<T, TFi
 
     public onDidSplice: Register<ITreeModelSpliceEvent<T | null, TFilter>>;
 
-    // [method]
+    // [public method]
 
     public splice(
         item: T | null, 

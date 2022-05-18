@@ -96,7 +96,7 @@ export interface IAsyncMultiTree<T, TFilter> {
      */
     get onDoubleclick(): Register<ITreeMouseEvent<T>>;
     
-    // [method]
+    // [public method]
 
     /**
      * @description Disposes the whole tree (including view).
@@ -218,7 +218,7 @@ export class AsyncMultiTree<T, TFilter = void> implements IAsyncMultiTree<T, TFi
     get onClick(): Register<ITreeMouseEvent<T>> { return Event.map(this._tree.onClick, this.__toTreeMouseEvent); }
     get onDoubleclick(): Register<ITreeMouseEvent<T>> { return Event.map(this._tree.onDoubleclick, this.__toTreeMouseEvent); }
     
-    // [method]
+    // [public method]
 
     public async refresh(data: T = this._model.root): Promise<void> {
         await this.__refresh(data);
