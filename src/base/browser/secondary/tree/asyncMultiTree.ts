@@ -53,6 +53,7 @@ export class AsyncNodeConverter<T, TFilter> implements ITreeNode<T, TFilter> {
     get data(): T { return this._node.data!.data; }
     get parent(): ITreeNode<T, TFilter> | null { return this._node.parent?.data ? new AsyncNodeConverter(this._node.parent) : null; }
     get children(): ITreeNode<T, TFilter>[] { return this._node.children.map(child => new AsyncNodeConverter(child)); }
+    get visibleNodeCount(): number { return this._node.visibleNodeCount; }
     get depth(): number { return this._node.depth; }
     get visible(): boolean { return this._node.visible; }
     get collapsible(): boolean { return this._node.collapsible; }
@@ -64,6 +65,11 @@ export class AsyncNodeConverter<T, TFilter> implements ITreeNode<T, TFilter> {
  * Only interface for {@link AsyncMultiTree}.
  */
 export interface IAsyncMultiTree<T, TFilter> {
+
+    /**
+     * The container of the whole tree.
+     */
+    DOMElement: HTMLElement;
 
     // [event]
 
@@ -219,8 +225,16 @@ export class AsyncMultiTree<T, TFilter = void> implements IAsyncMultiTree<T, TFi
      * @description Creates an instance of {@link AsyncMultiTree}. The only 
      * difference is that the method will call the `refresh()` immediately.
      */
-    public static async create<T, TFilter = void>(container: HTMLElement, rootData: T, renderers: ITreeListRenderer<T, TFilter, any>[], itemProvider: IListItemProvider<T>, childrenProvider: IAsyncChildrenProvider<T>): Promise<AsyncMultiTree<T, TFilter>> {
-        const tree = new AsyncMultiTree(container, rootData, renderers, itemProvider, childrenProvider);
+    public static async create<T, TFilter = void>(
+        container: HTMLElement, 
+        rootData: T, 
+        renderers: ITreeListRenderer<T, TFilter, any>[], 
+        itemProvider: IListItemProvider<T>, 
+        childrenProvider: IAsyncChildrenProvider<T>,
+        opts: IAsyncMultiTreeOptions<T, TFilter> = {}
+    ): Promise<AsyncMultiTree<T, TFilter>> 
+    {
+        const tree = new AsyncMultiTree(container, rootData, renderers, itemProvider, childrenProvider, opts);
         await tree.refresh();
         return tree;
     }
@@ -235,6 +249,8 @@ export class AsyncMultiTree<T, TFilter = void> implements IAsyncMultiTree<T, TFi
     get onClick(): Register<ITreeMouseEvent<T>> { return Event.map(this._tree.onClick, this.__toTreeMouseEvent); }
     get onDoubleclick(): Register<ITreeMouseEvent<T>> { return Event.map(this._tree.onDoubleclick, this.__toTreeMouseEvent); }
     
+    get DOMElement(): HTMLElement { return this._tree.DOMElement; }
+
     // [public method]
 
     public async refresh(data: T = this._model.root): Promise<void> {

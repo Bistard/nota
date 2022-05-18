@@ -21,15 +21,15 @@ export class AsyncTreeRenderer<T, TFilter, TMetadata> implements ITreeListRender
         this._nodeMap = nodeMap;
     }
 
-    render(element: HTMLElement): TMetadata {
+    public render(element: HTMLElement): TMetadata {
         return this._renderer.render(element);
     }
 
-    update(item: ITreeNode<IAsyncTreeNode<T>, TFilter>, index: number, data: TMetadata, size?: number): void {
+    public update(item: ITreeNode<IAsyncTreeNode<T>, TFilter>, index: number, data: TMetadata, size?: number): void {
         this._renderer.update(this._nodeMap.map(item), index, data, size);
     }
 
-    dispose(data: TMetadata): void {
+    public dispose(data: TMetadata): void {
         this._renderer.dispose(data);
     }
 
