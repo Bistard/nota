@@ -26,7 +26,6 @@ suite('FileService-disk-unbuffered-test', () => {
         const stat = await service.stat(URI.fromFile('test/code/service/temp'));
         assert.strictEqual(stat.type, FileType.DIRECTORY);
         assert.strictEqual(stat.name, 'temp');
-        assert.strictEqual(stat.byteSize, 0);
         assert.strictEqual(stat.readonly, false);
         assert.strictEqual(stat.children, undefined);
     });
@@ -39,7 +38,6 @@ suite('FileService-disk-unbuffered-test', () => {
         const stat = await service.stat(URI.fromFile('test/code/service/temp'), { resolveChildren: true });
         assert.strictEqual(stat.type, FileType.DIRECTORY);
         assert.strictEqual(stat.name, 'temp');
-        assert.strictEqual(stat.byteSize, 0);
         assert.strictEqual(stat.readonly, false);
         assert.strictEqual([...stat.children!].length, 4);
     });
@@ -53,7 +51,6 @@ suite('FileService-disk-unbuffered-test', () => {
         
         assert.strictEqual(stat.type, FileType.DIRECTORY);
         assert.strictEqual(stat.name, 'service');
-        assert.strictEqual(stat.byteSize, 0);
         assert.strictEqual(stat.readonly, false);
 
         const tempDir = [...stat.children!].filter(child => child.type === FileType.DIRECTORY)[0]!;
