@@ -1,5 +1,5 @@
-import * as Path from'path';
 import { BrowserWindow, ipcMain, app, dialog } from 'electron';
+import { join } from 'src/base/common/file/path';
 import { IpcCommand } from 'src/base/electron/ipcCommand';
 
 /**
@@ -8,7 +8,8 @@ import { IpcCommand } from 'src/base/electron/ipcCommand';
 class Main {
 
     private winMain: Electron.BrowserWindow | null = null;
-    private isDevlToolsOn: boolean = false;
+    
+    private isDevlToolsOn = false;
     
     constructor() {
         this.createWindow();
@@ -33,7 +34,7 @@ class Main {
                     contextIsolation: false,
                     enableRemoteModule: true,
                     devTools: true,
-                    preload: Path.join(__dirname, 'preload.js'),
+                    preload: join(__dirname, 'preload.js'),
                 },
                 resizable: true,
                 show: false,
@@ -97,14 +98,17 @@ class Main {
             
             // send app path to the renderer process
             this.winMain!.webContents.send('get-app-path', app.getAppPath());
-            
+
             // display window
             this.winMain!.show();
         });
 
-        // titleBar listeners
         this.winMain.webContents.on('devtools-closed', () => {
             this.isDevlToolsOn = false;
+        });
+
+        this.winMain.webContents.on('devtools-opened', () => {
+            this.isDevlToolsOn = true;
         });
 
         this.winMain.on('maximize', () => {
@@ -195,12 +199,12 @@ class Main {
             this.winMain!.close();
         });
         
-        ipcMain.on(IpcCommand.OpenDevelopTool, () => {
+        ipcMain.on(IpcCommand.ToggleDevelopTool, () => {
             this.__toggleDevTool();
         });
 
         ipcMain.on(IpcCommand.ErrorInWindow, () => {
-            this.__toggleDevTool();
+            this.__toggleDevTool(true);
         });
 
         ipcMain.on(IpcCommand.ReloadWindow, () => {
@@ -220,15 +224,21 @@ class Main {
         });
     }
 
-    // [private helper method]
+    /**
+     * @description Toggles the development tool.
+     * @param force Forces the development tool on or off.
+     */
+    private __toggleDevTool(force?: boolean): void {
 
-    private __toggleDevTool(): void {
-        if (this.isDevlToolsOn === false) {
+        if (force === this.isDevlToolsOn) {
+            return;
+        }
+
+        if (!this.isDevlToolsOn) {
             this.winMain!.webContents.openDevTools({mode: 'detach', activate: true});
         } else {
             this.winMain!.webContents.closeDevTools();
         }
-        (this.isDevlToolsOn as any as number) ^= 1;
     }
 
 }

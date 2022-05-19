@@ -1,10 +1,10 @@
-import { AbstractTree, IAbstractTree, IAbstractTreeOptions } from "src/base/browser/basic/tree/abstractTree";
-import { ITreeListViewRenderer } from "src/base/browser/basic/tree/treeListViewRenderer";
+import { AbstractTree, IAbstractTree, IAbstractTreeOptions } from "src/base/browser/secondary/tree/abstractTree";
+import { ITreeListRenderer } from "src/base/browser/secondary/tree/treeListRenderer";
 import { IListItemProvider } from "src/base/browser/secondary/listView/listItemProvider";
 import { IListWidget } from "src/base/browser/secondary/listWidget/listWidget";
-import { ITreeModelSpliceOptions } from "src/base/browser/basic/tree/indexTreeModel";
-import { IMultiTreeModel, MultiTreeModel } from "src/base/browser/basic/tree/multiTreeModel";
-import { ITreeModel, ITreeNode, ITreeNodeItem } from "src/base/browser/basic/tree/tree";
+import { ITreeModelSpliceOptions } from "src/base/browser/secondary/tree/indexTreeModel";
+import { IMultiTreeModel, MultiTreeModel } from "src/base/browser/secondary/tree/multiTreeModel";
+import { ITreeModel, ITreeNode, ITreeNodeItem } from "src/base/browser/secondary/tree/tree";
 
 /**
  * An interface only for {@link MultiTree}.
@@ -35,6 +35,13 @@ export interface IMultiTree<T, TFilter = void> extends IAbstractTree<T | null, T
 }
 
 /**
+ * {@link MultiTree} Constructor option.
+ */
+export interface IMultiTreeOptions<T> extends IAbstractTreeOptions<T> {
+
+}
+
+/**
  * @class An inheritance from {@link AbstractTree}, built upon the 
  * {@link IMultiTreeModel}. 
  * 
@@ -52,14 +59,14 @@ export class MultiTree<T, TFilter = void> extends AbstractTree<T | null, TFilter
 
     constructor(
         container: HTMLElement,
-        renderers: ITreeListViewRenderer<T, TFilter, any>[],
+        renderers: ITreeListRenderer<T, TFilter, any>[],
         itemProvider: IListItemProvider<T>,
-        opts: IAbstractTreeOptions<T> = {}
+        opts: IMultiTreeOptions<T> = {}
     ) {
         super(container, renderers, itemProvider, opts);
     }
 
-    // [method]
+    // [public method]
 
     public splice(
         item: T | null, 

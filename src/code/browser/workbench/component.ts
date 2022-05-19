@@ -168,7 +168,7 @@ export abstract class Component extends Disposable implements IComponent {
      */
     protected abstract _registerListeners(): void;
 
-    // [method]
+    // [public method]
 
     public create(): void {
         if (this.isDisposed() || this._created) {

@@ -1,4 +1,5 @@
 import { IDisposable, toDisposable } from "src/base/common/dispose";
+import { Pair } from "src/base/common/type";
 
 /**
  * @readonly A enumeration of all HTMLElement event types.
@@ -115,7 +116,7 @@ export function formatSpan(text: string): string {
  * @warn If the HTMLElement has not been added into the DOM tree, some methods
  * under the namespace will NOT work properly (returns magic number).
  */
-export namespace DomSize
+export namespace DomUtility
 {
 
 	/**
@@ -202,10 +203,24 @@ export namespace DomSize
 	 * @description Get the width of the content excluding padding and border.
 	 * @param element The HTMLElement.
 	 */
-	 export function getContentWidth(element: HTMLElement): number {
+	export function getContentWidth(element: HTMLElement): number {
 		const padding = getPaddingLeft(element) + getPaddingRight(element);
 		const border  = getBorderLeft(element) + getBorderRight(element);
 		return element.offsetWidth - padding - border;
+	}
+
+	// [method - click]
+
+	/**
+	 * @description Returns the relative click coordinates to the target element.
+	 * @param event The {@link MouseEvent}.
+	 */
+	export function getElementRelativeClick(event: MouseEvent): Pair<number, number> {
+		const box: DOMRect = (event.currentTarget as HTMLElement).getBoundingClientRect();
+		return [
+			event.clientX - box.left,
+			event.clientY - box.top
+		];
 	}
 
 }

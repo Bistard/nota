@@ -96,7 +96,7 @@ export class ActionBarComponent extends Component implements IActionBarService {
         super(ComponentType.ActionBar, parentComponent, null, componentService);
     }
 
-    // [method]
+    // [public method]
 
     public getButton(type: ActionType): ActionButton | undefined {
         return this._widgetBar.getItem(type);

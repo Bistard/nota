@@ -1,4 +1,4 @@
-import { ITreeModel, ITreeNode, ITreeNodeItem } from "src/base/browser/basic/tree/tree";
+import { ITreeModel, ITreeNode, ITreeNodeItem } from "src/base/browser/secondary/tree/tree";
 import { Emitter, Register } from "src/base/common/event";
 import { ISpliceable } from "src/base/common/range";
 
@@ -49,9 +49,6 @@ export interface IIndexTreeNode<T, TFilter = void> extends ITreeNode<T, TFilter>
     parent: IIndexTreeNode<T, TFilter> | null;
     children: IIndexTreeNode<T, TFilter>[];
     
-    /** counts how many nodes are actually visible / rendered (includes itself). */
-    visibleNodeCount: number;
-
 }
 
 /**

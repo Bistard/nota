@@ -1,8 +1,8 @@
-import { AsyncWeakMap, IAsyncChildrenProvider, IAsyncTreeNode } from "src/base/browser/basic/tree/asyncMultiTree";
-import { IMultiTree } from "src/base/browser/basic/tree/multiTree";
-import { ITreeModel, ITreeNode } from "src/base/browser/basic/tree/tree";
+import { AsyncWeakMap, IAsyncChildrenProvider, IAsyncTreeNode } from "src/base/browser/secondary/tree/asyncMultiTree";
+import { IMultiTree } from "src/base/browser/secondary/tree/multiTree";
+import { ITreeModel, ITreeNode } from "src/base/browser/secondary/tree/tree";
 import { Iterable } from "src/base/common/iterable";
-import { isPromise } from "util/types";
+import { isIterable } from "src/base/common/type";
 
 /**
  * An interface only for {@link AsyncMultiTreeModel}.
@@ -23,21 +23,41 @@ export interface IAsyncMultiTreeModel<T, TFilter> extends ITreeModel<T, TFilter,
      */
     getAsyncNode(data: T): IAsyncTreeNode<T>;
 
+    /**
+     * @description Returns the root async tree node of the tree.
+     */
+    getRootAsyncNode(): IAsyncTreeNode<T>;
+
+    /** override */
+    setCollapsed(data: T, collapsed?: boolean, recursive?: boolean): boolean;
 }
 
 /**
- * @class // TODO
+ * @class Model relies on a provided {@link IMultiTree} where each tree node has 
+ * a type {@link ITreeNode<IAsyncTreeNode<T>>}.
+ * 
+ * Except the provided {@link IMultiTree}, the model itself will also maintain a 
+ * same tree structure but using {@link IAsyncTreeNode<T>}.
+ * 
+ * The model only maintaining the inner tree structure. The {@link IMultiTree} 
+ * and its view will be maintained by the wrapper class {@link IAsyncMultiTree}.
+ * 
+ * @note Reason for having a same tree structure inside the model, because every
+ * `IMultiTree.splice()` call will rerender the whole view. Each `refresh()` 
+ * call might causes too many render calls. That is why we need to maintain a 
+ * same tree structure, once the build process finished, we only need to render 
+ * once in the {@link IAsyncMultiTree}.
  */
 export class AsyncMultiTreeModel<T, TFilter = void> implements IAsyncMultiTreeModel<T, TFilter> {
 
     // [field]
 
-    protected readonly _root: IAsyncTreeNode<T>;
-
     private readonly _tree: IMultiTree<IAsyncTreeNode<T>, TFilter>;
+
+    private readonly _root: IAsyncTreeNode<T>;
     private readonly _nodes: Map<T | null, IAsyncTreeNode<T>>;
-    private readonly _unwrapper: AsyncWeakMap<T, TFilter>;
     
+    private readonly _unwrapper: AsyncWeakMap<T, TFilter>;
     private readonly _childrenProvider: IAsyncChildrenProvider<T>;
 
     /**
@@ -73,7 +93,7 @@ export class AsyncMultiTreeModel<T, TFilter = void> implements IAsyncMultiTreeMo
         this._nodeRefreshing = new Map();
     }
 
-    // [method]
+    // [public method]
 
     get root() { return this._root.data; }
 
@@ -104,6 +124,10 @@ export class AsyncMultiTreeModel<T, TFilter = void> implements IAsyncMultiTreeMo
         return this.__getAsyncNode(data);
     }
 
+    public getRootAsyncNode(): IAsyncTreeNode<T> {
+        return this._root;
+    }
+
     public getNode(data: T): ITreeNode<T, TFilter> {
         const asyncNode = this.__getAsyncNode(data);
         const node = this._tree.getNode(asyncNode === this._root ? null : asyncNode);
@@ -127,6 +151,17 @@ export class AsyncMultiTreeModel<T, TFilter = void> implements IAsyncMultiTreeMo
     public isCollapsed(data: T): boolean {
         const asyncNode = this.__getAsyncNode(data);
         return this._tree.isCollapsed(asyncNode === this._root ? null : asyncNode);
+    }
+
+    public setCollapsed(data: T, collapsed?: boolean, recursive?: boolean): boolean {
+        const asyncNode = this.__getAsyncNode(data);
+
+        const location = asyncNode === this._root ? null : asyncNode;
+        if (collapsed) {
+            return this._tree.collapse(location, recursive ?? false);
+        } else {
+            return this._tree.expand(location, recursive ?? false);
+        };
     }
 
     public rerender(data: T): void {
@@ -277,13 +312,11 @@ export class AsyncMultiTreeModel<T, TFilter = void> implements IAsyncMultiTreeMo
         }
 
         const children = this._childrenProvider.getChildren(node.data);
-        
-        if (isPromise(children)) {
+
+        if (!isIterable(children)) {
             this._statFetching.set(node, children);
             return children.finally(() => this._statFetching.delete(node));
-        }
-
-        else {
+        } else {
             return children;
         }
     }

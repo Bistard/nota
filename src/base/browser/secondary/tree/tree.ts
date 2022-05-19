@@ -10,8 +10,9 @@
  * T: represents the type of data is stored inside the node.
  * TFilter: represents the type of data for matching purpose, eg. {@link FuzzyScore}.
  */
-export interface ITreeNode<T, TFilter = void> {
 
+export interface ITreeNode<T, TFilter = void> {
+    
     /** The corresponding stored user-defined data. */
     data: T;
 
@@ -20,6 +21,9 @@ export interface ITreeNode<T, TFilter = void> {
 
     /** The childrens of the tree node. */
     children: ITreeNode<T, TFilter>[];
+
+    /** counts how many nodes are actually visible / rendered (includes itself). */
+    visibleNodeCount: number;
 
     /** The depth of the tree node in the whole tree structure. First level is 1. */
     depth: number;
@@ -154,7 +158,7 @@ export interface ITreeModel<T, TFilter = void, TRef = number[]> {
      *                  default.
      * @returns If the operation was made.
      * 
-     * @note Recursive meaning all the nested the children will also be collapsed.
+     * @note Recursive meaning all the nested the children will also be collapsed / expanded.
      */
     setCollapsed?(location: TRef, collapsed?: boolean, recursive?: boolean): boolean;
 
@@ -185,4 +189,19 @@ export interface ITreeMouseEvent<T> {
      * The mouse event related data.
      */
     data: T | null;
+
+    /**
+     * The parent data.
+     */
+    parent: T | null;
+
+    /**
+     * The children data.
+     */
+    children: T[];
+
+    /**
+     * The depth of the data in the tree.
+     */
+    depth: number;
 }

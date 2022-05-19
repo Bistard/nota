@@ -17,11 +17,13 @@
 @import "../base/browser/secondary/contextMenu/contextMenu.css";
 @import "../base/browser/secondary/scrollableWidget/scrollableWidget.css";
 @import "../base/browser/secondary/listView/listView.css";
+@import "../base/browser/secondary/tree/tree.css";
 
 @import "./common.css";
 @import "./workbench/actionBar/actionBar.css";
 @import "./workbench/actionView/actionView.css";
 @import "./workbench/actionView/explorer/explorerView.css";
+@import "./workbench/actionView/explorer/explorerItem.css";
 @import "./workbench/actionView/explorer/fileTree.css";
 @import "./workbench/actionView/outline/outlineView.css";
 @import "./workbench/editor/editor.css";

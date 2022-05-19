@@ -91,7 +91,7 @@ export class ActionViewComponent extends Component implements IActionViewService
         this._components = new Map();
     }
 
-    // [method]
+    // [public method]
 
     public setActionView(viewType: ActionType): void {
         this.__switchToActionView(viewType);
@@ -281,7 +281,7 @@ export class ExplorerTitlePart extends ActionViewTitlePart {
         // title text
         const topText = document.createElement('div');
         topText.className = 'title-text';
-        topText.innerHTML = this.i18nService.trans(Section.Explorer, 'notebook');
+        topText.textContent = this.i18nService.trans(Section.Explorer, 'notebook');
 
         wrapper.append(dropdownIcon);
         wrapper.append(topText);

@@ -71,7 +71,7 @@ export class UserConfigService extends ConfigServiceBase implements IUserConfigS
         super(IConfigType.USER, new DefaultUserConfigModel(), fileService);
     }
 
-    // [method]
+    // [public method]
 
     public override async init(path: URI = getDefaultUserConfigPath()): Promise<void> {
         return await super.init(path);
@@ -324,7 +324,12 @@ export interface IUserNotebookManagerSettings {
      * To includes files, please use regular expression form.
      * @note This has higher priority than 'notebookManagerExclude'.
      */
-    notebookManagerInclude: string[];    
+    notebookManagerInclude: string[];
+
+    /**
+     * The previous opened notebook (directory) name.
+     */
+    previousOpenedNotebook: string;
 }
 
 /** @SettingInterface */
@@ -359,6 +364,7 @@ export class DefaultUserConfigModel extends ConfigModel {
                 notebookManagerInclude: [
 
                 ] as string[],
+                previousOpenedNotebook: '',
             },
             'markdown':
             {

@@ -97,7 +97,7 @@ export class ExplorerViewComponent extends Component implements IExplorerViewSer
         
         const tag = document.createElement('div');
         tag.className = 'explorer-open-tag';        
-        tag.innerHTML = this.i18nService.trans(Section.Explorer, 'openDirectory');
+        tag.textContent = this.i18nService.trans(Section.Explorer, 'openDirectory');
         tag.classList.add('vertical-center', 'funcText');
         this._unopenedView.appendChild(tag);
 
@@ -143,7 +143,7 @@ export class ExplorerViewComponent extends Component implements IExplorerViewSer
         }));
     }
 
-    // [method]
+    // [public method]
 
     public async openDirectory(path: string, reopen: boolean): Promise<boolean> {
         await this.__createOpenedExplorerView(path, this._globalConfig.defaultConfigOn, reopen);
@@ -161,21 +161,21 @@ export class ExplorerViewComponent extends Component implements IExplorerViewSer
         
         // get configurations and save it in the class itself.
         try {
-            this._globalConfig = this.globalConfigService.get<IGlobalNotebookManagerSettings>(EGlobalSettings.NotebookManager);
-            this._userConfig = this.userConfigService.get<IUserNotebookManagerSettings>(EUserSettings.NotebookManager);
+            this._globalConfig = this.globalConfigService.get(EGlobalSettings.NotebookManager);
+            this._userConfig = this.userConfigService.get(EUserSettings.NotebookManager);
         } catch (err) {
             throw new Error(`Explorer: ${err}`);
         }
 
         // update configurations when changed.
 
-        this.globalConfigService.onDidChangeNotebookManagerSettings((newConfig) => {
+        this.__register(this.globalConfigService.onDidChangeNotebookManagerSettings((newConfig) => {
             this._globalConfig = newConfig;
-        });
+        }));
 
-        this.userConfigService.onDidChangeNotebookManagerSettings((newConfig) => {
+        this.__register(this.userConfigService.onDidChangeNotebookManagerSettings((newConfig) => {
             this._userConfig = newConfig;
-        });
+        }));
     }
 
     /**

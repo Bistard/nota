@@ -1,15 +1,17 @@
-import { AsyncTreeRenderer } from "src/base/browser/basic/tree/asyncTreeRenderer";
-import { IMultiTree, MultiTree } from "src/base/browser/basic/tree/multiTree";
-import { ITreeListViewRenderer } from "src/base/browser/basic/tree/treeListViewRenderer";
+import { AsyncTreeRenderer } from "src/base/browser/secondary/tree/asyncTreeRenderer";
+import { IMultiTree, IMultiTreeOptions, MultiTree } from "src/base/browser/secondary/tree/multiTree";
+import { ITreeListRenderer } from "src/base/browser/secondary/tree/treeListRenderer";
 import { composedItemProvider, IListItemProvider } from "src/base/browser/secondary/listView/listItemProvider";
 import { IListTraitEvent } from "src/base/browser/secondary/listWidget/listTrait";
 import { DisposableManager, IDisposable } from "src/base/common/dispose";
 import { Event, Register } from "src/base/common/event";
 import { Weakmap } from "src/base/common/map";
 import { IScrollEvent } from "src/base/common/scrollable";
-import { ITreeMouseEvent, ITreeNode, ITreeNodeItem } from "src/base/browser/basic/tree/tree";
-import { AsyncMultiTreeModel, IAsyncMultiTreeModel } from "src/base/browser/basic/tree/asyncMultiTreeModel";
+import { ITreeMouseEvent, ITreeNode, ITreeNodeItem } from "src/base/browser/secondary/tree/tree";
+import { AsyncMultiTreeModel, IAsyncMultiTreeModel } from "src/base/browser/secondary/tree/asyncMultiTreeModel";
 import { Iterable } from "src/base/common/iterable";
+import { ITreeModelSpliceOptions } from "src/base/browser/secondary/tree/indexTreeModel";
+import { Pair } from "src/base/common/type";
 
 /**
  * Provides functionality to determine the children stat of the given data.
@@ -24,7 +26,7 @@ export interface IAsyncChildrenProvider<T> {
     /**
      * @description Get the children from the given data.
      */
-    getChildren(data: T): Iterable<T> | Promise<Iterable<T>>;
+    getChildren(data: T): T[] | Promise<T[]>;
 
 }
 
@@ -52,6 +54,7 @@ export class AsyncNodeConverter<T, TFilter> implements ITreeNode<T, TFilter> {
     get data(): T { return this._node.data!.data; }
     get parent(): ITreeNode<T, TFilter> | null { return this._node.parent?.data ? new AsyncNodeConverter(this._node.parent) : null; }
     get children(): ITreeNode<T, TFilter>[] { return this._node.children.map(child => new AsyncNodeConverter(child)); }
+    get visibleNodeCount(): number { return this._node.visibleNodeCount; }
     get depth(): number { return this._node.depth; }
     get visible(): boolean { return this._node.visible; }
     get collapsible(): boolean { return this._node.collapsible; }
@@ -63,6 +66,11 @@ export class AsyncNodeConverter<T, TFilter> implements ITreeNode<T, TFilter> {
  * Only interface for {@link AsyncMultiTree}.
  */
 export interface IAsyncMultiTree<T, TFilter> {
+
+    /**
+     * The container of the whole tree.
+     */
+    DOMElement: HTMLElement;
 
     // [event]
 
@@ -96,7 +104,7 @@ export interface IAsyncMultiTree<T, TFilter> {
      */
     get onDoubleclick(): Register<ITreeMouseEvent<T>>;
     
-    // [method]
+    // [public method]
 
     /**
      * @description Disposes the whole tree (including view).
@@ -104,11 +112,15 @@ export interface IAsyncMultiTree<T, TFilter> {
     dispose(): void;
 
     /**
+     * @description Returns the root data of the tree.
+     */
+    root(): T;
+    
+    /**
      * @description Given the data, re-acquires the stat of the the corresponding 
-     * tree node and then its descendants asynchronousily. The view will be 
+     * tree node and then its descendants asynchronously. The view will be 
      * rerendered after all the tree nodes get refreshed.
      * @param data The provided data with type `T`. Default is the root.
-     * @param rerender Rerenders the tree at the end.
      */
     refresh(data?: T): Promise<void>;
 
@@ -143,6 +155,44 @@ export interface IAsyncMultiTree<T, TFilter> {
     isCollapsed(data: T): boolean;
 
     /**
+     * @description Collapses to the tree node with the given data.
+     * @param data The data representation of the node.
+     * @param recursive Determines if the operation is recursive (same operation 
+     *                  to its descendants). if not provided, sets to false as 
+     *                  default.
+     */
+    collapse(data: T, recursive: boolean): boolean;
+
+    /**
+     * @description Expands to the tree node with the given data.
+     * @param data The data representation of the node.
+     * @param recursive Determines if the operation is recursive (same operation 
+     *                  to its descendants). if not provided, sets to false as 
+     *                  default.
+     */
+    expand(data: T, recursive: boolean): boolean;
+     
+    /**
+     * @description Toggles the state of collapse or expand to the tree node with
+     * the given data.
+     * @param data The data representation of the node.
+     * @param recursive Determines if the operation is recursive (same operation 
+     *                  to its descendants). if not provided, sets to false as 
+     *                  default.
+     */
+    toggleCollapseOrExpand(data: T, recursive: boolean): boolean;
+     
+    /**
+     * @description Collapses all the tree nodes.
+     */
+    collapseAll(): void;
+    
+    /**
+     * @description Expands all the tree nodes.
+     */
+    expandAll(): void;
+
+    /**
      * @description Rerenders the whole view.
      */
     rerender(data: T): void;
@@ -153,16 +203,32 @@ export interface IAsyncMultiTree<T, TFilter> {
     size(): number;
 }
 
-/** EXPORT FOR MODULE USAGE, DO NOT USE DIRECTLY. */
+/** EXPORT FOR OTHER MODULES USAGE, DO NOT USE DIRECTLY. */
 export type AsyncWeakMap<T, TFilter> = Weakmap<ITreeNode<IAsyncTreeNode<T> | null, TFilter>, ITreeNode<T, TFilter>>;
 
 /**
- * @class Wraps a {@link IMultiTree}, // TODO
+ * {@link AsyncMultiTree} Constructor option.
+ */
+export interface IAsyncMultiTreeOptions<T, TFilter> extends IMultiTreeOptions<T>, ITreeModelSpliceOptions<IAsyncTreeNode<T>, TFilter> {
+
+}
+
+/**
+ * @class Built upon a {@link IMultiTree} and {@link IAsyncMultiTreeModel}.
  * 
+ * Different from {@link IMultiTree} and any other tree-like structure, children 
+ * of each node is NOT decided by the caller, instead, caller needs to provider 
+ * a {@link IAsyncChildrenProvider} which is the one that has ability to 
+ * determine the children of each node.
  * 
- * @note Children of each node is NOT decided by the user, instead, creator needs
- * to provider a {@link IAsyncChildrenProvider} which has ability to determine
- * the children of each node.
+ * Since the caller cannot decide the structrue of the tree, once the root data 
+ * is given, the {@link AsyncMultiTree} will build the whole tree under the
+ * provided {@link IAsyncChildrenProvider}, and the whole process is implemented
+ * asynchronously.
+ * 
+ * RootData is not counted as the part of the tree.
+ * 
+ * Constructor is private, use {@link AsyncMultiTree.create} instead.
  */
 export class AsyncMultiTree<T, TFilter = void> implements IAsyncMultiTree<T, TFilter>, IDisposable {
 
@@ -172,15 +238,19 @@ export class AsyncMultiTree<T, TFilter = void> implements IAsyncMultiTree<T, TFi
 
     protected readonly _tree: IMultiTree<IAsyncTreeNode<T>, TFilter>;
     protected readonly _model: IAsyncMultiTreeModel<T, TFilter>;
+
+    private _onDidCreateNode?: (node: ITreeNode<IAsyncTreeNode<T>, TFilter>) => void;
+    private _onDidDeleteNode?: (node: ITreeNode<IAsyncTreeNode<T>, TFilter>) => void;
     
     // [constructor]
 
     private constructor(
         container: HTMLElement,
         rootData: T,
-        renderers: ITreeListViewRenderer<T, TFilter, any>[],
+        renderers: ITreeListRenderer<T, TFilter, any>[],
         itemProvider: IListItemProvider<T>,
         childrenProvider: IAsyncChildrenProvider<T>,
+        opts: IAsyncMultiTreeOptions<T, TFilter> = {},
     ) {
         this._disposables = new DisposableManager();
 
@@ -188,6 +258,11 @@ export class AsyncMultiTree<T, TFilter = void> implements IAsyncMultiTree<T, TFi
 
         this._tree = this.__createTree(container, renderers, itemProvider, unwrapper);
         this._model = this.__createModel(rootData, this._tree, childrenProvider, unwrapper);
+
+        // update options
+        
+        this._onDidCreateNode = opts.onDidCreateNode;
+        this._onDidDeleteNode = opts.onDidDeleteNode;
     }
 
     // [static method]
@@ -196,10 +271,18 @@ export class AsyncMultiTree<T, TFilter = void> implements IAsyncMultiTree<T, TFi
      * @description Creates an instance of {@link AsyncMultiTree}. The only 
      * difference is that the method will call the `refresh()` immediately.
      */
-    public static async create<T, TFilter = void>(container: HTMLElement, rootData: T, renderers: ITreeListViewRenderer<T, TFilter, any>[], itemProvider: IListItemProvider<T>, childrenProvider: IAsyncChildrenProvider<T>): Promise<AsyncMultiTree<T, TFilter>> {
-        const tree = new AsyncMultiTree(container, rootData, renderers, itemProvider, childrenProvider);
-        await tree.refresh();
-        return tree;
+    public static create<T, TFilter = void>(
+        container: HTMLElement, 
+        rootData: T, 
+        renderers: ITreeListRenderer<T, TFilter, any>[], 
+        itemProvider: IListItemProvider<T>, 
+        childrenProvider: IAsyncChildrenProvider<T>,
+        opts: IAsyncMultiTreeOptions<T, TFilter> = {}
+    ): Pair<AsyncMultiTree<T, TFilter>, Promise<void>>
+    {
+        const tree = new AsyncMultiTree(container, rootData, renderers, itemProvider, childrenProvider, opts);
+        
+        return [tree, tree.refresh()];
     }
 
     // [event]
@@ -212,7 +295,9 @@ export class AsyncMultiTree<T, TFilter = void> implements IAsyncMultiTree<T, TFi
     get onClick(): Register<ITreeMouseEvent<T>> { return Event.map(this._tree.onClick, this.__toTreeMouseEvent); }
     get onDoubleclick(): Register<ITreeMouseEvent<T>> { return Event.map(this._tree.onDoubleclick, this.__toTreeMouseEvent); }
     
-    // [method]
+    get DOMElement(): HTMLElement { return this._tree.DOMElement; }
+
+    // [public method]
 
     public async refresh(data: T = this._model.root): Promise<void> {
         await this.__refresh(data);
@@ -220,6 +305,10 @@ export class AsyncMultiTree<T, TFilter = void> implements IAsyncMultiTree<T, TFi
 
     public dispose(): void {
         this._disposables.dispose();
+    }
+
+    public root(): T {
+        return this._model.root;
     }
 
     public getNode(data: T): ITreeNode<T, TFilter> {
@@ -238,6 +327,27 @@ export class AsyncMultiTree<T, TFilter = void> implements IAsyncMultiTree<T, TFi
         return this._model.isCollapsed(data);
     }
 
+    public collapse(data: T, recursive: boolean): boolean {
+        return this._model.setCollapsed(data, true, recursive);
+    }
+
+    public expand(data: T, recursive: boolean): boolean {
+        return this._model.setCollapsed(data, false, recursive);
+    }
+
+    public toggleCollapseOrExpand(data: T, recursive: boolean): boolean {
+        const asyncNode = this._model.getAsyncNode(data);
+        return this._tree.toggleCollapseOrExpand(asyncNode === this._model.getRootAsyncNode() ? null : asyncNode, recursive);
+    }
+
+    public collapseAll(): void {
+        this._tree.collapseAll();
+    }
+
+    public expandAll(): void {
+        this._tree.expandAll();
+    }
+
     public rerender(data: T): void {
         this._model.rerender(data);
     }
@@ -251,9 +361,9 @@ export class AsyncMultiTree<T, TFilter = void> implements IAsyncMultiTree<T, TFi
     /**
      * @description Creates and returns a {@link IMultiTree}.
      */
-     private __createTree(
+    private __createTree(
         container: HTMLElement,
-        renderers: ITreeListViewRenderer<T, TFilter, any>[],
+        renderers: ITreeListRenderer<T, TFilter, any>[],
         itemProvider: IListItemProvider<T>,
         unwrapper: AsyncWeakMap<T, TFilter>
     ): MultiTree<IAsyncTreeNode<T>, TFilter> 
@@ -301,9 +411,14 @@ export class AsyncMultiTree<T, TFilter = void> implements IAsyncMultiTree<T, TFi
      * @param node The provided async tree node.
      */
     private __render(node: IAsyncTreeNode<T>): void {
+        
         const children = node.children.map(child => this.__toTreeNodeItem(child));
+        
         const root = this._model.getAsyncNode(this._model.root);
-        this._tree.splice(node === root ? null : node, Number.MAX_VALUE, children, {});
+        this._tree.splice(node === root ? null : node, Number.MAX_VALUE, children, {
+            onDidCreateNode: this._onDidCreateNode,
+            onDidDeleteNode: this._onDidDeleteNode,
+        });
     }
 
     /**
@@ -329,9 +444,12 @@ export class AsyncMultiTree<T, TFilter = void> implements IAsyncMultiTree<T, TFi
      */
     private __toTreeMouseEvent(event: ITreeMouseEvent<IAsyncTreeNode<T> | null>): ITreeMouseEvent<T> {
         return {
+            event: event.event,
             data: event.data && event.data.data,
-            event: event.event
-        }
+            parent: event.parent?.data || null,
+            children: event.children.map(child => child!.data),
+            depth: event.depth
+        };
     }
     
 }

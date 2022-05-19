@@ -1,7 +1,7 @@
 import { Sash } from "src/base/browser/basic/sash/sash";
 import { SplitViewItem } from "src/base/browser/secondary/splitView/splitViewItem";
 import { IDisposable } from "src/base/common/dispose";
-import { DomSize, Orientation } from "src/base/common/dom";
+import { DomUtility, Orientation } from "src/base/common/dom";
 import { Priority } from "src/base/common/event";
 import { IDimension } from "src/base/common/size";
 
@@ -72,7 +72,7 @@ export class SplitView implements ISplitView {
         this.viewContainer = document.createElement('div');
         this.viewContainer.className = 'view-container';
 
-        this.size = DomSize.getContentWidth(container);
+        this.size = DomUtility.getContentWidth(container);
 
         this.viewItems = [];
         this.sashItems = [];

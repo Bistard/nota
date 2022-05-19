@@ -1,9 +1,9 @@
-import { IOpenFileOptions, FileSystemProviderCapability, FileType, IFileSystemProviderWithFileReadWrite, IFileSystemProviderWithOpenReadWriteClose, IStat, IWriteFileOptions, IDeleteFileOptions, IOverwriteFileOptions, IFileOperationError, FileSystemProviderError } from "src/base/common/file/file";
+import { IOpenFileOptions, FileSystemProviderCapability, FileType, IFileSystemProviderWithFileReadWrite, IFileSystemProviderWithOpenReadWriteClose, IFileStat, IWriteFileOptions, IDeleteFileOptions, IOverwriteFileOptions, IFileOperationError, FileSystemProviderError } from "src/base/common/file/file";
 import { URI } from "src/base/common/file/uri";
 import * as fs from "fs";
 import { fileExists, FileMode } from "src/base/node/io";
 import { retry } from "src/base/common/async";
-import { join } from "path";
+import { join } from "src/base/common/file/path";
 
 export class DiskFileSystemProvider implements IFileSystemProviderWithFileReadWrite, IFileSystemProviderWithOpenReadWriteClose {
 
@@ -221,7 +221,7 @@ export class DiskFileSystemProvider implements IFileSystemProviderWithFileReadWr
      * File Metadata Handling
      **************************************************************************/
 
-    public async stat(uri: URI): Promise<IStat> {
+    public async stat(uri: URI): Promise<IFileStat> {
         try {
             const stat = await fs.promises.stat(URI.toFsPath(uri));
             

@@ -7,16 +7,65 @@ export const enum FileType {
 	DIRECTORY
 }
 
-export interface IStat {
+export interface IFileStat {
 
+	/**
+	 * The type of the file.
+	 */
 	readonly type: FileType;
-	readonly createTime: number; // ms
-    readonly modifyTime: number; // ms
+
+	/**
+	 * The creation date in milliseconds.
+	 */
+	readonly createTime: number;
+    
+	/**
+	 * The last modified date in milliseconds.
+	 */
+	readonly modifyTime: number;
+
+	/**
+	 * The size of the target in byte.
+	 */
 	readonly byteSize: number;
+
+	/**
+	 * If the target is readonly.
+	 */
 	readonly readonly?: boolean;
 }
 
-export class File implements IStat {
+export interface IResolvedFileStat extends IFileStat {
+
+	/**
+	 * The name of the target.
+	 */
+	readonly name: string;
+
+	/**
+	 * The {@link URI} of the target.
+	 */
+	readonly uri: URI;
+
+	/**
+	 * If the target is readonly.
+	 */
+	readonly readonly: boolean;
+
+	/**
+	 * The parent of the target.
+	 */
+	parent: IResolvedFileStat | null;
+
+	/**
+	 * The direct children of the target.
+	 */
+	children?: Iterable<IResolvedFileStat>;
+
+}
+
+/** @deprecated */
+export class File implements IFileStat {
 
 	readonly type: FileType;
 	readonly createTime: number;
@@ -37,7 +86,8 @@ export class File implements IStat {
 	}
 }
 
-export class Directory implements IStat {
+/** @deprecated */
+export class Directory implements IFileStat {
 
 	readonly type: FileType;
 	readonly createTime: number;
@@ -68,7 +118,7 @@ export interface IFileSystemProvider {
 	// readonly onDidChangeFile: Event<readonly IFileChange[]>;
 	// watch(uri: string, opts: IWatchOptions): IDisposable;
 
-	stat(uri: URI): Promise<IStat>;
+	stat(uri: URI): Promise<IFileStat>;
 	mkdir(uri: URI): Promise<void>;
 	readdir(uri: URI): Promise<[string, FileType][]>;
 	delete(uri: URI, opts: IDeleteFileOptions): Promise<void>;
@@ -243,6 +293,20 @@ export interface ICreateReadStreamOptions extends IReadFileOptions {
 	 * The size of the buffer to use before sending to the stream.
 	 */
 	bufferSize: number;
+}
+
+export interface IResolveStatOptions {
+
+	/**
+	 * Resolves the stat of the direct children.
+	 */
+	resolveChildren?: boolean;
+
+	/**
+	 * Resolves the stat of all the descendants.
+	 */
+	resolveChildrenRecursive?: boolean;
+
 }
 
 /*******************************************************************************

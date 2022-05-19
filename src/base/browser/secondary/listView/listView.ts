@@ -1,9 +1,9 @@
 import { IListViewRow, ListViewCache } from "src/base/browser/secondary/listView/listCache";
-import { IListViewRenderer, ListItemRenderer, PipelineRenderer } from "src/base/browser/secondary/listView/listRenderer";
+import { IListViewRenderer, ListItemRenderer, PipelineRenderer, RendererType } from "src/base/browser/secondary/listView/listRenderer";
 import { ScrollableWidget } from "src/base/browser/secondary/scrollableWidget/scrollableWidget";
 import { ScrollbarType } from "src/base/browser/secondary/scrollableWidget/scrollableWidgetOptions";
 import { DisposableManager, IDisposable } from "src/base/common/dispose";
-import { DomSize, EventType } from "src/base/common/dom";
+import { DomUtility, EventType } from "src/base/common/dom";
 import { DomEmitter, Emitter, Register } from "src/base/common/event";
 import { IRange, ISpliceable, Range, RangeTable } from "src/base/common/range";
 import { IScrollEvent, Scrollable } from "src/base/common/scrollable";
@@ -27,10 +27,10 @@ export interface IListViewOpts<T> {
 }
 
 /**
- * The type of items are stored in {@link ListView}. 
- * Using a number is faster than a string.
+ * The type of items are stored in {@link IListView}. The item will be rendered
+ * by the renderers which has the same type.
  */
-export type ListItemType = number;
+export type ListItemType = RendererType;
 
 /**
  * The inner data structure wraps each item in {@link ListView}.
@@ -290,7 +290,7 @@ export class ListView<T> implements IDisposable, ISpliceable<T>, IListView<T> {
     private rangeTable: RangeTable;
 
     private dnd: IListDragAndDropProvider<T>;
-    private renderers: Map<ListItemType, IListViewRenderer<T, any>>;
+    private renderers: Map<RendererType, IListViewRenderer<T, any>>;
     private itemProvider: IListItemProvider<T>;
     
     private items: IViewItem<T>[];
@@ -320,19 +320,19 @@ export class ListView<T> implements IDisposable, ISpliceable<T>, IListView<T> {
     // [getter / setter]
 
     get onDidScroll(): Register<IScrollEvent> { return this.scrollableWidget.onDidScroll; }
-    get onDidFocus(): Register<void> { return this.disposables.register(new DomEmitter<void>(this.listContainer, EventType.focus)).registerListener; }
-    get onDidBlur(): Register<void> { return this.disposables.register(new DomEmitter<void>(this.listContainer, EventType.blur)).registerListener; }
+    get onDidFocus(): Register<void> { return this.disposables.register(new DomEmitter<void>(this.element, EventType.focus)).registerListener; }
+    get onDidBlur(): Register<void> { return this.disposables.register(new DomEmitter<void>(this.element, EventType.blur)).registerListener; }
     
-    get onClick(): Register<MouseEvent> { return this.disposables.register(new DomEmitter<MouseEvent>(this.listContainer, EventType.click)).registerListener; }
-    get onDoubleclick(): Register<MouseEvent> { return this.disposables.register(new DomEmitter<MouseEvent>(this.listContainer, EventType.doubleclick)).registerListener; }
-    get onMouseover(): Register<MouseEvent> { return this.disposables.register(new DomEmitter<MouseEvent>(this.listContainer, EventType.mouseover)).registerListener; }
-    get onMouseout(): Register<MouseEvent> { return this.disposables.register(new DomEmitter<MouseEvent>(this.listContainer, EventType.mouseout)).registerListener; }
-    get onMousedown(): Register<MouseEvent> { return this.disposables.register(new DomEmitter<MouseEvent>(this.listContainer, EventType.mousedown)).registerListener; }
-    get onMouseup(): Register<MouseEvent> { return this.disposables.register(new DomEmitter<MouseEvent>(this.listContainer, EventType.mouseup)).registerListener; }
-    get onMousemove(): Register<MouseEvent> { return this.disposables.register(new DomEmitter<MouseEvent>(this.listContainer, EventType.mousemove)).registerListener; }
+    get onClick(): Register<MouseEvent> { return this.disposables.register(new DomEmitter<MouseEvent>(this.element, EventType.click)).registerListener; }
+    get onDoubleclick(): Register<MouseEvent> { return this.disposables.register(new DomEmitter<MouseEvent>(this.element, EventType.doubleclick)).registerListener; }
+    get onMouseover(): Register<MouseEvent> { return this.disposables.register(new DomEmitter<MouseEvent>(this.element, EventType.mouseover)).registerListener; }
+    get onMouseout(): Register<MouseEvent> { return this.disposables.register(new DomEmitter<MouseEvent>(this.element, EventType.mouseout)).registerListener; }
+    get onMousedown(): Register<MouseEvent> { return this.disposables.register(new DomEmitter<MouseEvent>(this.element, EventType.mousedown)).registerListener; }
+    get onMouseup(): Register<MouseEvent> { return this.disposables.register(new DomEmitter<MouseEvent>(this.element, EventType.mouseup)).registerListener; }
+    get onMousemove(): Register<MouseEvent> { return this.disposables.register(new DomEmitter<MouseEvent>(this.element, EventType.mousemove)).registerListener; }
 
     get length(): number { return this.items.length; }
-    get DOMElement(): HTMLElement { return this.listContainer; }
+    get DOMElement(): HTMLElement { return this.element; }
 
     // [constructor]
 
@@ -360,7 +360,7 @@ export class ListView<T> implements IDisposable, ISpliceable<T>, IListView<T> {
         
         this.scrollable = new Scrollable(
             opts.scrollbarSize ? opts.scrollbarSize : 10,
-            DomSize.getContentHeight(container),
+            DomUtility.getContentHeight(container),
             0,
             0
         );
@@ -504,6 +504,7 @@ export class ListView<T> implements IDisposable, ISpliceable<T>, IListView<T> {
 
         // [delete and insert the items]
 
+        // constructs all the items to {@link IViewItem<T>}.
         const insert = items.map<IViewItem<T>>(item => ({
             id: ListViewItemUUID++,
             type: this.itemProvider.getType(item),

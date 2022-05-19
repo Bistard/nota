@@ -40,6 +40,24 @@ export function isArray(array: any): array is any[] {
 }
 
 /**
+ * @returns whether the provided parameter is an Iterable, casting to the given generic
+ */
+ export function isIterable<T>(obj: unknown): obj is Iterable<T> {
+	return !!obj && typeof (obj as any)[Symbol.iterator] === 'function';
+}
+
+/**
+ * @description Determines if the given object is a {@link Promise} or not.
+ * @param obj The given object.
+ */
+export function isPromise(obj: any): obj is Promise<any> {
+    if (typeof obj === 'object' && typeof obj.then === 'function') {
+      return true;
+    }
+    return false;
+}
+
+/**
  * @description Returns value if it is not `undefined`, otherwise returns the 
  * defaultValue.
  * @param value provided value which could be `undefined`.

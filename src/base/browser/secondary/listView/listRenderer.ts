@@ -1,5 +1,29 @@
 import { ListItemType } from "src/base/browser/secondary/listView/listView";
-import { DomSize } from "src/base/common/dom";
+import { DomUtility } from "src/base/common/dom";
+
+/**
+ * The type of renderers used in {@link IListView}.
+ */
+export const enum RendererType {
+	
+	ListItem,
+
+	Explorer,
+
+};
+
+/**
+ * A very basic type of metadata that may be used in the renderers relates to 
+ * {@link IListView}.
+ */
+export interface IListViewMetadata {
+	
+	/**
+	 * The HTMLElement container of the related item in the {@link IListView}.
+	 */
+	container: HTMLElement;
+
+}
 
 /**
  * @description An interface that describes how to render an item in 
@@ -9,12 +33,12 @@ import { DomSize } from "src/base/common/dom";
  * TMetadata: type of the user-defined value which returned value by the method 
  *            `render()` for later updating / disposing.
  */
+
 export interface IListViewRenderer<T, TMetadata> {
-	
 	/**
 	 * The type of item that the renderer is responsible for.
 	 */
-	readonly type: ListItemType;
+	readonly type: RendererType;
 
 	/**
 	 * @description Only creates and renders the DOM structure of that item for 
@@ -38,7 +62,7 @@ export interface IListViewRenderer<T, TMetadata> {
 	 * @param data The provided user-defined data for update purpose.
 	 * @param size The size of the rendered item.
 	 * 
-	 * @note This method only invoked when inserting a new item into {@link ListView}.
+	 * @note This method only invoked when (re)inserting the item back to the {@link ListView}.
 	 */
 	update(item: T, index: number, data: TMetadata, size?: number): void;
 
@@ -46,7 +70,7 @@ export interface IListViewRenderer<T, TMetadata> {
 	 * @description Dispose (destruct) the item.
 	 * @param data The user-defined data for disposing.
 	 * 
-	 * @note This method only invoked when removing an existed item from {@link ListView}.
+	 * @note This method only invoked when removing an existed item from the {@link ListView}.
 	 */
 	dispose(data: TMetadata): void;
 }
@@ -62,10 +86,10 @@ export interface IListViewRenderer<T, TMetadata> {
  */
 export class PipelineRenderer<T> implements IListViewRenderer<T, any[]> {
 
-	public readonly type: ListItemType;
-	private pipeline: IListViewRenderer<any, any>[];
+	public readonly type: RendererType;
+	private pipeline: IListViewRenderer<T, any>[];
 	
-	constructor(type: ListItemType, renderers: IListViewRenderer<any, any>[]) {
+	constructor(type: ListItemType, renderers: IListViewRenderer<T, any>[]) {
 		this.type = type;
 		this.pipeline = renderers;
 	}
@@ -78,7 +102,6 @@ export class PipelineRenderer<T> implements IListViewRenderer<T, any[]> {
 		for (let i = 0; i < this.pipeline.length; i++) {
 			const renderer = this.pipeline[i]!;
 			renderer.update(item, index, data[i]!, size);
-			i++;
 		}
 	}
  
@@ -86,7 +109,6 @@ export class PipelineRenderer<T> implements IListViewRenderer<T, any[]> {
 		for (let i = 0; i < this.pipeline.length; i++) {
 			const renderer = this.pipeline[i]!;
 			renderer.dispose(data[i]!);
-			i++;
 		}
 	}
 
@@ -101,24 +123,24 @@ export class PipelineRenderer<T> implements IListViewRenderer<T, any[]> {
  */
 export class ListItemRenderer<T> implements IListViewRenderer<T, HTMLElement> {
 
-	public readonly type: ListItemType;
+	public readonly type: RendererType;
 
 	constructor() {
-		this.type = NaN;
+		this.type = RendererType.ListItem;
 	}
 
 	public render(element: HTMLElement): HTMLElement {
 		return element;
 	}
 
-	public update(item: T, index: number, data: HTMLElement, size?: number): void {
-		if (DomSize.getContentHeight(data) !== size) {
+	public update(item: T, index: number, data: HTMLElement, size: number): void {
+		if (DomUtility.getContentHeight(data) !== size) {
 			data.style.height = size + 'px';
 		}
 	}
 
 	public dispose(data: HTMLElement): void {
-		
+		// do nothing
 	}
 
 }

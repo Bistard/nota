@@ -27,17 +27,16 @@ export interface INotebookManagerService {
      * 
      * @throws An exception will be thrown if cannot open properly.
      */
-    open(container: HTMLElement, path: string): Promise<void>;
+    open(container: HTMLElement, path: string): Promise<Notebook>;
 
-    addExistedNotebook(notebook: Notebook): void;
-    getExistedNotebook(notebookName: string): Notebook | null;
-
-    getRootPath(): string;
+    /**
+     * @description Returns the root path of the {@link NotebookManager}.
+     */
+    rootPath(): string;
 }
 
 /**
- * @class reads local configuration and build corresponding notebook structure. 
- * It maintains the data and states changes for every Notebook instance.
+ * @class 
  */
 export class NotebookManager implements INotebookManagerService {
 
@@ -45,10 +44,14 @@ export class NotebookManager implements INotebookManagerService {
 
     public static focusedFileNode: HTMLElement | null = null;
     
-    private readonly _notebookMap: Map<string, Notebook>;
+    /** The root path of the manager. */
+    private _rootPath: string = '';
 
-    private _notaFolderFound: boolean; // not used
-    private _notebookManagerRootPath: string = '';
+    /** Stores all the opened notebooks in memory. */
+    private readonly _notebooks: Map<string, Notebook>;
+
+    /** The current displaying notebook. */
+    private _currentNotebook: string = '';
 
     constructor(
         @IIpcService private readonly ipcService: IIpcService,
@@ -57,21 +60,23 @@ export class NotebookManager implements INotebookManagerService {
         @IGlobalConfigService private readonly globalConfigService: IGlobalConfigService,
         
     ) {
-        this._notebookMap = new Map<string, Notebook>();
-        this._notaFolderFound = false;
+        this._notebooks = new Map<string, Notebook>();
 
         this.ipcService.onApplicationClose(async () => this.__onApplicationClose());
     }
 
-    public async open(container: HTMLElement, path: string): Promise<void> {
+    public async open(container: HTMLElement, path: string): Promise<Notebook> {
+        
         try {
-            this._notebookManagerRootPath = path;
+            this._rootPath = path;
+            
+            // read the configuration
+            const userConfig = this.userConfigService.get<IUserNotebookManagerSettings>(EUserSettings.NotebookManager);
             
             // get all the names in the given directory
             const dir = await this.fileService.readDir(URI.fromFile(path));
             
             // get all the valid Notebook names in the given directory
-            const userConfig = this.userConfigService.get<IUserNotebookManagerSettings>(EUserSettings.NotebookManager);
             const notebooks = Iterable.reduce<[string, FileType], string[]>(dir, [], (tot, [str, type]) => {
                 if (type !== FileType.DIRECTORY) {
                     return tot;
@@ -87,40 +92,80 @@ export class NotebookManager implements INotebookManagerService {
                 return tot;
             });
 
-            // create Notebook Object for each sub-directory
-            for (let name of notebooks) {
-                const notebook = new Notebook(name, resolve(path, name));
-                this._notebookMap.set(name, notebook);
-                notebook.create(container);
+            /**
+             * Only displaying one of the notebook, will try to open a previous
+             * opened notebook, if not, opens the first one.
+             */
+            const prevNotebook = userConfig.previousOpenedNotebook;
+
+            let notebook: Notebook;
+
+            if (prevNotebook && notebooks.indexOf(prevNotebook) !== -1) {
+                notebook = this.__switchOrCreateNotebook(container, path, userConfig, prevNotebook);
+            } else {
+                notebook = this.__switchOrCreateNotebook(container, path, userConfig, notebooks[0]!);
             }
 
-            this._notaFolderFound = true;
-
-        } catch(err) {
+            return notebook;
+        } 
+        
+        catch(err) {
             throw err;
         }
     }
 
-    public addExistedNotebook(notebook: Notebook): void {
-        const prevNotebook = this._notebookMap.get(notebook.name);
-        if (prevNotebook) {
-            prevNotebook.destory();
-            this._notebookMap.set(notebook.name, notebook);
-        } else {
-            this._notebookMap.set(notebook.name, notebook);
-        }
-    }
-
-    public getExistedNotebook(notebookName: string): Notebook | null {
-        const res = this._notebookMap.get(notebookName);
-        return res === undefined ? null : res;
-    }
-
-    public getRootPath(): string {
-        return this._notebookManagerRootPath;
+    public rootPath(): string {
+        return this._rootPath;
     }
 
     // [private helper method]
+
+    /**
+     * @description Given the name of the notebook, Switch to the notebook if 
+     * already existed in the memory, otherwise we create a new one and stores 
+     * it in the memory.
+     * @param container The container for the creation of the notebook.
+     * @param root The root path for the creation of the notebook.
+     * @param config The configuration for later updating.
+     * @param name The name of the notebook.
+     */
+    private __switchOrCreateNotebook(
+        container: HTMLElement, 
+        root: string, 
+        config: IUserNotebookManagerSettings, 
+        name: string
+    ): Notebook {
+        
+        // do nothing if the notebook is already displaying.
+        let notebook = this._notebooks.get(name);
+        if (name === this._currentNotebook) {
+            return notebook!;
+        }
+ 
+        // notebook is in the memory, we simply display it.
+        if (notebook) {
+            notebook.setVisible(true);
+        } 
+        
+        // notebook not in the memory, we create a notebook.
+        else {
+            notebook = new Notebook(URI.fromFile(resolve(root, name)), container, this.fileService);
+            this._notebooks.set(name, notebook);
+
+            notebook.onDidCreationFinished(success => {
+                if (success) {
+                    this._currentNotebook = notebook!.name;
+                    config.previousOpenedNotebook = this._currentNotebook;
+                    
+                    this.userConfigService.set(EUserSettings.NotebookManager, config);
+                } else {
+                    // this.logService();
+                }
+            });
+        }
+
+        return notebook;
+    }
 
     /**
      * @description asynchronously write the notebook structure into the 
@@ -128,7 +173,7 @@ export class NotebookManager implements INotebookManagerService {
      */
     private async __notebookWriteToJSON(notebook: Notebook, name: string): Promise<void> {
         try {
-            const rootpath = resolve(this._notebookManagerRootPath, LOCAL_NOTA_DIR_NAME, 'structure');
+            const rootpath = resolve(this._rootPath, LOCAL_NOTA_DIR_NAME, 'structure');
             await this.fileService.createFile(
                 URI.fromFile(resolve(rootpath, name + '.json')), 
                 DataBuffer.fromString(notebook.toJSON()), 
@@ -146,16 +191,16 @@ export class NotebookManager implements INotebookManagerService {
         
         // get notebook configuration
         const notebookConfig = this.globalConfigService.get<IGlobalNotebookManagerSettings>(EGlobalSettings.NotebookManager);
-            
+
         // save global configuration first
-        notebookConfig.previousNotebookManagerDir = this.getRootPath();
+        notebookConfig.previousNotebookManagerDir = this.rootPath();
         await this.globalConfigService.save(URI.fromFile(resolve(GLOBAL_CONFIG_PATH, LOCAL_NOTA_DIR_NAME, GLOBAL_CONFIG_FILE_NAME)));
         
         // save `user.config.json`
         if (notebookConfig.defaultConfigOn) {
             await this.userConfigService.save(URI.fromFile(resolve(DEFAULT_CONFIG_PATH, LOCAL_NOTA_DIR_NAME, DEFAULT_CONFIG_FILE_NAME)));
         }
-        await this.userConfigService.save(URI.fromFile(resolve(this.getRootPath(), LOCAL_NOTA_DIR_NAME, LOCAL_CONFIG_FILE_NAME)));
+        await this.userConfigService.save(URI.fromFile(resolve(this.rootPath(), LOCAL_NOTA_DIR_NAME, LOCAL_CONFIG_FILE_NAME)));
         
     }
 

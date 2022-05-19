@@ -1,4 +1,4 @@
-import { ITreeNode } from "src/base/browser/basic/tree/tree";
+import { ITreeNode } from "src/base/browser/secondary/tree/tree";
 import { ListItemType } from "./listView";
 
 
@@ -41,7 +41,7 @@ export class TreeListItemProvider<T> implements IListItemProvider<ITreeNode<T>> 
         this._provider = provider;
     }
 
-    // [method]
+    // [public method]
 
     
     public getSize(node: ITreeNode<T>): number {
