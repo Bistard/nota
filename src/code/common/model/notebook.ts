@@ -1,6 +1,5 @@
 import { AsyncMultiTree, IAsyncMultiTree } from "src/base/browser/secondary/tree/asyncMultiTree";
-import { RendererType } from "src/base/browser/secondary/listView/listRenderer";
-import { Disposable } from "src/base/common/dispose";
+import { Disposable, DisposableManager } from "src/base/common/dispose";
 import { Emitter, Register } from "src/base/common/event";
 import { URI } from "src/base/common/file/uri";
 import { ExplorerChildrenProvider, ExplorerItem, ExplorerItemProvider } from "src/code/browser/workbench/actionView/explorer/explorerItem";
@@ -18,6 +17,12 @@ export interface INotebook {
     onDidCreationFinished: Register<boolean>;
 
     /**
+     * Fires when the notebook visibility is changed. True if it sets to visible,
+     * invisible vice versa.
+     */
+    onDidVisibilityChange: Register<boolean>;
+
+    /**
      * @description Sets the visibility of the notebook in the explorer.
      * @param value The provided value of visibility.
      * 
@@ -30,6 +35,12 @@ export interface INotebook {
      * @description Determines if the current notebook is visible in the explorer.
      */
     isVisible(): boolean;
+
+    // TODO
+    refresh(item?: ExplorerItem): Promise<void>;
+
+    // TODO
+    select(uri: URI): Promise<void>;
 
 }
 
@@ -60,6 +71,9 @@ export class Notebook extends Disposable implements INotebook {
     private _onDidCreationFinished = this.__register(new Emitter<boolean>());
     public onDidCreationFinished = this._onDidCreationFinished.registerListener;
 
+    private _onDidVisibilityChange = this.__register(new Emitter<boolean>());
+    public onDidVisibilityChange = this._onDidVisibilityChange.registerListener;
+
     // [constructor]
 
     constructor(
@@ -71,20 +85,44 @@ export class Notebook extends Disposable implements INotebook {
 
         this._container = container;
 
-        this.fileService.stat(root, { resolveChildren: true })
+        this.fileService.stat(root, { 
+            resolveChildren: true, // sets true since we need the frist level of the notebook
+        })
         .then(async rootStat => {
         
-            this._root = new ExplorerItem(rootStat, fileService);
-            const creationPromise = this.__createTree(container);
+            this._root = new ExplorerItem(rootStat);
+            await this.__createTree(container, this._root);
 
-            await creationPromise;
+            /**
+             * auto register tree listeners once the visibility of the notebook 
+             * changed.
+             */
+            let listeners: DisposableManager | undefined;
+            this.onDidVisibilityChange(visibility => {
+
+                if (visibility) {
+                    // re-register all the listeners to the tree.
+                    if (listeners && !listeners.disposed) {
+                        listeners.dispose();
+                    }
+                    listeners = this.__registerTreeListeners();
+                }
+
+                if (!visibility && listeners && !listeners.disposed) {
+                    listeners.dispose();
+                }
+
+            });
+
+            // Fires the event
 
             this._visible = true;
-            this.__registerListeners();
+            this._onDidVisibilityChange.fire(true);
             this._onDidCreationFinished.fire(true);
         })
         .catch(err => {
             // logService.trace(err);
+            this._onDidVisibilityChange.fire(false);
             this._onDidCreationFinished.fire(false);
         });
         
@@ -102,16 +140,25 @@ export class Notebook extends Disposable implements INotebook {
             return;
         }
 
-        if (value) {
+        if (!value) {
             this._container.removeChild(this._tree.DOMElement);
         } else {
             this._container.appendChild(this._tree.DOMElement);
         }
-        
+
+        this._onDidVisibilityChange.fire(value);
     }
 
     public isVisible(): boolean {
         return this._visible;
+    }
+
+    public refresh(item?: ExplorerItem): Promise<void> {
+        return this._tree.refresh(item ?? this._tree.root());
+    }
+
+    public async select(uri: URI): Promise<void> {
+        
     }
 
     /**
@@ -133,23 +180,19 @@ export class Notebook extends Disposable implements INotebook {
     /**
      * @description Creates the tree structure by the given URI asynchronously.
      * @param container The HTMLElement container of the tree view.
+     * @param root The root element of the tree.
      * 
      * @note The related event will fire once the tree is created.
      */
-    private async __createTree(container: HTMLElement): Promise<void> {
+    private async __createTree(container: HTMLElement, root: ExplorerItem): Promise<void> {
 
         const [tree, treeCreationPromise] = AsyncMultiTree.create<ExplorerItem, void>(
             container, 
-            this._root,
+            root,
             [new ExplorerRenderer()], 
             new ExplorerItemProvider(),
-            new ExplorerChildrenProvider(),
-            {
-                onDidCreateNode: (node) => {
-                    const asyncNode = node.data;
-                    asyncNode.data
-                }
-            }
+            new ExplorerChildrenProvider(this.fileService),
+            {}
         );
 
         this._tree = tree;
@@ -158,14 +201,20 @@ export class Notebook extends Disposable implements INotebook {
 
     /**
      * @description Registers a series of listeners to the tree.
+     * @returns Returns a {@link DisposableManager} that maintains all the 
+     * listeners.
      */
-    private __registerListeners(): void {
+    private __registerTreeListeners(): DisposableManager {
         
+        const disposables = new DisposableManager();
+
         // REVIEW
-        this.__register(this._tree.onClick(node => {
-            console.log('notebook: ', node);
+        disposables.register(this._tree.onClick(async node => {
+            this._tree.toggleCollapseOrExpand(node.data!, false);
+            await this._tree.refresh(node.data!);
         }));
-        
+
+        return disposables;
     }
 
     /**
