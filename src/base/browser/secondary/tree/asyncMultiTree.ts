@@ -150,6 +150,44 @@ export interface IAsyncMultiTree<T, TFilter> {
     isCollapsed(data: T): boolean;
 
     /**
+     * @description Collapses to the tree node with the given data.
+     * @param data The data representation of the node.
+     * @param recursive Determines if the operation is recursive (same operation 
+     *                  to its descendants). if not provided, sets to false as 
+     *                  default.
+     */
+    collapse(data: T, recursive: boolean): boolean;
+
+    /**
+     * @description Expands to the tree node with the given data.
+     * @param data The data representation of the node.
+     * @param recursive Determines if the operation is recursive (same operation 
+     *                  to its descendants). if not provided, sets to false as 
+     *                  default.
+     */
+    expand(data: T, recursive: boolean): boolean;
+     
+    /**
+     * @description Toggles the state of collapse or expand to the tree node with
+     * the given data.
+     * @param data The data representation of the node.
+     * @param recursive Determines if the operation is recursive (same operation 
+     *                  to its descendants). if not provided, sets to false as 
+     *                  default.
+     */
+    toggleCollapseOrExpand(data: T, recursive: boolean): boolean;
+     
+    /**
+     * @description Collapses all the tree nodes.
+     */
+    collapseAll(): void;
+    
+    /**
+     * @description Expands all the tree nodes.
+     */
+    expandAll(): void;
+
+    /**
      * @description Rerenders the whole view.
      */
     rerender(data: T): void;
@@ -276,6 +314,27 @@ export class AsyncMultiTree<T, TFilter = void> implements IAsyncMultiTree<T, TFi
 
     public isCollapsed(data: T): boolean {
         return this._model.isCollapsed(data);
+    }
+
+    public collapse(data: T, recursive: boolean): boolean {
+        return this._model.setCollapsed(data, true, recursive);
+    }
+
+    public expand(data: T, recursive: boolean): boolean {
+        return this._model.setCollapsed(data, false, recursive);
+    }
+
+    public toggleCollapseOrExpand(data: T, recursive: boolean): boolean {
+        const asyncNode = this._model.getAsyncNode(data);
+        return this._tree.toggleCollapseOrExpand(asyncNode === this._model.getRootAsyncNode() ? null : asyncNode, recursive);
+    }
+
+    public collapseAll(): void {
+        this._tree.collapseAll();
+    }
+
+    public expandAll(): void {
+        this._tree.expandAll();
     }
 
     public rerender(data: T): void {

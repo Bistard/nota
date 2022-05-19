@@ -23,6 +23,13 @@ export interface IAsyncMultiTreeModel<T, TFilter> extends ITreeModel<T, TFilter,
      */
     getAsyncNode(data: T): IAsyncTreeNode<T>;
 
+    /**
+     * @description Returns the root async tree node of the tree.
+     */
+    getRootAsyncNode(): IAsyncTreeNode<T>;
+
+    /** override */
+    setCollapsed(data: T, collapsed?: boolean, recursive?: boolean): boolean;
 }
 
 /**
@@ -117,6 +124,10 @@ export class AsyncMultiTreeModel<T, TFilter = void> implements IAsyncMultiTreeMo
         return this.__getAsyncNode(data);
     }
 
+    public getRootAsyncNode(): IAsyncTreeNode<T> {
+        return this._root;
+    }
+
     public getNode(data: T): ITreeNode<T, TFilter> {
         const asyncNode = this.__getAsyncNode(data);
         const node = this._tree.getNode(asyncNode === this._root ? null : asyncNode);
@@ -140,6 +151,17 @@ export class AsyncMultiTreeModel<T, TFilter = void> implements IAsyncMultiTreeMo
     public isCollapsed(data: T): boolean {
         const asyncNode = this.__getAsyncNode(data);
         return this._tree.isCollapsed(asyncNode === this._root ? null : asyncNode);
+    }
+
+    public setCollapsed(data: T, collapsed?: boolean, recursive?: boolean): boolean {
+        const asyncNode = this.__getAsyncNode(data);
+
+        const location = asyncNode === this._root ? null : asyncNode;
+        if (collapsed) {
+            return this._tree.collapse(location, recursive ?? false);
+        } else {
+            return this._tree.expand(location, recursive ?? false);
+        };
     }
 
     public rerender(data: T): void {

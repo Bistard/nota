@@ -158,7 +158,7 @@ export interface ITreeModel<T, TFilter = void, TRef = number[]> {
      *                  default.
      * @returns If the operation was made.
      * 
-     * @note Recursive meaning all the nested the children will also be collapsed.
+     * @note Recursive meaning all the nested the children will also be collapsed / expanded.
      */
     setCollapsed?(location: TRef, collapsed?: boolean, recursive?: boolean): boolean;
 
