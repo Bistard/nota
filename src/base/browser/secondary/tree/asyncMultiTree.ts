@@ -26,7 +26,7 @@ export interface IAsyncChildrenProvider<T> {
     /**
      * @description Get the children from the given data.
      */
-    getChildren(data: T): Iterable<T> | Promise<Iterable<T>>;
+    getChildren(data: T): T[] | Promise<T[]>;
 
 }
 
@@ -111,6 +111,11 @@ export interface IAsyncMultiTree<T, TFilter> {
      */
     dispose(): void;
 
+    /**
+     * @description Returns the root data of the tree.
+     */
+    root(): T;
+    
     /**
      * @description Given the data, re-acquires the stat of the the corresponding 
      * tree node and then its descendants asynchronously. The view will be 
@@ -221,6 +226,8 @@ export interface IAsyncMultiTreeOptions<T, TFilter> extends IMultiTreeOptions<T>
  * provided {@link IAsyncChildrenProvider}, and the whole process is implemented
  * asynchronously.
  * 
+ * RootData is not counted as the part of the tree.
+ * 
  * Constructor is private, use {@link AsyncMultiTree.create} instead.
  */
 export class AsyncMultiTree<T, TFilter = void> implements IAsyncMultiTree<T, TFilter>, IDisposable {
@@ -298,6 +305,10 @@ export class AsyncMultiTree<T, TFilter = void> implements IAsyncMultiTree<T, TFi
 
     public dispose(): void {
         this._disposables.dispose();
+    }
+
+    public root(): T {
+        return this._model.root;
     }
 
     public getNode(data: T): ITreeNode<T, TFilter> {

@@ -312,7 +312,7 @@ export class AsyncMultiTreeModel<T, TFilter = void> implements IAsyncMultiTreeMo
         }
 
         const children = this._childrenProvider.getChildren(node.data);
-        
+
         if (!isIterable(children)) {
             this._statFetching.set(node, children);
             return children.finally(() => this._statFetching.delete(node));

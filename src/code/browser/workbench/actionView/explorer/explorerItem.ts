@@ -4,6 +4,7 @@ import { IAsyncChildrenProvider } from "src/base/browser/secondary/tree/asyncMul
 import { FileType, IResolvedFileStat } from "src/base/common/file/file";
 import { URI } from "src/base/common/file/uri";
 import { Iterable } from "src/base/common/iterable";
+import { isPromise } from "src/base/common/type";
 import { IFileService } from "src/code/common/service/fileService/fileService";
 
 /**
@@ -35,9 +36,46 @@ export interface IExplorerItem {
     readonly children: ExplorerItem[];
 
     /**
-     * Returns the root of the current target (recursive calling).
+     * @description Returns the root of the current target
+     * time complexity: O(h) - h: height of the tree.
      */
     root(): ExplorerItem;
+
+    /**
+     * @description Is the current item a {@link FileType.DIRECTORY}.
+	 * time complexity: O(1)
+     */
+    isDirectory(): boolean;
+
+    /**
+     * @description Is the current item a {@link FileType.FILE}.
+	 * time complexity: O(1)
+     */
+    isFile(): boolean;
+
+    /**
+     * @description Is the current item has ever update its children before.
+	 * time complexity: O(1)
+     */
+    isChildrenResolved(): boolean;
+
+    /**
+     * @description If the current item is capable having children. Note that
+     * it does not prove the item must has at least one child.
+	 * time complexity: O(1)
+     */
+    hasChildren(): boolean;
+
+	/**
+	 * @description 
+	 * @param fileService 
+	 */
+	refreshChildren(fileService: IFileService): void | Promise<void>;
+
+	/**
+	 * 
+	 */
+	forgetChildren(): void;
 }
 
 /**
@@ -50,11 +88,13 @@ export class ExplorerItem implements IExplorerItem {
     /** stores all the info about the target. */
     private _stat: IResolvedFileStat;
 
+    /** if the item encounters an error. */
+    private _inError: boolean = false;
+
     // [constructor]
 
     constructor(
         stat: IResolvedFileStat,
-        private fileService: IFileService,
     ) {
         this._stat = stat;
     }
@@ -66,14 +106,14 @@ export class ExplorerItem implements IExplorerItem {
     get name(): string { return this._stat.name; }
 
     get type(): FileType { return this._stat.type; }
-    
+
     get createTime(): number { return this._stat.createTime; }
 
     get modifyTime(): number { return this._stat.modifyTime; }
 
-    get parent(): ExplorerItem | null { return this._stat.parent ? new ExplorerItem(this._stat, this.fileService) : null; }
+    get parent(): ExplorerItem | null { return this._stat.parent ? new ExplorerItem(this._stat) : null; }
 
-    get children(): ExplorerItem[] { return [...this._stat.children ?? Iterable.empty()].map(childStat => new ExplorerItem(childStat, this.fileService)); }
+    get children(): ExplorerItem[] { return [...this._stat.children ?? Iterable.empty()].map(childStat => new ExplorerItem(childStat)); }
 
     // [public method]
 
@@ -84,7 +124,55 @@ export class ExplorerItem implements IExplorerItem {
         return this.parent.root();
     }
 
+    public isDirectory(): boolean {
+        return this._stat.type === FileType.DIRECTORY;
+    }
+
+    public isFile(): boolean {
+        return this._stat.type === FileType.FILE;
+    }
+
+    public isChildrenResolved(): boolean {
+        return !!this._stat.children;
+    }
+
+    public hasChildren(): boolean {
+        return this.isDirectory();
+    }
+
+	public refreshChildren(fileService: IFileService): void | Promise<void> {
+
+        const promise = (async () => {
+
+            // never resolved the children before
+            if (this._stat.children === undefined) {
+                
+                try {
+                    // obtain the newest resolved stat
+                    const updatedStat = await fileService.stat(this._stat.uri, { resolveChildren: true });
+                    this._stat = updatedStat;
+                } 
+                
+                catch (err) {
+                    this._inError = true;
+                    throw err;
+                }
+                
+            }
+        })();
+
+        return promise;
+	}
+
+	public forgetChildren(): void {
+        this._stat.children = undefined;
+	}
+
     // [private method]
+
+	private __addChild(child: ExplorerItem): void {
+
+	}
 
 }
 
@@ -110,16 +198,41 @@ export class ExplorerItemProvider implements IListItemProvider<ExplorerItem> {
  */
 export class ExplorerChildrenProvider implements IAsyncChildrenProvider<ExplorerItem> {
 
-    constructor() {
+	constructor(
+		private fileService: IFileService
+	) {
 
     }
 
     public hasChildren(data: ExplorerItem): boolean | Promise<boolean> {
-        return data.children.length > 0;
+        return data.hasChildren();
     }
 
-    public getChildren(data: ExplorerItem): Iterable<ExplorerItem> | Promise<Iterable<ExplorerItem>> {
-        return data.children;
+    /**
+     * @description Returns the children of the given item. If the children of
+     * the item is not resolved, wait until they are resolved.
+     * @param data The provided {@link ExplorerItem}.
+     */
+    public getChildren(data: ExplorerItem): ExplorerItem[] | Promise<ExplorerItem[]> {
+        
+        const finish = data.refreshChildren(this.fileService);
+
+        // the provided item's children are already resolved, we simply return it.
+        if (isPromise(finish) === false) {
+            return data.children;
+        } 
+        
+        // the provided item's children never resolved, we wait until it resolved.
+        const promise = (finish as Promise<void>)
+        .then(() => { 
+            return data.children;
+        })
+        .catch((err) => {
+            // logService.trace(err);
+            return [];
+        });
+
+        return promise;
     }
 
 }

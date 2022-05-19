@@ -98,7 +98,7 @@ class Main {
             
             // send app path to the renderer process
             this.winMain!.webContents.send('get-app-path', app.getAppPath());
-            
+
             // display window
             this.winMain!.show();
         });
@@ -224,8 +224,6 @@ class Main {
         });
     }
 
-    // [private helper method]
-
     /**
      * @description Toggles the development tool.
      * @param force Forces the development tool on or off.
@@ -235,7 +233,7 @@ class Main {
         if (force === this.isDevlToolsOn) {
             return;
         }
-        
+
         if (!this.isDevlToolsOn) {
             this.winMain!.webContents.openDevTools({mode: 'detach', activate: true});
         } else {
