@@ -281,7 +281,9 @@ export class ListView<T> implements IDisposable, ISpliceable<T>, IListView<T> {
 
     private disposables: DisposableManager = new DisposableManager();
 
+    /** The whole element of the view, including the scrollbar and all the items. */
     private element: HTMLElement;
+    /** The element contains all the items.  */
     private listContainer: HTMLElement;
 
     private scrollable: Scrollable;
@@ -296,9 +298,12 @@ export class ListView<T> implements IDisposable, ISpliceable<T>, IListView<T> {
     private items: IViewItem<T>[];
     private cache: ListViewCache;
 
+    /** The `top` pixels relatives to the scrollable view that were previously rendered. */
     private prevRenderTop: number;
+    /** The `height` of the list view that were previously rendered. */
     private prevRenderHeight: number;
 
+    /** If the list view is during the `splice()` operation. */
     private _splicing: boolean;
 
     // [events]
@@ -320,16 +325,16 @@ export class ListView<T> implements IDisposable, ISpliceable<T>, IListView<T> {
     // [getter / setter]
 
     get onDidScroll(): Register<IScrollEvent> { return this.scrollableWidget.onDidScroll; }
-    get onDidFocus(): Register<void> { return this.disposables.register(new DomEmitter<void>(this.element, EventType.focus)).registerListener; }
-    get onDidBlur(): Register<void> { return this.disposables.register(new DomEmitter<void>(this.element, EventType.blur)).registerListener; }
+    get onDidFocus(): Register<void> { return this.disposables.register(new DomEmitter<void>(this.listContainer, EventType.focus)).registerListener; }
+    get onDidBlur(): Register<void> { return this.disposables.register(new DomEmitter<void>(this.listContainer, EventType.blur)).registerListener; }
     
-    get onClick(): Register<MouseEvent> { return this.disposables.register(new DomEmitter<MouseEvent>(this.element, EventType.click)).registerListener; }
-    get onDoubleclick(): Register<MouseEvent> { return this.disposables.register(new DomEmitter<MouseEvent>(this.element, EventType.doubleclick)).registerListener; }
-    get onMouseover(): Register<MouseEvent> { return this.disposables.register(new DomEmitter<MouseEvent>(this.element, EventType.mouseover)).registerListener; }
-    get onMouseout(): Register<MouseEvent> { return this.disposables.register(new DomEmitter<MouseEvent>(this.element, EventType.mouseout)).registerListener; }
-    get onMousedown(): Register<MouseEvent> { return this.disposables.register(new DomEmitter<MouseEvent>(this.element, EventType.mousedown)).registerListener; }
-    get onMouseup(): Register<MouseEvent> { return this.disposables.register(new DomEmitter<MouseEvent>(this.element, EventType.mouseup)).registerListener; }
-    get onMousemove(): Register<MouseEvent> { return this.disposables.register(new DomEmitter<MouseEvent>(this.element, EventType.mousemove)).registerListener; }
+    get onClick(): Register<MouseEvent> { return this.disposables.register(new DomEmitter<MouseEvent>(this.listContainer, EventType.click)).registerListener; }
+    get onDoubleclick(): Register<MouseEvent> { return this.disposables.register(new DomEmitter<MouseEvent>(this.listContainer, EventType.doubleclick)).registerListener; }
+    get onMouseover(): Register<MouseEvent> { return this.disposables.register(new DomEmitter<MouseEvent>(this.listContainer, EventType.mouseover)).registerListener; }
+    get onMouseout(): Register<MouseEvent> { return this.disposables.register(new DomEmitter<MouseEvent>(this.listContainer, EventType.mouseout)).registerListener; }
+    get onMousedown(): Register<MouseEvent> { return this.disposables.register(new DomEmitter<MouseEvent>(this.listContainer, EventType.mousedown)).registerListener; }
+    get onMouseup(): Register<MouseEvent> { return this.disposables.register(new DomEmitter<MouseEvent>(this.listContainer, EventType.mouseup)).registerListener; }
+    get onMousemove(): Register<MouseEvent> { return this.disposables.register(new DomEmitter<MouseEvent>(this.listContainer, EventType.mousemove)).registerListener; }
 
     get length(): number { return this.items.length; }
     get DOMElement(): HTMLElement { return this.element; }
@@ -442,7 +447,7 @@ export class ListView<T> implements IDisposable, ISpliceable<T>, IListView<T> {
             }
         }
 
-        this.listContainer.style.top = -renderTop + 'px';
+        this.listContainer.style.top = `${-renderTop}px`;
         this.prevRenderTop = renderTop;
         this.prevRenderHeight = renderHeight;
     }

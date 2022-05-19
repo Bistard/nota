@@ -54,9 +54,9 @@ export abstract class AbstractScrollbar extends Widget {
         this._host = opts.host;
         this._scrollable = opts.scrollable;
 
-        this._scrollable.onDidScroll(e => {
+        this.__register(this._scrollable.onDidScroll(e => {
             this.__onDidScroll(e);
-        });
+        }));
 
         this._visibilityController = new VisibilityController('visible', 'invisible', 'fade');
     }
@@ -106,7 +106,7 @@ export abstract class AbstractScrollbar extends Widget {
         this.__renderScrollbar(this._scrollable.getScrollbarSize());
 
         // mouse down on the scrollbar or slider
-        this.onMousedown(this._element!, (e) => {
+        this.__register(this.onMousedown(this._element!, (e) => {
             e.stopPropagation();
 
             if (this._scrollable.required() === false) {
@@ -114,7 +114,7 @@ export abstract class AbstractScrollbar extends Widget {
             }
 
             this.__scrollbarOrSliderOnDrag(e);
-        });
+        }));
 
         // render slider
         this.__renderSlider(this._scrollable.getSliderSize(), this._scrollable.getSliderPosition());
