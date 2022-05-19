@@ -634,7 +634,7 @@ export class ListView<T> implements IDisposable, ISpliceable<T>, IListView<T> {
             const renderer = this.renderers.get(item.type);
 
             if (renderer) {
-                renderer.dispose(item.row.dom);
+                renderer.dispose(item.row.metadata);
             }
     
             this.cache.release(item.row);
