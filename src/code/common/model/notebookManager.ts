@@ -27,7 +27,7 @@ export interface INotebookManagerService {
      * 
      * @throws An exception will be thrown if cannot open properly.
      */
-    open(container: HTMLElement, path: string): Promise<void>;
+    open(container: HTMLElement, path: string): Promise<Notebook>;
 
     /**
      * @description Returns the root path of the {@link NotebookManager}.
@@ -65,7 +65,7 @@ export class NotebookManager implements INotebookManagerService {
         this.ipcService.onApplicationClose(async () => this.__onApplicationClose());
     }
 
-    public async open(container: HTMLElement, path: string): Promise<void> {
+    public async open(container: HTMLElement, path: string): Promise<Notebook> {
         
         try {
             this._rootPath = path;
@@ -98,13 +98,18 @@ export class NotebookManager implements INotebookManagerService {
              */
             const prevNotebook = userConfig.previousOpenedNotebook;
 
+            let notebook: Notebook;
+
             if (prevNotebook && notebooks.indexOf(prevNotebook) !== -1) {
-                this.__switchOrCreateNotebook(container, path, userConfig, prevNotebook);
+                notebook = this.__switchOrCreateNotebook(container, path, userConfig, prevNotebook);
             } else {
-                this.__switchOrCreateNotebook(container, path, userConfig, notebooks[0]!);
+                notebook = this.__switchOrCreateNotebook(container, path, userConfig, notebooks[0]!);
             }
 
-        } catch(err) {
+            return notebook;
+        } 
+        
+        catch(err) {
             throw err;
         }
     }
@@ -129,35 +134,37 @@ export class NotebookManager implements INotebookManagerService {
         root: string, 
         config: IUserNotebookManagerSettings, 
         name: string
-    ): void {
+    ): Notebook {
         
         // do nothing if the notebook is already displaying.
-        if (name === this._currentNotebook) {
-            return;
-        }
-
-        // try to get the notebook from the memory
         let notebook = this._notebooks.get(name);
-
+        if (name === this._currentNotebook) {
+            return notebook!;
+        }
+ 
+        // notebook is in the memory, we simply display it.
         if (notebook) {
-            // notebook is in the memory, we simply display it.
             notebook.setVisible(true);
-        } else {
-            // notebook not in the memory, we create a notebook.
+        } 
+        
+        // notebook not in the memory, we create a notebook.
+        else {
             notebook = new Notebook(URI.fromFile(resolve(root, name)), container, this.fileService);
             this._notebooks.set(name, notebook);
+
+            notebook.onDidCreationFinished(success => {
+                if (success) {
+                    this._currentNotebook = notebook!.name;
+                    config.previousOpenedNotebook = this._currentNotebook;
+                    
+                    this.userConfigService.set(EUserSettings.NotebookManager, config);
+                } else {
+                    // this.logService();
+                }
+            });
         }
 
-        notebook.onDidCreationFinished(success => {
-            if (success) {
-                this._currentNotebook = notebook!.name;
-                config.previousOpenedNotebook = this._currentNotebook;
-                
-                this.userConfigService.set(EUserSettings.NotebookManager, config);
-            } else {
-                // this.logService();
-            }
-        });
+        return notebook;
     }
 
     /**
