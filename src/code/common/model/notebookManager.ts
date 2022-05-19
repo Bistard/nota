@@ -32,7 +32,7 @@ export interface INotebookManagerService {
     /**
      * @description Returns the root path of the {@link NotebookManager}.
      */
-    root(): string;
+    rootPath(): string;
 }
 
 /**
@@ -114,7 +114,7 @@ export class NotebookManager implements INotebookManagerService {
         }
     }
 
-    public root(): string {
+    public rootPath(): string {
         return this._rootPath;
     }
 
@@ -193,14 +193,14 @@ export class NotebookManager implements INotebookManagerService {
         const notebookConfig = this.globalConfigService.get<IGlobalNotebookManagerSettings>(EGlobalSettings.NotebookManager);
 
         // save global configuration first
-        notebookConfig.previousNotebookManagerDir = this.root();
+        notebookConfig.previousNotebookManagerDir = this.rootPath();
         await this.globalConfigService.save(URI.fromFile(resolve(GLOBAL_CONFIG_PATH, LOCAL_NOTA_DIR_NAME, GLOBAL_CONFIG_FILE_NAME)));
         
         // save `user.config.json`
         if (notebookConfig.defaultConfigOn) {
             await this.userConfigService.save(URI.fromFile(resolve(DEFAULT_CONFIG_PATH, LOCAL_NOTA_DIR_NAME, DEFAULT_CONFIG_FILE_NAME)));
         }
-        await this.userConfigService.save(URI.fromFile(resolve(this.root(), LOCAL_NOTA_DIR_NAME, LOCAL_CONFIG_FILE_NAME)));
+        await this.userConfigService.save(URI.fromFile(resolve(this.rootPath(), LOCAL_NOTA_DIR_NAME, LOCAL_CONFIG_FILE_NAME)));
         
     }
 
