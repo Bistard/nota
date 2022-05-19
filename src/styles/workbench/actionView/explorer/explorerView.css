@@ -1,9 +1,17 @@
-#explorer-container, .unopened-explorer-container, .opened-explorer-container {
+#explorer-container {
     position: relative;
     display: flex;
     flex-direction: column;
     width: 100%;
     height: 100%;
+    overflow: hidden;
+}
+
+.opened-explorer-container, .unopened-explorer-container {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
 }
 
 .unopened-explorer-container > .explorer-open-tag {
