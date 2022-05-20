@@ -99,6 +99,27 @@ suite('indexTreeModel-test', () => {
         assert.deepStrictEqual(list[5]!.visibleNodeCount, 1);
     });
 
+    test('onDidSplice', () => {
+        const list: IIndexTreeNode<number>[] = [];
+        const model = new IndexTreeModel<number>(-1, toList(list));
+
+        let cnt = 0;
+        model.onDidSplice((e) => {
+            e.deleted.forEach(() => cnt++);
+            e.inserted.forEach(() => cnt++);
+        });
+
+        model.splice([0], 0, [
+            {data: 1},
+            {data: 3},
+            {data: 2},
+        ]);
+        assert.strictEqual(cnt, 3);
+
+        model.splice([0], 3, []);
+        assert.strictEqual(cnt, 6);
+    });
+
     test('getNodeLocation', () => {
         const list: IIndexTreeNode<number>[] = [];
         const model = new IndexTreeModel<number>(-1, toList(list));
@@ -461,6 +482,46 @@ suite('indexTreeModel-test', () => {
 		assert.deepStrictEqual(list[5]!.collapsed, false);
 		assert.deepStrictEqual(list[5]!.depth, 3);
         assert.deepStrictEqual(list[5]!.visibleNodeCount, 1);
+    });
+
+    test('onDidChangeCollapseState', () => {
+        const list: IIndexTreeNode<number>[] = [];
+        const model = new IndexTreeModel<number>(-1, toList(list));
+
+        model.splice([0], 0, [
+            {
+                data: 1, 
+                children: [
+                    {data: 3},
+                    {data: 2, children: [
+                        { data: 4 },
+                        { data: 6 },
+                        { data: 5 },
+                    ]},
+                ]
+            }, 
+            {   data: 7 }
+        ]);
+        assert.deepStrictEqual(list.length, 7);
+
+        let collapseCnt = 0;
+        model.onDidChangeCollapseStateChange((e) => {
+            collapseCnt++;
+        });
+
+        assert.deepStrictEqual(list[0]!.data, 1);
+		assert.deepStrictEqual(list[0]!.collapsed, false);
+		assert.deepStrictEqual(list[0]!.depth, 1);
+        assert.deepStrictEqual(list[0]!.visibleNodeCount, 6);
+
+        model.setCollapsed([0], true, true);
+        assert.strictEqual(collapseCnt, 2);
+
+        model.setCollapsed([0, 1], false, true);
+        assert.strictEqual(collapseCnt, 3);
+
+        model.setCollapsed([0], undefined, true);
+        assert.strictEqual(collapseCnt, 4);
     });
 
     test('set-collapsible', () => {
