@@ -1,5 +1,4 @@
 import * as assert from 'assert';
-import { delayFor } from 'src/base/common/async';
 import { IDisposable } from 'src/base/common/dispose';
 import { AsyncEmitter, DelayableEmitter, Emitter, Event, PauseableEmitter, SignalEmitter } from 'src/base/common/event';
 
@@ -20,6 +19,29 @@ suite('event-test', () => {
 
         emitter.fire(undefined);
         assert.strictEqual(counter, 2);
+    });
+
+    
+
+    test('emitter - this object replace', () => {
+
+        let name!: string;
+
+        class NameClass {
+            constructor(public name: string) {}
+            public getName(): void { name = this.name; }
+        }
+
+        const emitter = new Emitter<void>();
+
+        const object = new NameClass('chris');
+        const thisObject = new NameClass('replaced');
+
+        const registration1 = emitter.registerListener(object.getName, undefined, thisObject);
+
+        emitter.fire();
+
+        assert.strictEqual(name, 'replaced');
     });
 
     test('emitter - dispose listener', () => {
@@ -267,6 +289,27 @@ suite('event-test', () => {
         await emitter.fireAsync();
 
         assert.strictEqual(result, 300);
+    });
+
+    test('asyncEmitter - this object replace', async () => {
+
+        let name!: string;
+
+        class NameClass {
+            constructor(public name: string) {}
+            public async getName(): Promise<void> { name = this.name; }
+        }
+
+        const emitter = new AsyncEmitter<void>();
+
+        const object = new NameClass('chris');
+        const thisObject = new NameClass('replaced');
+
+        const registration1 = emitter.registerListener(object.getName, undefined, thisObject);
+
+        await emitter.fireAsync();
+
+        assert.strictEqual(name, 'replaced');
     });
 
     test('Event::map()', () => {
