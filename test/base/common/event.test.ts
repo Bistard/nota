@@ -165,6 +165,27 @@ suite('event-test', () => {
         assert.strictEqual(counter, 2);
     });
 
+    test('emitter - first add / last remove', () => {
+        
+        let firstAdded = false;
+        let lastRemoved = false;
+
+        const emitter = new Emitter<undefined>({
+            onFirstListenerAdded: () => firstAdded = true,
+            onLastListenerRemoved: () => lastRemoved = true
+        });
+
+        const disposable = emitter.registerListener(() => {});
+
+        assert.strictEqual(firstAdded, true);
+        assert.strictEqual(lastRemoved, false);
+
+        disposable.dispose();
+
+        assert.strictEqual(firstAdded, true);
+        assert.strictEqual(lastRemoved, true);
+    });
+
     test('PauseableEmitter - basic', () => {
         
         const emitter = new PauseableEmitter<void>();

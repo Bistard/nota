@@ -1,6 +1,6 @@
-import { IDisposable, toDisposable, DisposableManager } from "./dispose";
 import { LinkedList } from "src/base/common/linkedList";
 import { addDisposableListener, EventType } from "src/base/common/dom";
+import { Disposable, DisposableManager, IDisposable, toDisposable } from "src/base/common/dispose";
 
 /** @deprecated Use Emitter instead */
 export interface IEventEmitter {
@@ -161,6 +161,19 @@ class __AsyncListener<T> {
 }
 
 /**
+ * Construction interface for {@link Emitter}.
+ */
+export interface IEmitterOptions {
+
+    /** Invokes after the first listener is added. */
+    readonly onFirstListenerAdded?: Function;
+
+    /** Invokes after the last listener is removed. */
+    readonly onLastListenerRemoved?: Function;
+
+}
+
+/**
  * @readonly An event emitter binds to a specific event T. All the listeners who 
  * is listening to the event T will be notified once the event occurs.
  * 
@@ -172,13 +185,26 @@ class __AsyncListener<T> {
  */
 export class Emitter<T> implements IDisposable, IEmitter<T> {
     
+    // [field]
+
     private _disposed: boolean = false;
 
     /** stores all the listeners to this event. */
     protected _listeners: LinkedList<__Listener<T>> = new LinkedList();
 
-    /** @readonly Using function closures here. */
+    /** sing function closures here. */
     private _register?: Register<T>;
+
+    /** stores all the options. */
+    private _opts?: IEmitterOptions;
+
+    // constructor
+
+    constructor(opts?: IEmitterOptions) {
+        this._opts = opts;
+    }
+
+    // [method]
 	
     get registerListener(): Register<T> {
         
@@ -195,10 +221,21 @@ export class Emitter<T> implements IDisposable, IEmitter<T> {
 				const node = this._listeners.push_back(listenerWrapper);
                 let listenerRemoved = false;
 
+                // first add callback
+                if (this._opts?.onFirstListenerAdded) {
+                    this._opts.onFirstListenerAdded();
+                }
+
                 // returns a disposable in order to decide when to stop listening (unregister)
 				const unRegister = toDisposable(() => {
-					if (!this._disposed && listenerRemoved === false) {
+					if (!this._disposed && !listenerRemoved) {
 						this._listeners.remove(node);
+                
+                        // last remove callback
+                        if (this._opts?.onLastListenerRemoved) {
+                            this._opts.onLastListenerRemoved();
+                        }
+
                         listenerRemoved = true;
 					}
 				});
@@ -422,6 +459,8 @@ export const enum Priority {
  * {@link Register}.
  */
 export namespace Event {
+
+    export const NONE: Register<any> = () => Disposable.NONE;
 
     /**
      * @description Creates a new event register by mapping the original event 
