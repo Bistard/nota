@@ -69,6 +69,7 @@ export const EVENT_EMITTER = new EventEmitter();
  *  - {@link DelayableEmitter}
  *  - {@link SignalEmitter}
  *  - {@link AsyncEmitter}
+ *  - {@link RelayEmitter}
  * 
  *  - {@namespace Event}
  ******************************************************************************/
@@ -88,13 +89,14 @@ export type AsyncListener<E> = (e: E) => Promise<void>;
  * @param listener The `listener` to be registered.
  * @param disposables The `disposables` is used to store all the `listener`s as 
  * disposables after registrations.
+ * @param thisObject The object to be used as the `this` object.
  */
 export interface Register<T> {
-	(listener: Listener<T>, disposables?: IDisposable[]): IDisposable;
+	(listener: Listener<T>, disposables?: IDisposable[], thisObject?: any): IDisposable;
 }
 
 export interface AsyncRegister<T> {
-    (listener: AsyncListener<T>, disposables?: IDisposable[]): IDisposable;
+    (listener: AsyncListener<T>, disposables?: IDisposable[], thisObject?: any): IDisposable;
 }
 
 export interface IEmitter<T> {
@@ -118,6 +120,11 @@ export interface IEmitter<T> {
      * @returns An array of errors.
      */
     fire(event: T): any[];
+
+    /**
+     * @description Determines if the emitter has any active listeners.
+     */
+    hasListeners(): boolean;
     
     /**
      * @description Disposes the whole event emitter. All the registered 
@@ -131,19 +138,44 @@ export interface IEmitter<T> {
 }
 
 /**
+ * @internal A storage wrapper used in {@link Emitter}.
+ */
+class __Listener<T> {
+
+    constructor(readonly callback: Listener<T>, readonly thisObject?: any) {}
+
+    public fire(e: T): void {
+        this.callback.call(this.thisObject, e);
+    }
+
+}
+
+class __AsyncListener<T> {
+
+    constructor(readonly callback: AsyncListener<T>, readonly thisObject?: any) {}
+
+    public async fire(e: T): Promise<void> {
+        this.callback.call(this.thisObject, e);
+    }
+
+}
+
+/**
  * @readonly An event emitter binds to a specific event T. All the listeners who 
  * is listening to the event T will be notified once the event occurs.
  * 
- * To listen to this event T, use this.register(listener) where `listener` is a
- * callback function.
+ * To listen to this event T, use this.registerListener(listener) where `listener` 
+ * is essentially a callback function.
  * 
  * To trigger the event occurs and notifies all the listeners, use this.fire(event) 
- * where `event` is the type T.
+ * where `event` has the type T.
  */
 export class Emitter<T> implements IDisposable, IEmitter<T> {
     
     private _disposed: boolean = false;
-    protected _listeners: LinkedList<Listener<T>> = new LinkedList();
+
+    /** stores all the listeners to this event. */
+    protected _listeners: LinkedList<__Listener<T>> = new LinkedList();
 
     /** @readonly Using function closures here. */
     private _register?: Register<T>;
@@ -156,17 +188,18 @@ export class Emitter<T> implements IDisposable, IEmitter<T> {
         }
 
         if (this._register === undefined) {
-			this._register = (listener: Listener<T>, disposables?: IDisposable[]) => {
+			this._register = (listener: Listener<T>, disposables?: IDisposable[], thisObject?: any) => {
 				
                 // register the listener (callback)
-				const node = this._listeners.push_back(listener);
-                let removed = false;
+                const listenerWrapper = new __Listener(listener, thisObject);
+				const node = this._listeners.push_back(listenerWrapper);
+                let listenerRemoved = false;
 
-                // returns a disposable inorder to control when to stop listening
+                // returns a disposable in order to decide when to stop listening (unregister)
 				const unRegister = toDisposable(() => {
-					if (!this._disposed && removed === false) {
+					if (!this._disposed && listenerRemoved === false) {
 						this._listeners.remove(node);
-                        removed = true;
+                        listenerRemoved = true;
 					}
 				});
 
@@ -187,7 +220,7 @@ export class Emitter<T> implements IDisposable, IEmitter<T> {
 
         for (const listener of this._listeners) {
             try {
-                listener(event);
+                listener.fire(event);
             } catch (e) {
                 errors.push(e);
             }
@@ -202,6 +235,10 @@ export class Emitter<T> implements IDisposable, IEmitter<T> {
 			this._listeners.clear();
 		}
 	}
+
+    public hasListeners(): boolean {
+        return this._listeners.size() > 0;
+    }
 }
 
 /**
@@ -265,7 +302,7 @@ export class PauseableEmitter<T> extends Emitter<T> {
 /**
  * @class An {@link Emitter} that works the same as {@link PauseableEmitter},
  * except that when the emitter is paused, the fired event will be saved. When
- * the emitter is resumed, the saved events will be fired.
+ * the emitter is resumed, the saved events will be re-fired.
  * 
  * The provided `reduce` function gives the chance to combine all the saved 
  * events into one single event and be fired when the emitter is resumed.
@@ -323,8 +360,8 @@ export class DelayableEmitter<T> extends Emitter<T> {
  * @class A {@link SignalEmitter} consumes a series of {@link Register} and
  * fires a new type of event under a provided logic processing.
  * 
- * The {@link SignalEmitter} consumes a series of event with type T, and fires the
- * event with type E.
+ * The {@link SignalEmitter} consumes a series of event with type T, and fires 
+ * the event with type E.
  */
 export class SignalEmitter<T, E> extends Emitter<E> { 
 
@@ -361,9 +398,9 @@ export class AsyncEmitter<T> extends Emitter<T> {
     public async fireAsync(event: T): Promise<any[]> {
         const errors: any[] = [];
 
-        for (const listener of this._listeners as LinkedList<AsyncListener<T>>) {
+        for (const listener of this._listeners as LinkedList<__AsyncListener<T>>) {
             try {
-                await listener(event);
+                await listener.fire(event);
             } catch (e) {
                 errors.push(e);
             }
