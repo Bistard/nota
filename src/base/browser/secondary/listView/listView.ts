@@ -243,7 +243,7 @@ export interface IListView<T> extends IDisposable {
      * @description Returns the item's index given the visible DOM position.
      * @param visiblePosition The DOM's position (top) relatives to the viewport.
      */
-    renderIndexAt(visiblePosition: number): number;
+    indexAtVisible(visiblePosition: number): number;
 
     /**
 	 * @description Returns the index of the item which has an index after the 
@@ -257,7 +257,25 @@ export interface IListView<T> extends IDisposable {
      * item with the given visible DOM position.
      * @param visiblePosition The DOM's position (top) relatives to the viewport.
      */
-    renderIndexAfter(visiblePosition: number): number;
+    indexAfterVisible(visiblePosition: number): number;
+
+    /**
+     * @description Returns the rendering index of the item given the visible 
+     * DOM position.
+     * @param visiblePosition The DOM's position (top) relatives to the viewport.
+     */
+    renderIndexAtVisible(visiblePosition: number): number;
+
+    /**
+     * @description Returns the actual index from the event target which may be
+     * triggered by clicking or anything other events. The method will try to get
+     * the DOM attribute from the target.
+     * @param target The {@link EventTarget}.
+     * 
+     * @throws If the target has no attribute named `index`, an exception will
+     * be thrown.
+     */
+    indexFromEventTarget(target: EventTarget | null): number;
 }
 
 /**
@@ -298,9 +316,9 @@ export class ListView<T> implements IDisposable, ISpliceable<T>, IListView<T> {
     private items: IViewItem<T>[];
     private cache: ListViewCache;
 
-    /** The `top` pixels relatives to the scrollable view that were previously rendered. */
+    /** The `top` pixels relatives to the scrollable view that was previously rendered. */
     private prevRenderTop: number;
-    /** The `height` of the list view that were previously rendered. */
+    /** The `height` of the list view that was previously rendered. */
     private prevRenderHeight: number;
 
     /** If the list view is during the `splice()` operation. */
@@ -705,7 +723,7 @@ export class ListView<T> implements IDisposable, ISpliceable<T>, IListView<T> {
         return this.rangeTable.indexAt(position);
     }
 
-    public renderIndexAt(visiblePosition: number): number {
+    public indexAtVisible(visiblePosition: number): number {
         return this.rangeTable.indexAt(this.prevRenderTop + visiblePosition);
     }
 
@@ -713,9 +731,48 @@ export class ListView<T> implements IDisposable, ISpliceable<T>, IListView<T> {
         return this.rangeTable.indexAfter(position);
     }
 
-    public renderIndexAfter(visiblePosition: number): number {
+    public indexAfterVisible(visiblePosition: number): number {
         return this.rangeTable.indexAfter(this.prevRenderTop + visiblePosition);
     }
+
+    public renderIndexAtVisible(visiblePosition: number): number {
+        const topIndex = this.rangeTable.indexAt(this.scrollable.getScrollPosition());
+        const currIndex = this.rangeTable.indexAt(this.scrollable.getScrollPosition() + visiblePosition);
+        return currIndex - topIndex;
+    }
+
+    public indexFromEventTarget(target: EventTarget | null): number {
+        if (target === null) {
+            throw new ListError('invalid target');
+        }
+
+        /**
+         * Since the event target which triggered by an event might be the child
+         * element of the actual row list, so we will trace back to the parent
+         * until we find one.
+         */
+
+        let element = target as HTMLElement | null;
+
+        while (element instanceof HTMLElement && // making sure when tracing up
+               element !== this.listContainer && // will not be out of range.
+               this.element.contains(element)
+        ) {
+            const stringIndex = element.getAttribute('index');
+            if (stringIndex) {
+                const index =  Number(stringIndex);
+                if (isNaN(index) === false) {
+                    return index;
+                }
+            }
+
+            element = element.parentElement;
+        }
+
+        throw new ListError('invalid event target');
+    }
+
+    public 
 
     public getDnd(): IListDragAndDropProvider<T> {
         return this.dnd;

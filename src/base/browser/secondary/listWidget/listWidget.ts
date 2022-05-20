@@ -14,13 +14,16 @@ import { ListTraitRenderer } from "src/base/browser/secondary/listWidget/listTra
  */
 export interface IListMouseEvent<T> {
     /** The original brower event {@link MouseEvent}. */
-    browserEvent: MouseEvent,
+    browserEvent: MouseEvent;
 
-    /** The index of the clicked item. */
-    index: number,
+    /** The rendering index of the clicked item. */
+    renderIndex: number;
+
+    /** The actual index of the clicked item. */
+    actualIndex: number;
 
     /** The clicked item. */
-    item: T,
+    item: T;
 
     /** The position (top) relatives to the viewport. */
     top: number;
@@ -307,13 +310,16 @@ export class ListWidget<T> implements IListWidget<T> {
      */
     private __toListMouseEvent(e: MouseEvent): IListMouseEvent<T> {
 
-        const [x, y] = DomUtility.getElementRelativeClick(e);
-        const index = this.view.renderIndexAt(y);
-        const item = this.view.getItem(index);
-        const viewportTop = this.view.getItemRenderTop(index);
+        const [x, y] = DomUtility.getRelativeClick(e, this.view.DOMElement);
+        const renderIndex = this.view.renderIndexAtVisible(y);
+        const actualIndex = this.view.indexFromEventTarget(e.target);
+        const item = this.view.getItem(actualIndex);
+        const viewportTop = this.view.getItemRenderTop(renderIndex);
+        
         return {
             browserEvent: e,
-            index: index,
+            renderIndex: renderIndex,
+            actualIndex: actualIndex,
             item: item,
             top: viewportTop
         };
@@ -345,7 +351,8 @@ export class ListWidget<T> implements IListWidget<T> {
      */
     private __toListDragEvent(event: DragEvent): IListDragEvent<T> {
 
-        const index = this.view.renderIndexAt(event.clientY);
+        // FIX: wrong method calling
+        const index = this.view.renderIndexAtVisible(event.clientY);
         const item = this.view.getItem(index);
         return {
             browserEvent: event,

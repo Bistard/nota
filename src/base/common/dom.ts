@@ -214,9 +214,14 @@ export namespace DomUtility
 	/**
 	 * @description Returns the relative click coordinates to the target element.
 	 * @param event The {@link MouseEvent}.
+	 * @param target The {@link EventTarget} we are relative with
 	 */
-	export function getElementRelativeClick(event: MouseEvent): Pair<number, number> {
-		const box: DOMRect = (event.currentTarget as HTMLElement).getBoundingClientRect();
+	export function getRelativeClick(event: MouseEvent, target?: EventTarget): Pair<number, number> {
+		let element = (target ?? event.currentTarget) as HTMLElement | null;
+		if (element === null) {
+			throw new Error('invalid event target');
+		}
+		let box: DOMRect = element.getBoundingClientRect();
 		return [
 			event.clientX - box.left,
 			event.clientY - box.top

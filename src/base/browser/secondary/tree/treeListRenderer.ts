@@ -63,7 +63,7 @@ export class TreeItemRenderer<T, TFilter, TMetadata> implements ITreeListRendere
 
     // [field]
 
-    public static readonly defaultIndentation = 8;
+    public static readonly defaultIndentation = 16;
 
     public readonly type: RendererType;
 
