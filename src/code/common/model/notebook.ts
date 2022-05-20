@@ -62,8 +62,13 @@ export interface INotebook {
      */
     refresh(item?: ExplorerItem): Promise<void>;
 
-    // TODO
-    select(uri: URI): Promise<void>;
+    /**
+     * @description Given the {@link URI}, selecting / displaying / expanding 
+     * the corresponding item {@link ExplorerItem} in the view.
+     * @param uri The URI of the item.
+     * @returns A boolean determines whether the operation success.
+     */
+    select(uri: URI): Promise<boolean>;
 
 }
 
@@ -180,8 +185,9 @@ export class Notebook extends Disposable implements INotebook {
         return this._tree.refresh(item ?? this._tree.root());
     }
 
-    public async select(uri: URI): Promise<void> {
-        
+    public async select(uri: URI): Promise<boolean> {
+        // TODO
+        return false;
     }
 
     /**
