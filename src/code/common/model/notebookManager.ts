@@ -1,6 +1,6 @@
 import { DataBuffer } from "src/base/common/file/buffer";
 import { FileType } from "src/base/common/file/file";
-import { resolve } from "src/base/common/file/path";
+import { join, resolve } from "src/base/common/file/path";
 import { URI } from "src/base/common/file/uri";
 import { Iterable } from "src/base/common/iterable";
 import { String } from "src/base/common/string";
@@ -97,15 +97,22 @@ export class NotebookManager implements INotebookManagerService {
              * opened notebook, if not, opens the first one.
              */
             const prevNotebook = userConfig.previousOpenedNotebook;
-
-            let notebook: Notebook;
-
-            if (prevNotebook && notebooks.indexOf(prevNotebook) !== -1) {
-                notebook = this.__switchOrCreateNotebook(container, path, userConfig, prevNotebook);
+            let notebook: Notebook | undefined;
+            
+            const ifOpenPrevious = !!prevNotebook && (notebooks.indexOf(prevNotebook) !== -1);
+            if (ifOpenPrevious) {
+                notebook = await this.__switchOrCreateNotebook(container, path, userConfig, prevNotebook);
             } else {
-                notebook = this.__switchOrCreateNotebook(container, path, userConfig, notebooks[0]!);
+                notebook = await this.__switchOrCreateNotebook(container, path, userConfig, notebooks[0]!);
             }
 
+            // fail
+            if (notebook === undefined) {
+                const resolvedPath = join(path, ifOpenPrevious ? prevNotebook : notebooks[0]!);
+                throw new Error(`cannot open the notebook with the path ${resolvedPath}`);
+            }
+
+            // success
             return notebook;
         } 
         
@@ -129,17 +136,18 @@ export class NotebookManager implements INotebookManagerService {
      * @param config The configuration for later updating.
      * @param name The name of the notebook.
      */
-    private __switchOrCreateNotebook(
+    private async __switchOrCreateNotebook(
         container: HTMLElement, 
         root: string, 
         config: IUserNotebookManagerSettings, 
         name: string
-    ): Notebook {
+    ): Promise<Notebook | undefined> {
         
         // do nothing if the notebook is already displaying.
         let notebook = this._notebooks.get(name);
         if (name === this._currentNotebook) {
-            return notebook!;
+            console.log('weird reaching');
+            return notebook;
         }
  
         // notebook is in the memory, we simply display it.
@@ -149,19 +157,21 @@ export class NotebookManager implements INotebookManagerService {
         
         // notebook not in the memory, we create a notebook.
         else {
-            notebook = new Notebook(URI.fromFile(resolve(root, name)), container, this.fileService);
+            notebook = new Notebook(container, this.fileService);
             this._notebooks.set(name, notebook);
+            
+            // start building the whole notebook asynchronously.
+            const result = await notebook.init(URI.fromFile(resolve(root, name)));
 
-            notebook.onDidCreationFinished(success => {
-                if (success) {
-                    this._currentNotebook = notebook!.name;
-                    config.previousOpenedNotebook = this._currentNotebook;
-                    
-                    this.userConfigService.set(EUserSettings.NotebookManager, config);
-                } else {
-                    // this.logService();
-                }
-            });
+            // failed
+            if (result === false) {
+                return undefined;
+            }
+            
+            // success
+            this._currentNotebook = notebook.name;
+            config.previousOpenedNotebook = this._currentNotebook;
+            this.userConfigService.set(EUserSettings.NotebookManager, config);
         }
 
         return notebook;

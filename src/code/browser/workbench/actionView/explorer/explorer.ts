@@ -234,6 +234,7 @@ export class ExplorerViewComponent extends Component implements IExplorerViewSer
             await this.notebookManagerService.open(this._openedView, path);
         } catch (err) {
             // TODO: complete (pop up a warning dialogBox)
+            console.log('error', err);
         }
 
         this.container.appendChild(this._openedView);

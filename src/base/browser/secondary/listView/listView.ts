@@ -58,7 +58,7 @@ export interface IListView<T> extends IDisposable {
 
     // [events / getter]
 
-    onDidChangeContent: Register<void>;
+    onDidSplice: Register<void>;
     onInsertItemInDOM: Register<IViewItemChangeEvent<T>>;
     onUpdateItemInDOM: Register<IViewItemChangeEvent<T>>;
     onRemoveItemInDOM: Register<IViewItemChangeEvent<T>>;
@@ -326,8 +326,8 @@ export class ListView<T> implements IDisposable, ISpliceable<T>, IListView<T> {
 
     // [events]
 
-    private _onDidChangeContent: Emitter<void> = this.disposables.register(new Emitter<void>());
-    public onDidChangeContent: Register<void> = this._onDidChangeContent.registerListener;
+    private _onDidSplice: Emitter<void> = this.disposables.register(new Emitter<void>());
+    public onDidSplice: Register<void> = this._onDidSplice.registerListener;
 
     private _onInsertItemInDOM: Emitter<IViewItemChangeEvent<T>> = this.disposables.register(new Emitter<IViewItemChangeEvent<T>>());
     public onInsertItemInDOM: Register<IViewItemChangeEvent<T>> = this._onInsertItemInDOM.registerListener;
@@ -600,7 +600,7 @@ export class ListView<T> implements IDisposable, ISpliceable<T>, IListView<T> {
 			}
 		}
 
-        this._onDidChangeContent.fire();
+        this._onDidSplice.fire();
         this._splicing = false;
 
         return waitToDelete.map(item => item.data);
