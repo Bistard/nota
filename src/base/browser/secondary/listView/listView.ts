@@ -16,10 +16,45 @@ import { IListDragAndDropProvider } from "src/base/browser/secondary/listWidget/
  */
 export interface IListViewOpts<T> {
     
+    /**
+     * When constructing the view, decide whether to layout the view immediately.
+     * `layout` meanning to update the size of the view and causes rerendering.
+     * 
+     * Sometimes the provided HTMLElement container is NOT in the DOM tree yet, 
+     * so it cannot decide how big the view should be. If this is the case, set
+     * this to false or just do not provide, then call `layout()` manually.
+     */
+    readonly layout?: boolean;
+
+    /**
+     * If turns on the transform optimization.
+     * @see https://www.afasterweb.com/2017/07/27/optimizing-repaints/
+     */
     readonly transformOptimization?: boolean;
+    
+    /**
+     * A multiplier to be used on the `deltaX` and `deltaY` of a mouse 
+     * wheel scroll event.
+	 * @default 1
+     */
     readonly mouseWheelScrollSensitivity?: number;
+
+    /**
+     * A multiplier to be used for wheel scroll event when `ALT` 
+     * keyword is pressed.
+     * @default 5
+     */
 	readonly fastScrollSensitivity?: number;
+
+    /**
+     * If reverse the mouse wheel direction.
+     */
     readonly reverseMouseWheelDirection?: boolean;
+
+    /**
+     * The width of thee scrollbar.
+     * @default 10
+     */
     readonly scrollbarSize?: number;
     
     dragAndDropProvider?: IListDragAndDropProvider<T>;
@@ -58,7 +93,7 @@ export interface IListView<T> extends IDisposable {
 
     // [events / getter]
 
-    onDidChangeContent: Register<void>;
+    onDidSplice: Register<void>;
     onInsertItemInDOM: Register<IViewItemChangeEvent<T>>;
     onUpdateItemInDOM: Register<IViewItemChangeEvent<T>>;
     onRemoveItemInDOM: Register<IViewItemChangeEvent<T>>;
@@ -124,6 +159,15 @@ export interface IListView<T> extends IDisposable {
     DOMElement: HTMLElement;
 
     // [methods]
+
+    /**
+     * @description Given the height, re-layouts the height of the whole view.
+     * @param height The given height.
+     * 
+     * @note If no values are provided, it will sets to the height of the 
+     * corresponding DOM element of the view.
+     */
+    layout(height?: number): void;
 
     /**
      * @description Renders all the items in the DOM tree.
@@ -326,8 +370,8 @@ export class ListView<T> implements IDisposable, ISpliceable<T>, IListView<T> {
 
     // [events]
 
-    private _onDidChangeContent: Emitter<void> = this.disposables.register(new Emitter<void>());
-    public onDidChangeContent: Register<void> = this._onDidChangeContent.registerListener;
+    private _onDidSplice: Emitter<void> = this.disposables.register(new Emitter<void>());
+    public onDidSplice: Register<void> = this._onDidSplice.registerListener;
 
     private _onInsertItemInDOM: Emitter<IViewItemChangeEvent<T>> = this.disposables.register(new Emitter<IViewItemChangeEvent<T>>());
     public onInsertItemInDOM: Register<IViewItemChangeEvent<T>> = this._onInsertItemInDOM.registerListener;
@@ -377,16 +421,10 @@ export class ListView<T> implements IDisposable, ISpliceable<T>, IListView<T> {
         this.listContainer = document.createElement('div');
         this.listContainer.className = 'list-view-container';
         if (opts.transformOptimization) {
-            // see https://www.afasterweb.com/2017/07/27/optimizing-repaints/
             this.listContainer.style.transform = 'translate3d(0px, 0px, 0px)';
         }
         
-        this.scrollable = new Scrollable(
-            opts.scrollbarSize ? opts.scrollbarSize : 10,
-            DomUtility.getContentHeight(container),
-            0,
-            0
-        );
+        this.scrollable = new Scrollable(opts.scrollbarSize ? opts.scrollbarSize : 10, 0, 0, 0);
 
         this.scrollableWidget = new ScrollableWidget(this.scrollable, {
             mouseWheelScrollSensibility: opts.mouseWheelScrollSensitivity,
@@ -425,12 +463,23 @@ export class ListView<T> implements IDisposable, ISpliceable<T>, IListView<T> {
         this.disposables.register(this.scrollable);
         this.disposables.register(this.scrollableWidget);
         this.disposables.register(this.cache);
+
+        if (opts.layout) {
+            this.layout();
+        }
     }
 
     // [methods]
 
     public dispose(): void {
         this.disposables.dispose();
+    }
+
+    public layout(height?: number): void {
+
+        height = height ?? DomUtility.getContentHeight(this.element);
+        this.scrollable.setViewportSize(height);
+
     }
 
     public render(prevRenderRange: IRange, renderTop: number, renderHeight: number): void {
@@ -600,7 +649,7 @@ export class ListView<T> implements IDisposable, ISpliceable<T>, IListView<T> {
 			}
 		}
 
-        this._onDidChangeContent.fire();
+        this._onDidSplice.fire();
         this._splicing = false;
 
         return waitToDelete.map(item => item.data);
@@ -771,8 +820,6 @@ export class ListView<T> implements IDisposable, ISpliceable<T>, IListView<T> {
 
         throw new ListError('invalid event target');
     }
-
-    public 
 
     public getDnd(): IListDragAndDropProvider<T> {
         return this.dnd;

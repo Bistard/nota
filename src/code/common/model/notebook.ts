@@ -1,6 +1,7 @@
 import { AsyncMultiTree, IAsyncMultiTree } from "src/base/browser/secondary/tree/asyncMultiTree";
 import { Disposable, DisposableManager } from "src/base/common/dispose";
 import { Emitter, Register } from "src/base/common/event";
+import { IResolvedFileStat } from "src/base/common/file/file";
 import { URI } from "src/base/common/file/uri";
 import { ExplorerChildrenProvider, ExplorerItem, ExplorerItemProvider } from "src/code/browser/workbench/actionView/explorer/explorerItem";
 import { ExplorerRenderer } from "src/code/browser/workbench/actionView/explorer/explorerRenderer";
@@ -35,6 +36,23 @@ export interface INotebook {
      * @description Determines if the current notebook is visible in the explorer.
      */
     isVisible(): boolean;
+
+    /**
+     * @description Building the whole notebook asynchronously by the given root 
+     * path.
+     * @param root The root path.
+     * @returns If the initialization successed. Undefined => fails.
+     */
+    init(root: URI): Promise<boolean>;
+
+    /**
+     * @description Given the height, re-layouts the height of the whole view.
+     * @param height The given height.
+     * 
+     * @note If no values are provided, it will sets to the height of the 
+     * corresponding DOM element of the view.
+     */
+    layout(height?: number): void;
 
     // TODO
     refresh(item?: ExplorerItem): Promise<void>;
@@ -77,28 +95,38 @@ export class Notebook extends Disposable implements INotebook {
     // [constructor]
 
     constructor(
-        root: URI, 
         container: HTMLElement,
         private fileService: IFileService,
     ) {
         super();
+        this._container = container;        
+    }
 
-        this._container = container;
+    // [get method]
 
-        this.fileService.stat(root, { 
-            resolveChildren: true, // sets true since we need the frist level of the notebook
-        })
-        .then(async rootStat => {
+    get name(): string { return this._root.name; }
+
+    // [public method]
+
+    public layout(height?: number): void {
+        if (this._visible) {
+            this._tree.layout(height);
+        }
+    }
+
+    public async init(root: URI): Promise<boolean> {
         
+        try {
+            const rootStat = await this.fileService.stat(root, { resolveChildren: true });
             this._root = new ExplorerItem(rootStat);
-            await this.__createTree(container, this._root);
+            await this.__createTree(this._container, this._root);
 
             /**
              * auto register tree listeners once the visibility of the notebook 
              * changed.
              */
             let listeners: DisposableManager | undefined;
-            this.onDidVisibilityChange(visibility => {
+            this.__register(this.onDidVisibilityChange(visibility => {
 
                 if (visibility) {
                     // re-register all the listeners to the tree.
@@ -111,28 +139,18 @@ export class Notebook extends Disposable implements INotebook {
                 if (!visibility && listeners && !listeners.disposed) {
                     listeners.dispose();
                 }
+            }));
 
-            });
-
-            // Fires the event
-
-            this._visible = true;
-            this._onDidVisibilityChange.fire(true);
-            this._onDidCreationFinished.fire(true);
-        })
-        .catch(err => {
-            // logService.trace(err);
-            this._onDidVisibilityChange.fire(false);
-            this._onDidCreationFinished.fire(false);
-        });
+            this.__resolveState(true);
+        }
         
+        catch (err) {
+            this.__resolveState(false);
+            return false;
+        }
+
+        return true;
     }
-
-    // [get method]
-
-    get name(): string { return this._root.name; }
-
-    // [public method]
 
     public setVisible(value: boolean): void {
         
@@ -229,7 +247,18 @@ export class Notebook extends Disposable implements INotebook {
             };
         } else {
         return value;
+        }
     }
-}
+
+    /**
+     * @description Change the current notebook state by the given result.
+     * @param result Result in boolean form.
+     */
+    private __resolveState(result: boolean): void {
+        // TODO: this.setVisible(result);
+        this._visible = result;
+        this._onDidVisibilityChange.fire(result);
+        this._onDidCreationFinished.fire(result);
+    }
 
 }

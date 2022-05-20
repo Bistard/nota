@@ -63,6 +63,15 @@ export interface IAbstractTree<T, TFilter, TRef> {
     
     // [method - general]
 
+    /**
+     * @description Given the height, re-layouts the height of the whole view.
+     * @param height The given height.
+     * 
+     * @note If no values are provided, it will sets to the height of the 
+     * corresponding DOM element of the view.
+     */
+    layout(height?: number): void;
+
     dispose(): void;
 
     // [method - tree]
@@ -261,6 +270,10 @@ export abstract class AbstractTree<T, TFilter, TRef> implements IAbstractTree<T,
 
     get DOMElement(): HTMLElement {
         return this._view.DOMElement;
+    }
+
+    public layout(height?: number): void {
+        this._view.layout(height);
     }
 
     public dispose(): void {
