@@ -448,6 +448,68 @@ export class AsyncEmitter<T> extends Emitter<T> {
 
 }
 
+/**
+ * @class A {@link RelayEmitter} works like a event pipe and the input may be 
+ * changed at any time.
+ * 
+ * @example When the listeners: A, B and C were listening to this relay emitter 
+ * and the input event is E. Next second the input event may be switched to 
+ * event F and all the listeners now are listening to event F from now on.
+ */
+export class RelayEmitter<T> implements IDisposable {
+    
+    // [field]
+
+    /** The input emitter */
+    private _inputRegister: Register<T> = Event.NONE;
+    /** The disposable when the relay emitter listening to the input. */
+    private _inputUnregister: IDisposable = Disposable.NONE;
+
+    /** Representing if any listeners are listening to this relay emitter. */
+    private _listening: boolean = false;
+
+    /** The relay (pipeline) emitter */
+    private readonly _relayEmitter = new Emitter<T>({
+        onFirstListenerAdded: () => {
+            this._listening = true;
+            this._inputUnregister = this._inputRegister(this._relayEmitter.fire, undefined, this._relayEmitter);
+        },
+        onLastListenerRemoved: () => {
+            this._listening = false;
+            this._inputUnregister.dispose();
+        }
+    });
+
+    // [event]
+
+    public readonly registerListener = this._relayEmitter.registerListener;
+
+    // [constructor]
+
+    constructor() {}
+
+    // [method]
+
+    public setInput(newInputRegister: Register<T>): void {
+        this._inputRegister = newInputRegister;
+
+        /**
+         * Since there still have listeners listen to the old ones, we dispose 
+         * the old ones and switch to the new one.
+         */
+        if (this._listening) {
+            this._inputUnregister.dispose();
+            this._inputUnregister = newInputRegister(this._relayEmitter.fire, undefined, this._relayEmitter);
+        }
+    }
+
+    public dispose(): void {
+        this._inputUnregister.dispose();
+        this._relayEmitter.dispose();
+    }
+
+}
+
 export const enum Priority {
     Low,
     Normal,

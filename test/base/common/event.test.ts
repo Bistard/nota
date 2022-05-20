@@ -1,6 +1,6 @@
 import * as assert from 'assert';
 import { IDisposable } from 'src/base/common/dispose';
-import { AsyncEmitter, DelayableEmitter, Emitter, Event, PauseableEmitter, SignalEmitter } from 'src/base/common/event';
+import { AsyncEmitter, DelayableEmitter, Emitter, Event, PauseableEmitter, RelayEmitter, SignalEmitter } from 'src/base/common/event';
 
 suite('event-test', () => {
 
@@ -331,6 +331,30 @@ suite('event-test', () => {
         await emitter.fireAsync();
 
         assert.strictEqual(name, 'replaced');
+    });
+
+    test('relayEmitter', () => {
+
+        const input1 = new Emitter<boolean>();
+        const input2 = new Emitter<boolean>();
+
+        const relay = new RelayEmitter<boolean>();
+        let expected!: boolean;
+        
+        let listener1 = relay.registerListener((value) => {
+            assert.strictEqual(value, expected);
+        });
+        let listener2 = relay.registerListener((value) => {
+            assert.strictEqual(value, expected);
+        });
+
+        relay.setInput(input1.registerListener);
+        expected = true;
+        input1.fire(expected);
+
+        relay.setInput(input2.registerListener);
+        expected = false;
+        input2.fire(expected);
     });
 
     test('Event::map()', () => {
