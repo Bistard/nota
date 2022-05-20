@@ -1,7 +1,7 @@
 import { Register } from "src/base/common/event";
 import { ISpliceable } from "src/base/common/range";
-import { IIndexTreeModelCreationOptions, IIndexTreeModel, IndexTreeModel, ITreeModelSpliceEvent, ITreeModelSpliceOptions } from "src/base/browser/secondary/tree/indexTreeModel";
-import { ITreeModel, ITreeNode, ITreeNodeItem } from "src/base/browser/secondary/tree/tree";
+import { IIndexTreeModelCreationOptions, IIndexTreeModel, IndexTreeModel, ITreeModelSpliceOptions } from "src/base/browser/secondary/tree/indexTreeModel";
+import { ITreeModel, ITreeSpliceEvent, ITreeNode, ITreeNodeItem, ITreeCollapseStateChangeEvent } from "src/base/browser/secondary/tree/tree";
 
 /**
  * An interface only for {@link MultiTreeModel}.
@@ -9,8 +9,6 @@ import { ITreeModel, ITreeNode, ITreeNodeItem } from "src/base/browser/secondary
  * TRef: T | null
  */
 export interface IMultiTreeModel<T, TFilter> extends ITreeModel<T | null, TFilter, T | null> {
-
-    onDidSplice: Register<ITreeModelSpliceEvent<T | null, TFilter>>;
 
     /**
      * @description Returns the number of nodes in the current tree model.
@@ -55,12 +53,13 @@ export class MultiTreeModel<T, TFilter = void> implements IMultiTreeModel<T, TFi
         this._nodes = new Map();
 
         this.onDidSplice = this._model.onDidSplice;
-
+        this.onDidChangeCollapseStateChange = this._model.onDidChangeCollapseStateChange;
     }
 
     // [event]
 
-    public onDidSplice: Register<ITreeModelSpliceEvent<T | null, TFilter>>;
+    public readonly onDidSplice: Register<ITreeSpliceEvent<T | null, TFilter>>;
+    public readonly onDidChangeCollapseStateChange: Register<ITreeCollapseStateChangeEvent<T | null, TFilter>>;
 
     // [public method]
 

@@ -1,18 +1,6 @@
-import { ITreeModel, ITreeNode, ITreeNodeItem } from "src/base/browser/secondary/tree/tree";
+import { ITreeModel, ITreeSpliceEvent, ITreeNode, ITreeNodeItem, ITreeCollapseStateChangeEvent } from "src/base/browser/secondary/tree/tree";
 import { Emitter, Register } from "src/base/common/event";
 import { ISpliceable } from "src/base/common/range";
-
-/**
- * Type of event when the {@link IIndexTreeModel} splice did happen.
- */
-export interface ITreeModelSpliceEvent<T, TFilter> {
-    
-    /** Inserted nodes */
-    inserted: IIndexTreeNode<T, TFilter>[];
-	
-    /** Deleted nodes */
-    deleted: IIndexTreeNode<T, TFilter>[];
-}
 
 /**
  * Option type for ITreeModel.splice().
@@ -61,7 +49,7 @@ export interface IIndexTreeModel<T, TFilter = void> extends ITreeModel<T, TFilte
     /**
      * Events when tree splice did happen.
      */
-    onDidSplice: Register<ITreeModelSpliceEvent<T, TFilter>>;
+    onDidSplice: Register<ITreeSpliceEvent<T, TFilter>>;
 
     /**
      * To insert or delete items in the tree by given the location.
@@ -136,8 +124,11 @@ export class IndexTreeModel<T, TFilter = void> implements IIndexTreeModel<T, TFi
 
     // [events]
 
-    private readonly _onDidSplice = new Emitter<ITreeModelSpliceEvent<T, TFilter>>();
-	readonly onDidSplice = this._onDidSplice.registerListener;
+    private readonly _onDidSplice = new Emitter<ITreeSpliceEvent<T, TFilter>>();
+	public readonly onDidSplice = this._onDidSplice.registerListener;
+
+    private readonly _onDidChangeCollapseState = new Emitter<ITreeCollapseStateChangeEvent<T, TFilter>>();
+    public readonly onDidChangeCollapseStateChange = this._onDidChangeCollapseState.registerListener;
 
     // [methods]
     
@@ -587,6 +578,11 @@ export class IndexTreeModel<T, TFilter = void> implements IIndexTreeModel<T, TFi
             for (const child of node.children) {
                 changed = this.__setTreeNodeCollapsed(child, collapsed, recursive) || changed;
             }
+        }
+
+        // fires the event
+        if (changed) {
+            this._onDidChangeCollapseState.fire({ node });
         }
 
         return changed;

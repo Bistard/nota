@@ -1,14 +1,21 @@
 import { AsyncWeakMap, IAsyncChildrenProvider, IAsyncTreeNode } from "src/base/browser/secondary/tree/asyncMultiTree";
 import { IMultiTree } from "src/base/browser/secondary/tree/multiTree";
-import { ITreeModel, ITreeNode } from "src/base/browser/secondary/tree/tree";
+import { ITreeModel, ITreeSpliceEvent, ITreeNode, ITreeCollapseStateChangeEvent } from "src/base/browser/secondary/tree/tree";
+import { Emitter, Register } from "src/base/common/event";
 import { Iterable } from "src/base/common/iterable";
 import { isIterable } from "src/base/common/type";
 
 /**
  * An interface only for {@link AsyncMultiTreeModel}.
+ * 
+ * @note We are omitting these properties because the type does not fit.
  */
-export interface IAsyncMultiTreeModel<T, TFilter> extends ITreeModel<T, TFilter, T> {
+export interface IAsyncMultiTreeModel<T, TFilter> extends Omit<Omit<ITreeModel<T, TFilter, T>, 'onDidSplice'>, 'onDidChangeCollapseStateChange'> {
     
+    get onDidSplice(): Register<ITreeSpliceEvent<IAsyncTreeNode<T> | null, TFilter>>;
+    
+    get onDidChangeCollapseStateChange(): Register<ITreeCollapseStateChangeEvent<IAsyncTreeNode<T> | null, TFilter>>;
+
     /**
      * @description Refreshing the tree structure of the given node and all its 
      * descendants.
@@ -92,6 +99,11 @@ export class AsyncMultiTreeModel<T, TFilter = void> implements IAsyncMultiTreeMo
         this._statFetching = new Map();
         this._nodeRefreshing = new Map();
     }
+
+    // [event]
+
+    get onDidSplice(): Register<ITreeSpliceEvent<IAsyncTreeNode<T> | null, TFilter>> { return this._tree.onDidSplice; }
+    get onDidChangeCollapseStateChange(): Register<ITreeCollapseStateChangeEvent<IAsyncTreeNode<T> | null, TFilter>> { return this._tree.onDidChangeCollapseStateChange; }
 
     // [public method]
 

@@ -7,7 +7,7 @@ import { DisposableManager, IDisposable } from "src/base/common/dispose";
 import { Event, Register } from "src/base/common/event";
 import { Weakmap } from "src/base/common/map";
 import { IScrollEvent } from "src/base/common/scrollable";
-import { ITreeMouseEvent, ITreeNode, ITreeNodeItem } from "src/base/browser/secondary/tree/tree";
+import { ITreeCollapseStateChangeEvent, ITreeMouseEvent, ITreeNode, ITreeNodeItem, ITreeSpliceEvent } from "src/base/browser/secondary/tree/tree";
 import { AsyncMultiTreeModel, IAsyncMultiTreeModel } from "src/base/browser/secondary/tree/asyncMultiTreeModel";
 import { Iterable } from "src/base/common/iterable";
 import { ITreeModelSpliceOptions } from "src/base/browser/secondary/tree/indexTreeModel";
@@ -73,6 +73,16 @@ export interface IAsyncMultiTree<T, TFilter> {
     DOMElement: HTMLElement;
 
     // [event]
+    
+    /**
+     * Events when tree splice happened.
+     */
+    get onDidSplice(): Register<ITreeSpliceEvent<IAsyncTreeNode<T> | null, TFilter>>;
+
+    /**
+     * Fires when the tree node collapse state changed.
+     */
+    get onDidChangeCollapseStateChange(): Register<ITreeCollapseStateChangeEvent<IAsyncTreeNode<T> | null, TFilter>>;
 
     /**
      * Fires when the {@link IAsyncMultiTree} is scrolling.
@@ -295,6 +305,9 @@ export class AsyncMultiTree<T, TFilter = void> implements IAsyncMultiTree<T, TFi
     }
 
     // [event]
+
+    get onDidSplice(): Register<ITreeSpliceEvent<IAsyncTreeNode<T> | null, TFilter>> { return this._model.onDidSplice; }
+    get onDidChangeCollapseStateChange(): Register<ITreeCollapseStateChangeEvent<IAsyncTreeNode<T> | null, TFilter>> { return this._model.onDidChangeCollapseStateChange; }
 
     get onDidScroll(): Register<IScrollEvent> { return this._tree.onDidScroll; }
     get onDidChangeFocus(): Register<boolean> { return this._tree.onDidChangeFocus; }

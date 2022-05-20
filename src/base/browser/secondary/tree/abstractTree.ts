@@ -1,4 +1,4 @@
-import { ITreeModel, ITreeMouseEvent, ITreeNode } from "src/base/browser/secondary/tree/tree";
+import { ITreeCollapseStateChangeEvent, ITreeModel, ITreeMouseEvent, ITreeNode, ITreeSpliceEvent } from "src/base/browser/secondary/tree/tree";
 import { ITreeListRenderer, TreeItemRenderer } from "src/base/browser/secondary/tree/treeListRenderer";
 import { ITreeListWidget, TreeListWidget } from "src/base/browser/secondary/tree/treeListWidget";
 import { IListItemProvider, TreeListItemProvider } from "src/base/browser/secondary/listView/listItemProvider";
@@ -30,6 +30,17 @@ export interface IAbstractTree<T, TFilter, TRef> {
     DOMElement: HTMLElement;
 
     // [event]
+
+    
+    /**
+     * Events when tree splice happened.
+     */
+    get onDidSplice(): Register<ITreeSpliceEvent<T, TFilter>>;
+
+    /**
+     * Fires when the tree node collapse state changed.
+     */
+    get onDidChangeCollapseStateChange(): Register<ITreeCollapseStateChangeEvent<T, TFilter>>;
 
     /**
      * Fires when the {@link IAbstractTree} is scrolling.
@@ -72,6 +83,9 @@ export interface IAbstractTree<T, TFilter, TRef> {
      */
     layout(height?: number): void;
 
+    /**
+     * @description Disposes all the used resources.
+     */
     dispose(): void;
 
     // [method - tree]
@@ -201,6 +215,9 @@ export abstract class AbstractTree<T, TFilter, TRef> implements IAbstractTree<T,
     }
 
     // [event]
+
+    get onDidSplice(): Register<ITreeSpliceEvent<T, TFilter>> { return this._model.onDidSplice; }
+    get onDidChangeCollapseStateChange(): Register<ITreeCollapseStateChangeEvent<T, TFilter>> { return this._model.onDidChangeCollapseStateChange; }
 
     get onDidScroll(): Register<IScrollEvent> { return this._view.onDidScroll; }
     get onDidChangeFocus(): Register<boolean> { return this._view.onDidChangeFocus; }
