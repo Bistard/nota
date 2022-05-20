@@ -54,7 +54,12 @@ export interface INotebook {
      */
     layout(height?: number): void;
 
-    // TODO
+    /**
+     * @description Given the {@link ExplorerItem}, refresh the whole notebook 
+     * structure asynchronously.
+     * @param item The provided explorer item. Default is to refresh the whole 
+     * notebook.
+     */
     refresh(item?: ExplorerItem): Promise<void>;
 
     // TODO
