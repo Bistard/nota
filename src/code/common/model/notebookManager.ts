@@ -30,6 +30,15 @@ export interface INotebookManagerService {
     open(container: HTMLElement, path: string): Promise<Notebook>;
 
     /**
+     * @description Given the height, re-layouts the height of the whole view.
+     * @param height The given height.
+     * 
+     * @note If no values are provided, it will sets to the height of the 
+     * corresponding DOM element of the view.
+     */
+    layout(height?: number): void;
+
+    /**
      * @description Returns the root path of the {@link NotebookManager}.
      */
     rootPath(): string;
@@ -118,6 +127,13 @@ export class NotebookManager implements INotebookManagerService {
         
         catch(err) {
             throw err;
+        }
+    }
+
+    public layout(height?: number): void {
+        const notebook = this._notebooks.get(this._currentNotebook);
+        if (notebook) {
+            notebook.layout(height);
         }
     }
 

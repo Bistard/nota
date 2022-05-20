@@ -193,6 +193,15 @@ export interface IAsyncMultiTree<T, TFilter> {
     expandAll(): void;
 
     /**
+     * @description Given the height, re-layouts the height of the whole view.
+     * @param height The given height.
+     * 
+     * @note If no values are provided, it will sets to the height of the 
+     * corresponding DOM element of the view.
+     */
+    layout(height?: number): void;
+    
+    /**
      * @description Rerenders the whole view.
      */
     rerender(data: T): void;
@@ -346,6 +355,10 @@ export class AsyncMultiTree<T, TFilter = void> implements IAsyncMultiTree<T, TFi
 
     public expandAll(): void {
         this._tree.expandAll();
+    }
+
+    public layout(height?: number): void {
+        this._tree.layout(height);
     }
 
     public rerender(data: T): void {

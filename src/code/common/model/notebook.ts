@@ -45,6 +45,15 @@ export interface INotebook {
      */
     init(root: URI): Promise<boolean>;
 
+    /**
+     * @description Given the height, re-layouts the height of the whole view.
+     * @param height The given height.
+     * 
+     * @note If no values are provided, it will sets to the height of the 
+     * corresponding DOM element of the view.
+     */
+    layout(height?: number): void;
+
     // TODO
     refresh(item?: ExplorerItem): Promise<void>;
 
@@ -98,6 +107,12 @@ export class Notebook extends Disposable implements INotebook {
     get name(): string { return this._root.name; }
 
     // [public method]
+
+    public layout(height?: number): void {
+        if (this._visible) {
+            this._tree.layout(height);
+        }
+    }
 
     public async init(root: URI): Promise<boolean> {
         
@@ -240,6 +255,7 @@ export class Notebook extends Disposable implements INotebook {
      * @param result Result in boolean form.
      */
     private __resolveState(result: boolean): void {
+        // TODO: this.setVisible(result);
         this._visible = result;
         this._onDidVisibilityChange.fire(result);
         this._onDidCreationFinished.fire(result);

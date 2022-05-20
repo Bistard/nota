@@ -8,12 +8,16 @@ import { IScrollEvent, Scrollable } from "src/base/common/scrollable";
 
 export interface IScrollableWidget extends IWidget {
 
+    /**
+     * Fires when scrolling happens.
+     */
     onDidScroll: Register<IScrollEvent>;
 
+    /**
+     * Returns the inside {@link Scrollable}.
+     */
     getScrollable(): Scrollable;
 
-    render(element: HTMLElement): void;
-    
 }
 
 export class ScrollableWidget extends Widget implements IScrollableWidget {
@@ -58,15 +62,11 @@ export class ScrollableWidget extends Widget implements IScrollableWidget {
         }
     }
 
-    // [methods - get]
+    // [methods]
 
     public getScrollable(): Scrollable {
         return this._scrollable;
     }
-
-    // [methods - set]
-
-    // [methods]
 
     public override render(element: HTMLElement): void {
         super.render(element);
@@ -109,7 +109,7 @@ export class ScrollableWidget extends Widget implements IScrollableWidget {
      * @description Invokes when mouse wheel scroll happens.
      * @param event The scroll delta.
      */
-     private __onDidWheel(event: WheelEvent): void {
+    private __onDidWheel(event: WheelEvent): void {
         
         event.preventDefault();
 

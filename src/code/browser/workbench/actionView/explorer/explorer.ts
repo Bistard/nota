@@ -233,13 +233,18 @@ export class ExplorerViewComponent extends Component implements IExplorerViewSer
         try {
             await this.notebookManagerService.open(this._openedView, path);
         } catch (err) {
-            // TODO: complete (pop up a warning dialogBox)
-            console.log('error', err);
+            // logService.trace(err);
         }
 
         this.container.appendChild(this._openedView);
-        this._opened = true;
+        
+        /**
+         * Since the `this._openedView` is added into the DOM tree, we now can
+         * re-layout to calcualte the correct size of the view.
+         */
+        this.notebookManagerService.layout();
 
+        this._opened = true;
         this._onDidOpenDirectory.fire({ path: path });
     }
 

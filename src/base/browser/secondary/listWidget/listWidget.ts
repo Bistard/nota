@@ -123,6 +123,15 @@ export interface IListWidget<T> extends IDisposable {
     // [methods]
 
     /**
+     * @description Given the height, re-layouts the height of the whole view.
+     * @param height The given height.
+     * 
+     * @note If no values are provided, it will sets to the height of the 
+     * corresponding DOM element of the view.
+     */
+    layout(height?: number): void;
+
+    /**
      * @description Rerenders the whole view.
      */
     rerender(): void;
@@ -228,6 +237,10 @@ export class ListWidget<T> implements IListWidget<T> {
 
     public dispose(): void {
         this.disposables.dispose();
+    }
+
+    public layout(height?: number): void {
+        this.view.layout(height);
     }
 
     public rerender(): void {
