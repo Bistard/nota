@@ -39,6 +39,8 @@ An open-sourced note-taking desktop application / markdown editor that provides 
 > * For new users, people are able to create different notebooks, and manage their notes (markdown files) by dragging and dropping pages easily.
 > 
 > * For users who already has tons of raw markdown files, application can automatically resolve directories and builds the corresponding notebook structures.
+*  [ ] Backlinks
+> Once you are linking file A to another file B, file B will also know the existence of file A. *Nota* will build these connections for you. Once you find one of these notes, so you can also find the others. Notes now works like a network.
 * [ ] Side-way outline display
 > * Not just like Typora or marktext, you need to click the sidebar to see the outline of the current markdown file, our application is able to render the outline on the sideway directly for convenience purposes.
 * [x] Performant scrolling rendering
