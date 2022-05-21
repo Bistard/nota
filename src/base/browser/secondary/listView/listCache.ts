@@ -45,7 +45,10 @@ export class ListViewCache implements IDisposable {
     public dispose(): void {
         this.cache.forEach((cache, type) => {
             const renderer = this.renderers.get(type)!;
-            cache.forEach(row => renderer.dispose(row.dom));
+            cache.forEach(row => { 
+                renderer.dispose(row.dom);
+                row.metadata = undefined;
+            });
         });
 
         this.cache.clear();

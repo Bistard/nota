@@ -6,7 +6,7 @@ import { IListTraitEvent } from "src/base/browser/secondary/listWidget/listTrait
 import { IListMouseEvent } from "src/base/browser/secondary/listWidget/listWidget";
 import { IListDragAndDropProvider } from "src/base/browser/secondary/listWidget/listWidgetDragAndDrop";
 import { DisposableManager, IDisposable } from "src/base/common/dispose";
-import { Event, Register } from "src/base/common/event";
+import { Event, Register, RelayEmitter } from "src/base/common/event";
 import { ISpliceable } from "src/base/common/range";
 import { IScrollEvent } from "src/base/common/scrollable";
 
@@ -195,19 +195,27 @@ export abstract class AbstractTree<T, TFilter, TRef> implements IAbstractTree<T,
         opts: IAbstractTreeOptions<T> = {}
     ) {
 
+        /**
+         * Since the tree model is not created yet, we need a relay to be able 
+         * to create the renderers first. After the model is created, we can 
+         * have the chance to reset the input event emitter.
+         */
+        const relayEmitter = new RelayEmitter<ITreeCollapseStateChangeEvent<T, TFilter>>();
+
         // wraps each tree list view renderer with a basic tree item renderer.
-        renderers = renderers.map(renderer => new TreeItemRenderer<T, TFilter, any>(renderer));
+        renderers = renderers.map(renderer => new TreeItemRenderer<T, TFilter, any>(renderer, relayEmitter.registerListener));
 
         this._view = new TreeListWidget<T, TFilter>(
             container, 
             renderers, 
             new TreeListItemProvider(itemProvider), 
-            {
-                // TODO:
-            }
+            {}
         );
+
         this._model = this.createModel(this._view);
 
+        // reset the input event emitter once the model is created.
+        relayEmitter.setInput(this._model.onDidChangeCollapseStateChange);
 
         // dispose registration
         this._disposables.register(this._view);

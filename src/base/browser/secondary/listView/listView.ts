@@ -472,6 +472,29 @@ export class ListView<T> implements IDisposable, ISpliceable<T>, IListView<T> {
     // [methods]
 
     public dispose(): void {
+        
+        // try to dispose all the internal data from each renderer.
+        for (const item of this.items) {
+
+            if (item.row) {
+                const renderer = this.renderers.get(item.type);
+                if (renderer) {
+                    if (renderer.disposeData) {
+                        renderer.disposeData(item.data, -1, item.row.metadata, undefined);
+                    }
+                    renderer.dispose(item.row.metadata);
+                }
+            }
+
+        }
+
+        this.items = [];
+
+        // remove list view from the DOM tree.
+        if (this.element.parentNode) {
+            this.element.parentNode.removeChild(this.element);
+        }
+
         this.disposables.dispose();
     }
 
@@ -700,8 +723,9 @@ export class ListView<T> implements IDisposable, ISpliceable<T>, IListView<T> {
         if (item.row) {
             const renderer = this.renderers.get(item.type);
 
-            if (renderer) {
-                renderer.dispose(item.row.metadata);
+            // dispose internal data inside the renderer if needed
+            if (renderer && renderer.disposeData) {
+                renderer.disposeData(item.data, index, item.row.metadata, item.size);
             }
     
             this.cache.release(item.row);
