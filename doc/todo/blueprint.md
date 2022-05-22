@@ -4,6 +4,10 @@
 1. [2️⃣侧边栏-Side Bar](#2️⃣侧边栏-Side-Bar)
 1. [3️⃣工作区-Workspace](#3️⃣工作区-Workspace)
 1. [4️⃣状态栏-Status Bar](#4️⃣状态栏-Status-Bar)
+1. [5️⃣双链系统-Backlinking(暂定)](#5️⃣双链系统-Backlinking(暂定))
+1. [6️⃣控制面板-Command Palette](#6️⃣控制面板-Command-Palette)
+1. [7️⃣设置系统-Settings](#7️⃣设置系统-Settings)
+1. [8️⃣帮助界面-Help](#8️⃣帮助界面-Help)
 
 ---
 
@@ -395,7 +399,7 @@
 
 ---
 
-# 5️⃣双链系统-Backlinking（暂定）
+# 5️⃣双链系统-Backlinking(暂定)
 
 > 这个功能是我在前几天发现了个软件叫作`Obsidian`之后才逐渐了解的一个功能。简单来说一句话概括就是：当一个file A里面有个link主动链接到了file B，那么此时此刻file B也会知道file A的存在。
 
