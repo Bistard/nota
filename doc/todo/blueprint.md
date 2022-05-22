@@ -230,6 +230,7 @@
 3. 标签（Tag）是以什么形式表现的呢？除了短小的纯文本，也有想过用emoji来代替（或者都支持）。
 4. 在整个软件中哪里可以进行label呢?
 5. label完后`Explorer`区域会显示出来吗？（譬如在鼠标hover在file/directory/page上面的时候，显示出来该物品（item）的labels）
+6. 在哪里可以浏览到所有的labels呢，需要单独创建一个`Action Bar`的按钮，然后在`Side Bar`里去渲染出所有的信息么？
 
 ## `Version Control`- 版本控制
 
@@ -237,17 +238,135 @@
 
 > 摘抄于网络：Version control, also known as source control, is **the practice of tracking and managing changes to software code**. Version control systems are software tools that help software teams manage changes to source code over time.
 
-对于不了记得人上述估计会很模糊，简单易懂地去描述的话：在软件层面中，就是软件较与上个以保存的版本，回去追踪（Track）哪些文件被修改了，哪些文件是全新的，哪些文件被删除了。而这些变化在软件里会显性地帮你渲染出来，最常见的Version Control的工具就是`git`了。我们拿`vscode`的效果简单地举个例子：
+对于不了记得人上述估计会很模糊，简单易懂地去描述的话：在软件层面中，就是软件较与上个以保存的版本，回去追踪（Track）哪些文件被修改了，哪些文件是全新的，哪些文件被删除了。而这些变化在软件里会显性地帮你渲染出来。并且软件层面上提供足够的功能按钮（大部分是收缩在dropdown按钮）去完成对应的Version Control的功能，比如最常见的Version Control的工具就是`git`了，其中常用的系列功能可以分类成commit, pull / push, branch, remote, stash等等。
 
+在`nota`中，`Version Control`目前应该是在`Action Bar`有个对应的按钮，然后在`Side Bar`显示相关信息。
 
+### 案例展示
+
+。我们拿`vscode`的效果简单地举个例子：
+
+![](image/version-control-vscode.gif)
+
+`vscode`中，它将`Version Control`这一栏嵌套在了`Side Bar`中。而它将git所支持的大部分功能以dropdown的形式存放了起来，将绝大部分的空间留给了记录文件变化本身上面：
+
+![](image/version-control-vscode2.gif)
+
+> **这一段写给yanna的**：介于你可能不太了解Version Control这一套工具的运作逻辑🤔，所以具体的UI设计这上面可以留给我，到时候我会按照你已有的UI风格去模仿。
 
 ---
 
 # 3️⃣工作区-Workspace
 
+> 所谓工作区域，就是users可以修改files / pages的地方。
+
+## 案例展示
+
+从左往右分别是`Typora`, `vscode, `, `Obsidian`和`marktext`:
+
+| ![](image/workspace-typora.png)   | ![](image/workspace-vscode.png)   |
+| --------------------------------- | --------------------------------- |
+| ![](image/workspace-obsidian.png) | ![](image/workspace-marktext.png) |
+
+> ⭐需要注意的是，由于markdown文件本身和txt文件没有任何区别，都是一串纯文本而已。
+>
+> 而`nota`用的是一个开源的第三方markdown渲染库叫做tui.editor（很快会换成另一个叫做milkdown，主要原因是因为我觉得milkdown的UI更好看）。渲染库的功能就是将markdown里的源文本根据全世界公认的一些规则去渲染出来对应的画面，只不过不同的渲染器在一些细节上采取的样式会不同。
+>
+> 因此yanna暂时可以忽略这里面的渲染细节，因为这些渲染器都已经提供了一个预设方案，不过我们也确实可以在代码层面（CSS为主）上二次更改😎。
+>
+> （这里是milkdown的[官方🔗](https://milkdown.dev/)）
+>
+> 下面是milkdown两种theme下的部分截图：
+>
+> | ![](image/workspace-milkdown-light.png) | ![](image/workspace-milkdown.png) |
+> | --------------------------------------- | --------------------------------- |
+
+
+
+## 拆分试图 - Split View
+
+### 功能
+
+> 允许users将当前的工作区进行分半（Split），两个工作区可以同时显示不同的files。方便users同时查看多个files。
+>
+> 这个功能在我的视野里，所有富文本类型的笔记软件全部都没有这个功能（如果真有的话可以通知我一下👀我去用用看哈哈）。
+
+### 案例展示
+
+从下往上分别是`vscode`和`obsidian`的split view展示：
+
+| ![](image/workspace-splitview-vscode.gif)   |
+| ------------------------------------------- |
+| ![](image/workspace-splitview-obsidian.gif) |
+
+
+
+## 无障碍快速插入功能 - Accessible Quick Insert
+
+### 案例展示
+
+从左往右分别是`Notion`和`Marktext`:
+
+| ![](image/workspace-quickInsert-notion.gif) | ![](image/workspace-quickInsert-marktext.gif) |
+| ------------------------------------------- | --------------------------------------------- |
+
+
+
+### 功能
+
+> 这也是一个我非常喜爱的一个设计：它能很大程度上减少新用户的学习成本，同时对于不太熟悉甚至是完全不会写markdown的人，也能最大程度上减少学习成本。
+
+在`Notion`里，输入正斜杠`/`即可调用`无障碍快速插入功能`，紧接着可以进行鼠标选择，或者打出对应功能的名字即可完成快速选择。在`Marktext`里则是要输入`@`符号，同时`Marktext`相比`Notion`在细节上更进一步，它支持了模糊搜索（Fuzzy Search），进一步地提高了users输错地容错率。
+
+## 悬浮工具栏 - Hovering Tool Bar
+
+### 案例展示
+
+下面分别是`Notion`, `Marktext`和`onenote for Windows 10`:
+
+| ![](image/workspace-hoverToolbar-notion.gif)    |
+| ----------------------------------------------- |
+| ![](image/workspace-hoverToolbar-marktext.gif)  |
+| ![](image/workspace-hoverToolbar-onenote10.gif) |
+
+### 功能
+
+> 这个功能和users去主动右键弹出来的右键菜单（Context Menu）稍微有点不一样：
+>
+> 1. 一旦选择了文本之后就会自动显示出来的迷你型工具栏（Toolbar）（可在设置里进行开关）。
+> 2. 它只包括了常用的一些基本功能。如果有塞不下的情况，需要右键菜单来完成。
+
+
+
+## 侧边大纲渲染 - Sideway Outline
+
+### 功能
+
+> 干的事情和其功能和[Outline`- 大纲功能](#Outline--大纲功能)一模一样。只不过这里会额外的渲染在工作区旁边，方便查看（可在设置里进行开关）。鼠标没有悬浮（Hover）在上面的时候显示为淡色。
+
+### 案例展示
+
+网络截图：
+
+![](image/workspace-sidewayOutline-internet.jpg)
+
 ---
 
 # 4️⃣状态栏-Status Bar
+
+
+
+
+
+
+
+## 弹窗对话 - Dialog Box
+
+### 案例展示
+
+### 功能
+
+
 
 ---
 
