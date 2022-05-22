@@ -425,7 +425,7 @@ export class ListView<T> implements IDisposable, ISpliceable<T>, IListView<T> {
         }
         
         this.scrollable = new Scrollable(opts.scrollbarSize ? opts.scrollbarSize : 10, 0, 0, 0);
-
+        
         this.scrollableWidget = new ScrollableWidget(this.scrollable, {
             mouseWheelScrollSensibility: opts.mouseWheelScrollSensitivity,
             mouseWheelFastScrollSensibility: opts.fastScrollSensitivity,

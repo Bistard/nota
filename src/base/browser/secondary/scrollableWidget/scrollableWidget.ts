@@ -20,6 +20,11 @@ export interface IScrollableWidget extends IWidget {
 
 }
 
+/**
+ * @class Requires a {@link Scrollable} which handles all the calculations of 
+ * the numerated data for scrolling, then the {@link ScrollableWidget} will 
+ * react to it and render the corresponding {@link AbstractScrollbar} correctly.
+ */
 export class ScrollableWidget extends Widget implements IScrollableWidget {
 
     // [fields]

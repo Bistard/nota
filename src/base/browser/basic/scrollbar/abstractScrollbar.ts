@@ -122,9 +122,13 @@ export abstract class AbstractScrollbar extends Widget {
 
     /**
      * @description Rerenders the slider.
+     * @param size the size of the scrollbar.
+     * @param position the position of the scrollbar.
+     * 
+     * @note if any parameters is not provided, take values from {@link Scrollable}.
      */
-    public rerender(): void {
-        this.__updateSlider(this._scrollable.getSliderSize(), this._scrollable.getSliderPosition());
+    public rerender(size?: number, position?: number): void {
+        this.__updateSlider(size ?? this._scrollable.getSliderSize(), position ?? this._scrollable.getSliderPosition());
     }
 
     /**
@@ -158,11 +162,13 @@ export abstract class AbstractScrollbar extends Widget {
      * @param event The scroll event.
      */
     private __onDidScroll(event: IScrollEvent): void {
+        
         // either no changes or not required, we do nothing
         if (event.delta === 0 && this._scrollable.required() === false) {
-            return;
+            this.rerender(0, 0);
+        } else {
+            this.rerender();
         }
-        this.rerender();
     }
 
     /**
