@@ -1,3 +1,4 @@
+import { DisposableManager, IDisposable } from "src/base/common/dispose";
 import { AsyncEmitter, AsyncRegister, Emitter, Register } from "src/base/common/event";
 import { IDimension } from "src/base/common/size";
 import { IpcCommand } from "src/base/electron/ipcCommand";
@@ -6,7 +7,7 @@ import { createDecorator } from "src/code/common/service/instantiationService/de
 
 export const IIpcService = createDecorator<IIpcService>('ipc-service');
 
-export interface IIpcService {
+export interface IIpcService extends IDisposable {
 
     /**
      * Fires when the window is maximized.
@@ -48,6 +49,8 @@ export interface IIpcService {
      * @param path A path that the dialog initially displaying.
      */
     openDirectoryDialog(path?: string): void;
+
+    dispose(): void;
 }
 
 /**
@@ -56,27 +59,31 @@ export interface IIpcService {
  */
 export class IpcService implements IIpcService {
     
+    // [field]
+
+    private _disposables = new DisposableManager;
+
     // [event]
 
-    private _onWindowMaximize = new Emitter<void>();
+    private _onWindowMaximize = this._disposables.register(new Emitter<void>());
     public onWindowMaximize = this._onWindowMaximize.registerListener;
 
-    private _onWindowUnmaximize = new Emitter<void>();
+    private _onWindowUnmaximize = this._disposables.register(new Emitter<void>());
     public onWindowUnmaximize = this._onWindowUnmaximize.registerListener;
 
-    private _onWindowBlur = new Emitter<void>();
+    private _onWindowBlur = this._disposables.register(new Emitter<void>());
     public onWindowBlur = this._onWindowBlur.registerListener;
 
-    private _onDidFullScreenChange = new Emitter<boolean>();
+    private _onDidFullScreenChange = this._disposables.register(new Emitter<boolean>());
     public onDidFullScreenChange = this._onDidFullScreenChange.registerListener;
 
-    private _onApplicationClose = new AsyncEmitter<void>();
+    private _onApplicationClose = this._disposables.register(new AsyncEmitter<void>());
     public onApplicationClose = this._onApplicationClose.registerListener;
 
-    private _onWindowResize = new Emitter<IDimension>();
+    private _onWindowResize = this._disposables.register(new Emitter<IDimension>());
     public onWindowResize = this._onWindowResize.registerListener;
 
-    private _onDidOpenDirectoryDialog = new Emitter<string>();
+    private _onDidOpenDirectoryDialog = this._disposables.register(new Emitter<string>());
     public onDidOpenDirectoryDialog = this._onDidOpenDirectoryDialog.registerListener;
     
     // [constructor]
@@ -89,6 +96,10 @@ export class IpcService implements IIpcService {
 
     public openDirectoryDialog(path?: string): void {
         ipcRendererSendData(IpcCommand.OpenDirectory, path);
+    }
+
+    public dispose(): void {
+        this._disposables.dispose();
     }
     
     // [private helper method]
