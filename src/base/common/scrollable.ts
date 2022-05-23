@@ -148,6 +148,7 @@ export class Scrollable implements IScrollable, IDisposable {
             const prev = this.clone();
 
             this._viewportSize = size;
+            this.__validateValue();
             this.__recalculate();
 
             this._onDidScroll.fire(this.__createScrollEvent(prev));
@@ -159,6 +160,7 @@ export class Scrollable implements IScrollable, IDisposable {
             const prev = this.clone();
 
             this._scrollSize = size;
+            this.__validateValue();
             this.__recalculate();
 
             this._onDidScroll.fire(this.__createScrollEvent(prev));
@@ -170,6 +172,7 @@ export class Scrollable implements IScrollable, IDisposable {
             const prev = this.clone();
             
             this._scrollPosition = position;
+            this.__validateValue();
             this.__onlyRecalculateSliderPosition();
 
             this._onDidScroll.fire(this.__createScrollEvent(prev));
@@ -286,6 +289,23 @@ export class Scrollable implements IScrollable, IDisposable {
     }
 
     /**
+     * @description Validates the current numerated data is not out of range.
+     */
+    private __validateValue(): void {
+        if (this._viewportSize < 0) {
+            this._viewportSize = 0;
+        }
+        
+        if (this._scrollPosition + this._viewportSize > this._scrollSize) {
+            this._scrollPosition = this._scrollSize - this._viewportSize;
+        }
+
+        if (this._scrollPosition < 0) {
+            this._scrollPosition = 0;
+        }
+    }
+
+    /**
      * @description Generates a standard scroll event based on a previous 
      * scrollable status.
      * @param prev The previous scrollable status.
@@ -293,12 +313,6 @@ export class Scrollable implements IScrollable, IDisposable {
      */
     private __createScrollEvent(prev: Scrollable): IScrollEvent {
 		
-        let validateScrollPosition = this._scrollPosition;
-        if (this._viewportSize + prev._scrollPosition > this._scrollSize) {
-            validateScrollPosition = this._scrollSize - this._viewportSize;
-        }
-        this._scrollPosition = validateScrollPosition;
-
         return {
             prevScrollSize: prev._scrollSize,
             scrollSize: this._scrollSize,
