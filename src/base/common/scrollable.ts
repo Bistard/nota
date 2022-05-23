@@ -12,6 +12,7 @@ import { Emitter } from "src/base/common/event";
     prevScrollPosition: number;
     scrollPosition: number;
 
+    /** The delta change in scroll position */
     delta: number;
 
     prevViewportSize: number;
@@ -57,6 +58,11 @@ const MIN_SLIDER_SIZE = 20; // pixels
  * 
  * A {@link Scrollable} only specifies one type of direction, either vertical or
  * horizontal.
+ * 
+ * Any of the following fields is changed will fires the event `onDidScroll`.
+ *  1) viewport size 
+ *  2) scroll size 
+ *  3) scroll position
  */
 export class Scrollable implements IScrollable, IDisposable {
 
@@ -237,6 +243,9 @@ export class Scrollable implements IScrollable, IDisposable {
          */
         this._required = this._scrollSize > 0 && this._scrollSize > this._viewportSize;
         if (!this._required) {
+            this._sliderSize = 0;
+            this._sliderRatio = 0;
+            this._sliderPosition = 0;
             return;
         }
 
@@ -246,7 +255,7 @@ export class Scrollable implements IScrollable, IDisposable {
          */
         this._sliderSize = Math.max(
             MIN_SLIDER_SIZE, 
-            Math.floor(this._viewportSize * (this._viewportSize / this._scrollSize))
+            Math.floor(this._viewportSize * this._viewportSize / this._scrollSize)
         );
 
         /**

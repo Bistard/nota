@@ -145,14 +145,14 @@ export abstract class AbstractScrollbar extends Widget {
         this._visibilityController.setVisibility(false);
     }
     
-    // [protected methods]
+    // [private helper methods]
 
     /**
      * @description Renders the slider.
      * @param size The width / height of the slider.
      * @param position The top / left of the slider.
      */
-    protected __renderSlider(size: number, position: number): void {
+    private __renderSlider(size: number, position: number): void {
         this.__updateSlider(size, position);
         this._element!.appendChild(this._slider);
     }
@@ -162,13 +162,7 @@ export abstract class AbstractScrollbar extends Widget {
      * @param event The scroll event.
      */
     private __onDidScroll(event: IScrollEvent): void {
-        
-        // either no changes or not required, we do nothing
-        if (event.delta === 0 && this._scrollable.required() === false) {
-            this.rerender(0, 0);
-        } else {
-            this.rerender();
-        }
+        this.rerender();
     }
 
     /**

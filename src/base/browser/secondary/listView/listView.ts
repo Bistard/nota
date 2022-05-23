@@ -328,7 +328,7 @@ export interface IListView<T> extends IDisposable {
  * performance. Built on top of {@link ScrollableWidget}.
  * 
  * Provided renderers are responsible for rendering each item with corresponding 
- * type (each item is {@link ILabellable}).
+ * type.
  * 
  * The performance mainly affects by how the renderers work.
  * 
@@ -425,6 +425,13 @@ export class ListView<T> implements IDisposable, ISpliceable<T>, IListView<T> {
         }
         
         this.scrollable = new Scrollable(opts.scrollbarSize ? opts.scrollbarSize : 10, 0, 0, 0);
+        this.scrollable.onDidScroll(e => {
+            console.log('viewport   size: ', e.viewportSize);
+            console.log('scroll     size: ', e.scrollSize);
+            console.log('scroll position: ', e.scrollPosition);
+            console.log('delta          : ', e.delta);
+            console.log('================');
+        });
         
         this.scrollableWidget = new ScrollableWidget(this.scrollable, {
             mouseWheelScrollSensibility: opts.mouseWheelScrollSensitivity,

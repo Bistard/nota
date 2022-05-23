@@ -3,7 +3,7 @@ import { HorizontalScrollbar } from "src/base/browser/basic/scrollbar/horizontal
 import { VerticalScrollbar } from "src/base/browser/basic/scrollbar/verticalScrollbar";
 import { IWidget, Widget } from "src/base/browser/basic/widget";
 import { IScrollableWidgetExtensionOpts, IScrollableWidgetOpts, resolveScrollableWidgetExtensionOpts, ScrollbarType } from "src/base/browser/secondary/scrollableWidget/scrollableWidgetOptions";
-import { Emitter, Register } from "src/base/common/event";
+import { Register } from "src/base/common/event";
 import { IScrollEvent, Scrollable } from "src/base/common/scrollable";
 
 export interface IScrollableWidget extends IWidget {
@@ -37,11 +37,9 @@ export class ScrollableWidget extends Widget implements IScrollableWidget {
     protected _isSliderDragging: boolean;
     protected _isMouseOver: boolean;
 
-    /**
-     * fires when scroll happens.
-     */
-    private _onDidScroll = this.__register(new Emitter<IScrollEvent>());
-    public onDidScroll = this._onDidScroll.registerListener;
+    // [event]
+
+    public readonly onDidScroll: Register<IScrollEvent>;
 
     // [constructor]
 
@@ -65,6 +63,11 @@ export class ScrollableWidget extends Widget implements IScrollableWidget {
         } else {
             this._scrollbar = new HorizontalScrollbar(this._scrollable, host);
         }
+
+        this.onDidScroll = this._scrollable.onDidScroll;
+
+        this.__register(scrollable);
+        this.__register(this._scrollbar);
     }
 
     // [methods]
@@ -84,10 +87,6 @@ export class ScrollableWidget extends Widget implements IScrollableWidget {
 
         // register on mouse wheel listener
         this.__registerMouseWheelListener();
-
-        this._scrollable.onDidScroll((e: IScrollEvent) => {
-            this._onDidScroll.fire(e);
-        });
 
         // render scrollbar
         const scrollbarElement = document.createElement('div');
