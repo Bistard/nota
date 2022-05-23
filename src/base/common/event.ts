@@ -453,8 +453,9 @@ export class AsyncEmitter<T> extends Emitter<T> {
  * changed at any time.
  * 
  * @example When the listeners: A, B and C were listening to this relay emitter 
- * and the input event is E. Next second the input event may be switched to 
- * event F and all the listeners now are listening to event F from now on.
+ * and the input event T1 is from the emitter E1. Later on, the input event may 
+ * be switched to the input event T2 from the emitter E2 and all the listeners 
+ * now are listening to emitter E2.
  */
 export class RelayEmitter<T> implements IDisposable {
     
