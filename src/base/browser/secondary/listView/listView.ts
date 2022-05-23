@@ -171,7 +171,6 @@ export interface IListView<T> extends IDisposable {
 
     /**
      * @description Renders all the items in the DOM tree.
-     * 
      * @param prevRenderRange The render range in the previous render frame.
      * @param renderTop The top of scrolling area.
      * @param renderHeight The height of viewport.
@@ -190,13 +189,14 @@ export interface IListView<T> extends IDisposable {
      * @param index The given index.
      * @param deleteCount The amount of items to be deleted.
      * @param items The items to be inserted.
+     * 
+     * @note render() will be invoked via this method.
      */
     splice(index: number, deleteCount: number, items?: T[]): T[];
 
     /**
      * @description Updates the position (top) and attributes of an item in the 
      * DOM tree by the index.
-     * 
      * @param index The index of the item.
      */
     updateItemInDOM(index: number): void;
@@ -227,7 +227,7 @@ export interface IListView<T> extends IDisposable {
 
     /**
      * @description Sets the scrollable position (top) of the list view.
-     * @param position 
+     * @param position The numerated size.
      */
     setScrollPosition(position: number): void;
 
@@ -434,9 +434,7 @@ export class ListView<T> implements IDisposable, ISpliceable<T>, IListView<T> {
         });
         this.scrollableWidget.render(this.element);
         this.scrollableWidget.onDidScroll((e: IScrollEvent) => {
-            if (this._splicing === false) {
-                this.__onDidScroll();
-            }
+            this.__onDidScroll(e.scrollPosition, e.scrollSize);
         });
 
         // integrates all the renderers
@@ -795,9 +793,9 @@ export class ListView<T> implements IDisposable, ISpliceable<T>, IListView<T> {
     /**
      * @description Invokes when scrolling happens, rerenders the whole view.
      */
-    private __onDidScroll(): void {
+    private __onDidScroll(renderTop: number, renderHeight: number): void {
         const prevRenderRange = this.__getRenderRange(this.prevRenderTop, this.prevRenderHeight);
-        this.render(prevRenderRange, this.scrollable.getScrollPosition(), this.scrollable.getViewportSize());
+        this.render(prevRenderRange, renderTop, renderHeight);
     }
 
     /**
@@ -807,6 +805,8 @@ export class ListView<T> implements IDisposable, ISpliceable<T>, IListView<T> {
     private __splice(index: number, deleteCount: number, items: T[] = []): T[] {
         
         const prevRenderRange = this.__getRenderRange(this.prevRenderTop, this.prevRenderHeight);
+        
+        // find the range that about to be deleted
         const deleteRange = Range.intersection(prevRenderRange, { start: index, end: index + deleteCount });
 
         /**
@@ -836,16 +836,16 @@ export class ListView<T> implements IDisposable, ISpliceable<T>, IListView<T> {
             }
         }
 
-        // the rest ranges after the delete ranges
+        // the rest range right after the deleted range
         const prevRestRange = { start: index + deleteCount, end: this.items.length };
-        // in the rest ranges, find the rendered part
+        // in the rest range, find the rendered part
         const prevRestRenderedRange = Range.intersection(prevRestRange, prevRenderRange);
-        // in the rest ranges, find the unrendered part
+        // in the rest range, find the unrendered part
         const prevRestUnrenderedRange = Range.relativeComplement(prevRenderRange, prevRestRange);
 
         // [delete and insert the items]
 
-        // constructs all the items to {@link IViewItem<T>}.
+        // stores all the inserting items.
         const insert = items.map<IViewItem<T>>(item => ({
             id: ListViewItemUUID++,
             type: this.itemProvider.getType(item),
@@ -853,6 +853,8 @@ export class ListView<T> implements IDisposable, ISpliceable<T>, IListView<T> {
             size: this.itemProvider.getSize(item),
             row: null,
         }));
+
+        // actual deletion
 
         let waitToDelete: IViewItem<T>[];
         if (index === 0 && deleteCount >= this.items.length) {
@@ -862,47 +864,41 @@ export class ListView<T> implements IDisposable, ISpliceable<T>, IListView<T> {
             waitToDelete = this.items;
             this.items = insert;
         } else {
-            // general case: deletes some items
+            // general case: deletes partial items
             this.rangeTable.splice(index, deleteCount, insert);
             waitToDelete = this.items.splice(index, deleteCount, ...insert);
         }
         
-        // updates the previous render top and height.
-        this.scrollable.setScrollSize(this.rangeTable.size());
-        this.listContainer.style.height = `${this.rangeTable.size()}px`;
-        this.prevRenderTop = this.scrollable.getScrollPosition();
-        this.prevRenderHeight = this.scrollable.getViewportSize();
-        
         const offset = items.length - deleteCount;
-
         // recalcualte the render range (since we have modifed the range table)
         const renderRange = this.__getRenderRange(this.prevRenderTop, this.prevRenderHeight);
-        
         // find the rest items that are still required rendering, we update them in DOM
         const restRenderedRange = Range.shift(prevRestRenderedRange, offset);
-        const update = Range.intersection(renderRange, restRenderedRange);
-        for (let i = update.start; i < update.end; i++) {
+        const updateRange = Range.intersection(renderRange, restRenderedRange);
+        for (let i = updateRange.start; i < updateRange.end; i++) {
             this.updateItemInDOM(i);
         }
 
         // find the rest items that does not require rendering anymore, we remove them from DOM
         const remove = Range.relativeComplement(renderRange, restRenderedRange);
-        remove.forEach(range => {
+        for (const range of remove) {
             for (let i = range.start; i < range.end; i++) {
                 this.removeItemInDOM(i);
             }
-        });
+        };
 
         /**
          * find the rest items that was not rendered, inserting new items in DOM 
          * if deleting more items than inserting new items, that is, `offset < 0`.
          * When inserting a new item into the DOM, we try to reuse a row cache 
-         * from previous deleted DOM elements.
+         * from the previous deleted DOM elements.
          */
         const restUnrenderedRange = prevRestUnrenderedRange.map(range => Range.shift(range, offset));
         const elementsRange = { start: index, end: index + items.length };
 		const insertRanges = [elementsRange, ...restUnrenderedRange].map(range => Range.intersection(renderRange, range));
 		const beforeElement = this.__getNextElement(insertRanges);
+        
+        // insert the item into the DOM if needed.
         for (const range of insertRanges) {
 			for (let i = range.start; i < range.end; i++) {
 				const item = this.items[i]!;
@@ -919,8 +915,10 @@ export class ListView<T> implements IDisposable, ISpliceable<T>, IListView<T> {
 			}
 		}
 
+        this.listContainer.style.height = `${this.rangeTable.size()}px`;
+        this.scrollable.setScrollSize(this.rangeTable.size());
+        
         this._onDidSplice.fire();
-        this._splicing = false;
 
         return waitToDelete.map(item => item.data);
     }

@@ -292,7 +292,14 @@ export class Scrollable implements IScrollable, IDisposable {
      * @returns A standard scroll event.
      */
     private __createScrollEvent(prev: Scrollable): IScrollEvent {
-		return {
+		
+        let validateScrollPosition = this._scrollPosition;
+        if (this._viewportSize + prev._scrollPosition > this._scrollSize) {
+            validateScrollPosition = this._scrollSize - this._viewportSize;
+        }
+        this._scrollPosition = validateScrollPosition;
+
+        return {
             prevScrollSize: prev._scrollSize,
             scrollSize: this._scrollSize,
 

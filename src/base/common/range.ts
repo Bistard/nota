@@ -1,7 +1,7 @@
 import { IMeasureable } from "src/base/common/size";
 
 export interface ISpliceable<T> {
-	splice(index: number, deleteCount: number, itemsToInsert: T[]): void;
+	splice(index: number, deleteCount: number, itemsToInsert?: T[]): T[] | void;
 }
 
 export interface IRange {
