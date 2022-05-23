@@ -192,6 +192,8 @@ export namespace DomUtility
 	/**
 	 * @description Get the height of the content excluding padding and border.
 	 * @param element The HTMLElement.
+	 * 
+	 * @note If the element is NOT in the DOM tree, the behaviour is undefined.
 	 */
 	export function getContentHeight(element: HTMLElement): number {
 		const padding = getPaddingTop(element) + getPaddingBottom(element);
@@ -202,6 +204,8 @@ export namespace DomUtility
 	/**
 	 * @description Get the width of the content excluding padding and border.
 	 * @param element The HTMLElement.
+	 * 
+	 * @note If the element is NOT in the DOM tree, the behaviour is undefined.
 	 */
 	export function getContentWidth(element: HTMLElement): number {
 		const padding = getPaddingLeft(element) + getPaddingRight(element);

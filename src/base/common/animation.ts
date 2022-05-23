@@ -20,8 +20,8 @@ const _simulateRequestAnimationFrame = (callback: Function) => setTimeout(() => 
   * 
   * @link more details from http://www.javascriptkit.com/javatutors/requestanimationframe.shtml
   * 
-  * @readonly The reason using a wrapper anonymous here beacuse when importing 
-  * this file as below:
+  * @readonly The reason using a wrapper anonymous here (doRequestAnimationFrame()) 
+  * beacuse when importing this file as below:
   * ```js
   * import * as animation from "src/base/common/animation";
   * animation.requestAnimationFrame( () => {} );
@@ -51,5 +51,3 @@ export let cancelAnimationFrame: (handle: number) => void;
 cancelAnimationFrame = (handle: number): void => {
     window.cancelAnimationFrame(handle);
 }
-    
- 
