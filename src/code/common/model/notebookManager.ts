@@ -1,3 +1,6 @@
+import { ITreeMouseEvent, ITreeSpliceEvent } from "src/base/browser/secondary/tree/tree";
+import { Disposable, DisposableManager, IDisposable } from "src/base/common/dispose";
+import { Register, RelayEmitter } from "src/base/common/event";
 import { DataBuffer } from "src/base/common/file/buffer";
 import { FileType } from "src/base/common/file/file";
 import { join, resolve } from "src/base/common/file/path";
@@ -5,6 +8,7 @@ import { URI } from "src/base/common/file/uri";
 import { Iterable } from "src/base/common/iterable";
 import { String } from "src/base/common/string";
 import { IIpcService } from "src/code/browser/service/ipcService";
+import { ExplorerItem } from "src/code/browser/workbench/actionView/explorer/explorerItem";
 import { Notebook } from "src/code/common/model/notebook";
 import { DEFAULT_CONFIG_PATH, EGlobalSettings, EUserSettings, GLOBAL_CONFIG_FILE_NAME, GLOBAL_CONFIG_PATH, IGlobalNotebookManagerSettings, IUserNotebookManagerSettings, LOCAL_NOTA_DIR_NAME } from "src/code/common/service/configService/configService";
 import { DEFAULT_CONFIG_FILE_NAME, IUserConfigService, LOCAL_CONFIG_FILE_NAME } from "src/code/common/service/configService/configService";
@@ -16,6 +20,16 @@ export const INotebookManagerService = createDecorator<INotebookManagerService>(
 
 export interface INotebookManagerService {
     
+    /**
+     * Fires when the item in the notebook is clicked.
+     */
+    onClick: Register<ITreeMouseEvent<ExplorerItem>>;
+
+    /**
+     * Fires when the content of the current notebook is changed.
+     */
+    onDidChangeContent: Register<ITreeSpliceEvent<ExplorerItem | null, void>>;
+
     /**
      * @description when opening a directory to the Notebooks, a '.nota' 
      * directory will be loaded or created. And each Notebook will be detected 
@@ -30,6 +44,14 @@ export interface INotebookManagerService {
     open(container: HTMLElement, path: string): Promise<Notebook>;
 
     /**
+     * @description Switches to the {@link Notebook} with the given name.
+     * @param name The name of the notebook.
+     * 
+     * @throws An exception will be thrown if the notebook is not existed.
+     */
+    switchTo(name: string): Promise<Notebook>;
+
+    /**
      * @description Given the height, re-layouts the height of the whole view.
      * @param height The given height.
      * 
@@ -42,25 +64,40 @@ export interface INotebookManagerService {
      * @description Returns the root path of the {@link NotebookManager}.
      */
     rootPath(): string;
+
+    /**
+     * @description Returns the current displaying {@link Notebook}.
+     */
+    current(): Notebook | undefined;
+
+    /**
+     * @description Refreshes the current {@link Notebook}.
+     */
+    refresh(): Promise<void>;
 }
 
 /**
- * @class 
+ * @class // TODO
  */
-export class NotebookManager implements INotebookManagerService {
+export class NotebookManager extends Disposable implements INotebookManagerService {
 
     // [field]
 
     public static focusedFileNode: HTMLElement | null = null;
     
+    /** Registrations for all the listeners to the current notebook. */
+    private readonly _notebookListeners = new DisposableManager();
+
     /** The root path of the manager. */
     private _rootPath: string = '';
 
     /** Stores all the opened notebooks in memory. */
-    private readonly _notebooks: Map<string, Notebook>;
+    private readonly _notebooks: Map<string, Notebook> = new Map<string, Notebook>();
 
     /** The current displaying notebook. */
-    private _currentNotebook: string = '';
+    private _current: Notebook | undefined = undefined;
+
+    // [constructor]
 
     constructor(
         @IIpcService private readonly ipcService: IIpcService,
@@ -69,13 +106,24 @@ export class NotebookManager implements INotebookManagerService {
         @IGlobalConfigService private readonly globalConfigService: IGlobalConfigService,
         
     ) {
-        this._notebooks = new Map<string, Notebook>();
-
+        super();
         this.ipcService.onApplicationClose(async () => this.__onApplicationClose());
     }
 
+    // [event]
+
+    private readonly _onClick = this.__register(new RelayEmitter<ITreeMouseEvent<ExplorerItem>>());
+    public readonly onClick = this._onClick.registerListener;
+
+    private readonly _onDidChangeContent = this.__register(new RelayEmitter<ITreeSpliceEvent<ExplorerItem | null, void>>());
+    public readonly onDidChangeContent = this._onDidChangeContent.registerListener;
+
+    // [public method]
+
     public async open(container: HTMLElement, path: string): Promise<Notebook> {
-        
+
+        this.__reset();
+
         try {
             this._rootPath = path;
             
@@ -130,15 +178,35 @@ export class NotebookManager implements INotebookManagerService {
         }
     }
 
+    public async switchTo(name: string): Promise<Notebook> {
+        // TODO
+        return Promise.resolve(this._current!);
+    }
+
     public layout(height?: number): void {
-        const notebook = this._notebooks.get(this._currentNotebook);
-        if (notebook) {
-            notebook.layout(height);
+        if (this._current) {
+            this._current.layout(height);
         }
     }
 
     public rootPath(): string {
         return this._rootPath;
+    }
+
+    public current(): Notebook | undefined {
+        return this._current;
+    }
+
+    public refresh(): Promise<void> {
+        if (this._current === undefined) {
+            return Promise.resolve(undefined);
+        }
+        return this._current.refresh();
+    }
+
+    public override dispose(): void {
+        super.dispose();
+        this._notebookListeners.dispose();
     }
 
     // [private helper method]
@@ -151,6 +219,7 @@ export class NotebookManager implements INotebookManagerService {
      * @param root The root path for the creation of the notebook.
      * @param config The configuration for later updating.
      * @param name The name of the notebook.
+     * @returns A promise that resolves either undefined or a {@link Notebook}.
      */
     private async __switchOrCreateNotebook(
         container: HTMLElement, 
@@ -161,8 +230,7 @@ export class NotebookManager implements INotebookManagerService {
         
         // do nothing if the notebook is already displaying.
         let notebook = this._notebooks.get(name);
-        if (name === this._currentNotebook) {
-            console.log('weird reaching');
+        if (name === this._current?.name) {
             return notebook;
         }
  
@@ -181,14 +249,18 @@ export class NotebookManager implements INotebookManagerService {
 
             // failed
             if (result === false) {
+                this._current = undefined;
                 return undefined;
             }
             
             // success
-            this._currentNotebook = notebook.name;
-            config.previousOpenedNotebook = this._currentNotebook;
+            this._current = notebook;
+            config.previousOpenedNotebook = this._current.name;
             this.userConfigService.set(EUserSettings.NotebookManager, config);
         }
+
+        // re-plugin the input emitters
+        this.__registerNotebookListeners(notebook);
 
         return notebook;
     }
@@ -228,6 +300,27 @@ export class NotebookManager implements INotebookManagerService {
         }
         await this.userConfigService.save(URI.fromFile(resolve(this.rootPath(), LOCAL_NOTA_DIR_NAME, LOCAL_CONFIG_FILE_NAME)));
         
+    }
+
+    /**
+     * @description Re-plugins the emitters of the current notebook as the input.
+     * @param notebook The provided {@link Notebook}.
+     */
+    private __registerNotebookListeners(notebook: Notebook): void {
+
+        this._onClick.setInput(notebook.onClick);
+        this._onDidChangeContent.setInput(notebook.onDidChangeContent);
+
+    }
+
+    /**
+     * @description Resets the {@link NotebookManager} to the initial state.
+     */
+    private __reset(): void {
+        this._notebooks.clear();
+        this._current = undefined;
+        this._rootPath = '';
+        this._notebookListeners.dispose();
     }
 
 }

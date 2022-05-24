@@ -1,6 +1,7 @@
 import { AsyncMultiTree, IAsyncMultiTree } from "src/base/browser/secondary/tree/asyncMultiTree";
+import { ITreeMouseEvent, ITreeSpliceEvent } from "src/base/browser/secondary/tree/tree";
 import { Disposable, DisposableManager } from "src/base/common/dispose";
-import { Emitter, Register, RelayEmitter } from "src/base/common/event";
+import { Emitter, Register } from "src/base/common/event";
 import { URI } from "src/base/common/file/uri";
 import { ExplorerChildrenProvider, ExplorerItem, ExplorerItemProvider } from "src/code/browser/workbench/actionView/explorer/explorerItem";
 import { ExplorerRenderer } from "src/code/browser/workbench/actionView/explorer/explorerRenderer";
@@ -21,6 +22,16 @@ export interface INotebook {
      * invisible vice versa.
      */
     onDidVisibilityChange: Register<boolean>;
+
+    /**
+     * Fires when the item in the notebook is clicked.
+     */
+    onClick: Register<ITreeMouseEvent<ExplorerItem>>;
+    
+    /**
+     * Fires when the content of the notebook is changed.
+     */
+    onDidChangeContent: Register<ITreeSpliceEvent<ExplorerItem | null, void>>;
 
     /**
      * @description Sets the visibility of the notebook in the explorer.
@@ -100,15 +111,16 @@ export class Notebook extends Disposable implements INotebook {
      */
     private _visible: boolean = false;
 
-    private _treeListeners: DisposableManager | null = null;
-
     // [event]
 
-    private _onDidCreationFinished = this.__register(new Emitter<boolean>());
-    public onDidCreationFinished = this._onDidCreationFinished.registerListener;
+    private readonly _onDidCreationFinished = this.__register(new Emitter<boolean>());
+    public readonly onDidCreationFinished = this._onDidCreationFinished.registerListener;
 
-    private _onDidVisibilityChange = this.__register(new Emitter<boolean>());
-    public onDidVisibilityChange = this._onDidVisibilityChange.registerListener;
+    private readonly _onDidVisibilityChange = this.__register(new Emitter<boolean>());
+    public readonly onDidVisibilityChange = this._onDidVisibilityChange.registerListener;
+
+    get onClick() { return this._tree.onClick; }
+    get onDidChangeContent() { return this._tree.onDidSplice; }
 
     // [constructor]
 
@@ -141,19 +153,7 @@ export class Notebook extends Disposable implements INotebook {
             this._root = new ExplorerItem(rootStat);
             await this.__createTree(this._container, this._root);
 
-            /**
-             * auto register tree listeners once the visibility of the notebook 
-             * changed.
-             */
-            this.__register(this.onDidVisibilityChange(visibility => {
-
-                if (visibility) {
-                    this._treeListeners?.dispose();
-                    this._treeListeners = this.__registerTreeListeners();
-                } else {
-                    this._treeListeners?.dispose();
-                }
-            }));
+            this.__registerListeners();
 
             this.__resolveState(true);
         }
@@ -200,13 +200,6 @@ export class Notebook extends Disposable implements INotebook {
         return JSON.stringify(this._tree, this.__mapToJsonReplacer, 2);
     }
 
-    /**
-     * @description destroy the notebook instance.
-     */
-    public destory(): void {
-        
-    }
-
     // [private]
 
     /**
@@ -228,26 +221,20 @@ export class Notebook extends Disposable implements INotebook {
         );
 
         this._tree = tree;
+        this.__register(tree);
         return treeCreationPromise;
     }
 
     /**
-     * @description Registers a series of listeners to the tree.
-     * @returns Returns a {@link DisposableManager} that maintains all the 
-     * listeners.
+     * @description Registers all the basic actions of the {@link Notebook}.
      */
-    private __registerTreeListeners(): DisposableManager {
-        
-        const disposables = new DisposableManager();
+    private __registerListeners(): void {
 
-        // disposables.register(this._tree.onClick(async node => {
-        //     // TODO: 这些不应该是预设的，应该用事件系统之类的通知外部让他们做选择。
-        //     // TODO: 用RelayEmitter可以么？？
-        //     this._tree.toggleCollapseOrExpand(node.data!, false);
-        //     await this._tree.refresh(node.data!);
-        // }));
+        this._tree.onClick(async (node) => {
+            this._tree.toggleCollapseOrExpand(node.data!, false);
+            await this._tree.refresh(node.data!);
+        });
 
-        return disposables;
     }
 
     /**
