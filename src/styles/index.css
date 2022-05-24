@@ -1,11 +1,6 @@
  /*---------------------------------------------------------------------------
   *  importing .css might cause preformance issue, further research is needed.
   *---------------------------------------------------------------------------*/
-@import "../../node_modules/@toast-ui/editor/dist/toastui-editor.css";
-@import "../../node_modules/prismjs/themes/prism.css";
-@import "../../node_modules/@toast-ui/editor-plugin-code-syntax-highlight/dist/toastui-editor-plugin-code-syntax-highlight.css";
-@import "../../node_modules/tui-color-picker/dist/tui-color-picker.css";
-@import "../../node_modules/@toast-ui/editor-plugin-color-syntax/dist/toastui-editor-plugin-color-syntax.css";
 
 /* The built-in icons */
 @import "../base/browser/icon/icons.css";
