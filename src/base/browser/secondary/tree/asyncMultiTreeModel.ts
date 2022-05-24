@@ -1,7 +1,7 @@
 import { AsyncWeakMap, IAsyncChildrenProvider, IAsyncTreeNode } from "src/base/browser/secondary/tree/asyncMultiTree";
 import { IMultiTree } from "src/base/browser/secondary/tree/multiTree";
 import { ITreeModel, ITreeSpliceEvent, ITreeNode, ITreeCollapseStateChangeEvent } from "src/base/browser/secondary/tree/tree";
-import { Emitter, Register } from "src/base/common/event";
+import { Register } from "src/base/common/event";
 import { Iterable } from "src/base/common/iterable";
 import { isIterable } from "src/base/common/type";
 
@@ -225,7 +225,7 @@ export class AsyncMultiTreeModel<T, TFilter = void> implements IAsyncMultiTreeMo
             parent: parent,
             children: [],
             refreshing: null,
-            collapsed: true,
+            collapsed: false,
         };
     }
     

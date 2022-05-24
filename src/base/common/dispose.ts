@@ -22,7 +22,7 @@ export class Disposable implements IDisposable {
 
 	static readonly NONE = Object.freeze<IDisposable>({ dispose() { } });
 
-	private _disposableManager = new DisposableManager();
+	private readonly _disposableManager = new DisposableManager();
 
 	constructor() {}
 
@@ -57,7 +57,7 @@ export class Disposable implements IDisposable {
 /** @description A manager to maintain all the registered disposables. */
 export class DisposableManager implements IDisposable {
 
-	private _disposables = new Set<IDisposable>();
+	private readonly _disposables = new Set<IDisposable>();
 	public disposed = false;
 
 	constructor() {}

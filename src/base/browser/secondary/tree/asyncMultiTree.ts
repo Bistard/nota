@@ -53,7 +53,10 @@ export interface IAsyncTreeNode<T> {
     /** Determines if the current node is during the refreshing. */
     refreshing: Promise<void> | null;
 
-    /** If the tree should be collapsed by default. */
+    /** 
+     * If the tree should be collapsed by default. 
+     * @default false
+     */
     collapsed: boolean;
 }
 
