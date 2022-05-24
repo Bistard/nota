@@ -21,8 +21,6 @@ suite('event-test', () => {
         assert.strictEqual(counter, 2);
     });
 
-    
-
     test('emitter - this object replace', () => {
 
         let name!: string;
@@ -335,26 +333,30 @@ suite('event-test', () => {
 
     test('relayEmitter', () => {
 
-        const input1 = new Emitter<boolean>();
-        const input2 = new Emitter<boolean>();
+        const input1 = new Emitter<number>();
+        const input2 = new Emitter<number>();
 
-        const relay = new RelayEmitter<boolean>();
-        let expected!: boolean;
+        const relay = new RelayEmitter<number>();
         
-        let listener1 = relay.registerListener((value) => {
-            assert.strictEqual(value, expected);
+        let total = 0;
+
+        relay.registerListener((value) => {
+            total += value;
         });
-        let listener2 = relay.registerListener((value) => {
-            assert.strictEqual(value, expected);
+        relay.registerListener((value) => {
+            total += value;
         });
 
         relay.setInput(input1.registerListener);
-        expected = true;
-        input1.fire(expected);
+        
+        input1.fire(5);
+        assert.strictEqual(total, 10);
+
 
         relay.setInput(input2.registerListener);
-        expected = false;
-        input2.fire(expected);
+        
+        input2.fire(-5);
+        assert.strictEqual(total, 0);
     });
 
     test('Event::map()', () => {

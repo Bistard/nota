@@ -62,7 +62,7 @@ export const EVENT_EMITTER = new EventEmitter();
 
 /*******************************************************************************
  * This file contains a series event emitters and related tools for communications 
- * between different components. 
+ * between different code sections. 
  *  - {@link Emitter}
  *  - {@link DomEmitter}
  *  - {@link PauseableEmitter}
@@ -78,9 +78,9 @@ export const EVENT_EMITTER = new EventEmitter();
  * @readonly A listener is a callback function that once the callback is invoked,
  * the required event type will be returned as a parameter.
  */
-export type Listener<E> = (e: E) => void;
+export type Listener<E> = (e: E) => any;
 
-export type AsyncListener<E> = (e: E) => Promise<void>;
+export type AsyncListener<E> = (e: E) => Promise<any>;
 
 /**
  * @readonly A register is essentially a function that registers a listener to 
@@ -142,7 +142,10 @@ export interface IEmitter<T> {
  */
 class __Listener<T> {
 
-    constructor(readonly callback: Listener<T>, readonly thisObject?: any) {}
+    constructor(
+        public readonly callback: Listener<T>, 
+        public readonly thisObject?: any
+    ) {}
 
     public fire(e: T): void {
         this.callback.call(this.thisObject, e);
@@ -152,7 +155,10 @@ class __Listener<T> {
 
 class __AsyncListener<T> {
 
-    constructor(readonly callback: AsyncListener<T>, readonly thisObject?: any) {}
+    constructor(
+        public readonly callback: AsyncListener<T>,
+        public readonly thisObject?: any
+    ) {}
 
     public async fire(e: T): Promise<void> {
         this.callback.call(this.thisObject, e);
@@ -210,21 +216,21 @@ export class Emitter<T> implements IDisposable, IEmitter<T> {
         
         // cannot register to a disposed emitter
         if (this._disposed) {
-            throw new Error('emitter is already disposed, cannot register a new listener');
+            throw new Error('emitter is already disposed, cannot register a new listener.');
         }
 
         if (this._register === undefined) {
 			this._register = (listener: Listener<T>, disposables?: IDisposable[], thisObject?: any) => {
 				
+                // before first add callback
+                if (this._opts?.onFirstListenerAdded && this._listeners.empty()) {
+                    this._opts.onFirstListenerAdded();
+                }
+
                 // register the listener (callback)
                 const listenerWrapper = new __Listener(listener, thisObject);
 				const node = this._listeners.push_back(listenerWrapper);
                 let listenerRemoved = false;
-
-                // first add callback
-                if (this._opts?.onFirstListenerAdded) {
-                    this._opts.onFirstListenerAdded();
-                }
 
                 // returns a disposable in order to decide when to stop listening (unregister)
 				const unRegister = toDisposable(() => {
@@ -232,7 +238,7 @@ export class Emitter<T> implements IDisposable, IEmitter<T> {
 						this._listeners.remove(node);
                 
                         // last remove callback
-                        if (this._opts?.onLastListenerRemoved) {
+                        if (this._opts?.onLastListenerRemoved && this._listeners.empty()) {
                             this._opts.onLastListenerRemoved();
                         }
 
@@ -470,20 +476,20 @@ export class RelayEmitter<T> implements IDisposable {
     private _listening: boolean = false;
 
     /** The relay (pipeline) emitter */
-    private readonly _relayEmitter = new Emitter<T>({
+    private readonly _relay = new Emitter<T>({
         onFirstListenerAdded: () => {
+            this._inputUnregister = this._inputRegister(e => this._relay.fire(e));
             this._listening = true;
-            this._inputUnregister = this._inputRegister(this._relayEmitter.fire, undefined, this._relayEmitter);
         },
         onLastListenerRemoved: () => {
-            this._listening = false;
             this._inputUnregister.dispose();
+            this._listening = false;
         }
     });
 
     // [event]
 
-    public readonly registerListener = this._relayEmitter.registerListener;
+    public readonly registerListener = this._relay.registerListener;
 
     // [constructor]
 
@@ -500,13 +506,13 @@ export class RelayEmitter<T> implements IDisposable {
          */
         if (this._listening) {
             this._inputUnregister.dispose();
-            this._inputUnregister = newInputRegister(this._relayEmitter.fire, undefined, this._relayEmitter);
+            this._inputUnregister = newInputRegister(e => this._relay.fire(e));
         }
     }
 
     public dispose(): void {
         this._inputUnregister.dispose();
-        this._relayEmitter.dispose();
+        this._relay.dispose();
     }
 
 }
