@@ -46,9 +46,6 @@
   },
   "dependencies": {
     "@milkdown/core": "^6.1.2",
-    "@toast-ui/editor": "^3.0.1",
-    "@toast-ui/editor-plugin-code-syntax-highlight": "^3.0.0",
-    "@toast-ui/editor-plugin-color-syntax": "^3.0.1",
     "jquery": "^3.6.0"
   }
 }
