@@ -104,7 +104,7 @@ export abstract class Component extends Disposable implements IComponent {
     
     public readonly parentComponent: IComponent | null = null;
     public readonly parent: HTMLElement | null = null;
-    public container: HTMLElement = document.createElement('div');
+    public readonly container: HTMLElement = document.createElement('div');
     
     // TODO: try to remove this stupid stuff
     public contentArea: HTMLElement | undefined;

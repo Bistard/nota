@@ -6,6 +6,10 @@ import { EditorComponentType } from 'src/code/browser/workbench/editor/editor';
 import { IFileLogService } from 'src/code/common/service/logService/fileLogService';
 import { IGlobalConfigService, IUserConfigService } from 'src/code/common/service/configService/configService';
 import { EUserSettings, IUserMarkdownSettings } from 'src/code/common/service/configService/configService';
+import { defaultValueCtx, Editor } from '@milkdown/core';
+import { nord } from '@milkdown/theme-nord';
+import { commonmark } from '@milkdown/preset-commonmark';
+import { Emitter } from 'src/base/common/event';
 
 export const IMarkdownService = createDecorator<IMarkdownService>('markdown-service');
 
@@ -25,7 +29,7 @@ export class MarkdownComponent extends Component implements IMarkdownService {
 
     // [field]
 
-    private editor: null;
+    private editor: Editor | null;
 
     private _settings: IUserMarkdownSettings;
 
@@ -34,7 +38,6 @@ export class MarkdownComponent extends Component implements IMarkdownService {
     constructor(parentComponent: Component,
                 parentElement: HTMLElement,
                 @IComponentService componentService: IComponentService,
-                @IContextMenuService private readonly contextMenuService: IContextMenuService,
                 @IFileLogService private readonly fileLogService: IFileLogService,
                 @IGlobalConfigService private readonly globalConfigService: IGlobalConfigService,
                 @IUserConfigService private readonly userConfigService: IUserConfigService,
@@ -46,11 +49,26 @@ export class MarkdownComponent extends Component implements IMarkdownService {
         this._settings = this.userConfigService.get<IUserMarkdownSettings>(EUserSettings.Markdown);
     }
 
+    // [event]
+
+    private readonly _onDidCreationFinished = this.__register(new Emitter<boolean>());
+    public readonly onDidCreationFinished = this._onDidCreationFinished.registerListener;
+
     // [protected override methods]
 
     protected override _createContent(): void {
         
-        this.createEditor();
+        this.createEditor().then(success => {
+
+            if (success) {
+                // ...
+                this._onDidCreationFinished.fire(true);
+            }
+            
+            else {
+                this._onDidCreationFinished.fire(false);
+            }
+        });
         
     }
 
@@ -67,9 +85,17 @@ export class MarkdownComponent extends Component implements IMarkdownService {
 
     // [public methods]
 
-    private createEditor(): void {
+    private async createEditor(): Promise<boolean> {
 
+        const editor = await Editor.make().config((ctx) => {
+            ctx.set(defaultValueCtx, {
+                dom: this.container,
+                type: 'html'
+            });
+        }).use(nord).use(commonmark).create();
         
+
+        return true;
     }
 
     // [private helper methods]
