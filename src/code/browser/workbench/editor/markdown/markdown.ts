@@ -1,28 +1,4 @@
-// @toast-ui: see more details on this library: https://github.com/nhn/tui.editor#-packages
-import Editor from '@toast-ui/editor';
-
-// @toast-ui: language pack require
-/* require('../../../node_modules/@toast-ui/editor/dist/i18n//zh-cn') */
-
-// @toast-ui-plugin: code syntax highlight (all languages pack are loaded here)
-import Prism from 'prismjs';
-import codeSyntaxHighlight from '@toast-ui/editor-plugin-code-syntax-highlight';
-
-// @toast-ui-plugin: import language files of Prism.js that you need
-import 'prismjs/components/prism-c';
-import 'prismjs/components/prism-cpp';
-import 'prismjs/components/prism-typescript';
-import 'prismjs/components/prism-javascript';
-import 'prismjs/components/prism-python';
-import 'prismjs/components/prism-java';
-
-// @toast-ui-plugin: color syntax 
-import colorSyntax from '@toast-ui/editor-plugin-color-syntax';
-import { FileNode } from 'src/base/node/fileTree';
 import { Component, IComponent } from 'src/code/browser/workbench/component';
-import { EVENT_EMITTER } from 'src/base/common/event';
-import { getSvgPathByName, SvgType } from 'src/base/common/string';
-import { ContextMenuType, Coordinate } from 'src/base/browser/secondary/contextMenu/contextMenu';
 import { IContextMenuService } from 'src/code/browser/service/contextMenuService';
 import { createDecorator } from 'src/code/common/service/instantiationService/decorator';
 import { IComponentService } from 'src/code/browser/service/componentService';
@@ -33,28 +9,27 @@ import { EUserSettings, IUserMarkdownSettings } from 'src/code/common/service/co
 
 export const IMarkdownService = createDecorator<IMarkdownService>('markdown-service');
 
+/**
+ * An interface only for {@link MarkdownComponent}.
+ */
 export interface IMarkdownService extends IComponent {
-    createMarkdownEditor(): void;
-    onTextChange(): void;
-    markdownDisplayFile(nodeInfo: FileNode): void;
-    markdownModeSwitch(): void;
-    getEditorText(): string;
+
 }
 
 export type MarkdownRenderMode = 'wysiwyg' | 'instant' | 'split';
 
 /**
- * @class MarkdownComponent initializes markdown renderer and windows and
- * handling a few other shortcuts as well.
+ * @class // TODO
  */
 export class MarkdownComponent extends Component implements IMarkdownService {
 
-    private editor: Editor | null;
-    private saveFileTimeout: NodeJS.Timeout | null;
-    private colorSyntaxOptions: any;
+    // [field]
 
-    private userMarkdownSettings: IUserMarkdownSettings;
-    private currentMode: MarkdownRenderMode;
+    private editor: null;
+
+    private _settings: IUserMarkdownSettings;
+
+    // [constructor]
 
     constructor(parentComponent: Component,
                 parentElement: HTMLElement,
@@ -63,250 +38,40 @@ export class MarkdownComponent extends Component implements IMarkdownService {
                 @IFileLogService private readonly fileLogService: IFileLogService,
                 @IGlobalConfigService private readonly globalConfigService: IGlobalConfigService,
                 @IUserConfigService private readonly userConfigService: IUserConfigService,
-                
-        ) {
+    ) {
         super(EditorComponentType.markdown, parentComponent, parentElement, componentService);
 
         this.editor = null;
-        
-        /**
-         * after markdown content is changed, a timeout will be set if the 
-         * auto-save mode is turned on. When the time has arrived, file will be
-         * auto saved.
-         */
-        this.saveFileTimeout = null;
 
-        /**
-         * The object is a preset color choices for color-syntax plugin.
-         */
-        this.colorSyntaxOptions = {
-            preset: ['#ff0000', // red
-                     '#ff8f00', // orange
-                     '#fff600', // yellow
-                     '#52ff00', // green
-                     '#007dff', // blue
-                     '#5200ff', // indigo
-                     '#ad00ff'] // violet
-        };
-
-        /** 
-         * Retrives configurations 
-         */
-        this.userMarkdownSettings = this.userConfigService.get<IUserMarkdownSettings>(EUserSettings.Markdown);
-        this.currentMode = this.userMarkdownSettings.defaultMarkdownMode;
+        this._settings = this.userConfigService.get<IUserMarkdownSettings>(EUserSettings.Markdown);
     }
+
+    // [protected override methods]
 
     protected override _createContent(): void {
-        this.createMarkdownEditor();
+        
+        this.createEditor();
+        
     }
+
     protected override _registerListeners(): void {
        
         /**
          * Listens to configuraion modification.
          */
         this.userConfigService.onDidChangeMarkdownSettings(newSettings => {
-            this.userMarkdownSettings = newSettings;
+            this._settings = newSettings;
         });
 
-        /*
-        domNodeByIdAddListener('markdown', 'contextmenu', (event) => {
-            event.preventDefault()
-            console.log('right clicked on markdown')
-            //console.log(event.target)
-            //console.log(event.currentTarget)
-            ipcRendererSend('showContextMenu')        
-        })
-        */
+    }
+
+    // [public methods]
+
+    private createEditor(): void {
+
         
-        /**
-         * @readonly register context menu listeners (right click menu)
-         */
-        this.container.addEventListener('contextmenu', (ev: MouseEvent) => {
-            
-            ev.preventDefault();
-            this.contextMenuService.removeContextMenu();
-
-            let coordinate: Coordinate = {
-                coordinateX: ev.pageX,
-                coordinateY: ev.pageY,
-            };
-            
-            const element = ev.target as HTMLElement;
-            const tagName = element.tagName;
-            const parentElement = element.parentElement?.tagName;
-            const menu = document.querySelector(".toastui-editor-context-menu") as HTMLElement;
-            
-            if (tagName == 'TD' || tagName == 'TH') {
-
-            } else if (tagName == 'P') {
-                menu.style.display = 'none';
-                this.contextMenuService.createContextMenu(ContextMenuType.editor, coordinate);
-            } else {
-                this.contextMenuService.createContextMenu(ContextMenuType.editor, coordinate);
-            } 
-    
-        });
-
-        EVENT_EMITTER.register('EMarkdownDisplayFile', (nodeInfo: FileNode | null) => this.markdownDisplayFile(nodeInfo));
-        EVENT_EMITTER.register('EMarkdownModeSwitch', () => this.markdownModeSwitch());
-        EVENT_EMITTER.register('EMarkdownGetText', (): string => { return this.getEditorText() });
-        // ipcRendererOn('Ctrl+S', () => {
-        //     if (!this.explorerViewComponent.TabBar.emptyTab) {
-        //         if (this.saveFileTimeout) {
-        //             clearTimeout(this.saveFileTimeout);
-        //         }
-        //         this.markdownSaveFile();
-        //     }
-        // })
-
-        /**
-         * @readonly registers right click menu listeners
-         */
-
-        /*
-        domNodeByIdAddListener('markdown', 'contextmenu', (event) => {
-            event.preventDefault();
-            const element = event.target as HTMLElement;
-            const tagName = element.tagName;
-            const parentElement = element.parentElement?.tagName;
-            const menu = document.querySelector(".toastui-editor-context-menu") as HTMLElement;
-           // if (tagName == 'TD' || tagName == 'TH' || parentElement == 'TD' || parentElement == 'TH' ) {
-            if (tagName == 'TD' || tagName == 'TH') {
-                // console.log('Chart Context Menu');
-            }else if (tagName == 'P') {
-                menu.style.display = 'none';
-                ipcRendererSend('showContextMenuEditor');
-            } else {
-                ipcRendererSend('showContextMenuEditor');     
-            }
-        });
-        */
     }
 
-    /**
-     * @description instantiates editor constructor and markdown view. Editor's
-     * events's callback functions will also be set here.
-     */
-    public createMarkdownEditor(): void {
-
-        let editor = new Editor({
-            el: this.container, // HTMLElement container for markdown editor
-            height: '100%',
-            language: 'en-US',
-            /**
-             * @argument 'tab'
-             * @argument 'vertical'
-             */
-            previewStyle: 'vertical',
-            previewHighlight: false,
-            useCommandShortcut: true,
-            usageStatistics: true,      // send hostname to google analytics
-            hideModeSwitch: true,
-            /**
-             * @argument 'wysiwyg' = 'what you see is what you get'
-             * @argument 'markdown'
-             */
-            initialEditType: 'wysiwyg', 
-            /**
-             * @readonly this 'events' attribute handles callback functions to 
-             * serval editor events.
-             * 
-             * @member load
-             * @member change
-             * @member focus
-             * @member blur
-             * @member keydown
-             * @member keyup
-             */
-            events: {
-                /**
-                 * @readonly It would be emitted when content changed.
-                 */
-                change: () => { this.onTextChange() },
-            },
-            placeholder: 'type your magic word...',
-            plugins: [
-                [codeSyntaxHighlight, { highlighter: Prism }],
-                [colorSyntax, this.colorSyntaxOptions]
-            ],
-        })
-
-        editor.getMarkdown();
-        this.editor = editor;
-        // TODO: remove later
-        (window as any).editor = editor; // set as global value 
-
-    }
-
-    /**
-     * @description callback function for 'editor.event.change'.
-     */
-    public onTextChange(): void {
-        if (this.userMarkdownSettings.fileAutoSaveOn) {
-            // if content is changed before the previous timeout has reached, 
-            // clear the preivous one.
-            if (this.saveFileTimeout) {
-                clearTimeout(this.saveFileTimeout);
-            }
-            // set a new timer with 1000 microseconds
-            this.saveFileTimeout = setTimeout(() => {
-                this.markdownSaveFile()
-            }, 1000);
-        }
-    }
-
-    
-    /**
-     * @description will be registered into eventEmitter as 'EMarkdownDisplayFile' 
-     * event.
-     */
-    public markdownDisplayFile(nodeInfo: FileNode | null): void {
-        
-        if (!this.editor) {
-            // do log here.
-            return;
-        }
-
-        if (nodeInfo && !nodeInfo.isFolder) {
-            this.editor.setMarkdown(nodeInfo.file!.plainText, false);
-        } else {
-            this.editor.setMarkdown('', false);
-        }
-    }
-
-    /**
-     * @description change the mode of markdown renderering method. They are 
-     * 'wysiwyg', 'instant' and 'split'.
-     */
-     public markdownModeSwitch(): void {
-        if (this.currentMode == 'wysiwyg') {
-            $('#mode-switch').removeClass('function-button-focus');
-            $('#mode-switch > img').attr('src', getSvgPathByName(SvgType.base, 'md-split'));
-            this.editor!.changeMode('markdown', true);
-            this.currentMode = 'split';
-        } else if (this.currentMode == 'instant') {
-            // ...
-        } else { // (mode == 'split')
-            $('#mode-switch').addClass('function-button-focus');
-            $('#mode-switch > img').attr('src', getSvgPathByName(SvgType.base, 'md-wysiwyg'));
-            this.editor!.changeMode('wysiwyg', true);
-            this.currentMode = 'wysiwyg';
-        }
-    }
-    
-    /**
-     * @description calling saveFile() from explorerViewComponent.
-     */
-    // TODO: remove later
-    public markdownSaveFile(): void {
-        
-        const newText = this.editor!.getMarkdown();
-        // saveMarkdownFile();
-    }
-
-    public getEditorText(): string {
-        return this.editor!.getMarkdown();
-    }
-
+    // [private helper methods]
 }
 
