@@ -25,8 +25,8 @@ export interface IListViewMetadata {
 }
 
 /**
- * @description An interface that describes how to render an item in 
- * {@link ListView} with an specific type.
+ * @description An interface that describes how to render an item in {@link ListView} 
+ * with an specific type.
  * 
  * T: The type of element for updating.
  * TMetadata: type of the user-defined value which returned value by the method 

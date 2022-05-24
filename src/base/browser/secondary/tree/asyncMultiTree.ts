@@ -97,12 +97,12 @@ export interface IAsyncMultiTree<T, TFilter> {
     /**
      * Events when tree splice happened.
      */
-    get onDidSplice(): Register<ITreeSpliceEvent<IAsyncTreeNode<T> | null, TFilter>>;
+    get onDidSplice(): Register<ITreeSpliceEvent<T | null, TFilter>>;
 
     /**
      * Fires when the tree node collapse state changed.
      */
-    get onDidChangeCollapseStateChange(): Register<ITreeCollapseStateChangeEvent<IAsyncTreeNode<T> | null, TFilter>>;
+    get onDidChangeCollapseStateChange(): Register<ITreeCollapseStateChangeEvent<T | null, TFilter>>;
 
     /**
      * Fires when the {@link IAsyncMultiTree} is scrolling.
@@ -326,8 +326,8 @@ export class AsyncMultiTree<T, TFilter = void> implements IAsyncMultiTree<T, TFi
 
     // [event]
 
-    get onDidSplice(): Register<ITreeSpliceEvent<IAsyncTreeNode<T> | null, TFilter>> { return this._model.onDidSplice; }
-    get onDidChangeCollapseStateChange(): Register<ITreeCollapseStateChangeEvent<IAsyncTreeNode<T> | null, TFilter>> { return this._model.onDidChangeCollapseStateChange; }
+    get onDidSplice(): Register<ITreeSpliceEvent<T | null, TFilter>> { return Event.map(this._model.onDidSplice, e => this.__toTreeSpliceEvent(e)); }
+    get onDidChangeCollapseStateChange(): Register<ITreeCollapseStateChangeEvent<T | null, TFilter>> { return Event.map(this._model.onDidChangeCollapseStateChange, e => this.__toTreeChangeCollapseEvent(e)); }
 
     get onDidScroll(): Register<IScrollEvent> { return this._tree.onDidScroll; }
     get onDidChangeFocus(): Register<boolean> { return this._tree.onDidChangeFocus; }
@@ -497,6 +497,39 @@ export class AsyncMultiTree<T, TFilter = void> implements IAsyncMultiTree<T, TFi
             parent: event.parent?.data || null,
             children: event.children.map(child => child!.data),
             depth: event.depth
+        };
+    }
+
+    /**
+     * @description Recursively converts {@link ITreeNode<IAsyncTreeNode<T>>} to
+     * {@link ITreeNode<T>}.
+     * @param node The provided node.
+     */
+    private __unwrapAsyncTreeNode(node: ITreeNode<IAsyncTreeNode<T> | null, TFilter>): ITreeNode<T | null, TFilter> {
+        return {
+            data: node.data!.data,
+            depth: node.depth,
+            collapsed: node.collapsed,
+            collapsible: node.collapsible,
+            visible: node.visible,
+            visibleNodeCount: node.visibleNodeCount,
+            parent: this.__unwrapAsyncTreeNode(node.parent!),
+            children: node.children.map(child => this.__unwrapAsyncTreeNode(child)),
+        };
+    }
+
+    // REVIEW: this causes recursively converting, prob a pref issue
+    private __toTreeSpliceEvent(event: ITreeSpliceEvent<IAsyncTreeNode<T> | null, TFilter>): ITreeSpliceEvent<T | null, TFilter> {
+        return {
+            deleted: event.deleted.map(node => this.__unwrapAsyncTreeNode(node)),
+            inserted: event.inserted.map(node => this.__unwrapAsyncTreeNode(node))
+        };
+    }
+
+    // REVIEW: this causes recursively converting, prob a pref issue
+    private __toTreeChangeCollapseEvent(event: ITreeCollapseStateChangeEvent<IAsyncTreeNode<T> | null, TFilter>): ITreeCollapseStateChangeEvent<T | null, TFilter> {
+        return {
+            node: this.__unwrapAsyncTreeNode(event.node)
         };
     }
     

@@ -1,4 +1,3 @@
-import { Button } from "src/base/browser/basic/button/button";
 import { ISashEvent, Sash } from "src/base/browser/basic/sash/sash";
 import { Orientation } from "src/base/common/dom";
 import { Emitter, Register } from "src/base/common/event";
