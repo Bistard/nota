@@ -1,7 +1,6 @@
 import { AsyncMultiTree, IAsyncMultiTree } from "src/base/browser/secondary/tree/asyncMultiTree";
 import { Disposable, DisposableManager } from "src/base/common/dispose";
-import { Emitter, Register } from "src/base/common/event";
-import { IResolvedFileStat } from "src/base/common/file/file";
+import { Emitter, Register, RelayEmitter } from "src/base/common/event";
 import { URI } from "src/base/common/file/uri";
 import { ExplorerChildrenProvider, ExplorerItem, ExplorerItemProvider } from "src/code/browser/workbench/actionView/explorer/explorerItem";
 import { ExplorerRenderer } from "src/code/browser/workbench/actionView/explorer/explorerRenderer";
@@ -73,6 +72,13 @@ export interface INotebook {
 }
 
 /**
+ * @description An constructor option for {@link Notebook}.
+ */
+export interface INotebookOptions {
+
+}
+
+/**
  * @class A class for each notebook.
  * 
  * @note The default visibility is true once the tree has been created.
@@ -94,6 +100,8 @@ export class Notebook extends Disposable implements INotebook {
      */
     private _visible: boolean = false;
 
+    private _treeListeners: DisposableManager | null = null;
+
     // [event]
 
     private _onDidCreationFinished = this.__register(new Emitter<boolean>());
@@ -107,9 +115,11 @@ export class Notebook extends Disposable implements INotebook {
     constructor(
         container: HTMLElement,
         private fileService: IFileService,
+        opts: INotebookOptions = {},
     ) {
         super();
-        this._container = container;        
+        this._container = container;
+
     }
 
     // [get method]
@@ -135,19 +145,13 @@ export class Notebook extends Disposable implements INotebook {
              * auto register tree listeners once the visibility of the notebook 
              * changed.
              */
-            let listeners: DisposableManager | undefined;
             this.__register(this.onDidVisibilityChange(visibility => {
 
                 if (visibility) {
-                    // re-register all the listeners to the tree.
-                    if (listeners && !listeners.disposed) {
-                        listeners.dispose();
-                    }
-                    listeners = this.__registerTreeListeners();
-                }
-
-                if (!visibility && listeners && !listeners.disposed) {
-                    listeners.dispose();
+                    this._treeListeners?.dispose();
+                    this._treeListeners = this.__registerTreeListeners();
+                } else {
+                    this._treeListeners?.dispose();
                 }
             }));
 
@@ -163,7 +167,6 @@ export class Notebook extends Disposable implements INotebook {
     }
 
     public setVisible(value: boolean): void {
-        
         if (this._visible === value) {
             return;
         }
@@ -237,11 +240,12 @@ export class Notebook extends Disposable implements INotebook {
         
         const disposables = new DisposableManager();
 
-        // REVIEW
-        disposables.register(this._tree.onClick(async node => {
-            this._tree.toggleCollapseOrExpand(node.data!, false);
-            await this._tree.refresh(node.data!);
-        }));
+        // disposables.register(this._tree.onClick(async node => {
+        //     // TODO: 这些不应该是预设的，应该用事件系统之类的通知外部让他们做选择。
+        //     // TODO: 用RelayEmitter可以么？？
+        //     this._tree.toggleCollapseOrExpand(node.data!, false);
+        //     await this._tree.refresh(node.data!);
+        // }));
 
         return disposables;
     }

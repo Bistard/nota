@@ -7,7 +7,6 @@ import { createDecorator } from "src/code/common/service/instantiationService/de
 import { registerSingleton } from "src/code/common/service/instantiationService/serviceCollection";
 import { ServiceDescriptor } from "src/code/common/service/instantiationService/descriptor";
 import { IInstantiationService } from "src/code/common/service/instantiationService/instantiation";
-import { Register } from "src/base/common/event";
 
 export const enum EditorComponentType {
     titleBar = 'title-bar',
@@ -21,11 +20,18 @@ export interface IEditorService extends IComponent {
 
 }
 
+/**
+ * @class // TODO
+ */
 export class EditorComponent extends Component implements IEditorService {
+
+    // [field]
 
     private titleBarComponent!: TitleBarComponent;
     private tabBarComponent!: TabBarComponent;
     private markdownComponent!: MarkdownComponent;
+
+    // [constructor]
 
     constructor(
         parentComponent: Component,
@@ -34,6 +40,8 @@ export class EditorComponent extends Component implements IEditorService {
     ) {
         super(ComponentType.Editor, parentComponent, null, componentService);
     }
+
+    // [protected override methods]
 
     protected override _createContent(): void {
         this._createTitleBar();
@@ -46,6 +54,11 @@ export class EditorComponent extends Component implements IEditorService {
         this.tabBarComponent.registerListeners();
         this.markdownComponent.registerListeners();
     }
+
+    // [public method]
+
+
+    // [private helper methods]
 
     private _createTitleBar(): void {
         this.titleBarComponent = this.instantiationService.createInstance(TitleBarComponent, this);
