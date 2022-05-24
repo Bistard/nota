@@ -75,7 +75,7 @@ export class FunctionBarComponent extends Component {
         }
 
         if (FunctionBarComponent.isToolBarExpand == false) {
-            $('.toastui-editor-toolbar').first().hide(0);
+            // $('.toastui-editor-toolbar').first().hide(0);
         }
     }
 
@@ -84,12 +84,12 @@ export class FunctionBarComponent extends Component {
      */
     mdToolStateChange(shouldExpand: boolean): void {
         if (shouldExpand) {
-            $('.toastui-editor-toolbar').show(100);
-            $('#md-tool').addClass('function-button-focus');
+            // $('.toastui-editor-toolbar').show(100);
+            // $('#md-tool').addClass('function-button-focus');
             FunctionBarComponent.isToolBarExpand = true;
         } else {
-            $('.toastui-editor-toolbar').hide(100);
-            $('#md-tool').removeClass('function-button-focus');
+            // $('.toastui-editor-toolbar').hide(100);
+            // $('#md-tool').removeClass('function-button-focus');
             FunctionBarComponent.isToolBarExpand = false;
         }
     }
@@ -99,12 +99,12 @@ export class FunctionBarComponent extends Component {
      */
     functionBarStateChange(shouldExpand: boolean): void {
         if (shouldExpand) {
-            $('#function-bar-container').show(100);
-            $('#expand-collapse > img').attr('src', getSvgPathByName(SvgType.base, 'caret-left'));
+            // $('#function-bar-container').show(100);
+            // $('#expand-collapse > img').attr('src', getSvgPathByName(SvgType.base, 'caret-left'));
             FunctionBarComponent.isfunctionBarExpand = true;
         } else {
-            $('#function-bar-container').hide(100);
-            $('#expand-collapse > img').attr('src', getSvgPathByName(SvgType.base, 'caret-right'));
+            // $('#function-bar-container').hide(100);
+            // $('#expand-collapse > img').attr('src', getSvgPathByName(SvgType.base, 'caret-right'));
             FunctionBarComponent.isfunctionBarExpand = false;
         }
     }

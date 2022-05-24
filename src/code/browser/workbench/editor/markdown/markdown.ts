@@ -1,12 +1,11 @@
 import { Component, IComponent } from 'src/code/browser/workbench/component';
-import { IContextMenuService } from 'src/code/browser/service/contextMenuService';
 import { createDecorator } from 'src/code/common/service/instantiationService/decorator';
 import { IComponentService } from 'src/code/browser/service/componentService';
 import { EditorComponentType } from 'src/code/browser/workbench/editor/editor';
 import { IFileLogService } from 'src/code/common/service/logService/fileLogService';
 import { IGlobalConfigService, IUserConfigService } from 'src/code/common/service/configService/configService';
 import { EUserSettings, IUserMarkdownSettings } from 'src/code/common/service/configService/configService';
-import { defaultValueCtx, Editor } from '@milkdown/core';
+import { Editor, rootCtx } from '@milkdown/core';
 import { nord } from '@milkdown/theme-nord';
 import { commonmark } from '@milkdown/preset-commonmark';
 import { Emitter } from 'src/base/common/event';
@@ -87,11 +86,8 @@ export class MarkdownComponent extends Component implements IMarkdownService {
 
     private async createEditor(): Promise<boolean> {
 
-        const editor = await Editor.make().config((ctx) => {
-            ctx.set(defaultValueCtx, {
-                dom: this.container,
-                type: 'html'
-            });
+        this.editor = await Editor.make().config((ctx) => {
+            ctx.set(rootCtx, this.container);
         }).use(nord).use(commonmark).create();
         
 
