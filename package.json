@@ -46,6 +46,8 @@
   },
   "dependencies": {
     "@milkdown/core": "^6.1.2",
+    "@milkdown/preset-commonmark": "^6.1.2",
+    "@milkdown/theme-nord": "^6.1.2",
     "jquery": "^3.6.0"
   }
 }
