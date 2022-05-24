@@ -33,6 +33,8 @@
     "cross-env": "^7.0.3",
     "electron": "^13.6.6",
     "fantasticon": "^1.2.3",
+    "jsdom": "19.0.0",
+    "jsdom-global": "3.0.2",
     "mocha": "^9.1.3",
     "ts-loader": "^9.2.5",
     "ts-node": "^10.4.0",
