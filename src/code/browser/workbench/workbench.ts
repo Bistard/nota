@@ -86,24 +86,6 @@ export class Workbench extends WorkbenchLayout implements IWorkbenchService {
         
         this.__registerLayout();
         this.__registerShortcuts();
-            
-        // TODO: below codes requires refactor
-
-        this.container.addEventListener('click', (ev: MouseEvent) => {
-            const service = this.instantiationService.getService(IContextMenuService);
-            if (service) {
-                service.removeContextMenu();
-            }
-            const menu = document.querySelector(".toastui-editor-context-menu") as HTMLElement;
-            menu.style.display = 'none';
-        });
-
-        ipcRendererOn('closeContextMenu', () => {
-            const service = this.instantiationService.getService(IContextMenuService);
-            if (service) {
-                service.removeContextMenu();
-            }
-        });
 
     }
 

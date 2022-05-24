@@ -75,9 +75,10 @@ export class EditorComponent extends Component implements IEditorService {
         markdownView.id = 'markdown-view';
 
         this.markdownComponent = this.instantiationService.createInstance(MarkdownComponent, this, markdownView);
+        this.container.appendChild(markdownView);
         this.markdownComponent.create();
 
-        this.container.appendChild(markdownView);
+        
     }
 
 }

@@ -104,11 +104,11 @@ export class Notebook extends Disposable implements INotebook {
 
     // [event]
 
-    private _onDidCreationFinished = this.__register(new Emitter<boolean>());
-    public onDidCreationFinished = this._onDidCreationFinished.registerListener;
+    private readonly _onDidCreationFinished = this.__register(new Emitter<boolean>());
+    public readonly onDidCreationFinished = this._onDidCreationFinished.registerListener;
 
-    private _onDidVisibilityChange = this.__register(new Emitter<boolean>());
-    public onDidVisibilityChange = this._onDidVisibilityChange.registerListener;
+    private readonly _onDidVisibilityChange = this.__register(new Emitter<boolean>());
+    public readonly onDidVisibilityChange = this._onDidVisibilityChange.registerListener;
 
     // [constructor]
 
