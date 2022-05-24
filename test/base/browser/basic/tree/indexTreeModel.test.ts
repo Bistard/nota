@@ -505,7 +505,7 @@ suite('indexTreeModel-test', () => {
         assert.deepStrictEqual(list.length, 7);
 
         let collapseCnt = 0;
-        model.onDidChangeCollapseStateChange((e) => {
+        model.onDidChangeCollapseState((e) => {
             collapseCnt++;
         });
 
