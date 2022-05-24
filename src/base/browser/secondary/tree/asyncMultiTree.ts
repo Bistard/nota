@@ -28,16 +28,33 @@ export interface IAsyncChildrenProvider<T> {
      */
     getChildren(data: T): T[] | Promise<T[]>;
 
+    /**
+     * @description Determines if the given data should be collapsed when 
+     * constructing.
+     */
+    collapseByDefault?: (data: T) => boolean;
+
 }
 
 /**
  * An internal data structure used in {@link AsyncMultiTree}.
  */
 export interface IAsyncTreeNode<T> {
+    
+    /** The user-data. */
     data: T;
+
+    /** The parent of the current node. */
     parent: IAsyncTreeNode<T> | null;
+
+    /** The children nodes of the current node. */
     children: IAsyncTreeNode<T>[];
+
+    /** Determines if the current node is during the refreshing. */
     refreshing: Promise<void> | null;
+
+    /** If the tree should be collapsed by default. */
+    collapsed: boolean;
 }
 
 /**
@@ -453,9 +470,11 @@ export class AsyncMultiTree<T, TFilter = void> implements IAsyncMultiTree<T, TFi
      * @param node The provided async tree node.
      */
     private __toTreeNodeItem(node: IAsyncTreeNode<T>): ITreeNodeItem<IAsyncTreeNode<T>> {    
-        const collapsible: boolean = !!node.children.length;
-        const collapsed = false;
+        
+        const collapsible = !!node.children.length;
+        const collapsed = node.collapsed;
         const children = collapsible ? Iterable.map(node.children, node => this.__toTreeNodeItem(node)) : [];
+        
         return {
             data: node,
             collapsible: collapsible,

@@ -18,7 +18,10 @@ export interface ITreeModelSpliceOptions<T, TFilter> {
     onDidDeleteNode?: (node: ITreeNode<T, TFilter>) => void;
 }
 
-export interface IIndexTreeModelCreationOptions {
+/**
+ * An constructor option for {@link IndexTreeModel}.
+ */
+export interface IIndexTreeModelOptions {
     
     /**
      * When inserting new node, if sets to collapsed to default.
@@ -95,7 +98,7 @@ export class IndexTreeModel<T, TFilter = void> implements IIndexTreeModel<T, TFi
     constructor(
         rootData: T,
         view: ISpliceable<ITreeNode<T, TFilter>>,
-        opt: IIndexTreeModelCreationOptions = {}
+        opt: IIndexTreeModelOptions = {}
     ) {
         this._view = view;
         
@@ -114,11 +117,7 @@ export class IndexTreeModel<T, TFilter = void> implements IIndexTreeModel<T, TFi
 
         // option assignment
         if (opt) {
-
-            if (opt.collapsedByDefault) {
-                this._collapsedByDefault = opt.collapsedByDefault;
-            }
-
+            this._collapsedByDefault = !!opt.collapsedByDefault;
         }
     }
 
