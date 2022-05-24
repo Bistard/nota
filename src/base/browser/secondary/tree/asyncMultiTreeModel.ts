@@ -10,11 +10,11 @@ import { isIterable } from "src/base/common/type";
  * 
  * @note We are omitting these properties because the type does not fit.
  */
-export interface IAsyncMultiTreeModel<T, TFilter> extends Omit<ITreeModel<T, TFilter, T>, 'onDidSplice' | 'onDidChangeCollapseStateChange'> {
+export interface IAsyncMultiTreeModel<T, TFilter> extends Omit<ITreeModel<T, TFilter, T>, 'onDidSplice' | 'onDidChangeCollapseState'> {
     
     get onDidSplice(): Register<ITreeSpliceEvent<IAsyncTreeNode<T> | null, TFilter>>;
     
-    get onDidChangeCollapseStateChange(): Register<ITreeCollapseStateChangeEvent<IAsyncTreeNode<T> | null, TFilter>>;
+    get onDidChangeCollapseState(): Register<ITreeCollapseStateChangeEvent<IAsyncTreeNode<T> | null, TFilter>>;
 
     /**
      * @description Refreshing the tree structure of the given node and all its 
@@ -103,7 +103,7 @@ export class AsyncMultiTreeModel<T, TFilter = void> implements IAsyncMultiTreeMo
     // [event]
 
     get onDidSplice(): Register<ITreeSpliceEvent<IAsyncTreeNode<T> | null, TFilter>> { return this._tree.onDidSplice; }
-    get onDidChangeCollapseStateChange(): Register<ITreeCollapseStateChangeEvent<IAsyncTreeNode<T> | null, TFilter>> { return this._tree.onDidChangeCollapseStateChange; }
+    get onDidChangeCollapseState(): Register<ITreeCollapseStateChangeEvent<IAsyncTreeNode<T> | null, TFilter>> { return this._tree.onDidChangeCollapseState; }
 
     // [public method]
 

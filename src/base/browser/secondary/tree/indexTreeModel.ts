@@ -113,12 +113,7 @@ export class IndexTreeModel<T, TFilter = void> implements IIndexTreeModel<T, TFi
             visibleNodeCount: 0,
         };
 
-        this._collapsedByDefault = false;
-
-        // option assignment
-        if (opt) {
-            this._collapsedByDefault = !!opt.collapsedByDefault;
-        }
+        this._collapsedByDefault = !!opt?.collapsedByDefault;
     }
 
     // [events]
@@ -127,7 +122,7 @@ export class IndexTreeModel<T, TFilter = void> implements IIndexTreeModel<T, TFi
 	public readonly onDidSplice = this._onDidSplice.registerListener;
 
     private readonly _onDidChangeCollapseState = new Emitter<ITreeCollapseStateChangeEvent<T, TFilter>>();
-    public readonly onDidChangeCollapseStateChange = this._onDidChangeCollapseState.registerListener;
+    public readonly onDidChangeCollapseState = this._onDidChangeCollapseState.registerListener;
 
     // [methods]
     

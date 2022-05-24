@@ -40,7 +40,7 @@ export interface IAbstractTree<T, TFilter, TRef> {
     /**
      * Fires when the tree node collapse state changed.
      */
-    get onDidChangeCollapseStateChange(): Register<ITreeCollapseStateChangeEvent<T, TFilter>>;
+    get onDidChangeCollapseState(): Register<ITreeCollapseStateChangeEvent<T, TFilter>>;
 
     /**
      * Fires when the {@link IAbstractTree} is scrolling.
@@ -215,7 +215,7 @@ export abstract class AbstractTree<T, TFilter, TRef> implements IAbstractTree<T,
         this._model = this.createModel(this._view);
 
         // reset the input event emitter once the model is created.
-        relayEmitter.setInput(this._model.onDidChangeCollapseStateChange);
+        relayEmitter.setInput(this._model.onDidChangeCollapseState);
 
         // dispose registration
         this._disposables.register(this._view);
@@ -225,7 +225,7 @@ export abstract class AbstractTree<T, TFilter, TRef> implements IAbstractTree<T,
     // [event]
 
     get onDidSplice(): Register<ITreeSpliceEvent<T, TFilter>> { return this._model.onDidSplice; }
-    get onDidChangeCollapseStateChange(): Register<ITreeCollapseStateChangeEvent<T, TFilter>> { return this._model.onDidChangeCollapseStateChange; }
+    get onDidChangeCollapseState(): Register<ITreeCollapseStateChangeEvent<T, TFilter>> { return this._model.onDidChangeCollapseState; }
 
     get onDidScroll(): Register<IScrollEvent> { return this._view.onDidScroll; }
     get onDidChangeFocus(): Register<boolean> { return this._view.onDidChangeFocus; }

@@ -120,7 +120,7 @@ export interface ITreeModel<T, TFilter = void, TRef = number[]> {
     /**
      * Fires when the tree node collapse state changed.
      */
-    readonly onDidChangeCollapseStateChange: Register<ITreeCollapseStateChangeEvent<T, TFilter>>;
+    readonly onDidChangeCollapseState: Register<ITreeCollapseStateChangeEvent<T, TFilter>>;
 
     /**
      * @description Check if the given node is existed.

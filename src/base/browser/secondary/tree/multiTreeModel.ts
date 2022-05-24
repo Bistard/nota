@@ -57,13 +57,13 @@ export class MultiTreeModel<T, TFilter = void> implements IMultiTreeModel<T, TFi
         this._nodes = new Map();
 
         this.onDidSplice = this._model.onDidSplice;
-        this.onDidChangeCollapseStateChange = this._model.onDidChangeCollapseStateChange;
+        this.onDidChangeCollapseState = this._model.onDidChangeCollapseState;
     }
 
     // [event]
 
     public readonly onDidSplice: Register<ITreeSpliceEvent<T | null, TFilter>>;
-    public readonly onDidChangeCollapseStateChange: Register<ITreeCollapseStateChangeEvent<T | null, TFilter>>;
+    public readonly onDidChangeCollapseState: Register<ITreeCollapseStateChangeEvent<T | null, TFilter>>;
 
     // [public method]
 

@@ -102,7 +102,7 @@ export interface IAsyncMultiTree<T, TFilter> {
     /**
      * Fires when the tree node collapse state changed.
      */
-    get onDidChangeCollapseStateChange(): Register<ITreeCollapseStateChangeEvent<T | null, TFilter>>;
+    get onDidChangeCollapseState(): Register<ITreeCollapseStateChangeEvent<T | null, TFilter>>;
 
     /**
      * Fires when the {@link IAsyncMultiTree} is scrolling.
@@ -327,7 +327,7 @@ export class AsyncMultiTree<T, TFilter = void> implements IAsyncMultiTree<T, TFi
     // [event]
 
     get onDidSplice(): Register<ITreeSpliceEvent<T | null, TFilter>> { return Event.map(this._model.onDidSplice, e => this.__toTreeSpliceEvent(e)); }
-    get onDidChangeCollapseStateChange(): Register<ITreeCollapseStateChangeEvent<T | null, TFilter>> { return Event.map(this._model.onDidChangeCollapseStateChange, e => this.__toTreeChangeCollapseEvent(e)); }
+    get onDidChangeCollapseState(): Register<ITreeCollapseStateChangeEvent<T | null, TFilter>> { return Event.map(this._model.onDidChangeCollapseState, e => this.__toTreeChangeCollapseEvent(e)); }
 
     get onDidScroll(): Register<IScrollEvent> { return this._tree.onDidScroll; }
     get onDidChangeFocus(): Register<boolean> { return this._tree.onDidChangeFocus; }
