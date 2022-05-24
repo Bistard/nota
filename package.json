@@ -26,7 +26,11 @@
   "devDependencies": {
     "@types/electron": "^1.6.10",
     "@types/jquery": "^3.5.6",
+    "@types/mocha": "^9.0.0",
+    "@types/node": "^16.4.13",
     "@types/prismjs": "^1.16.6",
+    "@types/requestidlecallback": "^0.3.4",
+    "circular-dependency-plugin": "^5.2.2",
     "cross-env": "^7.0.3",
     "electron": "^13.6.6",
     "fantasticon": "^1.2.3",
@@ -41,14 +45,10 @@
     "webpack-cli": "^4.7.2"
   },
   "dependencies": {
+    "@milkdown/core": "^6.1.2",
     "@toast-ui/editor": "^3.0.1",
     "@toast-ui/editor-plugin-code-syntax-highlight": "^3.0.0",
     "@toast-ui/editor-plugin-color-syntax": "^3.0.1",
-    "@types/mocha": "^9.0.0",
-    "@types/node": "^16.4.13",
-    "@types/requestidlecallback": "^0.3.4",
-    "circular-dependency-plugin": "^5.2.2",
-    "jquery": "^3.6.0",
-    "path-directories": "^1.0.2"
+    "jquery": "^3.6.0"
   }
 }
