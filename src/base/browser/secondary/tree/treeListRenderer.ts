@@ -204,7 +204,6 @@ export class TreeItemRenderer<T, TFilter, TMetadata> implements ITreeListRendere
 
     private __doDidChangeCollapseState(node: ITreeNode<T, TFilter>): void {        
         const metadata = this._metadataMap.get(node);
-
         if (metadata === undefined) {
             return;
         }

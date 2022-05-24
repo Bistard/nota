@@ -225,7 +225,8 @@ export class AsyncMultiTreeModel<T, TFilter = void> implements IAsyncMultiTreeMo
             parent: parent,
             children: [],
             refreshing: null,
-            collapsed: false,
+            couldHasChildren: true,
+            collapsed: undefined,
         };
     }
     
@@ -280,9 +281,9 @@ export class AsyncMultiTreeModel<T, TFilter = void> implements IAsyncMultiTreeMo
     private async __refreshChildren(node: IAsyncTreeNode<T>): Promise<IAsyncTreeNode<T>[]> {
 
         let childrenPromise: Promise<Iterable<T>>;
-        const hasChildren = this._childrenProvider.hasChildren(node.data);
+        node.couldHasChildren = await this._childrenProvider.hasChildren(node.data);
 
-        if (hasChildren === false) {
+        if (node.couldHasChildren === false) {
             // since the current node is a leaf, we return nothing.
             childrenPromise = Promise.resolve(Iterable.empty());
         }
@@ -361,7 +362,8 @@ export class AsyncMultiTreeModel<T, TFilter = void> implements IAsyncMultiTreeMo
              * the children of the current children should not be collapsed, we
              * need to keep refreshing on next time.
              */
-            if (hasChildren && !!this._childrenProvider.collapseByDefault?.(child)) {
+            const collapseState = !!this._childrenProvider.collapseByDefault?.(child);
+            if (hasChildren && !collapseState) {
                 childAsyncNode.collapsed = false;
                 childrenNodesForRefresh.push(childAsyncNode);
             }
@@ -380,6 +382,7 @@ export class AsyncMultiTreeModel<T, TFilter = void> implements IAsyncMultiTreeMo
         }
         
         node.children.splice(0, node.children.length, ...childrenNodes);
+        console.log(node.children);
 
         return childrenNodesForRefresh;
     }

@@ -55,14 +55,16 @@ export interface ITreeNode<T, TFilter = void> {
     visible: boolean;
 
     /** 
-     * Determines if the tree node is collapsible. eg. the folder is 
-     * collapsible and a file vice versa. 
+     * Determines if the tree node is collapsible. eg. the folder is collapsible 
+     * and a file vice versa. 
      */
     collapsible: boolean;
 
     /** 
      * Determines if the tree node is collapsed. 
-     * @warn If it's not collapsible, accessing this member is undefined behaviour. 
+     * 
+     * @note If the node is not collapsible does not necessarily mean the node 
+     * cannot be displaying expanded.
      */
     collapsed: boolean;
 }
@@ -77,10 +79,8 @@ export interface ITreeNodeItem<T> {
     data: T;
 
     /** 
-     * Determines if the tree node is collapsible. eg. the folder is 
-     * collapsible and a file vice versa. 
-     * @default false
-     * @note If it's collapsed, this member will set to true.
+     * Determines if the tree node is collapsible. eg. the folder is collapsible 
+     * and a file vice versa.
      */
     collapsible?: boolean;
 

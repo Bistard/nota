@@ -50,14 +50,18 @@ export interface IAsyncTreeNode<T> {
     /** The children nodes of the current node. */
     children: IAsyncTreeNode<T>[];
 
+    /** If the node could has children. */
+    couldHasChildren: boolean;
+
     /** Determines if the current node is during the refreshing. */
     refreshing: Promise<void> | null;
 
     /** 
-     * If the tree should be collapsed by default. 
-     * @default false
+     * If the tree should be collapsed by default. If undefined, the state will
+     * determined by the {@link IMultiTree}.
+     * @default undefined
      */
-    collapsed: boolean;
+    collapsed: false | undefined;
 }
 
 /**
@@ -474,10 +478,10 @@ export class AsyncMultiTree<T, TFilter = void> implements IAsyncMultiTree<T, TFi
      */
     private __toTreeNodeItem(node: IAsyncTreeNode<T>): ITreeNodeItem<IAsyncTreeNode<T>> {    
         
-        const collapsible = !!node.children.length;
+        const collapsible = node.couldHasChildren;
         const collapsed = node.collapsed;
         const children = collapsible ? Iterable.map(node.children, node => this.__toTreeNodeItem(node)) : [];
-        
+
         return {
             data: node,
             collapsible: collapsible,

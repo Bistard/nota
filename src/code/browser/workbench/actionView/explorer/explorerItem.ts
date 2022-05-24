@@ -73,7 +73,7 @@ export interface IExplorerItem {
 	refreshChildren(fileService: IFileService): void | Promise<void>;
 
 	/**
-	 * 
+	 * @description Forgets all the children of the current item.
 	 */
 	forgetChildren(): void;
 }
@@ -142,22 +142,19 @@ export class ExplorerItem implements IExplorerItem {
 
 	public refreshChildren(fileService: IFileService): void | Promise<void> {
 
-        const promise = (async () => {
+        // the children is already resolved
+        if (this._stat.children) {
+            return;
+        }
 
-            // never resolved the children before
-            if (this._stat.children === undefined) {
-                
-                try {
-                    // obtain the newest resolved stat
-                    const updatedStat = await fileService.stat(this._stat.uri, { resolveChildren: true });
-                    this._stat = updatedStat;
-                } 
-                
-                catch (err) {
-                    this._inError = true;
-                    throw err;
-                }
-                
+        // never resolved the children before
+        const promise = (async () => {
+            try {
+                const updatedStat = await fileService.stat(this._stat.uri, { resolveChildren: true });
+                this._stat = updatedStat;
+            } catch (err) {
+                this._inError = true;
+                throw err;
             }
         })();
 
@@ -169,10 +166,6 @@ export class ExplorerItem implements IExplorerItem {
 	}
 
     // [private method]
-
-	private __addChild(child: ExplorerItem): void {
-
-	}
 
 }
 
@@ -233,6 +226,11 @@ export class ExplorerChildrenProvider implements IAsyncChildrenProvider<Explorer
         });
 
         return promise;
+    }
+
+    public collapseByDefault(data: ExplorerItem): boolean {
+        // TODO
+        return true;
     }
 
 }

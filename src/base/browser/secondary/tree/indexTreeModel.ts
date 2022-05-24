@@ -354,8 +354,10 @@ export class IndexTreeModel<T, TFilter = void> implements IIndexTreeModel<T, TFi
         onDidCreateNode?: (node: ITreeNode<T, TFilter>) => void
     ): IIndexTreeNode<T, TFilter> 
     {
-        const collapsed = typeof element.collapsed === 'boolean' ? element.collapsed : this._collapsedByDefault;
-        const collapsible = typeof element.collapsible === 'boolean' ? element.collapsible : collapsed;
+        const ifSetCollapsed = !!element.collapsed;
+
+        const collapsed = ifSetCollapsed ? ifSetCollapsed : this._collapsedByDefault;
+        const collapsible = !!element.collapsible ? element.collapsible : ifSetCollapsed;
         const visible = parent.visible ? !parent.collapsed : false;
 
         // construct the new node
