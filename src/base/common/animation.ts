@@ -1,3 +1,4 @@
+import { IDisposable, toDisposable } from "src/base/common/dispose";
 
 /**
  * when the current enviroment is too old to support `requestAnimationFrame`, we 
@@ -20,8 +21,8 @@ const _simulateRequestAnimationFrame = (callback: Function) => setTimeout(() => 
   * 
   * @link more details from http://www.javascriptkit.com/javatutors/requestanimationframe.shtml
   * 
-  * @readonly The reason using a wrapper anonymous here beacuse when importing 
-  * this file as below:
+  * @readonly The reason using a wrapper anonymous here (doRequestAnimationFrame()) 
+  * beacuse when importing this file as below:
   * ```js
   * import * as animation from "src/base/common/animation";
   * animation.requestAnimationFrame( () => {} );
@@ -30,26 +31,21 @@ const _simulateRequestAnimationFrame = (callback: Function) => setTimeout(() => 
   * context of `window`. To fix this, a wrapper function will fix this properly
   * by using `.call()`.
   */
-export let requestAnimationFrame: (callback: FrameRequestCallback) => number;
-
-requestAnimationFrame = (callback): number => {
+export const requestAnimationFrame = (callback: FrameRequestCallback): IDisposable => {
     let doRequestAnimationFrame = window.requestAnimationFrame ||
         (window as any).mozRequestAnimationFrame || 
         (window as any).webkitRequestAnimationFrame ||
         (window as any).msRequestAnimationFrame ||
         _simulateRequestAnimationFrame;
     
-    return doRequestAnimationFrame.call(window, callback);
+    const token = doRequestAnimationFrame.call(window, callback);
+    return toDisposable(() => __cancelAnimationFrame(token));
 }
  
  /**
   * @readonly The method may be passed into a handle which is returned when the 
   * request was succeed to cancel the corresponding callback animation.
   */
-export let cancelAnimationFrame: (handle: number) => void;
-
-cancelAnimationFrame = (handle: number): void => {
+const __cancelAnimationFrame = (handle: number): void => {
     window.cancelAnimationFrame(handle);
 }
-    
- 

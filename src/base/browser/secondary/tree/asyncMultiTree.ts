@@ -7,7 +7,7 @@ import { DisposableManager, IDisposable } from "src/base/common/dispose";
 import { Event, Register } from "src/base/common/event";
 import { Weakmap } from "src/base/common/map";
 import { IScrollEvent } from "src/base/common/scrollable";
-import { ITreeMouseEvent, ITreeNode, ITreeNodeItem } from "src/base/browser/secondary/tree/tree";
+import { ITreeCollapseStateChangeEvent, ITreeMouseEvent, ITreeNode, ITreeNodeItem, ITreeSpliceEvent } from "src/base/browser/secondary/tree/tree";
 import { AsyncMultiTreeModel, IAsyncMultiTreeModel } from "src/base/browser/secondary/tree/asyncMultiTreeModel";
 import { Iterable } from "src/base/common/iterable";
 import { ITreeModelSpliceOptions } from "src/base/browser/secondary/tree/indexTreeModel";
@@ -28,16 +28,36 @@ export interface IAsyncChildrenProvider<T> {
      */
     getChildren(data: T): T[] | Promise<T[]>;
 
+    /**
+     * @description Determines if the given data should be collapsed when 
+     * constructing.
+     */
+    collapseByDefault?: (data: T) => boolean;
+
 }
 
 /**
  * An internal data structure used in {@link AsyncMultiTree}.
  */
 export interface IAsyncTreeNode<T> {
+    
+    /** The user-data. */
     data: T;
+
+    /** The parent of the current node. */
     parent: IAsyncTreeNode<T> | null;
+
+    /** The children nodes of the current node. */
     children: IAsyncTreeNode<T>[];
+
+    /** Determines if the current node is during the refreshing. */
     refreshing: Promise<void> | null;
+
+    /** 
+     * If the tree should be collapsed by default. 
+     * @default false
+     */
+    collapsed: boolean;
 }
 
 /**
@@ -73,6 +93,16 @@ export interface IAsyncMultiTree<T, TFilter> {
     DOMElement: HTMLElement;
 
     // [event]
+    
+    /**
+     * Events when tree splice happened.
+     */
+    get onDidSplice(): Register<ITreeSpliceEvent<T | null, TFilter>>;
+
+    /**
+     * Fires when the tree node collapse state changed.
+     */
+    get onDidChangeCollapseStateChange(): Register<ITreeCollapseStateChangeEvent<T | null, TFilter>>;
 
     /**
      * Fires when the {@link IAsyncMultiTree} is scrolling.
@@ -193,6 +223,15 @@ export interface IAsyncMultiTree<T, TFilter> {
     expandAll(): void;
 
     /**
+     * @description Given the height, re-layouts the height of the whole view.
+     * @param height The given height.
+     * 
+     * @note If no values are provided, it will sets to the height of the 
+     * corresponding DOM element of the view.
+     */
+    layout(height?: number): void;
+    
+    /**
      * @description Rerenders the whole view.
      */
     rerender(data: T): void;
@@ -287,6 +326,9 @@ export class AsyncMultiTree<T, TFilter = void> implements IAsyncMultiTree<T, TFi
 
     // [event]
 
+    get onDidSplice(): Register<ITreeSpliceEvent<T | null, TFilter>> { return Event.map(this._model.onDidSplice, e => this.__toTreeSpliceEvent(e)); }
+    get onDidChangeCollapseStateChange(): Register<ITreeCollapseStateChangeEvent<T | null, TFilter>> { return Event.map(this._model.onDidChangeCollapseStateChange, e => this.__toTreeChangeCollapseEvent(e)); }
+
     get onDidScroll(): Register<IScrollEvent> { return this._tree.onDidScroll; }
     get onDidChangeFocus(): Register<boolean> { return this._tree.onDidChangeFocus; }
     get onDidChangeItemFocus(): Register<IListTraitEvent> { return this._tree.onDidChangeItemFocus; }
@@ -346,6 +388,10 @@ export class AsyncMultiTree<T, TFilter = void> implements IAsyncMultiTree<T, TFi
 
     public expandAll(): void {
         this._tree.expandAll();
+    }
+
+    public layout(height?: number): void {
+        this._tree.layout(height);
     }
 
     public rerender(data: T): void {
@@ -427,9 +473,11 @@ export class AsyncMultiTree<T, TFilter = void> implements IAsyncMultiTree<T, TFi
      * @param node The provided async tree node.
      */
     private __toTreeNodeItem(node: IAsyncTreeNode<T>): ITreeNodeItem<IAsyncTreeNode<T>> {    
-        const collapsible: boolean = !!node.children.length;
-        const collapsed = false;
+        
+        const collapsible = !!node.children.length;
+        const collapsed = node.collapsed;
         const children = collapsible ? Iterable.map(node.children, node => this.__toTreeNodeItem(node)) : [];
+        
         return {
             data: node,
             collapsible: collapsible,
@@ -449,6 +497,39 @@ export class AsyncMultiTree<T, TFilter = void> implements IAsyncMultiTree<T, TFi
             parent: event.parent?.data || null,
             children: event.children.map(child => child!.data),
             depth: event.depth
+        };
+    }
+
+    /**
+     * @description Recursively converts {@link ITreeNode<IAsyncTreeNode<T>>} to
+     * {@link ITreeNode<T>}.
+     * @param node The provided node.
+     */
+    private __unwrapAsyncTreeNode(node: ITreeNode<IAsyncTreeNode<T> | null, TFilter>): ITreeNode<T | null, TFilter> {
+        return {
+            data: node.data!.data,
+            depth: node.depth,
+            collapsed: node.collapsed,
+            collapsible: node.collapsible,
+            visible: node.visible,
+            visibleNodeCount: node.visibleNodeCount,
+            parent: this.__unwrapAsyncTreeNode(node.parent!),
+            children: node.children.map(child => this.__unwrapAsyncTreeNode(child)),
+        };
+    }
+
+    // REVIEW: this causes recursively converting, prob a pref issue
+    private __toTreeSpliceEvent(event: ITreeSpliceEvent<IAsyncTreeNode<T> | null, TFilter>): ITreeSpliceEvent<T | null, TFilter> {
+        return {
+            deleted: event.deleted.map(node => this.__unwrapAsyncTreeNode(node)),
+            inserted: event.inserted.map(node => this.__unwrapAsyncTreeNode(node))
+        };
+    }
+
+    // REVIEW: this causes recursively converting, prob a pref issue
+    private __toTreeChangeCollapseEvent(event: ITreeCollapseStateChangeEvent<IAsyncTreeNode<T> | null, TFilter>): ITreeCollapseStateChangeEvent<T | null, TFilter> {
+        return {
+            node: this.__unwrapAsyncTreeNode(event.node)
         };
     }
     

@@ -1,4 +1,5 @@
 import { AsyncMultiTree, IAsyncMultiTree } from "src/base/browser/secondary/tree/asyncMultiTree";
+import { ITreeMouseEvent, ITreeSpliceEvent } from "src/base/browser/secondary/tree/tree";
 import { Disposable, DisposableManager } from "src/base/common/dispose";
 import { Emitter, Register } from "src/base/common/event";
 import { URI } from "src/base/common/file/uri";
@@ -23,6 +24,16 @@ export interface INotebook {
     onDidVisibilityChange: Register<boolean>;
 
     /**
+     * Fires when the item in the notebook is clicked.
+     */
+    onClick: Register<ITreeMouseEvent<ExplorerItem>>;
+    
+    /**
+     * Fires when the content of the notebook is changed.
+     */
+    onDidChangeContent: Register<ITreeSpliceEvent<ExplorerItem | null, void>>;
+
+    /**
      * @description Sets the visibility of the notebook in the explorer.
      * @param value The provided value of visibility.
      * 
@@ -36,11 +47,45 @@ export interface INotebook {
      */
     isVisible(): boolean;
 
-    // TODO
+    /**
+     * @description Building the whole notebook asynchronously by the given root 
+     * path.
+     * @param root The root path.
+     * @returns If the initialization successed. Undefined => fails.
+     */
+    init(root: URI): Promise<boolean>;
+
+    /**
+     * @description Given the height, re-layouts the height of the whole view.
+     * @param height The given height.
+     * 
+     * @note If no values are provided, it will sets to the height of the 
+     * corresponding DOM element of the view.
+     */
+    layout(height?: number): void;
+
+    /**
+     * @description Given the {@link ExplorerItem}, refresh the whole notebook 
+     * structure asynchronously.
+     * @param item The provided explorer item. Default is to refresh the whole 
+     * notebook.
+     */
     refresh(item?: ExplorerItem): Promise<void>;
 
-    // TODO
-    select(uri: URI): Promise<void>;
+    /**
+     * @description Given the {@link URI}, selecting / displaying / expanding 
+     * the corresponding item {@link ExplorerItem} in the view.
+     * @param uri The URI of the item.
+     * @returns A boolean determines whether the operation success.
+     */
+    select(uri: URI): Promise<boolean>;
+
+}
+
+/**
+ * @description An constructor option for {@link Notebook}.
+ */
+export interface INotebookOptions {
 
 }
 
@@ -68,64 +113,25 @@ export class Notebook extends Disposable implements INotebook {
 
     // [event]
 
-    private _onDidCreationFinished = this.__register(new Emitter<boolean>());
-    public onDidCreationFinished = this._onDidCreationFinished.registerListener;
+    private readonly _onDidCreationFinished = this.__register(new Emitter<boolean>());
+    public readonly onDidCreationFinished = this._onDidCreationFinished.registerListener;
 
-    private _onDidVisibilityChange = this.__register(new Emitter<boolean>());
-    public onDidVisibilityChange = this._onDidVisibilityChange.registerListener;
+    private readonly _onDidVisibilityChange = this.__register(new Emitter<boolean>());
+    public readonly onDidVisibilityChange = this._onDidVisibilityChange.registerListener;
+
+    get onClick() { return this._tree.onClick; }
+    get onDidChangeContent() { return this._tree.onDidSplice; }
 
     // [constructor]
 
     constructor(
-        root: URI, 
         container: HTMLElement,
         private fileService: IFileService,
+        opts: INotebookOptions = {},
     ) {
         super();
-
         this._container = container;
 
-        this.fileService.stat(root, { 
-            resolveChildren: true, // sets true since we need the frist level of the notebook
-        })
-        .then(async rootStat => {
-        
-            this._root = new ExplorerItem(rootStat);
-            await this.__createTree(container, this._root);
-
-            /**
-             * auto register tree listeners once the visibility of the notebook 
-             * changed.
-             */
-            let listeners: DisposableManager | undefined;
-            this.onDidVisibilityChange(visibility => {
-
-                if (visibility) {
-                    // re-register all the listeners to the tree.
-                    if (listeners && !listeners.disposed) {
-                        listeners.dispose();
-                    }
-                    listeners = this.__registerTreeListeners();
-                }
-
-                if (!visibility && listeners && !listeners.disposed) {
-                    listeners.dispose();
-                }
-
-            });
-
-            // Fires the event
-
-            this._visible = true;
-            this._onDidVisibilityChange.fire(true);
-            this._onDidCreationFinished.fire(true);
-        })
-        .catch(err => {
-            // logService.trace(err);
-            this._onDidVisibilityChange.fire(false);
-            this._onDidCreationFinished.fire(false);
-        });
-        
     }
 
     // [get method]
@@ -134,8 +140,33 @@ export class Notebook extends Disposable implements INotebook {
 
     // [public method]
 
-    public setVisible(value: boolean): void {
+    public layout(height?: number): void {
+        if (this._visible) {
+            this._tree.layout(height);
+        }
+    }
+
+    public async init(root: URI): Promise<boolean> {
         
+        try {
+            const rootStat = await this.fileService.stat(root, { resolveChildren: true });
+            this._root = new ExplorerItem(rootStat);
+            await this.__createTree(this._container, this._root);
+
+            this.__registerListeners();
+
+            this.__resolveState(true);
+        }
+        
+        catch (err) {
+            this.__resolveState(false);
+            return false;
+        }
+
+        return true;
+    }
+
+    public setVisible(value: boolean): void {
         if (this._visible === value) {
             return;
         }
@@ -157,8 +188,9 @@ export class Notebook extends Disposable implements INotebook {
         return this._tree.refresh(item ?? this._tree.root());
     }
 
-    public async select(uri: URI): Promise<void> {
-        
+    public async select(uri: URI): Promise<boolean> {
+        // TODO
+        return false;
     }
 
     /**
@@ -166,13 +198,6 @@ export class Notebook extends Disposable implements INotebook {
      */
     public toJSON(): string {
         return JSON.stringify(this._tree, this.__mapToJsonReplacer, 2);
-    }
-
-    /**
-     * @description destroy the notebook instance.
-     */
-    public destory(): void {
-        
     }
 
     // [private]
@@ -196,25 +221,20 @@ export class Notebook extends Disposable implements INotebook {
         );
 
         this._tree = tree;
+        this.__register(tree);
         return treeCreationPromise;
     }
 
     /**
-     * @description Registers a series of listeners to the tree.
-     * @returns Returns a {@link DisposableManager} that maintains all the 
-     * listeners.
+     * @description Registers all the basic actions of the {@link Notebook}.
      */
-    private __registerTreeListeners(): DisposableManager {
-        
-        const disposables = new DisposableManager();
+    private __registerListeners(): void {
 
-        // REVIEW
-        disposables.register(this._tree.onClick(async node => {
+        this._tree.onClick(async (node) => {
             this._tree.toggleCollapseOrExpand(node.data!, false);
             await this._tree.refresh(node.data!);
-        }));
+        });
 
-        return disposables;
     }
 
     /**
@@ -229,7 +249,18 @@ export class Notebook extends Disposable implements INotebook {
             };
         } else {
         return value;
+        }
     }
-}
+
+    /**
+     * @description Change the current notebook state by the given result.
+     * @param result Result in boolean form.
+     */
+    private __resolveState(result: boolean): void {
+        // TODO: this.setVisible(result);
+        this._visible = result;
+        this._onDidVisibilityChange.fire(result);
+        this._onDidCreationFinished.fire(result);
+    }
 
 }

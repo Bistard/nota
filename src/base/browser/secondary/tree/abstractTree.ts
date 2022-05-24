@@ -1,4 +1,4 @@
-import { ITreeModel, ITreeMouseEvent, ITreeNode } from "src/base/browser/secondary/tree/tree";
+import { ITreeCollapseStateChangeEvent, ITreeModel, ITreeMouseEvent, ITreeNode, ITreeSpliceEvent } from "src/base/browser/secondary/tree/tree";
 import { ITreeListRenderer, TreeItemRenderer } from "src/base/browser/secondary/tree/treeListRenderer";
 import { ITreeListWidget, TreeListWidget } from "src/base/browser/secondary/tree/treeListWidget";
 import { IListItemProvider, TreeListItemProvider } from "src/base/browser/secondary/listView/listItemProvider";
@@ -6,7 +6,7 @@ import { IListTraitEvent } from "src/base/browser/secondary/listWidget/listTrait
 import { IListMouseEvent } from "src/base/browser/secondary/listWidget/listWidget";
 import { IListDragAndDropProvider } from "src/base/browser/secondary/listWidget/listWidgetDragAndDrop";
 import { DisposableManager, IDisposable } from "src/base/common/dispose";
-import { Event, Register } from "src/base/common/event";
+import { Event, Register, RelayEmitter } from "src/base/common/event";
 import { ISpliceable } from "src/base/common/range";
 import { IScrollEvent } from "src/base/common/scrollable";
 
@@ -30,6 +30,17 @@ export interface IAbstractTree<T, TFilter, TRef> {
     DOMElement: HTMLElement;
 
     // [event]
+
+    
+    /**
+     * Events when tree splice happened.
+     */
+    get onDidSplice(): Register<ITreeSpliceEvent<T, TFilter>>;
+
+    /**
+     * Fires when the tree node collapse state changed.
+     */
+    get onDidChangeCollapseStateChange(): Register<ITreeCollapseStateChangeEvent<T, TFilter>>;
 
     /**
      * Fires when the {@link IAbstractTree} is scrolling.
@@ -63,6 +74,18 @@ export interface IAbstractTree<T, TFilter, TRef> {
     
     // [method - general]
 
+    /**
+     * @description Given the height, re-layouts the height of the whole view.
+     * @param height The given height.
+     * 
+     * @note If no values are provided, it will sets to the height of the 
+     * corresponding DOM element of the view.
+     */
+    layout(height?: number): void;
+
+    /**
+     * @description Disposes all the used resources.
+     */
     dispose(): void;
 
     // [method - tree]
@@ -172,19 +195,27 @@ export abstract class AbstractTree<T, TFilter, TRef> implements IAbstractTree<T,
         opts: IAbstractTreeOptions<T> = {}
     ) {
 
+        /**
+         * Since the tree model is not created yet, we need a relay to be able 
+         * to create the renderers first. After the model is created, we can 
+         * have the chance to reset the input event emitter.
+         */
+        const relayEmitter = new RelayEmitter<ITreeCollapseStateChangeEvent<T, TFilter>>();
+
         // wraps each tree list view renderer with a basic tree item renderer.
-        renderers = renderers.map(renderer => new TreeItemRenderer<T, TFilter, any>(renderer));
+        renderers = renderers.map(renderer => new TreeItemRenderer<T, TFilter, any>(renderer, relayEmitter.registerListener));
 
         this._view = new TreeListWidget<T, TFilter>(
             container, 
             renderers, 
             new TreeListItemProvider(itemProvider), 
-            {
-                // TODO:
-            }
+            {}
         );
+
         this._model = this.createModel(this._view);
 
+        // reset the input event emitter once the model is created.
+        relayEmitter.setInput(this._model.onDidChangeCollapseStateChange);
 
         // dispose registration
         this._disposables.register(this._view);
@@ -192,6 +223,9 @@ export abstract class AbstractTree<T, TFilter, TRef> implements IAbstractTree<T,
     }
 
     // [event]
+
+    get onDidSplice(): Register<ITreeSpliceEvent<T, TFilter>> { return this._model.onDidSplice; }
+    get onDidChangeCollapseStateChange(): Register<ITreeCollapseStateChangeEvent<T, TFilter>> { return this._model.onDidChangeCollapseStateChange; }
 
     get onDidScroll(): Register<IScrollEvent> { return this._view.onDidScroll; }
     get onDidChangeFocus(): Register<boolean> { return this._view.onDidChangeFocus; }
@@ -261,6 +295,10 @@ export abstract class AbstractTree<T, TFilter, TRef> implements IAbstractTree<T,
 
     get DOMElement(): HTMLElement {
         return this._view.DOMElement;
+    }
+
+    public layout(height?: number): void {
+        this._view.layout(height);
     }
 
     public dispose(): void {

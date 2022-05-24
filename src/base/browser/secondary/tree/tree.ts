@@ -3,6 +3,29 @@
  * A simple file for common and useful interfaces relates to tree.
  ******************************************************************************/
 
+import { Register } from "src/base/common/event";
+
+/**
+ * Type of event when the {@link IIndexTreeModel} splice did happen.
+ */
+export interface ITreeSpliceEvent<T, TFilter> {
+    
+    /** Inserted nodes */
+    inserted: ITreeNode<T, TFilter>[];
+	
+    /** Deleted nodes */
+    deleted: ITreeNode<T, TFilter>[];
+}
+
+/**
+ * Fires when the collapse state of the tree node is changed.
+ */
+export interface ITreeCollapseStateChangeEvent<T, TFilter> {
+    
+    /** The corresponding tree node. */
+    node: ITreeNode<T, TFilter>;
+}
+
 /**
  * An internal data structure for {@link ITreeModel}. Represents each tree node
  * in a tree-like structure.
@@ -88,6 +111,16 @@ export interface ITreeModel<T, TFilter = void, TRef = number[]> {
      * Represents the root of the tree.
      */
     readonly root: TRef;
+
+    /**
+     * Events when tree splice happened.
+     */
+    readonly onDidSplice: Register<ITreeSpliceEvent<T, TFilter>>;
+
+    /**
+     * Fires when the tree node collapse state changed.
+     */
+    readonly onDidChangeCollapseStateChange: Register<ITreeCollapseStateChangeEvent<T, TFilter>>;
 
     /**
      * @description Check if the given node is existed.

@@ -1,14 +1,21 @@
 import { AsyncWeakMap, IAsyncChildrenProvider, IAsyncTreeNode } from "src/base/browser/secondary/tree/asyncMultiTree";
 import { IMultiTree } from "src/base/browser/secondary/tree/multiTree";
-import { ITreeModel, ITreeNode } from "src/base/browser/secondary/tree/tree";
+import { ITreeModel, ITreeSpliceEvent, ITreeNode, ITreeCollapseStateChangeEvent } from "src/base/browser/secondary/tree/tree";
+import { Register } from "src/base/common/event";
 import { Iterable } from "src/base/common/iterable";
 import { isIterable } from "src/base/common/type";
 
 /**
  * An interface only for {@link AsyncMultiTreeModel}.
+ * 
+ * @note We are omitting these properties because the type does not fit.
  */
-export interface IAsyncMultiTreeModel<T, TFilter> extends ITreeModel<T, TFilter, T> {
+export interface IAsyncMultiTreeModel<T, TFilter> extends Omit<ITreeModel<T, TFilter, T>, 'onDidSplice' | 'onDidChangeCollapseStateChange'> {
     
+    get onDidSplice(): Register<ITreeSpliceEvent<IAsyncTreeNode<T> | null, TFilter>>;
+    
+    get onDidChangeCollapseStateChange(): Register<ITreeCollapseStateChangeEvent<IAsyncTreeNode<T> | null, TFilter>>;
+
     /**
      * @description Refreshing the tree structure of the given node and all its 
      * descendants.
@@ -92,6 +99,11 @@ export class AsyncMultiTreeModel<T, TFilter = void> implements IAsyncMultiTreeMo
         this._statFetching = new Map();
         this._nodeRefreshing = new Map();
     }
+
+    // [event]
+
+    get onDidSplice(): Register<ITreeSpliceEvent<IAsyncTreeNode<T> | null, TFilter>> { return this._tree.onDidSplice; }
+    get onDidChangeCollapseStateChange(): Register<ITreeCollapseStateChangeEvent<IAsyncTreeNode<T> | null, TFilter>> { return this._tree.onDidChangeCollapseStateChange; }
 
     // [public method]
 
@@ -212,7 +224,8 @@ export class AsyncMultiTreeModel<T, TFilter = void> implements IAsyncMultiTreeMo
             data: data,
             parent: parent,
             children: [],
-            refreshing: null
+            refreshing: null,
+            collapsed: false,
         };
     }
     
@@ -337,24 +350,38 @@ export class AsyncMultiTreeModel<T, TFilter = void> implements IAsyncMultiTreeMo
             return [];
         }
 
-        // create async tree node for each child
+        // create async tree node for each child, 
+        const childrenNodesForRefresh: IAsyncTreeNode<T>[] = [];
         const childrenNodes = children.map<IAsyncTreeNode<T>>(child => {
-            return this.__createAsyncTreeNode(child, node);
-        });
 
-        // update new children mapping
-        for (const newChild of childrenNodes) {
-            this._nodes.set(newChild.data, newChild);
-        }
+            const hasChildren = this._childrenProvider.hasChildren(child);
+            const childAsyncNode = this.__createAsyncTreeNode(child, node);
+
+            /**
+             * the children of the current children should not be collapsed, we
+             * need to keep refreshing on next time.
+             */
+            if (hasChildren && !!this._childrenProvider.collapseByDefault?.(child)) {
+                childAsyncNode.collapsed = false;
+                childrenNodesForRefresh.push(childAsyncNode);
+            }
+
+            return childAsyncNode;
+        });
 
         // delete the old children mapping
         for (const oldChild of node.children) {
             this.__dfsDelete(oldChild);
         }
+
+        // update new children mapping
+        for (const newChild of childrenNodes) {
+            this._nodes.set(newChild.data, newChild);
+        }
         
         node.children.splice(0, node.children.length, ...childrenNodes);
 
-        return childrenNodes;
+        return childrenNodesForRefresh;
     }
 
     /**

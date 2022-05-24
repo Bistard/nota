@@ -5,9 +5,6 @@
 .sash {
     position: absolute;
     background-color: none;
-
-    background-color: black;
-
     pointer-events: initial;
     user-select: none;
 }
@@ -25,5 +22,5 @@
 }
 
 .sash:hover {
-    background-color: blue;
+    background-color: gainsboro;
 }

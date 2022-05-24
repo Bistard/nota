@@ -54,9 +54,9 @@ export abstract class AbstractScrollbar extends Widget {
         this._host = opts.host;
         this._scrollable = opts.scrollable;
 
-        this._scrollable.onDidScroll(e => {
+        this.__register(this._scrollable.onDidScroll(e => {
             this.__onDidScroll(e);
-        });
+        }));
 
         this._visibilityController = new VisibilityController('visible', 'invisible', 'fade');
     }
@@ -106,7 +106,7 @@ export abstract class AbstractScrollbar extends Widget {
         this.__renderScrollbar(this._scrollable.getScrollbarSize());
 
         // mouse down on the scrollbar or slider
-        this.onMousedown(this._element!, (e) => {
+        this.__register(this.onMousedown(this._element!, (e) => {
             e.stopPropagation();
 
             if (this._scrollable.required() === false) {
@@ -114,7 +114,7 @@ export abstract class AbstractScrollbar extends Widget {
             }
 
             this.__scrollbarOrSliderOnDrag(e);
-        });
+        }));
 
         // render slider
         this.__renderSlider(this._scrollable.getSliderSize(), this._scrollable.getSliderPosition());
@@ -122,9 +122,13 @@ export abstract class AbstractScrollbar extends Widget {
 
     /**
      * @description Rerenders the slider.
+     * @param size the size of the scrollbar.
+     * @param position the position of the scrollbar.
+     * 
+     * @note if any parameters is not provided, take values from {@link Scrollable}.
      */
-    public rerender(): void {
-        this.__updateSlider(this._scrollable.getSliderSize(), this._scrollable.getSliderPosition());
+    public rerender(size?: number, position?: number): void {
+        this.__updateSlider(size ?? this._scrollable.getSliderSize(), position ?? this._scrollable.getSliderPosition());
     }
 
     /**
@@ -141,14 +145,14 @@ export abstract class AbstractScrollbar extends Widget {
         this._visibilityController.setVisibility(false);
     }
     
-    // [protected methods]
+    // [private helper methods]
 
     /**
      * @description Renders the slider.
      * @param size The width / height of the slider.
      * @param position The top / left of the slider.
      */
-    protected __renderSlider(size: number, position: number): void {
+    private __renderSlider(size: number, position: number): void {
         this.__updateSlider(size, position);
         this._element!.appendChild(this._slider);
     }
@@ -158,10 +162,6 @@ export abstract class AbstractScrollbar extends Widget {
      * @param event The scroll event.
      */
     private __onDidScroll(event: IScrollEvent): void {
-        // either no changes or not required, we do nothing
-        if (event.delta === 0 && this._scrollable.required() === false) {
-            return;
-        }
         this.rerender();
     }
 

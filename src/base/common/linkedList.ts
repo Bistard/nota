@@ -1,10 +1,14 @@
 
 export interface ILinkedList<T> {
 
-    /** @description Determines if the list is empty. */
+    /** 
+     * @description Determines if the list is empty. 
+     */
     empty(): boolean;
 
-    /** @description Returns the size of the list. */
+    /** 
+     * @description Returns the size of the list. 
+     */
     size(): number;
 
     /**
@@ -13,10 +17,14 @@ export interface ILinkedList<T> {
      */
     clear(): number;
 
-    /** @description Returns the first node in the list. */
+    /** 
+     * @description Returns the first node in the list. 
+     */
     front(): ListNode<T> | undefined;
 
-    /** @description Returns the last node in the list. */
+    /** 
+     * @description Returns the last node in the list. 
+     */
     back(): ListNode<T> | undefined;
 
     /**
@@ -69,7 +77,10 @@ export interface ILinkedList<T> {
     exist(data: T): boolean;
 }
 
-export class ListNode<T> {
+/**
+ * @internal
+ */
+class ListNode<T> {
 
     constructor(
         public readonly data: T,

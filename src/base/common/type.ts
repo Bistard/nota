@@ -5,6 +5,13 @@
 export type Pair<T, R> = [T, R];
 
 /**
+ * Make all the fields become required.
+ */
+export type AllRequired<T> = {
+    [P in keyof T]-?: T[P];
+};
+
+/**
  * @description Checks if it is the type `object`.
  */
 export function isObject(obj: any): obj is any {

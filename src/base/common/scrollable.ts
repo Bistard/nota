@@ -12,6 +12,7 @@ import { Emitter } from "src/base/common/event";
     prevScrollPosition: number;
     scrollPosition: number;
 
+    /** The delta change in scroll position */
     delta: number;
 
     prevViewportSize: number;
@@ -57,6 +58,11 @@ const MIN_SLIDER_SIZE = 20; // pixels
  * 
  * A {@link Scrollable} only specifies one type of direction, either vertical or
  * horizontal.
+ * 
+ * Any of the following fields is changed will fires the event `onDidScroll`.
+ *  1) viewport size 
+ *  2) scroll size 
+ *  3) scroll position
  */
 export class Scrollable implements IScrollable, IDisposable {
 
@@ -142,6 +148,7 @@ export class Scrollable implements IScrollable, IDisposable {
             const prev = this.clone();
 
             this._viewportSize = size;
+            this.__validateValue();
             this.__recalculate();
 
             this._onDidScroll.fire(this.__createScrollEvent(prev));
@@ -153,6 +160,7 @@ export class Scrollable implements IScrollable, IDisposable {
             const prev = this.clone();
 
             this._scrollSize = size;
+            this.__validateValue();
             this.__recalculate();
 
             this._onDidScroll.fire(this.__createScrollEvent(prev));
@@ -164,6 +172,7 @@ export class Scrollable implements IScrollable, IDisposable {
             const prev = this.clone();
             
             this._scrollPosition = position;
+            this.__validateValue();
             this.__onlyRecalculateSliderPosition();
 
             this._onDidScroll.fire(this.__createScrollEvent(prev));
@@ -237,6 +246,9 @@ export class Scrollable implements IScrollable, IDisposable {
          */
         this._required = this._scrollSize > 0 && this._scrollSize > this._viewportSize;
         if (!this._required) {
+            this._sliderSize = 0;
+            this._sliderRatio = 0;
+            this._sliderPosition = 0;
             return;
         }
 
@@ -246,7 +258,7 @@ export class Scrollable implements IScrollable, IDisposable {
          */
         this._sliderSize = Math.max(
             MIN_SLIDER_SIZE, 
-            Math.floor(this._viewportSize * (this._viewportSize / this._scrollSize))
+            Math.floor(this._viewportSize * this._viewportSize / this._scrollSize)
         );
 
         /**
@@ -277,13 +289,31 @@ export class Scrollable implements IScrollable, IDisposable {
     }
 
     /**
+     * @description Validates the current numerated data is not out of range.
+     */
+    private __validateValue(): void {
+        if (this._viewportSize < 0) {
+            this._viewportSize = 0;
+        }
+        
+        if (this._scrollPosition + this._viewportSize > this._scrollSize) {
+            this._scrollPosition = this._scrollSize - this._viewportSize;
+        }
+
+        if (this._scrollPosition < 0) {
+            this._scrollPosition = 0;
+        }
+    }
+
+    /**
      * @description Generates a standard scroll event based on a previous 
      * scrollable status.
      * @param prev The previous scrollable status.
      * @returns A standard scroll event.
      */
     private __createScrollEvent(prev: Scrollable): IScrollEvent {
-		return {
+		
+        return {
             prevScrollSize: prev._scrollSize,
             scrollSize: this._scrollSize,
 

@@ -1,5 +1,6 @@
-import { ITreeNode } from "src/base/browser/secondary/tree/tree";
+import { ITreeCollapseStateChangeEvent, ITreeNode } from "src/base/browser/secondary/tree/tree";
 import { IListViewMetadata, IListViewRenderer, RendererType } from "src/base/browser/secondary/listView/listRenderer";
+import { Event, Register } from "src/base/common/event";
 
 /**
  * A basic type of renderer in {@link IListView} that manages to render tree 
@@ -21,6 +22,13 @@ export interface ITreeListRenderer<T, TFilter = void, TMetadata = void> extends 
      */
     updateIndent?(item: ITreeNode<T, TFilter>, indentElement: HTMLElement): void;
 
+    /**
+     * Will fire automatically when the tree node collapse state is changed.
+     * 
+     * @note From now on renderer may responses to the change of node collapse 
+     * state change.
+     */
+    onDidChangeCollapseState?: Register<T>;
 }
 
 /**
@@ -63,22 +71,39 @@ export class TreeItemRenderer<T, TFilter, TMetadata> implements ITreeListRendere
 
     // [field]
 
-    public static readonly defaultIndentation = 4;
+    public static readonly defaultIndentation = 16;
 
     public readonly type: RendererType;
 
+    /** the nested renderer. */
     private _renderer: ITreeListRenderer<T, TFilter, TMetadata>;
 
     private _eachIndentSize: number;
 
+    /** 
+     * we need to stores the metadata so that once the collapse state changed, 
+     * we still have a way to access the metadata. 
+     */
+    private _nodeMap = new Map<T, ITreeNode<T, TFilter>>();
+    private _metadataMap = new Map<ITreeNode<T, TFilter>, ITreeListItemMetadata<TMetadata>>();
+
     // [constructor]
 
     constructor(
-        nestedRenderer: ITreeListRenderer<T, TFilter, TMetadata>
+        nestedRenderer: ITreeListRenderer<T, TFilter, TMetadata>,
+        onDidChangeCollapseState: Register<ITreeCollapseStateChangeEvent<T, TFilter>>,
     ) {
         this._renderer = nestedRenderer;
         this.type = this._renderer.type;
         this._eachIndentSize = TreeItemRenderer.defaultIndentation;
+
+        // listen to the outer event.
+        Event.map(onDidChangeCollapseState, e => e.node)((node) => this.__doDidChangeCollapseState(node));
+
+        // listen to the nested renderer.
+        if (nestedRenderer.onDidChangeCollapseState) {
+            nestedRenderer.onDidChangeCollapseState((e) => this.__didChangeCollapseStateByData(e));
+        }
     }
 
     // [public method]
@@ -117,6 +142,15 @@ export class TreeItemRenderer<T, TFilter, TMetadata> implements ITreeListRendere
 
     public update(item: ITreeNode<T, TFilter>, index: number, data: ITreeListItemMetadata<TMetadata>, size?: number): void {
         
+        /**
+         * representing we are inserting the item into the tree, so we need to 
+         * store the metadata for later on did change collapse state usage.
+         */
+        if (typeof size === 'number') {
+            this._nodeMap.set(item.data, item);
+            this._metadataMap.set(item, data);
+        }
+
         const indentSize = TreeItemRenderer.defaultIndentation + (item.depth - 1) * this._eachIndentSize;
         data.indentation.style.paddingLeft = `${indentSize}px`;
 
@@ -140,10 +174,42 @@ export class TreeItemRenderer<T, TFilter, TMetadata> implements ITreeListRendere
 
     }
 
+    public disposeData(item: ITreeNode<T, TFilter>, index: number, data: ITreeListItemMetadata<TMetadata>, size?: number): void {
+        if (typeof size === 'number') {
+            this._nodeMap.delete(item.data);
+            this._metadataMap.delete(item);
+        }
+
+        if (this._renderer.disposeData) {
+            this._renderer.disposeData(item, index, data.nestedMetadata, size);
+        }
+    }
+
     public dispose(data: ITreeListItemMetadata<TMetadata>): void {
         this._renderer.dispose(data.nestedMetadata);
     }
 
     // [private helper method]
+
+    private __didChangeCollapseStateByData(data: T): void {
+        const node = this._nodeMap.get(data);
+        
+        // the node which changed its collapse state is not rendering, we ignore it.
+        if (node === undefined) {
+            return;
+        }
+
+        this.__doDidChangeCollapseState(node);
+    }
+
+    private __doDidChangeCollapseState(node: ITreeNode<T, TFilter>): void {        
+        const metadata = this._metadataMap.get(node);
+
+        if (metadata === undefined) {
+            return;
+        }
+
+        this.updateIndent(node, metadata.indentation);
+    }
 
 }

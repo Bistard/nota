@@ -3,19 +3,28 @@ import { HorizontalScrollbar } from "src/base/browser/basic/scrollbar/horizontal
 import { VerticalScrollbar } from "src/base/browser/basic/scrollbar/verticalScrollbar";
 import { IWidget, Widget } from "src/base/browser/basic/widget";
 import { IScrollableWidgetExtensionOpts, IScrollableWidgetOpts, resolveScrollableWidgetExtensionOpts, ScrollbarType } from "src/base/browser/secondary/scrollableWidget/scrollableWidgetOptions";
-import { Emitter, Register } from "src/base/common/event";
+import { Register } from "src/base/common/event";
 import { IScrollEvent, Scrollable } from "src/base/common/scrollable";
 
 export interface IScrollableWidget extends IWidget {
 
+    /**
+     * Fires when scrolling happens.
+     */
     onDidScroll: Register<IScrollEvent>;
 
+    /**
+     * Returns the inside {@link Scrollable}.
+     */
     getScrollable(): Scrollable;
 
-    render(element: HTMLElement): void;
-    
 }
 
+/**
+ * @class Requires a {@link Scrollable} which handles all the calculations of 
+ * the numerated data for scrolling, then the {@link ScrollableWidget} will 
+ * react to it and render the corresponding {@link AbstractScrollbar} correctly.
+ */
 export class ScrollableWidget extends Widget implements IScrollableWidget {
 
     // [fields]
@@ -28,11 +37,9 @@ export class ScrollableWidget extends Widget implements IScrollableWidget {
     protected _isSliderDragging: boolean;
     protected _isMouseOver: boolean;
 
-    /**
-     * fires when scroll happens.
-     */
-    private _onDidScroll = this.__register(new Emitter<IScrollEvent>());
-    public onDidScroll = this._onDidScroll.registerListener;
+    // [event]
+
+    public readonly onDidScroll: Register<IScrollEvent>;
 
     // [constructor]
 
@@ -56,17 +63,18 @@ export class ScrollableWidget extends Widget implements IScrollableWidget {
         } else {
             this._scrollbar = new HorizontalScrollbar(this._scrollable, host);
         }
+
+        this.onDidScroll = this._scrollable.onDidScroll;
+
+        this.__register(scrollable);
+        this.__register(this._scrollbar);
     }
 
-    // [methods - get]
+    // [methods]
 
     public getScrollable(): Scrollable {
         return this._scrollable;
     }
-
-    // [methods - set]
-
-    // [methods]
 
     public override render(element: HTMLElement): void {
         super.render(element);
@@ -79,10 +87,6 @@ export class ScrollableWidget extends Widget implements IScrollableWidget {
 
         // register on mouse wheel listener
         this.__registerMouseWheelListener();
-
-        this._scrollable.onDidScroll((e: IScrollEvent) => {
-            this._onDidScroll.fire(e);
-        });
 
         // render scrollbar
         const scrollbarElement = document.createElement('div');
@@ -109,7 +113,7 @@ export class ScrollableWidget extends Widget implements IScrollableWidget {
      * @description Invokes when mouse wheel scroll happens.
      * @param event The scroll delta.
      */
-     private __onDidWheel(event: WheelEvent): void {
+    private __onDidWheel(event: WheelEvent): void {
         
         event.preventDefault();
 

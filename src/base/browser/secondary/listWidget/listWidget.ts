@@ -14,13 +14,16 @@ import { ListTraitRenderer } from "src/base/browser/secondary/listWidget/listTra
  */
 export interface IListMouseEvent<T> {
     /** The original brower event {@link MouseEvent}. */
-    browserEvent: MouseEvent,
+    browserEvent: MouseEvent;
 
-    /** The index of the clicked item. */
-    index: number,
+    /** The rendering index of the clicked item. */
+    renderIndex: number;
+
+    /** The actual index of the clicked item. */
+    actualIndex: number;
 
     /** The clicked item. */
-    item: T,
+    item: T;
 
     /** The position (top) relatives to the viewport. */
     top: number;
@@ -30,8 +33,8 @@ export interface IListDragEvent<T> {
     /** The original brower event {@link DragEvent}. */
     browserEvent: DragEvent;
 
-    /** The index of the drag / dragover / drop item. */
-    index: number;
+    /** The actual index of the drag / dragover / drop item. */
+    actualIndex: number;
     
     /** The drag / dragover / drop item. */
     item: T;
@@ -118,6 +121,15 @@ export interface IListWidget<T> extends IDisposable {
     onMousemove: Register<IListMouseEvent<T>>;
 
     // [methods]
+
+    /**
+     * @description Given the height, re-layouts the height of the whole view.
+     * @param height The given height.
+     * 
+     * @note If no values are provided, it will sets to the height of the 
+     * corresponding DOM element of the view.
+     */
+    layout(height?: number): void;
 
     /**
      * @description Rerenders the whole view.
@@ -227,6 +239,10 @@ export class ListWidget<T> implements IListWidget<T> {
         this.disposables.dispose();
     }
 
+    public layout(height?: number): void {
+        this.view.layout(height);
+    }
+
     public rerender(): void {
         this.view.rerender();
     }
@@ -259,7 +275,7 @@ export class ListWidget<T> implements IListWidget<T> {
             if (currIndex === index) return;
 
             const currElement = this.view.getElement(currIndex);
-            this.focused.unset(currIndex, currElement, false); // prevent fire twice
+            this.focused.unset(currIndex, currElement, false); // prevent fireing twice
         }
         // focus the new item
         this.focused.set(index, element);
@@ -307,13 +323,16 @@ export class ListWidget<T> implements IListWidget<T> {
      */
     private __toListMouseEvent(e: MouseEvent): IListMouseEvent<T> {
 
-        const [x, y] = DomUtility.getElementRelativeClick(e);
-        const index = this.view.renderIndexAt(y);
-        const item = this.view.getItem(index);
-        const viewportTop = this.view.getItemRenderTop(index);
+        const [x, y] = DomUtility.getRelativeClick(e, this.view.DOMElement);
+        const renderIndex = this.view.renderIndexAtVisible(y);
+        const actualIndex = this.view.indexFromEventTarget(e.target);
+        const item = this.view.getItem(actualIndex);
+        const viewportTop = this.view.getItemRenderTop(renderIndex);
+        
         return {
             browserEvent: e,
-            index: index,
+            renderIndex: renderIndex,
+            actualIndex: actualIndex,
             item: item,
             top: viewportTop
         };
@@ -345,11 +364,11 @@ export class ListWidget<T> implements IListWidget<T> {
      */
     private __toListDragEvent(event: DragEvent): IListDragEvent<T> {
 
-        const index = this.view.renderIndexAt(event.clientY);
-        const item = this.view.getItem(index);
+        const actualIndex = this.view.indexFromEventTarget(event.target);
+        const item = this.view.getItem(actualIndex);
         return {
             browserEvent: event,
-            index: index, 
+            actualIndex: actualIndex, 
             item: item
         }
     }
@@ -409,7 +428,7 @@ export class ListWidget<T> implements IListWidget<T> {
         // // https://stackoverflow.com/questions/21339924/drop-event-not-firing-in-chrome
         event.browserEvent.preventDefault();
 
-        console.log(event.index);
+        console.log(event.actualIndex);
 
     }
 
@@ -419,7 +438,7 @@ export class ListWidget<T> implements IListWidget<T> {
      * @param event The dragging event.
      */
     private __onDrop(event: IListDragEvent<T>): void {
-        // console.log('drop, ', event.index);
+        // console.log('drop, ', event.actualIndex);
     }
 
     /**
@@ -428,7 +447,7 @@ export class ListWidget<T> implements IListWidget<T> {
      * @param event The dragging event.
      */
     private __onDragleave(event: IListDragEvent<T>): void {
-        // console.log('dragleave, ', event.index);
+        // console.log('dragleave, ', event.actualIndex);
     }
 
     /**
@@ -437,7 +456,7 @@ export class ListWidget<T> implements IListWidget<T> {
      * @param event The dragging event.
      */
     private __onDragend(event: IListDragEvent<T>): void {
-        // console.log('dragend, ', event.index);
+        // console.log('dragend, ', event.actualIndex);
     }
 
 }

@@ -192,6 +192,8 @@ export namespace DomUtility
 	/**
 	 * @description Get the height of the content excluding padding and border.
 	 * @param element The HTMLElement.
+	 * 
+	 * @note If the element is NOT in the DOM tree, the behaviour is undefined.
 	 */
 	export function getContentHeight(element: HTMLElement): number {
 		const padding = getPaddingTop(element) + getPaddingBottom(element);
@@ -202,6 +204,8 @@ export namespace DomUtility
 	/**
 	 * @description Get the width of the content excluding padding and border.
 	 * @param element The HTMLElement.
+	 * 
+	 * @note If the element is NOT in the DOM tree, the behaviour is undefined.
 	 */
 	export function getContentWidth(element: HTMLElement): number {
 		const padding = getPaddingLeft(element) + getPaddingRight(element);
@@ -214,9 +218,14 @@ export namespace DomUtility
 	/**
 	 * @description Returns the relative click coordinates to the target element.
 	 * @param event The {@link MouseEvent}.
+	 * @param target The {@link EventTarget} we are relative with
 	 */
-	export function getElementRelativeClick(event: MouseEvent): Pair<number, number> {
-		const box: DOMRect = (event.currentTarget as HTMLElement).getBoundingClientRect();
+	export function getRelativeClick(event: MouseEvent, target?: EventTarget): Pair<number, number> {
+		let element = (target ?? event.currentTarget) as HTMLElement | null;
+		if (element === null) {
+			throw new Error('invalid event target');
+		}
+		let box: DOMRect = element.getBoundingClientRect();
 		return [
 			event.clientX - box.left,
 			event.clientY - box.top

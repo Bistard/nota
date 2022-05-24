@@ -1,4 +1,4 @@
-import { ifOrDefault } from "src/base/common/type";
+import { AllRequired, ifOrDefault } from "src/base/common/type";
 
 export const enum ScrollbarType { 
     vertical,
@@ -37,13 +37,8 @@ export interface IScrollableWidgetExtensionOpts {
     reverseMouseWheelDirection?: boolean;
 }
 
-export interface IScrollableWidgetOpts {
-
-    scrollbarType: ScrollbarType;
-    mouseWheelScrollSensibility: number;
-    mouseWheelFastScrollSensibility: number;
-    reverseMouseWheelDirection: boolean;
-
+export interface IScrollableWidgetOpts extends AllRequired<IScrollableWidgetExtensionOpts> {
+    // nothing
 }
 
 /**

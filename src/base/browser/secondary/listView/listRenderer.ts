@@ -6,9 +6,8 @@ import { DomUtility } from "src/base/common/dom";
  */
 export const enum RendererType {
 	
-	ListItem,
-
-	Explorer,
+	ListItem, /** {@link ListItemRenderer} */
+	Explorer, /** {@link ExplorerRenderer} */
 
 };
 
@@ -26,8 +25,8 @@ export interface IListViewMetadata {
 }
 
 /**
- * @description An interface that describes how to render an item in 
- * {@link ListView} with an specific type.
+ * @description An interface that describes how to render an item in {@link ListView} 
+ * with an specific type.
  * 
  * T: The type of element for updating.
  * TMetadata: type of the user-defined value which returned value by the method 
@@ -70,9 +69,22 @@ export interface IListViewRenderer<T, TMetadata> {
 	 * @description Dispose (destruct) the item.
 	 * @param data The user-defined data for disposing.
 	 * 
-	 * @note This method only invoked when removing an existed item from the {@link ListView}.
+	 * @note This method only invoked when 1) {@link ListViewCache} inside the 
+	 * list view is disposed 2) {@link ListView} is disposed.
 	 */
 	dispose(data: TMetadata): void;
+
+	/**
+	 * @description Some type of renderers have stored internal data, they need 
+	 * to be disposed when the item is removed from the DOM tree and that is what
+	 * this method is doing.
+	 * 
+	 * @param item The item with type T to be updated.
+	 * @param index The index of the item in {@link ListView}.
+	 * @param data The provided user-defined data for update purpose.
+	 * @param size The size of the rendered item.
+	 */
+	disposeData?(item: T, index: number, data: TMetadata, size?: number): void;
 }
 
 /**
@@ -140,7 +152,7 @@ export class ListItemRenderer<T> implements IListViewRenderer<T, HTMLElement> {
 	}
 
 	public dispose(data: HTMLElement): void {
-		// do nothing
+		// noop
 	}
 
 }
