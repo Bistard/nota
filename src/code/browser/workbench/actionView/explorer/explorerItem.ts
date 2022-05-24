@@ -67,8 +67,10 @@ export interface IExplorerItem {
     hasChildren(): boolean;
 
 	/**
-	 * @description 
-	 * @param fileService 
+	 * @description Refreshing (fetching) the basic children stat of the current 
+     * item.
+	 * @param fileService The given {@link IFileService} for fetching the children 
+     * of the current item.
 	 */
 	refreshChildren(fileService: IFileService): void | Promise<void>;
 
@@ -79,7 +81,7 @@ export interface IExplorerItem {
 }
 
 /**
- * @class // TODO
+ * @class A data structure used in {@link Notebook} for displaying.
  */
 export class ExplorerItem implements IExplorerItem {
 
@@ -142,7 +144,7 @@ export class ExplorerItem implements IExplorerItem {
 
 	public refreshChildren(fileService: IFileService): void | Promise<void> {
 
-        // the children is already resolved
+        // the basic children stats are already resolved
         if (this._stat.children) {
             return;
         }
