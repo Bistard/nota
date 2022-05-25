@@ -199,7 +199,7 @@ export class ExplorerChildrenProvider implements IAsyncChildrenProvider<Explorer
 
     }
 
-    public hasChildren(data: ExplorerItem): boolean | Promise<boolean> {
+    public hasChildren(data: ExplorerItem): boolean {
         return data.hasChildren();
     }
 
