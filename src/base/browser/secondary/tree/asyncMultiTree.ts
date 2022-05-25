@@ -21,7 +21,7 @@ export interface IAsyncChildrenProvider<T> {
     /**
      * @description Check if the given data has children.
      */
-    hasChildren(data: T): boolean | Promise<boolean>;
+    hasChildren(data: T): boolean;
 
     /**
      * @description Get the children from the given data.

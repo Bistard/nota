@@ -113,7 +113,7 @@ export class IndexTreeModel<T, TFilter = void> implements IIndexTreeModel<T, TFi
             visibleNodeCount: 0,
         };
 
-        this._collapsedByDefault = !!opt?.collapsedByDefault;
+        this._collapsedByDefault = !!(opt?.collapsedByDefault);
     }
 
     // [events]
@@ -367,7 +367,7 @@ export class IndexTreeModel<T, TFilter = void> implements IIndexTreeModel<T, TFi
             depth: parent.depth + 1,
             visible: visible,
             collapsible: collapsible,
-            collapsed: collapsible ? collapsed : false,
+            collapsed: collapsed,
             children: [],
             visibleNodeCount: 1
         };

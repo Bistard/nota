@@ -88,7 +88,7 @@ export class AsyncMultiTreeModel<T, TFilter = void> implements IAsyncMultiTreeMo
         nodemap: AsyncWeakMap<T, TFilter>
     ) {
         
-        this._root = this.__createAsyncTreeNode(rootData, null);
+        this._root = this.__createAsyncTreeNode(rootData, null, true);
         this._tree = tree;
         this._nodes = new Map();
         this._nodes.set(null, this._root);
@@ -219,13 +219,13 @@ export class AsyncMultiTreeModel<T, TFilter = void> implements IAsyncMultiTreeMo
     /**
      * @description Helper function for fast creating a {@link IAsyncTreeNode}.
      */
-    private __createAsyncTreeNode(data: T, parent: IAsyncTreeNode<T> | null): IAsyncTreeNode<T> {
+    private __createAsyncTreeNode(data: T, parent: IAsyncTreeNode<T> | null, couldHasChildren: boolean): IAsyncTreeNode<T> {
         return {
             data: data,
             parent: parent,
             children: [],
             refreshing: null,
-            couldHasChildren: true,
+            couldHasChildren: couldHasChildren,
             collapsed: undefined,
         };
     }
@@ -281,7 +281,7 @@ export class AsyncMultiTreeModel<T, TFilter = void> implements IAsyncMultiTreeMo
     private async __refreshChildren(node: IAsyncTreeNode<T>): Promise<IAsyncTreeNode<T>[]> {
 
         let childrenPromise: Promise<Iterable<T>>;
-        node.couldHasChildren = await this._childrenProvider.hasChildren(node.data);
+        node.couldHasChildren = this._childrenProvider.hasChildren(node.data);
 
         if (node.couldHasChildren === false) {
             // since the current node is a leaf, we return nothing.
@@ -356,7 +356,7 @@ export class AsyncMultiTreeModel<T, TFilter = void> implements IAsyncMultiTreeMo
         const childrenNodes = children.map<IAsyncTreeNode<T>>(child => {
 
             const hasChildren = this._childrenProvider.hasChildren(child);
-            const childAsyncNode = this.__createAsyncTreeNode(child, node);
+            const childAsyncNode = this.__createAsyncTreeNode(child, node, hasChildren);
 
             /**
              * the children of the current children should not be collapsed, we
@@ -382,7 +382,6 @@ export class AsyncMultiTreeModel<T, TFilter = void> implements IAsyncMultiTreeMo
         }
         
         node.children.splice(0, node.children.length, ...childrenNodes);
-        console.log(node.children);
 
         return childrenNodesForRefresh;
     }

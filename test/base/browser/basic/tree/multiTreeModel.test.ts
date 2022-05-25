@@ -120,12 +120,12 @@ suite('multiTreeModel-test', () => {
                         data: 100, 
                         children: [{ 
                             data: 1000 
-                        }] 
-                    }] 
+                        }], collapsible: true,
+                    }], collapsible: true,
                 },
 					{ data: 11 },
 					{ data: 12 },
-				]
+				], collapsible: true,
 			},
 			{ data: 1 },
 			{ data: 2 }

@@ -3,7 +3,7 @@ import { ITreeListRenderer } from "src/base/browser/secondary/tree/treeListRende
 import { IListItemProvider } from "src/base/browser/secondary/listView/listItemProvider";
 import { IListWidget } from "src/base/browser/secondary/listWidget/listWidget";
 import { ITreeModelSpliceOptions } from "src/base/browser/secondary/tree/indexTreeModel";
-import { IMultiTreeModel, MultiTreeModel } from "src/base/browser/secondary/tree/multiTreeModel";
+import { IMultiTreeModel, IMultiTreeModelOptions, MultiTreeModel } from "src/base/browser/secondary/tree/multiTreeModel";
 import { ITreeModel, ITreeNode, ITreeNodeItem } from "src/base/browser/secondary/tree/tree";
 
 /**
@@ -37,7 +37,7 @@ export interface IMultiTree<T, TFilter = void> extends IAbstractTree<T | null, T
 /**
  * {@link MultiTree} Constructor option.
  */
-export interface IMultiTreeOptions<T> extends IAbstractTreeOptions<T> {
+export interface IMultiTreeOptions<T> extends IAbstractTreeOptions<T>, IMultiTreeModelOptions {
 
 }
 

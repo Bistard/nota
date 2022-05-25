@@ -61,10 +61,7 @@ export interface ITreeNode<T, TFilter = void> {
     collapsible: boolean;
 
     /** 
-     * Determines if the tree node is collapsed. 
-     * 
-     * @note If the node is not collapsible does not necessarily mean the node 
-     * cannot be displaying expanded.
+     * Determines if the tree node is collapsed.
      */
     collapsed: boolean;
 }
