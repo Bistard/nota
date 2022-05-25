@@ -61,7 +61,7 @@ export interface IAsyncTreeNode<T> {
      * determined by the {@link IMultiTree}.
      * @default undefined
      */
-    collapsed: false | undefined;
+    collapsed: boolean | undefined;
 }
 
 /**
@@ -299,7 +299,7 @@ export class AsyncMultiTree<T, TFilter = void> implements IAsyncMultiTree<T, TFi
 
         const unwrapper: AsyncWeakMap<T, TFilter> = new Weakmap(node => new AsyncNodeConverter(node));
 
-        this._tree = this.__createTree(container, renderers, itemProvider, unwrapper);
+        this._tree = this.__createTree(container, renderers, itemProvider, unwrapper, opts);
         this._model = this.__createModel(rootData, this._tree, childrenProvider, unwrapper);
 
         // update options
@@ -415,14 +415,17 @@ export class AsyncMultiTree<T, TFilter = void> implements IAsyncMultiTree<T, TFi
         container: HTMLElement,
         renderers: ITreeListRenderer<T, TFilter, any>[],
         itemProvider: IListItemProvider<T>,
-        unwrapper: AsyncWeakMap<T, TFilter>
+        unwrapper: AsyncWeakMap<T, TFilter>,
+        opts: IAsyncMultiTreeOptions<T, TFilter>
     ): MultiTree<IAsyncTreeNode<T>, TFilter> 
     {
         // convert the arguments into correct type (wrappers kind of stuff)
         const asyncRenderers = renderers.map(r => new AsyncTreeRenderer(r, unwrapper));
         const asyncProvider = new composedItemProvider<T, IAsyncTreeNode<T>>(itemProvider);
 
-        return new MultiTree<IAsyncTreeNode<T>, TFilter>(container, asyncRenderers, asyncProvider, {});
+        return new MultiTree<IAsyncTreeNode<T>, TFilter>(container, asyncRenderers, asyncProvider, {
+            collapseByDefault: true
+        });
     }
 
     /**
@@ -481,6 +484,13 @@ export class AsyncMultiTree<T, TFilter = void> implements IAsyncMultiTree<T, TFi
         const collapsible = node.couldHasChildren;
         const collapsed = node.collapsed;
         const children = collapsible ? Iterable.map(node.children, node => this.__toTreeNodeItem(node)) : [];
+
+        console.log('node: ', (node.data as any).name);
+        console.log('collapsible: ', collapsible);
+        console.log('collapsed: ', collapsed);
+        console.log('children: ', children);
+        console.log('couldHasChildren: ', node.couldHasChildren);
+        console.log('=========');
 
         return {
             data: node,

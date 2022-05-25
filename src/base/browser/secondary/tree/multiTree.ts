@@ -3,7 +3,7 @@ import { ITreeListRenderer } from "src/base/browser/secondary/tree/treeListRende
 import { IListItemProvider } from "src/base/browser/secondary/listView/listItemProvider";
 import { IListWidget } from "src/base/browser/secondary/listWidget/listWidget";
 import { ITreeModelSpliceOptions } from "src/base/browser/secondary/tree/indexTreeModel";
-import { IMultiTreeModel, IMultiTreeModelOptions, MultiTreeModel } from "src/base/browser/secondary/tree/multiTreeModel";
+import { IMultiTreeModel, MultiTreeModel } from "src/base/browser/secondary/tree/multiTreeModel";
 import { ITreeModel, ITreeNode, ITreeNodeItem } from "src/base/browser/secondary/tree/tree";
 
 /**
@@ -37,7 +37,7 @@ export interface IMultiTree<T, TFilter = void> extends IAbstractTree<T | null, T
 /**
  * {@link MultiTree} Constructor option.
  */
-export interface IMultiTreeOptions<T> extends IAbstractTreeOptions<T>, IMultiTreeModelOptions {
+export interface IMultiTreeOptions<T> extends IAbstractTreeOptions<T> {
 
 }
 
@@ -91,8 +91,10 @@ export class MultiTree<T, TFilter = void> extends AbstractTree<T | null, TFilter
 
     // [private helper method]
 
-    protected override createModel(view: IListWidget<ITreeNode<T, TFilter>>): ITreeModel<T | null, TFilter, T | null> {
-        return new MultiTreeModel<T, TFilter>(view);
+    protected override createModel(view: IListWidget<ITreeNode<T, TFilter>>, opts: IMultiTreeOptions<T>): ITreeModel<T | null, TFilter, T | null> {
+        return new MultiTreeModel<T, TFilter>(view, { 
+            collapsedByDefault: opts.collapseByDefault 
+        });
     }
 
 }

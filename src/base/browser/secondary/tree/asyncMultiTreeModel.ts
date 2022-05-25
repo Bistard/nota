@@ -362,8 +362,7 @@ export class AsyncMultiTreeModel<T, TFilter = void> implements IAsyncMultiTreeMo
              * the children of the current children should not be collapsed, we
              * need to keep refreshing on next time.
              */
-            const collapseState = !!this._childrenProvider.collapseByDefault?.(child);
-            if (hasChildren && !collapseState) {
+            if (hasChildren && this._childrenProvider.collapseByDefault && !this._childrenProvider.collapseByDefault(child)) {
                 childAsyncNode.collapsed = false;
                 childrenNodesForRefresh.push(childAsyncNode);
             }

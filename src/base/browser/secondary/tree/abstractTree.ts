@@ -15,6 +15,9 @@ import { IScrollEvent } from "src/base/common/scrollable";
  */
 export interface IAbstractTreeOptions<T> {
 
+    /** @default false */
+    readonly collapseByDefault?: boolean;
+
     readonly dnd?: IListDragAndDropProvider<T>;
 
 }
@@ -212,7 +215,7 @@ export abstract class AbstractTree<T, TFilter, TRef> implements IAbstractTree<T,
             {}
         );
 
-        this._model = this.createModel(this._view);
+        this._model = this.createModel(this._view, opts);
 
         // reset the input event emitter once the model is created.
         relayEmitter.setInput(this._model.onDidChangeCollapseState);
@@ -237,7 +240,7 @@ export abstract class AbstractTree<T, TFilter, TRef> implements IAbstractTree<T,
     
     // [abstract methods]
 
-    protected abstract createModel(view: ISpliceable<ITreeNode<T, TFilter>>): ITreeModel<T, TFilter, TRef>;
+    protected abstract createModel(view: ISpliceable<ITreeNode<T, TFilter>>, opts: IAbstractTreeOptions<T>): ITreeModel<T, TFilter, TRef>;
 
     // [methods - tree]
 
