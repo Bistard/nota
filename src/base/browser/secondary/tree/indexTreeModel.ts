@@ -114,8 +114,6 @@ export class IndexTreeModel<T, TFilter = void> implements IIndexTreeModel<T, TFi
         };
 
         this._collapsedByDefault = !!(opt?.collapsedByDefault);
-
-        console.log('collapse by default: ', this._collapsedByDefault);
     }
 
     // [events]

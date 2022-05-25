@@ -485,13 +485,6 @@ export class AsyncMultiTree<T, TFilter = void> implements IAsyncMultiTree<T, TFi
         const collapsed = node.collapsed;
         const children = collapsible ? Iterable.map(node.children, node => this.__toTreeNodeItem(node)) : [];
 
-        console.log('node: ', (node.data as any).name);
-        console.log('collapsible: ', collapsible);
-        console.log('collapsed: ', collapsed);
-        console.log('children: ', children);
-        console.log('couldHasChildren: ', node.couldHasChildren);
-        console.log('=========');
-
         return {
             data: node,
             collapsible: collapsible,
