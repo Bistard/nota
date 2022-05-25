@@ -306,6 +306,8 @@ export class AsyncMultiTree<T, TFilter = void> implements IAsyncMultiTree<T, TFi
         
         this._onDidCreateNode = opts.onDidCreateNode;
         this._onDidDeleteNode = opts.onDidDeleteNode;
+
+        this._tree.onDidChangeCollapseState(e => this.refresh(e.node.data?.data));
     }
 
     // [static method]

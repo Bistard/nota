@@ -232,7 +232,6 @@ export class Notebook extends Disposable implements INotebook {
 
         this._tree.onClick(async (node) => {
             this._tree.toggleCollapseOrExpand(node.data!, false);
-            await this._tree.refresh(node.data!);
         });
 
     }
