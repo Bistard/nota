@@ -437,7 +437,7 @@ export class ListView<T> implements IDisposable, ISpliceable<T>, IListView<T> {
         });
         this.scrollableWidget.render(this.element);
         this.scrollableWidget.onDidScroll((e: IScrollEvent) => {
-            this.__onDidScroll(e.scrollPosition, e.scrollSize);
+            this.__onDidScroll(e.scrollPosition, e.viewportSize);
         });
 
         // integrates all the renderers
@@ -565,7 +565,6 @@ export class ListView<T> implements IDisposable, ISpliceable<T>, IListView<T> {
             throw new ListError('cannot splice recursively');
         }
 
-        // prevent render() will be invoked after splice().
         this._splicing = true;
 
         try {
@@ -795,6 +794,8 @@ export class ListView<T> implements IDisposable, ISpliceable<T>, IListView<T> {
 
     /**
      * @description Invokes when scrolling happens, rerenders the whole view.
+     * @param renderTop The top of scrolling area.
+     * @param renderHeight The height of viewport.
      */
     private __onDidScroll(renderTop: number, renderHeight: number): void {
         const prevRenderRange = this.__getRenderRange(this.prevRenderTop, this.prevRenderHeight);
