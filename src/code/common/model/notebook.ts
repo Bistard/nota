@@ -218,7 +218,10 @@ export class Notebook extends Disposable implements INotebook {
             new ExplorerItemProvider(),
             new ExplorerChildrenProvider(this.fileService),
             {
-                collapseByDefault: false
+                collapseByDefault: false,
+                dnd: {
+                    getDragData: () => '',
+                }
             }
         );
 

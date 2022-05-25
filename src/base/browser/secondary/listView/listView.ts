@@ -57,6 +57,9 @@ export interface IListViewOpts<T> {
      */
     readonly scrollbarSize?: number;
     
+    /**
+     * A provider that has ability to provide Drag and Drop Support (dnd).
+     */
     dragAndDropProvider?: IListDragAndDropProvider<T>;
 
 }

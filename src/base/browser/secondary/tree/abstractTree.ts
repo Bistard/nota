@@ -1,14 +1,53 @@
 import { ITreeCollapseStateChangeEvent, ITreeModel, ITreeMouseEvent, ITreeNode, ITreeSpliceEvent } from "src/base/browser/secondary/tree/tree";
 import { ITreeListRenderer, TreeItemRenderer } from "src/base/browser/secondary/tree/treeListRenderer";
-import { ITreeListWidget, TreeListWidget } from "src/base/browser/secondary/tree/treeListWidget";
 import { IListItemProvider, TreeListItemProvider } from "src/base/browser/secondary/listView/listItemProvider";
 import { IListTraitEvent } from "src/base/browser/secondary/listWidget/listTrait";
-import { IListMouseEvent } from "src/base/browser/secondary/listWidget/listWidget";
+import { IListMouseEvent, IListWidgetOpts, ListWidget } from "src/base/browser/secondary/listWidget/listWidget";
 import { IListDragAndDropProvider } from "src/base/browser/secondary/listWidget/listWidgetDragAndDrop";
 import { DisposableManager, IDisposable } from "src/base/common/dispose";
 import { Event, Register, RelayEmitter } from "src/base/common/event";
 import { ISpliceable } from "src/base/common/range";
 import { IScrollEvent } from "src/base/common/scrollable";
+import { IListViewRenderer } from "src/base/browser/secondary/listView/listRenderer";
+
+/**
+ * @class A wrapper class to convert a basic {@link IListDragAndDropProvider<T>}
+ * to {@link IListDragAndDropProvider<ITreeNode<T>>}.
+ */
+class __TreeListDragAndDropProvider<T> implements IListDragAndDropProvider<ITreeNode<T>> {
+
+    constructor(
+        private readonly dnd: IListDragAndDropProvider<T>
+    ) {}
+
+    public getDragData(node: ITreeNode<T>): string | null {
+        return this.dnd.getDragData(node.data);
+    }
+
+    public onDragStart(): void {
+        if (this.dnd.onDragStart) {
+            this.dnd.onDragStart();
+        }
+    }
+
+}
+
+/**
+ * @class A simple wrapper class for {@link IListWidget} which converts the type
+ * T to ITreeNode<T>.
+ */
+export class TreeListWidget<T, TFilter> extends ListWidget<ITreeNode<T>> {
+
+    constructor(
+        container: HTMLElement,
+        renderers: IListViewRenderer<any, any>[],
+        itemProvider: IListItemProvider<ITreeNode<T, TFilter>>,
+        opts: IListWidgetOpts<ITreeNode<T>> = {}
+    ) {
+        super(container, renderers, itemProvider, opts);
+    }
+
+}
 
 /**
  * An interface for the constructor options of the {@link AbstractTree}.
@@ -187,7 +226,7 @@ export abstract class AbstractTree<T, TFilter, TRef> implements IAbstractTree<T,
     /** the raw data model of the tree. */
     protected _model: ITreeModel<T, TFilter, TRef>;
 
-    protected _view: ITreeListWidget<T, TFilter>;
+    protected _view: TreeListWidget<T, TFilter>;
 
     // [constructor]
 
@@ -212,7 +251,9 @@ export abstract class AbstractTree<T, TFilter, TRef> implements IAbstractTree<T,
             container, 
             renderers, 
             new TreeListItemProvider(itemProvider), 
-            {}
+            {
+                dragAndDropProvider: opts.dnd && new __TreeListDragAndDropProvider(opts.dnd)
+            }
         );
 
         this._model = this.createModel(this._view, opts);

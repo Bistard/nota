@@ -213,6 +213,8 @@ export class ListWidget<T> implements IListWidget<T> {
         }
 
         this.disposables.register(this.view);
+        this.disposables.register(this.selected);
+        this.disposables.register(this.focused);
     }
 
     // [getter / setter]
@@ -343,11 +345,13 @@ export class ListWidget<T> implements IListWidget<T> {
      */
     private __enableDragAndDropSupport(): void {
 
+        console.log('enable dnd');
+
         // only adding 4 listeners to the whole view, 
         this.disposables.register(addDisposableListener(this.view.DOMElement, EventType.dragover, e => this.__onDragOver(this.__toListDragEvent(e))));
         this.disposables.register(addDisposableListener(this.view.DOMElement, EventType.drop, e => this.__onDrop(this.__toListDragEvent(e))));
-        this.disposables.register(addDisposableListener(this.view.DOMElement, EventType.dragleave, e => this.__onDragleave(this.__toListDragEvent(e))));
-        this.disposables.register(addDisposableListener(this.view.DOMElement, EventType.dragend, e => this.__onDragend(this.__toListDragEvent(e))));
+        this.disposables.register(addDisposableListener(this.view.DOMElement, EventType.dragleave, e => this.__onDragLeave(this.__toListDragEvent(e))));
+        this.disposables.register(addDisposableListener(this.view.DOMElement, EventType.dragend, e => this.__onDragEnd(this.__toListDragEvent(e))));
 
         // dragstart listener
         this.view.onInsertItemInDOM((viewItem: IViewItemChangeEvent<T>) => this.__initItemWithDragStart(viewItem.item, viewItem.index));
@@ -438,7 +442,7 @@ export class ListWidget<T> implements IListWidget<T> {
      * @param event The dragging event.
      */
     private __onDrop(event: IListDragEvent<T>): void {
-        // console.log('drop, ', event.actualIndex);
+        console.log('drop, ', event.actualIndex);
     }
 
     /**
@@ -446,8 +450,8 @@ export class ListWidget<T> implements IListWidget<T> {
      * the whole {@link IListWidget}.
      * @param event The dragging event.
      */
-    private __onDragleave(event: IListDragEvent<T>): void {
-        // console.log('dragleave, ', event.actualIndex);
+    private __onDragLeave(event: IListDragEvent<T>): void {
+        console.log('dragleave, ', event.actualIndex);
     }
 
     /**
@@ -455,8 +459,8 @@ export class ListWidget<T> implements IListWidget<T> {
      * the whole {@link IListWidget}.
      * @param event The dragging event.
      */
-    private __onDragend(event: IListDragEvent<T>): void {
-        // console.log('dragend, ', event.actualIndex);
+    private __onDragEnd(event: IListDragEvent<T>): void {
+        console.log('dragend, ', event.actualIndex);
     }
 
 }

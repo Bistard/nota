@@ -12,6 +12,7 @@ import { AsyncMultiTreeModel, IAsyncMultiTreeModel } from "src/base/browser/seco
 import { Iterable } from "src/base/common/iterable";
 import { ITreeModelSpliceOptions } from "src/base/browser/secondary/tree/indexTreeModel";
 import { Pair } from "src/base/common/type";
+import { IListDragAndDropProvider } from "src/base/browser/secondary/listWidget/listWidgetDragAndDrop";
 
 /**
  * Provides functionality to determine the children stat of the given data.
@@ -84,6 +85,27 @@ export class AsyncNodeConverter<T, TFilter> implements ITreeNode<T, TFilter> {
     get collapsible(): boolean { return this._node.collapsible; }
     get collapsed(): boolean { return this._node.collapsed; }
 
+}
+
+/**
+ * @class A wrapper class to convert a basic {@link IListDragAndDropProvider<T>}
+ * to {@link IListDragAndDropProvider<IAsyncTreeNode<T>>}.
+ */
+class __AsyncMultiTreeDragAndDropProvider<T> implements IListDragAndDropProvider<IAsyncTreeNode<T>> {
+
+    constructor(
+        private readonly dnd: IListDragAndDropProvider<T>
+    ) {}
+
+    public getDragData(node: IAsyncTreeNode<T>): string | null {
+        return this.dnd.getDragData(node.data);
+    }
+
+    public onDragStart(): void {
+        if (this.dnd.onDragStart) {
+            this.dnd.onDragStart();
+        }
+    }
 }
 
 /**
@@ -427,6 +449,7 @@ export class AsyncMultiTree<T, TFilter = void> implements IAsyncMultiTree<T, TFi
 
         return new MultiTree<IAsyncTreeNode<T>, TFilter>(container, asyncRenderers, asyncProvider, {
             collapseByDefault: opts.collapseByDefault ?? true,
+            dnd: opts.dnd && new __AsyncMultiTreeDragAndDropProvider(opts.dnd)
         });
     }
 
