@@ -232,7 +232,7 @@ export class ExplorerChildrenProvider implements IAsyncChildrenProvider<Explorer
 
     public collapseByDefault(data: ExplorerItem): boolean {
         // TODO
-        return true;
+        return false;
     }
 
 }

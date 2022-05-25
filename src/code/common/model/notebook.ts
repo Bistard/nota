@@ -217,7 +217,9 @@ export class Notebook extends Disposable implements INotebook {
             [new ExplorerRenderer()], 
             new ExplorerItemProvider(),
             new ExplorerChildrenProvider(this.fileService),
-            {}
+            {
+                collapseByDefault: false
+            }
         );
 
         this._tree = tree;

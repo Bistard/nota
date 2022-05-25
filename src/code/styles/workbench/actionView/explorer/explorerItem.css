@@ -3,8 +3,13 @@
     cursor: pointer;
 }
 
-.opened-explorer-container > .list-view > .list-view-container > .list-view-row > .icon {
-    font-size: 40px;
+.opened-explorer-container > .list-view > .list-view-container > .list-view-row:hover {
+    background-color: #ebebeb;
+}
+
+.opened-explorer-container > .list-view > .list-view-container > .list-view-row > .tree-list-row > .icon {
+    font-size: 12px;
+    margin-right: 4px;
 }
 
 .explorer-item {
