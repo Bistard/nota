@@ -424,7 +424,7 @@ export class AsyncMultiTree<T, TFilter = void> implements IAsyncMultiTree<T, TFi
         const asyncProvider = new composedItemProvider<T, IAsyncTreeNode<T>>(itemProvider);
 
         return new MultiTree<IAsyncTreeNode<T>, TFilter>(container, asyncRenderers, asyncProvider, {
-            collapseByDefault: true
+            collapseByDefault: opts.collapseByDefault ?? true,
         });
     }
 

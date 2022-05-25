@@ -26,6 +26,9 @@ suite('AsyncMultiTree-test', () => {
                 getChildren: (data) => TREE1.get(data)!,
                 hasChildren: (data) => !!TREE1.get(data)!.length,
                 collapseByDefault: () => false
+            },
+            {
+                collapseByDefault: false
             }
         );
 
@@ -93,6 +96,9 @@ suite('AsyncMultiTree-test', () => {
                 getChildren: (data) => TREE1.get(data)!,
                 hasChildren: (data) => !!TREE1.get(data)!.length,
                 collapseByDefault: () => false
+            },
+            {
+                collapseByDefault: false
             }
         );
 
@@ -225,6 +231,9 @@ suite('AsyncMultiTree-test', () => {
                 getChildren: (data) => TREE2.get(data)!,
                 hasChildren: (data) => !!TREE2.get(data)!.length,
                 collapseByDefault: () => false
+            },
+            {
+                collapseByDefault: false
             }
         );
 
