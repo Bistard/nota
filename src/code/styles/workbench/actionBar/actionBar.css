@@ -40,16 +40,3 @@
 .action-button-focus {
     filter: invert(15%) sepia(100%) saturate(2427%) hue-rotate(343deg) brightness(112%) contrast(97%);
 }
-
-.action-button > img {
-    display: block;
-    margin-left: auto;
-    margin-right: auto;
-    width: 20px;
-    height: 20px;
-}
-
-#setting-button {
-    position: absolute;
-    bottom: 0px;
-}

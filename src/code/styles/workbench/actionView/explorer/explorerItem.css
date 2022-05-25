@@ -3,6 +3,10 @@
     cursor: pointer;
 }
 
+.opened-explorer-container > .list-view > .list-view-container > .list-view-row > .icon {
+    font-size: 40px;
+}
+
 .explorer-item {
     position: relative;
     display: flex;

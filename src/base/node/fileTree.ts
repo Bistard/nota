@@ -4,9 +4,9 @@ import * as Path from 'path';
 import { EVENT_EMITTER } from 'src/base/common/event';
 import { NotebookManager } from 'src/code/common/model/notebookManager';
 import { File } from 'src/base/common/file/file';
-import { getBuiltInIconClass } from 'src/base/browser/icon/iconRegistry';
 import { Icons } from 'src/base/browser/icon/icons';
 import { formatSpan } from 'src/base/common/dom';
+import { getIconClass } from 'src/base/browser/icon/iconRegistry';
 
 /**
  * @class the object is to store and maintain the data for each folder/file/root.
@@ -104,7 +104,7 @@ export class FileNode {
                 text.classList.add('node-root-text');
 
                 const icon = document.createElement('i');
-                icon.classList.add('root-icon', getBuiltInIconClass(Icons.AngleDown));
+                icon.classList.add(...getIconClass(Icons.AngleDown));
                 
                 // render node
                 this.node.appendChild(text);
@@ -117,7 +117,7 @@ export class FileNode {
                 text.classList.add('node-text');
 
                 const icon = document.createElement('i');
-                icon.classList.add('icon', getBuiltInIconClass(Icons.CaretRight));
+                icon.classList.add(...getIconClass(Icons.CaretRight));
                 
                 // render node
                 this.node.appendChild(icon);
@@ -143,11 +143,11 @@ export class FileNode {
 
         if (nodeInfo.isExpand) {
             if (nodeInfo.level === 0) {
-                node.removeClass(getBuiltInIconClass(Icons.AngleDown));
-                node.addClass(getBuiltInIconClass(Icons.AngleUp));
+                node.removeClass(getIconClass(Icons.AngleDown));
+                node.addClass(getIconClass(Icons.AngleUp));
             } else {
-                node.removeClass(getBuiltInIconClass(Icons.CaretRight));
-                node.addClass(getBuiltInIconClass(Icons.CaretDown));
+                node.removeClass(getIconClass(Icons.CaretRight));
+                node.addClass(getIconClass(Icons.CaretDown));
             }
             
             container.each(function() {
@@ -157,11 +157,11 @@ export class FileNode {
             });
         } else {
             if (nodeInfo.level === 0) {
-                node.removeClass(getBuiltInIconClass(Icons.AngleUp));
-                node.addClass(getBuiltInIconClass(Icons.AngleDown));
+                node.removeClass(getIconClass(Icons.AngleUp));
+                node.addClass(getIconClass(Icons.AngleDown));
             } else {
-                node.removeClass(getBuiltInIconClass(Icons.CaretDown));
-                node.addClass(getBuiltInIconClass(Icons.CaretRight));
+                node.removeClass(getIconClass(Icons.CaretDown));
+                node.addClass(getIconClass(Icons.CaretRight));
             }
             
             container.each(function() {

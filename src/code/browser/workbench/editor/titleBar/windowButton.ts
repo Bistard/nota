@@ -1,5 +1,5 @@
 import { Button, IButtonOptions } from "src/base/browser/basic/button/button"
-import { getBuiltInIconClass } from "src/base/browser/icon/iconRegistry";
+import { getIconClass } from "src/base/browser/icon/iconRegistry";
 import { ipcRendererSend } from "src/base/electron/register";
 
 export interface IWindowButtonOptions extends IButtonOptions {
@@ -49,8 +49,7 @@ export class WindowButton extends Button {
         // set icon
         if (this.opts.icon) {
             const iconElement = document.createElement('i');
-            iconElement.classList.add('icon');
-            iconElement.classList.add(getBuiltInIconClass(this.opts.icon));
+            iconElement.classList.add(...getIconClass(this.opts.icon));
             this._element.appendChild(iconElement);
         }
 

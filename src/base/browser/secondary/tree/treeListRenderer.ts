@@ -119,7 +119,7 @@ export class TreeItemRenderer<T, TFilter, TMetadata> implements ITreeListRendere
         row.className = 'tree-list-row';
 
         /** Rendering the indentation of the node in the tree. */
-        const indentation = document.createElement('div');
+        const indentation = document.createElement('i');
         indentation.className = 'tree-list-indent';
 
         /** A wrapper to contains the actual content. */
