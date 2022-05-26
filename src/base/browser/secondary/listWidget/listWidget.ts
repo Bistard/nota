@@ -8,6 +8,7 @@ import { IScrollEvent } from "src/base/common/scrollable";
 import { IListItemProvider } from "src/base/browser/secondary/listView/listItemProvider";
 import { IListDragAndDropProvider, ListWidgetDragAndDropProvider } from "src/base/browser/secondary/listWidget/listWidgetDragAndDrop";
 import { ListTraitRenderer } from "src/base/browser/secondary/listWidget/listTraitRenderer";
+import { memoize } from "src/base/common/memoization";
 
 /**
  * A standard mouse event interface used in {@link ListWidget}.
@@ -148,6 +149,11 @@ export interface IListWidget<T> extends IDisposable {
      */
     splice(index: number, deleteCount: number, items: T[]): T[];
 
+    /**
+     * @description Sets the current view as focused in DOM tree.
+     */
+    setFocus(): void;
+
     // [item traits support]
 
     toggleFocus(index: number): void;
@@ -225,7 +231,7 @@ export class ListWidget<T> implements IListWidget<T> {
     get length(): number { return this.view.length; }
 
     get onDidScroll(): Register<IScrollEvent> { return this.view.onDidScroll; }
-    get onDidChangeFocus(): Register<boolean> { return this.disposables.register(new SignalEmitter<boolean, boolean>([Event.map(this.view.onDidFocus, () => true), Event.map(this.view.onDidBlur, () => false)], (e: boolean) => e)).registerListener; }
+    @memoize get onDidChangeFocus(): Register<boolean> { return this.disposables.register(new SignalEmitter<boolean, boolean>([Event.map(this.view.onDidFocus, () => true), Event.map(this.view.onDidBlur, () => false)], (e: boolean) => e)).registerListener; }
     get onDidChangeItemFocus(): Register<IListTraitEvent> { return this.focused.onDidChange; }
     get onDidChangeItemSelection(): Register<IListTraitEvent> { return this.selected.onDidChange; }
 
@@ -265,6 +271,10 @@ export class ListWidget<T> implements IListWidget<T> {
         }
 
         return this.view.splice(index, deleteCount, items);
+    }
+
+    public setFocus(): void {
+        this.view.setFocus();
     }
 
     // [item traits support]

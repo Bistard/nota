@@ -859,7 +859,7 @@ export class ListView<T> implements IDisposable, ISpliceable<T>, IListView<T> {
 
         // stores all the inserting items.
         const insert = items.map<IViewItem<T>>(item => ({
-            id: ListViewItemUUID++,
+            id: ListViewItemUUID++, // REVIEW: not used
             type: this.itemProvider.getType(item),
             data: item,
             size: this.itemProvider.getSize(item),
