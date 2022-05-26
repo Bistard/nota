@@ -130,20 +130,22 @@ export interface ITreeModel<T, TFilter = void, TRef = number[]> {
      * @description Try to get an existed node given the location of the node.
      * @param location The location representation of the node.
      * @returns Returns the expected tree node.
+     * 
+     * @throws An exception throws if the node is not found.
      */
     getNode(location: TRef): ITreeNode<T, TFilter>;
 
     /**
      * @description Returns the root of the tree model.
      */
-    getRoot?(): ITreeNode<T, TFilter>;
+    getRoot(): ITreeNode<T, TFilter>;
 
     /**
      * @description Returns the location corresponding to the given {@link ITreeNode}.
      * @param node The provided tree node.
      * @returns The location of the given tree node.
      */
-    getNodeLocation?(node: ITreeNode<T, TFilter>): TRef;
+    getNodeLocation(node: ITreeNode<T, TFilter>): TRef;
 
     /**
      * @description Returns the index of the node in the tree when traversing in 
@@ -151,7 +153,7 @@ export interface ITreeModel<T, TFilter = void, TRef = number[]> {
      * @param location The location representation of the node.
      * @warn If node is not found, an {@link Error} is thrown.
      */
-    getNodeListIndex?(location: TRef): number;
+    getNodeListIndex(location: TRef): number;
 
     /**
      * @description Determines if the given location of a node is collapsible.
@@ -168,7 +170,7 @@ export interface ITreeModel<T, TFilter = void, TRef = number[]> {
      *                    current state of the node.
      * @returns If the operation was made.
      */
-    setCollapsible?(location: TRef, collapsible?: boolean): boolean;
+    setCollapsible(location: TRef, collapsible?: boolean): boolean;
 
     /**
      * @description Determines if the given location of a node is collapsed.
@@ -190,13 +192,13 @@ export interface ITreeModel<T, TFilter = void, TRef = number[]> {
      * 
      * @note Recursive meaning all the nested the children will also be collapsed / expanded.
      */
-    setCollapsed?(location: TRef, collapsed?: boolean, recursive?: boolean): boolean;
+    setCollapsed(location: TRef, collapsed?: boolean, recursive?: boolean): boolean;
 
     /**
      * @description Expands to the tree node with the given location.
      * @param location The location representation of the node.
      */
-    setExpandTo?(location: TRef): void;
+    setExpandTo(location: TRef): void;
 
     /**
      * @description Rerenders the corresponding node with the given location.
@@ -213,7 +215,7 @@ export interface ITreeMouseEvent<T> {
     /**
      * Original browser event.
      */
-    event: MouseEvent;
+    browserEvent: MouseEvent;
 
     /**
      * The mouse event related data.
@@ -234,4 +236,8 @@ export interface ITreeMouseEvent<T> {
      * The depth of the data in the tree.
      */
     depth: number;
+}
+
+export interface ITreeViewStatus {
+
 }

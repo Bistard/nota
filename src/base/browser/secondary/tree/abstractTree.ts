@@ -32,6 +32,50 @@ class __TreeListDragAndDropProvider<T> implements IListDragAndDropProvider<ITree
 }
 
 /**
+ * @class Similar to the {@link __ListTrait} in the {@link ListWidget}. The trait
+ * concept need to be exist at the tree level, since the list view does not know
+ * the existance of the collapsed tree nodes.
+ * 
+ * T: The type of data in {@link AbstractTree}.
+ */
+class __TreeListTrait<T> {
+
+    // [field]
+
+    private _nodes = new Set<ITreeNode<T, any>>();
+    private _elements: T[] | null = null;
+
+    // [constructor]
+
+    constructor() {
+
+    }
+
+    // [public method]
+
+    set(nodes: ITreeNode<T, any>[]): void {
+        for (const node of nodes) {
+            this._nodes.add(node);
+        }
+        this._elements = null;
+    }
+
+    get(): T[] {
+        if (this._elements === null) {
+            let elements: T[] = [];
+            this._nodes.forEach(node => elements.push(node.data));
+            this._elements = elements;
+        }
+        return this._elements;
+    }
+
+    has(nodes: ITreeNode<T, any>): boolean {
+        return this._nodes.has(nodes);
+    }
+
+}
+
+/**
  * @class A simple wrapper class for {@link IListWidget} which converts the type
  * T to ITreeNode<T>.
  */
@@ -39,19 +83,67 @@ export class TreeListWidget<T, TFilter> extends ListWidget<ITreeNode<T>> {
 
     // [field]
 
+    private _focused: __TreeListTrait<T>;
+    private _selected: __TreeListTrait<T>;
+
     // [constructor]
 
     constructor(
         container: HTMLElement,
         renderers: IListViewRenderer<any, any>[],
+        focusedTrait: __TreeListTrait<T>,
+        selectedTrait: __TreeListTrait<T>,
         itemProvider: IListItemProvider<ITreeNode<T, TFilter>>,
         opts: IListWidgetOpts<ITreeNode<T>> = {}
     ) {
         super(container, renderers, itemProvider, opts);
+        this._focused = focusedTrait;
+        this._selected = selectedTrait;
     }
 
     // [public method]
 
+    public override splice(index: number, deleteCount: number, items: ITreeNode<T, TFilter>[] = []): void {
+        super.splice(index, deleteCount, items);
+
+        if (items.length === 0) {
+            return;
+        }
+
+        let focusedIndex: number = -1;
+        let selectedIndex: number[] = [];
+
+        /**
+         * If the inserting item has trait attribute at the tree level, it should 
+         * also has trait attribute at the list level.
+         */
+
+        let i: number;
+        let item: ITreeNode<T, TFilter>;
+        for (i = 0; i < items.length; i++) {
+            item = items[i]!;
+            
+            if (this._focused.has(item)) {
+                focusedIndex = i;
+            }
+
+            if (this._selected.has(item)) {
+                selectedIndex.push(i);
+            }
+        }
+
+        /**
+         * Update the trait attributes at the list level.
+         */
+
+        if (focusedIndex !== -1) {
+            super.setFocus(focusedIndex);
+        }
+
+        if (selectedIndex.length > 0) {
+            super.setSelections(selectedIndex);
+        }
+    }
 }
 
 /**
@@ -120,6 +212,11 @@ export interface IAbstractTree<T, TFilter, TRef> {
     get onDoubleclick(): Register<ITreeMouseEvent<T>>;
     
     // [method - general]
+
+    /**
+     * @description Sets the current view as focused in DOM tree.
+     */
+    setDomFocus(): void;
 
     /**
      * @description Given the height, re-layouts the height of the whole view.
@@ -205,9 +302,27 @@ export interface IAbstractTree<T, TFilter, TRef> {
      */
     expandAll(): void;
     
-    // TODO
+    /**
+     * @description Sets the given item as focused.
+     * @param item The provided item.
+     */
+    setFocus(item: TRef): void;
+
+    /**
+     * @description Returns the focused item.
+     */
+    getFocus(): T | null;
+
+    /**
+     * @description Sets the given a series of items as selected.
+     * @param items The provided items.
+     */
     setSelections(items: TRef[]): void;
-    getSelections(): TRef[];
+
+    /**
+     * @description Returns the selected items.
+     */
+    getSelections(): T[];
 }
 
 /**
@@ -233,6 +348,9 @@ export abstract class AbstractTree<T, TFilter, TRef> implements IAbstractTree<T,
 
     protected _view: TreeListWidget<T, TFilter>;
 
+    private _focused: __TreeListTrait<T>;
+    private _selected: __TreeListTrait<T>;
+
     // [constructor]
 
     constructor(
@@ -252,9 +370,14 @@ export abstract class AbstractTree<T, TFilter, TRef> implements IAbstractTree<T,
         // wraps each tree list view renderer with a basic tree item renderer.
         renderers = renderers.map(renderer => new TreeItemRenderer<T, TFilter, any>(renderer, relayEmitter.registerListener));
 
+        this._focused = new __TreeListTrait();
+        this._selected = new __TreeListTrait();
+
         this._view = new TreeListWidget<T, TFilter>(
             container, 
             renderers, 
+            this._focused,
+            this._selected,
             new TreeListItemProvider(itemProvider), 
             {
                 dragAndDropProvider: opts.dnd && new __TreeListDragAndDropProvider(opts.dnd)
@@ -331,19 +454,43 @@ export abstract class AbstractTree<T, TFilter, TRef> implements IAbstractTree<T,
         this._model.setCollapsed!(this._model.root, false, true);
     }
 
-    public setSelections(items: TRef[]): void {
-        // TODO
+    public setFocus(item: TRef): void {
+        const node = this._model.getNode(item);
+        this._focused.set([node]);
+        const index = this._model.getNodeListIndex(item);
+
+        // not visible in the list view level.
+        if (index === -1) {
+            return;
+        }
+
+        this._view.setFocus(index);
     }
 
-    public getSelections(): TRef[] {
-        // TODO
-        return [];
+    public getFocus(): T | null {
+        const returned = this._focused.get();
+        return returned.length ? this._focused.get()[0]! : null;
+    }
+
+    public setSelections(items: TRef[]): void {
+        const nodes = items.map(item => this._model.getNode(item));
+        this._focused.set(nodes);
+        const indice = items.map(item => this._model.getNodeListIndex(item)).filter(i => i !== -1);
+        this._view.setSelections(indice);
+    }
+
+    public getSelections(): T[] {
+        return this._selected.get();
     }
 
     // [methods - general]
 
     get DOMElement(): HTMLElement {
         return this._view.DOMElement;
+    }
+
+    public setDomFocus(): void {
+        this._view.setDomFocus();
     }
 
     public layout(height?: number): void {
@@ -371,7 +518,7 @@ export abstract class AbstractTree<T, TFilter, TRef> implements IAbstractTree<T,
      */
     private __toTreeMouseEvent(event: IListMouseEvent<ITreeNode<T, any>>): ITreeMouseEvent<T> {
         return {
-            event: event.browserEvent,
+            browserEvent: event.browserEvent,
             data: event.item.data,
             parent: event.item.parent?.data || null,
             children: event.item.children.map(child => child.data),

@@ -8,12 +8,17 @@ import { IListItemProvider } from "src/base/browser/secondary/listView/listItemP
 import { IListDragAndDropProvider, ListWidgetDragAndDropProvider } from "src/base/browser/secondary/listWidget/listWidgetDragAndDrop";
 import { memoize } from "src/base/common/memoization";
 import { hash } from "src/base/common/hash";
+import { Array } from "src/base/common/array";
 
 
 /**
  * The index changed in {@link __ListTrait}.
  */
-export type ITraitChangeEvent = number;
+export interface ITraitChangeEvent {
+
+    /** The new indices with the corresponding trait. */
+    indice: number[];
+}
 
 /**
  * @class A {@link __ListTrait} implements a set of methods for toggling one type 
@@ -21,10 +26,8 @@ export type ITraitChangeEvent = number;
  * and focusing.
  * 
  * @warn SHOULD NOT BE USED DIRECTLY.
- * 
- * // REVIEW: set / get should support indice[]
  */
-class __ListTrait implements IDisposable {
+class __ListTrait<T> implements IDisposable {
 
     // [field]
 
@@ -34,56 +37,57 @@ class __ListTrait implements IDisposable {
     private _onDidChange = new Emitter<ITraitChangeEvent>();
     public onDidChange = this._onDidChange.registerListener;
 
-    private indices: Set<number>;
+    private indices: number[] = [];
+    private _getElement!: (index: number) => HTMLElement | null;
+
+    /** For fast querying */
+    private indicesSet: Set<number> | undefined = undefined;
 
     // [constructor]
 
     constructor(trait: string) {
         this.trait = trait;
-        this.indices = new Set();
     }
 
     // [public method]
 
     /**
-     * @description Sets the item with the current trait.
-     * @param index The index of the item.
-     * @param item The HTMLElement to be rendered.
-     * @param fire If fires the onDidChange event.
+     * @note This function has to be set first.
      */
-    public set(index: number, item: HTMLElement | null, fire: boolean = true): void {
-        if (this.indices.has(index)) {
-            return;
-        }
-
-        this.indices.add(index);
-        if (item) {
-            item.classList.toggle(this.trait, true);
-        }
-
-        if (fire) {
-            this._onDidChange.fire(index);
-        }
+    set getElement(value: (index: number) => HTMLElement | null) {
+        this._getElement = value;
     }
 
     /**
-     * @description Unsets the item with the current trait.
-     * @param index The index of the item.
-     * @param item The HTMLElement to be unrendered.
+     * @description Sets the given items with the current trait.
+     * @param indice The indice of the items.
      * @param fire If fires the onDidChange event.
      */
-    public unset(index: number, item: HTMLElement | null, fire: boolean = true): void {
-        if (this.indices.has(index) === false) {
-            return;
+    public set(indice: number[], fire: boolean = true): void {
+        
+        const oldIndice = this.indices;
+        this.indices = indice;
+        this.indicesSet = undefined;
+
+        const toUnrender = Array.complement(indice, oldIndice);
+        const toRender = Array.complement(oldIndice, indice);
+
+        for (const index of toUnrender) {
+            const item = this._getElement(index);
+            if (item) {
+                item.classList.toggle(this.trait, false);
+            }
         }
 
-        this.indices.delete(index);
-        if (item) {
-            item.classList.toggle(this.trait, false);
+        for (const index of toRender) {
+            const item = this._getElement(index);
+            if (item) {
+                item.classList.toggle(this.trait, true);
+            }
         }
-
+        
         if (fire) {
-            this._onDidChange.fire(index);
+            this._onDidChange.fire({ indice });
         }
     }
 
@@ -91,14 +95,14 @@ class __ListTrait implements IDisposable {
      * @description Returns how many items has such trait.
      */
     public size(): number {
-        return this.indices.size;
+        return this.indices.length;
     }
 
     /**
      * @description Returns all the indices of items with the current trait.
      */
     public items(): number[] {
-        return Array.from(this.indices);
+        return this.indices;
     }
 
     /**
@@ -107,15 +111,19 @@ class __ListTrait implements IDisposable {
      * @param index The index of the item.
      */
     public has(index: number): boolean {
-        return this.indices.has(index);
+        if (this.indicesSet === undefined) {
+            this.indicesSet = new Set();
+            this.indices.forEach(index => this.indicesSet!.add(index));
+        }
+        return this.indicesSet.has(index);
     }
 
     /**
      * @description All the listeners will be removed and indices will be reset.
      */
     public dispose(): void {
-        disposeAll([this._onDidChange]);
-        this.indices.clear();
+        this._onDidChange.dispose();
+        this.indices = [];
     }
 
 }
@@ -128,9 +136,9 @@ class __ListTraitRenderer<T> implements IListViewRenderer<T, HTMLElement> {
 
     public readonly type: RendererType;
 
-    private _trait: __ListTrait;
+    private _trait: __ListTrait<T>;
 
-    constructor(trait: __ListTrait) {
+    constructor(trait: __ListTrait<T>) {
         this._trait = trait;
         this.type = hash(this._trait.trait);
     }
@@ -290,18 +298,26 @@ export interface IListWidget<T> extends IDisposable {
      * @param deleteCount The amount of items to be deleted.
      * @param items The items to be inserted.
      */
-    splice(index: number, deleteCount: number, items: T[]): T[];
+    splice(index: number, deleteCount: number, items: T[]): void;
 
     /**
      * @description Sets the current view as focused in DOM tree.
      */
-    setFocus(): void;
+    setDomFocus(): void;
 
     // [item traits support]
 
-    toggleFocus(index: number): void;
+    /**
+     * @description Sets the item with the given index as focused.
+     * @param index The providex index.
+     */
+    setFocus(index: number): void;
 
-    toggleSelection(index: number): void;
+    /**
+     * @description Sets the item with the given index as selected.
+     * @param index The providex index.
+     */
+    setSelections(index: number[]): void;
 
     /**
      * @description Returns all the selected items.
@@ -311,7 +327,7 @@ export interface IListWidget<T> extends IDisposable {
     /**
      * @description Returns the focused item.
      */
-    getFocus(): T;
+    getFocus(): T | null;
 }
 
 /**
@@ -330,8 +346,8 @@ export class ListWidget<T> implements IListWidget<T> {
     private disposables: DisposableManager;
     private view: ListView<T>;
 
-    private selected: __ListTrait;
-    private focused: __ListTrait;
+    private selected: __ListTrait<T>;
+    private focused: __ListTrait<T>;
 
     // [constructor]
 
@@ -344,8 +360,8 @@ export class ListWidget<T> implements IListWidget<T> {
         this.disposables = new DisposableManager();
 
         // initializes all the item traits
-        this.selected = new __ListTrait('selected');
-        this.focused = new __ListTrait('focused');
+        this.selected = new __ListTrait<T>('selected');
+        this.focused = new __ListTrait<T>('focused');
 
         // integrates all the renderers
         const baseRenderers = [new __ListTraitRenderer(this.selected), new __ListTraitRenderer(this.focused)];
@@ -358,6 +374,9 @@ export class ListWidget<T> implements IListWidget<T> {
 
         // construct list view
         this.view = new ListView(container, renderers, itemProvider, listViewOpts);
+
+        this.selected.getElement = item => this.view.getElement(item);
+        this.focused.getElement = item => this.view.getElement(item);
 
         if (opts.dragAndDropProvider) {
             this.__enableDragAndDropSupport();
@@ -400,7 +419,7 @@ export class ListWidget<T> implements IListWidget<T> {
         this.view.rerender();
     }
 
-    public splice(index: number, deleteCount: number, items: T[] = []): T[] {
+    public splice(index: number, deleteCount: number, items: T[] = []): void {
         if (index < 0 || index > this.view.length) {
             throw new ListError(`splice invalid start index: ${index}`);
         }
@@ -410,48 +429,35 @@ export class ListWidget<T> implements IListWidget<T> {
         }
 
         if (deleteCount === 0 && items.length === 0) {
-            return [];
+            return;
         }
 
-        return this.view.splice(index, deleteCount, items);
+        this.view.splice(index, deleteCount, items);
     }
 
-    public setFocus(): void {
-        this.view.setFocus();
+    public setDomFocus(): void {
+        this.view.setDomFocus();
     }
 
     // [item traits support]
 
-    public toggleFocus(index: number): void {
-        const element = this.view.getElement(index);
-        
-        // unfocused the current item
-        if (this.focused.size() === 1) {
-            const currIndex = this.focused.items()[0]!;
-
-            if (currIndex === index) return;
-
-            const currElement = this.view.getElement(currIndex);
-            this.focused.unset(currIndex, currElement, false); // prevent fireing twice
-        }
-        // focus the new item
-        this.focused.set(index, element);
+    public setFocus(index: number): void {
+        this.focused.set([index]);
     }
 
-    public toggleSelection(index: number): void {
-        const element = this.view.getElement(index);
-
-        if (this.selected.has(index) === true) {
-            this.selected.unset(index, element, false); // prevent fire twice
+    public setSelections(indice: number[]): void {
+        if (indice.length === 0) {
             return;
         }
-
-        this.selected.set(index, element);
+        this.selected.set(indice);
     }
 
-    public getFocus(): T {
-        const index = this.focused.items()[0]!;
-        return this.view.getItem(index);
+    public getFocus(): T | null {
+        const index = this.focused.items();
+        if (index.length === 0) {
+            return null;
+        }
+        return this.view.getItem(index[0]!);
     }
 
     public getSelections(): T[] {

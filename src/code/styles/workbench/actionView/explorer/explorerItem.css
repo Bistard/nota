@@ -1,10 +1,16 @@
 
 .opened-explorer-container > .list-view > .list-view-container > .list-view-row {
     cursor: pointer;
+    border: 1px solid transparent;
 }
 
 .opened-explorer-container > .list-view > .list-view-container > .list-view-row:hover {
-    background-color: #ebebeb;
+    background-color: #f0e8e8;
+}
+
+.opened-explorer-container > .list-view > .list-view-container > .list-view-row.focused {
+    background-color: #f0e8e8;
+    border: 1px solid #cf6060;
 }
 
 .opened-explorer-container > .list-view > .list-view-container > .list-view-row > .tree-list-row > .icon {

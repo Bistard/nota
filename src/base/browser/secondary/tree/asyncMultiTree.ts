@@ -251,6 +251,33 @@ export interface IAsyncMultiTree<T, TFilter> {
     expandAll(): void;
 
     /**
+     * @description Sets the given item as focused.
+     * @param item The provided item.
+     */
+    setFocus(item: T): void;
+
+    /**
+     * @description Returns the focused item.
+     */
+    getFocus(): T | null;
+
+    /**
+     * @description Sets the given a series of items as selected.
+     * @param items The provided items.
+     */
+    setSelections(items: T[]): void;
+
+    /**
+     * @description Returns the selected items.
+     */
+    getSelections(): T[];
+
+    /**
+     * @description Sets the current view as focused in DOM tree.
+     */
+    setDomFocus(): void;
+
+    /**
      * @description Given the height, re-layouts the height of the whole view.
      * @param height The given height.
      * 
@@ -420,6 +447,27 @@ export class AsyncMultiTree<T, TFilter = void> implements IAsyncMultiTree<T, TFi
         this._tree.expandAll();
     }
 
+    public setFocus(item: T): void {
+        this._tree.setFocus(this._model.getAsyncNode(item));
+    }
+
+    public getFocus(): T | null {
+        const node = this._tree.getFocus();
+        return node ? node.data : null;
+    }
+
+    public setSelections(items: T[]): void {
+        this._tree.setSelections(items.map(node => this._model.getAsyncNode(node)));
+    }
+
+    public getSelections(): T[] {
+        return this._tree.getSelections().map(node => node!.data);
+    }
+
+    public setDomFocus(): void {
+        this._tree.setDomFocus();
+    }
+
     public layout(height?: number): void {
         this._tree.layout(height);
     }
@@ -526,7 +574,7 @@ export class AsyncMultiTree<T, TFilter = void> implements IAsyncMultiTree<T, TFi
      */
     private __toTreeMouseEvent(event: ITreeMouseEvent<IAsyncTreeNode<T> | null>): ITreeMouseEvent<T> {
         return {
-            event: event.event,
+            browserEvent: event.browserEvent,
             data: event.data && event.data.data,
             parent: event.parent?.data || null,
             children: event.children.map(child => child!.data),

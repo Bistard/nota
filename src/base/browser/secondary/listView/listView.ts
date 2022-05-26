@@ -8,7 +8,7 @@ import { DomEmitter, Emitter, Register } from "src/base/common/event";
 import { IRange, ISpliceable, Range, RangeTable } from "src/base/common/range";
 import { IScrollEvent, Scrollable } from "src/base/common/scrollable";
 import { IListItemProvider } from "src/base/browser/secondary/listView/listItemProvider";
-import { IListDragAndDropProvider, IListWidgetDragAndDropProvider } from "src/base/browser/secondary/listWidget/listWidgetDragAndDrop";
+import { IListWidgetDragAndDropProvider } from "src/base/browser/secondary/listWidget/listWidgetDragAndDrop";
 import { memoize } from "src/base/common/memoization";
 
 
@@ -182,7 +182,7 @@ export interface IListView<T> extends IDisposable {
      * 
      * @note render() will be invoked via this method.
      */
-    splice(index: number, deleteCount: number, items?: T[]): T[];
+    splice(index: number, deleteCount: number, items?: T[]): void;
 
     /**
      * @description Updates the position (top) and attributes of an item in the 
@@ -210,7 +210,7 @@ export interface IListView<T> extends IDisposable {
     /**
      * @description Sets the current view as focused in DOM tree.
      */
-    setFocus(): void;
+    setDomFocus(): void;
 
     // [Scroll Related Methods]
 
@@ -345,7 +345,7 @@ export class ListView<T> implements IDisposable, ISpliceable<T>, IListView<T> {
 
     /** The whole element of the view, including the scrollbar and all the items. */
     private element: HTMLElement;
-    /** The element contains all the items.  */
+    /** The element contains all the items. */
     private listContainer: HTMLElement;
 
     private scrollable: Scrollable;
@@ -559,7 +559,7 @@ export class ListView<T> implements IDisposable, ISpliceable<T>, IListView<T> {
         return;
     }
 
-    public splice(index: number, deleteCount: number, items: T[] = []): T[] {
+    public splice(index: number, deleteCount: number, items: T[] = []): void {
         
         if (this._splicing) {
             throw new ListError('cannot splice recursively');
@@ -568,7 +568,7 @@ export class ListView<T> implements IDisposable, ISpliceable<T>, IListView<T> {
         this._splicing = true;
 
         try {
-            return this.__splice(index, deleteCount, items);
+            this.__splice(index, deleteCount, items);
         } catch (err) {
             throw err;
         } finally {
@@ -633,7 +633,7 @@ export class ListView<T> implements IDisposable, ISpliceable<T>, IListView<T> {
         this._onRemoveItemInDOM.fire({ item: item, index: index });
     }
 
-    public setFocus(): void {
+    public setDomFocus(): void {
         /**
          * A boolean value indicating whether or not the browser should scroll 
          * the document to bring the newly-focused element into view.

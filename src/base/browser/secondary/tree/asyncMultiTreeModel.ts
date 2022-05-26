@@ -10,7 +10,7 @@ import { isIterable } from "src/base/common/type";
  * 
  * @note We are omitting these properties because the type does not fit.
  */
-export interface IAsyncMultiTreeModel<T, TFilter> extends Omit<ITreeModel<T, TFilter, T>, 'onDidSplice' | 'onDidChangeCollapseState'> {
+export interface IAsyncMultiTreeModel<T, TFilter> extends Omit<ITreeModel<T, TFilter, T>, 'onDidSplice' | 'onDidChangeCollapseState' | 'getNodeLocation' | 'getNodeListIndex' | 'setCollapsible' | 'setCollapsed' | 'setExpandTo' | 'getRoot'> {
     
     get onDidSplice(): Register<ITreeSpliceEvent<IAsyncTreeNode<T> | null, TFilter>>;
     
