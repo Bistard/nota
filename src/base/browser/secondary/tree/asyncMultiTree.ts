@@ -78,6 +78,8 @@ export class AsyncNodeConverter<T, TFilter> implements ITreeNode<T, TFilter> {
 
     get data(): T { return this._node.data!.data; }
     get parent(): ITreeNode<T, TFilter> | null { return this._node.parent?.data ? new AsyncNodeConverter(this._node.parent) : null; }
+    
+    // REVIEW: @memoize?
     get children(): ITreeNode<T, TFilter>[] { return this._node.children.map(child => new AsyncNodeConverter(child)); }
     get visibleNodeCount(): number { return this._node.visibleNodeCount; }
     get depth(): number { return this._node.depth; }

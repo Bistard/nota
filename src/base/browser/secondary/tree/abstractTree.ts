@@ -38,6 +38,10 @@ class __TreeListDragAndDropProvider<T> implements IListDragAndDropProvider<ITree
  */
 export class TreeListWidget<T, TFilter> extends ListWidget<ITreeNode<T>> {
 
+    // [field]
+
+    // [constructor]
+
     constructor(
         container: HTMLElement,
         renderers: IListViewRenderer<any, any>[],
@@ -46,6 +50,8 @@ export class TreeListWidget<T, TFilter> extends ListWidget<ITreeNode<T>> {
     ) {
         super(container, renderers, itemProvider, opts);
     }
+
+    // [public method]
 
 }
 

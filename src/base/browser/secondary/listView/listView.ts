@@ -9,6 +9,7 @@ import { IRange, ISpliceable, Range, RangeTable } from "src/base/common/range";
 import { IScrollEvent, Scrollable } from "src/base/common/scrollable";
 import { IListItemProvider } from "src/base/browser/secondary/listView/listItemProvider";
 import { IListDragAndDropProvider, IListWidgetDragAndDropProvider } from "src/base/browser/secondary/listWidget/listWidgetDragAndDrop";
+import { memoize } from "src/base/common/memoization";
 
 
 /**
@@ -96,69 +97,55 @@ export interface IListView<T> extends IDisposable {
 
     // [events / getter]
 
+    /** Fires when the splice() is invoked. */
     onDidSplice: Register<void>;
+
+    /** Fires when an DOM element is inserted into the DOM tree. */
     onInsertItemInDOM: Register<IViewItemChangeEvent<T>>;
+
+    /** Fires when an DOM element is updated the DOM tree. */
     onUpdateItemInDOM: Register<IViewItemChangeEvent<T>>;
+
+    /** Fires when an DOM element is removed from DOM tree. */
     onRemoveItemInDOM: Register<IViewItemChangeEvent<T>>;
 
-    /**
-     * Fires when the {@link IListView} is scrolling.
-     */
+    /** Fires before the {@link IListView} is scrolling. */
+    onWillScroll: Register<IScrollEvent>;
+
+    /** Fires after the {@link IListView} is scrolling. */
     onDidScroll: Register<IScrollEvent>;
     
-    /**
-     * Fires when the {@link IListView} itself is focused.
-     */
+    /** Fires when the {@link IListView} itself is focused. */
     onDidFocus: Register<void>;
 
-    /**
-     * Fires when the {@link IListView} itself is blured.
-     */
+    /** Fires when the {@link IListView} itself is blured. */
     onDidBlur: Register<void>;
 
-    /**
-     * Fires when the item in the {@link IListView} is clicked.
-     */
+    /** Fires when the item in the {@link IListView} is clicked. */
     onClick: Register<MouseEvent>;
 
-    /**
-     * Fires when the item in the {@link IListView} is double clicked.
-     */
+    /** Fires when the item in the {@link IListView} is double clicked. */
     onDoubleclick: Register<MouseEvent>;
 
-    /**
-     * Fires when the item in the {@link IListView} is mouseovered.
-     */
+    /** Fires when the item in the {@link IListView} is mouseovered. */
     onMouseover: Register<MouseEvent>;
     
-    /**
-     * Fires when the item in the {@link IListView} is mousedouted.
-     */
+    /** Fires when the item in the {@link IListView} is mousedouted. */
     onMouseout: Register<MouseEvent>;
     
-    /**
-     * Fires when the item in the {@link IListView} is mousedowned.
-     */
+    /** Fires when the item in the {@link IListView} is mousedowned. */
     onMousedown: Register<MouseEvent>;
     
-    /**
-     * Fires when the item in the {@link IListView} is mouseuped.
-     */
+    /** Fires when the item in the {@link IListView} is mouseuped. */
     onMouseup: Register<MouseEvent>;
     
-    /**
-     * Fires when the item in the {@link IListView} is mousemoved.
-     */
+    /** Fires when the item in the {@link IListView} is mousemoved. */
     onMousemove: Register<MouseEvent>;
 
-    /**
-     * The length (height) of the whole view in pixels.
-     */
+    /** The length (height) of the whole view in pixels. */
     length: number;
 
-    /**
-     * The container of the whole view.
-     */
+    /** The container of the whole view. */
     DOMElement: HTMLElement;
 
     // [methods]
@@ -219,6 +206,11 @@ export interface IListView<T> extends IDisposable {
      * @param index The index of the item.
      */
     removeItemInDOM(index: number): void;
+
+    /**
+     * @description Sets the current view as focused in DOM tree.
+     */
+    setFocus(): void;
 
     // [Scroll Related Methods]
 
@@ -394,17 +386,19 @@ export class ListView<T> implements IDisposable, ISpliceable<T>, IListView<T> {
 
     // [getter / setter]
 
+    get onWillScroll(): Register<IScrollEvent> { return this.scrollableWidget.onWillScroll; }
     get onDidScroll(): Register<IScrollEvent> { return this.scrollableWidget.onDidScroll; }
-    get onDidFocus(): Register<void> { return this.disposables.register(new DomEmitter<void>(this.listContainer, EventType.focus)).registerListener; }
-    get onDidBlur(): Register<void> { return this.disposables.register(new DomEmitter<void>(this.listContainer, EventType.blur)).registerListener; }
     
-    get onClick(): Register<MouseEvent> { return this.disposables.register(new DomEmitter<MouseEvent>(this.listContainer, EventType.click)).registerListener; }
-    get onDoubleclick(): Register<MouseEvent> { return this.disposables.register(new DomEmitter<MouseEvent>(this.listContainer, EventType.doubleclick)).registerListener; }
-    get onMouseover(): Register<MouseEvent> { return this.disposables.register(new DomEmitter<MouseEvent>(this.listContainer, EventType.mouseover)).registerListener; }
-    get onMouseout(): Register<MouseEvent> { return this.disposables.register(new DomEmitter<MouseEvent>(this.listContainer, EventType.mouseout)).registerListener; }
-    get onMousedown(): Register<MouseEvent> { return this.disposables.register(new DomEmitter<MouseEvent>(this.listContainer, EventType.mousedown)).registerListener; }
-    get onMouseup(): Register<MouseEvent> { return this.disposables.register(new DomEmitter<MouseEvent>(this.listContainer, EventType.mouseup)).registerListener; }
-    get onMousemove(): Register<MouseEvent> { return this.disposables.register(new DomEmitter<MouseEvent>(this.listContainer, EventType.mousemove)).registerListener; }
+    @memoize get onDidFocus(): Register<void> { return this.disposables.register(new DomEmitter<void>(this.listContainer, EventType.focus)).registerListener; }
+    @memoize get onDidBlur(): Register<void> { return this.disposables.register(new DomEmitter<void>(this.listContainer, EventType.blur)).registerListener; }
+    
+    @memoize get onClick(): Register<MouseEvent> { return this.disposables.register(new DomEmitter<MouseEvent>(this.listContainer, EventType.click)).registerListener; }
+    @memoize get onDoubleclick(): Register<MouseEvent> { return this.disposables.register(new DomEmitter<MouseEvent>(this.listContainer, EventType.doubleclick)).registerListener; }
+    @memoize get onMouseover(): Register<MouseEvent> { return this.disposables.register(new DomEmitter<MouseEvent>(this.listContainer, EventType.mouseover)).registerListener; }
+    @memoize get onMouseout(): Register<MouseEvent> { return this.disposables.register(new DomEmitter<MouseEvent>(this.listContainer, EventType.mouseout)).registerListener; }
+    @memoize get onMousedown(): Register<MouseEvent> { return this.disposables.register(new DomEmitter<MouseEvent>(this.listContainer, EventType.mousedown)).registerListener; }
+    @memoize get onMouseup(): Register<MouseEvent> { return this.disposables.register(new DomEmitter<MouseEvent>(this.listContainer, EventType.mouseup)).registerListener; }
+    @memoize get onMousemove(): Register<MouseEvent> { return this.disposables.register(new DomEmitter<MouseEvent>(this.listContainer, EventType.mousemove)).registerListener; }
 
     get length(): number { return this.items.length; }
     get DOMElement(): HTMLElement { return this.element; }
@@ -637,6 +631,14 @@ export class ListView<T> implements IDisposable, ISpliceable<T>, IListView<T> {
         }
 
         this._onRemoveItemInDOM.fire({ item: item, index: index });
+    }
+
+    public setFocus(): void {
+        /**
+         * A boolean value indicating whether or not the browser should scroll 
+         * the document to bring the newly-focused element into view.
+         */
+        this.element.focus({ preventScroll: true });
     }
 
     public setViewportSize(size: number): void {

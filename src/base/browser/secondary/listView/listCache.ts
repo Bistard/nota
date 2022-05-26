@@ -28,7 +28,7 @@ export interface IListViewRow {
 
 /**
  * @class Storage to store all the DOM elements that are not displaying on the 
- * DOM tree.
+ * DOM tree. For preformance usage.
  */
 export class ListViewCache implements IDisposable {
 

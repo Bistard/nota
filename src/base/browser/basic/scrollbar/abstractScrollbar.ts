@@ -1,6 +1,7 @@
 import { VisibilityController } from "src/base/browser/basic/visibilityController";
-import { Widget } from "src/base/browser/basic/widget";
+import { IWidget, Widget } from "src/base/browser/basic/widget";
 import { IDisposable } from "src/base/common/dispose";
+import { Emitter, Register } from "src/base/common/event";
 import { MouseClick } from "src/base/common/keyboard";
 import { IScrollEvent, Scrollable } from "src/base/common/scrollable";
 
@@ -29,6 +30,34 @@ export interface IAbstractScrollbarOptions {
 }
 
 /**
+ * An interface only for {@link AbstractScrollbar}.
+ */
+export interface IAbstractScrollbar extends IWidget {
+
+    /** Fires before scroll happens. */
+    onWillScroll: Register<IScrollEvent>;
+    
+    /** Fires after scroll happens. */
+    onDidScroll: Register<IScrollEvent>;
+
+    /**
+     * @description Rerenders the scrollbar.
+     */
+    rerender(size?: number, position?: number): void;
+
+    /**
+     * @description Displays the scrollbar.
+     */
+    show(): void;
+    
+    /**
+     * @description Hides the scrollbar.
+     */
+    hide(): void;
+
+}
+
+/**
  * @class The base model for different scrollbars. Cannot be used directly.
  */
 export abstract class AbstractScrollbar extends Widget {
@@ -43,6 +72,14 @@ export abstract class AbstractScrollbar extends Widget {
 
     private _visibilityController: VisibilityController;
 
+    // [event]
+
+    private readonly _onWillScroll = this.__register(new Emitter<IScrollEvent>());
+    public readonly onWillScroll = this._onWillScroll.registerListener;
+
+    private readonly _onDidScroll = this.__register(new Emitter<IScrollEvent>());
+    public readonly onDidScroll = this._onDidScroll.registerListener;
+
     // [constructor]
 
     constructor(opts: IAbstractScrollbarOptions) {
@@ -55,7 +92,9 @@ export abstract class AbstractScrollbar extends Widget {
         this._scrollable = opts.scrollable;
 
         this.__register(this._scrollable.onDidScroll(e => {
+            this._onWillScroll.fire(e);
             this.__onDidScroll(e);
+            this._onDidScroll.fire(e);
         }));
 
         this._visibilityController = new VisibilityController('visible', 'invisible', 'fade');
