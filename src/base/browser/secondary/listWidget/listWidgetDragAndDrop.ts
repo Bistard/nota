@@ -1,7 +1,7 @@
 import { IListWidget } from "./listWidget";
 
 /**
- * An interface that provides drag and drop support (dnd) to the {@link IListView}.
+ * An interface that provides drag and drop support (dnd).
  */
 export interface IListDragAndDropProvider<T> {
 
@@ -19,6 +19,9 @@ export interface IListDragAndDropProvider<T> {
 
 }
 
+/**
+ * A special interface for {@link IListView} usage.
+ */
 export interface IListWidgetDragAndDropProvider<T> extends IListDragAndDropProvider<T> {
     
     /**
@@ -29,6 +32,10 @@ export interface IListWidgetDragAndDropProvider<T> extends IListDragAndDropProvi
 
 }
 
+/**
+ * @class A wrapper class for {@link IListWidget}.
+ * @wran DO NOT USE DIRECTLY.
+ */
 export class ListWidgetDragAndDropProvider<T> implements IListWidgetDragAndDropProvider<T> {
 
     private view: IListWidget<T>;
