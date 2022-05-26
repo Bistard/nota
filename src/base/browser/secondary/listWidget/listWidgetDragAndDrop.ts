@@ -25,7 +25,7 @@ export interface IListWidgetDragAndDropProvider<T> extends IListDragAndDropProvi
      * @description Returns all the currently dragging items.
      * @param currItem The current mouse dragging (holding) item.
      */
-    getDragItem(currItem: T): T[];
+    getDragItems(currItem: T): T[];
 
 }
 
@@ -39,7 +39,7 @@ export class ListWidgetDragAndDropProvider<T> implements IListWidgetDragAndDropP
         this.dnd = dnd;
     }
 
-    public getDragItem(currItem: T): T[] {
+    public getDragItems(currItem: T): T[] {
         const selected = this.view.getSelections();
         if (selected.length > 0) {
             return selected;
@@ -49,6 +49,12 @@ export class ListWidgetDragAndDropProvider<T> implements IListWidgetDragAndDropP
 
     public getDragData(item: T): string | null {
         return this.dnd.getDragData(item);
+    }
+
+    public onDragStart(): void {
+        if (this.dnd.onDragStart) {
+            this.dnd.onDragStart();
+        }
     }
 
 }

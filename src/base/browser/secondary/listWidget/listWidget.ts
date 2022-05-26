@@ -1,12 +1,12 @@
 import { IListViewRenderer, PipelineRenderer } from "src/base/browser/secondary/listView/listRenderer";
-import { IListViewOpts, IViewItem, IViewItemChangeEvent, ListError, ListView } from "src/base/browser/secondary/listView/listView";
+import { IListView, IListViewOpts, IViewItem, IViewItemChangeEvent, ListError, ListView } from "src/base/browser/secondary/listView/listView";
 import { IListTraitEvent, ListTrait } from "src/base/browser/secondary/listWidget/listTrait";
 import { DisposableManager, IDisposable } from "src/base/common/dispose";
 import { addDisposableListener, DomUtility, EventType } from "src/base/common/dom";
 import { Event, Register, SignalEmitter } from "src/base/common/event";
 import { IScrollEvent } from "src/base/common/scrollable";
 import { IListItemProvider } from "src/base/browser/secondary/listView/listItemProvider";
-import { ListWidgetDragAndDropProvider } from "src/base/browser/secondary/listWidget/listWidgetDragAndDrop";
+import { IListDragAndDropProvider, ListWidgetDragAndDropProvider } from "src/base/browser/secondary/listWidget/listWidgetDragAndDrop";
 import { ListTraitRenderer } from "src/base/browser/secondary/listWidget/listTraitRenderer";
 
 /**
@@ -43,8 +43,10 @@ export interface IListDragEvent<T> {
 /**
  * The consturtor options for {@link ListWidget}.
  */
-export interface IListWidgetOpts<T> extends IListViewOpts<T> {
+export interface IListWidgetOpts<T> extends Omit<IListViewOpts<T>, 'dragAndDropProvider'> {
     
+    dragAndDropProvider?: IListDragAndDropProvider<T>;
+
 }
 
 // TODO: method comments
@@ -188,7 +190,7 @@ export class ListWidget<T> implements IListWidget<T> {
         container: HTMLElement,
         renderers: IListViewRenderer<any, any>[],
         itemProvider: IListItemProvider<T>, 
-        opts: IListWidgetOpts<T>
+        opts: IListWidgetOpts<T> = {}
     ) {
         this.disposables = new DisposableManager();
 
@@ -200,13 +202,13 @@ export class ListWidget<T> implements IListWidget<T> {
         const baseRenderers = [new ListTraitRenderer(this.selected), new ListTraitRenderer(this.focused)];
         renderers = renderers.map(renderer => new PipelineRenderer(renderer.type, [...baseRenderers, renderer]));
         
-        // dnd support
-        if (opts.dragAndDropProvider) {
-            opts.dragAndDropProvider = new ListWidgetDragAndDropProvider<T>(this, opts.dragAndDropProvider);
-        }
+        const listViewOpts: IListViewOpts<T> = {
+            ...opts,
+            dragAndDropProvider: opts.dragAndDropProvider ? new ListWidgetDragAndDropProvider(this, opts.dragAndDropProvider) : undefined,
+        };
 
         // construct list view
-        this.view = new ListView(container, renderers, itemProvider, opts);
+        this.view = new ListView(container, renderers, itemProvider, listViewOpts);
 
         if (opts.dragAndDropProvider) {
             this.__enableDragAndDropSupport();
@@ -347,7 +349,7 @@ export class ListWidget<T> implements IListWidget<T> {
 
         console.log('enable dnd');
 
-        // only adding 4 listeners to the whole view, 
+        // only adding 4 listeners to the whole view
         this.disposables.register(addDisposableListener(this.view.DOMElement, EventType.dragover, e => this.__onDragOver(this.__toListDragEvent(e))));
         this.disposables.register(addDisposableListener(this.view.DOMElement, EventType.drop, e => this.__onDrop(this.__toListDragEvent(e))));
         this.disposables.register(addDisposableListener(this.view.DOMElement, EventType.dragleave, e => this.__onDragLeave(this.__toListDragEvent(e))));
@@ -391,7 +393,7 @@ export class ListWidget<T> implements IListWidget<T> {
         }
 
         // get the drag data
-        const dnd = this.view.getDnd();
+        const dnd = this.view.getDragAndDropProvider();
         const userData = dnd.getDragData(item.data);
 
         // make the HTMLElement actually draggable
@@ -399,24 +401,31 @@ export class ListWidget<T> implements IListWidget<T> {
 
         // add event listener
         if (userData) {
-            item.dragStart = addDisposableListener(item.row!.dom, EventType.dragstart, (e: DragEvent) => this.__onDragStart(item.data, e));
+            item.dragStart = addDisposableListener(item.row!.dom, EventType.dragstart, (e: DragEvent) => this.__onDragStart(item.data, userData, e));
         }
     }
 
     /**
-     * @description Invokes when the user starts to drag.
+     * @description Invokes when the event {@link EventType.dragstart} happens.
      * @param data The corresponding data of the dragging item.
+     * @param userData The user-defined data.
      * @param event The {@link DragEvent}.
      */
-    private __onDragStart(data: T, event: DragEvent): void {
+    private __onDragStart(data: T, userData: string, event: DragEvent): void {
         
         if (event.dataTransfer === null) {
             return;
         }
 
+        const dnd = this.view.getDragAndDropProvider();
+
+        const allItems = dnd.getDragItems(data);
+
+        event.dataTransfer.effectAllowed = 'copyMove';
+		event.dataTransfer.setData('text/plain', userData);
+        
         // TODO...
 
-        const dnd = this.view.getDnd();
         if (dnd.onDragStart) {
             dnd.onDragStart();
         }

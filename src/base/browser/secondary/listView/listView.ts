@@ -8,7 +8,7 @@ import { DomEmitter, Emitter, Register } from "src/base/common/event";
 import { IRange, ISpliceable, Range, RangeTable } from "src/base/common/range";
 import { IScrollEvent, Scrollable } from "src/base/common/scrollable";
 import { IListItemProvider } from "src/base/browser/secondary/listView/listItemProvider";
-import { IListDragAndDropProvider } from "src/base/browser/secondary/listWidget/listWidgetDragAndDrop";
+import { IListDragAndDropProvider, IListWidgetDragAndDropProvider } from "src/base/browser/secondary/listWidget/listWidgetDragAndDrop";
 
 
 /**
@@ -60,7 +60,7 @@ export interface IListViewOpts<T> {
     /**
      * A provider that has ability to provide Drag and Drop Support (dnd).
      */
-    dragAndDropProvider?: IListDragAndDropProvider<T>;
+    readonly dragAndDropProvider?: IListWidgetDragAndDropProvider<T>;
 
 }
 
@@ -323,6 +323,11 @@ export interface IListView<T> extends IDisposable {
      * be thrown.
      */
     indexFromEventTarget(target: EventTarget | null): number;
+
+    /**
+     * @description Returns the intance of the {@link IListWidgetDragAndDropProvider<T>}.
+     */
+    getDragAndDropProvider(): IListWidgetDragAndDropProvider<T>;
 }
 
 /**
@@ -356,7 +361,7 @@ export class ListView<T> implements IDisposable, ISpliceable<T>, IListView<T> {
 
     private rangeTable: RangeTable;
 
-    private dnd: IListDragAndDropProvider<T>;
+    private dnd: IListWidgetDragAndDropProvider<T>;
     private renderers: Map<RendererType, IListViewRenderer<T, any>>;
     private itemProvider: IListItemProvider<T>;
     
@@ -453,9 +458,10 @@ export class ListView<T> implements IDisposable, ISpliceable<T>, IListView<T> {
         this.cache = new ListViewCache(this.renderers);
 
         // drag-and-drop support
-        this.dnd = opts.dragAndDropProvider || { 
-            // default dnd
-            getDragData: () => null,
+        this.dnd = opts.dragAndDropProvider || {
+            getDragItems<T>(e: T): T[] { return [e]; },
+            getDragData(): string | null { return null; },
+            onDragStart(): void { },
         };
 
         // DOM rendering
@@ -743,7 +749,7 @@ export class ListView<T> implements IDisposable, ISpliceable<T>, IListView<T> {
         throw new ListError('invalid event target');
     }
 
-    public getDnd(): IListDragAndDropProvider<T> {
+    public getDragAndDropProvider(): IListWidgetDragAndDropProvider<T> {
         return this.dnd;
     }
 
