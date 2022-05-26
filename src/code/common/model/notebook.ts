@@ -254,7 +254,7 @@ export class Notebook extends Disposable implements INotebook {
      */
     private __registerListeners(): void {
 
-        this._tree.onClick(async (event) => {
+        this._tree.onClick(event => {
             this._tree.toggleCollapseOrExpand(event.data!, false);
             if (event.browserEvent.ctrlKey) {
                 // TODO

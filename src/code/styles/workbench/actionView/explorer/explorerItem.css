@@ -5,12 +5,16 @@
 }
 
 .opened-explorer-container > .list-view > .list-view-container > .list-view-row:hover {
-    background-color: #f0e8e8;
+    background-color: #fcf3f3;
 }
 
 .opened-explorer-container > .list-view > .list-view-container > .list-view-row.focused {
     background-color: #f0e8e8;
     border: 1px solid #cf6060;
+}
+
+.opened-explorer-container > .list-view > .list-view-container > .list-view-row.selected {
+    background-color: #f0e8e8;
 }
 
 .opened-explorer-container > .list-view > .list-view-container > .list-view-row > .tree-list-row > .icon {
