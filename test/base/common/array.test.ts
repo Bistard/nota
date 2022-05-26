@@ -33,6 +33,18 @@ suite('array-test', () => {
         assert.deepStrictEqual(Array.disjunction([1, 2, 3], [4, 5, 6]), [1, 2, 3, 4, 5, 6]);
     });
 
+    test('Array.complement()', () => {
+        assert.deepStrictEqual(Array.complement([], []), []);
+        assert.deepStrictEqual(Array.complement([], [2]), [2]);
+        assert.deepStrictEqual(Array.complement([1, 2], []), []);
+        assert.deepStrictEqual(Array.complement([1], [2]), [2]);
+        assert.deepStrictEqual(Array.complement([1], [2, 2]), [2]);
+        assert.deepStrictEqual(Array.complement([1], [1]), []);
+        assert.deepStrictEqual(Array.complement([1, 1, 2, 3], [1, 2, 4, 5, 5]), [4, 5]);
+        assert.deepStrictEqual(Array.complement([1, 1, 2, 3], [1, 1, 2, 3]), []);
+        assert.deepStrictEqual(Array.complement([1, 2, 3], [4, 5, 6]), [4, 5, 6]);
+    });
+
     test('Array.unique()', () => {
         assert.deepStrictEqual(Array.unique([]), []);
         assert.deepStrictEqual(Array.unique([1, 2]), [1, 2]);
