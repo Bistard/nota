@@ -1,8 +1,7 @@
 import { ITreeCollapseStateChangeEvent, ITreeModel, ITreeMouseEvent, ITreeNode, ITreeSpliceEvent } from "src/base/browser/secondary/tree/tree";
 import { ITreeListRenderer, TreeItemRenderer } from "src/base/browser/secondary/tree/treeListRenderer";
 import { IListItemProvider, TreeListItemProvider } from "src/base/browser/secondary/listView/listItemProvider";
-import { IListTraitEvent } from "src/base/browser/secondary/listWidget/listTrait";
-import { IListMouseEvent, IListWidgetOpts, ListWidget } from "src/base/browser/secondary/listWidget/listWidget";
+import { IListMouseEvent, IListWidgetOpts, ITraitChangeEvent, ListWidget } from "src/base/browser/secondary/listWidget/listWidget";
 import { IListDragAndDropProvider } from "src/base/browser/secondary/listWidget/listWidgetDragAndDrop";
 import { DisposableManager, IDisposable } from "src/base/common/dispose";
 import { Event, Register, RelayEmitter } from "src/base/common/event";
@@ -103,12 +102,12 @@ export interface IAbstractTree<T, TFilter, TRef> {
     /**
      * Fires when the focused tree nodes in the {@link IAbstractTree} is changed.
      */
-    get onDidChangeItemFocus(): Register<IListTraitEvent>;
+    get onDidChangeItemFocus(): Register<ITraitChangeEvent>;
 
     /**
      * Fires when the selected tree nodes in the {@link IAbstractTree} is changed.
      */
-    get onDidChangeItemSelection(): Register<IListTraitEvent>;
+    get onDidChangeItemSelection(): Register<ITraitChangeEvent>;
 
     /**
      * Fires when the tree node in the {@link IAbstractTree} is clicked.
@@ -279,8 +278,8 @@ export abstract class AbstractTree<T, TFilter, TRef> implements IAbstractTree<T,
 
     get onDidScroll(): Register<IScrollEvent> { return this._view.onDidScroll; }
     get onDidChangeFocus(): Register<boolean> { return this._view.onDidChangeFocus; }
-    get onDidChangeItemFocus(): Register<IListTraitEvent> { return this._view.onDidChangeItemFocus; }
-    get onDidChangeItemSelection(): Register<IListTraitEvent> { return this._view.onDidChangeItemSelection; }
+    get onDidChangeItemFocus(): Register<ITraitChangeEvent> { return this._view.onDidChangeItemFocus; }
+    get onDidChangeItemSelection(): Register<ITraitChangeEvent> { return this._view.onDidChangeItemSelection; }
 
     get onClick(): Register<ITreeMouseEvent<T>> { return Event.map(this._view.onClick, this.__toTreeMouseEvent); }
     get onDoubleclick(): Register<ITreeMouseEvent<T>> { return Event.map(this._view.onDoubleclick, this.__toTreeMouseEvent); }

@@ -1,14 +1,157 @@
-import { IListViewRenderer, PipelineRenderer } from "src/base/browser/secondary/listView/listRenderer";
-import { IListView, IListViewOpts, IViewItem, IViewItemChangeEvent, ListError, ListView } from "src/base/browser/secondary/listView/listView";
-import { IListTraitEvent, ListTrait } from "src/base/browser/secondary/listWidget/listTrait";
-import { DisposableManager, IDisposable } from "src/base/common/dispose";
+import { IListViewRenderer, PipelineRenderer, RendererType } from "src/base/browser/secondary/listView/listRenderer";
+import { IListViewOpts, IViewItem, IViewItemChangeEvent, ListError, ListView } from "src/base/browser/secondary/listView/listView";
+import { DisposableManager, disposeAll, IDisposable } from "src/base/common/dispose";
 import { addDisposableListener, DomUtility, EventType } from "src/base/common/dom";
-import { Event, Register, SignalEmitter } from "src/base/common/event";
+import { Emitter, Event, Register, SignalEmitter } from "src/base/common/event";
 import { IScrollEvent } from "src/base/common/scrollable";
 import { IListItemProvider } from "src/base/browser/secondary/listView/listItemProvider";
 import { IListDragAndDropProvider, ListWidgetDragAndDropProvider } from "src/base/browser/secondary/listWidget/listWidgetDragAndDrop";
-import { ListTraitRenderer } from "src/base/browser/secondary/listWidget/listTraitRenderer";
 import { memoize } from "src/base/common/memoization";
+import { hash } from "src/base/common/hash";
+
+
+/**
+ * The index changed in {@link __ListTrait}.
+ */
+export type ITraitChangeEvent = number;
+
+/**
+ * @class A {@link __ListTrait} implements a set of methods for toggling one type 
+ * of the characteristic of items in {@link ListWidget}, such as item selecting
+ * and focusing.
+ * 
+ * @warn SHOULD NOT BE USED DIRECTLY.
+ * 
+ * // REVIEW: set / get should support indice[]
+ */
+class __ListTrait implements IDisposable {
+
+    // [field]
+
+    /** A trait is a string that represents an CSS class. */
+    public trait: string;
+
+    private _onDidChange = new Emitter<ITraitChangeEvent>();
+    public onDidChange = this._onDidChange.registerListener;
+
+    private indices: Set<number>;
+
+    // [constructor]
+
+    constructor(trait: string) {
+        this.trait = trait;
+        this.indices = new Set();
+    }
+
+    // [public method]
+
+    /**
+     * @description Sets the item with the current trait.
+     * @param index The index of the item.
+     * @param item The HTMLElement to be rendered.
+     * @param fire If fires the onDidChange event.
+     */
+    public set(index: number, item: HTMLElement | null, fire: boolean = true): void {
+        if (this.indices.has(index)) {
+            return;
+        }
+
+        this.indices.add(index);
+        if (item) {
+            item.classList.toggle(this.trait, true);
+        }
+
+        if (fire) {
+            this._onDidChange.fire(index);
+        }
+    }
+
+    /**
+     * @description Unsets the item with the current trait.
+     * @param index The index of the item.
+     * @param item The HTMLElement to be unrendered.
+     * @param fire If fires the onDidChange event.
+     */
+    public unset(index: number, item: HTMLElement | null, fire: boolean = true): void {
+        if (this.indices.has(index) === false) {
+            return;
+        }
+
+        this.indices.delete(index);
+        if (item) {
+            item.classList.toggle(this.trait, false);
+        }
+
+        if (fire) {
+            this._onDidChange.fire(index);
+        }
+    }
+
+    /**
+     * @description Returns how many items has such trait.
+     */
+    public size(): number {
+        return this.indices.size;
+    }
+
+    /**
+     * @description Returns all the indices of items with the current trait.
+     */
+    public items(): number[] {
+        return Array.from(this.indices);
+    }
+
+    /**
+     * @description Determines if the item with the given index has the current
+     * trait.
+     * @param index The index of the item.
+     */
+    public has(index: number): boolean {
+        return this.indices.has(index);
+    }
+
+    /**
+     * @description All the listeners will be removed and indices will be reset.
+     */
+    public dispose(): void {
+        disposeAll([this._onDidChange]);
+        this.indices.clear();
+    }
+
+}
+
+
+/**
+ * @class A type of {@link IListViewRenderer} for rendering {@link __ListTrait}.
+ */
+class __ListTraitRenderer<T> implements IListViewRenderer<T, HTMLElement> {
+
+    public readonly type: RendererType;
+
+    private _trait: __ListTrait;
+
+    constructor(trait: __ListTrait) {
+        this._trait = trait;
+        this.type = hash(this._trait.trait);
+    }
+
+    public render(element: HTMLElement): HTMLElement {
+        return element;
+    }
+
+    public update(item: T, index: number, data: HTMLElement, size?: number): void {
+        if (this._trait.has(index)) {
+            data.classList.toggle(this._trait.trait, true);
+        } else {
+            data.classList.toggle(this._trait.trait, false);
+        }
+    }
+
+    public dispose(element: HTMLElement): void {
+        // do nothing
+    }
+
+}
 
 /**
  * A standard mouse event interface used in {@link ListWidget}.
@@ -81,12 +224,12 @@ export interface IListWidget<T> extends IDisposable {
     /**
      * Fires when the focused items in the {@link IListWidget} is changed.
      */
-    onDidChangeItemFocus: Register<IListTraitEvent>;
+    onDidChangeItemFocus: Register<ITraitChangeEvent>;
 
     /**
      * Fires when the selected items in the {@link IListWidget} is changed.
      */
-    onDidChangeItemSelection: Register<IListTraitEvent>;
+    onDidChangeItemSelection: Register<ITraitChangeEvent>;
 
     /**
      * Fires when the item in the {@link IListWidget} is clicked.
@@ -187,8 +330,8 @@ export class ListWidget<T> implements IListWidget<T> {
     private disposables: DisposableManager;
     private view: ListView<T>;
 
-    private selected: ListTrait;
-    private focused: ListTrait;
+    private selected: __ListTrait;
+    private focused: __ListTrait;
 
     // [constructor]
 
@@ -201,11 +344,11 @@ export class ListWidget<T> implements IListWidget<T> {
         this.disposables = new DisposableManager();
 
         // initializes all the item traits
-        this.selected = new ListTrait('selected');
-        this.focused = new ListTrait('focused');
+        this.selected = new __ListTrait('selected');
+        this.focused = new __ListTrait('focused');
 
         // integrates all the renderers
-        const baseRenderers = [new ListTraitRenderer(this.selected), new ListTraitRenderer(this.focused)];
+        const baseRenderers = [new __ListTraitRenderer(this.selected), new __ListTraitRenderer(this.focused)];
         renderers = renderers.map(renderer => new PipelineRenderer(renderer.type, [...baseRenderers, renderer]));
         
         const listViewOpts: IListViewOpts<T> = {
@@ -232,8 +375,8 @@ export class ListWidget<T> implements IListWidget<T> {
 
     get onDidScroll(): Register<IScrollEvent> { return this.view.onDidScroll; }
     @memoize get onDidChangeFocus(): Register<boolean> { return this.disposables.register(new SignalEmitter<boolean, boolean>([Event.map(this.view.onDidFocus, () => true), Event.map(this.view.onDidBlur, () => false)], (e: boolean) => e)).registerListener; }
-    get onDidChangeItemFocus(): Register<IListTraitEvent> { return this.focused.onDidChange; }
-    get onDidChangeItemSelection(): Register<IListTraitEvent> { return this.selected.onDidChange; }
+    get onDidChangeItemFocus(): Register<ITraitChangeEvent> { return this.focused.onDidChange; }
+    get onDidChangeItemSelection(): Register<ITraitChangeEvent> { return this.selected.onDidChange; }
 
     get onClick(): Register<IListMouseEvent<T>> { return Event.map<MouseEvent, IListMouseEvent<T>>(this.view.onClick, (e: MouseEvent) => this.__toListMouseEvent(e)); }
     get onDoubleclick(): Register<IListMouseEvent<T>> { return Event.map<MouseEvent, IListMouseEvent<T>>(this.view.onDoubleclick, (e: MouseEvent) => this.__toListMouseEvent(e));  }

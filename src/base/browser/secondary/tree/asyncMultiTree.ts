@@ -2,7 +2,6 @@ import { AsyncTreeRenderer } from "src/base/browser/secondary/tree/asyncTreeRend
 import { IMultiTree, IMultiTreeOptions, MultiTree } from "src/base/browser/secondary/tree/multiTree";
 import { ITreeListRenderer } from "src/base/browser/secondary/tree/treeListRenderer";
 import { composedItemProvider, IListItemProvider } from "src/base/browser/secondary/listView/listItemProvider";
-import { IListTraitEvent } from "src/base/browser/secondary/listWidget/listTrait";
 import { DisposableManager, IDisposable } from "src/base/common/dispose";
 import { Event, Register } from "src/base/common/event";
 import { Weakmap } from "src/base/common/map";
@@ -13,6 +12,7 @@ import { Iterable } from "src/base/common/iterable";
 import { ITreeModelSpliceOptions } from "src/base/browser/secondary/tree/indexTreeModel";
 import { Pair } from "src/base/common/type";
 import { IListDragAndDropProvider } from "src/base/browser/secondary/listWidget/listWidgetDragAndDrop";
+import { ITraitChangeEvent } from "src/base/browser/secondary/listWidget/listWidget";
 
 /**
  * Provides functionality to determine the children stat of the given data.
@@ -145,12 +145,12 @@ export interface IAsyncMultiTree<T, TFilter> {
     /**
      * Fires when the focused tree nodes in the {@link IAsyncMultiTree} is changed.
      */
-    get onDidChangeItemFocus(): Register<IListTraitEvent>;
+    get onDidChangeItemFocus(): Register<ITraitChangeEvent>;
     
     /**
      * Fires when the selected tree nodes in the {@link IAsyncMultiTree} is changed.
      */
-    get onDidChangeItemSelection(): Register<IListTraitEvent>;
+    get onDidChangeItemSelection(): Register<ITraitChangeEvent>;
     
     /**
      * Fires when the tree node in the {@link IAsyncMultiTree} is clicked.
@@ -361,8 +361,8 @@ export class AsyncMultiTree<T, TFilter = void> implements IAsyncMultiTree<T, TFi
 
     get onDidScroll(): Register<IScrollEvent> { return this._tree.onDidScroll; }
     get onDidChangeFocus(): Register<boolean> { return this._tree.onDidChangeFocus; }
-    get onDidChangeItemFocus(): Register<IListTraitEvent> { return this._tree.onDidChangeItemFocus; }
-    get onDidChangeItemSelection(): Register<IListTraitEvent> { return this._tree.onDidChangeItemSelection; }
+    get onDidChangeItemFocus(): Register<ITraitChangeEvent> { return this._tree.onDidChangeItemFocus; }
+    get onDidChangeItemSelection(): Register<ITraitChangeEvent> { return this._tree.onDidChangeItemSelection; }
     
     get onClick(): Register<ITreeMouseEvent<T>> { return Event.map(this._tree.onClick, this.__toTreeMouseEvent); }
     get onDoubleclick(): Register<ITreeMouseEvent<T>> { return Event.map(this._tree.onDoubleclick, this.__toTreeMouseEvent); }
