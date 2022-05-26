@@ -38,8 +38,8 @@ export function memoize(target: any, propertyKey: string, descriptor: PropertyDe
 				configurable: false,
 				enumerable: false,
 				writable: false,
-				value: func.apply(this, args)
-			}as PropertyDescriptor);
+				value: func.apply(this, args) // we save the result for speeding up
+			} as PropertyDescriptor);
 		}
 
 		return this[propName];
