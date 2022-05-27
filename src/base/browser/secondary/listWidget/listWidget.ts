@@ -235,7 +235,6 @@ class __ListWidgetMouseController<T> implements IDisposable {
         
         // clicking nowhere, we reset all the traits
         if (focusedIdx === undefined) {
-            console.log('[controller] setting no focus and selections');
             this._view.setFocus(null);
             this._view.setSelections([]);
             return;
@@ -243,16 +242,12 @@ class __ListWidgetMouseController<T> implements IDisposable {
 
         // check if selecting in range
         if (this.__selectingInRangeEvent(e)) {
-            console.log('[constroller] selection in range');
             this.__multiSelectionInRange(e);
             return;
         } else if (this.__selectingInSingleEvent(e)) {
-            console.log('[constroller] selection in single');
             this._mutliSelectionInSingle(e);
             return;
         }
-
-        console.log('[controller] setting single focus and selection');
 
         // no multi-selection, set focus only
         this._view.setFocus(focusedIdx);
@@ -310,7 +305,6 @@ class __ListWidgetMouseController<T> implements IDisposable {
      * @description Applies multi-selection when selecting in single.
      */
     private _mutliSelectionInSingle(e: IListMouseEvent<T>): void {
-        console.log("select in single");
         const focusedIdx = e.actualIndex!;
 
         const currSelection = this._view.getSelections();
@@ -675,9 +669,6 @@ export class ListWidget<T> implements IListWidget<T> {
     }
 
     public setSelections(indice: number[]): void {
-        if (indice.length === 0) {
-            return;
-        }
         this.selected.set(indice);
     }
 
