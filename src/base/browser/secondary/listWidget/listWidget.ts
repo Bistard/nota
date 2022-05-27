@@ -162,23 +162,83 @@ class __ListTraitRenderer<T> implements IListViewRenderer<T, HTMLElement> {
 }
 
 /**
- * A standard mouse event interface used in {@link ListWidget}.
+ * @class An internal class that handles the mouse support of {@link IListWidget}.
+ */
+class __ListWidgetMouseController<T> implements IDisposable {
+
+    // [fields]
+
+    private _disposables = new DisposableManager();
+    private _view: IListWidget<T>;
+
+    private _mouseSupport: boolean;
+
+    // [constructor]
+
+    constructor(
+        view: IListWidget<T>,
+        opts: IListWidgetOpts<T>
+    ) {
+        this._view = view;
+
+        this._mouseSupport = (typeof opts.mouseSupport === 'undefined') || opts.mouseSupport;
+        if (this._mouseSupport === false) {
+            // does not support
+            return;
+        }
+
+        this._disposables.register(view.onMousedown(e => this.__onMouseDown(e)));
+        this._disposables.register(view.onClick(e => this.__onMouseClick(e)));
+    }
+
+    // [public methods]
+
+    public dispose(): void {
+        this._disposables.dispose();
+    }
+
+    // [private helper methods]
+
+    /**
+     * @description Focuses the event target element.
+     */
+    private __onMouseDown(e: IListMouseEvent<T>): void {
+        // prevent double focus
+        if (document.activeElement !== e.browserEvent.target) {
+			this._view.setDomFocus();
+		}
+    }
+
+    /**
+     * @description // TODO
+     */
+    private __onMouseClick(e: IListMouseEvent<T>): void {
+        if (this._mouseSupport === false) {
+            return;
+        }
+
+        console.log('[mouse controller] [onClick] ', e);
+    }
+
+}
+
+/**
+ * A standard mouse event interface used in {@link ListWidget}. Clicking nothing 
+ * returns undefined.
  */
 export interface IListMouseEvent<T> {
+    
     /** The original brower event {@link MouseEvent}. */
     browserEvent: MouseEvent;
 
     /** The rendering index of the clicked item. */
-    renderIndex: number;
+    renderIndex: number| undefined;
 
     /** The actual index of the clicked item. */
-    actualIndex: number;
+    actualIndex: number | undefined;
 
     /** The clicked item. */
-    item: T;
-
-    /** The position (top) relatives to the viewport. */
-    top: number;
+    item: T | undefined;
 }
 
 export interface IListDragEvent<T> {
@@ -197,11 +257,25 @@ export interface IListDragEvent<T> {
  */
 export interface IListWidgetOpts<T> extends Omit<IListViewOpts<T>, 'dragAndDropProvider'> {
     
-    dragAndDropProvider?: IListDragAndDropProvider<T>;
+    /**
+     * A provider that has ability to provide Drag and Drop Support (dnd).
+     */
+    readonly dragAndDropProvider?: IListDragAndDropProvider<T>;
+
+    /** 
+     * If allows on mouse support. 
+     * @default true
+     */
+    readonly mouseSupport?: boolean;
+
+    /**
+     * If allows mutiple selection support.
+     * @default true
+     */
+    readonly multiSelectionSupport?: boolean;
 
 }
 
-// TODO: method comments
 /**
  * The interface for {@link ListWidget}.
  */
@@ -349,6 +423,8 @@ export class ListWidget<T> implements IListWidget<T> {
     private selected: __ListTrait<T>;
     private focused: __ListTrait<T>;
 
+    private mouseController: __ListWidgetMouseController<T>;
+
     // [constructor]
 
     constructor(
@@ -377,6 +453,9 @@ export class ListWidget<T> implements IListWidget<T> {
 
         this.selected.getElement = item => this.view.getElement(item);
         this.focused.getElement = item => this.view.getElement(item);
+
+        // mouse support integration
+        this.mouseController = new __ListWidgetMouseController(this, opts);
 
         if (opts.dragAndDropProvider) {
             this.__enableDragAndDropSupport();
@@ -489,17 +568,21 @@ export class ListWidget<T> implements IListWidget<T> {
         const [x, y] = DomUtility.getRelativeClick(e, this.view.DOMElement);
         const renderIndex = this.view.renderIndexAtVisible(y);
         const actualIndex = this.view.indexFromEventTarget(e.target);
-        const item = this.view.getItem(actualIndex);
-        const viewportTop = this.view.getItemRenderTop(renderIndex);
         
+        let item: T | undefined;
+        if (actualIndex !== undefined) {
+            item = this.view.getItem(actualIndex);
+        }
+
         return {
             browserEvent: e,
-            renderIndex: renderIndex,
+            renderIndex: item ? renderIndex : undefined,
             actualIndex: actualIndex,
             item: item,
-            top: viewportTop
         };
     }
+
+    // [Drag and Drop Support]
 
     /**
      * @description Enables the drag and drop (dnd) support in {@link ListView}.
@@ -529,13 +612,13 @@ export class ListWidget<T> implements IListWidget<T> {
      */
     private __toListDragEvent(event: DragEvent): IListDragEvent<T> {
 
-        const actualIndex = this.view.indexFromEventTarget(event.target);
+        const actualIndex = this.view.indexFromEventTarget(event.target)!; // will not be undefined
         const item = this.view.getItem(actualIndex);
         return {
             browserEvent: event,
             actualIndex: actualIndex, 
             item: item
-        }
+        };
     }
 
     /**

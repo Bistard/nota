@@ -230,12 +230,12 @@ export interface ITreeMouseEvent<T> {
     /**
      * The children data.
      */
-    children: T[];
+    children: T[] | null;
 
     /**
      * The depth of the data in the tree.
      */
-    depth: number;
+    depth: number | null;
 }
 
 export interface ITreeViewStatus {

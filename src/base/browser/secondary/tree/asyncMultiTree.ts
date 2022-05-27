@@ -577,7 +577,7 @@ export class AsyncMultiTree<T, TFilter = void> implements IAsyncMultiTree<T, TFi
             browserEvent: event.browserEvent,
             data: event.data && event.data.data,
             parent: event.parent?.data || null,
-            children: event.children.map(child => child!.data),
+            children: event.children ? event.children.map(child => child!.data) : null,
             depth: event.depth
         };
     }

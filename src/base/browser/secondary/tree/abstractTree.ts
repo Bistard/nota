@@ -327,7 +327,7 @@ export interface IAbstractTree<T, TFilter, TRef> {
 
 /**
  * @class An {@link AbstractTree} is the base class for any tree-like structure
- * that can do expand / collapse / selection to nodes.
+ * that can do expand / collapse / selection to nodes. Built on top of {@link IListWidget}.
  * 
  * MVVM is used in the related classes. Built upon a model {@link ITreeModel}
  * where the inherited class needs to overwrite the protected method 
@@ -519,10 +519,10 @@ export abstract class AbstractTree<T, TFilter, TRef> implements IAbstractTree<T,
     private __toTreeMouseEvent(event: IListMouseEvent<ITreeNode<T, any>>): ITreeMouseEvent<T> {
         return {
             browserEvent: event.browserEvent,
-            data: event.item.data,
-            parent: event.item.parent?.data || null,
-            children: event.item.children.map(child => child.data),
-            depth: event.item.depth
+            data: event.item ? event.item.data : null,
+            parent: event.item?.parent?.data || null,
+            children: event.item ? event.item.children.map(child => child.data) : null,
+            depth: event.item ? event.item.depth : null
         };
     }
 

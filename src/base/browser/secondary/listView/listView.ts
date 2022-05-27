@@ -302,8 +302,10 @@ export interface IListView<T> extends IDisposable {
      * @description Returns the rendering index of the item given the visible 
      * DOM position.
      * @param visiblePosition The DOM's position (top) relatives to the viewport.
+     * 
+     * @note If the position is invalid, undefined is returned.
      */
-    renderIndexAtVisible(visiblePosition: number): number;
+    renderIndexAtVisible(visiblePosition: number): number | undefined;
 
     /**
      * @description Returns the actual index from the event target which may be
@@ -311,10 +313,9 @@ export interface IListView<T> extends IDisposable {
      * the DOM attribute from the target.
      * @param target The {@link EventTarget}.
      * 
-     * @throws If the target has no attribute named `index`, an exception will
-     * be thrown.
+     * @throws If the target is not found, undefined is returned.
      */
-    indexFromEventTarget(target: EventTarget | null): number;
+    indexFromEventTarget(target: EventTarget | null): number | undefined;
 
     /**
      * @description Returns the intance of the {@link IListWidgetDragAndDropProvider<T>}.
@@ -382,23 +383,21 @@ export class ListView<T> implements IDisposable, ISpliceable<T>, IListView<T> {
     private readonly _onRemoveItemInDOM: Emitter<IViewItemChangeEvent<T>> = this.disposables.register(new Emitter<IViewItemChangeEvent<T>>());
     public readonly onRemoveItemInDOM: Register<IViewItemChangeEvent<T>> = this._onRemoveItemInDOM.registerListener;
 
-    // updateItemInDOM
-
     // [getter / setter]
 
     get onWillScroll(): Register<IScrollEvent> { return this.scrollableWidget.onWillScroll; }
     get onDidScroll(): Register<IScrollEvent> { return this.scrollableWidget.onDidScroll; }
     
-    @memoize get onDidFocus(): Register<void> { return this.disposables.register(new DomEmitter<void>(this.listContainer, EventType.focus)).registerListener; }
-    @memoize get onDidBlur(): Register<void> { return this.disposables.register(new DomEmitter<void>(this.listContainer, EventType.blur)).registerListener; }
+    @memoize get onDidFocus(): Register<void> { return this.disposables.register(new DomEmitter<void>(this.element, EventType.focus)).registerListener; }
+    @memoize get onDidBlur(): Register<void> { return this.disposables.register(new DomEmitter<void>(this.element, EventType.blur)).registerListener; }
     
-    @memoize get onClick(): Register<MouseEvent> { return this.disposables.register(new DomEmitter<MouseEvent>(this.listContainer, EventType.click)).registerListener; }
-    @memoize get onDoubleclick(): Register<MouseEvent> { return this.disposables.register(new DomEmitter<MouseEvent>(this.listContainer, EventType.doubleclick)).registerListener; }
-    @memoize get onMouseover(): Register<MouseEvent> { return this.disposables.register(new DomEmitter<MouseEvent>(this.listContainer, EventType.mouseover)).registerListener; }
-    @memoize get onMouseout(): Register<MouseEvent> { return this.disposables.register(new DomEmitter<MouseEvent>(this.listContainer, EventType.mouseout)).registerListener; }
-    @memoize get onMousedown(): Register<MouseEvent> { return this.disposables.register(new DomEmitter<MouseEvent>(this.listContainer, EventType.mousedown)).registerListener; }
-    @memoize get onMouseup(): Register<MouseEvent> { return this.disposables.register(new DomEmitter<MouseEvent>(this.listContainer, EventType.mouseup)).registerListener; }
-    @memoize get onMousemove(): Register<MouseEvent> { return this.disposables.register(new DomEmitter<MouseEvent>(this.listContainer, EventType.mousemove)).registerListener; }
+    @memoize get onClick(): Register<MouseEvent> { return this.disposables.register(new DomEmitter<MouseEvent>(this.element, EventType.click)).registerListener; }
+    @memoize get onDoubleclick(): Register<MouseEvent> { return this.disposables.register(new DomEmitter<MouseEvent>(this.element, EventType.doubleclick)).registerListener; }
+    @memoize get onMouseover(): Register<MouseEvent> { return this.disposables.register(new DomEmitter<MouseEvent>(this.element, EventType.mouseover)).registerListener; }
+    @memoize get onMouseout(): Register<MouseEvent> { return this.disposables.register(new DomEmitter<MouseEvent>(this.element, EventType.mouseout)).registerListener; }
+    @memoize get onMousedown(): Register<MouseEvent> { return this.disposables.register(new DomEmitter<MouseEvent>(this.element, EventType.mousedown)).registerListener; }
+    @memoize get onMouseup(): Register<MouseEvent> { return this.disposables.register(new DomEmitter<MouseEvent>(this.element, EventType.mouseup)).registerListener; }
+    @memoize get onMousemove(): Register<MouseEvent> { return this.disposables.register(new DomEmitter<MouseEvent>(this.element, EventType.mousemove)).registerListener; }
 
     get length(): number { return this.items.length; }
     get DOMElement(): HTMLElement { return this.element; }
@@ -714,15 +713,23 @@ export class ListView<T> implements IDisposable, ISpliceable<T>, IListView<T> {
         return this.rangeTable.indexAfter(this.prevRenderTop + visiblePosition);
     }
 
-    public renderIndexAtVisible(visiblePosition: number): number {
+    public renderIndexAtVisible(visiblePosition: number): number | undefined {
         const topIndex = this.rangeTable.indexAt(this.scrollable.getScrollPosition());
+        if (topIndex === -1) {
+            return undefined;
+        }
+
         const currIndex = this.rangeTable.indexAt(this.scrollable.getScrollPosition() + visiblePosition);
+        if (currIndex === -1) {
+            return undefined;
+        }
+
         return currIndex - topIndex;
     }
 
-    public indexFromEventTarget(target: EventTarget | null): number {
+    public indexFromEventTarget(target: EventTarget | null): number | undefined {
         if (target === null) {
-            throw new ListError('invalid target');
+            return undefined;
         }
 
         /**
@@ -748,7 +755,7 @@ export class ListView<T> implements IDisposable, ISpliceable<T>, IListView<T> {
             element = element.parentElement;
         }
 
-        throw new ListError('invalid event target');
+        return undefined;
     }
 
     public getDragAndDropProvider(): IListWidgetDragAndDropProvider<T> {
