@@ -1,8 +1,8 @@
 import { IListViewRenderer, PipelineRenderer, RendererType } from "src/base/browser/secondary/listView/listRenderer";
 import { IListViewOpts, IViewItem, IViewItemChangeEvent, ListError, ListView } from "src/base/browser/secondary/listView/listView";
 import { DisposableManager, IDisposable } from "src/base/common/dispose";
-import { addDisposableListener, DomUtility, EventType, isMouseRightClick } from "src/base/common/dom";
-import { Emitter, Event, Register, SignalEmitter } from "src/base/common/event";
+import { addDisposableListener, DomUtility, EventType } from "src/base/common/dom";
+import { DomEmitter, Emitter, Event, Register, SignalEmitter } from "src/base/common/event";
 import { IScrollEvent } from "src/base/common/scrollable";
 import { IListItemProvider } from "src/base/browser/secondary/listView/listItemProvider";
 import { IListDragAndDropProvider, ListWidgetDragAndDropProvider } from "src/base/browser/secondary/listWidget/listWidgetDragAndDrop";
@@ -10,6 +10,7 @@ import { memoize } from "src/base/common/memoization";
 import { hash } from "src/base/common/hash";
 import { Array } from "src/base/common/array";
 import { IS_MAC } from "src/base/node/os";
+import { createStandardKeyboardEvent, IStandardKeyboardEvent, KeyCode } from "src/base/common/keyboard";
 
 /**
  * The index changed in {@link __ListTrait}.
@@ -251,7 +252,7 @@ class __ListWidgetMouseController<T> implements IDisposable {
 
         // no multi-selection, set focus only
         this._view.setFocus(toFocused);
-        if (isMouseRightClick(e.browserEvent) === false) {
+        if (DomUtility.isMouseRightClick(e.browserEvent) === false) {
             this._view.setSelections([toFocused]);
         }
     }
@@ -324,6 +325,118 @@ class __ListWidgetMouseController<T> implements IDisposable {
 }
 
 /**
+ * @class An internal class that handles the keyboard support of {@link IListWidget}.
+ * It handles:
+ *  - when to focus DOM
+ *  - when to focus item
+ *  - when to select item(s)
+ */
+class __ListWidgetKeyboardController<T> implements IDisposable {
+
+    // [field]
+
+    private _disposables = new DisposableManager();
+    private _view: IListWidget<T>;
+
+    private _keyboardSupport: boolean = true;
+
+    // [constructor]
+
+    constructor(
+        view: IListWidget<T>,
+        opts: IListWidgetOpts<T>
+    ) {
+        this._view = view;
+
+        if (opts.keyboardSupport !== undefined) {
+            this._keyboardSupport = opts.keyboardSupport;
+        }
+
+        if (this._keyboardSupport === false) {
+            // does not support
+            return;
+        }
+
+        this._disposables.register(this.onKeydown(e => this.__onDidKeydown(e)));
+    }
+
+    // [private getter]
+
+    @memoize private get onKeydown(): Register<IStandardKeyboardEvent> { return Event.filter(this._view.onKeydown, e => !DomUtility.isInputElement(e.target as HTMLElement)); }
+
+    // [public method]
+
+    public dispose(): void {
+        this._disposables.dispose();
+    }
+
+    // [private helper methods]
+
+    private __onDidKeydown(e: IStandardKeyboardEvent): void {
+        switch (e.key) {
+            case KeyCode.Enter:
+                this.__onEnter(e);
+                break;
+            case KeyCode.UpArrow:
+                this.__onUpArrow(e);
+                break;
+            case KeyCode.DownArrow:
+                this.__onDownArrow(e);
+                break;
+            case KeyCode.PageUp:
+                this.__onPageupArrow(e);
+                break;
+            case KeyCode.PageDown:
+                this.__onPagedownArrow(e);
+                break;
+            case KeyCode.Escape:
+                this.__onEscape(e);
+                break;
+            default:
+                break;
+        }
+    }
+
+    private __onEnter(e: IStandardKeyboardEvent): void {
+        e.preventDefault();
+		e.stopPropagation();
+        const focused = this._view.getFocus();
+        this._view.setSelections(focused ? [focused] : []);
+    }
+
+    private __onUpArrow(e: IStandardKeyboardEvent): void {
+        e.preventDefault();
+		e.stopPropagation();
+        // TODO
+    }
+
+    private __onDownArrow(e: IStandardKeyboardEvent): void {
+        e.preventDefault();
+		e.stopPropagation();
+        // TODO
+    }
+
+    private __onPageupArrow(e: IStandardKeyboardEvent): void {
+        e.preventDefault();
+		e.stopPropagation();
+        // TODO
+    }
+
+    private __onPagedownArrow(e: IStandardKeyboardEvent): void {
+        e.preventDefault();
+		e.stopPropagation();
+        // TODO
+    }
+
+    private __onEscape(e: IStandardKeyboardEvent): void {
+        e.preventDefault();
+		e.stopPropagation();
+        // TODO
+    }
+
+}
+
+/**
  * A standard mouse event interface used in {@link IListWidget}. Clicking nothing 
  * returns undefined.
  */
@@ -382,7 +495,7 @@ export interface IListWidgetOpts<T> extends Omit<IListViewOpts<T>, 'dragAndDropP
     readonly dragAndDropProvider?: IListDragAndDropProvider<T>;
 
     /** 
-     * If allows on mouse support. 
+     * If allows mouse support. 
      * @default true
      */
     readonly mouseSupport?: boolean;
@@ -392,6 +505,12 @@ export interface IListWidgetOpts<T> extends Omit<IListViewOpts<T>, 'dragAndDropP
      * @default true
      */
     readonly multiSelectionSupport?: boolean;
+
+    /**
+     * If allows keyboard support.
+     * @default true
+     */
+    readonly keyboardSupport?: boolean;
 
 }
 
@@ -412,59 +531,37 @@ export interface IListWidget<T> extends IDisposable {
      */
     length: number;
 
-    /**
-     * Fires when the {@link IListWidget} is scrolling.
-     */
+    /** Fires when the {@link IListWidget} is scrolling. */
     get onDidScroll(): Register<IScrollEvent>;
     
-    /**
-     * Fires when the {@link IListWidget} itself is blured or focused.
-     */
+    /** Fires when the {@link IListWidget} itself is blured or focused. */
     get onDidChangeFocus(): Register<boolean>;
 
-    /**
-     * Fires when the focused items in the {@link IListWidget} is changed.
-     */
+    /** Fires when the focused items in the {@link IListWidget} is changed. */
     get onDidChangeItemFocus(): Register<ITraitChangeEvent>;
 
-    /**
-     * Fires when the selected items in the {@link IListWidget} is changed.
-     */
+    /** Fires when the selected items in the {@link IListWidget} is changed. */
     get onDidChangeItemSelection(): Register<ITraitChangeEvent>;
 
-    /**
-     * Fires when the item in the {@link IListWidget} is clicked.
-     */
+    /** Fires when the item in the {@link IListWidget} is clicked. */
     get onClick(): Register<IListMouseEvent<T>>;
     
-    /**
-     * Fires when the item in the {@link IListWidget} is double clicked.
-     */
+    /** Fires when the item in the {@link IListWidget} is double clicked. */
     get onDoubleclick(): Register<IListMouseEvent<T>>;
 
-    /**
-     * Fires when the item in the {@link IListWidget} is mouseovered.
-     */
+    /** Fires when the item in the {@link IListWidget} is mouseovered. */
     get onMouseover(): Register<IListMouseEvent<T>>;
 
-    /**
-     * Fires when the item in the {@link IListWidget} is mousedouted.
-     */
+    /** Fires when the item in the {@link IListWidget} is mousedouted. */
     get onMouseout(): Register<IListMouseEvent<T>>;
     
-    /**
-     * Fires when the item in the {@link IListWidget} is mousedowned.
-     */
+    /** Fires when the item in the {@link IListWidget} is mousedowned. */
     get onMousedown(): Register<IListMouseEvent<T>>;
     
-    /**
-     * Fires when the item in the {@link IListWidget} is mouseuped.
-     */
+    /** Fires when the item in the {@link IListWidget} is mouseuped. */
     get onMouseup(): Register<IListMouseEvent<T>>;
 
-    /**
-     * Fires when the item in the {@link IListWidget} is mousemoved.
-     */
+    /** Fires when the item in the {@link IListWidget} is mousemoved. */
     get onMousemove(): Register<IListMouseEvent<T>>;
 
     /** 
@@ -472,6 +569,9 @@ export interface IListWidget<T> extends IDisposable {
      * changes. This surface can be a touch screen or trackpad.
      */
     get onTouchstart(): Register<IListTouchEvent<T>>;
+
+    /** Fires when the {@link IListView} is keydowned. */
+    get onKeydown(): Register<IStandardKeyboardEvent>;
 
     // [methods]
 
@@ -544,8 +644,8 @@ export interface IListWidget<T> extends IDisposable {
  * features.
  * 
  * Extra Functionalities:
- *  - focus support
- *  - selection support
+ *  - mouse support (focus / selection)
+ *  - keyboard support
  *  - drag and drop support
  */
 export class ListWidget<T> implements IListWidget<T> {
@@ -559,6 +659,7 @@ export class ListWidget<T> implements IListWidget<T> {
     private focused: __ListTrait<T>;
 
     private mouseController: __ListWidgetMouseController<T>;
+    private keyboardController: __ListWidgetKeyboardController<T>;
 
     // [constructor]
 
@@ -600,6 +701,9 @@ export class ListWidget<T> implements IListWidget<T> {
         // mouse support integration
         this.mouseController = new __ListWidgetMouseController(this, opts);
 
+        // keyboar support integration
+        this.keyboardController = new __ListWidgetKeyboardController(this, opts);
+
         if (opts.dragAndDropProvider) {
             this.__enableDragAndDropSupport();
         }
@@ -607,6 +711,7 @@ export class ListWidget<T> implements IListWidget<T> {
         this.disposables.register(this.view);
         this.disposables.register(this.selected);
         this.disposables.register(this.focused);
+        this.disposables.register(this.mouseController);
     }
 
     // [getter / setter]
@@ -615,18 +720,20 @@ export class ListWidget<T> implements IListWidget<T> {
     get length(): number { return this.view.length; }
 
     get onDidScroll(): Register<IScrollEvent> { return this.view.onDidScroll; }
-    @memoize get onDidChangeFocus(): Register<boolean> { return this.disposables.register(new SignalEmitter<boolean, boolean>([Event.map(this.view.onDidFocus, () => true), Event.map(this.view.onDidBlur, () => false)], (e: boolean) => e)).registerListener; }
     get onDidChangeItemFocus(): Register<ITraitChangeEvent> { return this.focused.onDidChange; }
     get onDidChangeItemSelection(): Register<ITraitChangeEvent> { return this.selected.onDidChange; }
+    @memoize get onDidChangeFocus(): Register<boolean> { return this.disposables.register(new SignalEmitter<boolean, boolean>([Event.map(this.view.onDidFocus, () => true), Event.map(this.view.onDidBlur, () => false)], (e: boolean) => e)).registerListener; }
+    
+    @memoize get onClick(): Register<IListMouseEvent<T>> { return Event.map<MouseEvent, IListMouseEvent<T>>(this.view.onClick, (e: MouseEvent) => this.__toListMouseEvent(e)); }
+    @memoize get onDoubleclick(): Register<IListMouseEvent<T>> { return Event.map<MouseEvent, IListMouseEvent<T>>(this.view.onDoubleclick, (e: MouseEvent) => this.__toListMouseEvent(e));  }
+    @memoize get onMouseover(): Register<IListMouseEvent<T>> { return Event.map<MouseEvent, IListMouseEvent<T>>(this.view.onMouseover, (e: MouseEvent) => this.__toListMouseEvent(e)); }
+    @memoize get onMouseout(): Register<IListMouseEvent<T>> { return Event.map<MouseEvent, IListMouseEvent<T>>(this.view.onMouseout, (e: MouseEvent) => this.__toListMouseEvent(e)); }
+    @memoize get onMousedown(): Register<IListMouseEvent<T>> { return Event.map<MouseEvent, IListMouseEvent<T>>(this.view.onMousedown, (e: MouseEvent) => this.__toListMouseEvent(e)); }
+    @memoize get onMouseup(): Register<IListMouseEvent<T>> { return Event.map<MouseEvent, IListMouseEvent<T>>(this.view.onMouseup, (e: MouseEvent) => this.__toListMouseEvent(e)); }
+    @memoize get onMousemove(): Register<IListMouseEvent<T>> { return Event.map<MouseEvent, IListMouseEvent<T>>(this.view.onMousemove, (e: MouseEvent) => this.__toListMouseEvent(e)); }
+    @memoize get onTouchstart(): Register<IListTouchEvent<T>> { return Event.map<TouchEvent, IListTouchEvent<T>>(this.view.onTouchstart, (e: TouchEvent) => this.__toListTouchEvent(e)); }
 
-    get onClick(): Register<IListMouseEvent<T>> { return Event.map<MouseEvent, IListMouseEvent<T>>(this.view.onClick, (e: MouseEvent) => this.__toListMouseEvent(e)); }
-    get onDoubleclick(): Register<IListMouseEvent<T>> { return Event.map<MouseEvent, IListMouseEvent<T>>(this.view.onDoubleclick, (e: MouseEvent) => this.__toListMouseEvent(e));  }
-    get onMouseover(): Register<IListMouseEvent<T>> { return Event.map<MouseEvent, IListMouseEvent<T>>(this.view.onMouseover, (e: MouseEvent) => this.__toListMouseEvent(e)); }
-    get onMouseout(): Register<IListMouseEvent<T>> { return Event.map<MouseEvent, IListMouseEvent<T>>(this.view.onMouseout, (e: MouseEvent) => this.__toListMouseEvent(e)); }
-    get onMousedown(): Register<IListMouseEvent<T>> { return Event.map<MouseEvent, IListMouseEvent<T>>(this.view.onMousedown, (e: MouseEvent) => this.__toListMouseEvent(e)); }
-    get onMouseup(): Register<IListMouseEvent<T>> { return Event.map<MouseEvent, IListMouseEvent<T>>(this.view.onMouseup, (e: MouseEvent) => this.__toListMouseEvent(e)); }
-    get onMousemove(): Register<IListMouseEvent<T>> { return Event.map<MouseEvent, IListMouseEvent<T>>(this.view.onMousemove, (e: MouseEvent) => this.__toListMouseEvent(e)); }
-    get onTouchstart(): Register<IListTouchEvent<T>> { return Event.map<TouchEvent, IListTouchEvent<T>>(this.view.onTouchstart, (e: TouchEvent) => this.__toListTouchEvent(e)); }
+    @memoize get onKeydown(): Register<IStandardKeyboardEvent> { return Event.map<KeyboardEvent, IStandardKeyboardEvent>(this.view.onKeydown, (e: KeyboardEvent) => createStandardKeyboardEvent(e)); }
 
     // [methods]
 

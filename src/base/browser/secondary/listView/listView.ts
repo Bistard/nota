@@ -148,6 +148,9 @@ export interface IListView<T> extends IDisposable {
      */
     get onTouchstart(): Register<TouchEvent>;
 
+    /** Fires when the {@link IListView} is keydowned. */
+    get onKeydown(): Register<KeyboardEvent>;
+
     /** The length (height) of the whole view in pixels. */
     length: number;
 
@@ -412,6 +415,8 @@ export class ListView<T> implements IDisposable, ISpliceable<T>, IListView<T> {
     @memoize get onMouseup(): Register<MouseEvent> { return this.disposables.register(new DomEmitter<MouseEvent>(this.element, EventType.mouseup)).registerListener; }
     @memoize get onMousemove(): Register<MouseEvent> { return this.disposables.register(new DomEmitter<MouseEvent>(this.element, EventType.mousemove)).registerListener; }
     @memoize get onTouchstart(): Register<TouchEvent> { return this.disposables.register(new DomEmitter<TouchEvent>(this.element, EventType.touchstart)).registerListener; }
+
+    @memoize get onKeydown(): Register<KeyboardEvent> { return this.disposables.register(new DomEmitter<KeyboardEvent>(this.element, EventType.keydown)).registerListener; }
 
     get length(): number { return this.items.length; }
     get DOMElement(): HTMLElement { return this.element; }
