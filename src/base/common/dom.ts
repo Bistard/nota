@@ -18,6 +18,8 @@ export const enum EventType {
 	doubleclick = 'dblclick',
 	wheel = 'wheel',
 
+	touchstart = 'touchstart',
+
 	keydown = 'keydown',
 	keyup = 'keyup',
 	keypress = 'keypress',

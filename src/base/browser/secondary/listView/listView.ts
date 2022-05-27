@@ -98,49 +98,55 @@ export interface IListView<T> extends IDisposable {
     // [events / getter]
 
     /** Fires when the splice() is invoked. */
-    onDidSplice: Register<void>;
+    get onDidSplice(): Register<void>;
 
     /** Fires when an DOM element is inserted into the DOM tree. */
-    onInsertItemInDOM: Register<IViewItemChangeEvent<T>>;
+    get onInsertItemInDOM(): Register<IViewItemChangeEvent<T>>;
 
     /** Fires when an DOM element is updated the DOM tree. */
-    onUpdateItemInDOM: Register<IViewItemChangeEvent<T>>;
+    get onUpdateItemInDOM(): Register<IViewItemChangeEvent<T>>;
 
     /** Fires when an DOM element is removed from DOM tree. */
-    onRemoveItemInDOM: Register<IViewItemChangeEvent<T>>;
+    get onRemoveItemInDOM(): Register<IViewItemChangeEvent<T>>;
 
     /** Fires before the {@link IListView} is scrolling. */
-    onWillScroll: Register<IScrollEvent>;
+    get onWillScroll(): Register<IScrollEvent>;
 
     /** Fires after the {@link IListView} is scrolling. */
-    onDidScroll: Register<IScrollEvent>;
+    get onDidScroll(): Register<IScrollEvent>;
     
     /** Fires when the {@link IListView} itself is focused. */
-    onDidFocus: Register<void>;
+    get onDidFocus(): Register<void>;
 
     /** Fires when the {@link IListView} itself is blured. */
-    onDidBlur: Register<void>;
+    get onDidBlur(): Register<void>;
 
     /** Fires when the item in the {@link IListView} is clicked. */
-    onClick: Register<MouseEvent>;
+    get onClick(): Register<MouseEvent>;
 
     /** Fires when the item in the {@link IListView} is double clicked. */
-    onDoubleclick: Register<MouseEvent>;
+    get onDoubleclick(): Register<MouseEvent>;
 
     /** Fires when the item in the {@link IListView} is mouseovered. */
-    onMouseover: Register<MouseEvent>;
+    get onMouseover(): Register<MouseEvent>;
     
     /** Fires when the item in the {@link IListView} is mousedouted. */
-    onMouseout: Register<MouseEvent>;
+    get onMouseout(): Register<MouseEvent>;
     
     /** Fires when the item in the {@link IListView} is mousedowned. */
-    onMousedown: Register<MouseEvent>;
+    get onMousedown(): Register<MouseEvent>;
     
     /** Fires when the item in the {@link IListView} is mouseuped. */
-    onMouseup: Register<MouseEvent>;
+    get onMouseup(): Register<MouseEvent>;
     
     /** Fires when the item in the {@link IListView} is mousemoved. */
-    onMousemove: Register<MouseEvent>;
+    get onMousemove(): Register<MouseEvent>;
+
+    /** 
+     * An event sent when the state of contacts with a touch-sensitive surface 
+     * changes. This surface can be a touch screen or trackpad.
+     */
+    get onTouchstart(): Register<TouchEvent>;
 
     /** The length (height) of the whole view in pixels. */
     length: number;
@@ -264,6 +270,13 @@ export interface IListView<T> extends IDisposable {
      * @param index The index of the item.
      */
     getItemRenderTop(index: number): number;
+
+    /**
+     * @description Returns the rendering index of the item with the given actual
+     * index. If not found, -1 will be returned.
+     * @param actualIndex The actual index of the item in the list view.
+     */
+    getRenderIndex(actualIndex: number): number;
 
     /**
      * @description Returns the item's DOM position (top) given the index 
@@ -398,6 +411,7 @@ export class ListView<T> implements IDisposable, ISpliceable<T>, IListView<T> {
     @memoize get onMousedown(): Register<MouseEvent> { return this.disposables.register(new DomEmitter<MouseEvent>(this.element, EventType.mousedown)).registerListener; }
     @memoize get onMouseup(): Register<MouseEvent> { return this.disposables.register(new DomEmitter<MouseEvent>(this.element, EventType.mouseup)).registerListener; }
     @memoize get onMousemove(): Register<MouseEvent> { return this.disposables.register(new DomEmitter<MouseEvent>(this.element, EventType.mousemove)).registerListener; }
+    @memoize get onTouchstart(): Register<TouchEvent> { return this.disposables.register(new DomEmitter<TouchEvent>(this.element, EventType.touchstart)).registerListener; }
 
     get length(): number { return this.items.length; }
     get DOMElement(): HTMLElement { return this.element; }
@@ -691,6 +705,14 @@ export class ListView<T> implements IDisposable, ISpliceable<T>, IListView<T> {
 
         const rest = itemTop - scrollTop;
         return rest;
+    }
+
+    public getRenderIndex(actualIndex: number): number {
+        const {start, end} = this.__getRenderRange(this.prevRenderTop, this.prevRenderHeight);
+        if (actualIndex >= start && actualIndex < end) {
+            return actualIndex - start;
+        }
+        return -1;
     }
 
     public positionAt(index: number): number {

@@ -165,7 +165,7 @@ class __ListTraitRenderer<T> implements IListViewRenderer<T, HTMLElement> {
 /**
  * @class An internal class that handles the mouse support of {@link IListWidget}.
  * It handles:
- *  - when to DOM focus
+ *  - when to focus DOM
  *  - when to focus item
  *  - when to select item(s)
  */
@@ -325,13 +325,31 @@ class __ListWidgetMouseController<T> implements IDisposable {
 }
 
 /**
- * A standard mouse event interface used in {@link ListWidget}. Clicking nothing 
+ * A standard mouse event interface used in {@link IListWidget}. Clicking nothing 
  * returns undefined.
  */
 export interface IListMouseEvent<T> {
     
-    /** The original brower event {@link MouseEvent}. */
+    /** The original brower event. */
     browserEvent: MouseEvent;
+
+    /** The rendering index of the clicked item. */
+    renderIndex: number| undefined;
+
+    /** The actual index of the clicked item. */
+    actualIndex: number | undefined;
+
+    /** The clicked item. */
+    item: T | undefined;
+}
+
+/**
+ * A standard touch event interface used in {@link ListWidget}. Touching nothing
+ * returns undefined.
+ */
+export interface IListTouchEvent<T> {
+    /** The original brower even. */
+    browserEvent: TouchEvent;
 
     /** The rendering index of the clicked item. */
     renderIndex: number| undefined;
@@ -398,57 +416,63 @@ export interface IListWidget<T> extends IDisposable {
     /**
      * Fires when the {@link IListWidget} is scrolling.
      */
-    onDidScroll: Register<IScrollEvent>;
+    get onDidScroll(): Register<IScrollEvent>;
     
     /**
      * Fires when the {@link IListWidget} itself is blured or focused.
      */
-    onDidChangeFocus: Register<boolean>;
+    get onDidChangeFocus(): Register<boolean>;
 
     /**
      * Fires when the focused items in the {@link IListWidget} is changed.
      */
-    onDidChangeItemFocus: Register<ITraitChangeEvent>;
+    get onDidChangeItemFocus(): Register<ITraitChangeEvent>;
 
     /**
      * Fires when the selected items in the {@link IListWidget} is changed.
      */
-    onDidChangeItemSelection: Register<ITraitChangeEvent>;
+    get onDidChangeItemSelection(): Register<ITraitChangeEvent>;
 
     /**
      * Fires when the item in the {@link IListWidget} is clicked.
      */
-    onClick: Register<IListMouseEvent<T>>;
+    get onClick(): Register<IListMouseEvent<T>>;
     
     /**
      * Fires when the item in the {@link IListWidget} is double clicked.
      */
-    onDoubleclick: Register<IListMouseEvent<T>>;
+    get onDoubleclick(): Register<IListMouseEvent<T>>;
 
     /**
      * Fires when the item in the {@link IListWidget} is mouseovered.
      */
-    onMouseover: Register<IListMouseEvent<T>>;
+    get onMouseover(): Register<IListMouseEvent<T>>;
 
     /**
      * Fires when the item in the {@link IListWidget} is mousedouted.
      */
-    onMouseout: Register<IListMouseEvent<T>>;
+    get onMouseout(): Register<IListMouseEvent<T>>;
     
     /**
      * Fires when the item in the {@link IListWidget} is mousedowned.
      */
-    onMousedown: Register<IListMouseEvent<T>>;
+    get onMousedown(): Register<IListMouseEvent<T>>;
     
     /**
      * Fires when the item in the {@link IListWidget} is mouseuped.
      */
-    onMouseup: Register<IListMouseEvent<T>>;
+    get onMouseup(): Register<IListMouseEvent<T>>;
 
     /**
      * Fires when the item in the {@link IListWidget} is mousemoved.
      */
-    onMousemove: Register<IListMouseEvent<T>>;
+    get onMousemove(): Register<IListMouseEvent<T>>;
+
+    /** 
+     * An event sent when the state of contacts with a touch-sensitive surface 
+     * changes. This surface can be a touch screen or trackpad.
+     */
+    get onTouchstart(): Register<IListTouchEvent<T>>;
 
     // [methods]
 
@@ -595,7 +619,8 @@ export class ListWidget<T> implements IListWidget<T> {
     get onMousedown(): Register<IListMouseEvent<T>> { return Event.map<MouseEvent, IListMouseEvent<T>>(this.view.onMousedown, (e: MouseEvent) => this.__toListMouseEvent(e)); }
     get onMouseup(): Register<IListMouseEvent<T>> { return Event.map<MouseEvent, IListMouseEvent<T>>(this.view.onMouseup, (e: MouseEvent) => this.__toListMouseEvent(e)); }
     get onMousemove(): Register<IListMouseEvent<T>> { return Event.map<MouseEvent, IListMouseEvent<T>>(this.view.onMousemove, (e: MouseEvent) => this.__toListMouseEvent(e)); }
-    
+    get onTouchstart(): Register<IListTouchEvent<T>> { return Event.map<TouchEvent, IListTouchEvent<T>>(this.view.onTouchstart, (e: TouchEvent) => this.__toListTouchEvent(e)); }
+
     // [methods]
 
     public dispose(): void {
@@ -665,25 +690,37 @@ export class ListWidget<T> implements IListWidget<T> {
     // [private helper methods]
 
     /**
-     * @description A mapper function to convert the brower event to our 
-     * standard list mouse event.
-     * @param e The original mouse event.
-     * @returns A new standard {@link IListMouseEvent}.
+     * @description A mapper function to convert the {@link MouseEvent} to our 
+     * standard {@link IListMouseEvent}.
      */
     private __toListMouseEvent(e: MouseEvent): IListMouseEvent<T> {
+        return this.__toEvent(e);
+    }
 
-        const [x, y] = DomUtility.getRelativeClick(e, this.view.DOMElement);
-        const renderIndex = this.view.renderIndexAtVisible(y);
+    /**
+     * @description A mapper function to convert the {@link TouchEvent} to our 
+     * standard {@link IListTouchEvent}.
+     */
+    private __toListTouchEvent(e: TouchEvent): IListTouchEvent<T> {
+        return this.__toEvent(e);
+    }
+
+    /**
+     * @description Universal standard event generation.
+     */
+    private __toEvent<E extends UIEvent>(e: E): { browserEvent: E, renderIndex: number | undefined, actualIndex: number | undefined, item: T | undefined } {
         const actualIndex = this.view.indexFromEventTarget(e.target);
         
+        let renderIndex: number | undefined;
         let item: T | undefined;
         if (actualIndex !== undefined) {
+            renderIndex = this.view.getRenderIndex(actualIndex);
             item = this.view.getItem(actualIndex);
         }
 
         return {
             browserEvent: e,
-            renderIndex: item ? renderIndex : undefined,
+            renderIndex: renderIndex,
             actualIndex: actualIndex,
             item: item,
         };

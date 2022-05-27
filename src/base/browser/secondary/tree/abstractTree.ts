@@ -1,7 +1,7 @@
 import { ITreeCollapseStateChangeEvent, ITreeModel, ITreeMouseEvent, ITreeNode, ITreeSpliceEvent } from "src/base/browser/secondary/tree/tree";
 import { ITreeListRenderer, TreeItemRenderer } from "src/base/browser/secondary/tree/treeListRenderer";
 import { IListItemProvider, TreeListItemProvider } from "src/base/browser/secondary/listView/listItemProvider";
-import { IListMouseEvent, IListWidgetOpts, ITraitChangeEvent, ListWidget } from "src/base/browser/secondary/listWidget/listWidget";
+import { IListMouseEvent, IListTouchEvent, IListWidgetOpts, ITraitChangeEvent, ListWidget } from "src/base/browser/secondary/listWidget/listWidget";
 import { IListDragAndDropProvider } from "src/base/browser/secondary/listWidget/listWidgetDragAndDrop";
 import { DisposableManager, IDisposable } from "src/base/common/dispose";
 import { Event, Register, RelayEmitter } from "src/base/common/event";
@@ -210,7 +210,7 @@ export interface IAbstractTree<T, TFilter, TRef> {
      * Fires when the tree node in the {@link IAbstractTree} is double clicked.
      */
     get onDoubleclick(): Register<ITreeMouseEvent<T>>;
-    
+
     // [method - general]
 
     /**
@@ -406,7 +406,7 @@ export abstract class AbstractTree<T, TFilter, TRef> implements IAbstractTree<T,
 
     get onClick(): Register<ITreeMouseEvent<T>> { return Event.map(this._view.onClick, this.__toTreeMouseEvent); }
     get onDoubleclick(): Register<ITreeMouseEvent<T>> { return Event.map(this._view.onDoubleclick, this.__toTreeMouseEvent); }
-    
+
     // [abstract methods]
 
     protected abstract createModel(view: ISpliceable<ITreeNode<T, TFilter>>, opts: IAbstractTreeOptions<T>): ITreeModel<T, TFilter, TRef>;
