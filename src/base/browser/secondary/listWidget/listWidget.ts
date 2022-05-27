@@ -547,17 +547,6 @@ export class ListWidget<T> implements IListWidget<T> {
     // [private helper methods]
 
     /**
-     * @description A simple helper to test index validity in {@link ListView}.
-     * @param index The given index of the item.
-     */
-    // TODO: unused for now
-    private __indexValidity(index: number): void {
-        if (index < 0 || index >= this.view.length) {
-            throw new ListError(`invalid index: ${index}`);
-        }
-    }
-
-    /**
      * @description A mapper function to convert the brower event to our 
      * standard list mouse event.
      * @param e The original mouse event.
