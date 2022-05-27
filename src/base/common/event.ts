@@ -1,6 +1,6 @@
 import { LinkedList } from "src/base/common/linkedList";
 import { addDisposableListener, EventType } from "src/base/common/dom";
-import { Disposable, DisposableManager, IDisposable, toDisposable } from "src/base/common/dispose";
+import { Disposable, DisposableManager, disposeAll, IDisposable, toDisposable } from "src/base/common/dispose";
 
 /** @deprecated Use Emitter instead */
 export interface IEventEmitter {
@@ -557,6 +557,20 @@ export namespace Event {
             return register((e) => listener(each(e)), disposibles);
         };
         return newRegister;
+    }
+
+    /**
+     * @description Given a series of event registers, creates and returns a new
+     * event register that fires whenever any of the provided events fires.
+     * @param registers The provided a series of event registers.
+     * @returns The new event register.
+     */
+    export function any<T>(registers: Register<T>[]): Register<T> {
+        return (listener: Listener<T>, thisArgs: any = null, disposables?: IDisposable[]) => {
+            const allDiposables = registers.map(register => register(listener, thisArgs, disposables));
+            const parentDisposable = toDisposable(() => disposeAll(allDiposables));
+            return parentDisposable;            
+        };
     }
 
 }
