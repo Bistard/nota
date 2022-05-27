@@ -3,6 +3,13 @@ import { Array } from 'src/base/common/array';
 
 suite('array-test', () => {
 
+    test('Array.range()', () => {
+        assert.deepStrictEqual(Array.range(0, 5), [0, 1, 2, 3, 4]);
+        assert.deepStrictEqual(Array.range(1, 5), [1, 2, 3, 4]);
+        assert.deepStrictEqual(Array.range(5, 0), [5, 4, 3, 2, 1]);
+        assert.deepStrictEqual(Array.range(5, 1), [5, 4, 3, 2]);
+    });
+
     test('Array.union()', () => {
         assert.deepStrictEqual(Array.union([], []), []);
         assert.deepStrictEqual(Array.union([], [2]), [2]);

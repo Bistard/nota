@@ -5,6 +5,30 @@
 export namespace Array {
 
     /**
+     * @description Creates a new number array that contains numbers from begin
+     * to end.
+     * @param begin The begin of the array number (inclusive).
+     * @param end The end of the array number (exclusive).
+     * @returns The new created array.
+     */
+    export function range(begin: number, end: number): number[] {
+        const arr: number[] = [];
+
+        let i: number;
+        if (begin <= end) {
+            for (i = begin; i < end; i++) {
+                arr.push(i);
+            }
+        } else {
+            for (i = begin; i > end; i--) {
+                arr.push(i);
+            }
+        }
+
+        return arr;
+    }
+
+    /**
      * @description Returns the union (OR) of the two given arrays.
      * @param array1 The given first array.
      * @param array2 The given second array.
