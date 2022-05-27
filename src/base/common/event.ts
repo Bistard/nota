@@ -539,8 +539,8 @@ export namespace Event {
      * @returns The new event register.
      */
     export function map<T, E>(register: Register<T>, to: (e: T) => E): Register<E> {
-        const newRegister = (listener: Listener<E>, disposibles?: IDisposable[]): IDisposable => {
-            return register((e) => listener(to(e)), disposibles);
+        const newRegister = (listener: Listener<E>, disposibles?: IDisposable[], thisArgs: any = null): IDisposable => {
+            return register((e) => listener(to(e)), disposibles, thisArgs);
         };
         return newRegister;
     }
@@ -553,8 +553,8 @@ export namespace Event {
      * @returns The new event register.
      */
     export function each<T>(register: Register<T>, each: (e: T) => T): Register<T> {
-        const newRegister = (listener: Listener<T>, disposibles?: IDisposable[]): IDisposable => {
-            return register((e) => listener(each(e)), disposibles);
+        const newRegister = (listener: Listener<T>, disposibles?: IDisposable[], thisArgs: any = null): IDisposable => {
+            return register((e) => listener(each(e)), disposibles, thisArgs);
         };
         return newRegister;
     }
@@ -566,11 +566,29 @@ export namespace Event {
      * @returns The new event register.
      */
     export function any<T>(registers: Register<T>[]): Register<T> {
-        return (listener: Listener<T>, thisArgs: any = null, disposables?: IDisposable[]) => {
-            const allDiposables = registers.map(register => register(listener, thisArgs, disposables));
+        const newRegister = (listener: Listener<T>, disposables?: IDisposable[], thisArgs: any = null) => {
+            const allDiposables = registers.map(register => register(listener, disposables, thisArgs));
             const parentDisposable = toDisposable(() => disposeAll(allDiposables));
             return parentDisposable;            
         };
+        return newRegister;
+    }
+
+    /**
+     * @description Filters the fired events from the provided event register by
+     * the given filter function.
+     * @param register The provided event register.
+     * @param fn The filter function.
+     */
+    export function filter<T>(register: Register<T>, fn: (e: T) => boolean): Register<T> {
+        const newRegister = (listener: Listener<T>, disposables?: IDisposable[], thisArgs: any = null) => {
+            return register(e => {
+                if (fn(e)) {
+                    listener.call(thisArgs, e);
+                }
+            });
+        };
+        return newRegister;
     }
 
 }

@@ -432,5 +432,32 @@ suite('event-test', () => {
         assert.strictEqual(result, -123);
     });
 
+    test('Event.filter()', () => {
+        const emitter = new Emitter<number>();
+
+        const register = Event.filter(emitter.registerListener, num => num % 2 === 0);
+
+        let result = -1;
+        const listener = register(num => {
+            result = num;
+            assert.strictEqual(num % 2, 0);
+        });
+
+        emitter.fire(10);
+        assert.strictEqual(result, 10);
+
+        emitter.fire(9);
+        assert.strictEqual(result, 10);
+
+        emitter.fire(0);
+        assert.strictEqual(result, 0);
+
+        emitter.fire(-21);
+        assert.strictEqual(result, 0);
+
+        emitter.fire(10);
+        assert.strictEqual(result, 10);
+    });
+
     
 });
