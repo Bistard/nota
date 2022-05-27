@@ -231,10 +231,10 @@ class __ListWidgetMouseController<T> implements IDisposable {
             return;
         }
 
-        const focusedIdx = e.actualIndex;
+        const toFocused = e.actualIndex;
         
         // clicking nowhere, we reset all the traits
-        if (focusedIdx === undefined) {
+        if (toFocused === undefined) {
             this._view.setFocus(null);
             this._view.setSelections([]);
             return;
@@ -250,9 +250,9 @@ class __ListWidgetMouseController<T> implements IDisposable {
         }
 
         // no multi-selection, set focus only
-        this._view.setFocus(focusedIdx);
+        this._view.setFocus(toFocused);
         if (isMouseRightClick(e.browserEvent) === false) {
-            this._view.setSelections([focusedIdx]);
+            this._view.setSelections([toFocused]);
         }
     }
 
@@ -282,39 +282,39 @@ class __ListWidgetMouseController<T> implements IDisposable {
      * @description Applies multi-selection when selecting in range.
      */
     private __multiSelectionInRange(e: IListMouseEvent<T>): void {
-        const focusedIdx = e.actualIndex!;
+        const toFocused = e.actualIndex!;
         let currFocusedIdx = this._view.getFocus();
 
         // if no focus yet, we focus on the current.
         if (currFocusedIdx === null) {
-            currFocusedIdx = focusedIdx;
+            currFocusedIdx = toFocused;
         }
         
         // calculates the selection range
-        const selectionRange = Array.range(Math.min(focusedIdx, currFocusedIdx), Math.max(focusedIdx, currFocusedIdx) + 1);
+        const toSelect = Array.range(Math.min(toFocused, currFocusedIdx), Math.max(toFocused, currFocusedIdx) + 1);
         
-        // determine new selection
+        // determine new selections
         const currSelection = this._view.getSelections();
-        const newSelection = Array.complement(currSelection, selectionRange);
+        const newSelection = Array.union(currSelection, toSelect);
 
         this._view.setSelections(newSelection);
-        this._view.setFocus(focusedIdx);
+        this._view.setFocus(toFocused);
     }
 
     /**
      * @description Applies multi-selection when selecting in single.
      */
     private _mutliSelectionInSingle(e: IListMouseEvent<T>): void {
-        const focusedIdx = e.actualIndex!;
+        const toFocused = e.actualIndex!;
 
         const currSelection = this._view.getSelections();
-        const newSelection = Array.remove(currSelection, focusedIdx);
+        const newSelection = Array.remove(currSelection, toFocused);
 
-        this._view.setFocus(focusedIdx);
+        this._view.setFocus(toFocused);
 
         if (newSelection.length === currSelection.length) {
             // we are not removing any of the current selections
-            this._view.setSelections([...newSelection, focusedIdx]);
+            this._view.setSelections([...newSelection, toFocused]);
         } else {
             // we removed one of the selections
             this._view.setSelections(newSelection);
