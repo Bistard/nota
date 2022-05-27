@@ -282,6 +282,10 @@ export class Emitter<T> implements IDisposable, IEmitter<T> {
     public hasListeners(): boolean {
         return this._listeners.size() > 0;
     }
+
+    public isDisposed(): boolean {
+        return this._disposed;
+    }
 }
 
 /**

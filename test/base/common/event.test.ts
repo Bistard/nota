@@ -457,6 +457,10 @@ suite('event-test', () => {
 
         emitter.fire(10);
         assert.strictEqual(result, 10);
+
+        listener.dispose();
+        assert.strictEqual(emitter.hasListeners(), false);
+        assert.strictEqual(emitter.isDisposed(), false);
     });
 
     
