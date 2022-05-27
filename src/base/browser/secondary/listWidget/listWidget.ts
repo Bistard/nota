@@ -642,6 +642,26 @@ export interface IListWidget<T> extends IDisposable {
      * @description Returns the focused item.
      */
     getFocusedItem(): T | null;
+
+    /**
+     * @description Respect to the current focused item, try to focus the first 
+     * item forward by a given step `next` that matches the filter function.
+     * @param next The step number.
+     * @param fullLoop Do a full search on all the items.
+     * @param match The match function. If not provided, the next sibling will 
+     * be matched.
+     */
+    focusNext(next: number, fullLoop: boolean, match?: (item: T) => boolean): void;
+
+    /**
+     * @description Respect to the current focused item, try to focus the first 
+     * item backward by a given step `prev` that matches the filter function.
+     * @param prev The step number.
+     * @param fullLoop Do a full search on all the items.
+     * @param match The match function. If not provided, the next sibling will 
+     * be matched.
+     */
+    focusPrev(prev: number, fullLoop: boolean, match?: (item: T) => boolean): void;
 }
 
 /**
@@ -795,6 +815,34 @@ export class ListWidget<T> implements IListWidget<T> {
         return indice.length ? this.view.getItem(indice[0]!) : null;
     }
 
+    public focusNext(next: number = 1, fullLoop: boolean = false, match?: (item: T) => boolean): void {
+        if (this.length === 0) {
+            return;
+        }
+
+        const currFocused = this.focused.items();
+        const indexFound = this.__findNextWithFilter(currFocused.length ? (currFocused[0]! + next) : 0, fullLoop, match);
+        
+        // founded
+        if (indexFound !== -1) {
+            this.focused.set([indexFound]);
+        }
+    }
+
+    public focusPrev(prev: number = 1, fullLoop: boolean = false, match?: (item: T) => boolean): void {
+        if (this.length === 0) {
+            return;
+        }
+
+        const currFocused = this.focused.items();
+        const indexFound = this.__findPrevWithFilter(currFocused.length ? (currFocused[0]! - prev) : 0, fullLoop, match);
+        
+        // founded
+        if (indexFound !== -1) {
+            this.focused.set([indexFound]);
+        }
+    }
+
     // [private helper methods]
 
     /**
@@ -832,6 +880,62 @@ export class ListWidget<T> implements IListWidget<T> {
             actualIndex: actualIndex,
             item: item,
         };
+    }
+
+    /**
+     * @description Try to find the first item forward starting from the given 
+     * index that matches the match function.
+     * @param start The start index.
+     * @param fullLoop If loop all the items.
+     * @param match The match function that matches the result. If not provided,
+     * the next sibling will be returned.
+     */
+    private __findNextWithFilter(start: number, fullLoop: boolean, match?: (item: T) => boolean): number {
+        for (let i = start; i < this.length; i++) {
+            
+            if (i === this.length && fullLoop === false) {
+                return -1;
+            }
+
+            i = i % this.length;
+
+            const matched = match && match(this.view.getItem(i));
+            if (matched) {
+                return i;
+            }
+
+            i++;
+        }
+
+        return -1;
+    }
+
+    /**
+     * @description Try to find the first item backward starting from the given 
+     * index that matches the match function.
+     * @param start The start index.
+     * @param fullLoop If loop all the items.
+     * @param match The match function that matches the result. If not provided,
+     * the next sibling will be returned.
+     */
+    private __findPrevWithFilter(start: number, fullLoop: boolean, match?: (item: T) => boolean): number {
+        for (let i = start; i < this.length; i++) {
+            
+            if (i < 0 && fullLoop === false) {
+                return -1;
+            }
+
+            i = (this.length + (i % this.length)) % this.length;
+
+            const matched = match && match(this.view.getItem(i));
+            if (matched) {
+                return i;
+            }
+
+            i--;
+        }
+
+        return -1;
     }
 
     // [Drag and Drop Support]
