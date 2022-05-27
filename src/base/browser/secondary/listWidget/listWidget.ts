@@ -11,7 +11,6 @@ import { hash } from "src/base/common/hash";
 import { Array } from "src/base/common/array";
 import { IS_MAC } from "src/base/node/os";
 
-
 /**
  * The index changed in {@link __ListTrait}.
  */
@@ -226,6 +225,8 @@ class __ListWidgetMouseController<T> implements IDisposable {
      * @description Handles item focus and selection logic.
      */
     private __onMouseClick(e: IListMouseEvent<T>): void {
+        console.log('[controller] event: ', e);
+
         if (this._mouseSupport === false) {
             return;
         }
@@ -234,6 +235,7 @@ class __ListWidgetMouseController<T> implements IDisposable {
         
         // clicking nowhere, we reset all the traits
         if (focusedIdx === undefined) {
+            console.log('[controller] setting no focus and selections');
             this._view.setFocus(null);
             this._view.setSelections([]);
             return;
@@ -241,12 +243,16 @@ class __ListWidgetMouseController<T> implements IDisposable {
 
         // check if selecting in range
         if (this.__selectingInRangeEvent(e)) {
+            console.log('[constroller] selection in range');
             this.__multiSelectionInRange(e);
             return;
         } else if (this.__selectingInSingleEvent(e)) {
+            console.log('[constroller] selection in single');
             this._mutliSelectionInSingle(e);
             return;
         }
+
+        console.log('[controller] setting single focus and selection');
 
         // no multi-selection, set focus only
         this._view.setFocus(focusedIdx);
@@ -281,7 +287,6 @@ class __ListWidgetMouseController<T> implements IDisposable {
      * @description Applies multi-selection when selecting in range.
      */
     private __multiSelectionInRange(e: IListMouseEvent<T>): void {
-        console.log("select in range");
         const focusedIdx = e.actualIndex!;
         let currFocusedIdx = this._view.getFocus();
 
@@ -590,6 +595,14 @@ export class ListWidget<T> implements IListWidget<T> {
         this.selected.getElement = item => this.view.getElement(item);
         this.focused.getElement = item => this.view.getElement(item);
 
+        this.selected.onDidChange(e => {
+            console.log('selection: ', e.indice);
+        });
+
+        this.focused.onDidChange(e => {
+            console.log('focused: ', e.indice);
+        });
+
         // mouse support integration
         this.mouseController = new __ListWidgetMouseController(this, opts);
 
@@ -658,7 +671,7 @@ export class ListWidget<T> implements IListWidget<T> {
     // [item traits support]
 
     public setFocus(index: number | null): void {
-        this.focused.set(index ? [index] : []);
+        this.focused.set((index !== null) ? [index] : []);
     }
 
     public setSelections(indice: number[]): void {

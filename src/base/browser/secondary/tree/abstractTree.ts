@@ -170,7 +170,6 @@ export interface IAbstractTree<T, TFilter, TRef> {
 
     // [event]
 
-    
     /**
      * Events when tree splice happened.
      */
