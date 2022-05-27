@@ -5,6 +5,21 @@
 export namespace Array {
 
     /**
+     * @description Try to removes the first given item from the given array (will 
+     * modify the original array).
+     * @param array The given array.
+     * @param item The item to be removed.
+     * @returns Returns the same array.
+     */
+    export function remove<T>(array: T[], item: T): T[] {
+        const find = array.indexOf(item);
+        if (find !== -1) {
+            array.splice(find, 1);
+        }
+        return array;
+    }
+
+    /**
      * @description Creates a new number array that contains numbers from begin
      * to end.
      * @param begin The begin of the array number (inclusive).

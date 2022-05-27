@@ -3,6 +3,14 @@ import { Array } from 'src/base/common/array';
 
 suite('array-test', () => {
 
+    test('Array.remove()', () => {
+        const arr = [1, 1, 2, 3, 4, 5];
+        assert.deepStrictEqual(Array.remove(arr, 1), [1, 2, 3, 4, 5]);
+        assert.deepStrictEqual(Array.remove(arr, 1), [2, 3, 4, 5]);
+        assert.deepStrictEqual(Array.remove(arr, 1), [2, 3, 4, 5]);
+        assert.deepStrictEqual(Array.remove(arr, 5), [2, 3, 4]);
+    });
+
     test('Array.range()', () => {
         assert.deepStrictEqual(Array.range(0, 5), [0, 1, 2, 3, 4]);
         assert.deepStrictEqual(Array.range(1, 5), [1, 2, 3, 4]);
