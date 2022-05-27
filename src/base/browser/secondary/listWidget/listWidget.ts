@@ -1,7 +1,7 @@
 import { IListViewRenderer, PipelineRenderer, RendererType } from "src/base/browser/secondary/listView/listRenderer";
 import { IListViewOpts, IViewItem, IViewItemChangeEvent, ListError, ListView } from "src/base/browser/secondary/listView/listView";
-import { DisposableManager, disposeAll, IDisposable } from "src/base/common/dispose";
-import { addDisposableListener, DomUtility, EventType } from "src/base/common/dom";
+import { DisposableManager, IDisposable } from "src/base/common/dispose";
+import { addDisposableListener, DomUtility, EventType, isMouseRightClick } from "src/base/common/dom";
 import { Emitter, Event, Register, SignalEmitter } from "src/base/common/event";
 import { IScrollEvent } from "src/base/common/scrollable";
 import { IListItemProvider } from "src/base/browser/secondary/listView/listItemProvider";
@@ -9,6 +9,7 @@ import { IListDragAndDropProvider, ListWidgetDragAndDropProvider } from "src/bas
 import { memoize } from "src/base/common/memoization";
 import { hash } from "src/base/common/hash";
 import { Array } from "src/base/common/array";
+import { IS_MAC } from "src/base/node/os";
 
 
 /**
@@ -163,6 +164,10 @@ class __ListTraitRenderer<T> implements IListViewRenderer<T, HTMLElement> {
 
 /**
  * @class An internal class that handles the mouse support of {@link IListWidget}.
+ * It handles:
+ *  - when to DOM focus
+ *  - when to focus item
+ *  - when to select item(s)
  */
 class __ListWidgetMouseController<T> implements IDisposable {
 
@@ -171,7 +176,8 @@ class __ListWidgetMouseController<T> implements IDisposable {
     private _disposables = new DisposableManager();
     private _view: IListWidget<T>;
 
-    private _mouseSupport: boolean;
+    private _mouseSupport: boolean = true;
+    private _multiSelectionSupport: boolean = true;
 
     // [constructor]
 
@@ -181,10 +187,17 @@ class __ListWidgetMouseController<T> implements IDisposable {
     ) {
         this._view = view;
 
-        this._mouseSupport = (typeof opts.mouseSupport === 'undefined') || opts.mouseSupport;
+        if (opts.mouseSupport !== undefined) {
+            this._mouseSupport = opts.mouseSupport;
+        }
+        
         if (this._mouseSupport === false) {
             // does not support
             return;
+        }
+
+        if (opts.multiSelectionSupport !== undefined) {
+            this._multiSelectionSupport = opts.multiSelectionSupport;
         }
 
         this._disposables.register(view.onMousedown(e => this.__onMouseDown(e)));
@@ -210,14 +223,103 @@ class __ListWidgetMouseController<T> implements IDisposable {
     }
 
     /**
-     * @description // TODO
+     * @description Handles item focus and selection logic.
      */
     private __onMouseClick(e: IListMouseEvent<T>): void {
         if (this._mouseSupport === false) {
             return;
         }
 
-        console.log('[mouse controller] [onClick] ', e);
+        const focusedIdx = e.actualIndex;
+        
+        // clicking nowhere, we reset all the traits
+        if (focusedIdx === undefined) {
+            this._view.setFocus(null);
+            this._view.setSelections([]);
+            return;
+        }
+
+        // check if selecting in range
+        if (this.__selectingInRangeEvent(e)) {
+            this.__multiSelectionInRange(e);
+            return;
+        } else if (this.__selectingInSingleEvent(e)) {
+            this._mutliSelectionInSingle(e);
+            return;
+        }
+
+        // no multi-selection, set focus only
+        this._view.setFocus(focusedIdx);
+        if (isMouseRightClick(e.browserEvent) === false) {
+            this._view.setSelections([focusedIdx]);
+        }
+    }
+
+    /**
+     * @description Determines if the event is selecting in range. In other words,
+     * pressing SHIFT.
+     */
+    private __selectingInRangeEvent(e: IListMouseEvent<T>): boolean {
+        if (this._multiSelectionSupport === false) {
+            return false;
+        }
+        return e.browserEvent.shiftKey;
+    }
+
+    /**
+     * @description Determines if the event is selecting in single. In other words,
+     * pressing CTRL in Windows or META in Macintosh.
+     */
+    private __selectingInSingleEvent(e: IListMouseEvent<T>): boolean {
+        if (this._multiSelectionSupport === false) {
+            return false;
+        }
+        return IS_MAC ? e.browserEvent.metaKey : e.browserEvent.ctrlKey;
+    }
+
+    /**
+     * @description Applies multi-selection when selecting in range.
+     */
+    private __multiSelectionInRange(e: IListMouseEvent<T>): void {
+        console.log("select in range");
+        const focusedIdx = e.actualIndex!;
+        let currFocusedIdx = this._view.getFocus();
+
+        // if no focus yet, we focus on the current.
+        if (currFocusedIdx === null) {
+            currFocusedIdx = focusedIdx;
+        }
+        
+        // calculates the selection range
+        const selectionRange = Array.range(Math.min(focusedIdx, currFocusedIdx), Math.max(focusedIdx, currFocusedIdx) + 1);
+        
+        // determine new selection
+        const currSelection = this._view.getSelections();
+        const newSelection = Array.complement(currSelection, selectionRange);
+
+        this._view.setSelections(newSelection);
+        this._view.setFocus(focusedIdx);
+    }
+
+    /**
+     * @description Applies multi-selection when selecting in single.
+     */
+    private _mutliSelectionInSingle(e: IListMouseEvent<T>): void {
+        console.log("select in single");
+        const focusedIdx = e.actualIndex!;
+
+        const currSelection = this._view.getSelections();
+        const newSelection = Array.remove(currSelection, focusedIdx);
+
+        this._view.setFocus(focusedIdx);
+
+        if (newSelection.length === currSelection.length) {
+            // we are not removing any of the current selections
+            this._view.setSelections([...newSelection, focusedIdx]);
+        } else {
+            // we removed one of the selections
+            this._view.setSelections(newSelection);
+        }
     }
 
 }
@@ -383,25 +485,35 @@ export interface IListWidget<T> extends IDisposable {
 
     /**
      * @description Sets the item with the given index as focused.
-     * @param index The providex index.
+     * @param index The provided index. If not provided, remove the current one.
      */
-    setFocus(index: number): void;
+    setFocus(index: number | null): void;
 
     /**
      * @description Sets the item with the given index as selected.
-     * @param index The providex index.
+     * @param index The provided index.
      */
     setSelections(index: number[]): void;
 
     /**
+     * @description Returns all the indice of the selected items.
+     */
+    getSelections(): number[];
+
+    /**
+     * @description Returns the index of the focused item.
+     */
+    getFocus(): number | null;
+
+    /**
      * @description Returns all the selected items.
      */
-    getSelections(): T[];
+    getSelectedItems(): T[];
 
     /**
      * @description Returns the focused item.
      */
-    getFocus(): T | null;
+    getFocusedItem(): T | null;
 }
 
 /**
@@ -520,8 +632,8 @@ export class ListWidget<T> implements IListWidget<T> {
 
     // [item traits support]
 
-    public setFocus(index: number): void {
-        this.focused.set([index]);
+    public setFocus(index: number | null): void {
+        this.focused.set(index ? [index] : []);
     }
 
     public setSelections(indice: number[]): void {
@@ -531,17 +643,23 @@ export class ListWidget<T> implements IListWidget<T> {
         this.selected.set(indice);
     }
 
-    public getFocus(): T | null {
-        const index = this.focused.items();
-        if (index.length === 0) {
-            return null;
-        }
-        return this.view.getItem(index[0]!);
+    public getFocus(): number | null {
+        const indice = this.focused.items();
+        return indice.length ? indice[0]! : null;
     }
 
-    public getSelections(): T[] {
-        const indices = this.selected.items();
-        return indices.map(i => this.view.getItem(i));
+    public getSelections(): number[] {
+        return this.selected.items();
+    }
+
+    public getSelectedItems(): T[] {
+        const indice = this.selected.items();
+        return indice.map(index => this.view.getItem(index));
+    }
+
+    public getFocusedItem(): T | null {
+        const indice = this.focused.items();
+        return indice.length ? this.view.getItem(indice[0]!) : null;
     }
 
     // [private helper methods]

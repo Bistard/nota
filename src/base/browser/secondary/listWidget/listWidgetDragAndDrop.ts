@@ -47,7 +47,7 @@ export class ListWidgetDragAndDropProvider<T> implements IListWidgetDragAndDropP
     }
 
     public getDragItems(currItem: T): T[] {
-        const selected = this.view.getSelections();
+        const selected = this.view.getSelectedItems();
         if (selected.length > 0) {
             return selected;
         }

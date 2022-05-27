@@ -233,3 +233,10 @@ export namespace DomUtility
 	}
 
 }
+
+/**
+ * @description Determines if the given event is mouse right click.
+ */
+export function isMouseRightClick(event: UIEvent): boolean {
+	return event instanceof MouseEvent && event.button === 2;
+}
