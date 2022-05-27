@@ -431,6 +431,9 @@ export class ListView<T> implements IDisposable, ISpliceable<T>, IListView<T> {
     ) {
         this.element = document.createElement('div');
         this.element.className = 'list-view';
+        
+        // set focusable
+        this.element.tabIndex = 0;
 
         this.items = [];
         this.rangeTable = new RangeTable();

@@ -4,6 +4,18 @@
 	height: 100%;
 	width: 100%;
 	white-space: nowrap;
+	outline: 0 !important;
+}
+
+.list-view.mouse-support {
+	user-select: none;
+	-webkit-user-select: none;
+	-ms-user-select: none;
+}
+
+.list-view.mouse-support .list-view-row {
+	cursor: pointer;
+	touch-action: none;
 }
 
 .list-view-container {

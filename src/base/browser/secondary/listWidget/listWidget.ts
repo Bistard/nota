@@ -196,6 +196,8 @@ class __ListWidgetMouseController<T> implements IDisposable {
             return;
         }
 
+        this._view.DOMElement.classList.add('mouse-support');
+
         if (opts.multiSelectionSupport !== undefined) {
             this._multiSelectionSupport = opts.multiSelectionSupport;
         }
@@ -226,7 +228,6 @@ class __ListWidgetMouseController<T> implements IDisposable {
      * @description Handles item focus and selection logic.
      */
     private __onMouseClick(e: IListMouseEvent<T>): void {
-        console.log('[controller] event: ', e);
 
         if (this._mouseSupport === false) {
             return;
@@ -327,9 +328,12 @@ class __ListWidgetMouseController<T> implements IDisposable {
 /**
  * @class An internal class that handles the keyboard support of {@link IListWidget}.
  * It handles:
- *  - when to focus DOM
- *  - when to focus item
- *  - when to select item(s)
+ *  - enter
+ *  - up
+ *  - down
+ *  - page up
+ *  - page down
+ *  - escape
  */
 class __ListWidgetKeyboardController<T> implements IDisposable {
 
@@ -373,6 +377,7 @@ class __ListWidgetKeyboardController<T> implements IDisposable {
     // [private helper methods]
 
     private __onDidKeydown(e: IStandardKeyboardEvent): void {
+        console.log("keypressd");
         switch (e.key) {
             case KeyCode.Enter:
                 this.__onEnter(e);
@@ -645,7 +650,7 @@ export interface IListWidget<T> extends IDisposable {
  * 
  * Extra Functionalities:
  *  - mouse support (focus / selection)
- *  - keyboard support
+ *  - keyboard support (enter / up / down / pageup / pagedown / escape)
  *  - drag and drop support
  */
 export class ListWidget<T> implements IListWidget<T> {
@@ -690,17 +695,8 @@ export class ListWidget<T> implements IListWidget<T> {
         this.selected.getElement = item => this.view.getElement(item);
         this.focused.getElement = item => this.view.getElement(item);
 
-        this.selected.onDidChange(e => {
-            console.log('selection: ', e.indice);
-        });
-
-        this.focused.onDidChange(e => {
-            console.log('focused: ', e.indice);
-        });
-
         // mouse support integration
         this.mouseController = new __ListWidgetMouseController(this, opts);
-
         // keyboar support integration
         this.keyboardController = new __ListWidgetKeyboardController(this, opts);
 
@@ -712,6 +708,7 @@ export class ListWidget<T> implements IListWidget<T> {
         this.disposables.register(this.selected);
         this.disposables.register(this.focused);
         this.disposables.register(this.mouseController);
+        this.disposables.register(this.keyboardController);
     }
 
     // [getter / setter]
@@ -843,8 +840,6 @@ export class ListWidget<T> implements IListWidget<T> {
      * @description Enables the drag and drop (dnd) support in {@link ListView}.
      */
     private __enableDragAndDropSupport(): void {
-
-        console.log('enable dnd');
 
         // only adding 4 listeners to the whole view
         this.disposables.register(addDisposableListener(this.view.DOMElement, EventType.dragover, e => this.__onDragOver(this.__toListDragEvent(e))));

@@ -1,23 +1,22 @@
 
-.opened-explorer-container > .list-view > .list-view-container > .list-view-row {
-    cursor: pointer;
+.list-view > .list-view-container > .list-view-row {
     border: 1px solid transparent;
 }
 
-.opened-explorer-container > .list-view > .list-view-container > .list-view-row:hover {
+.list-view > .list-view-container > .list-view-row:hover {
     background-color: #fcf3f3;
 }
 
-.opened-explorer-container > .list-view > .list-view-container > .list-view-row.focused {
+.list-view > .list-view-container > .list-view-row.focused {
     background-color: #f0e8e8;
     border: 1px solid #cf6060;
 }
 
-.opened-explorer-container > .list-view > .list-view-container > .list-view-row.selected {
+.list-view > .list-view-container > .list-view-row.selected {
     background-color: #f0e8e8;
 }
 
-.opened-explorer-container > .list-view > .list-view-container > .list-view-row > .tree-list-row > .icon {
+.list-view > .list-view-container > .list-view-row > .tree-list-row > .icon {
     font-size: 12px;
     margin-right: 4px;
 }
@@ -26,7 +25,6 @@
     position: relative;
     display: flex;
     height: 100%;
-    user-select: none;
 
     overflow: hidden;
     text-overflow: ellipsis;
