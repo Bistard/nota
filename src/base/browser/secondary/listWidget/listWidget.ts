@@ -377,7 +377,6 @@ class __ListWidgetKeyboardController<T> implements IDisposable {
     // [private helper methods]
 
     private __onDidKeydown(e: IStandardKeyboardEvent): void {
-        console.log("keypressd");
         switch (e.key) {
             case KeyCode.Enter:
                 this.__onEnter(e);
@@ -410,31 +409,37 @@ class __ListWidgetKeyboardController<T> implements IDisposable {
     }
 
     private __onUpArrow(e: IStandardKeyboardEvent): void {
-        e.preventDefault();
-		e.stopPropagation();
-        const newFoused = this._view.focusPrev(1, false, undefined);
-        // this._view.reveal(newFoused);
-        this._view.setDomFocus();
+        if (this._view.getFocus() !== null) {
+            e.preventDefault();
+            e.stopPropagation();
+            const newFoused = this._view.focusPrev(1, false, undefined);
+            this._view.reveal(newFoused, undefined);
+            this._view.setDomFocus();
+        }
     }
 
     private __onDownArrow(e: IStandardKeyboardEvent): void {
-        e.preventDefault();
-		e.stopPropagation();
-        const newFoused = this._view.focusNext(1, false, undefined);
-        // this._view.reveal(newFoused);
-        this._view.setDomFocus();
+        if (this._view.getFocus() !== null) {
+            e.preventDefault();
+            e.stopPropagation();
+            const newFoused = this._view.focusNext(1, false, undefined);
+            this._view.reveal(newFoused, undefined);
+            this._view.setDomFocus();
+        }
     }
 
     private __onPageupArrow(e: IStandardKeyboardEvent): void {
         e.preventDefault();
 		e.stopPropagation();
         // TODO
+        console.warn('does not support page up in ListWidget yet.');
     }
 
     private __onPagedownArrow(e: IStandardKeyboardEvent): void {
         e.preventDefault();
 		e.stopPropagation();
         // TODO
+        console.warn('does not support page up in ListWidget yet.');
     }
 
     private __onEscape(e: IStandardKeyboardEvent): void {
@@ -611,6 +616,16 @@ export interface IListWidget<T> extends IDisposable {
      * @param items The items to be inserted.
      */
     splice(index: number, deleteCount: number, items: T[]): void;
+
+    /**
+     * @description Reveals (does not scroll to) the item in the {@link IListWidget} 
+     * with the given index.
+     * @param index The index of the revealing item.
+     * @param relativePositionPercentage A percentage indicates the relative 
+     * position of the revealed item. Must be in range [0, 1]. If not provided,
+     * it will adjust the item to the edge depending on which side from revealing.
+     */
+    reveal(index: number, relativePositionPercentage?: number): void;
 
     /**
      * @description Sets the current view as focused in DOM tree.
@@ -792,6 +807,10 @@ export class ListWidget<T> implements IListWidget<T> {
         this.view.splice(index, deleteCount, items);
     }
 
+    public reveal(index: number, relativePositionPercentage?: number): void {
+        this.view.reveal(index, relativePositionPercentage);
+    }
+
     public setDomFocus(): void {
         this.view.setDomFocus();
     }
@@ -914,7 +933,7 @@ export class ListWidget<T> implements IListWidget<T> {
 
             index = index % this.length;
 
-            const matched = !match || (match(this.view.getItem(index)));
+            const matched = !match || match(this.view.getItem(index));
             if (matched) {
                 return index;
             }
@@ -943,7 +962,7 @@ export class ListWidget<T> implements IListWidget<T> {
 
             index = (this.length + (index % this.length)) % this.length;
 
-            const matched = !match || (match(this.view.getItem(index)));
+            const matched = !match || match(this.view.getItem(index));
             if (matched) {
                 return index;
             }
