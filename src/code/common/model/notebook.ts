@@ -1,11 +1,39 @@
+import { IListDragAndDropProvider } from "src/base/browser/secondary/listWidget/listWidgetDragAndDrop";
 import { AsyncMultiTree, IAsyncMultiTree } from "src/base/browser/secondary/tree/asyncMultiTree";
 import { ITreeMouseEvent, ITreeSpliceEvent } from "src/base/browser/secondary/tree/tree";
-import { Disposable, DisposableManager } from "src/base/common/dispose";
+import { Disposable } from "src/base/common/dispose";
 import { Emitter, Register } from "src/base/common/event";
 import { URI } from "src/base/common/file/uri";
 import { ExplorerChildrenProvider, ExplorerItem, ExplorerItemProvider } from "src/code/browser/workbench/actionView/explorer/explorerItem";
 import { ExplorerRenderer } from "src/code/browser/workbench/actionView/explorer/explorerRenderer";
 import { IFileService } from "src/code/common/service/fileService/fileService";
+
+/**
+ * @class A type of {@link IListDragAndDropProvider} to support drag and drop
+ * for {@link Notebook}.
+ */
+export class NotebookDragAndDropProvider implements IListDragAndDropProvider<ExplorerItem> {
+
+    constructor() {
+
+    }
+
+    public getDragData(item: ExplorerItem): string | null {
+        return item.uri.toString();
+    }
+
+    public getDragTag(items: ExplorerItem[]): string {
+        if (items.length === 1) {
+            return items[0]!.name;
+        }
+        return String(`${items.length} selections`);
+    }
+
+    public onDragStart(): void {
+        // TODO
+    }
+
+}
 
 export interface INotebook {
 
@@ -217,7 +245,10 @@ export class Notebook extends Disposable implements INotebook {
             [new ExplorerRenderer()], 
             new ExplorerItemProvider(),
             new ExplorerChildrenProvider(this.fileService),
-            {}
+            {
+                collapseByDefault: false,
+                dnd: new NotebookDragAndDropProvider()
+            }
         );
 
         this._tree = tree;
@@ -230,9 +261,10 @@ export class Notebook extends Disposable implements INotebook {
      */
     private __registerListeners(): void {
 
-        this._tree.onClick(async (node) => {
-            this._tree.toggleCollapseOrExpand(node.data!, false);
-            await this._tree.refresh(node.data!);
+        this._tree.onClick(event => {
+            if (event.data) {
+                this._tree.toggleCollapseOrExpand(event.data, false);
+            }
         });
 
     }

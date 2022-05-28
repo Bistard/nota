@@ -115,16 +115,16 @@ export class ExplorerViewComponent extends Component implements IExplorerViewSer
         /**
          * @readonly register context menu listeners (right click menu)
         */
-        this.container.addEventListener('contextmenu', (ev: MouseEvent) => {
-                ev.preventDefault();
-                this.contextMenuService.removeContextMenu();
-                let coordinate: Coordinate = {
-                    coordinateX: ev.pageX,
-                    coordinateY: ev.pageY,
-                };
+        // this.container.addEventListener('contextmenu', (ev: MouseEvent) => {
+        //         ev.preventDefault();
+        //         this.contextMenuService.removeContextMenu();
+        //         let coordinate: Coordinate = {
+        //             coordinateX: ev.pageX,
+        //             coordinateY: ev.pageY,
+        //         };
 
-                this.contextMenuService.createContextMenu(ContextMenuType.explorerView, coordinate);
-        });
+        //         this.contextMenuService.createContextMenu(ContextMenuType.explorerView, coordinate);
+        // });
 
         /**
          * Registers open directory dialog listener.

@@ -8,13 +8,14 @@ import { IScrollEvent, Scrollable } from "src/base/common/scrollable";
 
 export interface IScrollableWidget extends IWidget {
 
-    /**
-     * Fires when scrolling happens.
-     */
+    /** Fires before scrolling happens. */
+    onWillScroll: Register<IScrollEvent>;
+
+    /** Fires after scrolling happens. */
     onDidScroll: Register<IScrollEvent>;
 
     /**
-     * Returns the inside {@link Scrollable}.
+     * @description Returns the inside {@link Scrollable}.
      */
     getScrollable(): Scrollable;
 
@@ -39,6 +40,7 @@ export class ScrollableWidget extends Widget implements IScrollableWidget {
 
     // [event]
 
+    public readonly onWillScroll: Register<IScrollEvent>;
     public readonly onDidScroll: Register<IScrollEvent>;
 
     // [constructor]
@@ -64,7 +66,8 @@ export class ScrollableWidget extends Widget implements IScrollableWidget {
             this._scrollbar = new HorizontalScrollbar(this._scrollable, host);
         }
 
-        this.onDidScroll = this._scrollable.onDidScroll;
+        this.onWillScroll = this._scrollbar.onWillScroll;
+        this.onDidScroll = this._scrollbar.onDidScroll;
 
         this.__register(scrollable);
         this.__register(this._scrollbar);

@@ -1,0 +1,30 @@
+
+.list-view > .list-view-container > .list-view-row {
+    border: 1px solid transparent;
+}
+
+.list-view > .list-view-container > .list-view-row:hover {
+    background-color: #fcf3f3;
+}
+
+.list-view > .list-view-container > .list-view-row.focused {
+    border: 1px solid #cf6060;
+}
+
+.list-view > .list-view-container > .list-view-row.selected {
+    background-color: #f0e8e8;
+}
+
+.list-view > .list-view-container > .list-view-row > .tree-list-row > .icon {
+    font-size: 12px;
+    margin-right: 4px;
+}
+
+.explorer-item {
+    position: relative;
+    display: flex;
+    height: 100%;
+
+    overflow: hidden;
+    text-overflow: ellipsis;
+}

@@ -67,19 +67,21 @@ export interface IExplorerItem {
     hasChildren(): boolean;
 
 	/**
-	 * @description 
-	 * @param fileService 
+	 * @description Refreshing (fetching) the basic children stat of the current 
+     * item.
+	 * @param fileService The given {@link IFileService} for fetching the children 
+     * of the current item.
 	 */
 	refreshChildren(fileService: IFileService): void | Promise<void>;
 
 	/**
-	 * 
+	 * @description Forgets all the children of the current item.
 	 */
 	forgetChildren(): void;
 }
 
 /**
- * @class // TODO
+ * @class A data structure used in {@link Notebook} for displaying.
  */
 export class ExplorerItem implements IExplorerItem {
 
@@ -142,22 +144,19 @@ export class ExplorerItem implements IExplorerItem {
 
 	public refreshChildren(fileService: IFileService): void | Promise<void> {
 
-        const promise = (async () => {
+        // the basic children stats are already resolved
+        if (this._stat.children) {
+            return;
+        }
 
-            // never resolved the children before
-            if (this._stat.children === undefined) {
-                
-                try {
-                    // obtain the newest resolved stat
-                    const updatedStat = await fileService.stat(this._stat.uri, { resolveChildren: true });
-                    this._stat = updatedStat;
-                } 
-                
-                catch (err) {
-                    this._inError = true;
-                    throw err;
-                }
-                
+        // never resolved the children before
+        const promise = (async () => {
+            try {
+                const updatedStat = await fileService.stat(this._stat.uri, { resolveChildren: true });
+                this._stat = updatedStat;
+            } catch (err) {
+                this._inError = true;
+                throw err;
             }
         })();
 
@@ -169,10 +168,6 @@ export class ExplorerItem implements IExplorerItem {
 	}
 
     // [private method]
-
-	private __addChild(child: ExplorerItem): void {
-
-	}
 
 }
 
@@ -204,7 +199,7 @@ export class ExplorerChildrenProvider implements IAsyncChildrenProvider<Explorer
 
     }
 
-    public hasChildren(data: ExplorerItem): boolean | Promise<boolean> {
+    public hasChildren(data: ExplorerItem): boolean {
         return data.hasChildren();
     }
 
@@ -233,6 +228,11 @@ export class ExplorerChildrenProvider implements IAsyncChildrenProvider<Explorer
         });
 
         return promise;
+    }
+
+    public collapseByDefault(data: ExplorerItem): boolean {
+        // TODO
+        return false;
     }
 
 }

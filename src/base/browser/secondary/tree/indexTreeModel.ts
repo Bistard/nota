@@ -113,12 +113,7 @@ export class IndexTreeModel<T, TFilter = void> implements IIndexTreeModel<T, TFi
             visibleNodeCount: 0,
         };
 
-        this._collapsedByDefault = false;
-
-        // option assignment
-        if (opt) {
-            this._collapsedByDefault = !!opt.collapsedByDefault;
-        }
+        this._collapsedByDefault = !!(opt?.collapsedByDefault);
     }
 
     // [events]
@@ -127,7 +122,7 @@ export class IndexTreeModel<T, TFilter = void> implements IIndexTreeModel<T, TFi
 	public readonly onDidSplice = this._onDidSplice.registerListener;
 
     private readonly _onDidChangeCollapseState = new Emitter<ITreeCollapseStateChangeEvent<T, TFilter>>();
-    public readonly onDidChangeCollapseStateChange = this._onDidChangeCollapseState.registerListener;
+    public readonly onDidChangeCollapseState = this._onDidChangeCollapseState.registerListener;
 
     // [methods]
     
@@ -359,8 +354,10 @@ export class IndexTreeModel<T, TFilter = void> implements IIndexTreeModel<T, TFi
         onDidCreateNode?: (node: ITreeNode<T, TFilter>) => void
     ): IIndexTreeNode<T, TFilter> 
     {
-        const collapsed = typeof element.collapsed === 'boolean' ? element.collapsed : this._collapsedByDefault;
-        const collapsible = typeof element.collapsible === 'boolean' ? element.collapsible : collapsed;
+        const ifSetCollapsed = !!element.collapsed;
+
+        const collapsed = ifSetCollapsed ? ifSetCollapsed : this._collapsedByDefault;
+        const collapsible = !!element.collapsible ? element.collapsible : ifSetCollapsed;
         const visible = parent.visible ? !parent.collapsed : false;
 
         // construct the new node
@@ -370,7 +367,7 @@ export class IndexTreeModel<T, TFilter = void> implements IIndexTreeModel<T, TFi
             depth: parent.depth + 1,
             visible: visible,
             collapsible: collapsible,
-            collapsed: collapsible ? collapsed : false,
+            collapsed: collapsed,
             children: [],
             visibleNodeCount: 1
         };

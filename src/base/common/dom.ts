@@ -18,6 +18,8 @@ export const enum EventType {
 	doubleclick = 'dblclick',
 	wheel = 'wheel',
 
+	touchstart = 'touchstart',
+
 	keydown = 'keydown',
 	keyup = 'keyup',
 	keypress = 'keypress',
@@ -106,15 +108,15 @@ export function formatSpan(text: string): string {
 }
 
 /**
- * @description A uitility namespace that contains all the helper functions to 
- * get the size-related attributes from a DOM element.
+ * @description A uitility namespace that contains all the helper functions 
+ * relates to DOM.
  * 
- * @warn The namespace does NOT work for IE8 browser, see 
+ * @warn The size-related methods does NOT work for IE8 browser, see 
  * 	https://stackoverflow.com/questions/5227909/how-to-get-an-elements-padding-value-using-javascript AND
  * 	https://developer.mozilla.org/en-US/docs/Web/API/Window/getComputedStyle
  * 
  * @warn If the HTMLElement has not been added into the DOM tree, some methods
- * under the namespace will NOT work properly (returns magic number).
+ * under the namespace will NOT work properly.
  */
 export namespace DomUtility
 {
@@ -230,6 +232,22 @@ export namespace DomUtility
 			event.clientX - box.left,
 			event.clientY - box.top
 		];
+	}
+
+	/**
+	 * @description Determines if the given event is mouse right click.
+	 */
+	export function isMouseRightClick(event: UIEvent): boolean {
+		return event instanceof MouseEvent && event.button === 2;
+	}
+
+	// [method - type]
+
+	/**
+	 * @description Check if the given HTMLElement is considered as a input type.
+	 */
+	export function isInputElement(target: HTMLElement): boolean {
+		return target.tagName === 'INPUT' || target.tagName === 'TEXTAREA';
 	}
 
 }

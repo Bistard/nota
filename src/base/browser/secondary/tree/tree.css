@@ -7,15 +7,23 @@
 }
 
 .tree-list-row > .tree-list-indent {
-    font-size: 10px;
 	text-align: right;
-	padding-right: 6px;
 	flex-shrink: 0;
 	width: 16px;
 	display: flex !important;
 	align-items: center;
 	justify-content: center;
 	transform: translateX(3px);
+
+	height: 100%;
+}
+
+.tree-list-row > .tree-list-indent::before {
+	border-radius: 20px;
+}
+
+.tree-list-row > .tree-list-indent.collapsed::before {
+	transform: rotate(-90deg);
 }
 
 .tree-list-row > .tree-list-content {

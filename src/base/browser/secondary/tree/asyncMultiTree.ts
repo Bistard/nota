@@ -2,7 +2,6 @@ import { AsyncTreeRenderer } from "src/base/browser/secondary/tree/asyncTreeRend
 import { IMultiTree, IMultiTreeOptions, MultiTree } from "src/base/browser/secondary/tree/multiTree";
 import { ITreeListRenderer } from "src/base/browser/secondary/tree/treeListRenderer";
 import { composedItemProvider, IListItemProvider } from "src/base/browser/secondary/listView/listItemProvider";
-import { IListTraitEvent } from "src/base/browser/secondary/listWidget/listTrait";
 import { DisposableManager, IDisposable } from "src/base/common/dispose";
 import { Event, Register } from "src/base/common/event";
 import { Weakmap } from "src/base/common/map";
@@ -12,6 +11,8 @@ import { AsyncMultiTreeModel, IAsyncMultiTreeModel } from "src/base/browser/seco
 import { Iterable } from "src/base/common/iterable";
 import { ITreeModelSpliceOptions } from "src/base/browser/secondary/tree/indexTreeModel";
 import { Pair } from "src/base/common/type";
+import { IListDragAndDropProvider } from "src/base/browser/secondary/listWidget/listWidgetDragAndDrop";
+import { ITraitChangeEvent } from "src/base/browser/secondary/listWidget/listWidget";
 
 /**
  * Provides functionality to determine the children stat of the given data.
@@ -21,7 +22,7 @@ export interface IAsyncChildrenProvider<T> {
     /**
      * @description Check if the given data has children.
      */
-    hasChildren(data: T): boolean | Promise<boolean>;
+    hasChildren(data: T): boolean;
 
     /**
      * @description Get the children from the given data.
@@ -50,14 +51,18 @@ export interface IAsyncTreeNode<T> {
     /** The children nodes of the current node. */
     children: IAsyncTreeNode<T>[];
 
+    /** If the node could has children. */
+    couldHasChildren: boolean;
+
     /** Determines if the current node is during the refreshing. */
     refreshing: Promise<void> | null;
 
     /** 
-     * If the tree should be collapsed by default. 
-     * @default false
+     * If the tree should be collapsed by default. If undefined, the state will
+     * determined by the {@link IMultiTree}.
+     * @default undefined
      */
-    collapsed: boolean;
+    collapsed: boolean | undefined;
 }
 
 /**
@@ -73,6 +78,8 @@ export class AsyncNodeConverter<T, TFilter> implements ITreeNode<T, TFilter> {
 
     get data(): T { return this._node.data!.data; }
     get parent(): ITreeNode<T, TFilter> | null { return this._node.parent?.data ? new AsyncNodeConverter(this._node.parent) : null; }
+    
+    // REVIEW: @memoize?
     get children(): ITreeNode<T, TFilter>[] { return this._node.children.map(child => new AsyncNodeConverter(child)); }
     get visibleNodeCount(): number { return this._node.visibleNodeCount; }
     get depth(): number { return this._node.depth; }
@@ -80,6 +87,31 @@ export class AsyncNodeConverter<T, TFilter> implements ITreeNode<T, TFilter> {
     get collapsible(): boolean { return this._node.collapsible; }
     get collapsed(): boolean { return this._node.collapsed; }
 
+}
+
+/**
+ * @class A wrapper class to convert a basic {@link IListDragAndDropProvider<T>}
+ * to {@link IListDragAndDropProvider<IAsyncTreeNode<T>>}.
+ */
+class __AsyncMultiTreeDragAndDropProvider<T> implements IListDragAndDropProvider<IAsyncTreeNode<T>> {
+
+    constructor(
+        private readonly dnd: IListDragAndDropProvider<T>
+    ) {}
+
+    public getDragData(node: IAsyncTreeNode<T>): string | null {
+        return this.dnd.getDragData(node.data);
+    }
+
+    public getDragTag(items: IAsyncTreeNode<T>[]): string {
+        return this.dnd.getDragTag(items.map(item => item.data));
+    }
+
+    public onDragStart(event: DragEvent): void {
+        if (this.dnd.onDragStart) {
+            this.dnd.onDragStart(event);
+        }
+    }
 }
 
 /**
@@ -102,7 +134,7 @@ export interface IAsyncMultiTree<T, TFilter> {
     /**
      * Fires when the tree node collapse state changed.
      */
-    get onDidChangeCollapseStateChange(): Register<ITreeCollapseStateChangeEvent<T | null, TFilter>>;
+    get onDidChangeCollapseState(): Register<ITreeCollapseStateChangeEvent<T | null, TFilter>>;
 
     /**
      * Fires when the {@link IAsyncMultiTree} is scrolling.
@@ -117,12 +149,12 @@ export interface IAsyncMultiTree<T, TFilter> {
     /**
      * Fires when the focused tree nodes in the {@link IAsyncMultiTree} is changed.
      */
-    get onDidChangeItemFocus(): Register<IListTraitEvent>;
+    get onDidChangeItemFocus(): Register<ITraitChangeEvent>;
     
     /**
      * Fires when the selected tree nodes in the {@link IAsyncMultiTree} is changed.
      */
-    get onDidChangeItemSelection(): Register<IListTraitEvent>;
+    get onDidChangeItemSelection(): Register<ITraitChangeEvent>;
     
     /**
      * Fires when the tree node in the {@link IAsyncMultiTree} is clicked.
@@ -223,6 +255,33 @@ export interface IAsyncMultiTree<T, TFilter> {
     expandAll(): void;
 
     /**
+     * @description Sets the given item as focused.
+     * @param item The provided item.
+     */
+    setFocus(item: T): void;
+
+    /**
+     * @description Returns the focused item.
+     */
+    getFocus(): T | null;
+
+    /**
+     * @description Sets the given a series of items as selected.
+     * @param items The provided items.
+     */
+    setSelections(items: T[]): void;
+
+    /**
+     * @description Returns the selected items.
+     */
+    getSelections(): T[];
+
+    /**
+     * @description Sets the current view as focused in DOM tree.
+     */
+    setDomFocus(): void;
+
+    /**
      * @description Given the height, re-layouts the height of the whole view.
      * @param height The given height.
      * 
@@ -295,13 +354,15 @@ export class AsyncMultiTree<T, TFilter = void> implements IAsyncMultiTree<T, TFi
 
         const unwrapper: AsyncWeakMap<T, TFilter> = new Weakmap(node => new AsyncNodeConverter(node));
 
-        this._tree = this.__createTree(container, renderers, itemProvider, unwrapper);
+        this._tree = this.__createTree(container, renderers, itemProvider, unwrapper, opts);
         this._model = this.__createModel(rootData, this._tree, childrenProvider, unwrapper);
 
         // update options
         
         this._onDidCreateNode = opts.onDidCreateNode;
         this._onDidDeleteNode = opts.onDidDeleteNode;
+
+        this._tree.onDidChangeCollapseState(e => this.refresh(e.node.data?.data));
     }
 
     // [static method]
@@ -327,12 +388,12 @@ export class AsyncMultiTree<T, TFilter = void> implements IAsyncMultiTree<T, TFi
     // [event]
 
     get onDidSplice(): Register<ITreeSpliceEvent<T | null, TFilter>> { return Event.map(this._model.onDidSplice, e => this.__toTreeSpliceEvent(e)); }
-    get onDidChangeCollapseStateChange(): Register<ITreeCollapseStateChangeEvent<T | null, TFilter>> { return Event.map(this._model.onDidChangeCollapseStateChange, e => this.__toTreeChangeCollapseEvent(e)); }
+    get onDidChangeCollapseState(): Register<ITreeCollapseStateChangeEvent<T | null, TFilter>> { return Event.map(this._model.onDidChangeCollapseState, e => this.__toTreeChangeCollapseEvent(e)); }
 
     get onDidScroll(): Register<IScrollEvent> { return this._tree.onDidScroll; }
     get onDidChangeFocus(): Register<boolean> { return this._tree.onDidChangeFocus; }
-    get onDidChangeItemFocus(): Register<IListTraitEvent> { return this._tree.onDidChangeItemFocus; }
-    get onDidChangeItemSelection(): Register<IListTraitEvent> { return this._tree.onDidChangeItemSelection; }
+    get onDidChangeItemFocus(): Register<ITraitChangeEvent> { return this._tree.onDidChangeItemFocus; }
+    get onDidChangeItemSelection(): Register<ITraitChangeEvent> { return this._tree.onDidChangeItemSelection; }
     
     get onClick(): Register<ITreeMouseEvent<T>> { return Event.map(this._tree.onClick, this.__toTreeMouseEvent); }
     get onDoubleclick(): Register<ITreeMouseEvent<T>> { return Event.map(this._tree.onDoubleclick, this.__toTreeMouseEvent); }
@@ -390,6 +451,27 @@ export class AsyncMultiTree<T, TFilter = void> implements IAsyncMultiTree<T, TFi
         this._tree.expandAll();
     }
 
+    public setFocus(item: T): void {
+        this._tree.setFocus(this._model.getAsyncNode(item));
+    }
+
+    public getFocus(): T | null {
+        const node = this._tree.getFocus();
+        return node ? node.data : null;
+    }
+
+    public setSelections(items: T[]): void {
+        this._tree.setSelections(items.map(node => this._model.getAsyncNode(node)));
+    }
+
+    public getSelections(): T[] {
+        return this._tree.getSelections().map(node => node!.data);
+    }
+
+    public setDomFocus(): void {
+        this._tree.setDomFocus();
+    }
+
     public layout(height?: number): void {
         this._tree.layout(height);
     }
@@ -411,14 +493,18 @@ export class AsyncMultiTree<T, TFilter = void> implements IAsyncMultiTree<T, TFi
         container: HTMLElement,
         renderers: ITreeListRenderer<T, TFilter, any>[],
         itemProvider: IListItemProvider<T>,
-        unwrapper: AsyncWeakMap<T, TFilter>
+        unwrapper: AsyncWeakMap<T, TFilter>,
+        opts: IAsyncMultiTreeOptions<T, TFilter>
     ): MultiTree<IAsyncTreeNode<T>, TFilter> 
     {
         // convert the arguments into correct type (wrappers kind of stuff)
         const asyncRenderers = renderers.map(r => new AsyncTreeRenderer(r, unwrapper));
         const asyncProvider = new composedItemProvider<T, IAsyncTreeNode<T>>(itemProvider);
 
-        return new MultiTree<IAsyncTreeNode<T>, TFilter>(container, asyncRenderers, asyncProvider, {});
+        return new MultiTree<IAsyncTreeNode<T>, TFilter>(container, asyncRenderers, asyncProvider, {
+            collapseByDefault: opts.collapseByDefault ?? true,
+            dnd: opts.dnd && new __AsyncMultiTreeDragAndDropProvider(opts.dnd)
+        });
     }
 
     /**
@@ -474,10 +560,10 @@ export class AsyncMultiTree<T, TFilter = void> implements IAsyncMultiTree<T, TFi
      */
     private __toTreeNodeItem(node: IAsyncTreeNode<T>): ITreeNodeItem<IAsyncTreeNode<T>> {    
         
-        const collapsible = !!node.children.length;
+        const collapsible = node.couldHasChildren;
         const collapsed = node.collapsed;
         const children = collapsible ? Iterable.map(node.children, node => this.__toTreeNodeItem(node)) : [];
-        
+
         return {
             data: node,
             collapsible: collapsible,
@@ -492,10 +578,10 @@ export class AsyncMultiTree<T, TFilter = void> implements IAsyncMultiTree<T, TFi
      */
     private __toTreeMouseEvent(event: ITreeMouseEvent<IAsyncTreeNode<T> | null>): ITreeMouseEvent<T> {
         return {
-            event: event.event,
+            browserEvent: event.browserEvent,
             data: event.data && event.data.data,
             parent: event.parent?.data || null,
-            children: event.children.map(child => child!.data),
+            children: event.children ? event.children.map(child => child!.data) : null,
             depth: event.depth
         };
     }

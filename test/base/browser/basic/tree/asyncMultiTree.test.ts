@@ -25,7 +25,10 @@ suite('AsyncMultiTree-test', () => {
             {
                 getChildren: (data) => TREE1.get(data)!,
                 hasChildren: (data) => !!TREE1.get(data)!.length,
-                collapseByDefault: () => true
+                collapseByDefault: () => false
+            },
+            {
+                collapseByDefault: false
             }
         );
 
@@ -92,7 +95,10 @@ suite('AsyncMultiTree-test', () => {
             {
                 getChildren: (data) => TREE1.get(data)!,
                 hasChildren: (data) => !!TREE1.get(data)!.length,
-                collapseByDefault: () => true
+                collapseByDefault: () => false
+            },
+            {
+                collapseByDefault: false
             }
         );
 
@@ -211,7 +217,7 @@ suite('AsyncMultiTree-test', () => {
     TREE2.set(7, []);
     TREE2.set(8, []);
 
-    test('sollapse / expand', async () => {
+    test('collapse / expand', async () => {
 
         const [tree, promise] = AsyncMultiTree.create<number>(
             document.createElement('div'), 
@@ -224,7 +230,10 @@ suite('AsyncMultiTree-test', () => {
             {
                 getChildren: (data) => TREE2.get(data)!,
                 hasChildren: (data) => !!TREE2.get(data)!.length,
-                collapseByDefault: () => true
+                collapseByDefault: () => false
+            },
+            {
+                collapseByDefault: false
             }
         );
 

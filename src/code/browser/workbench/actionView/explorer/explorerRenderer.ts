@@ -3,6 +3,8 @@ import { ITreeListRenderer } from "src/base/browser/secondary/tree/treeListRende
 import { IListViewMetadata, RendererType } from "src/base/browser/secondary/listView/listRenderer";
 import { FuzzyScore } from "src/base/common/fuzzy";
 import { ExplorerItem, ExplorerItemProvider } from "src/code/browser/workbench/actionView/explorer/explorerItem";
+import { Icons } from "src/base/browser/icon/icons";
+import { getIconClass } from "src/base/browser/icon/iconRegistry";
 
 /**
  * The type of metadata returned by {@link ExplorerRenderer.render()}.
@@ -42,7 +44,11 @@ export class ExplorerRenderer implements ITreeListRenderer<ExplorerItem, FuzzySc
     }
 
     public updateIndent(item: ITreeNode<ExplorerItem, FuzzyScore>, indentElement: HTMLElement): void {
-        // TODO
+        if (item.collapsible) {
+            indentElement.classList.add(...getIconClass(Icons.CaretDown));
+        } else {
+            indentElement.classList.remove(...getIconClass(Icons.CaretDown));
+        }
     }
     
     public dispose(data: IExplorerMetadata): void {

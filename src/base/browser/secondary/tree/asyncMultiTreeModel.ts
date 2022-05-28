@@ -10,11 +10,11 @@ import { isIterable } from "src/base/common/type";
  * 
  * @note We are omitting these properties because the type does not fit.
  */
-export interface IAsyncMultiTreeModel<T, TFilter> extends Omit<ITreeModel<T, TFilter, T>, 'onDidSplice' | 'onDidChangeCollapseStateChange'> {
+export interface IAsyncMultiTreeModel<T, TFilter> extends Omit<ITreeModel<T, TFilter, T>, 'onDidSplice' | 'onDidChangeCollapseState' | 'getNodeLocation' | 'getNodeListIndex' | 'setCollapsible' | 'setCollapsed' | 'setExpandTo' | 'getRoot'> {
     
     get onDidSplice(): Register<ITreeSpliceEvent<IAsyncTreeNode<T> | null, TFilter>>;
     
-    get onDidChangeCollapseStateChange(): Register<ITreeCollapseStateChangeEvent<IAsyncTreeNode<T> | null, TFilter>>;
+    get onDidChangeCollapseState(): Register<ITreeCollapseStateChangeEvent<IAsyncTreeNode<T> | null, TFilter>>;
 
     /**
      * @description Refreshing the tree structure of the given node and all its 
@@ -88,7 +88,7 @@ export class AsyncMultiTreeModel<T, TFilter = void> implements IAsyncMultiTreeMo
         nodemap: AsyncWeakMap<T, TFilter>
     ) {
         
-        this._root = this.__createAsyncTreeNode(rootData, null);
+        this._root = this.__createAsyncTreeNode(rootData, null, true);
         this._tree = tree;
         this._nodes = new Map();
         this._nodes.set(null, this._root);
@@ -103,7 +103,7 @@ export class AsyncMultiTreeModel<T, TFilter = void> implements IAsyncMultiTreeMo
     // [event]
 
     get onDidSplice(): Register<ITreeSpliceEvent<IAsyncTreeNode<T> | null, TFilter>> { return this._tree.onDidSplice; }
-    get onDidChangeCollapseStateChange(): Register<ITreeCollapseStateChangeEvent<IAsyncTreeNode<T> | null, TFilter>> { return this._tree.onDidChangeCollapseStateChange; }
+    get onDidChangeCollapseState(): Register<ITreeCollapseStateChangeEvent<IAsyncTreeNode<T> | null, TFilter>> { return this._tree.onDidChangeCollapseState; }
 
     // [public method]
 
@@ -219,13 +219,14 @@ export class AsyncMultiTreeModel<T, TFilter = void> implements IAsyncMultiTreeMo
     /**
      * @description Helper function for fast creating a {@link IAsyncTreeNode}.
      */
-    private __createAsyncTreeNode(data: T, parent: IAsyncTreeNode<T> | null): IAsyncTreeNode<T> {
+    private __createAsyncTreeNode(data: T, parent: IAsyncTreeNode<T> | null, couldHasChildren: boolean): IAsyncTreeNode<T> {
         return {
             data: data,
             parent: parent,
             children: [],
             refreshing: null,
-            collapsed: false,
+            couldHasChildren: couldHasChildren,
+            collapsed: undefined,
         };
     }
     
@@ -280,9 +281,9 @@ export class AsyncMultiTreeModel<T, TFilter = void> implements IAsyncMultiTreeMo
     private async __refreshChildren(node: IAsyncTreeNode<T>): Promise<IAsyncTreeNode<T>[]> {
 
         let childrenPromise: Promise<Iterable<T>>;
-        const hasChildren = this._childrenProvider.hasChildren(node.data);
+        node.couldHasChildren = this._childrenProvider.hasChildren(node.data);
 
-        if (hasChildren === false) {
+        if (node.couldHasChildren === false) {
             // since the current node is a leaf, we return nothing.
             childrenPromise = Promise.resolve(Iterable.empty());
         }
@@ -355,13 +356,13 @@ export class AsyncMultiTreeModel<T, TFilter = void> implements IAsyncMultiTreeMo
         const childrenNodes = children.map<IAsyncTreeNode<T>>(child => {
 
             const hasChildren = this._childrenProvider.hasChildren(child);
-            const childAsyncNode = this.__createAsyncTreeNode(child, node);
+            const childAsyncNode = this.__createAsyncTreeNode(child, node, hasChildren);
 
             /**
              * the children of the current children should not be collapsed, we
              * need to keep refreshing on next time.
              */
-            if (hasChildren && !!this._childrenProvider.collapseByDefault?.(child)) {
+            if (hasChildren && this._childrenProvider.collapseByDefault && !this._childrenProvider.collapseByDefault(child)) {
                 childAsyncNode.collapsed = false;
                 childrenNodesForRefresh.push(childAsyncNode);
             }

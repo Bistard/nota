@@ -1,5 +1,5 @@
 import * as assert from 'assert';
-import { IDisposable } from 'src/base/common/dispose';
+import { disposeAll, IDisposable } from 'src/base/common/dispose';
 import { AsyncEmitter, DelayableEmitter, Emitter, Event, PauseableEmitter, RelayEmitter, SignalEmitter } from 'src/base/common/event';
 
 suite('event-test', () => {
@@ -359,7 +359,7 @@ suite('event-test', () => {
         assert.strictEqual(total, 0);
     });
 
-    test('Event::map()', () => {
+    test('Event.map()', () => {
         const emitter = new Emitter<string>();
 
         let result = false;
@@ -382,7 +382,7 @@ suite('event-test', () => {
         assert.strictEqual(result, false);
     });
 
-    test('Event:each()', () => {
+    test('Event.each()', () => {
         const emitter = new Emitter<boolean>();
 
         let result = false;
@@ -402,6 +402,65 @@ suite('event-test', () => {
         emitter.dispose();
         emitter.fire(false);
         assert.strictEqual(result, false);
+    });
+
+    test('Event.any()', () => {
+
+        const emitter1 = new Emitter<number>();
+        const emitter2 = new Emitter<number>();
+        const emitter3 = new Emitter<number>();
+
+        const newEmitter = Event.any<number>([emitter1.registerListener, emitter2.registerListener, emitter3.registerListener]);
+
+        let result = -1;
+        const disposable = newEmitter(e => {
+            result = e;
+        });
+
+        emitter1.fire(3);
+        assert.strictEqual(result, 3);
+
+        emitter2.fire(10);
+        assert.strictEqual(result, 10);
+
+        emitter3.fire(-123);
+        assert.strictEqual(result, -123);
+
+        disposable.dispose();
+
+        emitter1.fire(3);
+        assert.strictEqual(result, -123);
+    });
+
+    test('Event.filter()', () => {
+        const emitter = new Emitter<number>();
+
+        const register = Event.filter(emitter.registerListener, num => num % 2 === 0);
+
+        let result = -1;
+        const listener = register(num => {
+            result = num;
+            assert.strictEqual(num % 2, 0);
+        });
+
+        emitter.fire(10);
+        assert.strictEqual(result, 10);
+
+        emitter.fire(9);
+        assert.strictEqual(result, 10);
+
+        emitter.fire(0);
+        assert.strictEqual(result, 0);
+
+        emitter.fire(-21);
+        assert.strictEqual(result, 0);
+
+        emitter.fire(10);
+        assert.strictEqual(result, 10);
+
+        listener.dispose();
+        assert.strictEqual(emitter.hasListeners(), false);
+        assert.strictEqual(emitter.isDisposed(), false);
     });
 
     

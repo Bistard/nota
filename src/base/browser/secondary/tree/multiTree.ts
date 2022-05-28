@@ -91,8 +91,10 @@ export class MultiTree<T, TFilter = void> extends AbstractTree<T | null, TFilter
 
     // [private helper method]
 
-    protected override createModel(view: IListWidget<ITreeNode<T, TFilter>>): ITreeModel<T | null, TFilter, T | null> {
-        return new MultiTreeModel<T, TFilter>(view);
+    protected override createModel(view: IListWidget<ITreeNode<T, TFilter>>, opts: IMultiTreeOptions<T>): ITreeModel<T | null, TFilter, T | null> {
+        return new MultiTreeModel<T, TFilter>(view, { 
+            collapsedByDefault: opts.collapseByDefault 
+        });
     }
 
 }
