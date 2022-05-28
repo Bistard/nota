@@ -194,6 +194,16 @@ export interface IListView<T> extends IDisposable {
     splice(index: number, deleteCount: number, items?: T[]): void;
 
     /**
+     * @description Reveals (does not scroll to) the item in the {@link IListView} 
+     * with the given index.
+     * @param index The index of the revealing item.
+     * @param relativePositionPercentage A percentage indicates the relative 
+     * position of the revealed item. Must be in range [0, 1]. If not provided,
+     * it will adjust the item to the edge depending on which side from revealing.
+     */
+    reveal(index: number, relativePositionPercentage?: number): void;
+
+    /**
      * @description Updates the position (top) and attributes of an item in the 
      * DOM tree by the index.
      * @param index The index of the item.
@@ -595,6 +605,42 @@ export class ListView<T> implements IDisposable, ISpliceable<T>, IListView<T> {
         } finally {
             this._splicing = false;
         }
+    }
+
+    public reveal(index: number, relativePositionPercentage?: number): void {
+        if (index < 0 && index >= this.length) {
+            return;
+        }
+
+        const viewportHeight = this.getViewportSize();
+
+        const itemPosition = this.positionAt(index);
+        const itemHeight = this.getItemHeight(index);
+
+        if (relativePositionPercentage !== undefined && 
+            (relativePositionPercentage < 0 || relativePositionPercentage > 1)
+        ) {
+            const visiblePart = itemHeight - viewportHeight;
+            const position = visiblePart * relativePositionPercentage + itemPosition;
+            this.setScrollPosition(position);
+        } 
+        
+        // adjust the item position depends from the revealing side.
+        else {
+            const scrollPosition = this.getScrollPosition();
+            const scrollBottomPosition = scrollPosition + viewportHeight;
+            const itemBottomPosition = itemPosition + itemHeight;
+            if (itemPosition === scrollPosition || itemBottomPosition === scrollBottomPosition) {
+                // item is at the exact top of the visible part OR the exact bottom of the visible part
+            } else if (itemPosition < scrollPosition) {
+                // item is `above` the visible part
+                this.setScrollPosition(itemPosition);
+            } else if (itemBottomPosition > scrollBottomPosition) {
+                // item is `below` the visible part
+                this.setScrollPosition(itemBottomPosition - viewportHeight);
+            }
+        }
+
     }
     
     public updateItemInDOM(index: number): void {

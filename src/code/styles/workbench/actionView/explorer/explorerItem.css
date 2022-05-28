@@ -8,7 +8,6 @@
 }
 
 .list-view > .list-view-container > .list-view-row.focused {
-    background-color: #f0e8e8;
     border: 1px solid #cf6060;
 }
 
