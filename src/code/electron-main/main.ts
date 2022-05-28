@@ -17,7 +17,7 @@ class Main {
     }
 
     /**
-     * @description instantiates the winMain and seutup a few window relevant.
+     * @description instantiates the winMain and seutup a series of window-related
      * listeners.
      */
     public createWindow(): void {

@@ -412,13 +412,17 @@ class __ListWidgetKeyboardController<T> implements IDisposable {
     private __onUpArrow(e: IStandardKeyboardEvent): void {
         e.preventDefault();
 		e.stopPropagation();
-        // TODO
+        const newFoused = this._view.focusPrev(1, false, undefined);
+        // this._view.reveal(newFoused);
+        this._view.setDomFocus();
     }
 
     private __onDownArrow(e: IStandardKeyboardEvent): void {
         e.preventDefault();
 		e.stopPropagation();
-        // TODO
+        const newFoused = this._view.focusNext(1, false, undefined);
+        // this._view.reveal(newFoused);
+        this._view.setDomFocus();
     }
 
     private __onPageupArrow(e: IStandardKeyboardEvent): void {
@@ -434,9 +438,13 @@ class __ListWidgetKeyboardController<T> implements IDisposable {
     }
 
     private __onEscape(e: IStandardKeyboardEvent): void {
-        e.preventDefault();
-		e.stopPropagation();
-        // TODO
+        if (this._view.getSelections().length) {
+            e.preventDefault();
+		    e.stopPropagation();
+            this._view.setSelections([]);
+            this._view.setFocus(null);
+			this._view.setDomFocus();
+        }
     }
 
 }
@@ -646,22 +654,24 @@ export interface IListWidget<T> extends IDisposable {
     /**
      * @description Respect to the current focused item, try to focus the first 
      * item forward by a given step `next` that matches the filter function.
-     * @param next The step number.
-     * @param fullLoop Do a full search on all the items.
+     * @param next The step number. @default 1
+     * @param fullLoop Do a full search on all the items. @default false
      * @param match The match function. If not provided, the next sibling will 
      * be matched.
+     * @returns The index of the newly focused item. -1 if not found.
      */
-    focusNext(next: number, fullLoop: boolean, match?: (item: T) => boolean): void;
+    focusNext(next: number, fullLoop: boolean, match?: (item: T) => boolean): number;
 
     /**
      * @description Respect to the current focused item, try to focus the first 
      * item backward by a given step `prev` that matches the filter function.
-     * @param prev The step number.
-     * @param fullLoop Do a full search on all the items.
+     * @param prev The step number. @default 1
+     * @param fullLoop Do a full search on all the items. @default false
      * @param match The match function. If not provided, the next sibling will 
      * be matched.
+     * @returns The index of the newly focused item. -1 if not found.
      */
-    focusPrev(prev: number, fullLoop: boolean, match?: (item: T) => boolean): void;
+    focusPrev(prev: number, fullLoop: boolean, match?: (item: T) => boolean): number;
 }
 
 /**
@@ -815,9 +825,9 @@ export class ListWidget<T> implements IListWidget<T> {
         return indice.length ? this.view.getItem(indice[0]!) : null;
     }
 
-    public focusNext(next: number = 1, fullLoop: boolean = false, match?: (item: T) => boolean): void {
+    public focusNext(next: number = 1, fullLoop: boolean = false, match?: (item: T) => boolean): number {
         if (this.length === 0) {
-            return;
+            return -1;
         }
 
         const currFocused = this.focused.items();
@@ -827,11 +837,13 @@ export class ListWidget<T> implements IListWidget<T> {
         if (indexFound !== -1) {
             this.focused.set([indexFound]);
         }
+
+        return indexFound;
     }
 
-    public focusPrev(prev: number = 1, fullLoop: boolean = false, match?: (item: T) => boolean): void {
+    public focusPrev(prev: number = 1, fullLoop: boolean = false, match?: (item: T) => boolean): number {
         if (this.length === 0) {
-            return;
+            return -1;
         }
 
         const currFocused = this.focused.items();
@@ -841,6 +853,8 @@ export class ListWidget<T> implements IListWidget<T> {
         if (indexFound !== -1) {
             this.focused.set([indexFound]);
         }
+
+        return indexFound;
     }
 
     // [private helper methods]
@@ -885,26 +899,27 @@ export class ListWidget<T> implements IListWidget<T> {
     /**
      * @description Try to find the first item forward starting from the given 
      * index that matches the match function.
-     * @param start The start index.
+     * @param index The start index.
      * @param fullLoop If loop all the items.
      * @param match The match function that matches the result. If not provided,
      * the next sibling will be returned.
+     * @returns If not found, -1 returned.
      */
-    private __findNextWithFilter(start: number, fullLoop: boolean, match?: (item: T) => boolean): number {
-        for (let i = start; i < this.length; i++) {
+    private __findNextWithFilter(index: number, fullLoop: boolean, match?: (item: T) => boolean): number {
+        for (let i = index; i < this.length; i++) {
             
-            if (i === this.length && fullLoop === false) {
+            if (index === this.length && fullLoop === false) {
                 return -1;
             }
 
-            i = i % this.length;
+            index = index % this.length;
 
-            const matched = match && match(this.view.getItem(i));
+            const matched = !match || (match(this.view.getItem(index)));
             if (matched) {
-                return i;
+                return index;
             }
 
-            i++;
+            index++;
         }
 
         return -1;
@@ -913,26 +928,27 @@ export class ListWidget<T> implements IListWidget<T> {
     /**
      * @description Try to find the first item backward starting from the given 
      * index that matches the match function.
-     * @param start The start index.
+     * @param index The start index.
      * @param fullLoop If loop all the items.
      * @param match The match function that matches the result. If not provided,
      * the next sibling will be returned.
+     * @returns If not found, -1 returned.
      */
-    private __findPrevWithFilter(start: number, fullLoop: boolean, match?: (item: T) => boolean): number {
-        for (let i = start; i < this.length; i++) {
+    private __findPrevWithFilter(index: number, fullLoop: boolean, match?: (item: T) => boolean): number {
+        for (let i = index; i < this.length; i++) {
             
-            if (i < 0 && fullLoop === false) {
+            if (index < 0 && fullLoop === false) {
                 return -1;
             }
 
-            i = (this.length + (i % this.length)) % this.length;
+            index = (this.length + (index % this.length)) % this.length;
 
-            const matched = match && match(this.view.getItem(i));
+            const matched = !match || (match(this.view.getItem(index)));
             if (matched) {
-                return i;
+                return index;
             }
 
-            i--;
+            index--;
         }
 
         return -1;
