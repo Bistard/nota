@@ -432,14 +432,14 @@ class __ListWidgetKeyboardController<T> implements IDisposable {
         e.preventDefault();
 		e.stopPropagation();
         // TODO
-        console.warn('does not support page up in ListWidget yet.');
+        console.warn('does not support pageup in ListWidget yet.');
     }
 
     private __onPagedownArrow(e: IStandardKeyboardEvent): void {
         e.preventDefault();
 		e.stopPropagation();
         // TODO
-        console.warn('does not support page up in ListWidget yet.');
+        console.warn('does not support pagedown in ListWidget yet.');
     }
 
     private __onEscape(e: IStandardKeyboardEvent): void {
