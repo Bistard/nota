@@ -13,9 +13,16 @@ export interface IListDragAndDropProvider<T> {
     getDragData(item: T): string | null;
 
     /**
-     * @description // TODO
+     * @description Returns the tag of the dragging items for displaying purpose.
+     * @param items The dragging items.
+     * @returns A string-form of tag.
      */
-    onDragStart?(): void;
+    getDragTag(items: T[]): string;
+
+    /**
+     * @description Invokes when {@link EventType.dragstart} starts.
+     */
+    onDragStart?(event: DragEvent): void;
 
 }
 
@@ -58,9 +65,13 @@ export class ListWidgetDragAndDropProvider<T> implements IListWidgetDragAndDropP
         return this.dnd.getDragData(item);
     }
 
-    public onDragStart(): void {
+    public getDragTag(items: T[]): string {
+        return this.dnd.getDragTag(items);
+    }
+
+    public onDragStart(event: DragEvent): void {
         if (this.dnd.onDragStart) {
-            this.dnd.onDragStart();
+            this.dnd.onDragStart(event);
         }
     }
 

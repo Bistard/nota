@@ -103,9 +103,13 @@ class __AsyncMultiTreeDragAndDropProvider<T> implements IListDragAndDropProvider
         return this.dnd.getDragData(node.data);
     }
 
-    public onDragStart(): void {
+    public getDragTag(items: IAsyncTreeNode<T>[]): string {
+        return this.dnd.getDragTag(items.map(item => item.data));
+    }
+
+    public onDragStart(event: DragEvent): void {
         if (this.dnd.onDragStart) {
-            this.dnd.onDragStart();
+            this.dnd.onDragStart(event);
         }
     }
 }

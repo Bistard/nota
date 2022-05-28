@@ -22,8 +22,15 @@ export class NotebookDragAndDropProvider implements IListDragAndDropProvider<Exp
         return item.uri.toString();
     }
 
-    public onDragStart(): void {
+    public getDragTag(items: ExplorerItem[]): string {
+        if (items.length === 1) {
+            return items[0]!.name;
+        }
+        return String(`${items.length} selections`);
+    }
 
+    public onDragStart(): void {
+        // TODO
     }
 
 }

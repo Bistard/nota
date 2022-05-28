@@ -530,7 +530,6 @@ export class __ListWidgetDragAndDropController<T> implements IDisposable {
         }
     }
     
-    
     /**
      * @description Invokes when the event {@link EventType.dragstart} happens.
      * @param data The corresponding data of the dragging item.
@@ -543,15 +542,22 @@ export class __ListWidgetDragAndDropController<T> implements IDisposable {
             return;
         }
 
-        const allItems = this._provider.getDragItems(data);
+        const dragItems = this._provider.getDragItems(data);
 
         event.dataTransfer.effectAllowed = 'copyMove';
 		event.dataTransfer.setData('text/plain', userData);
         
-        // TODO...
-
+        // set the drag image
+        const tag = this._provider.getDragTag(dragItems);
+        const dragImage = document.createElement('div');
+        dragImage.className = 'list-drag-image';
+        dragImage.innerHTML = tag;
+        document.body.appendChild(dragImage);
+        event.dataTransfer.setDragImage(dragImage, -10, -10);
+        setTimeout(() => document.body.removeChild(dragImage), 0);
+        
         if (this._provider.onDragStart) {
-            this._provider.onDragStart();
+            this._provider.onDragStart(event);
         }
     }
 
@@ -562,7 +568,7 @@ export class __ListWidgetDragAndDropController<T> implements IDisposable {
      */
     private __onDragOver(event: IListDragEvent<T>): void {
         
-        // // https://stackoverflow.com/questions/21339924/drop-event-not-firing-in-chrome
+        // https://stackoverflow.com/questions/21339924/drop-event-not-firing-in-chrome
         event.browserEvent.preventDefault();
 
         console.log(event.actualIndex);

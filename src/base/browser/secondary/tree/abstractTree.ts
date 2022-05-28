@@ -23,9 +23,13 @@ class __TreeListDragAndDropProvider<T> implements IListDragAndDropProvider<ITree
         return this.dnd.getDragData(node.data);
     }
 
-    public onDragStart(): void {
+    public getDragTag(items: ITreeNode<T, void>[]): string {
+        return this.dnd.getDragTag(items.map(item => item.data));
+    }
+
+    public onDragStart(event: DragEvent): void {
         if (this.dnd.onDragStart) {
-            this.dnd.onDragStart();
+            this.dnd.onDragStart(event);
         }
     }
 

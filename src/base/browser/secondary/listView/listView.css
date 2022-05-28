@@ -18,12 +18,22 @@
 	touch-action: none;
 }
 
+.list-drag-image {
+	position: absolute;
+	display: inline-block;
+	background-color: rgb(211, 211, 211);
+	font-size: 12px;
+	padding: 1px 7px;
+	border-radius: 10px;
+	z-index: 1000;
+}
+
 .list-view-container {
 	position: relative;
 	width: 100%;
 }
 
-.list-view-row {
+.list-view-container > .list-view-row {
 	position: absolute;
 	box-sizing: border-box;
 	overflow: hidden;
