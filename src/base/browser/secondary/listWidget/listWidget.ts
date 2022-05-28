@@ -455,6 +455,150 @@ class __ListWidgetKeyboardController<T> implements IDisposable {
 }
 
 /**
+ * @class An internal class that handles the dnd support of {@link IListWidget}.
+ */
+export class __ListWidgetDragAndDropController<T> implements IDisposable {
+
+    // [field]
+
+    private _disposables = new DisposableManager();
+    private _view: IListWidget<T>;
+
+    private _provider!: ListWidgetDragAndDropProvider<T>;
+
+    // [constructor]
+
+    constructor(
+        view: IListWidget<T>,
+        opts: IListWidgetOpts<T>,
+        toListDragEvent: (e: DragEvent) => IListDragEvent<T>
+    ) {
+        this._view = view;
+
+        if (opts.dragAndDropProvider === undefined) {
+            return;
+        }
+
+        this._provider = new ListWidgetDragAndDropProvider(view, opts.dragAndDropProvider);
+        this.__enableDragAndDropSupport(toListDragEvent);
+    }
+
+    // [public method]
+
+    public dispose(): void {
+        this._disposables.dispose();
+    }
+
+    // [private helper methods]
+
+    /**
+     * @description Enables the drag and drop (dnd) support in {@link ListView}.
+     */
+    private __enableDragAndDropSupport(converter: (e: DragEvent) => IListDragEvent<T>): void {
+        this._disposables.register(addDisposableListener(this._view.DOMElement, EventType.dragover, e => this.__onDragOver(converter(e))));
+        this._disposables.register(addDisposableListener(this._view.DOMElement, EventType.drop, e => this.__onDrop(converter(e))));
+        this._disposables.register(addDisposableListener(this._view.DOMElement, EventType.dragleave, e => this.__onDragLeave(converter(e))));
+        this._disposables.register(addDisposableListener(this._view.DOMElement, EventType.dragend, e => this.__onDragEnd(converter(e))));
+
+        // dragstart listener
+        this._disposables.register(this._view.onInsertItemInDOM((e: IViewItemChangeEvent<T>) => this.__initItemWithDragStart(e.item, e.index)));
+        this._disposables.register(this._view.onRemoveItemInDOM((e: IViewItemChangeEvent<T>) => e.item.dragStart?.dispose()));
+    }
+
+    /**
+     * @description Initializes the dragstart event listener of the given list 
+     * item.
+     * @param item The given item.
+     * @param index The index of the item in the list view.
+     */
+    private __initItemWithDragStart(item: IViewItem<T>, index: number): void {
+        
+        // avoid weird stuff happens
+        if (item.dragStart) {
+            item.dragStart.dispose();
+        }
+
+        // get the drag data
+        const userData = this._provider.getDragData(item.data);
+
+        // make the HTMLElement actually draggable
+        item.row!.dom.draggable = !!userData;
+
+        // add event listener
+        if (userData) {
+            item.dragStart = addDisposableListener(item.row!.dom, EventType.dragstart, (e: DragEvent) => this.__onDragStart(item.data, userData, e));
+        }
+    }
+    
+    
+    /**
+     * @description Invokes when the event {@link EventType.dragstart} happens.
+     * @param data The corresponding data of the dragging item.
+     * @param userData The user-defined data.
+     * @param event The {@link DragEvent}.
+     */
+    private __onDragStart(data: T, userData: string, event: DragEvent): void {
+        
+        if (event.dataTransfer === null) {
+            return;
+        }
+
+        const allItems = this._provider.getDragItems(data);
+
+        event.dataTransfer.effectAllowed = 'copyMove';
+		event.dataTransfer.setData('text/plain', userData);
+        
+        // TODO...
+
+        if (this._provider.onDragStart) {
+            this._provider.onDragStart();
+        }
+    }
+
+    /**
+     * @description When dnd support is on, invokes when dragging something over
+     * the whole {@link IListWidget}.
+     * @param event The dragging event.
+     */
+    private __onDragOver(event: IListDragEvent<T>): void {
+        
+        // // https://stackoverflow.com/questions/21339924/drop-event-not-firing-in-chrome
+        event.browserEvent.preventDefault();
+
+        console.log(event.actualIndex);
+
+    }
+
+    /**
+     * @description When dnd support is on, invokes when drops something over
+     * the whole {@link IListWidget}.
+     * @param event The dragging event.
+     */
+    private __onDrop(event: IListDragEvent<T>): void {
+        console.log('drop, ', event.actualIndex);
+    }
+
+    /**
+     * @description When dnd support is on, invokes when dragging something leave
+     * the whole {@link IListWidget}.
+     * @param event The dragging event.
+     */
+    private __onDragLeave(event: IListDragEvent<T>): void {
+        console.log('dragleave, ', event.actualIndex);
+    }
+
+    /**
+     * @description When dnd support is on, invokes when the dragging ends inside 
+     * the whole {@link IListWidget}.
+     * @param event The dragging event.
+     */
+    private __onDragEnd(event: IListDragEvent<T>): void {
+        console.log('dragend, ', event.actualIndex);
+    }
+
+}
+
+/**
  * A standard mouse event interface used in {@link IListWidget}. Clicking nothing 
  * returns undefined.
  */
@@ -505,7 +649,7 @@ export interface IListDragEvent<T> {
 /**
  * The consturtor options for {@link ListWidget}.
  */
-export interface IListWidgetOpts<T> extends Omit<IListViewOpts<T>, 'dragAndDropProvider'> {
+export interface IListWidgetOpts<T> extends IListViewOpts<T> {
     
     /**
      * A provider that has ability to provide Drag and Drop Support (dnd).
@@ -560,6 +704,15 @@ export interface IListWidget<T> extends IDisposable {
 
     /** Fires when the selected items in the {@link IListWidget} is changed. */
     get onDidChangeItemSelection(): Register<ITraitChangeEvent>;
+
+    /** Fires when an DOM element is inserted into the DOM tree. */
+    get onInsertItemInDOM(): Register<IViewItemChangeEvent<T>>;
+
+    /** Fires when an DOM element is updated the DOM tree. */
+    get onUpdateItemInDOM(): Register<IViewItemChangeEvent<T>>;
+
+    /** Fires when an DOM element is removed from DOM tree. */
+    get onRemoveItemInDOM(): Register<IViewItemChangeEvent<T>>;
 
     /** Fires when the item in the {@link IListWidget} is clicked. */
     get onClick(): Register<IListMouseEvent<T>>;
@@ -710,6 +863,7 @@ export class ListWidget<T> implements IListWidget<T> {
 
     private mouseController: __ListWidgetMouseController<T>;
     private keyboardController: __ListWidgetKeyboardController<T>;
+    private dndController: __ListWidgetDragAndDropController<T>;
 
     // [constructor]
 
@@ -729,31 +883,25 @@ export class ListWidget<T> implements IListWidget<T> {
         const baseRenderers = [new __ListTraitRenderer(this.selected), new __ListTraitRenderer(this.focused)];
         renderers = renderers.map(renderer => new PipelineRenderer(renderer.type, [...baseRenderers, renderer]));
         
-        const listViewOpts: IListViewOpts<T> = {
-            ...opts,
-            dragAndDropProvider: opts.dragAndDropProvider ? new ListWidgetDragAndDropProvider(this, opts.dragAndDropProvider) : undefined,
-        };
-
         // construct list view
-        this.view = new ListView(container, renderers, itemProvider, listViewOpts);
+        this.view = new ListView(container, renderers, itemProvider, opts);
 
         this.selected.getElement = item => this.view.getElement(item);
         this.focused.getElement = item => this.view.getElement(item);
 
         // mouse support integration
         this.mouseController = new __ListWidgetMouseController(this, opts);
-        // keyboar support integration
+        // keyboard support integration
         this.keyboardController = new __ListWidgetKeyboardController(this, opts);
-
-        if (opts.dragAndDropProvider) {
-            this.__enableDragAndDropSupport();
-        }
+        // drag and drop integration
+        this.dndController = new __ListWidgetDragAndDropController(this, opts, e => this.__toListDragEvent(e));
 
         this.disposables.register(this.view);
         this.disposables.register(this.selected);
         this.disposables.register(this.focused);
         this.disposables.register(this.mouseController);
         this.disposables.register(this.keyboardController);
+        this.disposables.register(this.dndController);
     }
 
     // [getter / setter]
@@ -764,6 +912,9 @@ export class ListWidget<T> implements IListWidget<T> {
     get onDidScroll(): Register<IScrollEvent> { return this.view.onDidScroll; }
     get onDidChangeItemFocus(): Register<ITraitChangeEvent> { return this.focused.onDidChange; }
     get onDidChangeItemSelection(): Register<ITraitChangeEvent> { return this.selected.onDidChange; }
+    get onInsertItemInDOM(): Register<IViewItemChangeEvent<T>> { return this.view.onInsertItemInDOM; }
+    get onUpdateItemInDOM(): Register<IViewItemChangeEvent<T>> { return this.view.onUpdateItemInDOM; }
+    get onRemoveItemInDOM(): Register<IViewItemChangeEvent<T>> { return this.view.onRemoveItemInDOM; }
     @memoize get onDidChangeFocus(): Register<boolean> { return this.disposables.register(new SignalEmitter<boolean, boolean>([Event.map(this.view.onDidFocus, () => true), Event.map(this.view.onDidBlur, () => false)], (e: boolean) => e)).registerListener; }
     
     @memoize get onClick(): Register<IListMouseEvent<T>> { return Event.map<MouseEvent, IListMouseEvent<T>>(this.view.onClick, (e: MouseEvent) => this.__toListMouseEvent(e)); }
@@ -895,6 +1046,22 @@ export class ListWidget<T> implements IListWidget<T> {
     }
 
     /**
+     * @description Transforms a {@link DragEvent} into {@link IListDragEvent}.
+     * @param event The provided original drag event.
+     * @returns The transformed event.
+     */
+    private __toListDragEvent(event: DragEvent): IListDragEvent<T> {
+
+        const actualIndex = this.view.indexFromEventTarget(event.target)!; // will not be undefined
+        const item = this.view.getItem(actualIndex);
+        return {
+            browserEvent: event,
+            actualIndex: actualIndex, 
+            item: item
+        };
+    }
+
+    /**
      * @description Universal standard event generation.
      */
     private __toEvent<E extends UIEvent>(e: E): { browserEvent: E, renderIndex: number | undefined, actualIndex: number | undefined, item: T | undefined } {
@@ -972,135 +1139,4 @@ export class ListWidget<T> implements IListWidget<T> {
 
         return -1;
     }
-
-    // [Drag and Drop Support]
-
-    /**
-     * @description Enables the drag and drop (dnd) support in {@link ListView}.
-     */
-    private __enableDragAndDropSupport(): void {
-
-        // only adding 4 listeners to the whole view
-        this.disposables.register(addDisposableListener(this.view.DOMElement, EventType.dragover, e => this.__onDragOver(this.__toListDragEvent(e))));
-        this.disposables.register(addDisposableListener(this.view.DOMElement, EventType.drop, e => this.__onDrop(this.__toListDragEvent(e))));
-        this.disposables.register(addDisposableListener(this.view.DOMElement, EventType.dragleave, e => this.__onDragLeave(this.__toListDragEvent(e))));
-        this.disposables.register(addDisposableListener(this.view.DOMElement, EventType.dragend, e => this.__onDragEnd(this.__toListDragEvent(e))));
-
-        // dragstart listener
-        this.view.onInsertItemInDOM((viewItem: IViewItemChangeEvent<T>) => this.__initItemWithDragStart(viewItem.item, viewItem.index));
-        this.view.onRemoveItemInDOM((viewItem: IViewItemChangeEvent<T>) => {
-            viewItem.item.dragStart?.dispose();
-        });
-
-    }
-
-    /**
-     * @description Transforms a {@link DragEvent} into {@link IListDragEvent}.
-     * @param event The provided original drag event.
-     * @returns The transformed event.
-     */
-    private __toListDragEvent(event: DragEvent): IListDragEvent<T> {
-
-        const actualIndex = this.view.indexFromEventTarget(event.target)!; // will not be undefined
-        const item = this.view.getItem(actualIndex);
-        return {
-            browserEvent: event,
-            actualIndex: actualIndex, 
-            item: item
-        };
-    }
-
-    /**
-     * @description Initializes the dragstart event listener of the given list 
-     * item.
-     * @param item The given item.
-     * @param index The index of the item in the list view.
-     */
-    private __initItemWithDragStart(item: IViewItem<T>, index: number): void {
-        
-        // avoid weird stuff happens
-        if (item.dragStart) {
-            item.dragStart.dispose();
-        }
-
-        // get the drag data
-        const dnd = this.view.getDragAndDropProvider();
-        const userData = dnd.getDragData(item.data);
-
-        // make the HTMLElement actually draggable
-        item.row!.dom.draggable = !!userData;
-
-        // add event listener
-        if (userData) {
-            item.dragStart = addDisposableListener(item.row!.dom, EventType.dragstart, (e: DragEvent) => this.__onDragStart(item.data, userData, e));
-        }
-    }
-
-    /**
-     * @description Invokes when the event {@link EventType.dragstart} happens.
-     * @param data The corresponding data of the dragging item.
-     * @param userData The user-defined data.
-     * @param event The {@link DragEvent}.
-     */
-    private __onDragStart(data: T, userData: string, event: DragEvent): void {
-        
-        if (event.dataTransfer === null) {
-            return;
-        }
-
-        const dnd = this.view.getDragAndDropProvider();
-
-        const allItems = dnd.getDragItems(data);
-
-        event.dataTransfer.effectAllowed = 'copyMove';
-		event.dataTransfer.setData('text/plain', userData);
-        
-        // TODO...
-
-        if (dnd.onDragStart) {
-            dnd.onDragStart();
-        }
-    }
-
-    /**
-     * @description When dnd support is on, invokes when dragging something over
-     * the whole {@link IListWidget}.
-     * @param event The dragging event.
-     */
-    private __onDragOver(event: IListDragEvent<T>): void {
-        
-        // // https://stackoverflow.com/questions/21339924/drop-event-not-firing-in-chrome
-        event.browserEvent.preventDefault();
-
-        console.log(event.actualIndex);
-
-    }
-
-    /**
-     * @description When dnd support is on, invokes when drops something over
-     * the whole {@link IListWidget}.
-     * @param event The dragging event.
-     */
-    private __onDrop(event: IListDragEvent<T>): void {
-        console.log('drop, ', event.actualIndex);
-    }
-
-    /**
-     * @description When dnd support is on, invokes when dragging something leave
-     * the whole {@link IListWidget}.
-     * @param event The dragging event.
-     */
-    private __onDragLeave(event: IListDragEvent<T>): void {
-        console.log('dragleave, ', event.actualIndex);
-    }
-
-    /**
-     * @description When dnd support is on, invokes when the dragging ends inside 
-     * the whole {@link IListWidget}.
-     * @param event The dragging event.
-     */
-    private __onDragEnd(event: IListDragEvent<T>): void {
-        console.log('dragend, ', event.actualIndex);
-    }
-
 }

@@ -58,11 +58,6 @@ export interface IListViewOpts<T> {
      */
     readonly scrollbarSize?: number;
     
-    /**
-     * A provider that has ability to provide Drag and Drop Support (dnd).
-     */
-    readonly dragAndDropProvider?: IListWidgetDragAndDropProvider<T>;
-
 }
 
 /**
@@ -342,11 +337,6 @@ export interface IListView<T> extends IDisposable {
      * @throws If the target is not found, undefined is returned.
      */
     indexFromEventTarget(target: EventTarget | null): number | undefined;
-
-    /**
-     * @description Returns the intance of the {@link IListWidgetDragAndDropProvider<T>}.
-     */
-    getDragAndDropProvider(): IListWidgetDragAndDropProvider<T>;
 }
 
 /**
@@ -380,7 +370,6 @@ export class ListView<T> implements IDisposable, ISpliceable<T>, IListView<T> {
 
     private rangeTable: RangeTable;
 
-    private dnd: IListWidgetDragAndDropProvider<T>;
     private renderers: Map<RendererType, IListViewRenderer<T, any>>;
     private itemProvider: IListItemProvider<T>;
     
@@ -481,13 +470,6 @@ export class ListView<T> implements IDisposable, ISpliceable<T>, IListView<T> {
         this.itemProvider = itemProvider;
 
         this.cache = new ListViewCache(this.renderers);
-
-        // drag-and-drop support
-        this.dnd = opts.dragAndDropProvider || {
-            getDragItems<T>(e: T): T[] { return [e]; },
-            getDragData(): string | null { return null; },
-            onDragStart(): void { },
-        };
 
         // DOM rendering
 
@@ -832,10 +814,6 @@ export class ListView<T> implements IDisposable, ISpliceable<T>, IListView<T> {
         }
 
         return undefined;
-    }
-
-    public getDragAndDropProvider(): IListWidgetDragAndDropProvider<T> {
-        return this.dnd;
     }
 
     // [private helper methods]
