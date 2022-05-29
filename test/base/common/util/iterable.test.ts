@@ -1,5 +1,5 @@
 import * as assert from 'assert';
-import { Iterable } from 'src/base/common/iterable';
+import { Iterable } from 'src/base/common/util/iterable';
 
 suite('iterable-test', () => {
 

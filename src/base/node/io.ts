@@ -1,6 +1,6 @@
 import { Abortable } from 'events';
 import * as fs from 'fs';
-import { getFileType } from 'src/base/common/string';
+import { getFileType } from 'src/base/common/util/string';
 import { FileType, ICreateReadStreamOptions, IFileSystemProviderWithFileReadWrite, IFileSystemProviderWithOpenReadWriteClose, IReadFileOptions } from 'src/base/common/file/file';
 import { FileNode } from 'src/base/node/fileTree';
 import { URI } from 'src/base/common/file/uri';

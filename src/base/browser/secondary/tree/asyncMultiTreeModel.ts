@@ -2,8 +2,8 @@ import { AsyncWeakMap, IAsyncChildrenProvider, IAsyncTreeNode } from "src/base/b
 import { IMultiTree } from "src/base/browser/secondary/tree/multiTree";
 import { ITreeModel, ITreeSpliceEvent, ITreeNode, ITreeCollapseStateChangeEvent } from "src/base/browser/secondary/tree/tree";
 import { Register } from "src/base/common/event";
-import { Iterable } from "src/base/common/iterable";
-import { isIterable } from "src/base/common/type";
+import { Iterable } from "src/base/common/util/iterable";
+import { isIterable } from "src/base/common/util/type";
 
 /**
  * An interface only for {@link AsyncMultiTreeModel}.

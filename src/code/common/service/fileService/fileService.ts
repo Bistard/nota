@@ -3,7 +3,7 @@ import { FileSystemProviderAbleToRead, hasOpenReadWriteCloseCapability, hasReadW
 import { basename, dirname, join } from "src/base/common/file/path";
 import { bufferToStream, IReadableStream, IWriteableStream, listenStream, newWriteableBufferStream, streamToBuffer } from "src/base/common/file/stream";
 import { isAbsoluteURI, URI } from "src/base/common/file/uri";
-import { Iterable } from "src/base/common/iterable";
+import { Iterable } from "src/base/common/util/iterable";
 import { readFileIntoStream, readFileIntoStreamAsync } from "src/base/node/io";
 import { createDecorator } from "src/code/common/service/instantiationService/decorator";
 

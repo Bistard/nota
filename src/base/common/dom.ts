@@ -1,6 +1,6 @@
 import { DisposableManager, IDisposable, toDisposable } from "src/base/common/dispose";
 import { Emitter, Register } from "src/base/common/event";
-import { Pair } from "src/base/common/type";
+import { Pair } from "src/base/common/util/type";
 
 /**
  * @readonly A enumeration of all HTMLElement event types.

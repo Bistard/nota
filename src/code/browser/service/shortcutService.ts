@@ -3,7 +3,7 @@ import { PauseableEmitter, Register } from "src/base/common/event";
 import { DataBuffer } from "src/base/common/file/buffer";
 import { resolve } from "src/base/common/file/path";
 import { URI } from "src/base/common/file/uri";
-import { hash } from "src/base/common/hash";
+import { hash } from "src/base/common/util/hash";
 import { Shortcut } from "src/base/common/keyboard";
 import { APP_ROOT_PATH } from "src/base/electron/app";
 import { IIpcService } from "src/code/browser/service/ipcService";

@@ -1,6 +1,6 @@
 import { DisposableManager, IDisposable } from "src/base/common/dispose";
 import { AsyncEmitter, AsyncRegister, Emitter, Register } from "src/base/common/event";
-import { IDimension } from "src/base/common/size";
+import { IDimension } from "src/base/common/util/size";
 import { IpcCommand } from "src/base/electron/ipcCommand";
 import { ipcRendererOn, ipcRendererSend, ipcRendererSendData } from "src/base/electron/register";
 import { createDecorator } from "src/code/common/service/instantiationService/decorator";

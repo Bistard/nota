@@ -1,5 +1,5 @@
 import * as assert from 'assert';
-import { Array } from 'src/base/common/array';
+import { Array } from 'src/base/common/util/array';
 
 suite('array-test', () => {
 

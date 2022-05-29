@@ -21,7 +21,7 @@ import colorSyntax from '@toast-ui/editor-plugin-color-syntax';
 import { FileNode } from 'src/base/node/fileTree';
 import { Component, IComponent } from 'src/code/browser/workbench/component';
 import { EVENT_EMITTER } from 'src/base/common/event';
-import { getSvgPathByName, SvgType } from 'src/base/common/string';
+import { getSvgPathByName, SvgType } from 'src/base/common/util/string';
 import { ContextMenuType, Coordinate } from 'src/base/browser/secondary/contextMenu/contextMenu';
 import { IContextMenuService } from 'src/code/browser/service/contextMenuService';
 import { createDecorator } from 'src/code/common/service/instantiationService/decorator';

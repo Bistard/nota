@@ -3,7 +3,7 @@ import { SplitViewItem } from "src/base/browser/secondary/splitView/splitViewIte
 import { IDisposable } from "src/base/common/dispose";
 import { DomUtility, Orientation } from "src/base/common/dom";
 import { Priority } from "src/base/common/event";
-import { IDimension } from "src/base/common/size";
+import { IDimension } from "src/base/common/util/size";
 
 export interface IViewOpts {
 

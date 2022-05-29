@@ -1,5 +1,5 @@
 import { Icons } from "src/base/browser/icon/icons";
-import { Pair } from "src/base/common/type";
+import { Pair } from "src/base/common/util/type";
 
 /**
  * @description Returns a class name of the given {@link Icons}.

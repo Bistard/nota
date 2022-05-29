@@ -7,8 +7,8 @@ import { IScrollEvent } from "src/base/common/scrollable";
 import { IListItemProvider } from "src/base/browser/secondary/listView/listItemProvider";
 import { IListDragAndDropProvider, ListWidgetDragAndDropProvider } from "src/base/browser/secondary/listWidget/listWidgetDragAndDrop";
 import { memoize } from "src/base/common/memoization";
-import { hash } from "src/base/common/hash";
-import { Array } from "src/base/common/array";
+import { hash } from "src/base/common/util/hash";
+import { Array } from "src/base/common/util/array";
 import { IS_MAC } from "src/base/node/os";
 import { createStandardKeyboardEvent, IStandardKeyboardEvent, KeyCode } from "src/base/common/keyboard";
 

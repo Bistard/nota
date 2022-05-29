@@ -1,4 +1,4 @@
-import { IntervalTimer } from "src/base/common/timer";
+import { IntervalTimer } from "src/base/common/util/timer";
 
 export const enum LogLevel {
     TRACE = 0,

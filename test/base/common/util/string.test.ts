@@ -1,5 +1,5 @@
 import * as assert from 'assert';
-import { String } from 'src/base/common/string';
+import { String } from 'src/base/common/util/string';
 
 suite('string-test', () => {
 

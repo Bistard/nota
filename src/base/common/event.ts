@@ -1,4 +1,4 @@
-import { LinkedList } from "src/base/common/linkedList";
+import { LinkedList } from "src/base/common/util/linkedList";
 import { addDisposableListener, EventType } from "src/base/common/dom";
 import { Disposable, DisposableManager, disposeAll, IDisposable, toDisposable } from "src/base/common/dispose";
 

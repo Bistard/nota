@@ -4,13 +4,13 @@ import { ITreeListRenderer } from "src/base/browser/secondary/tree/treeListRende
 import { composedItemProvider, IListItemProvider } from "src/base/browser/secondary/listView/listItemProvider";
 import { DisposableManager, IDisposable } from "src/base/common/dispose";
 import { Event, Register } from "src/base/common/event";
-import { Weakmap } from "src/base/common/map";
+import { Weakmap } from "src/base/common/util/map";
 import { IScrollEvent } from "src/base/common/scrollable";
 import { ITreeCollapseStateChangeEvent, ITreeMouseEvent, ITreeNode, ITreeNodeItem, ITreeSpliceEvent } from "src/base/browser/secondary/tree/tree";
 import { AsyncMultiTreeModel, IAsyncMultiTreeModel } from "src/base/browser/secondary/tree/asyncMultiTreeModel";
-import { Iterable } from "src/base/common/iterable";
+import { Iterable } from "src/base/common/util/iterable";
 import { ITreeModelSpliceOptions } from "src/base/browser/secondary/tree/indexTreeModel";
-import { Pair } from "src/base/common/type";
+import { Pair } from "src/base/common/util/type";
 import { IListDragAndDropProvider } from "src/base/browser/secondary/listWidget/listWidgetDragAndDrop";
 import { ITraitChangeEvent } from "src/base/browser/secondary/listWidget/listWidget";
 

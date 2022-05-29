@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { CharCode } from "src/base/common/char";
+import { CharCode } from "src/base/common/util/char";
 import { IS_WINDOWS } from "src/base/node/os";
 import * as paths from "src/base/common/file/path";
 

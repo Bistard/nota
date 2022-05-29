@@ -1,5 +1,5 @@
 import { URI } from "src/base/common/file/uri";
-import { getFileType } from "src/base/common/string";
+import { getFileType } from "src/base/common/util/string";
 
 export const enum FileType {
     UNKNOWN,

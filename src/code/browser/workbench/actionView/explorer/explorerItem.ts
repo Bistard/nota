@@ -3,8 +3,8 @@ import { RendererType } from "src/base/browser/secondary/listView/listRenderer";
 import { IAsyncChildrenProvider } from "src/base/browser/secondary/tree/asyncMultiTree";
 import { FileType, IResolvedFileStat } from "src/base/common/file/file";
 import { URI } from "src/base/common/file/uri";
-import { Iterable } from "src/base/common/iterable";
-import { isPromise } from "src/base/common/type";
+import { Iterable } from "src/base/common/util/iterable";
+import { isPromise } from "src/base/common/util/type";
 import { IFileService } from "src/code/common/service/fileService/fileService";
 
 /**

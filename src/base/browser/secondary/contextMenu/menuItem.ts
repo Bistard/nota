@@ -1,4 +1,4 @@
-import { getSvgPathByName, SvgType } from 'src/base/common/string';
+import { getSvgPathByName, SvgType } from 'src/base/common/util/string';
 
 export const CONTEXT_MENU_ITEM_HEIGHT = 30;
 export const CONTEXT_MENU_WIDTH = 150;

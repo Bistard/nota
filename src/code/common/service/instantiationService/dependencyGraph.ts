@@ -1,4 +1,4 @@
-import { isEmptyObject } from "src/base/common/type";
+import { isEmptyObject } from "src/base/common/util/type";
 
 export interface IStringDictionary<T> {
     [key: string]: T;

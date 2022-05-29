@@ -3,7 +3,7 @@ import { DataBuffer } from 'src/base/common/file/buffer';
 import { FileType } from 'src/base/common/file/file';
 import { dirname, posix, resolve } from 'src/base/common/file/path';
 import { URI } from 'src/base/common/file/uri';
-import { Iterable } from 'src/base/common/iterable';
+import { Iterable } from 'src/base/common/util/iterable';
 import { DiskFileSystemProvider } from 'src/base/node/diskFileSystemProvider';
 import { fileExists } from 'src/base/node/io';
 import { FileService } from 'src/code/common/service/fileService/fileService';
