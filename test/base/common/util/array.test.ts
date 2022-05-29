@@ -11,6 +11,36 @@ suite('array-test', () => {
         assert.deepStrictEqual(Array.remove(arr, 5), [2, 3, 4]);
     });
 
+    test('Array.insert()', () => {
+        let arr: number[] = [];
+        Array.insert(arr, 3)
+        assert.deepStrictEqual(arr, [3]);
+
+        arr = [1];
+        Array.insert(arr, 3);
+        assert.deepStrictEqual(arr, [1, 3]);
+
+        arr = [1];
+        Array.insert(arr, 0);
+        assert.deepStrictEqual(arr, [0, 1]);
+
+        arr = [1, 5, 9];
+        Array.insert(arr, 3);
+        assert.deepStrictEqual(arr, [1, 3, 5, 9]);
+
+        arr = [1, 5, 9];
+        Array.insert(arr, 7);
+        assert.deepStrictEqual(arr, [1, 5, 7, 9]);
+        
+        arr = [1, 5, 9];
+        Array.insert(arr, 13);
+        assert.deepStrictEqual(arr, [1, 5, 9, 13]);
+        
+        arr = [1, 5, 9];
+        Array.insert(arr, 0);
+        assert.deepStrictEqual(arr, [0, 1, 5, 9]);
+    });
+
     test('Array.equals()', () => {
         const ref = [1, 2, 3];
         assert.strictEqual(Array.equals([], []), true);

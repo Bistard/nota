@@ -20,6 +20,34 @@ export namespace Array {
     }
 
     /**
+     * @description Insert the given item to the sorted array in a sort way.
+     * @param sorted The sorted array.
+     * @param insert The given item.
+     * @param cmp The compare function. 
+     *                  true -> `a` before `b`
+     *                  false -> `a` after `b`
+     */
+    export function insert<T>(sorted: T[], insert: T, cmp: (a: T, b: T) => boolean = (a, b) => a < b): void {
+
+        if (sorted.length === 0) {
+            sorted.push(insert);
+            return;
+        }
+
+        let i = 0;
+        for (i = 0; i < sorted.length; i++) {
+            const item = sorted[i]!;
+
+            if (cmp(insert, item) === true) {
+                sorted.splice(i, 0, insert);
+                return;
+            }
+        }
+        
+        sorted.splice(i, 0, insert);
+    }
+
+    /**
      * @description Determines if the content of the given two arrays are equal.
      * @param array1 The given 1st array.
      * @param array2 The given 2nd array.
