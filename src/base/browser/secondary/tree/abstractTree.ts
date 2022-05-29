@@ -58,10 +58,12 @@ class __TreeListTrait<T> {
     // [public method]
 
     set(nodes: ITreeNode<T, any>[]): void {
+        this._nodes = new Set();
+        this._elements = null;
+        
         for (const node of nodes) {
             this._nodes.add(node);
         }
-        this._elements = null;
     }
 
     get(): T[] {
@@ -116,13 +118,22 @@ class __TreeListWidgetMouseController<T, TFilter, TRef> extends __ListWidgetMous
         }
 
         /**
-         * otherwise, we toggle the collapse state of the clicked node. This is
-         * the presetting behaviour.
+         * Otherwise, this is considered as a normal click. We toggle the 
+         * collapse state of the clicked node. 
+         * 
+         * This is the presetting behaviour.
          */
         if (node.collapsible) {
             const location = this._tree.getNodeLocation(node);
-            this._tree.toggleCollapseOrExpand(location, e.browserEvent.altKey);
+            
+            /**
+             * @readonly Traits indice will be invalid after the actual list 
+             * structure changed. They must be set first.
+             */
             this._tree.setFocus(location);
+            this._tree.setSelections([location]);
+
+            this._tree.toggleCollapseOrExpand(location, e.browserEvent.altKey);
         }
 
         // the rest work
