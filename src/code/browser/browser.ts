@@ -86,7 +86,7 @@ export class Browser {
 
 }
 
-const onCatchErrors = () => { 
+const onCatchAnyErrors = () => { 
     if (DEVELOP_ENV) {
         ipcRendererSend(IpcCommand.ErrorInWindow);
     }
@@ -96,7 +96,7 @@ const onCatchErrors = () => {
  * @readonly Needs to be set globally before everything, once an error has been 
  * captured, we tells the main process to open dev tools.
  */
-window.addEventListener(EventType.unhandledrejection, onCatchErrors);
-window.onerror = onCatchErrors;
+window.addEventListener(EventType.unhandledrejection, onCatchAnyErrors);
+window.onerror = onCatchAnyErrors;
 
 new Browser();

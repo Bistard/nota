@@ -2,7 +2,7 @@ import { IListViewRenderer, PipelineRenderer, RendererType } from "src/base/brow
 import { IListViewOpts, IViewItem, IViewItemChangeEvent, ListError, ListView } from "src/base/browser/secondary/listView/listView";
 import { DisposableManager, IDisposable } from "src/base/common/dispose";
 import { addDisposableListener, DomUtility, EventType } from "src/base/common/dom";
-import { DomEmitter, Emitter, Event, Register, SignalEmitter } from "src/base/common/event";
+import { Emitter, Event, Register, SignalEmitter } from "src/base/common/event";
 import { IScrollEvent } from "src/base/common/scrollable";
 import { IListItemProvider } from "src/base/browser/secondary/listView/listItemProvider";
 import { IListDragAndDropProvider, ListWidgetDragAndDropProvider } from "src/base/browser/secondary/listWidget/listWidgetDragAndDrop";
@@ -851,6 +851,10 @@ export interface IListWidget<T> extends IDisposable {
 /**
  * @class A {@link ListWidget} is built on top of {@link ListView}, with extra 
  * features.
+ * 
+ * The widget presets a list of behaviours on mouse / keyboard support. Such as
+ * pressing SHIFT will able to mutl-select in range, pressing escape key will
+ * lose the current focus item and so on...
  * 
  * Extra Functionalities:
  *  - mouse support (focus / selection)

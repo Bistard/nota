@@ -204,7 +204,9 @@ export interface IAsyncMultiTree<T, TFilter> {
      * @description Determines if the corresponding node of the given data is 
      * collapsible.
      * @param data The corresponding data.
-     * @returns If it is collapsible. If the data is not found, false is returned.
+     * @returns If it is collapsible.
+     * 
+     * @throws If the location is not found, an error is thrown.
      */
     isCollapsible(data: T): boolean;
 
@@ -212,7 +214,9 @@ export interface IAsyncMultiTree<T, TFilter> {
      * @description Determines if the corresponding node of the given data is 
      * collapsed.
      * @param data The corresponding data.
-     * @returns If it is collapsed. If the data is not found, false is returned.
+     * @returns If it is collapsed.
+     * 
+     * @throws If the location is not found, an error is thrown.
      */
     isCollapsed(data: T): boolean;
 
@@ -222,6 +226,7 @@ export interface IAsyncMultiTree<T, TFilter> {
      * @param recursive Determines if the operation is recursive (same operation 
      *                  to its descendants). if not provided, sets to false as 
      *                  default.
+     * @returns If the operation successed.
      */
     collapse(data: T, recursive: boolean): boolean;
 
@@ -231,8 +236,12 @@ export interface IAsyncMultiTree<T, TFilter> {
      * @param recursive Determines if the operation is recursive (same operation 
      *                  to its descendants). if not provided, sets to false as 
      *                  default.
+     * @returns If the operation successed.
+     * 
+     * @note Since expanding meaning refreshing to the newest children nodes,
+     * asynchronous is required.
      */
-    expand(data: T, recursive: boolean): boolean;
+    expand(data: T, recursive: boolean): Promise<boolean>;
      
     /**
      * @description Toggles the state of collapse or expand to the tree node with
@@ -241,8 +250,9 @@ export interface IAsyncMultiTree<T, TFilter> {
      * @param recursive Determines if the operation is recursive (same operation 
      *                  to its descendants). if not provided, sets to false as 
      *                  default.
+     * @returns If the operation successed.
      */
-    toggleCollapseOrExpand(data: T, recursive: boolean): boolean;
+    toggleCollapseOrExpand(data: T, recursive: boolean): Promise<boolean>;
      
     /**
      * @description Collapses all the tree nodes.
@@ -314,19 +324,20 @@ export interface IAsyncMultiTreeOptions<T, TFilter> extends IMultiTreeOptions<T>
 /**
  * @class Built upon a {@link IMultiTree} and {@link IAsyncMultiTreeModel}.
  * 
- * Different from {@link IMultiTree} and any other tree-like structure, children 
- * of each node is NOT decided by the caller, instead, caller needs to provider 
- * a {@link IAsyncChildrenProvider} which is the one that has ability to 
- * determine the children of each node.
+ * Different from {@link IMultiTree} and any other tree-like structures, the
+ * children of each node is NOT decided by the caller, instead, caller needs to 
+ * provide a {@link IAsyncChildrenProvider} which has the ability to determine 
+ * the children of each node.
  * 
- * Since the caller cannot decide the structrue of the tree, once the root data 
+ * Since the caller cannot decide the structure of the tree, once the root data 
  * is given, the {@link AsyncMultiTree} will build the whole tree under the
  * provided {@link IAsyncChildrenProvider}, and the whole process is implemented
  * asynchronously.
  * 
- * RootData is not counted as the part of the tree.
- * 
- * Constructor is private, use {@link AsyncMultiTree.create} instead.
+ * @note RootData is not counted as the part of the tree.
+ * @note Constructor is private, use {@link AsyncMultiTree.create} instead.
+ * @note The tree will refresh automatically once the collapse state of the node
+ * is changed.
  */
 export class AsyncMultiTree<T, TFilter = void> implements IAsyncMultiTree<T, TFilter>, IDisposable {
 
@@ -362,7 +373,8 @@ export class AsyncMultiTree<T, TFilter = void> implements IAsyncMultiTree<T, TFi
         this._onDidCreateNode = opts.onDidCreateNode;
         this._onDidDeleteNode = opts.onDidDeleteNode;
 
-        this._tree.onDidChangeCollapseState(e => this.refresh(e.node.data?.data));
+        // presetting behaviours on collapse state change
+        this._disposables.register(this._tree.onDidChangeCollapseState(e => this.__internalOnDidChangeCollapseState(e)));
     }
 
     // [static method]
@@ -434,13 +446,56 @@ export class AsyncMultiTree<T, TFilter = void> implements IAsyncMultiTree<T, TFi
         return this._model.setCollapsed(data, true, recursive);
     }
 
-    public expand(data: T, recursive: boolean): boolean {
-        return this._model.setCollapsed(data, false, recursive);
+    public async expand(data: T, recursive: boolean): Promise<boolean> {
+
+        const root = this._model.getRootAsyncNode();
+        if (root.refreshing) {
+            await root.refreshing;
+        }
+        
+        const node = this._model.getAsyncNode(data);
+        if (this._tree.hasNode(node) && this._tree.isCollapsible(node) === false) {
+            return false;
+        }
+
+        if (node.refreshing) {
+            await node.refreshing;
+        }
+
+        if (node !== root && !node.refreshing && !this._tree.isCollapsed(node)) {
+            return false;
+        }
+
+        const successOrNot = this._model.setCollapsed(data, false, recursive);
+        if (node.refreshing) {
+            await node.refreshing;
+        }
+
+        return successOrNot;
     }
 
-    public toggleCollapseOrExpand(data: T, recursive: boolean): boolean {
-        const asyncNode = this._model.getAsyncNode(data);
-        return this._tree.toggleCollapseOrExpand(asyncNode === this._model.getRootAsyncNode() ? null : asyncNode, recursive);
+    public async toggleCollapseOrExpand(data: T, recursive: boolean): Promise<boolean> {
+        const root = this._model.getRootAsyncNode();
+
+        if (root.refreshing) {
+            await root.refreshing;
+        }
+        
+        const node = this._model.getAsyncNode(data);
+        if (this._tree.hasNode(node) && this._tree.isCollapsible(node) === false) {
+            return false;
+        }
+
+        if (node.refreshing) {
+            await node.refreshing;
+        }
+
+        const successOrNot = this._tree.toggleCollapseOrExpand(node === root ? null : node, recursive);
+        if (node.refreshing) {
+            await node.refreshing;
+        }
+
+        return successOrNot;
     }
 
     public collapseAll(): void {
@@ -551,6 +606,21 @@ export class AsyncMultiTree<T, TFilter = void> implements IAsyncMultiTree<T, TFi
             onDidCreateNode: this._onDidCreateNode,
             onDidDeleteNode: this._onDidDeleteNode,
         });
+    }
+
+    /**
+     * @description Presets the behaviours when the collapsing state inside the
+     * {@link MultiTree} is changed.
+     */
+    private __internalOnDidChangeCollapseState(e: ITreeCollapseStateChangeEvent<IAsyncTreeNode<T> | null, TFilter>): void {
+        
+        const node: ITreeNode<IAsyncTreeNode<T> | null, TFilter> = e.node;
+        if (node.data === null) {
+            return;
+        }
+
+        // refresh the given node and its descendants
+        this._model.refreshNode(node.data).then(() => this.__render(node.data!));
     }
 
     /**

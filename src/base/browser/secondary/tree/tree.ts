@@ -158,8 +158,9 @@ export interface ITreeModel<T, TFilter = void, TRef = number[]> {
     /**
      * @description Determines if the given location of a node is collapsible.
      * @param location The location representation of the node.
-     * @returns If it is collapsible. If the location is not found, false is 
-     *          returned.
+     * @returns If it is collapsible.
+     * 
+     * @throws @throws If the location is not found, an error is thrown.
      */
     isCollapsible(location: TRef): boolean;
 
@@ -175,8 +176,9 @@ export interface ITreeModel<T, TFilter = void, TRef = number[]> {
     /**
      * @description Determines if the given location of a node is collapsed.
      * @param location The location representation of the node.
-     * @returns If it is collapsed. If the location is not found, false is 
-     *          returned.
+     * @returns If it is collapsed. 
+     * 
+     * @throws If the location is not found, an error is thrown.
      */
     isCollapsed(location: TRef): boolean;
 

@@ -3,12 +3,11 @@ import { IListViewRenderer, ListItemRenderer, PipelineRenderer, RendererType } f
 import { ScrollableWidget } from "src/base/browser/secondary/scrollableWidget/scrollableWidget";
 import { ScrollbarType } from "src/base/browser/secondary/scrollableWidget/scrollableWidgetOptions";
 import { DisposableManager, IDisposable } from "src/base/common/dispose";
-import { DomUtility, EventType } from "src/base/common/dom";
+import { DomUtility, EventType, FocusTracker } from "src/base/common/dom";
 import { DomEmitter, Emitter, Register } from "src/base/common/event";
 import { IRange, ISpliceable, Range, RangeTable } from "src/base/common/range";
 import { IScrollEvent, Scrollable } from "src/base/common/scrollable";
 import { IListItemProvider } from "src/base/browser/secondary/listView/listItemProvider";
-import { IListWidgetDragAndDropProvider } from "src/base/browser/secondary/listWidget/listWidgetDragAndDrop";
 import { memoize } from "src/base/common/memoization";
 
 
@@ -362,6 +361,8 @@ export class ListView<T> implements IDisposable, ISpliceable<T>, IListView<T> {
 
     /** The whole element of the view, including the scrollbar and all the items. */
     private element: HTMLElement;
+    private focusTracker: FocusTracker;
+
     /** The element contains all the items. */
     private listContainer: HTMLElement;
 
@@ -403,8 +404,8 @@ export class ListView<T> implements IDisposable, ISpliceable<T>, IListView<T> {
     get onWillScroll(): Register<IScrollEvent> { return this.scrollableWidget.onWillScroll; }
     get onDidScroll(): Register<IScrollEvent> { return this.scrollableWidget.onDidScroll; }
     
-    @memoize get onDidFocus(): Register<void> { return this.disposables.register(new DomEmitter<void>(this.element, EventType.focus)).registerListener; }
-    @memoize get onDidBlur(): Register<void> { return this.disposables.register(new DomEmitter<void>(this.element, EventType.blur)).registerListener; }
+    get onDidFocus(): Register<void> { return this.focusTracker.onDidFocus; }
+    get onDidBlur(): Register<void> { return this.focusTracker.onDidBlur; }
     
     @memoize get onClick(): Register<MouseEvent> { return this.disposables.register(new DomEmitter<MouseEvent>(this.element, EventType.click)).registerListener; }
     @memoize get onDoubleclick(): Register<MouseEvent> { return this.disposables.register(new DomEmitter<MouseEvent>(this.element, EventType.doubleclick)).registerListener; }
@@ -430,9 +431,7 @@ export class ListView<T> implements IDisposable, ISpliceable<T>, IListView<T> {
     ) {
         this.element = document.createElement('div');
         this.element.className = 'list-view';
-        
-        // set focusable
-        this.element.tabIndex = 0;
+        this.focusTracker = new FocusTracker(this.element, true);
 
         this.items = [];
         this.rangeTable = new RangeTable();
@@ -481,6 +480,7 @@ export class ListView<T> implements IDisposable, ISpliceable<T>, IListView<T> {
         this.disposables.register(this.scrollable);
         this.disposables.register(this.scrollableWidget);
         this.disposables.register(this.cache);
+        this.disposables.register(this.focusTracker);
 
         // optional rendering
         if (opts.layout) {

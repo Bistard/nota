@@ -221,7 +221,7 @@ export class IndexTreeModel<T, TFilter = void> implements IIndexTreeModel<T, TFi
         const node = this.__getNode(location, this._root);
         
         if (node === undefined) {
-            return false;
+            throw new Error(`tree node not found at: ${location}`);
         }
 
         return node.collapsible;
@@ -242,7 +242,7 @@ export class IndexTreeModel<T, TFilter = void> implements IIndexTreeModel<T, TFi
         const node = this.__getNode(location, this._root);
         
         if (node === undefined) {
-            return false;
+            throw new Error(`tree node not found at: ${location}`);
         }
 
         return node.collapsible && node.collapsed;

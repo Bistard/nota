@@ -263,20 +263,24 @@ suite('AsyncMultiTree-test', () => {
         assert.strictEqual(tree.isCollapsed(1), true);
         assert.strictEqual(tree.isCollapsed(2), true);
         assert.strictEqual(tree.isCollapsed(6), false);
+        
         tree.collapse(6, false);
         assert.strictEqual(tree.isCollapsed(6), true);
 
-        tree.toggleCollapseOrExpand(6, false);
-        tree.toggleCollapseOrExpand(2, false);
-
-        assert.strictEqual(tree.isCollapsed(2), false);
+        await tree.toggleCollapseOrExpand(6, false);
+        await tree.refresh();
         assert.strictEqual(tree.isCollapsed(6), false);
+
+        await tree.toggleCollapseOrExpand(2, false);
+        await tree.refresh();
+        assert.strictEqual(tree.isCollapsed(2), false);
 
         tree.collapse(2, true);
         assert.strictEqual(tree.isCollapsed(2), true);
         assert.strictEqual(tree.isCollapsed(6), true);
 
-        tree.toggleCollapseOrExpand(2, true);
+        await tree.expand(2, true);
+        await tree.refresh();
         assert.strictEqual(tree.isCollapsed(2), false);
         assert.strictEqual(tree.isCollapsed(6), false);
 
