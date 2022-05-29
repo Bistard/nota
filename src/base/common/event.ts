@@ -308,7 +308,7 @@ export class DomEmitter<T> implements IDisposable {
 
     constructor(element: EventTarget, type: EventType) {
         this.emitter = new Emitter();
-        this.listener = addDisposableListener(element, type, (e: Event) => this.emitter.fire(e as any));
+        this.listener = addDisposableListener(element, type as any, (e: Event) => this.emitter.fire(e as any));
     }
 
     public dispose(): void {
