@@ -265,8 +265,17 @@ export interface IAsyncMultiTree<T, TFilter> {
     expandAll(): void;
 
     /**
+     * @description Sets the given item as the anchor.
+     */
+    setAnchor(item: T): void;
+
+    /**
+     * @description Returns the focused item.
+     */
+    getAnchor(): T | null;
+
+    /**
      * @description Sets the given item as focused.
-     * @param item The provided item.
      */
     setFocus(item: T): void;
 
@@ -277,7 +286,6 @@ export interface IAsyncMultiTree<T, TFilter> {
 
     /**
      * @description Sets the given a series of items as selected.
-     * @param items The provided items.
      */
     setSelections(items: T[]): void;
 
@@ -504,6 +512,15 @@ export class AsyncMultiTree<T, TFilter = void> implements IAsyncMultiTree<T, TFi
 
     public expandAll(): void {
         this._tree.expandAll();
+    }
+
+    public setAnchor(item: T): void {
+        this._tree.setAnchor(this._model.getAsyncNode(item));
+    }
+
+    public getAnchor(): T | null {
+        const node = this._tree.getAnchor();
+        return node ? node.data : null;
     }
 
     public setFocus(item: T): void {
