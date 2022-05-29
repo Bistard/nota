@@ -20,6 +20,30 @@ export namespace Array {
     }
 
     /**
+     * @description Determines if the content of the given two arrays are equal.
+     * @param array1 The given 1st array.
+     * @param array2 The given 2nd array.
+     * @param cmp The compare function.
+     */
+    export function equals<T>(array1: ReadonlyArray<T>, array2: ReadonlyArray<T>, cmp: (a: T, b: T) => boolean = (a, b) => a === b): boolean {
+        if (array1 === array2) {
+            return true;
+        }
+
+        if (array1.length !== array2.length) {
+            return false;
+        }
+
+        for (let i = 0, len = array1.length; i < len; i++) {
+            if (cmp(array1[i]!, array2[i]!) === false) {
+                return false;
+            }
+        }
+    
+        return true;
+    }
+
+    /**
      * @description Creates a new number array that contains numbers from begin
      * to end.
      * @param begin The begin of the array number (inclusive).

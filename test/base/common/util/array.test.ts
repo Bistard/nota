@@ -11,6 +11,16 @@ suite('array-test', () => {
         assert.deepStrictEqual(Array.remove(arr, 5), [2, 3, 4]);
     });
 
+    test('Array.equals()', () => {
+        const ref = [1, 2, 3];
+        assert.strictEqual(Array.equals([], []), true);
+        assert.strictEqual(Array.equals(ref, ref), true);
+        assert.strictEqual(Array.equals(ref, [1, 2, 3, 4]), false);
+        assert.strictEqual(Array.equals([1, 2, 3], [1, 2, 3, 4]), false);
+        assert.strictEqual(Array.equals([1, 2, 3, 4], [1, 2, 3, 4]), true);
+        assert.strictEqual(Array.equals([1, 2, 3, 4], [4, 3, 2, 1]), false);
+    });
+
     test('Array.range()', () => {
         assert.deepStrictEqual(Array.range(0, 5), [0, 1, 2, 3, 4]);
         assert.deepStrictEqual(Array.range(1, 5), [1, 2, 3, 4]);
