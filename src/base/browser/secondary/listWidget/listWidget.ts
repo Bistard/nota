@@ -39,7 +39,7 @@ class __ListTrait<T> implements IDisposable {
     public onDidChange = this._onDidChange.registerListener;
 
     private indices: number[] = [];
-    private _getElement!: (index: number) => HTMLElement | null;
+    private _getHTMLElement!: (index: number) => HTMLElement | null;
 
     /** For fast querying */
     private indicesSet: Set<number> | undefined = undefined;
@@ -52,11 +52,8 @@ class __ListTrait<T> implements IDisposable {
 
     // [public method]
 
-    /**
-     * @note This function has to be set first.
-     */
-    set getElement(value: (index: number) => HTMLElement | null) {
-        this._getElement = value;
+    set getHTMLElement(value: (index: number) => HTMLElement | null) {
+        this._getHTMLElement = value;
     }
 
     /**
@@ -70,20 +67,22 @@ class __ListTrait<T> implements IDisposable {
         this.indices = indice;
         this.indicesSet = undefined;
 
-        const toUnrender = Array.complement(indice, oldIndice);
-        const toRender = Array.complement(oldIndice, indice);
+        const toUnrender = Array.relativeComplement(indice, oldIndice);
+        const toRender = Array.relativeComplement(oldIndice, indice);
 
-        for (const index of toUnrender) {
-            const item = this._getElement(index);
-            if (item) {
-                item.classList.toggle(this.trait, false);
+        if (this._getHTMLElement) {
+            for (const index of toUnrender) {
+                const item = this._getHTMLElement(index);
+                if (item) {
+                    item.classList.toggle(this.trait, false);
+                }
             }
-        }
-
-        for (const index of toRender) {
-            const item = this._getElement(index);
-            if (item) {
-                item.classList.toggle(this.trait, true);
+    
+            for (const index of toRender) {
+                const item = this._getHTMLElement(index);
+                if (item) {
+                    item.classList.toggle(this.trait, true);
+                }
             }
         }
         
@@ -242,6 +241,7 @@ export class __ListWidgetMouseController<T> implements IDisposable {
         // clicking nowhere, we reset all the traits
         if (toFocused === undefined) {
             this._view.setFocus(null);
+            this._view.setAnchor(null);
             this._view.setSelections([]);
             return;
         }
@@ -255,7 +255,8 @@ export class __ListWidgetMouseController<T> implements IDisposable {
             return;
         }
 
-        // no multi-selection, set focus only
+        // normal click
+        this._view.setAnchor(toFocused);
         this._view.setFocus(toFocused);
         if (DomUtility.isMouseRightClick(e.browserEvent) === false) {
             this._view.setSelections([toFocused]);
@@ -301,20 +302,38 @@ export class __ListWidgetMouseController<T> implements IDisposable {
      */
     private __multiSelectionInRange(e: IListMouseEvent<T>): void {
         const toFocused = e.actualIndex!;
-        let currFocusedIdx = this._view.getFocus();
+        let anchor = this._view.getAnchor();
 
         // if no focus yet, we focus on the current.
-        if (currFocusedIdx === null) {
-            currFocusedIdx = toFocused;
+        if (anchor === null) {
+            anchor = this._view.getFocus() || toFocused;
+            this._view.setAnchor(anchor);
         }
-        
+        console.log('anchor: ', anchor);
         // calculates the selection range
-        const toSelect = Array.range(Math.min(toFocused, currFocusedIdx), Math.max(toFocused, currFocusedIdx) + 1);
-        
-        // determine new selections
-        const currSelection = this._view.getSelections();
-        const newSelection = Array.union(currSelection, toSelect);
+        const toSelectRange = Array.range(
+            Math.min(toFocused, anchor), 
+            Math.max(toFocused, anchor) + 1
+        );
+        console.log('selection range: ', toSelectRange);
 
+        const currSelection = this._view.getSelections().sort((a, b) => a - b);
+        console.log('curr selection: ', currSelection);
+
+        const contiguousRange = this.__getNearestContiguousRange(Array.unique(Array.insert(currSelection, anchor)), anchor);
+        console.log('contiguous selection: ', contiguousRange);
+        if (!contiguousRange.length) {
+            return;
+        }
+        const newSelection = Array.union(toSelectRange, 
+                                Array.union(
+                                    Array.relativeComplement(currSelection, contiguousRange), 
+                                    Array.relativeComplement(contiguousRange, currSelection)
+                                )
+                            );
+        console.log('new selection: ', newSelection);
+        console.log('============');
+        // update selections and focused
         this._view.setSelections(newSelection);
         this._view.setFocus(toFocused);
     }
@@ -329,6 +348,7 @@ export class __ListWidgetMouseController<T> implements IDisposable {
         const newSelection = Array.remove(currSelection, toFocused);
 
         this._view.setFocus(toFocused);
+        this._view.setAnchor(toFocused);
 
         if (newSelection.length === currSelection.length) {
             // we are not removing any of the current selections
@@ -339,6 +359,26 @@ export class __ListWidgetMouseController<T> implements IDisposable {
         }
     }
 
+    private __getNearestContiguousRange(range: number[], anchor: number): number[] {
+        const index = range.indexOf(anchor);
+        if (index === -1) {
+            return [];
+        }
+
+        const result: number[] = [];
+        let i = index - 1;
+        while (i >= 0 && range[i] === anchor - (index - i)) {
+            result.push(range[i--]!);
+        }
+
+        result.reverse();
+        i = index;
+        while (i < range.length && range[i] === anchor + (i - index)) {
+            result.push(range[i++]!);
+        }
+
+        return result;
+    }
 }
 
 /**
@@ -464,6 +504,7 @@ class __ListWidgetKeyboardController<T> implements IDisposable {
 		    e.stopPropagation();
             this._view.setSelections([]);
             this._view.setFocus(null);
+            this._view.setAnchor(null);
 			this._view.setDomFocus();
         }
     }
@@ -810,6 +851,12 @@ export interface IListWidget<T> extends IDisposable {
     // [item traits support]
 
     /**
+     * @description Sets the item with the given index as the anchor.
+     * @param index The provided index. If not provided, remove the current one.
+     */
+    setAnchor(index: number | null): void;
+
+    /**
      * @description Sets the item with the given index as focused.
      * @param index The provided index. If not provided, remove the current one.
      */
@@ -817,7 +864,7 @@ export interface IListWidget<T> extends IDisposable {
 
     /**
      * @description Sets the item with the given index as selected.
-     * @param index The provided index.
+     * @param index The provided index. If empty provided, removes all the selections.
      */
     setSelections(index: number[]): void;
 
@@ -827,7 +874,14 @@ export interface IListWidget<T> extends IDisposable {
     getSelections(): number[];
 
     /**
+     * @description Returns the index of the anchor.
+     * @note Anchor is where the user's selection start.
+     */
+    getAnchor(): number | null;
+
+    /**
      * @description Returns the index of the focused item.
+     * @note Focus is where the user's selection end.
      */
     getFocus(): number | null;
 
@@ -835,6 +889,11 @@ export interface IListWidget<T> extends IDisposable {
      * @description Returns all the selected items.
      */
     getSelectedItems(): T[];
+
+    /**
+     * @description Returns the anchor item.
+     */
+    getAnchorItem(): T | null;
 
     /**
      * @description Returns the focused item.
@@ -884,7 +943,11 @@ export class ListWidget<T> implements IListWidget<T> {
     private disposables: DisposableManager;
     private view: ListView<T>;
 
+    /** User's selection. */
     private selected: __ListTrait<T>;
+    /** Where the user's selection start. */
+    private anchor: __ListTrait<T>;
+    /** Where the user's selection end. */
     private focused: __ListTrait<T>;
 
     private mouseController: __ListWidgetMouseController<T>;
@@ -903,6 +966,7 @@ export class ListWidget<T> implements IListWidget<T> {
 
         // initializes all the item traits
         this.selected = new __ListTrait<T>('selected');
+        this.anchor = new __ListTrait<T>('anchor');
         this.focused = new __ListTrait<T>('focused');
 
         // integrates all the renderers
@@ -912,8 +976,9 @@ export class ListWidget<T> implements IListWidget<T> {
         // construct list view
         this.view = new ListView(container, renderers, itemProvider, opts);
 
-        this.selected.getElement = item => this.view.getElement(item);
-        this.focused.getElement = item => this.view.getElement(item);
+        this.selected.getHTMLElement = item => this.view.getElement(item);
+        this.anchor.getHTMLElement = item => this.view.getElement(item);
+        this.focused.getHTMLElement = item => this.view.getElement(item);
 
         // mouse support integration
         this.mouseController = this.__createListWidgetMouseController(opts);
@@ -994,6 +1059,10 @@ export class ListWidget<T> implements IListWidget<T> {
 
     // [item traits support]
 
+    public setAnchor(index: number | null): void {
+        this.anchor.set((index !== null) ? [index] : []);
+    }
+
     public setFocus(index: number | null): void {
         this.focused.set((index !== null) ? [index] : []);
     }
@@ -1002,18 +1071,28 @@ export class ListWidget<T> implements IListWidget<T> {
         this.selected.set(indice);
     }
 
+    public getSelections(): number[] {
+        return this.selected.items();
+    }
+    
+    public getAnchor(): number | null {
+        const indice = this.anchor.items();
+        return indice.length ? indice[0]! : null;
+    }
+
     public getFocus(): number | null {
         const indice = this.focused.items();
         return indice.length ? indice[0]! : null;
     }
 
-    public getSelections(): number[] {
-        return this.selected.items();
-    }
-
     public getSelectedItems(): T[] {
         const indice = this.selected.items();
         return indice.map(index => this.view.getItem(index));
+    }
+
+    public getAnchorItem(): T | null {
+        const indice = this.anchor.items();
+        return indice.length ? this.view.getItem(indice[0]!) : null;
     }
 
     public getFocusedItem(): T | null {

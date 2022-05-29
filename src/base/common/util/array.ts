@@ -20,18 +20,19 @@ export namespace Array {
     }
 
     /**
-     * @description Insert the given item to the sorted array in a sort way.
+     * @description Insert the given item to the sorted array in a sort way. The
+     * method mutates the original array and returns a reference to the same one.
      * @param sorted The sorted array.
      * @param insert The given item.
      * @param cmp The compare function. 
      *                  true -> `a` before `b`
      *                  false -> `a` after `b`
      */
-    export function insert<T>(sorted: T[], insert: T, cmp: (a: T, b: T) => boolean = (a, b) => a < b): void {
+    export function insert<T>(sorted: T[], insert: T, cmp: (a: T, b: T) => boolean = (a, b) => a < b): T[] {
 
         if (sorted.length === 0) {
             sorted.push(insert);
-            return;
+            return sorted;
         }
 
         let i = 0;
@@ -40,11 +41,12 @@ export namespace Array {
 
             if (cmp(insert, item) === true) {
                 sorted.splice(i, 0, insert);
-                return;
+                return sorted;
             }
         }
         
         sorted.splice(i, 0, insert);
+        return sorted;
     }
 
     /**
@@ -214,7 +216,7 @@ export namespace Array {
      * @note The returned union array will remove all the unique items.
      * @complexity O(n + m)
      */
-    export function complement<T>(array1: ReadonlyArray<T>, array2: ReadonlyArray<T>, valueFn: (value: T) => any = value => value): T[] {
+    export function relativeComplement<T>(array1: ReadonlyArray<T>, array2: ReadonlyArray<T>, valueFn: (value: T) => any = value => value): T[] {
         array1 = Array.unique(array1, valueFn);
         array2 = Array.unique(array2, valueFn);
 

@@ -12,33 +12,18 @@ suite('array-test', () => {
     });
 
     test('Array.insert()', () => {
-        let arr: number[] = [];
-        Array.insert(arr, 3)
-        assert.deepStrictEqual(arr, [3]);
-
-        arr = [1];
-        Array.insert(arr, 3);
-        assert.deepStrictEqual(arr, [1, 3]);
-
-        arr = [1];
-        Array.insert(arr, 0);
-        assert.deepStrictEqual(arr, [0, 1]);
-
-        arr = [1, 5, 9];
-        Array.insert(arr, 3);
-        assert.deepStrictEqual(arr, [1, 3, 5, 9]);
-
-        arr = [1, 5, 9];
-        Array.insert(arr, 7);
-        assert.deepStrictEqual(arr, [1, 5, 7, 9]);
-        
-        arr = [1, 5, 9];
-        Array.insert(arr, 13);
-        assert.deepStrictEqual(arr, [1, 5, 9, 13]);
-        
-        arr = [1, 5, 9];
-        Array.insert(arr, 0);
-        assert.deepStrictEqual(arr, [0, 1, 5, 9]);
+        assert.deepStrictEqual(Array.insert([], 3), [3]);
+        assert.deepStrictEqual(Array.insert([1], 3), [1, 3]);
+        assert.deepStrictEqual(Array.insert([1], 0), [0, 1]);
+        assert.deepStrictEqual(Array.insert([1, 3, 5], 9), [1, 3, 5, 9]);
+        assert.deepStrictEqual(Array.insert([1, 3, 5], 0), [0, 1, 3, 5]);
+        assert.deepStrictEqual(Array.insert([1, 5, 9], 7), [1, 5, 7, 9]);
+        assert.deepStrictEqual(Array.insert([1, 5, 9], 13), [1, 5, 9, 13]);
+        assert.deepStrictEqual(Array.insert([1, 5, 9], 0), [0, 1, 5, 9]);
+        assert.deepStrictEqual(Array.insert([3, 3, 3], 0), [0, 3, 3, 3]);
+        assert.deepStrictEqual(Array.insert([3, 3, 3], 6), [3, 3, 3, 6]);
+        assert.deepStrictEqual(Array.insert([0, 3, 3, 3], 1), [0, 1, 3, 3, 3]);
+        assert.deepStrictEqual(Array.insert([3, 3, 3, 9], 6), [3, 3, 3, 6, 9]);
     });
 
     test('Array.equals()', () => {
@@ -89,15 +74,15 @@ suite('array-test', () => {
     });
 
     test('Array.complement()', () => {
-        assert.deepStrictEqual(Array.complement([], []), []);
-        assert.deepStrictEqual(Array.complement([], [2]), [2]);
-        assert.deepStrictEqual(Array.complement([1, 2], []), []);
-        assert.deepStrictEqual(Array.complement([1], [2]), [2]);
-        assert.deepStrictEqual(Array.complement([1], [2, 2]), [2]);
-        assert.deepStrictEqual(Array.complement([1], [1]), []);
-        assert.deepStrictEqual(Array.complement([1, 1, 2, 3], [1, 2, 4, 5, 5]), [4, 5]);
-        assert.deepStrictEqual(Array.complement([1, 1, 2, 3], [1, 1, 2, 3]), []);
-        assert.deepStrictEqual(Array.complement([1, 2, 3], [4, 5, 6]), [4, 5, 6]);
+        assert.deepStrictEqual(Array.relativeComplement([], []), []);
+        assert.deepStrictEqual(Array.relativeComplement([], [2]), [2]);
+        assert.deepStrictEqual(Array.relativeComplement([1, 2], []), []);
+        assert.deepStrictEqual(Array.relativeComplement([1], [2]), [2]);
+        assert.deepStrictEqual(Array.relativeComplement([1], [2, 2]), [2]);
+        assert.deepStrictEqual(Array.relativeComplement([1], [1]), []);
+        assert.deepStrictEqual(Array.relativeComplement([1, 1, 2, 3], [1, 2, 4, 5, 5]), [4, 5]);
+        assert.deepStrictEqual(Array.relativeComplement([1, 1, 2, 3], [1, 1, 2, 3]), []);
+        assert.deepStrictEqual(Array.relativeComplement([1, 2, 3], [4, 5, 6]), [4, 5, 6]);
     });
 
     test('Array.unique()', () => {
