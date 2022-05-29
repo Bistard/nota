@@ -324,19 +324,20 @@ export interface IAsyncMultiTreeOptions<T, TFilter> extends IMultiTreeOptions<T>
 /**
  * @class Built upon a {@link IMultiTree} and {@link IAsyncMultiTreeModel}.
  * 
- * Different from {@link IMultiTree} and any other tree-like structure, children 
- * of each node is NOT decided by the caller, instead, caller needs to provider 
- * a {@link IAsyncChildrenProvider} which is the one that has ability to 
- * determine the children of each node.
+ * Different from {@link IMultiTree} and any other tree-like structures, the
+ * children of each node is NOT decided by the caller, instead, caller needs to 
+ * provide a {@link IAsyncChildrenProvider} which has the ability to determine 
+ * the children of each node.
  * 
- * Since the caller cannot decide the structrue of the tree, once the root data 
+ * Since the caller cannot decide the structure of the tree, once the root data 
  * is given, the {@link AsyncMultiTree} will build the whole tree under the
  * provided {@link IAsyncChildrenProvider}, and the whole process is implemented
  * asynchronously.
  * 
- * RootData is not counted as the part of the tree.
- * 
- * Constructor is private, use {@link AsyncMultiTree.create} instead.
+ * @note RootData is not counted as the part of the tree.
+ * @note Constructor is private, use {@link AsyncMultiTree.create} instead.
+ * @note The tree will refresh automatically once the collapse state of the node
+ * is changed.
  */
 export class AsyncMultiTree<T, TFilter = void> implements IAsyncMultiTree<T, TFilter>, IDisposable {
 

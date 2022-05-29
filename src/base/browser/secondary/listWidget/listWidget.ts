@@ -852,6 +852,10 @@ export interface IListWidget<T> extends IDisposable {
  * @class A {@link ListWidget} is built on top of {@link ListView}, with extra 
  * features.
  * 
+ * The widget presets a list of behaviours on mouse / keyboard support. Such as
+ * pressing SHIFT will able to mutl-select in range, pressing escape key will
+ * lose the current focus item and so on...
+ * 
  * Extra Functionalities:
  *  - mouse support (focus / selection)
  *  - keyboard support (enter / up / down / pageup / pagedown / escape)
