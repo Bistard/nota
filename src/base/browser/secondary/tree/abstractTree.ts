@@ -1,7 +1,7 @@
 import { ITreeCollapseStateChangeEvent, ITreeModel, ITreeMouseEvent, ITreeNode, ITreeSpliceEvent } from "src/base/browser/secondary/tree/tree";
 import { ITreeListRenderer, TreeItemRenderer } from "src/base/browser/secondary/tree/treeListRenderer";
 import { IListItemProvider, TreeListItemProvider } from "src/base/browser/secondary/listView/listItemProvider";
-import { IListMouseEvent, IListWidgetOpts, ITraitChangeEvent, ListWidget } from "src/base/browser/secondary/listWidget/listWidget";
+import { IListMouseEvent, IListWidget, IListWidgetOpts, ITraitChangeEvent, ListWidget, __ListWidgetMouseController } from "src/base/browser/secondary/listWidget/listWidget";
 import { IListDragAndDropProvider } from "src/base/browser/secondary/listWidget/listWidgetDragAndDrop";
 import { DisposableManager, IDisposable } from "src/base/common/dispose";
 import { Event, Register, RelayEmitter } from "src/base/common/event";
@@ -80,10 +80,66 @@ class __TreeListTrait<T> {
 }
 
 /**
+ * @class A internal tree-level mouse controller that overrides some behaviours 
+ * on the list-level.
+ * 
+ * Since the collapsing status is only known by the tree-level, we need to override
+ * the behaviours of the list-level mouse controller to achieve customization.
+ */
+class __TreeListWidgetMouseController<T, TFilter, TRef> extends __ListWidgetMouseController<ITreeNode<T>> {
+
+    private readonly _tree: IAbstractTree<T, TFilter, TRef>;
+
+    constructor(
+        view: IListWidget<ITreeNode<T>>,
+        opts: ITreeListWidgetOpts<T, TFilter, TRef>
+    ) {
+        super(view, opts);
+        this._tree = opts.tree;
+    }
+
+    protected override __onMouseClick(e: IListMouseEvent<ITreeNode<T, TFilter>>): void {
+        
+        if (this.__ifSupported(e) === false) {
+            return;
+        }
+
+        const node = e.item;
+        if (!node) {
+            // clicks nowhere, we do the normal click
+            return super.__onMouseClick(e);
+        }
+
+        if (this.__isSelectingInRangeEvent(e) || this.__isSelectingInSingleEvent(e)) {
+            // normal click during multi-selecting
+            return super.__onMouseClick(e);
+        }
+
+        /**
+         * otherwise, we toggle the collapse state of the clicked node. This is
+         * the presetting behaviour.
+         */
+        if (node.collapsible) {
+            const location = this._tree.getNodeLocation(node);
+            this._tree.toggleCollapseOrExpand(location, e.browserEvent.altKey);
+            this._tree.setFocus(location);
+        }
+
+        // the rest work
+        super.__onMouseClick(e);
+    }
+
+}
+
+export interface ITreeListWidgetOpts<T, TFilter, TRef> extends IListWidgetOpts<ITreeNode<T, TFilter>> {
+    readonly tree: IAbstractTree<T, TFilter, TRef>;
+}
+
+/**
  * @class A simple wrapper class for {@link IListWidget} which converts the type
  * T to ITreeNode<T>.
  */
-export class TreeListWidget<T, TFilter> extends ListWidget<ITreeNode<T>> {
+export class TreeListWidget<T, TFilter, TRef> extends ListWidget<ITreeNode<T>> {
 
     // [field]
 
@@ -98,7 +154,7 @@ export class TreeListWidget<T, TFilter> extends ListWidget<ITreeNode<T>> {
         focusedTrait: __TreeListTrait<T>,
         selectedTrait: __TreeListTrait<T>,
         itemProvider: IListItemProvider<ITreeNode<T, TFilter>>,
-        opts: IListWidgetOpts<ITreeNode<T>> = {}
+        opts: ITreeListWidgetOpts<T, TFilter, TRef>
     ) {
         super(container, renderers, itemProvider, opts);
         this._focused = focusedTrait;
@@ -147,6 +203,16 @@ export class TreeListWidget<T, TFilter> extends ListWidget<ITreeNode<T>> {
         if (selectedIndex.length > 0) {
             super.setSelections(selectedIndex);
         }
+    }
+
+    // [protected override methods]
+
+    /**
+     * @description Overrides the mouse controller to customize tree-like mouse
+     * behaviours.
+     */
+    protected override __createListWidgetMouseController(opts: ITreeListWidgetOpts<T, TFilter, TRef>): __ListWidgetMouseController<ITreeNode<T, TFilter>> {
+        return new __TreeListWidgetMouseController(this, opts);
     }
 }
 
@@ -250,6 +316,13 @@ export interface IAbstractTree<T, TFilter, TRef> {
      * @returns Returns the expected tree node.
      */
     getNode(location: TRef): ITreeNode<T, TFilter>;
+
+    /**
+     * @description Returns the location corresponding to the given {@link ITreeNode}.
+     * @param node The provided tree node.
+     * @returns The location of the given tree node.
+     */
+    getNodeLocation(node: ITreeNode<T, TFilter>): TRef;
     
     /**
      * @description Determines if the given location of a node is collapsed.
@@ -352,7 +425,7 @@ export abstract class AbstractTree<T, TFilter, TRef> implements IAbstractTree<T,
     /** the raw data model of the tree. */
     protected _model: ITreeModel<T, TFilter, TRef>;
 
-    protected _view: TreeListWidget<T, TFilter>;
+    protected _view: TreeListWidget<T, TFilter, TRef>;
 
     private _focused: __TreeListTrait<T>;
     private _selected: __TreeListTrait<T>;
@@ -379,14 +452,15 @@ export abstract class AbstractTree<T, TFilter, TRef> implements IAbstractTree<T,
         this._focused = new __TreeListTrait();
         this._selected = new __TreeListTrait();
 
-        this._view = new TreeListWidget<T, TFilter>(
+        this._view = new TreeListWidget(
             container, 
             renderers, 
             this._focused,
             this._selected,
             new TreeListItemProvider(itemProvider), 
             {
-                dragAndDropProvider: opts.dnd && new __TreeListDragAndDropProvider(opts.dnd)
+                dragAndDropProvider: opts.dnd && new __TreeListDragAndDropProvider(opts.dnd),
+                tree: this
             }
         );
 
@@ -425,6 +499,10 @@ export abstract class AbstractTree<T, TFilter, TRef> implements IAbstractTree<T,
 
     public getNode(location: TRef): ITreeNode<T, TFilter> {
         return this._model.getNode(location);
+    }
+
+    public getNodeLocation(node: ITreeNode<T, TFilter>): TRef {
+        return this._model.getNodeLocation(node);
     }
 
     public isCollapsed(location: TRef): boolean {

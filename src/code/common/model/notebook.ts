@@ -261,11 +261,6 @@ export class Notebook extends Disposable implements INotebook {
      */
     private __registerListeners(): void {
 
-        this._tree.onClick(event => {
-            if (event.data) {
-                this._tree.toggleCollapseOrExpand(event.data, false);
-            }
-        });
 
     }
 

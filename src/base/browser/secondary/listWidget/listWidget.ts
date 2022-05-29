@@ -168,8 +168,10 @@ class __ListTraitRenderer<T> implements IListViewRenderer<T, HTMLElement> {
  *  - when to focus DOM
  *  - when to focus item
  *  - when to select item(s)
+ * 
+ * @readonly EXPORT FOR OTHER MODULES ONLY. DO NOT USE DIRECTLY.
  */
-class __ListWidgetMouseController<T> implements IDisposable {
+export class __ListWidgetMouseController<T> implements IDisposable {
 
     // [fields]
 
@@ -212,24 +214,26 @@ class __ListWidgetMouseController<T> implements IDisposable {
         this._disposables.dispose();
     }
 
-    // [private helper methods]
+    // [protect methods]
 
-    /**
-     * @description Focuses the event target element.
-     */
-    private __onMouseDown(e: IListMouseEvent<T>): void {
-        // prevent double focus
-        if (document.activeElement !== e.browserEvent.target) {
-			this._view.setDomFocus();
-		}
+    protected __ifSupported(e: IListMouseEvent<T>): boolean {
+        if (this._mouseSupport === false) {
+            return false;
+        }
+
+        if (DomUtility.isInputElement(e.browserEvent.target as HTMLElement)) {
+            return false;
+        }
+
+        return true;
     }
 
     /**
      * @description Handles item focus and selection logic.
      */
-    private __onMouseClick(e: IListMouseEvent<T>): void {
+    protected __onMouseClick(e: IListMouseEvent<T>): void {
 
-        if (this._mouseSupport === false) {
+        if (this.__ifSupported(e) === false) {
             return;
         }
 
@@ -243,10 +247,10 @@ class __ListWidgetMouseController<T> implements IDisposable {
         }
 
         // check if selecting in range
-        if (this.__selectingInRangeEvent(e)) {
+        if (this.__isSelectingInRangeEvent(e)) {
             this.__multiSelectionInRange(e);
             return;
-        } else if (this.__selectingInSingleEvent(e)) {
+        } else if (this.__isSelectingInSingleEvent(e)) {
             this._mutliSelectionInSingle(e);
             return;
         }
@@ -262,7 +266,7 @@ class __ListWidgetMouseController<T> implements IDisposable {
      * @description Determines if the event is selecting in range. In other words,
      * pressing SHIFT.
      */
-    private __selectingInRangeEvent(e: IListMouseEvent<T>): boolean {
+    protected __isSelectingInRangeEvent(e: IListMouseEvent<T>): boolean {
         if (this._multiSelectionSupport === false) {
             return false;
         }
@@ -273,11 +277,23 @@ class __ListWidgetMouseController<T> implements IDisposable {
      * @description Determines if the event is selecting in single. In other words,
      * pressing CTRL in Windows or META in Macintosh.
      */
-    private __selectingInSingleEvent(e: IListMouseEvent<T>): boolean {
+    protected __isSelectingInSingleEvent(e: IListMouseEvent<T>): boolean {
         if (this._multiSelectionSupport === false) {
             return false;
         }
         return IS_MAC ? e.browserEvent.metaKey : e.browserEvent.ctrlKey;
+    }
+
+    // [private helper methods]
+
+    /**
+     * @description Focuses the event target element.
+     */
+    private __onMouseDown(e: IListMouseEvent<T>): void {
+        // prevent double focus
+        if (document.activeElement !== e.browserEvent.target) {
+			this._view.setDomFocus();
+		}
     }
 
     /**
@@ -900,7 +916,7 @@ export class ListWidget<T> implements IListWidget<T> {
         this.focused.getElement = item => this.view.getElement(item);
 
         // mouse support integration
-        this.mouseController = new __ListWidgetMouseController(this, opts);
+        this.mouseController = this.__createListWidgetMouseController(opts);
         // keyboard support integration
         this.keyboardController = new __ListWidgetKeyboardController(this, opts);
         // drag and drop integration
@@ -1038,6 +1054,14 @@ export class ListWidget<T> implements IListWidget<T> {
     }
 
     // [private helper methods]
+
+    /**
+     * @description Creates an instance of a {@link IListWidgetMouseController}.
+     * May override by the inheritance.
+     */
+    protected __createListWidgetMouseController(opts: IListWidgetOpts<T>): __ListWidgetMouseController<T> {
+        return new __ListWidgetMouseController(this, opts);
+    }
 
     /**
      * @description A mapper function to convert the {@link MouseEvent} to our 
