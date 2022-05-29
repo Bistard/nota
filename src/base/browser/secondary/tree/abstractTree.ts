@@ -156,6 +156,7 @@ export class TreeListWidget<T, TFilter, TRef> extends ListWidget<ITreeNode<T>> {
 
     private _focused: __TreeListTrait<T>;
     private _selected: __TreeListTrait<T>;
+    private _anchor: __TreeListTrait<T>;
 
     // [constructor]
 
@@ -163,12 +164,14 @@ export class TreeListWidget<T, TFilter, TRef> extends ListWidget<ITreeNode<T>> {
         container: HTMLElement,
         renderers: IListViewRenderer<any, any>[],
         focusedTrait: __TreeListTrait<T>,
+        anchorTrait: __TreeListTrait<T>,
         selectedTrait: __TreeListTrait<T>,
         itemProvider: IListItemProvider<ITreeNode<T, TFilter>>,
         opts: ITreeListWidgetOpts<T, TFilter, TRef>
     ) {
         super(container, renderers, itemProvider, opts);
         this._focused = focusedTrait;
+        this._anchor = anchorTrait;
         this._selected = selectedTrait;
     }
 
@@ -182,6 +185,7 @@ export class TreeListWidget<T, TFilter, TRef> extends ListWidget<ITreeNode<T>> {
         }
 
         let focusedIndex: number = -1;
+        let anchorIndex: number = -1;
         let selectedIndex: number[] = [];
 
         /**
@@ -198,6 +202,10 @@ export class TreeListWidget<T, TFilter, TRef> extends ListWidget<ITreeNode<T>> {
                 focusedIndex = i;
             }
 
+            if (this._anchor.has(item)) {
+                anchorIndex = i;
+            }
+
             if (this._selected.has(item)) {
                 selectedIndex.push(i);
             }
@@ -209,6 +217,10 @@ export class TreeListWidget<T, TFilter, TRef> extends ListWidget<ITreeNode<T>> {
 
         if (focusedIndex !== -1) {
             super.setFocus(focusedIndex);
+        }
+
+        if (anchorIndex !== -1) {
+            super.setAnchor(anchorIndex);
         }
 
         if (selectedIndex.length > 0) {
@@ -393,8 +405,17 @@ export interface IAbstractTree<T, TFilter, TRef> {
     expandAll(): void;
     
     /**
+     * @description Sets the given item as anchor.
+     */
+    setAnchor(item: TRef): void;
+
+    /**
+     * @description Returns the anchor item.
+     */
+    getAnchor(): T | null;
+
+    /**
      * @description Sets the given item as focused.
-     * @param item The provided item.
      */
     setFocus(item: TRef): void;
 
@@ -405,7 +426,6 @@ export interface IAbstractTree<T, TFilter, TRef> {
 
     /**
      * @description Sets the given a series of items as selected.
-     * @param items The provided items.
      */
     setSelections(items: TRef[]): void;
 
@@ -439,6 +459,7 @@ export abstract class AbstractTree<T, TFilter, TRef> implements IAbstractTree<T,
     protected _view: TreeListWidget<T, TFilter, TRef>;
 
     private _focused: __TreeListTrait<T>;
+    private _anchor: __TreeListTrait<T>;
     private _selected: __TreeListTrait<T>;
 
     // [constructor]
@@ -461,12 +482,14 @@ export abstract class AbstractTree<T, TFilter, TRef> implements IAbstractTree<T,
         renderers = renderers.map(renderer => new TreeItemRenderer<T, TFilter, any>(renderer, relayEmitter.registerListener));
 
         this._focused = new __TreeListTrait();
+        this._anchor = new __TreeListTrait();
         this._selected = new __TreeListTrait();
 
         this._view = new TreeListWidget(
             container, 
             renderers, 
             this._focused,
+            this._anchor,
             this._selected,
             new TreeListItemProvider(itemProvider), 
             {
@@ -482,7 +505,6 @@ export abstract class AbstractTree<T, TFilter, TRef> implements IAbstractTree<T,
 
         // dispose registration
         this._disposables.register(this._view);
-
     }
 
     // [event]
@@ -544,6 +566,24 @@ export abstract class AbstractTree<T, TFilter, TRef> implements IAbstractTree<T,
         this._model.setCollapsed(this._model.root, false, true);
     }
 
+    public setAnchor(item: TRef): void {
+        const node = this._model.getNode(item);
+        this._anchor.set([node]);
+        const index = this._model.getNodeListIndex(item);
+
+        // not visible in the list view level.
+        if (index === -1) {
+            return;
+        }
+
+        this._view.setFocus(index);
+    }
+
+    public getAnchor(): T | null {
+        const returned = this._anchor.get();
+        return returned.length ? returned[0]! : null;
+    }
+
     public setFocus(item: TRef): void {
         const node = this._model.getNode(item);
         this._focused.set([node]);
@@ -559,7 +599,7 @@ export abstract class AbstractTree<T, TFilter, TRef> implements IAbstractTree<T,
 
     public getFocus(): T | null {
         const returned = this._focused.get();
-        return returned.length ? this._focused.get()[0]! : null;
+        return returned.length ? returned[0]! : null;
     }
 
     public setSelections(items: TRef[]): void {

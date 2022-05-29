@@ -309,19 +309,19 @@ export class __ListWidgetMouseController<T> implements IDisposable {
             anchor = this._view.getFocus() || toFocused;
             this._view.setAnchor(anchor);
         }
-        console.log('anchor: ', anchor);
+
+        /**
+         * @readonly Below is not really a good implementation (could be optimized), 
+         * but works.
+         */
+
         // calculates the selection range
         const toSelectRange = Array.range(
             Math.min(toFocused, anchor), 
             Math.max(toFocused, anchor) + 1
         );
-        console.log('selection range: ', toSelectRange);
-
         const currSelection = this._view.getSelections().sort((a, b) => a - b);
-        console.log('curr selection: ', currSelection);
-
         const contiguousRange = this.__getNearestContiguousRange(Array.unique(Array.insert(currSelection, anchor)), anchor);
-        console.log('contiguous selection: ', contiguousRange);
         if (!contiguousRange.length) {
             return;
         }
@@ -331,8 +331,7 @@ export class __ListWidgetMouseController<T> implements IDisposable {
                                     Array.relativeComplement(contiguousRange, currSelection)
                                 )
                             );
-        console.log('new selection: ', newSelection);
-        console.log('============');
+        
         // update selections and focused
         this._view.setSelections(newSelection);
         this._view.setFocus(toFocused);
