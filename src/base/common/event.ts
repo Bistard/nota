@@ -135,6 +135,11 @@ export interface IEmitter<T> {
      */
     dispose(): void;
 
+    /**
+     * @description If the emitter is disposed.
+     */
+    isDisposed(): boolean;
+
 }
 
 /**

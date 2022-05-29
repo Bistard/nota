@@ -27,6 +27,8 @@ export interface IAsyncMultiTreeModel<T, TFilter> extends Omit<ITreeModel<T, TFi
     /**
      * @description Given the data, returns the corresponding {@link IAsyncTreeNode}.
      * @param data The provided data.
+     * 
+     * @throws If node not found, an error will be thrown.
      */
     getAsyncNode(data: T): IAsyncTreeNode<T>;
 

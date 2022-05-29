@@ -2,7 +2,7 @@ import { IListViewRenderer, PipelineRenderer, RendererType } from "src/base/brow
 import { IListViewOpts, IViewItem, IViewItemChangeEvent, ListError, ListView } from "src/base/browser/secondary/listView/listView";
 import { DisposableManager, IDisposable } from "src/base/common/dispose";
 import { addDisposableListener, DomUtility, EventType } from "src/base/common/dom";
-import { DomEmitter, Emitter, Event, Register, SignalEmitter } from "src/base/common/event";
+import { Emitter, Event, Register, SignalEmitter } from "src/base/common/event";
 import { IScrollEvent } from "src/base/common/scrollable";
 import { IListItemProvider } from "src/base/browser/secondary/listView/listItemProvider";
 import { IListDragAndDropProvider, ListWidgetDragAndDropProvider } from "src/base/browser/secondary/listWidget/listWidgetDragAndDrop";

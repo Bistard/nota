@@ -1,7 +1,7 @@
 import { ITreeCollapseStateChangeEvent, ITreeModel, ITreeMouseEvent, ITreeNode, ITreeSpliceEvent } from "src/base/browser/secondary/tree/tree";
 import { ITreeListRenderer, TreeItemRenderer } from "src/base/browser/secondary/tree/treeListRenderer";
 import { IListItemProvider, TreeListItemProvider } from "src/base/browser/secondary/listView/listItemProvider";
-import { IListMouseEvent, IListTouchEvent, IListWidgetOpts, ITraitChangeEvent, ListWidget } from "src/base/browser/secondary/listWidget/listWidget";
+import { IListMouseEvent, IListWidgetOpts, ITraitChangeEvent, ListWidget } from "src/base/browser/secondary/listWidget/listWidget";
 import { IListDragAndDropProvider } from "src/base/browser/secondary/listWidget/listWidgetDragAndDrop";
 import { DisposableManager, IDisposable } from "src/base/common/dispose";
 import { Event, Register, RelayEmitter } from "src/base/common/event";
@@ -273,6 +273,7 @@ export interface IAbstractTree<T, TFilter, TRef> {
      * @param recursive Determines if the operation is recursive (same operation 
      *                  to its descendants). if not provided, sets to false as 
      *                  default.
+     * @returns If the operation successed.
      */
     collapse(location: TRef, recursive: boolean): boolean;
 
@@ -282,6 +283,7 @@ export interface IAbstractTree<T, TFilter, TRef> {
      * @param recursive Determines if the operation is recursive (same operation 
      *                  to its descendants). if not provided, sets to false as 
      *                  default.
+     * @returns If the operation successed.
      */
     expand(location: TRef, recursive: boolean): boolean;
     
@@ -292,6 +294,7 @@ export interface IAbstractTree<T, TFilter, TRef> {
      * @param recursive Determines if the operation is recursive (same operation 
      *                  to its descendants). if not provided, sets to false as 
      *                  default.
+     * @returns If the operation successed.
      */
     toggleCollapseOrExpand(location: TRef, recursive: boolean): boolean;
     
@@ -433,28 +436,23 @@ export abstract class AbstractTree<T, TFilter, TRef> implements IAbstractTree<T,
     }
 
     public collapse(location: TRef, recursive: boolean = false): boolean {
-        this.__throwIfNotSupport(this._model.setCollapsed);
-        return this._model.setCollapsed!(location, true, recursive);
+        return this._model.setCollapsed(location, true, recursive);
     }
 
     public expand(location: TRef, recursive: boolean = false): boolean {
-        this.__throwIfNotSupport(this._model.setCollapsed);
-        return this._model.setCollapsed!(location, false, recursive);
+        return this._model.setCollapsed(location, false, recursive);
     }
 
     public toggleCollapseOrExpand(location: TRef, recursive: boolean = false): boolean {
-        this.__throwIfNotSupport!(this._model.setCollapsed);
-        return this._model.setCollapsed!(location, undefined, recursive);
+        return this._model.setCollapsed(location, undefined, recursive);
     }
 
     public collapseAll(): void {
-        this.__throwIfNotSupport(this._model.setCollapsed);
-        this._model.setCollapsed!(this._model.root, true, true);
+        this._model.setCollapsed(this._model.root, true, true);
     }
 
     public expandAll(): void {
-        this.__throwIfNotSupport(this._model.setCollapsed);
-        this._model.setCollapsed!(this._model.root, false, true);
+        this._model.setCollapsed(this._model.root, false, true);
     }
 
     public setFocus(item: TRef): void {
@@ -505,15 +503,6 @@ export abstract class AbstractTree<T, TFilter, TRef> implements IAbstractTree<T,
     }
 
     // [private helper methods]
-
-    /**
-     * @description Throws {@link Error} if the given method does not exist.
-     */
-    private __throwIfNotSupport(method: any): void {
-        if (!method) {
-            throw new Error(`current tree model does not support: ${method}`);
-        }
-    }
 
     /**
      * @description Converts the event {@link IListMouseEvent<ITreeNode<T>>} to
