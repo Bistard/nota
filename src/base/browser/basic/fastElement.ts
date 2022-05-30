@@ -1,4 +1,3 @@
-import { HexColor } from "src/base/common/color";
 import { DomStyle } from "src/base/common/dom";
 
 /**
@@ -28,7 +27,7 @@ export interface IFastElement<T extends HTMLElement> {
 
     setLineHeight(value: number): void;
     setVisibility(value: DomStyle.Visibility): void;
-    setBackgroundColor<K extends string>(value: HexColor<K>): void;
+    setBackgroundColor<K extends string>(value: DomStyle.Color<K>): void;
 
     setAttribute(name: string, value: string): void;
 	removeAttribute(name: string): void;
@@ -212,7 +211,7 @@ export class FastElement<T extends HTMLElement> implements IFastElement<T> {
         this._element.style.visibility = value;
     }
 
-    public setBackgroundColor<K extends string>(value: HexColor<K>): void {
+    public setBackgroundColor<K extends string>(value: DomStyle.Color<K>): void {
         if (this._backgroundColor === value) {
             return;
         }
