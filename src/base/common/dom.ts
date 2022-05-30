@@ -3,6 +3,17 @@ import { Emitter, Register } from "src/base/common/event";
 import { Pair } from "src/base/common/util/type";
 
 /**
+ * @namespace DomStyle A series of types for DOM styling purpose.
+ */
+export namespace DomStyle {
+
+	export type Position = 'static' | 'absolute' | 'fixed' | 'relative' | 'sticky' | 'initial' | 'inherit';
+	export type Display = 'block' | 'compact' | 'flex' | 'inline' | 'inline-block' | 'inline-flex' | 'inline-table' | 'list-item' | 'marker' | 'none' | 'run-in' | 'table' | 'table-caption' | 'table-cell' | 'table-column' | 'table-column-group' | 'table-footer-group' | 'table-header-group' | 'table-row' | 'table-row-group' | 'initial' | 'inherit';
+	export type FontWeight = 'normal' | 'lighter' | 'bold' | 'bolder' | 'initial' | 'inherit' | '100' | '200' | '300' | '400' | '500' | '600' | '700' | '800' | '900';
+	export type Visibility = 'visible' | 'hidden' | 'collapse' | 'initial' | 'inherit';
+}
+
+/**
  * @readonly A enumeration of all HTMLElement event types.
  */
 export const enum EventType {
