@@ -1,5 +1,4 @@
 import { URI } from "src/base/common/file/uri";
-import { getFileType } from "src/base/common/util/string";
 
 export const enum FileType {
     UNKNOWN,
@@ -62,50 +61,6 @@ export interface IResolvedFileStat extends IFileStat {
 	 */
 	children?: Iterable<IResolvedFileStat>;
 
-}
-
-/** @deprecated */
-export class File implements IFileStat {
-
-	readonly type: FileType;
-	readonly createTime: number;
-	readonly modifyTime: number;
-	readonly byteSize: number;
-
-	readonly name: string;
-	plainText: string;
-
-	constructor(name: string, plainText?: string) {
-		this.type = getFileType(name);
-		this.createTime = Date.now();
-		this.modifyTime = Date.now();
-		this.byteSize = 0;
-		this.name = name;
-
-        this.plainText = plainText || '';
-	}
-}
-
-/** @deprecated */
-export class Directory implements IFileStat {
-
-	readonly type: FileType;
-	readonly createTime: number;
-	readonly modifyTime: number;
-	readonly byteSize: number;
-
-	readonly name: string;
-	entries: Map<string, File | Directory>;
-
-	constructor(name: string) {
-		this.type = getFileType(name);
-		this.createTime = Date.now();
-		this.modifyTime = Date.now();
-		this.byteSize = 0;
-		this.name = name;
-		
-        this.entries = new Map();
-	}
 }
 
 /** @description the base interface for any other FileSystemProvider. */

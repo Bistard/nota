@@ -18,10 +18,7 @@ import 'prismjs/components/prism-java';
 
 // @toast-ui-plugin: color syntax 
 import colorSyntax from '@toast-ui/editor-plugin-color-syntax';
-import { FileNode } from 'src/base/node/fileTree';
 import { Component, IComponent } from 'src/code/browser/workbench/component';
-import { EVENT_EMITTER } from 'src/base/common/event';
-import { getSvgPathByName, SvgType } from 'src/base/common/util/string';
 import { ContextMenuType, Coordinate } from 'src/base/browser/secondary/contextMenu/contextMenu';
 import { IContextMenuService } from 'src/code/browser/service/contextMenuService';
 import { createDecorator } from 'src/code/common/service/instantiationService/decorator';
@@ -36,7 +33,6 @@ export const IMarkdownService = createDecorator<IMarkdownService>('markdown-serv
 export interface IMarkdownService extends IComponent {
     createMarkdownEditor(): void;
     onTextChange(): void;
-    markdownDisplayFile(nodeInfo: FileNode): void;
     markdownModeSwitch(): void;
     getEditorText(): string;
 }
@@ -147,40 +143,6 @@ export class MarkdownComponent extends Component implements IMarkdownService {
     
         });
 
-        EVENT_EMITTER.register('EMarkdownDisplayFile', (nodeInfo: FileNode | null) => this.markdownDisplayFile(nodeInfo));
-        EVENT_EMITTER.register('EMarkdownModeSwitch', () => this.markdownModeSwitch());
-        EVENT_EMITTER.register('EMarkdownGetText', (): string => { return this.getEditorText() });
-        // ipcRendererOn('Ctrl+S', () => {
-        //     if (!this.explorerViewComponent.TabBar.emptyTab) {
-        //         if (this.saveFileTimeout) {
-        //             clearTimeout(this.saveFileTimeout);
-        //         }
-        //         this.markdownSaveFile();
-        //     }
-        // })
-
-        /**
-         * @readonly registers right click menu listeners
-         */
-
-        /*
-        domNodeByIdAddListener('markdown', 'contextmenu', (event) => {
-            event.preventDefault();
-            const element = event.target as HTMLElement;
-            const tagName = element.tagName;
-            const parentElement = element.parentElement?.tagName;
-            const menu = document.querySelector(".toastui-editor-context-menu") as HTMLElement;
-           // if (tagName == 'TD' || tagName == 'TH' || parentElement == 'TD' || parentElement == 'TH' ) {
-            if (tagName == 'TD' || tagName == 'TH') {
-                // console.log('Chart Context Menu');
-            }else if (tagName == 'P') {
-                menu.style.display = 'none';
-                ipcRendererSend('showContextMenuEditor');
-            } else {
-                ipcRendererSend('showContextMenuEditor');     
-            }
-        });
-        */
     }
 
     /**
@@ -257,41 +219,11 @@ export class MarkdownComponent extends Component implements IMarkdownService {
 
     
     /**
-     * @description will be registered into eventEmitter as 'EMarkdownDisplayFile' 
-     * event.
-     */
-    public markdownDisplayFile(nodeInfo: FileNode | null): void {
-        
-        if (!this.editor) {
-            // do log here.
-            return;
-        }
-
-        if (nodeInfo && !nodeInfo.isFolder) {
-            this.editor.setMarkdown(nodeInfo.file!.plainText, false);
-        } else {
-            this.editor.setMarkdown('', false);
-        }
-    }
-
-    /**
      * @description change the mode of markdown renderering method. They are 
      * 'wysiwyg', 'instant' and 'split'.
      */
      public markdownModeSwitch(): void {
-        if (this.currentMode == 'wysiwyg') {
-            $('#mode-switch').removeClass('function-button-focus');
-            $('#mode-switch > img').attr('src', getSvgPathByName(SvgType.base, 'md-split'));
-            this.editor!.changeMode('markdown', true);
-            this.currentMode = 'split';
-        } else if (this.currentMode == 'instant') {
-            // ...
-        } else { // (mode == 'split')
-            $('#mode-switch').addClass('function-button-focus');
-            $('#mode-switch > img').attr('src', getSvgPathByName(SvgType.base, 'md-wysiwyg'));
-            this.editor!.changeMode('wysiwyg', true);
-            this.currentMode = 'wysiwyg';
-        }
+        
     }
     
     /**

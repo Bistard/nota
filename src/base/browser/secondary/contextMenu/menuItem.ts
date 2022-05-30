@@ -1,5 +1,3 @@
-import { getSvgPathByName, SvgType } from 'src/base/common/util/string';
-
 export const CONTEXT_MENU_ITEM_HEIGHT = 30;
 export const CONTEXT_MENU_WIDTH = 150;
 export const CONTEXT_MENU_SEPERATOR_HEIGHT = 4;
@@ -57,7 +55,7 @@ export class MenuItem implements IMenuItem {
                 this.setTextClass(['menu-item-text']);
                 break;
             case 'checkBox':
-                this.setImage(getSvgPathByName(SvgType.base, 'check-mark'));
+                this.setImage('check-mark');
                 if (opt.checked){
                     this.setImageClass(['filter-black', 'check-box']);
                     this.setImageID(opt.id + "-check-mark");
@@ -77,7 +75,7 @@ export class MenuItem implements IMenuItem {
             case 'subMenu':
                 this.setText(opt.text);
                 this.setTextClass(['menu-item-text']);
-                this.setImage(getSvgPathByName(SvgType.base, 'caret-right'));
+                this.setImage('caret-right');
                 this.setImageClass(['filter-black', 'caret-right']);
                 this.setImageID(opt.id + "-caret-right");
                 break

@@ -1,63 +1,8 @@
-import { Abortable } from 'events';
 import * as fs from 'fs';
-import { getFileType } from 'src/base/common/util/string';
-import { FileType, ICreateReadStreamOptions, IFileSystemProviderWithFileReadWrite, IFileSystemProviderWithOpenReadWriteClose, IReadFileOptions } from 'src/base/common/file/file';
-import { FileNode } from 'src/base/node/fileTree';
+import { ICreateReadStreamOptions, IFileSystemProviderWithFileReadWrite, IFileSystemProviderWithOpenReadWriteClose, IReadFileOptions } from 'src/base/common/file/file';
 import { URI } from 'src/base/common/file/uri';
 import { IDataConverter, IWriteableStream } from 'src/base/common/file/stream';
 import { DataBuffer } from 'src/base/common/file/buffer';
-
-/*******************************************************************************
- *                              file related code
- ******************************************************************************/
-
-/** @deprecated The method should not be used */
-export function isMarkdownFile(filename: string): boolean {
-    return getFileType(filename) === FileType.FILE;
-}
-
-/** @deprecated The method should not be used */
-export type readFileOption = 
-    | ({
-        encoding: BufferEncoding;
-        flag?: string | undefined;
-    } & Abortable)
-    | BufferEncoding;
-
-/** @deprecated The method should not be used */
-export type readMarkdownFileOption = readFileOption;
-
-/** @deprecated The method should not be used */
-const defaultReadFileOpt: readMarkdownFileOption = {
-    encoding: 'utf-8',
-    flag: 'r'
-};
-
-/** @deprecated The method should not be used */
-/**
- * @description asynchronously reads a single .md file and stores the text into FileNode.
- */
-export async function readMarkdownFile(
-    nodeInfo: FileNode, 
-    opt: readMarkdownFileOption = defaultReadFileOpt): Promise<void | string> 
-{
-    return new Promise((resolve, reject) => {
-        
-        if (!nodeInfo || nodeInfo.isFolder) {
-            reject('given wrong nodeInfo or it is a folder');
-        } else if (!isMarkdownFile(nodeInfo.baseName)) {
-            reject('not a markdown file');
-        }
-
-        fs.readFile(nodeInfo.path, opt, (err, text: string) => {
-            if (err) {
-                reject(err);
-            }
-            nodeInfo.file!.plainText = text;
-            resolve();
-        });
-    });
-}
 
 /*******************************************************************************
  * File Mode Permissions
