@@ -4,7 +4,7 @@ import { DomStyle } from "src/base/common/dom";
 /**
  * The interface only for {@link FastElement}.
  */
-export interface IFastElement<T> {
+export interface IFastElement<T extends HTMLElement> {
 
     readonly element: T;
 
@@ -30,6 +30,10 @@ export interface IFastElement<T> {
     setVisibility(value: DomStyle.Visibility): void;
     setBackgroundColor<K extends string>(value: HexColor<K>): void;
 
+    setAttribute(name: string, value: string): void;
+	removeAttribute(name: string): void;
+	appendChild(child: IFastElement<T>): void;
+	removeChild(child: IFastElement<T>): void;
 }
 
 /**
@@ -215,5 +219,21 @@ export class FastElement<T extends HTMLElement> implements IFastElement<T> {
         this._backgroundColor = value;
         this._element.style.backgroundColor = value;
     }
+
+    public setAttribute(name: string, value: string): void {
+		this._element.setAttribute(name, value);
+	}
+
+	public removeAttribute(name: string): void {
+		this._element.removeAttribute(name);
+	}
+
+	public appendChild(child: IFastElement<T>): void {
+		this._element.appendChild(child.element);
+	}
+
+	public removeChild(child: IFastElement<T>): void {
+		this._element.removeChild(child.element);
+	}
     
 }

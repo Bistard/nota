@@ -3,6 +3,11 @@ import { DightInString } from "src/base/common/util/type";
 export type LowerHexLetter = 'a' | 'b' | 'c' | 'd' | 'e' | 'f';
 export type UpperHexLetter = 'A' | 'B' | 'C' | 'D' | 'E' | 'F';
 export type HexDigit = LowerHexLetter | UpperHexLetter | DightInString;
+
+/**
+ * @type If the given string is in the form '#xxxxxx' where x stands for legal 
+ * {@link HexDigit}.
+ */
 export type HexColor<T extends string> =
     T extends `#${HexDigit}${HexDigit}${HexDigit}${infer Rest1}`
         ? (Rest1 extends `` 
