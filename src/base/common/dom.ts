@@ -1,6 +1,5 @@
 import { HexColor } from "src/base/common/color";
-import { DisposableManager, IDisposable, toDisposable } from "src/base/common/dispose";
-import { Emitter, Register } from "src/base/common/event";
+import { IDisposable, toDisposable } from "src/base/common/dispose";
 import { Pair } from "src/base/common/util/type";
 
 /**

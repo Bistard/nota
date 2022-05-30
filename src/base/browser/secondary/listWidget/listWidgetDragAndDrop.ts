@@ -27,7 +27,7 @@ export interface IListDragAndDropProvider<T> {
 }
 
 /**
- * A special interface for {@link IListView} usage.
+ * A special interface for {@link IListWidget} usage.
  */
 export interface IListWidgetDragAndDropProvider<T> extends IListDragAndDropProvider<T> {
     
