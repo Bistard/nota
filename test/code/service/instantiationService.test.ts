@@ -259,6 +259,8 @@ suite('instantiationService-test', () => {
 	const ICreateOnlyOnceClass = createDecorator<ICreateOnlyOnceClass>('create-only-once');
 
 	test('createInstance double creation', () => {
+		CreateOnlyOnceClass.cnt = 0;
+
 		let collection = new ServiceCollection();
 		let service = new InstantiationService(collection);
 		service.register(ICreateOnlyOnceClass, new ServiceDescriptor(CreateOnlyOnceClass));
@@ -266,5 +268,23 @@ suite('instantiationService-test', () => {
 		assert.strictEqual(1, CreateOnlyOnceClass.cnt);
 		service.createInstance(CreateOnlyOnceClass);
 		assert.strictEqual(2, CreateOnlyOnceClass.cnt);
+	});
+
+	test('getOrCreateService, prevent double creation', () => {
+		CreateOnlyOnceClass.cnt = 0;
+		
+		let collection = new ServiceCollection();
+		let service = new InstantiationService(collection);
+		service.register(ICreateOnlyOnceClass, new ServiceDescriptor(CreateOnlyOnceClass));
+		
+		service.getOrCreateService((provider) => {
+			provider.getService(ICreateOnlyOnceClass);
+		});
+		assert.strictEqual(1, CreateOnlyOnceClass.cnt);
+		
+		service.getOrCreateService((provider) => {
+			provider.getService(ICreateOnlyOnceClass);
+		});
+		assert.strictEqual(1, CreateOnlyOnceClass.cnt);
 	});
 });
