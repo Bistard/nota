@@ -36,10 +36,8 @@ export interface IInstantiationService extends IServiceProvider {
      * @param ctorOrDescriptor constructor or ServiceDescriptor of the service
      * @param rest all the arguments for that service
      */
-    createInstance(ctorOrDescriptor: any | ServiceDescriptor<any>, ...rest: any[]): any;
-    
-    // InstanceType
-    
+    createInstance<Ctor extends new (...args: any[]) => any, T extends InstanceType<Ctor>>(ctorOrDescriptor: Ctor | ServiceDescriptor<Ctor>, ...rest: any[]): T;
+
     /**
      * @description Invokes a callback function with a {@link IServiceProvider}
      * which will get or create a service.
