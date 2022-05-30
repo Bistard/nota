@@ -1,3 +1,4 @@
+import { HexColor } from "src/base/common/color";
 import { DisposableManager, IDisposable, toDisposable } from "src/base/common/dispose";
 import { Emitter, Register } from "src/base/common/event";
 import { Pair } from "src/base/common/util/type";
@@ -11,6 +12,8 @@ export namespace DomStyle {
 	export type Display = 'block' | 'compact' | 'flex' | 'inline' | 'inline-block' | 'inline-flex' | 'inline-table' | 'list-item' | 'marker' | 'none' | 'run-in' | 'table' | 'table-caption' | 'table-cell' | 'table-column' | 'table-column-group' | 'table-footer-group' | 'table-header-group' | 'table-row' | 'table-row-group' | 'initial' | 'inherit';
 	export type FontWeight = 'normal' | 'lighter' | 'bold' | 'bolder' | 'initial' | 'inherit' | '100' | '200' | '300' | '400' | '500' | '600' | '700' | '800' | '900';
 	export type Visibility = 'visible' | 'hidden' | 'collapse' | 'initial' | 'inherit';
+	export type Color<T extends string> = HexColor<T>;
+
 }
 
 /**

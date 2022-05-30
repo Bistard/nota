@@ -1,3 +1,19 @@
+import { DightInString } from "src/base/common/util/type";
+
+export type LowerHexLetter = 'a' | 'b' | 'c' | 'd' | 'e' | 'f';
+export type UpperHexLetter = 'A' | 'B' | 'C' | 'D' | 'E' | 'F';
+export type HexDigit = LowerHexLetter | UpperHexLetter | DightInString;
+export type HexColor<T extends string> =
+    T extends `#${HexDigit}${HexDigit}${HexDigit}${infer Rest1}`
+        ? (Rest1 extends `` 
+            ? T // three-digit hex color
+            : (
+                Rest1 extends `${HexDigit}${HexDigit}${HexDigit}`
+                    ? T  // six-digit hex color
+                    : never
+            )
+        )
+        : never;
 
 function roundFloat(number: number, decimalPoints: number): number {
 	const decimal = Math.pow(10, decimalPoints);

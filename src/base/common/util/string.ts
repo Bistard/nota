@@ -1,8 +1,6 @@
 import { FileType } from "src/base/common/file/file";
 import { Iterable } from "src/base/common/util/iterable";
 
-export const CHAR_DIR_SEPARATOR = '/';
-
 /** @deprecated */
 export function pathJoin(root: string, ...paths: string[]): string {
     let absolutePath = root;
@@ -10,7 +8,7 @@ export function pathJoin(root: string, ...paths: string[]): string {
         if (path === '') {
             continue;
         }
-        absolutePath += CHAR_DIR_SEPARATOR + path;
+        absolutePath += '/' + path;
     }
     return absolutePath;
 }
