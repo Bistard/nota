@@ -1,7 +1,7 @@
 import { INotebookManagerService, NotebookManager } from "src/code/common/model/notebookManager";
-import { ipcRendererOn, ipcRendererSend } from "src/base/electron/register";
+import { ipcRendererSend } from "src/base/electron/register";
 import { ContextMenuService, IContextMenuService } from 'src/code/browser/service/contextMenuService';
-import { IInstantiationService, InstantiationError } from "src/code/common/service/instantiationService/instantiation";
+import { IInstantiationService } from "src/code/common/service/instantiationService/instantiation";
 import { ServiceDescriptor } from "src/code/common/service/instantiationService/descriptor";
 import { IComponentService } from "src/code/browser/service/componentService";
 import { getSingletonServiceDescriptors } from "src/code/common/service/instantiationService/serviceCollection";
@@ -86,24 +86,6 @@ export class Workbench extends WorkbenchLayout implements IWorkbenchService {
         
         this.__registerLayout();
         this.__registerShortcuts();
-            
-        // TODO: below codes requires refactor
-
-        this.container.addEventListener('click', (ev: MouseEvent) => {
-            const service = this.instantiationService.getService(IContextMenuService);
-            if (service) {
-                service.removeContextMenu();
-            }
-            const menu = document.querySelector(".toastui-editor-context-menu") as HTMLElement;
-            menu.style.display = 'none';
-        });
-
-        ipcRendererOn('closeContextMenu', () => {
-            const service = this.instantiationService.getService(IContextMenuService);
-            if (service) {
-                service.removeContextMenu();
-            }
-        });
 
     }
 

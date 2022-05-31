@@ -5,8 +5,8 @@ import { IpcCommand } from "src/base/electron/ipcCommand";
 import { IComponentService } from "src/code/browser/service/componentService";
 import { IIpcService } from "src/code/browser/service/ipcService";
 import { Component } from "src/code/browser/workbench/component";
-import { TitleBarComponentType } from "src/code/browser/workbench/editor/titleBar/titleBar";
-import { WindowButton } from "src/code/browser/workbench/editor/titleBar/windowButton";
+import { TitleBarComponentType } from "src/code/browser/workbench/workspace/titleBar/titleBar";
+import { WindowButton } from "src/code/browser/workbench/workspace/titleBar/windowButton";
 
 export class WindowBarComponent extends Component {
 

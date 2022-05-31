@@ -24,11 +24,12 @@
 @import "../code/styles/workbench/actionView/explorer/explorerView.css";
 @import "../code/styles/workbench/actionView/explorer/explorerItem.css";
 @import "../code/styles/workbench/actionView/outline/outlineView.css";
-@import "../code/styles/workbench/editor/editor.css";
-@import "../code/styles/workbench/editor/titleBar/titleBarView.css";
-@import "../code/styles/workbench/editor/titleBar/windowBarView.css";
-@import "../code/styles/workbench/editor/markdown/markdownView.css";
-@import "../code/styles/workbench/editor/markdown/customToastuiStyle.css";
+@import "../code/styles/workbench/workspace/workspace.css";
+@import "../code/styles/workbench/workspace/titleBar/titleBarView.css";
+@import "../code/styles/workbench/workspace/titleBar/windowBarView.css";
+@import "../code/styles/workbench/workspace/editor/editor.css";
+@import "../code/styles/workbench/workspace/markdown/markdownView.css";
+@import "../code/styles/workbench/workspace/markdown/customToastuiStyle.css";
 
 @font-face {
     font-family: harmonyOS sans;

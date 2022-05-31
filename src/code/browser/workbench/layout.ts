@@ -6,7 +6,7 @@ import { IIpcService } from "src/code/browser/service/ipcService";
 import { ActionBarComponent, ActionType } from "src/code/browser/workbench/actionBar/actionBar";
 import { ActionViewComponent } from "src/code/browser/workbench/actionView/actionView";
 import { Component, ComponentType, ICreateable } from "src/code/browser/workbench/component";
-import { EditorComponent } from "src/code/browser/workbench/editor/editor";
+import { WorkspaceComponent } from "src/code/browser/workbench/workspace/workspace";
 import { IInstantiationService } from "src/code/common/service/instantiationService/instantiation";
 
 /**
@@ -24,7 +24,7 @@ export abstract class WorkbenchLayout extends Component {
 
     protected actionBarComponent!: ActionBarComponent;
     protected actionViewComponent!: ActionViewComponent;
-    protected editorComponent!: EditorComponent;
+    protected editorComponent!: WorkspaceComponent;
     
     // TODO: refactor using SplitView
     protected sashContainer: HTMLElement | undefined;
@@ -49,7 +49,7 @@ export abstract class WorkbenchLayout extends Component {
          */
         this.actionBarComponent = this.instantiationService.createInstance(ActionBarComponent, this);
         this.actionViewComponent = this.instantiationService.createInstance(ActionViewComponent, this, ActionType.EXPLORER /* // TODO: should read from config */);
-        this.editorComponent = this.instantiationService.createInstance(EditorComponent, this);
+        this.editorComponent = this.instantiationService.createInstance(WorkspaceComponent, this);
         
         [
             this.actionBarComponent,

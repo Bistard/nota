@@ -23,7 +23,7 @@ import { ContextMenuType, Coordinate } from 'src/base/browser/secondary/contextM
 import { IContextMenuService } from 'src/code/browser/service/contextMenuService';
 import { createDecorator } from 'src/code/common/service/instantiationService/decorator';
 import { IComponentService } from 'src/code/browser/service/componentService';
-import { EditorComponentType } from 'src/code/browser/workbench/editor/editor';
+import { WorkspaceComponentType } from 'src/code/browser/workbench/workspace/workspace';
 import { IFileLogService } from 'src/code/common/service/logService/fileLogService';
 import { IGlobalConfigService, IUserConfigService } from 'src/code/common/service/configService/configService';
 import { EUserSettings, IUserMarkdownSettings } from 'src/code/common/service/configService/configService';
@@ -61,7 +61,7 @@ export class MarkdownComponent extends Component implements IMarkdownService {
                 @IUserConfigService private readonly userConfigService: IUserConfigService,
                 
         ) {
-        super(EditorComponentType.markdown, parentComponent, parentElement, componentService);
+        super(WorkspaceComponentType.editor, parentComponent, parentElement, componentService);
 
         this.editor = null;
         

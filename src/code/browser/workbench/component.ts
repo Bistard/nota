@@ -9,7 +9,7 @@ export const enum ComponentType {
     Workbench = 'workbench',
     ActionBar = 'action-bar',
     ActionView = 'action-view',
-    Editor = 'editor-view',
+    Workspace = 'workspace',
     ExplorerView = 'explorer-container',
     OutlineView = 'outline-container',
     SearchView = 'search-container',

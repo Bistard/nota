@@ -225,7 +225,7 @@ export class RangeTable {
 	/**
      * @description Removes items from an {@link RangeTable} and, if necessary, 
 	 * inserts new items in their place.
-     * @param start The zero-based location in the {@link RangeTable} from which 
+     * @param index The zero-based location in the {@link RangeTable} from which 
 	 * to start removing items.
      * @param deleteCount The number of items to remove.
      * @param items Elements to insert into the {@link RangeTable} in place of 
