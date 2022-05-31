@@ -26,9 +26,7 @@
 @import "../code/styles/workbench/actionView/outline/outlineView.css";
 @import "../code/styles/workbench/editor/editor.css";
 @import "../code/styles/workbench/editor/titleBar/titleBarView.css";
-@import "../code/styles/workbench/editor/titleBar/functionBarView.css";
 @import "../code/styles/workbench/editor/titleBar/windowBarView.css";
-@import "../code/styles/workbench/editor/tabBar/tabBarView.css";
 @import "../code/styles/workbench/editor/markdown/markdownView.css";
 @import "../code/styles/workbench/editor/markdown/customToastuiStyle.css";
 

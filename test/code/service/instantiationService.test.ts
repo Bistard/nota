@@ -1,7 +1,7 @@
 import * as assert from 'assert';
 import { createDecorator } from 'src/code/common/service/instantiationService/decorator';
 import { ServiceDescriptor } from 'src/code/common/service/instantiationService/descriptor';
-import { IInstantiationService, InstantiationService } from 'src/code/common/service/instantiationService/instantiation';
+import { InstantiationService } from 'src/code/common/service/instantiationService/instantiation';
 import { ServiceCollection } from 'src/code/common/service/instantiationService/serviceCollection';
 
 const IService1 = createDecorator<IService1>('service1');
@@ -244,14 +244,47 @@ suite('instantiationService-test', () => {
 		service.createInstance(DependentServiceTarget5);
 	});
 
-	// test('@Param - complex self registration', () => {
-	// 	let collection = new ServiceCollection();
-	// 	let service = new InstantiationService(collection);
-	// 	service.register(IService1, new Service1());
-	// 	service.register(IDependentService, new ServiceDescriptor(DependentService));
-	// 	service.createInstance(DependentServiceTarget3, service);
-	// 	service.register(IDependentServiceTarget4, new ServiceDescriptor(DependentServiceTarget4));
+	interface ICreateOnlyOnceClass {}
+
+	class CreateOnlyOnceClass implements ICreateOnlyOnceClass {
 		
-	// 	service.createInstance(DependentServiceTarget5);
-	// });
+		public static cnt = 0;
+		
+		constructor() {
+			CreateOnlyOnceClass.cnt++;
+		}
+
+	}
+
+	const ICreateOnlyOnceClass = createDecorator<ICreateOnlyOnceClass>('create-only-once');
+
+	test('createInstance double creation', () => {
+		CreateOnlyOnceClass.cnt = 0;
+
+		let collection = new ServiceCollection();
+		let service = new InstantiationService(collection);
+		service.register(ICreateOnlyOnceClass, new ServiceDescriptor(CreateOnlyOnceClass));
+		service.createInstance(CreateOnlyOnceClass);
+		assert.strictEqual(1, CreateOnlyOnceClass.cnt);
+		service.createInstance(CreateOnlyOnceClass);
+		assert.strictEqual(2, CreateOnlyOnceClass.cnt);
+	});
+
+	test('getOrCreateService, prevent double creation', () => {
+		CreateOnlyOnceClass.cnt = 0;
+		
+		let collection = new ServiceCollection();
+		let service = new InstantiationService(collection);
+		service.register(ICreateOnlyOnceClass, new ServiceDescriptor(CreateOnlyOnceClass));
+		
+		service.getOrCreateService((provider) => {
+			provider.getService(ICreateOnlyOnceClass);
+		});
+		assert.strictEqual(1, CreateOnlyOnceClass.cnt);
+		
+		service.getOrCreateService((provider) => {
+			provider.getService(ICreateOnlyOnceClass);
+		});
+		assert.strictEqual(1, CreateOnlyOnceClass.cnt);
+	});
 });

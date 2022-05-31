@@ -114,35 +114,35 @@ export class Workbench extends WorkbenchLayout implements IWorkbenchService {
      */
     private __registerShortcuts(): void {
 
-        const shortcutService = this.instantiationService.getService(IShortcutService);
-        if (shortcutService === null) {
-            throw new InstantiationError('workbench', IShortcutService);
-        }
+        this.instantiationService.getOrCreateService(provider => {
+            
+            const shortcutService = provider.getService(IShortcutService)!;
+            shortcutService.register({
+                commandID: 'workbench.open-develop-tool',
+                whenID: 'N/A',
+                shortcut: new Shortcut(true, true, false, false, KeyCode.KeyI),
+                when: null,
+                command: () => {
+                    ipcRendererSend(IpcCommand.ToggleDevelopTool);
+                },
+                override: false,
+                activate: true
+            });
+    
+            shortcutService.register({
+                commandID: 'workbench.reload-window',
+                whenID: 'N/A',
+                shortcut: new Shortcut(true, false, false, false, KeyCode.KeyR),
+                when: null,
+                command: () => {
+                    ipcRendererSend(IpcCommand.ReloadWindow);
+                },
+                override: false,
+                activate: true
+            });
 
-        shortcutService.register({
-            commandID: 'workbench.open-develop-tool',
-            whenID: 'N/A',
-            shortcut: new Shortcut(true, true, false, false, KeyCode.KeyI),
-            when: null,
-            command: () => {
-                ipcRendererSend(IpcCommand.ToggleDevelopTool);
-            },
-            override: false,
-            activate: true
         });
-
-        shortcutService.register({
-            commandID: 'workbench.reload-window',
-            whenID: 'N/A',
-            shortcut: new Shortcut(true, false, false, false, KeyCode.KeyR),
-            when: null,
-            command: () => {
-                ipcRendererSend(IpcCommand.ReloadWindow);
-            },
-            override: false,
-            activate: true
-        });
-
+        
     }
 
 }

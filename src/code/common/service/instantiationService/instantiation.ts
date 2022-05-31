@@ -36,7 +36,15 @@ export interface IInstantiationService extends IServiceProvider {
      * @param ctorOrDescriptor constructor or ServiceDescriptor of the service
      * @param rest all the arguments for that service
      */
-    createInstance(ctorOrDescriptor: any | ServiceDescriptor<any>, ...rest: any[]): any;
+    createInstance<Ctor extends new (...args: any[]) => any, T extends InstanceType<Ctor>>(ctorOrDescriptor: Ctor | ServiceDescriptor<Ctor>, ...rest: any[]): T;
+
+    /**
+     * @description Invokes a callback function with a {@link IServiceProvider}
+     * which will get or create a service.
+     * @param cb The callback function.
+     * @param args The arguments for creating the requesting service.
+     */
+    getOrCreateService<T, R extends any[]>(cb: (provider: IServiceProvider, ...args: R) => T, ...args: R): T;
 }
 
 export class InstantiationService implements IInstantiationService {
@@ -60,6 +68,20 @@ export class InstantiationService implements IInstantiationService {
             return null;
         }
         return service;
+    }
+
+    public getOrCreateService<T, R extends any[]>(cb: (provider: IServiceProvider, ...args: R) => T, ...args: R): T {
+        const provider: IServiceProvider = {
+            getService: <T>(serviceIdentifier: ServiceIdentifier<T>) => {
+                const service = this._getOrCreateDependencyInstance(serviceIdentifier);
+                if (!service) {
+                    throw new Error(`[getOrCreateService] UNKNOWN service ${serviceIdentifier.name}.`);
+                }
+                return service;
+            }
+        };
+
+        return cb(provider, ...args);
     }
 
     public createInstance(

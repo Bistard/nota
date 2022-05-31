@@ -3,12 +3,13 @@ import { IListViewRenderer, ListItemRenderer, PipelineRenderer, RendererType } f
 import { ScrollableWidget } from "src/base/browser/secondary/scrollableWidget/scrollableWidget";
 import { ScrollbarType } from "src/base/browser/secondary/scrollableWidget/scrollableWidgetOptions";
 import { DisposableManager, IDisposable } from "src/base/common/dispose";
-import { DomUtility, EventType, FocusTracker } from "src/base/common/dom";
+import { DomUtility, EventType } from "src/base/common/dom";
 import { DomEmitter, Emitter, Register } from "src/base/common/event";
 import { IRange, ISpliceable, Range, RangeTable } from "src/base/common/range";
 import { IScrollEvent, Scrollable } from "src/base/common/scrollable";
 import { IListItemProvider } from "src/base/browser/secondary/listView/listItemProvider";
 import { memoize } from "src/base/common/memoization";
+import { FocusTracker } from "src/base/browser/basic/focusTracker";
 
 
 /**
