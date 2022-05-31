@@ -42,11 +42,12 @@ export interface IMultiTreeOptions<T> extends IAbstractTreeOptions<T> {
 }
 
 /**
- * @class An inheritance from {@link AbstractTree}, built upon the 
+ * @class An inheritance from {@link AbstractTree}, built on top of the 
  * {@link IMultiTreeModel}. 
  * 
  * Almost has nothing new, mainly having this class for wrapping 
- * {@link IMultiTreeModel} and inheriting {@link AbstractTree} away from abstract.
+ * {@link IMultiTreeModel} and inheriting {@link AbstractTree} away from 
+ * abstraction.
  */
 export class MultiTree<T, TFilter = void> extends AbstractTree<T | null, TFilter, T | null> implements IMultiTree<T, TFilter> {
 

@@ -610,7 +610,7 @@ export class __ListWidgetDragAndDropController<T> implements IDisposable {
         dragImage.innerHTML = tag;
         document.body.appendChild(dragImage);
         event.dataTransfer.setDragImage(dragImage, -10, -10);
-        setTimeout(() => document.body.removeChild(dragImage), 0);
+        setTimeout(() => document.body.removeChild(dragImage), 0); // REVIEW: issue #107
         
         if (this._provider.onDragStart) {
             this._provider.onDragStart(event);
