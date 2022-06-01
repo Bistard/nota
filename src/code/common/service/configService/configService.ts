@@ -107,7 +107,7 @@ export class UserConfigService extends ConfigServiceBase implements IUserConfigS
             case EUserSettings.Markdown:
                 this._onDidChangeMarkdownSettings.fire(change);
                 break;
-            case EUserSettings.NotebookManager:
+            case EUserSettings.NotebookGroup:
                 this._onDidChangeNotebookManagerSettings.fire(change);
                 break;
         }
@@ -168,7 +168,7 @@ export class GlobalConfigService extends ConfigServiceBase implements IGlobalCon
             case EGlobalSettings.Application:
                 this._onDidChangeApplicationSettings.fire(change);
                 break;
-            case EGlobalSettings.NotebookManager:
+            case EGlobalSettings.NotebookGroup:
                 this._onDidChangeNotebookManagerSettings.fire(change);
                 break;
         }
@@ -217,7 +217,7 @@ export const enum EGlobalSettings {
     Application = 'application',
 
     /** {@link IGlobalNotebookManagerSettings} */
-    NotebookManager = 'notebookManager',
+    NotebookGroup = 'notebookManager',
 
 }
 
@@ -244,10 +244,10 @@ export interface IGlobalApplicationSettings {
 export interface IGlobalNotebookManagerSettings {
 
     /**
-     * When true, NotebookManager will read or create the default configuration in 
+     * When true, NotebookGroup will read or create the default configuration in 
      * '<appRootPath>/.nota/user.config.json'.
      * 
-     * When false, NotebookManager will read or create a local configuration file 
+     * When false, NotebookGroup will read or create a local configuration file 
      * in '<notebookManagerPath>/.nota/config.json'.
      */
      defaultConfigOn: boolean;
@@ -304,7 +304,7 @@ export class DefaultGlobalConfigModel extends ConfigModel {
 export const enum EUserSettings {
     
     /** {@link IUserNotebookManagerSettings} */
-    NotebookManager = 'notebookManager',
+    NotebookGroup = 'notebookManager',
 
     /** {@link IUserMarkdownSettings} */
     Markdown = 'markdown',

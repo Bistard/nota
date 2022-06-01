@@ -1,6 +1,6 @@
 import { Component, ComponentType, IComponent } from 'src/code/browser/workbench/component';
 import { DomEmitter, Emitter, Register } from 'src/base/common/event';
-import { INotebookManagerService } from 'src/code/common/model/notebookManager';
+import { INotebookGroupService } from 'src/code/common/model/notebookGroup';
 import { IComponentService } from 'src/code/browser/service/componentService';
 import { ContextMenuType, Coordinate } from 'src/base/browser/secondary/contextMenu/contextMenu';
 import { IContextMenuService } from 'src/code/browser/service/contextMenuService';
@@ -76,7 +76,7 @@ export class ExplorerViewComponent extends Component implements IExplorerViewSer
                 @Ii18nService private readonly i18nService: Ii18nService,
                 @IGlobalConfigService private readonly globalConfigService: IGlobalConfigService,
                 @IUserConfigService private readonly userConfigService: IUserConfigService,
-                @INotebookManagerService private readonly notebookManagerService: INotebookManagerService,
+                @INotebookGroupService private readonly notebookGroupService: INotebookGroupService,
                 @IComponentService componentService: IComponentService,
                 @IContextMenuService private readonly contextMenuService: IContextMenuService,
     ) {
@@ -161,8 +161,8 @@ export class ExplorerViewComponent extends Component implements IExplorerViewSer
         
         // get configurations and save it in the class itself.
         try {
-            this._globalConfig = this.globalConfigService.get(EGlobalSettings.NotebookManager);
-            this._userConfig = this.userConfigService.get(EUserSettings.NotebookManager);
+            this._globalConfig = this.globalConfigService.get(EGlobalSettings.NotebookGroup);
+            this._userConfig = this.userConfigService.get(EUserSettings.NotebookGroup);
         } catch (err) {
             throw new Error(`Explorer: ${err}`);
         }
@@ -231,7 +231,7 @@ export class ExplorerViewComponent extends Component implements IExplorerViewSer
 
         // open the directory under the notebook manager
         try {
-            await this.notebookManagerService.open(this._openedView, path);
+            await this.notebookGroupService.open(this._openedView, path);
         } catch (err) {
             // logService.trace(err);
         }
@@ -242,7 +242,7 @@ export class ExplorerViewComponent extends Component implements IExplorerViewSer
          * Since the `this._openedView` is added into the DOM tree, we now can
          * re-layout to calcualte the correct size of the view.
          */
-        this.notebookManagerService.layout();
+        this.notebookGroupService.layout();
 
         this._opened = true;
         this._onDidOpenDirectory.fire({ path: path });

@@ -1,6 +1,8 @@
+import { URI } from "src/base/common/file/uri";
 import { IComponentService } from "src/code/browser/service/componentService";
 import { Component, IComponent } from "src/code/browser/workbench/component";
 import { WorkspaceComponentType } from "src/code/browser/workbench/workspace/workspace";
+import { IFileService } from "src/code/common/service/fileService/fileService";
 import { createDecorator } from "src/code/common/service/instantiationService/decorator";
 import { ServiceDescriptor } from "src/code/common/service/instantiationService/descriptor";
 import { registerSingleton } from "src/code/common/service/instantiationService/serviceCollection";
@@ -22,17 +24,26 @@ export class EditorComponent extends Component implements IEditorService {
     constructor(
         parentComponent: Component,
         @IComponentService componentService: IComponentService,
+        @IFileService private fileService: IFileService,
     ) {
         super(WorkspaceComponentType.editor, parentComponent, null, componentService);
     }
 
     // [public methods]
 
+    public openEditor(uriOrString: URI | string): void {
+        let uri = uriOrString;
+        if (!(uriOrString instanceof URI)) {
+            uri = URI.fromFile(uriOrString);
+        }
+
+        const textModel = new EditorModel();
+    }
+
     // [override protected methods]
 
     protected override _createContent(): void {
         const editor = new EditorWidget(this.container, {});
-        editor.attachModel(new EditorModel());
     }
 
     protected override _registerListeners(): void {
