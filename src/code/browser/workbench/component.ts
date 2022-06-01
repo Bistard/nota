@@ -26,9 +26,15 @@ export interface ICreateable {
  */
 export interface IComponent extends ICreateable {
 
+    /** The parent {@link IComponent} of the current component. */
     readonly parentComponent: IComponent | null;
+
+    /** The parent {@link HTMLElement} of the current component. */
     readonly parent: HTMLElement | null;
+
+    /** The DOM element of the current component. */
     container: HTMLElement;
+
     contentArea: HTMLElement | undefined;
 
     /**
@@ -95,21 +101,24 @@ export interface IComponent extends ICreateable {
 }
 
 /**
- * @class Abstract base class for every composed / complicated UI component.
+ * @class Abstract base class for every composed / complicated UI classes.
  * {@link Component} has ability to nest other {@link Component}s.
  * 
- * {@link Component} is disposable, once it get disposed, all its children will
- * also be disposed.
+ * A component is disposable, once it get disposed, all its children will
+ * also be disposed. The component cannot be disposed / create() / registerListener() twice.
  * 
- * {@link Component} cannot be disposed / create() / registerListener() twice.
+ * @readonly Usually only the UI classes will inherit {@link Component}. It is 
+ * allowed to register the UI class into the DI system as long as the constructor 
+ * does not need any extra arguments. It gives the potential for {@link Component} 
+ * not just being a UI class, it could also be treated like a micro-service.
  */
 export abstract class Component extends Disposable implements IComponent {
     
     // [field]
     
-    public parentComponent: IComponent | null = null;
-    public parent: HTMLElement | null = null;
-    public container: HTMLElement = document.createElement('div');
+    private _parentComponent: IComponent | null = null;
+    private _parent: HTMLElement | null = null;
+    private _container: HTMLElement = document.createElement('div');
     
     // TODO: try to remove this stupid design
     public contentArea: HTMLElement | undefined;
@@ -123,6 +132,12 @@ export abstract class Component extends Disposable implements IComponent {
     
     private readonly _onDidVisibilityChange = this.__register( new Emitter<boolean>() );
     public readonly onDidVisibilityChange = this._onDidVisibilityChange.registerListener;
+
+    // [getter]
+    
+    get parentComponent() { return this._parentComponent; }
+    get parent() { return this._parent; }
+    get container() { return this._container; }
 
     // [constructor]
 
@@ -142,7 +157,7 @@ export abstract class Component extends Disposable implements IComponent {
         this.container.id = id;
         
         if (parentElement) {
-            this.parent = parentElement;
+            this._parent = parentElement;
         }
 
         this.componentService.register(this);
@@ -173,11 +188,12 @@ export abstract class Component extends Disposable implements IComponent {
         }
 
         if (parent) {
+            this._parentComponent = parent;
             parent.registerComponent(this);
-            if (this.parent === null) {
-                this.parent = parent.container;
+            if (this._parent === null) {
+                this._parent = parent.container;
             }
-            this.parent.appendChild(this.container);
+            this._parent.appendChild(this.container);
         } else {
             document.body.appendChild(this.container);
         }
@@ -212,15 +228,15 @@ export abstract class Component extends Disposable implements IComponent {
     }
 
     public getId(): string {
-        return this.container.id;
+        return this._container.id;
     }
 
     public setVisible(value: boolean): void {
         
         if (value === true) {
-            this.container.style.visibility = 'visible';
+            this._container.style.visibility = 'visible';
         } else {
-            this.container.style.visibility = 'hidden';
+            this._container.style.visibility = 'hidden';
         }
 
         this._onDidVisibilityChange.fire(value);
