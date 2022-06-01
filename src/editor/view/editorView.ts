@@ -64,7 +64,7 @@ export class EditorView extends Disposable implements IEditorView {
         this._listWidget.layout();
     }
 
-    // REVIEW: testing purpose，view should be responsing to ViewModel and refreshing everything automatically.
+    // REVIEW: testing purpose，view should be responsing to ViewModel and refreshing everything automatically instead of splciing manually.
     public splice(index: number, deleteCount: number, items: EditorItem[]): void {
         this._listWidget.splice(index, deleteCount, items);
     }

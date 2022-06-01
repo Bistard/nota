@@ -31,7 +31,7 @@
 @import "../code/styles/workbench/workspace/markdown/markdownView.css";
 @import "../code/styles/workbench/workspace/markdown/customToastuiStyle.css";
 
-@import "../editor/view/renderer.css";
+@import "../editor/view/editorRenderer.css";
 @import "../editor/styles/editorView.css";
 
 
