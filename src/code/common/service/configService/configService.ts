@@ -238,6 +238,11 @@ export interface IGlobalApplicationSettings {
      * Used for file/directory reading and writing.
      */
     OpenDirConfig: Electron.OpenDialogOptions;
+
+    /**
+     * If enables keyboard screencast.
+     */
+    ToggleKeyboardScreenCast: boolean;
 }
 
 /** @SettingInterface */
@@ -250,7 +255,7 @@ export interface IGlobalNotebookManagerSettings {
      * When false, NotebookGroup will read or create a local configuration file 
      * in '<notebookManagerPath>/.nota/config.json'.
      */
-     defaultConfigOn: boolean;
+    defaultConfigOn: boolean;
 
     /**
      * When the application started, determine whether to open the previous 
@@ -285,13 +290,14 @@ export class DefaultGlobalConfigModel extends ConfigModel {
                         'openDirectory'
                     ]
                 } as Electron.OpenDialogOptions,
-            },
+                ToggleKeyboardScreenCast: false,
+            } as IGlobalApplicationSettings,
             'notebookManager': 
             {
                 defaultConfigOn: false,
                 startPreviousNotebookManagerDir: true,
                 previousNotebookManagerDir: '',
-            }
+            } as IGlobalNotebookManagerSettings
         };
     }
 }

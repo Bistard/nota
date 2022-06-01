@@ -10,10 +10,11 @@ export interface IServiceProvider {
     /**
      * @description try to get the instance of the service (if not, this will 
      * not automatically create one for you YET).
+     * @param serviceIdentifier serviceIdentifier to that service.
      * 
-     * @param serviceIdentifier serviceIdentifier to that service
+     * @throws An exception throws if the service cannot be found.
      */
-    getService<T>(serviceIdentifier: ServiceIdentifier<T>): T | null;
+    getService<T>(serviceIdentifier: ServiceIdentifier<T>): T;
 }
 
 export interface IInstantiationService extends IServiceProvider {
@@ -62,10 +63,10 @@ export class InstantiationService implements IInstantiationService {
         this.serviceCollections.set(serviceIdentifier, instanceOrDescriptor);
     }
 
-    public getService<T>(serviceIdentifier: ServiceIdentifier<T>): T | null {
+    public getService<T>(serviceIdentifier: ServiceIdentifier<T>): T {
         const service = this.serviceCollections.get(serviceIdentifier);
         if (service === undefined || service instanceof ServiceDescriptor) {
-            return null;
+            throw new Error(`cannot get service with identifier ${serviceIdentifier}`);
         }
         return service;
     }

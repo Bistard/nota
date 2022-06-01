@@ -14,6 +14,7 @@ import { KeyCode, Shortcut } from "src/base/common/keyboard";
 import { IpcCommand } from "src/base/electron/ipcCommand";
 import { IWorkbenchService } from "src/code/browser/service/workbenchService";
 import { IIpcService } from "src/code/browser/service/ipcService";
+import { IKeyboardScreenCastService, KeyboardScreenCastService } from "src/code/browser/service/keyboardScreenCastService/keyboardScreenCastService";
 
 /**
  * @class Workbench represents all the Components in the web browser.
@@ -38,7 +39,7 @@ export class Workbench extends WorkbenchLayout implements IWorkbenchService {
 
     protected async __initServices(): Promise<void> {
 
-        // WorkbenchLayoutService (self)
+        /** {@link Workbench} (self registration) */
         this.instantiationService.register(IWorkbenchService, this);
 
         // TODO: move to browser.ts
@@ -47,10 +48,10 @@ export class Workbench extends WorkbenchLayout implements IWorkbenchService {
 			this.instantiationService.register(serviceIdentifer, serviceDescriptor);
 		}
 
-        // shortcutService
+        /** {@link ShortcutService} */
         this.instantiationService.register(IShortcutService, new ServiceDescriptor(ShortcutService));
 
-        // i18nService
+        /** {@link i18n} */
         const appConfig = this.globalConfigService.get<IGlobalApplicationSettings>(EGlobalSettings.Application);
         const i18nOption: Ii18nOpts = {
             language: appConfig.displayLanguage,
@@ -64,11 +65,14 @@ export class Workbench extends WorkbenchLayout implements IWorkbenchService {
         await i18nService.init();
         this.instantiationService.register(Ii18nService, i18nService);
 
-        // ContextMenuService
+        /** {@link ContextMenuService} */
         this.instantiationService.register(IContextMenuService, new ServiceDescriptor(ContextMenuService));
 
-        // NotebookManagerService
+        /** {@link NotebookGroup} */
         this.instantiationService.register(INotebookGroupService, new ServiceDescriptor(NotebookGroup));
+
+        /** {@link KeyboardScreenCastService} */
+        this.instantiationService.register(IKeyboardScreenCastService, new ServiceDescriptor(KeyboardScreenCastService));
 
     }
 
@@ -83,10 +87,9 @@ export class Workbench extends WorkbenchLayout implements IWorkbenchService {
      * @description register renderer process global listeners.
      */
     protected override _registerListeners(): void {
-        
         this.__registerLayout();
         this.__registerShortcuts();
-
+        this.__registerConfigurationChange();
     }
 
     // [private helper methods]
@@ -98,7 +101,7 @@ export class Workbench extends WorkbenchLayout implements IWorkbenchService {
 
         this.instantiationService.getOrCreateService(provider => {
             
-            const shortcutService = provider.getService(IShortcutService)!;
+            const shortcutService = provider.getService(IShortcutService);
             shortcutService.register({
                 commandID: 'workbench.open-develop-tool',
                 whenID: 'N/A',
@@ -125,6 +128,39 @@ export class Workbench extends WorkbenchLayout implements IWorkbenchService {
 
         });
         
+    }
+
+    /**
+     * @description Responses to configuration change.
+     */
+    private __registerConfigurationChange(): void {
+        this.__registerGlobalConfigurationChange();
+        this.__registerUserConfigurationChange();
+    }
+
+    private __registerGlobalConfigurationChange(): void {
+        const globalConfiguration = this.globalConfigService.get<IGlobalApplicationSettings>(EGlobalSettings.Application);
+        
+        let screenCastService: IKeyboardScreenCastService;
+
+        if (globalConfiguration.ToggleKeyboardScreenCast) {
+            this.instantiationService.getOrCreateService(provider => {
+                screenCastService = provider.getService(IKeyboardScreenCastService);
+                screenCastService.start();
+            });
+        }
+
+        this.globalConfigService.onDidChangeApplicationSettings(event => {
+            if (event.ToggleKeyboardScreenCast) {
+                screenCastService.start();
+            } else {
+                screenCastService.dispose();
+            }
+        });
+    }
+
+    private __registerUserConfigurationChange(): void {
+
     }
 
 }
