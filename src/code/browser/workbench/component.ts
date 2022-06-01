@@ -175,7 +175,7 @@ export abstract class Component extends Disposable implements IComponent {
             return; 
         }
         
-        this.parent?.appendChild(this.container); //TODO: try to remove `?`
+        this.parent?.appendChild(this.container);
         this._createContent();
         this._created = true;
     }

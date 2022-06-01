@@ -31,6 +31,10 @@
 @import "../code/styles/workbench/workspace/markdown/markdownView.css";
 @import "../code/styles/workbench/workspace/markdown/customToastuiStyle.css";
 
+@import "../editor/view/renderer.css";
+@import "../editor/styles/editorView.css";
+
+
 @font-face {
     font-family: harmonyOS sans;
     src: url(../../assets/font/HarmonyOS_Sans/HarmonyOS_Sans_Light.ttf);

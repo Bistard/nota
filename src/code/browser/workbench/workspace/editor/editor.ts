@@ -4,6 +4,8 @@ import { WorkspaceComponentType } from "src/code/browser/workbench/workspace/wor
 import { createDecorator } from "src/code/common/service/instantiationService/decorator";
 import { ServiceDescriptor } from "src/code/common/service/instantiationService/descriptor";
 import { registerSingleton } from "src/code/common/service/instantiationService/serviceCollection";
+import { EditorWidget } from "src/editor/editorWidget";
+import { EditorModel } from "src/editor/model/editorModel";
 
 export const IEditorService = createDecorator<IEditorService>('editor-service');
 
@@ -29,7 +31,8 @@ export class EditorComponent extends Component implements IEditorService {
     // [override protected methods]
 
     protected override _createContent(): void {
-        
+        const editor = new EditorWidget(this.container, {});
+        editor.attachModel(new EditorModel());
     }
 
     protected override _registerListeners(): void {

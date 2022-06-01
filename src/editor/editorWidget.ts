@@ -1,4 +1,4 @@
-import { Disposable } from "src/base/common/dispose";
+import { Disposable, IDisposable } from "src/base/common/dispose";
 import { IEditorModel } from "src/editor/model/editorModel";
 import { EditorView, IEditorView } from "src/editor/view/editorView";
 import { EditorViewModel, IEditorViewModel } from "src/editor/viewModel/editorViewModel";
@@ -6,7 +6,7 @@ import { EditorViewModel, IEditorViewModel } from "src/editor/viewModel/editorVi
 /**
  * An interface only for {@link EditorWidget}.
  */
-export interface IEditorWidget {
+export interface IEditorWidget extends IDisposable {
     
     /**
      * @description Attech the given {@link IEditorModel} to the editor.
@@ -18,7 +18,7 @@ export interface IEditorWidget {
 /**
  * Consturctor option for {@link EditorWidget}.
  */
-export interface IEditorWidgetOptions extends Disposable {
+export interface IEditorWidgetOptions {
 
 }
 
@@ -85,7 +85,7 @@ export class EditorWidget extends Disposable implements IEditorWidget {
         const viewModel = new EditorViewModel(model);
 
         const view = new EditorView(this._container, viewModel);
-
+        
         this._viewModel = viewModel;
         this._view = view;
     }
