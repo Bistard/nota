@@ -1,3 +1,4 @@
+import { IReadableStreamEvent } from "src/base/common/file/stream";
 import { URI } from "src/base/common/file/uri";
 
 export const enum FileType {
@@ -84,7 +85,7 @@ export interface IFileSystemProvider {
 	readFile?(uri: URI): Promise<Uint8Array>;
 	writeFile?(uri: URI, content: Uint8Array, opts: IWriteFileOptions): Promise<void>;
 
-	readFileStream?(uri: URI, opt?: IReadFileOptions): any;
+	readFileStream?(uri: URI, opt?: IReadFileOptions): IReadableStreamEvent<Uint8Array>;
 
 	open?(uri: URI, opts?: IOpenFileOptions): Promise<number>;
 	close?(fd: number): Promise<void>;
@@ -110,7 +111,7 @@ export const enum FileSystemProviderCapability {
 	PathCaseSensitive = 1 << 4,
 
 	/** Provider supports stream based reading. */
-	FileReadStream = 1 << 5,
+	ReadFileStream = 1 << 5,
 
 	/** Provider only supports reading. */
 	Readonly = 1 << 6,
@@ -139,6 +140,10 @@ export interface IFileSystemProviderWithCopy extends IFileSystemProvider {
 	copy(from: URI, to: URI, opts: IOverwriteFileOptions): Promise<void>;
 }
 
+export interface IFileSystemProviderWithReadFileStream extends IFileSystemProvider {
+	readFileStream(uri: URI, opt?: IReadFileOptions): IReadableStreamEvent<Uint8Array>;
+}
+
 export type FileSystemProviderAbleToRead = 
 	IFileSystemProviderWithFileReadWrite | 
 	IFileSystemProviderWithOpenReadWriteClose;
@@ -157,6 +162,10 @@ export function hasOpenReadWriteCloseCapability(provider: IFileSystemProvider): 
 
 export function hasCopyCapability(provider: IFileSystemProvider): provider is IFileSystemProviderWithCopy {
 	return !!(provider.capabilities & FileSystemProviderCapability.FileFolderCopy);
+}
+
+export function hasReadFileStreamCapability(provider: IFileSystemProvider): provider is IFileSystemProviderWithReadFileStream {
+	return !!(provider.capabilities & FileSystemProviderCapability.ReadFileStream);
 }
 
 /*******************************************************************************

@@ -43,7 +43,6 @@ export class EditorComponent extends Component implements IEditorService {
         }
         
         const textModel = new EditorModel();
-        console.log('[Editor Service] opening');
     }
 
     // [override protected methods]

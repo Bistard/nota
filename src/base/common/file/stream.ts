@@ -144,7 +144,7 @@ export class WriteableStream<T> implements IWriteableStream<T> {
         if (this.state.destroyed) {
 			return;
 		}
-        
+
         // flowing: directly send data to the listeners 
         if (this.state.flowing) {
          	this._fireData(data);
@@ -392,6 +392,29 @@ export function toStream<T>(buffer: T, concatenater: IConcatenater<T>): IReadabl
 	const stream = newWriteableStream<T>(concatenater);
 	stream.end(buffer);
 	return stream;
+}
+
+export interface ITransformer<Original, Transformed> {
+	data: (data: Original) => Transformed;
+	error?: (error: Error) => Error;
+}
+
+/**
+ * @description Transform a given stream to another type of stream.
+ */
+export function transformStream<Original, Transformed>(
+	stream: IReadableStreamEvent<Original>, 
+	transformer: ITransformer<Original, Transformed>, 
+	concatenater: IConcatenater<Transformed>
+): IReadableStream<Transformed> 
+{
+	const target = newWriteableStream<Transformed>(concatenater);
+	listenStream(stream, {
+		onData: data => target.write(transformer.data(data)),
+		onEnd: () => target.end(),
+		onError: error => target.error(transformer.error ? transformer.error(error) : error)
+	});
+	return target;
 }
 
 /**

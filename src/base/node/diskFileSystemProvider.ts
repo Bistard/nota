@@ -1,11 +1,14 @@
-import { IOpenFileOptions, FileSystemProviderCapability, FileType, IFileSystemProviderWithFileReadWrite, IFileSystemProviderWithOpenReadWriteClose, IFileStat, IWriteFileOptions, IDeleteFileOptions, IOverwriteFileOptions, IFileOperationError, FileSystemProviderError } from "src/base/common/file/file";
+import { IOpenFileOptions, FileSystemProviderCapability, FileType, IFileSystemProviderWithFileReadWrite, IFileSystemProviderWithOpenReadWriteClose, IFileStat, IWriteFileOptions, IDeleteFileOptions, IOverwriteFileOptions, IFileOperationError, FileSystemProviderError, IFileSystemProviderWithReadFileStream, IReadFileOptions } from "src/base/common/file/file";
 import { URI } from "src/base/common/file/uri";
 import * as fs from "fs";
-import { fileExists, FileMode } from "src/base/node/io";
+import { fileExists, FileMode, readFileIntoStream } from "src/base/node/io";
 import { retry } from "src/base/common/util/async";
 import { join } from "src/base/common/file/path";
+import { IReadableStreamEvent, newWriteableStream } from "src/base/common/file/stream";
+import { DataBuffer } from "src/base/common/file/buffer";
+import { FileService } from "src/code/common/service/fileService/fileService";
 
-export class DiskFileSystemProvider implements IFileSystemProviderWithFileReadWrite, IFileSystemProviderWithOpenReadWriteClose {
+export class DiskFileSystemProvider implements IFileSystemProviderWithFileReadWrite, IFileSystemProviderWithOpenReadWriteClose, IFileSystemProviderWithReadFileStream {
 
     /**
      * @readonly DiskFileSystemProvider has fully permission to deal with disk
@@ -14,7 +17,7 @@ export class DiskFileSystemProvider implements IFileSystemProviderWithFileReadWr
     public readonly capabilities: FileSystemProviderCapability = 
         FileSystemProviderCapability.FileReadWrite |
         FileSystemProviderCapability.FileOpenReadWriteClose |
-        FileSystemProviderCapability.FileReadStream |
+        FileSystemProviderCapability.ReadFileStream |
         FileSystemProviderCapability.FileFolderCopy |
         FileSystemProviderCapability.PathCaseSensitive;
 
@@ -76,6 +79,15 @@ export class DiskFileSystemProvider implements IFileSystemProviderWithFileReadWr
             }
         }
 
+    }
+
+    public readFileStream(uri: URI, opt?: IReadFileOptions): IReadableStreamEvent<Uint8Array> {
+        const stream = newWriteableStream<Uint8Array>(data => DataBuffer.concat(data.map(data => DataBuffer.wrap(data))).buffer);
+        readFileIntoStream(this, uri, stream, data => data.buffer, {
+            ...opt,
+            bufferSize: FileService.bufferSize
+        });
+        return stream;
     }
 
     /***************************************************************************
