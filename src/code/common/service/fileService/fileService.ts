@@ -92,14 +92,20 @@ export interface IFileService {
 
 export class FileService implements IFileService {
 
+    // [fields]
+
     private readonly _providers: Map<string, IFileSystemProvider> = new Map();
 
-    /** @readonly read into chunks of 256kb each to reduce IPC overhead */
+    /** @readonly read into chunks of 256kb each to reduce IPC overhead. */
     public static readonly bufferSize = 256 * 1024;
+
+    // [constructor]
 
     constructor(
         /* IFileLogService private readonly fileLogService: IFileLogService */
-    ) { }
+    ) {
+
+    }
 
     /***************************************************************************
      * public API - Provider Operations

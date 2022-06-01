@@ -1,7 +1,7 @@
 import { IListViewRenderer } from "src/base/browser/secondary/listView/listRenderer";
 import { ListItemType } from "src/base/browser/secondary/listView/listView";
 import { IDisposable } from "src/base/common/dispose";
-import { removeNodeFromParent } from "src/base/common/dom";
+import { DomUtility } from "src/base/common/dom";
 
 /**
  * @description An interface for storing the DOM related element as a cache in 
@@ -87,7 +87,7 @@ export class ListViewCache implements IDisposable {
      * @param row The row about to be released.
      */
     public release(row: IListViewRow): void {
-        removeNodeFromParent(row.dom);
+        DomUtility.removeNodeFromParent(row.dom);
         const cache = this.__getCache(row.type);
         cache.push(row);
     }

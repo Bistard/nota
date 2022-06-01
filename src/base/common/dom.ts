@@ -88,30 +88,6 @@ export function addDisposableListener<T extends keyof GlobalEventHandlersEventMa
 }
 
 /**
- * @description Clears all the children DOM nodes from a provided node.
- * @param node The parent DOM node.
- * @returns The number of cleared nodes.
- */
-export function clearChildrenNodes(node: HTMLElement): number {
-	let cnt = 0;
-	while (node.firstChild) {
-		node.firstChild.remove();
-		cnt++;
-	}
-	return cnt;
-}
-
-/**
- * @description Removes the given node from its parent in DOM tree.
- * @param node The given DOMElement.
- */
-export function removeNodeFromParent(node: HTMLElement): void {
-	if (node.parentElement) {
-		node.parentElement.removeChild(node);
-	}
-}
-
-/**
  * @description Generates a string representation for HTML <span> label to display 
  * text.
  * @param text The text to be displeyed.
@@ -262,6 +238,32 @@ export namespace DomUtility
 	 */
 	export function isInputElement(target: HTMLElement): boolean {
 		return target.tagName === 'INPUT' || target.tagName === 'TEXTAREA';
+	}
+
+	// [method - DOM]
+
+	/**
+	 * @description Clears all the children DOM nodes from a provided node.
+	 * @param node The parent DOM node.
+	 * @returns The number of cleared nodes.
+	 */
+	export function clearChildrenNodes(node: HTMLElement): number {
+		let cnt = 0;
+		while (node.firstChild) {
+			node.firstChild.remove();
+			cnt++;
+		}
+		return cnt;
+	}
+
+	/**
+	 * @description Removes the given node from its parent in DOM tree.
+	 * @param node The given DOMElement.
+	 */
+	export function removeNodeFromParent(node: HTMLElement): void {
+		if (node.parentElement) {
+			node.parentElement.removeChild(node);
+		}
 	}
 
 }
