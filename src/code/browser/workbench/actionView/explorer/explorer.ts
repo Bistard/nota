@@ -70,8 +70,7 @@ export class ExplorerViewComponent extends Component implements IExplorerViewSer
 
     // [constructor]
 
-    constructor(parentComponent: Component,
-                parentElement: HTMLElement,
+    constructor(parentElement: HTMLElement,
                 @IIpcService private readonly ipcService: IpcService,
                 @Ii18nService private readonly i18nService: Ii18nService,
                 @IGlobalConfigService private readonly globalConfigService: IGlobalConfigService,
@@ -81,7 +80,7 @@ export class ExplorerViewComponent extends Component implements IExplorerViewSer
                 @IContextMenuService private readonly contextMenuService: IContextMenuService,
                 @IEditorService private readonly editorService: IEditorService,
     ) {
-        super(ComponentType.ExplorerView, parentComponent, parentElement, componentService);
+        super(ComponentType.ExplorerView, parentElement, componentService);
 
         this.__getAllConfiguration();
     }

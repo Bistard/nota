@@ -14,7 +14,7 @@ export const enum WorkspaceComponentType {
     editor = 'editor',
 }
 
-export const IWorkspaceService = createDecorator<IWorkspaceService>('editor-service');
+export const IWorkspaceService = createDecorator<IWorkspaceService>('workspace-service');
 
 export interface IWorkspaceService extends IComponent {
 
@@ -36,11 +36,10 @@ export class WorkspaceComponent extends Component implements IWorkspaceService {
     // [constructor]
 
     constructor(
-        parentComponent: Component,
         @IComponentService componentService: IComponentService,
         @IInstantiationService private readonly instantiationService: IInstantiationService,
     ) {
-        super(ComponentType.Workspace, parentComponent, null, componentService);
+        super(ComponentType.Workspace, null, componentService);
     }
 
     // [protected override methods]
@@ -63,21 +62,21 @@ export class WorkspaceComponent extends Component implements IWorkspaceService {
     // [private helper methods]
 
     private _createTitleBar(): void {
-        this.titleBarComponent = this.instantiationService.createInstance(TitleBarComponent, this);
-        this.titleBarComponent.create();
+        this.titleBarComponent = this.instantiationService.createInstance(TitleBarComponent);
+        this.titleBarComponent.create(this);
     }
 
     private _createEditor(): void {
-        this.editorComponent = this.instantiationService.createInstance(EditorComponent, this);
-        this.editorComponent.create();
+        this.editorComponent = this.instantiationService.createInstance(EditorComponent);
+        this.editorComponent.create(this);
     }
 
     private _createMarkdown(): void {
         const markdownView = document.createElement('div');
         markdownView.id = 'markdown-view';
 
-        this.markdownComponent = this.instantiationService.createInstance(MarkdownComponent, this, markdownView);
-        this.markdownComponent.create();
+        this.markdownComponent = this.instantiationService.createInstance(MarkdownComponent, markdownView);
+        this.markdownComponent.create(this);
 
         this.container.appendChild(markdownView);
     }

@@ -5,7 +5,7 @@ import { IComponentService } from "src/code/browser/service/componentService";
 import { IIpcService } from "src/code/browser/service/ipcService";
 import { ActionBarComponent, ActionType } from "src/code/browser/workbench/actionBar/actionBar";
 import { ActionViewComponent } from "src/code/browser/workbench/actionView/actionView";
-import { Component, ComponentType, ICreateable } from "src/code/browser/workbench/component";
+import { Component, ComponentType, IComponent, ICreateable } from "src/code/browser/workbench/component";
 import { WorkspaceComponent } from "src/code/browser/workbench/workspace/workspace";
 import { IInstantiationService } from "src/code/common/service/instantiationService/instantiation";
 
@@ -37,7 +37,7 @@ export abstract class WorkbenchLayout extends Component {
         componentService: IComponentService,
         protected readonly ipcService: IIpcService,
     ) {
-        super(ComponentType.Workbench, null, document.body, componentService);
+        super(ComponentType.Workbench, document.body, componentService);
     }
 
     // [protected methods]
@@ -47,17 +47,17 @@ export abstract class WorkbenchLayout extends Component {
         /**
          * Constructs each component of the workbench.
          */
-        this.actionBarComponent = this.instantiationService.createInstance(ActionBarComponent, this);
-        this.actionViewComponent = this.instantiationService.createInstance(ActionViewComponent, this, ActionType.EXPLORER /* // TODO: should read from config */);
-        this.editorComponent = this.instantiationService.createInstance(WorkspaceComponent, this);
+        this.actionBarComponent = this.instantiationService.createInstance(ActionBarComponent);
+        this.actionViewComponent = this.instantiationService.createInstance(ActionViewComponent, ActionType.EXPLORER /* // TODO: should read from config */);
+        this.editorComponent = this.instantiationService.createInstance(WorkspaceComponent);
         
         [
             this.actionBarComponent,
             this.actionViewComponent,
             this.editorComponent
         ]
-        .forEach((component: ICreateable) => {
-            component.create();
+        .forEach((component: IComponent) => {
+            component.create(this);
             component.registerListeners();
         });
 

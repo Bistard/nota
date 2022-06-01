@@ -13,11 +13,10 @@ export class WindowBarComponent extends Component {
     protected _widgetBar: WidgetBar<WindowButton> | undefined;
 
     constructor(
-        parentComponent: Component,
         @IComponentService componentService: IComponentService,
         @IIpcService private readonly ipcService: IIpcService,
     ) {
-        super(TitleBarComponentType.windowBar, parentComponent, null, componentService);
+        super(TitleBarComponentType.windowBar, null, componentService);
 
     }
 

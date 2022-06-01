@@ -28,11 +28,10 @@ export class EditorComponent extends Component implements IEditorService {
     // [constructor]
 
     constructor(
-        parentComponent: Component,
         @IComponentService componentService: IComponentService,
         @IFileService private fileService: IFileService,
     ) {
-        super(WorkspaceComponentType.editor, parentComponent, null, componentService);
+        super(WorkspaceComponentType.editor, null, componentService);
     }
 
     // [public methods]
@@ -42,7 +41,7 @@ export class EditorComponent extends Component implements IEditorService {
         if (!(uriOrString instanceof URI)) {
             uri = URI.fromFile(uriOrString);
         }
-
+        
         const textModel = new EditorModel();
         console.log('[Editor Service] opening');
     }

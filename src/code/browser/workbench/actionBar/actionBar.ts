@@ -89,11 +89,10 @@ export class ActionBarComponent extends Component implements IActionBarService {
     // [constructor]
 
     constructor(
-        parentComponent: Component,
         @IComponentService componentService: IComponentService,
         @IContextMenuService private readonly contextMenuService: IContextMenuService,
     ) {
-        super(ComponentType.ActionBar, parentComponent, null, componentService);
+        super(ComponentType.ActionBar, null, componentService);
     }
 
     // [public method]

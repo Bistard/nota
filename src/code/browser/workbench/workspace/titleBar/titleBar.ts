@@ -18,11 +18,10 @@ export class TitleBarComponent extends Component {
     windowBarComponent!: WindowBarComponent;
 
     constructor(
-        parentComponent: Component,
         @IComponentService componentService: IComponentService,
         @IInstantiationService private readonly instantiationService: IInstantiationService,
     ) {
-        super(WorkspaceComponentType.titleBar, parentComponent, null, componentService);
+        super(WorkspaceComponentType.titleBar, null, componentService);
     }
 
     protected override _createContent(): void {
@@ -37,8 +36,8 @@ export class TitleBarComponent extends Component {
     }
 
     private _createWindowBar(): void {
-        this.windowBarComponent = this.instantiationService.createInstance(WindowBarComponent, this);
-        this.windowBarComponent.create();
+        this.windowBarComponent = this.instantiationService.createInstance(WindowBarComponent);
+        this.windowBarComponent.create(this);
     }
     
 }

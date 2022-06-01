@@ -45,5 +45,3 @@ export class ComponentService {
     }
 
 }
-
-// export const COMPONENT_SERVICE = new ComponentService();

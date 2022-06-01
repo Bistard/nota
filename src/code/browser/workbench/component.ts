@@ -33,8 +33,13 @@ export interface IComponent extends ICreateable {
 
     /**
      * @description Renders the component itself.
+     * @param parent If provided, the component will be rendered under the parent 
+     * component (if the constructor did not provide a specific parent element).
+     * 
+     * @note If not provided, either renders under the constructor provided 
+     * element, or `document.body`.
      */
-    create(): void;
+    create(parent?: Component): void;
 
     /**
      * @description Registers any listeners in the component.
@@ -102,11 +107,11 @@ export abstract class Component extends Disposable implements IComponent {
     
     // [field]
     
-    public readonly parentComponent: IComponent | null = null;
-    public readonly parent: HTMLElement | null = null;
+    public parentComponent: IComponent | null = null;
+    public parent: HTMLElement | null = null;
     public container: HTMLElement = document.createElement('div');
     
-    // TODO: try to remove this stupid stuff
+    // TODO: try to remove this stupid design
     public contentArea: HTMLElement | undefined;
 
     private readonly _componentMap: Map<string, Component> = new Map();
@@ -123,14 +128,12 @@ export abstract class Component extends Disposable implements IComponent {
 
     /**
      * @param id The id for the Component.
-     * @param parentComponent The parent Component.
      * @param parentElement If provided, parentElement will replace the HTMLElement 
-     *                      from the provided parentComponent. Else defaults to 
-     *                      `document.body`.
+     * from the provided parentComponent when creating. Otherwise defaults to 
+     * `document.body`.
      * @param componentService ComponentService for the registration purpose.
      */
     constructor(id: string, 
-                parentComponent: IComponent | null,
                 parentElement: HTMLElement | null,
                 protected readonly componentService: IComponentService,
     ) {
@@ -138,12 +141,6 @@ export abstract class Component extends Disposable implements IComponent {
 
         this.container.id = id;
         
-        this.parentComponent = parentComponent;
-        if (parentComponent) {
-            this.parent = parentComponent.container;
-            parentComponent.registerComponent(this);
-        }
-
         if (parentElement) {
             this.parent = parentElement;
         }
@@ -170,12 +167,21 @@ export abstract class Component extends Disposable implements IComponent {
 
     // [public method]
 
-    public create(): void {
+    public create(parent?: Component): void {
         if (this.isDisposed() || this._created) {
             return; 
         }
+
+        if (parent) {
+            parent.registerComponent(this);
+            if (this.parent === null) {
+                this.parent = parent.container;
+            }
+            this.parent.appendChild(this.container);
+        } else {
+            document.body.appendChild(this.container);
+        }
         
-        this.parent?.appendChild(this.container);
         this._createContent();
         this._created = true;
     }
