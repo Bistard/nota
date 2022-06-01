@@ -44,6 +44,13 @@ export namespace Keyboard {
     }
 
     /**
+     * @description If the given {@link IStandardKeyboardEvent} contains modifier.
+     */
+    export function isEventModifier(event: IStandardKeyboardEvent): boolean {
+        return event.alt || event.ctrl || event.meta || event.shift || isModifier(event.key);
+    }
+
+    /**
      * @description Returns the string form of the {@link KeyCode}.
      * @param key The given keycode.
      */
@@ -61,6 +68,53 @@ export namespace Keyboard {
         } else {
             return keyCodeMap.map[strkeyOrEventkey] || KeyCode.None;
         }
+    }
+
+    /**
+     * @description Determines if two {@link IStandardKeyboardEvent} are the same.
+     */
+    export function sameEvent(event1: IStandardKeyboardEvent, event2: IStandardKeyboardEvent): boolean {
+        return event1.key === event2.key &&
+            event1.alt === event2.alt &&
+            event1.ctrl === event2.ctrl &&
+            event1.meta === event2.meta &&
+            event1.shift === event2.shift;
+    }
+    
+    /**
+     * @description Converts the given {@link IStandardKeyboardEvent} to a nice
+     * looking string form.
+     * @example `Ctrl+Shift+R`
+     */
+    export function eventToString(event: IStandardKeyboardEvent): string {
+        let mask = 0;
+        const result: string[] = [];
+        
+        if (event.ctrl) {
+            mask |= KeyCode.Ctrl;
+            result.push('Ctrl');
+        }
+        if (event.shift) {
+            mask |= KeyCode.Shift;
+            result.push('Shift');
+        }
+        if (event.alt) {
+            mask |= KeyCode.Alt;
+            result.push('Alt');
+        }
+        if (event.meta) {
+            mask |= KeyCode.Meta;
+            result.push('Meta');
+        }
+        
+        if ((!Keyboard.isModifier(event.key) || (event.key | mask) !== mask) && 
+            event.key !== KeyCode.None) 
+        {
+            const key = Keyboard.toString(event.key);
+            result.push(key);
+        }
+        
+        return result.join('+');
     }
 
 }
