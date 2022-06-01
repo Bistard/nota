@@ -2,7 +2,6 @@ import { Component, ComponentType, IComponent } from 'src/code/browser/workbench
 import { DomEmitter, Emitter, Register } from 'src/base/common/event';
 import { INotebookGroupService } from 'src/code/common/model/notebookGroup';
 import { IComponentService } from 'src/code/browser/service/componentService';
-import { ContextMenuType, Coordinate } from 'src/base/browser/secondary/contextMenu/contextMenu';
 import { IContextMenuService } from 'src/code/browser/service/contextMenuService';
 import { createDecorator } from 'src/code/common/service/instantiationService/decorator';
 import { Ii18nService } from 'src/code/platform/i18n/i18n';
@@ -11,7 +10,8 @@ import { registerSingleton } from 'src/code/common/service/instantiationService/
 import { ServiceDescriptor } from 'src/code/common/service/instantiationService/descriptor';
 import { EGlobalSettings, EUserSettings, IGlobalConfigService, IGlobalNotebookManagerSettings, IUserConfigService, IUserNotebookManagerSettings } from 'src/code/common/service/configService/configService';
 import { IIpcService, IpcService } from 'src/code/browser/service/ipcService';
-import { EventType } from 'src/base/common/dom';
+import { addDisposableListener, EventType } from 'src/base/common/dom';
+import { IEditorService } from 'src/code/browser/workbench/workspace/editor/editor';
 
 export const IExplorerViewService = createDecorator<IExplorerViewService>('explorer-view-service');
 
@@ -65,8 +65,8 @@ export class ExplorerViewComponent extends Component implements IExplorerViewSer
 
     // [event]
 
-    private _onDidOpenDirectory = this.__register(new Emitter<IExplorerDirectoryEvent>());
-    public onDidOpenDirectory = this._onDidOpenDirectory.registerListener;
+    private readonly _onDidOpenDirectory = this.__register(new Emitter<IExplorerDirectoryEvent>());
+    public readonly onDidOpenDirectory = this._onDidOpenDirectory.registerListener;
 
     // [constructor]
 
@@ -79,6 +79,7 @@ export class ExplorerViewComponent extends Component implements IExplorerViewSer
                 @INotebookGroupService private readonly notebookGroupService: INotebookGroupService,
                 @IComponentService componentService: IComponentService,
                 @IContextMenuService private readonly contextMenuService: IContextMenuService,
+                @IEditorService private readonly editorService: IEditorService,
     ) {
         super(ComponentType.ExplorerView, parentComponent, parentElement, componentService);
 
@@ -113,26 +114,12 @@ export class ExplorerViewComponent extends Component implements IExplorerViewSer
     protected override _registerListeners(): void {
 
         /**
-         * @readonly register context menu listeners (right click menu)
-        */
-        // this.container.addEventListener('contextmenu', (ev: MouseEvent) => {
-        //         ev.preventDefault();
-        //         this.contextMenuService.removeContextMenu();
-        //         let coordinate: Coordinate = {
-        //             coordinateX: ev.pageX,
-        //             coordinateY: ev.pageY,
-        //         };
-
-        //         this.contextMenuService.createContextMenu(ContextMenuType.explorerView, coordinate);
-        // });
-
-        /**
          * Registers open directory dialog listener.
          */
-        const tag = this._unopenedView.children[0]!;
-        this.__register(new DomEmitter(tag, EventType.click)).registerListener(() => {
+        const tag = this._unopenedView.children[0]!; // REVIEW: set as class field
+        this.__register(addDisposableListener(tag, EventType.click, () => {
             this.ipcService.openDirectoryDialog(this._globalConfig.previousNotebookManagerDir);
-        });
+        }));
 
         /**
          * once the directory dialog chosed a path to open, we get the message 
@@ -140,6 +127,13 @@ export class ExplorerViewComponent extends Component implements IExplorerViewSer
          */
         this.__register(this.ipcService.onDidOpenDirectoryDialog((path) => {
             this.__createOpenedExplorerView(path, this._globalConfig.defaultConfigOn, false);
+        }));
+
+        /**
+         * Opens in the editor.
+         */
+        this.__register(this.notebookGroupService.onOpen(e => {
+            this.editorService.openEditor(e.item.uri);
         }));
     }
 

@@ -9,6 +9,7 @@ import { Iterable } from "src/base/common/util/iterable";
 import { String } from "src/base/common/util/string";
 import { IIpcService } from "src/code/browser/service/ipcService";
 import { ExplorerItem } from "src/code/browser/workbench/actionView/explorer/explorerItem";
+import { IExplorerOpenEvent } from "src/code/browser/workbench/actionView/explorer/explorerTree";
 import { Notebook } from "src/code/common/model/notebook";
 import { DEFAULT_CONFIG_PATH, EGlobalSettings, EUserSettings, GLOBAL_CONFIG_FILE_NAME, GLOBAL_CONFIG_PATH, IGlobalNotebookManagerSettings, IUserNotebookManagerSettings, LOCAL_NOTA_DIR_NAME } from "src/code/common/service/configService/configService";
 import { DEFAULT_CONFIG_FILE_NAME, IUserConfigService, LOCAL_CONFIG_FILE_NAME } from "src/code/common/service/configService/configService";
@@ -21,9 +22,9 @@ export const INotebookGroupService = createDecorator<INotebookGroupService>('not
 export interface INotebookGroupService {
     
     /**
-     * Fires when the item in the notebook is clicked.
+     * Fires when a file / notepage in the notebook is about to be opened.
      */
-    onClick: Register<ITreeMouseEvent<ExplorerItem>>;
+    onOpen: Register<IExplorerOpenEvent<ExplorerItem>>;
 
     /**
      * Fires when the content of the current notebook is changed.
@@ -112,8 +113,8 @@ export class NotebookGroup extends Disposable implements INotebookGroupService {
 
     // [event]
 
-    private readonly _onClick = this.__register(new RelayEmitter<ITreeMouseEvent<ExplorerItem>>());
-    public readonly onClick = this._onClick.registerListener;
+    private readonly _onOpen = this.__register(new RelayEmitter<IExplorerOpenEvent<ExplorerItem>>());
+    public readonly onOpen = this._onOpen.registerListener;
 
     private readonly _onDidChangeContent = this.__register(new RelayEmitter<ITreeSpliceEvent<ExplorerItem | null, void>>());
     public readonly onDidChangeContent = this._onDidChangeContent.registerListener;
@@ -308,7 +309,7 @@ export class NotebookGroup extends Disposable implements INotebookGroupService {
      */
     private __registerNotebookListeners(notebook: Notebook): void {
 
-        this._onClick.setInput(notebook.onClick);
+        this._onOpen.setInput(notebook.onOpen);
         this._onDidChangeContent.setInput(notebook.onDidChangeContent);
 
     }

@@ -13,6 +13,12 @@ export const IEditorService = createDecorator<IEditorService>('editor-service');
 
 export interface IEditorService extends IComponent {
 
+    /**
+     * @description Openning a source given the URI in the editor.
+     * @param uriOrString The uri or in the string form.
+     */
+    openEditor(uriOrString: URI | string): void;
+
 }
 
 export class EditorComponent extends Component implements IEditorService {
@@ -38,6 +44,7 @@ export class EditorComponent extends Component implements IEditorService {
         }
 
         const textModel = new EditorModel();
+        console.log('[Editor Service] opening');
     }
 
     // [override protected methods]
