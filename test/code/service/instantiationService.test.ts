@@ -277,12 +277,26 @@ suite('instantiationService-test', () => {
 		let service = new InstantiationService(collection);
 		service.register(ICreateOnlyOnceClass, new ServiceDescriptor(CreateOnlyOnceClass));
 		
-		service.getOrCreateService((provider) => {
+		service.getOrCreateService(ICreateOnlyOnceClass);
+		assert.strictEqual(1, CreateOnlyOnceClass.cnt);
+		
+		service.getOrCreateService(ICreateOnlyOnceClass);
+		assert.strictEqual(1, CreateOnlyOnceClass.cnt);
+	});
+
+	test('getOrCreateService1, prevent double creation', () => {
+		CreateOnlyOnceClass.cnt = 0;
+		
+		let collection = new ServiceCollection();
+		let service = new InstantiationService(collection);
+		service.register(ICreateOnlyOnceClass, new ServiceDescriptor(CreateOnlyOnceClass));
+		
+		service.getOrCreateService1((provider) => {
 			provider.getService(ICreateOnlyOnceClass);
 		});
 		assert.strictEqual(1, CreateOnlyOnceClass.cnt);
 		
-		service.getOrCreateService((provider) => {
+		service.getOrCreateService1((provider) => {
 			provider.getService(ICreateOnlyOnceClass);
 		});
 		assert.strictEqual(1, CreateOnlyOnceClass.cnt);

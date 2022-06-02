@@ -91,7 +91,7 @@ export class FileLogService extends AbstractLogService<IFileLogInfo> implements 
     ) {
         super(level);
 
-        const globalConfig = this.globalConfigService.get<IGlobalNotebookManagerSettings>(EGlobalSettings.NotebookManager);
+        const globalConfig = this.globalConfigService.get<IGlobalNotebookManagerSettings>(EGlobalSettings.NotebookGroup);
         const defaultConfigOn = globalConfig.defaultConfigOn;
         if (defaultConfigOn) {
             this.path = URI.fromFile(resolve(APP_ROOT_PATH, LOCAL_NOTA_DIR_NAME));
@@ -99,7 +99,7 @@ export class FileLogService extends AbstractLogService<IFileLogInfo> implements 
             // FIXME
             this.path = URI.fromFile(resolve(APP_ROOT_PATH, LOCAL_NOTA_DIR_NAME));
             // undefined
-            // this.path = URI.fromFile(NotebookManager.rootPath); 
+            // this.path = URI.fromFile(NotebookGroup.rootPath); 
         }
     }
 

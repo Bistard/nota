@@ -2,7 +2,7 @@ import { Emitter, Register } from "src/base/common/event";
 import { resolve } from "src/base/common/file/path";
 import { URI } from "src/base/common/file/uri";
 import { APP_ROOT_PATH, DESKTOP_ROOT_PATH } from "src/base/electron/app";
-import { MarkdownRenderMode } from "src/code/browser/workbench/editor/markdown/markdown";
+import { MarkdownRenderMode } from "src/code/browser/workbench/workspace/markdown/markdown";
 import { ConfigModel, IConfigType } from "src/code/common/service/configService/configModel";
 import { ConfigServiceBase, IConfigService } from "src/code/common/service/configService/configServiceBase";
 import { IFileService } from "src/code/common/service/fileService/fileService";
@@ -107,7 +107,7 @@ export class UserConfigService extends ConfigServiceBase implements IUserConfigS
             case EUserSettings.Markdown:
                 this._onDidChangeMarkdownSettings.fire(change);
                 break;
-            case EUserSettings.NotebookManager:
+            case EUserSettings.NotebookGroup:
                 this._onDidChangeNotebookManagerSettings.fire(change);
                 break;
         }
@@ -168,7 +168,7 @@ export class GlobalConfigService extends ConfigServiceBase implements IGlobalCon
             case EGlobalSettings.Application:
                 this._onDidChangeApplicationSettings.fire(change);
                 break;
-            case EGlobalSettings.NotebookManager:
+            case EGlobalSettings.NotebookGroup:
                 this._onDidChangeNotebookManagerSettings.fire(change);
                 break;
         }
@@ -217,7 +217,7 @@ export const enum EGlobalSettings {
     Application = 'application',
 
     /** {@link IGlobalNotebookManagerSettings} */
-    NotebookManager = 'notebookManager',
+    NotebookGroup = 'notebookManager',
 
 }
 
@@ -238,19 +238,24 @@ export interface IGlobalApplicationSettings {
      * Used for file/directory reading and writing.
      */
     OpenDirConfig: Electron.OpenDialogOptions;
+
+    /**
+     * If enables keyboard screencast.
+     */
+     keyboardScreenCast: boolean;
 }
 
 /** @SettingInterface */
 export interface IGlobalNotebookManagerSettings {
 
     /**
-     * When true, NotebookManager will read or create the default configuration in 
+     * When true, NotebookGroup will read or create the default configuration in 
      * '<appRootPath>/.nota/user.config.json'.
      * 
-     * When false, NotebookManager will read or create a local configuration file 
+     * When false, NotebookGroup will read or create a local configuration file 
      * in '<notebookManagerPath>/.nota/config.json'.
      */
-     defaultConfigOn: boolean;
+    defaultConfigOn: boolean;
 
     /**
      * When the application started, determine whether to open the previous 
@@ -285,13 +290,14 @@ export class DefaultGlobalConfigModel extends ConfigModel {
                         'openDirectory'
                     ]
                 } as Electron.OpenDialogOptions,
-            },
+                keyboardScreenCast: false,
+            } as IGlobalApplicationSettings,
             'notebookManager': 
             {
                 defaultConfigOn: false,
                 startPreviousNotebookManagerDir: true,
                 previousNotebookManagerDir: '',
-            }
+            } as IGlobalNotebookManagerSettings
         };
     }
 }
@@ -304,7 +310,7 @@ export class DefaultGlobalConfigModel extends ConfigModel {
 export const enum EUserSettings {
     
     /** {@link IUserNotebookManagerSettings} */
-    NotebookManager = 'notebookManager',
+    NotebookGroup = 'notebookManager',
 
     /** {@link IUserMarkdownSettings} */
     Markdown = 'markdown',

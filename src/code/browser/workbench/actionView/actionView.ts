@@ -78,13 +78,12 @@ export class ActionViewComponent extends Component implements IActionViewService
     
     // [constructor]
 
-    constructor(parentComponent: Component,
-                defaultView: ActionType,
+    constructor(defaultView: ActionType, // REVIEW: should not be in ctor
                 @Ii18nService private readonly i18nService: Ii18nService,
                 @IInstantiationService private readonly instantiationService: IInstantiationService,
                 @IComponentService componentService: IComponentService,
     ) {
-        super(ComponentType.ActionView, parentComponent, null, componentService);
+        super(ComponentType.ActionView, null, componentService);
         
         this._defaultViewType = defaultView;
         this._currentViewType = ActionType.NONE; // TODO: read from config
@@ -173,7 +172,7 @@ export class ActionViewComponent extends Component implements IActionViewService
             
             switch (viewType) {
                 case ActionType.EXPLORER:
-                    view = this.instantiationService.createInstance(ExplorerViewComponent, this, container) as IActionViewComponent;
+                    view = this.instantiationService.createInstance(ExplorerViewComponent, container) as IActionViewComponent;
                     this._components.set(viewType, view);
                     break;
     
@@ -193,7 +192,7 @@ export class ActionViewComponent extends Component implements IActionViewService
         }
 
         if (justCreated && view) {
-            view.create();
+            view.create(this);
         }
 
         if (prevView) {

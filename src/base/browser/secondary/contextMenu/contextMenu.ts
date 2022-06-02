@@ -78,7 +78,7 @@ export abstract class ContextMenu extends Component implements IContextMenu {
                 menuItemOptions: IMenuItemOption[],
                 @IComponentService componentService: IComponentService,
     ) {
-        super('context-menu', null, document.body, componentService);
+        super('context-menu', document.body, componentService);
         this.type = type;
         this._coordinate = coordinate;
         this._menuItemGroups = new Map();

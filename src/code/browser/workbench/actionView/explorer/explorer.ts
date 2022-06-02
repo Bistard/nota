@@ -1,9 +1,7 @@
 import { Component, ComponentType, IComponent } from 'src/code/browser/workbench/component';
-import { DomEmitter, Emitter, Register } from 'src/base/common/event';
-import { INotebookManagerService } from 'src/code/common/model/notebookManager';
+import { Emitter, Register } from 'src/base/common/event';
+import { INotebookGroupService } from 'src/code/common/model/notebookGroup';
 import { IComponentService } from 'src/code/browser/service/componentService';
-import { ContextMenuType, Coordinate } from 'src/base/browser/secondary/contextMenu/contextMenu';
-import { IContextMenuService } from 'src/code/browser/service/contextMenuService';
 import { createDecorator } from 'src/code/common/service/instantiationService/decorator';
 import { Ii18nService } from 'src/code/platform/i18n/i18n';
 import { Section } from 'src/code/platform/section';
@@ -11,7 +9,8 @@ import { registerSingleton } from 'src/code/common/service/instantiationService/
 import { ServiceDescriptor } from 'src/code/common/service/instantiationService/descriptor';
 import { EGlobalSettings, EUserSettings, IGlobalConfigService, IGlobalNotebookManagerSettings, IUserConfigService, IUserNotebookManagerSettings } from 'src/code/common/service/configService/configService';
 import { IIpcService, IpcService } from 'src/code/browser/service/ipcService';
-import { EventType } from 'src/base/common/dom';
+import { addDisposableListener, EventType } from 'src/base/common/dom';
+import { IEditorService } from 'src/code/browser/workbench/workspace/editor/editor';
 
 export const IExplorerViewService = createDecorator<IExplorerViewService>('explorer-view-service');
 
@@ -65,22 +64,21 @@ export class ExplorerViewComponent extends Component implements IExplorerViewSer
 
     // [event]
 
-    private _onDidOpenDirectory = this.__register(new Emitter<IExplorerDirectoryEvent>());
-    public onDidOpenDirectory = this._onDidOpenDirectory.registerListener;
+    private readonly _onDidOpenDirectory = this.__register(new Emitter<IExplorerDirectoryEvent>());
+    public readonly onDidOpenDirectory = this._onDidOpenDirectory.registerListener;
 
     // [constructor]
 
-    constructor(parentComponent: Component,
-                parentElement: HTMLElement,
+    constructor(parentElement: HTMLElement,
+                @IComponentService componentService: IComponentService,
                 @IIpcService private readonly ipcService: IpcService,
                 @Ii18nService private readonly i18nService: Ii18nService,
                 @IGlobalConfigService private readonly globalConfigService: IGlobalConfigService,
                 @IUserConfigService private readonly userConfigService: IUserConfigService,
-                @INotebookManagerService private readonly notebookManagerService: INotebookManagerService,
-                @IComponentService componentService: IComponentService,
-                @IContextMenuService private readonly contextMenuService: IContextMenuService,
+                @INotebookGroupService private readonly notebookGroupService: INotebookGroupService,
+                @IEditorService private readonly editorService: IEditorService,
     ) {
-        super(ComponentType.ExplorerView, parentComponent, parentElement, componentService);
+        super(ComponentType.ExplorerView, parentElement, componentService);
 
         this.__getAllConfiguration();
     }
@@ -107,32 +105,17 @@ export class ExplorerViewComponent extends Component implements IExplorerViewSer
         } else {
             this.__createUnopenedExplorerView();
         }
-        
     }
 
     protected override _registerListeners(): void {
 
         /**
-         * @readonly register context menu listeners (right click menu)
-        */
-        // this.container.addEventListener('contextmenu', (ev: MouseEvent) => {
-        //         ev.preventDefault();
-        //         this.contextMenuService.removeContextMenu();
-        //         let coordinate: Coordinate = {
-        //             coordinateX: ev.pageX,
-        //             coordinateY: ev.pageY,
-        //         };
-
-        //         this.contextMenuService.createContextMenu(ContextMenuType.explorerView, coordinate);
-        // });
-
-        /**
          * Registers open directory dialog listener.
          */
-        const tag = this._unopenedView.children[0]!;
-        this.__register(new DomEmitter(tag, EventType.click)).registerListener(() => {
+        const tag = this._unopenedView.children[0]!; // REVIEW: set as class field
+        this.__register(addDisposableListener(tag, EventType.click, () => {
             this.ipcService.openDirectoryDialog(this._globalConfig.previousNotebookManagerDir);
-        });
+        }));
 
         /**
          * once the directory dialog chosed a path to open, we get the message 
@@ -140,6 +123,13 @@ export class ExplorerViewComponent extends Component implements IExplorerViewSer
          */
         this.__register(this.ipcService.onDidOpenDirectoryDialog((path) => {
             this.__createOpenedExplorerView(path, this._globalConfig.defaultConfigOn, false);
+        }));
+
+        /**
+         * Opens in the editor.
+         */
+        this.__register(this.notebookGroupService.onOpen(e => {
+            this.editorService.openEditor(e.item.uri);
         }));
     }
 
@@ -161,8 +151,8 @@ export class ExplorerViewComponent extends Component implements IExplorerViewSer
         
         // get configurations and save it in the class itself.
         try {
-            this._globalConfig = this.globalConfigService.get(EGlobalSettings.NotebookManager);
-            this._userConfig = this.userConfigService.get(EUserSettings.NotebookManager);
+            this._globalConfig = this.globalConfigService.get(EGlobalSettings.NotebookGroup);
+            this._userConfig = this.userConfigService.get(EUserSettings.NotebookGroup);
         } catch (err) {
             throw new Error(`Explorer: ${err}`);
         }
@@ -231,7 +221,7 @@ export class ExplorerViewComponent extends Component implements IExplorerViewSer
 
         // open the directory under the notebook manager
         try {
-            await this.notebookManagerService.open(this._openedView, path);
+            await this.notebookGroupService.open(this._openedView, path);
         } catch (err) {
             // logService.trace(err);
         }
@@ -242,7 +232,7 @@ export class ExplorerViewComponent extends Component implements IExplorerViewSer
          * Since the `this._openedView` is added into the DOM tree, we now can
          * re-layout to calcualte the correct size of the view.
          */
-        this.notebookManagerService.layout();
+        this.notebookGroupService.layout();
 
         this._opened = true;
         this._onDidOpenDirectory.fire({ path: path });

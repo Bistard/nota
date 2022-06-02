@@ -1,5 +1,5 @@
 import { ITreeMouseEvent, ITreeSpliceEvent } from "src/base/browser/secondary/tree/tree";
-import { Disposable, DisposableManager, IDisposable } from "src/base/common/dispose";
+import { Disposable, DisposableManager } from "src/base/common/dispose";
 import { Register, RelayEmitter } from "src/base/common/event";
 import { DataBuffer } from "src/base/common/file/buffer";
 import { FileType } from "src/base/common/file/file";
@@ -9,6 +9,7 @@ import { Iterable } from "src/base/common/util/iterable";
 import { String } from "src/base/common/util/string";
 import { IIpcService } from "src/code/browser/service/ipcService";
 import { ExplorerItem } from "src/code/browser/workbench/actionView/explorer/explorerItem";
+import { IExplorerOpenEvent } from "src/code/browser/workbench/actionView/explorer/explorerTree";
 import { Notebook } from "src/code/common/model/notebook";
 import { DEFAULT_CONFIG_PATH, EGlobalSettings, EUserSettings, GLOBAL_CONFIG_FILE_NAME, GLOBAL_CONFIG_PATH, IGlobalNotebookManagerSettings, IUserNotebookManagerSettings, LOCAL_NOTA_DIR_NAME } from "src/code/common/service/configService/configService";
 import { DEFAULT_CONFIG_FILE_NAME, IUserConfigService, LOCAL_CONFIG_FILE_NAME } from "src/code/common/service/configService/configService";
@@ -16,14 +17,14 @@ import { IGlobalConfigService } from "src/code/common/service/configService/conf
 import { IFileService } from "src/code/common/service/fileService/fileService";
 import { createDecorator } from "src/code/common/service/instantiationService/decorator";
 
-export const INotebookManagerService = createDecorator<INotebookManagerService>('notebook-manager-service');
+export const INotebookGroupService = createDecorator<INotebookGroupService>('notebook-manager-service');
 
-export interface INotebookManagerService {
+export interface INotebookGroupService {
     
     /**
-     * Fires when the item in the notebook is clicked.
+     * Fires when a file / notepage in the notebook is about to be opened.
      */
-    onClick: Register<ITreeMouseEvent<ExplorerItem>>;
+    onOpen: Register<IExplorerOpenEvent<ExplorerItem>>;
 
     /**
      * Fires when the content of the current notebook is changed.
@@ -61,7 +62,7 @@ export interface INotebookManagerService {
     layout(height?: number): void;
 
     /**
-     * @description Returns the root path of the {@link NotebookManager}.
+     * @description Returns the root path of the {@link NotebookGroup}.
      */
     rootPath(): string;
 
@@ -79,7 +80,7 @@ export interface INotebookManagerService {
 /**
  * @class // TODO
  */
-export class NotebookManager extends Disposable implements INotebookManagerService {
+export class NotebookGroup extends Disposable implements INotebookGroupService {
 
     // [field]
 
@@ -92,7 +93,7 @@ export class NotebookManager extends Disposable implements INotebookManagerServi
     private _rootPath: string = '';
 
     /** Stores all the opened notebooks in memory. */
-    private readonly _notebooks: Map<string, Notebook> = new Map<string, Notebook>();
+    private readonly _group: Map<string, Notebook> = new Map<string, Notebook>();
 
     /** The current displaying notebook. */
     private _current: Notebook | undefined = undefined;
@@ -112,8 +113,8 @@ export class NotebookManager extends Disposable implements INotebookManagerServi
 
     // [event]
 
-    private readonly _onClick = this.__register(new RelayEmitter<ITreeMouseEvent<ExplorerItem>>());
-    public readonly onClick = this._onClick.registerListener;
+    private readonly _onOpen = this.__register(new RelayEmitter<IExplorerOpenEvent<ExplorerItem>>());
+    public readonly onOpen = this._onOpen.registerListener;
 
     private readonly _onDidChangeContent = this.__register(new RelayEmitter<ITreeSpliceEvent<ExplorerItem | null, void>>());
     public readonly onDidChangeContent = this._onDidChangeContent.registerListener;
@@ -128,7 +129,7 @@ export class NotebookManager extends Disposable implements INotebookManagerServi
             this._rootPath = path;
             
             // read the configuration
-            const userConfig = this.userConfigService.get<IUserNotebookManagerSettings>(EUserSettings.NotebookManager);
+            const userConfig = this.userConfigService.get<IUserNotebookManagerSettings>(EUserSettings.NotebookGroup);
             
             // get all the names in the given directory
             const dir = await this.fileService.readDir(URI.fromFile(path));
@@ -229,7 +230,7 @@ export class NotebookManager extends Disposable implements INotebookManagerServi
     ): Promise<Notebook | undefined> {
         
         // do nothing if the notebook is already displaying.
-        let notebook = this._notebooks.get(name);
+        let notebook = this._group.get(name);
         if (name === this._current?.name) {
             return notebook;
         }
@@ -242,7 +243,7 @@ export class NotebookManager extends Disposable implements INotebookManagerServi
         // notebook not in the memory, we create a notebook.
         else {
             notebook = new Notebook(container, this.fileService);
-            this._notebooks.set(name, notebook);
+            this._group.set(name, notebook);
             
             // start building the whole notebook asynchronously.
             const result = await notebook.init(URI.fromFile(resolve(root, name)));
@@ -256,7 +257,7 @@ export class NotebookManager extends Disposable implements INotebookManagerServi
             // success
             this._current = notebook;
             config.previousOpenedNotebook = this._current.name;
-            this.userConfigService.set(EUserSettings.NotebookManager, config);
+            this.userConfigService.set(EUserSettings.NotebookGroup, config);
         }
 
         // re-plugin the input emitters
@@ -288,7 +289,7 @@ export class NotebookManager extends Disposable implements INotebookManagerServi
     private async __onApplicationClose(): Promise<void> {
         
         // get notebook configuration
-        const notebookConfig = this.globalConfigService.get<IGlobalNotebookManagerSettings>(EGlobalSettings.NotebookManager);
+        const notebookConfig = this.globalConfigService.get<IGlobalNotebookManagerSettings>(EGlobalSettings.NotebookGroup);
 
         // save global configuration first
         notebookConfig.previousNotebookManagerDir = this.rootPath();
@@ -308,16 +309,16 @@ export class NotebookManager extends Disposable implements INotebookManagerServi
      */
     private __registerNotebookListeners(notebook: Notebook): void {
 
-        this._onClick.setInput(notebook.onClick);
+        this._onOpen.setInput(notebook.onOpen);
         this._onDidChangeContent.setInput(notebook.onDidChangeContent);
 
     }
 
     /**
-     * @description Resets the {@link NotebookManager} to the initial state.
+     * @description Resets the {@link NotebookGroup} to the initial state.
      */
     private __reset(): void {
-        this._notebooks.clear();
+        this._group.clear();
         this._current = undefined;
         this._rootPath = '';
         this._notebookListeners.dispose();

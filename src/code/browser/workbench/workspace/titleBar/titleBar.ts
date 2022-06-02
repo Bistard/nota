@@ -1,6 +1,6 @@
 import { Component } from 'src/code/browser/workbench/component';
-import { WindowBarComponent } from 'src/code/browser/workbench/editor/titleBar/windowBar';
-import { EditorComponentType } from 'src/code/browser/workbench/editor/editor';
+import { WindowBarComponent } from 'src/code/browser/workbench/workspace/titleBar/windowBar';
+import { WorkspaceComponentType } from 'src/code/browser/workbench/workspace/workspace';
 import { IComponentService } from 'src/code/browser/service/componentService';
 import { IInstantiationService } from 'src/code/common/service/instantiationService/instantiation';
 
@@ -18,11 +18,10 @@ export class TitleBarComponent extends Component {
     windowBarComponent!: WindowBarComponent;
 
     constructor(
-        parentComponent: Component,
         @IComponentService componentService: IComponentService,
         @IInstantiationService private readonly instantiationService: IInstantiationService,
     ) {
-        super(EditorComponentType.titleBar, parentComponent, null, componentService);
+        super(WorkspaceComponentType.titleBar, null, componentService);
     }
 
     protected override _createContent(): void {
@@ -37,8 +36,8 @@ export class TitleBarComponent extends Component {
     }
 
     private _createWindowBar(): void {
-        this.windowBarComponent = this.instantiationService.createInstance(WindowBarComponent, this);
-        this.windowBarComponent.create();
+        this.windowBarComponent = this.instantiationService.createInstance(WindowBarComponent);
+        this.windowBarComponent.create(this);
     }
     
 }

@@ -1,7 +1,7 @@
 import { DataBuffer } from "src/base/common/file/buffer";
-import { FileSystemProviderAbleToRead, hasOpenReadWriteCloseCapability, hasReadWriteCapability, IReadFileOptions, IFileSystemProvider, IFileSystemProviderWithFileReadWrite, IFileSystemProviderWithOpenReadWriteClose, IWriteFileOptions, IFileStat, FileType, IFileOperationError, FileSystemProviderCapability, IDeleteFileOptions, IResolveStatOptions, IResolvedFileStat } from "src/base/common/file/file";
+import { FileSystemProviderAbleToRead, hasOpenReadWriteCloseCapability, hasReadWriteCapability, IReadFileOptions, IFileSystemProvider, IFileSystemProviderWithFileReadWrite, IFileSystemProviderWithOpenReadWriteClose, IWriteFileOptions, IFileStat, FileType, IFileOperationError, FileSystemProviderCapability, IDeleteFileOptions, IResolveStatOptions, IResolvedFileStat, hasReadFileStreamCapability, IFileSystemProviderWithReadFileStream } from "src/base/common/file/file";
 import { basename, dirname, join } from "src/base/common/file/path";
-import { bufferToStream, IReadableStream, IWriteableStream, listenStream, newWriteableBufferStream, streamToBuffer } from "src/base/common/file/stream";
+import { bufferToStream, IReadableStream, IWriteableStream, listenStream, newWriteableBufferStream, streamToBuffer, transformStream } from "src/base/common/file/stream";
 import { isAbsoluteURI, URI } from "src/base/common/file/uri";
 import { Iterable } from "src/base/common/util/iterable";
 import { readFileIntoStream, readFileIntoStreamAsync } from "src/base/node/io";
@@ -92,14 +92,20 @@ export interface IFileService {
 
 export class FileService implements IFileService {
 
+    // [fields]
+
     private readonly _providers: Map<string, IFileSystemProvider> = new Map();
 
-    /** @readonly read into chunks of 256kb each to reduce IPC overhead */
-    private readonly bufferSize = 256 * 1024;
+    /** @readonly read into chunks of 256kb each to reduce IPC overhead. */
+    public static readonly bufferSize = 256 * 1024;
+
+    // [constructor]
 
     constructor(
         /* IFileLogService private readonly fileLogService: IFileLogService */
-    ) { }
+    ) {
+
+    }
 
     /***************************************************************************
      * public API - Provider Operations
@@ -253,28 +259,35 @@ export class FileService implements IFileService {
         provider: FileSystemProviderAbleToRead, 
         uri: URI, 
         opts?: IReadFileOptions & { preferUnbuffered?: boolean; }
-    ): Promise<IWriteableStream<DataBuffer>>  
+    ): Promise<IReadableStream<DataBuffer>>  
     {
-        const stat = this.__validateRead(provider, uri, opts);
+        await this.__validateRead(provider, uri, opts);
         
-        let writeableStream: IWriteableStream<DataBuffer> | undefined = undefined;
+        let stream: IReadableStream<DataBuffer> | undefined = undefined;
         try {
 
-            if (!hasOpenReadWriteCloseCapability(provider) ||
+            /**
+             * read unbuffered:
+             *  - the provider has no buffered capability
+             *  - prefer unbuffered
+             */
+            if (!(hasOpenReadWriteCloseCapability(provider) || hasReadFileStreamCapability(provider)) ||
                 (hasReadWriteCapability(provider) && opts?.preferUnbuffered)
             ) {
-                // read unbuffered (only if either preferred, or the provider has 
-                // no buffered read capability)
-                writeableStream = this.__readFileUnbuffered(provider, uri, opts);
+                stream = this.__readFileUnbuffered(provider, uri, opts);
             } 
 
-            else {
-                // read buffered
-                writeableStream = this.__readFileBuffered(provider, uri, opts);
+            // read streamed
+            else if (hasReadFileStreamCapability(provider)) {
+                stream = this.__readFileStreamed(provider, uri, opts);
             }
 
-            await stat;
-            return writeableStream;   
+            // read buffered
+            else {
+                stream = this.__readFileBuffered(provider, uri, opts);
+            }
+
+            return stream;   
         } 
         
         catch(err) {
@@ -286,21 +299,37 @@ export class FileService implements IFileService {
     private __readFileUnbuffered(
         provider: IFileSystemProviderWithFileReadWrite, 
         uri: URI,
-        opts?: IReadFileOptions): IWriteableStream<DataBuffer> 
+        opts?: IReadFileOptions
+    ): IReadableStream<DataBuffer> 
     {
         const stream = newWriteableBufferStream();
         readFileIntoStreamAsync(provider, uri, stream, opts);
         return stream;
     }
 
+    private __readFileStreamed(
+        provider: IFileSystemProviderWithReadFileStream,
+        uri: URI,
+        opts?: IReadFileOptions
+    ): IReadableStream<DataBuffer> 
+    {
+        const stream = provider.readFileStream(uri, opts);
+        return transformStream(
+            stream, {
+                data: data => DataBuffer.wrap(data)
+            }, 
+            data => DataBuffer.concat(data)
+        );
+    }
+
     /** @description Read the file using buffer I/O. */
     private __readFileBuffered(
         provider: IFileSystemProviderWithOpenReadWriteClose, 
         uri: URI,
-        opts?: IReadFileOptions): IWriteableStream<DataBuffer> 
+        opts?: IReadFileOptions): IReadableStream<DataBuffer> 
     {
         const stream = newWriteableBufferStream();
-        readFileIntoStream(provider, uri, stream, data => data, { ...opts, bufferSize: this.bufferSize });
+        readFileIntoStream(provider, uri, stream, data => data, { ...opts, bufferSize: FileService.bufferSize });
         return stream;
     }
 

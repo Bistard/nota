@@ -9,7 +9,7 @@ export const enum ComponentType {
     Workbench = 'workbench',
     ActionBar = 'action-bar',
     ActionView = 'action-view',
-    Editor = 'editor-view',
+    Workspace = 'workspace',
     ExplorerView = 'explorer-container',
     OutlineView = 'outline-container',
     SearchView = 'search-container',
@@ -26,15 +26,26 @@ export interface ICreateable {
  */
 export interface IComponent extends ICreateable {
 
+    /** The parent {@link IComponent} of the current component. */
     readonly parentComponent: IComponent | null;
+
+    /** The parent {@link HTMLElement} of the current component. */
     readonly parent: HTMLElement | null;
+
+    /** The DOM element of the current component. */
     container: HTMLElement;
+
     contentArea: HTMLElement | undefined;
 
     /**
      * @description Renders the component itself.
+     * @param parent If provided, the component will be rendered under the parent 
+     * component (if the constructor did not provide a specific parent element).
+     * 
+     * @note If not provided, either renders under the constructor provided 
+     * element, or `document.body`.
      */
-    create(): void;
+    create(parent?: Component): void;
 
     /**
      * @description Registers any listeners in the component.
@@ -82,6 +93,11 @@ export interface IComponent extends ICreateable {
     getId(): string;
 
     /**
+     * @description Checks if the component has created.
+     */
+    created(): boolean;
+
+    /**
      * @description Disposes the current component and all its children 
      * components.
      */
@@ -90,23 +106,26 @@ export interface IComponent extends ICreateable {
 }
 
 /**
- * @class Abstract base class for every composed / complicated UI component.
+ * @class Abstract base class for every composed / complicated UI classes.
  * {@link Component} has ability to nest other {@link Component}s.
  * 
- * {@link Component} is disposable, once it get disposed, all its children will
- * also be disposed.
+ * A component is disposable, once it get disposed, all its children will
+ * also be disposed. The component cannot be disposed / create() / registerListener() twice.
  * 
- * {@link Component} cannot be disposed / create() / registerListener() twice.
+ * @readonly Usually only the UI classes will inherit {@link Component}. It is 
+ * allowed to register the UI class into the DI system as long as the constructor 
+ * does not need any extra arguments. It gives the potential for {@link Component} 
+ * not just being a UI class, it could also be treated like a micro-service.
  */
 export abstract class Component extends Disposable implements IComponent {
     
     // [field]
     
-    public readonly parentComponent: IComponent | null = null;
-    public readonly parent: HTMLElement | null = null;
-    public container: HTMLElement = document.createElement('div');
+    private _parentComponent: IComponent | null = null;
+    private _parent: HTMLElement | null = null;
+    private _container: HTMLElement = document.createElement('div');
     
-    // TODO: try to remove this stupid stuff
+    // TODO: try to remove this stupid design
     public contentArea: HTMLElement | undefined;
 
     private readonly _componentMap: Map<string, Component> = new Map();
@@ -119,18 +138,22 @@ export abstract class Component extends Disposable implements IComponent {
     private readonly _onDidVisibilityChange = this.__register( new Emitter<boolean>() );
     public readonly onDidVisibilityChange = this._onDidVisibilityChange.registerListener;
 
+    // [getter]
+    
+    get parentComponent() { return this._parentComponent; }
+    get parent() { return this._parent; }
+    get container() { return this._container; }
+
     // [constructor]
 
     /**
      * @param id The id for the Component.
-     * @param parentComponent The parent Component.
      * @param parentElement If provided, parentElement will replace the HTMLElement 
-     *                      from the provided parentComponent. Else defaults to 
-     *                      `document.body`.
+     * from the provided parentComponent when creating. Otherwise defaults to 
+     * `document.body`.
      * @param componentService ComponentService for the registration purpose.
      */
     constructor(id: string, 
-                parentComponent: IComponent | null,
                 parentElement: HTMLElement | null,
                 protected readonly componentService: IComponentService,
     ) {
@@ -138,14 +161,8 @@ export abstract class Component extends Disposable implements IComponent {
 
         this.container.id = id;
         
-        this.parentComponent = parentComponent;
-        if (parentComponent) {
-            this.parent = parentComponent.container;
-            parentComponent.registerComponent(this);
-        }
-
         if (parentElement) {
-            this.parent = parentElement;
+            this._parent = parentElement;
         }
 
         this.componentService.register(this);
@@ -170,12 +187,22 @@ export abstract class Component extends Disposable implements IComponent {
 
     // [public method]
 
-    public create(): void {
+    public create(parent?: Component): void {
         if (this.isDisposed() || this._created) {
             return; 
         }
+
+        if (parent) {
+            this._parentComponent = parent;
+            parent.registerComponent(this);
+            if (this._parent === null) {
+                this._parent = parent.container;
+            }
+            this._parent.appendChild(this.container);
+        } else {
+            document.body.appendChild(this.container);
+        }
         
-        this.parent?.appendChild(this.container); //TODO: try to remove `?`
         this._createContent();
         this._created = true;
     }
@@ -203,18 +230,23 @@ export abstract class Component extends Disposable implements IComponent {
         }
 
         this._componentMap.set(id, component);
+        this.__register(component);
     }
 
     public getId(): string {
-        return this.container.id;
+        return this._container.id;
+    }
+
+    public created(): boolean {
+        return this._created;
     }
 
     public setVisible(value: boolean): void {
         
         if (value === true) {
-            this.container.style.visibility = 'visible';
+            this._container.style.visibility = 'visible';
         } else {
-            this.container.style.visibility = 'hidden';
+            this._container.style.visibility = 'hidden';
         }
 
         this._onDidVisibilityChange.fire(value);
@@ -233,9 +265,6 @@ export abstract class Component extends Disposable implements IComponent {
     }
 
     public override dispose(): void {
-        for (const child of this._componentMap.values()) {
-            child.dispose();
-        }
         super.dispose();
     }
 

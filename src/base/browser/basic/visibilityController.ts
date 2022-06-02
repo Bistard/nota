@@ -13,7 +13,7 @@
     private _fadeClassName?: string;
 
     /**
-     * false: hides the DOM without fading animation.
+     * false: The DOM element is permanent invisible until this switch is on.
      * true: behaviour depends on `_visible`.
      */
     private _hardVisible: boolean;
@@ -75,7 +75,7 @@
     // [private helper methods]
 
     private __refreshVisibility(): void {
-        // should cannot be seen, we set as invisible without fade out
+        // should not be seen, we set as invisible without fade out.
         if (this._hardVisible === false) {
             this._hide(false);
             return;
@@ -94,7 +94,6 @@
     }
 
     private _show(): void {
-        
         this._dom!.classList.remove(this._inVisibleClassName);
         if (this._fade) {
             this._dom!.classList.remove(this._fadeClassName ? this._fadeClassName : 'fade');

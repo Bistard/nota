@@ -1,11 +1,11 @@
 import { IListDragAndDropProvider } from "src/base/browser/secondary/listWidget/listWidgetDragAndDrop";
-import { AsyncMultiTree, IAsyncMultiTree } from "src/base/browser/secondary/tree/asyncMultiTree";
-import { ITreeMouseEvent, ITreeSpliceEvent } from "src/base/browser/secondary/tree/tree";
+import { ITreeSpliceEvent } from "src/base/browser/secondary/tree/tree";
 import { Disposable } from "src/base/common/dispose";
 import { Emitter, Register } from "src/base/common/event";
 import { URI } from "src/base/common/file/uri";
 import { ExplorerChildrenProvider, ExplorerItem, ExplorerItemProvider } from "src/code/browser/workbench/actionView/explorer/explorerItem";
 import { ExplorerRenderer } from "src/code/browser/workbench/actionView/explorer/explorerRenderer";
+import { ExplorerTree, IExplorerOpenEvent, IExplorerTree } from "src/code/browser/workbench/actionView/explorer/explorerTree";
 import { IFileService } from "src/code/common/service/fileService/fileService";
 
 /**
@@ -52,9 +52,9 @@ export interface INotebook {
     onDidVisibilityChange: Register<boolean>;
 
     /**
-     * Fires when the item in the notebook is clicked.
+     * Fires when a file / notepage in the notebook is about to be opened.
      */
-    onClick: Register<ITreeMouseEvent<ExplorerItem>>;
+    onOpen: Register<IExplorerOpenEvent<ExplorerItem>>;
     
     /**
      * Fires when the content of the notebook is changed.
@@ -127,7 +127,7 @@ export class Notebook extends Disposable implements INotebook {
     // [field]
 
     private _root!: ExplorerItem;
-    private _tree!: IAsyncMultiTree<ExplorerItem, void>;
+    private _tree!: IExplorerTree<ExplorerItem, void>;
 
     /**
      * The container of the whole notebook.
@@ -147,7 +147,7 @@ export class Notebook extends Disposable implements INotebook {
     private readonly _onDidVisibilityChange = this.__register(new Emitter<boolean>());
     public readonly onDidVisibilityChange = this._onDidVisibilityChange.registerListener;
 
-    get onClick() { return this._tree.onClick; }
+    get onOpen() { return this._tree.onOpen; }
     get onDidChangeContent() { return this._tree.onDidSplice; }
 
     // [constructor]
@@ -239,7 +239,7 @@ export class Notebook extends Disposable implements INotebook {
      */
     private async __createTree(container: HTMLElement, root: ExplorerItem): Promise<void> {
 
-        const [tree, treeCreationPromise] = AsyncMultiTree.create<ExplorerItem, void>(
+        const [tree, treeCreationPromise] = ExplorerTree.create1<ExplorerItem, void>(
             container, 
             root,
             [new ExplorerRenderer()], 
@@ -260,7 +260,6 @@ export class Notebook extends Disposable implements INotebook {
      * @description Registers all the basic actions of the {@link Notebook}.
      */
     private __registerListeners(): void {
-
 
     }
 

@@ -1,6 +1,6 @@
 import { IWidget } from "src/base/browser/basic/widget";
 import { Disposable, disposeAll, IDisposable } from "src/base/common/dispose";
-import { addDisposableListener, clearChildrenNodes, EventType, Orientation } from "src/base/common/dom";
+import { addDisposableListener, DomUtility, EventType, Orientation } from "src/base/common/dom";
 
 /**
  * @readonly An interface that stores widget and will be stored inside the widget bar.
@@ -198,7 +198,7 @@ export class WidgetBar<T extends IWidget> extends Disposable implements IWidgetB
     public clear(): number {
         disposeAll(this._items);
         this._items = [];
-        return clearChildrenNodes(this._itemsContainer);
+        return DomUtility.clearChildrenNodes(this._itemsContainer);
     }
 
     public size(): number {

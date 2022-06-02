@@ -5,10 +5,14 @@ import { DomUtility } from "src/base/common/dom";
  * The type of renderers used in {@link IListView}.
  */
 export const enum RendererType {
+	Unknown,  /** testing purpose. */
 	
 	ListItem, /** {@link ListItemRenderer} */
 	Explorer, /** {@link ExplorerRenderer} */
-
+	
+	MarkdownPlainText, // TODO
+	MarkdownHeading,  /** {@link HeadingRenderer} */
+	
 };
 
 /**

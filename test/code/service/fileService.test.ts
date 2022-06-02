@@ -421,4 +421,26 @@ suite('FileService-disk-unbuffered-test', () => {
         }
     });
 
+    test('readFileStream', async () => {
+        const service = new FileService();
+        const provider = new DiskFileSystemProvider();
+        service.registerProvider('file', provider);
+
+        try {
+            let cnt = 0;
+            const stream = await service.readFileStream(URI.fromFile('test/code/service/temp/fileService-1mb.txt'));
+            stream.on('data', (data) => {
+                cnt++;
+            });
+            stream.on('end', () => {
+                assert.strictEqual(cnt, 4);
+            });
+            stream.on('error', (err) => {
+                assert.strictEqual(false, true);
+            });
+        } catch (err) {
+            throw err;
+        }
+    });
+
 });

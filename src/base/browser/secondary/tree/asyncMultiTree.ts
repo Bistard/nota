@@ -343,7 +343,7 @@ export interface IAsyncMultiTreeOptions<T, TFilter> extends IMultiTreeOptions<T>
  * asynchronously.
  * 
  * @note RootData is not counted as the part of the tree.
- * @note Constructor is private, use {@link AsyncMultiTree.create} instead.
+ * @note Constructor is protected, use {@link AsyncMultiTree.create} instead.
  * @note The tree will refresh automatically once the collapse state of the node
  * is changed.
  */
@@ -351,7 +351,7 @@ export class AsyncMultiTree<T, TFilter = void> implements IAsyncMultiTree<T, TFi
 
     // [field]
 
-    private readonly _disposables: DisposableManager;
+    protected readonly _disposables: DisposableManager;
 
     protected readonly _tree: IMultiTree<IAsyncTreeNode<T>, TFilter>;
     protected readonly _model: IAsyncMultiTreeModel<T, TFilter>;
@@ -361,7 +361,7 @@ export class AsyncMultiTree<T, TFilter = void> implements IAsyncMultiTree<T, TFi
     
     // [constructor]
 
-    private constructor(
+    protected constructor(
         container: HTMLElement,
         rootData: T,
         renderers: ITreeListRenderer<T, TFilter, any>[],
@@ -391,7 +391,7 @@ export class AsyncMultiTree<T, TFilter = void> implements IAsyncMultiTree<T, TFi
      * @description Creates an instance of {@link AsyncMultiTree}. The only 
      * difference is that the method will call the `refresh()` immediately.
      */
-    public static create<T, TFilter = void>(
+    public static create<T = any, TFilter = void>(
         container: HTMLElement, 
         rootData: T, 
         renderers: ITreeListRenderer<T, TFilter, any>[], 
