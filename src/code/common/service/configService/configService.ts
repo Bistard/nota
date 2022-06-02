@@ -242,7 +242,7 @@ export interface IGlobalApplicationSettings {
     /**
      * If enables keyboard screencast.
      */
-    ToggleKeyboardScreenCast: boolean;
+     keyboardScreenCast: boolean;
 }
 
 /** @SettingInterface */
@@ -290,7 +290,7 @@ export class DefaultGlobalConfigModel extends ConfigModel {
                         'openDirectory'
                     ]
                 } as Electron.OpenDialogOptions,
-                ToggleKeyboardScreenCast: false,
+                keyboardScreenCast: false,
             } as IGlobalApplicationSettings,
             'notebookManager': 
             {

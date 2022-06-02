@@ -143,7 +143,7 @@ export class Workbench extends WorkbenchLayout implements IWorkbenchService {
         
         let screenCastService: IKeyboardScreenCastService;
 
-        if (globalConfiguration.ToggleKeyboardScreenCast) {
+        if (globalConfiguration.keyboardScreenCast) {
             this.instantiationService.getOrCreateService(provider => {
                 screenCastService = provider.getService(IKeyboardScreenCastService);
                 screenCastService.start();
@@ -151,7 +151,7 @@ export class Workbench extends WorkbenchLayout implements IWorkbenchService {
         }
 
         this.globalConfigService.onDidChangeApplicationSettings(event => {
-            if (event.ToggleKeyboardScreenCast) {
+            if (event.keyboardScreenCast) {
                 screenCastService.start();
             } else {
                 screenCastService.dispose();
