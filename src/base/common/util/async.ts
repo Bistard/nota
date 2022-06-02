@@ -45,8 +45,8 @@ export async function retry<T>(task: ITask<Promise<T>>, delay: number, retries: 
  * @returns First return value is the new created promise, the second return value
  * is the isolated resolve function.
  */
-export function asyncFinish(): Pair<Promise<void>, () => void> {
-	let finished!: () => void;
-	const promise = new Promise<void>((resolve, reject) => finished = resolve);
+export function asyncFinish<T>(): Pair<Promise<T>, (arg: T) => void> {
+	let finished!: (arg: T) => void;
+	const promise = new Promise<T>((resolve, reject) => finished = resolve);
 	return [promise, finished];
 }

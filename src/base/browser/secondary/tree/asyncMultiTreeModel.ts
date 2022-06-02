@@ -242,7 +242,7 @@ export class AsyncMultiTreeModel<T, TFilter = void> implements IAsyncMultiTreeMo
     private async __refreshNodeAndChildren(node: IAsyncTreeNode<T>): Promise<void> {
 
         // mark the current node is refreshing
-        const [promise, finishRefresh] = asyncFinish();
+        const [promise, finishRefresh] = asyncFinish<void>();
         node.refreshing = promise;
         this._nodeRefreshing.set(node, node.refreshing);
 
