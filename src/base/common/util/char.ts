@@ -3,6 +3,30 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+/**
+ * @namespace Character Contains a series of helper functions that relates to
+ * characters, decoding and encoding.
+ */
+export namespace Character {
+
+	/**
+	 * @description Determines if the given character is a high surrogate.
+	 * {@link https://www.informit.com/articles/article.aspx?p=2274038&seqNum=10}
+	 */
+	export function isHighSurrogate(char: number): boolean {
+		return 0xD800 <= char && char <= 0xDBFF;
+	}
+
+	/**
+	 * @description Determines if the given character is a low surrogate.
+	 * {@link https://www.informit.com/articles/article.aspx?p=2274038&seqNum=10}
+	 */
+	export function isLowSurrogate(char: number): boolean {
+		return 0xDC00 <= char && char <= 0xDFFF;
+	}
+
+}
+
 // Names from https://blog.codinghorror.com/ascii-pronunciation-rules-for-programmers/
 
 /**
