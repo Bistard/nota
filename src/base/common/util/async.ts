@@ -1,3 +1,4 @@
+import { Pair } from "src/base/common/util/type";
 
 export interface ITask<T> {
 	(): T; // any functions that returns `T`
@@ -36,4 +37,16 @@ export async function retry<T>(task: ITask<Promise<T>>, delay: number, retries: 
 	}
 
 	throw lastError;
+}
+
+/**
+ * @description Creates a simple {@link Promise} and returns its resolve function
+ * for manually resolving.
+ * @returns First return value is the new created promise, the second return value
+ * is the isolated resolve function.
+ */
+export function asyncFinish(): Pair<Promise<void>, () => void> {
+	let finished!: () => void;
+	const promise = new Promise<void>((resolve, reject) => finished = resolve);
+	return [promise, finished];
 }
