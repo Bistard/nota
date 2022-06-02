@@ -1,8 +1,7 @@
 import { Component, ComponentType, IComponent } from 'src/code/browser/workbench/component';
-import { DomEmitter, Emitter, Register } from 'src/base/common/event';
+import { Emitter, Register } from 'src/base/common/event';
 import { INotebookGroupService } from 'src/code/common/model/notebookGroup';
 import { IComponentService } from 'src/code/browser/service/componentService';
-import { IContextMenuService } from 'src/code/browser/service/contextMenuService';
 import { createDecorator } from 'src/code/common/service/instantiationService/decorator';
 import { Ii18nService } from 'src/code/platform/i18n/i18n';
 import { Section } from 'src/code/platform/section';
@@ -71,13 +70,12 @@ export class ExplorerViewComponent extends Component implements IExplorerViewSer
     // [constructor]
 
     constructor(parentElement: HTMLElement,
+                @IComponentService componentService: IComponentService,
                 @IIpcService private readonly ipcService: IpcService,
                 @Ii18nService private readonly i18nService: Ii18nService,
                 @IGlobalConfigService private readonly globalConfigService: IGlobalConfigService,
                 @IUserConfigService private readonly userConfigService: IUserConfigService,
                 @INotebookGroupService private readonly notebookGroupService: INotebookGroupService,
-                @IComponentService componentService: IComponentService,
-                @IContextMenuService private readonly contextMenuService: IContextMenuService,
                 @IEditorService private readonly editorService: IEditorService,
     ) {
         super(ComponentType.ExplorerView, parentElement, componentService);
@@ -107,7 +105,6 @@ export class ExplorerViewComponent extends Component implements IExplorerViewSer
         } else {
             this.__createUnopenedExplorerView();
         }
-        
     }
 
     protected override _registerListeners(): void {

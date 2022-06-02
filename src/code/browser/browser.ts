@@ -3,7 +3,7 @@ import { Workbench } from "src/code/browser/workbench/workbench";
 import { FileLogService, IFileLogService } from "src/code/common/service/logService/fileLogService";
 import { ServiceDescriptor } from "src/code/common/service/instantiationService/descriptor";
 import { IInstantiationService, InstantiationService } from "src/code/common/service/instantiationService/instantiation";
-import { ServiceCollection } from "src/code/common/service/instantiationService/serviceCollection";
+import { getSingletonServiceDescriptors, ServiceCollection } from "src/code/common/service/instantiationService/serviceCollection";
 import { FileService, IFileService } from "src/code/common/service/fileService/fileService";
 import { GlobalConfigService, IGlobalConfigService, IUserConfigService, UserConfigService } from "src/code/common/service/configService/configService";
 import { Schemas } from "src/base/common/file/uri";
@@ -50,6 +50,11 @@ export class Browser {
 
         // InstantiationService (itself)
         this.instantiationService.register(IInstantiationService, this.instantiationService);
+
+        // singleton initialization
+        for (const [serviceIdentifer, serviceDescriptor] of getSingletonServiceDescriptors()) {
+			this.instantiationService.register(serviceIdentifer, serviceDescriptor);
+		}
 
         // IpcService
         this.instantiationService.register(IIpcService, new ServiceDescriptor(IpcService));

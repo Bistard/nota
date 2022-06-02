@@ -1,5 +1,7 @@
 import { Disposable, IDisposable } from "src/base/common/dispose";
 import { Emitter, Register } from "src/base/common/event";
+import { URI } from "src/base/common/file/uri";
+import { IFileService } from "src/code/common/service/fileService/fileService";
 
 /**
  * An interface only for {@link EditorModel}.
@@ -25,12 +27,24 @@ export class EditorModel extends Disposable implements IEditorModel {
 
     // [constructor]
 
-    constructor() {
+    constructor(
+        source: URI,
+        private fileService: IFileService
+    ) {
         super();
+
+        this.__createModel(source);
     }
 
     // [public methods]
 
     // [private helper methods]
+
+    private async __createModel(source: URI): Promise<void> {
+        const stream = await this.fileService.readFileStream(source);
+        stream.on('data', (data) => {
+            console.log(data.bufferLength);
+        });
+    }
 
 }

@@ -40,12 +40,18 @@ export interface IInstantiationService extends IServiceProvider {
     createInstance<Ctor extends new (...args: any[]) => any, T extends InstanceType<Ctor>>(ctorOrDescriptor: Ctor | ServiceDescriptor<Ctor>, ...rest: any[]): T;
 
     /**
+     * @description Get or create a service instance.
+     * @param serviceIdentifier The {@link ServiceIdentifier}.
+     */
+    getOrCreateService<T>(serviceIdentifier: ServiceIdentifier<T>): T;
+
+    /**
      * @description Invokes a callback function with a {@link IServiceProvider}
      * which will get or create a service.
      * @param cb The callback function.
      * @param args The arguments for creating the requesting service.
      */
-    getOrCreateService<T, R extends any[]>(cb: (provider: IServiceProvider, ...args: R) => T, ...args: R): T;
+    getOrCreateService1<T, R extends any[]>(cb: (provider: IServiceProvider, ...args: R) => T, ...args: R): T;
 }
 
 export class InstantiationService implements IInstantiationService {
@@ -71,7 +77,15 @@ export class InstantiationService implements IInstantiationService {
         return service;
     }
 
-    public getOrCreateService<T, R extends any[]>(cb: (provider: IServiceProvider, ...args: R) => T, ...args: R): T {
+    public getOrCreateService<T>(serviceIdentifier: ServiceIdentifier<T>): T {
+        const service = this._getOrCreateDependencyInstance(serviceIdentifier);
+        if (!service) {
+            throw new Error(`[getOrCreateService] UNKNOWN service ${serviceIdentifier.name}.`);
+        }
+        return service;
+    }
+
+    public getOrCreateService1<T, R extends any[]>(cb: (provider: IServiceProvider, ...args: R) => T, ...args: R): T {
         const provider: IServiceProvider = {
             getService: <T>(serviceIdentifier: ServiceIdentifier<T>) => {
                 const service = this._getOrCreateDependencyInstance(serviceIdentifier);

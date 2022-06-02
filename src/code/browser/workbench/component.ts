@@ -93,6 +93,11 @@ export interface IComponent extends ICreateable {
     getId(): string;
 
     /**
+     * @description Checks if the component has created.
+     */
+    created(): boolean;
+
+    /**
      * @description Disposes the current component and all its children 
      * components.
      */
@@ -225,10 +230,15 @@ export abstract class Component extends Disposable implements IComponent {
         }
 
         this._componentMap.set(id, component);
+        this.__register(component);
     }
 
     public getId(): string {
         return this._container.id;
+    }
+
+    public created(): boolean {
+        return this._created;
     }
 
     public setVisible(value: boolean): void {
@@ -255,9 +265,6 @@ export abstract class Component extends Disposable implements IComponent {
     }
 
     public override dispose(): void {
-        for (const child of this._componentMap.values()) {
-            child.dispose();
-        }
         super.dispose();
     }
 

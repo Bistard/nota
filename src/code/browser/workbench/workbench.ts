@@ -4,7 +4,6 @@ import { ContextMenuService, IContextMenuService } from 'src/code/browser/servic
 import { IInstantiationService } from "src/code/common/service/instantiationService/instantiation";
 import { ServiceDescriptor } from "src/code/common/service/instantiationService/descriptor";
 import { IComponentService } from "src/code/browser/service/componentService";
-import { getSingletonServiceDescriptors } from "src/code/common/service/instantiationService/serviceCollection";
 import { IGlobalConfigService } from "src/code/common/service/configService/configService";
 import { EGlobalSettings, IGlobalApplicationSettings } from "src/code/common/service/configService/configService";
 import { WorkbenchLayout } from "src/code/browser/workbench/layout";
@@ -41,12 +40,6 @@ export class Workbench extends WorkbenchLayout implements IWorkbenchService {
 
         /** {@link Workbench} (self registration) */
         this.instantiationService.register(IWorkbenchService, this);
-
-        // TODO: move to browser.ts
-        // singleton initialization
-        for (const [serviceIdentifer, serviceDescriptor] of getSingletonServiceDescriptors()) {
-			this.instantiationService.register(serviceIdentifer, serviceDescriptor);
-		}
 
         /** {@link ShortcutService} */
         this.instantiationService.register(IShortcutService, new ServiceDescriptor(ShortcutService));
@@ -99,35 +92,31 @@ export class Workbench extends WorkbenchLayout implements IWorkbenchService {
      */
     private __registerShortcuts(): void {
 
-        this.instantiationService.getOrCreateService(provider => {
-            
-            const shortcutService = provider.getService(IShortcutService);
-            shortcutService.register({
-                commandID: 'workbench.open-develop-tool',
-                whenID: 'N/A',
-                shortcut: new Shortcut(true, true, false, false, KeyCode.KeyI),
-                when: null,
-                command: () => {
-                    ipcRendererSend(IpcCommand.ToggleDevelopTool);
-                },
-                override: false,
-                activate: true
-            });
-    
-            shortcutService.register({
-                commandID: 'workbench.reload-window',
-                whenID: 'N/A',
-                shortcut: new Shortcut(true, false, false, false, KeyCode.KeyR),
-                when: null,
-                command: () => {
-                    ipcRendererSend(IpcCommand.ReloadWindow);
-                },
-                override: false,
-                activate: true
-            });
-
-        });
+        const shortcutService = this.instantiationService.getOrCreateService(IShortcutService);
         
+        shortcutService.register({
+            commandID: 'workbench.open-develop-tool',
+            whenID: 'N/A',
+            shortcut: new Shortcut(true, true, false, false, KeyCode.KeyI),
+            when: null,
+            command: () => {
+                ipcRendererSend(IpcCommand.ToggleDevelopTool);
+            },
+            override: false,
+            activate: true
+        });
+
+        shortcutService.register({
+            commandID: 'workbench.reload-window',
+            whenID: 'N/A',
+            shortcut: new Shortcut(true, false, false, false, KeyCode.KeyR),
+            when: null,
+            command: () => {
+                ipcRendererSend(IpcCommand.ReloadWindow);
+            },
+            override: false,
+            activate: true
+        });
     }
 
     /**
@@ -144,10 +133,8 @@ export class Workbench extends WorkbenchLayout implements IWorkbenchService {
         let screenCastService: IKeyboardScreenCastService;
 
         if (globalConfiguration.keyboardScreenCast) {
-            this.instantiationService.getOrCreateService(provider => {
-                screenCastService = provider.getService(IKeyboardScreenCastService);
-                screenCastService.start();
-            });
+            screenCastService = this.instantiationService.getOrCreateService(IKeyboardScreenCastService);
+            screenCastService.start();
         }
 
         this.globalConfigService.onDidChangeApplicationSettings(event => {

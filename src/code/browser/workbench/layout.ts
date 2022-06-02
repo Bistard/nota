@@ -5,7 +5,7 @@ import { IComponentService } from "src/code/browser/service/componentService";
 import { IIpcService } from "src/code/browser/service/ipcService";
 import { ActionBarComponent, ActionType } from "src/code/browser/workbench/actionBar/actionBar";
 import { ActionViewComponent } from "src/code/browser/workbench/actionView/actionView";
-import { Component, ComponentType, IComponent, ICreateable } from "src/code/browser/workbench/component";
+import { Component, ComponentType, IComponent } from "src/code/browser/workbench/component";
 import { WorkspaceComponent } from "src/code/browser/workbench/workspace/workspace";
 import { IInstantiationService } from "src/code/common/service/instantiationService/instantiation";
 
@@ -22,9 +22,9 @@ export abstract class WorkbenchLayout extends Component {
 
     // [fields]
 
-    protected actionBarComponent!: ActionBarComponent;
-    protected actionViewComponent!: ActionViewComponent;
-    protected editorComponent!: WorkspaceComponent;
+    protected actionBar!: ActionBarComponent;
+    protected actionView!: ActionViewComponent;
+    protected workspace!: WorkspaceComponent;
     
     // TODO: refactor using SplitView
     protected sashContainer: HTMLElement | undefined;
@@ -47,14 +47,14 @@ export abstract class WorkbenchLayout extends Component {
         /**
          * Constructs each component of the workbench.
          */
-        this.actionBarComponent = this.instantiationService.createInstance(ActionBarComponent);
-        this.actionViewComponent = this.instantiationService.createInstance(ActionViewComponent, ActionType.EXPLORER /* // TODO: should read from config */);
-        this.editorComponent = this.instantiationService.createInstance(WorkspaceComponent);
+        this.actionBar = this.instantiationService.createInstance(ActionBarComponent);
+        this.actionView = this.instantiationService.createInstance(ActionViewComponent, ActionType.EXPLORER /* // TODO: should read from config */);
+        this.workspace = this.instantiationService.createInstance(WorkspaceComponent);
         
         [
-            this.actionBarComponent,
-            this.actionViewComponent,
-            this.editorComponent
+            this.actionBar,
+            this.actionView,
+            this.workspace
         ]
         .forEach((component: IComponent) => {
             component.create(this);
@@ -72,8 +72,8 @@ export abstract class WorkbenchLayout extends Component {
          * @readonly Listens to each ActionBar button click events and notifies 
          * the actionView to swtich the view.
          */
-        this.actionBarComponent.onDidButtonClick(e => {
-            this.actionViewComponent.setActionView(e.type);
+        this.actionBar.onDidButtonClick(e => {
+            this.actionView.setActionView(e.type);
         });
 
         /**
@@ -83,13 +83,13 @@ export abstract class WorkbenchLayout extends Component {
         const sash = this.sashMap.get('sash-1')!;
         sash.onDidMove((e: ISashEvent) => {
             const newX = e.currentX - ActionBarComponent.width;
-            this.actionViewComponent.container.style.width = newX + 'px';
-            this.actionViewComponent.container.style.minWidth = newX + 'px';
+            this.actionView.container.style.width = newX + 'px';
+            this.actionView.container.style.minWidth = newX + 'px';
         });
 
         sash.onDidReset(() => {
-            this.actionViewComponent.container.style.width = ActionViewComponent.width + 'px';
-            this.actionViewComponent.container.style.minWidth = ActionViewComponent.width + 'px';
+            this.actionView.container.style.width = ActionViewComponent.width + 'px';
+            this.actionView.container.style.minWidth = ActionViewComponent.width + 'px';
         });
     }
 

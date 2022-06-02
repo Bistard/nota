@@ -6,7 +6,7 @@ import { createDecorator } from "src/code/common/service/instantiationService/de
 import { registerSingleton } from "src/code/common/service/instantiationService/serviceCollection";
 import { ServiceDescriptor } from "src/code/common/service/instantiationService/descriptor";
 import { IInstantiationService } from "src/code/common/service/instantiationService/instantiation";
-import { EditorComponent } from "src/code/browser/workbench/workspace/editor/editor";
+import { EditorComponent, IEditorService } from "src/code/browser/workbench/workspace/editor/editor";
 
 export const enum WorkspaceComponentType {
     titleBar = 'title-bar',
@@ -51,13 +51,11 @@ export class WorkspaceComponent extends Component implements IWorkspaceService {
 
     protected override _registerListeners(): void {
         this.titleBarComponent.registerListeners();
-        
-        
+        this.editorComponent.registerListeners();
         // this.markdownComponent.registerListeners();
     }
 
     // [public method]
-
 
     // [private helper methods]
 
@@ -67,7 +65,7 @@ export class WorkspaceComponent extends Component implements IWorkspaceService {
     }
 
     private _createEditor(): void {
-        this.editorComponent = this.instantiationService.createInstance(EditorComponent);
+        this.editorComponent = this.instantiationService.getOrCreateService(IEditorService) as EditorComponent;
         this.editorComponent.create(this);
     }
 

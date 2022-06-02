@@ -6,7 +6,7 @@ import { IFileService } from "src/code/common/service/fileService/fileService";
 import { createDecorator } from "src/code/common/service/instantiationService/decorator";
 import { ServiceDescriptor } from "src/code/common/service/instantiationService/descriptor";
 import { registerSingleton } from "src/code/common/service/instantiationService/serviceCollection";
-import { EditorWidget } from "src/editor/editorWidget";
+import { EditorWidget, IEditorWidget } from "src/editor/editorWidget";
 import { EditorModel } from "src/editor/model/editorModel";
 
 export const IEditorService = createDecorator<IEditorService>('editor-service');
@@ -25,6 +25,8 @@ export class EditorComponent extends Component implements IEditorService {
 
     // [field]
 
+    private _editor: IEditorWidget | null;
+
     // [constructor]
 
     constructor(
@@ -32,23 +34,30 @@ export class EditorComponent extends Component implements IEditorService {
         @IFileService private fileService: IFileService,
     ) {
         super(WorkspaceComponentType.editor, null, componentService);
+        this._editor = null;
     }
 
     // [public methods]
 
     public openEditor(uriOrString: URI | string): void {
+        
+        if (this._editor === null) {
+            throw new Error('editor service is currently not created');
+        }
+        
         let uri = uriOrString;
         if (!(uriOrString instanceof URI)) {
             uri = URI.fromFile(uriOrString);
         }
         
-        const textModel = new EditorModel();
+        const textModel = new EditorModel(uri as URI, this.fileService);
+        this._editor.attachModel(textModel);
     }
 
     // [override protected methods]
 
     protected override _createContent(): void {
-        const editor = new EditorWidget(this.container, {});
+        this._editor = new EditorWidget(this.container, {});
     }
 
     protected override _registerListeners(): void {
