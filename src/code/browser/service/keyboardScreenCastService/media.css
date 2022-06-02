@@ -45,6 +45,8 @@
 
     background-color: rgba(0, 0, 0, 0.137);
     border-radius: 10px;
+
+    box-shadow: 2px 2px rgba(49, 49, 49, 0.397);
 }
 
 .keyboard-screen-cast > .container > .tag > span {
