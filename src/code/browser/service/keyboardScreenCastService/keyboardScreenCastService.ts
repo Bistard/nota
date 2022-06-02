@@ -67,6 +67,7 @@ export class KeyboardScreenCastService implements IKeyboardScreenCastService {
         
         this._container = document.createElement('div');
         this._container.className = 'keyboard-screen-cast';
+        
         this._visibilityController.setDomNode(this._container);
         this._visibilityController.setVisibility(false);
 

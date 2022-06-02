@@ -9,6 +9,8 @@
 
     display: flex;
     flex-direction: row;
+
+    pointer-events: none;
 }
 
 .keyboard-screen-cast.visible {
