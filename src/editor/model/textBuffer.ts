@@ -2,11 +2,57 @@ import { Character, CharCode } from "src/base/common/util/char";
 import { EndOfLine, EndOfLineType, IPieceTable, ITextBuffer, ITextBufferBuilder } from "src/editor/common/model";
 import { PieceTable } from "src/editor/model/pieceTable/pieceTable";
 
+// REVIEW: should all the fields be readonly??
 export class TextBuffer implements ITextBuffer {
     constructor(
         public buffer: string,
         public linestart: number[]
     ) {}
+
+    /**
+     * @description Read through the given string and counts all the newline characters.
+     * @param string The given string.
+     * @complexity O(n)
+     */
+    public static readLineStarts(string: string): { cr: number; lf: number; crlf: number; linestart: number[] } {
+        const arr: number[] = [0]; // REVIEW: prof1: can we remove 0. prof2: tmp array
+        let cr = 0;
+        let lf = 0;
+        let crlf = 0;
+
+        let i = 0;
+        let strlen = string.length;
+        let c: number;
+        for (i = 0; i < strlen; i++) {
+            c = string.charCodeAt(i);
+
+            if (c === CharCode.CarriageReturn) {
+                // `/r/n`
+                if (i + 1 !== strlen && string.charCodeAt(i + 1) === CharCode.LineFeed) {
+                    arr.push(i + 2);
+                    i++;
+                    crlf++;
+                } 
+                // `/r`
+                else {
+                    arr.push(i + 1);
+                    cr++;
+                }
+            } 
+            // `/n`
+            else if (c === CharCode.LineFeed) {
+                arr.push(i + 1);
+            }
+        }
+
+        return {
+            cr: cr,
+            lf: lf,
+            crlf: crlf,
+            linestart: arr
+        };
+    }
+
 }
 
 /**
@@ -131,62 +177,18 @@ export class TextBufferBuilder implements ITextBufferBuilder {
         }
 
         this._created = true;
-        return new PieceTable();
+        return new PieceTable(this._chunks);
     }
 
     // [private helper methods]
 
     private __receiveChunk(chunk: string): void {
-        const {cr, lf, crlf, linestart} = this.__readLineStarts(chunk);
+        const {cr, lf, crlf, linestart} = TextBuffer.readLineStarts(chunk);
         
         this._chunks.push(new TextBuffer(chunk, linestart));
         this._cr += cr;
         this._lf += lf;
         this._crlf += crlf;
-    }
-
-    /**
-     * @description Read through the given string and counts all the newline characters.
-     * @param string The given string.
-     * @complexity O(n)
-     */
-    private __readLineStarts(string: string): { cr: number; lf: number; crlf: number; linestart: number[] } {
-        const arr: number[] = [0]; // REVIEW: prof
-        let cr = 0;
-        let lf = 0;
-        let crlf = 0;
-
-        let i = 0;
-        let strlen = string.length;
-        let c: number;
-        for (i = 0; i < strlen; i++) {
-            c = string.charCodeAt(i);
-
-            if (c === CharCode.CarriageReturn) {
-                // `/r/n`
-                if (i + 1 !== strlen && string.charCodeAt(i + 1) === CharCode.LineFeed) {
-                    arr.push(i + 2);
-                    i++;
-                    crlf++;
-                } 
-                // `/r`
-                else {
-                    arr.push(i + 1);
-                    cr++;
-                }
-            } 
-            // `/n`
-            else if (c === CharCode.LineFeed) {
-                arr.push(i + 1);
-            }
-        }
-
-        return {
-            cr: cr,
-            lf: lf,
-            crlf: crlf,
-            linestart: arr
-        };
     }
 
     private __getEOF(defaultEOF: EndOfLineType): EndOfLine {
