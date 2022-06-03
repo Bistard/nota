@@ -12,7 +12,7 @@ export class TextBuffer implements ITextBuffer {
 /**
  * @class The receiving phrase will receive string chunks and builds
  * corresponding {@link TextBuffer}. The building phrase will finish the 
- * receiving phrase. The creating phrase will create a 
+ * receiving phrase. The creating phrase will create a {@link IPieceTable}.
  */
 export class TextBufferBuilder implements ITextBufferBuilder {
 

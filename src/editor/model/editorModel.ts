@@ -68,7 +68,7 @@ export class EditorModel extends Disposable implements IEditorModel {
 
         const stream = await this.fileService.readFileStream(source);
         stream.on('data', (data: DataBuffer) => {
-            builder.receiveChunk(data.toString());
+            builder.receive(data.toString());
         });
 
         stream.on('end', () => {
