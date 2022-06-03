@@ -15,11 +15,11 @@ suite('textBufferBuilder', () => {
 
         const chunks = (builder as any)._chunks as TextBuffer[];
         assert.strictEqual(chunks[0]!.buffer, 'chris');
-        assert.strictEqual(chunks[0]!.linestart, []);
+        assert.strictEqual(chunks[0]!.linestart, [0]);
         assert.strictEqual(chunks[1]!.buffer, 'fiona\n');
-        assert.strictEqual(chunks[1]!.linestart, [6]);
+        assert.strictEqual(chunks[1]!.linestart, [0, 6]);
         assert.strictEqual(chunks[2]!.buffer, 'peter\r\n');
-        assert.strictEqual(chunks[2]!.linestart, [7]);
+        assert.strictEqual(chunks[2]!.linestart, [0, 7]);
     });
 
     test('empty build', () => {
@@ -29,7 +29,7 @@ suite('textBufferBuilder', () => {
 
         const chunks = (builder as any)._chunks as TextBuffer[];
         assert.strictEqual(chunks[0]!.buffer, '');
-        assert.strictEqual(chunks[0]!.linestart, []);
+        assert.strictEqual(chunks[0]!.linestart, [0]);
     });
 
     test('oneline build', () => {
@@ -40,7 +40,7 @@ suite('textBufferBuilder', () => {
 
         const chunks = (builder as any)._chunks as TextBuffer[];
         assert.strictEqual(chunks[0]!.buffer, 'chris');
-        assert.strictEqual(chunks[0]!.linestart, []);
+        assert.strictEqual(chunks[0]!.linestart, [0]);
     });
 
     test('chunk ended with carriage return', () => {
@@ -52,9 +52,9 @@ suite('textBufferBuilder', () => {
 
         const chunks = (builder as any)._chunks as TextBuffer[];
         assert.strictEqual(chunks[0]!.buffer, 'fiona');
-        assert.strictEqual(chunks[0]!.linestart, []);
+        assert.strictEqual(chunks[0]!.linestart, [0]);
         assert.strictEqual(chunks[1]!.buffer, '\r\npeter\r\n');
-        assert.strictEqual(chunks[1]!.linestart, [2, 9]);
+        assert.strictEqual(chunks[1]!.linestart, [0, 2, 9]);
     });
 
     test('chunk ended with surrogates', () => {
@@ -66,9 +66,9 @@ suite('textBufferBuilder', () => {
 
         const chunks = (builder as any)._chunks as TextBuffer[];
         assert.strictEqual(chunks[0]!.buffer, 'fiona');
-        assert.strictEqual(chunks[0]!.linestart, []);
+        assert.strictEqual(chunks[0]!.linestart, [0]);
         assert.strictEqual(chunks[1]!.buffer, '😁peter\r\n');
-        assert.strictEqual(chunks[1]!.linestart, [9]);
+        assert.strictEqual(chunks[1]!.linestart, [0, 9]);
     });
 
 });

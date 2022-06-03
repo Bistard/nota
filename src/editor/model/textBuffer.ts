@@ -151,7 +151,7 @@ export class TextBufferBuilder implements ITextBufferBuilder {
      * @complexity O(n)
      */
     private __readLineStarts(string: string): { cr: number; lf: number; crlf: number; linestart: number[] } {
-        const arr: number[] = []; // REVIEW: prof
+        const arr: number[] = [0]; // REVIEW: prof
         let cr = 0;
         let lf = 0;
         let crlf = 0;
