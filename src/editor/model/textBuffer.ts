@@ -5,8 +5,8 @@ import { PieceTable } from "src/editor/model/pieceTable";
 // REVIEW: should all the fields be readonly??
 export class TextBuffer implements ITextBuffer {
     constructor(
-        public buffer: string,
-        public linestart: number[]
+        public readonly buffer: string,
+        public readonly linestart: number[]
     ) {}
 
     /**
@@ -166,7 +166,7 @@ export class TextBufferBuilder implements ITextBufferBuilder {
         this._built = true;
     }
 
-    public create(defaultEOL: EndOfLineType, normalizationEOL: boolean): IPieceTable {
+    public create(defaultEOL: EndOfLineType, normalizationEOL: boolean = false): IPieceTable {
         if (this._created) {
             throw new Error('TextBufferBuilder cannot create twice');
         }
@@ -177,7 +177,7 @@ export class TextBufferBuilder implements ITextBufferBuilder {
         }
 
         this._created = true;
-        return new PieceTable(this._chunks);
+        return new PieceTable(this._chunks, normalizationEOL, eol);
     }
 
     // [private helper methods]
@@ -208,18 +208,25 @@ export class TextBufferBuilder implements ITextBufferBuilder {
         }
     }
 
-    private __normalizeEOL(EOF: EndOfLine): void {
+    /**
+     * @description Replaces all the linefeeds to the given {@link EndOfLine}.
+     */
+    private __normalizeEOL(EOL: EndOfLine): void {
         
-        if (EOF === EndOfLine.CRLF && !this._cr && !this._lf) {
+        if (EOL === EndOfLine.CRLF && !this._cr && !this._lf) {
             return;
         }
 
-        if (EOF === EndOfLine.LF && !this._cr && !this._crlf) {
+        if (EOL === EndOfLine.LF && !this._cr && !this._crlf) {
             return;
         }
         
-        for (const chunk of this._chunks) {
-            // TODO
+        let i = 0;
+        for (i = 0; i < this._chunks.length; i++) {
+            const chunk = this._chunks[i]!;
+            const normalizedBuffer = chunk.buffer.replace(/\r\n|\r|\n/g, EOL);
+            const normalizedLinestart = TextBuffer.readLineStarts(normalizedBuffer).linestart;
+            this._chunks[i] = new TextBuffer(normalizedBuffer, normalizedLinestart);
         }
     }
 

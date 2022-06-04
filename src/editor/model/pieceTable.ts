@@ -1,4 +1,5 @@
-import { BufferPosition, IPieceTable } from "src/editor/common/model";
+import { CharCode } from "src/base/common/util/char";
+import { BufferPosition, EndOfLine, IPiece, IPieceTable, IPieceTableNode, RBColor } from "src/editor/common/model";
 import { TextBuffer } from "src/editor/model/textBuffer";
 
 /**
@@ -9,31 +10,12 @@ import { TextBuffer } from "src/editor/model/textBuffer";
  * Printing all the {@link Piece}s inside {@link PieceTable} in the in-order way 
  * is the actual text model.
  */
-class Piece {
+class Piece implements IPiece {
 
-    /** 
-     * Which buffer the piece is refering in the whole table. 
-     */
     public readonly bufferIndex: number;
-
-    /**
-     * The length of the corresponding buffer.
-     */
     public readonly bufferLength: number;
-
-    /**
-     * The linefeed counts of the corresponding buffer.
-     */
     public readonly lfCount: number;
-
-    /** 
-     * The start position of the piece in the corresponding buffer. 
-     */
     public readonly start: BufferPosition;
-
-    /** 
-     * The end position of the piece in the corresponding buffer. 
-     */
     public readonly end: BufferPosition;
 
     constructor(bufferIndex: number, bufferLength: number, lfCount: number, start: BufferPosition, end: BufferPosition) {
@@ -43,7 +25,6 @@ class Piece {
         this.start = start;
         this.end = end;
     }
-    
 }
 
 /**
@@ -52,11 +33,11 @@ class Piece {
  * Note that the constructor will point the parent / left / right all to the 
  * {@link NULL_NODE}.
  */
-class Node {
+class Node implements IPieceTableNode {
 
     // [field]
 
-    public color: Color;
+    public color: RBColor;
 
     public parent: Node;
     public left: Node;
@@ -69,7 +50,7 @@ class Node {
 
     // [constructor]
 
-    constructor(piece: Piece, color: Color) {
+    constructor(piece: Piece, color: RBColor) {
         this.parent = NULL_NODE;
         this.left = NULL_NODE;
         this.right = NULL_NODE;
@@ -145,18 +126,10 @@ class Node {
 
 }
 
-/**
- * For red-black tree usage.
- */
-const enum Color {
-    BLACK = 1,
-    RED = 2
-}
-
 /** 
  * The null node as the leaf.
  */
-const NULL_NODE = new Node(null!, Color.BLACK);
+const NULL_NODE = new Node(null!, RBColor.BLACK);
 
 /**
  * @class A {@link PieceTable} is an efficient data structure for fast text
@@ -198,11 +171,21 @@ export class PieceTable implements IPieceTable {
 
     private _root: Node;
 
+    private _bufferLength: number;
+    private _lfCount: number;
+
+    private _shouldBeNormalized: boolean;
+    private _normalizedEOL: EndOfLine;
+
     // [constructor]
 
-    constructor(chunks: TextBuffer[]) {
+    constructor(chunks: TextBuffer[], shouldBeNormalized: boolean, normalizedEOF: EndOfLine) {
         this._buffer = [new TextBuffer('', [0])];
         this._root = NULL_NODE;
+        this._bufferLength = 0;
+        this._lfCount = 1;
+        this._shouldBeNormalized = shouldBeNormalized;
+        this._normalizedEOL = normalizedEOF;
         
         let i = 0;
         let strlen = chunks.length;
@@ -230,11 +213,221 @@ export class PieceTable implements IPieceTable {
             this._buffer.push(chunks[i]!);
             this.__insertAsSuccessor(node, piece);
         }
+
+        this.__updateTableMetadata();
     }
 
-    // [public methods]
+    // [public methods - node]
 
-    // [private helper methods]
+    /**
+     * @description Iterates each tree node in pre-order.
+     * @param fn Function applies to each node.
+     * 
+     * @note This will not go through each leaf (null node).
+     */
+    public forEach(fn: (node: Node) => void): void {
+        this.__preOrder(this._root, fn);
+    }
+
+    // [public methods - piece table]
+
+    public getLines(): string[] {
+        
+        // these lines will not contain any CR / LF / CRLF.
+        const lines: string[] = [];
+        let currLineBuffer = '';
+        let danglingCarriageReturn = false;
+
+        this.forEach(node => {
+
+            const piece = node.piece;
+            let pieceLength = piece.bufferLength;
+            
+            if (pieceLength === 0) {
+                return;
+            }
+            
+            const buffer = this._buffer[piece.bufferIndex]!.buffer;
+            const linestart = this._buffer[piece.bufferIndex]!.linestart;
+
+            const pieceStartLine = piece.start.line;
+            const pieceEndLine = piece.end.line;
+            
+            // the first character offset of the piece
+            let firstCharOffset = linestart[piece.start.line]! + piece.start.offset;
+
+            /**
+             * If the previous piece has a CR at the end, we should refresh the 
+             * line buffer.
+             */
+            if (danglingCarriageReturn) {
+                /**
+                 * The CRLF is splited into two pieces, we pretend LF is at the 
+                 * previous one.
+                 */
+                if (buffer.charCodeAt(firstCharOffset) === CharCode.LineFeed) {
+                    firstCharOffset++;
+                    pieceLength--;
+                }
+
+                /**
+                 * We refresh line buffer since we know there is a CRLF before 
+                 * this piece.
+                 */
+                lines.push(currLineBuffer);
+                currLineBuffer = '';
+                danglingCarriageReturn = false;
+
+                /**
+                 * Meaning the current piece only contains a LF, we ignore this 
+                 * piece to next one.
+                 */
+                if (pieceLength === 0) {
+                    return;
+                }
+            }
+
+            /**
+             * The piece is just one single line, we stores this line and 
+             * iterate next node.
+             */
+            if (piece.start.line === piece.end.line) {
+                
+                if (this._shouldBeNormalized === false && 
+                    buffer.charCodeAt(firstCharOffset + pieceLength - 1) === CharCode.CarriageReturn
+                ) {
+                    /**
+                     * The end of the piece contains a CR, it is possible that
+                     * a CRLF got splited into two pieces, so we mark it as 
+                     * dangling and ignore the CR character until next node.
+                     */
+                    danglingCarriageReturn = true;
+                    currLineBuffer += buffer.substring(firstCharOffset, pieceLength - 1);
+                } else {
+                    currLineBuffer += buffer.substring(firstCharOffset, pieceLength);
+                }
+                
+                return;
+            }
+
+            /**
+             * Now the piece will contain mutiple lines. We need to use three
+             * different stages to store these lines:
+             *      - store the first line (partial)
+             *      - store the middle lines (full)
+             *      - store the last line (partial)
+             */
+            
+            // save the first partial line
+            if (this._shouldBeNormalized) {
+                /**
+                 * Since it's normalized, it guarantees the length of eol. Use
+                 * Math.max() to guarrantee the range is valid.
+                 */
+                currLineBuffer += buffer.substring(firstCharOffset, Math.max(firstCharOffset, linestart[pieceStartLine + 1]! - this._normalizedEOL.length));
+            } else {
+                /**
+                 * Since it's not normalized, we cannot ensure the length of eol,
+                 * we need to manually remove them.
+                 */
+                currLineBuffer += buffer.substring(firstCharOffset, linestart[pieceStartLine + 1]!).replace(/(\r\n|\r|\n)$/, '');
+            }
+            lines.push(currLineBuffer);
+
+            // save all the middle lines completely
+            for (let line = pieceStartLine + 1; line < pieceEndLine; line++) {
+                if (this._shouldBeNormalized) {
+                    currLineBuffer = buffer.substring(linestart[line]!, linestart[line + 1]! - this._normalizedEOL.length);
+                } else {
+                    currLineBuffer = buffer.substring(linestart[line]!, linestart[line + 1]).replace(/(\r\n|\r|\n)$/, '');
+                }
+
+                lines.push(currLineBuffer);
+            }
+
+            /**
+             * Saving the last partial line, we need to handle the possible 
+             * dangling CR situation again.
+             */
+            if (this._shouldBeNormalized === false &&
+                buffer.charCodeAt(linestart[pieceEndLine]! + piece.end.offset - 1) === CharCode.CarriageReturn
+            ) {
+                danglingCarriageReturn = true;
+                if (piece.end.offset === 0) {
+                    /**
+                     * The last line only has a CR, undo the push until the next
+                     * node.
+                     */
+                    lines.pop();
+                } else {
+                    // ignore the CR
+                    currLineBuffer = buffer.substring(linestart[pieceEndLine]!, piece.end.offset - 1);
+                }
+            } else {
+                currLineBuffer = buffer.substring(linestart[pieceEndLine]!, piece.end.offset);
+            }
+            
+            return;
+        });
+
+        if (danglingCarriageReturn) {
+            lines.push(currLineBuffer);
+            currLineBuffer = '';
+        }
+
+        lines.push(currLineBuffer);
+
+        return lines;
+    }
+
+    public getLine(): string {
+        return '';
+    }
+    
+    // [private helper methods - node]
+
+    /**
+     * @description Iteration the whole red-black tree in pre-order.
+     * @param node The current node for iteration.
+     * @param fn The function applies to each node.
+     * 
+     * @note This will not go through each {@link NULL_NODE}.
+     */
+    private __preOrder(node: Node, fn: (node: Node) => void): void {
+        
+        if (node === NULL_NODE) {
+            return;
+        }
+
+        this.__preOrder(node.left, fn);
+        this.__preOrder(node, fn);
+        this.__preOrder(node.right, fn);
+    }
+
+    // [private helper methods - piece table]
+
+    /**
+     * @description Recalculates all the basic metadata of the whole tree (total 
+     *  buffer length / total linefeed count).
+     * 
+     * @complexity O(h)
+     */
+    private __updateTableMetadata(): void {
+        let node = this._root;
+
+        let bufferLength = 0;
+        let lfCount = 1;
+        while (node !== NULL_NODE) {
+            bufferLength += node.piece.bufferLength;
+            lfCount += node.piece.lfCount;
+            node = node.right;
+        }
+
+        this._bufferLength = bufferLength;
+        this._lfCount = lfCount;
+    }
+
+    // [private helper methods - red-black tree]
 
     /**
      * @description Given a {@link Piece}, constructs a new {@link Node} and 
@@ -244,12 +437,12 @@ export class PieceTable implements IPieceTable {
      * @complexity O(h)
      */
     private __insertAsSuccessor(node: Node, piece: Piece): Node {
-        const newnode = new Node(piece, Color.RED);
+        const newnode = new Node(piece, RBColor.RED);
         
         // empty tree
         if (this._root === NULL_NODE) {
             this._root = newnode;
-            newnode.color = Color.BLACK;
+            newnode.color = RBColor.BLACK;
         }
         // the given node has no right-subtree
         else if (node.right === NULL_NODE) {
@@ -275,12 +468,12 @@ export class PieceTable implements IPieceTable {
      * @complexity O(h)
      */
     private __insertAsPredecessor(node: Node, piece: Piece): Node {
-        const newnode = new Node(piece, Color.RED);
+        const newnode = new Node(piece, RBColor.RED);
 
         // empty tree
         if (this._root === NULL_NODE) {
             this._root = newnode;
-            newnode.color = Color.BLACK;
+            newnode.color = RBColor.BLACK;
         }
         // the given node has no right-subtree
         else if (node.left === NULL_NODE) {
@@ -308,16 +501,16 @@ export class PieceTable implements IPieceTable {
         
         this.__updatePieceMetadata(node);
 
-        while (node !== this._root && node.parent.color === Color.RED) {
+        while (node !== this._root && node.parent.color === RBColor.RED) {
             const parent = node.parent;
 
             if (parent === parent.parent.left) {
                 const parentSibling = parent.parent.right;
                 
-                if (parentSibling.color === Color.RED) {
-                    parent.color = Color.BLACK;
-                    parentSibling.color = Color.BLACK;
-                    parent.parent.color = Color.RED;
+                if (parentSibling.color === RBColor.RED) {
+                    parent.color = RBColor.BLACK;
+                    parentSibling.color = RBColor.BLACK;
+                    parent.parent.color = RBColor.RED;
                     node = parent.parent;
                 }  else {
                     if (node === parent.right) {
@@ -325,8 +518,8 @@ export class PieceTable implements IPieceTable {
                         this.__leftRotateNode(node);
                     }
 
-                    parent.color = Color.BLACK;
-                    parent.parent.color = Color.RED;
+                    parent.color = RBColor.BLACK;
+                    parent.parent.color = RBColor.RED;
                     this.__rightRotateNode(parent.parent);
                 }
             }
@@ -334,10 +527,10 @@ export class PieceTable implements IPieceTable {
             else {
                 const parentSibling = parent.parent.left;
 
-                if (parentSibling.color === Color.RED) {
-                    parent.color = Color.BLACK;
-                    parentSibling.color = Color.BLACK;
-                    parent.parent.color = Color.RED;
+                if (parentSibling.color === RBColor.RED) {
+                    parent.color = RBColor.BLACK;
+                    parentSibling.color = RBColor.BLACK;
+                    parent.parent.color = RBColor.RED;
                     node = parent.parent;
                 } else {
                     if (node === parent.left) {
@@ -345,15 +538,15 @@ export class PieceTable implements IPieceTable {
                         this.__rightRotateNode(node);
                     }
 
-                    parent.color = Color.BLACK;
-                    parent.parent.color = Color.RED;
+                    parent.color = RBColor.BLACK;
+                    parent.parent.color = RBColor.RED;
                     this.__leftRotateNode(parent.parent);
                 }
             }
 
         }
         
-        this._root.color = Color.BLACK;
+        this._root.color = RBColor.BLACK;
     }
 
     /**

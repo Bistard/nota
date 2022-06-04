@@ -12,6 +12,14 @@ export const enum EndOfLine {
 }
 
 /**
+ * For red-black tree usage.
+ */
+ export const enum RBColor {
+    BLACK = 1,
+    RED = 2
+}
+
+/**
  * A data structure used for piece table.
  */
 export interface ITextBuffer {
@@ -73,9 +81,56 @@ export interface BufferPosition {
     offset: number;
 }
 
+export interface IPiece {
+    /** 
+     * Which buffer the piece is refering in the whole table. 
+     */
+    readonly bufferIndex: number;
+
+     /**
+      * The length of the corresponding buffer.
+      */
+    readonly bufferLength: number;
+ 
+     /**
+      * The linefeed counts of the corresponding buffer.
+      */
+    readonly lfCount: number;
+ 
+     /** 
+      * The start position of the piece in the corresponding buffer. 
+      */
+    readonly start: BufferPosition;
+ 
+     /** 
+      * The end position of the piece in the corresponding buffer. 
+      */
+    readonly end: BufferPosition;
+}
+
+export interface IPieceTableNode {
+
+    readonly color: RBColor;
+
+    readonly parent: IPieceTableNode;
+    readonly left: IPieceTableNode;
+    readonly right: IPieceTableNode;
+
+    readonly leftSubtreeBufferLength: number;
+    readonly leftSubtreelfCount: number;
+
+    readonly piece: IPiece;
+}
+
 /**
  * An interface only for {@link PieceTable}.
  */
 export interface IPieceTable {
+
+    getLines(): string[];
+
+    getLine(): string;
+
+    // forEach(fn: (node: Node) => void): void
 
 }
