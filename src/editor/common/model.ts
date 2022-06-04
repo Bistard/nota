@@ -14,7 +14,7 @@ export const enum EndOfLine {
 /**
  * For red-black tree usage.
  */
- export const enum RBColor {
+export const enum RBColor {
     BLACK = 1,
     RED = 2
 }
@@ -53,16 +53,19 @@ export interface ITextBufferBuilder {
 
     /**
      * @description Creates a new {@link IPieceTable} upon the received chunks.
-     * @param defaultEOL Decides what type of {@link EndOfLineType} for either 
-     *                   empty file or a file contains precisely one line.
      * @param normalizationEOL Replaces all the EOL in the buffers to:
      *                              - the most used EOL (more than half).
      *                              - provided `defaultEOL` if as the above stated.
+     * @param defaultEOL Decides what type of {@link EndOfLineType} for either 
+     *                   empty file or a file contains precisely one line.
+     * 
+     * @default false normalizationEOL
+     * @default EndOfLineType.LF defaultEOL
      * 
      * @throws An exception will be thrown if the caller creates twice or not 
      * built yet.
      */
-    create(defaultEOL: EndOfLineType, normalizationEOL: boolean): IPieceTable;
+    create(normalizationEOL?: boolean, defaultEOL?: EndOfLineType): IPieceTable;
 }
 
 /**

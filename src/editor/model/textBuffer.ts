@@ -2,7 +2,6 @@ import { Character, CharCode } from "src/base/common/util/char";
 import { EndOfLine, EndOfLineType, IPieceTable, ITextBuffer, ITextBufferBuilder } from "src/editor/common/model";
 import { PieceTable } from "src/editor/model/pieceTable";
 
-// REVIEW: should all the fields be readonly??
 export class TextBuffer implements ITextBuffer {
     constructor(
         public readonly buffer: string,
@@ -64,7 +63,7 @@ export class TextBufferBuilder implements ITextBufferBuilder {
 
     // [fields]
 
-    private readonly _chunks: TextBuffer[] = [];
+    protected readonly _chunks: TextBuffer[] = [];
     private _prevChar: number | null = null;
 
     /**
@@ -166,7 +165,7 @@ export class TextBufferBuilder implements ITextBufferBuilder {
         this._built = true;
     }
 
-    public create(defaultEOL: EndOfLineType, normalizationEOL: boolean = false): IPieceTable {
+    public create(normalizationEOL: boolean = false, defaultEOL: EndOfLineType = EndOfLineType.LF): IPieceTable {
         if (this._created) {
             throw new Error('TextBufferBuilder cannot create twice');
         }
