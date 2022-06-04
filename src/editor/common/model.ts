@@ -7,8 +7,8 @@ export const enum EndOfLineType {
 }
 
 export const enum EndOfLine {
-    LF = `\n`,
-    CRLF = `\r\n`
+    LF = '\n',
+    CRLF = '\r\n'
 }
 
 /**
