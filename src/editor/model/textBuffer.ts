@@ -1,6 +1,6 @@
 import { Character, CharCode } from "src/base/common/util/char";
 import { EndOfLine, EndOfLineType, IPieceTable, ITextBuffer, ITextBufferBuilder } from "src/editor/common/model";
-import { PieceTable } from "src/editor/model/pieceTable/pieceTable";
+import { PieceTable } from "src/editor/model/pieceTable";
 
 // REVIEW: should all the fields be readonly??
 export class TextBuffer implements ITextBuffer {

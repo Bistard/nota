@@ -96,7 +96,7 @@ export class FileService implements IFileService {
 
     private readonly _providers: Map<string, IFileSystemProvider> = new Map();
 
-    /** @readonly read into chunks of 256kb each to reduce IPC overhead. */
+    /** @readonly read into chunks of 256KB each to reduce IPC overhead. */
     public static readonly bufferSize = 256 * 1024;
 
     // [constructor]

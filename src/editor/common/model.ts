@@ -58,6 +58,22 @@ export interface ITextBufferBuilder {
 }
 
 /**
+ * Representing a contiguous section inside a buffer.
+ */
+export interface BufferPosition {
+    
+    /**
+     * The line number in the current buffer.
+     */
+    line: number;
+
+    /**
+     * The character offset in the current line.
+     */
+    offset: number;
+}
+
+/**
  * An interface only for {@link PieceTable}.
  */
 export interface IPieceTable {
