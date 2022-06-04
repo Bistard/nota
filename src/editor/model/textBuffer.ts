@@ -114,7 +114,7 @@ export class TextBufferBuilder implements ITextBufferBuilder {
          * 
          * Further reading: {@link https://www.informit.com/articles/article.aspx?p=2274038&seqNum=10}
          */
-
+        // 55296 -> 56319 | 56320 -> 57343
         let addPrevChar = false;
         let newChunk = chunk;
         if (Character.isHighSurrogate(lastChar) || CharCode.CarriageReturn === lastChar) {
@@ -151,15 +151,17 @@ export class TextBufferBuilder implements ITextBufferBuilder {
         else if (this._prevChar) {
             
             const lastChunk = this._chunks[this._chunks.length - 1]!;
-            lastChunk.buffer.concat(String.fromCharCode(this._prevChar));
+            (lastChunk.buffer as any) = lastChunk.buffer.concat(String.fromCharCode(this._prevChar)); // avoid readonly
             
             if (this._prevChar === CharCode.CarriageReturn) {
                 this._cr++;
-                lastChunk.linestart.push(lastChunk.buffer.length - 1);
+                lastChunk.linestart.push(lastChunk.buffer.length);
             } else if (this._prevChar === CharCode.LineFeed) {
                 this._lf++;
-                lastChunk.linestart.push(lastChunk.buffer.length - 1);
+                lastChunk.linestart.push(lastChunk.buffer.length);
             }
+
+            this._prevChar = null;
         }
 
         this._built = true;
