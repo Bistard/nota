@@ -27,7 +27,7 @@ export class TextBuffer implements ITextBuffer {
 
             if (c === CharCode.CarriageReturn) {
                 // `/r/n`
-                if (i + 1 !== strlen && string.charCodeAt(i + 1) === CharCode.LineFeed) {
+                if (i + 1 < strlen && string.charCodeAt(i + 1) === CharCode.LineFeed) {
                     arr.push(i + 2);
                     i++;
                     crlf++;
@@ -41,6 +41,7 @@ export class TextBuffer implements ITextBuffer {
             // `/n`
             else if (c === CharCode.LineFeed) {
                 arr.push(i + 1);
+                lf++;
             }
         }
 
