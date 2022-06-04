@@ -30,8 +30,10 @@ class Piece implements IPiece {
 /**
  * @internal
  * @class A tree node used in {@link PieceTable} which nested with a {@link Piece}.
- * Note that the constructor will point the parent / left / right all to the 
- * {@link NULL_NODE}.
+ * 
+ * 
+ * @note Note that the constructor will not point the parent / left / right all 
+ * to the {@link NULL_NODE}. Use static method `create()` instead.
  */
 class Node implements IPieceTableNode {
 
@@ -51,13 +53,23 @@ class Node implements IPieceTableNode {
     // [constructor]
 
     constructor(piece: Piece, color: RBColor) {
-        this.parent = NULL_NODE;
-        this.left = NULL_NODE;
-        this.right = NULL_NODE;
+        this.parent = this;
+        this.left = this;
+        this.right = this;
         this.leftSubtreeBufferLength = 0;
         this.leftSubtreelfCount = 0;
         this.color = color;
         this.piece = piece;
+    }
+
+    // [public static method]
+
+    public static create(piece: Piece, color: RBColor): Node {
+        const newnode = new Node(piece, color);
+        newnode.parent = NULL_NODE;
+        newnode.left = NULL_NODE;
+        newnode.right = NULL_NODE;
+        return newnode;
     }
 
     // [public methods]
@@ -130,6 +142,9 @@ class Node implements IPieceTableNode {
  * The null node as the leaf.
  */
 const NULL_NODE = new Node(null!, RBColor.BLACK);
+NULL_NODE.parent = NULL_NODE;
+NULL_NODE.left = NULL_NODE;
+NULL_NODE.right = NULL_NODE;
 
 /**
  * @class A {@link PieceTable} is an efficient data structure for fast text
@@ -437,7 +452,7 @@ export class PieceTable implements IPieceTable {
      * @complexity O(h)
      */
     private __insertAsSuccessor(node: Node, piece: Piece): Node {
-        const newnode = new Node(piece, RBColor.RED);
+        const newnode = Node.create(piece, RBColor.RED);
         
         // empty tree
         if (this._root === NULL_NODE) {
@@ -468,7 +483,7 @@ export class PieceTable implements IPieceTable {
      * @complexity O(h)
      */
     private __insertAsPredecessor(node: Node, piece: Piece): Node {
-        const newnode = new Node(piece, RBColor.RED);
+        const newnode = Node.create(piece, RBColor.RED);
 
         // empty tree
         if (this._root === NULL_NODE) {
