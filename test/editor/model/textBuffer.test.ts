@@ -33,14 +33,33 @@ suite('textBufferBuilder-test', () => {
     });
 
     test('oneline build', () => {
-        const builder = new TextBufferBuilder();
-
+        let builder = new TextBufferBuilder();
         builder.receive('chris');
         builder.build();
-
-        const chunks = (builder as any)._chunks as TextBuffer[];
+        let chunks = (builder as any)._chunks as TextBuffer[];
         assert.deepStrictEqual(chunks[0]!.buffer, 'chris');
         assert.deepStrictEqual(chunks[0]!.linestart, [0]);
+
+        builder = new TextBufferBuilder();
+        builder.receive('');
+        builder.build();
+        chunks = (builder as any)._chunks as TextBuffer[];
+        assert.deepStrictEqual(chunks[0]!.buffer, '');
+        assert.deepStrictEqual(chunks[0]!.linestart, [0]);
+
+        builder = new TextBufferBuilder();
+        builder.receive('\r');
+        builder.build();
+        chunks = (builder as any)._chunks as TextBuffer[];
+        assert.deepStrictEqual(chunks[0]!.buffer, '\r');
+        assert.deepStrictEqual(chunks[0]!.linestart, [0, 1]);
+
+        builder = new TextBufferBuilder();
+        builder.receive('\n');
+        builder.build();
+        chunks = (builder as any)._chunks as TextBuffer[];
+        assert.deepStrictEqual(chunks[0]!.buffer, '\n');
+        assert.deepStrictEqual(chunks[0]!.linestart, [0, 1]);
     });
 
     test('multiple lines build', () => {
@@ -95,17 +114,48 @@ suite('textBufferBuilder-test', () => {
     });
 
     test('chunk ended with carriage return', () => {
-        const builder = new TextBufferBuilder();
+        let builder = new TextBufferBuilder();
         builder.receive('fiona\r');
         builder.receive('\npeter\r\n');
-
         builder.build();
-
-        const chunks = (builder as any)._chunks as TextBuffer[];
+        let chunks = (builder as any)._chunks as TextBuffer[];
         assert.deepStrictEqual(chunks[0]!.buffer, 'fiona');
         assert.deepStrictEqual(chunks[0]!.linestart, [0]);
         assert.deepStrictEqual(chunks[1]!.buffer, '\r\npeter\r\n');
         assert.deepStrictEqual(chunks[1]!.linestart, [0, 2, 9]);
+
+        builder = new TextBufferBuilder();
+        builder.receive('\r');
+        builder.receive('\r');
+        builder.build();
+        chunks = (builder as any)._chunks as TextBuffer[];
+        assert.deepStrictEqual(chunks[0]!.buffer, '');
+        assert.deepStrictEqual(chunks[0]!.linestart, [0]);
+        assert.deepStrictEqual(chunks[1]!.buffer, '\r\r');
+        assert.deepStrictEqual(chunks[1]!.linestart, [0, 1, 2]);
+
+        builder = new TextBufferBuilder();
+        builder.receive('\r');
+        builder.receive('\r\r');
+        builder.build();
+        chunks = (builder as any)._chunks as TextBuffer[];
+        assert.deepStrictEqual(chunks[0]!.buffer, '');
+        assert.deepStrictEqual(chunks[0]!.linestart, [0]);
+        assert.deepStrictEqual(chunks[1]!.buffer, '\r\r\r');
+        assert.deepStrictEqual(chunks[1]!.linestart, [0, 1, 2, 3]);
+
+        builder = new TextBufferBuilder();
+        builder.receive('\r');
+        builder.receive('\r');
+        builder.receive('\r');
+        builder.build();
+        chunks = (builder as any)._chunks as TextBuffer[];
+        assert.deepStrictEqual(chunks[0]!.buffer, '');
+        assert.deepStrictEqual(chunks[0]!.linestart, [0]);
+        assert.deepStrictEqual(chunks[1]!.buffer, '\r');
+        assert.deepStrictEqual(chunks[1]!.linestart, [0, 1]);
+        assert.deepStrictEqual(chunks[2]!.buffer, '\r\r');
+        assert.deepStrictEqual(chunks[2]!.linestart, [0, 1, 2]);
     });
 
     test('chunk ended with surrogates', () => {

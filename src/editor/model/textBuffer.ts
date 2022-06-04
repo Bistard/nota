@@ -97,7 +97,7 @@ export class TextBufferBuilder implements ITextBufferBuilder {
        
         // REVIEW: the string concatenation might need some work around.
 
-        const chunkLength = chunk.length;
+        let chunkLength = chunk.length;
         if (chunkLength === 0) {
             return;
         }
@@ -115,23 +115,23 @@ export class TextBufferBuilder implements ITextBufferBuilder {
          * 
          * Further reading: {@link https://www.informit.com/articles/article.aspx?p=2274038&seqNum=10}
          */
-        // 55296 -> 56319 | 56320 -> 57343
-        let addPrevChar = false;
+
         let newChunk = chunk;
-        if (Character.isHighSurrogate(lastChar) || CharCode.CarriageReturn === lastChar) {
-            addPrevChar = true;
-            newChunk = chunk.substring(0, chunkLength - 1); // remove that character for now
-        }
 
         // If we have a previous character last time we omit it, we take it into account this time.
         if (this._prevChar) {
-            newChunk = String.fromCharCode(this._prevChar).concat(chunk);
+            const prevChar = String.fromCharCode(this._prevChar);
+            newChunk = prevChar.concat(chunk);
+            chunkLength += prevChar.length;
+            this._prevChar = null;
         }
-        
-        this.__receiveChunk(newChunk);
 
-        // we need to store the previous character after we accepted the chunk.
-        this._prevChar = addPrevChar ? lastChar : null;
+        if (Character.isHighSurrogate(lastChar) || CharCode.CarriageReturn === lastChar) {
+            newChunk = chunk.substring(0, chunkLength - 1); // remove that character for now
+            this._prevChar = lastChar;
+        }
+
+        this.__receiveChunk(newChunk);
     }
 
     public build(): void {
