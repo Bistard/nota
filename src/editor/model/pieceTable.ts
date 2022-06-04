@@ -317,9 +317,9 @@ export class PieceTable implements IPieceTable {
                      * dangling and ignore the CR character until next node.
                      */
                     danglingCarriageReturn = true;
-                    currLineBuffer += buffer.substring(firstCharOffset, pieceLength - 1);
+                    currLineBuffer += buffer.substring(firstCharOffset, firstCharOffset + pieceLength - 1);
                 } else {
-                    currLineBuffer += buffer.substring(firstCharOffset, pieceLength);
+                    currLineBuffer += buffer.substring(firstCharOffset, firstCharOffset + pieceLength);
                 }
                 
                 return;
@@ -364,6 +364,7 @@ export class PieceTable implements IPieceTable {
              * Saving the last partial line, we need to handle the possible 
              * dangling CR situation again.
              */
+            const lastLineOffset = linestart[pieceEndLine]!;
             if (this._shouldBeNormalized === false &&
                 buffer.charCodeAt(linestart[pieceEndLine]! + piece.end.offset - 1) === CharCode.CarriageReturn
             ) {
@@ -376,10 +377,10 @@ export class PieceTable implements IPieceTable {
                     lines.pop();
                 } else {
                     // ignore the CR
-                    currLineBuffer = buffer.substring(linestart[pieceEndLine]!, piece.end.offset - 1);
+                    currLineBuffer = buffer.substring(lastLineOffset, lastLineOffset + piece.end.offset - 1);
                 }
             } else {
-                currLineBuffer = buffer.substring(linestart[pieceEndLine]!, piece.end.offset);
+                currLineBuffer = buffer.substring(lastLineOffset, lastLineOffset + piece.end.offset);
             }
             
             return;
@@ -415,7 +416,7 @@ export class PieceTable implements IPieceTable {
         }
 
         this.__preOrder(node.left, fn);
-        this.__preOrder(node, fn);
+        fn(node);
         this.__preOrder(node.right, fn);
     }
 
