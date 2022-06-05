@@ -397,6 +397,17 @@ export class PieceTable implements IPieceTable {
         return lines;
     }
 
+    public getRawContent(): string {
+        let raw = '';
+
+		this.forEach(node => {
+			raw += this.__getNodeContent(node);
+			return true;
+		});
+
+		return raw;
+    }
+
     public getLine(): string {
         return '';
     }
@@ -419,6 +430,32 @@ export class PieceTable implements IPieceTable {
         this.__preOrder(node.left, fn);
         fn(node);
         this.__preOrder(node.right, fn);
+    }
+
+    /**
+     * @description Returns the absolute offset in the buffer.
+     * @param bufferIndex The index of the buffer.
+     * @param position The position of points to the location of the buffer.
+     */
+    private __absoluteOffsetInBuffer(bufferIndex: number, position: BufferPosition): number {
+        const buffer = this._buffer[bufferIndex]!;
+        return buffer.linestart[position.line]! + position.offset;
+    }
+
+    /**
+     * @description Given the {@link Node}, returns the string which the node is
+     * pointing at.
+     */
+    private __getNodeContent(node: Node): string {
+        if (node === NULL_NODE) {
+            return '';
+        }
+        const piece = node.piece;
+        const buffer = this._buffer[piece.bufferIndex]!;
+
+        const startOffset = this.__absoluteOffsetInBuffer(piece.bufferIndex, piece.start);
+        const endOffset = this.__absoluteOffsetInBuffer(piece.bufferIndex, piece.end);
+        return buffer.buffer.substring(startOffset, endOffset);
     }
 
     // [private helper methods - piece table]
