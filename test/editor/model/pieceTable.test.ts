@@ -275,7 +275,7 @@ suite('PieceTable-test', () => {
 
         table = buildPieceTable(['Hello\nW', 'orld😁', '\r\n'], true, EndOfLineType.LF);
         assert.deepStrictEqual(table.getContent(), ['Hello', 'World😁', '']);
-
+        
         table = buildPieceTable(['Hello\nW', 'orld', surrogates.charAt(0), surrogates.charAt(1) + '\r\n'], true, EndOfLineType.LF);
         assert.deepStrictEqual(table.getContent(), ['Hello', 'World😁', '']);
     });
@@ -283,33 +283,49 @@ suite('PieceTable-test', () => {
     test('getRawContent - unnormalized', () => {
         let table = buildPieceTable(['', ''], false);
         assert.deepStrictEqual(table.getRawContent(), '');
+        assert.strictEqual(table.getBufferLength(), 0);
+        assert.strictEqual(table.getLineCount(), 1);
 
         table = buildPieceTable(['\r', '\r'], false);
         assert.deepStrictEqual(table.getRawContent(), '\r\r');
+        assert.strictEqual(table.getBufferLength(), 2);
+        assert.strictEqual(table.getLineCount(), 3);
 
         table = buildPieceTable(['\r', '\n'], false);
         assert.deepStrictEqual(table.getRawContent(), '\r\n');
+        assert.strictEqual(table.getBufferLength(), 2);
+        assert.strictEqual(table.getLineCount(), 2);
 
         table = buildPieceTable(['\r', '\nHello'], false);
         assert.deepStrictEqual(table.getRawContent(), '\r\nHello');
+        assert.strictEqual(table.getBufferLength(), 7);
+        assert.strictEqual(table.getLineCount(), 2);
         
         table = buildPieceTable(['He', 'llo'], false);
         assert.deepStrictEqual(table.getRawContent(), 'Hello');
+        assert.strictEqual(table.getBufferLength(), 5);
+        assert.strictEqual(table.getLineCount(), 1);
 
         table = buildPieceTable(['Hello' ,'\n'], false);
         assert.deepStrictEqual(table.getRawContent(), 'Hello\n');
+        assert.strictEqual(table.getBufferLength(), 6);
+        assert.strictEqual(table.getLineCount(), 2);
 
         table = buildPieceTable(['Hel', 'lo\n'], false);
         assert.deepStrictEqual(table.getRawContent(), 'Hello\n');
 
         table = buildPieceTable(['Hello', '\r'], false);
         assert.deepStrictEqual(table.getRawContent(), 'Hello\r');
+        assert.strictEqual(table.getBufferLength(), 6);
+        assert.strictEqual(table.getLineCount(), 2);
 
         table = buildPieceTable(['Hel', 'lo\r'], false);
         assert.deepStrictEqual(table.getRawContent(), 'Hello\r');
 
         table = buildPieceTable(['Hel', 'lo\r\n'], false);
         assert.deepStrictEqual(table.getRawContent(), 'Hello\r\n');
+        assert.strictEqual(table.getBufferLength(), 7);
+        assert.strictEqual(table.getLineCount(), 2);
 
         table = buildPieceTable(['Hello', '\r\n'], false);
         assert.deepStrictEqual(table.getRawContent(), 'Hello\r\n');
@@ -319,6 +335,8 @@ suite('PieceTable-test', () => {
         
         table = buildPieceTable(['Hello', '\nWorld'], false);
         assert.deepStrictEqual(table.getRawContent(), 'Hello\nWorld');
+        assert.strictEqual(table.getBufferLength(), 11);
+        assert.strictEqual(table.getLineCount(), 2);
 
         table = buildPieceTable(['Hello\n', 'World'], false);
         assert.deepStrictEqual(table.getRawContent(), 'Hello\nWorld');
@@ -328,6 +346,8 @@ suite('PieceTable-test', () => {
 
         table = buildPieceTable(['Hello\n', 'World\r'], false);
         assert.deepStrictEqual(table.getRawContent(), 'Hello\nWorld\r');
+        assert.strictEqual(table.getBufferLength(), 12);
+        assert.strictEqual(table.getLineCount(), 3);
 
         table = buildPieceTable(['Hello\nW', 'orld', '\r'], false);
         assert.deepStrictEqual(table.getRawContent(), 'Hello\nWorld\r');
@@ -340,6 +360,8 @@ suite('PieceTable-test', () => {
 
         table = buildPieceTable(['Hello', '\n', 'World', '\r\n'], false);
         assert.deepStrictEqual(table.getRawContent(), 'Hello\nWorld\r\n');
+        assert.strictEqual(table.getBufferLength(), 13);
+        assert.strictEqual(table.getLineCount(), 3);
 
         table = buildPieceTable(['Hello\n', 'World\r', '\n'], false);
         assert.deepStrictEqual(table.getRawContent(), 'Hello\nWorld\r\n');
@@ -349,26 +371,50 @@ suite('PieceTable-test', () => {
 
         table = buildPieceTable(['Hello\nW', 'orld\r', '\n'], false);
         assert.deepStrictEqual(table.getRawContent(), 'Hello\nWorld\r\n');
+
+        let surrogates = '😁';
+
+        table = buildPieceTable(['Hello\nW', 'orld😁', '\r\n'], false);
+        assert.deepStrictEqual(table.getRawContent(), 'Hello\nWorld😁\r\n');
+        assert.strictEqual(table.getBufferLength(), 15);
+        assert.strictEqual(table.getLineCount(), 3);
+
+        table = buildPieceTable(['Hello\nW', 'orld', surrogates.charAt(0), surrogates.charAt(1) + '\r\n'], false);
+        assert.deepStrictEqual(table.getRawContent(), 'Hello\nWorld😁\r\n');
+        assert.strictEqual(table.getBufferLength(), 15);
+        assert.strictEqual(table.getLineCount(), 3);
     });
 
     test('getRawContent - normalized', () => {
         let table = buildPieceTable(['', ''], true, EndOfLineType.CRLF, true);
         assert.deepStrictEqual(table.getRawContent(), '');
+        assert.strictEqual(table.getBufferLength(), 0);
+        assert.strictEqual(table.getLineCount(), 1);
 
         table = buildPieceTable(['\r', '\r'], true, EndOfLineType.CRLF, true);
         assert.deepStrictEqual(table.getRawContent(), '\r\n\r\n');
+        assert.strictEqual(table.getBufferLength(), 4);
+        assert.strictEqual(table.getLineCount(), 3);
 
         table = buildPieceTable(['\r', '\n'], true, EndOfLineType.CRLF, true);
         assert.deepStrictEqual(table.getRawContent(), '\r\n');
+        assert.strictEqual(table.getBufferLength(), 2);
+        assert.strictEqual(table.getLineCount(), 2);
 
         table = buildPieceTable(['\r', '\nHello'], true, EndOfLineType.CRLF, true);
         assert.deepStrictEqual(table.getRawContent(), '\r\nHello');
+        assert.strictEqual(table.getBufferLength(), 7);
+        assert.strictEqual(table.getLineCount(), 2);
         
         table = buildPieceTable(['He', 'llo'], true, EndOfLineType.CRLF, true);
         assert.deepStrictEqual(table.getRawContent(), 'Hello');
+        assert.strictEqual(table.getBufferLength(), 5);
+        assert.strictEqual(table.getLineCount(), 1);
 
         table = buildPieceTable(['Hello' ,'\n'], true, EndOfLineType.CRLF, true);
         assert.deepStrictEqual(table.getRawContent(), 'Hello\r\n');
+        assert.strictEqual(table.getBufferLength(), 7);
+        assert.strictEqual(table.getLineCount(), 2);
 
         table = buildPieceTable(['Hel', 'lo\n'], true, EndOfLineType.CRLF, true);
         assert.deepStrictEqual(table.getRawContent(), 'Hello\r\n');
@@ -390,6 +436,8 @@ suite('PieceTable-test', () => {
         
         table = buildPieceTable(['Hello', '\nWorld'], true, EndOfLineType.CRLF, true);
         assert.deepStrictEqual(table.getRawContent(), 'Hello\r\nWorld');
+        assert.strictEqual(table.getBufferLength(), 12);
+        assert.strictEqual(table.getLineCount(), 2);
 
         table = buildPieceTable(['Hello\n', 'World'], true, EndOfLineType.CRLF, true);
         assert.deepStrictEqual(table.getRawContent(), 'Hello\r\nWorld');
@@ -399,6 +447,8 @@ suite('PieceTable-test', () => {
 
         table = buildPieceTable(['Hello\n', 'World\r'], true, EndOfLineType.CRLF, true);
         assert.deepStrictEqual(table.getRawContent(), 'Hello\r\nWorld\r\n');
+        assert.strictEqual(table.getBufferLength(), 14);
+        assert.strictEqual(table.getLineCount(), 3);
 
         table = buildPieceTable(['Hello\nW', 'orld', '\r'], true, EndOfLineType.CRLF, true);
         assert.deepStrictEqual(table.getRawContent(), 'Hello\r\nWorld\r\n');
@@ -421,6 +471,17 @@ suite('PieceTable-test', () => {
         table = buildPieceTable(['Hello\nW', 'orld\r', '\n'], true, EndOfLineType.CRLF, true);
         assert.deepStrictEqual(table.getRawContent(), 'Hello\r\nWorld\r\n');
 
+        let surrogates = '😁';
+
+        table = buildPieceTable(['Hello\nW', 'orld😁', '\r\n'], true, EndOfLineType.CRLF, true);
+        assert.deepStrictEqual(table.getRawContent(), 'Hello\r\nWorld😁\r\n');
+        assert.strictEqual(table.getBufferLength(), 16);
+        assert.strictEqual(table.getLineCount(), 3);
+
+        table = buildPieceTable(['Hello\nW', 'orld', surrogates.charAt(0), surrogates.charAt(1) + '\r\n'], true, EndOfLineType.CRLF, true);
+        assert.deepStrictEqual(table.getRawContent(), 'Hello\r\nWorld😁\r\n');
+        assert.strictEqual(table.getBufferLength(), 16);
+        assert.strictEqual(table.getLineCount(), 3);
     });
 
 });

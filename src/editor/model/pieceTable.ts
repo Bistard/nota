@@ -217,7 +217,7 @@ export class PieceTable implements IPieceTable {
             const piece = new Piece(
                 bufferIndex++, 
                 buffer.length,
-                linestart.length, { 
+                linestart.length - 1, { 
                     line: 0, 
                     offset: 0 
                 }, { 
@@ -411,6 +411,14 @@ export class PieceTable implements IPieceTable {
     public getLine(): string {
         return '';
     }
+
+    public getBufferLength(): number {
+        return this._bufferLength;
+    }
+
+    public getLineCount(): number {
+        return this._lfCount;
+    }
     
     // [private helper methods - node]
 
@@ -472,8 +480,8 @@ export class PieceTable implements IPieceTable {
         let bufferLength = 0;
         let lfCount = 1;
         while (node !== NULL_NODE) {
-            bufferLength += node.piece.bufferLength;
-            lfCount += node.piece.lfCount;
+            bufferLength += node.leftSubtreeBufferLength + node.piece.bufferLength;
+            lfCount += node.leftSubtreelfCount + node.piece.lfCount;
             node = node.right;
         }
 

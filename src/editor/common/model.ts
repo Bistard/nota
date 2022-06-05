@@ -144,8 +144,26 @@ export interface IPieceTable {
      */
     getRawContent(): string;
 
-    getLine(): string;
+    /**
+     * @description Returns the line string of the corresponding line number.
+     */
+    getLine(lineNumber: number): string;
 
-    // forEach(fn: (node: Node) => void): void
+    /**
+     * @description Returns the total text length of all the buffers.
+     */
+    getBufferLength(): number;
+
+    /**
+     * @description Returns the total line counts.
+     */
+    getLineCount(): number;
+
+    /**
+     * @description Provide a callback function and applies it to each tree node
+     * (pre-order).
+     * @param fn The callback function.
+     */
+    forEach(fn: (node: IPieceTableNode) => void): void;
 
 }
