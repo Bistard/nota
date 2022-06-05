@@ -58,14 +58,16 @@ export interface ITextBufferBuilder {
      *                              - provided `defaultEOL` if as the above stated.
      * @param defaultEOL Decides what type of {@link EndOfLineType} for either 
      *                   empty file or a file contains precisely one line.
+     * @param force If force to replace all the link breaking with the defaultEOL.
      * 
      * @default false normalizationEOL
      * @default EndOfLineType.LF defaultEOL
+     * @default false force
      * 
      * @throws An exception will be thrown if the caller creates twice or not 
      * built yet.
      */
-    create(normalizationEOL?: boolean, defaultEOL?: EndOfLineType): IPieceTable;
+    create(normalizationEOL?: boolean, defaultEOL?: EndOfLineType, force?: boolean): IPieceTable;
 }
 
 /**
@@ -136,7 +138,11 @@ export interface IPieceTable {
      */
     getContent(): string[];
 
-    // getRawContent(): string;
+    /**
+     * @description Returns all the line contents in raw string (including link breaking).
+     * @returns A single string, represents the raw text data.
+     */
+    getRawContent(): string;
 
     getLine(): string;
 

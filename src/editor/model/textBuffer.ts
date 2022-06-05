@@ -168,12 +168,12 @@ export class TextBufferBuilder implements ITextBufferBuilder {
         this._built = true;
     }
 
-    public create(normalizationEOL: boolean = false, defaultEOL: EndOfLineType = EndOfLineType.LF): IPieceTable {
+    public create(normalizationEOL: boolean = false, defaultEOL: EndOfLineType = EndOfLineType.LF, force?: boolean): IPieceTable {
         if (this._created) {
             throw new Error('TextBufferBuilder cannot create twice');
         }
 
-        const eol = this.__getEOF(defaultEOL);
+        const eol = this.__getEOF(defaultEOL, force);
         if (normalizationEOL) {
             this.__normalizeEOL(eol);
         }
@@ -197,13 +197,13 @@ export class TextBufferBuilder implements ITextBufferBuilder {
         this._crlf += crlf;
     }
 
-    private __getEOF(defaultEOF: EndOfLineType): EndOfLine {
+    private __getEOF(defaultEOF: EndOfLineType, force?: boolean): EndOfLine {
 
         const totalCR = this._cr + this._crlf;
         const totalEOF = totalCR + this._lf;
         
         // either empty file or file contains just one line.
-        if (totalEOF === 0) {
+        if (totalEOF === 0 || force) {
             return defaultEOF === EndOfLineType.CRLF ? EndOfLine.CRLF : EndOfLine.LF;
         }
 
