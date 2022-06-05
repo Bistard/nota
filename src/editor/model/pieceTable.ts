@@ -202,6 +202,7 @@ export class PieceTable implements IPieceTable {
         this._shouldBeNormalized = shouldBeNormalized;
         this._normalizedEOL = normalizedEOF;
         
+        let bufferIndex = 1;
         let i = 0;
         let strlen = chunks.length;
         let node = NULL_NODE;
@@ -214,7 +215,7 @@ export class PieceTable implements IPieceTable {
             }
 
             const piece = new Piece(
-                i + 1, 
+                bufferIndex++, 
                 buffer.length,
                 linestart.length, { 
                     line: 0, 
