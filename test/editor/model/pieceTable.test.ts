@@ -551,5 +551,23 @@ suite('PieceTable-test', () => {
         assert.strictEqual(table.getRawLine(8), '');
         assert.strictEqual(table.getLineCount(), 9);
     });
+
+    test('getOffsetAt / getPostionAt', () => {
+        let surrogates = '😁';
+        let table = buildPieceTable(['Hello ', 'World.\nMy name is Chris\r\n', 'I started this project \n', 'when I was first year in university.\r\nI wish whoever\r', ' read this line of code\r\n', 'take care of yourself' + surrogates.charAt(0), surrogates.charAt(1) + ' and have a \n', 'nice day!\n'], false);
+        assert.strictEqual(table.getOffsetAt(0, 0), 0);
+        assert.strictEqual(table.getOffsetAt(1, 0), 13);
+        assert.strictEqual(table.getOffsetAt(1, 6), 19);
+        assert.strictEqual(table.getOffsetAt(2, 0), 31);
+        assert.strictEqual(table.getOffsetAt(3, 0), 55);
+        assert.strictEqual(table.getOffsetAt(4, 0), 93);
+
+        assert.strictEqual(table.getPositionAt(0), { lineNumber: 0, lineOffset: 0 });
+        assert.strictEqual(table.getPositionAt(13), { lineNumber: 1, lineOffset: 0 });
+        assert.strictEqual(table.getPositionAt(19), { lineNumber: 1, lineOffset: 6 });
+        assert.strictEqual(table.getPositionAt(31), { lineNumber: 2, lineOffset: 0 });
+        assert.strictEqual(table.getPositionAt(55), { lineNumber: 3, lineOffset: 0 });
+        assert.strictEqual(table.getPositionAt(93), { lineNumber: 4, lineOffset: 0 });
+    });
     
 });

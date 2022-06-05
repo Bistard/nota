@@ -140,6 +140,20 @@ export interface IPieceTableNode {
 export interface IPieceTable {
 
     /**
+     * @description Inserts the given text at the given offset.
+     * @param textOffset The character offset relatives to the whole text model.
+     * @param text The text to be inserted.
+     */
+    insertAt(textOffset: number, text: string): void;
+
+    /**
+     * @description Deletes the text with given length at the given offset.
+     * @param textOffset The character offset relatives to the whole text model.
+     * @param length The length of text to be deleted.
+     */
+    deleteAt(textOffset: number, length: number): void;
+
+    /**
      * @description Returns all the line contents (without line breaking).
      * @returns An array of string, each string represents a line content.
      */
@@ -172,6 +186,19 @@ export interface IPieceTable {
      * @description Returns the total line counts.
      */
     getLineCount(): number;
+
+    /**
+     * @description Returns the character offset.
+     * @param lineNumber (zero-based) line number.
+     * @param lineOffset The offset relative to the line.
+     */
+    getOffsetAt(lineNumber: number, lineOffset: number): number;
+
+    /**
+     * @description Returns the character position.
+     * @param textOffset The character offset relatives to the whole text model.
+     */
+    getPositionAt(textOffset: number): { lineNumber: number; lineOffset: number; };
 
     /**
      * @description Iterate each tree node in pre-order.

@@ -272,6 +272,16 @@ export class PieceTable implements IPieceTable {
 
     // [public methods - piece table]
 
+    // TODO
+    public insertAt(textOffset: number, text: string): void {
+        
+    }
+
+    // TODO
+    public deleteAt(textOffset: number, length: number): void {
+        
+    }
+
     public getContent(): string[] {
         
         // these lines will not contain any CR / LF / CRLF.
@@ -452,6 +462,48 @@ export class PieceTable implements IPieceTable {
 
     public getLineCount(): number {
         return this._lineFeedCount;
+    }
+
+    public getOffsetAt(lineNumber: number, lineOffset: number): number {
+
+        let offset = 0;
+        let node = this._root;
+        
+        while (node !== NULL_NODE) {
+            if (node.left !== NULL_NODE && node.leftSubtreelfCount >= lineNumber) {
+                node = node.left;
+            } 
+            else if (node.leftSubtreelfCount + node.piece.lfCount >= lineNumber) {
+                lineNumber -= node.leftSubtreelfCount;
+                const piece = node.piece;
+                const linestart = this._buffer[piece.bufferIndex]!.linestart;
+                const desiredLineStartOffset = linestart[lineNumber]!;
+                const pieceStartOffset = this.__getAbsoluteOffsetInBuffer(piece.bufferIndex, piece.start);
+                const desiredBufferOffset = pieceStartOffset + desiredLineStartOffset;
+                offset += node.leftSubtreeBufferLength + desiredBufferOffset + lineOffset;
+                return offset;
+            } 
+            else {
+                lineNumber -= (node.leftSubtreelfCount + node.piece.lfCount);
+                offset += (node.leftSubtreeBufferLength + node.piece.bufferLength);
+                node = node.right;
+            }
+        }
+
+        return offset;
+    }
+
+    // TODO
+    public getPositionAt(textOffset: number): { lineNumber: number; lineOffset: number; } {
+        
+        let node = this._root;
+
+        
+
+        return {
+            lineNumber: -1,
+            lineOffset: -1
+        }
     }
     
     // [private helper methods - node]
@@ -804,7 +856,7 @@ export class PieceTable implements IPieceTable {
 
                 const desiredLineStartOffset = linestart[lineNumber]!;
                 const desiredBufferOffset = pieceStartOffset + desiredLineStartOffset;
-                const lineLength = linestart[lineNumber + 1]! - linestart[lineNumber]!;
+                const lineLength = linestart[lineNumber + 1]! - desiredLineStartOffset;
                 
                 return buffer.substring(
                     desiredBufferOffset, 
