@@ -130,7 +130,13 @@ export interface IPieceTableNode {
  */
 export interface IPieceTable {
 
-    getLines(): string[];
+    /**
+     * @description Returns all the line contents (without line breaking).
+     * @returns An array of string, each string represents a line content.
+     */
+    getContent(): string[];
+
+    // getRawContent(): string;
 
     getLine(): string;
 

@@ -247,7 +247,7 @@ export class PieceTable implements IPieceTable {
 
     // [public methods - piece table]
 
-    public getLines(): string[] {
+    public getContent(): string[] {
         
         // these lines will not contain any CR / LF / CRLF.
         const lines: string[] = [];
