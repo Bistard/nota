@@ -75,6 +75,29 @@ class Node implements IPieceTableNode {
     // [public methods]
 
     /**
+     * @description Returns the next node of the current node (pre-order). If not
+     * found, {@link NULL_NODE} will be returned.
+     */
+    public static next(node: Node): Node {
+        if (node.right !== NULL_NODE) {
+			const leftMost = Node.leftMost(node.right);
+            return leftMost === NULL_NODE ? node.right : leftMost;
+		}
+
+		while (node.parent !== NULL_NODE) {
+			if (node.parent.left === node) {
+				break;
+			}
+			node = node.parent;
+		}
+
+		if (node.parent === NULL_NODE) {
+			return NULL_NODE;
+		}
+        return node.parent;
+    }
+
+    /**
      * @description Returns the left most tree node of the given node. 
      * @note If the given node is {@link NULL_NODE} or has no left-subtree, a
      * {@link NULL_NODE} will be returned.
@@ -133,7 +156,7 @@ class Node implements IPieceTableNode {
         if (node === NULL_NODE) {
             return 0;
         }
-        return node.leftSubtreelfCount + node.piece.bufferLength + Node.totalBufferLength(node.right);
+        return node.leftSubtreelfCount + node.piece.bufferLength + Node.totalLinefeedCount(node.right);
     }
 
 }
@@ -187,20 +210,20 @@ export class PieceTable implements IPieceTable {
     private _root: Node;
 
     private _bufferLength: number;
-    private _lfCount: number;
+    private _lineFeedCount: number;
 
     private _shouldBeNormalized: boolean;
     private _normalizedEOL: EndOfLine;
 
     // [constructor]
 
-    constructor(chunks: TextBuffer[], shouldBeNormalized: boolean, normalizedEOF: EndOfLine) {
+    constructor(chunks: TextBuffer[], shouldBeNormalized: boolean, normalizedEOL: EndOfLine) {
         this._buffer = [new TextBuffer('', [0])];
         this._root = NULL_NODE;
         this._bufferLength = 0;
-        this._lfCount = 1;
+        this._lineFeedCount = 1;
         this._shouldBeNormalized = shouldBeNormalized;
-        this._normalizedEOL = normalizedEOF;
+        this._normalizedEOL = normalizedEOL;
         
         let bufferIndex = 1;
         let i = 0;
@@ -402,14 +425,23 @@ export class PieceTable implements IPieceTable {
 
 		this.forEach(node => {
 			raw += this.__getNodeContent(node);
-			return true;
 		});
 
 		return raw;
     }
 
-    public getLine(): string {
-        return '';
+    public getLine(lineNumber: number): string {
+        let line: string;
+        if (this._shouldBeNormalized) {
+            line = this.__getRawLine(lineNumber, this._normalizedEOL.length);
+        } else {
+            line = this.__getRawLine(lineNumber).replace(/(\r\n|\r|\n)$/, '');
+        }
+        return line;
+    }
+
+    public getRawLine(lineNumber: number): string {
+        return this.__getRawLine(lineNumber, 0);
     }
 
     public getBufferLength(): number {
@@ -417,7 +449,7 @@ export class PieceTable implements IPieceTable {
     }
 
     public getLineCount(): number {
-        return this._lfCount;
+        return this._lineFeedCount;
     }
     
     // [private helper methods - node]
@@ -445,7 +477,7 @@ export class PieceTable implements IPieceTable {
      * @param bufferIndex The index of the buffer.
      * @param position The position of points to the location of the buffer.
      */
-    private __absoluteOffsetInBuffer(bufferIndex: number, position: BufferPosition): number {
+    private __getAbsoluteOffsetInBuffer(bufferIndex: number, position: BufferPosition): number {
         const buffer = this._buffer[bufferIndex]!;
         return buffer.linestart[position.line]! + position.offset;
     }
@@ -461,8 +493,8 @@ export class PieceTable implements IPieceTable {
         const piece = node.piece;
         const buffer = this._buffer[piece.bufferIndex]!;
 
-        const startOffset = this.__absoluteOffsetInBuffer(piece.bufferIndex, piece.start);
-        const endOffset = this.__absoluteOffsetInBuffer(piece.bufferIndex, piece.end);
+        const startOffset = this.__getAbsoluteOffsetInBuffer(piece.bufferIndex, piece.start);
+        const endOffset = this.__getAbsoluteOffsetInBuffer(piece.bufferIndex, piece.end);
         return buffer.buffer.substring(startOffset, endOffset);
     }
 
@@ -486,7 +518,7 @@ export class PieceTable implements IPieceTable {
         }
 
         this._bufferLength = bufferLength;
-        this._lfCount = lfCount;
+        this._lineFeedCount = lfCount;
     }
 
     // [private helper methods - red-black tree]
@@ -715,8 +747,8 @@ export class PieceTable implements IPieceTable {
         const leftNode = node.left;
         node.left = leftNode.right;
 
-        if (leftNode.left !== NULL_NODE) {
-            leftNode.left.parent = node;
+        if (leftNode.right !== NULL_NODE) {
+            leftNode.right.parent = node;
         }
 
         leftNode.parent = node.parent;
@@ -733,8 +765,98 @@ export class PieceTable implements IPieceTable {
         node.parent = leftNode;
 
         // update metadata
-        leftNode.leftSubtreeBufferLength -= node.leftSubtreeBufferLength + node.piece.bufferLength;
-        leftNode.leftSubtreelfCount -= node.leftSubtreelfCount + node.piece.lfCount;
+        node.leftSubtreeBufferLength -= leftNode.leftSubtreeBufferLength + leftNode.piece.bufferLength;
+        node.leftSubtreelfCount -= leftNode.leftSubtreelfCount + leftNode.piece.lfCount;
+    }
+
+    /**
+     * @description A auxliary function for `getRawLine`.
+     * @param lineNumber The line number (zero-based).
+     * @param eolLength The length of the linefeed.
+     */
+    private __getRawLine(lineNumber: number, eolLength: number = 0): string {
+        if (lineNumber < 0 || lineNumber >= this._lineFeedCount) {
+            return '';
+        }
+
+        let node = this._root;
+        let lineBuffer = '';
+        
+        while (node !== NULL_NODE) {
+
+            /**
+             * desired line is either: 
+             *      - entirely before the current piece
+             *      - OR has partial content before the current peice
+             */
+            if (node.left !== NULL_NODE && node.leftSubtreelfCount >= lineNumber) {
+                node = node.left;
+            }
+            // desired line is within the current piece
+            else if (node.leftSubtreelfCount + node.piece.lfCount > lineNumber) {
+                const piece = node.piece;
+                const { buffer, linestart } = this._buffer[piece.bufferIndex]!;
+                const pieceStartOffset = this.__getAbsoluteOffsetInBuffer(piece.bufferIndex, piece.start);
+
+                lineNumber -= node.leftSubtreelfCount;
+
+                const desiredLineStartOffset = linestart[lineNumber]!;
+                const desiredBufferOffset = pieceStartOffset + desiredLineStartOffset;
+                const lineLength = linestart[lineNumber + 1]! - linestart[lineNumber]!;
+                
+                return buffer.substring(
+                    desiredBufferOffset, 
+                    desiredBufferOffset + lineLength - eolLength
+                );
+            }
+            // desired line has parital content at the end of the current piece (could be empty)
+            else if (node.leftSubtreelfCount + node.piece.lfCount === lineNumber) {
+                const piece = node.piece;
+                const { buffer, linestart } = this._buffer[piece.bufferIndex]!;
+                const pieceStartOffset = this.__getAbsoluteOffsetInBuffer(piece.bufferIndex, piece.start);
+                
+                lineNumber -= node.leftSubtreelfCount;
+
+                const desiredLineStartOffset = linestart[lineNumber]!;
+                const desiredBufferOffset = pieceStartOffset + desiredLineStartOffset;
+                
+                lineBuffer = buffer.substring(
+                    desiredBufferOffset,
+                    desiredBufferOffset + node.piece.bufferLength
+                );
+                break;
+            } 
+            // desired line is after the current piece
+            else {
+                lineNumber -= (node.leftSubtreelfCount + node.piece.lfCount);
+                node = node.right;
+            }
+        }
+
+        /**
+         * Reaching here means the required line is at the end of a piece. To
+         * get a complete line, We need to find the next piece which has at 
+         * least one linefeed.
+         */
+
+        node = Node.next(node);
+        while (node !== NULL_NODE) {
+            const piece = node.piece;
+            const { buffer, linestart } = this._buffer[node.piece.bufferIndex]!;
+            const pieceStartOffset = this.__getAbsoluteOffsetInBuffer(piece.bufferIndex, piece.start);
+
+            if (piece.lfCount) {
+                const lineLength = linestart[1]! - linestart[0]!;
+                lineBuffer += buffer.substring(pieceStartOffset, pieceStartOffset + lineLength - eolLength);
+                return lineBuffer;
+            } else {    
+                lineBuffer += buffer.substring(pieceStartOffset, pieceStartOffset + piece.bufferLength);
+            }
+
+            node = Node.next(node);
+        }
+
+        return lineBuffer;
     }
 
 }

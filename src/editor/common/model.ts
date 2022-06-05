@@ -1,8 +1,12 @@
 
 export const enum EndOfLineType {
-    /** Use line feed (\n) as the end of line character. */
+    /** 
+     * Use line feed (\n) as the end of line character. 
+     */
 	LF = 1,
-	/** Use carriage return and line feed (\r\n) as the end of line character. */
+	/** 
+     * Use carriage return and line feed (\r\n) as the end of line character. 
+     */
 	CRLF = 2
 }
 
@@ -36,11 +40,12 @@ export interface ITextBuffer {
 export interface ITextBufferBuilder {
 
     /**
-     * @description Receives a string as a chunk inside the builder. It will read
-     * through the whole string to calculate the number of newlines.
+     * @description Receives a string as a chunk inside the builder. It will 
+     * read through the whole string to calculate the number of newlines.
      * @param chunk The string chunk.
      * 
-     * @throws An exception will be thrown if the builder is either built or created.
+     * @throws An exception will be thrown if the builder is either built or 
+     * created.
      */
     receive(chunk: string): void;
 
@@ -55,10 +60,12 @@ export interface ITextBufferBuilder {
      * @description Creates a new {@link IPieceTable} upon the received chunks.
      * @param normalizationEOL Replaces all the EOL in the buffers to:
      *                              - the most used EOL (more than half).
-     *                              - provided `defaultEOL` if as the above stated.
+     *                              - provided `defaultEOL` if as the above 
+     *                                stated.
      * @param defaultEOL Decides what type of {@link EndOfLineType} for either 
      *                   empty file or a file contains precisely one line.
-     * @param force If force to replace all the link breaking with the defaultEOL.
+     * @param force If force to replace all the link breaking with the 
+     *              defaultEOL.
      * 
      * @default false normalizationEOL
      * @default EndOfLineType.LF defaultEOL
@@ -139,15 +146,22 @@ export interface IPieceTable {
     getContent(): string[];
 
     /**
-     * @description Returns all the line contents in raw string (including link breaking).
-     * @returns A single string, represents the raw text data.
+     * @description Returns all the line contents in raw string.
+     * @returns A string represents the raw text data (include link breaking).
      */
     getRawContent(): string;
 
     /**
      * @description Returns the line string of the corresponding line number.
+     * @param lineNumber (zero-based) line number.
      */
     getLine(lineNumber: number): string;
+
+    /**
+     * @description Returns the raw line string of the corresponding line number.
+     * @param lineNumber (zero-based) line number.
+     */
+    getRawLine(lineNumber: number): string;
 
     /**
      * @description Returns the total text length of all the buffers.
@@ -160,9 +174,8 @@ export interface IPieceTable {
     getLineCount(): number;
 
     /**
-     * @description Provide a callback function and applies it to each tree node
-     * (pre-order).
-     * @param fn The callback function.
+     * @description Iterate each tree node in pre-order.
+     * @param fn The callback function to apply to each node.
      */
     forEach(fn: (node: IPieceTableNode) => void): void;
 
