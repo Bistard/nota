@@ -311,7 +311,7 @@ suite('PieceTable-test', () => {
         assert.strictEqual(table.getLineCount(), 3);
     });
 
-    test('getContent - mutiple chunks - normalized', () => {
+    test('content - mutiple chunks - normalized', () => {
         let table = buildPieceTable(['', ''], true, EndOfLineType.CRLF, true);
         assert.deepStrictEqual(table.getContent(), ['']);
         assert.strictEqual(table.getRawContent(), '');
@@ -463,6 +463,73 @@ suite('PieceTable-test', () => {
         assert.strictEqual(table.getRawContent(), 'Hello\r\nWorld😁\r\n');
         assert.strictEqual(table.getBufferLength(), 16);
         assert.strictEqual(table.getLineCount(), 3);
+    });
+
+    test('line - corner cases', () => {
+        let table = buildPieceTable([], false);
+        assert.strictEqual(table.getLine(0), '');
+        assert.strictEqual(table.getRawLine(0), '');
+        
+        table = buildPieceTable([''], false);
+        assert.strictEqual(table.getLine(0), '');
+        assert.strictEqual(table.getRawLine(0), '');
+
+        table = buildPieceTable(['\r\n'], false);
+        assert.strictEqual(table.getLine(0), '');
+        assert.strictEqual(table.getLine(1), '');
+        assert.strictEqual(table.getRawLine(0), '\r\n');
+        assert.strictEqual(table.getRawLine(1), '');
+    });
+
+    test('line - basic', () => {
+        let table = buildPieceTable(['Hello\r\n', 'World.\nMy name is Chris\r\n', 'I started this project \r', 'when I was first year in university.'], false);
+        assert.strictEqual(table.getLine(0), 'Hello');
+        assert.strictEqual(table.getLine(1), 'World.');
+        assert.strictEqual(table.getLine(2), 'My name is Chris');
+        assert.strictEqual(table.getLine(3), 'I started this project ');
+        assert.strictEqual(table.getLine(4), 'when I was first year in university.');
+        assert.strictEqual(table.getRawLine(0), 'Hello\r\n');
+        assert.strictEqual(table.getRawLine(1), 'World.\n');
+        assert.strictEqual(table.getRawLine(2), 'My name is Chris\r\n');
+        assert.strictEqual(table.getRawLine(3), 'I started this project \r');
+        assert.strictEqual(table.getRawLine(4), 'when I was first year in university.');
+    });
+
+    test('line - piece end with no linefeed', () => {
+        let table = buildPieceTable(['Hello ', 'World.\nMy name is Chris\r\n', 'I started this project \n', 'when I was first year in university.\r\n'], false);
+        assert.strictEqual(table.getLine(0), 'Hello World.');
+        assert.strictEqual(table.getLine(1), 'My name is Chris');
+        assert.strictEqual(table.getLine(2), 'I started this project ');
+        assert.strictEqual(table.getLine(3), 'when I was first year in university.');
+        assert.strictEqual(table.getLine(4), '');
+        assert.strictEqual(table.getRawLine(0), 'Hello World.\n');
+        assert.strictEqual(table.getRawLine(1), 'My name is Chris\r\n');
+        assert.strictEqual(table.getRawLine(2), 'I started this project \n');
+        assert.strictEqual(table.getRawLine(3), 'when I was first year in university.\r\n');
+        assert.strictEqual(table.getRawLine(4), '');
+    });
+
+    test('line - long text', () => {
+        let surrogates = '😁';
+        let table = buildPieceTable(['Hello ', 'World.\nMy name is Chris\r\n', 'I started this project \n', 'when I was first year in university.\r\nI wish whoever\r', ' read this line of code\r\n', 'take care of yourself' + surrogates.charAt(0), surrogates.charAt(1) + ' and have a \n', 'nice day!\n'], false);
+        assert.strictEqual(table.getLine(0), 'Hello World.');
+        assert.strictEqual(table.getLine(1), 'My name is Chris');
+        assert.strictEqual(table.getLine(2), 'I started this project ');
+        assert.strictEqual(table.getLine(3), 'when I was first year in university.');
+        assert.strictEqual(table.getLine(4), 'I wish whoever');
+        assert.strictEqual(table.getLine(5), ' read this line of code');
+        assert.strictEqual(table.getLine(6), 'take care of yourself😁 and have a ');
+        assert.strictEqual(table.getLine(7), 'nice day!');
+        assert.strictEqual(table.getLine(8), '');
+        assert.strictEqual(table.getRawLine(0), 'Hello World.\n');
+        assert.strictEqual(table.getRawLine(1), 'My name is Chris\r\n');
+        assert.strictEqual(table.getRawLine(2), 'I started this project \n');
+        assert.strictEqual(table.getRawLine(3), 'when I was first year in university.\r\n');
+        assert.strictEqual(table.getRawLine(4), 'I wish whoever\r');
+        assert.strictEqual(table.getRawLine(5), ' read this line of code\r\n');
+        assert.strictEqual(table.getRawLine(6), 'take care of yourself😁 and have a \n');
+        assert.strictEqual(table.getRawLine(7), 'nice day!\n');
+        assert.strictEqual(table.getRawLine(8), '');
     });
 
 });
