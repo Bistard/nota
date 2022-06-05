@@ -173,7 +173,9 @@ NULL_NODE.right = NULL_NODE;
  * @class A {@link PieceTable} is an efficient data structure for fast text
  * editing which is commonly used in a text editor.
  * 
- * I. Using a single string to represent `original` and `added` may hurts the
+ * I. Insertion and deletion are extremly fast in this data structure.
+ * 
+ * II. Using a single string to represent `original` and `added` may hurts the
  * performance in some circustances:
  *      1. V8 engine did not support string length over 256MB back in time.
  *      2. String concatenation is stupid.
@@ -181,11 +183,11 @@ NULL_NODE.right = NULL_NODE;
  * will be stored directly into a {@link TextBuffer} and create a {@link Node} 
  * points to it.
  * 
- * II. When creating a {@link TextBuffer}, program will read through the buffer
+ * III. When creating a {@link TextBuffer}, program will read through the buffer
  * and count all the linefeeds for later fast querying by line numbers. Since 
  * each {@link TextBuffer} is readonly, the performance cost is worthy.
  * 
- * III. The whole class is built upon a red-black tree. Unlike the basic ones, 
+ * IV. The whole class is built upon a red-black tree. Unlike the basic ones, 
  * each {@link Node} also maintains the left-subtree total buffer length and the
  * left-subtree total linefeed count. The tree uses these two metadata as the key
  * to compare between nodes. In this case, we can search a {@link Piece} either: 
