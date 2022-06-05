@@ -227,7 +227,7 @@ export class PieceTable implements IPieceTable {
             );
 
             this._buffer.push(chunks[i]!);
-            this.__insertAsSuccessor(node, piece);
+            node = this.__insertAsSuccessor(node, piece);
         }
 
         this.__updateTableMetadata();
