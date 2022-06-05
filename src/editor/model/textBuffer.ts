@@ -144,7 +144,7 @@ export class TextBufferBuilder implements ITextBufferBuilder {
             if (this._prevChar) {
                 this.__receiveChunk(String.fromCharCode(this._prevChar));
             } else {
-                this.__receiveChunk('');
+                this.__receiveChunk('', true);
             }
         } 
         
@@ -184,7 +184,11 @@ export class TextBufferBuilder implements ITextBufferBuilder {
 
     // [private helper methods]
 
-    private __receiveChunk(chunk: string): void {
+    private __receiveChunk(chunk: string, allowEmptyString: boolean = false): void {
+        if (allowEmptyString === false && chunk.length === 0) {
+            return;
+        }
+
         const {cr, lf, crlf, linestart} = TextBuffer.readLineStarts(chunk);
         
         this._chunks.push(new TextBuffer(chunk, linestart));

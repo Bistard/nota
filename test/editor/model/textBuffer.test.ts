@@ -129,20 +129,16 @@ suite('textBufferBuilder-test', () => {
         builder.receive('\r');
         builder.build();
         chunks = (builder as any)._chunks as TextBuffer[];
-        assert.deepStrictEqual(chunks[0]!.buffer, '');
-        assert.deepStrictEqual(chunks[0]!.linestart, [0]);
-        assert.deepStrictEqual(chunks[1]!.buffer, '\r\r');
-        assert.deepStrictEqual(chunks[1]!.linestart, [0, 1, 2]);
+        assert.deepStrictEqual(chunks[0]!.buffer, '\r\r');
+        assert.deepStrictEqual(chunks[0]!.linestart, [0, 1, 2]);
 
         builder = new TextBufferBuilder();
         builder.receive('\r');
         builder.receive('\r\r');
         builder.build();
         chunks = (builder as any)._chunks as TextBuffer[];
-        assert.deepStrictEqual(chunks[0]!.buffer, '');
-        assert.deepStrictEqual(chunks[0]!.linestart, [0]);
-        assert.deepStrictEqual(chunks[1]!.buffer, '\r\r\r');
-        assert.deepStrictEqual(chunks[1]!.linestart, [0, 1, 2, 3]);
+        assert.deepStrictEqual(chunks[0]!.buffer, '\r\r\r');
+        assert.deepStrictEqual(chunks[0]!.linestart, [0, 1, 2, 3]);
 
         builder = new TextBufferBuilder();
         builder.receive('\r');
@@ -150,12 +146,10 @@ suite('textBufferBuilder-test', () => {
         builder.receive('\r');
         builder.build();
         chunks = (builder as any)._chunks as TextBuffer[];
-        assert.deepStrictEqual(chunks[0]!.buffer, '');
-        assert.deepStrictEqual(chunks[0]!.linestart, [0]);
-        assert.deepStrictEqual(chunks[1]!.buffer, '\r');
-        assert.deepStrictEqual(chunks[1]!.linestart, [0, 1]);
-        assert.deepStrictEqual(chunks[2]!.buffer, '\r\r');
-        assert.deepStrictEqual(chunks[2]!.linestart, [0, 1, 2]);
+        assert.deepStrictEqual(chunks[0]!.buffer, '\r');
+        assert.deepStrictEqual(chunks[0]!.linestart, [0, 1]);
+        assert.deepStrictEqual(chunks[1]!.buffer, '\r\r');
+        assert.deepStrictEqual(chunks[1]!.linestart, [0, 1, 2]);
     });
 
     test('chunk ended with surrogates', () => {
