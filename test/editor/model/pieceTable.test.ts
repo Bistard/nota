@@ -469,16 +469,33 @@ suite('PieceTable-test', () => {
         let table = buildPieceTable([], false);
         assert.strictEqual(table.getLine(0), '');
         assert.strictEqual(table.getRawLine(0), '');
+        assert.strictEqual(table.getLineCount(), 1);
         
         table = buildPieceTable([''], false);
         assert.strictEqual(table.getLine(0), '');
         assert.strictEqual(table.getRawLine(0), '');
+        assert.strictEqual(table.getLineCount(), 1);
 
         table = buildPieceTable(['\r\n'], false);
         assert.strictEqual(table.getLine(0), '');
         assert.strictEqual(table.getLine(1), '');
         assert.strictEqual(table.getRawLine(0), '\r\n');
         assert.strictEqual(table.getRawLine(1), '');
+        assert.strictEqual(table.getLineCount(), 2);
+
+        table = buildPieceTable(['Hello there'], false);
+        assert.strictEqual(table.getLine(0), 'Hello there');
+        assert.strictEqual(table.getRawLine(0), 'Hello there');
+        assert.strictEqual(table.getLineCount(), 1);
+
+        table = buildPieceTable(['\r\n\r\n\r\n\n\n'], false);
+        assert.strictEqual(table.getRawLine(0), '\r\n');
+        assert.strictEqual(table.getRawLine(1), '\r\n');
+        assert.strictEqual(table.getRawLine(2), '\r\n');
+        assert.strictEqual(table.getRawLine(3), '\n');
+        assert.strictEqual(table.getRawLine(4), '\n');
+        assert.strictEqual(table.getRawLine(5), '');
+        assert.strictEqual(table.getLineCount(), 6);
     });
 
     test('line - basic', () => {
@@ -493,6 +510,7 @@ suite('PieceTable-test', () => {
         assert.strictEqual(table.getRawLine(2), 'My name is Chris\r\n');
         assert.strictEqual(table.getRawLine(3), 'I started this project \r');
         assert.strictEqual(table.getRawLine(4), 'when I was first year in university.');
+        assert.strictEqual(table.getLineCount(), 5);
     });
 
     test('line - piece end with no linefeed', () => {
@@ -507,6 +525,7 @@ suite('PieceTable-test', () => {
         assert.strictEqual(table.getRawLine(2), 'I started this project \n');
         assert.strictEqual(table.getRawLine(3), 'when I was first year in university.\r\n');
         assert.strictEqual(table.getRawLine(4), '');
+        assert.strictEqual(table.getLineCount(), 5);
     });
 
     test('line - long text', () => {
@@ -530,6 +549,7 @@ suite('PieceTable-test', () => {
         assert.strictEqual(table.getRawLine(6), 'take care of yourself😁 and have a \n');
         assert.strictEqual(table.getRawLine(7), 'nice day!\n');
         assert.strictEqual(table.getRawLine(8), '');
+        assert.strictEqual(table.getLineCount(), 9);
     });
-
+    
 });
