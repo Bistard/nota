@@ -1,3 +1,4 @@
+import { IEditorPosition } from "src/editor/common/position";
 
 export const enum EndOfLineType {
     /** 
@@ -71,28 +72,25 @@ export interface ITextBufferBuilder {
      * @default EndOfLineType.LF defaultEOL
      * @default false force
      * 
-     * @throws An exception will be thrown if the caller creates twice or not 
-     * built yet.
+     * @throws An exception will be thrown if the caller creates twice or did 
+     * not build yet.
      */
     create(normalizationEOL?: boolean, defaultEOL?: EndOfLineType, force?: boolean): IPieceTable;
 }
 
 /**
- * Representing a contiguous section inside a buffer.
+ * Representing a position relatives to a buffer.
  */
-export interface BufferPosition {
-    
-    /**
-     * The line number in the current buffer.
-     */
-    line: number;
+export interface IBufferPosition extends IEditorPosition {}
 
-    /**
-     * The character offset in the current line.
-     */
-    offset: number;
-}
+/**
+ * Representing a position relatives to a piece.
+ */
+export interface IPiecePosition extends IEditorPosition {}
 
+/**
+ * Internal data structure in {@link IPieceTable}.
+ */
 export interface IPiece {
     /** 
      * Which buffer the piece is refering in the whole table. 
@@ -100,9 +98,9 @@ export interface IPiece {
     readonly bufferIndex: number;
 
      /**
-      * The length of the corresponding buffer.
+      * The length of the piece.
       */
-    readonly bufferLength: number;
+    readonly pieceLength: number;
  
      /**
       * The linefeed counts of the corresponding buffer.
@@ -112,14 +110,17 @@ export interface IPiece {
      /** 
       * The start position of the piece in the corresponding buffer. 
       */
-    readonly start: BufferPosition;
+    readonly start: IBufferPosition;
  
      /** 
       * The end position of the piece in the corresponding buffer. 
       */
-    readonly end: BufferPosition;
+    readonly end: IBufferPosition;
 }
 
+/**
+ * Internal red-black tree data structure used in {@link IPieceTable}.
+ */
 export interface IPieceTableNode {
 
     readonly color: RBColor;
@@ -191,14 +192,16 @@ export interface IPieceTable {
      * @description Returns the character offset.
      * @param lineNumber (zero-based) line number.
      * @param lineOffset The offset relative to the line.
+     * @returns The character offset relatives to the whole text model.
      */
     getOffsetAt(lineNumber: number, lineOffset: number): number;
 
     /**
      * @description Returns the character position.
      * @param textOffset The character offset relatives to the whole text model.
+     * @returns A {@link IEditorPosition}.
      */
-    getPositionAt(textOffset: number): { lineNumber: number; lineOffset: number; };
+    getPositionAt(textOffset: number): IEditorPosition;
 
     /**
      * @description Iterate each tree node in pre-order.

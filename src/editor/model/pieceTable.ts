@@ -1,5 +1,6 @@
 import { CharCode } from "src/base/common/util/char";
-import { BufferPosition, EndOfLine, IPiece, IPieceTable, IPieceTableNode, RBColor } from "src/editor/common/model";
+import { EndOfLine, IBufferPosition, IPiece, IPiecePosition, IPieceTable, IPieceTableNode, RBColor } from "src/editor/common/model";
+import { EditorPosition, IEditorPosition } from "src/editor/common/position";
 import { TextBuffer } from "src/editor/model/textBuffer";
 
 /**
@@ -13,14 +14,14 @@ import { TextBuffer } from "src/editor/model/textBuffer";
 class Piece implements IPiece {
 
     public readonly bufferIndex: number;
-    public readonly bufferLength: number;
+    public readonly pieceLength: number;
     public readonly lfCount: number;
-    public readonly start: BufferPosition;
-    public readonly end: BufferPosition;
+    public readonly start: IBufferPosition;
+    public readonly end: IBufferPosition;
 
-    constructor(bufferIndex: number, bufferLength: number, lfCount: number, start: BufferPosition, end: BufferPosition) {
+    constructor(bufferIndex: number, pieceLength: number, lfCount: number, start: IBufferPosition, end: IBufferPosition) {
         this.bufferIndex = bufferIndex;
-        this.bufferLength = bufferLength;
+        this.pieceLength = pieceLength;
         this.lfCount = lfCount;
         this.start = start;
         this.end = end;
@@ -29,8 +30,7 @@ class Piece implements IPiece {
 
 /**
  * @internal
- * @class A tree node used in {@link PieceTable} which nested with a {@link Piece}.
- * 
+ * @class A tree node used in {@link PieceTable}.
  * 
  * @note Note that the constructor will not point the parent / left / right all 
  * to the {@link NULL_NODE}. Use static method `create()` instead.
@@ -143,7 +143,7 @@ class Node implements IPieceTableNode {
         if (node === NULL_NODE) {
             return 0;
         }
-        return node.leftSubtreeBufferLength + node.piece.bufferLength + Node.totalBufferLength(node.right);
+        return node.leftSubtreeBufferLength + node.piece.pieceLength + Node.totalBufferLength(node.right);
     }
 
     /**
@@ -156,13 +156,14 @@ class Node implements IPieceTableNode {
         if (node === NULL_NODE) {
             return 0;
         }
-        return node.leftSubtreelfCount + node.piece.bufferLength + Node.totalLinefeedCount(node.right);
+        return node.leftSubtreelfCount + node.piece.pieceLength + Node.totalLinefeedCount(node.right);
     }
 
 }
 
 /** 
- * The null node as the leaf.
+ * @internal
+ * The null node as a leaf.
  */
 const NULL_NODE = new Node(null!, RBColor.BLACK);
 NULL_NODE.parent = NULL_NODE;
@@ -243,11 +244,11 @@ export class PieceTable implements IPieceTable {
                 bufferIndex++, 
                 buffer.length,
                 linestart.length - 1, { 
-                    line: 0, 
-                    offset: 0 
+                    lineNumber: 0, 
+                    lineOffset: 0 
                 }, { 
-                    line: linestart.length - 1, 
-                    offset: buffer.length - linestart[linestart.length - 1]!
+                    lineNumber: linestart.length - 1, 
+                    lineOffset: buffer.length - linestart[linestart.length - 1]!
                 }
             );
 
@@ -292,7 +293,7 @@ export class PieceTable implements IPieceTable {
         this.forEach(node => {
 
             const piece = node.piece;
-            let pieceLength = piece.bufferLength;
+            let pieceLength = piece.pieceLength;
             
             if (pieceLength === 0) {
                 return;
@@ -301,11 +302,11 @@ export class PieceTable implements IPieceTable {
             const buffer = this._buffer[piece.bufferIndex]!.buffer;
             const linestart = this._buffer[piece.bufferIndex]!.linestart;
 
-            const pieceStartLine = piece.start.line;
-            const pieceEndLine = piece.end.line;
+            const pieceStartLine = piece.start.lineNumber;
+            const pieceEndLine = piece.end.lineNumber;
             
             // the first character offset of the piece
-            let firstCharOffset = linestart[piece.start.line]! + piece.start.offset;
+            let firstCharOffset = linestart[piece.start.lineNumber]! + piece.start.lineOffset;
 
             /**
              * If the previous piece has a CR at the end, we should refresh the 
@@ -342,7 +343,7 @@ export class PieceTable implements IPieceTable {
              * The piece is just one single line, we stores this line and 
              * iterate next node.
              */
-            if (piece.start.line === piece.end.line) {
+            if (piece.start.lineNumber === piece.end.lineNumber) {
                 
                 if (this._shouldBeNormalized === false && 
                     buffer.charCodeAt(firstCharOffset + pieceLength - 1) === CharCode.CarriageReturn
@@ -402,10 +403,10 @@ export class PieceTable implements IPieceTable {
              */
             const lastLineOffset = linestart[pieceEndLine]!;
             if (this._shouldBeNormalized === false &&
-                buffer.charCodeAt(linestart[pieceEndLine]! + piece.end.offset - 1) === CharCode.CarriageReturn
+                buffer.charCodeAt(linestart[pieceEndLine]! + piece.end.lineOffset - 1) === CharCode.CarriageReturn
             ) {
                 danglingCarriageReturn = true;
-                if (piece.end.offset === 0) {
+                if (piece.end.lineOffset === 0) {
                     /**
                      * The last line only has a CR, undo the push until the next
                      * node.
@@ -413,10 +414,10 @@ export class PieceTable implements IPieceTable {
                     lines.pop();
                 } else {
                     // ignore the CR
-                    currLineBuffer = buffer.substring(lastLineOffset, lastLineOffset + piece.end.offset - 1);
+                    currLineBuffer = buffer.substring(lastLineOffset, lastLineOffset + piece.end.lineOffset - 1);
                 }
             } else {
-                currLineBuffer = buffer.substring(lastLineOffset, lastLineOffset + piece.end.offset);
+                currLineBuffer = buffer.substring(lastLineOffset, lastLineOffset + piece.end.lineOffset);
             }
             
             return;
@@ -470,22 +471,25 @@ export class PieceTable implements IPieceTable {
         let node = this._root;
         
         while (node !== NULL_NODE) {
+            // left piece may has partial content of the required line
             if (node.left !== NULL_NODE && node.leftSubtreelfCount >= lineNumber) {
                 node = node.left;
             } 
-            else if (node.leftSubtreelfCount + node.piece.lfCount >= lineNumber) {
+            // current piece has the required line
+            else if (node.piece.lfCount >= lineNumber - node.leftSubtreelfCount) {
                 lineNumber -= node.leftSubtreelfCount;
                 const piece = node.piece;
                 const linestart = this._buffer[piece.bufferIndex]!.linestart;
                 const desiredLineStartOffset = linestart[lineNumber]!;
-                const pieceStartOffset = this.__getAbsoluteOffsetInBuffer(piece.bufferIndex, piece.start);
+                const pieceStartOffset = this.__getOffsetInBufferAt(piece.bufferIndex, piece.start);
                 const desiredBufferOffset = pieceStartOffset + desiredLineStartOffset;
                 offset += node.leftSubtreeBufferLength + desiredBufferOffset + lineOffset;
                 return offset;
             } 
+            // go right
             else {
                 lineNumber -= (node.leftSubtreelfCount + node.piece.lfCount);
-                offset += (node.leftSubtreeBufferLength + node.piece.bufferLength);
+                offset += (node.leftSubtreeBufferLength + node.piece.pieceLength);
                 node = node.right;
             }
         }
@@ -494,16 +498,49 @@ export class PieceTable implements IPieceTable {
     }
 
     // TODO
-    public getPositionAt(textOffset: number): { lineNumber: number; lineOffset: number; } {
+    public getPositionAt(textOffset: number): IEditorPosition {
         
         let node = this._root;
+        let lineNumber = 0;
+        const initTextOffset = textOffset;
 
-        
+        while (node !== NULL_NODE) {
+            // left piece has enough buffer length for the required text offset.
+            if (node.leftSubtreeBufferLength >= textOffset) {
+                node = node.left;
+            }
+            // current piece has enough buffer length for the required text offset.
+            else if (node.piece.pieceLength >= textOffset - node.leftSubtreeBufferLength) {
+                const pieceOffset = textOffset - node.leftSubtreeBufferLength;
+                const position = this.__getLineIndexInPieceAt(node.piece, pieceOffset);
 
-        return {
-            lineNumber: -1,
-            lineOffset: -1
+                lineNumber += node.leftSubtreelfCount + position.lineNumber;
+                
+                if (position.lineNumber === 0) {
+                    const lineStartOffset = this.getOffsetAt(lineNumber, 0);
+                    const lineOffset = initTextOffset - lineStartOffset;
+                    return new EditorPosition(lineNumber, lineOffset);
+                }
+                
+                return new EditorPosition(lineNumber, position.lineOffset);
+            }
+            // go right
+            else {
+                textOffset -= node.leftSubtreeBufferLength + node.piece.pieceLength;
+                lineNumber += node.leftSubtreelfCount + node.piece.lfCount;
+
+                if (node.right === NULL_NODE) {
+                    const lineStartOffset = this.getOffsetAt(lineNumber, 0);
+                    const lineOffset = initTextOffset - textOffset - lineStartOffset;
+                    return new EditorPosition(lineNumber, lineOffset);
+                }
+
+                node = node.right;
+            }
         }
+        
+        // reach the left-most node
+        return new EditorPosition(0, 0);
     }
     
     // [private helper methods - node]
@@ -527,13 +564,13 @@ export class PieceTable implements IPieceTable {
     }
 
     /**
-     * @description Returns the absolute offset in the buffer.
+     * @description Returns the relative offset in the buffer.
      * @param bufferIndex The index of the buffer.
      * @param position The position of points to the location of the buffer.
      */
-    private __getAbsoluteOffsetInBuffer(bufferIndex: number, position: BufferPosition): number {
+    private __getOffsetInBufferAt(bufferIndex: number, position: IBufferPosition): number {
         const buffer = this._buffer[bufferIndex]!;
-        return buffer.linestart[position.line]! + position.offset;
+        return buffer.linestart[position.lineNumber]! + position.lineOffset;
     }
 
     /**
@@ -547,8 +584,8 @@ export class PieceTable implements IPieceTable {
         const piece = node.piece;
         const buffer = this._buffer[piece.bufferIndex]!;
 
-        const startOffset = this.__getAbsoluteOffsetInBuffer(piece.bufferIndex, piece.start);
-        const endOffset = this.__getAbsoluteOffsetInBuffer(piece.bufferIndex, piece.end);
+        const startOffset = this.__getOffsetInBufferAt(piece.bufferIndex, piece.start);
+        const endOffset = this.__getOffsetInBufferAt(piece.bufferIndex, piece.end);
         return buffer.buffer.substring(startOffset, endOffset);
     }
 
@@ -563,15 +600,15 @@ export class PieceTable implements IPieceTable {
     private __updateTableMetadata(): void {
         let node = this._root;
 
-        let bufferLength = 0;
+        let pieceLength = 0;
         let lfCount = 1;
         while (node !== NULL_NODE) {
-            bufferLength += node.leftSubtreeBufferLength + node.piece.bufferLength;
+            pieceLength += node.leftSubtreeBufferLength + node.piece.pieceLength;
             lfCount += node.leftSubtreelfCount + node.piece.lfCount;
             node = node.right;
         }
 
-        this._bufferLength = bufferLength;
+        this._bufferLength = pieceLength;
         this._lineFeedCount = lfCount;
     }
 
@@ -785,7 +822,7 @@ export class PieceTable implements IPieceTable {
         node.parent = rightNode;
 
         // update metadata
-        rightNode.leftSubtreeBufferLength += node.leftSubtreeBufferLength + node.piece.bufferLength;
+        rightNode.leftSubtreeBufferLength += node.leftSubtreeBufferLength + node.piece.pieceLength;
         rightNode.leftSubtreelfCount += node.leftSubtreelfCount + node.piece.lfCount;
     }
 
@@ -819,7 +856,7 @@ export class PieceTable implements IPieceTable {
         node.parent = leftNode;
 
         // update metadata
-        node.leftSubtreeBufferLength -= leftNode.leftSubtreeBufferLength + leftNode.piece.bufferLength;
+        node.leftSubtreeBufferLength -= leftNode.leftSubtreeBufferLength + leftNode.piece.pieceLength;
         node.leftSubtreelfCount -= leftNode.leftSubtreelfCount + leftNode.piece.lfCount;
     }
 
@@ -847,10 +884,10 @@ export class PieceTable implements IPieceTable {
                 node = node.left;
             }
             // desired line is within the current piece
-            else if (node.leftSubtreelfCount + node.piece.lfCount > lineNumber) {
+            else if (node.piece.lfCount > lineNumber - node.leftSubtreelfCount) {
                 const piece = node.piece;
                 const { buffer, linestart } = this._buffer[piece.bufferIndex]!;
-                const pieceStartOffset = this.__getAbsoluteOffsetInBuffer(piece.bufferIndex, piece.start);
+                const pieceStartOffset = this.__getOffsetInBufferAt(piece.bufferIndex, piece.start);
 
                 lineNumber -= node.leftSubtreelfCount;
 
@@ -864,10 +901,10 @@ export class PieceTable implements IPieceTable {
                 );
             }
             // desired line has parital content at the end of the current piece (could be empty)
-            else if (node.leftSubtreelfCount + node.piece.lfCount === lineNumber) {
+            else if (node.piece.lfCount === lineNumber - node.leftSubtreelfCount) {
                 const piece = node.piece;
                 const { buffer, linestart } = this._buffer[piece.bufferIndex]!;
-                const pieceStartOffset = this.__getAbsoluteOffsetInBuffer(piece.bufferIndex, piece.start);
+                const pieceStartOffset = this.__getOffsetInBufferAt(piece.bufferIndex, piece.start);
                 
                 lineNumber -= node.leftSubtreelfCount;
 
@@ -876,7 +913,7 @@ export class PieceTable implements IPieceTable {
                 
                 lineBuffer = buffer.substring(
                     desiredBufferOffset,
-                    desiredBufferOffset + node.piece.bufferLength
+                    desiredBufferOffset + node.piece.pieceLength
                 );
                 break;
             } 
@@ -897,14 +934,20 @@ export class PieceTable implements IPieceTable {
         while (node !== NULL_NODE) {
             const piece = node.piece;
             const { buffer, linestart } = this._buffer[node.piece.bufferIndex]!;
-            const pieceStartOffset = this.__getAbsoluteOffsetInBuffer(piece.bufferIndex, piece.start);
+            const pieceStartOffset = this.__getOffsetInBufferAt(piece.bufferIndex, piece.start);
 
             if (piece.lfCount) {
                 const lineLength = linestart[1]! - linestart[0]!;
-                lineBuffer += buffer.substring(pieceStartOffset, pieceStartOffset + lineLength - eolLength);
+                lineBuffer += buffer.substring(
+                    pieceStartOffset, 
+                    pieceStartOffset + lineLength - eolLength
+                );
                 return lineBuffer;
             } else {    
-                lineBuffer += buffer.substring(pieceStartOffset, pieceStartOffset + piece.bufferLength);
+                lineBuffer += buffer.substring(
+                    pieceStartOffset, 
+                    pieceStartOffset + piece.pieceLength
+                );
             }
 
             node = Node.next(node);
@@ -913,4 +956,85 @@ export class PieceTable implements IPieceTable {
         return lineBuffer;
     }
 
+    /**
+     * @description Given a piece, returns a {@link IPiecePosition} describes
+     * the given piece offset where the location is relatives to the piece.
+     * @param piece The given piece.
+     * @param pieceOffset The offset relatives to the piece.
+     */
+    private __getPositionInPieceAt(piece: IPiece, pieceOffset: number): IPiecePosition {
+        const linestart = this._buffer[piece.bufferIndex]!.linestart;
+        
+        const pieceStartOffset = linestart[piece.start.lineNumber]! + piece.start.lineOffset;
+        const desiredOffset = pieceStartOffset + pieceOffset;
+
+        /**
+         * Using binary search to search for the line that contains the current 
+         * offset in the current piece.
+         */
+
+        let low = piece.start.lineNumber;
+        let high = piece.end.lineNumber;
+        let mid = 0;
+
+        let midStartLineOffset = 0;
+        let midEndLineOffset = 0;
+
+        while (low <= high) {
+            mid = Math.floor((low + high) / 2);
+
+            midStartLineOffset = linestart[mid]!;
+            
+            // reaching the end of the current piece
+            if (mid === high) {
+                break;
+            }
+
+            midEndLineOffset = linestart[mid + 1]!;
+
+            if (desiredOffset < midStartLineOffset) {
+                high = mid - 1;
+            } else if (desiredOffset >= midEndLineOffset) {
+                low = mid + 1;
+            } else {
+                // found it
+                break;
+            }
+        }
+
+        return {
+            lineNumber: mid,
+            lineOffset: desiredOffset - midStartLineOffset
+        };
+    }
+
+    /**
+     * @description // REVIEW
+     * @param piece The given {@link IPiece}.
+     * @param pieceOffset The offset relatives to the buffer.
+     * 
+     * // REVIEW: might need a rename
+     */
+    private __getLineIndexInPieceAt(piece: IPiece, pieceOffset: number): IPiecePosition {
+        const { 
+            lineNumber: lineNumberInPiece, 
+            lineOffset: lineOffsetInPiece 
+        } = this.__getPositionInPieceAt(piece, pieceOffset);
+        const lineIndexInPiece = lineNumberInPiece - piece.start.lineNumber;
+
+        const pieceStartOffset = this.__getOffsetInBufferAt(piece.bufferIndex, piece.start);
+        const pieceEndOffset = this.__getOffsetInBufferAt(piece.bufferIndex, piece.end);
+
+        /**
+         * The desired offset is at the end of the piece.
+         */
+        if (pieceOffset === pieceEndOffset - pieceStartOffset) {
+            // TODO:
+        }
+
+        return {
+            lineNumber: lineIndexInPiece,
+            lineOffset: lineOffsetInPiece
+        };
+    }
 }
