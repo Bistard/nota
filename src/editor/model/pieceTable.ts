@@ -75,8 +75,8 @@ class PieceNode implements IPieceNode {
     // [public methods]
 
     /**
-     * @description Returns the next node of the current node (pre-order). If not
-     * found, {@link NULL_NODE} will be returned.
+     * @description Returns the next node of the current node (pre-order). If 
+     * not found, {@link NULL_NODE} will be returned.
      */
     public static next(node: PieceNode): PieceNode {
         if (node.right !== NULL_NODE) {
@@ -134,8 +134,8 @@ class PieceNode implements IPieceNode {
     }
 
     /**
-     * @description Calculates the total buffer length of the given node. Includes
-     * its left-subtree, right-subtree and its own buffer length.
+     * @description Calculates the total buffer length of the given node. 
+     * Includes its left-subtree, right-subtree and its own buffer length.
      * 
      * @complexity O(h)
      */
@@ -180,18 +180,19 @@ NULL_NODE.right = NULL_NODE;
  * performance in some circustances:
  *      1. V8 engine did not support string length over 256MB back in time.
  *      2. String concatenation is stupid.
- * Instead, every time when the program reads a chunk, say 256KB per time, it 
- * will be stored directly into a {@link TextBuffer} and create a {@link PieceNode} 
- * points to it.
+ * Instead, every time when the program reads a chunk of bytes, say 256KB per 
+ * time, it will be stored directly into a {@link TextBuffer} and create a 
+ * {@link PieceNode} that points to it.
  * 
  * III. When creating a {@link TextBuffer}, program will read through the buffer
  * and count all the linefeeds for later fast querying by line numbers. Since 
  * each {@link TextBuffer} is readonly, the performance cost is worthy.
  * 
  * IV. The whole class is built upon a red-black tree. Unlike the basic ones, 
- * each {@link PieceNode} also maintains the left-subtree total buffer length and the
- * left-subtree total linefeed count. The tree uses these two metadata as the key
- * to compare between nodes. In this case, we can search a {@link Piece} either: 
+ * each {@link PieceNode} also maintains the left-subtree total buffer length 
+ * and the left-subtree total linefeed count. The tree uses these two metadata 
+ * as the key to compare between nodes. In this case, we can search a 
+ * {@link Piece} either: 
  *      1. by the offset of the whole text 
  *      2. by the absolute line number 
  * both under the O(logn) situation.
@@ -569,6 +570,8 @@ export class PieceTable implements IPieceTable {
      * @description Returns the relative offset in the buffer.
      * @param bufferIndex The index of the buffer.
      * @param position The position of points to the location of the buffer.
+     * 
+     * @complexity O(1)
      */
     private __getOffsetInBufferAt(bufferIndex: number, position: IBufferPosition): number {
         const buffer = this._buffer[bufferIndex]!;
@@ -576,8 +579,10 @@ export class PieceTable implements IPieceTable {
     }
 
     /**
-     * @description Given the {@link PieceNode}, returns the string which the node is
-     * pointing at.
+     * @description Given the {@link PieceNode}, returns the string which the 
+     * node is pointing at.
+     * 
+     * @complexity O(n), n - the length of the piece.
      */
     private __getNodeContent(node: PieceNode): string {
         if (node === NULL_NODE) {
@@ -617,8 +622,8 @@ export class PieceTable implements IPieceTable {
     // [private helper methods - red-black tree]
 
     /**
-     * @description Given a {@link Piece}, constructs a new {@link PieceNode} and 
-     * insert the new node as a successor to the given node.
+     * @description Given a {@link Piece}, constructs a new {@link PieceNode} 
+     * and insert the new node as a successor to the given node.
      * @returns The created node.
      * 
      * @complexity O(h)
@@ -648,8 +653,8 @@ export class PieceTable implements IPieceTable {
     }
 
     /**
-     * @description Given a {@link Piece}, constructs a new {@link PieceNode} and 
-     * insert the new node as a predecessor to the given node.
+     * @description Given a {@link Piece}, constructs a new {@link PieceNode} 
+     * and insert the new node as a predecessor to the given node.
      * @returns The created node.
      * 
      * @complexity O(h)
@@ -866,6 +871,8 @@ export class PieceTable implements IPieceTable {
      * @description A auxliary function for `getRawLine`.
      * @param lineNumber The line number (zero-based).
      * @param eolLength The length of the linefeed.
+     * 
+     * @complexity O(h)
      */
     private __getRawLine(lineNumber: number, eolLength: number = 0): string {
         if (lineNumber < 0 || lineNumber >= this._lineFeedCount) {
@@ -963,6 +970,8 @@ export class PieceTable implements IPieceTable {
      * the given piece offset where the location is relatives to the buffer.
      * @param piece The given piece.
      * @param pieceOffset The offset relatives to the piece.
+     * 
+     * @complexity O(logn), n - number of lines in the piece.
      */
     private __getPositionInBufferAt(piece: IPiece, pieceOffset: number): IBufferPosition {
         const linestart = this._buffer[piece.bufferIndex]!.linestart;
@@ -1015,6 +1024,8 @@ export class PieceTable implements IPieceTable {
      * the given piece offset where the location is relatives to the piece.
      * @param piece The given {@link IPiece}.
      * @param pieceOffset The offset relatives to the piece.
+     * 
+     * @complexity — O(logn), n - number of lines in the piece.
      */
     private __getPositionInPieceAt(piece: IPiece, pieceOffset: number): IPiecePosition {
         
