@@ -80,7 +80,7 @@ export class ActionBarContextMenu extends ContextMenu implements IContextMenu {
     //         //EVENT_EMITTER.emit('EOnActionViewClose');
     //         actionViewService.EOnActionViewClose.fire();
     //         currFocusBtn.classList.remove('action-button-focus'); 
-    //     } else if (activeBtnCount == 1) {
+    //     } else if (activeBtnCount === 1) {
     //         // reaches when re-displaying actionBarButton
     //         const i = activeBtnIndex[0]!;
     //         actionBarService.modifyFocusIndex(i);
@@ -118,7 +118,7 @@ export class ActionBarContextMenu extends ContextMenu implements IContextMenu {
     public switchButtonDisplay(button: IButton, index: number): boolean {
         return false;
         // TODO: refactor
-        // if (button.element.style.display == 'none') {
+        // if (button.element.style.display === 'none') {
         //     button.element.style.display = 'initial';
         //     actionBarOpts.options[index] = true;
         //     return true;

@@ -657,7 +657,7 @@ export class FileService implements IFileService {
     }
 
     private __throwIfFileIsReadonly(stat: IFileStat): void {
-        if (typeof stat.readonly === 'boolean' && stat.readonly == true) {
+        if (typeof stat.readonly === 'boolean' && stat.readonly === true) {
             throw new Error('unable to modify a readonly file');
         }
     }

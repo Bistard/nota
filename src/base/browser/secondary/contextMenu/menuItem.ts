@@ -83,7 +83,7 @@ export class MenuItem implements IMenuItem {
                throw new Error(`Invalid Menu Item Type`);
         }
 
-        if (opt.enable == false) {
+        if (opt.enable === false) {
             this.element.style.pointerEvents= 'none';
             const disableButton = document.getElementById(opt.text+'-id');
             disableButton!.style.color = 'darkgrey';
