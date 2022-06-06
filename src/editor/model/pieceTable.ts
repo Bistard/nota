@@ -497,7 +497,6 @@ export class PieceTable implements IPieceTable {
         return offset;
     }
 
-    // TODO
     public getPositionAt(textOffset: number): IEditorPosition {
         
         let node = this._root;
@@ -512,7 +511,7 @@ export class PieceTable implements IPieceTable {
             // current piece has enough buffer length for the required text offset.
             else if (node.piece.pieceLength >= textOffset - node.leftSubtreeBufferLength) {
                 const pieceOffset = textOffset - node.leftSubtreeBufferLength;
-                const position = this.__getLineIndexInPieceAt(node.piece, pieceOffset);
+                const position = this.__getPositionInPieceAt(node.piece, pieceOffset);
 
                 lineNumber += node.leftSubtreelfCount + position.lineNumber;
                 
@@ -529,8 +528,12 @@ export class PieceTable implements IPieceTable {
                 textOffset -= node.leftSubtreeBufferLength + node.piece.pieceLength;
                 lineNumber += node.leftSubtreelfCount + node.piece.lfCount;
 
+                /**
+                 * The provided offset exceeds the total buffer length, we 
+                 * return the maximum offset for robustness.
+                 */
                 if (node.right === NULL_NODE) {
-                    const lineStartOffset = this.getOffsetAt(lineNumber, 0);
+                    const lineStartOffset = this.getOffsetAt(lineNumber, 1);
                     const lineOffset = initTextOffset - textOffset - lineStartOffset;
                     return new EditorPosition(lineNumber, lineOffset);
                 }
@@ -957,16 +960,16 @@ export class PieceTable implements IPieceTable {
     }
 
     /**
-     * @description Given a piece, returns a {@link IPiecePosition} describes
-     * the given piece offset where the location is relatives to the piece.
+     * @description Given a piece, returns a {@link IBufferPosition} describes
+     * the given piece offset where the location is relatives to the buffer.
      * @param piece The given piece.
      * @param pieceOffset The offset relatives to the piece.
      */
-    private __getPositionInPieceAt(piece: IPiece, pieceOffset: number): IPiecePosition {
+    private __getPositionInBufferAt(piece: IPiece, pieceOffset: number): IBufferPosition {
         const linestart = this._buffer[piece.bufferIndex]!.linestart;
         
-        const pieceStartOffset = linestart[piece.start.lineNumber]! + piece.start.lineOffset;
-        const desiredOffset = pieceStartOffset + pieceOffset;
+        const pieceStartOffsetInBuffer = linestart[piece.start.lineNumber]! + piece.start.lineOffset;
+        const desiredOffset = pieceStartOffsetInBuffer + pieceOffset;
 
         /**
          * Using binary search to search for the line that contains the current 
@@ -1009,28 +1012,19 @@ export class PieceTable implements IPieceTable {
     }
 
     /**
-     * @description // REVIEW
+     * @description Given a piece, returns a {@link IPiecePosition} describes
+     * the given piece offset where the location is relatives to the piece.
      * @param piece The given {@link IPiece}.
-     * @param pieceOffset The offset relatives to the buffer.
-     * 
-     * // REVIEW: might need a rename
+     * @param pieceOffset The offset relatives to the piece.
      */
-    private __getLineIndexInPieceAt(piece: IPiece, pieceOffset: number): IPiecePosition {
+    private __getPositionInPieceAt(piece: IPiece, pieceOffset: number): IPiecePosition {
+        
         const { 
             lineNumber: lineNumberInPiece, 
             lineOffset: lineOffsetInPiece 
-        } = this.__getPositionInPieceAt(piece, pieceOffset);
+        } = this.__getPositionInBufferAt(piece, pieceOffset);
+
         const lineIndexInPiece = lineNumberInPiece - piece.start.lineNumber;
-
-        const pieceStartOffset = this.__getOffsetInBufferAt(piece.bufferIndex, piece.start);
-        const pieceEndOffset = this.__getOffsetInBufferAt(piece.bufferIndex, piece.end);
-
-        /**
-         * The desired offset is at the end of the piece.
-         */
-        if (pieceOffset === pieceEndOffset - pieceStartOffset) {
-            // TODO:
-        }
 
         return {
             lineNumber: lineIndexInPiece,

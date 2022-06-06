@@ -1,4 +1,6 @@
 import * as assert from 'assert';
+import { table } from 'console';
+import { Pair } from 'src/base/common/util/type';
 import { EndOfLine, EndOfLineType, IPieceTable } from 'src/editor/common/model';
 import { EditorPosition } from 'src/editor/common/position';
 import { TextBuffer, TextBufferBuilder } from 'src/editor/model/textBuffer';
@@ -553,22 +555,48 @@ suite('PieceTable-test', () => {
         assert.strictEqual(table.getLineCount(), 9);
     });
 
+    const offsetPositionCheck = function (table: IPieceTable, lineInfo: number[]): void {
+
+        let lineNumber = 0;
+        for (lineNumber = 0; lineNumber < lineInfo.length; lineNumber++) {
+            const lineLength = lineInfo[lineNumber]!;
+            for (let offset = 0; offset < lineLength; offset++) {
+                assert.deepStrictEqual(table.getPositionAt(table.getOffsetAt(lineNumber, offset)), new EditorPosition(lineNumber, offset));
+            }
+        }
+        assert.strictEqual(table.getLineCount(), lineInfo.length);
+
+    }
+
     test('getOffsetAt / getPostionAt', () => {
         let surrogates = '😁';
         let table = buildPieceTable(['Hello ', 'World.\nMy name is Chris\r\n', 'I started this project \n', 'when I was first year in university.\r\nI wish whoever\r', ' read this line of code\r\n', 'take care of yourself' + surrogates.charAt(0), surrogates.charAt(1) + ' and have a \n', 'nice day!\n'], false);
-        assert.strictEqual(table.getOffsetAt(0, 0), 0);
-        assert.strictEqual(table.getOffsetAt(1, 0), 13);
-        assert.strictEqual(table.getOffsetAt(1, 6), 19);
-        assert.strictEqual(table.getOffsetAt(2, 0), 31);
-        assert.strictEqual(table.getOffsetAt(3, 0), 55);
-        assert.strictEqual(table.getOffsetAt(4, 0), 93);
+        assert.deepStrictEqual(table.getPositionAt(table.getOffsetAt(0, 0)), new EditorPosition(0, 0));
+        assert.deepStrictEqual(table.getPositionAt(table.getOffsetAt(1, 0)), new EditorPosition(1, 0));
+        assert.deepStrictEqual(table.getPositionAt(table.getOffsetAt(1, 6)), new EditorPosition(1, 6));
+        assert.deepStrictEqual(table.getPositionAt(table.getOffsetAt(2, 0)), new EditorPosition(2, 0));
+        assert.deepStrictEqual(table.getPositionAt(table.getOffsetAt(3, 0)), new EditorPosition(3, 0));
+        assert.deepStrictEqual(table.getPositionAt(table.getOffsetAt(4, 0)), new EditorPosition(4, 0));
 
-        assert.deepStrictEqual(table.getOffsetAt(0, 0), new EditorPosition(0, 0));
-        assert.deepStrictEqual(table.getOffsetAt(1, 0), new EditorPosition(1, 0));
-        assert.deepStrictEqual(table.getOffsetAt(1, 6), new EditorPosition(1, 6));
-        assert.deepStrictEqual(table.getOffsetAt(2, 0), new EditorPosition(2, 0));
-        assert.deepStrictEqual(table.getOffsetAt(3, 0), new EditorPosition(3, 0));
-        assert.deepStrictEqual(table.getOffsetAt(4, 0), new EditorPosition(4, 0));
+        table = buildPieceTable(
+            [
+                '123456\r\n7890\rqwer\ntyui',
+                'op[]asd\n', 
+                'fghj',
+                'kl;',
+                '\nzxcv\r\nbnm',
+                '\n',
+                '\r\n',
+                '',
+                '1111',
+                '\r22',
+                '333',
+                '4444',
+                '7777777'
+            ]
+        );
+        offsetPositionCheck(table, [8, 5, 5, 12, 7, 6, 4, 2, 5, 16]);
+        assert.deepStrictEqual(table.getPositionAt(1000), new EditorPosition(9, 15));
     });
     
 });
