@@ -1,5 +1,6 @@
 import * as assert from 'assert';
 import { EndOfLine, EndOfLineType, IPieceTable } from 'src/editor/common/model';
+import { EditorPosition } from 'src/editor/common/position';
 import { TextBuffer, TextBufferBuilder } from 'src/editor/model/textBuffer';
 
 class TestTextBufferBuilder extends TextBufferBuilder {
@@ -562,12 +563,12 @@ suite('PieceTable-test', () => {
         assert.strictEqual(table.getOffsetAt(3, 0), 55);
         assert.strictEqual(table.getOffsetAt(4, 0), 93);
 
-        assert.strictEqual(table.getPositionAt(0), { lineNumber: 0, lineOffset: 0 });
-        assert.strictEqual(table.getPositionAt(13), { lineNumber: 1, lineOffset: 0 });
-        assert.strictEqual(table.getPositionAt(19), { lineNumber: 1, lineOffset: 6 });
-        assert.strictEqual(table.getPositionAt(31), { lineNumber: 2, lineOffset: 0 });
-        assert.strictEqual(table.getPositionAt(55), { lineNumber: 3, lineOffset: 0 });
-        assert.strictEqual(table.getPositionAt(93), { lineNumber: 4, lineOffset: 0 });
+        assert.deepStrictEqual(table.getOffsetAt(0, 0), new EditorPosition(0, 0));
+        assert.deepStrictEqual(table.getOffsetAt(1, 0), new EditorPosition(1, 0));
+        assert.deepStrictEqual(table.getOffsetAt(1, 6), new EditorPosition(1, 6));
+        assert.deepStrictEqual(table.getOffsetAt(2, 0), new EditorPosition(2, 0));
+        assert.deepStrictEqual(table.getOffsetAt(3, 0), new EditorPosition(3, 0));
+        assert.deepStrictEqual(table.getOffsetAt(4, 0), new EditorPosition(4, 0));
     });
     
 });
