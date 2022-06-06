@@ -1,5 +1,5 @@
 import { CharCode } from "src/base/common/util/char";
-import { EndOfLine, IBufferPosition, IPiece, IPiecePosition, IPieceTable, IPieceTableNode, RBColor } from "src/editor/common/model";
+import { EndOfLine, IBufferPosition, IPiece, IPiecePosition, IPieceTable, IPieceNode, RBColor } from "src/editor/common/model";
 import { EditorPosition, IEditorPosition } from "src/editor/common/position";
 import { TextBuffer } from "src/editor/model/textBuffer";
 
@@ -35,15 +35,15 @@ class Piece implements IPiece {
  * @note Note that the constructor will not point the parent / left / right all 
  * to the {@link NULL_NODE}. Use static method `create()` instead.
  */
-class Node implements IPieceTableNode {
+class PieceNode implements IPieceNode {
 
     // [field]
 
     public color: RBColor;
 
-    public parent: Node;
-    public left: Node;
-    public right: Node;
+    public parent: PieceNode;
+    public left: PieceNode;
+    public right: PieceNode;
 
     public leftSubtreeBufferLength: number;
     public leftSubtreelfCount: number;
@@ -64,8 +64,8 @@ class Node implements IPieceTableNode {
 
     // [public static method]
 
-    public static create(piece: Piece, color: RBColor): Node {
-        const newnode = new Node(piece, color);
+    public static create(piece: Piece, color: RBColor): PieceNode {
+        const newnode = new PieceNode(piece, color);
         newnode.parent = NULL_NODE;
         newnode.left = NULL_NODE;
         newnode.right = NULL_NODE;
@@ -78,9 +78,9 @@ class Node implements IPieceTableNode {
      * @description Returns the next node of the current node (pre-order). If not
      * found, {@link NULL_NODE} will be returned.
      */
-    public static next(node: Node): Node {
+    public static next(node: PieceNode): PieceNode {
         if (node.right !== NULL_NODE) {
-			const leftMost = Node.leftMost(node.right);
+			const leftMost = PieceNode.leftMost(node.right);
             return leftMost === NULL_NODE ? node.right : leftMost;
 		}
 
@@ -104,7 +104,7 @@ class Node implements IPieceTableNode {
      * 
      * @complexity O(h)
      */
-    public static leftMost(node: Node): Node {
+    public static leftMost(node: PieceNode): PieceNode {
         if (!node.piece || node.left === NULL_NODE) {
             return NULL_NODE;
         }
@@ -122,7 +122,7 @@ class Node implements IPieceTableNode {
      * 
      * @complexity O(h)
      */
-    public static rightMost(node: Node): Node {
+    public static rightMost(node: PieceNode): PieceNode {
         if (!node.piece || node.right === NULL_NODE) {
             return NULL_NODE;
         }
@@ -139,11 +139,11 @@ class Node implements IPieceTableNode {
      * 
      * @complexity O(h)
      */
-    public static totalBufferLength(node: Node): number {
+    public static totalBufferLength(node: PieceNode): number {
         if (node === NULL_NODE) {
             return 0;
         }
-        return node.leftSubtreeBufferLength + node.piece.pieceLength + Node.totalBufferLength(node.right);
+        return node.leftSubtreeBufferLength + node.piece.pieceLength + PieceNode.totalBufferLength(node.right);
     }
 
     /**
@@ -152,11 +152,11 @@ class Node implements IPieceTableNode {
      * 
      * @complexity O(h)
      */
-    public static totalLinefeedCount(node: Node): number {
+    public static totalLinefeedCount(node: PieceNode): number {
         if (node === NULL_NODE) {
             return 0;
         }
-        return node.leftSubtreelfCount + node.piece.pieceLength + Node.totalLinefeedCount(node.right);
+        return node.leftSubtreelfCount + node.piece.pieceLength + PieceNode.totalLinefeedCount(node.right);
     }
 
 }
@@ -165,7 +165,7 @@ class Node implements IPieceTableNode {
  * @internal
  * The null node as a leaf.
  */
-const NULL_NODE = new Node(null!, RBColor.BLACK);
+const NULL_NODE = new PieceNode(null!, RBColor.BLACK);
 NULL_NODE.parent = NULL_NODE;
 NULL_NODE.left = NULL_NODE;
 NULL_NODE.right = NULL_NODE;
@@ -181,7 +181,7 @@ NULL_NODE.right = NULL_NODE;
  *      1. V8 engine did not support string length over 256MB back in time.
  *      2. String concatenation is stupid.
  * Instead, every time when the program reads a chunk, say 256KB per time, it 
- * will be stored directly into a {@link TextBuffer} and create a {@link Node} 
+ * will be stored directly into a {@link TextBuffer} and create a {@link PieceNode} 
  * points to it.
  * 
  * III. When creating a {@link TextBuffer}, program will read through the buffer
@@ -189,7 +189,7 @@ NULL_NODE.right = NULL_NODE;
  * each {@link TextBuffer} is readonly, the performance cost is worthy.
  * 
  * IV. The whole class is built upon a red-black tree. Unlike the basic ones, 
- * each {@link Node} also maintains the left-subtree total buffer length and the
+ * each {@link PieceNode} also maintains the left-subtree total buffer length and the
  * left-subtree total linefeed count. The tree uses these two metadata as the key
  * to compare between nodes. In this case, we can search a {@link Piece} either: 
  *      1. by the offset of the whole text 
@@ -210,7 +210,7 @@ export class PieceTable implements IPieceTable {
      */
     private _buffer: TextBuffer[];
 
-    private _root: Node;
+    private _root: PieceNode;
 
     private _bufferLength: number;
     private _lineFeedCount: number;
@@ -267,7 +267,7 @@ export class PieceTable implements IPieceTable {
      * 
      * @note This will not go through each leaf (null node).
      */
-    public forEach(fn: (node: Node) => void): void {
+    public forEach(fn: (node: PieceNode) => void): void {
         this.__preOrder(this._root, fn);
     }
 
@@ -512,7 +512,6 @@ export class PieceTable implements IPieceTable {
             else if (node.piece.pieceLength >= textOffset - node.leftSubtreeBufferLength) {
                 const pieceOffset = textOffset - node.leftSubtreeBufferLength;
                 const position = this.__getPositionInPieceAt(node.piece, pieceOffset);
-
                 lineNumber += node.leftSubtreelfCount + position.lineNumber;
                 
                 if (position.lineNumber === 0) {
@@ -555,7 +554,7 @@ export class PieceTable implements IPieceTable {
      * 
      * @note This will not go through each {@link NULL_NODE}.
      */
-    private __preOrder(node: Node, fn: (node: Node) => void): void {
+    private __preOrder(node: PieceNode, fn: (node: PieceNode) => void): void {
         
         if (node === NULL_NODE) {
             return;
@@ -577,10 +576,10 @@ export class PieceTable implements IPieceTable {
     }
 
     /**
-     * @description Given the {@link Node}, returns the string which the node is
+     * @description Given the {@link PieceNode}, returns the string which the node is
      * pointing at.
      */
-    private __getNodeContent(node: Node): string {
+    private __getNodeContent(node: PieceNode): string {
         if (node === NULL_NODE) {
             return '';
         }
@@ -618,14 +617,14 @@ export class PieceTable implements IPieceTable {
     // [private helper methods - red-black tree]
 
     /**
-     * @description Given a {@link Piece}, constructs a new {@link Node} and 
+     * @description Given a {@link Piece}, constructs a new {@link PieceNode} and 
      * insert the new node as a successor to the given node.
      * @returns The created node.
      * 
      * @complexity O(h)
      */
-    private __insertAsSuccessor(node: Node, piece: Piece): Node {
-        const newnode = Node.create(piece, RBColor.RED);
+    private __insertAsSuccessor(node: PieceNode, piece: Piece): PieceNode {
+        const newnode = PieceNode.create(piece, RBColor.RED);
         
         // empty tree
         if (this._root === NULL_NODE) {
@@ -639,7 +638,7 @@ export class PieceTable implements IPieceTable {
         }
         // the given node has right-subtree
         else {
-            const successor = Node.leftMost(node.right);
+            const successor = PieceNode.leftMost(node.right);
             successor.left = newnode;
             newnode.parent = successor;
         }
@@ -649,14 +648,14 @@ export class PieceTable implements IPieceTable {
     }
 
     /**
-     * @description Given a {@link Piece}, constructs a new {@link Node} and 
+     * @description Given a {@link Piece}, constructs a new {@link PieceNode} and 
      * insert the new node as a predecessor to the given node.
      * @returns The created node.
      * 
      * @complexity O(h)
      */
-    private __insertAsPredecessor(node: Node, piece: Piece): Node {
-        const newnode = Node.create(piece, RBColor.RED);
+    private __insertAsPredecessor(node: PieceNode, piece: Piece): PieceNode {
+        const newnode = PieceNode.create(piece, RBColor.RED);
 
         // empty tree
         if (this._root === NULL_NODE) {
@@ -670,7 +669,7 @@ export class PieceTable implements IPieceTable {
         }
         // the given node has right-subtree
         else {
-            const predecessor = Node.rightMost(node.left);
+            const predecessor = PieceNode.rightMost(node.left);
             predecessor.right = newnode;
             newnode.parent = predecessor;
         }
@@ -685,7 +684,7 @@ export class PieceTable implements IPieceTable {
      * 
      * @complexity O(h)
      */
-    private __fixAfterInsertion(node: Node): void {
+    private __fixAfterInsertion(node: PieceNode): void {
         
         this.__updatePieceMetadata(node);
 
@@ -744,13 +743,13 @@ export class PieceTable implements IPieceTable {
      * 
      * @complexity O(h)
      */
-    private __updatePieceMetadata(node: Node): void {
+    private __updatePieceMetadata(node: PieceNode): void {
         if (node === this._root) {
             return;
         }
 
         /**
-         * Since each {@link Node} only maintains its left-subtree metadata, 
+         * Since each {@link PieceNode} only maintains its left-subtree metadata, 
          * after each insertion, we need to trace back upwards until we find a 
          * parent node, in whose perspective, its left-subtree is changed.
          */
@@ -772,8 +771,8 @@ export class PieceTable implements IPieceTable {
          * linefeed count).
          */
         node = node.parent;
-        const lengthDelta = Node.totalBufferLength(node.left) - node.leftSubtreeBufferLength;
-        const lfDelta = Node.totalLinefeedCount(node.left) - node.leftSubtreelfCount;
+        const lengthDelta = PieceNode.totalBufferLength(node.left) - node.leftSubtreeBufferLength;
+        const lfDelta = PieceNode.totalLinefeedCount(node.left) - node.leftSubtreelfCount;
         node.leftSubtreeBufferLength += lengthDelta;
         node.leftSubtreelfCount += lfDelta;
 
@@ -802,7 +801,7 @@ export class PieceTable implements IPieceTable {
      * @note Rotation will automatically updates piece metadata as well.
      * @complexity O(1)
      */
-    private __leftRotateNode(node: Node): void {
+    private __leftRotateNode(node: PieceNode): void {
         
         const rightNode = node.right;
         node.right = rightNode.left;
@@ -836,7 +835,7 @@ export class PieceTable implements IPieceTable {
      * @note Rotation will automatically updates piece metadata as well.
      * @complexity O(1)
      */
-    private __rightRotateNode(node: Node): void {
+    private __rightRotateNode(node: PieceNode): void {
         
         const leftNode = node.left;
         node.left = leftNode.right;
@@ -933,7 +932,7 @@ export class PieceTable implements IPieceTable {
          * least one linefeed.
          */
 
-        node = Node.next(node);
+        node = PieceNode.next(node);
         while (node !== NULL_NODE) {
             const piece = node.piece;
             const { buffer, linestart } = this._buffer[node.piece.bufferIndex]!;
@@ -953,7 +952,7 @@ export class PieceTable implements IPieceTable {
                 );
             }
 
-            node = Node.next(node);
+            node = PieceNode.next(node);
         }
 
         return lineBuffer;

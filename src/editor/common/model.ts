@@ -121,13 +121,13 @@ export interface IPiece {
 /**
  * Internal red-black tree data structure used in {@link IPieceTable}.
  */
-export interface IPieceTableNode {
+export interface IPieceNode {
 
     readonly color: RBColor;
 
-    readonly parent: IPieceTableNode;
-    readonly left: IPieceTableNode;
-    readonly right: IPieceTableNode;
+    readonly parent: IPieceNode;
+    readonly left: IPieceNode;
+    readonly right: IPieceNode;
 
     readonly leftSubtreeBufferLength: number;
     readonly leftSubtreelfCount: number;
@@ -207,6 +207,6 @@ export interface IPieceTable {
      * @description Iterate each tree node in pre-order.
      * @param fn The callback function to apply to each node.
      */
-    forEach(fn: (node: IPieceTableNode) => void): void;
+    forEach(fn: (node: IPieceNode) => void): void;
 
 }
