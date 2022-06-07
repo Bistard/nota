@@ -173,28 +173,48 @@ export interface IPieceTable {
     /**
      * @description Returns all the line contents (without line breaking).
      * @returns An array of string, each string represents a line content.
+     * @complexity O(n), length of the text model.
      */
     getContent(): string[];
 
     /**
      * @description Returns all the line contents in raw string.
      * @returns A string represents the raw text data (include link breaking).
+     * @complexity O(n), length of the text model.
      */
     getRawContent(): string;
 
     /**
-     * @description Returns the line string of the corresponding line number.
+     * @description Returns the line string of the corresponding line number (
+     * not include line breaking).
      * @param lineNumber (zero-based) line number.
      * @complexity O(h)
      */
     getLine(lineNumber: number): string;
 
     /**
-     * @description Returns the raw line string of the corresponding line number.
+     * @description Returns the raw line string of the corresponding line number
+     * (include line breaking).
      * @param lineNumber (zero-based) line number.
      * @complexity O(h)
      */
     getRawLine(lineNumber: number): string;
+
+    /**
+     * @description Returns the line length of the corresponding line number (
+     * include line breaking).
+     * @param lineNumber (zero-based) line number.
+     * @complexity O(h)
+     */
+    getLineLength(lineNumber: number): number;
+
+    /**
+     * @description Returns the raw line length of the corresponding line number
+     * (include line breaking).
+     * @param lineNumber (zero-based) line number.
+     * @complexity O(h)
+     */
+    getRawLineLength(lineNumber: number): number;
 
     /**
      * @description Returns the total text length of all the buffers.

@@ -458,6 +458,36 @@ export class PieceTable implements IPieceTable {
         return this.__getRawLine(lineNumber, 0);
     }
 
+    public getLineLength(lineNumber: number): number {
+        if (lineNumber === this.getLineCount()) {
+			const startOffset = this.getOffsetAt(lineNumber, 0);
+			return this.getBufferLength() - startOffset;
+		}
+
+        const length = this.getOffsetAt(lineNumber + 1, 0) - this.getOffsetAt(lineNumber, 0);
+		if (this._shouldBeNormalized) {
+            return length - this._normalizedEOL.length;
+        } 
+
+        const lineEndOffset = this.getOffsetAt(lineNumber, length - 1);
+        const lastChar = this.getCharcodeAt(lineEndOffset);
+        
+        if (lastChar === CharCode.CarriageReturn) {
+            return length - 1;
+        } else if (lastChar === CharCode.LineFeed) {
+            if (length >= 2 && this.getCharcodeAt(lineEndOffset - 1) === CharCode.CarriageReturn) {
+                return length - 2;
+            }
+            return length - 1;
+        }
+        
+        return length;
+    }
+
+    public getRawLineLength(lineNumber: number): number {
+        return this.getOffsetAt(lineNumber + 1, 0) - this.getOffsetAt(lineNumber, 0);
+    }
+
     public getBufferLength(): number {
         return this._bufferLength;
     }
