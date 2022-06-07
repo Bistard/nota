@@ -146,9 +146,9 @@ export interface IPieceNodePosition {
     node: IPieceNode;
 
     /**
-     * The start offset relatives to the buffer.
+     * The start offset relatives to the whole text model.
      */
-    bufferOffset: number;
+    textOffset: number;
 }
 
 /**

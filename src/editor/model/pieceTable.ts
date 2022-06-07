@@ -1,4 +1,4 @@
-import { CharCode } from "src/base/common/util/char";
+import { Character, CharCode } from "src/base/common/util/char";
 import { EndOfLine, IBufferPosition, IPiece, IPiecePosition, IPieceTable, IPieceNode, RBColor, IPieceNodePosition } from "src/editor/common/model";
 import { EditorPosition, IEditorPosition } from "src/editor/common/position";
 import { TextBuffer } from "src/editor/model/textBuffer";
@@ -73,6 +73,25 @@ class PieceNode implements IPieceNode {
     }
 
     // [public methods]
+
+    /**
+     * @description Copies the left / right / parent / color from node2 to node1.
+     */
+    public static copy(node1: PieceNode, node2: PieceNode): void {
+        node1.left = node2.left;
+        node1.right = node2.right;
+        node1.parent = node2.parent;
+        node1.color = node2.color;
+    }
+
+    /**
+     * @description Removes the relationthip between any of the other nodes.
+     */
+    public static isolate(node: PieceNode): void {
+        node.left = NULL_NODE;
+        node.right = NULL_NODE;
+        node.parent = NULL_NODE;
+    }
 
     /**
      * @description Returns the next node of the current node (pre-order). If 
@@ -219,6 +238,8 @@ export class PieceTable implements IPieceTable {
     private _shouldBeNormalized: boolean;
     private _normalizedEOL: EndOfLine;
 
+    public static readonly AVERAGE_BUFFER_SIZE = 64 * 1024;
+
     // [constructor]
 
     constructor(chunks: TextBuffer[], shouldBeNormalized: boolean, normalizedEOL: EndOfLine) {
@@ -241,18 +262,7 @@ export class PieceTable implements IPieceTable {
                 continue;
             }
 
-            const piece = new Piece(
-                bufferIndex++, 
-                buffer.length,
-                linestart.length - 1, { 
-                    lineNumber: 0, 
-                    lineOffset: 0 
-                }, { 
-                    lineNumber: linestart.length - 1, 
-                    lineOffset: buffer.length - linestart[linestart.length - 1]!
-                }
-            );
-
+            const piece = this.__constructNewPiece(bufferIndex++, buffer.length, linestart);
             this._buffer.push(chunks[i]!);
             node = this.__insertAsSuccessor(node, piece);
         }
@@ -277,6 +287,39 @@ export class PieceTable implements IPieceTable {
     // TODO
     public insertAt(textOffset: number, text: string): void {
         
+        // emtpy tree, insert as root
+        if (this._root === NULL_NODE) {
+            const pieces = this.__splitIntoPieces(text);
+            let node = NULL_NODE;
+            for (let piece of pieces) {
+                node = this.__insertAsSuccessor(node, piece);
+            }
+        }
+        // non-empty, complicated stuff
+        else {
+            const { position, pieceOffset } = this.__getNodeAt(textOffset);
+            const nodeOffset = position.textOffset;
+            const node = position.node;
+            const piece = node.piece;
+
+            // inserting at the start of the piece
+            if (pieceOffset === textOffset) {
+                this.__insertLeft(node, text);
+            } 
+            
+            // inserting at the middle of the piece
+            else if (piece.pieceLength >= textOffset - pieceOffset) {
+                // TODO
+            }
+
+            // inserting at the end the piece
+            else {
+                this.__insertRight(node, text);
+            }
+        }
+
+        // REVIEW: may be optimized
+        this.__updateTableMetadata();
     }
 
     // TODO
@@ -584,6 +627,144 @@ export class PieceTable implements IPieceTable {
     // [private helper methods - node]
 
     /**
+     * @description Since th text may be too long, we may want to split into
+     * multiple pieces instead of just one.
+     * @param text The plain text.
+     */
+    private __splitIntoPieces(text: string): IPiece[] {
+        
+        if (text.length > PieceTable.AVERAGE_BUFFER_SIZE) {
+            return this.__createNewPieces(text);
+        }
+
+        const addBuffer = this._buffer[0]!;
+        const linestart = TextBuffer.readLineStarts(text).linestart.splice(1);
+        const addBufferLength = addBuffer.buffer.length;
+
+        if (addBufferLength > 0) {
+            for (let i = 0; i < linestart.length; i++) {
+                linestart[i]! += addBufferLength;
+            }
+        }
+
+        // adding to add-buffer, has to remove readonly here :(.
+        (addBuffer.linestart as any) = addBuffer.linestart.concat(linestart);
+        (addBuffer.buffer as any) = addBuffer.buffer.concat(text);
+
+        const piece = this.__constructNewPiece(
+            0, // addBuffer index
+            text.length,
+            linestart
+        );
+
+        return [piece];
+    }
+
+    /**
+     * @description The text is too large, we need to create multiple pieces for
+     * it.
+     * @param text The plain text.
+     */
+    private __createNewPieces(text: string): IPiece[] {
+        const pieces: IPiece[] = [];
+        const BUFFER_SIZE = PieceTable.AVERAGE_BUFFER_SIZE;
+
+        // split into pieces for large text
+        while (text.length > BUFFER_SIZE) {
+            const lastChar = this.getCharcodeAt(BUFFER_SIZE - 1);
+            let partText: string = '';
+
+            if (lastChar === CharCode.CarriageReturn || Character.isHighSurrogate(lastChar)) {
+                partText += text.substring(0, BUFFER_SIZE - 1);
+                text = text.substring(BUFFER_SIZE - 1, undefined);
+            } else {
+                partText += text.substring(0, BUFFER_SIZE);
+                text = text.substring(BUFFER_SIZE, undefined);
+            }
+
+            const linestart = TextBuffer.readLineStarts(partText).linestart;
+            pieces.push(this.__constructNewPiece(this._buffer.length, partText.length, linestart));
+            this._buffer.push(new TextBuffer(partText, linestart));
+        }
+
+        // deal with the rest of the short text
+        if (text.length > 0) {
+            const linestart = TextBuffer.readLineStarts(text).linestart;
+            pieces.push(this.__constructNewPiece(this._buffer.length, text.length, linestart));
+            this._buffer.push(new TextBuffer(text, linestart));    
+        }
+
+        return pieces;
+    }
+
+    private __constructNewPiece(bufferIndex: number, pieceLength: number, linestart: number[]): IPiece {
+        return new Piece(
+            bufferIndex,
+            pieceLength,
+            linestart.length - 1,
+            { lineNumber: 0, lineOffset: 0 },
+            { lineNumber: linestart.length - 1, lineOffset: pieceLength - linestart[linestart.length - 1]! }
+        );
+    }
+
+    /**
+     * @description Inserts the given text to the left of the given node.
+     * @param node The given node.
+     * @param text The plain text.
+     */
+    private __insertLeft(node: PieceNode, text: string): void {
+        
+        const toBeDeleted: PieceNode[] = [];
+
+        /**
+         * Check if there is a posibility that contains CRLF and the CRLF got
+         * split into two different incoming pieces. If does, move the \n to the
+         * new piece (to the left) that about to be inserted.
+         */
+        if (this.__shouldCheckCRLF() && 
+            this.__endWithCR(text) && 
+            this.__startWithLF(node)
+        ) {
+            // remove \n from the given piece
+            const piece = node.piece;
+            const updated = new Piece(
+                piece.bufferIndex,
+                piece.pieceLength - 1,
+                piece.lfCount - 1,
+                { lineNumber: piece.start.lineNumber + 1, lineOffset: 0 },
+                piece.end
+            );
+            node.piece = updated;
+            text += EndOfLine.LF;
+            this.__updatePieceMetadataWithDelta(node, -1, -1);
+            
+            // the original piece is empty, delete it.
+            if (node.piece.pieceLength === 0) {
+                toBeDeleted.push(node);
+            }
+        }
+
+        // Inserting to the left (before).
+        const pieces = this.__splitIntoPieces(text);
+        let newnode = node;
+        for (let i = pieces.length - 1; i >= 0; i--) {
+            newnode = this.__insertAsPredecessor(newnode, pieces[i]!);
+        }
+        
+        // delete these nodes
+        this.__deleteNodes(toBeDeleted);
+    }
+
+    /**
+     * @description Inserts the given text to the right of the given node.
+     * @param node The given node.
+     * @param text The plain text.
+     */
+     private __insertRight(node: PieceNode, text: string): void {
+        //  TODO
+    }
+
+    /**
      * @description Iteration the whole red-black tree in pre-order.
      * @param node The current node for iteration.
      * @param fn The function applies to each node.
@@ -634,6 +815,184 @@ export class PieceTable implements IPieceTable {
     // [private helper methods - red-black tree]
 
     /**
+     * @description Deletes all the {@link PieceNode}s from the tree.
+     */
+    private __deleteNodes(nodes: PieceNode[]): void {
+        let i = 0, length = nodes.length;
+        for (let i = 0; i < length; i++) {
+            this.__deleteNode(nodes[i]!);
+        }
+    }
+
+    /**
+     * @description Delete the given {@link PieceNode} from the red-black tree.
+     * @complexity O(h)
+     */
+    private __deleteNode(z: PieceNode): void {
+        
+        let x: PieceNode; // always point to replacement for y or z.
+        let y: PieceNode; // always point to node to be deleted or be replaced.
+
+        if (z.left === NULL_NODE) {
+            y = z;
+            x = y.right;
+        } else if (z.right === NULL_NODE) {
+            y = z;
+            x = y.left;
+        } else {
+            const predecessor = PieceNode.leftMost(z.right);
+            y = predecessor === NULL_NODE ? z.right : predecessor;
+            x = y.right;
+        }
+
+        if (y === this._root) {
+            this._root = x;
+            x.color = RBColor.BLACK;
+            PieceNode.isolate(z);
+            NULL_NODE.parent = NULL_NODE;
+            this._root.parent = NULL_NODE;
+        }
+
+        const yWasRed = y.color === RBColor.RED;
+
+        if (y === y.parent.left) {
+            y.parent.left = x;
+        } else {
+            y.parent.right = x;
+        }
+
+        if (y === z) {
+            x.parent = y.parent;
+            this.__updatePieceMetadata(x);
+        } else {
+            if (y.parent === z) {
+                x.parent = y;
+            } else {
+                x.parent = y.parent;
+            }
+
+            this.__updatePieceMetadata(x);
+            PieceNode.copy(y, z);
+
+            if (z === this._root) {
+                this._root = y;
+            } else {
+                if (z === z.parent.left) {
+                    z.parent.left = y;
+                } else {
+                    z.parent.right = y;
+                }
+            }
+    
+            if (y.left !== NULL_NODE) {
+                y.left.parent = y;
+            }
+            if (y.right !== NULL_NODE) {
+                y.right.parent = y;
+            }
+            
+            y.leftSubtreeBufferLength = z.leftSubtreeBufferLength;
+            y.leftSubtreelfCount = z.leftSubtreelfCount;
+            this.__updatePieceMetadata(y);
+        }
+
+        PieceNode.isolate(z);
+
+        if (x.parent.left === x) {
+            const newBufferLength = PieceNode.totalBufferLength(x);
+            const newLfCount = PieceNode.totalLinefeedCount(x);
+            if (newBufferLength !== x.parent.leftSubtreeBufferLength || 
+                newLfCount !== x.parent.leftSubtreelfCount
+            ) {
+                const bufferDelta = newBufferLength - x.parent.leftSubtreeBufferLength;
+                const lfDelta = newLfCount - x.parent.leftSubtreelfCount;
+                x.parent.leftSubtreeBufferLength = newBufferLength;
+                x.parent.leftSubtreelfCount = newLfCount;
+                this.__updatePieceMetadataWithDelta(x.parent, bufferDelta, lfDelta);
+            }
+        }
+
+        this.__updatePieceMetadata(x.parent);
+        
+        if (yWasRed) {
+            NULL_NODE.parent = NULL_NODE;
+            return;
+        }
+
+        this.__fixAfterDeletion(x);
+    }
+
+    /**
+     * @description Fix the red-black tree metadata after the deletion.
+     * @param node The node which just been deleted.
+     * 
+     * @complexity O(h)
+     */
+    private __fixAfterDeletion(node: PieceNode): void {
+        
+        let sibling: PieceNode;
+        while (node !== this._root && node.color === RBColor.BLACK) {
+            if (node === node.parent.left) {
+                sibling = node.parent.right;
+
+                if (sibling.color === RBColor.RED) {
+                    sibling.color = RBColor.BLACK;
+                    node.parent.color = RBColor.RED;
+                    this.__leftRotateNode(node.parent);
+                    sibling = node.parent.right;
+                }
+
+                if (sibling.left.color === RBColor.BLACK && sibling.right.color === RBColor.BLACK) {
+                    sibling.color = RBColor.RED;
+                    node = node.parent;
+                } else {
+                    if (sibling.right.color === RBColor.BLACK) {
+                        sibling.left.color = RBColor.BLACK;
+                        sibling.color = RBColor.RED;
+                        this.__rightRotateNode(sibling);
+                        sibling = node.parent.right;
+                    }
+
+                    sibling.color = node.parent.color;
+                    node.parent.color = RBColor.BLACK;
+                    sibling.right.color = RBColor.BLACK;
+                    this.__leftRotateNode(node.parent);
+                    node = this._root;
+                }
+            } else {
+                sibling = node.parent.left;
+
+                if (sibling.color === RBColor.RED) {
+                    sibling.color = RBColor.BLACK;
+                    node.parent.color = RBColor.RED;
+                    this.__rightRotateNode(node.parent);
+                    sibling = node.parent.left;
+                }
+
+                if (sibling.left.color === RBColor.BLACK && sibling.right.color === RBColor.BLACK) {
+                    sibling.color = RBColor.RED;
+                    node = node.parent;
+                } else {
+                    if (sibling.left.color === RBColor.BLACK) {
+                        sibling.right.color = RBColor.BLACK;
+                        sibling.color = RBColor.RED;
+                        this.__leftRotateNode(sibling);
+                        sibling = node.parent.left;
+                    }
+
+                    sibling.color = node.parent.color;
+                    node.parent.color = RBColor.BLACK;
+                    sibling.left.color = RBColor.BLACK;
+                    this.__rightRotateNode(node.parent);
+                    node = this._root;
+                }
+            }
+        }
+        node.color = RBColor.BLACK;
+        NULL_NODE.parent = NULL_NODE;
+    }
+
+    /**
      * @description Given a {@link Piece}, constructs a new {@link PieceNode} 
      * and insert the new node as a successor to the given node.
      * @returns The created node.
@@ -679,7 +1038,7 @@ export class PieceTable implements IPieceTable {
             this._root = newnode;
             newnode.color = RBColor.BLACK;
         }
-        // the given node has no right-subtree
+        // the given node has no left-subtree
         else if (node.left === NULL_NODE) {
             node.left = newnode;
             newnode.parent = node;
@@ -802,10 +1161,14 @@ export class PieceTable implements IPieceTable {
          * We still need to trace back upwards to do the same job to the nodes, 
          * in whose perspective, its left-subtree is changed.
          */
+        this.__updatePieceMetadataWithDelta(node, lengthDelta, lfDelta);
+    }
+
+    private __updatePieceMetadataWithDelta(node: PieceNode, bufferLengthDelta: number, lfCountDelta: number): void {
         while (node !== this._root) {
             if (node.parent.left === node) {
-                node.parent.leftSubtreeBufferLength += lengthDelta;
-                node.parent.leftSubtreelfCount += lfDelta;
+                node.parent.leftSubtreeBufferLength += bufferLengthDelta;
+                node.parent.leftSubtreelfCount += lfCountDelta;
             }
             node = node.parent;
         }
@@ -881,14 +1244,14 @@ export class PieceTable implements IPieceTable {
 
     /**
      * @description Given the text offset, returns the corresponding piece, its 
-     * buffer start offset, and also a piece offset.
+     * buffer start offset, and also a piece offset in the whole text model.
      * @param textOffset The text offset relatives to the whole text model.
      * @complexity O(h)
      */
     private __getNodeAt(textOffset: number): { position: IPieceNodePosition, pieceOffset: number } {
 
         let node = this._root;
-        let nodeBufferOffset = 0;
+        let nodeTextOffset = 0;
 
         while (node !== NULL_NODE) {
 
@@ -896,10 +1259,10 @@ export class PieceTable implements IPieceTable {
                 node = node.left;
             } 
             else if (node.piece.pieceLength >= textOffset - node.leftSubtreeBufferLength) {
-                nodeBufferOffset += node.leftSubtreeBufferLength;
+                nodeTextOffset += node.leftSubtreeBufferLength;
                 return {
                     position: {
-                        bufferOffset: nodeBufferOffset,
+                        textOffset: nodeTextOffset,
                         node: node
                     },
                     pieceOffset: textOffset - node.leftSubtreeBufferLength
@@ -908,7 +1271,7 @@ export class PieceTable implements IPieceTable {
             else {
                 const currentBufferLength = node.leftSubtreeBufferLength + node.piece.pieceLength;
                 textOffset -= currentBufferLength;
-                nodeBufferOffset += currentBufferLength;
+                nodeTextOffset += currentBufferLength;
                 node = node.right;
             }
 
@@ -918,7 +1281,7 @@ export class PieceTable implements IPieceTable {
         return {
             position: {
                 node: NULL_NODE,
-                bufferOffset: 0
+                textOffset: 0
             },
             pieceOffset: 0
         };
@@ -1152,5 +1515,56 @@ export class PieceTable implements IPieceTable {
             lineNumber: lineIndexInPiece,
             lineOffset: lineOffsetInPiece
         };
+    }
+
+    // [private helper methods - EOL]
+
+    private __shouldCheckCRLF(): boolean {
+
+        /**
+         * only need to check for CRLF because there is a chance the \r\n got
+         * stored into two different pieces.
+         */
+
+        return !(this._shouldBeNormalized && this._normalizedEOL === EndOfLine.LF);
+    }
+
+    private __endWithCR(value: string | PieceNode): boolean {
+        if (typeof value === 'string') {
+            return value.charCodeAt(value.length - 1) === CharCode.CarriageReturn;
+        }
+        return this.__nodeEndWithCR(value);
+    }
+
+    private __startWithLF(value: string | PieceNode): boolean {
+        if (typeof value === 'string') {
+            return value.charCodeAt(0) === CharCode.LineFeed;
+        }
+        return this.__nodeStartWithLF(value);
+    }
+
+    private __nodeEndWithCR(node: PieceNode): boolean {
+        if (node === NULL_NODE || node.piece.lfCount === 0) {
+            return false;
+        }
+
+        const nodePosition = {
+            node: node,
+            textOffset: this.__getOffsetInBufferAt(node.piece.bufferIndex, node.piece.start)
+        }
+        const lastChar = this.__getCharcodeAt(nodePosition, node.piece.pieceLength - 1);
+        return lastChar === CharCode.CarriageReturn;
+    }
+
+    private __nodeStartWithLF(node: PieceNode): boolean {
+        if (node === NULL_NODE || node.piece.lfCount === 0) {
+            return false;
+        }
+
+        const piece = node.piece;
+        const { buffer, linestart } = this._buffer[piece.bufferIndex]!;
+        const pieceStartOffset = linestart[piece.start.lineNumber]! + piece.start.lineOffset;
+
+        return buffer.charCodeAt(pieceStartOffset) === CharCode.LineFeed;
     }
 }
