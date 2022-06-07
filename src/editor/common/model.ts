@@ -136,6 +136,22 @@ export interface IPieceNode {
 }
 
 /**
+ * Describing a position of a {@link IPieceNode} in the {@link IPieceTable}.
+ */
+export interface IPieceNodePosition {
+
+    /**
+     * Corresponding piece.
+     */
+    node: IPieceNode;
+
+    /**
+     * The start offset relatives to the buffer.
+     */
+    bufferOffset: number;
+}
+
+/**
  * An interface only for {@link PieceTable}.
  */
 export interface IPieceTable {
@@ -169,22 +185,26 @@ export interface IPieceTable {
     /**
      * @description Returns the line string of the corresponding line number.
      * @param lineNumber (zero-based) line number.
+     * @complexity O(h)
      */
     getLine(lineNumber: number): string;
 
     /**
      * @description Returns the raw line string of the corresponding line number.
      * @param lineNumber (zero-based) line number.
+     * @complexity O(h)
      */
     getRawLine(lineNumber: number): string;
 
     /**
      * @description Returns the total text length of all the buffers.
+     * @complexity O(1)
      */
     getBufferLength(): number;
 
     /**
      * @description Returns the total line counts.
+     * @complexity O(1)
      */
     getLineCount(): number;
 
@@ -193,6 +213,7 @@ export interface IPieceTable {
      * @param lineNumber (zero-based) line number.
      * @param lineOffset The offset relative to the line.
      * @returns The character offset relatives to the whole text model.
+     * @complexity O(h)
      */
     getOffsetAt(lineNumber: number, lineOffset: number): number;
 
@@ -200,12 +221,21 @@ export interface IPieceTable {
      * @description Returns the character position.
      * @param textOffset The character offset relatives to the whole text model.
      * @returns A {@link IEditorPosition}.
+     * @complexity O(h)
      */
     getPositionAt(textOffset: number): IEditorPosition;
 
     /**
+     * @description Returns the charcode at the given text offset.
+     * @param textOffset The character offset relatives to the whole text model.
+     * @complexity O(h)
+     */
+    getCharcodeAt(textOffset: number): number;
+
+    /**
      * @description Iterate each tree node in pre-order.
      * @param fn The callback function to apply to each node.
+     * @complexity O(n), n - number of pieces in the table.
      */
     forEach(fn: (node: IPieceNode) => void): void;
 

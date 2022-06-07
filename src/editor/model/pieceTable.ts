@@ -1,5 +1,5 @@
 import { CharCode } from "src/base/common/util/char";
-import { EndOfLine, IBufferPosition, IPiece, IPiecePosition, IPieceTable, IPieceNode, RBColor } from "src/editor/common/model";
+import { EndOfLine, IBufferPosition, IPiece, IPiecePosition, IPieceTable, IPieceNode, RBColor, IPieceNodePosition } from "src/editor/common/model";
 import { EditorPosition, IEditorPosition } from "src/editor/common/position";
 import { TextBuffer } from "src/editor/model/textBuffer";
 
@@ -546,6 +546,11 @@ export class PieceTable implements IPieceTable {
         return new EditorPosition(0, 0);
     }
     
+    public getCharcodeAt(textOffset: number): number {
+        const { position, pieceOffset } = this.__getNodeAt(textOffset);
+        return this.__getCharcodeAt(position, pieceOffset);
+    }
+
     // [private helper methods - node]
 
     /**
@@ -594,29 +599,6 @@ export class PieceTable implements IPieceTable {
         const startOffset = this.__getOffsetInBufferAt(piece.bufferIndex, piece.start);
         const endOffset = this.__getOffsetInBufferAt(piece.bufferIndex, piece.end);
         return buffer.buffer.substring(startOffset, endOffset);
-    }
-
-    // [private helper methods - piece table]
-
-    /**
-     * @description Recalculates all the basic metadata of the whole tree (total 
-     *  buffer length / total linefeed count).
-     * 
-     * @complexity O(h)
-     */
-    private __updateTableMetadata(): void {
-        let node = this._root;
-
-        let pieceLength = 0;
-        let lfCount = 1;
-        while (node !== NULL_NODE) {
-            pieceLength += node.leftSubtreeBufferLength + node.piece.pieceLength;
-            lfCount += node.leftSubtreelfCount + node.piece.lfCount;
-            node = node.right;
-        }
-
-        this._bufferLength = pieceLength;
-        this._lineFeedCount = lfCount;
     }
 
     // [private helper methods - red-black tree]
@@ -865,6 +847,106 @@ export class PieceTable implements IPieceTable {
         // update metadata
         node.leftSubtreeBufferLength -= leftNode.leftSubtreeBufferLength + leftNode.piece.pieceLength;
         node.leftSubtreelfCount -= leftNode.leftSubtreelfCount + leftNode.piece.lfCount;
+    }
+
+    /**
+     * @description Given the text offset, returns the corresponding piece, its 
+     * buffer start offset, and also a piece offset.
+     * @param textOffset The text offset relatives to the whole text model.
+     * @complexity O(h)
+     */
+    private __getNodeAt(textOffset: number): { position: IPieceNodePosition, pieceOffset: number } {
+
+        let node = this._root;
+        let nodeBufferOffset = 0;
+
+        while (node !== NULL_NODE) {
+
+            if (node.leftSubtreeBufferLength > textOffset) {
+                node = node.left;
+            } 
+            else if (node.piece.pieceLength >= textOffset - node.leftSubtreeBufferLength) {
+                nodeBufferOffset += node.leftSubtreeBufferLength;
+                return {
+                    position: {
+                        bufferOffset: nodeBufferOffset,
+                        node: node
+                    },
+                    pieceOffset: textOffset - node.leftSubtreeBufferLength
+                };
+            } 
+            else {
+                const currentBufferLength = node.leftSubtreeBufferLength + node.piece.pieceLength;
+                textOffset -= currentBufferLength;
+                nodeBufferOffset += currentBufferLength;
+                node = node.right;
+            }
+
+        }
+
+        // should never be reached
+        return {
+            position: {
+                node: NULL_NODE,
+                bufferOffset: 0
+            },
+            pieceOffset: 0
+        };
+    }
+
+    /**
+     * @description Returns the corresponding charcode at the given piece
+     * position and the piece offset.
+     * @param position The piece position.
+     * @param pieceOffset The piece offset.
+     * @complexity O(1)
+     */
+    private __getCharcodeAt(position: IPieceNodePosition, pieceOffset: number): number {
+        
+        const node = position.node;
+        
+        /**
+         * The desired charcode is at the first character of the next piece.
+         */
+        if (pieceOffset === node.piece.pieceLength) {
+            const nextnode = PieceNode.next(node);
+
+            // invalid position and offset
+            if (nextnode === NULL_NODE) {
+                return 0;
+            }
+
+            const buffer = this._buffer[nextnode.piece.bufferIndex]!.buffer;
+            const nextPieceStartOffset = this.__getOffsetInBufferAt(nextnode.piece.bufferIndex, nextnode.piece.start);
+            return buffer.charCodeAt(nextPieceStartOffset);
+        }
+
+        const buffer = this._buffer[node.piece.bufferIndex]!.buffer;
+        const pieceStartOffset = this.__getOffsetInBufferAt(node.piece.bufferIndex, node.piece.start);
+        return buffer.charCodeAt(pieceStartOffset + pieceOffset);
+    }
+
+    // [private helper methods - piece table]
+
+    /**
+     * @description Recalculates all the basic metadata of the whole tree (total 
+     *  buffer length / total linefeed count).
+     * 
+     * @complexity O(h)
+     */
+     private __updateTableMetadata(): void {
+        let node = this._root;
+
+        let pieceLength = 0;
+        let lfCount = 1;
+        while (node !== NULL_NODE) {
+            pieceLength += node.leftSubtreeBufferLength + node.piece.pieceLength;
+            lfCount += node.leftSubtreelfCount + node.piece.lfCount;
+            node = node.right;
+        }
+
+        this._bufferLength = pieceLength;
+        this._lineFeedCount = lfCount;
     }
 
     /**
