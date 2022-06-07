@@ -555,13 +555,14 @@ suite('PieceTable-test', () => {
         assert.strictEqual(table.getLineCount(), 9);
     });
 
-    const offsetPositionCheck = function (table: IPieceTable, lineInfo: number[]): void {
+    const offsetPositionCheck = function (table: IPieceTable, lineInfo: Pair<number, number>[]): void {
 
         let lineNumber = 0;
         for (lineNumber = 0; lineNumber < lineInfo.length; lineNumber++) {
-            const lineLength = lineInfo[lineNumber]!;
-            // assert.strictEqual(table.getLineLength(lineNumber), lineLength); // FIX
-            for (let offset = 0; offset < lineLength; offset++) {
+            const [lineLength, rawLineLength] = lineInfo[lineNumber]!;
+            assert.strictEqual(table.getLineLength(lineNumber), lineLength);
+            assert.strictEqual(table.getRawLineLength(lineNumber), rawLineLength);
+            for (let offset = 0; offset < rawLineLength; offset++) {
                 const textOffset = table.getOffsetAt(lineNumber, offset);
                 assert.deepStrictEqual(table.getPositionAt(textOffset), new EditorPosition(lineNumber, offset));
             }
@@ -597,7 +598,7 @@ suite('PieceTable-test', () => {
                 '7777777'
             ]
         );
-        offsetPositionCheck(table, [8, 5, 5, 12, 7, 6, 4, 2, 5, 16]);
+        offsetPositionCheck(table, [[6, 8], [4, 5], [4, 5], [11, 12], [7, 8], [4, 6], [3, 4], [0, 2], [4, 5], [16, 16]]);
         assert.deepStrictEqual(table.getPositionAt(1000), new EditorPosition(9, 15));
     });
 
