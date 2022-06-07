@@ -560,15 +560,17 @@ suite('PieceTable-test', () => {
         let lineNumber = 0;
         for (lineNumber = 0; lineNumber < lineInfo.length; lineNumber++) {
             const lineLength = lineInfo[lineNumber]!;
+            // assert.strictEqual(table.getLineLength(lineNumber), lineLength); // FIX
             for (let offset = 0; offset < lineLength; offset++) {
-                assert.deepStrictEqual(table.getPositionAt(table.getOffsetAt(lineNumber, offset)), new EditorPosition(lineNumber, offset));
+                const textOffset = table.getOffsetAt(lineNumber, offset);
+                assert.deepStrictEqual(table.getPositionAt(textOffset), new EditorPosition(lineNumber, offset));
             }
         }
         assert.strictEqual(table.getLineCount(), lineInfo.length);
 
     }
 
-    test('getOffsetAt / getPostionAt', () => {
+    test('getOffsetAt / getPostionAt / getLineLength', () => {
         let surrogates = '😁';
         let table = buildPieceTable(['Hello ', 'World.\nMy name is Chris\r\n', 'I started this project \n', 'when I was first year in university.\r\nI wish whoever\r', ' read this line of code\r\n', 'take care of yourself' + surrogates.charAt(0), surrogates.charAt(1) + ' and have a \n', 'nice day!\n'], false);
         assert.deepStrictEqual(table.getPositionAt(table.getOffsetAt(0, 0)), new EditorPosition(0, 0));
@@ -597,6 +599,22 @@ suite('PieceTable-test', () => {
         );
         offsetPositionCheck(table, [8, 5, 5, 12, 7, 6, 4, 2, 5, 16]);
         assert.deepStrictEqual(table.getPositionAt(1000), new EditorPosition(9, 15));
+    });
+
+    const getCharcodeCheck = function (table: IPieceTable, lines: string[]) {
+        let offset = 0;
+        for (let line of lines) {
+            for (let i = 0; i < line.length; i++) {
+                assert.notStrictEqual(table.getCharcodeAt(offset), line[i]);
+                offset++;
+            }
+        }
+    };
+
+    test('getCharcodeAt', () => {
+        const text = ['Hello\n', 'World\r\n', '', '\nasdqwe', 'as', '\n\n', '\r', 'asd', 'cc', '\n', 'a', '\r\n'];
+        let table = buildPieceTable(text, false);
+        getCharcodeCheck(table, text);
     });
     
 });
