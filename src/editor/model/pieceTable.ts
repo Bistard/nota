@@ -292,7 +292,7 @@ export class PieceTable implements IPieceTable {
         
         // emtpy tree, insert as root
         if (this._root === NULL_NODE) {
-            const pieces = this.__splitIntoPieces(text);
+            const pieces = this.__createNewPieces(text);
             let node = NULL_NODE;
             for (let piece of pieces) {
                 node = this.__insertAsSuccessor(node, piece);
@@ -345,7 +345,7 @@ export class PieceTable implements IPieceTable {
                     this.__insertAsSuccessor(node, rightPiece);
                 }
 
-                const leftPieces = this.__splitIntoPieces(text);
+                const leftPieces = this.__createNewPieces(text);
                 let newnode = node;
                 for (let i = 0; i < leftPieces.length; i++) {
                     this.__insertAsSuccessor(newnode, leftPieces[i]!);
@@ -668,14 +668,15 @@ export class PieceTable implements IPieceTable {
     // [private helper methods - node]
 
     /**
-     * @description Since th text may be too long, we may want to split into
-     * multiple pieces instead of just one.
+     * @description Since the inserted text may be too long, string related 
+     * operations may become slow. We may want to split into multiple pieces 
+     * instead of just one. 
      * @param text The plain text.
      */
-    private __splitIntoPieces(text: string): IPiece[] {
+    private __createNewPieces(text: string): IPiece[] {
         
         if (text.length > PieceTable.AVERAGE_BUFFER_SIZE) {
-            return this.__createNewPieces(text);
+            return this.__splitIntoPieces(text);
         }
 
         const addBuffer = this._buffer[0]!;
@@ -706,7 +707,7 @@ export class PieceTable implements IPieceTable {
      * it.
      * @param text The plain text.
      */
-    private __createNewPieces(text: string): IPiece[] {
+    private __splitIntoPieces(text: string): IPiece[] {
         const pieces: IPiece[] = [];
         const BUFFER_SIZE = PieceTable.AVERAGE_BUFFER_SIZE;
 
@@ -739,12 +740,14 @@ export class PieceTable implements IPieceTable {
     }
 
     private __constructNewPiece(bufferIndex: number, pieceLength: number, linestart: number[]): IPiece {
+        const linestartLength = linestart.length === 0 ? 0 : linestart.length - 1;
+        const linestartOffset = linestartLength ? linestart[linestartLength]! : 0;
         return new Piece(
             bufferIndex,
             pieceLength,
-            linestart.length - 1,
+            linestartLength,
             { lineNumber: 0, lineOffset: 0 },
-            { lineNumber: linestart.length - 1, lineOffset: pieceLength - linestart[linestart.length - 1]! }
+            { lineNumber: linestartLength, lineOffset: pieceLength - linestartOffset }
         );
     }
 
@@ -786,7 +789,7 @@ export class PieceTable implements IPieceTable {
         }
 
         // Inserting to the left (before).
-        const pieces = this.__splitIntoPieces(text);
+        const pieces = this.__createNewPieces(text);
         let newnode = node;
         for (let i = pieces.length - 1; i >= 0; i--) {
             newnode = this.__insertAsPredecessor(newnode, pieces[i]!);
@@ -812,7 +815,7 @@ export class PieceTable implements IPieceTable {
         }
 
         // Inserting to the right (after).
-        const pieces = this.__splitIntoPieces(text);
+        const pieces = this.__createNewPieces(text);
         let insert = node;
         for (let i = 0; i < pieces.length; i++) {
             insert = this.__insertAsSuccessor(insert, pieces[i]!);
@@ -1676,7 +1679,7 @@ export class PieceTable implements IPieceTable {
 
 /**
  * @namespace PieceTableTester A namespace that contains testing code for 
- * {@link PieceTable}.
+ * {@link PieceTable}. Should only be used in `pieceTable.test.ts`.
  */
 export namespace PieceTableTester {
     
@@ -1690,12 +1693,13 @@ export namespace PieceTableTester {
         assertValidTree(T);
     }
 
-    export function depth(n: IPieceNode): number {
-        if (n === NULL_NODE) {
-            return 1;
+    export function assertValidTree(T: IPieceTable): void {
+        if (T.root === NULL_NODE) {
+            return;
         }
-        assert.strictEqual(depth(n.left), depth(n.right));
-        return (n.color === RBColor.BLACK ? 1 : 0) + depth(n.left);
+        assert.strictEqual(T.root.color, RBColor.BLACK);
+        assert.strictEqual(depth(T.root.left), depth(T.root.right));
+        assertValidNode(T.root);
     }
 
     export function assertValidNode(n: IPieceNode): { size: number; lf_cnt: number } {
@@ -1719,14 +1723,12 @@ export namespace PieceTableTester {
         return { size: n.leftSubtreeBufferLength + n.piece.pieceLength + actualRight.size, lf_cnt: n.leftSubtreelfCount + n.piece.lfCount + actualRight.lf_cnt };
     }
 
-    export function assertValidTree(T: IPieceTable): void {
-        if (T.root === NULL_NODE) {
-            return;
+    export function depth(n: IPieceNode): number {
+        if (n === NULL_NODE) {
+            return 1;
         }
-        assert.strictEqual(T.root.color, RBColor.BLACK);
-        assert.strictEqual(depth(T.root.left), depth(T.root.right));
-        assertValidNode(T.root);
+        assert.strictEqual(depth(n.left), depth(n.right));
+        return (n.color === RBColor.BLACK ? 1 : 0) + depth(n.left);
     }
-
 
 }
