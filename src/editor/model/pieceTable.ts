@@ -176,7 +176,7 @@ class PieceNode implements IPieceNode {
         if (node === NULL_NODE) {
             return 0;
         }
-        return node.leftSubtreelfCount + node.piece.pieceLength + PieceNode.totalLinefeedCount(node.right);
+        return node.leftSubtreelfCount + node.piece.lfCount + PieceNode.totalLinefeedCount(node.right);
     }
 
 }
@@ -231,6 +231,8 @@ export class PieceTable implements IPieceTable {
      */
     private _buffer: TextBuffer[];
 
+    private _lastAddBufferPosition: IBufferPosition;
+
     private _root: PieceNode;
 
     private _bufferLength: number;
@@ -245,6 +247,7 @@ export class PieceTable implements IPieceTable {
 
     constructor(chunks: TextBuffer[], shouldBeNormalized: boolean, normalizedEOL: EndOfLine) {
         this._buffer = [new TextBuffer('', [0])];
+        this._lastAddBufferPosition = { lineNumber: 0, lineOffset: 0 };
         this._root = NULL_NODE;
         this._bufferLength = 0;
         this._lineFeedCount = 1;
@@ -306,6 +309,16 @@ export class PieceTable implements IPieceTable {
             const piece = node.piece;
             const startBufferPosition = this.__getPositionInBufferAt(piece, pieceOffset);
 
+            if (node.piece.bufferIndex === 0 &&
+				piece.end.lineNumber === this._lastAddBufferPosition.lineNumber &&
+				piece.end.lineOffset === this._lastAddBufferPosition.lineOffset &&
+				(nodeOffset + piece.pieceLength === textOffset) &&
+				text.length < PieceTable.AVERAGE_BUFFER_SIZE
+			) {
+                // TODO
+                console.log('reached');
+            }
+
             // inserting at the start of the piece
             if (nodeOffset === textOffset) {
                 this.__insertLeft(node, text);
@@ -314,35 +327,61 @@ export class PieceTable implements IPieceTable {
             // inserting at the middle of the piece
             else if (piece.pieceLength > textOffset - nodeOffset) {
                 const toBeDeleted: PieceNode[] = [];
-                let rightPiece = new Piece(
+                
+                /**
+                 * We need to split the current piece into left two // TODO
+                 */
+
+                let rightPartPiece = new Piece(
                     piece.bufferIndex,
-                    this.__getOffsetInBufferAt(piece.bufferIndex, startBufferPosition) - this.__getOffsetInBufferAt(piece.bufferIndex, piece.end),
-                    -1, // REVIEW
+                    this.__getOffsetInBufferAt(piece.bufferIndex, piece.end) - this.__getOffsetInBufferAt(piece.bufferIndex, startBufferPosition),
+                    piece.end.lineNumber - startBufferPosition.lineNumber,
                     startBufferPosition,
                     piece.end
                 );
 
                 /**
                  * Inserting to the middle of the node, we need to check the end
-                 * of the node and the 
+                 * of the node and the // TODO
                  */
                 if (this.__shouldCheckCRLF() && this.__endWithCR(text)) {
                     const afterInsertChar = this.__getCharcodeAtNode(node, pieceOffset);
                     if (afterInsertChar === CharCode.LineFeed) {
-                        rightPiece = new Piece(
-                            rightPiece.bufferIndex,
-                            rightPiece.pieceLength - 1,
-                            rightPiece.lfCount - 1,
-                            { lineNumber: rightPiece.start.lineNumber + 1, lineOffset: 0 },
-                            rightPiece.end
+                        rightPartPiece = new Piece(
+                            rightPartPiece.bufferIndex,
+                            rightPartPiece.pieceLength - 1,
+                            rightPartPiece.lfCount - 1,
+                            { lineNumber: rightPartPiece.start.lineNumber + 1, lineOffset: 0 },
+                            rightPartPiece.end
                         );
 
                         text += EndOfLine.LF;
                     }
                 }
 
-                if (rightPiece.pieceLength) {
-                    this.__insertAsSuccessor(node, rightPiece);
+                // move the prev \r to the new piece
+                if (this.__shouldCheckCRLF() && this.__startWithLF(text) && 
+                    this.__getCharcodeAtNode(node, pieceOffset - 1) === CharCode.CarriageReturn
+                ) {
+                    const beforeBufferPosition = this.__getPositionInBufferAt(node.piece, pieceOffset - 1);
+                    this.__deletePieceTailAt(node, beforeBufferPosition);
+                    
+                    text = '\r'.concat(text);
+                    if (node.piece.pieceLength === 0) {
+                        toBeDeleted.push(node);
+                    }
+                } 
+                /**
+                 * Otherwise simply remove the tail part of the current piece.
+                 * Now the current piece only contains the content before the 
+                 * inserting text.
+                 */
+                else {
+                    this.__deletePieceTailAt(node, startBufferPosition);
+                }
+
+                if (rightPartPiece.pieceLength) {
+                    this.__insertAsSuccessor(node, rightPartPiece);
                 }
 
                 const leftPieces = this.__createNewPieces(text);
@@ -680,7 +719,7 @@ export class PieceTable implements IPieceTable {
         }
 
         const addBuffer = this._buffer[0]!;
-        const linestart = TextBuffer.readLineStarts(text).linestart.splice(1);
+        const linestart = TextBuffer.readLineStarts(text).linestart;
         const addBufferLength = addBuffer.buffer.length;
 
         if (addBufferLength > 0) {
@@ -690,15 +729,23 @@ export class PieceTable implements IPieceTable {
         }
 
         // adding to add-buffer, has to remove readonly here :(.
-        (addBuffer.linestart as any) = addBuffer.linestart.concat(linestart);
+        (addBuffer.linestart as any) = addBuffer.linestart.concat(linestart.splice(1));
         (addBuffer.buffer as any) = addBuffer.buffer.concat(text);
 
-        const piece = this.__constructNewPiece(
+        const addBufferEndOffset = addBuffer.buffer.length;
+        const addBufferLastIndex = addBuffer.linestart.length - 1;
+        const pieceEndOffset = addBufferEndOffset - addBuffer.linestart[addBufferLastIndex]!;
+        const pieceEndPosition = { lineNumber: addBufferLastIndex, lineOffset: pieceEndOffset };
+
+        const piece = new Piece(
             0, // addBuffer index
             text.length,
-            linestart
+            linestart.length ? linestart.length - 1 : 0,
+            this._lastAddBufferPosition,
+            pieceEndPosition
         );
 
+        this._lastAddBufferPosition = pieceEndPosition;
         return [piece];
     }
 
@@ -877,7 +924,7 @@ export class PieceTable implements IPieceTable {
      */
     private __deleteNodes(nodes: PieceNode[]): void {
         let i = 0, length = nodes.length;
-        for (let i = 0; i < length; i++) {
+        for (i = 0; i < length; i++) {
             this.__deleteNode(nodes[i]!);
         }
     }
@@ -981,6 +1028,35 @@ export class PieceTable implements IPieceTable {
     }
 
     /**
+     * @description Given a new ending position in the buffer, set a new piece
+     * end at that position.
+     * @param node The given node.
+     * @param position The new ending position.
+     */
+    private __deletePieceTailAt(node: PieceNode, position: IBufferPosition): void {
+        const piece = node.piece;
+        
+        const prevLfCount = piece.lfCount;
+        const prevEndBufferOffset = this.__getOffsetInBufferAt(piece.bufferIndex, piece.end);
+
+        const newLfCount = position.lineNumber - piece.start.lineNumber;
+        const newEndBufferOffset = this.__getOffsetInBufferAt(piece.bufferIndex, position);
+
+        const lfDelta = newLfCount - prevLfCount;
+        const lengthDelta = newEndBufferOffset - prevEndBufferOffset;
+
+        node.piece = new Piece(
+            piece.bufferIndex,
+            piece.pieceLength + lengthDelta,
+            newLfCount,
+            piece.start,
+            position
+        );
+
+        this.__updatePieceMetadataWithDelta(node, lengthDelta, lfDelta);
+    }
+
+    /**
      * @description Fix the red-black tree metadata after the deletion.
      * @param node The node which just been deleted.
      * 
@@ -1072,7 +1148,8 @@ export class PieceTable implements IPieceTable {
         }
         // the given node has right-subtree
         else {
-            const successor = PieceNode.leftMost(node.right);
+            const leftMost = PieceNode.leftMost(node.right);
+            const successor = leftMost === NULL_NODE ? node.right : leftMost;
             successor.left = newnode;
             newnode.parent = successor;
         }
