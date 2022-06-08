@@ -157,6 +157,11 @@ export interface IPieceNodePosition {
 export interface IPieceTable {
 
     /**
+     * The root of the piece table.
+     */
+    readonly root: IPieceNode;
+
+    /**
      * @description Inserts the given text at the given offset.
      * @param textOffset The character offset relatives to the whole text model.
      * @param text The text to be inserted.

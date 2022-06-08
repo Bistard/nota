@@ -2,6 +2,7 @@ import { Character, CharCode } from "src/base/common/util/char";
 import { EndOfLine, IBufferPosition, IPiece, IPiecePosition, IPieceTable, IPieceNode, RBColor, IPieceNodePosition } from "src/editor/common/model";
 import { EditorPosition, IEditorPosition } from "src/editor/common/position";
 import { TextBuffer } from "src/editor/model/textBuffer";
+import * as assert from 'assert';
 
 /**
  * @internal
@@ -272,6 +273,8 @@ export class PieceTable implements IPieceTable {
 
     // [public methods - node]
 
+    get root(): IPieceNode { return this._root; }
+
     /**
      * @description Iterates each tree node in pre-order.
      * @param fn Function applies to each node.
@@ -301,17 +304,55 @@ export class PieceTable implements IPieceTable {
             const nodeOffset = position.textOffset;
             const node = position.node;
             const piece = node.piece;
+            const startBufferPosition = this.__getPositionInBufferAt(piece, pieceOffset);
 
             // inserting at the start of the piece
-            if (pieceOffset === textOffset) {
+            if (nodeOffset === textOffset) {
                 this.__insertLeft(node, text);
             } 
             
             // inserting at the middle of the piece
-            else if (piece.pieceLength >= textOffset - pieceOffset) {
-                // TODO
-            }
+            else if (piece.pieceLength > textOffset - nodeOffset) {
+                const toBeDeleted: PieceNode[] = [];
+                let rightPiece = new Piece(
+                    piece.bufferIndex,
+                    this.__getOffsetInBufferAt(piece.bufferIndex, startBufferPosition) - this.__getOffsetInBufferAt(piece.bufferIndex, piece.end),
+                    -1, // REVIEW
+                    startBufferPosition,
+                    piece.end
+                );
 
+                /**
+                 * Inserting to the middle of the node, we need to check the end
+                 * of the node and the 
+                 */
+                if (this.__shouldCheckCRLF() && this.__endWithCR(text)) {
+                    const afterInsertChar = this.__getCharcodeAtNode(node, pieceOffset);
+                    if (afterInsertChar === CharCode.LineFeed) {
+                        rightPiece = new Piece(
+                            rightPiece.bufferIndex,
+                            rightPiece.pieceLength - 1,
+                            rightPiece.lfCount - 1,
+                            { lineNumber: rightPiece.start.lineNumber + 1, lineOffset: 0 },
+                            rightPiece.end
+                        );
+
+                        text += EndOfLine.LF;
+                    }
+                }
+
+                if (rightPiece.pieceLength) {
+                    this.__insertAsSuccessor(node, rightPiece);
+                }
+
+                const leftPieces = this.__splitIntoPieces(text);
+                let newnode = node;
+                for (let i = 0; i < leftPieces.length; i++) {
+                    this.__insertAsSuccessor(newnode, leftPieces[i]!);
+                }
+
+                this.__deleteNodes(toBeDeleted);
+            }
             // inserting at the end the piece
             else {
                 this.__insertRight(node, text);
@@ -761,7 +802,21 @@ export class PieceTable implements IPieceTable {
      * @param text The plain text.
      */
      private __insertRight(node: PieceNode, text: string): void {
-        //  TODO
+        
+        if (this.__removeLFfromTheNextNode(node, text)) {
+            /**
+             * The inserting text does end with a CR and the next node does 
+             * starts with a LF, we move the LF to the current one.
+             */
+            text += EndOfLine.LF;
+        }
+
+        // Inserting to the right (after).
+        const pieces = this.__splitIntoPieces(text);
+        let insert = node;
+        for (let i = 0; i < pieces.length; i++) {
+            insert = this.__insertAsSuccessor(insert, pieces[i]!);
+        }
     }
 
     /**
@@ -1319,6 +1374,17 @@ export class PieceTable implements IPieceTable {
         return buffer.charCodeAt(pieceStartOffset + pieceOffset);
     }
 
+    /**
+     * @description Returns the desired charcode relatives to the given node.
+     * @param node The given node.
+     * @param pieceOffset Offset relatives to the node.
+     */
+    private __getCharcodeAtNode(node: PieceNode, pieceOffset: number): number {
+        const buffer = this._buffer[node.piece.bufferIndex]!.buffer;
+		const newOffset = this.__getOffsetInBufferAt(node.piece.bufferIndex, node.piece.start) + pieceOffset;
+		return buffer.charCodeAt(newOffset);
+    }
+
     // [private helper methods - piece table]
 
     /**
@@ -1567,4 +1633,100 @@ export class PieceTable implements IPieceTable {
 
         return buffer.charCodeAt(pieceStartOffset) === CharCode.LineFeed;
     }
+
+    /**
+     * @description Try to move a LF that appears to be the first character from 
+     * the accessor of the given node to the previous node which is the next we 
+     * are about to insert with.
+     * @returns If the operation was taken.
+     */
+    private __removeLFfromTheNextNode(node: PieceNode, text: string): boolean {
+        
+        if (this.__shouldCheckCRLF() && this.__endWithCR(text)) {
+            
+            const nextnode = PieceNode.next(node);
+            if (this.__startWithLF(nextnode)) {
+                /**
+                 * We are suppose to move the first character \n to the previous
+                 * piece, which will be the text we are about to insert with.
+                 */
+                if (nextnode.piece.pieceLength === 1) {
+                    this.__deleteNode(nextnode);
+                }
+                else {
+                    const piece = nextnode.piece;
+					nextnode.piece = new Piece(
+						piece.bufferIndex,
+						piece.pieceLength - 1,
+                        piece.lfCount - 1,
+                        { lineNumber: piece.start.lineNumber + 1, lineOffset: 0 },
+						piece.end,
+					);
+
+                    this.__updatePieceMetadataWithDelta(nextnode, -1, -1);
+                }
+
+                return true;
+            }
+        }
+
+        return false;
+    }
+}
+
+/**
+ * @namespace PieceTableTester A namespace that contains testing code for 
+ * {@link PieceTable}.
+ */
+export namespace PieceTableTester {
+    
+    export function assertPieceTable(T: IPieceTable): void {
+        assert.strictEqual(NULL_NODE.color, RBColor.BLACK);
+        assert.strictEqual(NULL_NODE.parent, NULL_NODE);
+        assert.strictEqual(NULL_NODE.left, NULL_NODE);
+        assert.strictEqual(NULL_NODE.right, NULL_NODE);
+        assert.strictEqual(NULL_NODE.leftSubtreeBufferLength, 0);
+        assert.strictEqual(NULL_NODE.leftSubtreelfCount, 0);
+        assertValidTree(T);
+    }
+
+    export function depth(n: IPieceNode): number {
+        if (n === NULL_NODE) {
+            return 1;
+        }
+        assert.strictEqual(depth(n.left), depth(n.right));
+        return (n.color === RBColor.BLACK ? 1 : 0) + depth(n.left);
+    }
+
+    export function assertValidNode(n: IPieceNode): { size: number; lf_cnt: number } {
+        if (n === NULL_NODE) {
+            return { size: 0, lf_cnt: 0 };
+        }
+
+        let l = n.left;
+        let r = n.right;
+
+        if (n.color === RBColor.RED) {
+            assert.strictEqual(l.color, RBColor.BLACK);
+            assert.strictEqual(r.color, RBColor.BLACK);
+        }
+
+        let actualLeft = assertValidNode(l);
+        assert.strictEqual(actualLeft.lf_cnt, n.leftSubtreelfCount);
+        assert.strictEqual(actualLeft.size, n.leftSubtreeBufferLength);
+        let actualRight = assertValidNode(r);
+
+        return { size: n.leftSubtreeBufferLength + n.piece.pieceLength + actualRight.size, lf_cnt: n.leftSubtreelfCount + n.piece.lfCount + actualRight.lf_cnt };
+    }
+
+    export function assertValidTree(T: IPieceTable): void {
+        if (T.root === NULL_NODE) {
+            return;
+        }
+        assert.strictEqual(T.root.color, RBColor.BLACK);
+        assert.strictEqual(depth(T.root.left), depth(T.root.right));
+        assertValidNode(T.root);
+    }
+
+
 }
