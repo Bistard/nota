@@ -772,7 +772,7 @@ suite('PieceTable-test - content APIs', () => {
     
 });
 
-suite('PieceTable-Test - insert / delete', () => {
+suite('PieceTable-test - insert / delete', () => {
    
     test('basic insert / delete', () => {
 		let table = buildPieceTable([
@@ -1082,7 +1082,7 @@ suite('PieceTable-Test - insert / delete', () => {
 		assert.strictEqual(table.getRawContent(), str);
 		PieceTableTester.assertPieceTable(table);
 	});
-    
+
 	test('random insert/delete \\r bug 5', () => {
 		let str = '';
 		let table = buildPieceTable(['']);
@@ -1108,6 +1108,234 @@ suite('PieceTable-Test - insert / delete', () => {
 		str = str.substring(0, 15) + '\n\r\r\r' + str.substring(15);
 
 		assert.strictEqual(table.getRawContent(), str);
+		PieceTableTester.assertPieceTable(table);
+	});
+
+});
+
+suite('PieceTable-test - CRLF', () => {
+
+    test('delete CR in CRLF 1', () => {
+		let table = buildPieceTable([''], false);
+		table.insertAt(0, 'a\r\nb');
+		table.deleteAt(0, 2);
+
+		assert.strictEqual(table.getLineCount(), 2);
+		PieceTableTester.assertPieceTable(table);
+	});
+
+	test('delete CR in CRLF 2', () => {
+		let table = buildPieceTable([''], false);
+		table.insertAt(0, 'a\r\nb');
+		table.deleteAt(2, 2);
+
+		assert.strictEqual(table.getLineCount(), 2);
+		PieceTableTester.assertPieceTable(table);
+	});
+
+	test('random bug 1', () => {
+		let str = '';
+		let table = buildPieceTable([''], false);
+		table.insertAt(0, '\n\n\r\r');
+		str = str.substring(0, 0) + '\n\n\r\r' + str.substring(0);
+		table.insertAt(1, '\r\n\r\n');
+		str = str.substring(0, 1) + '\r\n\r\n' + str.substring(1);
+		table.deleteAt(5, 3);
+		str = str.substring(0, 5) + str.substring(5 + 3);
+		table.deleteAt(2, 3);
+		str = str.substring(0, 2) + str.substring(2 + 3);
+
+		let lines = str.split(/\r\n|\r|\n/);
+		assert.strictEqual(table.getLineCount(), lines.length);
+		PieceTableTester.assertPieceTable(table);
+	});
+	test('random bug 2', () => {
+		let str = '';
+		let table = buildPieceTable([''], false);
+
+		table.insertAt(0, '\n\r\n\r');
+		str = str.substring(0, 0) + '\n\r\n\r' + str.substring(0);
+		table.insertAt(2, '\n\r\r\r');
+		str = str.substring(0, 2) + '\n\r\r\r' + str.substring(2);
+		table.deleteAt(4, 1);
+		str = str.substring(0, 4) + str.substring(4 + 1);
+
+		let lines = str.split(/\r\n|\r|\n/);
+		assert.strictEqual(table.getLineCount(), lines.length);
+		PieceTableTester.assertPieceTable(table);
+	});
+	test('random bug 3', () => {
+		let str = '';
+		let table = buildPieceTable([''], false);
+
+		table.insertAt(0, '\n\n\n\r');
+		str = str.substring(0, 0) + '\n\n\n\r' + str.substring(0);
+		table.deleteAt(2, 2);
+		str = str.substring(0, 2) + str.substring(2 + 2);
+		table.deleteAt(0, 2);
+		str = str.substring(0, 0) + str.substring(0 + 2);
+		table.insertAt(0, '\r\r\r\r');
+		str = str.substring(0, 0) + '\r\r\r\r' + str.substring(0);
+		table.insertAt(2, '\r\n\r\r');
+		str = str.substring(0, 2) + '\r\n\r\r' + str.substring(2);
+		table.insertAt(3, '\r\r\r\n');
+		str = str.substring(0, 3) + '\r\r\r\n' + str.substring(3);
+
+		let lines = str.split(/\r\n|\r|\n/);
+		assert.strictEqual(table.getLineCount(), lines.length);
+		PieceTableTester.assertPieceTable(table);
+	});
+
+    const testLinesContent = function (str: string, table: IPieceTable) {
+        let lines = str.split(/\r\n|\r|\n/);
+        assert.strictEqual(table.getLineCount(), lines.length);
+        assert.strictEqual(table.getRawContent(), str);
+        for (let i = 0; i < lines.length; i++) {
+            assert.strictEqual(table.getLine(i + 1), lines[i]);
+        }
+    }
+
+	test('random bug 4', () => {
+		let str = '';
+		let table = buildPieceTable([''], false);
+
+		table.insertAt(0, '\n\n\n\n');
+		str = str.substring(0, 0) + '\n\n\n\n' + str.substring(0);
+		table.deleteAt(3, 1);
+		str = str.substring(0, 3) + str.substring(3 + 1);
+		table.insertAt(1, '\r\r\r\r');
+		str = str.substring(0, 1) + '\r\r\r\r' + str.substring(1);
+		table.insertAt(6, '\r\n\n\r');
+		str = str.substring(0, 6) + '\r\n\n\r' + str.substring(6);
+		table.deleteAt(5, 3);
+		str = str.substring(0, 5) + str.substring(5 + 3);
+
+		testLinesContent(str, table);
+		PieceTableTester.assertPieceTable(table);
+	});
+	test('random bug 5', () => {
+		let str = '';
+		let table = buildPieceTable([''], false);
+
+		table.insertAt(0, '\n\n\n\n');
+		str = str.substring(0, 0) + '\n\n\n\n' + str.substring(0);
+		table.deleteAt(3, 1);
+		str = str.substring(0, 3) + str.substring(3 + 1);
+		table.insertAt(0, '\n\r\r\n');
+		str = str.substring(0, 0) + '\n\r\r\n' + str.substring(0);
+		table.insertAt(4, '\n\r\r\n');
+		str = str.substring(0, 4) + '\n\r\r\n' + str.substring(4);
+		table.deleteAt(4, 3);
+		str = str.substring(0, 4) + str.substring(4 + 3);
+		table.insertAt(5, '\r\r\n\r');
+		str = str.substring(0, 5) + '\r\r\n\r' + str.substring(5);
+		table.insertAt(12, '\n\n\n\r');
+		str = str.substring(0, 12) + '\n\n\n\r' + str.substring(12);
+		table.insertAt(5, '\r\r\r\n');
+		str = str.substring(0, 5) + '\r\r\r\n' + str.substring(5);
+		table.insertAt(20, '\n\n\r\n');
+		str = str.substring(0, 20) + '\n\n\r\n' + str.substring(20);
+
+		testLinesContent(str, table);
+		PieceTableTester.assertPieceTable(table);
+	});
+	test('random bug 6', () => {
+		let str = '';
+		let table = buildPieceTable([''], false);
+
+		table.insertAt(0, '\n\r\r\n');
+		str = str.substring(0, 0) + '\n\r\r\n' + str.substring(0);
+		table.insertAt(4, '\r\n\n\r');
+		str = str.substring(0, 4) + '\r\n\n\r' + str.substring(4);
+		table.insertAt(3, '\r\n\n\n');
+		str = str.substring(0, 3) + '\r\n\n\n' + str.substring(3);
+		table.deleteAt(4, 8);
+		str = str.substring(0, 4) + str.substring(4 + 8);
+		table.insertAt(4, '\r\n\n\r');
+		str = str.substring(0, 4) + '\r\n\n\r' + str.substring(4);
+		table.insertAt(0, '\r\n\n\r');
+		str = str.substring(0, 0) + '\r\n\n\r' + str.substring(0);
+		table.deleteAt(4, 0);
+		str = str.substring(0, 4) + str.substring(4 + 0);
+		table.deleteAt(8, 4);
+		str = str.substring(0, 8) + str.substring(8 + 4);
+
+		testLinesContent(str, table);
+		PieceTableTester.assertPieceTable(table);
+	});
+	
+	test('random bug 7', () => {
+		let str = '';
+		let table = buildPieceTable([''], false);
+
+		table.insertAt(0, '\r\r\n\n');
+		str = str.substring(0, 0) + '\r\r\n\n' + str.substring(0);
+		table.insertAt(4, '\r\n\n\r');
+		str = str.substring(0, 4) + '\r\n\n\r' + str.substring(4);
+		table.insertAt(7, '\n\r\r\r');
+		str = str.substring(0, 7) + '\n\r\r\r' + str.substring(7);
+		table.insertAt(11, '\n\n\r\n');
+		str = str.substring(0, 11) + '\n\n\r\n' + str.substring(11);
+		testLinesContent(str, table);
+		PieceTableTester.assertPieceTable(table);
+	});
+
+    test('random bug 8', () => {
+		let str = '';
+		let table = buildPieceTable([''], false);
+
+		table.insertAt(0, '\r\n\n\r');
+		str = str.substring(0, 0) + '\r\n\n\r' + str.substring(0);
+		table.deleteAt(1, 0);
+		str = str.substring(0, 1) + str.substring(1 + 0);
+		table.insertAt(3, '\n\n\n\r');
+		str = str.substring(0, 3) + '\n\n\n\r' + str.substring(3);
+		table.insertAt(7, '\n\n\r\n');
+		str = str.substring(0, 7) + '\n\n\r\n' + str.substring(7);
+
+		testLinesContent(str, table);
+		PieceTableTester.assertPieceTable(table);
+	});
+
+	test('random bug 9', () => {
+		let str = '';
+		let table = buildPieceTable([''], false);
+
+		table.insertAt(0, 'qneW');
+		str = str.substring(0, 0) + 'qneW' + str.substring(0);
+		table.insertAt(0, 'YhIl');
+		str = str.substring(0, 0) + 'YhIl' + str.substring(0);
+		table.insertAt(0, 'qdsm');
+		str = str.substring(0, 0) + 'qdsm' + str.substring(0);
+		table.deleteAt(7, 0);
+		str = str.substring(0, 7) + str.substring(7 + 0);
+		table.insertAt(12, 'iiPv');
+		str = str.substring(0, 12) + 'iiPv' + str.substring(12);
+		table.insertAt(9, 'V\rSA');
+		str = str.substring(0, 9) + 'V\rSA' + str.substring(9);
+
+		testLinesContent(str, table);
+		PieceTableTester.assertPieceTable(table);
+	});
+
+	test('random bug 10', () => {
+		let str = '';
+		let table = buildPieceTable([''], false);
+
+		table.insertAt(0, '\n\n\n\n');
+		str = str.substring(0, 0) + '\n\n\n\n' + str.substring(0);
+		table.insertAt(3, '\n\r\n\r');
+		str = str.substring(0, 3) + '\n\r\n\r' + str.substring(3);
+		table.insertAt(2, '\n\r\n\n');
+		str = str.substring(0, 2) + '\n\r\n\n' + str.substring(2);
+		table.insertAt(0, '\n\n\r\r');
+		str = str.substring(0, 0) + '\n\n\r\r' + str.substring(0);
+		table.insertAt(3, '\r\r\r\r');
+		str = str.substring(0, 3) + '\r\r\r\r' + str.substring(3);
+		table.insertAt(3, '\n\n\r\r');
+		str = str.substring(0, 3) + '\n\n\r\r' + str.substring(3);
+
+		testLinesContent(str, table);
 		PieceTableTester.assertPieceTable(table);
 	});
 

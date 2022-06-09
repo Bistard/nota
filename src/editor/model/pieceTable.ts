@@ -907,10 +907,7 @@ export class PieceTable implements IPieceTable { // REVIEW: make it template
          * split into two different incoming pieces. If does, move the \n to the
          * new piece (to the left) that about to be inserted.
          */
-        if (this.__shouldCheckCRLF() && 
-            this.__endWithCR(text) && 
-            this.__startWithLF(node)
-        ) {
+        if (this.__shouldCheckCRLF() && this.__endWithCR(text) && this.__startWithLF(node)) {
             // REVIEW: call fixCRLF()
             // remove \n from the given piece
             const piece = node.piece;
