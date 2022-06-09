@@ -815,17 +815,50 @@ export class PieceTable implements IPieceTable { // REVIEW: make it template
 
         const addBuffer = this._buffer[0]!;
         const linestart = TextBuffer.readLineStarts(text).linestart;
-        const addBufferLength = addBuffer.buffer.length;
+        let addBufferLength = addBuffer.buffer.length;
 
-        if (addBufferLength > 0) {
+        let pieceStartPosition = this._lastAddBufferPosition;
+
+        /**
+         * Creating new pieces meaning adding text to the add buffer. We need to
+         * check the CRLF situation here. An important fact needs to be noticed:
+         * when a {@link IPiece} points to the add buffer is detecting the CRLF
+         * situation during operations like insert / delete, it cannot determine
+         * a 'CRLF' should be treated as a whole, or a 'CR' and a 'LF'. To fix
+         * this, we did a tirck here by split the CRLF with any character so 
+         * that in a {@link IPiece} perspective, it will not be treated like a 
+         * whole.
+         */
+        if (addBuffer.linestart[addBuffer.linestart.length - 1]! === addBufferLength
+            && addBufferLength !== 0 
+            && this.__startWithLF(text) && this.__endWithCR(addBuffer.buffer)
+        ) {
+            this._lastAddBufferPosition = {
+                lineNumber: this._lastAddBufferPosition.lineNumber,
+                lineOffset: this._lastAddBufferPosition.lineOffset + 1
+            };
+            pieceStartPosition = this._lastAddBufferPosition;
+            addBufferLength += 1;
+
             for (let i = 0; i < linestart.length; i++) {
                 linestart[i]! += addBufferLength;
             }
-        }
 
-        // adding to add-buffer, has to remove readonly here :(.
-        (addBuffer.linestart as any) = addBuffer.linestart.concat(linestart.splice(1));
-        (addBuffer.buffer as any) = addBuffer.buffer.concat(text);
+            (addBuffer.buffer as any) = addBuffer.buffer.concat('_', text);
+            (addBuffer.linestart as any) = addBuffer.linestart.concat(linestart.splice(1));
+        } 
+        // If not, simply update the as normal.
+        else {
+            if (addBufferLength > 0) {
+                for (let i = 0; i < linestart.length; i++) {
+                    linestart[i]! += addBufferLength;
+                }
+            }
+
+            // adding to add-buffer, has to remove readonly here :(.
+            (addBuffer.buffer as any) = addBuffer.buffer.concat(text);
+            (addBuffer.linestart as any) = addBuffer.linestart.concat(linestart.splice(1));
+        }
 
         const addBufferEndOffset = addBuffer.buffer.length;
         const addBufferLastIndex = addBuffer.linestart.length - 1;

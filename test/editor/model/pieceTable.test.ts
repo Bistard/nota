@@ -1200,8 +1200,8 @@ suite('PieceTable-test - CRLF', () => {
 		let table = buildPieceTable([''], false);
 
 		table.insertAt(0, '\n\n\n\n');
-		str = str.substring(0, 0) + '\n\n\n\n' + str.substring(0);
-		table.deleteAt(3, 1);
+        str = str.substring(0, 0) + '\n\n\n\n' + str.substring(0);
+        table.deleteAt(3, 1);
 		str = str.substring(0, 3) + str.substring(3 + 1);
 		table.insertAt(1, '\r\r\r\r');
 		str = str.substring(0, 1) + '\r\r\r\r' + str.substring(1);
