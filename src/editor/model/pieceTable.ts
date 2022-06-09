@@ -118,6 +118,29 @@ class PieceNode implements IPieceNode {
     }
 
     /**
+     * @description Returns the previous node of the current node (pre-order). 
+     * If not found, {@link NULL_NODE} will be returned.
+     */
+    public static prev(node: PieceNode): PieceNode {
+        if (node.left !== NULL_NODE) {
+			const rightMost = PieceNode.rightMost(node.left);
+            return rightMost === NULL_NODE ? node.left : rightMost;
+		}
+
+		while (node.parent !== NULL_NODE) {
+			if (node.parent.right === node) {
+				break;
+			}
+			node = node.parent;
+		}
+
+		if (node.parent === NULL_NODE) {
+			return NULL_NODE;
+		}
+        return node.parent;
+    }
+
+    /**
      * @description Returns the left most tree node of the given node. 
      * @note If the given node is {@link NULL_NODE} or has no left-subtree, a
      * {@link NULL_NODE} will be returned.
@@ -220,7 +243,7 @@ NULL_NODE.right = NULL_NODE;
  * The more detailed idea can be found the blog of VSCode:
  *  - {@link https://code.visualstudio.com/blogs/2018/03/23/text-buffer-reimplementation}
  */
-export class PieceTable implements IPieceTable {
+export class PieceTable implements IPieceTable { // REVIEW: make it template
 
     // [field]
 
@@ -332,13 +355,14 @@ export class PieceTable implements IPieceTable {
                 const toBeDeleted: PieceNode[] = [];
                 
                 /**
-                 * We need to split the current piece into left two // TODO
+                 * We need to split the current piece into left two pieces, and 
+                 * insert the new text as a new piece to the middle.
                  */
 
                 let rightPartPiece = new Piece(
                     piece.bufferIndex,
                     this.__getOffsetInBufferAt(piece.bufferIndex, piece.end) - this.__getOffsetInBufferAt(piece.bufferIndex, startBufferPosition),
-                    piece.end.lineNumber - startBufferPosition.lineNumber,
+                    this.__validateLfCount(piece.bufferIndex, startBufferPosition, piece.end),
                     startBufferPosition,
                     piece.end
                 );
@@ -350,11 +374,12 @@ export class PieceTable implements IPieceTable {
                 if (this.__shouldCheckCRLF() && this.__endWithCR(text)) {
                     const afterInsertChar = this.__getCharcodeAtNode(node, pieceOffset);
                     if (afterInsertChar === CharCode.LineFeed) {
+                        const newRightStartPosition = { lineNumber: rightPartPiece.start.lineNumber + 1, lineOffset: 0 };
                         rightPartPiece = new Piece(
                             rightPartPiece.bufferIndex,
                             rightPartPiece.pieceLength - 1,
-                            rightPartPiece.lfCount - 1,
-                            { lineNumber: rightPartPiece.start.lineNumber + 1, lineOffset: 0 },
+                            this.__validateLfCount(rightPartPiece.bufferIndex, newRightStartPosition, rightPartPiece.end),
+                            newRightStartPosition,
                             rightPartPiece.end
                         );
 
@@ -401,7 +426,6 @@ export class PieceTable implements IPieceTable {
             }
         }
 
-        // REVIEW: may be optimized
         this.__updateTableMetadata();
     }
 
@@ -426,22 +450,27 @@ export class PieceTable implements IPieceTable {
             if (startNodePosition.position.textOffset === textOffset) {
                 // only deleting the whole node
                 if (startNode.piece.pieceLength === length) {
+                    const nextNode = PieceNode.next(startNode);
                     this.__deleteNode(startNode);
+                    this.__validateCRLFwithPrevNode(nextNode);
                     this.__updateTableMetadata();
                     return;
                 } 
                 // only deleting the head part of the node
                 else {
                     this.__deletePieceHeadAt(startNode, endDeleteBufferPosition);
+                    this.__validateCRLFwithPrevNode(startNode);
                 }
             }
             // deletion ends at the ending of the node
             else if (startNodePosition.position.textOffset + startNode.piece.pieceLength === textOffset + length) {
                 this.__deletePieceTailAt(startNode, startDeleteBufferPosition);
+                this.__validateCRLFwithNextNode(startNode);
             }
             // deletion happens in the middle of the node
             else {
-                this.__deletePieceMiddleAt(startNode, startDeleteBufferPosition, endDeleteBufferPosition);
+                const middleNode = this.__deletePieceMiddleAt(startNode, startDeleteBufferPosition, endDeleteBufferPosition);
+                this.__validateCRLFwithPrevNode(middleNode);
             }
 
             this.__updateTableMetadata();
@@ -465,8 +494,11 @@ export class PieceTable implements IPieceTable {
         for (; node !== endNode; node = PieceNode.next(node)) {
             toBeDeleted.push(node);
         }
-
+        
+        const prevNode = startNode.piece.pieceLength ? startNode : PieceNode.prev(startNode);
         this.__deleteNodes(toBeDeleted);
+        this.__validateCRLFwithNextNode(prevNode);
+
         this.__updateTableMetadata();
     }
 
@@ -803,7 +835,7 @@ export class PieceTable implements IPieceTable {
         const piece = new Piece(
             0, // addBuffer index
             text.length,
-            linestart.length ? linestart.length - 1 : 0,
+            this.__validateLfCount(0, this._lastAddBufferPosition, pieceEndPosition),
             this._lastAddBufferPosition,
             pieceEndPosition
         );
@@ -879,13 +911,15 @@ export class PieceTable implements IPieceTable {
             this.__endWithCR(text) && 
             this.__startWithLF(node)
         ) {
+            // REVIEW: call fixCRLF()
             // remove \n from the given piece
             const piece = node.piece;
+            const newStartPosition = { lineNumber: piece.start.lineNumber + 1, lineOffset: 0 };
             const updated = new Piece(
                 piece.bufferIndex,
                 piece.pieceLength - 1,
-                piece.lfCount - 1,
-                { lineNumber: piece.start.lineNumber + 1, lineOffset: 0 },
+                this.__validateLfCount(piece.bufferIndex, newStartPosition, piece.end),
+                newStartPosition,
                 piece.end
             );
             node.piece = updated;
@@ -1103,7 +1137,7 @@ export class PieceTable implements IPieceTable {
         const prevLfCount = piece.lfCount;
         const prevEndBufferOffset = this.__getOffsetInBufferAt(piece.bufferIndex, piece.end);
 
-        const newLfCount = position.lineNumber - piece.start.lineNumber;
+        const newLfCount = this.__validateLfCount(piece.bufferIndex, piece.start, position);
         const newEndBufferOffset = this.__getOffsetInBufferAt(piece.bufferIndex, position);
 
         const lfDelta = newLfCount - prevLfCount;
@@ -1131,7 +1165,7 @@ export class PieceTable implements IPieceTable {
         const prevLfCount = piece.lfCount;
         const prevStartBufferOffset = this.__getOffsetInBufferAt(piece.bufferIndex, piece.start);
 
-        const newLfCount = piece.end.lineNumber - position.lineNumber;
+        const newLfCount = this.__validateLfCount(piece.bufferIndex, position, piece.end);
         const newStartBufferOffset = this.__getOffsetInBufferAt(piece.bufferIndex, position);
 
         const lfDelta = newLfCount - prevLfCount;
@@ -1157,7 +1191,7 @@ export class PieceTable implements IPieceTable {
      * 
      * @note This method will split the piece into two pieces.
      */
-    private __deletePieceMiddleAt(node: PieceNode, start: IBufferPosition, end: IBufferPosition): void {
+    private __deletePieceMiddleAt(node: PieceNode, start: IBufferPosition, end: IBufferPosition): PieceNode {
         const piece = node.piece;
         const prevEndPosition = piece.end;
         const prevEndBufferOffset = this.__getOffsetInBufferAt(piece.bufferIndex, piece.end);
@@ -1169,11 +1203,11 @@ export class PieceTable implements IPieceTable {
         const rightPiece = new Piece(
             piece.bufferIndex,
             prevEndBufferOffset - this.__getOffsetInBufferAt(piece.bufferIndex, end),
-            prevEndPosition.lineNumber - end.lineNumber,
+            this.__validateLfCount(node.piece.bufferIndex, end, prevEndPosition),
             end,
             prevEndPosition
         );
-        this.__insertAsSuccessor(node, rightPiece);
+        return this.__insertAsSuccessor(node, rightPiece);
     }
 
     /**
@@ -1814,12 +1848,7 @@ export class PieceTable implements IPieceTable {
             return false;
         }
 
-        const nodePosition = {
-            node: node,
-            textOffset: this.__getOffsetInBufferAt(node.piece.bufferIndex, node.piece.start)
-        }
-        const lastChar = this.__getCharcodeAt(nodePosition, node.piece.pieceLength - 1);
-        return lastChar === CharCode.CarriageReturn;
+        return this.__getCharcodeAtNode(node, node.piece.pieceLength - 1) === CharCode.CarriageReturn;
     }
 
     private __nodeStartWithLF(node: PieceNode): boolean {
@@ -1855,11 +1884,12 @@ export class PieceTable implements IPieceTable {
                 }
                 else {
                     const piece = nextnode.piece;
+                    const newPieceStartPosition = { lineNumber: piece.start.lineNumber + 1, lineOffset: 0 };
 					nextnode.piece = new Piece(
 						piece.bufferIndex,
 						piece.pieceLength - 1,
-                        piece.lfCount - 1,
-                        { lineNumber: piece.start.lineNumber + 1, lineOffset: 0 },
+                        this.__validateLfCount(piece.bufferIndex, newPieceStartPosition, piece.end),
+                        newPieceStartPosition,
 						piece.end,
 					);
 
@@ -1872,11 +1902,122 @@ export class PieceTable implements IPieceTable {
 
         return false;
     }
+
+    /**
+     * @description If the given node start with \n and its previous node end 
+     * with \r, we combine these CRLF.
+     */
+    private __validateCRLFwithPrevNode(node: PieceNode): void {
+        if (this.__shouldCheckCRLF() && this.__startWithLF(node)) {
+			const prev = PieceNode.prev(node);
+			if (this.__endWithCR(prev)) {
+				this.__fixCRLF(prev, node);
+			}
+		}
+    }
+
+    /**
+     * @description If the given node ends with \r and its next node start with
+     * \n, we combine these CRLF.
+     */
+    private __validateCRLFwithNextNode(node: PieceNode): void {
+        if (this.__shouldCheckCRLF() && this.__endWithCR(node)) {
+			const next = PieceNode.next(node);
+			if (this.__startWithLF(next)) {
+				this.__fixCRLF(node, next);
+			}
+		}
+    }
+
+    /**
+     * @description Invokes only when the `prev` ends with '\r' and the `next` 
+     * starts with '\n'.
+     */
+    private __fixCRLF(prev: PieceNode, next: PieceNode): void {
+
+        const toBeDeleted: PieceNode[] = [];
+		
+        // isolate '\r' from the prev piece
+		const lineStart = this._buffer[prev.piece.bufferIndex]!.linestart;
+        const prevLastLineOffset = prev.piece.end.lineNumber;
+		const prevNewEndPosition = { 
+            lineNumber: prevLastLineOffset - 1, 
+            lineOffset: lineStart[prevLastLineOffset]! - lineStart[prevLastLineOffset - 1]! - 1 
+        };
+        prev.piece = new Piece(
+			prev.piece.bufferIndex,
+			prev.piece.pieceLength - 1,
+			prev.piece.lfCount - 1,
+            prev.piece.start,
+			prevNewEndPosition,
+		);
+        this.__updatePieceMetadataWithDelta(prev, -1, -1);
+        if (prev.piece.pieceLength === 0) {
+            toBeDeleted.push(prev);
+        }
+
+        // isolate '\n' from the next piece
+        const nextNewStartPosition = { 
+            lineNumber: next.piece.start.lineNumber + 1, 
+            lineOffset: 0 
+        };
+        next.piece = new Piece(
+            next.piece.bufferIndex,
+            next.piece.pieceLength - 1,
+            this.__validateLfCount(next.piece.bufferIndex, nextNewStartPosition, next.piece.end),
+            nextNewStartPosition,
+            next.piece.end
+        );
+        this.__updatePieceMetadataWithDelta(prev, -1, -1);
+        if (next.piece.pieceLength === 0) {
+            toBeDeleted.push(next);
+        }
+
+        // create a new '\r\n' piece
+        const pieces = this.__createNewPieces('\r\n');
+		this.__insertAsSuccessor(prev, pieces[0]!);
+
+        // delete empty pieces
+        this.__deleteNodes(toBeDeleted);
+    }
+
+    /**
+     * @description Given the start and the end of the pieces, we need to 
+     * determine the correct line feed counts by considering CRLF situation.
+     */
+    private __validateLfCount(bufferIndex: number, start: IBufferPosition, end: IBufferPosition): number {
+        
+        if (end.lineOffset === 0) {
+			return end.lineNumber - start.lineNumber;
+		}
+
+		const linestart = this._buffer[bufferIndex]!.linestart;
+		if (end.lineNumber === linestart.length - 1) {
+			return end.lineNumber - start.lineNumber;
+		}
+
+		const nextLineStartOffset = linestart[end.lineNumber + 1]!;
+		const endOffset = linestart[end.lineNumber]! + end.lineOffset;
+		if (nextLineStartOffset > endOffset + 1) {
+			return end.lineNumber - start.lineNumber;
+		}
+		
+        const previousCharOffset = endOffset - 1;
+		const buffer = this._buffer[bufferIndex]!.buffer;
+
+		if (buffer.charCodeAt(previousCharOffset) === CharCode.CarriageReturn) {
+			return end.lineNumber - start.lineNumber + 1;
+		} else {
+			return end.lineNumber - start.lineNumber;
+		}
+    }
 }
 
 /**
  * @namespace PieceTableTester A namespace that contains testing code for 
  * {@link PieceTable}. Should only be used in `pieceTable.test.ts`.
+ * 
+ * // REVIEW: move to .test.ts
  */
 export namespace PieceTableTester {
     
