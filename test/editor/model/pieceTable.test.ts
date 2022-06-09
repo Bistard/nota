@@ -972,4 +972,143 @@ suite('PieceTable-Test - insert / delete', () => {
 		PieceTableTester.assertPieceTable(table);
 	});
 
+    test('random insert/delete \\r bug 1', () => {
+		let str = 'a';
+		let table = buildPieceTable(['a']);
+		table.deleteAt(0, 1);
+		str = str.substring(0, 0) + str.substring(0 + 1);
+		table.insertAt(0, '\r\r\n\n');
+		str = str.substring(0, 0) + '\r\r\n\n' + str.substring(0);
+		table.deleteAt(3, 1);
+		str = str.substring(0, 3) + str.substring(3 + 1);
+		table.insertAt(2, '\n\n\ra');
+		str = str.substring(0, 2) + '\n\n\ra' + str.substring(2);
+		table.deleteAt(4, 3);
+		str = str.substring(0, 4) + str.substring(4 + 3);
+		table.insertAt(2, '\na\r\r');
+		str = str.substring(0, 2) + '\na\r\r' + str.substring(2);
+		table.insertAt(6, '\ra\n\n');
+		str = str.substring(0, 6) + '\ra\n\n' + str.substring(6);
+		table.insertAt(0, 'aa\n\n');
+		str = str.substring(0, 0) + 'aa\n\n' + str.substring(0);
+		table.insertAt(5, '\n\na\r');
+		str = str.substring(0, 5) + '\n\na\r' + str.substring(5);
+
+		assert.strictEqual(table.getRawContent(), str);
+		PieceTableTester.assertPieceTable(table);
+	});
+
+	test('random insert/delete \\r bug 2', () => {
+		let str = 'a';
+		let table = buildPieceTable(['a']);
+		table.insertAt(1, '\naa\r');
+		str = str.substring(0, 1) + '\naa\r' + str.substring(1);
+		table.deleteAt(0, 4);
+		str = str.substring(0, 0) + str.substring(0 + 4);
+		table.insertAt(1, '\r\r\na');
+		str = str.substring(0, 1) + '\r\r\na' + str.substring(1);
+		table.insertAt(2, '\n\r\ra');
+		str = str.substring(0, 2) + '\n\r\ra' + str.substring(2);
+		table.deleteAt(4, 1);
+		str = str.substring(0, 4) + str.substring(4 + 1);
+		table.insertAt(8, '\r\n\r\r');
+		str = str.substring(0, 8) + '\r\n\r\r' + str.substring(8);
+		table.insertAt(7, '\n\n\na');
+		str = str.substring(0, 7) + '\n\n\na' + str.substring(7);
+		table.insertAt(13, 'a\n\na');
+		str = str.substring(0, 13) + 'a\n\na' + str.substring(13);
+		table.deleteAt(17, 3);
+		str = str.substring(0, 17) + str.substring(17 + 3);
+		table.insertAt(2, 'a\ra\n');
+		str = str.substring(0, 2) + 'a\ra\n' + str.substring(2);
+
+		assert.strictEqual(table.getRawContent(), str);
+		PieceTableTester.assertPieceTable(table);
+	});
+
+	test('random insert/delete \\r bug 3', () => {
+		let str = 'a';
+		let table = buildPieceTable(['a']);
+		table.insertAt(0, '\r\na\r');
+		str = str.substring(0, 0) + '\r\na\r' + str.substring(0);
+		table.deleteAt(2, 3);
+		str = str.substring(0, 2) + str.substring(2 + 3);
+		table.insertAt(2, 'a\r\n\r');
+		str = str.substring(0, 2) + 'a\r\n\r' + str.substring(2);
+		table.deleteAt(4, 2);
+		str = str.substring(0, 4) + str.substring(4 + 2);
+		table.insertAt(4, 'a\n\r\n');
+		str = str.substring(0, 4) + 'a\n\r\n' + str.substring(4);
+		table.insertAt(1, 'aa\n\r');
+		str = str.substring(0, 1) + 'aa\n\r' + str.substring(1);
+		table.insertAt(7, '\na\r\n');
+		str = str.substring(0, 7) + '\na\r\n' + str.substring(7);
+		table.insertAt(5, '\n\na\r');
+		str = str.substring(0, 5) + '\n\na\r' + str.substring(5);
+		table.insertAt(10, '\r\r\n\r');
+		str = str.substring(0, 10) + '\r\r\n\r' + str.substring(10);
+		assert.strictEqual(table.getRawContent(), str);
+		table.deleteAt(21, 3);
+		str = str.substring(0, 21) + str.substring(21 + 3);
+
+		assert.strictEqual(table.getRawContent(), str);
+		PieceTableTester.assertPieceTable(table);
+	});
+
+	test('random insert/delete \\r bug 4', () => {
+		let str = 'a';
+		let table = buildPieceTable(['a']);
+		table.deleteAt(0, 1);
+		str = str.substring(0, 0) + str.substring(0 + 1);
+		table.insertAt(0, '\naaa');
+		str = str.substring(0, 0) + '\naaa' + str.substring(0);
+		table.insertAt(2, '\n\naa');
+		str = str.substring(0, 2) + '\n\naa' + str.substring(2);
+		table.deleteAt(1, 4);
+		str = str.substring(0, 1) + str.substring(1 + 4);
+		table.deleteAt(3, 1);
+		str = str.substring(0, 3) + str.substring(3 + 1);
+		table.deleteAt(1, 2);
+		str = str.substring(0, 1) + str.substring(1 + 2);
+		table.deleteAt(0, 1);
+		str = str.substring(0, 0) + str.substring(0 + 1);
+		table.insertAt(0, 'a\n\n\r');
+		str = str.substring(0, 0) + 'a\n\n\r' + str.substring(0);
+		table.insertAt(2, 'aa\r\n');
+		str = str.substring(0, 2) + 'aa\r\n' + str.substring(2);
+		table.insertAt(3, 'a\naa');
+		str = str.substring(0, 3) + 'a\naa' + str.substring(3);
+
+		assert.strictEqual(table.getRawContent(), str);
+		PieceTableTester.assertPieceTable(table);
+	});
+    
+	test('random insert/delete \\r bug 5', () => {
+		let str = '';
+		let table = buildPieceTable(['']);
+		table.insertAt(0, '\n\n\n\r');
+		str = str.substring(0, 0) + '\n\n\n\r' + str.substring(0);
+		table.insertAt(1, '\n\n\n\r');
+		str = str.substring(0, 1) + '\n\n\n\r' + str.substring(1);
+		table.insertAt(2, '\n\r\r\r');
+		str = str.substring(0, 2) + '\n\r\r\r' + str.substring(2);
+		table.insertAt(8, '\n\r\n\r');
+		str = str.substring(0, 8) + '\n\r\n\r' + str.substring(8);
+		table.deleteAt(5, 2);
+		str = str.substring(0, 5) + str.substring(5 + 2);
+		table.insertAt(4, '\n\r\r\r');
+		str = str.substring(0, 4) + '\n\r\r\r' + str.substring(4);
+		table.insertAt(8, '\n\n\n\r');
+		str = str.substring(0, 8) + '\n\n\n\r' + str.substring(8);
+		table.deleteAt(0, 7);
+		str = str.substring(0, 0) + str.substring(0 + 7);
+		table.insertAt(1, '\r\n\r\r');
+		str = str.substring(0, 1) + '\r\n\r\r' + str.substring(1);
+		table.insertAt(15, '\n\r\r\r');
+		str = str.substring(0, 15) + '\n\r\r\r' + str.substring(15);
+
+		assert.strictEqual(table.getRawContent(), str);
+		PieceTableTester.assertPieceTable(table);
+	});
+
 });

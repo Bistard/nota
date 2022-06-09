@@ -405,7 +405,6 @@ export class PieceTable implements IPieceTable {
         this.__updateTableMetadata();
     }
 
-    // TODO
     public deleteAt(textOffset: number, length: number): void {
         
         if (length < 0 || this._root === NULL_NODE) {
@@ -1009,8 +1008,9 @@ export class PieceTable implements IPieceTable {
             y = z;
             x = y.left;
         } else {
-            const predecessor = PieceNode.leftMost(z.right);
-            y = predecessor === NULL_NODE ? z.right : predecessor;
+            const leftMost = PieceNode.leftMost(z.right);
+            const predecessor = leftMost === NULL_NODE ? z.right : leftMost;
+            y = predecessor;
             x = y.right;
         }
 
@@ -1020,6 +1020,7 @@ export class PieceTable implements IPieceTable {
             PieceNode.isolate(z);
             NULL_NODE.parent = NULL_NODE;
             this._root.parent = NULL_NODE;
+            return;
         }
 
         const yWasRed = y.color === RBColor.RED;
