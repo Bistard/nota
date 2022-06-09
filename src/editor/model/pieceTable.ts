@@ -1180,7 +1180,8 @@ export class PieceTable implements IPieceTable {
         }
         // the given node has right-subtree
         else {
-            const predecessor = PieceNode.rightMost(node.left);
+            const rightMost = PieceNode.rightMost(node.left);
+            const predecessor = rightMost === NULL_NODE ? node.left : rightMost;
             predecessor.right = newnode;
             newnode.parent = predecessor;
         }
