@@ -350,15 +350,16 @@ export class PieceTable implements IPieceTable { // REVIEW: make it template
                 this.__insertLeft(node, text);
             } 
             
-            // inserting at the middle of the piece
+            /**
+             * Inserting at the middle of the piece. We need to split the 
+             * current piece into left two pieces, and insert the new text as a 
+             * new piece to the middle.
+             */
+            // REVIEW: a helper function: __insertMiddle()
             else if (piece.pieceLength > textOffset - nodeOffset) {
                 const toBeDeleted: PieceNode[] = [];
-                
-                /**
-                 * We need to split the current piece into left two pieces, and 
-                 * insert the new text as a new piece to the middle.
-                 */
-
+               
+                // the second part of the two pieces.
                 let rightPartPiece = new Piece(
                     piece.bufferIndex,
                     this.__getOffsetInBufferAt(piece.bufferIndex, piece.end) - this.__getOffsetInBufferAt(piece.bufferIndex, startBufferPosition),
@@ -368,26 +369,33 @@ export class PieceTable implements IPieceTable { // REVIEW: make it template
                 );
 
                 /**
-                 * Inserting to the middle of the node, we need to check the end
-                 * of the node and the // TODO
+                 * Check the CRLF situation at the end of the inserting text. If 
+                 * true, move the \n to the front as the part of the inserting 
+                 * text.
                  */
-                if (this.__shouldCheckCRLF() && this.__endWithCR(text)) {
-                    const afterInsertChar = this.__getCharcodeAtNode(node, pieceOffset);
-                    if (afterInsertChar === CharCode.LineFeed) {
-                        const newRightStartPosition = { lineNumber: rightPartPiece.start.lineNumber + 1, lineOffset: 0 };
-                        rightPartPiece = new Piece(
-                            rightPartPiece.bufferIndex,
-                            rightPartPiece.pieceLength - 1,
-                            this.__validateLfCount(rightPartPiece.bufferIndex, newRightStartPosition, rightPartPiece.end),
-                            newRightStartPosition,
-                            rightPartPiece.end
-                        );
+                if (this.__shouldCheckCRLF() && this.__endWithCR(text) && 
+                    this.__getCharcodeAtNode(node, pieceOffset) === CharCode.LineFeed
+                ) {
+                    const newRightStartPosition = { 
+                        lineNumber: rightPartPiece.start.lineNumber + 1, 
+                        lineOffset: 0 
+                    };
+                    rightPartPiece = new Piece(
+                        rightPartPiece.bufferIndex,
+                        rightPartPiece.pieceLength - 1,
+                        this.__validateLfCount(rightPartPiece.bufferIndex, newRightStartPosition, rightPartPiece.end),
+                        newRightStartPosition,
+                        rightPartPiece.end
+                    );
 
-                        text += EndOfLine.LF;
-                    }
+                    text += EndOfLine.LF;
                 }
 
-                // move the prev \r to the new piece
+                /**
+                 * Check the CRLF situation at the beginning of the inserting
+                 * text. If true, move the \r to the back as the part of the
+                 * inserting text.
+                 */
                 if (this.__shouldCheckCRLF() && this.__startWithLF(text) && 
                     this.__getCharcodeAtNode(node, pieceOffset - 1) === CharCode.CarriageReturn
                 ) {
@@ -408,14 +416,15 @@ export class PieceTable implements IPieceTable { // REVIEW: make it template
                     this.__deletePieceTailAt(node, startBufferPosition);
                 }
 
+                const middlePieces = this.__createNewPieces(text);
                 if (rightPartPiece.pieceLength) {
                     this.__insertAsSuccessor(node, rightPartPiece);
                 }
 
-                const leftPieces = this.__createNewPieces(text);
+                
                 let newnode = node;
-                for (let i = 0; i < leftPieces.length; i++) {
-                    this.__insertAsSuccessor(newnode, leftPieces[i]!);
+                for (let i = 0; i < middlePieces.length; i++) {
+                    newnode = this.__insertAsSuccessor(newnode, middlePieces[i]!);
                 }
 
                 this.__deleteNodes(toBeDeleted);
@@ -831,7 +840,7 @@ export class PieceTable implements IPieceTable { // REVIEW: make it template
          */
         if (addBuffer.linestart[addBuffer.linestart.length - 1]! === addBufferLength
             && addBufferLength !== 0 
-            && this.__startWithLF(text) && this.__endWithCR(addBuffer.buffer)
+            && this.__endWithCR(addBuffer.buffer) && this.__startWithLF(text)
         ) {
             this._lastAddBufferPosition = {
                 lineNumber: this._lastAddBufferPosition.lineNumber,
@@ -860,16 +869,21 @@ export class PieceTable implements IPieceTable { // REVIEW: make it template
             (addBuffer.linestart as any) = addBuffer.linestart.concat(linestart.splice(1));
         }
 
+        /**
+         * After appending the text to the add buffer, we construct a piece that
+         * points to it.
+         */
+
         const addBufferEndOffset = addBuffer.buffer.length;
         const addBufferLastIndex = addBuffer.linestart.length - 1;
         const pieceEndOffset = addBufferEndOffset - addBuffer.linestart[addBufferLastIndex]!;
         const pieceEndPosition = { lineNumber: addBufferLastIndex, lineOffset: pieceEndOffset };
 
         const piece = new Piece(
-            0, // addBuffer index
-            text.length,
-            this.__validateLfCount(0, this._lastAddBufferPosition, pieceEndPosition),
-            this._lastAddBufferPosition,
+            0,
+            addBufferEndOffset - addBufferLength,
+            this.__validateLfCount(0, pieceStartPosition, pieceEndPosition),
+            pieceStartPosition,
             pieceEndPosition
         );
 
@@ -1697,6 +1711,7 @@ export class PieceTable implements IPieceTable { // REVIEW: make it template
             if (node.left !== NULL_NODE && node.leftSubtreelfCount >= lineNumber) {
                 node = node.left;
             }
+            // REVIEW
             // desired line is within the current piece
             else if (node.piece.lfCount > lineNumber - node.leftSubtreelfCount) {
                 const piece = node.piece;
@@ -1714,6 +1729,7 @@ export class PieceTable implements IPieceTable { // REVIEW: make it template
                     desiredBufferOffset + lineLength - eolLength
                 );
             }
+            // REVIEW
             // desired line has parital content at the end of the current piece (could be empty)
             else if (node.piece.lfCount === lineNumber - node.leftSubtreelfCount) {
                 const piece = node.piece;
@@ -1747,11 +1763,11 @@ export class PieceTable implements IPieceTable { // REVIEW: make it template
         node = PieceNode.next(node);
         while (node !== NULL_NODE) {
             const piece = node.piece;
-            const { buffer, linestart } = this._buffer[node.piece.bufferIndex]!;
+            const { buffer } = this._buffer[node.piece.bufferIndex]!;
             const pieceStartOffset = this.__getOffsetInBufferAt(piece.bufferIndex, piece.start);
 
             if (piece.lfCount) {
-                const lineLength = linestart[1]! - linestart[0]!;
+                const lineLength = this.__getDesiredPieceLengthAt(node.piece, 1);
                 lineBuffer += buffer.substring(
                     pieceStartOffset, 
                     pieceStartOffset + lineLength - eolLength
@@ -1845,6 +1861,26 @@ export class PieceTable implements IPieceTable { // REVIEW: make it template
             lineNumber: lineIndexInPiece,
             lineOffset: lineOffsetInPiece
         };
+    }
+
+    /**
+     * @description // REVIEW
+     */
+    private __getDesiredPieceLengthAt(piece: Piece, lineIndex: number): number {
+        if (lineIndex <= 0) {
+            return 0;
+        }
+
+        const linestart = this._buffer[piece.bufferIndex]!.linestart;
+
+        const desiredLineIndex = piece.start.lineNumber + lineIndex;
+        
+        if (desiredLineIndex > piece.end.lineNumber) {
+            // REVIEW: can I just return piece.pieceLength?
+            return linestart[piece.end.lineNumber]! + piece.end.lineOffset - linestart[piece.start.lineNumber]! - piece.start.lineOffset;;
+        }
+
+        return linestart[desiredLineIndex]! - linestart[piece.start.lineNumber]! - piece.start.lineOffset;
     }
 
     // [private helper methods - EOL]
