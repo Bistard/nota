@@ -1809,15 +1809,13 @@ export namespace PieceTableTester {
 
     export function printTree(table: IPieceTable): void {
         const length = depth(table.root);
+        process.stdout.write('===============================================');
         for (let i = 0; i < length; i++) {
             process.stdout.write('==');
         }
         process.stdout.write('\n');
-
-        // process.stdout.write('\n ' + table.root.piece.pieceLength.toString() + '\n');
-        // printNode(table, table.root.left, 0);
-        // printNode(table, table.root.right, 0);
         printNode(table, table.root, 0);
+        process.stdout.write('===============================================');
         for (let i = 0; i < length; i++) {
             process.stdout.write('==');
         }
