@@ -194,12 +194,12 @@ NULL_NODE.right = NULL_NODE;
  * @class A {@link PieceTable} is an efficient data structure for fast text
  * editing which is commonly used in a text editor.
  * 
- * I. Insertion and deletion are extremly fast in this data structure.
+ * I. Insertion and deletion are extremely fast in this data structure.
  * 
  * II. Using a single string to represent `original` and `added` may hurts the
  * performance in some circustances:
- *      1. V8 engine did not support string length over 256MB back in time.
- *      2. String concatenation is stupid.
+ *      1. V8 engine did not support string length over 256MB back at time.
+ *      2. String concatenation is inefficient and stupid.
  * Instead, every time when the program reads a chunk of bytes, say 256KB per 
  * time, it will be stored directly into a {@link TextBuffer} and create a 
  * {@link PieceNode} that points to it.
@@ -290,9 +290,12 @@ export class PieceTable implements IPieceTable {
 
     // [public methods - piece table]
 
-    // TODO
     public insertAt(textOffset: number, text: string): void {
         
+        if (textOffset < 0) {
+            return;
+        }
+
         // emtpy tree, insert as root
         if (this._root === NULL_NODE) {
             const pieces = this.__createNewPieces(text);
@@ -405,6 +408,67 @@ export class PieceTable implements IPieceTable {
     // TODO
     public deleteAt(textOffset: number, length: number): void {
         
+        if (length < 0 || this._root === NULL_NODE) {
+            return;
+        }
+
+        const startNodePosition = this.__getNodeAt(textOffset);
+        const endNodePosition = this.__getNodeAt(textOffset + length);
+        const startNode = startNodePosition.position.node;
+        const endNode = endNodePosition.position.node;
+
+        const startDeleteBufferPosition = this.__getPositionInBufferAt(startNode.piece, startNodePosition.pieceOffset);
+        const endDeleteBufferPosition = this.__getPositionInBufferAt(endNode.piece, endNodePosition.pieceOffset);
+
+        // deleting text are in the same piece
+        if (startNode === endNode) {
+
+            // deletion starts at the beginning of the node
+            if (startNodePosition.position.textOffset === textOffset) {
+                // only deleting the whole node
+                if (startNode.piece.pieceLength === length) {
+                    this.__deleteNode(startNode);
+                    this.__updateTableMetadata();
+                    return;
+                } 
+                // only deleting the head part of the node
+                else {
+                    this.__deletePieceHeadAt(startNode, endDeleteBufferPosition);
+                }
+            }
+            // deletion ends at the ending of the node
+            else if (startNodePosition.position.textOffset + startNode.piece.pieceLength === textOffset + length) {
+                this.__deletePieceTailAt(startNode, startDeleteBufferPosition);
+            }
+            // deletion happens in the middle of the node
+            else {
+                this.__deletePieceMiddleAt(startNode, startDeleteBufferPosition, endDeleteBufferPosition);
+            }
+
+            this.__updateTableMetadata();
+            return;
+        }
+
+        // Deletion affects mutiple nodes (pieces).
+        const toBeDeleted: PieceNode[] = [];
+
+        this.__deletePieceTailAt(startNode, startDeleteBufferPosition);
+        if (startNode.piece.pieceLength === 0) {
+            toBeDeleted.push(startNode);
+        }
+
+        this.__deletePieceHeadAt(endNode, endDeleteBufferPosition);
+        if (endNode.piece.pieceLength === 0) {
+            toBeDeleted.push(endNode);
+        }
+
+        let node = PieceNode.next(startNode);
+        for (; node !== endNode; node = PieceNode.next(node)) {
+            toBeDeleted.push(node);
+        }
+
+        this.__deleteNodes(toBeDeleted);
+        this.__updateTableMetadata();
     }
 
     public getContent(): string[] {
@@ -1028,14 +1092,13 @@ export class PieceTable implements IPieceTable {
     }
 
     /**
-     * @description Given a new ending position in the buffer, set a new piece
-     * end at that position.
+     * @description Set the provided node (piece) end with the new provided 
+     * position.
      * @param node The given node.
      * @param position The new ending position.
      */
     private __deletePieceTailAt(node: PieceNode, position: IBufferPosition): void {
         const piece = node.piece;
-        
         const prevLfCount = piece.lfCount;
         const prevEndBufferOffset = this.__getOffsetInBufferAt(piece.bufferIndex, piece.end);
 
@@ -1054,6 +1117,62 @@ export class PieceTable implements IPieceTable {
         );
 
         this.__updatePieceMetadataWithDelta(node, lengthDelta, lfDelta);
+    }
+
+    /**
+     * @description Set the provided node (piece) start with the new provided 
+     * position.
+     * @param node The given node.
+     * @param position The new starting position.
+     */
+    private __deletePieceHeadAt(node: PieceNode, position: IBufferPosition): void {
+        const piece = node.piece;
+        const prevLfCount = piece.lfCount;
+        const prevStartBufferOffset = this.__getOffsetInBufferAt(piece.bufferIndex, piece.start);
+
+        const newLfCount = piece.end.lineNumber - position.lineNumber;
+        const newStartBufferOffset = this.__getOffsetInBufferAt(piece.bufferIndex, position);
+
+        const lfDelta = newLfCount - prevLfCount;
+        const lengthDelta = prevStartBufferOffset - newStartBufferOffset;
+
+        node.piece = new Piece(
+            piece.bufferIndex,
+            piece.pieceLength + lengthDelta,
+            newLfCount,
+            position,
+            piece.end
+        );
+
+        this.__updatePieceMetadataWithDelta(node, lengthDelta, lfDelta);
+    }
+
+    /**
+     * @description Delete the provided node (piece) with a given range [start, 
+     * end).
+     * @param node The given node.
+     * @param start The start deleting position.
+     * @param end The end deleting position.
+     * 
+     * @note This method will split the piece into two pieces.
+     */
+    private __deletePieceMiddleAt(node: PieceNode, start: IBufferPosition, end: IBufferPosition): void {
+        const piece = node.piece;
+        const prevEndPosition = piece.end;
+        const prevEndBufferOffset = this.__getOffsetInBufferAt(piece.bufferIndex, piece.end);
+
+        // modify the original piece (left part)
+        this.__deletePieceTailAt(node, start);
+
+        // create a new piece (right part)
+        const rightPiece = new Piece(
+            piece.bufferIndex,
+            prevEndBufferOffset - this.__getOffsetInBufferAt(piece.bufferIndex, end),
+            prevEndPosition.lineNumber - end.lineNumber,
+            end,
+            prevEndPosition
+        );
+        this.__insertAsSuccessor(node, rightPiece);
     }
 
     /**
@@ -1287,11 +1406,6 @@ export class PieceTable implements IPieceTable {
         node.leftSubtreeBufferLength += lengthDelta;
         node.leftSubtreelfCount += lfDelta;
 
-        // no need to update the parents.
-        if (lengthDelta === 0 && lfDelta === 0) {
-            return;
-        }
-
         /**
          * We still need to trace back upwards to do the same job to the nodes, 
          * in whose perspective, its left-subtree is changed.
@@ -1300,6 +1414,11 @@ export class PieceTable implements IPieceTable {
     }
 
     private __updatePieceMetadataWithDelta(node: PieceNode, bufferLengthDelta: number, lfCountDelta: number): void {
+        
+        if (bufferLengthDelta === 0 && lfCountDelta === 0) {
+            return;
+        }
+        
         while (node !== this._root) {
             if (node.parent.left === node) {
                 node.parent.leftSubtreeBufferLength += bufferLengthDelta;
