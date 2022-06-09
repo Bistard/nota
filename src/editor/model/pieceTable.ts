@@ -560,7 +560,7 @@ export class PieceTable implements IPieceTable {
     public getRawContent(): string {
         let raw = '';
 
-		this.forEach(node => {
+		this.__preOrder(this._root, node => {
 			raw += this.__getNodeContent(node);
 		});
 
@@ -1770,16 +1770,16 @@ export namespace PieceTableTester {
         assertValidTree(T);
     }
 
-    export function assertValidTree(T: IPieceTable): void {
+    function assertValidTree(T: IPieceTable): void {
         if (T.root === NULL_NODE) {
             return;
         }
         assert.strictEqual(T.root.color, RBColor.BLACK);
-        assert.strictEqual(depth(T.root.left), depth(T.root.right));
+        assert.strictEqual(blackDepth(T.root.left), blackDepth(T.root.right));
         assertValidNode(T.root);
     }
 
-    export function assertValidNode(n: IPieceNode): { size: number; lf_cnt: number } {
+    function assertValidNode(n: IPieceNode): { size: number; lf_cnt: number } {
         if (n === NULL_NODE) {
             return { size: 0, lf_cnt: 0 };
         }
@@ -1800,12 +1800,59 @@ export namespace PieceTableTester {
         return { size: n.leftSubtreeBufferLength + n.piece.pieceLength + actualRight.size, lf_cnt: n.leftSubtreelfCount + n.piece.lfCount + actualRight.lf_cnt };
     }
 
-    export function depth(n: IPieceNode): number {
+    function blackDepth(n: IPieceNode): number {
         if (n === NULL_NODE) {
             return 1;
         }
-        assert.strictEqual(depth(n.left), depth(n.right));
-        return (n.color === RBColor.BLACK ? 1 : 0) + depth(n.left);
+        assert.strictEqual(blackDepth(n.left), blackDepth(n.right));
+        return (n.color === RBColor.BLACK ? 1 : 0) + blackDepth(n.left);
+    }
+
+    export function printTree(table: IPieceTable): void {
+        const length = depth(table.root);
+        for (let i = 0; i < length; i++) {
+            process.stdout.write('==');
+        }
+        process.stdout.write('\n');
+
+        // process.stdout.write('\n ' + table.root.piece.pieceLength.toString() + '\n');
+        // printNode(table, table.root.left, 0);
+        // printNode(table, table.root.right, 0);
+        printNode(table, table.root, 0);
+        for (let i = 0; i < length; i++) {
+            process.stdout.write('==');
+        }
+        process.stdout.write('\n');
+    }
+
+    function printNode(table: IPieceTable, node: IPieceNode, depth: number): void {
+        
+        if (node === NULL_NODE) {
+            return;
+        }
+
+        for (let i = 0; i < depth; i++) {
+            process.stdout.write('  ');
+        }
+        
+        if (node === node.parent.left) {
+            process.stdout.write(' ├─');
+        }
+        else if (node === node.parent.right) {
+            process.stdout.write(' └─');
+        }
+
+        const content = ` [pieceLength: ${node.piece.pieceLength.toString()}, ${node.color === RBColor.BLACK ? 'B' : 'R'}, start: {${node.piece.start.lineNumber}, ${node.piece.start.lineOffset}}, end: {${node.piece.end.lineNumber}, ${node.piece.end.lineOffset}}]`;
+        process.stdout.write(content + '\n');
+        printNode(table, node.left, depth + 1);
+        printNode(table, node.right, depth + 1);
+    }
+
+    function depth(n: IPieceNode): number {
+        if (n === NULL_NODE) {
+            return 1;
+        }
+        return Math.max(depth(n.left), depth(n.right)) + 1;
     }
 
 }
