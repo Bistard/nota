@@ -1,6 +1,6 @@
 import * as assert from 'assert';
 import { Pair } from 'src/base/common/util/type';
-import { EndOfLineType, IPieceTable, RBColor } from 'src/editor/common/model';
+import { EndOfLineType, IPieceTable } from 'src/editor/common/model';
 import { EditorPosition } from 'src/editor/common/position';
 import { PieceTableTester } from 'src/editor/model/pieceTable';
 import { TextBuffer, TextBufferBuilder } from 'src/editor/model/textBuffer';
@@ -774,7 +774,7 @@ suite('PieceTable-test - content APIs', () => {
 
 suite('PieceTable-Test - insert / delete', () => {
    
-    test('basic insert', () => {
+    test('basic insert / delete', () => {
 		let table = buildPieceTable([
 			'This is a document with some text.'
 		]);
@@ -784,6 +784,14 @@ suite('PieceTable-Test - insert / delete', () => {
 			table.getRawContent(),
 			'This is a document with some text.This is some more text to insert at offset 34.'
 		);
+
+        table.deleteAt(42, 5);
+		assert.strictEqual(
+			table.getRawContent(),
+			'This is a document with some text.This is more text to insert at offset 34.'
+		);
+
+        PieceTableTester.assertPieceTable(table);
 	});
 
 	test('more inserts', () => {
@@ -791,13 +799,10 @@ suite('PieceTable-Test - insert / delete', () => {
 
 		table.insertAt(0, 'AAA');
 		assert.strictEqual(table.getRawContent(), 'AAA');
-		PieceTableTester.assertPieceTable(table);
         table.insertAt(0, 'BBB');
         assert.strictEqual(table.getRawContent(), 'BBBAAA');
-		PieceTableTester.assertPieceTable(table);
         table.insertAt(6, 'CCC');
         assert.strictEqual(table.getRawContent(), 'BBBAAACCC');
-		PieceTableTester.assertPieceTable(table);
         table.insertAt(5, 'DDD');
 		assert.strictEqual(table.getRawContent(), 'BBBAADDDACCC');
 		PieceTableTester.assertPieceTable(table);
@@ -858,6 +863,113 @@ suite('PieceTable-Test - insert / delete', () => {
 		str = str.substring(0, 12) + 'wXpq' + str.substring(12);
 		assert.strictEqual(table.getRawContent(), str);
         PieceTableTester.assertPieceTable(table);
+	});
+
+    test('more deletes', () => {
+		let table = buildPieceTable(['012345678']);
+		table.deleteAt(8, 1);
+		assert.strictEqual(table.getRawContent(), '01234567');
+		table.deleteAt(0, 1);
+		assert.strictEqual(table.getRawContent(), '1234567');
+        table.deleteAt(5, 1);
+		assert.strictEqual(table.getRawContent(), '123457');
+        table.deleteAt(5, 1);
+		assert.strictEqual(table.getRawContent(), '12345');
+		table.deleteAt(0, 5);
+		assert.strictEqual(table.getRawContent(), '');
+		PieceTableTester.assertPieceTable(table);
+	});
+
+    test('random delete 1', () => {
+		let str = '';
+		let table = buildPieceTable(['']);
+
+		table.insertAt(0, 'vfb');
+		str = str.substring(0, 0) + 'vfb' + str.substring(0);
+		assert.strictEqual(table.getRawContent(), str);
+		table.insertAt(0, 'zRq');
+		str = str.substring(0, 0) + 'zRq' + str.substring(0);
+		assert.strictEqual(table.getRawContent(), str);
+
+		table.deleteAt(5, 1);
+		str = str.substring(0, 5) + str.substring(5 + 1);
+		assert.strictEqual(table.getRawContent(), str);
+
+		table.insertAt(1, 'UNw');
+		str = str.substring(0, 1) + 'UNw' + str.substring(1);
+		assert.strictEqual(table.getRawContent(), str);
+
+		table.deleteAt(4, 3);
+		str = str.substring(0, 4) + str.substring(4 + 3);
+		assert.strictEqual(table.getRawContent(), str);
+
+		table.deleteAt(1, 4);
+		str = str.substring(0, 1) + str.substring(1 + 4);
+		assert.strictEqual(table.getRawContent(), str);
+
+		table.deleteAt(0, 1);
+		str = str.substring(0, 0) + str.substring(0 + 1);
+		assert.strictEqual(table.getRawContent(), str);
+		PieceTableTester.assertPieceTable(table);
+	});
+
+	test('random delete 2', () => {
+		let str = '';
+		let table = buildPieceTable(['']);
+
+		table.insertAt(0, 'IDT');
+		str = str.substring(0, 0) + 'IDT' + str.substring(0);
+		table.insertAt(3, 'wwA');
+		str = str.substring(0, 3) + 'wwA' + str.substring(3);
+		table.insertAt(3, 'Gnr');
+		str = str.substring(0, 3) + 'Gnr' + str.substring(3);
+		table.deleteAt(6, 3);
+		str = str.substring(0, 6) + str.substring(6 + 3);
+		table.insertAt(4, 'eHp');
+		str = str.substring(0, 4) + 'eHp' + str.substring(4);
+		table.insertAt(1, 'UAi');
+		str = str.substring(0, 1) + 'UAi' + str.substring(1);
+		table.insertAt(2, 'FrR');
+		str = str.substring(0, 2) + 'FrR' + str.substring(2);
+		table.deleteAt(6, 7);
+		str = str.substring(0, 6) + str.substring(6 + 7);
+		table.deleteAt(3, 5);
+		str = str.substring(0, 3) + str.substring(3 + 5);
+		assert.strictEqual(table.getRawContent(), str);
+		PieceTableTester.assertPieceTable(table);
+	});
+
+	test('random delete 3', () => {
+		let str = '';
+		let table = buildPieceTable(['']);
+		table.insertAt(0, 'PqM');
+		str = str.substring(0, 0) + 'PqM' + str.substring(0);
+		table.deleteAt(1, 2);
+		str = str.substring(0, 1) + str.substring(1 + 2);
+		table.insertAt(1, 'zLc');
+		str = str.substring(0, 1) + 'zLc' + str.substring(1);
+		table.insertAt(0, 'MEX');
+		str = str.substring(0, 0) + 'MEX' + str.substring(0);
+		table.insertAt(0, 'jZh');
+		str = str.substring(0, 0) + 'jZh' + str.substring(0);
+		table.insertAt(8, 'GwQ');
+		str = str.substring(0, 8) + 'GwQ' + str.substring(8);
+		table.deleteAt(5, 6);
+		str = str.substring(0, 5) + str.substring(5 + 6);
+		table.insertAt(4, 'ktw');
+		str = str.substring(0, 4) + 'ktw' + str.substring(4);
+		table.insertAt(5, 'GVu');
+		str = str.substring(0, 5) + 'GVu' + str.substring(5);
+		table.insertAt(9, 'jdm');
+		str = str.substring(0, 9) + 'jdm' + str.substring(9);
+		table.insertAt(15, 'na\n');
+		str = str.substring(0, 15) + 'na\n' + str.substring(15);
+		table.deleteAt(5, 8);
+		str = str.substring(0, 5) + str.substring(5 + 8);
+		table.deleteAt(3, 4);
+		str = str.substring(0, 3) + str.substring(3 + 4);
+		assert.strictEqual(table.getRawContent(), str);
+		PieceTableTester.assertPieceTable(table);
 	});
 
 });
