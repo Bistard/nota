@@ -1200,45 +1200,44 @@ export class PieceTable implements IPieceTable {
         this.__updatePieceMetadata(node);
 
         while (node !== this._root && node.parent.color === RBColor.RED) {
-            const parent = node.parent;
-
-            if (parent === parent.parent.left) {
-                const parentSibling = parent.parent.right;
+            
+            if (node.parent === node.parent.parent.left) {
+                const parentSibling = node.parent.parent.right;
                 
                 if (parentSibling.color === RBColor.RED) {
-                    parent.color = RBColor.BLACK;
+                    node.parent.color = RBColor.BLACK;
                     parentSibling.color = RBColor.BLACK;
-                    parent.parent.color = RBColor.RED;
-                    node = parent.parent;
+                    node.parent.parent.color = RBColor.RED;
+                    node = node.parent.parent;
                 }  else {
-                    if (node === parent.right) {
-                        node = parent;
+                    if (node === node.parent.right) {
+                        node = node.parent;
                         this.__leftRotateNode(node);
                     }
 
-                    parent.color = RBColor.BLACK;
-                    parent.parent.color = RBColor.RED;
-                    this.__rightRotateNode(parent.parent);
+                    node.parent.color = RBColor.BLACK;
+                    node.parent.parent.color = RBColor.RED;
+                    this.__rightRotateNode(node.parent.parent);
                 }
             }
 
             else {
-                const parentSibling = parent.parent.left;
+                const parentSibling = node.parent.parent.left;
 
                 if (parentSibling.color === RBColor.RED) {
-                    parent.color = RBColor.BLACK;
+                    node.parent.color = RBColor.BLACK;
                     parentSibling.color = RBColor.BLACK;
-                    parent.parent.color = RBColor.RED;
-                    node = parent.parent;
+                    node.parent.parent.color = RBColor.RED;
+                    node = node.parent.parent;
                 } else {
-                    if (node === parent.left) {
-                        node = parent;
+                    if (node === node.parent.left) {
+                        node = node.parent;
                         this.__rightRotateNode(node);
                     }
 
-                    parent.color = RBColor.BLACK;
-                    parent.parent.color = RBColor.RED;
-                    this.__leftRotateNode(parent.parent);
+                    node.parent.color = RBColor.BLACK;
+                    node.parent.parent.color = RBColor.RED;
+                    this.__leftRotateNode(node.parent.parent);
                 }
             }
 
