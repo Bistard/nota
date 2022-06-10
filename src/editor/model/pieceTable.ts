@@ -334,19 +334,23 @@ export class PieceTable implements IPieceTable { // REVIEW: make it template
             const node = position.node;
             const piece = node.piece;
             const startBufferPosition = this.__getPositionInBufferAt(piece, pieceOffset);
-
+            const nodeContent = this.__getNodeContent(node);
+            /**
+             * If inserting to the end of the piece which is also the last piece 
+             * in the add buffer, we first need to check CRLF situation, then
+             * instead of creating a new piece, we simply extend that piece.
+             */
             if (node.piece.bufferIndex === 0 &&
 				piece.end.lineNumber === this._lastAddBufferPosition.lineNumber &&
 				piece.end.lineOffset === this._lastAddBufferPosition.lineOffset &&
 				(nodeOffset + piece.pieceLength === textOffset) &&
 				text.length < PieceTable.AVERAGE_BUFFER_SIZE
 			) {
-                // TODO
-                console.log('reached');
+                this.__extendLastAddBufferPiece(node, text);
             }
 
             // inserting at the start of the piece
-            if (nodeOffset === textOffset) {
+            else if (nodeOffset === textOffset) {
                 this.__insertLeft(node, text);
             } 
             
@@ -941,6 +945,67 @@ export class PieceTable implements IPieceTable { // REVIEW: make it template
     }
 
     /**
+     * @description // TODO
+     * @param node The given node.
+     * @param text The plain text.
+     */
+    private __extendLastAddBufferPiece(node: PieceNode, text: string): void {
+
+        /**
+         * CRLF situation when inserting text ends with a CR and the next node 
+         * starts with a LF. If yes, we bring the LF backward into the text.
+         */
+        if (this.__removeLFfromTheNextNodeAt(node, text)) {
+            text += EndOfLine.LF;
+        }
+
+        const addBuffer = this._buffer[0]!;
+        const addBufferStartOffset = addBuffer.buffer.length;
+        (addBuffer.buffer as any) += text;
+
+        const linestart = TextBuffer.readLineStarts(text).linestart;
+        for (let i = 0; i < linestart.length; i++) {
+			linestart[i]! += addBufferStartOffset; // REVIEW: 可以再写一个func在读取得过程中就将offset给加上
+		}
+
+        /**
+         * CRLF situation when current node ends with a CR and the inserting 
+         * text starts with a LF. If yes, we bring the CR forward counted as
+         * part of the text.
+         */
+        if (this.__shouldCheckCRLF() && 
+            this.__endWithCR(node) && this.__startWithLF(text)
+        ) {
+            const prevAddBufferStartOffset = addBuffer.linestart[addBuffer.linestart.length - 2]!;
+			addBuffer.linestart.pop();
+			this._lastAddBufferPosition = { 
+                lineNumber: this._lastAddBufferPosition.lineNumber - 1, 
+                lineOffset: addBufferStartOffset - prevAddBufferStartOffset 
+            };
+        }
+
+        (addBuffer.linestart as any) = addBuffer.linestart.concat(linestart.slice(1));
+        const newPieceEndPosition = {
+            lineNumber: addBuffer.linestart.length - 1,
+            lineOffset: addBuffer.buffer.length - addBuffer.linestart[addBuffer.linestart.length - 1]!
+        };
+        const oldLfCount = node.piece.lfCount;
+        const newLfCount = this.__validateLfCount(0, node.piece.start, newPieceEndPosition);
+        const lfDelta = newLfCount - oldLfCount;
+
+        node.piece = new Piece(
+            0,
+            node.piece.pieceLength + text.length,
+            newLfCount,
+            node.piece.start,
+            newPieceEndPosition
+        );
+
+        this._lastAddBufferPosition = newPieceEndPosition;
+        this.__updatePieceMetadataWithDelta(node, text.length, lfDelta);
+    }
+
+    /**
      * @description Inserts the given text to the left of the given node.
      * @param node The given node.
      * @param text The plain text.
@@ -994,7 +1059,7 @@ export class PieceTable implements IPieceTable { // REVIEW: make it template
      */
      private __insertRight(node: PieceNode, text: string): void {
         
-        if (this.__removeLFfromTheNextNode(node, text)) {
+        if (this.__removeLFfromTheNextNodeAt(node, text)) {
             /**
              * The inserting text does end with a CR and the next node does 
              * starts with a LF, we move the LF to the current one.
@@ -1711,7 +1776,6 @@ export class PieceTable implements IPieceTable { // REVIEW: make it template
             if (node.left !== NULL_NODE && node.leftSubtreelfCount >= lineNumber) {
                 node = node.left;
             }
-            // REVIEW
             // desired line is within the current piece
             else if (node.piece.lfCount > lineNumber - node.leftSubtreelfCount) {
                 const piece = node.piece;
@@ -1728,7 +1792,6 @@ export class PieceTable implements IPieceTable { // REVIEW: make it template
                     pieceStartOffset + desiredLineEndOffset - eolLength
                 );
             }
-            // REVIEW
             // desired line has parital content at the end of the current piece (could be empty)
             else if (node.piece.lfCount === lineNumber - node.leftSubtreelfCount) {
                 const piece = node.piece;
@@ -1878,7 +1941,8 @@ export class PieceTable implements IPieceTable { // REVIEW: make it template
         
         if (desiredLineIndex > piece.end.lineNumber) {
             // REVIEW: can I just return piece.pieceLength?
-            return linestart[piece.end.lineNumber]! + piece.end.lineOffset - linestart[piece.start.lineNumber]! - piece.start.lineOffset;;
+            // return linestart[piece.end.lineNumber]! + piece.end.lineOffset - linestart[piece.start.lineNumber]! - piece.start.lineOffset;;
+            return piece.pieceLength;
         }
 
         return linestart[desiredLineIndex]! - linestart[piece.start.lineNumber]! - piece.start.lineOffset;
@@ -1932,11 +1996,11 @@ export class PieceTable implements IPieceTable { // REVIEW: make it template
 
     /**
      * @description Try to move a LF that appears to be the first character from 
-     * the accessor of the given node to the previous node which is the next we 
+     * the accessor of the given node to the previous node which is the text we 
      * are about to insert with.
      * @returns If the operation was taken.
      */
-    private __removeLFfromTheNextNode(node: PieceNode, text: string): boolean {
+    private __removeLFfromTheNextNodeAt(node: PieceNode, text: string): boolean {
         
         if (this.__shouldCheckCRLF() && this.__endWithCR(text)) {
             
