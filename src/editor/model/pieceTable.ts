@@ -1706,7 +1706,7 @@ export class PieceTable implements IPieceTable { // REVIEW: make it template
             /**
              * desired line is either: 
              *      - entirely before the current piece
-             *      - OR has partial content before the current peice
+             *      - OR has partial content before the current peice (could be empty)
              */
             if (node.left !== NULL_NODE && node.leftSubtreelfCount >= lineNumber) {
                 node = node.left;
@@ -1715,35 +1715,33 @@ export class PieceTable implements IPieceTable { // REVIEW: make it template
             // desired line is within the current piece
             else if (node.piece.lfCount > lineNumber - node.leftSubtreelfCount) {
                 const piece = node.piece;
-                const { buffer, linestart } = this._buffer[piece.bufferIndex]!;
+                const { buffer } = this._buffer[piece.bufferIndex]!;
                 const pieceStartOffset = this.__getOffsetInBufferAt(piece.bufferIndex, piece.start);
 
                 lineNumber -= node.leftSubtreelfCount;
 
-                const desiredLineStartOffset = linestart[lineNumber]!;
-                const desiredBufferOffset = pieceStartOffset + desiredLineStartOffset;
-                const lineLength = linestart[lineNumber + 1]! - desiredLineStartOffset;
+                const desiredLineStartOffset = this.__getPieceOffsetAtLineIndex(piece, lineNumber);
+                const desiredLineEndOffset = this.__getPieceOffsetAtLineIndex(piece, lineNumber + 1);
                 
                 return buffer.substring(
-                    desiredBufferOffset, 
-                    desiredBufferOffset + lineLength - eolLength
+                    pieceStartOffset + desiredLineStartOffset, 
+                    pieceStartOffset + desiredLineEndOffset - eolLength
                 );
             }
             // REVIEW
             // desired line has parital content at the end of the current piece (could be empty)
             else if (node.piece.lfCount === lineNumber - node.leftSubtreelfCount) {
                 const piece = node.piece;
-                const { buffer, linestart } = this._buffer[piece.bufferIndex]!;
+                const { buffer } = this._buffer[piece.bufferIndex]!;
                 const pieceStartOffset = this.__getOffsetInBufferAt(piece.bufferIndex, piece.start);
                 
                 lineNumber -= node.leftSubtreelfCount;
 
-                const desiredLineStartOffset = linestart[lineNumber]!;
-                const desiredBufferOffset = pieceStartOffset + desiredLineStartOffset;
+                const desiredLineStartOffset = this.__getPieceOffsetAtLineIndex(piece, lineNumber);
                 
                 lineBuffer = buffer.substring(
-                    desiredBufferOffset,
-                    desiredBufferOffset + node.piece.pieceLength
+                    pieceStartOffset + desiredLineStartOffset,
+                    pieceStartOffset + node.piece.pieceLength
                 );
                 break;
             } 
@@ -1763,11 +1761,11 @@ export class PieceTable implements IPieceTable { // REVIEW: make it template
         node = PieceNode.next(node);
         while (node !== NULL_NODE) {
             const piece = node.piece;
-            const { buffer } = this._buffer[node.piece.bufferIndex]!;
+            const buffer = this._buffer[piece.bufferIndex]!.buffer;
             const pieceStartOffset = this.__getOffsetInBufferAt(piece.bufferIndex, piece.start);
 
             if (piece.lfCount) {
-                const lineLength = this.__getDesiredPieceLengthAt(node.piece, 1);
+                const lineLength = this.__getPieceOffsetAtLineIndex(node.piece, 1);
                 lineBuffer += buffer.substring(
                     pieceStartOffset, 
                     pieceStartOffset + lineLength - eolLength
@@ -1864,10 +1862,13 @@ export class PieceTable implements IPieceTable { // REVIEW: make it template
     }
 
     /**
-     * @description // REVIEW
+     * @description Returns the piece offset (piece length) at the given line 
+     * index (relative to the buffer).
+     * @param lineIndex The line number where it stops (the length of the line 
+     * is not included).
      */
-    private __getDesiredPieceLengthAt(piece: Piece, lineIndex: number): number {
-        if (lineIndex <= 0) {
+    private __getPieceOffsetAtLineIndex(piece: Piece, lineIndex: number): number {
+        if (lineIndex < 0) {
             return 0;
         }
 
