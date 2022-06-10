@@ -382,7 +382,6 @@ export class PieceTable implements IPieceTable { // REVIEW: make it template
         const endNode = endNodePosition.position.node;
 
         const startDeleteBufferPosition = this.__getPositionInBufferAt(startNode.piece, startNodePosition.pieceOffset);
-        // FIX: 有问题
         const endDeleteBufferPosition = this.__getPositionInBufferAt(endNode.piece, endNodePosition.pieceOffset);
 
         // deleting text are in the same piece
@@ -1310,7 +1309,7 @@ export class PieceTable implements IPieceTable { // REVIEW: make it template
         const rightPiece = new Piece(
             piece.bufferIndex,
             this.__getOffsetInBufferAt(piece.bufferIndex, prevEndPosition) - this.__getOffsetInBufferAt(piece.bufferIndex, end),
-            this.__validateLfCount(node.piece.bufferIndex, end, prevEndPosition),
+            this.__validateLfCount(piece.bufferIndex, end, prevEndPosition),
             end,
             prevEndPosition
         );
@@ -2071,7 +2070,7 @@ export class PieceTable implements IPieceTable { // REVIEW: make it template
 		const lineStart = this._buffer[prev.piece.bufferIndex]!.linestart;
         const prevLastLineOffset = prev.piece.end.lineNumber;
 		const prevNewEndPosition = { 
-            lineNumber: prevLastLineOffset - 1, 
+            lineNumber: prevLastLineOffset, 
             lineOffset: lineStart[prevLastLineOffset]! - lineStart[prevLastLineOffset - 1]! - 1 
         };
         prev.piece = new Piece(
