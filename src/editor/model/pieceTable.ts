@@ -1077,7 +1077,7 @@ export class PieceTable implements IPieceTable { // REVIEW: make it template
             insert = this.__insertAsSuccessor(insert, pieces[i]!);
         }
 
-        this.__validateCRLFwithPrevNode(firstNewNode); // FIX: 加了这个之后错误更多了:(
+        this.__validateCRLFwithPrevNode(firstNewNode);
     }
 
     /**
@@ -2076,10 +2076,20 @@ export class PieceTable implements IPieceTable { // REVIEW: make it template
         // isolate '\r' from the prev piece
 		const lineStart = this._buffer[prev.piece.bufferIndex]!.linestart;
         const prevLastLineOffset = prev.piece.end.lineNumber;
-		const prevNewEndPosition = { 
-            lineNumber: prevLastLineOffset, 
-            lineOffset: lineStart[prevLastLineOffset]! - lineStart[prevLastLineOffset - 1]! - 1 
-        };
+        let prevNewEndPosition: IBufferPosition;
+        if (prev.piece.end.lineOffset === 0) {
+            // line ends with \r
+            prevNewEndPosition = { 
+                lineNumber: prevLastLineOffset - 1, 
+                lineOffset: lineStart[prevLastLineOffset]! - lineStart[prevLastLineOffset - 1]! - 1 
+            };
+        } else {
+            // line ends with \r\n
+            prevNewEndPosition = { 
+                lineNumber: prevLastLineOffset, 
+                lineOffset: prev.piece.end.lineOffset - 1
+            };
+        }
         prev.piece = new Piece(
 			prev.piece.bufferIndex,
 			prev.piece.pieceLength - 1,
@@ -2205,13 +2215,20 @@ export namespace PieceTableTester {
         return (n.color === RBColor.BLACK ? 1 : 0) + blackDepth(n.left);
     }
 
-    export function printTree(table: IPieceTable): void {
+    export function printTree(table: IPieceTable, title?: string): void {
         const length = depth(table.root);
-        process.stdout.write('===============================================');
+        process.stdout.write('===========================================================');
         for (let i = 0; i < length; i++) {
             process.stdout.write('==');
         }
         process.stdout.write('\n');
+
+        if (title) {
+            process.stdout.write(`[Title - ${title}]\n`);
+        } else {
+            process.stdout.write(`[Title - None]\n`);
+        }
+
         process.stdout.write('[Tree]\n');
         printNode(table, table.root, 0);
         
@@ -2221,7 +2238,7 @@ export namespace PieceTableTester {
             process.stdout.write(content + '\n');
         });
         
-        process.stdout.write('===============================================');
+        process.stdout.write('===========================================================');
         for (let i = 0; i < length; i++) {
             process.stdout.write('==');
         }
