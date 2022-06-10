@@ -113,7 +113,7 @@ export interface IPiece {
     readonly start: IBufferPosition;
  
      /** 
-      * The end position of the piece in the corresponding buffer. 
+      * The end position of the piece in the corresponding buffer (not included).
       */
     readonly end: IBufferPosition;
 }

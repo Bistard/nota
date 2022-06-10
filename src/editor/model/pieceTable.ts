@@ -334,7 +334,6 @@ export class PieceTable implements IPieceTable { // REVIEW: make it template
             const node = position.node;
             const piece = node.piece;
             const startBufferPosition = this.__getPositionInBufferAt(piece, pieceOffset);
-            const nodeContent = this.__getNodeContent(node);
             /**
              * If inserting to the end of the piece which is also the last piece 
              * in the add buffer, we first need to check CRLF situation, then
@@ -359,79 +358,8 @@ export class PieceTable implements IPieceTable { // REVIEW: make it template
              * current piece into left two pieces, and insert the new text as a 
              * new piece to the middle.
              */
-            // REVIEW: a helper function: __insertMiddle()
             else if (piece.pieceLength > textOffset - nodeOffset) {
-                const toBeDeleted: PieceNode[] = [];
-               
-                // the second part of the two pieces.
-                let rightPartPiece = new Piece(
-                    piece.bufferIndex,
-                    this.__getOffsetInBufferAt(piece.bufferIndex, piece.end) - this.__getOffsetInBufferAt(piece.bufferIndex, startBufferPosition),
-                    this.__validateLfCount(piece.bufferIndex, startBufferPosition, piece.end),
-                    startBufferPosition,
-                    piece.end
-                );
-
-                /**
-                 * Check the CRLF situation at the end of the inserting text. If 
-                 * true, move the \n to the front as the part of the inserting 
-                 * text.
-                 */
-                if (this.__shouldCheckCRLF() && this.__endWithCR(text) && 
-                    this.__getCharcodeAtNode(node, pieceOffset) === CharCode.LineFeed
-                ) {
-                    const newRightStartPosition = { 
-                        lineNumber: rightPartPiece.start.lineNumber + 1, 
-                        lineOffset: 0 
-                    };
-                    rightPartPiece = new Piece(
-                        rightPartPiece.bufferIndex,
-                        rightPartPiece.pieceLength - 1,
-                        this.__validateLfCount(rightPartPiece.bufferIndex, newRightStartPosition, rightPartPiece.end),
-                        newRightStartPosition,
-                        rightPartPiece.end
-                    );
-
-                    text += EndOfLine.LF;
-                }
-
-                /**
-                 * Check the CRLF situation at the beginning of the inserting
-                 * text. If true, move the \r to the back as the part of the
-                 * inserting text.
-                 */
-                if (this.__shouldCheckCRLF() && this.__startWithLF(text) && 
-                    this.__getCharcodeAtNode(node, pieceOffset - 1) === CharCode.CarriageReturn
-                ) {
-                    const beforeBufferPosition = this.__getPositionInBufferAt(node.piece, pieceOffset - 1);
-                    this.__deletePieceTailAt(node, beforeBufferPosition);
-                    
-                    text = '\r'.concat(text);
-                    if (node.piece.pieceLength === 0) {
-                        toBeDeleted.push(node);
-                    }
-                } 
-                /**
-                 * Otherwise simply remove the tail part of the current piece.
-                 * Now the current piece only contains the content before the 
-                 * inserting text.
-                 */
-                else {
-                    this.__deletePieceTailAt(node, startBufferPosition);
-                }
-
-                const middlePieces = this.__createNewPieces(text);
-                if (rightPartPiece.pieceLength) {
-                    this.__insertAsSuccessor(node, rightPartPiece);
-                }
-
-                
-                let newnode = node;
-                for (let i = 0; i < middlePieces.length; i++) {
-                    newnode = this.__insertAsSuccessor(newnode, middlePieces[i]!);
-                }
-
-                this.__deleteNodes(toBeDeleted);
+                this.__insertMiddle(node, text, pieceOffset, startBufferPosition);
             }
             // inserting at the end the piece
             else {
@@ -454,6 +382,7 @@ export class PieceTable implements IPieceTable { // REVIEW: make it template
         const endNode = endNodePosition.position.node;
 
         const startDeleteBufferPosition = this.__getPositionInBufferAt(startNode.piece, startNodePosition.pieceOffset);
+        // FIX: 有问题
         const endDeleteBufferPosition = this.__getPositionInBufferAt(endNode.piece, endNodePosition.pieceOffset);
 
         // deleting text are in the same piece
@@ -944,11 +873,6 @@ export class PieceTable implements IPieceTable { // REVIEW: make it template
         );
     }
 
-    /**
-     * @description // TODO
-     * @param node The given node.
-     * @param text The plain text.
-     */
     private __extendLastAddBufferPiece(node: PieceNode, text: string): void {
 
         /**
@@ -1049,6 +973,81 @@ export class PieceTable implements IPieceTable { // REVIEW: make it template
         }
         
         // delete these nodes
+        this.__deleteNodes(toBeDeleted);
+    }
+
+    private __insertMiddle(node: PieceNode, text: string, pieceOffset: number, startBufferPosition: IBufferPosition): void {
+        const piece = node.piece;
+
+        const toBeDeleted: PieceNode[] = [];
+
+        // the second part of the two pieces.
+        let rightPartPiece = new Piece(
+            piece.bufferIndex,
+            this.__getOffsetInBufferAt(piece.bufferIndex, piece.end) - this.__getOffsetInBufferAt(piece.bufferIndex, startBufferPosition),
+            this.__validateLfCount(piece.bufferIndex, startBufferPosition, piece.end),
+            startBufferPosition,
+            piece.end
+        );
+
+        /**
+         * Check the CRLF situation at the end of the inserting text. If 
+         * true, move the \n to the front as the part of the inserting 
+         * text.
+         */
+        if (this.__shouldCheckCRLF() && this.__endWithCR(text) && 
+            this.__getCharcodeAtNode(node, pieceOffset) === CharCode.LineFeed
+        ) {
+            const newRightStartPosition = { 
+                lineNumber: rightPartPiece.start.lineNumber + 1, 
+                lineOffset: 0 
+            };
+            rightPartPiece = new Piece(
+                rightPartPiece.bufferIndex,
+                rightPartPiece.pieceLength - 1,
+                this.__validateLfCount(rightPartPiece.bufferIndex, newRightStartPosition, rightPartPiece.end),
+                newRightStartPosition,
+                rightPartPiece.end
+            );
+
+            text += EndOfLine.LF;
+        }
+
+        /**
+         * Check the CRLF situation at the beginning of the inserting
+         * text. If true, move the \r to the back as the part of the
+         * inserting text.
+         */
+        if (this.__shouldCheckCRLF() && this.__startWithLF(text) && 
+            this.__getCharcodeAtNode(node, pieceOffset - 1) === CharCode.CarriageReturn
+        ) {
+            const beforeBufferPosition = this.__getPositionInBufferAt(node.piece, pieceOffset - 1);
+            this.__deletePieceTailAt(node, beforeBufferPosition);
+            
+            text = '\r'.concat(text);
+            if (node.piece.pieceLength === 0) {
+                toBeDeleted.push(node);
+            }
+        } 
+        /**
+         * Otherwise simply remove the tail part of the current piece.
+         * Now the current piece only contains the content before the 
+         * inserting text.
+         */
+        else {
+            this.__deletePieceTailAt(node, startBufferPosition);
+        }
+
+        const middlePieces = this.__createNewPieces(text);
+        if (rightPartPiece.pieceLength) {
+            this.__insertAsSuccessor(node, rightPartPiece);
+        }
+
+        let newnode = node;
+        for (let i = 0; i < middlePieces.length; i++) {
+            newnode = this.__insertAsSuccessor(newnode, middlePieces[i]!);
+        }
+
         this.__deleteNodes(toBeDeleted);
     }
 
@@ -1303,7 +1302,6 @@ export class PieceTable implements IPieceTable { // REVIEW: make it template
     private __deletePieceMiddleAt(node: PieceNode, start: IBufferPosition, end: IBufferPosition): PieceNode {
         const piece = node.piece;
         const prevEndPosition = piece.end;
-        const prevEndBufferOffset = this.__getOffsetInBufferAt(piece.bufferIndex, piece.end);
 
         // modify the original piece (left part)
         this.__deletePieceTailAt(node, start);
@@ -1311,11 +1309,12 @@ export class PieceTable implements IPieceTable { // REVIEW: make it template
         // create a new piece (right part)
         const rightPiece = new Piece(
             piece.bufferIndex,
-            prevEndBufferOffset - this.__getOffsetInBufferAt(piece.bufferIndex, end),
+            this.__getOffsetInBufferAt(piece.bufferIndex, prevEndPosition) - this.__getOffsetInBufferAt(piece.bufferIndex, end),
             this.__validateLfCount(node.piece.bufferIndex, end, prevEndPosition),
             end,
             prevEndPosition
         );
+
         return this.__insertAsSuccessor(node, rightPiece);
     }
 
