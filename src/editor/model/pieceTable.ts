@@ -772,7 +772,7 @@ export class PieceTable implements IPieceTable { // REVIEW: make it template
          */
         if (addBuffer.linestart[addBuffer.linestart.length - 1]! === addBufferLength
             && addBufferLength !== 0 
-            && this.__endWithCR(addBuffer.buffer) && this.__startWithLF(text)
+            && this.__startWithLF(text) && this.__endWithCR(addBuffer.buffer)
         ) {
             this._lastAddBufferPosition = {
                 lineNumber: this._lastAddBufferPosition.lineNumber,
@@ -809,7 +809,10 @@ export class PieceTable implements IPieceTable { // REVIEW: make it template
         const addBufferEndOffset = addBuffer.buffer.length;
         const addBufferLastIndex = addBuffer.linestart.length - 1;
         const pieceEndOffset = addBufferEndOffset - addBuffer.linestart[addBufferLastIndex]!;
-        const pieceEndPosition = { lineNumber: addBufferLastIndex, lineOffset: pieceEndOffset };
+        const pieceEndPosition = { 
+            lineNumber: addBufferLastIndex, 
+            lineOffset: pieceEndOffset 
+        };
 
         const piece = new Piece(
             0,
@@ -1067,10 +1070,14 @@ export class PieceTable implements IPieceTable { // REVIEW: make it template
 
         // Inserting to the right (after).
         const pieces = this.__createNewPieces(text);
-        let insert = node;
-        for (let i = 0; i < pieces.length; i++) {
+
+        const firstNewNode = this.__insertAsSuccessor(node, pieces[0]!);
+        let insert = firstNewNode;
+        for (let i = 1; i < pieces.length; i++) {
             insert = this.__insertAsSuccessor(insert, pieces[i]!);
         }
+
+        this.__validateCRLFwithPrevNode(firstNewNode); // FIX: 加了这个之后错误更多了:(
     }
 
     /**
@@ -2205,7 +2212,15 @@ export namespace PieceTableTester {
             process.stdout.write('==');
         }
         process.stdout.write('\n');
+        process.stdout.write('[Tree]\n');
         printNode(table, table.root, 0);
+        
+        process.stdout.write('[Content - preorder]\n');
+        table.forEach(node => {
+            const content = ` [pieceLength: ${node.piece.pieceLength.toString()}, ${node.color === RBColor.BLACK ? 'B' : 'R'}, start: {${node.piece.start.lineNumber}, ${node.piece.start.lineOffset}}, end: {${node.piece.end.lineNumber}, ${node.piece.end.lineOffset}}, content: ${(table as any).__getNodeContent(node).replace(/\n/g, `\\n`).replace(/\r/g, `\\r`)}]`;
+            process.stdout.write(content + '\n');
+        });
+        
         process.stdout.write('===============================================');
         for (let i = 0; i < length; i++) {
             process.stdout.write('==');
@@ -2230,7 +2245,7 @@ export namespace PieceTableTester {
             process.stdout.write(' └─');
         }
 
-        const content = ` [pieceLength: ${node.piece.pieceLength.toString()}, ${node.color === RBColor.BLACK ? 'B' : 'R'}, start: {${node.piece.start.lineNumber}, ${node.piece.start.lineOffset}}, end: {${node.piece.end.lineNumber}, ${node.piece.end.lineOffset}}]`;
+        const content = ` [pieceLength: ${node.piece.pieceLength.toString()}, ${node.color === RBColor.BLACK ? 'B' : 'R'}, start: {${node.piece.start.lineNumber}, ${node.piece.start.lineOffset}}, end: {${node.piece.end.lineNumber}, ${node.piece.end.lineOffset}}, content: ${(table as any).__getNodeContent(node).replace(/\n/g, `\\n`).replace(/\r/g, `\\r`)}]`;
         process.stdout.write(content + '\n');
         printNode(table, node.left, depth + 1);
         printNode(table, node.right, depth + 1);
