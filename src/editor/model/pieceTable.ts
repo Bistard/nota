@@ -239,7 +239,7 @@ NULL_NODE.right = NULL_NODE;
  *      2. by the absolute line number 
  * both under the O(logn) situation.
  * 
- * The more detailed idea can be found the blog of VSCode:
+ * The more detailed idea can be found at the blog of VSCode:
  *  - {@link https://code.visualstudio.com/blogs/2018/03/23/text-buffer-reimplementation}
  */
 export class PieceTable implements IPieceTable {
