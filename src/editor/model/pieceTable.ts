@@ -1806,12 +1806,11 @@ export class PieceTable implements IPieceTable { // REVIEW: make it template
                 const pieceStartOffset = this.__getOffsetInBufferAt(piece.bufferIndex, piece.start);
                 
                 lineNumber -= node.leftSubtreelfCount;
-
                 const desiredLineStartOffset = this.__getPieceOffsetAtLineIndex(piece, lineNumber);
                 
                 lineBuffer = buffer.substring(
                     pieceStartOffset + desiredLineStartOffset,
-                    pieceStartOffset + node.piece.pieceLength
+                    pieceStartOffset + piece.pieceLength
                 );
                 break;
             } 
@@ -1841,13 +1840,12 @@ export class PieceTable implements IPieceTable { // REVIEW: make it template
                     pieceStartOffset + lineLength - eolLength
                 );
                 return lineBuffer;
-            } else {    
-                lineBuffer += buffer.substring(
-                    pieceStartOffset, 
-                    pieceStartOffset + piece.pieceLength
-                );
             }
 
+            lineBuffer += buffer.substring(
+                pieceStartOffset, 
+                pieceStartOffset + piece.pieceLength
+            );
             node = PieceNode.next(node);
         }
 
@@ -1938,7 +1936,7 @@ export class PieceTable implements IPieceTable { // REVIEW: make it template
      * is not included).
      */
     private __getPieceOffsetAtLineIndex(piece: Piece, lineIndex: number): number {
-        if (lineIndex < 0) {
+        if (lineIndex <= 0) {
             return 0;
         }
 
@@ -1948,7 +1946,7 @@ export class PieceTable implements IPieceTable { // REVIEW: make it template
         
         if (desiredLineIndex > piece.end.lineNumber) {
             // REVIEW: can I just return piece.pieceLength?
-            return linestart[piece.end.lineNumber]! + piece.end.lineOffset - linestart[piece.start.lineNumber]! - piece.start.lineOffset;;
+            return linestart[piece.end.lineNumber]! + piece.end.lineOffset - linestart[piece.start.lineNumber]! - piece.start.lineOffset;
             // return piece.pieceLength;
         }
 
