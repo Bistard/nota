@@ -33,6 +33,10 @@ export class PieceTableModel extends Disposable implements IPieceTableModel {
 
     // [public methods]
 
+    public getPieceTable(): IPieceTable {
+        return this._table;
+    }
+
     public insertAt(textOffset: number, text: string): void {
         this._table.insertAt(textOffset, text);
     }

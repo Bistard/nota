@@ -22,7 +22,7 @@ function buildPieceTable(values: string[], normalizationEOL?: boolean, defaultEO
         builder.receive(value);
     }
     builder.build();
-    return builder.create(normalizationEOL, defaultEOL, force);
+    return builder.create(normalizationEOL, defaultEOL, force).getPieceTable();
 }
 
 const NULL_NODE = PieceTableInternal.NULL;

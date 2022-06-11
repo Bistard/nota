@@ -278,4 +278,9 @@ export interface IPieceTableModel extends Omit<IPieceTable, 'root'>, IDisposable
      */
     onDidChangeContent: Register<void>;
 
+    /**
+     * @description Returns the a instance of {@link IPieceTable}.
+     */
+    getPieceTable(): IPieceTable;
+
 }
