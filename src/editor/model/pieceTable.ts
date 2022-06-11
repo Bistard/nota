@@ -935,28 +935,10 @@ export class PieceTable implements IPieceTable {
          * split into two different incoming pieces. If does, move the \n to the
          * new piece (to the left) that about to be inserted.
          */
-        if (this.__shouldCheckCRLF() && this.__endWithCR(text) && this.__startWithLF(node)) {
-            // REVIEW: call fixCRLF()
-            // remove \n from the given piece
-            const piece = node.piece;
-            const newStartPosition = { lineNumber: piece.start.lineNumber + 1, lineOffset: 0 };
-            const updated = new Piece(
-                piece.bufferIndex,
-                piece.pieceLength - 1,
-                this.__validateLfCount(piece.bufferIndex, newStartPosition, piece.end),
-                newStartPosition,
-                piece.end
-            );
-            node.piece = updated;
+        if (this.__removeLFfromTheNextNodeAt(null!, text, node)) {
             text += EndOfLine.LF;
-            this.__updatePieceMetadataWithDelta(node, -1, -1);
-            
-            // the original piece is empty, delete it.
-            if (node.piece.pieceLength === 0) {
-                toBeDeleted.push(node);
-            }
         }
-
+        
         // Inserting to the left (before).
         const pieces = this.__createNewPieces(text);
         let newnode = node;
@@ -1992,11 +1974,11 @@ export class PieceTable implements IPieceTable {
      * are about to insert with.
      * @returns If the operation was taken.
      */
-    private __removeLFfromTheNextNodeAt(node: PieceNode, text: string): boolean {
+    private __removeLFfromTheNextNodeAt(node: PieceNode, text: string, provided?: PieceNode): boolean {
         
         if (this.__shouldCheckCRLF() && this.__endWithCR(text)) {
             
-            const nextnode = PieceNode.next(node);
+            const nextnode = provided ? provided : PieceNode.next(node);
             if (this.__startWithLF(nextnode)) {
                 /**
                  * We are suppose to move the first character \n to the previous

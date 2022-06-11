@@ -15,7 +15,7 @@ export class TextBuffer implements ITextBuffer {
      * @complexity O(n)
      */
     public static readLineStarts(string: string, offset: number = 0): { cr: number; lf: number; crlf: number; linestart: number[] } {
-        const arr: number[] = [0]; // REVIEW: prof1: can we remove 0. prof2: tmp array
+        const arr: number[] = [0];
         let cr = 0;
         let lf = 0;
         let crlf = 0;
