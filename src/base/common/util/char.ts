@@ -9,6 +9,8 @@
  */
 export namespace Character {
 
+	export const ascii = '1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ\r\n';
+
 	/**
 	 * @description Determines if the given character is a high surrogate.
 	 * {@link https://www.informit.com/articles/article.aspx?p=2274038&seqNum=10}
