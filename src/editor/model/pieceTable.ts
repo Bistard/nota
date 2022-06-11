@@ -774,10 +774,7 @@ export class PieceTable implements IPieceTable { // REVIEW: make it template
             && addBufferLength !== 0 
             && this.__startWithLF(text) && this.__endWithCR(addBuffer.buffer)
         ) {
-            this._lastAddBufferPosition = {
-                lineNumber: this._lastAddBufferPosition.lineNumber,
-                lineOffset: this._lastAddBufferPosition.lineOffset + 1
-            };
+            (this._lastAddBufferPosition.lineOffset as any) += 1;
             pieceStartPosition = this._lastAddBufferPosition;
             addBufferLength += 1;
 
@@ -1058,7 +1055,7 @@ export class PieceTable implements IPieceTable { // REVIEW: make it template
      * @param node The given node.
      * @param text The plain text.
      */
-     private __insertRight(node: PieceNode, text: string): void {
+    private __insertRight(node: PieceNode, text: string): void {
         
         if (this.__removeLFfromTheNextNodeAt(node, text)) {
             /**
@@ -2073,18 +2070,26 @@ export class PieceTable implements IPieceTable { // REVIEW: make it template
 
         const toBeDeleted: PieceNode[] = [];
 		
-        // isolate '\r' from the prev piece
+        /** Isolate '\r' from the prev piece. */
+
 		const lineStart = this._buffer[prev.piece.bufferIndex]!.linestart;
         const prevLastLineOffset = prev.piece.end.lineNumber;
         let prevNewEndPosition: IBufferPosition;
         if (prev.piece.end.lineOffset === 0) {
-            // line ends with \r
+            /**
+             * If the line was ends with a '\r', we need to decrease the line 
+             * number by one.
+             */
             prevNewEndPosition = { 
                 lineNumber: prevLastLineOffset - 1, 
                 lineOffset: lineStart[prevLastLineOffset]! - lineStart[prevLastLineOffset - 1]! - 1 
             };
         } else {
-            // line ends with \r\n
+            /**
+             * If the line was ends with a '\r\n', after isolate the '\r', we
+             * still have the same ending line number, except the line offset
+             * should minus by one.
+             */
             prevNewEndPosition = { 
                 lineNumber: prevLastLineOffset, 
                 lineOffset: prev.piece.end.lineOffset - 1
@@ -2102,7 +2107,8 @@ export class PieceTable implements IPieceTable { // REVIEW: make it template
             toBeDeleted.push(prev);
         }
 
-        // isolate '\n' from the next piece
+        /** Isolate '\n' from the next piece. */
+
         const nextNewStartPosition = { 
             lineNumber: next.piece.start.lineNumber + 1, 
             lineOffset: 0 
@@ -2114,12 +2120,13 @@ export class PieceTable implements IPieceTable { // REVIEW: make it template
             nextNewStartPosition,
             next.piece.end
         );
-        this.__updatePieceMetadataWithDelta(prev, -1, -1);
+        this.__updatePieceMetadataWithDelta(next, -1, -1);
         if (next.piece.pieceLength === 0) {
             toBeDeleted.push(next);
         }
 
-        // create a new '\r\n' piece
+        /** Create a new '\r\n' piece. */
+
         const pieces = this.__createNewPieces('\r\n');
 		this.__insertAsSuccessor(prev, pieces[0]!);
 
@@ -2234,7 +2241,7 @@ export namespace PieceTableTester {
         
         process.stdout.write('[Content - preorder]\n');
         table.forEach(node => {
-            const content = ` [pieceLength: ${node.piece.pieceLength.toString()}, ${node.color === RBColor.BLACK ? 'B' : 'R'}, start: {${node.piece.start.lineNumber}, ${node.piece.start.lineOffset}}, end: {${node.piece.end.lineNumber}, ${node.piece.end.lineOffset}}, content: ${(table as any).__getNodeContent(node).replace(/\n/g, `\\n`).replace(/\r/g, `\\r`)}]`;
+            const content = ` [pieceLength: ${node.piece.pieceLength.toString()}, content: ${(table as any).__getNodeContent(node).replace(/\n/g, `\\n`).replace(/\r/g, `\\r`)}]`;
             process.stdout.write(content + '\n');
         });
         
@@ -2262,7 +2269,7 @@ export namespace PieceTableTester {
             process.stdout.write(' └─');
         }
 
-        const content = ` [pieceLength: ${node.piece.pieceLength.toString()}, ${node.color === RBColor.BLACK ? 'B' : 'R'}, start: {${node.piece.start.lineNumber}, ${node.piece.start.lineOffset}}, end: {${node.piece.end.lineNumber}, ${node.piece.end.lineOffset}}, content: ${(table as any).__getNodeContent(node).replace(/\n/g, `\\n`).replace(/\r/g, `\\r`)}]`;
+        const content = ` [length: ${node.piece.pieceLength.toString()}, lfcount: ${node.piece.lfCount}, color: ${node.color === RBColor.BLACK ? 'B' : 'R'}, start: {${node.piece.start.lineNumber}, ${node.piece.start.lineOffset}}, end: {${node.piece.end.lineNumber}, ${node.piece.end.lineOffset}}, left_size: ${node.leftSubtreeBufferLength}, left_lfcount: ${node.leftSubtreelfCount}, content: ${(table as any).__getNodeContent(node).replace(/\n/g, `\\n`).replace(/\r/g, `\\r`)}]`;
         process.stdout.write(content + '\n');
         printNode(table, node.left, depth + 1);
         printNode(table, node.right, depth + 1);
