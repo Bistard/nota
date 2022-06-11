@@ -11,9 +11,10 @@ export class TextBuffer implements ITextBuffer {
     /**
      * @description Read through the given string and counts all the newline characters.
      * @param string The given string.
+     * @param offset Gives the choice to add an offset to each linestart.
      * @complexity O(n)
      */
-    public static readLineStarts(string: string): { cr: number; lf: number; crlf: number; linestart: number[] } {
+    public static readLineStarts(string: string, offset: number = 0): { cr: number; lf: number; crlf: number; linestart: number[] } {
         const arr: number[] = [0]; // REVIEW: prof1: can we remove 0. prof2: tmp array
         let cr = 0;
         let lf = 0;
@@ -28,19 +29,19 @@ export class TextBuffer implements ITextBuffer {
             if (c === CharCode.CarriageReturn) {
                 // `/r/n`
                 if (i + 1 < strlen && string.charCodeAt(i + 1) === CharCode.LineFeed) {
-                    arr.push(i + 2);
+                    arr.push(i + 2 + offset);
                     i++;
                     crlf++;
                 } 
                 // `/r`
                 else {
-                    arr.push(i + 1);
+                    arr.push(i + 1 + offset);
                     cr++;
                 }
             } 
             // `/n`
             else if (c === CharCode.LineFeed) {
-                arr.push(i + 1);
+                arr.push(i + 1 + offset);
                 lf++;
             }
         }

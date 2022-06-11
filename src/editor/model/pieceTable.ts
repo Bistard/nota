@@ -243,7 +243,7 @@ NULL_NODE.right = NULL_NODE;
  * The more detailed idea can be found the blog of VSCode:
  *  - {@link https://code.visualstudio.com/blogs/2018/03/23/text-buffer-reimplementation}
  */
-export class PieceTable implements IPieceTable { // REVIEW: make it template
+export class PieceTable implements IPieceTable {
 
     // [field]
 
@@ -755,9 +755,9 @@ export class PieceTable implements IPieceTable { // REVIEW: make it template
         }
 
         const addBuffer = this._buffer[0]!;
-        const linestart = TextBuffer.readLineStarts(text).linestart;
         let addBufferLength = addBuffer.buffer.length;
-
+        const linestart = TextBuffer.readLineStarts(text, addBufferLength).linestart;
+        
         let pieceStartPosition = this._lastAddBufferPosition;
 
         /**
@@ -782,7 +782,7 @@ export class PieceTable implements IPieceTable { // REVIEW: make it template
             addBufferLength += 1;
 
             for (let i = 0; i < linestart.length; i++) {
-                linestart[i]! += addBufferLength;
+                linestart[i]! += 1;
             }
             
             (addBuffer.buffer as any) = addBuffer.buffer.concat('_', text);
@@ -790,13 +790,6 @@ export class PieceTable implements IPieceTable { // REVIEW: make it template
         } 
         // If not, simply update the as normal.
         else {
-            if (addBufferLength > 0) {
-                for (let i = 0; i < linestart.length; i++) {
-                    linestart[i]! += addBufferLength;
-                }
-            }
-
-            // adding to add-buffer, has to remove readonly here :(.
             (addBuffer.buffer as any) = addBuffer.buffer.concat(text);
             (addBuffer.linestart as any) = addBuffer.linestart.concat(linestart.splice(1));
         }
@@ -889,11 +882,8 @@ export class PieceTable implements IPieceTable { // REVIEW: make it template
         const addBufferStartOffset = addBuffer.buffer.length;
         (addBuffer.buffer as any) += text;
 
-        const linestart = TextBuffer.readLineStarts(text).linestart;
-        for (let i = 0; i < linestart.length; i++) {
-			linestart[i]! += addBufferStartOffset; // REVIEW: 可以再写一个func在读取得过程中就将offset给加上
-		}
-
+        const linestart = TextBuffer.readLineStarts(text, addBufferStartOffset).linestart;
+        
         /**
          * CRLF situation when current node ends with a CR and the inserting 
          * text starts with a LF. If yes, we bring the CR forward counted as
@@ -1944,9 +1934,7 @@ export class PieceTable implements IPieceTable { // REVIEW: make it template
         const desiredLineIndex = piece.start.lineNumber + lineIndex;
         
         if (desiredLineIndex > piece.end.lineNumber) {
-            // REVIEW: can I just return piece.pieceLength?
-            return linestart[piece.end.lineNumber]! + piece.end.lineOffset - linestart[piece.start.lineNumber]! - piece.start.lineOffset;
-            // return piece.pieceLength;
+            return piece.pieceLength;
         }
 
         return linestart[desiredLineIndex]! - linestart[piece.start.lineNumber]! - piece.start.lineOffset;
