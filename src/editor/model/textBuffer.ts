@@ -1,6 +1,6 @@
 import { Character, CharCode } from "src/base/common/util/char";
-import { EndOfLine, EndOfLineType, IPieceTable, ITextBuffer, ITextBufferBuilder } from "src/editor/common/model";
-import { PieceTable } from "src/editor/model/pieceTable";
+import { EndOfLine, EndOfLineType, ITextBuffer, ITextBufferBuilder } from "src/editor/common/model";
+import { PieceTableModel } from "src/editor/model/pieceTableModel";
 
 export class TextBuffer implements ITextBuffer {
     constructor(
@@ -59,7 +59,7 @@ export class TextBuffer implements ITextBuffer {
 /**
  * @class The receiving phrase will receive string chunks and builds
  * corresponding {@link TextBuffer}. The building phrase will finish the 
- * receiving phrase. The creating phrase will create a {@link IPieceTable}.
+ * receiving phrase. The creating phrase will create a {@link IPieceTableModel}.
  */
 export class TextBufferBuilder implements ITextBufferBuilder {
 
@@ -169,7 +169,7 @@ export class TextBufferBuilder implements ITextBufferBuilder {
         this._built = true;
     }
 
-    public create(normalizationEOL: boolean = false, defaultEOL: EndOfLineType = EndOfLineType.LF, force?: boolean): IPieceTable {
+    public create(normalizationEOL: boolean = false, defaultEOL: EndOfLineType = EndOfLineType.LF, force?: boolean): PieceTableModel {
         if (this._created) {
             throw new Error('TextBufferBuilder cannot create twice');
         }
@@ -180,7 +180,7 @@ export class TextBufferBuilder implements ITextBufferBuilder {
         }
 
         this._created = true;
-        return new PieceTable(this._chunks, normalizationEOL, eol);
+        return new PieceTableModel(this._chunks, normalizationEOL, eol);
     }
 
     // [private helper methods]

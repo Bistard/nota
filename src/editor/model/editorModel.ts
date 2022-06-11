@@ -59,7 +59,10 @@ export class EditorModel extends Disposable implements IEditorModel {
      * chunk. After read all the chunks, we build a {@link __TextBufferBuilder}
      * and returns it for later piece table usage.
      * 
-     * `await` this function guarantees the file will be completely read into the memory.
+     * `await` this function guarantees the file will be completely read into 
+     * the memory.
+     * 
+     * @note method will invoke `TextBufferBuilder.build()` automatically.
      */
     private async __createTextBufferBuilder(source: URI): Promise<TextBufferBuilder> {
 
@@ -72,6 +75,7 @@ export class EditorModel extends Disposable implements IEditorModel {
         });
 
         stream.on('end', () => {
+            builder.build();
             finishBuilding();
         });
 

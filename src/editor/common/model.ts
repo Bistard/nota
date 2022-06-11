@@ -1,3 +1,5 @@
+import { IDisposable } from "src/base/common/dispose";
+import { Register } from "src/base/common/event";
 import { IEditorPosition } from "src/editor/common/position";
 
 export const enum EndOfLineType {
@@ -58,7 +60,7 @@ export interface ITextBufferBuilder {
     build(): void;
 
     /**
-     * @description Creates a new {@link IPieceTable} upon the received chunks.
+     * @description Creates a new {@link IPieceTableModel} upon the received chunks.
      * @param normalizationEOL Replaces all the EOL in the buffers to:
      *                              - the most used EOL (more than half).
      *                              - provided `defaultEOL` if as the above 
@@ -75,7 +77,7 @@ export interface ITextBufferBuilder {
      * @throws An exception will be thrown if the caller creates twice or did 
      * not build yet.
      */
-    create(normalizationEOL?: boolean, defaultEOL?: EndOfLineType, force?: boolean): IPieceTable;
+    create(normalizationEOL?: boolean, defaultEOL?: EndOfLineType, force?: boolean): IPieceTableModel;
 }
 
 /**
@@ -263,5 +265,17 @@ export interface IPieceTable {
      * @complexity O(n), n - number of pieces in the table.
      */
     forEach(fn: (node: IPieceNode) => void): void;
+
+}
+
+/**
+ * An interface only for {@link PieceTableModel}.
+ */
+export interface IPieceTableModel extends Omit<IPieceTable, 'root'>, IDisposable {
+
+    /**
+     * Fires when the content is changed.
+     */
+    onDidChangeContent: Register<void>;
 
 }
