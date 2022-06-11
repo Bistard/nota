@@ -1,4 +1,5 @@
 import * as assert from 'assert';
+import { Random } from 'src/base/common/util/random';
 import { Pair } from 'src/base/common/util/type';
 import { EndOfLineType, IPieceTable } from 'src/editor/common/model';
 import { EditorPosition } from 'src/editor/common/position';
@@ -808,7 +809,7 @@ suite('PieceTable-test - insert / delete', () => {
 		PieceTableTester.assertPieceTable(table);
 	});
 
-    test('random insert 1', () => {
+    test('insert 1', () => {
 		let str = '';
 		let table = buildPieceTable(['']);
 		table.insertAt(0, 'ceLPHmFzvCtFeHkCBej ');
@@ -826,7 +827,7 @@ suite('PieceTable-test - insert / delete', () => {
         PieceTableTester.assertPieceTable(table);
 	});
 
-    test('random insert 2', () => {
+    test('insert 2', () => {
 		let str = '';
 		let table = buildPieceTable(['']);
 		table.insertAt(0, 'VgPG ');
@@ -844,7 +845,7 @@ suite('PieceTable-test - insert / delete', () => {
 		PieceTableTester.assertPieceTable(table);
 	});
 
-	test('random insert 3', () => {
+	test('insert 3', () => {
 		let str = '';
 		let table = buildPieceTable(['']);
 		table.insertAt(0, 'gYSz');
@@ -880,7 +881,7 @@ suite('PieceTable-test - insert / delete', () => {
 		PieceTableTester.assertPieceTable(table);
 	});
 
-    test('random delete 1', () => {
+    test('delete 1', () => {
 		let str = '';
 		let table = buildPieceTable(['']);
 
@@ -913,7 +914,7 @@ suite('PieceTable-test - insert / delete', () => {
 		PieceTableTester.assertPieceTable(table);
 	});
 
-	test('random delete 2', () => {
+	test('delete 2', () => {
 		let str = '';
 		let table = buildPieceTable(['']);
 
@@ -939,7 +940,7 @@ suite('PieceTable-test - insert / delete', () => {
 		PieceTableTester.assertPieceTable(table);
 	});
 
-	test('random delete 3', () => {
+	test('delete 3', () => {
 		let str = '';
 		let table = buildPieceTable(['']);
 		table.insertAt(0, 'PqM');
@@ -972,7 +973,7 @@ suite('PieceTable-test - insert / delete', () => {
 		PieceTableTester.assertPieceTable(table);
 	});
 
-    test('random insert/delete \\r bug 1', () => {
+    test('insert/delete \\r bug 1', () => {
 		let str = 'a';
 		let table = buildPieceTable(['a']);
 		table.deleteAt(0, 1);
@@ -998,7 +999,7 @@ suite('PieceTable-test - insert / delete', () => {
 		PieceTableTester.assertPieceTable(table);
 	});
 
-	test('random insert/delete \\r bug 2', () => {
+	test('insert/delete \\r bug 2', () => {
 		let str = 'a';
 		let table = buildPieceTable(['a']);
 		table.insertAt(1, '\naa\r');
@@ -1026,7 +1027,7 @@ suite('PieceTable-test - insert / delete', () => {
 		PieceTableTester.assertPieceTable(table);
 	});
 
-	test('random insert/delete \\r bug 3', () => {
+	test('insert/delete \\r bug 3', () => {
 		let str = 'a';
 		let table = buildPieceTable(['a']);
 		table.insertAt(0, '\r\na\r');
@@ -1055,7 +1056,7 @@ suite('PieceTable-test - insert / delete', () => {
 		PieceTableTester.assertPieceTable(table);
 	});
 
-	test('random insert/delete \\r bug 4', () => {
+	test('insert/delete \\r bug 4', () => {
 		let str = 'a';
 		let table = buildPieceTable(['a']);
 		table.deleteAt(0, 1);
@@ -1083,7 +1084,7 @@ suite('PieceTable-test - insert / delete', () => {
 		PieceTableTester.assertPieceTable(table);
 	});
 
-	test('random insert/delete \\r bug 5', () => {
+	test('insert/delete \\r bug 5', () => {
 		let str = '';
 		let table = buildPieceTable(['']);
 		
@@ -1126,6 +1127,19 @@ suite('PieceTable-test - insert / delete', () => {
 
 });
 
+const splitLines = (str: string) => str.split(/\r\n|\r|\n/);
+
+const testLinesContent = function (str: string, table: IPieceTable) {
+	let lines = str.split(/\r\n|\r|\n/);
+	assert.strictEqual(table.getLineCount(), lines.length);
+	assert.strictEqual(table.getRawContent(), str);
+	for (let i = 0; i < lines.length; i++) {
+		const line = table.getLine(i);
+		const actualLine = lines[i]!;
+		assert.strictEqual(line, actualLine);
+	}
+};
+
 suite('PieceTable-test - CRLF', () => {
 
     test('delete CR in CRLF 1', () => {
@@ -1146,7 +1160,7 @@ suite('PieceTable-test - CRLF', () => {
 		PieceTableTester.assertPieceTable(table);
 	});
 
-	test('random bug 1', () => {
+	test('CRLF 1', () => {
 		let str = '';
 		let table = buildPieceTable([''], false);
 		table.insertAt(0, '\n\n\r\r');
@@ -1162,7 +1176,8 @@ suite('PieceTable-test - CRLF', () => {
 		assert.strictEqual(table.getLineCount(), lines.length);
 		PieceTableTester.assertPieceTable(table);
 	});
-	test('random bug 2', () => {
+
+	test('CRLF 2', () => {
 		let str = '';
 		let table = buildPieceTable([''], false);
 
@@ -1177,7 +1192,8 @@ suite('PieceTable-test - CRLF', () => {
 		assert.strictEqual(table.getLineCount(), lines.length);
 		PieceTableTester.assertPieceTable(table);
 	});
-	test('random bug 3', () => {
+
+	test('CRLF 3', () => {
 		let str = '';
 		let table = buildPieceTable([''], false);
 
@@ -1199,18 +1215,7 @@ suite('PieceTable-test - CRLF', () => {
 		PieceTableTester.assertPieceTable(table);
 	});
 
-    const testLinesContent = function (str: string, table: IPieceTable) {
-        let lines = str.split(/\r\n|\r|\n/);
-        assert.strictEqual(table.getLineCount(), lines.length);
-        assert.strictEqual(table.getRawContent(), str);
-        for (let i = 0; i < lines.length; i++) {
-            const line = table.getLine(i);
-            const actualLine = lines[i]!;
-            assert.strictEqual(line, actualLine);
-        }
-    };
-
-	test('random bug 4', () => {
+	test('CRLF 4', () => {
 		let str = '';
 		let table = buildPieceTable([''], false);
 
@@ -1238,7 +1243,7 @@ suite('PieceTable-test - CRLF', () => {
 		PieceTableTester.assertPieceTable(table);
 	});
 
-	test('random bug 5', () => {
+	test('CRLF 5', () => {
 		let str = '';
 		let table = buildPieceTable([''], false);
 
@@ -1282,7 +1287,7 @@ suite('PieceTable-test - CRLF', () => {
 		PieceTableTester.assertPieceTable(table);
 	});
 
-	test('random bug 6', () => {
+	test('CRLF 6', () => {
 		let str = '';
 		let table = buildPieceTable([''], false);
 
@@ -1307,7 +1312,7 @@ suite('PieceTable-test - CRLF', () => {
 		PieceTableTester.assertPieceTable(table);
 	});
 	
-	test('random bug 7', () => {
+	test('CRLF 7', () => {
 		let str = '';
 		let table = buildPieceTable([''], false);
 
@@ -1323,7 +1328,7 @@ suite('PieceTable-test - CRLF', () => {
 		PieceTableTester.assertPieceTable(table);
 	});
 
-    test('random bug 8', () => {
+    test('CRLF 8', () => {
 		let str = '';
 		let table = buildPieceTable([''], false);
 
@@ -1347,7 +1352,7 @@ suite('PieceTable-test - CRLF', () => {
 		PieceTableTester.assertPieceTable(table);
 	});
 
-	test('random bug 9', () => {
+	test('CRLF 9', () => {
 		let str = '';
 		let table = buildPieceTable([''], false);
 
@@ -1375,7 +1380,7 @@ suite('PieceTable-test - CRLF', () => {
 		PieceTableTester.assertPieceTable(table);
 	});
 
-	test('random bug 10', () => {
+	test('CRLF 10', () => {
 		let str = '';
 		let table = buildPieceTable([''], false);
 
@@ -1396,14 +1401,13 @@ suite('PieceTable-test - CRLF', () => {
 		PieceTableTester.assertPieceTable(table);
 	});
 
-    const splitLines = (str: string) => str.split(/\r\n|\r|\n/);
-
 	test('delete CR in CRLF 1', () => {
 		let table = buildPieceTable(['a\r\nb'], false);
 		table.deleteAt(2, 2);
 		assert.strictEqual(table.getLineCount(), 2);
 		PieceTableTester.assertPieceTable(table);
 	});
+
 	test('delete CR in CRLF 2', () => {
 		let table = buildPieceTable(['a\r\nb']);
 		table.deleteAt(0, 2);
@@ -1412,7 +1416,7 @@ suite('PieceTable-test - CRLF', () => {
 		PieceTableTester.assertPieceTable(table);
 	});
 
-	test('random bug 1', () => {
+	test('CRLF new 1', () => {
 		let str = '\n\n\r\r';
 		let table = buildPieceTable(['\n\n\r\r'], false);
 		table.insertAt(1, '\r\n\r\n');
@@ -1426,7 +1430,8 @@ suite('PieceTable-test - CRLF', () => {
 		assert.strictEqual(table.getLineCount(), lines.length);
 		PieceTableTester.assertPieceTable(table);
 	});
-	test('random bug 2', () => {
+
+	test('CRLF new 2', () => {
 		let str = '\n\r\n\r';
 		let table = buildPieceTable(['\n\r\n\r'], false);
 
@@ -1440,7 +1445,7 @@ suite('PieceTable-test - CRLF', () => {
 		PieceTableTester.assertPieceTable(table);
 	});
 
-	test('random bug 3', () => {
+	test('CRLF new 3', () => {
 		let str = '\n\n\n\r';
 		let table = buildPieceTable(['\n\n\n\r'], false);
 
@@ -1460,7 +1465,7 @@ suite('PieceTable-test - CRLF', () => {
 		PieceTableTester.assertPieceTable(table);
 	});
 
-	test('random bug 4', () => {
+	test('CRLF new 4', () => {
 		let str = '\n\n\n\n';
 		let table = buildPieceTable(['\n\n\n\n'], false);
 
@@ -1477,7 +1482,7 @@ suite('PieceTable-test - CRLF', () => {
 		PieceTableTester.assertPieceTable(table);
 	});
 
-	test('random bug 5', () => {
+	test('CRLF new 5', () => {
 		let str = '\n\n\n\n';
 		let table = buildPieceTable(['\n\n\n\n'], false);
 
@@ -1502,7 +1507,7 @@ suite('PieceTable-test - CRLF', () => {
 		PieceTableTester.assertPieceTable(table);
 	});
 
-	test('random bug 6', () => {
+	test('CRLF new 6', () => {
 		let str = '\n\r\r\n';
 		let table = buildPieceTable(['\n\r\r\n'], false);
 
@@ -1525,7 +1530,7 @@ suite('PieceTable-test - CRLF', () => {
 		PieceTableTester.assertPieceTable(table);
 	});
 
-	test('random bug 7', () => {
+	test('CRLF new 7', () => {
 		let str = '\r\n\n\r';
 		let table = buildPieceTable(['\r\n\n\r'], false);
 
@@ -1540,7 +1545,7 @@ suite('PieceTable-test - CRLF', () => {
 		PieceTableTester.assertPieceTable(table);
 	});
 
-	test('random bug 8', () => {
+	test('CRLF new 8', () => {
 		let str = '\r\r\n\n';
 		let table = buildPieceTable(['\r\r\n\n'], false);
 
@@ -1554,7 +1559,7 @@ suite('PieceTable-test - CRLF', () => {
 		PieceTableTester.assertPieceTable(table);
 	});
 
-	test('random bug 9', () => {
+	test('CRLF new 9', () => {
 		let str = 'qneW';
 		let table = buildPieceTable(['qneW'], false);
 
@@ -1573,7 +1578,7 @@ suite('PieceTable-test - CRLF', () => {
 		PieceTableTester.assertPieceTable(table);
 	});
 
-	test('random bug 10', () => {
+	test('CRLF new 10', () => {
 		let str = '\n\n\n\n';
 		let table = buildPieceTable(['\n\n\n\n'], false);
 
@@ -1592,7 +1597,7 @@ suite('PieceTable-test - CRLF', () => {
 		PieceTableTester.assertPieceTable(table);
 	});
 
-	test('random chunk bug 1', () => {
+	test('CRLF new 11', () => {
 		let table = buildPieceTable(['\n\r\r\n\n\n\r\n\r'], false);
 		let str = '\n\r\r\n\n\n\r\n\r';
 		table.deleteAt(0, 2);
@@ -1607,7 +1612,7 @@ suite('PieceTable-test - CRLF', () => {
 		PieceTableTester.assertPieceTable(table);
 	});
 
-	test('random chunk bug 2', () => {
+	test('CRLF new 12', () => {
 		let table = buildPieceTable([
 			'\n\r\n\n\n\r\n\r\n\r\r\n\n\n\r\r\n\r\n'
 		], false);
@@ -1628,7 +1633,7 @@ suite('PieceTable-test - CRLF', () => {
 		PieceTableTester.assertPieceTable(table);
 	});
 
-	test('random chunk bug 3', () => {
+	test('CRLF new 13', () => {
 		let table = buildPieceTable(['\r\n\n\n\n\n\n\r\n'], false);
 		let str = '\r\n\n\n\n\n\n\r\n';
 		table.insertAt(4, '\n\n\r\n\r\r\n\n\r');
@@ -1645,7 +1650,7 @@ suite('PieceTable-test - CRLF', () => {
 		PieceTableTester.assertPieceTable(table);
 	});
 
-	test('random chunk bug 4', () => {
+	test('CRLF new 14', () => {
 		let table = buildPieceTable(['\n\r\n\r'], false);
 		let str = '\n\r\n\r';
 		table.insertAt(4, '\n\n\r\n');
@@ -1657,4 +1662,141 @@ suite('PieceTable-test - CRLF', () => {
 		testLinesContent(str, table);
 		PieceTableTester.assertPieceTable(table);
 	});
+
+	test('CRLF new 15', function () {
+		let table = buildPieceTable([''], false);
+		let str = '';
+
+		table.insertAt(0, 'WUZ\nXVZY\n');
+		str = str.substring(0, 0) + 'WUZ\nXVZY\n' + str.substring(0);
+		table.insertAt(8, '\r\r\nZXUWVW');
+		str = str.substring(0, 8) + '\r\r\nZXUWVW' + str.substring(8);
+		table.deleteAt(10, 7);
+		str = str.substring(0, 10) + str.substring(10 + 7);
+		table.deleteAt(10, 1);
+		str = str.substring(0, 10) + str.substring(10 + 1);
+		table.insertAt(4, 'VX\r\r\nWZVZ');
+		str = str.substring(0, 4) + 'VX\r\r\nWZVZ' + str.substring(4);
+		table.deleteAt(11, 3);
+		str = str.substring(0, 11) + str.substring(11 + 3);
+		table.deleteAt(12, 4);
+		str = str.substring(0, 12) + str.substring(12 + 4);
+		table.deleteAt(8, 0);
+		str = str.substring(0, 8) + str.substring(8 + 0);
+		table.deleteAt(10, 2);
+		str = str.substring(0, 10) + str.substring(10 + 2);
+		table.insertAt(0, 'VZXXZYZX\r');
+		str = str.substring(0, 0) + 'VZXXZYZX\r' + str.substring(0);
+
+		assert.strictEqual(table.getRawContent(), str);
+
+		testLinesContent(str, table);
+		PieceTableTester.assertPieceTable(table);
+	});
+
+});
+
+suite('PieceTable-test - random', () => {
+
+	test('random insert / delete', () => {
+		let str = '';
+		let table = buildPieceTable([str], false);
+
+		// let output = '';
+		for (let i = 0; i < 1000; i++) {
+			if (Math.random() < 0.6) {
+				// random insert
+				let text = Random.getRandString(100);
+				let pos = Random.getRandInt(str.length + 1);
+				table.insertAt(pos, text);
+				str = str.substring(0, pos) + text + str.substring(pos);
+				// output += `table.insertAt(${pos}, '${text.replace(/\n/g, '\\n').replace(/\r/g, '\\r')}');\n`;
+				// output += `str = str.substring(0, ${pos}) + '${text.replace(/\n/g, '\\n').replace(/\r/g, '\\r')}' + str.substring(${pos});\n`;
+			} else {
+				// random delete
+				let pos = Random.getRandInt(str.length);
+				let length = Math.min(
+					str.length - pos,
+					Math.floor(Math.random() * 10)
+				);
+				table.deleteAt(pos, length);
+				str = str.substring(0, pos) + str.substring(pos + length);
+				// output += `table.deleteAt(${pos}, ${length});\n`;
+				// output += `str = str.substring(0, ${pos}) + str.substring(${pos} + ${length});\n`
+			}
+		}
+		// console.log(output);
+
+		assert.strictEqual(table.getRawContent(), str);
+
+		testLinesContent(str, table);
+		PieceTableTester.assertPieceTable(table);
+	});
+
+	test('random chunks', () => {
+		
+		let chunks: string[] = [];
+		for (let i = 0; i < 5; i++) {
+			chunks.push(Random.getRandString(1000));
+		}
+
+		let table = buildPieceTable(chunks, false);
+		let str = chunks.join('');
+
+		for (let i = 0; i < 1000; i++) {
+			if (Math.random() < 0.6) {
+				// insert
+				let text = Random.getRandString(100);
+				let pos = Random.getRandInt(str.length + 1);
+				table.insertAt(pos, text);
+				str = str.substring(0, pos) + text + str.substring(pos);
+			} else {
+				// delete
+				let pos = Random.getRandInt(str.length);
+				let length = Math.min(
+					str.length - pos,
+					Math.floor(Math.random() * 10)
+				);
+				table.deleteAt(pos, length);
+				str = str.substring(0, pos) + str.substring(pos + length);
+			}
+		}
+
+		assert.strictEqual(table.getRawContent(), str);
+		testLinesContent(str, table);
+		PieceTableTester.assertPieceTable(table);
+	});
+
+	test('random chunks 2', () => {
+		let chunks: string[] = [];
+		chunks.push(Random.getRandString(1000));
+
+		let table = buildPieceTable(chunks, false);
+		let str = chunks.join('');
+
+		for (let i = 0; i < 50; i++) {
+			if (Math.random() < 0.6) {
+				// insert
+				let text = Random.getRandString(30);
+				let pos = Random.getRandInt(str.length + 1);
+				table.insertAt(pos, text);
+				str = str.substring(0, pos) + text + str.substring(pos);
+			} else {
+				// delete
+				let pos = Random.getRandInt(str.length);
+				let length = Math.min(
+					str.length - pos,
+					Math.floor(Math.random() * 10)
+				);
+				table.deleteAt(pos, length);
+				str = str.substring(0, pos) + str.substring(pos + length);
+			}
+			testLinesContent(str, table);
+		}
+
+		assert.strictEqual(table.getRawContent(), str);
+		testLinesContent(str, table);
+		PieceTableTester.assertPieceTable(table);
+	});
+
 });

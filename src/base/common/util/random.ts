@@ -11,7 +11,7 @@ export namespace Random {
      * range is [0, bound).
      * @param bound The upper bound.
      */
-    export function randomInt(bound: number): number {
+    export function getRandInt(bound: number): number {
         return (Math.random() * bound) | 0;
     }
 
@@ -20,7 +20,7 @@ export namespace Random {
      * @note See all the possible characters at {@link Character.ascii}.
      */
     export function getRandChar(): string {
-        return Character.ascii[randomInt(Character.ascii.length)]!;
+        return Character.ascii[getRandInt(Character.ascii.length)]!;
     }
 
     /**

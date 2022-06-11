@@ -777,7 +777,7 @@ export class PieceTable implements IPieceTable { // REVIEW: make it template
             this._lastAddBufferPosition = {
 				lineNumber: this._lastAddBufferPosition.lineNumber,
 				lineOffset: this._lastAddBufferPosition.lineOffset + 1
-			}; // REVIEW: just do the assignment
+			};
             pieceStartPosition = this._lastAddBufferPosition;
             addBufferLength += 1;
 
@@ -836,7 +836,6 @@ export class PieceTable implements IPieceTable { // REVIEW: make it template
         const BUFFER_SIZE = PieceTable.AVERAGE_BUFFER_SIZE;
 
         // split into pieces for large text
-        // REVIEW: refactor
         while (text.length > BUFFER_SIZE) {
             const lastChar = this.getCharcodeAt(BUFFER_SIZE - 1);
             let partText: string = '';
@@ -1879,7 +1878,7 @@ export class PieceTable implements IPieceTable { // REVIEW: make it template
         let midEndLineOffset = 0;
 
         while (low <= high) {
-            mid = Math.floor((low + high) / 2); // REVIEW: use `|` to floor, faster.
+            mid = ((low + high) / 2) | 0;
 
             midStartLineOffset = linestart[mid]!;
             
