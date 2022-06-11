@@ -2,7 +2,6 @@ import { Character, CharCode } from "src/base/common/util/char";
 import { EndOfLine, IBufferPosition, IPiece, IPiecePosition, IPieceTable, IPieceNode, RBColor, IPieceNodePosition } from "src/editor/common/model";
 import { EditorPosition, IEditorPosition } from "src/editor/common/position";
 import { TextBuffer } from "src/editor/model/textBuffer";
-import * as assert from 'assert';
 
 /**
  * @internal
@@ -2139,119 +2138,11 @@ export class PieceTable implements IPieceTable {
 }
 
 /**
- * @namespace PieceTableTester A namespace that contains testing code for 
- * {@link PieceTable}. Should only be used in `pieceTable.test.ts`.
- * 
- * // REVIEW: move to .test.ts
+ * @namespace PieceTableInternal Should ONLY be used in `pieceTable.test.ts`. 
  */
-export namespace PieceTableTester {
-    
-    export function assertPieceTable(T: IPieceTable): void {
-        assert.strictEqual(NULL_NODE.color, RBColor.BLACK);
-        assert.strictEqual(NULL_NODE.parent, NULL_NODE);
-        assert.strictEqual(NULL_NODE.left, NULL_NODE);
-        assert.strictEqual(NULL_NODE.right, NULL_NODE);
-        assert.strictEqual(NULL_NODE.leftSubtreeBufferLength, 0);
-        assert.strictEqual(NULL_NODE.leftSubtreelfCount, 0);
-        assertValidTree(T);
-    }
+export namespace PieceTableInternal {
 
-    function assertValidTree(T: IPieceTable): void {
-        if (T.root === NULL_NODE) {
-            return;
-        }
-        assert.strictEqual(T.root.color, RBColor.BLACK);
-        assert.strictEqual(blackDepth(T.root.left), blackDepth(T.root.right));
-        assertValidNode(T.root);
-    }
-
-    function assertValidNode(n: IPieceNode): { size: number; lf_cnt: number } {
-        if (n === NULL_NODE) {
-            return { size: 0, lf_cnt: 0 };
-        }
-
-        let l = n.left;
-        let r = n.right;
-
-        if (n.color === RBColor.RED) {
-            assert.strictEqual(l.color, RBColor.BLACK);
-            assert.strictEqual(r.color, RBColor.BLACK);
-        }
-
-        let actualLeft = assertValidNode(l);
-        assert.strictEqual(actualLeft.lf_cnt, n.leftSubtreelfCount);
-        assert.strictEqual(actualLeft.size, n.leftSubtreeBufferLength);
-        let actualRight = assertValidNode(r);
-
-        return { size: n.leftSubtreeBufferLength + n.piece.pieceLength + actualRight.size, lf_cnt: n.leftSubtreelfCount + n.piece.lfCount + actualRight.lf_cnt };
-    }
-
-    function blackDepth(n: IPieceNode): number {
-        if (n === NULL_NODE) {
-            return 1;
-        }
-        assert.strictEqual(blackDepth(n.left), blackDepth(n.right));
-        return (n.color === RBColor.BLACK ? 1 : 0) + blackDepth(n.left);
-    }
-
-    export function printTree(table: IPieceTable, title?: string): void {
-        const length = depth(table.root);
-        process.stdout.write('===========================================================');
-        for (let i = 0; i < length; i++) {
-            process.stdout.write('==');
-        }
-        process.stdout.write('\n');
-
-        if (title) {
-            process.stdout.write(`[Title - ${title}]\n`);
-        } else {
-            process.stdout.write(`[Title - None]\n`);
-        }
-
-        process.stdout.write('[Tree]\n');
-        printNode(table, table.root, 0);
-        
-        process.stdout.write('[Content - preorder]\n');
-        table.forEach(node => {
-            const content = ` [pieceLength: ${node.piece.pieceLength.toString()}, content: ${(table as any).__getNodeContent(node).replace(/\n/g, `\\n`).replace(/\r/g, `\\r`)}]`;
-            process.stdout.write(content + '\n');
-        });
-        
-        process.stdout.write('===========================================================');
-        for (let i = 0; i < length; i++) {
-            process.stdout.write('==');
-        }
-        process.stdout.write('\n');
-    }
-
-    function printNode(table: IPieceTable, node: IPieceNode, depth: number): void {
-        
-        if (node === NULL_NODE) {
-            return;
-        }
-
-        for (let i = 0; i < depth; i++) {
-            process.stdout.write('  ');
-        }
-        
-        if (node === node.parent.left) {
-            process.stdout.write(' ├─');
-        }
-        else if (node === node.parent.right) {
-            process.stdout.write(' └─');
-        }
-
-        const content = ` [length: ${node.piece.pieceLength.toString()}, lfcount: ${node.piece.lfCount}, color: ${node.color === RBColor.BLACK ? 'B' : 'R'}, start: {${node.piece.start.lineNumber}, ${node.piece.start.lineOffset}}, end: {${node.piece.end.lineNumber}, ${node.piece.end.lineOffset}}, left_size: ${node.leftSubtreeBufferLength}, left_lfcount: ${node.leftSubtreelfCount}, content: ${(table as any).__getNodeContent(node).replace(/\n/g, `\\n`).replace(/\r/g, `\\r`)}]`;
-        process.stdout.write(content + '\n');
-        printNode(table, node.left, depth + 1);
-        printNode(table, node.right, depth + 1);
-    }
-
-    function depth(n: IPieceNode): number {
-        if (n === NULL_NODE) {
-            return 1;
-        }
-        return Math.max(depth(n.left), depth(n.right)) + 1;
-    }
+    /** @warn Should ONLY be used in `pieceTable.test.ts`.  */
+    export const NULL = NULL_NODE;
 
 }
