@@ -777,14 +777,14 @@ export class PieceTable implements IPieceTable { // REVIEW: make it template
             this._lastAddBufferPosition = {
 				lineNumber: this._lastAddBufferPosition.lineNumber,
 				lineOffset: this._lastAddBufferPosition.lineOffset + 1
-			};
+			}; // REVIEW: just do the assignment
             pieceStartPosition = this._lastAddBufferPosition;
             addBufferLength += 1;
 
             for (let i = 0; i < linestart.length; i++) {
                 linestart[i]! += addBufferLength;
             }
-
+            
             (addBuffer.buffer as any) = addBuffer.buffer.concat('_', text);
             (addBuffer.linestart as any) = addBuffer.linestart.concat(linestart.splice(1));
         } 
@@ -974,7 +974,8 @@ export class PieceTable implements IPieceTable { // REVIEW: make it template
         for (let i = pieces.length - 1; i >= 0; i--) {
             newnode = this.__insertAsPredecessor(newnode, pieces[i]!);
         }
-        
+        this.__validateCRLFwithPrevNode(newnode);
+
         // delete these nodes
         this.__deleteNodes(toBeDeleted);
     }
@@ -1880,7 +1881,7 @@ export class PieceTable implements IPieceTable { // REVIEW: make it template
         let midEndLineOffset = 0;
 
         while (low <= high) {
-            mid = Math.floor((low + high) / 2);
+            mid = Math.floor((low + high) / 2); // REVIEW: use `|` to floor, faster.
 
             midStartLineOffset = linestart[mid]!;
             
@@ -1947,8 +1948,8 @@ export class PieceTable implements IPieceTable { // REVIEW: make it template
         
         if (desiredLineIndex > piece.end.lineNumber) {
             // REVIEW: can I just return piece.pieceLength?
-            // return linestart[piece.end.lineNumber]! + piece.end.lineOffset - linestart[piece.start.lineNumber]! - piece.start.lineOffset;;
-            return piece.pieceLength;
+            return linestart[piece.end.lineNumber]! + piece.end.lineOffset - linestart[piece.start.lineNumber]! - piece.start.lineOffset;;
+            // return piece.pieceLength;
         }
 
         return linestart[desiredLineIndex]! - linestart[piece.start.lineNumber]! - piece.start.lineOffset;
