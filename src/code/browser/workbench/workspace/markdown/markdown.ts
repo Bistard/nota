@@ -131,9 +131,9 @@ export class MarkdownComponent extends Component implements IMarkdownService {
             const parentElement = element.parentElement?.tagName;
             const menu = document.querySelector(".toastui-editor-context-menu") as HTMLElement;
             
-            if (tagName == 'TD' || tagName == 'TH') {
+            if (tagName === 'TD' || tagName === 'TH') {
 
-            } else if (tagName == 'P') {
+            } else if (tagName === 'P') {
                 menu.style.display = 'none';
                 this.contextMenuService.createContextMenu(ContextMenuType.editor, coordinate);
             } else {

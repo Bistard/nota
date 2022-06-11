@@ -433,7 +433,7 @@ suite('FileService-disk-unbuffered-test', () => {
                 cnt++;
             });
             stream.on('end', () => {
-                assert.strictEqual(cnt, 4);
+                assert.strictEqual(cnt, (1024 * 1000) / FileService.bufferSize);
             });
             stream.on('error', (err) => {
                 assert.strictEqual(false, true);

@@ -161,13 +161,13 @@ export class ActionBarComponent extends Component implements IActionBarService {
         }
         
         // none of action button is focused, focus the button.
-        if (this._currButtonType == ActionType.NONE) {
+        if (this._currButtonType === ActionType.NONE) {
             this._currButtonType = buttonType;
             button.element.classList.add('action-button-focus');
         } 
         
         // if the current focused button is clicked again, remove focus.
-        else if (this._currButtonType == buttonType) {
+        else if (this._currButtonType === buttonType) {
             this._currButtonType = ActionType.NONE;
             button.element.classList.remove('action-button-focus');
         } 
