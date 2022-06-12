@@ -1,6 +1,7 @@
 import { Disposable, IDisposable } from "src/base/common/dispose";
 import { IEditorModel } from "src/editor/common/model";
 import { EditorItemProvider } from "src/editor/viewModel/editorItem";
+import { EditorViewModelEventEmitter } from "src/editor/viewModel/editorViewModelEventEmitter";
 
 /**
  * An interface only for {@link EditorViewModel}.
@@ -24,15 +25,19 @@ export class EditorViewModel extends Disposable implements IEditorViewModel {
 
     private _itemProvider: EditorItemProvider;
 
+    private _eventEmitter: EditorViewModelEventEmitter;
+
     // [constructor]
 
     constructor(
         model: IEditorModel,
     ) {
         super();
+        
         this._model = model;
-
         this._itemProvider = new EditorItemProvider();
+        this._eventEmitter = new EditorViewModelEventEmitter();
+
 
         this.__registerModelListeners();
     }
@@ -50,8 +55,8 @@ export class EditorViewModel extends Disposable implements IEditorViewModel {
      */
     private __registerModelListeners(): void {
         
-        this._model.onDidChangeContent(() => {
-
+        this._model.onDidChangeContent((changeEvents) => {
+            
         });
     }
 

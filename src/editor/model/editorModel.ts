@@ -16,6 +16,7 @@ export class EditorModel extends Disposable implements IEditorModel {
 
     // [event]
 
+    // REVIEW: do we really need this? or one single onDidChangeContent will be fine
     private readonly _onDidFinishBuild = this.__register(new Emitter<boolean>());
     public readonly onDidFinishBuild = this._onDidFinishBuild.registerListener;
 
@@ -42,6 +43,7 @@ export class EditorModel extends Disposable implements IEditorModel {
 
     // [public methods]
 
+    // REVIEW: maybe we need a URI and do it asynchronous.
     public replaceModelWith(text: string): void {
         this.__assertModel();
         

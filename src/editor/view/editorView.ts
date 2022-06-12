@@ -1,17 +1,29 @@
 import { FastElement } from "src/base/browser/basic/fastElement";
 import { IListWidget, ListWidget } from "src/base/browser/secondary/listWidget/listWidget";
-import { Disposable, IDisposable } from "src/base/common/dispose";
+import { Disposable } from "src/base/common/dispose";
+import { IEditorView } from "src/editor/common/view";
 import { EditorItemRenderer, HeadingRenderer } from "src/editor/view/editorRenderer";
+import { EditorViewEventHandler } from "src/editor/view/editorViewHandler";
 import { EditorItem } from "src/editor/viewModel/editorItem";
 import { IEditorViewModel } from "src/editor/viewModel/editorViewModel";
 
 /**
- * An interface only for {@link EditorView}.
+ * @class // TODO
  */
- export interface IEditorView extends IDisposable {
+export class EditorViewPart extends EditorViewEventHandler {
 
-    layout(): void;
+    public readonly viewModel: IEditorViewModel;
 
+    constructor(viewModel: IEditorViewModel) {
+        super();
+        this.viewModel = viewModel;
+    }
+
+    public addEventHandler(hanlder: EditorViewEventHandler): void {
+
+    }
+
+    
 }
 
 /**
