@@ -51,6 +51,8 @@ export class EditorModel extends Disposable implements IEditorModel {
     private async __createModel(source: URI): Promise<void> {
         
         const builder = await this.__createTextBufferBuilder(source);
+        const model = builder.create();
+        console.log(model.getContent());
 
     }
 
