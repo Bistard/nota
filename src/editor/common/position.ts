@@ -5,9 +5,9 @@ export interface IEditorPosition {
      */
     readonly lineNumber: number;
 
-     /**
-      * Line offset (zero-based). First character in a line.
-      */
+    /**
+     * Line offset (zero-based). First character in a line.
+     */
     readonly lineOffset: number;
 }
 

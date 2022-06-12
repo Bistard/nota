@@ -1,4 +1,4 @@
-import { IDisposable } from "src/base/common/dispose";
+import { Disposable, IDisposable } from "src/base/common/dispose";
 import { Register } from "src/base/common/event";
 import { IEditorPosition } from "src/editor/common/position";
 
@@ -271,7 +271,7 @@ export interface IPieceTable {
 /**
  * An interface only for {@link PieceTableModel}.
  */
-export interface IPieceTableModel extends Omit<IPieceTable, 'root'>, IDisposable {
+export interface IPieceTableModel extends Omit<IPieceTable, 'root'>, Disposable {
 
     /**
      * Fires when the content is changed.
@@ -282,5 +282,61 @@ export interface IPieceTableModel extends Omit<IPieceTable, 'root'>, IDisposable
      * @description Returns the a instance of {@link IPieceTable}.
      */
     getPieceTable(): IPieceTable;
+
+}
+
+/**
+ * An interface only for {@link EditorModel}.
+ */
+export interface IEditorModel extends IDisposable {
+
+    /** 
+     * Fires when the model is build whether successed or failed.
+     */
+    onDidFinishBuild: Register<boolean>;
+
+    /** 
+     * Fires when the content of the text model is changed. 
+     */
+    onDidChangeContent: Register<void>;
+
+    /**
+     * @description Replace the entire model with the provided text.
+     * @param text The new text.
+     */
+    replaceModelWith(text: string): void;
+
+    /**
+     * @description Returns all the lines of the model.
+     */
+    getContent(): string[];
+
+    /**
+     * @description Returns the number of lines in the model.
+     */
+    getLineCount(): number;
+
+    /**
+     * @description Returns the content of the line with the given line number.
+     * @param lineNumber line number (zero-based).
+     */
+    getLine(lineNumber: number): string;
+
+    /**
+     * @description Returns the length of the line with the given line number.
+     * @param lineNumber line number (zero-based).
+     */
+    getLineLength(lineNumber: number): number;
+}
+
+export interface IEditorModelContentChange {
+
+}
+
+export interface IEditorModelContentChangeEvent {
+    
+    readonly changes: IEditorModelContentChange[];
+
+
 
 }

@@ -1,26 +1,16 @@
-import { Disposable, IDisposable } from "src/base/common/dispose";
-import { Emitter, Register } from "src/base/common/event";
+import { Disposable } from "src/base/common/dispose";
+import { Emitter } from "src/base/common/event";
 import { DataBuffer } from "src/base/common/file/buffer";
 import { URI } from "src/base/common/file/uri";
 import { asyncFinish } from "src/base/common/util/async";
 import { IFileService } from "src/code/common/service/fileService/fileService";
+import { IEditorModel, IPieceTableModel } from "src/editor/common/model";
 import { TextBufferBuilder } from "src/editor/model/textBuffer";
 
 /**
- * An interface only for {@link EditorModel}.
- */
-export interface IEditorModel extends IDisposable {
-
-    /** Fires when the model is build whether successed or failed. */
-    onDidFinishBuild: Register<boolean>;
-
-    /** Fires when the content of the text model is changed. */
-    onDidChangeContent: Register<void>;
-
-}
-
-/**
  * @class // TODO
+ * 
+ * @throws If the model is disposed, any operations will throw an error.
  */
 export class EditorModel extends Disposable implements IEditorModel {
 
@@ -34,6 +24,12 @@ export class EditorModel extends Disposable implements IEditorModel {
     
     // [field]
 
+    /**
+     * `null` indicates the model is not built yet. The tex model is registered,
+     * need to be disposed manually.
+     */
+    private _textModel: IPieceTableModel = null!;
+
     // [constructor]
 
     constructor(
@@ -46,14 +42,72 @@ export class EditorModel extends Disposable implements IEditorModel {
 
     // [public methods]
 
+    public replaceModelWith(text: string): void {
+        this.__assertModel();
+        
+        const builder = new TextBufferBuilder();
+        builder.receive(text);
+        builder.build();
+        const newTextModel = builder.create();
+
+        this._textModel.dispose();
+        this._textModel = null!;
+        this._textModel = newTextModel;
+
+        this._onDidChangeContent.fire();
+    }
+
+    public getContent(): string[] {
+        this.__assertModel();
+        return this._textModel.getContent();
+    }
+
+    public getLineCount(): number {
+        this.__assertModel();
+        return this._textModel.getLineCount();
+    }
+
+    public getLine(lineNumber: number): string {
+        this.__assertModel();
+        return this._textModel.getLine(lineNumber);
+    }
+
+    public getLineLength(lineNumber: number): number {
+        this.__assertModel();
+        return this._textModel.getLineLength(lineNumber);
+    }
+
+    public override dispose(): void {
+        super.dispose();
+        if (this._textModel !== null) {
+            this._textModel.dispose();
+        }
+    }
+
     // [private helper methods]
+
+    private __assertModel(): void {
+        if (this.isDisposed()) {
+            throw new Error('editor model is already disposed');
+        }
+        
+        if (this._textModel === null) {
+            throw new Error('model is not built yet.');
+        }
+
+        if (this._textModel.isDisposed()) {
+            throw new Error('text model is already disposed');
+        }
+    }
 
     private async __createModel(source: URI): Promise<void> {
         
         const builder = await this.__createTextBufferBuilder(source);
-        const model = builder.create();
-        console.log(model.getContent());
-
+        
+        const textModel = builder.create();
+        this._textModel = textModel;
+        
+        this._onDidChangeContent.fire();
     }
 
     /**
@@ -67,6 +121,8 @@ export class EditorModel extends Disposable implements IEditorModel {
      * @note method will invoke `TextBufferBuilder.build()` automatically.
      */
     private async __createTextBufferBuilder(source: URI): Promise<TextBufferBuilder> {
+
+        // Otherwise source is a URI, we need to read it first.
 
         const [finished, finishBuilding] = asyncFinish<void>();
         const builder = new TextBufferBuilder();

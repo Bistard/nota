@@ -1,5 +1,5 @@
 import { Disposable, IDisposable } from "src/base/common/dispose";
-import { IEditorModel } from "src/editor/model/editorModel";
+import { IEditorModel } from "src/editor/common/model";
 import { EditorItemProvider } from "src/editor/viewModel/editorItem";
 
 /**
