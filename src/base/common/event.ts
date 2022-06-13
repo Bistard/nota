@@ -2,64 +2,6 @@ import { LinkedList } from "src/base/common/util/linkedList";
 import { addDisposableListener, EventType } from "src/base/common/dom";
 import { Disposable, DisposableManager, disposeAll, IDisposable, toDisposable } from "src/base/common/dispose";
 
-/** @deprecated Use Emitter instead */
-export interface IEventEmitter {
-    /**
-     * @description register an event.
-     * 
-     * to avoid losing 'this' scope, please pass the callback using an arrow 
-     * wrapper function such as: '_eventEmitter.register(id, (...params) => callback(params));'
-     */
-    register(id: string, callback: (...params: any[]) => any): boolean;
-    
-    /**
-     * @description emits an event, returns an array of return values for each registered callbacks.
-     */
-    emit(id: string, ...params: any[]): any[] | any;
-}
-
-/** @deprecated Use Emitter instead */
-export class EventEmitter implements IEventEmitter {
-
-    private _events: { 
-        [key: string]: { (): any }[]
-    };
-
-    constructor() {
-        this._events = {};
-    }
-    
-    public register(id: string, callback: (...params: any[]) => any): boolean {
-        if (this._events[id]) {
-            this._events[id]!.push(callback);
-        } else {
-            this._events[id] = [callback];
-        }
-        return true;
-    }
-
-    public emit(id: string, ...params: any[]): any[] | any {
-        const returnValues: any[] = [];
-        if (this._events[id]) {
-            this._events[id]!.forEach(callback => {
-                const res = callback.apply(null, params as []);
-                if (res) {
-                    returnValues.push(res);
-                }
-            });
-        }
-        if (returnValues.length === 1) {
-            return returnValues[0];
-        }
-        return returnValues;
-    }
-}
-
-/** @deprecated Use Emitter instead */
-export const EVENT_EMITTER = new EventEmitter();
-
-/** THE ABOVE CODE ARE ALL @deprecated, will be removed later. */
-
 /*******************************************************************************
  * This file contains a series event emitters and related tools for communications 
  * between different code sections. 
