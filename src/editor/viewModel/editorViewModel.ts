@@ -1,16 +1,9 @@
 import { Disposable, IDisposable } from "src/base/common/dispose";
 import { IEditorModel } from "src/editor/common/model";
+import { IEditorViewModel } from "src/editor/common/viewModel";
+import { EditorViewComponent } from "src/editor/view/viewComponent/viewComponent";
 import { EditorItemProvider } from "src/editor/viewModel/editorItem";
 import { EditorViewModelEventEmitter } from "src/editor/viewModel/editorViewModelEventEmitter";
-
-/**
- * An interface only for {@link EditorViewModel}.
- */
- export interface IEditorViewModel extends IDisposable {
-
-    getItemProvider(): EditorItemProvider;
-
-}
 
 /**
  * @class // TODO
@@ -46,6 +39,10 @@ export class EditorViewModel extends Disposable implements IEditorViewModel {
 
     public getItemProvider(): EditorItemProvider {
         return this._itemProvider;
+    }
+
+    public addViewComponent(id: string, component: EditorViewComponent): IDisposable {
+        return this._eventEmitter.addViewComponent(id, component);
     }
 
     // [private helper methods]

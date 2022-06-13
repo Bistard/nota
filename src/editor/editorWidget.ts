@@ -1,8 +1,9 @@
 import { Disposable, IDisposable } from "src/base/common/dispose";
 import { IEditorModel } from "src/editor/common/model";
 import { IEditorView } from "src/editor/common/view";
+import { IEditorViewModel } from "src/editor/common/viewModel";
 import { EditorView } from "src/editor/view/editorView";
-import { EditorViewModel, IEditorViewModel } from "src/editor/viewModel/editorViewModel";
+import { EditorViewModel } from "src/editor/viewModel/editorViewModel";
 
 /**
  * An interface only for {@link EditorWidget}.

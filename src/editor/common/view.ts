@@ -58,10 +58,3 @@ export interface IEditorView extends Disposable {
     layout(): void;
 
 }
-
-/**
- * An interface only for {@link EditorViewModelEventEmitter}.
- */
-export interface IEditorViewModelEventEmitter extends Disposable {
-
-}
