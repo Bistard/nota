@@ -65,26 +65,26 @@ export class IpcService implements IIpcService {
 
     // [event]
 
-    private _onWindowMaximize = this._disposables.register(new Emitter<void>());
-    public onWindowMaximize = this._onWindowMaximize.registerListener;
+    private readonly _onWindowMaximize = this._disposables.register(new Emitter<void>());
+    public readonly onWindowMaximize = this._onWindowMaximize.registerListener;
 
-    private _onWindowUnmaximize = this._disposables.register(new Emitter<void>());
-    public onWindowUnmaximize = this._onWindowUnmaximize.registerListener;
+    private readonly _onWindowUnmaximize = this._disposables.register(new Emitter<void>());
+    public readonly onWindowUnmaximize = this._onWindowUnmaximize.registerListener;
 
-    private _onWindowBlur = this._disposables.register(new Emitter<void>());
-    public onWindowBlur = this._onWindowBlur.registerListener;
+    private readonly _onWindowBlur = this._disposables.register(new Emitter<void>());
+    public readonly onWindowBlur = this._onWindowBlur.registerListener;
 
-    private _onDidFullScreenChange = this._disposables.register(new Emitter<boolean>());
-    public onDidFullScreenChange = this._onDidFullScreenChange.registerListener;
+    private readonly _onDidFullScreenChange = this._disposables.register(new Emitter<boolean>());
+    public readonly onDidFullScreenChange = this._onDidFullScreenChange.registerListener;
 
-    private _onApplicationClose = this._disposables.register(new AsyncEmitter<void>());
-    public onApplicationClose = this._onApplicationClose.registerListener;
+    private readonly _onApplicationClose = this._disposables.register(new AsyncEmitter<void>());
+    public readonly onApplicationClose = this._onApplicationClose.registerListener;
 
-    private _onWindowResize = this._disposables.register(new Emitter<IDimension>());
-    public onWindowResize = this._onWindowResize.registerListener;
+    private readonly _onWindowResize = this._disposables.register(new Emitter<IDimension>());
+    public readonly onWindowResize = this._onWindowResize.registerListener;
 
-    private _onDidOpenDirectoryDialog = this._disposables.register(new Emitter<string>());
-    public onDidOpenDirectoryDialog = this._onDidOpenDirectoryDialog.registerListener;
+    private readonly _onDidOpenDirectoryDialog = this._disposables.register(new Emitter<string>());
+    public readonly onDidOpenDirectoryDialog = this._onDidOpenDirectoryDialog.registerListener;
     
     // [constructor]
 
