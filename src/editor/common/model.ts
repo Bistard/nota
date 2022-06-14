@@ -293,12 +293,12 @@ export interface IEditorModel extends IDisposable {
     /** 
      * Fires when the model is build whether successed or failed.
      */
-    onDidFinishBuild: Register<boolean>;
+    readonly onDidFinishBuild: Register<true | Error>;
 
     /** 
      * Fires when the content of the text model is changed. 
      */
-    onDidChangeContent: Register<void>;
+    readonly onDidChangeContent: Register<ModelEvent.IContentChangeEvent>;
 
     /**
      * @description Replace the entire model with the provided text.
@@ -329,14 +329,21 @@ export interface IEditorModel extends IDisposable {
     getLineLength(lineNumber: number): number;
 }
 
-export interface IEditorModelContentChange {
 
-}
 
-export interface IEditorModelContentChangeEvent {
+/**
+ * Events fired by the {@link IEditorModel}.
+ */
+export namespace ModelEvent {
+
+    export interface IContentChange {
+
+    }
+
+    export interface IContentChangeEvent {
     
-    readonly changes: IEditorModelContentChange[];
-
-
+        readonly changes: IContentChange[];
+    
+    }
 
 }

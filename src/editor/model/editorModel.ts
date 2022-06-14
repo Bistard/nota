@@ -4,7 +4,7 @@ import { DataBuffer } from "src/base/common/file/buffer";
 import { URI } from "src/base/common/file/uri";
 import { asyncFinish } from "src/base/common/util/async";
 import { IFileService } from "src/code/common/service/fileService/fileService";
-import { IEditorModel, IPieceTableModel } from "src/editor/common/model";
+import { ModelEvent, IEditorModel, IPieceTableModel } from "src/editor/common/model";
 import { TextBufferBuilder } from "src/editor/model/textBuffer";
 
 /**
@@ -17,10 +17,10 @@ export class EditorModel extends Disposable implements IEditorModel {
     // [event]
 
     // REVIEW: do we really need this? or one single onDidChangeContent will be fine
-    private readonly _onDidFinishBuild = this.__register(new Emitter<boolean>());
+    private readonly _onDidFinishBuild = this.__register(new Emitter<true | Error>());
     public readonly onDidFinishBuild = this._onDidFinishBuild.registerListener;
 
-    private readonly _onDidChangeContent = this.__register(new Emitter<void>());
+    private readonly _onDidChangeContent = this.__register(new Emitter<ModelEvent.IContentChangeEvent>());
     public readonly onDidChangeContent = this._onDidChangeContent.registerListener;
     
     // [field]
@@ -56,7 +56,7 @@ export class EditorModel extends Disposable implements IEditorModel {
         this._textModel = null!;
         this._textModel = newTextModel;
 
-        this._onDidChangeContent.fire();
+        this._onDidFinishBuild.fire(true);
     }
 
     public getContent(): string[] {
@@ -105,11 +105,14 @@ export class EditorModel extends Disposable implements IEditorModel {
     private async __createModel(source: URI): Promise<void> {
         
         const builder = await this.__createTextBufferBuilder(source);
-        
+        if (builder === null) {
+            return;
+        }
+
         const textModel = builder.create();
         this._textModel = textModel;
         
-        this._onDidChangeContent.fire();
+        this._onDidFinishBuild.fire(true);
     }
 
     /**
@@ -122,26 +125,26 @@ export class EditorModel extends Disposable implements IEditorModel {
      * 
      * @note method will invoke `TextBufferBuilder.build()` automatically.
      */
-    private async __createTextBufferBuilder(source: URI): Promise<TextBufferBuilder> {
+    private async __createTextBufferBuilder(source: URI): Promise<TextBufferBuilder | null> {
 
         // Otherwise source is a URI, we need to read it first.
 
         const [finished, finishBuilding] = asyncFinish<void>();
-        const builder = new TextBufferBuilder();
+        let builder: TextBufferBuilder | null = new TextBufferBuilder();
 
         const stream = await this.fileService.readFileStream(source);
         stream.on('data', (data: DataBuffer) => {
-            builder.receive(data.toString());
+            builder!.receive(data.toString());
         });
 
         stream.on('end', () => {
-            builder.build();
+            builder!.build();
             finishBuilding();
         });
 
         stream.on('error', (error) => {
-            // logService
-            this._onDidFinishBuild.fire(false);
+            this._onDidFinishBuild.fire(error);
+            builder = null;
             finishBuilding();
         });
 

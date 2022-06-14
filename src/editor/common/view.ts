@@ -1,6 +1,9 @@
 import { Disposable } from "src/base/common/dispose";
 
-export namespace EditorViewEvent {
+/**
+ * Events fired by the {@link IEditorViewModel} and {@link IEditorView}.
+ */
+export namespace ViewEvent {
 
     export type Events = (
         FocusEvent |
@@ -10,20 +13,7 @@ export namespace EditorViewEvent {
         ScrollEvent
     );
 
-    export const enum EventType {
-        Focus,
-        LineChanged,
-        LineDeleted,
-        LineInserted,
-        Scroll
-    };
-
-    interface IBaseEvent {
-        readonly type: EventType;
-    }
-
-    export class FocusEvent implements IBaseEvent {
-        public readonly type = EventType.Focus;
+    export class FocusEvent {
         constructor(
             /**
              * If the editor is focused.
@@ -32,20 +22,16 @@ export namespace EditorViewEvent {
         ) {}
     }
     
-    export class LineChangedEvent implements IBaseEvent {
-        public readonly type = EventType.LineChanged;
+    export class LineChangedEvent {
     }
     
-    export class LineDeletedEvent implements IBaseEvent {
-        public readonly type = EventType.LineDeleted;
+    export class LineDeletedEvent {
     }
     
-    export class LineInsertedEvent implements IBaseEvent {
-        public readonly type = EventType.LineInserted;
+    export class LineInsertedEvent {
     }
     
-    export class ScrollEvent implements IBaseEvent {
-        public readonly type = EventType.Scroll;
+    export class ScrollEvent {
     }
     
 }

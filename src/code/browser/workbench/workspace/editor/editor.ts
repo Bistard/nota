@@ -25,7 +25,7 @@ export class EditorComponent extends Component implements IEditorService {
 
     // [field]
 
-    private _editor: IEditorWidget | null;
+    private _editorWidget: IEditorWidget | null;
 
     // [constructor]
 
@@ -34,14 +34,14 @@ export class EditorComponent extends Component implements IEditorService {
         @IFileService private fileService: IFileService,
     ) {
         super(WorkspaceComponentType.editor, null, componentService);
-        this._editor = null;
+        this._editorWidget = null;
     }
 
     // [public methods]
 
     public openEditor(uriOrString: URI | string): void {
         
-        if (this._editor === null) {
+        if (this._editorWidget === null) {
             throw new Error('editor service is currently not created');
         }
         
@@ -51,13 +51,20 @@ export class EditorComponent extends Component implements IEditorService {
         }
         
         const textModel = new EditorModel(uri as URI, this.fileService);
-        this._editor.attachModel(textModel);
+        textModel.onDidFinishBuild(result => {
+            if (result === true) {
+                this._editorWidget!.attachModel(textModel);
+            } else {
+                // logService
+                console.warn(result);
+            }
+        })
     }
 
     // [override protected methods]
 
     protected override _createContent(): void {
-        this._editor = new EditorWidget(this.container, {});
+        this._editorWidget = new EditorWidget(this.container, {});
     }
 
     protected override _registerListeners(): void {

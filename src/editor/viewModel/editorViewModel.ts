@@ -42,8 +42,11 @@ export class EditorViewModel extends Disposable implements IEditorViewModel {
      */
     private __registerModelListeners(): void {
         
-        this._model.onDidChangeContent((changeEvents) => {
+        this._model.onDidChangeContent((events) => {
             
+            const changes = events.changes;
+            // TODO
+
         });
     }
 
