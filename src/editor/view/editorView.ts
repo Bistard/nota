@@ -13,10 +13,10 @@ export class EditorView extends Disposable implements IEditorView {
 
     // [field]
 
-    private _element: FastElement<HTMLElement>;
-    private _listWidget: IListWidget<EditorItem>;
+    private readonly _element: FastElement<HTMLElement>;
+    private readonly _listWidget: IListWidget<EditorItem>;
 
-    private _viewModel: IEditorViewModel;
+    private readonly _viewModel: IEditorViewModel;
 
     // [event]
 

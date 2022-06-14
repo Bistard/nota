@@ -12,9 +12,9 @@ export class EditorViewModel extends Disposable implements IEditorViewModel {
     
     // [field]
     
-    private _model: IEditorModel;
+    private readonly _model: IEditorModel;
 
-    private _itemProvider: EditorItemProvider;
+    private readonly _itemProvider: EditorItemProvider;
 
     // [constructor]
 
