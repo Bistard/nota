@@ -60,4 +60,12 @@ export interface IEditorView extends Disposable {
 
     layout(): void;
 
+    /**
+     * @description Renders the editor view.
+     * @param now If render instantly. Defaults to false.
+     * @param everything If force to render every components of the editor. 
+     *                   Defaults to false.
+     */
+    render(now?: boolean, everything?: boolean): void;
+
 }

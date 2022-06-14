@@ -51,7 +51,7 @@ export class EditorComponent extends Component implements IEditorService {
         }
         
         const textModel = new EditorModel(uri as URI, this.fileService);
-        textModel.onDidFinishBuild(result => {
+        textModel.onDidBuild(result => {
             if (result === true) {
                 this._editorWidget!.attachModel(textModel);
             } else {

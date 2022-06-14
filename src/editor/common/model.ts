@@ -317,12 +317,12 @@ export interface IEditorModel extends IDisposable {
     /** 
      * Fires when the model is build whether successed or failed.
      */
-    readonly onDidFinishBuild: Register<true | Error>;
+    readonly onDidBuild: Register<true | Error>;
 
-    /** 
-     * Fires when the content of the text model is changed. 
+    /**
+     * Fires when the model related events happens.
      */
-    readonly onDidChangeContent: Register<ModelEvent.IContentChangeEvent>;
+    readonly onEvent: Register<ModelEvent.Events>;
 
     /**
      * @description Replace the entire model with the provided text.
@@ -369,6 +369,12 @@ export namespace ModelEvent {
          * The new text.
          */
         readonly text: string;
+    }
+
+    export type Events = (IContentFlushEvent | IContentChangeEvent);
+
+    export interface IContentFlushEvent {
+        // nothing
     }
 
     export interface IContentChangeEvent {

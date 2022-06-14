@@ -1,12 +1,12 @@
 import { IDisposable } from "src/base/common/dispose";
 import { IEditorViewModel } from "src/editor/common/viewModel";
-import { EditorViewEventHandler } from "src/editor/view/editorViewEventHandler";
+import { EditorViewEventHandler } from "src/editor/view/viewComponent/editorViewEventHandler";
 
 
 /**
  * @class // TODO
  */
-export class EditorViewComponent extends EditorViewEventHandler {
+export abstract class EditorViewComponent extends EditorViewEventHandler {
 
     public readonly viewModel: IEditorViewModel;
 
@@ -18,4 +18,6 @@ export class EditorViewComponent extends EditorViewEventHandler {
     public addViewComponent(id: string, component: EditorViewComponent): IDisposable {
         return this.viewModel.addViewComponent(id, component);
     }
+
+    public abstract render(): void;
 }

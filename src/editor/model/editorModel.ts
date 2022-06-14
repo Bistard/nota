@@ -16,13 +16,12 @@ export class EditorModel extends Disposable implements IEditorModel {
 
     // [event]
 
-    // REVIEW: do we really need this? or one single onDidChangeContent will be fine
-    private readonly _onDidFinishBuild = this.__register(new Emitter<true | Error>());
-    public readonly onDidFinishBuild = this._onDidFinishBuild.registerListener;
+    private readonly _onDidBuild = this.__register(new Emitter<true | Error>());
+    public readonly onDidBuild = this._onDidBuild.registerListener;
 
-    private readonly _onDidChangeContent = this.__register(new Emitter<ModelEvent.IContentChangeEvent>());
-    public readonly onDidChangeContent = this._onDidChangeContent.registerListener;
-    
+    private readonly _onEvent = this.__register(new Emitter<ModelEvent.Events>());
+    public readonly onEvent = this._onEvent.registerListener;
+
     // [field]
 
     /**
@@ -56,7 +55,7 @@ export class EditorModel extends Disposable implements IEditorModel {
         this._textModel = null!;
         this._textModel = newTextModel;
 
-        this._onDidFinishBuild.fire(true);
+        this._onDidBuild.fire(true);
     }
 
     public getContent(): string[] {
@@ -112,7 +111,7 @@ export class EditorModel extends Disposable implements IEditorModel {
         const textModel = builder.create();
         this._textModel = textModel;
         
-        this._onDidFinishBuild.fire(true);
+        this._onDidBuild.fire(true);
     }
 
     /**
@@ -143,7 +142,7 @@ export class EditorModel extends Disposable implements IEditorModel {
         });
 
         stream.on('error', (error) => {
-            this._onDidFinishBuild.fire(error);
+            this._onDidBuild.fire(error);
             builder = null;
             finishBuilding();
         });

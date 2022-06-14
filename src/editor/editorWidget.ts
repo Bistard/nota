@@ -88,6 +88,8 @@ export class EditorWidget extends Disposable implements IEditorWidget {
 
         const view = new EditorView(this._container, viewModel);
         
+        view.render(false, true);
+
         this._viewModel = viewModel;
         this._view = view;
     }

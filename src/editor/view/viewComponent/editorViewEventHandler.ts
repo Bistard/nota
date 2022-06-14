@@ -40,6 +40,14 @@ export abstract class EditorViewEventHandler {
         return this._shouldRender;
     }
 
+    public onDidRender(): void {
+        this._shouldRender = false;
+    }
+
+    public forceRender(): void {
+        this._shouldRender = true;
+    }
+
     // [public methods - might be overrided]
 
     /**
