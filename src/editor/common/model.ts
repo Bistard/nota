@@ -1,6 +1,7 @@
 import { Disposable, IDisposable } from "src/base/common/dispose";
 import { Register } from "src/base/common/event";
 import { IEditorPosition } from "src/editor/common/position";
+import { IEditorRange } from "src/editor/common/range";
 
 export const enum EndOfLineType {
     /** 
@@ -283,6 +284,29 @@ export interface IPieceTableModel extends Omit<IPieceTable, 'root'>, Disposable 
      */
     getPieceTable(): IPieceTable;
 
+    /**
+     * @description Apply edit operations to the piece table model.
+     * @param operations The raw edit operations.
+     */
+    edit(operations: IEditOperation[]): IApplyEditResult;
+
+}
+
+export interface IEditOperation {
+
+    /**
+     * The range to replace. This can be empty to emulate a simple insert.
+     */
+    readonly range: IEditorRange;
+
+    /**
+     * The text to be replaced with. This can be empty to emulate a simple delete.
+     */
+    readonly text: string;
+}
+
+export interface IApplyEditResult {
+    changes: ModelEvent.IContentChange[];
 }
 
 /**
@@ -329,8 +353,6 @@ export interface IEditorModel extends IDisposable {
     getLineLength(lineNumber: number): number;
 }
 
-
-
 /**
  * Events fired by the {@link IEditorModel}.
  */
@@ -338,6 +360,15 @@ export namespace ModelEvent {
 
     export interface IContentChange {
 
+        /**
+         * The range to replace.
+         */
+        readonly range: IEditorRange;
+
+        /**
+         * The new text.
+         */
+        readonly text: string;
     }
 
     export interface IContentChangeEvent {
