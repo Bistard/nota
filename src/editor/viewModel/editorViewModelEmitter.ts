@@ -1,7 +1,7 @@
 import { Disposable, IDisposable, toDisposable } from "src/base/common/dispose";
 import { ViewEvent } from "src/editor/common/view";
 import { IEditorViewModelEventEmitter } from "src/editor/common/viewModel";
-import { EditorViewComponent } from "src/editor/view/viewComponent/viewComponent";
+import { EditorViewComponent } from "src/editor/view/component/viewComponent";
 
 /**
  * @class // TODO

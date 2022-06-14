@@ -1,6 +1,6 @@
 import { IDisposable } from "src/base/common/dispose";
 import { IEditorViewModel } from "src/editor/common/viewModel";
-import { EditorViewEventHandler } from "src/editor/view/viewComponent/editorViewEventHandler";
+import { EditorViewEventHandler } from "src/editor/view/component/editorViewEventHandler";
 
 
 /**

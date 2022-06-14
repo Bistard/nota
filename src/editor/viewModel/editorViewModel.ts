@@ -3,7 +3,7 @@ import { Emitter } from "src/base/common/event";
 import { IEditorModel } from "src/editor/common/model";
 import { ViewEvent } from "src/editor/common/view";
 import { IEditorViewModel } from "src/editor/common/viewModel";
-import { EditorViewComponent } from "src/editor/view/viewComponent/viewComponent";
+import { EditorViewComponent } from "src/editor/view/component/viewComponent";
 import { EditorItemProvider } from "src/editor/viewModel/editorItem";
 import { EditorViewModelEventEmitter } from "src/editor/viewModel/editorViewModelEmitter";
 

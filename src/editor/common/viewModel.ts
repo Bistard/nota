@@ -1,7 +1,7 @@
 import { Disposable, IDisposable } from "src/base/common/dispose";
 import { Register } from "src/base/common/event";
 import { ViewEvent } from "src/editor/common/view";
-import { EditorViewComponent } from "src/editor/view/viewComponent/viewComponent";
+import { EditorViewComponent } from "src/editor/view/component/viewComponent";
 import { EditorItemProvider } from "src/editor/viewModel/editorItem";
 
 /**

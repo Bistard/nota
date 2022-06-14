@@ -4,7 +4,7 @@ import { Disposable, IDisposable } from "src/base/common/dispose";
 import { IEditorView } from "src/editor/common/view";
 import { IEditorViewModel } from "src/editor/common/viewModel";
 import { EditorItemRenderer, HeadingRenderer } from "src/editor/view/editorRenderer";
-import { EditorViewComponent } from "src/editor/view/viewComponent/viewComponent";
+import { EditorViewComponent } from "src/editor/view/component/viewComponent";
 import { EditorItem } from "src/editor/viewModel/editorItem";
 import { requestAtNextAnimationFrame } from "src/base/common/animation";
 import { DomUtility } from "src/base/common/dom";
