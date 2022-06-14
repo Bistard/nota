@@ -23,4 +23,9 @@ export interface IEditorViewModelEventEmitter extends Disposable {
 
     addViewComponent(id: string, component: EditorViewComponent): IDisposable;
 
+    fire(event: ViewEvent.Events): void;
+
+    pause(): void;
+
+    resume(): void;
 }

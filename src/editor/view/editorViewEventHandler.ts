@@ -5,6 +5,8 @@ import { ViewEvent } from "src/editor/common/view";
  */
 export abstract class EditorViewEventHandler {
 
+    private _shouldRender: boolean = false;
+
     constructor() {}
 
     // [public methods - general]
@@ -18,21 +20,24 @@ export abstract class EditorViewEventHandler {
             event = events[i]!;
 
             switch(event.type) {
-
                 case ViewEvent.EventType.Focus:
-                    this.onFocusChanged(event);
+                    this._shouldRender = this.onFocusChanged(event) || this._shouldRender;
                     break;
                 case ViewEvent.EventType.LineChanged:
-                    this.onLinesChanged(event);
+                    this._shouldRender = this.onLinesChanged(event) || this._shouldRender;
                     break;
                 case ViewEvent.EventType.LineDeleted:
-                    this.onLinesDeleted(event);
+                    this._shouldRender = this.onLinesDeleted(event) || this._shouldRender;
                     break;
                 case ViewEvent.EventType.LineInserted:
-                    this.onLinesInserted(event);
+                    this._shouldRender = this.onLinesInserted(event) || this._shouldRender;
                     break;
             }
         }
+    }
+
+    public shouldRender(): boolean {
+        return this._shouldRender;
     }
 
     // [public methods - might be overrided]
