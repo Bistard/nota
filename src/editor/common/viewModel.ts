@@ -1,6 +1,7 @@
-import { Disposable } from "src/base/common/dispose";
+import { Disposable, IDisposable } from "src/base/common/dispose";
 import { Register } from "src/base/common/event";
 import { ViewEvent } from "src/editor/common/view";
+import { EditorViewComponent } from "src/editor/view/viewComponent/viewComponent";
 import { EditorItemProvider } from "src/editor/viewModel/editorItem";
 
 /**
@@ -8,14 +9,18 @@ import { EditorItemProvider } from "src/editor/viewModel/editorItem";
  */
 export interface IEditorViewModel extends Disposable {
 
-    readonly onDidFlush: Register<void>;
+    onViewEvent: Register<ViewEvent.Events>;
 
-    readonly onDidLineInserted: Register<ViewEvent.LineInsertedEvent>;
-
-    readonly onDidLineDeleted: Register<ViewEvent.LineDeletedEvent>;
-
-    readonly onDidLineChanged: Register<ViewEvent.LineChangedEvent>;
+    addViewComponent(id: string, component: EditorViewComponent): IDisposable;
 
     getItemProvider(): EditorItemProvider;
+}
+
+/**
+ * An interface only for {@link EditorViewModelEventEmitter}.
+ */
+export interface IEditorViewModelEventEmitter extends Disposable {
+
+    addViewComponent(id: string, component: EditorViewComponent): IDisposable;
 
 }

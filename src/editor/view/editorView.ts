@@ -33,8 +33,6 @@ export class EditorView extends Disposable implements IEditorView {
 
         this._viewModel = viewModel;
 
-        this.__registerViewModelListeners();
-
         this._listWidget = new ListWidget<EditorItem>(
             this._element.element, 
             [
@@ -63,23 +61,8 @@ export class EditorView extends Disposable implements IEditorView {
         this._listWidget.splice(index, deleteCount, items);
     }
 
+    // [public override on handle event methods]
+
     // [private helper methods]
-
-    private __registerViewModelListeners(): void {
-
-        this._viewModel.onDidFlush(() => this.__onDidFlush());
-
-        // TODO
-        this._viewModel.onDidLineChanged((event) => {
-
-        });
-
-    }
-
-    // [private on event handling]
-
-    private __onDidFlush(): void {
-        
-    }
 
 }
