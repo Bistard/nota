@@ -1,13 +1,22 @@
 import { FastElement } from "src/base/browser/basic/fastElement";
-import { IListWidget, ListWidget } from "src/base/browser/secondary/listWidget/listWidget";
 import { Disposable, IDisposable } from "src/base/common/dispose";
 import { IEditorView } from "src/editor/common/view";
 import { IEditorViewModel } from "src/editor/common/viewModel";
-import { EditorItemRenderer, HeadingRenderer } from "src/editor/view/editorRenderer";
-import { EditorViewComponent } from "src/editor/view/component/viewComponent";
-import { EditorItem } from "src/editor/viewModel/editorItem";
+import { EditorViewComponent, IEditorViewComponent } from "src/editor/view/component/viewComponent";
 import { requestAtNextAnimationFrame } from "src/base/common/animation";
 import { DomUtility } from "src/base/common/dom";
+import { ViewLineWidget } from "src/editor/view/component/viewLineWidget";
+
+export class EditorViewContext {
+
+    constructor(
+        public readonly viewModel: IEditorViewModel,
+        public readonly theme: any, // TODO
+        public readonly configuration: any, // TODO
+    ) {}
+
+}
+
 /**
  * @class // TODO
  */
@@ -16,13 +25,14 @@ export class EditorView extends Disposable implements IEditorView {
     // [field]
 
     private readonly _element: FastElement<HTMLElement>;
-    private readonly _listWidget: IListWidget<EditorItem>;
-
-    private readonly _viewModel: IEditorViewModel;
-
-    private readonly _viewComponents: Map<string, EditorViewComponent>;
-
     private _nextRenderFrame: IDisposable | null = null;
+    
+    private readonly _context: EditorViewContext;
+    
+    // <section> - view components
+    private readonly _viewComponents: Map<string, IEditorViewComponent>;
+    private readonly _viewLineWidget: ViewLineWidget;
+    // <section> - end
 
     // [event]
 
@@ -36,34 +46,19 @@ export class EditorView extends Disposable implements IEditorView {
 
         this._element = new FastElement(document.createElement('div'));
         this._element.setClassName('editor-view');
-        this._element.setAttribute('role', 'code');
-
-        this._viewModel = viewModel;
-
-        this._viewComponents = new Map();
+        this._element.setAttribute('role', 'presentation');
         
-        this._listWidget = new ListWidget<EditorItem>(
-            this._element.element, 
-            [
-                // default markdown renderers
-                new HeadingRenderer(),
+        const context = new EditorViewContext(viewModel, undefined, undefined);
+        this._context = context;
+        this._viewComponents = new Map();
 
-            ].map(renderer => new EditorItemRenderer(renderer)), 
-            viewModel.getItemProvider(), 
-            {
-                // options
-                layout: true
-            }
-        );
+        this._viewLineWidget = new ViewLineWidget(context);
+        this.__registerComponent(this._viewLineWidget);
 
         container.appendChild(this._element.element);
     }
 
     // [public methods]
-
-    public layout(): void {
-        this._listWidget.layout();
-    }
 
     public render(now: boolean = false, everything: boolean = false): void {
 
@@ -80,12 +75,7 @@ export class EditorView extends Disposable implements IEditorView {
         }
     }
 
-    // REVIEW: testing purpose，view should be responsing to ViewModel and refreshing everything automatically instead of splciing manually.
-    public splice(index: number, deleteCount: number, items: EditorItem[]): void {
-        this._listWidget.splice(index, deleteCount, items);
-    }
-
-    // [public override on handle event methods]
+    // [public override handle event methods]
 
     // [private helper methods]
 
@@ -107,11 +97,30 @@ export class EditorView extends Disposable implements IEditorView {
             return;
         }
 
+        const shouldRender = this.__getShouldRenderComponents();
+        if (shouldRender.length === 0) {
+            return;
+        }
+
         for (const [id, component] of this._viewComponents) {
             component.render();
             component.onDidRender();
         }
 
+    }
+
+    private __getShouldRenderComponents(): IEditorViewComponent[] {
+        let shouldRender: IEditorViewComponent[] = [];
+        for (const [id, component] of this._viewComponents) {
+            if (component.shouldRender()) {
+                shouldRender.push(component);
+            }
+        }
+        return shouldRender;
+    }
+
+    private __registerComponent(component: IEditorViewComponent): void {
+        this._viewComponents.set(component.id, component);
     }
 
 }

@@ -1,4 +1,5 @@
 import { Disposable } from "src/base/common/dispose";
+import { IScrollEvent } from "src/base/common/scrollable";
 
 /**
  * Events fired by the {@link IEditorViewModel} and {@link IEditorView}.
@@ -49,6 +50,21 @@ export namespace ViewEvent {
 
     export class ScrollEvent implements IBaseEvent {
         public readonly type = EventType.Scroll;
+
+        /**
+         * Top of the actual scrolling area.
+         */
+        public readonly scrollHeight: number;
+
+        /**
+         * Height of the actual scrolling area.
+         */
+        public readonly scrollTop: number;
+
+        constructor(event: IScrollEvent) {
+            this.scrollTop = event.scrollPosition;
+            this.scrollHeight = event.scrollSize;
+        }
     }
 
 }
@@ -57,8 +73,6 @@ export namespace ViewEvent {
  * An interface only for {@link EditorView}.
  */
 export interface IEditorView extends Disposable {
-
-    layout(): void;
 
     /**
      * @description Renders the editor view.

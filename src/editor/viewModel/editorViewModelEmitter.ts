@@ -56,7 +56,7 @@ export class EditorViewModelEventEmitter extends Disposable implements IEditorVi
     }
 
     public resume(): void {
-        if (!this._paused) {
+        if (this._paused === 0) {
             this.__consumeQueue();
         } else {
             this._paused--;

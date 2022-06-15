@@ -32,6 +32,11 @@ export abstract class EditorViewEventHandler {
                 case ViewEvent.EventType.LineInserted:
                     this._shouldRender = this.onLinesInserted(event) || this._shouldRender;
                     break;
+                case ViewEvent.EventType.Scroll:
+                    this._shouldRender = this.onScrolled(event);
+                    break;
+                default:
+                    console.warn('unknown editor event type');
             }
         }
     }
@@ -69,4 +74,9 @@ export abstract class EditorViewEventHandler {
      * @description Invokes when existed line(s) is deleted.
      */
     public onLinesDeleted(event: ViewEvent.LineDeletedEvent): boolean { return false; }
+
+    /**
+     * @description Invokes when the editor is scrolled.
+     */
+    public onScrolled(event: ViewEvent.ScrollEvent): boolean { return false; }
 }

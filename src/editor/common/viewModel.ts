@@ -2,7 +2,7 @@ import { Disposable, IDisposable } from "src/base/common/dispose";
 import { Register } from "src/base/common/event";
 import { ViewEvent } from "src/editor/common/view";
 import { EditorViewComponent } from "src/editor/view/component/viewComponent";
-import { EditorItemProvider } from "src/editor/viewModel/editorItem";
+import { ILineWidget } from "src/editor/viewModel/lineWidget";
 
 /**
  * An interface only for {@link EditorViewModel}.
@@ -13,7 +13,7 @@ export interface IEditorViewModel extends Disposable {
 
     addViewComponent(id: string, component: EditorViewComponent): IDisposable;
 
-    getItemProvider(): EditorItemProvider;
+    getLineWidget(): ILineWidget;
 }
 
 /**

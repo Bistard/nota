@@ -4,8 +4,8 @@ import { IEditorModel } from "src/editor/common/model";
 import { ViewEvent } from "src/editor/common/view";
 import { IEditorViewModel } from "src/editor/common/viewModel";
 import { EditorViewComponent } from "src/editor/view/component/viewComponent";
-import { EditorItemProvider } from "src/editor/viewModel/editorItem";
 import { EditorViewModelEventEmitter } from "src/editor/viewModel/editorViewModelEmitter";
+import { ILineWidget, LineWidget } from "src/editor/viewModel/lineWidget";
 
 /**
  * @class // TODO
@@ -20,8 +20,7 @@ export class EditorViewModel extends Disposable implements IEditorViewModel {
     // [field]
     
     private readonly _model: IEditorModel;
-
-    private readonly _itemProvider: EditorItemProvider;
+    private readonly _lineWidget: LineWidget;
 
     private readonly _emitter: EditorViewModelEventEmitter;
 
@@ -33,7 +32,13 @@ export class EditorViewModel extends Disposable implements IEditorViewModel {
         super();
         
         this._model = model;
-        this._itemProvider = new EditorItemProvider();
+        
+        this._lineWidget = new LineWidget(this);
+        // ViewEvent.ScrollEvent
+        this.__register(this._lineWidget.onDidScroll(e => {
+            this._emitter.fire(new ViewEvent.ScrollEvent(e));
+        }));
+
         this._emitter = new EditorViewModelEventEmitter();
 
         this.__registerModelListeners();
@@ -41,12 +46,12 @@ export class EditorViewModel extends Disposable implements IEditorViewModel {
 
     // [public methods]
 
-    public getItemProvider(): EditorItemProvider {
-        return this._itemProvider;
-    }
-
     public addViewComponent(id: string, component: EditorViewComponent): IDisposable {
         return this._emitter.addViewComponent(id, component);
+    }
+
+    public getLineWidget(): ILineWidget {
+        return this._lineWidget;
     }
 
     // [private helper methods]
