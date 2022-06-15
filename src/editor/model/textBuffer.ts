@@ -1,6 +1,6 @@
 import { Character, CharCode } from "src/base/common/util/char";
 import { EndOfLine, EndOfLineType, ITextBuffer, ITextBufferBuilder } from "src/editor/common/model";
-import { PieceTableModel } from "src/editor/model/pieceTableModel";
+import { PieceTableModel } from "src/editor/model/pieceTable/pieceTableModel";
 
 export class TextBuffer implements ITextBuffer {
     constructor(

@@ -2,7 +2,7 @@ import { Disposable } from "src/base/common/dispose";
 import { Emitter } from "src/base/common/event";
 import { EndOfLine, IApplyEditResult, IEditOperation, IPieceNode, IPieceTable, IPieceTableModel } from "src/editor/common/model";
 import { IEditorPosition } from "src/editor/common/position";
-import { PieceTable } from "src/editor/model/pieceTable";
+import { PieceTable } from "src/editor/model/pieceTable/pieceTable";
 import { TextBuffer } from "src/editor/model/textBuffer";
 
 /**
