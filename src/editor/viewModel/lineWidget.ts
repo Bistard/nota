@@ -4,25 +4,9 @@ import { Disposable } from "src/base/common/dispose";
 import { Register } from "src/base/common/event";
 import { IRange } from "src/base/common/range";
 import { IScrollEvent } from "src/base/common/scrollable";
-import { IEditorViewModel } from "src/editor/common/viewModel";
+import { IEditorViewModel, ILineWidget } from "src/editor/common/viewModel";
 import { EditorItemRenderer, HeadingRenderer } from "src/editor/view/editorRenderer";
 import { EditorItem, EditorItemProvider } from "src/editor/viewModel/editorItem";
-
-/**
- * An interface only for {@link LineWidget}.
- */
-export interface ILineWidget extends Disposable {
-
-    readonly onDidScroll: Register<IScrollEvent>;
-
-    getDomElement(): FastElement<HTMLElement>;
-
-    getVisibleRange(): IRange;
-
-    getScrollPosition(): number;
-    
-    getViewportSize(): number;
-}
 
 /**
  * @class A {@link ListWidget} that manages to render each line of the editor.

@@ -1,18 +1,18 @@
 import { FastElement } from "src/base/browser/basic/fastElement";
 import { Disposable, IDisposable } from "src/base/common/dispose";
-import { IEditorView } from "src/editor/common/view";
+import { IEditorView, IEditorViewComponent, IEditorViewContext } from "src/editor/common/view";
 import { IEditorViewModel } from "src/editor/common/viewModel";
-import { EditorViewComponent, IEditorViewComponent } from "src/editor/view/component/viewComponent";
+import { RenderMetadata } from "src/editor/view/component/viewComponent";
 import { requestAtNextAnimationFrame } from "src/base/common/animation";
 import { DomUtility } from "src/base/common/dom";
 import { ViewLineWidget } from "src/editor/view/component/viewLineWidget";
 
-export class EditorViewContext {
+export class EditorViewContext implements IEditorViewContext {
 
     constructor(
         public readonly viewModel: IEditorViewModel,
-        public readonly theme: any, // TODO
-        public readonly configuration: any, // TODO
+        public readonly theme: any,
+        public readonly configuration: any,
     ) {}
 
 }
@@ -27,7 +27,7 @@ export class EditorView extends Disposable implements IEditorView {
     private readonly _element: FastElement<HTMLElement>;
     private _nextRenderFrame: IDisposable | null = null;
     
-    private readonly _context: EditorViewContext;
+    private readonly _context: IEditorViewContext;
     
     // <section> - view components
     private readonly _viewComponents: Map<string, IEditorViewComponent>;
@@ -102,8 +102,10 @@ export class EditorView extends Disposable implements IEditorView {
             return;
         }
 
+        const metadata = new RenderMetadata(this._context);
+
         for (const [id, component] of this._viewComponents) {
-            component.render();
+            component.render(metadata);
             component.onDidRender();
         }
 

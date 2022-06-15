@@ -1,5 +1,8 @@
 import { Disposable } from "src/base/common/dispose";
+import { IRange } from "src/base/common/range";
 import { IScrollEvent } from "src/base/common/scrollable";
+import { IEditorViewModel } from "src/editor/common/viewModel";
+import { EditorViewEventHandler } from "src/editor/view/component/editorViewEventHandler";
 
 /**
  * Events fired by the {@link IEditorViewModel} and {@link IEditorView}.
@@ -29,9 +32,7 @@ export namespace ViewEvent {
     export class FocusEvent implements IBaseEvent {
         public readonly type = EventType.Focus;
         constructor(
-            /**
-             * If the editor is focused.
-             */
+            /** If the editor is focused. */
             public readonly focused: boolean
         ) {}
     }
@@ -51,14 +52,9 @@ export namespace ViewEvent {
     export class ScrollEvent implements IBaseEvent {
         public readonly type = EventType.Scroll;
 
-        /**
-         * Top of the actual scrolling area.
-         */
+        /** Height of the actual scrolling area. */        
         public readonly scrollHeight: number;
-
-        /**
-         * Height of the actual scrolling area.
-         */
+        /** Top of the actual scrolling area. */
         public readonly scrollTop: number;
 
         constructor(event: IScrollEvent) {
@@ -81,5 +77,45 @@ export interface IEditorView extends Disposable {
      *                   Defaults to false.
      */
     render(now?: boolean, everything?: boolean): void;
+
+}
+
+/**
+ * An interface only for {@link EditorViewComponent}.
+ */
+export interface IEditorViewComponent extends EditorViewEventHandler {
+
+    /** The id of the component. */
+    readonly id: string;
+
+    readonly context: IEditorViewContext;
+
+    render(context: IRenderMetadata): void;
+
+    getDomElement(): HTMLElement;
+
+}
+
+
+/**
+ * An interface only for {@link EditorViewContext}.
+ * // TODO
+ */
+export interface IEditorViewContext {
+    readonly viewModel: IEditorViewModel;
+    readonly theme: any;
+    readonly configuration: any;
+}
+
+/**
+ * An interface only for {@link RenderMetadata}.
+ */
+export interface IRenderMetadata {
+
+    readonly visibleRange: IRange;
+    /** Top of the actual scrolling area. */
+    readonly scrollHeight: number;
+    /** Height of the actual scrolling area. */
+    readonly scrollTop: number;
 
 }

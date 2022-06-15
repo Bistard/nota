@@ -2,10 +2,10 @@ import { Disposable, IDisposable } from "src/base/common/dispose";
 import { Emitter } from "src/base/common/event";
 import { IEditorModel } from "src/editor/common/model";
 import { ViewEvent } from "src/editor/common/view";
-import { IEditorViewModel } from "src/editor/common/viewModel";
+import { IEditorViewModel, ILineWidget } from "src/editor/common/viewModel";
 import { EditorViewComponent } from "src/editor/view/component/viewComponent";
 import { EditorViewModelEventEmitter } from "src/editor/viewModel/editorViewModelEmitter";
-import { ILineWidget, LineWidget } from "src/editor/viewModel/lineWidget";
+import { LineWidget } from "src/editor/viewModel/lineWidget";
 
 /**
  * @class // TODO
