@@ -5,20 +5,27 @@ export interface ISpliceable<T> {
 }
 
 export interface IRange {
-	start: number,
-	end: number
+	/**
+	 * Start of the range.
+	 */
+	start: number;
+
+	/**
+	 * End of the range.
+	 */
+	end: number;
 }
 
 export interface IRangeList {
 	/**
 	 * The range of the list.
 	 */
-	range: IRange,
+	range: IRange;
 	
 	/**
 	 * The size of each item in the range.
 	 */
-	size: number
+	size: number;
 }
 
 /**

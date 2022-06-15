@@ -11,6 +11,7 @@ import { hash } from "src/base/common/util/hash";
 import { Array } from "src/base/common/util/array";
 import { IS_MAC } from "src/base/node/os";
 import { createStandardKeyboardEvent, IStandardKeyboardEvent, KeyCode } from "src/base/common/keyboard";
+import { IRange } from "src/base/common/range";
 
 /**
  * The index changed in {@link __ListTrait}.
@@ -864,6 +865,11 @@ export interface IListWidget<T> extends IDisposable {
      */
     getScrollPosition(): number;
 
+    /**
+     * @description Returns a range represents the visible items of the list view.
+     */
+    getVisibleRange(): IRange;
+
     // [item traits support]
 
     /**
@@ -1091,6 +1097,10 @@ export class ListWidget<T> implements IListWidget<T> {
 
     public getScrollPosition(): number {
         return this.view.getScrollPosition();
+    }
+
+    public getVisibleRange(): IRange {
+        return this.view.getVisibleRange();
     }
 
     // [item traits support]
