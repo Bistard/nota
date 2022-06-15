@@ -5,6 +5,7 @@ import { IRange } from "src/base/common/range";
 import { IScrollEvent } from "src/base/common/scrollable";
 import { ViewEvent } from "src/editor/common/view";
 import { EditorViewComponent } from "src/editor/view/component/viewComponent";
+import { EditorItem } from "src/editor/viewModel/editorItem";
 
 /**
  * An interface only for {@link EditorViewModel}.
@@ -62,4 +63,8 @@ export interface ILineWidget extends Disposable {
      * @description Returns the viewport size of the view.
      */
     getViewportSize(): number;
+
+    init(): void;
+
+    splice(index: number, deleteCount: number, items: EditorItem[]): void;
 }

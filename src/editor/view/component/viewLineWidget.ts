@@ -1,5 +1,5 @@
 import { FastElement } from "src/base/browser/basic/fastElement";
-import { ViewEvent } from "src/editor/common/view";
+import { IRenderMetadata, ViewEvent } from "src/editor/common/view";
 import { EditorViewComponent } from "src/editor/view/component/viewComponent";
 import { EditorViewContext } from "src/editor/view/editorView";
 import { ILineWidget } from "src/editor/common/viewModel";
@@ -27,8 +27,8 @@ export class ViewLineWidget extends EditorViewComponent {
 
     // [public override methods]
 
-    public render(): void {
-        // TODO
+    public render(context: IRenderMetadata): void {
+        // this._lineWidget
     }
 
     public getDomElement(): HTMLElement {

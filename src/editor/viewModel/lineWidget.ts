@@ -4,6 +4,7 @@ import { Disposable } from "src/base/common/dispose";
 import { Register } from "src/base/common/event";
 import { IRange } from "src/base/common/range";
 import { IScrollEvent } from "src/base/common/scrollable";
+import { IEditorModel } from "src/editor/common/model";
 import { IEditorViewModel, ILineWidget } from "src/editor/common/viewModel";
 import { EditorItemRenderer, HeadingRenderer } from "src/editor/view/editorRenderer";
 import { EditorItem, EditorItemProvider } from "src/editor/viewModel/editorItem";
@@ -25,7 +26,10 @@ export class LineWidget extends Disposable implements ILineWidget {
 
     // [constructor]
 
-    constructor(private readonly viewModel: IEditorViewModel) {
+    constructor(
+        private readonly viewModel: IEditorViewModel,
+        private readonly model: IEditorModel
+    ) {
         super();
 
         this._element = new FastElement(document.createElement('div'));
@@ -62,6 +66,15 @@ export class LineWidget extends Disposable implements ILineWidget {
     
     public getViewportSize(): number {
         return this._listWidget.getViewportSize();
+    }
+
+    public init(): void {
+        // const content = this.model.getContent();
+        // this.splice(0, Number.MAX_VALUE, content);
+    }
+
+    public splice(index: number, deleteCount: number, items: EditorItem[]): void {
+        this._listWidget.splice(index, deleteCount, items);
     }
 
 }

@@ -33,7 +33,7 @@ export class EditorViewModel extends Disposable implements IEditorViewModel {
         
         this._model = model;
         
-        this._lineWidget = new LineWidget(this);
+        this._lineWidget = new LineWidget(this, model);
         // ViewEvent.ScrollEvent
         this.__register(this._lineWidget.onDidScroll(e => {
             this._emitter.fire(new ViewEvent.ScrollEvent(e));

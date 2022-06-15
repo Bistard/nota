@@ -61,7 +61,6 @@ export class EditorView extends Disposable implements IEditorView {
     // [public methods]
 
     public render(now: boolean = false, everything: boolean = false): void {
-
         if (everything) {
             for (const [id, component] of this._viewComponents) {
                 component.forceRender();

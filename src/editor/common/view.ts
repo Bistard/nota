@@ -112,10 +112,10 @@ export interface IEditorViewContext {
  */
 export interface IRenderMetadata {
 
+    /** Returns a range represents the visible items of the view. */
     readonly visibleRange: IRange;
     /** Top of the actual scrolling area. */
     readonly scrollHeight: number;
     /** Height of the actual scrolling area. */
     readonly scrollTop: number;
-
 }
