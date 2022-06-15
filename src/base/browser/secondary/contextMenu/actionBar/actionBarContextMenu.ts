@@ -1,11 +1,8 @@
 import { ContextMenu, ContextMenuType, Coordinate, IContextMenu } from "src/base/browser/secondary/contextMenu/contextMenu";
 import { IComponentService } from "src/code/browser/service/componentService";
 import { IContextMenuService } from "src/code/browser/service/contextMenuService";
-import { ActionType, IActionBarOptions, IActionBarService } from "src/code/browser/workbench/actionBar/actionBar";
-import { EVENT_EMITTER } from "src/base/common/event";
+import { IActionBarOptions } from "src/code/browser/workbench/actionBar/actionBar";
 import { IButton } from "src/base/browser/basic/button/button";
-import { IActionViewService } from "src/code/browser/workbench/actionView/actionView";
-import { ComponentType } from "src/code/browser/workbench/component";
 
 const actionBarOpts: IActionBarOptions = { 
     options: [true, true, true, true],

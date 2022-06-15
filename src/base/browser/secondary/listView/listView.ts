@@ -146,13 +146,10 @@ export interface IListView<T> extends IDisposable {
     /** Fires when the {@link IListView} is keydowned. */
     get onKeydown(): Register<KeyboardEvent>;
 
-    /** The length (height) of the whole view in pixels. */
-    length: number;
-
     /** The container of the whole view. */
     DOMElement: HTMLElement;
 
-    // [methods]
+    // [public methods]
 
     /**
      * @description Given the height, re-layouts the height of the whole view.
@@ -250,7 +247,17 @@ export interface IListView<T> extends IDisposable {
      */
     getScrollPosition(): number;
 
+    /**
+     * @description Returns a range represents the visible items of the list view.
+     */
+    getVisibleRange(): IRange;
+
     // [Item Related Methods]
+
+    /** 
+     * @description The number of items in the view (including unrendered ones).
+     */
+    getItemCount(): number;
 
     /**
      * @description Returns the item at given index.
@@ -383,6 +390,9 @@ export class ListView<T> implements IDisposable, ISpliceable<T>, IListView<T> {
     /** The `height` of the list view that was previously rendered. */
     private prevRenderHeight: number;
 
+    /** The range represents the visible items. */
+    private _visibleRange: IRange;
+
     /** If the list view is during the `splice()` operation. */
     private _splicing: boolean;
 
@@ -419,7 +429,6 @@ export class ListView<T> implements IDisposable, ISpliceable<T>, IListView<T> {
 
     @memoize get onKeydown(): Register<KeyboardEvent> { return this.disposables.register(new DomEmitter<KeyboardEvent>(this.element, EventType.keydown)).registerListener; }
 
-    get length(): number { return this.items.length; }
     get DOMElement(): HTMLElement { return this.element; }
 
     // [constructor]
@@ -439,6 +448,7 @@ export class ListView<T> implements IDisposable, ISpliceable<T>, IListView<T> {
         this.prevRenderTop = 0;
         this.prevRenderHeight = 0;
         this._splicing = false;
+        this._visibleRange = Range.EMPTY;
 
         this.listContainer = document.createElement('div');
         this.listContainer.className = 'list-view-container';
@@ -528,6 +538,7 @@ export class ListView<T> implements IDisposable, ISpliceable<T>, IListView<T> {
     public render(prevRenderRange: IRange, renderTop: number, renderHeight: number): void {
 
         const renderRange = this.__getRenderRange(renderTop, renderHeight);
+        this._visibleRange = renderRange;
 
         const insert = Range.relativeComplement(prevRenderRange, renderRange);
         const remove = Range.relativeComplement(renderRange, prevRenderRange);
@@ -591,7 +602,7 @@ export class ListView<T> implements IDisposable, ISpliceable<T>, IListView<T> {
     }
 
     public reveal(index: number, relativePositionPercentage?: number): void {
-        if (index < 0 && index >= this.length) {
+        if (index < 0 && index >= this.getItemCount()) {
             return;
         }
 
@@ -705,6 +716,14 @@ export class ListView<T> implements IDisposable, ISpliceable<T>, IListView<T> {
 
     public getScrollPosition(): number {
         return this.scrollable.getScrollPosition();
+    }
+
+    public getVisibleRange(): IRange {
+        return this._visibleRange;
+    }
+
+    public getItemCount(): number { 
+        return this.items.length; 
     }
 
     public getItem(index: number): T {
@@ -946,6 +965,8 @@ export class ListView<T> implements IDisposable, ISpliceable<T>, IListView<T> {
         const offset = items.length - deleteCount;
         // recalcualte the render range (since we have modifed the range table)
         const renderRange = this.__getRenderRange(this.prevRenderTop, this.prevRenderHeight);
+        this._visibleRange = renderRange;
+
         // find the rest items that are still required rendering, we update them in DOM
         const restRenderedRange = Range.shift(prevRestRenderedRange, offset);
         const updateRange = Range.intersection(renderRange, restRenderedRange);

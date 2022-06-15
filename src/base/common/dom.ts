@@ -243,6 +243,13 @@ export namespace DomUtility
 	// [method - DOM]
 
 	/**
+	 * @description Determines if the given node is in the dom tree.
+	 */
+	export function ifInDomTree(node: Node): boolean {
+		return node.isConnected;
+	}
+
+	/**
 	 * @description Clears all the children DOM nodes from a provided node.
 	 * @param node The parent DOM node.
 	 * @returns The number of cleared nodes.

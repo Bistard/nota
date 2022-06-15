@@ -1,6 +1,7 @@
-import { IDisposable } from "src/base/common/dispose";
+import { Disposable, IDisposable } from "src/base/common/dispose";
 import { Register } from "src/base/common/event";
 import { IEditorPosition } from "src/editor/common/position";
+import { IEditorRange } from "src/editor/common/range";
 
 export const enum EndOfLineType {
     /** 
@@ -271,7 +272,7 @@ export interface IPieceTable {
 /**
  * An interface only for {@link PieceTableModel}.
  */
-export interface IPieceTableModel extends Omit<IPieceTable, 'root'>, IDisposable {
+export interface IPieceTableModel extends Omit<IPieceTable, 'root'>, Disposable {
 
     /**
      * Fires when the content is changed.
@@ -282,5 +283,104 @@ export interface IPieceTableModel extends Omit<IPieceTable, 'root'>, IDisposable
      * @description Returns the a instance of {@link IPieceTable}.
      */
     getPieceTable(): IPieceTable;
+
+    /**
+     * @description Apply edit operations to the piece table model.
+     * @param operations The raw edit operations.
+     */
+    edit(operations: IEditOperation[]): IApplyEditResult;
+
+}
+
+export interface IEditOperation {
+
+    /**
+     * The range to replace. This can be empty to emulate a simple insert.
+     */
+    readonly range: IEditorRange;
+
+    /**
+     * The text to be replaced with. This can be empty to emulate a simple delete.
+     */
+    readonly text: string;
+}
+
+export interface IApplyEditResult {
+    changes: ModelEvent.IContentChange[];
+}
+
+/**
+ * An interface only for {@link EditorModel}.
+ */
+export interface IEditorModel extends IDisposable {
+
+    /** 
+     * Fires when the model is build whether successed or failed.
+     */
+    readonly onDidBuild: Register<true | Error>;
+
+    /**
+     * Fires when the model related events happens.
+     */
+    readonly onEvent: Register<ModelEvent.Events>;
+
+    /**
+     * @description Replace the entire model with the provided text.
+     * @param text The new text.
+     */
+    replaceModelWith(text: string): void;
+
+    /**
+     * @description Returns all the lines of the model.
+     */
+    getContent(): string[];
+
+    /**
+     * @description Returns the number of lines in the model.
+     */
+    getLineCount(): number;
+
+    /**
+     * @description Returns the content of the line with the given line number.
+     * @param lineNumber line number (zero-based).
+     */
+    getLine(lineNumber: number): string;
+
+    /**
+     * @description Returns the length of the line with the given line number.
+     * @param lineNumber line number (zero-based).
+     */
+    getLineLength(lineNumber: number): number;
+}
+
+/**
+ * Events fired by the {@link IEditorModel}.
+ */
+export namespace ModelEvent {
+
+    export interface IContentChange {
+
+        /**
+         * The range to replace.
+         */
+        readonly range: IEditorRange;
+
+        /**
+         * The new text.
+         */
+        readonly text: string;
+    }
+
+    export type Events = (IContentFlushEvent | IContentChangeEvent);
+
+    export interface IContentFlushEvent {
+        // nothing
+    }
+
+    export interface IContentChangeEvent {
+    
+        readonly changes: IContentChange[];
+    
+    }
 
 }
