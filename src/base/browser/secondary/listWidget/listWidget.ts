@@ -750,11 +750,6 @@ export interface IListWidget<T> extends IDisposable {
      */
     DOMElement: HTMLElement;
 
-    /**
-     * The length (height) of the whole view in pixels.
-     */
-    length: number;
-
     /** Fires when the {@link IListWidget} is scrolling. */
     get onDidScroll(): Register<IScrollEvent>;
     
@@ -847,6 +842,28 @@ export interface IListWidget<T> extends IDisposable {
      */
     setDomFocus(): void;
 
+    /**
+     * @description Sets the viewport size of the list view.
+     * @param size The size of viewport.
+     */
+    setViewportSize(size: number): void;
+
+    /**
+     * @description Sets the scrollable position (top) of the list view.
+     * @param position The numerated size.
+     */
+    setScrollPosition(position: number): void;
+
+    /**
+     * @description Returns the viewport size of the list view.
+     */
+    getViewportSize(): number;
+
+    /**
+     * @description Returns the scrollable position (top) of the list view.
+     */
+    getScrollPosition(): number;
+
     // [item traits support]
 
     /**
@@ -920,6 +937,11 @@ export interface IListWidget<T> extends IDisposable {
      * @returns The index of the newly focused item. -1 if not found.
      */
     focusPrev(prev: number, fullLoop: boolean, match?: (item: T) => boolean): number;
+
+    /** 
+     * @description The number of items in the view (including unrendered ones).
+     */
+    getItemCount(): number;
 }
 
 /**
@@ -997,8 +1019,7 @@ export class ListWidget<T> implements IListWidget<T> {
     // [getter / setter]
 
     get DOMElement(): HTMLElement { return this.view.DOMElement; }
-    get length(): number { return this.view.length; }
-
+    
     get onDidScroll(): Register<IScrollEvent> { return this.view.onDidScroll; }
     get onDidChangeItemFocus(): Register<ITraitChangeEvent> { return this.focused.onDidChange; }
     get onDidChangeItemSelection(): Register<ITraitChangeEvent> { return this.selected.onDidChange; }
@@ -1033,7 +1054,7 @@ export class ListWidget<T> implements IListWidget<T> {
     }
 
     public splice(index: number, deleteCount: number, items: T[] = []): void {
-        if (index < 0 || index > this.view.length) {
+        if (index < 0 || index > this.getItemCount()) {
             throw new ListError(`splice invalid start index: ${index}`);
         }
 
@@ -1054,6 +1075,22 @@ export class ListWidget<T> implements IListWidget<T> {
 
     public setDomFocus(): void {
         this.view.setDomFocus();
+    }
+
+    public setViewportSize(size: number): void {
+        this.view.setViewportSize(size);
+    }
+
+    public setScrollPosition(position: number): void {
+        this.view.setScrollPosition(position);
+    }
+
+    public getViewportSize(): number {
+        return this.view.getViewportSize();
+    }
+
+    public getScrollPosition(): number {
+        return this.view.getScrollPosition();
     }
 
     // [item traits support]
@@ -1100,7 +1137,7 @@ export class ListWidget<T> implements IListWidget<T> {
     }
 
     public focusNext(next: number = 1, fullLoop: boolean = false, match?: (item: T) => boolean): number {
-        if (this.length === 0) {
+        if (this.getItemCount() === 0) {
             return -1;
         }
 
@@ -1116,7 +1153,7 @@ export class ListWidget<T> implements IListWidget<T> {
     }
 
     public focusPrev(prev: number = 1, fullLoop: boolean = false, match?: (item: T) => boolean): number {
-        if (this.length === 0) {
+        if (this.getItemCount() === 0) {
             return -1;
         }
 
@@ -1129,6 +1166,10 @@ export class ListWidget<T> implements IListWidget<T> {
         }
 
         return indexFound;
+    }
+
+    public getItemCount(): number { 
+        return this.view.getItemCount();
     }
 
     // [private helper methods]
@@ -1204,13 +1245,15 @@ export class ListWidget<T> implements IListWidget<T> {
      * @returns If not found, -1 returned.
      */
     private __findNextWithFilter(index: number, fullLoop: boolean, match?: (item: T) => boolean): number {
-        for (let i = index; i < this.length; i++) {
+        const itemCount = this.getItemCount();
+        
+        for (let i = index; i < itemCount; i++) {
             
-            if (index === this.length && fullLoop === false) {
+            if (index === itemCount && fullLoop === false) {
                 return -1;
             }
 
-            index = index % this.length;
+            index = index % itemCount;
 
             const matched = !match || match(this.view.getItem(index));
             if (matched) {
@@ -1233,13 +1276,15 @@ export class ListWidget<T> implements IListWidget<T> {
      * @returns If not found, -1 returned.
      */
     private __findPrevWithFilter(index: number, fullLoop: boolean, match?: (item: T) => boolean): number {
-        for (let i = index; i < this.length; i++) {
+        const itemCount = this.getItemCount();
+        
+        for (let i = index; i < itemCount; i++) {
             
             if (index < 0 && fullLoop === false) {
                 return -1;
             }
 
-            index = (this.length + (index % this.length)) % this.length;
+            index = (itemCount + (index % itemCount)) % itemCount;
 
             const matched = !match || match(this.view.getItem(index));
             if (matched) {

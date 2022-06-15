@@ -146,9 +146,6 @@ export interface IListView<T> extends IDisposable {
     /** Fires when the {@link IListView} is keydowned. */
     get onKeydown(): Register<KeyboardEvent>;
 
-    /** The length (height) of the whole view in pixels. */
-    length: number;
-
     /** The container of the whole view. */
     DOMElement: HTMLElement;
 
@@ -251,6 +248,11 @@ export interface IListView<T> extends IDisposable {
     getScrollPosition(): number;
 
     // [Item Related Methods]
+
+    /** 
+     * @description The number of items in the view (including unrendered ones).
+     */
+    getItemCount(): number;
 
     /**
      * @description Returns the item at given index.
@@ -419,7 +421,6 @@ export class ListView<T> implements IDisposable, ISpliceable<T>, IListView<T> {
 
     @memoize get onKeydown(): Register<KeyboardEvent> { return this.disposables.register(new DomEmitter<KeyboardEvent>(this.element, EventType.keydown)).registerListener; }
 
-    get length(): number { return this.items.length; }
     get DOMElement(): HTMLElement { return this.element; }
 
     // [constructor]
@@ -591,7 +592,7 @@ export class ListView<T> implements IDisposable, ISpliceable<T>, IListView<T> {
     }
 
     public reveal(index: number, relativePositionPercentage?: number): void {
-        if (index < 0 && index >= this.length) {
+        if (index < 0 && index >= this.getItemCount()) {
             return;
         }
 
@@ -705,6 +706,10 @@ export class ListView<T> implements IDisposable, ISpliceable<T>, IListView<T> {
 
     public getScrollPosition(): number {
         return this.scrollable.getScrollPosition();
+    }
+
+    public getItemCount(): number { 
+        return this.items.length; 
     }
 
     public getItem(index: number): T {
