@@ -78,6 +78,12 @@ export class EditorModel extends Disposable implements IEditorModel {
         return this._textModel.getLineLength(lineNumber);
     }
 
+    public tokenizationBetween(startLineNumber: number, endLineNumber: number): void {
+        startLineNumber = Math.max(0, startLineNumber);
+        endLineNumber = Math.min(this.getLineCount(), endLineNumber);
+        // TODO
+    }
+
     public override dispose(): void {
         super.dispose();
         if (this._textModel !== null) {
