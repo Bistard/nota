@@ -87,12 +87,14 @@ export namespace Markdown {
     }
 
     export interface code extends TokenBase<TokenType.CODE> {
-        readonly text: string;
+        readonly startIndex: number;
+        readonly textLength: number;
         readonly lang?: string;
     }
 
     export interface Heading extends TokenBase<TokenType.HEADING> {
-        readonly text: string;
+        readonly startIndex: number;
+        readonly textLength: number;
         readonly tokens: Token[];
     }
 
@@ -110,7 +112,8 @@ export namespace Markdown {
     }
 
     interface TableCell {
-        readonly text: string; // REVIEW: is this needed?
+        readonly startIndex: number; // REVIEW: is this needed?
+        readonly textLength: number;
         readonly tokens: Token[];
     }
 
@@ -119,7 +122,8 @@ export namespace Markdown {
     }
 
     export interface BlockQuote extends TokenBase<TokenType.BLOCK_QUOTE> {
-        readonly text: string;
+        readonly startIndex: number;
+        readonly textLength: number;
         readonly tokens: Token[];
     }
 
@@ -131,7 +135,8 @@ export namespace Markdown {
     }
 
     export interface ListItem extends TokenBase<TokenType.LIST_ITEM> {
-        readonly text: string;
+        readonly startIndex: number;
+        readonly textLength: number;
         task: boolean
         checked?: boolean
         // loose: boolean
@@ -139,18 +144,21 @@ export namespace Markdown {
     }
 
     export interface Paragraph extends TokenBase<TokenType.PARAGRAPH> {
-        readonly text: string;
+        readonly startIndex: number;
+        readonly textLength: number;
         // pre?: boolean;
         readonly tokens: Token[];
     }
 
     export interface HTML extends TokenBase<TokenType.HTML> {
-        readonly text: string;
+        readonly startIndex: number;
+        readonly textLength: number;
         // readonly pre: boolean;
     }
 
     export interface Text extends TokenBase<TokenType.TEXT> {
-        readonly text: string;
+        readonly startIndex: number;
+        readonly textLength: number;
         readonly token?: Token[];
     }
 
@@ -161,40 +169,47 @@ export namespace Markdown {
     }
 
     export interface Escape extends TokenBase<TokenType.ESCAPE> {
-        readonly text: string;
+        readonly startIndex: number;
+        readonly textLength: number;
     }
 
     export interface Tag extends TokenBase<TokenType.TAG> {
-        readonly text: string;
+        readonly startIndex: number;
+        readonly textLength: number;
         readonly inLink: boolean;
         readonly inRawBlock: boolean;
     }
 
     export interface Link extends TokenBase<TokenType.LINK> {
-        readonly text: string;
+        readonly startIndex: number;
+        readonly textLength: number;
         readonly title: string;
         readonly href: string;
         readonly tokens: Token[];
     }
 
     export interface Image extends TokenBase<TokenType.IMAGE> {
-        readonly text: string;
+        readonly startIndex: number;
+        readonly textLength: number;
         readonly title: string;
         readonly href: string;
     }
 
     export interface Strong extends TokenBase<TokenType.STRONG> {
-        readonly text: string;
+        readonly startIndex: number;
+        readonly textLength: number;
         readonly tokens: Token[];
     }
 
     export interface Emphasis extends TokenBase<TokenType.EMPHASIS> {
-        readonly text: string;
+        readonly startIndex: number;
+        readonly textLength: number;
         readonly tokens: Token[];
     }
 
     export interface Codespan extends TokenBase<TokenType.CODE_SPAN> {
-        readonly text: string;
+        readonly startIndex: number;
+        readonly textLength: number;
     }
 
     export interface Br extends TokenBase<TokenType.BR> {
@@ -202,7 +217,8 @@ export namespace Markdown {
     }
 
     export interface Del extends TokenBase<TokenType.DEL> {
-        readonly text: string;
+        readonly startIndex: number;
+        readonly textLength: number;
         readonly tokens: Token[];
     }
 
