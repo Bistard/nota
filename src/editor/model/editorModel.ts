@@ -32,7 +32,7 @@ export class EditorModel extends Disposable implements IEditorModel {
      */
     private _textModel: IPieceTableModel = null!;
 
-    private _lexer: IMarkdownLexer;
+    private readonly _lexer: IMarkdownLexer;
 
     // [constructor]
 
@@ -125,7 +125,7 @@ export class EditorModel extends Disposable implements IEditorModel {
 
         // REVIEW
         console.log(this._textModel.getRawContent());
-        this._lexer.analysis(this._textModel.getRawContent());
+        this._lexer.lex(this._textModel.getRawContent());
         
         this._onDidBuild.fire(true);
     }

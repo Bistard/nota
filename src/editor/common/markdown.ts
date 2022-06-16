@@ -6,6 +6,12 @@ export interface IMarkdownLexerOptions {
      */
     readonly baseURL?: string;
 
+    /**
+     * An external tokenizer that determines extra behaviours how to tokenize 
+     * the text.
+     */
+    readonly extensionTokenizers?: Markdown.External.IExternalTokenizer[];
+
 }
 
 export const MarkdownLexerDefaultOptions: IMarkdownLexerOptions = {
@@ -205,6 +211,25 @@ export namespace Markdown {
         readonly raw: string;
         readonly tokens?: Token[];
     }
+
+    export interface TokenResult {
+        /**
+         * The created token.
+         */
+        token: Token;
+        /**
+         * The raw text length of the token.
+         */
+        rawLength: number;
+    }
+
+    export namespace External {
+        
+        export interface IExternalTokenizer {
+            token(lexer: IMarkdownLexer, text: string, cursor: number, tokensStore: Markdown.Token[]): TokenResult | null;
+        }
+        
+    }
 }
 
 /**
@@ -212,7 +237,7 @@ export namespace Markdown {
  */
 export interface IMarkdownLexer {
 
-    analysis(text: string): Markdown.Token[];
+    lex(text: string): Markdown.Token[];
     
 }
 
