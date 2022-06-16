@@ -5,6 +5,7 @@ import { URI } from "src/base/common/file/uri";
 import { asyncFinish } from "src/base/common/util/async";
 import { IFileService } from "src/code/common/service/fileService/fileService";
 import { ModelEvent, IEditorModel, IPieceTableModel } from "src/editor/common/model";
+import { EditorModelTokenization } from "src/editor/model/markdown/tokenizer";
 import { TextBufferBuilder } from "src/editor/model/textBuffer";
 
 /**
@@ -30,6 +31,8 @@ export class EditorModel extends Disposable implements IEditorModel {
      */
     private _textModel: IPieceTableModel = null!;
 
+    private _tokenization: EditorModelTokenization;
+
     // [constructor]
 
     constructor(
@@ -37,6 +40,8 @@ export class EditorModel extends Disposable implements IEditorModel {
         private fileService: IFileService
     ) {
         super();
+        this._tokenization = new EditorModelTokenization();
+
         this.__createModel(source);
     }
 
@@ -116,6 +121,10 @@ export class EditorModel extends Disposable implements IEditorModel {
 
         const textModel = builder.create();
         this._textModel = textModel;
+
+        // REVIEW
+        console.log(this._textModel.getRawContent());
+        this._tokenization.tokenization(this._textModel.getRawContent());
         
         this._onDidBuild.fire(true);
     }
