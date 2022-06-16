@@ -4,8 +4,9 @@ import { DataBuffer } from "src/base/common/file/buffer";
 import { URI } from "src/base/common/file/uri";
 import { asyncFinish } from "src/base/common/util/async";
 import { IFileService } from "src/code/common/service/fileService/fileService";
+import { IMarkdownLexer } from "src/editor/common/markdown";
 import { ModelEvent, IEditorModel, IPieceTableModel } from "src/editor/common/model";
-import { EditorModelTokenization } from "src/editor/model/markdown/tokenizer";
+import { MarkdownLexer } from "src/editor/model/markdown/lexer";
 import { TextBufferBuilder } from "src/editor/model/textBuffer";
 
 /**
@@ -31,7 +32,7 @@ export class EditorModel extends Disposable implements IEditorModel {
      */
     private _textModel: IPieceTableModel = null!;
 
-    private _tokenization: EditorModelTokenization;
+    private _lexer: IMarkdownLexer;
 
     // [constructor]
 
@@ -40,7 +41,7 @@ export class EditorModel extends Disposable implements IEditorModel {
         private fileService: IFileService
     ) {
         super();
-        this._tokenization = new EditorModelTokenization();
+        this._lexer = new MarkdownLexer();
 
         this.__createModel(source);
     }
@@ -124,7 +125,7 @@ export class EditorModel extends Disposable implements IEditorModel {
 
         // REVIEW
         console.log(this._textModel.getRawContent());
-        this._tokenization.tokenization(this._textModel.getRawContent());
+        this._lexer.analysis(this._textModel.getRawContent());
         
         this._onDidBuild.fire(true);
     }
