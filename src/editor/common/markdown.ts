@@ -146,7 +146,7 @@ export namespace Markdown {
     }
 
     export interface HTML extends TokenBase<TokenType.HTML> {
-        // pre: boolean;
+        pre: boolean;
     }
 
     export interface Text extends TokenBase<TokenType.TEXT> {
@@ -235,6 +235,7 @@ export interface IMarkdownTokenizer {
     hr(text: string, cursor: number): Markdown.Hr | null;
     blockQuote(text: string, cursor: number): Markdown.BlockQuote | null;
     list(text: string, cursor: number): Markdown.List | null;
+    html(text: string, cursor: number): Markdown.HTML | null;
 
     paragraph(text: string, cursor: number): Markdown.Paragraph | null;
     text(text: string, cursor: number): Markdown.Text | null;

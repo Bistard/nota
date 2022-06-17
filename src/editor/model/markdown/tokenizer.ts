@@ -136,6 +136,23 @@ export class MarkdownTokenizer implements IMarkdownTokenizer {
         return null;
     }
 
+    public html(text: string, cursor: number): Markdown.HTML | null {
+        MD_BLOCK_RULE.html.lastIndex = cursor;
+
+        const match = MD_BLOCK_RULE.html.exec(text);
+        if (match) {
+            const tag = match[1]!;
+            return {
+                type: Markdown.TokenType.HTML,
+                pre: (tag === 'pre' || tag === 'script' || tag === 'style'),
+                startIndex: match.index,
+                textLength: match[0]!.length
+            };
+        }
+
+        return null;
+    }
+
     public paragraph(text: string, cursor: number): Markdown.Paragraph | null {
         MD_BLOCK_RULE.paragraph.lastIndex = cursor;
 

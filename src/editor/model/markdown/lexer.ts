@@ -66,6 +66,7 @@ export class MarkdownLexer implements IMarkdownLexer {
                 if (token.textLength === 1 && tokenStore.length > 0) {
                     // a single LF is found, concate with the previous token.
                     tokenStore[tokenStore.length - 1]!.textLength += 1;
+                    cursor += 1;
                 } else {
                     tokenStore.push(token);
                     cursor += token.textLength;
@@ -131,6 +132,13 @@ export class MarkdownLexer implements IMarkdownLexer {
             }
             
             // html
+            token = this._tokenizer.html(text, cursor);
+            if (token) {
+                tokenStore.push(token);
+                cursor += token.textLength;
+                continue;
+            }
+
             // def
             // table
             // lheading

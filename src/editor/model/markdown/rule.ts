@@ -31,6 +31,16 @@ export const MD_BLOCK_RULE = {
     blockQuote: /( {0,3}> ?(paragraph|[^\n]*)(?:\n|$))+/y,
     list: /( {0,3}bullet)([ \t][^\n]+?)?(?:\n|$)/y,
     def: / {0,3}\[(label)\]: *(?:\n *)?<?([^\s>]+)>?(?:(?: +(?:\n *)?| *\n *)(title))? *(?:\n+|$)/y,
+    html: new RegExp(' {0,3}(?:'
+        + '<(script|pre|style|textarea)[\\s>][\\s\\S]*?(?:</\\1>[^\\n]*\\n+|$)'
+        + '|comment[^\\n]*(\\n+|$)'
+        + '|<\\?[\\s\\S]*?(?:\\?>\\n*|$)'
+        + '|<![A-Z][\\s\\S]*?(?:>\\n*|$)'
+        + '|<!\\[CDATA\\[[\\s\\S]*?(?:\\]\\]>\\n*|$)'
+        + '|</?(tag)(?: +|\\n|/?>)[\\s\\S]*?(?:(?:\\n *)+\\n|$)'
+        + '|<(?!script|pre|style|textarea)([a-z][\\w-]*)(?:attribute)*? */?>(?=[ \\t]*(?:\\n|$))[\\s\\S]*?(?:(?:\\n *)+\\n|$)'
+        + '|</(?!script|pre|style|textarea)[a-z][\\w-]*\\s*>(?=[ \\t]*(?:\\n|$))[\\s\\S]*?(?:(?:\\n *)+\\n|$)'
+        + ')'),
     
     paragraph: /([^\n]+(?:\n(?!hr|heading|lheading|blockquote|fences|list|html|table| +\n)[^\n]+)*)/y,
     text: /[^\n]+/y,
@@ -39,7 +49,7 @@ export const MD_BLOCK_RULE = {
     bullet: /(?:[*+-]|\d{1,9}[.)])/y,
     label: /(?!\s*\])(?:\\.|[^\[\]\\])+/y,
     title: /(?:"(?:\\"?|[^"\\])*"|'[^'\n]*(?:\n[^'\n]+)*\n?'|\([^()]*\))/y,
-    
+    comment: /<!--(?!-?>)[\s\S]*?(?:-->|$)/,
 };
 
 MD_BLOCK_RULE.paragraph = replaceable(MD_BLOCK_RULE.paragraph, 'y')
@@ -64,7 +74,12 @@ MD_BLOCK_RULE.list = replaceable(MD_BLOCK_RULE.list, 'y')
     .replace('hr', '\\n+(?=\\1?(?:(?:- *){3,}|(?:_ *){3,}|(?:\\* *){3,})(?:\\n+|$))')
     .replace('def', '\\n+(?=' + MD_BLOCK_RULE.def.source + ')')
     .getRegexp();
-    
+   
+MD_BLOCK_RULE.html = replaceable(MD_BLOCK_RULE.html, 'i')
+    .replace('comment', MD_BLOCK_RULE.comment)
+    .replace('tag', MD_BLOCK_RULE.tag)
+    .replace('attribute', / +[a-zA-Z:_][\w.:-]*(?: *= *"[^"\n]*"| *= *'[^'\n]*'| *= *[^\s"'=<>`]+)?/)
+    .getRegexp();
 
 /**
  * @internal
