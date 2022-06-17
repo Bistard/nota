@@ -123,6 +123,13 @@ export class MarkdownLexer implements IMarkdownLexer {
             }
 
             // list
+            token = this._tokenizer.list(text, cursor);
+            if (token) {
+                tokenStore.push(token);
+                cursor += token.textLength;
+                continue;
+            }
+            
             // html
             // def
             // table

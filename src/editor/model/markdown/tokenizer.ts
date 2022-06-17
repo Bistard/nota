@@ -131,6 +131,11 @@ export class MarkdownTokenizer implements IMarkdownTokenizer {
         return null;
     }
 
+    public list(text: string, cursor: number): Markdown.List | null {
+        // TODO
+        return null;
+    }
+
     public paragraph(text: string, cursor: number): Markdown.Paragraph | null {
         MD_BLOCK_RULE.paragraph.lastIndex = cursor;
 
