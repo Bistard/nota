@@ -3,6 +3,7 @@ import { IMarkdownLexer, IMarkdownLexerOptions, IMarkdownTokenizer, Markdown, Ma
 // import { marked } from "src/editor/model/markdown/marked/marked";
 import { MarkdownTokenizer } from "src/editor/model/markdown/tokenizer";
 
+type Token = Markdown.Token;
 
 export class MarkdownLexer implements IMarkdownLexer {
 
@@ -10,8 +11,8 @@ export class MarkdownLexer implements IMarkdownLexer {
 
     private _opts: IMarkdownLexerOptions;
 
-    private readonly _blockTokens: Markdown.Token[];
-    private readonly _inlineTokensQueue: Triple<number, number, Markdown.Token[]>[];
+    private readonly _blockTokens: Token[];
+    private readonly _inlineTokensQueue: Triple<number, number, Token[]>[];
 
     private readonly _tokenizer: IMarkdownTokenizer;
 
@@ -26,7 +27,7 @@ export class MarkdownLexer implements IMarkdownLexer {
 
     // [public method]
 
-    public lex(text: string): Markdown.Token[] {
+    public lex(text: string): Token[] {
         
         // REVIEW: testonly
         // const tokens = marked.lexer(text);
@@ -39,15 +40,15 @@ export class MarkdownLexer implements IMarkdownLexer {
         return this._blockTokens;
     }
 
-    public pushInlineQueue(startIndex: number, textLength: number, tokenStore: Markdown.Token[]): void {
+    public pushInlineQueue(startIndex: number, textLength: number, tokenStore: Token[]): void {
         this._inlineTokensQueue.push([startIndex, textLength, tokenStore]);
     }
 
-    public lexBlock(text: string, tokenStore: Markdown.Token[]): Markdown.Token[] {
+    public lexBlock(text: string, tokenStore: Token[]): Token[] {
 
         const textLength = text.length;
         let cursor = 0;
-        let token: Markdown.Token | null;
+        let token: Token | null;
 
         while (cursor < textLength) {
             token = null;
@@ -186,13 +187,13 @@ export class MarkdownLexer implements IMarkdownLexer {
      * with the given text. Returns a {@link Markdown.TokenResult} if a token is
      * matched.
      */
-    private __tryExternalTokenizers(text: string, cursor: number): Markdown.Token | null {
+    private __tryExternalTokenizers(text: string, cursor: number): Token | null {
         if (!this._opts.extensionTokenizers) {
             return null;
         }
         
         const tokenizers = this._opts.extensionTokenizers;
-        let token: Markdown.Token | null = null;
+        let token: Token | null = null;
         
         for (let i = 0; i < tokenizers.length; i++) {    
             const tokenizer = tokenizers[i]!;

@@ -8,7 +8,7 @@ export interface IMarkdownLexerOptions {
 
     /**
      * If throws an error if an unknown token is found.
-     * @default true.
+     * @default true
      */
     readonly unknownTokenThrow?: boolean;
 
