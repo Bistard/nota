@@ -63,17 +63,30 @@ export class MarkdownLexer implements IMarkdownLexer {
             // space
             token = this._tokenizer.space(text, cursor);
             if (token) {
-                tokenStore.push(token);
-                cursor += token.textLength;
+                if (token.textLength === 1 && tokenStore.length > 0) {
+                    // a single LF is found, concate with the previous token.
+                    tokenStore[tokenStore.length - 1]!.textLength += 1;
+                } else {
+                    tokenStore.push(token);
+                    cursor += token.textLength;
+                }
                 continue;
             }
 
             // indentCode
             token = this._tokenizer.indentCode(text, cursor);
             if (token) {
-                // REVIEW: might need to combine with the prev one
-                tokenStore.push(token);
-                cursor += token.textLength;
+                const prevToken = tokenStore[tokenStore.length - 1];
+                // an indent code cannot interrupt from a paragraph.
+                if (prevToken && (prevToken.type === Markdown.TokenType.PARAGRAPH || Markdown.TokenType.TEXT)) {
+                    prevToken.textLength += 1 + token.textLength;
+                    const prevInlineToken = this._inlineTokensQueue[this._inlineTokensQueue.length - 1]!;
+                    prevInlineToken[0]! = prevToken.startIndex;
+                    prevInlineToken[1]! = prevToken.textLength;
+                } else {
+                    tokenStore.push(token);
+                    cursor += token.textLength;
+                }
                 continue;
             }
 
@@ -118,8 +131,17 @@ export class MarkdownLexer implements IMarkdownLexer {
             // paragraph
             token = this._tokenizer.paragraph(text, cursor);
             if (token) {
-                tokenStore.push(token);
-                cursor += token.textLength;
+                const prevToken = tokenStore[tokenStore.length - 1];
+                if (prevToken && (prevToken.type === Markdown.TokenType.PARAGRAPH)) {
+                    prevToken.textLength += 1 + token.textLength;
+                    this._inlineTokensQueue.pop();
+                    const prevInlineToken = this._inlineTokensQueue[this._inlineTokensQueue.length - 1]!;
+                    prevInlineToken[0]! = prevToken.startIndex;
+                    prevInlineToken[1]! = prevToken.textLength;
+                } else {
+                    tokenStore.push(token);
+                    cursor += token.textLength;
+                }
                 continue;
             }
 
