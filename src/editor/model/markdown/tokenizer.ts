@@ -119,11 +119,12 @@ export class MarkdownTokenizer implements IMarkdownTokenizer {
 
         const match = MD_BLOCK_RULE.blockQuote.exec(text);
         if (match) {
+            const nestText = match[0]!.replace(/^ *>[ \t]?/gm, '');
             return {
                 type: Markdown.TokenType.BLOCK_QUOTE,
                 startIndex: match.index,
                 textLength: match[0]!.length,
-                tokens: this._lexer.lexBlock(text, [])
+                tokens: this._lexer.lexBlock(nestText, []) // FIX: 这里的startIndex都是relative了
             };
         }
 
@@ -135,7 +136,14 @@ export class MarkdownTokenizer implements IMarkdownTokenizer {
 
         const match = MD_BLOCK_RULE.paragraph.exec(text);
         if (match) {
-            // TODO
+            const token: Markdown.Paragraph = {
+                type: Markdown.TokenType.PARAGRAPH,
+                startIndex: match.index,
+                textLength: match[0]!.length,
+                tokens: []
+            };
+            this._lexer.pushInlineQueue(token.startIndex, token.textLength, token.tokens);
+            return token;
         }
 
         return null;

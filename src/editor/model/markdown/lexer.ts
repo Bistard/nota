@@ -1,6 +1,6 @@
 import { Triple } from "src/base/common/util/type";
 import { IMarkdownLexer, IMarkdownLexerOptions, IMarkdownTokenizer, Markdown, MarkdownLexerDefaultOptions } from "src/editor/common/markdown";
-import { marked } from "src/editor/model/markdown/marked/marked";
+// import { marked } from "src/editor/model/markdown/marked/marked";
 import { MarkdownTokenizer } from "src/editor/model/markdown/tokenizer";
 
 
@@ -43,7 +43,7 @@ export class MarkdownLexer implements IMarkdownLexer {
         this._inlineTokensQueue.push([startIndex, textLength, tokenStore]);
     }
 
-    public lexBlock(text: string, tokens: Markdown.Token[]): Markdown.Token[] {
+    public lexBlock(text: string, tokenStore: Markdown.Token[]): Markdown.Token[] {
 
         const textLength = text.length;
         let cursor = 0;
@@ -55,7 +55,7 @@ export class MarkdownLexer implements IMarkdownLexer {
             // external tokenizers
             token = this.__tryExternalTokenizers(text, cursor);
             if (token) {
-                tokens.push(token);
+                tokenStore.push(token);
                 cursor += token.textLength;
                 continue;
             }
@@ -63,7 +63,7 @@ export class MarkdownLexer implements IMarkdownLexer {
             // space
             token = this._tokenizer.space(text, cursor);
             if (token) {
-                tokens.push(token);
+                tokenStore.push(token);
                 cursor += token.textLength;
                 continue;
             }
@@ -72,7 +72,7 @@ export class MarkdownLexer implements IMarkdownLexer {
             token = this._tokenizer.indentCode(text, cursor);
             if (token) {
                 // REVIEW: might need to combine with the prev one
-                tokens.push(token);
+                tokenStore.push(token);
                 cursor += token.textLength;
                 continue;
             }
@@ -80,7 +80,7 @@ export class MarkdownLexer implements IMarkdownLexer {
             // fenchCode
             token = this._tokenizer.fenchCode(text, cursor);
             if (token) {
-                tokens.push(token);
+                tokenStore.push(token);
                 cursor += token.textLength;
                 continue;
             }
@@ -88,7 +88,7 @@ export class MarkdownLexer implements IMarkdownLexer {
             // heading
             token = this._tokenizer.heading(text, cursor);
             if (token) {
-                tokens.push(token);
+                tokenStore.push(token);
                 cursor += token.textLength;
                 continue;
             }
@@ -96,7 +96,7 @@ export class MarkdownLexer implements IMarkdownLexer {
             // hr
             token = this._tokenizer.hr(text, cursor);
             if (token) {
-                tokens.push(token);
+                tokenStore.push(token);
                 cursor += token.textLength;
                 continue;
             }
@@ -104,7 +104,7 @@ export class MarkdownLexer implements IMarkdownLexer {
             // blockquote
             token = this._tokenizer.blockQuote(text, cursor);
             if (token) {
-                tokens.push(token);
+                tokenStore.push(token);
                 cursor += token.textLength;
                 continue;
             }
@@ -116,13 +116,18 @@ export class MarkdownLexer implements IMarkdownLexer {
             // lheading
 
             // paragraph
-            
+            token = this._tokenizer.paragraph(text, cursor);
+            if (token) {
+                tokenStore.push(token);
+                cursor += token.textLength;
+                continue;
+            }
 
             // text
             token = this._tokenizer.text(text, cursor);
             if (token) {
                 // REVIEW: might need to combine with the prev one
-                tokens.push(token);
+                tokenStore.push(token);
                 cursor += token.textLength;
                 continue;
             }
@@ -134,7 +139,7 @@ export class MarkdownLexer implements IMarkdownLexer {
             break;
         }
 
-        return tokens;
+        return tokenStore;
     }
 
     // [private helper methods]
