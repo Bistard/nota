@@ -130,4 +130,15 @@ export class MarkdownTokenizer implements IMarkdownTokenizer {
         return null;
     }
 
+    public paragraph(text: string, cursor: number): Markdown.Paragraph | null {
+        MD_BLOCK_RULE.paragraph.lastIndex = cursor;
+
+        const match = MD_BLOCK_RULE.paragraph.exec(text);
+        if (match) {
+            // TODO
+        }
+
+        return null;
+    }
+
 }

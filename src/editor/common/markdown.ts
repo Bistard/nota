@@ -235,6 +235,7 @@ export interface IMarkdownTokenizer {
     hr(text: string, cursor: number): Markdown.Hr | null;
     blockQuote(text: string, cursor: number): Markdown.BlockQuote | null;
 
+    paragraph(text: string, cursor: number): Markdown.Paragraph | null;
     text(text: string, cursor: number): Markdown.Text | null;
 
 }

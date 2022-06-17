@@ -108,12 +108,15 @@ export class MarkdownLexer implements IMarkdownLexer {
                 cursor += token.textLength;
                 continue;
             }
+
             // list
             // html
             // def
             // table
             // lheading
+
             // paragraph
+            
 
             // text
             token = this._tokenizer.text(text, cursor);
