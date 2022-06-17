@@ -7,6 +7,12 @@ export interface IMarkdownLexerOptions {
     readonly baseURL?: string;
 
     /**
+     * If throws an error if an unknown token is found.
+     * @default true.
+     */
+    readonly unknownTokenThrow?: boolean;
+
+    /**
      * An external tokenizer that determines extra behaviours how to tokenize 
      * the text.
      */
@@ -15,14 +21,14 @@ export interface IMarkdownLexerOptions {
 }
 
 export const MarkdownLexerDefaultOptions: IMarkdownLexerOptions = {
-
+    unknownTokenThrow: true,
 };
 
 export namespace Markdown {
 
     export type Token = (
         Space |
-        code |
+        Code |
         Heading |
         Table |
         Hr |
@@ -35,8 +41,8 @@ export namespace Markdown {
         Def |
         Escape |
         Tag |
-        Link |
         Image |
+        Link |
         Strong |
         Emphasis |
         Codespan |
@@ -84,11 +90,12 @@ export namespace Markdown {
         // nothing
     }
 
-    export interface code extends TokenBase<TokenType.CODE> {
-        readonly lang?: string;
+    export interface Code extends TokenBase<TokenType.CODE> {
+        readonly lang: string;
     }
 
     export interface Heading extends TokenBase<TokenType.HEADING> {
+        readonly depth: number;
         readonly tokens: Token[];
     }
 
@@ -220,7 +227,10 @@ export interface IMarkdownLexer {
  */
 export interface IMarkdownTokenizer {
 
-    text(text: string, cursor: number): Markdown.Text | null;
     space(text: string, cursor: number): Markdown.Space | null;
+    indentCode(text: string, cursor: number): Markdown.Code | null;
+    fenchCode(text: string, cursor: number): Markdown.Code | null;
+    heading(text: string, cursor: number): Markdown.Heading | null;
+    text(text: string, cursor: number): Markdown.Text | null;
 
 }

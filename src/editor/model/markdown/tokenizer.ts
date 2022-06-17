@@ -17,8 +17,8 @@ export class MarkdownTokenizer implements IMarkdownTokenizer {
 
     public text(text: string, cursor: number): Markdown.Text | null {
         MD_BLOCK_RULE.text.lastIndex = cursor;
-        const match = MD_BLOCK_RULE.text.exec(text);
 
+        const match = MD_BLOCK_RULE.text.exec(text);
         if (match) {
             const token: Markdown.Text = {
                 type: Markdown.TokenType.TEXT,
@@ -35,15 +35,65 @@ export class MarkdownTokenizer implements IMarkdownTokenizer {
 
     public space(text: string, cursor: number): Markdown.Space | null {
         MD_BLOCK_RULE.space.lastIndex = cursor;
+
         const match = MD_BLOCK_RULE.space.exec(text);
-        
-        if (match) {
-            
+        if (match && match[0]!.length > 0) {
             return {
                 type: Markdown.TokenType.SPACE,
                 startIndex: match.index,
                 textLength: match[0]!.length
             };
+        }
+
+        return null;
+    }
+
+    public indentCode(text: string, cursor: number): Markdown.Code | null {
+        MD_BLOCK_RULE.indentCode.lastIndex = cursor;
+        
+        const match = MD_BLOCK_RULE.indentCode.exec(text);
+        if (match) {
+            return {
+                type: Markdown.TokenType.CODE,
+                startIndex: match.index,
+                textLength: match[0]!.length,
+                lang: ''
+            };
+        }
+
+        return null;
+    }
+
+    public fenchCode(text: string, cursor: number): Markdown.Code | null {
+        MD_BLOCK_RULE.fenceCode.lastIndex = cursor;
+        
+        const match = MD_BLOCK_RULE.fenceCode.exec(text);
+        if (match) {
+            return {
+                type: Markdown.TokenType.CODE,
+                startIndex: match.index,
+                textLength: match[0]!.length,
+                lang: match[2] ? match[2]!.trim() : ''
+            };
+        }
+
+        return null;
+    }
+
+    public heading(text: string, cursor: number): Markdown.Heading | null {
+        MD_BLOCK_RULE.heading.lastIndex = cursor;
+        
+        const match = MD_BLOCK_RULE.heading.exec(text);
+        if (match) {
+            const token: Markdown.Heading = {
+                type: Markdown.TokenType.HEADING,
+                depth: match[1]!.length,
+                startIndex: match.index,
+                textLength: match[0]!.length,
+                tokens: []
+            };
+            this._lexer.pushInlineQueue(token.startIndex, token.textLength, token.tokens);
+            return token;
         }
 
         return null;

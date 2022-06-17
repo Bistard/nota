@@ -29,15 +29,14 @@ export class MarkdownLexer implements IMarkdownLexer {
     public lex(text: string): Markdown.Token[] {
         
         // REVIEW: testonly
-        const tokens = marked.lexer(text);
-        console.log(tokens);
+        // const tokens = marked.lexer(text);
+        // console.log(tokens);
         // REVIEW: testonly
 
         text = text.replace(/\r\n|\r/g, '\n'); // REVIEW: really needed?
-
-        this.__lexBlockTokens(text);
+        this.__lexBlock(text);
         
-        return [];
+        return this._blockTokens;
     }
 
     public pushInlineQueue(startIndex: number, textLength: number, tokenStore: Markdown.Token[]): void {
@@ -46,24 +45,17 @@ export class MarkdownLexer implements IMarkdownLexer {
 
     // [private helper methods]
 
-    private __lexBlockTokens(text: string): void {
+    private __lexBlock(text: string): void {
 
         const textLength = text.length;
         let cursor = 0;
         let token: Markdown.Token | null;
 
         while (cursor < textLength) {
+            token = null;
             
             // external tokenizers
             token = this.__tryExternalTokenizers(text, cursor);
-            if (token) {
-                this._blockTokens.push(token);
-                cursor += token.textLength;
-                continue;
-            }
-
-            // text
-            token = this._tokenizer.text(text, cursor);
             if (token) {
                 this._blockTokens.push(token);
                 cursor += token.textLength;
@@ -78,10 +70,56 @@ export class MarkdownLexer implements IMarkdownLexer {
                 continue;
             }
 
-            token = null;
-        }
+            // indentCode
+            token = this._tokenizer.indentCode(text, cursor);
+            if (token) {
+                // REVIEW: might need to combine with the prev one
+                this._blockTokens.push(token);
+                cursor += token.textLength;
+                continue;
+            }
 
-        
+            // fenchCode
+            token = this._tokenizer.fenchCode(text, cursor);
+            if (token) {
+                this._blockTokens.push(token);
+                cursor += token.textLength;
+                continue;
+            }
+
+            // heading
+            token = this._tokenizer.heading(text, cursor);
+            if (token) {
+                this._blockTokens.push(token);
+                cursor += token.textLength;
+                continue;
+            }
+
+            // lheading
+            // paragraph
+            // blockquote
+            // list
+            // fence
+            // table
+            // hr
+            // def
+            // html
+
+            // text
+            token = this._tokenizer.text(text, cursor);
+            if (token) {
+                // REVIEW: might need to combine with the prev one
+                this._blockTokens.push(token);
+                cursor += token.textLength;
+                continue;
+            }
+
+            // error encounter
+            if (this._opts.unknownTokenThrow === true) {
+                throw new Error('unknown token reached');
+            }
+            break;
+        }
     }
 
     /**
