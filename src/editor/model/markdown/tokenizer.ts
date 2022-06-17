@@ -99,4 +99,35 @@ export class MarkdownTokenizer implements IMarkdownTokenizer {
         return null;
     }
 
+    public hr(text: string, cursor: number): Markdown.Hr | null {
+        MD_BLOCK_RULE.hr.lastIndex = cursor;
+        
+        const match = MD_BLOCK_RULE.hr.exec(text);
+        if (match) {
+            return {
+                type: Markdown.TokenType.HR,
+                startIndex: match.index,
+                textLength: match[0]!.length
+            }
+        }
+
+        return null;
+    }
+
+    public blockQuote(text: string, cursor: number): Markdown.BlockQuote | null {
+        MD_BLOCK_RULE.blockQuote.lastIndex = cursor;
+
+        const match = MD_BLOCK_RULE.blockQuote.exec(text);
+        if (match) {
+            return {
+                type: Markdown.TokenType.BLOCK_QUOTE,
+                startIndex: match.index,
+                textLength: match[0]!.length,
+                tokens: this._lexer.lexBlock(text, [])
+            };
+        }
+
+        return null;
+    }
+
 }

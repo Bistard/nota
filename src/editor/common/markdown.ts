@@ -219,6 +219,7 @@ export namespace Markdown {
 export interface IMarkdownLexer {
 
     lex(text: string): Markdown.Token[];
+    lexBlock(text: string, tokensStore: Markdown.Token[]): Markdown.Token[];
     pushInlineQueue(startIndex: number, textLength: number, tokenStore: Markdown.Token[]): void;
 }
 
@@ -231,6 +232,9 @@ export interface IMarkdownTokenizer {
     indentCode(text: string, cursor: number): Markdown.Code | null;
     fenchCode(text: string, cursor: number): Markdown.Code | null;
     heading(text: string, cursor: number): Markdown.Heading | null;
+    hr(text: string, cursor: number): Markdown.Hr | null;
+    blockQuote(text: string, cursor: number): Markdown.BlockQuote | null;
+
     text(text: string, cursor: number): Markdown.Text | null;
 
 }

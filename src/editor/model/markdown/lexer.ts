@@ -34,7 +34,7 @@ export class MarkdownLexer implements IMarkdownLexer {
         // REVIEW: testonly
 
         text = text.replace(/\r\n|\r/g, '\n'); // REVIEW: really needed?
-        this.__lexBlock(text);
+        this.lexBlock(text, this._blockTokens);
         
         return this._blockTokens;
     }
@@ -43,9 +43,7 @@ export class MarkdownLexer implements IMarkdownLexer {
         this._inlineTokensQueue.push([startIndex, textLength, tokenStore]);
     }
 
-    // [private helper methods]
-
-    private __lexBlock(text: string): void {
+    public lexBlock(text: string, tokens: Markdown.Token[]): Markdown.Token[] {
 
         const textLength = text.length;
         let cursor = 0;
@@ -57,7 +55,7 @@ export class MarkdownLexer implements IMarkdownLexer {
             // external tokenizers
             token = this.__tryExternalTokenizers(text, cursor);
             if (token) {
-                this._blockTokens.push(token);
+                tokens.push(token);
                 cursor += token.textLength;
                 continue;
             }
@@ -65,7 +63,7 @@ export class MarkdownLexer implements IMarkdownLexer {
             // space
             token = this._tokenizer.space(text, cursor);
             if (token) {
-                this._blockTokens.push(token);
+                tokens.push(token);
                 cursor += token.textLength;
                 continue;
             }
@@ -74,7 +72,7 @@ export class MarkdownLexer implements IMarkdownLexer {
             token = this._tokenizer.indentCode(text, cursor);
             if (token) {
                 // REVIEW: might need to combine with the prev one
-                this._blockTokens.push(token);
+                tokens.push(token);
                 cursor += token.textLength;
                 continue;
             }
@@ -82,7 +80,7 @@ export class MarkdownLexer implements IMarkdownLexer {
             // fenchCode
             token = this._tokenizer.fenchCode(text, cursor);
             if (token) {
-                this._blockTokens.push(token);
+                tokens.push(token);
                 cursor += token.textLength;
                 continue;
             }
@@ -90,26 +88,38 @@ export class MarkdownLexer implements IMarkdownLexer {
             // heading
             token = this._tokenizer.heading(text, cursor);
             if (token) {
-                this._blockTokens.push(token);
+                tokens.push(token);
                 cursor += token.textLength;
                 continue;
             }
 
+            // hr
+            token = this._tokenizer.hr(text, cursor);
+            if (token) {
+                tokens.push(token);
+                cursor += token.textLength;
+                continue;
+            }
+
+            // blockquote
+            token = this._tokenizer.blockQuote(text, cursor);
+            if (token) {
+                tokens.push(token);
+                cursor += token.textLength;
+                continue;
+            }
+            // list
+            // html
+            // def
+            // table
             // lheading
             // paragraph
-            // blockquote
-            // list
-            // fence
-            // table
-            // hr
-            // def
-            // html
 
             // text
             token = this._tokenizer.text(text, cursor);
             if (token) {
                 // REVIEW: might need to combine with the prev one
-                this._blockTokens.push(token);
+                tokens.push(token);
                 cursor += token.textLength;
                 continue;
             }
@@ -120,7 +130,11 @@ export class MarkdownLexer implements IMarkdownLexer {
             }
             break;
         }
+
+        return tokens;
     }
+
+    // [private helper methods]
 
     /**
      * @description If provided any external tokenizers, we try to analysis them
