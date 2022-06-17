@@ -81,9 +81,9 @@ export namespace Markdown {
      * @internal
      */
     interface TokenBase<T extends TokenType> {
-        readonly type: T;
-        readonly startIndex: number;
-        readonly textLength: number;
+        type: T;
+        startIndex: number;
+        textLength: number;
     }
 
     export interface Space extends TokenBase<TokenType.SPACE> {
@@ -91,18 +91,18 @@ export namespace Markdown {
     }
 
     export interface Code extends TokenBase<TokenType.CODE> {
-        readonly lang: string;
+        lang: string;
     }
 
     export interface Heading extends TokenBase<TokenType.HEADING> {
-        readonly depth: number;
-        readonly tokens: Token[];
+        depth: number;
+        tokens: Token[];
     }
 
     export interface Table extends TokenBase<TokenType.TABLE> {
-        readonly align: AlignType[];
-        readonly header: TableCell[];
-        readonly content: TableCell[][];
+        align: AlignType[];
+        header: TableCell[];
+        content: TableCell[][];
     }
 
     const enum AlignType {
@@ -113,9 +113,9 @@ export namespace Markdown {
     }
 
     interface TableCell {
-        readonly startIndex: number;
-        readonly textLength: number;
-        readonly tokens: Token[];
+        startIndex: number;
+        textLength: number;
+        tokens: Token[];
     }
 
     export interface Hr extends TokenBase<TokenType.HR> {
@@ -123,40 +123,40 @@ export namespace Markdown {
     }
 
     export interface BlockQuote extends TokenBase<TokenType.BLOCK_QUOTE> {
-        readonly tokens: Token[];
+        tokens: Token[];
     }
 
     export interface List extends TokenBase<TokenType.LIST> {
-        readonly ordered: boolean;
+        ordered: boolean;
         // start: number | ''
         // loose: boolean
-        readonly items: ListItem[];
+        items: ListItem[];
     }
 
     export interface ListItem extends TokenBase<TokenType.LIST_ITEM> {
         task: boolean
         checked?: boolean
         // loose: boolean
-        readonly tokens: Token[];
+        tokens: Token[];
     }
 
     export interface Paragraph extends TokenBase<TokenType.PARAGRAPH> {
         // pre?: boolean;
-        readonly tokens: Token[];
+        tokens: Token[];
     }
 
     export interface HTML extends TokenBase<TokenType.HTML> {
-        // readonly pre: boolean;
+        // pre: boolean;
     }
 
     export interface Text extends TokenBase<TokenType.TEXT> {
-        readonly tokens: Token[];
+        tokens: Token[];
     }
 
     export interface Def extends TokenBase<TokenType.DEF> {
-        readonly tag: string;
-        readonly href: string;
-        readonly title: string;
+        tag: string;
+        href: string;
+        title: string;
     }
 
     export interface Escape extends TokenBase<TokenType.ESCAPE> {
@@ -164,27 +164,27 @@ export namespace Markdown {
     }
 
     export interface Tag extends TokenBase<TokenType.TAG> {
-        readonly inLink: boolean;
-        readonly inRawBlock: boolean;
+        inLink: boolean;
+        inRawBlock: boolean;
     }
 
     export interface Link extends TokenBase<TokenType.LINK> {
-        readonly title: string;
-        readonly href: string;
-        readonly tokens: Token[];
+        title: string;
+        href: string;
+        tokens: Token[];
     }
 
     export interface Image extends TokenBase<TokenType.IMAGE> {
-        readonly title: string;
-        readonly href: string;
+        title: string;
+        href: string;
     }
 
     export interface Strong extends TokenBase<TokenType.STRONG> {
-        readonly tokens: Token[];
+        tokens: Token[];
     }
 
     export interface Emphasis extends TokenBase<TokenType.EMPHASIS> {
-        readonly tokens: Token[];
+        tokens: Token[];
     }
 
     export interface Codespan extends TokenBase<TokenType.CODE_SPAN> {
@@ -196,12 +196,12 @@ export namespace Markdown {
     }
 
     export interface Del extends TokenBase<TokenType.DEL> {
-        readonly tokens: Token[];
+        tokens: Token[];
     }
 
     export interface Generic extends TokenBase<TokenType.GENERIC> {
-        readonly [index: string]: any;
-        readonly tokens?: Token[];
+        [index: string]: any;
+        tokens?: Token[];
     }
 
     export namespace External {
