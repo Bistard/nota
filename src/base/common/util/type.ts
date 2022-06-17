@@ -7,6 +7,11 @@ export type DightInString = '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' 
 export type Pair<T, R> = [T, R];
 
 /**
+ * Represents an array contains only 3 items.
+ */
+export type Triple<T, R, S> = [T, R, S];
+
+/**
  * Make all the fields become required.
  */
 export type AllRequired<T> = {

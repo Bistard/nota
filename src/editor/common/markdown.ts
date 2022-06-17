@@ -20,10 +20,6 @@ export const MarkdownLexerDefaultOptions: IMarkdownLexerOptions = {
 
 export namespace Markdown {
 
-    export interface Rules {
-        [ruleName: string]: RegExp;
-    }
-
     export type Token = (
         Space |
         code |
@@ -80,6 +76,8 @@ export namespace Markdown {
      */
     interface TokenBase<T extends TokenType> {
         readonly type: T;
+        readonly startIndex: number;
+        readonly textLength: number;
     }
 
     export interface Space extends TokenBase<TokenType.SPACE> {
@@ -87,14 +85,10 @@ export namespace Markdown {
     }
 
     export interface code extends TokenBase<TokenType.CODE> {
-        readonly startIndex: number;
-        readonly textLength: number;
         readonly lang?: string;
     }
 
     export interface Heading extends TokenBase<TokenType.HEADING> {
-        readonly startIndex: number;
-        readonly textLength: number;
         readonly tokens: Token[];
     }
 
@@ -112,7 +106,7 @@ export namespace Markdown {
     }
 
     interface TableCell {
-        readonly startIndex: number; // REVIEW: is this needed?
+        readonly startIndex: number;
         readonly textLength: number;
         readonly tokens: Token[];
     }
@@ -122,8 +116,6 @@ export namespace Markdown {
     }
 
     export interface BlockQuote extends TokenBase<TokenType.BLOCK_QUOTE> {
-        readonly startIndex: number;
-        readonly textLength: number;
         readonly tokens: Token[];
     }
 
@@ -135,8 +127,6 @@ export namespace Markdown {
     }
 
     export interface ListItem extends TokenBase<TokenType.LIST_ITEM> {
-        readonly startIndex: number;
-        readonly textLength: number;
         task: boolean
         checked?: boolean
         // loose: boolean
@@ -144,22 +134,16 @@ export namespace Markdown {
     }
 
     export interface Paragraph extends TokenBase<TokenType.PARAGRAPH> {
-        readonly startIndex: number;
-        readonly textLength: number;
         // pre?: boolean;
         readonly tokens: Token[];
     }
 
     export interface HTML extends TokenBase<TokenType.HTML> {
-        readonly startIndex: number;
-        readonly textLength: number;
         // readonly pre: boolean;
     }
 
     export interface Text extends TokenBase<TokenType.TEXT> {
-        readonly startIndex: number;
-        readonly textLength: number;
-        readonly token?: Token[];
+        readonly tokens: Token[];
     }
 
     export interface Def extends TokenBase<TokenType.DEF> {
@@ -169,47 +153,35 @@ export namespace Markdown {
     }
 
     export interface Escape extends TokenBase<TokenType.ESCAPE> {
-        readonly startIndex: number;
-        readonly textLength: number;
+        // nothing
     }
 
     export interface Tag extends TokenBase<TokenType.TAG> {
-        readonly startIndex: number;
-        readonly textLength: number;
         readonly inLink: boolean;
         readonly inRawBlock: boolean;
     }
 
     export interface Link extends TokenBase<TokenType.LINK> {
-        readonly startIndex: number;
-        readonly textLength: number;
         readonly title: string;
         readonly href: string;
         readonly tokens: Token[];
     }
 
     export interface Image extends TokenBase<TokenType.IMAGE> {
-        readonly startIndex: number;
-        readonly textLength: number;
         readonly title: string;
         readonly href: string;
     }
 
     export interface Strong extends TokenBase<TokenType.STRONG> {
-        readonly startIndex: number;
-        readonly textLength: number;
         readonly tokens: Token[];
     }
 
     export interface Emphasis extends TokenBase<TokenType.EMPHASIS> {
-        readonly startIndex: number;
-        readonly textLength: number;
         readonly tokens: Token[];
     }
 
     export interface Codespan extends TokenBase<TokenType.CODE_SPAN> {
-        readonly startIndex: number;
-        readonly textLength: number;
+        // nothing
     }
 
     export interface Br extends TokenBase<TokenType.BR> {
@@ -217,32 +189,18 @@ export namespace Markdown {
     }
 
     export interface Del extends TokenBase<TokenType.DEL> {
-        readonly startIndex: number;
-        readonly textLength: number;
         readonly tokens: Token[];
     }
 
     export interface Generic extends TokenBase<TokenType.GENERIC> {
         readonly [index: string]: any;
-        readonly raw: string;
         readonly tokens?: Token[];
-    }
-
-    export interface TokenResult {
-        /**
-         * The created token.
-         */
-        token: Token;
-        /**
-         * The raw text length of the token.
-         */
-        rawLength: number;
     }
 
     export namespace External {
         
         export interface IExternalTokenizer {
-            token(lexer: IMarkdownLexer, text: string, cursor: number, tokensStore: Markdown.Token[]): TokenResult | null;
+            token(lexer: IMarkdownLexer, text: string, cursor: number, tokensStore: Token[]): Token | null;
         }
         
     }
@@ -254,12 +212,15 @@ export namespace Markdown {
 export interface IMarkdownLexer {
 
     lex(text: string): Markdown.Token[];
-    
+    pushInlineQueue(startIndex: number, textLength: number, tokenStore: Markdown.Token[]): void;
 }
 
 /**
  * An interface only for {@link MarkdownTokenizer}.
  */
 export interface IMarkdownTokenizer {
+
+    text(text: string, cursor: number): Markdown.Text | null;
+    space(text: string, cursor: number): Markdown.Space | null;
 
 }
