@@ -218,9 +218,16 @@ export namespace Markdown {
  */
 export interface IMarkdownLexer {
 
-    lex(text: string): Markdown.Token[];
-    lexBlock(text: string, tokensStore: Markdown.Token[]): Markdown.Token[];
-    pushInlineQueue(startIndex: number, textLength: number, tokenStore: Markdown.Token[]): void;
+    /**
+     * @description Apply a lexical analysis on the given text and returns the 
+     * analyzed tokens.
+     * @param text The given text.
+     * @param offset The offset relatives to the whole text model. Default is 0.
+     * 
+     * @note Each token index is relatives to the whole text model (absolute).
+     */
+    lex(text: string, offset?: number): Markdown.Token[];
+    
 }
 
 /**
