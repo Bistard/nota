@@ -3,6 +3,7 @@
   "version": "0.0.1",
   "description": "an open-sourced markdown editor",
   "main": "./dist/main-bundle.js",
+  "type": "commonjs",
   "scripts": {
     "start": "npm run build && electron .",
     "test-start": "npm run test && npm start",
