@@ -1,6 +1,6 @@
 import { Triple } from "src/base/common/util/type";
 import { IMarkdownLexer, IMarkdownLexerOptions, IMarkdownTokenizer, Markdown, MarkdownLexerDefaultOptions } from "src/editor/common/markdown";
-// import { marked } from "src/editor/model/markdown/marked/marked";
+import { marked } from "src/editor/model/markdown/marked/marked";
 import { MarkdownTokenizer } from "src/editor/model/markdown/tokenizer";
 
 type Token = Markdown.Token;
@@ -30,8 +30,8 @@ export class MarkdownLexer implements IMarkdownLexer {
     public lex(text: string): Token[] {
         
         // REVIEW: testonly
-        // const tokens = marked.lexer(text);
-        // console.log(tokens);
+        const tokens = marked.lexer(text);
+        console.log(tokens);
         // REVIEW: testonly
 
         text = text.replace(/\r\n|\r/g, '\n'); // REVIEW: really needed?
