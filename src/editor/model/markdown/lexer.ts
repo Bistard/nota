@@ -21,7 +21,10 @@ export class MarkdownLexer implements IMarkdownLexer {
         this._opts = opts || MarkdownLexerDefaultOptions;
         this._blockTokens = [];
         this._inlineTokensQueue = [];
-        this._tokenizer = new MarkdownTokenizer(this.__pushInlineQueue, this.__lexBlock);
+        this._tokenizer = new MarkdownTokenizer(
+            (...args) => this.__pushInlineQueue(...args), 
+            (...args) => this.__lexBlock(...args)
+        );
     }
 
     // [public method]
