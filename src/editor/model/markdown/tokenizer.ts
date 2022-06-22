@@ -1,17 +1,18 @@
-import { IMarkdownLexer, IMarkdownTokenizer, Markdown } from "src/editor/common/markdown";
+import { IMarkdownTokenizer, Markdown } from "src/editor/common/markdown";
 import { MD_BLOCK_RULE } from "src/editor/model/markdown/rule";
+
+type Token = Markdown.Token;
 
 export class MarkdownTokenizer implements IMarkdownTokenizer {
 
     // [field]
 
-    private readonly _lexer: IMarkdownLexer;
-
     // [constructor]
 
-    constructor(lexer: IMarkdownLexer) {
-        this._lexer = lexer;
-    }
+    constructor(
+        private readonly __pushInlineQueue: (startIndex: number, textLength: number, tokenStore: Token[]) => void,
+        private readonly __lexBlock: (text: string, tokenStore: Token[]) => Token[],
+    ) {}
 
     // [public methods]
 
@@ -26,7 +27,7 @@ export class MarkdownTokenizer implements IMarkdownTokenizer {
                 textLength: match[0]!.length,
                 tokens: []
             };
-            this._lexer.pushInlineQueue(token.startIndex, token.textLength, token.tokens);
+            this.__pushInlineQueue(token.startIndex, token.textLength, token.tokens);
             return token;
         }
 
@@ -92,7 +93,7 @@ export class MarkdownTokenizer implements IMarkdownTokenizer {
                 textLength: match[0]!.length,
                 tokens: []
             };
-            this._lexer.pushInlineQueue(token.startIndex, token.textLength, token.tokens);
+            this.__pushInlineQueue(token.startIndex, token.textLength, token.tokens);
             return token;
         }
 
@@ -124,7 +125,7 @@ export class MarkdownTokenizer implements IMarkdownTokenizer {
                 type: Markdown.TokenType.BLOCK_QUOTE,
                 startIndex: match.index,
                 textLength: match[0]!.length,
-                tokens: this._lexer.lexBlock(nestText, []) // FIX: 这里的startIndex都是relative了
+                tokens: this.__lexBlock(nestText, []) // FIX: 这里的startIndex都是relative了
             };
         }
 
@@ -164,7 +165,7 @@ export class MarkdownTokenizer implements IMarkdownTokenizer {
                 textLength: match[0]!.length,
                 tokens: []
             };
-            this._lexer.pushInlineQueue(token.startIndex, token.textLength, token.tokens);
+            this.__pushInlineQueue(token.startIndex, token.textLength, token.tokens);
             return token;
         }
 

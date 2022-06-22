@@ -22,12 +22,12 @@ export class MarkdownLexer implements IMarkdownLexer {
         this._opts = opts || MarkdownLexerDefaultOptions;
         this._blockTokens = [];
         this._inlineTokensQueue = [];
-        this._tokenizer = new MarkdownTokenizer(this);
+        this._tokenizer = new MarkdownTokenizer(this.__pushInlineQueue, this.__lexBlock);
     }
 
     // [public method]
 
-    public lex(text: string): Token[] {
+    public lex(text: string, offset: number = 0): Token[] {
         
         // REVIEW: testonly
         const tokens = marked.lexer(text);
@@ -35,16 +35,14 @@ export class MarkdownLexer implements IMarkdownLexer {
         // REVIEW: testonly
 
         text = text.replace(/\r\n|\r/g, '\n'); // REVIEW: really needed?
-        this.lexBlock(text, this._blockTokens);
+        this.__lexBlock(text, this._blockTokens);
         
         return this._blockTokens;
     }
 
-    public pushInlineQueue(startIndex: number, textLength: number, tokenStore: Token[]): void {
-        this._inlineTokensQueue.push([startIndex, textLength, tokenStore]);
-    }
+    // [private helper methods]
 
-    public lexBlock(text: string, tokenStore: Token[]): Token[] {
+    private __lexBlock(text: string, tokenStore: Token[]): Token[] {
 
         const textLength = text.length;
         let cursor = 0;
@@ -180,7 +178,9 @@ export class MarkdownLexer implements IMarkdownLexer {
         return tokenStore;
     }
 
-    // [private helper methods]
+    private __pushInlineQueue(startIndex: number, textLength: number, tokenStore: Token[]): void {
+        this._inlineTokensQueue.push([startIndex, textLength, tokenStore]);
+    }
 
     /**
      * @description If provided any external tokenizers, we try to analysis them
