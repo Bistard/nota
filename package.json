@@ -7,8 +7,11 @@
     "start": "npm run build && electron .",
     "test-start": "npm run test && npm start",
     "test": "mocha --ui tdd -r jsdom-global/register",
+    "benchmark": "node benchmark/benchmark.js",
     "build": "webpack --config webpack.config.js --stats-error-details",
-    "gen-icons": "fantasticon -c .fantasticonrc.js"
+    "gen-icons": "fantasticon -c .fantasticonrc.js",
+    
+    "postinstall": "npm test"
   },
   "repository": {
     "type": "git",
