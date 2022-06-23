@@ -2,12 +2,12 @@ const path = require('path');
 const fs = require('fs');
 var Benchmark = require('benchmark');
 
-const marked = require('./modules/marked/marked.min');
-const markdownit = new require('./modules/markdown-it/markdown-it.min')();
+const marked = require('./marked/marked.min');
+const markdownit = new require('./markdown-it/markdown-it.min')();
 
 /*******************************************************************************
  * This ia a benchmark for testing how fast (also RAM usage) of each tokenizer 
- * compares to our own tokenizer. The comparing modules are:
+ * compares to our own tokenizer. The compared modules are:
  *  - marked
  *  - markdown-it
  ******************************************************************************/
