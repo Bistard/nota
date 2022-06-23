@@ -14,6 +14,7 @@ function assertTokens(text: string, expectTokens: Markdown.Token[], print?: bool
 
     for (const token of actualTokens) {
         (token.type as any) = tokenNameMap[token.type]!;
+        (token as any)._text = text.substring(token.startIndex, token.startIndex + token.textLength);
     }
 
     if (print === true) {

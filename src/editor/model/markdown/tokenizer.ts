@@ -3,6 +3,13 @@ import { MD_BLOCK_RULE } from "src/editor/model/markdown/rule";
 
 type Token = Markdown.Token;
 
+/**
+ * @internal
+ * @class A class that supports a series of pre-defined markdown token rules. 
+ * These methods are used inside a {@link IMarkdownLexer} and should NOT be used 
+ * directly. Each method represents an attempt on tokenizing the given string to
+ * the corresonding token, returns the token if matched, null otherwise.
+ */
 export class MarkdownTokenizer implements IMarkdownTokenizer {
 
     // [field]
