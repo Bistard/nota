@@ -11,7 +11,6 @@
     "benchmark": "node benchmark/benchmark.js",
     "build": "webpack --config webpack.config.js --stats-error-details",
     "gen-icons": "fantasticon -c .fantasticonrc.js",
-    
     "postinstall": "npm test"
   },
   "repository": {
@@ -31,6 +30,7 @@
     "@types/electron": "^1.6.10",
     "@types/jquery": "^3.5.6",
     "@types/prismjs": "^1.16.6",
+    "benchmark": "^2.1.4",
     "cross-env": "^7.0.3",
     "electron": "^13.6.6",
     "fantasticon": "^1.2.3",
