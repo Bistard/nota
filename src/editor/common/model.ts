@@ -351,6 +351,13 @@ export interface IEditorModel extends IDisposable {
      * @param lineNumber line number (zero-based).
      */
     getLineLength(lineNumber: number): number;
+
+    /**
+     * @description Apply tokenization process to the given range of lines.
+     * @param startLineNumber The start line number (zero-based).
+     * @param endLineNumber The end line number (zero-based && not included).
+     */
+    tokenizationBetween(startLineNumber: number, endLineNumber: number): void;
 }
 
 /**

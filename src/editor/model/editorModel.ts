@@ -4,7 +4,9 @@ import { DataBuffer } from "src/base/common/file/buffer";
 import { URI } from "src/base/common/file/uri";
 import { asyncFinish } from "src/base/common/util/async";
 import { IFileService } from "src/code/common/service/fileService/fileService";
+import { IMarkdownLexer } from "src/editor/common/markdown";
 import { ModelEvent, IEditorModel, IPieceTableModel } from "src/editor/common/model";
+import { MarkdownLexer } from "src/editor/model/markdown/lexer";
 import { TextBufferBuilder } from "src/editor/model/textBuffer";
 
 /**
@@ -30,6 +32,8 @@ export class EditorModel extends Disposable implements IEditorModel {
      */
     private _textModel: IPieceTableModel = null!;
 
+    private readonly _lexer: IMarkdownLexer;
+
     // [constructor]
 
     constructor(
@@ -37,6 +41,8 @@ export class EditorModel extends Disposable implements IEditorModel {
         private fileService: IFileService
     ) {
         super();
+        this._lexer = new MarkdownLexer();
+
         this.__createModel(source);
     }
 
@@ -78,6 +84,12 @@ export class EditorModel extends Disposable implements IEditorModel {
         return this._textModel.getLineLength(lineNumber);
     }
 
+    public tokenizationBetween(startLineNumber: number, endLineNumber: number): void {
+        startLineNumber = Math.max(0, startLineNumber);
+        endLineNumber = Math.min(this.getLineCount(), endLineNumber);
+        // TODO
+    }
+
     public override dispose(): void {
         super.dispose();
         if (this._textModel !== null) {
@@ -110,6 +122,10 @@ export class EditorModel extends Disposable implements IEditorModel {
 
         const textModel = builder.create();
         this._textModel = textModel;
+
+        // REVIEW
+        console.log(this._textModel.getRawContent());
+        this._lexer.lex(this._textModel.getRawContent());
         
         this._onDidBuild.fire(true);
     }

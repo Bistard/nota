@@ -1,4 +1,7 @@
 {
+  /* Specifies an array of filenames or patterns to include in the program. 
+     These filenames are resolved relative to the directory containing the 
+     tsconfig.json file. */
   "include": [
     "src/**/*", 
     "test/**/*",
