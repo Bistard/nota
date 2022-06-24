@@ -8,14 +8,24 @@ const tokenNameMap = [
     'image', 'strong', 'em', 'codespan', 'br', 'del', 'generic'
 ];
 
+// time complexity: O(n)
+function dfs(token: Markdown.Token, fn: (token: Markdown.Token) => void): void {
+    if ((token as any).tokens) {
+        for (const child of (token as any).tokens) {
+            dfs(child, fn);
+        }
+    }
+    fn(token);
+}
+
 function assertTokens(text: string, expectTokens: Markdown.Token[], print?: boolean): void {
     const lexer = new MarkdownLexer();
     const actualTokens = lexer.lex(text);
 
-    for (const token of actualTokens) {
+    actualTokens.forEach(token => dfs(token, (token) => {
         (token.type as any) = tokenNameMap[token.type]!;
         (token as any)._text = text.substring(token.startIndex, token.startIndex + token.textLength);
-    }
+    }));
 
     if (print === true) {
         console.log(JSON.stringify(actualTokens, null, 4));
@@ -63,7 +73,7 @@ suite('lexer-test', () => {
     });
 
     test('blockquote', () => {
-        assertTokens('> blockquote', [
+        assertTokens('> blockquote1\n> blockquote2\n> blockquote3\n> blockquote4', [
             // TODO
         ], true);
     });
