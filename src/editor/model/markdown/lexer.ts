@@ -3,6 +3,11 @@ import { IMarkdownLexer, IMarkdownLexerOptions, IMarkdownTokenizer, Markdown, Ma
 import { EndOfLine } from "src/editor/common/model";
 import { MarkdownTokenizer } from "src/editor/model/markdown/tokenizer";
 
+/*******************************************************************************
+ * @deprecated THE WHOLE FILE IS DEPRECATED AND WILL BE REMOVED IN FUTURE 
+ * VERSION. IT ALSO APPLYS TO ALL THE RELATED FILES.
+ ******************************************************************************/
+
 type Token = Markdown.Token;
 
 export class MarkdownLexer implements IMarkdownLexer {
