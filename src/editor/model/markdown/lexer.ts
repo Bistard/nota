@@ -1,5 +1,6 @@
 import { Triple } from "src/base/common/util/type";
 import { IMarkdownLexer, IMarkdownLexerOptions, IMarkdownTokenizer, Markdown, MarkdownLexerDefaultOptions } from "src/editor/common/markdown";
+import { EndOfLine } from "src/editor/common/model";
 import { MarkdownTokenizer } from "src/editor/model/markdown/tokenizer";
 
 type Token = Markdown.Token;
@@ -31,13 +32,18 @@ export class MarkdownLexer implements IMarkdownLexer {
 
     public lex(text: string, offset: number = 0): Token[] {
         
-        text = text.replace(/\r\n|\r/g, '\n'); // REVIEW: really needed?
+        text = this.__normalize(text);
         this.__lexBlock(text, this._blockTokens);
         
         return this._blockTokens;
     }
 
     // [private helper methods]
+
+    private __normalize(text: string): string {
+        text = text.replace(/\r\n|\r/g, EndOfLine.LF);
+        return text;
+    }
 
     private __lexBlock(text: string, tokenStore: Token[]): Token[] {
 
