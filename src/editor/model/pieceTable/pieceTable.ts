@@ -2142,7 +2142,7 @@ export class PieceTable implements IPieceTable {
  */
 export namespace PieceTableInternal {
 
-    /** @warn Should ONLY be used in `pieceTable.test.ts`.  */
+    /** @warn Should ONLY be used in `pieceTable.test.ts`. */
     export const NULL = NULL_NODE;
 
 }
