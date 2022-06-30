@@ -765,9 +765,8 @@ export class PieceTable implements IPieceTable {
          * when a {@link IPiece} points to the add buffer is detecting the CRLF
          * situation during operations like insert / delete, it cannot determine
          * a 'CRLF' should be treated as a whole, or a 'CR' and a 'LF'. To fix
-         * this, we did a tirck here by split the CRLF with any character so 
-         * that in a {@link IPiece} perspective, it will not be treated like a 
-         * whole.
+         * this, we did a trick here by split the CRLF using a character so that 
+         * in a {@link IPiece} perspective, it will not be treated like a whole.
          */
         if (addBuffer.linestart[addBuffer.linestart.length - 1]! === addBufferLength
             && addBufferLength !== 0 
