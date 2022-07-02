@@ -10,6 +10,9 @@ import { MarkdownTokenizer } from "src/editor/model/markdown/tokenizer";
 
 type Token = Markdown.Token;
 
+/**
+ * @deprecated
+ */
 export class MarkdownLexer implements IMarkdownLexer {
 
     // [field]
