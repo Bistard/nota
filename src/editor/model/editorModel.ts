@@ -6,7 +6,7 @@ import { asyncFinish } from "src/base/common/util/async";
 import { IFileService } from "src/code/common/service/fileService/fileService";
 import { IMarkdownLexer } from "src/editor/common/markdown";
 import { ModelEvent, IEditorModel, IPieceTableModel } from "src/editor/common/model";
-import { MarkdownLexer } from "src/editor/model/markdown/lexer";
+import { MarkdownLexer } from "src/editor/model/markdown/markedLexer";
 import { TextBufferBuilder } from "src/editor/model/textBuffer";
 
 /**
@@ -125,7 +125,8 @@ export class EditorModel extends Disposable implements IEditorModel {
 
         // REVIEW
         console.log(this._textModel.getRawContent());
-        this._lexer.lex(this._textModel.getRawContent());
+        const tokens = this._lexer.lex(this._textModel.getRawContent());
+        console.log(tokens);
         
         this._onDidBuild.fire(true);
     }
