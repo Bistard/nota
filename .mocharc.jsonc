@@ -1,0 +1,6 @@
+{
+    "extension": ["ts", "js"],
+    "spec": "test/**/*.test.ts",
+    "require": "ts-node/register",
+    "ignore": "test/**/*.dev.test.ts" // ignore *.test.ts that are still in developing
+}
