@@ -258,18 +258,17 @@ export class Sash extends Disposable implements ICreateable, ISash {
          *     instead of the actual HTMLElement.
          */
 
-        let doDragHelper: (e: MouseEvent) => void;
-        let stopDragHelper = () => {
-            document.documentElement.removeEventListener(EventType.mousemove, doDragHelper, false);
-            document.documentElement.removeEventListener(EventType.mouseup, stopDragHelper, false);
+        let mouseMoveCallback: (e: MouseEvent) => void;
+        let mouseUpCallback = () => {
+            document.documentElement.removeEventListener(EventType.mousemove, mouseMoveCallback, false);
+            document.documentElement.removeEventListener(EventType.mouseup, mouseUpCallback, false);
             this._onDidEnd.fire();
         };
 
-        // draging horizontally
+        // dragging horizontally
         if (this.orientation === Orientation.Vertical) {
-
-            doDragHelper = (e: MouseEvent) => {
-
+            
+            mouseMoveCallback = (e: MouseEvent) => {
                 if (this.range && (e.clientX < this.range.start || (e.clientX > this.range.end && this.range.end !== -1))) {
                     return;
                 }
@@ -278,8 +277,8 @@ export class Sash extends Disposable implements ICreateable, ISash {
                 
                 // To prevent firing the wrong onDidMove event at the first time.
                 if (firstDrag === true) {
-                    prevX = e.pageX;
-                    prevY = e.pageY;
+                    prevX = event.pageX;
+                    prevY = event.pageY;
                     firstDrag = false;
                 }
 
@@ -289,12 +288,12 @@ export class Sash extends Disposable implements ICreateable, ISash {
             };
     
             startCoordinate = event.pageX;
-            startDimention = parseInt(document.defaultView!.getComputedStyle(this.element!).left, 10);
+            startDimention = parseInt(this.element!.style.left, 10);
         } 
-        // draging vertically
+        // dragging vertically
         else {
-
-            doDragHelper = (e: MouseEvent) => {
+            
+            mouseMoveCallback = (e: MouseEvent) => {
                 if (this.range && (e.clientY < this.range.start || (e.clientY > this.range.end && this.range.end !== -1))) {
                     return;
                 }
@@ -302,8 +301,8 @@ export class Sash extends Disposable implements ICreateable, ISash {
                 this.element!.style.top = (startDimention + event.pageY - startCoordinate) + 'px';
                 
                 if (firstDrag === true) {
-                    prevX = e.pageX;
-                    prevY = e.pageY;
+                    prevX = event.pageX;
+                    prevY = event.pageY;
                     firstDrag = false;
                 }
 
@@ -313,12 +312,12 @@ export class Sash extends Disposable implements ICreateable, ISash {
             };
     
             startCoordinate = event.pageY;
-            startDimention = parseInt(document.defaultView!.getComputedStyle(this.element!).top, 10);
+            startDimention = parseInt(this.element!.style.top, 10);
         }
 
         // listeners registration
-        document.documentElement.addEventListener(EventType.mousemove, doDragHelper, false);
-        document.documentElement.addEventListener(EventType.mouseup, stopDragHelper, false);
+        document.documentElement.addEventListener(EventType.mousemove, mouseMoveCallback, false);
+        document.documentElement.addEventListener(EventType.mouseup, mouseUpCallback, false);
     }
 
 }
