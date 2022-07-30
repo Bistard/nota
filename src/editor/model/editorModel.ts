@@ -4,9 +4,8 @@ import { DataBuffer } from "src/base/common/file/buffer";
 import { URI } from "src/base/common/file/uri";
 import { asyncFinish } from "src/base/common/util/async";
 import { IFileService } from "src/code/common/service/fileService/fileService";
-import { IMarkdownLexer } from "src/editor/common/markdown";
 import { ModelEvent, IEditorModel, IPieceTableModel } from "src/editor/common/model";
-import { MarkdownLexer } from "src/editor/model/markdown/markedLexer";
+import { IMarkdownLexer, MarkdownLexer } from "src/editor/model/markdown/markedLexer";
 import { TextBufferBuilder } from "src/editor/model/textBuffer";
 
 /**
@@ -27,7 +26,7 @@ export class EditorModel extends Disposable implements IEditorModel {
     // [field]
 
     /**
-     * `null` indicates the model is not built yet. The tex model is registered,
+     * `null` indicates the model is not built yet. The text model is registered,
      * need to be disposed manually.
      */
     private _textModel: IPieceTableModel = null!;
@@ -99,6 +98,9 @@ export class EditorModel extends Disposable implements IEditorModel {
 
     // [private helper methods]
 
+    /**
+     * @description Raises any assertions if the model is 
+     */
     private __assertModel(): void {
         if (this.isDisposed()) {
             throw new Error('editor model is already disposed');
@@ -113,10 +115,13 @@ export class EditorModel extends Disposable implements IEditorModel {
         }
     }
 
+    /**
+     * @description // TODO
+     */
     private async __createModel(source: URI): Promise<void> {
         
         const builder = await this.__createTextBufferBuilder(source);
-        if (builder === null) {
+        if (builder === undefined) {
             return;
         }
 
@@ -124,8 +129,9 @@ export class EditorModel extends Disposable implements IEditorModel {
         this._textModel = textModel;
 
         // REVIEW
-        console.log(this._textModel.getRawContent());
-        const tokens = this._lexer.lex(this._textModel.getRawContent());
+        const rawContent = this._textModel.getRawContent();
+        console.log(rawContent);
+        const tokens = this._lexer.lex(rawContent);
         console.log(tokens);
         
         this._onDidBuild.fire(true);
@@ -141,12 +147,10 @@ export class EditorModel extends Disposable implements IEditorModel {
      * 
      * @note method will invoke `TextBufferBuilder.build()` automatically.
      */
-    private async __createTextBufferBuilder(source: URI): Promise<TextBufferBuilder | null> {
+    private async __createTextBufferBuilder(source: URI): Promise<TextBufferBuilder | undefined> {
 
-        // Otherwise source is a URI, we need to read it first.
-
-        const [finished, finishBuilding] = asyncFinish<void>();
-        let builder: TextBufferBuilder | null = new TextBufferBuilder();
+        const [finished, finishBuilding] = asyncFinish<TextBufferBuilder | undefined>();
+        let builder: TextBufferBuilder = new TextBufferBuilder();
 
         const stream = await this.fileService.readFileStream(source);
         stream.on('data', (data: DataBuffer) => {
@@ -155,17 +159,15 @@ export class EditorModel extends Disposable implements IEditorModel {
 
         stream.on('end', () => {
             builder!.build();
-            finishBuilding();
+            finishBuilding(builder);
         });
 
         stream.on('error', (error) => {
             this._onDidBuild.fire(error);
-            builder = null;
-            finishBuilding();
+            finishBuilding(undefined);
         });
 
-        await finished;
-        return builder;
+        return finished;
     }
 
 }
