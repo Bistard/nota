@@ -145,13 +145,11 @@ export class SplitView implements ISplitView {
                 view1.updateSize(e.deltaX);
                 view2.updateSize(-e.deltaX);
                 view1.render();
-                view2.render(this.__getViewOffset(view2));
+                view2.render(this.__getViewOffset(view2) + e.deltaX);
                 
                 console.log('View1 size is: ', view1.getSize());
-                console.log('View1 left is: ', (view1 as any)._container.style.left);
-                console.log('The sum of view1 size and left is: ', view1.getSize() + (view1 as any)._container.style.left);
                 console.log('View2 size is: ', view2.getSize());
-                console.log('View2 left is: ', (view2 as any)._container.style.left);
+                console.log('Their sum is: ', view1.getSize() + view2.getSize())
 
             });
 
@@ -178,7 +176,7 @@ export class SplitView implements ISplitView {
     }
 
     /**
-     * @description // TODO
+     * @description 
      */
     private __render(): void {
         this.__resize();

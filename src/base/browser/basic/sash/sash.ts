@@ -27,10 +27,9 @@ export interface ISashOpts {
     readonly size?: number;
 
     /**
-     * The range (closed interval) that the {@link Sash} is allowed to move 
-     * between.
+     * The range (closed interval) that the {@link Sash} is allowed to move between.
      * 
-     * @note If -1 provided in any interals, means no restrictions.
+     * If -1 provided in any interals, means no restrictions.
      */
     readonly range?: IRange;
 }
