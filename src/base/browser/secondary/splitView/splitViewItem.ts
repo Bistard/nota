@@ -75,6 +75,9 @@ export interface ISplitViewItem {
  */
 export class SplitViewItem implements ISplitViewItem {
 
+    // [field]
+
+    // TODO: use getter / setter so that it can be modified after ctor.
     public readonly maximumSize: number;
     public readonly minimumSize: number;
     
@@ -83,6 +86,8 @@ export class SplitViewItem implements ISplitViewItem {
     private _resizePriority: Priority;
 
     private _size: number;
+
+    // [constructor]
 
     constructor(container: HTMLElement, opt: IViewOpts) {
         this._disposed = false;
@@ -104,6 +109,8 @@ export class SplitViewItem implements ISplitViewItem {
         this._size = opt.initSize;
         
     }
+
+    // [public methods]
 
     public render(offset?: number): void {
         console.log('given offset: ', offset);
