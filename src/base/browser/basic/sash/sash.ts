@@ -4,6 +4,9 @@ import { Emitter, Register } from "src/base/common/event";
 import { IRange } from "src/base/common/range";
 import { ICreateable } from "src/code/browser/workbench/component";
 
+/**
+ * An interface for {@link Sash} construction.
+ */
 export interface ISashOpts {
     
     /**
@@ -36,7 +39,7 @@ export interface ISashOpts {
 }
 
 /**
- * The event fires when the {@link Sash} move / start / end.
+ * The event fires when the {@link Sash} drag-move / drag-start / drag-end.
  */
 export interface ISashEvent {
     /* The start coordinate */
@@ -52,34 +55,57 @@ export interface ISashEvent {
     readonly deltaY: number;
 }
 
+/**
+ * An interface only for {@link Sash}.
+ */
 export interface ISash {
+    
+    /**
+     * The width / height of the sash. Default is 4.
+     */
     readonly size: number;
+
+    /**
+     * The default left / top position when the sash is reset by double click.
+     */
     readonly defaultPosition: number;
 
+    /**
+     * Fires when the sash dragging is started (mouse-down).
+     */
     readonly onDidStart: Register<ISashEvent>;
+
+    /**
+     * Fires when the sash dragging is moved (mouse-move).
+     */
     readonly onDidMove: Register<ISashEvent>;
+    
+    /**
+     * Fires when the sash dragging is stoped (mouse-up).
+     */
     readonly onDidEnd: Register<void>;
     
     /**
-     * Disposes the {@link Sash} UI component.
-     */
-    dispose(): void;
-
-    /**
-     * Creates the DOM elements.
+     * @description Renders the DOM elements of the {@link Sash} and put it into
+     * the DOM tree.
      */
     create(): void;
 
     /**
-     * Relayout the default position of the {@link Sash} and sets to the given 
+     * @description Relayout the default position of the {@link Sash} and sets to the given 
      * position.
      */
     relayout(position: number): void;
 
     /**
-     * Registers DOM-related listeners.
+     * @description Registers DOM-related listeners.
      */
     registerListeners(): void;
+
+    /**
+     * @description Disposes the {@link Sash} UI component.
+     */
+    dispose(): void
 }
 
 /**
@@ -90,6 +116,20 @@ export interface ISash {
  */
 export class Sash extends Disposable implements ICreateable, ISash {
 
+    // [fields]
+
+    /**
+     * when vertical: width of the sash.
+     * when horizontal: height of the sash.
+     */
+    public readonly size: number;
+
+    /** 
+     * when vertical: the draggable range in x of the sash.
+     * when horizontal: the draggable range in y of the sash.
+     */
+    public readonly range: IRange | undefined;
+
     /* The HTMLElement of the sash, will be created by calling `this.create()`. */
     private element: HTMLElement | undefined;
     /* The parent HTMLElement to be append to. Will be appended by calling `this.create()`. */
@@ -97,21 +137,13 @@ export class Sash extends Disposable implements ICreateable, ISash {
 
     private disposed: boolean = false;
 
-    /* Options */
+    /** 
+     * when vertical: the default position in x of the sash
+     * when horizontal: the default position in y of the sash
+     */
+    private _defaultPosition: number;
 
-    // when vertical: width of the sash
-    // when horizontal: height of the sash
-    public readonly size: number;
-
-    // when vertical: the default position in x of the sash
-    // when horizontal: the default position in y of the sash
-    public defaultPosition: number;
-
-    // when vertical: the draggable range in x of the sash
-    // when horizontal: the draggable range in y of the sash
-    public readonly range: IRange | undefined;
-
-    /* Events */
+    // [event]
 
     // An event which fires whenever the user starts dragging this sash. 
 	private readonly _onDidStart = this.__register(new Emitter<ISashEvent>());
@@ -129,15 +161,14 @@ export class Sash extends Disposable implements ICreateable, ISash {
     private readonly _onDidReset = this.__register(new Emitter<void>());
 	public readonly onDidReset: Register<void> = this._onDidReset.registerListener;
 
-    /* End */
-
     /** 
      * {@link Orientation.Horizontal} means sash lays out horizontally.
      * {@link Orientation.vertical} means lays out vertically.
      */
     private orientation: Orientation;
 
-    /* Constructor */
+    // [constructor]
+
     constructor(parentElement: HTMLElement, opts: ISashOpts) {
         super();
 
@@ -145,7 +176,7 @@ export class Sash extends Disposable implements ICreateable, ISash {
 
         /* Options */
         this.orientation = opts.orientation;
-        this.defaultPosition = opts.defaultPosition ?? 0;
+        this._defaultPosition = opts.defaultPosition ?? 0;
 
         
         this.size = opts.size ? opts.size : 4;
@@ -155,6 +186,14 @@ export class Sash extends Disposable implements ICreateable, ISash {
         }
 
     }
+
+    // [getter / setter]
+
+    get defaultPosition(): number {
+        return this._defaultPosition;
+    }
+
+    // [public methods]
 
     public override dispose(): void {
         if (this.disposed === false) {
@@ -176,11 +215,11 @@ export class Sash extends Disposable implements ICreateable, ISash {
         if (this.orientation === Orientation.Vertical) {
             this.element.classList.add('sash-vertical');
             this.element.style.width = this.size + 'px';
-            this.element.style.left = this.defaultPosition + 'px';
+            this.element.style.left = this._defaultPosition + 'px';
         } else {
             this.element.classList.add('sash-horizontal');
             this.element.style.height = this.size + 'px';
-            this.element.style.top = this.defaultPosition + 'px';
+            this.element.style.top = this._defaultPosition + 'px';
         }
 
         this.parentElement.append(this.element);
@@ -190,7 +229,7 @@ export class Sash extends Disposable implements ICreateable, ISash {
         if (!this.element || this.disposed) {
             return;
         }
-        this.defaultPosition = defaultPosition;
+        this._defaultPosition = defaultPosition;
         this.element.style.left = defaultPosition + 'px';
     }
 
@@ -221,9 +260,9 @@ export class Sash extends Disposable implements ICreateable, ISash {
             () => {
                 // reset position
                 if (this.orientation === Orientation.Vertical) {
-                    this.element!.style.left = this.defaultPosition + 'px';
+                    this.element!.style.left = this._defaultPosition + 'px';
                 } else {
-                    this.element!.style.top = this.defaultPosition + 'px';
+                    this.element!.style.top = this._defaultPosition + 'px';
                 }
                 
                 // fire event
