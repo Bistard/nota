@@ -143,7 +143,7 @@ export class SplitView implements ISplitView {
             sash.onDidMove(e => {
                 const [view1, view2] = this.__getAdjacentViews(sash);
                 view1.updateSize(e.deltaX);
-                view2.updateSize(e.deltaX);
+                view2.updateSize(-e.deltaX);
                 view1.render();
                 view2.render(this.__getViewOffset(view2) + e.deltaX);
                 
@@ -231,13 +231,13 @@ export class SplitView implements ISplitView {
                 for (const flexView of group) {
                     const spare = flexView.getShrinkableSpace(); // TODO
                     if (spare >= offset) {
-                        flexView.updateSize(offset); // TODO
+                        flexView.updateSize(-offset); // TODO
                         offset = 0;
                         complete = true;
                         break;
                     }
                     
-                    flexView.updateSize(spare); // TODO
+                    flexView.updateSize(-spare); // TODO
                     offset -= spare;
                 }
     
