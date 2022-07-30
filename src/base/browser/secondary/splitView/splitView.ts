@@ -1,5 +1,5 @@
 import { Sash } from "src/base/browser/basic/sash/sash";
-import { SplitViewItem } from "src/base/browser/secondary/splitView/splitViewItem";
+import { ISplitViewItem, SplitViewItem } from "src/base/browser/secondary/splitView/splitViewItem";
 import { IDisposable } from "src/base/common/dispose";
 import { DomUtility, Orientation } from "src/base/common/dom";
 import { Priority } from "src/base/common/event";
@@ -41,12 +41,15 @@ export interface IViewOpts {
     index?: number;
 }
 
+/**
+ * An interface only for {@link SplitView}.
+ */
 export interface ISplitView extends IDisposable {
-    
+    // TODO
 }
 
 /**
- * @description A 
+ * @description // TODO
  */
 export class SplitView implements ISplitView {
 
@@ -58,7 +61,7 @@ export class SplitView implements ISplitView {
     private sashContainer: HTMLElement;
     private viewContainer: HTMLElement;
 
-    private viewItems: SplitViewItem[];
+    private viewItems: ISplitViewItem[];
     private sashItems: Sash[];
 
     constructor(container: HTMLElement, views?: IViewOpts[]) {
@@ -139,14 +142,14 @@ export class SplitView implements ISplitView {
 
             sash.onDidMove(e => {
                 const [view1, view2] = this.__getAdjacentViews(sash);
-                view1.size += e.deltaX;
-                view2.size -= e.deltaX;
+                view1.updateSize(e.deltaX);
+                view2.updateSize(e.deltaX);
                 view1.render();
                 view2.render(this.__getViewOffset(view2) + e.deltaX);
                 
-                console.log('View1 size is: ', view1.size);
-                console.log('View2 size is: ', view2.size);
-                console.log('Their sum is: ', view1.size + view2.size)
+                console.log('View1 size is: ', view1.getSize());
+                console.log('View2 size is: ', view2.getSize());
+                console.log('Their sum is: ', view1.getSize() + view2.getSize())
 
             });
 
@@ -190,12 +193,12 @@ export class SplitView implements ISplitView {
         let contentSize = 0;
 
         // sort all the flexible views by their priority
-        const low: SplitViewItem[] = [];
-        const normal: SplitViewItem[] = [];
-        const high: SplitViewItem[] = [];
+        const low: ISplitViewItem[] = [];
+        const normal: ISplitViewItem[] = [];
+        const high: ISplitViewItem[] = [];
 
         for (const view of this.viewItems) {
-            if (view.flexible()) {
+            if (view.isFlexible()) {
                 if (view.getResizePriority() === Priority.Low) {
                     low.push(view);
                 } else if (view.getResizePriority() === Priority.Normal) {
@@ -204,7 +207,7 @@ export class SplitView implements ISplitView {
                     high.push(view);
                 }
             }
-            contentSize += view.size;
+            contentSize += view.getSize();
         }
 
         // all the views fit perfectly, we do nothing.
@@ -228,13 +231,13 @@ export class SplitView implements ISplitView {
                 for (const flexView of group) {
                     const spare = flexView.getShrinkableSpace(); // TODO
                     if (spare >= offset) {
-                        flexView.size -= offset; // TODO
+                        flexView.updateSize(offset); // TODO
                         offset = 0;
                         complete = true;
                         break;
                     }
                     
-                    flexView.size -= spare; // TODO
+                    flexView.updateSize(spare); // TODO
                     offset -= spare;
                 }
     
@@ -258,13 +261,13 @@ export class SplitView implements ISplitView {
                 for (const flexView of group) {
                     const spare = flexView.getWideableSpace();
                     if (spare >= offset) {
-                        flexView.size += offset;
+                        flexView.updateSize(offset);
                         offset = 0;
                         complete = true;
                         break;
                     }
                     
-                    flexView.size += spare;
+                    flexView.updateSize(spare);
                     offset -= spare;
                 }
 
@@ -290,7 +293,7 @@ export class SplitView implements ISplitView {
             const view = this.viewItems[i]!;
             view.render(offset);
 
-            offset += view.size;
+            offset += view.getSize();
 
             if (i != this.viewItems.length - 1) {
                 const sash = this.sashItems[i]!;
@@ -302,7 +305,7 @@ export class SplitView implements ISplitView {
     /**
      * @description Returns the adjacent split views given the {@link Sash}.
      */
-    private __getAdjacentViews(sash: Sash): [SplitViewItem, SplitViewItem] {
+    private __getAdjacentViews(sash: Sash): [ISplitViewItem, ISplitViewItem] {
         const before = this.sashItems.indexOf(sash);
         return [this.viewItems[before]!, this.viewItems[before + 1]!];
     }
@@ -311,16 +314,17 @@ export class SplitView implements ISplitView {
      * @description Returns the position (offset) of the given split view 
      * relatives to the whole split view container.
      */
-    private __getViewOffset(view: SplitViewItem): number {
+    private __getViewOffset(view: ISplitViewItem): number {
         let offset = 0;
 
         for (let i = 0; i < this.viewItems.length; i++) {
-            
-            if (this.viewItems[i] === view) {
+            const viewItem = this.viewItems[i]!;
+
+            if (viewItem === view) {
                 return offset;
             }
 
-            offset += this.viewItems[i]!.size;
+            offset += viewItem.getSize();
         }
 
         throw new Error(`view not found in split-view: ${view}`);

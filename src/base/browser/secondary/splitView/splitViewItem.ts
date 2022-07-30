@@ -8,7 +8,6 @@ export interface ISplitViewItem {
     
     readonly maximumSize: number;
     readonly minimumSize: number;
-    size: number;
     
     /**
      * @description Updates the size of view and update the left / top of the 
@@ -20,7 +19,24 @@ export interface ISplitViewItem {
     /**
      * @description Checks if the view is resizable.
      */
-    flexible(): boolean;
+    isFlexible(): boolean;
+
+    /**
+     * @description Sets the width / height of the view.
+     * @param newSize The given new size in number.
+     */
+    setSize(newSize: number): void;
+
+    /**
+     * @description Sets the width / height of the view with the given offset.
+     * @param offset The given offset size in number.
+     */
+    updateSize(offset: number): void;
+
+    /**
+     * @description Returns the width / height of the view.
+     */
+    getSize(): number;
 
     /**
      * @description Returns the shrinkable size of the view (if the view is able
@@ -53,15 +69,20 @@ export interface ISplitViewItem {
     dispose(): void;
 }
 
+/**
+ * @class An internal data structure used in {@link SplitView} for storing data
+ * for each splited view.
+ */
 export class SplitViewItem implements ISplitViewItem {
 
     public readonly maximumSize: number;
     public readonly minimumSize: number;
-    public size: number;
-
-    private _resizePriority: Priority;
+    
     private _disposed: boolean;
     private _container: HTMLElement;
+    private _resizePriority: Priority;
+
+    private _size: number;
 
     constructor(container: HTMLElement, opt: IViewOpts) {
         this._disposed = false;
@@ -80,7 +101,7 @@ export class SplitViewItem implements ISplitViewItem {
         if (opt.initSize < this.minimumSize && opt.initSize > this.maximumSize) {
             throw new Error(`init size ${opt.initSize}px exceeds the min or max restriction: [${this.minimumSize}, ${this.maximumSize}]`);
         }
-        this.size = opt.initSize;
+        this._size = opt.initSize;
         
     }
 
@@ -90,7 +111,7 @@ export class SplitViewItem implements ISplitViewItem {
             return;
         }
 
-        this._container.style.width = `${this.size}px`;
+        this._container.style.width = `${this._size}px`;
         if (offset) {
             this._container.style.left = `${offset}px`;
             console.log('actual left: ', this._container.style.left);
@@ -98,22 +119,34 @@ export class SplitViewItem implements ISplitViewItem {
         console.log('=======');
     }
 
-    public flexible(): boolean {
+    public isFlexible(): boolean {
         return this.maximumSize > this.minimumSize;
     }
 
+    public setSize(newSize: number): void {
+        this._size = newSize;
+    }
+
+    public updateSize(offset: number): void {
+        this._size += offset;
+    }
+
+    public getSize(): number {
+        return this._size;
+    }
+
     public getShrinkableSpace(): number {
-        if (!this.flexible() || this.size < this.minimumSize) {
+        if (!this.isFlexible() || this._size < this.minimumSize) {
             return 0;
         }
-        return this.size - this.minimumSize;
+        return this._size - this.minimumSize;
     }
 
     public getWideableSpace(): number {
-        if (!this.flexible() || this.maximumSize < this.size) {
+        if (!this.isFlexible() || this.maximumSize < this._size) {
             return 0;
         }
-        return this.maximumSize - this.size;
+        return this.maximumSize - this._size;
     }
 
     public getResizePriority(): Priority {
