@@ -320,7 +320,8 @@ export interface IEditorModel extends IDisposable {
     readonly onDidBuild: Register<true | Error>;
 
     /**
-     * Fires when the model related events happens.
+     * Fires when the model related events happens. See more event details from
+     * {@link ModelEvent.Events}.
      */
     readonly onEvent: Register<ModelEvent.Events>;
 
