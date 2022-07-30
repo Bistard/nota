@@ -272,7 +272,7 @@ export class AsyncMultiTreeModel<T, TFilter = void> implements IAsyncMultiTreeMo
              * function will do nothing except marking the current node 
              * refreshing state is finished.
              */
-            finishRefresh!();
+            finishRefresh();
         }
     }
 

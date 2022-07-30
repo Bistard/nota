@@ -47,11 +47,11 @@ export async function retry<T>(task: ITask<Promise<T>>, delay: number, retries: 
  * isolated reject function.
  */
 export function asyncFinish<T>(): Triple<Promise<T>, (arg: T) => void, (reason?: any) => void> {
-	let resolve!: (arg: T) => void;
-	let reject!: (reason?: any) => void;
+	let resolved!: (arg: T) => void;
+	let rejected!: (reason?: any) => void;
 	const promise = new Promise<T>((resolve, reject) => {
-		resolve = resolve;
-		reject = reject;
+		resolved = resolve;
+		rejected = reject;
 	});
-	return [promise, resolve, reject];
+	return [promise, resolved, rejected];
 }
