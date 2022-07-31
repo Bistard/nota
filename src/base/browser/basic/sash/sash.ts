@@ -2,7 +2,6 @@ import { Disposable } from "src/base/common/dispose";
 import { addDisposableListener, EventType, Orientation } from "src/base/common/dom";
 import { Emitter, Register } from "src/base/common/event";
 import { IRange } from "src/base/common/range";
-import { ICreateable } from "src/code/browser/workbench/component";
 
 /**
  * An interface for {@link Sash} construction.
@@ -25,7 +24,7 @@ export interface ISashOpts {
 
     
     /**
-     * The width or height of the {@link Sash} depends on the orientation.
+     * The width or height of the {@link Sash} depends on the _orientation.
      */
     readonly size?: number;
 
@@ -86,12 +85,6 @@ export interface ISash {
     readonly onDidEnd: Register<void>;
     
     /**
-     * @description Renders the DOM elements of the {@link Sash} and put it into
-     * the DOM tree.
-     */
-    create(): void;
-
-    /**
      * @description Relayout the default position of the {@link Sash} and sets to the given 
      * position.
      */
@@ -114,7 +107,7 @@ export interface ISash {
  * line which, when hovered, becomes highlighted and can be dragged along the 
  * perpendicular dimension to its direction.
  */
-export class Sash extends Disposable implements ICreateable, ISash {
+export class Sash extends Disposable implements ISash {
 
     // [fields]
 
@@ -131,11 +124,11 @@ export class Sash extends Disposable implements ICreateable, ISash {
     public readonly range: IRange | undefined;
 
     /* The HTMLElement of the sash, will be created by calling `this.create()`. */
-    private element: HTMLElement | undefined;
+    private _element!: HTMLElement;
     /* The parent HTMLElement to be append to. Will be appended by calling `this.create()`. */
-    private parentElement: HTMLElement;
+    private _parentElement: HTMLElement;
 
-    private disposed: boolean = false;
+    private _disposed: boolean;
 
     /** 
      * when vertical: the default position in x of the sash
@@ -145,19 +138,19 @@ export class Sash extends Disposable implements ICreateable, ISash {
 
     // [event]
 
-    // An event which fires whenever the user starts dragging this sash. 
+    /** An event which fires whenever the user starts dragging this sash. */
 	private readonly _onDidStart = this.__register(new Emitter<ISashEvent>());
     public readonly onDidStart: Register<ISashEvent> = this._onDidStart.registerListener;
 
-	// An event which fires whenever the user moves the mouse while dragging this sash. 
+	/** An event which fires whenever the user moves the mouse while dragging this sash. */
     private readonly _onDidMove = this.__register(new Emitter<ISashEvent>());
 	public readonly onDidMove: Register<ISashEvent> = this._onDidMove.registerListener;
 
-	// An event which fires whenever the user stops dragging this sash. 
+	/** An event which fires whenever the user stops dragging this sash. */
 	private readonly _onDidEnd = this.__register(new Emitter<void>());
 	public readonly onDidEnd: Register<void> = this._onDidEnd.registerListener;
 
-    // An event which fires whenever the user double clicks this sash. 
+    /** An event which fires whenever the user double clicks this sash. */
     private readonly _onDidReset = this.__register(new Emitter<void>());
 	public readonly onDidReset: Register<void> = this._onDidReset.registerListener;
 
@@ -165,26 +158,25 @@ export class Sash extends Disposable implements ICreateable, ISash {
      * {@link Orientation.Horizontal} means sash lays out horizontally.
      * {@link Orientation.vertical} means lays out vertically.
      */
-    private orientation: Orientation;
+    private _orientation: Orientation;
 
     // [constructor]
 
-    constructor(parentElement: HTMLElement, opts: ISashOpts) {
+    constructor(_parentElement: HTMLElement, opts: ISashOpts) {
         super();
 
-        this.parentElement = parentElement;
+        this._parentElement = _parentElement;
+        this._disposed = false;
 
-        /* Options */
-        this.orientation = opts.orientation;
+        // Options
+        this._orientation = opts.orientation;
         this._defaultPosition = opts.defaultPosition ?? 0;
-
-        
         this.size = opts.size ? opts.size : 4;
-
         if (opts.range) {
             this.range = opts.range;
         }
 
+        this.__render();
     }
 
     // [getter / setter]
@@ -196,49 +188,27 @@ export class Sash extends Disposable implements ICreateable, ISash {
     // [public methods]
 
     public override dispose(): void {
-        if (this.disposed === false) {
+        if (this._disposed === false) {
             super.dispose();
-            this.element?.remove();
-            this.disposed = true;
+            this._element.remove();
+            this._disposed = true;
         }
-    }
-
-    public create(): void {
-        if (this.element || this.disposed) {
-            return;
-        }
-        
-        // render
-        this.element = document.createElement('div');
-        this.element.classList.add('sash');
-
-        if (this.orientation === Orientation.Vertical) {
-            this.element.classList.add('sash-vertical');
-            this.element.style.width = this.size + 'px';
-            this.element.style.left = this._defaultPosition + 'px';
-        } else {
-            this.element.classList.add('sash-horizontal');
-            this.element.style.height = this.size + 'px';
-            this.element.style.top = this._defaultPosition + 'px';
-        }
-
-        this.parentElement.append(this.element);
     }
 
     public relayout(defaultPosition: number): void {
-        if (!this.element || this.disposed) {
+        if (!this._element || this._disposed) {
             return;
         }
         this._defaultPosition = defaultPosition;
-        this.element.style.left = defaultPosition + 'px';
+        this._element.style.left = defaultPosition + 'px';
     }
 
     public registerListeners(): void {
-        if (this.element === undefined) {
+        if (this._element === undefined) {
             return;
         }
 
-        this.__register(addDisposableListener(this.element, EventType.mousedown, 
+        this.__register(addDisposableListener(this._element, EventType.mousedown, 
             // using anonymous callback to avoid `this` argument ambiguous.
             (e: MouseEvent) => {
                 // start dragging
@@ -256,13 +226,13 @@ export class Sash extends Disposable implements ICreateable, ISash {
             }
         ));
 
-        this.__register(addDisposableListener(this.element, EventType.doubleclick,
+        this.__register(addDisposableListener(this._element, EventType.doubleclick,
             () => {
                 // reset position
-                if (this.orientation === Orientation.Vertical) {
-                    this.element!.style.left = this._defaultPosition + 'px';
+                if (this._orientation === Orientation.Vertical) {
+                    this._element.style.left = this._defaultPosition + 'px';
                 } else {
-                    this.element!.style.top = this._defaultPosition + 'px';
+                    this._element.style.top = this._defaultPosition + 'px';
                 }
                 
                 // fire event
@@ -271,9 +241,28 @@ export class Sash extends Disposable implements ICreateable, ISash {
         ));
     }
 
-    /***************************************************************************
-     * Private Helper Functions
-     **************************************************************************/
+    // [private helper methods]
+
+    /**
+     * @description Renders the DOM elements of the {@link Sash} and put it into
+     * the DOM tree.
+     */
+    private __render(): void {
+        this._element = document.createElement('div');
+        this._element.classList.add('sash');
+
+        if (this._orientation === Orientation.Vertical) {
+            this._element.classList.add('sash-vertical');
+            this._element.style.width = `${this.size}px`;
+            this._element.style.left = `${this._defaultPosition}px`;
+        } else {
+            this._element.classList.add('sash-horizontal');
+            this._element.style.height = `${this.size}px`;
+            this._element.style.top = `${this._defaultPosition}px`;
+        }
+
+        this._parentElement.append(this._element);
+    }
 
     /**
      * @description Once the {@link Sash} has been mouse-downed, function will 
@@ -305,14 +294,14 @@ export class Sash extends Disposable implements ICreateable, ISash {
         };
 
         // dragging horizontally
-        if (this.orientation === Orientation.Vertical) {
+        if (this._orientation === Orientation.Vertical) {
             
             mouseMoveCallback = (e: MouseEvent) => {
                 if (this.range && (e.clientX < this.range.start || (e.clientX > this.range.end && this.range.end !== -1))) {
                     return;
                 }
                 
-                this.element!.style.left = (startDimention + e.pageX - startCoordinate) + 'px';
+                this._element.style.left = (startDimention + e.pageX - startCoordinate) + 'px';
                 
                 // To prevent firing the wrong onDidMove event at the first time.
                 if (firstDrag === true) {
@@ -327,7 +316,7 @@ export class Sash extends Disposable implements ICreateable, ISash {
             };
     
             startCoordinate = event.pageX;
-            startDimention = parseInt(this.element!.style.left, 10);
+            startDimention = parseInt(this._element.style.left, 10);
         } 
         // dragging vertically
         else {
@@ -337,7 +326,7 @@ export class Sash extends Disposable implements ICreateable, ISash {
                     return;
                 }
 
-                this.element!.style.top = (startDimention + event.pageY - startCoordinate) + 'px';
+                this._element.style.top = (startDimention + event.pageY - startCoordinate) + 'px';
                 
                 if (firstDrag === true) {
                     prevX = event.pageX;
@@ -351,7 +340,7 @@ export class Sash extends Disposable implements ICreateable, ISash {
             };
     
             startCoordinate = event.pageY;
-            startDimention = parseInt(this.element!.style.top, 10);
+            startDimention = parseInt(this._element.style.top, 10);
         }
 
         // listeners registration

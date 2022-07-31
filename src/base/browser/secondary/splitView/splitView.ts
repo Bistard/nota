@@ -137,7 +137,6 @@ export class SplitView implements ISplitView {
             const sash = new Sash(this.sashContainer, {
                 orientation: Orientation.Vertical
             });
-            sash.create();
             sash.registerListeners();
 
             sash.onDidMove(e => {
