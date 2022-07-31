@@ -21,7 +21,6 @@ export interface ISashOpts {
      * @default value 0
      */
     readonly defaultPosition?: number;
-
     
     /**
      * The width or height of the {@link Sash} depends on the _orientation.
@@ -89,11 +88,6 @@ export interface ISash {
     range: IRange;
 
     /**
-     * The default left / top position when the sash is reset by double click.
-     */
-    readonly defaultPosition: number;
-
-    /**
      * Fires when the sash dragging is started (mouse-down).
      */
     readonly onDidStart: Register<ISashEvent>;
@@ -114,8 +108,7 @@ export interface ISash {
     readonly onDidReset: Register<void>;
     
     /**
-     * @description Relayout the default position of the {@link Sash} and sets to the given 
-     * position.
+     * @description Relayout the position of the {@link Sash}.
      */
     relayout(position: number): void;
 
@@ -157,8 +150,6 @@ export class Sash extends Disposable implements ISash {
     /* The parent HTMLElement to be appended to. */
     private _parentElement: HTMLElement;
 
-    private _disposed: boolean;
-
     /** 
      * when vertical: the default position in x of the sash
      * when horizontal: the default position in y of the sash
@@ -195,7 +186,6 @@ export class Sash extends Disposable implements ISash {
         super();
 
         this._parentElement = _parentElement;
-        this._disposed = false;
 
         // Options
         this._orientation = opts.orientation;
@@ -212,10 +202,6 @@ export class Sash extends Disposable implements ISash {
 
     // [getter / setter]
 
-    get defaultPosition(): number {
-        return this._defaultPosition;
-    }
-
     get range(): IRange {
         return this._range;
     }
@@ -227,40 +213,20 @@ export class Sash extends Disposable implements ISash {
     // [public methods]
 
     public override dispose(): void {
-        if (this._disposed === false) {
-            super.dispose();
-            this._element.remove();
-            this._disposed = true;
-        }
+        super.dispose();
+        this._element.remove();
     }
 
-    public relayout(defaultPosition: number): void {
-        if (!this._element || this._disposed) {
+    public relayout(position: number): void {
+        if (this.isDisposed()) {
             return;
         }
-        this._defaultPosition = defaultPosition;
-        this._element.style.left = defaultPosition + 'px';
+        this._element.style.left = position + 'px';
     }
 
     public registerListeners(): void {
-        if (this._element === undefined) {
-            return;
-        }
-
         this.__register(addDisposableListener(this._element, EventType.mousedown, e => this._initDrag(e)));
-        this.__register(addDisposableListener(this._element, EventType.doubleclick,
-            () => {
-                // reset position
-                if (this._orientation === Orientation.Vertical) {
-                    this._element.style.left = this._defaultPosition + 'px';
-                } else {
-                    this._element.style.top = this._defaultPosition + 'px';
-                }
-                
-                // fire event
-                this._onDidReset.fire();
-            }
-        ));
+        this.__register(addDisposableListener(this._element, EventType.doubleclick, () => this._onDidReset.fire()));
     }
 
     // [private helper methods]
