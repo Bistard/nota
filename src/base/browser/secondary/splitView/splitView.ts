@@ -54,16 +54,18 @@ export interface ISplitView extends IDisposable {
  */
 export class SplitView implements ISplitView {
 
-    /**
-     * The total visible width of the {@link SplitView}.
-     */
-    private size: number;
+    // [field]
+
     private element: HTMLElement;
     private sashContainer: HTMLElement;
     private viewContainer: HTMLElement;
 
+    /** The total visible width / height of the {@link SplitView}. */
+    private size: number;
     private readonly viewItems: ISplitViewItem[];
     private readonly sashItems: ISash[];
+
+    // [constructor]
 
     constructor(container: HTMLElement, viewOpts?: ISplitViewItemOpts[]) {
 
@@ -94,6 +96,8 @@ export class SplitView implements ISplitView {
         container.appendChild(this.element);
     }
 
+    // [public methods]
+
     public dispose(): void {
         this.viewItems.forEach(view => view.dispose());
         this.sashItems.forEach(sash => sash.dispose());
@@ -109,6 +113,10 @@ export class SplitView implements ISplitView {
      * @param dimension The dimension of the window.
      */
     public onWindowResize(dimension: IDimension): void {
+        // TODO
+    }
+
+    public relayout(): void {
         // TODO
     }
 
@@ -165,7 +173,7 @@ export class SplitView implements ISplitView {
     }
 
     /**
-     * @description Recalculates all the positions of the view and sashes and
+     * @description Recalculates all the positions of the views and sashes and
      * rerenders them all.
      */
     private __render(): void {
@@ -357,6 +365,7 @@ export class SplitView implements ISplitView {
     /**
      * @description Invokes when any of the sashes is stoped dragging (mouse-up).
      * @param event The {@link ISashEvent} when the sash stopped dragging.
+     * @param sash The target {@link ISash}.
      */
     private __onDidSashEnd(event: ISashEvent, sash: ISash): void {
         const index = this.sashItems.indexOf(sash);

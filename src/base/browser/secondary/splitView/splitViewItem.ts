@@ -6,9 +6,6 @@ import { Priority } from "src/base/common/event";
  */
 export interface ISplitViewItem {
     
-    readonly maximumSize: number;
-    readonly minimumSize: number;
-    
     /**
      * @description Updates the size of view and update the left / top of the 
      * view relatives to the whole window if the offset is given.
@@ -37,6 +34,26 @@ export interface ISplitViewItem {
      * @description Returns the width / height of the view.
      */
     getSize(): number;
+
+    /**
+     * @description Returns the maximum size of the view.
+     */
+    getMaxSize(): number;
+
+    /**
+     * @description Sets the maximum size of the view.
+     */
+    setMaxSize(newVal: number): void;
+
+    /**
+     * @description Returns the minimum size of the view.
+     */
+    getMinSize(): number;
+
+    /**
+     * @description Sets the minimum size of the view.
+     */
+    setMinSize(newVal: number): void;
 
     /**
      * @description Returns the shrinkable size of the view (if the view is able
@@ -77,9 +94,8 @@ export class SplitViewItem implements ISplitViewItem {
 
     // [field]
 
-    // TODO: use getter / setter so that it can be modified after ctor.
-    public readonly maximumSize: number;
-    public readonly minimumSize: number;
+    private _maximumSize: number;
+    private _minimumSize: number;
     
     private _disposed: boolean;
     private _container: HTMLElement;
@@ -95,16 +111,16 @@ export class SplitViewItem implements ISplitViewItem {
         container.appendChild(opt.element);
         
         this._container = container;
-        this.maximumSize = opt.maximumSize;
-        this.minimumSize = opt.minimumSize;
+        this._maximumSize = opt.maximumSize;
+        this._minimumSize = opt.minimumSize;
         if (opt.maximumSize < opt.minimumSize) {
             throw new Error('Provided maxSize is smaller than provided minSize');
         }
         
         this._resizePriority = opt.priority!;
 
-        if (opt.initSize < this.minimumSize && opt.initSize > this.maximumSize) {
-            throw new Error(`init size ${opt.initSize}px exceeds the min or max restriction: [${this.minimumSize}, ${this.maximumSize}]`);
+        if (opt.initSize < this._minimumSize && opt.initSize > this._maximumSize) {
+            throw new Error(`init size ${opt.initSize}px exceeds the min or max restriction: [${this._minimumSize}, ${this._maximumSize}]`);
         }
         this._size = opt.initSize;
         
@@ -124,7 +140,7 @@ export class SplitViewItem implements ISplitViewItem {
     }
 
     public isFlexible(): boolean {
-        return this.maximumSize > this.minimumSize;
+        return this._maximumSize > this._minimumSize;
     }
 
     public setSize(newSize: number): void {
@@ -139,18 +155,34 @@ export class SplitViewItem implements ISplitViewItem {
         return this._size;
     }
 
+    public getMaxSize(): number {
+        return this._maximumSize;
+    }
+
+    public setMaxSize(newVal: number): void {
+        this._maximumSize = newVal;
+    }
+
+    public getMinSize(): number {
+        return this._minimumSize;
+    }
+
+    public setMinSize(newVal: number): void {
+        this._minimumSize = newVal;
+    }
+
     public getShrinkableSpace(): number {
-        if (!this.isFlexible() || this._size < this.minimumSize) {
+        if (!this.isFlexible() || this._size < this._minimumSize) {
             return 0;
         }
-        return this._size - this.minimumSize;
+        return this._size - this._minimumSize;
     }
 
     public getWideableSpace(): number {
-        if (!this.isFlexible() || this.maximumSize < this._size) {
+        if (!this.isFlexible() || this._maximumSize < this._size) {
             return 0;
         }
-        return this.maximumSize - this._size;
+        return this._maximumSize - this._size;
     }
 
     public getResizePriority(): Priority {

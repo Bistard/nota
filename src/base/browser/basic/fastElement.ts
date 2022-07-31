@@ -54,12 +54,12 @@ export class FastElement<T extends HTMLElement> implements IFastElement<T> {
     /** The actual {@link HTMLElement}. */
     private readonly _element: T;
     
-    /** 
-     * Representing the DOM attributes of the wrapped HTMLElement. Initially are
-     * sets to nothing:
-     *      {@link number} -> -1
-     *      {@link string} -> ''
-     */
+     
+    // Representing the DOM attributes of the wrapped HTMLElement. Initially are
+    // sets to nothing:
+    //     {@link number} -> -1
+    //     {@link string} -> ''
+    
 
     private _width: number = -1;
     private _height: number = -1;
