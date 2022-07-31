@@ -9,13 +9,13 @@
     user-select: none;
 }
 
-.sash-vertical {
+.sash.vertical {
     cursor: ew-resize;
 	width: var(--sash-size);
 	height: 100%;
 }
 
-.sash-horizontal {
+.sash.horizontal {
     cursor: ns-resize;
 	width: 100%;
 	height: var(--sash-size);

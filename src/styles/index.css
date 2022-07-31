@@ -43,6 +43,7 @@
 }
 
 body {
+    cursor: default;
     margin: 0px;
     padding: 0px;
     font-size: 10pt;

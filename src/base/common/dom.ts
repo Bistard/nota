@@ -98,6 +98,31 @@ export function formatSpan(text: string): string {
 }
 
 /**
+ * Generates a {@link HTMLStyleElement} and appends to the given {@link HTMLElement}.
+ * @param element The given HTMLElement.
+ * @returns A disposable that will dispose the new created stylesheet from the 
+ * given HTMLElement.
+ * 
+ * @note Optimized for 'screen' in media attribute.
+ */
+export function createStyleInCSS(element: HTMLElement): IDisposable & { readonly style: HTMLStyleElement; } {
+	const style = document.createElement('style');
+	
+	/**
+	 * The media attribute specifies what media/device the target resource is 
+	 * optimized for. 
+	 * 		`screen`: Used for computer screens.
+	 */
+	style.media = 'screen';
+	
+	element.appendChild(style);
+	return {
+		dispose: () => element.removeChild(style),
+		style: style,
+	};
+}
+
+/**
  * @description A uitility namespace that contains all the helper functions 
  * relates to DOM.
  * 
@@ -272,5 +297,5 @@ export namespace DomUtility
 			node.parentElement.removeChild(node);
 		}
 	}
-
 }
+
