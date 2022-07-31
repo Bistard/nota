@@ -121,7 +121,6 @@ export abstract class WorkbenchLayout extends Component {
             })),
         ]
         .forEach((sash: Sash) => {
-            sash.create();
             sash.registerListeners();
         });
 
