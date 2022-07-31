@@ -1,11 +1,12 @@
-import { Sash } from "src/base/browser/basic/sash/sash";
+import { ISash, ISashEvent, Sash } from "src/base/browser/basic/sash/sash";
 import { ISplitViewItem, SplitViewItem } from "src/base/browser/secondary/splitView/splitViewItem";
 import { IDisposable } from "src/base/common/dispose";
 import { DomUtility, Orientation } from "src/base/common/dom";
 import { Priority } from "src/base/common/event";
 import { IDimension } from "src/base/common/util/size";
+import { Pair } from "src/base/common/util/type";
 
-export interface IViewOpts {
+export interface ISplitViewItemOpts {
 
     /**
      * The HTMLElement of the view.
@@ -61,10 +62,10 @@ export class SplitView implements ISplitView {
     private sashContainer: HTMLElement;
     private viewContainer: HTMLElement;
 
-    private viewItems: ISplitViewItem[];
-    private sashItems: Sash[];
+    private readonly viewItems: ISplitViewItem[];
+    private readonly sashItems: ISash[];
 
-    constructor(container: HTMLElement, views?: IViewOpts[]) {
+    constructor(container: HTMLElement, viewOpts?: ISplitViewItemOpts[]) {
 
         this.element = document.createElement('div');
         this.element.className = 'split-view';
@@ -80,9 +81,9 @@ export class SplitView implements ISplitView {
         this.viewItems = [];
         this.sashItems = [];
         
-        if (views) {
-            for (const view of views) {
-                this.__doAddView(view);
+        if (viewOpts) {
+            for (const viewOpt of viewOpts) {
+                this.__doAddView(viewOpt);
             }
         }
         
@@ -98,7 +99,7 @@ export class SplitView implements ISplitView {
         this.sashItems.forEach(sash => sash.dispose());
     }
 
-    public addView(opt: IViewOpts): void {
+    public addView(opt: ISplitViewItemOpts): void {
         this.__doAddView(opt);
         this.__render();
     } 
@@ -113,7 +114,7 @@ export class SplitView implements ISplitView {
 
     // [private helper methods]
 
-    private __doAddView(opt: IViewOpts): void {
+    private __doAddView(opt: ISplitViewItemOpts): void {
         
         if (opt.index === undefined) {
             opt.index = this.viewItems.length;
@@ -126,7 +127,7 @@ export class SplitView implements ISplitView {
         // view
 
         const newView = document.createElement('div');
-        newView.className = 'split-view-view';
+        newView.className = 'split-view-item';
         
         const view = new SplitViewItem(newView, opt);
         this.viewItems.splice(opt.index, 0, view);
@@ -139,23 +140,10 @@ export class SplitView implements ISplitView {
             });
             sash.registerListeners();
 
-            sash.onDidMove(e => {
-                const [view1, view2] = this.__getAdjacentViews(sash);
-                view1.updateSize(e.deltaX);
-                view2.updateSize(-e.deltaX);
-                view1.render();
-                view2.render(this.__getViewOffset(view2));
-                
-                console.log('View1 size is: ', view1.getSize());
-                console.log('View1 left is: ', (view1 as any)._container.style.left);
-                console.log('The sum of view1 size and left is: ', view1.getSize() + (view1 as any)._container.style.left);
-                console.log('View2 size is: ', view2.getSize());
-                console.log('View2 left is: ', (view2 as any)._container.style.left);
-
-            });
-
+            sash.onDidEnd(e => this.__onDidSashEnd(e, sash));
+            sash.onDidMove(e => this.__onDidSashMove(e, sash));
             sash.onDidReset(() => {
-                // TODO
+                // TODO: private helper method
                 const [view1, view2] = this.__getAdjacentViews(sash);
                 console.log('split-view: unfinished part reached');
                 // view1.size = sash.defaultPosition;
@@ -177,21 +165,25 @@ export class SplitView implements ISplitView {
     }
 
     /**
-     * @description // TODO
+     * @description Recalculates all the positions of the view and sashes and
+     * rerenders them all.
      */
     private __render(): void {
-        this.__resize();
-        this.__doRender();
+        this.__resizeViewsToFit();
+        this.__doRenderViewsAndSashes();
     }
 
     /**
      * @description Recalculates all the sizes of views to fit the whole content 
      * of the split view.
+     * 
+     * @throws A {@link SplitViewSpaceError} will be thrown if the current 
+     * contents cannot fit into the current split-view size.
      */
-    private __resize(): void {
+    private __resizeViewsToFit(): void {
         
         const splitViewSize = this.size;
-        let contentSize = 0;
+        let currContentSize = 0;
 
         // sort all the flexible views by their priority
         const low: ISplitViewItem[] = [];
@@ -208,25 +200,25 @@ export class SplitView implements ISplitView {
                     high.push(view);
                 }
             }
-            contentSize += view.getSize();
+            currContentSize += view.getSize();
         }
 
         // all the views fit perfectly, we do nothing.
-        if (contentSize === splitViewSize) {
+        if (currContentSize === splitViewSize) {
             return;
         }
 
         if (low.length + normal.length + high.length === 0) {
-            throw new SplitViewSpaceError(splitViewSize, contentSize);
+            throw new SplitViewSpaceError(splitViewSize, currContentSize);
         }
 
         let offset: number;
         let complete = false;
 
         // left-most flexible views need to be shrink to fit the whole split-view.
-        if (contentSize > splitViewSize) {
+        if (currContentSize > splitViewSize) {
             
-            offset = contentSize - splitViewSize; // TODO
+            offset = currContentSize - splitViewSize; // TODO
             
             for (const group of [high, normal, low]) { 
                 for (const flexView of group) {
@@ -256,7 +248,7 @@ export class SplitView implements ISplitView {
         // left-most flexible views need to be increased to fit the whole split-view.
         else {
             
-            offset = splitViewSize - contentSize;
+            offset = splitViewSize - currContentSize;
             
             for (const group of [high, normal, low]) {
                 for (const flexView of group) {
@@ -285,50 +277,100 @@ export class SplitView implements ISplitView {
     }
 
     /**
-     * @description 
+     * @description Rerenders all the views and sashes positions after all the 
+     * calculations are done.
+     * 
+     * @complexity O(n) - n: total number of split-view-items in memory.
      */
-    private __doRender(): void {
+    private __doRenderViewsAndSashes(): void {
+        let prevView = this.viewItems[0]!;
+        let view = this.viewItems[0]!;
+        view.render(0);
         
-        let offset = 0;
-        for (let i = 0; i < this.viewItems.length; i++) {
-            const view = this.viewItems[i]!;
+        let offset = view.getSize();
+        for (let i = 1; i < this.viewItems.length; i++) {
+            view = this.viewItems[i]!;
             view.render(offset);
-
+            
+            const sash = this.sashItems[i - 1]!;
+            sash.relayout(offset - sash.size / 2);
+            sash.range.start = offset - Math.min(prevView.getShrinkableSpace(), view.getWideableSpace());
+            sash.range.end = offset + Math.min(prevView.getWideableSpace(), view.getShrinkableSpace());
+            
             offset += view.getSize();
-
-            if (i != this.viewItems.length - 1) {
-                const sash = this.sashItems[i]!;
-                sash.relayout(offset - sash.size / 2);
-            }
+            prevView = view;
         }
     }
 
     /**
-     * @description Returns the adjacent split views given the {@link Sash}.
+     * @description Returns the adjacent split views given the {@link ISash}.
+     * @param sash The given {@link ISash}.
+     * @returns The two adjacent {@link ISplitViewItem}s.
+     * 
+     * @complexity O(n) - n: total number of sashes in memory.
+     * @throws An exception will be thrown if the sash is not found.
      */
-    private __getAdjacentViews(sash: Sash): [ISplitViewItem, ISplitViewItem] {
-        const before = this.sashItems.indexOf(sash);
-        return [this.viewItems[before]!, this.viewItems[before + 1]!];
+    private __getAdjacentViews(sash: ISash): Pair<ISplitViewItem, ISplitViewItem> {
+        const beforeIdx = this.sashItems.indexOf(sash);
+        
+        if (beforeIdx === -1) {
+            throw new Error('cannot find the given sash');
+        }
+
+        return [this.viewItems[beforeIdx]!, this.viewItems[beforeIdx + 1]!];
     }
 
     /**
-     * @description Returns the position (offset) of the given split view 
-     * relatives to the whole split view container.
+     * @description Returns the position offset (left / top) of the given 
+     * split-view-tiem relatives to the whole split view container.
+     * @param viewItem The provided split-view-item.
+     * 
+     * @complexity O(n) - n: total number of split-view-items in memory.
      */
-    private __getViewOffset(view: ISplitViewItem): number {
+    private __getViewOffset(viewItem: ISplitViewItem): number {
         let offset = 0;
 
         for (let i = 0; i < this.viewItems.length; i++) {
-            const viewItem = this.viewItems[i]!;
+            const currItem = this.viewItems[i]!;
 
-            if (viewItem === view) {
+            if (currItem === viewItem) {
                 return offset;
             }
 
-            offset += viewItem.getSize();
+            offset += currItem.getSize();
         }
 
-        throw new Error(`view not found in split-view: ${view}`);
+        throw new Error(`view not found in split-view: ${viewItem}`);
+    }
+
+    /**
+     * @description Invokes when any of the sashes is moving (mouse-move).
+     */
+    private __onDidSashMove(event: ISashEvent, sash: ISash): void {
+        const [prevView, nextView] = this.__getAdjacentViews(sash);
+        prevView.updateSize(event.deltaX);
+        nextView.updateSize(-event.deltaX);
+        prevView.render();
+        nextView.render(this.__getViewOffset(nextView));
+    }
+
+    /**
+     * @description Invokes when any of the sashes is stoped dragging (mouse-up).
+     * @param event The {@link ISashEvent} when the sash stopped dragging.
+     */
+    private __onDidSashEnd(event: ISashEvent, sash: ISash): void {
+        const index = this.sashItems.indexOf(sash);
+        
+        const prevSash = this.sashItems[index - 1];
+        const nextSash = this.sashItems[index + 1];
+        
+        if (prevSash && event.currentX < prevSash.range.end) {
+            prevSash.range.end = event.currentX;
+        }
+
+        if (nextSash && event.currentX > nextSash.range.start) {
+            nextSash.range.start = event.currentX;
+        }
     }
 }
 
