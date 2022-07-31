@@ -1,8 +1,8 @@
 import { ISash, ISashEvent, Sash } from "src/base/browser/basic/sash/sash";
 import { ISplitViewItem, SplitViewItem } from "src/base/browser/secondary/splitView/splitViewItem";
-import { IDisposable } from "src/base/common/dispose";
+import { IDisposable, Disposable } from "src/base/common/dispose";
 import { DomUtility, Orientation } from "src/base/common/dom";
-import { Priority } from "src/base/common/event";
+import { Emitter, Priority } from "src/base/common/event";
 import { IDimension } from "src/base/common/util/size";
 import { Pair } from "src/base/common/util/type";
 
@@ -52,7 +52,7 @@ export interface ISplitView extends IDisposable {
 /**
  * @description // TODO
  */
-export class SplitView implements ISplitView {
+export class SplitView extends Disposable implements ISplitView {
 
     // [field]
 
@@ -65,9 +65,13 @@ export class SplitView implements ISplitView {
     private readonly viewItems: ISplitViewItem[];
     private readonly sashItems: ISash[];
 
+    private readonly _onDidSashReset = this.__register(new Emitter<number>());
+    public readonly onDidSashReset = this._onDidSashReset.registerListener;
+
     // [constructor]
 
     constructor(container: HTMLElement, viewOpts?: ISplitViewItemOpts[]) {
+        super();
 
         this.element = document.createElement('div');
         this.element.className = 'split-view';
@@ -98,7 +102,8 @@ export class SplitView implements ISplitView {
 
     // [public methods]
 
-    public dispose(): void {
+    public override dispose(): void {
+        super.dispose();
         this.viewItems.forEach(view => view.dispose());
         this.sashItems.forEach(sash => sash.dispose());
     }
@@ -151,13 +156,8 @@ export class SplitView implements ISplitView {
             sash.onDidEnd(e => this.__onDidSashEnd(e, sash));
             sash.onDidMove(e => this.__onDidSashMove(e, sash));
             sash.onDidReset(() => {
-                // TODO: private helper method
-                const [view1, view2] = this.__getAdjacentViews(sash);
-                console.log('split-view: unfinished part reached');
-                // view1.size = sash.defaultPosition;
-                // view2.size -= e.deltaX;
-                // view1.render();
-                // view2.render(this.__getViewOffset(view2) + e.deltaX);
+                const index = this.sashItems.indexOf(sash);
+                this._onDidSashReset.fire(index);
             });
 
             this.sashItems.splice(opt.index, 0, sash);
