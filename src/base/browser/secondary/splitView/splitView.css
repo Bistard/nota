@@ -5,14 +5,20 @@
     
     width: 100%;
     height: 100%;
-
-    touch-action: none;
-    pointer-events: auto;
 }
 
-.split-view .view-container {
+.split-view > .view-container {
+    position: absolute;
     width: 100%;
     height: 100%;
+
+}
+
+.split-view > .sash-container {
+    position: absolute;
+	width: 100%;
+	height: 100%;
+    pointer-events: none;
 }
 
 .split-view {
@@ -20,7 +26,7 @@
     height: 100%;
 }
 
-.split-view-view {
+.split-view-item {
     position: absolute;
     height: 100%;
 }

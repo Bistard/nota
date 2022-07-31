@@ -1,4 +1,4 @@
-import { IViewOpts } from "src/base/browser/secondary/splitView/splitView";
+import { ISplitViewItemOpts } from "src/base/browser/secondary/splitView/splitView";
 import { Priority } from "src/base/common/event";
 
 /**
@@ -89,7 +89,7 @@ export class SplitViewItem implements ISplitViewItem {
 
     // [constructor]
 
-    constructor(container: HTMLElement, opt: IViewOpts) {
+    constructor(container: HTMLElement, opt: ISplitViewItemOpts) {
         this._disposed = false;
         
         container.appendChild(opt.element);
