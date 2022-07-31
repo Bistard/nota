@@ -113,7 +113,6 @@ export class SplitViewItem implements ISplitViewItem {
     // [public methods]
 
     public render(offset?: number): void {
-        console.log('given offset: ', offset);
         if (this._disposed) {
             return;
         }
@@ -121,9 +120,7 @@ export class SplitViewItem implements ISplitViewItem {
         this._container.style.width = `${this._size}px`;
         if (offset) {
             this._container.style.left = `${offset}px`;
-            console.log('actual left: ', this._container.style.left);
         }
-        console.log('=======');
     }
 
     public isFlexible(): boolean {
