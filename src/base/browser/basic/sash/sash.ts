@@ -33,6 +33,7 @@ export interface ISashOpts {
      * between.
      * 
      * @note If -1 provided in any interals, means no restrictions.
+     * @default range { start: -1, end: -1 }.
      */
     readonly range?: IRange;
 }
@@ -41,16 +42,34 @@ export interface ISashOpts {
  * The event fires when the {@link Sash} drag-move / drag-start / drag-end.
  */
 export interface ISashEvent {
-    /* The start coordinate */
+    /**
+     * The initial coordinate in x when mouse-down.
+     */
     readonly startX: number;
+
+    /**
+     * The initial coordinate in y when mouse-down.
+     */
 	readonly startY: number;
     
-    /* The current coordinate */
+    /**
+     * The current coordinate in x when mouse-move.
+     */
     readonly currentX: number;
+
+    /**
+     * The current coordinate in y when mouse-move.
+     */
 	readonly currentY: number;
 
-    /* The change in coordinate */
+    /**
+     * The delta coordinate change in x during mouse-move compares with the previous mouse-move.
+     */
     readonly deltaX: number;
+    
+    /**
+     * The delta coordinate change in y during mouse-move.
+     */
     readonly deltaY: number;
 }
 
@@ -63,6 +82,11 @@ export interface ISash {
      * The width / height of the sash. Default is 4.
      */
     readonly size: number;
+
+    /**
+     * The draggable range of the sash.
+     */
+    range: IRange;
 
     /**
      * The default left / top position when the sash is reset by double click.
@@ -82,7 +106,12 @@ export interface ISash {
     /**
      * Fires when the sash dragging is stoped (mouse-up).
      */
-    readonly onDidEnd: Register<void>;
+    readonly onDidEnd: Register<ISashEvent>;
+
+    /**
+     * Fires when the sash is resetted to the default position (double-click).
+     */
+    readonly onDidReset: Register<void>;
     
     /**
      * @description Relayout the default position of the {@link Sash} and sets to the given 
@@ -118,14 +147,14 @@ export class Sash extends Disposable implements ISash {
     public readonly size: number;
 
     /** 
-     * when vertical: the draggable range in x of the sash.
-     * when horizontal: the draggable range in y of the sash.
+     * when vertical: the draggable range of the sash in x.
+     * when horizontal: the draggable range of the sash in y.
      */
-    public readonly range: IRange | undefined;
+    private _range: IRange;
 
-    /* The HTMLElement of the sash, will be created by calling `this.create()`. */
+    /* The HTMLElement of the sash. */
     private _element!: HTMLElement;
-    /* The parent HTMLElement to be append to. Will be appended by calling `this.create()`. */
+    /* The parent HTMLElement to be appended to. */
     private _parentElement: HTMLElement;
 
     private _disposed: boolean;
@@ -147,8 +176,8 @@ export class Sash extends Disposable implements ISash {
 	public readonly onDidMove: Register<ISashEvent> = this._onDidMove.registerListener;
 
 	/** An event which fires whenever the user stops dragging this sash. */
-	private readonly _onDidEnd = this.__register(new Emitter<void>());
-	public readonly onDidEnd: Register<void> = this._onDidEnd.registerListener;
+	private readonly _onDidEnd = this.__register(new Emitter<ISashEvent>());
+	public readonly onDidEnd: Register<ISashEvent> = this._onDidEnd.registerListener;
 
     /** An event which fires whenever the user double clicks this sash. */
     private readonly _onDidReset = this.__register(new Emitter<void>());
@@ -173,7 +202,9 @@ export class Sash extends Disposable implements ISash {
         this._defaultPosition = opts.defaultPosition ?? 0;
         this.size = opts.size ? opts.size : 4;
         if (opts.range) {
-            this.range = opts.range;
+            this._range = opts.range;
+        } else {
+            this._range = { start: -1, end: -1 };
         }
 
         this.__render();
@@ -183,6 +214,14 @@ export class Sash extends Disposable implements ISash {
 
     get defaultPosition(): number {
         return this._defaultPosition;
+    }
+
+    get range(): IRange {
+        return this._range;
+    }
+
+    set range(newVal: IRange) {
+        this._range = newVal;
     }
 
     // [public methods]
@@ -278,6 +317,7 @@ export class Sash extends Disposable implements ISash {
         // The previous coordinate (x / y) when mouse-moved.
         let firstDrag = true;
         let prevX = 0, prevY = 0;
+        let prevEventData!: ISashEvent;
 
         /**
          * @readonly Comments on implementation of using local variable callbacks.
@@ -290,14 +330,14 @@ export class Sash extends Disposable implements ISash {
         let mouseUpCallback = () => {
             document.documentElement.removeEventListener(EventType.mousemove, mouseMoveCallback, false);
             document.documentElement.removeEventListener(EventType.mouseup, mouseUpCallback, false);
-            this._onDidEnd.fire();
+            this._onDidEnd.fire(prevEventData);
         };
 
         // dragging horizontally
         if (this._orientation === Orientation.Vertical) {
             
             mouseMoveCallback = (e: MouseEvent) => {
-                if (this.range && (e.clientX < this.range.start || (e.clientX > this.range.end && this.range.end !== -1))) {
+                if (this._range && (e.clientX < this._range.start || (e.clientX > this._range.end && this._range.end !== -1))) {
                     return;
                 }
                 
@@ -310,11 +350,14 @@ export class Sash extends Disposable implements ISash {
                     firstDrag = false;
                 }
 
-                this._onDidMove.fire({ startX: event.pageX, startY: event.pageY, currentX: e.pageX, currentY: e.pageY, deltaX: e.pageX - prevX, deltaY: e.pageY - prevY });
+                const eventData = { startX: event.pageX, startY: event.pageY, currentX: e.pageX, currentY: e.pageY, deltaX: e.pageX - prevX, deltaY: e.pageY - prevY };
+                this._onDidMove.fire(eventData);
+
+                prevEventData = eventData;
                 prevX = e.pageX;
                 prevY = e.pageY;
             };
-    
+            
             startCoordinate = event.pageX;
             startDimention = parseInt(this._element.style.left, 10);
         } 
@@ -322,7 +365,7 @@ export class Sash extends Disposable implements ISash {
         else {
             
             mouseMoveCallback = (e: MouseEvent) => {
-                if (this.range && (e.clientY < this.range.start || (e.clientY > this.range.end && this.range.end !== -1))) {
+                if (this._range && (e.clientY < this._range.start || (e.clientY > this._range.end && this._range.end !== -1))) {
                     return;
                 }
 
@@ -334,7 +377,10 @@ export class Sash extends Disposable implements ISash {
                     firstDrag = false;
                 }
 
-                this._onDidMove.fire({ startX: event.pageX, startY: event.pageY, currentX: e.pageX, currentY: e.pageY, deltaX: e.pageX - prevX, deltaY: e.pageY - prevY });
+                const eventData = { startX: event.pageX, startY: event.pageY, currentX: e.pageX, currentY: e.pageY, deltaX: e.pageX - prevX, deltaY: e.pageY - prevY };
+                this._onDidMove.fire(eventData);
+                
+                prevEventData = eventData;
                 prevX = e.pageX;
                 prevY = e.pageY;
             };

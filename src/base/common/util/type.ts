@@ -2,12 +2,17 @@
 export type DightInString = '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9';
 
 /**
- * Represents an array contains only 2 items.
+ * Represents an array that contains only 1 item.
+ */
+export type Single<T> = [T];
+
+/**
+ * Represents an array that contains only 2 items.
  */
 export type Pair<T, R> = [T, R];
 
 /**
- * Represents an array contains only 3 items.
+ * Represents an array that contains only 3 items.
  */
 export type Triple<T, R, S> = [T, R, S];
 
