@@ -20,7 +20,7 @@ export interface ISashOpts {
      * When it is horizontal, it is the top-most position (y-axis).
      * @default value 0
      */
-    readonly defaultPosition?: number;
+    readonly initPosition?: number;
     
     /**
      * The width or height of the {@link Sash} depends on the _orientation.
@@ -41,11 +41,14 @@ export interface ISashOpts {
  * The event fires when the {@link Sash} drag-move / drag-start / drag-end.
  */
 export interface ISashEvent {
+    
+    // TODO: should only be fired during `onDidStart` (creates two events: ISashStartEvent & ISashMoveEvent)
     /**
      * The initial coordinate in x when mouse-down.
      */
     readonly startX: number;
 
+    // TODO: should only be fired during `onDidStart` (creates two events: ISashStartEvent & ISashMoveEvent)
     /**
      * The initial coordinate in y when mouse-down.
      */
@@ -83,6 +86,13 @@ export interface ISash {
     readonly size: number;
 
     /**
+     * The current left / top of the sash relatives to the parent container. 
+     * Modify this attribute will affect the next rerender position by calling
+     * {@link ISash.relayout()}.
+     */
+    position: number;
+
+    /**
      * The draggable range of the sash.
      */
     range: IRange;
@@ -108,9 +118,10 @@ export interface ISash {
     readonly onDidReset: Register<void>;
     
     /**
-     * @description Relayout the position of the {@link Sash}.
+     * @description Rerenders the {@link Sash}. The position will be determined
+     * by the attribute {@link ISash.position}.
      */
-    relayout(position: number): void;
+    relayout(): void;
 
     /**
      * @description Registers DOM-related listeners.
@@ -139,9 +150,17 @@ export class Sash extends Disposable implements ISash {
      */
     public readonly size: number;
 
+    /**
+     * when vertical: left of the sash relatives to the container.
+     * when horizontal: top of the sash relatives to the container.
+     */
+    private _position: number;
+
     /** 
      * when vertical: the draggable range of the sash in x.
      * when horizontal: the draggable range of the sash in y.
+     * 
+     * @note If -1 provided in any interals, means no restrictions.
      */
     private _range: IRange;
 
@@ -149,12 +168,6 @@ export class Sash extends Disposable implements ISash {
     private _element!: HTMLElement;
     /* The parent HTMLElement to be appended to. */
     private _parentElement: HTMLElement;
-
-    /** 
-     * when vertical: the default position in x of the sash
-     * when horizontal: the default position in y of the sash
-     */
-    private _defaultPosition: number;
 
     // [event]
 
@@ -189,7 +202,7 @@ export class Sash extends Disposable implements ISash {
 
         // Options
         this._orientation = opts.orientation;
-        this._defaultPosition = opts.defaultPosition ?? 0;
+        this._position = opts.initPosition ?? 0;
         this.size = opts.size ? opts.size : 4;
         if (opts.range) {
             this._range = opts.range;
@@ -210,6 +223,14 @@ export class Sash extends Disposable implements ISash {
         this._range = newVal;
     }
 
+    get position(): number {
+        return this._position;
+    }
+
+    set position(newVal: number) {
+        this._position = newVal;
+    }
+
     // [public methods]
 
     public override dispose(): void {
@@ -217,14 +238,19 @@ export class Sash extends Disposable implements ISash {
         this._element.remove();
     }
 
-    public relayout(position: number): void {
+    public relayout(): void {
         if (this.isDisposed()) {
             return;
         }
-        this._element.style.left = position + 'px';
+        
+        this._element.style.left = `${this._position}px`;
     }
 
     public registerListeners(): void {
+        if (this.isDisposed()) {
+            return;
+        }
+
         this.__register(addDisposableListener(this._element, EventType.mousedown, e => this._initDrag(e)));
         this.__register(addDisposableListener(this._element, EventType.doubleclick, () => this._onDidReset.fire()));
     }
@@ -242,11 +268,11 @@ export class Sash extends Disposable implements ISash {
         if (this._orientation === Orientation.Vertical) {
             this._element.classList.add('vertical');
             this._element.style.width = `${this.size}px`;
-            this._element.style.left = `${this._defaultPosition}px`;
+            this._element.style.left = `${this._position}px`;
         } else {
             this._element.classList.add('horizontal');
             this._element.style.height = `${this.size}px`;
-            this._element.style.top = `${this._defaultPosition}px`;
+            this._element.style.top = `${this._position}px`;
         }
 
         this._parentElement.append(this._element);
@@ -261,14 +287,14 @@ export class Sash extends Disposable implements ISash {
         
         initEvent.preventDefault();
 
-        // The start of coordinate (x / y) when mouse-downed.
-        let startCoordinate = 0;
-        // The start of dimension (width or height) of the sash when mouse-downed.
-        let startDimention = 0;
-        // The previous coordinate (x / y) when mouse-moved.
+        // The start of coordinate (x / y) of click when mouse-downed.
+        let startClickCoordinate = 0;
+        // The start of coordinate (left / top) of the sash when mouse-downed.
+        let startSashCoordinate = 0;
+        
         let firstDrag = true;
         let prevX = 0, prevY = 0;
-        let prevEventData: ISashEvent = {
+        let prevEvent: ISashEvent = {
             startX: initEvent.pageX,
             startY: initEvent.pageY,
             currentX: initEvent.pageX,
@@ -277,9 +303,7 @@ export class Sash extends Disposable implements ISash {
             deltaY: 0
         };
 
-        // fire on did start dragging
-        this._onDidStart.fire(prevEventData);
-
+        this._onDidStart.fire(prevEvent);
         const disposables = new DisposableManager();
 
         /**
@@ -302,18 +326,51 @@ export class Sash extends Disposable implements ISash {
         let mouseMoveCallback: (e: MouseEvent) => void;
         let mouseUpCallback = () => {
             disposables.dispose();
-            this._onDidEnd.fire(prevEventData);
+            this._onDidEnd.fire(prevEvent);
         };
 
         // dragging horizontally
         if (this._orientation === Orientation.Vertical) {
             
+            startClickCoordinate = initEvent.pageX;
+            startSashCoordinate = parseInt(this._element.style.left, 10);
+            this._position = startSashCoordinate;
+
             mouseMoveCallback = (e: MouseEvent) => {
-                if (this._range && (e.clientX < this._range.start || (e.clientX > this._range.end && this._range.end !== -1))) {
+                
+                // Mouse exceeds the edge and the sash position reaches the edge.
+                if ((e.clientX < this._range.start && this._range.start !== -1 && this._position === this._range.start) || 
+                    (e.clientX > this._range.end && this._range.end !== -1 && this._position === this._range.end)
+                ) {
                     return;
                 }
 
-                this._element.style.left = (startDimention + e.pageX - startCoordinate) + 'px';
+                // Mouse exceeds the edge but the sash position does not reach yet.
+                if ((e.clientX < this._range.start) || (e.clientX > this._range.end)) {
+                    this._position = (e.clientX < this._range.start) ? this._range.start : this._range.end;
+                    this._element.style.left = `${this._position}px`;
+                    if (firstDrag === true) {
+                        prevX = initEvent.pageX;
+                        prevY = initEvent.pageY;
+                        firstDrag = false;
+                    }
+                    const eventData: ISashEvent = { 
+                        startX: initEvent.pageX, 
+                        startY: initEvent.pageY, 
+                        currentX: this._position, 
+                        currentY: e.pageY, 
+                        deltaX: this._position - prevX, 
+                        deltaY: e.pageY - prevY 
+                    };
+                    this._onDidMove.fire(eventData);
+                    prevEvent = eventData;
+                    prevX = this._position;
+                    prevY = e.pageY;
+                    return;
+                }
+
+                this._position = startSashCoordinate + e.pageX - startClickCoordinate;
+                this._element.style.left = `${this._position}px`;
                 
                 // To prevent firing the wrong onDidMove event at the first time.
                 if (firstDrag === true) {
@@ -325,23 +382,53 @@ export class Sash extends Disposable implements ISash {
                 const eventData: ISashEvent = { startX: initEvent.pageX, startY: initEvent.pageY, currentX: e.pageX, currentY: e.pageY, deltaX: e.pageX - prevX, deltaY: e.pageY - prevY };
                 this._onDidMove.fire(eventData);
 
-                prevEventData = eventData;
+                prevEvent = eventData;
                 prevX = e.pageX;
                 prevY = e.pageY;
             };
-            
-            startCoordinate = initEvent.pageX;
-            startDimention = parseInt(this._element.style.left, 10);
         } 
         // dragging vertically
         else {
             
             mouseMoveCallback = (e: MouseEvent) => {
-                if (this._range && (e.clientY < this._range.start || (e.clientY > this._range.end && this._range.end !== -1))) {
+                
+                startClickCoordinate = initEvent.pageY;
+                startSashCoordinate = parseInt(this._element.style.top, 10);
+                this._position = startSashCoordinate;
+
+                // Mouse exceeds the edge and the sash position reaches the edge.
+                if ((e.clientY < this._range.start && this._range.start !== -1 && this._position === this._range.start) || 
+                    (e.clientY > this._range.end && this._range.end !== -1 && this._position === this._range.end)
+                ) {
                     return;
                 }
 
-                this._element.style.top = (startDimention + initEvent.pageY - startCoordinate) + 'px';
+                // Mouse exceeds the edge but the sash position does not reach yet.
+                if ((e.clientY < this._range.start) || (e.clientY > this._range.end)) {
+                    this._position = (e.clientY < this._range.start) ? this._range.start : this._range.end;
+                    this._element.style.top = `${this._position}px`;
+                    if (firstDrag === true) {
+                        prevX = initEvent.pageX;
+                        prevY = initEvent.pageY;
+                        firstDrag = false;
+                    }
+                    const eventData: ISashEvent = { 
+                        startX: initEvent.pageX, 
+                        startY: initEvent.pageY, 
+                        currentX: e.pageX, 
+                        currentY: this._position, 
+                        deltaX: e.pageX - prevX, 
+                        deltaY: this._position - prevY 
+                    };
+                    this._onDidMove.fire(eventData);
+                    prevEvent = eventData;
+                    prevX = e.pageX;
+                    prevY = this._position;
+                    return;
+                }
+
+                this._position = startSashCoordinate + initEvent.pageY - startClickCoordinate;
+                this._element.style.top = `${this._position}px`;
                 
                 if (firstDrag === true) {
                     prevX = initEvent.pageX;
@@ -352,18 +439,15 @@ export class Sash extends Disposable implements ISash {
                 const eventData: ISashEvent = { startX: initEvent.pageX, startY: initEvent.pageY, currentX: e.pageX, currentY: e.pageY, deltaX: e.pageX - prevX, deltaY: e.pageY - prevY };
                 this._onDidMove.fire(eventData);
                 
-                prevEventData = eventData;
+                prevEvent = eventData;
                 prevX = e.pageX;
                 prevY = e.pageY;
             };
-    
-            startCoordinate = initEvent.pageY;
-            startDimention = parseInt(this._element.style.top, 10);
         }
 
         // listeners registration
-        disposables.register(addDisposableListener(document.documentElement, EventType.mousemove, mouseMoveCallback));
-        disposables.register(addDisposableListener(document.documentElement, EventType.mouseup, mouseUpCallback));
+        disposables.register(addDisposableListener(window, EventType.mousemove, mouseMoveCallback));
+        disposables.register(addDisposableListener(window, EventType.mouseup, mouseUpCallback));
     }
 
 }

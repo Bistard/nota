@@ -301,7 +301,8 @@ export class SplitView extends Disposable implements ISplitView {
             view.render(offset);
             
             const sash = this.sashItems[i - 1]!;
-            sash.relayout(offset - sash.size / 2);
+            sash.position = offset - sash.size / 2;
+            sash.relayout();
             sash.range.start = offset - Math.min(prevView.getShrinkableSpace(), view.getWideableSpace());
             sash.range.end = offset + Math.min(prevView.getWideableSpace(), view.getShrinkableSpace());
             
