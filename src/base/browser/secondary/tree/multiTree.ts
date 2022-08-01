@@ -54,7 +54,7 @@ export class MultiTree<T, TFilter = void> extends AbstractTree<T | null, TFilter
     // [field]
 
     /** overrides for specifying the type of the model. */
-    protected override _model!: IMultiTreeModel<T, TFilter>;
+    declare protected _model: IMultiTreeModel<T, TFilter>;
 
     // [constructor]
 
