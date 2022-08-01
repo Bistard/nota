@@ -97,6 +97,10 @@ export function formatSpan(text: string): string {
 	return `<span>${text}</span>`;
 }
 
+export type IStyleDisposable = IDisposable & {
+	readonly style: HTMLStyleElement;
+}
+
 /**
  * Generates a {@link HTMLStyleElement} and appends to the given {@link HTMLElement}.
  * @param element The given HTMLElement.
@@ -105,7 +109,7 @@ export function formatSpan(text: string): string {
  * 
  * @note Optimized for 'screen' in media attribute.
  */
-export function createStyleInCSS(element: HTMLElement): IDisposable & { readonly style: HTMLStyleElement; } {
+export function createStyleInCSS(element: HTMLElement): IStyleDisposable {
 	const style = document.createElement('style');
 	
 	/**
@@ -298,4 +302,3 @@ export namespace DomUtility
 		}
 	}
 }
-
