@@ -153,7 +153,7 @@ export class SplitView extends Disposable implements ISplitView {
             });
             sash.registerListeners();
 
-            sash.onDidEnd(e => this.__onDidSashEnd(e, sash));
+            sash.onDidEnd(() => this.__onDidSashEnd(sash));
             sash.onDidMove(e => this.__onDidSashMove(e, sash));
             sash.onDidReset(() => {
                 const index = this.sashItems.indexOf(sash);
@@ -368,7 +368,7 @@ export class SplitView extends Disposable implements ISplitView {
      * @param event The {@link ISashEvent} when the sash stopped dragging.
      * @param sash The target {@link ISash}.
      */
-    private __onDidSashEnd(event: ISashEvent, sash: ISash): void {
+    private __onDidSashEnd(sash: ISash): void {
         const currSashIndex = this.sashItems.indexOf(sash);
         
         const prevSash = this.sashItems[currSashIndex - 1];
@@ -377,17 +377,15 @@ export class SplitView extends Disposable implements ISplitView {
         if (prevSash) {
             const viewLeft = this.viewItems[currSashIndex - 1]!;
             const viewRight = this.viewItems[currSashIndex]!;
-            const prevSashPosition = event.currentX - viewRight.getSize();
-            prevSash.range.end = Math.min(event.currentX, prevSashPosition + viewLeft.getWideableSpace(),
-            prevSashPosition + viewRight.getShrinkableSpace());
+            prevSash.range.end = Math.min(sash.position, prevSash.position + viewLeft.getWideableSpace(),
+            prevSash.position + viewRight.getShrinkableSpace());
         }
 
         if (nextSash) {
             const viewLeft = this.viewItems[currSashIndex + 1]!;
             const viewRight = this.viewItems[currSashIndex + 2]!;
-            const nextSashPosition = event.currentX + viewLeft.getSize();
-            nextSash.range.start = Math.max(event.currentX, nextSashPosition - viewRight.getWideableSpace(), 
-            nextSashPosition - viewLeft.getShrinkableSpace());
+            nextSash.range.start = Math.max(sash.position, nextSash.position - viewRight.getWideableSpace(), 
+            nextSash.position - viewLeft.getShrinkableSpace());
         }
     }
 }
