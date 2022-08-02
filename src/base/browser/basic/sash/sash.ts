@@ -1,6 +1,6 @@
 import { AbstractSashController, HorizontalSashController, VerticalSashController } from "src/base/browser/basic/sash/sashController";
-import { Disposable, DisposableManager } from "src/base/common/dispose";
-import { addDisposableListener, createStyleInCSS, EventType, IStyleDisposable, Orientation } from "src/base/common/dom";
+import { Disposable } from "src/base/common/dispose";
+import { addDisposableListener, EventType, Orientation } from "src/base/common/dom";
 import { Emitter, Register } from "src/base/common/event";
 import { IRange } from "src/base/common/range";
 

@@ -50,7 +50,8 @@ export interface ISplitView extends IDisposable {
 }
 
 /**
- * 
+ * An interface for {@link SplitView} construction.
+ * // TODO
  */
 export interface ISplitViewOpts {
 
@@ -214,7 +215,7 @@ export class SplitView extends Disposable implements ISplitView {
         const splitViewSize = this.size;
         let currContentSize = 0;
 
-        // sort all the flexible views by their priority
+        // seperate all the flexible views by their priorities
         const low: ISplitViewItem[] = [];
         const normal: ISplitViewItem[] = [];
         const high: ISplitViewItem[] = [];
@@ -238,7 +239,10 @@ export class SplitView extends Disposable implements ISplitView {
         }
 
         if (low.length + normal.length + high.length === 0) {
-            throw new SplitViewSpaceError(splitViewSize, currContentSize);
+            if (splitViewSize !== 0) {
+                throw new SplitViewSpaceError(splitViewSize, currContentSize);
+            }
+            return;
         }
 
         let offset: number;
@@ -246,29 +250,24 @@ export class SplitView extends Disposable implements ISplitView {
 
         // left-most flexible views need to be shrink to fit the whole split-view.
         if (currContentSize > splitViewSize) {
-            
-            offset = currContentSize - splitViewSize; // TODO
+            offset = currContentSize - splitViewSize;
             
             for (const group of [high, normal, low]) { 
                 for (const flexView of group) {
-                    const spare = flexView.getShrinkableSpace(); // TODO
+                    const spare = flexView.getShrinkableSpace();
                     if (spare >= offset) {
-                        flexView.updateSize(-offset); // TODO
+                        flexView.updateSize(-offset);
                         offset = 0;
                         complete = true;
                         break;
                     }
                     
-                    flexView.updateSize(-spare); // TODO
+                    flexView.updateSize(-spare);
                     offset -= spare;
                 }
-    
-                if (complete) break;
+                if (complete) { break; }
             }
-
-            if (offset === 0) {
-                return;
-            }
+            if (offset === 0) { return; }
             
             // flexible views try their best but still too big to be hold.
             throw new SplitViewSpaceError(splitViewSize, splitViewSize + offset);
@@ -276,7 +275,6 @@ export class SplitView extends Disposable implements ISplitView {
 
         // left-most flexible views need to be increased to fit the whole split-view.
         else {
-            
             offset = splitViewSize - currContentSize;
             
             for (const group of [high, normal, low]) {
@@ -292,13 +290,9 @@ export class SplitView extends Disposable implements ISplitView {
                     flexView.updateSize(spare);
                     offset -= spare;
                 }
-
-                if (complete) break;
+                if (complete) { break; }
             }
-
-            if (offset === 0) {
-                return;
-            }
+            if (offset === 0) { return; }
 
             // flexible views try their best but still too small to fit the entire view.
             throw new SplitViewSpaceError(splitViewSize, splitViewSize - offset);
@@ -375,6 +369,8 @@ export class SplitView extends Disposable implements ISplitView {
 
     /**
      * @description Invokes when any of the sashes is moving (mouse-move).
+     * @param event The {@link ISashEvent} of the moving.
+     * @param sash The target {@link ISash}.
      */
     private __onDidSashMove(event: ISashEvent, sash: ISash): void {
         const [prevView, nextView] = this.__getAdjacentViews(sash);

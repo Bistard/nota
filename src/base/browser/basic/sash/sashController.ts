@@ -1,6 +1,6 @@
 import { ISash, ISashEvent } from "src/base/browser/basic/sash/sash";
 import { DisposableManager } from "src/base/common/dispose";
-import { addDisposableListener, createStyleInCSS, EventType, IStyleDisposable, Orientation } from "src/base/common/dom";
+import { addDisposableListener, createStyleInCSS, EventType, Orientation } from "src/base/common/dom";
 
 /**
  * @class A wrapper class that controls the behaviour of {@link ISash} movements 
