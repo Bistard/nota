@@ -92,6 +92,11 @@ export interface ISash {
     readonly size: number;
 
     /**
+     * Describes if the sash is vertical or horizontal.
+     */
+    readonly orientation: Orientation;
+
+    /**
      * The current left / top of the sash relatives to the parent container. 
      * Modify this attribute will affect the next rerender position by calling
      * {@link ISash.relayout()}.
@@ -170,6 +175,17 @@ export class Sash extends Disposable implements ISash {
      */
     private _range: IRange;
 
+    /** 
+     * {@link Orientation.Horizontal} means sash lays out horizontally.
+     * {@link Orientation.vertical} means lays out vertically.
+     */
+    private _orientation: Orientation;
+
+    /**
+     * Using controller to determine the behaviour of the sash movement.
+     */
+    private _controller?: AbstractSashController;
+
     /* The HTMLElement of the sash. */
     private _element!: HTMLElement;
     /* The parent HTMLElement to be appended to. */
@@ -192,12 +208,6 @@ export class Sash extends Disposable implements ISash {
     /** An event which fires whenever the user double clicks this sash. */
     private readonly _onDidReset = this.__register(new Emitter<void>());
 	public readonly onDidReset: Register<void> = this._onDidReset.registerListener;
-
-    /** 
-     * {@link Orientation.Horizontal} means sash lays out horizontally.
-     * {@link Orientation.vertical} means lays out vertically.
-     */
-    private _orientation: Orientation;
 
     // [constructor]
 
@@ -223,6 +233,10 @@ export class Sash extends Disposable implements ISash {
 
     get element(): HTMLElement {
         return this._element;
+    }
+
+    get orientation(): Orientation {
+        return this._orientation;
     }
 
     get range(): IRange {
@@ -261,7 +275,7 @@ export class Sash extends Disposable implements ISash {
             return;
         }
 
-        this.__register(addDisposableListener(this._element, EventType.mousedown, e => this._initDrag(e)));
+        this.__register(addDisposableListener(this._element, EventType.mousedown, e => this.__initDrag(e)));
         this.__register(addDisposableListener(this._element, EventType.doubleclick, () => this._onDidReset.fire()));
     }
 
@@ -293,27 +307,15 @@ export class Sash extends Disposable implements ISash {
      * be invoked to achieve draggable animation.
      * @param initEvent The mouse event when the mouse-downed.
      */
-    private _initDrag(initEvent: MouseEvent): void {
-        
+    private __initDrag(initEvent: MouseEvent): void {
         initEvent.preventDefault();
 
-        /**
-         * The CSS stylesheet is neccessary when the user cursor is reaching the
-         * edge of the sash range but still wish the cursor style to be 
-         * consistent. Will be removed once the mouse-up event happens.
-         */
-        const cursorStyleDisposable = createStyleInCSS(this._element);
-        const cursor = (this._orientation === Orientation.Vertical) ? 'ew-resize' : 'ns-resize';
-        cursorStyleDisposable.style.textContent = `* { cursor: ${cursor} !important; }`;
-
-        // using controller to determine the behaviour of the sash movement.
-        let controller: AbstractSashController;
         if (this._orientation === Orientation.Vertical) {
-            controller = new VerticalSashController(initEvent, cursorStyleDisposable, this);
+            this._controller = new VerticalSashController(initEvent, this);
         } else {
-            controller = new HorizontalSashController(initEvent, cursorStyleDisposable, this);
+            this._controller = new HorizontalSashController(initEvent, this);
         }
-        controller.onMouseStart();
+        this._controller.onMouseStart();
     }
 
 }
