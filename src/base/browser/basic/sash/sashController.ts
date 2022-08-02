@@ -58,7 +58,7 @@ export abstract class AbstractSashController {
 
     public onMouseUp(): void {
         this.disposables.dispose();
-        (<any>this.sash)._onDidEnd.fire(this.prevEvent);
+        (<any>this.sash)._onDidEnd.fire();
     }
 }
 

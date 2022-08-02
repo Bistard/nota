@@ -116,8 +116,7 @@ export interface ISash {
     /**
      * Fires when the sash dragging is stoped (mouse-up).
      */
-    // REVIEW: remove fires ISashEvent
-    readonly onDidEnd: Register<ISashEvent>;
+    readonly onDidEnd: Register<void>;
 
     /**
      * Fires when the sash is resetted to the default position (double-click).
@@ -187,8 +186,8 @@ export class Sash extends Disposable implements ISash {
 	public readonly onDidMove: Register<ISashEvent> = this._onDidMove.registerListener;
 
 	/** An event which fires whenever the user stops dragging this sash. */
-	private readonly _onDidEnd = this.__register(new Emitter<ISashEvent>());
-	public readonly onDidEnd: Register<ISashEvent> = this._onDidEnd.registerListener;
+	private readonly _onDidEnd = this.__register(new Emitter<void>());
+	public readonly onDidEnd: Register<void> = this._onDidEnd.registerListener;
 
     /** An event which fires whenever the user double clicks this sash. */
     private readonly _onDidReset = this.__register(new Emitter<void>());
