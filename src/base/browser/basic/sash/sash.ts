@@ -264,8 +264,12 @@ export class Sash extends Disposable implements ISash {
         if (this.isDisposed()) {
             return;
         }
-        
-        this._element.style.left = `${this._position}px`;
+        if (this._orientation === Orientation.Vertical) {
+            this._element.style.left = `${this._position}px`;
+        }
+        else {
+            this._element.style.top = `${this._position}px`;
+        }
     }
 
     public registerListeners(): void {

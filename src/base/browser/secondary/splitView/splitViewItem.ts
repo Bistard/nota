@@ -1,4 +1,5 @@
 import { ISplitViewItemOpts } from "src/base/browser/secondary/splitView/splitView";
+import { Orientation } from "src/base/common/dom";
 import { Priority } from "src/base/common/event";
 
 /**
@@ -11,7 +12,7 @@ export interface ISplitViewItem {
      * view relatives to the whole window if the offset is given.
      * @param offset The given offset in numbers.
      */
-    render(offset?: number): void;
+    render(orientation: Orientation, offset?: number): void;
 
     /**
      * @description Checks if the view is resizable.
@@ -128,15 +129,26 @@ export class SplitViewItem implements ISplitViewItem {
 
     // [public methods]
 
-    public render(offset?: number): void {
+    public render(orientation: Orientation, offset?: number): void {
         if (this._disposed) {
             return;
         }
 
-        this._container.style.width = `${this._size}px`;
-        if (offset) {
-            this._container.style.left = `${offset}px`;
+        // The splitView has a horizontal layout
+        if (orientation === Orientation.Horizontal) {
+            this._container.style.width = `${this._size}px`;
+            if (offset) {
+                this._container.style.left = `${offset}px`;
+            }
+        } 
+        // The splitView has a vertical layout
+        else {
+            this._container.style.height = `${this._size}px`;
+            if (offset) {
+                this._container.style.top = `${offset}px`;
+            }
         }
+        
     }
 
     public isFlexible(): boolean {

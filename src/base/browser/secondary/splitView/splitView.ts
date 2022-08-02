@@ -46,7 +46,17 @@ export interface ISplitViewItemOpts {
  * An interface only for {@link SplitView}.
  */
 export interface ISplitView extends IDisposable {
-    // TODO
+    //TODO 
+}
+
+/**
+ * 
+ */
+export interface ISplitViewOpts {
+
+    readonly orientation: Orientation;
+    readonly viewOpts?: ISplitViewItemOpts[];
+
 }
 
 /**
@@ -56,12 +66,13 @@ export class SplitView extends Disposable implements ISplitView {
 
     // [field]
 
-    private element: HTMLElement;
+    private _element: HTMLElement;
     private sashContainer: HTMLElement;
     private viewContainer: HTMLElement;
 
     /** The total visible width / height of the {@link SplitView}. */
     private size: number;
+    private _orientation: Orientation;
     private readonly viewItems: ISplitViewItem[];
     private readonly sashItems: ISash[];
 
@@ -70,11 +81,11 @@ export class SplitView extends Disposable implements ISplitView {
 
     // [constructor]
 
-    constructor(container: HTMLElement, viewOpts?: ISplitViewItemOpts[]) {
+    constructor(container: HTMLElement, opts: ISplitViewOpts) {
         super();
-
-        this.element = document.createElement('div');
-        this.element.className = 'split-view';
+        this._orientation = opts.orientation;
+        this._element = document.createElement('div');
+        this._element.className = 'split-view';
 
         this.sashContainer = document.createElement('div');
         this.sashContainer.className = 'sash-container';
@@ -82,26 +93,35 @@ export class SplitView extends Disposable implements ISplitView {
         this.viewContainer = document.createElement('div');
         this.viewContainer.className = 'view-container';
 
-        this.size = DomUtility.getContentWidth(container);
+        if (this._orientation === Orientation.Horizontal) {
+            this.size = DomUtility.getContentWidth(container);
+        } else {
+            this.size = DomUtility.getContentHeight(container);
+        }
+        
 
         this.viewItems = [];
         this.sashItems = [];
         
-        if (viewOpts) {
-            for (const viewOpt of viewOpts) {
+        if (opts.viewOpts) {
+            for (const viewOpt of opts.viewOpts) {
                 this.__doAddView(viewOpt);
             }
         }
         
         this.__render();
 
-        this.element.appendChild(this.viewContainer);
-        this.element.appendChild(this.sashContainer);
-        container.appendChild(this.element);
+        this._element.appendChild(this.viewContainer);
+        this._element.appendChild(this.sashContainer);
+        container.appendChild(this._element);
     }
 
     // [public methods]
 
+    get element(): HTMLElement {
+        return this._element;
+    }
+    
     public override dispose(): void {
         super.dispose();
         this.viewItems.forEach(view => view.dispose());
@@ -149,7 +169,8 @@ export class SplitView extends Disposable implements ISplitView {
 
         if (this.viewItems.length > 1) {
             const sash = new Sash(this.sashContainer, {
-                orientation: Orientation.Vertical
+                orientation: (this._orientation === Orientation.Vertical) ?
+                Orientation.Horizontal : Orientation.Vertical
             });
             sash.registerListeners();
 
@@ -293,12 +314,12 @@ export class SplitView extends Disposable implements ISplitView {
     private __doRenderViewsAndSashes(): void {
         let prevView = this.viewItems[0]!;
         let view = this.viewItems[0]!;
-        view.render(0);
+        view.render(this._orientation, 0);
         
         let offset = view.getSize();
         for (let i = 1; i < this.viewItems.length; i++) {
             view = this.viewItems[i]!;
-            view.render(offset);
+            view.render(this._orientation, offset);
             
             const sash = this.sashItems[i - 1]!;
             sash.position = offset - sash.size / 2;
@@ -357,15 +378,19 @@ export class SplitView extends Disposable implements ISplitView {
      */
     private __onDidSashMove(event: ISashEvent, sash: ISash): void {
         const [prevView, nextView] = this.__getAdjacentViews(sash);
-        prevView.updateSize(event.deltaX);
-        nextView.updateSize(-event.deltaX);
-        prevView.render();
-        nextView.render(this.__getViewOffset(nextView));
+        if (this._orientation === Orientation.Horizontal) {
+            prevView.updateSize(event.deltaX);
+            nextView.updateSize(-event.deltaX);
+        } else {
+            prevView.updateSize(event.deltaY);
+            nextView.updateSize(-event.deltaY);
+        }
+        prevView.render(this._orientation);
+        nextView.render(this._orientation, this.__getViewOffset(nextView));
     }
 
     /**
      * @description Invokes when any of the sashes is stoped dragging (mouse-up).
-     * @param event The {@link ISashEvent} when the sash stopped dragging.
      * @param sash The target {@link ISash}.
      */
     private __onDidSashEnd(sash: ISash): void {
@@ -375,17 +400,17 @@ export class SplitView extends Disposable implements ISplitView {
         const nextSash = this.sashItems[currSashIndex + 1];
         
         if (prevSash) {
-            const viewLeft = this.viewItems[currSashIndex - 1]!;
-            const viewRight = this.viewItems[currSashIndex]!;
-            prevSash.range.end = Math.min(sash.position, prevSash.position + viewLeft.getWideableSpace(),
-            prevSash.position + viewRight.getShrinkableSpace());
+            const view1 = this.viewItems[currSashIndex - 1]!;
+            const view2 = this.viewItems[currSashIndex]!;
+            prevSash.range.end = Math.min(sash.position, prevSash.position + view1.getWideableSpace(),
+            prevSash.position + view2.getShrinkableSpace());
         }
 
         if (nextSash) {
-            const viewLeft = this.viewItems[currSashIndex + 1]!;
-            const viewRight = this.viewItems[currSashIndex + 2]!;
-            nextSash.range.start = Math.max(sash.position, nextSash.position - viewRight.getWideableSpace(), 
-            nextSash.position - viewLeft.getShrinkableSpace());
+            const view1 = this.viewItems[currSashIndex + 1]!;
+            const view2 = this.viewItems[currSashIndex + 2]!;
+            nextSash.range.start = Math.max(sash.position, nextSash.position - view2.getWideableSpace(), 
+            nextSash.position - view1.getShrinkableSpace());
         }
     }
 }
