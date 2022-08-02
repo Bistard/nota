@@ -43,13 +43,11 @@ export interface ISashOpts {
  */
 export interface ISashEvent {
     
-    // TODO: should only be fired during `onDidStart` (creates two events: ISashStartEvent & ISashMoveEvent)
     /**
      * The initial coordinate in x when mouse-down.
      */
     readonly startX: number;
 
-    // TODO: should only be fired during `onDidStart` (creates two events: ISashStartEvent & ISashMoveEvent)
     /**
      * The initial coordinate in y when mouse-down.
      */
