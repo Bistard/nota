@@ -14,14 +14,14 @@ export abstract class AbstractSashController {
     protected readonly sash: ISash;
     protected readonly initEvent: MouseEvent;
     protected prevEvent: ISashEvent;
+    protected prevPosX = 0;
+    protected prevPosY = 0;
     protected firstDrag = true;
-    protected prevX = 0;
-    protected prevY = 0;
 
-    // The start of coordinate (x / y) of click when mouse-downed.
-    protected startClickCoordinate = 0;
-    // The start of coordinate (left / top) of the sash when mouse-downed.
-    protected startSashCoordinate = 0;
+    // The start of position (x / y) of click when mouse-downed.
+    protected startClickPos = 0;
+    // The start of position (left / top) of the sash when mouse-downed.
+    protected startSashPos = 0;
 
     // [constructor]
     
@@ -61,7 +61,7 @@ export abstract class AbstractSashController {
         
         this.disposables.register(addDisposableListener(window, EventType.mousemove, e => this.onMouseMove(e)));
         this.disposables.register(addDisposableListener(window, EventType.mouseup, () => this.onMouseUp()));
-        this.sash.position = this.startSashCoordinate;
+        this.sash.position = this.startSashPos;
         (<any>this.sash)._onDidStart.fire(this.prevEvent);
     }
 
@@ -74,8 +74,8 @@ export abstract class AbstractSashController {
 
     protected __firstDragCheck(): void {
         if (this.firstDrag === true) {
-            this.prevX = this.initEvent.pageX;
-            this.prevY = this.initEvent.pageY;
+            this.prevPosX = this.initEvent.pageX;
+            this.prevPosY = this.initEvent.pageY;
             this.firstDrag = false;
         }
     }
@@ -93,10 +93,10 @@ export abstract class AbstractSashController {
         return event;
     }
 
-    protected __updatePrevData(prevEvent: ISashEvent, prevX: number, prevY: number): void {
+    protected __updatePrevData(prevEvent: ISashEvent, prevPosX: number, prevPosY: number): void {
         this.prevEvent = prevEvent;
-        this.prevX = prevX;
-        this.prevY = prevY;
+        this.prevPosX = prevPosX;
+        this.prevPosY = prevPosY;
     }
 }
 
@@ -107,34 +107,37 @@ export class VerticalSashController extends AbstractSashController {
     }
 
     protected __onMouseStart(): void {
-        this.startClickCoordinate = this.initEvent.pageX;
-        this.startSashCoordinate = parseInt(this.sash.element.style.left, 10);
+        this.startClickPos = this.initEvent.pageX;
+        this.startSashPos = parseInt(this.sash.element.style.left, 10);
     }
 
     public onMouseMove(e: MouseEvent): void {
+        const reachMin = e.clientX < this.sash.range.start;
+        const reachMax = e.clientX > this.sash.range.end;
+        
         // Mouse exceeds the edge and the sash position reaches the edge.
-        if ((e.clientX < this.sash.range.start && this.sash.range.start !== -1 && this.sash.position === this.sash.range.start) || 
-            (e.clientX > this.sash.range.end && this.sash.range.end !== -1 && this.sash.position === this.sash.range.end)
+        if ((reachMin && this.sash.range.start !== -1 && this.sash.position === this.sash.range.start) || 
+            (reachMax && this.sash.range.end !== -1 && this.sash.position === this.sash.range.end)
         ) {
             return;
         }
 
         // Mouse exceeds the edge but the sash position does not reach yet.
-        if ((e.clientX < this.sash.range.start) || (e.clientX > this.sash.range.end)) {
-            this.sash.position = (e.clientX < this.sash.range.start) ? this.sash.range.start : this.sash.range.end;
+        if (reachMin || reachMax) {
+            this.sash.position = (reachMin) ? this.sash.range.start : this.sash.range.end;
             this.sash.element.style.left = `${this.sash.position}px`;
             
             this.__firstDragCheck();
-            const event = this.__fireMoveEvent(this.sash.position, e.pageY, this.sash.position - this.prevX, e.pageY - this.prevY);
+            const event = this.__fireMoveEvent(this.sash.position, e.pageY, this.sash.position - this.prevPosX, e.pageY - this.prevPosY);
             this.__updatePrevData(event, this.sash.position, e.pageY);
             return;
         }
 
-        this.sash.position = this.startSashCoordinate + e.pageX - this.startClickCoordinate;
+        this.sash.position = this.startSashPos + e.pageX - this.startClickPos;
         this.sash.element.style.left = `${this.sash.position}px`;
         
         this.__firstDragCheck();
-        const event = this.__fireMoveEvent(e.pageX, e.pageY, e.pageX - this.prevX, e.pageY - this.prevY);
+        const event = this.__fireMoveEvent(e.pageX, e.pageY, e.pageX - this.prevPosX, e.pageY - this.prevPosY);
         this.__updatePrevData(event, e.pageX, e.pageY);
     }
 }
@@ -146,34 +149,37 @@ export class HorizontalSashController extends AbstractSashController {
     }
 
     protected __onMouseStart(): void {
-        this.startClickCoordinate = this.initEvent.pageY;
-        this.startSashCoordinate = parseInt(this.sash.element.style.top, 10);
+        this.startClickPos = this.initEvent.pageY;
+        this.startSashPos = parseInt(this.sash.element.style.top, 10);
     }
 
     public onMouseMove(e: MouseEvent): void {
+        const reachMin = e.clientY < this.sash.range.start;
+        const reachMax = e.clientY > this.sash.range.end;
+
         // Mouse exceeds the edge and the sash position reaches the edge.
-        if ((e.clientY < this.sash.range.start && this.sash.range.start !== -1 && this.sash.position === this.sash.range.start) || 
-            (e.clientY > this.sash.range.end && this.sash.range.end !== -1 && this.sash.position === this.sash.range.end)
+        if ((reachMin && this.sash.range.start !== -1 && this.sash.position === this.sash.range.start) || 
+            (reachMax && this.sash.range.end !== -1 && this.sash.position === this.sash.range.end)
         ) {
             return;
         }
 
         // Mouse exceeds the edge but the sash position does not reach yet.
-        if ((e.clientY < this.sash.range.start) || (e.clientY > this.sash.range.end)) {
-            this.sash.position = (e.clientY < this.sash.range.start) ? this.sash.range.start : this.sash.range.end;
+        if (reachMin || reachMax) {
+            this.sash.position = (reachMin) ? this.sash.range.start : this.sash.range.end;
             this.sash.element.style.top = `${this.sash.position}px`;
             
             this.__firstDragCheck();
-            const event = this.__fireMoveEvent(e.pageX, this.sash.position, e.pageX - this.prevX, this.sash.position - this.prevY);
+            const event = this.__fireMoveEvent(e.pageX, this.sash.position, e.pageX - this.prevPosX, this.sash.position - this.prevPosY);
             this.__updatePrevData(event, e.pageX, this.sash.position);
             return;
         }
 
-        this.sash.position = this.startSashCoordinate + e.pageY - this.startClickCoordinate;
+        this.sash.position = this.startSashPos + e.pageY - this.startClickPos;
         this.sash.element.style.top = `${this.sash.position}px`;
         
         this.__firstDragCheck();
-        const event = this.__fireMoveEvent(e.pageX, e.pageY, e.pageX - this.prevX, e.pageY - this.prevY);
+        const event = this.__fireMoveEvent(e.pageX, e.pageY, e.pageX - this.prevPosX, e.pageY - this.prevPosY);
         this.__updatePrevData(event, e.pageX, e.pageY);
     }
 
