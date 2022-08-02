@@ -44,6 +44,16 @@ export namespace Range {
 	}
 
 	/**
+	 * @description Determines if the given number is within the given range 
+	 * under both close intervals.
+	 * @param range The given range.
+	 * @param num The provided number.
+	 */
+	export function within(range: IRange, num: number): boolean {
+		return range.start <= num && num <= range.end;
+	}
+
+	/**
 	 * @description Determines if the two ranges have exact the same range.
 	 * @param A The given range.
 	 * @param B The given range.
