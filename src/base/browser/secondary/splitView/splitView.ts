@@ -1,67 +1,68 @@
 import { ISash, ISashEvent, Sash } from "src/base/browser/basic/sash/sash";
-import { ISplitViewItem, SplitViewItem } from "src/base/browser/secondary/splitView/splitViewItem";
+import { ISplitViewItem, ISplitViewItemOpts, SplitViewItem } from "src/base/browser/secondary/splitView/splitViewItem";
 import { IDisposable, Disposable } from "src/base/common/dispose";
 import { DomUtility, Orientation } from "src/base/common/dom";
-import { Emitter, Priority } from "src/base/common/event";
+import { Emitter, Priority, Register } from "src/base/common/event";
 import { IDimension } from "src/base/common/util/size";
 import { Pair } from "src/base/common/util/type";
 
-export interface ISplitViewItemOpts {
-
-    /**
-     * The HTMLElement of the view.
-     */
-    readonly element: HTMLElement;
-
-    /**
-     * The minimum size of the view, when sets to 0, the view may reach invisible.
-     */
-    readonly minimumSize: number;
-
-    /**
-     * The maximum size of the view, when sets to {@link Number.POSITIVE_INFINITY}, 
-     * the size will have no restrictions.
-     */
-    readonly maximumSize: number;
-
-    /**
-     * The initial size of the view.
-     */
-    readonly initSize: number;
-    
-    /**
-     * When adding/removing view, the view with higher priority will be resized 
-     * first.
-     * Default is {@link Priority.Low}.
-     */
-    priority?: Priority;
-
-    /**
-     * The index of the view. Default inserts to the last.
-     */
-    index?: number;
-}
 
 /**
  * An interface only for {@link SplitView}.
  */
-export interface ISplitView extends IDisposable {
-    //TODO 
+export interface ISplitView extends Disposable {
+
+    /**
+     * The HTMLElement of the SplitView.
+     */
+    readonly element: HTMLElement;
+
+    /**
+     * Fires when the sash is resetted to the default position (double-click).
+     */
+    readonly onDidSashReset: Register<number>;
+    
+    /**
+     * @description Construsts a new {@link SplitViewItem} and add it into the 
+     * split-view.
+     * @note This will rerender the whole split-view.
+     */
+    addView(opt: ISplitViewItemOpts): void;
+
+    // TODO
+    onWindowResize(dimension: IDimension): void;
+
+    // TODO
+    relayout(): void;
 }
 
 /**
  * An interface for {@link SplitView} construction.
- * // TODO
  */
 export interface ISplitViewOpts {
 
+    /**
+     * Determines if the {@link Sash} is vertical or horizontal.
+     */
     readonly orientation: Orientation;
+
+    /**
+     * Options of constructing {@link ISplitViewItem}s during the construction 
+     * of {@link ISplitView}.
+     */
     readonly viewOpts?: ISplitViewItemOpts[];
 
 }
 
 /**
- * @description // TODO
+ * @class An UI component that layouts highly customizable views it contains
+ * based on its orientation. It will resize the views based on the operations of 
+ * the users.
+ * 
+ * Functionalities:
+ *  - Supports vertical and horizontal layout of views.
+ *  - Supports add, remove, move, swap views.
+ *  - Auto-resizes views to fit splitView's size.
  */
 export class SplitView extends Disposable implements ISplitView {
 

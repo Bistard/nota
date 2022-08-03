@@ -1,6 +1,45 @@
-import { ISplitViewItemOpts } from "src/base/browser/secondary/splitView/splitView";
 import { Orientation } from "src/base/common/dom";
 import { Priority } from "src/base/common/event";
+
+/**
+ * An interface for {@link ISplitViewItem} construction.
+ */
+ export interface ISplitViewItemOpts {
+
+    /**
+     * The HTMLElement of the view.
+     */
+    readonly element: HTMLElement;
+
+    /**
+     * The minimum size of the view, when sets to 0, the view may reach invisible.
+     */
+    readonly minimumSize: number;
+
+    /**
+     * The maximum size of the view, when sets to {@link Number.POSITIVE_INFINITY}, 
+     * the size will have no restrictions.
+     */
+    readonly maximumSize: number;
+
+    /**
+     * The initial size of the view.
+     */
+    readonly initSize: number;
+    
+    /**
+     * When adding/removing view, the view with higher priority will be resized 
+     * first.
+     * Default is {@link Priority.Low}.
+     */
+    priority?: Priority;
+
+    /**
+     * The index of the view. Default inserts to the last.
+     */
+    index?: number;
+}
+
 
 /**
  * An interface only for {@link SplitViewItem}.
