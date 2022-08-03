@@ -52,21 +52,9 @@ export interface ISashOpts {
 }
 
 /**
- * The event fires when the {@link Sash} drag-move / drag-start / drag-end.
+ * The event fires when the {@link ISash} mouse-move / mouse-down / mouse-up.
  */
 export interface ISashEvent {
-    
-    // TODO: remove later
-    /**
-     * The initial coordinate of sash in x during mouse-move.
-     */
-    readonly startX: number;
-
-    // TODO: remove later
-    /**
-     * The initial coordinate of sash in y during mouse-move.
-     */
-	readonly startY: number;
     
     /**
      * The current coordinate of sash in x during mouse-move.
@@ -139,7 +127,7 @@ export interface ISash {
     readonly onDidEnd: Register<void>;
 
     /**
-     * Fires when the sash is resetted to the default position (double-click).
+     * Fires when the sash is double-clicked.
      */
     readonly onDidReset: Register<void>;
     
@@ -215,19 +203,19 @@ export class Sash extends Disposable implements ISash {
 
     // [event]
 
-    /** An event which fires whenever the user starts dragging this sash. */
+    /** An event which fires whenever the user starts dragging the sash. */
 	private readonly _onDidStart = this.__register(new Emitter<ISashEvent>());
     public readonly onDidStart: Register<ISashEvent> = this._onDidStart.registerListener;
 
-	/** An event which fires whenever the user moves the mouse while dragging this sash. */
+	/** An event which fires whenever the user moves the mouse while dragging the sash. */
     private readonly _onDidMove = this.__register(new Emitter<ISashEvent>());
 	public readonly onDidMove: Register<ISashEvent> = this._onDidMove.registerListener;
 
-	/** An event which fires whenever the user stops dragging this sash. */
+	/** An event which fires whenever the user stops dragging the sash. */
 	private readonly _onDidEnd = this.__register(new Emitter<void>());
 	public readonly onDidEnd: Register<void> = this._onDidEnd.registerListener;
 
-    /** An event which fires whenever the user double clicks this sash. */
+    /** An event which fires whenever the user double clicks the sash. */
     private readonly _onDidReset = this.__register(new Emitter<void>());
 	public readonly onDidReset: Register<void> = this._onDidReset.registerListener;
 
@@ -238,7 +226,7 @@ export class Sash extends Disposable implements ISash {
 
         this._parentElement = parentElement;
 
-        // Options
+        // Option construction
         this._orientation = opts.orientation;
         this._position = opts.initPosition ?? 0;
         this.size = opts.size ? opts.size : 4;
@@ -341,7 +329,7 @@ export class Sash extends Disposable implements ISash {
         } else {
             this._controller = new HorizontalSashController(this);
         }
-        this._controller.onMouseStart(initEvent);
+        this._controller.onMouseStart();
     }
 
 }

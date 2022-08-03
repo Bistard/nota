@@ -4,17 +4,19 @@ import { addDisposableListener, createStyleInCSS, EventType, Orientation } from 
 
 export interface IAbstractSashController {
     /** 
-     * Fires when the {@link EventType.mousedown} happens. 
+     * @description Fires when the {@link EventType.mousedown} happens. 
+     * @param event The mouse event when mouse-down.
      */
     onMouseStart(event: MouseEvent): void;
 
     /** 
-     * Fires when the {@link EventType.mousemove} happens. 
+     * @description Fires when the {@link EventType.mousemove} happens. 
+     * @param event The mouse event when mouse-move.
      */
     onMouseMove(event: MouseEvent): void;
 
     /** 
-     * Fires when the {@link EventType.mouseup} happens. 
+     * @description Fires when the {@link EventType.mouseup} happens. 
      */
     onMouseUp(): void;
 }
@@ -35,23 +37,19 @@ export abstract class AbstractSashController implements IAbstractSashController 
 
     /** The offset to the expected position (middle of the adjcent views). */
     protected readonly posOffset: number;
-    /** The initial mouse event of the operation when mouse-start. */
-    protected initEvent!: MouseEvent; // TODO: remove later
     /** Save the previous mouse event. */
-    protected prevEvent!: ISashEvent;
-    protected prevPosX = 0; // TODO: remove later
-    protected prevPosY = 0; // TODO: remove later
-
-    /** The start of position (x / y) of the operation when mouse-downed. */
-    protected startClickPos = 0;
-    /** The start of position (left / top) of the sash when mouse-downed. */
-    protected startSashPos = 0;
+    protected prevEvent: ISashEvent;
 
     // [constructor]
     
     constructor(sash: ISash) {
         this.sash = sash;
         this.posOffset = Math.round(sash.size / 2);
+
+        this.prevEvent = {
+            currentX: 0, currentY: 0,
+            deltaX: 0, deltaY: 0
+        };
         
         /**
          * The CSS stylesheet is neccessary when the user cursor is reaching the
@@ -69,10 +67,7 @@ export abstract class AbstractSashController implements IAbstractSashController 
 
     public abstract onMouseMove(event: MouseEvent): void;
 
-    public onMouseStart(event: MouseEvent): void {
-        this.initEvent = event;
-        this.startSashPos = this.sash.position;
-
+    public onMouseStart(): void {
         this.__onMouseStart();
 
         this.disposables.register(addDisposableListener(window, EventType.mousemove, e => this.onMouseMove(e)));
@@ -89,23 +84,15 @@ export abstract class AbstractSashController implements IAbstractSashController 
 
     protected abstract __onMouseStart(): void;
 
-    protected __fireMoveEvent(currX: number, currY: number, deltaX: number, deltaY: number): ISashEvent {
+    protected __fireMoveEvent(currX: number, currY: number, deltaX: number, deltaY: number): void {
         const event: ISashEvent = {
-            startX: this.initEvent.pageX, 
-            startY: this.initEvent.pageY, 
             currentX: currX, 
             currentY: currY, 
             deltaX: deltaX, 
             deltaY: deltaY
         };
         (<any>this.sash)._onDidMove.fire(event);
-        return event;
-    }
-
-    protected __updatePrevData(newEvent: ISashEvent, newPosX: number, newPosY: number): void {
-        this.prevEvent = newEvent;
-        this.prevPosX = newPosX;
-        this.prevPosY = newPosY;
+        this.prevEvent = event;
     }
 }
 
@@ -117,32 +104,27 @@ export class VerticalSashController extends AbstractSashController {
 
     protected override __onMouseStart(): void {
         this.prevEvent = {
-            startX: this.sash.position,
-            startY: this.initEvent.pageY,
             currentX: this.sash.position,
-            currentY: this.initEvent.pageY,
+            currentY: 0,
             deltaX: 0,
             deltaY: 0
         };
-
-        this.prevPosX = this.sash.position;
-        this.prevPosY = this.initEvent.pageY;
-        this.startClickPos = this.initEvent.pageX;
     }
 
     public override onMouseMove(e: MouseEvent): void {
         
-        const deltaPosition = e.pageX - this.prevEvent.currentX;
+        let deltaPosition = e.movementX;
         if (deltaPosition === 0) {
             return;
         }
 
         const idealPosition = this.sash.position + this.posOffset;
+        const offsetPosition = e.pageX - this.prevEvent.currentX;
         
         // if the sash already touches the edge of its range, we do nothing.
-        if ((idealPosition === this.sash.range.start && deltaPosition < 0) || 
-            (idealPosition === this.sash.range.end && deltaPosition > 0)
-        ) {
+        if ((idealPosition === this.sash.range.start && offsetPosition < 0) || 
+            (idealPosition === this.sash.range.end && offsetPosition > 0)) 
+        {
             return;
         }
         
@@ -151,24 +133,21 @@ export class VerticalSashController extends AbstractSashController {
          * the edges of its range.
          */
         const expectPosition = idealPosition + deltaPosition;
-        if (expectPosition <= this.sash.range.start || 
-            expectPosition >= this.sash.range.end
-        ) {
+        if (expectPosition <= this.sash.range.start || expectPosition >= this.sash.range.end) 
+        {
             this.sash.position = (deltaPosition < 0) ? this.sash.range.start : this.sash.range.end;
             this.sash.position -= this.posOffset;
             this.sash.element.style.left = `${this.sash.position}px`;
             
-            const event = this.__fireMoveEvent(this.sash.position, e.pageY, this.sash.position - this.prevPosX, e.pageY - this.prevPosY);
-            this.__updatePrevData(event, this.sash.position, e.pageY);
-            return;
+            deltaPosition = this.sash.position - this.prevEvent.currentX;
+        }
+        /** general case */
+        else {
+            this.sash.position += deltaPosition;
         }
         
-        // general case
-        this.sash.position += deltaPosition;
         this.sash.element.style.left = `${this.sash.position}px`;
-        
-        const event = this.__fireMoveEvent(e.pageX, e.pageY, e.pageX - this.prevPosX, e.pageY - this.prevPosY);
-        this.__updatePrevData(event, e.pageX, e.pageY);
+        this.__fireMoveEvent(this.sash.position, 0, deltaPosition, 0);
     }
 }
 
@@ -180,32 +159,27 @@ export class HorizontalSashController extends AbstractSashController {
 
     protected override __onMouseStart(): void {
         this.prevEvent = {
-            startX: this.initEvent.pageX,
-            startY: this.sash.position,
-            currentX: this.initEvent.pageX,
+            currentX: 0,
             currentY: this.sash.position,
             deltaX: 0,
             deltaY: 0
         };
-
-        this.prevPosX = this.initEvent.pageX;
-        this.prevPosY = this.sash.position;
-        this.startClickPos = this.initEvent.pageY;
     }
 
     public override onMouseMove(e: MouseEvent): void {
         
-        const deltaPosition = e.pageY - this.prevEvent.currentY;
+        let deltaPosition = e.movementY;
         if (deltaPosition === 0) {
             return;
         }
 
         const idealPosition = this.sash.position + this.posOffset;
-        
+        const offsetPosition = e.pageY - this.prevEvent.currentY;
+
         // if the sash already touches the edge of its range, we do nothing.
-        if ((idealPosition === this.sash.range.start && deltaPosition < 0) || 
-            (idealPosition === this.sash.range.end && deltaPosition > 0)
-        ) {
+        if ((idealPosition === this.sash.range.start && offsetPosition < 0) || 
+            (idealPosition === this.sash.range.end && offsetPosition > 0)) 
+        {
             return;
         }
         
@@ -214,24 +188,19 @@ export class HorizontalSashController extends AbstractSashController {
          * the edges of its range.
          */
         const expectPosition = idealPosition + deltaPosition;
-        if (expectPosition <= this.sash.range.start || 
-            expectPosition >= this.sash.range.end
-        ) {
+        if (expectPosition <= this.sash.range.start || expectPosition >= this.sash.range.end) 
+        {
             this.sash.position = (deltaPosition < 0) ? this.sash.range.start : this.sash.range.end;
             this.sash.position -= this.posOffset;
-            this.sash.element.style.top = `${this.sash.position}px`;
-            
-            const event = this.__fireMoveEvent(e.pageX, this.sash.position, e.pageX - this.prevPosX, this.sash.position - this.prevPosY);
-            this.__updatePrevData(event, e.pageX, this.sash.position);
-            return;
+            deltaPosition = this.sash.position - this.prevEvent.currentY;
+        } 
+        /** general case */
+        else {
+            this.sash.position += deltaPosition;
         }
 
-        // general case
-        this.sash.position += deltaPosition;
         this.sash.element.style.top = `${this.sash.position}px`;
-        
-        const event = this.__fireMoveEvent(e.pageX, e.pageY, e.pageX - this.prevPosX, e.pageY - this.prevPosY);
-        this.__updatePrevData(event, e.pageX, e.pageY);
+        this.__fireMoveEvent(0, this.sash.position, 0, deltaPosition);
     }
 
 }
