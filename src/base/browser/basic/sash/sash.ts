@@ -33,9 +33,16 @@ export interface ISashOpts {
      * between.
      * 
      * @note If -1 provided in any interals, means no restrictions.
+     * @note When reaching the edge of the range, the position (left / top) of 
+     *       the sash will not be placed at the exact 
      * @default range { start: -1, end: -1 }.
      */
     readonly range?: IRange;
+
+    /**
+     * 
+     */
+    readonly controller?: AbstractSashController;
 }
 
 /**
@@ -44,32 +51,34 @@ export interface ISashOpts {
 export interface ISashEvent {
     
     /**
-     * The initial coordinate in x when mouse-down.
+     * The initial coordinate of sash in x during mouse-move.
      */
     readonly startX: number;
 
     /**
-     * The initial coordinate in y when mouse-down.
+     * The initial coordinate of sash in y during mouse-move.
      */
 	readonly startY: number;
     
     /**
-     * The current coordinate in x when mouse-move.
+     * The current coordinate of sash in x during mouse-move.
      */
     readonly currentX: number;
 
     /**
-     * The current coordinate in y when mouse-move.
+     * The current coordinate of sash in y during mouse-move.
      */
 	readonly currentY: number;
 
     /**
-     * The delta coordinate change in x during mouse-move compares with the previous mouse-move.
+     * The delta coordinate change in x during mouse-move compares with the 
+     * previous mouse-move.
      */
     readonly deltaX: number;
     
     /**
-     * The delta coordinate change in y during mouse-move.
+     * The delta coordinate change in y during mouse-move compares with the 
+     * previous mouse-move.
      */
     readonly deltaY: number;
 }
