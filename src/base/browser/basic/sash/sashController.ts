@@ -6,7 +6,7 @@ export interface IAbstractSashController {
     /** 
      * Fires when the {@link EventType.mousedown} happens. 
      */
-    onMouseStart(): void;
+    onMouseStart(event: MouseEvent): void;
 
     /** 
      * Fires when the {@link EventType.mousemove} happens. 
@@ -20,8 +20,11 @@ export interface IAbstractSashController {
 }
 
 /**
- * @class A wrapper class that controls the behaviour of {@link ISash} movements 
- * that relate to mouse manipulations.
+ * @class An abstract class that controls the behaviours of {@link ISash} under 
+ * the operations from the users. It contains:
+ *      - {@link EventType.mousedown}
+ *      - {@link EventType.mousemove}
+ *      - {@link EventType.mouseup}
  */
 export abstract class AbstractSashController implements IAbstractSashController {
 
@@ -29,24 +32,26 @@ export abstract class AbstractSashController implements IAbstractSashController 
 
     protected readonly disposables = new DisposableManager();
     protected readonly sash: ISash;
+
     /** The offset to the expected position (middle of the adjcent views). */
     protected readonly posOffset: number;
-    protected readonly initEvent: MouseEvent;
+    /** The initial mouse event of the operation when mouse-start. */
+    protected initEvent!: MouseEvent; // TODO: remove later
+    /** Save the previous mouse event. */
     protected prevEvent!: ISashEvent;
-    protected prevPosX = 0;
-    protected prevPosY = 0;
+    protected prevPosX = 0; // TODO: remove later
+    protected prevPosY = 0; // TODO: remove later
 
-    /** The start of position (x / y) of click when mouse-downed. */
+    /** The start of position (x / y) of the operation when mouse-downed. */
     protected startClickPos = 0;
     /** The start of position (left / top) of the sash when mouse-downed. */
     protected startSashPos = 0;
 
     // [constructor]
     
-    constructor(initEvent: MouseEvent, sash: ISash) {
+    constructor(sash: ISash) {
         this.sash = sash;
         this.posOffset = Math.round(sash.size / 2);
-        this.initEvent = initEvent;
         
         /**
          * The CSS stylesheet is neccessary when the user cursor is reaching the
@@ -64,10 +69,12 @@ export abstract class AbstractSashController implements IAbstractSashController 
 
     public abstract onMouseMove(event: MouseEvent): void;
 
-    public onMouseStart(): void {
+    public onMouseStart(event: MouseEvent): void {
+        this.initEvent = event;
+        this.startSashPos = this.sash.position;
+
         this.__onMouseStart();
 
-        this.startSashPos = this.sash.position;
         this.disposables.register(addDisposableListener(window, EventType.mousemove, e => this.onMouseMove(e)));
         this.disposables.register(addDisposableListener(window, EventType.mouseup, () => this.onMouseUp()));
         (<any>this.sash)._onDidStart.fire(this.prevEvent);
@@ -104,8 +111,8 @@ export abstract class AbstractSashController implements IAbstractSashController 
 
 export class VerticalSashController extends AbstractSashController {
 
-    constructor(initEvent: MouseEvent, sash: ISash) {
-        super(initEvent, sash);
+    constructor(sash: ISash) {
+        super(sash);
     }
 
     protected override __onMouseStart(): void {
@@ -167,8 +174,8 @@ export class VerticalSashController extends AbstractSashController {
 
 export class HorizontalSashController extends AbstractSashController {
 
-    constructor(initEvent: MouseEvent, sash: ISash) {
-        super(initEvent, sash);
+    constructor(sash: ISash) {
+        super(sash);
     }
 
     protected override __onMouseStart(): void {

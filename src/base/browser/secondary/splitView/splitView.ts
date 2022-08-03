@@ -1,11 +1,10 @@
 import { ISash, ISashEvent, Sash } from "src/base/browser/basic/sash/sash";
 import { ISplitViewItem, ISplitViewItemOpts, SplitViewItem } from "src/base/browser/secondary/splitView/splitViewItem";
-import { IDisposable, Disposable } from "src/base/common/dispose";
+import { Disposable } from "src/base/common/dispose";
 import { DomUtility, Orientation } from "src/base/common/dom";
 import { Emitter, Priority, Register } from "src/base/common/event";
 import { IDimension } from "src/base/common/util/size";
 import { Pair } from "src/base/common/util/type";
-
 
 /**
  * An interface only for {@link SplitView}.
@@ -37,32 +36,37 @@ export interface ISplitView extends Disposable {
 }
 
 /**
- * An interface for {@link SplitView} construction.
+ * An interface for {@link ISplitView} construction.
  */
 export interface ISplitViewOpts {
 
     /**
-     * Determines if the {@link Sash} is vertical or horizontal.
+     * Determines the layout direction of the {@link ISplitView}.
      */
     readonly orientation: Orientation;
 
     /**
-     * Options of constructing {@link ISplitViewItem}s during the construction 
-     * of {@link ISplitView}.
+     * Options of constructing initial views during the construction of 
+     * {@link ISplitView}. Views can be added later on by calling {@link ISplitView.addView}.
      */
     readonly viewOpts?: ISplitViewItemOpts[];
-
 }
 
 /**
- * @class An UI component that layouts highly customizable views it contains
- * based on its orientation. It will resize the views based on the operations of 
- * the users.
+ * @class An UI component that enable to layout a collection of highly 
+ * customizable {@link ISplitViewItemOpts} instances in a one-dimensional 
+ * direction.
+ * 
+ * @note The view instances are essentially wrappers of {@link HTMLElement}s and 
+ * with the size restrictions such as maximum size, minimum size and priority.
+ * 
+ * @note A {@link ISash} will be created between each view intance to ensure
+ * the size restrictions are followed.
  * 
  * Functionalities:
  *  - Supports vertical and horizontal layout of views.
- *  - Supports add, remove, move, swap views.
- *  - Auto-resizes views to fit splitView's size.
+ *  - Supports add, remove, move and swap views.
+ *  - View intances are resizable.
  */
 export class SplitView extends Disposable implements ISplitView {
 

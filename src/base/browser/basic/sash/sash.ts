@@ -40,7 +40,13 @@ export interface ISashOpts {
     readonly range?: IRange;
 
     /**
+     * If a controller is provided, the behaviours of the sash under the 
+     * operations from the users can be customized by the caller.
      * 
+     * @warn Considers the non-perfect design of {@link AbstractSashController},
+     * customization by overriding abstract methods are very likely failed to 
+     * work. Reading codes from {@link VerticalSashController} might help to 
+     * understand how the controller works.
      */
     readonly controller?: AbstractSashController;
 }
@@ -50,11 +56,13 @@ export interface ISashOpts {
  */
 export interface ISashEvent {
     
+    // TODO: remove later
     /**
      * The initial coordinate of sash in x during mouse-move.
      */
     readonly startX: number;
 
+    // TODO: remove later
     /**
      * The initial coordinate of sash in y during mouse-move.
      */
@@ -157,6 +165,13 @@ export interface ISash {
  * components (using events). It's usually an invisible horizontal or vertical 
  * line which, when hovered, becomes highlighted and can be dragged along the 
  * perpendicular dimension to its direction.
+ * 
+ * @note Given a {@link IRange} to determine the draggable range of the sash.
+ * 
+ * @note When the sash reaches the edge of its range, the actual position (left
+ *  / top) is not touching the edge of its range exactly due to the fact that
+ * the sash will be placed at the middle of the edge. The offset of that small
+ * position is the half of the sash size (width / height).
  */
 export class Sash extends Disposable implements ISash {
 
@@ -322,11 +337,11 @@ export class Sash extends Disposable implements ISash {
         initEvent.preventDefault();
 
         if (this._orientation === Orientation.Vertical) {
-            this._controller = new VerticalSashController(initEvent, this);
+            this._controller = new VerticalSashController(this);
         } else {
-            this._controller = new HorizontalSashController(initEvent, this);
+            this._controller = new HorizontalSashController(this);
         }
-        this._controller.onMouseStart();
+        this._controller.onMouseStart(initEvent);
     }
 
 }
