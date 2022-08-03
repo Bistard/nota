@@ -399,15 +399,23 @@ export class SplitView extends Disposable implements ISplitView {
         if (prevSash) {
             const view1 = this.viewItems[currSashIndex - 1]!;
             const view2 = this.viewItems[currSashIndex]!;
-            prevSash.range.end = Math.min(sash.position, prevSash.position + view1.getWideableSpace(),
-            prevSash.position + view2.getShrinkableSpace());
+            prevSash.range.end = Math.min(
+                sash.position, 
+                prevSash.position + view1.getWideableSpace(),
+                prevSash.position + view2.getShrinkableSpace()
+            );
+            prevSash.range.end += Math.round(sash.size / 2);
         }
 
         if (nextSash) {
             const view1 = this.viewItems[currSashIndex + 1]!;
             const view2 = this.viewItems[currSashIndex + 2]!;
-            nextSash.range.start = Math.max(sash.position, nextSash.position - view2.getWideableSpace(), 
-            nextSash.position - view1.getShrinkableSpace());
+            nextSash.range.start = Math.max(
+                sash.position, 
+                nextSash.position - view2.getWideableSpace(), 
+                nextSash.position - view1.getShrinkableSpace()
+            );
+            nextSash.range.start += Math.round(sash.size / 2);
         }
     }
 }

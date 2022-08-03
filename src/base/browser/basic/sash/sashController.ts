@@ -136,7 +136,6 @@ export class VerticalSashController extends AbstractSashController {
         if ((idealPosition === this.sash.range.start && deltaPosition < 0) || 
             (idealPosition === this.sash.range.end && deltaPosition > 0)
         ) {
-            console.log('[reach edge]');
             return;
         }
         
@@ -200,7 +199,6 @@ export class HorizontalSashController extends AbstractSashController {
         if ((idealPosition === this.sash.range.start && deltaPosition < 0) || 
             (idealPosition === this.sash.range.end && deltaPosition > 0)
         ) {
-            console.log('[reach edge]');
             return;
         }
         
