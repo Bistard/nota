@@ -31,6 +31,7 @@
 .list-view-container {
 	position: relative;
 	width: 100%;
+	height: 100%;
 }
 
 .list-view-container > .list-view-row {

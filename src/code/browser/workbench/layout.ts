@@ -116,7 +116,7 @@ export abstract class WorkbenchLayout extends Component {
         [
             this._registerSash('sash-1', new Sash(this.sashContainer, {
                 orientation: Orientation.Vertical, 
-                defaultPosition: ActionBarComponent.width + ActionViewComponent.width + 3, 
+                initPosition: ActionBarComponent.width + ActionViewComponent.width + 3, 
                 range: { start: 200, end: 600 }
             })),
         ]

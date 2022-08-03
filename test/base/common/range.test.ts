@@ -4,7 +4,11 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as assert from 'assert';
-import { IRangeList, Range, RangeTable } from 'src/base/common/range';
+import { IRange, IRangeList, Range, RangeTable } from 'src/base/common/range';
+
+function createRange(start: number, end: number): IRange {
+	return { start, end } as IRange;
+}
 
 suite('Range-test', () => {
 
@@ -14,6 +18,28 @@ suite('Range-test', () => {
 		assert.deepStrictEqual(Range.empty({start: 31, end: 31}), true);
 		assert.deepStrictEqual(Range.empty({start: 0, end: 31}), false);
 		assert.deepStrictEqual(Range.empty({start: 31, end: 0}), true);
+	});
+
+	test('within', () => {
+		assert.deepStrictEqual(Range.within(Range.EMPTY, 5), false);
+		assert.deepStrictEqual(Range.within(createRange(0, 4), 5), false);
+		assert.deepStrictEqual(Range.within(createRange(0, 4), -1), false);
+		assert.deepStrictEqual(Range.within(createRange(0, 4), 0), true);
+		assert.deepStrictEqual(Range.within(createRange(0, 4), 4), true);
+	});
+
+	test('exact', () => {
+		assert.deepStrictEqual(Range.exact(Range.EMPTY, createRange(0, 0)), true);
+		assert.deepStrictEqual(Range.exact(Range.EMPTY, createRange(5, 5)), false);
+		assert.deepStrictEqual(Range.exact(createRange(0, 4), createRange(0, 4)), true);
+		assert.deepStrictEqual(Range.exact(createRange(0, 4), createRange(4, 8)), false);
+	});
+
+	test('same', () => {
+		assert.deepStrictEqual(Range.same(Range.EMPTY, createRange(0, 0)), true);
+		assert.deepStrictEqual(Range.same(Range.EMPTY, createRange(5, 5)), true);
+		assert.deepStrictEqual(Range.same(createRange(0, 4), createRange(0, 4)), true);
+		assert.deepStrictEqual(Range.same(createRange(0, 4), createRange(4, 8)), true);
 	});
 
 	test('shift', () => {
