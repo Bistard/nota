@@ -10,10 +10,21 @@ import { IFileService } from "src/code/common/service/fileService/fileService";
 import { IInstantiationService } from "src/code/common/service/instantiationService/instantiation";
 import { AbstractLoggerService } from "src/code/common/service/logService/abstractLoggerService";
 
-export const MAX_LOG_SIZE = ByteSize.MB * 5;
+export const MAX_LOG_SIZE = 5 * ByteSize.MB;
 
 /**
- * @class // TODO
+ * @class The logger has ability to write log into disk. The log writing process
+ * is asynchronous and guarantees each log is written in succession.
+ * 
+ * @note Once the logger created, the corresponding URI will be created into the 
+ * disk first.
+ * 
+ * @note Once the corresponding URI exceeds {@link MAX_LOG_SIZE}, the current
+ * content will be rewritten into a new backup URI under the same directory.
+ * It is repeatable by incrementing the basename of the URI.
+ * 
+ * @note Once the application lifecycle ends, the increment on the backup URI 
+ * will be reset.
  */
 export class FileLogger extends AbstractLogger implements ILogger {
 
@@ -109,9 +120,10 @@ export class FileLogger extends AbstractLogger implements ILogger {
     // [private helper methods]
 
     /**
-     * @description Logging the given message // TODO
-     * @param level 
-     * @param message 
+     * @description Logs the given message asynchronously and guarantees process
+     * each log in succession.
+     * @param level The level of the message.
+     * @param message The raw message in string.
      */
     private __log(level: LogLevel, message: string): void {
         
@@ -152,6 +164,10 @@ export class FileLogger extends AbstractLogger implements ILogger {
     }
 }
 
+/**
+ * @class The logger service that able to create a {@link FileLogger} which has
+ * ability to write messages into disk.
+ */
 export class FileLoggerService extends AbstractLoggerService {
 
     constructor(
