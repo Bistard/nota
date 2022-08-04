@@ -13,7 +13,7 @@ import { LOCAL_NOTA_DIR_NAME } from "src/code/common/service/configService/confi
 import { IFileService } from "src/code/common/service/fileService/fileService";
 import { createDecorator } from "src/code/common/service/instantiationService/decorator";
 import { IInstantiationService, IServiceProvider } from "src/code/common/service/instantiationService/instantiation";
-import { IFileLogService } from "src/code/common/service/logService/fileLogService";
+import { ILoggerService } from "src/code/common/service/logService/abstractLoggerService";
 
 export const SHORTCUT_CONFIG_NAME = 'shortcut.config.json';
 export const SHORTCUT_CONFIG_PATH = resolve(APP_ROOT_PATH, LOCAL_NOTA_DIR_NAME, SHORTCUT_CONFIG_NAME);
@@ -127,7 +127,7 @@ export class ShortcutService implements IDisposable, IShortcutService {
         @IWorkbenchService workbenchService: IWorkbenchService,
         @IInstantiationService private readonly instantiaionService: IInstantiationService,
         @IFileService private readonly fileService: IFileService,
-        @IFileLogService private readonly fileLogService: IFileLogService,
+        @ILoggerService private readonly loggerService: ILoggerService,
     ) {
         this.disposables = new DisposableManager();
         this.idMap = new Map();

@@ -1,7 +1,7 @@
 import { DataBuffer } from "src/base/common/file/buffer";
 import { FileSystemProviderAbleToRead, hasOpenReadWriteCloseCapability, hasReadWriteCapability, IReadFileOptions, IFileSystemProvider, IFileSystemProviderWithFileReadWrite, IFileSystemProviderWithOpenReadWriteClose, IWriteFileOptions, IFileStat, FileType, IFileOperationError, FileSystemProviderCapability, IDeleteFileOptions, IResolveStatOptions, IResolvedFileStat, hasReadFileStreamCapability, IFileSystemProviderWithReadFileStream } from "src/base/common/file/file";
 import { basename, dirname, join } from "src/base/common/file/path";
-import { bufferToStream, IReadableStream, IWriteableStream, listenStream, newWriteableBufferStream, streamToBuffer, transformStream } from "src/base/common/file/stream";
+import { bufferToStream, IReadableStream, listenStream, newWriteableBufferStream, streamToBuffer, transformStream } from "src/base/common/file/stream";
 import { isAbsoluteURI, URI } from "src/base/common/file/uri";
 import { Iterable } from "src/base/common/util/iterable";
 import { readFileIntoStream, readFileIntoStreamAsync } from "src/base/node/io";
@@ -102,7 +102,7 @@ export class FileService implements IFileService {
     // [constructor]
 
     constructor(
-        /* IFileLogService private readonly fileLogService: IFileLogService */
+        /* ILoggerService private readonly fileLogService: ILoggerService */
     ) {
 
     }

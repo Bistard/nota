@@ -1,6 +1,5 @@
 import { ComponentService, IComponentService } from "src/code/browser/service/componentService";
 import { Workbench } from "src/code/browser/workbench/workbench";
-import { FileLogService, IFileLogService } from "src/code/common/service/logService/fileLogService";
 import { ServiceDescriptor } from "src/code/common/service/instantiationService/descriptor";
 import { IInstantiationService, InstantiationService } from "src/code/common/service/instantiationService/instantiation";
 import { getSingletonServiceDescriptors, ServiceCollection } from "src/code/common/service/instantiationService/serviceCollection";
@@ -8,12 +7,14 @@ import { FileService, IFileService } from "src/code/common/service/fileService/f
 import { GlobalConfigService, IGlobalConfigService, IUserConfigService, UserConfigService } from "src/code/common/service/configService/configService";
 import { Schemas } from "src/base/common/file/uri";
 import { DiskFileSystemProvider } from "src/base/node/diskFileSystemProvider";
-import { LogLevel } from "src/code/common/service/logService/abstractLogService";
 import { IIpcService, IpcService } from "src/code/browser/service/ipcService";
 import { ipcRendererSend } from "src/base/electron/register";
 import { IpcCommand } from "src/base/electron/ipcCommand";
 import { DEVELOP_ENV } from "src/base/electron/app";
 import { EventType } from "src/base/common/dom";
+import { LogLevel } from "src/base/common/logger";
+import { ILoggerService } from "src/code/common/service/logService/abstractLoggerService";
+import { FileLoggerService } from "src/code/common/service/logService/fileLoggerService";
 
 /**
  * @class This is the main entry of the renderer process.
@@ -74,8 +75,8 @@ export class Browser {
         this.instantiationService.register(IUserConfigService, this.userConfigService);
         await this.userConfigService.init();
 
-        // FileLogService
-        this.instantiationService.register(IFileLogService, new ServiceDescriptor(FileLogService, [LogLevel.INFO]));
+        // ILoggerService
+        this.instantiationService.register(ILoggerService, new ServiceDescriptor(FileLoggerService, [LogLevel.INFO]));
 
         // ComponentService
         this.componentService = new ComponentService();

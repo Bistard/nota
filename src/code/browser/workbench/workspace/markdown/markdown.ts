@@ -24,9 +24,9 @@ import { IContextMenuService } from 'src/code/browser/service/contextMenuService
 import { createDecorator } from 'src/code/common/service/instantiationService/decorator';
 import { IComponentService } from 'src/code/browser/service/componentService';
 import { WorkspaceComponentType } from 'src/code/browser/workbench/workspace/workspace';
-import { IFileLogService } from 'src/code/common/service/logService/fileLogService';
 import { IGlobalConfigService, IUserConfigService } from 'src/code/common/service/configService/configService';
 import { EUserSettings, IUserMarkdownSettings } from 'src/code/common/service/configService/configService';
+import { ILoggerService } from 'src/code/common/service/logService/abstractLoggerService';
 
 export const IMarkdownService = createDecorator<IMarkdownService>('markdown-service');
 
@@ -55,7 +55,7 @@ export class MarkdownComponent extends Component implements IMarkdownService {
     constructor(parentElement: HTMLElement,
                 @IComponentService componentService: IComponentService,
                 @IContextMenuService private readonly contextMenuService: IContextMenuService,
-                @IFileLogService private readonly fileLogService: IFileLogService,
+                @ILoggerService private readonly loggerService: ILoggerService,
                 @IGlobalConfigService private readonly globalConfigService: IGlobalConfigService,
                 @IUserConfigService private readonly userConfigService: IUserConfigService,
                 
