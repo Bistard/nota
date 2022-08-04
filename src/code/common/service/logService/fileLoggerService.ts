@@ -1,7 +1,7 @@
 import { getCurrTimeStamp } from "src/base/common/date";
 import { DataBuffer } from "src/base/common/file/buffer";
 import { ByteSize, FileOperationError, FileOperationErrorType } from "src/base/common/file/file";
-import { basename, dirname, join } from "src/base/common/file/path";
+import { basename, join, parse, ParsedPath } from "src/base/common/file/path";
 import { URI } from "src/base/common/file/uri";
 import { AbstractLogger, ILogger, ILoggerOpts, LogLevel, parseLogLevel } from "src/base/common/logger";
 import { AsyncQueue } from "src/base/common/util/async";
@@ -10,7 +10,7 @@ import { IFileService } from "src/code/common/service/fileService/fileService";
 import { IInstantiationService } from "src/code/common/service/instantiationService/instantiation";
 import { AbstractLoggerService } from "src/code/common/service/logService/abstractLoggerService";
 
-export const MAX_LOG_SIZE = ByteSize.MB * 10;
+export const MAX_LOG_SIZE = ByteSize.MB * 5;
 
 /**
  * @class // TODO
@@ -25,6 +25,7 @@ export class FileLogger extends AbstractLogger implements ILogger {
 
     private _initPromise?: Promise<void>;
     private _backupCnt: number;
+    private _backupExt: string;
     private readonly _noFormatter: boolean;
 
     // [cosntructor]
@@ -41,6 +42,7 @@ export class FileLogger extends AbstractLogger implements ILogger {
         this._uri = uri;
         this._queue = new AsyncQueue();
         this._backupCnt = 1;
+        this._backupExt = '';
         this._noFormatter = noFormatter;
 
         this._initPromise = new Promise(async (resolve, reject) => {
@@ -126,7 +128,7 @@ export class FileLogger extends AbstractLogger implements ILogger {
 
             let content = (await this.fileService.readFile(this._uri)).toString();
             if (content.length >= MAX_LOG_SIZE) {
-                this.fileService.writeFile(this.__getBackupURI(), DataBuffer.fromString(content));
+                this.fileService.writeFile(this.__getBackupURI(), DataBuffer.fromString(content), { create: true, overwrite: true, unlock: true });
                 content = '';
             }
 
@@ -136,9 +138,17 @@ export class FileLogger extends AbstractLogger implements ILogger {
     }
 
     private __getBackupURI(): URI {
-        this._backupCnt %= 10;
-        const oldURI = URI.toFsPath(this._uri, true);
-        return URI.fromFile(join(dirname(oldURI), `${basename(oldURI)}_${this._backupCnt++}`));
+        if (this._backupCnt > 10) {
+            this._backupCnt = 1;
+            this._backupExt += `_${10}`;
+        }
+        
+        const oldURI = URI.toFsPath(this._uri);
+        const result = parse(oldURI) as ParsedPath;
+        const newURI = URI.fromFile(join(result.dir, `${result.name}${this._backupExt}_${this._backupCnt}${result.ext}`));
+        
+        this._backupCnt++;
+        return newURI;
     }
 }
 
