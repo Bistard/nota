@@ -25,7 +25,7 @@ import { Priority } from "src/base/common/event";
     /**
      * The initial size of the view.
      */
-    readonly initSize: number;
+    readonly initSize?: number;
     
     /**
      * When adding/removing view, the view with higher priority will be resized 
@@ -120,6 +120,8 @@ export interface ISplitViewItem {
      */
     setResizePriority(priority: Priority): void;
 
+    getElement(): HTMLElement;
+
     /**
      * @description Disposes the {@link HTMLElement} and all other internal data.
      */
@@ -141,6 +143,7 @@ export class SplitViewItem implements ISplitViewItem {
     private _container: HTMLElement;
     private _resizePriority: Priority;
 
+    private _element: HTMLElement;
     private _size: number;
 
     // [constructor]
@@ -151,6 +154,7 @@ export class SplitViewItem implements ISplitViewItem {
         container.appendChild(opt.element);
         
         this._container = container;
+        this._element = opt.element;
         this._maximumSize = opt.maximumSize;
         this._minimumSize = opt.minimumSize;
         if (opt.maximumSize < opt.minimumSize) {
@@ -158,12 +162,14 @@ export class SplitViewItem implements ISplitViewItem {
         }
         
         this._resizePriority = opt.priority!;
-
-        if (opt.initSize < this._minimumSize && opt.initSize > this._maximumSize) {
-            throw new Error(`init size ${opt.initSize}px exceeds the min or max restriction: [${this._minimumSize}, ${this._maximumSize}]`);
+        if (opt.initSize) {
+            if (opt.initSize < this._minimumSize && opt.initSize > this._maximumSize) {
+                throw new Error(`init size ${opt.initSize}px exceeds the min or max restriction: [${this._minimumSize}, ${this._maximumSize}]`);
+            }
+            this._size = opt.initSize;
+        } else {
+            this._size = this._minimumSize;
         }
-        this._size = opt.initSize;
-        
     }
 
     // [public methods]
@@ -176,14 +182,14 @@ export class SplitViewItem implements ISplitViewItem {
         // The splitView has a horizontal layout
         if (orientation === Orientation.Horizontal) {
             this._container.style.width = `${this._size}px`;
-            if (offset) {
+            if (offset !== undefined) {
                 this._container.style.left = `${offset}px`;
             }
         } 
         // The splitView has a vertical layout
         else {
             this._container.style.height = `${this._size}px`;
-            if (offset) {
+            if (offset !== undefined) {
                 this._container.style.top = `${offset}px`;
             }
         }
@@ -243,6 +249,10 @@ export class SplitViewItem implements ISplitViewItem {
     public setResizePriority(priority: Priority): void {
         this._resizePriority = priority;
     } 
+
+    public getElement(): HTMLElement {
+        return this._element;
+    }
 
     public dispose(): void {
         if (this._disposed === false) {
