@@ -1,5 +1,12 @@
 import { IDisposable } from "src/base/common/dispose";
+import { ITask } from "src/base/common/util/async";
 
+export function repeat(count: number, fn: ITask<any>, ...args: any[]): void {
+    let i: number;
+    for (i = 0; i < count; i++) {
+        fn(...args);
+    }
+}
 
 export class IntervalTimer implements IDisposable {
 

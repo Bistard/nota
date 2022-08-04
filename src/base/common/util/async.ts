@@ -3,7 +3,7 @@ import { Emitter, Register } from "src/base/common/event";
 import { Triple } from "src/base/common/util/type";
 
 export interface ITask<T> {
-	(): T; // any functions that returns `T`
+	(...args: any[]): T; // any functions that returns `T`
 }
 
 export type IAsyncTask<T> = Triple<Promise<T>, (arg: T) => void, (reason?: any) => void>;
