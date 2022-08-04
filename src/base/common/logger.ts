@@ -126,7 +126,8 @@ export interface ILogger extends IAbstractLogger {
     /**
      * @description Provides a collections of logging ways.
      * @param message The message for logging.
-     * @param args The caller provided arguments.
+     * @param args Provided arguments will be append to the end of the message 
+     *             and spliting by spaces.
      */
     trace(message: string, ...args: any[]): void;
 	debug(message: string, ...args: any[]): void;
@@ -164,12 +165,12 @@ export interface ILoggerOpts {
 
 export function parseLogLevel(level: LogLevel): string {
     switch (level) {
-        case LogLevel.FATAL: return 'critical';
-        case LogLevel.ERROR: return 'error';
-        case LogLevel.WARN: return 'warning';
-        case LogLevel.INFO: return 'info';
-        case LogLevel.DEBUG: return 'debug';
-        case LogLevel.TRACE: return 'trace';
+        case LogLevel.FATAL: return 'FATAL';
+        case LogLevel.ERROR: return 'ERROR';
+        case LogLevel.WARN: return 'WARN';
+        case LogLevel.INFO: return 'INFO';
+        case LogLevel.DEBUG: return 'DEBUG';
+        case LogLevel.TRACE: return 'TRACE';
     }
 }
 

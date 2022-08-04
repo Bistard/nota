@@ -1,5 +1,6 @@
+import { getCurrTimeStamp } from "src/base/common/date";
 import { DataBuffer } from "src/base/common/file/buffer";
-import { ByteSize } from "src/base/common/file/file";
+import { ByteSize, FileOperationError, FileOperationErrorType } from "src/base/common/file/file";
 import { basename, dirname, join } from "src/base/common/file/path";
 import { URI } from "src/base/common/file/uri";
 import { AbstractLogger, ILogger, ILoggerOpts, LogLevel, parseLogLevel } from "src/base/common/logger";
@@ -22,7 +23,7 @@ export class FileLogger extends AbstractLogger implements ILogger {
     private readonly _uri: URI;
     private readonly _queue: AsyncQueue<void>;
 
-    private readonly _initPromise: Promise<void>;
+    private _initPromise?: Promise<void>;
     private _backupCnt: number;
     private readonly _noFormatter: boolean;
 
@@ -42,8 +43,16 @@ export class FileLogger extends AbstractLogger implements ILogger {
         this._backupCnt = 1;
         this._noFormatter = noFormatter;
 
-        this._initPromise = new Promise(async () => {
-            await this.fileService.createFile(uri);
+        this._initPromise = new Promise(async (resolve, reject) => {
+            try {
+                await this.fileService.createFile(uri, DataBuffer.alloc(0), { overwrite: false });
+            } catch (error) {
+                // ignore when the file already exists
+                if ((<FileOperationError>error).operation !== FileOperationErrorType.FILE_EXISTS) {
+                    reject(error);
+                }
+            }
+            resolve();  
         });
     }
 
@@ -103,11 +112,16 @@ export class FileLogger extends AbstractLogger implements ILogger {
      * @param message 
      */
     private __log(level: LogLevel, message: string): void {
+        
         this._queue.push(async () => {
-            await this._initPromise;
+            
+            if (this._initPromise) {
+                await this._initPromise;
+                this._initPromise = undefined;
+            }
 
             if (this._noFormatter === false) {
-                message = `[${this.__getCurrentTimeStamp()}] [${this._name}] [${parseLogLevel(level)}] ${message}\n`;
+                message = `[${getCurrTimeStamp()}] [${this._name}] [${parseLogLevel(level)}] ${message}\n`;
             }
 
             let content = (await this.fileService.readFile(this._uri)).toString();
@@ -117,24 +131,13 @@ export class FileLogger extends AbstractLogger implements ILogger {
             }
 
             content += message;
-            await this.fileService.writeFile(this._uri, DataBuffer.fromString(content));
+            await this.fileService.writeFile(this._uri, DataBuffer.fromString(content), { create: false, overwrite: true, unlock: true });
         });
     }
 
-    /**
-     * @description // TODO
-     * @returns 
-     */
-    private __getCurrentTimeStamp(): string {
-		const toTwoDigits = (v: number) => v < 10 ? `0${v}` : v;
-		const toThreeDigits = (v: number) => v < 10 ? `00${v}` : v < 100 ? `0${v}` : v;
-		const currentTime = new Date();
-		return `${currentTime.getFullYear()}-${toTwoDigits(currentTime.getMonth() + 1)}-${toTwoDigits(currentTime.getDate())} ${toTwoDigits(currentTime.getHours())}:${toTwoDigits(currentTime.getMinutes())}:${toTwoDigits(currentTime.getSeconds())}.${toThreeDigits(currentTime.getMilliseconds())}`;
-	}
-
     private __getBackupURI(): URI {
         this._backupCnt %= 10;
-        const oldURI = this._uri.toString();
+        const oldURI = URI.toFsPath(this._uri, true);
         return URI.fromFile(join(dirname(oldURI), `${basename(oldURI)}_${this._backupCnt++}`));
     }
 }
@@ -151,7 +154,7 @@ export class FileLoggerService extends AbstractLoggerService {
     protected override __doCreateLogger(uri: URI, level: LogLevel, opts: ILoggerOpts): ILogger {
         const logger = this.instantiationService.createInstance(
             FileLogger,
-            opts.name ?? uri.toString(),
+            opts.name ?? basename(uri.toString()),
             uri,
             level,
             opts.noFormatter ?? false
