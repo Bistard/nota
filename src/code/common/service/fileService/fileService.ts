@@ -1,5 +1,5 @@
 import { DataBuffer } from "src/base/common/file/buffer";
-import { FileSystemProviderAbleToRead, hasOpenReadWriteCloseCapability, hasReadWriteCapability, IReadFileOptions, IFileSystemProvider, IFileSystemProviderWithFileReadWrite, IFileSystemProviderWithOpenReadWriteClose, IWriteFileOptions, IFileStat, FileType, IFileOperationError, FileSystemProviderCapability, IDeleteFileOptions, IResolveStatOptions, IResolvedFileStat, hasReadFileStreamCapability, IFileSystemProviderWithReadFileStream } from "src/base/common/file/file";
+import { FileSystemProviderAbleToRead, hasOpenReadWriteCloseCapability, hasReadWriteCapability, IReadFileOptions, IFileSystemProvider, IFileSystemProviderWithFileReadWrite, IFileSystemProviderWithOpenReadWriteClose, IWriteFileOptions, IFileStat, FileType, FileOperationErrorType, FileSystemProviderCapability, IDeleteFileOptions, IResolveStatOptions, IResolvedFileStat, hasReadFileStreamCapability, IFileSystemProviderWithReadFileStream, ICreateFileOptions, FileOperationError } from "src/base/common/file/file";
 import { basename, dirname, join } from "src/base/common/file/path";
 import { bufferToStream, IReadableStream, listenStream, newWriteableBufferStream, streamToBuffer, transformStream } from "src/base/common/file/stream";
 import { isAbsoluteURI, URI } from "src/base/common/file/uri";
@@ -62,7 +62,7 @@ export interface IFileService {
      * @description Creates a file described by a given URI. 
      * @note Options is set to false if it is not given.
      */
-    createFile(uri: URI, bufferOrStream?: DataBuffer | IReadableStream<DataBuffer>, opts?: IWriteFileOptions): Promise<void>;
+    createFile(uri: URI, bufferOrStream?: DataBuffer | IReadableStream<DataBuffer>, opts?: ICreateFileOptions): Promise<void>;
     
     /** 
      * @description Creates a directory described by a given URI. 
@@ -191,13 +191,13 @@ export class FileService implements IFileService {
     public async createFile(
         uri: URI, 
         bufferOrStream: DataBuffer | IReadableStream<DataBuffer> = DataBuffer.alloc(0), 
-        opts?: IWriteFileOptions): Promise<void> 
+        opts?: ICreateFileOptions): Promise<void> 
     {
         // validation
         await this.__validateCreate(uri, opts);
 
         // write operation
-        await this.writeFile(uri, bufferOrStream, opts);
+        await this.writeFile(uri, bufferOrStream, { create: true, overwrite: !!opts?.overwrite, unlock: false });
     }
 
     public async readDir(uri: URI): Promise<[string, FileType][]> {
@@ -432,7 +432,7 @@ export class FileService implements IFileService {
                     
                 // not a directory
                 if ((stat.type & FileType.DIRECTORY) === 0) {
-                    throw new Error('undable to create directory that already exists but is not a directory');
+                    throw new FileOperationError('undable to create directory that already exists but is not a directory', FileOperationErrorType.FILE_IS_DIRECTORY);
                 }
 
                 // we reaches a existed directory, we break the loop.
@@ -542,7 +542,7 @@ export class FileService implements IFileService {
 		// Assert provider
 		const provider = this._providers.get(uri.scheme);
 		if (!provider) {
-			throw new Error(`no provider found given ${uri.scheme.toString()}`);
+			throw new FileOperationError(`no provider found given ${uri.scheme.toString()}`, FileOperationErrorType.FILE_INVALID_PATH);
 		}
 
 		return provider;
@@ -559,9 +559,9 @@ export class FileService implements IFileService {
     {
         const stat = await provider.stat(uri);
         if (!stat) {
-            throw new Error('target URI does not exist');
+            throw new FileOperationError('target URI does not exist', FileOperationErrorType.FILE_INVALID_PATH);
         } else if (stat.type & FileType.DIRECTORY) {
-            throw new Error('cannot read a directory');
+            throw new FileOperationError('cannot read a directory', FileOperationErrorType.FILE_IS_DIRECTORY);
         }
 
         this.__validateReadLimit(stat.byteSize, opts);
@@ -590,12 +590,12 @@ export class FileService implements IFileService {
 
         // cannot be a directory
         if (stat.type & FileType.DIRECTORY) {
-            throw new Error('unable to write file which is actually a directory');
+            throw new FileOperationError('unable to write file which is actually a directory', FileOperationErrorType.FILE_IS_DIRECTORY);
         }
 
         // cannot be readonly file
         if (stat.readonly ?? false) {
-            throw new Error('unable to write file which is readonly');
+            throw new FileOperationError('unable to write file which is readonly', FileOperationErrorType.FILE_READONLY);
         }
 
         return stat;
@@ -604,31 +604,31 @@ export class FileService implements IFileService {
     private __validateReadLimit(size: number, opts?: IReadFileOptions): void {
         if (opts?.limits) {
             
-            let tooLargeErrorResult: IFileOperationError | undefined = undefined;
+            let tooLargeErrorResult: FileOperationErrorType | undefined = undefined;
 
 			if (typeof opts.limits.memory === 'number' && size > opts.limits.memory) {
-				tooLargeErrorResult = IFileOperationError.FILE_EXCEEDS_MEMORY_LIMIT;
+				tooLargeErrorResult = FileOperationErrorType.FILE_EXCEEDS_MEMORY_LIMIT;
 			}
 
 			if (typeof opts.limits.size === 'number' && size > opts.limits.size) {
-				tooLargeErrorResult = IFileOperationError.FILE_TOO_LARGE;
+				tooLargeErrorResult = FileOperationErrorType.FILE_TOO_LARGE;
 			}
 
 			if (typeof tooLargeErrorResult === 'number') {
-				if (tooLargeErrorResult === IFileOperationError.FILE_EXCEEDS_MEMORY_LIMIT) {
-                    throw new Error('read file exceeds memory limit');
+				if (tooLargeErrorResult === FileOperationErrorType.FILE_EXCEEDS_MEMORY_LIMIT) {
+                    throw new FileOperationError('read file exceeds memory limit', tooLargeErrorResult);
                 } else {
-                    throw new Error('read file is too large');
+                    throw new FileOperationError('read file is too large', tooLargeErrorResult);
                 }
 			}
         }
     }
 
-    private async __validateCreate(uri: URI, opts?: IWriteFileOptions): Promise<void> 
+    private async __validateCreate(uri: URI, opts?: ICreateFileOptions): Promise<void> 
     {
         // if file exists and is not allowed to overwrite, we throw
         if (await this.exist(uri) && opts?.overwrite === false) {
-            throw new Error('file already exists');
+            throw new FileOperationError('file already exists', FileOperationErrorType.FILE_EXISTS);
         }
     }
 
@@ -640,7 +640,7 @@ export class FileService implements IFileService {
         try {
             stat = await provider.stat(uri);
         } catch (err) {
-            throw new Error('file or directory does not exist');
+            throw new FileOperationError('file or directory does not exist', FileOperationErrorType.FILE_NOT_FOUND);
         }
 
         // validate if it is readonly
@@ -651,14 +651,14 @@ export class FileService implements IFileService {
 
     private __throwIfProviderIsReadonly(provider: IFileSystemProvider): IFileSystemProvider {
         if (provider.capabilities & FileSystemProviderCapability.Readonly) {
-            throw new Error('file system provider is readonly');
+            throw new FileOperationError('file system provider is readonly', FileOperationErrorType.FILE_READONLY);
         }
         return provider;
     }
 
     private __throwIfFileIsReadonly(stat: IFileStat): void {
         if (typeof stat.readonly === 'boolean' && stat.readonly === true) {
-            throw new Error('unable to modify a readonly file');
+            throw new FileOperationError('unable to modify a readonly file', FileOperationErrorType.FILE_READONLY);
         }
     }
 
