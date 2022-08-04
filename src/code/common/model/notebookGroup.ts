@@ -276,7 +276,7 @@ export class NotebookGroup extends Disposable implements INotebookGroupService {
             await this.fileService.createFile(
                 URI.fromFile(resolve(rootpath, name + '.json')), 
                 DataBuffer.fromString(notebook.toJSON()), 
-                { create: true, overwrite: true, unlock: true }
+                { overwrite: true },
             );
         } catch(err) {
             throw err;
