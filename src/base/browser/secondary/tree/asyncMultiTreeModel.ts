@@ -2,7 +2,7 @@ import { AsyncWeakMap, IAsyncChildrenProvider, IAsyncTreeNode } from "src/base/b
 import { IMultiTree } from "src/base/browser/secondary/tree/multiTree";
 import { ITreeModel, ITreeSpliceEvent, ITreeNode, ITreeCollapseStateChangeEvent } from "src/base/browser/secondary/tree/tree";
 import { Register } from "src/base/common/event";
-import { asyncFinish } from "src/base/common/util/async";
+import { asyncTask } from "src/base/common/util/async";
 import { Iterable } from "src/base/common/util/iterable";
 import { isIterable } from "src/base/common/util/type";
 
@@ -242,7 +242,7 @@ export class AsyncMultiTreeModel<T, TFilter = void> implements IAsyncMultiTreeMo
     private async __refreshNodeAndChildren(node: IAsyncTreeNode<T>): Promise<void> {
 
         // mark the current node is refreshing
-        const [promise, finishRefresh] = asyncFinish<void>();
+        const [promise, finishRefresh] = asyncTask<void>();
         node.refreshing = promise;
         this._nodeRefreshing.set(node, node.refreshing);
 
