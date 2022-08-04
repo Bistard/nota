@@ -2,7 +2,7 @@ import { Disposable } from "src/base/common/dispose";
 import { Emitter } from "src/base/common/event";
 import { DataBuffer } from "src/base/common/file/buffer";
 import { URI } from "src/base/common/file/uri";
-import { asyncFinish } from "src/base/common/util/async";
+import { asyncTask } from "src/base/common/util/async";
 import { IFileService } from "src/code/common/service/fileService/fileService";
 import { ModelEvent, IEditorModel, IPieceTableModel } from "src/editor/common/model";
 import { IMarkdownLexer, MarkdownLexer } from "src/editor/model/markdown/markedLexer";
@@ -149,7 +149,7 @@ export class EditorModel extends Disposable implements IEditorModel {
      */
     private async __createTextBufferBuilder(source: URI): Promise<TextBufferBuilder | undefined> {
 
-        const [finished, finishBuilding] = asyncFinish<TextBufferBuilder | undefined>();
+        const [finished, finishBuilding] = asyncTask<TextBufferBuilder | undefined>();
         let builder: TextBufferBuilder = new TextBufferBuilder();
 
         const stream = await this.fileService.readFileStream(source);
