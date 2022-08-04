@@ -1,4 +1,6 @@
 import { Disposable, IDisposable } from "src/base/common/dispose";
+import { basename } from "src/base/common/file/path";
+import { ILogService } from "src/base/common/logger";
 import { IEditorModel } from "src/editor/common/model";
 import { IEditorView } from "src/editor/common/view";
 import { IEditorViewModel } from "src/editor/common/viewModel";
@@ -44,6 +46,7 @@ export class EditorWidget extends Disposable implements IEditorWidget {
     constructor(
         container: HTMLElement,
         options: IEditorWidgetOptions,
+        @ILogService private readonly logService: ILogService,
     ) {
         super();
 
@@ -62,9 +65,13 @@ export class EditorWidget extends Disposable implements IEditorWidget {
             return;
         }
 
-        this._model = model;
+        if (model === null) {
+            this._model = null;
+            return;
+        }
+        
+        this.logService.info(`Reading file '${basename(model.source.toString())}' successed.`); // REVIEW
         this.__attechModel(model);
-
     }
 
     public override dispose(): void {
@@ -77,15 +84,10 @@ export class EditorWidget extends Disposable implements IEditorWidget {
      * @description Given the {@link IEditorModel}, generates the corresponding
      * {@link IEditorViewModel} and {@link EditorView}.
      */
-    private __attechModel(model: IEditorModel | null): void {
+    private __attechModel(model: IEditorModel): void {
 
-        if (model === null) {
-            this._model = null;
-            return;
-        }
-
+        this._model = model;
         const viewModel = new EditorViewModel(model);
-
         const view = new EditorView(this._container, viewModel);
         
         view.render(false, true);

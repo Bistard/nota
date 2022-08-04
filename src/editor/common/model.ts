@@ -1,5 +1,6 @@
 import { Disposable, IDisposable } from "src/base/common/dispose";
 import { Register } from "src/base/common/event";
+import { URI } from "src/base/common/file/uri";
 import { IEditorPosition } from "src/editor/common/position";
 import { IEditorRange } from "src/editor/common/range";
 
@@ -324,6 +325,11 @@ export interface IEditorModel extends IDisposable {
      * {@link ModelEvent.Events}.
      */
     readonly onEvent: Register<ModelEvent.Events>;
+
+    /**
+     * The source of the text model.
+     */
+    readonly source: URI;
 
     /**
      * @description Replace the entire model with the provided text.

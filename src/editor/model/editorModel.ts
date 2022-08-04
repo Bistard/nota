@@ -25,6 +25,8 @@ export class EditorModel extends Disposable implements IEditorModel {
 
     // [field]
 
+    private readonly _source: URI;
+
     /**
      * `null` indicates the model is not built yet. The text model is registered,
      * need to be disposed manually.
@@ -40,9 +42,16 @@ export class EditorModel extends Disposable implements IEditorModel {
         private fileService: IFileService
     ) {
         super();
+        this._source = source;
         this._lexer = new MarkdownLexer();
 
         this.__createModel(source);
+    }
+
+    // [getter / setter]
+
+    get source(): URI {
+        return this._source;
     }
 
     // [public methods]

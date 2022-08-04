@@ -5,6 +5,7 @@ import { WorkspaceComponentType } from "src/code/browser/workbench/workspace/wor
 import { IFileService } from "src/code/common/service/fileService/fileService";
 import { createDecorator } from "src/code/common/service/instantiationService/decorator";
 import { ServiceDescriptor } from "src/code/common/service/instantiationService/descriptor";
+import { IInstantiationService } from "src/code/common/service/instantiationService/instantiation";
 import { registerSingleton } from "src/code/common/service/instantiationService/serviceCollection";
 import { EditorWidget, IEditorWidget } from "src/editor/editorWidget";
 import { EditorModel } from "src/editor/model/editorModel";
@@ -31,7 +32,8 @@ export class EditorComponent extends Component implements IEditorService {
 
     constructor(
         @IComponentService componentService: IComponentService,
-        @IFileService private fileService: IFileService,
+        @IInstantiationService private readonly instantiationService: IInstantiationService,
+        @IFileService private readonly fileService: IFileService,
     ) {
         super(WorkspaceComponentType.editor, null, componentService);
         this._editorWidget = null;
@@ -64,7 +66,11 @@ export class EditorComponent extends Component implements IEditorService {
     // [override protected methods]
 
     protected override _createContent(): void {
-        this._editorWidget = new EditorWidget(this.container, {});
+        this._editorWidget = this.instantiationService.createInstance(
+            EditorWidget, 
+            this.container,
+            {},
+        );
     }
 
     protected override _registerListeners(): void {
