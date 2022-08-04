@@ -49,6 +49,14 @@ export interface ISplitView extends Disposable {
      */
     moveView(from: number, to: number): void;
 
+    /**
+     * @description Swap two {@link SplitViewItem}
+     * @param first The the first SplitViewItem's index.
+     * @param second The the second SplitViewItem's index.
+     * @note This will rerender the whole split-view without resizing.
+     */
+    swapView(first: number, second: number): void;
+
     // TODO
     onWindowResize(dimension: IDimension): void;
 
@@ -174,6 +182,9 @@ export class SplitView extends Disposable implements ISplitView {
         start = Math.min(Math.max(start, 0), this.viewItems.length);
         end = Math.min(Math.max(end, 0), this.viewItems.length);
 
+        if (start === end) {
+            return;
+        }
         const viewOpt = this.__doRemoveView(start);
         viewOpt.index = end;
         this.__doAddView(viewOpt);
@@ -186,6 +197,26 @@ export class SplitView extends Disposable implements ISplitView {
         this.__doRenderViewsAndSashes();
     }
     
+    public swapView(first: number, second: number): void {
+        first = Math.min(Math.max(first, 0), this.viewItems.length);
+        second = Math.min(Math.max(second, 0), this.viewItems.length);
+
+        if (first === second) {
+            return;
+        }
+     
+        if (first > second) {
+            return this.swapView(second, first);
+        }
+        const fristViewOpts = this.__doRemoveView(first);
+        const secondViewOpts = this.__doRemoveView(second - 1);
+        secondViewOpts.index = first;
+        fristViewOpts.index = second;
+        this.__doAddView(secondViewOpts);
+        this.__doAddView(fristViewOpts);
+
+        this.__doRenderViewsAndSashes();
+    }
     /**
      * Invokes when the application window is resizing.
      * @param dimension The dimension of the window.
@@ -231,7 +262,7 @@ export class SplitView extends Disposable implements ISplitView {
             sash.onDidMove(e => this.__onDidSashMove(e, sash));
             sash.onDidReset(() => {
                 const index = this.sashItems.indexOf(sash);
-                this.moveView(0, 2);
+                this.swapView(1, 2);
                 this._onDidSashReset.fire(index);
             });
 
