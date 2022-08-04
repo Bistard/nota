@@ -142,7 +142,11 @@ export abstract class ConfigServiceBase extends Disposable implements IConfigSer
     public async init(path: URI): Promise<void> {
         try {
             if (await this.fileService.exist(path) === false) {
-                await this.fileService.createFile(path, DataBuffer.alloc(0), { create: true, overwrite: true, unlock: true });
+                await this.fileService.createFile(
+                    path, 
+                    DataBuffer.alloc(0), 
+                    { overwrite: true },
+                );
                 await this.save(path);
             } else {
                 await this.read(path);

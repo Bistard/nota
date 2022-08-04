@@ -1,6 +1,13 @@
 import { IReadableStreamEvent } from "src/base/common/file/stream";
 import { URI } from "src/base/common/file/uri";
 
+export namespace ByteSize {
+	export const KB = 1024;
+	export const MB = KB * KB;
+	export const GB = MB * MB;
+	export const TB = GB * GB;
+}
+
 export const enum FileType {
     UNKNOWN,
 	FILE,
@@ -219,6 +226,10 @@ export interface IOverwriteFileOptions {
 	 readonly overwrite: boolean;
 }
 
+export interface ICreateFileOptions extends Partial<IOverwriteFileOptions> {
+	
+}
+
 export interface IWriteFileOptions extends IOverwriteFileOptions {
 
 	/**
@@ -277,21 +288,31 @@ export interface IResolveStatOptions {
  * Error Handling
  ******************************************************************************/
 
-export const enum IFileOperationError {
+export const enum FileOperationErrorType {
 	FILE_EXCEEDS_MEMORY_LIMIT,
 	FILE_TOO_LARGE,
 	FILE_EXISTS,
-	FILE_NOT_FOUND
+	FILE_NOT_FOUND,
+	FILE_IS_DIRECTORY,
+	FILE_INVALID_PATH,
+	FILE_READONLY,
 }
 
 export class FileSystemProviderError extends Error {
-
 	constructor(
 		message: string,
-		public readonly operation: IFileOperationError
+		public readonly operation: FileOperationErrorType,
 	) {
 		super(message);
 	}
+}
 
+export class FileOperationError extends Error {
+	constructor(
+		message: string,
+		public readonly operation: FileOperationErrorType,
+	) {
+		super(message);
+	}
 }
 

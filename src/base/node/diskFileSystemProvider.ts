@@ -1,4 +1,4 @@
-import { IOpenFileOptions, FileSystemProviderCapability, FileType, IFileSystemProviderWithFileReadWrite, IFileSystemProviderWithOpenReadWriteClose, IFileStat, IWriteFileOptions, IDeleteFileOptions, IOverwriteFileOptions, IFileOperationError, FileSystemProviderError, IFileSystemProviderWithReadFileStream, IReadFileOptions } from "src/base/common/file/file";
+import { IOpenFileOptions, FileSystemProviderCapability, FileType, IFileSystemProviderWithFileReadWrite, IFileSystemProviderWithOpenReadWriteClose, IFileStat, IWriteFileOptions, IDeleteFileOptions, IOverwriteFileOptions, FileOperationErrorType, FileSystemProviderError, IFileSystemProviderWithReadFileStream, IReadFileOptions } from "src/base/common/file/file";
 import { URI } from "src/base/common/file/uri";
 import * as fs from "fs";
 import { fileExists, FileMode, readFileIntoStream } from "src/base/node/io";
@@ -54,11 +54,11 @@ export class DiskFileSystemProvider implements IFileSystemProviderWithFileReadWr
                 const exist = fileExists(path);
                 
                 if (exist && opts.overwrite === false) {
-                    throw new FileSystemProviderError('File already exists', IFileOperationError.FILE_EXISTS);
+                    throw new FileSystemProviderError('File already exists', FileOperationErrorType.FILE_EXISTS);
                 } 
                 
                 else if (!exist && opts.create === false) {
-                    throw new FileSystemProviderError('File does not exist', IFileOperationError.FILE_NOT_FOUND);
+                    throw new FileSystemProviderError('File does not exist', FileOperationErrorType.FILE_NOT_FOUND);
                 }
             }
             

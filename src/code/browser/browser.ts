@@ -1,19 +1,22 @@
 import { ComponentService, IComponentService } from "src/code/browser/service/componentService";
 import { Workbench } from "src/code/browser/workbench/workbench";
-import { FileLogService, IFileLogService } from "src/code/common/service/logService/fileLogService";
 import { ServiceDescriptor } from "src/code/common/service/instantiationService/descriptor";
 import { IInstantiationService, InstantiationService } from "src/code/common/service/instantiationService/instantiation";
 import { getSingletonServiceDescriptors, ServiceCollection } from "src/code/common/service/instantiationService/serviceCollection";
 import { FileService, IFileService } from "src/code/common/service/fileService/fileService";
 import { GlobalConfigService, IGlobalConfigService, IUserConfigService, UserConfigService } from "src/code/common/service/configService/configService";
-import { Schemas } from "src/base/common/file/uri";
+import { Schemas, URI } from "src/base/common/file/uri";
 import { DiskFileSystemProvider } from "src/base/node/diskFileSystemProvider";
-import { LogLevel } from "src/code/common/service/logService/abstractLogService";
 import { IIpcService, IpcService } from "src/code/browser/service/ipcService";
 import { ipcRendererSend } from "src/base/electron/register";
 import { IpcCommand } from "src/base/electron/ipcCommand";
-import { DEVELOP_ENV } from "src/base/electron/app";
+import { APP_ROOT_PATH, DEVELOP_ENV } from "src/base/electron/app";
 import { EventType } from "src/base/common/dom";
+import { ILogService, LogLevel, PipelineLogger } from "src/base/common/logger";
+import { ILoggerService } from "src/code/common/service/logService/abstractLoggerService";
+import { FileLoggerService } from "src/code/common/service/logService/fileLoggerService";
+import { join } from "src/base/common/file/path";
+import { ConsoleLogger } from "src/code/common/service/logService/consoleLoggerService";
 
 /**
  * @class This is the main entry of the renderer process.
@@ -74,9 +77,22 @@ export class Browser {
         this.instantiationService.register(IUserConfigService, this.userConfigService);
         await this.userConfigService.init();
 
-        // FileLogService
-        this.instantiationService.register(IFileLogService, new ServiceDescriptor(FileLogService, [LogLevel.INFO]));
+        // ILoggerService
+        const fileLoggerService = new FileLoggerService(LogLevel.INFO, this.instantiationService);
+        this.instantiationService.register(ILoggerService, fileLoggerService);
 
+        // ILogService
+        const fileLogger = fileLoggerService.createLogger(
+            // REVIEW: uri should be retrieve from `envrionmentService`
+            // REVIEW: file name should be a date
+            URI.fromFile(join(APP_ROOT_PATH, '.nota/log/file-log.txt')), {
+            name: 'file-read-result'
+        }); 
+        const pipelineLogService = new PipelineLogger(
+            [fileLogger, new ConsoleLogger(LogLevel.WARN)]
+        );
+        this.instantiationService.register(ILogService, pipelineLogService);
+        
         // ComponentService
         this.componentService = new ComponentService();
         this.instantiationService.register(IComponentService, this.componentService);
