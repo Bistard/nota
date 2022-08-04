@@ -1,4 +1,5 @@
-import { IDisposable } from "src/base/common/dispose";
+import { Disposable } from "src/base/common/dispose";
+import { Emitter, Register } from "src/base/common/event";
 import { Triple } from "src/base/common/util/type";
 
 export interface ITask<T> {
@@ -73,7 +74,7 @@ export type IAsyncPromiseTask<T> = {
 /**
  * An interface for {@link AsyncParallelExecutor}.
  */
-export interface IAsyncParallelExecutor<T> extends IDisposable {
+export interface IAsyncParallelExecutor<T> extends Disposable {
 	
 	/**
 	 * The total number of promises that are either being waiting or executing.
@@ -81,10 +82,15 @@ export interface IAsyncParallelExecutor<T> extends IDisposable {
 	readonly size: number;
 
 	/**
+	 * Fires once the all the executing promises are done and no waiting promises.
+	 */
+	readonly onDidFlush: Register<void>;
+
+	/**
 	 * @description Queueing a function that returns a promise into the executor.
-	 * Returns a promise that will resolve the // TODO
-	 * @param task 
-	 * @returns 
+	 * @param task The task that returns a promise.
+	 * @returns Returns a promise that will resolve the promise of the return 
+	 * value of the {@link ITask}.
 	 */
 	push(task: ITask<Promise<T>>): Promise<T>;
 
@@ -103,7 +109,7 @@ export interface IAsyncParallelExecutor<T> extends IDisposable {
  * @class A helper tool that guarantees no more than N promises are running at 
  * the same time.
  */
-export class AsyncParallelExecutor<T> implements IAsyncParallelExecutor<T> {
+export class AsyncParallelExecutor<T> extends Disposable implements IAsyncParallelExecutor<T> {
 
 	// [field]
 
@@ -114,9 +120,14 @@ export class AsyncParallelExecutor<T> implements IAsyncParallelExecutor<T> {
 	private readonly _limitCount: number;
 	private readonly _waitingPromises: IAsyncPromiseTask<T>[];
 
+	private readonly _onDidFlush = this.__register(new Emitter<void>());
+	public readonly onDidFlush = this._onDidFlush.registerListener;
+
 	// [constructor]
 
 	constructor(limit: number) {
+		super();
+
 		this._size = 0;
 		this._runningPromisesCount = 0;
 		this._paused = false;
@@ -151,7 +162,8 @@ export class AsyncParallelExecutor<T> implements IAsyncParallelExecutor<T> {
 		this.__consume();
 	}
 
-	public dispose(): void {
+	public override dispose(): void {
+		super.dispose();
 		this._waitingPromises.length = 0;
 	}
 
@@ -178,6 +190,10 @@ export class AsyncParallelExecutor<T> implements IAsyncParallelExecutor<T> {
 
 		if (this._waitingPromises.length > 0) {
 			this.__consume();
+		} 
+		
+		else if (this._size === 0) {
+			this._onDidFlush.fire();
 		}
 	}
 }
