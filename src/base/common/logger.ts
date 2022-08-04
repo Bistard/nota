@@ -7,8 +7,7 @@ export const DEFAULT_LOG_LEVEL = LogLevel.INFO;
 
 /**
  * Representing the maximum logging level of a {@link ILoggerService} or
- * {@link ILogger}. Any logging message above the current setting level will be 
- * ignored.
+ * {@link ILogger}.
  */
 export const enum LogLevel {
     /**
@@ -119,7 +118,9 @@ export abstract class AbstractLogger extends Disposable implements IAbstractLogg
 /**
  * A {@link ILogger} is an instance that able to handle a series of incoming 
  * logging messages. 
- * @note created by {@link ILoggerService}.
+ * 
+ * @note Generally created by a {@link ILoggerService}.
+ * @note Any logging level BELOW the current level will be ignored.
  */
 export interface ILogger extends IAbstractLogger {
     
