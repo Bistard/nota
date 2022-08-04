@@ -1,6 +1,8 @@
 import { Disposable } from "src/base/common/dispose";
 import { Emitter, Register } from "src/base/common/event";
+import { createDecorator } from "src/code/common/service/instantiationService/decorator";
 
+export const ILogService = createDecorator<ILogService>('log-service');
 export const DEFAULT_LEVEL = LogLevel.INFO;
 
 /**
@@ -93,16 +95,13 @@ export interface IAbstractLogger extends Disposable {
 export abstract class AbstractLogger extends Disposable implements IAbstractLogger {
     
     private _level!: LogLevel;
-    private _emitter: Emitter<LogLevel>;
     
+    private readonly _emitter = this.__register(new Emitter<LogLevel>());
+    public readonly onDidChangeLevel = this._emitter.registerListener;
+
     constructor(level: LogLevel = DEFAULT_LEVEL) {
         super();
-        this._emitter = this.__register(new Emitter());
         this.setLevel(level);
-    }
-
-    get onDidChangeLevel(): Register<LogLevel> {
-        return this._emitter.registerListener;
     }
 
     public setLevel(level: LogLevel): void {
@@ -137,6 +136,11 @@ export interface ILogger extends IAbstractLogger {
 	fatal(message: string | Error, ...args: any[]): void;
 }
 
+/** 
+ * Alias for a {@link ILogger}. May be registered into a {@link IInstantiationService}.
+ */
+export interface ILogService extends ILogger {};
+
 /**
  * An option for constructing {@link ILogger}.
  */
@@ -166,5 +170,59 @@ export function parseLogLevel(level: LogLevel): string {
         case LogLevel.INFO: return 'info';
         case LogLevel.DEBUG: return 'debug';
         case LogLevel.TRACE: return 'trace';
+    }
+}
+
+/**
+ * @class A simple integrated {@link ILogger} that combines the other loggers
+ * into a intergrated version.
+ */
+export class PipelineLogger extends AbstractLogger implements ILogService {
+
+    private readonly _loggers: ILogger[];
+
+    constructor(loggers: ILogger[], level?: LogLevel) {
+        super(level);
+
+        this._loggers = loggers;
+        for (const logger of loggers) {
+            this.__register(logger);
+        }
+    }
+
+    public trace(message: string, ...args: any[]): void {
+        for (const logger of this._loggers) {
+			logger.trace(message, ...args);
+		}
+    }
+
+    public debug(message: string, ...args: any[]): void {
+        for (const logger of this._loggers) {
+			logger.debug(message, ...args);
+		}
+    }
+
+    public info(message: string, ...args: any[]): void {
+        for (const logger of this._loggers) {
+			logger.info(message, ...args);
+		}
+    }
+
+    public warn(message: string, ...args: any[]): void {
+        for (const logger of this._loggers) {
+			logger.warn(message, ...args);
+		}
+    }
+
+    public error(message: string | Error, ...args: any[]): void {
+        for (const logger of this._loggers) {
+			logger.error(message, ...args);
+		}
+    }
+
+    public fatal(message: string | Error, ...args: any[]): void {
+        for (const logger of this._loggers) {
+			logger.fatal(message, ...args);
+		}
     }
 }

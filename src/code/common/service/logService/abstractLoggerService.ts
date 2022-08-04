@@ -9,7 +9,7 @@ export const ILoggerService = createDecorator<ILoggerService>('logger-service');
  * A {@link ILoggerService} provides ability to create or get {@link ILogger}
  * which has the actual ability to log messages.
  */
-export interface ILoggerService {
+export interface ILoggerService extends Disposable {
 
     /**
      * @description Create a new {@link ILogger}. It overrides the previous 
@@ -23,6 +23,11 @@ export interface ILoggerService {
      * @description Get an existed {@link ILogger} if any.
      */
     getLogger(uri: URI): ILogger | undefined;
+
+    /**
+     * @description All the existed {@link ILogger}s will be disposed.
+     */
+    dispose(): void;
 }
 
 /**

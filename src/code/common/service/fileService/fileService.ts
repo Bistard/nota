@@ -102,7 +102,7 @@ export class FileService implements IFileService {
     // [constructor]
 
     constructor(
-        /* ILoggerService private readonly fileLogService: ILoggerService */
+        /* ILogService private readonly logService: ILogService */
     ) {
 
     }
