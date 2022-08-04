@@ -16,6 +16,7 @@ import { ILogService, LogLevel, PipelineLogger } from "src/base/common/logger";
 import { ILoggerService } from "src/code/common/service/logService/abstractLoggerService";
 import { FileLoggerService } from "src/code/common/service/logService/fileLoggerService";
 import { join } from "src/base/common/file/path";
+import { ConsoleLogger } from "src/code/common/service/logService/consoleLoggerService";
 
 /**
  * @class This is the main entry of the renderer process.
@@ -87,7 +88,9 @@ export class Browser {
             URI.fromFile(join(APP_ROOT_PATH, '.nota/log/file-log.txt')), {
             name: 'file-read-result'
         }); 
-        const pipelineLogService = new PipelineLogger([fileLogger], LogLevel.INFO);
+        const pipelineLogService = new PipelineLogger(
+            [fileLogger, new ConsoleLogger(LogLevel.WARN)]
+        );
         this.instantiationService.register(ILogService, pipelineLogService);
         
         // ComponentService

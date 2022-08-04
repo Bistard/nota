@@ -70,7 +70,12 @@ export class EditorWidget extends Disposable implements IEditorWidget {
             return;
         }
         
+        this.logService.trace(`Reading file '${basename(model.source.toString())}' successed.`); // REVIEW
+        this.logService.debug(`Reading file '${basename(model.source.toString())}' successed.`); // REVIEW
         this.logService.info(`Reading file '${basename(model.source.toString())}' successed.`); // REVIEW
+        this.logService.warn(`Reading file '${basename(model.source.toString())}' successed.`); // REVIEW
+        this.logService.error(`Reading file '${basename(model.source.toString())}' successed.`); // REVIEW
+        this.logService.fatal(`Reading file '${basename(model.source.toString())}' successed.`); // REVIEW
         this.__attechModel(model);
     }
 

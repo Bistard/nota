@@ -3,7 +3,7 @@ import { Emitter, Register } from "src/base/common/event";
 import { createDecorator } from "src/code/common/service/instantiationService/decorator";
 
 export const ILogService = createDecorator<ILogService>('log-service');
-export const DEFAULT_LEVEL = LogLevel.INFO;
+export const DEFAULT_LOG_LEVEL = LogLevel.INFO;
 
 /**
  * Representing the maximum logging level of a {@link ILoggerService} or
@@ -90,7 +90,7 @@ export interface IAbstractLogger extends Disposable {
  * @class The base class of each {@link ILogger}. Provides functionalities 
  * relates to log level.
  * 
- * @default level {@link DEFAULT_LEVEL}.
+ * @default level {@link DEFAULT_LOG_LEVEL}.
  */
 export abstract class AbstractLogger extends Disposable implements IAbstractLogger {
     
@@ -99,7 +99,7 @@ export abstract class AbstractLogger extends Disposable implements IAbstractLogg
     private readonly _emitter = this.__register(new Emitter<LogLevel>());
     public readonly onDidChangeLevel = this._emitter.registerListener;
 
-    constructor(level: LogLevel = DEFAULT_LEVEL) {
+    constructor(level: LogLevel = DEFAULT_LOG_LEVEL) {
         super();
         this.setLevel(level);
     }

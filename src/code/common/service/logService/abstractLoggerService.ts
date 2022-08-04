@@ -1,6 +1,6 @@
 import { Disposable } from "src/base/common/dispose";
 import { URI } from "src/base/common/file/uri";
-import { DEFAULT_LEVEL, ILogger, ILoggerOpts, LogLevel } from "src/base/common/logger";
+import { DEFAULT_LOG_LEVEL, ILogger, ILoggerOpts, LogLevel } from "src/base/common/logger";
 import { createDecorator } from "src/code/common/service/instantiationService/decorator";
 
 export const ILoggerService = createDecorator<ILoggerService>('logger-service');
@@ -32,7 +32,7 @@ export interface ILoggerService extends Disposable {
 
 /**
  * @class The base class for each {@link ILoggerService}. The default log level
- * is {@link DEFAULT_LEVEL}.
+ * is {@link DEFAULT_LOG_LEVEL}.
  */
 export abstract class AbstractLoggerService extends Disposable implements ILoggerService {
 
@@ -44,7 +44,7 @@ export abstract class AbstractLoggerService extends Disposable implements ILogge
 
     // [constructor]
 
-    constructor(level: LogLevel = DEFAULT_LEVEL) {
+    constructor(level: LogLevel = DEFAULT_LOG_LEVEL) {
         super();
         this._level = level;
         this._loggers = new Map();
