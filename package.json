@@ -33,7 +33,7 @@
     "@types/mocha": "^9.0.0",
     "benchmark": "^2.1.4",
     "cross-env": "^7.0.3",
-    "electron": "^13.6.6",
+    "electron": "17.4.1",
     "fantasticon": "^1.2.3",
     "jsdom": "19.0.0",
     "jsdom-global": "3.0.2",
