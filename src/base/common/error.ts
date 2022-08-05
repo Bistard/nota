@@ -7,13 +7,13 @@ interface IErrorCallback {
 type IErrorListener = IErrorCallback;
 
 /**
- * @class A unexposed singleton that manages to handle all the unexpect errors
- * that caught by the {@link ErrorHandler.onUnexpectedError()}.
+ * @class An unexposed singleton that manages all the unexpected errors that are
+ * caught by the {@link ErrorHandler.onUnexpectedError()}.
  * 
- * {@link _ErrorRegistry} cannot be access directly. All other functionalites can 
- * be found in {@link ErrorHandler}.
+ * {@link _ErrorRegistry} cannot be accessed directly. All the functionalites 
+ * can be found in a wrapper namespace {@link ErrorHandler}.
  * 
- * @note Default onUnexpectedError behaviour is by calling `console.error(err)`
+ * @default unexpectedErrorExternalCallback behaviour is calling `console.error(err)`
  * then simply throw it out.
  */
 const _ErrorRegistry = new class extends class ErrorRegistry {
