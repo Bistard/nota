@@ -1,6 +1,7 @@
 import { LinkedList } from "src/base/common/util/linkedList";
 import { addDisposableListener, EventType } from "src/base/common/dom";
 import { Disposable, DisposableManager, disposeAll, IDisposable, toDisposable } from "src/base/common/dispose";
+import { ErrorHandler } from "src/base/common/error";
 
 /*******************************************************************************
  * This file contains a series event emitters and related tools for communications 
@@ -54,14 +55,11 @@ export interface IEmitter<T> {
     
     /**
      * @description Fires the event T and notifies all the registered listeners.
-     * 
-     * @note fire() guarantees all the registered listeners (callback) will be 
-     * invoked / notified. Any errors will be stored and returned as an array.
-     * 
      * @param event The event T to be notified to all listeners.
-     * @returns An array of errors.
+     * 
+     * @throws The unexpected error caught by fire() will be caught by {@link ErrorHandler}.
      */
-    fire(event: T): any[];
+    fire(event: T): void;
 
     /**
      * @description Determines if the emitter has any active listeners.
@@ -135,6 +133,8 @@ export interface IEmitterOptions {
  * 
  * To trigger the event occurs and notifies all the listeners, use this.fire(event) 
  * where `event` has the type T.
+ * 
+ * @throws @throws The unexpected caught by fire() error will be caught by {@link ErrorHandler}.
  */
 export class Emitter<T> implements IDisposable, IEmitter<T> {
     
@@ -204,19 +204,14 @@ export class Emitter<T> implements IDisposable, IEmitter<T> {
 		return this._register;
     }
 
-    public fire(event: T): any[] {
-		
-        const errors: any[] = [];
-
+    public fire(event: T): void {
         for (const listener of this._listeners) {
             try {
                 listener.fire(event);
-            } catch (e) {
-                errors.push(e);
+            } catch (error) {
+                ErrorHandler.onUnexpectedError(error);
             }
         }
-
-        return errors;
 	}
 
     public dispose(): void {
@@ -283,12 +278,12 @@ export class PauseableEmitter<T> extends Emitter<T> {
         this._paused = false;
     }
 
-    public override fire(event: T): any[] {
+    public override fire(event: T): void {
         if (this._paused) {
-            return [];
+            return;
         }
         
-        return super.fire(event);
+        super.fire(event);
     }
 
 }
@@ -334,13 +329,12 @@ export class DelayableEmitter<T> extends Emitter<T> {
         }
     }
 
-    public override fire(event: T): any[] {
+    public override fire(event: T): void {
         if (this._delayed) {
             this._delayedEvents.push_back(event);
-            return [];
-        } else {
-            return super.fire(event);
+            return;
         }
+        super.fire(event);
     }
 
     public override dispose(): void {
@@ -382,6 +376,8 @@ export class SignalEmitter<T, E> extends Emitter<E> {
 
 /**
  * @class Same as {@link Emitter<T>} with extra method `fireAsync()`.
+ * 
+ * @throws The unexpected error caught by fire() will be caught by {@link ErrorHandler}.
  */
 export class AsyncEmitter<T> extends Emitter<T> {
 
@@ -389,18 +385,16 @@ export class AsyncEmitter<T> extends Emitter<T> {
         super();
     }
 
-    public async fireAsync(event: T): Promise<any[]> {
-        const errors: any[] = [];
-
+    public async fireAsync(event: T): Promise<void> {
+        
         for (const listener of this._listeners as LinkedList<__AsyncListener<T>>) {
             try {
                 await listener.fire(event);
-            } catch (e) {
-                errors.push(e);
+            } catch (error) {
+                ErrorHandler.onUnexpectedError(error);
+                continue;
             }
         }
-
-        return errors;
     }
 
 }

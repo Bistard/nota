@@ -1,5 +1,6 @@
 import * as assert from 'assert';
-import { disposeAll, IDisposable } from 'src/base/common/dispose';
+import { IDisposable } from 'src/base/common/dispose';
+import { ErrorHandler } from 'src/base/common/error';
 import { AsyncEmitter, DelayableEmitter, Emitter, Event, PauseableEmitter, RelayEmitter, SignalEmitter } from 'src/base/common/event';
 
 suite('event-test', () => {
@@ -157,7 +158,11 @@ suite('event-test', () => {
         const registration2 = emitter.registerListener(() => { throw new Error('expect error'); });
         const registration3 = emitter.registerListener(callback);
 
-        const errors = emitter.fire(undefined);
+        const errors: any = [];
+        ErrorHandler.setUnexpectedErrorExternalCallback((e) => errors.push(e));
+
+        emitter.fire(undefined);
+
         assert.strictEqual(errors.length, 1);
         assert.strictEqual((errors[0] as Error).message, 'expect error');
         assert.strictEqual(counter, 2);
