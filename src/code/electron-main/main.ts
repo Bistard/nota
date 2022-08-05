@@ -1,5 +1,5 @@
 import { BrowserWindow, ipcMain, app, dialog } from 'electron';
-import { join } from 'src/base/common/file/path';
+import { join, resolve } from 'src/base/common/file/path';
 import { IpcCommand } from 'src/base/electron/ipcCommand';
 
 /**
@@ -25,21 +25,44 @@ class Main {
         app.whenReady().then(() => {
 
             this.winMain = new BrowserWindow({
-                width: 1200,
                 height: 800,
+                width: 1200,
                 minWidth: 300,
                 minHeight: 200,
                 webPreferences: {
+                    /**
+                     * Node.js is only available in main / preload process.
+                     * Node.js us also be available in the renderer process.
+                     * Thus a preload.js is needed.
+                     * 
+                     * Absolute path needed.
+                     */
                     nodeIntegration: true,
+                    preload: resolve(join(__dirname, 'preload.js')),
+                    
+                    /**
+                     * Context Isolation is a feature that ensures that both 
+                     * your preload scripts and Electron's internal logic run in 
+                     * a separate context to the website you load in 
+                     * a webContents. This is important for security purposes as 
+                     * it helps prevent the website from accessing Electron 
+                     * internals or the powerful APIs your preload script has 
+                     * access to.
+                     * 
+                     * This means that the (eg. window / document) object the 
+                     * preload script has access to is actually a different 
+                     * object than the website would have access to.
+                     */
                     contextIsolation: false,
-                    enableRemoteModule: true,
                     devTools: true,
-                    preload: join(__dirname, 'preload.js'),
                 },
                 resizable: true,
                 show: false,
                 frame: false
             });
+
+            // REVIEW: test
+            this.winMain!.webContents.openDevTools({mode: 'detach', activate: true});
             
             // sets winMain in the global scope so that other modules can also 
             // access winMain.
