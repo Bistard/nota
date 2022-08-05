@@ -10,7 +10,7 @@ import { WorkbenchLayout } from "src/code/browser/workbench/layout";
 import { i18n, Ii18nOpts, Ii18nService } from "src/code/platform/i18n/i18n";
 import { IShortcutService, ShortcutService } from "src/code/browser/service/shortcutService";
 import { KeyCode, Shortcut } from "src/base/common/keyboard";
-import { IpcCommand } from "src/base/electron/ipcCommand";
+import { IpcChannel } from "src/base/common/ipcChannel";
 import { IWorkbenchService } from "src/code/browser/service/workbenchService";
 import { IIpcService } from "src/code/browser/service/ipcService";
 import { IKeyboardScreenCastService, KeyboardScreenCastService } from "src/code/browser/service/keyboardScreenCastService/keyboardScreenCastService";
@@ -100,7 +100,7 @@ export class Workbench extends WorkbenchLayout implements IWorkbenchService {
             shortcut: new Shortcut(true, true, false, false, KeyCode.KeyI),
             when: null,
             command: () => {
-                ipcRendererSend(IpcCommand.ToggleDevelopTool);
+                ipcRendererSend(IpcChannel.ToggleDevelopTool);
             },
             override: false,
             activate: true
@@ -112,7 +112,7 @@ export class Workbench extends WorkbenchLayout implements IWorkbenchService {
             shortcut: new Shortcut(true, false, false, false, KeyCode.KeyR),
             when: null,
             command: () => {
-                ipcRendererSend(IpcCommand.ReloadWindow);
+                ipcRendererSend(IpcChannel.ReloadWindow);
             },
             override: false,
             activate: true

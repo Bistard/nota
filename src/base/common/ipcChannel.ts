@@ -8,7 +8,7 @@
  *      1. Prevent potential invalid channel.
  *      2. Less string copy.
  */
-export const enum IpcCommand {
+export const enum IpcChannel {
 
     Test =                  '0',
     ToggleDevelopTool =     '1',

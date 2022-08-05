@@ -1,5 +1,5 @@
 import { ipcRenderer, IpcRendererEvent } from "electron";
-import { IpcCommand } from "src/base/electron/ipcCommand";
+import { IpcChannel } from "src/base/common/ipcChannel";
 
 /**
  * ipc/dom event register relevant helper functions.
@@ -15,7 +15,7 @@ export function ipcRendererSendData(message: string, ...data: any[]): void {
 
 /* debug only */
 export function ipcRendererSendTest(data: any): void {
-    ipcRenderer.send(IpcCommand.Test, data);
+    ipcRenderer.send(IpcChannel.Test, data);
 }
 
 export function ipcRendererOn(message: string, listener: (event: IpcRendererEvent, ...args: any[]) => void): void {

@@ -1,6 +1,6 @@
 import { BrowserWindow, ipcMain, app, dialog } from 'electron';
 import { join, resolve } from 'src/base/common/file/path';
-import { IpcCommand } from 'src/base/electron/ipcCommand';
+import { IpcChannel } from 'src/base/common/ipcChannel';
 
 /**
  * @description main electron startup class, instantiates at end of the file.
@@ -135,11 +135,11 @@ class Main {
         });
 
         this.winMain.on('maximize', () => {
-            this.winMain!.webContents.send(IpcCommand.WindowMaximize);
+            this.winMain!.webContents.send(IpcChannel.WindowMaximize);
         });
 
         this.winMain.on('unmaximize', () => {
-            this.winMain!.webContents.send(IpcCommand.WindowUnmaximize);
+            this.winMain!.webContents.send(IpcChannel.WindowUnmaximize);
         });
 
         this.winMain.on('closed', () => {
@@ -151,18 +151,18 @@ class Main {
         });
 
         this.winMain.on('enter-full-screen', () => {
-            this.winMain!.webContents.send(IpcCommand.EnterFullScreen);
+            this.winMain!.webContents.send(IpcChannel.EnterFullScreen);
         });
 
         this.winMain.on('leave-full-screen', () => {
-            this.winMain!.webContents.send(IpcCommand.LeaveFullScreen);
+            this.winMain!.webContents.send(IpcChannel.LeaveFullScreen);
         });
 
         this.winMain.on('resize', () => {
             let size = this.winMain!.getSize();
             let width = size[0]!;
             let height = size[1]!;
-            this.winMain!.webContents.send(IpcCommand.WindowResize, width, height);
+            this.winMain!.webContents.send(IpcChannel.WindowResize, width, height);
         });
     }
 
@@ -172,11 +172,11 @@ class Main {
      */
     private registerIpcListeners(): void {
         
-        ipcMain.on(IpcCommand.WindowMinimize, () => {
+        ipcMain.on(IpcChannel.WindowMinimize, () => {
             this.winMain!.minimize();
         });
 
-        ipcMain.on(IpcCommand.WindowRestore, () => {
+        ipcMain.on(IpcChannel.WindowRestore, () => {
             if (this.winMain!.isMaximized()) {
                 this.winMain!.restore();
             } else {
@@ -185,13 +185,13 @@ class Main {
         });
 
         // notify the renderer process before actual closing
-        ipcMain.on(IpcCommand.WindowClose, () => {
-            this.winMain!.webContents.send(IpcCommand.AboutToClose);
+        ipcMain.on(IpcChannel.WindowClose, () => {
+            this.winMain!.webContents.send(IpcChannel.AboutToClose);
         });
 
         // response to FolderModule, default path is 'desktop' and only can
         // open directory.
-        ipcMain.on(IpcCommand.OpenDirectory, async (_event, data: string[]) => {
+        ipcMain.on(IpcChannel.OpenDirectory, async (_event, data: string[]) => {
 
             // if default path provided, otherwise we choose desktop.
             const path = data[0] ? data[0] : app.getPath('desktop');
@@ -213,36 +213,36 @@ class Main {
 
             if (!res.canceled) {
                 let rootdir = res.filePaths[0];
-                this.winMain!.webContents.send(IpcCommand.OpenDirectory, rootdir);
+                this.winMain!.webContents.send(IpcChannel.OpenDirectory, rootdir);
             }
         });
 
         // once renderer process is ready, we do the actual closing
-        ipcMain.on(IpcCommand.RendererReadyForClose, () => {
+        ipcMain.on(IpcChannel.RendererReadyForClose, () => {
             this.winMain!.close();
         });
         
-        ipcMain.on(IpcCommand.ToggleDevelopTool, () => {
+        ipcMain.on(IpcChannel.ToggleDevelopTool, () => {
             this.__toggleDevTool();
         });
 
-        ipcMain.on(IpcCommand.ErrorInWindow, () => {
+        ipcMain.on(IpcChannel.ErrorInWindow, () => {
             this.__toggleDevTool(true);
         });
 
-        ipcMain.on(IpcCommand.ReloadWindow, () => {
+        ipcMain.on(IpcChannel.ReloadWindow, () => {
             this.winMain!.webContents.reload(); 
         });
 
-        ipcMain.on(IpcCommand.AlwaysOnTopOn, () => {
+        ipcMain.on(IpcChannel.AlwaysOnTopOn, () => {
             this.winMain!.setAlwaysOnTop(true, 'screen-saver');
         });
 
-        ipcMain.on(IpcCommand.AlwaysOnTopOff, () => {
+        ipcMain.on(IpcChannel.AlwaysOnTopOff, () => {
             this.winMain!.setAlwaysOnTop(false, 'screen-saver');
         });
     
-        ipcMain.on(IpcCommand.Test, (_event, data) => {
+        ipcMain.on(IpcChannel.Test, (_event, data) => {
             console.log(data);
         });
     }

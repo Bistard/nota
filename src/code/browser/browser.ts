@@ -9,7 +9,7 @@ import { Schemas, URI } from "src/base/common/file/uri";
 import { DiskFileSystemProvider } from "src/base/node/diskFileSystemProvider";
 import { IIpcService, IpcService } from "src/code/browser/service/ipcService";
 import { ipcRendererSend } from "src/base/electron/register";
-import { IpcCommand } from "src/base/electron/ipcCommand";
+import { IpcChannel } from "src/base/common/ipcChannel";
 import { APP_ROOT_PATH, DEVELOP_ENV } from "src/base/electron/app";
 import { EventType } from "src/base/common/dom";
 import { ILogService, LogLevel, PipelineLogger } from "src/base/common/logger";
@@ -109,7 +109,7 @@ export class Browser {
 
 const onCatchAnyErrors = () => { 
     if (DEVELOP_ENV) {
-        ipcRendererSend(IpcCommand.ErrorInWindow);
+        ipcRendererSend(IpcChannel.ErrorInWindow);
     }
 }
 
