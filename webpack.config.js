@@ -61,7 +61,7 @@ module.exports = [
     Object.assign({}, common_config, {
         target: 'electron-main',
         entry: {
-            main: './src/code/electron-main/main.ts',
+            main: './src/code/electron/main.ts',
         },
         output: {
             filename: '[name]-bundle.js',
