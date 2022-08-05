@@ -6,9 +6,9 @@
  * On the other hand, renderer processes run web pages and do not run Node.js by 
  * default for security reasons. To bridge Electron's different process types 
  * together, we will need to use a special script called a preload.
- ******************************************************************************/
-
-/*******************************************************************************
+ * 
+ *******************************************************************************
+ * 
  * Sketch Map                 A  B  C ...
  *     of                     |  |  |  |          not direct access to nodejs
  * preload.js                ------------                      |
