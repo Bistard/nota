@@ -1,4 +1,4 @@
-import { BrowserWindow, ipcMain, app, dialog } from 'electron';
+import { app } from 'electron';
 import { mkdir } from 'fs/promises';
 import { homedir, tmpdir } from 'os';
 import { ErrorHandler } from 'src/base/common/error';
@@ -20,6 +20,15 @@ import { MainEnvironmentService } from 'src/code/platform/enviroment/electron/ma
  */
 const nota = new class extends class MainProcess {
 
+    // [field]
+
+    private readonly instantiationService!: IInstantiationService;
+    private readonly environmentService!: IMainEnvironmentService;
+    private readonly fileService!: IFileService;
+    private readonly globalConfigService!: IGlobalConfigService;
+    private readonly userConfigService!: IUserConfigService;
+    private readonly logService!: ILogService;
+
     // [constructor]
 
     constructor() {
@@ -38,18 +47,11 @@ const nota = new class extends class MainProcess {
 
     private async initialization(): Promise<void> {
         
-        const [instantiationService, 
-            environmentService, 
-            fileService, 
-            globalConfigService, 
-            userConfigService, 
-            loggerService, 
-            logService]
-        = this.createCoreServices();
+        this.createCoreServices();
 
         try {
 
-            await this.initServices(environmentService, globalConfigService, userConfigService);
+            await this.initServices();
 
         } catch (error) {
             /**
@@ -68,7 +70,7 @@ const nota = new class extends class MainProcess {
     /**
      * @description // TODO
      */
-    private createCoreServices(): [IInstantiationService, IMainEnvironmentService, IFileService, IGlobalConfigService, IUserConfigService, ILoggerService, ILogService] {
+    private createCoreServices(): void {
         
         // dependency injection (DI)
         const serviceCollection = new ServiceCollection();
@@ -113,25 +115,30 @@ const nota = new class extends class MainProcess {
         globalConfigService.onDidLoad(result => { logService.info(`global configuration ${result ? 'loaded': 'faild loading'} at ${globalConfigService.resource!.toString()}.`); });
         userConfigService.onDidLoad(result => { logService.info(`user configuration ${result ? 'loaded': 'faild loading'} at ${userConfigService.resource!.toString()}.`); });
 
-        return [instantiationService, environmentService, fileService, globalConfigService, userConfigService, fileLoggerService, logService];
+        (this.instantiationService as any) = instantiationService;
+        (this.environmentService as any) = environmentService;
+        (this.fileService as any) = fileService;
+        (this.globalConfigService as any) = globalConfigService;
+        (this.userConfigService as any) = userConfigService;
+        (this.logService as any) = logService;
     }
     
-    private async initServices(environmentService: IMainEnvironmentService, globalConfigService: IGlobalConfigService, userConfigService: IUserConfigService): Promise<unknown> {
+    private async initServices(): Promise<any> {
         
-        return Promise.allSettled<unknown>([
+        return Promise.allSettled<any>([
             /**
              * At the very beginning state of the program, we need to initialize
              * all the necessary directories first. We need to ensure each one 
              * is created successfully.
              */
             Promise.all<string | undefined>([
-                environmentService.logPath,
-                environmentService.appSettingPath
+                this.environmentService.logPath,
+                this.environmentService.appSettingPath
             ].map(path => mkdir(URI.toFsPath(path), { recursive: true }))),
 
             // reading all the configurations from the application and users
-            globalConfigService.init(environmentService.appSettingPath),
-            userConfigService.init(environmentService.appSettingPath),
+            this.globalConfigService.init(this.environmentService.appSettingPath),
+            this.userConfigService.init(this.environmentService.appSettingPath),
         ]);
     }
 
