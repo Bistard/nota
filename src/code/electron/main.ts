@@ -266,7 +266,3 @@ class Main {
 
 }
 
-/** 
- * @readonly '❤hello, world!❤'
- */
-new Main();
