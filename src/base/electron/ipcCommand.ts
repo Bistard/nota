@@ -1,13 +1,17 @@
 
 
 /**
- * @enum A series of enum for ipc communication. The main reason having this 
- * enum is only for reducing long string parameter from optimization perspective.
+ * @enum A series of enum for ipc communication. 
+ * 
+ * The main reason having this enum is for: 
+ *      0. Globally usage purpose.
+ *      1. Prevent potential invalid channel.
+ *      2. Less string copy.
  */
 export const enum IpcCommand {
 
     Test =                  '0',
-    ToggleDevelopTool =       '1',
+    ToggleDevelopTool =     '1',
     ReloadWindow =          '2',
     ErrorInWindow =         '3',
 
