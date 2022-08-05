@@ -1,4 +1,4 @@
-import { IDisposable } from "src/base/common/dispose";
+import { IDisposable, toDisposable } from "src/base/common/dispose";
 
 interface IErrorCallback {
     (error: any): void;
@@ -49,11 +49,7 @@ const _ErrorRegistry = new class extends class ErrorRegistry {
 
     public registerListener(listener: IErrorListener): IDisposable {
         this._listeners.push(listener);
-        return {
-            dispose: () => {
-                this.__removeListener(listener);
-            }
-        };
+        return toDisposable(() => this.__removeListener(listener));
     }
 
     // [private helper methods]
