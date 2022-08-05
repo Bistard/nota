@@ -182,7 +182,6 @@ export class FileLoggerService extends AbstractLoggerService {
         const name = opts.name ?? basename(uri.toString());
         const logger = this.instantiationService.createInstance(
             FileLogger,
-            name,
             URI.fromFile(join(URI.toFsPath(uri), name)),
             opts.description ?? opts.name ?? 'No Description',
             level,
