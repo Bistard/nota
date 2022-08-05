@@ -4,8 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { CharCode } from "src/base/common/util/char";
-import { IS_WINDOWS } from "src/base/node/os";
 import * as paths from "src/base/common/file/path";
+import { IS_WINDOWS } from "src/base/common/platform";
 
 /**
  * Uniform Resource Identifier (URI) http://tools.ietf.org/html/rfc3986.
