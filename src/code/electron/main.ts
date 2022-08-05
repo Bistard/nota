@@ -1,18 +1,18 @@
 import { BrowserWindow, ipcMain, app, dialog } from 'electron';
+import { mkdir } from 'fs/promises';
 import { homedir, tmpdir } from 'os';
 import { ErrorHandler } from 'src/base/common/error';
-import { join, resolve } from 'src/base/common/file/path';
-import { Schemas } from 'src/base/common/file/uri';
-import { IpcChannel } from 'src/base/common/ipcChannel';
+import { Schemas, URI } from 'src/base/common/file/uri';import { IpcChannel } from 'src/base/common/ipcChannel';
 import { ILogService, LogLevel, PipelineLogger } from 'src/base/common/logger';
 import { DiskFileSystemProvider } from 'src/base/node/diskFileSystemProvider';
+import { GlobalConfigService, IGlobalConfigService, IUserConfigService, UserConfigService } from 'src/code/common/service/configService/configService';
 import { FileService, IFileService } from 'src/code/common/service/fileService/fileService';
 import { IInstantiationService, InstantiationService } from 'src/code/common/service/instantiationService/instantiation';
 import { ServiceCollection } from 'src/code/common/service/instantiationService/serviceCollection';
 import { ILoggerService } from 'src/code/common/service/logService/abstractLoggerService';
 import { ConsoleLogger } from 'src/code/common/service/logService/consoleLoggerService';
 import { FileLoggerService } from 'src/code/common/service/logService/fileLoggerService';
-import { IEnvironmentService } from 'src/code/platform/enviroment/common/environment';
+import { IEnvironmentService, IMainEnvironmentService } from 'src/code/platform/enviroment/common/environment';
 import { MainEnvironmentService } from 'src/code/platform/enviroment/electron/mainEnvironmentService';
 
 /**
@@ -29,13 +29,6 @@ const nota = new class extends class MainProcess {
             this.initialization();
 
         } catch (unexpectedError: any) {
-
-            /**
-             * Once reach here, there is no any other precautions to prevent 
-             * this error, this is the final catch scope and we must exit the 
-             * whole program immediately.
-             */
-
             console.error(unexpectedError.message ?? 'unknown error message');
             app.exit(1);
         }
@@ -43,15 +36,39 @@ const nota = new class extends class MainProcess {
 
     // [private methods]
 
-    private initialization(): void {
-        const services = this.createCoreServices();
-        // TODO
+    private async initialization(): Promise<void> {
+        
+        const [instantiationService, 
+            environmentService, 
+            fileService, 
+            globalConfigService, 
+            userConfigService, 
+            loggerService, 
+            logService]
+        = this.createCoreServices();
+
+        try {
+
+            await this.initServices(environmentService, globalConfigService, userConfigService);
+
+        } catch (error) {
+            /**
+             * Once reaching here, there is no any other precautions to prevent 
+             * this one. This is the final catch scope and we must exit the 
+             * whole program immediately.
+             */
+
+            // REVIEW: show a dialog
+            
+            throw error;
+        }
+
     }
 
     /**
      * @description // TODO
      */
-    private createCoreServices(): [IInstantiationService] {
+    private createCoreServices(): [IInstantiationService, IMainEnvironmentService, IFileService, IGlobalConfigService, IUserConfigService, ILoggerService, ILogService] {
         
         // dependency injection (DI)
         const serviceCollection = new ServiceCollection();
@@ -66,6 +83,14 @@ const nota = new class extends class MainProcess {
         fileService.registerProvider(Schemas.FILE, new DiskFileSystemProvider());
         instantiationService.register(IFileService, fileService);
 
+        // global-config-service
+        const globalConfigService = new GlobalConfigService(fileService);
+        instantiationService.register(IGlobalConfigService, globalConfigService);
+        
+        // user-config-service
+        const userConfigService = new UserConfigService(fileService);
+        instantiationService.register(IUserConfigService, userConfigService);
+
         // logger-service
         const fileLoggerService = new FileLoggerService(LogLevel.INFO, instantiationService);
         instantiationService.register(ILoggerService, fileLoggerService);
@@ -77,16 +102,37 @@ const nota = new class extends class MainProcess {
                 name: 'main-log.txt'
             }
         );
-        const pipelineLogService = new PipelineLogger([fileLogger, new ConsoleLogger()]);
-        instantiationService.register(ILogService, pipelineLogService);
+        const consoleLogger = new ConsoleLogger(LogLevel.WARN);
+        const logService = new PipelineLogger([fileLogger, consoleLogger]);
+        instantiationService.register(ILogService, logService);
         
-        // configuration
+        // life-cycle-service
         // TODO
 
-        // lifeCycle
-        // TODO
+        
+        globalConfigService.onDidLoad(result => { logService.info(`global configuration ${result ? 'loaded': 'faild loading'} at ${globalConfigService.resource!.toString()}.`); });
+        userConfigService.onDidLoad(result => { logService.info(`user configuration ${result ? 'loaded': 'faild loading'} at ${userConfigService.resource!.toString()}.`); });
 
-        return [instantiationService];
+        return [instantiationService, environmentService, fileService, globalConfigService, userConfigService, fileLoggerService, logService];
+    }
+    
+    private async initServices(environmentService: IMainEnvironmentService, globalConfigService: IGlobalConfigService, userConfigService: IUserConfigService): Promise<unknown> {
+        
+        return Promise.allSettled<unknown>([
+            /**
+             * At the very beginning state of the program, we need to initialize
+             * all the necessary directories first. We need to ensure each one 
+             * is created successfully.
+             */
+            Promise.all<string | undefined>([
+                environmentService.logPath,
+                environmentService.appSettingPath
+            ].map(path => mkdir(URI.toFsPath(path), { recursive: true }))),
+
+            // reading all the configurations from the application and users
+            globalConfigService.init(environmentService.appSettingPath),
+            userConfigService.init(environmentService.appSettingPath),
+        ]);
     }
 
     // [private helper methods]

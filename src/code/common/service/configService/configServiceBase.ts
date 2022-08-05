@@ -6,8 +6,14 @@ import { IConfigChange, IConfigChangeEvent, IConfigModel, IConfigType } from 'sr
 import { IFileService } from 'src/code/common/service/fileService/fileService';
 
 export interface IConfigService {
-    
-    /** The event will be fired when any configurations change. */
+
+    /** The resource of the configuration. */
+    readonly resource?: URI;
+
+    /** Fires once the configuration load completed, could be failed or successed. */
+    readonly onDidLoad: Register<boolean>;
+
+    /** Fires once any configurations change. */
     readonly onDidChangeConfiguration: Register<IConfigChangeEvent>;
 
     /**
@@ -86,13 +92,17 @@ export abstract class ConfigServiceBase extends Disposable implements IConfigSer
 
     // [field]
     
+    protected _uri?: URI;
     protected readonly configType: IConfigType;
     protected readonly configModel: IConfigModel;
     protected readonly fileService: IFileService;
 
     // [event]
 
-    private readonly _onDidChangeConfiguration = this.__register( new Emitter<IConfigChangeEvent>() );
+    private readonly _onDidLoad = this.__register(new Emitter<boolean>());
+    public readonly onDidLoad = this._onDidLoad.registerListener;
+
+    private readonly _onDidChangeConfiguration = this.__register(new Emitter<IConfigChangeEvent>());
     public readonly onDidChangeConfiguration = this._onDidChangeConfiguration.registerListener;
 
     // [constructor]
@@ -107,6 +117,10 @@ export abstract class ConfigServiceBase extends Disposable implements IConfigSer
         this.configModel = configModel;
         this.fileService = fileService;
     }
+
+    // [getter / setter]
+
+    get resource(): URI | undefined { return this._uri; }
 
     // [public method]
 
@@ -154,9 +168,12 @@ export abstract class ConfigServiceBase extends Disposable implements IConfigSer
         }
         
         catch (err) {
+            this._onDidLoad.fire(false);
             throw err;
         }
 
+        this._uri = path;
+        this._onDidLoad.fire(true);
     }
 
     public async save(path: URI): Promise<void> {

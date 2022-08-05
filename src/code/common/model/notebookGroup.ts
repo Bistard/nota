@@ -12,7 +12,7 @@ import { ExplorerItem } from "src/code/browser/workbench/actionView/explorer/exp
 import { IExplorerOpenEvent } from "src/code/browser/workbench/actionView/explorer/explorerTree";
 import { Notebook } from "src/code/common/model/notebook";
 import { DEFAULT_CONFIG_PATH, EGlobalSettings, EUserSettings, GLOBAL_CONFIG_FILE_NAME, GLOBAL_CONFIG_PATH, IGlobalNotebookManagerSettings, IUserNotebookManagerSettings, NOTA_DIR_NAME } from "src/code/common/service/configService/configService";
-import { DEFAULT_CONFIG_FILE_NAME, IUserConfigService, LOCAL_CONFIG_FILE_NAME } from "src/code/common/service/configService/configService";
+import { DEFAULT_CONFIG_FILE_NAME, IUserConfigService, USER_CONFIG_FILE_NAME } from "src/code/common/service/configService/configService";
 import { IGlobalConfigService } from "src/code/common/service/configService/configService";
 import { IFileService } from "src/code/common/service/fileService/fileService";
 import { createDecorator } from "src/code/common/service/instantiationService/decorator";
@@ -299,7 +299,7 @@ export class NotebookGroup extends Disposable implements INotebookGroupService {
         if (notebookConfig.defaultConfigOn) {
             await this.userConfigService.save(URI.fromFile(resolve(DEFAULT_CONFIG_PATH, NOTA_DIR_NAME, DEFAULT_CONFIG_FILE_NAME)));
         }
-        await this.userConfigService.save(URI.fromFile(resolve(this.rootPath(), NOTA_DIR_NAME, LOCAL_CONFIG_FILE_NAME)));
+        await this.userConfigService.save(URI.fromFile(resolve(this.rootPath(), NOTA_DIR_NAME, USER_CONFIG_FILE_NAME)));
         
     }
 

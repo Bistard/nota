@@ -1,5 +1,5 @@
 import { Emitter, Register } from "src/base/common/event";
-import { resolve } from "src/base/common/file/path";
+import { join, resolve } from "src/base/common/file/path";
 import { URI } from "src/base/common/file/uri";
 import { APP_ROOT_PATH, DESKTOP_ROOT_PATH } from "src/base/electron/app";
 import { MarkdownRenderMode } from "src/code/browser/workbench/workspace/markdown/markdown";
@@ -13,7 +13,7 @@ export const NOTA_DIR_NAME = '.nota';
 export const DEFAULT_CONFIG_PATH = APP_ROOT_PATH;
 export const GLOBAL_CONFIG_PATH = APP_ROOT_PATH;
 export const DEFAULT_CONFIG_FILE_NAME = 'user.config.json';
-export const LOCAL_CONFIG_FILE_NAME = DEFAULT_CONFIG_FILE_NAME;
+export const USER_CONFIG_FILE_NAME = DEFAULT_CONFIG_FILE_NAME;
 export const GLOBAL_CONFIG_FILE_NAME = 'nota.config.json';
 
 export type AppMode = 'debug' | 'release';
@@ -30,7 +30,7 @@ export interface IUserConfigService extends IConfigService {
      * @description Validate the folder structure named {@link NOTA_DIR_NAME} 
      * under the opening directory in the explorer view. If missing any directory 
      * it will recreate them. If defaultConfigOn sets to false and we found a 
-     * {@link LOCAL_CONFIG_FILE_NAME}, we will read it into the memory instead 
+     * {@link USER_CONFIG_FILE_NAME}, we will read it into the memory instead 
      * using the default one.
      * @param path The path of the opening directory.
      * @param defaultConfigOn Check if we are using the local user configuration.
@@ -73,7 +73,8 @@ export class UserConfigService extends ConfigServiceBase implements IUserConfigS
 
     // [public method]
 
-    public override async init(path: URI = getDefaultUserConfigPath()): Promise<void> {
+    public override async init(path: URI): Promise<void> {
+        path = __getUserConfigResourcePath(path);
         return await super.init(path);
     }
 
@@ -84,7 +85,7 @@ export class UserConfigService extends ConfigServiceBase implements IUserConfigS
         // validate the folder `.nota`
         await this.__validateLocalUserDirectory(path);
         
-        const configPath = URI.fromFile(resolve(path, LOCAL_CONFIG_FILE_NAME));
+        const configPath = URI.fromFile(resolve(path, USER_CONFIG_FILE_NAME));
         const existed = await this.fileService.exist(configPath);
         
         // read the local user configuration
@@ -157,7 +158,8 @@ export class GlobalConfigService extends ConfigServiceBase implements IGlobalCon
         super(IConfigType.GLOBAL, new DefaultGlobalConfigModel(), fileService);
     }
 
-    public override async init(path: URI = getDefaultGlobalConfigPath()): Promise<void> {
+    public override async init(path: URI): Promise<void> {
+        path = __getGlobalConfigResourcePath(path);
         return await super.init(path);
     }
 
@@ -179,16 +181,16 @@ export class GlobalConfigService extends ConfigServiceBase implements IGlobalCon
  * @readonly Returns a default URI of the global config file which is named 
  * 'nota.config.json' at the root directory of the application.
  */
-function getDefaultGlobalConfigPath(): URI {
-    return URI.fromFile(resolve(APP_ROOT_PATH, NOTA_DIR_NAME, GLOBAL_CONFIG_FILE_NAME));
+function __getGlobalConfigResourcePath(configRootPath: URI): URI {
+    return URI.fromFile(join(URI.toFsPath(configRootPath), GLOBAL_CONFIG_FILE_NAME));
 }
 
 /**
  * @readonly Returns a default URI of the global config file which is named 
  * 'user.config.json' at the root directory of the application.
  */
-function getDefaultUserConfigPath(): URI {
-    return URI.fromFile(resolve(APP_ROOT_PATH, NOTA_DIR_NAME, DEFAULT_CONFIG_FILE_NAME));
+function __getUserConfigResourcePath(configRootPath: URI): URI {
+    return URI.fromFile(join(URI.toFsPath(configRootPath), USER_CONFIG_FILE_NAME));
 }
 
 /*******************************************************************************

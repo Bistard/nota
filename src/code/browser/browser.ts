@@ -67,15 +67,15 @@ export class Browser {
         this.fileService.registerProvider(Schemas.FILE, new DiskFileSystemProvider());
         this.instantiationService.register(IFileService, this.fileService);
         
-        // GlobalConfigService
-        this.globalConfigService = new GlobalConfigService(this.fileService);
-        this.instantiationService.register(IGlobalConfigService, this.globalConfigService);
-        await this.globalConfigService.init();
+        // // GlobalConfigService
+        // this.globalConfigService = new GlobalConfigService(this.fileService);
+        // this.instantiationService.register(IGlobalConfigService, this.globalConfigService);
+        // await this.globalConfigService.init();
 
-        // UserConfigService
-        this.userConfigService = new UserConfigService(this.fileService);
-        this.instantiationService.register(IUserConfigService, this.userConfigService);
-        await this.userConfigService.init();
+        // // UserConfigService
+        // this.userConfigService = new UserConfigService(this.fileService);
+        // this.instantiationService.register(IUserConfigService, this.userConfigService);
+        // await this.userConfigService.init();
 
         // ILoggerService
         const fileLoggerService = new FileLoggerService(LogLevel.INFO, this.instantiationService);
