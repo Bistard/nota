@@ -7,8 +7,8 @@ const safeProcess = function () {
     let _process: ISafeProcess;
 
     // Native sandbox environment
-    if (typeof GLOBAL.vscode !== 'undefined' && typeof GLOBAL.vscode.process !== 'undefined') {
-        const sandboxProcess: INodeProcess = GLOBAL.vscode.process;
+    if (typeof GLOBAL.nota !== 'undefined' && typeof GLOBAL.nota.process !== 'undefined') {
+        const sandboxProcess: INodeProcess = GLOBAL.nota.process;
         _process = {
             get platform() { return sandboxProcess.platform; },
             get arch() { return sandboxProcess.arch; },
@@ -22,7 +22,7 @@ const safeProcess = function () {
             get platform() { return process.platform; },
             get arch() { return process.arch; },
             get env() { return process.env; },
-            cwd() { return process.env['VSCODE_CWD'] || process.cwd(); }
+            cwd() { return process.env['NOTA_CWD'] || process.cwd(); }
         };
     }
     // Web environment
