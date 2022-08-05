@@ -6,7 +6,7 @@ suite('async-test', () => {
     test('Blocker', async () => {
         const blocker = new Blocker<boolean>();
 
-        delayFor(0, () => blocker.signal(true));
+        delayFor(0, () => blocker.resolve(true));
 
         const result = await blocker.waiting();
         assert.strictEqual(result, true);
