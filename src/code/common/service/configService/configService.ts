@@ -9,7 +9,7 @@ import { IFileService } from "src/code/common/service/fileService/fileService";
 import { createDecorator } from "src/code/common/service/instantiationService/decorator";
 import { Language } from "src/code/platform/i18n/i18n";
 
-export const LOCAL_NOTA_DIR_NAME = '.nota';
+export const NOTA_DIR_NAME = '.nota';
 export const DEFAULT_CONFIG_PATH = APP_ROOT_PATH;
 export const GLOBAL_CONFIG_PATH = APP_ROOT_PATH;
 export const DEFAULT_CONFIG_FILE_NAME = 'user.config.json';
@@ -27,7 +27,7 @@ export interface IUserConfigService extends IConfigService {
     onDidChangeNotebookManagerSettings: Register<IUserNotebookManagerSettings>;
 
     /**
-     * @description Validate the folder structure named {@link LOCAL_NOTA_DIR_NAME} 
+     * @description Validate the folder structure named {@link NOTA_DIR_NAME} 
      * under the opening directory in the explorer view. If missing any directory 
      * it will recreate them. If defaultConfigOn sets to false and we found a 
      * {@link LOCAL_CONFIG_FILE_NAME}, we will read it into the memory instead 
@@ -79,7 +79,7 @@ export class UserConfigService extends ConfigServiceBase implements IUserConfigS
 
     public async validateLocalUserDirectory(path: string, defaultConfigOn: boolean): Promise<void> {
 
-        path = resolve(path, LOCAL_NOTA_DIR_NAME);
+        path = resolve(path, NOTA_DIR_NAME);
 
         // validate the folder `.nota`
         await this.__validateLocalUserDirectory(path);
@@ -116,9 +116,9 @@ export class UserConfigService extends ConfigServiceBase implements IUserConfigS
     // [private helper method]
 
     /**
-     * @description Validates the structure of {@link LOCAL_NOTA_DIR_NAME} given
+     * @description Validates the structure of {@link NOTA_DIR_NAME} given
      * the path.
-     * @param path The path to {@link LOCAL_NOTA_DIR_NAME}.
+     * @param path The path to {@link NOTA_DIR_NAME}.
      * 
      * @throws An exception will be thrown if cannot create directory properly.
      */
@@ -180,7 +180,7 @@ export class GlobalConfigService extends ConfigServiceBase implements IGlobalCon
  * 'nota.config.json' at the root directory of the application.
  */
 function getDefaultGlobalConfigPath(): URI {
-    return URI.fromFile(resolve(APP_ROOT_PATH, LOCAL_NOTA_DIR_NAME, GLOBAL_CONFIG_FILE_NAME));
+    return URI.fromFile(resolve(APP_ROOT_PATH, NOTA_DIR_NAME, GLOBAL_CONFIG_FILE_NAME));
 }
 
 /**
@@ -188,7 +188,7 @@ function getDefaultGlobalConfigPath(): URI {
  * 'user.config.json' at the root directory of the application.
  */
 function getDefaultUserConfigPath(): URI {
-    return URI.fromFile(resolve(APP_ROOT_PATH, LOCAL_NOTA_DIR_NAME, DEFAULT_CONFIG_FILE_NAME));
+    return URI.fromFile(resolve(APP_ROOT_PATH, NOTA_DIR_NAME, DEFAULT_CONFIG_FILE_NAME));
 }
 
 /*******************************************************************************

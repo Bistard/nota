@@ -11,7 +11,7 @@ import { IIpcService } from "src/code/browser/service/ipcService";
 import { ExplorerItem } from "src/code/browser/workbench/actionView/explorer/explorerItem";
 import { IExplorerOpenEvent } from "src/code/browser/workbench/actionView/explorer/explorerTree";
 import { Notebook } from "src/code/common/model/notebook";
-import { DEFAULT_CONFIG_PATH, EGlobalSettings, EUserSettings, GLOBAL_CONFIG_FILE_NAME, GLOBAL_CONFIG_PATH, IGlobalNotebookManagerSettings, IUserNotebookManagerSettings, LOCAL_NOTA_DIR_NAME } from "src/code/common/service/configService/configService";
+import { DEFAULT_CONFIG_PATH, EGlobalSettings, EUserSettings, GLOBAL_CONFIG_FILE_NAME, GLOBAL_CONFIG_PATH, IGlobalNotebookManagerSettings, IUserNotebookManagerSettings, NOTA_DIR_NAME } from "src/code/common/service/configService/configService";
 import { DEFAULT_CONFIG_FILE_NAME, IUserConfigService, LOCAL_CONFIG_FILE_NAME } from "src/code/common/service/configService/configService";
 import { IGlobalConfigService } from "src/code/common/service/configService/configService";
 import { IFileService } from "src/code/common/service/fileService/fileService";
@@ -272,7 +272,7 @@ export class NotebookGroup extends Disposable implements INotebookGroupService {
      */
     private async __notebookWriteToJSON(notebook: Notebook, name: string): Promise<void> {
         try {
-            const rootpath = resolve(this._rootPath, LOCAL_NOTA_DIR_NAME, 'structure');
+            const rootpath = resolve(this._rootPath, NOTA_DIR_NAME, 'structure');
             await this.fileService.createFile(
                 URI.fromFile(resolve(rootpath, name + '.json')), 
                 DataBuffer.fromString(notebook.toJSON()), 
@@ -293,13 +293,13 @@ export class NotebookGroup extends Disposable implements INotebookGroupService {
 
         // save global configuration first
         notebookConfig.previousNotebookManagerDir = this.rootPath();
-        await this.globalConfigService.save(URI.fromFile(resolve(GLOBAL_CONFIG_PATH, LOCAL_NOTA_DIR_NAME, GLOBAL_CONFIG_FILE_NAME)));
+        await this.globalConfigService.save(URI.fromFile(resolve(GLOBAL_CONFIG_PATH, NOTA_DIR_NAME, GLOBAL_CONFIG_FILE_NAME)));
         
         // save `user.config.json`
         if (notebookConfig.defaultConfigOn) {
-            await this.userConfigService.save(URI.fromFile(resolve(DEFAULT_CONFIG_PATH, LOCAL_NOTA_DIR_NAME, DEFAULT_CONFIG_FILE_NAME)));
+            await this.userConfigService.save(URI.fromFile(resolve(DEFAULT_CONFIG_PATH, NOTA_DIR_NAME, DEFAULT_CONFIG_FILE_NAME)));
         }
-        await this.userConfigService.save(URI.fromFile(resolve(this.rootPath(), LOCAL_NOTA_DIR_NAME, LOCAL_CONFIG_FILE_NAME)));
+        await this.userConfigService.save(URI.fromFile(resolve(this.rootPath(), NOTA_DIR_NAME, LOCAL_CONFIG_FILE_NAME)));
         
     }
 
