@@ -49,20 +49,34 @@ export async function retry<T>(task: ITask<Promise<T>>, delay: number, retries: 
 }
 
 /**
- * @description Creates a simple {@link Promise} and returns its resolve or 
- * reject functions for manually resolving or rejecting.
- * @returns First returned value is the new created promise, the second returned
- * value is the isolated resolve function, the third returned value is the 
- * isolated reject function.
+ * @description Block the program by calling {@link Blocker.wait()} for waiting
+ * a data with type T. You may signal the blocker to tell if we retrieve the 
+ * data succeeded or failed.
  */
-export function asyncTask<T>(): IAsyncTask<T> {
-	let resolved!: (arg: T) => void;
-	let rejected!: (reason?: any) => void;
-	const promise = new Promise<T>((resolve, reject) => {
-		resolved = resolve;
-		rejected = reject;
-	});
-	return [promise, resolved, rejected];
+export class Blocker<T> {
+
+	private _resolve!: (arg: T) => void;
+	private _reject!: (reason?: any) => void;
+	private _promise: Promise<T>;
+
+	constructor() {
+		this._promise = new Promise<T>((resolve, reject) => {
+			this._resolve = resolve;
+			this._reject = reject;
+		});
+	}
+
+	public async waiting(): Promise<T> {
+		return this._promise;
+	}
+
+	public resolve(data: T): void {
+		this._resolve(data);
+	}
+
+	public reject(reason?: any): void {
+		this._reject(reason);
+	}
 }
 
 export type IAsyncPromiseTask<T> = {

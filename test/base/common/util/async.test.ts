@@ -1,5 +1,18 @@
 import * as assert from 'assert';
-import { AsyncParallelExecutor, delayFor } from 'src/base/common/util/async';
+import { AsyncParallelExecutor, Blocker, delayFor } from 'src/base/common/util/async';
+
+suite('async-test', () => {
+
+    test('Blocker', async () => {
+        const blocker = new Blocker<boolean>();
+
+        delayFor(0, () => blocker.signal(true));
+
+        const result = await blocker.waiting();
+        assert.strictEqual(result, true);
+    });
+
+});
 
 suite('AsyncParallelExecutor', () => {
 
