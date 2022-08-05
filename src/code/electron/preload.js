@@ -8,6 +8,19 @@
  * together, we will need to use a special script called a preload.
  ******************************************************************************/
 
+/*******************************************************************************
+ * Sketch Map                 A  B  C ...
+ *     of                     |  |  |  |          not direct access to nodejs
+ * preload.js                ------------                      |
+ *                           |   main   |                ------------
+ *                           |          |                | renderer |
+ *                           |  process |\             / ------------
+ *                           ------------ \           /
+ *                                         ----------- 
+ *                                         | preload | —— D, E, NodeJS...
+ * A,B,C,D,E are IPC channels              ----------- 
+ ******************************************************************************/
+
 (function () {
 	'use strict';
 
