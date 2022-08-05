@@ -154,6 +154,11 @@ export interface ILoggerOpts {
     readonly name?: string;
 
     /**
+     * The description of the logger.
+     */
+    readonly description?: string;
+
+    /**
      * If use the built-in formatter to format the message.
      */
     readonly noFormatter?: boolean;

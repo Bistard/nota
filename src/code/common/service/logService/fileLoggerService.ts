@@ -30,7 +30,7 @@ export class FileLogger extends AbstractLogger implements ILogger {
 
     // [field]
 
-    private readonly _name: string;
+    private readonly _description: string;
     private readonly _uri: URI;
     private readonly _queue: AsyncQueue<void>;
 
@@ -42,15 +42,16 @@ export class FileLogger extends AbstractLogger implements ILogger {
     // [cosntructor]
 
     constructor(
-        name: string,
         uri: URI,
+        description: string,
         level: LogLevel,
         noFormatter: boolean,
         @IFileService private readonly fileService: IFileService
     ) {
         super(level);
-        this._name = name;
+        this._description = description;
         this._uri = uri;
+
         this._queue = new AsyncQueue();
         this._backupCnt = 1;
         this._backupExt = '';
@@ -135,7 +136,7 @@ export class FileLogger extends AbstractLogger implements ILogger {
             }
 
             if (this._noFormatter === false) {
-                message = `[${getCurrTimeStamp()}] [${this._name}] [${parseLogLevel(level)}] ${message}\n`;
+                message = `[${getCurrTimeStamp()}] [${this._description}] [${parseLogLevel(level)}] ${message}\n`;
             }
 
             let content = (await this.fileService.readFile(this._uri)).toString();
@@ -178,10 +179,12 @@ export class FileLoggerService extends AbstractLoggerService {
     }
 
     protected override __doCreateLogger(uri: URI, level: LogLevel, opts: ILoggerOpts): ILogger {
+        const name = opts.name ?? basename(uri.toString());
         const logger = this.instantiationService.createInstance(
             FileLogger,
-            opts.name ?? basename(uri.toString()),
-            uri,
+            name,
+            URI.fromFile(join(URI.toFsPath(uri), name)),
+            opts.description ?? opts.name ?? 'No Description',
             level,
             opts.noFormatter ?? false
         );
