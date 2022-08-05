@@ -38,5 +38,7 @@ export class MainEnvironmentService implements IMainEnvironmentService {
     @memoize
     get logPath(): URI { return URI.fromFile(join(this.opts.appRootPath, NOTA_DIR_NAME, 'log', getCurrTimeStamp().replace(/-|:| |\./g, ''))); }
 
+    @memoize
+    get appSettingPath(): URI { return URI.fromFile(join(this.opts.appRootPath, NOTA_DIR_NAME)); }
 }
 

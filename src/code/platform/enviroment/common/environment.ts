@@ -33,15 +33,17 @@ export interface IEnvironmentService {
     // production
     readonly mode: 'develop' | 'release';
 
+    // setting
+    readonly appSettingPath: URI;
+    
+    // logging
+    readonly logPath: URI;
 }
 
 /**
  * The native environment works only in main process in Electron.
  */
 export interface IMainEnvironmentService extends IEnvironmentService {
-
-    // logging
-    readonly logPath: URI;
 
     // data path
     readonly userHomePath: URI; 
