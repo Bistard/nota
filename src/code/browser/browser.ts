@@ -63,9 +63,9 @@ export class Browser {
         this.instantiationService.register(IIpcService, new ServiceDescriptor(IpcService));
 
         // fileService
-        this.fileService = new FileService();
-        this.fileService.registerProvider(Schemas.FILE, new DiskFileSystemProvider());
-        this.instantiationService.register(IFileService, this.fileService);
+        // this.fileService = new FileService();
+        // this.fileService.registerProvider(Schemas.FILE, new DiskFileSystemProvider());
+        // this.instantiationService.register(IFileService, this.fileService);
         
         // // GlobalConfigService
         // this.globalConfigService = new GlobalConfigService(this.fileService);

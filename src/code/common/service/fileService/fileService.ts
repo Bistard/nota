@@ -1,15 +1,17 @@
+import { Disposable } from "src/base/common/dispose";
 import { DataBuffer } from "src/base/common/file/buffer";
 import { FileSystemProviderAbleToRead, hasOpenReadWriteCloseCapability, hasReadWriteCapability, IReadFileOptions, IFileSystemProvider, IFileSystemProviderWithFileReadWrite, IFileSystemProviderWithOpenReadWriteClose, IWriteFileOptions, IFileStat, FileType, FileOperationErrorType, FileSystemProviderCapability, IDeleteFileOptions, IResolveStatOptions, IResolvedFileStat, hasReadFileStreamCapability, IFileSystemProviderWithReadFileStream, ICreateFileOptions, FileOperationError } from "src/base/common/file/file";
 import { basename, dirname, join } from "src/base/common/file/path";
 import { bufferToStream, IReadableStream, listenStream, newWriteableBufferStream, streamToBuffer, transformStream } from "src/base/common/file/stream";
 import { isAbsoluteURI, URI } from "src/base/common/file/uri";
+import { ILogService } from "src/base/common/logger";
 import { Iterable } from "src/base/common/util/iterable";
 import { readFileIntoStream, readFileIntoStreamAsync } from "src/base/node/io";
 import { createDecorator } from "src/code/common/service/instantiationService/decorator";
 
 export const IFileService = createDecorator<IFileService>('file-service');
 
-export interface IFileService {
+export interface IFileService extends Disposable {
     
     /** 
      * @description Registers a file system provider for a given scheme. 
@@ -90,7 +92,7 @@ export interface IFileService {
     watch(uri: URI): void;
 }
 
-export class FileService implements IFileService {
+export class FileService extends Disposable implements IFileService {
 
     // [fields]
 
@@ -101,10 +103,8 @@ export class FileService implements IFileService {
 
     // [constructor]
 
-    constructor(
-        /* ILogService private readonly logService: ILogService */
-    ) {
-
+    constructor(@ILogService private readonly logService: ILogService) {
+        super();
     }
 
     /***************************************************************************

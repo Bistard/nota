@@ -212,6 +212,10 @@ export class PipelineLogger extends AbstractLogger implements ILogService {
         }
     }
 
+    public add(logger: ILogger): void {
+        this._loggers.push(logger);
+    }
+
     public trace(message: string, ...args: any[]): void {
         for (const logger of this._loggers) {
 			logger.trace(message, ...args);

@@ -6,7 +6,7 @@ import { ILogService } from 'src/base/common/logger';
 import { IConfigChange, IConfigChangeEvent, IConfigModel, IConfigType } from 'src/code/common/service/configService/configModel';
 import { IFileService } from 'src/code/common/service/fileService/fileService';
 
-export interface IConfigService {
+export interface IConfigService extends Disposable {
 
     /** The resource of the configuration. */
     readonly resource?: URI;
