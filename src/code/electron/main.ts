@@ -3,20 +3,20 @@ import { mkdir } from 'fs/promises';
 import { homedir, tmpdir } from 'os';
 import { ErrorHandler } from 'src/base/common/error';
 import { Event } from 'src/base/common/event';
-import { Schemas, URI } from 'src/base/common/file/uri';import { IpcChannel } from 'src/base/common/ipcChannel';
+import { Schemas, URI } from 'src/base/common/file/uri';
 import { ILogService, LogLevel, PipelineLogger } from 'src/base/common/logger';
 import { DiskFileSystemProvider } from 'src/base/node/diskFileSystemProvider';
 import { GlobalConfigService, IGlobalConfigService, IUserConfigService, UserConfigService } from 'src/code/common/service/configService/configService';
 import { FileService, IFileService } from 'src/code/common/service/fileService/fileService';
-import { ServiceDescriptor } from 'src/code/common/service/instantiationService/descriptor';
 import { IInstantiationService, InstantiationService } from 'src/code/common/service/instantiationService/instantiation';
 import { ServiceCollection } from 'src/code/common/service/instantiationService/serviceCollection';
 import { ILoggerService } from 'src/code/common/service/logService/abstractLoggerService';
 import { ConsoleLogger } from 'src/code/common/service/logService/consoleLoggerService';
 import { FileLoggerService } from 'src/code/common/service/logService/fileLoggerService';
+import { NotaInstance } from 'src/code/electron/nota';
 import { IEnvironmentService, IMainEnvironmentService } from 'src/code/platform/enviroment/common/environment';
 import { MainEnvironmentService } from 'src/code/platform/enviroment/electron/mainEnvironmentService';
-import { IBeforeQuitEvent, IMainLifeCycleService, MainLifeCycleService } from 'src/code/platform/lifeCycle/electron/mainLifeCycleService';
+import { IMainLifeCycleService, MainLifeCycleService } from 'src/code/platform/lifeCycle/electron/mainLifeCycleService';
 
 /**
  * @class // TODO
@@ -51,15 +51,15 @@ const nota = new class extends class MainProcess {
 
     private async run(): Promise<void> {
         let error: any;
-        
+
         // core
         this.createCoreServices();
         
         // initialization
         try {
             await this.initServices();
-
-        } catch (err) {
+        } 
+        catch (err) {
             /**
              * Once reaching here, there is no any other precautions to prevent 
              * this one. This is the final catch scope and we must exit the 
@@ -71,17 +71,16 @@ const nota = new class extends class MainProcess {
 
         // application run
         try {
-
             Event.once(this.lifeCycleService.onWillQuit)(e => {
                 this.fileService.dispose();
                 this.userConfigService.dispose();
                 this.globalConfigService.dispose();
             });
 
-            // TODO: run the application
-            // this.instantiationService.createInstance().run();
-
-        } catch (err) {
+            const instance = this.instantiationService.createInstance(NotaInstance);
+            instance.run;
+        } 
+        catch (err) {
             error = err;
         }
 
@@ -92,7 +91,8 @@ const nota = new class extends class MainProcess {
     }
 
     /**
-     * @description // TODO
+     * @description The very basic services that need to be created before 
+     * everything.
      */
     private createCoreServices(): void {
         
@@ -148,6 +148,10 @@ const nota = new class extends class MainProcess {
         (this.lifeCycleService as any) = lifeCycleService;
     }
     
+    /**
+     * @description Some services need to be initialized asynchronously once the 
+     * services are created.
+     */
     private async initServices(): Promise<any> {
         
         return Promise.allSettled<any>([
