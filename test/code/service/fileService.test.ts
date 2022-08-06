@@ -3,7 +3,7 @@ import { DataBuffer } from 'src/base/common/file/buffer';
 import { FileType } from 'src/base/common/file/file';
 import { dirname, posix, resolve } from 'src/base/common/file/path';
 import { URI } from 'src/base/common/file/uri';
-import { Iterable } from 'src/base/common/util/iterable';
+import { NullLogger } from 'src/base/common/logger';
 import { DiskFileSystemProvider } from 'src/base/node/diskFileSystemProvider';
 import { fileExists } from 'src/base/node/io';
 import { FileService } from 'src/code/common/service/fileService/fileService';
@@ -11,7 +11,7 @@ import { FileService } from 'src/code/common/service/fileService/fileService';
 suite('FileService-disk-unbuffered-test', () => {
 
     test('provider registration', async () => {
-        const service = new FileService();
+        const service = new FileService(new NullLogger());
         const provider = new DiskFileSystemProvider();
         service.registerProvider('file', provider);
 
@@ -19,7 +19,7 @@ suite('FileService-disk-unbuffered-test', () => {
     });
 
     test('stat - basic', async () => {
-        const service = new FileService();
+        const service = new FileService(new NullLogger());
         const provider = new DiskFileSystemProvider();
         service.registerProvider('file', provider);
 
@@ -32,7 +32,7 @@ suite('FileService-disk-unbuffered-test', () => {
     });
     
     test('stat - resolve children', async () => {
-        const service = new FileService();
+        const service = new FileService(new NullLogger());
         const provider = new DiskFileSystemProvider();
         service.registerProvider('file', provider);
 
@@ -45,7 +45,7 @@ suite('FileService-disk-unbuffered-test', () => {
     });
 
     test('stat - resolve children recursive', async () => {
-        const service = new FileService();
+        const service = new FileService(new NullLogger());
         const provider = new DiskFileSystemProvider();
         service.registerProvider('file', provider);
 
@@ -63,7 +63,7 @@ suite('FileService-disk-unbuffered-test', () => {
     });
 
     test('readFile - basic', async () => {
-        const service = new FileService();
+        const service = new FileService(new NullLogger());
         const provider = new DiskFileSystemProvider();
         service.registerProvider('file', provider);
         
@@ -74,7 +74,7 @@ suite('FileService-disk-unbuffered-test', () => {
     });
 
     test('readFile - error', async () => {
-        const service = new FileService();
+        const service = new FileService(new NullLogger());
         const provider = new DiskFileSystemProvider();
         service.registerProvider('file', provider);
         
@@ -89,7 +89,7 @@ suite('FileService-disk-unbuffered-test', () => {
     });
 
     test('readDir', async () => {
-        const service = new FileService();
+        const service = new FileService(new NullLogger());
         const provider = new DiskFileSystemProvider();
         service.registerProvider('file', provider);
 
@@ -107,7 +107,7 @@ suite('FileService-disk-unbuffered-test', () => {
     });
 
     test('createDir', async () => {
-        const service = new FileService();
+        const service = new FileService(new NullLogger());
         const provider = new DiskFileSystemProvider();
         service.registerProvider('file', provider);
 
@@ -129,7 +129,7 @@ suite('FileService-disk-unbuffered-test', () => {
     });
 
     test('exist', async () => {
-        const service = new FileService();
+        const service = new FileService(new NullLogger());
         const provider = new DiskFileSystemProvider();
         service.registerProvider('file', provider);
 
@@ -140,7 +140,7 @@ suite('FileService-disk-unbuffered-test', () => {
     });
 
     test('delete - file', async () => {
-        const service = new FileService();
+        const service = new FileService(new NullLogger());
         const provider = new DiskFileSystemProvider();
         service.registerProvider('file', provider);
 
@@ -166,7 +166,7 @@ suite('FileService-disk-unbuffered-test', () => {
     });
 
     test('delete - directory', async () => {
-        const service = new FileService();
+        const service = new FileService(new NullLogger());
         const provider = new DiskFileSystemProvider();
         service.registerProvider('file', provider);
 
@@ -189,7 +189,7 @@ suite('FileService-disk-unbuffered-test', () => {
     });
 
     test('delete - recursive', async () => {
-        const service = new FileService();
+        const service = new FileService(new NullLogger());
         const provider = new DiskFileSystemProvider();
         service.registerProvider('file', provider);
 
@@ -213,7 +213,7 @@ suite('FileService-disk-unbuffered-test', () => {
     });
 
     test('delete - non recursive', async () => {
-        const service = new FileService();
+        const service = new FileService(new NullLogger());
         const provider = new DiskFileSystemProvider();
         service.registerProvider('file', provider);
 
@@ -231,7 +231,7 @@ suite('FileService-disk-unbuffered-test', () => {
     });
 
     test('writeFile - basic', async () => {
-        const service = new FileService();
+        const service = new FileService(new NullLogger());
         const provider = new DiskFileSystemProvider();
         service.registerProvider('file', provider);
 
@@ -255,7 +255,7 @@ suite('FileService-disk-unbuffered-test', () => {
     }
 
     test('writeFile - create', async () => {
-        const service = new FileService();
+        const service = new FileService(new NullLogger());
         const provider = new DiskFileSystemProvider();
         service.registerProvider('file', provider);
 
@@ -280,7 +280,7 @@ suite('FileService-disk-unbuffered-test', () => {
     });
 
     test('writeFile - create recursive', async () => {
-        const service = new FileService();
+        const service = new FileService(new NullLogger());
         const provider = new DiskFileSystemProvider();
         service.registerProvider('file', provider);
 
@@ -305,7 +305,7 @@ suite('FileService-disk-unbuffered-test', () => {
     });
 
     test('writeFile - overwrite', async () => {
-        const service = new FileService();
+        const service = new FileService(new NullLogger());
         const provider = new DiskFileSystemProvider();
         service.registerProvider('file', provider);
 
@@ -321,7 +321,7 @@ suite('FileService-disk-unbuffered-test', () => {
     });
    
     async function __createFileWithSize(sizeInByte: number, filename: string, fill: string = '0'): Promise<void> {
-        const service = new FileService();
+        const service = new FileService(new NullLogger());
         const provider = new DiskFileSystemProvider();
         service.registerProvider('file', provider);
 
@@ -335,7 +335,7 @@ suite('FileService-disk-unbuffered-test', () => {
     const str10mb = __generateString(40 * 256 * 1024, '0');
 
     test('readFile - 256kb', async () => {
-        const service = new FileService();
+        const service = new FileService(new NullLogger());
         const provider = new DiskFileSystemProvider();
         service.registerProvider('file', provider);
 
@@ -349,7 +349,7 @@ suite('FileService-disk-unbuffered-test', () => {
     });
 
     test('writeFile - 256kb', async () => {
-        const service = new FileService();
+        const service = new FileService(new NullLogger());
         const provider = new DiskFileSystemProvider();
         service.registerProvider('file', provider);
 
@@ -364,7 +364,7 @@ suite('FileService-disk-unbuffered-test', () => {
     });
 
     test('readFile - 1mb', async () => {
-        const service = new FileService();
+        const service = new FileService(new NullLogger());
         const provider = new DiskFileSystemProvider();
         service.registerProvider('file', provider);
 
@@ -378,7 +378,7 @@ suite('FileService-disk-unbuffered-test', () => {
     });
 
     test('writeFile - 1mb', async () => {
-        const service = new FileService();
+        const service = new FileService(new NullLogger());
         const provider = new DiskFileSystemProvider();
         service.registerProvider('file', provider);
 
@@ -393,7 +393,7 @@ suite('FileService-disk-unbuffered-test', () => {
     });
 
     test('readFile - 10mb', async () => {
-        const service = new FileService();
+        const service = new FileService(new NullLogger());
         const provider = new DiskFileSystemProvider();
         service.registerProvider('file', provider);
 
@@ -407,7 +407,7 @@ suite('FileService-disk-unbuffered-test', () => {
     });
 
     test('writeFile - 10mb', async () => {
-        const service = new FileService();
+        const service = new FileService(new NullLogger());
         const provider = new DiskFileSystemProvider();
         service.registerProvider('file', provider);
 
@@ -422,7 +422,7 @@ suite('FileService-disk-unbuffered-test', () => {
     });
 
     test('readFileStream', async () => {
-        const service = new FileService();
+        const service = new FileService(new NullLogger());
         const provider = new DiskFileSystemProvider();
         service.registerProvider('file', provider);
 
