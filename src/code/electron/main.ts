@@ -7,6 +7,7 @@ import { ILogService, LogLevel, PipelineLogger } from 'src/base/common/logger';
 import { DiskFileSystemProvider } from 'src/base/node/diskFileSystemProvider';
 import { GlobalConfigService, IGlobalConfigService, IUserConfigService, UserConfigService } from 'src/code/common/service/configService/configService';
 import { FileService, IFileService } from 'src/code/common/service/fileService/fileService';
+import { ServiceDescriptor } from 'src/code/common/service/instantiationService/descriptor';
 import { IInstantiationService, InstantiationService } from 'src/code/common/service/instantiationService/instantiation';
 import { ServiceCollection } from 'src/code/common/service/instantiationService/serviceCollection';
 import { ILoggerService } from 'src/code/common/service/logService/abstractLoggerService';
@@ -14,6 +15,7 @@ import { ConsoleLogger } from 'src/code/common/service/logService/consoleLoggerS
 import { FileLoggerService } from 'src/code/common/service/logService/fileLoggerService';
 import { IEnvironmentService, IMainEnvironmentService } from 'src/code/platform/enviroment/common/environment';
 import { MainEnvironmentService } from 'src/code/platform/enviroment/electron/mainEnvironmentService';
+import { IMainLifeCycleService, MainLifeCycleService } from 'src/code/platform/lifeCycle/electron/mainLifeCycleService';
 
 /**
  * @class // TODO
@@ -109,7 +111,7 @@ const nota = new class extends class MainProcess {
         instantiationService.register(ILogService, logService);
         
         // life-cycle-service
-        // TODO
+        instantiationService.register(IMainLifeCycleService, new ServiceDescriptor(MainLifeCycleService));
 
         
         globalConfigService.onDidLoad(result => { logService.info(`global configuration ${result ? 'loaded': 'faild loading'} at ${globalConfigService.resource!.toString()}.`); });
