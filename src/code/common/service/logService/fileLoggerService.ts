@@ -128,7 +128,7 @@ export class FileLogger extends AbstractLogger implements ILogger {
      */
     private __log(level: LogLevel, message: string): void {
         
-        this._queue.push(async () => {
+        this._queue.queue(async () => {
             
             if (this._initPromise) {
                 await this._initPromise;
