@@ -86,9 +86,9 @@ export type IAsyncPromiseTask<T> = {
 };
 
 /**
- * An interface for {@link AsyncParallelExecutor}.
+ * An interface for {@link AsyncExecutor}.
  */
-export interface IAsyncParallelExecutor<T> extends Disposable {
+export interface IAsyncExecutor<T> extends Disposable {
 	
 	/**
 	 * The total number of promises that are either being waiting or executing.
@@ -106,7 +106,7 @@ export interface IAsyncParallelExecutor<T> extends Disposable {
 	 * @returns Returns a promise that will resolve the promise of the return 
 	 * value of the {@link ITask}.
 	 */
-	push(task: ITask<Promise<T>>): Promise<T>;
+	queue(task: ITask<Promise<T>>): Promise<T>;
 
 	/**
 	 * @description Pauses the executor (the running promises will not be paused).
@@ -123,7 +123,7 @@ export interface IAsyncParallelExecutor<T> extends Disposable {
  * @class A helper tool that guarantees no more than N promises are running at 
  * the same time.
  */
-export class AsyncParallelExecutor<T> extends Disposable implements IAsyncParallelExecutor<T> {
+export class AsyncExecutor<T> extends Disposable implements IAsyncExecutor<T> {
 
 	// [field]
 
@@ -155,7 +155,7 @@ export class AsyncParallelExecutor<T> extends Disposable implements IAsyncParall
 		return this._size;
 	}
 
-	public push(task: ITask<Promise<T>>): Promise<T> {
+	public queue(task: ITask<Promise<T>>): Promise<T> {
 		this._size++;
 		return new Promise((resolve, reject) => {
 			this._waitingPromises.push({ task, resolve, reject });
@@ -216,7 +216,7 @@ export class AsyncParallelExecutor<T> extends Disposable implements IAsyncParall
  * @class An async queue helper that guarantees only 1 promise are running at 
  * the same time.
  */
-export class AsyncQueue<T> extends AsyncParallelExecutor<T> {
+export class AsyncQueue<T> extends AsyncExecutor<T> {
 	constructor() {
 		super(1);
 	}
