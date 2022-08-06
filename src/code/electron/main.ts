@@ -50,6 +50,11 @@ const nota = new class extends class MainProcess {
     // [private methods]
 
     private async run(): Promise<void> {
+        
+        /**
+         * No error tolerance at this stage since all the work here are 
+         * necessary for the future works.
+         */
         let error: any;
 
         // core
@@ -86,7 +91,7 @@ const nota = new class extends class MainProcess {
 
         // error handling
         if (error) {
-            // TODO
+            this.kill(error);
         }
     }
 
@@ -169,6 +174,16 @@ const nota = new class extends class MainProcess {
             this.globalConfigService.init(this.environmentService.appSettingPath),
             this.userConfigService.init(this.environmentService.appSettingPath),
         ]);
+    }
+
+    private kill(error: Error): void {
+        if (error.stack) {
+            this.logService.error(error.stack);
+        } else {
+            this.logService.error(`Main process error: ${error.toString()}`);
+        }
+
+        this.lifeCycleService.kill(1);
     }
 
     // [private helper methods]
