@@ -21,7 +21,7 @@ export type Language =
     'zh-tw'     // Chinese (Traditional)
 ;
 
-export type Ii18nSection = { [key: string]: string }
+type Ii18nSection = { [key: string]: string }
 
 export interface Ii18nOpts {
 

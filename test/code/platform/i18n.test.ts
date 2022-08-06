@@ -1,6 +1,6 @@
 import * as assert from 'assert';
 import { FileService, IFileService } from 'src/code/common/service/fileService/fileService';
-import { i18n, Ii18nSection } from 'src/code/platform/i18n/i18n';
+import { i18n } from 'src/code/platform/i18n/i18n';
 import { Section } from 'src/code/platform/section';
 
 class i18nTest extends i18n {
@@ -11,7 +11,7 @@ class i18nTest extends i18n {
         super({localeOpts: {}}, fileService);
     }
 
-    public setModel(model: { [key: string]: Ii18nSection }): void {
+    public setModel(model: any): void {
         this._model = model as any;
     }
 
