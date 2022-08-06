@@ -73,28 +73,34 @@ export interface IMainLifeCycleService {
      */
     readonly onWillQuit: Register<IBeforeQuitEvent>;
 
-    /** The current phase of the application. */
+    /** 
+     * The current phase of the application. 
+     */
     readonly phase: LifeCyclePhase;
 
     /**
-     * @description // TODO
-     * @param newPhase 
+     * @description Set the phase of the whole application.
+     * @param newPhase The new phase.
+     * @throws New phase cannot go backwards, otherwise an error will be thrown.
      */
     setPhase(newPhase: LifeCyclePhase): void;
 
     /**
-     * @description // TODO
-     * @param desiredPhase 
+     * @description Returns a promise that will be resolved once the required 
+     * phase has reached.
+     * @param desiredPhase The desired phase waiting to be reached.
      */
     when(desiredPhase: LifeCyclePhase): Promise<void>;
 
     /**
-     * @description // TODO
+     * @description Quit the whole application. It will invoke `app.quit()`.
      */
     quit(): Promise<void>;
 
     /**
-     * @description // TODO
+     * @description Kill the application with the given exitcode. Different than
+     * `this.quit()`, it will try to destroy every window within a second, than 
+     * invoke `app.exit()`.
      * @param exitcode The exiting code.
      * @default exitcode 1
      */
@@ -102,7 +108,8 @@ export interface IMainLifeCycleService {
 }
 
 /**
- * @class // TODO
+ * @class A class used in main process to control the lifecycle of the whole 
+ * application (including all the registered windows).
  */
 export class MainLifeCycleService extends Disposable implements IMainLifeCycleService {
 
@@ -174,20 +181,18 @@ export class MainLifeCycleService extends Disposable implements IMainLifeCycleSe
         return blocker.waiting();
     }
 
-    public quit(): Promise<void> {
+    public async quit(): Promise<void> {
         if (this._pendingQuitBlocker) {
             return this._pendingQuitBlocker.waiting();
         }
         
         this.logService.trace('Main#LifeCycleService#quit()');
-        
         this._pendingQuitBlocker = new Blocker<void>();
-        const promise = this._pendingQuitBlocker.waiting().then(() => {
-            this.logService.trace('Main#LifeCycleService#app.quit()');
-            app.quit();
-        });
+        
+        this.logService.trace('Main#LifeCycleService#app.quit()');
+        app.quit();
 
-        return promise;
+        return this._pendingQuitBlocker.waiting();
     }
 
     public async kill(exitcode: number = 1): Promise<void> {
@@ -229,57 +234,24 @@ export class MainLifeCycleService extends Disposable implements IMainLifeCycleSe
      *      - app.once('will-quit').
      */
     private __registerListeners(): void {
+        
+        let onWindowAllClosed: () => void;
+        let onBeforeQuitAnyWindows: () => void;
 
-        // #1
-        const onWindowAllClosed = () => {
-            // Once we subscribe this, we have control on whether to quit the app.
-            
-            this.logService.trace('Main#LifeCycleService#app.addListener("window-all-closed")');
-
-            // mac: only quit when requested
-            if (IS_MAC && this._requestQuit) {
-                app.quit();
-                return;
-            }
-
-            // win / linux: quit when all window are all closed
-            app.quit();
-        };
-        app.addListener('window-all-closed', onWindowAllClosed);
-
-        // #2
-        const onBeforeQuitAnyWindows = () => {
-            // Fires if the app quit is requested but before any windows is closed.
-            
-            if (this._requestQuit) {
-                return;
-            }
-
-            this.logService.trace('Main#LifeCycleService#app.addListener("before-quit")');
-            this._requestQuit = true;
-            
-            this.logService.trace('Main#LifeCycleService#onBeforeQuit.fire()')
-            this._onBeforeQuit.fire();
-
-            /**
-             * mac: can run without any window open. in that case we fire the 
-             * onWillQuit() event directly because there is no veto to be 
-             * expected.
-             */
-			if (IS_MAC && this._windowCount === 0) {
-				this.__fireOnBeforeQuit(QuitReason.Quit);
-			}
-        };
-        app.addListener('before-quit', onBeforeQuitAnyWindows);
-
-        // #3
+        /**
+         * Once {@link app.quit} is invoked, electron will emit 'before-quit' 
+         * first, once all the windows are closed propery, 'will-quit' will be 
+         * emitted. Since it is a 'once' registration, we prevent electron to 
+         * terminate the application at the first time so that we can notify
+         * the other services before we actual invoke the second {@link app.quit}
+         * which will not be prevented and will quit normally.
+         */
         app.once('will-quit', (event: Electron.Event) => {
             this.logService.trace('Main#LifeCycleService#app.once("will-quit")');
 
             // Prevent the quit until the promise was resolved
 			event.preventDefault();
 
-			
 			this.__fireOnBeforeQuit(QuitReason.Quit)
             .finally(() => {
 
@@ -297,6 +269,54 @@ export class MainLifeCycleService extends Disposable implements IMainLifeCycleSe
 				app.quit();
 			});
         });
+
+        /**
+         * Once we subscribe this, we have the control on whether to quit the 
+         * application once all the windows are closed.
+         * 
+         * @example When user press `cmd + Q` in a electron window or the 
+         * function `app.quit()` is invoked, electron will first try to close 
+         * all the windows and then emit the `will-quit` event. In this case,
+         * 'window-all-closed' will not emit.
+         */
+        onWindowAllClosed = () => {
+            this.logService.trace('Main#LifeCycleService#app.addListener("window-all-closed")');
+            // mac: only quit when requested
+            if (IS_MAC && this._requestQuit) {
+                app.quit();
+                return;
+            }
+            // win / linux: quit when all window are all closed
+            app.quit();
+        };
+        app.addListener('window-all-closed', onWindowAllClosed);
+
+        /**
+         * Fires if the application quit is requested but before any windows is 
+         * closed. Will reached when `app.quit()` was invoked. We need to mark
+         * as quit requested for Macintosh optimization purpose.
+         */
+        onBeforeQuitAnyWindows = () => {
+            if (this._requestQuit) {
+                return;
+            }
+
+            this.logService.trace('Main#LifeCycleService#app.addListener("before-quit")');
+            this._requestQuit = true;
+            
+            this.logService.trace('Main#LifeCycleService#onBeforeQuit.fire()')
+            this._onBeforeQuit.fire();
+
+            /**
+             * mac: can run without any window open. in that case we fire the 
+             * onWillQuit() event directly because there is no veto to be 
+             * expected.
+             */
+			if (IS_MAC && !this._windowCount) {
+				this.__fireOnBeforeQuit(QuitReason.Quit);
+			}
+        };
+        app.addListener('before-quit', onBeforeQuitAnyWindows);
     }
 
     /**

@@ -136,7 +136,7 @@ const nota = new class extends class MainProcess {
                 this.environmentService.appSettingPath
             ].map(path => mkdir(URI.toFsPath(path), { recursive: true }))),
 
-            // reading all the configurations from the application and users
+            // reading all the configurations for the programs and users
             this.globalConfigService.init(this.environmentService.appSettingPath),
             this.userConfigService.init(this.environmentService.appSettingPath),
         ]);
