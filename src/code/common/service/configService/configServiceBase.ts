@@ -2,6 +2,7 @@ import { Disposable } from 'src/base/common/dispose';
 import { Emitter, Register } from 'src/base/common/event';
 import { DataBuffer } from 'src/base/common/file/buffer';
 import { URI } from 'src/base/common/file/uri';
+import { ILogService } from 'src/base/common/logger';
 import { IConfigChange, IConfigChangeEvent, IConfigModel, IConfigType } from 'src/code/common/service/configService/configModel';
 import { IFileService } from 'src/code/common/service/fileService/fileService';
 
@@ -9,9 +10,6 @@ export interface IConfigService {
 
     /** The resource of the configuration. */
     readonly resource?: URI;
-
-    /** Fires once the configuration load completed, could be failed or successed. */
-    readonly onDidLoad: Register<boolean>;
 
     /** Fires once any configurations change. */
     readonly onDidChangeConfiguration: Register<IConfigChangeEvent>;
@@ -93,14 +91,8 @@ export abstract class ConfigServiceBase extends Disposable implements IConfigSer
     // [field]
     
     protected _uri?: URI;
-    protected readonly configType: IConfigType;
-    protected readonly configModel: IConfigModel;
-    protected readonly fileService: IFileService;
-
+    
     // [event]
-
-    private readonly _onDidLoad = this.__register(new Emitter<boolean>());
-    public readonly onDidLoad = this._onDidLoad.registerListener;
 
     private readonly _onDidChangeConfiguration = this.__register(new Emitter<IConfigChangeEvent>());
     public readonly onDidChangeConfiguration = this._onDidChangeConfiguration.registerListener;
@@ -108,14 +100,12 @@ export abstract class ConfigServiceBase extends Disposable implements IConfigSer
     // [constructor]
 
     constructor(
-        configType: IConfigType,
-        configModel: IConfigModel,
-        fileService: IFileService
+        protected readonly configType: IConfigType,
+        protected readonly configModel: IConfigModel,
+        protected readonly fileService: IFileService,
+        protected readonly logService: ILogService,
     ) {
         super();
-        this.configType = configType;
-        this.configModel = configModel;
-        this.fileService = fileService;
     }
 
     // [getter / setter]
@@ -166,14 +156,13 @@ export abstract class ConfigServiceBase extends Disposable implements IConfigSer
                 await this.read(path);
             }
         }
-        
         catch (err) {
-            this._onDidLoad.fire(false);
+            this.logService.error(`configuration loading failed at ${path.toString()}.`);
             throw err;
         }
 
         this._uri = path;
-        this._onDidLoad.fire(true);
+        this.logService.info(`configuration loaded at ${path.toString()}.`);
     }
 
     public async save(path: URI): Promise<void> {

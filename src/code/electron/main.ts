@@ -87,14 +87,6 @@ const nota = new class extends class MainProcess {
         fileService.registerProvider(Schemas.FILE, new DiskFileSystemProvider());
         instantiationService.register(IFileService, fileService);
 
-        // global-config-service
-        const globalConfigService = new GlobalConfigService(fileService);
-        instantiationService.register(IGlobalConfigService, globalConfigService);
-        
-        // user-config-service
-        const userConfigService = new UserConfigService(fileService);
-        instantiationService.register(IUserConfigService, userConfigService);
-
         // logger-service
         const fileLoggerService = new FileLoggerService(LogLevel.INFO, instantiationService);
         instantiationService.register(ILoggerService, fileLoggerService);
@@ -110,12 +102,16 @@ const nota = new class extends class MainProcess {
         const logService = new PipelineLogger([fileLogger, consoleLogger]);
         instantiationService.register(ILogService, logService);
         
+        // global-config-service
+        const globalConfigService = new GlobalConfigService(fileService, fileLogger);
+        instantiationService.register(IGlobalConfigService, globalConfigService);
+        
+        // user-config-service
+        const userConfigService = new UserConfigService(fileService, fileLogger);
+        instantiationService.register(IUserConfigService, userConfigService);
+
         // life-cycle-service
         instantiationService.register(IMainLifeCycleService, new ServiceDescriptor(MainLifeCycleService));
-
-        
-        globalConfigService.onDidLoad(result => { logService.info(`global configuration ${result ? 'loaded': 'faild loading'} at ${globalConfigService.resource!.toString()}.`); });
-        userConfigService.onDidLoad(result => { logService.info(`user configuration ${result ? 'loaded': 'faild loading'} at ${userConfigService.resource!.toString()}.`); });
 
         (this.instantiationService as any) = instantiationService;
         (this.environmentService as any) = environmentService;

@@ -1,6 +1,7 @@
 import { Emitter, Register } from "src/base/common/event";
 import { join, resolve } from "src/base/common/file/path";
 import { URI } from "src/base/common/file/uri";
+import { ILogService } from "src/base/common/logger";
 import { APP_ROOT_PATH, DESKTOP_ROOT_PATH } from "src/base/electron/app";
 import { MarkdownRenderMode } from "src/code/browser/workbench/workspace/markdown/markdown";
 import { ConfigModel, IConfigType } from "src/code/common/service/configService/configModel";
@@ -66,9 +67,10 @@ export class UserConfigService extends ConfigServiceBase implements IUserConfigS
     // [constructor]
 
     constructor(
-        @IFileService fileService: IFileService
+        @IFileService fileService: IFileService,
+        @ILogService logService: ILogService,
     ) {
-        super(IConfigType.USER, new DefaultUserConfigModel(), fileService);
+        super(IConfigType.USER, new DefaultUserConfigModel(), fileService, logService);
     }
 
     // [public method]
@@ -153,9 +155,10 @@ export class GlobalConfigService extends ConfigServiceBase implements IGlobalCon
     public readonly onDidChangeNotebookManagerSettings = this._onDidChangeNotebookManagerSettings.registerListener;
 
     constructor(
-        @IFileService fileService: IFileService
+        @IFileService fileService: IFileService,
+        @ILogService logService: ILogService,
     ) {
-        super(IConfigType.GLOBAL, new DefaultGlobalConfigModel(), fileService);
+        super(IConfigType.GLOBAL, new DefaultGlobalConfigModel(), fileService, logService);
     }
 
     public override async init(path: URI): Promise<void> {
