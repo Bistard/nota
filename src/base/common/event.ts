@@ -14,7 +14,7 @@ import { ErrorHandler } from "src/base/common/error";
  *  - {@link AsyncEmitter}
  *  - {@link RelayEmitter}
  * 
- *  - {@namespace Event}
+ *  - {@link Event}
  ******************************************************************************/
 
 /** 
@@ -536,4 +536,24 @@ export namespace Event {
         return newRegister;
     }
 
+    export function once<T>(register: Register<T>): Register<T> {
+        return (listener: Listener<T>, disposables?: IDisposable[], thisObject: any = null) => {
+            let fired = false;
+            const oldListener = register((event) => {
+                if (fired) {
+                    return;
+                }
+
+                fired = true;
+                return listener.call(thisObject, event);
+
+            }, disposables, thisObject);
+
+            if (fired) {
+                oldListener.dispose();
+            }
+
+            return oldListener;
+        };
+    }
 }

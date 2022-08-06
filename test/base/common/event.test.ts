@@ -468,5 +468,15 @@ suite('event-test', () => {
         assert.strictEqual(emitter.isDisposed(), false);
     });
 
-    
+    test('event.once()', () => {
+        let cnt = 0;
+        const emitter = new Emitter<void>();
+
+        Event.once(emitter.registerListener)(() => cnt++);
+        emitter.fire();
+        assert.strictEqual(cnt, 1);
+
+        emitter.fire();
+        assert.strictEqual(cnt, 1);
+    });
 });
