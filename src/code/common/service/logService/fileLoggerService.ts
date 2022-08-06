@@ -5,7 +5,7 @@ import { basename, join, parse, ParsedPath } from "src/base/common/file/path";
 import { URI } from "src/base/common/file/uri";
 import { AbstractLogger, ILogger, ILoggerOpts, LogLevel, parseLogLevel } from "src/base/common/logger";
 import { AsyncQueue } from "src/base/common/util/async";
-import { String } from "src/base/common/util/string";
+import { Strings } from "src/base/common/util/string";
 import { IFileService } from "src/code/common/service/fileService/fileService";
 import { IInstantiationService } from "src/code/common/service/instantiationService/instantiation";
 import { AbstractLoggerService } from "src/code/common/service/logService/abstractLoggerService";
@@ -74,25 +74,25 @@ export class FileLogger extends AbstractLogger implements ILogger {
 
     public trace(message: string, ...args: any[]): void {
         if (this.getLevel() <= LogLevel.TRACE) {
-			this.__log(LogLevel.TRACE, String.stringify(message, ...args));
+			this.__log(LogLevel.TRACE, Strings.stringify(message, ...args));
 		}
     }
 
     public debug(message: string, ...args: any[]): void {
         if (this.getLevel() <= LogLevel.DEBUG) {
-			this.__log(LogLevel.DEBUG, String.stringify(message, ...args));
+			this.__log(LogLevel.DEBUG, Strings.stringify(message, ...args));
 		}
     }
 
     public info(message: string, ...args: any[]): void {
         if (this.getLevel() <= LogLevel.INFO) {
-			this.__log(LogLevel.INFO, String.stringify(message, ...args));
+			this.__log(LogLevel.INFO, Strings.stringify(message, ...args));
 		}
     }
 
     public warn(message: string, ...args: any[]): void {
         if (this.getLevel() <= LogLevel.WARN) {
-			this.__log(LogLevel.WARN, String.stringify(message, ...args));
+			this.__log(LogLevel.WARN, Strings.stringify(message, ...args));
 		}
     }
 
@@ -100,9 +100,9 @@ export class FileLogger extends AbstractLogger implements ILogger {
         if (this.getLevel() <= LogLevel.ERROR) {
 			if (message instanceof Error) {
 				message = message.stack!;
-				this.__log(LogLevel.ERROR, String.stringify(message, ...args));
+				this.__log(LogLevel.ERROR, Strings.stringify(message, ...args));
 			} else {
-				this.__log(LogLevel.ERROR, String.stringify(message, ...args));
+				this.__log(LogLevel.ERROR, Strings.stringify(message, ...args));
 			}
 		}
     }
@@ -111,9 +111,9 @@ export class FileLogger extends AbstractLogger implements ILogger {
         if (this.getLevel() <= LogLevel.FATAL) {
 			if (message instanceof Error) {
 				message = message.stack!;
-				this.__log(LogLevel.FATAL, String.stringify(message, ...args));
+				this.__log(LogLevel.FATAL, Strings.stringify(message, ...args));
 			} else {
-				this.__log(LogLevel.FATAL, String.stringify(message, ...args));
+				this.__log(LogLevel.FATAL, Strings.stringify(message, ...args));
 			}
 		}
     }

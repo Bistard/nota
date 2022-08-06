@@ -1,9 +1,9 @@
 import { Iterable } from "src/base/common/util/iterable";
 
 /**
- * @namespace String A collection of functions that relates to {@link string}.
+ * @namespace Strings A collection of functions that relates to {@link string}.
  */
-export namespace String {
+export namespace Strings {
 
     /**
      * @description Check if any of the given {@link RegExp} is applied to the
