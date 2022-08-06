@@ -104,6 +104,7 @@ const nota = new class extends class MainProcess {
         // dependency injection (DI)
         const serviceCollection = new ServiceCollection();
         const instantiationService = new InstantiationService(serviceCollection);
+        instantiationService.register(IInstantiationService, instantiationService);
         
         // environment-service
         const environmentService = new MainEnvironmentService(undefined, { tmpDirPath: tmpdir(), userHomePath: homedir(), appRootPath: app.getAppPath(), isPackaged: app.isPackaged });
