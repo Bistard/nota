@@ -56,7 +56,7 @@ class EmptyConfigService extends ConfigServiceBase {
     public readonly onDidChangeCustomConfig = this._onDidChangeCustomConfig.registerListener;
 
     constructor() {
-        super(IConfigType.TEST, new EmptyConfigModel(), new FileService(), new NullLogger());
+        super(IConfigType.TEST, new EmptyConfigModel(), new FileService(new NullLogger()), new NullLogger());
     }
 
     protected override __fireOnSpecificEvent(section: string, change: any): void {

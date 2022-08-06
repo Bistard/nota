@@ -536,6 +536,12 @@ export namespace Event {
         return newRegister;
     }
 
+    /**
+     * @description Given a {@link Register} and returns a new created event 
+     * register that only fire once.
+     * @param register The given register.
+     * @returns A new event register that only fire once.
+     */
     export function once<T>(register: Register<T>): Register<T> {
         return (listener: Listener<T>, disposables?: IDisposable[], thisObject: any = null) => {
             let fired = false;

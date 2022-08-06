@@ -6,7 +6,7 @@ import { FileType } from "src/base/common/file/file";
 import { join, resolve } from "src/base/common/file/path";
 import { URI } from "src/base/common/file/uri";
 import { Iterable } from "src/base/common/util/iterable";
-import { String } from "src/base/common/util/string";
+import { Strings } from "src/base/common/util/string";
 import { IIpcService } from "src/code/browser/service/ipcService";
 import { ExplorerItem } from "src/code/browser/workbench/actionView/explorer/explorerItem";
 import { IExplorerOpenEvent } from "src/code/browser/workbench/actionView/explorer/explorerTree";
@@ -140,8 +140,8 @@ export class NotebookGroup extends Disposable implements INotebookGroupService {
                     return tot;
                 }
 
-                if (!String.regExp(str, userConfig.notebookManagerInclude.map(rule => new RegExp(rule))) && 
-                    String.regExp(str, userConfig.notebookManagerExclude.map(rule => new RegExp(rule)))
+                if (!Strings.regExp(str, userConfig.notebookManagerInclude.map(rule => new RegExp(rule))) && 
+                    Strings.regExp(str, userConfig.notebookManagerExclude.map(rule => new RegExp(rule)))
                 ) {
                     return tot;
                 }
