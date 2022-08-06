@@ -22,7 +22,7 @@ export interface IInstantiationService extends IServiceProvider {
     readonly serviceCollections: ServiceCollection;
 
     /**
-     * @description register a service either using an instance or the 
+     * @description Register a service either using an instance or the 
      * ServiceDescriptor for delaying instantiation.
      * 
      * @param serviceIdentifier decorator to the service which is created by createDecorator()
@@ -31,13 +31,20 @@ export interface IInstantiationService extends IServiceProvider {
     register<T>(serviceIdentifier: ServiceIdentifier<T>, instanceOrDescriptor: T | ServiceDescriptor<T>): void;
 
     /**
-     * @description passing into a constructor or a ServiceDescriptor<any> to 
+     * @description Passing into a constructor or a ServiceDescriptor<any> to 
      * create an instance.
      * 
      * @param ctorOrDescriptor constructor or ServiceDescriptor of the service
      * @param rest all the arguments for that service
      */
     createInstance<Ctor extends new (...args: any[]) => any, T extends InstanceType<Ctor>>(ctorOrDescriptor: Ctor | ServiceDescriptor<Ctor>, ...rest: any[]): T;
+
+    /**
+     * @description Create a new instantiation service that inherits all the 
+     * current services
+     * @param collection 
+     */
+    createChild(collection: ServiceCollection): IInstantiationService;
 
     /**
      * @description Get or create a service instance.
@@ -56,11 +63,21 @@ export interface IInstantiationService extends IServiceProvider {
 
 export class InstantiationService implements IInstantiationService {
 
-    public readonly serviceCollections: ServiceCollection;
+    // [fields]
 
-    constructor(serviceCollections: ServiceCollection = new ServiceCollection()) {
+    public readonly serviceCollections: ServiceCollection;
+    public readonly parent?: InstantiationService;
+
+    private readonly _activeInstantiations = new Set<ServiceIdentifier<any>>();
+
+    // [constructor]
+
+    constructor(serviceCollections: ServiceCollection = new ServiceCollection(), parent?: InstantiationService) {
         this.serviceCollections = serviceCollections;
+        this.parent = parent;
     }
+
+    // [public methods]
 
     public register<T>(
         serviceIdentifier: ServiceIdentifier<T>, 
@@ -70,7 +87,12 @@ export class InstantiationService implements IInstantiationService {
     }
 
     public getService<T>(serviceIdentifier: ServiceIdentifier<T>): T {
-        const service = this.serviceCollections.get(serviceIdentifier);
+        let service = this.serviceCollections.get(serviceIdentifier);
+        
+        if (!service && this.parent) {
+            service = this.parent._getServiceInstanceOrDescriptor(serviceIdentifier);
+        }
+        
         if (service === undefined || service instanceof ServiceDescriptor) {
             throw new Error(`cannot get service with identifier ${serviceIdentifier}`);
         }
@@ -112,6 +134,12 @@ export class InstantiationService implements IInstantiationService {
         return res;
     }
 
+    public createChild(collection: ServiceCollection): IInstantiationService {
+        return new InstantiationService(collection, this);
+    }
+
+    // [private helper methods]
+
     private _createInstance<T>(
         ctor: any, 
         args: any[] = []): T 
@@ -132,11 +160,27 @@ export class InstantiationService implements IInstantiationService {
     }
 
     private _getOrCreateDependencyInstance<T>(id: ServiceIdentifier<T>): T {
-        let instanceOrDesc = this.serviceCollections.get(id);
+        let instanceOrDesc = this._getServiceInstanceOrDescriptor(id);
         if (instanceOrDesc instanceof ServiceDescriptor) {
-            return this._createAndCacheServiceInstance(id, instanceOrDesc)!;
+            return this._safeCreateAndCacheServiceInstance(id, instanceOrDesc);
         } else {
             return instanceOrDesc;
+        }
+    }
+
+    private _safeCreateAndCacheServiceInstance<T>(
+        id: ServiceIdentifier<T>, 
+        desc: ServiceDescriptor<T>): T 
+    {
+        if (this._activeInstantiations.has(id)) {
+            throw new Error(`DI illegal operation: recursively instantiating service '${id}'`);
+        }
+        this._activeInstantiations.add(id);
+        
+        try {
+            return this._createAndCacheServiceInstance(id, desc);
+        } finally {
+            this._activeInstantiations.delete(id);
         }
     }
 
@@ -159,13 +203,13 @@ export class InstantiationService implements IInstantiationService {
             const dependencies = _ServiceUtil.getServiceDependencies(currDependency.desc.ctor);
             for (const subDependency of dependencies) {
                 
-                const instanceOrDesc = this.serviceCollections.get(subDependency.id);
+                const instanceOrDesc = this._getServiceInstanceOrDescriptor(subDependency.id);
+                
                 if (instanceOrDesc instanceof ServiceDescriptor) {
                     const uninstantiatedDependency = {id: subDependency.id, desc: instanceOrDesc};
                     dependencyGraph.insertEdge(currDependency, uninstantiatedDependency);
                     stack.push(uninstantiatedDependency);
                 }
-
             }
         }
 
@@ -180,19 +224,42 @@ export class InstantiationService implements IInstantiationService {
             }
 
             for (const { data } of roots) {
-				// create instance and overwrite the service collections
-				const instance = this._createServiceInstanceWithOwner(
-                    data.id, 
-                    data.desc.ctor, 
-                    data.desc.arguments, 
-                    data.desc.supportsDelayedInstantiation
-                );
-				this._setServiceInstance(data.id, instance);
+				
+                /**
+                 * When constructing a dependency through the DI, it might has 
+                 * side effect that also constructs other dependencies that the
+                 * current service is depending on. Thus we need to check if
+                 * the current dependency is an instance or not to avoid 
+                 * duplicate construction.
+                 */
+                const instanceOrDesc = this._getServiceInstanceOrDescriptor(data.id);
+                if (instanceOrDesc instanceof ServiceDescriptor) {
+                    // create instance and overwrite the service collections
+                    const instance = this._createServiceInstanceWithOwner(
+                        data.id, 
+                        data.desc.ctor, 
+                        data.desc.arguments, 
+                        data.desc.supportsDelayedInstantiation
+                    );
+                    this._setServiceInstance(data.id, instance);
+                }
+
 				dependencyGraph.removeNode(data);
 			}
         }
 
-        return <T>this.serviceCollections.get(id);
+        return <T>this._getServiceInstanceOrDescriptor(id);
+    }
+
+    private _getServiceInstanceOrDescriptor<T>(id: ServiceIdentifier<T>): T | ServiceDescriptor<T> {
+        const instanceOrDesc = this.serviceCollections.get(id);
+        
+        // if the current service does not have it, we try to get it from the parent
+        if (!instanceOrDesc && this.parent) {
+            return this.parent._getServiceInstanceOrDescriptor(id);
+        }
+
+        return instanceOrDesc;
     }
 
     private _setServiceInstance<T>(
@@ -201,8 +268,15 @@ export class InstantiationService implements IInstantiationService {
     {
 		if (this.serviceCollections.get(id) instanceof ServiceDescriptor) {
 			this.serviceCollections.set(id, instance);
-		} else {
-			throw new Error('duplicate setting service instance');
+		} 
+        
+        // try to set the service into the parent DI
+        else if (this.parent) {
+            this.parent._setServiceInstance(id, instance);
+        }
+
+        else {
+			throw new Error('DI illegal operation: setting duplicate service instance');
 		}
 	}
 
@@ -214,7 +288,13 @@ export class InstantiationService implements IInstantiationService {
     {
 		if (this.serviceCollections.get(id) instanceof ServiceDescriptor) {
 			return this._createServiceInstance(ctor, args, supportsDelayedInstantiation);
-		} else {
+		} 
+        
+        else if (this.parent) {
+            return this.parent._createServiceInstanceWithOwner(id, ctor, args, supportsDelayedInstantiation);
+        }
+        
+        else {
 			throw new Error(`creating UNKNOWN service instance ${ctor.name}`);
 		}
 	}

@@ -301,4 +301,29 @@ suite('instantiationService-test', () => {
 		});
 		assert.strictEqual(1, CreateOnlyOnceClass.cnt);
 	});
+
+	test('instantiation from parent', () => {
+		const parent = new InstantiationService(new ServiceCollection());
+		const child = new InstantiationService(new ServiceCollection(), parent);
+
+		parent.register(IService1, new ServiceDescriptor(Service1));
+		
+		const childService = child.createInstance(DependentService) as DependentService;
+		assert.strictEqual(childService.name, 'farboo');
+	});
+
+	test('child get service from parent', () => {
+		const parent = new InstantiationService(new ServiceCollection());
+		const child = new InstantiationService(new ServiceCollection(), parent);
+
+		const parentService = new Service1();
+		parentService.c = 2;
+		parent.register(IService1, parentService);
+		
+		let service = child.getService(IService1);
+		assert.strictEqual(service.c, 2);
+
+		service = child.getOrCreateService(IService1);
+		assert.strictEqual(service.c, 2);
+	});
 });
