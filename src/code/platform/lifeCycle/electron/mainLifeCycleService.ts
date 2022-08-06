@@ -25,7 +25,7 @@ export const enum LifeCyclePhase {
 
     /**
      * After the window has opened. 
-     * @note This is usually used when starting servcices that do not require 
+     * @note This is usually used when starting services that do not require 
      * the window to be opened.
      */
     Idle = 2,
@@ -181,7 +181,7 @@ export class MainLifeCycleService extends Disposable implements IMainLifeCycleSe
         
         this.logService.trace('Main#LifeCycleService#quit()');
         
-        this._pendingQuitBlocker = new Blocker<void>;
+        this._pendingQuitBlocker = new Blocker<void>();
         const promise = this._pendingQuitBlocker.waiting().then(() => {
             this.logService.trace('Main#LifeCycleService#app.quit()');
             app.quit();
