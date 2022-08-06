@@ -1,10 +1,11 @@
-import { app } from 'electron';
+import { app, dialog } from 'electron';
 import { mkdir } from 'fs/promises';
 import { homedir, tmpdir } from 'os';
 import { ErrorHandler } from 'src/base/common/error';
 import { Event } from 'src/base/common/event';
 import { Schemas, URI } from 'src/base/common/file/uri';
 import { ILogService, LogLevel, PipelineLogger } from 'src/base/common/logger';
+import { Strings } from 'src/base/common/util/string';
 import { DiskFileSystemProvider } from 'src/base/node/diskFileSystemProvider';
 import { GlobalConfigService, IGlobalConfigService, IUserConfigService, UserConfigService } from 'src/code/common/service/configService/configService';
 import { FileService, IFileService } from 'src/code/common/service/fileService/fileService';
@@ -65,12 +66,7 @@ const nota = new class extends class MainProcess {
             await this.initServices();
         } 
         catch (err) {
-            /**
-             * Once reaching here, there is no any other precautions to prevent 
-             * this one. This is the final catch scope and we must exit the 
-             * whole program immediately.
-             */
-            // REVIEW: show a dialog
+            this.__showDirectoryErrorDialog(err);
             error = err;
         }
 
@@ -189,8 +185,20 @@ const nota = new class extends class MainProcess {
 
     // [private helper methods]
 
-    // private __getMainArguments
+    private __showDirectoryErrorDialog(error: any): void {
+        
+        const dir = [
+            URI.toFsPath(this.environmentService.appRootPath), 
+            URI.toFsPath(this.environmentService.logPath),
+        ];
 
-    // [private exception helper methods]
+        dialog.showMessageBoxSync({
+            title: 'nota',
+            message: 'Unable to write to directories',
+            detail: Strings.format('{0}\n\n Please make sure the following directories are writeable: \n\n{1}', [error.toString(), dir.join('\n')]),
+            type: 'warning',
+            buttons: ['close'],
+        });
+    }
 
 } {}; /** @readonly ❤hello, world!❤ */
