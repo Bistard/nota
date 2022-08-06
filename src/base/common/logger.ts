@@ -181,6 +181,21 @@ export function parseLogLevel(level: LogLevel): string {
 }
 
 /**
+ * @class A logger that does nothing. Usually used for testing purpose.
+ */
+export class NullLogger extends AbstractLogger implements ILogService {
+    constructor() {
+        super();
+    }
+    public trace(message: string, ...args: any[]): void {}
+    public debug(message: string, ...args: any[]): void {}
+    public info(message: string, ...args: any[]): void {}
+    public warn(message: string, ...args: any[]): void {}
+    public error(message: string | Error, ...args: any[]): void {}
+    public fatal(message: string | Error, ...args: any[]): void {}
+}
+
+/**
  * @class A simple integrated {@link ILogger} that combines the other loggers
  * into a intergrated version.
  */
