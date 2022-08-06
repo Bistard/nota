@@ -2,6 +2,7 @@ import { app } from 'electron';
 import { mkdir } from 'fs/promises';
 import { homedir, tmpdir } from 'os';
 import { ErrorHandler } from 'src/base/common/error';
+import { Event } from 'src/base/common/event';
 import { Schemas, URI } from 'src/base/common/file/uri';import { IpcChannel } from 'src/base/common/ipcChannel';
 import { ILogService, LogLevel, PipelineLogger } from 'src/base/common/logger';
 import { DiskFileSystemProvider } from 'src/base/node/diskFileSystemProvider';
@@ -15,7 +16,7 @@ import { ConsoleLogger } from 'src/code/common/service/logService/consoleLoggerS
 import { FileLoggerService } from 'src/code/common/service/logService/fileLoggerService';
 import { IEnvironmentService, IMainEnvironmentService } from 'src/code/platform/enviroment/common/environment';
 import { MainEnvironmentService } from 'src/code/platform/enviroment/electron/mainEnvironmentService';
-import { IMainLifeCycleService, MainLifeCycleService } from 'src/code/platform/lifeCycle/electron/mainLifeCycleService';
+import { IBeforeQuitEvent, IMainLifeCycleService, MainLifeCycleService } from 'src/code/platform/lifeCycle/electron/mainLifeCycleService';
 
 /**
  * @class // TODO
@@ -30,6 +31,7 @@ const nota = new class extends class MainProcess {
     private readonly globalConfigService!: IGlobalConfigService;
     private readonly userConfigService!: IUserConfigService;
     private readonly logService!: ILogService;
+    private readonly lifeCycleService!: IMainLifeCycleService;
 
     // [constructor]
 
@@ -37,7 +39,7 @@ const nota = new class extends class MainProcess {
         try {
             
             ErrorHandler.setUnexpectedErrorExternalCallback(err => console.error(err));
-            this.initialization();
+            this.run();
 
         } catch (unexpectedError: any) {
             console.error(unexpectedError.message ?? 'unknown error message');
@@ -47,26 +49,46 @@ const nota = new class extends class MainProcess {
 
     // [private methods]
 
-    private async initialization(): Promise<void> {
+    private async run(): Promise<void> {
+        let error: any;
         
+        // core
         this.createCoreServices();
-
+        
+        // initialization
         try {
-
             await this.initServices();
 
-        } catch (error) {
+        } catch (err) {
             /**
              * Once reaching here, there is no any other precautions to prevent 
              * this one. This is the final catch scope and we must exit the 
              * whole program immediately.
              */
-
             // REVIEW: show a dialog
-            
-            throw error;
+            error = err;
         }
 
+        // application run
+        try {
+
+            Event.once(this.lifeCycleService.onWillQuit)(e => {
+                this.fileService.dispose();
+                this.userConfigService.dispose();
+                this.globalConfigService.dispose();
+            });
+
+            // TODO: run the application
+            // this.instantiationService.createInstance().run();
+
+        } catch (err) {
+            error = err;
+        }
+
+        // error handling
+        if (error) {
+            // TODO
+        }
     }
 
     /**
@@ -82,26 +104,29 @@ const nota = new class extends class MainProcess {
         const environmentService = new MainEnvironmentService(undefined, { tmpDirPath: tmpdir(), userHomePath: homedir(), appRootPath: app.getAppPath(), isPackaged: app.isPackaged });
         instantiationService.register(IEnvironmentService, environmentService);
 
-        // file-service
-        const fileService = new FileService();
-        fileService.registerProvider(Schemas.FILE, new DiskFileSystemProvider());
-        instantiationService.register(IFileService, fileService);
-
         // logger-service
         const fileLoggerService = new FileLoggerService(LogLevel.INFO, instantiationService);
         instantiationService.register(ILoggerService, fileLoggerService);
 
-        // log-service
+        // log-service (consoleLogger)
+        const consoleLogger = new ConsoleLogger(LogLevel.WARN);
+        const logService = new PipelineLogger([consoleLogger]);
+        instantiationService.register(ILogService, logService);
+
+        // file-service
+        const fileService = new FileService(logService);
+        fileService.registerProvider(Schemas.FILE, new DiskFileSystemProvider());
+        instantiationService.register(IFileService, fileService);
+
+        // log-service (file-logger)
         const fileLogger = fileLoggerService.createLogger(
             environmentService.logPath, {
                 description: 'main-log',
                 name: 'main-log.txt'
             }
         );
-        const consoleLogger = new ConsoleLogger(LogLevel.WARN);
-        const logService = new PipelineLogger([fileLogger, consoleLogger]);
-        instantiationService.register(ILogService, logService);
-        
+        (<PipelineLogger>logService).add(fileLogger);
+
         // global-config-service
         const globalConfigService = new GlobalConfigService(fileService, fileLogger);
         instantiationService.register(IGlobalConfigService, globalConfigService);
@@ -111,7 +136,8 @@ const nota = new class extends class MainProcess {
         instantiationService.register(IUserConfigService, userConfigService);
 
         // life-cycle-service
-        instantiationService.register(IMainLifeCycleService, new ServiceDescriptor(MainLifeCycleService));
+        const lifeCycleService = new MainLifeCycleService(fileLogger);
+        instantiationService.register(IMainLifeCycleService, lifeCycleService);
 
         (this.instantiationService as any) = instantiationService;
         (this.environmentService as any) = environmentService;
@@ -119,6 +145,7 @@ const nota = new class extends class MainProcess {
         (this.globalConfigService as any) = globalConfigService;
         (this.userConfigService as any) = userConfigService;
         (this.logService as any) = logService;
+        (this.lifeCycleService as any) = lifeCycleService;
     }
     
     private async initServices(): Promise<any> {
