@@ -5,10 +5,13 @@ import { Event } from "src/base/common/event";
 import { ILogService } from "src/base/common/logger";
 import { IGlobalConfigService, IUserConfigService } from "src/code/common/service/configService/configService";
 import { IFileService } from "src/code/common/service/fileService/fileService";
-import { IInstantiationService, IServiceProvider } from "src/code/common/service/instantiationService/instantiation";
-import { IEnvironmentService, IMainEnvironmentService } from "src/code/platform/enviroment/common/environment";
-import { IMainLifeCycleService } from "src/code/platform/lifeCycle/electron/mainLifeCycleService";
+import { ServiceDescriptor } from "src/code/common/service/instantiationService/descriptor";
+import { IInstantiationService } from "src/code/common/service/instantiationService/instantiation";
+import { ServiceCollection } from "src/code/common/service/instantiationService/serviceCollection";
+import { IEnvironmentService, IMainEnvironmentService } from "src/code/platform/environment/common/environment";
+import { IMainLifeCycleService, LifeCyclePhase } from "src/code/platform/lifeCycle/electron/mainLifeCycleService";
 import { IWindowInstance } from "src/code/platform/window/common/window";
+import { IMainWindowService, MainWindowService } from "src/code/platform/window/electron/mainWindowService";
 
 /**
  * An interface only for {@link NotaInstance}
@@ -48,6 +51,9 @@ export class NotaInstance extends Disposable implements INotaInstance {
         // application service initialization
         const appInstantiationService = await this.registerServices();
 
+        // IPC channels initialization
+        // TODO
+
         // open first window
         const window = this.openFirstWindow(appInstantiationService);
 
@@ -73,16 +79,37 @@ export class NotaInstance extends Disposable implements INotaInstance {
     }
 
     private async registerServices(): Promise<IInstantiationService> {
-        // TODO
-        return (void 0) as unknown as any;
+        
+        const appInstantiationService = this.mainInstantiationService.createChild(new ServiceCollection());
+
+        // REVIEW: update-service
+
+        // TODO: window-service
+        appInstantiationService.register(IMainWindowService, new ServiceDescriptor(MainWindowService));
+
+        // REVIEW: dialog-service
+        
+        // REVIEW: keyboard-shortcut-service
+
+        // REVIEW: keyboard-screen-cast-service
+
+        // REVIEW: i18n-service
+
+        // REVIEW: notebook-group-service
+
+        return appInstantiationService;
     }
 
-    private openFirstWindow(serviceProvider: IServiceProvider): IWindowInstance {
-        // TODO
-        return (void 0) as unknown as any;
+    private openFirstWindow(instantiationService: IInstantiationService): IWindowInstance {
+        const mainWindowService = instantiationService.getOrCreateService(IMainWindowService);
+        this.lifeCycleService.setPhase(LifeCyclePhase.Ready);
+
+        // open the first window
+        let window: IWindowInstance;
+        return false as unknown as any;
     }
 
-    private afterFirstWindow(serviceProvider: IServiceProvider): void {
+    private afterFirstWindow(instantiationService: IInstantiationService): void {
         // TODO
     }
 
