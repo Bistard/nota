@@ -145,4 +145,19 @@ suite('storage-test', () => {
 		contents = fs.readFileSync(path).toString();
 		assert.strictEqual(contents.length > 0, true);
     });
+
+    test('manually saving', async () => {
+        const storage = new DiskStorage(URI.fromFile(path), false, fileService, logService);
+        await storage.init();
+
+        storage.set('key1', 'value1');
+		storage.set('key2', 'value2');
+		storage.set('key3', 'value3');
+		storage.set('key4', 'value4');
+
+        await storage.save();
+
+        let contents = fs.readFileSync(path).toString();
+		assert.strictEqual(contents.length > 0, true);
+    });
 });
