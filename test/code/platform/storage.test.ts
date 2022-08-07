@@ -34,7 +34,7 @@ suite('storage-test', () => {
     });
 
     test('basic - set / get / has', async () => {
-        const storage = new DiskStorage(URI.fromFile(path), fileService, logService);
+        const storage = new DiskStorage(URI.fromFile(path), true, fileService, logService);
         await storage.init();
 
         storage.set('key1', 'value1');
@@ -64,7 +64,7 @@ suite('storage-test', () => {
     });
 
     test('used before init', async () => {
-        const storage = new DiskStorage(URI.fromFile(path), fileService, logService);
+        const storage = new DiskStorage(URI.fromFile(path), true, fileService, logService);
 
 		storage.set('key1', 'value1');
 		storage.delete('key2');
@@ -79,7 +79,7 @@ suite('storage-test', () => {
     });
 
     test('used after close', async () => {
-        const storage = new DiskStorage(URI.fromFile(path), fileService, logService);
+        const storage = new DiskStorage(URI.fromFile(path), true, fileService, logService);
 		await storage.init();
 
 		storage.set('key1', 'value1');
@@ -99,7 +99,7 @@ suite('storage-test', () => {
     });
 
     test('Closed before init', async () => {
-		const storage = new DiskStorage(URI.fromFile(path), fileService, logService);
+		const storage = new DiskStorage(URI.fromFile(path), true, fileService, logService);
 
 		storage.set('key1', 'value1');
 		storage.set('key2', 'value2');
@@ -113,7 +113,7 @@ suite('storage-test', () => {
 	});
 
     test('re-init', async () => {
-		const storage = new DiskStorage(URI.fromFile(path), fileService, logService);
+		const storage = new DiskStorage(URI.fromFile(path), true, fileService, logService);
         await storage.init();
 
         await storage.close();
@@ -127,4 +127,22 @@ suite('storage-test', () => {
 
         assert.deepStrictEqual(storage.getLot(['key1', 'key2', 'key3', 'key4']), [undefined, undefined, undefined, undefined]);
 	});
+
+    test('non-sync saving', async () => {
+        const storage = new DiskStorage(URI.fromFile(path), false, fileService, logService);
+        await storage.init();
+
+        storage.set('key1', 'value1');
+		storage.set('key2', 'value2');
+		storage.set('key3', 'value3');
+		storage.set('key4', 'value4');
+
+        let contents = fs.readFileSync(path).toString();
+		assert.strictEqual(contents.length, 0);
+
+        await storage.close();
+
+		contents = fs.readFileSync(path).toString();
+		assert.strictEqual(contents.length > 0, true);
+    });
 });

@@ -8,7 +8,6 @@ import { IFileService } from "src/code/common/service/fileService/fileService";
 
 /**
  * An interface only for {@link DiskStorage}.
- * // TODO: doc
  */
 export interface IDiskStorage<K extends IndexSignature, V = any> extends Disposable {
 
@@ -56,6 +55,7 @@ export class DiskStorage<K extends IndexSignature, V = any> extends Disposable i
 
     constructor(
         private readonly path: URI,
+        private readonly sync: boolean,
         @IFileService private readonly fileService: IFileService,
         @ILogService private readonly logService: ILogService,
     ) {
@@ -78,7 +78,7 @@ export class DiskStorage<K extends IndexSignature, V = any> extends Disposable i
             this._storage[key] = ifOrDefault(val, undefined!!);
         }
 
-        if (save) {
+        if (save && this.sync) {
             this.__save();
         }
     }
@@ -102,7 +102,9 @@ export class DiskStorage<K extends IndexSignature, V = any> extends Disposable i
     public delete(key: K): boolean {
         if (this._storage[key] !== undefined) {
             this._storage[key] = undefined;
-            this.__save();
+            if (this.sync) {
+                this.__save();
+            }
             return true;
         }
         return false;

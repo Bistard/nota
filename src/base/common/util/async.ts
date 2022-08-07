@@ -1,12 +1,11 @@
 import { Disposable } from "src/base/common/dispose";
 import { Emitter, Register } from "src/base/common/event";
-import { Triple } from "src/base/common/util/type";
 
 export interface ITask<T> {
 	(...args: any[]): T; // any functions that returns `T`
 }
 
-export type IAsyncTask<T> = Triple<Promise<T>, (arg: T) => void, (reason?: any) => void>;
+export type IAsyncTask<T> = ITask<Promise<T>>;
 
 /**
  * @description Delays for given milliseconds.
