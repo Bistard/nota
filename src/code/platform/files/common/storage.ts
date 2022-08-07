@@ -6,10 +6,12 @@ import { ILogService } from "src/base/common/logger";
 import { ifOrDefault, IndexSignature, mockType, ObjectMappedType } from "src/base/common/util/type";
 import { IFileService } from "src/code/common/service/fileService/fileService";
 
+type Sign = IndexSignature;
+
 /**
  * An interface only for {@link DiskStorage}.
  */
-export interface IDiskStorage<V = any, K extends IndexSignature = IndexSignature> extends Disposable {
+export interface IDiskStorage extends Disposable {
 
     /**
      * Tell the storage if to sync the internal data into the disk.
@@ -21,26 +23,26 @@ export interface IDiskStorage<V = any, K extends IndexSignature = IndexSignature
      * storage is sync, the storage will start writing to disk asynchronously.
      * @note If `val` is null, it will be stored and replaced with `undefined`.
      */
-    set(key: K, val: V): void;
+    set<K extends Sign = Sign, V = any>(key: K, val: V): void;
 
     /**
      * @description Sets pairs of key and value into the storage. Works the 
      * same as {@link IDiskStorage.set}.
      */
-    setLot(items: readonly { key: K, val: V }[]): void;
+    setLot<K extends Sign = Sign, V = any>(items: readonly { key: K, val: V }[]): void;
 
     /**
      * @description Try to get the corresponding value of the given key.
      * @param key The given key.
      * @param defaultVal If key is `undefined`, this value will be returned.
      */
-    get(key: K, defaultVal?: V): V | undefined;
+    get<K extends Sign = Sign, V = any>(key: K, defaultVal?: V): V | undefined;
 
     /**
      * @description Try to get the corresponding values of the given keys. Works
      * the same as {@link IDiskStorage.get}.
      */
-    getLot(keys: K[], defaultVal?: V[]): (V | undefined)[];
+    getLot<K extends Sign = Sign, V = any>(keys: K[], defaultVal?: V[]): (V | undefined)[];
 
     /**
      * @description Try to delete a corresponding value with the given key. The 
@@ -48,13 +50,13 @@ export interface IDiskStorage<V = any, K extends IndexSignature = IndexSignature
      * @param key The given key.
      * @returns Returns a boolean to tell if the deletion is taken.
      */
-    delete(key: K): boolean;
+    delete<K extends Sign = Sign>(key: K): boolean;
 
     /**
      * @description Check if storage has a corresponding value of the given key.
      * @param key The given key.
      */
-    has(key: K): boolean;
+    has<K extends Sign = Sign>(key: K): boolean;
 
     /**
      * @description Initialize the storage and will read the file content into
@@ -96,11 +98,11 @@ export interface IDiskStorage<V = any, K extends IndexSignature = IndexSignature
  * @note When setting value with `null`, it will be replace with undefined for
  * simplicity.
  */
-export class DiskStorage<V = any, K extends IndexSignature = IndexSignature> extends Disposable implements IDiskStorage<V, K> {
+export class DiskStorage extends Disposable implements IDiskStorage {
 
     // [field]
 
-    private _storage: ObjectMappedType<V | undefined> = Object.create(null);
+    private _storage: ObjectMappedType<any> = Object.create(null);
     private _lastSaveStorage: string = '';
     private _operating?: Promise<void>;
     
@@ -121,11 +123,11 @@ export class DiskStorage<V = any, K extends IndexSignature = IndexSignature> ext
         this.sync = val;
     }
 
-    public set(key: K, val: V): void {
+    public set<K extends Sign = Sign, V = any>(key: K, val: V): void {
         this.setLot([{ key, val }]);
     }
 
-    public setLot(items: readonly { key: K, val: V }[]): void {
+    public setLot<K extends Sign = Sign, V = any>(items: readonly { key: K, val: V }[]): void {
         let save = false;
 
         for (const { key, val } of items) {
@@ -140,11 +142,11 @@ export class DiskStorage<V = any, K extends IndexSignature = IndexSignature> ext
         }
     }
 
-    public get(key: K, defaultVal?: V): V | undefined {
+    public get<K extends Sign = Sign, V = any>(key: K, defaultVal?: V): V | undefined {
         return this.getLot([key], [defaultVal!!])[0];
     }
 
-    public getLot(keys: K[], defaultVal: V[] = []): (V | undefined)[] {
+    public getLot<K extends Sign = Sign, V = any>(keys: K[], defaultVal: V[] = []): (V | undefined)[] {
         let result: (V | undefined)[] = [];
         
         let i = 0;
@@ -156,7 +158,7 @@ export class DiskStorage<V = any, K extends IndexSignature = IndexSignature> ext
         return result;
     }
 
-    public delete(key: K): boolean {
+    public delete<K extends Sign = Sign>(key: K): boolean {
         if (this._storage[key] !== undefined) {
             this._storage[key] = undefined;
             if (this.sync) {
@@ -167,7 +169,7 @@ export class DiskStorage<V = any, K extends IndexSignature = IndexSignature> ext
         return false;
     }
 
-    public has(key: K): boolean {
+    public has<K extends Sign = Sign>(key: K): boolean {
         return !!this.get(key);
     }
 
