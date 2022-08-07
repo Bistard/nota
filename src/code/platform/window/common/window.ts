@@ -1,11 +1,8 @@
 
-export interface IWindowInstance {
-    // TODO
+export interface IOpenWindowOpts {
+
 }
 
-/**
- * An interface only for {@link MainWindowService}.
- */
-export interface IMainWindowService {
+export interface IWindowInstance {
     // TODO
 }
