@@ -1,4 +1,5 @@
 import { Disposable } from "src/base/common/dispose";
+import { DataBuffer } from "src/base/common/file/buffer";
 import { FileOperationError } from "src/base/common/file/file";
 import { URI } from "src/base/common/file/uri";
 import { ILogService } from "src/base/common/logger";
@@ -47,9 +48,10 @@ export class DiskStorage<K extends IndexSignature, V = any> extends Disposable i
 
     // [field]
 
-    private _object: ObjectMappedType<V | undefined> = Object.create(null);
+    private _storage: ObjectMappedType<V | undefined> = Object.create(null);
+    private _lastSaveStorage: string = '';
     private _operating?: Promise<void>;
-
+    
     // [constructor]
 
     constructor(
@@ -70,10 +72,10 @@ export class DiskStorage<K extends IndexSignature, V = any> extends Disposable i
         let save = false;
 
         for (const { key, val } of items) {
-            if (this._object[key] === val) {
+            if (this._storage[key] === val) {
                 return;
             }
-            this._object[key] = ifOrDefault(val, undefined!!);
+            this._storage[key] = ifOrDefault(val, undefined!!);
         }
 
         if (save) {
@@ -90,7 +92,7 @@ export class DiskStorage<K extends IndexSignature, V = any> extends Disposable i
         
         let i = 0;
         for (i = 0; i < keys.length; i++) {
-            const val = ifOrDefault(this._object[keys[i]!], defaultVal[i] ?? undefined!!);
+            const val = ifOrDefault(this._storage[keys[i]!], defaultVal[i] ?? undefined!!);
             result.push(val);
         }
 
@@ -98,8 +100,8 @@ export class DiskStorage<K extends IndexSignature, V = any> extends Disposable i
     }
 
     public delete(key: K): boolean {
-        if (this._object[key] !== undefined) {
-            this._object[key] = undefined;
+        if (this._storage[key] !== undefined) {
+            this._storage[key] = undefined;
             this.__save();
             return true;
         }
@@ -111,33 +113,72 @@ export class DiskStorage<K extends IndexSignature, V = any> extends Disposable i
     }
 
     public async init(): Promise<void> {
+        // already initialized
         if (this._operating) {
-            return this._operating;
+            return;
         }
 
-        return this.__init();
+        this._operating = this.__init();
+        return this._operating;
     }
 
     public async close(): Promise<void> {
-        if (this._operating) {
-            return this._operating;
+        // never initialized
+        if (this._operating === undefined) {
+            return;
         }
-
+        
+        await this._operating;
         return this.__close();
     }
 
     // [private helper methods]
 
     private async __init(): Promise<void> {
-        // TODO
+        // reading work
+        try {
+            this._lastSaveStorage = (await this.fileService.readFile(this.path)).toString();
+            if (this._lastSaveStorage.length) {
+                this._storage = JSON.parse(this._lastSaveStorage);
+            }
+        } catch (error) {
+            this.logService.error(mockType(error));
+            throw error;
+        }
     }
 
     private async __save(): Promise<void> {
-        // TODO
+        
+        // never got initialized or already closed, we should never save.
+        if (this._operating === undefined) {
+            return;
+        }
+
+        // ensure 'init', 'close' or 'save' are completed
+        await this._operating;
+
+        const serialized = JSON.stringify(this._storage, null, 4);
+        if (this._lastSaveStorage === serialized) {
+            // no diff, we quit indvance
+            return;
+        }
+
+        // writing work
+        try {
+            this._operating = this.fileService.writeFile(this.path, DataBuffer.fromString(serialized), { create: false, overwrite: true, unlock: false });
+            this._lastSaveStorage = serialized;
+        } catch (error) {
+            this.logService.error(mockType(error));
+            throw error;
+        }
+
+        return this._operating;
     }
 
     private async __close(): Promise<void> {
-        // TODO
+        return Promise.resolve().then(async () => {
+            await this.__save();
+            this._operating = undefined;
+        });
     }
-
 }
