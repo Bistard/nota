@@ -3,7 +3,7 @@ import { join } from "src/base/common/file/path";
 import { URI } from "src/base/common/file/uri";
 import { memoize } from "src/base/common/memoization";
 import { NOTA_DIR_NAME } from "src/code/common/service/configService/configService";
-import { IMainEnvironmentService } from "src/code/platform/enviroment/common/environment";
+import { IMainEnvironmentService } from "src/code/platform/environment/common/environment";
 
 export interface IEnvironmentOpts {
     readonly isPackaged: boolean;

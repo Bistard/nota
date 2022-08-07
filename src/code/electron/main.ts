@@ -15,8 +15,8 @@ import { ILoggerService } from 'src/code/common/service/logService/abstractLogge
 import { ConsoleLogger } from 'src/code/common/service/logService/consoleLoggerService';
 import { FileLoggerService } from 'src/code/common/service/logService/fileLoggerService';
 import { NotaInstance } from 'src/code/electron/nota';
-import { IEnvironmentService, IMainEnvironmentService } from 'src/code/platform/enviroment/common/environment';
-import { MainEnvironmentService } from 'src/code/platform/enviroment/electron/mainEnvironmentService';
+import { IEnvironmentService, IMainEnvironmentService } from 'src/code/platform/environment/common/environment';
+import { MainEnvironmentService } from 'src/code/platform/environment/electron/mainEnvironmentService';
 import { IMainLifeCycleService, MainLifeCycleService } from 'src/code/platform/lifeCycle/electron/mainLifeCycleService';
 
 /**
