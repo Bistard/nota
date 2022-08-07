@@ -9,7 +9,7 @@ import { IFileService } from "src/code/common/service/fileService/fileService";
 /**
  * An interface only for {@link DiskStorage}.
  */
-export interface IDiskStorage<K extends IndexSignature, V = any> extends Disposable {
+export interface IDiskStorage<V = any, K extends IndexSignature = IndexSignature> extends Disposable {
 
     /**
      * Tell the storage if to sync the internal data into the disk.
@@ -90,10 +90,13 @@ export interface IDiskStorage<K extends IndexSignature, V = any> extends Disposa
  *      - sync data
  *      - re-initialization
  * 
+ * K: generic type of the key mapping
+ * V: generic type of the value mapping
+ * 
  * @note When setting value with `null`, it will be replace with undefined for
  * simplicity.
  */
-export class DiskStorage<K extends IndexSignature, V = any> extends Disposable implements IDiskStorage<K, V> {
+export class DiskStorage<V = any, K extends IndexSignature = IndexSignature> extends Disposable implements IDiskStorage<V, K> {
 
     // [field]
 
