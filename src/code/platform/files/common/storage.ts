@@ -6,10 +6,10 @@ import { ifOrDefault, IndexSignature, mockType, ObjectMappedType } from "src/bas
 import { IFileService } from "src/code/common/service/fileService/fileService";
 
 /**
- * An interface only for {@link Storage}.
+ * An interface only for {@link DiskStorage}.
  * // TODO: doc
  */
-export interface IStorage<K extends IndexSignature, V = any> extends Disposable {
+export interface IDiskStorage<K extends IndexSignature, V = any> extends Disposable {
 
     set(key: K, val: V): void;
 
@@ -43,7 +43,7 @@ export interface IStorage<K extends IndexSignature, V = any> extends Disposable 
  * data storage to achieve data mapping. It provides read / write the object 
  * into the given path in disk using the given {@link IFileService}.
  */
-export class Storage<K extends IndexSignature, V = any> extends Disposable implements IStorage<K, V> {
+export class DiskStorage<K extends IndexSignature, V = any> extends Disposable implements IDiskStorage<K, V> {
 
     // [field]
 
