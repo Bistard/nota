@@ -10,9 +10,15 @@ import { IInstantiationService } from "src/code/common/service/instantiationServ
 import { ServiceCollection } from "src/code/common/service/instantiationService/serviceCollection";
 import { IEnvironmentService, IMainEnvironmentService } from "src/code/platform/environment/common/environment";
 import { IMainLifeCycleService, LifeCyclePhase } from "src/code/platform/lifeCycle/electron/mainLifeCycleService";
+import { IMainStatusService } from "src/code/platform/status/electron/mainStatusService";
 import { IWindowInstance } from "src/code/platform/window/common/window";
 import { IMainWindowService, MainWindowService } from "src/code/platform/window/electron/mainWindowService";
 
+export const Console = {
+    set log(v: any) {
+        console.log(v);
+    }
+}
 /**
  * An interface only for {@link NotaInstance}
  */
@@ -36,7 +42,8 @@ export class NotaInstance extends Disposable implements INotaInstance {
         @ILogService private readonly logService: ILogService,
         @IFileService private readonly fileService: IFileService,
         @IGlobalConfigService private readonly globalConfigService: IGlobalConfigService,
-        @IUserConfigService private readonly userConfigService: IUserConfigService
+        @IUserConfigService private readonly userConfigService: IUserConfigService,
+        @IMainStatusService private readonly statusService: IMainStatusService,
     ) {
         super();
         this.registerListeners();
@@ -50,6 +57,11 @@ export class NotaInstance extends Disposable implements INotaInstance {
 
         // application service initialization
         const appInstantiationService = await this.registerServices();
+
+        const statusService = appInstantiationService.getService(IMainStatusService);
+        Console.log = (statusService as any)._storage;
+
+        statusService.set('key1', 'value1');
 
         // IPC channels initialization
         // TODO
