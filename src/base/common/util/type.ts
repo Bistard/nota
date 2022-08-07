@@ -16,12 +16,28 @@ export type Pair<T, R> = [T, R];
  */
 export type Triple<T, R, S> = [T, R, S];
 
+export type IndexSignature = string | number | symbol;
+
+/**
+ * Generic object mapped type.
+ */
+export type ObjectMappedType<V> = {
+    [key: IndexSignature]: V;
+};
+
 /**
  * Make all the fields become required.
  */
 export type AllRequired<T> = {
     [P in keyof T]-?: T[P];
 };
+
+/**
+ * @description Mocks the given value's type.
+ */
+export function mockType<T>(val: any): T {
+    return val as unknown as T;
+}
 
 /**
  * @description Checks if it is the type `object`.
@@ -49,6 +65,13 @@ export function isEmptyObject(obj: any): boolean {
     }
 
     return true;
+}
+
+/**
+ * @description Check if the object is undefined or null.
+ */
+export function isNonNullable(value: any): boolean {
+    return !(typeof value === 'undefined' || value === null);
 }
 
 /**
@@ -84,7 +107,7 @@ export function isPromise(obj: any): obj is Promise<any> {
  * @returns the default value.
  */
 export function ifOrDefault<T>(value: T, defaultValue: NonNullable<T>): NonNullable<T> {
-    if (typeof value === 'undefined') {
+    if (typeof value === 'undefined' || value === null) {
         return defaultValue;
     }
     return value as NonNullable<T>;
