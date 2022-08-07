@@ -1,5 +1,6 @@
 import { Disposable } from "src/base/common/dispose";
 import { Emitter, Register } from "src/base/common/event";
+import { mockType } from "src/base/common/util/type";
 import { createDecorator } from "src/code/common/service/instantiationService/decorator";
 
 export const ILogService = createDecorator<ILogService>('log-service');
@@ -250,5 +251,83 @@ export class PipelineLogger extends AbstractLogger implements ILogService {
         for (const logger of this._loggers) {
 			logger.fatal(message, ...args);
 		}
+    }
+}
+
+/**
+ * @description Buffer logger may wraps antoher {@link ILogger} at anytime. If
+ * there is no provided logger, the logging message will be stored in the buffer
+ * and will be flushed once there is a logger has been set.
+ */
+export class BufferLogger extends AbstractLogger implements ILogService {
+
+    private readonly _buffer: { level: LogLevel, message: (string | Error), args: any[] }[] = [];
+    private _logger?: ILogger;
+
+    constructor(level?: LogLevel) {
+        super(level);
+    }
+
+    public setLogger(logger: ILogger): void {
+        this._logger = logger;
+        this.__flushBuffer();
+    }
+
+    public trace(message: string, ...args: any[]): void {
+        this.__log(LogLevel.TRACE, message, ...args);
+    }
+
+    public debug(message: string, ...args: any[]): void {
+        this.__log(LogLevel.DEBUG, message, ...args);
+    }
+
+    public info(message: string, ...args: any[]): void {
+        this.__log(LogLevel.INFO, message, ...args);
+    }
+
+    public warn(message: string, ...args: any[]): void {
+        this.__log(LogLevel.WARN, message, ...args);
+    }
+
+    public error(message: string | Error, ...args: any[]): void {
+        this.__log(LogLevel.ERROR, message, ...args);
+    }
+
+    public fatal(message: string | Error, ...args: any[]): void {
+        this.__log(LogLevel.FATAL, message, ...args);
+    }
+
+    // [private helper methods]
+
+    private __log(level: LogLevel, message: string | Error, ...args: any[]): void {
+        this._buffer.push({ level: level, message, args });
+        if (this._logger) {
+            this.__flushBuffer();
+        }
+    }
+
+    private __flushBuffer(): void {
+        for (const { level, message, args } of this._buffer) {
+            switch (level) {
+                case LogLevel.TRACE:
+                    this._logger!.trace(mockType(message), ...args);
+                    break;
+                case LogLevel.DEBUG: 
+                    this._logger!.debug(mockType(message), ...args);
+                    break;
+                case LogLevel.INFO: 
+                    this._logger!.info(mockType(message), ...args);
+                    break;
+                case LogLevel.WARN: 
+                    this._logger!.warn(mockType(message), ...args);
+                    break;
+                case LogLevel.ERROR: 
+                    this._logger!.error(mockType(message), ...args);
+                    break;
+                case LogLevel.FATAL: 
+                    this._logger!.fatal(mockType(message), ...args);
+                    break;
+            }
+        }
     }
 }
