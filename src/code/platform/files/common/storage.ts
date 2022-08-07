@@ -22,6 +22,8 @@ export interface IDiskStorage extends Disposable {
      * @description Sets a pair of key and value into the storage. If the 
      * storage is sync, the storage will start writing to disk asynchronously.
      * @note If `val` is null, it will be stored and replaced with `undefined`.
+     * @throws An exception thrown if file operation encounters an error with
+     * type {@link FileOperationError}.
      */
     set<K extends Sign = Sign, V = any>(key: K, val: V): void;
 

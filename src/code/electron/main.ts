@@ -4,11 +4,12 @@ import { homedir, tmpdir } from 'os';
 import { ErrorHandler } from 'src/base/common/error';
 import { Event } from 'src/base/common/event';
 import { Schemas, URI } from 'src/base/common/file/uri';
-import { ILogService, LogLevel, PipelineLogger } from 'src/base/common/logger';
+import { BufferLogger, ILogService, LogLevel, PipelineLogger } from 'src/base/common/logger';
 import { Strings } from 'src/base/common/util/string';
 import { DiskFileSystemProvider } from 'src/base/node/diskFileSystemProvider';
 import { GlobalConfigService, IGlobalConfigService, IUserConfigService, UserConfigService } from 'src/code/common/service/configService/configService';
 import { FileService, IFileService } from 'src/code/common/service/fileService/fileService';
+import { ServiceDescriptor } from 'src/code/common/service/instantiationService/descriptor';
 import { IInstantiationService, InstantiationService } from 'src/code/common/service/instantiationService/instantiation';
 import { ServiceCollection } from 'src/code/common/service/instantiationService/serviceCollection';
 import { ILoggerService } from 'src/code/common/service/logService/abstractLoggerService';
@@ -18,6 +19,7 @@ import { NotaInstance } from 'src/code/electron/nota';
 import { IEnvironmentService, IMainEnvironmentService } from 'src/code/platform/environment/common/environment';
 import { MainEnvironmentService } from 'src/code/platform/environment/electron/mainEnvironmentService';
 import { IMainLifeCycleService, MainLifeCycleService } from 'src/code/platform/lifeCycle/electron/mainLifeCycleService';
+import { IMainStatusService, MainStatusService } from 'src/code/platform/status/electron/mainStatusService';
 
 /**
  * @class // TODO
@@ -33,6 +35,7 @@ const nota = new class extends class MainProcess {
     private readonly userConfigService!: IUserConfigService;
     private readonly logService!: ILogService;
     private readonly lifeCycleService!: IMainLifeCycleService;
+    private readonly statusService!: IMainStatusService;
 
     // [constructor]
 
@@ -102,44 +105,50 @@ const nota = new class extends class MainProcess {
         const instantiationService = new InstantiationService(serviceCollection);
         instantiationService.register(IInstantiationService, instantiationService);
         
+        // log-service
+        const logService = new BufferLogger(LogLevel.INFO);
+
         // environment-service
-        const environmentService = new MainEnvironmentService(undefined, { tmpDirPath: tmpdir(), userHomePath: homedir(), appRootPath: app.getAppPath(), isPackaged: app.isPackaged });
+        const environmentService = new MainEnvironmentService(undefined, { 
+            tmpDirPath: tmpdir(), 
+            userHomePath: homedir(), 
+            appRootPath: app.getAppPath(), 
+            isPackaged: app.isPackaged 
+        });
         instantiationService.register(IEnvironmentService, environmentService);
-
-        // logger-service
-        const fileLoggerService = new FileLoggerService(LogLevel.INFO, instantiationService);
-        instantiationService.register(ILoggerService, fileLoggerService);
-
-        // log-service (consoleLogger)
-        const consoleLogger = new ConsoleLogger(LogLevel.WARN);
-        const logService = new PipelineLogger([consoleLogger]);
-        instantiationService.register(ILogService, logService);
 
         // file-service
         const fileService = new FileService(logService);
         fileService.registerProvider(Schemas.FILE, new DiskFileSystemProvider());
         instantiationService.register(IFileService, fileService);
 
-        // log-service (file-logger)
-        const fileLogger = fileLoggerService.createLogger(
-            environmentService.logPath, {
-                description: 'main-log',
-                name: 'main-log.txt'
-            }
-        );
-        (<PipelineLogger>logService).add(fileLogger);
+        // logger-service
+        const fileLoggerService = new FileLoggerService(LogLevel.INFO, instantiationService);
+        instantiationService.register(ILoggerService, fileLoggerService);
+
+        // pipeline-logger
+        const pipelineLogger = new PipelineLogger([
+            new ConsoleLogger(LogLevel.WARN),
+            fileLoggerService.createLogger(environmentService.logPath, { description: 'main-log', name: 'main-log.txt'}),
+        ]);
+        logService.setLogger(pipelineLogger);
+        instantiationService.register(ILogService, logService);
 
         // global-config-service
-        const globalConfigService = new GlobalConfigService(fileService, fileLogger);
+        const globalConfigService = new GlobalConfigService(fileService, logService);
         instantiationService.register(IGlobalConfigService, globalConfigService);
         
         // user-config-service
-        const userConfigService = new UserConfigService(fileService, fileLogger);
+        const userConfigService = new UserConfigService(fileService, logService);
         instantiationService.register(IUserConfigService, userConfigService);
 
         // life-cycle-service
-        const lifeCycleService = new MainLifeCycleService(fileLogger);
+        const lifeCycleService = new MainLifeCycleService(logService);
         instantiationService.register(IMainLifeCycleService, lifeCycleService);
+
+        // status-service
+        const statusService = new MainStatusService(fileService, logService, environmentService);
+        instantiationService.register(IMainStatusService, statusService);
 
         (this.instantiationService as any) = instantiationService;
         (this.environmentService as any) = environmentService;
@@ -148,6 +157,7 @@ const nota = new class extends class MainProcess {
         (this.userConfigService as any) = userConfigService;
         (this.logService as any) = logService;
         (this.lifeCycleService as any) = lifeCycleService;
+        (this.statusService as any) = statusService;
     }
     
     /**
@@ -167,9 +177,11 @@ const nota = new class extends class MainProcess {
                 this.environmentService.appSettingPath
             ].map(path => mkdir(URI.toFsPath(path), { recursive: true }))),
 
+            this.statusService.init(),
+
             // reading all the configurations for the programs and users
             this.globalConfigService.init(this.environmentService.appSettingPath),
-            this.userConfigService.init(this.environmentService.appSettingPath),
+            this.userConfigService.init(this.environmentService.appSettingPath),            
         ]);
     }
 
