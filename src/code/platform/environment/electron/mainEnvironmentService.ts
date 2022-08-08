@@ -2,9 +2,11 @@ import { app } from "electron";
 import { getCurrTimeStamp } from "src/base/common/date";
 import { join } from "src/base/common/file/path";
 import { URI } from "src/base/common/file/uri";
+import { ILogService } from "src/base/common/logger";
 import { memoize } from "src/base/common/memoization";
 import { NOTA_DIR_NAME } from "src/code/common/service/configService/configService";
-import { IMainEnvironmentService } from "src/code/platform/environment/common/environment";
+import { ICLIArguments } from "src/code/platform/environment/common/argument";
+import { getAllEnvironments, IMainEnvironmentService } from "src/code/platform/environment/common/environment";
 
 export interface IEnvironmentOpts {
     isPackaged?: boolean;
@@ -21,17 +23,19 @@ export interface IEnvironmentOpts {
 export class MainEnvironmentService implements IMainEnvironmentService {
 
     constructor(
-        private readonly args: any, // REVIEW: for later design
-        private readonly opts: IEnvironmentOpts = {}
+        private readonly argv: ICLIArguments,
+        private readonly opts: IEnvironmentOpts,
+        @ILogService private readonly logService: ILogService,
     ) {
         opts.isPackaged = opts.isPackaged ?? app.isPackaged;
         opts.userHomePath = opts.userHomePath ?? app.getPath('home')
         opts.tmpDirPath = opts.tmpDirPath ?? app.getPath('temp');
         opts.appRootPath = opts.appRootPath ?? app.getAppPath();
         opts.userDataPath = opts.userDataPath ?? app.getPath('userData');
+        console.log('argv: ', this.argv);
+        this.logService.trace(`Environment loaded:\n${getAllEnvironments(this).map(enviro => `\t${enviro}`).join('\n')}`);
     }
 
-    @memoize
     get mode(): "develop" | "release" { return this.opts.isPackaged ? 'release' : 'develop'; }
 
     @memoize

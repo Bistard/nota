@@ -1,6 +1,6 @@
 import { app, dialog } from 'electron';
 import { mkdir } from 'fs/promises';
-import { homedir, tmpdir } from 'os';
+import { CLIArgv } from 'src/main';
 import { ErrorHandler } from 'src/base/common/error';
 import { Event } from 'src/base/common/event';
 import { Schemas, URI } from 'src/base/common/file/uri';
@@ -15,7 +15,7 @@ import { ILoggerService } from 'src/code/common/service/logService/abstractLogge
 import { ConsoleLogger } from 'src/code/common/service/logService/consoleLoggerService';
 import { FileLoggerService } from 'src/code/common/service/logService/fileLoggerService';
 import { NotaInstance } from 'src/code/electron/nota';
-import { getAllEnvironments, IEnvironmentService, IMainEnvironmentService } from 'src/code/platform/environment/common/environment';
+import { IEnvironmentService, IMainEnvironmentService } from 'src/code/platform/environment/common/environment';
 import { MainEnvironmentService } from 'src/code/platform/environment/electron/mainEnvironmentService';
 import { IMainLifeCycleService, MainLifeCycleService } from 'src/code/platform/lifeCycle/electron/mainLifeCycleService';
 import { IMainStatusService, MainStatusService } from 'src/code/platform/status/electron/mainStatusService';
@@ -40,10 +40,8 @@ const nota = new class extends class MainProcess {
 
     constructor() {
         try {
-            
             ErrorHandler.setUnexpectedErrorExternalCallback(err => console.error(err));
             this.run();
-
         } catch (unexpectedError: any) {
             console.error(unexpectedError.message ?? 'unknown error message');
             app.exit(1);
@@ -98,17 +96,17 @@ const nota = new class extends class MainProcess {
      * everything.
      */
     private createCoreServices(): void {
-        
         // dependency injection (DI)
         const serviceCollection = new ServiceCollection();
         const instantiationService = new InstantiationService(serviceCollection);
         instantiationService.register(IInstantiationService, instantiationService);
         
         // log-service
-        const logService = new BufferLogger(LogLevel.INFO);
+        const logService = new BufferLogger();
+        instantiationService.register(ILogService, logService);
 
         // environment-service
-        const environmentService = new MainEnvironmentService(undefined);
+        const environmentService = instantiationService.createInstance(MainEnvironmentService, CLIArgv, {});
         instantiationService.register(IEnvironmentService, environmentService);
 
         // file-service
@@ -122,11 +120,10 @@ const nota = new class extends class MainProcess {
 
         // pipeline-logger
         const pipelineLogger = new PipelineLogger([
-            new ConsoleLogger(LogLevel.WARN),
-            fileLoggerService.createLogger(environmentService.logPath, { description: 'main-log', name: 'main-log.txt'}),
+            new ConsoleLogger(LogLevel.TRACE),
+            fileLoggerService.createLogger(environmentService.logPath, { description: 'main-log', name: 'main-log.txt', alwaysLog: true }),
         ]);
         logService.setLogger(pipelineLogger);
-        instantiationService.register(ILogService, logService);
 
         // global-config-service
         const globalConfigService = instantiationService.createInstance(GlobalConfigService);
@@ -207,5 +204,4 @@ const nota = new class extends class MainProcess {
             buttons: ['close'],
         });
     }
-
 } {}; /** @readonly ❤hello, world!❤ */
