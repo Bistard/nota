@@ -64,6 +64,7 @@ export class MainWindowService extends Disposable implements IMainWindowService 
     // [private methods]
 
     private registerListeners(): void {
+        this.logService.trace(`Main#MainWindowService#registerListeners()`);
         // noop
     }
 

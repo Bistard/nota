@@ -139,6 +139,7 @@ export class MainLifeCycleService extends Disposable implements IMainLifeCycleSe
 
     constructor(@ILogService private readonly logService: ILogService) {
         super();
+        this.logService.trace(`Main#LifeCycleService#phase#${parsePhaseString(LifeCyclePhase.Starting)}`);
         this.when(LifeCyclePhase.Ready).then(() => this.__registerListeners());
     }
 
@@ -157,12 +158,14 @@ export class MainLifeCycleService extends Disposable implements IMainLifeCycleSe
             return;
         }
 
-        const blocker = this._phaseBlocker.get(this._phase);
+        const blocker = this._phaseBlocker.get(newPhase);
         if (blocker) {
             // someone is waiting for us! 
             blocker.resolve();
-            this._phaseBlocker.delete(this._phase);
+            this._phaseBlocker.delete(newPhase);
         }
+
+        this.logService.trace(`Main#LifeCycleService#phase#${parsePhaseString(newPhase)}`);
     }
 
     public async when(desiredPhase: LifeCyclePhase): Promise<void> {
@@ -234,6 +237,7 @@ export class MainLifeCycleService extends Disposable implements IMainLifeCycleSe
      *      - app.once('will-quit').
      */
     private __registerListeners(): void {
+        this.logService.trace(`Main#LifeCycleService#registerListeners()`);
         
         let onWindowAllClosed: () => void;
         let onBeforeQuitAnyWindows: () => void;
@@ -348,5 +352,13 @@ export class MainLifeCycleService extends Disposable implements IMainLifeCycleSe
         })();
 
         return this._ongoingBeforeQuitPromise;
+    }
+}
+
+function parsePhaseString(phase: LifeCyclePhase): string {
+    switch (phase) {
+        case LifeCyclePhase.Starting: return 'Starting';
+        case LifeCyclePhase.Ready: return 'Ready';
+        case LifeCyclePhase.Idle: return 'Idle';
     }
 }
