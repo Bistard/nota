@@ -9,14 +9,13 @@ import { Strings } from 'src/base/common/util/string';
 import { DiskFileSystemProvider } from 'src/base/node/diskFileSystemProvider';
 import { GlobalConfigService, IGlobalConfigService, IUserConfigService, UserConfigService } from 'src/code/common/service/configService/configService';
 import { FileService, IFileService } from 'src/code/common/service/fileService/fileService';
-import { ServiceDescriptor } from 'src/code/common/service/instantiationService/descriptor';
 import { IInstantiationService, InstantiationService } from 'src/code/common/service/instantiationService/instantiation';
 import { ServiceCollection } from 'src/code/common/service/instantiationService/serviceCollection';
 import { ILoggerService } from 'src/code/common/service/logService/abstractLoggerService';
 import { ConsoleLogger } from 'src/code/common/service/logService/consoleLoggerService';
 import { FileLoggerService } from 'src/code/common/service/logService/fileLoggerService';
 import { NotaInstance } from 'src/code/electron/nota';
-import { IEnvironmentService, IMainEnvironmentService } from 'src/code/platform/environment/common/environment';
+import { getAllEnvironments, IEnvironmentService, IMainEnvironmentService } from 'src/code/platform/environment/common/environment';
 import { MainEnvironmentService } from 'src/code/platform/environment/electron/mainEnvironmentService';
 import { IMainLifeCycleService, MainLifeCycleService } from 'src/code/platform/lifeCycle/electron/mainLifeCycleService';
 import { IMainStatusService, MainStatusService } from 'src/code/platform/status/electron/mainStatusService';
@@ -61,7 +60,7 @@ const nota = new class extends class MainProcess {
          */
         let error: any;
 
-        // core
+        // core service construction / registration
         this.createCoreServices();
         
         // initialization
@@ -82,7 +81,7 @@ const nota = new class extends class MainProcess {
             });
 
             const instance = this.instantiationService.createInstance(NotaInstance);
-            instance.run;
+            instance.run();
         } 
         catch (err) {
             error = err;
@@ -109,12 +108,7 @@ const nota = new class extends class MainProcess {
         const logService = new BufferLogger(LogLevel.INFO);
 
         // environment-service
-        const environmentService = new MainEnvironmentService(undefined, { 
-            tmpDirPath: tmpdir(), 
-            userHomePath: homedir(), 
-            appRootPath: app.getAppPath(), 
-            isPackaged: app.isPackaged 
-        });
+        const environmentService = new MainEnvironmentService(undefined);
         instantiationService.register(IEnvironmentService, environmentService);
 
         // file-service
@@ -135,19 +129,19 @@ const nota = new class extends class MainProcess {
         instantiationService.register(ILogService, logService);
 
         // global-config-service
-        const globalConfigService = new GlobalConfigService(fileService, logService);
+        const globalConfigService = instantiationService.createInstance(GlobalConfigService);
         instantiationService.register(IGlobalConfigService, globalConfigService);
         
         // user-config-service
-        const userConfigService = new UserConfigService(fileService, logService);
+        const userConfigService = instantiationService.createInstance(UserConfigService);
         instantiationService.register(IUserConfigService, userConfigService);
 
         // life-cycle-service
-        const lifeCycleService = new MainLifeCycleService(logService);
+        const lifeCycleService = instantiationService.createInstance(MainLifeCycleService);
         instantiationService.register(IMainLifeCycleService, lifeCycleService);
 
         // status-service
-        const statusService = new MainStatusService(fileService, logService, environmentService);
+        const statusService = instantiationService.createInstance(MainStatusService);
         instantiationService.register(IMainStatusService, statusService);
 
         (this.instantiationService as any) = instantiationService;
@@ -166,7 +160,7 @@ const nota = new class extends class MainProcess {
      */
     private async initServices(): Promise<any> {
         
-        return Promise.allSettled<any>([
+        return Promise.all<any>([
             /**
              * At the very beginning state of the program, we need to initialize
              * all the necessary directories first. We need to ensure each one 
@@ -174,14 +168,15 @@ const nota = new class extends class MainProcess {
              */
             Promise.all<string | undefined>([
                 this.environmentService.logPath,
-                this.environmentService.appSettingPath
+                this.environmentService.appConfigurationPath,
+                this.environmentService.userDataPath,
             ].map(path => mkdir(URI.toFsPath(path), { recursive: true }))),
 
             this.statusService.init(),
 
             // reading all the configurations for the programs and users
-            this.globalConfigService.init(this.environmentService.appSettingPath),
-            this.userConfigService.init(this.environmentService.appSettingPath),            
+            this.globalConfigService.init(this.environmentService.appConfigurationPath),
+            this.userConfigService.init(this.environmentService.appConfigurationPath),            
         ]);
     }
 
