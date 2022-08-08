@@ -79,7 +79,7 @@ export namespace ErrorHandler {
     /**
      * @description Register a listener on unexpected errors (will not recieve 
      * external error fired by {@link ErrorHandler.onUnexpectedExternalError}).
-     * @returns Returns a {@link IDisposable} for unregisteration.
+     * @returns Returns a {@link IDisposable} for unregistration.
      */
     export function registerListener(listener: IErrorListener): IDisposable {
         return _ErrorRegistry.registerListener(listener);
