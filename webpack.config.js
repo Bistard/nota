@@ -53,8 +53,8 @@ const baseConfiguration = {
                     ));
                 }
             },
-          })
-      ]
+        }),
+    ]
 };
 
 module.exports = [
