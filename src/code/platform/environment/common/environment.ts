@@ -2,6 +2,7 @@ import { URI } from "src/base/common/file/uri";
 import { LogLevel } from "src/base/common/logger";
 import { iterPropety } from "src/base/common/util/iterable";
 import { createDecorator } from "src/code/common/service/instantiationService/decorator";
+import { ICLIArguments } from "src/main";
 
 export const IEnvironmentService = createDecorator<IEnvironmentService>('environment-service');
 
@@ -63,6 +64,11 @@ export interface IEnvironmentService {
  */
 export interface IMainEnvironmentService extends IEnvironmentService {
     
+    /**
+     * The arguments from command line interface.
+     */
+    readonly CLIArguments: ICLIArguments;
+
     /**
      * The user home directory.
      * @example Windows - C:/Users/user_name

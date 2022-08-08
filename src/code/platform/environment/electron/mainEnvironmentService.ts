@@ -39,6 +39,8 @@ export class MainEnvironmentService implements IMainEnvironmentService {
         this.logService.trace(`Environment loaded:\n${getAllEnvironments(this).map(enviro => `\t${enviro}`).join('\n')}`);
     }
 
+    get CLIArguments(): ICLIArguments { return this.CLIArgv; }
+
     get mode(): "develop" | "release" { return this.opts.isPackaged ? 'release' : 'develop'; }
 
     @memoize
