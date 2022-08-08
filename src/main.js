@@ -1,0 +1,2 @@
+
+require('./code/electron/main');
