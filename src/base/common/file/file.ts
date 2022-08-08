@@ -296,6 +296,7 @@ export const enum FileOperationErrorType {
 	FILE_IS_DIRECTORY,
 	FILE_INVALID_PATH,
 	FILE_READONLY,
+	UNKNOWN,
 }
 
 export class FileSystemProviderError extends Error {

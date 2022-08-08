@@ -171,7 +171,7 @@ export class FileService extends Disposable implements IFileService {
         }
 
         catch (error) {
-            throw error;
+            throw new FileOperationError(`unable to write file to ${URI.toFsPath(uri)}`, FileOperationErrorType.UNKNOWN);
         }
 
     }
@@ -271,7 +271,8 @@ export class FileService extends Disposable implements IFileService {
              *  - the provider has no buffered capability
              *  - prefer unbuffered
              */
-            if (!(hasOpenReadWriteCloseCapability(provider) || hasReadFileStreamCapability(provider)) ||
+            if (!(hasOpenReadWriteCloseCapability(provider) || 
+                hasReadFileStreamCapability(provider)) ||
                 (hasReadWriteCapability(provider) && opts?.preferUnbuffered)
             ) {
                 stream = this.__readFileUnbuffered(provider, uri, opts);
@@ -291,7 +292,7 @@ export class FileService extends Disposable implements IFileService {
         } 
         
         catch(err) {
-            throw err;
+            throw new FileOperationError(`unable to read file ${URI.toFsPath(uri)}`, FileOperationErrorType.UNKNOWN);
         }
     }
 
@@ -394,7 +395,7 @@ export class FileService extends Disposable implements IFileService {
         } 
    
         catch (error) {
-            throw error;
+            throw new FileOperationError(`unable to write file buffered ${URI.toFsPath(uri)}`, FileOperationErrorType.UNKNOWN);
         } 
         
         finally {
@@ -451,7 +452,7 @@ export class FileService extends Disposable implements IFileService {
             try {
                 await provider.mkdir(URI.fromFile(path));
             } catch (err) {
-                throw err;
+                throw new FileOperationError(`cannot make directory '${path}'`, FileOperationErrorType.UNKNOWN);
             }
         }
     }
