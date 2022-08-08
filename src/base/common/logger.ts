@@ -204,8 +204,8 @@ export class PipelineLogger extends AbstractLogger implements ILogService {
 
     private readonly _loggers: ILogger[];
 
-    constructor(loggers: ILogger[], level?: LogLevel) {
-        super(level);
+    constructor(loggers: ILogger[]) {
+        super();
 
         this._loggers = loggers;
         for (const logger of loggers) {
@@ -264,8 +264,8 @@ export class BufferLogger extends AbstractLogger implements ILogService {
     private readonly _buffer: { level: LogLevel, message: (string | Error), args: any[] }[] = [];
     private _logger?: ILogger;
 
-    constructor(level?: LogLevel) {
-        super(level);
+    constructor() {
+        super();
     }
 
     public setLogger(logger: ILogger): void {
