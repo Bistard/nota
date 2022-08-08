@@ -292,12 +292,12 @@ suite('instantiationService-test', () => {
 		service.register(ICreateOnlyOnceClass, new ServiceDescriptor(CreateOnlyOnceClass));
 		
 		service.getOrCreateService1((provider) => {
-			provider.getService(ICreateOnlyOnceClass);
+			provider.getOrCreateService(ICreateOnlyOnceClass);
 		});
 		assert.strictEqual(1, CreateOnlyOnceClass.cnt);
 		
 		service.getOrCreateService1((provider) => {
-			provider.getService(ICreateOnlyOnceClass);
+			provider.getOrCreateService(ICreateOnlyOnceClass);
 		});
 		assert.strictEqual(1, CreateOnlyOnceClass.cnt);
 	});

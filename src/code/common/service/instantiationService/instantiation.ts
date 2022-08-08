@@ -15,6 +15,12 @@ export interface IServiceProvider {
      * @throws An exception throws if the service cannot be found.
      */
     getService<T>(serviceIdentifier: ServiceIdentifier<T>): T;
+
+    /**
+     * @description Get or create a service instance.
+     * @param serviceIdentifier The {@link ServiceIdentifier}.
+     */
+    getOrCreateService<T>(serviceIdentifier: ServiceIdentifier<T>): T;
 }
 
 export interface IInstantiationService extends IServiceProvider {
@@ -45,12 +51,6 @@ export interface IInstantiationService extends IServiceProvider {
      * @param collection 
      */
     createChild(collection: ServiceCollection): IInstantiationService;
-
-    /**
-     * @description Get or create a service instance.
-     * @param serviceIdentifier The {@link ServiceIdentifier}.
-     */
-    getOrCreateService<T>(serviceIdentifier: ServiceIdentifier<T>): T;
 
     /**
      * @description Invokes a callback function with a {@link IServiceProvider}
@@ -110,6 +110,13 @@ export class InstantiationService implements IInstantiationService {
     public getOrCreateService1<T, R extends any[]>(cb: (provider: IServiceProvider, ...args: R) => T, ...args: R): T {
         const provider: IServiceProvider = {
             getService: <T>(serviceIdentifier: ServiceIdentifier<T>) => {
+                const service = this.serviceCollections.get(serviceIdentifier);
+                if (!service || service instanceof ServiceDescriptor) {
+                    throw new Error(`[getOrCreateService] UNKNOWN service ${serviceIdentifier.name}.`);
+                }
+                return service;
+            },
+            getOrCreateService: <T>(serviceIdentifier: ServiceIdentifier<T>) => {
                 const service = this._getOrCreateDependencyInstance(serviceIdentifier);
                 if (!service) {
                     throw new Error(`[getOrCreateService] UNKNOWN service ${serviceIdentifier.name}.`);
