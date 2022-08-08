@@ -6,7 +6,7 @@ import { Blocker } from "src/base/common/util/async";
 import { IFileService } from "src/code/common/service/fileService/fileService";
 import { ModelEvent, IEditorModel, IPieceTableModel } from "src/editor/common/model";
 import { IMarkdownLexer, MarkdownLexer } from "src/editor/model/markdown/markedLexer";
-import { TextBufferBuilder } from "src/editor/model/textBuffer";
+import { TextBufferBuilder } from "src/editor/model/textBufferBuilder";
 
 /**
  * @class // TODO
