@@ -1,8 +1,7 @@
 import { Disposable } from "src/base/common/dispose";
 import { DataBuffer } from "src/base/common/file/buffer";
-import { FileOperationError } from "src/base/common/file/file";
+import { FileOperationError, FileOperationErrorType } from "src/base/common/file/file";
 import { URI } from "src/base/common/file/uri";
-import { ILogService } from "src/base/common/logger";
 import { ifOrDefault, IndexSignature, mockType, ObjectMappedType } from "src/base/common/util/type";
 import { IFileService } from "src/code/common/service/fileService/fileService";
 
@@ -25,13 +24,13 @@ export interface IDiskStorage extends Disposable {
      * @throws An exception thrown if file operation encounters an error with
      * type {@link FileOperationError}.
      */
-    set<K extends Sign = Sign, V = any>(key: K, val: V): void;
+    set<K extends Sign = Sign, V = any>(key: K, val: V): Promise<void>;
 
     /**
      * @description Sets pairs of key and value into the storage. Works the 
      * same as {@link IDiskStorage.set}.
      */
-    setLot<K extends Sign = Sign, V = any>(items: readonly { key: K, val: V }[]): void;
+    setLot<K extends Sign = Sign, V = any>(items: readonly { key: K, val: V }[]): Promise<void>;
 
     /**
      * @description Try to get the corresponding value of the given key.
@@ -52,7 +51,7 @@ export interface IDiskStorage extends Disposable {
      * @param key The given key.
      * @returns Returns a boolean to tell if the deletion is taken.
      */
-    delete<K extends Sign = Sign>(key: K): boolean;
+    delete<K extends Sign = Sign>(key: K): Promise<boolean>;
 
     /**
      * @description Check if storage has a corresponding value of the given key.
@@ -65,6 +64,11 @@ export interface IDiskStorage extends Disposable {
      * memory through the path which passed inside the constructor.
      * 
      * @note `init()` must be called before taking any operations.
+     * 
+     * @note Service will be initialized at the very beginning of the program.
+     * You may assume the service is initialized properly and invoke the method
+     * only if you need to re-initialize.
+     * 
      * @note after `close()` is invoked. Caller may re-invoke `init()`.
      * @throws An exception thrown if file operation encounters an error with
      * type {@link FileOperationError}.
@@ -72,7 +76,9 @@ export interface IDiskStorage extends Disposable {
     init(): Promise<void>;
 
     /**
-     * @description // TODO
+     * @description Manually save the storage into the memory.
+     * @throws An exception thrown if file operation encounters an error with
+     * type {@link FileOperationError}.
      */
     save(): Promise<void>;
 
@@ -114,7 +120,6 @@ export class DiskStorage extends Disposable implements IDiskStorage {
         private readonly path: URI,
         private sync: boolean,
         @IFileService private readonly fileService: IFileService,
-        @ILogService private readonly logService: ILogService,
     ) {
         super();
     }
@@ -125,11 +130,11 @@ export class DiskStorage extends Disposable implements IDiskStorage {
         this.sync = val;
     }
 
-    public set<K extends Sign = Sign, V = any>(key: K, val: V): void {
-        this.setLot([{ key, val }]);
+    public set<K extends Sign = Sign, V = any>(key: K, val: V): Promise<void> {
+        return this.setLot([{ key, val }]);
     }
 
-    public setLot<K extends Sign = Sign, V = any>(items: readonly { key: K, val: V }[]): void {
+    public async setLot<K extends Sign = Sign, V = any>(items: readonly { key: K, val: V }[]): Promise<void> {
         let save = false;
 
         for (const { key, val } of items) {
@@ -137,10 +142,11 @@ export class DiskStorage extends Disposable implements IDiskStorage {
                 return;
             }
             this._storage[key] = ifOrDefault(val, undefined!!);
+            save = true;
         }
 
         if (save && this.sync) {
-            this.__save();
+            return this.__save();
         }
     }
 
@@ -160,11 +166,14 @@ export class DiskStorage extends Disposable implements IDiskStorage {
         return result;
     }
 
-    public delete<K extends Sign = Sign>(key: K): boolean {
+    public async delete<K extends Sign = Sign>(key: K): Promise<boolean> {
         if (this._storage[key] !== undefined) {
             this._storage[key] = undefined;
             if (this.sync) {
-                this.__save();
+                return new Promise(async (resolve) => {
+                    await this.__save();
+                    resolve(true);
+                });
             }
             return true;
         }
@@ -213,14 +222,27 @@ export class DiskStorage extends Disposable implements IDiskStorage {
             if (this._lastSaveStorage.length) {
                 this._storage = JSON.parse(this._lastSaveStorage);
             }
+            return;
         } catch (error) {
-            this.logService.error(mockType(error));
+            const errorCode = (<FileOperationError>error).operation;
+            // REVIEW
+            // if (errorCode === undefined || errorCode !== FileOperationErrorType.FILE_NOT_FOUND) {
+            //     throw error;
+            // }
+        }
+
+        // file does not exist, try to create one and re-initialize.
+        try {
+            await this.fileService.writeFile(this.path, DataBuffer.alloc(0), { create: true, overwrite: false, unlock: false });
+        } catch (error) {
             throw error;
         }
+
+        return this.__init();
     }
 
     private async __save(): Promise<void> {
-        
+
         // never got initialized or already closed, we should never save.
         if (this._operating === undefined) {
             return;
@@ -240,7 +262,6 @@ export class DiskStorage extends Disposable implements IDiskStorage {
             this._operating = this.fileService.writeFile(this.path, DataBuffer.fromString(serialized), { create: false, overwrite: true, unlock: false });
             this._lastSaveStorage = serialized;
         } catch (error) {
-            this.logService.error(mockType(error));
             throw error;
         }
 

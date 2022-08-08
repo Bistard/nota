@@ -34,7 +34,7 @@ suite('storage-test', () => {
     });
 
     test('basic - set / get / has', async () => {
-        const storage = new DiskStorage(URI.fromFile(path), true, fileService, logService);
+        const storage = new DiskStorage(URI.fromFile(path), true, fileService);
         await storage.init();
 
         storage.set('key1', 'value1');
@@ -64,7 +64,7 @@ suite('storage-test', () => {
     });
 
     test('used before init', async () => {
-        const storage = new DiskStorage(URI.fromFile(path), true, fileService, logService);
+        const storage = new DiskStorage(URI.fromFile(path), true, fileService);
 
 		storage.set('key1', 'value1');
 		storage.delete('key2');
@@ -79,7 +79,7 @@ suite('storage-test', () => {
     });
 
     test('used after close', async () => {
-        const storage = new DiskStorage(URI.fromFile(path), true, fileService, logService);
+        const storage = new DiskStorage(URI.fromFile(path), true, fileService);
 		await storage.init();
 
 		storage.set('key1', 'value1');
@@ -99,7 +99,7 @@ suite('storage-test', () => {
     });
 
     test('Closed before init', async () => {
-		const storage = new DiskStorage(URI.fromFile(path), true, fileService, logService);
+		const storage = new DiskStorage(URI.fromFile(path), true, fileService);
 
 		storage.set('key1', 'value1');
 		storage.set('key2', 'value2');
@@ -113,7 +113,7 @@ suite('storage-test', () => {
 	});
 
     test('re-init', async () => {
-		const storage = new DiskStorage(URI.fromFile(path), true, fileService, logService);
+		const storage = new DiskStorage(URI.fromFile(path), true, fileService);
         await storage.init();
 
         await storage.close();
@@ -129,7 +129,7 @@ suite('storage-test', () => {
 	});
 
     test('non-sync saving', async () => {
-        const storage = new DiskStorage(URI.fromFile(path), false, fileService, logService);
+        const storage = new DiskStorage(URI.fromFile(path), false, fileService);
         await storage.init();
 
         storage.set('key1', 'value1');
@@ -147,7 +147,7 @@ suite('storage-test', () => {
     });
 
     test('manually saving', async () => {
-        const storage = new DiskStorage(URI.fromFile(path), false, fileService, logService);
+        const storage = new DiskStorage(URI.fromFile(path), false, fileService);
         await storage.init();
 
         storage.set('key1', 'value1');
@@ -156,6 +156,19 @@ suite('storage-test', () => {
 		storage.set('key4', 'value4');
 
         await storage.save();
+
+        let contents = fs.readFileSync(path).toString();
+		assert.strictEqual(contents.length > 0, true);
+    });
+
+    test('sync saving', async () => {
+        const storage = new DiskStorage(URI.fromFile(path), true, fileService);
+        await storage.init();
+
+        await storage.set('key1', 'value1');
+		await storage.set('key2', 'value2');
+		await storage.set('key3', 'value3');
+		await storage.set('key4', 'value4');
 
         let contents = fs.readFileSync(path).toString();
 		assert.strictEqual(contents.length > 0, true);
