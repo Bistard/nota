@@ -11,8 +11,14 @@
  * electron . "--log=trace" "--mode=dev"
  * // This will be parse as `{ log: 'trace', mode: 'dev' }`.
  * ```
+ * @note The parsing process is done by `minimist`.
  */
 export interface ICLIArguments {
+
+    /**
+     * Contains all the arguments that didn't have an option associated with them.
+     */
+    _: string[];
 
     /**
      * The log level when the application is on development mode.
