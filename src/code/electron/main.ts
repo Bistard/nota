@@ -106,7 +106,7 @@ const nota = new class extends class MainProcess {
         instantiationService.register(ILogService, logService);
 
         // environment-service
-        const environmentService = instantiationService.createInstance(MainEnvironmentService, CLIArgv, {});
+        const environmentService = new MainEnvironmentService(CLIArgv, {}, logService);
         instantiationService.register(IEnvironmentService, environmentService);
 
         // file-service
@@ -115,30 +115,30 @@ const nota = new class extends class MainProcess {
         instantiationService.register(IFileService, fileService);
 
         // logger-service
-        const fileLoggerService = new FileLoggerService(LogLevel.INFO, instantiationService);
+        const fileLoggerService = new FileLoggerService(environmentService.logLevel, instantiationService);
         instantiationService.register(ILoggerService, fileLoggerService);
-
+        
         // pipeline-logger
         const pipelineLogger = new PipelineLogger([
-            new ConsoleLogger(LogLevel.TRACE),
-            fileLoggerService.createLogger(environmentService.logPath, { description: 'main-log', name: 'main-log.txt', alwaysLog: true }),
+            new ConsoleLogger(environmentService.mode === 'develop' ? environmentService.logLevel : LogLevel.WARN),
+            fileLoggerService.createLogger(environmentService.logPath, { description: 'main-log', name: 'main-log.txt' }),
         ]);
         logService.setLogger(pipelineLogger);
 
         // global-config-service
-        const globalConfigService = instantiationService.createInstance(GlobalConfigService);
+        const globalConfigService = new GlobalConfigService(fileService, logService);
         instantiationService.register(IGlobalConfigService, globalConfigService);
         
         // user-config-service
-        const userConfigService = instantiationService.createInstance(UserConfigService);
+        const userConfigService = new UserConfigService(fileService, logService);
         instantiationService.register(IUserConfigService, userConfigService);
 
         // life-cycle-service
-        const lifeCycleService = instantiationService.createInstance(MainLifeCycleService);
+        const lifeCycleService = new MainLifeCycleService(logService);
         instantiationService.register(IMainLifeCycleService, lifeCycleService);
 
         // status-service
-        const statusService = instantiationService.createInstance(MainStatusService);
+        const statusService = new MainStatusService(fileService, logService, environmentService, lifeCycleService);
         instantiationService.register(IMainStatusService, statusService);
 
         (this.instantiationService as any) = instantiationService;

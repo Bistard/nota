@@ -181,6 +181,22 @@ export function parseLogLevel(level: LogLevel): string {
     }
 }
 
+export function parseToLogLevel(str?: string): LogLevel {
+    if (!str) {
+        return LogLevel.INFO;
+    }
+    
+    switch (str.toUpperCase()) {
+        case 'FATAL': return LogLevel.FATAL;
+        case 'ERROR': return LogLevel.ERROR;
+        case 'WARN': return LogLevel.WARN;
+        case 'INFO': return LogLevel.INFO;
+        case 'DEBUG': return LogLevel.DEBUG;
+        case 'TRACE': return LogLevel.TRACE;
+        default: return LogLevel.INFO;
+    }
+}
+
 /**
  * @class A logger that does nothing. Usually used for testing purpose.
  */
