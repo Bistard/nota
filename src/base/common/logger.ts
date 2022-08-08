@@ -261,7 +261,7 @@ export class PipelineLogger extends AbstractLogger implements ILogService {
  */
 export class BufferLogger extends AbstractLogger implements ILogService {
 
-    private readonly _buffer: { level: LogLevel, message: (string | Error), args: any[] }[] = [];
+    private _buffer: { level: LogLevel, message: (string | Error), args: any[] }[] = [];
     private _logger?: ILogger;
 
     constructor() {
@@ -329,5 +329,6 @@ export class BufferLogger extends AbstractLogger implements ILogService {
                     break;
             }
         }
+        this._buffer = [];
     }
 }

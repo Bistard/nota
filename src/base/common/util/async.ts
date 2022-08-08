@@ -8,7 +8,8 @@ export interface ITask<T> {
 export type IAsyncTask<T> = ITask<Promise<T>>;
 
 /**
- * @description Delays for given milliseconds.
+ * @description Delays for given milliseconds. It will immediately create a 
+ * async task that runs in the javascript task queue by using setTimeout.
  * @param ms Milliseconds.
  * @param callback Callback function after the waiting ends.
  */
