@@ -8,34 +8,44 @@ import { IFileService } from "src/code/common/service/fileService/fileService";
 import { createDecorator } from "src/code/common/service/instantiationService/decorator";
 import { IEnvironmentService, IMainEnvironmentService } from "src/code/platform/environment/common/environment";
 import { DiskStorage, IDiskStorage } from "src/code/platform/files/common/storage";
-import { IMainLifeCycleService, LifeCyclePhase } from "src/code/platform/lifeCycle/electron/mainLifeCycleService";
+import { IMainLifeCycleService } from "src/code/platform/lifeCycle/electron/mainLifeCycleService";
 
 export const IMainStatusService = createDecorator<IMainStatusService>('status-service');
 
+/**
+ * An interface only for {@link MainStatusService}. The API are mainly just a
+ * wrapper of a {@link IDiskStorage}. You may check the more detailed document
+ * from there.
+ */
 export interface IMainStatusService extends Disposable {
-
-    /**
-     * @description 
-     * @note If `val` is null, it will be stored and replaced with `undefined`.
-     */
     set(key: string, val: any): Promise<void>;
-
     setLot(items: readonly { key: string, val: any }[]): Promise<void>;
-
     get(key: string, defaultVal?: any): any | undefined;
-
     getLot(keys: string[], defaultVal?: any[]): (any | undefined)[];
-
     delete(key: string): Promise<boolean>;
-
     has(key: string): boolean;
-
     init(): Promise<void>;
-
     close(): Promise<void>;
 }
 
 /**
+ * @class The service stores and saves the user-specific and window-status
+ * related data into the disk. 
+ * 
+ * Invoking set / setLot / delete will automatically save the data into 
+ * the disk and the process is asynchronous.
+ * 
+ * Code implementation mainly is just a wrapper of a {@link IDiskStorage}.
+ * 
+ * When setting value with `null`, it will be replace with undefined for
+ * simplicity.
+ * 
+ * You may await for the set / setLot / delete to ensure that the saving
+ * operation has finished (if sync is on).
+ * 
+ * @note Service will be initialized at the very beginning of the program.
+ * You may assume the service is initialized properly and invoke `init()`
+ * only if you need to re-initialize.
  * 
  */
 export class MainStatusService extends Disposable implements IMainStatusService {

@@ -2,7 +2,7 @@ import { Disposable } from "src/base/common/dispose";
 import { DataBuffer } from "src/base/common/file/buffer";
 import { FileOperationError, FileOperationErrorType } from "src/base/common/file/file";
 import { URI } from "src/base/common/file/uri";
-import { ifOrDefault, IndexSignature, mockType, ObjectMappedType } from "src/base/common/util/type";
+import { ifOrDefault, IndexSignature, ObjectMappedType } from "src/base/common/util/type";
 import { IFileService } from "src/code/common/service/fileService/fileService";
 
 type Sign = IndexSignature;
@@ -64,11 +64,6 @@ export interface IDiskStorage extends Disposable {
      * memory through the path which passed inside the constructor.
      * 
      * @note `init()` must be called before taking any operations.
-     * 
-     * @note Service will be initialized at the very beginning of the program.
-     * You may assume the service is initialized properly and invoke the method
-     * only if you need to re-initialize.
-     * 
      * @note after `close()` is invoked. Caller may re-invoke `init()`.
      * @throws An exception thrown if file operation encounters an error with
      * type {@link FileOperationError}.
@@ -105,6 +100,8 @@ export interface IDiskStorage extends Disposable {
  * 
  * @note When setting value with `null`, it will be replace with undefined for
  * simplicity.
+ * @note You may await for the set / setLot / delete to ensure that the saving
+ * operation has finished (if sync is on).
  */
 export class DiskStorage extends Disposable implements IDiskStorage {
 
