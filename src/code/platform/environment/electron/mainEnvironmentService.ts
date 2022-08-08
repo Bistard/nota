@@ -1,3 +1,4 @@
+import { app } from "electron";
 import { getCurrTimeStamp } from "src/base/common/date";
 import { join } from "src/base/common/file/path";
 import { URI } from "src/base/common/file/uri";
@@ -6,10 +7,11 @@ import { NOTA_DIR_NAME } from "src/code/common/service/configService/configServi
 import { IMainEnvironmentService } from "src/code/platform/environment/common/environment";
 
 export interface IEnvironmentOpts {
-    readonly isPackaged: boolean;
-    readonly userHomePath: string;
-    readonly tmpDirPath: string;
-    readonly appRootPath: string;
+    isPackaged?: boolean;
+    userHomePath?: string;
+    tmpDirPath?: string;
+    appRootPath?: string;
+    userDataPath?: string;
 }
 
 /**
@@ -20,25 +22,34 @@ export class MainEnvironmentService implements IMainEnvironmentService {
 
     constructor(
         private readonly args: any, // REVIEW: for later design
-        private readonly opts: IEnvironmentOpts
-    ) {}
+        private readonly opts: IEnvironmentOpts = {}
+    ) {
+        opts.isPackaged = opts.isPackaged ?? app.isPackaged;
+        opts.userHomePath = opts.userHomePath ?? app.getPath('home')
+        opts.tmpDirPath = opts.tmpDirPath ?? app.getPath('temp');
+        opts.appRootPath = opts.appRootPath ?? app.getAppPath();
+        opts.userDataPath = opts.userDataPath ?? app.getPath('userData');
+    }
 
     @memoize
     get mode(): "develop" | "release" { return this.opts.isPackaged ? 'release' : 'develop'; }
 
     @memoize
-    get userHomePath(): URI { return URI.fromFile(this.opts.userHomePath); }
+    get userHomePath(): URI { return URI.fromFile(this.opts.userHomePath!); }
 
     @memoize
-    get tmpDirPath(): URI { return URI.fromFile(this.opts.tmpDirPath); }
+    get tmpDirPath(): URI { return URI.fromFile(this.opts.tmpDirPath!); }
 
     @memoize
-    get appRootPath(): URI { return URI.fromFile(this.opts.appRootPath); }
+    get appRootPath(): URI { return URI.fromFile(this.opts.appRootPath!); }
 
     @memoize
-    get logPath(): URI { return URI.fromFile(join(this.opts.appRootPath, NOTA_DIR_NAME, 'log', getCurrTimeStamp().replace(/-|:| |\./g, ''))); }
+    get logPath(): URI { return URI.fromFile(join(this.opts.appRootPath!, NOTA_DIR_NAME, 'log', getCurrTimeStamp().replace(/-|:| |\./g, ''))); }
 
     @memoize
-    get appSettingPath(): URI { return URI.fromFile(join(this.opts.appRootPath, NOTA_DIR_NAME)); }
+    get appConfigurationPath(): URI { return URI.fromFile(join(this.opts.appRootPath!, NOTA_DIR_NAME)); }
+
+    @memoize
+    get userDataPath(): URI { return URI.fromFile(this.opts.userDataPath!); }
 }
 

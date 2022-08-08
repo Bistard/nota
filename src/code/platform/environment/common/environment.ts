@@ -9,11 +9,16 @@ export const IEnvironmentService = createDecorator<IEnvironmentService>('environ
  * array.
  * @param service The desired {@link IEnvironmentService}.
  */
-export function getAllEnvironmentInformation(service: IEnvironmentService): any[] {
-    const result: any[] = [];
+export function getAllEnvironments(service: IEnvironmentService): string[] {
+    const result: string[] = [];
     iterPropety(service, (propName) => {
         if (propName !== 'constructor' && typeof service[propName] !== 'function') {
-            result.push(service[propName]);
+            const value = service[propName];
+            if (value instanceof URI) {
+                result.push(`${propName}: ${URI.toFsPath(value)}`);
+            } else {
+                result.push(`${propName}: ${value}`);
+            }
         }
     });
     return result;
@@ -30,13 +35,20 @@ export function getAllEnvironmentInformation(service: IEnvironmentService): any[
  */
 export interface IEnvironmentService {
     
-    // production
+    /**
+     * The application mode.
+     */
     readonly mode: 'develop' | 'release';
 
-    // setting
-    readonly appSettingPath: URI;
+    /**
+     * The configuration directory of the application.
+     * @example .../nota/.nota
+     */
+    readonly appConfigurationPath: URI;
     
-    // logging
+    /**
+     * The logging output directory.
+     */
     readonly logPath: URI;
 }
 
@@ -44,9 +56,27 @@ export interface IEnvironmentService {
  * The native environment works only in main process in Electron.
  */
 export interface IMainEnvironmentService extends IEnvironmentService {
+    
+    /**
+     * The user home directory.
+     * @example Windows - C:/Users/user_name
+     */
+    readonly userHomePath: URI;
 
-    // data path
-    readonly userHomePath: URI; 
+    /**
+     * The temporary directory.
+     * @example Windows - C:/Users/user_name/AppData/Local/Temp
+     */
     readonly tmpDirPath: URI;
+
+    /**
+     * The root directory of the application.
+     */
     readonly appRootPath: URI;
+
+    /**
+     * The user data directory.
+     * @example C:/Users/user_name/AppData/Roaming/nota
+     */
+    readonly userDataPath: URI;
 }
