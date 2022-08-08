@@ -1,4 +1,47 @@
-import { GLOBAL, INodeProcess, IS_MAC, IS_WINDOWS } from "src/base/common/platform";
+import { GLOBAL, IS_MAC, IS_WINDOWS } from "src/base/common/platform";
+
+/**
+ * This interface is intentionally not identical to node.js process because it 
+ * also works in sandboxed environments where the process object is implemented 
+ * differently.
+ */
+export interface INodeProcess {
+	platform: string;
+	arch: string;
+	env: IProcessEnvironment;
+	versions?: {
+		electron?: string;
+	};
+	type?: string;
+	cwd: () => string;
+}
+
+/**
+ * The `process.env` property returns an object containing the user environment.
+ * See [`environ(7)`](http://man7.org/linux/man-pages/man7/environ.7.html).
+ *
+ * An example of this object looks like:
+ * @example
+ * ```js
+ * {
+ *   TERM: 'xterm-256color',
+ *   SHELL: '/usr/local/bin/bash',
+ *   USER: 'maciej',
+ *   PATH: '~/.bin/:/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin',
+ *   PWD: '/Users/maciej',
+ *   EDITOR: 'vim',
+ *   SHLVL: '1',
+ *   HOME: '/Users/maciej',
+ *   LOGNAME: 'maciej',
+ *   _: '/usr/local/bin/node'
+ * }
+ * ```
+ * 
+ * @note On Windows operating systems, environment variables are case-insensitive.
+ */
+export interface IProcessEnvironment {
+	[key: string]: string | undefined;
+}
 
 declare const process: INodeProcess;
 type ISafeProcess = Omit<INodeProcess, 'arch'> & { arch: string | undefined };
