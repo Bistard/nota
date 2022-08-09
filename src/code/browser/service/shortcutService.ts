@@ -1,22 +1,20 @@
 import { DisposableManager, IDisposable } from "src/base/common/dispose";
 import { PauseableEmitter, Register } from "src/base/common/event";
 import { DataBuffer } from "src/base/common/file/buffer";
-import { resolve } from "src/base/common/file/path";
 import { URI } from "src/base/common/file/uri";
 import { hash } from "src/base/common/util/hash";
 import { Shortcut } from "src/base/common/keyboard";
-import { APP_ROOT_PATH } from "src/base/electron/app";
 import { IIpcService } from "src/code/browser/service/ipcService";
 import { IKeyboardService } from "src/code/browser/service/keyboardService";
 import { IWorkbenchService } from "src/code/browser/service/workbenchService";
-import { NOTA_DIR_NAME } from "src/code/common/service/configService/configService";
 import { IFileService } from "src/code/common/service/fileService/fileService";
 import { createDecorator } from "src/code/common/service/instantiationService/decorator";
 import { IInstantiationService, IServiceProvider } from "src/code/common/service/instantiationService/instantiation";
 import { ILogService } from "src/base/common/logger";
 
 export const SHORTCUT_CONFIG_NAME = 'shortcut.config.json';
-export const SHORTCUT_CONFIG_PATH = resolve(APP_ROOT_PATH, NOTA_DIR_NAME, SHORTCUT_CONFIG_NAME);
+// export const SHORTCUT_CONFIG_PATH = resolve(APP_ROOT_PATh, NOTA_DIR_NAME, SHORTCUT_CONFIG_NAME);
+export const SHORTCUT_CONFIG_PATH = 'NA'; // FIX
 
 export interface IShortcutRegistration {
     /**
