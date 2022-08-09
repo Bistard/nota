@@ -2,7 +2,7 @@ import { URI } from "src/base/common/file/uri";
 import { LogLevel } from "src/base/common/logger";
 import { iterPropety } from "src/base/common/util/iterable";
 import { createDecorator } from "src/code/common/service/instantiationService/decorator";
-import { ICLIArguments } from "src/main";
+import { ICLIArguments } from "src/code/platform/environment/common/argument";
 
 export const IEnvironmentService = createDecorator<IEnvironmentService>('environment-service');
 
@@ -13,14 +13,20 @@ export const IEnvironmentService = createDecorator<IEnvironmentService>('environ
  */
 export function getAllEnvironments(service: IEnvironmentService): string[] {
     const result: string[] = [];
+    let value: any;
     iterPropety(service, (propName) => {
         if (propName !== 'constructor' && typeof service[propName] !== 'function') {
-            const value = service[propName];
-            if (value instanceof URI) {
-                result.push(`${propName}: ${URI.toFsPath(value)}`);
-            } else {
-                result.push(`${propName}: ${value}`);
+            const propVal = service[propName];
+            if (propVal instanceof URI) {
+                value = URI.toFsPath(propVal);
+            } 
+            else if (propVal instanceof Object) {
+                value = JSON.stringify(propVal);
+            } 
+            else {
+                value = propVal;
             }
+            result.push(`${propName}: ${value}`);
         }
     });
     return result;

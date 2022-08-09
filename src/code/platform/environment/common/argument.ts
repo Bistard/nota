@@ -26,6 +26,10 @@ export interface ICLIArguments {
      */
     log?: 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'fatal';
 
+    /**
+     * If open development tools when creating a window.
+     */
+    'open-devtools'?: boolean;
 }
 
 /**
