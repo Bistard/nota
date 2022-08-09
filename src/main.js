@@ -10,4 +10,11 @@ const { parseCLIArgv } = require('src/code/platform/environment/common/argument'
 const CLIArgv = minimist(parseCLIArgv(app.isPackaged));
 module.exports = { CLIArgv };
 
-require('./code/electron/main');
+// we wait for electron initialization
+app.once('ready', () => {
+    run();
+});
+
+function run() {
+    require('./code/electron/main');
+}

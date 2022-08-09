@@ -26,30 +26,19 @@
 
 	const { contextBridge, ipcRenderer } = require('electron');
 
+	console.log(process.argv);
+	console.log('[preload]');
+
 	const myIpcRenderer = {
-		/**
-		 * @param {string} channel
-		 * @param {any[]} args
-		 */
 		send(channel, ...args) {
 			ipcRenderer.send(channel, ...args);
 		},
 
-		/**
-		* @param {string} channel
-		* @param {(event: IpcRendererEvent, ...args: any[]) => void} listener
-		* @returns {IpcRenderer}
-		*/
 		on(channel, listener) {
 			ipcRenderer.on(channel, listener);
 			return this;
 		},
 
-		/**
-		* @param {string} channel
-		* @param {(event: IpcRendererEvent, ...args: any[]) => void} listener
-		* @returns {IpcRenderer}
-		*/
 		removeListener(channel, listener) {
 			ipcRenderer.removeListener(channel, listener);
 			return this;
@@ -65,35 +54,19 @@
 		get type() { return 'renderer'; },
 		get execPath() { return process.execPath; },
 		get sandboxed() { return process.sandboxed; },
-
-		/**
-		 * @returns {string}
-		 */
 		cwd() {
 			return process.env['VSCODE_CWD'] || process.execPath.substr(0, process.execPath.lastIndexOf(process.platform === 'win32' ? '\\' : '/'));
 		},
 
-		/**
-		 * @returns {Promise<typeof process.env>}
-		 */
 		shellEnv() {
 			return resolveShellEnv;
 		},
 
-		/**
-		 * @returns {Promise<import('electron').ProcessMemoryInfo>}
-		 */
 		getProcessMemoryInfo() {
 			return process.getProcessMemoryInfo();
 		},
 
-		/**
-		 * @param {string} type
-		 * @param {Function} callback
-		 * @returns {void}
-		 */
 		on(type, callback) {
-			// @ts-ignore
 			process.on(type, callback);
 		}
 	};
