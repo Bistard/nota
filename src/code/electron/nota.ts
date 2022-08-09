@@ -3,6 +3,7 @@ import { Disposable } from "src/base/common/dispose";
 import { ErrorHandler } from "src/base/common/error";
 import { Event } from "src/base/common/event";
 import { ILogService } from "src/base/common/logger";
+import { getUUID, UUID } from "src/base/node/uuid";
 import { IGlobalConfigService, IUserConfigService } from "src/code/common/service/configService/configService";
 import { IFileService } from "src/code/common/service/fileService/fileService";
 import { ServiceDescriptor } from "src/code/common/service/instantiationService/descriptor";
@@ -10,6 +11,7 @@ import { IInstantiationService, IServiceProvider } from "src/code/common/service
 import { ServiceCollection } from "src/code/common/service/instantiationService/serviceCollection";
 import { IEnvironmentService, IMainEnvironmentService } from "src/code/platform/environment/common/environment";
 import { IMainLifeCycleService, LifeCyclePhase } from "src/code/platform/lifeCycle/electron/mainLifeCycleService";
+import { StatusKey } from "src/code/platform/status/common/status";
 import { IMainStatusService } from "src/code/platform/status/electron/mainStatusService";
 import { IMainWindowService, MainWindowService } from "src/code/platform/window/electron/mainWindowService";
 import { IWindowInstance } from "src/code/platform/window/electron/window";
@@ -53,6 +55,10 @@ export class NotaInstance extends Disposable implements INotaInstance {
 
         // application service initialization
         const appInstantiationService = await this.registerServices();
+
+        // machine ID
+        const machineID = this.__getMachineID();
+        this.logService.debug(`Resolved machine ID: ${machineID}`);
 
         // IPC channels initialization
         // TODO
@@ -131,11 +137,19 @@ export class NotaInstance extends Disposable implements INotaInstance {
 
     // [private helper methods]
 
+    private __getMachineID(): UUID {
+        let id = this.statusService.get(StatusKey.MachineIdKey);
+        if (!id) {
+            id = getUUID();
+            this.statusService.set(StatusKey.MachineIdKey, id);
+        }
+        return id as UUID;
+    }
+
     private __onUnexpectedError(error: any): void {
         this.logService.error(`[uncought exception]: ${error}`);
         if (error.stack) {
             this.logService.error(error.stack);
         }
     }
-
 }

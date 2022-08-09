@@ -15,8 +15,7 @@ import * as crypto from 'crypto';
 export type UUID = string;
 
 /**
- * @description // TODO
- * @returns 
+ * @description Generates a {@link UUID}.
  */
 export function getUUID(): UUID {
     return crypto.randomUUID();
