@@ -1,25 +1,28 @@
-import { ipcRenderer, IpcRendererEvent } from "electron";
-import { IpcChannel } from "src/base/common/ipcChannel";
+import { IpcRendererEvent } from "electron";
 
 /**
  * ipc/dom event register relevant helper functions.
  */
 
 export function ipcRendererSend(message: string): void {
-    ipcRenderer.send(message);
+    // ipcRenderer.send(message);
+    // FIX
 }
 
 export function ipcRendererSendData(message: string, ...data: any[]): void {
-    ipcRenderer.send(message, data);
+    // ipcRenderer.send(message, data);
+    // FIX
 }
 
 /* debug only */
 export function ipcRendererSendTest(data: any): void {
-    ipcRenderer.send(IpcChannel.Test, data);
+    // ipcRenderer.send(IpcChannel.Test, data);
+    // FIX
 }
 
 export function ipcRendererOn(message: string, listener: (event: IpcRendererEvent, ...args: any[]) => void): void {
-    ipcRenderer.on(message, listener);
+    // ipcRenderer.on(message, listener);
+    // FIX
 }
 
 /** @deprecated */
