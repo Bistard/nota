@@ -9,7 +9,7 @@ import { IFileService } from 'src/code/common/service/fileService/fileService';
 export interface IConfigService extends Disposable {
 
     /** The resource of the configuration. */
-    readonly resource?: URI;
+    resource: URI;
 
     /** Fires once any configurations change. */
     readonly onDidChangeConfiguration: Register<IConfigChangeEvent>;
@@ -50,23 +50,19 @@ export interface IConfigService extends Disposable {
      * @description Checks if the given URI file path to a configuration file 
      * exists, if true, we read the the configuration into the memory. Otherwise
      * we create a new file in that location and write into a default configuration.
-     * @param path The URI file path to a configuration file. 
-     *  eg. 'nota.config.json' or 'user.config.json'
      */
-    init(path: URI): Promise<void>;
+    init(): Promise<void>;
 
     /**
      * @description Saves the current configuration from the memory to the disk.
-     * @param path The save URI file path.
      */
-    save(path: URI): Promise<void>;
+    save(): Promise<void>;
     
     
     /**
      * @description Reads the configuration from the disk to the memory.
-     * @param path The read URI file path.
      */
-    read(path: URI): Promise<void>;
+    read(): Promise<void>;
 
 }
 
@@ -90,7 +86,7 @@ export abstract class ConfigServiceBase extends Disposable implements IConfigSer
 
     // [field]
     
-    protected _uri?: URI;
+    protected _uri: URI;
     
     // [event]
 
@@ -100,17 +96,22 @@ export abstract class ConfigServiceBase extends Disposable implements IConfigSer
     // [constructor]
 
     constructor(
+        private readonly getResourse: (path: URI) => URI,
+        protected readonly rootPath: URI,
         protected readonly configType: IConfigType,
         protected readonly configModel: IConfigModel,
         protected readonly fileService: IFileService,
         protected readonly logService: ILogService,
     ) {
         super();
+        this._uri = this.getResourse(rootPath);
     }
 
     // [getter / setter]
 
-    get resource(): URI | undefined { return this._uri; }
+    get resource(): URI { return this._uri; }
+
+    set resource(newVal: URI) { this._uri = newVal; }
 
     // [public method]
 
@@ -143,48 +144,47 @@ export abstract class ConfigServiceBase extends Disposable implements IConfigSer
         }
     }
 
-    public async init(path: URI): Promise<void> {
+    public async init(): Promise<void> {
         try {
-            if (await this.fileService.exist(path) === false) {
+            if (await this.fileService.exist(this._uri) === false) {
                 await this.fileService.createFile(
-                    path, 
+                    this._uri, 
                     DataBuffer.alloc(0), 
                     { overwrite: true },
                 );
-                await this.save(path);
+                await this.save();
             } else {
-                await this.read(path);
+                await this.read();
             }
         }
         catch (err) {
-            this.logService.error(`configuration loading failed at ${path.toString()}.`);
+            this.logService.error(`configuration loading failed at ${this._uri.toString()}.`);
             throw err;
         }
 
-        this._uri = path;
-        this.logService.info(`configuration loaded at ${path.toString()}.`);
+        this.logService.info(`configuration loaded at ${this._uri.toString()}.`);
     }
 
-    public async save(path: URI): Promise<void> {
+    public async save(): Promise<void> {
         try {
             await this.fileService.writeFile(
-                path, 
+                this._uri, 
                 DataBuffer.fromString(JSON.stringify(this.configModel.object, null, 2 /* indentation space */)), 
                 { create: true, overwrite: true, unlock: true }
             );
         } catch(err) {
-            throw new Error(`cannot save configuration to: ${path.toString()}`);
+            throw new Error(`cannot save configuration to: ${this._uri.toString()}`);
         }
     }
 
-    public async read(path: URI): Promise<void> {
+    public async read(): Promise<void> {
         try {
-            const textBuffer = await this.fileService.readFile(path);
+            const textBuffer = await this.fileService.readFile(this._uri);
             const jsonObject: Object = JSON.parse(textBuffer.toString());
             Object.assign(this.configModel.object, jsonObject);
         } catch(err) {
             // TODO: if some specific config is missing. CHECK EACH ONE OF THE CONFIG (lots of work)
-            throw new Error(`cannot read configuration from: ${path.toString()}`);
+            throw new Error(`cannot read configuration from: ${this._uri.toString()}`);
         }
     }
 

@@ -1,18 +1,17 @@
+import { app } from "electron";
 import { Emitter, Register } from "src/base/common/event";
 import { join, resolve } from "src/base/common/file/path";
 import { URI } from "src/base/common/file/uri";
 import { ILogService } from "src/base/common/logger";
-import { APP_ROOT_PATH, DESKTOP_ROOT_PATH } from "src/base/electron/app";
 import { MarkdownRenderMode } from "src/code/browser/workbench/workspace/markdown/markdown";
 import { ConfigModel, IConfigType } from "src/code/common/service/configService/configModel";
 import { ConfigServiceBase, IConfigService } from "src/code/common/service/configService/configServiceBase";
 import { IFileService } from "src/code/common/service/fileService/fileService";
 import { createDecorator } from "src/code/common/service/instantiationService/decorator";
+import { IEnvironmentService, IMainEnvironmentService } from "src/code/platform/environment/common/environment";
 import { Language } from "src/code/platform/i18n/i18n";
 
 export const NOTA_DIR_NAME = '.nota';
-export const DEFAULT_CONFIG_PATH = APP_ROOT_PATH;
-export const GLOBAL_CONFIG_PATH = APP_ROOT_PATH;
 export const DEFAULT_CONFIG_FILE_NAME = 'user.config.json';
 export const USER_CONFIG_FILE_NAME = DEFAULT_CONFIG_FILE_NAME;
 export const GLOBAL_CONFIG_FILE_NAME = 'nota.config.json';
@@ -69,16 +68,12 @@ export class UserConfigService extends ConfigServiceBase implements IUserConfigS
     constructor(
         @IFileService fileService: IFileService,
         @ILogService logService: ILogService,
+        @IEnvironmentService environmentService: IMainEnvironmentService,
     ) {
-        super(IConfigType.USER, new DefaultUserConfigModel(), fileService, logService);
+        super(__getUserConfigResourcePath, environmentService.appConfigurationPath, IConfigType.USER, new DefaultUserConfigModel(), fileService, logService);
     }
 
     // [public method]
-
-    public override async init(path: URI): Promise<void> {
-        path = __getUserConfigResourcePath(path);
-        return await super.init(path);
-    }
 
     public async validateLocalUserDirectory(path: string, defaultConfigOn: boolean): Promise<void> {
 
@@ -92,12 +87,12 @@ export class UserConfigService extends ConfigServiceBase implements IUserConfigS
         
         // read the local user configuration
         if (existed && !defaultConfigOn) {
-            await this.init(configPath);
+            await this.init();
         }
         
         // initially just a copy of the default one
         else if (!existed && defaultConfigOn) {
-            await this.save(configPath);
+            await this.save();
         }
     }
 
@@ -157,13 +152,9 @@ export class GlobalConfigService extends ConfigServiceBase implements IGlobalCon
     constructor(
         @IFileService fileService: IFileService,
         @ILogService logService: ILogService,
+        @IEnvironmentService environmentService: IMainEnvironmentService,
     ) {
-        super(IConfigType.GLOBAL, new DefaultGlobalConfigModel(), fileService, logService);
-    }
-
-    public override async init(path: URI): Promise<void> {
-        path = __getGlobalConfigResourcePath(path);
-        return await super.init(path);
+        super(__getGlobalConfigResourcePath, environmentService.appConfigurationPath, IConfigType.GLOBAL, new DefaultGlobalConfigModel(), fileService, logService);
     }
 
     /** @override */
@@ -288,7 +279,7 @@ export class DefaultGlobalConfigModel extends ConfigModel {
                 appMode: 'debug' as AppMode,
                 displayLanguage: 'en',
                 OpenDirConfig:  {
-                    defaultPath: DESKTOP_ROOT_PATH,
+                    defaultPath: app.getPath('desktop'),
                     buttonLabel: 'select a directory',
                     properties: [
                         /* 'openFile', */

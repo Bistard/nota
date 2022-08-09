@@ -126,11 +126,11 @@ const nota = new class extends class MainProcess {
         logService.setLogger(pipelineLogger);
 
         // global-config-service
-        const globalConfigService = new GlobalConfigService(fileService, logService);
+        const globalConfigService = new GlobalConfigService(fileService, logService, environmentService);
         instantiationService.register(IGlobalConfigService, globalConfigService);
         
         // user-config-service
-        const userConfigService = new UserConfigService(fileService, logService);
+        const userConfigService = new UserConfigService(fileService, logService, environmentService);
         instantiationService.register(IUserConfigService, userConfigService);
 
         // life-cycle-service
@@ -172,8 +172,8 @@ const nota = new class extends class MainProcess {
             this.statusService.init(),
 
             // reading all the configurations for the programs and users
-            this.globalConfigService.init(this.environmentService.appConfigurationPath),
-            this.userConfigService.init(this.environmentService.appConfigurationPath),            
+            this.globalConfigService.init(),
+            this.userConfigService.init(),            
         ]);
     }
 

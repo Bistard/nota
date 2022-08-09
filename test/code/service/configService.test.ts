@@ -1,10 +1,10 @@
 import * as assert from 'assert';
 import { Emitter } from 'src/base/common/event';
+import { URI } from 'src/base/common/file/uri';
 import { NullLogger } from 'src/base/common/logger';
 import { ConfigModel, IConfigType } from "src/code/common/service/configService/configModel";
 import { ConfigServiceBase, ConfigurationError } from "src/code/common/service/configService/configServiceBase";
 import { FileService } from "src/code/common/service/fileService/fileService";
-import { FileLogger } from 'src/code/common/service/logService/fileLoggerService';
 
 function createHuman(id: number = -1, name: string = 'unknown', male: boolean = false): ITestHumanSettings {
     return {
@@ -56,7 +56,7 @@ class EmptyConfigService extends ConfigServiceBase {
     public readonly onDidChangeCustomConfig = this._onDidChangeCustomConfig.registerListener;
 
     constructor() {
-        super(IConfigType.TEST, new EmptyConfigModel(), new FileService(new NullLogger()), new NullLogger());
+        super(() => undefined!!, URI.fromFile(''), IConfigType.TEST, new EmptyConfigModel(), new FileService(new NullLogger()), new NullLogger());
     }
 
     protected override __fireOnSpecificEvent(section: string, change: any): void {
