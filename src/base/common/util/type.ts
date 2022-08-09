@@ -19,13 +19,6 @@ export type Triple<T, R, S> = [T, R, S];
 export type IndexSignature = string | number | symbol;
 
 /**
- * Generic object mapped type.
- */
-export type ObjectMappedType<V> = {
-    [key: IndexSignature]: V;
-};
-
-/**
  * Make all the fields become required.
  */
 export type AllRequired<T> = {

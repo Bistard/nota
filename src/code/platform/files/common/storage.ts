@@ -2,7 +2,7 @@ import { Disposable } from "src/base/common/dispose";
 import { DataBuffer } from "src/base/common/file/buffer";
 import { FileOperationError, FileOperationErrorType } from "src/base/common/file/file";
 import { URI } from "src/base/common/file/uri";
-import { ifOrDefault, IndexSignature, ObjectMappedType } from "src/base/common/util/type";
+import { ifOrDefault, IndexSignature } from "src/base/common/util/type";
 import { IFileService } from "src/code/common/service/fileService/fileService";
 
 type Sign = IndexSignature;
@@ -107,7 +107,7 @@ export class DiskStorage extends Disposable implements IDiskStorage {
 
     // [field]
 
-    private _storage: ObjectMappedType<any> = Object.create(null);
+    private _storage: Record<Sign, Omit<any, 'null'>> = Object.create(null);
     private _lastSaveStorage: string = '';
     private _operating?: Promise<void>;
     
@@ -165,7 +165,7 @@ export class DiskStorage extends Disposable implements IDiskStorage {
 
     public async delete<K extends Sign = Sign>(key: K): Promise<boolean> {
         if (this._storage[key] !== undefined) {
-            this._storage[key] = undefined;
+            (<any>this._storage[key]) = undefined;
             if (this.sync) {
                 return new Promise(async (resolve) => {
                     await this.__save();
