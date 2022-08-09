@@ -6,7 +6,9 @@ import { createDecorator } from "src/code/common/service/instantiationService/de
 import { IInstantiationService } from "src/code/common/service/instantiationService/instantiation";
 import { IEnvironmentService, IMainEnvironmentService } from "src/code/platform/environment/common/environment";
 import { IMainLifeCycleService } from "src/code/platform/lifeCycle/electron/mainLifeCycleService";
-import { IOpenWindowOpts, IWindowInstance } from "src/code/platform/window/common/window";
+import { IOpenWindowOpts } from "src/code/platform/window/common/window";
+import { IWindowInstance } from "src/code/platform/window/electron/window";
+import { WindowInstance } from "src/code/platform/window/electron/windowInstance";
 
 export const IMainWindowService = createDecorator<IMainWindowService>('main-window-service');
 
@@ -15,11 +17,13 @@ export const IMainWindowService = createDecorator<IMainWindowService>('main-wind
  */
 export interface IMainWindowService extends Disposable {
     
+    readonly windows: ReadonlyArray<IWindowInstance>;
+
     readonly onDidOpenWindow: Register<IWindowInstance>;
 
     readonly onDidCloseWindow: Register<IWindowInstance>;
 
-    open(options: IOpenWindowOpts): void;
+    open(options: IOpenWindowOpts): IWindowInstance;
 }
 
 /**
@@ -52,13 +56,21 @@ export class MainWindowService extends Disposable implements IMainWindowService 
         this.registerListeners();
     }
 
+    // [getter / setter]
+
+    get windows(): readonly IWindowInstance[] {
+        return this._windows;
+    }
+
     // [public methods]
 
-    public open(options: IOpenWindowOpts): void {
-        this.logService.trace('Main#mainWindowService#open()');
+    public open(options: IOpenWindowOpts): IWindowInstance {
+        this.logService.trace('Main#mainWindowService#trying to open a window...');
 
-        // this.instantiationService.createInstance() // TODO
+        const window = this.doOpen(options);
 
+        this.logService.trace('Main#mainWindowService#window opened');
+        return window;
     }
 
     // [private methods]
@@ -68,6 +80,30 @@ export class MainWindowService extends Disposable implements IMainWindowService 
         // noop
     }
 
+    private doOpen(options: IOpenWindowOpts): IWindowInstance {
+
+        let window: IWindowInstance;
+
+        // open a new window instance
+        window = this.__openInNewWindow(options);
+
+        // load the window in browser
+        window.load();
+
+        return window;
+    }
+
     // [private helper methods]
+
+    private __openInNewWindow(options: IOpenWindowOpts): IWindowInstance {
+        this.logService.trace('Main#MainWindowService#openInNewWindow');
+        
+        const newWindow = this.instantiationService.createInstance(
+            WindowInstance,
+            undefined
+        );
+
+        return newWindow;
+    }
 
 }
