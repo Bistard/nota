@@ -155,7 +155,7 @@ export abstract class Component extends Disposable implements IComponent {
      */
     constructor(id: string, 
                 parentElement: HTMLElement | null,
-                protected readonly componentService: IComponentService,
+                @IComponentService protected readonly componentService: IComponentService,
     ) {
         super();
 

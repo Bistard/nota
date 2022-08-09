@@ -22,11 +22,11 @@ export class Workbench extends WorkbenchLayout implements IWorkbenchService {
 
     constructor(
         @IInstantiationService instantiationService: IInstantiationService,
-        @IComponentService componentService: IComponentService,
         @IGlobalConfigService private readonly globalConfigService: IGlobalConfigService,
         @IIpcService ipcService: IIpcService,
+        @IComponentService componentService: IComponentService,
     ) {
-        super(instantiationService, componentService, ipcService);
+        super(instantiationService, ipcService, componentService);
     }
 
     public async init(): Promise<void> {

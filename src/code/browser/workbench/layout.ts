@@ -34,8 +34,8 @@ export abstract class WorkbenchLayout extends Component {
     
     constructor(
         protected readonly instantiationService: IInstantiationService,
-        componentService: IComponentService,
         protected readonly ipcService: IIpcService,
+        @IComponentService componentService: IComponentService,
     ) {
         super(ComponentType.Workbench, document.body, componentService);
     }

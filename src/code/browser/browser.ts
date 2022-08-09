@@ -2,6 +2,7 @@ import { Workbench } from "src/code/browser/workbench/workbench";
 import { IInstantiationService, InstantiationService } from "src/code/common/service/instantiationService/instantiation";
 import { getSingletonServiceDescriptors, ServiceCollection } from "src/code/common/service/instantiationService/serviceCollection";
 import { EventType } from "src/base/common/dom";
+import { ComponentService, IComponentService } from "src/code/browser/service/componentService";
 
 /**
  * @class This is the main entry of the renderer process.
@@ -17,9 +18,9 @@ export class Browser {
 
     private run(): void {
         this.initServices().then(async () => {
-
-            this.workbench = this.instantiationService.createInstance(Workbench);
-            await this.workbench.init();
+            // REVIEW
+            // this.workbench = this.instantiationService.createInstance(Workbench);
+            // await this.workbench.init();
             this.registerListeners();
 
         });
@@ -39,13 +40,17 @@ export class Browser {
 			this.instantiationService.register(serviceIdentifer, serviceDescriptor);
 		}
 
+        // ComponentService
+        const componentService = new ComponentService();
+        this.instantiationService.register(IComponentService, componentService);
+
         // IpcService
         // fileService
         // GlobalConfigService
         // UserConfigService
         // ILoggerService
         // ILogService
-        // ComponentService
+        
         
     }
 
