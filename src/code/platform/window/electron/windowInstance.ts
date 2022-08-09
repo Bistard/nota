@@ -66,8 +66,7 @@ export class WindowInstance extends Disposable implements IWindowInstance {
     // [public methods]
 
     public load(): void {
-        this.logService.trace(`#Main#WindowInstance#ID-${this._id}#loading...`);
-        
+        this.logService.trace(`Main#WindowInstance#ID-${this._id}#loading...`);
         this._window.loadFile('./index.html');
     }
 
@@ -83,11 +82,9 @@ export class WindowInstance extends Disposable implements IWindowInstance {
     // [private methods]
 
     private doCreateWindow(displayState: Readonly<IWindowDisplayState>): BrowserWindow {
-        this.logService.trace('#Main#WindowInstance#creating window...');
+        this.logService.trace('Main#WindowInstance#creating window...');
 
         const ifMaxOrFullscreen = (displayState.mode === WindowDisplayMode.Fullscreen) || (displayState.mode === WindowDisplayMode.Maximized);
-        // REVIEW: get window configuration from configService
-
         const browserOption: BrowserWindowConstructorOptions = {
             title: 'nota',
             height: displayState.height,
@@ -122,13 +119,11 @@ export class WindowInstance extends Disposable implements IWindowInstance {
                  */
                 contextIsolation: false,
                 spellcheck: false,
-
                 enableWebSQL: false,
+                backgroundThrottling: false,
             },
-            show: !ifMaxOrFullscreen, // to prevent flicker, we will show it later.
+            show: false, // to prevent flicker, we will show it later.
         };
-
-        // icon
 
         // frame
         if (!IS_MAC) {
@@ -139,21 +134,23 @@ export class WindowInstance extends Disposable implements IWindowInstance {
 
         if (ifMaxOrFullscreen) {
             window.maximize();
-
             if (displayState.mode === WindowDisplayMode.Fullscreen) {
-                this._window.setSimpleFullScreen(true);
-		        this._window.webContents.focus();
+                window.setSimpleFullScreen(true);
+		        window.webContents.focus();
             }
-
-            this._window.show();
+            window.show();
         }
 
-        this.logService.trace(`#Main#WindowInstance#window created with id-${this._id}`);
+        this.logService.trace('Main#WindowInstance#window created with id:', window.id);
         return window;
     }
 
     private registerListeners(): void {
-        this.logService.trace(`#Main#WindowInstance#ID-${this._id}#registerListeners()`);
+        this.logService.trace(`Main#WindowInstance#ID-${this._id}#registerListeners()`);
+
+        this._window.webContents.on('did-finish-load', () => {
+            this._window.show();
+        });
 
         // window closed
         this._window.on('closed', () => {

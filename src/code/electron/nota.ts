@@ -28,6 +28,8 @@ export class NotaInstance extends Disposable implements INotaInstance {
 
     // [fields]
 
+    private readonly mainWindowService?: IMainWindowService;
+
     // [constructor]
 
     constructor(
@@ -56,7 +58,9 @@ export class NotaInstance extends Disposable implements INotaInstance {
         // TODO
 
         // open first window
-        this.openFirstWindow(appInstantiationService);
+        app.whenReady().then(() => {
+            this.openFirstWindow(appInstantiationService);
+        });
 
         // post work
         this.afterFirstWindow(appInstantiationService);
@@ -75,13 +79,18 @@ export class NotaInstance extends Disposable implements INotaInstance {
         ErrorHandler.setUnexpectedErrorExternalCallback(err => this.__onUnexpectedError(err));
         
         app.on('open-file', (event, path) => {
-            this.logService.trace('main#app.on("open-file"): ', path);
+            this.logService.trace('main#app#open-file#', path);
             // REVIEW
         });
+
+        app.on('new-window-for-tab', () => {
+            // REVIEW
+			// this.mainWindowService?.open();
+		});
     }
 
     private async registerServices(): Promise<IInstantiationService> {
-        this.logService.trace('#Main#NotaInstance#registerSerices');
+        this.logService.trace('Main#NotaInstance#registerSerices');
 
         const appInstantiationService = this.mainInstantiationService.createChild(new ServiceCollection());
 
