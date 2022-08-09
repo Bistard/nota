@@ -1,48 +1,57 @@
 import { Workbench } from "src/code/browser/workbench/workbench";
 import { IInstantiationService, InstantiationService } from "src/code/common/service/instantiationService/instantiation";
 import { getSingletonServiceDescriptors, ServiceCollection } from "src/code/common/service/instantiationService/serviceCollection";
-import { EventType } from "src/base/common/dom";
+import { waitDomToBeLoad, EventType } from "src/base/common/dom";
 import { ComponentService, IComponentService } from "src/code/browser/service/componentService";
+import { Disposable } from "src/base/common/dispose";
+import { ServiceDescriptor } from "src/code/common/service/instantiationService/descriptor";
 
 /**
  * @class This is the main entry of the renderer process.
  */
-export class Browser {
+export class Browser extends Disposable {
+
+    // [field]
 
     public workbench!: Workbench;
-    private instantiationService!: IInstantiationService;
+
+    // [constructor]
 
     constructor() {
+        super();
         this.run();
     }
+    
+    // [private methods]
 
-    private run(): void {
-        this.initServices().then(async () => {
-            // REVIEW
-            // this.workbench = this.instantiationService.createInstance(Workbench);
-            // await this.workbench.init();
-            this.registerListeners();
+    private async run(): Promise<void> {
+        await Promise.all([
+            this.initServices(), 
+            waitDomToBeLoad(),
+        ]);
 
-        });
+        // TODO: workbench
+        console.log(process.argv);
+
+        this.registerListeners();
     }
 
     private async initServices(): Promise<void> {
         
         // create a instantiationService
         const serviceCollection = new ServiceCollection();
-        this.instantiationService = new InstantiationService(serviceCollection);
+        const instantiationService = new InstantiationService(serviceCollection);
 
         // InstantiationService (itself)
-        this.instantiationService.register(IInstantiationService, this.instantiationService);
+        instantiationService.register(IInstantiationService, instantiationService);
 
         // singleton initialization
         for (const [serviceIdentifer, serviceDescriptor] of getSingletonServiceDescriptors()) {
-			this.instantiationService.register(serviceIdentifer, serviceDescriptor);
+			instantiationService.register(serviceIdentifer, serviceDescriptor);
 		}
 
         // ComponentService
-        const componentService = new ComponentService();
-        this.instantiationService.register(IComponentService, componentService);
+        instantiationService.register(IComponentService, new ServiceDescriptor(ComponentService));
 
         // IpcService
         // fileService
