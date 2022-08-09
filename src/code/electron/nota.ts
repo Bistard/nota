@@ -6,19 +6,14 @@ import { ILogService } from "src/base/common/logger";
 import { IGlobalConfigService, IUserConfigService } from "src/code/common/service/configService/configService";
 import { IFileService } from "src/code/common/service/fileService/fileService";
 import { ServiceDescriptor } from "src/code/common/service/instantiationService/descriptor";
-import { IInstantiationService } from "src/code/common/service/instantiationService/instantiation";
+import { IInstantiationService, IServiceProvider } from "src/code/common/service/instantiationService/instantiation";
 import { ServiceCollection } from "src/code/common/service/instantiationService/serviceCollection";
 import { IEnvironmentService, IMainEnvironmentService } from "src/code/platform/environment/common/environment";
 import { IMainLifeCycleService, LifeCyclePhase } from "src/code/platform/lifeCycle/electron/mainLifeCycleService";
 import { IMainStatusService } from "src/code/platform/status/electron/mainStatusService";
-import { IWindowInstance } from "src/code/platform/window/common/window";
 import { IMainWindowService, MainWindowService } from "src/code/platform/window/electron/mainWindowService";
+import { IWindowInstance } from "src/code/platform/window/electron/window";
 
-export const Console = {
-    set log(v: any) {
-        console.log(v);
-    }
-}
 /**
  * An interface only for {@link NotaInstance}
  */
@@ -52,22 +47,16 @@ export class NotaInstance extends Disposable implements INotaInstance {
     // [public methods]
 
     public async run(): Promise<void> {
-        this.logService.debug('nota starting...');
-        this.logService.debug(`${this.environmentService.appRootPath}`);
+        this.logService.debug(`nota starting at ${this.environmentService.appRootPath}...`);
 
         // application service initialization
         const appInstantiationService = await this.registerServices();
-
-        const statusService = appInstantiationService.getService(IMainStatusService);
-        Console.log = (statusService as any)._storage;
-
-        statusService.set('key1', 'value1');
 
         // IPC channels initialization
         // TODO
 
         // open first window
-        const window = this.openFirstWindow(appInstantiationService);
+        this.openFirstWindow(appInstantiationService);
 
         // post work
         this.afterFirstWindow(appInstantiationService);
@@ -76,6 +65,7 @@ export class NotaInstance extends Disposable implements INotaInstance {
     // [private methods]
 
     private registerListeners(): void {
+        this.logService.trace(`Main#Nota#registerListeners()`);
 
         Event.once(this.lifeCycleService.onWillQuit)(() => this.dispose());
 
@@ -91,37 +81,42 @@ export class NotaInstance extends Disposable implements INotaInstance {
     }
 
     private async registerServices(): Promise<IInstantiationService> {
-        
+        this.logService.trace('#Main#NotaInstance#registerSerices');
+
         const appInstantiationService = this.mainInstantiationService.createChild(new ServiceCollection());
 
-        // REVIEW: update-service
+        // TODO: update-service
 
-        // TODO: window-service
         appInstantiationService.register(IMainWindowService, new ServiceDescriptor(MainWindowService));
 
-        // REVIEW: dialog-service
+        // TODO: dialog-service
         
-        // REVIEW: keyboard-shortcut-service
+        // TODO: keyboard-shortcut-service
 
-        // REVIEW: keyboard-screen-cast-service
+        // TODO: keyboard-screen-cast-service
 
-        // REVIEW: i18n-service
+        // TODO: i18n-service
 
-        // REVIEW: notebook-group-service
+        // TODO: notebook-group-service
 
         return appInstantiationService;
     }
 
-    private openFirstWindow(instantiationService: IInstantiationService): IWindowInstance {
+    private openFirstWindow(instantiationService: IServiceProvider): IWindowInstance {
         const mainWindowService = instantiationService.getOrCreateService(IMainWindowService);
+        
+        // life-cycle-service: READY
         this.lifeCycleService.setPhase(LifeCyclePhase.Ready);
-
+        
         // open the first window
-        let window: IWindowInstance;
-        return false as unknown as any;
+        const window: IWindowInstance = mainWindowService.open({
+            CLIArgv: this.environmentService.CLIArguments,
+        });
+
+        return window;
     }
 
-    private afterFirstWindow(instantiationService: IInstantiationService): void {
+    private afterFirstWindow(instantiationService: IServiceProvider): void {
         // TODO
     }
 
