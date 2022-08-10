@@ -66,11 +66,6 @@ export class Browser extends Disposable {
         // UserConfigService
         // ILoggerService
         // ILogService
-        setTimeout(() => {
-            ipcRenderer.invoke(IpcChannel.ReadFile, 
-                URI.fromFile('P:\\dev\\nota\\.nota\\nota.config.json'))
-                .then(data => console.log(data));
-        }, 0);
     }
 
     private registerListeners(): void {
