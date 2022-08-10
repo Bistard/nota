@@ -5,7 +5,7 @@ import { waitDomToBeLoad, EventType } from "src/base/common/dom";
 import { ComponentService, IComponentService } from "src/code/browser/service/componentService";
 import { Disposable } from "src/base/common/dispose";
 import { ServiceDescriptor } from "src/code/common/service/instantiationService/descriptor";
-import { initExposedElectronAPIs } from "src/code/platform/electron/browser/global";
+import { initExposedElectronAPIs, windowConfiguration } from "src/code/platform/electron/browser/global";
 
 /**
  * @class This is the main entry of the renderer process.
@@ -28,6 +28,8 @@ export class Browser extends Disposable {
     private async run(): Promise<void> {
 
         initExposedElectronAPIs();
+
+        console.log(windowConfiguration);
 
         await Promise.all([
             this.initServices(), 

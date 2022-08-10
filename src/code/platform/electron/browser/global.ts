@@ -1,5 +1,6 @@
 import { IpcRenderer } from "electron";
 import { ISandboxProcess } from "src/code/platform/electron/common/electronType";
+import { ICreateWindowConfiguration } from "src/code/platform/window/common/window";
 
 /**
  * Expose APIs from the main process at `preload.js`.
@@ -36,6 +37,7 @@ export const GLOBAL: any = (
 
 export const ipcRenderer: IpcRenderer = {} as any;
 export const process: ISandboxProcess = {} as any;
+export const windowConfiguration: ICreateWindowConfiguration = {} as any;
 
 /**
  * @description Once renderer process starts, we need to retrieve the APIs that
@@ -48,4 +50,5 @@ export function initExposedElectronAPIs(): void {
 
     (ipcRenderer as any) = GLOBAL.nota.ipcRenderer;
     (process as any) = GLOBAL.nota.process;
+    (windowConfiguration as any) = GLOBAL.nota.configuration;
 }
