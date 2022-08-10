@@ -176,6 +176,7 @@ export interface ISandboxProcess extends INodeProcess {
 	getProcessMemoryInfo: () => Promise<ProcessMemoryInfo>;
  
 	 /**
+	  * @deprecated **NOTE** DO NOT USE THIS, API IS NOT EXPOSED.
 	  * Returns a process environment that includes all shell environment variables even if
 	  * the application was not started from a shell / terminal / console.
 	  *
@@ -189,5 +190,5 @@ export interface ISandboxProcess extends INodeProcess {
 	  *
 	  * The order of overwrites is `process.env` < `shellEnv` < `userEnv`.
 	  */
-	shellEnv(): Promise<IProcessEnvironment>;
+	shellEnv?(): Promise<IProcessEnvironment>;
 }

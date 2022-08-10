@@ -7,7 +7,7 @@ import { createDecorator } from "src/code/common/service/instantiationService/de
 import { IInstantiationService } from "src/code/common/service/instantiationService/instantiation";
 import { IEnvironmentService, IMainEnvironmentService } from "src/code/platform/environment/common/environment";
 import { IMainLifeCycleService } from "src/code/platform/lifeCycle/electron/mainLifeCycleService";
-import { IOpenWindowOpts, IWindowInstance } from "src/code/platform/window/common/window";
+import { ICreateWindowConfiguration, IOpenWindowOpts, IWindowInstance } from "src/code/platform/window/common/window";
 import { WindowInstance } from "src/code/platform/window/electron/windowInstance";
 
 export const IMainWindowService = createDecorator<IMainWindowService>('main-window-service');
@@ -88,21 +88,31 @@ export class MainWindowService extends Disposable implements IMainWindowService 
 
         let window: IWindowInstance;
 
+        /**
+         * Important window configuration that relies on previous state of the 
+         * application (provided opts, app config, environment and so on). This
+         * configuration will be passed as an additional argument when creating
+         * a `BrowserWindow`.
+         */
+        const configuration: ICreateWindowConfiguration = {
+            machineID: this.machineID,
+            displayState: undefined,
+        };
 
         // open a new window instance
-        window = this.__openInNewWindow(options);
+        window = this.__openInNewWindow(options, configuration);
 
         return window;
     }
 
     // [private helper methods]
 
-    private __openInNewWindow(options: IOpenWindowOpts): IWindowInstance {
+    private __openInNewWindow(options: IOpenWindowOpts, configuration: ICreateWindowConfiguration): IWindowInstance {
         this.logService.trace('Main#MainWindowService#openInNewWindow');
         
         const newWindow = this.instantiationService.createInstance(
             WindowInstance,
-            undefined
+            configuration
         );
 
         return newWindow;

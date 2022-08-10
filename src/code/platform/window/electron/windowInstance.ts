@@ -8,7 +8,7 @@ import { IGlobalConfigService, IUserConfigService } from "src/code/common/servic
 import { IFileService } from "src/code/common/service/fileService/fileService";
 import { IEnvironmentService, IMainEnvironmentService } from "src/code/platform/environment/common/environment";
 import { IMainLifeCycleService } from "src/code/platform/lifeCycle/electron/mainLifeCycleService";
-import { defaultDisplayState, IWindowDisplayState, IWindowInstance, WindowDisplayMode, WindowMinimumState } from "src/code/platform/window/common/window";
+import { defaultDisplayState, ICreateWindowConfiguration, IWindowDisplayState, IWindowInstance, WindowDisplayMode, WindowKey, WindowMinimumState } from "src/code/platform/window/common/window";
 
 /**
  * @class // TODO
@@ -31,7 +31,7 @@ export class WindowInstance extends Disposable implements IWindowInstance {
     // [constructor]
 
     constructor(
-        displayState: IWindowDisplayState | undefined,
+        private readonly configuration: ICreateWindowConfiguration,
         @ILogService private readonly logService: ILogService,
 		@IEnvironmentService private readonly environmentService: IMainEnvironmentService,
         @IFileService private readonly fileService: IFileService,
@@ -41,7 +41,7 @@ export class WindowInstance extends Disposable implements IWindowInstance {
     ) {
         super();
 
-        const state = displayState || defaultDisplayState();
+        const state = configuration.displayState || defaultDisplayState();
         this._window = this.doCreateWindow(state);
         this._id = this._window.id;
 
@@ -102,6 +102,11 @@ export class WindowInstance extends Disposable implements IWindowInstance {
                  */
                 nodeIntegration: true,
                 preload: resolve(join(__dirname, 'preload.js')),
+                /**
+                 * Pass any arguments use the following pattern:
+                 *      --ArgName=argInString
+                 */
+                additionalArguments: [`--${WindowKey.configuration}=${JSON.stringify(this.configuration)}`],
                 
                 /**
                  * Context Isolation is a feature that ensures that both 

@@ -4,6 +4,10 @@ import { Register } from "src/base/common/event";
 import { UUID } from "src/base/node/uuid";
 import { ICLIArguments } from "src/code/platform/environment/common/argument";
 
+export const enum WindowKey {
+    configuration = 'window-config'
+}
+
 export const enum WindowDisplayMode {
 	Normal,
     Minimized,
@@ -56,3 +60,10 @@ export interface IWindowInstance extends Disposable {
     close(): void;
 }
 
+export interface ICreateWindowConfiguration {
+
+    readonly machineID: UUID;
+    
+    displayState?: IWindowDisplayState;
+
+}

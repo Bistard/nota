@@ -26,8 +26,18 @@
 
 	const { contextBridge, ipcRenderer } = require('electron');
 
-	// REVIEW
-	function retrieveFromAdditionalArgv(key) {
+	/**
+	 * @typedef {import('../../window/common/window').ICreateWindowConfiguration} ICreateWindowConfiguration
+	 */
+
+	function validate(channel) {
+		if (!channel || !channel.startsWith('nota:')) {
+			throw new Error(`Unsupported event IPC channel '${channel}'`);
+		}
+		return true;
+	}
+
+	function retrieveFromArgv(key) {
 		for (const arg of process.argv) {
 			if (arg.indexOf(`--${key}=`) === 0) {
 				// found
@@ -35,13 +45,6 @@
 			}
 		}
 		return undefined;
-	}
-
-	function validate(channel) {
-		if (!channel || !channel.startsWith('nota:')) {
-			throw new Error(`Unsupported event IPC channel '${channel}'`);
-		}
-		return true;
 	}
 
 	/**
@@ -100,21 +103,14 @@
 			cwd() {
 				return process.env['NOTA_CWD'] || process.execPath.substr(0, process.execPath.lastIndexOf(process.platform === 'win32' ? '\\' : '/'));
 			},
-	
-			shellEnv() {
-				return resolveShellEnv;
-			},
-	
 			getProcessMemoryInfo() {
 				return process.getProcessMemoryInfo();
 			},
-	
 			on(type, callback) {
 				process.on(type, callback);
 			}
 		};
 	})();
-
 	
 	/**
 	 * If `contextIsolation` is true, we expose the global APIs to the renderer
@@ -125,6 +121,7 @@
 	const exposedAPIs = {
 		ipcRenderer: wrappedIpcRenderer,
 		process: wrappedProcess,
+		configuration: JSON.parse(retrieveFromArgv('window-config'))
 	};
 
 	if (process.contextIsolated) {
