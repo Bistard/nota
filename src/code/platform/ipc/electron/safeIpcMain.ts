@@ -157,7 +157,7 @@ export class SafeIpcMain implements ISafeIpcMain {
     // [private helper methods]
 
     private __validate(channel: ChannelType): boolean {
-        if (!channel || channel.startsWith('nota:')) {
+        if (!channel || !channel.startsWith('nota:')) {
             ErrorHandler.onUnexpectedError(`Refused to handle ipcMain event for channel '${channel}'.`);
             return false;
         }
