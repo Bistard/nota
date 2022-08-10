@@ -13,6 +13,7 @@ import { ErrorHandler } from "src/base/common/error";
  *  - {@link SignalEmitter}
  *  - {@link AsyncEmitter}
  *  - {@link RelayEmitter}
+ *  - {@link NodeEventEmitter}
  * 
  *  - {@link Event}
  ******************************************************************************/
@@ -460,6 +461,35 @@ export class RelayEmitter<T> implements IDisposable {
         this._relay.dispose();
     }
 
+}
+
+/**
+ * @class A wrapper of {@link NodeJS.EventEmitter} that listens to the provided
+ * channel and wraps the receiving data with the provided data wrapper.
+ * 
+ * @note This class is not disposable. Once all the listeners are disposed the
+ * corresponding {@link NodeJS.EventEmitter} channel listener will be auto 
+ * removed. There is nothing to be disposed of that is under this class control.
+ */
+export class NodeEventEmitter<T> {
+
+    private _emitter: Emitter<T>;
+
+    constructor(emitter: NodeJS.EventEmitter, channel: string, dataWrapper?: (...args: any[]) => T) {
+        if (!dataWrapper) {
+            dataWrapper = (data) => data;
+        }
+        const onData = (...args: any[]) => this._emitter.fire(dataWrapper!(...args));
+        const onFirstAdd = () => emitter.on(channel, onData);
+		const onLastRemove = () => emitter.removeListener(channel, onData);
+        this._emitter = new Emitter({ 
+            onFirstListenerAdded: onFirstAdd, 
+            onLastListenerRemoved: onLastRemove });
+    }
+
+    get registerListener(): Register<T> {
+        return this._emitter.registerListener;
+    }
 }
 
 export const enum Priority {
