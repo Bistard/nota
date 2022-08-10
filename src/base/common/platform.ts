@@ -1,31 +1,5 @@
-
-/*******************************************************************************
- * // TODO
- ******************************************************************************/
-
 import { INodeProcess } from "src/base/common/process";
-
-/**
- * {@link window}: The object represents an open window in a browser. It may be
- * undefined once the code is not running within a browser, such as, via command
- * line script.
- * 
- * {@link global} Scripts running under Node.js have an object called global as 
- * their global object. It may be undefined once the Node.js is not accessable
- * in the current envrioment.
- */
-
-/**
- * An alias for {@link window} or {@link global} if window is undefined.
- */
-export const GLOBAL: any = (
-    typeof window === 'object' ? 
-        window : 
-        (typeof global === 'object' ? 
-            global : 
-            {}
-        )
-);
+import { GLOBAL } from "src/code/platform/electron/sandbox/global";
 
 interface INavigator {
 	userAgent: string;

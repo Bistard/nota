@@ -1,4 +1,5 @@
-import { GLOBAL, IS_MAC, IS_WINDOWS } from "src/base/common/platform";
+import { IS_MAC, IS_WINDOWS } from "src/base/common/platform";
+import { GLOBAL } from "src/code/platform/electron/sandbox/global";
 
 /**
  * This interface is intentionally not identical to node.js process because it 
@@ -46,7 +47,7 @@ export interface IProcessEnvironment {
 declare const process: INodeProcess;
 type ISafeProcess = Omit<INodeProcess, 'arch'> & { arch: string | undefined };
 
-const safeProcess = function () {
+const safeProcess = (function () {
     let _process: ISafeProcess;
 
     // Native sandbox environment
@@ -81,7 +82,7 @@ const safeProcess = function () {
     }
 
     return process;
-}();
+})();
 
 /**
  * @namespace SafeProcess A safety way to access data from `process` variable.

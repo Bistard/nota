@@ -5,6 +5,7 @@ import { waitDomToBeLoad, EventType } from "src/base/common/dom";
 import { ComponentService, IComponentService } from "src/code/browser/service/componentService";
 import { Disposable } from "src/base/common/dispose";
 import { ServiceDescriptor } from "src/code/common/service/instantiationService/descriptor";
+import { initExposedElectronAPIs, ipcRenderer } from "src/code/platform/electron/sandbox/global";
 
 /**
  * @class This is the main entry of the renderer process.
@@ -25,13 +26,15 @@ export class Browser extends Disposable {
     // [private methods]
 
     private async run(): Promise<void> {
+
+        initExposedElectronAPIs();
+
         await Promise.all([
             this.initServices(), 
             waitDomToBeLoad(),
         ]);
 
         // TODO: workbench
-        console.log(process.argv);
 
         this.registerListeners();
     }
@@ -59,8 +62,8 @@ export class Browser extends Disposable {
         // UserConfigService
         // ILoggerService
         // ILogService
-        
-        
+
+        ipcRenderer.send('nota:test', 'hello IPC!');
     }
 
     private registerListeners(): void {

@@ -1,4 +1,4 @@
-import { app, dialog } from 'electron';
+import { app, dialog, ipcMain } from 'electron';
 import { mkdir } from 'fs/promises';
 import { CLIArgv } from 'src/main';
 import { ErrorHandler } from 'src/base/common/error';
@@ -63,6 +63,9 @@ const nota = new class extends class MainProcess {
         
         // initialization
         try {
+            ipcMain.on('nota:test', (event, data) => {
+                console.log('nota:test ', data);
+            });
             await this.initServices();
         } 
         catch (err) {
