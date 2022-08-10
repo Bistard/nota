@@ -470,6 +470,8 @@ export class RelayEmitter<T> implements IDisposable {
  * @note This class is not disposable. Once all the listeners are disposed the
  * corresponding {@link NodeJS.EventEmitter} channel listener will be auto 
  * removed. There is nothing to be disposed of that is under this class control.
+ * 
+ * @type T: Converting the receiving data to the generic type T.
  */
 export class NodeEventEmitter<T> {
 
