@@ -1,4 +1,5 @@
 import { IpcRenderer } from "electron";
+import { Mutable } from "src/base/common/util/type";
 import { ISandboxProcess } from "src/code/platform/electron/common/electronType";
 import { ICreateWindowConfiguration } from "src/code/platform/window/common/window";
 
@@ -35,9 +36,9 @@ export const GLOBAL: any = (
         )
 );
 
-export const ipcRenderer: IpcRenderer = {} as any;
-export const process: ISandboxProcess = {} as any;
-export const windowConfiguration: ICreateWindowConfiguration = {} as any;
+export const ipcRenderer: IpcRenderer = <any>{};
+export const process: Mutable<ISandboxProcess> = <any>{};
+export const windowConfiguration: ICreateWindowConfiguration = <any>{};
 
 /**
  * @description Once renderer process starts, we need to retrieve the APIs that
@@ -45,10 +46,10 @@ export const windowConfiguration: ICreateWindowConfiguration = {} as any;
  */
 export function initExposedElectronAPIs(): void {
     if (typeof window === 'object') {
-        GLOBAL.nota = (window as any).nota;
+        GLOBAL.nota = (<any>window).nota;
     }
 
-    (ipcRenderer as any) = GLOBAL.nota.ipcRenderer;
-    (process as any) = GLOBAL.nota.process;
-    (windowConfiguration as any) = GLOBAL.nota.configuration;
+    (<Mutable<IpcRenderer>>ipcRenderer) = GLOBAL.nota.ipcRenderer;
+    (<Mutable<ISandboxProcess>>process) = GLOBAL.nota.process;
+    (<Mutable<ICreateWindowConfiguration>>windowConfiguration) = GLOBAL.nota.configuration;
 }

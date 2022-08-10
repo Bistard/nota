@@ -75,7 +75,7 @@ export class WindowInstance extends Disposable implements IWindowInstance {
 
     public override dispose(): void {
         super.dispose();
-        (this._window as any) = undefined;
+        (<any>this._window) = undefined;
     }
 
     // [private methods]

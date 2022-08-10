@@ -1,4 +1,5 @@
 import { Character, CharCode } from "src/base/common/util/char";
+import { Mutable } from "src/base/common/util/type";
 import { EndOfLine, EndOfLineType, IPieceTableModel, ITextBufferBuilder } from "src/editor/common/model";
 import { PieceTableModel } from "src/editor/model/pieceTable/pieceTableModel";
 import { TextBuffer } from "src/editor/model/textBuffer";
@@ -100,7 +101,7 @@ import { TextBuffer } from "src/editor/model/textBuffer";
         else if (this._prevChar) {
             
             const lastChunk = this._chunks[this._chunks.length - 1]!;
-            (lastChunk.buffer as any) = lastChunk.buffer.concat(String.fromCharCode(this._prevChar)); // avoid readonly
+            (<Mutable<string>>lastChunk.buffer) = lastChunk.buffer.concat(String.fromCharCode(this._prevChar)); // avoid readonly
             
             if (this._prevChar === CharCode.CarriageReturn) {
                 this._cr++;
