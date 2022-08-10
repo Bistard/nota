@@ -8,8 +8,7 @@ import { IGlobalConfigService, IUserConfigService } from "src/code/common/servic
 import { IFileService } from "src/code/common/service/fileService/fileService";
 import { IEnvironmentService, IMainEnvironmentService } from "src/code/platform/environment/common/environment";
 import { IMainLifeCycleService } from "src/code/platform/lifeCycle/electron/mainLifeCycleService";
-import { defaultDisplayState, IWindowDisplayState, WindowDisplayMode, WindowMinimumState } from "src/code/platform/window/common/window";
-import { IWindowInstance } from "src/code/platform/window/electron/window";
+import { defaultDisplayState, IWindowDisplayState, IWindowInstance, WindowDisplayMode, WindowMinimumState } from "src/code/platform/window/common/window";
 
 /**
  * @class // TODO

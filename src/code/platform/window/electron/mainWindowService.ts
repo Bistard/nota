@@ -1,13 +1,13 @@
 import { Disposable } from "src/base/common/dispose";
 import { Emitter, Register } from "src/base/common/event";
 import { ILogService } from "src/base/common/logger";
+import { UUID } from "src/base/node/uuid";
 import { IFileService } from "src/code/common/service/fileService/fileService";
 import { createDecorator } from "src/code/common/service/instantiationService/decorator";
 import { IInstantiationService } from "src/code/common/service/instantiationService/instantiation";
 import { IEnvironmentService, IMainEnvironmentService } from "src/code/platform/environment/common/environment";
 import { IMainLifeCycleService } from "src/code/platform/lifeCycle/electron/mainLifeCycleService";
-import { IOpenWindowOpts } from "src/code/platform/window/common/window";
-import { IWindowInstance } from "src/code/platform/window/electron/window";
+import { IOpenWindowOpts, IWindowInstance } from "src/code/platform/window/common/window";
 import { WindowInstance } from "src/code/platform/window/electron/windowInstance";
 
 export const IMainWindowService = createDecorator<IMainWindowService>('main-window-service');
@@ -46,6 +46,7 @@ export class MainWindowService extends Disposable implements IMainWindowService 
     // [constructor]
 
     constructor(
+        private readonly machineID: UUID,
         @IInstantiationService private readonly instantiationService: IInstantiationService,
         @ILogService private readonly logService: ILogService,
         @IFileService private readonly fileService: IFileService,
@@ -86,6 +87,7 @@ export class MainWindowService extends Disposable implements IMainWindowService 
     private doOpen(options: IOpenWindowOpts): IWindowInstance {
 
         let window: IWindowInstance;
+
 
         // open a new window instance
         window = this.__openInNewWindow(options);

@@ -13,8 +13,8 @@ import { IEnvironmentService, IMainEnvironmentService } from "src/code/platform/
 import { IMainLifeCycleService, LifeCyclePhase } from "src/code/platform/lifeCycle/electron/mainLifeCycleService";
 import { StatusKey } from "src/code/platform/status/common/status";
 import { IMainStatusService } from "src/code/platform/status/electron/mainStatusService";
+import { IWindowInstance } from "src/code/platform/window/common/window";
 import { IMainWindowService, MainWindowService } from "src/code/platform/window/electron/mainWindowService";
-import { IWindowInstance } from "src/code/platform/window/electron/window";
 
 /**
  * An interface only for {@link NotaInstance}
@@ -53,12 +53,12 @@ export class NotaInstance extends Disposable implements INotaInstance {
     public async run(): Promise<void> {
         this.logService.debug(`nota starting at ${this.environmentService.appRootPath}...`);
 
-        // application service initialization
-        const appInstantiationService = await this.registerServices();
-
         // machine ID
         const machineID = this.__getMachineID();
         this.logService.debug(`Resolved machine ID: ${machineID}`);
+
+        // application service initialization
+        const appInstantiationService = await this.registerServices(machineID);
 
         // IPC channels initialization
         // TODO
@@ -95,14 +95,14 @@ export class NotaInstance extends Disposable implements INotaInstance {
 		});
     }
 
-    private async registerServices(): Promise<IInstantiationService> {
+    private async registerServices(machineID: UUID): Promise<IInstantiationService> {
         this.logService.trace('Main#NotaInstance#registerSerices');
 
         const appInstantiationService = this.mainInstantiationService.createChild(new ServiceCollection());
 
         // TODO: update-service
 
-        appInstantiationService.register(IMainWindowService, new ServiceDescriptor(MainWindowService));
+        appInstantiationService.register(IMainWindowService, new ServiceDescriptor(MainWindowService, [machineID]));
 
         // TODO: dialog-service
         
