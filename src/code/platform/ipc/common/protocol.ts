@@ -7,12 +7,28 @@ export interface ISender {
 }
 
 /**
- * @class A protocol is a set of rules for formatting and processing data. 
- * Essentially, it allows connected devices to communicate with each other, 
- * regardless of any differences in their internal processes, structure or 
- * design.
+ * A protocol is a set of rules for formatting and processing data. Essentially, 
+ * it allows connected devices to communicate with each other, regardless of any 
+ * differences in their internal processes, structure or design.
  * 
- * Used here for communication between different processes.
+ * T: sending / receiving data type.
+ */
+export interface IProtocol<T> {
+    /**
+     * A register function that registers a callback to receive data from the 
+     * other sides.
+     */
+    readonly onData: Register<T>;
+
+    /**
+     * Defines a way to send the data.
+     * @param data The data to send with type T.
+     */
+    send(data: T): void;
+}
+
+/**
+ * @class Used here for communication between different electron processes.
  */
 export class Protocol<T = DataBuffer> {
 
