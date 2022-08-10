@@ -7,6 +7,7 @@
  *      0. Globally usage purpose.
  *      1. Prevent potential invalid channel.
  *      2. Less string copy.
+ * @deprecated
  */
 export const enum IpcChannel {
 
