@@ -2,6 +2,9 @@ import { app } from "electron";
 import { Disposable } from "src/base/common/dispose";
 import { ErrorHandler } from "src/base/common/error";
 import { Event } from "src/base/common/event";
+import { DataBuffer } from "src/base/common/file/buffer";
+import { IWriteFileOptions } from "src/base/common/file/file";
+import { URI } from "src/base/common/file/uri";
 import { ILogService } from "src/base/common/logger";
 import { getUUID, UUID } from "src/base/node/uuid";
 import { IGlobalConfigService, IUserConfigService } from "src/code/common/service/configService/configService";
@@ -10,6 +13,8 @@ import { ServiceDescriptor } from "src/code/common/service/instantiationService/
 import { IInstantiationService, IServiceProvider } from "src/code/common/service/instantiationService/instantiation";
 import { ServiceCollection } from "src/code/common/service/instantiationService/serviceCollection";
 import { IEnvironmentService, IMainEnvironmentService } from "src/code/platform/environment/common/environment";
+import { IpcChannel } from "src/code/platform/ipc/common/channel";
+import { SafeIpcMain } from "src/code/platform/ipc/electron/safeIpcMain";
 import { IMainLifeCycleService, LifeCyclePhase } from "src/code/platform/lifeCycle/electron/mainLifeCycleService";
 import { StatusKey } from "src/code/platform/status/common/status";
 import { IMainStatusService } from "src/code/platform/status/electron/mainStatusService";
@@ -60,7 +65,7 @@ export class NotaInstance extends Disposable implements INotaInstance {
         // application service initialization
         const appInstantiationService = await this.registerServices(machineID);
 
-        // IPC channels initialization
+        // IPC main process server
         // TODO
 
         // open first window
@@ -93,6 +98,17 @@ export class NotaInstance extends Disposable implements INotaInstance {
             // REVIEW
 			// this.mainWindowService?.open();
 		});
+
+        SafeIpcMain.instance.on(IpcChannel.ToggleDevTools, event => event.sender.toggleDevTools());
+        SafeIpcMain.instance.on(IpcChannel.OpenDevTools, event => event.sender.openDevTools());
+        SafeIpcMain.instance.on(IpcChannel.CloseDevTools, event => event.sender.closeDevTools());
+        SafeIpcMain.instance.on(IpcChannel.ReloadWindow, event => event.sender.reload());
+        SafeIpcMain.instance.handle(IpcChannel.WriteFile, (event, uri: URI, data: string, opt?: IWriteFileOptions) => {
+            return this.fileService.writeFile(uri, DataBuffer.fromString(data), opt);
+        });
+        SafeIpcMain.instance.handle(IpcChannel.ReadFile, (event, uri: URI) => {
+            return this.fileService.readFile(uri);
+        });
     }
 
     private async registerServices(machineID: UUID): Promise<IInstantiationService> {

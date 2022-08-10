@@ -84,7 +84,7 @@ export class SafeIpcMain implements ISafeIpcMain {
 
     // [public static methods]
 
-    public static instance(): SafeIpcMain {
+    public static get instance(): SafeIpcMain {
         if (!SafeIpcMain._instance) {
             SafeIpcMain._instance = new SafeIpcMain();
         }
