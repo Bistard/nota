@@ -91,29 +91,3 @@ export namespace Iterable {
 	}
 
 }
-
-/**
- * @description Iterate the properties and methods of the given object.
- * @param obj The given {@link object}.
- * @param fn The function that takes the string of the property and the ordinal 
- * index of the property in that object.
- */
-export function iterPropety(obj: object, fn: (propName: string, index: number) => any): void {
-    let idx = 0;
-	for (const propName of Object.getOwnPropertyNames(Object.getPrototypeOf(obj))) {
-		fn(propName, idx++);
-	}
-}
-
-/**
- * @description Iterate the enumerable properties of the given object.
- * @param obj The given {@link object}.
- * @param fn The function that takes the string of the property and the ordinal 
- * index of the property in that object.
- */
-export function iterPropertyEnumerable(obj: object, fn: (propName: string, index: number) => any): void {
-    let idx = 0;
-	for (const propName of Object.keys(obj)) {
-		fn(propName, idx++);
-	}
-}
