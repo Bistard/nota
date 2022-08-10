@@ -1,5 +1,5 @@
 import { IS_MAC, IS_WINDOWS } from "src/base/common/platform";
-import { GLOBAL } from "src/code/platform/electron/sandbox/global";
+import { GLOBAL } from "src/code/platform/electron/browser/global";
 
 /**
  * This interface is intentionally not identical to node.js process because it 

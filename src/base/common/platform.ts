@@ -1,5 +1,5 @@
 import { INodeProcess } from "src/base/common/process";
-import { GLOBAL } from "src/code/platform/electron/sandbox/global";
+import { GLOBAL } from "src/code/platform/electron/browser/global";
 
 interface INavigator {
 	userAgent: string;

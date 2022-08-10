@@ -5,7 +5,7 @@ import { waitDomToBeLoad, EventType } from "src/base/common/dom";
 import { ComponentService, IComponentService } from "src/code/browser/service/componentService";
 import { Disposable } from "src/base/common/dispose";
 import { ServiceDescriptor } from "src/code/common/service/instantiationService/descriptor";
-import { initExposedElectronAPIs, ipcRenderer } from "src/code/platform/electron/sandbox/global";
+import { initExposedElectronAPIs } from "src/code/platform/electron/browser/global";
 
 /**
  * @class This is the main entry of the renderer process.
@@ -62,8 +62,6 @@ export class Browser extends Disposable {
         // UserConfigService
         // ILoggerService
         // ILogService
-
-        ipcRenderer.send('nota:test', 'hello IPC!');
     }
 
     private registerListeners(): void {
