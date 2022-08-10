@@ -5,7 +5,9 @@ import { waitDomToBeLoad, EventType } from "src/base/common/dom";
 import { ComponentService, IComponentService } from "src/code/browser/service/componentService";
 import { Disposable } from "src/base/common/dispose";
 import { ServiceDescriptor } from "src/code/common/service/instantiationService/descriptor";
-import { initExposedElectronAPIs, windowConfiguration } from "src/code/platform/electron/browser/global";
+import { initExposedElectronAPIs, ipcRenderer, windowConfiguration } from "src/code/platform/electron/browser/global";
+import { IpcChannel } from "src/code/platform/ipc/common/channel";
+import { URI } from "src/base/common/file/uri";
 
 /**
  * @class This is the main entry of the renderer process.
@@ -64,6 +66,11 @@ export class Browser extends Disposable {
         // UserConfigService
         // ILoggerService
         // ILogService
+        setTimeout(() => {
+            ipcRenderer.invoke(IpcChannel.ReadFile, 
+                URI.fromFile('P:\\dev\\nota\\.nota\\nota.config.json'))
+                .then(data => console.log(data));
+        }, 0);
     }
 
     private registerListeners(): void {

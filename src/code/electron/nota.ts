@@ -99,15 +99,17 @@ export class NotaInstance extends Disposable implements INotaInstance {
 			// this.mainWindowService?.open();
 		});
 
-        SafeIpcMain.instance.on(IpcChannel.ToggleDevTools, event => event.sender.toggleDevTools());
-        SafeIpcMain.instance.on(IpcChannel.OpenDevTools, event => event.sender.openDevTools());
-        SafeIpcMain.instance.on(IpcChannel.CloseDevTools, event => event.sender.closeDevTools());
-        SafeIpcMain.instance.on(IpcChannel.ReloadWindow, event => event.sender.reload());
-        SafeIpcMain.instance.handle(IpcChannel.WriteFile, (event, uri: URI, data: string, opt?: IWriteFileOptions) => {
+        // Register basic ipcMain channel listeners.
+        SafeIpcMain.instance
+        .on(IpcChannel.ToggleDevTools, event => event.sender.toggleDevTools())
+        .on(IpcChannel.OpenDevTools, event => event.sender.openDevTools())
+        .on(IpcChannel.CloseDevTools, event => event.sender.closeDevTools())
+        .on(IpcChannel.ReloadWindow, event => event.sender.reload())
+        .handle(IpcChannel.WriteFile, (event, uri: URI, data: string, opt?: IWriteFileOptions) => {
             return this.fileService.writeFile(uri, DataBuffer.fromString(data), opt);
-        });
-        SafeIpcMain.instance.handle(IpcChannel.ReadFile, (event, uri: URI) => {
-            return this.fileService.readFile(uri);
+        })
+        .handle(IpcChannel.ReadFile, async (event, uri: URI) => {
+            return (await this.fileService.readFile(uri)).toString();
         });
     }
 
