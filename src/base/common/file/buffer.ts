@@ -106,6 +106,51 @@ export class DataBuffer {
 		}
 	}
 
+    public readUInt8(offset: number): number {
+        return this.buffer[offset]!;
+    }
+
+    public writeUInt8(offset: number, value: number): void {
+        this.buffer[offset] = value;
+    }
+
+    public readUInt32BE(offset: number): number {
+        return (
+            this.buffer[offset + 0]! * 2 ** 24 +
+            this.buffer[offset + 1]! * 2 ** 16 +
+            this.buffer[offset + 2]! * 2 **  8 +
+            this.buffer[offset + 3]!
+        );
+    }
+    
+    public writeUInt32BE(offset: number, value: number): void {
+        this.buffer[offset + 3] = (value & 0b11111111);
+        value >>= 8;
+        this.buffer[offset + 2] = (value & 0b11111111);
+        value >>= 8;
+        this.buffer[offset + 1] = (value & 0b11111111);
+        value >>= 8;
+        this.buffer[offset + 0] = (value & 0b11111111);
+    }
+
+    public readUInt32LE(offset: number): number {
+        return (
+            (this.buffer[offset + 0]! <<  0) |
+            (this.buffer[offset + 1]! <<  8) |
+            (this.buffer[offset + 2]! << 16) |
+            (this.buffer[offset + 3]! << 24)
+        );
+    }
+    
+    public writeUInt32LE(value: number, offset: number): void {
+        this.buffer[offset + 0]! = (value & 0b11111111);
+        value >>= 8;
+        this.buffer[offset + 1]! = (value & 0b11111111);
+        value >>= 8;
+        this.buffer[offset + 2]! = (value & 0b11111111);
+        value >>= 8;
+        this.buffer[offset + 3]! = (value & 0b11111111);
+    }
 }
 
 export interface IReader {
