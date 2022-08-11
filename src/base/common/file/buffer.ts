@@ -107,3 +107,46 @@ export class DataBuffer {
 	}
 
 }
+
+export interface IReader {
+    /**
+     * @description Read given number of bytes from the current buffer.
+     */
+    read(bytes: number): DataBuffer;
+}
+
+export class BufferReader implements IReader {
+
+    private _pos = 0;
+
+    constructor(private buffer: DataBuffer) {}
+
+    public read(bytes: number): DataBuffer {
+        const result = this.buffer.slice(this._pos, this._pos + bytes);
+        this._pos += bytes;
+        return result;
+    }
+}
+
+export interface IWriter {
+    /**
+     * @description Write the given buffer into the current buffer.
+     */
+    write(buffer: DataBuffer): void;
+}
+
+export class BufferWriter implements IWriter {
+
+    private readonly _bufferStack: DataBuffer[] = [];
+
+    constructor() {}
+
+    get buffer(): DataBuffer {
+        return DataBuffer.concat(this._bufferStack);
+    }
+
+    public write(buffer: DataBuffer): void {
+        // We only concat when we try to access it. Save time.
+        this._bufferStack.push(buffer);
+    }
+}
