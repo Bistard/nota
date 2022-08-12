@@ -117,8 +117,11 @@ class __AsyncListener<T> {
  */
 export interface IEmitterOptions {
 
+    /** Invokes before the first listener is about to be added. */
+    readonly onFirstListenerAdd?: Function;
+
     /** Invokes after the first listener is added. */
-    readonly onFirstListenerAdded?: Function;
+    readonly onFirstListenerDidAdd?: Function;
 
     /** Invokes after the last listener is removed. */
     readonly onLastListenerRemoved?: Function;
@@ -171,14 +174,18 @@ export class Emitter<T> implements IDisposable, IEmitter<T> {
 			this._register = (listener: Listener<T>, disposables?: IDisposable[], thisObject?: any) => {
 				
                 // before first add callback
-                if (this._opts?.onFirstListenerAdded && this._listeners.empty()) {
-                    this._opts.onFirstListenerAdded();
+                if (this._opts?.onFirstListenerAdd && this._listeners.empty()) {
+                    this._opts.onFirstListenerAdd();
                 }
 
                 // register the listener (callback)
                 const listenerWrapper = new __Listener(listener, thisObject);
 				const node = this._listeners.push_back(listenerWrapper);
                 let listenerRemoved = false;
+
+                if (this._opts?.onFirstListenerDidAdd && this._listeners.empty()) {
+                    this._opts.onFirstListenerDidAdd();
+                }
 
                 // returns a disposable in order to decide when to stop listening (unregister)
 				const unRegister = toDisposable(() => {
@@ -423,7 +430,7 @@ export class RelayEmitter<T> implements IDisposable {
 
     /** The relay (pipeline) emitter */
     private readonly _relay = new Emitter<T>({
-        onFirstListenerAdded: () => {
+        onFirstListenerAdd: () => {
             this._inputUnregister = this._inputRegister(e => this._relay.fire(e));
             this._listening = true;
         },
@@ -485,7 +492,7 @@ export class NodeEventEmitter<T> {
         const onFirstAdd = () => emitter.on(channel, onData);
 		const onLastRemove = () => emitter.removeListener(channel, onData);
         this._emitter = new Emitter({ 
-            onFirstListenerAdded: onFirstAdd, 
+            onFirstListenerAdd: onFirstAdd, 
             onLastListenerRemoved: onLastRemove });
     }
 

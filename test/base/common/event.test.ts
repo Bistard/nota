@@ -174,7 +174,7 @@ suite('event-test', () => {
         let lastRemoved = false;
 
         const emitter = new Emitter<undefined>({
-            onFirstListenerAdded: () => firstAdded = true,
+            onFirstListenerAdd: () => firstAdded = true,
             onLastListenerRemoved: () => lastRemoved = true
         });
 
@@ -469,14 +469,31 @@ suite('event-test', () => {
     });
 
     test('event.once()', () => {
-        let cnt = 0;
         const emitter = new Emitter<void>();
+			let cnt1 = 0;
+            let cnt2 = 0;
+            let cnt3 = 0;
 
-        Event.once(emitter.registerListener)(() => cnt++);
-        emitter.fire();
-        assert.strictEqual(cnt, 1);
+			const listener1 = emitter.registerListener(() => cnt1++);
+			const listener2 = Event.once(emitter.registerListener)(() => cnt2++);
+			const listener3 = Event.once(emitter.registerListener)(() => cnt3++);
 
-        emitter.fire();
-        assert.strictEqual(cnt, 1);
+			assert.strictEqual(cnt1, 0);
+			assert.strictEqual(cnt2, 0);
+			assert.strictEqual(cnt3, 0);
+
+			listener3.dispose();
+			emitter.fire();
+			assert.strictEqual(cnt1, 1);
+			assert.strictEqual(cnt2, 1);
+			assert.strictEqual(cnt3, 0);
+
+			emitter.fire();
+			assert.strictEqual(cnt1, 2);
+			assert.strictEqual(cnt2, 1);
+			assert.strictEqual(cnt3, 0);
+
+			listener1.dispose();
+			listener2.dispose();
     });
 });
