@@ -13,6 +13,31 @@ export type Mutable<Immutable> = {
 }
 
 /**
+ * Accepts condition C, a truthy return type T, and a falsy return type F.
+ */
+export type If<C, T, F> = C extends boolean ? (C extends true ? T : F) : never;
+
+/**
+ * Determines if the given type T is truthy.
+ */
+export type IsTrue<T> = T extends '' | [] | false | 0 ? false : T extends {} ? keyof T extends never ? false :  true : false;
+
+/**
+ * Determines if the given array contains any truthy values.
+ */
+export type AnyOf<T extends readonly any[]> = T extends [infer F, ...infer Rest] ?  IsTrue<F> extends true ? true : AnyOf<Rest> : IsTrue<T[0]>;
+
+/**
+ * Push any type into the end of the array.
+ */
+export type Push<T extends any[], V> = [...T, V];
+
+/**
+ * Concatenate two arrays.
+ */
+export type Concat<T extends any[], U extends any[]> = [...T, ...U];
+
+/**
  * @description Mocks the given value's type.
  */
 export function mockType<T>(val: any): T {
