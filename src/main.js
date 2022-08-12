@@ -8,7 +8,6 @@ const { parseCLIArgv } = require('src/code/platform/environment/common/argument'
 
 /** @type ICLIArguments */
 const CLIArgv = minimist(parseCLIArgv(app.isPackaged));
-module.exports = { CLIArgv };
 
 // we wait for electron initialization
 app.once('ready', () => {
@@ -16,5 +15,6 @@ app.once('ready', () => {
 });
 
 function run() {
-    require('./code/electron/main');
+    const nota = require('./code/electron/main');
+    nota.default.start(CLIArgv);
 }

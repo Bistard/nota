@@ -1,6 +1,5 @@
 import { app, dialog, ipcMain } from 'electron';
 import { mkdir } from 'fs/promises';
-import { CLIArgv } from 'src/main';
 import { ErrorHandler } from 'src/base/common/error';
 import { Event } from 'src/base/common/event';
 import { Schemas, URI } from 'src/base/common/file/uri';
@@ -19,11 +18,16 @@ import { IEnvironmentService, IMainEnvironmentService } from 'src/code/platform/
 import { MainEnvironmentService } from 'src/code/platform/environment/electron/mainEnvironmentService';
 import { IMainLifeCycleService, MainLifeCycleService } from 'src/code/platform/lifeCycle/electron/mainLifeCycleService';
 import { IMainStatusService, MainStatusService } from 'src/code/platform/status/electron/mainStatusService';
+import { ICLIArguments } from 'src/code/platform/environment/common/argument';
+
+interface IMainProcess {
+    start(argv: ICLIArguments): void;
+}
 
 /**
  * @class // TODO
  */
-const nota = new class extends class MainProcess {
+const nota = new class extends class MainProcess implements IMainProcess {
 
     // [field]
 
@@ -36,9 +40,15 @@ const nota = new class extends class MainProcess {
     private readonly lifeCycleService!: IMainLifeCycleService;
     private readonly statusService!: IMainStatusService;
 
+    private readonly CLIArgv!: ICLIArguments;
+
     // [constructor]
 
-    constructor() {
+    constructor() {}
+
+    public start(argv: ICLIArguments): void {
+        (<any>this.CLIArgv) = argv;
+        console.log(argv);
         try {
             ErrorHandler.setUnexpectedErrorExternalCallback(err => console.error(err));
             this.run();
@@ -109,7 +119,7 @@ const nota = new class extends class MainProcess {
         instantiationService.register(ILogService, logService);
 
         // environment-service
-        const environmentService = new MainEnvironmentService(CLIArgv, {}, logService);
+        const environmentService = new MainEnvironmentService(this.CLIArgv, {}, logService);
         instantiationService.register(IEnvironmentService, environmentService);
 
         // file-service
@@ -208,3 +218,5 @@ const nota = new class extends class MainProcess {
         });
     }
 } {}; /** @readonly ❤hello, world!❤ */
+
+export default nota;
