@@ -594,4 +594,14 @@ export namespace Event {
             return oldListener;
         };
     }
+
+    /**
+     * @description Convert the given event register into a promise which will
+     * resolve once the event fires.
+     * @param register The provided event register.
+     * @returns A promise to be resolved to get the fired event data.
+     */
+    export function toPromise<T>(register: Register<T>): Promise<T> {
+		return new Promise(resolve => once(register)(resolve));
+	}
 }
