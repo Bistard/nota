@@ -183,7 +183,7 @@ export class Emitter<T> implements IDisposable, IEmitter<T> {
 				const node = this._listeners.push_back(listenerWrapper);
                 let listenerRemoved = false;
 
-                if (this._opts?.onFirstListenerDidAdd && this._listeners.empty()) {
+                if (this._opts?.onFirstListenerDidAdd && this._listeners.size() === 1) {
                     this._opts.onFirstListenerDidAdd();
                 }
 
