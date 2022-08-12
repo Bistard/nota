@@ -25,7 +25,10 @@ interface IMainProcess {
 }
 
 /**
- * @class // TODO
+ * @class The first entry of the application (except `main.js`). Responsible for 
+ * two things:
+ *      1. Initializations on core microservices of the application.
+ *      2. Important disk directory preparation.
  */
 const nota = new class extends class MainProcess implements IMainProcess {
 

@@ -29,7 +29,8 @@ export interface INotaInstance {
 }
 
 /**
- * @class // TODO
+ * @class The main class of the application. It handles the core business of the 
+ * application.
  */
 export class NotaInstance extends Disposable implements INotaInstance {
 
