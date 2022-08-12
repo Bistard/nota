@@ -2,10 +2,8 @@ import { Disposable } from "src/base/common/dispose";
 import { DataBuffer } from "src/base/common/file/buffer";
 import { FileOperationError, FileOperationErrorType } from "src/base/common/file/file";
 import { URI } from "src/base/common/file/uri";
-import { ifOrDefault, IndexSignature } from "src/base/common/util/type";
+import { ifOrDefault } from "src/base/common/util/type";
 import { IFileService } from "src/code/common/service/fileService/fileService";
-
-type Sign = IndexSignature;
 
 /**
  * An interface only for {@link DiskStorage}.
@@ -24,26 +22,26 @@ export interface IDiskStorage extends Disposable {
      * @throws An exception thrown if file operation encounters an error with
      * type {@link FileOperationError}.
      */
-    set<K extends Sign = Sign, V = any>(key: K, val: V): Promise<void>;
+    set<K extends PropertyKey = PropertyKey, V = any>(key: K, val: V): Promise<void>;
 
     /**
      * @description Sets pairs of key and value into the storage. Works the 
      * same as {@link IDiskStorage.set}.
      */
-    setLot<K extends Sign = Sign, V = any>(items: readonly { key: K, val: V }[]): Promise<void>;
+    setLot<K extends PropertyKey = PropertyKey, V = any>(items: readonly { key: K, val: V }[]): Promise<void>;
 
     /**
      * @description Try to get the corresponding value of the given key.
      * @param key The given key.
      * @param defaultVal If key is `undefined`, this value will be returned.
      */
-    get<K extends Sign = Sign, V = any>(key: K, defaultVal?: V): V | undefined;
+    get<K extends PropertyKey = PropertyKey, V = any>(key: K, defaultVal?: V): V | undefined;
 
     /**
      * @description Try to get the corresponding values of the given keys. Works
      * the same as {@link IDiskStorage.get}.
      */
-    getLot<K extends Sign = Sign, V = any>(keys: K[], defaultVal?: V[]): (V | undefined)[];
+    getLot<K extends PropertyKey = PropertyKey, V = any>(keys: K[], defaultVal?: V[]): (V | undefined)[];
 
     /**
      * @description Try to delete a corresponding value with the given key. The 
@@ -51,13 +49,13 @@ export interface IDiskStorage extends Disposable {
      * @param key The given key.
      * @returns Returns a boolean to tell if the deletion is taken.
      */
-    delete<K extends Sign = Sign>(key: K): Promise<boolean>;
+    delete<K extends PropertyKey = PropertyKey>(key: K): Promise<boolean>;
 
     /**
      * @description Check if storage has a corresponding value of the given key.
      * @param key The given key.
      */
-    has<K extends Sign = Sign>(key: K): boolean;
+    has<K extends PropertyKey = PropertyKey>(key: K): boolean;
 
     /**
      * @description Initialize the storage and will read the file content into
@@ -107,7 +105,7 @@ export class DiskStorage extends Disposable implements IDiskStorage {
 
     // [field]
 
-    private _storage: Record<Sign, Omit<any, 'null'>> = Object.create(null);
+    private _storage: Record<PropertyKey, Omit<any, 'null'>> = Object.create(null);
     private _lastSaveStorage: string = '';
     private _operating?: Promise<void>;
     
@@ -127,11 +125,11 @@ export class DiskStorage extends Disposable implements IDiskStorage {
         this.sync = val;
     }
 
-    public set<K extends Sign = Sign, V = any>(key: K, val: V): Promise<void> {
+    public set<K extends PropertyKey = PropertyKey, V = any>(key: K, val: V): Promise<void> {
         return this.setLot([{ key, val }]);
     }
 
-    public async setLot<K extends Sign = Sign, V = any>(items: readonly { key: K, val: V }[]): Promise<void> {
+    public async setLot<K extends PropertyKey = PropertyKey, V = any>(items: readonly { key: K, val: V }[]): Promise<void> {
         let save = false;
 
         for (const { key, val } of items) {
@@ -147,11 +145,11 @@ export class DiskStorage extends Disposable implements IDiskStorage {
         }
     }
 
-    public get<K extends Sign = Sign, V = any>(key: K, defaultVal?: V): V | undefined {
+    public get<K extends PropertyKey = PropertyKey, V = any>(key: K, defaultVal?: V): V | undefined {
         return this.getLot([key], [defaultVal!!])[0];
     }
 
-    public getLot<K extends Sign = Sign, V = any>(keys: K[], defaultVal: V[] = []): (V | undefined)[] {
+    public getLot<K extends PropertyKey = PropertyKey, V = any>(keys: K[], defaultVal: V[] = []): (V | undefined)[] {
         let result: (V | undefined)[] = [];
         
         let i = 0;
@@ -163,7 +161,7 @@ export class DiskStorage extends Disposable implements IDiskStorage {
         return result;
     }
 
-    public async delete<K extends Sign = Sign>(key: K): Promise<boolean> {
+    public async delete<K extends PropertyKey = PropertyKey>(key: K): Promise<boolean> {
         if (this._storage[key] !== undefined) {
             (<any>this._storage[key]) = undefined;
             if (this.sync) {
@@ -177,7 +175,7 @@ export class DiskStorage extends Disposable implements IDiskStorage {
         return false;
     }
 
-    public has<K extends Sign = Sign>(key: K): boolean {
+    public has<K extends PropertyKey = PropertyKey>(key: K): boolean {
         return !!this.get(key);
     }
 

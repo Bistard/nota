@@ -13,7 +13,7 @@ export interface ISender {
  * 
  * T: sending / receiving data type.
  */
-export interface IProtocol<T> {
+export interface IProtocol<T = DataBuffer> {
     /**
      * A register function that registers a callback to receive data from the 
      * other sides.

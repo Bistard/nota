@@ -5,6 +5,7 @@
 export const enum IpcChannel {
     /** Channel used for arbitrary data sending /receiving between processes. */
     DataChannel = 'nota:data',
+    Connect = 'nota:connect',
     Disconnect = 'nota:disconnect',
 
     Log = 'nota:log',

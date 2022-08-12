@@ -3,7 +3,6 @@ export type DightInString = '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' 
 export type Single<T> = [T];
 export type Pair<T, R> = [T, R];
 export type Triple<T, R, S> = [T, R, S];
-export type IndexSignature = string | number | symbol;
 
 /**
  * Make all the properties mutable (remove readonly).
