@@ -5,12 +5,8 @@ import { waitDomToBeLoad, EventType } from "src/base/common/dom";
 import { ComponentService, IComponentService } from "src/code/browser/service/componentService";
 import { Disposable } from "src/base/common/dispose";
 import { ServiceDescriptor } from "src/code/common/service/instantiationService/descriptor";
-import { initExposedElectronAPIs, ipcRenderer, windowConfiguration } from "src/code/platform/electron/browser/global";
-import { IpcChannel } from "src/code/platform/ipc/common/channel";
-import { URI } from "src/base/common/file/uri";
-import { IpcClient } from "src/code/platform/ipc/browser/ipc";
-import { join } from "src/base/common/file/path";
-import { DataBuffer } from "src/base/common/file/buffer";
+import { initExposedElectronAPIs, windowConfiguration } from "src/code/platform/electron/browser/global";
+
 import { IIpcService, IpcService } from "src/code/platform/ipc/browser/ipcService";
 
 /**

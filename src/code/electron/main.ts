@@ -10,9 +10,9 @@ import { GlobalConfigService, IGlobalConfigService, IUserConfigService, UserConf
 import { FileService, IFileService } from 'src/code/common/service/fileService/fileService';
 import { IInstantiationService, InstantiationService } from 'src/code/common/service/instantiationService/instantiation';
 import { ServiceCollection } from 'src/code/common/service/instantiationService/serviceCollection';
-import { ILoggerService } from 'src/code/common/service/logService/abstractLoggerService';
-import { ConsoleLogger } from 'src/code/common/service/logService/consoleLoggerService';
-import { FileLoggerService } from 'src/code/common/service/logService/fileLoggerService';
+import { ILoggerService } from 'src/code/platform/logger/common/abstractLoggerService';
+import { ConsoleLogger } from 'src/code/platform/logger/common/consoleLoggerService';
+import { FileLoggerService } from 'src/code/platform/logger/common/fileLoggerService';
 import { NotaInstance } from 'src/code/electron/nota';
 import { IEnvironmentService, IMainEnvironmentService } from 'src/code/platform/environment/common/environment';
 import { MainEnvironmentService } from 'src/code/platform/environment/electron/mainEnvironmentService';

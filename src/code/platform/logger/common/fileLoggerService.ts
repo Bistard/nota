@@ -8,7 +8,7 @@ import { AsyncQueue } from "src/base/common/util/async";
 import { Strings } from "src/base/common/util/string";
 import { IFileService } from "src/code/common/service/fileService/fileService";
 import { IInstantiationService } from "src/code/common/service/instantiationService/instantiation";
-import { AbstractLoggerService } from "src/code/common/service/logService/abstractLoggerService";
+import { AbstractLoggerService } from "src/code/platform/logger/common/abstractLoggerService";
 
 export const MAX_LOG_SIZE = 5 * ByteSize.MB;
 
