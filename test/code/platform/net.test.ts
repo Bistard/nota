@@ -220,16 +220,11 @@ suite('Base IPC', function () {
 
 		setup(function () {
 			service = new TestService();
-			console.log('[0]');
 			const testServer = new TestIPCServer();
 			server = testServer;
-			console.log('[1]');
 			server.registerChannel(TestChannelId, new TestChannel(service));
-			console.log('[2]');
 			client = testServer.createConnection('client1');
-			console.log('[3]');
 			ipcService = new TestChannelClient(client.getChannel(TestChannelId));
-			console.log('[4]');
 		});
 
 		teardown(function () {
@@ -239,7 +234,6 @@ suite('Base IPC', function () {
 
 		test('call success', async function () {
 			const r = await ipcService.marco();
-			console.log('[5]');
 			return assert.strictEqual(r, 'polo');
 		});
 
