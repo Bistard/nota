@@ -1,6 +1,7 @@
 import { Disposable, IDisposable } from "src/base/common/dispose";
 import { Emitter, Event, Register } from "src/base/common/event";
 import { BufferReader, BufferWriter, DataBuffer } from "src/base/common/file/buffer";
+import { ILogService } from "src/base/common/logger";
 import { ITask } from "src/base/common/util/async";
 import { If, Pair } from "src/base/common/util/type";
 import { ChannelType, IChannel, IServerChannel } from "src/code/platform/ipc/common/channel";
@@ -587,7 +588,8 @@ export interface IConnection {
 }
 
 export interface ClientConnectEvent {
-    protocol: IProtocol;
+    readonly clientID: number | string;
+    readonly protocol: IProtocol;
     onClientDisconnect: Register<void>;
 }
 
@@ -609,7 +611,7 @@ export class ServerBase extends Disposable implements IChannelServer {
 
     // [constructor]
 
-    constructor(onClientConnect: Register<ClientConnectEvent>) {
+    constructor(onClientConnect: Register<ClientConnectEvent>, protected readonly logService?: ILogService) {
         super();
         /**
          * When client connect to the server and recieve its first request, we 
@@ -617,6 +619,7 @@ export class ServerBase extends Disposable implements IChannelServer {
          * event.
          */
         this.__register(onClientConnect(event => {
+            this.logService?.debug(`Main#Renderer client on connection with ID: ${event.clientID}`);
             const protocol = event.protocol;
             
             const onClientDisconnect = Event.once(event.onClientDisconnect);
@@ -641,6 +644,7 @@ export class ServerBase extends Disposable implements IChannelServer {
                 onClientDisconnect(() => {
                     channelServer.dispose();
                     this._connections.delete(connection);
+                    this.logService?.debug(`Main#Renderer client on disconnect with ID: ${event.clientID}`);
                 });
             });
         }));

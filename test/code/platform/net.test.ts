@@ -2,6 +2,7 @@ import * as assert from 'assert';
 import { Emitter, Event, Register } from 'src/base/common/event';
 import { DataBuffer } from 'src/base/common/file/buffer';
 import { URI } from 'src/base/common/file/uri';
+import { NullLogger } from 'src/base/common/logger';
 import { delayFor } from 'src/base/common/util/async';
 import { IChannel, IServerChannel } from 'src/code/platform/ipc/common/channel';
 import { ClientConnectEvent, ClientBase, ServerBase } from 'src/code/platform/ipc/common/net';
@@ -74,7 +75,7 @@ class TestIPCServer extends ServerBase {
 
 	constructor() {
 		const onDidClientConnect = new Emitter<ClientConnectEvent>();
-		super(onDidClientConnect.registerListener);
+		super(onDidClientConnect.registerListener, new NullLogger());
 		this.onDidClientConnect = onDidClientConnect;
 	}
 
@@ -83,6 +84,7 @@ class TestIPCServer extends ServerBase {
 		const client = new TestIPCClient(pc, id);
 
 		this.onDidClientConnect.fire({
+			clientID: id,
 			protocol: ps,
 			onClientDisconnect: client.onDidDisconnect
 		});

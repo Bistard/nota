@@ -66,7 +66,7 @@ export class NotaInstance extends Disposable implements INotaInstance {
         const appInstantiationService = await this.registerServices(machineID);
 
         // IPC main process server
-        const ipcServer = new IpcServer();
+        const ipcServer = new IpcServer(this.logService);
         this.lifeCycleService.onWillQuit(() => ipcServer.dispose());
 
         // IPC channel initialization

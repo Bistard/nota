@@ -2,6 +2,7 @@ import { IpcMainEvent, WebContents } from "electron";
 import { IDisposable, toDisposable } from "src/base/common/dispose";
 import { Emitter, Event, NodeEventEmitter, Register, SignalEmitter } from "src/base/common/event";
 import { DataBuffer } from "src/base/common/file/buffer";
+import { ILogService } from "src/base/common/logger";
 import { ipcRenderer } from "src/code/platform/electron/browser/global";
 import { IpcChannel } from "src/code/platform/ipc/common/channel";
 import { ClientBase, ClientConnectEvent, ServerBase } from "src/code/platform/ipc/common/net";
@@ -49,8 +50,17 @@ export class IpcServer extends ServerBase {
 
     // [constructor]
 
-    constructor() {
-        super(IpcServer.__createOnClientConnect());
+    constructor(logService: ILogService) {
+        super(IpcServer.__createOnClientConnect(), logService);
+    }
+
+    // [public methods]
+
+    public override dispose(): void {
+        super.dispose();
+        for (const [id, client] of IpcServer._activedClients) {
+            client.dispose();
+        }
     }
 
     // [private helper methods]
@@ -77,6 +87,7 @@ export class IpcServer extends ServerBase {
             const onDisconnect = new SignalEmitter<DataBuffer, void>([scopedOnDataEvent(IpcChannel.Disconnect, clientID)], data => (void 0));
             
             return {
+                clientID: clientID,
                 protocol: new Protocol(client, onData),
                 onClientDisconnect: Event.any([onDisconnect.registerListener, onClientReconnect.registerListener]),
             };
