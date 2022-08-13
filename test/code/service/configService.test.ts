@@ -2,8 +2,8 @@ import * as assert from 'assert';
 import { Emitter } from 'src/base/common/event';
 import { URI } from 'src/base/common/file/uri';
 import { NullLogger } from 'src/base/common/logger';
-import { ConfigModel, IConfigType } from "src/code/common/service/configService/configModel";
-import { ConfigServiceBase, ConfigurationError } from "src/code/common/service/configService/configServiceBase";
+import { ConfigModel, IConfigType } from "src/code/platform/configuration/common/configModel";
+import { ConfigServiceBase, ConfigurationError } from "src/code/platform/configuration/common/configServiceBase";
 import { FileService } from "src/code/common/service/fileService/fileService";
 
 function createHuman(id: number = -1, name: string = 'unknown', male: boolean = false): ITestHumanSettings {

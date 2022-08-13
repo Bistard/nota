@@ -6,7 +6,7 @@ import { Schemas, URI } from 'src/base/common/file/uri';
 import { BufferLogger, ILogService, LogLevel, PipelineLogger } from 'src/base/common/logger';
 import { Strings } from 'src/base/common/util/string';
 import { DiskFileSystemProvider } from 'src/base/node/diskFileSystemProvider';
-import { GlobalConfigService, IGlobalConfigService, IUserConfigService, UserConfigService } from 'src/code/common/service/configService/configService';
+import { GlobalConfigService, IGlobalConfigService, IUserConfigService, UserConfigService } from 'src/code/platform/configuration/electron/configService';
 import { FileService, IFileService } from 'src/code/common/service/fileService/fileService';
 import { IInstantiationService, InstantiationService } from 'src/code/common/service/instantiationService/instantiation';
 import { ServiceCollection } from 'src/code/common/service/instantiationService/serviceCollection';

@@ -7,7 +7,7 @@ import { Ii18nService } from 'src/code/platform/i18n/i18n';
 import { Section } from 'src/code/platform/section';
 import { registerSingleton } from 'src/code/common/service/instantiationService/serviceCollection';
 import { ServiceDescriptor } from 'src/code/common/service/instantiationService/descriptor';
-import { EGlobalSettings, EUserSettings, IGlobalConfigService, IGlobalNotebookManagerSettings, IUserConfigService, IUserNotebookManagerSettings } from 'src/code/common/service/configService/configService';
+import { EGlobalSettings, EUserSettings, IGlobalConfigService, IGlobalNotebookManagerSettings, IUserConfigService, IUserNotebookManagerSettings } from 'src/code/platform/configuration/electron/configService';
 import { IIpcService, IpcService } from 'src/code/browser/service/ipcService';
 import { addDisposableListener, EventType } from 'src/base/common/dom';
 import { IEditorService } from 'src/code/browser/workbench/workspace/editor/editor';

@@ -11,9 +11,9 @@ import { IIpcService } from "src/code/browser/service/ipcService";
 import { ExplorerItem } from "src/code/browser/workbench/actionView/explorer/explorerItem";
 import { IExplorerOpenEvent } from "src/code/browser/workbench/actionView/explorer/explorerTree";
 import { Notebook } from "src/code/common/model/notebook";
-import { EGlobalSettings, EUserSettings, IGlobalNotebookManagerSettings, IUserNotebookManagerSettings, NOTA_DIR_NAME } from "src/code/common/service/configService/configService";
-import { IUserConfigService } from "src/code/common/service/configService/configService";
-import { IGlobalConfigService } from "src/code/common/service/configService/configService";
+import { EGlobalSettings, EUserSettings, IGlobalNotebookManagerSettings, IUserNotebookManagerSettings, NOTA_DIR_NAME } from "src/code/platform/configuration/electron/configService";
+import { IUserConfigService } from "src/code/platform/configuration/electron/configService";
+import { IGlobalConfigService } from "src/code/platform/configuration/electron/configService";
 import { IFileService } from "src/code/common/service/fileService/fileService";
 import { createDecorator } from "src/code/common/service/instantiationService/decorator";
 

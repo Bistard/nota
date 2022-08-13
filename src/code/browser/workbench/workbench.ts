@@ -4,8 +4,8 @@ import { ContextMenuService, IContextMenuService } from 'src/code/browser/servic
 import { IInstantiationService } from "src/code/common/service/instantiationService/instantiation";
 import { ServiceDescriptor } from "src/code/common/service/instantiationService/descriptor";
 import { IComponentService } from "src/code/browser/service/componentService";
-import { IGlobalConfigService } from "src/code/common/service/configService/configService";
-import { EGlobalSettings, IGlobalApplicationSettings } from "src/code/common/service/configService/configService";
+import { IGlobalConfigService } from "src/code/platform/configuration/electron/configService";
+import { EGlobalSettings, IGlobalApplicationSettings } from "src/code/platform/configuration/electron/configService";
 import { WorkbenchLayout } from "src/code/browser/workbench/layout";
 import { i18n, Ii18nOpts, Ii18nService } from "src/code/platform/i18n/i18n";
 import { IShortcutService, ShortcutService } from "src/code/browser/service/shortcutService";

@@ -4,7 +4,7 @@ import { Emitter } from "src/base/common/event";
 import { join, resolve } from "src/base/common/file/path";
 import { ILogService } from "src/base/common/logger";
 import { IS_MAC } from "src/base/common/platform";
-import { IGlobalConfigService, IUserConfigService } from "src/code/common/service/configService/configService";
+import { IGlobalConfigService, IUserConfigService } from "src/code/platform/configuration/electron/configService";
 import { IFileService } from "src/code/common/service/fileService/fileService";
 import { IEnvironmentService, IMainEnvironmentService } from "src/code/platform/environment/common/environment";
 import { IMainLifeCycleService } from "src/code/platform/lifeCycle/electron/mainLifeCycleService";

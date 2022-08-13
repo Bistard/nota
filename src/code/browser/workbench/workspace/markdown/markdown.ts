@@ -24,8 +24,8 @@ import { IContextMenuService } from 'src/code/browser/service/contextMenuService
 import { createDecorator } from 'src/code/common/service/instantiationService/decorator';
 import { IComponentService } from 'src/code/browser/service/componentService';
 import { WorkspaceComponentType } from 'src/code/browser/workbench/workspace/workspace';
-import { IGlobalConfigService, IUserConfigService } from 'src/code/common/service/configService/configService';
-import { EUserSettings, IUserMarkdownSettings } from 'src/code/common/service/configService/configService';
+import { IGlobalConfigService, IUserConfigService } from 'src/code/platform/configuration/electron/configService';
+import { EUserSettings, IUserMarkdownSettings } from 'src/code/platform/configuration/electron/configService';
 import { ILogService } from 'src/base/common/logger';
 
 export const IMarkdownService = createDecorator<IMarkdownService>('markdown-service');

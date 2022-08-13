@@ -4,7 +4,7 @@ import { join } from "src/base/common/file/path";
 import { URI } from "src/base/common/file/uri";
 import { ILogService, LogLevel, parseToLogLevel } from "src/base/common/logger";
 import { memoize } from "src/base/common/memoization";
-import { NOTA_DIR_NAME } from "src/code/common/service/configService/configService";
+import { NOTA_DIR_NAME } from "src/code/platform/configuration/electron/configService";
 import { ICLIArguments } from "src/code/platform/environment/common/argument";
 import { getAllEnvironments, IMainEnvironmentService } from "src/code/platform/environment/common/environment";
 
