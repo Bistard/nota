@@ -5,7 +5,7 @@ import { URI } from "src/base/common/file/uri";
 import { hash } from "src/base/common/util/hash";
 import { Shortcut } from "src/base/common/keyboard";
 import { IIpcService } from "src/code/browser/service/ipcService";
-import { IKeyboardService } from "src/code/browser/service/keyboardService";
+import { IKeyboardService } from "src/code/browser/service/keyboard/keyboardService";
 import { IWorkbenchService } from "src/code/browser/service/workbenchService";
 import { IFileService } from "src/code/platform/files/common/fileService";
 import { createDecorator } from "src/code/platform/instantiation/common/decorator";

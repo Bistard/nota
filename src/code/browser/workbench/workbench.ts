@@ -8,12 +8,12 @@ import { IGlobalConfigService } from "src/code/platform/configuration/electron/c
 import { EGlobalSettings, IGlobalApplicationSettings } from "src/code/platform/configuration/electron/configService";
 import { WorkbenchLayout } from "src/code/browser/workbench/layout";
 import { i18n, Ii18nOpts, Ii18nService } from "src/code/platform/i18n/i18n";
-import { IShortcutService, ShortcutService } from "src/code/browser/service/shortcutService";
+import { IShortcutService, ShortcutService } from "src/code/browser/service/keyboard/shortcutService";
 import { KeyCode, Shortcut } from "src/base/common/keyboard";
 import { IpcChannel } from "src/base/common/ipcChannel";
 import { IWorkbenchService } from "src/code/browser/service/workbenchService";
 import { IIpcService } from "src/code/browser/service/ipcService";
-import { IKeyboardScreenCastService, KeyboardScreenCastService } from "src/code/browser/service/keyboardScreenCastService/keyboardScreenCastService";
+import { IKeyboardScreenCastService, KeyboardScreenCastService } from "src/code/browser/service/keyboard/keyboardScreenCastService";
 
 /**
  * @class Workbench represents all the Components in the web browser.
@@ -41,9 +41,6 @@ export class Workbench extends WorkbenchLayout implements IWorkbenchService {
         /** {@link Workbench} (self registration) */
         this.instantiationService.register(IWorkbenchService, this);
 
-        /** {@link ShortcutService} */
-        this.instantiationService.register(IShortcutService, new ServiceDescriptor(ShortcutService));
-
         /** {@link i18n} */
         const appConfig = this.globalConfigService.get<IGlobalApplicationSettings>(EGlobalSettings.Application);
         const i18nOption: Ii18nOpts = {
@@ -63,10 +60,6 @@ export class Workbench extends WorkbenchLayout implements IWorkbenchService {
 
         /** {@link NotebookGroup} */
         this.instantiationService.register(INotebookGroupService, new ServiceDescriptor(NotebookGroup));
-
-        /** {@link KeyboardScreenCastService} */
-        this.instantiationService.register(IKeyboardScreenCastService, new ServiceDescriptor(KeyboardScreenCastService));
-
     }
 
     /**
