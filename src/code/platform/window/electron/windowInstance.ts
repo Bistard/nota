@@ -64,9 +64,9 @@ export class WindowInstance extends Disposable implements IWindowInstance {
 
     // [public methods]
 
-    public load(): void {
+    public load(): Promise<void> {
         this.logService.trace(`Main#WindowInstance#ID-${this._id}#loading...`);
-        this._window.loadFile('./index.html');
+        return this._window.loadFile('./index.html');
     }
 
     public close(): void {

@@ -56,7 +56,7 @@ export interface IWindowInstance extends Disposable {
     
     readonly onDidClose: Register<void>;
 
-    load(): void;
+    load(): Promise<void>;
 
     close(): void;
 }
@@ -64,6 +64,8 @@ export interface IWindowInstance extends Disposable {
 export interface ICreateWindowConfiguration {
 
     readonly machineID: UUID;
+
+    readonly windowID: number;
     
     readonly logPath: URI,
 

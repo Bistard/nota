@@ -1,6 +1,7 @@
 import { Disposable } from "src/base/common/dispose";
 import { Emitter, Register } from "src/base/common/event";
 import { ILogService } from "src/base/common/logger";
+import { Mutable } from "src/base/common/util/type";
 import { UUID } from "src/base/node/uuid";
 import { IFileService } from "src/code/common/service/fileService/fileService";
 import { createDecorator } from "src/code/common/service/instantiationService/decorator";
@@ -96,6 +97,7 @@ export class MainWindowService extends Disposable implements IMainWindowService 
          */
         const configuration: ICreateWindowConfiguration = {
             machineID: this.machineID,
+            windowID: -1, // will be update once window is loaded
             logPath: this.environmentMainService.logPath,
             appRootPath: this.environmentMainService.appRootPath,
             tmpDirPath: this.environmentMainService.tmpDirPath,
@@ -109,6 +111,8 @@ export class MainWindowService extends Disposable implements IMainWindowService 
         // open a new window instance
         window = this.__openInNewWindow(options, configuration);
 
+        (<Mutable<typeof configuration>>configuration).windowID = window.id;
+        
         return window;
     }
 
