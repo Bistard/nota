@@ -577,3 +577,134 @@ export class ChannelServer extends Disposable implements IChannelServer {
 }
 
 // #endregion
+
+// #region Server / Client base
+
+export interface IConnection {
+    readonly id: string;
+    readonly channelServer: ChannelServer;
+	readonly channelClient: ChannelClient;
+}
+
+export interface ClientConnectEvent {
+    protocol: IProtocol;
+    onClientDisconnect: Register<void>;
+}
+
+/**
+ * @class Caller can register a {@link IServerChannel} with {@link ChannelType}. 
+ * Every time a client try to connect, the server will follow the same protocol
+ * with the client and listen to its request. Once a request is received, it
+ * will try to find a corresonding {@link IServerChannel} to finish the job and
+ * send back a response.
+ * 
+ * Built upon of a {@link ChannelServer}.
+ */
+export class ServerBase extends Disposable implements IChannelServer {
+
+    // [field]
+
+    private readonly _channels = new Map<string, IServerChannel>();
+	private readonly _connections = new Set<IConnection>();
+
+    // [constructor]
+
+    constructor(onClientConnect: Register<ClientConnectEvent>) {
+        super();
+        /**
+         * When client connect to the server and recieve its first request, we 
+         * register all the current channels to it and register its onDisconnect
+         * event.
+         */
+        this.__register(onClientConnect(event => {
+            const protocol = event.protocol;
+            
+            const onClientDisconnect = Event.once(event.onClientDisconnect);
+            const onFirstRequest = Event.once(protocol.onData);
+
+            onFirstRequest(data => {
+                const deserializer = new BufferDeserializer(data);
+                const clientID = deserializer.deserialize<false, true>() as string;
+
+                const channelServer = new ChannelServer(protocol, clientID);
+
+                /**
+                 * Register all the current channels for the new connection.
+                 */
+                for (const [name, channel] of this._channels) {
+                    channelServer.registerChannel(name, channel);
+                }
+
+                const connection: IConnection = { channelClient: undefined!, channelServer, id: clientID };
+                this._connections.add(connection);
+
+                onClientDisconnect(() => {
+                    channelServer.dispose();
+                    this._connections.delete(connection);
+                });
+            });
+        }));
+    }
+
+    // [public methods]
+
+    public registerChannel(name: string, channel: IServerChannel): void {
+        this._channels.set(name, channel);
+        for (const connection of this._connections) {
+            connection.channelServer.registerChannel(name, channel);
+        }
+    }
+
+    public override dispose(): void {
+        super.dispose();
+        this._channels.clear();
+        for (const connection of this._connections) {
+            connection.channelClient.dispose();
+            connection.channelServer.dispose();
+        }
+        this._connections.clear();
+    }
+}
+
+/**
+ * @class Caller can get a {@link IChannel} with {@link ChannelType} (notice 
+ * that the channel might not exist). You may call the command to the channel or 
+ * register event listeners from the channel, and client base will send the 
+ * request to the server-side to get a response.
+ * 
+ * Built upon of a {@link ChannelClient}.
+ */
+export class ClientBase implements IDisposable, IChannelClient {
+
+    // [field]
+
+    private _channelClient: ChannelClient;
+
+    // [constructor]
+
+    constructor(protocol: IProtocol<DataBuffer>, id: string, connect: ITask<void>) {
+        connect();
+
+        /**
+         * Send the client ID to the server as the first request so that server
+         * can prepare for client initialization.
+         */
+        const serializer = new DataSerializer();
+        serializer.serialize<true, true>(id);
+        protocol.send(serializer.buffer);
+
+        this._channelClient = new ChannelClient(protocol);
+    }
+
+    // [public methods]
+
+    public getChannel(channel: ChannelType): IChannel {
+        return this._channelClient.getChannel(channel);
+    }
+
+    public dispose(): void {
+        this._channelClient.dispose();
+    }
+}
+
+// #endregion
