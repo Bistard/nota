@@ -470,6 +470,11 @@ export class RelayEmitter<T> implements IDisposable {
 
 }
 
+export interface INodeEventEmitter {
+    on(eventName: string | symbol, listener: Function): any;
+    removeListener(eventName: string | symbol, listener: Function): any;
+}
+
 /**
  * @class A wrapper of {@link NodeJS.EventEmitter} that listens to the provided
  * channel and wraps the receiving data with the provided data wrapper.
@@ -484,7 +489,7 @@ export class NodeEventEmitter<T> {
 
     private _emitter: Emitter<T>;
 
-    constructor(emitter: NodeJS.EventEmitter, channel: string, dataWrapper?: (...args: any[]) => T) {
+    constructor(emitter: INodeEventEmitter, channel: string, dataWrapper?: (...args: any[]) => T) {
         if (!dataWrapper) {
             dataWrapper = (data) => data;
         }
