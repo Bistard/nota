@@ -96,6 +96,11 @@ export class MainWindowService extends Disposable implements IMainWindowService 
          */
         const configuration: ICreateWindowConfiguration = {
             machineID: this.machineID,
+            logPath: this.environmentMainService.logPath,
+            appRootPath: this.environmentMainService.appRootPath,
+            tmpDirPath: this.environmentMainService.tmpDirPath,
+            userDataPath: this.environmentMainService.userDataPath,
+            userHomePath: this.environmentMainService.userHomePath,
             displayState: undefined,
         };
 

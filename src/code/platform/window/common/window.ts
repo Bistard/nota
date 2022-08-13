@@ -1,6 +1,7 @@
 import { BrowserWindow } from "electron";
 import { Disposable } from "src/base/common/dispose";
 import { Register } from "src/base/common/event";
+import { URI } from "src/base/common/file/uri";
 import { UUID } from "src/base/node/uuid";
 import { ICLIArguments } from "src/code/platform/environment/common/argument";
 
@@ -64,6 +65,16 @@ export interface ICreateWindowConfiguration {
 
     readonly machineID: UUID;
     
+    readonly logPath: URI,
+
+    readonly userHomePath: URI;
+
+    readonly tmpDirPath: URI;
+
+    readonly appRootPath: URI;
+
+    readonly userDataPath: URI;
+
     displayState?: IWindowDisplayState;
 
 }
