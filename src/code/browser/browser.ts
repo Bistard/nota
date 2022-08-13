@@ -6,8 +6,8 @@ import { ComponentService, IComponentService } from "src/code/browser/service/co
 import { Disposable } from "src/base/common/dispose";
 import { ServiceDescriptor } from "src/code/platform/instantiation/common/descriptor";
 import { initExposedElectronAPIs, windowConfiguration } from "src/code/platform/electron/browser/global";
-
 import { IIpcService, IpcService } from "src/code/platform/ipc/browser/ipcService";
+import "src/code/browser/registration";
 
 /**
  * @class This is the main entry of the renderer process.
