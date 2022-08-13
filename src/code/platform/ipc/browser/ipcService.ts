@@ -10,7 +10,10 @@ export interface IIpcService extends IDisposable {
 }
 
 /**
- * @class Just a wrapper of {@link IpcClient}.
+ * @class Provides communication to the main process using IPC through different
+ * channels that are already registered in the main process.
+ * 
+ * A wrapper of {@link IpcClient}.
  */
 export class IpcService implements IIpcService {
 

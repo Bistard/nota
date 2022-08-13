@@ -32,10 +32,7 @@ export class ServiceCollection {
  *                       singleton dependency injection
  ******************************************************************************/
 
-/**
- * @internal
- */
-const _singletonDependencies: [ServiceIdentifier<any>, ServiceDescriptor<any>][] = [];
+const _singletonDependencies = new Map<ServiceIdentifier<any>, ServiceDescriptor<any>>();
 
 export function registerSingleton<T, Services>(id: ServiceIdentifier<T>, ctor: new (...services: Services[]) => T, supportsDelayedInstantiation?: boolean): void;
 export function registerSingleton<T, Services>(id: ServiceIdentifier<T>, descriptor: ServiceDescriptor<any>): void;
@@ -43,9 +40,14 @@ export function registerSingleton<T, Services>(id: ServiceIdentifier<T>, ctorOrD
 	if (!(ctorOrDescriptor instanceof ServiceDescriptor)) {
 		ctorOrDescriptor = new ServiceDescriptor<T>(ctorOrDescriptor as new (...args: any[]) => T, [], supportsDelayedInstantiation);
 	}
-	_singletonDependencies.push([id, ctorOrDescriptor]);
+	const registered = _singletonDependencies.get(id);
+	if (!registered) {
+		_singletonDependencies.set(id, ctorOrDescriptor);
+	} else {
+		console.warn(`duplicate registerSingelton is called with id: ${id}`);
+	}
 }
 
-export function getSingletonServiceDescriptors(): [ServiceIdentifier<any>, ServiceDescriptor<any>][] {
+export function getSingletonServiceDescriptors(): Map<ServiceIdentifier<any>, ServiceDescriptor<any>> {
 	return _singletonDependencies;
 }
