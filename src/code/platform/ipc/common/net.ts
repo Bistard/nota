@@ -209,3 +209,371 @@ class BufferDeserializer {
 }
 
 // #endregion
+
+// #region Channel client / server
+
+export interface IChannelClient {
+    /**
+     * @desciption Get a {@link IChannel} given the channel name.
+     * @note Channel might not exist since the return object is not the actual
+     * object which does the job, instead it works like a proxy and it will send
+     * the command as a request to the other side and waiting for a response.
+     */
+	getChannel(channel: ChannelType): IChannel;
+}
+
+/**
+ * @class A channel client relies on the given {@link IProtocol}, it integrates
+ * two things: 
+ *      1. Get a channel and can manually send serialized data to the protocol.
+ *      2. Listens to the protocol's response and deserialize the data.
+ * @note Serialization process are predefined by {@link DataSerializer} and 
+ * {@link BufferDeserializer}.
+ */
+export class ChannelClient extends Disposable implements IChannelClient {
+
+    // [field]
+
+    private readonly _protocol: IProtocol<DataBuffer>;
+
+    /** A auto increment ID to identify each different request. */
+    private _requestID = 0;
+    
+    /**
+     * After sending a request we immediately stores a callback to be executed
+     * once the response is received.
+     */
+    private readonly _onResponseCallback = new Map<number, (res: IResponse) => void>();
+
+    /** Marks all the activating request. */
+    private readonly _activeRequest: IDisposable[] = [];
+
+    // [constructor]
+
+    constructor(protocol: IProtocol<DataBuffer>) {
+        super();
+        this._protocol = protocol;
+        this.__register(protocol.onData(data => this.__onResponse(data)));
+    }
+
+    // [public methods]
+
+    public getChannel(channel: ChannelType): IChannel {
+        const that = this;
+        return {
+            callCommand<T>(command: string, arg?: any): Promise<T> {
+                if (that.isDisposed()) {
+                    return Promise.reject('channel is already disposed');
+                }
+                return that.__requestCommand(channel, command, arg);
+            },
+            registerListener<T>(event: string, arg?: any): Register<T> {
+                if (that.isDisposed()) {
+                    return Event.NONE;
+                }
+                return that.__requestEvent(channel, event, arg);
+            },
+        };
+    }
+
+    public override dispose(): void {
+        super.dispose();
+        for (const activeRequest of this._activeRequest) {
+            activeRequest.dispose();
+        }
+    }
+
+    // [private methods]
+
+    private __onResponse(data: DataBuffer): void {
+        const [header, rawData] = this.__deserializeResponse(data);
+        const type = header[0]!;
+        const requestID = header[1]!;
+
+        switch (type) {
+            case ResponseType.EventFire:
+            case ResponseType.PromiseReject:
+            case ResponseType.PromiseResolve:
+                const callback = this._onResponseCallback.get(requestID);
+                callback?.({
+                    type: type,
+                    requestID: requestID,
+                    dataOrError: rawData,
+                });
+                return;
+        }
+    }
+
+    private __requestCommand(channel: ChannelType, command: string, arg?: any): Promise<any> {
+        const requestID = this._requestID++;
+        const request: ICommandRequest = { 
+            type: RequestType.Command, 
+            id: requestID, 
+            channel: channel, 
+            commandOrEvent: command, 
+            arg: arg,
+        };
+
+        const responsePromise = new Promise((resolve, reject) => {
+            
+            const onResponseCallback = (response: IResponse): void => {
+                this._onResponseCallback.delete(response.requestID);
+
+                if (response.type === ResponseType.PromiseResolve) {
+                    resolve(response.dataOrError);
+                }
+                else if (response.type === ResponseType.PromiseReject) {
+                    reject(response.dataOrError);
+                } 
+                else {
+                    const error = new Error(`unknown response type: ${response.type}`);
+                    error.cause = response.dataOrError;
+                    reject(error);
+                }
+            };
+            
+            this._onResponseCallback.set(requestID, onResponseCallback);
+            this.__sendRequest(request);
+        });
+
+        return responsePromise;
+    }
+
+    private __requestEvent(channel: ChannelType, event: string, arg?: any): Register<any> {
+        const requestID = this._requestID++;
+        const emitter = new Emitter<any>({
+
+            onFirstListenerAdd: () => {
+                this._activeRequest.push(emitter);
+                this.__sendRequest(<IRegisterRequest>{
+                    type: RequestType.Register,
+                    id: requestID,
+                    channel: channel,
+                    commandOrEvent: event,
+                    arg: arg,
+                });
+            },
+
+            onLastListenerRemoved: () => {
+                this.__sendRequest(<IUnregisterRequest>{
+                    type: RequestType.Unregister,
+                    id: requestID,
+                });
+            },
+        });
+
+        this._onResponseCallback.set(requestID, (res: IResponse) => emitter.fire(res.dataOrError));
+        return emitter.registerListener;
+    }
+
+    private __sendRequest(request: IRequest): void {
+        switch (request.type) {
+            case RequestType.Command:
+            case RequestType.Register: {
+                const buffer = this.__serializeRequest([request.type, request.id, request.channel, request.commandOrEvent], request.arg);
+                this._protocol.send(buffer);
+                return;
+            }
+            case RequestType.Unregister: {
+                const buffer = this.__serializeRequest([request.type, request.id], undefined);
+                this._protocol.send(buffer);
+                return;
+            }
+        }
+    }
+
+    private __serializeRequest(header: IRequestHeader, body: IRequestBody): DataBuffer {
+        const serializer = new DataSerializer();
+        serializer.serialize<true, true>(header);
+        serializer.serialize<true, false>(body);
+        return serializer.buffer;
+    }
+
+    private __deserializeResponse(buffer: DataBuffer): Pair<IResponseHeader, any> {
+        const deserializer = new BufferDeserializer(buffer);
+        const header = deserializer.deserialize<true, false>();
+        const body = deserializer.deserialize<true, true>();
+        return [header, body];
+    }
+}
+
+export interface IChannelServer {
+    /**
+     * @description Register a {@link IServerChannel} into the current channel.
+     * @note Once receiving a request from the other side, the channel will try
+     * to find a corresponding server channel who can do the job and once the
+     * server channel finish their job, this channel will send a response back
+     * to the other side.
+     */
+	registerChannel(channelName: string, channel: IServerChannel): void;
+}
+
+/**
+ * @class A channel server relies on the given {@link IProtocol}, it integrates
+ * two things: 
+ *      1. Listens to the protocol's request and deserialize it.
+ *      2. Send serialized response back through the protocol when the request
+ *         is done by the registered channels.
+ * @note Serialization process are predefined by {@link DataSerializer} and 
+ * {@link BufferDeserializer}.
+ */
+export class ChannelServer extends Disposable implements IChannelServer {
+    
+    // [field]
+
+    private readonly _protocol: IProtocol<DataBuffer>;
+    /** 
+     * An identifier to give the {@link IServerChannel} a chance to know which 
+     * channel server is accessing.
+     */
+    private readonly _id: string;
+    private readonly _channels = new Map<string, IServerChannel>();
+    private readonly _activeRequest = new Map<number, IDisposable>();
+
+    // [constructor]
+
+    constructor(protocol: IProtocol<DataBuffer>, id: string) {
+        super();
+        this._protocol = protocol;
+        this._id = id;
+        this.__register(protocol.onData(buffer => this.__onRequest(buffer)));
+    }
+
+    // [public methods]
+
+    get id(): string { return this._id; }
+
+    public registerChannel(name: ChannelType, channel: IServerChannel): void {
+        this._channels.set(name, channel);
+    }
+
+    public override dispose(): void {
+        super.dispose();
+        for (const [id, activeRequest] of this._activeRequest) {
+            activeRequest.dispose();
+        }
+    }
+
+    // [private helper methods]
+
+    private __onRequest(buffer: DataBuffer): Promise<void> | void {
+        const [header, body] = this.__deserializeRequest(buffer);
+        const type = header[0]!;
+
+        switch (type) {
+            case RequestType.Command: 
+                return this.__onCommandRequest(header as ICommandHeader, body);
+            case RequestType.Register: 
+                return this.__onRegisterRequest(header as IRegisterHeader, body);
+            case RequestType.Unregister: 
+                return this.__onDisposeRequest(header as IUnregisterHeader, body);
+        }
+    }
+
+    private __deserializeRequest(buffer: DataBuffer): Pair<IRequestHeader, any> {
+        const deserializer = new BufferDeserializer(buffer);
+        const header = deserializer.deserialize<false, false>();
+        const body = deserializer.deserialize<false, true>();
+        return [header, body];
+    }
+
+    private async __onCommandRequest(header: ICommandHeader, data: any): Promise<void> {
+        const requestID = header[1]!;
+        const channelName = header[2]!;
+        
+        const channel = this._channels.get(channelName);
+        if (!channel) {
+            this.__onUnknownChannel(channelName, requestID, RequestType.Command);
+            return;
+        }
+
+        const command = header[3]!;
+        let invokingCommand: Promise<any>;
+        try {
+            invokingCommand = channel.callCommand(this._id, command, data);
+        } catch (error) {
+            invokingCommand = Promise.reject(error);
+        }
+
+        try {
+            const rawData = await invokingCommand;
+            this.__sendResponse(<IPromiseResolveResponse>{
+                type: ResponseType.PromiseResolve,
+                requestID: requestID, 
+                dataOrError: rawData,
+            });
+        } 
+        catch (err: any) {
+            this.__sendResponse(<IPromiseRejectResponse>{
+                type: ResponseType.PromiseReject,
+                requestID: requestID,
+                dataOrError: {
+                    message: err.message ?? 'unknown error message',
+                    name: err.name ?? 'unknown error',
+                    stack: err.stack ? (err.stack.split ? err.stack.split('\n') : err.stack) : undefined,
+                },
+            });
+        }
+    }
+
+    private __onRegisterRequest(header: IRegisterHeader, data: any): void {
+        const requestID = header[1]!;
+        const channelName = header[2]!;
+        
+        const channel = this._channels.get(channelName);
+        if (!channel) {
+            this.__onUnknownChannel(channelName, requestID, RequestType.Register);
+            return;
+        }
+
+        const event = header[3]!;
+        const register = channel.registerListener(this.id, event, data);
+        const unregister = register(eventData => this.__sendResponse({
+            type: ResponseType.EventFire,
+            requestID: requestID,
+            dataOrError: eventData
+        }));
+
+        this._activeRequest.set(requestID, unregister);
+    }
+
+    private __onDisposeRequest(header: IUnregisterHeader, data: any): void {
+        const requestID = header[1]!;
+        const unregister = this._activeRequest.get(requestID);
+        if (unregister) {
+            unregister.dispose();
+            this._activeRequest.delete(requestID);
+        }
+    }
+
+    private __sendResponse(response: IResponse): void {
+        switch (response.type) {
+            case ResponseType.EventFire:
+            case ResponseType.PromiseResolve:
+            case ResponseType.PromiseReject:
+                const buffer = this.__serializeResponse([response.type, response.requestID], response.dataOrError);
+                this._protocol.send(buffer);
+        }
+        return;
+    }
+
+    private __serializeResponse(header: IResponseHeader, body: any): DataBuffer {
+        const requestSerializer = new DataSerializer();
+        requestSerializer.serialize<false, true>(header);
+        requestSerializer.serialize<false, false>(body);
+        return requestSerializer.buffer;
+    }
+
+    private __onUnknownChannel(name: string, requestID: number, type: RequestType): void {
+        console.error(`Unknown channel: ${name}`);
+        if (type === RequestType.Command) {
+            this.__sendResponse(<IPromiseRejectResponse>{
+                type: ResponseType.PromiseReject,
+                requestID: requestID,
+                dataOrError: new Error(`Unknown channel: ${name}`),
+            });
+        }
+    }
+}
+
+// #endregion
