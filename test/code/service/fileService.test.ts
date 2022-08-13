@@ -4,9 +4,9 @@ import { FileType } from 'src/base/common/file/file';
 import { dirname, posix, resolve } from 'src/base/common/file/path';
 import { URI } from 'src/base/common/file/uri';
 import { NullLogger } from 'src/base/common/logger';
-import { DiskFileSystemProvider } from 'src/base/node/diskFileSystemProvider';
-import { fileExists } from 'src/base/node/io';
-import { FileService } from 'src/code/common/service/fileService/fileService';
+import { DiskFileSystemProvider } from 'src/code/platform/files/node/diskFileSystemProvider';
+import { fileExists } from 'src/code/platform/files/node/io';
+import { FileService } from 'src/code/platform/files/common/fileService';
 
 suite('FileService-disk-unbuffered-test', () => {
 

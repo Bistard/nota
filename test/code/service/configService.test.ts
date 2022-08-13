@@ -4,7 +4,7 @@ import { URI } from 'src/base/common/file/uri';
 import { NullLogger } from 'src/base/common/logger';
 import { ConfigModel, IConfigType } from "src/code/platform/configuration/common/configModel";
 import { ConfigServiceBase, ConfigurationError } from "src/code/platform/configuration/common/configServiceBase";
-import { FileService } from "src/code/common/service/fileService/fileService";
+import { FileService } from "src/code/platform/files/common/fileService";
 
 function createHuman(id: number = -1, name: string = 'unknown', male: boolean = false): ITestHumanSettings {
     return {

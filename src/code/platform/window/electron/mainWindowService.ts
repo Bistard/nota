@@ -3,7 +3,7 @@ import { Emitter, Register } from "src/base/common/event";
 import { ILogService } from "src/base/common/logger";
 import { Mutable } from "src/base/common/util/type";
 import { UUID } from "src/base/node/uuid";
-import { IFileService } from "src/code/common/service/fileService/fileService";
+import { IFileService } from "src/code/platform/files/common/fileService";
 import { createDecorator } from "src/code/common/service/instantiationService/decorator";
 import { IInstantiationService } from "src/code/common/service/instantiationService/instantiation";
 import { IEnvironmentService, IMainEnvironmentService } from "src/code/platform/environment/common/environment";

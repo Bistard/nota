@@ -14,7 +14,7 @@ import { Notebook } from "src/code/common/model/notebook";
 import { EGlobalSettings, EUserSettings, IGlobalNotebookManagerSettings, IUserNotebookManagerSettings, NOTA_DIR_NAME } from "src/code/platform/configuration/electron/configService";
 import { IUserConfigService } from "src/code/platform/configuration/electron/configService";
 import { IGlobalConfigService } from "src/code/platform/configuration/electron/configService";
-import { IFileService } from "src/code/common/service/fileService/fileService";
+import { IFileService } from "src/code/platform/files/common/fileService";
 import { createDecorator } from "src/code/common/service/instantiationService/decorator";
 
 export const INotebookGroupService = createDecorator<INotebookGroupService>('notebook-manager-service');

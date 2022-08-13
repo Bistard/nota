@@ -3,7 +3,7 @@ import { Emitter } from "src/base/common/event";
 import { DataBuffer } from "src/base/common/file/buffer";
 import { URI } from "src/base/common/file/uri";
 import { Blocker } from "src/base/common/util/async";
-import { IFileService } from "src/code/common/service/fileService/fileService";
+import { IFileService } from "src/code/platform/files/common/fileService";
 import { ModelEvent, IEditorModel, IPieceTableModel } from "src/editor/common/model";
 import { IMarkdownLexer, MarkdownLexer } from "src/editor/model/markdown/markedLexer";
 import { TextBufferBuilder } from "src/editor/model/textBufferBuilder";

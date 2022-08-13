@@ -1,12 +1,12 @@
 import { IOpenFileOptions, FileSystemProviderCapability, FileType, IFileSystemProviderWithFileReadWrite, IFileSystemProviderWithOpenReadWriteClose, IFileStat, IWriteFileOptions, IDeleteFileOptions, IOverwriteFileOptions, FileOperationErrorType, FileSystemProviderError, IFileSystemProviderWithReadFileStream, IReadFileOptions } from "src/base/common/file/file";
 import { URI } from "src/base/common/file/uri";
 import * as fs from "fs";
-import { fileExists, FileMode, readFileIntoStream } from "src/base/node/io";
+import { fileExists, FileMode, readFileIntoStream } from "src/code/platform/files/node/io";
 import { retry } from "src/base/common/util/async";
 import { join } from "src/base/common/file/path";
 import { IReadableStreamEvent, newWriteableStream } from "src/base/common/file/stream";
 import { DataBuffer } from "src/base/common/file/buffer";
-import { FileService } from "src/code/common/service/fileService/fileService";
+import { FileService } from "src/code/platform/files/common/fileService";
 
 export class DiskFileSystemProvider implements IFileSystemProviderWithFileReadWrite, IFileSystemProviderWithOpenReadWriteClose, IFileSystemProviderWithReadFileStream {
 

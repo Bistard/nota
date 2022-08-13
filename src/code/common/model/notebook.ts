@@ -6,7 +6,7 @@ import { URI } from "src/base/common/file/uri";
 import { ExplorerChildrenProvider, ExplorerItem, ExplorerItemProvider } from "src/code/browser/workbench/actionView/explorer/explorerItem";
 import { ExplorerRenderer } from "src/code/browser/workbench/actionView/explorer/explorerRenderer";
 import { ExplorerTree, IExplorerOpenEvent, IExplorerTree } from "src/code/browser/workbench/actionView/explorer/explorerTree";
-import { IFileService } from "src/code/common/service/fileService/fileService";
+import { IFileService } from "src/code/platform/files/common/fileService";
 
 /**
  * @class A type of {@link IListDragAndDropProvider} to support drag and drop

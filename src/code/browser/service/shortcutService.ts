@@ -7,7 +7,7 @@ import { Shortcut } from "src/base/common/keyboard";
 import { IIpcService } from "src/code/browser/service/ipcService";
 import { IKeyboardService } from "src/code/browser/service/keyboardService";
 import { IWorkbenchService } from "src/code/browser/service/workbenchService";
-import { IFileService } from "src/code/common/service/fileService/fileService";
+import { IFileService } from "src/code/platform/files/common/fileService";
 import { createDecorator } from "src/code/common/service/instantiationService/decorator";
 import { IInstantiationService, IServiceProvider } from "src/code/common/service/instantiationService/instantiation";
 import { ILogService } from "src/base/common/logger";

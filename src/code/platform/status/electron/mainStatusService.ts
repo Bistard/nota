@@ -4,7 +4,7 @@ import { URI } from "src/base/common/file/uri";
 import { ILogService } from "src/base/common/logger";
 import { mockType } from "src/base/common/util/type";
 import { NOTA_DIR_NAME } from "src/code/platform/configuration/electron/configService";
-import { IFileService } from "src/code/common/service/fileService/fileService";
+import { IFileService } from "src/code/platform/files/common/fileService";
 import { createDecorator } from "src/code/common/service/instantiationService/decorator";
 import { IEnvironmentService, IMainEnvironmentService } from "src/code/platform/environment/common/environment";
 import { DiskStorage, IDiskStorage } from "src/code/platform/files/common/storage";

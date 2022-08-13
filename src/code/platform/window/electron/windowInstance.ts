@@ -5,7 +5,7 @@ import { join, resolve } from "src/base/common/file/path";
 import { ILogService } from "src/base/common/logger";
 import { IS_MAC } from "src/base/common/platform";
 import { IGlobalConfigService, IUserConfigService } from "src/code/platform/configuration/electron/configService";
-import { IFileService } from "src/code/common/service/fileService/fileService";
+import { IFileService } from "src/code/platform/files/common/fileService";
 import { IEnvironmentService, IMainEnvironmentService } from "src/code/platform/environment/common/environment";
 import { IMainLifeCycleService } from "src/code/platform/lifeCycle/electron/mainLifeCycleService";
 import { defaultDisplayState, ICreateWindowConfiguration, IWindowDisplayState, IWindowInstance, WindowDisplayMode, WindowKey, WindowMinimumState } from "src/code/platform/window/common/window";

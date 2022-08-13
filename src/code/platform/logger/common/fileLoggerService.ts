@@ -6,7 +6,7 @@ import { URI } from "src/base/common/file/uri";
 import { AbstractLogger, ILogger, ILoggerOpts, LogLevel, parseLogLevel } from "src/base/common/logger";
 import { AsyncQueue } from "src/base/common/util/async";
 import { Strings } from "src/base/common/util/string";
-import { IFileService } from "src/code/common/service/fileService/fileService";
+import { IFileService } from "src/code/platform/files/common/fileService";
 import { IInstantiationService } from "src/code/common/service/instantiationService/instantiation";
 import { AbstractLoggerService } from "src/code/platform/logger/common/abstractLoggerService";
 

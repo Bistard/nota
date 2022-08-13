@@ -5,7 +5,7 @@ import { FileType, IResolvedFileStat } from "src/base/common/file/file";
 import { URI } from "src/base/common/file/uri";
 import { Iterable } from "src/base/common/util/iterable";
 import { isPromise } from "src/base/common/util/type";
-import { IFileService } from "src/code/common/service/fileService/fileService";
+import { IFileService } from "src/code/platform/files/common/fileService";
 
 /**
  * An interface only for {@link ExplorerItem}.

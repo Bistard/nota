@@ -4,7 +4,7 @@ import { DataBuffer } from 'src/base/common/file/buffer';
 import { URI } from 'src/base/common/file/uri';
 import { ILogService } from 'src/base/common/logger';
 import { IConfigChange, IConfigChangeEvent, IConfigModel, IConfigType } from 'src/code/platform/configuration/common/configModel';
-import { IFileService } from 'src/code/common/service/fileService/fileService';
+import { IFileService } from 'src/code/platform/files/common/fileService';
 
 export interface IConfigService extends Disposable {
 

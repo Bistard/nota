@@ -4,8 +4,8 @@ import { afterEach, setup } from 'mocha';
 import { join } from 'src/base/common/file/path';
 import { Schemas, URI } from 'src/base/common/file/uri';
 import { ILogService, NullLogger } from 'src/base/common/logger';
-import { DiskFileSystemProvider } from 'src/base/node/diskFileSystemProvider';
-import { FileService, IFileService } from 'src/code/common/service/fileService/fileService';
+import { DiskFileSystemProvider } from 'src/code/platform/files/node/diskFileSystemProvider';
+import { FileService, IFileService } from 'src/code/platform/files/common/fileService';
 import { DiskStorage } from 'src/code/platform/files/common/storage';
 import { TestDir } from 'test/testUtility';
 

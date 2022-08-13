@@ -2,7 +2,7 @@ import { URI } from "src/base/common/file/uri";
 import { IComponentService } from "src/code/browser/service/componentService";
 import { Component, IComponent } from "src/code/browser/workbench/component";
 import { WorkspaceComponentType } from "src/code/browser/workbench/workspace/workspace";
-import { IFileService } from "src/code/common/service/fileService/fileService";
+import { IFileService } from "src/code/platform/files/common/fileService";
 import { createDecorator } from "src/code/common/service/instantiationService/decorator";
 import { ServiceDescriptor } from "src/code/common/service/instantiationService/descriptor";
 import { IInstantiationService } from "src/code/common/service/instantiationService/instantiation";

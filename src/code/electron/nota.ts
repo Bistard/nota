@@ -5,7 +5,7 @@ import { Event } from "src/base/common/event";
 import { ILogService } from "src/base/common/logger";
 import { getUUID, UUID } from "src/base/node/uuid";
 import { IGlobalConfigService, IUserConfigService } from "src/code/platform/configuration/electron/configService";
-import { IFileService } from "src/code/common/service/fileService/fileService";
+import { IFileService } from "src/code/platform/files/common/fileService";
 import { ServiceDescriptor } from "src/code/common/service/instantiationService/descriptor";
 import { IInstantiationService, IServiceProvider } from "src/code/common/service/instantiationService/instantiation";
 import { ServiceCollection } from "src/code/common/service/instantiationService/serviceCollection";
