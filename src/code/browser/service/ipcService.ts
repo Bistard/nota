@@ -5,7 +5,7 @@ import { IpcChannel } from "src/base/common/ipcChannel";
 import { ipcRendererOn, ipcRendererSend, ipcRendererSendData } from "src/base/electron/register";
 import { createDecorator } from "src/code/common/service/instantiationService/decorator";
 
-export const IIpcService = createDecorator<IIpcService>('ipc-service');
+export const IIpcService = createDecorator<IIpcService>('ipc-deprecated-service');
 
 export interface IIpcService extends IDisposable {
 

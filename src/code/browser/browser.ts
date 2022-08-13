@@ -8,6 +8,10 @@ import { ServiceDescriptor } from "src/code/common/service/instantiationService/
 import { initExposedElectronAPIs, ipcRenderer, windowConfiguration } from "src/code/platform/electron/browser/global";
 import { IpcChannel } from "src/code/platform/ipc/common/channel";
 import { URI } from "src/base/common/file/uri";
+import { IpcClient } from "src/code/platform/ipc/browser/ipc";
+import { join } from "src/base/common/file/path";
+import { DataBuffer } from "src/base/common/file/buffer";
+import { IIpcService, IpcService } from "src/code/platform/ipc/browser/ipcService";
 
 /**
  * @class This is the main entry of the renderer process.
@@ -31,8 +35,6 @@ export class Browser extends Disposable {
 
         initExposedElectronAPIs();
 
-        console.log(windowConfiguration);
-
         await Promise.all([
             this.initServices(), 
             waitDomToBeLoad(),
@@ -52,20 +54,26 @@ export class Browser extends Disposable {
         // InstantiationService (itself)
         instantiationService.register(IInstantiationService, instantiationService);
 
-        // singleton initialization
-        for (const [serviceIdentifer, serviceDescriptor] of getSingletonServiceDescriptors()) {
-			instantiationService.register(serviceIdentifer, serviceDescriptor);
-		}
-
         // ComponentService
         instantiationService.register(IComponentService, new ServiceDescriptor(ComponentService));
 
         // IpcService
-        // fileService
-        // GlobalConfigService
-        // UserConfigService
+        // FIX: windowID is updated after the configuraion is passed into BrowserWindow
+        const ipcService = new IpcService(windowConfiguration.windowID);
+        instantiationService.register(IIpcService, ipcService);
+
         // ILoggerService
         // ILogService
+        // IpcService
+        // localFileService
+        // environmentService
+        // GlobalConfigService
+        // UserConfigService
+        
+        // singleton initialization
+        for (const [serviceIdentifer, serviceDescriptor] of getSingletonServiceDescriptors()) {
+			instantiationService.register(serviceIdentifer, serviceDescriptor);
+		}
     }
 
     private registerListeners(): void {
