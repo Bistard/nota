@@ -2,9 +2,6 @@ import { app } from "electron";
 import { Disposable } from "src/base/common/dispose";
 import { ErrorHandler } from "src/base/common/error";
 import { Event } from "src/base/common/event";
-import { DataBuffer } from "src/base/common/file/buffer";
-import { IWriteFileOptions } from "src/base/common/file/file";
-import { URI } from "src/base/common/file/uri";
 import { ILogService } from "src/base/common/logger";
 import { getUUID, UUID } from "src/base/node/uuid";
 import { IGlobalConfigService, IUserConfigService } from "src/code/common/service/configService/configService";
@@ -13,9 +10,11 @@ import { ServiceDescriptor } from "src/code/common/service/instantiationService/
 import { IInstantiationService, IServiceProvider } from "src/code/common/service/instantiationService/instantiation";
 import { ServiceCollection } from "src/code/common/service/instantiationService/serviceCollection";
 import { IEnvironmentService, IMainEnvironmentService } from "src/code/platform/environment/common/environment";
+import { IpcServer } from "src/code/platform/ipc/browser/ipc";
 import { IpcChannel } from "src/code/platform/ipc/common/channel";
+import { ProxyChannel } from "src/code/platform/ipc/common/proxy";
 import { SafeIpcMain } from "src/code/platform/ipc/electron/safeIpcMain";
-import { IMainLifeCycleService, LifeCyclePhase } from "src/code/platform/lifeCycle/electron/mainLifeCycleService";
+import { IMainLifeCycleService, LifeCyclePhase, QuitReason } from "src/code/platform/lifeCycle/electron/mainLifeCycleService";
 import { StatusKey } from "src/code/platform/status/common/status";
 import { IMainStatusService } from "src/code/platform/status/electron/mainStatusService";
 import { IWindowInstance } from "src/code/platform/window/common/window";
@@ -67,13 +66,15 @@ export class NotaInstance extends Disposable implements INotaInstance {
         const appInstantiationService = await this.registerServices(machineID);
 
         // IPC main process server
-        // TODO
+        const ipcServer = new IpcServer();
+        this.lifeCycleService.onWillQuit(() => ipcServer.dispose());
+
+        // IPC channel initialization
+        this.registerChannels(ipcServer);
 
         // open first window
-        app.whenReady().then(() => {
-            this.openFirstWindow(appInstantiationService);
-        });
-
+        this.openFirstWindow(appInstantiationService);
+        
         // post work
         this.afterFirstWindow(appInstantiationService);
     }
@@ -105,13 +106,7 @@ export class NotaInstance extends Disposable implements INotaInstance {
         .on(IpcChannel.ToggleDevTools, event => event.sender.toggleDevTools())
         .on(IpcChannel.OpenDevTools, event => event.sender.openDevTools())
         .on(IpcChannel.CloseDevTools, event => event.sender.closeDevTools())
-        .on(IpcChannel.ReloadWindow, event => event.sender.reload())
-        .handle(IpcChannel.WriteFile, (event, uri: URI, data: string, opt?: IWriteFileOptions) => {
-            return this.fileService.writeFile(uri, DataBuffer.fromString(data), opt);
-        })
-        .handle(IpcChannel.ReadFile, async (event, uri: URI) => {
-            return (await this.fileService.readFile(uri)).toString();
-        });
+        .on(IpcChannel.ReloadWindow, event => event.sender.reload());
     }
 
     private async registerServices(machineID: UUID): Promise<IInstantiationService> {
@@ -134,6 +129,14 @@ export class NotaInstance extends Disposable implements INotaInstance {
         // TODO: notebook-group-service
 
         return appInstantiationService;
+    }
+
+    private registerChannels(server: Readonly<IpcServer>): void {
+
+        // file service
+        const diskFileChannel = ProxyChannel.wrapService(this.fileService);
+        server.registerChannel(IpcChannel.DiskFile, diskFileChannel);
+
     }
 
     private openFirstWindow(instantiationService: IServiceProvider): IWindowInstance {
@@ -162,7 +165,7 @@ export class NotaInstance extends Disposable implements INotaInstance {
             id = getUUID();
             this.statusService.set(StatusKey.MachineIdKey, id);
         }
-        return id as UUID;
+        return id;
     }
 
     private __onUnexpectedError(error: any): void {
