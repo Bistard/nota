@@ -11,8 +11,7 @@ export const enum IpcChannel {
     Disconnect = 'nota:disconnect',
 
     Log = 'nota:log',
-    WriteFile = 'nota:writeFile',
-    ReadFile = 'nota:readFile',
+    DiskFile = 'nota:diskFile',
     
     ToggleDevTools = 'nota:toggleDevTools',
     OpenDevTools = 'nota:openDevTools',
@@ -33,6 +32,8 @@ export type ChannelType = IpcChannel | string;
  * argument. It always returns a promise (even if the command does not return a 
  * promise) that resolves a maximum one return value.
  * 
+ * If you want to pass mutiple arguments, use array instead.
+ * 
  * Similar to the command, you can register an event listener from the channel. 
  * It returns an event register for registration.
  * 
@@ -43,8 +44,8 @@ export type ChannelType = IpcChannel | string;
  * calling the command.
  */
 export interface IServerChannel {
-    callCommand<T>(id: string, command: string, arg?: any): Promise<T>;
-	registerListener<T>(id: string, event: string, arg?: any): Register<T>;
+    callCommand<T>(id: string, command: string, arg?: any[]): Promise<T>;
+	registerListener<T>(id: string, event: string, arg?: any[]): Register<T>;
 }
 
 /**

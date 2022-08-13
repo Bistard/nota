@@ -101,8 +101,10 @@ export class MainWindowService extends Disposable implements IMainWindowService 
             tmpDirPath: this.environmentMainService.tmpDirPath,
             userDataPath: this.environmentMainService.userDataPath,
             userHomePath: this.environmentMainService.userHomePath,
+            appConfigurationPath: this.environmentMainService.appConfigurationPath,
             displayState: undefined,
         };
+        
 
         // open a new window instance
         window = this.__openInNewWindow(options, configuration);

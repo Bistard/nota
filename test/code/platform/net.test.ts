@@ -143,12 +143,12 @@ class TestChannel implements IServerChannel {
 
 	constructor(private service: ITestService) { }
 
-	callCommand(_: unknown, command: string, arg: any): Promise<any> {
+	callCommand(_: unknown, command: string, arg: any[]): Promise<any> {
 		switch (command) {
 			case 'marco': return this.service.marco();
-			case 'error': return this.service.error(arg);
+			case 'error': return this.service.error(arg[0]);
 			case 'neverComplete': return this.service.neverComplete();
-			case 'buffersLength': return this.service.buffersLength(arg);
+			case 'buffersLength': return this.service.buffersLength(arg[0]);
 			default: return Promise.reject(new Error('not implemented'));
 		}
 	}
@@ -174,7 +174,7 @@ class TestChannelClient implements ITestService {
 	}
 
 	error(message: string): Promise<void> {
-		return this.channel.callCommand('error', message);
+		return this.channel.callCommand('error', [message]);
 	}
 
 	neverComplete(): Promise<void> {
@@ -182,11 +182,11 @@ class TestChannelClient implements ITestService {
 	}
 
 	buffersLength(buffers: DataBuffer[]): Promise<number> {
-		return this.channel.callCommand('buffersLength', buffers);
+		return this.channel.callCommand('buffersLength', [buffers]);
 	}
 
 	marshall(uri: URI): Promise<URI> {
-		return this.channel.callCommand('marshall', uri);
+		return this.channel.callCommand('marshall', [uri]);
 	}
 
 	context(): Promise<unknown> {

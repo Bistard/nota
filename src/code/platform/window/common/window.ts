@@ -75,6 +75,8 @@ export interface ICreateWindowConfiguration {
 
     readonly userDataPath: URI;
 
+    readonly appConfigurationPath: URI;
+
     displayState?: IWindowDisplayState;
 
 }

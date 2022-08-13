@@ -28,7 +28,6 @@ export namespace ProxyChannel {
                     throw new Error(`Command not found: ${command}`);
                 }
                 return value.apply(object, args);
-                
             },
 
             registerListener: <T>(_serverOrClientID: string, event: string, _arg?: any): Register<T> => {
