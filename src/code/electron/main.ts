@@ -51,7 +51,6 @@ const nota = new class extends class MainProcess implements IMainProcess {
 
     public start(argv: ICLIArguments): void {
         (<any>this.CLIArgv) = argv;
-        console.log(argv);
         try {
             ErrorHandler.setUnexpectedErrorExternalCallback(err => console.error(err));
             this.run();
