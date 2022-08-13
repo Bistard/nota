@@ -10,7 +10,7 @@ import { Strings } from "src/base/common/util/string";
 import { IIpcService } from "src/code/browser/service/ipcService";
 import { ExplorerItem } from "src/code/browser/workbench/actionView/explorer/explorerItem";
 import { IExplorerOpenEvent } from "src/code/browser/workbench/actionView/explorer/explorerTree";
-import { Notebook } from "src/code/common/model/notebook";
+import { Notebook } from "src/code/platform/notebook/browser/notebook";
 import { EGlobalSettings, EUserSettings, IGlobalNotebookManagerSettings, IUserNotebookManagerSettings, NOTA_DIR_NAME } from "src/code/platform/configuration/electron/configService";
 import { IUserConfigService } from "src/code/platform/configuration/electron/configService";
 import { IGlobalConfigService } from "src/code/platform/configuration/electron/configService";

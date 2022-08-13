@@ -1,6 +1,6 @@
 import { Component, ComponentType, IComponent } from 'src/code/browser/workbench/component';
 import { Emitter, Register } from 'src/base/common/event';
-import { INotebookGroupService } from 'src/code/common/model/notebookGroup';
+import { INotebookGroupService } from 'src/code/platform/notebook/electron/notebookGroup';
 import { IComponentService } from 'src/code/browser/service/componentService';
 import { createDecorator } from 'src/code/platform/instantiation/common/decorator';
 import { Ii18nService } from 'src/code/platform/i18n/i18n';

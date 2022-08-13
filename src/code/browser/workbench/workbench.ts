@@ -1,4 +1,4 @@
-import { INotebookGroupService, NotebookGroup } from "src/code/common/model/notebookGroup";
+import { INotebookGroupService, NotebookGroup } from "src/code/platform/notebook/electron/notebookGroup";
 import { ipcRendererSend } from "src/base/electron/register";
 import { ContextMenuService, IContextMenuService } from 'src/code/browser/service/contextMenuService';
 import { IInstantiationService } from "src/code/platform/instantiation/common/instantiation";
