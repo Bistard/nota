@@ -8,8 +8,8 @@ import { IIpcService } from "src/code/browser/service/ipcService";
 import { IKeyboardService } from "src/code/browser/service/keyboardService";
 import { IWorkbenchService } from "src/code/browser/service/workbenchService";
 import { IFileService } from "src/code/platform/files/common/fileService";
-import { createDecorator } from "src/code/common/service/instantiationService/decorator";
-import { IInstantiationService, IServiceProvider } from "src/code/common/service/instantiationService/instantiation";
+import { createDecorator } from "src/code/platform/instantiation/common/decorator";
+import { IInstantiationService, IServiceProvider } from "src/code/platform/instantiation/common/instantiation";
 import { ILogService } from "src/base/common/logger";
 
 export const SHORTCUT_CONFIG_NAME = 'shortcut.config.json';

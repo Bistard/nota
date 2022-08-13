@@ -4,7 +4,7 @@ import { Emitter, Register } from "src/base/common/event";
 import { ILogService } from "src/base/common/logger";
 import { IS_MAC } from "src/base/common/platform";
 import { Blocker, delayFor } from "src/base/common/util/async";
-import { createDecorator } from "src/code/common/service/instantiationService/decorator";
+import { createDecorator } from "src/code/platform/instantiation/common/decorator";
 
 export const IMainLifeCycleService = createDecorator<IMainLifeCycleService>('life-cycle-service');
 

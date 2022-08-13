@@ -1,5 +1,5 @@
 import { Register } from "src/base/common/event";
-import { createDecorator } from "src/code/common/service/instantiationService/decorator";
+import { createDecorator } from "src/code/platform/instantiation/common/decorator";
 
 export const IWorkbenchService = createDecorator<IWorkbenchService>('workbench-layout-service');
 

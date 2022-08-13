@@ -1,8 +1,8 @@
 import { INotebookGroupService, NotebookGroup } from "src/code/common/model/notebookGroup";
 import { ipcRendererSend } from "src/base/electron/register";
 import { ContextMenuService, IContextMenuService } from 'src/code/browser/service/contextMenuService';
-import { IInstantiationService } from "src/code/common/service/instantiationService/instantiation";
-import { ServiceDescriptor } from "src/code/common/service/instantiationService/descriptor";
+import { IInstantiationService } from "src/code/platform/instantiation/common/instantiation";
+import { ServiceDescriptor } from "src/code/platform/instantiation/common/descriptor";
 import { IComponentService } from "src/code/browser/service/componentService";
 import { IGlobalConfigService } from "src/code/platform/configuration/electron/configService";
 import { EGlobalSettings, IGlobalApplicationSettings } from "src/code/platform/configuration/electron/configService";

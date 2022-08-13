@@ -7,7 +7,7 @@ import { MarkdownRenderMode } from "src/code/browser/workbench/workspace/markdow
 import { ConfigModel, IConfigType } from "src/code/platform/configuration/common/configModel";
 import { ConfigServiceBase, IConfigService } from "src/code/platform/configuration/common/configServiceBase";
 import { IFileService } from "src/code/platform/files/common/fileService";
-import { createDecorator } from "src/code/common/service/instantiationService/decorator";
+import { createDecorator } from "src/code/platform/instantiation/common/decorator";
 import { IEnvironmentService, IMainEnvironmentService } from "src/code/platform/environment/common/environment";
 import { Language } from "src/code/platform/i18n/i18n";
 

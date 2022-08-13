@@ -1,5 +1,5 @@
 import { IDisposable } from "src/base/common/dispose";
-import { createDecorator } from "src/code/common/service/instantiationService/decorator";
+import { createDecorator } from "src/code/platform/instantiation/common/decorator";
 import { IpcClient } from "src/code/platform/ipc/browser/ipc";
 import { ChannelType, IChannel } from "src/code/platform/ipc/common/channel";
 

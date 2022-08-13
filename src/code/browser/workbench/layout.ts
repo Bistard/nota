@@ -7,7 +7,7 @@ import { ActionBarComponent, ActionType } from "src/code/browser/workbench/actio
 import { ActionViewComponent } from "src/code/browser/workbench/actionView/actionView";
 import { Component, ComponentType, IComponent } from "src/code/browser/workbench/component";
 import { WorkspaceComponent } from "src/code/browser/workbench/workspace/workspace";
-import { IInstantiationService } from "src/code/common/service/instantiationService/instantiation";
+import { IInstantiationService } from "src/code/platform/instantiation/common/instantiation";
 
 /**
  * @description A base class for Workbench to create and manage the behaviour of

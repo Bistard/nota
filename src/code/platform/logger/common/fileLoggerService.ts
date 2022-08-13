@@ -7,7 +7,7 @@ import { AbstractLogger, ILogger, ILoggerOpts, LogLevel, parseLogLevel } from "s
 import { AsyncQueue } from "src/base/common/util/async";
 import { Strings } from "src/base/common/util/string";
 import { IFileService } from "src/code/platform/files/common/fileService";
-import { IInstantiationService } from "src/code/common/service/instantiationService/instantiation";
+import { IInstantiationService } from "src/code/platform/instantiation/common/instantiation";
 import { AbstractLoggerService } from "src/code/platform/logger/common/abstractLoggerService";
 
 export const MAX_LOG_SIZE = 5 * ByteSize.MB;

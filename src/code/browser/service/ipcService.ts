@@ -3,7 +3,7 @@ import { AsyncEmitter, AsyncRegister, Emitter, Register } from "src/base/common/
 import { IDimension } from "src/base/common/util/size";
 import { IpcChannel } from "src/base/common/ipcChannel";
 import { ipcRendererOn, ipcRendererSend, ipcRendererSendData } from "src/base/electron/register";
-import { createDecorator } from "src/code/common/service/instantiationService/decorator";
+import { createDecorator } from "src/code/platform/instantiation/common/decorator";
 
 export const IIpcService = createDecorator<IIpcService>('ipc-deprecated-service');
 

@@ -1,8 +1,8 @@
-import { createDecorator, ServiceIdentifier, _ServiceUtil } from "src/code/common/service/instantiationService/decorator";
-import { Graph, Node } from "src/code/common/service/instantiationService/dependencyGraph";
-import { ServiceDescriptor } from "src/code/common/service/instantiationService/descriptor";
-import { IdleValue } from "src/code/common/service/instantiationService/idle";
-import { ServiceCollection } from "src/code/common/service/instantiationService/serviceCollection";
+import { createDecorator, ServiceIdentifier, _ServiceUtil } from "src/code/platform/instantiation/common/decorator";
+import { Graph, Node } from "src/code/platform/instantiation/common/dependencyGraph";
+import { ServiceDescriptor } from "src/code/platform/instantiation/common/descriptor";
+import { IdleValue } from "src/code/platform/instantiation/common/idle";
+import { ServiceCollection } from "src/code/platform/instantiation/common/serviceCollection";
 
 export const IInstantiationService = createDecorator<IInstantiationService>('instantiation-service');
 

@@ -1,10 +1,10 @@
 import { Workbench } from "src/code/browser/workbench/workbench";
-import { IInstantiationService, InstantiationService } from "src/code/common/service/instantiationService/instantiation";
-import { getSingletonServiceDescriptors, ServiceCollection } from "src/code/common/service/instantiationService/serviceCollection";
+import { IInstantiationService, InstantiationService } from "src/code/platform/instantiation/common/instantiation";
+import { getSingletonServiceDescriptors, ServiceCollection } from "src/code/platform/instantiation/common/serviceCollection";
 import { waitDomToBeLoad, EventType } from "src/base/common/dom";
 import { ComponentService, IComponentService } from "src/code/browser/service/componentService";
 import { Disposable } from "src/base/common/dispose";
-import { ServiceDescriptor } from "src/code/common/service/instantiationService/descriptor";
+import { ServiceDescriptor } from "src/code/platform/instantiation/common/descriptor";
 import { initExposedElectronAPIs, windowConfiguration } from "src/code/platform/electron/browser/global";
 
 import { IIpcService, IpcService } from "src/code/platform/ipc/browser/ipcService";

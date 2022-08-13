@@ -1,5 +1,5 @@
 import * as assert from 'assert';
-import { Graph } from "src/code/common/service/instantiationService/dependencyGraph";
+import { Graph } from "src/code/platform/instantiation/common/dependencyGraph";
 
 suite('dependency-graph-test', () => {
 	let graph: Graph<string>;

@@ -1,17 +1,17 @@
 import { Component, ComponentType, IComponent } from 'src/code/browser/workbench/component';
 import { ExplorerViewComponent } from "src/code/browser/workbench/actionView/explorer/explorer";
 import { Emitter, Register } from 'src/base/common/event';
-import { createDecorator } from 'src/code/common/service/instantiationService/decorator';
+import { createDecorator } from 'src/code/platform/instantiation/common/decorator';
 import { IComponentService } from 'src/code/browser/service/componentService';
-import { IInstantiationService } from 'src/code/common/service/instantiationService/instantiation';
+import { IInstantiationService } from 'src/code/platform/instantiation/common/instantiation';
 import { ActionType } from 'src/code/browser/workbench/actionBar/actionBar';
 import { Disposable } from 'src/base/common/dispose';
 import { getIconClass } from 'src/base/browser/icon/iconRegistry';
 import { Icons } from 'src/base/browser/icon/icons';
 import { Ii18nService } from 'src/code/platform/i18n/i18n';
 import { Section } from 'src/code/platform/section';
-import { registerSingleton } from 'src/code/common/service/instantiationService/serviceCollection';
-import { ServiceDescriptor } from 'src/code/common/service/instantiationService/descriptor';
+import { registerSingleton } from 'src/code/platform/instantiation/common/serviceCollection';
+import { ServiceDescriptor } from 'src/code/platform/instantiation/common/descriptor';
 
 export const IActionViewService = createDecorator<IActionViewService>('action-view-service');
 

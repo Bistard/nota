@@ -21,7 +21,7 @@ import colorSyntax from '@toast-ui/editor-plugin-color-syntax';
 import { Component, IComponent } from 'src/code/browser/workbench/component';
 import { ContextMenuType, Coordinate } from 'src/base/browser/secondary/contextMenu/contextMenu';
 import { IContextMenuService } from 'src/code/browser/service/contextMenuService';
-import { createDecorator } from 'src/code/common/service/instantiationService/decorator';
+import { createDecorator } from 'src/code/platform/instantiation/common/decorator';
 import { IComponentService } from 'src/code/browser/service/componentService';
 import { WorkspaceComponentType } from 'src/code/browser/workbench/workspace/workspace';
 import { IGlobalConfigService, IUserConfigService } from 'src/code/platform/configuration/electron/configService';

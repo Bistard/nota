@@ -1,8 +1,8 @@
 import * as assert from 'assert';
-import { createDecorator } from 'src/code/common/service/instantiationService/decorator';
-import { ServiceDescriptor } from 'src/code/common/service/instantiationService/descriptor';
-import { InstantiationService } from 'src/code/common/service/instantiationService/instantiation';
-import { ServiceCollection } from 'src/code/common/service/instantiationService/serviceCollection';
+import { createDecorator } from 'src/code/platform/instantiation/common/decorator';
+import { ServiceDescriptor } from 'src/code/platform/instantiation/common/descriptor';
+import { InstantiationService } from 'src/code/platform/instantiation/common/instantiation';
+import { ServiceCollection } from 'src/code/platform/instantiation/common/serviceCollection';
 
 const IService1 = createDecorator<IService1>('service1');
 

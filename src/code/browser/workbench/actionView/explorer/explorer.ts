@@ -2,11 +2,11 @@ import { Component, ComponentType, IComponent } from 'src/code/browser/workbench
 import { Emitter, Register } from 'src/base/common/event';
 import { INotebookGroupService } from 'src/code/common/model/notebookGroup';
 import { IComponentService } from 'src/code/browser/service/componentService';
-import { createDecorator } from 'src/code/common/service/instantiationService/decorator';
+import { createDecorator } from 'src/code/platform/instantiation/common/decorator';
 import { Ii18nService } from 'src/code/platform/i18n/i18n';
 import { Section } from 'src/code/platform/section';
-import { registerSingleton } from 'src/code/common/service/instantiationService/serviceCollection';
-import { ServiceDescriptor } from 'src/code/common/service/instantiationService/descriptor';
+import { registerSingleton } from 'src/code/platform/instantiation/common/serviceCollection';
+import { ServiceDescriptor } from 'src/code/platform/instantiation/common/descriptor';
 import { EGlobalSettings, EUserSettings, IGlobalConfigService, IGlobalNotebookManagerSettings, IUserConfigService, IUserNotebookManagerSettings } from 'src/code/platform/configuration/electron/configService';
 import { IIpcService, IpcService } from 'src/code/browser/service/ipcService';
 import { addDisposableListener, EventType } from 'src/base/common/dom';

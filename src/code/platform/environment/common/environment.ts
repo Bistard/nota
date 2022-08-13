@@ -1,7 +1,7 @@
 import { URI } from "src/base/common/file/uri";
 import { LogLevel } from "src/base/common/logger";
 import { iterPropety } from "src/base/common/util/object";
-import { createDecorator } from "src/code/common/service/instantiationService/decorator";
+import { createDecorator } from "src/code/platform/instantiation/common/decorator";
 import { ICLIArguments } from "src/code/platform/environment/common/argument";
 
 export const IEnvironmentService = createDecorator<IEnvironmentService>('environment-service');
