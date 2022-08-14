@@ -19,6 +19,7 @@ const enum MainLoggerCommand {
  * may call log command to send logging message to here for the actual logging
  * step.
  */
+// TODO: sync log level with main process
 export class MainLoggerChannel implements IServerChannel {
 
     // [field / constructor]
