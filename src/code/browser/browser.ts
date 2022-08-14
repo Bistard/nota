@@ -1,104 +1,91 @@
-import { ComponentService, IComponentService } from "src/code/browser/service/componentService";
+import "src/code/browser/registration";
 import { Workbench } from "src/code/browser/workbench/workbench";
-import { ServiceDescriptor } from "src/code/common/service/instantiationService/descriptor";
-import { IInstantiationService, InstantiationService } from "src/code/common/service/instantiationService/instantiation";
-import { getSingletonServiceDescriptors, ServiceCollection } from "src/code/common/service/instantiationService/serviceCollection";
-import { FileService, IFileService } from "src/code/common/service/fileService/fileService";
-import { GlobalConfigService, IGlobalConfigService, IUserConfigService, UserConfigService } from "src/code/common/service/configService/configService";
-import { Schemas, URI } from "src/base/common/file/uri";
-import { DiskFileSystemProvider } from "src/base/node/diskFileSystemProvider";
-import { IIpcService, IpcService } from "src/code/browser/service/ipcService";
-import { ipcRendererSend } from "src/base/electron/register";
-import { IpcCommand } from "src/base/electron/ipcCommand";
-import { APP_ROOT_PATH, DEVELOP_ENV } from "src/base/electron/app";
-import { EventType } from "src/base/common/dom";
-import { ILogService, LogLevel, PipelineLogger } from "src/base/common/logger";
-import { ILoggerService } from "src/code/common/service/logService/abstractLoggerService";
-import { FileLoggerService } from "src/code/common/service/logService/fileLoggerService";
-import { join } from "src/base/common/file/path";
-import { ConsoleLogger } from "src/code/common/service/logService/consoleLoggerService";
+import { IInstantiationService, InstantiationService } from "src/code/platform/instantiation/common/instantiation";
+import { getSingletonServiceDescriptors, ServiceCollection } from "src/code/platform/instantiation/common/serviceCollection";
+import { waitDomToBeLoad, EventType } from "src/base/common/dom";
+import { ComponentService, IComponentService } from "src/code/browser/service/componentService";
+import { Disposable } from "src/base/common/dispose";
+import { ServiceDescriptor } from "src/code/platform/instantiation/common/descriptor";
+import { initExposedElectronAPIs, windowConfiguration } from "src/code/platform/electron/browser/global";
+import { IIpcService, IpcService } from "src/code/platform/ipc/browser/ipcService";
+import { IpcChannel } from "src/code/platform/ipc/common/channel";
+import { BrowserLoggerChannel } from "src/code/platform/logger/common/browserLoggerService";
+import { ILogService } from "src/base/common/logger";
+import { ILoggerService } from "src/code/platform/logger/common/abstractLoggerService";
 
 /**
  * @class This is the main entry of the renderer process.
  */
-export class Browser {
+export class Browser extends Disposable {
+
+    // [field]
 
     public workbench!: Workbench;
 
-    private instantiationService!: IInstantiationService;
-    private fileService!: IFileService;
-    private globalConfigService!: GlobalConfigService;
-    private userConfigService!: UserConfigService;
-    private componentService!: ComponentService;
+    // [constructor]
 
     constructor() {
-        this.startUp();
+        super();
+        this.run();
     }
+    
+    // [private methods]
 
-    private startUp(): void {
-        this.initServices().then(async () => {
+    private async run(): Promise<void> {
 
-            this.workbench = this.instantiationService.createInstance(Workbench);
-            await this.workbench.init();
-            this.registerListeners();
+        initExposedElectronAPIs();
 
-        });
+        await Promise.all([
+            this.initServices(), 
+            waitDomToBeLoad(),
+        ]);
+
+        // TODO: workbench
+
+        this.registerListeners();
     }
 
     private async initServices(): Promise<void> {
         
         // create a instantiationService
         const serviceCollection = new ServiceCollection();
-        this.instantiationService = new InstantiationService(serviceCollection);
+        const instantiationService = new InstantiationService(serviceCollection);
 
-        // InstantiationService (itself)
-        this.instantiationService.register(IInstantiationService, this.instantiationService);
+        // instantiation-service (itself)
+        instantiationService.register(IInstantiationService, instantiationService);
 
-        // singleton initialization
-        for (const [serviceIdentifer, serviceDescriptor] of getSingletonServiceDescriptors()) {
-			this.instantiationService.register(serviceIdentifer, serviceDescriptor);
-		}
+        // component-service
+        instantiationService.register(IComponentService, new ServiceDescriptor(ComponentService));
 
-        // IpcService
-        this.instantiationService.register(IIpcService, new ServiceDescriptor(IpcService));
+        // ipc-service
+        // FIX: windowID is updated after the configuraion is passed into BrowserWindow
+        const ipcService = new IpcService(windowConfiguration.windowID);
+        instantiationService.register(IIpcService, ipcService);
 
-        // fileService
-        this.fileService = new FileService();
-        this.fileService.registerProvider(Schemas.FILE, new DiskFileSystemProvider());
-        this.instantiationService.register(IFileService, this.fileService);
-        
-        // GlobalConfigService
-        this.globalConfigService = new GlobalConfigService(this.fileService);
-        this.instantiationService.register(IGlobalConfigService, this.globalConfigService);
-        await this.globalConfigService.init();
+        // logger-service
+        const loggerService = new BrowserLoggerChannel(windowConfiguration.logLevel, ipcService.getChannel(IpcChannel.Logger));
+        instantiationService.register(ILoggerService, loggerService);
 
-        // UserConfigService
-        this.userConfigService = new UserConfigService(this.fileService);
-        this.instantiationService.register(IUserConfigService, this.userConfigService);
-        await this.userConfigService.init();
-
-        // ILoggerService
-        const fileLoggerService = new FileLoggerService(LogLevel.INFO, this.instantiationService);
-        this.instantiationService.register(ILoggerService, fileLoggerService);
+        // log-service
+        const logService = loggerService.createLogger(
+            windowConfiguration.logPath, { 
+                name: `window-${windowConfiguration.windowID}.txt`,
+                description: `window-${windowConfiguration.windowID}`,
+            },
+        );
+        instantiationService.register(ILogService, logService);
 
         // ILogService
-        const fileLogger = fileLoggerService.createLogger(
-            // REVIEW: uri should be retrieve from `envrionmentService`
-            // REVIEW: file name should be a date
-            URI.fromFile(join(APP_ROOT_PATH, '.nota/log/file-log.txt')), {
-            name: 'file-read-result'
-        }); 
-        const pipelineLogService = new PipelineLogger(
-            [fileLogger, new ConsoleLogger(LogLevel.WARN)]
-        );
-        this.instantiationService.register(ILogService, pipelineLogService);
+        // IpcService
+        // localFileService
+        // environmentService
+        // GlobalConfigService
+        // UserConfigService
         
-        // ComponentService
-        this.componentService = new ComponentService();
-        this.instantiationService.register(IComponentService, this.componentService);
-
-        // more and more...
-        
+        // singleton initialization
+        for (const [serviceIdentifer, serviceDescriptor] of getSingletonServiceDescriptors()) {
+			instantiationService.register(serviceIdentifer, serviceDescriptor);
+		}
     }
 
     private registerListeners(): void {
@@ -108,8 +95,8 @@ export class Browser {
 }
 
 const onCatchAnyErrors = () => { 
-    if (DEVELOP_ENV) {
-        ipcRendererSend(IpcCommand.ErrorInWindow);
+    if (true) { // REVIEW
+        // ipcRendererSend(IpcChannel.ErrorInWindow);
     }
 }
 

@@ -1,19 +1,19 @@
-import { INotebookGroupService, NotebookGroup } from "src/code/common/model/notebookGroup";
+import { INotebookGroupService, NotebookGroup } from "src/code/platform/notebook/electron/notebookGroup";
 import { ipcRendererSend } from "src/base/electron/register";
 import { ContextMenuService, IContextMenuService } from 'src/code/browser/service/contextMenuService';
-import { IInstantiationService } from "src/code/common/service/instantiationService/instantiation";
-import { ServiceDescriptor } from "src/code/common/service/instantiationService/descriptor";
+import { IInstantiationService } from "src/code/platform/instantiation/common/instantiation";
+import { ServiceDescriptor } from "src/code/platform/instantiation/common/descriptor";
 import { IComponentService } from "src/code/browser/service/componentService";
-import { IGlobalConfigService } from "src/code/common/service/configService/configService";
-import { EGlobalSettings, IGlobalApplicationSettings } from "src/code/common/service/configService/configService";
+import { IGlobalConfigService } from "src/code/platform/configuration/electron/configService";
+import { EGlobalSettings, IGlobalApplicationSettings } from "src/code/platform/configuration/electron/configService";
 import { WorkbenchLayout } from "src/code/browser/workbench/layout";
 import { i18n, Ii18nOpts, Ii18nService } from "src/code/platform/i18n/i18n";
-import { IShortcutService, ShortcutService } from "src/code/browser/service/shortcutService";
+import { IShortcutService, ShortcutService } from "src/code/browser/service/keyboard/shortcutService";
 import { KeyCode, Shortcut } from "src/base/common/keyboard";
-import { IpcCommand } from "src/base/electron/ipcCommand";
+import { IpcChannel } from "src/base/common/ipcChannel";
 import { IWorkbenchService } from "src/code/browser/service/workbenchService";
 import { IIpcService } from "src/code/browser/service/ipcService";
-import { IKeyboardScreenCastService, KeyboardScreenCastService } from "src/code/browser/service/keyboardScreenCastService/keyboardScreenCastService";
+import { IKeyboardScreenCastService, KeyboardScreenCastService } from "src/code/browser/service/keyboard/keyboardScreenCastService";
 
 /**
  * @class Workbench represents all the Components in the web browser.
@@ -22,11 +22,11 @@ export class Workbench extends WorkbenchLayout implements IWorkbenchService {
 
     constructor(
         @IInstantiationService instantiationService: IInstantiationService,
-        @IComponentService componentService: IComponentService,
         @IGlobalConfigService private readonly globalConfigService: IGlobalConfigService,
         @IIpcService ipcService: IIpcService,
+        @IComponentService componentService: IComponentService,
     ) {
-        super(instantiationService, componentService, ipcService);
+        super(instantiationService, ipcService, componentService);
     }
 
     public async init(): Promise<void> {
@@ -40,9 +40,6 @@ export class Workbench extends WorkbenchLayout implements IWorkbenchService {
 
         /** {@link Workbench} (self registration) */
         this.instantiationService.register(IWorkbenchService, this);
-
-        /** {@link ShortcutService} */
-        this.instantiationService.register(IShortcutService, new ServiceDescriptor(ShortcutService));
 
         /** {@link i18n} */
         const appConfig = this.globalConfigService.get<IGlobalApplicationSettings>(EGlobalSettings.Application);
@@ -63,10 +60,6 @@ export class Workbench extends WorkbenchLayout implements IWorkbenchService {
 
         /** {@link NotebookGroup} */
         this.instantiationService.register(INotebookGroupService, new ServiceDescriptor(NotebookGroup));
-
-        /** {@link KeyboardScreenCastService} */
-        this.instantiationService.register(IKeyboardScreenCastService, new ServiceDescriptor(KeyboardScreenCastService));
-
     }
 
     /**
@@ -100,7 +93,7 @@ export class Workbench extends WorkbenchLayout implements IWorkbenchService {
             shortcut: new Shortcut(true, true, false, false, KeyCode.KeyI),
             when: null,
             command: () => {
-                ipcRendererSend(IpcCommand.ToggleDevelopTool);
+                ipcRendererSend(IpcChannel.ToggleDevelopTool);
             },
             override: false,
             activate: true
@@ -112,7 +105,7 @@ export class Workbench extends WorkbenchLayout implements IWorkbenchService {
             shortcut: new Shortcut(true, false, false, false, KeyCode.KeyR),
             when: null,
             command: () => {
-                ipcRendererSend(IpcCommand.ReloadWindow);
+                ipcRendererSend(IpcChannel.ReloadWindow);
             },
             override: false,
             activate: true

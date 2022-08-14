@@ -1,6 +1,7 @@
 import * as assert from 'assert';
-import { FileService, IFileService } from 'src/code/common/service/fileService/fileService';
-import { i18n, Ii18nSection } from 'src/code/platform/i18n/i18n';
+import { NullLogger } from 'src/base/common/logger';
+import { FileService, IFileService } from 'src/code/platform/files/common/fileService';
+import { i18n } from 'src/code/platform/i18n/i18n';
 import { Section } from 'src/code/platform/section';
 
 class i18nTest extends i18n {
@@ -11,7 +12,7 @@ class i18nTest extends i18n {
         super({localeOpts: {}}, fileService);
     }
 
-    public setModel(model: { [key: string]: Ii18nSection }): void {
+    public setModel(model: any): void {
         this._model = model as any;
     }
 
@@ -21,7 +22,7 @@ suite('i18n-test', () => {
 
     test('trans - no variables', () => {
 
-        const i18n = new i18nTest(new FileService());
+        const i18n = new i18nTest(new FileService(new NullLogger()));
         i18n.setModel({
             'section1': {
                 'welcome': 'hello Chris',
@@ -34,7 +35,7 @@ suite('i18n-test', () => {
     
     test('trans - single variable', () => {
 
-        const i18n = new i18nTest(new FileService());
+        const i18n = new i18nTest(new FileService(new NullLogger()));
         i18n.setModel({
             'section1': {
                 'welcome': 'hello {name}',
@@ -53,7 +54,7 @@ suite('i18n-test', () => {
 
     test('trans - more variables', () => {
 
-        const i18n = new i18nTest(new FileService());
+        const i18n = new i18nTest(new FileService(new NullLogger()));
         i18n.setModel({
             'section1': {
                 'welcome': 'hello {place}, my name is {name}.',
@@ -79,7 +80,7 @@ suite('i18n-test', () => {
 
     test('trans - no indices', () => {
 
-        const i18n = new i18nTest(new FileService());
+        const i18n = new i18nTest(new FileService(new NullLogger()));
         i18n.setModel({
             'section1': {
                 'welcome': 'hello Chris',
@@ -92,7 +93,7 @@ suite('i18n-test', () => {
 
     test('trans - one index', () => {
 
-        const i18n = new i18nTest(new FileService());
+        const i18n = new i18nTest(new FileService(new NullLogger()));
         i18n.setModel({
             'section1': {
                 'welcome': 'hello {0}',
@@ -111,7 +112,7 @@ suite('i18n-test', () => {
 
     test('trans - more indices', () => {
 
-        const i18n = new i18nTest(new FileService());
+        const i18n = new i18nTest(new FileService(new NullLogger()));
         i18n.setModel({
             'section1': {
                 'welcome': 'hello {0}, my name is {1}.',
@@ -137,7 +138,7 @@ suite('i18n-test', () => {
 
     test('trans - different sections', () => {
 
-        const i18n = new i18nTest(new FileService());
+        const i18n = new i18nTest(new FileService(new NullLogger()));
         i18n.setModel({
             'section1': {
                 'welcome': 'hello world.',

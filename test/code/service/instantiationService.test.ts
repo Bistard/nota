@@ -1,8 +1,8 @@
 import * as assert from 'assert';
-import { createDecorator } from 'src/code/common/service/instantiationService/decorator';
-import { ServiceDescriptor } from 'src/code/common/service/instantiationService/descriptor';
-import { InstantiationService } from 'src/code/common/service/instantiationService/instantiation';
-import { ServiceCollection } from 'src/code/common/service/instantiationService/serviceCollection';
+import { createDecorator } from 'src/code/platform/instantiation/common/decorator';
+import { ServiceDescriptor } from 'src/code/platform/instantiation/common/descriptor';
+import { InstantiationService } from 'src/code/platform/instantiation/common/instantiation';
+import { ServiceCollection } from 'src/code/platform/instantiation/common/serviceCollection';
 
 const IService1 = createDecorator<IService1>('service1');
 
@@ -292,13 +292,38 @@ suite('instantiationService-test', () => {
 		service.register(ICreateOnlyOnceClass, new ServiceDescriptor(CreateOnlyOnceClass));
 		
 		service.getOrCreateService1((provider) => {
-			provider.getService(ICreateOnlyOnceClass);
+			provider.getOrCreateService(ICreateOnlyOnceClass);
 		});
 		assert.strictEqual(1, CreateOnlyOnceClass.cnt);
 		
 		service.getOrCreateService1((provider) => {
-			provider.getService(ICreateOnlyOnceClass);
+			provider.getOrCreateService(ICreateOnlyOnceClass);
 		});
 		assert.strictEqual(1, CreateOnlyOnceClass.cnt);
+	});
+
+	test('instantiation from parent', () => {
+		const parent = new InstantiationService(new ServiceCollection());
+		const child = new InstantiationService(new ServiceCollection(), parent);
+
+		parent.register(IService1, new ServiceDescriptor(Service1));
+		
+		const childService = child.createInstance(DependentService) as DependentService;
+		assert.strictEqual(childService.name, 'farboo');
+	});
+
+	test('child get service from parent', () => {
+		const parent = new InstantiationService(new ServiceCollection());
+		const child = new InstantiationService(new ServiceCollection(), parent);
+
+		const parentService = new Service1();
+		parentService.c = 2;
+		parent.register(IService1, parentService);
+		
+		let service = child.getService(IService1);
+		assert.strictEqual(service.c, 2);
+
+		service = child.getOrCreateService(IService1);
+		assert.strictEqual(service.c, 2);
 	});
 });

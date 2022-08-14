@@ -2,11 +2,11 @@ import { URI } from "src/base/common/file/uri";
 import { IComponentService } from "src/code/browser/service/componentService";
 import { Component, IComponent } from "src/code/browser/workbench/component";
 import { WorkspaceComponentType } from "src/code/browser/workbench/workspace/workspace";
-import { IFileService } from "src/code/common/service/fileService/fileService";
-import { createDecorator } from "src/code/common/service/instantiationService/decorator";
-import { ServiceDescriptor } from "src/code/common/service/instantiationService/descriptor";
-import { IInstantiationService } from "src/code/common/service/instantiationService/instantiation";
-import { registerSingleton } from "src/code/common/service/instantiationService/serviceCollection";
+import { IFileService } from "src/code/platform/files/common/fileService";
+import { createDecorator } from "src/code/platform/instantiation/common/decorator";
+import { ServiceDescriptor } from "src/code/platform/instantiation/common/descriptor";
+import { IInstantiationService } from "src/code/platform/instantiation/common/instantiation";
+import { registerSingleton } from "src/code/platform/instantiation/common/serviceCollection";
 import { EditorWidget, IEditorWidget } from "src/editor/editorWidget";
 import { EditorModel } from "src/editor/model/editorModel";
 

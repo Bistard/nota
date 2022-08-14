@@ -29,7 +29,7 @@
 
 import * as assert from 'assert';
 import * as path from 'src/base/common/file/path';
-import { IS_WINDOWS } from 'src/base/node/os';
+import { IS_WINDOWS } from 'src/base/common/platform';
 
 suite('path-test (Node Implementation)', () => {
 	const __filename = 'path.test.js';

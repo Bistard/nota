@@ -4,7 +4,7 @@ const path = require('path');
 const __MAX_CYCLES = 3;
 let cycleCount = 0;
 
-let common_config = {
+const baseConfiguration = {
     node: {
         __dirname: true
     },
@@ -53,22 +53,22 @@ let common_config = {
                     ));
                 }
             },
-          })
-      ]
+        }),
+    ]
 };
 
 module.exports = [
-    Object.assign({}, common_config, {
+    Object.assign({}, baseConfiguration, {
         target: 'electron-main',
         entry: {
-            main: './src/code/electron-main/main.ts',
+            main: './src/main.js',
         },
         output: {
             filename: '[name]-bundle.js',
             path: path.resolve(__dirname, './dist')
         },
     }),
-    Object.assign({}, common_config, {
+    Object.assign({}, baseConfiguration, {
         target: 'electron-renderer',
         entry: {
             renderer: './src/code/browser/browser.ts',

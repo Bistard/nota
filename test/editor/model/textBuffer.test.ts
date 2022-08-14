@@ -1,5 +1,6 @@
 import * as assert from 'assert';
-import { TextBuffer, TextBufferBuilder } from 'src/editor/model/textBuffer';
+import { TextBuffer } from 'src/editor/model/textBuffer';
+import { TextBufferBuilder } from 'src/editor/model/textBufferBuilder';
 
 
 suite('textBufferBuilder-test', () => {

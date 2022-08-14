@@ -3,7 +3,7 @@ import { ExplorerViewContextMenu } from "src/base/browser/secondary/contextMenu/
 import { ContextMenuType, Coordinate, ContextMenuDimension, IContextMenu } from "src/base/browser/secondary/contextMenu/contextMenu";
 import { EditorContextMenu } from "src/base/browser/secondary/contextMenu/editor/editorContextMenu";
 import { IComponentService } from "src/code/browser/service/componentService";
-import { createDecorator } from "src/code/common/service/instantiationService/decorator";
+import { createDecorator } from "src/code/platform/instantiation/common/decorator";
 
 export const IContextMenuService = createDecorator<IContextMenuService>('context-menu-service');
 

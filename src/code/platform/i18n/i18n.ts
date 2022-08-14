@@ -1,10 +1,10 @@
 import { Emitter, Register } from "src/base/common/event";
 import { URI } from "src/base/common/file/uri";
 import * as path from "src/base/common/file/path";
-import { IFileService } from "src/code/common/service/fileService/fileService";
+import { IFileService } from "src/code/platform/files/common/fileService";
 import { isArray, isObject } from "src/base/common/util/type";
 import { Section } from "src/code/platform/section";
-import { createDecorator } from "src/code/common/service/instantiationService/decorator";
+import { createDecorator } from "src/code/platform/instantiation/common/decorator";
 
 export const Ii18nService = createDecorator<Ii18nService>('i18n-service');
 
@@ -21,7 +21,7 @@ export type Language =
     'zh-tw'     // Chinese (Traditional)
 ;
 
-export type Ii18nSection = { [key: string]: string }
+type Ii18nSection = { [key: string]: string }
 
 export interface Ii18nOpts {
 

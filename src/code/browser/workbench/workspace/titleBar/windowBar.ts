@@ -1,7 +1,7 @@
 import { Icons } from "src/base/browser/icon/icons";
 import { WidgetBar } from "src/base/browser/secondary/widgetBar/widgetBar";
 import { Orientation } from "src/base/common/dom";
-import { IpcCommand } from "src/base/electron/ipcCommand";
+import { IpcChannel } from "src/base/common/ipcChannel";
 import { IComponentService } from "src/code/browser/service/componentService";
 import { IIpcService } from "src/code/browser/service/ipcService";
 import { Component } from "src/code/browser/workbench/component";
@@ -35,9 +35,9 @@ export class WindowBarComponent extends Component {
         
         // creates all the window buttons
         [
-            {id: 'min-btn', icon: Icons.Minus, message: IpcCommand.WindowMinimize, classes: []},
-            {id: 'max-btn', icon: Icons.Square, message: IpcCommand.WindowRestore, classes: []},
-            {id: 'close-btn', icon: Icons.Cross, message: IpcCommand.WindowClose, classes: ['closeToggleBtn']},
+            {id: 'min-btn', icon: Icons.Minus, message: IpcChannel.WindowMinimize, classes: []},
+            {id: 'max-btn', icon: Icons.Square, message: IpcChannel.WindowRestore, classes: []},
+            {id: 'close-btn', icon: Icons.Cross, message: IpcChannel.WindowClose, classes: ['closeToggleBtn']},
         ]
         .forEach(( {id, icon, message, classes} ) => {
             const button = new WindowButton({

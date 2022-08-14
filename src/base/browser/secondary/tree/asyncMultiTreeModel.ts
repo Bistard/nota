@@ -2,7 +2,7 @@ import { AsyncWeakMap, IAsyncChildrenProvider, IAsyncTreeNode } from "src/base/b
 import { IMultiTree } from "src/base/browser/secondary/tree/multiTree";
 import { ITreeModel, ITreeSpliceEvent, ITreeNode, ITreeCollapseStateChangeEvent } from "src/base/browser/secondary/tree/tree";
 import { Register } from "src/base/common/event";
-import { asyncTask } from "src/base/common/util/async";
+import { Blocker } from "src/base/common/util/async";
 import { Iterable } from "src/base/common/util/iterable";
 import { isIterable } from "src/base/common/util/type";
 
@@ -242,8 +242,8 @@ export class AsyncMultiTreeModel<T, TFilter = void> implements IAsyncMultiTreeMo
     private async __refreshNodeAndChildren(node: IAsyncTreeNode<T>): Promise<void> {
 
         // mark the current node is refreshing
-        const [promise, finishRefresh] = asyncTask<void>();
-        node.refreshing = promise;
+        const blocker = new Blocker<void>();
+        node.refreshing = blocker.waiting();
         this._nodeRefreshing.set(node, node.refreshing);
 
         // remove the mark once it finished
@@ -268,11 +268,8 @@ export class AsyncMultiTreeModel<T, TFilter = void> implements IAsyncMultiTreeMo
         }
 
         finally {
-            /**
-             * function will do nothing except marking the current node 
-             * refreshing state is finished.
-             */
-            finishRefresh();
+            // Marking the current node refreshing state is finished.
+            blocker.resolve();
         }
     }
 

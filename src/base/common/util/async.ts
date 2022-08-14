@@ -1,15 +1,15 @@
 import { Disposable } from "src/base/common/dispose";
 import { Emitter, Register } from "src/base/common/event";
-import { Triple } from "src/base/common/util/type";
 
 export interface ITask<T> {
 	(...args: any[]): T; // any functions that returns `T`
 }
 
-export type IAsyncTask<T> = Triple<Promise<T>, (arg: T) => void, (reason?: any) => void>;
+export type IAsyncTask<T> = ITask<Promise<T>>;
 
 /**
- * @description Delays for given milliseconds.
+ * @description Delays for given milliseconds. It will immediately create a 
+ * async task that runs in the javascript task queue by using setTimeout.
  * @param ms Milliseconds.
  * @param callback Callback function after the waiting ends.
  */
@@ -49,20 +49,34 @@ export async function retry<T>(task: ITask<Promise<T>>, delay: number, retries: 
 }
 
 /**
- * @description Creates a simple {@link Promise} and returns its resolve or 
- * reject functions for manually resolving or rejecting.
- * @returns First returned value is the new created promise, the second returned
- * value is the isolated resolve function, the third returned value is the 
- * isolated reject function.
+ * @description Block the program by calling {@link Blocker.wait()} for waiting
+ * a data with type T. You may signal the blocker to tell if we retrieve the 
+ * data succeeded or failed.
  */
-export function asyncTask<T>(): IAsyncTask<T> {
-	let resolved!: (arg: T) => void;
-	let rejected!: (reason?: any) => void;
-	const promise = new Promise<T>((resolve, reject) => {
-		resolved = resolve;
-		rejected = reject;
-	});
-	return [promise, resolved, rejected];
+export class Blocker<T> {
+
+	private _resolve!: (arg: T) => void;
+	private _reject!: (reason?: any) => void;
+	private _promise: Promise<T>;
+
+	constructor() {
+		this._promise = new Promise<T>((resolve, reject) => {
+			this._resolve = resolve;
+			this._reject = reject;
+		});
+	}
+
+	public async waiting(): Promise<T> {
+		return this._promise;
+	}
+
+	public resolve(data: T): void {
+		this._resolve(data);
+	}
+
+	public reject(reason?: any): void {
+		this._reject(reason);
+	}
 }
 
 export type IAsyncPromiseTask<T> = {
@@ -72,9 +86,9 @@ export type IAsyncPromiseTask<T> = {
 };
 
 /**
- * An interface for {@link AsyncParallelExecutor}.
+ * An interface for {@link AsyncExecutor}.
  */
-export interface IAsyncParallelExecutor<T> extends Disposable {
+export interface IAsyncExecutor<T> extends Disposable {
 	
 	/**
 	 * The total number of promises that are either being waiting or executing.
@@ -92,7 +106,7 @@ export interface IAsyncParallelExecutor<T> extends Disposable {
 	 * @returns Returns a promise that will resolve the promise of the return 
 	 * value of the {@link ITask}.
 	 */
-	push(task: ITask<Promise<T>>): Promise<T>;
+	queue(task: ITask<Promise<T>>): Promise<T>;
 
 	/**
 	 * @description Pauses the executor (the running promises will not be paused).
@@ -109,7 +123,7 @@ export interface IAsyncParallelExecutor<T> extends Disposable {
  * @class A helper tool that guarantees no more than N promises are running at 
  * the same time.
  */
-export class AsyncParallelExecutor<T> extends Disposable implements IAsyncParallelExecutor<T> {
+export class AsyncExecutor<T> extends Disposable implements IAsyncExecutor<T> {
 
 	// [field]
 
@@ -141,7 +155,7 @@ export class AsyncParallelExecutor<T> extends Disposable implements IAsyncParall
 		return this._size;
 	}
 
-	public push(task: ITask<Promise<T>>): Promise<T> {
+	public queue(task: ITask<Promise<T>>): Promise<T> {
 		this._size++;
 		return new Promise((resolve, reject) => {
 			this._waitingPromises.push({ task, resolve, reject });
@@ -202,7 +216,7 @@ export class AsyncParallelExecutor<T> extends Disposable implements IAsyncParall
  * @class An async queue helper that guarantees only 1 promise are running at 
  * the same time.
  */
-export class AsyncQueue<T> extends AsyncParallelExecutor<T> {
+export class AsyncQueue<T> extends AsyncExecutor<T> {
 	constructor() {
 		super(1);
 	}

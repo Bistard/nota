@@ -1,9 +1,9 @@
 import { Iterable } from "src/base/common/util/iterable";
 
 /**
- * @namespace String A collection of functions that relates to {@link string}.
+ * @namespace Strings A collection of functions that relates to {@link string}.
  */
-export namespace String {
+export namespace Strings {
 
     /**
      * @description Check if any of the given {@link RegExp} is applied to the
@@ -38,4 +38,32 @@ export namespace String {
         return result;
     }
 
+    /**
+     * @description Format a given raw string with the given interpolation using
+     * indice.
+     * @returns The formatted new string.
+     * @example format('hello {0}', ['Chris']) -> 'Hello Chris'
+     */
+    export function format(raw: string, interpolation: any[]): string {
+        if (interpolation.length === 0) {
+            return raw;
+        }
+        
+        let result = '';
+        result = raw.replace(/\{(\d+)\}/g, (match, rest) => {
+            const index = rest[0];
+            const arg = interpolation[index];
+            let result = match;
+            if (typeof arg === 'string') {
+                result = arg;
+            } else if ((typeof arg === 'number') || (typeof arg === 'boolean') || (arg === void 0) || (arg === null)) {
+                result = String(arg);
+            }
+            return result;
+        });
+
+        return result;
+    }
 }
+
+

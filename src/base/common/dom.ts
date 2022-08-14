@@ -302,3 +302,18 @@ export namespace DomUtility
 		}
 	}
 }
+
+/**
+ * @description Check if the web envrionment (DOM content) has been loaded.
+ * @returns A promise that will fullfilled when everything is loaded.
+ */
+export function waitDomToBeLoad(): Promise<unknown> {
+	return new Promise<unknown>(resolve => {
+		const readyState = document.readyState;
+		if (readyState === 'complete' || (document && document.body !== null)) {
+			resolve(undefined);
+		} else {
+			window.addEventListener('DOMContentLoaded', resolve, false);
+		}
+	});
+}

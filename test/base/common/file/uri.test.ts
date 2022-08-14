@@ -1,6 +1,6 @@
 import * as assert from 'assert';
 import { URI } from 'src/base/common/file/uri';
-import { IS_WINDOWS } from 'src/base/node/os';
+import { IS_WINDOWS } from 'src/base/common/platform';
 
 suite('URI-test', () => {
     

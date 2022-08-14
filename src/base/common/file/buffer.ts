@@ -106,4 +106,92 @@ export class DataBuffer {
 		}
 	}
 
+    public readUInt8(offset: number): number {
+        return this.buffer[offset]!;
+    }
+
+    public writeUInt8(offset: number, value: number): void {
+        this.buffer[offset] = value;
+    }
+
+    public readUInt32BE(offset: number): number {
+        return (
+            this.buffer[offset + 0]! * 2 ** 24 +
+            this.buffer[offset + 1]! * 2 ** 16 +
+            this.buffer[offset + 2]! * 2 **  8 +
+            this.buffer[offset + 3]!
+        );
+    }
+    
+    public writeUInt32BE(offset: number, value: number): void {
+        this.buffer[offset + 3] = (value & 0b11111111);
+        value >>= 8;
+        this.buffer[offset + 2] = (value & 0b11111111);
+        value >>= 8;
+        this.buffer[offset + 1] = (value & 0b11111111);
+        value >>= 8;
+        this.buffer[offset + 0] = (value & 0b11111111);
+    }
+
+    public readUInt32LE(offset: number): number {
+        return (
+            (this.buffer[offset + 0]! <<  0) |
+            (this.buffer[offset + 1]! <<  8) |
+            (this.buffer[offset + 2]! << 16) |
+            (this.buffer[offset + 3]! << 24)
+        );
+    }
+    
+    public writeUInt32LE(value: number, offset: number): void {
+        this.buffer[offset + 0]! = (value & 0b11111111);
+        value >>= 8;
+        this.buffer[offset + 1]! = (value & 0b11111111);
+        value >>= 8;
+        this.buffer[offset + 2]! = (value & 0b11111111);
+        value >>= 8;
+        this.buffer[offset + 3]! = (value & 0b11111111);
+    }
+}
+
+export interface IReader {
+    /**
+     * @description Read given number of bytes from the current buffer.
+     */
+    read(bytes: number): DataBuffer;
+}
+
+export class BufferReader implements IReader {
+
+    private _pos = 0;
+
+    constructor(private buffer: DataBuffer) {}
+
+    public read(bytes: number): DataBuffer {
+        const result = this.buffer.slice(this._pos, this._pos + bytes);
+        this._pos += bytes;
+        return result;
+    }
+}
+
+export interface IWriter {
+    /**
+     * @description Write the given buffer into the current buffer.
+     */
+    write(buffer: DataBuffer): void;
+}
+
+export class BufferWriter implements IWriter {
+
+    private readonly _bufferStack: DataBuffer[] = [];
+
+    constructor() {}
+
+    get buffer(): DataBuffer {
+        return DataBuffer.concat(this._bufferStack);
+    }
+
+    public write(buffer: DataBuffer): void {
+        // We only concat when we try to access it. Save time.
+        this._bufferStack.push(buffer);
+    }
 }
