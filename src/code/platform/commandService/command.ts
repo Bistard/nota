@@ -9,7 +9,12 @@ export interface ICommand {
 
 export interface ICommandExecutor {
     (provider: IServiceProvider, ...args: any[]): void;
-} 
+}
+
+export interface ICommandEvent {
+    commandID: string;
+    args: any[];
+}
 
 export interface ICommandRegistrant {
 
