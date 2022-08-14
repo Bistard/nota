@@ -98,6 +98,7 @@ export class MainWindowService extends Disposable implements IMainWindowService 
         const configuration: ICreateWindowConfiguration = {
             machineID: this.machineID,
             windowID: -1, // will be update once window is loaded
+            logLevel: this.environmentMainService.logLevel,
             logPath: this.environmentMainService.logPath,
             appRootPath: this.environmentMainService.appRootPath,
             tmpDirPath: this.environmentMainService.tmpDirPath,

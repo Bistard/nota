@@ -19,6 +19,8 @@ import { StatusKey } from "src/code/platform/status/common/status";
 import { IMainStatusService } from "src/code/platform/status/electron/mainStatusService";
 import { IWindowInstance } from "src/code/platform/window/common/window";
 import { IMainWindowService, MainWindowService } from "src/code/platform/window/electron/mainWindowService";
+import { ILoggerService } from "src/code/platform/logger/common/abstractLoggerService";
+import { MainLoggerChannel } from "src/code/platform/logger/common/browserLoggerService";
 
 /**
  * An interface only for {@link NotaInstance}
@@ -70,7 +72,7 @@ export class NotaInstance extends Disposable implements INotaInstance {
         this.lifeCycleService.onWillQuit(() => ipcServer.dispose());
 
         // IPC channel initialization
-        this.registerChannels(ipcServer);
+        this.registerChannels(appInstantiationService, ipcServer);
 
         // open first window
         this.openFirstWindow(appInstantiationService);
@@ -131,16 +133,21 @@ export class NotaInstance extends Disposable implements INotaInstance {
         return appInstantiationService;
     }
 
-    private registerChannels(server: Readonly<IpcServer>): void {
+    private registerChannels(provider: IServiceProvider, server: Readonly<IpcServer>): void {
 
-        // file service
+        // file-service-channel
         const diskFileChannel = ProxyChannel.wrapService(this.fileService);
         server.registerChannel(IpcChannel.DiskFile, diskFileChannel);
 
+        // logger-service-channel
+        const loggerService = provider.getService(ILoggerService);
+        const loggerChannel = new MainLoggerChannel(loggerService);
+        server.registerChannel(IpcChannel.Logger, loggerChannel);
+
     }
 
-    private openFirstWindow(instantiationService: IServiceProvider): IWindowInstance {
-        const mainWindowService = instantiationService.getOrCreateService(IMainWindowService);
+    private openFirstWindow(provider: IServiceProvider): IWindowInstance {
+        const mainWindowService = provider.getOrCreateService(IMainWindowService);
         
         // life-cycle-service: READY
         this.lifeCycleService.setPhase(LifeCyclePhase.Ready);
@@ -153,7 +160,7 @@ export class NotaInstance extends Disposable implements INotaInstance {
         return window;
     }
 
-    private afterFirstWindow(instantiationService: IServiceProvider): void {
+    private afterFirstWindow(provider: IServiceProvider): void {
         // TODO
     }
 

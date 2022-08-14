@@ -2,6 +2,7 @@ import { BrowserWindow } from "electron";
 import { Disposable } from "src/base/common/dispose";
 import { Register } from "src/base/common/event";
 import { URI } from "src/base/common/file/uri";
+import { LogLevel } from "src/base/common/logger";
 import { UUID } from "src/base/node/uuid";
 import { ICLIArguments } from "src/code/platform/environment/common/argument";
 
@@ -64,21 +65,13 @@ export interface IWindowInstance extends Disposable {
 export interface ICreateWindowConfiguration {
 
     readonly machineID: UUID;
-
     readonly windowID: number;
-    
-    readonly logPath: URI,
-
+    readonly logLevel: LogLevel;
+    readonly logPath: URI;
     readonly userHomePath: URI;
-
     readonly tmpDirPath: URI;
-
     readonly appRootPath: URI;
-
     readonly userDataPath: URI;
-
     readonly appConfigurationPath: URI;
-
     displayState?: IWindowDisplayState;
-
 }

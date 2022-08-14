@@ -1,3 +1,4 @@
+import "src/code/browser/registration";
 import { Workbench } from "src/code/browser/workbench/workbench";
 import { IInstantiationService, InstantiationService } from "src/code/platform/instantiation/common/instantiation";
 import { getSingletonServiceDescriptors, ServiceCollection } from "src/code/platform/instantiation/common/serviceCollection";
@@ -7,7 +8,10 @@ import { Disposable } from "src/base/common/dispose";
 import { ServiceDescriptor } from "src/code/platform/instantiation/common/descriptor";
 import { initExposedElectronAPIs, windowConfiguration } from "src/code/platform/electron/browser/global";
 import { IIpcService, IpcService } from "src/code/platform/ipc/browser/ipcService";
-import "src/code/browser/registration";
+import { IpcChannel } from "src/code/platform/ipc/common/channel";
+import { BrowserLoggerChannel } from "src/code/platform/logger/common/browserLoggerService";
+import { ILogService } from "src/base/common/logger";
+import { ILoggerService } from "src/code/platform/logger/common/abstractLoggerService";
 
 /**
  * @class This is the main entry of the renderer process.
@@ -47,18 +51,30 @@ export class Browser extends Disposable {
         const serviceCollection = new ServiceCollection();
         const instantiationService = new InstantiationService(serviceCollection);
 
-        // InstantiationService (itself)
+        // instantiation-service (itself)
         instantiationService.register(IInstantiationService, instantiationService);
 
-        // ComponentService
+        // component-service
         instantiationService.register(IComponentService, new ServiceDescriptor(ComponentService));
 
-        // IpcService
+        // ipc-service
         // FIX: windowID is updated after the configuraion is passed into BrowserWindow
         const ipcService = new IpcService(windowConfiguration.windowID);
         instantiationService.register(IIpcService, ipcService);
 
-        // ILoggerService
+        // logger-service
+        const loggerService = new BrowserLoggerChannel(windowConfiguration.logLevel, ipcService.getChannel(IpcChannel.Logger));
+        instantiationService.register(ILoggerService, loggerService);
+
+        // log-service
+        const logService = loggerService.createLogger(
+            windowConfiguration.logPath, { 
+                name: `window-${windowConfiguration.windowID}.txt`,
+                description: `window-${windowConfiguration.windowID}`,
+            },
+        );
+        instantiationService.register(ILogService, logService);
+
         // ILogService
         // IpcService
         // localFileService

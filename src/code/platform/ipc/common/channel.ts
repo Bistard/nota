@@ -10,7 +10,7 @@ export const enum IpcChannel {
     Connect = 'nota:connect',
     Disconnect = 'nota:disconnect',
 
-    Log = 'nota:log',
+    Logger = 'nota:mainLogger',
     DiskFile = 'nota:diskFile',
     
     ToggleDevTools = 'nota:toggleDevTools',
