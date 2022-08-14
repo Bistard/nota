@@ -277,7 +277,7 @@ export class PipelineLogger extends AbstractLogger implements ILogService {
  */
 export class BufferLogger extends AbstractLogger implements ILogService {
 
-    private _buffer: { level: LogLevel, message: (string | Error), args: any[] }[] = [];
+    protected _buffer: { level: LogLevel, message: (string | Error), args: any[] }[] = [];
     private _logger?: ILogger;
 
     constructor() {
@@ -287,6 +287,10 @@ export class BufferLogger extends AbstractLogger implements ILogService {
     public setLogger(logger: ILogger): void {
         this._logger = logger;
         this.__flushBuffer();
+    }
+
+    public getLogger(): ILogger | undefined {
+        return this._logger;
     }
 
     public trace(message: string, ...args: any[]): void {
@@ -313,38 +317,48 @@ export class BufferLogger extends AbstractLogger implements ILogService {
         this.__log(LogLevel.FATAL, message, ...args);
     }
 
-    // [private helper methods]
+    public flush(): void {
+        this.__flushBuffer();
+    }
 
-    private __log(level: LogLevel, message: string | Error, ...args: any[]): void {
+    // [protected helper methods]
+
+    protected __log(level: LogLevel, message: string | Error, ...args: any[]): void {
         this._buffer.push({ level: level, message, args });
         if (this._logger) {
             this.__flushBuffer();
         }
     }
 
-    private __flushBuffer(): void {
+    protected __flushBuffer(): void {
         for (const { level, message, args } of this._buffer) {
-            switch (level) {
-                case LogLevel.TRACE:
-                    this._logger!.trace(mockType(message), ...args);
-                    break;
-                case LogLevel.DEBUG: 
-                    this._logger!.debug(mockType(message), ...args);
-                    break;
-                case LogLevel.INFO: 
-                    this._logger!.info(mockType(message), ...args);
-                    break;
-                case LogLevel.WARN: 
-                    this._logger!.warn(mockType(message), ...args);
-                    break;
-                case LogLevel.ERROR: 
-                    this._logger!.error(mockType(message), ...args);
-                    break;
-                case LogLevel.FATAL: 
-                    this._logger!.fatal(mockType(message), ...args);
-                    break;
-            }
+            defaultLog(this._logger!, level, message, args);
         }
         this._buffer = [];
+    }
+}
+
+export type LogFunction = (logger: ILogger, level: LogLevel, message: string | Error, args: any[]) => void;
+
+export function defaultLog(logger: ILogger, level: LogLevel, message: string | Error, args: any[]): void {
+    switch (level) {
+        case LogLevel.TRACE:
+            logger.trace(mockType(message), ...args);
+            break;
+        case LogLevel.DEBUG: 
+            logger.debug(mockType(message), ...args);
+            break;
+        case LogLevel.INFO: 
+            logger.info(mockType(message), ...args);
+            break;
+        case LogLevel.WARN: 
+            logger.warn(mockType(message), ...args);
+            break;
+        case LogLevel.ERROR: 
+            logger.error(mockType(message), ...args);
+            break;
+        case LogLevel.FATAL: 
+            logger.fatal(mockType(message), ...args);
+            break;
     }
 }
