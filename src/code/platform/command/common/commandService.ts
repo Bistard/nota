@@ -1,8 +1,8 @@
 import { Disposable } from "src/base/common/dispose";
 import { Emitter, Register } from "src/base/common/event";
 import { ILogService } from "src/base/common/logger";
-import { IInstantiationService } from "src/code/common/service/instantiationService/instantiation";
 import { CommandRegistrant, ICommandEvent } from "src/code/platform/command/common/command";
+import { IInstantiationService } from "src/code/platform/instantiation/common/instantiation";
 
 
 export interface ICommandService {

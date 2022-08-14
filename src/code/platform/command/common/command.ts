@@ -1,5 +1,5 @@
 import { IDisposable, toDisposable } from "src/base/common/dispose";
-import { IServiceProvider } from "src/code/common/service/instantiationService/instantiation";
+import { IServiceProvider } from "src/code/platform/instantiation/common/instantiation";
 
 export interface ICommand {
     readonly id: string;
