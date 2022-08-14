@@ -121,7 +121,6 @@
 	const exposedAPIs = {
 		ipcRenderer: wrappedIpcRenderer,
 		process: wrappedProcess,
-		configuration: JSON.parse(retrieveFromArgv('window-config'))
 	};
 
 	if (process.contextIsolated) {

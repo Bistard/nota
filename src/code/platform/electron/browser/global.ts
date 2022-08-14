@@ -1,7 +1,6 @@
 import { IpcRenderer } from "electron";
 import { Mutable } from "src/base/common/util/type";
 import { ISandboxProcess } from "src/code/platform/electron/common/electronType";
-import { ICreateWindowConfiguration } from "src/code/platform/window/common/window";
 
 /**
  * Expose APIs from the main process at `preload.js`.
@@ -38,7 +37,6 @@ export const GLOBAL: any = (
 
 export const ipcRenderer: IpcRenderer = <any>{};
 export const process: Mutable<ISandboxProcess> = <any>{};
-export const windowConfiguration: ICreateWindowConfiguration = <any>{};
 
 /**
  * @description Once renderer process starts, we need to retrieve the APIs that
@@ -51,5 +49,4 @@ export function initExposedElectronAPIs(): void {
 
     (<Mutable<IpcRenderer>>ipcRenderer) = GLOBAL.nota.ipcRenderer;
     (<Mutable<ISandboxProcess>>process) = GLOBAL.nota.process;
-    (<Mutable<ICreateWindowConfiguration>>windowConfiguration) = GLOBAL.nota.configuration;
 }

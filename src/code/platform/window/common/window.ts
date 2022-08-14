@@ -6,7 +6,7 @@ import { LogLevel } from "src/base/common/logger";
 import { UUID } from "src/base/node/uuid";
 import { ICLIArguments } from "src/code/platform/environment/common/argument";
 
-export const enum WindowKey {
+export const enum ProcessKey {
     configuration = 'window-config'
 }
 

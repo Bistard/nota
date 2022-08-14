@@ -8,7 +8,7 @@ import { IGlobalConfigService, IUserConfigService } from "src/code/platform/conf
 import { IFileService } from "src/code/platform/files/common/fileService";
 import { IEnvironmentService, IMainEnvironmentService } from "src/code/platform/environment/common/environment";
 import { IMainLifeCycleService } from "src/code/platform/lifeCycle/electron/mainLifeCycleService";
-import { defaultDisplayState, ICreateWindowConfiguration, IWindowDisplayState, IWindowInstance, WindowDisplayMode, WindowKey, WindowMinimumState } from "src/code/platform/window/common/window";
+import { defaultDisplayState, ICreateWindowConfiguration, IWindowDisplayState, IWindowInstance, WindowDisplayMode, ProcessKey, WindowMinimumState } from "src/code/platform/window/common/window";
 
 /**
  * @class // TODO
@@ -84,6 +84,8 @@ export class WindowInstance extends Disposable implements IWindowInstance {
         this.logService.trace('Main#WindowInstance#creating window...');
 
         const ifMaxOrFullscreen = (displayState.mode === WindowDisplayMode.Fullscreen) || (displayState.mode === WindowDisplayMode.Maximized);
+        process.env[ProcessKey.configuration] = `${JSON.stringify(this.configuration)}`;
+        
         const browserOption: BrowserWindowConstructorOptions = {
             title: 'nota',
             height: displayState.height,
@@ -106,7 +108,7 @@ export class WindowInstance extends Disposable implements IWindowInstance {
                  * Pass any arguments use the following pattern:
                  *      --ArgName=argInString
                  */
-                additionalArguments: [`--${WindowKey.configuration}=${JSON.stringify(this.configuration)}`],
+                additionalArguments: [],
                 
                 /**
                  * Context Isolation is a feature that ensures that both 
