@@ -16,18 +16,33 @@ export interface ICommandEvent {
     args: any[];
 }
 
+
 export interface ICommandRegistrant {
 
-    // TODO
+    /**
+     * @description Registers a command by storing it in a map with its id as the key.
+     * @param id The name of the command for later access.
+     * @param executor The actual callback function of the command. 
+     * @param description The description of the command.
+     * @returns A disposible for unregistration.
+     */
     registerCommand(id: string, executor: ICommandExecutor, description?: string): IDisposable;
 
-    // TODO
+    /**
+     * @description Get the {@link ICommand} object through the command id.
+     */
     getCommand(id: string): ICommand | undefined;
 
-    getAllCommands(): any;
+    /**
+     * @description Return all the registered commands.
+     */
+    getAllCommands(): Map<string, ICommand>;
 }
 
-// TODO
+/**
+ * A command registrant registers a command and can be accessed through the
+ * {@link ICommandService}.
+ */
 export const CommandRegistrant: ICommandRegistrant = new class implements ICommandRegistrant {
 
     private _commands = new Map<string, ICommand>();
