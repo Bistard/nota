@@ -22,7 +22,7 @@ export class MainEnvironmentService implements IMainEnvironmentService {
     constructor(
         private readonly CLIArgv: ICLIArguments,
         opts: IEnvironmentOpts,
-        @ILogService logService: ILogService,
+        @ILogService logService?: ILogService,
     ) {
         this.opts = {
             isPackaged: opts.isPackaged,
@@ -33,7 +33,7 @@ export class MainEnvironmentService implements IMainEnvironmentService {
         };
 
         if (this.CLIArgv.log === 'trace') {
-            logService.trace(`Environment loaded:\n${getAllEnvironments(this).map(enviro => `\t${enviro}`).join('\n')}`);
+            logService?.trace(`Environment loaded:\n${getAllEnvironments(this).map(enviro => `\t${enviro}`).join('\n')}`);
         }
     }
 

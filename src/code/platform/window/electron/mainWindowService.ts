@@ -96,19 +96,24 @@ export class MainWindowService extends Disposable implements IMainWindowService 
          * a `BrowserWindow`.
          */
         const configuration: ICreateWindowConfiguration = {
+            // additional configuration
             machineID: this.machineID,
             windowID: -1, // will be update once window is loaded
-            logLevel: this.environmentMainService.logLevel,
-            logPath: this.environmentMainService.logPath,
+            displayState: undefined,
+
+            // {@link ICLIArguments}
+            _: this.environmentMainService.CLIArguments._,
+            log: this.environmentMainService.CLIArguments.log,
+            'open-devtools': this.environmentMainService.CLIArguments["open-devtools"],
+            
+            // {@link IEnvironmentOpts}
+            isPackaged: this.environmentMainService.isPackaged,
             appRootPath: this.environmentMainService.appRootPath,
             tmpDirPath: this.environmentMainService.tmpDirPath,
             userDataPath: this.environmentMainService.userDataPath,
             userHomePath: this.environmentMainService.userHomePath,
-            appConfigurationPath: this.environmentMainService.appConfigurationPath,
-            displayState: undefined,
         };
         
-
         // open a new window instance
         window = this.__openInNewWindow(options, configuration);
 

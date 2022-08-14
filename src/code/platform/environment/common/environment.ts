@@ -1,6 +1,6 @@
 import { URI } from "src/base/common/file/uri";
 import { LogLevel } from "src/base/common/logger";
-import { iterPropety } from "src/base/common/util/object";
+import { iterProperty } from "src/base/common/util/object";
 import { createDecorator } from "src/code/platform/instantiation/common/decorator";
 import { ICLIArguments } from "src/code/platform/environment/common/argument";
 
@@ -14,7 +14,7 @@ export const IEnvironmentService = createDecorator<IEnvironmentService>('environ
 export function getAllEnvironments(service: IEnvironmentService): string[] {
     const result: string[] = [];
     let value: any;
-    iterPropety(service, (propName) => {
+    iterProperty(service, (propName) => {
         if (propName !== 'constructor' && typeof service[propName] !== 'function') {
             const propVal = service[propName];
             if (propVal instanceof URI) {

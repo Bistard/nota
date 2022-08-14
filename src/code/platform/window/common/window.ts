@@ -5,6 +5,7 @@ import { URI } from "src/base/common/file/uri";
 import { LogLevel } from "src/base/common/logger";
 import { UUID } from "src/base/node/uuid";
 import { ICLIArguments } from "src/code/platform/environment/common/argument";
+import { IEnvironmentOpts } from "src/code/platform/environment/common/environment";
 
 export const enum ProcessKey {
     configuration = 'window-config'
@@ -62,16 +63,14 @@ export interface IWindowInstance extends Disposable {
     close(): void;
 }
 
-export interface ICreateWindowConfiguration {
+/**
+ * An interface for constructing a window (renderer process). On the base of
+ * {@link IEnvironmentOpts}.
+ */
+export interface ICreateWindowConfiguration extends ICLIArguments, IEnvironmentOpts {
 
     readonly machineID: UUID;
     readonly windowID: number;
-    readonly logLevel: LogLevel;
-    readonly logPath: URI;
-    readonly userHomePath: URI;
-    readonly tmpDirPath: URI;
-    readonly appRootPath: URI;
-    readonly userDataPath: URI;
-    readonly appConfigurationPath: URI;
+
     displayState?: IWindowDisplayState;
 }

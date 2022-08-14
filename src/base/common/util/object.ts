@@ -36,7 +36,7 @@ export function mixin(destination: any, source: any, overwrite: boolean = true):
  * @param fn The function that takes the string of the property and the ordinal 
  * index of the property in that object.
  */
-export function iterPropety(obj: object, fn: (propName: string, index: number) => any): void {
+export function iterProperty(obj: object, fn: (propName: string, index: number) => any): void {
     let idx = 0;
 	for (const propName of Object.getOwnPropertyNames(Object.getPrototypeOf(obj))) {
 		fn(propName, idx++);
