@@ -32,14 +32,23 @@ export function getAllEnvironments(service: IEnvironmentService): string[] {
     return result;
 }
 
+export interface IEnvironmentOpts {
+    readonly isPackaged: boolean;
+    readonly userHomePath: string | URI;
+    readonly tmpDirPath: string | URI;
+    readonly appRootPath: string | URI;
+    readonly userDataPath: string | URI;
+}
+
 /**
- * A basic environment that can be used in either main process or renderer 
- * process. 
+ * A shared environment interface that can be used in either main process or 
+ * renderer process.
  * 
- * Unlike configuration service which data are all uneffected when running on 
- * different places (environment).
+ * Unlike configuration service that might be changed during runtime, instead of 
+ * data remain constants when running on different places (environment).
  * 
- * If a different environment is required you need to extend this interface.
+ * If a different specific environment is required you need to extend this 
+ * interface as a base interface.
  */
 export interface IEnvironmentService {
     
@@ -47,6 +56,11 @@ export interface IEnvironmentService {
      * The application mode.
      */
     readonly mode: 'develop' | 'release';
+
+    /**
+     * If the application is packaged.
+     */
+    readonly isPackaged: boolean;
 
     /**
      * The configuration directory of the application.
@@ -97,4 +111,20 @@ export interface IMainEnvironmentService extends IEnvironmentService {
      * @example C:/Users/user_name/AppData/Roaming/nota
      */
     readonly userDataPath: URI;
+}
+
+/**
+ * Environment used in renderer process (contains disk relevant info).
+ */
+export interface IBrowserEnvironmentService extends IEnvironmentService {
+
+    /**
+     * The unique ID for the current running application.
+     */
+    readonly machineID: string;
+
+    /**
+     * The window ID where browser is running on.
+     */
+    readonly windowID: number;
 }

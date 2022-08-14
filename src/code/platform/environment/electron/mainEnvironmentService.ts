@@ -1,20 +1,12 @@
-import { app } from "electron";
 import { getCurrTimeStamp } from "src/base/common/date";
 import { join } from "src/base/common/file/path";
 import { URI } from "src/base/common/file/uri";
 import { ILogService, LogLevel, parseToLogLevel } from "src/base/common/logger";
 import { memoize } from "src/base/common/memoization";
+import { MapTypes } from "src/base/common/util/type";
 import { NOTA_DIR_NAME } from "src/code/platform/configuration/electron/configService";
 import { ICLIArguments } from "src/code/platform/environment/common/argument";
-import { getAllEnvironments, IMainEnvironmentService } from "src/code/platform/environment/common/environment";
-
-export interface IEnvironmentOpts {
-    isPackaged?: boolean;
-    userHomePath?: string;
-    tmpDirPath?: string;
-    appRootPath?: string;
-    userDataPath?: string;
-}
+import { getAllEnvironments, IEnvironmentOpts, IMainEnvironmentService } from "src/code/platform/environment/common/environment";
 
 /**
  * @class A {@link IEnvironmentService} that used in main process. Storing the
@@ -25,21 +17,29 @@ export interface IEnvironmentOpts {
  */
 export class MainEnvironmentService implements IMainEnvironmentService {
 
+    private readonly opts: MapTypes<IEnvironmentOpts, { from: string | URI, to: string }>;
+
     constructor(
         private readonly CLIArgv: ICLIArguments,
-        private readonly opts: IEnvironmentOpts,
-        @ILogService private readonly logService: ILogService,
+        opts: IEnvironmentOpts,
+        @ILogService logService: ILogService,
     ) {
-        opts.isPackaged = opts.isPackaged ?? app.isPackaged;
-        opts.userHomePath = opts.userHomePath ?? app.getPath('home')
-        opts.tmpDirPath = opts.tmpDirPath ?? app.getPath('temp');
-        opts.appRootPath = opts.appRootPath ?? app.getAppPath();
-        opts.userDataPath = opts.userDataPath ?? app.getPath('userData');
-        
-        this.logService.trace(`Environment loaded:\n${getAllEnvironments(this).map(enviro => `\t${enviro}`).join('\n')}`);
+        this.opts = {
+            isPackaged: opts.isPackaged,
+            appRootPath: (typeof opts.appRootPath === 'string') ? opts.appRootPath : URI.toFsPath(opts.appRootPath),
+            userDataPath: (typeof opts.userDataPath === 'string') ? opts.userDataPath : URI.toFsPath(opts.userDataPath),
+            userHomePath: (typeof opts.userHomePath === 'string') ? opts.userHomePath : URI.toFsPath(opts.userHomePath),
+            tmpDirPath: (typeof opts.tmpDirPath === 'string') ? opts.tmpDirPath : URI.toFsPath(opts.tmpDirPath),
+        };
+
+        if (this.CLIArgv.log === 'trace') {
+            logService.trace(`Environment loaded:\n${getAllEnvironments(this).map(enviro => `\t${enviro}`).join('\n')}`);
+        }
     }
 
     get CLIArguments(): ICLIArguments { return this.CLIArgv; }
+
+    get isPackaged(): boolean { return this.opts.isPackaged; }
 
     get mode(): "develop" | "release" { return this.opts.isPackaged ? 'release' : 'develop'; }
 

@@ -14,7 +14,7 @@ import { ILoggerService } from 'src/code/platform/logger/common/abstractLoggerSe
 import { ConsoleLogger } from 'src/code/platform/logger/common/consoleLoggerService';
 import { FileLoggerService } from 'src/code/platform/logger/common/fileLoggerService';
 import { NotaInstance } from 'src/code/electron/nota';
-import { IEnvironmentService, IMainEnvironmentService } from 'src/code/platform/environment/common/environment';
+import { IEnvironmentOpts, IEnvironmentService, IMainEnvironmentService } from 'src/code/platform/environment/common/environment';
 import { MainEnvironmentService } from 'src/code/platform/environment/electron/mainEnvironmentService';
 import { IMainLifeCycleService, MainLifeCycleService } from 'src/code/platform/lifeCycle/electron/mainLifeCycleService';
 import { IMainStatusService, MainStatusService } from 'src/code/platform/status/electron/mainStatusService';
@@ -121,7 +121,7 @@ const nota = new class extends class MainProcess implements IMainProcess {
         instantiationService.register(ILogService, logService);
 
         // environment-service
-        const environmentService = new MainEnvironmentService(this.CLIArgv, {}, logService);
+        const environmentService = new MainEnvironmentService(this.CLIArgv, this.__getEnvInfo(), logService);
         instantiationService.register(IEnvironmentService, environmentService);
 
         // file-service
@@ -218,6 +218,16 @@ const nota = new class extends class MainProcess implements IMainProcess {
             type: 'warning',
             buttons: ['close'],
         });
+    }
+
+    private __getEnvInfo(): IEnvironmentOpts {
+        return {
+            isPackaged: app.isPackaged,
+            userHomePath: app.getPath('home'),
+            tmpDirPath: app.getPath('temp'),
+            appRootPath: app.getAppPath(),
+            userDataPath: app.getPath('userData'),
+        };
     }
 } {}; /** @readonly ❤hello, world!❤ */
 

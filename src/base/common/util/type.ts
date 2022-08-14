@@ -37,6 +37,17 @@ export type Push<T extends any[], V> = [...T, V];
 export type Concat<T extends any[], U extends any[]> = [...T, ...U];
 
 /**
+ * // REVIEW
+ */
+export type MapTypes<T, R extends { from: any; to: any }> = {
+    [K in keyof T]: T[K] extends R['from']
+    ? R extends { from: T[K] }
+        ? R['to']
+        : never
+    : T[K]
+};
+
+/**
  * @description Mocks the given value's type.
  */
 export function mockType<T>(val: any): T {
