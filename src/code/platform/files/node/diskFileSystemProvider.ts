@@ -8,7 +8,11 @@ import { IReadableStreamEvent, newWriteableStream } from "src/base/common/file/s
 import { DataBuffer } from "src/base/common/file/buffer";
 import { FileService } from "src/code/platform/files/common/fileService";
 
-export class DiskFileSystemProvider implements IFileSystemProviderWithFileReadWrite, IFileSystemProviderWithOpenReadWriteClose, IFileSystemProviderWithReadFileStream {
+export class DiskFileSystemProvider implements 
+    IFileSystemProviderWithFileReadWrite, 
+    IFileSystemProviderWithOpenReadWriteClose, 
+    IFileSystemProviderWithReadFileStream
+{
 
     /**
      * @readonly DiskFileSystemProvider has fully permission to deal with disk

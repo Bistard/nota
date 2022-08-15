@@ -8,21 +8,18 @@ import { Disposable } from "src/base/common/dispose";
 import { ServiceDescriptor } from "src/code/platform/instantiation/common/descriptor";
 import { initExposedElectronAPIs, process } from "src/code/platform/electron/browser/global";
 import { IIpcService, IpcService } from "src/code/platform/ipc/browser/ipcService";
-import { IpcChannel } from "src/code/platform/ipc/common/channel";
-import { BrowserLoggerChannel } from "src/code/platform/logger/common/browserLoggerService";
+import { BrowserLoggerChannel } from "src/code/platform/logger/common/loggerChannel";
 import { ILogService } from "src/base/common/logger";
 import { ILoggerService } from "src/code/platform/logger/common/abstractLoggerService";
-import { FileService, IFileService } from "src/code/platform/files/common/fileService";
+import { IFileService } from "src/code/platform/files/common/fileService";
 import { BrowserEnvironmentService } from "src/code/platform/environment/browser/browserEnvironmentService";
+import { BrowserFileChannel } from "src/code/platform/files/common/fileChannel";
+import { ErrorHandler } from "src/base/common/error";
 
 /**
  * @class This is the main entry of the renderer process.
  */
 export class Browser extends Disposable {
-
-    // [field]
-
-    public workbench!: Workbench;
 
     // [constructor]
 
@@ -34,13 +31,19 @@ export class Browser extends Disposable {
     // [private methods]
 
     private async run(): Promise<void> {
+        ErrorHandler.setUnexpectedErrorExternalCallback((error: any) => console.error(error));
 
-        initExposedElectronAPIs();
+        try {
+            initExposedElectronAPIs();
 
-        await Promise.all([
-            this.initServices(), 
-            waitDomToBeLoad(),
-        ]);
+            await Promise.all([
+                this.initServices(), 
+                waitDomToBeLoad(),
+            ]);
+        } 
+        catch (error) {
+            ErrorHandler.onUnexpectedError(error);
+        }
 
         // TODO: workbench
 
@@ -59,32 +62,33 @@ export class Browser extends Disposable {
         // environmentService
         const environmentService = new BrowserEnvironmentService(process);
         
-        // component-service
-        instantiationService.register(IComponentService, new ServiceDescriptor(ComponentService));
-
         // ipc-service
         // FIX: windowID is updated after the configuraion is passed into BrowserWindow
         const ipcService = new IpcService(environmentService.windowID);
         instantiationService.register(IIpcService, ipcService);
 
+        // component-service
+        instantiationService.register(IComponentService, new ServiceDescriptor(ComponentService));
+
         // logger-service
-        const loggerService = new BrowserLoggerChannel(environmentService.logLevel, ipcService.getChannel(IpcChannel.Logger));
+        const loggerService = new BrowserLoggerChannel(ipcService, environmentService.logLevel);
         instantiationService.register(ILoggerService, loggerService);
 
         // log-service
-        const logService = loggerService.createLogger(
-            environmentService.logPath, { 
-                name: `window-${environmentService.windowID}.txt`,
-                description: `window-${environmentService.windowID}`,
-            },
-        );
+        const logService = loggerService.createLogger(environmentService.logPath, { 
+            name: `window-${environmentService.windowID}.txt`,
+            description: `window-${environmentService.windowID}`,
+        });
+        ErrorHandler.setUnexpectedErrorExternalCallback(error => {
+            console.error(error);
+            logService.error(error);
+        });
         instantiationService.register(ILogService, logService);
 
-        // file-service (disk files)
-        const fileService = new FileService(logService);
-        // TODO: we need a fileServiceChannel or a diskFileSystemProvider
+        // file-service
+        const fileService = new BrowserFileChannel(ipcService);
         instantiationService.register(IFileService, fileService);
-
+ 
         // GlobalConfigService
         // UserConfigService
         

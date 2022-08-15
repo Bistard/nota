@@ -1,4 +1,4 @@
-import { Disposable } from "src/base/common/dispose";
+import { Disposable, IDisposable, toDisposable } from "src/base/common/dispose";
 import { DataBuffer } from "src/base/common/file/buffer";
 import { FileSystemProviderAbleToRead, hasOpenReadWriteCloseCapability, hasReadWriteCapability, IReadFileOptions, IFileSystemProvider, IFileSystemProviderWithFileReadWrite, IFileSystemProviderWithOpenReadWriteClose, IWriteFileOptions, IFileStat, FileType, FileOperationErrorType, FileSystemProviderCapability, IDeleteFileOptions, IResolveStatOptions, IResolvedFileStat, hasReadFileStreamCapability, IFileSystemProviderWithReadFileStream, ICreateFileOptions, FileOperationError } from "src/base/common/file/file";
 import { basename, dirname, join } from "src/base/common/file/path";
@@ -11,7 +11,7 @@ import { createDecorator } from "src/code/platform/instantiation/common/decorato
 
 export const IFileService = createDecorator<IFileService>('file-service');
 
-export interface IFileService extends Disposable {
+export interface IFileService extends IDisposable {
     
     /** 
      * @description Registers a file system provider for a given scheme. 
@@ -89,7 +89,7 @@ export interface IFileService extends Disposable {
     delete(uri: URI, opts?: IDeleteFileOptions): Promise<void>;
     
     // TODO
-    watch(uri: URI): void;
+    watch(uri: URI): IDisposable;
 }
 
 export class FileService extends Disposable implements IFileService {
@@ -238,8 +238,8 @@ export class FileService extends Disposable implements IFileService {
         await provider.delete(uri, { useTrash: !!opts?.useTrash, recursive: !!opts?.recursive });
     }
 
-    public watch(uri: URI): void {
-        
+    public watch(uri: URI): IDisposable {
+        return toDisposable(() => {});
     }
 
     /***************************************************************************
