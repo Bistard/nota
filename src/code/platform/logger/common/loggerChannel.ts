@@ -1,7 +1,8 @@
 import { Register } from "src/base/common/event";
 import { URI } from "src/base/common/file/uri";
 import { BufferLogger, defaultLog, ILogger, ILoggerOpts, LogLevel } from "src/base/common/logger";
-import { IChannel, IServerChannel } from "src/code/platform/ipc/common/channel";
+import { IIpcService } from "src/code/platform/ipc/browser/ipcService";
+import { IChannel, IpcChannel, IServerChannel } from "src/code/platform/ipc/common/channel";
 import { AbstractLoggerService, ILoggerService } from "src/code/platform/logger/common/abstractLoggerService";
 
 const enum MainLoggerCommand {
@@ -67,9 +68,9 @@ export class BrowserLoggerChannel extends AbstractLoggerService {
 
     private readonly _channel: IChannel;
 
-    constructor(level: LogLevel, channel: IChannel) {
+    constructor(ipcService: IIpcService, level: LogLevel) {
         super(level);
-        this._channel = channel;
+        this._channel = ipcService.getChannel(IpcChannel.Logger);
     }
 
     protected override __doCreateLogger(uri: URI, level: LogLevel, opts: ILoggerOpts): ILogger {

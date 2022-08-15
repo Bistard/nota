@@ -20,7 +20,7 @@ import { IMainStatusService } from "src/code/platform/status/electron/mainStatus
 import { IWindowInstance } from "src/code/platform/window/common/window";
 import { IMainWindowService, MainWindowService } from "src/code/platform/window/electron/mainWindowService";
 import { ILoggerService } from "src/code/platform/logger/common/abstractLoggerService";
-import { MainLoggerChannel } from "src/code/platform/logger/common/browserLoggerService";
+import { MainLoggerChannel } from "src/code/platform/logger/common/loggerChannel";
 
 /**
  * An interface only for {@link NotaInstance}
