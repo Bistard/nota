@@ -37,7 +37,8 @@ export type Push<T extends any[], V> = [...T, V];
 export type Concat<T extends any[], U extends any[]> = [...T, ...U];
 
 /**
- * // REVIEW
+ * Given a type T, maps each property with type `from` to type `to` that are
+ * defined in the given type R.
  */
 export type MapTypes<T, R extends { from: any; to: any }> = {
     [K in keyof T]: T[K] extends R['from']
