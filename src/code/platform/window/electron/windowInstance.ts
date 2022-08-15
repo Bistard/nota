@@ -4,7 +4,7 @@ import { Emitter } from "src/base/common/event";
 import { join, resolve } from "src/base/common/file/path";
 import { ILogService } from "src/base/common/logger";
 import { IS_MAC } from "src/base/common/platform";
-import { IGlobalConfigService, IUserConfigService } from "src/code/platform/configuration/electron/configService";
+import { IGlobalConfigService } from "src/code/platform/configuration/electron/configService";
 import { IFileService } from "src/code/platform/files/common/fileService";
 import { IEnvironmentService, IMainEnvironmentService } from "src/code/platform/environment/common/environment";
 import { IMainLifeCycleService } from "src/code/platform/lifeCycle/electron/mainLifeCycleService";
@@ -35,7 +35,6 @@ export class WindowInstance extends Disposable implements IWindowInstance {
         @ILogService private readonly logService: ILogService,
 		@IEnvironmentService private readonly environmentService: IMainEnvironmentService,
         @IFileService private readonly fileService: IFileService,
-        @IUserConfigService private readonly userConfigService: IUserConfigService,
         @IGlobalConfigService private readonly globalConfigService: IGlobalConfigService,
         @IMainLifeCycleService private readonly lifecycleService: IMainLifeCycleService,
     ) {

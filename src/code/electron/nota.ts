@@ -4,7 +4,7 @@ import { ErrorHandler } from "src/base/common/error";
 import { Event } from "src/base/common/event";
 import { ILogService } from "src/base/common/logger";
 import { getUUID, UUID } from "src/base/node/uuid";
-import { IGlobalConfigService, IUserConfigService } from "src/code/platform/configuration/electron/configService";
+import { IGlobalConfigService } from "src/code/platform/configuration/electron/configService";
 import { IFileService } from "src/code/platform/files/common/fileService";
 import { ServiceDescriptor } from "src/code/platform/instantiation/common/descriptor";
 import { IInstantiationService, IServiceProvider } from "src/code/platform/instantiation/common/instantiation";
@@ -14,7 +14,7 @@ import { IpcServer } from "src/code/platform/ipc/browser/ipc";
 import { IpcChannel } from "src/code/platform/ipc/common/channel";
 import { ProxyChannel } from "src/code/platform/ipc/common/proxy";
 import { SafeIpcMain } from "src/code/platform/ipc/electron/safeIpcMain";
-import { IMainLifeCycleService, LifeCyclePhase, QuitReason } from "src/code/platform/lifeCycle/electron/mainLifeCycleService";
+import { IMainLifeCycleService, LifeCyclePhase } from "src/code/platform/lifeCycle/electron/mainLifeCycleService";
 import { StatusKey } from "src/code/platform/status/common/status";
 import { IMainStatusService } from "src/code/platform/status/electron/mainStatusService";
 import { IWindowInstance } from "src/code/platform/window/common/window";
@@ -48,7 +48,6 @@ export class NotaInstance extends Disposable implements INotaInstance {
         @ILogService private readonly logService: ILogService,
         @IFileService private readonly fileService: IFileService,
         @IGlobalConfigService private readonly globalConfigService: IGlobalConfigService,
-        @IUserConfigService private readonly userConfigService: IUserConfigService,
         @IMainStatusService private readonly statusService: IMainStatusService,
     ) {
         super();

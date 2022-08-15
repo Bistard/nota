@@ -6,7 +6,7 @@ import { Schemas, URI } from 'src/base/common/file/uri';
 import { BufferLogger, ILogService, LogLevel, PipelineLogger } from 'src/base/common/logger';
 import { Strings } from 'src/base/common/util/string';
 import { DiskFileSystemProvider } from 'src/code/platform/files/node/diskFileSystemProvider';
-import { GlobalConfigService, IGlobalConfigService, IUserConfigService, UserConfigService } from 'src/code/platform/configuration/electron/configService';
+import { GlobalConfigService, IGlobalConfigService } from 'src/code/platform/configuration/electron/configService';
 import { FileService, IFileService } from 'src/code/platform/files/common/fileService';
 import { IInstantiationService, InstantiationService } from 'src/code/platform/instantiation/common/instantiation';
 import { ServiceCollection } from 'src/code/platform/instantiation/common/serviceCollection';
@@ -38,11 +38,9 @@ const nota = new class extends class MainProcess implements IMainProcess {
     private readonly environmentService!: IMainEnvironmentService;
     private readonly fileService!: IFileService;
     private readonly globalConfigService!: IGlobalConfigService;
-    private readonly userConfigService!: IUserConfigService;
     private readonly logService!: ILogService;
     private readonly lifeCycleService!: IMainLifeCycleService;
     private readonly statusService!: IMainStatusService;
-
     private readonly CLIArgv!: ICLIArguments;
 
     // [constructor]
@@ -89,7 +87,6 @@ const nota = new class extends class MainProcess implements IMainProcess {
         try {
             Event.once(this.lifeCycleService.onWillQuit)(e => {
                 this.fileService.dispose();
-                this.userConfigService.dispose();
                 this.globalConfigService.dispose();
             });
 
@@ -111,6 +108,7 @@ const nota = new class extends class MainProcess implements IMainProcess {
      * everything.
      */
     private createCoreServices(): void {
+
         // dependency injection (DI)
         const serviceCollection = new ServiceCollection();
         const instantiationService = new InstantiationService(serviceCollection);
@@ -144,10 +142,6 @@ const nota = new class extends class MainProcess implements IMainProcess {
         const globalConfigService = new GlobalConfigService(fileService, logService, environmentService);
         instantiationService.register(IGlobalConfigService, globalConfigService);
         
-        // user-config-service
-        const userConfigService = new UserConfigService(fileService, logService, environmentService);
-        instantiationService.register(IUserConfigService, userConfigService);
-
         // life-cycle-service
         const lifeCycleService = new MainLifeCycleService(logService);
         instantiationService.register(IMainLifeCycleService, lifeCycleService);
@@ -160,7 +154,6 @@ const nota = new class extends class MainProcess implements IMainProcess {
         (this.environmentService as any) = environmentService;
         (this.fileService as any) = fileService;
         (this.globalConfigService as any) = globalConfigService;
-        (this.userConfigService as any) = userConfigService;
         (this.logService as any) = logService;
         (this.lifeCycleService as any) = lifeCycleService;
         (this.statusService as any) = statusService;
@@ -185,10 +178,8 @@ const nota = new class extends class MainProcess implements IMainProcess {
             ].map(path => mkdir(URI.toFsPath(path), { recursive: true }))),
 
             this.statusService.init(),
-
-            // reading all the configurations for the programs and users
-            this.globalConfigService.init(),
-            this.userConfigService.init(),            
+            // reading configurations of the application
+            this.globalConfigService.init(),          
         ]);
     }
 
