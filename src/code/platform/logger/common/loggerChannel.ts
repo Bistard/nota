@@ -5,7 +5,7 @@ import { IIpcService } from "src/code/platform/ipc/browser/ipcService";
 import { IChannel, IpcChannel, IServerChannel } from "src/code/platform/ipc/common/channel";
 import { AbstractLoggerService, ILoggerService } from "src/code/platform/logger/common/abstractLoggerService";
 
-const enum MainLoggerCommand {
+const enum LoggerCommand {
     CreateLogger = 'createLogger',
     Log = 'log',
 }
@@ -14,7 +14,7 @@ const enum MainLoggerCommand {
  * @class Used in main process to hold all the {@link ILogger}s that are created
  * in the renderer process.
  * 
- * The channel has the commands set {@link MainLoggerCommand}.
+ * The channel has the commands set {@link LoggerCommand}.
  * 
  * Created logger will only be stored inside the channel, the renderer process 
  * may call log command to send logging message to here for the actual logging
@@ -30,11 +30,11 @@ export class MainLoggerChannel implements IServerChannel {
 
     // [public methods]
 
-    public async callCommand<T>(_id: string, command: MainLoggerCommand, arg: any[]): Promise<T> {
+    public async callCommand<T>(_id: string, command: LoggerCommand, arg: any[]): Promise<T> {
         switch (command) {
-            case MainLoggerCommand.CreateLogger: 
+            case LoggerCommand.CreateLogger: 
                 return this.__createLogger(arg[0], arg[1]);
-            case MainLoggerCommand.Log: 
+            case LoggerCommand.Log: 
                 return this.__log(arg[0], arg[1]);
         }
     }
@@ -91,7 +91,7 @@ class __BrowserLogger extends BufferLogger implements ILogger {
         super();
         this.setLevel(level);
 
-        channel.callCommand(MainLoggerCommand.CreateLogger, [path, opts])
+        channel.callCommand(LoggerCommand.CreateLogger, [path, opts])
         .then(() => {
             /**
              * The logger is created at the main process, we need to flush all 
@@ -112,7 +112,7 @@ class __BrowserLogger extends BufferLogger implements ILogger {
     }
 
     protected override __flushBuffer(): void {
-        this.channel.callCommand(MainLoggerCommand.Log, [this.path, this._buffer]);
+        this.channel.callCommand(LoggerCommand.Log, [this.path, this._buffer]);
         this._buffer = [];
     }
 }
