@@ -128,3 +128,10 @@ export function ifOrDefault<T>(value: T, defaultValue: NonNullable<T>): NonNulla
     }
     return value as NonNullable<T>;
 }
+
+/**
+ * @description Make sure `null` is converted to `undefined`.
+ */
+export function NulltoUndefined<T>(obj: T | null): T | undefined {
+    return obj === null ? undefined : obj;
+}

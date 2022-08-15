@@ -122,6 +122,7 @@ export interface IAsyncExecutor<T> extends Disposable {
 /**
  * @class A helper tool that guarantees no more than N promises are running at 
  * the same time.
+ * T: type of return value of each task.
  */
 export class AsyncExecutor<T> extends Disposable implements IAsyncExecutor<T> {
 
@@ -215,6 +216,7 @@ export class AsyncExecutor<T> extends Disposable implements IAsyncExecutor<T> {
 /**
  * @class An async queue helper that guarantees only 1 promise are running at 
  * the same time.
+ * T: type of return value of each task.
  */
 export class AsyncQueue<T> extends AsyncExecutor<T> {
 	constructor() {

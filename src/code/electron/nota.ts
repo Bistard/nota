@@ -21,6 +21,7 @@ import { IWindowInstance } from "src/code/platform/window/common/window";
 import { IMainWindowService, MainWindowService } from "src/code/platform/window/electron/mainWindowService";
 import { ILoggerService } from "src/code/platform/logger/common/abstractLoggerService";
 import { MainLoggerChannel } from "src/code/platform/logger/common/loggerChannel";
+import { IMainDialogService, MainDialogService } from "src/code/platform/dialog/electron/mainDialogService";
 
 /**
  * An interface only for {@link NotaInstance}
@@ -64,7 +65,7 @@ export class NotaInstance extends Disposable implements INotaInstance {
         this.logService.debug(`Resolved machine ID: ${machineID}`);
 
         // application service initialization
-        const appInstantiationService = await this.registerServices(machineID);
+        const appInstantiationService = await this.createServices(machineID);
 
         // IPC main process server
         const ipcServer = new IpcServer(this.logService);
@@ -110,22 +111,19 @@ export class NotaInstance extends Disposable implements INotaInstance {
         .on(IpcChannel.ReloadWindow, event => event.sender.reload());
     }
 
-    private async registerServices(machineID: UUID): Promise<IInstantiationService> {
+    private async createServices(machineID: UUID): Promise<IInstantiationService> {
         this.logService.trace('Main#NotaInstance#registerSerices');
 
+        // instantiation-service (child)
         const appInstantiationService = this.mainInstantiationService.createChild(new ServiceCollection());
 
         // TODO: update-service
 
+        // main-window-serivce
         appInstantiationService.register(IMainWindowService, new ServiceDescriptor(MainWindowService, [machineID]));
 
-        // TODO: dialog-service
-        
-        // TODO: keyboard-shortcut-service
-
-        // TODO: keyboard-screen-cast-service
-
-        // TODO: i18n-service
+        // dialog-sevice
+        appInstantiationService.register(IMainDialogService, new ServiceDescriptor(MainDialogService, [this.logService]));
 
         // TODO: notebook-group-service
 
