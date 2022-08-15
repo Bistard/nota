@@ -2,22 +2,22 @@ import * as assert from 'assert';
 import { NullLogger } from 'src/base/common/logger';
 import { CommandRegistrant, ICommandExecutor } from 'src/code/platform/command/common/command';
 import { CommandService, ICommandService } from 'src/code/platform/command/common/commandService';
-import { IFileService } from 'src/code/platform/files/common/fileService';
 import { createDecorator } from 'src/code/platform/instantiation/common/decorator';
 import { IInstantiationService, InstantiationService, IServiceProvider } from 'src/code/platform/instantiation/common/instantiation';
 
 interface ITestService {
     num: number;
 
-    foo(arg: number): void;
+    foo(arg: number): number;
 }
 
 class TestService implements ITestService {
 
     public num = 1;
     
-    public foo(arg: number) {
+    public foo(arg: number): number {
         this.num = arg;
+        return arg;
     }
 }
 
@@ -27,9 +27,9 @@ suite('command-test', () => {
     
     let instantiationService: IInstantiationService;
     const id = 'test';
-    const executor: ICommandExecutor = (provider: IServiceProvider, num: number): void => {
+    const executor: ICommandExecutor = (provider: IServiceProvider, num: number): number => {
         const testService = provider.getOrCreateService(ITestService);
-        testService.foo(num);
+        return testService.foo(num);
     } 
 
 
@@ -52,11 +52,12 @@ suite('command-test', () => {
         });
     });
 
-    test('execute-command', () => {
+    test('execute-command', async () => {
         const commandService = instantiationService.getService(ICommandService);
         const testService = instantiationService.getService(ITestService);
-        commandService.executeCommand(id, 100); 
+        const result = await commandService.executeCommand<number>(id, 100); 
         assert.strictEqual(100, testService.num);
+        assert.strictEqual(100, result);
     })
     
 });

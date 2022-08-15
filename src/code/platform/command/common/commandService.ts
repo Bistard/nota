@@ -7,11 +7,13 @@ import { IInstantiationService } from "src/code/platform/instantiation/common/in
 
 export const ICommandService = createDecorator<ICommandService>('command-service');
 
-
+/**
+ * An interface only for {@link CommandService}.
+ */
 export interface ICommandService {
 
     /**
-     * Fires when the command is executed.
+     * Fires when a command is executed successfully.
      */
     readonly onDidExecuteCommand: Register<ICommandEvent>;
     
@@ -23,9 +25,13 @@ export interface ICommandService {
      * @param id The id of the command.
      * @param args The optional arguments for the command executor.
      */
-    executeCommand(id: string, ...args: any[]): Promise<any>;
+    executeCommand<T = unknown>(id: string, ...args: any[]): Promise<T>;
 }
 
+/**
+ * @class A micro-service that able to execute commands which are registered
+ * through {@link CommandRegistrant}.
+ */
 export class CommandService extends Disposable implements ICommandService {
     
     // [field]
@@ -44,7 +50,7 @@ export class CommandService extends Disposable implements ICommandService {
 
     // [public methods]
 
-    public executeCommand(id: string, ...args: any[]): Promise<any> {
+    public executeCommand<T = unknown>(id: string, ...args: any[]): Promise<T> {
 
         const command = CommandRegistrant.getCommand(id);
         if (!command) {
@@ -55,7 +61,7 @@ export class CommandService extends Disposable implements ICommandService {
             const result = command.executor(this.instantiationService, ...args);
             this._onDidExecuteCommand.fire({ commandID: id, args: args });
             this.logService.trace('CommandService execute command:', id);
-            return Promise.resolve(result);
+            return Promise.resolve(<T>result);
         } catch (error) {
             this.logService.trace('CommandService not found command:', id);
             return Promise.reject(error);

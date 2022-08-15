@@ -1,14 +1,14 @@
 import { IDisposable, toDisposable } from "src/base/common/dispose";
 import { IServiceProvider } from "src/code/platform/instantiation/common/instantiation";
 
-export interface ICommand {
+export interface ICommand<T = any> {
     readonly id: string;
     readonly description?: string;
-    readonly executor: ICommandExecutor;
+    readonly executor: ICommandExecutor<T>;
 }
 
-export interface ICommandExecutor {
-    (provider: IServiceProvider, ...args: any[]): void;
+export interface ICommandExecutor<T = any> {
+    (provider: IServiceProvider, ...args: any[]): T;
 }
 
 export interface ICommandEvent {
@@ -67,11 +67,10 @@ export const CommandRegistrant: ICommandRegistrant = new class implements IComma
     }
 
     public getCommand(id: string): ICommand | undefined {
-        const command = this._commands.get(id);
-        return command;
+        return this._commands.get(id);
     }
 
-    public getAllCommands(): any {
+    public getAllCommands(): Map<string, ICommand> {
         return this._commands;
     }
 }
