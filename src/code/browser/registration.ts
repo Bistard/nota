@@ -1,5 +1,6 @@
 import { ServiceDescriptor } from "src/code/platform/instantiation/common/descriptor";
 import { registerSingleton } from "src/code/platform/instantiation/common/serviceCollection";
+import { CommandService, ICommandService } from "src/code/platform/command/common/commandService";
 import { IKeyboardScreenCastService, KeyboardScreenCastService } from "src/code/browser/service/keyboard/keyboardScreenCastService";
 import { IKeyboardService, keyboardService } from "src/code/browser/service/keyboard/keyboardService";
 
@@ -10,3 +11,4 @@ import { IKeyboardService, keyboardService } from "src/code/browser/service/keyb
 
 registerSingleton(IKeyboardService, new ServiceDescriptor(keyboardService));
 registerSingleton(IKeyboardScreenCastService, new ServiceDescriptor(KeyboardScreenCastService));
+registerSingleton(ICommandService, new ServiceDescriptor(CommandService));
