@@ -9,7 +9,7 @@ import { IListDragAndDropProvider, ListWidgetDragAndDropProvider } from "src/bas
 import { memoize } from "src/base/common/memoization";
 import { hash } from "src/base/common/util/hash";
 import { Array } from "src/base/common/util/array";
-import { IS_MAC } from "src/base/node/os";
+import { IS_MAC } from "src/base/common/platform";
 import { createStandardKeyboardEvent, IStandardKeyboardEvent, KeyCode } from "src/base/common/keyboard";
 import { IRange } from "src/base/common/range";
 

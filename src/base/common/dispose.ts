@@ -1,6 +1,12 @@
 
+/**
+ * Calling {@link dispose()} will dispose all the resources that belongs to that
+ * object. Ideally all the attributes and methods of that object is no longer
+ * fucntional.
+ */
 export interface IDisposable {
 	dispose(): void;
+	isDisposed?(): boolean;
 }
 
 /**

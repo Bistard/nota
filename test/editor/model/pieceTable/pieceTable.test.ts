@@ -4,7 +4,8 @@ import { Pair } from 'src/base/common/util/type';
 import { EndOfLineType, IPieceNode, IPieceTable, RBColor } from 'src/editor/common/model';
 import { EditorPosition } from 'src/editor/common/position';
 import { PieceTableInternal } from 'src/editor/model/pieceTable/pieceTable';
-import { TextBuffer, TextBufferBuilder } from 'src/editor/model/textBuffer';
+import { TextBuffer } from 'src/editor/model/textBuffer';
+import { TextBufferBuilder } from 'src/editor/model/textBufferBuilder';
 
 class TestTextBufferBuilder extends TextBufferBuilder {
     constructor() {

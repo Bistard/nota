@@ -1,3 +1,4 @@
+import { ErrorHandler } from "src/base/common/error";
 import { DataBuffer } from "src/base/common/file/buffer";
 
 export interface IReadableStreamEvent<T> {
@@ -282,6 +283,13 @@ export class WriteableStream<T> implements IWriteableStream<T> {
 
     /** @description notifying and firing error to the listeners */
     private _fireError(error: Error): void {
+		
+		// nobody is listening to this stream, this is unexpected.
+		if (this.listeners.error.length === 0) {
+			ErrorHandler.onUnexpectedError(error);
+			return;
+		}
+
         this.listeners.error.slice(0).forEach(listener => listener(error));
     }
 

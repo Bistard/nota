@@ -1,9 +1,8 @@
 import { Disposable } from "src/base/common/dispose";
 import { Emitter } from "src/base/common/event";
-import { EndOfLine, IApplyEditResult, IEditOperation, IPieceNode, IPieceTable, IPieceTableModel } from "src/editor/common/model";
+import { EndOfLine, IApplyEditResult, IEditOperation, IPieceNode, IPieceTable, IPieceTableModel, ITextBuffer } from "src/editor/common/model";
 import { IEditorPosition } from "src/editor/common/position";
 import { PieceTable } from "src/editor/model/pieceTable/pieceTable";
-import { TextBuffer } from "src/editor/model/textBuffer";
 
 /**
  * @class An wrapper text model built on top of a {@link PieceTable}.
@@ -22,7 +21,7 @@ export class PieceTableModel extends Disposable implements IPieceTableModel {
     // [constructor]
 
     constructor(
-        chunks: TextBuffer[], 
+        chunks: ITextBuffer[], 
         shouldBeNormalized: boolean, 
         normalizedEOL: EndOfLine
     ) {

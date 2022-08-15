@@ -1,6 +1,7 @@
 import { LinkedList } from "src/base/common/util/linkedList";
 import { addDisposableListener, EventType } from "src/base/common/dom";
 import { Disposable, DisposableManager, disposeAll, IDisposable, toDisposable } from "src/base/common/dispose";
+import { ErrorHandler } from "src/base/common/error";
 
 /*******************************************************************************
  * This file contains a series event emitters and related tools for communications 
@@ -12,8 +13,9 @@ import { Disposable, DisposableManager, disposeAll, IDisposable, toDisposable } 
  *  - {@link SignalEmitter}
  *  - {@link AsyncEmitter}
  *  - {@link RelayEmitter}
+ *  - {@link NodeEventEmitter}
  * 
- *  - {@namespace Event}
+ *  - {@link Event}
  ******************************************************************************/
 
 /** 
@@ -54,14 +56,11 @@ export interface IEmitter<T> {
     
     /**
      * @description Fires the event T and notifies all the registered listeners.
-     * 
-     * @note fire() guarantees all the registered listeners (callback) will be 
-     * invoked / notified. Any errors will be stored and returned as an array.
-     * 
      * @param event The event T to be notified to all listeners.
-     * @returns An array of errors.
+     * 
+     * @throws The unexpected error caught by fire() will be caught by {@link ErrorHandler}.
      */
-    fire(event: T): any[];
+    fire(event: T): void;
 
     /**
      * @description Determines if the emitter has any active listeners.
@@ -118,8 +117,11 @@ class __AsyncListener<T> {
  */
 export interface IEmitterOptions {
 
+    /** Invokes before the first listener is about to be added. */
+    readonly onFirstListenerAdd?: Function;
+
     /** Invokes after the first listener is added. */
-    readonly onFirstListenerAdded?: Function;
+    readonly onFirstListenerDidAdd?: Function;
 
     /** Invokes after the last listener is removed. */
     readonly onLastListenerRemoved?: Function;
@@ -135,6 +137,8 @@ export interface IEmitterOptions {
  * 
  * To trigger the event occurs and notifies all the listeners, use this.fire(event) 
  * where `event` has the type T.
+ * 
+ * @throws @throws The unexpected caught by fire() error will be caught by {@link ErrorHandler}.
  */
 export class Emitter<T> implements IDisposable, IEmitter<T> {
     
@@ -170,14 +174,18 @@ export class Emitter<T> implements IDisposable, IEmitter<T> {
 			this._register = (listener: Listener<T>, disposables?: IDisposable[], thisObject?: any) => {
 				
                 // before first add callback
-                if (this._opts?.onFirstListenerAdded && this._listeners.empty()) {
-                    this._opts.onFirstListenerAdded();
+                if (this._opts?.onFirstListenerAdd && this._listeners.empty()) {
+                    this._opts.onFirstListenerAdd();
                 }
 
                 // register the listener (callback)
                 const listenerWrapper = new __Listener(listener, thisObject);
 				const node = this._listeners.push_back(listenerWrapper);
                 let listenerRemoved = false;
+
+                if (this._opts?.onFirstListenerDidAdd && this._listeners.size() === 1) {
+                    this._opts.onFirstListenerDidAdd();
+                }
 
                 // returns a disposable in order to decide when to stop listening (unregister)
 				const unRegister = toDisposable(() => {
@@ -204,19 +212,14 @@ export class Emitter<T> implements IDisposable, IEmitter<T> {
 		return this._register;
     }
 
-    public fire(event: T): any[] {
-		
-        const errors: any[] = [];
-
+    public fire(event: T): void {
         for (const listener of this._listeners) {
             try {
                 listener.fire(event);
-            } catch (e) {
-                errors.push(e);
+            } catch (error) {
+                ErrorHandler.onUnexpectedError(error);
             }
         }
-
-        return errors;
 	}
 
     public dispose(): void {
@@ -283,12 +286,12 @@ export class PauseableEmitter<T> extends Emitter<T> {
         this._paused = false;
     }
 
-    public override fire(event: T): any[] {
+    public override fire(event: T): void {
         if (this._paused) {
-            return [];
+            return;
         }
         
-        return super.fire(event);
+        super.fire(event);
     }
 
 }
@@ -334,13 +337,12 @@ export class DelayableEmitter<T> extends Emitter<T> {
         }
     }
 
-    public override fire(event: T): any[] {
+    public override fire(event: T): void {
         if (this._delayed) {
             this._delayedEvents.push_back(event);
-            return [];
-        } else {
-            return super.fire(event);
+            return;
         }
+        super.fire(event);
     }
 
     public override dispose(): void {
@@ -382,6 +384,8 @@ export class SignalEmitter<T, E> extends Emitter<E> {
 
 /**
  * @class Same as {@link Emitter<T>} with extra method `fireAsync()`.
+ * 
+ * @throws The unexpected error caught by fire() will be caught by {@link ErrorHandler}.
  */
 export class AsyncEmitter<T> extends Emitter<T> {
 
@@ -389,18 +393,16 @@ export class AsyncEmitter<T> extends Emitter<T> {
         super();
     }
 
-    public async fireAsync(event: T): Promise<any[]> {
-        const errors: any[] = [];
-
+    public async fireAsync(event: T): Promise<void> {
+        
         for (const listener of this._listeners as LinkedList<__AsyncListener<T>>) {
             try {
                 await listener.fire(event);
-            } catch (e) {
-                errors.push(e);
+            } catch (error) {
+                ErrorHandler.onUnexpectedError(error);
+                continue;
             }
         }
-
-        return errors;
     }
 
 }
@@ -428,7 +430,7 @@ export class RelayEmitter<T> implements IDisposable {
 
     /** The relay (pipeline) emitter */
     private readonly _relay = new Emitter<T>({
-        onFirstListenerAdded: () => {
+        onFirstListenerAdd: () => {
             this._inputUnregister = this._inputRegister(e => this._relay.fire(e));
             this._listening = true;
         },
@@ -466,6 +468,42 @@ export class RelayEmitter<T> implements IDisposable {
         this._relay.dispose();
     }
 
+}
+
+export interface INodeEventEmitter {
+    on(eventName: string | symbol, listener: Function): any;
+    removeListener(eventName: string | symbol, listener: Function): any;
+}
+
+/**
+ * @class A wrapper of {@link NodeJS.EventEmitter} that listens to the provided
+ * channel and wraps the receiving data with the provided data wrapper.
+ * 
+ * @note This class is not disposable. Once all the listeners are disposed the
+ * corresponding {@link NodeJS.EventEmitter} channel listener will be auto 
+ * removed. There is nothing to be disposed of that is under this class control.
+ * 
+ * @type T: Converting the receiving data to the generic type T.
+ */
+export class NodeEventEmitter<T> {
+
+    private _emitter: Emitter<T>;
+
+    constructor(emitter: INodeEventEmitter, channel: string, dataWrapper?: (...args: any[]) => T) {
+        if (!dataWrapper) {
+            dataWrapper = (data) => data;
+        }
+        const onData = (...args: any[]) => this._emitter.fire(dataWrapper!(...args));
+        const onFirstAdd = () => emitter.on(channel, onData);
+		const onLastRemove = () => emitter.removeListener(channel, onData);
+        this._emitter = new Emitter({ 
+            onFirstListenerAdd: onFirstAdd, 
+            onLastListenerRemoved: onLastRemove });
+    }
+
+    get registerListener(): Register<T> {
+        return this._emitter.registerListener;
+    }
 }
 
 export const enum Priority {
@@ -542,4 +580,40 @@ export namespace Event {
         return newRegister;
     }
 
+    /**
+     * @description Given a {@link Register} and returns a new created event 
+     * register that only fire once.
+     * @param register The given register.
+     * @returns A new event register that only fire once.
+     */
+    export function once<T>(register: Register<T>): Register<T> {
+        return (listener: Listener<T>, disposables?: IDisposable[], thisObject: any = null) => {
+            let fired = false;
+            const oldListener = register((event) => {
+                if (fired) {
+                    return;
+                }
+
+                fired = true;
+                return listener.call(thisObject, event);
+
+            }, disposables, thisObject);
+
+            if (fired) {
+                oldListener.dispose();
+            }
+
+            return oldListener;
+        };
+    }
+
+    /**
+     * @description Convert the given event register into a promise which will
+     * resolve once the event fires.
+     * @param register The provided event register.
+     * @returns A promise to be resolved to get the fired event data.
+     */
+    export function toPromise<T>(register: Register<T>): Promise<T> {
+		return new Promise(resolve => once(register)(resolve));
+	}
 }

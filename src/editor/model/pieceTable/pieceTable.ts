@@ -1,4 +1,5 @@
 import { Character, CharCode } from "src/base/common/util/char";
+import { Mutable } from "src/base/common/util/type";
 import { EndOfLine, IBufferPosition, IPiece, IPiecePosition, IPieceTable, IPieceNode, RBColor, IPieceNodePosition } from "src/editor/common/model";
 import { EditorPosition, IEditorPosition } from "src/editor/common/position";
 import { TextBuffer } from "src/editor/model/textBuffer";
@@ -783,13 +784,13 @@ export class PieceTable implements IPieceTable {
                 linestart[i]! += 1;
             }
             
-            (addBuffer.buffer as any) = addBuffer.buffer.concat('_', text);
-            (addBuffer.linestart as any) = addBuffer.linestart.concat(linestart.splice(1));
+            (<Mutable<string>>addBuffer.buffer) = addBuffer.buffer.concat('_', text);
+            (<Mutable<number[]>>addBuffer.linestart) = addBuffer.linestart.concat(linestart.splice(1));
         } 
         // If not, simply update the as normal.
         else {
-            (addBuffer.buffer as any) = addBuffer.buffer.concat(text);
-            (addBuffer.linestart as any) = addBuffer.linestart.concat(linestart.splice(1));
+            (<Mutable<string>>addBuffer.buffer) = addBuffer.buffer.concat(text);
+            (<Mutable<number[]>>addBuffer.linestart) = addBuffer.linestart.concat(linestart.splice(1));
         }
 
         /**
@@ -878,7 +879,7 @@ export class PieceTable implements IPieceTable {
 
         const addBuffer = this._buffer[0]!;
         const addBufferStartOffset = addBuffer.buffer.length;
-        (addBuffer.buffer as any) += text;
+        (<Mutable<string>>addBuffer.buffer) += text;
 
         const linestart = TextBuffer.readLineStarts(text, addBufferStartOffset).linestart;
         
@@ -898,7 +899,7 @@ export class PieceTable implements IPieceTable {
             };
         }
 
-        (addBuffer.linestart as any) = addBuffer.linestart.concat(linestart.slice(1));
+        (<Mutable<number[]>>addBuffer.linestart) = addBuffer.linestart.concat(linestart.slice(1));
         const newPieceEndPosition = {
             lineNumber: addBuffer.linestart.length - 1,
             lineOffset: addBuffer.buffer.length - addBuffer.linestart[addBuffer.linestart.length - 1]!

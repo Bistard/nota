@@ -2,10 +2,10 @@ import { IComponentService } from "src/code/browser/service/componentService";
 import { Component, ComponentType, IComponent } from "src/code/browser/workbench/component";
 import { MarkdownComponent } from "src/code/browser/workbench/workspace/markdown/markdown";
 import { TitleBarComponent } from "src/code/browser/workbench/workspace/titleBar/titleBar";
-import { createDecorator } from "src/code/common/service/instantiationService/decorator";
-import { registerSingleton } from "src/code/common/service/instantiationService/serviceCollection";
-import { ServiceDescriptor } from "src/code/common/service/instantiationService/descriptor";
-import { IInstantiationService } from "src/code/common/service/instantiationService/instantiation";
+import { createDecorator } from "src/code/platform/instantiation/common/decorator";
+import { registerSingleton } from "src/code/platform/instantiation/common/serviceCollection";
+import { ServiceDescriptor } from "src/code/platform/instantiation/common/descriptor";
+import { IInstantiationService } from "src/code/platform/instantiation/common/instantiation";
 import { EditorComponent, IEditorService } from "src/code/browser/workbench/workspace/editor/editor";
 
 export const enum WorkspaceComponentType {

@@ -1,27 +1,59 @@
 
 export type DightInString = '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9';
-
-/**
- * Represents an array that contains only 1 item.
- */
 export type Single<T> = [T];
-
-/**
- * Represents an array that contains only 2 items.
- */
 export type Pair<T, R> = [T, R];
-
-/**
- * Represents an array that contains only 3 items.
- */
 export type Triple<T, R, S> = [T, R, S];
 
 /**
- * Make all the fields become required.
+ * Make all the properties mutable (remove readonly).
  */
-export type AllRequired<T> = {
-    [P in keyof T]-?: T[P];
+export type Mutable<Immutable> = {
+    -readonly [P in keyof Immutable]: Immutable[P]
+}
+
+/**
+ * Accepts condition C, a truthy return type T, and a falsy return type F.
+ */
+export type If<C, T, F> = C extends boolean ? (C extends true ? T : F) : never;
+
+/**
+ * Determines if the given type T is truthy.
+ */
+export type IsTrue<T> = T extends '' | [] | false | 0 ? false : T extends {} ? keyof T extends never ? false :  true : false;
+
+/**
+ * Determines if the given array contains any truthy values.
+ */
+export type AnyOf<T extends readonly any[]> = T extends [infer F, ...infer Rest] ?  IsTrue<F> extends true ? true : AnyOf<Rest> : IsTrue<T[0]>;
+
+/**
+ * Push any type into the end of the array.
+ */
+export type Push<T extends any[], V> = [...T, V];
+
+/**
+ * Concatenate two arrays.
+ */
+export type Concat<T extends any[], U extends any[]> = [...T, ...U];
+
+/**
+ * Given a type T, maps each property with type `from` to type `to` that are
+ * defined in the given type R.
+ */
+export type MapTypes<T, R extends { from: any; to: any }> = {
+    [K in keyof T]: T[K] extends R['from']
+    ? R extends { from: T[K] }
+        ? R['to']
+        : never
+    : T[K]
 };
+
+/**
+ * @description Mocks the given value's type.
+ */
+export function mockType<T>(val: any): T {
+    return val as unknown as T;
+}
 
 /**
  * @description Checks if it is the type `object`.
@@ -49,6 +81,13 @@ export function isEmptyObject(obj: any): boolean {
     }
 
     return true;
+}
+
+/**
+ * @description Check if the object is undefined or null.
+ */
+export function isNonNullable(value: any): boolean {
+    return !(typeof value === 'undefined' || value === null);
 }
 
 /**
@@ -84,8 +123,15 @@ export function isPromise(obj: any): obj is Promise<any> {
  * @returns the default value.
  */
 export function ifOrDefault<T>(value: T, defaultValue: NonNullable<T>): NonNullable<T> {
-    if (typeof value === 'undefined') {
+    if (typeof value === 'undefined' || value === null) {
         return defaultValue;
     }
     return value as NonNullable<T>;
+}
+
+/**
+ * @description Make sure `null` is converted to `undefined`.
+ */
+export function NulltoUndefined<T>(obj: T | null): T | undefined {
+    return obj === null ? undefined : obj;
 }
