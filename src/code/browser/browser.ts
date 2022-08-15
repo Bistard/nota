@@ -2,7 +2,7 @@ import "src/code/browser/registration";
 import { Workbench } from "src/code/browser/workbench/workbench";
 import { IInstantiationService, InstantiationService } from "src/code/platform/instantiation/common/instantiation";
 import { getSingletonServiceDescriptors, ServiceCollection } from "src/code/platform/instantiation/common/serviceCollection";
-import { waitDomToBeLoad, EventType } from "src/base/common/dom";
+import { waitDomToBeLoad } from "src/base/common/dom";
 import { ComponentService, IComponentService } from "src/code/browser/service/componentService";
 import { Disposable } from "src/base/common/dispose";
 import { ServiceDescriptor } from "src/code/platform/instantiation/common/descriptor";
@@ -15,6 +15,7 @@ import { IFileService } from "src/code/platform/files/common/fileService";
 import { BrowserEnvironmentService } from "src/code/platform/environment/browser/browserEnvironmentService";
 import { BrowserFileChannel } from "src/code/platform/files/common/fileChannel";
 import { ErrorHandler } from "src/base/common/error";
+import { IUserConfigService, UserConfigService } from "src/code/platform/configuration/electron/configService";
 
 /**
  * @class This is the main entry of the renderer process.
@@ -36,12 +37,13 @@ export class Browser extends Disposable {
         try {
             initExposedElectronAPIs();
 
+            const instantiaionService = this.createCoreServices();
+
             await Promise.all([
-                this.initServices(), 
+                this.initServices(instantiaionService),
                 waitDomToBeLoad(),
             ]);
-        } 
-        catch (error) {
+        } catch (error) {
             ErrorHandler.onUnexpectedError(error);
         }
 
@@ -50,7 +52,7 @@ export class Browser extends Disposable {
         this.registerListeners();
     }
 
-    private async initServices(): Promise<void> {
+    private createCoreServices(): IInstantiationService {
         
         // create a instantiationService
         const serviceCollection = new ServiceCollection();
@@ -89,13 +91,26 @@ export class Browser extends Disposable {
         const fileService = new BrowserFileChannel(ipcService);
         instantiationService.register(IFileService, fileService);
  
-        // GlobalConfigService
-        // UserConfigService
+        // global-config-service
         
+        // user-config-service
+        const userConfigService = new UserConfigService(fileService, logService, environmentService);
+        instantiationService.register(IUserConfigService, userConfigService);
+
         // singleton initialization
         for (const [serviceIdentifer, serviceDescriptor] of getSingletonServiceDescriptors()) {
 			instantiationService.register(serviceIdentifer, serviceDescriptor);
 		}
+
+        return instantiationService;
+    }
+
+    private async initServices(instantiaionService: IInstantiationService): Promise<any> {
+        const userConfigService = instantiaionService.getService(IUserConfigService);
+
+        return Promise.all<any>([
+            userConfigService.init(),
+        ]);
     }
 
     private registerListeners(): void {
@@ -103,18 +118,5 @@ export class Browser extends Disposable {
     }
 
 }
-
-const onCatchAnyErrors = () => { 
-    if (true) { // REVIEW
-        // ipcRendererSend(IpcChannel.ErrorInWindow);
-    }
-}
-
-/**
- * @readonly Needs to be set globally before everything, once an error has been 
- * captured, we tells the main process to open dev tools.
- */
-window.addEventListener(EventType.unhandledrejection, onCatchAnyErrors);
-window.onerror = onCatchAnyErrors;
 
 new Browser();
