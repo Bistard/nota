@@ -91,8 +91,6 @@ export class Browser extends Disposable {
         const fileService = new BrowserFileChannel(ipcService);
         instantiationService.register(IFileService, fileService);
  
-        // global-config-service
-        
         // user-config-service
         const userConfigService = new UserConfigService(fileService, logService, environmentService);
         instantiationService.register(IUserConfigService, userConfigService);

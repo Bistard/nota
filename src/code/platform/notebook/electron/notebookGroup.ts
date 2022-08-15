@@ -11,11 +11,12 @@ import { IIpcService } from "src/code/browser/service/ipcService";
 import { ExplorerItem } from "src/code/browser/workbench/actionView/explorer/explorerItem";
 import { IExplorerOpenEvent } from "src/code/browser/workbench/actionView/explorer/explorerTree";
 import { Notebook } from "src/code/platform/notebook/browser/notebook";
-import { EGlobalSettings, EUserSettings, IGlobalNotebookManagerSettings, IUserNotebookManagerSettings, NOTA_DIR_NAME } from "src/code/platform/configuration/electron/configService";
+import { NOTA_DIR_NAME } from "src/code/platform/configuration/electron/configService";
 import { IUserConfigService } from "src/code/platform/configuration/electron/configService";
 import { IGlobalConfigService } from "src/code/platform/configuration/electron/configService";
 import { IFileService } from "src/code/platform/files/common/fileService";
 import { createDecorator } from "src/code/platform/instantiation/common/decorator";
+import { EGlobalSettings, EUserSettings, IGlobalNotebookManagerSettings, IUserNotebookManagerSettings } from "src/code/platform/configuration/common/configuration";
 
 export const INotebookGroupService = createDecorator<INotebookGroupService>('notebook-manager-service');
 

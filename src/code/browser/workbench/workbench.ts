@@ -5,7 +5,6 @@ import { IInstantiationService } from "src/code/platform/instantiation/common/in
 import { ServiceDescriptor } from "src/code/platform/instantiation/common/descriptor";
 import { IComponentService } from "src/code/browser/service/componentService";
 import { IGlobalConfigService } from "src/code/platform/configuration/electron/configService";
-import { EGlobalSettings, IGlobalApplicationSettings } from "src/code/platform/configuration/electron/configService";
 import { WorkbenchLayout } from "src/code/browser/workbench/layout";
 import { i18n, Ii18nOpts, Ii18nService } from "src/code/platform/i18n/i18n";
 import { IShortcutService, ShortcutService } from "src/code/browser/service/keyboard/shortcutService";
@@ -14,6 +13,7 @@ import { IpcChannel } from "src/base/common/ipcChannel";
 import { IWorkbenchService } from "src/code/browser/service/workbenchService";
 import { IIpcService } from "src/code/browser/service/ipcService";
 import { IKeyboardScreenCastService, KeyboardScreenCastService } from "src/code/browser/service/keyboard/keyboardScreenCastService";
+import { EGlobalSettings, IGlobalApplicationSettings } from "src/code/platform/configuration/common/configuration";
 
 /**
  * @class Workbench represents all the Components in the web browser.

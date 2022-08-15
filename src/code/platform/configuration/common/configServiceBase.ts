@@ -1,4 +1,4 @@
-import { Disposable } from 'src/base/common/dispose';
+import { Disposable, IDisposable } from 'src/base/common/dispose';
 import { Emitter, Register } from 'src/base/common/event';
 import { DataBuffer } from 'src/base/common/file/buffer';
 import { URI } from 'src/base/common/file/uri';
@@ -6,7 +6,7 @@ import { ILogService } from 'src/base/common/logger';
 import { IConfigChange, IConfigChangeEvent, IConfigModel, IConfigType } from 'src/code/platform/configuration/common/configModel';
 import { IFileService } from 'src/code/platform/files/common/fileService';
 
-export interface IConfigService extends Disposable {
+export interface IConfigService extends IDisposable {
 
     /** The resource of the configuration. */
     resource: URI;

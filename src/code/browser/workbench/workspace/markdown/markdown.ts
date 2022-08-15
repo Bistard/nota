@@ -25,8 +25,8 @@ import { createDecorator } from 'src/code/platform/instantiation/common/decorato
 import { IComponentService } from 'src/code/browser/service/componentService';
 import { WorkspaceComponentType } from 'src/code/browser/workbench/workspace/workspace';
 import { IGlobalConfigService, IUserConfigService } from 'src/code/platform/configuration/electron/configService';
-import { EUserSettings, IUserMarkdownSettings } from 'src/code/platform/configuration/electron/configService';
 import { ILogService } from 'src/base/common/logger';
+import { EUserSettings, IUserMarkdownSettings } from 'src/code/platform/configuration/common/configuration';
 
 export const IMarkdownService = createDecorator<IMarkdownService>('markdown-service');
 

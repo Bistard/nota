@@ -7,10 +7,11 @@ import { Ii18nService } from 'src/code/platform/i18n/i18n';
 import { Section } from 'src/code/platform/section';
 import { registerSingleton } from 'src/code/platform/instantiation/common/serviceCollection';
 import { ServiceDescriptor } from 'src/code/platform/instantiation/common/descriptor';
-import { EGlobalSettings, EUserSettings, IGlobalConfigService, IGlobalNotebookManagerSettings, IUserConfigService, IUserNotebookManagerSettings } from 'src/code/platform/configuration/electron/configService';
+import { IGlobalConfigService, IUserConfigService } from 'src/code/platform/configuration/electron/configService';
 import { IIpcService, IpcService } from 'src/code/browser/service/ipcService';
 import { addDisposableListener, EventType } from 'src/base/common/dom';
 import { IEditorService } from 'src/code/browser/workbench/workspace/editor/editor';
+import { EGlobalSettings, EUserSettings, IGlobalNotebookManagerSettings, IUserNotebookManagerSettings } from 'src/code/platform/configuration/common/configuration';
 
 export const IExplorerViewService = createDecorator<IExplorerViewService>('explorer-view-service');
 
