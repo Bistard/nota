@@ -165,7 +165,6 @@ export class WindowInstance extends Disposable implements IWindowInstance {
 			this.dispose();
 		});
 
-        
     }
 
     // [private helper methods]

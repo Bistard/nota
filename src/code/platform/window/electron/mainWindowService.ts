@@ -1,5 +1,5 @@
 import { Disposable } from "src/base/common/dispose";
-import { Emitter, Register } from "src/base/common/event";
+import { Emitter, Event, Register } from "src/base/common/event";
 import { ILogService } from "src/base/common/logger";
 import { Mutable } from "src/base/common/util/type";
 import { UUID } from "src/base/node/uuid";
@@ -19,11 +19,14 @@ export const IMainWindowService = createDecorator<IMainWindowService>('main-wind
  */
 export interface IMainWindowService extends Disposable {
     
-    readonly windows: ReadonlyArray<IWindowInstance>;
-
     readonly onDidOpenWindow: Register<IWindowInstance>;
 
     readonly onDidCloseWindow: Register<IWindowInstance>;
+
+    /**
+     * @description Returns all the running windows.
+     */
+    windows(): ReadonlyArray<IWindowInstance>;
 
     /**
      * @description Returns the number of running window.
@@ -66,7 +69,7 @@ export class MainWindowService extends Disposable implements IMainWindowService 
 
     // [getter / setter]
 
-    get windows(): readonly IWindowInstance[] {
+    public windows(): readonly IWindowInstance[] {
         return this._windows;
     }
 
@@ -144,6 +147,9 @@ export class MainWindowService extends Disposable implements IMainWindowService 
         
         this._windows.push(newWindow);
         this._onDidOpenWindow.fire(newWindow);
+
+        // newly window listeners
+        Event.once(newWindow.onDidClose)(() => {this._onDidCloseWindow.fire(newWindow)});
 
         return newWindow;
     }

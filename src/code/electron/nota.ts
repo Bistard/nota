@@ -152,10 +152,25 @@ export class NotaInstance extends Disposable implements INotaInstance {
         
         // life-cycle-service: READY
         this.lifeCycleService.setPhase(LifeCyclePhase.Ready);
+
+        // set-up lookup-palette-service
+        mainWindowService.onDidOpenWindow(() => {
+            if (mainWindowService.windowCount() === 1) {
+                const lookupPaletteService = provider.getOrCreateService(ILookupPaletteService);
+                lookupPaletteService.enable();
+            }
+        });
+        mainWindowService.onDidCloseWindow(() => {
+            if (mainWindowService.windowCount() === 0) {
+                const lookupPaletteService = provider.getOrCreateService(ILookupPaletteService);
+                lookupPaletteService.disable();
+            }
+        });
         
         // open the first window
         const window: IWindowInstance = mainWindowService.open({
             CLIArgv: this.environmentService.CLIArguments,
+            loadFile: './index.html',
         });
 
         return window;
