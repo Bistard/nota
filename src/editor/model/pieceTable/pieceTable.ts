@@ -1612,7 +1612,7 @@ export class PieceTable implements IPieceTable {
 
     /**
      * @description Given the text offset, returns the corresponding piece, its 
-     * buffer start offset, and also a piece offset in the whole text model.
+     * buffer start offset, and also a offset relatives to the piece.
      * @param textOffset The text offset relatives to the whole text model.
      * @complexity O(h)
      */
@@ -1646,13 +1646,112 @@ export class PieceTable implements IPieceTable {
         }
 
         // should never be reached
-        return {
-            position: {
-                node: NULL_NODE,
-                textOffset: 0
-            },
-            pieceOffset: 0
-        };
+        return undefined!;
+    }
+
+    /**
+     * @description Given the line number and line offset, returns the 
+     * corresponding piece, its buffer start offset, and also a offset relatives 
+     * to the piece.
+     * @param lineNumber The line number (zero-based).
+     * @param lineOffset The offset relative to the line.
+     * @complexity O(h)
+     */
+    private __getNodeByLine(lineNumber: number, lineOffset: number): { position: IPieceNodePosition, pieceOffset: number } {
+        
+        let node = this._root;
+        let nodeTextOffset = 0;
+        
+        while (node !== NULL_NODE) {
+
+            if (node.left !== NULL_NODE && node.leftSubtreelfCount >= lineNumber) {
+                node = node.left;
+            }
+            else if (node.leftSubtreelfCount + node.piece.lfCount > lineNumber) {
+                const startOffsetInPiece = this.__getOffsetInPieceAtLineIndex(node.piece, lineNumber - node.leftSubtreelfCount - 1);
+                const endOffsetInPiece = this.__getOffsetInPieceAtLineIndex(node.piece, lineNumber - node.leftSubtreelfCount);
+                nodeTextOffset += node.leftSubtreeBufferLength;
+                return {
+                    position: {
+                        textOffset: nodeTextOffset,
+                        node: node,
+                    },
+                    pieceOffset: Math.min(endOffsetInPiece, startOffsetInPiece + lineOffset - 1),
+                };
+            }
+            else if (node.leftSubtreelfCount + node.piece.lfCount === lineNumber) {
+                const startOffsetInPiece = this.__getOffsetInPieceAtLineIndex(node.piece, lineNumber - node.leftSubtreelfCount - 1);
+                if (startOffsetInPiece + lineOffset - 1 > node.piece.pieceLength) {
+                    // the rest of the line content is in the next piece.
+                    lineOffset -= (node.piece.pieceLength + startOffsetInPiece);
+                    break;
+                }
+
+                return {
+                    position: {
+                        textOffset: nodeTextOffset,
+                        node: node,
+                    },
+                    pieceOffset: startOffsetInPiece + lineOffset - 1,
+                };
+            }
+            else {
+                lineNumber -= node.leftSubtreelfCount + node.piece.lfCount;
+                nodeTextOffset += node.leftSubtreeBufferLength + node.piece.pieceLength;
+                node = node.right;
+            }
+        }
+
+        // search for the rest of the pieces until we find the whole line completely.
+        node = PieceNode.next(node);
+        while (node !== NULL_NODE) {
+            if (node.piece.lfCount > 0) {
+                const startOffsetInPiece = this.__getOffsetInPieceAtLineIndex(node.piece, 0);
+                const textOffsetOfPiece = this.__getOffsetOfPiece(node);
+                return {
+                    position: {
+                        textOffset: textOffsetOfPiece,
+                        node: node,
+                    },
+                    pieceOffset: Math.min(lineOffset - 1, startOffsetInPiece),
+                };
+            }
+            else {
+                if (node.piece.pieceLength >= lineOffset - 1) {
+                    const textOffsetOfPiece = this.__getOffsetOfPiece(node);
+                    return {
+                        position: {
+                            textOffset: textOffsetOfPiece,
+                            node: node,
+                        },
+                        pieceOffset: lineOffset - 1,
+                    };
+                } else {
+                    lineOffset -= node.piece.pieceLength;
+                }
+            }
+            
+            node = PieceNode.next(node);
+        }
+
+        // should never be reached
+        return undefined!;
+    }
+
+    /**
+     * @description Returns the text offset relatives to the whole text of the 
+     * start of the given piece.
+     * @param node The given piece node in the tree.
+     */
+    private __getOffsetOfPiece(node: PieceNode): number {
+        let textOffset = node.leftSubtreeBufferLength;
+        while (node !== this._root) {
+            if (node.parent.right === node) {
+				textOffset += node.parent.leftSubtreeBufferLength + node.parent.piece.pieceLength;
+			}
+			node = node.parent;
+        }
+        return textOffset;
     }
 
     /**
