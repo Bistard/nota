@@ -78,5 +78,15 @@ module.exports = [
             path: path.resolve(__dirname, './dist')
         },
     }),
+    Object.assign({}, baseConfiguration, {
+        target: 'electron-renderer',
+        entry: {
+            renderer: './src/code/browser/lookup/browser.lookup.ts',
+        },
+        output: {
+            filename: '[name]-lookup-bundle.js',
+            path: path.resolve(__dirname, './dist')
+        },
+    }),
     
 ]
