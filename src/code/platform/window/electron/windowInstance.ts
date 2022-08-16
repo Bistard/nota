@@ -8,7 +8,7 @@ import { IGlobalConfigService } from "src/code/platform/configuration/electron/c
 import { IFileService } from "src/code/platform/files/common/fileService";
 import { IEnvironmentService, IMainEnvironmentService } from "src/code/platform/environment/common/environment";
 import { IMainLifeCycleService } from "src/code/platform/lifeCycle/electron/mainLifeCycleService";
-import { defaultDisplayState, ICreateWindowConfiguration, IWindowDisplayState, IWindowInstance, WindowDisplayMode, ProcessKey, WindowMinimumState } from "src/code/platform/window/common/window";
+import { defaultDisplayState, IWindowConfiguration, IWindowDisplayState, IWindowInstance, WindowDisplayMode, WindowMinimumState, IWindowCreationOptions, ArgumentKey } from "src/code/platform/window/common/window";
 
 /**
  * @class // TODO
@@ -31,7 +31,8 @@ export class WindowInstance extends Disposable implements IWindowInstance {
     // [constructor]
 
     constructor(
-        private readonly configuration: ICreateWindowConfiguration,
+        private readonly configuration: IWindowConfiguration,
+        private readonly creationConfig: IWindowCreationOptions,
         @ILogService private readonly logService: ILogService,
 		@IEnvironmentService private readonly environmentService: IMainEnvironmentService,
         @IFileService private readonly fileService: IFileService,
@@ -40,7 +41,7 @@ export class WindowInstance extends Disposable implements IWindowInstance {
     ) {
         super();
 
-        const state = configuration.displayState || defaultDisplayState();
+        const state = creationConfig.displayState || defaultDisplayState();
         this._window = this.doCreateWindow(state);
         this._id = this._window.id;
 
@@ -65,7 +66,8 @@ export class WindowInstance extends Disposable implements IWindowInstance {
 
     public load(): Promise<void> {
         this.logService.trace(`Main#WindowInstance#ID-${this._id}#loading...`);
-        return this._window.loadFile('./index.html');
+        
+        return this._window.loadFile(this.creationConfig.loadFile);
     }
 
     public close(): void {
@@ -83,7 +85,6 @@ export class WindowInstance extends Disposable implements IWindowInstance {
         this.logService.trace('Main#WindowInstance#creating window...');
 
         const ifMaxOrFullscreen = (displayState.mode === WindowDisplayMode.Fullscreen) || (displayState.mode === WindowDisplayMode.Maximized);
-        process.env[ProcessKey.configuration] = `${JSON.stringify(this.configuration)}`;
         
         const browserOption: BrowserWindowConstructorOptions = {
             title: 'nota',
@@ -107,7 +108,7 @@ export class WindowInstance extends Disposable implements IWindowInstance {
                  * Pass any arguments use the following pattern:
                  *      --ArgName=argInString
                  */
-                additionalArguments: [],
+                additionalArguments: [`--${ArgumentKey.configuration}=${JSON.stringify(this.configuration)}`],
                 
                 /**
                  * Context Isolation is a feature that ensures that both 

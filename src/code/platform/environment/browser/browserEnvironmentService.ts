@@ -1,8 +1,9 @@
 import { ILogService } from "src/base/common/logger";
+import { windowConfiguration } from "src/code/platform/electron/browser/global";
 import { ISandboxProcess } from "src/code/platform/electron/common/electronType";
 import { IBrowserEnvironmentService } from "src/code/platform/environment/common/environment";
 import { MainEnvironmentService } from "src/code/platform/environment/electron/mainEnvironmentService";
-import { ICreateWindowConfiguration, ProcessKey } from "src/code/platform/window/common/window";
+import { IWindowConfiguration } from "src/code/platform/window/common/window";
 
 /**
  * @class A {@link IEnvironmentService} that used inside renderer process with
@@ -10,22 +11,20 @@ import { ICreateWindowConfiguration, ProcessKey } from "src/code/platform/window
  */
 export class BrowserEnvironmentService extends MainEnvironmentService implements IBrowserEnvironmentService {
 
-    private readonly configuration: ICreateWindowConfiguration;
+    public readonly configuration: IWindowConfiguration;
 
     constructor(
-        process: ISandboxProcess,
         logService?: ILogService,
     ) {
-        const winConfig: ICreateWindowConfiguration = JSON.parse(process.env[ProcessKey.configuration]!);
-        super(winConfig, {
-            isPackaged: winConfig.isPackaged,
-            appRootPath: winConfig.appRootPath,
-            tmpDirPath: winConfig.tmpDirPath,
-            userDataPath: winConfig.userDataPath,
-            userHomePath: winConfig.userDataPath,
+        super(windowConfiguration, {
+            isPackaged: windowConfiguration.isPackaged,
+            appRootPath: windowConfiguration.appRootPath,
+            tmpDirPath: windowConfiguration.tmpDirPath,
+            userDataPath: windowConfiguration.userDataPath,
+            userHomePath: windowConfiguration.userDataPath,
         }, logService);
 
-        this.configuration = winConfig;
+        this.configuration = windowConfiguration;
     }
 
     get machineID(): string { return this.configuration.machineID; }

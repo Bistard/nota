@@ -13,6 +13,7 @@ export const enum IpcChannel {
     Logger = 'nota:mainLogger',
     DiskFile = 'nota:diskFile',
     
+    /** Notification */
     ToggleDevTools = 'nota:toggleDevTools',
     OpenDevTools = 'nota:openDevTools',
     CloseDevTools = 'nota:closeDevTools',

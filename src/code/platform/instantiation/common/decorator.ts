@@ -70,3 +70,7 @@ export function createDecorator<T>(serviceId: string): ServiceIdentifier<T> {
     _ServiceUtil.serviceIdentifiers.set(serviceId, serviceIdentifier);
 	return serviceIdentifier;
 }
+
+export function refineDecorator<T1, T extends T1>(serviceIdentifier: ServiceIdentifier<T1>): ServiceIdentifier<T> {
+	return <ServiceIdentifier<T>>serviceIdentifier;
+}

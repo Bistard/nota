@@ -6,16 +6,17 @@ import { waitDomToBeLoad } from "src/base/common/dom";
 import { ComponentService, IComponentService } from "src/code/browser/service/componentService";
 import { Disposable } from "src/base/common/dispose";
 import { ServiceDescriptor } from "src/code/platform/instantiation/common/descriptor";
-import { initExposedElectronAPIs, process } from "src/code/platform/electron/browser/global";
+import { initExposedElectronAPIs, ipcRenderer, process, windowConfiguration } from "src/code/platform/electron/browser/global";
 import { IIpcService, IpcService } from "src/code/platform/ipc/browser/ipcService";
 import { BrowserLoggerChannel } from "src/code/platform/logger/common/loggerChannel";
-import { ILogService } from "src/base/common/logger";
+import { ILogService, LogLevel } from "src/base/common/logger";
 import { ILoggerService } from "src/code/platform/logger/common/abstractLoggerService";
 import { IFileService } from "src/code/platform/files/common/fileService";
 import { BrowserEnvironmentService } from "src/code/platform/environment/browser/browserEnvironmentService";
 import { BrowserFileChannel } from "src/code/platform/files/common/fileChannel";
 import { ErrorHandler } from "src/base/common/error";
 import { IUserConfigService, UserConfigService } from "src/code/platform/configuration/electron/configService";
+import { IBrowserEnvironmentService } from "src/code/platform/environment/common/environment";
 
 /**
  * @class This is the main entry of the renderer process.
@@ -54,7 +55,7 @@ export class Browser extends Disposable {
 
     private createCoreServices(): IInstantiationService {
         
-        // create a instantiationService
+        // instantiationService (Dependency Injection)
         const serviceCollection = new ServiceCollection();
         const instantiationService = new InstantiationService(serviceCollection);
 
@@ -62,15 +63,13 @@ export class Browser extends Disposable {
         instantiationService.register(IInstantiationService, instantiationService);
 
         // environmentService
-        const environmentService = new BrowserEnvironmentService(process);
+        const environmentService = new BrowserEnvironmentService();
+        instantiationService.register(IBrowserEnvironmentService, environmentService);
         
         // ipc-service
         // FIX: windowID is updated after the configuraion is passed into BrowserWindow
         const ipcService = new IpcService(environmentService.windowID);
         instantiationService.register(IIpcService, ipcService);
-
-        // component-service
-        instantiationService.register(IComponentService, new ServiceDescriptor(ComponentService));
 
         // logger-service
         const loggerService = new BrowserLoggerChannel(ipcService, environmentService.logLevel);
@@ -79,7 +78,7 @@ export class Browser extends Disposable {
         // log-service
         const logService = loggerService.createLogger(environmentService.logPath, { 
             name: `window-${environmentService.windowID}.txt`,
-            description: `window-${environmentService.windowID}`,
+            description: `renderer`,
         });
         ErrorHandler.setUnexpectedErrorExternalCallback(error => {
             console.error(error);
@@ -88,12 +87,20 @@ export class Browser extends Disposable {
         instantiationService.register(ILogService, logService);
 
         // file-service
+        // FIX: readFileStream does not work
         const fileService = new BrowserFileChannel(ipcService);
         instantiationService.register(IFileService, fileService);
  
+        // global-config-service
+        // const globalConfigService = ProxyChannel.unwrapChannel<IGlobalConfigService>(ipcService.getChannel('test'));
+        // instantiationService.register(IGlobalConfigService, globalConfigService);
+
         // user-config-service
         const userConfigService = new UserConfigService(fileService, logService, environmentService);
         instantiationService.register(IUserConfigService, userConfigService);
+
+        // component-service
+        instantiationService.register(IComponentService, new ServiceDescriptor(ComponentService));
 
         // singleton initialization
         for (const [serviceIdentifer, serviceDescriptor] of getSingletonServiceDescriptors()) {

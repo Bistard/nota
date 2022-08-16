@@ -27,7 +27,7 @@
 	const { contextBridge, ipcRenderer } = require('electron');
 
 	/**
-	 * @typedef {import('../../window/common/window').ICreateWindowConfiguration} ICreateWindowConfiguration
+	 * @typedef {import('../../window/common/window').IWindowConfiguration} IWindowConfiguration
 	 */
 
 	function validate(channel) {
@@ -121,6 +121,7 @@
 	const exposedAPIs = {
 		ipcRenderer: wrappedIpcRenderer,
 		process: wrappedProcess,
+		windowConfiguration: JSON.parse(retrieveFromArgv('window-configuration')),
 	};
 
 	if (process.contextIsolated) {
