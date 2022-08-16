@@ -12,9 +12,7 @@ const { parseCLIArgv } = require('src/code/platform/environment/common/argument'
 /** @type ICLIArguments */
 const CLIArgv = minimist(parseCLIArgv(app.isPackaged));
 
-app.once('ready', () => {
-    run();
-});
+app.whenReady().then(() => run());
 
 function run() {
     const nota = require('./code/electron/main');

@@ -22,6 +22,7 @@ import { IMainWindowService, MainWindowService } from "src/code/platform/window/
 import { ILoggerService } from "src/code/platform/logger/common/abstractLoggerService";
 import { MainLoggerChannel } from "src/code/platform/logger/common/loggerChannel";
 import { IMainDialogService, MainDialogService } from "src/code/platform/dialog/electron/mainDialogService";
+import { IMainLookupService, MainLookupService } from "src/code/platform/lookup/electron/mainLookupService";
 
 /**
  * An interface only for {@link NotaInstance}
@@ -123,9 +124,12 @@ export class NotaInstance extends Disposable implements INotaInstance {
         appInstantiationService.register(IMainWindowService, new ServiceDescriptor(MainWindowService, [machineID]));
 
         // dialog-sevice
-        appInstantiationService.register(IMainDialogService, new ServiceDescriptor(MainDialogService, [this.logService]));
+        appInstantiationService.register(IMainDialogService, new ServiceDescriptor(MainDialogService));
 
         // TODO: notebook-group-service
+
+        // lookup-service
+        appInstantiationService.register(IMainLookupService, new ServiceDescriptor(MainLookupService));
 
         return appInstantiationService;
     }
