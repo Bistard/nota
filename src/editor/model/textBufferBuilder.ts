@@ -5,9 +5,9 @@ import { PieceTableModel } from "src/editor/model/pieceTable/pieceTableModel";
 import { TextBuffer } from "src/editor/model/textBuffer";
 
 /**
- * @class The receiving phrase will receive string chunks and builds
- * corresponding {@link TextBuffer}. The building phrase will finish the 
- * receiving phrase. The creating phrase will create a {@link IPieceTableModel}.
+ * @class The receiving phase will receive string chunks and builds
+ * corresponding {@link TextBuffer}. The building phase will finish the 
+ * receiving phase. The creating phase will create a {@link IPieceTableModel}.
  */
  export class TextBufferBuilder implements ITextBufferBuilder {
 

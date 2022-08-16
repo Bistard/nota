@@ -147,12 +147,12 @@ export interface IPieceNodePosition {
     /**
      * Corresponding piece.
      */
-    node: IPieceNode;
+    readonly node: IPieceNode;
 
     /**
-     * The start offset relatives to the whole text model.
+     * The start offset of the piece relatives to the whole text model.
      */
-    textOffset: number;
+    readonly textOffset: number;
 }
 
 /**
