@@ -64,3 +64,35 @@ export function iterPropertyEnumerable(obj: object, fn: (propName: string, index
 		fn(propName, idx++);
 	}
 }
+
+/**
+ * @description Returns a deep copy version of the given object or array.
+ */
+export function deepCopy<T extends object | []>(obj: T): T {
+	
+	// ensure `null` does not count
+	if (!obj) {
+		return obj;
+	}
+	
+	if (obj instanceof RegExp) {
+		return obj;
+	}
+	
+	const copy: T = Array.isArray(obj) ? [] : Object.assign({});
+	for (const propName of Object.keys(obj)) {
+		const value = obj[propName]!;
+		
+		if (typeof value === 'object') {
+			copy[propName] = deepCopy(value);
+		} else {
+			copy[propName] = value;
+		}
+	}
+
+	return copy;
+}
+
+export function deepFreeze(obj: any): void {
+
+}

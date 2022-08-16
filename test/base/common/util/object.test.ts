@@ -1,5 +1,5 @@
 import * as assert from 'assert';
-import { mixin } from 'src/base/common/util/object';
+import { deepCopy, mixin } from 'src/base/common/util/object';
 
 suite('object-test', () => {
 
@@ -45,6 +45,37 @@ suite('object-test', () => {
         };
         mixin(destination, source, true);
         assert.deepStrictEqual(destination, mixin(source, { d: undefined }));
+    });
+
+    test('deepCopy', () => {
+        const getObj = () => {
+            return {
+                a: {
+                    d: null,
+                    e: {},
+                    f: {
+                        g: 32,
+                    }
+                },
+                d: undefined
+            } as any;
+        };
+
+        const getArr = () => {
+            return [1, 2, [3, 4, [5, [6, [], [7, [8]]]]], 9];
+        }
+        
+        const obj = getObj();
+        const copy1 = deepCopy(obj);
+        assert.deepStrictEqual(copy1, obj);
+        delete obj['a'];
+        assert.deepStrictEqual(copy1, getObj());
+
+        const arr = getArr();
+        const copy2 = deepCopy(arr);
+        assert.deepStrictEqual(copy2, arr);
+        arr.length = 0;
+        assert.deepStrictEqual(copy2, getArr());
     });
 
 });
