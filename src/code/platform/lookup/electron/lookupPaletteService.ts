@@ -75,9 +75,12 @@ export class LookupPaletteService implements ILookupPaletteService {
 
         const options: IWindowCreationOptions = {
             loadFile: './src/code/browser/lookup/index.html',
-            displayState: {
+            displayOptions: {
                 width: 600,
-                height: 300,
+                height: 200,
+                minWidth: 600,
+                minHeight: 200,
+                resizable: false,
             },
             "open-devtools": true,
         };

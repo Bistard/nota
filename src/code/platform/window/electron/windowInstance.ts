@@ -8,7 +8,7 @@ import { IGlobalConfigService } from "src/code/platform/configuration/electron/c
 import { IFileService } from "src/code/platform/files/common/fileService";
 import { IEnvironmentService, IMainEnvironmentService } from "src/code/platform/environment/common/environment";
 import { IMainLifeCycleService } from "src/code/platform/lifeCycle/electron/mainLifeCycleService";
-import { defaultDisplayState, IWindowConfiguration, IWindowDisplayState, IWindowInstance, WindowDisplayMode, WindowMinimumState, IWindowCreationOptions, ArgumentKey } from "src/code/platform/window/common/window";
+import { defaultDisplayState, IWindowConfiguration, IWindowDisplayOpts, IWindowInstance, WindowDisplayMode, WindowMinimumState, IWindowCreationOptions, ArgumentKey } from "src/code/platform/window/common/window";
 
 /**
  * @class A window instance is a wrapper class of {@link BrowserWindow} that
@@ -42,8 +42,8 @@ export class WindowInstance extends Disposable implements IWindowInstance {
     ) {
         super();
 
-        const state = creationConfig.displayState || defaultDisplayState();
-        this._window = this.doCreateWindow(state);
+        const displayOptions = creationConfig.displayOptions || defaultDisplayState();
+        this._window = this.doCreateWindow(displayOptions);
         this._id = this._window.id;
 
         if (this.environmentService.CLIArguments['open-devtools'] === true) {
@@ -82,19 +82,19 @@ export class WindowInstance extends Disposable implements IWindowInstance {
 
     // [private methods]
 
-    private doCreateWindow(displayState: Readonly<IWindowDisplayState>): BrowserWindow {
+    private doCreateWindow(displayOpts: IWindowDisplayOpts): BrowserWindow {
         this.logService.trace('Main#WindowInstance#creating window...');
 
-        const ifMaxOrFullscreen = (displayState.mode === WindowDisplayMode.Fullscreen) || (displayState.mode === WindowDisplayMode.Maximized);
+        const ifMaxOrFullscreen = (displayOpts.mode === WindowDisplayMode.Fullscreen) || (displayOpts.mode === WindowDisplayMode.Maximized);
         
         const browserOption: BrowserWindowConstructorOptions = {
             title: 'nota',
-            height: displayState.height,
-            width: displayState.width,
-            x: displayState.x,
-            y: displayState.y,
-            minHeight: WindowMinimumState.height,
-            minWidth: WindowMinimumState.wdith,
+            height: displayOpts.height,
+            width: displayOpts.width,
+            x: displayOpts.x,
+            y: displayOpts.y,
+            minHeight:  displayOpts.minHeight ?? WindowMinimumState.height,
+            minWidth: displayOpts.minWidth ?? WindowMinimumState.wdith,
             webPreferences: {
                 /**
                  * Node.js is only available in main / preload process.
@@ -130,6 +130,7 @@ export class WindowInstance extends Disposable implements IWindowInstance {
                 backgroundThrottling: false,
             },
             show: false, // to prevent flicker, we will show it later.
+            resizable: displayOpts.resizable ?? true,
         };
 
         // frame
@@ -141,7 +142,7 @@ export class WindowInstance extends Disposable implements IWindowInstance {
 
         if (ifMaxOrFullscreen) {
             window.maximize();
-            if (displayState.mode === WindowDisplayMode.Fullscreen) {
+            if (displayOpts.mode === WindowDisplayMode.Fullscreen) {
                 window.setSimpleFullScreen(true);
 		        window.webContents.focus();
             }

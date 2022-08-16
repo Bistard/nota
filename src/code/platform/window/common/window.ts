@@ -1,8 +1,6 @@
 import { BrowserWindow } from "electron";
 import { Disposable } from "src/base/common/dispose";
 import { Register } from "src/base/common/event";
-import { URI } from "src/base/common/file/uri";
-import { LogLevel } from "src/base/common/logger";
 import { UUID } from "src/base/node/uuid";
 import { ICLIArguments } from "src/code/platform/environment/common/argument";
 import { IEnvironmentOpts } from "src/code/platform/environment/common/environment";
@@ -23,15 +21,18 @@ export const WindowMinimumState = {
     height: 300
 };
 
-export interface IWindowDisplayState {
+export interface IWindowDisplayOpts {
     width?: number;
 	height?: number;
+    minWidth?: number;
+    minHeight?: number;
 	x?: number;
 	y?: number;
-	mode?: WindowDisplayMode;
+    readonly resizable?: boolean;
+	readonly mode?: WindowDisplayMode;
 }
 
-export function defaultDisplayState(mode: WindowDisplayMode = WindowDisplayMode.Normal): IWindowDisplayState {
+export function defaultDisplayState(mode: WindowDisplayMode = WindowDisplayMode.Normal): IWindowDisplayOpts {
     return {
         width: 1024,
 		height: 768,
@@ -46,7 +47,7 @@ export function defaultDisplayState(mode: WindowDisplayMode = WindowDisplayMode.
 export interface IWindowCreationOptions extends Partial<IWindowConfiguration> {
     
     readonly CLIArgv?: ICLIArguments;
-    readonly displayState?: IWindowDisplayState;
+    readonly displayOptions?: IWindowDisplayOpts;
     readonly loadFile: string;
 }
 
