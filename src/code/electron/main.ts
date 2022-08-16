@@ -1,6 +1,6 @@
 import { app, dialog, ipcMain } from 'electron';
 import { mkdir } from 'fs/promises';
-import { ErrorHandler } from 'src/base/common/error';
+import { ErrorHandler, ExpectedError } from 'src/base/common/error';
 import { Event } from 'src/base/common/event';
 import { Schemas, URI } from 'src/base/common/file/uri';
 import { BufferLogger, ILogService, LogLevel, PipelineLogger } from 'src/base/common/logger';
@@ -19,6 +19,8 @@ import { MainEnvironmentService } from 'src/code/platform/environment/electron/m
 import { IMainLifeCycleService, MainLifeCycleService } from 'src/code/platform/lifeCycle/electron/mainLifeCycleService';
 import { IMainStatusService, MainStatusService } from 'src/code/platform/status/electron/mainStatusService';
 import { ICLIArguments } from 'src/code/platform/environment/common/argument';
+import { createServer, Server } from 'net';
+import { ProcessKey } from 'src/base/common/process';
 
 interface IMainProcess {
     start(argv: ICLIArguments): void;
@@ -89,6 +91,8 @@ const nota = new class extends class MainProcess implements IMainProcess {
                 this.fileService.dispose();
                 this.globalConfigService.dispose();
             });
+            
+            await this.resolveSingleApplication();
 
             const instance = this.instantiationService.createInstance(NotaInstance);
             instance.run();
@@ -183,14 +187,59 @@ const nota = new class extends class MainProcess implements IMainProcess {
         ]);
     }
 
-    private kill(error: Error): void {
-        if (error.stack) {
-            this.logService.error(error.stack);
-        } else {
-            this.logService.error(`Main process error: ${error.toString()}`);
+    private async resolveSingleApplication(): Promise<void> {
+
+        try {
+            /**
+             * Each nota application will try to listen to the same socket file
+             * or pipe. If an error is catched with code `EADDRINUSE`, it means 
+             * there is already an application is running, we should terminate 
+             * since we only accept one single application.
+             */
+            const server = await new Promise<Server>((resolve, reject) => {
+                const tcpServer = createServer();
+                tcpServer.on('error', reject);
+                tcpServer.listen(this.environmentService.mainIpcHandle, () => {
+                    tcpServer.removeListener('error', reject);
+                    resolve(tcpServer);
+                });
+            });
+            Event.once(this.lifeCycleService.onWillQuit)(() => server.close());
+        } 
+        catch (error: any) {
+            // unexpected errors
+            if (error.code !== 'EADDRINUSE') {
+                this.logService.error(error);
+                throw error;
+            }
+
+            // there is a running nota application, we stop the current application.
+            throw new ExpectedError('There is an application running, we are terminating...');
         }
 
-        this.lifeCycleService.kill(1);
+        // we are the first running application under the current version.
+        process.env[ProcessKey.PID] = String(process.pid);
+        return;
+    }
+
+    private kill(error: Error): void {
+        let code = 0;
+        
+        if ((<ExpectedError>error).isExpected) {
+            if (error.message) {
+                this.logService.trace(`${error.message}`);
+            }
+        }
+        else {
+            code = 1;
+            if (error.stack) {
+                this.logService.error(error.stack);
+            } else {
+                this.logService.error(`Main process error: ${error.toString()}`);
+            }
+        }
+
+        this.lifeCycleService.kill(code);
     }
 
     // [private helper methods]
