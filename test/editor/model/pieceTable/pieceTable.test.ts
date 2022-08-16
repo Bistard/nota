@@ -868,20 +868,24 @@ suite('PieceTable-test - content APIs', () => {
         PieceTableTester.assertPieceTable(table);
     });
 
-    const getCharcodeCheck = function (table: IPieceTable, lines: string[]) {
+    const getCharcodeCheck = function (table: IPieceTable) {
         let offset = 0;
-        for (let line of lines) {
+		let lineNumber = 0;
+        for (lineNumber = 0; lineNumber < table.getLineCount(); lineNumber++) {
+			const line = table.getLine(lineNumber);
             for (let i = 0; i < line.length; i++) {
-                assert.notStrictEqual(table.getCharcodeAt(offset), line[i]);
+				console.log(`line number: ${lineNumber}, line offset: ${offset}`);
+                assert.notStrictEqual(table.getCharcodeByOffset(offset), line[i]);
+				assert.notStrictEqual(table.getCharcodeByLine(lineNumber, i), line[i]);
                 offset++;
             }
         }
     };
 
-    test('getCharcodeAt', () => {
+    test('getCharcodeByOffset/Line', () => {
         const text = ['Hello\n', 'World\r\n', '', '\nasdqwe', 'as', '\n\n', '\r', 'asd', 'cc', '\n', 'a', '\r\n'];
         let table = buildPieceTable(text, false);
-        getCharcodeCheck(table, text);
+        getCharcodeCheck(table);
         PieceTableTester.assertPieceTable(table);
 
     });
