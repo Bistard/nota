@@ -49,6 +49,19 @@ export type MapTypes<T, R extends { from: any; to: any }> = {
 };
 
 /**
+ * Wraps all the return types from all the function properties with a {@link Promise}.
+ * @note Ignores the return types that are already promises.
+ */
+export type Promisify<T> = { 
+    [K in keyof T]: 
+    T[K] extends ((...args: any) => infer R) 
+        ? (R extends Promise<any> 
+            ? T[K] 
+            : (...args: Parameters<T[K]>) => Promise<R>) 
+        : T[K] 
+};
+
+/**
  * @description Mocks the given value's type.
  */
 export function mockType<T>(val: any): T {
