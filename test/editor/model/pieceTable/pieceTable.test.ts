@@ -874,8 +874,7 @@ suite('PieceTable-test - content APIs', () => {
         for (lineNumber = 0; lineNumber < table.getLineCount(); lineNumber++) {
 			const line = table.getLine(lineNumber);
             for (let i = 0; i < line.length; i++) {
-				console.log(`line number: ${lineNumber}, line offset: ${offset}`);
-                assert.notStrictEqual(table.getCharcodeByOffset(offset), line[i]);
+				assert.notStrictEqual(table.getCharcodeByOffset(offset), line[i]);
 				assert.notStrictEqual(table.getCharcodeByLine(lineNumber, i), line[i]);
                 offset++;
             }
