@@ -259,7 +259,15 @@ export interface IPieceTable {
      * @param textOffset The character offset relatives to the whole text model.
      * @complexity O(h)
      */
-    getCharcodeAt(textOffset: number): number;
+    getCharcodeByOffset(textOffset: number): number;
+
+    /**
+     * @description Returns the charcode at the given line number and line offset.
+     * @param lineNumber (zero-based) line number.
+     * @param lineOffset The offset relative to the line.
+     * @complexity O(h)
+     */
+    getCharcodeByLine(lineNumber: number, lineOffset: number): number;
 
     /**
      * @description Iterate each tree node in pre-order.

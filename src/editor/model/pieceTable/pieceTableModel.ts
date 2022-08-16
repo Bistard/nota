@@ -84,8 +84,12 @@ export class PieceTableModel extends Disposable implements IPieceTableModel {
         return this._table.getPositionAt(textOffset);
     }
 
-    public getCharcodeAt(textOffset: number): number {
-        return this._table.getCharcodeAt(textOffset);
+    public getCharcodeByOffset(textOffset: number): number {
+        return this._table.getCharcodeByOffset(textOffset);
+    }
+
+    public getCharcodeByLine(lineNumber: number, lineOffset: number): number {
+        return this._table.getCharcodeByLine(lineNumber, lineOffset);
     }
 
     public forEach(fn: (node: IPieceNode) => void): void {

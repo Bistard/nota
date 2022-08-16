@@ -630,12 +630,12 @@ export class PieceTable implements IPieceTable {
         } 
 
         const lineEndOffset = this.getOffsetAt(lineNumber, length - 1);
-        const lastChar = this.getCharcodeAt(lineEndOffset);
+        const lastChar = this.getCharcodeByOffset(lineEndOffset);
         
         if (lastChar === CharCode.CarriageReturn) {
             return length - 1;
         } else if (lastChar === CharCode.LineFeed) {
-            if (length >= 2 && this.getCharcodeAt(lineEndOffset - 1) === CharCode.CarriageReturn) {
+            if (length >= 2 && this.getCharcodeByOffset(lineEndOffset - 1) === CharCode.CarriageReturn) {
                 return length - 2;
             }
             return length - 1;
@@ -736,8 +736,13 @@ export class PieceTable implements IPieceTable {
         return new EditorPosition(0, 0);
     }
     
-    public getCharcodeAt(textOffset: number): number {
+    public getCharcodeByOffset(textOffset: number): number {
         const { position, pieceOffset } = this.__getNodeByOffset(textOffset);
+        return this.__getCharcodeAt(position, pieceOffset);
+    }
+
+    public getCharcodeByLine(lineNumber: number, lineOffset: number): number {
+        const { position, pieceOffset } = this.__getNodeByLine(lineNumber, lineOffset);
         return this.__getCharcodeAt(position, pieceOffset);
     }
 
@@ -830,7 +835,7 @@ export class PieceTable implements IPieceTable {
 
         // split into pieces for large text
         while (text.length > BUFFER_SIZE) {
-            const lastChar = this.getCharcodeAt(BUFFER_SIZE - 1);
+            const lastChar = this.getCharcodeByOffset(BUFFER_SIZE - 1);
             let partText: string = '';
 
             if (lastChar === CharCode.CarriageReturn || Character.isHighSurrogate(lastChar)) {
@@ -1661,29 +1666,28 @@ export class PieceTable implements IPieceTable {
         
         let node = this._root;
         let nodeTextOffset = 0;
-        
         while (node !== NULL_NODE) {
 
             if (node.left !== NULL_NODE && node.leftSubtreelfCount >= lineNumber) {
                 node = node.left;
             }
-            else if (node.leftSubtreelfCount + node.piece.lfCount > lineNumber) {
-                const startOffsetInPiece = this.__getOffsetInPieceAtLineIndex(node.piece, lineNumber - node.leftSubtreelfCount - 1);
-                const endOffsetInPiece = this.__getOffsetInPieceAtLineIndex(node.piece, lineNumber - node.leftSubtreelfCount);
+            else if (node.piece.lfCount > lineNumber - node.leftSubtreelfCount) {
+                const startOffsetInPiece = this.__getOffsetInPieceAtLineIndex(node.piece, lineNumber - node.leftSubtreelfCount);
+                const endOffsetInPiece = this.__getOffsetInPieceAtLineIndex(node.piece, lineNumber - node.leftSubtreelfCount + 1);
                 nodeTextOffset += node.leftSubtreeBufferLength;
                 return {
                     position: {
                         textOffset: nodeTextOffset,
                         node: node,
                     },
-                    pieceOffset: Math.min(endOffsetInPiece, startOffsetInPiece + lineOffset - 1),
+                    pieceOffset: Math.min(endOffsetInPiece, startOffsetInPiece + lineOffset),
                 };
             }
-            else if (node.leftSubtreelfCount + node.piece.lfCount === lineNumber) {
-                const startOffsetInPiece = this.__getOffsetInPieceAtLineIndex(node.piece, lineNumber - node.leftSubtreelfCount - 1);
-                if (startOffsetInPiece + lineOffset - 1 > node.piece.pieceLength) {
+            else if (node.piece.lfCount === lineNumber - node.leftSubtreelfCount) {
+                const startOffsetInPiece = this.__getOffsetInPieceAtLineIndex(node.piece, lineNumber - node.leftSubtreelfCount);
+                if (startOffsetInPiece + lineOffset > node.piece.pieceLength) {
                     // the rest of the line content is in the next piece.
-                    lineOffset -= (node.piece.pieceLength + startOffsetInPiece);
+                    lineOffset -= node.piece.pieceLength - startOffsetInPiece;
                     break;
                 }
 
@@ -1692,7 +1696,7 @@ export class PieceTable implements IPieceTable {
                         textOffset: nodeTextOffset,
                         node: node,
                     },
-                    pieceOffset: startOffsetInPiece + lineOffset - 1,
+                    pieceOffset: startOffsetInPiece + lineOffset,
                 };
             }
             else {
@@ -1702,29 +1706,29 @@ export class PieceTable implements IPieceTable {
             }
         }
 
-        // search for the rest of the pieces until we find the whole line completely.
+        // search for the rest of the pieces until we find at least one linefeed
         node = PieceNode.next(node);
         while (node !== NULL_NODE) {
             if (node.piece.lfCount > 0) {
-                const startOffsetInPiece = this.__getOffsetInPieceAtLineIndex(node.piece, 0);
+                const startOffsetInPiece = this.__getOffsetInPieceAtLineIndex(node.piece, 1);
                 const textOffsetOfPiece = this.__getOffsetOfPiece(node);
                 return {
                     position: {
                         textOffset: textOffsetOfPiece,
                         node: node,
                     },
-                    pieceOffset: Math.min(lineOffset - 1, startOffsetInPiece),
+                    pieceOffset: Math.min(lineOffset, startOffsetInPiece),
                 };
             }
             else {
-                if (node.piece.pieceLength >= lineOffset - 1) {
+                if (node.piece.pieceLength >= lineOffset) {
                     const textOffsetOfPiece = this.__getOffsetOfPiece(node);
                     return {
                         position: {
                             textOffset: textOffsetOfPiece,
                             node: node,
                         },
-                        pieceOffset: lineOffset - 1,
+                        pieceOffset: lineOffset,
                     };
                 } else {
                     lineOffset -= node.piece.pieceLength;
@@ -1744,6 +1748,9 @@ export class PieceTable implements IPieceTable {
      * @param node The given piece node in the tree.
      */
     private __getOffsetOfPiece(node: PieceNode): number {
+        if (!node) {
+            return 0;
+        }
         let textOffset = node.leftSubtreeBufferLength;
         while (node !== this._root) {
             if (node.parent.right === node) {
@@ -1988,8 +1995,8 @@ export class PieceTable implements IPieceTable {
     }
 
     /**
-     * @description Returns the offset relatives to the given piece at the given 
-     * line index (relative to the buffer).
+     * @description Returns the linestart offset relatives to the given piece at 
+     * the given line index (relative to the buffer).
      * @param lineIndex The line number where it stops (the length of the line 
      * is not included).
      */
