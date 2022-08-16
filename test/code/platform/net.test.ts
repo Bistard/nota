@@ -4,6 +4,7 @@ import { DataBuffer } from 'src/base/common/file/buffer';
 import { URI } from 'src/base/common/file/uri';
 import { NullLogger } from 'src/base/common/logger';
 import { delayFor } from 'src/base/common/util/async';
+import { mockType } from 'src/base/common/util/type';
 import { IChannel, IServerChannel } from 'src/code/platform/ipc/common/channel';
 import { ClientConnectEvent, ClientBase, ServerBase } from 'src/code/platform/ipc/common/net';
 import { IProtocol } from 'src/code/platform/ipc/common/protocol';
@@ -285,7 +286,7 @@ suite('Base IPC', function () {
 			server.registerChannel(TestChannelId, ProxyChannel.wrapService(service));
 
 			client = testServer.createConnection('client1');
-			ipcService = ProxyChannel.unwrapChannel(client.getChannel(TestChannelId));
+			ipcService = mockType(ProxyChannel.unwrapChannel(client.getChannel(TestChannelId)));
 		});
 
 		teardown(function () {
