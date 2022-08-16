@@ -21,7 +21,10 @@ export function mixin(destination: any, source: any, overwrite: boolean = true):
 						return;
 					}
 
-					if (isObject(destination[propName]) && isObject(source[propName])) {
+					if (destination.hasOwnProperty(propName) 
+						&& isObject(destination[propName]) 
+						&& isObject(source[propName])
+					) {
 						mixin(destination[propName], source[propName], overwrite);
 					} else {
 						destination[propName] = source[propName];
