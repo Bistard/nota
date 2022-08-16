@@ -1,3 +1,4 @@
+import { ByteSize } from "src/base/common/file/file";
 import { Character, CharCode } from "src/base/common/util/char";
 import { Mutable } from "src/base/common/util/type";
 import { EndOfLine, IBufferPosition, IPiece, IPiecePosition, IPieceTable, IPieceNode, RBColor, IPieceNodePosition } from "src/editor/common/model";
@@ -220,7 +221,7 @@ NULL_NODE.right = NULL_NODE;
  * I. Insertion and deletion are extremely fast in this data structure.
  * 
  * II. Using a single string to represent `original` and `added` may hurts the
- * performance in some circustances:
+ * performance in some circumstances:
  *      1. V8 engine did not support string length over 256MB back at time.
  *      2. String concatenation is inefficient and stupid.
  * Instead, every time when the program reads a chunk of bytes, say 256KB per 
@@ -250,7 +251,7 @@ export class PieceTable implements IPieceTable {
     /**
      * APPEND-ONLY BUFFER
      *      - [0]: added buffer
-     *      - [i]: original buffer
+     *      - [i]: original buffer, 1 <= i
      */
     private _buffer: TextBuffer[];
 
@@ -264,7 +265,7 @@ export class PieceTable implements IPieceTable {
     private _shouldBeNormalized: boolean;
     private _normalizedEOL: EndOfLine;
 
-    public static readonly AVERAGE_BUFFER_SIZE = 64 * 1024;
+    public static readonly AVERAGE_BUFFER_SIZE = 64 * ByteSize.KB;
 
     // [constructor]
 
