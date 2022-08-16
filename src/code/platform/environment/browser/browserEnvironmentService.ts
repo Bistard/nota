@@ -1,6 +1,5 @@
 import { ILogService } from "src/base/common/logger";
 import { windowConfiguration } from "src/code/platform/electron/browser/global";
-import { ISandboxProcess } from "src/code/platform/electron/common/electronType";
 import { IBrowserEnvironmentService } from "src/code/platform/environment/common/environment";
 import { MainEnvironmentService } from "src/code/platform/environment/electron/mainEnvironmentService";
 import { IWindowConfiguration } from "src/code/platform/window/common/window";
