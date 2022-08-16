@@ -58,12 +58,10 @@ export interface IConfigService extends IDisposable {
      */
     save(): Promise<void>;
     
-    
     /**
      * @description Reads the configuration from the disk to the memory.
      */
     read(): Promise<void>;
-
 }
 
 /**

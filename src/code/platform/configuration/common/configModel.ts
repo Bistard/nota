@@ -29,35 +29,33 @@ export interface IConfigChange {
 
  export interface IConfigModel {
 
-    /** 
-     * @readonly get the inner structure of the configuration (a javascript object) 
-     */
-    object: any;
-
+    /** Get the actual structure of the configuration. */
+    readonly object: Object;
     get<T>(section: string | undefined): T | undefined;
-
     set(section: string | undefined, value: any): void;
-
 }
 
 /**
- * @class The data structure to stores the actual configruration. Each `configServiceBase`
- * consists exact one ConfigModel.
- * 
- * The default constructor is a null javascript object.
+ * @class The data structure to stores the actual configruration. Each 
+ * `configServiceBase` consists exact one ConfigModel.
+ * @note The default constructor is a null javascript object.
  */
 export class ConfigModel implements IConfigModel {
 
-    constructor(
-        private _object: any = {}
-    ) {}
+    // [field]
+
+    private _object = Object.create(null);
+
+    // [constructor]
+
+    constructor(object?: Object) {
+        this._object = object;
+    }
+
+    // [public methods]
 
     get object(): any {
         return this._object;
-    }
-
-    protected __setObject(obj: any): void {
-        this._object = obj;
     }
 
     public get<T>(section: string | undefined = undefined): T | undefined {
@@ -75,6 +73,14 @@ export class ConfigModel implements IConfigModel {
             this._object = value;
         }
     }
+
+    // [protected helper method]
+
+    protected __setObject(obj: any): void {
+        this._object = obj;
+    }
+
+    // [private helper methods]
 
     private __getConfigBySection<T>(section: string, config: any): T | undefined {
 
