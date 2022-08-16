@@ -7,8 +7,8 @@ import { UUID } from "src/base/node/uuid";
 import { ICLIArguments } from "src/code/platform/environment/common/argument";
 import { IEnvironmentOpts } from "src/code/platform/environment/common/environment";
 
-export const enum ProcessKey {
-    configuration = 'window-config'
+export const enum ArgumentKey {
+    configuration = 'window-configuration'
 }
 
 export const enum WindowDisplayMode {
@@ -39,10 +39,15 @@ export function defaultDisplayState(mode: WindowDisplayMode = WindowDisplayMode.
     };
 }
 
-export interface IOpenWindowOpts {
+/**
+ * Extending {@link IWindowConfiguration} so that caller can have a chance to
+ * override the default settings which are defined by the current environment.
+ */
+export interface IWindowCreationOptions extends Partial<IWindowConfiguration> {
     
-    readonly CLIArgv: ICLIArguments;
-
+    readonly CLIArgv?: ICLIArguments;
+    readonly displayState?: IWindowDisplayState;
+    readonly loadFile: string;
 }
 
 /**
@@ -67,10 +72,8 @@ export interface IWindowInstance extends Disposable {
  * An interface for constructing a window (renderer process). On the base of
  * {@link IEnvironmentOpts}.
  */
-export interface ICreateWindowConfiguration extends ICLIArguments, IEnvironmentOpts {
+export interface IWindowConfiguration extends ICLIArguments, IEnvironmentOpts {
 
     readonly machineID: UUID;
     readonly windowID: number;
-
-    displayState?: IWindowDisplayState;
 }

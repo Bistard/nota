@@ -8,8 +8,9 @@ import { createDecorator } from "src/code/platform/instantiation/common/decorato
 import { IInstantiationService } from "src/code/platform/instantiation/common/instantiation";
 import { IEnvironmentService, IMainEnvironmentService } from "src/code/platform/environment/common/environment";
 import { IMainLifeCycleService } from "src/code/platform/lifeCycle/electron/mainLifeCycleService";
-import { ICreateWindowConfiguration, IOpenWindowOpts, IWindowInstance } from "src/code/platform/window/common/window";
+import { IWindowConfiguration, IWindowCreationOptions, IWindowInstance } from "src/code/platform/window/common/window";
 import { WindowInstance } from "src/code/platform/window/electron/windowInstance";
+import { ILookupPaletteService } from "src/code/platform/lookup/electron/lookupPaletteService";
 
 export const IMainWindowService = createDecorator<IMainWindowService>('main-window-service');
 
@@ -24,7 +25,12 @@ export interface IMainWindowService extends Disposable {
 
     readonly onDidCloseWindow: Register<IWindowInstance>;
 
-    open(options: IOpenWindowOpts): IWindowInstance;
+    /**
+     * @description Returns the number of running window.
+     */
+    windowCount(): number;
+
+    open(options: IWindowCreationOptions): IWindowInstance;
 }
 
 /**
@@ -66,16 +72,20 @@ export class MainWindowService extends Disposable implements IMainWindowService 
 
     // [public methods]
 
-    public open(options: IOpenWindowOpts): IWindowInstance {
+    public windowCount(): number {
+        return this._windows.length;
+    }
+
+    public open(options: IWindowCreationOptions): IWindowInstance {
         this.logService.trace('Main#mainWindowService#trying to open a window...');
 
-        const window = this.doOpen(options);
+        const newWindow = this.doOpen(options);
         
         // load the window in browser
-        window.load();
+        newWindow.load();
 
         this.logService.trace('Main#mainWindowService#window opened');
-        return window;
+        return newWindow;
     }
 
     // [private methods]
@@ -85,7 +95,7 @@ export class MainWindowService extends Disposable implements IMainWindowService 
         // noop
     }
 
-    private doOpen(options: IOpenWindowOpts): IWindowInstance {
+    private doOpen(opts: IWindowCreationOptions): IWindowInstance {
 
         let window: IWindowInstance;
 
@@ -95,27 +105,26 @@ export class MainWindowService extends Disposable implements IMainWindowService 
          * configuration will be passed as an additional argument when creating
          * a `BrowserWindow`.
          */
-        const configuration: ICreateWindowConfiguration = {
+        const configuration: IWindowConfiguration = {
             // additional configuration
             machineID: this.machineID,
             windowID: -1, // will be update once window is loaded
-            displayState: undefined,
-
+            
             // {@link ICLIArguments}
-            _: this.environmentMainService.CLIArguments._,
-            log: this.environmentMainService.CLIArguments.log,
-            'open-devtools': this.environmentMainService.CLIArguments["open-devtools"],
+            _:               opts._                ?? this.environmentMainService.CLIArguments._,
+            log:             opts.log              ?? this.environmentMainService.CLIArguments.log,
+            'open-devtools': opts['open-devtools'] ?? this.environmentMainService.CLIArguments['open-devtools'],
             
             // {@link IEnvironmentOpts}
-            isPackaged: this.environmentMainService.isPackaged,
-            appRootPath: this.environmentMainService.appRootPath,
-            tmpDirPath: this.environmentMainService.tmpDirPath,
-            userDataPath: this.environmentMainService.userDataPath,
-            userHomePath: this.environmentMainService.userHomePath,
+            isPackaged:   opts.isPackaged   ?? this.environmentMainService.isPackaged,
+            appRootPath:  opts.appRootPath  ?? this.environmentMainService.appRootPath,
+            tmpDirPath:   opts.tmpDirPath   ?? this.environmentMainService.tmpDirPath,
+            userDataPath: opts.userDataPath ?? this.environmentMainService.userDataPath,
+            userHomePath: opts.userHomePath ?? this.environmentMainService.userHomePath,
         };
         
         // open a new window instance
-        window = this.__openInNewWindow(options, configuration);
+        window = this.__openInNewWindow(opts, configuration);
 
         (<Mutable<typeof configuration>>configuration).windowID = window.id;
         
@@ -124,13 +133,17 @@ export class MainWindowService extends Disposable implements IMainWindowService 
 
     // [private helper methods]
 
-    private __openInNewWindow(options: IOpenWindowOpts, configuration: ICreateWindowConfiguration): IWindowInstance {
+    private __openInNewWindow(options: IWindowCreationOptions, configuration: IWindowConfiguration): IWindowInstance {
         this.logService.trace('Main#MainWindowService#openInNewWindow');
         
         const newWindow = this.instantiationService.createInstance(
             WindowInstance,
-            configuration
+            configuration,
+            options,
         );
+        
+        this._windows.push(newWindow);
+        this._onDidOpenWindow.fire(newWindow);
 
         return newWindow;
     }
