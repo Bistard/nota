@@ -1057,7 +1057,6 @@ export class PieceTable implements IPieceTable {
      * @description Iteration the whole red-black tree in pre-order.
      * @param node The current node for iteration.
      * @param fn The function applies to each node.
-     * 
      * @note This will not go through each {@link NULL_NODE}.
      */
     private __preOrder(node: PieceNode, fn: (node: PieceNode) => void): void {
@@ -1075,7 +1074,6 @@ export class PieceTable implements IPieceTable {
      * @description Returns the relative offset in the buffer.
      * @param bufferIndex The index of the buffer.
      * @param position The position of points to the location of the buffer.
-     * 
      * @complexity O(1)
      */
     private __getOffsetInBufferAt(bufferIndex: number, position: IBufferPosition): number {
@@ -1086,7 +1084,6 @@ export class PieceTable implements IPieceTable {
     /**
      * @description Given the {@link PieceNode}, returns the string which the 
      * node is pointing at.
-     * 
      * @complexity O(n), n - the length of the piece.
      */
     private __getNodeContent(node: PieceNode): string {
@@ -1403,7 +1400,6 @@ export class PieceTable implements IPieceTable {
      * @description Given a {@link Piece}, constructs a new {@link PieceNode} 
      * and insert the new node as a predecessor to the given node.
      * @returns The created node.
-     * 
      * @complexity O(h)
      */
     private __insertAsPredecessor(node: PieceNode, piece: Piece): PieceNode {
@@ -1434,7 +1430,6 @@ export class PieceTable implements IPieceTable {
     /**
      * @description Fix the red-black tree metadata after the insertion.
      * @param node The node which just been inserted.
-     * 
      * @complexity O(h)
      */
     private __fixAfterInsertion(node: PieceNode): void {
@@ -1492,7 +1487,6 @@ export class PieceTable implements IPieceTable {
      * @description Given the node, recalculates and updates its piece metadata
      * upwards until the root.
      * @param node The node which just been moved.
-     * 
      * @complexity O(h)
      */
     private __updatePieceMetadata(node: PieceNode): void {
@@ -1553,7 +1547,6 @@ export class PieceTable implements IPieceTable {
     /**
      * @description Left rotates the given node to balance the red-black tree.
      * @param node The given node.
-     * 
      * @note Rotation will automatically updates piece metadata as well.
      * @complexity O(1)
      */
@@ -1587,7 +1580,6 @@ export class PieceTable implements IPieceTable {
     /**
      * @description Right rotates the given node to balance the red-black tree.
      * @param node The given node.
-     * 
      * @note Rotation will automatically updates piece metadata as well.
      * @complexity O(1)
      */
@@ -1711,7 +1703,6 @@ export class PieceTable implements IPieceTable {
     /**
      * @description Recalculates all the basic metadata of the whole tree (total 
      *  buffer length / total linefeed count).
-     * 
      * @complexity O(h)
      */
      private __updateTableMetadata(): void {
@@ -1733,7 +1724,6 @@ export class PieceTable implements IPieceTable {
      * @description A auxliary function for `getRawLine`.
      * @param lineNumber The line number (zero-based).
      * @param eolLength The length of the linefeed.
-     * 
      * @complexity O(h)
      */
     private __getRawLine(lineNumber: number, eolLength: number = 0): string {
@@ -1762,8 +1752,8 @@ export class PieceTable implements IPieceTable {
 
                 lineNumber -= node.leftSubtreelfCount;
 
-                const desiredLineStartOffset = this.__getPieceOffsetAtLineIndex(piece, lineNumber);
-                const desiredLineEndOffset = this.__getPieceOffsetAtLineIndex(piece, lineNumber + 1);
+                const desiredLineStartOffset = this.__getOffsetInPieceAtLineIndex(piece, lineNumber);
+                const desiredLineEndOffset = this.__getOffsetInPieceAtLineIndex(piece, lineNumber + 1);
                 
                 return buffer.substring(
                     pieceStartOffset + desiredLineStartOffset, 
@@ -1777,7 +1767,7 @@ export class PieceTable implements IPieceTable {
                 const pieceStartOffset = this.__getOffsetInBufferAt(piece.bufferIndex, piece.start);
                 
                 lineNumber -= node.leftSubtreelfCount;
-                const desiredLineStartOffset = this.__getPieceOffsetAtLineIndex(piece, lineNumber);
+                const desiredLineStartOffset = this.__getOffsetInPieceAtLineIndex(piece, lineNumber);
                 
                 lineBuffer = buffer.substring(
                     pieceStartOffset + desiredLineStartOffset,
@@ -1805,7 +1795,7 @@ export class PieceTable implements IPieceTable {
             const pieceStartOffset = this.__getOffsetInBufferAt(piece.bufferIndex, piece.start);
 
             if (piece.lfCount) {
-                const lineLength = this.__getPieceOffsetAtLineIndex(node.piece, 1);
+                const lineLength = this.__getOffsetInPieceAtLineIndex(node.piece, 1);
                 lineBuffer += buffer.substring(
                     pieceStartOffset, 
                     pieceStartOffset + lineLength - eolLength
@@ -1828,7 +1818,6 @@ export class PieceTable implements IPieceTable {
      * the given piece offset where the location is relatives to the buffer.
      * @param piece The given piece.
      * @param pieceOffset The offset relatives to the piece.
-     * 
      * @complexity O(logn), n - number of lines in the piece.
      */
     private __getPositionInBufferAt(piece: IPiece, pieceOffset: number): IBufferPosition {
@@ -1882,7 +1871,6 @@ export class PieceTable implements IPieceTable {
      * the given piece offset where the location is relatives to the piece.
      * @param piece The given {@link IPiece}.
      * @param pieceOffset The offset relatives to the piece.
-     * 
      * @complexity — O(logn), n - number of lines in the piece.
      */
     private __getPositionInPieceAt(piece: IPiece, pieceOffset: number): IPiecePosition {
@@ -1901,25 +1889,23 @@ export class PieceTable implements IPieceTable {
     }
 
     /**
-     * @description Returns the piece offset (piece length) at the given line 
-     * index (relative to the buffer).
+     * @description Returns the offset relatives to the given piece at the given 
+     * line index (relative to the buffer).
      * @param lineIndex The line number where it stops (the length of the line 
      * is not included).
      */
-    private __getPieceOffsetAtLineIndex(piece: Piece, lineIndex: number): number {
+    private __getOffsetInPieceAtLineIndex(piece: Piece, lineIndex: number): number {
         if (lineIndex <= 0) {
             return 0;
         }
 
-        const linestart = this._buffer[piece.bufferIndex]!.linestart;
-
         const desiredLineIndex = piece.start.lineNumber + lineIndex;
-        
         if (desiredLineIndex > piece.end.lineNumber) {
             return piece.pieceLength;
         }
 
-        return linestart[desiredLineIndex]! - linestart[piece.start.lineNumber]! - piece.start.lineOffset;
+        const linestart = this._buffer[piece.bufferIndex]!.linestart;
+        return linestart[desiredLineIndex]! - (linestart[piece.start.lineNumber]! + piece.start.lineOffset);
     }
 
     // [private helper methods - EOL]
