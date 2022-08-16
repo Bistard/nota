@@ -56,7 +56,7 @@ export class MainEnvironmentService implements IMainEnvironmentService {
     get appRootPath(): URI { return URI.fromFile(this.opts.appRootPath!); }
 
     @memoize
-    get logPath(): URI { return URI.fromFile(join(this.opts.appRootPath!, NOTA_DIR_NAME, 'log', getCurrTimeStamp().replace(/-|:| |\./g, ''))); }
+    get logPath(): URI { return URI.fromFile(join(this.opts.appRootPath!, NOTA_DIR_NAME, 'log', getCurrTimeStamp().replace(/:| |\./g, '-'))); }
 
     @memoize
     get appConfigurationPath(): URI { return URI.fromFile(join(this.opts.appRootPath!, NOTA_DIR_NAME)); }
