@@ -15,6 +15,12 @@ export function mixin(destination: any, source: any, overwrite: boolean = true):
 		Object.keys(source).forEach(propName => {
 			if (propName in destination) {
 				if (overwrite) {
+
+					// see prototype-polluting https://github.com/Bistard/nota/issues/129
+					if (source.hasOwnProperty(propName) === false) {
+						return;
+					}
+
 					if (isObject(destination[propName]) && isObject(source[propName])) {
 						mixin(destination[propName], source[propName], overwrite);
 					} else {
