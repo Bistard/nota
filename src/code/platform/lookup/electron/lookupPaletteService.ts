@@ -4,16 +4,16 @@ import { createDecorator } from "src/code/platform/instantiation/common/decorato
 
 const GLOBAL_LOOKUP_KEY = 'Control+Tab';
 
-export const IMainLookupService = createDecorator<IMainLookupService>('main-lookup-service');
+export const ILookupPaletteService = createDecorator<ILookupPaletteService>('main-lookup-service');
 
-export interface IMainLookupService {
+export interface ILookupPaletteService {
     // empty
 }
 
 /**
  * @class // TODO
  */
-export class MainLookupService implements IMainLookupService {
+export class LookupPaletteService implements ILookupPaletteService {
 
     constructor(
         @ILogService private readonly logService: ILogService,
@@ -30,7 +30,7 @@ export class MainLookupService implements IMainLookupService {
             return;
         }
 
-        globalShortcut.register('Control+Shift+F', () => this.openGlobalLookupBar());
+        globalShortcut.register(GLOBAL_LOOKUP_KEY, () => this.openGlobalLookupBar());
     }
 
     private openGlobalLookupBar(): void {

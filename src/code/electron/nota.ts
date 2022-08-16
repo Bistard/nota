@@ -22,7 +22,7 @@ import { IMainWindowService, MainWindowService } from "src/code/platform/window/
 import { ILoggerService } from "src/code/platform/logger/common/abstractLoggerService";
 import { MainLoggerChannel } from "src/code/platform/logger/common/loggerChannel";
 import { IMainDialogService, MainDialogService } from "src/code/platform/dialog/electron/mainDialogService";
-import { IMainLookupService, MainLookupService } from "src/code/platform/lookup/electron/mainLookupService";
+import { ILookupPaletteService, LookupPaletteService } from "src/code/platform/lookup/electron/lookupPaletteService";
 
 /**
  * An interface only for {@link NotaInstance}
@@ -129,7 +129,7 @@ export class NotaInstance extends Disposable implements INotaInstance {
         // TODO: notebook-group-service
 
         // lookup-service
-        appInstantiationService.register(IMainLookupService, new ServiceDescriptor(MainLookupService));
+        appInstantiationService.register(ILookupPaletteService, new ServiceDescriptor(LookupPaletteService));
 
         return appInstantiationService;
     }
