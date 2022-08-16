@@ -10,7 +10,6 @@ import { IEnvironmentService, IMainEnvironmentService } from "src/code/platform/
 import { IMainLifeCycleService } from "src/code/platform/lifeCycle/electron/mainLifeCycleService";
 import { IWindowConfiguration, IWindowCreationOptions, IWindowInstance } from "src/code/platform/window/common/window";
 import { WindowInstance } from "src/code/platform/window/electron/windowInstance";
-import { ILookupPaletteService } from "src/code/platform/lookup/electron/lookupPaletteService";
 
 export const IMainWindowService = createDecorator<IMainWindowService>('main-window-service');
 
@@ -37,7 +36,9 @@ export interface IMainWindowService extends Disposable {
 }
 
 /**
- * // TODO
+ * @class Window-service has ability to create windows based on different 
+ * configurations. It also tracks all the life cycles of every 
+ * {@link IWindowInstance}.
  */
 export class MainWindowService extends Disposable implements IMainWindowService {
 

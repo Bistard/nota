@@ -11,7 +11,8 @@ import { IMainLifeCycleService } from "src/code/platform/lifeCycle/electron/main
 import { defaultDisplayState, IWindowConfiguration, IWindowDisplayState, IWindowInstance, WindowDisplayMode, WindowMinimumState, IWindowCreationOptions, ArgumentKey } from "src/code/platform/window/common/window";
 
 /**
- * @class // TODO
+ * @class A window instance is a wrapper class of {@link BrowserWindow} that
+ * will be used in the main process.
  */
 export class WindowInstance extends Disposable implements IWindowInstance {
 
