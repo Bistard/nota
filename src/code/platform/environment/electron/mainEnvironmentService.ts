@@ -15,7 +15,6 @@ import { IEnvironmentOpts, IMainEnvironmentService } from "src/code/platform/env
  */
 export class MainEnvironmentService extends DiskEnvironmentService implements IMainEnvironmentService {
 
-    
     constructor(
         CLIArgv: ICLIArguments,
         opts: IEnvironmentOpts,

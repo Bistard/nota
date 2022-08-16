@@ -23,7 +23,7 @@ import { createServer, Server } from 'net';
 import { ProcessKey } from 'src/base/common/process';
 
 interface IMainProcess {
-    start(argv: ICLIArguments): void;
+    start(argv: ICLIArguments): Promise<void>;
 }
 
 /**
@@ -49,11 +49,11 @@ const nota = new class extends class MainProcess implements IMainProcess {
 
     constructor() {}
 
-    public start(argv: ICLIArguments): void {
+    public async start(argv: ICLIArguments): Promise<void> {
         (<any>this.CLIArgv) = argv;
         try {
             ErrorHandler.setUnexpectedErrorExternalCallback(err => console.error(err));
-            this.run();
+            await this.run();
         } catch (unexpectedError: any) {
             console.error(unexpectedError.message ?? 'unknown error message');
             app.exit(1);
@@ -95,7 +95,7 @@ const nota = new class extends class MainProcess implements IMainProcess {
             await this.resolveSingleApplication();
 
             const instance = this.instantiationService.createInstance(NotaInstance);
-            instance.run();
+            await instance.run();
         } 
         catch (err) {
             error = err;
@@ -182,7 +182,6 @@ const nota = new class extends class MainProcess implements IMainProcess {
             ].map(path => mkdir(URI.toFsPath(path), { recursive: true }))),
 
             this.statusService.init(),
-            // reading configurations of the application
             this.globalConfigService.init(),          
         ]);
     }
