@@ -81,11 +81,7 @@ export interface IEnvironmentService {
     readonly logLevel: LogLevel;
 }
 
-/**
- * The native environment works only in main process in Electron.
- */
-export interface IMainEnvironmentService extends IEnvironmentService {
-    
+export interface IDiskEnvironmentService extends IEnvironmentService {
     /**
      * The arguments from command line interface.
      */
@@ -116,9 +112,21 @@ export interface IMainEnvironmentService extends IEnvironmentService {
 }
 
 /**
- * Environment used in renderer process (contains disk relevant info).
+ * The native environment works only in main process in Electron.
  */
-export interface IBrowserEnvironmentService extends IEnvironmentService {
+export interface IMainEnvironmentService extends IDiskEnvironmentService {
+    
+    /**
+     * The handle used for main process to ensure there is only one running 
+     * application.
+     */
+    readonly mainIpcHandle: string;
+}
+
+/**
+ * Environment used in renderer process.
+ */
+export interface IBrowserEnvironmentService extends IDiskEnvironmentService {
 
     /**
      * The unique ID for the current running application.

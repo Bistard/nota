@@ -8,7 +8,7 @@ import { ConfigModel, IConfigType } from "src/code/platform/configuration/common
 import { ConfigServiceBase, IConfigService } from "src/code/platform/configuration/common/configServiceBase";
 import { IFileService } from "src/code/platform/files/common/fileService";
 import { createDecorator } from "src/code/platform/instantiation/common/decorator";
-import { IEnvironmentService, IMainEnvironmentService } from "src/code/platform/environment/common/environment";
+import { IDiskEnvironmentService, IEnvironmentService, IMainEnvironmentService } from "src/code/platform/environment/common/environment";
 import { Language } from "src/code/platform/i18n/i18n";
 import { DefaultGlobalConfigModel, DefaultUserConfigModel, EGlobalSettings, EUserSettings, IGlobalApplicationSettings, IGlobalNotebookManagerSettings, IUserMarkdownSettings, IUserNotebookManagerSettings } from "src/code/platform/configuration/common/configuration";
 
@@ -69,7 +69,7 @@ export class UserConfigService extends ConfigServiceBase implements IUserConfigS
     constructor(
         @IFileService fileService: IFileService,
         @ILogService logService: ILogService,
-        @IEnvironmentService environmentService: IMainEnvironmentService,
+        @IEnvironmentService environmentService: IDiskEnvironmentService,
     ) {
         super(__getUserConfigResourcePath, environmentService.appConfigurationPath, IConfigType.USER, new DefaultUserConfigModel(), fileService, logService);
     }
