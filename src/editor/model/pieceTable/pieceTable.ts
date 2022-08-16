@@ -330,7 +330,7 @@ export class PieceTable implements IPieceTable {
         }
         // non-empty, complicated stuff
         else {
-            const { position, pieceOffset } = this.__getNodeAt(textOffset);
+            const { position, pieceOffset } = this.__getNodeByOffset(textOffset);
             const nodeOffset = position.textOffset;
             const node = position.node;
             const piece = node.piece;
@@ -377,8 +377,8 @@ export class PieceTable implements IPieceTable {
             return;
         }
 
-        const startNodePosition = this.__getNodeAt(textOffset);
-        const endNodePosition = this.__getNodeAt(textOffset + length);
+        const startNodePosition = this.__getNodeByOffset(textOffset);
+        const endNodePosition = this.__getNodeByOffset(textOffset + length);
         const startNode = startNodePosition.position.node;
         const endNode = endNodePosition.position.node;
 
@@ -737,7 +737,7 @@ export class PieceTable implements IPieceTable {
     }
     
     public getCharcodeAt(textOffset: number): number {
-        const { position, pieceOffset } = this.__getNodeAt(textOffset);
+        const { position, pieceOffset } = this.__getNodeByOffset(textOffset);
         return this.__getCharcodeAt(position, pieceOffset);
     }
 
@@ -1624,7 +1624,7 @@ export class PieceTable implements IPieceTable {
      * @param textOffset The text offset relatives to the whole text model.
      * @complexity O(h)
      */
-    private __getNodeAt(textOffset: number): { position: IPieceNodePosition, pieceOffset: number } {
+    private __getNodeByOffset(textOffset: number): { position: IPieceNodePosition, pieceOffset: number } {
 
         let node = this._root;
         let nodeTextOffset = 0;
