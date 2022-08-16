@@ -92,7 +92,3 @@ export function deepCopy<T extends object | []>(obj: T): T {
 
 	return copy;
 }
-
-export function deepFreeze(obj: any): void {
-
-}
