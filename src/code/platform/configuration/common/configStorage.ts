@@ -1,17 +1,74 @@
 import { deepCopy } from "src/base/common/util/object";
 import { isObject } from "src/base/common/util/type";
 
+/**
+ * An interface only for {@link ConfigStorage}.
+ */
 export interface IConfigStorage {
+
+    /**
+     * Get all the sections of the storage. Section are seperated by `.`.
+     */
     readonly sections: string[];
+    
+    /**
+     * Get the actual data model of the storage.
+     */
     readonly model: any;
+
+    /**
+     * @description Get configuration at given section.
+     * @param section see {@link ConfigStorage}.
+     * @throws An exception will be thrown if the section is invalid.
+     * @note If section is not provided, the whole configuration will be 
+     * returned.
+     */
     get<T>(section?: string): T;
-    set(section: string, value: any): void;
+
+    /**
+     * @description Set configuration at given section.
+     * @param section see {@link ConfigStorage}.
+     * @throws An exception will be thrown if the section is invalid.
+     */
+    set(section: string, configuration: any): void;
+
+    /**
+     * @description Delete configuration at given section.
+     * @param section see {@link ConfigStorage}.
+     * @note Returns a boolean indicates if the operation successed.
+     */
     delete(section: string): boolean;
+
+    /**
+     * @description Merge the provided storages data into the current storage.
+     * The overlapped sections will be override by the incoming ones.
+     */
     merge(...others: ConfigStorage[]): void;
+    
+    /**
+     * @description Check if the current storage contains any configurations.
+     */
     isEmpty(): boolean;
+
+    /**
+     * @description Returns a deep copy of the current storage.
+     */
     clone(): ConfigStorage;
 }
 
+/**
+ * @class A base class for configuration storage purpose. You may set / get
+ * configuration using sections under `.` as seperator.
+ * @example section example: 'workspace.notebook.ifAutoSave'.
+ * 
+ * @note When storing sections, say initially we have `path1` as the only 
+ * section. When setting a value to new a section `path1.path2`, the storage
+ * will combine them into one single section named `path1.path2`.
+ * 
+ * @note When deleting a section, say `path1.path2`, storage will only delete
+ * the actual object at that specific path, the other parts of section `path1` 
+ * will not be touched.
+ */
 export class ConfigStorage implements IConfigStorage {
 
     // [field]
@@ -46,9 +103,9 @@ export class ConfigStorage implements IConfigStorage {
         return this._model;
     }
 
-    public set(section: string, value: any): void {
+    public set(section: string, configuration: any): void {
         this.__addSections(section);
-        this.__addToModel(section, value);
+        this.__addToModel(section, configuration);
     }
 
     public delete(section: string): boolean {
@@ -128,7 +185,7 @@ export class ConfigStorage implements IConfigStorage {
         return true;
     }
 
-    private __addToModel(section: string, value: any): void {
+    private __addToModel(section: string, configuration: any): void {
         const sections = section.split('.');
         const lastSection = sections.pop()!;
 
@@ -150,7 +207,7 @@ export class ConfigStorage implements IConfigStorage {
         }
 
         if (currModel && typeof currModel === 'object') {
-            currModel[lastSection] = value;
+            currModel[lastSection] = configuration;
         } else {
             throw new Error(`cannot add configuration section at ${section}`);
         }
