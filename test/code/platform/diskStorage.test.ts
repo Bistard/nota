@@ -6,7 +6,7 @@ import { Schemas, URI } from 'src/base/common/file/uri';
 import { ILogService, NullLogger } from 'src/base/common/logger';
 import { DiskFileSystemProvider } from 'src/code/platform/files/node/diskFileSystemProvider';
 import { FileService, IFileService } from 'src/code/platform/files/common/fileService';
-import { DiskStorage } from 'src/code/platform/files/common/storage';
+import { DiskStorage } from 'src/code/platform/files/common/diskStorage';
 import { TestDir } from 'test/testUtility';
 
 suite('storage-test', () => {
