@@ -70,8 +70,8 @@ export function iterPropertyEnumerable(obj: object, fn: (propName: string, index
  */
 export function deepCopy<T extends object | []>(obj: T): T {
 	
-	// ensure `null` does not count
-	if (!obj) {
+	// ensure `null` does not count and other weird stuff
+	if (!obj || typeof obj !== 'object') {
 		return obj;
 	}
 	

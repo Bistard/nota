@@ -55,7 +55,8 @@ suite('object-test', () => {
                     e: {},
                     f: {
                         g: 32,
-                    }
+                    },
+                    h: 'hello'
                 },
                 d: undefined
             } as any;
