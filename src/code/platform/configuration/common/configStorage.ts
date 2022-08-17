@@ -1,5 +1,5 @@
 import { deepCopy } from "src/base/common/util/object";
-import { isObject } from "src/base/common/util/type";
+import { isObject, Pair } from "src/base/common/util/type";
 
 /**
  * An interface only for {@link ConfigStorage}.
@@ -43,8 +43,8 @@ export interface IConfigStorage {
      * @description Merge the provided storages data into the current storage.
      * The overlapped sections will be override by the incoming ones.
      */
-    merge(...others: ConfigStorage[]): void;
-    
+    merge(others: ConfigStorage[]): void;
+
     /**
      * @description Check if the current storage contains any configurations.
      */
@@ -119,7 +119,7 @@ export class ConfigStorage implements IConfigStorage {
         return this._sections.length === 0;
     }
 
-    public merge(...others: ConfigStorage[]): void {
+    public merge(others: ConfigStorage[]): void {
         for (const other of others) {
             if (other.isEmpty()) {
                 continue;
@@ -246,5 +246,61 @@ export class ConfigStorage implements IConfigStorage {
 			}
 			destination[key] = deepCopy(source[key]);
 		}
+    }
+}
+
+/**
+ * @class An abstract wrapper class over {@link ConfigStorage}. You may override 
+ * `createDefaultStorage` method to auto generate a corresponding storage.
+ */
+export abstract class DefaultConfigStorage implements IConfigStorage {
+    
+    // [field]
+
+    private readonly _storage: ConfigStorage;
+
+    // [constructor]
+
+    constructor() {
+        const [sections, model] = this.createDefaultStorage();
+        this._storage = new ConfigStorage(sections, model);
+    }
+
+    // [protected override method]
+
+    protected abstract createDefaultStorage(): Pair<string[], Record<PropertyKey, any>>;
+
+    // [public wrapper methods]
+
+    get sections(): string[] { 
+        return this._storage.sections;
+    }
+    
+    get model(): any {
+        return this._storage.model;
+    }
+
+    public get<T>(section?: string): T {
+        return this._storage.get(section);
+    }
+
+    public set(section: string, configuration: any): void {
+        this._storage.set(section, configuration);
+    }
+
+    public delete(section: string): boolean {
+        return this._storage.delete(section);
+    }
+
+    public merge(others: ConfigStorage[]): void {
+        return this._storage.merge(others);
+    }
+
+    public isEmpty(): boolean {
+        return this._storage.isEmpty();
+    }
+
+    public clone(): ConfigStorage {
+        return this._storage.clone();
     }
 }
