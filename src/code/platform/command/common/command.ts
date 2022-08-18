@@ -19,6 +19,9 @@ export interface ICommandEvent {
     args: any[];
 }
 
+/**
+ * An interface only for {@link CommandRegistrant}.
+ */
 export interface ICommandRegistrant {
 
     /**
