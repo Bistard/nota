@@ -45,8 +45,12 @@ export function mixin(destination: any, source: any, overwrite: boolean = true):
  * @param fn The function that takes the string of the property and the ordinal 
  * index of the property in that object.
  */
-export function iterProperty(obj: object, fn: (propName: string, index: number) => any): void {
-    let idx = 0;
+export function iterProp(obj: any, fn: (propName: string, index: number) => any): void {
+    if (isObject(obj) === false) {
+		return;
+	}
+
+	let idx = 0;
 	for (const propName of Object.getOwnPropertyNames(Object.getPrototypeOf(obj))) {
 		fn(propName, idx++);
 	}
@@ -58,10 +62,20 @@ export function iterProperty(obj: object, fn: (propName: string, index: number) 
  * @param fn The function that takes the string of the property and the ordinal 
  * index of the property in that object.
  */
-export function iterPropertyEnumerable(obj: object, fn: (propName: string, index: number) => any): void {
-    let idx = 0;
+export function iterPropEnumerable(obj: any, fn: (propName: string, index: number) => any, recursive: boolean = false): void {
+    if (isObject(obj) === false) {
+		return;
+	}
+
+	let idx = 0;
 	for (const propName of Object.keys(obj)) {
 		fn(propName, idx++);
+		if (recursive) {
+			const value = obj[propName];
+			if (isObject(value)) {
+				iterPropEnumerable(value, fn, true);
+			}
+		}
 	}
 }
 
