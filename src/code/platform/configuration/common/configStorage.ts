@@ -43,7 +43,7 @@ export interface IConfigStorage {
      * @description Merge the provided storages data into the current storage.
      * The overlapped sections will be override by the incoming ones.
      */
-    merge(others: ConfigStorage[]): void;
+    merge(others: IConfigStorage[]): void;
 
     /**
      * @description Check if the current storage contains any configurations.
@@ -119,19 +119,19 @@ export class ConfigStorage implements IConfigStorage {
         return this._sections.length === 0;
     }
 
-    public merge(others: ConfigStorage[]): void {
+    public merge(others: IConfigStorage[]): void {
         for (const other of others) {
             if (other.isEmpty()) {
                 continue;
             }
 
             // merge sections
-            for (const newSection of other._sections) {
+            for (const newSection of other.sections) {
                 this.__addSections(newSection);
             }
 
             // merge model data
-            this.__mergeModelFrom(this._model, other._model);
+            this.__mergeModelFrom(this._model, other.model);
         }
     }
 
