@@ -45,8 +45,8 @@ export interface ICommandRegistrant {
 }
 
 /**
- * A command registrant registers a command and can be accessed through the
- * {@link ICommandService}.
+ * A command registrant can register commands and can be executed through 
+ * the {@link ICommandService}.
  */
 @ICommandRegistrant
 class CommandRegistrant implements ICommandRegistrant {

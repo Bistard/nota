@@ -1,7 +1,7 @@
 import { ErrorHandler } from "src/base/common/error";
 
 /**
- * The type of registrants nota currently have.
+ * The type of built-in registrants.
  */
 export const enum RegistrantType {
     Test = 0,
@@ -17,6 +17,17 @@ export interface IRegistrantIdentifier<T> {
 const _identifiers = new Map<RegistrantType, IRegistrantIdentifier<any>>();
 const _registarnts = new Map<IRegistrantIdentifier<any>, any>();
 
+/**
+ * @description Generates a registrant decorator. The idea of `registrant` is a 
+ * global singleton that has ability to register various of `things`. Most of 
+ * registrations are usually completed once scanning all the javascript files
+ * are done.
+ * @returns A class decorator that can be only used once. Once the registrant 
+ * class is decorated, the class will be automatically created and stored in
+ * {@link Registrants}.
+ * 
+ * @note `Registrant` can only be accessed through {@link Registrants}.
+ */
 export function createRegistrant<T>(registrantID: RegistrantType, ...args: any[]): IRegistrantIdentifier<T> {
     let registrantIdentifier = _identifiers.get(registrantID);
     
