@@ -1,5 +1,5 @@
 import { Emitter, Register } from "src/base/common/event";
-import { deepCopy, iterPropEnumerable } from "src/base/common/util/object";
+import { deepCopy } from "src/base/common/util/object";
 import { isObject, Pair } from "src/base/common/util/type";
 
 export interface IConfigChangeEvent {
