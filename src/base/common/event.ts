@@ -362,24 +362,29 @@ export class DelayableEmitter<T> extends Emitter<T> {
 export class SignalEmitter<T, E> extends Emitter<E> { 
 
     private disposables = new DisposableManager();
+    private logicHandler: (event: T) => E;
 
-    constructor(events: Register<T>[], logicHandler: (eventData: T) => E) {
+    constructor(events: Register<T>[], logicHandler: (event: T) => E) {
         super();
-        
+        this.logicHandler = logicHandler;
+
         for (const register of events) {
-            this.disposables.register(
-                register((data: T) => {
-                    this.fire(logicHandler(data));
-                })
-            );
+            this.add(register);
         }
+    }
+
+    public add(register: Register<T>, logicHandler: (event: T) => E = this.logicHandler): IDisposable {
+        return this.disposables.register(
+            register((event: T) => {
+                this.fire(logicHandler(event));
+            })
+        );
     }
 
     public override dispose(): void {
         super.dispose();
         this.disposables.dispose();
     }
-
 }
 
 /**
