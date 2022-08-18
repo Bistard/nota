@@ -1,9 +1,10 @@
 import * as assert from 'assert';
 import { NullLogger } from 'src/base/common/logger';
-import { CommandRegistrant, ICommandExecutor } from 'src/code/platform/command/common/command';
+import { ICommandExecutor, ICommandRegistrant } from 'src/code/platform/command/common/command';
 import { CommandService, ICommandService } from 'src/code/platform/command/common/commandService';
 import { createDecorator } from 'src/code/platform/instantiation/common/decorator';
 import { IInstantiationService, InstantiationService, IServiceProvider } from 'src/code/platform/instantiation/common/instantiation';
+import { Registrants } from 'src/code/platform/registrant/common/registrant';
 
 interface ITestService {
     num: number;
@@ -42,6 +43,7 @@ suite('command-test', () => {
     });
 
     test('register-command', () => {
+        const CommandRegistrant = Registrants.get(ICommandRegistrant);
         CommandRegistrant.registerCommand(id, executor);
 
         const command = CommandRegistrant.getCommand(id);

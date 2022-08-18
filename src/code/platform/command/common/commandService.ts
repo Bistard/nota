@@ -1,9 +1,10 @@
 import { Disposable } from "src/base/common/dispose";
 import { Emitter, Register } from "src/base/common/event";
 import { ILogService } from "src/base/common/logger";
-import { CommandRegistrant, ICommandEvent } from "src/code/platform/command/common/command";
+import { ICommandEvent, ICommandRegistrant } from "src/code/platform/command/common/command";
 import { createDecorator } from "src/code/platform/instantiation/common/decorator";
 import { IInstantiationService } from "src/code/platform/instantiation/common/instantiation";
+import { Registrants } from "src/code/platform/registrant/common/registrant";
 
 export const ICommandService = createDecorator<ICommandService>('command-service');
 
@@ -36,6 +37,8 @@ export class CommandService extends Disposable implements ICommandService {
     
     // [field]
 
+    private readonly _registrant: ICommandRegistrant = Registrants.get(ICommandRegistrant);
+
     private readonly _onDidExecuteCommand = this.__register(new Emitter<ICommandEvent>());
     public readonly onDidExecuteCommand = this._onDidExecuteCommand.registerListener;
 
@@ -52,7 +55,7 @@ export class CommandService extends Disposable implements ICommandService {
 
     public executeCommand<T = unknown>(id: string, ...args: any[]): Promise<T> {
 
-        const command = CommandRegistrant.getCommand(id);
+        const command = this._registrant.getCommand(id);
         if (!command) {
 			return Promise.reject(new Error(`command '${id}' not found`));
 		}

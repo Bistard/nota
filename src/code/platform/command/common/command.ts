@@ -1,5 +1,8 @@
 import { IDisposable, toDisposable } from "src/base/common/dispose";
 import { IServiceProvider } from "src/code/platform/instantiation/common/instantiation";
+import { createRegistrant, RegistrantType } from "src/code/platform/registrant/common/registrant";
+
+export const ICommandRegistrant = createRegistrant<ICommandRegistrant>(RegistrantType.Command);
 
 export interface ICommand<T = any> {
     readonly id: string;
@@ -15,7 +18,6 @@ export interface ICommandEvent {
     commandID: string;
     args: any[];
 }
-
 
 export interface ICommandRegistrant {
 
@@ -43,7 +45,8 @@ export interface ICommandRegistrant {
  * A command registrant registers a command and can be accessed through the
  * {@link ICommandService}.
  */
-export const CommandRegistrant: ICommandRegistrant = new class implements ICommandRegistrant {
+@ICommandRegistrant
+class CommandRegistrant implements ICommandRegistrant {
 
     private _commands = new Map<string, ICommand>();
 
