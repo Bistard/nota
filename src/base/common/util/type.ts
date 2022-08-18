@@ -1,5 +1,9 @@
 
 export type DightInString = '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9';
+export type AlphabetInStringLow = 'a' | 'b' | 'c' | 'd' | 'e' | 'f' | 'g' | 'h' | 'i' | 'j' | 'k' | 'l' | 'm' | 'n' | 'o' | 'p' | 'q' | 'r' | 's' | 't' | 'u' | 'v' | 'w' | 'x' | 'y' | 'z';
+export type AlphabetInStringCap = 'A' | 'B' | 'C' | 'D' | 'E' | 'F' | 'G' | 'H' | 'I' | 'J' | 'K' | 'L' | 'M' | 'N' | 'O' | 'P' | 'Q' | 'R' | 'S' | 'T' | 'U' | 'V' | 'W' | 'X' | 'Y' | 'Z';
+export type AlphabetInString = AlphabetInStringCap | AlphabetInStringLow;
+
 export type Single<T> = [T];
 export type Pair<T, R> = [T, R];
 export type Triple<T, R, S> = [T, R, S];
@@ -32,6 +36,11 @@ export type AnyOf<T extends readonly any[]> = T extends [infer F, ...infer Rest]
 export type Push<T extends any[], V> = [...T, V];
 
 /**
+ * Pop the end of the array (require non empty).
+ */
+export type Pop<T extends any[]> = T extends [...infer Rest, any] ? [Rest] : never;
+
+/**
  * Concatenate two arrays.
  */
 export type Concat<T extends any[], U extends any[]> = [...T, ...U];
@@ -60,6 +69,14 @@ export type Promisify<T> = {
             : (...args: Parameters<T[K]>) => Promise<R>) 
         : T[K] 
 };
+
+/**
+ * Split string into a tuple by a deliminator.
+ */
+export type SplitString<S extends string, D extends string> =
+    string extends S ? string[] :
+    S extends '' ? [] :
+    S extends `${infer T}${D}${infer U}` ? [T, ...SplitString<U, D>] : [S];
 
 /**
  * @description Mocks the given value's type.
