@@ -50,7 +50,7 @@ suite('configStorage-test', () => {
         });
     });
 
-    test('delete', () => {
+    test('delete1', () => {
         const storage = new ConfigStorage(['path1.path2'], {
             'path1': {
                 hello: 'hello',
@@ -89,6 +89,37 @@ suite('configStorage-test', () => {
         assert.strictEqual(storage.isEmpty(), true);
     });
 
+    test('delete2', () => {
+        const storage = new ConfigStorage(['path1.path2'], {
+            'path1': {
+                hello: 'hello',
+                world: null,
+                'path2': {
+                    a: 100,
+                    b: false,
+                    c: {
+                        d: undefined
+                    },
+                },
+            }
+        });
+
+        storage.set('path1.path3', {
+            f: 99,
+            g: {},
+            h: 'h',
+        });
+
+        storage.delete('path1');
+        try {
+            storage.get('path1');
+            assert.fail('should not be reached');
+        } catch {
+            assert.ok(true);
+        }
+        assert.strictEqual(storage.isEmpty(), true);
+    });
+
     test('merge', () => {
         const storage = new ConfigStorage(['path1'], {
             'path1': {
@@ -113,5 +144,51 @@ suite('configStorage-test', () => {
             },
             'path3': 9999,
         });
+    });
+
+    test('onDidChange', () => {
+        const storage = new ConfigStorage(['path1'], {
+            'path1': {
+                hello: 'hello',
+                world: null
+            }
+        });
+
+        let sections: string[] = [];
+        storage.onDidChange(event => {
+            sections = event.sections;
+        });
+
+        // set
+        storage.set('path1.path2', {
+            id: 1000,
+            obj: {},
+            'hello': 'world',
+        });
+        assert.deepStrictEqual(sections[0], 'path1.path2');
+
+        // delete
+        storage.delete('path1');
+        assert.deepStrictEqual(sections[0], 'path1');
+
+        // merge
+        assert.ok(storage.isEmpty());
+        storage.set('path1.path2.path3', {
+            result: true,
+        });
+        storage.merge([
+            new ConfigStorage(['path1.path2'], {
+                id: 1000,
+                obj: {},
+                'hello': 'world',
+            }),
+            new ConfigStorage(['path1.path4'], {
+                f: 99,
+                g: {},
+                h: 'h',
+            }),
+        ]);
+        assert.deepStrictEqual(sections[0], 'path1.path2');
+        assert.deepStrictEqual(sections[1], 'path1.path4');
     });
 });

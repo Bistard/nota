@@ -1,5 +1,11 @@
-import { deepCopy } from "src/base/common/util/object";
+import { Emitter, Register } from "src/base/common/event";
+import { deepCopy, iterPropEnumerable } from "src/base/common/util/object";
 import { isObject, Pair } from "src/base/common/util/type";
+
+export interface IConfigChangeEvent {
+    /** The section of the changed configuration. */
+    readonly sections: string[];
+}
 
 /**
  * An interface only for {@link ConfigStorage}.
@@ -15,6 +21,8 @@ export interface IConfigStorage {
      * Get the actual data model of the storage.
      */
     readonly model: any;
+
+    readonly onDidChange: Register<IConfigChangeEvent>;
 
     /**
      * @description Get configuration at given section.
@@ -67,14 +75,20 @@ export interface IConfigStorage {
  * 
  * @note When deleting a section, say `path1.path2`, storage will only delete
  * the actual object at that specific path, the other parts of section `path1` 
- * will not be touched.
+ * will not be touched. If deleting `path1`, the section `path1.path2` will also
+ * be deleted.
  */
 export class ConfigStorage implements IConfigStorage {
 
+    // [event]
+
+    private readonly _onDidChange = new Emitter<IConfigChangeEvent>();
+    public readonly onDidChange = this._onDidChange.registerListener;
+
     // [field]
 
-    private readonly _sections: string[];
-    private readonly _model: any;
+    private _sections: string[];
+    private _model: any;
 
     // [constructor]
 
@@ -106,11 +120,20 @@ export class ConfigStorage implements IConfigStorage {
     public set(section: string, configuration: any): void {
         this.__addSections(section);
         this.__addToModel(section, configuration);
+        
+        this._onDidChange.fire({
+            sections: [section],
+        });
     }
 
     public delete(section: string): boolean {
         if (this.__deleteSections(section)) {
-            return this.__deleteFromModel(section);
+            this.__deleteFromModel(section);
+            
+            this._onDidChange.fire({
+                sections: [section],
+            });
+            return true;
         }
         return false;
     }
@@ -120,6 +143,9 @@ export class ConfigStorage implements IConfigStorage {
     }
 
     public merge(others: IConfigStorage[]): void {
+        const sections: string[] = [];
+        const changed: string[][] = [];
+        
         for (const other of others) {
             if (other.isEmpty()) {
                 continue;
@@ -128,11 +154,16 @@ export class ConfigStorage implements IConfigStorage {
             // merge sections
             for (const newSection of other.sections) {
                 this.__addSections(newSection);
+                sections.push(newSection);
             }
 
             // merge model data
             this.__mergeModelFrom(this._model, other.model);
         }
+
+        this._onDidChange.fire({
+            sections: sections,
+        });
     }
 
     public clone(): ConfigStorage {
@@ -170,19 +201,29 @@ export class ConfigStorage implements IConfigStorage {
     }
 
     private __deleteSections(deleteSection: string): boolean {
-        const findIdx = this._sections.indexOf(deleteSection);
-        if (findIdx === -1) {
-            return false;
-        }
-        
-        const oldSection = this._sections[findIdx]!;
-        const lastDot = oldSection.lastIndexOf('.');
-        if (lastDot === -1) {
-            this._sections.splice(findIdx, 1);
-        } else {
-            this._sections.splice(findIdx, 1, oldSection.substring(0, lastDot));
-        }
-        return true;
+        let successed = false;
+        const truncated: string[] = [];
+
+        const newSections = this._sections.filter((currSection) => {
+            if (currSection.startsWith(deleteSection)) {
+                if (currSection === deleteSection) {
+                    const lastDot = currSection.lastIndexOf('.');
+                    if (lastDot !== -1) {
+                        // we truncate the last part of the section.
+                        truncated.push(currSection.substring(0, lastDot));
+                    } else {
+                        // single section part
+                    }
+                }
+                successed = true;
+                return false;
+            }
+            return true;
+        });
+
+        newSections.push(...truncated);
+        this._sections = newSections;
+        return successed;
     }
 
     private __addToModel(section: string, configuration: any): void {
@@ -258,12 +299,14 @@ export abstract class DefaultConfigStorage implements IConfigStorage {
     // [field]
 
     private readonly _storage: ConfigStorage;
+    public readonly onDidChange: Register<IConfigChangeEvent>;
 
     // [constructor]
 
     constructor() {
         const [sections, model] = this.createDefaultStorage();
         this._storage = new ConfigStorage(sections, model);
+        this.onDidChange = this._storage.onDidChange;
     }
 
     // [protected override method]
