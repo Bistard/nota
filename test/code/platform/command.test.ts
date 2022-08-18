@@ -1,6 +1,6 @@
 import * as assert from 'assert';
 import { NullLogger } from 'src/base/common/logger';
-import { ICommandExecutor, ICommandRegistrant } from 'src/code/platform/command/common/command';
+import { ICommandExecutor, ICommandRegistrant } from 'src/code/platform/command/common/commandRegistrant';
 import { CommandService, ICommandService } from 'src/code/platform/command/common/commandService';
 import { createDecorator } from 'src/code/platform/instantiation/common/decorator';
 import { IInstantiationService, InstantiationService, IServiceProvider } from 'src/code/platform/instantiation/common/instantiation';

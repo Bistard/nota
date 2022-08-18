@@ -1,7 +1,7 @@
 import { Disposable } from "src/base/common/dispose";
 import { Emitter, Register } from "src/base/common/event";
 import { ILogService } from "src/base/common/logger";
-import { ICommandEvent, ICommandRegistrant } from "src/code/platform/command/common/command";
+import { ICommandEvent, ICommandRegistrant } from "src/code/platform/command/common/commandRegistrant";
 import { createDecorator } from "src/code/platform/instantiation/common/decorator";
 import { IInstantiationService } from "src/code/platform/instantiation/common/instantiation";
 import { Registrants } from "src/code/platform/registrant/common/registrant";
