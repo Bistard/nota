@@ -1,9 +1,8 @@
 import { IDisposable, toDisposable } from "src/base/common/dispose";
 import { DataBuffer } from "src/base/common/file/buffer";
 import { FileType, ICreateFileOptions, IDeleteFileOptions, IFileSystemProvider, IReadFileOptions, IResolvedFileStat, IResolveStatOptions, IWriteFileOptions } from "src/base/common/file/file";
-import { IReadableStream } from "src/base/common/file/stream";
+import { IReadableStream, newWriteableBufferStream } from "src/base/common/file/stream";
 import { URI } from "src/base/common/file/uri";
-import { mockType } from "src/base/common/util/type";
 import { IFileService } from "src/code/platform/files/common/fileService";
 import { IIpcService } from "src/code/platform/ipc/browser/ipcService";
 import { IChannel, IpcChannel } from "src/code/platform/ipc/common/channel";
@@ -12,6 +11,7 @@ const enum FileCommand {
     stat = 'stat',
     readFile = 'readFile',
     readDir = 'readDir',
+    readFileStream = 'readFileStream',
     writeFile = 'writeFile',
     exist = 'exist',
     createFile = 'createFile',
@@ -21,7 +21,7 @@ const enum FileCommand {
     delete = 'delete',
     watch = 'watch',
     unwatch = 'unwatch',
-};
+}
 
 export class BrowserFileChannel implements IFileService {
 
@@ -57,9 +57,14 @@ export class BrowserFileChannel implements IFileService {
         return this._channel.callCommand(FileCommand.readDir, [uri]);
     }
  
-    public readFileStream(uri: URI, opts?: IReadFileOptions | undefined): Promise<IReadableStream<DataBuffer>> {
+    public async readFileStream(uri: URI, opts?: IReadFileOptions | undefined): Promise<IReadableStream<DataBuffer>> {
+        const wrapperStream = newWriteableBufferStream();
+
         // TODO
-        return mockType(0);
+        // FIX
+        const listener = this._channel.registerListener(FileCommand.readFileStream, [uri, opts]);
+
+        return wrapperStream;
     }
  
     public writeFile(uri: URI, bufferOrStream: DataBuffer | IReadableStream<DataBuffer>, opts?: IWriteFileOptions): Promise<void> {

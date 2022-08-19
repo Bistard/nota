@@ -26,7 +26,6 @@ export class DiskEnvironmentService implements IDiskEnvironmentService {
         };
 
         if (this.CLIArgv.log === 'trace') {
-            console.log('reached');
             logService?.trace(`Environment loaded:\n${getAllEnvironments(this).map(enviro => `\t${enviro}`).join('\n')}`);
         }
     }
