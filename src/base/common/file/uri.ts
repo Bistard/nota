@@ -168,7 +168,7 @@ export class URI implements IURI {
 	 *
 	 * @param path A file system path (see `URI#fsPath`)
 	 */
-	static fromFile(path: string): URI {
+	public static fromFile(path: string): URI {
 
 		let authority = _empty;
 
@@ -195,6 +195,15 @@ export class URI implements IURI {
 		return new URI('file', authority, path, _empty, _empty);
 	}
 
+	public static join(uri: URI, path: URI): URI;
+	public static join(uri: URI, path: string): URI;
+	public static join(uri: URI, path: string | URI): URI {
+		if (path instanceof URI) {
+			path = URI.toFsPath(path);
+		}
+		return URI.fromFile(paths.join(URI.toFsPath(uri), path));
+	}
+
 	/**
 	 * Creates a string representation for this URI. It's guaranteed that calling
 	 * `URI.parse` with the result of this function creates an URI which is equal
@@ -206,7 +215,7 @@ export class URI implements IURI {
 	 *
 	 * @param skipEncoding Do not encode the result, default is `true`
 	 */
-	 public toString(skipEncoding: boolean = true): string {
+	public toString(skipEncoding: boolean = true): string {
         return _toString(this, skipEncoding);
     }
 }
