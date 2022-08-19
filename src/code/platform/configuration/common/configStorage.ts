@@ -1,6 +1,6 @@
 import { Emitter, Register } from "src/base/common/event";
 import { deepCopy } from "src/base/common/util/object";
-import { isObject, Pair } from "src/base/common/util/type";
+import { isObject } from "src/base/common/util/type";
 
 export interface IConfigChangeEvent {
     /** The section of the changed configuration. */
@@ -139,12 +139,11 @@ export class ConfigStorage implements IConfigStorage {
     }
 
     public isEmpty(): boolean {
-        return this._sections.length === 0;
+        return this._sections.length === 0 && Object.keys(this._model).length === 0;
     }
 
     public merge(others: IConfigStorage[]): void {
         const sections: string[] = [];
-        const changed: string[][] = [];
         
         for (const other of others) {
             if (other.isEmpty()) {
@@ -212,13 +211,14 @@ export class ConfigStorage implements IConfigStorage {
                         // we truncate the last part of the section.
                         truncated.push(currSection.substring(0, lastDot));
                     } else {
-                        // single section part
+                        // single section part, noop.
                     }
                 }
                 successed = true;
                 return false;
+            } {
+                return true;
             }
-            return true;
         });
 
         newSections.push(...truncated);
@@ -292,7 +292,7 @@ export class ConfigStorage implements IConfigStorage {
 
 /**
  * @class An abstract wrapper class over {@link ConfigStorage}. You may override 
- * `createDefaultStorage` method to auto generate a corresponding storage.
+ * `createDefaultModel` method to auto generate a corresponding storage.
  */
 export abstract class DefaultConfigStorage implements IConfigStorage {
     
@@ -304,14 +304,16 @@ export abstract class DefaultConfigStorage implements IConfigStorage {
     // [constructor]
 
     constructor() {
-        const [sections, model] = this.createDefaultStorage();
+        const model = this.createDefaultModel();
+        const sections: string[] = [];
+        this.__retrieveDeepestSection(model, '', sections);
         this._storage = new ConfigStorage(sections, model);
         this.onDidChange = this._storage.onDidChange;
     }
 
     // [protected override method]
 
-    protected abstract createDefaultStorage(): Pair<string[], Record<PropertyKey, any>>;
+    protected abstract createDefaultModel(): Record<PropertyKey, any>;
 
     // [public wrapper methods]
 
@@ -345,5 +347,29 @@ export abstract class DefaultConfigStorage implements IConfigStorage {
 
     public clone(): ConfigStorage {
         return this._storage.clone();
+    }
+
+    // [private helper method]
+
+    private __retrieveDeepestSection(model: Record<PropertyKey, any>, section: string, sections: string[]): boolean {
+        let reachBottom = true;
+        
+        for (const propName of Object.keys(model)) {
+            reachBottom = false;
+            
+            const value = model[propName]!;
+            const nextSection = section ? section.concat(`.${propName}`) : section.concat(`${propName}`);
+            
+            if (isObject(value)) {
+                const reached = this.__retrieveDeepestSection(value, nextSection, sections);
+                if (reached) {
+                    sections.push(nextSection);
+                }
+            } else {
+                sections.push(nextSection);
+            }
+        }
+
+        return reachBottom;
     }
 }

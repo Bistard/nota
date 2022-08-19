@@ -6,6 +6,7 @@ import { createRegistrant, RegistrantType } from "src/code/platform/registrant/c
 export const IConfigRegistrant = createRegistrant<IConfigRegistrant>(RegistrantType.Configuration);
 
 export const enum BuiltInConfigScope {
+    Test = 'Test',
     Application = 'Application',
     User = 'User',
 }

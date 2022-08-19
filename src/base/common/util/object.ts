@@ -63,11 +63,7 @@ export function iterProp(obj: any, fn: (propName: string, index: number) => any)
  * index of the property in that object.
  */
 export function iterPropEnumerable(obj: any, fn: (propName: string, index: number) => any, recursive: boolean = false): void {
-    if (isObject(obj) === false) {
-		return;
-	}
-
-	let idx = 0;
+    let idx = 0;
 	for (const propName of Object.keys(obj)) {
 		fn(propName, idx++);
 		if (recursive) {
