@@ -1,5 +1,6 @@
 import { Disposable } from "src/base/common/dispose";
 import { URI } from "src/base/common/file/uri";
+import { ILogService } from "src/base/common/logger";
 import { ConfigStorage, IConfigStorage } from "src/code/platform/configuration/common/configStorage";
 import { IFileService } from "src/code/platform/files/common/fileService";
 
@@ -163,6 +164,7 @@ export class ConfigModel extends Disposable implements IConfigModel {
         resource: URI,
         storage: IConfigStorage,
         private readonly fileService: IFileService,
+        private readonly logService: ILogService,
     ) {
         super();
         this._resource = resource;
@@ -196,6 +198,7 @@ export class ConfigModel extends Disposable implements IConfigModel {
             const content = await this.fileService.readFile(this._resource);
             const model = JSON.parse(content.toString());
             this.merge([model]);
+            this.logService.info(`Configuration loaded at ${this.resource.toString()}.`);
         } catch (error) {
             throw error; // throw it out, we do not care it here.
         }

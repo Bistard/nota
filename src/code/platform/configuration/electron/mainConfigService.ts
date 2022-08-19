@@ -4,10 +4,11 @@ import { ILogService } from "src/base/common/logger";
 import { ConfigCollection } from "src/code/platform/configuration/common/configCollection";
 import { BuiltInConfigScope, ConfigScope } from "src/code/platform/configuration/common/configRegistrant";
 import { GLOBAL_CONFIG_FILE_NAME, USER_CONFIG_FILE_NAME } from "src/code/platform/configuration/electron/configService";
+import { IEnvironmentService } from "src/code/platform/environment/common/environment";
 import { IFileService } from "src/code/platform/files/common/fileService";
 import { createDecorator } from "src/code/platform/instantiation/common/decorator";
 
-export const IConfigService = createDecorator<IConfigService>('configuration-service');
+export const IMainConfigService = createDecorator<IConfigService>('configuration-service');
 
 class ResourceProvider {
 
@@ -30,7 +31,7 @@ class ResourceProvider {
 /**
  * A base interface for all config-service.
  */
- export interface IConfigService {   
+ export interface IConfigService extends IDisposable {   
     init(): Promise<void>;
 }
 
@@ -46,20 +47,22 @@ export class MainConfigService extends Disposable implements IConfigService, IDi
     // [constructor]
 
     constructor(
-        configDirectory: URI,
+        @IEnvironmentService environmentService: IEnvironmentService,
         @IFileService fileService: IFileService,
         @ILogService private readonly logService: ILogService,
     ) {
         super();
-        const provider = new ResourceProvider(configDirectory);
-        this._configurations = new ConfigCollection(provider.get, fileService);
+        const provider = new ResourceProvider(environmentService.appConfigurationPath);
+        this._configurations = new ConfigCollection(provider.get, fileService, logService);
     }
 
     // [public methods]
 
     public async init(): Promise<void> {
         this.logService.trace('Main#MainConfigService#initializing...');
-        return this._configurations.init();
+        return this._configurations.init().then(() => {
+            this.logService.info(`All configurations loaded successfully.`);
+        });
     }
 
     // [private helper methods]

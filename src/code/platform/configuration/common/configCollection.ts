@@ -1,5 +1,7 @@
+import { IDisposable } from "src/base/common/dispose";
 import { Register } from "src/base/common/event";
 import { URI } from "src/base/common/file/uri";
+import { ILogService } from "src/base/common/logger";
 import { ConfigModel, IConfigModel } from "src/code/platform/configuration/common/configModel";
 import { BuiltInConfigScope, ConfigScope, ExtensionConfigScope, IConfigRegistrant, IScopeConfigChangeEvent } from "src/code/platform/configuration/common/configRegistrant";
 import { ConfigStorage, IConfigStorage } from "src/code/platform/configuration/common/configStorage";
@@ -9,7 +11,7 @@ import { Registrants } from "src/code/platform/registrant/common/registrant";
 /**
  * An interface only for {@link ConfigCollection}.
  */
-export interface IConfigCollection {
+export interface IConfigCollection extends IDisposable {
 
     readonly applicationConfiguration: IConfigStorage;
     readonly userConfiguration: IConfigStorage;
@@ -56,7 +58,7 @@ export interface IConfigCollection {
 /**
  * // TODO
  */
-export class ConfigCollection implements IConfigCollection {
+export class ConfigCollection implements IConfigCollection, IDisposable {
 
     // [event]
 
@@ -77,11 +79,12 @@ export class ConfigCollection implements IConfigCollection {
     constructor(
         resourceProvider: (scope: ConfigScope) => URI,
         private readonly fileService: IFileService,
+        private readonly logService: ILogService,
     ) {
         // built-in
         this._configurations = new Map();
-        this._appConfiguration  = new ConfigModel(resourceProvider(BuiltInConfigScope.Application), this._registrant.getDefaultBuiltIn(BuiltInConfigScope.Application), fileService);
-        this._userConfiguration = new ConfigModel(resourceProvider(BuiltInConfigScope.User), this._registrant.getDefaultBuiltIn(BuiltInConfigScope.User), fileService);
+        this._appConfiguration  = new ConfigModel(resourceProvider(BuiltInConfigScope.Application), this._registrant.getDefaultBuiltIn(BuiltInConfigScope.Application), fileService, logService);
+        this._userConfiguration = new ConfigModel(resourceProvider(BuiltInConfigScope.User), this._registrant.getDefaultBuiltIn(BuiltInConfigScope.User), fileService, logService);
         this._configurations.set(BuiltInConfigScope.Application, this._appConfiguration);
         this._configurations.set(BuiltInConfigScope.User, this._userConfiguration);
 
@@ -127,7 +130,7 @@ export class ConfigCollection implements IConfigCollection {
         const resource = old.resource;
         old.dispose();
 
-        const newModel = new ConfigModel(resource, newStorage, this.fileService);
+        const newModel = new ConfigModel(resource, newStorage, this.fileService, this.logService);
         this._configurations.set(scope, newModel);
     }
 
@@ -136,7 +139,7 @@ export class ConfigCollection implements IConfigCollection {
         const resource = old.resource;
         old.dispose();
 
-        const newModel = new ConfigModel(resource, newStorage, this.fileService);
+        const newModel = new ConfigModel(resource, newStorage, this.fileService, this.logService);
         this._extensionConfigurations.set(scope, newModel);
     }
 
@@ -147,6 +150,15 @@ export class ConfigCollection implements IConfigCollection {
         }
         // REVIEW: extensions
         return allConfiguration;
+    }
+
+    public dispose(): void {
+        for (const [scope, configuration] of this._configurations) {
+            configuration.dispose();
+        }
+        for (const [scope, configuration] of this._extensionConfigurations) {
+            configuration.dispose();
+        }
     }
 
     // [private helper methods]
