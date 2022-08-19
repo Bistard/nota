@@ -10,6 +10,7 @@ export const enum BuiltInConfigScope {
     Test = 'Test',
     Application = 'Application',
     User = 'User',
+    Extension = 'Extension',
 }
 export type ExtensionConfigScope = unknown; // REVIEW: decision for later
 export type ConfigScope = BuiltInConfigScope | ExtensionConfigScope;
