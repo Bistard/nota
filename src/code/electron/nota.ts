@@ -4,7 +4,6 @@ import { ErrorHandler } from "src/base/common/error";
 import { Event } from "src/base/common/event";
 import { ILogService } from "src/base/common/logger";
 import { getUUID, UUID } from "src/base/node/uuid";
-import { IGlobalConfigService } from "src/code/platform/configuration/electron/configService";
 import { IFileService } from "src/code/platform/files/common/fileService";
 import { ServiceDescriptor } from "src/code/platform/instantiation/common/descriptor";
 import { IInstantiationService, IServiceProvider } from "src/code/platform/instantiation/common/instantiation";
@@ -49,7 +48,6 @@ export class NotaInstance extends Disposable implements INotaInstance {
         @IMainLifeCycleService private readonly lifeCycleService: IMainLifeCycleService,
         @ILogService private readonly logService: ILogService,
         @IFileService private readonly fileService: IFileService,
-        @IGlobalConfigService private readonly globalConfigService: IGlobalConfigService,
         @IMainStatusService private readonly statusService: IMainStatusService,
     ) {
         super();

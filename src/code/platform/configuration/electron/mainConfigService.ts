@@ -53,7 +53,7 @@ export class MainConfigService extends Disposable implements IConfigService, IDi
     ) {
         super();
         const provider = new ResourceProvider(environmentService.appConfigurationPath);
-        this._configurations = new ConfigCollection(provider.get, fileService, logService);
+        this._configurations = new ConfigCollection((scope) => provider.get(scope), fileService, logService);
     }
 
     // [public methods]

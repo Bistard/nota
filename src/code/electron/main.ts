@@ -21,6 +21,7 @@ import { IMainStatusService, MainStatusService } from 'src/code/platform/status/
 import { ICLIArguments } from 'src/code/platform/environment/common/argument';
 import { createServer, Server } from 'net';
 import { ProcessKey } from 'src/base/common/process';
+import { IConfigService, IMainConfigService, MainConfigService } from 'src/code/platform/configuration/electron/mainConfigService';
 
 interface IMainProcess {
     start(argv: ICLIArguments): Promise<void>;
@@ -39,7 +40,7 @@ const nota = new class extends class MainProcess implements IMainProcess {
     private readonly instantiationService!: IInstantiationService;
     private readonly environmentService!: IMainEnvironmentService;
     private readonly fileService!: IFileService;
-    private readonly globalConfigService!: IGlobalConfigService;
+    private readonly mainConfigService!: IConfigService;
     private readonly logService!: ILogService;
     private readonly lifeCycleService!: IMainLifeCycleService;
     private readonly statusService!: IMainStatusService;
@@ -75,10 +76,8 @@ const nota = new class extends class MainProcess implements IMainProcess {
         
         // initialization
         try {
-            ipcMain.on('nota:test', (event, data) => {
-                console.log('nota:test ', data);
-            });
             await this.initServices();
+            console.log(this.mainConfigService)
         } 
         catch (err) {
             this.__showDirectoryErrorDialog(err);
@@ -89,7 +88,7 @@ const nota = new class extends class MainProcess implements IMainProcess {
         try {
             Event.once(this.lifeCycleService.onWillQuit)(e => {
                 this.fileService.dispose();
-                this.globalConfigService.dispose();
+                this.mainConfigService.dispose();
             });
             
             await this.resolveSingleApplication();
@@ -142,6 +141,10 @@ const nota = new class extends class MainProcess implements IMainProcess {
         ]);
         logService.setLogger(pipelineLogger);
 
+        // main-configuration-service
+        const mainConfigService = new MainConfigService(environmentService, fileService, logService);
+        instantiationService.register(IMainConfigService, mainConfigService);
+
         // global-config-service
         const globalConfigService = new GlobalConfigService(fileService, logService, environmentService);
         instantiationService.register(IGlobalConfigService, globalConfigService);
@@ -157,7 +160,7 @@ const nota = new class extends class MainProcess implements IMainProcess {
         (this.instantiationService as any) = instantiationService;
         (this.environmentService as any) = environmentService;
         (this.fileService as any) = fileService;
-        (this.globalConfigService as any) = globalConfigService;
+        (this.mainConfigService as any) = mainConfigService;
         (this.logService as any) = logService;
         (this.lifeCycleService as any) = lifeCycleService;
         (this.statusService as any) = statusService;
@@ -182,7 +185,7 @@ const nota = new class extends class MainProcess implements IMainProcess {
             ].map(path => mkdir(URI.toFsPath(path), { recursive: true }))),
 
             this.statusService.init(),
-            this.globalConfigService.init(),          
+            this.mainConfigService.init(),          
         ]);
     }
 
