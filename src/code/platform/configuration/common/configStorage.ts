@@ -1,3 +1,4 @@
+import { Disposable, IDisposable } from "src/base/common/dispose";
 import { Emitter, Register } from "src/base/common/event";
 import { deepCopy } from "src/base/common/util/object";
 import { isObject } from "src/base/common/util/type";
@@ -10,7 +11,7 @@ export interface IConfigChangeEvent {
 /**
  * An interface only for {@link ConfigStorage}.
  */
-export interface IConfigStorage {
+export interface IConfigStorage extends IDisposable {
 
     /**
      * Get all the sections of the storage. Section are seperated by `.`.
@@ -78,11 +79,11 @@ export interface IConfigStorage {
  * will not be touched. If deleting `path1`, the section `path1.path2` will also
  * be deleted.
  */
-export class ConfigStorage implements IConfigStorage {
+export class ConfigStorage extends Disposable implements IConfigStorage {
 
     // [event]
 
-    private readonly _onDidChange = new Emitter<IConfigChangeEvent>();
+    private readonly _onDidChange = this.__register(new Emitter<IConfigChangeEvent>());
     public readonly onDidChange = this._onDidChange.registerListener;
 
     // [field]
@@ -96,6 +97,7 @@ export class ConfigStorage implements IConfigStorage {
         sections?: string[],
         model?: any,
     ) {
+        super();
         this._sections = sections ?? [];
         this._model = model ?? Object.create(null);
     }
@@ -347,6 +349,10 @@ export abstract class DefaultConfigStorage implements IConfigStorage {
 
     public clone(): ConfigStorage {
         return this._storage.clone();
+    }
+
+    public dispose(): void {
+        this._storage.dispose();
     }
 
     // [private helper method]

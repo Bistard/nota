@@ -1,5 +1,6 @@
+import { IDisposable } from "src/base/common/dispose";
 import { ErrorHandler } from "src/base/common/error";
-import { Emitter, Register, SignalEmitter } from "src/base/common/event";
+import { Register, SignalEmitter } from "src/base/common/event";
 import { IConfigChangeEvent, IConfigStorage } from "src/code/platform/configuration/common/configStorage";
 import { createRegistrant, RegistrantType } from "src/code/platform/registrant/common/registrant";
 
@@ -14,7 +15,7 @@ export type ExtensionConfigScope = unknown; // REVIEW: decision for later
 export type ConfigScope = BuiltInConfigScope | ExtensionConfigScope;
 
 /**
- * Configuration change event type when you are listening from {@link ConfigRegistrant}.
+ * Configuration change event type that tells the scope of the configuration.
  */
 export interface IScopeConfigChangeEvent extends IConfigChangeEvent {
     /** The scope of the changed configuration. */
@@ -31,10 +32,14 @@ export interface IConfigRegistrant {
     readonly onDidChange: Register<IScopeConfigChangeEvent>;
 
     // TODO
-    registerDefaultBuiltIn(id: ConfigScope, config: IConfigStorage): void;
-    getDefaultBuiltIn(id: BuiltInConfigScope): IConfigStorage;
-    registerDefaultExtension(id: ExtensionConfigScope, config: IConfigStorage): void;
-    getDefaultExtension(id: ExtensionConfigScope): IConfigStorage;
+    registerDefaultBuiltIn(scope: BuiltInConfigScope, config: IConfigStorage): void;
+    getDefaultBuiltIn(scope: BuiltInConfigScope): IConfigStorage;
+    unregisterDefaultBuiltIn(scope: BuiltInConfigScope): boolean;
+
+    registerDefaultExtension(scope: ExtensionConfigScope, config: IConfigStorage): void;
+    getDefaultExtension(scope: ExtensionConfigScope): IConfigStorage;
+    unregisterDefaultExtension(scope: ExtensionConfigScope): boolean;
+
     getAllDefaultExtensions(): Map<ExtensionConfigScope, IConfigStorage>;
 }
 
@@ -51,8 +56,9 @@ class ConfigRegistrant implements IConfigRegistrant {
     
     // [field]
 
-    private readonly _defaultBuiltin = new Map<BuiltInConfigScope, IConfigStorage>();
-    private readonly _defaultExtension = new Map<ExtensionConfigScope, IConfigStorage>();
+    private readonly _defaultBuiltIns = new Map<BuiltInConfigScope, IConfigStorage>();
+    private readonly _defaultExtensions = new Map<ExtensionConfigScope, IConfigStorage>();
+    private readonly _onDidChangeDisposables = new Map<ConfigScope, IDisposable>();
 
     // [constructor]
 
@@ -63,54 +69,76 @@ class ConfigRegistrant implements IConfigRegistrant {
     // [public methods]
 
     public registerDefaultBuiltIn(scope: BuiltInConfigScope, config: IConfigStorage): void {
-        const existed = this._defaultBuiltin.get(scope);
+        const existed = this._defaultBuiltIns.get(scope);
         if (existed) {
             ErrorHandler.onUnexpectedError(new Error(`default configuraion with scope '${scope}' is already registered.`));
             return;
         }
         
-        this._defaultBuiltin.set(scope, config);
+        this._defaultBuiltIns.set(scope, config);
         const unregister = this._onDidChange.add(config.onDidChange, event => {
             return {
                 ...event,
                 scope: scope,
             };
         });
+        this._onDidChangeDisposables.set(scope, unregister);
     }
 
     public getDefaultBuiltIn(scope: BuiltInConfigScope): IConfigStorage {
-        const config = this._defaultBuiltin.get(scope);
+        const config = this._defaultBuiltIns.get(scope);
         if (!config) {
             ErrorHandler.onUnexpectedError(new Error(`default built-in configuration with scope '${scope}' not found`));
             return undefined!;
         }
-        return config;
+        return config.clone();
+    }
+
+    public unregisterDefaultBuiltIn(scope: BuiltInConfigScope): boolean {
+        const unregister = this._onDidChangeDisposables.get(scope);
+        unregister?.dispose();
+
+        const config = this._defaultBuiltIns.get(scope);
+        config?.dispose();
+        
+        return this._defaultBuiltIns.delete(scope);
     }
 
     public registerDefaultExtension(scope: ExtensionConfigScope, config: IConfigStorage): void {
-        const existed = this._defaultExtension.get(scope);
+        const existed = this._defaultExtensions.get(scope);
         if (existed) {
             throw new Error(`default configuraion with scope '${scope}' is already registered.`);
         }
         
-        this._defaultExtension.set(scope, config);
+        this._defaultExtensions.set(scope, config);
         const unregister = this._onDidChange.add(config.onDidChange, event => {
             return {
                 ...event,
                 scope: scope,
             };
         });
+        this._onDidChangeDisposables.set(scope, unregister);
     }
 
     public getDefaultExtension(scope: ExtensionConfigScope): IConfigStorage {
-        const config = this._defaultExtension.get(scope);
+        const config = this._defaultExtensions.get(scope);
         if (!config) {
             throw new Error(`default exntension configuration with scope '${scope}' not found`);
         }
-        return config;
+        return config.clone();
+    }
+
+    public unregisterDefaultExtension(scope: ExtensionConfigScope): boolean {
+        const unregister = this._onDidChangeDisposables.get(scope);
+        unregister?.dispose();
+
+        const config = this._defaultExtensions.get(scope);
+        config?.dispose();
+        
+        return this._defaultExtensions.delete(scope);
     }
 
     public getAllDefaultExtensions(): Map<ExtensionConfigScope, IConfigStorage> {
-        return this._defaultExtension;
+        return this._defaultExtensions;
     }
 }
