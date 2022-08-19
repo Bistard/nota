@@ -1,6 +1,12 @@
+import { URI } from "src/base/common/file/uri";
+import { ConfigStorage } from "src/code/platform/configuration/common/configStorage";
+import { IFileService } from "src/code/platform/files/common/fileService";
+
+// #region deprecate code
 
 /**
  * @readonly The type of configService.
+ * @deprecated
  */
 export const enum IConfigType {
     USER,
@@ -11,6 +17,7 @@ export const enum IConfigType {
 /**
  * @readonly Interface corresponds to the event `onDidChangeConfiguration` in 
  * `configServiceBase`.
+ * @deprecated
  */
 export interface IConfigChangeEvent {
 
@@ -19,6 +26,7 @@ export interface IConfigChangeEvent {
 
 }
 
+/** @deprecated */
 export interface IConfigChange {
     sections: string[],
 }
@@ -27,7 +35,8 @@ export interface IConfigChange {
  * Configuration Model
  ******************************************************************************/
 
- export interface IConfigModel {
+/** @deprecated */
+ export interface __IConfigModel {
 
     /** Get the actual structure of the configuration. */
     readonly object: Object;
@@ -37,10 +46,11 @@ export interface IConfigChange {
 
 /**
  * @class The data structure to stores the actual configruration. Each 
- * `configServiceBase` consists exact one ConfigModel.
+ * `configServiceBase` consists exact one __ConfigModel.
  * @note The default constructor is a null javascript object.
+ * @deprecated
  */
-export class ConfigModel implements IConfigModel {
+export class __ConfigModel implements __IConfigModel {
 
     // [field]
 
@@ -115,3 +125,4 @@ export class ConfigModel implements IConfigModel {
         currentSection[lastSection] = value;
     }
 }
+// #endregion

@@ -2,7 +2,7 @@ import * as assert from 'assert';
 import { Emitter } from 'src/base/common/event';
 import { URI } from 'src/base/common/file/uri';
 import { NullLogger } from 'src/base/common/logger';
-import { ConfigModel, IConfigType } from "src/code/platform/configuration/common/configModel";
+import { __ConfigModel, IConfigType } from "src/code/platform/configuration/common/configModel";
 import { ConfigServiceBase, ConfigurationError } from "src/code/platform/configuration/common/configServiceBase";
 import { FileService } from "src/code/platform/files/common/fileService";
 
@@ -31,7 +31,7 @@ function assertHumans(human1: ITestHumanSettings, human2: ITestHumanSettings): v
     assert.strictEqual(human1.male, human2.male);    
 }
 
-class EmptyConfigModel extends ConfigModel {
+class EmptyConfigModel extends __ConfigModel {
     constructor() { 
         super(
             {

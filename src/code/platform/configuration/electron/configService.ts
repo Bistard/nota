@@ -4,8 +4,8 @@ import { join, resolve } from "src/base/common/file/path";
 import { URI } from "src/base/common/file/uri";
 import { ILogService } from "src/base/common/logger";
 import { MarkdownRenderMode } from "src/code/browser/workbench/workspace/markdown/markdown";
-import { ConfigModel, IConfigType } from "src/code/platform/configuration/common/configModel";
-import { ConfigServiceBase, IConfigService } from "src/code/platform/configuration/common/configServiceBase";
+import { __ConfigModel, IConfigType } from "src/code/platform/configuration/common/configModel";
+import { ConfigServiceBase, __IConfigService } from "src/code/platform/configuration/common/configServiceBase";
 import { IFileService } from "src/code/platform/files/common/fileService";
 import { createDecorator } from "src/code/platform/instantiation/common/decorator";
 import { IDiskEnvironmentService, IEnvironmentService, IMainEnvironmentService } from "src/code/platform/environment/common/environment";
@@ -19,10 +19,13 @@ export const GLOBAL_CONFIG_FILE_NAME = 'nota.config.json';
 
 export type AppMode = 'debug' | 'release';
 
+/** @deprecated */
 export const IUserConfigService = createDecorator<IUserConfigService>('user-config-service');
+/** @deprecated */
 export const IGlobalConfigService = createDecorator<IGlobalConfigService>('global-config-service');
 
-export interface IUserConfigService extends IConfigService {
+/** @deprecated */
+export interface IUserConfigService extends __IConfigService {
     
     onDidChangeMarkdownSettings: Register<IUserMarkdownSettings>;
     onDidChangeNotebookManagerSettings: Register<IUserNotebookManagerSettings>;
@@ -39,7 +42,9 @@ export interface IUserConfigService extends IConfigService {
     validateLocalUserDirectory(path: string, defaultConfigOn: boolean): Promise<void>;
 
 }
-export interface IGlobalConfigService extends IConfigService {
+
+/** @deprecated */
+export interface IGlobalConfigService extends __IConfigService {
 
     onDidChangeApplicationSettings: Register<IGlobalApplicationSettings>;
     onDidChangeNotebookManagerSettings: Register<IGlobalNotebookManagerSettings>;
@@ -52,6 +57,7 @@ export interface IGlobalConfigService extends IConfigService {
  *      - in the opened directory (user customized) OR
  *      - in the root directory of the application which will be considered as 
  *        the default user configuration path.
+ * @deprecated
  */
 export class UserConfigService extends ConfigServiceBase implements IUserConfigService {
 
@@ -140,6 +146,7 @@ export class UserConfigService extends ConfigServiceBase implements IUserConfigS
  * @class The global configuration service relates to the unique file named
  * `nota.config.json` which will be placed in the .noda folder in the root 
  * directory of the application.
+ * @deprecated
  */
 export class GlobalConfigService extends ConfigServiceBase implements IGlobalConfigService {
 

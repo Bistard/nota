@@ -3,10 +3,11 @@ import { Emitter, Register } from 'src/base/common/event';
 import { DataBuffer } from 'src/base/common/file/buffer';
 import { URI } from 'src/base/common/file/uri';
 import { ILogService } from 'src/base/common/logger';
-import { IConfigChange, IConfigChangeEvent, IConfigModel, IConfigType } from 'src/code/platform/configuration/common/configModel';
+import { IConfigChange, IConfigChangeEvent, __IConfigModel, IConfigType } from 'src/code/platform/configuration/common/configModel';
 import { IFileService } from 'src/code/platform/files/common/fileService';
 
-export interface IConfigService extends IDisposable {
+/** @deprecated */
+export interface __IConfigService extends IDisposable {
 
     /** The resource of the configuration. */
     resource: URI;
@@ -28,7 +29,7 @@ export interface IConfigService extends IDisposable {
     
     /**
      * @description Given the section path of the configuration (seperated by .)
-     * and set the given value to the provided path in this ConfigModel.
+     * and set the given value to the provided path in this __ConfigModel.
      * 
      * If section is not provided, the whole configuration object will be replaced.
      * 
@@ -66,21 +67,21 @@ export interface IConfigService extends IDisposable {
 
 /**
  * @description The base class of every xxxConfigService. The class supports the 
- * general method for set and get the configuration from the provided ConfigModel. 
- * The derived class may provide different `IConfigModel` to the constructor.
+ * general method for set and get the configuration from the provided __ConfigModel. 
+ * The derived class may provide different `__IConfigModel` to the constructor.
  * 
- * Moreover, the base class provides the reading/writing the ConfigModel to the
+ * Moreover, the base class provides the reading/writing the __ConfigModel to the
  * provided URI path.
  * 
  * @note The base class provide a general event that fires every time when the 
  * configuration changes no matter what.
  * 
- * @note To achieve more specific event on different sections in the ConfigModel,
+ * @note To achieve more specific event on different sections in the __ConfigModel,
  * derived class needs to override the protected method `__fireOnSpecificEvent`.
  * See more details from that method documentation.
- * 
+ * @deprecated
  */
-export abstract class ConfigServiceBase extends Disposable implements IConfigService {
+export abstract class ConfigServiceBase extends Disposable implements __IConfigService {
 
     // [field]
     
@@ -97,7 +98,7 @@ export abstract class ConfigServiceBase extends Disposable implements IConfigSer
         private readonly getResourse: (path: URI) => URI,
         protected readonly rootPath: URI,
         protected readonly configType: IConfigType,
-        protected readonly configModel: IConfigModel,
+        protected readonly configModel: __IConfigModel,
         protected readonly fileService: IFileService,
         protected readonly logService: ILogService,
     ) {
