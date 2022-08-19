@@ -5,7 +5,7 @@ import { ILogService, LogLevel, parseToLogLevel } from "src/base/common/logger";
 import { memoize } from "src/base/common/memoization";
 import { MapTypes } from "src/base/common/util/type";
 import { NOTA_DIR_NAME } from "src/code/platform/configuration/electron/configService";
-import { getAllEnvironments, IDiskEnvironmentService, IEnvironmentOpts } from "src/code/platform/environment/common/environment";
+import { getAllEnvironments, IDiskEnvironmentService, IEnvironmentOpts, IEnvironmentService } from "src/code/platform/environment/common/environment";
 import { ICLIArguments } from "src/main";
 
 export class DiskEnvironmentService implements IDiskEnvironmentService {
@@ -15,7 +15,7 @@ export class DiskEnvironmentService implements IDiskEnvironmentService {
     constructor(
         private readonly CLIArgv: ICLIArguments,
         opts: IEnvironmentOpts,
-        @ILogService logService?: ILogService,
+        @ILogService private readonly logService?: ILogService,
     ) {
         this.opts = {
             isPackaged: opts.isPackaged,
@@ -24,10 +24,6 @@ export class DiskEnvironmentService implements IDiskEnvironmentService {
             userHomePath: (typeof opts.userHomePath === 'string') ? opts.userHomePath : URI.toFsPath(opts.userHomePath),
             tmpDirPath: (typeof opts.tmpDirPath === 'string') ? opts.tmpDirPath : URI.toFsPath(opts.tmpDirPath),
         };
-
-        if (this.CLIArgv.log === 'trace') {
-            logService?.trace(`Environment loaded:\n${getAllEnvironments(this).map(enviro => `\t${enviro}`).join('\n')}`);
-        }
     }
 
     get CLIArguments(): ICLIArguments { return this.CLIArgv; }
@@ -56,4 +52,8 @@ export class DiskEnvironmentService implements IDiskEnvironmentService {
 
     @memoize
     get userDataPath(): URI { return URI.fromFile(this.opts.userDataPath!); }
+
+    protected inspect(): void {
+        this.logService?.trace(`Main#Environment loaded:\n${getAllEnvironments(this).map(enviro => `\t${enviro}`).join('\n')}`);
+    }
 }

@@ -1,9 +1,10 @@
 import { URI } from "src/base/common/file/uri";
 import { LogLevel } from "src/base/common/logger";
-import { iterProp } from "src/base/common/util/object";
+import { iterProp, iterPropEnumerable } from "src/base/common/util/object";
 import { createDecorator, refineDecorator } from "src/code/platform/instantiation/common/decorator";
 import { ICLIArguments } from "src/code/platform/environment/common/argument";
 import { IWindowConfiguration } from "src/code/platform/window/common/window";
+import { isObject } from "src/base/common/util/type";
 
 export const IEnvironmentService = createDecorator<IEnvironmentService>('environment-service');
 export const IBrowserEnvironmentService = refineDecorator<IEnvironmentService, IBrowserEnvironmentService>(IEnvironmentService);
@@ -22,7 +23,7 @@ export function getAllEnvironments(service: IEnvironmentService): string[] {
             if (propVal instanceof URI) {
                 value = URI.toFsPath(propVal);
             } 
-            else if (propVal instanceof Object) {
+            else if (isObject(propVal)) {
                 value = JSON.stringify(propVal);
             } 
             else {
@@ -30,7 +31,7 @@ export function getAllEnvironments(service: IEnvironmentService): string[] {
             }
             result.push(`${propName}: ${value}`);
         }
-    });
+    }, -1);
     return result;
 }
 

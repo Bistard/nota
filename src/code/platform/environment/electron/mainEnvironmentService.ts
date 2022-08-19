@@ -21,10 +21,14 @@ export class MainEnvironmentService extends DiskEnvironmentService implements IM
         @ILogService logService?: ILogService,
     ) {
         super(CLIArgv, opts, logService);
+        
+        if (CLIArgv.log === 'trace') {
+            this.inspect();
+        }
     }
 
     @memoize
-    get mainIpcHandle(): string { return createMainIpcHandle(URI.toFsPath(this.userDataPath), 'main', '1.0.0'); }
+    get mainIpcHandle(): string { return createMainIpcHandle(URI.toFsPath(this.userDataPath), 'main', '0.1.0'); }
 }
 
 /**
