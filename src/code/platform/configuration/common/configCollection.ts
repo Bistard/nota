@@ -1,5 +1,9 @@
-import { BuiltInConfigScope, ConfigScope, ExtensionConfigScope, IConfigRegistrant } from "src/code/platform/configuration/common/configRegistrant";
+import { Register } from "src/base/common/event";
+import { URI } from "src/base/common/file/uri";
+import { ConfigModel, IConfigModel } from "src/code/platform/configuration/common/configModel";
+import { BuiltInConfigScope, ConfigScope, ExtensionConfigScope, IConfigRegistrant, IScopeConfigChangeEvent } from "src/code/platform/configuration/common/configRegistrant";
 import { ConfigStorage, IConfigStorage } from "src/code/platform/configuration/common/configStorage";
+import { IFileService } from "src/code/platform/files/common/fileService";
 import { Registrants } from "src/code/platform/registrant/common/registrant";
 
 /**
@@ -9,7 +13,18 @@ export interface IConfigCollection {
 
     readonly applicationConfiguration: IConfigStorage;
     readonly userConfiguration: IConfigStorage;
+
+    /**
+     * Fires when any of the configuration is changed.
+     */
+    readonly onDidChange: Register<IScopeConfigChangeEvent>;
     
+    /**
+     * @description Initialize all the registered configurations in 
+     * {@link IConfigRegistrant} with the updatest resource from the disk.
+     */
+    init(): Promise<void>;
+
     /**
      * @description Returns a deep-copyed storage that contains all the built-in
      * and extension configurations. The outest section name is their registered
@@ -18,10 +33,24 @@ export interface IConfigCollection {
     inspect(): IConfigStorage;
 
     /**
-     * @description Get specific configuration with the given scope for narrowing 
-     * down purpose.
+     * @description Get specific configuration with the given scope.
      */
     get<T>(scope: ConfigScope, section?: string): T;
+
+    /**
+     * @description Set specific configuration with the given scope.
+     */
+    set(scope: ConfigScope, section: string, configuration: any): void;
+
+    /**
+     * @description Update a new built-in configuration by the given scope.
+     */
+    updateBulitInConfiguration(scope: BuiltInConfigScope, newStorage: IConfigStorage): void;
+
+    /**
+     * @description Update a new extension configuration by the given scope.
+     */
+    updateExtensionConfiguration(scope: ExtensionConfigScope, newStorage: IConfigStorage): void;
 }
 
 /**
@@ -29,34 +58,38 @@ export interface IConfigCollection {
  */
 export class ConfigCollection implements IConfigCollection {
 
+    // [event]
+
+    get onDidChange() { return this._registrant.onDidChange; }
+
     // [field]
 
     private readonly _registrant: IConfigRegistrant = Registrants.get(IConfigRegistrant);
     
-    private readonly _configurations: Map<BuiltInConfigScope, IConfigStorage>;
-    private readonly _extensionConfigurations: Map<ExtensionConfigScope, IConfigStorage>;
+    private readonly _configurations: Map<BuiltInConfigScope, IConfigModel>;
+    private readonly _extensionConfigurations: Map<ExtensionConfigScope, IConfigModel>;
     
-    private readonly _appConfiguration: IConfigStorage;
-    private readonly _userConfiguration: IConfigStorage;
+    private _appConfiguration: IConfigModel;
+    private _userConfiguration: IConfigModel;
 
     // [constructor]
 
     constructor(
-        appConfiguration?: IConfigStorage,
-        userConfiguration?: IConfigStorage,
+        defaultResource: URI,
+        private readonly fileService: IFileService,
     ) {
         // built-in
         this._configurations = new Map();
-        this._appConfiguration  = appConfiguration  ?? this._registrant.getDefaultBuiltIn(BuiltInConfigScope.Application);
-        this._userConfiguration = userConfiguration ?? this._registrant.getDefaultBuiltIn(BuiltInConfigScope.User);
+        this._appConfiguration  = new ConfigModel(defaultResource, this._registrant.getDefaultBuiltIn(BuiltInConfigScope.Application), fileService);
+        this._userConfiguration = new ConfigModel(defaultResource, this._registrant.getDefaultBuiltIn(BuiltInConfigScope.User), fileService);
         this._configurations.set(BuiltInConfigScope.Application, this._appConfiguration);
         this._configurations.set(BuiltInConfigScope.User, this._userConfiguration);
 
-        // extension
+        // REVIEW: extension
         this._extensionConfigurations = new Map();
-        for (const [key, extensionConfiguration] of this._registrant.getAllDefaultExtensions()) {
-            this._extensionConfigurations.set(key, extensionConfiguration);
-        }
+        // for (const [key, extensionConfiguration] of this._registrant.getAllDefaultExtensions()) {
+        //     this._extensionConfigurations.set(key, extensionConfiguration);
+        // }
     }
 
     // [getter]
@@ -71,15 +104,40 @@ export class ConfigCollection implements IConfigCollection {
 
     // [public methods]
 
+    public async init(): Promise<void> {
+        const configModels = [
+            ...Array.from(this._configurations.values()),
+            ...Array.from(this._extensionConfigurations.values()),
+        ].map(model => model.init());
+        return Promise.all(configModels) as unknown as Promise<void>;
+    }
+
     public get<T>(scope: ConfigScope, section?: string): T {
-        const configuration = 
-            (this._configurations.get(<BuiltInConfigScope>scope) 
-            ?? this._extensionConfigurations.get(<ExtensionConfigScope>scope)
-        );
-        if (!configuration) {
-            throw new Error(`Provided configuration scope does not exist: ${scope}`);
-        }
+        const configuration = this.__getConfiguration(scope);
         return configuration.get(section);
+    }
+
+    public set(scope: ConfigScope, section: string, config: any): void {
+        const configuration = this.__getConfiguration(scope);
+        configuration.set(section, config);
+    }
+
+    public updateBulitInConfiguration(scope: BuiltInConfigScope, newStorage: IConfigStorage): void {
+        const old = this.__getConfiguration(scope);
+        const resource = old.resource;
+        old.dispose();
+
+        const newModel = new ConfigModel(resource, newStorage, this.fileService);
+        this._configurations.set(scope, newModel);
+    }
+
+    public updateExtensionConfiguration(scope: ExtensionConfigScope, newStorage: IConfigStorage): void {
+        const old = this.__getConfiguration(scope);
+        const resource = old.resource;
+        old.dispose();
+
+        const newModel = new ConfigModel(resource, newStorage, this.fileService);
+        this._extensionConfigurations.set(scope, newModel);
     }
 
     public inspect(): IConfigStorage {
@@ -87,9 +145,21 @@ export class ConfigCollection implements IConfigCollection {
         for (const [type, configuration] of this._configurations) {
             allConfiguration.set(type, configuration.model);
         }
+        // REVIEW: extensions
         return allConfiguration;
     }
 
     // [private helper methods]
+
+    private __getConfiguration(scope: ConfigScope): IConfigModel {
+        const configuration = 
+            (this._configurations.get(<BuiltInConfigScope>scope) 
+            ?? this._extensionConfigurations.get(<ExtensionConfigScope>scope)
+        );
+        if (!configuration) {
+            throw new Error(`Provided configuration scope does not exist: ${scope}`);
+        }
+        return configuration;
+    }
 
 }
