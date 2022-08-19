@@ -44,21 +44,35 @@ export function mixin(destination: any, source: any, overwrite: boolean = true):
  * @param obj The given {@link object}.
  * @param fn The function that takes the string of the property and the ordinal 
  * index of the property in that object.
+ * @param recursiveLevel How deep you want for recursive iteration. Default is 0. 
+ * 						 Set to -1 if you need iterate to the deepest.
  */
-export function iterProp(obj: any, fn: (propName: string, index: number) => any): void {
-    if (isObject(obj) === false) {
+export function iterProp(obj: any, fn: (propName: string, index: number) => any, recursiveLevel: number = 0): void {
+    if (!isObject(obj)) {
 		return;
 	}
 
 	let idx = 0;
-	for (const propName of Object.getOwnPropertyNames(Object.getPrototypeOf(obj))) {
-		fn(propName, idx++);
+	const __handler = (prototype: any, fn: (propName: string, index: number) => any, recursiveLevel: number) => {
+		if (!prototype) {
+			return;
+		}
+
+		if (recursiveLevel) {
+			__handler(Object.getPrototypeOf(prototype), fn, recursiveLevel - 1);
+		}
+		
+		for (const propName of Object.getOwnPropertyNames(prototype)) {
+			fn(propName, idx++);
+		}
 	}
+
+	__handler(Object.getPrototypeOf(obj), fn, recursiveLevel);
 }
 
 /**
  * @description Iterate the enumerable properties of the given object.
- * @param obj The given {@link object}.
+ * @param obj The given {@link Object}.
  * @param fn The function that takes the string of the property and the ordinal 
  * index of the property in that object.
  * @param recursiveLevel How deep you want for recursive iteration. Default is 0. 
@@ -80,7 +94,7 @@ export function iterPropEnumerable(obj: any, fn: (propName: string, index: numbe
 /**
  * @description Returns a deep copy version of the given object or array.
  */
-export function deepCopy<T extends object | []>(obj: T): T {
+export function deepCopy<T extends Object | []>(obj: T): T {
 	
 	// ensure `null` does not count and other weird stuff
 	if (!obj || typeof obj !== 'object') {
