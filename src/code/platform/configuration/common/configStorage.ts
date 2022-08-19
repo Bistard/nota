@@ -131,6 +131,7 @@ export class ConfigStorage extends Disposable implements IConfigStorage {
         if (section === null) {
             getModelSections(configuration, sections);
         } else {
+            sections.push(section);
             this.__addSections(section);
             this.__addToModel(section, configuration);
         }
