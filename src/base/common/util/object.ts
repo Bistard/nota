@@ -61,17 +61,19 @@ export function iterProp(obj: any, fn: (propName: string, index: number) => any)
  * @param obj The given {@link object}.
  * @param fn The function that takes the string of the property and the ordinal 
  * index of the property in that object.
+ * @param recursiveLevel How deep you want for recursive iteration. Default is 0. 
+ * 						 Set to -1 if you need iterate to the deepest.
  */
-export function iterPropEnumerable(obj: any, fn: (propName: string, index: number) => any, recursive: boolean = false): void {
+export function iterPropEnumerable(obj: any, fn: (propName: string, index: number) => any, recursiveLevel: number = 0): void {
     let idx = 0;
 	for (const propName of Object.keys(obj)) {
-		fn(propName, idx++);
-		if (recursive) {
+		if (recursiveLevel) {
 			const value = obj[propName];
 			if (isObject(value)) {
-				iterPropEnumerable(value, fn, true);
+				iterPropEnumerable(value, fn, recursiveLevel - 1);
 			}
 		}
+		fn(propName, idx++);
 	}
 }
 

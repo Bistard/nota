@@ -36,10 +36,11 @@ export interface IConfigStorage extends IDisposable {
 
     /**
      * @description Set configuration at given section.
-     * @param section see {@link ConfigStorage}.
+     * @param section see {@link ConfigStorage}. If section is null, it overries
+     *                the entire configuration.
      * @throws An exception will be thrown if the section is invalid.
      */
-    set(section: string, configuration: any): void;
+    set(section: string | null, configuration: any): void;
 
     /**
      * @description Delete configuration at given section.
@@ -100,6 +101,11 @@ export class ConfigStorage extends Disposable implements IConfigStorage {
         super();
         this._sections = sections ?? [];
         this._model = model ?? Object.create(null);
+
+        // auto update sections
+        if (this._sections.length === 0 && Object.keys(this._model).length !== 0) {
+            getModelSections(this._sections, this._model);
+        }
     }
 
     // [public methods]
@@ -119,12 +125,18 @@ export class ConfigStorage extends Disposable implements IConfigStorage {
         return this._model;
     }
 
-    public set(section: string, configuration: any): void {
-        this.__addSections(section);
-        this.__addToModel(section, configuration);
+    public set(section: string | null, configuration: any): void {
+        const sections: string[] = [];
+        
+        if (section === null) {
+            getModelSections(configuration, sections);
+        } else {
+            this.__addSections(section);
+            this.__addToModel(section, configuration);
+        }
         
         this._onDidChange.fire({
-            sections: [section],
+            sections: sections,
         });
     }
 
@@ -308,7 +320,7 @@ export abstract class DefaultConfigStorage implements IConfigStorage {
     constructor() {
         const model = this.createDefaultModel();
         const sections: string[] = [];
-        this.__retrieveDeepestSection(model, '', sections);
+        getModelSections(model, sections);
         this._storage = new ConfigStorage(sections, model);
         this.onDidChange = this._storage.onDidChange;
     }
@@ -354,10 +366,15 @@ export abstract class DefaultConfigStorage implements IConfigStorage {
     public dispose(): void {
         this._storage.dispose();
     }
+}
 
-    // [private helper method]
-
-    private __retrieveDeepestSection(model: Record<PropertyKey, any>, section: string, sections: string[]): boolean {
+/**
+ * @description // TODO
+ * @param model 
+ * @param sections 
+ */
+function getModelSections(model: Record<PropertyKey, any>, sections: string[]): void {
+    const __handler = (model: Record<PropertyKey, any>, section: string, sections: string[]): boolean => {
         let reachBottom = true;
         
         for (const propName of Object.keys(model)) {
@@ -367,7 +384,7 @@ export abstract class DefaultConfigStorage implements IConfigStorage {
             const nextSection = section ? section.concat(`.${propName}`) : section.concat(`${propName}`);
             
             if (isObject(value)) {
-                const reached = this.__retrieveDeepestSection(value, nextSection, sections);
+                const reached = __handler(value, nextSection, sections);
                 if (reached) {
                     sections.push(nextSection);
                 }
@@ -377,5 +394,7 @@ export abstract class DefaultConfigStorage implements IConfigStorage {
         }
 
         return reachBottom;
-    }
+    };
+
+    __handler(model, '', sections);
 }

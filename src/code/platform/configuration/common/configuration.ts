@@ -1,8 +1,11 @@
 import { app } from "electron";
 import { MarkdownRenderMode } from "src/code/browser/workbench/workspace/markdown/markdown";
 import { __ConfigModel } from "src/code/platform/configuration/common/configModel";
+import { BuiltInConfigScope, IConfigRegistrant } from "src/code/platform/configuration/common/configRegistrant";
+import { DefaultConfigStorage } from "src/code/platform/configuration/common/configStorage";
 import { AppMode } from "src/code/platform/configuration/electron/configService";
 import { Language } from "src/code/platform/i18n/i18n";
+import { Registrants } from "src/code/platform/registrant/common/registrant";
 
 /*******************************************************************************
  * Default Configurations
@@ -194,3 +197,41 @@ export class DefaultUserConfigModel extends __ConfigModel {
     }
 
 }
+
+class DefaultApplicationConfiguration extends DefaultConfigStorage {
+    protected override createDefaultModel(): Record<PropertyKey, any> {
+        return {
+            'application': {
+                displayLanguage: 'en',
+                keyboardScreenCast: false,
+            },
+            'notebookManager': {
+                defaultConfigOn: false,
+                startPreviousNotebookManagerDir: true,
+                previousNotebookManagerDir: '',
+            },
+        };
+    }
+}
+
+class DefaultUserConfiguration extends DefaultConfigStorage {
+    protected createDefaultModel(): Record<PropertyKey, any> {
+        return {
+            'notebookManager': {
+                notebookManagerExclude: [
+                    '^\\..*',
+                ] as string[],
+                notebookManagerInclude: [
+
+                ] as string[],
+                previousOpenedNotebook: '',
+            },
+        };
+    }
+}
+
+(function registerDefaultConfiguration() {
+    const Registrant = Registrants.get(IConfigRegistrant);
+    Registrant.registerDefaultBuiltIn(BuiltInConfigScope.Application, new DefaultApplicationConfiguration());
+    Registrant.registerDefaultBuiltIn(BuiltInConfigScope.User, new DefaultUserConfiguration());
+})();

@@ -195,9 +195,10 @@ export class ConfigModel extends Disposable implements IConfigModel {
 
     public async init(): Promise<void> {
         try {
-            const content = await this.fileService.readFile(this._resource);
-            const model = JSON.parse(content.toString());
-            this.merge([model]);
+            const raw = await this.fileService.readFile(this._resource);
+            const model = JSON.parse(raw.toString());
+            const latestStorage = new ConfigStorage(undefined, model);
+            this.merge([latestStorage]);
             this.logService.info(`Configuration loaded at ${this.resource.toString()}.`);
         } catch (error) {
             throw error; // throw it out, we do not care it here.

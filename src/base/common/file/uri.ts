@@ -195,13 +195,8 @@ export class URI implements IURI {
 		return new URI('file', authority, path, _empty, _empty);
 	}
 
-	public static join(uri: URI, path: URI): URI;
-	public static join(uri: URI, path: string): URI;
-	public static join(uri: URI, path: string | URI): URI {
-		if (path instanceof URI) {
-			path = URI.toFsPath(path);
-		}
-		return URI.fromFile(paths.join(URI.toFsPath(uri), path));
+	public static join(uri: URI, ...path: string[]): URI {
+		return URI.fromFile(paths.join(URI.toFsPath(uri), ...path));
 	}
 
 	/**

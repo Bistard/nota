@@ -111,8 +111,12 @@ export class ConfigCollection implements IConfigCollection, IDisposable {
         const configModels = [
             ...Array.from(this._configurations.values()),
             ...Array.from(this._extensionConfigurations.values()),
-        ].map(model => model.init());
-        return Promise.all(configModels) as unknown as Promise<void>;
+        ];
+        
+        const promises: Promise<void>[] = [];
+        configModels.forEach(model => promises.push(model.init()));
+        
+        return Promise.all(promises) as unknown as Promise<void>;
     }
 
     public get<T>(scope: ConfigScope, section?: string): T {
@@ -148,7 +152,12 @@ export class ConfigCollection implements IConfigCollection, IDisposable {
         for (const [type, configuration] of this._configurations) {
             allConfiguration.set(type, configuration.model);
         }
-        // REVIEW: extensions
+
+        // REVIEW: extension inspect
+        // for (const [type, configuration] of this._extensionConfigurations) {
+        //     allConfiguration.set(type, configuration.model);
+        // }
+        
         return allConfiguration;
     }
 

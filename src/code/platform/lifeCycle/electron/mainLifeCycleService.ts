@@ -258,6 +258,7 @@ export class MainLifeCycleService extends Disposable implements IMainLifeCycleSe
 
 			this.__fireOnBeforeQuit(QuitReason.Quit)
             .finally(() => {
+                this.logService.trace('Main#LifeCycleService#application is about to quiting...');
 
                 if (this._pendingQuitBlocker) {
                     this._pendingQuitBlocker.resolve();

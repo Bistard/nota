@@ -1,7 +1,7 @@
 import { Disposable, IDisposable } from "src/base/common/dispose";
 import { URI } from "src/base/common/file/uri";
-import { ILogService } from "src/base/common/logger";
-import { ConfigCollection } from "src/code/platform/configuration/common/configCollection";
+import { ILogService, LogLevel } from "src/base/common/logger";
+import { ConfigCollection, IConfigCollection } from "src/code/platform/configuration/common/configCollection";
 import { BuiltInConfigScope, ConfigScope } from "src/code/platform/configuration/common/configRegistrant";
 import { GLOBAL_CONFIG_FILE_NAME, USER_CONFIG_FILE_NAME } from "src/code/platform/configuration/electron/configService";
 import { IEnvironmentService } from "src/code/platform/environment/common/environment";
@@ -12,11 +12,9 @@ export const IMainConfigService = createDecorator<IConfigService>('configuration
 
 class ResourceProvider {
 
-    constructor(
-        private readonly configDir: URI,
-    ) {}
+    constructor(private readonly configDir: URI) {}
 
-    get(scope: ConfigScope): URI {
+    public get(scope: ConfigScope): URI {
         switch (scope) {
             case BuiltInConfigScope.Application:
                 return URI.join(this.configDir, GLOBAL_CONFIG_FILE_NAME);
@@ -42,18 +40,19 @@ export class MainConfigService extends Disposable implements IConfigService, IDi
 
     // [field]
 
-    private readonly _configurations: ConfigCollection;
+    private readonly _configurations: IConfigCollection;
 
     // [constructor]
 
     constructor(
-        @IEnvironmentService environmentService: IEnvironmentService,
+        @IEnvironmentService private readonly environmentService: IEnvironmentService,
         @IFileService fileService: IFileService,
         @ILogService private readonly logService: ILogService,
     ) {
         super();
         const provider = new ResourceProvider(environmentService.appConfigurationPath);
         this._configurations = new ConfigCollection((scope) => provider.get(scope), fileService, logService);
+        this.__register(this._configurations);
     }
 
     // [public methods]
@@ -61,6 +60,9 @@ export class MainConfigService extends Disposable implements IConfigService, IDi
     public async init(): Promise<void> {
         this.logService.trace('Main#MainConfigService#initializing...');
         return this._configurations.init().then(() => {
+            if (this.environmentService.logLevel === LogLevel.TRACE) {
+                this.logService.trace('All Configurations:\n', this._configurations.inspect().model);
+            }
             this.logService.info(`All configurations loaded successfully.`);
         });
     }
