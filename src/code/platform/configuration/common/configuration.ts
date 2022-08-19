@@ -1,6 +1,6 @@
 import { app } from "electron";
 import { MarkdownRenderMode } from "src/code/browser/workbench/workspace/markdown/markdown";
-import { ConfigModel } from "src/code/platform/configuration/common/configModel";
+import { __ConfigModel } from "src/code/platform/configuration/common/configModel";
 import { AppMode } from "src/code/platform/configuration/electron/configService";
 import { Language } from "src/code/platform/i18n/i18n";
 
@@ -82,7 +82,7 @@ export interface IGlobalNotebookManagerSettings {
     previousNotebookManagerDir: string;
 }
 
-export class DefaultGlobalConfigModel extends ConfigModel {
+export class DefaultGlobalConfigModel extends __ConfigModel {
     
     constructor() {
         super();
@@ -165,7 +165,7 @@ export interface IUserMarkdownSettings {
     defaultMarkdownMode: MarkdownRenderMode;
 }
 
-export class DefaultUserConfigModel extends ConfigModel {
+export class DefaultUserConfigModel extends __ConfigModel {
 
     constructor() {
         super();
