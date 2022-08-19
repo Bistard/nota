@@ -1,6 +1,5 @@
 import { Register } from "src/base/common/event";
 import { CharCode } from "src/base/common/util/char";
-import { Promisify } from "src/base/common/util/type";
 import { IChannel, IServerChannel } from "src/code/platform/ipc/common/channel";
 
 /**
@@ -41,8 +40,8 @@ export namespace ProxyChannel {
         };
     }
 
-    export function unwrapChannel<T extends object>(channel: IChannel, opt?: UnwrapChannelOpt): Promisify<T> {
-        return new Proxy(
+    export function unwrapChannel<T extends object>(channel: IChannel, opt?: UnwrapChannelOpt): T {
+        return <T>(new Proxy(
             {}, {
             get: (_target: T, propName: string | symbol): unknown => {
                 if (typeof propName !== 'string') {
@@ -62,7 +61,7 @@ export namespace ProxyChannel {
                     return channel.callCommand(propName, args);
                 };
             }
-        }) as Promisify<T>;
+        }));
     }
 
     function __guessIfEventRegister(proName: string): boolean {
