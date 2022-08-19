@@ -75,13 +75,13 @@ export class ConfigCollection implements IConfigCollection {
     // [constructor]
 
     constructor(
-        defaultResource: URI,
+        resourceProvider: (scope: ConfigScope) => URI,
         private readonly fileService: IFileService,
     ) {
         // built-in
         this._configurations = new Map();
-        this._appConfiguration  = new ConfigModel(defaultResource, this._registrant.getDefaultBuiltIn(BuiltInConfigScope.Application), fileService);
-        this._userConfiguration = new ConfigModel(defaultResource, this._registrant.getDefaultBuiltIn(BuiltInConfigScope.User), fileService);
+        this._appConfiguration  = new ConfigModel(resourceProvider(BuiltInConfigScope.Application), this._registrant.getDefaultBuiltIn(BuiltInConfigScope.Application), fileService);
+        this._userConfiguration = new ConfigModel(resourceProvider(BuiltInConfigScope.User), this._registrant.getDefaultBuiltIn(BuiltInConfigScope.User), fileService);
         this._configurations.set(BuiltInConfigScope.Application, this._appConfiguration);
         this._configurations.set(BuiltInConfigScope.User, this._userConfiguration);
 
