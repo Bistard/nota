@@ -64,44 +64,38 @@ const nota = new class extends class MainProcess implements IMainProcess {
     // [private methods]
 
     private async run(): Promise<void> {
-        
         /**
          * No error tolerance at this stage since all the work here are 
          * necessary for the future works.
          */
-        let error: any;
 
         // core service construction / registration
         this.createCoreServices();
         
-        // initialization
         try {
-            await this.initServices();
-            console.log(this.mainConfigService)
-        } 
-        catch (err) {
-            this.__showDirectoryErrorDialog(err);
-            error = err;
-        }
-
-        // application run
-        try {
-            Event.once(this.lifeCycleService.onWillQuit)(e => {
-                this.fileService.dispose();
-                this.mainConfigService.dispose();
-            });
             
-            await this.resolveSingleApplication();
-
-            const instance = this.instantiationService.createInstance(NotaInstance);
-            await instance.run();
+            // initialization
+            try {
+                await this.initServices();
+            } catch (error) {
+                this.__showDirectoryErrorDialog(error);
+                throw error;
+            }
+            
+            // application run
+            {
+                Event.once(this.lifeCycleService.onWillQuit)(e => {
+                    this.fileService.dispose();
+                    this.mainConfigService.dispose();
+                });
+                
+                await this.resolveSingleApplication();
+    
+                const instance = this.instantiationService.createInstance(NotaInstance);
+                await instance.run();
+            }
         } 
-        catch (err) {
-            error = err;
-        }
-
-        // error handling
-        if (error) {
+        catch (error: any) {
             this.kill(error);
         }
     }
@@ -145,7 +139,7 @@ const nota = new class extends class MainProcess implements IMainProcess {
         const mainConfigService = new MainConfigService(environmentService, fileService, logService);
         instantiationService.register(IMainConfigService, mainConfigService);
 
-        // global-config-service
+        // FIX: global-config-service
         const globalConfigService = new GlobalConfigService(fileService, logService, environmentService);
         instantiationService.register(IGlobalConfigService, globalConfigService);
         
@@ -220,6 +214,7 @@ const nota = new class extends class MainProcess implements IMainProcess {
         }
 
         // we are the first running application under the current version.
+        this.logService.debug('Running as the first application.');
         process.env[ProcessKey.PID] = String(process.pid);
         return;
     }
