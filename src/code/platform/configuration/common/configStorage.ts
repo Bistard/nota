@@ -369,9 +369,21 @@ export abstract class DefaultConfigStorage implements IConfigStorage {
 }
 
 /**
- * @description // TODO
- * @param model 
- * @param sections 
+ * @description Given a provided model, generates every section split by `.`
+ * that directs to the deepest non-object property.
+ * @param model The provided model object.
+ * @param sections The array for generated sections.
+ * @example 
+ * ```js
+ * const arr = [];
+ * getModelSections({
+ *     path1: {
+ *         path2: 'hello'
+ *     },
+ *     path3: 'world'
+ * }, arr)
+ * // arr => ['path1.path2', 'path3']
+ * ```
  */
 function getModelSections(model: Record<PropertyKey, any>, sections: string[]): void {
     const __handler = (model: Record<PropertyKey, any>, section: string, sections: string[]): boolean => {

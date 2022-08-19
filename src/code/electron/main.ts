@@ -1,4 +1,4 @@
-import { app, dialog, ipcMain } from 'electron';
+import { app, dialog } from 'electron';
 import { mkdir } from 'fs/promises';
 import { ErrorHandler, ExpectedError } from 'src/base/common/error';
 import { Event } from 'src/base/common/event';
