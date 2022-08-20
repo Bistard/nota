@@ -1,4 +1,4 @@
-import "src/code/browser/registration";
+import "src/code/browser/registrant";
 import { Workbench } from "src/code/browser/workbench/workbench";
 import { IInstantiationService, InstantiationService } from "src/code/platform/instantiation/common/instantiation";
 import { getSingletonServiceDescriptors, ServiceCollection } from "src/code/platform/instantiation/common/serviceCollection";
