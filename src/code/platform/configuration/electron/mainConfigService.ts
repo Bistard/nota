@@ -88,6 +88,7 @@ export interface IMainConfigService extends IConfigService {
 export class MainConfigService extends Disposable implements IMainConfigService, IDisposable {
 
     // [event]
+    
     get onDidChange(): Register<IScopeConfigChangeEvent> { return this._configurations.onDidChange; }
 
     // [field]

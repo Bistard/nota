@@ -102,13 +102,15 @@ export class Browser extends Disposable {
         instantiationService.register(IFileService, fileService);
  
         // browser-configuration-service
+        // FIX: does not work, API are all asynchronous.
         const configChannel = ipcService.getChannel(IpcChannel.Configuration);
         const configService = ProxyChannel.unwrapChannel<IConfigService>(configChannel);
         instantiationService.register(IConfigService, configService);
-
         console.log('[before]');
         console.log(configService.inspect());
         console.log('[after]');
+
+        // REVIEW: 主进程放application configuration，渲染进程放user configuration
 
         // // user-config-service
         // const userConfigService = new UserConfigService(fileService, logService, environmentService);
