@@ -9,7 +9,7 @@ import { ConfigServiceBase, __IConfigService } from "src/code/platform/configura
 import { IFileService } from "src/code/platform/files/common/fileService";
 import { createDecorator } from "src/code/platform/instantiation/common/decorator";
 import { IDiskEnvironmentService, IEnvironmentService, IMainEnvironmentService } from "src/code/platform/environment/common/environment";
-import { Language } from "src/code/platform/i18n/i18n";
+import { LanguageType } from "src/code/platform/i18n/i18n";
 import { DefaultGlobalConfigModel, DefaultUserConfigModel, EGlobalSettings, EUserSettings, IGlobalApplicationSettings, IGlobalNotebookManagerSettings, IUserMarkdownSettings, IUserNotebookManagerSettings } from "src/code/platform/configuration/common/configuration";
 
 export const NOTA_DIR_NAME = '.nota';

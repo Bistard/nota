@@ -4,7 +4,7 @@ import { __ConfigModel } from "src/code/platform/configuration/common/configMode
 import { BuiltInConfigScope, IConfigRegistrant } from "src/code/platform/configuration/common/configRegistrant";
 import { DefaultConfigStorage } from "src/code/platform/configuration/common/configStorage";
 import { AppMode } from "src/code/platform/configuration/electron/configService";
-import { Language } from "src/code/platform/i18n/i18n";
+import { LanguageType } from "src/code/platform/i18n/i18n";
 import { Registrants } from "src/code/platform/registrant/common/registrant";
 
 /*******************************************************************************
@@ -48,7 +48,7 @@ export interface IGlobalApplicationSettings {
     /**
      * The current display language.
      */
-    displayLanguage: Language,
+    displayLanguage: LanguageType,
     
     /**
      * Used for file/directory reading and writing.
