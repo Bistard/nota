@@ -1,12 +1,52 @@
 import { Disposable, IDisposable } from "src/base/common/dispose";
-import { Register } from "src/base/common/event";
+import { Listener, Register } from "src/base/common/event";
 import { ILogService, LogLevel } from "src/base/common/logger";
+import { Array } from "src/base/common/util/array";
 import { IConfigCollection } from "src/code/platform/configuration/common/configCollection";
 import { ConfigScope, IScopeConfigChangeEvent } from "src/code/platform/configuration/common/configRegistrant";
-import { IEnvironmentService } from "src/code/platform/environment/common/environment";
 import { createDecorator } from "src/code/platform/instantiation/common/decorator";
 
 export const IConfigService = createDecorator<IConfigService>('configuration-service');
+
+export interface ConfigRegister<ConfigType> {
+    (scope: ConfigScope, section: string, listener: Listener<ConfigType>, disposables?: IDisposable[], thisObject?: any): IDisposable;
+}
+
+class ConfigEmitter<T extends IScopeConfigChangeEvent> {
+
+    private _orginRegister: Register<T>;
+    private _myRegister?: ConfigRegister<any>;
+
+    constructor(register: Register<T>, private readonly _collection: IConfigCollection) {
+        this._orginRegister = register;
+    }
+
+    get registerListener() {
+        if (!this._myRegister) {
+            this._myRegister = <ConfigType, >(scope: ConfigScope, section: string, listener: Listener<ConfigType>, disposables?: IDisposable[], thisObject?: any) => {
+                const disposable = this._orginRegister(e => this.__onDidChange(e, scope, section, listener), disposables, thisObject);
+                return disposable;
+            };
+        }
+
+        return this._myRegister;
+    }
+
+    private __onDidChange<ConfigType>(e: T, scope: ConfigScope, section: string, listener: Listener<ConfigType>): void {
+        if (e.scope === scope) {
+            /**
+             * Either the whole configuration of that scope is changed OR
+             * The parent of the section is changed.
+             */
+            if (e.sections.length === 0
+                || Array.matchAny(e.sections, [section], (changes, desired) => desired.startsWith(changes))
+            ) {
+                const configuration = this._collection.get<ConfigType>(scope, section);
+                listener(configuration);
+            }
+        }
+    }
+}
 
 /**
  * A base interface for all config-service.
@@ -15,13 +55,13 @@ export interface IConfigService extends IDisposable {
     /**
      * Fires when any of the configuration is changed.
      */
-    onDidChange: Register<IScopeConfigChangeEvent>;
+    onDidChange<ConfigType>(scope: ConfigScope, section: string, listener: Listener<ConfigType>, disposables?: IDisposable[], thisObject?: any): IDisposable;
     
     /**
      * @description Initialize all the registered configurations in 
      * {@link IConfigRegistrant} with the updatest resource from the disk.
      */
-    init(): Promise<void>;
+    init(logLevel?: LogLevel): Promise<void>;
 
     /**
      * @description Returns a deep-copyed object that contains all the built-in
@@ -66,10 +106,13 @@ export class AbstractConfigService extends Disposable implements IConfigService 
 
     // [event]
 
-    get onDidChange(): Register<IScopeConfigChangeEvent> { return this._collection.onDidChange; }
+    public onDidChange<ConfigType>(scope: ConfigScope, section: string, listener: Listener<ConfigType>, disposables?: IDisposable[], thisObject?: any): IDisposable {
+        return this._onDidChange.registerListener(scope, section, listener, disposables, thisObject);
+    }
 
     // [field]
 
+    private readonly _onDidChange: ConfigEmitter<IScopeConfigChangeEvent>;
     protected readonly _collection: IConfigCollection;
 
     // [constructor]
@@ -77,18 +120,18 @@ export class AbstractConfigService extends Disposable implements IConfigService 
     constructor(
         collection: IConfigCollection,
         @ILogService private readonly logService: ILogService,
-        @IEnvironmentService private readonly environmentService: IEnvironmentService,
     ) {
         super();
+        this._onDidChange = new ConfigEmitter(collection.onDidChange, collection);
         this._collection = this.__register(collection);
     }
 
     // [public methods]
 
-    public async init(): Promise<void> {
+    public async init(logLevel?: LogLevel): Promise<void> {
         this.logService.trace('Main#ConfigService#initializing...');
         return this._collection.init().then(() => {
-            if (this.environmentService.logLevel === LogLevel.TRACE) {
+            if (logLevel === LogLevel.TRACE) {
                 this.logService.trace('All Configurations:\n', this._collection.inspect().model);
             }
             this.logService.info(`All configurations loaded successfully.`);

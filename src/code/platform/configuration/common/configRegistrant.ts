@@ -92,7 +92,7 @@ class ConfigRegistrant implements IConfigRegistrant {
             ErrorHandler.onUnexpectedError(new Error(`default built-in configuration with scope '${scope}' not found`));
             return undefined!;
         }
-        return config.clone();
+        return config;
     }
 
     public unregisterDefaultBuiltIn(scope: BuiltInConfigScope): boolean {
@@ -126,7 +126,7 @@ class ConfigRegistrant implements IConfigRegistrant {
         if (!config) {
             throw new Error(`default exntension configuration with scope '${scope}' not found`);
         }
-        return config.clone();
+        return config;
     }
 
     public unregisterDefaultExtension(scope: ExtensionConfigScope): boolean {
