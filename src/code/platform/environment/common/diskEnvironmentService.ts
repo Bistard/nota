@@ -5,7 +5,7 @@ import { ILogService, LogLevel, parseToLogLevel } from "src/base/common/logger";
 import { memoize } from "src/base/common/memoization";
 import { MapTypes } from "src/base/common/util/type";
 import { NOTA_DIR_NAME } from "src/code/platform/configuration/electron/configService";
-import { getAllEnvironments, IDiskEnvironmentService, IEnvironmentOpts, IEnvironmentService } from "src/code/platform/environment/common/environment";
+import { ApplicationMode, getAllEnvironments, IDiskEnvironmentService, IEnvironmentOpts, IEnvironmentService } from "src/code/platform/environment/common/environment";
 import { ICLIArguments } from "src/main";
 
 export class DiskEnvironmentService implements IDiskEnvironmentService {
@@ -30,7 +30,7 @@ export class DiskEnvironmentService implements IDiskEnvironmentService {
 
     get isPackaged(): boolean { return this.opts.isPackaged; }
 
-    get mode(): "develop" | "release" { return this.opts.isPackaged ? 'release' : 'develop'; }
+    get mode(): ApplicationMode { return this.opts.isPackaged ? ApplicationMode.RELEASE : ApplicationMode.DEVELOP; }
 
     @memoize
     get logLevel(): LogLevel { return parseToLogLevel(this.CLIArgv['log']); }

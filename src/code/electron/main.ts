@@ -14,7 +14,7 @@ import { ILoggerService } from 'src/code/platform/logger/common/abstractLoggerSe
 import { ConsoleLogger } from 'src/code/platform/logger/common/consoleLoggerService';
 import { FileLoggerService } from 'src/code/platform/logger/common/fileLoggerService';
 import { NotaInstance } from 'src/code/electron/nota';
-import { IEnvironmentOpts, IEnvironmentService, IMainEnvironmentService } from 'src/code/platform/environment/common/environment';
+import { ApplicationMode, IEnvironmentOpts, IEnvironmentService, IMainEnvironmentService } from 'src/code/platform/environment/common/environment';
 import { MainEnvironmentService } from 'src/code/platform/environment/electron/mainEnvironmentService';
 import { IMainLifeCycleService, MainLifeCycleService } from 'src/code/platform/lifeCycle/electron/mainLifeCycleService';
 import { IMainStatusService, MainStatusService } from 'src/code/platform/status/electron/mainStatusService';
@@ -130,7 +130,9 @@ const nota = new class extends class MainProcess implements IMainProcess {
         
         // pipeline-logger
         const pipelineLogger = new PipelineLogger([
-            new ConsoleLogger(environmentService.mode === 'develop' ? environmentService.logLevel : LogLevel.WARN),
+            // console-logger
+            new ConsoleLogger(environmentService.mode === ApplicationMode.DEVELOP ? environmentService.logLevel : LogLevel.WARN),
+            // file-logger
             fileLoggerService.createLogger(environmentService.logPath, { description: 'main-log', name: 'main-log.txt' }),
         ]);
         logService.setLogger(pipelineLogger);

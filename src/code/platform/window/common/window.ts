@@ -60,12 +60,12 @@ export interface IFileToOpen {
     readonly gotoLine?: number;
 }
 
+/**
+ * Determines what type of URIs are about to be opened in the window.
+ */
 export interface IUriToOpenConfiguration {
-
     readonly workspace?: URI;
-
     readonly directory?: URI;
-
     readonly filesToOpen?: IFileToOpen[];
 }
 
@@ -80,7 +80,8 @@ export interface IWindowCreationOptions extends Partial<IWindowConfiguration> {
     readonly displayOptions?: IWindowDisplayOpts;
 
     /**
-     * Either be workspaces or files (include goto info) URIs.
+     * URIs to be opened in the window, might be either workspace, directory or 
+     * file.
      */
     readonly uriToOpen?: URI[];
 }

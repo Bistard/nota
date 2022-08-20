@@ -9,14 +9,15 @@ import { ServiceDescriptor } from "src/code/platform/instantiation/common/descri
 import { initExposedElectronAPIs, ipcRenderer, process, windowConfiguration } from "src/code/platform/electron/browser/global";
 import { IIpcService, IpcService } from "src/code/platform/ipc/browser/ipcService";
 import { BrowserLoggerChannel } from "src/code/platform/logger/common/loggerChannel";
-import { BufferLogger, ILogService, LogLevel } from "src/base/common/logger";
+import { BufferLogger, ILogService, LogLevel, PipelineLogger } from "src/base/common/logger";
 import { ILoggerService } from "src/code/platform/logger/common/abstractLoggerService";
 import { IFileService } from "src/code/platform/files/common/fileService";
 import { BrowserEnvironmentService } from "src/code/platform/environment/browser/browserEnvironmentService";
 import { BrowserFileChannel } from "src/code/platform/files/common/fileChannel";
 import { ErrorHandler } from "src/base/common/error";
 import { IUserConfigService, UserConfigService } from "src/code/platform/configuration/electron/configService";
-import { IBrowserEnvironmentService } from "src/code/platform/environment/common/environment";
+import { ApplicationMode, IBrowserEnvironmentService } from "src/code/platform/environment/common/environment";
+import { ConsoleLogger } from "src/code/platform/logger/common/consoleLoggerService";
 
 /**
  * @class This is the main entry of the renderer process.
@@ -75,21 +76,22 @@ export class Browser extends Disposable {
         const ipcService = new IpcService(environmentService.windowID);
         instantiationService.register(IIpcService, ipcService);
 
-        // logger-service
+        // file-logger-service
         const loggerService = new BrowserLoggerChannel(ipcService, environmentService.logLevel);
         instantiationService.register(ILoggerService, loggerService);
 
         // logger
-        const logger = loggerService.createLogger(environmentService.logPath, { 
-            name: `window-${environmentService.windowID}.txt`,
-            description: `renderer`,
-        });
+        const logger = new PipelineLogger([
+            // console-logger
+            new ConsoleLogger(environmentService.mode === ApplicationMode.DEVELOP ? environmentService.logLevel : LogLevel.WARN),
+            // file-logger
+            loggerService.createLogger(environmentService.logPath, { 
+                name: `window-${environmentService.windowID}.txt`,
+                description: `renderer`,
+            }),
+        ]);
         logService.setLogger(logger);
-        ErrorHandler.setUnexpectedErrorExternalCallback(error => {
-            console.error(error);
-            logger.error(error);
-        });
-
+        
         // file-service
         // FIX: readFileStream does not work
         const fileService = new BrowserFileChannel(ipcService);

@@ -43,6 +43,11 @@ export interface IEnvironmentOpts {
     readonly userDataPath: string | URI;
 }
 
+export const enum ApplicationMode {
+    DEVELOP,
+    RELEASE,
+}
+
 /**
  * A shared environment interface that can be used in either main process or 
  * renderer process.
@@ -58,7 +63,7 @@ export interface IEnvironmentService {
     /**
      * The application mode.
      */
-    readonly mode: 'develop' | 'release';
+    readonly mode: ApplicationMode;
 
     /**
      * If the application is packaged.
