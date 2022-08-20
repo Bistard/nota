@@ -89,9 +89,10 @@ export function mockType<T>(val: any): T {
     return val as unknown as T;
 }
 
-/**
- * @description Checks if it is the type `object`.
- */
+export function isNumber(obj: any): obj is number {
+    return (typeof obj === 'number' && !isNaN(obj));
+}
+
 export function isObject(obj: any): obj is any {
     return typeof obj === "object"
         && obj !== null
@@ -100,9 +101,6 @@ export function isObject(obj: any): obj is any {
         && !(obj instanceof Date);
 }
 
-/**
- * @description Checks if it is an empty object.
- */
 export function isEmptyObject(obj: any): boolean {
     if (!isObject(obj)) {
         return false;
@@ -117,22 +115,21 @@ export function isEmptyObject(obj: any): boolean {
     return true;
 }
 
-/**
- * @description Check if the object is undefined or null.
- */
 export function isNonNullable(value: any): boolean {
     return !(typeof value === 'undefined' || value === null);
 }
 
-/**
- * @description Checks if it is an array.
- */
+export function NulltoUndefined<T>(obj: T | null): T | undefined {
+    return obj === null ? undefined : obj;
+}
+
 export function isArray(array: any): array is any[] {
     return Array.isArray(array);
 }
 
 /**
- * @returns whether the provided parameter is an Iterable, casting to the given generic
+ * @returns whether the provided parameter is an Iterable, and will cast to the 
+ * given generic type.
  */
  export function isIterable<T>(obj: unknown): obj is Iterable<T> {
 	return !!obj && typeof (obj as any)[Symbol.iterator] === 'function';
@@ -161,11 +158,4 @@ export function ifOrDefault<T>(value: T, defaultValue: NonNullable<T>): NonNulla
         return defaultValue;
     }
     return value as NonNullable<T>;
-}
-
-/**
- * @description Make sure `null` is converted to `undefined`.
- */
-export function NulltoUndefined<T>(obj: T | null): T | undefined {
-    return obj === null ? undefined : obj;
 }
