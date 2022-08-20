@@ -1,8 +1,16 @@
 
 export type DightInString = '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9';
-export type Single<T> = [T];
-export type Pair<T, R> = [T, R];
-export type Triple<T, R, S> = [T, R, S];
+export type AlphabetInStringLow = 'a' | 'b' | 'c' | 'd' | 'e' | 'f' | 'g' | 'h' | 'i' | 'j' | 'k' | 'l' | 'm' | 'n' | 'o' | 'p' | 'q' | 'r' | 's' | 't' | 'u' | 'v' | 'w' | 'x' | 'y' | 'z';
+export type AlphabetInStringCap = 'A' | 'B' | 'C' | 'D' | 'E' | 'F' | 'G' | 'H' | 'I' | 'J' | 'K' | 'L' | 'M' | 'N' | 'O' | 'P' | 'Q' | 'R' | 'S' | 'T' | 'U' | 'V' | 'W' | 'X' | 'Y' | 'Z';
+export type AlphabetInString = AlphabetInStringCap | AlphabetInStringLow;
+
+/**
+ * Check the tuple size matches the given size.
+ */
+export type Tuple<Size extends number, Arr extends Readonly<unknown[]>> = Arr['length'] extends Size ? Size extends Arr['length'] ? Arr : never : never;
+export type Single<T> = Tuple<1, [T]>;
+export type Pair<T, R> = Tuple<2, [T, R]>;
+export type Triple<T, R, S> = Tuple<3, [T, R, S]>;
 
 /**
  * Make all the properties mutable (remove readonly).
@@ -32,6 +40,11 @@ export type AnyOf<T extends readonly any[]> = T extends [infer F, ...infer Rest]
 export type Push<T extends any[], V> = [...T, V];
 
 /**
+ * Pop the end of the array (require non empty).
+ */
+export type Pop<T extends any[]> = T extends [...infer Rest, any] ? [Rest] : never;
+
+/**
  * Concatenate two arrays.
  */
 export type Concat<T extends any[], U extends any[]> = [...T, ...U];
@@ -49,15 +62,37 @@ export type MapTypes<T, R extends { from: any; to: any }> = {
 };
 
 /**
+ * Wraps all the return types from all the function properties with a {@link Promise}.
+ * @note Ignores the return types that are already promises.
+ */
+export type Promisify<T> = { 
+    [K in keyof T]: 
+    T[K] extends ((...args: any) => infer R) 
+        ? (R extends Promise<any> 
+            ? T[K] 
+            : (...args: Parameters<T[K]>) => Promise<R>) 
+        : T[K] 
+};
+
+/**
+ * Split string into a tuple by a deliminator.
+ */
+export type SplitString<S extends string, D extends string> =
+    string extends S ? string[] :
+    S extends '' ? [] :
+    S extends `${infer T}${D}${infer U}` ? [T, ...SplitString<U, D>] : [S];
+
+/**
  * @description Mocks the given value's type.
  */
 export function mockType<T>(val: any): T {
     return val as unknown as T;
 }
 
-/**
- * @description Checks if it is the type `object`.
- */
+export function isNumber(obj: any): obj is number {
+    return (typeof obj === 'number' && !isNaN(obj));
+}
+
 export function isObject(obj: any): obj is any {
     return typeof obj === "object"
         && obj !== null
@@ -66,9 +101,6 @@ export function isObject(obj: any): obj is any {
         && !(obj instanceof Date);
 }
 
-/**
- * @description Checks if it is an empty object.
- */
 export function isEmptyObject(obj: any): boolean {
     if (!isObject(obj)) {
         return false;
@@ -83,22 +115,21 @@ export function isEmptyObject(obj: any): boolean {
     return true;
 }
 
-/**
- * @description Check if the object is undefined or null.
- */
 export function isNonNullable(value: any): boolean {
     return !(typeof value === 'undefined' || value === null);
 }
 
-/**
- * @description Checks if it is an array.
- */
+export function NulltoUndefined<T>(obj: T | null): T | undefined {
+    return obj === null ? undefined : obj;
+}
+
 export function isArray(array: any): array is any[] {
     return Array.isArray(array);
 }
 
 /**
- * @returns whether the provided parameter is an Iterable, casting to the given generic
+ * @returns whether the provided parameter is an Iterable, and will cast to the 
+ * given generic type.
  */
  export function isIterable<T>(obj: unknown): obj is Iterable<T> {
 	return !!obj && typeof (obj as any)[Symbol.iterator] === 'function';
@@ -127,11 +158,4 @@ export function ifOrDefault<T>(value: T, defaultValue: NonNullable<T>): NonNulla
         return defaultValue;
     }
     return value as NonNullable<T>;
-}
-
-/**
- * @description Make sure `null` is converted to `undefined`.
- */
-export function NulltoUndefined<T>(obj: T | null): T | undefined {
-    return obj === null ? undefined : obj;
 }

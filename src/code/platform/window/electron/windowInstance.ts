@@ -4,14 +4,14 @@ import { Emitter } from "src/base/common/event";
 import { join, resolve } from "src/base/common/file/path";
 import { ILogService } from "src/base/common/logger";
 import { IS_MAC } from "src/base/common/platform";
-import { IGlobalConfigService } from "src/code/platform/configuration/electron/configService";
 import { IFileService } from "src/code/platform/files/common/fileService";
 import { IEnvironmentService, IMainEnvironmentService } from "src/code/platform/environment/common/environment";
 import { IMainLifeCycleService } from "src/code/platform/lifeCycle/electron/mainLifeCycleService";
-import { defaultDisplayState, ICreateWindowConfiguration, IWindowDisplayState, IWindowInstance, WindowDisplayMode, ProcessKey, WindowMinimumState } from "src/code/platform/window/common/window";
+import { defaultDisplayState, IWindowConfiguration, IWindowDisplayOpts, IWindowInstance, WindowDisplayMode, WindowMinimumState, IWindowCreationOptions, ArgumentKey } from "src/code/platform/window/common/window";
 
 /**
- * @class // TODO
+ * @class A window instance is a wrapper class of {@link BrowserWindow} that
+ * will be used in the main process.
  */
 export class WindowInstance extends Disposable implements IWindowInstance {
 
@@ -31,17 +31,17 @@ export class WindowInstance extends Disposable implements IWindowInstance {
     // [constructor]
 
     constructor(
-        private readonly configuration: ICreateWindowConfiguration,
+        private readonly configuration: IWindowConfiguration,
+        private readonly creationConfig: IWindowCreationOptions,
         @ILogService private readonly logService: ILogService,
 		@IEnvironmentService private readonly environmentService: IMainEnvironmentService,
         @IFileService private readonly fileService: IFileService,
-        @IGlobalConfigService private readonly globalConfigService: IGlobalConfigService,
         @IMainLifeCycleService private readonly lifecycleService: IMainLifeCycleService,
     ) {
         super();
 
-        const state = configuration.displayState || defaultDisplayState();
-        this._window = this.doCreateWindow(state);
+        const displayOptions = creationConfig.displayOptions || defaultDisplayState();
+        this._window = this.doCreateWindow(displayOptions);
         this._id = this._window.id;
 
         if (this.environmentService.CLIArguments['open-devtools'] === true) {
@@ -65,7 +65,8 @@ export class WindowInstance extends Disposable implements IWindowInstance {
 
     public load(): Promise<void> {
         this.logService.trace(`Main#WindowInstance#ID-${this._id}#loading...`);
-        return this._window.loadFile('./index.html');
+        
+        return this._window.loadFile(this.creationConfig.loadFile);
     }
 
     public close(): void {
@@ -79,20 +80,19 @@ export class WindowInstance extends Disposable implements IWindowInstance {
 
     // [private methods]
 
-    private doCreateWindow(displayState: Readonly<IWindowDisplayState>): BrowserWindow {
+    private doCreateWindow(displayOpts: IWindowDisplayOpts): BrowserWindow {
         this.logService.trace('Main#WindowInstance#creating window...');
 
-        const ifMaxOrFullscreen = (displayState.mode === WindowDisplayMode.Fullscreen) || (displayState.mode === WindowDisplayMode.Maximized);
-        process.env[ProcessKey.configuration] = `${JSON.stringify(this.configuration)}`;
+        const ifMaxOrFullscreen = (displayOpts.mode === WindowDisplayMode.Fullscreen) || (displayOpts.mode === WindowDisplayMode.Maximized);
         
         const browserOption: BrowserWindowConstructorOptions = {
             title: 'nota',
-            height: displayState.height,
-            width: displayState.width,
-            x: displayState.x,
-            y: displayState.y,
-            minHeight: WindowMinimumState.height,
-            minWidth: WindowMinimumState.wdith,
+            height: displayOpts.height,
+            width: displayOpts.width,
+            x: displayOpts.x,
+            y: displayOpts.y,
+            minHeight:  displayOpts.minHeight ?? WindowMinimumState.height,
+            minWidth: displayOpts.minWidth ?? WindowMinimumState.wdith,
             webPreferences: {
                 /**
                  * Node.js is only available in main / preload process.
@@ -107,7 +107,7 @@ export class WindowInstance extends Disposable implements IWindowInstance {
                  * Pass any arguments use the following pattern:
                  *      --ArgName=argInString
                  */
-                additionalArguments: [],
+                additionalArguments: [`--${ArgumentKey.configuration}=${JSON.stringify(this.configuration)}`],
                 
                 /**
                  * Context Isolation is a feature that ensures that both 
@@ -128,6 +128,7 @@ export class WindowInstance extends Disposable implements IWindowInstance {
                 backgroundThrottling: false,
             },
             show: false, // to prevent flicker, we will show it later.
+            resizable: displayOpts.resizable ?? true,
         };
 
         // frame
@@ -139,7 +140,7 @@ export class WindowInstance extends Disposable implements IWindowInstance {
 
         if (ifMaxOrFullscreen) {
             window.maximize();
-            if (displayState.mode === WindowDisplayMode.Fullscreen) {
+            if (displayOpts.mode === WindowDisplayMode.Fullscreen) {
                 window.setSimpleFullScreen(true);
 		        window.webContents.focus();
             }
@@ -164,7 +165,6 @@ export class WindowInstance extends Disposable implements IWindowInstance {
 			this.dispose();
 		});
 
-        
     }
 
     // [private helper methods]

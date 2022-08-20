@@ -4,16 +4,16 @@ import { ContextMenuService, IContextMenuService } from 'src/code/browser/servic
 import { IInstantiationService } from "src/code/platform/instantiation/common/instantiation";
 import { ServiceDescriptor } from "src/code/platform/instantiation/common/descriptor";
 import { IComponentService } from "src/code/browser/service/componentService";
-import { IGlobalConfigService } from "src/code/platform/configuration/electron/configService";
 import { WorkbenchLayout } from "src/code/browser/workbench/layout";
-import { i18n, Ii18nOpts, Ii18nService } from "src/code/platform/i18n/i18n";
-import { IShortcutService, ShortcutService } from "src/code/browser/service/keyboard/shortcutService";
+import { i18n, Ii18nOpts, Ii18nService, LanguageType } from "src/code/platform/i18n/i18n";
+import { IShortcutService } from "src/code/browser/service/keyboard/shortcutService";
 import { KeyCode, Shortcut } from "src/base/common/keyboard";
 import { IpcChannel } from "src/base/common/ipcChannel";
 import { IWorkbenchService } from "src/code/browser/service/workbenchService";
 import { IIpcService } from "src/code/browser/service/ipcService";
-import { IKeyboardScreenCastService, KeyboardScreenCastService } from "src/code/browser/service/keyboard/keyboardScreenCastService";
-import { EGlobalSettings, IGlobalApplicationSettings } from "src/code/platform/configuration/common/configuration";
+import { IKeyboardScreenCastService } from "src/code/browser/service/keyboard/keyboardScreenCastService";
+import { IConfigService } from "src/code/platform/configuration/common/abstractConfigService";
+import { BuiltInConfigScope } from "src/code/platform/configuration/common/configRegistrant";
 
 /**
  * @class Workbench represents all the Components in the web browser.
@@ -22,7 +22,7 @@ export class Workbench extends WorkbenchLayout implements IWorkbenchService {
 
     constructor(
         @IInstantiationService instantiationService: IInstantiationService,
-        @IGlobalConfigService private readonly globalConfigService: IGlobalConfigService,
+        @IConfigService private readonly configService: IConfigService,
         @IIpcService ipcService: IIpcService,
         @IComponentService componentService: IComponentService,
     ) {
@@ -42,9 +42,8 @@ export class Workbench extends WorkbenchLayout implements IWorkbenchService {
         this.instantiationService.register(IWorkbenchService, this);
 
         /** {@link i18n} */
-        const appConfig = this.globalConfigService.get<IGlobalApplicationSettings>(EGlobalSettings.Application);
         const i18nOption: Ii18nOpts = {
-            language: appConfig.displayLanguage,
+            language: this.configService.get<LanguageType>('workbench.language'),
             localeOpts: {
                 extension: '.json',
                 prefix: '{',
@@ -121,17 +120,17 @@ export class Workbench extends WorkbenchLayout implements IWorkbenchService {
     }
 
     private __registerGlobalConfigurationChange(): void {
-        const globalConfiguration = this.globalConfigService.get<IGlobalApplicationSettings>(EGlobalSettings.Application);
+        const ifEnabled = this.configService.get<boolean>('workbench.keyboardScreenCast');
         
         let screenCastService: IKeyboardScreenCastService;
 
-        if (globalConfiguration.keyboardScreenCast) {
+        if (ifEnabled) {
             screenCastService = this.instantiationService.getOrCreateService(IKeyboardScreenCastService);
             screenCastService.start();
         }
 
-        this.globalConfigService.onDidChangeApplicationSettings(event => {
-            if (event.keyboardScreenCast) {
+        this.configService.onDidChange<boolean>(BuiltInConfigScope.Application, 'workbench.keyboardScreenCast', ifEnabled => {
+            if (ifEnabled) {
                 screenCastService.start();
             } else {
                 screenCastService.dispose();

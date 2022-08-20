@@ -1,111 +1,105 @@
+import { Disposable } from "src/base/common/dispose";
+import { URI } from "src/base/common/file/uri";
+import { ILogService } from "src/base/common/logger";
+import { ConfigStorage, IConfigStorage } from "src/code/platform/configuration/common/configStorage";
+import { IFileService } from "src/code/platform/files/common/fileService";
 
 /**
- * @readonly The type of configService.
+ * An interface only for {@link ConfigModel}.
  */
-export const enum IConfigType {
-    USER,
-    GLOBAL,
-    TEST,
-}
-
-/**
- * @readonly Interface corresponds to the event `onDidChangeConfiguration` in 
- * `configServiceBase`.
- */
-export interface IConfigChangeEvent {
-
-    readonly type: IConfigType;
-    readonly changes: IConfigChange;
-
-}
-
-export interface IConfigChange {
-    sections: string[],
-}
-
-/*******************************************************************************
- * Configuration Model
- ******************************************************************************/
-
- export interface IConfigModel {
-
-    /** 
-     * @readonly get the inner structure of the configuration (a javascript object) 
+export interface IConfigModel extends IConfigStorage {
+    /**
+     * The corresponding resource path of the configuration model.
      */
-    object: any;
+    readonly resource: URI;
 
-    get<T>(section: string | undefined): T | undefined;
-
-    set(section: string | undefined, value: any): void;
-
+    /**
+     * @description Initialize the configuration with the updatest resource from
+     * the disk.
+     * @throws An exception will be thrown if it failed.
+     */
+    init(): Promise<void>;
 }
 
 /**
- * @class The data structure to stores the actual configruration. Each `configServiceBase`
- * consists exact one ConfigModel.
- * 
- * The default constructor is a null javascript object.
+ * @class A wrapper class on {@link ConfigStorage} except providing a resource
+ * path for updating to the latest configuration by inboking `this.init()`.
  */
-export class ConfigModel implements IConfigModel {
+export class ConfigModel extends Disposable implements IConfigModel {
+
+    // [field]
+
+    private readonly _resource: URI;
+    private readonly _storage: IConfigStorage;
+
+    // [constructor]
 
     constructor(
-        private _object: any = {}
-    ) {}
-
-    get object(): any {
-        return this._object;
+        resource: URI,
+        storage: IConfigStorage,
+        private readonly fileService: IFileService,
+        private readonly logService: ILogService,
+    ) {
+        super();
+        this._resource = resource;
+        this._storage = storage;
+        this.__register(this._storage);
+        this.__register(fileService.watch(resource));
     }
 
-    protected __setObject(obj: any): void {
-        this._object = obj;
+    // [getter]
+
+    get sections(): string[] {
+        return this._storage.sections;
     }
 
-    public get<T>(section: string | undefined = undefined): T | undefined {
-        if (section) {
-            return this.__getConfigBySection<T>(section, this._object);
-        } else {
-            return <T>this._object;
+    get model(): any {
+        return this._storage.model;
+    }
+
+    get resource(): URI { 
+        return this._resource; 
+    }
+
+    get onDidChange() {
+        return this._storage.onDidChange;
+    }
+
+    // [public methods]
+
+    public async init(): Promise<void> {
+        try {
+            const raw = await this.fileService.readFile(this._resource);
+            const model = JSON.parse(raw.toString());
+            const latestStorage = new ConfigStorage(undefined, model);
+            this.merge([latestStorage]);
+            this.logService.info(`Configuration loaded at ${this.resource.toString()}.`);
+        } catch (error) {
+            throw error; // throw it out, we do not care it here.
         }
     }
 
-    public set(section: string | undefined, value: any): void {
-        if (section) {
-            return this.__setConfigBySection(section, this._object, value);
-        } else {
-            this._object = value;
-        }
+    public set(section: string, configuration: any): void {
+        this._storage.set(section, configuration);
     }
 
-    private __getConfigBySection<T>(section: string, config: any): T | undefined {
-
-        const sections = section.split('.');
-        
-        let currentSection = config;
-        for (const sec of sections) {
-            try {
-                currentSection = currentSection[sec];
-            } catch (err) {
-                return undefined;
-            }
-        }
-
-        return currentSection;
+    public get<T>(section?: string | undefined): T {
+        return this._storage.get(section);
     }
 
-    private __setConfigBySection(section: string, config: any, value: any): void {
+    public delete(section: string): boolean {
+        return this._storage.delete(section);
+    }
 
-        const sections = section.split('.');
-        const lastSection = sections.pop()!;
+    public isEmpty(): boolean {
+        return this._storage.isEmpty();
+    }
 
-        let currentSection = config;
-        for (const subSection of sections) {
-            let curr = currentSection[subSection];
-            if (typeof curr === 'undefined') {
-                curr = currentSection[subSection] = Object.create(null);
-            }
-            currentSection = curr;
-        }
+    public merge(others: IConfigStorage[]): void {
+        this._storage.merge(others);
+    }
 
-        currentSection[lastSection] = value;
+    public clone(): ConfigStorage {
+        return this._storage.clone();
     }
 }

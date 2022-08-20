@@ -4,7 +4,6 @@ import { ErrorHandler } from "src/base/common/error";
 import { Event } from "src/base/common/event";
 import { ILogService } from "src/base/common/logger";
 import { getUUID, UUID } from "src/base/node/uuid";
-import { IGlobalConfigService } from "src/code/platform/configuration/electron/configService";
 import { IFileService } from "src/code/platform/files/common/fileService";
 import { ServiceDescriptor } from "src/code/platform/instantiation/common/descriptor";
 import { IInstantiationService, IServiceProvider } from "src/code/platform/instantiation/common/instantiation";
@@ -22,6 +21,7 @@ import { IMainWindowService, MainWindowService } from "src/code/platform/window/
 import { ILoggerService } from "src/code/platform/logger/common/abstractLoggerService";
 import { MainLoggerChannel } from "src/code/platform/logger/common/loggerChannel";
 import { IMainDialogService, MainDialogService } from "src/code/platform/dialog/electron/mainDialogService";
+import { ILookupPaletteService, LookupPaletteService } from "src/code/platform/lookup/electron/lookupPaletteService";
 
 /**
  * An interface only for {@link NotaInstance}
@@ -48,7 +48,6 @@ export class NotaInstance extends Disposable implements INotaInstance {
         @IMainLifeCycleService private readonly lifeCycleService: IMainLifeCycleService,
         @ILogService private readonly logService: ILogService,
         @IFileService private readonly fileService: IFileService,
-        @IGlobalConfigService private readonly globalConfigService: IGlobalConfigService,
         @IMainStatusService private readonly statusService: IMainStatusService,
     ) {
         super();
@@ -123,9 +122,12 @@ export class NotaInstance extends Disposable implements INotaInstance {
         appInstantiationService.register(IMainWindowService, new ServiceDescriptor(MainWindowService, [machineID]));
 
         // dialog-sevice
-        appInstantiationService.register(IMainDialogService, new ServiceDescriptor(MainDialogService, [this.logService]));
+        appInstantiationService.register(IMainDialogService, new ServiceDescriptor(MainDialogService));
 
         // TODO: notebook-group-service
+
+        // lookup-service
+        appInstantiationService.register(ILookupPaletteService, new ServiceDescriptor(LookupPaletteService));
 
         return appInstantiationService;
     }
@@ -140,7 +142,6 @@ export class NotaInstance extends Disposable implements INotaInstance {
         const loggerService = provider.getService(ILoggerService);
         const loggerChannel = new MainLoggerChannel(loggerService);
         server.registerChannel(IpcChannel.Logger, loggerChannel);
-
     }
 
     private openFirstWindow(provider: IServiceProvider): IWindowInstance {
@@ -148,10 +149,25 @@ export class NotaInstance extends Disposable implements INotaInstance {
         
         // life-cycle-service: READY
         this.lifeCycleService.setPhase(LifeCyclePhase.Ready);
+
+        // set-up lookup-palette-service
+        mainWindowService.onDidOpenWindow(() => {
+            if (mainWindowService.windowCount() === 1) {
+                const lookupPaletteService = provider.getOrCreateService(ILookupPaletteService);
+                lookupPaletteService.enable();
+            }
+        });
+        mainWindowService.onDidCloseWindow(() => {
+            if (mainWindowService.windowCount() === 0) {
+                const lookupPaletteService = provider.getOrCreateService(ILookupPaletteService);
+                lookupPaletteService.disable();
+            }
+        });
         
         // open the first window
         const window: IWindowInstance = mainWindowService.open({
             CLIArgv: this.environmentService.CLIArguments,
+            loadFile: './index.html',
         });
 
         return window;

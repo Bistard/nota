@@ -1,6 +1,10 @@
 import { IS_MAC, IS_WINDOWS } from "src/base/common/platform";
 import { GLOBAL } from "src/code/platform/electron/browser/global";
 
+export const enum ProcessKey {
+    PID = 'NOTA_PID',
+}
+
 /**
  * This interface is intentionally not identical to node.js process because it 
  * also works in sandboxed environments where the process object is implemented 

@@ -11,12 +11,10 @@ import { IIpcService } from "src/code/browser/service/ipcService";
 import { ExplorerItem } from "src/code/browser/workbench/actionView/explorer/explorerItem";
 import { IExplorerOpenEvent } from "src/code/browser/workbench/actionView/explorer/explorerTree";
 import { Notebook } from "src/code/platform/notebook/browser/notebook";
-import { NOTA_DIR_NAME } from "src/code/platform/configuration/electron/configService";
-import { IUserConfigService } from "src/code/platform/configuration/electron/configService";
-import { IGlobalConfigService } from "src/code/platform/configuration/electron/configService";
 import { IFileService } from "src/code/platform/files/common/fileService";
 import { createDecorator } from "src/code/platform/instantiation/common/decorator";
-import { EGlobalSettings, EUserSettings, IGlobalNotebookManagerSettings, IUserNotebookManagerSettings } from "src/code/platform/configuration/common/configuration";
+import { IConfigService, NOTA_DIR_NAME } from "src/code/platform/configuration/common/abstractConfigService";
+import { BuiltInConfigScope } from "src/code/platform/configuration/common/configRegistrant";
 
 export const INotebookGroupService = createDecorator<INotebookGroupService>('notebook-manager-service');
 
@@ -104,9 +102,7 @@ export class NotebookGroup extends Disposable implements INotebookGroupService {
     constructor(
         @IIpcService private readonly ipcService: IIpcService,
         @IFileService private readonly fileService: IFileService,
-        @IUserConfigService private readonly userConfigService: IUserConfigService,
-        @IGlobalConfigService private readonly globalConfigService: IGlobalConfigService,
-        
+        @IConfigService private readonly configService: IConfigService,
     ) {
         super();
         this.ipcService.onApplicationClose(async () => this.__onApplicationClose());
@@ -129,8 +125,8 @@ export class NotebookGroup extends Disposable implements INotebookGroupService {
         try {
             this._rootPath = path;
             
-            // read the configuration
-            const userConfig = this.userConfigService.get<IUserNotebookManagerSettings>(EUserSettings.NotebookGroup);
+            // get configurations
+            const { exclude, include, previousOpenedDirctory } = this.configService.get<{ exclude: string[], include: string[], previousOpenedDirctory: string }>('workspace.notebook');
             
             // get all the names in the given directory
             const dir = await this.fileService.readDir(URI.fromFile(path));
@@ -141,8 +137,8 @@ export class NotebookGroup extends Disposable implements INotebookGroupService {
                     return tot;
                 }
 
-                if (!Strings.regExp(str, userConfig.notebookManagerInclude.map(rule => new RegExp(rule))) && 
-                    Strings.regExp(str, userConfig.notebookManagerExclude.map(rule => new RegExp(rule)))
+                if (!Strings.regExp(str, include.map(rule => new RegExp(rule))) && 
+                    Strings.regExp(str, exclude.map(rule => new RegExp(rule)))
                 ) {
                     return tot;
                 }
@@ -155,19 +151,18 @@ export class NotebookGroup extends Disposable implements INotebookGroupService {
              * Only displaying one of the notebook, will try to open a previous
              * opened notebook, if not, opens the first one.
              */
-            const prevNotebook = userConfig.previousOpenedNotebook;
             let notebook: Notebook | undefined;
             
-            const ifOpenPrevious = !!prevNotebook && (notebooks.indexOf(prevNotebook) !== -1);
+            const ifOpenPrevious = !!previousOpenedDirctory && (notebooks.indexOf(previousOpenedDirctory) !== -1);
             if (ifOpenPrevious) {
-                notebook = await this.__switchOrCreateNotebook(container, path, userConfig, prevNotebook);
+                notebook = await this.__switchOrCreateNotebook(container, path, previousOpenedDirctory);
             } else {
-                notebook = await this.__switchOrCreateNotebook(container, path, userConfig, notebooks[0]!);
+                notebook = await this.__switchOrCreateNotebook(container, path, notebooks[0]!);
             }
 
             // fail
             if (notebook === undefined) {
-                const resolvedPath = join(path, ifOpenPrevious ? prevNotebook : notebooks[0]!);
+                const resolvedPath = join(path, ifOpenPrevious ? previousOpenedDirctory : notebooks[0]!);
                 throw new Error(`cannot open the notebook with the path ${resolvedPath}`);
             }
 
@@ -219,14 +214,12 @@ export class NotebookGroup extends Disposable implements INotebookGroupService {
      * it in the memory.
      * @param container The container for the creation of the notebook.
      * @param root The root path for the creation of the notebook.
-     * @param config The configuration for later updating.
      * @param name The name of the notebook.
      * @returns A promise that resolves either undefined or a {@link Notebook}.
      */
     private async __switchOrCreateNotebook(
         container: HTMLElement, 
         root: string, 
-        config: IUserNotebookManagerSettings, 
         name: string
     ): Promise<Notebook | undefined> {
         
@@ -257,8 +250,7 @@ export class NotebookGroup extends Disposable implements INotebookGroupService {
             
             // success
             this._current = notebook;
-            config.previousOpenedNotebook = this._current.name;
-            this.userConfigService.set(EUserSettings.NotebookGroup, config);
+            this.configService.set(BuiltInConfigScope.User, 'workspace.notebook.previousOpenedDirectory', name);
         }
 
         // re-plugin the input emitters
@@ -289,18 +281,18 @@ export class NotebookGroup extends Disposable implements INotebookGroupService {
      */
     private async __onApplicationClose(): Promise<void> {
         
-        // get notebook configuration
-        const notebookConfig = this.globalConfigService.get<IGlobalNotebookManagerSettings>(EGlobalSettings.NotebookGroup);
+        // // get notebook configuration
+        // const notebookConfig = this.globalConfigService.get<IGlobalNotebookManagerSettings>(EGlobalSettings.NotebookGroup);
 
-        // save global configuration first
-        notebookConfig.previousNotebookManagerDir = this.rootPath();
-        await this.globalConfigService.save();
+        // // save global configuration first
+        // notebookConfig.previousNotebookManagerDir = this.rootPath();
+        // await this.globalConfigService.save();
         
-        // save `user.config.json`
-        if (notebookConfig.defaultConfigOn) {
-            await this.userConfigService.save();
-        }
-        await this.userConfigService.save();
+        // // save `user.config.json`
+        // if (notebookConfig.defaultConfigOn) {
+        //     await this.userConfigService.save();
+        // }
+        // await this.userConfigService.save();
         
     }
 

@@ -24,9 +24,6 @@ import { IContextMenuService } from 'src/code/browser/service/contextMenuService
 import { createDecorator } from 'src/code/platform/instantiation/common/decorator';
 import { IComponentService } from 'src/code/browser/service/componentService';
 import { WorkspaceComponentType } from 'src/code/browser/workbench/workspace/workspace';
-import { IGlobalConfigService, IUserConfigService } from 'src/code/platform/configuration/electron/configService';
-import { ILogService } from 'src/base/common/logger';
-import { EUserSettings, IUserMarkdownSettings } from 'src/code/platform/configuration/common/configuration';
 
 export const IMarkdownService = createDecorator<IMarkdownService>('markdown-service');
 
@@ -49,16 +46,12 @@ export class MarkdownComponent extends Component implements IMarkdownService {
     private saveFileTimeout: NodeJS.Timeout | null;
     private colorSyntaxOptions: any;
 
-    private userMarkdownSettings: IUserMarkdownSettings;
-    private currentMode: MarkdownRenderMode;
+    // private userMarkdownSettings: IUserMarkdownSettings;
+    // private currentMode: MarkdownRenderMode;
 
     constructor(parentElement: HTMLElement,
                 @IComponentService componentService: IComponentService,
-                @IContextMenuService private readonly contextMenuService: IContextMenuService,
-                @ILogService private readonly logService: ILogService,
-                @IGlobalConfigService private readonly globalConfigService: IGlobalConfigService,
-                @IUserConfigService private readonly userConfigService: IUserConfigService,
-                
+                @IContextMenuService private readonly contextMenuService: IContextMenuService,                
         ) {
         super(WorkspaceComponentType.editor, parentElement, componentService);
 
@@ -87,8 +80,8 @@ export class MarkdownComponent extends Component implements IMarkdownService {
         /** 
          * Retrives configurations 
          */
-        this.userMarkdownSettings = this.userConfigService.get<IUserMarkdownSettings>(EUserSettings.Markdown);
-        this.currentMode = this.userMarkdownSettings.defaultMarkdownMode;
+        // this.userMarkdownSettings = this.userConfigService.get<IUserMarkdownSettings>(EUserSettings.Markdown);
+        // this.currentMode = this.userMarkdownSettings.defaultMarkdownMode;
     }
 
     protected override _createContent(): void {
@@ -99,9 +92,9 @@ export class MarkdownComponent extends Component implements IMarkdownService {
         /**
          * Listens to configuraion modification.
          */
-        this.userConfigService.onDidChangeMarkdownSettings(newSettings => {
-            this.userMarkdownSettings = newSettings;
-        });
+        // this.userConfigService.onDidChangeMarkdownSettings(newSettings => {
+        //     this.userMarkdownSettings = newSettings;
+        // });
 
         /*
         domNodeByIdAddListener('markdown', 'contextmenu', (event) => {
@@ -203,17 +196,17 @@ export class MarkdownComponent extends Component implements IMarkdownService {
      * @description callback function for 'editor.event.change'.
      */
     public onTextChange(): void {
-        if (this.userMarkdownSettings.fileAutoSaveOn) {
-            // if content is changed before the previous timeout has reached, 
-            // clear the preivous one.
-            if (this.saveFileTimeout) {
-                clearTimeout(this.saveFileTimeout);
-            }
-            // set a new timer with 1000 microseconds
-            this.saveFileTimeout = setTimeout(() => {
-                this.markdownSaveFile()
-            }, 1000);
-        }
+        // if (this.userMarkdownSettings.fileAutoSaveOn) {
+        //     // if content is changed before the previous timeout has reached, 
+        //     // clear the preivous one.
+        //     if (this.saveFileTimeout) {
+        //         clearTimeout(this.saveFileTimeout);
+        //     }
+        //     // set a new timer with 1000 microseconds
+        //     this.saveFileTimeout = setTimeout(() => {
+        //         this.markdownSaveFile()
+        //     }, 1000);
+        // }
     }
 
     

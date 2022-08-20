@@ -66,6 +66,10 @@ const _ErrorRegistry = new class extends class ErrorRegistry {
 
 } {};
 
+export class ExpectedError extends Error {
+	readonly isExpected = true;
+}
+
 /**
  * @namespace ErrorHandler Supports a series of functions to handle unexpected
  * errors.

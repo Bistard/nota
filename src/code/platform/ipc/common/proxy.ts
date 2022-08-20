@@ -41,7 +41,7 @@ export namespace ProxyChannel {
     }
 
     export function unwrapChannel<T extends object>(channel: IChannel, opt?: UnwrapChannelOpt): T {
-        return new Proxy(
+        return <T>(new Proxy(
             {}, {
             get: (_target: T, propName: string | symbol): unknown => {
                 if (typeof propName !== 'string') {
@@ -57,11 +57,11 @@ export namespace ProxyChannel {
                     return channel.registerListener(propName);
                 }
 
-                return async (...args: any[]) => {
-                    return await channel.callCommand(propName, args);
+                return async (...args: any[]): Promise<unknown> => {
+                    return channel.callCommand(propName, args);
                 };
             }
-        }) as T;
+        }));
     }
 
     function __guessIfEventRegister(proName: string): boolean {

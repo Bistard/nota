@@ -1,10 +1,13 @@
 import { URI } from "src/base/common/file/uri";
 import { LogLevel } from "src/base/common/logger";
-import { iterProperty } from "src/base/common/util/object";
-import { createDecorator } from "src/code/platform/instantiation/common/decorator";
+import { iterProp, iterPropEnumerable } from "src/base/common/util/object";
+import { createDecorator, refineDecorator } from "src/code/platform/instantiation/common/decorator";
 import { ICLIArguments } from "src/code/platform/environment/common/argument";
+import { IWindowConfiguration } from "src/code/platform/window/common/window";
+import { isObject } from "src/base/common/util/type";
 
 export const IEnvironmentService = createDecorator<IEnvironmentService>('environment-service');
+export const IBrowserEnvironmentService = refineDecorator<IEnvironmentService, IBrowserEnvironmentService>(IEnvironmentService);
 
 /**
  * @description Returns all the data of the given environment service as an 
@@ -14,13 +17,13 @@ export const IEnvironmentService = createDecorator<IEnvironmentService>('environ
 export function getAllEnvironments(service: IEnvironmentService): string[] {
     const result: string[] = [];
     let value: any;
-    iterProperty(service, (propName) => {
+    iterProp(service, (propName) => {
         if (propName !== 'constructor' && typeof service[propName] !== 'function') {
             const propVal = service[propName];
             if (propVal instanceof URI) {
                 value = URI.toFsPath(propVal);
             } 
-            else if (propVal instanceof Object) {
+            else if (isObject(propVal)) {
                 value = JSON.stringify(propVal);
             } 
             else {
@@ -28,7 +31,7 @@ export function getAllEnvironments(service: IEnvironmentService): string[] {
             }
             result.push(`${propName}: ${value}`);
         }
-    });
+    }, -1);
     return result;
 }
 
@@ -38,6 +41,11 @@ export interface IEnvironmentOpts {
     readonly tmpDirPath: string | URI;
     readonly appRootPath: string | URI;
     readonly userDataPath: string | URI;
+}
+
+export const enum ApplicationMode {
+    DEVELOP,
+    RELEASE,
 }
 
 /**
@@ -55,7 +63,7 @@ export interface IEnvironmentService {
     /**
      * The application mode.
      */
-    readonly mode: 'develop' | 'release';
+    readonly mode: ApplicationMode;
 
     /**
      * If the application is packaged.
@@ -79,11 +87,7 @@ export interface IEnvironmentService {
     readonly logLevel: LogLevel;
 }
 
-/**
- * The native environment works only in main process in Electron.
- */
-export interface IMainEnvironmentService extends IEnvironmentService {
-    
+export interface IDiskEnvironmentService extends IEnvironmentService {
     /**
      * The arguments from command line interface.
      */
@@ -114,9 +118,21 @@ export interface IMainEnvironmentService extends IEnvironmentService {
 }
 
 /**
- * Environment used in renderer process (contains disk relevant info).
+ * The native environment works only in main process in Electron.
  */
-export interface IBrowserEnvironmentService extends IEnvironmentService {
+export interface IMainEnvironmentService extends IDiskEnvironmentService {
+    
+    /**
+     * The handle used for main process to ensure there is only one running 
+     * application.
+     */
+    readonly mainIpcHandle: string;
+}
+
+/**
+ * Environment used in renderer process.
+ */
+export interface IBrowserEnvironmentService extends IDiskEnvironmentService {
 
     /**
      * The unique ID for the current running application.
@@ -127,4 +143,9 @@ export interface IBrowserEnvironmentService extends IEnvironmentService {
      * The window ID where browser is running on.
      */
     readonly windowID: number;
+
+    /**
+     * Window configuration for current renderer process.
+     */
+    readonly configuration: IWindowConfiguration;
 }

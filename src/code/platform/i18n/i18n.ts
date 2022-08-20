@@ -15,7 +15,7 @@ const DefaultExtension = '.json';
 const DefaultLocalesPrefix = '{';
 const DefaultLocalesSuffix = '}';
 
-export type Language = 
+export type LanguageType = 
     'en' |      // English
     'zh-cn' |   // Chinese (Simplified)
     'zh-tw'     // Chinese (Traditional)
@@ -29,7 +29,7 @@ export interface Ii18nOpts {
      * The display language for initialization. If not provided, english is 
      * prefered.
      */
-    readonly language?: Language;
+    readonly language?: LanguageType;
 
     /**
      * The absolute path for reading all locales.
@@ -73,7 +73,7 @@ export interface ILocaleOpts {
 
 export interface Ii18nService {
 
-    readonly language: Language;
+    readonly language: LanguageType;
 
     /**
      * Will fires when the language setting is changed.
@@ -96,7 +96,7 @@ export interface Ii18nService {
      * 
      * @note will trigger {@link onDidChange}
      */
-    setLanguage(lang: Language): void;
+    setLanguage(lang: LanguageType): void;
     
     /**
      * Gets the corresponding translation unit from the current locale, then 
@@ -133,7 +133,7 @@ export class i18n implements Ii18nService {
     protected _model: { [key: string]: Ii18nSection } = Object.create(null);
 
     /* the current display language */
-    protected _language: Language | undefined;
+    protected _language: LanguageType | undefined;
 
     /* the absolute directory path to locales */
     protected _path: string;
@@ -146,7 +146,7 @@ export class i18n implements Ii18nService {
 
     protected _suffix: string;
 
-    get language(): Language {
+    get language(): LanguageType {
         if (this._language === undefined) {
             return 'en';
         }
@@ -192,7 +192,7 @@ export class i18n implements Ii18nService {
         await this.__readLocale(uri);
     }
 
-    public setLanguage(lang: Language, opts?: ILocaleOpts): void {
+    public setLanguage(lang: LanguageType, opts?: ILocaleOpts): void {
         this._language = lang;
 
         if (opts) {

@@ -1,4 +1,4 @@
-import "src/code/browser/registration";
+import "src/code/browser/registrant";
 import { Workbench } from "src/code/browser/workbench/workbench";
 import { IInstantiationService, InstantiationService } from "src/code/platform/instantiation/common/instantiation";
 import { getSingletonServiceDescriptors, ServiceCollection } from "src/code/platform/instantiation/common/serviceCollection";
@@ -6,16 +6,20 @@ import { waitDomToBeLoad } from "src/base/common/dom";
 import { ComponentService, IComponentService } from "src/code/browser/service/componentService";
 import { Disposable } from "src/base/common/dispose";
 import { ServiceDescriptor } from "src/code/platform/instantiation/common/descriptor";
-import { initExposedElectronAPIs, process } from "src/code/platform/electron/browser/global";
+import { initExposedElectronAPIs } from "src/code/platform/electron/browser/global";
 import { IIpcService, IpcService } from "src/code/platform/ipc/browser/ipcService";
 import { BrowserLoggerChannel } from "src/code/platform/logger/common/loggerChannel";
-import { ILogService } from "src/base/common/logger";
+import { BufferLogger, ILogService, LogLevel, PipelineLogger } from "src/base/common/logger";
 import { ILoggerService } from "src/code/platform/logger/common/abstractLoggerService";
 import { IFileService } from "src/code/platform/files/common/fileService";
 import { BrowserEnvironmentService } from "src/code/platform/environment/browser/browserEnvironmentService";
 import { BrowserFileChannel } from "src/code/platform/files/common/fileChannel";
 import { ErrorHandler } from "src/base/common/error";
-import { IUserConfigService, UserConfigService } from "src/code/platform/configuration/electron/configService";
+import { ApplicationMode, IBrowserEnvironmentService } from "src/code/platform/environment/common/environment";
+import { ConsoleLogger } from "src/code/platform/logger/common/consoleLoggerService";
+import { getFormatCurrTimeStamp } from "src/base/common/date";
+import { IConfigService } from "src/code/platform/configuration/common/abstractConfigService";
+import { BrowserConfigService } from "src/code/platform/configuration/browser/browserConfigService";
 
 /**
  * @class This is the main entry of the renderer process.
@@ -54,46 +58,53 @@ export class Browser extends Disposable {
 
     private createCoreServices(): IInstantiationService {
         
-        // create a instantiationService
+        // instantiation-service (Dependency Injection)
         const serviceCollection = new ServiceCollection();
         const instantiationService = new InstantiationService(serviceCollection);
 
         // instantiation-service (itself)
         instantiationService.register(IInstantiationService, instantiationService);
 
-        // environmentService
-        const environmentService = new BrowserEnvironmentService(process);
+        // log-service
+        const logService = new BufferLogger();
+        instantiationService.register(ILogService, logService);
+
+        // environment-service
+        const environmentService = new BrowserEnvironmentService(logService);
+        instantiationService.register(IBrowserEnvironmentService, environmentService);
         
         // ipc-service
         // FIX: windowID is updated after the configuraion is passed into BrowserWindow
         const ipcService = new IpcService(environmentService.windowID);
         instantiationService.register(IIpcService, ipcService);
 
-        // component-service
-        instantiationService.register(IComponentService, new ServiceDescriptor(ComponentService));
-
-        // logger-service
+        // file-logger-service
         const loggerService = new BrowserLoggerChannel(ipcService, environmentService.logLevel);
         instantiationService.register(ILoggerService, loggerService);
 
-        // log-service
-        const logService = loggerService.createLogger(environmentService.logPath, { 
-            name: `window-${environmentService.windowID}.txt`,
-            description: `window-${environmentService.windowID}`,
-        });
-        ErrorHandler.setUnexpectedErrorExternalCallback(error => {
-            console.error(error);
-            logService.error(error);
-        });
-        instantiationService.register(ILogService, logService);
-
+        // logger
+        const logger = new PipelineLogger([
+            // console-logger
+            new ConsoleLogger(environmentService.mode === ApplicationMode.DEVELOP ? environmentService.logLevel : LogLevel.WARN),
+            // file-logger
+            loggerService.createLogger(environmentService.logPath, { 
+                name: `window-${environmentService.windowID}-${getFormatCurrTimeStamp()}.txt`,
+                description: `renderer`,
+            }),
+        ]);
+        logService.setLogger(logger);
+        
         // file-service
+        // FIX: readFileStream does not work
         const fileService = new BrowserFileChannel(ipcService);
         instantiationService.register(IFileService, fileService);
  
-        // user-config-service
-        const userConfigService = new UserConfigService(fileService, logService, environmentService);
-        instantiationService.register(IUserConfigService, userConfigService);
+        // browser-configuration-service
+        const configService = new BrowserConfigService(environmentService, fileService, logService);
+        instantiationService.register(IConfigService, configService);
+        
+        // component-service
+        instantiationService.register(IComponentService, new ServiceDescriptor(ComponentService));
 
         // singleton initialization
         for (const [serviceIdentifer, serviceDescriptor] of getSingletonServiceDescriptors()) {
@@ -104,10 +115,11 @@ export class Browser extends Disposable {
     }
 
     private async initServices(instantiaionService: IInstantiationService): Promise<any> {
-        const userConfigService = instantiaionService.getService(IUserConfigService);
+        const environmentService = instantiaionService.getService(IBrowserEnvironmentService)
+        const configService = instantiaionService.getService(IConfigService);
 
         return Promise.all<any>([
-            userConfigService.init(),
+            configService.init(environmentService.logLevel),
         ]);
     }
 

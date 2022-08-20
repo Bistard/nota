@@ -1,12 +1,12 @@
-import { app, dialog, ipcMain } from 'electron';
+import 'src/code/electron/registrant';
+import { app, dialog } from 'electron';
 import { mkdir } from 'fs/promises';
-import { ErrorHandler } from 'src/base/common/error';
+import { ErrorHandler, ExpectedError } from 'src/base/common/error';
 import { Event } from 'src/base/common/event';
 import { Schemas, URI } from 'src/base/common/file/uri';
 import { BufferLogger, ILogService, LogLevel, PipelineLogger } from 'src/base/common/logger';
 import { Strings } from 'src/base/common/util/string';
 import { DiskFileSystemProvider } from 'src/code/platform/files/node/diskFileSystemProvider';
-import { GlobalConfigService, IGlobalConfigService } from 'src/code/platform/configuration/electron/configService';
 import { FileService, IFileService } from 'src/code/platform/files/common/fileService';
 import { IInstantiationService, InstantiationService } from 'src/code/platform/instantiation/common/instantiation';
 import { ServiceCollection } from 'src/code/platform/instantiation/common/serviceCollection';
@@ -14,14 +14,19 @@ import { ILoggerService } from 'src/code/platform/logger/common/abstractLoggerSe
 import { ConsoleLogger } from 'src/code/platform/logger/common/consoleLoggerService';
 import { FileLoggerService } from 'src/code/platform/logger/common/fileLoggerService';
 import { NotaInstance } from 'src/code/electron/nota';
-import { IEnvironmentOpts, IEnvironmentService, IMainEnvironmentService } from 'src/code/platform/environment/common/environment';
+import { ApplicationMode, IEnvironmentOpts, IEnvironmentService, IMainEnvironmentService } from 'src/code/platform/environment/common/environment';
 import { MainEnvironmentService } from 'src/code/platform/environment/electron/mainEnvironmentService';
 import { IMainLifeCycleService, MainLifeCycleService } from 'src/code/platform/lifeCycle/electron/mainLifeCycleService';
 import { IMainStatusService, MainStatusService } from 'src/code/platform/status/electron/mainStatusService';
 import { ICLIArguments } from 'src/code/platform/environment/common/argument';
+import { createServer, Server } from 'net';
+import { ProcessKey } from 'src/base/common/process';
+import { MainConfigService } from 'src/code/platform/configuration/electron/mainConfigService';
+import { getFormatCurrTimeStamp } from 'src/base/common/date';
+import { IConfigService } from 'src/code/platform/configuration/common/abstractConfigService';
 
 interface IMainProcess {
-    start(argv: ICLIArguments): void;
+    start(argv: ICLIArguments): Promise<void>;
 }
 
 /**
@@ -37,7 +42,7 @@ const nota = new class extends class MainProcess implements IMainProcess {
     private readonly instantiationService!: IInstantiationService;
     private readonly environmentService!: IMainEnvironmentService;
     private readonly fileService!: IFileService;
-    private readonly globalConfigService!: IGlobalConfigService;
+    private readonly mainConfigService!: IConfigService;
     private readonly logService!: ILogService;
     private readonly lifeCycleService!: IMainLifeCycleService;
     private readonly statusService!: IMainStatusService;
@@ -47,11 +52,11 @@ const nota = new class extends class MainProcess implements IMainProcess {
 
     constructor() {}
 
-    public start(argv: ICLIArguments): void {
+    public async start(argv: ICLIArguments): Promise<void> {
         (<any>this.CLIArgv) = argv;
         try {
             ErrorHandler.setUnexpectedErrorExternalCallback(err => console.error(err));
-            this.run();
+            await this.run();
         } catch (unexpectedError: any) {
             console.error(unexpectedError.message ?? 'unknown error message');
             app.exit(1);
@@ -61,44 +66,38 @@ const nota = new class extends class MainProcess implements IMainProcess {
     // [private methods]
 
     private async run(): Promise<void> {
-        
         /**
          * No error tolerance at this stage since all the work here are 
          * necessary for the future works.
          */
-        let error: any;
 
         // core service construction / registration
         this.createCoreServices();
         
-        // initialization
         try {
-            ipcMain.on('nota:test', (event, data) => {
-                console.log('nota:test ', data);
-            });
-            await this.initServices();
+            
+            // initialization
+            try {
+                await this.initServices();
+            } catch (error) {
+                this.__showDirectoryErrorDialog(error);
+                throw error;
+            }
+            
+            // application run
+            {
+                Event.once(this.lifeCycleService.onWillQuit)(e => {
+                    this.fileService.dispose();
+                    this.mainConfigService.dispose();
+                });
+                
+                await this.resolveSingleApplication();
+    
+                const instance = this.instantiationService.createInstance(NotaInstance);
+                await instance.run();
+            }
         } 
-        catch (err) {
-            this.__showDirectoryErrorDialog(err);
-            error = err;
-        }
-
-        // application run
-        try {
-            Event.once(this.lifeCycleService.onWillQuit)(e => {
-                this.fileService.dispose();
-                this.globalConfigService.dispose();
-            });
-
-            const instance = this.instantiationService.createInstance(NotaInstance);
-            instance.run();
-        } 
-        catch (err) {
-            error = err;
-        }
-
-        // error handling
-        if (error) {
+        catch (error: any) {
             this.kill(error);
         }
     }
@@ -133,15 +132,17 @@ const nota = new class extends class MainProcess implements IMainProcess {
         
         // pipeline-logger
         const pipelineLogger = new PipelineLogger([
-            new ConsoleLogger(environmentService.mode === 'develop' ? environmentService.logLevel : LogLevel.WARN),
-            fileLoggerService.createLogger(environmentService.logPath, { description: 'main-log', name: 'main-log.txt' }),
+            // console-logger
+            new ConsoleLogger(environmentService.mode === ApplicationMode.DEVELOP ? environmentService.logLevel : LogLevel.WARN),
+            // file-logger
+            fileLoggerService.createLogger(environmentService.logPath, { description: 'main', name: `main-${getFormatCurrTimeStamp()}.txt` }),
         ]);
         logService.setLogger(pipelineLogger);
 
-        // global-config-service
-        const globalConfigService = new GlobalConfigService(fileService, logService, environmentService);
-        instantiationService.register(IGlobalConfigService, globalConfigService);
-        
+        // main-configuration-service
+        const mainConfigService = new MainConfigService(environmentService, fileService, logService);
+        instantiationService.register(IConfigService, mainConfigService);
+
         // life-cycle-service
         const lifeCycleService = new MainLifeCycleService(logService);
         instantiationService.register(IMainLifeCycleService, lifeCycleService);
@@ -153,7 +154,7 @@ const nota = new class extends class MainProcess implements IMainProcess {
         (this.instantiationService as any) = instantiationService;
         (this.environmentService as any) = environmentService;
         (this.fileService as any) = fileService;
-        (this.globalConfigService as any) = globalConfigService;
+        (this.mainConfigService as any) = mainConfigService;
         (this.logService as any) = logService;
         (this.lifeCycleService as any) = lifeCycleService;
         (this.statusService as any) = statusService;
@@ -178,19 +179,64 @@ const nota = new class extends class MainProcess implements IMainProcess {
             ].map(path => mkdir(URI.toFsPath(path), { recursive: true }))),
 
             this.statusService.init(),
-            // reading configurations of the application
-            this.globalConfigService.init(),          
+            this.mainConfigService.init(this.environmentService.logLevel),
         ]);
     }
 
-    private kill(error: Error): void {
-        if (error.stack) {
-            this.logService.error(error.stack);
-        } else {
-            this.logService.error(`Main process error: ${error.toString()}`);
+    private async resolveSingleApplication(): Promise<void> {
+
+        try {
+            /**
+             * Each nota application will try to listen to the same socket file
+             * or pipe. If an error is catched with code `EADDRINUSE`, it means 
+             * there is already an application is running, we should terminate 
+             * since we only accept one single application.
+             */
+            const server = await new Promise<Server>((resolve, reject) => {
+                const tcpServer = createServer();
+                tcpServer.on('error', reject);
+                tcpServer.listen(this.environmentService.mainIpcHandle, () => {
+                    tcpServer.removeListener('error', reject);
+                    resolve(tcpServer);
+                });
+            });
+            Event.once(this.lifeCycleService.onWillQuit)(() => server.close());
+        } 
+        catch (error: any) {
+            // unexpected errors
+            if (error.code !== 'EADDRINUSE') {
+                this.logService.error(error);
+                throw error;
+            }
+
+            // there is a running nota application, we stop the current application.
+            throw new ExpectedError('There is an application running, we are terminating...');
         }
 
-        this.lifeCycleService.kill(1);
+        // we are the first running application under the current version.
+        this.logService.debug('Running as the first application.');
+        process.env[ProcessKey.PID] = String(process.pid);
+        return;
+    }
+
+    private kill(error: Error): void {
+        let code = 0;
+        
+        if ((<ExpectedError>error).isExpected) {
+            if (error.message) {
+                this.logService.trace(`${error.message}`);
+            }
+        }
+        else {
+            code = 1;
+            if (error.stack) {
+                this.logService.error(error.stack);
+            } else {
+                this.logService.error(`Main process error: ${error.toString()}`);
+            }
+        }
+
+        this.lifeCycleService.kill(code);
     }
 
     // [private helper methods]
