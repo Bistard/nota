@@ -4,9 +4,13 @@ export type AlphabetInStringLow = 'a' | 'b' | 'c' | 'd' | 'e' | 'f' | 'g' | 'h' 
 export type AlphabetInStringCap = 'A' | 'B' | 'C' | 'D' | 'E' | 'F' | 'G' | 'H' | 'I' | 'J' | 'K' | 'L' | 'M' | 'N' | 'O' | 'P' | 'Q' | 'R' | 'S' | 'T' | 'U' | 'V' | 'W' | 'X' | 'Y' | 'Z';
 export type AlphabetInString = AlphabetInStringCap | AlphabetInStringLow;
 
-export type Single<T> = [T];
-export type Pair<T, R> = [T, R];
-export type Triple<T, R, S> = [T, R, S];
+/**
+ * Check the tuple size matches the given size.
+ */
+export type Tuple<Size extends number, Arr extends Readonly<unknown[]>> = Arr['length'] extends Size ? Size extends Arr['length'] ? Arr : never : never;
+export type Single<T> = Tuple<1, [T]>;
+export type Pair<T, R> = Tuple<2, [T, R]>;
+export type Triple<T, R, S> = Tuple<3, [T, R, S]>;
 
 /**
  * Make all the properties mutable (remove readonly).
