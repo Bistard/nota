@@ -24,6 +24,9 @@ export class BrowserEnvironmentService extends DiskEnvironmentService implements
         }, logService);
 
         this.configuration = windowConfiguration;
+        if (this.configuration.log === 'trace') {
+            this.inspect();
+        }
     }
 
     get machineID(): string { return this.configuration.machineID; }

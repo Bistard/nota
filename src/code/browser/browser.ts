@@ -9,7 +9,7 @@ import { ServiceDescriptor } from "src/code/platform/instantiation/common/descri
 import { initExposedElectronAPIs, ipcRenderer, process, windowConfiguration } from "src/code/platform/electron/browser/global";
 import { IIpcService, IpcService } from "src/code/platform/ipc/browser/ipcService";
 import { BrowserLoggerChannel } from "src/code/platform/logger/common/loggerChannel";
-import { ILogService, LogLevel } from "src/base/common/logger";
+import { BufferLogger, ILogService, LogLevel } from "src/base/common/logger";
 import { ILoggerService } from "src/code/platform/logger/common/abstractLoggerService";
 import { IFileService } from "src/code/platform/files/common/fileService";
 import { BrowserEnvironmentService } from "src/code/platform/environment/browser/browserEnvironmentService";
@@ -55,15 +55,19 @@ export class Browser extends Disposable {
 
     private createCoreServices(): IInstantiationService {
         
-        // instantiationService (Dependency Injection)
+        // instantiation-service (Dependency Injection)
         const serviceCollection = new ServiceCollection();
         const instantiationService = new InstantiationService(serviceCollection);
 
         // instantiation-service (itself)
         instantiationService.register(IInstantiationService, instantiationService);
 
-        // environmentService
-        const environmentService = new BrowserEnvironmentService();
+        // log-service
+        const logService = new BufferLogger();
+        instantiationService.register(ILogService, logService);
+
+        // environment-service
+        const environmentService = new BrowserEnvironmentService(logService);
         instantiationService.register(IBrowserEnvironmentService, environmentService);
         
         // ipc-service
@@ -75,16 +79,16 @@ export class Browser extends Disposable {
         const loggerService = new BrowserLoggerChannel(ipcService, environmentService.logLevel);
         instantiationService.register(ILoggerService, loggerService);
 
-        // log-service
-        const logService = loggerService.createLogger(environmentService.logPath, { 
+        // logger
+        const logger = loggerService.createLogger(environmentService.logPath, { 
             name: `window-${environmentService.windowID}.txt`,
             description: `renderer`,
         });
+        logService.setLogger(logger);
         ErrorHandler.setUnexpectedErrorExternalCallback(error => {
             console.error(error);
-            logService.error(error);
+            logger.error(error);
         });
-        instantiationService.register(ILogService, logService);
 
         // file-service
         // FIX: readFileStream does not work
