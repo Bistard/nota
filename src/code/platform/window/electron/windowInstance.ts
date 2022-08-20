@@ -1,13 +1,31 @@
 import { BrowserWindow, BrowserWindowConstructorOptions } from "electron";
 import { Disposable } from "src/base/common/dispose";
-import { Emitter } from "src/base/common/event";
+import { Emitter, Register } from "src/base/common/event";
 import { join, resolve } from "src/base/common/file/path";
 import { ILogService } from "src/base/common/logger";
 import { IS_MAC } from "src/base/common/platform";
 import { IFileService } from "src/code/platform/files/common/fileService";
 import { IEnvironmentService, IMainEnvironmentService } from "src/code/platform/environment/common/environment";
 import { IMainLifeCycleService } from "src/code/platform/lifeCycle/electron/mainLifeCycleService";
-import { defaultDisplayState, IWindowConfiguration, IWindowDisplayOpts, IWindowInstance, WindowDisplayMode, WindowMinimumState, IWindowCreationOptions, ArgumentKey } from "src/code/platform/window/common/window";
+import { defaultDisplayState, IWindowConfiguration, IWindowDisplayOpts, WindowDisplayMode, WindowMinimumState, IWindowCreationOptions, ArgumentKey } from "src/code/platform/window/common/window";
+
+/**
+ * An interface only for {@link WindowInstance}.
+ */
+export interface IWindowInstance extends Disposable {
+    
+    readonly id: number;
+
+    readonly browserWindow: BrowserWindow;
+
+    readonly onDidLoad: Register<void>;
+    
+    readonly onDidClose: Register<void>;
+
+    load(): Promise<void>;
+
+    close(): void;
+}
 
 /**
  * @class A window instance is a wrapper class of {@link BrowserWindow} that
@@ -57,7 +75,7 @@ export class WindowInstance extends Disposable implements IWindowInstance {
         return this._id;
     }
 
-    get window(): BrowserWindow {
+    get browserWindow(): BrowserWindow {
         return this._window;
     }
 

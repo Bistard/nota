@@ -1,6 +1,3 @@
-import { BrowserWindow } from "electron";
-import { Disposable } from "src/base/common/dispose";
-import { Register } from "src/base/common/event";
 import { URI } from "src/base/common/file/uri";
 import { UUID } from "src/base/node/uuid";
 import { ICLIArguments } from "src/code/platform/environment/common/argument";
@@ -84,24 +81,6 @@ export interface IWindowCreationOptions extends Partial<IWindowConfiguration> {
      * file.
      */
     readonly uriToOpen?: URI[];
-}
-
-/**
- * An interface only for {@link WindowInstance}.
- */
-export interface IWindowInstance extends Disposable {
-    
-    readonly id: number;
-
-    readonly window: BrowserWindow;
-
-    readonly onDidLoad: Register<void>;
-    
-    readonly onDidClose: Register<void>;
-
-    load(): Promise<void>;
-
-    close(): void;
 }
 
 /**

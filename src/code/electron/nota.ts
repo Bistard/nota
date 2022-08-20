@@ -16,12 +16,12 @@ import { SafeIpcMain } from "src/code/platform/ipc/electron/safeIpcMain";
 import { IMainLifeCycleService, LifeCyclePhase } from "src/code/platform/lifeCycle/electron/mainLifeCycleService";
 import { StatusKey } from "src/code/platform/status/common/status";
 import { IMainStatusService } from "src/code/platform/status/electron/mainStatusService";
-import { IWindowInstance } from "src/code/platform/window/common/window";
 import { IMainWindowService, MainWindowService } from "src/code/platform/window/electron/mainWindowService";
 import { ILoggerService } from "src/code/platform/logger/common/abstractLoggerService";
 import { MainLoggerChannel } from "src/code/platform/logger/common/loggerChannel";
 import { IMainDialogService, MainDialogService } from "src/code/platform/dialog/electron/mainDialogService";
 import { ILookupPaletteService, LookupPaletteService } from "src/code/platform/lookup/electron/lookupPaletteService";
+import { IWindowInstance } from "src/code/platform/window/electron/windowInstance";
 
 /**
  * An interface only for {@link NotaInstance}
