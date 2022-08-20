@@ -92,4 +92,17 @@ suite('array-test', () => {
         assert.deepStrictEqual(Array.unique([1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 3]), [1, 2, 3]);
     });
 
+    test('Array.matchAny()', () => {
+        const cmp = (arrVal, myVal) => arrVal === myVal;
+        assert.strictEqual(Array.matchAny([true], [false, false], cmp), false);
+        assert.strictEqual(Array.matchAny([true], [true, false], cmp), true);
+        assert.strictEqual(Array.matchAny([false], [false, false], cmp), true);
+        assert.strictEqual(Array.matchAny(['hello'], ['not hello', 'world'], cmp), false);
+        assert.strictEqual(Array.matchAny(['hello'], ['hello', 'world'], cmp), true);
+
+        const cmp1 = (changes: string, desired: string) => desired.startsWith(changes);
+        assert.strictEqual(Array.matchAny(['path1.path2'], ['path1.path2'], cmp1), true);
+        assert.strictEqual(Array.matchAny(['path1'], ['path1.path2'], cmp1), true);
+        assert.strictEqual(Array.matchAny(['path1.path3'], ['path1.path2'], cmp1), false);
+    });
 });

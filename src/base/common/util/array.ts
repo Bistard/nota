@@ -267,4 +267,21 @@ export namespace Array {
         });
     }
 
+    /**
+     * @description If the given array includes any values that matches any of 
+     * your provided values.
+     * @param array The given array.
+     * @param values The provided values.
+     * @param match A compare function.
+     */
+    export function matchAny<T>(array: ReadonlyArray<T>, values: T[], match: (arrValue: T, yourValue: T) => boolean): boolean {
+        for (const yourValue of values) {
+            for (const arrValue of array) {
+                if (match(arrValue, yourValue)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
 }
