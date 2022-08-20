@@ -10,6 +10,13 @@ class DefaultUserConfiguration extends DefaultConfigStorage {
                 keyboardScreenCast: false,
             },
             // old
+            'workspace': {
+                'notebook': {
+                    exclude: ['^\\..*'] as string[],
+                    include: [] as string[],
+                    previousOpenedDirctory: '',
+                }
+            },
             'notebookManager': {
                 notebookManagerExclude: [
                     '^\\..*',
