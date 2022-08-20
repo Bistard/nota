@@ -27,6 +27,6 @@ export class BrowserConfigService extends AbstractConfigService implements IConf
             builtIn: [BuiltInConfigScope.User],
         };
         const collection = new ConfigCollection(collectionOpts, fileService, logService);
-        super(collection, logService, environmentService);
+        super(collection, logService);
     }
 }

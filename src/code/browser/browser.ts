@@ -115,10 +115,11 @@ export class Browser extends Disposable {
     }
 
     private async initServices(instantiaionService: IInstantiationService): Promise<any> {
+        const environmentService = instantiaionService.getService(IBrowserEnvironmentService)
         const configService = instantiaionService.getService(IConfigService);
 
         return Promise.all<any>([
-            configService.init(),
+            configService.init(environmentService.logLevel),
         ]);
     }
 

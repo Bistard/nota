@@ -179,7 +179,7 @@ const nota = new class extends class MainProcess implements IMainProcess {
             ].map(path => mkdir(URI.toFsPath(path), { recursive: true }))),
 
             this.statusService.init(),
-            this.mainConfigService.init(),          
+            this.mainConfigService.init(this.environmentService.logLevel),
         ]);
     }
 

@@ -27,6 +27,6 @@ export class MainConfigService extends AbstractConfigService implements IConfigS
             builtIn: [BuiltInConfigScope.Application],
         };
         const collection = new ConfigCollection(collectionOpts, fileService, logService);
-        super(collection, logService, environmentService);
+        super(collection, logService);
     }
 }
