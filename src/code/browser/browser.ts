@@ -15,13 +15,11 @@ import { IFileService } from "src/code/platform/files/common/fileService";
 import { BrowserEnvironmentService } from "src/code/platform/environment/browser/browserEnvironmentService";
 import { BrowserFileChannel } from "src/code/platform/files/common/fileChannel";
 import { ErrorHandler } from "src/base/common/error";
-import { IUserConfigService, UserConfigService } from "src/code/platform/configuration/electron/configService";
 import { ApplicationMode, IBrowserEnvironmentService } from "src/code/platform/environment/common/environment";
 import { ConsoleLogger } from "src/code/platform/logger/common/consoleLoggerService";
 import { getFormatCurrTimeStamp } from "src/base/common/date";
-import { ProxyChannel } from "src/code/platform/ipc/common/proxy";
-import { IpcChannel } from "src/code/platform/ipc/common/channel";
-import { IConfigService } from "src/code/platform/configuration/electron/mainConfigService";
+import { IConfigService } from "src/code/platform/configuration/common/abstractConfigService";
+import { BrowserConfigService } from "src/code/platform/configuration/browser/browserConfigService";
 
 /**
  * @class This is the main entry of the renderer process.
@@ -102,20 +100,9 @@ export class Browser extends Disposable {
         instantiationService.register(IFileService, fileService);
  
         // browser-configuration-service
-        // FIX: does not work, API are all asynchronous.
-        const configChannel = ipcService.getChannel(IpcChannel.Configuration);
-        const configService = ProxyChannel.unwrapChannel<IConfigService>(configChannel);
+        const configService = new BrowserConfigService(environmentService, fileService, logService);
         instantiationService.register(IConfigService, configService);
-        console.log('[before]');
-        console.log(configService.inspect());
-        console.log('[after]');
-
-        // REVIEW: 主进程放application configuration，渲染进程放user configuration
-
-        // // user-config-service
-        // const userConfigService = new UserConfigService(fileService, logService, environmentService);
-        // instantiationService.register(IUserConfigService, userConfigService);
-
+        
         // component-service
         instantiationService.register(IComponentService, new ServiceDescriptor(ComponentService));
 
@@ -128,10 +115,10 @@ export class Browser extends Disposable {
     }
 
     private async initServices(instantiaionService: IInstantiationService): Promise<any> {
-        const userConfigService = instantiaionService.getService(IUserConfigService);
+        const configService = instantiaionService.getService(IConfigService);
 
         return Promise.all<any>([
-            userConfigService.init(),
+            configService.init(),
         ]);
     }
 

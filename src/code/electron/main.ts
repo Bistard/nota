@@ -20,8 +20,9 @@ import { IMainStatusService, MainStatusService } from 'src/code/platform/status/
 import { ICLIArguments } from 'src/code/platform/environment/common/argument';
 import { createServer, Server } from 'net';
 import { ProcessKey } from 'src/base/common/process';
-import { IConfigService, IMainConfigService, MainConfigService } from 'src/code/platform/configuration/electron/mainConfigService';
+import { MainConfigService } from 'src/code/platform/configuration/electron/mainConfigService';
 import { getFormatCurrTimeStamp } from 'src/base/common/date';
+import { IConfigService } from 'src/code/platform/configuration/common/abstractConfigService';
 
 interface IMainProcess {
     start(argv: ICLIArguments): Promise<void>;
@@ -40,7 +41,7 @@ const nota = new class extends class MainProcess implements IMainProcess {
     private readonly instantiationService!: IInstantiationService;
     private readonly environmentService!: IMainEnvironmentService;
     private readonly fileService!: IFileService;
-    private readonly mainConfigService!: IMainConfigService;
+    private readonly mainConfigService!: IConfigService;
     private readonly logService!: ILogService;
     private readonly lifeCycleService!: IMainLifeCycleService;
     private readonly statusService!: IMainStatusService;

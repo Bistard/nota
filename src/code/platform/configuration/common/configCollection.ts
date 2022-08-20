@@ -9,12 +9,18 @@ import { IFileService } from "src/code/platform/files/common/fileService";
 import { Registrants } from "src/code/platform/registrant/common/registrant";
 
 /**
+ * An option interface for constructing a {@link ConfigCollection}.
+ */
+export interface ConfigCollectionOpts {
+    resourceProvider: (scope: ConfigScope) => URI,
+    readonly builtIn?: BuiltInConfigScope[];
+    readonly extension?: ExtensionConfigScope[];
+}
+
+/**
  * An interface only for {@link ConfigCollection}.
  */
 export interface IConfigCollection extends IDisposable {
-
-    readonly applicationConfiguration: IConfigStorage;
-    readonly userConfiguration: IConfigStorage;
 
     /**
      * Fires when any of the configuration is changed.
@@ -77,38 +83,30 @@ export class ConfigCollection implements IConfigCollection, IDisposable {
     private readonly _configurations: Map<BuiltInConfigScope, IConfigModel>;
     private readonly _extensionConfigurations: Map<ExtensionConfigScope, IConfigModel>;
     
-    private _appConfiguration: IConfigModel;
-    private _userConfiguration: IConfigModel;
-
     // [constructor]
 
     constructor(
-        resourceProvider: (scope: ConfigScope) => URI,
+        opts: ConfigCollectionOpts,
         private readonly fileService: IFileService,
         private readonly logService: ILogService,
     ) {
         // built-in
         this._configurations = new Map();
-        this._appConfiguration  = new ConfigModel(resourceProvider(BuiltInConfigScope.Application), this._registrant.getDefaultBuiltIn(BuiltInConfigScope.Application), fileService, logService);
-        this._userConfiguration = new ConfigModel(resourceProvider(BuiltInConfigScope.User), this._registrant.getDefaultBuiltIn(BuiltInConfigScope.User), fileService, logService);
-        this._configurations.set(BuiltInConfigScope.Application, this._appConfiguration);
-        this._configurations.set(BuiltInConfigScope.User, this._userConfiguration);
-
-        // REVIEW: extension
+        if (opts.builtIn) {
+            for (const scope of opts.builtIn) {
+                const model = new ConfigModel(opts.resourceProvider(scope), this._registrant.getDefaultBuiltIn(scope), fileService, logService)
+                this._configurations.set(scope, model);
+            }
+        }
+        
+        // extension
         this._extensionConfigurations = new Map();
-        // for (const [key, extensionConfiguration] of this._registrant.getAllDefaultExtensions()) {
-        //     this._extensionConfigurations.set(key, extensionConfiguration);
-        // }
-    }
-
-    // [getter]
-
-    get applicationConfiguration(): IConfigStorage {
-        return this._appConfiguration;
-    }
-    
-    get userConfiguration(): IConfigStorage {
-        return this._userConfiguration;
+        if (opts.extension) {
+            for (const scope of opts.extension) {
+                const model = new ConfigModel(opts.resourceProvider(scope), this._registrant.getDefaultExtension(scope), fileService, logService)
+                this._extensionConfigurations.set(scope, model);
+            }
+        }
     }
 
     // [public methods]
