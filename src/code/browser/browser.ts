@@ -6,7 +6,7 @@ import { waitDomToBeLoad } from "src/base/common/dom";
 import { ComponentService, IComponentService } from "src/code/browser/service/componentService";
 import { Disposable } from "src/base/common/dispose";
 import { ServiceDescriptor } from "src/code/platform/instantiation/common/descriptor";
-import { initExposedElectronAPIs, ipcRenderer, process, windowConfiguration } from "src/code/platform/electron/browser/global";
+import { initExposedElectronAPIs } from "src/code/platform/electron/browser/global";
 import { IIpcService, IpcService } from "src/code/platform/ipc/browser/ipcService";
 import { BrowserLoggerChannel } from "src/code/platform/logger/common/loggerChannel";
 import { BufferLogger, ILogService, LogLevel, PipelineLogger } from "src/base/common/logger";
@@ -19,6 +19,9 @@ import { IUserConfigService, UserConfigService } from "src/code/platform/configu
 import { ApplicationMode, IBrowserEnvironmentService } from "src/code/platform/environment/common/environment";
 import { ConsoleLogger } from "src/code/platform/logger/common/consoleLoggerService";
 import { getFormatCurrTimeStamp } from "src/base/common/date";
+import { ProxyChannel } from "src/code/platform/ipc/common/proxy";
+import { IpcChannel } from "src/code/platform/ipc/common/channel";
+import { IConfigService } from "src/code/platform/configuration/electron/mainConfigService";
 
 /**
  * @class This is the main entry of the renderer process.
@@ -98,13 +101,18 @@ export class Browser extends Disposable {
         const fileService = new BrowserFileChannel(ipcService);
         instantiationService.register(IFileService, fileService);
  
-        // global-config-service
-        // const globalConfigService = ProxyChannel.unwrapChannel<IGlobalConfigService>(ipcService.getChannel('test'));
-        // instantiationService.register(IGlobalConfigService, globalConfigService);
+        // browser-configuration-service
+        const configChannel = ipcService.getChannel(IpcChannel.Configuration);
+        const configService = ProxyChannel.unwrapChannel<IConfigService>(configChannel);
+        instantiationService.register(IConfigService, configService);
 
-        // user-config-service
-        const userConfigService = new UserConfigService(fileService, logService, environmentService);
-        instantiationService.register(IUserConfigService, userConfigService);
+        console.log('[before]');
+        console.log(configService.inspect());
+        console.log('[after]');
+
+        // // user-config-service
+        // const userConfigService = new UserConfigService(fileService, logService, environmentService);
+        // instantiationService.register(IUserConfigService, userConfigService);
 
         // component-service
         instantiationService.register(IComponentService, new ServiceDescriptor(ComponentService));

@@ -22,6 +22,7 @@ import { ILoggerService } from "src/code/platform/logger/common/abstractLoggerSe
 import { MainLoggerChannel } from "src/code/platform/logger/common/loggerChannel";
 import { IMainDialogService, MainDialogService } from "src/code/platform/dialog/electron/mainDialogService";
 import { ILookupPaletteService, LookupPaletteService } from "src/code/platform/lookup/electron/lookupPaletteService";
+import { IConfigService } from "src/code/platform/configuration/electron/mainConfigService";
 
 /**
  * An interface only for {@link NotaInstance}
@@ -143,6 +144,10 @@ export class NotaInstance extends Disposable implements INotaInstance {
         const loggerChannel = new MainLoggerChannel(loggerService);
         server.registerChannel(IpcChannel.Logger, loggerChannel);
 
+        // configuration-channel
+        const mainConfigService = provider.getService(IConfigService);
+        const configChannel = ProxyChannel.wrapService(mainConfigService);
+        server.registerChannel(IpcChannel.Configuration, configChannel);
     }
 
     private openFirstWindow(provider: IServiceProvider): IWindowInstance {

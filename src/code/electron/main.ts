@@ -6,7 +6,6 @@ import { Schemas, URI } from 'src/base/common/file/uri';
 import { BufferLogger, ILogService, LogLevel, PipelineLogger } from 'src/base/common/logger';
 import { Strings } from 'src/base/common/util/string';
 import { DiskFileSystemProvider } from 'src/code/platform/files/node/diskFileSystemProvider';
-import { GlobalConfigService, IGlobalConfigService } from 'src/code/platform/configuration/electron/configService';
 import { FileService, IFileService } from 'src/code/platform/files/common/fileService';
 import { IInstantiationService, InstantiationService } from 'src/code/platform/instantiation/common/instantiation';
 import { ServiceCollection } from 'src/code/platform/instantiation/common/serviceCollection';
@@ -41,7 +40,7 @@ const nota = new class extends class MainProcess implements IMainProcess {
     private readonly instantiationService!: IInstantiationService;
     private readonly environmentService!: IMainEnvironmentService;
     private readonly fileService!: IFileService;
-    private readonly mainConfigService!: IConfigService;
+    private readonly mainConfigService!: IMainConfigService;
     private readonly logService!: ILogService;
     private readonly lifeCycleService!: IMainLifeCycleService;
     private readonly statusService!: IMainStatusService;
@@ -140,12 +139,8 @@ const nota = new class extends class MainProcess implements IMainProcess {
 
         // main-configuration-service
         const mainConfigService = new MainConfigService(environmentService, fileService, logService);
-        instantiationService.register(IMainConfigService, mainConfigService);
+        instantiationService.register(IConfigService, mainConfigService);
 
-        // FIX: global-config-service
-        const globalConfigService = new GlobalConfigService(fileService, logService, environmentService);
-        instantiationService.register(IGlobalConfigService, globalConfigService);
-        
         // life-cycle-service
         const lifeCycleService = new MainLifeCycleService(logService);
         instantiationService.register(IMainLifeCycleService, lifeCycleService);
