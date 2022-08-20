@@ -1,6 +1,6 @@
 import { URI } from "src/base/common/file/uri";
 import { ILogService } from "src/base/common/logger";
-import { AbstractConfigService, GLOBAL_CONFIG_FILE_NAME, IConfigService } from "src/code/platform/configuration/common/abstractConfigService";
+import { AbstractConfigService, APP_CONFIG_NAME, IConfigService } from "src/code/platform/configuration/common/abstractConfigService";
 import { ConfigCollection, ConfigCollectionOpts } from "src/code/platform/configuration/common/configCollection";
 import { BuiltInConfigScope, ConfigScope } from "src/code/platform/configuration/common/configRegistrant";
 import { IEnvironmentService } from "src/code/platform/environment/common/environment";
@@ -18,7 +18,7 @@ export class MainConfigService extends AbstractConfigService implements IConfigS
             resourceProvider: (scope: ConfigScope) => {
                 switch (scope) {
                     case BuiltInConfigScope.Application:
-                        return URI.join(environmentService.appConfigurationPath, GLOBAL_CONFIG_FILE_NAME);
+                        return URI.join(environmentService.appConfigurationPath, APP_CONFIG_NAME);
                     default:
                         throw new Error(`unknown scope of configuration: ${scope}`);
                 }
