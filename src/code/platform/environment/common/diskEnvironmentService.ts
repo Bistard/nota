@@ -4,7 +4,7 @@ import { URI } from "src/base/common/file/uri";
 import { ILogService, LogLevel, parseToLogLevel } from "src/base/common/logger";
 import { memoize } from "src/base/common/memoization";
 import { MapTypes } from "src/base/common/util/type";
-import { NOTA_DIR_NAME } from "src/code/platform/configuration/electron/configService";
+import { NOTA_DIR_NAME } from "src/code/platform/configuration/common/abstractConfigService";
 import { ApplicationMode, getAllEnvironments, IDiskEnvironmentService, IEnvironmentOpts, IEnvironmentService } from "src/code/platform/environment/common/environment";
 import { ICLIArguments } from "src/main";
 

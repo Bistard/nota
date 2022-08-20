@@ -8,6 +8,11 @@ import { createDecorator } from "src/code/platform/instantiation/common/decorato
 
 export const IConfigService = createDecorator<IConfigService>('configuration-service');
 
+export const NOTA_DIR_NAME = '.nota';
+export const DEFAULT_CONFIG_FILE_NAME = 'user.config.json';
+export const USER_CONFIG_FILE_NAME = DEFAULT_CONFIG_FILE_NAME;
+export const GLOBAL_CONFIG_FILE_NAME = 'nota.config.json';
+
 export interface ConfigRegister<ConfigType> {
     (scope: ConfigScope, section: string, listener: Listener<ConfigType>, disposables?: IDisposable[], thisObject?: any): IDisposable;
 }

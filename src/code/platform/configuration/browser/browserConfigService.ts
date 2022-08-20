@@ -1,9 +1,8 @@
 import { URI } from "src/base/common/file/uri";
 import { ILogService } from "src/base/common/logger";
-import { AbstractConfigService, IConfigService } from "src/code/platform/configuration/common/abstractConfigService";
+import { AbstractConfigService, IConfigService, USER_CONFIG_FILE_NAME } from "src/code/platform/configuration/common/abstractConfigService";
 import { ConfigCollection, ConfigCollectionOpts } from "src/code/platform/configuration/common/configCollection";
 import { BuiltInConfigScope, ConfigScope } from "src/code/platform/configuration/common/configRegistrant";
-import { USER_CONFIG_FILE_NAME } from "src/code/platform/configuration/electron/configService";
 import { IEnvironmentService } from "src/code/platform/environment/common/environment";
 import { IFileService } from "src/code/platform/files/common/fileService";
 
