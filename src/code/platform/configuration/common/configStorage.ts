@@ -13,16 +13,13 @@ export interface IConfigChangeEvent {
  */
 export interface IConfigStorage extends IDisposable {
 
-    /**
-     * Get all the sections of the storage. Section are seperated by `.`.
-     */
+    /** Get all the sections of the storage. Section are seperated by `.` */
     readonly sections: string[];
     
-    /**
-     * Get the actual data model of the storage.
-     */
+    /** Get the actual data model of the storage. */
     readonly model: any;
 
+    /** Fires when any of the configuration is changed. */
     readonly onDidChange: Register<IConfigChangeEvent>;
 
     /**
@@ -45,7 +42,7 @@ export interface IConfigStorage extends IDisposable {
     /**
      * @description Delete configuration at given section.
      * @param section see {@link ConfigStorage}.
-     * @note Returns a boolean indicates if the operation successed.
+     * @returns A boolean indicates if the operation successed.
      */
     delete(section: string): boolean;
 

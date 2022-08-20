@@ -42,7 +42,13 @@ export interface IConfigCollection extends IDisposable {
     /**
      * @description Set specific configuration with the given scope.
      */
-    set(scope: ConfigScope, section: string, configuration: any): void;
+    set(scope: ConfigScope, section: string | null, configuration: any): void;
+
+    /**
+     * @description Delete configuration at given section with the given scope.
+     * @returns A boolean indicates if the operation successed.
+     */
+    delete(scope: ConfigScope, section: string): boolean;
 
     /**
      * @description Update a new built-in configuration by the given scope.
@@ -124,9 +130,14 @@ export class ConfigCollection implements IConfigCollection, IDisposable {
         return configuration.get(section);
     }
 
-    public set(scope: ConfigScope, section: string, config: any): void {
+    public set(scope: ConfigScope, section: string | null, config: any): void {
         const configuration = this.__getConfiguration(scope);
         configuration.set(section, config);
+    }
+
+    public delete(scope: ConfigScope, section: string): boolean {
+        const configuration = this.__getConfiguration(scope);
+        return configuration.delete(section);
     }
 
     public updateBulitInConfiguration(scope: BuiltInConfigScope, newStorage: IConfigStorage): void {
