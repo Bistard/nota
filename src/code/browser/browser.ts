@@ -18,6 +18,7 @@ import { ErrorHandler } from "src/base/common/error";
 import { IUserConfigService, UserConfigService } from "src/code/platform/configuration/electron/configService";
 import { ApplicationMode, IBrowserEnvironmentService } from "src/code/platform/environment/common/environment";
 import { ConsoleLogger } from "src/code/platform/logger/common/consoleLoggerService";
+import { getFormatCurrTimeStamp } from "src/base/common/date";
 
 /**
  * @class This is the main entry of the renderer process.
@@ -86,7 +87,7 @@ export class Browser extends Disposable {
             new ConsoleLogger(environmentService.mode === ApplicationMode.DEVELOP ? environmentService.logLevel : LogLevel.WARN),
             // file-logger
             loggerService.createLogger(environmentService.logPath, { 
-                name: `window-${environmentService.windowID}.txt`,
+                name: `window-${environmentService.windowID}-${getFormatCurrTimeStamp()}.txt`,
                 description: `renderer`,
             }),
         ]);

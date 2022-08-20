@@ -45,7 +45,10 @@ export class DiskEnvironmentService implements IDiskEnvironmentService {
     get appRootPath(): URI { return URI.fromFile(this.opts.appRootPath!); }
 
     @memoize
-    get logPath(): URI { return URI.fromFile(join(this.opts.appRootPath!, NOTA_DIR_NAME, 'log', getCurrTimeStamp().replace(/:| |\./g, '-'))); }
+    get logPath(): URI { 
+        const date = getCurrTimeStamp().split(' ')[0]!;
+        return URI.fromFile(join(this.opts.appRootPath!, NOTA_DIR_NAME, 'log', date));
+    }
 
     @memoize
     get appConfigurationPath(): URI { return URI.fromFile(join(this.opts.appRootPath!, NOTA_DIR_NAME)); }

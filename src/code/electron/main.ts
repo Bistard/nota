@@ -22,6 +22,7 @@ import { ICLIArguments } from 'src/code/platform/environment/common/argument';
 import { createServer, Server } from 'net';
 import { ProcessKey } from 'src/base/common/process';
 import { IConfigService, IMainConfigService, MainConfigService } from 'src/code/platform/configuration/electron/mainConfigService';
+import { getFormatCurrTimeStamp } from 'src/base/common/date';
 
 interface IMainProcess {
     start(argv: ICLIArguments): Promise<void>;
@@ -133,7 +134,7 @@ const nota = new class extends class MainProcess implements IMainProcess {
             // console-logger
             new ConsoleLogger(environmentService.mode === ApplicationMode.DEVELOP ? environmentService.logLevel : LogLevel.WARN),
             // file-logger
-            fileLoggerService.createLogger(environmentService.logPath, { description: 'main-log', name: 'main-log.txt' }),
+            fileLoggerService.createLogger(environmentService.logPath, { description: 'main', name: `main-${getFormatCurrTimeStamp()}.txt` }),
         ]);
         logService.setLogger(pipelineLogger);
 
