@@ -2,6 +2,7 @@ import { Disposable, IDisposable } from "src/base/common/dispose";
 import { Listener, Register } from "src/base/common/event";
 import { ILogService, LogLevel } from "src/base/common/logger";
 import { Array } from "src/base/common/util/array";
+import { DeepReadonly } from "src/base/common/util/type";
 import { IConfigCollection } from "src/code/platform/configuration/common/configCollection";
 import { ConfigScope, IScopeConfigChangeEvent } from "src/code/platform/configuration/common/configRegistrant";
 import { createDecorator } from "src/code/platform/instantiation/common/decorator";
@@ -14,13 +15,13 @@ export const USER_CONFIG_NAME = DEFAULT_CONFIG_NAME;
 export const APP_CONFIG_NAME = 'nota.config.json';
 
 export interface ConfigRegister<ConfigType> {
-    (scope: ConfigScope, section: string, listener: Listener<ConfigType>, disposables?: IDisposable[], thisObject?: any): IDisposable;
+    (scope: ConfigScope, section: string, listener: Listener<DeepReadonly<ConfigType>>, disposables?: IDisposable[], thisObject?: any): IDisposable;
 }
 
 class ConfigEmitter<T extends IScopeConfigChangeEvent> {
 
     private _orginRegister: Register<T>;
-    private _myRegister?: ConfigRegister<any>;
+    private _myRegister?: ConfigRegister<DeepReadonly<any>>;
 
     constructor(register: Register<T>, private readonly _collection: IConfigCollection) {
         this._orginRegister = register;
@@ -60,7 +61,7 @@ export interface IConfigService extends IDisposable {
     /**
      * Fires when any of the configuration is changed.
      */
-    onDidChange<ConfigType>(scope: ConfigScope, section: string, listener: Listener<ConfigType>, disposables?: IDisposable[], thisObject?: any): IDisposable;
+    onDidChange<ConfigType>(scope: ConfigScope, section: string, listener: Listener<DeepReadonly<ConfigType>>, disposables?: IDisposable[], thisObject?: any): IDisposable;
     
     /**
      * @description Initialize all the registered configurations in 
@@ -111,7 +112,7 @@ export class AbstractConfigService extends Disposable implements IConfigService 
 
     // [event]
 
-    public onDidChange<ConfigType>(scope: ConfigScope, section: string, listener: Listener<ConfigType>, disposables?: IDisposable[], thisObject?: any): IDisposable {
+    public onDidChange<ConfigType>(scope: ConfigScope, section: string, listener: Listener<DeepReadonly<ConfigType>>, disposables?: IDisposable[], thisObject?: any): IDisposable {
         return this._onDidChange.registerListener(scope, section, listener, disposables, thisObject);
     }
 
