@@ -7,11 +7,11 @@ import { Ii18nService } from 'src/code/platform/i18n/i18n';
 import { Section } from 'src/code/platform/section';
 import { registerSingleton } from 'src/code/platform/instantiation/common/serviceCollection';
 import { ServiceDescriptor } from 'src/code/platform/instantiation/common/descriptor';
-import { IGlobalConfigService, IUserConfigService } from 'src/code/platform/configuration/electron/configService';
 import { IIpcService, IpcService } from 'src/code/browser/service/ipcService';
 import { addDisposableListener, EventType } from 'src/base/common/dom';
 import { IEditorService } from 'src/code/browser/workbench/workspace/editor/editor';
-import { EGlobalSettings, EUserSettings, IGlobalNotebookManagerSettings, IUserNotebookManagerSettings } from 'src/code/platform/configuration/common/configuration';
+import { IConfigService } from 'src/code/platform/configuration/common/abstractConfigService';
+import { BuiltInConfigScope } from 'src/code/platform/configuration/common/configRegistrant';
 
 export const IExplorerViewService = createDecorator<IExplorerViewService>('explorer-view-service');
 
@@ -59,10 +59,6 @@ export class ExplorerViewComponent extends Component implements IExplorerViewSer
     /** If the explorer is currently opened. */
     private _opened = false;
 
-    /** restores the configuration in the class itself. */
-    private _globalConfig!: IGlobalNotebookManagerSettings;
-    private _userConfig!: IUserNotebookManagerSettings;
-
     // [event]
 
     private readonly _onDidOpenDirectory = this.__register(new Emitter<IExplorerDirectoryEvent>());
@@ -72,16 +68,13 @@ export class ExplorerViewComponent extends Component implements IExplorerViewSer
 
     constructor(parentElement: HTMLElement,
                 @IComponentService componentService: IComponentService,
+                @IConfigService private readonly configService: IConfigService,
                 @IIpcService private readonly ipcService: IpcService,
                 @Ii18nService private readonly i18nService: Ii18nService,
-                @IGlobalConfigService private readonly globalConfigService: IGlobalConfigService,
-                @IUserConfigService private readonly userConfigService: IUserConfigService,
                 @INotebookGroupService private readonly notebookGroupService: INotebookGroupService,
                 @IEditorService private readonly editorService: IEditorService,
     ) {
         super(ComponentType.ExplorerView, parentElement, componentService);
-
-        this.__getAllConfiguration();
     }
 
     // [protected overrdie method]
@@ -100,9 +93,9 @@ export class ExplorerViewComponent extends Component implements IExplorerViewSer
         tag.classList.add('vertical-center', 'funcText');
         this._unopenedView.appendChild(tag);
 
-        if (this._globalConfig.startPreviousNotebookManagerDir && this._globalConfig.previousNotebookManagerDir !== '') 
-        {
-            this.__createOpenedExplorerView(this._globalConfig.previousNotebookManagerDir, this._globalConfig.defaultConfigOn, false);
+        const prevOpened = this.configService.get<string>(BuiltInConfigScope.User, 'workspace.notebook.previousOpenedDirctory');
+        if (prevOpened) {
+            // this.__createOpenedExplorerView(prevOpened, this._globalConfig.defaultConfigOn, false);
         } else {
             this.__createUnopenedExplorerView();
         }
@@ -115,7 +108,7 @@ export class ExplorerViewComponent extends Component implements IExplorerViewSer
          */
         const tag = this._unopenedView.children[0]!; // REVIEW: set as class field
         this.__register(addDisposableListener(tag, EventType.click, () => {
-            this.ipcService.openDirectoryDialog(this._globalConfig.previousNotebookManagerDir);
+            // this.ipcService.openDirectoryDialog(this._globalConfig.previousNotebookManagerDir);
         }));
 
         /**
@@ -123,7 +116,7 @@ export class ExplorerViewComponent extends Component implements IExplorerViewSer
          * and open it.
          */
         this.__register(this.ipcService.onDidOpenDirectoryDialog((path) => {
-            this.__createOpenedExplorerView(path, this._globalConfig.defaultConfigOn, false);
+            // this.__createOpenedExplorerView(path, this._globalConfig.defaultConfigOn, false);
         }));
 
         /**
@@ -137,37 +130,11 @@ export class ExplorerViewComponent extends Component implements IExplorerViewSer
     // [public method]
 
     public async openDirectory(path: string, reopen: boolean): Promise<boolean> {
-        await this.__createOpenedExplorerView(path, this._globalConfig.defaultConfigOn, reopen);
+        // await this.__createOpenedExplorerView(path, this._globalConfig.defaultConfigOn, reopen);
         return this._opened;
     }
 
     // [private helper method]
-
-    /**
-     * @description Will sets up global configurations and user configurations 
-     * into class itself.
-     * @note Will only be invoked in the constrcutor.
-     */
-     private __getAllConfiguration(): void {
-        
-        // get configurations and save it in the class itself.
-        try {
-            this._globalConfig = this.globalConfigService.get(EGlobalSettings.NotebookGroup);
-            this._userConfig = this.userConfigService.get(EUserSettings.NotebookGroup);
-        } catch (err) {
-            throw new Error(`Explorer: ${err}`);
-        }
-
-        // update configurations when changed.
-
-        this.__register(this.globalConfigService.onDidChangeNotebookManagerSettings((newConfig) => {
-            this._globalConfig = newConfig;
-        }));
-
-        this.__register(this.userConfigService.onDidChangeNotebookManagerSettings((newConfig) => {
-            this._userConfig = newConfig;
-        }));
-    }
 
     /**
      * @description Apeend the HTML container to the DOM tree and try to remove
@@ -216,7 +183,7 @@ export class ExplorerViewComponent extends Component implements IExplorerViewSer
         }
 
         // check `.nota` folder and try to update the local user configuration
-        await this.userConfigService.validateLocalUserDirectory(path, defaultConfigOn);
+        // await this.userConfigService.validateLocalUserDirectory(path, defaultConfigOn);
         
         this.__destroyUnopenedExplorerView();
 

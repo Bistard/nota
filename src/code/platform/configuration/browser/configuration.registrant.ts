@@ -14,7 +14,7 @@ class DefaultUserConfiguration extends DefaultConfigStorage {
                 'notebook': {
                     exclude: ['^\\..*'] as string[],
                     include: [] as string[],
-                    previousOpenedDirctory: '',
+                    previousOpenedDirctory: '', // REVIEW: should be decide in the main process
                 }
             },
             'notebookManager': {
