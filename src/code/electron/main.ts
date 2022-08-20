@@ -1,3 +1,4 @@
+import 'src/code/electron/registrant';
 import { app, dialog } from 'electron';
 import { mkdir } from 'fs/promises';
 import { ErrorHandler, ExpectedError } from 'src/base/common/error';
