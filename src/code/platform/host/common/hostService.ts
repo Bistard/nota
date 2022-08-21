@@ -10,6 +10,7 @@ export interface IHostService {
     readonly onDidUnmaximizeWindow: Register<number>;
     readonly onDidFocusWindow: Register<number>;
     readonly onDidBlurWindow: Register<number>;
+    readonly onDidOpenWindow: Register<number>;
 
     focusWindow(id: number): Promise<void>;
     maximizeWindow(id: number): Promise<void>;
