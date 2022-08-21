@@ -22,6 +22,8 @@ import { MainLoggerChannel } from "src/code/platform/logger/common/loggerChannel
 import { IMainDialogService, MainDialogService } from "src/code/platform/dialog/electron/mainDialogService";
 import { ILookupPaletteService, LookupPaletteService } from "src/code/platform/lookup/electron/lookupPaletteService";
 import { IWindowInstance } from "src/code/platform/window/electron/windowInstance";
+import { IMainHostService, MainHostService } from "src/code/platform/host/electron/mainHostService";
+import { IHostService } from "src/code/platform/host/common/hostService";
 
 /**
  * An interface only for {@link NotaInstance}
@@ -124,6 +126,9 @@ export class NotaInstance extends Disposable implements INotaInstance {
         // dialog-sevice
         appInstantiationService.register(IMainDialogService, new ServiceDescriptor(MainDialogService));
 
+        // host-service
+        appInstantiationService.register(IHostService, new ServiceDescriptor(MainHostService));
+
         // TODO: notebook-group-service
 
         // lookup-service
@@ -142,6 +147,11 @@ export class NotaInstance extends Disposable implements INotaInstance {
         const loggerService = provider.getService(ILoggerService);
         const loggerChannel = new MainLoggerChannel(loggerService);
         server.registerChannel(IpcChannel.Logger, loggerChannel);
+
+        // host-service-channel
+        const hostService = provider.getOrCreateService(IHostService);
+        const hostChannel = ProxyChannel.wrapService(hostService);
+        server.registerChannel(IpcChannel.Host, hostChannel);
     }
 
     private openFirstWindow(provider: IServiceProvider): IWindowInstance {

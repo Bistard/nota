@@ -1,5 +1,8 @@
 import { OpenDialogOptions } from "electron";
 import { Register } from "src/base/common/event";
+import { createDecorator } from "src/code/platform/instantiation/common/decorator";
+
+export const IHostService = createDecorator<IHostService>('host-service');
 
 export interface IHostService {
     

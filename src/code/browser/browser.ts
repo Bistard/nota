@@ -20,6 +20,9 @@ import { ConsoleLogger } from "src/code/platform/logger/common/consoleLoggerServ
 import { getFormatCurrTimeStamp } from "src/base/common/date";
 import { IConfigService } from "src/code/platform/configuration/common/abstractConfigService";
 import { BrowserConfigService } from "src/code/platform/configuration/browser/browserConfigService";
+import { ProxyChannel } from "src/code/platform/ipc/common/proxy";
+import { IpcChannel } from "src/code/platform/ipc/common/channel";
+import { IHostService } from "src/code/platform/host/common/hostService";
 
 /**
  * @class This is the main entry of the renderer process.
@@ -77,6 +80,10 @@ export class Browser extends Disposable {
         // FIX: windowID is updated after the configuraion is passed into BrowserWindow
         const ipcService = new IpcService(environmentService.windowID);
         instantiationService.register(IIpcService, ipcService);
+
+        // host-service
+        const hostService = ProxyChannel.unwrapChannel(ipcService.getChannel(IpcChannel.Host));
+        instantiationService.register(IHostService, hostService);
 
         // file-logger-service
         const loggerService = new BrowserLoggerChannel(ipcService, environmentService.logLevel);

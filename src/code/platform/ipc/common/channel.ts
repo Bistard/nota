@@ -9,9 +9,11 @@ export const enum IpcChannel {
     Connect = 'nota:connect',
     Disconnect = 'nota:disconnect',
 
+    // micro-service channel
     Logger = 'nota:mainLogger',
     DiskFile = 'nota:diskFile',
     Configuration = 'nota:configuration',
+    Host = 'nota:host',
     
     // Notification
     ToggleDevTools = 'nota:toggleDevTools',

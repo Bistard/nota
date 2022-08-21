@@ -5,13 +5,13 @@ import { URI } from "src/base/common/file/uri";
 import { OpenDialogOptions } from "src/code/platform/dialog/common/dialog";
 import { IMainDialogService } from "src/code/platform/dialog/electron/mainDialogService";
 import { IHostService } from "src/code/platform/host/common/hostService";
-import { createDecorator } from "src/code/platform/instantiation/common/decorator";
 import { IpcChannel } from "src/code/platform/ipc/common/channel";
 import { IMainWindowService } from "src/code/platform/window/electron/mainWindowService";
 import { IWindowInstance } from "src/code/platform/window/electron/windowInstance";
 
-export const IMainHostService = createDecorator<IHostService>('host-service');
-
+/**
+ * An interface only for {@link MainHostService}.
+ */
 export interface IMainHostService extends IHostService, IDisposable {}
 
 /**
