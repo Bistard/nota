@@ -14,13 +14,13 @@ export const IMainDialogService = createDecorator<IMainDialogService>('main-dial
  */
 export interface IMainDialogService {
     
-    openFile(opts: OpenDialogOptions, window?: BrowserWindow): Promise<string[]>;
-    openDirectory(opts: OpenDialogOptions, window?: BrowserWindow): Promise<string[]>;
-    openFileOrDirectory(opts: OpenDialogOptions, window?: BrowserWindow): Promise<string[]>;    
-    
     showOpenDialog(opts: Electron.OpenDialogOptions, window?: BrowserWindow): Promise<Electron.OpenDialogReturnValue>;
     showSaveDialog(opts: Electron.SaveDialogOptions, window?: BrowserWindow): Promise<Electron.SaveDialogReturnValue>;
     showMessageBox(opts: Electron.MessageBoxOptions, window?: BrowserWindow): Promise<Electron.MessageBoxReturnValue>;
+
+    openFileDialog(opts: OpenDialogOptions, window?: BrowserWindow): Promise<string[]>;
+    openDirectoryDialog(opts: OpenDialogOptions, window?: BrowserWindow): Promise<string[]>;
+    openFileOrDirectoryDialog(opts: OpenDialogOptions, window?: BrowserWindow): Promise<string[]>;    
 }
 
 type ElectronDialogReturnType = Electron.MessageBoxReturnValue | Electron.SaveDialogReturnValue | Electron.OpenDialogReturnValue;
@@ -48,15 +48,15 @@ export class MainDialogService implements IMainDialogService {
 
     // [public methods]
 
-    public openFileOrDirectory(opts: OpenDialogOptions, window?: BrowserWindow): Promise<string[]> {
+    public openFileOrDirectoryDialog(opts: OpenDialogOptions, window?: BrowserWindow): Promise<string[]> {
         return this.__open({...opts, openDirectory: true, openFile: true }, window);
     }
 
-    public openFile(opts: OpenDialogOptions, window?: BrowserWindow): Promise<string[]> {
+    public openFileDialog(opts: OpenDialogOptions, window?: BrowserWindow): Promise<string[]> {
         return this.__open({...opts, openDirectory: false, openFile: true }, window);
     }
 
-    public openDirectory(opts: OpenDialogOptions, window?: BrowserWindow): Promise<string[]> {
+    public openDirectoryDialog(opts: OpenDialogOptions, window?: BrowserWindow): Promise<string[]> {
         return this.__open({...opts, openDirectory: true, openFile: false }, window);
     }
 

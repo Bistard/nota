@@ -1,3 +1,4 @@
+import { BrowserWindow } from "electron";
 import { URI } from "src/base/common/file/uri";
 import { UUID } from "src/base/node/uuid";
 import { ICLIArguments } from "src/code/platform/environment/common/argument";
@@ -72,15 +73,18 @@ export interface IUriToOpenConfiguration {
  */
 export interface IWindowCreationOptions extends Partial<IWindowConfiguration> {
     
-    readonly loadFile: string;
+    /** Specify the loading html file path. Default to `./index.html` */
+    readonly loadFile?: string;
     readonly CLIArgv?: ICLIArguments;
     readonly displayOptions?: IWindowDisplayOpts;
 
     /**
-     * URIs to be opened in the window, might be either workspace, directory or 
-     * file.
+     * URIs to be opened in the window, might be either workspace, directory or file.
      */
     readonly uriToOpen?: URI[];
+    readonly forceNewWindow?: boolean; // REVIEW: unused
+    /** If under any existed windows operation. */
+    readonly hostWindow?: BrowserWindow;
 }
 
 /**

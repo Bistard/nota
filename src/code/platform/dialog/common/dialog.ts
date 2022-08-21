@@ -3,6 +3,7 @@ export interface OpenDialogOptions {
     readonly title: string;
     readonly buttonLabel?: string;
     readonly defaultPath?: string;
+    readonly forceNewWindow?: boolean;
 }
 
 /**

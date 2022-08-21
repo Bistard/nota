@@ -115,7 +115,7 @@ export class MainWindowService extends Disposable implements IMainWindowService 
     }
 
     private doOpen(opts: IWindowCreationOptions): IWindowInstance {
-
+        
         let window: IWindowInstance;
 
         // get openning URIs configuration

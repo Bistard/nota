@@ -1,11 +1,10 @@
 import { Register } from "src/base/common/event";
-import { ProxyChannel } from "src/code/platform/ipc/common/proxy";
 
 /**
  * Built-in IPC channel names.
  */
 export const enum IpcChannel {
-    /** Channel used for arbitrary data sending /receiving between processes. */
+    // Channel used for arbitrary data sending /receiving between processes.
     DataChannel = 'nota:data',
     Connect = 'nota:connect',
     Disconnect = 'nota:disconnect',
@@ -14,11 +13,17 @@ export const enum IpcChannel {
     DiskFile = 'nota:diskFile',
     Configuration = 'nota:configuration',
     
-    /** Notification */
+    // Notification
     ToggleDevTools = 'nota:toggleDevTools',
     OpenDevTools = 'nota:openDevTools',
     CloseDevTools = 'nota:closeDevTools',
     ReloadWindow = 'nota:reload',
+
+    // Main process internal usage, no need for a `nota:` prefix.
+    WindowMaximized = 'window-maximized',
+    WindowUnmaximized = 'window-unmaximized',
+    WindowFocused = 'window-focused',
+    WindowBlured = 'window-blured',
 }
 
 /**

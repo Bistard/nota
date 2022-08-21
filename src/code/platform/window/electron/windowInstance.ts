@@ -24,6 +24,9 @@ export interface IWindowInstance extends Disposable {
 
     load(): Promise<void>;
 
+    // TODO: complete
+    toggleFullScreen(force?: boolean): void;
+
     close(): void;
 }
 
@@ -84,7 +87,11 @@ export class WindowInstance extends Disposable implements IWindowInstance {
     public load(): Promise<void> {
         this.logService.trace(`Main#WindowInstance#ID-${this._id}#loading...`);
         
-        return this._window.loadFile(this.creationConfig.loadFile);
+        return this._window.loadFile(this.creationConfig.loadFile ?? './index.html');
+    }
+
+    public toggleFullScreen(force?: boolean): void {
+        
     }
 
     public close(): void {
