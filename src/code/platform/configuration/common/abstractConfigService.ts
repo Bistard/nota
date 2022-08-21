@@ -83,7 +83,7 @@ export interface IConfigService extends IDisposable {
      * 
      * @throws An exception will be thrown if the section is invalid.
      */
-    get<T>(scope: ConfigScope, section?: string): T;
+    get<T>(scope: ConfigScope, section?: string): DeepReadonly<T>;
     
     /**
      * @description Set specific configuration with the given scope.
@@ -144,7 +144,7 @@ export class AbstractConfigService extends Disposable implements IConfigService 
         });
     }
 
-    public get<T>(scope: unknown, section?: string | undefined): T {
+    public get<T>(scope: unknown, section?: string | undefined): DeepReadonly<T> {
         return this._collection.get(scope, section);
     }
 
