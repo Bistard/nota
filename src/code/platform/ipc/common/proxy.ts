@@ -21,7 +21,7 @@ export namespace ProxyChannel {
             }
         }
 
-        return {
+        return <IServerChannel>{
             callCommand: <T>(_serverOrClientID: string, command: string, args?: any[]): Promise<T> => {
                 const value = object[command];
                 if (typeof value !== 'function') {

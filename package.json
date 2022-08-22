@@ -35,7 +35,7 @@
     "benchmark": "^2.1.4",
     "circular-dependency-plugin": "^5.2.2",
     "cross-env": "^7.0.3",
-    "electron": "17.4.1",
+    "electron": "19.0.12",
     "fantasticon": "^1.2.3",
     "jsdom": "19.0.0",
     "jsdom-global": "3.0.2",
@@ -53,9 +53,6 @@
     "@toast-ui/editor-plugin-code-syntax-highlight": "^3.0.0",
     "@toast-ui/editor-plugin-color-syntax": "^3.0.1",
     "@types/node": "^16.4.13",
-    "@types/requestidlecallback": "^0.3.4",
-    "jquery": "^3.6.0",
-    "minimist": "^1.2.6",
-    "path-directories": "^1.0.2"
+    "@types/requestidlecallback": "^0.3.4"
   }
 }
