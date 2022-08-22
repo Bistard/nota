@@ -1,4 +1,4 @@
-import { BrowserWindow, BrowserWindowConstructorOptions } from "electron";
+import { app, BrowserWindow, BrowserWindowConstructorOptions } from "electron";
 import { Disposable } from "src/base/common/dispose";
 import { Emitter, Register } from "src/base/common/event";
 import { join, resolve } from "src/base/common/file/path";
@@ -8,6 +8,7 @@ import { IFileService } from "src/code/platform/files/common/fileService";
 import { IEnvironmentService, IMainEnvironmentService } from "src/code/platform/environment/common/environment";
 import { IMainLifeCycleService } from "src/code/platform/lifeCycle/electron/mainLifeCycleService";
 import { defaultDisplayState, IWindowConfiguration, IWindowDisplayOpts, WindowDisplayMode, WindowMinimumState, IWindowCreationOptions, ArgumentKey } from "src/code/platform/window/common/window";
+import { IpcChannel } from "src/code/platform/ipc/common/channel";
 
 /**
  * An interface only for {@link WindowInstance}.
@@ -189,7 +190,22 @@ export class WindowInstance extends Disposable implements IWindowInstance {
 			this._onDidClose.fire();
 			this.dispose();
 		});
+        
+        this._window.on('focus', (e: Event) => {
+            app.emit(IpcChannel.WindowFocused, e, this._window);
+        });
 
+        this._window.on('blur', (e: Event) => {
+            app.emit(IpcChannel.WindowBlured, e, this._window);
+        });
+
+        this._window.on('maximize', (e: Event) => {
+			app.emit(IpcChannel.WindowMaximized, e, this._window);
+		});
+
+		this._window.on('unmaximize', (e: Event) => {
+			app.emit(IpcChannel.WindowUnmaximized, e, this._window);
+		});
     }
 
     // [private helper methods]

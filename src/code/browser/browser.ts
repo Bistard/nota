@@ -82,7 +82,7 @@ export class Browser extends Disposable {
         instantiationService.register(IIpcService, ipcService);
 
         // host-service
-        const hostService = ProxyChannel.unwrapChannel(ipcService.getChannel(IpcChannel.Host));
+        const hostService = ProxyChannel.unwrapChannel<IHostService>(ipcService.getChannel(IpcChannel.Host));
         instantiationService.register(IHostService, hostService);
 
         // file-logger-service
