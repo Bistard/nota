@@ -2,6 +2,7 @@ import { app, BrowserWindow } from "electron";
 import { Disposable, IDisposable } from "src/base/common/dispose";
 import { Event, NodeEventEmitter } from "src/base/common/event";
 import { URI } from "src/base/common/file/uri";
+import { memoize } from "src/base/common/memoization";
 import { OpenDialogOptions } from "src/code/platform/dialog/common/dialog";
 import { IMainDialogService } from "src/code/platform/dialog/electron/mainDialogService";
 import { IHostService } from "src/code/platform/host/common/hostService";
@@ -33,7 +34,8 @@ export class MainHostService extends Disposable implements IMainHostService {
     private readonly _onDidBlurWindow = this.__register(new NodeEventEmitter(app, IpcChannel.WindowBlured, (_e, window: BrowserWindow) => window.id));
 	public readonly onDidBlurWindow = this._onDidBlurWindow.registerListener;
 
-    readonly onDidOpenWindow = Event.map(this.windowService.onDidOpenWindow, (window: IWindowInstance) => window.id);
+    @memoize
+    public get onDidOpenWindow() { return Event.map(this.windowService.onDidOpenWindow, (window: IWindowInstance) => window.id); }
 
     // [constructor]
 
