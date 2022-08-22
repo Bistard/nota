@@ -100,9 +100,6 @@ export class MainWindowService extends Disposable implements IMainWindowService 
 
         const newWindow = this.doOpen(options);
         
-        // load the window in browser
-        newWindow.load();
-
         this.logService.trace('Main#mainWindowService#window opened');
         return newWindow;
     }
@@ -152,6 +149,9 @@ export class MainWindowService extends Disposable implements IMainWindowService 
         // open a new window instance
         window = this.__openInNewWindow(opts, configuration);
         (<Mutable<typeof configuration>>configuration).windowID = window.id;
+
+        // load window
+        window.load(configuration);
         
         return window;
     }

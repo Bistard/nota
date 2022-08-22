@@ -21,7 +21,7 @@
  * A,B,C,D,E are IPC channels              ----------- 
  ******************************************************************************/
 
-(function () {
+(async function () {
 	'use strict';
 
 	const { contextBridge, ipcRenderer } = require('electron');
@@ -113,6 +113,19 @@
 	})();
 	
 	/**
+	 * Since some window configurations will be modified after the browser 
+	 * window is created (windowID etc.). We have to wait for the updated version.
+	 */
+	const configuration = await (async function retrieveWindowConfiguration() {
+		const configurationChannel = retrieveFromArgv('window-configuration');
+		if (!configurationChannel) {
+			throw new Error('preload: did not find window-configuration argument');
+		}
+		const configuration = await ipcRenderer.invoke(configurationChannel);
+		return configuration;
+	})();
+
+	/**
 	 * If `contextIsolation` is true, we expose the global APIs to the renderer
 	 * process. Otherwise we simply put them in the `window` variable since
 	 * `window` is not isolated from the renderer process.
@@ -121,7 +134,7 @@
 	const exposedAPIs = {
 		ipcRenderer: wrappedIpcRenderer,
 		process: wrappedProcess,
-		windowConfiguration: JSON.parse(retrieveFromArgv('window-configuration')),
+		windowConfiguration: configuration,
 	};
 
 	if (process.contextIsolated) {

@@ -9,6 +9,7 @@ import { IEnvironmentService, IMainEnvironmentService } from "src/code/platform/
 import { IMainLifeCycleService } from "src/code/platform/lifeCycle/electron/mainLifeCycleService";
 import { defaultDisplayState, IWindowConfiguration, IWindowDisplayOpts, WindowDisplayMode, WindowMinimumState, IWindowCreationOptions, ArgumentKey } from "src/code/platform/window/common/window";
 import { IpcChannel } from "src/code/platform/ipc/common/channel";
+import { createIpcAccessible, IIpcAccessible } from "src/code/platform/host/common/hostService";
 
 /**
  * An interface only for {@link WindowInstance}.
@@ -23,7 +24,7 @@ export interface IWindowInstance extends Disposable {
     
     readonly onDidClose: Register<void>;
 
-    load(): Promise<void>;
+    load(configuration: IWindowConfiguration): Promise<void>;
 
     // TODO: complete
     toggleFullScreen(force?: boolean): void;
@@ -49,6 +50,8 @@ export class WindowInstance extends Disposable implements IWindowInstance {
 
     private readonly _window: BrowserWindow;
     private readonly _id: number;
+
+    private readonly _configurationIpcAccessible: IIpcAccessible<IWindowConfiguration> = createIpcAccessible();
 
     // [constructor]
 
@@ -85,9 +88,11 @@ export class WindowInstance extends Disposable implements IWindowInstance {
 
     // [public methods]
 
-    public load(): Promise<void> {
+    public load(configuration: IWindowConfiguration): Promise<void> {
         this.logService.trace(`Main#WindowInstance#ID-${this._id}#loading...`);
         
+        this._configurationIpcAccessible.updateData(configuration);
+
         return this._window.loadFile(this.creationConfig.loadFile ?? './index.html');
     }
 
@@ -133,7 +138,7 @@ export class WindowInstance extends Disposable implements IWindowInstance {
                  * Pass any arguments use the following pattern:
                  *      --ArgName=argInString
                  */
-                additionalArguments: [`--${ArgumentKey.configuration}=${JSON.stringify(this.configuration)}`],
+                additionalArguments: [`--${ArgumentKey.configuration}=${this._configurationIpcAccessible.resource}`],
                 
                 /**
                  * Context Isolation is a feature that ensures that both 
@@ -205,6 +210,15 @@ export class WindowInstance extends Disposable implements IWindowInstance {
 
 		this._window.on('unmaximize', (e: Event) => {
 			app.emit(IpcChannel.WindowUnmaximized, e, this._window);
+		});
+
+        this._window.webContents.on('did-finish-load', () => {
+            /**
+             * Once the updated configuration has sent to renderer process, no 
+             * need to keep listen to IPC anymore.
+             */
+            this._configurationIpcAccessible.dispose();
+            this._onDidLoad.fire();
 		});
     }
 
