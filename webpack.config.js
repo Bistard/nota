@@ -8,7 +8,7 @@ const baseConfiguration = {
     node: {
         __dirname: true
     },
-    mode: process.env.NODE_ENV,
+    mode: process.env.NODE_ENV ?? 'development',
     module: {
         rules: [
             {
