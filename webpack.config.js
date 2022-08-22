@@ -8,7 +8,7 @@ const baseConfiguration = {
     node: {
         __dirname: true
     },
-    mode: process.env.ENV || 'development',
+    mode: process.env.NODE_ENV,
     module: {
         rules: [
             {
@@ -54,7 +54,14 @@ const baseConfiguration = {
                 }
             },
         }),
-    ]
+    ],
+    /**
+     * Source maps are used to display your original JavaScript while debugging, 
+     * which is a lot easier to look at than minified production code.
+     * 
+     * See more choice here https://webpack.js.org/configuration/devtool/
+     */
+    devtool: 'source-map',
 };
 
 module.exports = [

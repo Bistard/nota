@@ -3,11 +3,10 @@
 
 <head>
   <meta charset="UTF-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'">
   <link rel="stylesheet" href="./index.css">
 </head>
 
 <body>
-  <script> if (typeof module === 'object') {window.module = module; module = undefined;} </script>
   <script defer type="text/javascript" src="../../../../dist/renderer-lookup-bundle.js"></script>
-  <script> if (window.module) module = window.module; </script>
 </body>
