@@ -77,7 +77,6 @@ export class Browser extends Disposable {
         instantiationService.register(IBrowserEnvironmentService, environmentService);
         
         // ipc-service
-        // FIX: windowID is updated after the configuraion is passed into BrowserWindow
         const ipcService = new IpcService(environmentService.windowID);
         instantiationService.register(IIpcService, ipcService);
 
@@ -95,7 +94,7 @@ export class Browser extends Disposable {
             new ConsoleLogger(environmentService.mode === ApplicationMode.DEVELOP ? environmentService.logLevel : LogLevel.WARN),
             // file-logger
             loggerService.createLogger(environmentService.logPath, { 
-                name: `window-${environmentService.windowID}-${getFormatCurrTimeStamp()}.txt`,
+                name: `wind-${environmentService.windowID}-${getFormatCurrTimeStamp()}.txt`,
                 description: `renderer`,
             }),
         ]);
