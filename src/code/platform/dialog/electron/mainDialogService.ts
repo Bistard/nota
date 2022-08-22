@@ -145,13 +145,15 @@ export class MainDialogService implements IMainDialogService {
         if (!window) {
             queue = mockType(this._dialogQueues.get(-1));
             if (!queue) {
-                this._dialogQueues.set(-1, new AsyncQueue());
+                queue = new AsyncQueue();
+                this._dialogQueues.set(-1, mockType(queue));
             }
         } 
         else {
             queue = mockType(this._dialogQueues.get(window.id));
             if (!queue) {
-                this._dialogQueues.set(window.id, new AsyncQueue());
+                queue = new AsyncQueue();
+                this._dialogQueues.set(window.id, mockType(queue));
             }
         }
 
