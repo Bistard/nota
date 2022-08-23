@@ -15,11 +15,12 @@ export interface IHostService {
     readonly onDidBlurWindow: Register<number>;
     readonly onDidOpenWindow: Register<number>;
 
-    focusWindow(id: number): Promise<void>;
-    maximizeWindow(id: number): Promise<void>;
-    minimizeWindow(id: number): Promise<void>;
-    unmaximizeWindow(id: number): Promise<void>;
-    toggleFullScreenWindow(id: number): Promise<void>;
+    focusWindow(id?: number): Promise<void>;
+    maximizeWindow(id?: number): Promise<void>;
+    minimizeWindow(id?: number): Promise<void>;
+    unmaximizeWindow(id?: number): Promise<void>;
+    toggleFullScreenWindow(id?: number): Promise<void>;
+    closeWindow(id?: number): Promise<void>;
 
     showOpenDialog(opts: Electron.OpenDialogOptions, windowID?: number): Promise<Electron.OpenDialogReturnValue>;
     showSaveDialog(opts: Electron.SaveDialogOptions, windowID?: number): Promise<Electron.SaveDialogReturnValue>;

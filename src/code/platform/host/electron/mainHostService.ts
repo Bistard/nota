@@ -48,29 +48,34 @@ export class MainHostService extends Disposable implements IMainHostService {
 
     // [public methods]
 
-    public async focusWindow(id: number): Promise<void> {
-		const window = this.windowService.getWindowByID(id);
+    public async focusWindow(id?: number): Promise<void> {
+		const window = this.__tryGetWindow(id);
 		window?.browserWindow.focus();
 	}
 
-    public async maximizeWindow(id: number): Promise<void> {
-        const window = this.windowService.getWindowByID(id);
+    public async maximizeWindow(id?: number): Promise<void> {
+        const window = this.__tryGetWindow(id);
         window?.browserWindow.maximize();
     }
 
-    public async minimizeWindow(id: number): Promise<void> {
-        const window = this.windowService.getWindowByID(id);
+    public async minimizeWindow(id?: number): Promise<void> {
+        const window = this.__tryGetWindow(id);
         window?.browserWindow.minimize();
     }
 
-    public async unmaximizeWindow(id: number): Promise<void> {
-        const window = this.windowService.getWindowByID(id);
+    public async unmaximizeWindow(id?: number): Promise<void> {
+        const window = this.__tryGetWindow(id);
         window?.browserWindow.unmaximize();
     }
 
-    public async toggleFullScreenWindow(id: number): Promise<void> {
-        const window = this.windowService.getWindowByID(id);
+    public async toggleFullScreenWindow(id?: number): Promise<void> {
+        const window = this.__tryGetWindow(id);
         window?.toggleFullScreen();
+    }
+
+    public async closeWindow(id?: number): Promise<void> {
+        const window = this.__tryGetWindow(id);
+        window?.browserWindow.close();
     }
 
     public async showOpenDialog(opts: Electron.OpenDialogOptions, windowID?: number): Promise<Electron.OpenDialogReturnValue> {
@@ -113,14 +118,14 @@ export class MainHostService extends Disposable implements IMainHostService {
         const browserWindow = this.__tryGetWindow(windowID)?.browserWindow;
         const picked = await this.dialogService.openFileDialog(opts, browserWindow);
         const uriToOpen = picked.map(path => URI.fromFile(path));
-        this.__openPicked(uriToOpen, browserWindow, opts);
+        this.__openPicked(uriToOpen, windowID, opts);
     }
 
-    private __openPicked(uriToOpen: URI[], browserWindow: BrowserWindow | undefined, opts: OpenDialogOptions): void {
+    private __openPicked(uriToOpen: URI[], windowID: number, opts: OpenDialogOptions): void {
         this.windowService.open({
             uriToOpen: uriToOpen,
             forceNewWindow: opts.forceNewWindow,
-            hostWindow: browserWindow,
+            hostWindowID: windowID,
         });
     }
 }

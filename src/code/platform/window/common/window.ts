@@ -84,7 +84,7 @@ export interface IWindowCreationOptions extends Partial<IWindowConfiguration> {
     readonly uriToOpen?: URI[];
     readonly forceNewWindow?: boolean; // REVIEW: unused
     /** If under any existed windows operation. */
-    readonly hostWindow?: BrowserWindow;
+    readonly hostWindowID?: number;
 }
 
 /**
