@@ -1,4 +1,3 @@
-import { BrowserWindow } from "electron";
 import { URI } from "src/base/common/file/uri";
 import { UUID } from "src/base/node/uuid";
 import { ICLIArguments } from "src/code/platform/environment/common/argument";

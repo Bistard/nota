@@ -1,6 +1,4 @@
 import { app, BrowserWindow } from "electron";
-import { Disposable } from "src/base/common/dispose";
-import { Emitter, Register } from "src/base/common/event";
 import { ILogService } from "src/base/common/logger";
 import { IS_MAC } from "src/base/common/platform";
 import { Blocker, delayFor } from "src/base/common/util/async";

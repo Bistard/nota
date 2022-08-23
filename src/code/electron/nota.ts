@@ -22,7 +22,7 @@ import { MainLoggerChannel } from "src/code/platform/logger/common/loggerChannel
 import { IMainDialogService, MainDialogService } from "src/code/platform/dialog/electron/mainDialogService";
 import { ILookupPaletteService, LookupPaletteService } from "src/code/platform/lookup/electron/lookupPaletteService";
 import { IWindowInstance } from "src/code/platform/window/electron/windowInstance";
-import { IMainHostService, MainHostService } from "src/code/platform/host/electron/mainHostService";
+import { MainHostService } from "src/code/platform/host/electron/mainHostService";
 import { IHostService } from "src/code/platform/host/common/hostService";
 
 /**
