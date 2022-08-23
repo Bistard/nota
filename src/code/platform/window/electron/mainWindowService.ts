@@ -171,9 +171,14 @@ export class MainWindowService extends Disposable implements IMainWindowService 
         this._onDidOpenWindow.fire(newWindow);
 
         // newly window listeners
-        Event.once(newWindow.onDidClose)(() => {this._onDidCloseWindow.fire(newWindow)});
+        Event.once(newWindow.onDidClose)(() => this.__onWindowDidClose(newWindow));
 
         return newWindow;
+    }
+
+    private __onWindowDidClose(window: IWindowInstance): void {
+        this._windows.splice(this._windows.indexOf(window), 1);
+        this._onDidCloseWindow.fire(window);
     }
 }
 
