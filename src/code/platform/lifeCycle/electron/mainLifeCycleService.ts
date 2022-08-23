@@ -5,6 +5,8 @@ import { ILogService } from "src/base/common/logger";
 import { IS_MAC } from "src/base/common/platform";
 import { Blocker, delayFor } from "src/base/common/util/async";
 import { createDecorator } from "src/code/platform/instantiation/common/decorator";
+import { AbstractLifecycleService } from "src/code/platform/lifeCycle/common/abstractLifeCycleService";
+import { ILifecycleService } from "src/code/platform/lifeCycle/common/lifecycle";
 
 export const IMainLifeCycleService = createDecorator<IMainLifeCycleService>('life-cycle-service');
 
@@ -58,45 +60,7 @@ export interface IBeforeQuitEvent {
 /**
  * An interface only for {@link MainLifeCycleService}.
  */
-export interface IMainLifeCycleService {
-    
-    /**
-     * Fires before the application decided to quit.
-     * @note Fires before 'onWillQuit'.
-     */
-    readonly onBeforeQuit: Register<void>;
-
-    /**
-     * Fires when the application just has decided to quit.
-     * @note Allows the other services to do somethings before we actual quit.
-     * @note This does not guarantee that all the windows are closed already.
-     */
-    readonly onWillQuit: Register<IBeforeQuitEvent>;
-
-    /** 
-     * The current phase of the application. 
-     */
-    readonly phase: LifeCyclePhase;
-
-    /**
-     * @description Set the phase of the whole application.
-     * @param newPhase The new phase.
-     * @throws New phase cannot go backwards, otherwise an error will be thrown.
-     */
-    setPhase(newPhase: LifeCyclePhase): void;
-
-    /**
-     * @description Returns a promise that will be resolved once the required 
-     * phase has reached.
-     * @param desiredPhase The desired phase waiting to be reached.
-     */
-    when(desiredPhase: LifeCyclePhase): Promise<void>;
-
-    /**
-     * @description Quit the whole application. It will invoke `app.quit()`.
-     */
-    quit(): Promise<void>;
-
+export interface IMainLifeCycleService extends ILifecycleService<LifeCyclePhase> {
     /**
      * @description Kill the application with the given exitcode. Different than
      * `this.quit()`, it will try to destroy every window within a second, than 
@@ -111,12 +75,9 @@ export interface IMainLifeCycleService {
  * @class A class used in main process to control the lifecycle of the whole 
  * application (including all the registered windows).
  */
-export class MainLifeCycleService extends Disposable implements IMainLifeCycleService {
+export class MainLifeCycleService extends AbstractLifecycleService<LifeCyclePhase> implements IMainLifeCycleService {
 
     // [field]
-
-    private _phase = LifeCyclePhase.Starting;
-    private _phaseBlocker: Map<LifeCyclePhase, Blocker<void>> = new Map();
 
     /** prevent calling `this.quit()` twice. */
     private _pendingQuitBlocker?: Blocker<void>;
@@ -127,64 +88,14 @@ export class MainLifeCycleService extends Disposable implements IMainLifeCycleSe
 
     private _windowCount: number = 0;
 
-    // [event]
-
-    private readonly _onBeforeQuit = this.__register(new Emitter<void>());
-    public readonly onBeforeQuit = this._onBeforeQuit.registerListener;
-
-    private readonly _onWillQuit = this.__register(new Emitter<IBeforeQuitEvent>());
-    public readonly onWillQuit = this._onWillQuit.registerListener;
-
     // [constructor]
 
-    constructor(@ILogService private readonly logService: ILogService) {
-        super();
-        this.logService.trace(`Main#LifeCycleService#phase#${parsePhaseString(LifeCyclePhase.Starting)}`);
+    constructor(@ILogService logService: ILogService) {
+        super('Main', LifeCyclePhase.Starting, parsePhaseString, logService);
         this.when(LifeCyclePhase.Ready).then(() => this.__registerListeners());
     }
 
-    // [getter / setter]
-
-    get phase(): LifeCyclePhase { return this._phase; }
-
-    // [pubic methods]
-
-    public setPhase(newPhase: LifeCyclePhase): void {
-        if (newPhase < this._phase) {
-			throw new Error('Life cycle cannot go backwards');
-		}
-
-        if (newPhase === this._phase) {
-            return;
-        }
-
-        const blocker = this._phaseBlocker.get(newPhase);
-        if (blocker) {
-            // someone is waiting for us! 
-            blocker.resolve();
-            this._phaseBlocker.delete(newPhase);
-        }
-
-        this.logService.trace(`Main#LifeCycleService#phase#${parsePhaseString(newPhase)}`);
-    }
-
-    public async when(desiredPhase: LifeCyclePhase): Promise<void> {
-        
-        // the phase we are looking for has already passed.
-        if (desiredPhase <= this._phase) {
-            return;
-        }
-
-        let blocker = this._phaseBlocker.get(desiredPhase);
-        if (blocker === undefined) {
-            blocker = new Blocker<void>();
-            this._phaseBlocker.set(desiredPhase, blocker);
-        }
-
-        return blocker.waiting();
-    }
-
-    public async quit(): Promise<void> {
+    public override async quit(): Promise<void> {
         if (this._pendingQuitBlocker) {
             return this._pendingQuitBlocker.waiting();
         }
