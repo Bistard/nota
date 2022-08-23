@@ -58,6 +58,9 @@ export namespace ProxyChannel {
                 }
 
                 return async (...args: any[]): Promise<unknown> => {
+                    if (typeof opt?.context !== 'undefined') {
+                        return channel.callCommand(propName, [opt.context, ...args]);
+                    }
                     return channel.callCommand(propName, args);
                 };
             }
@@ -75,10 +78,15 @@ export namespace ProxyChannel {
     export interface UnwrapChannelOpt {
 
         /**
+         * In our case, it will be window ID.
+         */
+        readonly context?: any;
+
+        /**
 		 * If provided, the function will not proxy any of the properties that
          * are in the given {@link Map}, instead, the mapping value will be 
          * directly returned.
 		 */
-		propValues?: Map<string, unknown>;
+		readonly propValues?: Map<string, unknown>;
     }
 }
