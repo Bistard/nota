@@ -1,7 +1,6 @@
 import { OpenDialogOptions } from "electron";
 import { IDisposable } from "src/base/common/dispose";
 import { Register } from "src/base/common/event";
-import { URI } from "src/base/common/file/uri";
 import { getUUID } from "src/base/node/uuid";
 import { createDecorator } from "src/code/platform/instantiation/common/decorator";
 import { SafeIpcMain } from "src/code/platform/ipc/electron/safeIpcMain";
