@@ -1,6 +1,10 @@
 import { ErrorHandler } from "src/base/common/error";
 import { DataBuffer } from "src/base/common/file/buffer";
 
+export interface IReadable<T> {
+	read(): T | undefined;
+}
+
 export interface IReadableStreamEvent<T> {
 
     /**
