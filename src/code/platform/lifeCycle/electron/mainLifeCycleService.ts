@@ -45,11 +45,11 @@ export const enum QuitReason {
     Kill,
 }
 
-export interface IBeforeQuitEvent {
+export interface IBeforeQuitEvent<Reason extends number> {
     /**
      * The reason of the quit event.
      */
-    readonly reason: QuitReason;
+    readonly reason: Reason;
 
     /**
      * A method that allows the listener to join the whole process.
@@ -60,7 +60,7 @@ export interface IBeforeQuitEvent {
 /**
  * An interface only for {@link MainLifeCycleService}.
  */
-export interface IMainLifeCycleService extends ILifecycleService<LifeCyclePhase> {
+export interface IMainLifeCycleService extends ILifecycleService<LifeCyclePhase, QuitReason> {
     /**
      * @description Kill the application with the given exitcode. Different than
      * `this.quit()`, it will try to destroy every window within a second, than 
@@ -75,7 +75,7 @@ export interface IMainLifeCycleService extends ILifecycleService<LifeCyclePhase>
  * @class A class used in main process to control the lifecycle of the whole 
  * application (including all the registered windows).
  */
-export class MainLifeCycleService extends AbstractLifecycleService<LifeCyclePhase> implements IMainLifeCycleService {
+export class MainLifeCycleService extends AbstractLifecycleService<LifeCyclePhase, QuitReason> implements IMainLifeCycleService {
 
     // [field]
 

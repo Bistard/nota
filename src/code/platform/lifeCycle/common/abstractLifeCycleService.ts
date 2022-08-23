@@ -5,7 +5,7 @@ import { Blocker } from "src/base/common/util/async";
 import { ILifecycleService } from "src/code/platform/lifeCycle/common/lifecycle";
 import { IBeforeQuitEvent } from "src/code/platform/lifeCycle/electron/mainLifeCycleService";
 
-export abstract class AbstractLifecycleService<Phase extends number> extends Disposable implements ILifecycleService<Phase> {
+export abstract class AbstractLifecycleService<Phase extends number, QuitReason extends number> extends Disposable implements ILifecycleService<Phase, QuitReason> {
 
     // [field]
 
@@ -17,7 +17,7 @@ export abstract class AbstractLifecycleService<Phase extends number> extends Dis
     protected readonly _onBeforeQuit = this.__register(new Emitter<void>());
     public readonly onBeforeQuit = this._onBeforeQuit.registerListener;
 
-    protected readonly _onWillQuit = this.__register(new Emitter<IBeforeQuitEvent>());
+    protected readonly _onWillQuit = this.__register(new Emitter<IBeforeQuitEvent<QuitReason>>());
     public readonly onWillQuit = this._onWillQuit.registerListener;
 
     // [constructor]

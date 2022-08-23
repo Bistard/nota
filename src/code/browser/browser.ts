@@ -23,6 +23,8 @@ import { BrowserConfigService } from "src/code/platform/configuration/browser/br
 import { ProxyChannel } from "src/code/platform/ipc/common/proxy";
 import { IpcChannel } from "src/code/platform/ipc/common/channel";
 import { IHostService } from "src/code/platform/host/common/hostService";
+import { IBrowserHostService } from "src/code/platform/host/browser/browserHostService";
+import { BrowserLifecycleService, ILifecycleService } from "src/code/platform/lifeCycle/browser/browserLifecycleService";
 
 /**
  * @class This is the main entry of the renderer process.
@@ -81,8 +83,12 @@ export class Browser extends Disposable {
         instantiationService.register(IIpcService, ipcService);
 
         // host-service
-        const hostService = ProxyChannel.unwrapChannel<IHostService>(ipcService.getChannel(IpcChannel.Host));
+        const hostService = ProxyChannel.unwrapChannel<IBrowserHostService>(ipcService.getChannel(IpcChannel.Host), { context: environmentService.windowID });
         instantiationService.register(IHostService, hostService);
+
+        // lifecycle-service
+        const lifecycleService = new BrowserLifecycleService(logService, hostService);
+        instantiationService.register(ILifecycleService, lifecycleService);
 
         // file-logger-service
         const loggerService = new BrowserLoggerChannel(ipcService, environmentService.logLevel);

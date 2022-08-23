@@ -12,7 +12,7 @@ suite('abstract-lifecycle-service-test', () => {
         Phase3,
     }
 
-    class TestLifecycleService extends AbstractLifecycleService<TestPhase> {
+    class TestLifecycleService extends AbstractLifecycleService<TestPhase, 0> {
         constructor() {
             super('Test', TestPhase.start, () => '', new NullLogger());
         }

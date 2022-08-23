@@ -1,7 +1,7 @@
 import { Register } from "src/base/common/event";
 import { IBeforeQuitEvent } from "src/code/platform/lifeCycle/electron/mainLifeCycleService";
 
-export interface ILifecycleService<Phase extends number> {
+export interface ILifecycleService<Phase extends number, Reason extends number> {
 
     /**
      * Fires before the application / window decided to quit.
@@ -14,7 +14,7 @@ export interface ILifecycleService<Phase extends number> {
      * @note Allows the other services to do somethings before we actual quit.
      * @note This does not guarantee that all the windows are closed already.
      */
-    readonly onWillQuit: Register<IBeforeQuitEvent>;
+    readonly onWillQuit: Register<IBeforeQuitEvent<Reason>>;
  
     /** 
      * The current phase of the application / window. 
