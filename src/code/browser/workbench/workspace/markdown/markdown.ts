@@ -102,7 +102,6 @@ export class MarkdownComponent extends Component implements IMarkdownService {
             console.log('right clicked on markdown')
             //console.log(event.target)
             //console.log(event.currentTarget)
-            ipcRendererSend('showContextMenu')        
         })
         */
         

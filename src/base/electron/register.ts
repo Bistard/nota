@@ -4,11 +4,6 @@ import { IpcRendererEvent } from "electron";
  * ipc/dom event register relevant helper functions.
  */
 
-export function ipcRendererSend(message: string): void {
-    // ipcRenderer.send(message);
-    // FIX
-}
-
 export function ipcRendererSendData(message: string, ...data: any[]): void {
     // ipcRenderer.send(message, data);
     // FIX
