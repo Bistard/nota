@@ -5,12 +5,14 @@ import { CommandService, ICommandService } from "src/code/platform/command/commo
 import { IKeyboardScreenCastService, KeyboardScreenCastService } from "src/code/browser/service/keyboard/keyboardScreenCastService";
 import { IKeyboardService, keyboardService } from "src/code/browser/service/keyboard/keyboardService";
 import { BrowserDialogService, IDialogService } from 'src/code/platform/dialog/browser/browserDialogService';
+import { IShortcutService, ShortcutService } from 'src/code/browser/service/keyboard/shortcut/shortcutService';
 
 /*******************************************************************************
  * Registraion for desktop browser-side non-important microservices.
  ******************************************************************************/
 
 registerSingleton(IKeyboardService, new ServiceDescriptor(keyboardService));
+registerSingleton(IShortcutService, new ServiceDescriptor(ShortcutService));
 registerSingleton(IKeyboardScreenCastService, new ServiceDescriptor(KeyboardScreenCastService));
 registerSingleton(ICommandService, new ServiceDescriptor(CommandService));
 registerSingleton(IDialogService, new ServiceDescriptor(BrowserDialogService));

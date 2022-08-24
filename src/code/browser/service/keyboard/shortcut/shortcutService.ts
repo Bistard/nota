@@ -121,7 +121,7 @@ export class ShortcutService implements IDisposable, IShortcutService {
 
     constructor(
         @IKeyboardService keyboardService: IKeyboardService,
-        @ILifecycleService private readonly lifecycleService: IBrowserLifecycleService,
+        @ILifecycleService lifecycleService: IBrowserLifecycleService,
         @IWorkbenchService workbenchService: IWorkbenchService,
         @IInstantiationService private readonly instantiaionService: IInstantiationService,
         @IFileService private readonly fileService: IFileService,
@@ -229,6 +229,7 @@ export class ShortcutService implements IDisposable, IShortcutService {
             
             const buffer = await this.fileService.readFile(uri);
             const configuration = JSON.parse(buffer.toString());
+            this.logService.debug(`shortcut configuration loaded at ${uri.toString()}`);
             
             configuration.forEach(({cmd, key, when}: IShortcutConfiguration) => {
                 
@@ -264,7 +265,7 @@ export class ShortcutService implements IDisposable, IShortcutService {
             });
             
         } else {
-            // TODO: log (info): `file not found`
+            this.logService.debug(`shortcut configuration cannot found at ${uri.toString()}`);
         }
 
     }
@@ -286,9 +287,10 @@ export class ShortcutService implements IDisposable, IShortcutService {
                 DataBuffer.fromString(JSON.stringify(array, null, 2)), 
                 { create: true, overwrite: true, unlock: true }
             );
-        } catch (err) {
-            // TODO: use logService
+            this.logService.trace(`Window#shortcutService#saved at ${uri.toString()}`);
+        } 
+        catch (err) {
+            this.logService.error(`ShortcutService failed to save at ${uri.toString()}`, err);
         }
-
     }
 }
