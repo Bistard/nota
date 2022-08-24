@@ -24,6 +24,7 @@ import { ILookupPaletteService, LookupPaletteService } from "src/code/platform/l
 import { IWindowInstance } from "src/code/platform/window/electron/windowInstance";
 import { MainHostService } from "src/code/platform/host/electron/mainHostService";
 import { IHostService } from "src/code/platform/host/common/hostService";
+import { DEFAULT_HTML } from "src/code/platform/window/common/window";
 
 /**
  * An interface only for {@link NotaInstance}
@@ -176,7 +177,7 @@ export class NotaInstance extends Disposable implements INotaInstance {
         // open the first window
         const window: IWindowInstance = mainWindowService.open({
             CLIArgv: this.environmentService.CLIArguments,
-            loadFile: './index.html',
+            loadFile: DEFAULT_HTML,
         });
 
         return window;

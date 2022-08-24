@@ -7,7 +7,7 @@ import { IS_MAC } from "src/base/common/platform";
 import { IFileService } from "src/code/platform/files/common/fileService";
 import { IEnvironmentService, IMainEnvironmentService } from "src/code/platform/environment/common/environment";
 import { IMainLifeCycleService } from "src/code/platform/lifeCycle/electron/mainLifeCycleService";
-import { defaultDisplayState, IWindowConfiguration, IWindowDisplayOpts, WindowDisplayMode, WindowMinimumState, IWindowCreationOptions, ArgumentKey } from "src/code/platform/window/common/window";
+import { defaultDisplayState, IWindowConfiguration, IWindowDisplayOpts, WindowDisplayMode, WindowMinimumState, IWindowCreationOptions, ArgumentKey, DEFAULT_HTML } from "src/code/platform/window/common/window";
 import { IpcChannel } from "src/code/platform/ipc/common/channel";
 import { createIpcAccessible, IIpcAccessible } from "src/code/platform/host/common/hostService";
 
@@ -93,7 +93,7 @@ export class WindowInstance extends Disposable implements IWindowInstance {
         
         this._configurationIpcAccessible.updateData(configuration);
 
-        return this._window.loadFile(this.creationConfig.loadFile ?? './index.html');
+        return this._window.loadFile(this.creationConfig.loadFile ?? DEFAULT_HTML);
     }
 
     public toggleFullScreen(force?: boolean): void {

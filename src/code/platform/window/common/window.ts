@@ -7,6 +7,8 @@ export const enum ArgumentKey {
     configuration = 'window-configuration'
 }
 
+export const DEFAULT_HTML = './src/index.html';
+
 export const enum WindowDisplayMode {
 	Normal,
     Minimized,
@@ -72,7 +74,7 @@ export interface IUriToOpenConfiguration {
  */
 export interface IWindowCreationOptions extends Partial<IWindowConfiguration> {
     
-    /** Specify the loading html file path. Default to `./index.html` */
+    /** Specify the loading html file path. Default to {@link DEFAULT_HTML} */
     readonly loadFile?: string;
     readonly CLIArgv?: ICLIArguments;
     readonly displayOptions?: IWindowDisplayOpts;
