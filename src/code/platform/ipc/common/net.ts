@@ -1,4 +1,4 @@
-import { Disposable, IDisposable } from "src/base/common/dispose";
+import { Disposable, IDisposable, toDisposable } from "src/base/common/dispose";
 import { Emitter, Event, Register } from "src/base/common/event";
 import { BufferReader, BufferWriter, DataBuffer } from "src/base/common/file/buffer";
 import { ILogService } from "src/base/common/logger";
@@ -638,7 +638,7 @@ export class ServerBase extends Disposable implements IChannelServer {
                     channelServer.registerChannel(name, channel);
                 }
 
-                const connection: IConnection = { channelClient: undefined!, channelServer, id: clientID };
+                const connection: IConnection = { channelClient: <any>toDisposable(() => {}), channelServer, id: clientID };
                 this._connections.add(connection);
 
                 onClientDisconnect(() => {

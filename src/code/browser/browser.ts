@@ -20,6 +20,11 @@ import { ConsoleLogger } from "src/code/platform/logger/common/consoleLoggerServ
 import { getFormatCurrTimeStamp } from "src/base/common/date";
 import { IConfigService } from "src/code/platform/configuration/common/abstractConfigService";
 import { BrowserConfigService } from "src/code/platform/configuration/browser/browserConfigService";
+import { ProxyChannel } from "src/code/platform/ipc/common/proxy";
+import { IpcChannel } from "src/code/platform/ipc/common/channel";
+import { IHostService } from "src/code/platform/host/common/hostService";
+import { IBrowserHostService } from "src/code/platform/host/browser/browserHostService";
+import { BrowserLifecycleService, ILifecycleService } from "src/code/platform/lifeCycle/browser/browserLifecycleService";
 
 /**
  * @class This is the main entry of the renderer process.
@@ -74,9 +79,16 @@ export class Browser extends Disposable {
         instantiationService.register(IBrowserEnvironmentService, environmentService);
         
         // ipc-service
-        // FIX: windowID is updated after the configuraion is passed into BrowserWindow
         const ipcService = new IpcService(environmentService.windowID);
         instantiationService.register(IIpcService, ipcService);
+
+        // host-service
+        const hostService = ProxyChannel.unwrapChannel<IBrowserHostService>(ipcService.getChannel(IpcChannel.Host), { context: environmentService.windowID });
+        instantiationService.register(IHostService, hostService);
+
+        // lifecycle-service
+        const lifecycleService = new BrowserLifecycleService(logService, hostService);
+        instantiationService.register(ILifecycleService, lifecycleService);
 
         // file-logger-service
         const loggerService = new BrowserLoggerChannel(ipcService, environmentService.logLevel);
@@ -88,7 +100,7 @@ export class Browser extends Disposable {
             new ConsoleLogger(environmentService.mode === ApplicationMode.DEVELOP ? environmentService.logLevel : LogLevel.WARN),
             // file-logger
             loggerService.createLogger(environmentService.logPath, { 
-                name: `window-${environmentService.windowID}-${getFormatCurrTimeStamp()}.txt`,
+                name: `wind-${environmentService.windowID}-${getFormatCurrTimeStamp()}.txt`,
                 description: `renderer`,
             }),
         ]);

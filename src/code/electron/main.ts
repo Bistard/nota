@@ -16,7 +16,7 @@ import { FileLoggerService } from 'src/code/platform/logger/common/fileLoggerSer
 import { NotaInstance } from 'src/code/electron/nota';
 import { ApplicationMode, IEnvironmentOpts, IEnvironmentService, IMainEnvironmentService } from 'src/code/platform/environment/common/environment';
 import { MainEnvironmentService } from 'src/code/platform/environment/electron/mainEnvironmentService';
-import { IMainLifeCycleService, MainLifeCycleService } from 'src/code/platform/lifeCycle/electron/mainLifeCycleService';
+import { IMainLifecycleService, MainLifecycleService } from 'src/code/platform/lifeCycle/electron/mainLifecycleService';
 import { IMainStatusService, MainStatusService } from 'src/code/platform/status/electron/mainStatusService';
 import { ICLIArguments } from 'src/code/platform/environment/common/argument';
 import { createServer, Server } from 'net';
@@ -44,7 +44,7 @@ const nota = new class extends class MainProcess implements IMainProcess {
     private readonly fileService!: IFileService;
     private readonly mainConfigService!: IConfigService;
     private readonly logService!: ILogService;
-    private readonly lifeCycleService!: IMainLifeCycleService;
+    private readonly lifeCycleService!: IMainLifecycleService;
     private readonly statusService!: IMainStatusService;
     private readonly CLIArgv!: ICLIArguments;
 
@@ -144,8 +144,8 @@ const nota = new class extends class MainProcess implements IMainProcess {
         instantiationService.register(IConfigService, mainConfigService);
 
         // life-cycle-service
-        const lifeCycleService = new MainLifeCycleService(logService);
-        instantiationService.register(IMainLifeCycleService, lifeCycleService);
+        const lifeCycleService = new MainLifecycleService(logService);
+        instantiationService.register(IMainLifecycleService, lifeCycleService);
 
         // status-service
         const statusService = new MainStatusService(fileService, logService, environmentService, lifeCycleService);

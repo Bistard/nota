@@ -2,7 +2,6 @@ import { ISashEvent, Sash } from "src/base/browser/basic/sash/sash";
 import { Orientation } from "src/base/common/dom";
 import { Emitter, Register } from "src/base/common/event";
 import { IComponentService } from "src/code/browser/service/componentService";
-import { IIpcService } from "src/code/browser/service/ipcService";
 import { ActionBarComponent, ActionType } from "src/code/browser/workbench/actionBar/actionBar";
 import { ActionViewComponent } from "src/code/browser/workbench/actionView/actionView";
 import { Component, ComponentType, IComponent } from "src/code/browser/workbench/component";
@@ -34,7 +33,6 @@ export abstract class WorkbenchLayout extends Component {
     
     constructor(
         protected readonly instantiationService: IInstantiationService,
-        protected readonly ipcService: IIpcService,
         @IComponentService componentService: IComponentService,
     ) {
         super(ComponentType.Workbench, document.body, componentService);

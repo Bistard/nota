@@ -2,6 +2,7 @@ import { IDisposable } from "src/base/common/dispose";
 import { Register } from "src/base/common/event";
 import { URI } from "src/base/common/file/uri";
 import { ILogService } from "src/base/common/logger";
+import { DeepReadonly, Mutable } from "src/base/common/util/type";
 import { ConfigModel, IConfigModel } from "src/code/platform/configuration/common/configModel";
 import { BuiltInConfigScope, ConfigScope, ExtensionConfigScope, IConfigRegistrant, IScopeConfigChangeEvent } from "src/code/platform/configuration/common/configRegistrant";
 import { ConfigStorage, IConfigStorage } from "src/code/platform/configuration/common/configStorage";
@@ -94,7 +95,7 @@ export class ConfigCollection implements IConfigCollection, IDisposable {
         this._configurations = new Map();
         if (opts.builtIn) {
             for (const scope of opts.builtIn) {
-                const model = new ConfigModel(opts.resourceProvider(scope), this._registrant.getDefaultBuiltIn(scope), fileService, logService)
+                const model = new ConfigModel(opts.resourceProvider(scope), <IConfigStorage>this._registrant.getDefaultBuiltIn(scope), fileService, logService)
                 this._configurations.set(scope, model);
             }
         }
@@ -103,7 +104,7 @@ export class ConfigCollection implements IConfigCollection, IDisposable {
         this._extensionConfigurations = new Map();
         if (opts.extension) {
             for (const scope of opts.extension) {
-                const model = new ConfigModel(opts.resourceProvider(scope), this._registrant.getDefaultExtension(scope), fileService, logService)
+                const model = new ConfigModel(opts.resourceProvider(scope), <IConfigStorage>this._registrant.getDefaultExtension(scope), fileService, logService)
                 this._extensionConfigurations.set(scope, model);
             }
         }

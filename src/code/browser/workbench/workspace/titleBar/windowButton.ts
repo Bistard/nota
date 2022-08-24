@@ -1,6 +1,5 @@
 import { Button, IButtonOptions } from "src/base/browser/basic/button/button"
 import { getIconClass } from "src/base/browser/icon/iconRegistry";
-import { ipcRendererSend } from "src/base/electron/register";
 
 export interface IWindowButtonOptions extends IButtonOptions {
     ipcMessage: string
@@ -34,7 +33,7 @@ export class WindowButton extends Button {
             }
 
             // send message to the main process
-            ipcRendererSend(this._ipcMessage);
+            // FIX: use hostService
         });
 
         this.applyStyle();

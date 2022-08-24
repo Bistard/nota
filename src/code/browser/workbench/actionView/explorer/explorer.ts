@@ -7,11 +7,11 @@ import { Ii18nService } from 'src/code/platform/i18n/i18n';
 import { Section } from 'src/code/platform/section';
 import { registerSingleton } from 'src/code/platform/instantiation/common/serviceCollection';
 import { ServiceDescriptor } from 'src/code/platform/instantiation/common/descriptor';
-import { IIpcService, IpcService } from 'src/code/browser/service/ipcService';
 import { addDisposableListener, EventType } from 'src/base/common/dom';
 import { IEditorService } from 'src/code/browser/workbench/workspace/editor/editor';
 import { IConfigService } from 'src/code/platform/configuration/common/abstractConfigService';
 import { BuiltInConfigScope } from 'src/code/platform/configuration/common/configRegistrant';
+import { IBrowserDialogService, IDialogService } from 'src/code/platform/dialog/browser/browserDialogService';
 
 export const IExplorerViewService = createDecorator<IExplorerViewService>('explorer-view-service');
 
@@ -69,7 +69,7 @@ export class ExplorerViewComponent extends Component implements IExplorerViewSer
     constructor(parentElement: HTMLElement,
                 @IComponentService componentService: IComponentService,
                 @IConfigService private readonly configService: IConfigService,
-                @IIpcService private readonly ipcService: IpcService,
+                @IDialogService private readonly dialogService: IBrowserDialogService,
                 @Ii18nService private readonly i18nService: Ii18nService,
                 @INotebookGroupService private readonly notebookGroupService: INotebookGroupService,
                 @IEditorService private readonly editorService: IEditorService,
@@ -115,9 +115,9 @@ export class ExplorerViewComponent extends Component implements IExplorerViewSer
          * once the directory dialog chosed a path to open, we get the message 
          * and open it.
          */
-        this.__register(this.ipcService.onDidOpenDirectoryDialog((path) => {
-            // this.__createOpenedExplorerView(path, this._globalConfig.defaultConfigOn, false);
-        }));
+        this.dialogService.openDirectoryDialog({ title: 'open a directory' }).then(path => {
+            this.__createOpenedExplorerView(path[0]!, false);            
+        });
 
         /**
          * Opens in the editor.
@@ -168,10 +168,9 @@ export class ExplorerViewComponent extends Component implements IExplorerViewSer
      * update the local user configuration. Secondly will open the previous 
      * opened directory.
      * @param path The path waiting for opening.
-     * @param defaultConfigOn If we are using the default user configuration.
      * @param reopen If requires reopen a new directory.
      */
-    private async __createOpenedExplorerView(path: string, defaultConfigOn: boolean, reopen: boolean): Promise<void> {
+    private async __createOpenedExplorerView(path: string, reopen: boolean): Promise<void> {
         
         if (this._opened && reopen === false)  {
             return;

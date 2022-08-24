@@ -1,13 +1,36 @@
-import { BrowserWindow, BrowserWindowConstructorOptions } from "electron";
+import { app, BrowserWindow, BrowserWindowConstructorOptions } from "electron";
 import { Disposable } from "src/base/common/dispose";
-import { Emitter } from "src/base/common/event";
+import { Emitter, Register } from "src/base/common/event";
 import { join, resolve } from "src/base/common/file/path";
 import { ILogService } from "src/base/common/logger";
 import { IS_MAC } from "src/base/common/platform";
 import { IFileService } from "src/code/platform/files/common/fileService";
 import { IEnvironmentService, IMainEnvironmentService } from "src/code/platform/environment/common/environment";
-import { IMainLifeCycleService } from "src/code/platform/lifeCycle/electron/mainLifeCycleService";
-import { defaultDisplayState, IWindowConfiguration, IWindowDisplayOpts, IWindowInstance, WindowDisplayMode, WindowMinimumState, IWindowCreationOptions, ArgumentKey } from "src/code/platform/window/common/window";
+import { IMainLifecycleService } from "src/code/platform/lifeCycle/electron/mainLifecycleService";
+import { defaultDisplayState, IWindowConfiguration, IWindowDisplayOpts, WindowDisplayMode, WindowMinimumState, IWindowCreationOptions, ArgumentKey, DEFAULT_HTML } from "src/code/platform/window/common/window";
+import { IpcChannel } from "src/code/platform/ipc/common/channel";
+import { createIpcAccessible, IIpcAccessible } from "src/code/platform/host/common/hostService";
+
+/**
+ * An interface only for {@link WindowInstance}.
+ */
+export interface IWindowInstance extends Disposable {
+    
+    readonly id: number;
+
+    readonly browserWindow: BrowserWindow;
+
+    readonly onDidLoad: Register<void>;
+    
+    readonly onDidClose: Register<void>;
+
+    load(configuration: IWindowConfiguration): Promise<void>;
+
+    // TODO: complete
+    toggleFullScreen(force?: boolean): void;
+
+    close(): void;
+}
 
 /**
  * @class A window instance is a wrapper class of {@link BrowserWindow} that
@@ -28,6 +51,8 @@ export class WindowInstance extends Disposable implements IWindowInstance {
     private readonly _window: BrowserWindow;
     private readonly _id: number;
 
+    private readonly _configurationIpcAccessible: IIpcAccessible<IWindowConfiguration> = createIpcAccessible();
+
     // [constructor]
 
     constructor(
@@ -36,7 +61,7 @@ export class WindowInstance extends Disposable implements IWindowInstance {
         @ILogService private readonly logService: ILogService,
 		@IEnvironmentService private readonly environmentService: IMainEnvironmentService,
         @IFileService private readonly fileService: IFileService,
-        @IMainLifeCycleService private readonly lifecycleService: IMainLifeCycleService,
+        @IMainLifecycleService private readonly lifecycleService: IMainLifecycleService,
     ) {
         super();
 
@@ -57,16 +82,22 @@ export class WindowInstance extends Disposable implements IWindowInstance {
         return this._id;
     }
 
-    get window(): BrowserWindow {
+    get browserWindow(): BrowserWindow {
         return this._window;
     }
 
     // [public methods]
 
-    public load(): Promise<void> {
+    public load(configuration: IWindowConfiguration): Promise<void> {
         this.logService.trace(`Main#WindowInstance#ID-${this._id}#loading...`);
         
-        return this._window.loadFile(this.creationConfig.loadFile);
+        this._configurationIpcAccessible.updateData(configuration);
+
+        return this._window.loadFile(this.creationConfig.loadFile ?? DEFAULT_HTML);
+    }
+
+    public toggleFullScreen(force?: boolean): void {
+        
     }
 
     public close(): void {
@@ -107,7 +138,7 @@ export class WindowInstance extends Disposable implements IWindowInstance {
                  * Pass any arguments use the following pattern:
                  *      --ArgName=argInString
                  */
-                additionalArguments: [`--${ArgumentKey.configuration}=${JSON.stringify(this.configuration)}`],
+                additionalArguments: [`--${ArgumentKey.configuration}=${this._configurationIpcAccessible.resource}`],
                 
                 /**
                  * Context Isolation is a feature that ensures that both 
@@ -164,7 +195,31 @@ export class WindowInstance extends Disposable implements IWindowInstance {
 			this._onDidClose.fire();
 			this.dispose();
 		});
+        
+        this._window.on('focus', (e: Event) => {
+            app.emit(IpcChannel.WindowFocused, e, this._window);
+        });
 
+        this._window.on('blur', (e: Event) => {
+            app.emit(IpcChannel.WindowBlured, e, this._window);
+        });
+
+        this._window.on('maximize', (e: Event) => {
+			app.emit(IpcChannel.WindowMaximized, e, this._window);
+		});
+
+		this._window.on('unmaximize', (e: Event) => {
+			app.emit(IpcChannel.WindowUnmaximized, e, this._window);
+		});
+
+        this._window.webContents.on('did-finish-load', () => {
+            /**
+             * Once the updated configuration has sent to renderer process, no 
+             * need to keep listen to IPC anymore.
+             */
+            this._configurationIpcAccessible.dispose();
+            this._onDidLoad.fire();
+		});
     }
 
     // [private helper methods]

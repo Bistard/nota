@@ -490,7 +490,7 @@ export interface INodeEventEmitter {
  * 
  * @type T: Converting the receiving data to the generic type T.
  */
-export class NodeEventEmitter<T> {
+export class NodeEventEmitter<T> implements IDisposable {
 
     private _emitter: Emitter<T>;
 
@@ -508,6 +508,10 @@ export class NodeEventEmitter<T> {
 
     get registerListener(): Register<T> {
         return this._emitter.registerListener;
+    }
+
+    public dispose(): void {
+        this._emitter.dispose();
     }
 }
 

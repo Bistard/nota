@@ -3,10 +3,10 @@ import { WidgetBar } from "src/base/browser/secondary/widgetBar/widgetBar";
 import { Orientation } from "src/base/common/dom";
 import { IpcChannel } from "src/base/common/ipcChannel";
 import { IComponentService } from "src/code/browser/service/componentService";
-import { IIpcService } from "src/code/browser/service/ipcService";
 import { Component } from "src/code/browser/workbench/component";
 import { TitleBarComponentType } from "src/code/browser/workbench/workspace/titleBar/titleBar";
 import { WindowButton } from "src/code/browser/workbench/workspace/titleBar/windowButton";
+import { IHostService } from "src/code/platform/host/common/hostService";
 
 export class WindowBarComponent extends Component {
 
@@ -14,7 +14,7 @@ export class WindowBarComponent extends Component {
 
     constructor(
         @IComponentService componentService: IComponentService,
-        @IIpcService private readonly ipcService: IIpcService,
+        @IHostService private readonly hostService: IHostService,
     ) {
         super(TitleBarComponentType.windowBar, null, componentService);
 
@@ -57,11 +57,11 @@ export class WindowBarComponent extends Component {
 
     protected override _registerListeners(): void {
         
-        this.ipcService.onWindowMaximize(() => {
+        this.hostService.onDidMaximizeWindow(() => {
             this.changeMaxResBtn(true);
         });
         
-        this.ipcService.onWindowUnmaximize(() => {
+        this.hostService.onDidUnmaximizeWindow(() => {
             this.changeMaxResBtn(false); 
         });
     }

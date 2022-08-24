@@ -7,9 +7,9 @@ import { IFileService } from "src/code/platform/files/common/fileService";
 import { createDecorator } from "src/code/platform/instantiation/common/decorator";
 import { IInstantiationService } from "src/code/platform/instantiation/common/instantiation";
 import { IEnvironmentService, IMainEnvironmentService } from "src/code/platform/environment/common/environment";
-import { IMainLifeCycleService } from "src/code/platform/lifeCycle/electron/mainLifeCycleService";
-import { ToOpenType, IUriToOpenConfiguration, IWindowConfiguration, IWindowCreationOptions, IWindowInstance } from "src/code/platform/window/common/window";
-import { WindowInstance } from "src/code/platform/window/electron/windowInstance";
+import { IMainLifecycleService } from "src/code/platform/lifeCycle/electron/mainLifecycleService";
+import { ToOpenType, IUriToOpenConfiguration, IWindowConfiguration, IWindowCreationOptions } from "src/code/platform/window/common/window";
+import { IWindowInstance, WindowInstance } from "src/code/platform/window/electron/windowInstance";
 import { URI } from "src/base/common/file/uri";
 
 export const IMainWindowService = createDecorator<IMainWindowService>('main-window-service');
@@ -27,6 +27,11 @@ export interface IMainWindowService extends Disposable {
      * @description Returns all the running windows.
      */
     windows(): ReadonlyArray<IWindowInstance>;
+
+    /**
+     * @description Returns the opened window by the given id.
+     */
+    getWindowByID(id: number): IWindowInstance | undefined;
 
     /**
      * @description Returns the number of running window.
@@ -62,7 +67,7 @@ export class MainWindowService extends Disposable implements IMainWindowService 
         @IInstantiationService private readonly instantiationService: IInstantiationService,
         @ILogService private readonly logService: ILogService,
         @IFileService private readonly fileService: IFileService,
-        @IMainLifeCycleService private readonly lifeCycleService: IMainLifeCycleService,
+        @IMainLifecycleService private readonly lifeCycleService: IMainLifecycleService,
         @IEnvironmentService private readonly environmentMainService: IMainEnvironmentService,
     ) {
         super();
@@ -73,6 +78,15 @@ export class MainWindowService extends Disposable implements IMainWindowService 
 
     public windows(): readonly IWindowInstance[] {
         return this._windows;
+    }
+
+    public getWindowByID(id: number): IWindowInstance | undefined {
+        for (const window of this._windows) {
+            if (window.id === id) {
+                return window;
+            }
+        }
+        return undefined;
     }
 
     // [public methods]
@@ -86,9 +100,6 @@ export class MainWindowService extends Disposable implements IMainWindowService 
 
         const newWindow = this.doOpen(options);
         
-        // load the window in browser
-        newWindow.load();
-
         this.logService.trace('Main#mainWindowService#window opened');
         return newWindow;
     }
@@ -101,7 +112,7 @@ export class MainWindowService extends Disposable implements IMainWindowService 
     }
 
     private doOpen(opts: IWindowCreationOptions): IWindowInstance {
-
+        
         let window: IWindowInstance;
 
         // get openning URIs configuration
@@ -138,6 +149,9 @@ export class MainWindowService extends Disposable implements IMainWindowService 
         // open a new window instance
         window = this.__openInNewWindow(opts, configuration);
         (<Mutable<typeof configuration>>configuration).windowID = window.id;
+
+        // load window
+        window.load(configuration);
         
         return window;
     }
@@ -157,9 +171,14 @@ export class MainWindowService extends Disposable implements IMainWindowService 
         this._onDidOpenWindow.fire(newWindow);
 
         // newly window listeners
-        Event.once(newWindow.onDidClose)(() => {this._onDidCloseWindow.fire(newWindow)});
+        Event.once(newWindow.onDidClose)(() => this.__onWindowDidClose(newWindow));
 
         return newWindow;
+    }
+
+    private __onWindowDidClose(window: IWindowInstance): void {
+        this._windows.splice(this._windows.indexOf(window), 1);
+        this._onDidCloseWindow.fire(window);
     }
 }
 

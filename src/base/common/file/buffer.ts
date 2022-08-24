@@ -1,4 +1,7 @@
 
+declare const Buffer: any;
+const hasBuffer: boolean = typeof Buffer !== 'undefined';
+
 /**
  * @class A class to simulate a real buffer which provides the functionality to
  * stores the actual data as a sequence of unsigned int (8 bits).
@@ -19,7 +22,10 @@ export class DataBuffer {
      * size of data.
      */
     public static alloc(byteSize: number): DataBuffer {
-        return new DataBuffer(Buffer.allocUnsafe(byteSize));
+        if (hasBuffer) {
+            return new DataBuffer(Buffer.allocUnsafe(byteSize));
+        }
+        return new DataBuffer(new Uint8Array(byteSize));
     }
 
     /**
@@ -57,10 +63,12 @@ export class DataBuffer {
      * data. The returned DataBuffer shares the memory with the given 'Uint8Array'.
      */
     public static wrap(originalData: Uint8Array): DataBuffer {
-        // this line of code is to create a 'reference' or a 'pointer' to the 
-        // original data without copying values.
-        const referencedData = Buffer.from(originalData.buffer, originalData.byteOffset, originalData.byteLength);
-        return new DataBuffer(referencedData as Uint8Array);
+        if (hasBuffer && !Buffer.isBuffer(originalData)) {
+            // this line of code is to create a 'reference' or a 'pointer' to the 
+            // original data without copying values.
+            originalData = Buffer.from(originalData.buffer, originalData.byteOffset, originalData.byteLength);
+        }
+        return new DataBuffer(originalData);
     }
 
     /**
@@ -72,11 +80,19 @@ export class DataBuffer {
         return newBuffer;
     }
 
+    private static _textEncoder?: TextEncoder;
     /**
      * @description Construct a DataBuffer from a given string.
      */
     public static fromString(content: string): DataBuffer {
-        return new DataBuffer(Buffer.from(content));
+        if (hasBuffer) {
+            return new DataBuffer(Buffer.from(content));
+        } else {
+            if (!DataBuffer._textEncoder) {
+                DataBuffer._textEncoder = new TextEncoder();
+            }
+            return new DataBuffer(DataBuffer._textEncoder.encode(content));
+        }
     }
 
     public slice(start?: number, end?: number): DataBuffer {

@@ -1,6 +1,3 @@
-import { BrowserWindow } from "electron";
-import { Disposable } from "src/base/common/dispose";
-import { Register } from "src/base/common/event";
 import { URI } from "src/base/common/file/uri";
 import { UUID } from "src/base/node/uuid";
 import { ICLIArguments } from "src/code/platform/environment/common/argument";
@@ -9,6 +6,8 @@ import { IEnvironmentOpts } from "src/code/platform/environment/common/environme
 export const enum ArgumentKey {
     configuration = 'window-configuration'
 }
+
+export const DEFAULT_HTML = './src/index.html';
 
 export const enum WindowDisplayMode {
 	Normal,
@@ -75,33 +74,18 @@ export interface IUriToOpenConfiguration {
  */
 export interface IWindowCreationOptions extends Partial<IWindowConfiguration> {
     
-    readonly loadFile: string;
+    /** Specify the loading html file path. Default to {@link DEFAULT_HTML} */
+    readonly loadFile?: string;
     readonly CLIArgv?: ICLIArguments;
     readonly displayOptions?: IWindowDisplayOpts;
 
     /**
-     * URIs to be opened in the window, might be either workspace, directory or 
-     * file.
+     * URIs to be opened in the window, might be either workspace, directory or file.
      */
     readonly uriToOpen?: URI[];
-}
-
-/**
- * An interface only for {@link WindowInstance}.
- */
-export interface IWindowInstance extends Disposable {
-    
-    readonly id: number;
-
-    readonly window: BrowserWindow;
-
-    readonly onDidLoad: Register<void>;
-    
-    readonly onDidClose: Register<void>;
-
-    load(): Promise<void>;
-
-    close(): void;
+    readonly forceNewWindow?: boolean; // REVIEW: unused
+    /** If under any existed windows operation. */
+    readonly hostWindowID?: number;
 }
 
 /**

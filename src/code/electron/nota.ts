@@ -13,15 +13,18 @@ import { IpcServer } from "src/code/platform/ipc/browser/ipc";
 import { IpcChannel } from "src/code/platform/ipc/common/channel";
 import { ProxyChannel } from "src/code/platform/ipc/common/proxy";
 import { SafeIpcMain } from "src/code/platform/ipc/electron/safeIpcMain";
-import { IMainLifeCycleService, LifeCyclePhase } from "src/code/platform/lifeCycle/electron/mainLifeCycleService";
+import { IMainLifecycleService, LifecyclePhase } from "src/code/platform/lifeCycle/electron/mainLifecycleService";
 import { StatusKey } from "src/code/platform/status/common/status";
 import { IMainStatusService } from "src/code/platform/status/electron/mainStatusService";
-import { IWindowInstance } from "src/code/platform/window/common/window";
 import { IMainWindowService, MainWindowService } from "src/code/platform/window/electron/mainWindowService";
 import { ILoggerService } from "src/code/platform/logger/common/abstractLoggerService";
 import { MainLoggerChannel } from "src/code/platform/logger/common/loggerChannel";
 import { IMainDialogService, MainDialogService } from "src/code/platform/dialog/electron/mainDialogService";
 import { ILookupPaletteService, LookupPaletteService } from "src/code/platform/lookup/electron/lookupPaletteService";
+import { IWindowInstance } from "src/code/platform/window/electron/windowInstance";
+import { MainHostService } from "src/code/platform/host/electron/mainHostService";
+import { IHostService } from "src/code/platform/host/common/hostService";
+import { DEFAULT_HTML } from "src/code/platform/window/common/window";
 
 /**
  * An interface only for {@link NotaInstance}
@@ -45,7 +48,7 @@ export class NotaInstance extends Disposable implements INotaInstance {
     constructor(
         @IInstantiationService private readonly mainInstantiationService: IInstantiationService,
         @IEnvironmentService private readonly environmentService: IMainEnvironmentService,
-        @IMainLifeCycleService private readonly lifeCycleService: IMainLifeCycleService,
+        @IMainLifecycleService private readonly lifeCycleService: IMainLifecycleService,
         @ILogService private readonly logService: ILogService,
         @IFileService private readonly fileService: IFileService,
         @IMainStatusService private readonly statusService: IMainStatusService,
@@ -67,8 +70,7 @@ export class NotaInstance extends Disposable implements INotaInstance {
         const appInstantiationService = await this.createServices(machineID);
 
         // IPC main process server
-        const ipcServer = new IpcServer(this.logService);
-        this.lifeCycleService.onWillQuit(() => ipcServer.dispose());
+        const ipcServer = this.__register(new IpcServer(this.logService));
 
         // IPC channel initialization
         this.registerChannels(appInstantiationService, ipcServer);
@@ -102,12 +104,6 @@ export class NotaInstance extends Disposable implements INotaInstance {
 			// this.mainWindowService?.open();
 		});
 
-        // Register basic ipcMain channel listeners.
-        SafeIpcMain.instance
-        .on(IpcChannel.ToggleDevTools, event => event.sender.toggleDevTools())
-        .on(IpcChannel.OpenDevTools, event => event.sender.openDevTools())
-        .on(IpcChannel.CloseDevTools, event => event.sender.closeDevTools())
-        .on(IpcChannel.ReloadWindow, event => event.sender.reload());
     }
 
     private async createServices(machineID: UUID): Promise<IInstantiationService> {
@@ -123,6 +119,9 @@ export class NotaInstance extends Disposable implements INotaInstance {
 
         // dialog-sevice
         appInstantiationService.register(IMainDialogService, new ServiceDescriptor(MainDialogService));
+
+        // host-service
+        appInstantiationService.register(IHostService, new ServiceDescriptor(MainHostService));
 
         // TODO: notebook-group-service
 
@@ -142,13 +141,23 @@ export class NotaInstance extends Disposable implements INotaInstance {
         const loggerService = provider.getService(ILoggerService);
         const loggerChannel = new MainLoggerChannel(loggerService);
         server.registerChannel(IpcChannel.Logger, loggerChannel);
+
+        // host-service-channel
+        const hostService = provider.getOrCreateService(IHostService);
+        const hostChannel = ProxyChannel.wrapService(hostService);
+        server.registerChannel(IpcChannel.Host, hostChannel);
+
+        // dialog-service-channel
+        const dialogService = provider.getService(IMainDialogService);
+        const dialogChannel = ProxyChannel.wrapService(dialogService);
+        server.registerChannel(IpcChannel.Dialog, dialogChannel);
     }
 
     private openFirstWindow(provider: IServiceProvider): IWindowInstance {
         const mainWindowService = provider.getOrCreateService(IMainWindowService);
         
         // life-cycle-service: READY
-        this.lifeCycleService.setPhase(LifeCyclePhase.Ready);
+        this.lifeCycleService.setPhase(LifecyclePhase.Ready);
 
         // set-up lookup-palette-service
         mainWindowService.onDidOpenWindow(() => {
@@ -167,7 +176,7 @@ export class NotaInstance extends Disposable implements INotaInstance {
         // open the first window
         const window: IWindowInstance = mainWindowService.open({
             CLIArgv: this.environmentService.CLIArguments,
-            loadFile: './index.html',
+            loadFile: DEFAULT_HTML,
         });
 
         return window;

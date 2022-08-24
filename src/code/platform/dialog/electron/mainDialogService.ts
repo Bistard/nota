@@ -4,7 +4,7 @@ import { ILogService } from "src/base/common/logger";
 import { IS_MAC } from "src/base/common/platform";
 import { AsyncQueue } from "src/base/common/util/async";
 import { mockType, NulltoUndefined } from "src/base/common/util/type";
-import { InternalOpenDialogOptions, OpenDialogOptions } from "src/code/platform/dialog/common/dialog";
+import { IDialogService, InternalOpenDialogOptions, OpenDialogOptions } from "src/code/platform/dialog/common/dialog";
 import { createDecorator } from "src/code/platform/instantiation/common/decorator";
 
 export const IMainDialogService = createDecorator<IMainDialogService>('main-dialog-service');
@@ -12,16 +12,7 @@ export const IMainDialogService = createDecorator<IMainDialogService>('main-dial
 /**
  * An interface only for {@link MainDialogService}.
  */
-export interface IMainDialogService {
-    
-    openFile(opts: OpenDialogOptions, window?: BrowserWindow): Promise<string[]>;
-    openDirectory(opts: OpenDialogOptions, window?: BrowserWindow): Promise<string[]>;
-    openFileOrDirectory(opts: OpenDialogOptions, window?: BrowserWindow): Promise<string[]>;    
-    
-    showOpenDialog(opts: Electron.OpenDialogOptions, window?: BrowserWindow): Promise<Electron.OpenDialogReturnValue>;
-    showSaveDialog(opts: Electron.SaveDialogOptions, window?: BrowserWindow): Promise<Electron.SaveDialogReturnValue>;
-    showMessageBox(opts: Electron.MessageBoxOptions, window?: BrowserWindow): Promise<Electron.MessageBoxReturnValue>;
-}
+export interface IMainDialogService extends IDialogService {}
 
 type ElectronDialogReturnType = Electron.MessageBoxReturnValue | Electron.SaveDialogReturnValue | Electron.OpenDialogReturnValue;
 
@@ -48,15 +39,15 @@ export class MainDialogService implements IMainDialogService {
 
     // [public methods]
 
-    public openFileOrDirectory(opts: OpenDialogOptions, window?: BrowserWindow): Promise<string[]> {
+    public openFileOrDirectoryDialog(opts: OpenDialogOptions, window?: BrowserWindow): Promise<string[]> {
         return this.__open({...opts, openDirectory: true, openFile: true }, window);
     }
 
-    public openFile(opts: OpenDialogOptions, window?: BrowserWindow): Promise<string[]> {
+    public openFileDialog(opts: OpenDialogOptions, window?: BrowserWindow): Promise<string[]> {
         return this.__open({...opts, openDirectory: false, openFile: true }, window);
     }
 
-    public openDirectory(opts: OpenDialogOptions, window?: BrowserWindow): Promise<string[]> {
+    public openDirectoryDialog(opts: OpenDialogOptions, window?: BrowserWindow): Promise<string[]> {
         return this.__open({...opts, openDirectory: true, openFile: false }, window);
     }
 
@@ -145,13 +136,15 @@ export class MainDialogService implements IMainDialogService {
         if (!window) {
             queue = mockType(this._dialogQueues.get(-1));
             if (!queue) {
-                this._dialogQueues.set(-1, new AsyncQueue());
+                queue = new AsyncQueue();
+                this._dialogQueues.set(-1, mockType(queue));
             }
         } 
         else {
             queue = mockType(this._dialogQueues.get(window.id));
             if (!queue) {
-                this._dialogQueues.set(window.id, new AsyncQueue());
+                queue = new AsyncQueue();
+                this._dialogQueues.set(window.id, mockType(queue));
             }
         }
 

@@ -1,6 +1,7 @@
 import { IDisposable } from "src/base/common/dispose";
 import { ErrorHandler } from "src/base/common/error";
 import { Register, SignalEmitter } from "src/base/common/event";
+import { DeepReadonly } from "src/base/common/util/type";
 import { IConfigChangeEvent, IConfigStorage } from "src/code/platform/configuration/common/configStorage";
 import { createRegistrant, RegistrantType } from "src/code/platform/registrant/common/registrant";
 
@@ -34,14 +35,14 @@ export interface IConfigRegistrant {
 
     // TODO
     registerDefaultBuiltIn(scope: BuiltInConfigScope, config: IConfigStorage): void;
-    getDefaultBuiltIn(scope: BuiltInConfigScope): IConfigStorage;
+    getDefaultBuiltIn(scope: BuiltInConfigScope): DeepReadonly<IConfigStorage>;
     unregisterDefaultBuiltIn(scope: BuiltInConfigScope): boolean;
 
     registerDefaultExtension(scope: ExtensionConfigScope, config: IConfigStorage): void;
-    getDefaultExtension(scope: ExtensionConfigScope): IConfigStorage;
+    getDefaultExtension(scope: ExtensionConfigScope): DeepReadonly<IConfigStorage>;
     unregisterDefaultExtension(scope: ExtensionConfigScope): boolean;
 
-    getAllDefaultExtensions(): Map<ExtensionConfigScope, IConfigStorage>;
+    getAllDefaultExtensions(): [ExtensionConfigScope, DeepReadonly<IConfigStorage>][];
 }
 
 /**
@@ -86,7 +87,7 @@ class ConfigRegistrant implements IConfigRegistrant {
         this._onDidChangeDisposables.set(scope, unregister);
     }
 
-    public getDefaultBuiltIn(scope: BuiltInConfigScope): IConfigStorage {
+    public getDefaultBuiltIn(scope: BuiltInConfigScope): DeepReadonly<IConfigStorage> {
         const config = this._defaultBuiltIns.get(scope);
         if (!config) {
             ErrorHandler.onUnexpectedError(new Error(`default built-in configuration with scope '${scope}' not found`));
@@ -121,7 +122,7 @@ class ConfigRegistrant implements IConfigRegistrant {
         this._onDidChangeDisposables.set(scope, unregister);
     }
 
-    public getDefaultExtension(scope: ExtensionConfigScope): IConfigStorage {
+    public getDefaultExtension(scope: ExtensionConfigScope): DeepReadonly<IConfigStorage> {
         const config = this._defaultExtensions.get(scope);
         if (!config) {
             throw new Error(`default exntension configuration with scope '${scope}' not found`);
@@ -139,7 +140,7 @@ class ConfigRegistrant implements IConfigRegistrant {
         return this._defaultExtensions.delete(scope);
     }
 
-    public getAllDefaultExtensions(): Map<ExtensionConfigScope, IConfigStorage> {
-        return this._defaultExtensions;
+    public getAllDefaultExtensions(): [ExtensionConfigScope, DeepReadonly<IConfigStorage>][] {
+        return Array.from(this._defaultExtensions.entries());
     }
 }
