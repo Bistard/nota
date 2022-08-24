@@ -5,12 +5,11 @@ import { URI } from "src/base/common/file/uri";
 import { hash } from "src/base/common/util/hash";
 import { Shortcut } from "src/base/common/keyboard";
 import { IKeyboardService } from "src/code/browser/service/keyboard/keyboardService";
-import { IWorkbenchService } from "src/code/browser/service/workbenchService";
 import { IFileService } from "src/code/platform/files/common/fileService";
 import { createDecorator } from "src/code/platform/instantiation/common/decorator";
 import { IInstantiationService, IServiceProvider } from "src/code/platform/instantiation/common/instantiation";
 import { ILogService } from "src/base/common/logger";
-import { IBrowserLifecycleService, ILifecycleService } from "src/code/platform/lifeCycle/browser/browserLifecycleService";
+import { IBrowserLifecycleService, ILifecycleService, LifecyclePhase } from "src/code/platform/lifeCycle/browser/browserLifecycleService";
 
 export const SHORTCUT_CONFIG_NAME = 'shortcut.config.json';
 // export const SHORTCUT_CONFIG_PATH = resolve(APP_ROOT_PATh, NOTA_DIR_NAME, SHORTCUT_CONFIG_NAME);
@@ -122,7 +121,6 @@ export class ShortcutService implements IDisposable, IShortcutService {
     constructor(
         @IKeyboardService keyboardService: IKeyboardService,
         @ILifecycleService lifecycleService: IBrowserLifecycleService,
-        @IWorkbenchService workbenchService: IWorkbenchService,
         @IInstantiationService private readonly instantiaionService: IInstantiationService,
         @IFileService private readonly fileService: IFileService,
         @ILogService private readonly logService: ILogService,
@@ -140,7 +138,7 @@ export class ShortcutService implements IDisposable, IShortcutService {
             }
         });
 
-        workbenchService.onDidFinishLayout(() => this.__registerShortcuts());
+        lifecycleService.when(LifecyclePhase.Ready).then(() => this.__registerShortcuts());
         lifecycleService.onWillQuit(async () => this.__onApplicationClose());
     }
 
@@ -174,7 +172,7 @@ export class ShortcutService implements IDisposable, IShortcutService {
                     else cache!.emitter.pause();
                 }) : null,
             };
-            
+
             this.map.set(hashVal, cache);
             this.idMap.set(registration.commandID, registration.shortcut);
         }
@@ -214,7 +212,7 @@ export class ShortcutService implements IDisposable, IShortcutService {
     // [private helper methods]
 
     private async __registerShortcuts(): Promise<void> {
-        
+
         const uri = URI.fromFile(SHORTCUT_CONFIG_PATH);
         
         /**

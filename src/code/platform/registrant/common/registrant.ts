@@ -7,6 +7,7 @@ export const enum RegistrantType {
     Test = 0,
     Command,
     Configuration,
+    Shortcut,
 }
 
 export interface IRegistrantIdentifier<T> {

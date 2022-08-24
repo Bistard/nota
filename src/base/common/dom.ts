@@ -40,6 +40,7 @@ export const enum EventType {
 
 	focus = 'focus',
 	blur = 'blur',
+	resize = 'resize',
 
 	drag = 'drag',
 	dragstart = 'dragstart',

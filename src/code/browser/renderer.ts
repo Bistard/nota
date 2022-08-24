@@ -27,6 +27,7 @@ import { IBrowserHostService } from "src/code/platform/host/browser/browserHostS
 import { BrowserLifecycleService, ILifecycleService } from "src/code/platform/lifeCycle/browser/browserLifecycleService";
 import { i18n, Ii18nOpts, Ii18nService, LanguageType } from "src/code/platform/i18n/i18n";
 import { BuiltInConfigScope } from "src/code/platform/configuration/common/configRegistrant";
+import { Browser } from "src/code/browser/browser";
 
 /**
  * @class This is the main entry of the renderer process.
@@ -45,12 +46,13 @@ class RendererInstance extends Disposable {
     private async run(): Promise<void> {
         ErrorHandler.setUnexpectedErrorExternalCallback((error: any) => console.error(error));
 
+        let instantiaionService!: IInstantiationService;
         try {
             // retrieve the exposed APIs from preload.js
             initExposedElectronAPIs();
 
             // core service construction
-            const instantiaionService = this.createCoreServices();
+            instantiaionService = this.createCoreServices();
 
             // service initialization
             await Promise.all([
@@ -62,9 +64,13 @@ class RendererInstance extends Disposable {
             const workbench = instantiaionService.createInstance(Workbench);
             workbench.init();
 
-            this.registerListeners();
+            // browser monitor
+            const browser = instantiaionService.createInstance(Browser);
+            browser.init();
         } 
-        catch (error) {
+        catch (error: any) {
+            const logService = instantiaionService?.getService(ILogService);
+            logService.error(error);
             ErrorHandler.onUnexpectedError(error);
         }
     }
@@ -152,11 +158,6 @@ class RendererInstance extends Disposable {
             i18nService.init(),
         ]);
     }
-
-    private registerListeners(): void {
-        // empty for now
-    }
-
 }
 
 new RendererInstance();
