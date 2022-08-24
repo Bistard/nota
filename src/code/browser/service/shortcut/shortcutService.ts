@@ -168,8 +168,11 @@ export class ShortcutService implements IDisposable, IShortcutService {
                 whenID: registration.whenID,
                 emitter: new PauseableEmitter(registration.activate),
                 when: registration.when ? registration.when((on: boolean) => {
-                    if (on) cache!.emitter.resume();
-                    else cache!.emitter.pause();
+                    if (on) {
+                        cache!.emitter.resume();
+                    } else {
+                        cache!.emitter.pause();
+                    }
                 }) : null,
             };
 
