@@ -14,6 +14,7 @@ export const enum IpcChannel {
     DiskFile = 'nota:diskFile',
     Configuration = 'nota:configuration',
     Host = 'nota:host',
+    Dialog = 'nota:dialog',
     
     // Notification
     ToggleDevTools = 'nota:toggleDevTools',

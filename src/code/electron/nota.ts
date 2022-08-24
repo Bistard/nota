@@ -152,6 +152,11 @@ export class NotaInstance extends Disposable implements INotaInstance {
         const hostService = provider.getOrCreateService(IHostService);
         const hostChannel = ProxyChannel.wrapService(hostService);
         server.registerChannel(IpcChannel.Host, hostChannel);
+
+        // dialog-service-channel
+        const dialogService = provider.getService(IMainDialogService);
+        const dialogChannel = ProxyChannel.wrapService(dialogService);
+        server.registerChannel(IpcChannel.Dialog, dialogChannel);
     }
 
     private openFirstWindow(provider: IServiceProvider): IWindowInstance {

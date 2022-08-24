@@ -4,7 +4,7 @@ import { ILogService } from "src/base/common/logger";
 import { IS_MAC } from "src/base/common/platform";
 import { AsyncQueue } from "src/base/common/util/async";
 import { mockType, NulltoUndefined } from "src/base/common/util/type";
-import { InternalOpenDialogOptions, OpenDialogOptions } from "src/code/platform/dialog/common/dialog";
+import { IDialogService, InternalOpenDialogOptions, OpenDialogOptions } from "src/code/platform/dialog/common/dialog";
 import { createDecorator } from "src/code/platform/instantiation/common/decorator";
 
 export const IMainDialogService = createDecorator<IMainDialogService>('main-dialog-service');
@@ -12,16 +12,7 @@ export const IMainDialogService = createDecorator<IMainDialogService>('main-dial
 /**
  * An interface only for {@link MainDialogService}.
  */
-export interface IMainDialogService {
-    
-    showOpenDialog(opts: Electron.OpenDialogOptions, window?: BrowserWindow): Promise<Electron.OpenDialogReturnValue>;
-    showSaveDialog(opts: Electron.SaveDialogOptions, window?: BrowserWindow): Promise<Electron.SaveDialogReturnValue>;
-    showMessageBox(opts: Electron.MessageBoxOptions, window?: BrowserWindow): Promise<Electron.MessageBoxReturnValue>;
-
-    openFileDialog(opts: OpenDialogOptions, window?: BrowserWindow): Promise<string[]>;
-    openDirectoryDialog(opts: OpenDialogOptions, window?: BrowserWindow): Promise<string[]>;
-    openFileOrDirectoryDialog(opts: OpenDialogOptions, window?: BrowserWindow): Promise<string[]>;    
-}
+export interface IMainDialogService extends IDialogService {}
 
 type ElectronDialogReturnType = Electron.MessageBoxReturnValue | Electron.SaveDialogReturnValue | Electron.OpenDialogReturnValue;
 
