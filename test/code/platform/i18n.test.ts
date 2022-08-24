@@ -9,7 +9,7 @@ class i18nTest extends i18n {
     constructor(
         fileService: IFileService,
     ) {
-        super({localeOpts: {}}, fileService);
+        super({localeOpts: {}}, fileService, new NullLogger());
     }
 
     public setModel(model: any): void {

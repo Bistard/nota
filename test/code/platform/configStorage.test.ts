@@ -133,7 +133,7 @@ suite('configStorage-test', () => {
             new ConfigStorage(['path1.path2'], { 'path1': { 'path2': { id: 10000, obj: {} }, } }),
             new ConfigStorage(['path3'], { 'path3': 9999 }),
         ]);
-        assert.deepStrictEqual(storage.get(), {
+        assert.deepStrictEqual(storage.get(undefined), {
             'path1': {
                 hello: undefined,
                 world: 'world',

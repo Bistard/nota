@@ -44,7 +44,7 @@ export interface IConfigCollection extends IDisposable {
     /**
      * @description Get specific configuration with the given scope.
      */
-    get<T>(scope: ConfigScope, section?: string): T;
+    get<T>(scope: ConfigScope, section: string | undefined): T;
 
     /**
      * @description Set specific configuration with the given scope.
@@ -124,7 +124,7 @@ export class ConfigCollection implements IConfigCollection, IDisposable {
         return Promise.all(promises) as unknown as Promise<void>;
     }
 
-    public get<T>(scope: ConfigScope, section?: string): T {
+    public get<T>(scope: ConfigScope, section: string | undefined): T {
         const configuration = this.__getConfiguration(scope);
         return configuration.get(section);
     }

@@ -126,7 +126,7 @@ export class NotebookGroup extends Disposable implements INotebookGroupService {
             this._rootPath = path;
             
             // get configurations
-            const { exclude, include, previousOpenedDirctory } = this.configService.get<{ exclude: string[], include: string[], previousOpenedDirctory: string }>('workspace.notebook');
+            const { exclude, include, previousOpenedDirctory } = this.configService.get<{ exclude: string[], include: string[], previousOpenedDirctory: string }>(BuiltInConfigScope.User, 'workspace.notebook');
             
             // get all the names in the given directory
             const dir = await this.fileService.readDir(URI.fromFile(path));

@@ -104,7 +104,7 @@ export class Workbench extends WorkbenchLayout implements IWorkbenchService {
     }
 
     private __registerGlobalConfigurationChange(): void {
-        const ifEnabled = this.configService.get<boolean>('workbench.keyboardScreenCast');
+        const ifEnabled = this.configService.get<boolean>(BuiltInConfigScope.User, 'workbench.keyboardScreenCast');
         
         let screenCastService: IKeyboardScreenCastService;
 
@@ -113,7 +113,7 @@ export class Workbench extends WorkbenchLayout implements IWorkbenchService {
             screenCastService.start();
         }
 
-        this.configService.onDidChange<boolean>(BuiltInConfigScope.Application, 'workbench.keyboardScreenCast', ifEnabled => {
+        this.configService.onDidChange<boolean>(BuiltInConfigScope.User, 'workbench.keyboardScreenCast', ifEnabled => {
             if (ifEnabled) {
                 screenCastService.start();
             } else {

@@ -26,6 +26,7 @@ import { IHostService } from "src/code/platform/host/common/hostService";
 import { IBrowserHostService } from "src/code/platform/host/browser/browserHostService";
 import { BrowserLifecycleService, ILifecycleService } from "src/code/platform/lifeCycle/browser/browserLifecycleService";
 import { i18n, Ii18nOpts, Ii18nService, LanguageType } from "src/code/platform/i18n/i18n";
+import { BuiltInConfigScope } from "src/code/platform/configuration/common/configRegistrant";
 
 /**
  * @class This is the main entry of the renderer process.
@@ -121,7 +122,7 @@ export class Browser extends Disposable {
 
         // i18n-service
         const i18nOption: Ii18nOpts = {
-            language: configService.get<LanguageType>('workbench.language'),
+            language: configService.get<LanguageType>(BuiltInConfigScope.User, 'workbench.language'),
             localeOpts: {}
         };
         const i18nService = new i18n(i18nOption, fileService, logService);
