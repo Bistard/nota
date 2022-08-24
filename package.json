@@ -11,7 +11,7 @@
     "test": "mocha --ui tdd -r jsdom-global/register --config '.mocharc.jsonc'",
     "_test": "mocha --ui tdd -r jsdom-global/register --config 'test/.mocharc.jsonc'",
     "benchmark": "node benchmark/benchmark.js",
-    "build": "webpack  --config webpack.config.js --stats-error-details",
+    "build": "node ./scripts/build.js",
     "_gen-icons": "fantasticon -c .fantasticonrc.js"
   },
   "repository": {
