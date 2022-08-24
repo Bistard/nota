@@ -1,4 +1,4 @@
-import 'src/code/platform/configuration/browser/configuration.registrant';
+import 'src/code/platform/configuration/browser/configuration.register';
 import { ServiceDescriptor } from "src/code/platform/instantiation/common/descriptor";
 import { registerSingleton } from "src/code/platform/instantiation/common/serviceCollection";
 import { CommandService, ICommandService } from "src/code/platform/command/common/commandService";

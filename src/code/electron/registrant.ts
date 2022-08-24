@@ -1,1 +1,1 @@
-import 'src/code/platform/configuration/electron/configuration.registrant';
+import 'src/code/platform/configuration/electron/configuration.register';
