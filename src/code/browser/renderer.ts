@@ -31,7 +31,7 @@ import { BuiltInConfigScope } from "src/code/platform/configuration/common/confi
 /**
  * @class This is the main entry of the renderer process.
  */
-export class Browser extends Disposable {
+class RendererInstance extends Disposable {
 
     // [constructor]
 
@@ -60,6 +60,7 @@ export class Browser extends Disposable {
 
             // create workbench UI
             const workbench = instantiaionService.createInstance(Workbench);
+            workbench.init();
 
             this.registerListeners();
         } 
@@ -158,4 +159,4 @@ export class Browser extends Disposable {
 
 }
 
-new Browser();
+new RendererInstance();

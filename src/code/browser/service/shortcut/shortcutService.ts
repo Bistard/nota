@@ -135,15 +135,11 @@ export class ShortcutService implements IDisposable, IShortcutService {
             const shortcut = new Shortcut(e.ctrl, e.shift, e.alt, e.meta, e.key);
             const val = hash(shortcut.toString());
             const cache = this.map.get(val);
-            if (cache !== undefined) {
+            if (cache) {
                 cache.emitter.fire(this.instantiaionService);
             }
         });
 
-        /**
-         * // TODO: more commands
-         * Once the majority
-         */
         workbenchService.onDidFinishLayout(() => this.__registerShortcuts());
         lifecycleService.onWillQuit(async () => this.__onApplicationClose());
     }

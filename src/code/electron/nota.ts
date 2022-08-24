@@ -12,7 +12,6 @@ import { IEnvironmentService, IMainEnvironmentService } from "src/code/platform/
 import { IpcServer } from "src/code/platform/ipc/browser/ipc";
 import { IpcChannel } from "src/code/platform/ipc/common/channel";
 import { ProxyChannel } from "src/code/platform/ipc/common/proxy";
-import { SafeIpcMain } from "src/code/platform/ipc/electron/safeIpcMain";
 import { IMainLifecycleService, LifecyclePhase } from "src/code/platform/lifeCycle/electron/mainLifecycleService";
 import { StatusKey } from "src/code/platform/status/common/status";
 import { IMainStatusService } from "src/code/platform/status/electron/mainStatusService";

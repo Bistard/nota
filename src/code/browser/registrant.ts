@@ -11,8 +11,13 @@ import { IShortcutService, ShortcutService } from 'src/code/browser/service/shor
  * Registraion for desktop browser-side non-important microservices.
  ******************************************************************************/
 
+// communication
+registerSingleton(IDialogService, new ServiceDescriptor(BrowserDialogService));
+
+// registration
 registerSingleton(IKeyboardService, new ServiceDescriptor(keyboardService));
 registerSingleton(IShortcutService, new ServiceDescriptor(ShortcutService));
-registerSingleton(IKeyboardScreenCastService, new ServiceDescriptor(KeyboardScreenCastService));
 registerSingleton(ICommandService, new ServiceDescriptor(CommandService));
-registerSingleton(IDialogService, new ServiceDescriptor(BrowserDialogService));
+
+// utilities & tools
+registerSingleton(IKeyboardScreenCastService, new ServiceDescriptor(KeyboardScreenCastService));
