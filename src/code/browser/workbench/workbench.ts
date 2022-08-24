@@ -6,7 +6,7 @@ import { IComponentService } from "src/code/browser/service/componentService";
 import { WorkbenchLayout } from "src/code/browser/workbench/layout";
 import { IShortcutService } from "src/code/browser/service/shortcut/shortcutService";
 import { KeyCode, Shortcut } from "src/base/common/keyboard";
-import { IWorkbenchService } from "src/code/browser/service/workbenchService";
+import { IWorkbenchService } from "src/code/browser/service/workbench/workbenchService";
 import { IKeyboardScreenCastService } from "src/code/browser/service/keyboard/keyboardScreenCastService";
 import { IConfigService } from "src/code/platform/configuration/common/abstractConfigService";
 import { BuiltInConfigScope } from "src/code/platform/configuration/common/configRegistrant";

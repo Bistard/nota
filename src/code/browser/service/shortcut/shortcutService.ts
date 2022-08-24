@@ -1,4 +1,4 @@
-import { DisposableManager, IDisposable } from "src/base/common/dispose";
+import { DisposableManager, IDisposable, toDisposable } from "src/base/common/dispose";
 import { PauseableEmitter, Register } from "src/base/common/event";
 import { DataBuffer } from "src/base/common/file/buffer";
 import { URI } from "src/base/common/file/uri";
@@ -10,6 +10,8 @@ import { createDecorator } from "src/code/platform/instantiation/common/decorato
 import { IInstantiationService, IServiceProvider } from "src/code/platform/instantiation/common/instantiation";
 import { ILogService } from "src/base/common/logger";
 import { IBrowserLifecycleService, ILifecycleService, LifecyclePhase } from "src/code/platform/lifeCycle/browser/browserLifecycleService";
+import { Registrants } from "src/code/platform/registrant/common/registrant";
+import { IShortcutRegistrant } from "src/code/browser/service/shortcut/shortcutRegistrant";
 
 export const SHORTCUT_CONFIG_NAME = 'shortcut.config.json';
 // export const SHORTCUT_CONFIG_PATH = resolve(APP_ROOT_PATh, NOTA_DIR_NAME, SHORTCUT_CONFIG_NAME);
@@ -137,20 +139,15 @@ export class ShortcutService implements IDisposable, IShortcutService {
                 cache.emitter.fire(this.instantiaionService);
             }
         });
-
-        lifecycleService.when(LifecyclePhase.Ready).then(() => this.__registerShortcuts());
+        
+        lifecycleService.when(LifecyclePhase.Ready).then(() => this.__registerFromDisk());
         lifecycleService.onWillQuit(async () => this.__onApplicationClose());
     }
 
     // [methods]
 
     public dispose(): void {
-        this.map.forEach(cache => {
-            cache.emitter.dispose();
-            if (cache.when) {
-                cache.when.dispose();
-            }
-        });
+        this.map.forEach(cache => this.__disposeRegistration(cache));
         this.map.clear();
         this.disposables.dispose();
     }
@@ -182,13 +179,24 @@ export class ShortcutService implements IDisposable, IShortcutService {
 
         // overrides the shortcut
         else if (registration.override) {
+            const oldCache = this.map.get(hashVal);
+            if (oldCache) {
+                this.__disposeRegistration(oldCache);
+                this.map.delete(hashVal);
+            }
+            
             const newVal = hash(registration.shortcut.toString());
-            this.map.delete(hashVal);
-            this.map.set(newVal, cache);
             this.idMap.set(registration.commandID, registration.shortcut);
+            this.map.set(newVal, cache);
         }
 
-        return cache.emitter.registerListener(registration.command);
+        // register command
+        cache.emitter.registerListener(registration.command);
+
+        // for unregister purpose
+        return toDisposable(() => {
+            this.unRegister(registration.commandID);
+        });
     }
 
     public unRegister(commandID: string): boolean {
@@ -197,16 +205,12 @@ export class ShortcutService implements IDisposable, IShortcutService {
             return false;
         }
 
-        const val = hash(shortcut.toString());
-        const cache = this.map.get(val);
+        const hashVal = hash(shortcut.toString());
+        const cache = this.map.get(hashVal);
         if (cache) {
-            cache.emitter.dispose();
-            if (cache.when) {
-                cache.when.dispose();
-            }
-            
+            this.__disposeRegistration(cache);
             this.idMap.delete(commandID);
-            return this.map.delete(val);
+            return this.map.delete(hashVal);
         }
         
         return false;
@@ -214,7 +218,14 @@ export class ShortcutService implements IDisposable, IShortcutService {
 
     // [private helper methods]
 
-    private async __registerShortcuts(): Promise<void> {
+    private __disposeRegistration(registration: __IShortcutRegistration): void {
+        registration.emitter.dispose();
+        if (registration.when) {
+            registration.when.dispose();
+        }
+    }
+
+    private async __registerFromDisk(): Promise<void> {
 
         const uri = URI.fromFile(SHORTCUT_CONFIG_PATH);
         
@@ -264,7 +275,6 @@ export class ShortcutService implements IDisposable, IShortcutService {
         } else {
             this.logService.debug(`shortcut configuration cannot found at ${uri.toString()}`);
         }
-
     }
 
     private async __onApplicationClose(): Promise<void> {
