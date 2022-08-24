@@ -104,12 +104,6 @@ export class NotaInstance extends Disposable implements INotaInstance {
 			// this.mainWindowService?.open();
 		});
 
-        // Register basic ipcMain channel listeners.
-        SafeIpcMain.instance
-        .on(IpcChannel.ToggleDevTools, event => event.sender.toggleDevTools())
-        .on(IpcChannel.OpenDevTools, event => event.sender.openDevTools())
-        .on(IpcChannel.CloseDevTools, event => event.sender.closeDevTools())
-        .on(IpcChannel.ReloadWindow, event => event.sender.reload());
     }
 
     private async createServices(machineID: UUID): Promise<IInstantiationService> {

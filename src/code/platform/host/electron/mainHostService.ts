@@ -109,10 +109,20 @@ export class MainHostService extends Disposable implements IMainHostService {
         const window = this.__tryGetWindow(id);
         window?.browserWindow.webContents.openDevTools(opts);
     }
-	
+
+    public async closeDevTools(id?: number): Promise<void> {
+        const window = this.__tryGetWindow(id);
+        window?.browserWindow.webContents.closeDevTools();
+    }
+    
     public async toggleDevTools(id?: number): Promise<void> {
         const window = this.__tryGetWindow(id);
         window?.browserWindow.webContents.toggleDevTools();
+    }
+
+    public async reloadWebPage(id?: number): Promise<void> {
+        const window = this.__tryGetWindow(id);
+        window?.browserWindow.webContents.reload();
     }
     
     // [private helper methods]

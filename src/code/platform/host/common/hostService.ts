@@ -30,7 +30,9 @@ export interface IHostService {
     openFileOrDirectoryDialogAndOpen(opts: OpenDialogOptions, id?: number): Promise<void>;
 
     openDevTools(options?: Electron.OpenDevToolsOptions, id?: number): Promise<void>;
-	toggleDevTools(id?: number): Promise<void>;
+	closeDevTools(id?: number): Promise<void>;
+    toggleDevTools(id?: number): Promise<void>;
+    reloadWebPage(id?: number): Promise<void>;
 }
 
 export interface IIpcAccessible<T> extends IDisposable {
