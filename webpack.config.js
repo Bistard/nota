@@ -4,11 +4,14 @@ const path = require('path');
 const __MAX_CYCLES = 3;
 let cycleCount = 0;
 
+const mode = process.env.NODE_ENV ?? 'development';
+const isDev = mode === 'development';
+
 const baseConfiguration = {
     node: {
         __dirname: true
     },
-    mode: process.env.NODE_ENV ?? 'development',
+    mode: mode,
     module: {
         rules: [
             {
@@ -61,7 +64,7 @@ const baseConfiguration = {
      * 
      * See more choice here https://webpack.js.org/configuration/devtool/
      */
-    devtool: 'source-map',
+    devtool: isDev ? 'eval-source-map' : 'source-map',
 };
 
 module.exports = [

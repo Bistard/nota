@@ -11,7 +11,7 @@
     "test": "mocha --ui tdd -r jsdom-global/register --config '.mocharc.jsonc'",
     "_test": "mocha --ui tdd -r jsdom-global/register --config 'test/.mocharc.jsonc'",
     "benchmark": "node benchmark/benchmark.js",
-    "build": "webpack --config webpack.config.js --stats-error-details",
+    "build": "webpack  --config webpack.config.js --stats-error-details",
     "_gen-icons": "fantasticon -c .fantasticonrc.js"
   },
   "repository": {
@@ -45,7 +45,7 @@
     "ts-node": "^10.4.0",
     "tsconfig-paths": "^3.12.0",
     "typescript": "^4.4.4",
-    "webpack": "^5.50.0",
+    "webpack": "^5.74.0",
     "webpack-cli": "^4.7.2"
   },
   "dependencies": {
