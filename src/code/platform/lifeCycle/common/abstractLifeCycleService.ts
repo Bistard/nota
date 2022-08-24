@@ -3,7 +3,7 @@ import { Emitter } from "src/base/common/event";
 import { ILogService } from "src/base/common/logger";
 import { Blocker } from "src/base/common/util/async";
 import { ILifecycleService } from "src/code/platform/lifeCycle/common/lifecycle";
-import { IBeforeQuitEvent } from "src/code/platform/lifeCycle/electron/mainLifeCycleService";
+import { IBeforeQuitEvent } from "src/code/platform/lifeCycle/electron/mainLifecycleService";
 
 export abstract class AbstractLifecycleService<Phase extends number, QuitReason extends number> extends Disposable implements ILifecycleService<Phase, QuitReason> {
 
@@ -30,7 +30,7 @@ export abstract class AbstractLifecycleService<Phase extends number, QuitReason 
     ) {
         super();
         this._phase = initPhase;
-        this.logService.trace(`${type}#LifeCycleService#phase#${this.parsePhaseToString(initPhase)}`);
+        this.logService.trace(`${type}#LifecycleService#phase#${this.parsePhaseToString(initPhase)}`);
     }
 
     // [public abstract method]
@@ -59,7 +59,7 @@ export abstract class AbstractLifecycleService<Phase extends number, QuitReason 
             this._phaseBlocker.delete(newPhase);
         }
 
-        this.logService.trace(`${this.type}#LifeCycleService#phase#${this.parsePhaseToString(newPhase)}`);
+        this.logService.trace(`${this.type}#LifecycleService#phase#${this.parsePhaseToString(newPhase)}`);
     }
 
     public async when(desiredPhase: Phase): Promise<void> {

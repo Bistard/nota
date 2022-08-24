@@ -7,7 +7,7 @@ import { IFileService } from "src/code/platform/files/common/fileService";
 import { createDecorator } from "src/code/platform/instantiation/common/decorator";
 import { IEnvironmentService, IMainEnvironmentService } from "src/code/platform/environment/common/environment";
 import { DiskStorage, IDiskStorage } from "src/code/platform/files/common/diskStorage";
-import { IMainLifeCycleService } from "src/code/platform/lifeCycle/electron/mainLifeCycleService";
+import { IMainLifecycleService } from "src/code/platform/lifeCycle/electron/mainLifecycleService";
 import { NOTA_DIR_NAME } from "src/code/platform/configuration/common/abstractConfigService";
 
 export const IMainStatusService = createDecorator<IMainStatusService>('status-service');
@@ -61,7 +61,7 @@ export class MainStatusService extends Disposable implements IMainStatusService 
         @IFileService private readonly fileService: IFileService,
         @ILogService private readonly logService: ILogService,
         @IEnvironmentService private readonly environmentService: IMainEnvironmentService,
-        @IMainLifeCycleService private readonly lifeCycleService: IMainLifeCycleService,
+        @IMainLifecycleService private readonly lifeCycleService: IMainLifecycleService,
     ) {
         super();
         const path = URI.fromFile(join(URI.toFsPath(this.environmentService.userDataPath), NOTA_DIR_NAME, MainStatusService.FILE_NAME));

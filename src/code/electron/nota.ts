@@ -13,7 +13,7 @@ import { IpcServer } from "src/code/platform/ipc/browser/ipc";
 import { IpcChannel } from "src/code/platform/ipc/common/channel";
 import { ProxyChannel } from "src/code/platform/ipc/common/proxy";
 import { SafeIpcMain } from "src/code/platform/ipc/electron/safeIpcMain";
-import { IMainLifeCycleService, LifeCyclePhase } from "src/code/platform/lifeCycle/electron/mainLifeCycleService";
+import { IMainLifecycleService, LifecyclePhase } from "src/code/platform/lifeCycle/electron/mainLifecycleService";
 import { StatusKey } from "src/code/platform/status/common/status";
 import { IMainStatusService } from "src/code/platform/status/electron/mainStatusService";
 import { IMainWindowService, MainWindowService } from "src/code/platform/window/electron/mainWindowService";
@@ -48,7 +48,7 @@ export class NotaInstance extends Disposable implements INotaInstance {
     constructor(
         @IInstantiationService private readonly mainInstantiationService: IInstantiationService,
         @IEnvironmentService private readonly environmentService: IMainEnvironmentService,
-        @IMainLifeCycleService private readonly lifeCycleService: IMainLifeCycleService,
+        @IMainLifecycleService private readonly lifeCycleService: IMainLifecycleService,
         @ILogService private readonly logService: ILogService,
         @IFileService private readonly fileService: IFileService,
         @IMainStatusService private readonly statusService: IMainStatusService,
@@ -157,7 +157,7 @@ export class NotaInstance extends Disposable implements INotaInstance {
         const mainWindowService = provider.getOrCreateService(IMainWindowService);
         
         // life-cycle-service: READY
-        this.lifeCycleService.setPhase(LifeCyclePhase.Ready);
+        this.lifeCycleService.setPhase(LifecyclePhase.Ready);
 
         // set-up lookup-palette-service
         mainWindowService.onDidOpenWindow(() => {

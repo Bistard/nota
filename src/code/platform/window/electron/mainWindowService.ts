@@ -7,7 +7,7 @@ import { IFileService } from "src/code/platform/files/common/fileService";
 import { createDecorator } from "src/code/platform/instantiation/common/decorator";
 import { IInstantiationService } from "src/code/platform/instantiation/common/instantiation";
 import { IEnvironmentService, IMainEnvironmentService } from "src/code/platform/environment/common/environment";
-import { IMainLifeCycleService } from "src/code/platform/lifeCycle/electron/mainLifeCycleService";
+import { IMainLifecycleService } from "src/code/platform/lifeCycle/electron/mainLifecycleService";
 import { ToOpenType, IUriToOpenConfiguration, IWindowConfiguration, IWindowCreationOptions } from "src/code/platform/window/common/window";
 import { IWindowInstance, WindowInstance } from "src/code/platform/window/electron/windowInstance";
 import { URI } from "src/base/common/file/uri";
@@ -67,7 +67,7 @@ export class MainWindowService extends Disposable implements IMainWindowService 
         @IInstantiationService private readonly instantiationService: IInstantiationService,
         @ILogService private readonly logService: ILogService,
         @IFileService private readonly fileService: IFileService,
-        @IMainLifeCycleService private readonly lifeCycleService: IMainLifeCycleService,
+        @IMainLifecycleService private readonly lifeCycleService: IMainLifecycleService,
         @IEnvironmentService private readonly environmentMainService: IMainEnvironmentService,
     ) {
         super();

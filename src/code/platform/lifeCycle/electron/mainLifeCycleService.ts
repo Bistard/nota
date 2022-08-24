@@ -3,16 +3,16 @@ import { ILogService } from "src/base/common/logger";
 import { IS_MAC } from "src/base/common/platform";
 import { Blocker, delayFor } from "src/base/common/util/async";
 import { createDecorator } from "src/code/platform/instantiation/common/decorator";
-import { AbstractLifecycleService } from "src/code/platform/lifeCycle/common/abstractLifeCycleService";
+import { AbstractLifecycleService } from "src/code/platform/lifeCycle/common/abstractLifecycleService";
 import { ILifecycleService } from "src/code/platform/lifeCycle/common/lifecycle";
 
-export const IMainLifeCycleService = createDecorator<IMainLifeCycleService>('life-cycle-service');
+export const IMainLifecycleService = createDecorator<IMainLifecycleService>('life-cycle-service');
 
 /**
  * Represents the different phases of the whole application. Notices that the
  * phse cannot go BACKWARDS.
  */
-export const enum LifeCyclePhase {
+export const enum LifecyclePhase {
     /**
      * The starting phase of the application (services are not ready).
      */
@@ -56,9 +56,9 @@ export interface IBeforeQuitEvent<Reason extends number> {
 }
 
 /**
- * An interface only for {@link MainLifeCycleService}.
+ * An interface only for {@link MainLifecycleService}.
  */
-export interface IMainLifeCycleService extends ILifecycleService<LifeCyclePhase, QuitReason> {
+export interface IMainLifecycleService extends ILifecycleService<LifecyclePhase, QuitReason> {
     /**
      * @description Kill the application with the given exitcode. Different than
      * `this.quit()`, it will try to destroy every window within a second, than 
@@ -73,7 +73,7 @@ export interface IMainLifeCycleService extends ILifecycleService<LifeCyclePhase,
  * @class A class used in main process to control the lifecycle of the whole 
  * application (including all the registered windows).
  */
-export class MainLifeCycleService extends AbstractLifecycleService<LifeCyclePhase, QuitReason> implements IMainLifeCycleService {
+export class MainLifecycleService extends AbstractLifecycleService<LifecyclePhase, QuitReason> implements IMainLifecycleService {
 
     // [field]
 
@@ -89,8 +89,8 @@ export class MainLifeCycleService extends AbstractLifecycleService<LifeCyclePhas
     // [constructor]
 
     constructor(@ILogService logService: ILogService) {
-        super('Main', LifeCyclePhase.Starting, parsePhaseString, logService);
-        this.when(LifeCyclePhase.Ready).then(() => this.__registerListeners());
+        super('Main', LifecyclePhase.Starting, parsePhaseString, logService);
+        this.when(LifecyclePhase.Ready).then(() => this.__registerListeners());
     }
 
     public override async quit(): Promise<void> {
@@ -98,17 +98,17 @@ export class MainLifeCycleService extends AbstractLifecycleService<LifeCyclePhas
             return this._pendingQuitBlocker.waiting();
         }
         
-        this.logService.trace('Main#LifeCycleService#quit()');
+        this.logService.trace('Main#LifecycleService#quit()');
         this._pendingQuitBlocker = new Blocker<void>();
         
-        this.logService.trace('Main#LifeCycleService#app.quit()');
+        this.logService.trace('Main#LifecycleService#app.quit()');
         app.quit();
 
         return this._pendingQuitBlocker.waiting();
     }
 
     public async kill(exitcode: number = 1): Promise<void> {
-        this.logService.trace('Main#LifeCycleService#kill()');
+        this.logService.trace('Main#LifecycleService#kill()');
 
         // Give the other services a chance to be notified and complete their job.
         await this.__fireOnBeforeQuit(QuitReason.Kill);
@@ -146,7 +146,7 @@ export class MainLifeCycleService extends AbstractLifecycleService<LifeCyclePhas
      *      - app.once('will-quit').
      */
     private __registerListeners(): void {
-        this.logService.trace(`Main#LifeCycleService#registerListeners()`);
+        this.logService.trace(`Main#LifecycleService#registerListeners()`);
         
         let onWindowAllClosed: () => void;
         let onBeforeQuitAnyWindows: () => void;
@@ -160,14 +160,14 @@ export class MainLifeCycleService extends AbstractLifecycleService<LifeCyclePhas
          * which will not be prevented and will quit normally.
          */
         app.once('will-quit', (event: Electron.Event) => {
-            this.logService.trace('Main#LifeCycleService#app.once("will-quit")');
+            this.logService.trace('Main#LifecycleService#app.once("will-quit")');
 
             // Prevent the quit until the promise was resolved
 			event.preventDefault();
 
 			this.__fireOnBeforeQuit(QuitReason.Quit)
             .finally(() => {
-                this.logService.trace('Main#LifeCycleService#application is about to quiting...');
+                this.logService.trace('Main#LifecycleService#application is about to quiting...');
 
                 if (this._pendingQuitBlocker) {
                     this._pendingQuitBlocker.resolve();
@@ -194,7 +194,7 @@ export class MainLifeCycleService extends AbstractLifecycleService<LifeCyclePhas
          * 'window-all-closed' will not emit.
          */
         onWindowAllClosed = () => {
-            this.logService.trace('Main#LifeCycleService#app.addListener("window-all-closed")');
+            this.logService.trace('Main#LifecycleService#app.addListener("window-all-closed")');
             // mac: only quit when requested
             if (IS_MAC && this._requestQuit) {
                 app.quit();
@@ -215,10 +215,10 @@ export class MainLifeCycleService extends AbstractLifecycleService<LifeCyclePhas
                 return;
             }
 
-            this.logService.trace('Main#LifeCycleService#app.addListener("before-quit")');
+            this.logService.trace('Main#LifecycleService#app.addListener("before-quit")');
             this._requestQuit = true;
             
-            this.logService.trace('Main#LifeCycleService#onBeforeQuit.fire()')
+            this.logService.trace('Main#LifecycleService#onBeforeQuit.fire()')
             this._onBeforeQuit.fire();
 
             /**
@@ -265,10 +265,10 @@ export class MainLifeCycleService extends AbstractLifecycleService<LifeCyclePhas
     }
 }
 
-function parsePhaseString(phase: LifeCyclePhase): string {
+function parsePhaseString(phase: LifecyclePhase): string {
     switch (phase) {
-        case LifeCyclePhase.Starting: return 'Starting';
-        case LifeCyclePhase.Ready: return 'Ready';
-        case LifeCyclePhase.Idle: return 'Idle';
+        case LifecyclePhase.Starting: return 'Starting';
+        case LifecyclePhase.Ready: return 'Ready';
+        case LifecyclePhase.Idle: return 'Idle';
     }
 }
