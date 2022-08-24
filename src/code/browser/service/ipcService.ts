@@ -5,8 +5,14 @@ import { IpcChannel } from "src/base/common/ipcChannel";
 import { ipcRendererOn, ipcRendererSend, ipcRendererSendData } from "src/base/electron/register";
 import { createDecorator } from "src/code/platform/instantiation/common/decorator";
 
+/**
+ * @deprecated
+ */
 export const IIpcService = createDecorator<IIpcService>('ipc-deprecated-service');
 
+/**
+ * @deprecated
+ */
 export interface IIpcService extends IDisposable {
 
     /**
@@ -56,6 +62,7 @@ export interface IIpcService extends IDisposable {
 /**
  * @description A very simple service that supports application activity-related 
  * events which communicated using IPC technology.
+ * @deprecated
  */
 export class IpcService implements IIpcService {
     

@@ -7,7 +7,6 @@ import { join, resolve } from "src/base/common/file/path";
 import { URI } from "src/base/common/file/uri";
 import { Iterable } from "src/base/common/util/iterable";
 import { Strings } from "src/base/common/util/string";
-import { IIpcService } from "src/code/browser/service/ipcService";
 import { ExplorerItem } from "src/code/browser/workbench/actionView/explorer/explorerItem";
 import { IExplorerOpenEvent } from "src/code/browser/workbench/actionView/explorer/explorerTree";
 import { Notebook } from "src/code/platform/notebook/browser/notebook";
@@ -15,6 +14,7 @@ import { IFileService } from "src/code/platform/files/common/fileService";
 import { createDecorator } from "src/code/platform/instantiation/common/decorator";
 import { IConfigService, NOTA_DIR_NAME } from "src/code/platform/configuration/common/abstractConfigService";
 import { BuiltInConfigScope } from "src/code/platform/configuration/common/configRegistrant";
+import { IBrowserLifecycleService, ILifecycleService } from "src/code/platform/lifeCycle/browser/browserLifecycleService";
 
 export const INotebookGroupService = createDecorator<INotebookGroupService>('notebook-manager-service');
 
@@ -100,12 +100,12 @@ export class NotebookGroup extends Disposable implements INotebookGroupService {
     // [constructor]
 
     constructor(
-        @IIpcService private readonly ipcService: IIpcService,
         @IFileService private readonly fileService: IFileService,
         @IConfigService private readonly configService: IConfigService,
+        @ILifecycleService lifecycleService: IBrowserLifecycleService,
     ) {
         super();
-        this.ipcService.onApplicationClose(async () => this.__onApplicationClose());
+        lifecycleService.onWillQuit(async () => this.__onApplicationClose());
     }
 
     // [event]

@@ -10,7 +10,6 @@ import { IShortcutService } from "src/code/browser/service/keyboard/shortcutServ
 import { KeyCode, Shortcut } from "src/base/common/keyboard";
 import { IpcChannel } from "src/base/common/ipcChannel";
 import { IWorkbenchService } from "src/code/browser/service/workbenchService";
-import { IIpcService } from "src/code/browser/service/ipcService";
 import { IKeyboardScreenCastService } from "src/code/browser/service/keyboard/keyboardScreenCastService";
 import { IConfigService } from "src/code/platform/configuration/common/abstractConfigService";
 import { BuiltInConfigScope } from "src/code/platform/configuration/common/configRegistrant";
@@ -23,10 +22,9 @@ export class Workbench extends WorkbenchLayout implements IWorkbenchService {
     constructor(
         @IInstantiationService instantiationService: IInstantiationService,
         @IConfigService private readonly configService: IConfigService,
-        @IIpcService ipcService: IIpcService,
         @IComponentService componentService: IComponentService,
     ) {
-        super(instantiationService, ipcService, componentService);
+        super(instantiationService, componentService);
     }
 
     public async init(): Promise<void> {
