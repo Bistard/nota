@@ -5,7 +5,7 @@ import { CommandService, ICommandService } from "src/code/platform/command/commo
 import { IKeyboardScreenCastService, KeyboardScreenCastService } from "src/code/browser/service/keyboard/keyboardScreenCastService";
 import { IKeyboardService, keyboardService } from "src/code/browser/service/keyboard/keyboardService";
 import { BrowserDialogService, IDialogService } from 'src/code/platform/dialog/browser/browserDialogService';
-import { IShortcutService, ShortcutService } from 'src/code/browser/service/keyboard/shortcut/shortcutService';
+import { IShortcutService, ShortcutService } from 'src/code/browser/service/shortcut/shortcutService';
 
 /*******************************************************************************
  * Registraion for desktop browser-side non-important microservices.

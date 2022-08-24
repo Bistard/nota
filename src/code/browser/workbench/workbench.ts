@@ -4,7 +4,7 @@ import { IInstantiationService } from "src/code/platform/instantiation/common/in
 import { ServiceDescriptor } from "src/code/platform/instantiation/common/descriptor";
 import { IComponentService } from "src/code/browser/service/componentService";
 import { WorkbenchLayout } from "src/code/browser/workbench/layout";
-import { IShortcutService } from "src/code/browser/service/keyboard/shortcut/shortcutService";
+import { IShortcutService } from "src/code/browser/service/shortcut/shortcutService";
 import { KeyCode, Shortcut } from "src/base/common/keyboard";
 import { IWorkbenchService } from "src/code/browser/service/workbenchService";
 import { IKeyboardScreenCastService } from "src/code/browser/service/keyboard/keyboardScreenCastService";
