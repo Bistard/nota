@@ -7,7 +7,7 @@ class DefaultUserConfiguration extends DefaultConfigStorage {
         return {
             'workbench': {
                 language: 'en',
-                keyboardScreenCast: false,
+                keyboardScreenCast: true,
             },
             // old
             'workspace': {
