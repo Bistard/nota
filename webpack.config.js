@@ -65,6 +65,7 @@ const baseConfiguration = {
      * See more choice here https://webpack.js.org/configuration/devtool/
      */
     devtool: isDev ? 'eval-source-map' : 'source-map',
+    stats: 'normal',
 };
 
 module.exports = [

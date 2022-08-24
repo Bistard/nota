@@ -4,6 +4,7 @@ const path = require("path");
 const { c, getTime } = require("./utility");
 
 // Start building...
+performance.mark('build');
 console.log(`${getTime(c.FgGreen)} Building...`);
 
 // wrap spawn so that we may print message properly
@@ -20,7 +21,7 @@ if (CLIArgv.NODE_ENV) {
 }
 
 // spawn the child process
-const spawn = childProcess.spawn('webpack --config webpack.config.js --stats-error-details', [], {
+const spawn = childProcess.spawn('webpack --config webpack.config.js', [], {
     env: process.env,
     cwd: path.resolve(__dirname, '../'),
     shell: true
@@ -47,7 +48,7 @@ function wrapSpawnWithPrintMessage() {
         } 
         else {
             const stamp = getTime();
-            output = `${stamp} [cwd]: ${arg.cwd}\n`;
+            output = `${stamp} [CWD]: ${arg.cwd}\n`;
             output += `${stamp} [NODE_ENV]: ${arg.env.NODE_ENV}`;
         }
         
@@ -59,6 +60,7 @@ function wrapSpawnWithPrintMessage() {
 }
 
 function registerSpawnListeners(spawn) {
+
     spawn.stdout.on('data', (output) => {
         process.stdout.write(`${getTime()} ${output}`);
     });
@@ -66,13 +68,20 @@ function registerSpawnListeners(spawn) {
     spawn.stderr.on('data', (error) => {
         console.error(`${getTime()} ${error}`);
     });
-      
+    
     spawn.on('close', (code) => {
+        for (let i = 0; i < 3; i++) console.log(); // left some spaces
+
         if (code) {
-            console.log(`${getTime(c.FgRed)} child process exited with code: ${code}`);
+            process.stdout.write(`${getTime(c.FgRed)} child process exited with code ${code}`);
         } else {
-            console.log(`${getTime(c.FgGreen)} Building Success!`);
+            process.stdout.write(`${getTime(c.FgGreen)} Building success`);
         }
+        performance.mark('build');
+
+        const entries = performance.getEntriesByName('build');
+        const spentInSec = (entries[1].startTime - entries[0].startTime) / 1000;
+        process.stdout.write(` in ${Math.round(spentInSec * 100) / 100} seconds.\n`);
     });
 }
 
