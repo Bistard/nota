@@ -46,21 +46,26 @@ export class Browser extends Disposable {
         ErrorHandler.setUnexpectedErrorExternalCallback((error: any) => console.error(error));
 
         try {
+            // retrieve the exposed APIs from preload.js
             initExposedElectronAPIs();
 
+            // core service construction
             const instantiaionService = this.createCoreServices();
 
+            // service initialization
             await Promise.all([
                 this.initServices(instantiaionService),
                 waitDomToBeLoad(),
             ]);
-        } catch (error) {
+
+            // create workbench UI
+            const workbench = instantiaionService.createInstance(Workbench);
+
+            this.registerListeners();
+        } 
+        catch (error) {
             ErrorHandler.onUnexpectedError(error);
         }
-
-        // TODO: workbench
-
-        this.registerListeners();
     }
 
     private createCoreServices(): IInstantiationService {
