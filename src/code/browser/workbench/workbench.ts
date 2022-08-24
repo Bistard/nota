@@ -4,7 +4,6 @@ import { IInstantiationService } from "src/code/platform/instantiation/common/in
 import { ServiceDescriptor } from "src/code/platform/instantiation/common/descriptor";
 import { IComponentService } from "src/code/browser/service/componentService";
 import { WorkbenchLayout } from "src/code/browser/workbench/layout";
-import { i18n, Ii18nOpts, Ii18nService, LanguageType } from "src/code/platform/i18n/i18n";
 import { IShortcutService } from "src/code/browser/service/keyboard/shortcutService";
 import { KeyCode, Shortcut } from "src/base/common/keyboard";
 import { IWorkbenchService } from "src/code/browser/service/workbenchService";
@@ -27,30 +26,17 @@ export class Workbench extends WorkbenchLayout implements IWorkbenchService {
         super(instantiationService, componentService);
     }
 
-    public async init(): Promise<void> {
-        await this.__initServices();
+    public init(): void {
+        this.initServices();
         
         this.create();
         this.registerListeners();
     }
 
-    protected async __initServices(): Promise<void> {
+    protected initServices(): void {
 
         /** {@link Workbench} (self registration) */
         this.instantiationService.register(IWorkbenchService, this);
-
-        /** {@link i18n} */
-        const i18nOption: Ii18nOpts = {
-            language: this.configService.get<LanguageType>('workbench.language'),
-            localeOpts: {
-                extension: '.json',
-                prefix: '{',
-                suffix: '}',
-            }
-        };
-        const i18nService = this.instantiationService.createInstance(i18n, i18nOption);
-        await i18nService.init();
-        this.instantiationService.register(Ii18nService, i18nService);
 
         /** {@link ContextMenuService} */
         this.instantiationService.register(IContextMenuService, new ServiceDescriptor(ContextMenuService));

@@ -5,6 +5,7 @@ import { IFileService } from "src/code/platform/files/common/fileService";
 import { isArray, isObject } from "src/base/common/util/type";
 import { Section } from "src/code/platform/section";
 import { createDecorator } from "src/code/platform/instantiation/common/decorator";
+import { ILogService } from "src/base/common/logger";
 
 export const Ii18nService = createDecorator<Ii18nService>('i18n-service');
 
@@ -166,6 +167,7 @@ export class i18n implements Ii18nService {
     constructor(
         opts: Ii18nOpts,
         @IFileService private readonly fileService: IFileService,
+        @ILogService private readonly logService: ILogService,
     ) {
         // i18n related
         this._language   = opts.language   || DefaultLanguage;
@@ -185,9 +187,7 @@ export class i18n implements Ii18nService {
     }
 
     public async init(): Promise<void> {
-
         // read current language settings into program
-
         const uri = URI.fromFile(path.join(this._path, this._language + this._extension));
         await this.__readLocale(uri);
     }
@@ -290,7 +290,7 @@ export class i18n implements Ii18nService {
     }
 
     public async reloadLocale(): Promise<void> {
-        
+        throw new Error('does not support reload locale yet.');
     }
 
     /***************************************************************************
@@ -311,6 +311,7 @@ export class i18n implements Ii18nService {
             Object.assign(this._model, jsonObject);
         } catch (err) {
             // TODO: logService and pops up notification window
+            this.logService.error(`Cannot read locale at ${uri.toString()}`);
             throw err;
         }
     }

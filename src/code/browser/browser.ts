@@ -25,6 +25,7 @@ import { IpcChannel } from "src/code/platform/ipc/common/channel";
 import { IHostService } from "src/code/platform/host/common/hostService";
 import { IBrowserHostService } from "src/code/platform/host/browser/browserHostService";
 import { BrowserLifecycleService, ILifecycleService } from "src/code/platform/lifeCycle/browser/browserLifecycleService";
+import { i18n, Ii18nOpts, Ii18nService, LanguageType } from "src/code/platform/i18n/i18n";
 
 /**
  * @class This is the main entry of the renderer process.
@@ -118,6 +119,14 @@ export class Browser extends Disposable {
         // component-service
         instantiationService.register(IComponentService, new ServiceDescriptor(ComponentService));
 
+        // i18n-service
+        const i18nOption: Ii18nOpts = {
+            language: configService.get<LanguageType>('workbench.language'),
+            localeOpts: {}
+        };
+        const i18nService = new i18n(i18nOption, fileService, logService);
+        instantiationService.register(Ii18nService, i18nService);
+
         // singleton initialization
         for (const [serviceIdentifer, serviceDescriptor] of getSingletonServiceDescriptors()) {
 			instantiationService.register(serviceIdentifer, serviceDescriptor);
@@ -129,9 +138,11 @@ export class Browser extends Disposable {
     private async initServices(instantiaionService: IInstantiationService): Promise<any> {
         const environmentService = instantiaionService.getService(IBrowserEnvironmentService)
         const configService = instantiaionService.getService(IConfigService);
+        const i18nService = instantiaionService.getService(Ii18nService);
 
         return Promise.all<any>([
             configService.init(environmentService.logLevel),
+            i18nService.init(),
         ]);
     }
 
