@@ -16,8 +16,6 @@ export const enum IpcChannel {
     Host = 'nota:host',
     Dialog = 'nota:dialog',
     
-    
-
     // Main process internal usage, no need for a `nota:` prefix.
     WindowMaximized = 'window-maximized',
     WindowUnmaximized = 'window-unmaximized',

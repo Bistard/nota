@@ -96,15 +96,6 @@ export class MarkdownComponent extends Component implements IMarkdownService {
         //     this.userMarkdownSettings = newSettings;
         // });
 
-        /*
-        domNodeByIdAddListener('markdown', 'contextmenu', (event) => {
-            event.preventDefault()
-            console.log('right clicked on markdown')
-            //console.log(event.target)
-            //console.log(event.currentTarget)
-        })
-        */
-        
         /**
          * @readonly register context menu listeners (right click menu)
          */
