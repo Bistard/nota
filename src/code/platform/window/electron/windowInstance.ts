@@ -51,6 +51,10 @@ export class WindowInstance extends Disposable implements IWindowInstance {
     private readonly _window: BrowserWindow;
     private readonly _id: number;
 
+    /**
+     * It is still required for potential reloading request so that it cannot
+     * be disposed after loading.
+     */
     private readonly _configurationIpcAccessible: IIpcAccessible<IWindowConfiguration> = createIpcAccessible();
 
     // [constructor]
@@ -169,6 +173,9 @@ export class WindowInstance extends Disposable implements IWindowInstance {
 
         const window = new BrowserWindow(browserOption);
 
+        // removes default menu and shortcuts like reload and developer-tool.
+        window.setMenu(null);
+
         if (ifMaxOrFullscreen) {
             window.maximize();
             if (displayOpts.mode === WindowDisplayMode.Fullscreen) {
@@ -213,11 +220,6 @@ export class WindowInstance extends Disposable implements IWindowInstance {
 		});
 
         this._window.webContents.on('did-finish-load', () => {
-            /**
-             * Once the updated configuration has sent to renderer process, no 
-             * need to keep listen to IPC anymore.
-             */
-            this._configurationIpcAccessible.dispose();
             this._onDidLoad.fire();
 		});
     }

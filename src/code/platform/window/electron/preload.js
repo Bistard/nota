@@ -121,6 +121,11 @@
 		if (!configurationChannel) {
 			throw new Error('preload: did not find window-configuration argument');
 		}
+
+		if (validate(configurationChannel) === false) {
+			throw new Error(`preload: invalid window-configuration channel ${configurationChannel}`);
+		}
+
 		const configuration = await ipcRenderer.invoke(configurationChannel);
 		return configuration;
 	})();
