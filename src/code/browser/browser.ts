@@ -25,6 +25,8 @@ import { IpcChannel } from "src/code/platform/ipc/common/channel";
 import { IHostService } from "src/code/platform/host/common/hostService";
 import { IBrowserHostService } from "src/code/platform/host/browser/browserHostService";
 import { BrowserLifecycleService, ILifecycleService } from "src/code/platform/lifeCycle/browser/browserLifecycleService";
+import { delayFor } from "src/base/common/util/async";
+import { IDialogService } from "src/code/platform/dialog/browser/browserDialogService";
 
 /**
  * @class This is the main entry of the renderer process.

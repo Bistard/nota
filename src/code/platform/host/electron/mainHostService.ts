@@ -93,16 +93,26 @@ export class MainHostService extends Disposable implements IMainHostService {
         return this.dialogService.showMessageBox(opts, browserWindow);
     }
 
-    public async openFileDialogAndOpen(opts: OpenDialogOptions, windowID: number): Promise<void> {
+    public async openFileDialogAndOpen(opts: OpenDialogOptions, windowID?: number): Promise<void> {
         return this.__openDialogAndOpen(opts, windowID);
     }
     
-    public async openDirectoryDialogAndOpen(opts: OpenDialogOptions, windowID: number): Promise<void> {
+    public async openDirectoryDialogAndOpen(opts: OpenDialogOptions, windowID?: number): Promise<void> {
         return this.__openDialogAndOpen(opts, windowID);
     }
     
-    public async openFileOrDirectoryDialogAndOpen(opts: OpenDialogOptions, windowID: number): Promise<void> {
+    public async openFileOrDirectoryDialogAndOpen(opts: OpenDialogOptions, windowID?: number): Promise<void> {
         return this.__openDialogAndOpen(opts, windowID);
+    }
+
+    public async openDevTools(opts?: Electron.OpenDevToolsOptions, id?: number): Promise<void> {
+        const window = this.__tryGetWindow(id);
+        window?.browserWindow.webContents.openDevTools(opts);
+    }
+	
+    public async toggleDevTools(id?: number): Promise<void> {
+        const window = this.__tryGetWindow(id);
+        window?.browserWindow.webContents.toggleDevTools();
     }
     
     // [private helper methods]
@@ -114,14 +124,14 @@ export class MainHostService extends Disposable implements IMainHostService {
         return this.windowService.getWindowByID(id);
     }
 
-    private async __openDialogAndOpen(opts: OpenDialogOptions, windowID: number): Promise<void> {
+    private async __openDialogAndOpen(opts: OpenDialogOptions, windowID?: number): Promise<void> {
         const browserWindow = this.__tryGetWindow(windowID)?.browserWindow;
         const picked = await this.dialogService.openFileDialog(opts, browserWindow);
         const uriToOpen = picked.map(path => URI.fromFile(path));
         this.__openPicked(uriToOpen, windowID, opts);
     }
 
-    private __openPicked(uriToOpen: URI[], windowID: number, opts: OpenDialogOptions): void {
+    private __openPicked(uriToOpen: URI[], windowID: number | undefined, opts: OpenDialogOptions): void {
         this.windowService.open({
             uriToOpen: uriToOpen,
             forceNewWindow: opts.forceNewWindow,

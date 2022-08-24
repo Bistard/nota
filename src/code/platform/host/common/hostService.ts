@@ -22,12 +22,15 @@ export interface IHostService {
     toggleFullScreenWindow(id?: number): Promise<void>;
     closeWindow(id?: number): Promise<void>;
 
-    showOpenDialog(opts: Electron.OpenDialogOptions, windowID?: number): Promise<Electron.OpenDialogReturnValue>;
-    showSaveDialog(opts: Electron.SaveDialogOptions, windowID?: number): Promise<Electron.SaveDialogReturnValue>;
-    showMessageBox(opts: Electron.MessageBoxOptions, windowID?: number): Promise<Electron.MessageBoxReturnValue>;
-    openFileDialogAndOpen(opts: OpenDialogOptions, windowID: number): Promise<void>;
-    openDirectoryDialogAndOpen(opts: OpenDialogOptions, windowID: number): Promise<void>;
-    openFileOrDirectoryDialogAndOpen(opts: OpenDialogOptions, windowID: number): Promise<void>;
+    showOpenDialog(opts: Electron.OpenDialogOptions, id?: number): Promise<Electron.OpenDialogReturnValue>;
+    showSaveDialog(opts: Electron.SaveDialogOptions, id?: number): Promise<Electron.SaveDialogReturnValue>;
+    showMessageBox(opts: Electron.MessageBoxOptions, id?: number): Promise<Electron.MessageBoxReturnValue>;
+    openFileDialogAndOpen(opts: OpenDialogOptions, id?: number): Promise<void>;
+    openDirectoryDialogAndOpen(opts: OpenDialogOptions, id?: number): Promise<void>;
+    openFileOrDirectoryDialogAndOpen(opts: OpenDialogOptions, id?: number): Promise<void>;
+
+    openDevTools(options?: Electron.OpenDevToolsOptions, id?: number): Promise<void>;
+	toggleDevTools(id?: number): Promise<void>;
 }
 
 export interface IIpcAccessible<T> extends IDisposable {
