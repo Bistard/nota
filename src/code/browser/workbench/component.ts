@@ -1,6 +1,8 @@
 import { Disposable } from "src/base/common/dispose";
 import { Emitter } from "src/base/common/event";
 import { IComponentService } from "src/code/browser/service/componentService";
+import { Themable } from "src/code/browser/service/theme/theme";
+import { IThemeService } from "src/code/browser/service/theme/themeService";
 
 /**
  * List of all the types of {@link Component}.
@@ -117,7 +119,7 @@ export interface IComponent extends ICreateable {
  * does not need any extra arguments. It gives the potential for {@link Component} 
  * not just being a UI class, it could also be treated like a micro-service.
  */
-export abstract class Component extends Disposable implements IComponent {
+export abstract class Component extends Themable implements IComponent {
     
     // [field]
     
@@ -155,16 +157,14 @@ export abstract class Component extends Disposable implements IComponent {
      */
     constructor(id: string, 
                 parentElement: HTMLElement | null,
+                themeService: IThemeService,
                 @IComponentService protected readonly componentService: IComponentService,
     ) {
-        super();
-
+        super(themeService);
         this.container.id = id;
-        
         if (parentElement) {
             this._parent = parentElement;
         }
-
         this.componentService.register(this);
     }
 
@@ -184,6 +184,10 @@ export abstract class Component extends Disposable implements IComponent {
      * subclasses should override this function.
      */
     protected abstract _registerListeners(): void;
+
+    // [protected override method]
+
+    protected override updateStyles(): void { /** noop */ }
 
     // [public method]
 
