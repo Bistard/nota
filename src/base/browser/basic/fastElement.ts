@@ -46,11 +46,9 @@ export interface IFastElement<T extends HTMLElement> {
  * 
  * Essentially, {@link FastElement} stores a copy of the DOM attributes in the
  * memory. If the incoming rendering value is the same in the memory, we ignore 
- * the request to avoid repeating renderng.
+ * the request to avoid repeating rendering.
  * 
  * @note The unit for number is always pixels.
- * 
- * @readonly The idea is learned from Visual Studio Code.
  */
 export class FastElement<T extends HTMLElement> implements IFastElement<T> {
 
