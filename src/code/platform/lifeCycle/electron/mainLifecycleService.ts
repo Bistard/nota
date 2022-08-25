@@ -153,7 +153,7 @@ export class MainLifecycleService extends AbstractLifecycleService<LifecyclePhas
 
         /**
          * Once {@link app.quit} is invoked, electron will emit 'before-quit' 
-         * first, once all the windows are closed propery, 'will-quit' will be 
+         * first, then all the windows are closed properly, 'will-quit' will be 
          * emitted. Since it is a 'once' registration, we prevent electron to 
          * terminate the application at the first time so that we can notify
          * the other services before we actual invoke the second {@link app.quit}
@@ -261,7 +261,7 @@ export class MainLifecycleService extends AbstractLifecycleService<LifecyclePhas
             }
         })();
 
-        return this._ongoingBeforeQuitPromise;
+        return this._ongoingBeforeQuitPromise.then(() => this._ongoingBeforeQuitPromise = undefined);
     }
 }
 

@@ -10,11 +10,9 @@ import { ILogService } from "src/base/common/logger";
 import { IBrowserLifecycleService, ILifecycleService, LifecyclePhase } from "src/code/platform/lifeCycle/browser/browserLifecycleService";
 import { IShortcutConfiguration, IShortcutRegistrant, IShortcutRegistrantFriendship, IShortcutRegistration } from "src/code/browser/service/shortcut/shortcutRegistrant";
 import { Registrants } from "src/code/platform/registrant/common/registrant";
+import { IBrowserEnvironmentService, IEnvironmentService } from "src/code/platform/environment/common/environment";
 
 export const SHORTCUT_CONFIG_NAME = 'shortcut.config.json';
-// export const SHORTCUT_CONFIG_PATH = resolve(APP_ROOT_PATh, NOTA_DIR_NAME, SHORTCUT_CONFIG_NAME);
-export const SHORTCUT_CONFIG_PATH = 'NA'; // FIX
-
 export const IShortcutService = createDecorator<IShortcutService>('shortcut-service');
 
 export interface IShortcutService extends IDisposable {
@@ -30,6 +28,7 @@ export class ShortcutService extends Disposable implements IShortcutService {
 
     // [field]
 
+    private _resource: URI;
     private readonly _registrant = <IShortcutRegistrantFriendship>Registrants.get(IShortcutRegistrant);
 
     // [constructor]
@@ -38,11 +37,12 @@ export class ShortcutService extends Disposable implements IShortcutService {
         @IKeyboardService keyboardService: IKeyboardService,
         @ILifecycleService lifecycleService: IBrowserLifecycleService,
         @IInstantiationService instantiaionService: IInstantiationService,
+        @IBrowserEnvironmentService environmentService: IEnvironmentService,
         @IFileService private readonly fileService: IFileService,
         @ILogService private readonly logService: ILogService,
     ) {
         super();
-        
+        this._resource = URI.join(environmentService.appConfigurationPath, SHORTCUT_CONFIG_NAME);
         
         // listen to keyboard events
         this.__register(keyboardService.onKeydown(e => {
@@ -52,7 +52,7 @@ export class ShortcutService extends Disposable implements IShortcutService {
         
         // When the browser side is ready, we update registrations by reading from disk.
         lifecycleService.when(LifecyclePhase.Ready).then(() => this.__registerFromDisk());
-        lifecycleService.onWillQuit(() => this.__onApplicationClose());
+        lifecycleService.onWillQuit((e) => e.join(this.__onApplicationClose()));
     }
 
     // [public methods]
@@ -69,26 +69,21 @@ export class ShortcutService extends Disposable implements IShortcutService {
 
     private async __registerFromDisk(): Promise<void> {
 
-        const uri = URI.fromFile(SHORTCUT_CONFIG_PATH);
-        
-        /**
-         * if {@link SHORTCUT_CONFIG_NAME} is found, we read the configuration 
-         * into memory.
-         */
-        if (await this.fileService.exist(uri)) {
-            
-            const buffer = await this.fileService.readFile(uri);
+        if (await this.fileService.exist(this._resource)) {
+
+            // read shortcut configuration into memory
+            const buffer = await this.fileService.readFile(this._resource);
             const configuration: IShortcutConfiguration[] = JSON.parse(buffer.toString());
-            this.logService.debug(`shortcut configuration loaded at ${uri.toString()}`);
+            this.logService.debug(`shortcut configuration loaded at ${this._resource.toString()}`);
             
+            // loop each one and try to load it into memory
             configuration.forEach(({ commandID, shortcut, whenID }) => {
-                
                 const registered = this._registrant.getShortcut(commandID);
 
                 // check if the shortcut is valid
                 const newShortcut: Shortcut = Shortcut.fromString(shortcut);
                 if (newShortcut.equal(Shortcut.None)) {
-                    this.logService.warn(`Invalid shortcut registration from the configuration at ${uri.toString()}: ${commandID} - ${shortcut}.`);
+                    this.logService.warn(`Invalid shortcut registration from the configuration at ${this._resource.toString()}: ${commandID} - ${shortcut}.`);
                     return;
                 }
                 
@@ -109,26 +104,24 @@ export class ShortcutService extends Disposable implements IShortcutService {
                     activate: true,
                 });
             });
-            
         } else {
-            this.logService.debug(`shortcut configuration cannot found at ${uri.toString()}`);
+            this.logService.debug(`shortcut configuration cannot found at ${this._resource.toString()}`);
         }
     }
 
     private async __onApplicationClose(): Promise<void> {
 
-        const uri = URI.fromFile(SHORTCUT_CONFIG_PATH);
         try {
             const bindings = this._registrant.getAllShortcutBindings();
             await this.fileService.writeFile(
-                uri, 
+                this._resource, 
                 DataBuffer.fromString(JSON.stringify(bindings, null, 2)), 
                 { create: true, overwrite: true, unlock: true }
             );
-            this.logService.trace(`Window#shortcutService#saved at ${uri.toString()}`);
+            this.logService.trace(`Window#shortcutService#saved at ${this._resource.toString()}`);
         } 
         catch (err) {
-            this.logService.error(`ShortcutService failed to save at ${uri.toString()}`, err);
+            this.logService.error(`ShortcutService failed to save at ${this._resource.toString()}`, err);
         }
     }
 }

@@ -110,7 +110,8 @@ export class WindowInstance extends Disposable implements IWindowInstance {
 
     public override dispose(): void {
         super.dispose();
-        (<any>this._window) = undefined;
+        // issue: https://stackoverflow.com/questions/38309240/object-has-been-destroyed-when-open-secondary-child-window-in-electron-js
+        (<any>this._window) = null;
     }
 
     // [private methods]
@@ -199,7 +200,7 @@ export class WindowInstance extends Disposable implements IWindowInstance {
 
         // window closed
         this._window.on('closed', () => {
-			this._onDidClose.fire();
+            this._onDidClose.fire();
 			this.dispose();
 		});
         

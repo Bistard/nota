@@ -31,6 +31,12 @@ export const enum QuitReason {
 
 export class BrowserLifecycleService extends AbstractLifecycleService<LifecyclePhase, QuitReason> {
     
+    // [field]
+
+    private _ongoingQuitPromise?: Promise<void>;
+
+    // [constructor]
+
     constructor(
         @ILogService logService: ILogService,
         @IHostService private readonly hostService: IBrowserHostService,
@@ -38,8 +44,37 @@ export class BrowserLifecycleService extends AbstractLifecycleService<LifecycleP
         super('window', LifecyclePhase.Starting, parsePhaseToString, logService);
     }
 
-    public override quit(): Promise<void> {
+    // [public methods]
+
+    public override async quit(): Promise<void> {
+        await this.__fireWillQuit();
         return this.hostService.closeWindow();
+    }
+
+    // [private helper methods]
+
+    private __fireWillQuit(): Promise<void> {
+        if (this._ongoingQuitPromise) {
+            return this._ongoingQuitPromise;
+        }
+
+        // notify all listeners
+        const participants: Promise<void>[] = [];
+        this._onWillQuit.fire({
+            reason: QuitReason.Quit,
+            join: participant => participants.push(participant),
+        });
+
+        this._ongoingQuitPromise = (async () => {
+            // we need to ensure all the participants have completed their jobs.
+            try {
+                await Promise.allSettled(participants);
+            } catch (error: any) {
+                this.logService.error(error);
+            }
+        })();
+        
+        return this._ongoingQuitPromise.then(() => this._ongoingQuitPromise = undefined);
     }
 }
 

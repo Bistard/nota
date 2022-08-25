@@ -6,7 +6,7 @@ import { IKeyboardService } from 'src/code/browser/service/keyboard/keyboardServ
 import { ShortcutService } from 'src/code/browser/service/shortcut/shortcutService';
 import { FileService } from 'src/code/platform/files/common/fileService';
 import { InstantiationService } from 'src/code/platform/instantiation/common/instantiation';
-import { NullLifecycleService } from 'test/testUtility';
+import { NullEnvironmentService, NullLifecycleService } from 'test/testUtility';
 
 class TestKeyboardService implements IKeyboardService {
 
@@ -45,7 +45,7 @@ suite('shortcutService-test', () => {
         const fileService = new FileService(logService);
         const instantiaionService = new InstantiationService();
 
-        shortcutService = new ShortcutService(keyboardService, new NullLifecycleService(), instantiaionService, fileService, logService);
+        shortcutService = new ShortcutService(keyboardService, new NullLifecycleService(), instantiaionService, new NullEnvironmentService(), fileService, logService);
     });
 
     test('register and unregister', () => {

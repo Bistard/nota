@@ -566,7 +566,6 @@ export class ChannelServer extends Disposable implements IChannelServer {
     }
 
     private __onUnknownChannel(name: string, requestID: number, type: RequestType): void {
-        console.error(`Unknown channel: ${name}`);
         if (type === RequestType.Command) {
             this.__sendResponse(<IPromiseRejectResponse>{
                 type: ResponseType.PromiseReject,

@@ -14,6 +14,12 @@ export class BrowserInstance implements IBrowser {
 
     public init(): void {
         this.lifecycleService.setPhase(LifecyclePhase.Ready);
+
+        this.registerListeners();
+    }
+
+    public registerListeners(): void {
+        // noop
     }
 
 }

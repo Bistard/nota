@@ -105,7 +105,7 @@ export class NotebookGroup extends Disposable implements INotebookGroupService {
         @ILifecycleService lifecycleService: IBrowserLifecycleService,
     ) {
         super();
-        lifecycleService.onWillQuit(async () => this.__onApplicationClose());
+        lifecycleService.onWillQuit((e) => e.join(this.__onApplicationClose()));
     }
 
     // [event]

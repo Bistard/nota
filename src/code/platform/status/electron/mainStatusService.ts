@@ -128,6 +128,6 @@ export class MainStatusService extends Disposable implements IMainStatusService 
 
     private registerListeners(): void {
         this.logService.trace(`Main#MainStatus#registerListeners()`);
-        this.lifeCycleService.onWillQuit(() => this.close());
+        this.lifeCycleService.onWillQuit((e) => e.join(this.close()));
     }
 }

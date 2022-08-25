@@ -12,6 +12,7 @@ import { IConfigService } from "src/code/platform/configuration/common/abstractC
 import { BuiltInConfigScope } from "src/code/platform/configuration/common/configRegistrant";
 import { IHostService } from "src/code/platform/host/common/hostService";
 import { IThemeService } from "src/code/browser/service/theme/themeService";
+import { IBrowserLifecycleService, ILifecycleService } from "src/code/platform/lifeCycle/browser/browserLifecycleService";
 
 /**
  * @class Workbench represents all the Components in the web browser.
@@ -24,6 +25,7 @@ export class Workbench extends WorkbenchLayout implements IWorkbenchService {
         @IConfigService private readonly configService: IConfigService,
         @IComponentService componentService: IComponentService,
         @IHostService private readonly hostService: IHostService,
+        @ILifecycleService private readonly lifecycleService: IBrowserLifecycleService,
         @IThemeService themeService: IThemeService,
     ) {
         super(parent, instantiationService, componentService, themeService);
@@ -93,6 +95,18 @@ export class Workbench extends WorkbenchLayout implements IWorkbenchService {
             when: null,
             command: () => {
                 this.hostService.reloadWebPage();
+            },
+            override: false,
+            activate: true
+        });
+
+        shortcutService.register({
+            commandID: 'workbench.close-window',
+            whenID: 'N/A',
+            shortcut: new Shortcut(true, false, false, false, KeyCode.KeyQ),
+            when: null,
+            command: () => {
+                this.lifecycleService.quit();
             },
             override: false,
             activate: true
