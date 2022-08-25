@@ -67,7 +67,7 @@ export class MainWindowService extends Disposable implements IMainWindowService 
         @IInstantiationService private readonly instantiationService: IInstantiationService,
         @ILogService private readonly logService: ILogService,
         @IFileService private readonly fileService: IFileService,
-        @IMainLifecycleService private readonly lifeCycleService: IMainLifecycleService,
+        @IMainLifecycleService private readonly lifecycleService: IMainLifecycleService,
         @IEnvironmentService private readonly environmentMainService: IMainEnvironmentService,
     ) {
         super();

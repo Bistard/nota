@@ -60,7 +60,7 @@ export class MainStatusService extends Disposable implements IMainStatusService 
         @IFileService private readonly fileService: IFileService,
         @ILogService private readonly logService: ILogService,
         @IEnvironmentService private readonly environmentService: IMainEnvironmentService,
-        @IMainLifecycleService private readonly lifeCycleService: IMainLifecycleService,
+        @IMainLifecycleService private readonly lifecycleService: IMainLifecycleService,
     ) {
         super();
         const path = URI.fromFile(join(URI.toFsPath(this.environmentService.userDataPath), NOTA_DIR_NAME, MainStatusService.FILE_NAME));
@@ -128,6 +128,6 @@ export class MainStatusService extends Disposable implements IMainStatusService 
 
     private registerListeners(): void {
         this.logService.trace(`Main#MainStatusService#registerListeners()`);
-        this.lifeCycleService.onWillQuit((e) => e.join(this.close()));
+        this.lifecycleService.onWillQuit((e) => e.join(this.close()));
     }
 }

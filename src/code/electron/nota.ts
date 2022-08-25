@@ -47,7 +47,7 @@ export class NotaInstance extends Disposable implements INotaInstance {
     constructor(
         @IInstantiationService private readonly mainInstantiationService: IInstantiationService,
         @IEnvironmentService private readonly environmentService: IMainEnvironmentService,
-        @IMainLifecycleService private readonly lifeCycleService: IMainLifecycleService,
+        @IMainLifecycleService private readonly lifecycleService: IMainLifecycleService,
         @ILogService private readonly logService: ILogService,
         @IFileService private readonly fileService: IFileService,
         @IMainStatusService private readonly statusService: IMainStatusService,
@@ -86,7 +86,7 @@ export class NotaInstance extends Disposable implements INotaInstance {
     private registerListeners(): void {
         this.logService.trace(`Main#Nota#registerListeners()`);
 
-        Event.once(this.lifeCycleService.onWillQuit)(() => this.dispose());
+        Event.once(this.lifecycleService.onWillQuit)(() => this.dispose());
 
         // interept unexpected errors so that the error will not go back to `main.ts`
         process.on('uncaughtException', err => ErrorHandler.onUnexpectedError(err));
@@ -156,7 +156,7 @@ export class NotaInstance extends Disposable implements INotaInstance {
         const mainWindowService = provider.getOrCreateService(IMainWindowService);
         
         // life-cycle-service: READY
-        this.lifeCycleService.setPhase(LifecyclePhase.Ready);
+        this.lifecycleService.setPhase(LifecyclePhase.Ready);
 
         // set-up lookup-palette-service
         mainWindowService.onDidOpenWindow(() => {

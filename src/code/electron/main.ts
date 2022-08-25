@@ -44,7 +44,7 @@ const nota = new class extends class MainProcess implements IMainProcess {
     private readonly fileService!: IFileService;
     private readonly mainConfigService!: IConfigService;
     private readonly logService!: ILogService;
-    private readonly lifeCycleService!: IMainLifecycleService;
+    private readonly lifecycleService!: IMainLifecycleService;
     private readonly statusService!: IMainStatusService;
     private readonly CLIArgv!: ICLIArguments;
 
@@ -86,7 +86,7 @@ const nota = new class extends class MainProcess implements IMainProcess {
             
             // application run
             {
-                Event.once(this.lifeCycleService.onWillQuit)(e => {
+                Event.once(this.lifecycleService.onWillQuit)(e => {
                     this.fileService.dispose();
                     this.mainConfigService.dispose();
                     e.join(this.logService.flush().then(() => this.logService.dispose()));
@@ -141,15 +141,15 @@ const nota = new class extends class MainProcess implements IMainProcess {
         logService.setLogger(pipelineLogger);
 
         // life-cycle-service
-        const lifeCycleService = new MainLifecycleService(logService);
-        instantiationService.register(IMainLifecycleService, lifeCycleService);
+        const lifecycleService = new MainLifecycleService(logService);
+        instantiationService.register(IMainLifecycleService, lifecycleService);
 
         // main-configuration-service
-        const mainConfigService = new MainConfigService(environmentService, fileService, logService, lifeCycleService);
+        const mainConfigService = new MainConfigService(environmentService, fileService, logService, lifecycleService);
         instantiationService.register(IConfigService, mainConfigService);
 
         // status-service
-        const statusService = new MainStatusService(fileService, logService, environmentService, lifeCycleService);
+        const statusService = new MainStatusService(fileService, logService, environmentService, lifecycleService);
         instantiationService.register(IMainStatusService, statusService);
 
         (this.instantiationService as any) = instantiationService;
@@ -157,7 +157,7 @@ const nota = new class extends class MainProcess implements IMainProcess {
         (this.fileService as any) = fileService;
         (this.mainConfigService as any) = mainConfigService;
         (this.logService as any) = logService;
-        (this.lifeCycleService as any) = lifeCycleService;
+        (this.lifecycleService as any) = lifecycleService;
         (this.statusService as any) = statusService;
     }
     
@@ -201,7 +201,7 @@ const nota = new class extends class MainProcess implements IMainProcess {
                     resolve(tcpServer);
                 });
             });
-            Event.once(this.lifeCycleService.onWillQuit)(() => server.close());
+            Event.once(this.lifecycleService.onWillQuit)(() => server.close());
         } 
         catch (error: any) {
             // unexpected errors
@@ -237,7 +237,7 @@ const nota = new class extends class MainProcess implements IMainProcess {
             }
         }
 
-        this.lifeCycleService.kill(code);
+        this.lifecycleService.kill(code);
     }
 
     // [private helper methods]
