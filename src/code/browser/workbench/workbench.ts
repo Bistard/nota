@@ -60,7 +60,7 @@ export class Workbench extends WorkbenchLayout implements IWorkbenchService {
      * @description register renderer process global listeners.
      */
     protected override _registerListeners(): void {
-        this.__registerLayout();
+        this.__registerLayoutListeners();
         this.__registerShortcuts();
         this.__registerConfigurationChange();
     }
@@ -104,7 +104,6 @@ export class Workbench extends WorkbenchLayout implements IWorkbenchService {
      */
     private __registerConfigurationChange(): void {
         this.__registerGlobalConfigurationChange();
-        this.__registerUserConfigurationChange();
     }
 
     private __registerGlobalConfigurationChange(): void {
@@ -124,9 +123,5 @@ export class Workbench extends WorkbenchLayout implements IWorkbenchService {
                 screenCastService.dispose();
             }
         });
-    }
-
-    private __registerUserConfigurationChange(): void {
-
     }
 }

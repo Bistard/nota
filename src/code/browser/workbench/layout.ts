@@ -1,6 +1,5 @@
 import { ISashEvent, Sash } from "src/base/browser/basic/sash/sash";
 import { addDisposableListener, DomUtility, EventType, Orientation } from "src/base/common/dom";
-import { DomEmitter, Emitter, Register } from "src/base/common/event";
 import { IComponentService } from "src/code/browser/service/componentService";
 import { IThemeService } from "src/code/browser/service/theme/themeService";
 import { ActionBarComponent, ActionType } from "src/code/browser/workbench/actionBar/actionBar";
@@ -72,13 +71,12 @@ export abstract class WorkbenchLayout extends Component {
         this._createSashContainer();
     }
 
-    protected __registerLayout(): void {
+    protected __registerLayoutListeners(): void {
         
-        this.__register(new DomEmitter<UIEvent>(window, EventType.resize).registerListener(event => {
-            // REVIEW
-            console.log('resizing:', event);
+        // window resizing
+        this.__register(addDisposableListener(window, EventType.resize, (event => {
             this.layout();
-        }));
+        })));
 
         /**
          * @readonly Listens to each ActionBar button click events and notifies 

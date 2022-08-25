@@ -110,16 +110,17 @@ export class ExplorerViewComponent extends Component implements IExplorerViewSer
          */
         const tag = this._unopenedView.children[0]!; // REVIEW: set as class field
         this.__register(addDisposableListener(tag, EventType.click, () => {
-            // this.ipcService.openDirectoryDialog(this._globalConfig.previousNotebookManagerDir);
+        
+            /**
+             * Once the directory dialog chosed a path to open, we get the message 
+             * and open it.
+             */
+            this.dialogService.openDirectoryDialog({ title: 'open a directory' }).then(path => {
+                if (path.length > 0) {
+                    this.__createOpenedExplorerView(path.at(-1)!, false);
+                }
+            });
         }));
-
-        /**
-         * once the directory dialog chosed a path to open, we get the message 
-         * and open it.
-         */
-        this.dialogService.openDirectoryDialog({ title: 'open a directory' }).then(path => {
-            this.__createOpenedExplorerView(path[0]!, false);            
-        });
 
         /**
          * Opens in the editor.
