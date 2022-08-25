@@ -1,6 +1,7 @@
 import * as assert from 'assert';
 import { Emitter, Register } from 'src/base/common/event';
 import { IStandardKeyboardEvent, KeyCode, Shortcut } from 'src/base/common/keyboard';
+import { mockType } from 'src/base/common/util/type';
 import { IKeyboardService } from 'src/code/browser/service/keyboard/keyboardService';
 import { ShortcutService } from 'src/code/browser/service/shortcut/shortcutService';
 import { FileService } from 'src/code/platform/files/common/fileService';
@@ -43,8 +44,7 @@ suite('shortcutService-test', () => {
         const logService = new NullLogger();
         const fileService = new FileService(logService);
         const instantiaionService = new InstantiationService();
-
-        shortcutService = new ShortcutService(keyboardService, new NullLifecycleService(), instantiaionService, new NullEnvironmentService(), fileService, logService);
+        shortcutService = new ShortcutService(keyboardService, new NullLifecycleService(), instantiaionService, mockType(new NullEnvironmentService()), fileService, logService);
     });
 
     test('register and unregister', () => {
