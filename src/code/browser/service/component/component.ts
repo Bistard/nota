@@ -55,7 +55,7 @@ export interface IComponent extends ICreateable {
     create(parent?: Component): void;
 
     /**
-     * @description Layout the component to the given dimention.
+     * @description Layout the component to the given dimension.
      * @note If no dimensions is provided, the component will try to be filled
      * with the parent HTMLElement. If any dimensions is provided, the component
      * will layout the missing one either with the previous value or just zero.
@@ -239,7 +239,7 @@ export abstract class Component extends Themable implements IComponent {
             return;
         }
 
-        // If no dimentions provided, we default to layout to fit to parent.
+        // If no dimensions provided, we default to layout to fit to parent.
         if (typeof width === 'undefined' && typeof height === 'undefined') {
             this._dimension = DomUtility.getClientDimension(this._parent);
             this._element.setWidth(this._dimension.width);
