@@ -1,5 +1,5 @@
 import { createDecorator } from "src/code/platform/instantiation/common/decorator";
-import { IComponent } from "src/code/browser/workbench/component";
+import { IComponent } from "src/code/browser/service/component/component";
 
 export const IComponentService = createDecorator<IComponentService>('component-service');
 

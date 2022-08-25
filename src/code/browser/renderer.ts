@@ -3,7 +3,7 @@ import { Workbench } from "src/code/browser/workbench/workbench";
 import { IInstantiationService, InstantiationService } from "src/code/platform/instantiation/common/instantiation";
 import { getSingletonServiceDescriptors, ServiceCollection } from "src/code/platform/instantiation/common/serviceCollection";
 import { waitDomToBeLoad } from "src/base/common/dom";
-import { ComponentService, IComponentService } from "src/code/browser/service/componentService";
+import { ComponentService, IComponentService } from "src/code/browser/service/component/componentService";
 import { Disposable } from "src/base/common/dispose";
 import { ServiceDescriptor } from "src/code/platform/instantiation/common/descriptor";
 import { initExposedElectronAPIs } from "src/code/platform/electron/browser/global";

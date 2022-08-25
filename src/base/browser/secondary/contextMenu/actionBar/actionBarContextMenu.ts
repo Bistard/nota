@@ -1,5 +1,5 @@
 import { ContextMenu, ContextMenuType, Coordinate, IContextMenu } from "src/base/browser/secondary/contextMenu/contextMenu";
-import { IComponentService } from "src/code/browser/service/componentService";
+import { IComponentService } from "src/code/browser/service/component/componentService";
 import { IContextMenuService } from "src/code/browser/service/contextMenuService";
 import { IActionBarOptions } from "src/code/browser/workbench/actionBar/actionBar";
 import { IButton } from "src/base/browser/basic/button/button";

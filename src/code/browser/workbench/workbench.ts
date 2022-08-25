@@ -2,15 +2,13 @@ import { INotebookGroupService, NotebookGroup } from "src/code/platform/notebook
 import { ContextMenuService, IContextMenuService } from 'src/code/browser/service/contextMenuService';
 import { IInstantiationService } from "src/code/platform/instantiation/common/instantiation";
 import { ServiceDescriptor } from "src/code/platform/instantiation/common/descriptor";
-import { IComponentService } from "src/code/browser/service/componentService";
+import { IComponentService } from "src/code/browser/service/component/componentService";
 import { WorkbenchLayout } from "src/code/browser/workbench/layout";
 import { IWorkbenchService } from "src/code/browser/service/workbench/workbenchService";
 import { IKeyboardScreenCastService } from "src/code/browser/service/keyboard/keyboardScreenCastService";
 import { IConfigService } from "src/code/platform/configuration/common/abstractConfigService";
 import { BuiltInConfigScope } from "src/code/platform/configuration/common/configRegistrant";
-import { IHostService } from "src/code/platform/host/common/hostService";
 import { IThemeService } from "src/code/browser/service/theme/themeService";
-import { IBrowserLifecycleService, ILifecycleService } from "src/code/platform/lifecycle/browser/browserLifecycleService";
 
 /**
  * @class Workbench represents all the Components in the web browser.
@@ -22,8 +20,6 @@ export class Workbench extends WorkbenchLayout implements IWorkbenchService {
         @IInstantiationService instantiationService: IInstantiationService,
         @IConfigService private readonly configService: IConfigService,
         @IComponentService componentService: IComponentService,
-        @IHostService private readonly hostService: IHostService,
-        @ILifecycleService private readonly lifecycleService: IBrowserLifecycleService,
         @IThemeService themeService: IThemeService,
     ) {
         super(parent, instantiationService, componentService, themeService);

@@ -2,7 +2,7 @@ import { FastElement } from "src/base/browser/basic/fastElement";
 import { DomUtility } from "src/base/common/dom";
 import { Emitter, Register } from "src/base/common/event";
 import { Dimension, IDimension } from "src/base/common/util/size";
-import { IComponentService } from "src/code/browser/service/componentService";
+import { IComponentService } from "src/code/browser/service/component/componentService";
 import { Themable } from "src/code/browser/service/theme/theme";
 import { IThemeService } from "src/code/browser/service/theme/themeService";
 

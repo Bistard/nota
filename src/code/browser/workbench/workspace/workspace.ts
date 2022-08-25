@@ -1,5 +1,5 @@
-import { IComponentService } from "src/code/browser/service/componentService";
-import { Component, ComponentType, IComponent } from "src/code/browser/workbench/component";
+import { IComponentService } from "src/code/browser/service/component/componentService";
+import { Component, ComponentType, IComponent } from "src/code/browser/service/component/component";
 import { MarkdownComponent } from "src/code/browser/workbench/workspace/markdown/markdown";
 import { TitleBarComponent } from "src/code/browser/workbench/workspace/titleBar/titleBar";
 import { createDecorator } from "src/code/platform/instantiation/common/decorator";

@@ -1,10 +1,10 @@
 import { ISashEvent, Sash } from "src/base/browser/basic/sash/sash";
 import { addDisposableListener, DomUtility, EventType, Orientation } from "src/base/common/dom";
-import { IComponentService } from "src/code/browser/service/componentService";
+import { IComponentService } from "src/code/browser/service/component/componentService";
 import { IThemeService } from "src/code/browser/service/theme/themeService";
 import { ActionBarComponent, ActionType } from "src/code/browser/workbench/actionBar/actionBar";
 import { ActionViewComponent } from "src/code/browser/workbench/actionView/actionView";
-import { Component, ComponentType, IComponent } from "src/code/browser/workbench/component";
+import { Component, ComponentType, IComponent } from "src/code/browser/service/component/component";
 import { WorkspaceComponent } from "src/code/browser/workbench/workspace/workspace";
 import { IInstantiationService } from "src/code/platform/instantiation/common/instantiation";
 

@@ -18,11 +18,11 @@ import 'prismjs/components/prism-java';
 
 // @toast-ui-plugin: color syntax 
 import colorSyntax from '@toast-ui/editor-plugin-color-syntax';
-import { Component, IComponent } from 'src/code/browser/workbench/component';
+import { Component, IComponent } from 'src/code/browser/service/component/component';
 import { ContextMenuType, Coordinate } from 'src/base/browser/secondary/contextMenu/contextMenu';
 import { IContextMenuService } from 'src/code/browser/service/contextMenuService';
 import { createDecorator } from 'src/code/platform/instantiation/common/decorator';
-import { IComponentService } from 'src/code/browser/service/componentService';
+import { IComponentService } from 'src/code/browser/service/component/componentService';
 import { WorkspaceComponentType } from 'src/code/browser/workbench/workspace/workspace';
 import { IThemeService } from 'src/code/browser/service/theme/themeService';
 

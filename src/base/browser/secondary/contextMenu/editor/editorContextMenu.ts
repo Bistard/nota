@@ -1,5 +1,5 @@
 import { ContextMenu, ContextMenuType, Coordinate, IContextMenu } from "src/base/browser/secondary/contextMenu/contextMenu";
-import { IComponentService } from "src/code/browser/service/componentService";
+import { IComponentService } from "src/code/browser/service/component/componentService";
 import { IContextMenuService } from "src/code/browser/service/contextMenuService";
 import { IThemeService } from "src/code/browser/service/theme/themeService";
 const { clipboard } = require('electron')

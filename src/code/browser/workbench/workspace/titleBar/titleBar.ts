@@ -1,7 +1,7 @@
-import { Component } from 'src/code/browser/workbench/component';
+import { Component } from 'src/code/browser/service/component/component';
 import { WindowBarComponent } from 'src/code/browser/workbench/workspace/titleBar/windowBar';
 import { WorkspaceComponentType } from 'src/code/browser/workbench/workspace/workspace';
-import { IComponentService } from 'src/code/browser/service/componentService';
+import { IComponentService } from 'src/code/browser/service/component/componentService';
 import { IInstantiationService } from 'src/code/platform/instantiation/common/instantiation';
 import { IThemeService } from 'src/code/browser/service/theme/themeService';
 

@@ -1,8 +1,8 @@
-import { Component, ComponentType, IComponent } from 'src/code/browser/workbench/component';
+import { Component, ComponentType, IComponent } from 'src/code/browser/service/component/component';
 import { ContextMenuType, Coordinate } from 'src/base/browser/secondary/contextMenu/contextMenu';
 import { createDecorator } from 'src/code/platform/instantiation/common/decorator';
 import { IContextMenuService } from 'src/code/browser/service/contextMenuService';
-import { IComponentService } from 'src/code/browser/service/componentService';
+import { IComponentService } from 'src/code/browser/service/component/componentService';
 import { ActionButton } from 'src/code/browser/workbench/actionBar/actionButton';
 import { WidgetBar } from 'src/base/browser/secondary/widgetBar/widgetBar';
 import { Orientation } from 'src/base/common/dom';

@@ -1,8 +1,8 @@
-import { Component, ComponentType, IComponent } from 'src/code/browser/workbench/component';
+import { Component, ComponentType, IComponent } from 'src/code/browser/service/component/component';
 import { ExplorerViewComponent } from "src/code/browser/workbench/actionView/explorer/explorer";
 import { Emitter, Register } from 'src/base/common/event';
 import { createDecorator } from 'src/code/platform/instantiation/common/decorator';
-import { IComponentService } from 'src/code/browser/service/componentService';
+import { IComponentService } from 'src/code/browser/service/component/componentService';
 import { IInstantiationService } from 'src/code/platform/instantiation/common/instantiation';
 import { ActionType } from 'src/code/browser/workbench/actionBar/actionBar';
 import { Disposable } from 'src/base/common/dispose';

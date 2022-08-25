@@ -1,7 +1,7 @@
 import { URI } from "src/base/common/file/uri";
-import { IComponentService } from "src/code/browser/service/componentService";
+import { IComponentService } from "src/code/browser/service/component/componentService";
 import { IThemeService } from "src/code/browser/service/theme/themeService";
-import { Component, IComponent } from "src/code/browser/workbench/component";
+import { Component, IComponent } from "src/code/browser/service/component/component";
 import { WorkspaceComponentType } from "src/code/browser/workbench/workspace/workspace";
 import { IFileService } from "src/code/platform/files/common/fileService";
 import { createDecorator } from "src/code/platform/instantiation/common/decorator";
