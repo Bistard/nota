@@ -7,6 +7,7 @@ import { registerSingleton } from "src/code/platform/instantiation/common/servic
 import { ServiceDescriptor } from "src/code/platform/instantiation/common/descriptor";
 import { IInstantiationService } from "src/code/platform/instantiation/common/instantiation";
 import { EditorComponent, IEditorService } from "src/code/browser/workbench/workspace/editor/editor";
+import { IThemeService } from "src/code/browser/service/theme/themeService";
 
 export const enum WorkspaceComponentType {
     titleBar = 'title-bar',
@@ -38,8 +39,9 @@ export class WorkspaceComponent extends Component implements IWorkspaceService {
     constructor(
         @IComponentService componentService: IComponentService,
         @IInstantiationService private readonly instantiationService: IInstantiationService,
+        @IThemeService themeService: IThemeService,
     ) {
-        super(ComponentType.Workspace, null, componentService);
+        super(ComponentType.Workspace, null, themeService, componentService);
     }
 
     // [protected override methods]

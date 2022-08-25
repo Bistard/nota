@@ -10,6 +10,7 @@ import { Icons } from 'src/base/browser/icon/icons';
 import { registerSingleton } from 'src/code/platform/instantiation/common/serviceCollection';
 import { ServiceDescriptor } from 'src/code/platform/instantiation/common/descriptor';
 import { Emitter, Register } from 'src/base/common/event';
+import { IThemeService } from 'src/code/browser/service/theme/themeService';
 
 export const IActionBarService = createDecorator<IActionBarService>('action-bar-service');
 
@@ -91,8 +92,9 @@ export class ActionBarComponent extends Component implements IActionBarService {
     constructor(
         @IComponentService componentService: IComponentService,
         @IContextMenuService private readonly contextMenuService: IContextMenuService,
+        @IThemeService themeService: IThemeService,
     ) {
-        super(ComponentType.ActionBar, null, componentService);
+        super(ComponentType.ActionBar, null, themeService, componentService);
     }
 
     // [public method]

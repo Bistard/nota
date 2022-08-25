@@ -24,6 +24,7 @@ import { IContextMenuService } from 'src/code/browser/service/contextMenuService
 import { createDecorator } from 'src/code/platform/instantiation/common/decorator';
 import { IComponentService } from 'src/code/browser/service/componentService';
 import { WorkspaceComponentType } from 'src/code/browser/workbench/workspace/workspace';
+import { IThemeService } from 'src/code/browser/service/theme/themeService';
 
 export const IMarkdownService = createDecorator<IMarkdownService>('markdown-service');
 
@@ -51,9 +52,10 @@ export class MarkdownComponent extends Component implements IMarkdownService {
 
     constructor(parentElement: HTMLElement,
                 @IComponentService componentService: IComponentService,
-                @IContextMenuService private readonly contextMenuService: IContextMenuService,                
+                @IContextMenuService private readonly contextMenuService: IContextMenuService,
+                @IThemeService themeService: IThemeService,
         ) {
-        super(WorkspaceComponentType.editor, parentElement, componentService);
+        super(WorkspaceComponentType.editor, parentElement, themeService, componentService);
 
         this.editor = null;
         

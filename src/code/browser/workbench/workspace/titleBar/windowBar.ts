@@ -3,6 +3,7 @@ import { WidgetBar } from "src/base/browser/secondary/widgetBar/widgetBar";
 import { Orientation } from "src/base/common/dom";
 import { IpcChannel } from "src/base/common/ipcChannel";
 import { IComponentService } from "src/code/browser/service/componentService";
+import { IThemeService } from "src/code/browser/service/theme/themeService";
 import { Component } from "src/code/browser/workbench/component";
 import { TitleBarComponentType } from "src/code/browser/workbench/workspace/titleBar/titleBar";
 import { WindowButton } from "src/code/browser/workbench/workspace/titleBar/windowButton";
@@ -15,8 +16,9 @@ export class WindowBarComponent extends Component {
     constructor(
         @IComponentService componentService: IComponentService,
         @IHostService private readonly hostService: IHostService,
+        @IThemeService themeService: IThemeService,
     ) {
-        super(TitleBarComponentType.windowBar, null, componentService);
+        super(TitleBarComponentType.windowBar, null, themeService, componentService);
 
     }
 

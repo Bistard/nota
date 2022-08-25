@@ -1,5 +1,6 @@
 import { URI } from "src/base/common/file/uri";
 import { IComponentService } from "src/code/browser/service/componentService";
+import { IThemeService } from "src/code/browser/service/theme/themeService";
 import { Component, IComponent } from "src/code/browser/workbench/component";
 import { WorkspaceComponentType } from "src/code/browser/workbench/workspace/workspace";
 import { IFileService } from "src/code/platform/files/common/fileService";
@@ -34,8 +35,9 @@ export class EditorComponent extends Component implements IEditorService {
         @IComponentService componentService: IComponentService,
         @IInstantiationService private readonly instantiationService: IInstantiationService,
         @IFileService private readonly fileService: IFileService,
+        @IThemeService themeService: IThemeService,
     ) {
-        super(WorkspaceComponentType.editor, null, componentService);
+        super(WorkspaceComponentType.editor, null, themeService, componentService);
         this._editorWidget = null;
     }
 

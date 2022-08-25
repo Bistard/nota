@@ -11,6 +11,7 @@ import { IKeyboardScreenCastService } from "src/code/browser/service/keyboard/ke
 import { IConfigService } from "src/code/platform/configuration/common/abstractConfigService";
 import { BuiltInConfigScope } from "src/code/platform/configuration/common/configRegistrant";
 import { IHostService } from "src/code/platform/host/common/hostService";
+import { IThemeService } from "src/code/browser/service/theme/themeService";
 
 /**
  * @class Workbench represents all the Components in the web browser.
@@ -22,8 +23,9 @@ export class Workbench extends WorkbenchLayout implements IWorkbenchService {
         @IConfigService private readonly configService: IConfigService,
         @IComponentService componentService: IComponentService,
         @IHostService private readonly hostService: IHostService,
+        @IThemeService themeService: IThemeService,
     ) {
-        super(instantiationService, componentService);
+        super(instantiationService, themeService, componentService);
     }
 
     public init(): void {

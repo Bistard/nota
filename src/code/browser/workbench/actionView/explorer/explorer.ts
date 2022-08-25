@@ -12,6 +12,7 @@ import { IEditorService } from 'src/code/browser/workbench/workspace/editor/edit
 import { IConfigService } from 'src/code/platform/configuration/common/abstractConfigService';
 import { BuiltInConfigScope } from 'src/code/platform/configuration/common/configRegistrant';
 import { IBrowserDialogService, IDialogService } from 'src/code/platform/dialog/browser/browserDialogService';
+import { IThemeService } from 'src/code/browser/service/theme/themeService';
 
 export const IExplorerViewService = createDecorator<IExplorerViewService>('explorer-view-service');
 
@@ -68,13 +69,14 @@ export class ExplorerViewComponent extends Component implements IExplorerViewSer
 
     constructor(parentElement: HTMLElement,
                 @IComponentService componentService: IComponentService,
+                @IThemeService themeService: IThemeService,
                 @IConfigService private readonly configService: IConfigService,
                 @IDialogService private readonly dialogService: IBrowserDialogService,
                 @Ii18nService private readonly i18nService: Ii18nService,
                 @INotebookGroupService private readonly notebookGroupService: INotebookGroupService,
                 @IEditorService private readonly editorService: IEditorService,
     ) {
-        super(ComponentType.ExplorerView, parentElement, componentService);
+        super(ComponentType.ExplorerView, parentElement, themeService, componentService);
     }
 
     // [protected overrdie method]

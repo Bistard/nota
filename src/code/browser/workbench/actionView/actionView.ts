@@ -12,6 +12,7 @@ import { Ii18nService } from 'src/code/platform/i18n/i18n';
 import { Section } from 'src/code/platform/section';
 import { registerSingleton } from 'src/code/platform/instantiation/common/serviceCollection';
 import { ServiceDescriptor } from 'src/code/platform/instantiation/common/descriptor';
+import { IThemeService } from 'src/code/browser/service/theme/themeService';
 
 export const IActionViewService = createDecorator<IActionViewService>('action-view-service');
 
@@ -82,8 +83,9 @@ export class ActionViewComponent extends Component implements IActionViewService
                 @Ii18nService private readonly i18nService: Ii18nService,
                 @IInstantiationService private readonly instantiationService: IInstantiationService,
                 @IComponentService componentService: IComponentService,
+                @IThemeService themeService: IThemeService,
     ) {
-        super(ComponentType.ActionView, null, componentService);
+        super(ComponentType.ActionView, null, themeService, componentService);
         
         this._defaultViewType = defaultView;
         this._currentViewType = ActionType.NONE; // TODO: read from config

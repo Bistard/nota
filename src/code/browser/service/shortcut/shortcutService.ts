@@ -10,8 +10,6 @@ import { createDecorator } from "src/code/platform/instantiation/common/decorato
 import { IInstantiationService, IServiceProvider } from "src/code/platform/instantiation/common/instantiation";
 import { ILogService } from "src/base/common/logger";
 import { IBrowserLifecycleService, ILifecycleService, LifecyclePhase } from "src/code/platform/lifeCycle/browser/browserLifecycleService";
-import { Registrants } from "src/code/platform/registrant/common/registrant";
-import { IShortcutRegistrant } from "src/code/browser/service/shortcut/shortcutRegistrant";
 
 export const SHORTCUT_CONFIG_NAME = 'shortcut.config.json';
 // export const SHORTCUT_CONFIG_PATH = resolve(APP_ROOT_PATh, NOTA_DIR_NAME, SHORTCUT_CONFIG_NAME);
