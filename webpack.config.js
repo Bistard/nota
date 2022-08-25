@@ -66,6 +66,7 @@ const baseConfiguration = {
      */
     devtool: isDev ? 'eval-source-map' : 'source-map',
     stats: 'normal',
+    bail: true,
 };
 
 module.exports = [

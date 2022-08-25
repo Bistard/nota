@@ -70,9 +70,11 @@ function registerSpawnListeners(spawn) {
     });
     
     spawn.on('close', (code) => {
+        let fail = false;
         for (let i = 0; i < 3; i++) console.log(); // left some spaces
 
         if (code) {
+            fail = true;
             process.stdout.write(`${getTime(c.FgRed)} child process exited with code ${code}`);
         } else {
             process.stdout.write(`${getTime(c.FgGreen)} Building success`);
@@ -82,6 +84,10 @@ function registerSpawnListeners(spawn) {
         const [begin, end] = getPerf();
         const spentInSec = (end.time - begin.time) / 1000;
         process.stdout.write(` in ${Math.round(spentInSec * 100) / 100} seconds.\n`);
+
+        if (fail) {
+            process.exit(code);
+        }
     });
 }
 
