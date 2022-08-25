@@ -1,12 +1,11 @@
 import * as assert from 'assert';
 import { Emitter, Register } from 'src/base/common/event';
 import { IStandardKeyboardEvent, KeyCode, Shortcut } from 'src/base/common/keyboard';
-import { NullLogger } from 'src/base/common/logger';
 import { IKeyboardService } from 'src/code/browser/service/keyboard/keyboardService';
 import { ShortcutService } from 'src/code/browser/service/shortcut/shortcutService';
 import { FileService } from 'src/code/platform/files/common/fileService';
 import { InstantiationService } from 'src/code/platform/instantiation/common/instantiation';
-import { NullEnvironmentService, NullLifecycleService } from 'test/testUtility';
+import { NullEnvironmentService, NullLifecycleService, NullLogger } from 'test/testUtility';
 
 class TestKeyboardService implements IKeyboardService {
 

@@ -3,10 +3,10 @@ import { DataBuffer } from 'src/base/common/file/buffer';
 import { FileType } from 'src/base/common/file/file';
 import { dirname, posix, resolve } from 'src/base/common/file/path';
 import { URI } from 'src/base/common/file/uri';
-import { NullLogger } from 'src/base/common/logger';
 import { DiskFileSystemProvider } from 'src/code/platform/files/node/diskFileSystemProvider';
 import { fileExists } from 'src/code/platform/files/node/io';
 import { FileService } from 'src/code/platform/files/common/fileService';
+import { NullLogger } from 'test/testUtility';
 
 suite('FileService-disk-unbuffered-test', () => {
 

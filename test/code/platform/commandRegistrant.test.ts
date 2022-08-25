@@ -1,10 +1,10 @@
 import * as assert from 'assert';
-import { NullLogger } from 'src/base/common/logger';
 import { ICommandExecutor, ICommandRegistrant } from 'src/code/platform/command/common/commandRegistrant';
 import { CommandService, ICommandService } from 'src/code/platform/command/common/commandService';
 import { createDecorator } from 'src/code/platform/instantiation/common/decorator';
 import { IInstantiationService, InstantiationService, IServiceProvider } from 'src/code/platform/instantiation/common/instantiation';
 import { Registrants } from 'src/code/platform/registrant/common/registrant';
+import { NullLogger } from 'test/testUtility';
 
 interface ITestService {
     num: number;
