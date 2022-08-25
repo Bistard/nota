@@ -7,6 +7,7 @@ import { BuiltInConfigScope, IConfigRegistrant } from 'src/code/platform/configu
 import { DefaultConfigStorage } from 'src/code/platform/configuration/common/configStorage';
 import { FileService } from 'src/code/platform/files/common/fileService';
 import { Registrants } from 'src/code/platform/registrant/common/registrant';
+import { NullLifecycleService } from 'test/testUtility';
 
 class TestDefaultConfigStorage extends DefaultConfigStorage {
     protected override createDefaultModel(): Record<PropertyKey, any> {
@@ -39,7 +40,7 @@ suite('abstract-config-service-test', () => {
             resourceProvider: () => URI.fromFile('file://test'),
             builtIn: [TestScope],
         }, new FileService(logService), logService);
-        const service = new AbstractConfigService(collection, logService);
+        const service = new AbstractConfigService(collection, new FileService(logService), logService, new NullLifecycleService());
 
         let updateValue: any;
         service.onDidChange<string>(TestScope, 'path1.c', value => updateValue = value);

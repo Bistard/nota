@@ -5,6 +5,7 @@ import { ConfigCollection, ConfigCollectionOpts } from "src/code/platform/config
 import { BuiltInConfigScope, ConfigScope } from "src/code/platform/configuration/common/configRegistrant";
 import { IEnvironmentService } from "src/code/platform/environment/common/environment";
 import { IFileService } from "src/code/platform/files/common/fileService";
+import { IBrowserLifecycleService, ILifecycleService } from "src/code/platform/lifeCycle/browser/browserLifecycleService";
 
 export class BrowserConfigService extends AbstractConfigService implements IConfigService {
 
@@ -12,6 +13,7 @@ export class BrowserConfigService extends AbstractConfigService implements IConf
         @IEnvironmentService environmentService: IEnvironmentService,
         @IFileService fileService: IFileService,
         @ILogService logService: ILogService,
+        @ILifecycleService lifecycleService: IBrowserLifecycleService,
     ) {
         // collection construction
         const collectionOpts: ConfigCollectionOpts = {
@@ -26,6 +28,6 @@ export class BrowserConfigService extends AbstractConfigService implements IConf
             builtIn: [BuiltInConfigScope.User],
         };
         const collection = new ConfigCollection(collectionOpts, fileService, logService);
-        super(collection, logService);
+        super(collection, fileService, logService, lifecycleService);
     }
 }

@@ -139,13 +139,13 @@ const nota = new class extends class MainProcess implements IMainProcess {
         ]);
         logService.setLogger(pipelineLogger);
 
-        // main-configuration-service
-        const mainConfigService = new MainConfigService(environmentService, fileService, logService);
-        instantiationService.register(IConfigService, mainConfigService);
-
         // life-cycle-service
         const lifeCycleService = new MainLifecycleService(logService);
         instantiationService.register(IMainLifecycleService, lifeCycleService);
+
+        // main-configuration-service
+        const mainConfigService = new MainConfigService(environmentService, fileService, logService, lifeCycleService);
+        instantiationService.register(IConfigService, mainConfigService);
 
         // status-service
         const statusService = new MainStatusService(fileService, logService, environmentService, lifeCycleService);

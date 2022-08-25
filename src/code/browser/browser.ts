@@ -19,7 +19,7 @@ export class BrowserInstance implements IBrowser {
     }
 
     public registerListeners(): void {
-        // noop
+        
     }
 
 }

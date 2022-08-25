@@ -115,7 +115,7 @@ export class ShortcutService extends Disposable implements IShortcutService {
             const bindings = this._registrant.getAllShortcutBindings();
             await this.fileService.writeFile(
                 this._resource, 
-                DataBuffer.fromString(JSON.stringify(bindings, null, 2)), 
+                DataBuffer.fromString(JSON.stringify(bindings, null, 4)), 
                 { create: true, overwrite: true, unlock: true }
             );
             this.logService.trace(`Window#shortcutService#saved at ${this._resource.toString()}`);

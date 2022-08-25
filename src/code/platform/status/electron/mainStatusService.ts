@@ -2,7 +2,6 @@ import { Disposable } from "src/base/common/dispose";
 import { join } from "src/base/common/file/path";
 import { URI } from "src/base/common/file/uri";
 import { ILogService } from "src/base/common/logger";
-import { mockType } from "src/base/common/util/type";
 import { IFileService } from "src/code/platform/files/common/fileService";
 import { createDecorator } from "src/code/platform/instantiation/common/decorator";
 import { IEnvironmentService, IMainEnvironmentService } from "src/code/platform/environment/common/environment";
@@ -74,16 +73,16 @@ export class MainStatusService extends Disposable implements IMainStatusService 
     public async set(key: string, val: any): Promise<void> {
         try {
             return this._storage.set(key, val);
-        } catch (error) {
-            this.logService.warn(mockType(error));
+        } catch (error: any) {
+            this.logService.warn(error);
         }
     }
 
     public async setLot(items: readonly { key: string, val: any }[]): Promise<void> {
         try {
             return this._storage.setLot(items);
-        } catch (error) {
-            this.logService.warn(mockType(error));
+        } catch (error: any) {
+            this.logService.warn(error);
         }
     }
 
@@ -98,8 +97,8 @@ export class MainStatusService extends Disposable implements IMainStatusService 
     public async delete(key: string): Promise<boolean> {
         try {
             return this._storage.delete(key);
-        } catch (error) {
-            this.logService.warn(mockType(error));
+        } catch (error: any) {
+            this.logService.warn(error);
         }
         return false;
     }
@@ -110,9 +109,10 @@ export class MainStatusService extends Disposable implements IMainStatusService 
 
     public async init(): Promise<void> {
         try {
-            return this._storage.init();
-        } catch (error) {
-            this.logService.error(mockType(error));
+            await this._storage.init();
+            this.logService.trace(`Main#StatusService#initialized at ${this._storage.resource.toString()}.`);
+        } catch (error: any) {
+            this.logService.error(error);
             throw error;
         }
     }
@@ -120,14 +120,14 @@ export class MainStatusService extends Disposable implements IMainStatusService 
     public async close(): Promise<void> {
         try {
             return this._storage.close();
-        } catch (error) {
-            this.logService.error(mockType(error));
+        } catch (error: any) {
+            this.logService.error(error);
             throw error;
         }
     }
 
     private registerListeners(): void {
-        this.logService.trace(`Main#MainStatus#registerListeners()`);
+        this.logService.trace(`Main#MainStatusService#registerListeners()`);
         this.lifeCycleService.onWillQuit((e) => e.join(this.close()));
     }
 }

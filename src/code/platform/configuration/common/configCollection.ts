@@ -66,6 +66,11 @@ export interface IConfigCollection extends IDisposable {
      * @description Update a new extension configuration by the given scope.
      */
     updateExtensionConfiguration(scope: ExtensionConfigScope, newStorage: IConfigStorage): void;
+
+    /**
+     * @description Returns all the registered configurations.
+     */
+    getAllConfigModels(): IConfigModel[];
 }
 
 /**
@@ -171,11 +176,22 @@ export class ConfigCollection implements IConfigCollection, IDisposable {
         return allConfiguration;
     }
 
+    public getAllConfigModels(): IConfigModel[] {
+        const arr: IConfigModel[] = [];
+        for (const [_scope, model] of this._configurations) {
+            arr.push(model);
+        }
+        for (const [_scope, model] of this._extensionConfigurations) {
+            arr.push(model);
+        }
+        return arr;
+    }
+
     public dispose(): void {
-        for (const [scope, configuration] of this._configurations) {
+        for (const [_scope, configuration] of this._configurations) {
             configuration.dispose();
         }
-        for (const [scope, configuration] of this._extensionConfigurations) {
+        for (const [_scope, configuration] of this._extensionConfigurations) {
             configuration.dispose();
         }
     }
@@ -192,5 +208,4 @@ export class ConfigCollection implements IConfigCollection, IDisposable {
         }
         return configuration;
     }
-
 }

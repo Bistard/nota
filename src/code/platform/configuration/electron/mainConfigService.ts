@@ -5,6 +5,7 @@ import { ConfigCollection, ConfigCollectionOpts } from "src/code/platform/config
 import { BuiltInConfigScope, ConfigScope } from "src/code/platform/configuration/common/configRegistrant";
 import { IEnvironmentService } from "src/code/platform/environment/common/environment";
 import { IFileService } from "src/code/platform/files/common/fileService";
+import { IMainLifecycleService } from "src/code/platform/lifeCycle/electron/mainLifecycleService";
 
 export class MainConfigService extends AbstractConfigService implements IConfigService {
 
@@ -12,6 +13,7 @@ export class MainConfigService extends AbstractConfigService implements IConfigS
         @IEnvironmentService environmentService: IEnvironmentService,
         @IFileService fileService: IFileService,
         @ILogService logService: ILogService,
+        @IMainLifecycleService lifecycleService: IMainLifecycleService,
     ) {
         // collection construction
         const collectionOpts: ConfigCollectionOpts = {
@@ -26,6 +28,8 @@ export class MainConfigService extends AbstractConfigService implements IConfigS
             builtIn: [BuiltInConfigScope.Application],
         };
         const collection = new ConfigCollection(collectionOpts, fileService, logService);
-        super(collection, logService);
+        super(collection, fileService, logService, lifecycleService);
     }
+
+    
 }

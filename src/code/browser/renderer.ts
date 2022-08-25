@@ -126,7 +126,7 @@ class RendererInstance extends Disposable {
         instantiationService.register(IFileService, fileService);
  
         // browser-configuration-service
-        const configService = new BrowserConfigService(environmentService, fileService, logService);
+        const configService = new BrowserConfigService(environmentService, fileService, logService, lifecycleService);
         instantiationService.register(IConfigService, configService);
         
         // component-service
