@@ -64,7 +64,10 @@ export abstract class AbstractLifecycleService<Phase extends number, QuitReason 
 
     public async when(desiredPhase: Phase): Promise<void> {
         
-        // the phase we are looking for has already passed.
+        /**
+         * The phase we are looking for has already passed (even we are at the 
+         * current phase).
+         */
         if (desiredPhase <= this._phase) {
             return;
         }
