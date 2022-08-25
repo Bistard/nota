@@ -1,6 +1,6 @@
 import * as assert from 'assert';
 import { delayFor } from 'src/base/common/util/async';
-import { AbstractLifecycleService } from 'src/code/platform/lifecycle1/common/abstractLifecycleService';
+import { AbstractLifecycleService } from 'src/code/platform/lifecycle/common/abstractLifecycleService';
 import { NullLogger } from 'test/testUtility';
 
 suite('abstract-lifecycle-service-test', () => {

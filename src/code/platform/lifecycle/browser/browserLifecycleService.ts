@@ -2,8 +2,8 @@ import { ILogService } from "src/base/common/logger";
 import { IBrowserHostService } from "src/code/platform/host/browser/browserHostService";
 import { IHostService } from "src/code/platform/host/common/hostService";
 import { createDecorator } from "src/code/platform/instantiation/common/decorator";
-import { AbstractLifecycleService } from "src/code/platform/lifecycle1/common/abstractLifecycleService";
-import { ILifecycleService as ILifecycleServiceInterface } from "src/code/platform/lifecycle1/common/lifecycle";
+import { AbstractLifecycleService } from "src/code/platform/lifecycle/common/abstractLifecycleService";
+import { ILifecycleService as ILifecycleServiceInterface } from "src/code/platform/lifecycle/common/lifecycle";
 
 export const ILifecycleService = createDecorator<IBrowserLifecycleService>('browser-lifecycle-service');
 

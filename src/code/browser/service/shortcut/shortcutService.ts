@@ -7,7 +7,7 @@ import { IFileService } from "src/code/platform/files/common/fileService";
 import { createDecorator } from "src/code/platform/instantiation/common/decorator";
 import { IInstantiationService } from "src/code/platform/instantiation/common/instantiation";
 import { ILogService } from "src/base/common/logger";
-import { IBrowserLifecycleService, ILifecycleService, LifecyclePhase } from "src/code/platform/lifecycle1/browser/browserLifecycleService";
+import { IBrowserLifecycleService, ILifecycleService, LifecyclePhase } from "src/code/platform/lifecycle/browser/browserLifecycleService";
 import { IShortcutConfiguration, IShortcutRegistrant, IShortcutRegistrantFriendship, IShortcutRegistration } from "src/code/browser/service/shortcut/shortcutRegistrant";
 import { Registrants } from "src/code/platform/registrant/common/registrant";
 import { IBrowserEnvironmentService } from "src/code/platform/environment/common/environment";

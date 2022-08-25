@@ -5,7 +5,7 @@ import { ConfigCollection, ConfigCollectionOpts } from "src/code/platform/config
 import { BuiltInConfigScope, ConfigScope } from "src/code/platform/configuration/common/configRegistrant";
 import { IEnvironmentService } from "src/code/platform/environment/common/environment";
 import { IFileService } from "src/code/platform/files/common/fileService";
-import { IBrowserLifecycleService, ILifecycleService } from "src/code/platform/lifecycle1/browser/browserLifecycleService";
+import { IBrowserLifecycleService, ILifecycleService } from "src/code/platform/lifecycle/browser/browserLifecycleService";
 
 export class BrowserConfigService extends AbstractConfigService implements IConfigService {
 

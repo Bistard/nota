@@ -3,8 +3,8 @@ import { ILogService } from "src/base/common/logger";
 import { IS_MAC } from "src/base/common/platform";
 import { Blocker, delayFor } from "src/base/common/util/async";
 import { createDecorator } from "src/code/platform/instantiation/common/decorator";
-import { AbstractLifecycleService } from "src/code/platform/lifecycle1/common/abstractLifecycleService";
-import { ILifecycleService } from "src/code/platform/lifecycle1/common/lifecycle";
+import { AbstractLifecycleService } from "src/code/platform/lifecycle/common/abstractLifecycleService";
+import { ILifecycleService } from "src/code/platform/lifecycle/common/lifecycle";
 
 export const IMainLifecycleService = createDecorator<IMainLifecycleService>('life-cycle-service');
 

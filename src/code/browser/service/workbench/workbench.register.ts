@@ -2,7 +2,7 @@ import { KeyCode, Shortcut } from "src/base/common/keyboard";
 import { IShortcutService } from "src/code/browser/service/shortcut/shortcutService";
 import { IHostService } from "src/code/platform/host/common/hostService";
 import { IServiceProvider } from "src/code/platform/instantiation/common/instantiation";
-import { ILifecycleService } from "src/code/platform/lifecycle1/browser/browserLifecycleService";
+import { ILifecycleService } from "src/code/platform/lifecycle/browser/browserLifecycleService";
 
 export function workbenchDefaultShortcutRegistrations(provider: IServiceProvider) {
     const shortcutService = provider.getOrCreateService(IShortcutService);
