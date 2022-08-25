@@ -40,8 +40,7 @@ export interface IComponent extends ICreateable {
     readonly parent: HTMLElement | undefined;
 
     /** The DOM element of the current component. */
-    // TODO: rename to element
-    container: HTMLElement;
+    element: FastElement<HTMLElement>;
 
     contentArea: HTMLElement | undefined;
 
@@ -188,7 +187,7 @@ export abstract class Component extends Themable implements IComponent {
 
     get parent() { return this._parent; }
     
-    get container() { return this._element.element; }
+    get element() { return this._element; }
 
     get dimension() { return this._dimension; }
 
@@ -224,11 +223,11 @@ export abstract class Component extends Themable implements IComponent {
             this._parentComponent = parent;
             parent.registerComponent(this);
             if (!this._parent) {
-                this._parent = parent.container;
+                this._parent = parent.element.element;
             }
-            this._parent.appendChild(this.container);
+            this._parent.appendChild(this._element.element);
         } else {
-            document.body.appendChild(this.container);
+            document.body.appendChild(this._element.element);
         }
         
         this._createContent();

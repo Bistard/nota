@@ -70,7 +70,7 @@ export class EditorComponent extends Component implements IEditorService {
     protected override _createContent(): void {
         this._editorWidget = this.instantiationService.createInstance(
             EditorWidget, 
-            this.container,
+            this.element.element,
             {},
         );
     }

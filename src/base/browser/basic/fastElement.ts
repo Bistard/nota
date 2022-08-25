@@ -1,4 +1,5 @@
 import { DomStyle } from "src/base/common/dom";
+import { isObject } from "src/base/common/util/type";
 
 /**
  * The interface only for {@link FastElement}.
@@ -34,8 +35,9 @@ export interface IFastElement<T extends HTMLElement> {
 
     setAttribute(name: string, value: string): void;
 	removeAttribute(name: string): void;
-	appendChild(child: IFastElement<T>): void;
-	removeChild(child: IFastElement<T>): void;
+
+	appendChild(child: IFastElement<T> | T): void;
+	removeChild(child: IFastElement<T> | T): void;
 }
 
 /**
@@ -55,7 +57,7 @@ export class FastElement<T extends HTMLElement> implements IFastElement<T> {
     // [field]
 
     /** The actual {@link HTMLElement}. */
-    private readonly _element: T;
+    public readonly element: T;
     
      
     // Representing the DOM attributes of the wrapped HTMLElement. Initially are
@@ -66,6 +68,9 @@ export class FastElement<T extends HTMLElement> implements IFastElement<T> {
 
     private _width: number = -1;
     private _height: number = -1;
+
+    private _minWidth: number = -1;
+    private _minHeight: number = -1;
     
     private _position: DomStyle.Position | '' = '';
     private _display: DomStyle.Display | '' = '';
@@ -88,21 +93,17 @@ export class FastElement<T extends HTMLElement> implements IFastElement<T> {
     // [constructor]
 
     constructor(element: T) {
-        this._element = element;
+        this.element = element;
     }
-
-    // [getter]
-
-    get element(): Readonly<T> { return this._element; }
 
     // [public methods]
 
     public setID(id: string): void {
-        this._element.id = id;
+        this.element.id = id;
     }
     
     public getID(): string {
-        return this._element.id;
+        return this.element.id;
     }
 
     public setWidth(value: number): void {
@@ -110,7 +111,15 @@ export class FastElement<T extends HTMLElement> implements IFastElement<T> {
             return;
         }
         this._width = value;
-        this._element.style.width = `${value}px`;
+        this.element.style.width = `${value}px`;
+    }
+
+    public setMinWidth(value: number): void {
+        if (this._minWidth === value) {
+            return;
+        }
+        this._minWidth = value;
+        this.element.style.minWidth = `${value}px`;
     }
 
     public setHeight(value: number): void {
@@ -118,7 +127,15 @@ export class FastElement<T extends HTMLElement> implements IFastElement<T> {
             return;
         }
         this._height = value;
-        this._element.style.height = `${value}px`;
+        this.element.style.height = `${value}px`;
+    }
+
+    public setMinHeight(value: number): void {
+        if (this._minHeight === value) {
+            return;
+        }
+        this._minHeight = value;
+        this.element.style.minHeight = `${value}px`;
     }
 
     public setPosition(value: DomStyle.Position): void {
@@ -126,7 +143,7 @@ export class FastElement<T extends HTMLElement> implements IFastElement<T> {
             return;
         }
         this._position = value;
-        this._element.style.position = value;
+        this.element.style.position = value;
     }
 
     public setDisplay(value: DomStyle.Display): void {
@@ -134,7 +151,7 @@ export class FastElement<T extends HTMLElement> implements IFastElement<T> {
             return;
         }
         this._display = value;
-        this._element.style.display = value;
+        this.element.style.display = value;
     }
 
     public setClassName(value: string): void {
@@ -142,7 +159,7 @@ export class FastElement<T extends HTMLElement> implements IFastElement<T> {
             return;
         }
         this._className = value;
-        this._element.className = value;
+        this.element.className = value;
     }
 
     public setTop(value: number): void {
@@ -150,7 +167,7 @@ export class FastElement<T extends HTMLElement> implements IFastElement<T> {
             return;
         }
         this._top = value;
-        this._element.style.top = `${value}px`;
+        this.element.style.top = `${value}px`;
     }
 
     public setBottom(value: number): void {
@@ -158,7 +175,7 @@ export class FastElement<T extends HTMLElement> implements IFastElement<T> {
             return;
         }
         this._bottom = value;
-        this._element.style.bottom = `${value}px`;
+        this.element.style.bottom = `${value}px`;
     }
 
     public setLeft(value: number): void {
@@ -166,7 +183,7 @@ export class FastElement<T extends HTMLElement> implements IFastElement<T> {
             return;
         }
         this._left = value;
-        this._element.style.left = `${value}px`;
+        this.element.style.left = `${value}px`;
     }
 
     public setRight(value: number): void {
@@ -174,11 +191,11 @@ export class FastElement<T extends HTMLElement> implements IFastElement<T> {
             return;
         }
         this._right = value;
-        this._element.style.right = `${value}px`;
+        this.element.style.right = `${value}px`;
     }
 
     public toggleClassName(value: string, force?: boolean): void {
-        this._element.classList.toggle(value, force);
+        this.element.classList.toggle(value, force);
         this._className = value;
     }
 
@@ -187,7 +204,7 @@ export class FastElement<T extends HTMLElement> implements IFastElement<T> {
             return;
         }
         this._fontSize = value;
-        this._element.style.fontSize = `${value}px`;
+        this.element.style.fontSize = `${value}px`;
     }
 
     public setFontWeight(value: DomStyle.FontWeight): void {
@@ -195,7 +212,7 @@ export class FastElement<T extends HTMLElement> implements IFastElement<T> {
             return;
         }
         this._fontWeight = value;
-        this._element.style.fontWeight = value;
+        this.element.style.fontWeight = value;
     }
 
     public setFontFamily(value: string): void {
@@ -203,7 +220,7 @@ export class FastElement<T extends HTMLElement> implements IFastElement<T> {
             return;
         }
         this._fontFamily = value;
-        this._element.style.fontFamily = value;
+        this.element.style.fontFamily = value;
     }
 
     public setLineHeight(value: number): void {
@@ -211,7 +228,7 @@ export class FastElement<T extends HTMLElement> implements IFastElement<T> {
             return;
         }
         this._lineHeight = value;
-        this._element.style.lineHeight = `${value}px`;
+        this.element.style.lineHeight = `${value}px`;
     }
 
     public setVisibility(value: DomStyle.Visibility): void {
@@ -219,7 +236,7 @@ export class FastElement<T extends HTMLElement> implements IFastElement<T> {
             return;
         }
         this._visibility = value;
-        this._element.style.visibility = value;
+        this.element.style.visibility = value;
     }
 
     public setBackgroundColor<K extends string>(value: DomStyle.Color<K>): void {
@@ -227,23 +244,37 @@ export class FastElement<T extends HTMLElement> implements IFastElement<T> {
             return;
         }
         this._backgroundColor = value;
-        this._element.style.backgroundColor = value;
+        this.element.style.backgroundColor = value;
     }
 
     public setAttribute(name: string, value: string): void {
-		this._element.setAttribute(name, value);
+		this.element.setAttribute(name, value);
 	}
 
 	public removeAttribute(name: string): void {
-		this._element.removeAttribute(name);
+		this.element.removeAttribute(name);
 	}
 
-	public appendChild(child: IFastElement<T>): void {
-		this._element.appendChild(child.element);
+	public appendChild(child: IFastElement<T> | T): void {
+		if (isFastElement(child)) {
+            this.element.appendChild(child.element);
+        } else {
+            this.element.appendChild(child);
+        }
 	}
 
-	public removeChild(child: IFastElement<T>): void {
-		this._element.removeChild(child.element);
+	public removeChild(child: IFastElement<T> | T): void {
+		if (isFastElement(child)) {
+            this.element.removeChild(child.element);
+        } else {
+            this.element.removeChild(child);
+        }
 	}
-    
+}
+
+export function isFastElement<T extends HTMLElement>(obj: unknown): obj is IFastElement<T> {
+    if (isObject(obj) && (<IFastElement<T>>obj.element)) {
+        return true;
+    }
+    return false;
 }

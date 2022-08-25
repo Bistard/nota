@@ -71,7 +71,7 @@ export class ContextMenuService implements IContextMenuService {
     public removeContextMenu(): void {
         if (this._contextMenu) {
             this.componentService.unregister(this._contextMenu!.getId());
-            this._contextMenu.container.remove();
+            this._contextMenu.element.element.remove();
             this._contextMenu = null;
         }
     }

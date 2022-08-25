@@ -97,8 +97,8 @@ export abstract class ContextMenu extends Component implements IContextMenu {
 
     public setNewPosition(coordinate: Coordinate): void {
         this.setCoordinate(coordinate);
-        this.container.style.top = `${this._coordinate.coordinateY}px`;
-        this.container.style.left =`${this._coordinate.coordinateX}px`;
+        this.element.setTop(this._coordinate.coordinateY);
+        this.element.setLeft(this._coordinate.coordinateX);
     }
 
     public setCoordinate(coordinate: Coordinate): void {
@@ -128,7 +128,7 @@ export abstract class ContextMenu extends Component implements IContextMenu {
         this.setNewPosition(this._coordinate);
         this.contentArea = document.createElement('ul');
         this.contentArea.id = 'context-menu-container';
-        this.container.appendChild(this.contentArea);
+        this.element.appendChild(this.contentArea);
 
         this._createMenuItems(this._menuItemOptions);
     }

@@ -78,7 +78,7 @@ export class WorkspaceComponent extends Component implements IWorkspaceService {
         this.markdownComponent = this.instantiationService.createInstance(MarkdownComponent, markdownView);
         this.markdownComponent.create(this);
 
-        this.container.appendChild(markdownView);
+        this.element.appendChild(markdownView);
     }
 
 }

@@ -145,13 +145,13 @@ export class ExplorerViewComponent extends Component implements IExplorerViewSer
     private __createUnopenedExplorerView(): void {
         
         // prevent double append
-        if (!this._opened && this.container.hasChildNodes()) {
+        if (!this._opened && this.element.element.hasChildNodes()) {
             return;
         }
 
         this.__destroyOpenedExplorerView();
 
-        this.container.appendChild(this._unopenedView);
+        this.element.appendChild(this._unopenedView);
         this._opened = false;
     }
 
@@ -160,8 +160,8 @@ export class ExplorerViewComponent extends Component implements IExplorerViewSer
      * `destroy`.
      */
     private __destroyUnopenedExplorerView(): void {
-        if (!this._opened && this.container.hasChildNodes()) {
-            this.container.removeChild(this._unopenedView);
+        if (!this._opened && this.element.element.hasChildNodes()) {
+            this.element.removeChild(this._unopenedView);
         }
     }
 
@@ -195,7 +195,7 @@ export class ExplorerViewComponent extends Component implements IExplorerViewSer
             // logService.trace(err);
         }
 
-        this.container.appendChild(this._openedView);
+        this.element.appendChild(this._openedView);
         
         /**
          * Since the `this._openedView` is added into the DOM tree, we now can
@@ -213,7 +213,7 @@ export class ExplorerViewComponent extends Component implements IExplorerViewSer
      */
     private __destroyOpenedExplorerView(): void {
         if (this._opened) {
-            this.container.removeChild(this._openedView);
+            this.element.removeChild(this._openedView);
         }
     }
 

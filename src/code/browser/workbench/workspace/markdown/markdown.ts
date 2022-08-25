@@ -101,7 +101,7 @@ export class MarkdownComponent extends Component implements IMarkdownService {
         /**
          * @readonly register context menu listeners (right click menu)
          */
-        this.container.addEventListener('contextmenu', (ev: MouseEvent) => {
+        this.element.element.addEventListener('contextmenu', (ev: MouseEvent) => {
             
             ev.preventDefault();
             this.contextMenuService.removeContextMenu();
@@ -136,7 +136,7 @@ export class MarkdownComponent extends Component implements IMarkdownService {
     public createMarkdownEditor(): void {
 
         let editor = new Editor({
-            el: this.container, // HTMLElement container for markdown editor
+            el: this.element.element, // HTMLElement container for markdown editor
             height: '100%',
             language: 'en-US',
             /**

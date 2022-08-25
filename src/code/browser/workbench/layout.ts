@@ -43,8 +43,8 @@ export abstract class WorkbenchLayout extends Component {
             return;
         }
 
-        DomUtility.setPosition(this.container, 0, 0, 0, 0, 'relative');
-        // DomUtility.setFastPosition(this.container, 0, 0, 0, 0, 'relative');
+        DomUtility.setPosition(this.element.element, 0, 0, 0, 0, 'relative');
+        // DomUtility.setFastPosition(this.element, 0, 0, 0, 0, 'relative');
         super.layout(undefined, undefined);
     }
 
@@ -95,13 +95,13 @@ export abstract class WorkbenchLayout extends Component {
         const sash = this.sashMap.get('sash-1')!;
         sash.onDidMove((e: ISashEvent) => {
             const newX = e.currentX - ActionBarComponent.width;
-            this.actionView.container.style.width = newX + 'px';
-            this.actionView.container.style.minWidth = newX + 'px';
+            this.actionView.element.setWidth(newX);
+            this.actionView.element.setMinWidth(newX);
         });
 
         sash.onDidReset(() => {
-            this.actionView.container.style.width = ActionViewComponent.width + 'px';
-            this.actionView.container.style.minWidth = ActionViewComponent.width + 'px';
+            this.actionView.element.setWidth(ActionViewComponent.width);
+            this.actionView.element.setMinWidth(ActionViewComponent.width);
         });
     }
 
@@ -123,7 +123,7 @@ export abstract class WorkbenchLayout extends Component {
         // create sash containers to DOM (document.body)
         this.sashContainer = document.createElement('div');
         this.sashContainer.classList.add('sash-container');
-        this.container.append(this.sashContainer);
+        this.element.appendChild(this.sashContainer);
 
         [
             this._registerSash('sash-1', new Sash(this.sashContainer, {

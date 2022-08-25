@@ -108,7 +108,7 @@ export class ActionBarComponent extends Component implements IActionBarService {
     protected override _createContent(): void {
         this.contentArea = document.createElement('div');
         this.contentArea.id = 'action-button-container';
-        this.container.appendChild(this.contentArea);
+        this.element.appendChild(this.contentArea);
 
         this._widgetBar = this.__register(this.__createWidgetBar(this.contentArea));
     }

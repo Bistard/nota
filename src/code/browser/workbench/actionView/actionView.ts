@@ -118,7 +118,7 @@ export class ActionViewComponent extends Component implements IActionViewService
         
         // render them
         this.contentArea.appendChild(this.actionViewContentContainer);
-        this.container.appendChild(this.contentArea);
+        this.element.appendChild(this.contentArea);
     }
 
     protected override _registerListeners(): void {
@@ -199,11 +199,11 @@ export class ActionViewComponent extends Component implements IActionViewService
 
         if (prevView) {
             // prevView.setVisible(false);
-            container.removeChild(prevView.container);
+            container.removeChild(prevView.element.element);
         }
         
         if (view) {
-            container.appendChild(view.container);
+            container.appendChild(view.element.element);
             // view.setVisible(true);
         }
     }
