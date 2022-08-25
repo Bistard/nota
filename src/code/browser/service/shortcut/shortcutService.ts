@@ -1,227 +1,71 @@
-import { DisposableManager, IDisposable, toDisposable } from "src/base/common/dispose";
-import { PauseableEmitter, Register } from "src/base/common/event";
+import { Disposable, IDisposable } from "src/base/common/dispose";
 import { DataBuffer } from "src/base/common/file/buffer";
 import { URI } from "src/base/common/file/uri";
-import { hash } from "src/base/common/util/hash";
 import { Shortcut } from "src/base/common/keyboard";
 import { IKeyboardService } from "src/code/browser/service/keyboard/keyboardService";
 import { IFileService } from "src/code/platform/files/common/fileService";
 import { createDecorator } from "src/code/platform/instantiation/common/decorator";
-import { IInstantiationService, IServiceProvider } from "src/code/platform/instantiation/common/instantiation";
+import { IInstantiationService } from "src/code/platform/instantiation/common/instantiation";
 import { ILogService } from "src/base/common/logger";
 import { IBrowserLifecycleService, ILifecycleService, LifecyclePhase } from "src/code/platform/lifeCycle/browser/browserLifecycleService";
+import { IShortcutConfiguration, IShortcutRegistrant, IShortcutRegistrantFriendship, IShortcutRegistration } from "src/code/browser/service/shortcut/shortcutRegistrant";
+import { Registrants } from "src/code/platform/registrant/common/registrant";
 
 export const SHORTCUT_CONFIG_NAME = 'shortcut.config.json';
 // export const SHORTCUT_CONFIG_PATH = resolve(APP_ROOT_PATh, NOTA_DIR_NAME, SHORTCUT_CONFIG_NAME);
 export const SHORTCUT_CONFIG_PATH = 'NA'; // FIX
 
-export interface IShortcutRegistration {
-    /**
-     * The id of the command.
-     */
-    commandID: string;
-
-    /**
-     * The id of the `when`.
-     */
-    whenID: string;
-
-    /**
-     * The shortcut to be registered.
-     */
-    shortcut: Shortcut;
-
-    /**
-     * The callback to tell when the shortcut should be turned on or off.
-     */
-    when: Register<boolean> | null;
-
-    /**
-     * The command to be excuated when shorcut invokes.
-     */
-    command: (serviceProvider: IServiceProvider) => void;
-
-    /**
-     * Overrides the shortcut.
-     */
-    override: boolean;
-
-    /**
-     * Activates the shortcut by default.
-     */
-    activate: boolean;
-}
-
-/**
- * @internal Mapping data structure stored in {@link IShortcutService}.
- */
-interface __IShortcutRegistration {
-    commandID: string;
-    whenID: string;
-    emitter: PauseableEmitter<IInstantiationService>;
-    when: IDisposable | null;
-}
-
-/**
- * @description A simple interface used in the file {@link SHORTCUT_CONFIG_NAME}.
- */
-export interface IShortcutConfiguration {
-    cmd: string;
-    key: string;
-    when: string;
-}
-
 export const IShortcutService = createDecorator<IShortcutService>('shortcut-service');
 
-export interface IShortcutService {
-    
-    /**
-     * All the registered shortcuts will be removed.
-     */
-    dispose(): void;
-    
-    /**
-     * @description Register a {@link Shortcut} with a callback.
-     * @param registration The shortcut registration information.
-     * @returns A disposable to unregister the callback itself.
-     */
+export interface IShortcutService extends IDisposable {
     register(registration: IShortcutRegistration): IDisposable;
-    
-    /**
-     * @description Unregister the given command c with all its listeners.
-     * @param commandID The id of the command to be unregistered.
-     * @returns If the unregistration successed.
-     */
     unRegister(commandID: string): boolean;
-
 }
 
-export class ShortcutService implements IDisposable, IShortcutService {
+export class ShortcutService extends Disposable implements IShortcutService {
 
-    // [fields]
+    // [event]
 
-    private disposables: DisposableManager;
-    
-    /**
-     * mapping from 
-     *  {@link IShortcutRegistration.commandID} to 
-     *  {@link IShortcutRegistration.Shortcut}.
-     */
-    private idMap: Map<string, Shortcut>;
+    get onDidPress() { return this._registrant.onDidPress; }
 
-    /**
-     * mapping from hash value of 
-     *  {@link IShortcutRegistration.Shortcut} to
-     *  {@link __IShortcutRegistration}.
-     */
-    private map: Map<number, __IShortcutRegistration>;
-    
+    // [field]
+
+    private readonly _registrant = <IShortcutRegistrantFriendship>Registrants.get(IShortcutRegistrant);
+
     // [constructor]
 
     constructor(
         @IKeyboardService keyboardService: IKeyboardService,
         @ILifecycleService lifecycleService: IBrowserLifecycleService,
-        @IInstantiationService private readonly instantiaionService: IInstantiationService,
+        @IInstantiationService instantiaionService: IInstantiationService,
         @IFileService private readonly fileService: IFileService,
         @ILogService private readonly logService: ILogService,
     ) {
-        this.disposables = new DisposableManager();
-        this.idMap = new Map();
-        this.map = new Map();
+        super();
         
-        keyboardService.onKeydown(e => {
+        
+        // listen to keyboard events
+        this.__register(keyboardService.onKeydown(e => {
             const shortcut = new Shortcut(e.ctrl, e.shift, e.alt, e.meta, e.key);
-            const val = hash(shortcut.toString());
-            const cache = this.map.get(val);
-            if (cache) {
-                cache.emitter.fire(this.instantiaionService);
-            }
-        });
+            this._registrant.onShortcutPress(shortcut, instantiaionService);
+        }));
         
+        // When the browser side is ready, we update registrations by reading from disk.
         lifecycleService.when(LifecyclePhase.Ready).then(() => this.__registerFromDisk());
-        lifecycleService.onWillQuit(async () => this.__onApplicationClose());
+        lifecycleService.onWillQuit(() => this.__onApplicationClose());
     }
 
-    // [methods]
-
-    public dispose(): void {
-        this.map.forEach(cache => this.__disposeRegistration(cache));
-        this.map.clear();
-        this.disposables.dispose();
-    }
+    // [public methods]
 
     public register(registration: IShortcutRegistration): IDisposable {
-
-        // hash the shortcut into a number for fast future map searching.
-        const hashVal = hash(registration.shortcut.toString());
-        let cache = this.map.get(hashVal);
-        
-        // if the shortcut is never registered, we create one.
-        if (cache === undefined) {
-            cache = {
-                commandID: registration.commandID,
-                whenID: registration.whenID,
-                emitter: new PauseableEmitter(registration.activate),
-                when: registration.when ? registration.when((on: boolean) => {
-                    if (on) {
-                        cache!.emitter.resume();
-                    } else {
-                        cache!.emitter.pause();
-                    }
-                }) : null,
-            };
-
-            this.map.set(hashVal, cache);
-            this.idMap.set(registration.commandID, registration.shortcut);
-        }
-
-        // overrides the shortcut
-        else if (registration.override) {
-            const oldCache = this.map.get(hashVal);
-            if (oldCache) {
-                this.__disposeRegistration(oldCache);
-                this.map.delete(hashVal);
-            }
-            
-            const newVal = hash(registration.shortcut.toString());
-            this.idMap.set(registration.commandID, registration.shortcut);
-            this.map.set(newVal, cache);
-        }
-
-        // register command
-        cache.emitter.registerListener(registration.command);
-
-        // for unregister purpose
-        return toDisposable(() => {
-            this.unRegister(registration.commandID);
-        });
+        return this._registrant.register(registration);
     }
 
     public unRegister(commandID: string): boolean {
-        const shortcut = this.idMap.get(commandID);
-        if (shortcut === undefined) {
-            return false;
-        }
-
-        const hashVal = hash(shortcut.toString());
-        const cache = this.map.get(hashVal);
-        if (cache) {
-            this.__disposeRegistration(cache);
-            this.idMap.delete(commandID);
-            return this.map.delete(hashVal);
-        }
-        
-        return false;
+        return this._registrant.unRegister(commandID);
     }
-
+    
     // [private helper methods]
-
-    private __disposeRegistration(registration: __IShortcutRegistration): void {
-        registration.emitter.dispose();
-        if (registration.when) {
-            registration.when.dispose();
-        }
-    }
 
     private async __registerFromDisk(): Promise<void> {
 
@@ -234,40 +78,36 @@ export class ShortcutService implements IDisposable, IShortcutService {
         if (await this.fileService.exist(uri)) {
             
             const buffer = await this.fileService.readFile(uri);
-            const configuration = JSON.parse(buffer.toString());
+            const configuration: IShortcutConfiguration[] = JSON.parse(buffer.toString());
             this.logService.debug(`shortcut configuration loaded at ${uri.toString()}`);
             
-            configuration.forEach(({cmd, key, when}: IShortcutConfiguration) => {
+            configuration.forEach(({ commandID, shortcut, whenID }) => {
                 
-                const registered = this.idMap.get(cmd);
-
-                // check if the id exists
-                if (registered === undefined) {
-                    // TODO: log: `invalid command id`
-                    return;
-                }
+                const registered = this._registrant.getShortcut(commandID);
 
                 // check if the shortcut is valid
-                const newShortcut: Shortcut = Shortcut.fromString(key);
+                const newShortcut: Shortcut = Shortcut.fromString(shortcut);
                 if (newShortcut.equal(Shortcut.None)) {
-                    // TODO: log: `invalid shortcut`
+                    this.logService.warn(`Invalid shortcut registration from the configuration at ${uri.toString()}: ${commandID} - ${shortcut}.`);
                     return;
                 }
                 
-                // same shortcut, we ignore this
-                if (newShortcut.equal(registered)) {
+                // same shortcut, we ignore it
+                if (registered && newShortcut.equal(registered)) {
                     return;
                 }
 
-                const registeredHash = hash(registered.toString());
-                const newShortcutHash = hash(newShortcut.toString());
-
-                // update shortcut hash mapping
-                const cache = this.map.get(registeredHash)!;
-                this.map.delete(registeredHash);
-
-                this.idMap.set(cmd, newShortcut);
-                this.map.set(newShortcutHash, cache);
+                // we update this shortcut by overriding.
+                // TODO: should get correct from contextService
+                this._registrant.register({
+                    commandID: commandID,
+                    whenID: whenID,
+                    shortcut: newShortcut,
+                    when: null,
+                    command: () => {},
+                    override: true,
+                    activate: true,
+                });
             });
             
         } else {
@@ -278,18 +118,11 @@ export class ShortcutService implements IDisposable, IShortcutService {
     private async __onApplicationClose(): Promise<void> {
 
         const uri = URI.fromFile(SHORTCUT_CONFIG_PATH);
-        const array = Array.from(this.idMap, ([id, shortcut]: [string, Shortcut]): IShortcutConfiguration => {
-            return {
-                cmd: id,
-                key: shortcut.toString(),
-                when: this.map.get(hash(shortcut.toString()))!.whenID,
-            };
-        });
-
         try {
+            const bindings = this._registrant.getAllShortcutBindings();
             await this.fileService.writeFile(
                 uri, 
-                DataBuffer.fromString(JSON.stringify(array, null, 2)), 
+                DataBuffer.fromString(JSON.stringify(bindings, null, 2)), 
                 { create: true, overwrite: true, unlock: true }
             );
             this.logService.trace(`Window#shortcutService#saved at ${uri.toString()}`);
