@@ -1,3 +1,4 @@
+const { performance } = require('perf_hooks');
 const childProcess = require("child_process");
 const minimist = require("minimist");
 const path = require("path");
