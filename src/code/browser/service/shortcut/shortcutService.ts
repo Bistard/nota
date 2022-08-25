@@ -10,7 +10,7 @@ import { ILogService } from "src/base/common/logger";
 import { IBrowserLifecycleService, ILifecycleService, LifecyclePhase } from "src/code/platform/lifecycle/browser/browserLifecycleService";
 import { IShortcutConfiguration, IShortcutRegistrant, IShortcutRegistrantFriendship, IShortcutRegistration } from "src/code/browser/service/shortcut/shortcutRegistrant";
 import { Registrants } from "src/code/platform/registrant/common/registrant";
-import { IBrowserEnvironmentService, IEnvironmentService } from "src/code/platform/environment/common/environment";
+import { IBrowserEnvironmentService } from "src/code/platform/environment/common/environment";
 
 export const SHORTCUT_CONFIG_NAME = 'shortcut.config.json';
 export const IShortcutService = createDecorator<IShortcutService>('shortcut-service');
@@ -37,7 +37,7 @@ export class ShortcutService extends Disposable implements IShortcutService {
         @IKeyboardService keyboardService: IKeyboardService,
         @ILifecycleService lifecycleService: IBrowserLifecycleService,
         @IInstantiationService instantiaionService: IInstantiationService,
-        @IBrowserEnvironmentService environmentService: IEnvironmentService,
+        @IBrowserEnvironmentService private readonly environmentService: IBrowserEnvironmentService,
         @IFileService private readonly fileService: IFileService,
         @ILogService private readonly logService: ILogService,
     ) {
@@ -118,10 +118,10 @@ export class ShortcutService extends Disposable implements IShortcutService {
                 DataBuffer.fromString(JSON.stringify(bindings, null, 4)), 
                 { create: true, overwrite: true, unlock: true }
             );
-            this.logService.trace(`Window#shortcutService#saved at ${this._resource.toString()}`);
+            this.logService.info(`Window ID - ${this.environmentService.windowID} - shortcut configuration saved at ${this._resource.toString()}`);
         } 
         catch (err) {
-            this.logService.error(`ShortcutService failed to save at ${this._resource.toString()}`, err);
+            this.logService.error(`Window ID - ${this.environmentService.windowID} - shortcut configuration failed to save at ${this._resource.toString()}`, err);
         }
     }
 }

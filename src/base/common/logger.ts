@@ -137,6 +137,7 @@ export interface ILogger extends IAbstractLogger {
 	warn(message: string, ...args: any[]): void;
 	error(message: string | Error, ...args: any[]): void;
 	fatal(message: string | Error, ...args: any[]): void;
+    flush(): Promise<void>;
 }
 
 /** 
@@ -253,6 +254,12 @@ export class PipelineLogger extends AbstractLogger implements ILogService {
 			logger.fatal(message, ...args);
 		}
     }
+
+    public async flush(): Promise<void> {
+        for (const logger of this._loggers) {
+            await logger.flush();
+        }
+    }
 }
 
 /**
@@ -302,8 +309,9 @@ export class BufferLogger extends AbstractLogger implements ILogService {
         this.__log(LogLevel.FATAL, message, ...args);
     }
 
-    public flush(): void {
+    public async flush(): Promise<void> {
         this.__flushBuffer();
+        return this._logger?.flush();
     }
 
     // [protected helper methods]

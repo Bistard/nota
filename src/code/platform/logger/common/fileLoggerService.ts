@@ -4,7 +4,7 @@ import { ByteSize, FileOperationError, FileOperationErrorType } from "src/base/c
 import { basename, join, parse, ParsedPath } from "src/base/common/file/path";
 import { URI } from "src/base/common/file/uri";
 import { AbstractLogger, ILogger, ILoggerOpts, LogLevel, parseLogLevel } from "src/base/common/logger";
-import { AsyncQueue } from "src/base/common/util/async";
+import { AsyncQueue, Blocker } from "src/base/common/util/async";
 import { Strings } from "src/base/common/util/string";
 import { IFileService } from "src/code/platform/files/common/fileService";
 import { IInstantiationService } from "src/code/platform/instantiation/common/instantiation";
@@ -116,6 +116,12 @@ export class FileLogger extends AbstractLogger implements ILogger {
 				this.__log(LogLevel.FATAL, Strings.stringify(message, ...args));
 			}
 		}
+    }
+
+    public async flush(): Promise<void> {
+        const blocker = new Blocker<void>();
+        this._queue.onDidFlush(() => blocker.resolve());
+        return blocker.waiting();
     }
 
     // [private helper methods]

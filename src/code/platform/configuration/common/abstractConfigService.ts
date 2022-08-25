@@ -136,7 +136,7 @@ export class AbstractConfigService extends Disposable implements IConfigService 
         super();
         this._onDidChange = new ConfigEmitter(collection.onDidChange, collection);
         this._collection = this.__register(collection);
-        lifecycleService.onWillQuit(e => e.join(this.__onApplicationClose()));
+        this.__register(lifecycleService.onWillQuit(e => e.join(this.__onApplicationClose())));
     }
 
     // [public methods]

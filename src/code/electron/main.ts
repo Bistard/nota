@@ -89,6 +89,7 @@ const nota = new class extends class MainProcess implements IMainProcess {
                 Event.once(this.lifeCycleService.onWillQuit)(e => {
                     this.fileService.dispose();
                     this.mainConfigService.dispose();
+                    e.join(this.logService.flush().then(() => this.logService.dispose()));
                 });
                 
                 await this.resolveSingleApplication();

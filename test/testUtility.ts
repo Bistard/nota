@@ -46,4 +46,5 @@ export class NullLogger extends AbstractLogger implements ILogService {
     public warn(message: string, ...args: any[]): void {}
     public error(message: string | Error, ...args: any[]): void {}
     public fatal(message: string | Error, ...args: any[]): void {}
+    public async flush(): Promise<void> {}
 }

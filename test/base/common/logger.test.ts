@@ -4,7 +4,7 @@ import { NullLogger } from 'test/testUtility';
 
 suite('logger', () => {
 
-    test('buffer-logger', () => {
+    test('buffer-logger', async () => {
         let output: string = '';
 
         const logger = new BufferLogger();
