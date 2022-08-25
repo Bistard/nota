@@ -2,7 +2,7 @@ import { tmpdir } from "os";
 import { join } from "path";
 import { AbstractLogger, ILogService } from "src/base/common/logger";
 import { DiskEnvironmentService } from "src/code/platform/environment/common/diskEnvironmentService";
-import { AbstractLifecycleService } from "src/code/platform/lifecycle/common/abstractLifecycleService";
+import { AbstractLifecycleService } from "src/code/platform/lifecycle1/common/abstractLifecycleService";
 
 export const TestDir = join(tmpdir(), 'nota', 'tests');
 

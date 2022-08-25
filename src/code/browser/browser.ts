@@ -1,6 +1,6 @@
 import { workbenchDefaultShortcutRegistrations } from "src/code/browser/service/workbench/workbench.register";
 import { IInstantiationService } from "src/code/platform/instantiation/common/instantiation";
-import { IBrowserLifecycleService, ILifecycleService, LifecyclePhase } from "src/code/platform/lifecycle/browser/browserLifecycleService";
+import { IBrowserLifecycleService, ILifecycleService, LifecyclePhase } from "src/code/platform/lifecycle1/browser/browserLifecycleService";
 
 export interface IBrowser {
     init(): void;

@@ -14,7 +14,7 @@ import { IFileService } from "src/code/platform/files/common/fileService";
 import { createDecorator } from "src/code/platform/instantiation/common/decorator";
 import { IConfigService, NOTA_DIR_NAME } from "src/code/platform/configuration/common/abstractConfigService";
 import { BuiltInConfigScope } from "src/code/platform/configuration/common/configRegistrant";
-import { IBrowserLifecycleService, ILifecycleService } from "src/code/platform/lifecycle/browser/browserLifecycleService";
+import { IBrowserLifecycleService, ILifecycleService } from "src/code/platform/lifecycle1/browser/browserLifecycleService";
 
 export const INotebookGroupService = createDecorator<INotebookGroupService>('notebook-manager-service');
 
