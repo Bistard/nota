@@ -1,11 +1,10 @@
-const { performance } = require('perf_hooks');
 const childProcess = require("child_process");
 const minimist = require("minimist");
 const path = require("path");
-const { c, getTime } = require("./utility");
+const { c, getTime, perf, getPerf } = require("./utility");
 
 // Start building...
-performance.mark('build');
+perf('build');
 console.log(`${getTime(c.FgGreen)} Building...`);
 
 // wrap spawn so that we may print message properly
@@ -78,10 +77,10 @@ function registerSpawnListeners(spawn) {
         } else {
             process.stdout.write(`${getTime(c.FgGreen)} Building success`);
         }
-        performance.mark('build');
+        perf('build');
 
-        const entries = performance.getEntriesByName('build');
-        const spentInSec = (entries[1].startTime - entries[0].startTime) / 1000;
+        const [begin, end] = getPerf();
+        const spentInSec = (end.time - begin.time) / 1000;
         process.stdout.write(` in ${Math.round(spentInSec * 100) / 100} seconds.\n`);
     });
 }

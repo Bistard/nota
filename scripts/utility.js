@@ -43,4 +43,22 @@ function getTime(color) {
     return `${color}[${getCurrTimeStamp()}]\x1b[0m`;
 }
 
-module.exports = { c, getTime };
+const _perfRecord = [];
+
+function perf(stage) {
+    _perfRecord.push(stage, Date.now());
+}
+
+function getPerf() {
+    const marks = [];
+    let i = 0;
+    for (i = 0; i < _perfRecord.length; i += 2) {
+        marks.push({
+            stage: _perfRecord[i],
+            time: _perfRecord[i + 1],
+        });
+    }
+    return marks;
+}
+
+module.exports = { c, getTime, perf, getPerf, };
