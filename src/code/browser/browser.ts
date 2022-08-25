@@ -6,7 +6,7 @@ export interface IBrowser {
 
 }
 
-export class Browser implements IBrowser {
+export class BrowserInstance implements IBrowser {
 
     constructor(
         @ILifecycleService private readonly lifecycleService: IBrowserLifecycleService,

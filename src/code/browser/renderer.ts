@@ -27,7 +27,7 @@ import { IBrowserHostService } from "src/code/platform/host/browser/browserHostS
 import { BrowserLifecycleService, ILifecycleService } from "src/code/platform/lifeCycle/browser/browserLifecycleService";
 import { i18n, Ii18nOpts, Ii18nService, LanguageType } from "src/code/platform/i18n/i18n";
 import { BuiltInConfigScope } from "src/code/platform/configuration/common/configRegistrant";
-import { Browser } from "src/code/browser/browser";
+import { BrowserInstance } from "src/code/browser/browser";
 
 /**
  * @class This is the main entry of the renderer process.
@@ -65,7 +65,7 @@ class RendererInstance extends Disposable {
             workbench.init();
 
             // browser monitor
-            const browser = instantiaionService.createInstance(Browser);
+            const browser = instantiaionService.createInstance(BrowserInstance);
             browser.init();
         } 
         catch (error: any) {
