@@ -17,7 +17,7 @@ export class Dimension implements IDimension {
 		public height: number,
 	) { }
 
-	with(width: number = this.width, height: number = this.height): Dimension {
+	public with(width: number = this.width, height: number = this.height): Dimension {
 		if (width !== this.width || height !== this.height) {
 			return new Dimension(width, height);
 		} else {
@@ -25,19 +25,7 @@ export class Dimension implements IDimension {
 		}
 	}
 
-	static is(obj: unknown): obj is IDimension {
-		return typeof obj === 'object' && typeof (<IDimension>obj).height === 'number' && typeof (<IDimension>obj).width === 'number';
-	}
-
-	static lift(obj: IDimension): Dimension {
-		if (obj instanceof Dimension) {
-			return obj;
-		} else {
-			return new Dimension(obj.width, obj.height);
-		}
-	}
-
-	static equals(a: Dimension | undefined, b: Dimension | undefined): boolean {
+	public equals(a: Dimension | undefined, b: Dimension | undefined): boolean {
 		if (a === b) {
 			return true;
 		}

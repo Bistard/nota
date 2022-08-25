@@ -1,5 +1,7 @@
-import { Disposable } from "src/base/common/dispose";
-import { Emitter } from "src/base/common/event";
+import { FastElement } from "src/base/browser/basic/fastElement";
+import { DomUtility } from "src/base/common/dom";
+import { Emitter, Register } from "src/base/common/event";
+import { Dimension, IDimension } from "src/base/common/util/size";
 import { IComponentService } from "src/code/browser/service/componentService";
 import { Themable } from "src/code/browser/service/theme/theme";
 import { IThemeService } from "src/code/browser/service/theme/themeService";
@@ -28,13 +30,17 @@ export interface ICreateable {
  */
 export interface IComponent extends ICreateable {
 
+    /** Fires when the component is layouting. */
+    readonly onDidLayout: Register<IDimension>;
+
     /** The parent {@link IComponent} of the current component. */
-    readonly parentComponent: IComponent | null;
+    readonly parentComponent: IComponent | undefined;
 
     /** The parent {@link HTMLElement} of the current component. */
-    readonly parent: HTMLElement | null;
+    readonly parent: HTMLElement | undefined;
 
     /** The DOM element of the current component. */
+    // TODO: rename to element
     container: HTMLElement;
 
     contentArea: HTMLElement | undefined;
@@ -48,6 +54,14 @@ export interface IComponent extends ICreateable {
      * element, or `document.body`.
      */
     create(parent?: Component): void;
+
+    /**
+     * @description Layout the component to the given dimention.
+     * @note If no dimensions is provided, the component will try to be filled
+     * with the parent HTMLElement. If any dimensions is provided, the component
+     * will layout the missing one either with the previous value or just zero.
+     */
+    layout(width: number | undefined, height: number | undefined): void;
 
     /**
      * @description Registers any listeners in the component.
@@ -123,14 +137,16 @@ export abstract class Component extends Themable implements IComponent {
     
     // [field]
     
-    private _parentComponent: IComponent | null = null;
-    private _parent: HTMLElement | null = null;
-    private _container: HTMLElement = document.createElement('div');
+    private _parentComponent?: IComponent;
+    private _parent?: HTMLElement;
+    private _element: FastElement<HTMLElement>;
+    private _dimension?: Dimension;
     
     // TODO: try to remove this stupid design
     public contentArea: HTMLElement | undefined;
+    
 
-    private readonly _componentMap: Map<string, Component> = new Map();
+    private readonly _childComponents: Map<string, Component> = new Map();
 
     private _created: boolean = false;
     private _registered: boolean = false;
@@ -140,20 +156,16 @@ export abstract class Component extends Themable implements IComponent {
     private readonly _onDidVisibilityChange = this.__register( new Emitter<boolean>() );
     public readonly onDidVisibilityChange = this._onDidVisibilityChange.registerListener;
 
-    // [getter]
-    
-    get parentComponent() { return this._parentComponent; }
-    get parent() { return this._parent; }
-    get container() { return this._container; }
+    private readonly _onDidLayout = this.__register(new Emitter<IDimension>());
+    public readonly onDidLayout = this._onDidLayout.registerListener;
 
     // [constructor]
 
     /**
      * @param id The id for the Component.
-     * @param parentElement If provided, parentElement will replace the HTMLElement 
-     * from the provided parentComponent when creating. Otherwise defaults to 
-     * `document.body`.
-     * @param componentService ComponentService for the registration purpose.
+     * @param parentElement If provided, parentElement will replace the 
+     * HTMLElement from the provided parentComponent when creating. Otherwise 
+     * defaults to `document.body`.
      */
     constructor(id: string, 
                 parentElement: HTMLElement | null,
@@ -161,12 +173,24 @@ export abstract class Component extends Themable implements IComponent {
                 @IComponentService protected readonly componentService: IComponentService,
     ) {
         super(themeService);
-        this.container.id = id;
+
+        this._element = new FastElement(document.createElement('div'));
+        this._element.setID(id);
         if (parentElement) {
             this._parent = parentElement;
         }
         this.componentService.register(this);
     }
+
+    // [getter]
+    
+    get parentComponent() { return this._parentComponent; }
+
+    get parent() { return this._parent; }
+    
+    get container() { return this._element.element; }
+
+    get dimension() { return this._dimension; }
 
     // [abstract method]
 
@@ -199,7 +223,7 @@ export abstract class Component extends Themable implements IComponent {
         if (parent) {
             this._parentComponent = parent;
             parent.registerComponent(this);
-            if (this._parent === null) {
+            if (!this._parent) {
                 this._parent = parent.container;
             }
             this._parent.appendChild(this.container);
@@ -209,6 +233,31 @@ export abstract class Component extends Themable implements IComponent {
         
         this._createContent();
         this._created = true;
+    }
+
+    public layout(width: number | undefined, height: number | undefined): void {
+        if (!this._parent) {
+            return;
+        }
+
+        // If no dimentions provided, we default to layout to fit to parent.
+        if (typeof width === 'undefined' && typeof height === 'undefined') {
+            this._dimension = DomUtility.getClientDimension(this._parent);
+            this._element.setWidth(this._dimension.width);
+            this._element.setHeight(this._dimension.height);
+        }
+
+        // If any dimensions is provided, we force to follow it.
+        else {
+            this._dimension = (this._dimension 
+                ? this._dimension.with(width, height)
+                : new Dimension(width ?? 0, height ?? 0)
+            );
+            this._element.setWidth(this._dimension.width);
+            this._element.setHeight(this._dimension.height);
+        }
+
+        this._onDidLayout.fire(this._dimension);
     }
 
     public registerListeners(): void {
@@ -222,23 +271,23 @@ export abstract class Component extends Themable implements IComponent {
 
     public registerComponent(component: Component, override: boolean = false): void {
         const id = component.getId();
-        const registered = this._componentMap.has(id);
+        const registered = this._childComponents.has(id);
         
         if (registered && !override) {
             throw new Error('component has been already registered');
         }
 
         if (registered && override) {
-            const deprecated = this._componentMap.get(id)!;
+            const deprecated = this._childComponents.get(id)!;
             deprecated.dispose();
         }
 
-        this._componentMap.set(id, component);
+        this._childComponents.set(id, component);
         this.__register(component);
     }
 
     public getId(): string {
-        return this._container.id;
+        return this._element.getID();
     }
 
     public created(): boolean {
@@ -248,20 +297,20 @@ export abstract class Component extends Themable implements IComponent {
     public setVisible(value: boolean): void {
         
         if (value === true) {
-            this._container.style.visibility = 'visible';
+            this._element.setVisibility('visible');
         } else {
-            this._container.style.visibility = 'hidden';
+            this._element.setVisibility('hidden');
         }
 
         this._onDidVisibilityChange.fire(value);
     }
 
     public hasComponent(id: string): boolean {
-        return this._componentMap.has(id);
+        return this._childComponents.has(id);
     }
 
     public getComponent(id: string): Component {
-        const component = this._componentMap.get(id);
+        const component = this._childComponents.get(id);
         if (!component) {
             throw new Error(`trying to get an unknown component ${id}`);
         }
@@ -270,6 +319,9 @@ export abstract class Component extends Themable implements IComponent {
 
     public override dispose(): void {
         super.dispose();
+        for (const [id, child] of this._childComponents) {
+            child.dispose();
+        }
     }
 
 }

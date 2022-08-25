@@ -71,7 +71,7 @@ export abstract class ContextMenu extends Component implements IContextMenu {
     protected readonly _menuItemGroups: Map<string, IMenuItem>;
     protected readonly _menuItemOptions: IMenuItemOption[];
     
-    private _dimension: Dimension = new Dimension(CONTEXT_MENU_WIDTH, 0);
+    // private _dimension: Dimension = new Dimension(CONTEXT_MENU_WIDTH, 0);
     private _coordinate: Coordinate;
     
     constructor(type: ContextMenuType,
@@ -87,11 +87,11 @@ export abstract class ContextMenu extends Component implements IContextMenu {
         this._menuItemOptions = menuItemOptions;
 
         for (const menuItemOpt of menuItemOptions) {
-            if (menuItemOpt.role != 'seperator'){
-                this._dimension.height += CONTEXT_MENU_ITEM_HEIGHT;
-            } else {
-                this._dimension.height += CONTEXT_MENU_SEPERATOR_HEIGHT; 
-            }
+            // if (menuItemOpt.role != 'seperator'){
+            //     this._dimension.height += CONTEXT_MENU_ITEM_HEIGHT;
+            // } else {
+            //     this._dimension.height += CONTEXT_MENU_SEPERATOR_HEIGHT; 
+            // }
         }
     }
 
@@ -110,15 +110,18 @@ export abstract class ContextMenu extends Component implements IContextMenu {
     }
 
     public getWidth(): number {
-        return this._dimension.width;
+        // return this._dimension.width;
+        return -1;
     }
     
     public getHeight(): number {
-        return this._dimension.height;
+        // return this._dimension.height;
+        return -1;
     }
 
     public getDimension(): Dimension {
-        return this._dimension;
+        // return this._dimension;
+        return undefined!;
     }
 
     protected override _createContent(): void {

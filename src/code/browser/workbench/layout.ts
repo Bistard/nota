@@ -1,5 +1,5 @@
 import { ISashEvent, Sash } from "src/base/browser/basic/sash/sash";
-import { addDisposableListener, EventType, Orientation } from "src/base/common/dom";
+import { addDisposableListener, DomUtility, EventType, Orientation } from "src/base/common/dom";
 import { DomEmitter, Emitter, Register } from "src/base/common/event";
 import { IComponentService } from "src/code/browser/service/componentService";
 import { IThemeService } from "src/code/browser/service/theme/themeService";
@@ -15,11 +15,6 @@ import { IInstantiationService } from "src/code/platform/instantiation/common/in
  */
 export abstract class WorkbenchLayout extends Component {
 
-    // [events]
-
-    protected _onDidFinishLayout: Emitter<void> = this.__register(new Emitter<void>());
-    public onDidFinishLayout: Register<void> = this._onDidFinishLayout.registerListener;
-
     // [fields]
 
     protected actionBar!: ActionBarComponent;
@@ -33,14 +28,27 @@ export abstract class WorkbenchLayout extends Component {
     // [constructor]
     
     constructor(
+        parent: HTMLElement,
         protected readonly instantiationService: IInstantiationService,
         @IComponentService componentService: IComponentService,
         @IThemeService themeService: IThemeService,
     ) {
-        super(ComponentType.Workbench, document.body, themeService, componentService);
+        super(ComponentType.Workbench, parent, themeService, componentService);
     }
 
     // [protected methods]
+
+    public override layout(): void {
+        if (this.isDisposed() || !this.parent) {
+            return;
+        }
+
+        DomUtility.setPosition(this.container, 0, 0, 0, 0, 'relative');
+        // DomUtility.setFastPosition(this.container, 0, 0, 0, 0, 'relative');
+        super.layout(undefined, undefined);
+    }
+
+    // [protected helper methods]
 
     protected __createLayout(): void {
         
@@ -62,8 +70,6 @@ export abstract class WorkbenchLayout extends Component {
         });
 
         this._createSashContainer();
-
-        this._onDidFinishLayout.fire();
     }
 
     protected __registerLayout(): void {
@@ -71,6 +77,7 @@ export abstract class WorkbenchLayout extends Component {
         this.__register(new DomEmitter<UIEvent>(window, EventType.resize).registerListener(event => {
             // REVIEW
             console.log('resizing:', event);
+            this.layout();
         }));
 
         /**

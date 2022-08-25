@@ -19,13 +19,14 @@ import { IThemeService } from "src/code/browser/service/theme/themeService";
 export class Workbench extends WorkbenchLayout implements IWorkbenchService {
 
     constructor(
+        parent: HTMLElement,
         @IInstantiationService instantiationService: IInstantiationService,
         @IConfigService private readonly configService: IConfigService,
         @IComponentService componentService: IComponentService,
         @IHostService private readonly hostService: IHostService,
         @IThemeService themeService: IThemeService,
     ) {
-        super(instantiationService, componentService, themeService);
+        super(parent, instantiationService, componentService, themeService);
     }
 
     public init(): void {
@@ -33,6 +34,7 @@ export class Workbench extends WorkbenchLayout implements IWorkbenchService {
         
         this.create();
         this.registerListeners();
+        this.layout();
     }
 
     protected initServices(): void {
@@ -127,5 +129,4 @@ export class Workbench extends WorkbenchLayout implements IWorkbenchService {
     private __registerUserConfigurationChange(): void {
 
     }
-
 }

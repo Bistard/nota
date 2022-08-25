@@ -7,6 +7,9 @@ export interface IFastElement<T extends HTMLElement> {
 
     readonly element: T;
 
+    setID(id: string): void;
+    getID(): string;
+
     setWidth(value: number): void;
     setHeight(value: number): void;
     
@@ -93,6 +96,14 @@ export class FastElement<T extends HTMLElement> implements IFastElement<T> {
     get element(): Readonly<T> { return this._element; }
 
     // [public methods]
+
+    public setID(id: string): void {
+        this._element.id = id;
+    }
+    
+    public getID(): string {
+        return this._element.id;
+    }
 
     public setWidth(value: number): void {
         if (this._width === value) {

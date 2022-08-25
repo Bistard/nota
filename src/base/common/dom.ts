@@ -1,5 +1,7 @@
+import { FastElement } from "src/base/browser/basic/fastElement";
 import { HexColor } from "src/base/common/color";
 import { IDisposable, toDisposable } from "src/base/common/dispose";
+import { Dimension } from "src/base/common/util/size";
 import { Pair } from "src/base/common/util/type";
 
 /**
@@ -301,6 +303,103 @@ export namespace DomUtility
 		if (node.parentElement) {
 			node.parentElement.removeChild(node);
 		}
+	}
+
+	/**
+	 * @description Returns the dimension of the provided element.
+	 */
+	export function getClientDimension(element: HTMLElement): Dimension {
+		// Try with DOM clientWidth / clientHeight
+		if (element !== document.body) {
+			return new Dimension(element.clientWidth, element.clientHeight);
+		}
+
+		// Try innerWidth / innerHeight
+		if (window.innerWidth && window.innerHeight) {
+			return new Dimension(window.innerWidth, window.innerHeight);
+		}
+
+		// Try with document.body.clientWidth / document.body.clientHeight
+		if (document.body && document.body.clientWidth && document.body.clientHeight) {
+			return new Dimension(document.body.clientWidth, document.body.clientHeight);
+		}
+
+		// Try with document.documentElement.clientWidth / document.documentElement.clientHeight
+		if (document.documentElement && document.documentElement.clientWidth && document.documentElement.clientHeight) {
+			return new Dimension(document.documentElement.clientWidth, document.documentElement.clientHeight);
+		}
+
+		throw new Error('Unable to figure out browser width and height');
+	}
+
+	export function setSize(element: HTMLElement, width: number | undefined, height: number | undefined): void {
+		if (typeof width === 'number') {
+			element.style.width = `${width}px`;
+		}
+	
+		if (typeof height === 'number') {
+			element.style.height = `${height}px`;
+		}
+	}
+
+	export function setPosition(
+		element: HTMLElement, 
+		top: number | undefined, right: number | undefined, 
+		bottom: number | undefined, left: number | undefined, 
+		position: 'static' | 'absolute' | 'fixed' | 'relative' | 'sticky' | 'initial' | 'inherit',
+	): void {
+		if (typeof top === 'number') {
+			element.style.top = `${top}px`;
+		}
+	
+		if (typeof right === 'number') {
+			element.style.right = `${right}px`;
+		}
+	
+		if (typeof bottom === 'number') {
+			element.style.bottom = `${bottom}px`;
+		}
+	
+		if (typeof left === 'number') {
+			element.style.left = `${left}px`;
+		}
+	
+		element.style.position = position;
+	}
+
+	export function setFastSize<T extends HTMLElement>(element: FastElement<T>, width: number | undefined, height: number | undefined): void {
+		if (typeof width === 'number') {
+			element.setWidth(width);
+		}
+	
+		if (typeof height === 'number') {
+			element.setHeight(height);
+		}
+	}
+
+	export function setFastPosition<T extends HTMLElement>(
+		element: FastElement<T>, 
+		top: number | undefined, right: number | undefined, 
+		bottom: number | undefined, left: number | undefined, 
+		position: 'static' | 'absolute' | 'fixed' | 'relative' | 'sticky' | 'initial' | 'inherit',
+	): void {
+		if (typeof top === 'number') {
+			element.setTop(top);
+		}
+	
+		if (typeof right === 'number') {
+			element.setRight(right);
+		}
+	
+		if (typeof bottom === 'number') {
+			element.setBottom(bottom);
+		}
+	
+		if (typeof left === 'number') {
+			element.setLeft(left);
+		}
+	
+		element.setPosition(position);
 	}
 }
 
