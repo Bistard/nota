@@ -2,8 +2,8 @@ import { Disposable } from "src/base/common/dispose";
 import { Emitter } from "src/base/common/event";
 import { ILogService } from "src/base/common/logger";
 import { Blocker } from "src/base/common/util/async";
-import { ILifecycleService } from "src/code/platform/lifecycle/common/lifecycle";
-import { IBeforeQuitEvent } from "src/code/platform/lifecycle/electron/mainLifecycleService";
+import { ILifecycleService } from "src/code/platform/lifecycle1/common/lifecycle";
+import { IBeforeQuitEvent } from "src/code/platform/lifecycle1/electron/mainLifecycleService";
 
 export abstract class AbstractLifecycleService<Phase extends number, QuitReason extends number> extends Disposable implements ILifecycleService<Phase, QuitReason> {
 

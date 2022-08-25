@@ -1,5 +1,5 @@
 import { Register } from "src/base/common/event";
-import { IBeforeQuitEvent } from "src/code/platform/lifecycle/electron/mainLifecycleService";
+import { IBeforeQuitEvent } from "src/code/platform/lifecycle1/electron/mainLifecycleService";
 
 export interface ILifecycleService<Phase extends number, Reason extends number> {
 
