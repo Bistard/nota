@@ -16,7 +16,7 @@ import { FileLoggerService } from 'src/code/platform/logger/common/fileLoggerSer
 import { NotaInstance } from 'src/code/electron/nota';
 import { ApplicationMode, IEnvironmentOpts, IEnvironmentService, IMainEnvironmentService } from 'src/code/platform/environment/common/environment';
 import { MainEnvironmentService } from 'src/code/platform/environment/electron/mainEnvironmentService';
-import { IMainLifecycleService, MainLifecycleService } from 'src/code/platform/lifeCycle/electron/mainLifecycleService';
+import { IMainLifecycleService, MainLifecycleService } from 'src/code/platform/lifecycle/electron/mainLifecycleService';
 import { IMainStatusService, MainStatusService } from 'src/code/platform/status/electron/mainStatusService';
 import { ICLIArguments } from 'src/code/platform/environment/common/argument';
 import { createServer, Server } from 'net';

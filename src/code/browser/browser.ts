@@ -1,4 +1,4 @@
-import { IBrowserLifecycleService, ILifecycleService, LifecyclePhase } from "src/code/platform/lifeCycle/browser/browserLifecycleService";
+import { IBrowserLifecycleService, ILifecycleService, LifecyclePhase } from "src/code/platform/lifecycle/browser/browserLifecycleService";
 
 export interface IBrowser {
 

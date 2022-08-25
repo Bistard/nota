@@ -6,7 +6,7 @@ import { ILogService } from "src/base/common/logger";
 import { IS_MAC } from "src/base/common/platform";
 import { IFileService } from "src/code/platform/files/common/fileService";
 import { IEnvironmentService, IMainEnvironmentService } from "src/code/platform/environment/common/environment";
-import { IMainLifecycleService } from "src/code/platform/lifeCycle/electron/mainLifecycleService";
+import { IMainLifecycleService } from "src/code/platform/lifecycle/electron/mainLifecycleService";
 import { defaultDisplayState, IWindowConfiguration, IWindowDisplayOpts, WindowDisplayMode, WindowMinimumState, IWindowCreationOptions, ArgumentKey, DEFAULT_HTML } from "src/code/platform/window/common/window";
 import { IpcChannel } from "src/code/platform/ipc/common/channel";
 import { createIpcAccessible, IIpcAccessible } from "src/code/platform/host/common/hostService";

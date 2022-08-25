@@ -6,7 +6,7 @@ import { IFileService } from "src/code/platform/files/common/fileService";
 import { createDecorator } from "src/code/platform/instantiation/common/decorator";
 import { IEnvironmentService, IMainEnvironmentService } from "src/code/platform/environment/common/environment";
 import { DiskStorage, IDiskStorage } from "src/code/platform/files/common/diskStorage";
-import { IMainLifecycleService } from "src/code/platform/lifeCycle/electron/mainLifecycleService";
+import { IMainLifecycleService } from "src/code/platform/lifecycle/electron/mainLifecycleService";
 import { NOTA_DIR_NAME } from "src/code/platform/configuration/common/abstractConfigService";
 
 export const IMainStatusService = createDecorator<IMainStatusService>('status-service');

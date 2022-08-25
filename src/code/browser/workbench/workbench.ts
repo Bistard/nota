@@ -12,7 +12,7 @@ import { IConfigService } from "src/code/platform/configuration/common/abstractC
 import { BuiltInConfigScope } from "src/code/platform/configuration/common/configRegistrant";
 import { IHostService } from "src/code/platform/host/common/hostService";
 import { IThemeService } from "src/code/browser/service/theme/themeService";
-import { IBrowserLifecycleService, ILifecycleService } from "src/code/platform/lifeCycle/browser/browserLifecycleService";
+import { IBrowserLifecycleService, ILifecycleService } from "src/code/platform/lifecycle/browser/browserLifecycleService";
 
 /**
  * @class Workbench represents all the Components in the web browser.

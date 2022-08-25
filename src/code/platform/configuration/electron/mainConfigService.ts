@@ -5,7 +5,7 @@ import { ConfigCollection, ConfigCollectionOpts } from "src/code/platform/config
 import { BuiltInConfigScope, ConfigScope } from "src/code/platform/configuration/common/configRegistrant";
 import { IEnvironmentService } from "src/code/platform/environment/common/environment";
 import { IFileService } from "src/code/platform/files/common/fileService";
-import { IMainLifecycleService } from "src/code/platform/lifeCycle/electron/mainLifecycleService";
+import { IMainLifecycleService } from "src/code/platform/lifecycle/electron/mainLifecycleService";
 
 export class MainConfigService extends AbstractConfigService implements IConfigService {
 
