@@ -1,6 +1,7 @@
 import { ContextMenu, ContextMenuType, Coordinate, IContextMenu } from "src/base/browser/secondary/contextMenu/contextMenu";
 import { IComponentService } from "src/code/browser/service/componentService";
 import { IContextMenuService } from "src/code/browser/service/contextMenuService";
+import { IThemeService } from "src/code/browser/service/theme/themeService";
 const { clipboard } = require('electron')
 const electron = require('electron');
 
@@ -10,6 +11,7 @@ export class EditorContextMenu extends ContextMenu implements IContextMenu {
         coordinate: Coordinate,
         private readonly contextMenuService: IContextMenuService,
         @IComponentService componentService: IComponentService,
+        @IThemeService themeService: IThemeService,
     ) {
         super(
             ContextMenuType.actionBar, 
@@ -28,6 +30,7 @@ export class EditorContextMenu extends ContextMenu implements IContextMenu {
                 },
             ],
             componentService,
+            themeService,
         );
     }
 

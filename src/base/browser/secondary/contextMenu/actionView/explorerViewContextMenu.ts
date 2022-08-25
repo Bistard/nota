@@ -1,6 +1,7 @@
 import { ContextMenu, ContextMenuType, Coordinate, IContextMenu } from "src/base/browser/secondary/contextMenu/contextMenu";
 import { IComponentService } from "src/code/browser/service/componentService";
 import { IContextMenuService } from "src/code/browser/service/contextMenuService";
+import { IThemeService } from "src/code/browser/service/theme/themeService";
 
 
 export class ExplorerViewContextMenu extends ContextMenu implements IContextMenu {
@@ -9,6 +10,7 @@ export class ExplorerViewContextMenu extends ContextMenu implements IContextMenu
         coordinate: Coordinate,
         private readonly contextMenuService: IContextMenuService,
         @IComponentService componentService: IComponentService,
+        @IThemeService themeService: IThemeService,
     ) {
         super(
             ContextMenuType.explorerView,
@@ -24,7 +26,8 @@ export class ExplorerViewContextMenu extends ContextMenu implements IContextMenu
                 {id: 'rename', classes: ['menu-item'], text: 'Rename', role: 'normal'},
                 {id: 'delete', classes: ['menu-item'], text: 'Delete', role: 'normal'},
             ],
-            componentService
+            componentService,
+            themeService,
         );
     }
 

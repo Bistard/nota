@@ -1,6 +1,7 @@
 import { CONTEXT_MENU_ITEM_HEIGHT, CONTEXT_MENU_SEPERATOR_HEIGHT, CONTEXT_MENU_WIDTH, IMenuItem, IMenuItemOption, MenuItem } from "src/base/browser/secondary/contextMenu/menuItem";
 import { Dimension } from "src/base/common/util/size";
 import { IComponentService } from "src/code/browser/service/componentService";
+import { IThemeService } from "src/code/browser/service/theme/themeService";
 import { Component, IComponent } from "src/code/browser/workbench/component";
 
 export const enum ContextMenuType {
@@ -77,8 +78,9 @@ export abstract class ContextMenu extends Component implements IContextMenu {
                 coordinate: Coordinate,
                 menuItemOptions: IMenuItemOption[],
                 @IComponentService componentService: IComponentService,
+                @IThemeService themeService: IThemeService,
     ) {
-        super('context-menu', document.body, componentService);
+        super('context-menu', document.body, themeService, componentService);
         this.type = type;
         this._coordinate = coordinate;
         this._menuItemGroups = new Map();

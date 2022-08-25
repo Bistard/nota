@@ -25,19 +25,19 @@ export class ContextMenuService implements IContextMenuService {
     }
 
     private _initContextMenu(type: ContextMenuType, coordinate: Coordinate): void {
-        switch (type) {
-            case ContextMenuType.actionBar:
-                this._contextMenu = new ActionBarContextMenu(coordinate, this, this.componentService);
-                break;
-            case ContextMenuType.actionView:
-                break;
-            case ContextMenuType.explorerView:
-                this._contextMenu = new ExplorerViewContextMenu(coordinate, this, this.componentService);
-                break;
-            case ContextMenuType.editor:
-                this._contextMenu = new EditorContextMenu(coordinate, this, this.componentService);
-                break;
-        }
+        // switch (type) {
+        //     case ContextMenuType.actionBar:
+        //         this._contextMenu = new ActionBarContextMenu(coordinate, this, this.componentService);
+        //         break;
+        //     case ContextMenuType.actionView:
+        //         break;
+        //     case ContextMenuType.explorerView:
+        //         this._contextMenu = new ExplorerViewContextMenu(coordinate, this, this.componentService);
+        //         break;
+        //     case ContextMenuType.editor:
+        //         this._contextMenu = new EditorContextMenu(coordinate, this, this.componentService);
+        //         break;
+        // }
     }
 
     public createContextMenu(type: ContextMenuType, coordinate: Coordinate): void {

@@ -25,7 +25,7 @@ export class Workbench extends WorkbenchLayout implements IWorkbenchService {
         @IHostService private readonly hostService: IHostService,
         @IThemeService themeService: IThemeService,
     ) {
-        super(instantiationService, themeService, componentService);
+        super(instantiationService, componentService, themeService);
     }
 
     public init(): void {
