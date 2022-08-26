@@ -32,6 +32,7 @@ export class Workbench extends WorkbenchLayout implements IWorkbenchService {
     }
 
     public init(): void {
+        // initialization services
         this.initServices();
         
         // create each UI part of the workbench
@@ -39,6 +40,8 @@ export class Workbench extends WorkbenchLayout implements IWorkbenchService {
 
         // register all the relavent listeners
         this.registerListeners();
+
+        // once everything is done we layout the workbench
         this.layout();
     }
 

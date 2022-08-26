@@ -2,7 +2,6 @@
 .split-view {
     position: relative;
     background-color: none;
-    
     width: 100%;
     height: 100%;
 }
@@ -11,7 +10,6 @@
     position: absolute;
     width: 100%;
     height: 100%;
-
 }
 
 .split-view > .sash-container {

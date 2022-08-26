@@ -1,4 +1,4 @@
-import { workbenchDefaultShortcutRegistrations } from "src/code/browser/service/workbench/workbench.register";
+import { workbenchDefaultShortcutRegistrations } from "src/code/browser/service/workbench/shortcut.register";
 import { IInstantiationService } from "src/code/platform/instantiation/common/instantiation";
 import { IBrowserLifecycleService, ILifecycleService, LifecyclePhase } from "src/code/platform/lifecycle/browser/browserLifecycleService";
 

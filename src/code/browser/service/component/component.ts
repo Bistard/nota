@@ -46,13 +46,17 @@ export interface IComponent extends ICreateable {
 
     /**
      * @description Renders the component itself.
-     * @param parent If provided, the component will be rendered under the parent 
-     * component (if the constructor did not provide a specific parent element).
-     * 
-     * @note If not provided, either renders under the constructor provided 
+     * @param parentComponent If provided, the component will be registered 
+     *                        under this component. If no parentElement is 
+     *                        provided, the component will be rendered under 
+     *                        this parent component.
+     * @param parentElement If provided, the component will be rendered under
+     *                      this parent element (will override the constructor 
+     *                      provided ones and parentComponent ones).
+     * @note If both not provided, either renders under the constructor provided 
      * element, or `document.body`.
      */
-    create(parent?: Component): void;
+    create(parentComponent?: Component, parentElement?: HTMLElement): void;
 
     /**
      * @description Layout the component to the given dimension.
@@ -171,7 +175,7 @@ export abstract class Component extends Themable implements IComponent {
     constructor(id: string, 
                 parentElement: HTMLElement | null,
                 themeService: IThemeService,
-                @IComponentService protected readonly componentService: IComponentService,
+                componentService: IComponentService,
     ) {
         super(themeService);
 
@@ -180,7 +184,7 @@ export abstract class Component extends Themable implements IComponent {
         if (parentElement) {
             this._parent = parentElement;
         }
-        this.componentService.register(this);
+        componentService.register(this);
     }
 
     // [getter]
@@ -216,21 +220,18 @@ export abstract class Component extends Themable implements IComponent {
 
     // [public method]
 
-    public create(parent?: Component): void {
+    public create(parentComponent?: Component, parentElement?: HTMLElement): void {
         if (this._created || this.isDisposed()) {
             return; 
         }
 
-        if (parent) {
-            this._parentComponent = parent;
-            parent.registerComponent(this);
-            if (!this._parent) {
-                this._parent = parent.element.element;
-            }
-            this._parent.appendChild(this._element.element);
-        } else {
-            document.body.appendChild(this._element.element);
+        if (parentComponent) {
+            this._parentComponent = parentComponent;
+            parentComponent.registerComponent(this);
         }
+
+        this._parent = parentElement ? parentElement : ((parentComponent?.element.element ?? this._parent) ?? document.body);
+        this._parent.appendChild(this._element.element);
         
         this._createContent();
         this._created = true;

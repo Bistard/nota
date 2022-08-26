@@ -262,7 +262,6 @@ export class SplitView extends Disposable implements ISplitView {
             sash.onDidMove(e => this.__onDidSashMove(e, sash));
             sash.onDidReset(() => {
                 const index = this.sashItems.indexOf(sash);
-                this.swapView(1, 2);
                 this._onDidSashReset.fire(index);
             });
 
