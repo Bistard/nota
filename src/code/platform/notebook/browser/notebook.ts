@@ -3,6 +3,7 @@ import { ITreeSpliceEvent } from "src/base/browser/secondary/tree/tree";
 import { Disposable } from "src/base/common/dispose";
 import { Emitter, Register } from "src/base/common/event";
 import { URI } from "src/base/common/file/uri";
+import { ILogService } from "src/base/common/logger";
 import { ExplorerChildrenProvider, ExplorerItem, ExplorerItemProvider } from "src/code/browser/workbench/actionView/explorer/explorerItem";
 import { ExplorerRenderer } from "src/code/browser/workbench/actionView/explorer/explorerRenderer";
 import { ExplorerTree, IExplorerOpenEvent, IExplorerTree } from "src/code/browser/workbench/actionView/explorer/explorerTree";
@@ -155,6 +156,7 @@ export class Notebook extends Disposable implements INotebook {
     constructor(
         container: HTMLElement,
         private fileService: IFileService,
+        private logService: ILogService,
         opts: INotebookOptions = {},
     ) {
         super();
@@ -177,6 +179,7 @@ export class Notebook extends Disposable implements INotebook {
     public async init(root: URI): Promise<boolean> {
         
         try {
+            // FIX: stat has an issue
             const rootStat = await this.fileService.stat(root, { resolveChildren: true });
             this._root = new ExplorerItem(rootStat);
             await this.__createTree(this._container, this._root);
@@ -186,8 +189,9 @@ export class Notebook extends Disposable implements INotebook {
             this.__resolveState(true);
         }
         
-        catch (err) {
+        catch (error: any) {
             this.__resolveState(false);
+            this.logService.error(error);
             return false;
         }
 

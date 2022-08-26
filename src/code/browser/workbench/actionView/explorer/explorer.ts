@@ -13,6 +13,7 @@ import { IConfigService } from 'src/code/platform/configuration/common/abstractC
 import { BuiltInConfigScope } from 'src/code/platform/configuration/common/configRegistrant';
 import { IBrowserDialogService, IDialogService } from 'src/code/platform/dialog/browser/browserDialogService';
 import { IThemeService } from 'src/code/browser/service/theme/themeService';
+import { ILogService } from 'src/base/common/logger';
 
 export const IExplorerViewService = createDecorator<IExplorerViewService>('explorer-view-service');
 
@@ -75,6 +76,7 @@ export class ExplorerViewComponent extends Component implements IExplorerViewSer
                 @Ii18nService private readonly i18nService: Ii18nService,
                 @INotebookGroupService private readonly notebookGroupService: INotebookGroupService,
                 @IEditorService private readonly editorService: IEditorService,
+                @ILogService private readonly logService: ILogService,
     ) {
         super(ComponentType.ExplorerView, parentElement, themeService, componentService);
     }
@@ -187,13 +189,13 @@ export class ExplorerViewComponent extends Component implements IExplorerViewSer
         // check `.nota` folder and try to update the local user configuration
         // await this.userConfigService.validateLocalUserDirectory(path, defaultConfigOn);
         
-        this.__destroyUnopenedExplorerView();
-
         // open the directory under the notebook manager
         try {
             await this.notebookGroupService.open(this._openedView, path);
-        } catch (err) {
-            // logService.trace(err);
+            this.__destroyUnopenedExplorerView();
+        } catch (error: any) {
+            this.logService.error(error);
+            throw error;
         }
 
         this.element.appendChild(this._openedView);

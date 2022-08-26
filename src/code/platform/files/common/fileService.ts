@@ -126,7 +126,7 @@ export class FileService extends Disposable implements IFileService {
     public async stat(uri: URI, opts?: IResolveStatOptions): Promise<IResolvedFileStat> {
         const provider = await this.__getProvider(uri);
         const stat = await provider.stat(uri);
-        return this.__resolveStat(uri, provider, stat, null, opts);
+        return this.__resolveStat(uri, provider, stat, opts);
     }
 
     public async readFile(uri: URI, opts?: IReadFileOptions): Promise<DataBuffer> {
@@ -464,7 +464,6 @@ export class FileService extends Disposable implements IFileService {
         uri: URI, 
         provider: IFileSystemProvider, 
         stat: IFileStat, 
-        parentStat: IResolvedFileStat | null = null,
         opts?: IResolveStatOptions
     ): Promise<IResolvedFileStat> {
         
@@ -474,7 +473,6 @@ export class FileService extends Disposable implements IFileService {
             name: basename(URI.toFsPath(uri)),
             uri: uri,
             readonly: stat.readonly || Boolean(provider.capabilities & FileSystemProviderCapability.Readonly),
-            parent: parentStat,
             children: undefined
         };
 
@@ -486,7 +484,7 @@ export class FileService extends Disposable implements IFileService {
                 try {
                     const childUri = URI.fromFile(join(URI.toFsPath(uri), name));
                     const childStat = await provider.stat(childUri);
-                    return await this.__resolveStat(childUri, provider, childStat, resolved, { resolveChildren: opts.resolveChildrenRecursive });
+                    return await this.__resolveStat(childUri, provider, childStat, { resolveChildren: opts.resolveChildrenRecursive });
                 } catch (err) {
                     // this.logService.trace(err);
                     return null;

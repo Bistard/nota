@@ -15,6 +15,7 @@ import { createDecorator } from "src/code/platform/instantiation/common/decorato
 import { IConfigService, NOTA_DIR_NAME } from "src/code/platform/configuration/common/abstractConfigService";
 import { BuiltInConfigScope } from "src/code/platform/configuration/common/configRegistrant";
 import { IBrowserLifecycleService, ILifecycleService } from "src/code/platform/lifecycle/browser/browserLifecycleService";
+import { ILogService } from "src/base/common/logger";
 
 export const INotebookGroupService = createDecorator<INotebookGroupService>('notebook-manager-service');
 
@@ -101,6 +102,7 @@ export class NotebookGroup extends Disposable implements INotebookGroupService {
 
     constructor(
         @IFileService private readonly fileService: IFileService,
+        @ILogService private readonly logService: ILogService,
         @IConfigService private readonly configService: IConfigService,
         @ILifecycleService lifecycleService: IBrowserLifecycleService,
     ) {
@@ -153,7 +155,7 @@ export class NotebookGroup extends Disposable implements INotebookGroupService {
              */
             let notebook: Notebook | undefined;
             
-            const ifOpenPrevious = !!previousOpenedDirctory && (notebooks.indexOf(previousOpenedDirctory) !== -1);
+            const ifOpenPrevious = previousOpenedDirctory && (notebooks.indexOf(previousOpenedDirctory) !== -1);
             if (ifOpenPrevious) {
                 notebook = await this.__switchOrCreateNotebook(container, path, previousOpenedDirctory);
             } else {
@@ -236,7 +238,7 @@ export class NotebookGroup extends Disposable implements INotebookGroupService {
         
         // notebook not in the memory, we create a notebook.
         else {
-            notebook = new Notebook(container, this.fileService);
+            notebook = new Notebook(container, this.fileService, this.logService);
             this._group.set(name, notebook);
             
             // start building the whole notebook asynchronously.
