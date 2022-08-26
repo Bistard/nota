@@ -44,13 +44,13 @@ export class Workbench extends WorkbenchLayout implements IWorkbenchService {
 
     protected initServices(): void {
 
-        /** {@link Workbench} (self registration) */
+        // workbench-service
         this.instantiationService.register(IWorkbenchService, this);
 
-        /** {@link ContextMenuService} */
+        // @deprecated
         this.instantiationService.register(IContextMenuService, new ServiceDescriptor(ContextMenuService));
 
-        /** {@link NotebookGroup} */
+        // @need-refactor
         this.instantiationService.register(INotebookGroupService, new ServiceDescriptor(NotebookGroup));
     }
 

@@ -14,6 +14,7 @@ import { BuiltInConfigScope } from 'src/code/platform/configuration/common/confi
 import { IBrowserDialogService, IDialogService } from 'src/code/platform/dialog/browser/browserDialogService';
 import { IThemeService } from 'src/code/browser/service/theme/themeService';
 import { ILogService } from 'src/base/common/logger';
+import { IWorkbenchService } from 'src/code/browser/service/workbench/workbenchService';
 
 export const IExplorerViewService = createService<IExplorerViewService>('explorer-view-service');
 
@@ -77,6 +78,7 @@ export class ExplorerViewComponent extends Component implements IExplorerViewSer
                 @INotebookGroupService private readonly notebookGroupService: INotebookGroupService,
                 @IEditorService private readonly editorService: IEditorService,
                 @ILogService private readonly logService: ILogService,
+                @IWorkbenchService private readonly workbenchService: IWorkbenchService,
     ) {
         super(ComponentType.ExplorerView, parentElement, themeService, componentService);
     }
@@ -124,12 +126,16 @@ export class ExplorerViewComponent extends Component implements IExplorerViewSer
             });
         }));
 
-        /**
-         * Opens in the editor.
-         */
+        // on openning file
         this.__register(this.notebookGroupService.onOpen(e => {
             this.editorService.openEditor(e.item.uri);
         }));
+
+        /**
+         * The tree model of the tree-service requires the correct height thus 
+         * we need to update it everytime we are resizing.
+         */
+        this.workbenchService.onDidLayout(() => this.notebookGroupService.layout());
     }
 
     // [public method]
