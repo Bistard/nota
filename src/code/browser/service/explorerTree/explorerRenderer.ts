@@ -2,7 +2,7 @@ import { ITreeNode } from "src/base/browser/secondary/tree/tree";
 import { ITreeListRenderer } from "src/base/browser/secondary/tree/treeListRenderer";
 import { IListViewMetadata, RendererType } from "src/base/browser/secondary/listView/listRenderer";
 import { FuzzyScore } from "src/base/common/fuzzy";
-import { ExplorerItem, ExplorerItemProvider } from "src/code/browser/workbench/actionView/explorer/explorerItem";
+import { ExplorerItem, ExplorerItemProvider } from "src/code/browser/service/explorerTree/explorerItem";
 import { Icons } from "src/base/browser/icon/icons";
 import { getIconClass } from "src/base/browser/icon/iconRegistry";
 

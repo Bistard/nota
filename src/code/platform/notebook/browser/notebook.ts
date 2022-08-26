@@ -4,9 +4,9 @@ import { Disposable } from "src/base/common/dispose";
 import { Emitter, Register } from "src/base/common/event";
 import { URI } from "src/base/common/file/uri";
 import { ILogService } from "src/base/common/logger";
-import { ExplorerChildrenProvider, ExplorerItem, ExplorerItemProvider } from "src/code/browser/workbench/actionView/explorer/explorerItem";
-import { ExplorerRenderer } from "src/code/browser/workbench/actionView/explorer/explorerRenderer";
-import { ExplorerTree, IExplorerOpenEvent, IExplorerTree } from "src/code/browser/workbench/actionView/explorer/explorerTree";
+import { ExplorerChildrenProvider, ExplorerItem, ExplorerItemProvider } from "src/code/browser/service/explorerTree/explorerItem";
+import { ExplorerRenderer } from "src/code/browser/service/explorerTree/explorerRenderer";
+import { FolderTree, IExplorerOpenEvent, IFolderTree } from "src/code/browser/service/folderTree/folderTree";
 import { IFileService } from "src/code/platform/files/common/fileService";
 
 /**
@@ -128,7 +128,7 @@ export class Notebook extends Disposable implements INotebook {
     // [field]
 
     private _root!: ExplorerItem;
-    private _tree!: IExplorerTree<ExplorerItem, void>;
+    private _tree!: IFolderTree<ExplorerItem, void>;
 
     /**
      * The container of the whole notebook.
@@ -242,7 +242,7 @@ export class Notebook extends Disposable implements INotebook {
      */
     private async __createTree(container: HTMLElement, root: ExplorerItem): Promise<void> {
 
-        const [tree, treeCreationPromise] = ExplorerTree.create1<ExplorerItem, void>(
+        const [tree, treeCreationPromise] = FolderTree.create1<ExplorerItem, void>(
             container, 
             root,
             [new ExplorerRenderer()], 
