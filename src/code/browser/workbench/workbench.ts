@@ -9,6 +9,9 @@ import { IKeyboardScreenCastService } from "src/code/browser/service/keyboard/ke
 import { IConfigService } from "src/code/platform/configuration/common/abstractConfigService";
 import { BuiltInConfigScope } from "src/code/platform/configuration/common/configRegistrant";
 import { IThemeService } from "src/code/browser/service/theme/themeService";
+import { IActionBarService } from "src/code/browser/workbench/actionBar/actionBar";
+import { IActionViewService } from "src/code/browser/workbench/actionView/actionView";
+import { IWorkspaceService } from "src/code/browser/workbench/workspace/workspace";
 
 /**
  * @class Workbench represents all the Components in the web browser.
@@ -21,8 +24,11 @@ export class Workbench extends WorkbenchLayout implements IWorkbenchService {
         @IConfigService private readonly configService: IConfigService,
         @IComponentService componentService: IComponentService,
         @IThemeService themeService: IThemeService,
+        @IActionBarService actionBarService: IActionBarService,
+        @IActionViewService actionViewService: IActionViewService,
+        @IWorkspaceService workspaceService: IWorkspaceService,
     ) {
-        super(parent, instantiationService, componentService, themeService);
+        super(parent, instantiationService, componentService, themeService, actionBarService, actionViewService, workspaceService);
     }
 
     public init(): void {

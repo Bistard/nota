@@ -10,8 +10,6 @@ import { getIconClass } from 'src/base/browser/icon/iconRegistry';
 import { Icons } from 'src/base/browser/icon/icons';
 import { Ii18nService } from 'src/code/platform/i18n/i18n';
 import { Section } from 'src/code/platform/section';
-import { registerSingleton } from 'src/code/platform/instantiation/common/serviceCollection';
-import { ServiceDescriptor } from 'src/code/platform/instantiation/common/descriptor';
 import { IThemeService } from 'src/code/browser/service/theme/themeService';
 
 export const IActionViewService = createDecorator<IActionViewService>('action-view-service');
@@ -66,7 +64,6 @@ export class ActionViewComponent extends Component implements IActionViewService
     private actionViewContentContainer!: HTMLElement;
 
     private _currentViewType: ActionType;
-    private _defaultViewType: ActionType;
 
     private _components: Map<string, IActionViewComponent>;
 
@@ -79,16 +76,14 @@ export class ActionViewComponent extends Component implements IActionViewService
     
     // [constructor]
 
-    constructor(defaultView: ActionType, // REVIEW: should not be in ctor
-                @Ii18nService private readonly i18nService: Ii18nService,
-                @IInstantiationService private readonly instantiationService: IInstantiationService,
-                @IComponentService componentService: IComponentService,
-                @IThemeService themeService: IThemeService,
+    constructor(
+        @Ii18nService private readonly i18nService: Ii18nService,
+        @IInstantiationService private readonly instantiationService: IInstantiationService,
+        @IComponentService componentService: IComponentService,
+        @IThemeService themeService: IThemeService,
     ) {
         super(ComponentType.ActionView, null, themeService, componentService);
-        
-        this._defaultViewType = defaultView;
-        this._currentViewType = ActionType.NONE; // TODO: read from config
+        this._currentViewType = ActionType.EXPLORER; // TODO: read from config
         this._components = new Map();
     }
 
@@ -114,7 +109,7 @@ export class ActionViewComponent extends Component implements IActionViewService
         this.actionViewTitlePart = this.__register(new ExplorerTitlePart(this.i18nService)); // TODO
         this.actionViewTitlePart.render(this.actionViewContentContainer);
 
-        this.__switchToActionView(this._defaultViewType);
+        this.__switchToActionView(this._currentViewType);
         
         // render them
         this.contentArea.appendChild(this.actionViewContentContainer);
@@ -289,5 +284,3 @@ export class ExplorerTitlePart extends ActionViewTitlePart {
     }
 
 }
-
-registerSingleton(IActionViewService, new ServiceDescriptor(ActionViewComponent));

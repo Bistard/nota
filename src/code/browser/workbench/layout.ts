@@ -2,10 +2,10 @@ import { ISashEvent, Sash } from "src/base/browser/basic/sash/sash";
 import { addDisposableListener, DomUtility, EventType, Orientation } from "src/base/common/dom";
 import { IComponentService } from "src/code/browser/service/component/componentService";
 import { IThemeService } from "src/code/browser/service/theme/themeService";
-import { ActionBarComponent, ActionType } from "src/code/browser/workbench/actionBar/actionBar";
-import { ActionViewComponent } from "src/code/browser/workbench/actionView/actionView";
+import { ActionBarComponent, IActionBarService } from "src/code/browser/workbench/actionBar/actionBar";
+import { ActionViewComponent, IActionViewService } from "src/code/browser/workbench/actionView/actionView";
 import { Component, ComponentType, IComponent } from "src/code/browser/service/component/component";
-import { WorkspaceComponent } from "src/code/browser/workbench/workspace/workspace";
+import { IWorkspaceService } from "src/code/browser/workbench/workspace/workspace";
 import { IInstantiationService } from "src/code/platform/instantiation/common/instantiation";
 
 /**
@@ -16,10 +16,6 @@ export abstract class WorkbenchLayout extends Component {
 
     // [fields]
 
-    protected actionBar!: ActionBarComponent;
-    protected actionView!: ActionViewComponent;
-    protected workspace!: WorkspaceComponent;
-    
     // TODO: refactor using SplitView
     protected sashContainer: HTMLElement | undefined;
     protected sashMap = new Map<string, Sash>();
@@ -31,6 +27,9 @@ export abstract class WorkbenchLayout extends Component {
         protected readonly instantiationService: IInstantiationService,
         @IComponentService componentService: IComponentService,
         @IThemeService themeService: IThemeService,
+        @IActionBarService private readonly actionBarService: IActionBarService,
+        @IActionViewService private readonly actionViewService: IActionViewService,
+        @IWorkspaceService private readonly workspaceService: IWorkspaceService,
     ) {
         super(ComponentType.Workbench, parent, themeService, componentService);
     }
@@ -52,14 +51,10 @@ export abstract class WorkbenchLayout extends Component {
         /**
          * Constructs each component of the workbench.
          */
-        this.actionBar = this.instantiationService.createInstance(ActionBarComponent);
-        this.actionView = this.instantiationService.createInstance(ActionViewComponent, ActionType.EXPLORER /* // TODO: should read from config */);
-        this.workspace = this.instantiationService.createInstance(WorkspaceComponent);
-        
         [
-            this.actionBar,
-            this.actionView,
-            this.workspace
+            this.actionBarService,
+            this.actionViewService,
+            this.workspaceService
         ]
         .forEach((component: IComponent) => {
             component.create(this);
@@ -80,8 +75,8 @@ export abstract class WorkbenchLayout extends Component {
          * @readonly Listens to each ActionBar button click events and notifies 
          * the actionView to swtich the view.
          */
-        this.actionBar.onDidButtonClick(e => {
-            this.actionView.setActionView(e.type);
+        this.actionBarService.onDidButtonClick(e => {
+            this.actionViewService.setActionView(e.type);
         });
 
         /**
@@ -91,13 +86,13 @@ export abstract class WorkbenchLayout extends Component {
         const sash = this.sashMap.get('sash-1')!;
         sash.onDidMove((e: ISashEvent) => {
             const newX = e.currentX - ActionBarComponent.width;
-            this.actionView.element.setWidth(newX);
-            this.actionView.element.setMinWidth(newX);
+            this.actionViewService.element.setWidth(newX);
+            this.actionViewService.element.setMinWidth(newX);
         });
 
         sash.onDidReset(() => {
-            this.actionView.element.setWidth(ActionViewComponent.width);
-            this.actionView.element.setMinWidth(ActionViewComponent.width);
+            this.actionViewService.element.setWidth(ActionViewComponent.width);
+            this.actionViewService.element.setMinWidth(ActionViewComponent.width);
         });
     }
 

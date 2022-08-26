@@ -3,8 +3,6 @@ import { Component, ComponentType, IComponent } from "src/code/browser/service/c
 import { MarkdownComponent } from "src/code/browser/workbench/workspace/markdown/markdown";
 import { TitleBarComponent } from "src/code/browser/workbench/workspace/titleBar/titleBar";
 import { createDecorator } from "src/code/platform/instantiation/common/decorator";
-import { registerSingleton } from "src/code/platform/instantiation/common/serviceCollection";
-import { ServiceDescriptor } from "src/code/platform/instantiation/common/descriptor";
 import { IInstantiationService } from "src/code/platform/instantiation/common/instantiation";
 import { EditorComponent, IEditorService } from "src/code/browser/workbench/workspace/editor/editor";
 import { IThemeService } from "src/code/browser/service/theme/themeService";
@@ -82,5 +80,3 @@ export class WorkspaceComponent extends Component implements IWorkspaceService {
     }
 
 }
-
-registerSingleton(IWorkspaceService, new ServiceDescriptor(WorkspaceComponent));

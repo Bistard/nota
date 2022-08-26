@@ -217,7 +217,7 @@ export abstract class Component extends Themable implements IComponent {
     // [public method]
 
     public create(parent?: Component): void {
-        if (this.isDisposed() || this._created) {
+        if (this._created || this.isDisposed()) {
             return; 
         }
 
