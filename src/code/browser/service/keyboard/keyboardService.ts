@@ -1,10 +1,10 @@
 import { DisposableManager, IDisposable } from "src/base/common/dispose";
 import { EventType } from "src/base/common/dom";
-import { createDecorator } from "src/code/platform/instantiation/common/decorator";
+import { createService } from "src/code/platform/instantiation/common/decorator";
 import { DomEmitter, Event, Register } from "src/base/common/event";
 import { createStandardKeyboardEvent, IStandardKeyboardEvent } from "src/base/common/keyboard";
 
-export const IKeyboardService = createDecorator<IKeyboardService>('keyboard-service');
+export const IKeyboardService = createService<IKeyboardService>('keyboard-service');
 
 export interface IKeyboardService {
     

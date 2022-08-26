@@ -89,6 +89,7 @@ export class ExplorerItem implements IExplorerItem {
 
     /** stores all the info about the target. */
     private _stat: IResolvedFileStat;
+    private _parent: ExplorerItem | null = null;
 
     /** if the item encounters an error. */
     private _inError: boolean = false;
@@ -113,7 +114,7 @@ export class ExplorerItem implements IExplorerItem {
 
     get modifyTime(): number { return this._stat.modifyTime; }
 
-    get parent(): ExplorerItem | null { return this._stat.parent ? new ExplorerItem(this._stat) : null; }
+    get parent(): ExplorerItem | null { return this._parent; }
 
     get children(): ExplorerItem[] { return [...this._stat.children ?? Iterable.empty()].map(childStat => new ExplorerItem(childStat)); }
 

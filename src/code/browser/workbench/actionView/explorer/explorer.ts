@@ -1,8 +1,8 @@
-import { Component, ComponentType, IComponent } from 'src/code/browser/workbench/component';
+import { Component, ComponentType, IComponent } from 'src/code/browser/service/component/component';
 import { Emitter, Register } from 'src/base/common/event';
 import { INotebookGroupService } from 'src/code/platform/notebook/electron/notebookGroup';
-import { IComponentService } from 'src/code/browser/service/componentService';
-import { createDecorator } from 'src/code/platform/instantiation/common/decorator';
+import { IComponentService } from 'src/code/browser/service/component/componentService';
+import { createService } from 'src/code/platform/instantiation/common/decorator';
 import { Ii18nService } from 'src/code/platform/i18n/i18n';
 import { Section } from 'src/code/platform/section';
 import { registerSingleton } from 'src/code/platform/instantiation/common/serviceCollection';
@@ -12,8 +12,11 @@ import { IEditorService } from 'src/code/browser/workbench/workspace/editor/edit
 import { IConfigService } from 'src/code/platform/configuration/common/abstractConfigService';
 import { BuiltInConfigScope } from 'src/code/platform/configuration/common/configRegistrant';
 import { IBrowserDialogService, IDialogService } from 'src/code/platform/dialog/browser/browserDialogService';
+import { IThemeService } from 'src/code/browser/service/theme/themeService';
+import { ILogService } from 'src/base/common/logger';
+import { IWorkbenchService } from 'src/code/browser/service/workbench/workbenchService';
 
-export const IExplorerViewService = createDecorator<IExplorerViewService>('explorer-view-service');
+export const IExplorerViewService = createService<IExplorerViewService>('explorer-view-service');
 
 /**
  * An interface only for {@link ExplorerViewComponent}.
@@ -68,13 +71,16 @@ export class ExplorerViewComponent extends Component implements IExplorerViewSer
 
     constructor(parentElement: HTMLElement,
                 @IComponentService componentService: IComponentService,
+                @IThemeService themeService: IThemeService,
                 @IConfigService private readonly configService: IConfigService,
                 @IDialogService private readonly dialogService: IBrowserDialogService,
                 @Ii18nService private readonly i18nService: Ii18nService,
                 @INotebookGroupService private readonly notebookGroupService: INotebookGroupService,
                 @IEditorService private readonly editorService: IEditorService,
+                @ILogService private readonly logService: ILogService,
+                @IWorkbenchService private readonly workbenchService: IWorkbenchService,
     ) {
-        super(ComponentType.ExplorerView, parentElement, componentService);
+        super(ComponentType.ExplorerView, parentElement, themeService, componentService);
     }
 
     // [protected overrdie method]
@@ -108,23 +114,28 @@ export class ExplorerViewComponent extends Component implements IExplorerViewSer
          */
         const tag = this._unopenedView.children[0]!; // REVIEW: set as class field
         this.__register(addDisposableListener(tag, EventType.click, () => {
-            // this.ipcService.openDirectoryDialog(this._globalConfig.previousNotebookManagerDir);
+        
+            /**
+             * Once the directory dialog chosed a path to open, we get the message 
+             * and open it.
+             */
+            this.dialogService.openDirectoryDialog({ title: 'open a directory' }).then(path => {
+                if (path.length > 0) {
+                    this.__createOpenedExplorerView(path.at(-1)!, false);
+                }
+            });
         }));
 
-        /**
-         * once the directory dialog chosed a path to open, we get the message 
-         * and open it.
-         */
-        this.dialogService.openDirectoryDialog({ title: 'open a directory' }).then(path => {
-            this.__createOpenedExplorerView(path[0]!, false);            
-        });
-
-        /**
-         * Opens in the editor.
-         */
+        // on openning file
         this.__register(this.notebookGroupService.onOpen(e => {
             this.editorService.openEditor(e.item.uri);
         }));
+
+        /**
+         * The tree model of the tree-service requires the correct height thus 
+         * we need to update it everytime we are resizing.
+         */
+        this.workbenchService.onDidLayout(() => this.notebookGroupService.layout());
     }
 
     // [public method]
@@ -143,13 +154,13 @@ export class ExplorerViewComponent extends Component implements IExplorerViewSer
     private __createUnopenedExplorerView(): void {
         
         // prevent double append
-        if (!this._opened && this.container.hasChildNodes()) {
+        if (!this._opened && this.element.element.hasChildNodes()) {
             return;
         }
 
         this.__destroyOpenedExplorerView();
 
-        this.container.appendChild(this._unopenedView);
+        this.element.appendChild(this._unopenedView);
         this._opened = false;
     }
 
@@ -158,8 +169,8 @@ export class ExplorerViewComponent extends Component implements IExplorerViewSer
      * `destroy`.
      */
     private __destroyUnopenedExplorerView(): void {
-        if (!this._opened && this.container.hasChildNodes()) {
-            this.container.removeChild(this._unopenedView);
+        if (!this._opened && this.element.element.hasChildNodes()) {
+            this.element.removeChild(this._unopenedView);
         }
     }
 
@@ -184,16 +195,16 @@ export class ExplorerViewComponent extends Component implements IExplorerViewSer
         // check `.nota` folder and try to update the local user configuration
         // await this.userConfigService.validateLocalUserDirectory(path, defaultConfigOn);
         
-        this.__destroyUnopenedExplorerView();
-
         // open the directory under the notebook manager
         try {
             await this.notebookGroupService.open(this._openedView, path);
-        } catch (err) {
-            // logService.trace(err);
+            this.__destroyUnopenedExplorerView();
+        } catch (error: any) {
+            this.logService.error(error);
+            throw error;
         }
 
-        this.container.appendChild(this._openedView);
+        this.element.appendChild(this._openedView);
         
         /**
          * Since the `this._openedView` is added into the DOM tree, we now can
@@ -211,7 +222,7 @@ export class ExplorerViewComponent extends Component implements IExplorerViewSer
      */
     private __destroyOpenedExplorerView(): void {
         if (this._opened) {
-            this.container.removeChild(this._openedView);
+            this.element.removeChild(this._openedView);
         }
     }
 

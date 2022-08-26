@@ -1,9 +1,9 @@
 import { Icons } from "src/base/browser/icon/icons";
 import { WidgetBar } from "src/base/browser/secondary/widgetBar/widgetBar";
 import { Orientation } from "src/base/common/dom";
-import { IpcChannel } from "src/base/common/ipcChannel";
-import { IComponentService } from "src/code/browser/service/componentService";
-import { Component } from "src/code/browser/workbench/component";
+import { IComponentService } from "src/code/browser/service/component/componentService";
+import { IThemeService } from "src/code/browser/service/theme/themeService";
+import { Component } from "src/code/browser/service/component/component";
 import { TitleBarComponentType } from "src/code/browser/workbench/workspace/titleBar/titleBar";
 import { WindowButton } from "src/code/browser/workbench/workspace/titleBar/windowButton";
 import { IHostService } from "src/code/platform/host/common/hostService";
@@ -15,18 +15,19 @@ export class WindowBarComponent extends Component {
     constructor(
         @IComponentService componentService: IComponentService,
         @IHostService private readonly hostService: IHostService,
+        @IThemeService themeService: IThemeService,
     ) {
-        super(TitleBarComponentType.windowBar, null, componentService);
+        super(TitleBarComponentType.windowBar, null, themeService, componentService);
 
     }
 
     protected override _createContent(): void {
         
-        this._widgetBar = this.__register(this._createWidgetBar(this.container));
+        this._widgetBar = this.__register(this.__createWidgetBar(this.element.element));
         
     }
 
-    protected _createWidgetBar(container: HTMLElement): WidgetBar<WindowButton> {
+    protected __createWidgetBar(container: HTMLElement): WidgetBar<WindowButton> {
         
         // constructs a new widgetBar
         const widgetBar = new WidgetBar<WindowButton>(container, {
@@ -35,22 +36,23 @@ export class WindowBarComponent extends Component {
         
         // creates all the window buttons
         [
-            {id: 'min-btn', icon: Icons.Minus, message: IpcChannel.WindowMinimize, classes: []},
-            {id: 'max-btn', icon: Icons.Square, message: IpcChannel.WindowRestore, classes: []},
-            {id: 'close-btn', icon: Icons.Cross, message: IpcChannel.WindowClose, classes: ['closeToggleBtn']},
+            {id: 'min-btn', icon: Icons.Minus, classes: [], fn: () => this.hostService.minimizeWindow()},
+            {id: 'max-btn', icon: Icons.Square, classes: [], fn: () => this.hostService.toggleMaximizeWindow()},
+            {id: 'close-btn', icon: Icons.Cross, classes: ['closeToggleBtn'], fn: () => this.hostService.closeWindow()},
         ]
-        .forEach(( {id, icon, message, classes} ) => {
+        .forEach(( { id, icon, classes, fn } ) => {
             const button = new WindowButton({
                 icon: icon, 
                 classes: classes, 
-                ipcMessage: message
             });
+            button.onDidClick(fn);
+
             widgetBar.addItem({
                 id: id,
                 item: button,
                 dispose: button.dispose
             });
-        })
+        });
 
         return widgetBar;
     }
@@ -79,6 +81,5 @@ export class WindowBarComponent extends Component {
         //     maxBtnImg.src = getSvgPathByName(SvgType.base, 'max');
         // }
     }
-
 }
 

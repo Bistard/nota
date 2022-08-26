@@ -60,11 +60,6 @@ export interface IResolvedFileStat extends IFileStat {
 	readonly readonly: boolean;
 
 	/**
-	 * The parent of the target.
-	 */
-	parent: IResolvedFileStat | null;
-
-	/**
 	 * The direct children of the target.
 	 */
 	children?: Iterable<IResolvedFileStat>;

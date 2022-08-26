@@ -12,13 +12,13 @@ export interface IButton extends IWidget {
     // TODO
     enabled: boolean;
 
-    onDidClick: Register<Event>;
+    onDidClick: Register<MouseEvent>;
 }
 
 export class Button extends Widget implements IButton {
     
     /* Events */
-    protected readonly _onDidClick = this.__register( new Emitter<Event>() );
+    protected readonly _onDidClick = this.__register( new Emitter<MouseEvent>() );
     public readonly onDidClick = this._onDidClick.registerListener;
 
     public opts: IButtonOptions | undefined;
@@ -50,15 +50,19 @@ export class Button extends Widget implements IButton {
     public override render(container: HTMLElement): void {
         super.render(container);
 
-        this._registerListeners();
+        this.__registerListeners();
     }
 
-    protected _registerListeners(): void {
+    private __registerListeners(): void {
 
-        // left click event
-        this.onClick(this._element!, (e) => {
+        // click event
+        this.__register(this.onClick(this._element!, (e) => {
+            if (this.enabled === false) {
+                return;
+            }
+
             this._onDidClick.fire(e);
-        });
+        }));
 
     }
 }

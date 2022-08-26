@@ -2,13 +2,13 @@ import * as assert from 'assert';
 import { Emitter, Event, Register } from 'src/base/common/event';
 import { DataBuffer } from 'src/base/common/file/buffer';
 import { URI } from 'src/base/common/file/uri';
-import { NullLogger } from 'src/base/common/logger';
 import { delayFor } from 'src/base/common/util/async';
 import { mockType } from 'src/base/common/util/type';
 import { IChannel, IServerChannel } from 'src/code/platform/ipc/common/channel';
 import { ClientConnectEvent, ClientBase, ServerBase } from 'src/code/platform/ipc/common/net';
 import { IProtocol } from 'src/code/platform/ipc/common/protocol';
 import { ProxyChannel } from 'src/code/platform/ipc/common/proxy';
+import { NullLogger } from 'test/testUtility';
 
 
 class QueueProtocol implements IProtocol {

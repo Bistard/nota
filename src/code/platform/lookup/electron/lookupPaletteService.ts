@@ -1,13 +1,13 @@
 import { globalShortcut } from "electron";
 import { ILogService } from "src/base/common/logger";
-import { createDecorator } from "src/code/platform/instantiation/common/decorator";
+import { createService } from "src/code/platform/instantiation/common/decorator";
 import { IWindowCreationOptions } from "src/code/platform/window/common/window";
 import { IMainWindowService } from "src/code/platform/window/electron/mainWindowService";
 import { IWindowInstance } from "src/code/platform/window/electron/windowInstance";
 
 const GLOBAL_LOOKUP_KEY = 'Control+Shift+F';
 
-export const ILookupPaletteService = createDecorator<ILookupPaletteService>('main-lookup-service');
+export const ILookupPaletteService = createService<ILookupPaletteService>('main-lookup-service');
 
 export interface ILookupPaletteService {
     enable(): void;

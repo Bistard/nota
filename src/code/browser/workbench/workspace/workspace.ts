@@ -1,12 +1,11 @@
-import { IComponentService } from "src/code/browser/service/componentService";
-import { Component, ComponentType, IComponent } from "src/code/browser/workbench/component";
+import { IComponentService } from "src/code/browser/service/component/componentService";
+import { Component, ComponentType, IComponent } from "src/code/browser/service/component/component";
 import { MarkdownComponent } from "src/code/browser/workbench/workspace/markdown/markdown";
 import { TitleBarComponent } from "src/code/browser/workbench/workspace/titleBar/titleBar";
-import { createDecorator } from "src/code/platform/instantiation/common/decorator";
-import { registerSingleton } from "src/code/platform/instantiation/common/serviceCollection";
-import { ServiceDescriptor } from "src/code/platform/instantiation/common/descriptor";
+import { createService } from "src/code/platform/instantiation/common/decorator";
 import { IInstantiationService } from "src/code/platform/instantiation/common/instantiation";
 import { EditorComponent, IEditorService } from "src/code/browser/workbench/workspace/editor/editor";
+import { IThemeService } from "src/code/browser/service/theme/themeService";
 
 export const enum WorkspaceComponentType {
     titleBar = 'title-bar',
@@ -14,7 +13,7 @@ export const enum WorkspaceComponentType {
     editor = 'editor',
 }
 
-export const IWorkspaceService = createDecorator<IWorkspaceService>('workspace-service');
+export const IWorkspaceService = createService<IWorkspaceService>('workspace-service');
 
 export interface IWorkspaceService extends IComponent {
 
@@ -29,8 +28,6 @@ export class WorkspaceComponent extends Component implements IWorkspaceService {
 
     private titleBarComponent!: TitleBarComponent;
     private editorComponent!: EditorComponent;
-    
-    // TODO: remove later
     private markdownComponent!: MarkdownComponent;
 
     // [constructor]
@@ -38,8 +35,9 @@ export class WorkspaceComponent extends Component implements IWorkspaceService {
     constructor(
         @IComponentService componentService: IComponentService,
         @IInstantiationService private readonly instantiationService: IInstantiationService,
+        @IThemeService themeService: IThemeService,
     ) {
-        super(ComponentType.Workspace, null, componentService);
+        super(ComponentType.Workspace, null, themeService, componentService);
     }
 
     // [protected override methods]
@@ -76,9 +74,7 @@ export class WorkspaceComponent extends Component implements IWorkspaceService {
         this.markdownComponent = this.instantiationService.createInstance(MarkdownComponent, markdownView);
         this.markdownComponent.create(this);
 
-        this.container.appendChild(markdownView);
+        this.element.appendChild(markdownView);
     }
 
 }
-
-registerSingleton(IWorkspaceService, new ServiceDescriptor(WorkspaceComponent));

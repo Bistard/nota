@@ -2,15 +2,14 @@ import { Disposable } from "src/base/common/dispose";
 import { join } from "src/base/common/file/path";
 import { URI } from "src/base/common/file/uri";
 import { ILogService } from "src/base/common/logger";
-import { mockType } from "src/base/common/util/type";
 import { IFileService } from "src/code/platform/files/common/fileService";
-import { createDecorator } from "src/code/platform/instantiation/common/decorator";
+import { createService } from "src/code/platform/instantiation/common/decorator";
 import { IEnvironmentService, IMainEnvironmentService } from "src/code/platform/environment/common/environment";
 import { DiskStorage, IDiskStorage } from "src/code/platform/files/common/diskStorage";
-import { IMainLifecycleService } from "src/code/platform/lifeCycle/electron/mainLifecycleService";
+import { IMainLifecycleService } from "src/code/platform/lifecycle/electron/mainLifecycleService";
 import { NOTA_DIR_NAME } from "src/code/platform/configuration/common/abstractConfigService";
 
-export const IMainStatusService = createDecorator<IMainStatusService>('status-service');
+export const IMainStatusService = createService<IMainStatusService>('status-service');
 
 /**
  * An interface only for {@link MainStatusService}. The API are mainly just a
@@ -61,7 +60,7 @@ export class MainStatusService extends Disposable implements IMainStatusService 
         @IFileService private readonly fileService: IFileService,
         @ILogService private readonly logService: ILogService,
         @IEnvironmentService private readonly environmentService: IMainEnvironmentService,
-        @IMainLifecycleService private readonly lifeCycleService: IMainLifecycleService,
+        @IMainLifecycleService private readonly lifecycleService: IMainLifecycleService,
     ) {
         super();
         const path = URI.fromFile(join(URI.toFsPath(this.environmentService.userDataPath), NOTA_DIR_NAME, MainStatusService.FILE_NAME));
@@ -74,16 +73,16 @@ export class MainStatusService extends Disposable implements IMainStatusService 
     public async set(key: string, val: any): Promise<void> {
         try {
             return this._storage.set(key, val);
-        } catch (error) {
-            this.logService.warn(mockType(error));
+        } catch (error: any) {
+            this.logService.warn(error);
         }
     }
 
     public async setLot(items: readonly { key: string, val: any }[]): Promise<void> {
         try {
             return this._storage.setLot(items);
-        } catch (error) {
-            this.logService.warn(mockType(error));
+        } catch (error: any) {
+            this.logService.warn(error);
         }
     }
 
@@ -98,8 +97,8 @@ export class MainStatusService extends Disposable implements IMainStatusService 
     public async delete(key: string): Promise<boolean> {
         try {
             return this._storage.delete(key);
-        } catch (error) {
-            this.logService.warn(mockType(error));
+        } catch (error: any) {
+            this.logService.warn(error);
         }
         return false;
     }
@@ -110,9 +109,10 @@ export class MainStatusService extends Disposable implements IMainStatusService 
 
     public async init(): Promise<void> {
         try {
-            return this._storage.init();
-        } catch (error) {
-            this.logService.error(mockType(error));
+            await this._storage.init();
+            this.logService.trace(`Main#StatusService#initialized at ${this._storage.resource.toString()}.`);
+        } catch (error: any) {
+            this.logService.error(error);
             throw error;
         }
     }
@@ -120,14 +120,14 @@ export class MainStatusService extends Disposable implements IMainStatusService 
     public async close(): Promise<void> {
         try {
             return this._storage.close();
-        } catch (error) {
-            this.logService.error(mockType(error));
+        } catch (error: any) {
+            this.logService.error(error);
             throw error;
         }
     }
 
     private registerListeners(): void {
-        this.logService.trace(`Main#MainStatus#registerListeners()`);
-        this.lifeCycleService.onWillQuit(() => this.close());
+        this.logService.trace(`Main#MainStatusService#registerListeners()`);
+        this.lifecycleService.onWillQuit((e) => e.join(this.close()));
     }
 }

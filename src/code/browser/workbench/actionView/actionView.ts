@@ -1,8 +1,8 @@
-import { Component, ComponentType, IComponent } from 'src/code/browser/workbench/component';
+import { Component, ComponentType, IComponent } from 'src/code/browser/service/component/component';
 import { ExplorerViewComponent } from "src/code/browser/workbench/actionView/explorer/explorer";
 import { Emitter, Register } from 'src/base/common/event';
-import { createDecorator } from 'src/code/platform/instantiation/common/decorator';
-import { IComponentService } from 'src/code/browser/service/componentService';
+import { createService } from 'src/code/platform/instantiation/common/decorator';
+import { IComponentService } from 'src/code/browser/service/component/componentService';
 import { IInstantiationService } from 'src/code/platform/instantiation/common/instantiation';
 import { ActionType } from 'src/code/browser/workbench/actionBar/actionBar';
 import { Disposable } from 'src/base/common/dispose';
@@ -10,10 +10,9 @@ import { getIconClass } from 'src/base/browser/icon/iconRegistry';
 import { Icons } from 'src/base/browser/icon/icons';
 import { Ii18nService } from 'src/code/platform/i18n/i18n';
 import { Section } from 'src/code/platform/section';
-import { registerSingleton } from 'src/code/platform/instantiation/common/serviceCollection';
-import { ServiceDescriptor } from 'src/code/platform/instantiation/common/descriptor';
+import { IThemeService } from 'src/code/browser/service/theme/themeService';
 
-export const IActionViewService = createDecorator<IActionViewService>('action-view-service');
+export const IActionViewService = createService<IActionViewService>('action-view-service');
 
 export interface IActionViewChangeEvent {
 
@@ -65,9 +64,8 @@ export class ActionViewComponent extends Component implements IActionViewService
     private actionViewContentContainer!: HTMLElement;
 
     private _currentViewType: ActionType;
-    private _defaultViewType: ActionType;
 
-    private _components: Map<string, IActionViewComponent>;
+    private readonly _components: Map<string, IActionViewComponent>;
 
     private actionViewTitlePart!: ActionViewTitlePart;
 
@@ -78,15 +76,14 @@ export class ActionViewComponent extends Component implements IActionViewService
     
     // [constructor]
 
-    constructor(defaultView: ActionType, // REVIEW: should not be in ctor
-                @Ii18nService private readonly i18nService: Ii18nService,
-                @IInstantiationService private readonly instantiationService: IInstantiationService,
-                @IComponentService componentService: IComponentService,
+    constructor(
+        @Ii18nService private readonly i18nService: Ii18nService,
+        @IInstantiationService private readonly instantiationService: IInstantiationService,
+        @IComponentService componentService: IComponentService,
+        @IThemeService themeService: IThemeService,
     ) {
-        super(ComponentType.ActionView, null, componentService);
-        
-        this._defaultViewType = defaultView;
-        this._currentViewType = ActionType.NONE; // TODO: read from config
+        super(ComponentType.ActionView, null, themeService, componentService);
+        this._currentViewType = ActionType.NONE;
         this._components = new Map();
     }
 
@@ -112,19 +109,18 @@ export class ActionViewComponent extends Component implements IActionViewService
         this.actionViewTitlePart = this.__register(new ExplorerTitlePart(this.i18nService)); // TODO
         this.actionViewTitlePart.render(this.actionViewContentContainer);
 
-        this.__switchToActionView(this._defaultViewType);
+        // default to explorer-view
+        this.__switchToActionView(ActionType.EXPLORER);
         
         // render them
         this.contentArea.appendChild(this.actionViewContentContainer);
-        this.container.appendChild(this.contentArea);
+        this.element.appendChild(this.contentArea);
     }
 
     protected override _registerListeners(): void {
-
         for (const component of this._components.values()) {
             component.registerListeners();
         }
-        
     }
 
     // [private helper methods]
@@ -197,11 +193,11 @@ export class ActionViewComponent extends Component implements IActionViewService
 
         if (prevView) {
             // prevView.setVisible(false);
-            container.removeChild(prevView.container);
+            container.removeChild(prevView.element.element);
         }
         
         if (view) {
-            container.appendChild(view.container);
+            container.appendChild(view.element.element);
             // view.setVisible(true);
         }
     }
@@ -285,7 +281,4 @@ export class ExplorerTitlePart extends ActionViewTitlePart {
         wrapper.append(topText);
         this._element.appendChild(wrapper);
     }
-
 }
-
-registerSingleton(IActionViewService, new ServiceDescriptor(ActionViewComponent));

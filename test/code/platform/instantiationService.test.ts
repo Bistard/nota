@@ -1,10 +1,10 @@
 import * as assert from 'assert';
-import { createDecorator } from 'src/code/platform/instantiation/common/decorator';
+import { createService } from 'src/code/platform/instantiation/common/decorator';
 import { ServiceDescriptor } from 'src/code/platform/instantiation/common/descriptor';
 import { InstantiationService } from 'src/code/platform/instantiation/common/instantiation';
 import { ServiceCollection } from 'src/code/platform/instantiation/common/serviceCollection';
 
-const IService1 = createDecorator<IService1>('service1');
+const IService1 = createService<IService1>('service1');
 
 interface IService1 {
 	c: number;
@@ -14,7 +14,7 @@ class Service1 implements IService1 {
 	c = 1;
 }
 
-const IService2 = createDecorator<IService2>('service2');
+const IService2 = createService<IService2>('service2');
 
 interface IService2 {
 	d: boolean;
@@ -24,7 +24,7 @@ class Service2 implements IService2 {
 	d = true;
 }
 
-const IService3 = createDecorator<IService3>('service3');
+const IService3 = createService<IService3>('service3');
 
 interface IService3 {
 	s: string;
@@ -34,7 +34,7 @@ class Service3 implements IService3 {
 	s = 'farboo';
 }
 
-const IDependentService = createDecorator<IDependentService>('dependentService');
+const IDependentService = createService<IDependentService>('dependentService');
 
 interface IDependentService {
 	name: string;
@@ -104,7 +104,7 @@ abstract class DependentBaseService extends DependentVeryBaseService {
 	}
 }
 
-const IDependentServiceTarget3 = createDecorator<IDependentServiceTarget3>('dependent-service-target-3');
+const IDependentServiceTarget3 = createService<IDependentServiceTarget3>('dependent-service-target-3');
 
 interface IDependentServiceTarget3 {
 	base: boolean;
@@ -122,7 +122,7 @@ class DependentServiceTarget3 extends DependentBaseService implements IDependent
 	}
 }
 
-const IDependentServiceTarget4 = createDecorator<IDependentServiceTarget4>('dependent-service-target-4');
+const IDependentServiceTarget4 = createService<IDependentServiceTarget4>('dependent-service-target-4');
 
 interface IDependentServiceTarget4 {
 
@@ -256,7 +256,7 @@ suite('instantiationService-test', () => {
 
 	}
 
-	const ICreateOnlyOnceClass = createDecorator<ICreateOnlyOnceClass>('create-only-once');
+	const ICreateOnlyOnceClass = createService<ICreateOnlyOnceClass>('create-only-once');
 
 	test('createInstance double creation', () => {
 		CreateOnlyOnceClass.cnt = 0;

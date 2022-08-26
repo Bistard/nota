@@ -1,7 +1,8 @@
 import { CONTEXT_MENU_ITEM_HEIGHT, CONTEXT_MENU_SEPERATOR_HEIGHT, CONTEXT_MENU_WIDTH, IMenuItem, IMenuItemOption, MenuItem } from "src/base/browser/secondary/contextMenu/menuItem";
 import { Dimension } from "src/base/common/util/size";
-import { IComponentService } from "src/code/browser/service/componentService";
-import { Component, IComponent } from "src/code/browser/workbench/component";
+import { IComponentService } from "src/code/browser/service/component/componentService";
+import { IThemeService } from "src/code/browser/service/theme/themeService";
+import { Component, IComponent } from "src/code/browser/service/component/component";
 
 export const enum ContextMenuType {
     actionBar,
@@ -70,33 +71,34 @@ export abstract class ContextMenu extends Component implements IContextMenu {
     protected readonly _menuItemGroups: Map<string, IMenuItem>;
     protected readonly _menuItemOptions: IMenuItemOption[];
     
-    private _dimension: Dimension = new Dimension(CONTEXT_MENU_WIDTH, 0);
+    // private _dimension: Dimension = new Dimension(CONTEXT_MENU_WIDTH, 0);
     private _coordinate: Coordinate;
     
     constructor(type: ContextMenuType,
                 coordinate: Coordinate,
                 menuItemOptions: IMenuItemOption[],
                 @IComponentService componentService: IComponentService,
+                @IThemeService themeService: IThemeService,
     ) {
-        super('context-menu', document.body, componentService);
+        super('context-menu', document.body, themeService, componentService);
         this.type = type;
         this._coordinate = coordinate;
         this._menuItemGroups = new Map();
         this._menuItemOptions = menuItemOptions;
 
         for (const menuItemOpt of menuItemOptions) {
-            if (menuItemOpt.role != 'seperator'){
-                this._dimension.height += CONTEXT_MENU_ITEM_HEIGHT;
-            } else {
-                this._dimension.height += CONTEXT_MENU_SEPERATOR_HEIGHT; 
-            }
+            // if (menuItemOpt.role != 'seperator'){
+            //     this._dimension.height += CONTEXT_MENU_ITEM_HEIGHT;
+            // } else {
+            //     this._dimension.height += CONTEXT_MENU_SEPERATOR_HEIGHT; 
+            // }
         }
     }
 
     public setNewPosition(coordinate: Coordinate): void {
         this.setCoordinate(coordinate);
-        this.container.style.top = `${this._coordinate.coordinateY}px`;
-        this.container.style.left =`${this._coordinate.coordinateX}px`;
+        this.element.setTop(this._coordinate.coordinateY);
+        this.element.setLeft(this._coordinate.coordinateX);
     }
 
     public setCoordinate(coordinate: Coordinate): void {
@@ -108,22 +110,25 @@ export abstract class ContextMenu extends Component implements IContextMenu {
     }
 
     public getWidth(): number {
-        return this._dimension.width;
+        // return this._dimension.width;
+        return -1;
     }
     
     public getHeight(): number {
-        return this._dimension.height;
+        // return this._dimension.height;
+        return -1;
     }
 
     public getDimension(): Dimension {
-        return this._dimension;
+        // return this._dimension;
+        return undefined!;
     }
 
     protected override _createContent(): void {
         this.setNewPosition(this._coordinate);
         this.contentArea = document.createElement('ul');
         this.contentArea.id = 'context-menu-container';
-        this.container.appendChild(this.contentArea);
+        this.element.appendChild(this.contentArea);
 
         this._createMenuItems(this._menuItemOptions);
     }

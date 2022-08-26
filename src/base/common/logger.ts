@@ -1,9 +1,9 @@
 import { Disposable } from "src/base/common/dispose";
 import { Emitter, Register } from "src/base/common/event";
 import { mockType } from "src/base/common/util/type";
-import { createDecorator } from "src/code/platform/instantiation/common/decorator";
+import { createService } from "src/code/platform/instantiation/common/decorator";
 
-export const ILogService = createDecorator<ILogService>('log-service');
+export const ILogService = createService<ILogService>('log-service');
 export const DEFAULT_LOG_LEVEL = LogLevel.INFO;
 
 /**
@@ -137,6 +137,7 @@ export interface ILogger extends IAbstractLogger {
 	warn(message: string, ...args: any[]): void;
 	error(message: string | Error, ...args: any[]): void;
 	fatal(message: string | Error, ...args: any[]): void;
+    flush(): Promise<void>;
 }
 
 /** 
@@ -198,21 +199,6 @@ export function parseToLogLevel(str?: string): LogLevel {
 }
 
 /**
- * @class A logger that does nothing. Usually used for testing purpose.
- */
-export class NullLogger extends AbstractLogger implements ILogService {
-    constructor() {
-        super();
-    }
-    public trace(message: string, ...args: any[]): void {}
-    public debug(message: string, ...args: any[]): void {}
-    public info(message: string, ...args: any[]): void {}
-    public warn(message: string, ...args: any[]): void {}
-    public error(message: string | Error, ...args: any[]): void {}
-    public fatal(message: string | Error, ...args: any[]): void {}
-}
-
-/**
  * @class A simple integrated {@link ILogger} that combines the other loggers
  * into a intergrated version.
  */
@@ -268,6 +254,12 @@ export class PipelineLogger extends AbstractLogger implements ILogService {
 			logger.fatal(message, ...args);
 		}
     }
+
+    public async flush(): Promise<void> {
+        for (const logger of this._loggers) {
+            await logger.flush();
+        }
+    }
 }
 
 /**
@@ -317,8 +309,9 @@ export class BufferLogger extends AbstractLogger implements ILogService {
         this.__log(LogLevel.FATAL, message, ...args);
     }
 
-    public flush(): void {
+    public async flush(): Promise<void> {
         this.__flushBuffer();
+        return this._logger?.flush();
     }
 
     // [protected helper methods]

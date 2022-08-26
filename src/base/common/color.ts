@@ -70,3 +70,10 @@ export const GREEN: RGBA = new RGBA(0, 255, 0, 1);
 export const YELLOW: RGBA = new RGBA(255, 255, 0, 1);
 
 export const LIGHT_RED: RGBA = new RGBA(255, 211, 211, 1);
+
+/**
+ * // TODO
+ */
+export class Color {
+
+}

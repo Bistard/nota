@@ -2,10 +2,10 @@ import { ActionBarContextMenu } from "src/base/browser/secondary/contextMenu/act
 import { ExplorerViewContextMenu } from "src/base/browser/secondary/contextMenu/actionView/explorerViewContextMenu";
 import { ContextMenuType, Coordinate, ContextMenuDimension, IContextMenu } from "src/base/browser/secondary/contextMenu/contextMenu";
 import { EditorContextMenu } from "src/base/browser/secondary/contextMenu/editor/editorContextMenu";
-import { IComponentService } from "src/code/browser/service/componentService";
-import { createDecorator } from "src/code/platform/instantiation/common/decorator";
+import { IComponentService } from "src/code/browser/service/component/componentService";
+import { createService } from "src/code/platform/instantiation/common/decorator";
 
-export const IContextMenuService = createDecorator<IContextMenuService>('context-menu-service');
+export const IContextMenuService = createService<IContextMenuService>('context-menu-service');
 
 export interface IContextMenuService {
     createContextMenu(type: ContextMenuType, coordinate: Coordinate): void;
@@ -25,19 +25,19 @@ export class ContextMenuService implements IContextMenuService {
     }
 
     private _initContextMenu(type: ContextMenuType, coordinate: Coordinate): void {
-        switch (type) {
-            case ContextMenuType.actionBar:
-                this._contextMenu = new ActionBarContextMenu(coordinate, this, this.componentService);
-                break;
-            case ContextMenuType.actionView:
-                break;
-            case ContextMenuType.explorerView:
-                this._contextMenu = new ExplorerViewContextMenu(coordinate, this, this.componentService);
-                break;
-            case ContextMenuType.editor:
-                this._contextMenu = new EditorContextMenu(coordinate, this, this.componentService);
-                break;
-        }
+        // switch (type) {
+        //     case ContextMenuType.actionBar:
+        //         this._contextMenu = new ActionBarContextMenu(coordinate, this, this.componentService);
+        //         break;
+        //     case ContextMenuType.actionView:
+        //         break;
+        //     case ContextMenuType.explorerView:
+        //         this._contextMenu = new ExplorerViewContextMenu(coordinate, this, this.componentService);
+        //         break;
+        //     case ContextMenuType.editor:
+        //         this._contextMenu = new EditorContextMenu(coordinate, this, this.componentService);
+        //         break;
+        // }
     }
 
     public createContextMenu(type: ContextMenuType, coordinate: Coordinate): void {
@@ -71,7 +71,7 @@ export class ContextMenuService implements IContextMenuService {
     public removeContextMenu(): void {
         if (this._contextMenu) {
             this.componentService.unregister(this._contextMenu!.getId());
-            this._contextMenu.container.remove();
+            this._contextMenu.element.element.remove();
             this._contextMenu = null;
         }
     }

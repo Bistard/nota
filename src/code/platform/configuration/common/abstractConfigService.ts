@@ -5,9 +5,13 @@ import { Array } from "src/base/common/util/array";
 import { DeepReadonly } from "src/base/common/util/type";
 import { IConfigCollection } from "src/code/platform/configuration/common/configCollection";
 import { ConfigScope, IScopeConfigChangeEvent } from "src/code/platform/configuration/common/configRegistrant";
-import { createDecorator } from "src/code/platform/instantiation/common/decorator";
+import { IFileService } from "src/code/platform/files/common/fileService";
+import { createService } from "src/code/platform/instantiation/common/decorator";
+import { ILifecycleService } from "src/code/platform/lifecycle/common/lifecycle";
+import { ILifecycleService as ILifecycleServiceDecorator } from "src/code/platform/lifecycle/browser/browserLifecycleService";
+import { DataBuffer } from "src/base/common/file/buffer";
 
-export const IConfigService = createDecorator<IConfigService>('configuration-service');
+export const IConfigService = createService<IConfigService>('configuration-service');
 
 export const NOTA_DIR_NAME = '.nota';
 export const DEFAULT_CONFIG_NAME = 'user.config.json';
@@ -83,7 +87,7 @@ export interface IConfigService extends IDisposable {
      * 
      * @throws An exception will be thrown if the section is invalid.
      */
-    get<T>(scope: ConfigScope, section?: string): DeepReadonly<T>;
+    get<T>(scope: ConfigScope, section: string | undefined): DeepReadonly<T>;
     
     /**
      * @description Set specific configuration with the given scope.
@@ -125,11 +129,14 @@ export class AbstractConfigService extends Disposable implements IConfigService 
 
     constructor(
         collection: IConfigCollection,
+        @IFileService private readonly fileService: IFileService,
         @ILogService private readonly logService: ILogService,
+        @ILifecycleServiceDecorator lifecycleService: ILifecycleService<number, number>,
     ) {
         super();
         this._onDidChange = new ConfigEmitter(collection.onDidChange, collection);
         this._collection = this.__register(collection);
+        this.__register(lifecycleService.onWillQuit(e => e.join(this.__onApplicationClose())));
     }
 
     // [public methods]
@@ -144,7 +151,7 @@ export class AbstractConfigService extends Disposable implements IConfigService 
         });
     }
 
-    public get<T>(scope: unknown, section?: string | undefined): DeepReadonly<T> {
+    public get<T>(scope: unknown, section: string | undefined): DeepReadonly<T> {
         return this._collection.get(scope, section);
     }
 
@@ -158,6 +165,24 @@ export class AbstractConfigService extends Disposable implements IConfigService 
 
     public inspect(): any {
         return this._collection.inspect().model;
+    }
+
+    // [protected helper method]
+
+    protected async __onApplicationClose(): Promise<void> {
+        
+        // try to save all the configurations
+        const models = this._collection.getAllConfigModels();
+        for (const model of models) {
+            const resource = model.resource;
+            try {
+                const serialized = JSON.stringify(model.model, null, 4);
+                await this.fileService.writeFile(resource, DataBuffer.fromString(serialized), { create: true, overwrite: true, unlock: true });
+                this.logService.info(`Configuration saved at ${resource.toString()}`);
+            } catch (error: any) {
+                this.logService.error(`Cannot save configuration at ${resource.toString()}:`, error);
+            }
+        }
     }
 
 }

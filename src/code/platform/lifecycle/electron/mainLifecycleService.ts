@@ -2,11 +2,11 @@ import { app, BrowserWindow } from "electron";
 import { ILogService } from "src/base/common/logger";
 import { IS_MAC } from "src/base/common/platform";
 import { Blocker, delayFor } from "src/base/common/util/async";
-import { createDecorator } from "src/code/platform/instantiation/common/decorator";
-import { AbstractLifecycleService } from "src/code/platform/lifeCycle/common/abstractLifecycleService";
-import { ILifecycleService } from "src/code/platform/lifeCycle/common/lifecycle";
+import { createService } from "src/code/platform/instantiation/common/decorator";
+import { AbstractLifecycleService } from "src/code/platform/lifecycle/common/abstractLifecycleService";
+import { ILifecycleService } from "src/code/platform/lifecycle/common/lifecycle";
 
-export const IMainLifecycleService = createDecorator<IMainLifecycleService>('life-cycle-service');
+export const IMainLifecycleService = createService<IMainLifecycleService>('life-cycle-service');
 
 /**
  * Represents the different phases of the whole application. Notices that the
@@ -153,7 +153,7 @@ export class MainLifecycleService extends AbstractLifecycleService<LifecyclePhas
 
         /**
          * Once {@link app.quit} is invoked, electron will emit 'before-quit' 
-         * first, once all the windows are closed propery, 'will-quit' will be 
+         * first, then all the windows are closed properly, 'will-quit' will be 
          * emitted. Since it is a 'once' registration, we prevent electron to 
          * terminate the application at the first time so that we can notify
          * the other services before we actual invoke the second {@link app.quit}
@@ -261,7 +261,7 @@ export class MainLifecycleService extends AbstractLifecycleService<LifecyclePhas
             }
         })();
 
-        return this._ongoingBeforeQuitPromise;
+        return this._ongoingBeforeQuitPromise.then(() => this._ongoingBeforeQuitPromise = undefined);
     }
 }
 

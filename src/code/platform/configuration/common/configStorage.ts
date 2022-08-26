@@ -29,7 +29,7 @@ export interface IConfigStorage extends IDisposable {
      * @note If section is not provided, the whole configuration will be 
      * returned.
      */
-    get<T>(section?: string): T;
+    get<T>(section: string | undefined): T;
 
     /**
      * @description Set configuration at given section.
@@ -115,7 +115,7 @@ export class ConfigStorage extends Disposable implements IConfigStorage {
         return this._model;
     }
 
-    public get<T>(section?: string): T {
+    public get<T>(section: string | undefined): T {
         if (section) {
             return this.__getBySection(section);
         }

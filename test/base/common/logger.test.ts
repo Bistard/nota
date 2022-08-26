@@ -1,9 +1,10 @@
 import * as assert from 'assert';
-import { BufferLogger, NullLogger } from 'src/base/common/logger';
+import { BufferLogger } from 'src/base/common/logger';
+import { NullLogger } from 'test/testUtility';
 
 suite('logger', () => {
 
-    test('buffer-logger', () => {
+    test('buffer-logger', async () => {
         let output: string = '';
 
         const logger = new BufferLogger();

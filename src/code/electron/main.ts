@@ -16,7 +16,7 @@ import { FileLoggerService } from 'src/code/platform/logger/common/fileLoggerSer
 import { NotaInstance } from 'src/code/electron/nota';
 import { ApplicationMode, IEnvironmentOpts, IEnvironmentService, IMainEnvironmentService } from 'src/code/platform/environment/common/environment';
 import { MainEnvironmentService } from 'src/code/platform/environment/electron/mainEnvironmentService';
-import { IMainLifecycleService, MainLifecycleService } from 'src/code/platform/lifeCycle/electron/mainLifecycleService';
+import { IMainLifecycleService, MainLifecycleService } from 'src/code/platform/lifecycle/electron/mainLifecycleService';
 import { IMainStatusService, MainStatusService } from 'src/code/platform/status/electron/mainStatusService';
 import { ICLIArguments } from 'src/code/platform/environment/common/argument';
 import { createServer, Server } from 'net';
@@ -44,7 +44,7 @@ const nota = new class extends class MainProcess implements IMainProcess {
     private readonly fileService!: IFileService;
     private readonly mainConfigService!: IConfigService;
     private readonly logService!: ILogService;
-    private readonly lifeCycleService!: IMainLifecycleService;
+    private readonly lifecycleService!: IMainLifecycleService;
     private readonly statusService!: IMainStatusService;
     private readonly CLIArgv!: ICLIArguments;
 
@@ -86,9 +86,10 @@ const nota = new class extends class MainProcess implements IMainProcess {
             
             // application run
             {
-                Event.once(this.lifeCycleService.onWillQuit)(e => {
+                Event.once(this.lifecycleService.onWillQuit)(e => {
                     this.fileService.dispose();
                     this.mainConfigService.dispose();
+                    e.join(this.logService.flush().then(() => this.logService.dispose()));
                 });
                 
                 await this.resolveSingleApplication();
@@ -139,16 +140,16 @@ const nota = new class extends class MainProcess implements IMainProcess {
         ]);
         logService.setLogger(pipelineLogger);
 
+        // life-cycle-service
+        const lifecycleService = new MainLifecycleService(logService);
+        instantiationService.register(IMainLifecycleService, lifecycleService);
+
         // main-configuration-service
-        const mainConfigService = new MainConfigService(environmentService, fileService, logService);
+        const mainConfigService = new MainConfigService(environmentService, fileService, logService, lifecycleService);
         instantiationService.register(IConfigService, mainConfigService);
 
-        // life-cycle-service
-        const lifeCycleService = new MainLifecycleService(logService);
-        instantiationService.register(IMainLifecycleService, lifeCycleService);
-
         // status-service
-        const statusService = new MainStatusService(fileService, logService, environmentService, lifeCycleService);
+        const statusService = new MainStatusService(fileService, logService, environmentService, lifecycleService);
         instantiationService.register(IMainStatusService, statusService);
 
         (this.instantiationService as any) = instantiationService;
@@ -156,7 +157,7 @@ const nota = new class extends class MainProcess implements IMainProcess {
         (this.fileService as any) = fileService;
         (this.mainConfigService as any) = mainConfigService;
         (this.logService as any) = logService;
-        (this.lifeCycleService as any) = lifeCycleService;
+        (this.lifecycleService as any) = lifecycleService;
         (this.statusService as any) = statusService;
     }
     
@@ -200,7 +201,7 @@ const nota = new class extends class MainProcess implements IMainProcess {
                     resolve(tcpServer);
                 });
             });
-            Event.once(this.lifeCycleService.onWillQuit)(() => server.close());
+            Event.once(this.lifecycleService.onWillQuit)(() => server.close());
         } 
         catch (error: any) {
             // unexpected errors
@@ -236,7 +237,7 @@ const nota = new class extends class MainProcess implements IMainProcess {
             }
         }
 
-        this.lifeCycleService.kill(code);
+        this.lifecycleService.kill(code);
     }
 
     // [private helper methods]

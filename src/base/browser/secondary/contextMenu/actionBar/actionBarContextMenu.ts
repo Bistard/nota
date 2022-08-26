@@ -1,8 +1,9 @@
 import { ContextMenu, ContextMenuType, Coordinate, IContextMenu } from "src/base/browser/secondary/contextMenu/contextMenu";
-import { IComponentService } from "src/code/browser/service/componentService";
+import { IComponentService } from "src/code/browser/service/component/componentService";
 import { IContextMenuService } from "src/code/browser/service/contextMenuService";
 import { IActionBarOptions } from "src/code/browser/workbench/actionBar/actionBar";
 import { IButton } from "src/base/browser/basic/button/button";
+import { IThemeService } from "src/code/browser/service/theme/themeService";
 
 const actionBarOpts: IActionBarOptions = { 
     options: [true, true, true, true],
@@ -15,6 +16,7 @@ export class ActionBarContextMenu extends ContextMenu implements IContextMenu {
         coordinate: Coordinate,
         private readonly contextMenuService: IContextMenuService,
         @IComponentService componentService: IComponentService,
+        @IThemeService themeService: IThemeService,
     ) {
         super(
             ContextMenuType.actionBar,
@@ -25,7 +27,8 @@ export class ActionBarContextMenu extends ContextMenu implements IContextMenu {
                 { id: 'select-search-button', classes: ['menu-item'], text: 'Search', role: 'checkBox', checked: actionBarOpts.options[2] },
                 { id: 'select-git-button', classes: ['menu-item'], text: 'Git', role: 'checkBox', checked: actionBarOpts.options[3] },
             ],
-            componentService
+            componentService,
+            themeService
         );
     }
 

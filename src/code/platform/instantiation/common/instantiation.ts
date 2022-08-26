@@ -1,10 +1,10 @@
-import { createDecorator, ServiceIdentifier, _ServiceUtil } from "src/code/platform/instantiation/common/decorator";
+import { createService, ServiceIdentifier, _ServiceUtil } from "src/code/platform/instantiation/common/decorator";
 import { Graph, Node } from "src/code/platform/instantiation/common/dependencyGraph";
 import { ServiceDescriptor } from "src/code/platform/instantiation/common/descriptor";
 import { IdleValue } from "src/code/platform/instantiation/common/idle";
 import { ServiceCollection } from "src/code/platform/instantiation/common/serviceCollection";
 
-export const IInstantiationService = createDecorator<IInstantiationService>('instantiation-service');
+export const IInstantiationService = createService<IInstantiationService>('instantiation-service');
 
 export interface IServiceProvider {
     /**
@@ -31,7 +31,7 @@ export interface IInstantiationService extends IServiceProvider {
      * @description Register a service either using an instance or the 
      * ServiceDescriptor for delaying instantiation.
      * 
-     * @param serviceIdentifier decorator to the service which is created by createDecorator()
+     * @param serviceIdentifier decorator to the service which is created by createService()
      * @param instanceOrDescriptor instance or ServiceDescriptor of the service
      */
     register<T>(serviceIdentifier: ServiceIdentifier<T>, instanceOrDescriptor: T | ServiceDescriptor<T>): void;

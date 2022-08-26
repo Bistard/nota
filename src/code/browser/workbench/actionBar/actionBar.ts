@@ -1,17 +1,14 @@
-import { Component, ComponentType, IComponent } from 'src/code/browser/workbench/component';
-import { ContextMenuType, Coordinate } from 'src/base/browser/secondary/contextMenu/contextMenu';
-import { createDecorator } from 'src/code/platform/instantiation/common/decorator';
-import { IContextMenuService } from 'src/code/browser/service/contextMenuService';
-import { IComponentService } from 'src/code/browser/service/componentService';
+import { Component, ComponentType, IComponent } from 'src/code/browser/service/component/component';
+import { createService } from 'src/code/platform/instantiation/common/decorator';
+import { IComponentService } from 'src/code/browser/service/component/componentService';
 import { ActionButton } from 'src/code/browser/workbench/actionBar/actionButton';
 import { WidgetBar } from 'src/base/browser/secondary/widgetBar/widgetBar';
 import { Orientation } from 'src/base/common/dom';
 import { Icons } from 'src/base/browser/icon/icons';
-import { registerSingleton } from 'src/code/platform/instantiation/common/serviceCollection';
-import { ServiceDescriptor } from 'src/code/platform/instantiation/common/descriptor';
 import { Emitter, Register } from 'src/base/common/event';
+import { IThemeService } from 'src/code/browser/service/theme/themeService';
 
-export const IActionBarService = createDecorator<IActionBarService>('action-bar-service');
+export const IActionBarService = createService<IActionBarService>('action-bar-service');
 
 export const enum ActionType {
     NONE = 'none',
@@ -27,13 +24,12 @@ export interface IActionBarButtonClickEvent {
     /**
      * The type of button is clicked.
      */
-    type: ActionType;
+    readonly type: ActionType;
 
     /**
      * The previous type of button was clicked.
      */
-    prevType: ActionType;
-
+    readonly prevType: ActionType;
 }
 
 export interface IActionBarService extends IComponent {
@@ -52,6 +48,7 @@ export interface IActionBarService extends IComponent {
 
 }
 
+/** @deprecated */
 export interface IActionBarOptions {
     options: [
         isExplorerChecked: boolean,
@@ -90,9 +87,9 @@ export class ActionBarComponent extends Component implements IActionBarService {
 
     constructor(
         @IComponentService componentService: IComponentService,
-        @IContextMenuService private readonly contextMenuService: IContextMenuService,
+        @IThemeService themeService: IThemeService,
     ) {
-        super(ComponentType.ActionBar, null, componentService);
+        super(ComponentType.ActionBar, null, themeService, componentService);
     }
 
     // [public method]
@@ -106,28 +103,13 @@ export class ActionBarComponent extends Component implements IActionBarService {
     protected override _createContent(): void {
         this.contentArea = document.createElement('div');
         this.contentArea.id = 'action-button-container';
-        this.container.appendChild(this.contentArea);
+        this.element.appendChild(this.contentArea);
 
         this._widgetBar = this.__register(this.__createWidgetBar(this.contentArea));
     }
 
     protected override _registerListeners(): void {
         
-        /**
-         * @readonly register context menu listeners (right click menu) // review
-         */
-        document.getElementById('action-bar')!.addEventListener('contextmenu', (ev: MouseEvent) => {
-            ev.preventDefault();
-            this.contextMenuService.removeContextMenu();
-            let coordinate: Coordinate = {
-                coordinateX: ev.pageX,
-                coordinateY: ev.pageY,
-            };
-
-            this.contextMenuService.createContextMenu(ContextMenuType.actionBar, coordinate);
-
-        });
-
         /**
          * Register all the action buttons click event.
          */
@@ -137,7 +119,6 @@ export class ActionBarComponent extends Component implements IActionBarService {
             });
         })
         
-
         // default with opening explorer view
         this.__actionButtonClick(ActionType.EXPLORER);
     }
@@ -219,7 +200,4 @@ export class ActionBarComponent extends Component implements IActionBarService {
 
         return widgetBar;
     }
-
 }
-
-registerSingleton(IActionBarService, new ServiceDescriptor(ActionBarComponent));

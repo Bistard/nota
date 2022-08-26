@@ -11,7 +11,7 @@
     "test": "mocha --ui tdd -r jsdom-global/register --config '.mocharc.jsonc'",
     "_test": "mocha --ui tdd -r jsdom-global/register --config 'test/.mocharc.jsonc'",
     "benchmark": "node benchmark/benchmark.js",
-    "build": "webpack  --config webpack.config.js --stats-error-details",
+    "build": "node ./scripts/build.js",
     "_gen-icons": "fantasticon -c .fantasticonrc.js"
   },
   "repository": {
@@ -52,7 +52,7 @@
     "@toast-ui/editor": "^3.0.1",
     "@toast-ui/editor-plugin-code-syntax-highlight": "^3.0.0",
     "@toast-ui/editor-plugin-color-syntax": "^3.0.1",
-    "@types/node": "^16.4.13",
+    "@types/node": "^16.11.56",
     "@types/requestidlecallback": "^0.3.4"
   }
 }

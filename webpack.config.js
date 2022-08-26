@@ -32,12 +32,13 @@ const baseConfiguration = {
     },
     plugins: [
         new CircularDependencyPlugin({
-            
+            exclude: /a\.js|node_modules/,
+            include: /src/,
+            cwd: process.cwd(),
             // `onStart` is called before the cycle detection starts
             onStart({ _compilation }) {
               console.log('start detecting webpack modules cycles');
             },
-            
             // `onDetected` is called for each module that is cyclical
             onDetected({ module: _webpackModuleRecord, paths, compilation }) {
                 // `paths` will be an Array of the relative module paths that make up the cycle
@@ -46,7 +47,6 @@ const baseConfiguration = {
                 // compilation.errors.push(new Error(paths.join(' -> ')))
                 compilation.warnings.push(new Error(paths.join(' -> ')));
             },
-            
             // `onEnd` is called before the cycle detection ends
             onEnd({ compilation }) {
                 console.log('end detecting webpack modules cycles');
@@ -65,6 +65,8 @@ const baseConfiguration = {
      * See more choice here https://webpack.js.org/configuration/devtool/
      */
     devtool: isDev ? 'eval-source-map' : 'source-map',
+    stats: 'normal',
+    bail: true,
 };
 
 module.exports = [
@@ -81,7 +83,7 @@ module.exports = [
     Object.assign({}, baseConfiguration, {
         target: 'electron-renderer',
         entry: {
-            renderer: './src/code/browser/browser.ts',
+            renderer: './src/code/browser/renderer.ts',
         },
         output: {
             filename: '[name]-bundle.js',
@@ -98,5 +100,4 @@ module.exports = [
             path: path.resolve(__dirname, './dist')
         },
     }),
-    
 ]

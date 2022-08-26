@@ -68,6 +68,17 @@ export class MainHostService extends Disposable implements IMainHostService {
         window?.browserWindow.unmaximize();
     }
 
+    public async toggleMaximizeWindow(id?: number): Promise<void> {
+        const window = this.__tryGetWindow(id);
+        if (window) {
+            if (window.browserWindow.isMaximized()) {
+                window.browserWindow.unmaximize();
+            } else {
+                window.browserWindow.maximize();
+            }
+        }
+    }
+
     public async toggleFullScreenWindow(id?: number): Promise<void> {
         const window = this.__tryGetWindow(id);
         window?.toggleFullScreen();

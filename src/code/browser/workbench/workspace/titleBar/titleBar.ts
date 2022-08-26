@@ -1,8 +1,9 @@
-import { Component } from 'src/code/browser/workbench/component';
+import { Component } from 'src/code/browser/service/component/component';
 import { WindowBarComponent } from 'src/code/browser/workbench/workspace/titleBar/windowBar';
 import { WorkspaceComponentType } from 'src/code/browser/workbench/workspace/workspace';
-import { IComponentService } from 'src/code/browser/service/componentService';
+import { IComponentService } from 'src/code/browser/service/component/componentService';
 import { IInstantiationService } from 'src/code/platform/instantiation/common/instantiation';
+import { IThemeService } from 'src/code/browser/service/theme/themeService';
 
 export const enum TitleBarComponentType {
     functionBar = 'function-bar',
@@ -20,8 +21,9 @@ export class TitleBarComponent extends Component {
     constructor(
         @IComponentService componentService: IComponentService,
         @IInstantiationService private readonly instantiationService: IInstantiationService,
+        @IThemeService themeService: IThemeService,
     ) {
-        super(WorkspaceComponentType.titleBar, null, componentService);
+        super(WorkspaceComponentType.titleBar, null, themeService, componentService);
     }
 
     protected override _createContent(): void {

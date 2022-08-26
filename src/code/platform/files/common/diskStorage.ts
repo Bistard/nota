@@ -11,6 +11,11 @@ import { IFileService } from "src/code/platform/files/common/fileService";
 export interface IDiskStorage extends Disposable {
 
     /**
+     * The resource of the storage.
+     */
+    readonly resource: URI;
+
+    /**
      * Tell the storage if to sync the internal data into the disk.
      */
     setSync(val: boolean): void;
@@ -120,6 +125,8 @@ export class DiskStorage extends Disposable implements IDiskStorage {
     }
 
     // [public methods]
+
+    get resource(): URI { return this.path; }
 
     public setSync(val: boolean): void {
         this.sync = val;

@@ -1,16 +1,17 @@
 import { URI } from "src/base/common/file/uri";
-import { IComponentService } from "src/code/browser/service/componentService";
-import { Component, IComponent } from "src/code/browser/workbench/component";
+import { IComponentService } from "src/code/browser/service/component/componentService";
+import { IThemeService } from "src/code/browser/service/theme/themeService";
+import { Component, IComponent } from "src/code/browser/service/component/component";
 import { WorkspaceComponentType } from "src/code/browser/workbench/workspace/workspace";
 import { IFileService } from "src/code/platform/files/common/fileService";
-import { createDecorator } from "src/code/platform/instantiation/common/decorator";
+import { createService } from "src/code/platform/instantiation/common/decorator";
 import { ServiceDescriptor } from "src/code/platform/instantiation/common/descriptor";
 import { IInstantiationService } from "src/code/platform/instantiation/common/instantiation";
 import { registerSingleton } from "src/code/platform/instantiation/common/serviceCollection";
 import { EditorWidget, IEditorWidget } from "src/editor/editorWidget";
 import { EditorModel } from "src/editor/model/editorModel";
 
-export const IEditorService = createDecorator<IEditorService>('editor-service');
+export const IEditorService = createService<IEditorService>('editor-service');
 
 export interface IEditorService extends IComponent {
 
@@ -19,7 +20,6 @@ export interface IEditorService extends IComponent {
      * @param uriOrString The uri or in the string form.
      */
     openEditor(uriOrString: URI | string): void;
-
 }
 
 export class EditorComponent extends Component implements IEditorService {
@@ -34,8 +34,9 @@ export class EditorComponent extends Component implements IEditorService {
         @IComponentService componentService: IComponentService,
         @IInstantiationService private readonly instantiationService: IInstantiationService,
         @IFileService private readonly fileService: IFileService,
+        @IThemeService themeService: IThemeService,
     ) {
-        super(WorkspaceComponentType.editor, null, componentService);
+        super(WorkspaceComponentType.editor, null, themeService, componentService);
         this._editorWidget = null;
     }
 
@@ -68,7 +69,7 @@ export class EditorComponent extends Component implements IEditorService {
     protected override _createContent(): void {
         this._editorWidget = this.instantiationService.createInstance(
             EditorWidget, 
-            this.container,
+            this.element.element,
             {},
         );
     }

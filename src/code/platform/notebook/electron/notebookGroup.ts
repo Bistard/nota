@@ -11,12 +11,13 @@ import { ExplorerItem } from "src/code/browser/workbench/actionView/explorer/exp
 import { IExplorerOpenEvent } from "src/code/browser/workbench/actionView/explorer/explorerTree";
 import { Notebook } from "src/code/platform/notebook/browser/notebook";
 import { IFileService } from "src/code/platform/files/common/fileService";
-import { createDecorator } from "src/code/platform/instantiation/common/decorator";
+import { createService } from "src/code/platform/instantiation/common/decorator";
 import { IConfigService, NOTA_DIR_NAME } from "src/code/platform/configuration/common/abstractConfigService";
 import { BuiltInConfigScope } from "src/code/platform/configuration/common/configRegistrant";
-import { IBrowserLifecycleService, ILifecycleService } from "src/code/platform/lifeCycle/browser/browserLifecycleService";
+import { IBrowserLifecycleService, ILifecycleService } from "src/code/platform/lifecycle/browser/browserLifecycleService";
+import { ILogService } from "src/base/common/logger";
 
-export const INotebookGroupService = createDecorator<INotebookGroupService>('notebook-manager-service');
+export const INotebookGroupService = createService<INotebookGroupService>('notebook-manager-service');
 
 export interface INotebookGroupService {
     
@@ -101,11 +102,12 @@ export class NotebookGroup extends Disposable implements INotebookGroupService {
 
     constructor(
         @IFileService private readonly fileService: IFileService,
+        @ILogService private readonly logService: ILogService,
         @IConfigService private readonly configService: IConfigService,
         @ILifecycleService lifecycleService: IBrowserLifecycleService,
     ) {
         super();
-        lifecycleService.onWillQuit(async () => this.__onApplicationClose());
+        lifecycleService.onWillQuit((e) => e.join(this.__onApplicationClose()));
     }
 
     // [event]
@@ -126,7 +128,7 @@ export class NotebookGroup extends Disposable implements INotebookGroupService {
             this._rootPath = path;
             
             // get configurations
-            const { exclude, include, previousOpenedDirctory } = this.configService.get<{ exclude: string[], include: string[], previousOpenedDirctory: string }>('workspace.notebook');
+            const { exclude, include, previousOpenedDirctory } = this.configService.get<{ exclude: string[], include: string[], previousOpenedDirctory: string }>(BuiltInConfigScope.User, 'workspace.notebook');
             
             // get all the names in the given directory
             const dir = await this.fileService.readDir(URI.fromFile(path));
@@ -153,7 +155,7 @@ export class NotebookGroup extends Disposable implements INotebookGroupService {
              */
             let notebook: Notebook | undefined;
             
-            const ifOpenPrevious = !!previousOpenedDirctory && (notebooks.indexOf(previousOpenedDirctory) !== -1);
+            const ifOpenPrevious = previousOpenedDirctory && (notebooks.indexOf(previousOpenedDirctory) !== -1);
             if (ifOpenPrevious) {
                 notebook = await this.__switchOrCreateNotebook(container, path, previousOpenedDirctory);
             } else {
@@ -236,7 +238,7 @@ export class NotebookGroup extends Disposable implements INotebookGroupService {
         
         // notebook not in the memory, we create a notebook.
         else {
-            notebook = new Notebook(container, this.fileService);
+            notebook = new Notebook(container, this.fileService, this.logService);
             this._group.set(name, notebook);
             
             // start building the whole notebook asynchronously.

@@ -18,14 +18,15 @@ import 'prismjs/components/prism-java';
 
 // @toast-ui-plugin: color syntax 
 import colorSyntax from '@toast-ui/editor-plugin-color-syntax';
-import { Component, IComponent } from 'src/code/browser/workbench/component';
+import { Component, IComponent } from 'src/code/browser/service/component/component';
 import { ContextMenuType, Coordinate } from 'src/base/browser/secondary/contextMenu/contextMenu';
 import { IContextMenuService } from 'src/code/browser/service/contextMenuService';
-import { createDecorator } from 'src/code/platform/instantiation/common/decorator';
-import { IComponentService } from 'src/code/browser/service/componentService';
+import { createService } from 'src/code/platform/instantiation/common/decorator';
+import { IComponentService } from 'src/code/browser/service/component/componentService';
 import { WorkspaceComponentType } from 'src/code/browser/workbench/workspace/workspace';
+import { IThemeService } from 'src/code/browser/service/theme/themeService';
 
-export const IMarkdownService = createDecorator<IMarkdownService>('markdown-service');
+export const IMarkdownService = createService<IMarkdownService>('markdown-service');
 
 export interface IMarkdownService extends IComponent {
     createMarkdownEditor(): void;
@@ -51,9 +52,10 @@ export class MarkdownComponent extends Component implements IMarkdownService {
 
     constructor(parentElement: HTMLElement,
                 @IComponentService componentService: IComponentService,
-                @IContextMenuService private readonly contextMenuService: IContextMenuService,                
+                @IContextMenuService private readonly contextMenuService: IContextMenuService,
+                @IThemeService themeService: IThemeService,
         ) {
-        super(WorkspaceComponentType.editor, parentElement, componentService);
+        super(WorkspaceComponentType.editor, parentElement, themeService, componentService);
 
         this.editor = null;
         
@@ -99,7 +101,7 @@ export class MarkdownComponent extends Component implements IMarkdownService {
         /**
          * @readonly register context menu listeners (right click menu)
          */
-        this.container.addEventListener('contextmenu', (ev: MouseEvent) => {
+        this.element.element.addEventListener('contextmenu', (ev: MouseEvent) => {
             
             ev.preventDefault();
             this.contextMenuService.removeContextMenu();
@@ -134,7 +136,7 @@ export class MarkdownComponent extends Component implements IMarkdownService {
     public createMarkdownEditor(): void {
 
         let editor = new Editor({
-            el: this.container, // HTMLElement container for markdown editor
+            el: this.element.element, // HTMLElement container for markdown editor
             height: '100%',
             language: 'en-US',
             /**

@@ -1,4 +1,5 @@
 import { Disposable } from "src/base/common/dispose";
+import { DataBuffer } from "src/base/common/file/buffer";
 import { URI } from "src/base/common/file/uri";
 import { ILogService } from "src/base/common/logger";
 import { ConfigStorage, IConfigStorage } from "src/code/platform/configuration/common/configStorage";
@@ -74,8 +75,22 @@ export class ConfigModel extends Disposable implements IConfigModel {
             const latestStorage = new ConfigStorage(undefined, model);
             this.merge([latestStorage]);
             this.logService.info(`Configuration loaded at ${this.resource.toString()}.`);
-        } catch (error) {
-            throw error; // throw it out, we do not care it here.
+            return;
+        } catch (error: any) {
+            // only throw if it is not Error NO ENTry
+            if (error.code && error.code !== 'ENOENT') {
+                throw error;
+            }
+        }
+
+        // file does not exist, we write a copy of the current model.
+        try {
+            const serialized = JSON.stringify(this.model, null, 4);
+            await this.fileService.createFile(this._resource, DataBuffer.fromString(serialized));
+            this.logService.info(`Configuration saved at ${this.resource.toString()}.`);
+        } catch (error: any) {
+            this.logService.error(`Cofniguration failed writing at ${this.resource.toString()}.`);
+            throw error;
         }
     }
 

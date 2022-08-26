@@ -80,5 +80,5 @@ export class ConsoleLogger extends AbstractLogger implements ILogger {
 	}
 
 	public override dispose(): void { /** noop */ }
-
+	public async flush(): Promise<void> { /** noop */ }
 }

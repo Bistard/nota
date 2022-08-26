@@ -1,12 +1,14 @@
 import { ISashEvent, Sash } from "src/base/browser/basic/sash/sash";
-import { Orientation } from "src/base/common/dom";
-import { Emitter, Register } from "src/base/common/event";
-import { IComponentService } from "src/code/browser/service/componentService";
-import { ActionBarComponent, ActionType } from "src/code/browser/workbench/actionBar/actionBar";
-import { ActionViewComponent } from "src/code/browser/workbench/actionView/actionView";
-import { Component, ComponentType, IComponent } from "src/code/browser/workbench/component";
-import { WorkspaceComponent } from "src/code/browser/workbench/workspace/workspace";
+import { addDisposableListener, DomUtility, EventType, Orientation } from "src/base/common/dom";
+import { IComponentService } from "src/code/browser/service/component/componentService";
+import { IThemeService } from "src/code/browser/service/theme/themeService";
+import { ActionBarComponent, IActionBarService } from "src/code/browser/workbench/actionBar/actionBar";
+import { ActionViewComponent, IActionViewService } from "src/code/browser/workbench/actionView/actionView";
+import { Component, ComponentType, IComponent } from "src/code/browser/service/component/component";
+import { IWorkspaceService } from "src/code/browser/workbench/workspace/workspace";
 import { IInstantiationService } from "src/code/platform/instantiation/common/instantiation";
+import { ISplitView, ISplitViewOpts, SplitView } from "src/base/browser/secondary/splitView/splitView";
+import { Priority } from "src/base/common/event";
 
 /**
  * @description A base class for Workbench to create and manage the behaviour of
@@ -14,114 +16,83 @@ import { IInstantiationService } from "src/code/platform/instantiation/common/in
  */
 export abstract class WorkbenchLayout extends Component {
 
-    // [events]
-
-    protected _onDidFinishLayout: Emitter<void> = this.__register(new Emitter<void>());
-    public onDidFinishLayout: Register<void> = this._onDidFinishLayout.registerListener;
-
     // [fields]
 
-    protected actionBar!: ActionBarComponent;
-    protected actionView!: ActionViewComponent;
-    protected workspace!: WorkspaceComponent;
-    
-    // TODO: refactor using SplitView
-    protected sashContainer: HTMLElement | undefined;
-    protected sashMap = new Map<string, Sash>();
+    private _splitView: ISplitView | undefined;
 
     // [constructor]
     
     constructor(
+        parent: HTMLElement,
         protected readonly instantiationService: IInstantiationService,
         @IComponentService componentService: IComponentService,
+        @IThemeService themeService: IThemeService,
+        @IActionBarService private readonly actionBarService: IActionBarService,
+        @IActionViewService private readonly actionViewService: IActionViewService,
+        @IWorkspaceService private readonly workspaceService: IWorkspaceService,
     ) {
-        super(ComponentType.Workbench, document.body, componentService);
+        super(ComponentType.Workbench, parent, themeService, componentService);
     }
 
     // [protected methods]
 
-    protected __createLayout(): void {
-        
-        /**
-         * Constructs each component of the workbench.
-         */
-        this.actionBar = this.instantiationService.createInstance(ActionBarComponent);
-        this.actionView = this.instantiationService.createInstance(ActionViewComponent, ActionType.EXPLORER /* // TODO: should read from config */);
-        this.workspace = this.instantiationService.createInstance(WorkspaceComponent);
-        
-        [
-            this.actionBar,
-            this.actionView,
-            this.workspace
-        ]
-        .forEach((component: IComponent) => {
-            component.create(this);
-            component.registerListeners();
-        });
-
-        this._createSashContainer();
-
-        this._onDidFinishLayout.fire();
+    public override layout(): void {
+        if (this.isDisposed() || !this.parent) {
+            return;
+        }
+        DomUtility.setFastPosition(this.element, 0, 0, 0, 0, 'relative');
+        super.layout(undefined, undefined);
     }
 
-    protected __registerLayout(): void {
+    // [protected helper methods]
+
+    protected __createLayout(): void {
         
-        /**
-         * @readonly Listens to each ActionBar button click events and notifies 
-         * the actionView to swtich the view.
-         */
-        this.actionBar.onDidButtonClick(e => {
-            this.actionView.setActionView(e.type);
-        });
+        const splitViewContainer = document.createElement('div');
+        splitViewContainer.className = 'split-view';
+        const splitViewOpt: ISplitViewOpts = {
+            orientation: Orientation.Horizontal,
+            viewOpts: [],
+        };
+
+        // Constructs each component of the workbench.
+        const configurations: [IComponent, number, number, number, Priority][] = [
+            [this.actionBarService , ActionBarComponent.width , ActionBarComponent.width     , ActionBarComponent.width , Priority.Low   ],
+            [this.actionViewService, ActionViewComponent.width, ActionViewComponent.width * 2, ActionViewComponent.width, Priority.Normal],
+            [this.workspaceService , 0                        , Number.POSITIVE_INFINITY     , 0                        , Priority.High  ],
+        ]
+        for (const [component, minSize, maxSize, initSize, priority] of configurations) {
+            component.create(this, splitViewContainer);
+            component.registerListeners();
+            splitViewOpt.viewOpts!.push({
+                element: component.element.element, 
+                minimumSize: minSize,
+                maximumSize: maxSize,
+                initSize: initSize,
+                priority: priority,
+            });
+        };
+
+        // construct the split-view
+        this._splitView = new SplitView(this.element.element, splitViewOpt);
+    }
+
+    protected __registerLayoutListeners(): void {
+        
+        // window resizing
+        this.__register(addDisposableListener(window, EventType.resize, (event => {
+            this.layout();
+        })));
 
         /**
-         * @readonly Registers {@link Sash} listeners.
+         * Listens to each ActionBar button click events and notifies the 
+         * actionView to swtich the view.
          */
-
-        const sash = this.sashMap.get('sash-1')!;
-        sash.onDidMove((e: ISashEvent) => {
-            const newX = e.currentX - ActionBarComponent.width;
-            this.actionView.container.style.width = newX + 'px';
-            this.actionView.container.style.minWidth = newX + 'px';
-        });
-
-        sash.onDidReset(() => {
-            this.actionView.container.style.width = ActionViewComponent.width + 'px';
-            this.actionView.container.style.minWidth = ActionViewComponent.width + 'px';
+        this.actionBarService.onDidButtonClick(e => {
+            this.actionViewService.setActionView(e.type);
         });
     }
 
     // [private helper functions]
-
-    // TODO: remove
-    private _registerSash(id: string, sash: Sash): Sash {
-        this.sashMap.set(id, sash);
-        return sash;
-    }
-
-    // TODO: remove
-    private _createSashContainer(): void {
-
-        if (this.sashContainer) {
-            return;
-        }
-
-        // create sash containers to DOM (document.body)
-        this.sashContainer = document.createElement('div');
-        this.sashContainer.classList.add('sash-container');
-        this.container.append(this.sashContainer);
-
-        [
-            this._registerSash('sash-1', new Sash(this.sashContainer, {
-                orientation: Orientation.Vertical, 
-                initPosition: ActionBarComponent.width + ActionViewComponent.width + 3, 
-                range: { start: 200, end: 600 }
-            })),
-        ]
-        .forEach((sash: Sash) => {
-            sash.registerListeners();
-        });
-
-    }
 
 }

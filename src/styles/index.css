@@ -18,6 +18,7 @@
 @import "../base/browser/secondary/scrollableWidget/scrollableWidget.css";
 @import "../base/browser/secondary/listView/listView.css";
 @import "../base/browser/secondary/tree/tree.css";
+@import "../base/browser/secondary/splitView/splitView.css";
 
 @import "../code/styles/workbench/actionBar/actionBar.css";
 @import "../code/styles/workbench/actionView/actionView.css";
