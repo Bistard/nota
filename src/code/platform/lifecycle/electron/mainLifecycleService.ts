@@ -2,11 +2,11 @@ import { app, BrowserWindow } from "electron";
 import { ILogService } from "src/base/common/logger";
 import { IS_MAC } from "src/base/common/platform";
 import { Blocker, delayFor } from "src/base/common/util/async";
-import { createDecorator } from "src/code/platform/instantiation/common/decorator";
+import { createService } from "src/code/platform/instantiation/common/decorator";
 import { AbstractLifecycleService } from "src/code/platform/lifecycle/common/abstractLifecycleService";
 import { ILifecycleService } from "src/code/platform/lifecycle/common/lifecycle";
 
-export const IMainLifecycleService = createDecorator<IMainLifecycleService>('life-cycle-service');
+export const IMainLifecycleService = createService<IMainLifecycleService>('life-cycle-service');
 
 /**
  * Represents the different phases of the whole application. Notices that the

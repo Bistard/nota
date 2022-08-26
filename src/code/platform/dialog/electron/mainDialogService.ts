@@ -5,9 +5,9 @@ import { IS_MAC } from "src/base/common/platform";
 import { AsyncQueue } from "src/base/common/util/async";
 import { mockType, NulltoUndefined } from "src/base/common/util/type";
 import { IDialogService, InternalOpenDialogOptions, OpenDialogOptions } from "src/code/platform/dialog/common/dialog";
-import { createDecorator } from "src/code/platform/instantiation/common/decorator";
+import { createService } from "src/code/platform/instantiation/common/decorator";
 
-export const IMainDialogService = createDecorator<IMainDialogService>('main-dialog-service');
+export const IMainDialogService = createService<IMainDialogService>('main-dialog-service');
 
 /**
  * An interface only for {@link MainDialogService}.

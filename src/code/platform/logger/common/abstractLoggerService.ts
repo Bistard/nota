@@ -1,9 +1,9 @@
 import { Disposable } from "src/base/common/dispose";
 import { URI } from "src/base/common/file/uri";
 import { DEFAULT_LOG_LEVEL, ILogger, ILoggerOpts, LogLevel } from "src/base/common/logger";
-import { createDecorator } from "src/code/platform/instantiation/common/decorator";
+import { createService } from "src/code/platform/instantiation/common/decorator";
 
-export const ILoggerService = createDecorator<ILoggerService>('logger-service');
+export const ILoggerService = createService<ILoggerService>('logger-service');
 
 /**
  * A {@link ILoggerService} provides ability to create or get {@link ILogger}

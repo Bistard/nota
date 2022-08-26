@@ -2,11 +2,11 @@ import { Disposable } from "src/base/common/dispose";
 import { Emitter, Register } from "src/base/common/event";
 import { ILogService } from "src/base/common/logger";
 import { ICommandEvent, ICommandRegistrant } from "src/code/platform/command/common/commandRegistrant";
-import { createDecorator } from "src/code/platform/instantiation/common/decorator";
+import { createService } from "src/code/platform/instantiation/common/decorator";
 import { IInstantiationService } from "src/code/platform/instantiation/common/instantiation";
 import { Registrants } from "src/code/platform/registrant/common/registrant";
 
-export const ICommandService = createDecorator<ICommandService>('command-service');
+export const ICommandService = createService<ICommandService>('command-service');
 
 /**
  * An interface only for {@link CommandService}.

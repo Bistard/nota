@@ -1,7 +1,7 @@
 import * as assert from 'assert';
 import { ICommandExecutor, ICommandRegistrant } from 'src/code/platform/command/common/commandRegistrant';
 import { CommandService, ICommandService } from 'src/code/platform/command/common/commandService';
-import { createDecorator } from 'src/code/platform/instantiation/common/decorator';
+import { createService } from 'src/code/platform/instantiation/common/decorator';
 import { IInstantiationService, InstantiationService, IServiceProvider } from 'src/code/platform/instantiation/common/instantiation';
 import { Registrants } from 'src/code/platform/registrant/common/registrant';
 import { NullLogger } from 'test/testUtility';
@@ -22,7 +22,7 @@ class TestService implements ITestService {
     }
 }
 
-const ITestService = createDecorator<ITestService>('test-service');
+const ITestService = createService<ITestService>('test-service');
 
 suite('command-test', () => {
     

@@ -1,7 +1,7 @@
 import { Component, ComponentType, IComponent } from 'src/code/browser/service/component/component';
 import { ExplorerViewComponent } from "src/code/browser/workbench/actionView/explorer/explorer";
 import { Emitter, Register } from 'src/base/common/event';
-import { createDecorator } from 'src/code/platform/instantiation/common/decorator';
+import { createService } from 'src/code/platform/instantiation/common/decorator';
 import { IComponentService } from 'src/code/browser/service/component/componentService';
 import { IInstantiationService } from 'src/code/platform/instantiation/common/instantiation';
 import { ActionType } from 'src/code/browser/workbench/actionBar/actionBar';
@@ -12,7 +12,7 @@ import { Ii18nService } from 'src/code/platform/i18n/i18n';
 import { Section } from 'src/code/platform/section';
 import { IThemeService } from 'src/code/browser/service/theme/themeService';
 
-export const IActionViewService = createDecorator<IActionViewService>('action-view-service');
+export const IActionViewService = createService<IActionViewService>('action-view-service');
 
 export interface IActionViewChangeEvent {
 

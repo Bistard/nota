@@ -1,5 +1,5 @@
 import { Component, ComponentType, IComponent } from 'src/code/browser/service/component/component';
-import { createDecorator } from 'src/code/platform/instantiation/common/decorator';
+import { createService } from 'src/code/platform/instantiation/common/decorator';
 import { IComponentService } from 'src/code/browser/service/component/componentService';
 import { ActionButton } from 'src/code/browser/workbench/actionBar/actionButton';
 import { WidgetBar } from 'src/base/browser/secondary/widgetBar/widgetBar';
@@ -8,7 +8,7 @@ import { Icons } from 'src/base/browser/icon/icons';
 import { Emitter, Register } from 'src/base/common/event';
 import { IThemeService } from 'src/code/browser/service/theme/themeService';
 
-export const IActionBarService = createDecorator<IActionBarService>('action-bar-service');
+export const IActionBarService = createService<IActionBarService>('action-bar-service');
 
 export const enum ActionType {
     NONE = 'none',

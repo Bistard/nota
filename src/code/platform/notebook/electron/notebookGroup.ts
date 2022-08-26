@@ -11,13 +11,13 @@ import { ExplorerItem } from "src/code/browser/workbench/actionView/explorer/exp
 import { IExplorerOpenEvent } from "src/code/browser/workbench/actionView/explorer/explorerTree";
 import { Notebook } from "src/code/platform/notebook/browser/notebook";
 import { IFileService } from "src/code/platform/files/common/fileService";
-import { createDecorator } from "src/code/platform/instantiation/common/decorator";
+import { createService } from "src/code/platform/instantiation/common/decorator";
 import { IConfigService, NOTA_DIR_NAME } from "src/code/platform/configuration/common/abstractConfigService";
 import { BuiltInConfigScope } from "src/code/platform/configuration/common/configRegistrant";
 import { IBrowserLifecycleService, ILifecycleService } from "src/code/platform/lifecycle/browser/browserLifecycleService";
 import { ILogService } from "src/base/common/logger";
 
-export const INotebookGroupService = createDecorator<INotebookGroupService>('notebook-manager-service');
+export const INotebookGroupService = createService<INotebookGroupService>('notebook-manager-service');
 
 export interface INotebookGroupService {
     

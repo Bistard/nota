@@ -4,10 +4,10 @@ import * as path from "src/base/common/file/path";
 import { IFileService } from "src/code/platform/files/common/fileService";
 import { isArray, isObject } from "src/base/common/util/type";
 import { Section } from "src/code/platform/section";
-import { createDecorator } from "src/code/platform/instantiation/common/decorator";
+import { createService } from "src/code/platform/instantiation/common/decorator";
 import { ILogService } from "src/base/common/logger";
 
-export const Ii18nService = createDecorator<Ii18nService>('i18n-service');
+export const Ii18nService = createService<Ii18nService>('i18n-service');
 
 /* the default path where to read locales. */
 const DefaultLocalesPath = 'assets/locales';

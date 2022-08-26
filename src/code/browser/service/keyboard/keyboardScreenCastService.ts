@@ -4,9 +4,9 @@ import { DomUtility } from "src/base/common/dom";
 import { IStandardKeyboardEvent, Keyboard } from "src/base/common/keyboard";
 import { IntervalTimer } from "src/base/common/util/timer";
 import { IKeyboardService } from "src/code/browser/service/keyboard/keyboardService";
-import { createDecorator } from "src/code/platform/instantiation/common/decorator";
+import { createService } from "src/code/platform/instantiation/common/decorator";
 
-export const IKeyboardScreenCastService = createDecorator<IKeyboardScreenCastService>('keyboard-screencast-service');
+export const IKeyboardScreenCastService = createService<IKeyboardScreenCastService>('keyboard-screencast-service');
 
 /**
  * An interface only for {@link KeyboardScreenCastService}.

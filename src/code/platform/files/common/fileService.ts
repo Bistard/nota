@@ -7,9 +7,9 @@ import { isAbsoluteURI, URI } from "src/base/common/file/uri";
 import { ILogService } from "src/base/common/logger";
 import { Iterable } from "src/base/common/util/iterable";
 import { readFileIntoStream, readFileIntoStreamAsync } from "src/code/platform/files/node/io";
-import { createDecorator } from "src/code/platform/instantiation/common/decorator";
+import { createService } from "src/code/platform/instantiation/common/decorator";
 
-export const IFileService = createDecorator<IFileService>('file-service');
+export const IFileService = createService<IFileService>('file-service');
 
 export interface IFileService extends IDisposable {
     

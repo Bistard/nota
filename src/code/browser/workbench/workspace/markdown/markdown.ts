@@ -21,12 +21,12 @@ import colorSyntax from '@toast-ui/editor-plugin-color-syntax';
 import { Component, IComponent } from 'src/code/browser/service/component/component';
 import { ContextMenuType, Coordinate } from 'src/base/browser/secondary/contextMenu/contextMenu';
 import { IContextMenuService } from 'src/code/browser/service/contextMenuService';
-import { createDecorator } from 'src/code/platform/instantiation/common/decorator';
+import { createService } from 'src/code/platform/instantiation/common/decorator';
 import { IComponentService } from 'src/code/browser/service/component/componentService';
 import { WorkspaceComponentType } from 'src/code/browser/workbench/workspace/workspace';
 import { IThemeService } from 'src/code/browser/service/theme/themeService';
 
-export const IMarkdownService = createDecorator<IMarkdownService>('markdown-service');
+export const IMarkdownService = createService<IMarkdownService>('markdown-service');
 
 export interface IMarkdownService extends IComponent {
     createMarkdownEditor(): void;

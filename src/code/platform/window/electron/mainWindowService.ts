@@ -4,7 +4,7 @@ import { ILogService } from "src/base/common/logger";
 import { isNumber, Mutable } from "src/base/common/util/type";
 import { UUID } from "src/base/node/uuid";
 import { IFileService } from "src/code/platform/files/common/fileService";
-import { createDecorator } from "src/code/platform/instantiation/common/decorator";
+import { createService } from "src/code/platform/instantiation/common/decorator";
 import { IInstantiationService } from "src/code/platform/instantiation/common/instantiation";
 import { IEnvironmentService, IMainEnvironmentService } from "src/code/platform/environment/common/environment";
 import { IMainLifecycleService } from "src/code/platform/lifecycle/electron/mainLifecycleService";
@@ -12,7 +12,7 @@ import { ToOpenType, IUriToOpenConfiguration, IWindowConfiguration, IWindowCreat
 import { IWindowInstance, WindowInstance } from "src/code/platform/window/electron/windowInstance";
 import { URI } from "src/base/common/file/uri";
 
-export const IMainWindowService = createDecorator<IMainWindowService>('main-window-service');
+export const IMainWindowService = createService<IMainWindowService>('main-window-service');
 
 /**
  * An interface only for {@link MainWindowService}.

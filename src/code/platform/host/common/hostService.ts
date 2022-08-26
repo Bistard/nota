@@ -2,10 +2,10 @@ import { OpenDialogOptions } from "electron";
 import { IDisposable } from "src/base/common/dispose";
 import { Register } from "src/base/common/event";
 import { getUUID } from "src/base/node/uuid";
-import { createDecorator } from "src/code/platform/instantiation/common/decorator";
+import { createService } from "src/code/platform/instantiation/common/decorator";
 import { SafeIpcMain } from "src/code/platform/ipc/electron/safeIpcMain";
 
-export const IHostService = createDecorator<IHostService>('host-service');
+export const IHostService = createService<IHostService>('host-service');
 
 export interface IHostService {
     

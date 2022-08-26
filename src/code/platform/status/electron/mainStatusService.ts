@@ -3,13 +3,13 @@ import { join } from "src/base/common/file/path";
 import { URI } from "src/base/common/file/uri";
 import { ILogService } from "src/base/common/logger";
 import { IFileService } from "src/code/platform/files/common/fileService";
-import { createDecorator } from "src/code/platform/instantiation/common/decorator";
+import { createService } from "src/code/platform/instantiation/common/decorator";
 import { IEnvironmentService, IMainEnvironmentService } from "src/code/platform/environment/common/environment";
 import { DiskStorage, IDiskStorage } from "src/code/platform/files/common/diskStorage";
 import { IMainLifecycleService } from "src/code/platform/lifecycle/electron/mainLifecycleService";
 import { NOTA_DIR_NAME } from "src/code/platform/configuration/common/abstractConfigService";
 
-export const IMainStatusService = createDecorator<IMainStatusService>('status-service');
+export const IMainStatusService = createService<IMainStatusService>('status-service');
 
 /**
  * An interface only for {@link MainStatusService}. The API are mainly just a

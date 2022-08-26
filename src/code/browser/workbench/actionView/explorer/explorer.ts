@@ -2,7 +2,7 @@ import { Component, ComponentType, IComponent } from 'src/code/browser/service/c
 import { Emitter, Register } from 'src/base/common/event';
 import { INotebookGroupService } from 'src/code/platform/notebook/electron/notebookGroup';
 import { IComponentService } from 'src/code/browser/service/component/componentService';
-import { createDecorator } from 'src/code/platform/instantiation/common/decorator';
+import { createService } from 'src/code/platform/instantiation/common/decorator';
 import { Ii18nService } from 'src/code/platform/i18n/i18n';
 import { Section } from 'src/code/platform/section';
 import { registerSingleton } from 'src/code/platform/instantiation/common/serviceCollection';
@@ -15,7 +15,7 @@ import { IBrowserDialogService, IDialogService } from 'src/code/platform/dialog/
 import { IThemeService } from 'src/code/browser/service/theme/themeService';
 import { ILogService } from 'src/base/common/logger';
 
-export const IExplorerViewService = createDecorator<IExplorerViewService>('explorer-view-service');
+export const IExplorerViewService = createService<IExplorerViewService>('explorer-view-service');
 
 /**
  * An interface only for {@link ExplorerViewComponent}.

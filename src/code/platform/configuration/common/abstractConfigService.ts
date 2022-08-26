@@ -6,12 +6,12 @@ import { DeepReadonly } from "src/base/common/util/type";
 import { IConfigCollection } from "src/code/platform/configuration/common/configCollection";
 import { ConfigScope, IScopeConfigChangeEvent } from "src/code/platform/configuration/common/configRegistrant";
 import { IFileService } from "src/code/platform/files/common/fileService";
-import { createDecorator } from "src/code/platform/instantiation/common/decorator";
+import { createService } from "src/code/platform/instantiation/common/decorator";
 import { ILifecycleService } from "src/code/platform/lifecycle/common/lifecycle";
 import { ILifecycleService as ILifecycleServiceDecorator } from "src/code/platform/lifecycle/browser/browserLifecycleService";
 import { DataBuffer } from "src/base/common/file/buffer";
 
-export const IConfigService = createDecorator<IConfigService>('configuration-service');
+export const IConfigService = createService<IConfigService>('configuration-service');
 
 export const NOTA_DIR_NAME = '.nota';
 export const DEFAULT_CONFIG_NAME = 'user.config.json';

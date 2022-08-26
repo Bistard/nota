@@ -45,7 +45,7 @@ function storeServiceDependency(target: Function, id: Function, index: number, o
  * @param serviceId unique name of the service
  * @returns {ServiceIdentifier<T>} the coressponing serviceIdentifier to the given service
  */
-export function createDecorator<T>(serviceId: string): ServiceIdentifier<T> {
+export function createService<T>(serviceId: string): ServiceIdentifier<T> {
 
     // decorator could be cached
     const returnedServiceIdentifier = _ServiceUtil.serviceIdentifiers.get(serviceId);

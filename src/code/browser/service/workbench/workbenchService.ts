@@ -1,6 +1,6 @@
-import { createDecorator } from "src/code/platform/instantiation/common/decorator";
+import { createService } from "src/code/platform/instantiation/common/decorator";
 
-export const IWorkbenchService = createDecorator<IWorkbenchService>('workbench-service');
+export const IWorkbenchService = createService<IWorkbenchService>('workbench-service');
 
 export interface IWorkbenchService {
 

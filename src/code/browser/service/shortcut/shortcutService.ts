@@ -4,7 +4,7 @@ import { URI } from "src/base/common/file/uri";
 import { Shortcut } from "src/base/common/keyboard";
 import { IKeyboardService } from "src/code/browser/service/keyboard/keyboardService";
 import { IFileService } from "src/code/platform/files/common/fileService";
-import { createDecorator } from "src/code/platform/instantiation/common/decorator";
+import { createService } from "src/code/platform/instantiation/common/decorator";
 import { IInstantiationService } from "src/code/platform/instantiation/common/instantiation";
 import { ILogService } from "src/base/common/logger";
 import { IBrowserLifecycleService, ILifecycleService, LifecyclePhase } from "src/code/platform/lifecycle/browser/browserLifecycleService";
@@ -13,7 +13,7 @@ import { Registrants } from "src/code/platform/registrant/common/registrant";
 import { IBrowserEnvironmentService } from "src/code/platform/environment/common/environment";
 
 export const SHORTCUT_CONFIG_NAME = 'shortcut.config.json';
-export const IShortcutService = createDecorator<IShortcutService>('shortcut-service');
+export const IShortcutService = createService<IShortcutService>('shortcut-service');
 
 export interface IShortcutService extends IDisposable {
     register(registration: IShortcutRegistration): IDisposable;

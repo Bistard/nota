@@ -1,9 +1,9 @@
 import { Disposable } from "src/base/common/dispose";
 import { Emitter, Register } from "src/base/common/event";
 import { ITheme } from "src/code/browser/service/theme/theme";
-import { createDecorator } from "src/code/platform/instantiation/common/decorator";
+import { createService } from "src/code/platform/instantiation/common/decorator";
 
-export const IThemeService = createDecorator<IThemeService>('theme-service');
+export const IThemeService = createService<IThemeService>('theme-service');
 
 export interface IThemeService {
     
