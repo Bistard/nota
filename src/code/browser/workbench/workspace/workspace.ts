@@ -28,8 +28,6 @@ export class WorkspaceComponent extends Component implements IWorkspaceService {
 
     private titleBarComponent!: TitleBarComponent;
     private editorComponent!: EditorComponent;
-    
-    // TODO: remove later
     private markdownComponent!: MarkdownComponent;
 
     // [constructor]

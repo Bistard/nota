@@ -24,13 +24,12 @@ export interface IActionBarButtonClickEvent {
     /**
      * The type of button is clicked.
      */
-    type: ActionType;
+    readonly type: ActionType;
 
     /**
      * The previous type of button was clicked.
      */
-    prevType: ActionType;
-
+    readonly prevType: ActionType;
 }
 
 export interface IActionBarService extends IComponent {
@@ -49,6 +48,7 @@ export interface IActionBarService extends IComponent {
 
 }
 
+/** @deprecated */
 export interface IActionBarOptions {
     options: [
         isExplorerChecked: boolean,
@@ -111,21 +111,6 @@ export class ActionBarComponent extends Component implements IActionBarService {
     protected override _registerListeners(): void {
         
         /**
-         * @readonly register context menu listeners (right click menu) // review
-         */
-        document.getElementById('action-bar')!.addEventListener('contextmenu', (ev: MouseEvent) => {
-            // ev.preventDefault();
-            // this.contextMenuService.removeContextMenu();
-            // let coordinate: Coordinate = {
-            //     coordinateX: ev.pageX,
-            //     coordinateY: ev.pageY,
-            // };
-
-            // this.contextMenuService.createContextMenu(ContextMenuType.actionBar, coordinate);
-
-        });
-
-        /**
          * Register all the action buttons click event.
          */
         this._widgetBar.items().forEach(item => {
@@ -134,7 +119,6 @@ export class ActionBarComponent extends Component implements IActionBarService {
             });
         })
         
-
         // default with opening explorer view
         this.__actionButtonClick(ActionType.EXPLORER);
     }
@@ -216,5 +200,4 @@ export class ActionBarComponent extends Component implements IActionBarService {
 
         return widgetBar;
     }
-
 }

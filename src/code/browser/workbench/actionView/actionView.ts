@@ -65,7 +65,7 @@ export class ActionViewComponent extends Component implements IActionViewService
 
     private _currentViewType: ActionType;
 
-    private _components: Map<string, IActionViewComponent>;
+    private readonly _components: Map<string, IActionViewComponent>;
 
     private actionViewTitlePart!: ActionViewTitlePart;
 
@@ -83,7 +83,7 @@ export class ActionViewComponent extends Component implements IActionViewService
         @IThemeService themeService: IThemeService,
     ) {
         super(ComponentType.ActionView, null, themeService, componentService);
-        this._currentViewType = ActionType.EXPLORER; // TODO: read from config
+        this._currentViewType = ActionType.NONE;
         this._components = new Map();
     }
 
@@ -109,7 +109,8 @@ export class ActionViewComponent extends Component implements IActionViewService
         this.actionViewTitlePart = this.__register(new ExplorerTitlePart(this.i18nService)); // TODO
         this.actionViewTitlePart.render(this.actionViewContentContainer);
 
-        this.__switchToActionView(this._currentViewType);
+        // default to explorer-view
+        this.__switchToActionView(ActionType.EXPLORER);
         
         // render them
         this.contentArea.appendChild(this.actionViewContentContainer);
@@ -117,11 +118,9 @@ export class ActionViewComponent extends Component implements IActionViewService
     }
 
     protected override _registerListeners(): void {
-
         for (const component of this._components.values()) {
             component.registerListeners();
         }
-        
     }
 
     // [private helper methods]
@@ -282,5 +281,4 @@ export class ExplorerTitlePart extends ActionViewTitlePart {
         wrapper.append(topText);
         this._element.appendChild(wrapper);
     }
-
 }

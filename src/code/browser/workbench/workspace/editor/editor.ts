@@ -20,7 +20,6 @@ export interface IEditorService extends IComponent {
      * @param uriOrString The uri or in the string form.
      */
     openEditor(uriOrString: URI | string): void;
-
 }
 
 export class EditorComponent extends Component implements IEditorService {

@@ -34,3 +34,5 @@ registerSingleton(IThemeService, new ServiceDescriptor(ThemeService));
 // utilities && tools
 // TODO: contextService
 // TODO: performanceService
+// TODO: folderTreeService
+// TODO: notebookTreeService
