@@ -16,12 +16,12 @@ export interface IWidgetBar<T extends IWidget> {
     /** 
      * The HTMLElement of the widget bar which contains `viewContainer` 
      */
-    container: HTMLElement;
+    readonly container: HTMLElement;
 
     /** 
      * The list HTMLElement to stores all the actual HTMLElements of each widget 
      */
-    viewsContainer: HTMLElement;
+    readonly viewsContainer: HTMLElement;
 
     /**
      * @description Inserts the provided widget item into the bar.
@@ -86,7 +86,7 @@ export interface IWidgetBarOptions {
 
 /**
  * @class A convenient tool to stores a sequence of Widgets and displays them in 
- * sequential order.
+ * a sequential order.
  */
 export class WidgetBar<T extends IWidget> extends Disposable implements IWidgetBar<T> {
 

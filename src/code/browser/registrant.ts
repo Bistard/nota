@@ -28,7 +28,9 @@ registerSingleton(IActionBarService, new ServiceDescriptor(ActionBarComponent));
 registerSingleton(IWorkspaceService, new ServiceDescriptor(WorkspaceComponent));
 registerSingleton(IActionViewService, new ServiceDescriptor(ActionViewComponent));
 registerSingleton(IKeyboardScreenCastService, new ServiceDescriptor(KeyboardScreenCastService));
+// TODO: themeService
 registerSingleton(IThemeService, new ServiceDescriptor(ThemeService));
 
 // utilities && tools
-// REVIEW: contextService
+// TODO: contextService
+// TODO: performanceService

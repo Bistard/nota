@@ -2,17 +2,13 @@ import { Button, IButtonOptions } from "src/base/browser/basic/button/button"
 import { getIconClass } from "src/base/browser/icon/iconRegistry";
 
 export interface IWindowButtonOptions extends IButtonOptions {
-    ipcMessage: string
+
 }
 
 export class WindowButton extends Button {
 
-    private _ipcMessage: string;
-
     constructor(opts: IWindowButtonOptions) {
         super(opts);
-
-        this._ipcMessage = opts.ipcMessage;
     }
 
     /**
@@ -21,26 +17,10 @@ export class WindowButton extends Button {
      */
      public override render(container: HTMLElement): void {
         super.render(container);
-
-        if (this._element === undefined) {
-            return;
-        }
-
-        // add onClick event listener
-        this.onClick(this._element, (event: any) => {
-            if (this.enabled === false) {
-                return;
-            }
-
-            // send message to the main process
-            // FIX: use hostService
-        });
-
         this.applyStyle();
     }
 
     public override applyStyle(): void {
-        
         if (this._element === undefined || this.opts === undefined) {
             return;
         }

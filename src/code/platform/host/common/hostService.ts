@@ -19,6 +19,7 @@ export interface IHostService {
     maximizeWindow(id?: number): Promise<void>;
     minimizeWindow(id?: number): Promise<void>;
     unmaximizeWindow(id?: number): Promise<void>;
+    toggleMaximizeWindow(id?: number): Promise<void>;
     toggleFullScreenWindow(id?: number): Promise<void>;
     closeWindow(id?: number): Promise<void>;
 
