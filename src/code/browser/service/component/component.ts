@@ -56,6 +56,8 @@ export interface IComponent extends ICreateable {
 
     /**
      * @description Layout the component to the given dimension.
+     * @param width The width of dimension.
+     * @param height The height of dimension.
      * @note If no dimensions is provided, the component will try to be filled
      * with the parent HTMLElement. If any dimensions is provided, the component
      * will layout the missing one either with the previous value or just zero.

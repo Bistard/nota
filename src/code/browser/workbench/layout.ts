@@ -41,9 +41,7 @@ export abstract class WorkbenchLayout extends Component {
         if (this.isDisposed() || !this.parent) {
             return;
         }
-
-        DomUtility.setPosition(this.element.element, 0, 0, 0, 0, 'relative');
-        // DomUtility.setFastPosition(this.element, 0, 0, 0, 0, 'relative');
+        DomUtility.setFastPosition(this.element, 0, 0, 0, 0, 'relative');
         super.layout(undefined, undefined);
     }
 
