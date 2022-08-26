@@ -469,7 +469,9 @@ class __ListWidgetKeyboardController<T> implements IDisposable {
             e.preventDefault();
             e.stopPropagation();
             const newFoused = this._view.focusPrev(1, false, undefined);
-            this._view.reveal(newFoused, undefined);
+            if (newFoused !== -1) {
+                this._view.reveal(newFoused, undefined);
+            }
             this._view.setDomFocus();
         }
     }
@@ -479,7 +481,9 @@ class __ListWidgetKeyboardController<T> implements IDisposable {
             e.preventDefault();
             e.stopPropagation();
             const newFoused = this._view.focusNext(1, false, undefined);
-            this._view.reveal(newFoused, undefined);
+            if (newFoused !== -1) {
+                this._view.reveal(newFoused, undefined);
+            }
             this._view.setDomFocus();
         }
     }

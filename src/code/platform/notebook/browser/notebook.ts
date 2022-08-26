@@ -179,7 +179,6 @@ export class Notebook extends Disposable implements INotebook {
     public async init(root: URI): Promise<boolean> {
         
         try {
-            // FIX: stat has an issue
             const rootStat = await this.fileService.stat(root, { resolveChildren: true });
             this._root = new ExplorerItem(rootStat);
             await this.__createTree(this._container, this._root);
