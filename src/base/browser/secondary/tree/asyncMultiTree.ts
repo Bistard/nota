@@ -34,7 +34,6 @@ export interface IAsyncChildrenProvider<T> {
      * constructing.
      */
     collapseByDefault?: (data: T) => boolean;
-
 }
 
 /**
@@ -122,7 +121,7 @@ export interface IAsyncMultiTree<T, TFilter> {
     /**
      * The container of the whole tree.
      */
-    DOMElement: HTMLElement;
+    readonly DOMElement: HTMLElement;
 
     // [event]
     
@@ -401,7 +400,6 @@ export class AsyncMultiTree<T, TFilter = void> implements IAsyncMultiTree<T, TFi
     ): Pair<AsyncMultiTree<T, TFilter>, Promise<void>>
     {
         const tree = new AsyncMultiTree(container, rootData, renderers, itemProvider, childrenProvider, opts);
-        
         return [tree, tree.refresh()];
     }
 
