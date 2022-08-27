@@ -92,6 +92,11 @@ export type SplitString<S extends string, D extends string> =
     S extends `${infer T}${D}${infer U}` ? [T, ...SplitString<U, D>] : [S];
 
 /**
+ * A general compare function.
+ */
+export type CompareFn<T> = (a: T, b: T) => number;
+
+/**
  * @description Mocks the given value's type.
  */
 export function mockType<T>(val: any): T {

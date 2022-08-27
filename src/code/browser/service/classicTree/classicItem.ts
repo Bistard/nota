@@ -3,7 +3,7 @@ import { FileType, IResolvedFileStat } from "src/base/common/file/file";
 import { URI } from "src/base/common/file/uri";
 import { IFilterOpts, isFiltered } from "src/base/common/fuzzy";
 import { ILogService } from "src/base/common/logger";
-import { isPromise } from "src/base/common/util/type";
+import { CompareFn, isPromise } from "src/base/common/util/type";
 import { IFileService } from "src/code/platform/files/common/fileService";
 
 /**
@@ -26,11 +26,9 @@ export interface IClassicItem {
     /** The last modified date in milliseconds.*/
     readonly modifyTime: number;
 
-    // TODO: pref - memoize
     /** The parent of the target. Null if current target is the root. */
     readonly parent: ClassicItem | null;
 
-    // TODO: pref - memoize
     /** The direct children of the target. */
     readonly children: ClassicItem[];
 
@@ -73,8 +71,9 @@ export interface IClassicItem {
      * @param filters Providing filter options during the resolution process can 
      * prevent unnecessary performance loss compares to we filter the result 
      * after the process.
+     * @param cmpFn A compare function to sort the children.
 	 */
-	refreshChildren(fileService: IFileService, filters?: IFilterOpts): void | Promise<void>;
+	refreshChildren(fileService: IFileService, filters?: IFilterOpts, cmpFn?: CompareFn<ClassicItem>): void | Promise<void>;
 
 	/**
 	 * @description Forgets all the children of the current item.
@@ -83,8 +82,12 @@ export interface IClassicItem {
 }
 
 /**
- * @class A data structure to be stored as each tree node in a {@link ClassicTreeService}.
- * It
+ * @class A data structure to be stored as each tree node in a 
+ * {@link ClassicTreeService}. The item will build the tree structure 
+ * recursively once constructed by the provided stat.
+ * 
+ * If stat is out of updated, invoking refreshChildren will automatically 
+ * rebuild the whole tree structure.
  */
 export class ClassicItem implements IClassicItem {
 
@@ -94,6 +97,7 @@ export class ClassicItem implements IClassicItem {
     private _stat: IResolvedFileStat;
     // An array to store the children and will be updated during the refresh.
     private _children: ClassicItem[] = [];
+    // the parent of the current item.
     private _parent: ClassicItem | null = null;
 
     // [constructor]
@@ -102,6 +106,7 @@ export class ClassicItem implements IClassicItem {
         stat: IResolvedFileStat,
         parent: ClassicItem | null,
         filters?: IFilterOpts,
+        cmpFn: CompareFn<ClassicItem> = defaultCompareFn
     ) {
         this._stat = stat;
         this._parent = parent;
@@ -110,6 +115,9 @@ export class ClassicItem implements IClassicItem {
                 continue;
             }
             this._children.push(new ClassicItem(stat, this));
+        }
+        if (cmpFn) {
+            this._children.sort(cmpFn);
         }
     }
 
@@ -154,7 +162,7 @@ export class ClassicItem implements IClassicItem {
         return this.isDirectory();
     }
 
-	public refreshChildren(fileService: IFileService, filters?: IFilterOpts): void | Promise<void> {
+	public refreshChildren(fileService: IFileService, filters?: IFilterOpts, cmpFn?: CompareFn<ClassicItem>): void | Promise<void> {
 
         // the basic children stats are already resolved
         if (this._stat.children) {
@@ -175,6 +183,9 @@ export class ClassicItem implements IClassicItem {
                 this._children = [];
                 for (const childStat of (updatedStat.children ?? [])) {
                     this._children.push(new ClassicItem(childStat, this, filters));
+                }
+                if (cmpFn) {
+                    this._children.sort(cmpFn);
                 }
             } 
             catch (err) {
@@ -200,6 +211,7 @@ export class ClassicChildrenProvider implements IAsyncChildrenProvider<ClassicIt
         private readonly logService: ILogService,
 		private readonly fileService: IFileService,
         private readonly filterOpts?: IFilterOpts,
+        private readonly cmpFn: CompareFn<ClassicItem> = defaultCompareFn,
 	) {}
 
     public hasChildren(data: ClassicItem): boolean {
@@ -214,7 +226,7 @@ export class ClassicChildrenProvider implements IAsyncChildrenProvider<ClassicIt
     public getChildren(data: ClassicItem): ClassicItem[] | Promise<ClassicItem[]> {
         
         // refresh the children recursively
-        const refreshPromise = data.refreshChildren(this.fileService, this.filterOpts);
+        const refreshPromise = data.refreshChildren(this.fileService, this.filterOpts, this.cmpFn);
 
         // the provided item's children are already resolved, we simply return it.
         if (isPromise(refreshPromise) === false) {
@@ -239,4 +251,18 @@ export class ClassicChildrenProvider implements IAsyncChildrenProvider<ClassicIt
         return false;
     }
 
+}
+
+/**
+ * @description Directory goes first, otherwise sorts in ascending, ASCII 
+ * character order.
+ */
+export function defaultCompareFn(a: ClassicItem, b: ClassicItem): number {
+    if (a.type === b.type) {
+        return (a.name < b.name) ? -1 : 1;
+    } else if (a.isDirectory()) {
+        return -1;
+    } else {
+        return 1;
+    }
 }
