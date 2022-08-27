@@ -4,17 +4,23 @@ import { Register } from "src/base/common/event";
 import { getUUID } from "src/base/node/uuid";
 import { createService } from "src/code/platform/instantiation/common/decorator";
 import { SafeIpcMain } from "src/code/platform/ipc/electron/safeIpcMain";
+import { StatusKey } from "src/code/platform/status/common/status";
 
 export const IHostService = createService<IHostService>('host-service');
 
+/**
+ * SHOULD ONLY contains promise methods or event registrations.
+ */
 export interface IHostService {
     
+    // window-instance
     readonly onDidMaximizeWindow: Register<number>;
     readonly onDidUnmaximizeWindow: Register<number>;
     readonly onDidFocusWindow: Register<number>;
     readonly onDidBlurWindow: Register<number>;
     readonly onDidOpenWindow: Register<number>;
 
+    // window-service
     focusWindow(id?: number): Promise<void>;
     maximizeWindow(id?: number): Promise<void>;
     minimizeWindow(id?: number): Promise<void>;
@@ -23,6 +29,7 @@ export interface IHostService {
     toggleFullScreenWindow(id?: number): Promise<void>;
     closeWindow(id?: number): Promise<void>;
 
+    // dialog-service
     showOpenDialog(opts: Electron.OpenDialogOptions, id?: number): Promise<Electron.OpenDialogReturnValue>;
     showSaveDialog(opts: Electron.SaveDialogOptions, id?: number): Promise<Electron.SaveDialogReturnValue>;
     showMessageBox(opts: Electron.MessageBoxOptions, id?: number): Promise<Electron.MessageBoxReturnValue>;
@@ -30,10 +37,16 @@ export interface IHostService {
     openDirectoryDialogAndOpen(opts: OpenDialogOptions, id?: number): Promise<void>;
     openFileOrDirectoryDialogAndOpen(opts: OpenDialogOptions, id?: number): Promise<void>;
 
+    // dev-tools
     openDevTools(options?: Electron.OpenDevToolsOptions, id?: number): Promise<void>;
 	closeDevTools(id?: number): Promise<void>;
     toggleDevTools(id?: number): Promise<void>;
     reloadWebPage(id?: number): Promise<void>;
+
+    // status-service
+    setApplicationStatus(key: StatusKey, val: any): Promise<void>;
+    setApplicationStatusLot(items: readonly { key: StatusKey, val: any }[]): Promise<void>;
+    deleteApplicationStatus(key: StatusKey): Promise<boolean>;
 }
 
 export interface IIpcAccessible<T> extends IDisposable {
@@ -57,8 +70,10 @@ export interface IIpcAccessible<T> extends IDisposable {
 
 /**
  * @description A helper function to help renderer process can have access to
- * and only to the specified data.
+ * and only to the specified data by invoking `ipcRenderer.invoke(resource)`.
  * @returns a {@link IIpcAccessible} object.
+ * @note Can only be invoked in main process and pass the resource to the 
+ * renderer process.
  */
 export function createIpcAccessible<T>(): IIpcAccessible<T> {
     let data: T;
