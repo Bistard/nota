@@ -7,8 +7,8 @@ import { join, resolve } from "src/base/common/file/path";
 import { URI } from "src/base/common/file/uri";
 import { Iterable } from "src/base/common/util/iterable";
 import { Strings } from "src/base/common/util/string";
-import { ExplorerItem } from "src/code/browser/service/explorerTree/explorerItem";
-import { IExplorerOpenEvent } from "src/code/browser/service/folderTree/folderTree";
+import { ClassicItem } from "src/code/browser/service/classicTree/classicItem";
+import { IFolderOpenEvent } from "src/code/browser/service/classicTree/classicTree";
 import { Notebook } from "src/code/platform/notebook/browser/notebook";
 import { IFileService } from "src/code/platform/files/common/fileService";
 import { createService } from "src/code/platform/instantiation/common/decorator";
@@ -24,12 +24,12 @@ export interface INotebookGroupService {
     /**
      * Fires when a file / notepage in the notebook is about to be opened.
      */
-    onOpen: Register<IExplorerOpenEvent<ExplorerItem>>;
+    onOpen: Register<IFolderOpenEvent<ClassicItem>>;
 
     /**
      * Fires when the content of the current notebook is changed.
      */
-    onDidChangeContent: Register<ITreeSpliceEvent<ExplorerItem | null, void>>;
+    onDidChangeContent: Register<ITreeSpliceEvent<ClassicItem | null, void>>;
 
     /**
      * @description when opening a directory to the Notebooks, a '.nota' 
@@ -112,10 +112,10 @@ export class NotebookGroup extends Disposable implements INotebookGroupService {
 
     // [event]
 
-    private readonly _onOpen = this.__register(new RelayEmitter<IExplorerOpenEvent<ExplorerItem>>());
+    private readonly _onOpen = this.__register(new RelayEmitter<IFolderOpenEvent<ClassicItem>>());
     public readonly onOpen = this._onOpen.registerListener;
 
-    private readonly _onDidChangeContent = this.__register(new RelayEmitter<ITreeSpliceEvent<ExplorerItem | null, void>>());
+    private readonly _onDidChangeContent = this.__register(new RelayEmitter<ITreeSpliceEvent<ClassicItem | null, void>>());
     public readonly onDidChangeContent = this._onDidChangeContent.registerListener;
 
     // [public method]

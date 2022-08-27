@@ -40,7 +40,7 @@ export interface IExplorerViewService extends IComponent {
     /**
      * Fired when the directory is opened.
      */
-    onDidOpen: Register<IExplorerOpenEvent>;
+    onDidOpen: Register<IFolderOpenEvent>;
 
     /**
      * Open the explorer view under the given root path.
@@ -53,7 +53,7 @@ export interface IExplorerViewService extends IComponent {
     close(): Promise<void>;
 }
 
-export interface IExplorerOpenEvent {
+export interface IFolderOpenEvent {
 
     /**
      * The path of the directory in string form.
@@ -76,7 +76,7 @@ export class ExplorerViewComponent extends Component implements IExplorerViewSer
 
     // [event]
 
-    private readonly _onDidOpen = this.__register(new Emitter<IExplorerOpenEvent>());
+    private readonly _onDidOpen = this.__register(new Emitter<IFolderOpenEvent>());
     public readonly onDidOpen = this._onDidOpen.registerListener;
 
     // [constructor]

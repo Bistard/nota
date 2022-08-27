@@ -2,21 +2,21 @@ import { ITreeNode } from "src/base/browser/secondary/tree/tree";
 import { ITreeListRenderer } from "src/base/browser/secondary/tree/treeListRenderer";
 import { IListViewMetadata, RendererType } from "src/base/browser/secondary/listView/listRenderer";
 import { FuzzyScore } from "src/base/common/fuzzy";
-import { ExplorerItem, ExplorerItemProvider } from "src/code/browser/service/explorerTree/explorerItem";
+import { ClassicItem, ClassicItemProvider } from "src/code/browser/service/classicTree/classicItem";
 import { Icons } from "src/base/browser/icon/icons";
 import { getIconClass } from "src/base/browser/icon/iconRegistry";
 
 /**
- * The type of metadata returned by {@link ExplorerRenderer.render()}.
+ * The type of metadata returned by {@link ClassicRenderer.render()}.
  */
-export interface IExplorerMetadata extends IListViewMetadata {
+export interface IClassicMetadata extends IListViewMetadata {
     // nothing here for now
 }
 
 /**
- * @class The type of renderer used for {@link ExplorerViewComponent}.
+ * @class The type of renderer used for {@link ClassicTreeService}.
  */
-export class ExplorerRenderer implements ITreeListRenderer<ExplorerItem, FuzzyScore, IExplorerMetadata> {
+export class ClassicRenderer implements ITreeListRenderer<ClassicItem, FuzzyScore, IClassicMetadata> {
     
     public readonly type = RendererType.Explorer;
 
@@ -24,10 +24,10 @@ export class ExplorerRenderer implements ITreeListRenderer<ExplorerItem, FuzzySc
         
     }
 
-    public render(element: HTMLElement): IExplorerMetadata {
+    public render(element: HTMLElement): IClassicMetadata {
         const text = document.createElement('span');
         text.className = 'explorer-item';
-        text.style.lineHeight = `${ExplorerItemProvider.Size}px`;
+        text.style.lineHeight = `${ClassicItemProvider.Size}px`;
         
         element.appendChild(text);
 
@@ -36,14 +36,14 @@ export class ExplorerRenderer implements ITreeListRenderer<ExplorerItem, FuzzySc
         };
     }
 
-    public update(item: ITreeNode<ExplorerItem, void>, index: number, data: IExplorerMetadata, size?: number): void {
+    public update(item: ITreeNode<ClassicItem, void>, index: number, data: IClassicMetadata, size?: number): void {
         
         const text = data.container;
         text.textContent = item.data.name;
 
     }
 
-    public updateIndent(item: ITreeNode<ExplorerItem, FuzzyScore>, indentElement: HTMLElement): void {
+    public updateIndent(item: ITreeNode<ClassicItem, FuzzyScore>, indentElement: HTMLElement): void {
         if (item.collapsible) {
             indentElement.classList.add(...getIconClass(Icons.CaretDown));
         } else {
@@ -51,7 +51,7 @@ export class ExplorerRenderer implements ITreeListRenderer<ExplorerItem, FuzzySc
         }
     }
     
-    public dispose(data: IExplorerMetadata): void {
+    public dispose(data: IClassicMetadata): void {
         // TODO
     }
     

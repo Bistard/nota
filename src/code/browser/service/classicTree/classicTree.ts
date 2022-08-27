@@ -4,32 +4,32 @@ import { ITreeMouseEvent } from "src/base/browser/secondary/tree/tree";
 import { ITreeListRenderer } from "src/base/browser/secondary/tree/treeListRenderer";
 import { Emitter, Register } from "src/base/common/event";
 import { Pair } from "src/base/common/util/type";
-import { ExplorerItem } from "src/code/browser/service/explorerTree/explorerItem";
+import { ClassicItem } from "src/code/browser/service/classicTree/classicItem";
 
-export interface IExplorerOpenEvent<T> {
+export interface IFolderOpenEvent<T> {
     item: T;
     browserEvent: UIEvent;
 }
 
-export interface IFolderTree<T, TFilter> extends IAsyncMultiTree<T, TFilter> {
+export interface IClassicTree<T, TFilter> extends IAsyncMultiTree<T, TFilter> {
 
     /**
      * Fires when a file / notepage in the explorer tree is about to be opened.
      */
-    readonly onOpen: Register<IExplorerOpenEvent<T>>;
+    readonly onOpen: Register<IFolderOpenEvent<T>>;
 
 }
 
 /**
  * @class A simple inheritance that wraps some preset behaviours for explorer view.
  */
-export class FolderTree<T extends ExplorerItem, TFilter> extends AsyncMultiTree<T, TFilter> implements IFolderTree<T, TFilter> {
+export class FolderTree<T extends ClassicItem, TFilter> extends AsyncMultiTree<T, TFilter> implements IClassicTree<T, TFilter> {
 
     // [field]
 
     // [event]
 
-    private readonly _onOpen = new Emitter<IExplorerOpenEvent<T>>();
+    private readonly _onOpen = new Emitter<IFolderOpenEvent<T>>();
     public readonly onOpen = this._onOpen.registerListener;
 
     // [constructor]
@@ -52,7 +52,7 @@ export class FolderTree<T extends ExplorerItem, TFilter> extends AsyncMultiTree<
     /**
      * // REVIEW: Cannot do override here, weird conflict between inheritance and static method
      */
-    public static create1<T extends ExplorerItem, TFilter = void>(
+    public static create1<T extends ClassicItem, TFilter = void>(
         container: HTMLElement, 
         rootData: T, 
         renderers: ITreeListRenderer<T, TFilter, any>[], 

@@ -2,7 +2,7 @@ import { Disposable, IDisposable } from "src/base/common/dispose";
 import { Register, RelayEmitter } from "src/base/common/event";
 import { URI } from "src/base/common/file/uri";
 import { ILogService } from "src/base/common/logger";
-import { FolderTreeService, IFolderTreeService } from "src/code/browser/service/folderTree/folderTreeService";
+import { ClassicTreeService, IClassicTreeService } from "src/code/browser/service/classicTree/classicTreeService";
 import { INotebookTreeService, NotebookTreeService } from "src/code/browser/service/notebookTree/notebookTreeService";
 import { IConfigService } from "src/code/platform/configuration/common/abstractConfigService";
 import { BuiltInConfigScope } from "src/code/platform/configuration/common/configRegistrant";
@@ -45,7 +45,13 @@ export interface ITreeService extends IDisposable {
     /**
      * // TODO
      */
-    init(container: HTMLElement, root: URI): Promise<void>;
+    init(container: HTMLElement, root: URI, mode?: TreeMode): Promise<void>;
+
+    /**
+     * @description Switch explorer tree displaying mode.
+     * // TODO
+     */
+    switch(mode: TreeMode): void;
  
     /**
      * @description Given the height, re-layouts the height of the whole tree.
@@ -91,7 +97,7 @@ export class ExplorerTreeService extends Disposable implements IExplorerTreeServ
     private _opened: boolean;
     private _mode: TreeMode;
 
-    private readonly folderTreeService: IFolderTreeService;
+    private readonly classicTreeService: IClassicTreeService;
     private readonly notebookTreeService: INotebookTreeService;
 
     // [constructor]
@@ -105,9 +111,9 @@ export class ExplorerTreeService extends Disposable implements IExplorerTreeServ
         this._root = undefined;
         this._opened = false;
         this._mode = configService.get<TreeMode>(BuiltInConfigScope.User, 'actionView.explorer.folder') ?? TreeMode.Notebook;
-        this.folderTreeService = instantiationService.createInstance(FolderTreeService);
+        this.classicTreeService = instantiationService.createInstance(ClassicTreeService);
         this.notebookTreeService = instantiationService.createInstance(NotebookTreeService);
-        this.__register(this.folderTreeService);
+        this.__register(this.classicTreeService);
         this.__register(this.notebookTreeService);
     }
 
@@ -118,11 +124,13 @@ export class ExplorerTreeService extends Disposable implements IExplorerTreeServ
     }
 
     get container(): HTMLElement | undefined {
-        return this.isOpened
+        return (
+            this.isOpened
             ? (this.mode === TreeMode.Notebook
                 ? this.notebookTreeService.container 
-                : this.folderTreeService.container) 
-            : undefined;
+                : this.classicTreeService.container) 
+            : undefined
+        );
     }
 
     get root(): URI | undefined {
@@ -135,16 +143,24 @@ export class ExplorerTreeService extends Disposable implements IExplorerTreeServ
 
     // [public mehtods]
 
-    public async init(container: HTMLElement, root: URI): Promise<void> {
+    public async init(container: HTMLElement, root: URI, mode?: TreeMode): Promise<void> {
         this._root = root;
         this._opened = true;
+        if (mode) {
+            this._mode = mode;
+        }
+
         if (this._mode === TreeMode.Notebook) {
             this.notebookTreeService.init(container, root);
             this._onOpen.setInput(this.notebookTreeService.onOpen);
         } else {
-            this.folderTreeService.init(container, root);
-            this._onOpen.setInput(this.folderTreeService.onOpen);
+            this.classicTreeService.init(container, root);
+            this._onOpen.setInput(this.classicTreeService.onOpen);
         }
+    }
+
+    public switch(mode: TreeMode): void {
+
     }
 
     public layout(height?: number | undefined): void {
@@ -154,7 +170,7 @@ export class ExplorerTreeService extends Disposable implements IExplorerTreeServ
 
         (this._mode === TreeMode.Notebook 
             ? this.notebookTreeService.layout(height) 
-            : this.folderTreeService.layout(height)
+            : this.classicTreeService.layout(height)
         );
     }
 
@@ -165,7 +181,7 @@ export class ExplorerTreeService extends Disposable implements IExplorerTreeServ
 
         await (this._mode === TreeMode.Notebook 
             ? this.notebookTreeService.refresh() 
-            : this.folderTreeService.refresh()
+            : this.classicTreeService.refresh()
         );
     }
 
@@ -176,7 +192,7 @@ export class ExplorerTreeService extends Disposable implements IExplorerTreeServ
 
         return (this._mode === TreeMode.Notebook 
             ? this.notebookTreeService.close() 
-            : this.folderTreeService.close()
+            : this.classicTreeService.close()
         );
     }
 }

@@ -8,9 +8,9 @@ import { isPromise } from "src/base/common/util/type";
 import { IFileService } from "src/code/platform/files/common/fileService";
 
 /**
- * An interface only for {@link ExplorerItem}.
+ * An interface only for {@link ClassicItem}.
  */
-export interface IExplorerItem {
+export interface IClassicItem {
 
     /** The {@link URI} of the target. */
     readonly uri: URI;
@@ -29,17 +29,17 @@ export interface IExplorerItem {
 
     // TODO: pref - memoize
     /** The parent of the target. Null if current target is the root. */
-    readonly parent: ExplorerItem | null;
+    readonly parent: ClassicItem | null;
 
     // TODO: pref - memoize
     /** The direct children of the target. */
-    readonly children: ExplorerItem[];
+    readonly children: ClassicItem[];
 
     /**
      * @description Returns the root of the current target
      * time complexity: O(h) - h: height of the tree.
      */
-    root(): ExplorerItem;
+    root(): ClassicItem;
 
     /**
      * @description Is the current item a {@link FileType.DIRECTORY}.
@@ -83,13 +83,13 @@ export interface IExplorerItem {
 /**
  * @class A data structure used in {@link Notebook} for displaying.
  */
-export class ExplorerItem implements IExplorerItem {
+export class ClassicItem implements IClassicItem {
 
     // [field]
 
     /** stores all the info about the target. */
     private _stat: IResolvedFileStat;
-    private _parent: ExplorerItem | null = null;
+    private _parent: ClassicItem | null = null;
 
     /** if the item encounters an error. */
     private _inError: boolean = false;
@@ -114,13 +114,13 @@ export class ExplorerItem implements IExplorerItem {
 
     get modifyTime(): number { return this._stat.modifyTime; }
 
-    get parent(): ExplorerItem | null { return this._parent; }
+    get parent(): ClassicItem | null { return this._parent; }
 
-    get children(): ExplorerItem[] { return [...this._stat.children ?? Iterable.empty()].map(childStat => new ExplorerItem(childStat)); }
+    get children(): ClassicItem[] { return [...this._stat.children ?? Iterable.empty()].map(childStat => new ClassicItem(childStat)); }
 
     // [public method]
 
-    public root(): ExplorerItem {
+    public root(): ClassicItem {
         if (this.parent === null) {
             return this;
         }
@@ -173,26 +173,26 @@ export class ExplorerItem implements IExplorerItem {
 }
 
 /**
- * @class A {@link IListItemProvider} used for {@link ExplorerItem}.
+ * @class A {@link IListItemProvider} used for {@link ClassicItem}.
  */
-export class ExplorerItemProvider implements IListItemProvider<ExplorerItem> {
+export class ClassicItemProvider implements IListItemProvider<ClassicItem> {
 
     public static readonly Size = 30;
 
-    public getSize(data: ExplorerItem): number {
-        return ExplorerItemProvider.Size;
+    public getSize(data: ClassicItem): number {
+        return ClassicItemProvider.Size;
     }
 
-    public getType(data: ExplorerItem): RendererType {
+    public getType(data: ClassicItem): RendererType {
         return RendererType.Explorer;
     }
 
 }
 
 /**
- * @class A {@link IAsyncChildrenProvider} used for {@link ExplorerItem}.
+ * @class A {@link IAsyncChildrenProvider} used for {@link ClassicItem}.
  */
-export class ExplorerChildrenProvider implements IAsyncChildrenProvider<ExplorerItem> {
+export class ClassicChildrenProvider implements IAsyncChildrenProvider<ClassicItem> {
 
 	constructor(
 		private fileService: IFileService
@@ -200,16 +200,16 @@ export class ExplorerChildrenProvider implements IAsyncChildrenProvider<Explorer
 
     }
 
-    public hasChildren(data: ExplorerItem): boolean {
+    public hasChildren(data: ClassicItem): boolean {
         return data.hasChildren();
     }
 
     /**
      * @description Returns the children of the given item. If the children of
      * the item is not resolved, wait until they are resolved.
-     * @param data The provided {@link ExplorerItem}.
+     * @param data The provided {@link ClassicItem}.
      */
-    public getChildren(data: ExplorerItem): ExplorerItem[] | Promise<ExplorerItem[]> {
+    public getChildren(data: ClassicItem): ClassicItem[] | Promise<ClassicItem[]> {
         
         const finish = data.refreshChildren(this.fileService);
 
@@ -231,7 +231,7 @@ export class ExplorerChildrenProvider implements IAsyncChildrenProvider<Explorer
         return promise;
     }
 
-    public collapseByDefault(data: ExplorerItem): boolean {
+    public collapseByDefault(data: ClassicItem): boolean {
         // TODO
         return false;
     }

@@ -4,26 +4,26 @@ import { Disposable } from "src/base/common/dispose";
 import { Emitter, Register } from "src/base/common/event";
 import { URI } from "src/base/common/file/uri";
 import { ILogService } from "src/base/common/logger";
-import { ExplorerChildrenProvider, ExplorerItem, ExplorerItemProvider } from "src/code/browser/service/explorerTree/explorerItem";
-import { ExplorerRenderer } from "src/code/browser/service/explorerTree/explorerRenderer";
-import { FolderTree, IExplorerOpenEvent, IFolderTree } from "src/code/browser/service/folderTree/folderTree";
+import { ClassicChildrenProvider, ClassicItem, ClassicItemProvider } from "src/code/browser/service/classicTree/classicItem";
+import { ClassicRenderer } from "src/code/browser/service/classicTree/classicRenderer";
+import { FolderTree, IFolderOpenEvent, IClassicTree } from "src/code/browser/service/classicTree/classicTree";
 import { IFileService } from "src/code/platform/files/common/fileService";
 
 /**
  * @class A type of {@link IListDragAndDropProvider} to support drag and drop
  * for {@link Notebook}.
  */
-export class NotebookDragAndDropProvider implements IListDragAndDropProvider<ExplorerItem> {
+export class ClassicDragAndDropProvider implements IListDragAndDropProvider<ClassicItem> {
 
     constructor() {
 
     }
 
-    public getDragData(item: ExplorerItem): string | null {
+    public getDragData(item: ClassicItem): string | null {
         return item.uri.toString();
     }
 
-    public getDragTag(items: ExplorerItem[]): string {
+    public getDragTag(items: ClassicItem[]): string {
         if (items.length === 1) {
             return items[0]!.name;
         }
@@ -55,12 +55,12 @@ export interface INotebook {
     /**
      * Fires when a file / notepage in the notebook is about to be opened.
      */
-    onOpen: Register<IExplorerOpenEvent<ExplorerItem>>;
+    onOpen: Register<IFolderOpenEvent<ClassicItem>>;
     
     /**
      * Fires when the content of the notebook is changed.
      */
-    onDidChangeContent: Register<ITreeSpliceEvent<ExplorerItem | null, void>>;
+    onDidChangeContent: Register<ITreeSpliceEvent<ClassicItem | null, void>>;
 
     /**
      * @description Sets the visibility of the notebook in the explorer.
@@ -94,16 +94,16 @@ export interface INotebook {
     layout(height?: number): void;
 
     /**
-     * @description Given the {@link ExplorerItem}, refresh the whole notebook 
+     * @description Given the {@link ClassicItem}, refresh the whole notebook 
      * structure asynchronously.
      * @param item The provided explorer item. Default is to refresh the whole 
      * notebook.
      */
-    refresh(item?: ExplorerItem): Promise<void>;
+    refresh(item?: ClassicItem): Promise<void>;
 
     /**
      * @description Given the {@link URI}, selecting / displaying / expanding 
-     * the corresponding item {@link ExplorerItem} in the view.
+     * the corresponding item {@link ClassicItem} in the view.
      * @param uri The URI of the item.
      * @returns A boolean determines whether the operation success.
      */
@@ -127,8 +127,8 @@ export class Notebook extends Disposable implements INotebook {
 
     // [field]
 
-    private _root!: ExplorerItem;
-    private _tree!: IFolderTree<ExplorerItem, void>;
+    private _root!: ClassicItem;
+    private _tree!: IClassicTree<ClassicItem, void>;
 
     /**
      * The container of the whole notebook.
@@ -180,7 +180,7 @@ export class Notebook extends Disposable implements INotebook {
         
         try {
             const rootStat = await this.fileService.stat(root, { resolveChildren: true });
-            this._root = new ExplorerItem(rootStat);
+            this._root = new ClassicItem(rootStat);
             await this.__createTree(this._container, this._root);
 
             this.__registerListeners();
@@ -215,7 +215,7 @@ export class Notebook extends Disposable implements INotebook {
         return this._visible;
     }
 
-    public refresh(item?: ExplorerItem): Promise<void> {
+    public refresh(item?: ClassicItem): Promise<void> {
         return this._tree.refresh(item ?? this._tree.root());
     }
 
@@ -240,17 +240,17 @@ export class Notebook extends Disposable implements INotebook {
      * 
      * @note The related event will fire once the tree is created.
      */
-    private async __createTree(container: HTMLElement, root: ExplorerItem): Promise<void> {
+    private async __createTree(container: HTMLElement, root: ClassicItem): Promise<void> {
 
-        const [tree, treeCreationPromise] = FolderTree.create1<ExplorerItem, void>(
+        const [tree, treeCreationPromise] = FolderTree.create1<ClassicItem, void>(
             container, 
             root,
-            [new ExplorerRenderer()], 
-            new ExplorerItemProvider(),
-            new ExplorerChildrenProvider(this.fileService),
+            [new ClassicRenderer()], 
+            new ClassicItemProvider(),
+            new ClassicChildrenProvider(this.fileService),
             {
                 collapseByDefault: false,
-                dnd: new NotebookDragAndDropProvider()
+                dnd: new ClassicDragAndDropProvider()
             }
         );
 

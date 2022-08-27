@@ -8,7 +8,7 @@ export const enum RendererType {
 	Unknown,  /** testing purpose. */
 	
 	ListItem, /** {@link ListItemRenderer} */
-	Explorer, /** {@link ExplorerRenderer} */
+	Explorer, /** {@link ClassicRenderer} */
 	
 	MarkdownPlainText, // TODO
 	MarkdownHeading,  /** {@link HeadingRenderer} */
