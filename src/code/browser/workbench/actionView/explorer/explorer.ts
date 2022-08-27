@@ -69,16 +69,17 @@ export class ExplorerViewComponent extends Component implements IExplorerViewSer
 
     // [constructor]
 
-    constructor(parentElement: HTMLElement,
-                @IComponentService componentService: IComponentService,
-                @IThemeService themeService: IThemeService,
-                @IConfigService private readonly configService: IConfigService,
-                @IDialogService private readonly dialogService: IBrowserDialogService,
-                @Ii18nService private readonly i18nService: Ii18nService,
-                @INotebookGroupService private readonly notebookGroupService: INotebookGroupService,
-                @IEditorService private readonly editorService: IEditorService,
-                @ILogService private readonly logService: ILogService,
-                @IWorkbenchService private readonly workbenchService: IWorkbenchService,
+    constructor(
+        parentElement: HTMLElement,
+        @IComponentService componentService: IComponentService,
+        @IThemeService themeService: IThemeService,
+        @IConfigService private readonly configService: IConfigService,
+        @IDialogService private readonly dialogService: IBrowserDialogService,
+        @Ii18nService private readonly i18nService: Ii18nService,
+        @INotebookGroupService private readonly notebookGroupService: INotebookGroupService,
+        @IEditorService private readonly editorService: IEditorService,
+        @ILogService private readonly logService: ILogService,
+        @IWorkbenchService private readonly workbenchService: IWorkbenchService,
     ) {
         super(ComponentType.ExplorerView, parentElement, themeService, componentService);
     }

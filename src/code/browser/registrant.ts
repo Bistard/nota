@@ -10,6 +10,9 @@ import { IThemeService, ThemeService } from 'src/code/browser/service/theme/them
 import { ActionBarComponent, IActionBarService } from 'src/code/browser/workbench/actionBar/actionBar';
 import { IWorkspaceService, WorkspaceComponent } from 'src/code/browser/workbench/workspace/workspace';
 import { ActionViewComponent, IActionViewService } from 'src/code/browser/workbench/actionView/actionView';
+import { ExplorerTreeService, IExplorerTreeService } from 'src/code/browser/service/explorerTree/explorerTreeService';
+import { FolderTreeService, IFolderTreeService } from 'src/code/browser/service/folderTree/folderTreeService';
+import { INotebookTreeService, NotebookTreeService } from 'src/code/browser/service/notebookTree/notebookTreeService';
 
 /*******************************************************************************
  * Registraion for desktop browser-side non-important microservices.
@@ -28,8 +31,10 @@ registerSingleton(IActionBarService, new ServiceDescriptor(ActionBarComponent));
 registerSingleton(IWorkspaceService, new ServiceDescriptor(WorkspaceComponent));
 registerSingleton(IActionViewService, new ServiceDescriptor(ActionViewComponent));
 registerSingleton(IKeyboardScreenCastService, new ServiceDescriptor(KeyboardScreenCastService));
-// TODO: themeService
-registerSingleton(IThemeService, new ServiceDescriptor(ThemeService));
+registerSingleton(IThemeService, new ServiceDescriptor(ThemeService)); // TODO: themeService
+registerSingleton(IExplorerTreeService, new ServiceDescriptor(ExplorerTreeService));
+registerSingleton(IFolderTreeService, new ServiceDescriptor(FolderTreeService));
+registerSingleton(INotebookTreeService, new ServiceDescriptor(NotebookTreeService));
 
 // utilities && tools
 // TODO: contextService
