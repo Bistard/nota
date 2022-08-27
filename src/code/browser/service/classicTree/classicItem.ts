@@ -94,20 +94,22 @@ export class ClassicItem implements IClassicItem {
     private _stat: IResolvedFileStat;
     // An array to store the children and will be updated during the refresh.
     private _children: ClassicItem[] = [];
-    private _parent: ClassicItem | null = null; // TODO
+    private _parent: ClassicItem | null = null;
 
     // [constructor]
 
     constructor(
         stat: IResolvedFileStat,
+        parent: ClassicItem | null,
         filters?: IFilterOpts,
     ) {
         this._stat = stat;
+        this._parent = parent;
         for (const stat of (this._stat.children ?? [])) {
             if (filters && isFiltered(stat.name, filters)) {
                 continue;
             }
-            this._children.push(new ClassicItem(stat));
+            this._children.push(new ClassicItem(stat, this));
         }
     }
 
@@ -130,10 +132,10 @@ export class ClassicItem implements IClassicItem {
     // [public method]
 
     public root(): ClassicItem {
-        if (this.parent === null) {
+        if (!this._parent) {
             return this;
         }
-        return this.parent.root();
+        return this._parent.root();
     }
 
     public isDirectory(): boolean {
@@ -172,7 +174,7 @@ export class ClassicItem implements IClassicItem {
                 // update the children stat recursively
                 this._children = [];
                 for (const childStat of (updatedStat.children ?? [])) {
-                    this._children.push(new ClassicItem(childStat, filters));
+                    this._children.push(new ClassicItem(childStat, this, filters));
                 }
             } 
             catch (err) {

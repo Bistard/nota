@@ -152,7 +152,7 @@ export class Notebook extends Disposable implements INotebook {
         
         try {
             const rootStat = await this.fileService.stat(root, { resolveChildren: true });
-            this._root = new ClassicItem(rootStat);
+            this._root = new ClassicItem(rootStat, null);
             await this.__createTree(this._container, this._root);
 
             this.__registerListeners();
