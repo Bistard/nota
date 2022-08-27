@@ -21,19 +21,19 @@ export const enum TreeMode {
  */
 export interface ITreeService extends IDisposable {
     /**
-     * The parent container of the current tree view. `undefined` if tree is not 
-     * opened yet.
+     * The parent container of the current tree view. `undefined` if the tree is 
+     * not opened yet.
      */
     readonly container: HTMLElement | undefined;
 
     /**
-     * The root directory of the current tree. `undefined` if tree is not opened 
-     * yet.
+     * The root directory of the current tree. `undefined` if the tree is not 
+     * opened yet.
      */
     readonly root: URI | undefined;
 
     /**
-     * Determine if the explorer tree is openning a directory.
+     * Determine if the explorer tree is opened right now.
      */
     readonly isOpened: boolean;
 
