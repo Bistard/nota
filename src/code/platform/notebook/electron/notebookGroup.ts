@@ -8,7 +8,7 @@ import { URI } from "src/base/common/file/uri";
 import { Iterable } from "src/base/common/util/iterable";
 import { Strings } from "src/base/common/util/string";
 import { ClassicItem } from "src/code/browser/service/classicTree/classicItem";
-import { IFolderOpenEvent } from "src/code/browser/service/classicTree/classicTree";
+import { ClassicOpenEvent } from "src/code/browser/service/classicTree/classicTree";
 import { Notebook } from "src/code/platform/notebook/browser/notebook";
 import { IFileService } from "src/code/platform/files/common/fileService";
 import { createService } from "src/code/platform/instantiation/common/decorator";
@@ -24,7 +24,7 @@ export interface INotebookGroupService {
     /**
      * Fires when a file / notepage in the notebook is about to be opened.
      */
-    onOpen: Register<IFolderOpenEvent<ClassicItem>>;
+    onOpen: Register<ClassicOpenEvent<ClassicItem>>;
 
     /**
      * Fires when the content of the current notebook is changed.
@@ -112,7 +112,7 @@ export class NotebookGroup extends Disposable implements INotebookGroupService {
 
     // [event]
 
-    private readonly _onOpen = this.__register(new RelayEmitter<IFolderOpenEvent<ClassicItem>>());
+    private readonly _onOpen = this.__register(new RelayEmitter<ClassicOpenEvent<ClassicItem>>());
     public readonly onOpen = this._onOpen.registerListener;
 
     private readonly _onDidChangeContent = this.__register(new RelayEmitter<ITreeSpliceEvent<ClassicItem | null, void>>());

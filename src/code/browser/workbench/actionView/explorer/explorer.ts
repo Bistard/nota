@@ -40,7 +40,7 @@ export interface IExplorerViewService extends IComponent {
     /**
      * Fired when the directory is opened.
      */
-    onDidOpen: Register<IFolderOpenEvent>;
+    onDidOpen: Register<ClassicOpenEvent>;
 
     /**
      * Open the explorer view under the given root path.
@@ -53,7 +53,7 @@ export interface IExplorerViewService extends IComponent {
     close(): Promise<void>;
 }
 
-export interface IFolderOpenEvent {
+export interface ClassicOpenEvent {
 
     /**
      * The path of the directory in string form.
@@ -76,7 +76,7 @@ export class ExplorerViewComponent extends Component implements IExplorerViewSer
 
     // [event]
 
-    private readonly _onDidOpen = this.__register(new Emitter<IFolderOpenEvent>());
+    private readonly _onDidOpen = this.__register(new Emitter<ClassicOpenEvent>());
     public readonly onDidOpen = this._onDidOpen.registerListener;
 
     // [constructor]
@@ -183,7 +183,7 @@ export class ExplorerViewComponent extends Component implements IExplorerViewSer
         this.workbenchService.onDidLayout(() => this.explorerTreeService.layout());
 
         // on openning file.
-        this.__register(this.explorerTreeService.onOpen(e => {
+        this.__register(this.explorerTreeService.onDidClick(e => {
             this.editorService.openEditor(e.item.uri);
         }));
     }

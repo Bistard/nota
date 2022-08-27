@@ -4,37 +4,11 @@ import { Disposable } from "src/base/common/dispose";
 import { Emitter, Register } from "src/base/common/event";
 import { URI } from "src/base/common/file/uri";
 import { ILogService } from "src/base/common/logger";
+import { ClassicDragAndDropProvider } from "src/code/browser/service/classicTree/classicDragAndDrop";
 import { ClassicChildrenProvider, ClassicItem, ClassicItemProvider } from "src/code/browser/service/classicTree/classicItem";
 import { ClassicRenderer } from "src/code/browser/service/classicTree/classicRenderer";
-import { FolderTree, IFolderOpenEvent, IClassicTree } from "src/code/browser/service/classicTree/classicTree";
+import { ClassicTree, ClassicOpenEvent, IClassicTree } from "src/code/browser/service/classicTree/classicTree";
 import { IFileService } from "src/code/platform/files/common/fileService";
-
-/**
- * @class A type of {@link IListDragAndDropProvider} to support drag and drop
- * for {@link Notebook}.
- */
-export class ClassicDragAndDropProvider implements IListDragAndDropProvider<ClassicItem> {
-
-    constructor() {
-
-    }
-
-    public getDragData(item: ClassicItem): string | null {
-        return item.uri.toString();
-    }
-
-    public getDragTag(items: ClassicItem[]): string {
-        if (items.length === 1) {
-            return items[0]!.name;
-        }
-        return String(`${items.length} selections`);
-    }
-
-    public onDragStart(): void {
-        // TODO
-    }
-
-}
 
 export interface INotebook {
 
@@ -55,7 +29,7 @@ export interface INotebook {
     /**
      * Fires when a file / notepage in the notebook is about to be opened.
      */
-    onOpen: Register<IFolderOpenEvent<ClassicItem>>;
+    onDidClick: Register<ClassicOpenEvent>;
     
     /**
      * Fires when the content of the notebook is changed.
@@ -148,7 +122,7 @@ export class Notebook extends Disposable implements INotebook {
     private readonly _onDidVisibilityChange = this.__register(new Emitter<boolean>());
     public readonly onDidVisibilityChange = this._onDidVisibilityChange.registerListener;
 
-    get onOpen() { return this._tree.onOpen; }
+    get onDidClick() { return this._tree.onDidClick; }
     get onDidChangeContent() { return this._tree.onDidSplice; }
 
     // [constructor]
@@ -161,7 +135,6 @@ export class Notebook extends Disposable implements INotebook {
     ) {
         super();
         this._container = container;
-
     }
 
     // [get method]
@@ -242,7 +215,7 @@ export class Notebook extends Disposable implements INotebook {
      */
     private async __createTree(container: HTMLElement, root: ClassicItem): Promise<void> {
 
-        const [tree, treeCreationPromise] = FolderTree.create1<ClassicItem, void>(
+        const [tree, treeCreationPromise] = ClassicTree.createTree<ClassicItem, void>(
             container, 
             root,
             [new ClassicRenderer()], 
