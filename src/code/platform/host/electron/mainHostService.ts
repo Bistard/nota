@@ -7,6 +7,8 @@ import { OpenDialogOptions } from "src/code/platform/dialog/common/dialog";
 import { IMainDialogService } from "src/code/platform/dialog/electron/mainDialogService";
 import { IHostService } from "src/code/platform/host/common/hostService";
 import { IpcChannel } from "src/code/platform/ipc/common/channel";
+import { StatusKey } from "src/code/platform/status/common/status";
+import { IMainStatusService } from "src/code/platform/status/electron/mainStatusService";
 import { IMainWindowService } from "src/code/platform/window/electron/mainWindowService";
 import { IWindowInstance } from "src/code/platform/window/electron/windowInstance";
 
@@ -42,6 +44,7 @@ export class MainHostService extends Disposable implements IMainHostService {
     constructor(
         @IMainWindowService private readonly windowService: IMainWindowService,
         @IMainDialogService private readonly dialogService: IMainDialogService,
+        @IMainStatusService private readonly statusService: IMainStatusService,
     ) {
         super();
     }
@@ -135,7 +138,19 @@ export class MainHostService extends Disposable implements IMainHostService {
         const window = this.__tryGetWindow(id);
         window?.browserWindow.webContents.reload();
     }
-    
+
+    public async setApplicationStatus(key: StatusKey, val: any): Promise<void> {
+        return this.statusService.set(key, val);
+    }
+
+    public async setApplicationStatusLot(items: readonly { key: StatusKey, val: any }[]): Promise<void> {
+        return this.statusService.setLot(items);
+    }
+
+    public async deleteApplicationStatus(key: StatusKey): Promise<boolean> {
+        return this.statusService.delete(key);
+    }
+
     // [private helper methods]
 
     private __tryGetWindow(id?: number): IWindowInstance | undefined {

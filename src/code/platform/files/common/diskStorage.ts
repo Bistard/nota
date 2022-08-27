@@ -8,7 +8,7 @@ import { IFileService } from "src/code/platform/files/common/fileService";
 /**
  * An interface only for {@link DiskStorage}.
  */
-export interface IDiskStorage extends Disposable {
+export interface IDiskStorage {
 
     /**
      * The resource of the storage.
@@ -106,7 +106,7 @@ export interface IDiskStorage extends Disposable {
  * @note You may await for the set / setLot / delete to ensure that the saving
  * operation has finished (if sync is on).
  */
-export class DiskStorage extends Disposable implements IDiskStorage {
+export class DiskStorage implements IDiskStorage {
 
     // [field]
 
@@ -121,7 +121,6 @@ export class DiskStorage extends Disposable implements IDiskStorage {
         private sync: boolean,
         @IFileService private readonly fileService: IFileService,
     ) {
-        super();
     }
 
     // [public methods]

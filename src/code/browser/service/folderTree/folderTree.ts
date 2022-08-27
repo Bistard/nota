@@ -4,14 +4,14 @@ import { ITreeMouseEvent } from "src/base/browser/secondary/tree/tree";
 import { ITreeListRenderer } from "src/base/browser/secondary/tree/treeListRenderer";
 import { Emitter, Register } from "src/base/common/event";
 import { Pair } from "src/base/common/util/type";
-import { ExplorerItem } from "src/code/browser/workbench/actionView/explorer/explorerItem";
+import { ExplorerItem } from "src/code/browser/service/explorerTree/explorerItem";
 
 export interface IExplorerOpenEvent<T> {
     item: T;
     browserEvent: UIEvent;
 }
 
-export interface IExplorerTree<T, TFilter> extends IAsyncMultiTree<T, TFilter> {
+export interface IFolderTree<T, TFilter> extends IAsyncMultiTree<T, TFilter> {
 
     /**
      * Fires when a file / notepage in the explorer tree is about to be opened.
@@ -23,7 +23,7 @@ export interface IExplorerTree<T, TFilter> extends IAsyncMultiTree<T, TFilter> {
 /**
  * @class A simple inheritance that wraps some preset behaviours for explorer view.
  */
-export class ExplorerTree<T extends ExplorerItem, TFilter> extends AsyncMultiTree<T, TFilter> implements IExplorerTree<T, TFilter> {
+export class FolderTree<T extends ExplorerItem, TFilter> extends AsyncMultiTree<T, TFilter> implements IFolderTree<T, TFilter> {
 
     // [field]
 
@@ -59,9 +59,9 @@ export class ExplorerTree<T extends ExplorerItem, TFilter> extends AsyncMultiTre
         itemProvider: IListItemProvider<T>, 
         childrenProvider: IAsyncChildrenProvider<T>,
         opts: IAsyncMultiTreeOptions<T, TFilter> = {}
-    ): Pair<ExplorerTree<T, TFilter>, Promise<void>>
+    ): Pair<FolderTree<T, TFilter>, Promise<void>>
     {
-        const tree = new ExplorerTree(container, rootData, renderers, itemProvider, childrenProvider, opts);
+        const tree = new FolderTree(container, rootData, renderers, itemProvider, childrenProvider, opts);
         return [tree, tree.refresh()];
     }
 

@@ -8,6 +8,7 @@ import { IEnvironmentService, IMainEnvironmentService } from "src/code/platform/
 import { DiskStorage, IDiskStorage } from "src/code/platform/files/common/diskStorage";
 import { IMainLifecycleService } from "src/code/platform/lifecycle/electron/mainLifecycleService";
 import { NOTA_DIR_NAME } from "src/code/platform/configuration/common/abstractConfigService";
+import { StatusKey } from "src/code/platform/status/common/status";
 
 export const IMainStatusService = createService<IMainStatusService>('status-service');
 
@@ -17,12 +18,12 @@ export const IMainStatusService = createService<IMainStatusService>('status-serv
  * from there.
  */
 export interface IMainStatusService extends Disposable {
-    set(key: string, val: any): Promise<void>;
-    setLot(items: readonly { key: string, val: any }[]): Promise<void>;
-    get(key: string, defaultVal?: any): any | undefined;
-    getLot(keys: string[], defaultVal?: any[]): (any | undefined)[];
-    delete(key: string): Promise<boolean>;
-    has(key: string): boolean;
+    set(key: StatusKey, val: any): Promise<void>;
+    setLot(items: readonly { key: StatusKey, val: any }[]): Promise<void>;
+    get(key: StatusKey, defaultVal?: any): any | undefined;
+    getLot(keys: StatusKey[], defaultVal?: any[]): (any | undefined)[];
+    delete(key: StatusKey): Promise<boolean>;
+    has(key: StatusKey): boolean;
     init(): Promise<void>;
     close(): Promise<void>;
 }
@@ -70,7 +71,7 @@ export class MainStatusService extends Disposable implements IMainStatusService 
 
     // [public methods]
 
-    public async set(key: string, val: any): Promise<void> {
+    public async set(key: StatusKey, val: any): Promise<void> {
         try {
             return this._storage.set(key, val);
         } catch (error: any) {
@@ -78,7 +79,7 @@ export class MainStatusService extends Disposable implements IMainStatusService 
         }
     }
 
-    public async setLot(items: readonly { key: string, val: any }[]): Promise<void> {
+    public async setLot(items: readonly { key: StatusKey, val: any }[]): Promise<void> {
         try {
             return this._storage.setLot(items);
         } catch (error: any) {
@@ -86,15 +87,15 @@ export class MainStatusService extends Disposable implements IMainStatusService 
         }
     }
 
-    public get(key: string, defaultVal?: any): any | undefined {
+    public get(key: StatusKey, defaultVal?: any): any | undefined {
         return this._storage.get(key, defaultVal);
     }
 
-    public getLot(keys: string[], defaultVal?: any[]): (any | undefined)[] {
+    public getLot(keys: StatusKey[], defaultVal?: any[]): (any | undefined)[] {
         return this._storage.getLot(keys, defaultVal);
     }
 
-    public async delete(key: string): Promise<boolean> {
+    public async delete(key: StatusKey): Promise<boolean> {
         try {
             return this._storage.delete(key);
         } catch (error: any) {
@@ -103,7 +104,7 @@ export class MainStatusService extends Disposable implements IMainStatusService 
         return false;
     }
 
-    public has(key: string): boolean {
+    public has(key: StatusKey): boolean {
         return this._storage.has(key);
     }
 
