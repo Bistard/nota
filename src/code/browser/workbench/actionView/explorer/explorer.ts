@@ -121,7 +121,7 @@ export class ExplorerViewComponent extends Component implements IExplorerViewSer
 
         try {
             // unload the current view first
-            this.__unloadCurrView();
+            this.__unloadCurrentView();
 
             // create a new view
             const view = this.__createOpenedView();
@@ -149,7 +149,7 @@ export class ExplorerViewComponent extends Component implements IExplorerViewSer
 
         await this.explorerTreeService.close();
 
-        this.__unloadCurrView();
+        this.__unloadCurrentView();
         const emptyView = this.__createEmptyView();
         this.element.appendChild(emptyView);
     }
@@ -168,6 +168,7 @@ export class ExplorerViewComponent extends Component implements IExplorerViewSer
         // we simply put an empty view
         else {
             this._currentView = this.__createEmptyView();
+            this.element.appendChild(this._currentView);
         }
     }
 
@@ -196,7 +197,7 @@ export class ExplorerViewComponent extends Component implements IExplorerViewSer
         hostService.setApplicationStatus(StatusKey.LastOpenedWorkspace, this.explorerTreeService.root);
     }
 
-    private __unloadCurrView(): void {
+    private __unloadCurrentView(): void {
         if (this._currentView) {
             this._currentView.remove();
             this._currentView = undefined;

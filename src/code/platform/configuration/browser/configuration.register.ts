@@ -12,7 +12,7 @@ class DefaultUserConfiguration extends DefaultConfigStorage {
             },
             'actionView': {
                 'explorer': {
-                    mode: 'folder' as TreeMode,
+                    mode: 'classic' as TreeMode,
                 },
                 'outline': {},
                 'serach': {},

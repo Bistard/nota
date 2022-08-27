@@ -22,9 +22,8 @@ export interface IExplorerTreeService extends ITreeService<ClassicOpenEvent | an
 
     /**
      * @description Switch explorer tree displaying mode.
-     * // TODO
      */
-    switch(mode: TreeMode): void;
+    switchMode(mode: TreeMode): void;
 }
 
 /**
@@ -56,7 +55,7 @@ export class ExplorerTreeService extends Disposable implements IExplorerTreeServ
         super();
         this._root = undefined;
         this._opened = false;
-        this._mode = configService.get<TreeMode>(BuiltInConfigScope.User, 'actionView.explorer.folder') ?? TreeMode.Notebook;
+        this._mode = configService.get<TreeMode>(BuiltInConfigScope.User, 'actionView.explorer.mode') ?? TreeMode.Notebook;
         this.classicTreeService = instantiationService.createInstance(ClassicTreeService);
         this.notebookTreeService = instantiationService.createInstance(NotebookTreeService);
         this.__register(this.classicTreeService);
@@ -97,16 +96,16 @@ export class ExplorerTreeService extends Disposable implements IExplorerTreeServ
         }
 
         if (this._mode === TreeMode.Notebook) {
-            this.notebookTreeService.init(container, root);
+            await this.notebookTreeService.init(container, root);
             this._onDidClick.setInput(this.notebookTreeService.onDidClick);
         } else {
-            this.classicTreeService.init(container, root);
+            await this.classicTreeService.init(container, root);
             this._onDidClick.setInput(this.classicTreeService.onDidClick);
         }
     }
 
-    public switch(mode: TreeMode): void {
-
+    public switchMode(mode: TreeMode): void {
+        // TODO
     }
 
     public layout(height?: number | undefined): void {
@@ -125,7 +124,7 @@ export class ExplorerTreeService extends Disposable implements IExplorerTreeServ
             return;
         }
 
-        await (this._mode === TreeMode.Notebook 
+        return (this._mode === TreeMode.Notebook 
             ? this.notebookTreeService.refresh() 
             : this.classicTreeService.refresh()
         );

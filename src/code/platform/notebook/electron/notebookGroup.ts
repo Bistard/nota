@@ -24,7 +24,7 @@ export interface INotebookGroupService {
     /**
      * Fires when a file / notepage in the notebook is about to be opened.
      */
-    onOpen: Register<ClassicOpenEvent<ClassicItem>>;
+    onOpen: Register<ClassicOpenEvent>;
 
     /**
      * Fires when the content of the current notebook is changed.
@@ -112,8 +112,8 @@ export class NotebookGroup extends Disposable implements INotebookGroupService {
 
     // [event]
 
-    private readonly _onOpen = this.__register(new RelayEmitter<ClassicOpenEvent<ClassicItem>>());
-    public readonly onOpen = this._onOpen.registerListener;
+    private readonly _onDidClick = this.__register(new RelayEmitter<ClassicOpenEvent>());
+    public readonly onOpen = this._onDidClick.registerListener;
 
     private readonly _onDidChangeContent = this.__register(new RelayEmitter<ITreeSpliceEvent<ClassicItem | null, void>>());
     public readonly onDidChangeContent = this._onDidChangeContent.registerListener;
@@ -304,7 +304,7 @@ export class NotebookGroup extends Disposable implements INotebookGroupService {
      */
     private __registerNotebookListeners(notebook: Notebook): void {
 
-        this._onOpen.setInput(notebook.onOpen);
+        this._onDidClick.setInput(notebook.onDidClick);
         this._onDidChangeContent.setInput(notebook.onDidChangeContent);
 
     }

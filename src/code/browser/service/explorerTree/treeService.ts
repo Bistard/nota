@@ -3,7 +3,7 @@ import { Register } from "src/base/common/event";
 import { URI } from "src/base/common/file/uri";
 
 export const enum TreeMode {
-    Folder = 'folder',
+    Classic = 'classic',
     Notebook = 'notebook',
 }
 
