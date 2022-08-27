@@ -1,12 +1,11 @@
-import { IListDragAndDropProvider } from "src/base/browser/secondary/listWidget/listWidgetDragAndDrop";
 import { ITreeSpliceEvent } from "src/base/browser/secondary/tree/tree";
 import { Disposable } from "src/base/common/dispose";
 import { Emitter, Register } from "src/base/common/event";
 import { URI } from "src/base/common/file/uri";
 import { ILogService } from "src/base/common/logger";
 import { ClassicDragAndDropProvider } from "src/code/browser/service/classicTree/classicDragAndDrop";
-import { ClassicChildrenProvider, ClassicItem, ClassicItemProvider } from "src/code/browser/service/classicTree/classicItem";
-import { ClassicRenderer } from "src/code/browser/service/classicTree/classicRenderer";
+import { ClassicChildrenProvider, ClassicItem } from "src/code/browser/service/classicTree/classicItem";
+import { ClassicItemProvider, ClassicRenderer } from "src/code/browser/service/classicTree/classicRenderer";
 import { ClassicTree, ClassicOpenEvent, IClassicTree } from "src/code/browser/service/classicTree/classicTree";
 import { IFileService } from "src/code/platform/files/common/fileService";
 

@@ -1,11 +1,8 @@
-import { IListItemProvider } from "src/base/browser/secondary/listView/listItemProvider";
-import { RendererType } from "src/base/browser/secondary/listView/listRenderer";
 import { IAsyncChildrenProvider } from "src/base/browser/secondary/tree/asyncMultiTree";
 import { FileType, IResolvedFileStat } from "src/base/common/file/file";
 import { URI } from "src/base/common/file/uri";
 import { IFilterOpts, isFiltered } from "src/base/common/fuzzy";
 import { ILogService } from "src/base/common/logger";
-import { Strings } from "src/base/common/util/string";
 import { isPromise } from "src/base/common/util/type";
 import { IFileService } from "src/code/platform/files/common/fileService";
 
@@ -86,7 +83,8 @@ export interface IClassicItem {
 }
 
 /**
- * @class // TODO
+ * @class A data structure to be stored as each tree node in a {@link ClassicTreeService}.
+ * It
  */
 export class ClassicItem implements IClassicItem {
 
@@ -109,7 +107,6 @@ export class ClassicItem implements IClassicItem {
             if (filters && isFiltered(stat.name, filters)) {
                 continue;
             }
-            
             this._children.push(new ClassicItem(stat));
         }
     }
@@ -189,30 +186,11 @@ export class ClassicItem implements IClassicItem {
 	public forgetChildren(): void {
         this._stat.children = undefined;
 	}
-
-    // [private method]
-
 }
 
 /**
- * @class A {@link IListItemProvider} used for {@link ClassicItem}.
- */
-export class ClassicItemProvider implements IListItemProvider<ClassicItem> {
-
-    public static readonly Size = 30;
-
-    public getSize(data: ClassicItem): number {
-        return ClassicItemProvider.Size;
-    }
-
-    public getType(data: ClassicItem): RendererType {
-        return RendererType.Explorer;
-    }
-
-}
-
-/**
- * @class A {@link IAsyncChildrenProvider} used for {@link ClassicItem}.
+ * @class A {@link IAsyncChildrenProvider} used in a {@link ClassicTreeService}
+ * and to provide children for {@link ClassicItem}.
  */
 export class ClassicChildrenProvider implements IAsyncChildrenProvider<ClassicItem> {
 
