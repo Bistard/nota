@@ -270,13 +270,12 @@ export interface IResolveStatOptions {
 	/**
 	 * Resolves the stat of the direct children.
 	 */
-	resolveChildren?: boolean;
+	readonly resolveChildren?: boolean;
 
 	/**
 	 * Resolves the stat of all the descendants.
 	 */
-	resolveChildrenRecursive?: boolean;
-
+	readonly resolveChildrenRecursive?: boolean;
 }
 
 /*******************************************************************************

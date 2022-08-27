@@ -220,10 +220,10 @@ export class Notebook extends Disposable implements INotebook {
             root,
             [new ClassicRenderer()], 
             new ClassicItemProvider(),
-            new ClassicChildrenProvider(this.fileService),
+            new ClassicChildrenProvider(this.logService, this.fileService),
             {
                 collapseByDefault: false,
-                dnd: new ClassicDragAndDropProvider()
+                dnd: new ClassicDragAndDropProvider(),
             }
         );
 

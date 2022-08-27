@@ -3,7 +3,7 @@ import { ClassicItem } from "src/code/browser/service/classicTree/classicItem";
 
 /**
  * @class A type of {@link IListDragAndDropProvider} to support drag and drop
- * for {@link Notebook}.
+ * for {@link ClassicTree}.
  */
 export class ClassicDragAndDropProvider implements IListDragAndDropProvider<ClassicItem> {
 

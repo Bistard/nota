@@ -3,7 +3,9 @@ import { RendererType } from "src/base/browser/secondary/listView/listRenderer";
 import { IAsyncChildrenProvider } from "src/base/browser/secondary/tree/asyncMultiTree";
 import { FileType, IResolvedFileStat } from "src/base/common/file/file";
 import { URI } from "src/base/common/file/uri";
-import { Iterable } from "src/base/common/util/iterable";
+import { IFilterOpts, isFiltered } from "src/base/common/fuzzy";
+import { ILogService } from "src/base/common/logger";
+import { Strings } from "src/base/common/util/string";
 import { isPromise } from "src/base/common/util/type";
 import { IFileService } from "src/code/platform/files/common/fileService";
 
@@ -69,10 +71,13 @@ export interface IClassicItem {
 	/**
 	 * @description Refreshing (fetching) the basic children stat of the current 
      * item.
-	 * @param fileService The given {@link IFileService} for fetching the children 
-     * of the current item.
+	 * @param fileService The given {@link IFileService} for fetching the 
+     * children of the current item.
+     * @param filters Providing filter options during the resolution process can 
+     * prevent unnecessary performance loss compares to we filter the result 
+     * after the process.
 	 */
-	refreshChildren(fileService: IFileService): void | Promise<void>;
+	refreshChildren(fileService: IFileService, filters?: IFilterOpts): void | Promise<void>;
 
 	/**
 	 * @description Forgets all the children of the current item.
@@ -81,7 +86,7 @@ export interface IClassicItem {
 }
 
 /**
- * @class A data structure used in {@link Notebook} for displaying.
+ * @class // TODO
  */
 export class ClassicItem implements IClassicItem {
 
@@ -89,17 +94,24 @@ export class ClassicItem implements IClassicItem {
 
     /** stores all the info about the target. */
     private _stat: IResolvedFileStat;
-    private _parent: ClassicItem | null = null;
-
-    /** if the item encounters an error. */
-    private _inError: boolean = false;
+    // An array to store the children and will be updated during the refresh.
+    private _children: ClassicItem[] = [];
+    private _parent: ClassicItem | null = null; // TODO
 
     // [constructor]
 
     constructor(
         stat: IResolvedFileStat,
+        filters?: IFilterOpts,
     ) {
         this._stat = stat;
+        for (const stat of (this._stat.children ?? [])) {
+            if (filters && isFiltered(stat.name, filters)) {
+                continue;
+            }
+            
+            this._children.push(new ClassicItem(stat));
+        }
     }
 
     // [get method]
@@ -116,7 +128,7 @@ export class ClassicItem implements IClassicItem {
 
     get parent(): ClassicItem | null { return this._parent; }
 
-    get children(): ClassicItem[] { return [...this._stat.children ?? Iterable.empty()].map(childStat => new ClassicItem(childStat)); }
+    get children(): ClassicItem[] { return this._children; }
 
     // [public method]
 
@@ -143,7 +155,7 @@ export class ClassicItem implements IClassicItem {
         return this.isDirectory();
     }
 
-	public refreshChildren(fileService: IFileService): void | Promise<void> {
+	public refreshChildren(fileService: IFileService, filters?: IFilterOpts): void | Promise<void> {
 
         // the basic children stats are already resolved
         if (this._stat.children) {
@@ -153,10 +165,20 @@ export class ClassicItem implements IClassicItem {
         // never resolved the children before
         const promise = (async () => {
             try {
-                const updatedStat = await fileService.stat(this._stat.uri, { resolveChildren: true });
+                const updatedStat = await fileService.stat(
+                    this._stat.uri, { 
+                        resolveChildren: true,
+                    },
+                );
                 this._stat = updatedStat;
-            } catch (err) {
-                this._inError = true;
+                
+                // update the children stat recursively
+                this._children = [];
+                for (const childStat of (updatedStat.children ?? [])) {
+                    this._children.push(new ClassicItem(childStat, filters));
+                }
+            } 
+            catch (err) {
                 throw err;
             }
         })();
@@ -195,10 +217,10 @@ export class ClassicItemProvider implements IListItemProvider<ClassicItem> {
 export class ClassicChildrenProvider implements IAsyncChildrenProvider<ClassicItem> {
 
 	constructor(
-		private fileService: IFileService
-	) {
-
-    }
+        private readonly logService: ILogService,
+		private readonly fileService: IFileService,
+        private readonly filterOpts?: IFilterOpts,
+	) {}
 
     public hasChildren(data: ClassicItem): boolean {
         return data.hasChildren();
@@ -211,20 +233,21 @@ export class ClassicChildrenProvider implements IAsyncChildrenProvider<ClassicIt
      */
     public getChildren(data: ClassicItem): ClassicItem[] | Promise<ClassicItem[]> {
         
-        const finish = data.refreshChildren(this.fileService);
+        // refresh the children recursively
+        const refreshPromise = data.refreshChildren(this.fileService, this.filterOpts);
 
         // the provided item's children are already resolved, we simply return it.
-        if (isPromise(finish) === false) {
+        if (isPromise(refreshPromise) === false) {
             return data.children;
         } 
         
         // the provided item's children never resolved, we wait until it resolved.
-        const promise = (finish as Promise<void>)
+        const promise = (refreshPromise as Promise<void>)
         .then(() => { 
             return data.children;
         })
-        .catch((err) => {
-            // logService.trace(err);
+        .catch((error: any) => {
+            this.logService.error(error);
             return [];
         });
 

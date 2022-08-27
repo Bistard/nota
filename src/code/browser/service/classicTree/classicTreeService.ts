@@ -7,6 +7,10 @@ import { ITreeService } from "src/code/browser/service/explorerTree/treeService"
 import { Disposable } from "src/base/common/dispose";
 import { ClassicRenderer } from "src/code/browser/service/classicTree/classicRenderer";
 import { ClassicDragAndDropProvider } from "src/code/browser/service/classicTree/classicDragAndDrop";
+import { ILogService } from "src/base/common/logger";
+import { IConfigService } from "src/code/platform/configuration/common/abstractConfigService";
+import { BuiltInConfigScope } from "src/code/platform/configuration/common/configRegistrant";
+import { IFilterOpts } from "src/base/common/fuzzy";
 
 export interface IClassicTreeService extends ITreeService<ClassicOpenEvent> {
 
@@ -30,6 +34,8 @@ export class ClassicTreeService extends Disposable implements IClassicTreeServic
     // [constructor]
 
     constructor(
+        @IConfigService private readonly configService: IConfigService,
+        @ILogService private readonly logService: ILogService,
         @IFileService private readonly fileService: IFileService,
     ) {
         super();
@@ -53,9 +59,14 @@ export class ClassicTreeService extends Disposable implements IClassicTreeServic
     
     public async init(container: HTMLElement, root: URI): Promise<void> {
         try {
+            const IFilterOpts: IFilterOpts = {
+                excludeFilter: this.configService.get<string[]>(BuiltInConfigScope.User, 'actionView.explorer.exclude', []).map(s => new RegExp(s)),
+                includeFilter: this.configService.get<string[]>(BuiltInConfigScope.User, 'actionView.explorer.include', []).map(s => new RegExp(s)),
+            };
+
             const rootStat = await this.fileService.stat(root, { resolveChildren: true });
-            const rootItem = new ClassicItem(rootStat);
-            await this.__createTree(container, rootItem);
+            const rootItem = new ClassicItem(rootStat, IFilterOpts);
+            await this.__createTree(container, rootItem, IFilterOpts);
         }
         catch (error) {
             throw error;
@@ -80,17 +91,18 @@ export class ClassicTreeService extends Disposable implements IClassicTreeServic
      * @description Creates the tree structure by the given URI asynchronously.
      * @param container The HTMLElement container of the tree view.
      * @param root The root element of the tree.
+     * @param filters The filter options during tree creation.
      * 
      * @note The related event will fire once the tree is created.
      */
-    private async __createTree(container: HTMLElement, root: ClassicItem): Promise<void> {
+    private async __createTree(container: HTMLElement, root: ClassicItem, filters: IFilterOpts): Promise<void> {
 
         const [tree, treeCreationPromise] = ClassicTree.createTree<ClassicItem, void>(
             container, 
             root,
             [new ClassicRenderer()], 
             new ClassicItemProvider(),
-            new ClassicChildrenProvider(this.fileService),
+            new ClassicChildrenProvider(this.logService, this.fileService, filters),
             {
                 collapseByDefault: false,
                 dnd: new ClassicDragAndDropProvider(),

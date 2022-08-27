@@ -82,11 +82,17 @@ export interface IConfigService extends IDisposable {
 
     /**
      * @description Get specific configuration with the given scope.
+     * @param scope The scope of the configuration.
+     * @param section The section directs to the update configuration. If not
+     *                provided, the whole configuration under that scope will
+     *                be replaced.
+     * @param defaultVal If not found, provided defaultVal will be returned.
      * @note If section is not provided, the whole configuration will be 
      * returned.
-     * @warn `undefined` will be returned if not found.
+     * @warn `undefined` will be returned if not found and defaultVal is not 
+     * provided.
      */
-    get<T>(scope: ConfigScope, section: string | undefined): DeepReadonly<T>;
+    get<T>(scope: ConfigScope, section: string | undefined, defaultVal?: T): DeepReadonly<T>;
     
     /**
      * @description Set specific configuration with the given scope and returns
@@ -149,11 +155,11 @@ export class AbstractConfigService extends Disposable implements IConfigService 
         });
     }
 
-    public get<T>(scope: unknown, section: string | undefined): DeepReadonly<T> {
+    public get<T>(scope: unknown, section: string | undefined, defaultVal?: T): DeepReadonly<T> {
         try {
             return this._collection.get(scope, section);
         } catch {
-            return undefined!;
+            return defaultVal ?? undefined!;
         }
     }
 

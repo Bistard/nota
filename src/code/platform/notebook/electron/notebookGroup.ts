@@ -139,8 +139,8 @@ export class NotebookGroup extends Disposable implements INotebookGroupService {
                     return tot;
                 }
 
-                if (!Strings.regExp(str, include.map(rule => new RegExp(rule))) && 
-                    Strings.regExp(str, exclude.map(rule => new RegExp(rule)))
+                if (!Strings.anyRegExp(str, include.map(rule => new RegExp(rule))) && 
+                    Strings.anyRegExp(str, exclude.map(rule => new RegExp(rule)))
                 ) {
                     return tot;
                 }

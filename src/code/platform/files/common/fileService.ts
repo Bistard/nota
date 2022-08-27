@@ -473,23 +473,24 @@ export class FileService extends Disposable implements IFileService {
             name: basename(URI.toFsPath(uri)),
             uri: uri,
             readonly: stat.readonly || Boolean(provider.capabilities & FileSystemProviderCapability.Readonly),
-            children: undefined
+            children: undefined,
         };
 
         // resolves the children if needed
         if (stat.type === FileType.DIRECTORY && opts && (opts.resolveChildren || opts.resolveChildrenRecursive)) {
             
             const children = await provider.readdir(uri);
-            const resolvedChildren = await Promise.all(children.map(async ([name, _type]) => {
-                try {
-                    const childUri = URI.fromFile(join(URI.toFsPath(uri), name));
-                    const childStat = await provider.stat(childUri);
-                    return await this.__resolveStat(childUri, provider, childStat, { resolveChildren: opts.resolveChildrenRecursive });
-                } catch (err) {
-                    // this.logService.trace(err);
-                    return null;
-                }
-            }));
+            const resolvedChildren = await Promise.all(
+                children.map(async ([name, _type]) => {
+                    try {
+                        const childUri = URI.fromFile(join(URI.toFsPath(uri), name));
+                        const childStat = await provider.stat(childUri);
+                        return await this.__resolveStat(childUri, provider, childStat, { resolveChildren: opts.resolveChildrenRecursive });
+                    } catch (err) {
+                        return undefined;
+                    }
+                })
+            );
 
             resolved.children = Iterable.filter(resolvedChildren, (child) => !!child);
         }
