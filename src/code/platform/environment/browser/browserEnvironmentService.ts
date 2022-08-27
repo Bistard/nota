@@ -10,7 +10,7 @@ import { IWindowConfiguration } from "src/code/platform/window/common/window";
  */
 export class BrowserEnvironmentService extends DiskEnvironmentService implements IBrowserEnvironmentService {
 
-    public readonly configuration: IWindowConfiguration;
+    private readonly _configuration: IWindowConfiguration;
 
     constructor(
         logService?: ILogService,
@@ -23,13 +23,15 @@ export class BrowserEnvironmentService extends DiskEnvironmentService implements
             userHomePath: windowConfiguration.userDataPath,
         }, logService);
 
-        this.configuration = windowConfiguration;
-        if (this.configuration.log === 'trace') {
+        this._configuration = windowConfiguration;
+        if (this._configuration.log === 'trace') {
             this.inspect();
         }
     }
 
-    get machineID(): string { return this.configuration.machineID; }
+    get machineID(): string { return this._configuration.machineID; }
 
-    get windowID(): number { return this.configuration.windowID; }
+    get windowID(): number { return this._configuration.windowID; }
+
+    get configuration(): IWindowConfiguration { return this._configuration; }
 }

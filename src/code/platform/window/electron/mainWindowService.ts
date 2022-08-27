@@ -117,7 +117,7 @@ export class MainWindowService extends Disposable implements IMainWindowService 
 
         // get openning URIs configuration
         let uriToOpenConfiguration: IUriToOpenConfiguration = Object.create(null);
-        if (opts.uriToOpen) {
+        if (opts.uriToOpen && opts.uriToOpen.length > 0) {
             uriToOpenConfiguration = UriToOpenResolver.resolve(opts.uriToOpen);
         }
         

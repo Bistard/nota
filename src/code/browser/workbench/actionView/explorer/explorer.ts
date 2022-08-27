@@ -15,6 +15,8 @@ import { IBrowserDialogService, IDialogService } from 'src/code/platform/dialog/
 import { IThemeService } from 'src/code/browser/service/theme/themeService';
 import { ILogService } from 'src/base/common/logger';
 import { IWorkbenchService } from 'src/code/browser/service/workbench/workbenchService';
+import { IHostService } from 'src/code/platform/host/common/hostService';
+import { IBrowserLifecycleService, ILifecycleService } from 'src/code/platform/lifecycle/browser/browserLifecycleService';
 
 export const IExplorerViewService = createService<IExplorerViewService>('explorer-view-service');
 
@@ -80,6 +82,8 @@ export class ExplorerViewComponent extends Component implements IExplorerViewSer
         @IEditorService private readonly editorService: IEditorService,
         @ILogService private readonly logService: ILogService,
         @IWorkbenchService private readonly workbenchService: IWorkbenchService,
+        @ILifecycleService lifecycleService: IBrowserLifecycleService,
+        @IHostService hostService: IHostService,
     ) {
         super(ComponentType.ExplorerView, parentElement, themeService, componentService);
     }
