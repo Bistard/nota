@@ -1,3 +1,4 @@
+import { TreeMode } from "src/code/browser/service/explorerTree/explorerTreeService";
 import { BuiltInConfigScope, IConfigRegistrant } from "src/code/platform/configuration/common/configRegistrant";
 import { DefaultConfigStorage } from "src/code/platform/configuration/common/configStorage";
 import { Registrants } from "src/code/platform/registrant/common/registrant";
@@ -8,6 +9,13 @@ class DefaultUserConfiguration extends DefaultConfigStorage {
             'workbench': {
                 language: 'en',
                 keyboardScreenCast: false,
+            },
+            'actionView': {
+                'explorer': {
+                    mode: 'folder' as TreeMode,
+                },
+                'outline': {},
+                'serach': {},
             },
             // old
             'workspace': {

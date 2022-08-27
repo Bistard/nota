@@ -84,22 +84,20 @@ export interface IConfigService extends IDisposable {
      * @description Get specific configuration with the given scope.
      * @note If section is not provided, the whole configuration will be 
      * returned.
-     * 
-     * @throws An exception will be thrown if the section is invalid.
+     * @warn `undefined` will be returned if not found.
      */
     get<T>(scope: ConfigScope, section: string | undefined): DeepReadonly<T>;
     
     /**
-     * @description Set specific configuration with the given scope.
+     * @description Set specific configuration with the given scope and returns
+     * a boolean if the operation success.
      * @param scope The scope of the configuration.
      * @param section The section directs to the update configuration. If not
      *                provided, the whole configuration under that scope will
      *                be replaced.
      * @param configuration The actual configuraion data.
-     * 
-     * @throws An exception will be thrown if the section is invalid.
      */
-    set(scope: ConfigScope, section: string | null, configuration: any): void;
+    set(scope: ConfigScope, section: string | null, configuration: any): boolean;
 
     /**
      * @description Delete configuration at given section with the given scope.
@@ -152,11 +150,20 @@ export class AbstractConfigService extends Disposable implements IConfigService 
     }
 
     public get<T>(scope: unknown, section: string | undefined): DeepReadonly<T> {
-        return this._collection.get(scope, section);
+        try {
+            return this._collection.get(scope, section);
+        } catch {
+            return undefined!;
+        }
     }
 
-    public set(scope: unknown, section: string | null, configuration: any): void {
-        this._collection.set(scope, section, configuration);
+    public set(scope: unknown, section: string | null, configuration: any): boolean {
+        try {
+            this._collection.set(scope, section, configuration);
+            return true;
+        } catch {
+            return false;
+        }
     }
 
     public delete(scope: unknown, section: string): boolean {
