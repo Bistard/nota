@@ -98,7 +98,7 @@ export class ExplorerTreeService extends Disposable implements IExplorerTreeServ
 
     constructor(
         @ILogService private readonly logService: ILogService,
-        @IConfigService private readonly configService: IConfigService,
+        @IConfigService configService: IConfigService,
         @IInstantiationService instantiationService: IInstantiationService,
     ) {
         super();

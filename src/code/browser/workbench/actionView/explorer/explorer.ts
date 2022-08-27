@@ -43,12 +43,12 @@ export interface IExplorerViewService extends IComponent {
     onDidOpen: Register<IExplorerOpenEvent>;
 
     /**
-     * // TODO
+     * Open the explorer view under the given root path.
      */
     open(root: URI): Promise<void>;
 
     /**
-     * // TODO
+     * Close the explorer view if any path is opened.
      */
     close(): Promise<void>;
 }
@@ -143,7 +143,15 @@ export class ExplorerViewComponent extends Component implements IExplorerViewSer
     }
 
     public async close(): Promise<void> {
-        // TODO
+        if (this.isOpened === false) {
+            return;
+        }
+
+        await this.explorerTreeService.close();
+
+        this.__unloadCurrView();
+        const emptyView = this.__createEmptyView();
+        this.element.appendChild(emptyView);
     }
 
     // [protected overrdie method]
@@ -196,9 +204,7 @@ export class ExplorerViewComponent extends Component implements IExplorerViewSer
     }
 
     private async __open(path: URI, container: HTMLElement): Promise<void> {
-        // check `.nota` folder and try to update the local user configuration
-        // TODO: await this.userConfigService.validateLocalUserDirectory(path, defaultConfigOn);
-        
+
         /**
          * Open the root in the explorer tree service who will handle the 
          * complicated stuff for us.
