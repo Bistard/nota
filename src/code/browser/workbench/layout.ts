@@ -1,5 +1,5 @@
 import { ISashEvent, Sash } from "src/base/browser/basic/sash/sash";
-import { addDisposableListener, DomUtility, EventType, Orientation } from "src/base/common/dom";
+import { addDisposableListener, DomUtility, EventType, Orientation, requestAnimate } from "src/base/common/dom";
 import { IComponentService } from "src/code/browser/service/component/componentService";
 import { IThemeService } from "src/code/browser/service/theme/themeService";
 import { ActionBarComponent, IActionBarService } from "src/code/browser/workbench/actionBar/actionBar";
@@ -58,7 +58,7 @@ export abstract class WorkbenchLayout extends Component {
         // Constructs each component of the workbench.
         const configurations: [IComponent, number, number, number, Priority][] = [
             [this.actionBarService , ActionBarComponent.width , ActionBarComponent.width     , ActionBarComponent.width , Priority.Low   ],
-            [this.actionViewService, ActionViewComponent.width, ActionViewComponent.width * 2, ActionViewComponent.width, Priority.Normal],
+            [this.actionViewService, 100                      , ActionViewComponent.width * 2, ActionViewComponent.width, Priority.Normal],
             [this.workspaceService , 0                        , Number.POSITIVE_INFINITY     , 0                        , Priority.High  ],
         ]
         for (const [component, minSize, maxSize, initSize, priority] of configurations) {

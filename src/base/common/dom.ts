@@ -1,8 +1,13 @@
 import { FastElement } from "src/base/browser/basic/fastElement";
+import { requestAtNextAnimationFrame } from "src/base/common/animation";
 import { HexColor } from "src/base/common/color";
 import { IDisposable, toDisposable } from "src/base/common/dispose";
+import { Emitter, Register } from "src/base/common/event";
 import { Dimension } from "src/base/common/util/size";
 import { Pair } from "src/base/common/util/type";
+
+const BODY = document.body;
+const DocElement = document.documentElement;
 
 /**
  * @namespace DomStyle A series of types for DOM styling purpose.
@@ -216,7 +221,6 @@ export namespace DomUtility
 	/**
 	 * @description Get the height of the content excluding padding and border.
 	 * @param element The HTMLElement.
-	 * 
 	 * @note If the element is NOT in the DOM tree, the behaviour is undefined.
 	 */
 	export function getContentHeight(element: HTMLElement): number {
@@ -228,13 +232,36 @@ export namespace DomUtility
 	/**
 	 * @description Get the width of the content excluding padding and border.
 	 * @param element The HTMLElement.
-	 * 
 	 * @note If the element is NOT in the DOM tree, the behaviour is undefined.
 	 */
 	export function getContentWidth(element: HTMLElement): number {
 		const padding = getPaddingLeft(element) + getPaddingRight(element);
 		const border  = getBorderLeft(element) + getBorderRight(element);
 		return element.offsetWidth - padding - border;
+	}
+
+	/**
+	 * @description Get element top position relatives to the viewport.
+	 * @param element The HTMLElement.
+	 */
+	export function getViewportTop(element: HTMLElement): number {
+		const box = element.getBoundingClientRect();
+		const scrollTop = window.pageYOffset || DocElement.scrollTop || BODY.scrollTop;
+		const clientTop = DocElement.clientTop || BODY.clientTop || 0;
+		const top  = box.top +  scrollTop - clientTop;
+		return Math.round(top);
+	}
+
+	/**
+	 * @description Get element left position relatives to the viewport.
+	 * @param element The HTMLElement.
+	 */
+	export function getViewportLeft(element: HTMLElement): number {
+		const box = element.getBoundingClientRect();
+		const scrollLeft = window.pageXOffset || DocElement.scrollLeft || BODY.scrollLeft;
+		const clientLeft = DocElement.clientLeft || BODY.clientLeft || 0;
+		const left = box.left + scrollLeft - clientLeft;
+		return Math.round(left);
 	}
 
 	// [method - click]
@@ -310,7 +337,7 @@ export namespace DomUtility
 	 */
 	export function getClientDimension(element: HTMLElement): Dimension {
 		// Try with DOM clientWidth / clientHeight
-		if (element !== document.body) {
+		if (element !== BODY) {
 			return new Dimension(element.clientWidth, element.clientHeight);
 		}
 
@@ -319,14 +346,14 @@ export namespace DomUtility
 			return new Dimension(window.innerWidth, window.innerHeight);
 		}
 
-		// Try with document.body.clientWidth / document.body.clientHeight
-		if (document.body && document.body.clientWidth && document.body.clientHeight) {
-			return new Dimension(document.body.clientWidth, document.body.clientHeight);
+		// Try with BODY.clientWidth / BODY.clientHeight
+		if (BODY && BODY.clientWidth && BODY.clientHeight) {
+			return new Dimension(BODY.clientWidth, BODY.clientHeight);
 		}
 
-		// Try with document.documentElement.clientWidth / document.documentElement.clientHeight
-		if (document.documentElement && document.documentElement.clientWidth && document.documentElement.clientHeight) {
-			return new Dimension(document.documentElement.clientWidth, document.documentElement.clientHeight);
+		// Try with DocElement.clientWidth / DocElement.clientHeight
+		if (DocElement && DocElement.clientWidth && DocElement.clientHeight) {
+			return new Dimension(DocElement.clientWidth, DocElement.clientHeight);
 		}
 
 		throw new Error('Unable to figure out browser width and height');
@@ -410,10 +437,51 @@ export namespace DomUtility
 export function waitDomToBeLoad(): Promise<unknown> {
 	return new Promise<unknown>(resolve => {
 		const readyState = document.readyState;
-		if (readyState === 'complete' || (document && document.body !== null)) {
+		if (readyState === 'complete' || (document && BODY !== null)) {
 			resolve(undefined);
 		} else {
 			window.addEventListener('DOMContentLoaded', resolve, false);
 		}
 	});
+}
+
+/**
+ * @description Continue requesting at next animation frame on the provided 
+ * callback and returns a diposable to stop it.
+ * @param animateFn The animation callback.
+ */
+export function requestAnimate(animateFn: () => void): IDisposable {
+	let animateDisposable: IDisposable;
+
+	const animation = () => {
+		animateFn();
+		animateDisposable = requestAtNextAnimationFrame(animation);
+	};
+
+	animateDisposable = requestAtNextAnimationFrame(animation);
+	return animateDisposable;
+}
+
+/**
+ * @class A Simple class for register callback on a given HTMLElement using an
+ * {@link Emitter} instead of using raw *addEventListener()* method.
+ */
+export class DomEmitter<T> implements IDisposable {
+
+    private emitter: Emitter<T>;
+    private listener: IDisposable;
+
+    get registerListener(): Register<T> {
+        return this.emitter.registerListener;
+    }
+
+    constructor(element: EventTarget, type: EventType) {
+        this.emitter = new Emitter();
+        this.listener = addDisposableListener(element, type as any, (e: Event) => this.emitter.fire(e as any));
+    }
+
+    public dispose(): void {
+        this.emitter.dispose();
+        this.listener.dispose();
+    }
 }

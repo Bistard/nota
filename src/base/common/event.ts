@@ -1,5 +1,4 @@
 import { LinkedList } from "src/base/common/util/linkedList";
-import { addDisposableListener, EventType } from "src/base/common/dom";
 import { Disposable, DisposableManager, disposeAll, IDisposable, toDisposable } from "src/base/common/dispose";
 import { ErrorHandler } from "src/base/common/error";
 
@@ -7,7 +6,6 @@ import { ErrorHandler } from "src/base/common/error";
  * This file contains a series event emitters and related tools for communications 
  * between different code sections. 
  *  - {@link Emitter}
- *  - {@link DomEmitter}
  *  - {@link PauseableEmitter}
  *  - {@link DelayableEmitter}
  *  - {@link SignalEmitter}
@@ -236,31 +234,6 @@ export class Emitter<T> implements IDisposable, IEmitter<T> {
     public isDisposed(): boolean {
         return this._disposed;
     }
-}
-
-/**
- * @class A Simple class for register callback on a given HTMLElement using an
- * {@link Emitter} instead of using raw *addEventListener()* method.
- */
-export class DomEmitter<T> implements IDisposable {
-
-    private emitter: Emitter<T>;
-    private listener: IDisposable;
-
-    get registerListener(): Register<T> {
-        return this.emitter.registerListener;
-    }
-
-    constructor(element: EventTarget, type: EventType) {
-        this.emitter = new Emitter();
-        this.listener = addDisposableListener(element, type as any, (e: Event) => this.emitter.fire(e as any));
-    }
-
-    public dispose(): void {
-        this.emitter.dispose();
-        this.listener.dispose();
-    }
-
 }
 
 /**

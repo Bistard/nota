@@ -22,7 +22,7 @@ export class ClassicDragAndDropProvider implements IListDragAndDropProvider<Clas
         return String(`${items.length} selections`);
     }
 
-    public onDragStart(): void {
+    public onDragStart(event: DragEvent): void {
         // TODO
     }
 

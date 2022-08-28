@@ -1,7 +1,7 @@
 import { IListViewRenderer, PipelineRenderer, RendererType } from "src/base/browser/secondary/listView/listRenderer";
 import { IListViewOpts, IViewItem, IViewItemChangeEvent, ListError, ListView } from "src/base/browser/secondary/listView/listView";
 import { DisposableManager, IDisposable } from "src/base/common/dispose";
-import { addDisposableListener, DomUtility, EventType } from "src/base/common/dom";
+import { addDisposableListener, DomUtility, EventType, requestAnimate } from "src/base/common/dom";
 import { Emitter, Event, Register, SignalEmitter } from "src/base/common/event";
 import { IScrollEvent } from "src/base/common/scrollable";
 import { IListItemProvider } from "src/base/browser/secondary/listView/listItemProvider";
@@ -526,6 +526,10 @@ export class __ListWidgetDragAndDropController<T> implements IDisposable {
     private _view: IListWidget<T>;
 
     private _provider!: ListWidgetDragAndDropProvider<T>;
+    private _currDragItems: T[] = []; // when drag starts this is the place to hold the dragging items
+
+    private _scrollAnimationOnEdgeDisposable?: IDisposable;
+    private _scrollAnimationMouseTop?: number;
 
     // [constructor]
 
@@ -617,6 +621,8 @@ export class __ListWidgetDragAndDropController<T> implements IDisposable {
         event.dataTransfer.setDragImage(dragImage, -10, -10);
         setTimeout(() => document.body.removeChild(dragImage), 0); // REVIEW: issue #107
         
+        this._currDragItems = dragItems;
+
         if (this._provider.onDragStart) {
             this._provider.onDragStart(event);
         }
@@ -628,12 +634,25 @@ export class __ListWidgetDragAndDropController<T> implements IDisposable {
      * @param event The dragging event.
      */
     private __onDragOver(event: IListDragEvent<T>): void {
-        
+    
         // https://stackoverflow.com/questions/21339924/drop-event-not-firing-in-chrome
         event.browserEvent.preventDefault();
 
-        console.log(event.actualIndex);
+        // set up dnd scroll edge animation
+        this.__setDndScrollAnimationOnEdge(event.browserEvent);
 
+        if (!event.browserEvent.dataTransfer) {
+            return;
+        }
+        
+        // tell the client on drag over event
+        const allowDrop = this._provider.onDragOver(event.browserEvent, this._currDragItems, event.item, event.actualIndex);
+        if (!allowDrop) {
+            return;
+        }
+
+        // set drop type
+        event.browserEvent.dataTransfer.dropEffect = 'move';
     }
 
     /**
@@ -643,6 +662,10 @@ export class __ListWidgetDragAndDropController<T> implements IDisposable {
      */
     private __onDrop(event: IListDragEvent<T>): void {
         console.log('drop, ', event.actualIndex);
+
+        // stop scroll animation on edge
+        this._scrollAnimationOnEdgeDisposable?.dispose();
+
     }
 
     /**
@@ -663,6 +686,31 @@ export class __ListWidgetDragAndDropController<T> implements IDisposable {
         console.log('dragend, ', event.actualIndex);
     }
 
+    // [private animation helper methods]
+
+    private __setDndScrollAnimationOnEdge(event: DragEvent): void {
+        if (!this._scrollAnimationOnEdgeDisposable) {
+            const top = DomUtility.getViewportTop(this._view.DOMElement);
+            this._scrollAnimationOnEdgeDisposable = requestAnimate(() => this.__animationOnEdge(top));
+        }
+        this._scrollAnimationMouseTop = event.pageY;
+    }
+
+    private __animationOnEdge(viewTop: number): void {
+        if (this._scrollAnimationMouseTop === undefined) {
+            return;
+        }
+
+        const diff = this._scrollAnimationMouseTop - viewTop;
+		const upperLimit = this._view.getViewportSize() - 35;
+        const scrollPosition = this._view.getScrollPosition();
+        
+		if (diff < 35) {
+			this._view.setScrollPosition(scrollPosition + Math.max(-14, Math.floor(0.3 * (diff - 35))));
+		} else if (diff > upperLimit) {
+            this._view.setScrollPosition(scrollPosition + Math.min(14, Math.floor(0.3 * (diff - upperLimit))));
+		}
+    }
 }
 
 /**
@@ -707,10 +755,10 @@ export interface IListDragEvent<T> {
     browserEvent: DragEvent;
 
     /** The actual index of the drag / dragover / drop item. */
-    actualIndex: number;
+    actualIndex: number | undefined;
     
     /** The drag / dragover / drop item. */
-    item: T;
+    item: T | undefined;
 }
 
 /**
@@ -753,7 +801,7 @@ export interface IListWidget<T> extends IDisposable {
     /**
      * The container of the whole view.
      */
-    DOMElement: HTMLElement;
+    readonly DOMElement: HTMLElement;
 
     /** Fires when the {@link IListWidget} is scrolling. */
     get onDidScroll(): Register<IScrollEvent>;
@@ -1220,11 +1268,22 @@ export class ListWidget<T> implements IListWidget<T> {
     private __toListDragEvent(event: DragEvent): IListDragEvent<T> {
 
         const actualIndex = this.view.indexFromEventTarget(event.target)!; // will not be undefined
-        const item = this.view.getItem(actualIndex);
+        
+        // valid item index
+        if (actualIndex >= 0 && actualIndex < this.view.getItemCount()) {
+            const item = this.view.getItem(actualIndex);
+            return {
+                browserEvent: event,
+                actualIndex: actualIndex, 
+                item: item
+            };
+        }
+
+        // we are not on any items
         return {
             browserEvent: event,
-            actualIndex: actualIndex, 
-            item: item
+            actualIndex: undefined,
+            item: undefined,
         };
     }
 

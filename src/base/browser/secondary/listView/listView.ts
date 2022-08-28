@@ -3,20 +3,18 @@ import { IListViewRenderer, ListItemRenderer, PipelineRenderer, RendererType } f
 import { ScrollableWidget } from "src/base/browser/secondary/scrollableWidget/scrollableWidget";
 import { ScrollbarType } from "src/base/browser/secondary/scrollableWidget/scrollableWidgetOptions";
 import { DisposableManager, IDisposable } from "src/base/common/dispose";
-import { DomUtility, EventType } from "src/base/common/dom";
-import { DomEmitter, Emitter, Register } from "src/base/common/event";
+import { DomEmitter, DomUtility, EventType } from "src/base/common/dom";
+import { Emitter, Register } from "src/base/common/event";
 import { IRange, ISpliceable, Range, RangeTable } from "src/base/common/range";
 import { IScrollEvent, Scrollable } from "src/base/common/scrollable";
 import { IListItemProvider } from "src/base/browser/secondary/listView/listItemProvider";
 import { memoize } from "src/base/common/memoization";
 import { FocusTracker } from "src/base/browser/basic/focusTracker";
 
-
 /**
  * The consturtor options for {@link ListView}.
  */
 export interface IListViewOpts<T> {
-    
     /**
      * When constructing the view, decide whether to layout the view immediately.
      * `layout` meanning to update the size of the view and causes rerendering.
@@ -57,7 +55,6 @@ export interface IListViewOpts<T> {
      * @default 10
      */
     readonly scrollbarSize?: number;
-    
 }
 
 /**
@@ -147,7 +144,7 @@ export interface IListView<T> extends IDisposable {
     get onKeydown(): Register<KeyboardEvent>;
 
     /** The container of the whole view. */
-    DOMElement: HTMLElement;
+    readonly DOMElement: HTMLElement;
 
     // [public methods]
 

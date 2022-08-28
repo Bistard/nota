@@ -1,4 +1,4 @@
-import { IListWidget } from "./listWidget";
+import { IListWidget } from "src/base/browser/secondary/listWidget/listWidget";
 
 /**
  * An interface that provides drag and drop support (dnd).
@@ -24,6 +24,16 @@ export interface IListDragAndDropProvider<T> {
      */
     onDragStart?(event: DragEvent): void;
 
+    /**
+     * @description Invokes when {@link EventType.dragover} happens. It should 
+     * returns a boolean indicates if allowed to drop the current selected items
+     * on the target.
+     * @param event The current drag event.
+     * @param currentDragItems The current dragging items.
+     * @param targetOver The list target of the current drag event.
+     * @param targetIndex The index of the list target of the current drag event.
+     */
+    onDragOver?(event: DragEvent, currentDragItems: T[], targetOver?: T, targetIndex?: number): boolean;
 }
 
 /**
@@ -36,7 +46,6 @@ export interface IListWidgetDragAndDropProvider<T> extends IListDragAndDropProvi
      * @param currItem The current mouse dragging (holding) item.
      */
     getDragItems(currItem: T): T[];
-
 }
 
 /**
@@ -75,4 +84,10 @@ export class ListWidgetDragAndDropProvider<T> implements IListWidgetDragAndDropP
         }
     }
 
+    public onDragOver(event: DragEvent, currentDragItems: T[], targetOver?: T, targetIndex?: number): boolean {
+        if (this.dnd.onDragOver) {
+            return this.dnd.onDragOver(event, currentDragItems, targetOver, targetIndex);
+        }
+        return false;
+    }
 }
