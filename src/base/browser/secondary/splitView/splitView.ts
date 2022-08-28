@@ -25,6 +25,11 @@ export interface ISplitView extends Disposable {
      * Fires when the sash is resetted to the default position (double-click).
      */
     readonly onDidSashReset: Register<number>;
+
+    /**
+     * Fires when the split view has relayout the size.
+     */
+    readonly onDidLayout: Register<IDimension>;
     
     /**
      * @description Construsts a new {@link SplitViewItem} and add it into the 
@@ -57,8 +62,10 @@ export interface ISplitView extends Disposable {
      */
     swapView(first: number, second: number): void;
 
-    // TODO
-    layout(dimension: IDimension): void;
+    /**
+     * @description Layout the split view with the updated width and height.
+     */
+    layout(width: number, height: number): void;
 }
 
 /**
@@ -95,6 +102,11 @@ export interface ISplitViewOpts {
  *  - View intances are resizable.
  */
 export class SplitView extends Disposable implements ISplitView {
+
+    // [event]
+
+    private readonly _onDidLayout = this.__register(new Emitter<IDimension>());
+    public readonly onDidLayout = this._onDidLayout.registerListener;
 
     // [field]
 
@@ -215,17 +227,17 @@ export class SplitView extends Disposable implements ISplitView {
         this.__doRenderViewsAndSashes();
     }
 
-    /**
-     * Invokes when the application window is resizing.
-     * @param dimension The dimension of the window.
-     */
-    public layout(dimension: IDimension): void {
+    public layout(width: number, height: number): void {
         if (this._orientation === Orientation.Horizontal) {
-            this._size = dimension.width;
+            this._size = width;
         } else {
-            this._size = dimension.height;
+            this._size = height;
         }
         this.__render();
+        this._onDidLayout.fire({
+            width: width,
+            height: height,
+        });
     }
 
     // [private helper methods]

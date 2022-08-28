@@ -82,7 +82,7 @@ export abstract class WorkbenchLayout extends Component {
         // window resizing
         this.__register(addDisposableListener(window, EventType.resize, () => {
             this.layout();
-            this._splitView?.layout(this.dimension!);
+            this._splitView?.layout(this.dimension!.width, this.dimension!.height);
         }));
 
         /**
