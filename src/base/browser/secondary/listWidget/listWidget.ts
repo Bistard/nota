@@ -598,7 +598,7 @@ export class __ListWidgetDragAndDropController<T> implements IDisposable {
     }
     
     private __onDragStart(data: T, userData: string, event: DragEvent): void {
-        console.log('drag start');
+        
         if (event.dataTransfer === null) {
             return;
         }
@@ -625,7 +625,7 @@ export class __ListWidgetDragAndDropController<T> implements IDisposable {
     }
 
     private __onDragOver(event: IListDragEvent<T>): void {
-        console.log('drag over');
+    
         // https://stackoverflow.com/questions/21339924/drop-event-not-firing-in-chrome
         event.browserEvent.preventDefault();
 
@@ -648,7 +648,7 @@ export class __ListWidgetDragAndDropController<T> implements IDisposable {
     }
 
     private __onDragDrop(event: IListDragEvent<T>): void {
-        console.log('drag drop');
+        
         // do not allow to drop, we ignore the event
         if (this._allowDrop === false) {
             return;
@@ -671,7 +671,7 @@ export class __ListWidgetDragAndDropController<T> implements IDisposable {
     }
 
     private __onDragEnter(event: IListDragEvent<T>): void {
-        console.log('drag enter');
+        
         // clear dragover meatadata
         this.__clearDragoverData();
 
@@ -680,7 +680,7 @@ export class __ListWidgetDragAndDropController<T> implements IDisposable {
     }
 
     private __onDragLeave(event: IListDragEvent<T>): void {
-        console.log('drag leave');
+        
         // clear dragover meatadata
         this.__clearDragoverData();
 
@@ -689,7 +689,7 @@ export class __ListWidgetDragAndDropController<T> implements IDisposable {
     }
 
     private __onDragEnd(event: DragEvent): void {
-        console.log('drag end');
+        
         // clear dragover meatadata
         this.__clearDragoverData();
 
