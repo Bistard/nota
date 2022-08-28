@@ -254,7 +254,7 @@ export class DiskStorage implements IDiskStorage {
 
         const serialized = JSON.stringify(this._storage, null, 4);
         if (this._lastSaveStorage === serialized) {
-            // no diff, we quit indvance
+            // no diff, we quit in advance.
             return;
         }
 
