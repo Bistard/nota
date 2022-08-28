@@ -1,7 +1,7 @@
 import { ISash, ISashEvent, Sash } from "src/base/browser/basic/sash/sash";
 import { ISplitViewItem, ISplitViewItemOpts, SplitViewItem } from "src/base/browser/secondary/splitView/splitViewItem";
 import { Disposable } from "src/base/common/dispose";
-import { DomUtility, Orientation } from "src/base/common/dom";
+import { DomUtility, Orientation } from "src/base/browser/basic/dom";
 import { Emitter, Priority, Register } from "src/base/common/event";
 import { IDimension } from "src/base/common/util/size";
 import { Pair } from "src/base/common/util/type";

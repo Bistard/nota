@@ -1,4 +1,4 @@
-import { Orientation } from "src/base/common/dom";
+import { Orientation } from "src/base/browser/basic/dom";
 import { Priority } from "src/base/common/event";
 
 /**

@@ -18,7 +18,7 @@ class DefaultUserConfiguration extends DefaultConfigStorage {
                     include: [''] as string[],
                 },
                 'outline': {},
-                'serach': {},
+                'search': {},
             },
         };
     }

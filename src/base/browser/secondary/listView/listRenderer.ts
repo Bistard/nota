@@ -1,5 +1,5 @@
 import { ListItemType } from "src/base/browser/secondary/listView/listView";
-import { DomUtility } from "src/base/common/dom";
+import { DomUtility } from "src/base/browser/basic/dom";
 
 /**
  * The type of renderers used in {@link IListView}.

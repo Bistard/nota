@@ -1,5 +1,5 @@
 import { ISashEvent, Sash } from "src/base/browser/basic/sash/sash";
-import { addDisposableListener, DomUtility, EventType, Orientation, requestAnimate } from "src/base/common/dom";
+import { addDisposableListener, DomUtility, EventType, Orientation, requestAnimate } from "src/base/browser/basic/dom";
 import { IComponentService } from "src/code/browser/service/component/componentService";
 import { IThemeService } from "src/code/browser/service/theme/themeService";
 import { ActionBarComponent, IActionBarService } from "src/code/browser/workbench/actionBar/actionBar";

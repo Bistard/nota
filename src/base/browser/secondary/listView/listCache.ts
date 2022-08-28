@@ -1,7 +1,7 @@
 import { IListViewRenderer } from "src/base/browser/secondary/listView/listRenderer";
 import { ListItemType } from "src/base/browser/secondary/listView/listView";
 import { IDisposable } from "src/base/common/dispose";
-import { DomUtility } from "src/base/common/dom";
+import { DomUtility } from "src/base/browser/basic/dom";
 
 /**
  * @description An interface for storing the DOM related element as a cache in 

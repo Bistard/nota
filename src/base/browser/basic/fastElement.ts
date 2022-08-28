@@ -1,4 +1,4 @@
-import { DomStyle } from "src/base/common/dom";
+import { DomStyle } from "src/base/browser/basic/dom";
 import { isObject } from "src/base/common/util/type";
 
 /**
