@@ -1,6 +1,6 @@
 import { IListViewRenderer, PipelineRenderer, RendererType } from "src/base/browser/secondary/listView/listRenderer";
 import { IListViewOpts, IViewItem, IViewItemChangeEvent, ListError, ListView } from "src/base/browser/secondary/listView/listView";
-import { DisposableManager, IDisposable } from "src/base/common/dispose";
+import { Disposable, DisposableManager, IDisposable } from "src/base/common/dispose";
 import { addDisposableListener, DomUtility, EventType, requestAnimate } from "src/base/common/dom";
 import { Emitter, Event, Register, SignalEmitter } from "src/base/common/event";
 import { IScrollEvent } from "src/base/common/scrollable";
@@ -526,8 +526,9 @@ export class __ListWidgetDragAndDropController<T> implements IDisposable {
     private _view: IListWidget<T>;
 
     private _provider!: ListWidgetDragAndDropProvider<T>;
-    private _currDragItems: T[] = []; // when drag starts this is the place to hold the dragging items
 
+    private _currDragItems: T[] = []; // when drag starts this is the place to hold the dragging items
+    private _allowDrop: boolean = false;
     private _scrollAnimationOnEdgeDisposable?: IDisposable;
     private _scrollAnimationMouseTop?: number;
 
@@ -561,9 +562,10 @@ export class __ListWidgetDragAndDropController<T> implements IDisposable {
      */
     private __enableDragAndDropSupport(converter: (e: DragEvent) => IListDragEvent<T>): void {
         this._disposables.register(addDisposableListener(this._view.DOMElement, EventType.dragover, e => this.__onDragOver(converter(e))));
-        this._disposables.register(addDisposableListener(this._view.DOMElement, EventType.drop, e => this.__onDrop(converter(e))));
+        this._disposables.register(addDisposableListener(this._view.DOMElement, EventType.drop, e => this.__onDragDrop(converter(e))));
+        this._disposables.register(addDisposableListener(this._view.DOMElement, EventType.dragenter, e => this.__onDragEnter(converter(e))));
         this._disposables.register(addDisposableListener(this._view.DOMElement, EventType.dragleave, e => this.__onDragLeave(converter(e))));
-        this._disposables.register(addDisposableListener(this._view.DOMElement, EventType.dragend, e => this.__onDragEnd(converter(e))));
+        this._disposables.register(addDisposableListener(this._view.DOMElement, EventType.dragend, e => this.__onDragEnd(e)));
 
         // dragstart listener
         this._disposables.register(this._view.onInsertItemInDOM((e: IViewItemChangeEvent<T>) => this.__initItemWithDragStart(e.item, e.index)));
@@ -595,14 +597,8 @@ export class __ListWidgetDragAndDropController<T> implements IDisposable {
         }
     }
     
-    /**
-     * @description Invokes when the event {@link EventType.dragstart} happens.
-     * @param data The corresponding data of the dragging item.
-     * @param userData The user-defined data.
-     * @param event The {@link DragEvent}.
-     */
     private __onDragStart(data: T, userData: string, event: DragEvent): void {
-        
+        console.log('drag start');
         if (event.dataTransfer === null) {
             return;
         }
@@ -628,25 +624,21 @@ export class __ListWidgetDragAndDropController<T> implements IDisposable {
         }
     }
 
-    /**
-     * @description When dnd support is on, invokes when dragging something over
-     * the whole {@link IListWidget}.
-     * @param event The dragging event.
-     */
     private __onDragOver(event: IListDragEvent<T>): void {
-    
+        console.log('drag over');
         // https://stackoverflow.com/questions/21339924/drop-event-not-firing-in-chrome
         event.browserEvent.preventDefault();
 
         // set up dnd scroll edge animation
-        this.__setDndScrollAnimationOnEdge(event.browserEvent);
+        this.__setScrollAnimationOnEdge(event.browserEvent);
 
-        if (!event.browserEvent.dataTransfer) {
+        if (event.browserEvent.dataTransfer === null) {
             return;
         }
         
-        // tell the client on drag over event
+        // notify client
         const allowDrop = this._provider.onDragOver(event.browserEvent, this._currDragItems, event.item, event.actualIndex);
+        this._allowDrop = allowDrop;
         if (!allowDrop) {
             return;
         }
@@ -655,40 +647,67 @@ export class __ListWidgetDragAndDropController<T> implements IDisposable {
         event.browserEvent.dataTransfer.dropEffect = 'move';
     }
 
-    /**
-     * @description When dnd support is on, invokes when drops something over
-     * the whole {@link IListWidget}.
-     * @param event The dragging event.
-     */
-    private __onDrop(event: IListDragEvent<T>): void {
-        console.log('drop, ', event.actualIndex);
+    private __onDragDrop(event: IListDragEvent<T>): void {
+        console.log('drag drop');
+        // do not allow to drop, we ignore the event
+        if (this._allowDrop === false) {
+            return;
+        }
+        
+        // get the data
+        const dragItems = this._currDragItems;
 
-        // stop scroll animation on edge
-        this._scrollAnimationOnEdgeDisposable?.dispose();
+        // clear dragover meatadata
+        this.__clearDragoverData();
 
+        // no data to drop
+        if (event.browserEvent.dataTransfer === null || dragItems.length === 0) {
+            return;
+        }
+
+        // notify client
+        event.browserEvent.preventDefault();
+        this._provider.onDragDrop(event.browserEvent, dragItems, event.item, event.actualIndex);
     }
 
-    /**
-     * @description When dnd support is on, invokes when dragging something leave
-     * the whole {@link IListWidget}.
-     * @param event The dragging event.
-     */
+    private __onDragEnter(event: IListDragEvent<T>): void {
+        console.log('drag enter');
+        // clear dragover meatadata
+        this.__clearDragoverData();
+
+        // notify client
+        this._provider.onDragEnter(event.browserEvent, this._currDragItems, event.item, event.actualIndex);
+    }
+
     private __onDragLeave(event: IListDragEvent<T>): void {
-        console.log('dragleave, ', event.actualIndex);
+        console.log('drag leave');
+        // clear dragover meatadata
+        this.__clearDragoverData();
+
+        // notify client
+        this._provider.onDragLeave(event.browserEvent, this._currDragItems, event.item, event.actualIndex);
     }
 
-    /**
-     * @description When dnd support is on, invokes when the dragging ends inside 
-     * the whole {@link IListWidget}.
-     * @param event The dragging event.
-     */
-    private __onDragEnd(event: IListDragEvent<T>): void {
-        console.log('dragend, ', event.actualIndex);
+    private __onDragEnd(event: DragEvent): void {
+        console.log('drag end');
+        // clear dragover meatadata
+        this.__clearDragoverData();
+
+        // notify client
+        this._provider.onDragEnd(event);
+    }
+
+    private __clearDragoverData(): void {
+        this._currDragItems = [];
+        this._allowDrop = false;
+        this._scrollAnimationMouseTop = undefined;
+        this._scrollAnimationOnEdgeDisposable?.dispose();
+        this._scrollAnimationOnEdgeDisposable = undefined;
     }
 
     // [private animation helper methods]
 
-    private __setDndScrollAnimationOnEdge(event: DragEvent): void {
+    private __setScrollAnimationOnEdge(event: DragEvent): void {
         if (!this._scrollAnimationOnEdgeDisposable) {
             const top = DomUtility.getViewportTop(this._view.DOMElement);
             this._scrollAnimationOnEdgeDisposable = requestAnimate(() => this.__animationOnEdge(top));
