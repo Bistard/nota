@@ -162,8 +162,8 @@ export class ExplorerViewComponent extends Component implements IExplorerViewSer
          * creating the UI component.
          */
         const uriToOpen = this.envrionmentService.configuration.uriOpenConfiguration;
-        if (uriToOpen.workspace) {
-            this.open(uriToOpen.workspace);
+        if (uriToOpen.directory) {
+            this.open(uriToOpen.directory);
         }
         // we simply put an empty view
         else {
@@ -194,7 +194,10 @@ export class ExplorerViewComponent extends Component implements IExplorerViewSer
     private async __onApplicationClose(hostService: IHostService): Promise<void> {
         
         // save the last opened workspace root path.
-        hostService.setApplicationStatus(StatusKey.LastOpenedWorkspace, this.explorerTreeService.root);
+        if (this.explorerTreeService.root) {
+            const workspace = URI.join(this.explorerTreeService.root, '|directory');
+            await hostService.setApplicationStatus(StatusKey.LastOpenedWorkspace, workspace.toString());
+        }
     }
 
     private __unloadCurrentView(): void {

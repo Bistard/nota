@@ -46,8 +46,6 @@ export function defaultDisplayState(mode: WindowDisplayMode = WindowDisplayMode.
 export const enum ToOpenType {
     /** @internal */
     Unknown = 0,
-    /** Openning a workspace to the window. */
-    Workspace,
     /** Openning a directory to the window. */
     Directory,
     /** Openning a file to the window. */
@@ -63,7 +61,6 @@ export interface IFileToOpen {
  * Determines what type of URIs are about to be opened in the window.
  */
 export interface IUriToOpenConfiguration {
-    readonly workspace?: URI;
     readonly directory?: URI;
     readonly filesToOpen?: IFileToOpen[];
 }

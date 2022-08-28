@@ -201,10 +201,7 @@ namespace UriToOpenResolver {
         for (const uri of uris) {
             const parseResult = __parseURI(uri);
             
-            if (parseResult.type === ToOpenType.Workspace) {
-                config.workspace = URI.fromFile(parseResult.resource);
-            } 
-            else if (parseResult.type === ToOpenType.Directory) {
+            if (parseResult.type === ToOpenType.Directory) {
                 config.directory = URI.fromFile(parseResult.resource);
             } 
             else if (parseResult.type === ToOpenType.File) {
@@ -234,20 +231,16 @@ namespace UriToOpenResolver {
             throw new Error('Invalid URI for openning in windows. Format should be `path|directory/workspace/file(|<gotoLine>)`');
         }
 
-        const isWorkspace = type === 'workspace' ? ToOpenType.Workspace : ToOpenType.Unknown;
         const isDir = type === 'directory' ? ToOpenType.Directory : ToOpenType.Unknown;
         const isFile = type === 'file' ? ToOpenType.File : ToOpenType.Unknown;
 
-        if (isWorkspace === ToOpenType.Unknown 
-            && isDir === ToOpenType.Unknown 
-            && isFile === ToOpenType.Unknown
-        ) {
+        if (isDir === ToOpenType.Unknown && isFile === ToOpenType.Unknown) {
             throw new Error('Invalid URI for openning in windows. Format should be `path|directory/workspace/file(|<gotoLine>)`');
         }
 
         return {
             resource: resource,
-            type: isWorkspace | isDir | isFile,
+            type: isDir | isFile,
             gotoLine: gotoLine,
         }
     }

@@ -18,10 +18,10 @@ export const IMainStatusService = createService<IMainStatusService>('status-serv
  * from there.
  */
 export interface IMainStatusService extends Disposable {
-    set(key: StatusKey, val: any): Promise<void>;
-    setLot(items: readonly { key: StatusKey, val: any }[]): Promise<void>;
-    get(key: StatusKey, defaultVal?: any): any | undefined;
-    getLot(keys: StatusKey[], defaultVal?: any[]): (any | undefined)[];
+    set<T>(key: StatusKey, val: T): Promise<void>;
+    setLot<T>(items: readonly { key: StatusKey, val: T }[]): Promise<void>;
+    get<T>(key: StatusKey, defaultVal?: T): T | undefined;
+    getLot<T>(keys: StatusKey[], defaultVal?: T[]): (T | undefined)[];
     delete(key: StatusKey): Promise<boolean>;
     has(key: StatusKey): boolean;
     init(): Promise<void>;
@@ -71,7 +71,7 @@ export class MainStatusService extends Disposable implements IMainStatusService 
 
     // [public methods]
 
-    public async set(key: StatusKey, val: any): Promise<void> {
+    public async set<T>(key: StatusKey, val: T): Promise<void> {
         try {
             return this._storage.set(key, val);
         } catch (error: any) {
@@ -79,7 +79,7 @@ export class MainStatusService extends Disposable implements IMainStatusService 
         }
     }
 
-    public async setLot(items: readonly { key: StatusKey, val: any }[]): Promise<void> {
+    public async setLot<T>(items: readonly { key: StatusKey, val: T }[]): Promise<void> {
         try {
             return this._storage.setLot(items);
         } catch (error: any) {
@@ -87,11 +87,11 @@ export class MainStatusService extends Disposable implements IMainStatusService 
         }
     }
 
-    public get(key: StatusKey, defaultVal?: any): any | undefined {
+    public get<T>(key: StatusKey, defaultVal?: T): T | undefined {
         return this._storage.get(key, defaultVal);
     }
 
-    public getLot(keys: StatusKey[], defaultVal?: any[]): (any | undefined)[] {
+    public getLot<T>(keys: StatusKey[], defaultVal?: T[]): (T | undefined)[] {
         return this._storage.getLot(keys, defaultVal);
     }
 
