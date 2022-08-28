@@ -5,16 +5,7 @@ import { Registrants } from "src/code/platform/registrant/common/registrant";
 class DefaultApplicationConfiguration extends DefaultConfigStorage {
     protected override createDefaultModel(): Record<PropertyKey, any> {
         return {
-            // old
-            'application': {
-                displayLanguage: 'en',
-                keyboardScreenCast: false,
-            },
-            'notebookManager': {
-                defaultConfigOn: false,
-                startPreviousNotebookManagerDir: true,
-                previousNotebookManagerDir: '',
-            },
+            
         };
     }
 }
