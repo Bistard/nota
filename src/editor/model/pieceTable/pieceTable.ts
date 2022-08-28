@@ -1,6 +1,7 @@
 import { ByteSize } from "src/base/common/file/file";
 import { Character, CharCode } from "src/base/common/util/char";
 import { Mutable } from "src/base/common/util/type";
+import { Match, SearchData, toSearchLineData } from "src/code/platform/search/common/searchService";
 import { EndOfLine, IBufferPosition, IPiece, IPiecePosition, IPieceTable, IPieceNode, RBColor, IPieceNodePosition } from "src/editor/common/model";
 import { EditorPosition, IEditorPosition } from "src/editor/common/position";
 import { TextBuffer } from "src/editor/model/textBuffer";
@@ -2227,6 +2228,23 @@ export class PieceTable implements IPieceTable {
 		} else {
 			return end.lineNumber - start.lineNumber;
 		}
+    }
+
+    private __findStringMatchesInLine(searchData: SearchData, lineData: toSearchLineData, result: Match[], resultLimit: number): Match[] {
+        const wordSeparators = searchData.wordSeparator;
+        const toSearchString = searchData.toSearchString!;
+        const toSearchStringLen = toSearchString.length;
+        const lineContext = lineData.lineContext;
+        const lineContextLen = lineContext.length;
+        let resultLen = result.length;
+        let currentMatchIdx = lineContext.indexOf(toSearchString, 0);
+
+        while(currentMatchIdx !== -1) {
+            if (!wordSeparators || isValidMatch()) {
+                
+            }
+        }
+        
     }
 }
 

@@ -1,3 +1,17 @@
+export const enum Constants {
+
+    ERROR_CODE = -1,
+    
+    // 2^8 - 1
+    MAX_UINT_8 = 255,
+
+    // 2^16 - 1
+    MAX_UINT_16 = 65535,
+
+    // 2^32 - 1
+    MAX_UINT_32 = 4294967295
+
+}
 
 /**
  * @class A class to simulate a real buffer which provides the functionality to
@@ -107,49 +121,27 @@ export class DataBuffer {
 	}
 
     public readUInt8(offset: number): number {
-        return this.buffer[offset]!;
+        return readUInt8(this.buffer, offset);
     }
 
     public writeUInt8(offset: number, value: number): void {
-        this.buffer[offset] = value;
+        writeUInt8(this.buffer, offset, value);
     }
 
     public readUInt32BE(offset: number): number {
-        return (
-            this.buffer[offset + 0]! * 2 ** 24 +
-            this.buffer[offset + 1]! * 2 ** 16 +
-            this.buffer[offset + 2]! * 2 **  8 +
-            this.buffer[offset + 3]!
-        );
+         return readUInt32BE(this.buffer, offset);
     }
     
     public writeUInt32BE(offset: number, value: number): void {
-        this.buffer[offset + 3] = (value & 0b11111111);
-        value >>= 8;
-        this.buffer[offset + 2] = (value & 0b11111111);
-        value >>= 8;
-        this.buffer[offset + 1] = (value & 0b11111111);
-        value >>= 8;
-        this.buffer[offset + 0] = (value & 0b11111111);
+        writeUInt32BE(this.buffer, offset, value);
     }
 
     public readUInt32LE(offset: number): number {
-        return (
-            (this.buffer[offset + 0]! <<  0) |
-            (this.buffer[offset + 1]! <<  8) |
-            (this.buffer[offset + 2]! << 16) |
-            (this.buffer[offset + 3]! << 24)
-        );
+        return readUInt32LE(this.buffer, offset);
     }
     
     public writeUInt32LE(value: number, offset: number): void {
-        this.buffer[offset + 0]! = (value & 0b11111111);
-        value >>= 8;
-        this.buffer[offset + 1]! = (value & 0b11111111);
-        value >>= 8;
-        this.buffer[offset + 2]! = (value & 0b11111111);
-        value >>= 8;
-        this.buffer[offset + 3]! = (value & 0b11111111);
+        writeUInt32LE(this.buffer, value, offset);
     }
 }
 
@@ -194,4 +186,61 @@ export class BufferWriter implements IWriter {
         // We only concat when we try to access it. Save time.
         this._bufferStack.push(buffer);
     }
+}
+
+
+export function readUInt8(buffer:Uint8Array, offset: number): number {
+    return buffer[offset]!;
+}
+
+export function writeUInt8(buffer:Uint8Array, offset: number, value: number): void {
+    buffer[offset] = value;
+}
+
+export function readUInt32BE(buffer:Uint8Array, offset: number): number {
+    return (
+        buffer[offset + 0]! * 2 ** 24 +
+        buffer[offset + 1]! * 2 ** 16 +
+        buffer[offset + 2]! * 2 **  8 +
+        buffer[offset + 3]!
+    );
+}
+
+export function writeUInt32BE(buffer:Uint8Array, offset: number, value: number): void {
+    buffer[offset + 3] = (value & 0b11111111);
+    value >>= 8;
+    buffer[offset + 2] = (value & 0b11111111);
+    value >>= 8;
+    buffer[offset + 1] = (value & 0b11111111);
+    value >>= 8;
+    buffer[offset + 0] = (value & 0b11111111);
+}
+
+export function readUInt32LE(buffer:Uint8Array, offset: number): number {
+    return (
+        (buffer[offset + 0]! <<  0) |
+        (buffer[offset + 1]! <<  8) |
+        (buffer[offset + 2]! << 16) |
+        (buffer[offset + 3]! << 24)
+    );
+}
+
+export function writeUInt32LE(buffer:Uint8Array, value: number, offset: number): void {
+    buffer[offset + 0]! = (value & 0b11111111);
+    value >>= 8;
+    buffer[offset + 1]! = (value & 0b11111111);
+    value >>= 8;
+    buffer[offset + 2]! = (value & 0b11111111);
+    value >>= 8;
+    buffer[offset + 3]! = (value & 0b11111111);
+}
+
+export function toUint8(value: number): number {
+    if (value < 0) {
+        return 0;
+    }
+    if (value > Constants.MAX_UINT_8) {
+        return Constants.MAX_UINT_8;
+    }
+    return value | 0;
 }
