@@ -1,5 +1,5 @@
 import { DisposableManager, IDisposable } from "src/base/common/dispose";
-import { addDisposableListener, EventType } from "src/base/common/dom";
+import { addDisposableListener, EventType } from "src/base/browser/basic/dom";
 import { Emitter, Register } from "src/base/common/event";
 
 interface IFocusTracker extends IDisposable {

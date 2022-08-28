@@ -1,5 +1,5 @@
 import { DisposableManager, IDisposable } from "src/base/common/dispose";
-import { DomEmitter, EventType } from "src/base/common/dom";
+import { DomEmitter, EventType } from "src/base/browser/basic/dom";
 import { createService } from "src/code/platform/instantiation/common/decorator";
 import { Event, Register } from "src/base/common/event";
 import { createStandardKeyboardEvent, IStandardKeyboardEvent } from "src/base/common/keyboard";

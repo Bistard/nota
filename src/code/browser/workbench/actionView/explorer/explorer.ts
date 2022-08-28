@@ -6,7 +6,7 @@ import { Ii18nService } from 'src/code/platform/i18n/i18n';
 import { Section } from 'src/code/platform/section';
 import { registerSingleton } from 'src/code/platform/instantiation/common/serviceCollection';
 import { ServiceDescriptor } from 'src/code/platform/instantiation/common/descriptor';
-import { addDisposableListener, EventType } from 'src/base/common/dom';
+import { addDisposableListener, EventType } from 'src/base/browser/basic/dom';
 import { IEditorService } from 'src/code/browser/workbench/workspace/editor/editor';
 import { IBrowserDialogService, IDialogService } from 'src/code/platform/dialog/browser/browserDialogService';
 import { IThemeService } from 'src/code/browser/service/theme/themeService';

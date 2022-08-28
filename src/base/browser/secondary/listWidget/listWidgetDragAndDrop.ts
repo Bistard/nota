@@ -1,5 +1,5 @@
 import { IListWidget } from "src/base/browser/secondary/listWidget/listWidget";
-import { EventType } from "src/base/common/dom";
+import { EventType } from "src/base/browser/basic/dom";
 
 /**
  * An interface that provides drag and drop support (dnd).

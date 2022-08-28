@@ -1,5 +1,5 @@
 import { FastElement } from "src/base/browser/basic/fastElement";
-import { DomUtility } from "src/base/common/dom";
+import { DomUtility } from "src/base/browser/basic/dom";
 import { Emitter, Register } from "src/base/common/event";
 import { Dimension, IDimension } from "src/base/common/util/size";
 import { IComponentService } from "src/code/browser/service/component/componentService";

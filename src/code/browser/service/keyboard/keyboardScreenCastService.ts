@@ -1,6 +1,6 @@
 import { VisibilityController } from "src/base/browser/basic/visibilityController";
 import { IDisposable } from "src/base/common/dispose";
-import { DomUtility } from "src/base/common/dom";
+import { DomUtility } from "src/base/browser/basic/dom";
 import { IStandardKeyboardEvent, Keyboard } from "src/base/common/keyboard";
 import { IntervalTimer } from "src/base/common/util/timer";
 import { IKeyboardService } from "src/code/browser/service/keyboard/keyboardService";
