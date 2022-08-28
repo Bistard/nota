@@ -111,6 +111,36 @@ class __AsyncMultiTreeDragAndDropProvider<T> implements IListDragAndDropProvider
             this.dnd.onDragStart(event);
         }
     }
+
+    public onDragOver(event: DragEvent, currentDragItems: IAsyncTreeNode<T>[], targetOver?: IAsyncTreeNode<T>, targetIndex?: number): boolean {
+        if (this.dnd.onDragOver) {
+            return this.dnd.onDragOver(event, currentDragItems.map(node => node.data), targetOver?.data, targetIndex);
+        }
+        return false;
+    }
+
+    public onDragEnter(event: DragEvent, currentDragItems: IAsyncTreeNode<T>[], targetOver?: IAsyncTreeNode<T>, targetIndex?: number): void {
+        if (this.dnd.onDragEnter) {
+            return this.dnd.onDragEnter(event, currentDragItems.map(node => node.data), targetOver?.data, targetIndex);
+        }
+    }
+
+    public onDragLeave(event: DragEvent, currentDragItems: IAsyncTreeNode<T>[], targetOver?: IAsyncTreeNode<T>, targetIndex?: number): void {
+        if (this.dnd.onDragLeave) {
+            return this.dnd.onDragLeave(event, currentDragItems.map(node => node.data), targetOver?.data, targetIndex);
+        }
+    }
+    public onDragDrop(event: DragEvent, currentDragItems: IAsyncTreeNode<T>[], targetOver?: IAsyncTreeNode<T>, targetIndex?: number): void {
+        if (this.dnd.onDragDrop) {
+            return this.dnd.onDragDrop(event, currentDragItems.map(node => node.data), targetOver?.data, targetIndex);
+        }
+    }
+
+    public onDragEnd(event: DragEvent): void {
+        if (this.dnd.onDragEnd) {
+            return this.dnd.onDragEnd(event);
+        }
+    }
 }
 
 /**

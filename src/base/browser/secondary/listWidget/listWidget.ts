@@ -671,19 +671,11 @@ export class __ListWidgetDragAndDropController<T> implements IDisposable {
     }
 
     private __onDragEnter(event: IListDragEvent<T>): void {
-        
-        // clear dragover meatadata
-        this.__clearDragoverData();
-
         // notify client
         this._provider.onDragEnter(event.browserEvent, this._currDragItems, event.item, event.actualIndex);
     }
 
     private __onDragLeave(event: IListDragEvent<T>): void {
-        
-        // clear dragover meatadata
-        this.__clearDragoverData();
-
         // notify client
         this._provider.onDragLeave(event.browserEvent, this._currDragItems, event.item, event.actualIndex);
     }

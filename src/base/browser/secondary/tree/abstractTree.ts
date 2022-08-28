@@ -23,7 +23,7 @@ class __TreeListDragAndDropProvider<T> implements IListDragAndDropProvider<ITree
         return this.dnd.getDragData(node.data);
     }
 
-    public getDragTag(items: ITreeNode<T, void>[]): string {
+    public getDragTag(items: ITreeNode<T>[]): string {
         return this.dnd.getDragTag(items.map(item => item.data));
     }
 
@@ -33,6 +33,35 @@ class __TreeListDragAndDropProvider<T> implements IListDragAndDropProvider<ITree
         }
     }
 
+    public onDragOver(event: DragEvent, currentDragItems: ITreeNode<T>[], targetOver?: ITreeNode<T>, targetIndex?: number): boolean {
+        if (this.dnd.onDragOver) {
+            return this.dnd.onDragOver(event, currentDragItems.map(node => node.data), targetOver?.data, targetIndex);
+        }
+        return false;
+    }
+
+    public onDragEnter(event: DragEvent, currentDragItems: ITreeNode<T>[], targetOver?: ITreeNode<T>, targetIndex?: number): void {
+        if (this.dnd.onDragEnter) {
+            return this.dnd.onDragEnter(event, currentDragItems.map(node => node.data), targetOver?.data, targetIndex);
+        }
+    }
+
+    public onDragLeave(event: DragEvent, currentDragItems: ITreeNode<T>[], targetOver?: ITreeNode<T>, targetIndex?: number): void {
+        if (this.dnd.onDragLeave) {
+            return this.dnd.onDragLeave(event, currentDragItems.map(node => node.data), targetOver?.data, targetIndex);
+        }
+    }
+    public onDragDrop(event: DragEvent, currentDragItems: ITreeNode<T>[], targetOver?: ITreeNode<T>, targetIndex?: number): void {
+        if (this.dnd.onDragDrop) {
+            return this.dnd.onDragDrop(event, currentDragItems.map(node => node.data), targetOver?.data, targetIndex);
+        }
+    }
+
+    public onDragEnd(event: DragEvent): void {
+        if (this.dnd.onDragEnd) {
+            return this.dnd.onDragEnd(event);
+        }
+    }
 }
 
 /**

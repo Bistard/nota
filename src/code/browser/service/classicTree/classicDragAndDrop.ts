@@ -7,9 +7,7 @@ import { ClassicItem } from "src/code/browser/service/classicTree/classicItem";
  */
 export class ClassicDragAndDropProvider implements IListDragAndDropProvider<ClassicItem> {
 
-    constructor() {
-
-    }
+    constructor() {}
 
     public getDragData(item: ClassicItem): string | null {
         return item.uri.toString();
@@ -26,4 +24,11 @@ export class ClassicDragAndDropProvider implements IListDragAndDropProvider<Clas
         // TODO
     }
 
+    public onDragEnter(event: DragEvent, currentDragItems: ClassicItem[], targetOver?: ClassicItem, targetIndex?: number): void {
+        console.log('enter item: ', targetOver?.name);
+    }
+
+    public onDragLeave(event: DragEvent, currentDragItems: ClassicItem[], targetOver?: ClassicItem, targetIndex?: number): void {
+        console.log('leave item: ', targetOver?.name);
+    }
 }
