@@ -80,9 +80,10 @@ export abstract class WorkbenchLayout extends Component {
     protected __registerLayoutListeners(): void {
         
         // window resizing
-        this.__register(addDisposableListener(window, EventType.resize, (event => {
+        this.__register(addDisposableListener(window, EventType.resize, () => {
             this.layout();
-        })));
+            this._splitView?.layout(this.dimension!);
+        }));
 
         /**
          * Listens to each ActionBar button click events and notifies the 

@@ -58,10 +58,7 @@ export interface ISplitView extends Disposable {
     swapView(first: number, second: number): void;
 
     // TODO
-    onWindowResize(dimension: IDimension): void;
-
-    // TODO
-    relayout(): void;
+    layout(dimension: IDimension): void;
 }
 
 /**
@@ -217,16 +214,18 @@ export class SplitView extends Disposable implements ISplitView {
 
         this.__doRenderViewsAndSashes();
     }
+
     /**
      * Invokes when the application window is resizing.
      * @param dimension The dimension of the window.
      */
-    public onWindowResize(dimension: IDimension): void {
-        // TODO
-    }
-
-    public relayout(): void {
-        // TODO
+    public layout(dimension: IDimension): void {
+        if (this._orientation === Orientation.Horizontal) {
+            this._size = dimension.width;
+        } else {
+            this._size = dimension.height;
+        }
+        this.__render();
     }
 
     // [private helper methods]
