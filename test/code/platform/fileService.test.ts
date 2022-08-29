@@ -258,6 +258,104 @@ suite('FileService-disk-test', () => {
         stream.destroy();
     });
 
+    test('copyTo - file', async () => {
+        const uri = URI.join(baseURI, 'copy', 'file.txt');
+        const newUri = URI.join(baseURI, 'copy', 'file-copy.txt');
+        await service.createFile(uri, DataBuffer.fromString('copy content'));
+
+        await service.copyTo(uri, newUri);
+
+        const content = (await service.readFile(newUri)).toString();
+        assert.strictEqual(content, 'copy content');
+
+        await service.writeFile(uri, DataBuffer.fromString('copy content1'), { overwrite: true, create: false, unlock: true });
+        try {
+            // cannot overwrite
+            await service.copyTo(uri, newUri, false);
+        } catch {
+            // overwrite
+            await service.copyTo(uri, newUri, true);
+            const content = (await service.readFile(newUri)).toString();
+            assert.strictEqual(content, 'copy content1');
+        }
+    });
+
+    test('copyTo - directory', async () => {
+        const dir1Uri = URI.join(baseURI, 'copy', 'dir1');
+        const uri = URI.join(dir1Uri, 'file.txt');
+        const dir2Uri = URI.join(baseURI, 'copy', 'dir2');
+        const newUri = URI.join(dir2Uri, 'file.txt');
+        
+        await service.createFile(uri, DataBuffer.fromString('copy content'));
+        await service.copyTo(dir1Uri, dir2Uri);
+
+        const content = (await service.readFile(newUri)).toString();
+        assert.strictEqual(content, 'copy content');
+
+        await service.writeFile(uri, DataBuffer.fromString('copy content1'), { overwrite: true, create: false, unlock: true });
+        try {
+            // cannot overwrite
+            await service.copyTo(dir1Uri, dir2Uri, false);
+        } catch {
+            // overwrite
+            await service.copyTo(dir1Uri, dir2Uri, true);
+            const content = (await service.readFile(newUri)).toString();
+            assert.strictEqual(content, 'copy content1');
+        }
+    });
+
+    test('moveTo - file', async () => {
+        const uri = URI.join(baseURI, 'move', 'file.txt');
+        const newUri = URI.join(baseURI, 'move', 'file-move.txt');
+        await service.createFile(uri, DataBuffer.fromString('move content'));
+
+        await service.moveTo(uri, newUri);
+        const content = (await service.readFile(newUri)).toString();
+        assert.strictEqual(content, 'move content');
+        const exist = await service.exist(uri);
+        assert.strictEqual(exist, false);
+
+        await service.writeFile(uri, DataBuffer.fromString('move content1'), { overwrite: true, create: true, unlock: true });
+        try {
+            // cannot overwrite
+            await service.moveTo(uri, newUri, false);
+        } catch {
+            // overwrite
+            await service.moveTo(uri, newUri, true);
+            const content = (await service.readFile(newUri)).toString();
+            assert.strictEqual(content, 'move content1');
+            const exist = await service.exist(uri);
+            assert.strictEqual(exist, false);
+        }
+    });
+
+    test('moveTo - Directory', async () => {
+        const dir1Uri = URI.join(baseURI, 'move', 'dir1');
+        const uri = URI.join(dir1Uri, 'file.txt');
+        const dir2Uri = URI.join(baseURI, 'move', 'dir2');
+        const newUri = URI.join(dir2Uri, 'file.txt');
+        await service.createFile(uri, DataBuffer.fromString('move content'));
+
+        await service.moveTo(dir1Uri, dir2Uri);
+        const content = (await service.readFile(newUri)).toString();
+        assert.strictEqual(content, 'move content');
+        const exist = await service.exist(dir1Uri);
+        assert.strictEqual(exist, false);
+
+        await service.createFile(uri, DataBuffer.fromString('move content1'));
+        try {
+            // cannot overwrite
+            await service.moveTo(dir1Uri, dir2Uri, false);
+        } catch {
+            // overwrite
+            await service.moveTo(dir1Uri, dir2Uri, true);
+            const content = (await service.readFile(newUri)).toString();
+            assert.strictEqual(content, 'move content1');
+            const exist = await service.exist(dir1Uri);
+            assert.strictEqual(exist, false);
+        }
+    });
+    
     after(async () => {
         await service.delete(baseURI, { recursive: true });
     });
