@@ -7,8 +7,9 @@ import { FileService } from 'src/code/platform/files/common/fileService';
 import { NullLogger, TestURI } from 'test/testUtility';
 import { Random } from 'src/base/common/util/random';
 import { Array } from 'src/base/common/util/array';
+import { after, before } from 'mocha';
 
-suite('FileService-disk-test', () => {
+suite('FileService-disk-test', async () => {
 
     const service = new FileService(new NullLogger());
 
@@ -32,7 +33,7 @@ suite('FileService-disk-test', () => {
 
     const baseURI = URI.join(TestURI, 'file-service-test');
 
-    setup(async () => {
+    before(async () => {
         // disk provider registration
         const provider = new DiskFileSystemProvider();
         service.registerProvider('file', provider);
@@ -272,7 +273,7 @@ suite('FileService-disk-test', () => {
         stream.destroy();
     });
 
-    teardown(async () => {
+    after(async () => {
         await service.delete(baseURI, { recursive: true });
     });
 });
