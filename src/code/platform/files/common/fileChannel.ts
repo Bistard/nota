@@ -83,11 +83,11 @@ export class BrowserFileChannel implements IFileService {
         return this._channel.callCommand(FileCommand.createDir, [uri]);
     }
      
-    public moveTo(from: URI, to: URI, overwrite?: boolean): Promise<void> {
+    public moveTo(from: URI, to: URI, overwrite?: boolean): Promise<IResolvedFileStat> {
         return this._channel.callCommand(FileCommand.moveTo, [from, to, overwrite]);
     }
     
-    public copyTo(from: URI, to: URI, overwrite?: boolean): Promise<void> {
+    public copyTo(from: URI, to: URI, overwrite?: boolean): Promise<IResolvedFileStat> {
         return this._channel.callCommand(FileCommand.copyTo, [from, to, overwrite]);
     }
     
