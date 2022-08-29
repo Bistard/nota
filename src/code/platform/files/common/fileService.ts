@@ -1,7 +1,7 @@
 import { Disposable, IDisposable, toDisposable } from "src/base/common/dispose";
 import { DataBuffer } from "src/base/common/file/buffer";
-import { FileSystemProviderAbleToRead, hasOpenReadWriteCloseCapability, hasReadWriteCapability, IReadFileOptions, IFileSystemProvider, IFileSystemProviderWithFileReadWrite, IFileSystemProviderWithOpenReadWriteClose, IWriteFileOptions, IFileStat, FileType, FileOperationErrorType, FileSystemProviderCapability, IDeleteFileOptions, IResolveStatOptions, IResolvedFileStat, hasReadFileStreamCapability, IFileSystemProviderWithReadFileStream, ICreateFileOptions, FileOperationError } from "src/base/common/file/file";
-import { basename, dirname, join } from "src/base/common/file/path";
+import { FileSystemProviderAbleToRead, hasOpenReadWriteCloseCapability, hasReadWriteCapability, IReadFileOptions, IFileSystemProvider, IFileSystemProviderWithFileReadWrite, IFileSystemProviderWithOpenReadWriteClose, IWriteFileOptions, IFileStat, FileType, FileOperationErrorType, FileSystemProviderCapability, IDeleteFileOptions, IResolveStatOptions, IResolvedFileStat, hasReadFileStreamCapability, IFileSystemProviderWithReadFileStream, ICreateFileOptions, FileOperationError, hasCopyCapability } from "src/base/common/file/file";
+import { basename, dirname, join, relative } from "src/base/common/file/path";
 import { bufferToStream, IReadableStream, listenStream, newWriteableBufferStream, streamToBuffer, transformStream } from "src/base/common/file/stream";
 import { isAbsoluteURI, URI } from "src/base/common/file/uri";
 import { ILogService } from "src/base/common/logger";
@@ -75,13 +75,13 @@ export interface IFileService extends IDisposable {
     /** 
      * @description Moves a file/directory to a new location described by a given URI. 
      */
-    moveTo(from: URI, to: URI, overwrite?: boolean): Promise<void>;
+    moveTo(from: URI, to: URI, overwrite?: boolean): Promise<IResolvedFileStat>;
     
     // TODO
     /** 
      * @description Copys a file/directory to a new location. 
      */
-    copyTo(from: URI, to: URI, overwrite?: boolean): Promise<void>;
+    copyTo(from: URI, to: URI, overwrite?: boolean): Promise<IResolvedFileStat>;
     
     /** 
      * @description Deletes a file/directory described by a given URI. 
@@ -214,20 +214,26 @@ export class FileService extends Disposable implements IFileService {
         await this.__mkdirRecursive(provider, uri);
     }
 
-    public async moveTo(from: URI, to: URI, overwrite?: boolean): Promise<void> {
-        const provider = this.__throwIfProviderIsReadonly(await this.__getWriteProvider(from));
+    public async moveTo(from: URI, to: URI, overwrite?: boolean): Promise<IResolvedFileStat> {
+        const fromProvider = this.__throwIfProviderIsReadonly(await this.__getWriteProvider(from));
         const toProvider = this.__throwIfProviderIsReadonly(await this.__getWriteProvider(to));
 
         // move operation
-        
+        await this.__doMoveTo(from, fromProvider, to, toProvider, overwrite);
+
+        const stat = await this.stat(to);
+        return stat;
     }
 
-    public async copyTo(from: URI, to: URI, overwrite?: boolean): Promise<void> {
-        const provider = this.__throwIfProviderIsReadonly(await this.__getWriteProvider(from));
+    public async copyTo(from: URI, to: URI, overwrite?: boolean): Promise<IResolvedFileStat> {
+        const fromProvider = this.__throwIfProviderIsReadonly(await this.__getWriteProvider(from));
         const toProvider = this.__throwIfProviderIsReadonly(await this.__getWriteProvider(to));
 
         // copy operation
-        
+        await this.__doCopyTo(from, fromProvider, to, toProvider, overwrite);
+
+        const stat = await this.stat(to);
+        return stat;
     }
 
     public async delete(uri: URI, opts?: IDeleteFileOptions): Promise<void> {
@@ -496,6 +502,49 @@ export class FileService extends Disposable implements IFileService {
         }
 
         return resolved;
+    }
+
+    private async __doMoveTo(from: URI, fromProvider: IFileSystemProvider, to: URI, toProvider: IFileSystemProvider, overwrite?: boolean): Promise<void> {
+        if (from.toString() === to.toString()) {
+            return;
+        }
+
+        const exist = await this.__validateMoveOrCopy(to, overwrite);
+        if (exist && overwrite) {
+            this.delete(from, { recursive: true });
+        }
+
+        await this.__mkdirRecursive(toProvider, to);
+
+        await this.__doCopyTo(from, fromProvider, to, toProvider, overwrite);
+        await this.delete(from, { recursive: true });
+    }
+
+    private async __doCopyTo(from: URI, fromProvider: IFileSystemProvider, to: URI, toProvider: IFileSystemProvider, overwrite?: boolean): Promise<void> {
+        if (from.toString() === to.toString()) {
+            return;
+        }
+
+        const exist = await this.__validateMoveOrCopy(to, overwrite);
+        if (exist && overwrite) {
+            this.delete(from, { recursive: true, useTrash: true });
+        }
+
+        await this.__mkdirRecursive(toProvider, to);
+
+        if (hasCopyCapability(fromProvider)) {
+            await fromProvider.copy(from, to, { overwrite: !!overwrite });
+        } else {
+            throw new FileOperationError(`Unable to move / copy to the target path ${to.toString()} because the provider does not provide move / copy functionality.`, FileOperationErrorType.UNKNOWN);
+        }
+    }
+
+    private async __validateMoveOrCopy(to: URI, overwrite?: boolean): Promise<boolean> {
+        const exist = await this.exist(to);
+        if (exist && overwrite === false) {
+            throw new FileOperationError(`Unable to move / copy to the target path ${to.toString()} because already exists.`, FileOperationErrorType.FILE_EXISTS);
+        }
+        return exist;
     }
 
     /***************************************************************************

@@ -1,12 +1,12 @@
-import { IOpenFileOptions, FileSystemProviderCapability, FileType, IFileSystemProviderWithFileReadWrite, IFileSystemProviderWithOpenReadWriteClose, IFileStat, IWriteFileOptions, IDeleteFileOptions, IOverwriteFileOptions, FileOperationErrorType, FileSystemProviderError, IFileSystemProviderWithReadFileStream, IReadFileOptions } from "src/base/common/file/file";
-import { URI } from "src/base/common/file/uri";
 import * as fs from "fs";
-import { fileExists, FileMode, readFileIntoStream } from "src/code/platform/files/node/io";
-import { retry } from "src/base/common/util/async";
+import { DataBuffer } from "src/base/common/file/buffer";
+import { FileOperationErrorType, FileSystemProviderCapability, FileSystemProviderError, FileType, IDeleteFileOptions, IFileStat, IFileSystemProviderWithFileReadWrite, IFileSystemProviderWithOpenReadWriteClose, IFileSystemProviderWithReadFileStream, IOpenFileOptions, IOverwriteFileOptions, IReadFileOptions, IWriteFileOptions } from "src/base/common/file/file";
 import { join } from "src/base/common/file/path";
 import { IReadableStreamEvent, newWriteableStream } from "src/base/common/file/stream";
-import { DataBuffer } from "src/base/common/file/buffer";
+import { URI } from "src/base/common/file/uri";
+import { retry } from "src/base/common/util/async";
 import { FileService } from "src/code/platform/files/common/fileService";
+import { fileExists, FileMode, readFileIntoStream } from "src/code/platform/files/node/io";
 
 export class DiskFileSystemProvider implements 
     IFileSystemProviderWithFileReadWrite, 
@@ -111,9 +111,8 @@ export class DiskFileSystemProvider implements
                     if (!(stat.mode & 0o200)) {
                         await fs.promises.chmod(path, stat.mode | FileMode.writable);
                     }
-                } catch(err) {
+                } catch (_err) {
                     // ignore any errors here and try to just write
-                    // TODO: this.logService.trace(error);
                 }
 
             }
@@ -130,7 +129,7 @@ export class DiskFileSystemProvider implements
             return fd;
         } 
         
-        catch(err) {
+        catch (err) {
             throw err;
         }
     }
@@ -138,7 +137,7 @@ export class DiskFileSystemProvider implements
     public async close(fd: number): Promise<void> {
         try {
             fs.closeSync(fd);
-        } catch(err) {
+        } catch (err) {
             throw err;
         }
     }
@@ -152,7 +151,7 @@ export class DiskFileSystemProvider implements
             bytesRead = read;
             return bytesRead;
 
-        } catch(err) {
+        } catch (err) {
             throw err;
         }
     }
@@ -185,7 +184,7 @@ export class DiskFileSystemProvider implements
 
         try {
             if (fileExists(toPath) && opts.overwrite === false) {
-                throw 'file already exists';
+                throw new FileSystemProviderError('File already exists', FileOperationErrorType.FILE_EXISTS);
             }
             await fs.promises.copyFile(fromPath, toPath);
         } catch (err) {

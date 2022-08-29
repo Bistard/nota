@@ -247,14 +247,14 @@ export interface IDeleteFileOptions {
 	 * only applies to folders and can lead to an error unless provided
 	 * if the folder is not empty.
 	 */
-	 readonly recursive: boolean;
+	 readonly recursive?: boolean;
 
 	 /**
 	  * Set to `true` to attempt to move the file to trash
 	  * instead of deleting it permanently from disk. This
 	  * option maybe not be supported on all providers.
 	  */
-	 readonly useTrash: boolean;
+	 readonly useTrash?: boolean;
 }
 
 export interface ICreateReadStreamOptions extends IReadFileOptions {
