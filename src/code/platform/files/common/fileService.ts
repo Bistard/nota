@@ -512,10 +512,11 @@ export class FileService extends Disposable implements IFileService {
 
         const exist = await this.__validateMoveOrCopy(to, overwrite);
         if (exist && overwrite) {
-            this.delete(from, { recursive: true });
+            await this.delete(to, { recursive: true });
         }
 
-        await this.__mkdirRecursive(toProvider, to);
+        const toUriDir = URI.fromFile(dirname(URI.toFsPath(to)));
+        await this.__mkdirRecursive(toProvider, toUriDir);
 
         await this.__doCopyTo(from, fromProvider, to, toProvider, overwrite);
         await this.delete(from, { recursive: true });
@@ -528,10 +529,11 @@ export class FileService extends Disposable implements IFileService {
 
         const exist = await this.__validateMoveOrCopy(to, overwrite);
         if (exist && overwrite) {
-            this.delete(from, { recursive: true, useTrash: true });
+            await this.delete(to, { recursive: true });
         }
 
-        await this.__mkdirRecursive(toProvider, to);
+        const toUriDir = URI.fromFile(dirname(URI.toFsPath(to)));
+        await this.__mkdirRecursive(toProvider, toUriDir);
 
         if (hasCopyCapability(fromProvider)) {
             await fromProvider.copy(from, to, { overwrite: !!overwrite });

@@ -175,19 +175,27 @@ export class DiskFileSystemProvider implements
      **************************************************************************/
 
     public async copy(from: URI, to: URI, opts: IOverwriteFileOptions): Promise<void> {
-        const fromPath = URI.toFsPath(from);
-        const toPath = URI.toFsPath(to);
-
-        if (fromPath === toPath) {
+        if (from === to) {
             return;
         }
 
         try {
+            const fromPath = URI.toFsPath(from);
+            const toPath = URI.toFsPath(to);
+            const stat = await this.stat(from);
+            
             if (fileExists(toPath) && opts.overwrite === false) {
-                throw new FileSystemProviderError('File already exists', FileOperationErrorType.FILE_EXISTS);
+                throw new FileSystemProviderError(`Target already exists at ${toPath}`, FileOperationErrorType.UNKNOWN);
             }
-            await fs.promises.copyFile(fromPath, toPath);
-        } catch (err) {
+
+            if (stat.type === FileType.DIRECTORY) {
+                await fs.promises.cp(fromPath, toPath, { recursive: true, force: true });
+            } else {
+                await fs.promises.copyFile(fromPath, toPath);
+            }
+        } 
+        
+        catch (err) {
             throw err;
         }
     }
