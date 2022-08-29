@@ -1,10 +1,15 @@
 import { tmpdir } from "os";
 import { join } from "path";
+import { URI } from "src/base/common/file/uri";
 import { AbstractLogger, ILogService } from "src/base/common/logger";
 import { DiskEnvironmentService } from "src/code/platform/environment/common/diskEnvironmentService";
 import { AbstractLifecycleService } from "src/code/platform/lifecycle/common/abstractLifecycleService";
 
-export const TestDir = join(tmpdir(), 'nota', 'tests');
+export const NotaName = 'nota';
+export const TestDirName = 'tests';
+export const TestPath = join(tmpdir(), NotaName, TestDirName);
+export const TestURI = URI.fromFile(TestPath);
+
 
 export class NullLifecycleService extends AbstractLifecycleService<number, number> {
 

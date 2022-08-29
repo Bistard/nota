@@ -6,6 +6,7 @@ import { bufferToStream, IReadableStream, listenStream, newWriteableBufferStream
 import { isAbsoluteURI, URI } from "src/base/common/file/uri";
 import { ILogService } from "src/base/common/logger";
 import { Iterable } from "src/base/common/util/iterable";
+import { Mutable } from "src/base/common/util/type";
 import { readFileIntoStream, readFileIntoStreamAsync } from "src/code/platform/files/node/io";
 import { createService } from "src/code/platform/instantiation/common/decorator";
 
@@ -498,7 +499,7 @@ export class FileService extends Disposable implements IFileService {
                 })
             );
 
-            resolved.children = Iterable.filter(resolvedChildren, (child) => !!child);
+            (<Mutable<Iterable<IResolvedFileStat>>>resolved.children) = Iterable.filter(resolvedChildren, (child) => !!child);
         }
 
         return resolved;

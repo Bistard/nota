@@ -5,6 +5,15 @@
 export namespace Array {
 
     /**
+     * @description Returns a new elements of an array that removed all the 
+     * falsy elements.
+     * @param array The given array.
+     */
+    export function coalesce<T>(array: ReadonlyArray<T | undefined | null>): T[] {
+        return <T[]>array.filter(e => !!e);
+    }
+
+    /**
      * @description Try to removes the first given item from the given array (will 
      * modify the original array).
      * @param array The given array.

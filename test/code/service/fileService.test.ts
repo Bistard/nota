@@ -1,84 +1,92 @@
 import * as assert from 'assert';
 import { DataBuffer } from 'src/base/common/file/buffer';
-import { FileType } from 'src/base/common/file/file';
-import { dirname, posix, resolve } from 'src/base/common/file/path';
+import { ByteSize, FileType } from 'src/base/common/file/file';
 import { URI } from 'src/base/common/file/uri';
 import { DiskFileSystemProvider } from 'src/code/platform/files/node/diskFileSystemProvider';
-import { fileExists } from 'src/code/platform/files/node/io';
 import { FileService } from 'src/code/platform/files/common/fileService';
-import { NullLogger } from 'test/testUtility';
+import { NullLogger, TestURI } from 'test/testUtility';
+import { Random } from 'src/base/common/util/random';
+import { Array } from 'src/base/common/util/array';
 
-suite('FileService-disk-unbuffered-test', () => {
+suite('FileService-disk-test', () => {
 
-    test('provider registration', async () => {
-        const service = new FileService(new NullLogger());
+    const service = new FileService(new NullLogger());
+
+    async function createFileWithSize(resource: URI, size: number, defaultChar?: number): Promise<void> {
+        
+        const arr: string[] = [];
+
+        if (!defaultChar) {
+            for (let i = 0; i < size; i++) {
+                arr[i] = Random.getRandChar();
+            }
+        } else {
+            for (let i = 0; i < size; i++) {
+                arr[i] = String(defaultChar);
+            }
+        }
+        
+        const buffer = DataBuffer.fromString(arr.join());
+        return service.writeFile(resource, buffer, { create: true, overwrite: true, unlock: true });
+    }
+
+    const baseURI = URI.join(TestURI, 'file-service-test');
+
+    setup(async () => {
+        // disk provider registration
         const provider = new DiskFileSystemProvider();
         service.registerProvider('file', provider);
-
         assert.strictEqual(provider, service.getProvider('file'));
+
+        // create testing files
+        await service.createDir(baseURI);
+        const filebaseURI = URI.join(baseURI, 'files');
+        for (const size of [ByteSize.KB, 256 * ByteSize.KB, ByteSize.MB, 10 * ByteSize.MB]) {
+            await createFileWithSize(URI.join(filebaseURI, `file-${size}.txt`), size, undefined);
+        }
     });
 
     test('stat - basic', async () => {
-        const service = new FileService(new NullLogger());
-        const provider = new DiskFileSystemProvider();
-        service.registerProvider('file', provider);
-
-        const stat = await service.stat(URI.fromFile('test/code/service/temp'));
+        const stat = await service.stat(baseURI);
         assert.strictEqual(stat.type, FileType.DIRECTORY);
-        assert.strictEqual(stat.name, 'temp');
+        assert.strictEqual(stat.name, 'file-service-test');
         assert.strictEqual(stat.readonly, false);
         assert.strictEqual(stat.children, undefined);
     });
     
     test('stat - resolve children', async () => {
-        const service = new FileService(new NullLogger());
-        const provider = new DiskFileSystemProvider();
-        service.registerProvider('file', provider);
-
-        const stat = await service.stat(URI.fromFile('test/code/service/temp'), { resolveChildren: true });
+        const filebaseURI = URI.join(baseURI, 'files');
+        const stat = await service.stat(filebaseURI, { resolveChildren: true });
         assert.strictEqual(stat.type, FileType.DIRECTORY);
-        assert.strictEqual(stat.name, 'temp');
+        assert.strictEqual(stat.name, 'files');
         assert.strictEqual(stat.readonly, false);
         assert.strictEqual([...stat.children!].length, 4);
     });
 
     test('stat - resolve children recursive', async () => {
-        const service = new FileService(new NullLogger());
-        const provider = new DiskFileSystemProvider();
-        service.registerProvider('file', provider);
-
-        const stat = await service.stat(URI.fromFile('test/code/service'), { resolveChildrenRecursive: true });
+        const stat = await service.stat(baseURI, { resolveChildrenRecursive: true });
         
         assert.strictEqual(stat.type, FileType.DIRECTORY);
-        assert.strictEqual(stat.name, 'service');
+        assert.strictEqual(stat.name, 'file-service-test');
         assert.strictEqual(stat.readonly, false);
 
-        const tempDir = [...stat.children!].filter(child => child.type === FileType.DIRECTORY)[0]!;
+        const tempDir = Array.coalesce([...stat.children!].map(child => child.name === 'files' ? child : undefined))[0]!;
         assert.strictEqual(tempDir.type, FileType.DIRECTORY);
-        assert.strictEqual(tempDir.name, 'temp');
+        assert.strictEqual(tempDir.name, 'files');
         assert.strictEqual([...tempDir.children!].length, 4);
     });
 
     test('readFile - basic', async () => {
-        const service = new FileService(new NullLogger());
-        const provider = new DiskFileSystemProvider();
-        service.registerProvider('file', provider);
-        
-        const uri = URI.parse('file://' + posix.resolve('test/code/service/temp', 'fileService-hello.txt'));
-        
-        const read = await service.readFile(uri);
-        assert.strictEqual(read.toString(), 'Hello World');
+        const filebaseURI = URI.join(baseURI, 'files');
+        const uri = URI.join(filebaseURI, `file-${ByteSize.KB}.txt`);
+        await service.readFile(uri);
     });
 
     test('readFile - error', async () => {
-        const service = new FileService(new NullLogger());
-        const provider = new DiskFileSystemProvider();
-        service.registerProvider('file', provider);
-        
-        const uri = URI.parse('file://' + posix.resolve('test/code/service/temp', 'unknown.txt'));
-        
+        const filebaseURI = URI.join(baseURI, 'files');
+        const uri = URI.join(filebaseURI, `file-unknown.txt`);
         try {
-            const read = await service.readFile(uri);
+            await service.readFile(uri);
             assert.strictEqual(false, true);
         } catch (error) {
             assert.strictEqual(true, true);
@@ -86,154 +94,93 @@ suite('FileService-disk-unbuffered-test', () => {
     });
 
     test('readDir', async () => {
-        const service = new FileService(new NullLogger());
-        const provider = new DiskFileSystemProvider();
-        service.registerProvider('file', provider);
-
-        try {
-            const uri = URI.fromFile('test/code/service/temp');
-            const dir = await service.readDir(uri);
-            assert.strictEqual(dir.length, 4);
-            assert.strictEqual(dir[0]![1], FileType.FILE);
-            assert.strictEqual(dir[1]![1], FileType.FILE);
-            assert.strictEqual(dir[2]![1], FileType.FILE);
-            assert.strictEqual(dir[3]![1], FileType.FILE);
-        } catch (err) {
-            assert.strictEqual(false, true);
-        }
+        const filebaseURI = URI.join(baseURI, 'files');
+        const dir = await service.readDir(filebaseURI);
+        assert.strictEqual(dir.length, 4);
+        assert.strictEqual(dir[0]![1], FileType.FILE);
+        assert.strictEqual(dir[1]![1], FileType.FILE);
+        assert.strictEqual(dir[2]![1], FileType.FILE);
+        assert.strictEqual(dir[3]![1], FileType.FILE);
     });
 
     test('createDir', async () => {
-        const service = new FileService(new NullLogger());
-        const provider = new DiskFileSystemProvider();
-        service.registerProvider('file', provider);
-
-        try {
-            const root = URI.fromFile('test/code/service/temp/newDir1');
-            const uri = URI.fromFile('test/code/service/temp/newDir1/newDir2');
-            await service.createDir(uri);
-
-            const dir1 = await service.readDir(root);
-            assert.strictEqual(dir1.length, 1);
-            assert.strictEqual(dir1[0]![0], 'newDir2');
-            assert.strictEqual(dir1[0]![1], FileType.DIRECTORY);
-            
-            await service.delete(root, { recursive: true, useTrash: false });
-        } catch (err) {
-            throw err;
-            // assert.strictEqual(false, true);
-        }
+        const root = URI.join(baseURI, 'dir-1');
+        const uri = URI.join(root, 'dir-2');
+        
+        await service.createDir(uri);
+        const dir1 = await service.readDir(root);
+        assert.strictEqual(dir1.length, 1);
+        assert.strictEqual(dir1[0]![0], 'dir-2');
+        assert.strictEqual(dir1[0]![1], FileType.DIRECTORY);
+        
+        await service.delete(root, { recursive: true, useTrash: false });
     });
 
     test('exist', async () => {
-        const service = new FileService(new NullLogger());
-        const provider = new DiskFileSystemProvider();
-        service.registerProvider('file', provider);
-
-        assert.strictEqual(await service.exist(URI.fromFile('test/code/service/temp')), true);
-        assert.strictEqual(await service.exist(URI.fromFile('test/code/service/temp1')), false);
-        assert.strictEqual(await service.exist(URI.fromFile('test/code/service/temp/fileService-1mb.txt')), true);
-        assert.strictEqual(await service.exist(URI.fromFile('test/code/service/temp/fileService-1mb')), false);
+        const filebaseURI = URI.join(baseURI, 'files');
+        assert.strictEqual(await service.exist(filebaseURI), true);
+        assert.strictEqual(await service.exist(URI.join(filebaseURI, `file-${ByteSize.KB}.hello.world`)), false);
+        assert.strictEqual(await service.exist(URI.join(filebaseURI, `file-${256 * ByteSize.KB}.txt`)), true);
+        assert.strictEqual(await service.exist(URI.join(filebaseURI, `file-${ByteSize.MB}.txt`)), true);
+        assert.strictEqual(await service.exist(URI.join(filebaseURI, `file-${10 * ByteSize.MB}.txt`)), true);
     });
 
     test('delete - file', async () => {
-        const service = new FileService(new NullLogger());
-        const provider = new DiskFileSystemProvider();
-        service.registerProvider('file', provider);
+        const base = URI.join(baseURI, 'delete');
+        const uri = URI.join(base, 'delete.txt');
+        await service.writeFile(uri, DataBuffer.fromString('goodbyte world'), { create: true, overwrite: true, unlock: true });
 
-        try {
-            const root = URI.fromFile('test/code/service/temp');
-            const uri = URI.fromFile('test/code/service/temp/newfile1');
-            await service.writeFile(uri, DataBuffer.alloc(0), { create: true, overwrite: true, unlock: true });
+        await service.delete(uri, { useTrash: true, recursive: true });
 
-            await service.delete(uri, { useTrash: true, recursive: true });
-
-            const dir = await service.readDir(root);
-            assert.strictEqual(dir.length, 4);
-            assert.strictEqual(dir[0]![1], FileType.FILE);
-            assert.strictEqual(dir[1]![1], FileType.FILE);
-            assert.strictEqual(dir[2]![1], FileType.FILE);
-            assert.strictEqual(dir[3]![1], FileType.FILE);
-        } catch (err) {
-            throw err;
-            // assert.strictEqual(false, true);
-        }
-
-        
+        const dir = await service.readDir(base);
+        assert.strictEqual(dir.length, 0);
     });
 
     test('delete - directory', async () => {
-        const service = new FileService(new NullLogger());
-        const provider = new DiskFileSystemProvider();
-        service.registerProvider('file', provider);
+        const root = URI.fromFile('test/code/service/temp');
+        const uri = URI.fromFile('test/code/service/temp/newDir1');
+        await service.createDir(uri);
 
-        try {
-            const root = URI.fromFile('test/code/service/temp');
-            const uri = URI.fromFile('test/code/service/temp/newDir1');
-            await service.createDir(uri);
-
-            await service.delete(uri, { useTrash: true, recursive: true });
-            
-            const dir = await service.readDir(root);
-            assert.strictEqual(dir.length, 4);
-            assert.strictEqual(dir[0]![1], FileType.FILE);
-            assert.strictEqual(dir[1]![1], FileType.FILE);
-            assert.strictEqual(dir[2]![1], FileType.FILE);
-            assert.strictEqual(dir[3]![1], FileType.FILE);
-        } catch (err) {
-            assert.strictEqual(false, true);
-        }
+        await service.delete(uri, { useTrash: true, recursive: true });
+        
+        const dir = await service.readDir(root);
+        assert.strictEqual(dir.length, 4);
+        assert.strictEqual(dir[0]![1], FileType.FILE);
+        assert.strictEqual(dir[1]![1], FileType.FILE);
+        assert.strictEqual(dir[2]![1], FileType.FILE);
+        assert.strictEqual(dir[3]![1], FileType.FILE);
     });
 
     test('delete - recursive', async () => {
-        const service = new FileService(new NullLogger());
-        const provider = new DiskFileSystemProvider();
-        service.registerProvider('file', provider);
+        const root = URI.join(baseURI, 'delete-recursive');
+        const dir1 = URI.join(root, 'dir-1');
+        const dir2 = URI.join(dir1, 'dir-2');
+        const dir3 = URI.join(dir2, 'dir-3');
+        await service.createDir(dir3);
 
-        try {
-            const root = URI.fromFile('test/code/service/temp');
-            const deleted = URI.fromFile('test/code/service/temp/newDir1');
-            const uri = URI.fromFile('test/code/service/temp/newDir1/newDir2/newDir3');
-            await service.writeFile(uri, DataBuffer.alloc(0), { create: true, overwrite: true, unlock: true });
+        await service.delete(dir1, { useTrash: true, recursive: true });
 
-            await service.delete(deleted, { useTrash: true, recursive: true });
-
-            const dir = await service.readDir(root);
-            assert.strictEqual(dir.length, 4);
-            assert.strictEqual(dir[0]![1], FileType.FILE);
-            assert.strictEqual(dir[1]![1], FileType.FILE);
-            assert.strictEqual(dir[2]![1], FileType.FILE);
-            assert.strictEqual(dir[3]![1], FileType.FILE);
-        } catch (err) {
-            assert.strictEqual(false, true);
-        }
+        const dir = await service.readDir(root);
+        assert.strictEqual(dir.length, 0);
     });
 
     test('delete - non recursive', async () => {
-        const service = new FileService(new NullLogger());
-        const provider = new DiskFileSystemProvider();
-        service.registerProvider('file', provider);
-
-        const deleted = URI.fromFile('test/code/service/temp/newDir1');
+        const base = URI.join(baseURI, 'delete-non-recursive');
         try {    
-            const uri = URI.fromFile('test/code/service/temp/newDir1/newDir2/newDir3');
+            const uri = URI.join(base, 'dir1', 'dir2', 'file1.txt');
             await service.writeFile(uri, DataBuffer.alloc(0), { create: true, overwrite: true, unlock: true });
-
-            await service.delete(deleted, { useTrash: true, recursive: false });
+            await service.delete(base, { useTrash: true, recursive: false });
             assert.strictEqual(true, false);
         } catch (err) {
-            await service.delete(deleted, { useTrash: true, recursive: true });
+            await service.delete(base, { useTrash: true, recursive: true });
             assert.strictEqual(true, true);
         }
     });
 
     test('writeFile - basic', async () => {
-        const service = new FileService(new NullLogger());
-        const provider = new DiskFileSystemProvider();
-        service.registerProvider('file', provider);
+        const uri = URI.join(baseURI, 'writefile');
+        await service.writeFile(uri, DataBuffer.alloc(0), { create: true, overwrite: true, unlock: true });
 
-        const uri = URI.parse('file://' + posix.resolve('test/code/service/temp', 'fileService-hello.txt'));
-        
         const write1 = DataBuffer.fromString('Goodbye World');
         await service.writeFile(uri, write1, { create: false, overwrite: true, unlock: true });
         const read1 = await service.readFile(uri);
@@ -245,199 +192,87 @@ suite('FileService-disk-unbuffered-test', () => {
         assert.strictEqual(read2.toString(), 'Hello World');
     });
 
-    function __generateString(length: number, char: string = '0') {
-        var result = '';
-        for (var i = length; i > 0; --i) result += char;
-        return result;
-    }
-
     test('writeFile - create', async () => {
-        const service = new FileService(new NullLogger());
-        const provider = new DiskFileSystemProvider();
-        service.registerProvider('file', provider);
-
-        const uri = URI.fromFile(resolve('test/code/service/temp', 'fileService-create.txt'));
+        const uri = URI.join(baseURI, 'writefile-create', 'create.txt');
         
-        // { create: false }
-        const write1 = DataBuffer.fromString('create new file');
+        // create: false
+        const write1 = DataBuffer.fromString('create new file1');
         try {
             await service.writeFile(uri, write1, { create: false, overwrite: false, unlock: true });
-        } catch (err) {
-            // ignore cannot create error
-        }
-        assert.strictEqual(fileExists(uri.toString().slice('file://'.length)), false);
+        } catch { /** noop */ }
+        const exist = await service.exist(uri);
+        assert.strictEqual(exist, false);
 
-        // { create: true } 
-        const write2 = DataBuffer.fromString('create new file');
+        // create: true
+        const write2 = DataBuffer.fromString('create new file2');
         await service.writeFile(uri, write2, { create: true, overwrite: false, unlock: true });
         const read2 = await service.readFile(uri);
-        assert.strictEqual(read2.toString(), 'create new file');
-
-        await provider.delete(uri, { recursive: true, useTrash: false });
-    });
-
-    test('writeFile - create recursive', async () => {
-        const service = new FileService(new NullLogger());
-        const provider = new DiskFileSystemProvider();
-        service.registerProvider('file', provider);
-
-        const uri = URI.parse('file://' + posix.resolve('test/code/service/temp/recursive', 'fileService-create.txt'));
-        
-        // { create: false }
-        const write1 = DataBuffer.fromString('create new file recursively');
-        try {
-            await service.writeFile(uri, write1, { create: false, overwrite: false, unlock: true });
-        } catch (err) {
-            // ignore cannot create error
-        }
-        assert.strictEqual(fileExists(uri.toString().slice('file://'.length)), false);
-
-        // { create: true } 
-        const write2 = DataBuffer.fromString('create new file recursively');
-        await service.writeFile(uri, write2, { create: true, overwrite: false, unlock: true });
-        const read2 = await service.readFile(uri);
-        assert.strictEqual(read2.toString(), 'create new file recursively');
-        
-        await provider.delete(URI.fromFile(dirname(URI.toFsPath(uri))), { recursive: true, useTrash: false });
+        assert.strictEqual(read2.toString(), 'create new file2');
     });
 
     test('writeFile - overwrite', async () => {
-        const service = new FileService(new NullLogger());
-        const provider = new DiskFileSystemProvider();
-        service.registerProvider('file', provider);
+        const uri = URI.join(baseURI, 'writefile-overwrite', 'overwrite.txt');
+        await service.writeFile(uri, DataBuffer.fromString('Hello World'), { create: true, overwrite: true, unlock: true });
 
-        const uri = URI.parse('file://' + posix.resolve('test/code/service/temp', 'fileService-hello.txt'));
-        const write1 = DataBuffer.fromString('Goodbye World');
         try {
-            await service.writeFile(uri, write1, { create: true, overwrite: false, unlock: true });
-        } catch (err) {
-            // ignore cannot overwrite error
-        }
+            await service.writeFile(uri, DataBuffer.fromString('Goodbye World'), { create: false, overwrite: false, unlock: true });
+        } catch { /** noop */ }
         const read1 = await service.readFile(uri);
         assert.strictEqual(read1.toString(), 'Hello World');
     });
    
-    async function __createFileWithSize(sizeInByte: number, filename: string, fill: string = '0'): Promise<void> {
-        const service = new FileService(new NullLogger());
-        const provider = new DiskFileSystemProvider();
-        service.registerProvider('file', provider);
-
-        const uri = URI.parse('file://' + posix.resolve('test/code/service/temp', filename));
-        const buffer = DataBuffer.fromString(__generateString(sizeInByte, fill));
-        return await service.writeFile(uri, buffer, { create: true, overwrite: true, unlock: true });
-    }
-
-    const str256kb = __generateString(256 * 1024, '0');
-    const str1mb = __generateString(4 * 256 * 1024, '0');
-    const str10mb = __generateString(40 * 256 * 1024, '0');
-
     test('readFile - 256kb', async () => {
-        const service = new FileService(new NullLogger());
-        const provider = new DiskFileSystemProvider();
-        service.registerProvider('file', provider);
-
-        try {
-            const uri = URI.parse('file://' + posix.resolve('test/code/service/temp', 'fileService-256kb.txt'));
-            const read = await service.readFile(uri);
-            assert.strictEqual(true, true);
-        } catch (err) {
-            assert.strictEqual(false, true);
-        }
+        const uri = URI.join(baseURI, 'files', `file-${256 * ByteSize.KB}.txt`);
+        await service.readFile(uri);
     });
 
     test('writeFile - 256kb', async () => {
-        const service = new FileService(new NullLogger());
-        const provider = new DiskFileSystemProvider();
-        service.registerProvider('file', provider);
-
-        try {
-            const uri = URI.parse('file://' + posix.resolve('test/code/service/temp', 'fileService-256kb.txt'));
-            const buffer = DataBuffer.fromString(str256kb);
-            await service.writeFile(uri, buffer, { create: true, overwrite: true, unlock: true });
-            assert.strictEqual(true, true);
-        } catch (err) {
-            assert.strictEqual(false, true);
-        }
+        const uri = URI.join(baseURI, 'files', `file-${256 * ByteSize.KB}.txt`);
+        const buffer = DataBuffer.fromString(Random.getRandString(256 * ByteSize.KB));
+        await service.writeFile(uri, buffer, { create: true, overwrite: true, unlock: true });
     });
 
     test('readFile - 1mb', async () => {
-        const service = new FileService(new NullLogger());
-        const provider = new DiskFileSystemProvider();
-        service.registerProvider('file', provider);
-
-        try {
-            const uri = URI.parse('file://' + posix.resolve('test/code/service/temp', 'fileService-1mb.txt'));
-            const read = await service.readFile(uri);
-            assert.strictEqual(true, true);
-        } catch (err) {
-            assert.strictEqual(false, true);
-        }
+        const uri = URI.join(baseURI, 'files', `file-${1 * ByteSize.MB}.txt`);
+        await service.readFile(uri);
     });
 
     test('writeFile - 1mb', async () => {
-        const service = new FileService(new NullLogger());
-        const provider = new DiskFileSystemProvider();
-        service.registerProvider('file', provider);
-
-        try {
-            const uri = URI.parse('file://' + posix.resolve('test/code/service/temp', 'fileService-1mb.txt'));
-            const buffer = DataBuffer.fromString(str1mb);
-            await service.writeFile(uri, buffer, { create: true, overwrite: true, unlock: true });
-            assert.strictEqual(true, true);
-        } catch (err) {
-            assert.strictEqual(false, true);
-        }
+        const uri = URI.join(baseURI, 'files', `file-${1 * ByteSize.MB}.txt`);
+        const buffer = DataBuffer.fromString(Random.getRandString(ByteSize.MB));
+        await service.writeFile(uri, buffer, { create: true, overwrite: true, unlock: true });
     });
 
     test('readFile - 10mb', async () => {
-        const service = new FileService(new NullLogger());
-        const provider = new DiskFileSystemProvider();
-        service.registerProvider('file', provider);
-
-        try {
-            const uri = URI.parse('file://' + posix.resolve('test/code/service/temp', 'fileService-10mb.txt'));
-            const read = await service.readFile(uri);
-            assert.strictEqual(true, true);
-        } catch (err) {
-            assert.strictEqual(false, true);
-        }
+        const uri = URI.join(baseURI, 'files', `file-${10 * ByteSize.MB}.txt`);
+        await service.readFile(uri);
     });
 
     test('writeFile - 10mb', async () => {
-        const service = new FileService(new NullLogger());
-        const provider = new DiskFileSystemProvider();
-        service.registerProvider('file', provider);
-
-        try {
-            const uri = URI.parse('file://' + posix.resolve('test/code/service/temp', 'fileService-10mb.txt'));
-            const buffer = DataBuffer.fromString(str10mb);
-            await service.writeFile(uri, buffer, { create: true, overwrite: true, unlock: true });
-            assert.strictEqual(true, true);
-        } catch (err) {
-            assert.strictEqual(false, true);
-        }
+        const uri = URI.join(baseURI, 'files', `file-${10 * ByteSize.MB}.txt`);
+        const buffer = DataBuffer.fromString(Random.getRandString(10 * ByteSize.MB));
+        await service.writeFile(uri, buffer, { create: true, overwrite: true, unlock: true });
     });
 
     test('readFileStream', async () => {
-        const service = new FileService(new NullLogger());
-        const provider = new DiskFileSystemProvider();
-        service.registerProvider('file', provider);
+        let cnt = 0;
+        const totalSize = 1 * ByteSize.MB;
+        const uri = URI.join(baseURI, 'files', `file-${totalSize}.txt`);
+        const stream = await service.readFileStream(uri);
+        stream.on('data', (data) => {
+            cnt++;
+        });
+        stream.on('end', () => {
+            assert.strictEqual(cnt, totalSize / FileService.bufferSize);
+        });
+        stream.on('error', (err) => {
+            assert.strictEqual(false, true);
+        }); 
 
-        try {
-            let cnt = 0;
-            const stream = await service.readFileStream(URI.fromFile('test/code/service/temp/fileService-1mb.txt'));
-            stream.on('data', (data) => {
-                cnt++;
-            });
-            stream.on('end', () => {
-                assert.strictEqual(cnt, (1024 * 1000) / FileService.bufferSize);
-            });
-            stream.on('error', (err) => {
-                assert.strictEqual(false, true);
-            });
-        } catch (err) {
-            throw err;
-        }
+        stream.destroy();
     });
 
+    teardown(async () => {
+        await service.delete(baseURI, { recursive: true });
+    });
 });

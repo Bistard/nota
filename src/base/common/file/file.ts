@@ -62,7 +62,7 @@ export interface IResolvedFileStat extends IFileStat {
 	/**
 	 * The direct children of the target.
 	 */
-	children?: Iterable<IResolvedFileStat>;
+	readonly children?: Iterable<IResolvedFileStat>;
 
 }
 
