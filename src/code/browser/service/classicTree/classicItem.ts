@@ -3,7 +3,7 @@ import { FileType, IResolvedFileStat } from "src/base/common/file/file";
 import { URI } from "src/base/common/file/uri";
 import { IFilterOpts, isFiltered } from "src/base/common/fuzzy";
 import { ILogService } from "src/base/common/logger";
-import { CompareFn, isPromise } from "src/base/common/util/type";
+import { CompareFn, isPromise, Mutable } from "src/base/common/util/type";
 import { IFileService } from "src/code/platform/files/common/fileService";
 
 /**
@@ -197,7 +197,7 @@ export class ClassicItem implements IClassicItem {
 	}
 
 	public forgetChildren(): void {
-        this._stat.children = undefined;
+        (<Mutable<Iterable<IResolvedFileStat> | undefined>>this._stat.children) = undefined;
 	}
 }
 
