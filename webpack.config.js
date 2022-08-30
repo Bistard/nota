@@ -1,7 +1,14 @@
 const CircularDependencyPlugin = require('circular-dependency-plugin');
 const path = require('path');
 
-if (process.versions.node <= '16.7.0') {
+// check nodejs requirement
+const requiredNodeJsVersion = '16.7.0'.split('.');
+const currNodeJsVersion = process.versions.node.split('.');
+for (let i = 0; i < currNodeJsVersion.length; i++) {
+    if (Number(currNodeJsVersion[i]) >= Number(requiredNodeJsVersion[i])) {
+        continue;
+    }
+
     const err = new Error('Node.js version requires at least v16.7.0.');
     err.stack = undefined;
     throw err;
