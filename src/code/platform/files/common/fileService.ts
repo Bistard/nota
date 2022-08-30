@@ -1,13 +1,13 @@
 import { Disposable, IDisposable, toDisposable } from "src/base/common/dispose";
 import { DataBuffer } from "src/base/common/file/buffer";
-import { FileSystemProviderAbleToRead, hasOpenReadWriteCloseCapability, hasReadWriteCapability, IReadFileOptions, IFileSystemProvider, IFileSystemProviderWithFileReadWrite, IFileSystemProviderWithOpenReadWriteClose, IWriteFileOptions, IFileStat, FileType, FileOperationErrorType, FileSystemProviderCapability, IDeleteFileOptions, IResolveStatOptions, IResolvedFileStat, hasReadFileStreamCapability, IFileSystemProviderWithReadFileStream, ICreateFileOptions, FileOperationError, hasCopyCapability } from "src/base/common/file/file";
-import { basename, dirname, join, relative } from "src/base/common/file/path";
+import { FileSystemProviderAbleToRead, hasOpenReadWriteCloseCapability, hasReadWriteCapability, IReadFileOptions, IFileSystemProvider, IFileSystemProviderWithFileReadWrite, IFileSystemProviderWithOpenReadWriteClose, IWriteFileOptions, IFileStat, FileType, FileOperationErrorType, FileSystemProviderCapability, IDeleteFileOptions, IResolveStatOptions, IResolvedFileStat, hasReadFileStreamCapability, IFileSystemProviderWithReadFileStream, ICreateFileOptions, FileOperationError, hasCopyCapability, IWatchOptions } from "src/base/common/file/file";
+import { basename, dirname, join } from "src/base/common/file/path";
 import { bufferToStream, IReadableStream, listenStream, newWriteableBufferStream, streamToBuffer, transformStream } from "src/base/common/file/stream";
 import { isAbsoluteURI, URI } from "src/base/common/file/uri";
 import { ILogService } from "src/base/common/logger";
 import { Iterable } from "src/base/common/util/iterable";
 import { Mutable } from "src/base/common/util/type";
-import { readFileIntoStream, readFileIntoStreamAsync } from "src/code/platform/files/node/io";
+import { readFileIntoStream, readFileIntoStreamAsync } from "src/base/node/io";
 import { createService } from "src/code/platform/instantiation/common/decorator";
 
 export const IFileService = createService<IFileService>('file-service');
@@ -72,13 +72,11 @@ export interface IFileService extends IDisposable {
      */
     createDir(uri: URI): Promise<void>;
     
-    // TODO
     /** 
      * @description Moves a file/directory to a new location described by a given URI. 
      */
     moveTo(from: URI, to: URI, overwrite?: boolean): Promise<IResolvedFileStat>;
     
-    // TODO
     /** 
      * @description Copys a file/directory to a new location. 
      */
@@ -89,8 +87,12 @@ export interface IFileService extends IDisposable {
      */
     delete(uri: URI, opts?: IDeleteFileOptions): Promise<void>;
     
-    // TODO
-    watch(uri: URI): IDisposable;
+    /**
+     * @description Watch the given target and file changed events will be fired
+     * by listening to file service.
+     * @param uri The provided URI.
+     */
+    watch(uri: URI, opts?: IWatchOptions): IDisposable;
 }
 
 export class FileService extends Disposable implements IFileService {
@@ -245,7 +247,8 @@ export class FileService extends Disposable implements IFileService {
         await provider.delete(uri, { useTrash: !!opts?.useTrash, recursive: !!opts?.recursive });
     }
 
-    public watch(uri: URI): IDisposable {
+    public watch(uri: URI, opts?: IWatchOptions): IDisposable {
+        // const watcher = Node
         return toDisposable(() => {});
     }
 
