@@ -69,7 +69,6 @@ export interface ILoggable {
  * of this logger.
  */
 export interface IAbstractLogger extends Disposable {
-    
     /**
      * Fires when the level of the logger changes.
      */
@@ -200,7 +199,8 @@ export function parseToLogLevel(str?: string): LogLevel {
 
 /**
  * @class A simple integrated {@link ILogger} that combines the other loggers
- * into a intergrated version.
+ * into a intergrated version. The loggers will be invoked by their adding 
+ * order.
  */
 export class PipelineLogger extends AbstractLogger implements ILogService {
 
