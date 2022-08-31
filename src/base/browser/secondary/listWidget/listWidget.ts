@@ -8,7 +8,7 @@ import { IListItemProvider } from "src/base/browser/secondary/listView/listItemP
 import { IListDragAndDropProvider, ListWidgetDragAndDropProvider } from "src/base/browser/secondary/listWidget/listWidgetDragAndDrop";
 import { memoize } from "src/base/common/memoization";
 import { hash } from "src/base/common/util/hash";
-import { Array } from "src/base/common/util/array";
+import { Arrays } from "src/base/common/util/array";
 import { IS_MAC } from "src/base/common/platform";
 import { createStandardKeyboardEvent, IStandardKeyboardEvent, KeyCode } from "src/base/common/keyboard";
 import { IRange } from "src/base/common/range";
@@ -68,8 +68,8 @@ class __ListTrait<T> implements IDisposable {
         this.indices = indice;
         this.indicesSet = undefined;
 
-        const toUnrender = Array.relativeComplement(indice, oldIndice);
-        const toRender = Array.relativeComplement(oldIndice, indice);
+        const toUnrender = Arrays.relativeComplement(indice, oldIndice);
+        const toRender = Arrays.relativeComplement(oldIndice, indice);
 
         if (this._getHTMLElement) {
             for (const index of toUnrender) {
@@ -317,19 +317,19 @@ export class __ListWidgetMouseController<T> implements IDisposable {
          */
 
         // calculates the selection range
-        const toSelectRange = Array.range(
+        const toSelectRange = Arrays.range(
             Math.min(toFocused, anchor), 
             Math.max(toFocused, anchor) + 1
         );
         const currSelection = this._view.getSelections().sort((a, b) => a - b);
-        const contiguousRange = this.__getNearestContiguousRange(Array.unique(Array.insert(currSelection, anchor)), anchor);
+        const contiguousRange = this.__getNearestContiguousRange(Arrays.unique(Arrays.insert(currSelection, anchor)), anchor);
         if (!contiguousRange.length) {
             return;
         }
-        const newSelection = Array.union(toSelectRange, 
-                                Array.union(
-                                    Array.relativeComplement(currSelection, contiguousRange), 
-                                    Array.relativeComplement(contiguousRange, currSelection)
+        const newSelection = Arrays.union(toSelectRange, 
+                                Arrays.union(
+                                    Arrays.relativeComplement(currSelection, contiguousRange), 
+                                    Arrays.relativeComplement(contiguousRange, currSelection)
                                 )
                             );
         
@@ -345,7 +345,7 @@ export class __ListWidgetMouseController<T> implements IDisposable {
         const toFocused = e.actualIndex!;
 
         const currSelection = this._view.getSelections();
-        const newSelection = Array.remove(currSelection, toFocused);
+        const newSelection = Arrays.remove(currSelection, toFocused);
 
         this._view.setFocus(toFocused);
         this._view.setAnchor(toFocused);

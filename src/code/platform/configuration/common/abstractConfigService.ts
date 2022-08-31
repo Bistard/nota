@@ -1,7 +1,7 @@
 import { Disposable, IDisposable } from "src/base/common/dispose";
 import { Listener, Register } from "src/base/common/event";
 import { ILogService, LogLevel } from "src/base/common/logger";
-import { Array } from "src/base/common/util/array";
+import { Arrays } from "src/base/common/util/array";
 import { DeepReadonly } from "src/base/common/util/type";
 import { IConfigCollection } from "src/code/platform/configuration/common/configCollection";
 import { ConfigScope, IScopeConfigChangeEvent } from "src/code/platform/configuration/common/configRegistrant";
@@ -49,7 +49,7 @@ class ConfigEmitter<T extends IScopeConfigChangeEvent> {
              * The parent of the section is changed.
              */
             if (e.sections.length === 0
-                || Array.matchAny(e.sections, [section], (changes, desired) => desired.startsWith(changes))
+                || Arrays.matchAny(e.sections, [section], (changes, desired) => desired.startsWith(changes))
             ) {
                 const configuration = this._collection.get<ConfigType>(scope, section);
                 listener(configuration);

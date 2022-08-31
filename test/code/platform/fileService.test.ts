@@ -6,7 +6,7 @@ import { DiskFileSystemProvider } from 'src/code/platform/files/node/diskFileSys
 import { FileService } from 'src/code/platform/files/common/fileService';
 import { NullLogger, TestURI } from 'test/testUtility';
 import { Random } from 'src/base/common/util/random';
-import { Array } from 'src/base/common/util/array';
+import { Arrays } from 'src/base/common/util/array';
 import { after, before } from 'mocha';
 
 suite('FileService-disk-test', () => {
@@ -71,7 +71,7 @@ suite('FileService-disk-test', () => {
         assert.strictEqual(stat.name, 'file-service-test');
         assert.strictEqual(stat.readonly, false);
 
-        const tempDir = Array.coalesce([...stat.children!].map(child => child.name === 'files' ? child : undefined))[0]!;
+        const tempDir = Arrays.coalesce([...stat.children!].map(child => child.name === 'files' ? child : undefined))[0]!;
         assert.strictEqual(tempDir.type, FileType.DIRECTORY);
         assert.strictEqual(tempDir.name, 'files');
         assert.strictEqual([...tempDir.children!].length, 4);

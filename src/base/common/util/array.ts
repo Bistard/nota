@@ -2,7 +2,7 @@
 /**
  * @namespace Array A series of helper functions that relates to array.
  */
-export namespace Array {
+export namespace Arrays {
 
     /**
      * @description Returns a new elements of an array that removed all the 
@@ -148,8 +148,8 @@ export namespace Array {
      * @complexity O(n + m)
      */
     export function intersection<T>(array1: ReadonlyArray<T>, array2: ReadonlyArray<T>, valueFn: (value: T) => any = value => value): T[] {
-        array1 = Array.unique(array1, valueFn);
-        array2 = Array.unique(array2, valueFn);
+        array1 = Arrays.unique(array1, valueFn);
+        array2 = Arrays.unique(array2, valueFn);
         
         const intersection: T[] = [];
         const visited = new Set<T>();
@@ -182,8 +182,8 @@ export namespace Array {
      * @complexity O(n + m)
      */
     export function disjunction<T>(array1: ReadonlyArray<T>, array2: ReadonlyArray<T>, valueFn: (value: T) => any = value => value): T[] {
-        array1 = Array.unique(array1, valueFn);
-        array2 = Array.unique(array2, valueFn);
+        array1 = Arrays.unique(array1, valueFn);
+        array2 = Arrays.unique(array2, valueFn);
         
         const visitedOnce = new Set<any>();
         const visitedOnceItems = new Map<any, T>();
@@ -226,8 +226,8 @@ export namespace Array {
      * @complexity O(n + m)
      */
     export function relativeComplement<T>(array1: ReadonlyArray<T>, array2: ReadonlyArray<T>, valueFn: (value: T) => any = value => value): T[] {
-        array1 = Array.unique(array1, valueFn);
-        array2 = Array.unique(array2, valueFn);
+        array1 = Arrays.unique(array1, valueFn);
+        array2 = Arrays.unique(array2, valueFn);
 
         const array1Visited = new Set<any>();
 
