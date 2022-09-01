@@ -238,6 +238,7 @@ export interface IThrottler {
 	 * @description Queues a task either runs immediately or, runs after the 
 	 * current task finished if there is no new tasks is queued after.
 	 * @param task A task returns a promise.
+	 * @returns A promise settled once a task is executed.
 	 */
 	queue<T>(task: IAsyncTask<T>): Promise<T>;
 }
@@ -302,26 +303,33 @@ export const MicrotaskDelay = Symbol('MicrotaskDelay');
  * An interface only for {@link Debouncer}.
  */
 export interface IDebouncer<T> extends IDisposable {
+	
 	/**
-	 * @description // TODO
-	 * @param newTask 
-	 * @param delay 
+	 * @description Queues a task and reset the timer.
+	 * @param newTask The new task to be executed once the timer is up.
+	 * @param delay The new delay timer.
+	 * @returns A promise that settled either the task is done or the debouncer 
+	 * is unscheduled.
 	 */
 	queue(newTask: ITask<T> | IAsyncTask<T>, delay: number | typeof MicrotaskDelay): Promise<T>;
 
 	/**
-	 * @description // TODO
+	 * @description Determines if the debouncer is currently on shceduling.
 	 */
 	onSchedule(): boolean;
 
 	/**
-	 * @description // TODO
+	 * @description Unschedules the current timer if has one.
 	 */
 	unschedule(): void;
 }
 
 /**
- * @class // TODO
+ * @class A debouncer will use a global timer for every queued task. The timer 
+ * will be reset once queued a new task. Only the latest queued task will be 
+ * executed once the timer is up.
+ * 
+ * It is designed to ensure that the tasks do not fire so often.
  */
 export class Debouncer<T> implements IDebouncer<T> {
 
