@@ -12,48 +12,47 @@ suite('async-test', () => {
         assert.strictEqual(result, true);
     });
 
-});
+    suite('AsyncRunner', () => {
 
-suite('AsyncRunner', () => {
-
-    test('basic - sync', async () => {
-        let count = 0;
-        const executor = new AsyncRunner<void>(2);
-        const getNum = () => () => {
-            count++;
-            return Promise.resolve();
-        };
-
-        const promises = [executor.queue(getNum()), executor.queue(getNum()), executor.queue(getNum()), executor.queue(getNum()), executor.queue(getNum())];
-        await Promise.all(promises);
-        assert.strictEqual(count, 5);
-    });
-
-    test('basic - async', async () => {
-        let count = 0;
-        const executor = new AsyncRunner<void>(2);
-        const getNum = () => async () => {
-            return delayFor(0).then(() => { count++; });
-        };
-
-        const promises = [executor.queue(getNum()), executor.queue(getNum()), executor.queue(getNum()), executor.queue(getNum()), executor.queue(getNum())];
-        await Promise.all(promises);
-        assert.strictEqual(count, 5);
-    });
-
-    test('pause / resume', async () => {
-        let count = 0;
-        const executor = new AsyncRunner<void>(2);
-        const getNum = () => async () => {
-            return delayFor(0).then(() => { count++; });
-        };
-
-        executor.pause();
-        const promises = [executor.queue(getNum()), executor.queue(getNum()), executor.queue(getNum()), executor.queue(getNum()), executor.queue(getNum())];
-        delayFor(0, () => executor.resume());
-        await Promise.all(promises);
-
-        assert.strictEqual(count, 5);
+        test('basic - sync', async () => {
+            let count = 0;
+            const executor = new AsyncRunner<void>(2);
+            const getNum = () => () => {
+                count++;
+                return Promise.resolve();
+            };
+    
+            const promises = [executor.queue(getNum()), executor.queue(getNum()), executor.queue(getNum()), executor.queue(getNum()), executor.queue(getNum())];
+            await Promise.all(promises);
+            assert.strictEqual(count, 5);
+        });
+    
+        test('basic - async', async () => {
+            let count = 0;
+            const executor = new AsyncRunner<void>(2);
+            const getNum = () => async () => {
+                return delayFor(0).then(() => { count++; });
+            };
+    
+            const promises = [executor.queue(getNum()), executor.queue(getNum()), executor.queue(getNum()), executor.queue(getNum()), executor.queue(getNum())];
+            await Promise.all(promises);
+            assert.strictEqual(count, 5);
+        });
+    
+        test('pause / resume', async () => {
+            let count = 0;
+            const executor = new AsyncRunner<void>(2);
+            const getNum = () => async () => {
+                return delayFor(0).then(() => { count++; });
+            };
+    
+            executor.pause();
+            const promises = [executor.queue(getNum()), executor.queue(getNum()), executor.queue(getNum()), executor.queue(getNum()), executor.queue(getNum())];
+            delayFor(0, () => executor.resume());
+            await Promise.all(promises);
+    
+            assert.strictEqual(count, 5);
+        });
     });
 
 });

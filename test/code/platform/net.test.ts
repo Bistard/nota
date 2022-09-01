@@ -197,7 +197,7 @@ class TestChannelClient implements ITestService {
 	}
 }
 
-suite('Base IPC', function () {
+suite('IPC-test', function () {
 
 	test('createProtocolPair', async function () {
 		const [clientProtocol, serverProtocol] = createProtocolPair();
