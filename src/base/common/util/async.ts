@@ -298,6 +298,7 @@ interface IScheduler extends IDisposable {
  * Can be passed into the {@link Debouncer.queue} to schedule using a microtask.
  */
 export const MicrotaskDelay = Symbol('MicrotaskDelay');
+export type DelayType = number | typeof	MicrotaskDelay;
 
 /**
  * An interface only for {@link Debouncer}.
@@ -311,7 +312,7 @@ export interface IDebouncer<T> extends IDisposable {
 	 * @returns A promise that settled either the task is done or the debouncer 
 	 * is unscheduled.
 	 */
-	queue(newTask: ITask<T> | IAsyncTask<T>, delay: number | typeof MicrotaskDelay): Promise<T>;
+	queue(newTask: ITask<T> | IAsyncTask<T>, delay: DelayType): Promise<T>;
 
 	/**
 	 * @description Determines if the debouncer is currently on shceduling.
@@ -335,14 +336,14 @@ export class Debouncer<T> implements IDebouncer<T> {
 
 	// [field]
 
-	private readonly _defaultDelay: number | typeof MicrotaskDelay;
+	private readonly _defaultDelay: DelayType;
 	private _schedule?: IScheduler;
 	private _blocker?: Blocker<T | Promise<T>>;
 	private _lastestTask?: ITask<T> | IAsyncTask<T>;
 
 	// [constructor]
 
-	constructor(defaultDelay: number | typeof MicrotaskDelay) {
+	constructor(defaultDelay: DelayType) {
 		this._defaultDelay = defaultDelay;
 	}
 
@@ -429,5 +430,48 @@ export class Debouncer<T> implements IDebouncer<T> {
 			onSchedule: () => schedulingOrDiposed,
 			dispose: () => schedulingOrDiposed = false,
 		};
+	}
+}
+
+/**
+ * An interface only for {@link ThrottleDebouncer}.
+ */
+export interface IThrottleDebouncer<T> extends IDisposable {
+	queue(task: ITask<Promise<T>>, delay?: DelayType): Promise<T>;
+	onSchedule(): boolean;
+	unschedule(): void;
+	dispose(): void;
+}
+
+/**
+ * @class A throttleDebouncer combines a {@link Throttler} and a {@link Debouncer}.
+ * It ensures two things:
+ * 		1. Delays to execute for each queued task.
+ * 		2. Prevents parallel consecutive executions of tasks.
+ */
+export class ThrottleDebouncer<T> implements IThrottleDebouncer<T> {
+	
+	private readonly debouncer: Debouncer<Promise<T>>;
+	private readonly throttler: Throttler;
+
+	constructor(defaultDelay: number) {
+		this.debouncer = new Debouncer(defaultDelay);
+		this.throttler = new Throttler();
+	}
+
+	public queue(task: ITask<Promise<T>>, delay?: DelayType): Promise<T> {
+		return this.debouncer.queue(() => this.throttler.queue(task), delay) as unknown as Promise<T>;
+	}
+
+	public onSchedule(): boolean {
+		return this.debouncer.onSchedule();
+	}
+
+	public unschedule(): void {
+		this.debouncer.unschedule();
+	}
+
+	public dispose(): void {
+		this.debouncer.dispose();
 	}
 }

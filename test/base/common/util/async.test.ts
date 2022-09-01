@@ -1,5 +1,5 @@
 import * as assert from 'assert';
-import { AsyncRunner, Blocker, Debouncer, delayFor, MicrotaskDelay, Throttler } from 'src/base/common/util/async';
+import { AsyncRunner, Blocker, Debouncer, delayFor, MicrotaskDelay, ThrottleDebouncer, Throttler } from 'src/base/common/util/async';
 
 suite('async-test', () => {
 
@@ -311,5 +311,28 @@ suite('async-test', () => {
 		});
 	});
 
-    
+    suite('throttleDebouncer', () => {
+
+        test('simple', async () => {
+            let cnt = 0;
+            const task = () => cnt++;
+            const throttleDebouncer = new ThrottleDebouncer<void>(0);
+            throttleDebouncer.queue(async () => { if (!cnt) { task(); } else { throw ''; } }, 0);
+            throttleDebouncer.queue(async () => { if (cnt === 1) { task(); } else { throw ''; } }, 0);
+            throttleDebouncer.queue(async () => { if (cnt === 2) { task(); } else { throw ''; } }, 0);
+        });
+
+        test('promise should resolve if disposed', async () => {
+            const throttleDebouncer = new ThrottleDebouncer<void>(100);
+            const promise = throttleDebouncer.queue(async () => { }, 0);
+            throttleDebouncer.dispose();
+
+            try {
+                await promise;
+                assert.fail(void 0);
+            } catch (err) {
+                assert.ok(1);
+            }
+        });
+    });
 });
