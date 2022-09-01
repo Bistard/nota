@@ -1,6 +1,12 @@
 import { Disposable } from "src/base/common/dispose";
 import { Emitter, Register } from "src/base/common/event";
 
+/**
+ * {@link Blocker}
+ * {@link AsyncRunner}
+ * {@link Throttler}
+ */
+
 export interface ITask<T> {
 	(...args: any[]): T; // any functions that returns `T`
 }
@@ -221,5 +227,63 @@ export class AsyncRunner<T> extends Disposable implements IAsyncRunner<T> {
 export class AsyncQueue<T> extends AsyncRunner<T> {
 	constructor() {
 		super(1);
+	}
+}
+
+/**
+ * An interface only for {@link Throttler}.
+ */
+export interface IThrottler {
+	/**
+	 * @description 
+	 * @param task 
+	 */
+	queue<T>(task: ITask<Promise<T>>): Promise<T>;
+}
+
+/**
+ * @class A throttler runs the first task immediately. All the new tasks queued 
+ * after added the first task and before it finishes only the last queued task 
+ * will be invoked once the first task has done.
+ * 
+ * It is designed for limiting actions over a set amount of time. It may prevent
+ * performance goes down during a busy period.
+ */
+export class Throttler implements IThrottler {
+	
+	private _runningPromise?: Promise<any>;
+	private _waitingPromise?: Promise<any>;
+	private _latestTask?: ITask<Promise<any>>;
+	
+	constructor() { /** noop */ }
+
+	public queue<T>(newTask: ITask<Promise<T>>): Promise<T> {
+		
+		// No running tasks, this is the first one.
+		if (!this._runningPromise) {
+			this._runningPromise = newTask().finally(() => this._runningPromise = undefined);
+			return this._runningPromise;
+		}
+
+		// A task is running, we overwrite the prev task.
+		this._latestTask = newTask;
+
+		/**
+		 * If there is no waiting task, Create a waiting task that will run 
+		 * after the current task.
+		 */
+		if (!this._waitingPromise) {
+			this._waitingPromise = (async () => {
+				await this._runningPromise;
+				this._waitingPromise = undefined;
+
+				const promise = this.queue(this._latestTask!);
+				this._latestTask = undefined;
+				
+				return promise;
+			})();
+		}
+
+		return this._waitingPromise;
 	}
 }
