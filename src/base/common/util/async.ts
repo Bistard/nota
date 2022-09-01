@@ -86,9 +86,9 @@ export type IAsyncPromiseTask<T> = {
 };
 
 /**
- * An interface for {@link AsyncExecutor}.
+ * An interface for {@link AsyncRunner}.
  */
-export interface IAsyncExecutor<T> extends Disposable {
+export interface IAsyncRunner<T> extends Disposable {
 	
 	/**
 	 * The total number of promises that are either being waiting or executing.
@@ -124,7 +124,7 @@ export interface IAsyncExecutor<T> extends Disposable {
  * the same time.
  * T: type of return value of each task.
  */
-export class AsyncExecutor<T> extends Disposable implements IAsyncExecutor<T> {
+export class AsyncRunner<T> extends Disposable implements IAsyncRunner<T> {
 
 	// [field]
 
@@ -218,7 +218,7 @@ export class AsyncExecutor<T> extends Disposable implements IAsyncExecutor<T> {
  * the same time.
  * T: type of return value of each task.
  */
-export class AsyncQueue<T> extends AsyncExecutor<T> {
+export class AsyncQueue<T> extends AsyncRunner<T> {
 	constructor() {
 		super(1);
 	}

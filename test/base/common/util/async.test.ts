@@ -1,5 +1,5 @@
 import * as assert from 'assert';
-import { AsyncExecutor, Blocker, delayFor } from 'src/base/common/util/async';
+import { AsyncRunner, Blocker, delayFor } from 'src/base/common/util/async';
 
 suite('async-test', () => {
 
@@ -14,11 +14,11 @@ suite('async-test', () => {
 
 });
 
-suite('AsyncExecutor', () => {
+suite('AsyncRunner', () => {
 
     test('basic - sync', async () => {
         let count = 0;
-        const executor = new AsyncExecutor<void>(2);
+        const executor = new AsyncRunner<void>(2);
         const getNum = () => () => {
             count++;
             return Promise.resolve();
@@ -31,7 +31,7 @@ suite('AsyncExecutor', () => {
 
     test('basic - async', async () => {
         let count = 0;
-        const executor = new AsyncExecutor<void>(2);
+        const executor = new AsyncRunner<void>(2);
         const getNum = () => async () => {
             return delayFor(0).then(() => { count++; });
         };
@@ -43,7 +43,7 @@ suite('AsyncExecutor', () => {
 
     test('pause / resume', async () => {
         let count = 0;
-        const executor = new AsyncExecutor<void>(2);
+        const executor = new AsyncRunner<void>(2);
         const getNum = () => async () => {
             return delayFor(0).then(() => { count++; });
         };
