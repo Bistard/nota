@@ -9,7 +9,7 @@
     "start": "npm run build && electron .",
     "run": "electron .",
     "test-start": "npm start --- --log=trace --open-devtools",
-    "test": "mocha --ui tdd -r jsdom-global/register --config '.mocharc.jsonc'",
+    "test": "mocha --ui tdd -r jsdom-global/register --config '.mocharc.jsonc' --timeout 5000",
     "_test": "mocha --ui tdd -r jsdom-global/register --config 'test/.mocharc.jsonc'",
     "benchmark": "node benchmark/benchmark.js",
     "build": "node ./scripts/build.js",
