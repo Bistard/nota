@@ -1,5 +1,5 @@
 import * as assert from 'assert';
-import { AsyncRunner, Blocker, delayFor } from 'src/base/common/util/async';
+import { AsyncRunner, Blocker, delayFor, Throttler } from 'src/base/common/util/async';
 
 suite('async-test', () => {
 
@@ -53,6 +53,62 @@ suite('async-test', () => {
     
             assert.strictEqual(count, 5);
         });
+    });
+
+    suite('throttler', () => {
+        test('sync task', function () {
+			let count = 0;
+			const factory = () => Promise.resolve(++count);
+
+			const throttler = new Throttler();
+
+			return Promise.all([
+				throttler.queue(factory).then((result) => { assert.strictEqual(result, 1); }),
+				throttler.queue(factory).then((result) => { assert.strictEqual(result, 2); }),
+				throttler.queue(factory).then((result) => { assert.strictEqual(result, 2); }),
+				throttler.queue(factory).then((result) => { assert.strictEqual(result, 2); }),
+				throttler.queue(factory).then((result) => { assert.strictEqual(result, 2); })
+			]).then(() => assert.strictEqual(count, 2));
+		});
+
+		test('async task', () => {
+			let count = 0;
+			const factory = () => delayFor(0).then(() => ++count);
+
+			const throttler = new Throttler();
+
+			return Promise.all([
+				throttler.queue(factory).then((result) => { assert.strictEqual(result, 1); }),
+				throttler.queue(factory).then((result) => { assert.strictEqual(result, 2); }),
+				throttler.queue(factory).then((result) => { assert.strictEqual(result, 2); }),
+				throttler.queue(factory).then((result) => { assert.strictEqual(result, 2); }),
+				throttler.queue(factory).then((result) => { assert.strictEqual(result, 2); })
+			]).then(() => {
+				return Promise.all([
+					throttler.queue(factory).then((result) => { assert.strictEqual(result, 3); }),
+					throttler.queue(factory).then((result) => { assert.strictEqual(result, 4); }),
+					throttler.queue(factory).then((result) => { assert.strictEqual(result, 4); }),
+					throttler.queue(factory).then((result) => { assert.strictEqual(result, 4); }),
+					throttler.queue(factory).then((result) => { assert.strictEqual(result, 4); })
+				]);
+			});
+		});
+
+		test('last factory should be the one getting called', function () {
+			const factoryFactory = (n: number) => () => {
+				return delayFor(0).then(() => n);
+			};
+
+			const throttler = new Throttler();
+
+			const promises: Promise<any>[] = [];
+
+			promises.push(throttler.queue(factoryFactory(1)).then((n) => { assert.strictEqual(n, 1); }));
+			promises.push(throttler.queue(factoryFactory(2)).then((n) => { assert.strictEqual(n, 3); }));
+			promises.push(throttler.queue(factoryFactory(3)).then((n) => { assert.strictEqual(n, 3); }));
+
+			return Promise.all(promises);
+		});
     });
 
 });
