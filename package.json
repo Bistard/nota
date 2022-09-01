@@ -7,6 +7,7 @@
   "private": true,
   "scripts": {
     "start": "npm run build && electron .",
+    "run": "electron .",
     "test-start": "npm start --- --log=trace --open-devtools",
     "test": "mocha --ui tdd -r jsdom-global/register --config '.mocharc.jsonc'",
     "_test": "mocha --ui tdd -r jsdom-global/register --config 'test/.mocharc.jsonc'",
