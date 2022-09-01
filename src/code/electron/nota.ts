@@ -178,7 +178,6 @@ export class NotaInstance extends Disposable implements INotaInstance {
         const uri = this.statusService.get<string>(StatusKey.LastOpenedWorkspace);
         if (uri) {
             uriToOpen.push(URI.parse(uri));
-            console.log(uriToOpen)
         }
 
         // open the first window
