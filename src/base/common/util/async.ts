@@ -1,4 +1,4 @@
-import { Disposable } from "src/base/common/dispose";
+import { Disposable, IDisposable } from "src/base/common/dispose";
 import { Emitter, Register } from "src/base/common/event";
 
 /**
@@ -55,7 +55,7 @@ export async function retry<T>(task: ITask<Promise<T>>, delay: number, retries: 
 }
 
 /**
- * @description Block the program by calling {@link Blocker.wait()} for waiting
+ * @description Block the program by calling {@link Blocker.waiting()} to wait
  * a data with type T. You may signal the blocker to tell if we retrieve the 
  * data succeeded or failed.
  */
@@ -235,10 +235,11 @@ export class AsyncQueue<T> extends AsyncRunner<T> {
  */
 export interface IThrottler {
 	/**
-	 * @description 
-	 * @param task 
+	 * @description Queues a task either runs immediately or, runs after the 
+	 * current task finished if there is no new tasks is queued after.
+	 * @param task A task returns a promise.
 	 */
-	queue<T>(task: ITask<Promise<T>>): Promise<T>;
+	queue<T>(task: IAsyncTask<T>): Promise<T>;
 }
 
 /**
@@ -253,11 +254,11 @@ export class Throttler implements IThrottler {
 	
 	private _runningPromise?: Promise<any>;
 	private _waitingPromise?: Promise<any>;
-	private _latestTask?: ITask<Promise<any>>;
+	private _latestTask?: IAsyncTask<any>;
 	
 	constructor() { /** noop */ }
 
-	public queue<T>(newTask: ITask<Promise<T>>): Promise<T> {
+	public queue<T>(newTask: IAsyncTask<T>): Promise<T> {
 		
 		// No running tasks, this is the first one.
 		if (!this._runningPromise) {
@@ -285,5 +286,140 @@ export class Throttler implements IThrottler {
 		}
 
 		return this._waitingPromise;
+	}
+}
+
+interface IScheduler extends IDisposable {
+	onSchedule(): boolean;
+}
+
+/** 
+ * Can be passed into the {@link Debouncer.queue} to schedule using a microtask.
+ */
+export const MicrotaskDelay = Symbol('MicrotaskDelay');
+
+/**
+ * An interface only for {@link Debouncer}.
+ */
+export interface IDebouncer<T> extends IDisposable {
+	/**
+	 * @description // TODO
+	 * @param newTask 
+	 * @param delay 
+	 */
+	queue(newTask: ITask<T> | IAsyncTask<T>, delay: number | typeof MicrotaskDelay): Promise<T>;
+
+	/**
+	 * @description // TODO
+	 */
+	onSchedule(): boolean;
+
+	/**
+	 * @description // TODO
+	 */
+	unschedule(): void;
+}
+
+/**
+ * @class // TODO
+ */
+export class Debouncer<T> implements IDebouncer<T> {
+
+	// [field]
+
+	private readonly _defaultDelay: number | typeof MicrotaskDelay;
+	private _schedule?: IScheduler;
+	private _blocker?: Blocker<T | Promise<T>>;
+	private _lastestTask?: ITask<T> | IAsyncTask<T>;
+
+	// [constructor]
+
+	constructor(defaultDelay: number | typeof MicrotaskDelay) {
+		this._defaultDelay = defaultDelay;
+	}
+
+	// [public mehtods]
+
+	public async queue(newTask: ITask<T> | IAsyncTask<T>, delay = this._defaultDelay): Promise<T> {
+		
+		// update the task to be executed when scheduled
+		this._lastestTask = newTask;
+		
+		// clear the previous schedule if has one
+		this.__clearSchedule();
+
+		// we need a blocker so that we can manually resolve
+		if (!this._blocker) {
+			this._blocker = new Blocker();
+		}
+
+		// callback when the schedule has reached
+		const onSchedule = () => {
+			const result = this._lastestTask ? this._lastestTask() : undefined!;
+			this._blocker?.resolve(result);
+
+			this._lastestTask = undefined;
+			this._blocker = undefined;
+			this._schedule = undefined;
+		};
+
+		// refresh the new schedule
+		this._schedule = delay === MicrotaskDelay ? this.__scheduleAsMicrotask(onSchedule) : this.__scheduleAsTimeout(delay, onSchedule);
+
+		// tell the client to be wait for
+		return this._blocker.waiting();
+	}
+
+	public onSchedule(): boolean {
+		return !!this._schedule?.onSchedule();
+	}
+
+	public unschedule(): void {
+		this.__clearSchedule();
+		if (this._blocker) {
+			this._blocker?.reject(new Error());
+			this._blocker = undefined;
+		}
+	}
+
+	public dispose(): void {
+		this.unschedule();
+	}
+
+	// [private helper methods]
+
+	private __clearSchedule(): void {
+		this._schedule?.dispose();
+		this._schedule = undefined;
+	}
+
+	private __scheduleAsTimeout(timeout: number, fn: () => void): IScheduler {
+		let scheduling = true;
+		
+		const token = setTimeout(() => {
+			scheduling = false;
+			fn();
+		}, timeout);
+	
+		return {
+			onSchedule: () => scheduling,
+			dispose: () => { scheduling = false; clearTimeout(token); },
+		};
+	}
+
+	private __scheduleAsMicrotask(fn: () => void): IScheduler {
+		let schedulingOrDiposed = true;
+		
+		queueMicrotask(() => {
+			if (schedulingOrDiposed) {
+				schedulingOrDiposed = false;
+				fn();
+			}
+		});
+	
+		return {
+			onSchedule: () => schedulingOrDiposed,
+			dispose: () => schedulingOrDiposed = false,
+		};
 	}
 }
