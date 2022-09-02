@@ -67,27 +67,30 @@ export interface IResolvedFileStat extends IFileStat {
 }
 
 /**
- * Possible changes that can occur to a file.
+ * Possible changes that can occur to resource (directory / file).
  */
-export const enum FileChangeType {
+export const enum ResourceChangeType {
 	UPDATED,
 	ADDED,
 	DELETED
 }
 
-/**
- * Identifies a single change in a file.
- */
-export interface IFileChange {
+export interface IResourceChangeEvent {
 	/**
-	 * The type of change that occurred to the file.
+	 * The changed resource path.
 	 */
-	readonly type: FileChangeType;
+	readonly resource: string;
 
 	/**
-	 * The changed file.
+	 * If the changed resource is directory. Undefined when the resource is 
+	 * deleted.
 	 */
-	readonly resource: URI;
+	readonly isDirectory?: boolean;
+
+	/**
+	 * The type of change that occurred to the resource.
+	 */
+	readonly type: ResourceChangeType;
 }
 
 /** @description the base interface for any other FileSystemProvider. */
