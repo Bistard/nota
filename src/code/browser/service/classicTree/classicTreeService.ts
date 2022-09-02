@@ -60,8 +60,8 @@ export class ClassicTreeService extends Disposable implements IClassicTreeServic
     public async init(container: HTMLElement, root: URI): Promise<void> {
         try {
             const IFilterOpts: IFilterOpts = {
-                excludeFilter: this.configService.get<string[]>(BuiltInConfigScope.User, 'actionView.explorer.exclude', []).map(s => new RegExp(s)),
-                includeFilter: this.configService.get<string[]>(BuiltInConfigScope.User, 'actionView.explorer.include', []).map(s => new RegExp(s)),
+                exclude: this.configService.get<string[]>(BuiltInConfigScope.User, 'actionView.explorer.exclude', []).map(s => new RegExp(s)),
+                include: this.configService.get<string[]>(BuiltInConfigScope.User, 'actionView.explorer.include', []).map(s => new RegExp(s)),
             };
 
             const rootStat = await this.fileService.stat(root, { resolveChildren: true });
