@@ -1,6 +1,5 @@
 import * as fs from 'fs';
 import * as chokidar from 'chokidar';
-import { Disposable, IDisposable } from 'src/base/common/dispose';
 import { Emitter, Register } from 'src/base/common/event';
 import { ResourceChangeType, IResourceChangeEvent } from 'src/base/common/file/file';
 import { URI } from 'src/base/common/file/uri';
@@ -10,73 +9,49 @@ import { ifOrDefault, Mutable } from 'src/base/common/util/type';
 import { IS_LINUX } from 'src/base/common/platform';
 import { isParentOf } from 'src/base/common/file/glob';
 
+/**
+ * A watch request for {@link Watcher}.
+ */
 export interface IWatchRequest {
     readonly resource: URI;
     readonly recursive?: boolean;
     readonly exclude?: RegExp[];
 }
 
-export interface IWatcher {
-
-}
-
 /**
- * @class // TODO
+ * An interface only for {@link Watcher}.
  */
-export class Watcher extends Disposable {
-
-    // [field]
-
-    private _model: IWatcherModel;
-    private readonly _onDidChange = this.__register(new Emitter<IResourceChangeEvent[]>());
-    public readonly onDidChange = this._onDidChange.registerListener;
-
-    // [constructor]
-
-    constructor(
-        logService: ILogService | undefined,
-    ) {
-        super();
-        this._model = this.__register(this.__createModel(logService));
-        this.__register(this._model.onDidChange(e => this._onDidChange.fire(e)));
-    }
-
-    // [public methods]
+export interface IWatcher {
     
-    public watch(requests: IWatchRequest[]): void {
-        this._model.watch(requests);
-    }
-
-    public close(): Promise<void> {
-        return this._model.close();
-    }
-
-    // [private helper methods]
-
-    private __createModel(logService?: ILogService): IWatcherModel {
-        return new WatcherModel(logService);
-    }
-}
-
-export interface IWatcherModel extends IDisposable {
-
     /**
-     * Fires when a watching target has changed.
+     * Fires when the resources are either added, deleted or updated.
      */
     readonly onDidChange: Register<IResourceChangeEvent[]>;
 
+    /**
+     * @description Watch the provided resources and fires the event once these
+     * resources are either added, deleted or updated.
+     * @param requests The provided requests for watching.
+     */
     watch(requests: IWatchRequest[]): void;
+    
+    /**
+     * @description Closes all the current watchings asynchronously and dispose
+     * all the registered event listeners. 
+     */
     close(): Promise<void>;
 }
 
 /**
- * @class // TODO
+ * @class A `Watcher` can watch on resources on the disk filesystem. Check more
+ * documents from {@link WatchInstance}. Once the watcher is closed it will not
+ * work anymore.
  */
-export class WatcherModel extends Disposable implements IWatcherModel {
+export class Watcher implements IWatcher {
 
     // [event]
 
-    private readonly _onDidChange = this.__register(new Emitter<IResourceChangeEvent[]>());
+    private readonly _onDidChange = new Emitter<IResourceChangeEvent[]>();
     public readonly onDidChange = this._onDidChange.registerListener;
     
     // [field]
@@ -85,9 +60,7 @@ export class WatcherModel extends Disposable implements IWatcherModel {
 
     // [constructor]
 
-    constructor(private readonly logService?: ILogService) {
-        super();
-    }
+    constructor(private readonly logService?: ILogService) {}
 
     // [public methods]
 
@@ -95,10 +68,11 @@ export class WatcherModel extends Disposable implements IWatcherModel {
 
         for (const request of requests) {
             const instance = new WatchInstance(this.logService, request, e => this._onDidChange.fire(e));
+            instance.watch();
             
             const exist = this._instances.get(request.resource);
             if (exist) {
-                exist.dispose();
+                throw new Error(`there is already a watcher on ${request.resource}`);
             }
             
             this._instances.set(request.resource, instance);
@@ -106,6 +80,8 @@ export class WatcherModel extends Disposable implements IWatcherModel {
     }
 
     public async close(): Promise<void> {
+        this._onDidChange.dispose();
+
         const closePromises: Promise<void>[] = [];
 
         for (const wacther of this._instances.values()) {
@@ -119,15 +95,27 @@ export class WatcherModel extends Disposable implements IWatcherModel {
 /**
  * An interface only for {@link WatchInstance}.
  */
-export interface IWatchInstance extends IDisposable {
+export interface IWatchInstance {
     readonly request: IWatchRequest;
+    watch(): void;
     close(): Promise<void>;
 }
 
 /**
- * @class // TODO
+ * @class A `WatchInstance` starts to watch the request on the given filesystem
+ * path once constructed. It is build upon the third library chokidar and does
+ * some extra things:
+ *      - When captures DELETED events on the watching resource, it coalesces
+ *        events and only fires the single DELETED event of its root directory.
+ *        This ensures that we are not producing DELETED events for each file 
+ *        inside a directory that gets deleted.
+ *      - If a resource is re-added within {@link WatchInstance.FILE_CHANGE_DELAY} 
+ *        ms of being deleted, the watcher emits a single UPDATED event rather 
+ *        than two events on DELETED and ADDED.
+ * 
+ * See more info about chokidar from https://github.com/paulmillr/chokidar
  */
-export class WatchInstance extends Disposable implements IWatchInstance {
+export class WatchInstance implements IWatchInstance {
     
     // [field]
 
@@ -135,7 +123,7 @@ export class WatchInstance extends Disposable implements IWatchInstance {
      * A throttle delaying time for collecting the file change events.
      * @note milliseconds
      */
-    private static readonly FILE_CHANGE_DELAY = 50;
+    public static readonly FILE_CHANGE_DELAY = 50;
     private _eventBuffer: IResourceChangeEvent[] = [];
     private readonly _changeDebouncer = new ThrottleDebouncer<void>(WatchInstance.FILE_CHANGE_DELAY);
 
@@ -151,42 +139,36 @@ export class WatchInstance extends Disposable implements IWatchInstance {
         request: IWatchRequest,
         onDidChange: (event: IResourceChangeEvent[]) => void,
     ) {
-        super();
-
         this._request = request;
         (<Mutable<RegExp[]>>this._request.exclude) = ifOrDefault(this._request.exclude, []);
         this._onDidChange = onDidChange;
-
-        this.watch();
     }
 
-    // [getter]
+    // [public methods]
 
     get request(): IWatchRequest {
         return this._request;
     }
 
     public async close(): Promise<void> {
+        this._changeDebouncer.dispose();
         return this._watcher?.close();
     }
 
-    // [private methods]
-
-    private async watch(): Promise<void> {
+    public watch(): void {
         
         const resource = URI.toFsPath(this._request.resource);
         try {
-            this._watcher = await this.__watch(resource);
+            this._watcher = this.__watch(resource);
         } 
         catch (error: any) {
-            this.logService?.trace(error);
-            return;
+            throw error;
         }
     }
 
     // [private helper methods]
 
-    private async __watch(resource: string): Promise<chokidar.FSWatcher> {
+    private __watch(resource: string): chokidar.FSWatcher {
 
         /**
          * The `fs.watch` is not 100% consistent across platforms and will not
@@ -200,10 +182,11 @@ export class WatchInstance extends Disposable implements IWatchInstance {
         try {
             const watcher = chokidar.watch(resource, {
                 alwaysStat: true,
-                atomic: 50,
+                atomic: WatchInstance.FILE_CHANGE_DELAY,
                 ignored: this._request.exclude,
                 ignorePermissionErrors: true,
                 ignoreInitial: true,
+                depth: this._request.recursive ? undefined : 1, // REVIEW: 1 or 0? depends on if dir?
             });
             
             watcher
