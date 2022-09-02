@@ -6,7 +6,10 @@
  */
 export interface IDisposable {
 	dispose(): void;
-	isDisposed?(): boolean;
+}
+
+export interface IAysncDisposable {
+	dispose(): Promise<void>;
 }
 
 /**
@@ -150,11 +153,13 @@ export function disposeAll<T extends IDisposable>(disposables: IterableDisposabl
 	}
 }
 
-/**
- * @description Transfer a given function into a disposable object. The dispose()
- * method is the given function.
- */
 export function toDisposable(fn: () => any): IDisposable {
+	return {
+		dispose: fn
+	};
+}
+
+export function toDisposableAsync(fn: () => Promise<any>): IAysncDisposable {
 	return {
 		dispose: fn
 	};
