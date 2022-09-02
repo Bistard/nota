@@ -54,6 +54,7 @@
     "@toast-ui/editor-plugin-code-syntax-highlight": "^3.0.0",
     "@toast-ui/editor-plugin-color-syntax": "^3.0.1",
     "@types/node": "^16.11.56",
-    "@types/requestidlecallback": "^0.3.4"
+    "@types/requestidlecallback": "^0.3.4",
+    "chokidar": "^3.5.3"
   }
 }
