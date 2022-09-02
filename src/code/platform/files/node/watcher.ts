@@ -156,12 +156,12 @@ export class WatchInstance implements IWatchInstance {
     }
 
     public watch(): void {
-        
         const resource = URI.toFsPath(this._request.resource);
         try {
             this._watcher = this.__watch(resource);
         } 
         catch (error: any) {
+            this.logService?.error(`Error encounters on watching the resource ${resource}`, error);
             throw error;
         }
     }
