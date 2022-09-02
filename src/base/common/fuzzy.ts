@@ -1,8 +1,8 @@
 import { Strings } from "src/base/common/util/string";
 
 export interface IFilterOpts {
-    readonly includeFilter: readonly RegExp[];
-    readonly excludeFilter: readonly RegExp[];
+    readonly include: readonly RegExp[];
+    readonly exclude: readonly RegExp[];
 }
 
 /**
@@ -12,8 +12,8 @@ export interface IFilterOpts {
  * @param filters The provided black list and white list.
  */
 export function isFiltered(str: string, filters: IFilterOpts): boolean {
-    if ((filters.excludeFilter.length && Strings.anyRegExp(str, filters.excludeFilter)) 
-        && !(filters.includeFilter.length && Strings.anyRegExp(str, filters.includeFilter))
+    if ((filters.exclude.length && Strings.anyRegExp(str, filters.exclude)) 
+        && !(filters.include.length && Strings.anyRegExp(str, filters.include))
     ) {
         return true;
     }

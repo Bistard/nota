@@ -2,9 +2,9 @@ import { sep } from "src/base/common/file/path";
 import { Character } from "src/base/common/util/char";
 
 /**
- * @description If the path is the parent of the given candidate.
+ * @description If the candidate is the parent of the given path.
  * @param path The given path.
- * @param candidate The possible child of the given path.
+ * @param candidate The possible parent of the given path.
  * @param ignoreCase Make it case insensitive.
  */
 export function isParentOf(path: string, candidate: string, ignoreCase?: boolean): boolean {
