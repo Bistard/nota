@@ -7,7 +7,7 @@ import { ILogService } from 'src/base/common/logger';
 import { DiskFileSystemProvider } from 'src/code/platform/files/node/diskFileSystemProvider';
 import { FileService, IFileService } from 'src/code/platform/files/common/fileService';
 import { DiskStorage } from 'src/code/platform/files/common/diskStorage';
-import { TestPath, NullLogger } from 'test/testUtility';
+import { TestPath, NullLogger } from 'test/utility';
 
 suite('storage-test', () => {
 

@@ -6,7 +6,7 @@ import { IKeyboardService } from 'src/code/browser/service/keyboard/keyboardServ
 import { ShortcutService } from 'src/code/browser/service/shortcut/shortcutService';
 import { FileService } from 'src/code/platform/files/common/fileService';
 import { InstantiationService } from 'src/code/platform/instantiation/common/instantiation';
-import { NullEnvironmentService, NullLifecycleService, NullLogger } from 'test/testUtility';
+import { NullEnvironmentService, NullLifecycleService, NullLogger } from 'test/utility';
 
 class TestKeyboardService implements IKeyboardService {
 

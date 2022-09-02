@@ -4,7 +4,7 @@ import { ByteSize, FileType } from 'src/base/common/file/file';
 import { URI } from 'src/base/common/file/uri';
 import { DiskFileSystemProvider } from 'src/code/platform/files/node/diskFileSystemProvider';
 import { FileService } from 'src/code/platform/files/common/fileService';
-import { NullLogger, TestURI } from 'test/testUtility';
+import { NullLogger, TestURI } from 'test/utility';
 import { Random } from 'src/base/common/util/random';
 import { Arrays } from 'src/base/common/util/array';
 import { after, before } from 'mocha';

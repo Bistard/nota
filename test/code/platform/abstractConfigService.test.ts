@@ -6,7 +6,7 @@ import { BuiltInConfigScope, IConfigRegistrant } from 'src/code/platform/configu
 import { DefaultConfigStorage } from 'src/code/platform/configuration/common/configStorage';
 import { FileService } from 'src/code/platform/files/common/fileService';
 import { Registrants } from 'src/code/platform/registrant/common/registrant';
-import { NullLifecycleService, NullLogger } from 'test/testUtility';
+import { NullLifecycleService, NullLogger } from 'test/utility';
 
 class TestDefaultConfigStorage extends DefaultConfigStorage {
     protected override createDefaultModel(): Record<PropertyKey, any> {
