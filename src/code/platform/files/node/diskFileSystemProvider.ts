@@ -1,5 +1,5 @@
 import * as fs from "fs";
-import { Disposable, IAsyncDisposable, toDisposableAsync } from "src/base/common/dispose";
+import { Disposable, IDisposable, toDisposable } from "src/base/common/dispose";
 import { DataBuffer } from "src/base/common/file/buffer";
 import { FileOperationErrorType, FileSystemProviderCapability, FileSystemProviderError, FileType, IDeleteFileOptions, IFileStat, IFileSystemProviderWithFileReadWrite, IFileSystemProviderWithOpenReadWriteClose, IFileSystemProviderWithReadFileStream, IOpenFileOptions, IOverwriteFileOptions, IReadFileOptions, IResourceChangeEvent, IWatchOptions, IWriteFileOptions } from "src/base/common/file/file";
 import { join } from "src/base/common/file/path";
@@ -20,7 +20,10 @@ export class DiskFileSystemProvider extends Disposable implements
     // [event]
 
     private readonly _onDidResourceChange = this.__register(new Emitter<readonly IResourceChangeEvent[]>());
-    public  readonly onDidResourceChange = this._onDidResourceChange.registerListener;
+    public readonly onDidResourceChange = this._onDidResourceChange.registerListener;
+
+    private readonly _onDidResourceClose = this.__register(new Emitter<URI>());
+    public readonly onDidResourceClose = this._onDidResourceClose.registerListener;
 
     // [field]
     
@@ -319,14 +322,14 @@ export class DiskFileSystemProvider extends Disposable implements
         }
     }
 
-    public watch(uri: URI, opts?: IWatchOptions): IAsyncDisposable {
+    public watch(uri: URI, opts?: IWatchOptions): IDisposable {
         if (!this._watcher) {
             this._watcher = new Watcher(this.logService);
+            this._watcher.onDidChange(e => this._onDidResourceChange.fire(e));
+            this._watcher.onDidClose(e => this._onDidResourceClose.fire(e));
         }
-        
-        this._watcher.watch([{ resource: uri, ...opts }]);
-        this._watcher.onDidChange(e => this._onDidResourceChange.fire(e));
-        return toDisposableAsync(this._watcher.close);
+        this._watcher.watch({ resource: uri, ...opts });
+        return toDisposable(() => this._watcher?.close());
     }
 
     /***************************************************************************

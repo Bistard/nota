@@ -8,10 +8,6 @@ export interface IDisposable {
 	dispose(): void;
 }
 
-export interface IAsyncDisposable {
-	dispose(): Promise<void>;
-}
-
 /**
  * @readonly The lifecyle of a disposable object is controlled by the client. A
  * disposable object can be registered into another disposable object.
@@ -154,12 +150,6 @@ export function disposeAll<T extends IDisposable>(disposables: IterableDisposabl
 }
 
 export function toDisposable(fn: () => any): IDisposable {
-	return {
-		dispose: fn
-	};
-}
-
-export function toDisposableAsync(fn: () => Promise<any>): IAsyncDisposable {
 	return {
 		dispose: fn
 	};

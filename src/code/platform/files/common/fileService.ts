@@ -1,6 +1,7 @@
 import { Disposable, IDisposable, toDisposable } from "src/base/common/dispose";
+import { Emitter, Register } from "src/base/common/event";
 import { DataBuffer } from "src/base/common/file/buffer";
-import { FileSystemProviderAbleToRead, hasOpenReadWriteCloseCapability, hasReadWriteCapability, IReadFileOptions, IFileSystemProvider, IFileSystemProviderWithFileReadWrite, IFileSystemProviderWithOpenReadWriteClose, IWriteFileOptions, IFileStat, FileType, FileOperationErrorType, FileSystemProviderCapability, IDeleteFileOptions, IResolveStatOptions, IResolvedFileStat, hasReadFileStreamCapability, IFileSystemProviderWithReadFileStream, ICreateFileOptions, FileOperationError, hasCopyCapability, IWatchOptions } from "src/base/common/file/file";
+import { FileSystemProviderAbleToRead, hasOpenReadWriteCloseCapability, hasReadWriteCapability, IReadFileOptions, IFileSystemProvider, IFileSystemProviderWithFileReadWrite, IFileSystemProviderWithOpenReadWriteClose, IWriteFileOptions, IFileStat, FileType, FileOperationErrorType, FileSystemProviderCapability, IDeleteFileOptions, IResolveStatOptions, IResolvedFileStat, hasReadFileStreamCapability, IFileSystemProviderWithReadFileStream, ICreateFileOptions, FileOperationError, hasCopyCapability, IWatchOptions, IResourceChangeEvent } from "src/base/common/file/file";
 import { basename, dirname, join } from "src/base/common/file/path";
 import { bufferToStream, IReadableStream, listenStream, newWriteableBufferStream, streamToBuffer, transformStream } from "src/base/common/file/stream";
 import { isAbsoluteURI, URI } from "src/base/common/file/uri";
@@ -13,6 +14,21 @@ import { createService } from "src/code/platform/instantiation/common/decorator"
 export const IFileService = createService<IFileService>('file-service');
 
 export interface IFileService extends IDisposable {
+    
+    /**
+     * Fires when the watched resources are either added, deleted or updated.
+     */
+    readonly onDidResourceChange: Register<readonly IResourceChangeEvent[]>;
+
+    /**
+     * Fires when any watched resource is closed.
+     */
+    readonly onDidResourceClose: Register<URI>;
+
+    /**
+     * Fires when all the watched resources are closed.
+     */
+    readonly onDidAllResourceClosed: Register<void>;
     
     /** 
      * @description Registers a file system provider for a given scheme. 
@@ -97,6 +113,19 @@ export interface IFileService extends IDisposable {
 
 export class FileService extends Disposable implements IFileService {
 
+    // [event]
+
+    private readonly _onDidResourceChange = this.__register(new Emitter<readonly IResourceChangeEvent[]>());
+	readonly onDidResourceChange = this._onDidResourceChange.registerListener;
+
+    private readonly _onDidResourceClose = this.__register(new Emitter<URI>());
+    public readonly onDidResourceClose = this._onDidResourceClose.registerListener;
+
+    private readonly _onDidAllResourceClosed = this.__register(new Emitter<void>());
+    public readonly onDidAllResourceClosed = this._onDidAllResourceClosed.registerListener;
+
+    private readonly _activeWatchers = new Map<URI, IDisposable>();
+
     // [fields]
 
     private readonly _providers: Map<string, IFileSystemProvider> = new Map();
@@ -116,6 +145,9 @@ export class FileService extends Disposable implements IFileService {
 
     public registerProvider(scheme: string, provider: IFileSystemProvider): void {
         this._providers.set(scheme, provider);
+
+        this.__register(provider.onDidResourceChange(e => this._onDidResourceChange.fire(e)));
+        this.__register(provider.onDidResourceClose(e => this._onDidResourceClose.fire(e)));
     }
 
     public getProvider(scheme: string): IFileSystemProvider | undefined {
@@ -127,7 +159,7 @@ export class FileService extends Disposable implements IFileService {
      **************************************************************************/
     
     public async stat(uri: URI, opts?: IResolveStatOptions): Promise<IResolvedFileStat> {
-        const provider = await this.__getProvider(uri);
+        const provider = this.__getProvider(uri);
         const stat = await provider.stat(uri);
         return this.__resolveStat(uri, provider, stat, opts);
     }
@@ -180,7 +212,7 @@ export class FileService extends Disposable implements IFileService {
     }
 
     public async exist(uri: URI): Promise<boolean> {
-        const provider = await this.__getProvider(uri);
+        const provider = this.__getProvider(uri);
         
         try {
             const stat = await provider.stat(uri);
@@ -204,14 +236,14 @@ export class FileService extends Disposable implements IFileService {
     }
 
     public async readDir(uri: URI): Promise<[string, FileType][]> {
-        const provider = this.__throwIfProviderIsReadonly(await this.__getProvider(uri));
+        const provider = this.__throwIfProviderIsReadonly(this.__getProvider(uri));
         
         return provider.readdir(uri);
     }
 
     public async createDir(uri: URI): Promise<void> {
         // get access to a provider
-        const provider = this.__throwIfProviderIsReadonly(await this.__getProvider(uri));
+        const provider = this.__throwIfProviderIsReadonly(this.__getProvider(uri));
 
         // create directory recursively
         await this.__mkdirRecursive(provider, uri);
@@ -248,8 +280,26 @@ export class FileService extends Disposable implements IFileService {
     }
 
     public watch(uri: URI, opts?: IWatchOptions): IDisposable {
-        // const watcher = Node
-        return toDisposable(() => {});
+        const provider = this.__getProvider(uri);
+        const disposable = provider.watch(uri, opts);
+
+        this._activeWatchers.set(uri, disposable);
+
+        return toDisposable(() => {
+            disposable.dispose();
+            this._activeWatchers.delete(uri);
+            if (!this._activeWatchers.size) {
+                this._onDidAllResourceClosed.fire();
+            }
+        });
+    }
+
+    public override dispose(): void {
+        super.dispose();
+        for (const active of this._activeWatchers.values()) {
+            active.dispose();
+        }
+        this._onDidAllResourceClosed.fire();
     }
 
     /***************************************************************************
@@ -561,7 +611,7 @@ export class FileService extends Disposable implements IFileService {
         Promise<IFileSystemProviderWithFileReadWrite | 
         IFileSystemProviderWithOpenReadWriteClose> 
     {
-		const provider = await this.__getProvider(uri);
+		const provider = this.__getProvider(uri);
 
 		if (hasOpenReadWriteCloseCapability(provider) || hasReadWriteCapability(provider)) {
 			return provider;
@@ -574,7 +624,7 @@ export class FileService extends Disposable implements IFileService {
         Promise<IFileSystemProviderWithFileReadWrite | 
                 IFileSystemProviderWithOpenReadWriteClose> 
     {
-		const provider = this.__throwIfProviderIsReadonly(await this.__getProvider(uri));
+		const provider = this.__throwIfProviderIsReadonly(this.__getProvider(uri));
 
 		if (hasOpenReadWriteCloseCapability(provider) || hasReadWriteCapability(provider)) {
 			return provider;
@@ -583,16 +633,12 @@ export class FileService extends Disposable implements IFileService {
 		throw new Error(`filesystem provider for scheme '${uri.scheme}' neither has FileReadWrite nor FileOpenReadWriteClose capability which is needed for the write operation.`);
 	}
 
-    private async __getProvider(uri: URI): Promise<IFileSystemProvider> {
+    private __getProvider(uri: URI): IFileSystemProvider {
         
 		// Assert path is absolute
         if (isAbsoluteURI(uri) === false) {
 			throw new Error(`unable to resolve filesystem provider with relative file path '${uri.path}`);
 		}
-
-        // REVIEW: figure out what this process is actually doing here in vscode, if no such functionality is required,
-        // this function then is NO need to by async.
-        // this.activateProvider(uri.scheme);
 
 		// Assert provider
 		const provider = this._providers.get(uri.scheme);

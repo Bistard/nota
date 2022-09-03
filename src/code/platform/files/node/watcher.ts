@@ -8,6 +8,7 @@ import { ThrottleDebouncer } from 'src/base/common/util/async';
 import { ifOrDefault, Mutable } from 'src/base/common/util/type';
 import { IS_LINUX } from 'src/base/common/platform';
 import { isParentOf } from 'src/base/common/file/glob';
+import { Disposable } from 'src/base/common/dispose';
 
 /**
  * A watch request for {@link Watcher}.
@@ -42,17 +43,28 @@ export interface IWatcher {
     readonly onDidChange: Register<IResourceChangeEvent[]>;
 
     /**
+     * Fires when the watcher is closed.
+     */
+    readonly onDidClose: Register<URI>;
+
+    /**
      * @description Watch the provided resources and fires the event once these
      * resources are either added, deleted or updated.
-     * @param requests The provided requests for watching.
+     * @param request The provided request for watching.
+     * @returns A boolean determine if the operation successed.
      */
-    watch(requests: IWatchRequest[]): void;
+    watch(request: IWatchRequest): boolean;
     
     /**
-     * @description Closes all the current watchings asynchronously and dispose
-     * all the registered event listeners. 
+     * @description Closes all the current watchings asynchronously.
      */
-    close(): Promise<void>;
+    close(): Promise<any>;
+
+    /**
+     * @description Disposes all the registered listeners and closes all the
+     * current watchings asynchronously.
+     */
+    dispose(): void;
 }
 
 /**
@@ -60,48 +72,61 @@ export interface IWatcher {
  * documents from {@link WatchInstance}. Once the watcher is closed it will not
  * work anymore.
  */
-export class Watcher implements IWatcher {
+export class Watcher extends Disposable implements IWatcher {
 
     // [event]
 
-    private readonly _onDidChange = new Emitter<IResourceChangeEvent[]>();
+    private readonly _onDidChange = this.__register(new Emitter<IResourceChangeEvent[]>());
     public readonly onDidChange = this._onDidChange.registerListener;
     
+    private readonly _onDidClose = this.__register(new Emitter<URI>());
+    public readonly onDidClose = this._onDidClose.registerListener;
+
     // [field]
 
     private readonly _instances = new Map<URI, WatchInstance>();
 
     // [constructor]
 
-    constructor(private readonly logService?: ILogService) {}
+    constructor(private readonly logService?: ILogService) {
+        super();
+    }
 
     // [public methods]
 
-    public watch(requests: IWatchRequest[]): void {
+    public watch(request: IWatchRequest): boolean {
 
-        for (const request of requests) {
-            const instance = new WatchInstance(this.logService, request, e => this._onDidChange.fire(e));
-            instance.watch();
-            
-            const exist = this._instances.get(request.resource);
-            if (exist) {
-                throw new Error(`there is already a watcher on ${request.resource}`);
-            }
-            
-            this._instances.set(request.resource, instance);
+        const instance = new WatchInstance(this.logService, request, e => this._onDidChange.fire(e));
+        instance.watch();
+        
+        const exist = this._instances.get(request.resource);
+        if (exist) {
+            console.warn(`there is already a watcher on ${request.resource}`);
+            return false;
         }
+        
+        this._instances.set(request.resource, instance);
+        return true;
     }
 
-    public async close(): Promise<void> {
-        this._onDidChange.dispose();
-
+    public async close(): Promise<any> {
         const closePromises: Promise<void>[] = [];
 
-        for (const wacther of this._instances.values()) {
-            closePromises.push(wacther.close());
+        for (const watcher of this._instances.values()) {
+            closePromises.push(watcher.close()
+            .then((uri) => {
+                if (uri) {
+                    this._onDidClose.fire(uri);
+                }
+            }));
         }
 
-        return Promise.allSettled(closePromises)[0];
+        return Promise.allSettled(closePromises);
+    }
+
+    public override dispose(): void {
+        super.dispose();
+        this.close();
     }
 }
 
@@ -109,9 +134,10 @@ export class Watcher implements IWatcher {
  * An interface only for {@link WatchInstance}.
  */
 export interface IWatchInstance {
+    
     readonly request: IWatchRequest;
     watch(): void;
-    close(): Promise<void>;
+    close(): Promise<URI | undefined>;
 }
 
 /**
@@ -163,9 +189,17 @@ export class WatchInstance implements IWatchInstance {
         return this._request;
     }
 
-    public async close(): Promise<void> {
+    public async close(): Promise<URI | undefined> {
+        if (!this._watcher) {
+            return;
+        }
+
         this._changeDebouncer.dispose();
-        return this._watcher?.close();
+        
+        await this._watcher.close();
+        this._watcher = undefined;
+        
+        return this._request.resource;
     }
 
     public watch(): void {
@@ -199,7 +233,7 @@ export class WatchInstance implements IWatchInstance {
                 ignored: this._request.exclude,
                 ignorePermissionErrors: true,
                 ignoreInitial: true,
-                depth: this._request.recursive ? undefined : 1, // REVIEW: 1 or 0? depends on if dir?
+                depth: this._request.recursive ? undefined : 1,
             });
             
             watcher

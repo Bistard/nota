@@ -13,7 +13,7 @@ import { BufferLogger, ILogService, LogLevel, PipelineLogger } from "src/base/co
 import { ILoggerService } from "src/code/platform/logger/common/abstractLoggerService";
 import { IFileService } from "src/code/platform/files/common/fileService";
 import { BrowserEnvironmentService } from "src/code/platform/environment/browser/browserEnvironmentService";
-import { BrowserFileChannel } from "src/code/platform/files/common/fileChannel";
+import { BrowserFileChannel } from "src/code/platform/files/browser/fileChannel";
 import { ErrorHandler } from "src/base/common/error";
 import { ApplicationMode, IBrowserEnvironmentService } from "src/code/platform/environment/common/environment";
 import { ConsoleLogger } from "src/code/platform/logger/common/consoleLoggerService";

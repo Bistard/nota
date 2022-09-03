@@ -1,6 +1,7 @@
-import { IDisposable, toDisposable } from "src/base/common/dispose";
+import { Disposable, IDisposable, toDisposable } from "src/base/common/dispose";
+import { Emitter } from "src/base/common/event";
 import { DataBuffer } from "src/base/common/file/buffer";
-import { FileType, ICreateFileOptions, IDeleteFileOptions, IFileSystemProvider, IReadFileOptions, IResolvedFileStat, IResolveStatOptions, IWriteFileOptions } from "src/base/common/file/file";
+import { FileType, ICreateFileOptions, IDeleteFileOptions, IFileSystemProvider, IReadFileOptions, IResolvedFileStat, IResolveStatOptions, IResourceChangeEvent, IWatchOptions, IWriteFileOptions } from "src/base/common/file/file";
 import { IReadableStream, newWriteableBufferStream } from "src/base/common/file/stream";
 import { URI } from "src/base/common/file/uri";
 import { IFileService } from "src/code/platform/files/common/fileService";
@@ -21,9 +22,25 @@ const enum FileCommand {
     delete = 'delete',
     watch = 'watch',
     unwatch = 'unwatch',
+    onDidResourceChange = 'onDidResourceChange',
+    onDidResourceClose = 'onDidResourceClose',
+    onDidAllResourceClosed = 'onDidAllResourceClosed',
 }
 
-export class BrowserFileChannel implements IFileService {
+export class BrowserFileChannel extends Disposable implements IFileService {
+
+    // [event]
+
+    private readonly _onDidResourceChange = this.__register(new Emitter<readonly IResourceChangeEvent[]>());
+    public  readonly onDidResourceChange = this._onDidResourceChange.registerListener;
+
+    // TODO
+    private readonly _onDidResourceClose = this.__register(new Emitter<URI>());
+    public readonly onDidResourceClose = this._onDidResourceClose.registerListener;
+
+    // TODO
+    private readonly _onDidAllResourceClosed = this.__register(new Emitter<void>());
+    public readonly onDidAllResourceClosed = this._onDidAllResourceClosed.registerListener;
 
     // [field]
 
@@ -32,7 +49,32 @@ export class BrowserFileChannel implements IFileService {
     // [constructor]
 
     constructor(ipcService: IIpcService) {
+        super();
         this._channel = ipcService.getChannel(IpcChannel.DiskFile);
+
+        this.__register(this._channel.registerListener<IResourceChangeEvent[]>(FileCommand.onDidResourceChange)(event => {
+            if (Array.isArray(event)) {
+                this._onDidResourceChange.fire(event);
+            } else {
+                // FIX: what if an error is thrown
+            }
+        }));
+
+        this.__register(this._channel.registerListener<URI>(FileCommand.onDidResourceClose)(event => {
+            if (URI.isUri(event)) {
+                this._onDidResourceClose.fire(event);
+            } else {
+                // FIX: what if an error is thrown
+            }
+        }));
+
+        this.__register(this._channel.registerListener<void | Error>(FileCommand.onDidAllResourceClosed)(error => {
+            if (!error) {
+                this._onDidAllResourceClosed.fire();
+            } else {
+                // FIX: what if an error is thrown
+            }
+        }));
     }
 
     // [public methods]
@@ -95,14 +137,10 @@ export class BrowserFileChannel implements IFileService {
         return this._channel.callCommand(FileCommand.delete, [uri, opts]);
     }
     
-    public watch(uri: URI): IDisposable {
-        this._channel.callCommand(FileCommand.watch, [uri]);
+    public watch(uri: URI, opts?: IWatchOptions): IDisposable {
+        this._channel.callCommand(FileCommand.watch, [uri, opts]);
         return toDisposable(() => {
-            this._channel.callCommand(FileCommand.unwatch, [uri]);
+            return this._channel.callCommand(FileCommand.unwatch, [uri]);
         });
-    }
-
-    public dispose(): void {
-        // noop
     }
 }
