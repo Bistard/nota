@@ -1,10 +1,12 @@
 import * as assert from 'assert';
-import { URI } from 'src/base/common/file/uri';
+import { after } from 'mocha';
+import { Schemas, URI } from 'src/base/common/file/uri';
 import { AbstractConfigService } from 'src/code/platform/configuration/common/abstractConfigService';
 import { ConfigCollection } from 'src/code/platform/configuration/common/configCollection';
 import { BuiltInConfigScope, IConfigRegistrant } from 'src/code/platform/configuration/common/configRegistrant';
 import { DefaultConfigStorage } from 'src/code/platform/configuration/common/configStorage';
 import { FileService } from 'src/code/platform/files/common/fileService';
+import { DiskFileSystemProvider } from 'src/code/platform/files/node/diskFileSystemProvider';
 import { Registrants } from 'src/code/platform/registrant/common/registrant';
 import { NullLifecycleService, NullLogger } from 'test/utility';
 
@@ -33,13 +35,16 @@ suite('abstract-config-service-test', () => {
     const storage = new TestDefaultConfigStorage();
     registrant.registerDefaultBuiltIn(TestScope, storage);
 
+    const logService = new NullLogger();
+    const fileService = new FileService(logService);
+
     test('onDidChange', () => {
-        const logService = new NullLogger();
+        fileService.registerProvider(Schemas.FILE, new DiskFileSystemProvider(logService));
         const collection = new ConfigCollection({
             resourceProvider: () => URI.fromFile('file://test'),
             builtIn: [TestScope],
-        }, new FileService(logService), logService);
-        const service = new AbstractConfigService(collection, new FileService(logService), logService, new NullLifecycleService());
+        }, fileService, logService);
+        const service = new AbstractConfigService(collection, fileService, logService, new NullLifecycleService());
 
         let updateValue: any;
         service.onDidChange<string>(TestScope, 'path1.c', value => updateValue = value);
@@ -57,4 +62,7 @@ suite('abstract-config-service-test', () => {
         assert.strictEqual(updateValue, 'again!!!');
     });
 
+    after(() => {
+        fileService.dispose();
+    });
 });
