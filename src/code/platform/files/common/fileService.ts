@@ -287,7 +287,7 @@ export class FileService extends Disposable implements IFileService {
     }
 
     public watch(uri: URI, opts?: IWatchOptions): IDisposable {
-        this.logService.trace('Main#FileService#watch()#Watching on', uri.toString(), '...');
+        this.logService.trace('Main#FileService#watch()#Watching on', JSON.stringify(uri.toString()), '...');
         const provider = this.__getProvider(uri);
         const disposable = provider.watch(uri, opts);
         this._activeWatchers.set(uri, disposable);
