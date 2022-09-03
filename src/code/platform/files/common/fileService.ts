@@ -147,7 +147,14 @@ export class FileService extends Disposable implements IFileService {
         this._providers.set(scheme, provider);
 
         this.__register(provider.onDidResourceChange(e => this._onDidResourceChange.fire(e)));
-        this.__register(provider.onDidResourceClose(e => this._onDidResourceClose.fire(e)));
+        this.__register(provider.onDidResourceClose(e => {
+            this._activeWatchers.delete(e);
+            this._onDidResourceClose.fire(e);
+            
+            if (!this._activeWatchers.size) {
+                this._onDidAllResourceClosed.fire();
+            }
+        }));
     }
 
     public getProvider(scheme: string): IFileSystemProvider | undefined {
@@ -285,21 +292,15 @@ export class FileService extends Disposable implements IFileService {
 
         this._activeWatchers.set(uri, disposable);
 
-        return toDisposable(() => {
-            disposable.dispose();
-            this._activeWatchers.delete(uri);
-            if (!this._activeWatchers.size) {
-                this._onDidAllResourceClosed.fire();
-            }
-        });
+        return disposable;
     }
 
     public override dispose(): void {
-        super.dispose();
         for (const active of this._activeWatchers.values()) {
             active.dispose();
         }
-        this._onDidAllResourceClosed.fire();
+        // have to unregister listeners after everything is done
+        this.onDidAllResourceClosed(() => super.dispose());
     }
 
     /***************************************************************************

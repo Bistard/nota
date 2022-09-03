@@ -1,8 +1,9 @@
 import { Disposable, IDisposable } from "src/base/common/dispose";
-import { Emitter, Register } from "src/base/common/event";
+import { Emitter, Event, Register } from "src/base/common/event";
 
 /**
  * {@link Blocker}
+ * {@link EventBlocker}
  * {@link AsyncRunner}
  * {@link Throttler}
  */
@@ -55,9 +56,8 @@ export async function retry<T>(task: ITask<Promise<T>>, delay: number, retries: 
 }
 
 /**
- * @description Block the program by calling {@link Blocker.waiting()} to wait
- * a data with type T. You may signal the blocker to tell if we retrieve the 
- * data succeeded or failed.
+ * @class Acts like a promise by calling {@link Blocker.waiting()} to wait a 
+ * data with type T. You may signal the blocker to resolve or reject manually.
  */
 export class Blocker<T> {
 
@@ -90,6 +90,43 @@ export type IAsyncPromiseTask<T> = {
 	resolve: (arg: T) => void;
 	reject: (reason?: any) => void;
 };
+
+/**
+ * @class A {@link EventBlocker} converts the provided event register into a 
+ * promise so that it can be listened in an asynchronous way instead of direct 
+ * listening to the event.
+ */
+export class EventBlocker<T> {
+
+	private readonly _blocker = new Blocker<T>();
+	private readonly _unregister?: IDisposable;
+
+	constructor(register: Register<T>, once?: boolean) {
+		if (once) {
+			Event.once(register)(e => this._blocker.resolve(e));
+		} else {
+			this._unregister = register(e => this._blocker.resolve(e));
+		}
+	}
+
+	public async waiting(): Promise<T> {
+		return this._blocker.waiting();
+	}
+
+	public resolve(data: T): void {
+		this._blocker.resolve(data);
+	}
+
+	public reject(reason?: any): void {
+		this._blocker.reject(reason);
+	}
+
+	public dispose(): void {
+		if (this._unregister) {
+			this._unregister.dispose();
+		}
+	}
+}
 
 /**
  * An interface for {@link AsyncRunner}.
@@ -386,7 +423,7 @@ export class Debouncer<T> implements IDebouncer<T> {
 	public unschedule(): void {
 		this.__clearSchedule();
 		if (this._blocker) {
-			this._blocker?.reject(new Error());
+			this._blocker.reject(new Error());
 			this._blocker = undefined;
 		}
 	}

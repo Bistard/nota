@@ -207,7 +207,7 @@ export class NotaInstance extends Disposable implements INotaInstance {
 
     private __onUnexpectedError(error: any): void {
         this.logService.error(`[uncought exception]: ${error}`);
-        if (error.stack) {
+        if (error && error.stack) {
             this.logService.error(error.stack);
         }
     }

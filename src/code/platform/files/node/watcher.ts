@@ -8,7 +8,7 @@ import { ThrottleDebouncer } from 'src/base/common/util/async';
 import { ifOrDefault, Mutable } from 'src/base/common/util/type';
 import { IS_LINUX } from 'src/base/common/platform';
 import { isParentOf } from 'src/base/common/file/glob';
-import { Disposable } from 'src/base/common/dispose';
+import { Disposable, IDisposable, toDisposable } from 'src/base/common/dispose';
 
 /**
  * A watch request for {@link Watcher}.
@@ -51,9 +51,9 @@ export interface IWatcher {
      * @description Watch the provided resources and fires the event once these
      * resources are either added, deleted or updated.
      * @param request The provided request for watching.
-     * @returns A boolean determine if the operation successed.
+     * @returns A disposable to close the current watch request.
      */
-    watch(request: IWatchRequest): boolean;
+    watch(request: IWatchRequest): IDisposable;
     
     /**
      * @description Closes all the current watchings asynchronously.
@@ -94,32 +94,31 @@ export class Watcher extends Disposable implements IWatcher {
 
     // [public methods]
 
-    public watch(request: IWatchRequest): boolean {
+    public watch(request: IWatchRequest): IDisposable {
+
+        const exist = this._instances.get(request.resource);
+        if (exist) {
+            console.warn(`there is already a watcher on ${request.resource}`);
+            return Disposable.NONE;
+        }
 
         const instance = new WatchInstance(this.logService, request, e => this._onDidChange.fire(e));
         instance.watch();
         
-        const exist = this._instances.get(request.resource);
-        if (exist) {
-            console.warn(`there is already a watcher on ${request.resource}`);
-            return false;
-        }
-        
         this._instances.set(request.resource, instance);
-        return true;
+        return toDisposable(() => {
+            instance.close().then((uri) => { if (uri) this._onDidClose.fire(uri); });
+            this._instances.delete(request.resource);
+        });
     }
 
     public async close(): Promise<any> {
         const closePromises: Promise<void>[] = [];
 
         for (const watcher of this._instances.values()) {
-            closePromises.push(watcher.close()
-            .then((uri) => {
-                if (uri) {
-                    this._onDidClose.fire(uri);
-                }
-            }));
+            closePromises.push(watcher.close().then((uri) => { if (uri) this._onDidClose.fire(uri); }));
         }
+        this._instances.clear();
 
         return Promise.allSettled(closePromises);
     }
@@ -195,7 +194,6 @@ export class WatchInstance implements IWatchInstance {
         }
 
         this._changeDebouncer.dispose();
-        
         await this._watcher.close();
         this._watcher = undefined;
         
@@ -282,7 +280,8 @@ export class WatchInstance implements IWatchInstance {
             if (changes.length) {
                 this._onDidChange(changes);
             }
-        });
+        })
+        .catch( () => {} ); /** ignores error from the debouncer when closing */
     }
 }
 

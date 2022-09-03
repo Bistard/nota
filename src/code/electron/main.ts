@@ -24,6 +24,7 @@ import { ProcessKey } from 'src/base/common/process';
 import { MainConfigService } from 'src/code/platform/configuration/electron/mainConfigService';
 import { getFormatCurrTimeStamp } from 'src/base/common/date';
 import { IConfigService } from 'src/code/platform/configuration/common/abstractConfigService';
+import { EventBlocker } from 'src/base/common/util/async';
 
 interface IMainProcess {
     start(argv: ICLIArguments): Promise<void>;
@@ -87,8 +88,11 @@ const nota = new class extends class MainProcess implements IMainProcess {
             // application run
             {
                 Event.once(this.lifecycleService.onWillQuit)(e => {
+                    // release all the watching resources
+                    e.join(new EventBlocker(this.fileService.onDidAllResourceClosed, true).waiting());
                     this.fileService.dispose();
-                    this.mainConfigService.dispose();
+                    
+                    // flush all the logging messages before we quit
                     e.join(this.logService.flush().then(() => this.logService.dispose()));
                 });
                 
