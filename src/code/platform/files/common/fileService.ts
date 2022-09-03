@@ -135,7 +135,7 @@ export class FileService extends Disposable implements IFileService {
 
     // [constructor]
 
-    constructor(@ILogService private readonly logService: ILogService) {
+    constructor(@ILogService private readonly logService: ILogService) {                                                                                                                                                        
         super();
     }
 
@@ -287,11 +287,10 @@ export class FileService extends Disposable implements IFileService {
     }
 
     public watch(uri: URI, opts?: IWatchOptions): IDisposable {
+        this.logService.trace('Main#FileService#watch()#Watching on', uri.toString(), '...');
         const provider = this.__getProvider(uri);
         const disposable = provider.watch(uri, opts);
-
         this._activeWatchers.set(uri, disposable);
-
         return disposable;
     }
 
