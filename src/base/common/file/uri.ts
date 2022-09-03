@@ -199,10 +199,6 @@ export class URI implements IURI {
 		return URI.fromFile(paths.join(URI.toFsPath(uri), ...path));
 	}
 
-	public static toString(uri: URI, skipEncoding: boolean = true): string {
-		return _toString(uri, skipEncoding);
-	}
-
 	/**
 	 * Creates a string representation for this URI. It's guaranteed that calling
 	 * `URI.parse` with the result of this function creates an URI which is equal
@@ -213,6 +209,16 @@ export class URI implements IURI {
 	 * ignore the scheme-specific encoding rules.
 	 *
 	 * @param skipEncoding Do not encode the result, default is `true`
+	 */
+	public static toString(uri: URI, skipEncoding: boolean = true): string {
+		return _toString(uri, skipEncoding);
+	}
+
+	/**
+	 * @deprecated
+	 * The unserialized URI object passed between the main process and renderer
+	 * process seems to have a null object prototype which has no access to 
+	 * member methods. Use static methods {@link URI.toString()} instead.
 	 */
 	public toString(skipEncoding: boolean = true): string {
         return _toString(this, skipEncoding);
