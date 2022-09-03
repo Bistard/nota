@@ -5,27 +5,9 @@ import { FileType, ICreateFileOptions, IDeleteFileOptions, IFileSystemProvider, 
 import { IReadableStream, newWriteableBufferStream } from "src/base/common/file/stream";
 import { URI } from "src/base/common/file/uri";
 import { IFileService } from "src/code/platform/files/common/fileService";
+import { FileCommand } from "src/code/platform/files/electron/mainFileChannel";
 import { IIpcService } from "src/code/platform/ipc/browser/ipcService";
 import { IChannel, IpcChannel } from "src/code/platform/ipc/common/channel";
-
-const enum FileCommand {
-    stat = 'stat',
-    readFile = 'readFile',
-    readDir = 'readDir',
-    readFileStream = 'readFileStream',
-    writeFile = 'writeFile',
-    exist = 'exist',
-    createFile = 'createFile',
-    createDir = 'createDir',
-    moveTo = 'moveTo',
-    copyTo = 'copyTo',
-    delete = 'delete',
-    watch = 'watch',
-    unwatch = 'unwatch',
-    onDidResourceChange = 'onDidResourceChange',
-    onDidResourceClose = 'onDidResourceClose',
-    onDidAllResourceClosed = 'onDidAllResourceClosed',
-}
 
 export class BrowserFileChannel extends Disposable implements IFileService {
 
@@ -79,11 +61,11 @@ export class BrowserFileChannel extends Disposable implements IFileService {
 
     // [public methods]
 
-    public registerProvider(scheme: string, provider: IFileSystemProvider): void {
+    public registerProvider(_scheme: string, _provider: IFileSystemProvider): void {
         console.warn('Cannot register a provider to the file service in the renderer process');
     }
 
-    public getProvider(scheme: string): IFileSystemProvider | undefined {
+    public getProvider(_scheme: string): IFileSystemProvider | undefined {
         return undefined;
     }
 

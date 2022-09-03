@@ -199,6 +199,10 @@ export class URI implements IURI {
 		return URI.fromFile(paths.join(URI.toFsPath(uri), ...path));
 	}
 
+	public static toString(uri: URI, skipEncoding: boolean = true): string {
+		return _toString(uri, skipEncoding);
+	}
+
 	/**
 	 * Creates a string representation for this URI. It's guaranteed that calling
 	 * `URI.parse` with the result of this function creates an URI which is equal

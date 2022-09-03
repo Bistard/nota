@@ -1,5 +1,6 @@
 import 'src/code/electron/registrant';
 import { app, dialog } from 'electron';
+import { createServer, Server } from 'net';
 import { mkdir } from 'fs/promises';
 import { ErrorHandler, ExpectedError } from 'src/base/common/error';
 import { Event } from 'src/base/common/event';
@@ -19,7 +20,6 @@ import { MainEnvironmentService } from 'src/code/platform/environment/electron/m
 import { IMainLifecycleService, MainLifecycleService } from 'src/code/platform/lifecycle/electron/mainLifecycleService';
 import { IMainStatusService, MainStatusService } from 'src/code/platform/status/electron/mainStatusService';
 import { ICLIArguments } from 'src/code/platform/environment/common/argument';
-import { createServer, Server } from 'net';
 import { ProcessKey } from 'src/base/common/process';
 import { MainConfigService } from 'src/code/platform/configuration/electron/mainConfigService';
 import { getFormatCurrTimeStamp } from 'src/base/common/date';

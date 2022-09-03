@@ -1,4 +1,5 @@
 import { Iterable } from "src/base/common/util/iterable";
+import { isObject } from "src/base/common/util/type";
 
 /**
  * @namespace Strings A collection of functions that relates to {@link string}.
@@ -30,7 +31,7 @@ export namespace Strings {
         for (let i = 0; i < args.length; i++) {
             let obj = args[i];
 
-            if (typeof obj === 'object') {
+            if (isObject(obj)) {
                 try {
                     obj = JSON.stringify(obj);
                 } catch (e) { }
