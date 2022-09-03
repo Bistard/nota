@@ -124,7 +124,7 @@ const nota = new class extends class MainProcess implements IMainProcess {
 
         // file-service
         const fileService = new FileService(logService);
-        fileService.registerProvider(Schemas.FILE, new DiskFileSystemProvider());
+        fileService.registerProvider(Schemas.FILE, new DiskFileSystemProvider(logService));
         instantiationService.register(IFileService, fileService);
 
         // logger-service

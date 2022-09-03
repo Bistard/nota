@@ -1,20 +1,29 @@
 import * as fs from "fs";
-import { IDisposable, toDisposable } from "src/base/common/dispose";
+import { Disposable, IAsyncDisposable, toDisposableAsync } from "src/base/common/dispose";
 import { DataBuffer } from "src/base/common/file/buffer";
-import { FileOperationErrorType, FileSystemProviderCapability, FileSystemProviderError, FileType, IDeleteFileOptions, IFileStat, IFileSystemProviderWithFileReadWrite, IFileSystemProviderWithOpenReadWriteClose, IFileSystemProviderWithReadFileStream, IOpenFileOptions, IOverwriteFileOptions, IReadFileOptions, IWatchOptions, IWriteFileOptions } from "src/base/common/file/file";
+import { FileOperationErrorType, FileSystemProviderCapability, FileSystemProviderError, FileType, IDeleteFileOptions, IFileStat, IFileSystemProviderWithFileReadWrite, IFileSystemProviderWithOpenReadWriteClose, IFileSystemProviderWithReadFileStream, IOpenFileOptions, IOverwriteFileOptions, IReadFileOptions, IResourceChangeEvent, IWatchOptions, IWriteFileOptions } from "src/base/common/file/file";
 import { join } from "src/base/common/file/path";
 import { IReadableStreamEvent, newWriteableStream } from "src/base/common/file/stream";
 import { URI } from "src/base/common/file/uri";
 import { retry } from "src/base/common/util/async";
 import { FileService } from "src/code/platform/files/common/fileService";
 import { fileExists, FileMode, readFileIntoStream } from "src/base/node/io";
+import { IWatcher, Watcher } from "src/code/platform/files/node/watcher";
+import { ILogService } from "src/base/common/logger";
+import { Emitter } from "src/base/common/event";
 
-export class DiskFileSystemProvider implements 
+export class DiskFileSystemProvider extends Disposable implements 
     IFileSystemProviderWithFileReadWrite, 
     IFileSystemProviderWithOpenReadWriteClose, 
     IFileSystemProviderWithReadFileStream
 {
+    // [event]
 
+    private readonly _onDidResourceChange = this.__register(new Emitter<readonly IResourceChangeEvent[]>());
+    public  readonly onDidResourceChange = this._onDidResourceChange.registerListener;
+
+    // [field]
+    
     /**
      * @readonly DiskFileSystemProvider has fully permission to deal with disk
      * fileSystems.
@@ -26,8 +35,15 @@ export class DiskFileSystemProvider implements
         FileSystemProviderCapability.FileFolderCopy |
         FileSystemProviderCapability.PathCaseSensitive;
 
+    private _watcher?: IWatcher;
+
     // [constructor]
-    constructor() {}
+
+    constructor(
+        private readonly logService?: ILogService,
+    ) {
+        super();
+    }
 
     /***************************************************************************
      * Unbuffered File Operations readFile/writeFile
@@ -303,8 +319,14 @@ export class DiskFileSystemProvider implements
         }
     }
 
-    public watch(uri: string, opts?: IWatchOptions): IDisposable {
-        return toDisposable(() => {});
+    public watch(uri: URI, opts?: IWatchOptions): IAsyncDisposable {
+        if (!this._watcher) {
+            this._watcher = new Watcher(this.logService);
+        }
+        
+        this._watcher.watch([{ resource: uri, ...opts }]);
+        this._watcher.onDidChange(e => this._onDidResourceChange.fire(e));
+        return toDisposableAsync(this._watcher.close);
     }
 
     /***************************************************************************

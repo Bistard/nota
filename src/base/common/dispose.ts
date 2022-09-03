@@ -8,7 +8,7 @@ export interface IDisposable {
 	dispose(): void;
 }
 
-export interface IAysncDisposable {
+export interface IAsyncDisposable {
 	dispose(): Promise<void>;
 }
 
@@ -159,7 +159,7 @@ export function toDisposable(fn: () => any): IDisposable {
 	};
 }
 
-export function toDisposableAsync(fn: () => Promise<any>): IAysncDisposable {
+export function toDisposableAsync(fn: () => Promise<any>): IAsyncDisposable {
 	return {
 		dispose: fn
 	};

@@ -13,8 +13,21 @@ import { isParentOf } from 'src/base/common/file/glob';
  * A watch request for {@link Watcher}.
  */
 export interface IWatchRequest {
+    /**
+     * The URI of the resource to be watched.
+     */
     readonly resource: URI;
+    
+    /**
+     * In non-recursive mode, if the resource is a file, it is the only resource 
+     * to be watched. If the resource is a directory, its direct children will 
+     * only be watched.
+     */
     readonly recursive?: boolean;
+    
+    /**
+     * Rules to exclude the specific resources.
+     */
     readonly exclude?: RegExp[];
 }
 
