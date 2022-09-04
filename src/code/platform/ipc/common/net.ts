@@ -247,7 +247,7 @@ export class ChannelClient extends Disposable implements IChannelClient {
     private readonly _onResponseCallback = new Map<number, (res: IResponse) => void>();
 
     /** Marks all the activating request. */
-    private readonly _activeRequest: IDisposable[] = [];
+    private readonly _activeRequest = new Set<IDisposable>();
 
     // [constructor]
 
@@ -345,7 +345,7 @@ export class ChannelClient extends Disposable implements IChannelClient {
         const emitter = new Emitter<any>({
 
             onFirstListenerAdd: () => {
-                this._activeRequest.push(emitter);
+                this._activeRequest.add(emitter);
                 this.__sendRequest(<IRegisterRequest>{
                     type: RequestType.Register,
                     id: requestID,
@@ -356,6 +356,7 @@ export class ChannelClient extends Disposable implements IChannelClient {
             },
 
             onLastListenerRemoved: () => {
+                this._activeRequest.delete(emitter);
                 this.__sendRequest(<IUnregisterRequest>{
                     type: RequestType.Unregister,
                     id: requestID,
