@@ -142,7 +142,7 @@ export interface IResourceChangeEvent {
     /**
      * If any event deleted.
      */
-    readonly antDeleted: boolean;
+    readonly anyDeleted: boolean;
 
     /**
      * If any event updated.
@@ -359,7 +359,7 @@ export class WatchInstance implements IWatchInstance {
                 this._onDidChange({
                     events: changes,
                     anyAdded: this._anyAdded,
-                    antDeleted: this._anyDeleted,
+                    anyDeleted: this._anyDeleted,
                     anyUpdated: this._anyUpdated,
                     anyDirectory: this._anyDirectory,
                     anyFile: this._anyFiles,
