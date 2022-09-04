@@ -1,11 +1,12 @@
 import { IDisposable } from "src/base/common/dispose";
 import { Register } from "src/base/common/event";
 import { DataBuffer } from "src/base/common/file/buffer";
-import { FileType, ICreateFileOptions, IDeleteFileOptions, IReadFileOptions, IResolvedFileStat, IResolveStatOptions, IResourceChangeEvent, IWatchOptions, IWriteFileOptions } from "src/base/common/file/file";
+import { FileType, ICreateFileOptions, IDeleteFileOptions, IReadFileOptions, IResolvedFileStat, IResolveStatOptions, IWatchOptions, IWriteFileOptions } from "src/base/common/file/file";
 import { IReadableStream } from "src/base/common/file/stream";
 import { URI } from "src/base/common/file/uri";
 import { ILogService } from "src/base/common/logger";
 import { IFileService } from "src/code/platform/files/common/fileService";
+import { IResourceChangeEvent } from "src/code/platform/files/node/watcher";
 import { IServerChannel } from "src/code/platform/ipc/common/channel";
 
 /**
@@ -141,7 +142,7 @@ export class MainFileChannel implements IServerChannel {
         }
     }
 
-    private __onDidResourceChange(): Register<readonly IResourceChangeEvent[]> {
+    private __onDidResourceChange(): Register<IResourceChangeEvent> {
         return this.fileService.onDidResourceChange;
     }
 

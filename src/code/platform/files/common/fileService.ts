@@ -1,7 +1,7 @@
-import { Disposable, IDisposable, toDisposable } from "src/base/common/dispose";
+import { Disposable, IDisposable } from "src/base/common/dispose";
 import { Emitter, Register } from "src/base/common/event";
 import { DataBuffer } from "src/base/common/file/buffer";
-import { FileSystemProviderAbleToRead, hasOpenReadWriteCloseCapability, hasReadWriteCapability, IReadFileOptions, IFileSystemProvider, IFileSystemProviderWithFileReadWrite, IFileSystemProviderWithOpenReadWriteClose, IWriteFileOptions, IFileStat, FileType, FileOperationErrorType, FileSystemProviderCapability, IDeleteFileOptions, IResolveStatOptions, IResolvedFileStat, hasReadFileStreamCapability, IFileSystemProviderWithReadFileStream, ICreateFileOptions, FileOperationError, hasCopyCapability, IWatchOptions, IResourceChangeEvent } from "src/base/common/file/file";
+import { FileSystemProviderAbleToRead, hasOpenReadWriteCloseCapability, hasReadWriteCapability, IReadFileOptions, IFileSystemProvider, IFileSystemProviderWithFileReadWrite, IFileSystemProviderWithOpenReadWriteClose, IWriteFileOptions, IFileStat, FileType, FileOperationErrorType, FileSystemProviderCapability, IDeleteFileOptions, IResolveStatOptions, IResolvedFileStat, hasReadFileStreamCapability, IFileSystemProviderWithReadFileStream, ICreateFileOptions, FileOperationError, hasCopyCapability, IWatchOptions } from "src/base/common/file/file";
 import { basename, dirname, join } from "src/base/common/file/path";
 import { bufferToStream, IReadableStream, listenStream, newWriteableBufferStream, streamToBuffer, transformStream } from "src/base/common/file/stream";
 import { isAbsoluteURI, URI } from "src/base/common/file/uri";
@@ -9,6 +9,7 @@ import { ILogService } from "src/base/common/logger";
 import { Iterable } from "src/base/common/util/iterable";
 import { Mutable } from "src/base/common/util/type";
 import { readFileIntoStream, readFileIntoStreamAsync } from "src/base/node/io";
+import { IResourceChangeEvent } from "src/code/platform/files/node/watcher";
 import { createService } from "src/code/platform/instantiation/common/decorator";
 
 export const IFileService = createService<IFileService>('file-service');
@@ -18,7 +19,7 @@ export interface IFileService extends IDisposable {
     /**
      * Fires when the watched resources are either added, deleted or updated.
      */
-    readonly onDidResourceChange: Register<readonly IResourceChangeEvent[]>;
+    readonly onDidResourceChange: Register<IResourceChangeEvent>;
 
     /**
      * Fires when any watched resource is closed.
@@ -115,7 +116,7 @@ export class FileService extends Disposable implements IFileService {
 
     // [event]
 
-    private readonly _onDidResourceChange = this.__register(new Emitter<readonly IResourceChangeEvent[]>());
+    private readonly _onDidResourceChange = this.__register(new Emitter<IResourceChangeEvent>());
 	readonly onDidResourceChange = this._onDidResourceChange.registerListener;
 
     private readonly _onDidResourceClose = this.__register(new Emitter<URI>());

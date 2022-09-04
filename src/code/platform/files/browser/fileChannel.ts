@@ -1,11 +1,12 @@
 import { Disposable, IDisposable, toDisposable } from "src/base/common/dispose";
 import { Emitter } from "src/base/common/event";
 import { DataBuffer } from "src/base/common/file/buffer";
-import { FileType, ICreateFileOptions, IDeleteFileOptions, IFileSystemProvider, IReadFileOptions, IResolvedFileStat, IResolveStatOptions, IResourceChangeEvent, IWatchOptions, IWriteFileOptions } from "src/base/common/file/file";
+import { FileType, ICreateFileOptions, IDeleteFileOptions, IFileSystemProvider, IReadFileOptions, IResolvedFileStat, IResolveStatOptions, IWatchOptions, IWriteFileOptions } from "src/base/common/file/file";
 import { IReadableStream, newWriteableBufferStream } from "src/base/common/file/stream";
 import { URI } from "src/base/common/file/uri";
 import { IFileService } from "src/code/platform/files/common/fileService";
 import { FileCommand } from "src/code/platform/files/electron/mainFileChannel";
+import { IResourceChangeEvent } from "src/code/platform/files/node/watcher";
 import { IIpcService } from "src/code/platform/ipc/browser/ipcService";
 import { IChannel, IpcChannel } from "src/code/platform/ipc/common/channel";
 
@@ -13,7 +14,7 @@ export class BrowserFileChannel extends Disposable implements IFileService {
 
     // [event]
 
-    private readonly _onDidResourceChange = this.__register(new Emitter<readonly IResourceChangeEvent[]>());
+    private readonly _onDidResourceChange = this.__register(new Emitter<IResourceChangeEvent>());
     public  readonly onDidResourceChange = this._onDidResourceChange.registerListener;
 
     // TODO
@@ -34,7 +35,7 @@ export class BrowserFileChannel extends Disposable implements IFileService {
         super();
         this._channel = ipcService.getChannel(IpcChannel.DiskFile);
 
-        this.__register(this._channel.registerListener<IResourceChangeEvent[]>(FileCommand.onDidResourceChange)(event => {
+        this.__register(this._channel.registerListener<IResourceChangeEvent>(FileCommand.onDidResourceChange)(event => {
             if (Array.isArray(event)) {
                 this._onDidResourceChange.fire(event);
             } else {

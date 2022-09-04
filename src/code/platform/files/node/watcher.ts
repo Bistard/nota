@@ -1,7 +1,6 @@
 import * as fs from 'fs';
 import * as chokidar from 'chokidar';
 import { Emitter, Register } from 'src/base/common/event';
-import { ResourceChangeType, IResourceChangeEvent } from 'src/base/common/file/file';
 import { URI } from 'src/base/common/file/uri';
 import { ILogService } from 'src/base/common/logger';
 import { ThrottleDebouncer } from 'src/base/common/util/async';
@@ -40,7 +39,7 @@ export interface IWatcher {
     /**
      * Fires when the resources are either added, deleted or updated.
      */
-    readonly onDidChange: Register<IResourceChangeEvent[]>;
+    readonly onDidChange: Register<IResourceChangeEvent>;
 
     /**
      * Fires when the watcher is closed.
@@ -76,7 +75,7 @@ export class Watcher extends Disposable implements IWatcher {
 
     // [event]
 
-    private readonly _onDidChange = this.__register(new Emitter<IResourceChangeEvent[]>());
+    private readonly _onDidChange = this.__register(new Emitter<IResourceChangeEvent>());
     public readonly onDidChange = this._onDidChange.registerListener;
     
     private readonly _onDidClose = this.__register(new Emitter<URI>());
@@ -129,6 +128,65 @@ export class Watcher extends Disposable implements IWatcher {
     }
 }
 
+export interface IResourceChangeEvent {
+    /**
+     * The raw changed event array.
+     */
+    readonly events: readonly IRawResourceChangeEvent[];
+
+    /**
+     * If any event added.
+     */
+    readonly hasAdded: boolean;
+
+    /**
+     * If any event deleted.
+     */
+    readonly hasDeleted: boolean;
+
+    /**
+     * If any event updated.
+     */
+    readonly hasUpdated: boolean;
+
+    /**
+     * If any added or updated events is directory.
+     */
+    readonly hasDirectory: boolean;
+
+    /**
+     * If any added or updated events is file.
+     */
+    readonly hasFile: boolean;
+}
+
+/**
+ * Possible changes that can occur to resource (directory / file).
+ */
+export const enum ResourceChangeType {
+	UPDATED,
+	ADDED,
+	DELETED
+}
+
+export interface IRawResourceChangeEvent {
+	/**
+	 * The changed resource path.
+	 */
+	readonly resource: string;
+
+	/**
+	 * If the changed resource is directory. Undefined when the resource is 
+	 * deleted.
+	 */
+	readonly isDirectory?: boolean;
+
+	/**
+	 * The type of change that occurred to the resource.
+	 */
+	readonly type: ResourceChangeType;
+}
+
 /**
  * An interface only for {@link WatchInstance}.
  */
@@ -162,20 +220,26 @@ export class WatchInstance implements IWatchInstance {
      * @note milliseconds
      */
     public static readonly FILE_CHANGE_DELAY = 50;
-    private _eventBuffer: IResourceChangeEvent[] = [];
     private readonly _changeDebouncer = new ThrottleDebouncer<void>(WatchInstance.FILE_CHANGE_DELAY);
+
+    private _eventBuffer: IRawResourceChangeEvent[] = [];
+    private _directoryChanged = false; // does not count for deletion
+    private _fileChanged = false;      // does not count for deletion
+    private _added = false;
+    private _updated = false;
+    private _deleted = false;
 
     private _watcher?: chokidar.FSWatcher;
 
     private readonly _request: IWatchRequest;
-    private readonly _onDidChange: (event: IResourceChangeEvent[]) => void;
+    private readonly _onDidChange: (event: IResourceChangeEvent) => void;
 
     // [constructor]
 
     constructor(
         private readonly logService: ILogService | undefined,
         request: IWatchRequest,
-        onDidChange: (event: IResourceChangeEvent[]) => void,
+        onDidChange: (event: IResourceChangeEvent) => void,
     ) {
         this._request = request;
         (<Mutable<RegExp[]>>this._request.exclude) = ifOrDefault(this._request.exclude, []);
@@ -264,13 +328,27 @@ export class WatchInstance implements IWatchInstance {
         }
     }
 
-    private __onEventFire(event: IResourceChangeEvent): void {
+    private __onEventFire(event: IRawResourceChangeEvent): void {
+        
         this._eventBuffer.push(event);
+        
+        // update metadata for each fired event
+        if (event.isDirectory) {
+            this._directoryChanged = true;
+        } else if (event.isDirectory === false) {
+            this._fileChanged = true;
+        }
+        if (event.type === ResourceChangeType.ADDED) {
+            this._added = true;
+        } else if (event.type === ResourceChangeType.DELETED) {
+            this._deleted = true;
+        } else {
+            this._updated = true;
+        }
         
         this._changeDebouncer.queue(async () => {
             const rawChanges = this._eventBuffer;
-            this._eventBuffer = [];
-
+            
             const coalescer = new FileChangeEventCoalescer();
             for (const change of rawChanges) {
                 coalescer.push(change);
@@ -278,10 +356,27 @@ export class WatchInstance implements IWatchInstance {
             
             const changes = coalescer.coalesce();
             if (changes.length) {
-                this._onDidChange(changes);
+                this._onDidChange({
+                    events: changes,
+                    hasAdded: this._added,
+                    hasDeleted: this._deleted,
+                    hasUpdated: this._updated,
+                    hasDirectory: this._directoryChanged,
+                    hasFile: this._fileChanged,
+                });
+                this.__clearMetadata();
             }
         })
         .catch( () => {} ); /** ignores error from the debouncer when closing */
+    }
+
+    private __clearMetadata(): void {
+        this._eventBuffer = [];
+        this._directoryChanged = false;
+        this._fileChanged = false;
+        this._added = false;
+        this._updated = false;
+        this._deleted = false;
     }
 }
 
@@ -295,8 +390,8 @@ class FileChangeEventCoalescer {
 
     // [field]
 
-	private readonly coalesced = new Set<IResourceChangeEvent>();
-	private readonly mapPathToChange = new Map<string, Mutable<IResourceChangeEvent>>();
+	private readonly coalesced = new Set<IRawResourceChangeEvent>();
+	private readonly mapPathToChange = new Map<string, Mutable<IRawResourceChangeEvent>>();
 
     // [constructor]
 
@@ -304,7 +399,7 @@ class FileChangeEventCoalescer {
 
 	// [public methods]
 
-	public push(event: IResourceChangeEvent): void {
+	public push(event: IRawResourceChangeEvent): void {
 		const existingEvent = this.mapPathToChange.get(this.__toKey(event));
 
 		let keepEvent = false;
@@ -351,8 +446,8 @@ class FileChangeEventCoalescer {
 		}
 	}
 
-	public coalesce(): IResourceChangeEvent[] {
-		const addOrChangeEvents: IResourceChangeEvent[] = [];
+	public coalesce(): IRawResourceChangeEvent[] {
+		const addOrChangeEvents: IRawResourceChangeEvent[] = [];
 		const deletedPaths: string[] = [];
 
 		return Array.from(this.coalesced)
@@ -386,7 +481,7 @@ class FileChangeEventCoalescer {
 
     // [private helper methods]
 
-    private __toKey(event: IResourceChangeEvent): string {
+    private __toKey(event: IRawResourceChangeEvent): string {
 		if (IS_LINUX) {
 			// linux is case sensitive
             return event.resource;

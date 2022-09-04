@@ -2,6 +2,7 @@ import { IDisposable } from "src/base/common/dispose";
 import { Register } from "src/base/common/event";
 import { IReadableStreamEvent } from "src/base/common/file/stream";
 import { URI } from "src/base/common/file/uri";
+import { IResourceChangeEvent } from "src/code/platform/files/node/watcher";
 
 export namespace ByteSize {
 	export const KB = 1024;
@@ -67,38 +68,11 @@ export interface IResolvedFileStat extends IFileStat {
 	readonly children?: Iterable<IResolvedFileStat>;
 }
 
-/**
- * Possible changes that can occur to resource (directory / file).
- */
-export const enum ResourceChangeType {
-	UPDATED,
-	ADDED,
-	DELETED
-}
-
-export interface IResourceChangeEvent {
-	/**
-	 * The changed resource path.
-	 */
-	readonly resource: string;
-
-	/**
-	 * If the changed resource is directory. Undefined when the resource is 
-	 * deleted.
-	 */
-	readonly isDirectory?: boolean;
-
-	/**
-	 * The type of change that occurred to the resource.
-	 */
-	readonly type: ResourceChangeType;
-}
-
 /** @description the base interface for any other FileSystemProvider. */
 export interface IFileSystemProvider {
 
 	readonly capabilities: FileSystemProviderCapability;
-	readonly onDidResourceChange: Register<readonly IResourceChangeEvent[]>;
+	readonly onDidResourceChange: Register<IResourceChangeEvent>;
 	readonly onDidResourceClose: Register<URI>;
 	
 	watch(uri: URI, opts?: IWatchOptions): IDisposable;
