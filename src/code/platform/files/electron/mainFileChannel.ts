@@ -6,7 +6,7 @@ import { IReadableStream } from "src/base/common/file/stream";
 import { URI } from "src/base/common/file/uri";
 import { ILogService } from "src/base/common/logger";
 import { IFileService } from "src/code/platform/files/common/fileService";
-import { IResourceChangeEvent } from "src/code/platform/files/node/watcher";
+import { ResourceChangeEvent } from "src/code/platform/files/node/resourceChangeEvent";
 import { IServerChannel } from "src/code/platform/ipc/common/channel";
 
 /**
@@ -142,7 +142,7 @@ export class MainFileChannel implements IServerChannel {
         }
     }
 
-    private __onDidResourceChange(): Register<IResourceChangeEvent> {
+    private __onDidResourceChange(): Register<ResourceChangeEvent> {
         return this.fileService.onDidResourceChange;
     }
 

@@ -6,7 +6,7 @@ import { IReadableStream, newWriteableBufferStream } from "src/base/common/file/
 import { URI } from "src/base/common/file/uri";
 import { IFileService } from "src/code/platform/files/common/fileService";
 import { FileCommand } from "src/code/platform/files/electron/mainFileChannel";
-import { IResourceChangeEvent } from "src/code/platform/files/node/watcher";
+import { ResourceChangeEvent } from "src/code/platform/files/node/resourceChangeEvent";
 import { IIpcService } from "src/code/platform/ipc/browser/ipcService";
 import { IChannel, IpcChannel } from "src/code/platform/ipc/common/channel";
 
@@ -14,7 +14,7 @@ export class BrowserFileChannel extends Disposable implements IFileService {
 
     // [event]
 
-    private readonly _onDidResourceChange = this.__register(new Emitter<IResourceChangeEvent>());
+    private readonly _onDidResourceChange = this.__register(new Emitter<ResourceChangeEvent>());
     public  readonly onDidResourceChange = this._onDidResourceChange.registerListener;
 
     // TODO
@@ -35,7 +35,7 @@ export class BrowserFileChannel extends Disposable implements IFileService {
         super();
         this._channel = ipcService.getChannel(IpcChannel.DiskFile);
 
-        this.__register(this._channel.registerListener<IResourceChangeEvent>(FileCommand.onDidResourceChange)(event => {
+        this.__register(this._channel.registerListener<ResourceChangeEvent>(FileCommand.onDidResourceChange)(event => {
             if (event instanceof Error) {
                 // FIX: what if an error is thrown
                 return;
