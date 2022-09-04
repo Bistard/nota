@@ -36,27 +36,27 @@ export class BrowserFileChannel extends Disposable implements IFileService {
         this._channel = ipcService.getChannel(IpcChannel.DiskFile);
 
         this.__register(this._channel.registerListener<IResourceChangeEvent>(FileCommand.onDidResourceChange)(event => {
-            if (Array.isArray(event)) {
-                this._onDidResourceChange.fire(event);
-            } else {
+            if (event instanceof Error) {
                 // FIX: what if an error is thrown
-            }
+                return;
+            } 
+            this._onDidResourceChange.fire(event);
         }));
 
         this.__register(this._channel.registerListener<URI>(FileCommand.onDidResourceClose)(event => {
-            if (URI.isUri(event)) {
-                this._onDidResourceClose.fire(event);
-            } else {
+            if (event instanceof Error) {
                 // FIX: what if an error is thrown
+                return;
             }
+            this._onDidResourceClose.fire(event);
         }));
 
         this.__register(this._channel.registerListener<void | Error>(FileCommand.onDidAllResourceClosed)(error => {
-            if (!error) {
-                this._onDidAllResourceClosed.fire();
-            } else {
+            if (error) {
                 // FIX: what if an error is thrown
-            }
+                return;
+            };
+            this._onDidAllResourceClosed.fire();
         }));
     }
 
