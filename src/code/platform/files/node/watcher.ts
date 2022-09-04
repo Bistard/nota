@@ -137,27 +137,27 @@ export interface IResourceChangeEvent {
     /**
      * If any event added.
      */
-    readonly hasAdded: boolean;
+    readonly anyAdded: boolean;
 
     /**
      * If any event deleted.
      */
-    readonly hasDeleted: boolean;
+    readonly antDeleted: boolean;
 
     /**
      * If any event updated.
      */
-    readonly hasUpdated: boolean;
+    readonly anyUpdated: boolean;
 
     /**
      * If any added or updated events is directory.
      */
-    readonly hasDirectory: boolean;
+    readonly anyDirectory: boolean;
 
     /**
      * If any added or updated events is file.
      */
-    readonly hasFile: boolean;
+    readonly anyFile: boolean;
 }
 
 /**
@@ -223,11 +223,11 @@ export class WatchInstance implements IWatchInstance {
     private readonly _changeDebouncer = new ThrottleDebouncer<void>(WatchInstance.FILE_CHANGE_DELAY);
 
     private _eventBuffer: IRawResourceChangeEvent[] = [];
-    private _directoryChanged = false; // does not count for deletion
-    private _fileChanged = false;      // does not count for deletion
-    private _added = false;
-    private _updated = false;
-    private _deleted = false;
+    private _anyDirectory = false;
+    private _anyFiles = false; 
+    private _anyAdded = false;
+    private _anyUpdated = false;
+    private _anyDeleted = false;
 
     private _watcher?: chokidar.FSWatcher;
 
@@ -334,16 +334,16 @@ export class WatchInstance implements IWatchInstance {
         
         // update metadata for each fired event
         if (event.isDirectory) {
-            this._directoryChanged = true;
+            this._anyDirectory = true;
         } else if (event.isDirectory === false) {
-            this._fileChanged = true;
+            this._anyFiles = true;
         }
         if (event.type === ResourceChangeType.ADDED) {
-            this._added = true;
+            this._anyAdded = true;
         } else if (event.type === ResourceChangeType.DELETED) {
-            this._deleted = true;
+            this._anyDeleted = true;
         } else {
-            this._updated = true;
+            this._anyUpdated = true;
         }
         
         this._changeDebouncer.queue(async () => {
@@ -358,11 +358,11 @@ export class WatchInstance implements IWatchInstance {
             if (changes.length) {
                 this._onDidChange({
                     events: changes,
-                    hasAdded: this._added,
-                    hasDeleted: this._deleted,
-                    hasUpdated: this._updated,
-                    hasDirectory: this._directoryChanged,
-                    hasFile: this._fileChanged,
+                    anyAdded: this._anyAdded,
+                    antDeleted: this._anyDeleted,
+                    anyUpdated: this._anyUpdated,
+                    anyDirectory: this._anyDirectory,
+                    anyFile: this._anyFiles,
                 });
                 this.__clearMetadata();
             }
@@ -372,11 +372,11 @@ export class WatchInstance implements IWatchInstance {
 
     private __clearMetadata(): void {
         this._eventBuffer = [];
-        this._directoryChanged = false;
-        this._fileChanged = false;
-        this._added = false;
-        this._updated = false;
-        this._deleted = false;
+        this._anyDirectory = false;
+        this._anyFiles = false;
+        this._anyAdded = false;
+        this._anyUpdated = false;
+        this._anyDeleted = false;
     }
 }
 
