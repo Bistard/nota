@@ -6,6 +6,8 @@
 import { CharCode } from "src/base/common/util/char";
 import * as paths from "src/base/common/file/path";
 import { IS_WINDOWS } from "src/base/common/platform";
+import { Registrants } from "src/code/platform/registrant/common/registrant";
+import { IReviverRegistrant } from "src/code/platform/ipc/common/revive";
 
 /**
  * Uniform Resource Identifier (URI) http://tools.ietf.org/html/rfc3986.
@@ -224,6 +226,19 @@ export class URI implements IURI {
         return _toString(this, skipEncoding);
     }
 }
+
+const reviverRegistrant = Registrants.get(IReviverRegistrant);
+reviverRegistrant.registerPrototype(URI as any, (obj: Object) => {
+	if (obj.hasOwnProperty('scheme') && 
+		obj.hasOwnProperty('authority') && 
+		obj.hasOwnProperty('path') && 
+		obj.hasOwnProperty('query') && 
+		obj.hasOwnProperty('fragment')
+	) {
+		return true;
+	}
+	return false;
+});
 
 /*******************************************************************************
  * decoding URI

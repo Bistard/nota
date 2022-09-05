@@ -1,6 +1,8 @@
 import { isParentOf } from "src/base/common/file/glob";
 import { URI } from "src/base/common/file/uri";
 import { IResourceChangeEvent, ResourceChangeType } from "src/code/platform/files/node/watcher";
+import { IReviverRegistrant } from "src/code/platform/ipc/common/revive";
+import { Registrants } from "src/code/platform/registrant/common/registrant";
 
 /**
  * @class A wrapper class over the raw {@link IResourceChangeEvent}. It provides 
@@ -96,3 +98,11 @@ export class ResourceChangeEvent {
     }
 
 }
+
+const reviverRegistrant = Registrants.get(IReviverRegistrant);
+reviverRegistrant.registerPrototype(ResourceChangeEvent, (obj: Object) => {
+    if (obj.hasOwnProperty('rawEvent')) {
+        return true;
+    }
+    return false;
+});

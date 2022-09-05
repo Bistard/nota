@@ -1,6 +1,8 @@
 import { Register } from "src/base/common/event";
 import { CharCode } from "src/base/common/util/char";
 import { IChannel, IServerChannel } from "src/code/platform/ipc/common/channel";
+import { IReviverRegistrant } from "src/code/platform/ipc/common/revive";
+import { Registrants } from "src/code/platform/registrant/common/registrant";
 
 /**
  * A namespace that provide functionalities to proxy microservices into different
@@ -11,9 +13,12 @@ import { IChannel, IServerChannel } from "src/code/platform/ipc/common/channel";
  */
 export namespace ProxyChannel {
 
-    export function wrapService(service: unknown): IServerChannel {
+    const reviverRegistrant = Registrants.get(IReviverRegistrant);
+
+    export function wrapService(service: unknown, opts?: WrapServiceOpt): IServerChannel {
         const object = service as Record<string, unknown>;
         const eventRegisters = new Map<string, Register<unknown>>();
+        const enableRevivier = (opts && opts.enableRevivier) || false;
 
         for (const propName in object) {
             if (__guessIfEventRegister(propName)) {
@@ -27,6 +32,13 @@ export namespace ProxyChannel {
                 if (typeof value !== 'function') {
                     throw new Error(`Command not found: ${command}`);
                 }
+
+                if (enableRevivier && Array.isArray(args)) {
+                    for (let i = 0; i < args.length; i++) {
+                        args[i] = reviverRegistrant.revive(args[i]);
+                    }
+                }
+
                 return value.apply(object, args);
             },
 
@@ -41,6 +53,8 @@ export namespace ProxyChannel {
     }
 
     export function unwrapChannel<T extends object>(channel: IChannel, opt?: UnwrapChannelOpt): T {
+        const enableRevivier = opt ? opt.enableRevivier : false;
+        
         return <T>(new Proxy(
             {}, {
             get: (_target: T, propName: string | symbol): unknown => {
@@ -58,10 +72,19 @@ export namespace ProxyChannel {
                 }
 
                 return async (...args: any[]): Promise<unknown> => {
+                    
+                    let methodsArgs = args;
                     if (typeof opt?.context !== 'undefined') {
-                        return channel.callCommand(propName, [...args, opt.context]);
+                        methodsArgs = [...args, opt.context];
                     }
-                    return channel.callCommand(propName, args);
+                    
+                    let result = await channel.callCommand(propName, methodsArgs);
+
+                    if (enableRevivier) {
+                        result = reviverRegistrant.revive(result);
+                    }
+
+                    return result;
                 };
             }
         }));
@@ -75,6 +98,17 @@ export namespace ProxyChannel {
         );
     }
     
+    export interface WrapServiceOpt {
+        /**
+         * @see `revive.ts`.
+         * @default true
+         * @note If you ensure the data structure passed between IPC will not be
+         * accessed about their prototype then you may disable this manually so
+         * that it may increases the performance to some extent.
+         */
+        readonly enableRevivier?: boolean;
+    }
+
     export interface UnwrapChannelOpt {
 
         /**
@@ -88,5 +122,14 @@ export namespace ProxyChannel {
          * directly returned.
 		 */
 		readonly propValues?: Map<string, unknown>;
+
+        /**
+         * @see `revive.ts`.
+         * @default true
+         * @note If you ensure the data structure passed between IPC will not be
+         * accessed about their prototype then you may disable this manually so
+         * that it may increases the performance to some extent.
+         */
+        readonly enableRevivier?: boolean;
     }
 }

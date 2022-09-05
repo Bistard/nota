@@ -9,6 +9,8 @@ import { FileCommand } from "src/code/platform/files/electron/mainFileChannel";
 import { ResourceChangeEvent } from "src/code/platform/files/node/resourceChangeEvent";
 import { IIpcService } from "src/code/platform/ipc/browser/ipcService";
 import { IChannel, IpcChannel } from "src/code/platform/ipc/common/channel";
+import { IReviverRegistrant } from "src/code/platform/ipc/common/revive";
+import { Registrants } from "src/code/platform/registrant/common/registrant";
 
 export class BrowserFileChannel extends Disposable implements IFileService {
 
@@ -27,6 +29,7 @@ export class BrowserFileChannel extends Disposable implements IFileService {
 
     // [field]
 
+    private static readonly registrant = Registrants.get(IReviverRegistrant);
     private readonly _channel: IChannel;
 
     // [constructor]
@@ -40,7 +43,7 @@ export class BrowserFileChannel extends Disposable implements IFileService {
                 // FIX: what if an error is thrown
                 return;
             } 
-            this._onDidResourceChange.fire(event);
+            this._onDidResourceChange.fire(BrowserFileChannel.registrant.revive(event));
         }));
 
         this.__register(this._channel.registerListener<URI>(FileCommand.onDidResourceClose)(event => {
@@ -48,7 +51,7 @@ export class BrowserFileChannel extends Disposable implements IFileService {
                 // FIX: what if an error is thrown
                 return;
             }
-            this._onDidResourceClose.fire(event);
+            this._onDidResourceClose.fire(BrowserFileChannel.registrant.revive(event));
         }));
 
         this.__register(this._channel.registerListener<void | Error>(FileCommand.onDidAllResourceClosed)(error => {
