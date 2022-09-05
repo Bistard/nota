@@ -1,5 +1,6 @@
 const CircularDependencyPlugin = require('circular-dependency-plugin');
 const path = require('path');
+const { IgnorePlugin } = require('webpack');
 
 // check nodejs requirement
 const requiredNodeJsVersion = '16.7.0'.split('.');
@@ -19,6 +20,8 @@ let cycleCount = 0;
 
 const mode = process.env.NODE_ENV ?? 'development';
 const isDev = mode === 'development';
+
+const optionalPlugins = getOptionalPlugins();
 
 const baseConfiguration = {
     node: {
@@ -70,6 +73,7 @@ const baseConfiguration = {
                 }
             },
         }),
+        ...optionalPlugins,
     ],
     /**
      * Source maps are used to display your original JavaScript while debugging, 
@@ -114,3 +118,16 @@ module.exports = [
         },
     }),
 ]
+
+function getOptionalPlugins() {
+    const plugins = [];
+
+    // https://github.com/paulmillr/chokidar/issues/828
+    if (process.platform !== "darwin") {
+        plugins.push(
+            new IgnorePlugin({ resourceRegExp: /^fsevents$/, })
+        );
+    }
+
+    return plugins;
+}
