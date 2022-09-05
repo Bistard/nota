@@ -113,7 +113,6 @@ export class ExplorerTreeService extends Disposable implements IExplorerTreeServ
         disposables.register(this.fileService.watch(root, { recursive: true }));
         disposables.register(this.fileService.onDidResourceChange(e => {
             console.log(e);
-            // FIX: prototype issue
             if (this._root && e.contains(this._root)) {
                 this._currentTreeService?.refresh();
             }

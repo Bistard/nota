@@ -130,9 +130,7 @@ const nota = new class extends class MainProcess implements IMainProcess {
         const fileService = new FileService(logService);
         fileService.registerProvider(Schemas.FILE, new DiskFileSystemProvider(logService));
         instantiationService.register(IFileService, fileService);
-        fileService.onDidResourceChange(e => {
-            console.log(e);
-        })
+
         // logger-service
         const fileLoggerService = new FileLoggerService(environmentService.logLevel, instantiationService);
         instantiationService.register(ILoggerService, fileLoggerService);
