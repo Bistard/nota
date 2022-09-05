@@ -40,24 +40,21 @@ export class BrowserFileChannel extends Disposable implements IFileService {
 
         this.__register(this._channel.registerListener<ResourceChangeEvent>(FileCommand.onDidResourceChange)(event => {
             if (event instanceof Error) {
-                // FIX: what if an error is thrown
-                return;
+                throw event;
             } 
             this._onDidResourceChange.fire(BrowserFileChannel.registrant.revive(event));
         }));
 
         this.__register(this._channel.registerListener<URI>(FileCommand.onDidResourceClose)(event => {
             if (event instanceof Error) {
-                // FIX: what if an error is thrown
-                return;
+                throw event;
             }
             this._onDidResourceClose.fire(BrowserFileChannel.registrant.revive(event));
         }));
 
         this.__register(this._channel.registerListener<void | Error>(FileCommand.onDidAllResourceClosed)(error => {
             if (error) {
-                // FIX: what if an error is thrown
-                return;
+                throw error;
             };
             this._onDidAllResourceClosed.fire();
         }));
