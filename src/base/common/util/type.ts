@@ -20,6 +20,11 @@ export type Mutable<Immutable> = {
 }
 
 /**
+ * Represents a constructor of a class with type T.
+ */
+export type Constructor<T> = new (...args: any[]) => T;
+
+/**
  * Accepts condition C, a truthy return type T, and a falsy return type F.
  */
 export type If<C, T, F> = C extends boolean ? (C extends true ? T : F) : never;
