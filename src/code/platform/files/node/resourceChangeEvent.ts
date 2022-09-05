@@ -21,8 +21,8 @@ export class ResourceChangeEvent {
     // [public methods]
 
     /**
-     * @description Check if the given resource find a exact match in the 
-     * changed events.
+     * @description Check if the given resource finds an exact match in the 
+     * changing events.
      * @param resource The given resource.
      * @param typeFilter The desired types for lookup. If not provided it will
      *                   match any types.
@@ -33,14 +33,14 @@ export class ResourceChangeEvent {
     }
 
     /**
-     * @description Check if the given resource find a exact match or find a 
-     * children of the resource in the changed events.
+     * @description Check if the given resource finds an exact match or find a 
+     * child of the resource in the changing events.
      * @param resource The given resource.
      * @param typeFilter The desired types for lookup. If not provided it will
      *                   match any types.
      * @param isDirectory A suggestion for faster lookup.
      */
-    public contains(resource: URI, typeFilter?: ResourceChangeType[], isDirectory?: boolean): boolean {
+    public affect(resource: URI, typeFilter?: ResourceChangeType[], isDirectory?: boolean): boolean {
         return this.__search(resource, true, typeFilter, isDirectory);
     }
 

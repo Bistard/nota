@@ -478,11 +478,6 @@ class FileChangeEventCoalescer {
 		})
         .concat(addOrChangeEvents);
 
-        // conver all '\' to '/' to match standard URI format
-        result.forEach(rawEvent => {
-            (<Mutable<string>>rawEvent.resource) = rawEvent.resource.replace(/\\/g, '/');
-        });
-        
         return result;
 	}
 
