@@ -26,24 +26,21 @@ export interface IReviverRegistrant {
 }
 
 /**
- * @class A reviver may be passed into JSON.parse so that the value computed by 
- * parsing is transformed before being returned.
- * 
  * When processes are communicating with each other under IPC. After the 
  * deserialization process of JSON.stringify and JSON.parse the new serialized 
  * object will not inherit the original prototype which may cause unexpected 
  * behaviours during the runtime.
  * 
  * To solve the above situation, you may register a prototype with a given 
- * matcher to match the object when reviving. When invoking revive(obj) if the 
- * given object is matched with any registered prototype then it will be 
+ * matcher to match the object when reviving. When invoking `this.revive(object)`
+ * and the given object is matched with any registered prototype then it will be
  * re-created with that prototype and returned.
  * 
  * @note
  * When we are designing the matcher function, there is not really a perfect 
  * approach to determine whether an object with a null prototype matches any 
  * registered one. The way we do it is by checking whether the object has all 
- * the required property names.
+ * the required property names from the registered prototypes.
  */
 @IReviverRegistrant
 class ReviverRegistrant implements IReviverRegistrant {
