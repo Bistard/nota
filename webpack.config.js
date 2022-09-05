@@ -23,6 +23,9 @@ const isDev = mode === 'development';
 
 const optionalPlugins = getOptionalPlugins();
 
+/**
+ * The webpack configuration
+ */
 const baseConfiguration = {
     node: {
         __dirname: true
@@ -35,8 +38,11 @@ const baseConfiguration = {
                 use: 'ts-loader',
                 exclude: [
                     /node_modules/,
-                    // path.resolve(__dirname, "src/ui")
                 ]
+            },
+            {
+                test: /.node$/,
+                loader: 'node-loader',
             }
         ]
     },
@@ -117,7 +123,7 @@ module.exports = [
             path: path.resolve(__dirname, './dist')
         },
     }),
-]
+];
 
 function getOptionalPlugins() {
     const plugins = [];
