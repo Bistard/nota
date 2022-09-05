@@ -82,13 +82,13 @@ export class ResourceChangeEvent {
         // TODO: pref - use TenarySearchTree for optimization
         if (searchChildren) {
             for (const raw of this.rawEvent.events) {
-                if (isParentOf(raw.resource, URI.toString(resource))) {
+                if (isParentOf(raw.resource, URI.toFsPath(resource))) {
                     return true;
                 }
             }
         } else {
             for (const raw of this.rawEvent.events) {
-                if (raw.resource === URI.toString(resource)) {
+                if (raw.resource === URI.toFsPath(resource)) {
                     return true;
                 }
             }

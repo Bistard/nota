@@ -450,7 +450,7 @@ class FileChangeEventCoalescer {
 		const addOrChangeEvents: IRawResourceChangeEvent[] = [];
 		const deletedPaths: string[] = [];
 
-		return Array.from(this.coalesced)
+		const result = Array.from(this.coalesced)
         // 1.) split ADD/CHANGE and DELETED events
         .filter(e => {
 			if (e.type !== ResourceChangeType.DELETED) {
@@ -477,6 +477,13 @@ class FileChangeEventCoalescer {
 			return true;
 		})
         .concat(addOrChangeEvents);
+
+        // conver all '\' to '/' to match standard URI format
+        result.forEach(rawEvent => {
+            (<Mutable<string>>rawEvent.resource) = rawEvent.resource.replace(/\\/g, '/');
+        });
+        
+        return result;
 	}
 
     // [private helper methods]
