@@ -1,11 +1,14 @@
 import { Disposable, IDisposable } from "src/base/common/dispose";
-import { Emitter, Event, Register } from "src/base/common/event";
+import { Emitter, Register } from "src/base/common/event";
 
 /**
  * {@link Blocker}
  * {@link EventBlocker}
+ * {@link PromiseTimeout}
  * {@link AsyncRunner}
  * {@link Throttler}
+ * {@link Debouncer}
+ * {@link ThrottleDebouncer}
  */
 
 export interface ITask<T> {
