@@ -80,9 +80,7 @@ class __TreeListTrait<T> {
 
     // [constructor]
 
-    constructor() {
-
-    }
+    constructor() {}
 
     // [public method]
 
@@ -276,8 +274,10 @@ export interface IAbstractTreeOptions<T> {
     /** @default false */
     readonly collapseByDefault?: boolean;
 
+    /**
+     * Provides the functionality to achieve drag and drop support in the tree.
+     */
     readonly dnd?: IListDragAndDropProvider<T>;
-
 }
 
 /**
@@ -288,7 +288,7 @@ export interface IAbstractTree<T, TFilter, TRef> {
     /**
      * The container of the whole tree.
      */
-    DOMElement: HTMLElement;
+    readonly DOMElement: HTMLElement;
 
     // [event]
 
@@ -507,13 +507,15 @@ export abstract class AbstractTree<T, TFilter, TRef> implements IAbstractTree<T,
          */
         const relayEmitter = new RelayEmitter<ITreeCollapseStateChangeEvent<T, TFilter>>();
 
-        // wraps each tree list view renderer with a basic tree item renderer.
+        // wraps each tree list view renderer with a basic tree item renderer
         renderers = renderers.map(renderer => new TreeItemRenderer<T, TFilter, any>(renderer, relayEmitter.registerListener));
 
+        // create traits for user operations
         this._focused = new __TreeListTrait();
         this._anchor = new __TreeListTrait();
         this._selected = new __TreeListTrait();
 
+        // construct the atcual view
         this._view = new TreeListWidget(
             container, 
             renderers, 
@@ -527,9 +529,10 @@ export abstract class AbstractTree<T, TFilter, TRef> implements IAbstractTree<T,
             }
         );
 
+        // create the tree model from abstraction, client may override it.
         this._model = this.createModel(this._view, opts);
 
-        // reset the input event emitter once the model is created.
+        // reset the input event emitter once the model is created
         relayEmitter.setInput(this._model.onDidChangeCollapseState);
 
         // dispose registration
