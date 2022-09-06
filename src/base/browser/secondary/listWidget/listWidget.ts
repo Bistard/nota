@@ -1,6 +1,6 @@
 import { IListViewRenderer, PipelineRenderer, RendererType } from "src/base/browser/secondary/listView/listRenderer";
 import { IListViewOpts, IViewItem, IViewItemChangeEvent, ListError, ListView } from "src/base/browser/secondary/listView/listView";
-import { Disposable, DisposableManager, IDisposable } from "src/base/common/dispose";
+import { DisposableManager, IDisposable } from "src/base/common/dispose";
 import { addDisposableListener, DomUtility, EventType, requestAnimate } from "src/base/browser/basic/dom";
 import { Emitter, Event, Register, SignalEmitter } from "src/base/common/event";
 import { IScrollEvent } from "src/base/common/scrollable";
@@ -112,7 +112,7 @@ class __ListTrait<T> implements IDisposable {
      * @param index The index of the item.
      */
     public has(index: number): boolean {
-        if (this.indicesSet === undefined) {
+        if (!this.indicesSet) {
             this.indicesSet = new Set();
             this.indices.forEach(index => this.indicesSet!.add(index));
         }
@@ -540,12 +540,7 @@ export class __ListWidgetDragAndDropController<T> implements IDisposable {
         toListDragEvent: (e: DragEvent) => IListDragEvent<T>
     ) {
         this._view = view;
-
-        if (opts.dragAndDropProvider === undefined) {
-            return;
-        }
-
-        this._provider = new ListWidgetDragAndDropProvider(view, opts.dragAndDropProvider);
+        this._provider = new ListWidgetDragAndDropProvider(view, opts.dragAndDropProvider!);
         this.__enableDragAndDropSupport(toListDragEvent);
     }
 
@@ -1040,10 +1035,6 @@ export class ListWidget<T> implements IListWidget<T> {
     /** Where the user's selection end. */
     private focused: __ListTrait<T>;
 
-    private mouseController: __ListWidgetMouseController<T>;
-    private keyboardController: __ListWidgetKeyboardController<T>;
-    private dndController: __ListWidgetDragAndDropController<T>;
-
     // [constructor]
 
     constructor(
@@ -1071,18 +1062,22 @@ export class ListWidget<T> implements IListWidget<T> {
         this.focused.getHTMLElement = item => this.view.getElement(item);
 
         // mouse support integration
-        this.mouseController = this.__createListWidgetMouseController(opts);
+        const mouseController = this.__createListWidgetMouseController(opts);
+        
         // keyboard support integration
-        this.keyboardController = new __ListWidgetKeyboardController(this, opts);
+        const keyboardController = new __ListWidgetKeyboardController(this, opts);
+        
         // drag and drop integration
-        this.dndController = new __ListWidgetDragAndDropController(this, opts, e => this.__toListDragEvent(e));
+        if (opts.dragAndDropProvider) {
+            const dndController = new __ListWidgetDragAndDropController(this, opts, e => this.__toListDragEvent(e));
+            this.disposables.register(dndController);
+        }
 
         this.disposables.register(this.view);
         this.disposables.register(this.selected);
         this.disposables.register(this.focused);
-        this.disposables.register(this.mouseController);
-        this.disposables.register(this.keyboardController);
-        this.disposables.register(this.dndController);
+        this.disposables.register(mouseController);
+        this.disposables.register(keyboardController);
     }
 
     // [getter / setter]
