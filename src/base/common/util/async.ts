@@ -18,11 +18,15 @@ export type IAsyncTask<T> = ITask<Promise<T>>;
  * @description Delays for given milliseconds. It will immediately create a 
  * async task that runs in the javascript task queue by using setTimeout.
  * @param ms Milliseconds.
- * @param callback Callback function after the waiting ends.
+ * @param callback Callback function after the waiting ends. If it is an async
+ * 			       function the returned promise will be resolved after the 
+ * 				   callback finishes.
  */
-export async function delayFor(ms: number, callback?: Function): Promise<void> {
-    return new Promise(resolve => setTimeout(() => {
-			if (callback) callback();
+export async function delayFor(ms: number, callback?: ITask<void> | IAsyncTask<void>): Promise<void> {
+    return new Promise(resolve => setTimeout(async () => {
+			if (callback) {
+				await callback();
+			}
 			resolve();
 		}, ms)
 	);
