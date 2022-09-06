@@ -31,8 +31,8 @@ export class BrowserInstance implements IBrowser {
 
         // when the window is about to quit
         this.lifecycleService.onWillQuit(e => {
-            e.join(new EventBlocker(this.fileService.onDidAllResourceClosed).waiting());
-            this.fileService.dispose();
+            // e.join(new EventBlocker(this.fileService.onDidAllResourceClosed).waiting());
+            // this.fileService.dispose();
         });
     }
 
