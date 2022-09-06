@@ -105,9 +105,8 @@ export interface IFileService extends IDisposable {
     delete(uri: URI, opts?: IDeleteFileOptions): Promise<void>;
     
     /**
-     * @description Watch the given target and file changed events will be fired
-     * by listening to file service.
-     * @param uri The provided URI.
+     * @description Watch the given target and events will be fired by listening 
+     * to file service.
      */
     watch(uri: URI, opts?: IWatchOptions): IDisposable;
 }
