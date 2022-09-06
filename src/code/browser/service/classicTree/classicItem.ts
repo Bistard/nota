@@ -163,13 +163,6 @@ export class ClassicItem implements IClassicItem {
     }
 
 	public refreshChildren(fileService: IFileService, filters?: IFilterOpts, cmpFn?: CompareFn<ClassicItem>): void | Promise<void> {
-
-        // the basic children stats are already resolved
-        if (this._stat.children) {
-            return;
-        }
-
-        // never resolved the children before
         const promise = (async () => {
             try {
                 const updatedStat = await fileService.stat(
