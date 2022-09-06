@@ -1,5 +1,6 @@
 import * as assert from 'assert';
-import { AsyncRunner, Blocker, Debouncer, delayFor, MicrotaskDelay, ThrottleDebouncer, Throttler } from 'src/base/common/util/async';
+import { Emitter } from 'src/base/common/event';
+import { AsyncRunner, Blocker, Debouncer, delayFor, EventBlocker, MicrotaskDelay, PromiseTimeout, ThrottleDebouncer, Throttler } from 'src/base/common/util/async';
 
 suite('async-test', () => {
 
@@ -11,6 +12,33 @@ suite('async-test', () => {
         const result = await blocker.waiting();
         assert.strictEqual(result, true);
     });
+
+	test('EventBlocker', async () => {
+		const emitter = new Emitter<void>();
+		
+		const blocker = new EventBlocker(emitter.registerListener);
+		const promise = blocker.waiting();
+		emitter.fire();
+
+		await promise;
+
+		const neverResolve = new EventBlocker(emitter.registerListener, 5);
+		await neverResolve.waiting()
+		.then(() => assert.fail())
+		.catch(() => { /** success */ });
+	});
+
+	test('PromiseTimeout', async () => {
+		let promise = Promise.resolve();
+		let timeout = new PromiseTimeout(promise, 0);
+		let result = await timeout.waiting();
+		assert.strictEqual(result, true);
+
+		promise = new Blocker<void>().waiting();
+		timeout = new PromiseTimeout(promise, 0);
+		result = await timeout.waiting();
+		assert.strictEqual(result, false);
+	});
 
     suite('AsyncRunner', () => {
 
