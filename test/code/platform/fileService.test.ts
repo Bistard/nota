@@ -363,16 +363,17 @@ suite('FileService-disk-test', () => {
         await service.createFile(file, DataBuffer.alloc(0));
         const unwatch = service.watch(file);
 
-        await service.delete(file);
+        service.delete(file);
         const first = new EventBlocker(service.onDidResourceChange);
         await first.waiting()
         .then((e) => {
             assert.strictEqual(e.match(file), true);
-        });
+        })
+        .catch(() => assert.fail());
 
         unwatch.dispose();
 
-        await service.createFile(file, DataBuffer.alloc(0));
+        service.createFile(file, DataBuffer.alloc(0));
         const second = new EventBlocker(service.onDidResourceChange, 100);
         await second.waiting()
         .then(() => assert.fail('should not be watching'))
