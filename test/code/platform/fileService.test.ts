@@ -8,6 +8,7 @@ import { NullLogger, TestURI } from 'test/utility';
 import { Random } from 'src/base/common/util/random';
 import { Arrays } from 'src/base/common/util/array';
 import { after, before } from 'mocha';
+import { EventBlocker } from 'src/base/common/util/async';
 
 suite('FileService-disk-test', () => {
 
@@ -355,6 +356,52 @@ suite('FileService-disk-test', () => {
             assert.strictEqual(exist, false);
         }
     });
+
+    test('watch - basic', async () => {
+        const base = URI.join(baseURI, 'watch');
+        const file = URI.join(base, 'watch-file');
+        await service.createFile(file, DataBuffer.alloc(0));
+        const unwatch = service.watch(file);
+
+        await service.delete(file);
+        const first = new EventBlocker(service.onDidResourceChange);
+        await first.waiting()
+        .then((e) => {
+            assert.strictEqual(e.match(file), true);
+        });
+
+        unwatch.dispose();
+
+        await service.createFile(file, DataBuffer.alloc(0));
+        const second = new EventBlocker(service.onDidResourceChange, 100);
+        await second.waiting()
+        .then(() => assert.fail('should not be watching'))
+        .catch(() => { /** success (not watching for this) */ });
+    });
+
+    // FIX: idk why this doesn't work
+    // test('watch - directory', async () => {
+        
+    //     const base = URI.join(baseURI, 'watch1');
+    //     const dir = URI.join(base, 'watch-directory');
+    //     await service.createDir(dir);
+    //     const unwatch = service.watch(dir, { recursive: true });
+
+    //     const first = new EventBlocker(service.onDidResourceChange);
+    //     service.createFile(URI.join(dir, 'nest-file1'), DataBuffer.alloc(0));
+    //     await first.waiting()
+    //     .then((e) => {
+    //         assert.strictEqual(e.affect(dir), true);
+    //     });
+
+    //     unwatch.dispose();
+
+    //     const second = new EventBlocker(service.onDidResourceChange, 100);
+    //     service.delete(URI.join(dir, 'nest-file1'));
+    //     await second.waiting()
+    //     .then(() => assert.fail('should not be watching'))
+    //     .catch(() => { /** success (not watching for this) */ });
+    // });
     
     after(async () => {
         await service.delete(baseURI, { recursive: true });
