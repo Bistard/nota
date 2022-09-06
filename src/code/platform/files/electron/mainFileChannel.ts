@@ -123,6 +123,12 @@ export class MainFileChannel implements IServerChannel {
     }
 
     private __watch(uri: URI, opts?: IWatchOptions): void {
+        // TODO
+        /**
+         * Each watching request from different processes should be archived.
+         * This can prevent when overlapping watch request from different processes.
+         */
+
         const raw = URI.toString(uri);
         const exist = this._activeWatchers.get(raw);
         if (exist) {
