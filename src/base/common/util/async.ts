@@ -1,5 +1,6 @@
 import { Disposable, IDisposable } from "src/base/common/dispose";
 import { Emitter, Register } from "src/base/common/event";
+import { isNumber } from "src/base/common/util/type";
 
 /**
  * {@link Blocker}
@@ -34,27 +35,27 @@ export async function delayFor(ms: number, callback?: ITask<void>): Promise<void
 }
 
 /**
- * @description Helper functions for retrying a given task for given retry rounds. 
+ * @description Helper functions for retrying a given task for given retry rounds.
  * @param task Task function.
- * @param delay Delay ms.
- * @param retries Retry rounds.
+ * @param delay Delay ms between each retry.
+ * @param round Retry rounds.
+ * @throws An exception will be thrown after all the retry rounds are finished 
+ * if one of the round throws an error (if multiple fails, the last error will 
+ * be thrown).
  */
-export async function retry<T>(task: ITask<Promise<T>>, delay: number, retries: number): Promise<T> {
+export async function retry<T>(task: IAsyncTask<T>, delay: number, round: number = 1): Promise<T> {
 	let lastError: Error | unknown;
 
-	for (let i = 0; i < retries; i++) {
-		
+	for (let i = 0; i < round; i++) {
         try {
             // try to finish the task.
 			return await task();
-		} 
-        
+		}
         catch (error) {
             // if not, we delay for a while and will retry the task.
 			lastError = error;
 			await delayFor(delay);
 		}
-
 	}
 
 	throw lastError;
@@ -62,7 +63,8 @@ export async function retry<T>(task: ITask<Promise<T>>, delay: number, retries: 
 
 /**
  * @class Acts like a promise by calling {@link Blocker.waiting()} to wait a 
- * data with type T. You may signal the blocker to resolve or reject manually.
+ * data with type T. The only difference is client may signals the blocker to 
+ * resolve or reject manually.
  */
 export class Blocker<T> {
 
@@ -125,10 +127,10 @@ export class EventBlocker<T> {
 			this._blocker.resolve(event);
 		});
 
-		if (timeout) {
+		if (isNumber(timeout)) {
 			this._timeout = setTimeout(() => {
 				if (!this._fired) {
-					this._blocker.reject();
+					this._blocker.reject(new Error());
 				}
 			}, timeout);
 		}
@@ -149,6 +151,7 @@ export class EventBlocker<T> {
  * @class A `PromiseTimeout` creates a new promise and resolves a boolean to 
  * determine whether the given promise is resolved before the given timeout.
  * 
+ * @note An alternative choice is `Promise.race`.
  * @note The new promise will reject if the given promise is rejected before the
  * timeout.
  */

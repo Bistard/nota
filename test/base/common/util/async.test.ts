@@ -22,7 +22,7 @@ suite('async-test', () => {
 
 		await promise;
 
-		const neverResolve = new EventBlocker(emitter.registerListener, 5);
+		const neverResolve = new EventBlocker(emitter.registerListener, 0);
 		await neverResolve.waiting()
 		.then(() => assert.fail())
 		.catch(() => { /** success */ });
