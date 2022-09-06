@@ -94,20 +94,40 @@ export type IAsyncPromiseTask<T> = {
 };
 
 /**
- * @class A {@link EventBlocker} converts the provided event register into a 
- * promise so that it can be listened in an asynchronous way instead of direct 
- * listening to the event.
+ * @class A {@link EventBlocker} registers the provided event register for one 
+ * time only and convert it into a promise so that it can be listened in an 
+ * asynchronous way instead of direct listening to the event.
+ * 
+ * You may pass a timeout to reject the promise if the event never fired after 
+ * the timeout.
  */
 export class EventBlocker<T> {
 
 	private readonly _blocker = new Blocker<T>();
-	private readonly _unregister?: IDisposable;
+	private _listener: IDisposable;
+	private _fired = false;
+	private _timeout?: NodeJS.Timeout;
+	
+	constructor(register: Register<T>, timeout?: number) {
+		// one time only listener
+		this._listener = register((event) => {
+			this._fired = true;
+			this._listener.dispose();
 
-	constructor(register: Register<T>, once?: boolean) {
-		if (once) {
-			Event.once(register)(e => this._blocker.resolve(e));
-		} else {
-			this._unregister = register(e => this._blocker.resolve(e));
+			if (this._timeout) {
+				clearTimeout(this._timeout);
+				this._timeout = undefined;
+			}
+
+			this._blocker.resolve(event);
+		});
+
+		if (timeout) {
+			this._timeout = setTimeout(() => {
+				if (!this._fired) {
+					this._blocker.reject();
+				}
+			}, timeout);
 		}
 	}
 
@@ -115,18 +135,48 @@ export class EventBlocker<T> {
 		return this._blocker.waiting();
 	}
 
-	public resolve(data: T): void {
-		this._blocker.resolve(data);
-	}
-
-	public reject(reason?: any): void {
-		this._blocker.reject(reason);
-	}
-
 	public dispose(): void {
-		if (this._unregister) {
-			this._unregister.dispose();
+		if (!this._fired) {
+			this._listener.dispose();
 		}
+	}
+}
+
+/**
+ * @class A `PromiseTimeout` creates a new promise and resolves a boolean to 
+ * determine whether the given promise is resolved before the given timeout.
+ * 
+ * @note The new promise will reject if the given promise is rejected before the
+ * timeout.
+ */
+export class PromiseTimeout {
+	
+	private _blocker = new Blocker<boolean>();
+	private _timeout = false;
+
+	constructor(promise: Promise<any>, timeout: number) {
+		const token = setTimeout(() => {
+			this._timeout = true;
+			this._blocker.resolve(false);
+		}, timeout);
+		
+		promise
+		.then(() => {
+			if (!this._timeout) {
+				clearTimeout(token);
+				this._blocker.resolve(true);
+			}
+		})
+		.catch(err => {
+			if (!this._timeout) {
+				clearTimeout(token);
+				this._blocker.reject(err);
+			}
+		});
+	}
+
+	public waiting(): Promise<boolean> {
+		return this._blocker.waiting();
 	}
 }
 

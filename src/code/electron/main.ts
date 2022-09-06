@@ -89,7 +89,7 @@ const nota = new class extends class MainProcess implements IMainProcess {
             {
                 Event.once(this.lifecycleService.onWillQuit)(e => {
                     // release all the watching resources
-                    e.join(new EventBlocker(this.fileService.onDidAllResourceClosed, true).waiting());
+                    e.join(new EventBlocker(this.fileService.onDidAllResourceClosed).waiting());
                     this.fileService.dispose();
                     
                     // flush all the logging messages before we quit
