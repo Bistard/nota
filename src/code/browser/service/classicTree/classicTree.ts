@@ -20,7 +20,7 @@ export interface IClassicTree<T, TFilter> extends IAsyncMultiTree<T, TFilter> {
 }
 
 /**
- * @class A simple inheritance that wraps some preset behaviours for explorer view.
+ * @class // TODO
  */
 export class ClassicTree<T extends ClassicItem, TFilter> extends AsyncMultiTree<T, TFilter> implements IClassicTree<T, TFilter> {
 

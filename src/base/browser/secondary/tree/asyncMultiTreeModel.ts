@@ -351,10 +351,14 @@ export class AsyncMultiTreeModel<T, TFilter = void> implements IAsyncMultiTreeMo
             return [];
         }
 
-        // create async tree node for each child, 
+        /**
+         * Create async tree node for each child. Moreover check if any children
+         * is not collapsed, these children will be returned and for future 
+         * refresh.
+         */
         const childrenNodesForRefresh: IAsyncTreeNode<T>[] = [];
-        const childrenNodes = children.map<IAsyncTreeNode<T>>(child => {
-
+        const childrenNodes: IAsyncTreeNode<T>[] = [];
+        for (const child of children) {
             const hasChildren = this._childrenProvider.hasChildren(child);
             const childAsyncNode = this.__createAsyncTreeNode(child, node, hasChildren);
 
@@ -367,8 +371,8 @@ export class AsyncMultiTreeModel<T, TFilter = void> implements IAsyncMultiTreeMo
                 childrenNodesForRefresh.push(childAsyncNode);
             }
 
-            return childAsyncNode;
-        });
+            childrenNodes.push(childAsyncNode);
+        }
 
         // delete the old children mapping
         for (const oldChild of node.children) {
@@ -380,6 +384,7 @@ export class AsyncMultiTreeModel<T, TFilter = void> implements IAsyncMultiTreeMo
             this._nodes.set(newChild.data, newChild);
         }
         
+        // insert the children nodes into the current node
         node.children.splice(0, node.children.length, ...childrenNodes);
 
         return childrenNodesForRefresh;
@@ -391,7 +396,9 @@ export class AsyncMultiTreeModel<T, TFilter = void> implements IAsyncMultiTreeMo
      */
     private __dfsDelete(node: IAsyncTreeNode<T>) {
         this._nodes.delete(node.data);
-        node.children.forEach(child => this._nodes.delete(child.data));
+        for (const child of node.children) {
+            this.__dfsDelete(child);
+        }
     }
 
 }

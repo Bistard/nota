@@ -271,7 +271,12 @@ export class TreeListWidget<T, TFilter, TRef> extends ListWidget<ITreeNode<T>> {
  */
 export interface IAbstractTreeOptions<T> {
 
-    /** @default false */
+    /** 
+     * If the tree node should be collapsed when constructing a new one by 
+     * default. Which means if {@link ITreeNodeItem.collapsed} is not defined,
+     * this will be applied.
+     * @default false
+     */
     readonly collapseByDefault?: boolean;
 
     /**

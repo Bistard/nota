@@ -222,12 +222,12 @@ export class ClassicChildrenProvider implements IAsyncChildrenProvider<ClassicIt
         const refreshPromise = data.refreshChildren(this.fileService, this.filterOpts, this.cmpFn);
 
         // the provided item's children are already resolved, we simply return it.
-        if (isPromise(refreshPromise) === false) {
+        if (!isPromise(refreshPromise)) {
             return data.children;
         } 
         
         // the provided item's children never resolved, we wait until it resolved.
-        const promise = (refreshPromise as Promise<void>)
+        const promise = refreshPromise
         .then(() => { 
             return data.children;
         })
@@ -239,11 +239,10 @@ export class ClassicChildrenProvider implements IAsyncChildrenProvider<ClassicIt
         return promise;
     }
 
-    public collapseByDefault(data: ClassicItem): boolean {
-        // TODO
-        return false;
-    }
-
+    // public collapseByDefault(data: ClassicItem): boolean {
+    //     // TODO
+    //     return false;
+    // }
 }
 
 /**

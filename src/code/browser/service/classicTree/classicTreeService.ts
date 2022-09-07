@@ -104,7 +104,7 @@ export class ClassicTreeService extends Disposable implements IClassicTreeServic
             new ClassicItemProvider(),
             new ClassicChildrenProvider(this.logService, this.fileService, filters),
             {
-                collapseByDefault: false,
+                collapseByDefault: true,
                 dnd: new ClassicDragAndDropProvider(),
             },
         );

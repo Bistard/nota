@@ -32,6 +32,8 @@ export interface IAsyncChildrenProvider<T> {
     /**
      * @description Determines if the given data should be collapsed when 
      * constructing.
+     * @note This has higher priority than {@link IAsyncMultiTreeOptions.collapseByDefault}
+     * which will only be applied when the function is not defined.
      */
     collapseByDefault?: (data: T) => boolean;
 }
@@ -57,7 +59,7 @@ export interface IAsyncTreeNode<T> {
     refreshing: Promise<void> | null;
 
     /** 
-     * If the tree should be collapsed by default. If undefined, the state will
+     * If the node should be collapsed by default. If undefined, the state will
      * determined by the {@link IMultiTree}.
      * @default undefined
      */
