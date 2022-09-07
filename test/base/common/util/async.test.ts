@@ -1,6 +1,6 @@
 import * as assert from 'assert';
 import { Emitter } from 'src/base/common/event';
-import { AsyncRunner, Blocker, Debouncer, delayFor, EventBlocker, MicrotaskDelay, PromiseTimeout, ThrottleDebouncer, Throttler } from 'src/base/common/util/async';
+import { AsyncRunner, Blocker, Debouncer, delayFor, EventBlocker, loop, MicrotaskDelay, PromiseTimeout, retry, Scheduler, ThrottleDebouncer, Throttler } from 'src/base/common/util/async';
 
 suite('async-test', () => {
 
@@ -38,6 +38,17 @@ suite('async-test', () => {
 		timeout = new PromiseTimeout(promise, 0);
 		result = await timeout.waiting();
 		assert.strictEqual(result, false);
+	});
+
+	test('Scheduler', async () => {
+		let cnt = 0;
+		const scheduler = new Scheduler<number>(0, e => {
+			cnt += e.reduce((prev, curr) => prev += curr);
+		});
+		loop(10, () => scheduler.schedule(1));
+		await delayFor(10, () => {
+			assert.strictEqual(cnt, 10);
+		});
 	});
 
     suite('AsyncRunner', () => {

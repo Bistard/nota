@@ -7,6 +7,8 @@ import { isNumber } from "src/base/common/util/type";
  * {@link EventBlocker}
  * {@link PromiseTimeout}
  * {@link AsyncRunner}
+ * {@link AsyncQueue}
+ * {@link Scheduler}
  * {@link Throttler}
  * {@link Debouncer}
  * {@link ThrottleDebouncer}
@@ -59,6 +61,15 @@ export async function retry<T>(task: IAsyncTask<T>, delay: number, round: number
 	}
 
 	throw lastError;
+}
+
+/**
+ * @description Runs the given callback in a given times.
+ */
+export function loop(round: number, fn: () => void): void {
+	for (let i = 0; i < round; i++) {
+		fn();
+	}
 }
 
 /**
@@ -326,6 +337,82 @@ export class AsyncQueue<T> extends AsyncRunner<T> {
 }
 
 /**
+ * An interface only for {@link Scheduler}.
+ */
+export interface IScheduler<T> extends IDisposable {
+
+	/**
+	 * @description Schedules the callback with the given delay and fires an 
+	 * event to the callback, the event will be stored as a buffer inside the
+	 * scheduler.
+	 * @param event Pass the event as the parameter to the callback.
+	 * @param delay Defaults to the delay option passed into the constructor.
+	 */
+	schedule(event: T, delay?: number): void;
+
+	/**
+	 * @description Determines if there is a scheduled execution.
+	 */
+	isScheduled(): boolean;
+
+	/**
+	 * @description Cancels the current scheduled execution if has any and 
+	 * returns a boolean specifies whether the cancelation successed.
+	 * @param clearBuffer If to cancel the previous event buffer.
+	 */
+	cancel(clearBuffer?: boolean): boolean;
+}
+
+/**
+ * @class A `Scheduler` can schedule a new execution on the given callback with 
+ * a delay time when invoking {@link Scheduler.schedule}.
+ */
+export class Scheduler<T> implements IScheduler<T> {
+
+	private _eventBuffer: T[] = [];
+	private _fn: (event: T[]) => void;
+	private _delay: number;
+	private _timeoutToken?: NodeJS.Timeout;
+
+	constructor(delay: number, fn: (event: T[]) => void) {
+		this._fn = fn;
+		this._delay = delay;
+	}
+
+	public schedule(event: T, delay: number = this._delay): void {
+		this.cancel();
+		this._eventBuffer.push(event);
+		this._timeoutToken = setTimeout(() => {
+			const buffer = this._eventBuffer;
+			this._eventBuffer = [];
+			this._fn(buffer);
+		}, delay);
+	}
+
+	public cancel(clearBuffer?: boolean): boolean {
+		if (clearBuffer) {
+			this._eventBuffer = [];
+		}
+
+		if (this._timeoutToken) {
+			clearTimeout(this._timeoutToken);
+			return true;
+		}
+		return false;
+	}
+
+	public isScheduled(): boolean {
+		return !(this._timeoutToken === undefined);
+	}
+
+	public dispose(): void {
+		this.cancel();
+		this._fn = () => {};
+		return;
+	}
+}
+
+/**
  * An interface only for {@link Throttler}.
  */
 export interface IThrottler {
@@ -385,7 +472,7 @@ export class Throttler implements IThrottler {
 	}
 }
 
-interface IScheduler extends IDisposable {
+interface __Scheduler extends IDisposable {
 	onSchedule(): boolean;
 }
 
@@ -432,7 +519,7 @@ export class Debouncer<T> implements IDebouncer<T> {
 	// [field]
 
 	private readonly _defaultDelay: DelayType;
-	private _schedule?: IScheduler;
+	private _schedule?: __Scheduler;
 	private _blocker?: Blocker<T | Promise<T>>;
 	private _lastestTask?: ITask<T> | IAsyncTask<T>;
 
@@ -497,7 +584,7 @@ export class Debouncer<T> implements IDebouncer<T> {
 		this._schedule = undefined;
 	}
 
-	private __scheduleAsTimeout(timeout: number, fn: () => void): IScheduler {
+	private __scheduleAsTimeout(timeout: number, fn: () => void): __Scheduler {
 		let scheduling = true;
 		
 		const token = setTimeout(() => {
@@ -511,7 +598,7 @@ export class Debouncer<T> implements IDebouncer<T> {
 		};
 	}
 
-	private __scheduleAsMicrotask(fn: () => void): IScheduler {
+	private __scheduleAsMicrotask(fn: () => void): __Scheduler {
 		let schedulingOrDiposed = true;
 		
 		queueMicrotask(() => {
