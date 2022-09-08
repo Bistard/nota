@@ -140,8 +140,18 @@ export interface IListView<T> extends IDisposable {
      */
     get onTouchstart(): Register<TouchEvent>;
 
-    /** Fires when the {@link IListView} is keydowned. */
+    /** Fires when the {@link IListView} is keydown. */
     get onKeydown(): Register<KeyboardEvent>;
+
+    /** Fires when the {@link IListView} is keyup. */
+    get onKeyup(): Register<KeyboardEvent>;
+
+    /** 
+     * Fires when the user attempts to open a context menu {@link IListView}. 
+     * This event is typically triggered by clicking the right mouse button, or 
+     * by pressing the context menu key.
+     */
+    get onContextmenu(): Register<PointerEvent>;
 
     /** The container of the whole view. */
     readonly DOMElement: HTMLElement;
@@ -425,6 +435,8 @@ export class ListView<T> implements IDisposable, ISpliceable<T>, IListView<T> {
     @memoize get onTouchstart(): Register<TouchEvent> { return this.disposables.register(new DomEmitter<TouchEvent>(this.element, EventType.touchstart)).registerListener; }
 
     @memoize get onKeydown(): Register<KeyboardEvent> { return this.disposables.register(new DomEmitter<KeyboardEvent>(this.element, EventType.keydown)).registerListener; }
+    @memoize get onKeyup(): Register<KeyboardEvent> { return this.disposables.register(new DomEmitter<KeyboardEvent>(this.element, EventType.keyup)).registerListener; }
+    @memoize get onContextmenu(): Register<PointerEvent> { return this.disposables.register(new DomEmitter<PointerEvent>(this.element, EventType.contextmenu)).registerListener; }
 
     get DOMElement(): HTMLElement { return this.element; }
 

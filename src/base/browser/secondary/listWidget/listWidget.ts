@@ -1,7 +1,7 @@
 import { IListViewRenderer, PipelineRenderer, RendererType } from "src/base/browser/secondary/listView/listRenderer";
 import { IListViewOpts, IViewItem, IViewItemChangeEvent, ListError, ListView } from "src/base/browser/secondary/listView/listView";
 import { DisposableManager, IDisposable } from "src/base/common/dispose";
-import { addDisposableListener, DomUtility, EventType, requestAnimate } from "src/base/browser/basic/dom";
+import { addDisposableListener, DomEmitter, DomUtility, EventType, requestAnimate } from "src/base/browser/basic/dom";
 import { Emitter, Event, Register, SignalEmitter } from "src/base/common/event";
 import { IScrollEvent } from "src/base/common/scrollable";
 import { IListItemProvider } from "src/base/browser/secondary/listView/listItemProvider";
@@ -12,6 +12,7 @@ import { Arrays } from "src/base/common/util/array";
 import { IS_MAC } from "src/base/common/platform";
 import { createStandardKeyboardEvent, IStandardKeyboardEvent, KeyCode } from "src/base/common/keyboard";
 import { IRange } from "src/base/common/range";
+import { isNumber, NulltoUndefined } from "src/base/common/util/type";
 
 /**
  * The index changed in {@link __ListTrait}.
@@ -743,16 +744,16 @@ export interface IListMouseEvent<T> {
  * returns undefined.
  */
 export interface IListTouchEvent<T> {
-    /** The original brower even. */
+    /** The original brower event. */
     browserEvent: TouchEvent;
 
-    /** The rendering index of the clicked item. */
+    /** The rendering index of the touched item. */
     renderIndex: number| undefined;
 
-    /** The actual index of the clicked item. */
+    /** The actual index of the touched item. */
     actualIndex: number | undefined;
 
-    /** The clicked item. */
+    /** The touched item. */
     item: T | undefined;
 }
 
@@ -765,6 +766,26 @@ export interface IListDragEvent<T> {
     
     /** The drag / dragover / drop item. */
     item: T | undefined;
+}
+
+export interface IListContextmenuEvent<T> {
+    /** The original browser UI event. */
+    browserEvent: UIEvent;
+    
+    /** The rendering index of the target item. */
+    renderIndex: number| undefined;
+
+    /** The actual index of the target item. */
+    actualIndex: number | undefined;
+
+    /** The client data target of the event. */
+	item: T | undefined;
+
+    /** The browser position of the contextmenu event. */
+	position: { x: number; y: number } | undefined;
+
+    /** The browser target of the contextmenu if any. */
+    target: HTMLElement | undefined;
 }
 
 /**
@@ -857,8 +878,18 @@ export interface IListWidget<T> extends IDisposable {
      */
     get onTouchstart(): Register<IListTouchEvent<T>>;
 
-    /** Fires when the {@link IListView} is keydowned. */
+    /** Fires when the {@link IListWidget} is keydown. */
     get onKeydown(): Register<IStandardKeyboardEvent>;
+
+    /** Fires when the {@link IListWidget} is keyup. */
+    get onKeyup(): Register<IStandardKeyboardEvent>;
+
+    /** 
+     * Fires when the user attempts to open a context menu {@link IListWidget}. 
+     * This event is typically triggered by clicking the right mouse button, or 
+     * by pressing the context menu key.
+     */
+    get onContextmenu(): Register<IListContextmenuEvent<T>>;
 
     // [methods]
 
@@ -1092,16 +1123,18 @@ export class ListWidget<T> implements IListWidget<T> {
     get onRemoveItemInDOM(): Register<IViewItemChangeEvent<T>> { return this.view.onRemoveItemInDOM; }
     @memoize get onDidChangeFocus(): Register<boolean> { return this.disposables.register(new SignalEmitter<boolean, boolean>([Event.map(this.view.onDidFocus, () => true), Event.map(this.view.onDidBlur, () => false)], (e: boolean) => e)).registerListener; }
     
-    @memoize get onClick(): Register<IListMouseEvent<T>> { return Event.map<MouseEvent, IListMouseEvent<T>>(this.view.onClick, (e: MouseEvent) => this.__toListMouseEvent(e)); }
-    @memoize get onDoubleclick(): Register<IListMouseEvent<T>> { return Event.map<MouseEvent, IListMouseEvent<T>>(this.view.onDoubleclick, (e: MouseEvent) => this.__toListMouseEvent(e));  }
-    @memoize get onMouseover(): Register<IListMouseEvent<T>> { return Event.map<MouseEvent, IListMouseEvent<T>>(this.view.onMouseover, (e: MouseEvent) => this.__toListMouseEvent(e)); }
-    @memoize get onMouseout(): Register<IListMouseEvent<T>> { return Event.map<MouseEvent, IListMouseEvent<T>>(this.view.onMouseout, (e: MouseEvent) => this.__toListMouseEvent(e)); }
-    @memoize get onMousedown(): Register<IListMouseEvent<T>> { return Event.map<MouseEvent, IListMouseEvent<T>>(this.view.onMousedown, (e: MouseEvent) => this.__toListMouseEvent(e)); }
-    @memoize get onMouseup(): Register<IListMouseEvent<T>> { return Event.map<MouseEvent, IListMouseEvent<T>>(this.view.onMouseup, (e: MouseEvent) => this.__toListMouseEvent(e)); }
-    @memoize get onMousemove(): Register<IListMouseEvent<T>> { return Event.map<MouseEvent, IListMouseEvent<T>>(this.view.onMousemove, (e: MouseEvent) => this.__toListMouseEvent(e)); }
-    @memoize get onTouchstart(): Register<IListTouchEvent<T>> { return Event.map<TouchEvent, IListTouchEvent<T>>(this.view.onTouchstart, (e: TouchEvent) => this.__toListTouchEvent(e)); }
+    @memoize get onClick(): Register<IListMouseEvent<T>> { return Event.map<MouseEvent, IListMouseEvent<T>>(this.view.onClick, e => this.__toListMouseEvent(e)); }
+    @memoize get onDoubleclick(): Register<IListMouseEvent<T>> { return Event.map<MouseEvent, IListMouseEvent<T>>(this.view.onDoubleclick, e => this.__toListMouseEvent(e));  }
+    @memoize get onMouseover(): Register<IListMouseEvent<T>> { return Event.map<MouseEvent, IListMouseEvent<T>>(this.view.onMouseover, e => this.__toListMouseEvent(e)); }
+    @memoize get onMouseout(): Register<IListMouseEvent<T>> { return Event.map<MouseEvent, IListMouseEvent<T>>(this.view.onMouseout, e => this.__toListMouseEvent(e)); }
+    @memoize get onMousedown(): Register<IListMouseEvent<T>> { return Event.map<MouseEvent, IListMouseEvent<T>>(this.view.onMousedown, e => this.__toListMouseEvent(e)); }
+    @memoize get onMouseup(): Register<IListMouseEvent<T>> { return Event.map<MouseEvent, IListMouseEvent<T>>(this.view.onMouseup, e => this.__toListMouseEvent(e)); }
+    @memoize get onMousemove(): Register<IListMouseEvent<T>> { return Event.map<MouseEvent, IListMouseEvent<T>>(this.view.onMousemove, e => this.__toListMouseEvent(e)); }
+    @memoize get onTouchstart(): Register<IListTouchEvent<T>> { return Event.map<TouchEvent, IListTouchEvent<T>>(this.view.onTouchstart, e => this.__toListTouchEvent(e)); }
 
-    @memoize get onKeydown(): Register<IStandardKeyboardEvent> { return Event.map<KeyboardEvent, IStandardKeyboardEvent>(this.view.onKeydown, (e: KeyboardEvent) => createStandardKeyboardEvent(e)); }
+    @memoize get onKeydown(): Register<IStandardKeyboardEvent> { return Event.map<KeyboardEvent, IStandardKeyboardEvent>(this.view.onKeydown, e => createStandardKeyboardEvent(e)); }
+    @memoize get onKeyup(): Register<IStandardKeyboardEvent> { return Event.map<KeyboardEvent, IStandardKeyboardEvent>(this.view.onKeyup, e => createStandardKeyboardEvent(e)); }
+    @memoize get onContextmenu(): Register<IListContextmenuEvent<T>> { return this.__createContextmenuRegister(); }
 
     // [methods]
 
@@ -1264,6 +1297,51 @@ export class ListWidget<T> implements IListWidget<T> {
      */
     private __toListTouchEvent(e: TouchEvent): IListTouchEvent<T> {
         return this.__toEvent(e);
+    }
+
+    private __toContextmenuEvent(e: PointerEvent): IListContextmenuEvent<T> {
+        const event = this.__toEvent(e);
+        return {
+            ...event,
+            position: { x: e.pageX + 1, y: e.pageY },
+            target: isNumber(event.actualIndex) ? NulltoUndefined(this.view.getElement(event.actualIndex)) : undefined,
+        }
+    }
+
+    private __createContextmenuRegister(): Register<IListContextmenuEvent<T>> {
+        
+        // mouse right click
+        const onMouse = Event.map<PointerEvent, IListContextmenuEvent<T>>(this.view.onContextmenu, e => this.__toContextmenuEvent(e));
+
+        // contextmenu key OR shift + F10
+        const onKeyRaw = Event.filter(this.onKeyup, e => e.key === KeyCode.ContextMenu || (e.shift && e.key === KeyCode.F10));
+        const onKey = Event.map(onKeyRaw, e => { 
+            e.browserEvent.preventDefault();
+            e.browserEvent.stopPropagation(); 
+
+            const selections = this.getSelections();
+            const actualIndex = selections.length ? selections[0] : undefined;
+        
+            let renderIndex: number | undefined;
+            let item: T | undefined;
+            let target: HTMLElement = this.view.DOMElement;
+            if (actualIndex !== undefined) {
+                renderIndex = this.view.getRenderIndex(actualIndex);
+                item = this.view.getItem(actualIndex);
+                target = this.view.getElement(actualIndex) ?? target;
+            }
+
+            return <IListContextmenuEvent<T>>{
+                browserEvent: e.browserEvent,
+                actualIndex: actualIndex,
+                renderIndex: renderIndex,
+                item: item,
+                position: undefined,
+                target: target,
+            };
+        });
+
+        return Event.any([onMouse, onKey]);
     }
 
     /**

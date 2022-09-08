@@ -1,7 +1,7 @@
-import { ITreeCollapseStateChangeEvent, ITreeModel, ITreeMouseEvent, ITreeNode, ITreeSpliceEvent, ITreeTouchEvent } from "src/base/browser/secondary/tree/tree";
+import { ITreeCollapseStateChangeEvent, ITreeContextmenuEvent, ITreeModel, ITreeMouseEvent, ITreeNode, ITreeSpliceEvent, ITreeTouchEvent } from "src/base/browser/secondary/tree/tree";
 import { ITreeListRenderer, TreeItemRenderer } from "src/base/browser/secondary/tree/treeListRenderer";
 import { IListItemProvider, TreeListItemProvider } from "src/base/browser/secondary/listView/listItemProvider";
-import { IListMouseEvent, IListTouchEvent, IListWidget, IListWidgetOpts, ITraitChangeEvent, ListWidget, __ListWidgetMouseController } from "src/base/browser/secondary/listWidget/listWidget";
+import { IListContextmenuEvent, IListMouseEvent, IListTouchEvent, IListWidget, IListWidgetOpts, ITraitChangeEvent, ListWidget, __ListWidgetMouseController } from "src/base/browser/secondary/listWidget/listWidget";
 import { IListDragAndDropProvider } from "src/base/browser/secondary/listWidget/listWidgetDragAndDrop";
 import { DisposableManager, IDisposable } from "src/base/common/dispose";
 import { Event, Register, RelayEmitter } from "src/base/common/event";
@@ -349,6 +349,13 @@ export interface IAbstractTree<T, TFilter, TRef> {
      */
     get onKeydown(): Register<IStandardKeyboardEvent>;
 
+    /** 
+     * Fires when the user attempts to open a context menu {@link IAbstractTree}. 
+     * This event is typically triggered by clicking the right mouse button, or 
+     * by pressing the context menu key.
+     */
+    get onContextmenu(): Register<ITreeContextmenuEvent<T>>;
+
     // [method - general]
 
     /**
@@ -571,7 +578,8 @@ export abstract class AbstractTree<T, TFilter, TRef> implements IAbstractTree<T,
     get onTouchstart(): Register<ITreeTouchEvent<T>> { return Event.map(this._view.onTouchstart, this.__toTreeTouchEvent); }
 
     get onKeydown(): Register<IStandardKeyboardEvent> { return this._view.onKeydown; }
-
+    get onContextmenu(): Register<ITreeContextmenuEvent<T>> { return Event.map(this._view.onContextmenu, this.__toTreeContextmenuEvent); }
+    
     // [abstract methods]
 
     protected abstract createModel(view: ISpliceable<ITreeNode<T, TFilter>>, opts: IAbstractTreeOptions<T>): ITreeModel<T, TFilter, TRef>;
@@ -706,6 +714,18 @@ export abstract class AbstractTree<T, TFilter, TRef> implements IAbstractTree<T,
             parent: event.item?.parent?.data || null,
             children: event.item ? event.item.children.map(child => child.data) : null,
             depth: event.item ? event.item.depth : null
+        };
+    }
+
+    private __toTreeContextmenuEvent(event: IListContextmenuEvent<ITreeNode<T, any>>): ITreeContextmenuEvent<T> {
+        return {
+            browserEvent: event.browserEvent,
+            data: event.item ? event.item.data : null,
+            parent: event.item?.parent?.data || null,
+            children: event.item ? event.item.children.map(child => child.data) : null,
+            depth: event.item ? event.item.depth : null,
+            position: event.position,
+            target: event.target,
         };
     }
 }

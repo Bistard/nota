@@ -214,38 +214,45 @@ export interface ITreeModel<T, TFilter = void, TRef = number[]> {
  */
 export interface ITreeMouseEvent<T> {
     
-    /**
-     * Original browser event.
-     */
+    /** Original browser event. */
     browserEvent: MouseEvent;
 
-    /**
-     * The mouse event related data.
-     */
+    /** The mouse event related data. */
     data: T | null;
 
-    /**
-     * The parent data.
-     */
+    /** The parent data. */
     parent: T | null;
 
-    /**
-     * The children data.
-     */
+    /** The children data. */
     children: T[] | null;
 
-    /**
-     * The depth of the data in the tree.
-     */
+    /** The depth of the data in the tree. */
     depth: number | null;
 }
 
 export interface ITreeTouchEvent<T> {
     
+    /** Original browser event. */
+    browserEvent: TouchEvent;
+
+    /** The mouse event related data. */
+    data: T | null;
+
+    /** The parent data. */
+    parent: T | null;
+
+    /** The children data. */
+    children: T[] | null;
+
+    /** The depth of the data in the tree. */
+    depth: number | null;
+}
+
+export interface ITreeContextmenuEvent<T> {
     /**
      * Original browser event.
      */
-    browserEvent: TouchEvent;
+    browserEvent: UIEvent;
 
     /**
      * The mouse event related data.
@@ -266,8 +273,10 @@ export interface ITreeTouchEvent<T> {
      * The depth of the data in the tree.
      */
     depth: number | null;
-}
 
-export interface ITreeViewStatus {
+    /** The browser position of the contextmenu event. */
+	position: { x: number; y: number } | undefined;
 
+    /** The browser target of the contextmenu if any. */
+    target: HTMLElement | undefined;
 }

@@ -6,7 +6,7 @@ import { DisposableManager, IDisposable } from "src/base/common/dispose";
 import { Event, Register } from "src/base/common/event";
 import { Weakmap } from "src/base/common/util/map";
 import { IScrollEvent } from "src/base/common/scrollable";
-import { ITreeCollapseStateChangeEvent, ITreeMouseEvent, ITreeNode, ITreeNodeItem, ITreeSpliceEvent, ITreeTouchEvent } from "src/base/browser/secondary/tree/tree";
+import { ITreeCollapseStateChangeEvent, ITreeContextmenuEvent, ITreeMouseEvent, ITreeNode, ITreeNodeItem, ITreeSpliceEvent, ITreeTouchEvent } from "src/base/browser/secondary/tree/tree";
 import { AsyncMultiTreeModel, IAsyncMultiTreeModel } from "src/base/browser/secondary/tree/asyncMultiTreeModel";
 import { Iterable } from "src/base/common/util/iterable";
 import { ITreeModelSpliceOptions } from "src/base/browser/secondary/tree/indexTreeModel";
@@ -209,6 +209,13 @@ export interface IAsyncMultiTree<T, TFilter> {
      */
     get onKeydown(): Register<IStandardKeyboardEvent>;
     
+    /** 
+     * Fires when the user attempts to open a context menu {@link IAsyncMultiTree}. 
+     * This event is typically triggered by clicking the right mouse button, or 
+     * by pressing the context menu key.
+     */
+    get onContextmenu(): Register<ITreeContextmenuEvent<T>>;
+
     // [public method]
 
     /**
@@ -462,6 +469,7 @@ export class AsyncMultiTree<T, TFilter = void> implements IAsyncMultiTree<T, TFi
     
     get onTouchstart(): Register<ITreeTouchEvent<T>> { return Event.map(this._tree.onTouchstart, this.__toTreeTouchEvent); }
     get onKeydown(): Register<IStandardKeyboardEvent> { return this._tree.onKeydown; }
+    get onContextmenu(): Register<ITreeContextmenuEvent<T>> { return Event.map(this._tree.onContextmenu, this.__toTreeContextmenuEvent); }
 
     get DOMElement(): HTMLElement { return this._tree.DOMElement; }
 
@@ -725,6 +733,18 @@ export class AsyncMultiTree<T, TFilter = void> implements IAsyncMultiTree<T, TFi
             parent: event.parent?.data || null,
             children: event.children ? event.children.map(child => child!.data) : null,
             depth: event.depth
+        };
+    }
+
+    private __toTreeContextmenuEvent(event: ITreeContextmenuEvent<IAsyncTreeNode<T>| null>): ITreeContextmenuEvent<T> {
+        return {
+            browserEvent: event.browserEvent,
+            data: event.data && event.data.data,
+            parent: event.parent?.data || null,
+            children: event.children ? event.children.map(child => child!.data) : null,
+            depth: event.depth,
+            position: event.position,
+            target: event.target
         };
     }
 
