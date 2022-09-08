@@ -210,6 +210,16 @@ export interface IAsyncMultiTree<T, TFilter> {
     get onKeydown(): Register<IStandardKeyboardEvent>;
     
     /** 
+     * Fires when the {@link IAsyncMultiTree} is keyup. 
+     */
+    get onKeyup(): Register<IStandardKeyboardEvent>;
+
+     /** 
+      * Fires when the {@link IAsyncMultiTree} is keypress. 
+      */
+    get onKeypress(): Register<IStandardKeyboardEvent>;
+
+    /** 
      * Fires when the user attempts to open a context menu {@link IAsyncMultiTree}. 
      * This event is typically triggered by clicking the right mouse button, or 
      * by pressing the context menu key.
@@ -469,6 +479,8 @@ export class AsyncMultiTree<T, TFilter = void> implements IAsyncMultiTree<T, TFi
     
     get onTouchstart(): Register<ITreeTouchEvent<T>> { return Event.map(this._tree.onTouchstart, this.__toTreeTouchEvent); }
     get onKeydown(): Register<IStandardKeyboardEvent> { return this._tree.onKeydown; }
+    get onKeyup(): Register<IStandardKeyboardEvent> { return this._tree.onKeyup; }
+    get onKeypress(): Register<IStandardKeyboardEvent> { return this._tree.onKeypress; }
     get onContextmenu(): Register<ITreeContextmenuEvent<T>> { return Event.map(this._tree.onContextmenu, this.__toTreeContextmenuEvent); }
 
     get DOMElement(): HTMLElement { return this._tree.DOMElement; }

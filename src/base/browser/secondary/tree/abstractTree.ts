@@ -345,9 +345,19 @@ export interface IAbstractTree<T, TFilter, TRef> {
     get onTouchstart(): Register<ITreeTouchEvent<T>>;
 
     /**
-     * Fires when the {@link IAbstractTree} is keydowned.
+     * Fires when the {@link IAbstractTree} is keydown.
      */
     get onKeydown(): Register<IStandardKeyboardEvent>;
+
+    /** 
+     * Fires when the {@link IAbstractTree} is keyup. 
+     */
+    get onKeyup(): Register<IStandardKeyboardEvent>;
+
+    /** 
+     * Fires when the {@link IAbstractTree} is keypress. 
+     */
+    get onKeypress(): Register<IStandardKeyboardEvent>;
 
     /** 
      * Fires when the user attempts to open a context menu {@link IAbstractTree}. 
@@ -578,6 +588,8 @@ export abstract class AbstractTree<T, TFilter, TRef> implements IAbstractTree<T,
     get onTouchstart(): Register<ITreeTouchEvent<T>> { return Event.map(this._view.onTouchstart, this.__toTreeTouchEvent); }
 
     get onKeydown(): Register<IStandardKeyboardEvent> { return this._view.onKeydown; }
+    get onKeyup(): Register<IStandardKeyboardEvent> { return this._view.onKeyup; }
+    get onKeypress(): Register<IStandardKeyboardEvent> { return this._view.onKeypress; }
     get onContextmenu(): Register<ITreeContextmenuEvent<T>> { return Event.map(this._view.onContextmenu, this.__toTreeContextmenuEvent); }
     
     // [abstract methods]
