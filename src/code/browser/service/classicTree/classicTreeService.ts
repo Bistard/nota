@@ -67,7 +67,7 @@ export class ClassicTreeService extends Disposable implements IClassicTreeServic
             const rootStat = await this.fileService.stat(root, { resolveChildren: true });
             const rootItem = new ClassicItem(rootStat, null, IFilterOpts);
             await this.__createTree(container, rootItem, IFilterOpts);
-            this._tree?.onKeydown(e => {
+            this._tree?.onTouchstart(e => {
                 console.log(e);
             });
         }

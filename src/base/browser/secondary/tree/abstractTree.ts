@@ -1,7 +1,7 @@
-import { ITreeCollapseStateChangeEvent, ITreeModel, ITreeMouseEvent, ITreeNode, ITreeSpliceEvent } from "src/base/browser/secondary/tree/tree";
+import { ITreeCollapseStateChangeEvent, ITreeModel, ITreeMouseEvent, ITreeNode, ITreeSpliceEvent, ITreeTouchEvent } from "src/base/browser/secondary/tree/tree";
 import { ITreeListRenderer, TreeItemRenderer } from "src/base/browser/secondary/tree/treeListRenderer";
 import { IListItemProvider, TreeListItemProvider } from "src/base/browser/secondary/listView/listItemProvider";
-import { IListMouseEvent, IListWidget, IListWidgetOpts, ITraitChangeEvent, ListWidget, __ListWidgetMouseController } from "src/base/browser/secondary/listWidget/listWidget";
+import { IListMouseEvent, IListTouchEvent, IListWidget, IListWidgetOpts, ITraitChangeEvent, ListWidget, __ListWidgetMouseController } from "src/base/browser/secondary/listWidget/listWidget";
 import { IListDragAndDropProvider } from "src/base/browser/secondary/listWidget/listWidgetDragAndDrop";
 import { DisposableManager, IDisposable } from "src/base/common/dispose";
 import { Event, Register, RelayEmitter } from "src/base/common/event";
@@ -338,6 +338,12 @@ export interface IAbstractTree<T, TFilter, TRef> {
      */
     get onDoubleclick(): Register<ITreeMouseEvent<T>>;
 
+    /** 
+     * An event sent when the state of contacts with a touch-sensitive surface 
+     * changes. This surface can be a touch screen or trackpad.
+     */
+    get onTouchstart(): Register<ITreeTouchEvent<T>>;
+
     /**
      * Fires when the {@link IAbstractTree} is keydowned.
      */
@@ -562,6 +568,7 @@ export abstract class AbstractTree<T, TFilter, TRef> implements IAbstractTree<T,
 
     get onClick(): Register<ITreeMouseEvent<T>> { return Event.map(this._view.onClick, this.__toTreeMouseEvent); }
     get onDoubleclick(): Register<ITreeMouseEvent<T>> { return Event.map(this._view.onDoubleclick, this.__toTreeMouseEvent); }
+    get onTouchstart(): Register<ITreeTouchEvent<T>> { return Event.map(this._view.onTouchstart, this.__toTreeTouchEvent); }
 
     get onKeydown(): Register<IStandardKeyboardEvent> { return this._view.onKeydown; }
 
@@ -692,4 +699,13 @@ export abstract class AbstractTree<T, TFilter, TRef> implements IAbstractTree<T,
         };
     }
 
+    private __toTreeTouchEvent(event: IListTouchEvent<ITreeNode<T, any>>): ITreeTouchEvent<T> {
+        return {
+            browserEvent: event.browserEvent,
+            data: event.item ? event.item.data : null,
+            parent: event.item?.parent?.data || null,
+            children: event.item ? event.item.children.map(child => child.data) : null,
+            depth: event.item ? event.item.depth : null
+        };
+    }
 }

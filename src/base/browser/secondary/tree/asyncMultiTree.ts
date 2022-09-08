@@ -6,7 +6,7 @@ import { DisposableManager, IDisposable } from "src/base/common/dispose";
 import { Event, Register } from "src/base/common/event";
 import { Weakmap } from "src/base/common/util/map";
 import { IScrollEvent } from "src/base/common/scrollable";
-import { ITreeCollapseStateChangeEvent, ITreeMouseEvent, ITreeNode, ITreeNodeItem, ITreeSpliceEvent } from "src/base/browser/secondary/tree/tree";
+import { ITreeCollapseStateChangeEvent, ITreeMouseEvent, ITreeNode, ITreeNodeItem, ITreeSpliceEvent, ITreeTouchEvent } from "src/base/browser/secondary/tree/tree";
 import { AsyncMultiTreeModel, IAsyncMultiTreeModel } from "src/base/browser/secondary/tree/asyncMultiTreeModel";
 import { Iterable } from "src/base/common/util/iterable";
 import { ITreeModelSpliceOptions } from "src/base/browser/secondary/tree/indexTreeModel";
@@ -197,6 +197,12 @@ export interface IAsyncMultiTree<T, TFilter> {
      * Fires when the tree node in the {@link IAsyncMultiTree} is double clicked.
      */
     get onDoubleclick(): Register<ITreeMouseEvent<T>>;
+
+    /** 
+     * An event sent when the state of contacts with a touch-sensitive surface 
+     * changes. This surface can be a touch screen or trackpad.
+     */
+    get onTouchstart(): Register<ITreeTouchEvent<T>>;
 
     /**
      * Fires when the {@link IAsyncMultiTree} is keydowned.
@@ -454,6 +460,7 @@ export class AsyncMultiTree<T, TFilter = void> implements IAsyncMultiTree<T, TFi
     get onClick(): Register<ITreeMouseEvent<T>> { return Event.map(this._tree.onClick, this.__toTreeMouseEvent); }
     get onDoubleclick(): Register<ITreeMouseEvent<T>> { return Event.map(this._tree.onDoubleclick, this.__toTreeMouseEvent); }
     
+    get onTouchstart(): Register<ITreeTouchEvent<T>> { return Event.map(this._tree.onTouchstart, this.__toTreeTouchEvent); }
     get onKeydown(): Register<IStandardKeyboardEvent> { return this._tree.onKeydown; }
 
     get DOMElement(): HTMLElement { return this._tree.DOMElement; }
@@ -702,6 +709,16 @@ export class AsyncMultiTree<T, TFilter = void> implements IAsyncMultiTree<T, TFi
      * to {@link ITreeMouseEvent<T>}.
      */
     private __toTreeMouseEvent(event: ITreeMouseEvent<IAsyncTreeNode<T> | null>): ITreeMouseEvent<T> {
+        return {
+            browserEvent: event.browserEvent,
+            data: event.data && event.data.data,
+            parent: event.parent?.data || null,
+            children: event.children ? event.children.map(child => child!.data) : null,
+            depth: event.depth
+        };
+    }
+
+    private __toTreeTouchEvent(event: ITreeTouchEvent<IAsyncTreeNode<T> | null>): ITreeTouchEvent<T> {
         return {
             browserEvent: event.browserEvent,
             data: event.data && event.data.data,

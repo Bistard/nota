@@ -240,6 +240,34 @@ export interface ITreeMouseEvent<T> {
     depth: number | null;
 }
 
+export interface ITreeTouchEvent<T> {
+    
+    /**
+     * Original browser event.
+     */
+    browserEvent: TouchEvent;
+
+    /**
+     * The mouse event related data.
+     */
+    data: T | null;
+
+    /**
+     * The parent data.
+     */
+    parent: T | null;
+
+    /**
+     * The children data.
+     */
+    children: T[] | null;
+
+    /**
+     * The depth of the data in the tree.
+     */
+    depth: number | null;
+}
+
 export interface ITreeViewStatus {
 
 }
