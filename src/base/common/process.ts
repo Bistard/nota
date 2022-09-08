@@ -11,14 +11,14 @@ export const enum ProcessKey {
  * differently.
  */
 export interface INodeProcess {
-	platform: string;
-	arch: string;
-	env: IProcessEnvironment;
-	versions?: {
-		electron?: string;
+	readonly platform: string;
+	readonly arch: string;
+	readonly env: IProcessEnvironment;
+	readonly versions?: {
+		readonly electron?: string;
 	};
-	type?: string;
-	cwd: () => string;
+	readonly type?: string;
+	readonly cwd: () => string;
 }
 
 /**
@@ -45,7 +45,7 @@ export interface INodeProcess {
  * @note On Windows operating systems, environment variables are case-insensitive.
  */
 export interface IProcessEnvironment {
-	[key: string]: string | undefined;
+	readonly [key: string]: string | undefined;
 }
 
 declare const process: INodeProcess;

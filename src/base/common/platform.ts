@@ -18,7 +18,7 @@ declare const process: INodeProcess;
 declare const navigator: INavigator;
 
 export const [IS_WINDOWS, IS_MAC, IS_LINUX, PLATFORM]
- = function () {
+ = function resolvePlatformStatus() {
     let isWin = false;
     let isMac = false;
     let isLinux = false;

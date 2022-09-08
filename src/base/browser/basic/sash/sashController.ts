@@ -1,6 +1,6 @@
 import { ISash, ISashEvent } from "src/base/browser/basic/sash/sash";
 import { DisposableManager } from "src/base/common/dispose";
-import { addDisposableListener, createStyleInCSS, EventType, Orientation } from "src/base/common/dom";
+import { addDisposableListener, createStyleInCSS, EventType, Orientation } from "src/base/browser/basic/dom";
 
 export interface IAbstractSashController {
     /** 

@@ -1,6 +1,6 @@
 import * as assert from 'assert';
 import { BufferLogger } from 'src/base/common/logger';
-import { NullLogger } from 'test/testUtility';
+import { NullLogger } from 'test/utility';
 
 suite('logger', () => {
 

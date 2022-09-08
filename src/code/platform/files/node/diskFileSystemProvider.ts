@@ -1,19 +1,32 @@
-import { IOpenFileOptions, FileSystemProviderCapability, FileType, IFileSystemProviderWithFileReadWrite, IFileSystemProviderWithOpenReadWriteClose, IFileStat, IWriteFileOptions, IDeleteFileOptions, IOverwriteFileOptions, FileOperationErrorType, FileSystemProviderError, IFileSystemProviderWithReadFileStream, IReadFileOptions } from "src/base/common/file/file";
-import { URI } from "src/base/common/file/uri";
 import * as fs from "fs";
-import { fileExists, FileMode, readFileIntoStream } from "src/code/platform/files/node/io";
-import { retry } from "src/base/common/util/async";
+import { Disposable, IDisposable } from "src/base/common/dispose";
+import { DataBuffer } from "src/base/common/file/buffer";
+import { FileOperationErrorType, FileSystemProviderCapability, FileSystemProviderError, FileType, IDeleteFileOptions, IFileStat, IFileSystemProviderWithFileReadWrite, IFileSystemProviderWithOpenReadWriteClose, IFileSystemProviderWithReadFileStream, IOpenFileOptions, IOverwriteFileOptions, IReadFileOptions, IWatchOptions, IWriteFileOptions } from "src/base/common/file/file";
 import { join } from "src/base/common/file/path";
 import { IReadableStreamEvent, newWriteableStream } from "src/base/common/file/stream";
-import { DataBuffer } from "src/base/common/file/buffer";
+import { URI } from "src/base/common/file/uri";
+import { retry } from "src/base/common/util/async";
 import { FileService } from "src/code/platform/files/common/fileService";
+import { fileExists, FileMode, readFileIntoStream } from "src/base/node/io";
+import { IResourceChangeEvent, IWatcher, Watcher } from "src/code/platform/files/node/watcher";
+import { ILogService } from "src/base/common/logger";
+import { Emitter } from "src/base/common/event";
 
-export class DiskFileSystemProvider implements 
+export class DiskFileSystemProvider extends Disposable implements 
     IFileSystemProviderWithFileReadWrite, 
     IFileSystemProviderWithOpenReadWriteClose, 
     IFileSystemProviderWithReadFileStream
 {
+    // [event]
 
+    private readonly _onDidResourceChange = this.__register(new Emitter<IResourceChangeEvent>());
+    public readonly onDidResourceChange = this._onDidResourceChange.registerListener;
+
+    private readonly _onDidResourceClose = this.__register(new Emitter<URI>());
+    public readonly onDidResourceClose = this._onDidResourceClose.registerListener;
+
+    // [field]
+    
     /**
      * @readonly DiskFileSystemProvider has fully permission to deal with disk
      * fileSystems.
@@ -25,8 +38,15 @@ export class DiskFileSystemProvider implements
         FileSystemProviderCapability.FileFolderCopy |
         FileSystemProviderCapability.PathCaseSensitive;
 
+    private _watcher?: IWatcher;
+
     // [constructor]
-    constructor() {}
+
+    constructor(
+        private readonly logService?: ILogService,
+    ) {
+        super();
+    }
 
     /***************************************************************************
      * Unbuffered File Operations readFile/writeFile
@@ -111,9 +131,8 @@ export class DiskFileSystemProvider implements
                     if (!(stat.mode & 0o200)) {
                         await fs.promises.chmod(path, stat.mode | FileMode.writable);
                     }
-                } catch(err) {
+                } catch (_err) {
                     // ignore any errors here and try to just write
-                    // TODO: this.logService.trace(error);
                 }
 
             }
@@ -130,7 +149,7 @@ export class DiskFileSystemProvider implements
             return fd;
         } 
         
-        catch(err) {
+        catch (err) {
             throw err;
         }
     }
@@ -138,7 +157,7 @@ export class DiskFileSystemProvider implements
     public async close(fd: number): Promise<void> {
         try {
             fs.closeSync(fd);
-        } catch(err) {
+        } catch (err) {
             throw err;
         }
     }
@@ -152,7 +171,7 @@ export class DiskFileSystemProvider implements
             bytesRead = read;
             return bytesRead;
 
-        } catch(err) {
+        } catch (err) {
             throw err;
         }
     }
@@ -176,19 +195,27 @@ export class DiskFileSystemProvider implements
      **************************************************************************/
 
     public async copy(from: URI, to: URI, opts: IOverwriteFileOptions): Promise<void> {
-        const fromPath = URI.toFsPath(from);
-        const toPath = URI.toFsPath(to);
-
-        if (fromPath === toPath) {
+        if (from === to) {
             return;
         }
 
         try {
+            const fromPath = URI.toFsPath(from);
+            const toPath = URI.toFsPath(to);
+            const stat = await this.stat(from);
+            
             if (fileExists(toPath) && opts.overwrite === false) {
-                throw 'file already exists';
+                throw new FileSystemProviderError(`Target already exists at ${toPath}`, FileOperationErrorType.UNKNOWN);
             }
-            await fs.promises.copyFile(fromPath, toPath);
-        } catch (err) {
+
+            if (stat.type === FileType.DIRECTORY) {
+                await fs.promises.cp(fromPath, toPath, { recursive: true, force: true });
+            } else {
+                await fs.promises.copyFile(fromPath, toPath);
+            }
+        } 
+        
+        catch (err) {
             throw err;
         }
     }
@@ -293,7 +320,17 @@ export class DiskFileSystemProvider implements
         catch (err) {
             throw err;
         }
-    }	
+    }
+
+    public watch(uri: URI, opts?: IWatchOptions): IDisposable {
+        if (!this._watcher) {
+            this._watcher = new Watcher(this.logService);
+            this.__register(this._watcher.onDidChange(e => this._onDidResourceChange.fire(e)));
+            this.__register(this._watcher.onDidClose(e => this._onDidResourceClose.fire(e)));
+        }
+        const disposable = this._watcher.watch({ resource: uri, ...opts });
+        return disposable;
+    }
 
     /***************************************************************************
      * Helper Functions

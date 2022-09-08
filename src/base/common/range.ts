@@ -304,7 +304,7 @@ export class RangeTable {
 	 * @param position The position of the given item.
 	 * @returns The index of the item that after the provided one.
 	 */
-	indexAfter(position: number): number {
+	public indexAfter(position: number): number {
 		return Math.min(this.indexAt(position) + 1, this.count());
 	}
 

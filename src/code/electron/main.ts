@@ -1,5 +1,6 @@
 import 'src/code/electron/registrant';
 import { app, dialog } from 'electron';
+import { createServer, Server } from 'net';
 import { mkdir } from 'fs/promises';
 import { ErrorHandler, ExpectedError } from 'src/base/common/error';
 import { Event } from 'src/base/common/event';
@@ -19,11 +20,11 @@ import { MainEnvironmentService } from 'src/code/platform/environment/electron/m
 import { IMainLifecycleService, MainLifecycleService } from 'src/code/platform/lifecycle/electron/mainLifecycleService';
 import { IMainStatusService, MainStatusService } from 'src/code/platform/status/electron/mainStatusService';
 import { ICLIArguments } from 'src/code/platform/environment/common/argument';
-import { createServer, Server } from 'net';
 import { ProcessKey } from 'src/base/common/process';
 import { MainConfigService } from 'src/code/platform/configuration/electron/mainConfigService';
 import { getFormatCurrTimeStamp } from 'src/base/common/date';
 import { IConfigService } from 'src/code/platform/configuration/common/abstractConfigService';
+import { EventBlocker } from 'src/base/common/util/async';
 
 interface IMainProcess {
     start(argv: ICLIArguments): Promise<void>;
@@ -87,8 +88,11 @@ const nota = new class extends class MainProcess implements IMainProcess {
             // application run
             {
                 Event.once(this.lifecycleService.onWillQuit)(e => {
+                    // release all the watching resources
+                    e.join(new EventBlocker(this.fileService.onDidAllResourceClosed).waiting());
                     this.fileService.dispose();
-                    this.mainConfigService.dispose();
+                    
+                    // flush all the logging messages before we quit
                     e.join(this.logService.flush().then(() => this.logService.dispose()));
                 });
                 
@@ -124,7 +128,7 @@ const nota = new class extends class MainProcess implements IMainProcess {
 
         // file-service
         const fileService = new FileService(logService);
-        fileService.registerProvider(Schemas.FILE, new DiskFileSystemProvider());
+        fileService.registerProvider(Schemas.FILE, new DiskFileSystemProvider(logService));
         instantiationService.register(IFileService, fileService);
 
         // logger-service

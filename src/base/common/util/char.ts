@@ -27,6 +27,19 @@ export namespace Character {
 		return 0xDC00 <= char && char <= 0xDFFF;
 	}
 
+	/**
+	 * @description If the given charcode is a lower ascii character.
+	 */
+	export function isLowerAscii(char: number): boolean {
+		return char >= CharCode.a && char <= CharCode.z;
+	}
+	
+	/**
+	 * @description If the given charcode is a upper ascii character.
+	 */
+	export function isUpperAscii(char: number): boolean {
+		return char >= CharCode.A && char <= CharCode.Z;
+	}
 }
 
 // Names from https://blog.codinghorror.com/ascii-pronunciation-rules-for-programmers/

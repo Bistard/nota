@@ -12,4 +12,18 @@ export namespace Numbers {
         return num % 1 !== 0;
     }
 
+    /**
+     * @description Restricts the given number to a given range.
+     * @param num The given number.
+     */
+    export function clamp(num: number, min: number, max: number): number {
+        if (num <= min) {
+            return min;
+        }
+        if (num >= max) {
+            return max;
+        }
+        return num;
+    }
+
 }

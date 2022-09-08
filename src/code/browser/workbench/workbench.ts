@@ -1,4 +1,3 @@
-import { INotebookGroupService, NotebookGroup } from "src/code/platform/notebook/electron/notebookGroup";
 import { ContextMenuService, IContextMenuService } from 'src/code/browser/service/contextMenuService';
 import { IInstantiationService } from "src/code/platform/instantiation/common/instantiation";
 import { ServiceDescriptor } from "src/code/platform/instantiation/common/descriptor";
@@ -52,9 +51,6 @@ export class Workbench extends WorkbenchLayout implements IWorkbenchService {
 
         // @deprecated
         this.instantiationService.register(IContextMenuService, new ServiceDescriptor(ContextMenuService));
-
-        // @need-refactor
-        this.instantiationService.register(INotebookGroupService, new ServiceDescriptor(NotebookGroup));
     }
 
     /**

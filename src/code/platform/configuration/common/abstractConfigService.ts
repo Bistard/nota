@@ -1,7 +1,7 @@
 import { Disposable, IDisposable } from "src/base/common/dispose";
 import { Listener, Register } from "src/base/common/event";
 import { ILogService, LogLevel } from "src/base/common/logger";
-import { Array } from "src/base/common/util/array";
+import { Arrays } from "src/base/common/util/array";
 import { DeepReadonly } from "src/base/common/util/type";
 import { IConfigCollection } from "src/code/platform/configuration/common/configCollection";
 import { ConfigScope, IScopeConfigChangeEvent } from "src/code/platform/configuration/common/configRegistrant";
@@ -49,7 +49,7 @@ class ConfigEmitter<T extends IScopeConfigChangeEvent> {
              * The parent of the section is changed.
              */
             if (e.sections.length === 0
-                || Array.matchAny(e.sections, [section], (changes, desired) => desired.startsWith(changes))
+                || Arrays.matchAny(e.sections, [section], (changes, desired) => desired.startsWith(changes))
             ) {
                 const configuration = this._collection.get<ConfigType>(scope, section);
                 listener(configuration);
@@ -82,24 +82,28 @@ export interface IConfigService extends IDisposable {
 
     /**
      * @description Get specific configuration with the given scope.
+     * @param scope The scope of the configuration.
+     * @param section The section directs to the update configuration. If not
+     *                provided, the whole configuration under that scope will
+     *                be replaced.
+     * @param defaultVal If not found, provided defaultVal will be returned.
      * @note If section is not provided, the whole configuration will be 
      * returned.
-     * 
-     * @throws An exception will be thrown if the section is invalid.
+     * @warn `undefined` will be returned if not found and defaultVal is not 
+     * provided.
      */
-    get<T>(scope: ConfigScope, section: string | undefined): DeepReadonly<T>;
+    get<T>(scope: ConfigScope, section: string | undefined, defaultVal?: T): DeepReadonly<T>;
     
     /**
-     * @description Set specific configuration with the given scope.
+     * @description Set specific configuration with the given scope and returns
+     * a boolean if the operation success.
      * @param scope The scope of the configuration.
      * @param section The section directs to the update configuration. If not
      *                provided, the whole configuration under that scope will
      *                be replaced.
      * @param configuration The actual configuraion data.
-     * 
-     * @throws An exception will be thrown if the section is invalid.
      */
-    set(scope: ConfigScope, section: string | null, configuration: any): void;
+    set(scope: ConfigScope, section: string | null, configuration: any): boolean;
 
     /**
      * @description Delete configuration at given section with the given scope.
@@ -151,12 +155,21 @@ export class AbstractConfigService extends Disposable implements IConfigService 
         });
     }
 
-    public get<T>(scope: unknown, section: string | undefined): DeepReadonly<T> {
-        return this._collection.get(scope, section);
+    public get<T>(scope: unknown, section: string | undefined, defaultVal?: T): DeepReadonly<T> {
+        try {
+            return this._collection.get(scope, section);
+        } catch {
+            return defaultVal ?? undefined!;
+        }
     }
 
-    public set(scope: unknown, section: string | null, configuration: any): void {
-        this._collection.set(scope, section, configuration);
+    public set(scope: unknown, section: string | null, configuration: any): boolean {
+        try {
+            this._collection.set(scope, section, configuration);
+            return true;
+        } catch {
+            return false;
+        }
     }
 
     public delete(scope: unknown, section: string): boolean {

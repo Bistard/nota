@@ -6,23 +6,22 @@
  */
 export interface IDisposable {
 	dispose(): void;
-	isDisposed?(): boolean;
 }
 
 /**
  * @readonly The lifecyle of a disposable object is controlled by the client. A
  * disposable object can be registered into another disposable object.
  * 
- * Calling this.dispose() will dispose the object and all its registered ones. 
- * The client requires to implement their own this.dispose() method by overriding 
- * to make sure that all the resources are disposed properly.
+ * Calling `this.dispose()` will dispose the object and all its registered ones. 
+ * The client might need to implement their own `this.dispose()` method by 
+ * overriding to make sure that all the resources are disposed properly.
  * 
- * Essentially the idea of implementing a new this.dispose() method is to reduce 
- * the reference count of all the resources to zero and then the garbage 
+ * Essentially the idea of implementing a new `this.dispose()` method is to 
+ * reduce the reference count of all the resources to zero and then the garbage 
  * collection will do the rest of the jobs for us.
  * 
- * @note When overriding this.dispose() method, remember to to call super.dispose() 
- * at somewhere.
+ * @note When overriding `this.dispose()` method, remember to to call 
+ * `super.dispose() ` at somewhere.
  */
 export class Disposable implements IDisposable {
 
@@ -40,7 +39,9 @@ export class Disposable implements IDisposable {
 		this._disposableManager.dispose();
 	}
 
-	/** @description Determines if the current object is disposed already. */
+	/** 
+	 * @description Determines if the current object is disposed already. 
+	 */
 	public isDisposed(): boolean {
 		return this._disposableManager.disposed;
 	}
@@ -53,7 +54,7 @@ export class Disposable implements IDisposable {
 	 * If self-registering is encountered, an error will be thrown.
 	 */
 	protected __register<T extends IDisposable>(obj: T): T {
-		if (obj && (obj as any as Disposable) === this) {
+		if (obj && (obj as IDisposable) === this) {
 			throw new Error('cannot register the disposable object to itself');
 		}
 		return this._disposableManager.register(obj);
@@ -64,26 +65,32 @@ export class Disposable implements IDisposable {
 export class DisposableManager implements IDisposable {
 
 	private readonly _disposables = new Set<IDisposable>();
-	public disposed = false;
+	private _disposed = false;
 
 	constructor() {}
 
-	/** @description Disposes all the registered objects and the current object. */
+	/** 
+	 * @description Disposes all the registered objects and the current object. 
+	 */
 	public dispose(): void {
 		
 		// prevent double disposing
-		if (this.disposed) {
+		if (this._disposed) {
 			return;
 		}
 
 		// actual disposing
-		this.disposed = true;
+		this._disposed = true;
 		try {
 			disposeAll(this._disposables.values());
 		} finally {
 			// whether disposeAll throws or not, we need to clean the set.
 			this._disposables.clear();
 		}
+	}
+
+	get disposed(): boolean {
+		return this._disposed;
 	}
 
 	/**
@@ -95,7 +102,7 @@ export class DisposableManager implements IDisposable {
 			throw new Error('cannot register the disposable object to itself');
 		}
 
-		if (this.disposed) {
+		if (this._disposed) {
 			console.warn('cannot register a disposable object to a object which is already disposed');
 			return obj;
 		}
@@ -103,14 +110,13 @@ export class DisposableManager implements IDisposable {
 		this._disposables.add(obj);
 		return obj;
 	}
-
 }
 
 /*******************************************************************************
  * Helper Functions
  ******************************************************************************/
 
-export type IterableDisposable<T> = IterableIterator<T> | Array<T>;
+export type IterableDisposable<T extends IDisposable> = IterableIterator<T> | Array<T>;
 
 export class MultiDisposeError extends Error {
 	constructor(
@@ -130,8 +136,8 @@ export function disposeAll<T extends IDisposable>(disposables: IterableDisposabl
 	for (const disposable of disposables) {
 		try {
 			disposable.dispose();
-		} catch (err) {
-			errors.push(err as any);
+		} catch (err: any) {
+			errors.push(err);
 		}
 	}
 
@@ -143,12 +149,8 @@ export function disposeAll<T extends IDisposable>(disposables: IterableDisposabl
 	}
 }
 
-/**
- * @description Transfer a given function into a disposable object. The dispose()
- * method is the given function.
- */
 export function toDisposable(fn: () => any): IDisposable {
 	return {
 		dispose: fn
-	} as IDisposable;
+	};
 }

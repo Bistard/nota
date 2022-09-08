@@ -1,5 +1,8 @@
+import { IDisposable } from "src/base/common/dispose";
+import { Register } from "src/base/common/event";
 import { IReadableStreamEvent } from "src/base/common/file/stream";
 import { URI } from "src/base/common/file/uri";
+import { IResourceChangeEvent } from "src/code/platform/files/node/watcher";
 
 export namespace ByteSize {
 	export const KB = 1024;
@@ -62,19 +65,17 @@ export interface IResolvedFileStat extends IFileStat {
 	/**
 	 * The direct children of the target.
 	 */
-	children?: Iterable<IResolvedFileStat>;
-
+	readonly children?: Iterable<IResolvedFileStat>;
 }
 
 /** @description the base interface for any other FileSystemProvider. */
 export interface IFileSystemProvider {
 
 	readonly capabilities: FileSystemProviderCapability;
+	readonly onDidResourceChange: Register<IResourceChangeEvent>;
+	readonly onDidResourceClose: Register<URI>;
 	
-	// readonly onDidChangeCapabilities: Event<void>;
-	// readonly onDidErrorOccur?: Event<string>;
-	// readonly onDidChangeFile: Event<readonly IFileChange[]>;
-	// watch(uri: string, opts: IWatchOptions): IDisposable;
+	watch(uri: URI, opts?: IWatchOptions): IDisposable;
 
 	stat(uri: URI): Promise<IFileStat>;
 	mkdir(uri: URI): Promise<void>;
@@ -175,7 +176,6 @@ export function hasReadFileStreamCapability(provider: IFileSystemProvider): prov
  ******************************************************************************/
 
 export interface IOpenFileOptions {
-
 	/**
 	 * false: file should be opened for reading.
 	 * true:file should be opened for reading and writing.
@@ -191,7 +191,6 @@ export interface IOpenFileOptions {
 }
 
 export interface IReadFileOptions {
-
 	/**
 	 * Is an integer specifying where to begin reading from in the file. If 
 	 * position is undefined, data will be read from the current file position.
@@ -221,12 +220,9 @@ export interface IOverwriteFileOptions {
 	 readonly overwrite: boolean;
 }
 
-export interface ICreateFileOptions extends Partial<IOverwriteFileOptions> {
-	
-}
+export interface ICreateFileOptions extends Partial<IOverwriteFileOptions> {}
 
 export interface IWriteFileOptions extends IOverwriteFileOptions {
-
 	/**
 	 * Set to `true` to create a file when it does not exist. Will
 	 * throw an error otherwise if the file does not exist.
@@ -247,22 +243,33 @@ export interface IDeleteFileOptions {
 	 * only applies to folders and can lead to an error unless provided
 	 * if the folder is not empty.
 	 */
-	 readonly recursive: boolean;
+	 readonly recursive?: boolean;
 
 	 /**
 	  * Set to `true` to attempt to move the file to trash
 	  * instead of deleting it permanently from disk. This
 	  * option maybe not be supported on all providers.
 	  */
-	 readonly useTrash: boolean;
+	 readonly useTrash?: boolean;
 }
 
 export interface ICreateReadStreamOptions extends IReadFileOptions {
-
 	/**
 	 * The size of the buffer to use before sending to the stream.
 	 */
 	bufferSize: number;
+}
+
+export interface IWatchOptions {
+	/**
+	 * Watch the target recursively if it is a directory.
+	 */
+	readonly recursive?: boolean;
+	
+	/**
+	 * A set of glob patterns or paths to exclude from watching.
+	 */
+	readonly exclude?: RegExp[];
 }
 
 export interface IResolveStatOptions {
@@ -270,13 +277,12 @@ export interface IResolveStatOptions {
 	/**
 	 * Resolves the stat of the direct children.
 	 */
-	resolveChildren?: boolean;
+	readonly resolveChildren?: boolean;
 
 	/**
 	 * Resolves the stat of all the descendants.
 	 */
-	resolveChildrenRecursive?: boolean;
-
+	readonly resolveChildrenRecursive?: boolean;
 }
 
 /*******************************************************************************

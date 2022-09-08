@@ -7,11 +7,11 @@ import { ILogService } from 'src/base/common/logger';
 import { DiskFileSystemProvider } from 'src/code/platform/files/node/diskFileSystemProvider';
 import { FileService, IFileService } from 'src/code/platform/files/common/fileService';
 import { DiskStorage } from 'src/code/platform/files/common/diskStorage';
-import { TestDir, NullLogger } from 'test/testUtility';
+import { TestPath, NullLogger } from 'test/utility';
 
 suite('storage-test', () => {
 
-    let dir = join(TestDir, 'storage');
+    let dir = join(TestPath, 'storage');
     let path = join(dir, 'storage.json');
     let fileService: IFileService;
     let logService: ILogService;

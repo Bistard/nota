@@ -1,22 +1,20 @@
 import { IDisposable, toDisposable } from "src/base/common/dispose";
 
-interface IErrorCallback {
-    (error: any): void;
-}
-
+type IErrorCallback = (error: any) => void;
 type IErrorListener = IErrorCallback;
 
 /**
+ * @internal
  * @class An unexposed singleton that manages all the unexpected errors that are
  * caught by the {@link ErrorHandler.onUnexpectedError()}.
  * 
- * {@link _ErrorRegistry} cannot be accessed directly. All the functionalites 
+ * {@link _ErrorRegistrant} cannot be accessed directly. All the functionalites 
  * can be found in a wrapper namespace {@link ErrorHandler}.
  * 
  * @default unexpectedErrorExternalCallback behaviour is calling `console.error(err)`
  * then simply throw it out.
  */
-const _ErrorRegistry = new class extends class ErrorRegistry {
+const _ErrorRegistrant = new class extends class ErrorRegistrant {
     
     // [field]
 
@@ -86,7 +84,7 @@ export namespace ErrorHandler {
      * @returns Returns a {@link IDisposable} for unregistration.
      */
     export function registerListener(listener: IErrorListener): IDisposable {
-        return _ErrorRegistry.registerListener(listener);
+        return _ErrorRegistrant.registerListener(listener);
     }
 
     /**
@@ -94,7 +92,7 @@ export namespace ErrorHandler {
      * is caught (including external errors).
      */
     export function setUnexpectedErrorExternalCallback(callback: IErrorCallback): void {
-        _ErrorRegistry.setUnexpectedErrorExternalCallback(callback);
+        _ErrorRegistrant.setUnexpectedErrorExternalCallback(callback);
     }
 
     /**
@@ -103,7 +101,7 @@ export namespace ErrorHandler {
      * @param error The unexpected error to be fired.
      */
     export function onUnexpectedError(error: any): void {
-        _ErrorRegistry.onUnexpectedError(error);
+        _ErrorRegistrant.onUnexpectedError(error);
     }
 
     /**
@@ -112,7 +110,7 @@ export namespace ErrorHandler {
      * for external purpose.
      */
     export function onUnexpectedExternalError(error: any): void {
-        _ErrorRegistry.onUnexpectedExternalError(error);
+        _ErrorRegistrant.onUnexpectedExternalError(error);
     }
 
 }

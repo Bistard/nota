@@ -7,28 +7,28 @@
     overflow: hidden;
 }
 
-.opened-explorer-container, .unopened-explorer-container {
+.opened-explorer-container, .empty-explorer-container {
     position: relative;
     width: 100%;
     height: 100%;
     overflow: hidden;
 }
 
-.unopened-explorer-container > .explorer-open-tag {
+.empty-explorer-container > .explorer-open-tag {
     color: transparent;
     font-size: 10pt;
     text-align: center;
     transition: 0.1s;
 }
 
-.unopened-explorer-container:hover > .explorer-open-tag {
+.empty-explorer-container:hover > .explorer-open-tag {
     color: #9f9f95;
 }
 
-.unopened-explorer-container:hover > .explorer-open-tag:hover {
+.empty-explorer-container:hover > .explorer-open-tag:hover {
     color: rgb(202, 202, 202);
 }
 
-.unopened-explorer-container:hover > .explorer-open-tag:active {
+.empty-explorer-container:hover > .explorer-open-tag:active {
     color: #9f9f95;
 }

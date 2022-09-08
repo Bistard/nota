@@ -2,7 +2,7 @@ import "src/code/browser/registrant";
 import { Workbench } from "src/code/browser/workbench/workbench";
 import { IInstantiationService, InstantiationService } from "src/code/platform/instantiation/common/instantiation";
 import { getSingletonServiceDescriptors, ServiceCollection } from "src/code/platform/instantiation/common/serviceCollection";
-import { waitDomToBeLoad } from "src/base/common/dom";
+import { waitDomToBeLoad } from "src/base/browser/basic/dom";
 import { ComponentService, IComponentService } from "src/code/browser/service/component/componentService";
 import { Disposable } from "src/base/common/dispose";
 import { ServiceDescriptor } from "src/code/platform/instantiation/common/descriptor";
@@ -13,7 +13,7 @@ import { BufferLogger, ILogService, LogLevel, PipelineLogger } from "src/base/co
 import { ILoggerService } from "src/code/platform/logger/common/abstractLoggerService";
 import { IFileService } from "src/code/platform/files/common/fileService";
 import { BrowserEnvironmentService } from "src/code/platform/environment/browser/browserEnvironmentService";
-import { BrowserFileChannel } from "src/code/platform/files/common/fileChannel";
+import { BrowserFileChannel } from "src/code/platform/files/browser/fileChannel";
 import { ErrorHandler } from "src/base/common/error";
 import { ApplicationMode, IBrowserEnvironmentService } from "src/code/platform/environment/common/environment";
 import { ConsoleLogger } from "src/code/platform/logger/common/consoleLoggerService";

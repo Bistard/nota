@@ -3,7 +3,7 @@ import { createService } from 'src/code/platform/instantiation/common/decorator'
 import { IComponentService } from 'src/code/browser/service/component/componentService';
 import { ActionButton } from 'src/code/browser/workbench/actionBar/actionButton';
 import { WidgetBar } from 'src/base/browser/secondary/widgetBar/widgetBar';
-import { Orientation } from 'src/base/common/dom';
+import { Orientation } from 'src/base/browser/basic/dom';
 import { Icons } from 'src/base/browser/icon/icons';
 import { Emitter, Register } from 'src/base/common/event';
 import { IThemeService } from 'src/code/browser/service/theme/themeService';

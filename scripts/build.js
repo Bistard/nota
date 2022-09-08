@@ -37,22 +37,26 @@ function wrapSpawnWithPrintMessage() {
 
         let output = `${getTime()} `;
         if (typeof arg === 'string') {
-            output += `[Executing command] ${arg}`;
+            output += `[Executing command] ${arg}\n`;
         } 
         else if (Array.isArray(arg)) {
             if (arg.length === 0) {
-                output += `[Command arguments] N/A`;
+                output += `[Command arguments] N/A\n`;
             } else {
-                output += `[Command arguments] ${arg}`;
+                output += `[Command arguments] ${arg}\n`;
             }
         } 
         else {
             const stamp = getTime();
             output = `${stamp} [CWD]: ${arg.cwd}\n`;
-            output += `${stamp} [NODE_ENV]: ${arg.env.NODE_ENV}`;
+            output += `${stamp} [NODE_ENV]: ${arg.env.NODE_ENV ?? 'N/A'}\n`;
+            output += `${stamp} [ELECTRON_VER]: ${process.versions.electron ?? 'N/A'}\n`;
+            output += `${stamp} [CHROME_VER]: ${process.versions.chrome ?? 'N/A'}\n`;
+            output += `${stamp} [V8_VER]: ${process.versions.v8 ?? 'N/A'}\n`;
+            output += `${stamp} [NODE_VER]: ${process.versions.node ?? 'N/A'}\n`;
         }
         
-        console.log(output);
+        process.stdout.write(output);
     }
 
     var result = oldSpawn.apply(this, arguments);

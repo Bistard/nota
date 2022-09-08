@@ -1,16 +1,16 @@
 
 /**
- * A helper decorator to implement `Memoization`. Used to speed up some expensive 
- * functions by storing the result in memory.
+ * @description A helper decorator to implement `Memoization`. Used to speed up 
+ * some expensive functions by storing the result in memory.
  * 
  * Could be used in functions or getters.
- * 
- * @throws An exception will be thrown if applied on either fucntions or getters.
  * 
  * @param target Either the constructor function of the class for a static 
  * 				 method, or the prototype of the class for an instance method.
  * @param propertyKey The name of the method.
  * @param descriptor The Property Descriptor for the method. More see https://www.logicbig.com/tutorials/misc/javascript/object-get-own-property-descriptor.html
+ * 
+ * @throws An exception will be thrown if applied on either fucntions or getters.
  */
 export function memoize(target: any, propertyKey: string, descriptor: PropertyDescriptor): void {
 

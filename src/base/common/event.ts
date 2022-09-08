@@ -1,13 +1,12 @@
 import { LinkedList } from "src/base/common/util/linkedList";
-import { addDisposableListener, EventType } from "src/base/common/dom";
 import { Disposable, DisposableManager, disposeAll, IDisposable, toDisposable } from "src/base/common/dispose";
 import { ErrorHandler } from "src/base/common/error";
+import { ITask } from "src/base/common/util/async";
 
 /*******************************************************************************
  * This file contains a series event emitters and related tools for communications 
  * between different code sections. 
  *  - {@link Emitter}
- *  - {@link DomEmitter}
  *  - {@link PauseableEmitter}
  *  - {@link DelayableEmitter}
  *  - {@link SignalEmitter}
@@ -29,7 +28,6 @@ export type AsyncListener<E> = (e: E) => Promise<any>;
 /**
  * @readonly A register is essentially a function that registers a listener to 
  * the event type T.
- * 
  * @param listener The `listener` to be registered.
  * @param disposables The `disposables` is used to store all the `listener`s as 
  * disposables after registrations.
@@ -44,7 +42,6 @@ export interface AsyncRegister<T> {
 }
 
 export interface IEmitter<T> {
-
     /**
      * @description For the purpose of registering new listener.
      * 
@@ -80,7 +77,6 @@ export interface IEmitter<T> {
      * @description If the emitter is disposed.
      */
     isDisposed(): boolean;
-
 }
 
 /**
@@ -96,7 +92,6 @@ class __Listener<T> {
     public fire(e: T): void {
         this.callback.call(this.thisObject, e);
     }
-
 }
 
 class __AsyncListener<T> {
@@ -109,7 +104,6 @@ class __AsyncListener<T> {
     public async fire(e: T): Promise<void> {
         this.callback.call(this.thisObject, e);
     }
-
 }
 
 /**
@@ -118,19 +112,18 @@ class __AsyncListener<T> {
 export interface IEmitterOptions {
 
     /** Invokes before the first listener is about to be added. */
-    readonly onFirstListenerAdd?: Function;
+    readonly onFirstListenerAdd?: ITask<any>;
 
     /** Invokes after the first listener is added. */
-    readonly onFirstListenerDidAdd?: Function;
+    readonly onFirstListenerDidAdd?: ITask<any>;
 
     /** Invokes after the last listener is removed. */
-    readonly onLastListenerRemoved?: Function;
-
+    readonly onLastListenerRemoved?: ITask<any>;
 }
 
 /**
- * @readonly An event emitter binds to a specific event T. All the listeners who 
- * is listening to the event T will be notified once the event occurs.
+ * @class An event emitter binds to a specific event T. All the listeners who is 
+ * listening to the event T will be notified once the event occurs.
  * 
  * To listen to this event T, use this.registerListener(listener) where `listener` 
  * is essentially a callback function.
@@ -138,7 +131,7 @@ export interface IEmitterOptions {
  * To trigger the event occurs and notifies all the listeners, use this.fire(event) 
  * where `event` has the type T.
  * 
- * @throws @throws The unexpected caught by fire() error will be caught by {@link ErrorHandler}.
+ * @throws The unexpected caught by fire() error will be caught by {@link ErrorHandler}.
  */
 export class Emitter<T> implements IDisposable, IEmitter<T> {
     
@@ -236,31 +229,6 @@ export class Emitter<T> implements IDisposable, IEmitter<T> {
     public isDisposed(): boolean {
         return this._disposed;
     }
-}
-
-/**
- * @class A Simple class for register callback on a given HTMLElement using an
- * {@link Emitter} instead of using raw *addEventListener()* method.
- */
-export class DomEmitter<T> implements IDisposable {
-
-    private emitter: Emitter<T>;
-    private listener: IDisposable;
-
-    get registerListener(): Register<T> {
-        return this.emitter.registerListener;
-    }
-
-    constructor(element: EventTarget, type: EventType) {
-        this.emitter = new Emitter();
-        this.listener = addDisposableListener(element, type as any, (e: Event) => this.emitter.fire(e as any));
-    }
-
-    public dispose(): void {
-        this.emitter.dispose();
-        this.listener.dispose();
-    }
-
 }
 
 /**
@@ -584,7 +552,7 @@ export namespace Event {
                 if (fn(e)) {
                     listener.call(thisArgs, e);
                 }
-            });
+            }, disposables, thisArgs);
         };
         return newRegister;
     }

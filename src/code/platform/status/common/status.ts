@@ -5,5 +5,5 @@
  */
 export const enum StatusKey {
     MachineIdKey = 'machineID',
-    toOpenURI = 'toOpenURI',
+    LastOpenedWorkspace = 'LastOpenedWorkspace',
 };

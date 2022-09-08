@@ -24,6 +24,8 @@ import { IWindowInstance } from "src/code/platform/window/electron/windowInstanc
 import { MainHostService } from "src/code/platform/host/electron/mainHostService";
 import { IHostService } from "src/code/platform/host/common/hostService";
 import { DEFAULT_HTML } from "src/code/platform/window/common/window";
+import { URI } from "src/base/common/file/uri";
+import { MainFileChannel } from "src/code/platform/files/electron/mainFileChannel";
 
 /**
  * An interface only for {@link NotaInstance}
@@ -133,7 +135,7 @@ export class NotaInstance extends Disposable implements INotaInstance {
     private registerChannels(provider: IServiceProvider, server: Readonly<IpcServer>): void {
 
         // file-service-channel
-        const diskFileChannel = ProxyChannel.wrapService(this.fileService);
+        const diskFileChannel = new MainFileChannel(this.logService, this.fileService);
         server.registerChannel(IpcChannel.DiskFile, diskFileChannel);
 
         // logger-service-channel
@@ -172,10 +174,18 @@ export class NotaInstance extends Disposable implements INotaInstance {
             }
         });
         
+        // retrieve last saved opened window status
+        const uriToOpen: URI[] = [];
+        const uri = this.statusService.get<string>(StatusKey.LastOpenedWorkspace);
+        if (uri) {
+            uriToOpen.push(URI.parse(uri));
+        }
+
         // open the first window
         const window: IWindowInstance = mainWindowService.open({
             CLIArgv: this.environmentService.CLIArguments,
             loadFile: DEFAULT_HTML,
+            uriToOpen: uriToOpen,
         });
 
         return window;
@@ -188,7 +198,7 @@ export class NotaInstance extends Disposable implements INotaInstance {
     // [private helper methods]
 
     private __getMachineID(): UUID {
-        let id = this.statusService.get(StatusKey.MachineIdKey);
+        let id = this.statusService.get<string>(StatusKey.MachineIdKey);
         if (!id) {
             id = getUUID();
             this.statusService.set(StatusKey.MachineIdKey, id);
@@ -198,7 +208,7 @@ export class NotaInstance extends Disposable implements INotaInstance {
 
     private __onUnexpectedError(error: any): void {
         this.logService.error(`[uncought exception]: ${error}`);
-        if (error.stack) {
+        if (error && error.stack) {
             this.logService.error(error.stack);
         }
     }

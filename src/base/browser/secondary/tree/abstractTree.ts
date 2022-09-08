@@ -1,13 +1,14 @@
-import { ITreeCollapseStateChangeEvent, ITreeModel, ITreeMouseEvent, ITreeNode, ITreeSpliceEvent } from "src/base/browser/secondary/tree/tree";
+import { ITreeCollapseStateChangeEvent, ITreeContextmenuEvent, ITreeModel, ITreeMouseEvent, ITreeNode, ITreeSpliceEvent, ITreeTouchEvent } from "src/base/browser/secondary/tree/tree";
 import { ITreeListRenderer, TreeItemRenderer } from "src/base/browser/secondary/tree/treeListRenderer";
 import { IListItemProvider, TreeListItemProvider } from "src/base/browser/secondary/listView/listItemProvider";
-import { IListMouseEvent, IListWidget, IListWidgetOpts, ITraitChangeEvent, ListWidget, __ListWidgetMouseController } from "src/base/browser/secondary/listWidget/listWidget";
+import { IListContextmenuEvent, IListMouseEvent, IListTouchEvent, IListWidget, IListWidgetOpts, ITraitChangeEvent, ListWidget, __ListWidgetMouseController } from "src/base/browser/secondary/listWidget/listWidget";
 import { IListDragAndDropProvider } from "src/base/browser/secondary/listWidget/listWidgetDragAndDrop";
 import { DisposableManager, IDisposable } from "src/base/common/dispose";
 import { Event, Register, RelayEmitter } from "src/base/common/event";
 import { ISpliceable } from "src/base/common/range";
 import { IScrollEvent } from "src/base/common/scrollable";
 import { IListViewRenderer } from "src/base/browser/secondary/listView/listRenderer";
+import { IStandardKeyboardEvent } from "src/base/common/keyboard";
 
 /**
  * @class A wrapper class to convert a basic {@link IListDragAndDropProvider<T>}
@@ -23,7 +24,7 @@ class __TreeListDragAndDropProvider<T> implements IListDragAndDropProvider<ITree
         return this.dnd.getDragData(node.data);
     }
 
-    public getDragTag(items: ITreeNode<T, void>[]): string {
+    public getDragTag(items: ITreeNode<T>[]): string {
         return this.dnd.getDragTag(items.map(item => item.data));
     }
 
@@ -33,6 +34,35 @@ class __TreeListDragAndDropProvider<T> implements IListDragAndDropProvider<ITree
         }
     }
 
+    public onDragOver(event: DragEvent, currentDragItems: ITreeNode<T>[], targetOver?: ITreeNode<T>, targetIndex?: number): boolean {
+        if (this.dnd.onDragOver) {
+            return this.dnd.onDragOver(event, currentDragItems.map(node => node.data), targetOver?.data, targetIndex);
+        }
+        return false;
+    }
+
+    public onDragEnter(event: DragEvent, currentDragItems: ITreeNode<T>[], targetOver?: ITreeNode<T>, targetIndex?: number): void {
+        if (this.dnd.onDragEnter) {
+            return this.dnd.onDragEnter(event, currentDragItems.map(node => node.data), targetOver?.data, targetIndex);
+        }
+    }
+
+    public onDragLeave(event: DragEvent, currentDragItems: ITreeNode<T>[], targetOver?: ITreeNode<T>, targetIndex?: number): void {
+        if (this.dnd.onDragLeave) {
+            return this.dnd.onDragLeave(event, currentDragItems.map(node => node.data), targetOver?.data, targetIndex);
+        }
+    }
+    public onDragDrop(event: DragEvent, currentDragItems: ITreeNode<T>[], targetOver?: ITreeNode<T>, targetIndex?: number): void {
+        if (this.dnd.onDragDrop) {
+            return this.dnd.onDragDrop(event, currentDragItems.map(node => node.data), targetOver?.data, targetIndex);
+        }
+    }
+
+    public onDragEnd(event: DragEvent): void {
+        if (this.dnd.onDragEnd) {
+            return this.dnd.onDragEnd(event);
+        }
+    }
 }
 
 /**
@@ -51,9 +81,7 @@ class __TreeListTrait<T> {
 
     // [constructor]
 
-    constructor() {
-
-    }
+    constructor() {}
 
     // [public method]
 
@@ -244,11 +272,18 @@ export class TreeListWidget<T, TFilter, TRef> extends ListWidget<ITreeNode<T>> {
  */
 export interface IAbstractTreeOptions<T> {
 
-    /** @default false */
+    /** 
+     * If the tree node should be collapsed when constructing a new one by 
+     * default. Which means if {@link ITreeNodeItem.collapsed} is not defined,
+     * this will be applied.
+     * @default false
+     */
     readonly collapseByDefault?: boolean;
 
+    /**
+     * Provides the functionality to achieve drag and drop support in the tree.
+     */
     readonly dnd?: IListDragAndDropProvider<T>;
-
 }
 
 /**
@@ -259,7 +294,7 @@ export interface IAbstractTree<T, TFilter, TRef> {
     /**
      * The container of the whole tree.
      */
-    DOMElement: HTMLElement;
+    readonly DOMElement: HTMLElement;
 
     // [event]
 
@@ -302,6 +337,34 @@ export interface IAbstractTree<T, TFilter, TRef> {
      * Fires when the tree node in the {@link IAbstractTree} is double clicked.
      */
     get onDoubleclick(): Register<ITreeMouseEvent<T>>;
+
+    /** 
+     * An event sent when the state of contacts with a touch-sensitive surface 
+     * changes. This surface can be a touch screen or trackpad.
+     */
+    get onTouchstart(): Register<ITreeTouchEvent<T>>;
+
+    /**
+     * Fires when the {@link IAbstractTree} is keydown.
+     */
+    get onKeydown(): Register<IStandardKeyboardEvent>;
+
+    /** 
+     * Fires when the {@link IAbstractTree} is keyup. 
+     */
+    get onKeyup(): Register<IStandardKeyboardEvent>;
+
+    /** 
+     * Fires when the {@link IAbstractTree} is keypress. 
+     */
+    get onKeypress(): Register<IStandardKeyboardEvent>;
+
+    /** 
+     * Fires when the user attempts to open a context menu {@link IAbstractTree}. 
+     * This event is typically triggered by clicking the right mouse button, or 
+     * by pressing the context menu key.
+     */
+    get onContextmenu(): Register<ITreeContextmenuEvent<T>>;
 
     // [method - general]
 
@@ -478,13 +541,15 @@ export abstract class AbstractTree<T, TFilter, TRef> implements IAbstractTree<T,
          */
         const relayEmitter = new RelayEmitter<ITreeCollapseStateChangeEvent<T, TFilter>>();
 
-        // wraps each tree list view renderer with a basic tree item renderer.
+        // wraps each tree list view renderer with a basic tree item renderer
         renderers = renderers.map(renderer => new TreeItemRenderer<T, TFilter, any>(renderer, relayEmitter.registerListener));
 
+        // create traits for user operations
         this._focused = new __TreeListTrait();
         this._anchor = new __TreeListTrait();
         this._selected = new __TreeListTrait();
 
+        // construct the atcual view
         this._view = new TreeListWidget(
             container, 
             renderers, 
@@ -498,9 +563,10 @@ export abstract class AbstractTree<T, TFilter, TRef> implements IAbstractTree<T,
             }
         );
 
+        // create the tree model from abstraction, client may override it.
         this._model = this.createModel(this._view, opts);
 
-        // reset the input event emitter once the model is created.
+        // reset the input event emitter once the model is created
         relayEmitter.setInput(this._model.onDidChangeCollapseState);
 
         // dispose registration
@@ -519,7 +585,13 @@ export abstract class AbstractTree<T, TFilter, TRef> implements IAbstractTree<T,
 
     get onClick(): Register<ITreeMouseEvent<T>> { return Event.map(this._view.onClick, this.__toTreeMouseEvent); }
     get onDoubleclick(): Register<ITreeMouseEvent<T>> { return Event.map(this._view.onDoubleclick, this.__toTreeMouseEvent); }
+    get onTouchstart(): Register<ITreeTouchEvent<T>> { return Event.map(this._view.onTouchstart, this.__toTreeTouchEvent); }
 
+    get onKeydown(): Register<IStandardKeyboardEvent> { return this._view.onKeydown; }
+    get onKeyup(): Register<IStandardKeyboardEvent> { return this._view.onKeyup; }
+    get onKeypress(): Register<IStandardKeyboardEvent> { return this._view.onKeypress; }
+    get onContextmenu(): Register<ITreeContextmenuEvent<T>> { return Event.map(this._view.onContextmenu, this.__toTreeContextmenuEvent); }
+    
     // [abstract methods]
 
     protected abstract createModel(view: ISpliceable<ITreeNode<T, TFilter>>, opts: IAbstractTreeOptions<T>): ITreeModel<T, TFilter, TRef>;
@@ -647,4 +719,25 @@ export abstract class AbstractTree<T, TFilter, TRef> implements IAbstractTree<T,
         };
     }
 
+    private __toTreeTouchEvent(event: IListTouchEvent<ITreeNode<T, any>>): ITreeTouchEvent<T> {
+        return {
+            browserEvent: event.browserEvent,
+            data: event.item ? event.item.data : null,
+            parent: event.item?.parent?.data || null,
+            children: event.item ? event.item.children.map(child => child.data) : null,
+            depth: event.item ? event.item.depth : null
+        };
+    }
+
+    private __toTreeContextmenuEvent(event: IListContextmenuEvent<ITreeNode<T, any>>): ITreeContextmenuEvent<T> {
+        return {
+            browserEvent: event.browserEvent,
+            data: event.item ? event.item.data : null,
+            parent: event.item?.parent?.data || null,
+            children: event.item ? event.item.children.map(child => child.data) : null,
+            depth: event.item ? event.item.depth : null,
+            position: event.position,
+            target: event.target,
+        };
+    }
 }

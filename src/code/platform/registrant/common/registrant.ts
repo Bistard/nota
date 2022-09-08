@@ -1,4 +1,5 @@
 import { ErrorHandler } from "src/base/common/error";
+import { Constructor } from "src/base/common/util/type";
 
 /**
  * The type of built-in registrants.
@@ -8,6 +9,7 @@ export const enum RegistrantType {
     Command,
     Configuration,
     Shortcut,
+    Reviver,
 }
 
 export interface IRegistrantIdentifier<T> {
@@ -36,7 +38,7 @@ export function createRegistrant<T>(registrantID: RegistrantType, ...args: any[]
         return registrantIdentifier;
     }
 
-    const newIdentifier = <any>(function<Ctor extends new (...args: any[]) => any> (ctor: Ctor) {
+    const newIdentifier = <any>(function<Ctor extends Constructor<any>> (ctor: Ctor) {
         const existed = _registarnts.get(newIdentifier);
         if (existed) {
             ErrorHandler.onUnexpectedError(new Error('Registering duplicate registrants'));

@@ -1,3 +1,4 @@
+import { Constructor } from "src/base/common/util/type";
 import { createService, ServiceIdentifier, _ServiceUtil } from "src/code/platform/instantiation/common/decorator";
 import { Graph, Node } from "src/code/platform/instantiation/common/dependencyGraph";
 import { ServiceDescriptor } from "src/code/platform/instantiation/common/descriptor";
@@ -43,7 +44,7 @@ export interface IInstantiationService extends IServiceProvider {
      * @param ctorOrDescriptor constructor or ServiceDescriptor of the service
      * @param rest all the arguments for that service
      */
-    createInstance<Ctor extends new (...args: any[]) => any, T extends InstanceType<Ctor>>(ctorOrDescriptor: Ctor | ServiceDescriptor<Ctor>, ...rest: any[]): T;
+    createInstance<Ctor extends Constructor<any>, T extends InstanceType<Ctor>>(ctorOrDescriptor: Ctor | ServiceDescriptor<Ctor>, ...rest: any[]): T;
 
     /**
      * @description Create a new instantiation service that inherits all the 

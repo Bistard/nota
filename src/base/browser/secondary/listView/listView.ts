@@ -3,20 +3,18 @@ import { IListViewRenderer, ListItemRenderer, PipelineRenderer, RendererType } f
 import { ScrollableWidget } from "src/base/browser/secondary/scrollableWidget/scrollableWidget";
 import { ScrollbarType } from "src/base/browser/secondary/scrollableWidget/scrollableWidgetOptions";
 import { DisposableManager, IDisposable } from "src/base/common/dispose";
-import { DomUtility, EventType } from "src/base/common/dom";
-import { DomEmitter, Emitter, Register } from "src/base/common/event";
+import { DomEmitter, DomUtility, EventType } from "src/base/browser/basic/dom";
+import { Emitter, Register } from "src/base/common/event";
 import { IRange, ISpliceable, Range, RangeTable } from "src/base/common/range";
 import { IScrollEvent, Scrollable } from "src/base/common/scrollable";
 import { IListItemProvider } from "src/base/browser/secondary/listView/listItemProvider";
 import { memoize } from "src/base/common/memoization";
 import { FocusTracker } from "src/base/browser/basic/focusTracker";
 
-
 /**
  * The consturtor options for {@link ListView}.
  */
 export interface IListViewOpts<T> {
-    
     /**
      * When constructing the view, decide whether to layout the view immediately.
      * `layout` meanning to update the size of the view and causes rerendering.
@@ -57,7 +55,6 @@ export interface IListViewOpts<T> {
      * @default 10
      */
     readonly scrollbarSize?: number;
-    
 }
 
 /**
@@ -143,11 +140,24 @@ export interface IListView<T> extends IDisposable {
      */
     get onTouchstart(): Register<TouchEvent>;
 
-    /** Fires when the {@link IListView} is keydowned. */
+    /** Fires when the {@link IListView} is keydown. */
     get onKeydown(): Register<KeyboardEvent>;
 
+    /** Fires when the {@link IListView} is keyup. */
+    get onKeyup(): Register<KeyboardEvent>;
+
+    /** Fires when the {@link IListView} is keypress. */
+    get onKeypress(): Register<KeyboardEvent>;
+
+    /** 
+     * Fires when the user attempts to open a context menu {@link IListView}. 
+     * This event is typically triggered by clicking the right mouse button, or 
+     * by pressing the context menu key.
+     */
+    get onContextmenu(): Register<PointerEvent>;
+
     /** The container of the whole view. */
-    DOMElement: HTMLElement;
+    readonly DOMElement: HTMLElement;
 
     // [public methods]
 
@@ -428,6 +438,9 @@ export class ListView<T> implements IDisposable, ISpliceable<T>, IListView<T> {
     @memoize get onTouchstart(): Register<TouchEvent> { return this.disposables.register(new DomEmitter<TouchEvent>(this.element, EventType.touchstart)).registerListener; }
 
     @memoize get onKeydown(): Register<KeyboardEvent> { return this.disposables.register(new DomEmitter<KeyboardEvent>(this.element, EventType.keydown)).registerListener; }
+    @memoize get onKeyup(): Register<KeyboardEvent> { return this.disposables.register(new DomEmitter<KeyboardEvent>(this.element, EventType.keyup)).registerListener; }
+    @memoize get onKeypress(): Register<KeyboardEvent> { return this.disposables.register(new DomEmitter<KeyboardEvent>(this.element, EventType.keypress)).registerListener; }
+    @memoize get onContextmenu(): Register<PointerEvent> { return this.disposables.register(new DomEmitter<PointerEvent>(this.element, EventType.contextmenu)).registerListener; }
 
     get DOMElement(): HTMLElement { return this.element; }
 

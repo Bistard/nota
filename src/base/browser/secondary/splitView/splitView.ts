@@ -1,7 +1,7 @@
 import { ISash, ISashEvent, Sash } from "src/base/browser/basic/sash/sash";
 import { ISplitViewItem, ISplitViewItemOpts, SplitViewItem } from "src/base/browser/secondary/splitView/splitViewItem";
 import { Disposable } from "src/base/common/dispose";
-import { DomUtility, Orientation } from "src/base/common/dom";
+import { DomUtility, Orientation } from "src/base/browser/basic/dom";
 import { Emitter, Priority, Register } from "src/base/common/event";
 import { IDimension } from "src/base/common/util/size";
 import { Pair } from "src/base/common/util/type";
@@ -25,6 +25,11 @@ export interface ISplitView extends Disposable {
      * Fires when the sash is resetted to the default position (double-click).
      */
     readonly onDidSashReset: Register<number>;
+
+    /**
+     * Fires when the split view has relayout the size.
+     */
+    readonly onDidLayout: Register<IDimension>;
     
     /**
      * @description Construsts a new {@link SplitViewItem} and add it into the 
@@ -57,11 +62,10 @@ export interface ISplitView extends Disposable {
      */
     swapView(first: number, second: number): void;
 
-    // TODO
-    onWindowResize(dimension: IDimension): void;
-
-    // TODO
-    relayout(): void;
+    /**
+     * @description Layout the split view with the updated width and height.
+     */
+    layout(width: number, height: number): void;
 }
 
 /**
@@ -98,6 +102,11 @@ export interface ISplitViewOpts {
  *  - View intances are resizable.
  */
 export class SplitView extends Disposable implements ISplitView {
+
+    // [event]
+
+    private readonly _onDidLayout = this.__register(new Emitter<IDimension>());
+    public readonly onDidLayout = this._onDidLayout.registerListener;
 
     // [field]
 
@@ -217,16 +226,18 @@ export class SplitView extends Disposable implements ISplitView {
 
         this.__doRenderViewsAndSashes();
     }
-    /**
-     * Invokes when the application window is resizing.
-     * @param dimension The dimension of the window.
-     */
-    public onWindowResize(dimension: IDimension): void {
-        // TODO
-    }
 
-    public relayout(): void {
-        // TODO
+    public layout(width: number, height: number): void {
+        if (this._orientation === Orientation.Horizontal) {
+            this._size = width;
+        } else {
+            this._size = height;
+        }
+        this.__render();
+        this._onDidLayout.fire({
+            width: width,
+            height: height,
+        });
     }
 
     // [private helper methods]

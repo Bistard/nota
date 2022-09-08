@@ -26,8 +26,7 @@ export interface IIndexTreeModelOptions {
     /**
      * When inserting new node, if sets to collapsed to default.
      */
-    collapsedByDefault?: boolean;
-
+    readonly collapsedByDefault?: boolean;
 }
 
 /**
@@ -90,7 +89,7 @@ export class IndexTreeModel<T, TFilter = void> implements IIndexTreeModel<T, TFi
     /** The corresponding list-like view component. */
     private _view: ISpliceable<ITreeNode<T, TFilter>>;
 
-    /** Defaults to false */
+    /** When inserting new node, if sets to collapsed by default. */
     private _collapsedByDefault: boolean;
 
     // [constructor]
@@ -354,10 +353,13 @@ export class IndexTreeModel<T, TFilter = void> implements IIndexTreeModel<T, TFi
         onDidCreateNode?: (node: ITreeNode<T, TFilter>) => void
     ): IIndexTreeNode<T, TFilter> 
     {
-        const ifSetCollapsed = !!element.collapsed;
+        const ifSetCollapsed = typeof element.collapsed !== 'undefined';
+        const ifSetCollapsible = typeof element.collapsible !== 'undefined';
 
-        const collapsed = ifSetCollapsed ? ifSetCollapsed : this._collapsedByDefault;
-        const collapsible = !!element.collapsible ? element.collapsible : ifSetCollapsed;
+        // If the element collapslation is not provided, we set it to default.
+        const collapsed = ifSetCollapsed ? element.collapsed : this._collapsedByDefault;
+        // If the element collapslation is not provided, we follow if it is collapsed by hint.
+        const collapsible = ifSetCollapsible ? element.collapsible : ifSetCollapsed;
         const visible = parent.visible ? !parent.collapsed : false;
 
         // construct the new node
@@ -366,8 +368,8 @@ export class IndexTreeModel<T, TFilter = void> implements IIndexTreeModel<T, TFi
             parent: parent,
             depth: parent.depth + 1,
             visible: visible,
-            collapsible: collapsible,
-            collapsed: collapsed,
+            collapsible: collapsible!,
+            collapsed: collapsed!,
             children: [],
             visibleNodeCount: 1
         };

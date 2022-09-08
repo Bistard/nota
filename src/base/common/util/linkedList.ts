@@ -293,50 +293,36 @@ export class LinkedList<T> {
 
     /**
      * @description Pushes an existed node to the front of the list.
-     * 
-     * @warn Error throws if list is empty.
-     * 
      * @param newNode The existed node.
      * @returns Returns the node we just pushed.
+     * 
+     * @undefined_behaviour when list is empty.
      */
     private __pushAtFirst(newNode: ListNode<T>): ListNode<T> {
-        try {
-            newNode.next = this._first;
-            
-            this._first!.prev = newNode;
-            this._first = newNode;
-            
-            this._size++;
-            return newNode;
-        } 
+        newNode.next = this._first;
         
-        catch (err) {
-            throw new Error('list is empty, cannot push item using __pushAtFirst()');
-        }
+        this._first!.prev = newNode;
+        this._first = newNode;
+        
+        this._size++;
+        return newNode;
     }
 
     /**
      * @description Pushes an existed node to the end of the list.
-     * 
-     * @warn Error throws if list is empty.
-     * 
      * @param newNode The existed node.
      * @returns Returns the node we just pushed.
+     * 
+     * @undefined_behaviour when list is empty.
      */
     private __pushAtLast(newNode: ListNode<T>): ListNode<T> {
-        try {
-            newNode.prev = this._last;
+        newNode.prev = this._last;
 
-            this._last!.next = newNode;
-            this._last = newNode;
-            
-            this._size++;
-            return newNode;
-        } 
+        this._last!.next = newNode;
+        this._last = newNode;
         
-        catch (err) {
-            throw new Error('list is empty, cannot push item using __pushAtLast()');
-        }
+        this._size++;
+        return newNode;
     }
 
     /**

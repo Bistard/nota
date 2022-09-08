@@ -146,6 +146,7 @@ export interface IBrowserEnvironmentService extends IDiskEnvironmentService {
 
     /**
      * Window configuration for current renderer process.
+     * // REVIEW: some memory should be released once it is used.
      */
     readonly configuration: IWindowConfiguration;
 }

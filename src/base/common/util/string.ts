@@ -1,4 +1,5 @@
 import { Iterable } from "src/base/common/util/iterable";
+import { isObject } from "src/base/common/util/type";
 
 /**
  * @namespace Strings A collection of functions that relates to {@link string}.
@@ -11,8 +12,12 @@ export namespace Strings {
      * @param str The provided string.
      * @param rules An array of {@link RegExp}.
      * @returns If any rules is applied.
+     * @note empty rules return true.
      */
-    export function regExp(str: string, rules: RegExp[]): boolean {
+    export function anyRegExp(str: string, rules: readonly RegExp[]): boolean {
+        if (rules.length === 0) {
+            return true;
+        }
         return Iterable.reduce<RegExp, boolean>(rules, false, (tot, rule) => tot ? true : rule.test(str));
     }
 
@@ -26,7 +31,7 @@ export namespace Strings {
         for (let i = 0; i < args.length; i++) {
             let obj = args[i];
 
-            if (typeof obj === 'object') {
+            if (isObject(obj)) {
                 try {
                     obj = JSON.stringify(obj);
                 } catch (e) { }

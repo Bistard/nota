@@ -1,6 +1,5 @@
-import { Disposable } from "src/base/common/dispose";
 import { DataBuffer } from "src/base/common/file/buffer";
-import { FileOperationError, FileOperationErrorType } from "src/base/common/file/file";
+import { FileOperationError } from "src/base/common/file/file";
 import { URI } from "src/base/common/file/uri";
 import { ifOrDefault } from "src/base/common/util/type";
 import { IFileService } from "src/code/platform/files/common/fileService";
@@ -254,7 +253,7 @@ export class DiskStorage implements IDiskStorage {
 
         const serialized = JSON.stringify(this._storage, null, 4);
         if (this._lastSaveStorage === serialized) {
-            // no diff, we quit indvance
+            // no diff, we quit in advance.
             return;
         }
 

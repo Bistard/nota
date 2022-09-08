@@ -4,7 +4,7 @@ import { IEditorView, IEditorViewComponent, IEditorViewContext } from "src/edito
 import { IEditorViewModel } from "src/editor/common/viewModel";
 import { RenderMetadata } from "src/editor/view/component/viewComponent";
 import { requestAtNextAnimationFrame } from "src/base/common/animation";
-import { DomUtility } from "src/base/common/dom";
+import { DomUtility } from "src/base/browser/basic/dom";
 import { ViewLineWidget } from "src/editor/view/component/viewLineWidget";
 
 export class EditorViewContext implements IEditorViewContext {

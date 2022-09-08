@@ -1,5 +1,5 @@
 import { ListItemType } from "src/base/browser/secondary/listView/listView";
-import { DomUtility } from "src/base/common/dom";
+import { DomUtility } from "src/base/browser/basic/dom";
 
 /**
  * The type of renderers used in {@link IListView}.
@@ -8,7 +8,7 @@ export const enum RendererType {
 	Unknown,  /** testing purpose. */
 	
 	ListItem, /** {@link ListItemRenderer} */
-	Explorer, /** {@link ExplorerRenderer} */
+	Explorer, /** {@link ClassicRenderer} */
 	
 	MarkdownPlainText, // TODO
 	MarkdownHeading,  /** {@link HeadingRenderer} */

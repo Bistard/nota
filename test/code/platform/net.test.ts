@@ -8,7 +8,7 @@ import { IChannel, IServerChannel } from 'src/code/platform/ipc/common/channel';
 import { ClientConnectEvent, ClientBase, ServerBase } from 'src/code/platform/ipc/common/net';
 import { IProtocol } from 'src/code/platform/ipc/common/protocol';
 import { ProxyChannel } from 'src/code/platform/ipc/common/proxy';
-import { NullLogger } from 'test/testUtility';
+import { NullLogger } from 'test/utility';
 
 
 class QueueProtocol implements IProtocol {
@@ -197,7 +197,7 @@ class TestChannelClient implements ITestService {
 	}
 }
 
-suite('Base IPC', function () {
+suite('IPC-test', function () {
 
 	test('createProtocolPair', async function () {
 		const [clientProtocol, serverProtocol] = createProtocolPair();

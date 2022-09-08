@@ -2,7 +2,7 @@ import * as assert from 'assert';
 import { FileService, IFileService } from 'src/code/platform/files/common/fileService';
 import { i18n } from 'src/code/platform/i18n/i18n';
 import { Section } from 'src/code/platform/section';
-import { NullLogger } from 'test/testUtility';
+import { NullLogger } from 'test/utility';
 
 class i18nTest extends i18n {
 
