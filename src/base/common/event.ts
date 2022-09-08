@@ -552,7 +552,7 @@ export namespace Event {
                 if (fn(e)) {
                     listener.call(thisArgs, e);
                 }
-            });
+            }, disposables, thisArgs);
         };
         return newRegister;
     }
