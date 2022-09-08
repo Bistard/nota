@@ -13,6 +13,7 @@ import { ITreeModelSpliceOptions } from "src/base/browser/secondary/tree/indexTr
 import { Pair } from "src/base/common/util/type";
 import { IListDragAndDropProvider } from "src/base/browser/secondary/listWidget/listWidgetDragAndDrop";
 import { ITraitChangeEvent } from "src/base/browser/secondary/listWidget/listWidget";
+import { IStandardKeyboardEvent } from "src/base/common/keyboard";
 
 /**
  * Provides functionality to determine the children stat of the given data.
@@ -196,6 +197,11 @@ export interface IAsyncMultiTree<T, TFilter> {
      * Fires when the tree node in the {@link IAsyncMultiTree} is double clicked.
      */
     get onDoubleclick(): Register<ITreeMouseEvent<T>>;
+
+    /**
+     * Fires when the {@link IAsyncMultiTree} is keydowned.
+     */
+    get onKeydown(): Register<IStandardKeyboardEvent>;
     
     // [public method]
 
@@ -448,6 +454,8 @@ export class AsyncMultiTree<T, TFilter = void> implements IAsyncMultiTree<T, TFi
     get onClick(): Register<ITreeMouseEvent<T>> { return Event.map(this._tree.onClick, this.__toTreeMouseEvent); }
     get onDoubleclick(): Register<ITreeMouseEvent<T>> { return Event.map(this._tree.onDoubleclick, this.__toTreeMouseEvent); }
     
+    get onKeydown(): Register<IStandardKeyboardEvent> { return this._tree.onKeydown; }
+
     get DOMElement(): HTMLElement { return this._tree.DOMElement; }
 
     // [public method]

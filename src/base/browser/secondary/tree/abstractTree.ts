@@ -8,6 +8,7 @@ import { Event, Register, RelayEmitter } from "src/base/common/event";
 import { ISpliceable } from "src/base/common/range";
 import { IScrollEvent } from "src/base/common/scrollable";
 import { IListViewRenderer } from "src/base/browser/secondary/listView/listRenderer";
+import { IStandardKeyboardEvent } from "src/base/common/keyboard";
 
 /**
  * @class A wrapper class to convert a basic {@link IListDragAndDropProvider<T>}
@@ -337,6 +338,11 @@ export interface IAbstractTree<T, TFilter, TRef> {
      */
     get onDoubleclick(): Register<ITreeMouseEvent<T>>;
 
+    /**
+     * Fires when the {@link IAbstractTree} is keydowned.
+     */
+    get onKeydown(): Register<IStandardKeyboardEvent>;
+
     // [method - general]
 
     /**
@@ -556,6 +562,8 @@ export abstract class AbstractTree<T, TFilter, TRef> implements IAbstractTree<T,
 
     get onClick(): Register<ITreeMouseEvent<T>> { return Event.map(this._view.onClick, this.__toTreeMouseEvent); }
     get onDoubleclick(): Register<ITreeMouseEvent<T>> { return Event.map(this._view.onDoubleclick, this.__toTreeMouseEvent); }
+
+    get onKeydown(): Register<IStandardKeyboardEvent> { return this._view.onKeydown; }
 
     // [abstract methods]
 
