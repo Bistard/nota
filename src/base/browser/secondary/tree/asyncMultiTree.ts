@@ -247,9 +247,12 @@ export interface IAsyncMultiTree<T, TFilter> {
     refresh(data?: T): Promise<void>;
 
     /**
-     * // TODO
+     * @description Filters the whole tree by the provided {@link ITreeFilter}
+     * in the constructor.
+     * @param visibleOnly If only consider the visible tree nodes. Default to 
+     *                    true.
      */
-    filter(): void;
+    filter(visibleOnly?: boolean): void;
 
     /**
      * @description Try to get an existed node given the corresponding data.
@@ -497,8 +500,8 @@ export class AsyncMultiTree<T, TFilter = void> implements IAsyncMultiTree<T, TFi
         await this.__refresh(data);
     }
 
-    public filter(): void {
-        this._model.filter();
+    public filter(visibleOnly?: boolean): void {
+        this._model.filter(visibleOnly);
     }
 
     public dispose(): void {
