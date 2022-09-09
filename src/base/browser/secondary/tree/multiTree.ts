@@ -37,7 +37,7 @@ export interface IMultiTree<T, TFilter = void> extends IAbstractTree<T | null, T
 /**
  * {@link MultiTree} Constructor option.
  */
-export interface IMultiTreeOptions<T> extends IAbstractTreeOptions<T> {
+export interface IMultiTreeOptions<T, TFilter = void> extends IAbstractTreeOptions<T, TFilter> {
 
 }
 
@@ -62,7 +62,7 @@ export class MultiTree<T, TFilter = void> extends AbstractTree<T | null, TFilter
         container: HTMLElement,
         renderers: ITreeListRenderer<T, TFilter, any>[],
         itemProvider: IListItemProvider<T>,
-        opts: IMultiTreeOptions<T> = {}
+        opts: IMultiTreeOptions<T, TFilter> = {}
     ) {
         super(container, renderers, itemProvider, opts);
     }
@@ -92,10 +92,8 @@ export class MultiTree<T, TFilter = void> extends AbstractTree<T | null, TFilter
 
     // [private helper method]
 
-    protected override createModel(view: IListWidget<ITreeNode<T, TFilter>>, opts: IMultiTreeOptions<T>): ITreeModel<T | null, TFilter, T | null> {
-        return new MultiTreeModel<T, TFilter>(view, { 
-            collapsedByDefault: opts.collapseByDefault 
-        });
+    protected override createModel(view: IListWidget<ITreeNode<T, TFilter>>, opts: IMultiTreeOptions<T, TFilter>): ITreeModel<T | null, TFilter, T | null> {
+        return new MultiTreeModel<T, TFilter>(view, opts);
     }
 
 }

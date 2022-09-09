@@ -48,7 +48,10 @@ export interface ITreeNode<T, TFilter = void> {
     /** counts how many nodes are actually visible / rendered (includes itself). */
     visibleNodeCount: number;
 
-    /** The depth of the tree node in the whole tree structure. First level is 1. */
+    /** 
+     * The depth of the tree node in the whole tree structure. First level is 1
+     * and root of the tree is 0.
+     */
     depth: number;
 
     /** Determines if the tree node is visible. */
@@ -64,6 +67,12 @@ export interface ITreeNode<T, TFilter = void> {
      * Determines if the tree node is collapsed.
      */
     collapsed: boolean;
+
+    /**
+     * Metadata gets forwarded to the renderer after each filter operation.
+     * `undefined` means the item is not filtered.
+     */
+    filterMetadata?: TFilter;
 }
 
 /**
@@ -207,6 +216,12 @@ export interface ITreeModel<T, TFilter = void, TRef = number[]> {
      * @param location The location representation of the node.
      */
     rerender(location: TRef): void;
+
+    /**
+     * @description Filters the whole tree by the provided {@link ITreeFilter}
+     * in the constructor.
+     */
+    filter(): void;
 }
 
 /**
@@ -249,29 +264,19 @@ export interface ITreeTouchEvent<T> {
 }
 
 export interface ITreeContextmenuEvent<T> {
-    /**
-     * Original browser event.
-     */
+    /** Original browser event. */
     browserEvent: UIEvent;
 
-    /**
-     * The mouse event related data.
-     */
+    /** The mouse event related data. */
     data: T | null;
 
-    /**
-     * The parent data.
-     */
+    /** The parent data. */
     parent: T | null;
 
-    /**
-     * The children data.
-     */
+    /** The children data. */
     children: T[] | null;
 
-    /**
-     * The depth of the data in the tree.
-     */
+    /** The depth of the data in the tree. */
     depth: number | null;
 
     /** The browser position of the contextmenu event. */

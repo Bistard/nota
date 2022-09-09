@@ -28,7 +28,7 @@ suite('AsyncMultiTree-test', () => {
                 collapseByDefault: () => false
             },
             {
-                collapseByDefault: false
+                collapsedByDefault: false
             }
         );
 
@@ -98,7 +98,7 @@ suite('AsyncMultiTree-test', () => {
                 collapseByDefault: () => false
             },
             {
-                collapseByDefault: false
+                collapsedByDefault: false
             }
         );
 
@@ -233,7 +233,7 @@ suite('AsyncMultiTree-test', () => {
                 collapseByDefault: () => false
             },
             {
-                collapseByDefault: false
+                collapsedByDefault: false
             }
         );
 

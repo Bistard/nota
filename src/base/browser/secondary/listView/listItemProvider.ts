@@ -29,7 +29,7 @@ export interface IListItemProvider<T> {
  * the functionality of object with type {@link IListItemProvider<T>} to 
  * {@link IListItemProvider<ITreeNode<T>>}.
  */
-export class TreeListItemProvider<T> implements IListItemProvider<ITreeNode<T>> {
+export class TreeListItemProvider<T, TFilter> implements IListItemProvider<ITreeNode<T, TFilter>> {
 
     // [field]
 
@@ -44,11 +44,11 @@ export class TreeListItemProvider<T> implements IListItemProvider<ITreeNode<T>> 
     // [public method]
 
     
-    public getSize(node: ITreeNode<T>): number {
+    public getSize(node: ITreeNode<T, TFilter>): number {
         return this._provider.getSize(node.data);
     }
 
-    public getType(node: ITreeNode<T>): ListItemType {
+    public getType(node: ITreeNode<T, TFilter>): ListItemType {
         return this._provider.getType(node.data);
     }
 

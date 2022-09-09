@@ -11,6 +11,7 @@ import { ILogService } from "src/base/common/logger";
 import { IConfigService } from "src/code/platform/configuration/common/abstractConfigService";
 import { BuiltInConfigScope } from "src/code/platform/configuration/common/configRegistrant";
 import { IFilterOpts } from "src/base/common/fuzzy";
+import { ClassicFilter } from "src/code/browser/service/classicTree/classicFilter";
 
 export interface IClassicTreeService extends ITreeService<ClassicOpenEvent> {
 
@@ -107,8 +108,9 @@ export class ClassicTreeService extends Disposable implements IClassicTreeServic
             new ClassicItemProvider(),
             new ClassicChildrenProvider(this.logService, this.fileService, filters),
             {
-                collapseByDefault: true,
+                collapsedByDefault: true,
                 dnd: new ClassicDragAndDropProvider(),
+                filter: new ClassicFilter(),
             },
         );
 

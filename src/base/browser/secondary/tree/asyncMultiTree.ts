@@ -247,6 +247,11 @@ export interface IAsyncMultiTree<T, TFilter> {
     refresh(data?: T): Promise<void>;
 
     /**
+     * // TODO
+     */
+    filter(): void;
+
+    /**
      * @description Try to get an existed node given the corresponding data.
      * @param data The corresponding data.
      * @returns Returns the expected tree node.
@@ -385,7 +390,7 @@ export type AsyncWeakMap<T, TFilter> = Weakmap<ITreeNode<IAsyncTreeNode<T> | nul
 /**
  * {@link AsyncMultiTree} Constructor option.
  */
-export interface IAsyncMultiTreeOptions<T, TFilter> extends IMultiTreeOptions<T>, ITreeModelSpliceOptions<IAsyncTreeNode<T>, TFilter> {
+export interface IAsyncMultiTreeOptions<T, TFilter> extends IMultiTreeOptions<T, TFilter>, ITreeModelSpliceOptions<IAsyncTreeNode<T>, TFilter> {
 
 }
 
@@ -413,6 +418,7 @@ export class AsyncMultiTree<T, TFilter = void> implements IAsyncMultiTree<T, TFi
 
     protected readonly _disposables: DisposableManager;
 
+    /** The {@link IMultiTree} is referenced by both of the tree and the model. */
     protected readonly _tree: IMultiTree<IAsyncTreeNode<T>, TFilter>;
     protected readonly _model: IAsyncMultiTreeModel<T, TFilter>;
 
@@ -489,6 +495,10 @@ export class AsyncMultiTree<T, TFilter = void> implements IAsyncMultiTree<T, TFi
 
     public async refresh(data: T = this._model.root): Promise<void> {
         await this.__refresh(data);
+    }
+
+    public filter(): void {
+        this._model.filter();
     }
 
     public dispose(): void {
@@ -639,8 +649,8 @@ export class AsyncMultiTree<T, TFilter = void> implements IAsyncMultiTree<T, TFi
         const asyncProvider = new composedItemProvider<T, IAsyncTreeNode<T>>(itemProvider);
 
         return new MultiTree<IAsyncTreeNode<T>, TFilter>(container, asyncRenderers, asyncProvider, {
-            collapseByDefault: opts.collapseByDefault ?? true,
-            dnd: opts.dnd && new __AsyncMultiTreeDragAndDropProvider(opts.dnd)
+            collapsedByDefault: opts.collapsedByDefault,
+            dnd: opts.dnd && new __AsyncMultiTreeDragAndDropProvider(opts.dnd),
         });
     }
 

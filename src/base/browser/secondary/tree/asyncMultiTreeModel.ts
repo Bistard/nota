@@ -184,6 +184,10 @@ export class AsyncMultiTreeModel<T, TFilter = void> implements IAsyncMultiTreeMo
         this._tree.rerender(asyncNode === this._root ? null : asyncNode);
     }
 
+    public filter(): void {
+        this._tree.filter();
+    }
+
     // [private helper method]
 
     /**

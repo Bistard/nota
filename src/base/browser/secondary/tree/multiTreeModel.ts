@@ -25,7 +25,7 @@ export interface IMultiTreeModel<T, TFilter> extends ITreeModel<T | null, TFilte
     splice(item: T | null, deleteCount: number, children: ITreeNodeItem<T>[], opts: ITreeModelSpliceOptions<T, TFilter>): void;
 }
 
-export interface IMultiTreeModelOptions extends IIndexTreeModelOptions {
+export interface IMultiTreeModelOptions<T, TFilter = void> extends IIndexTreeModelOptions<T, TFilter> {
 
 }
 
@@ -50,7 +50,7 @@ export class MultiTreeModel<T, TFilter = void> implements IMultiTreeModel<T, TFi
 
     constructor(
         view: ISpliceable<ITreeNode<T, TFilter>>,
-        opts: IMultiTreeModelOptions = {}
+        opts: IMultiTreeModelOptions<T, TFilter> = {}
     ) {
 
         this._model = new IndexTreeModel(null, view, opts);
@@ -121,6 +121,10 @@ export class MultiTreeModel<T, TFilter = void> implements IMultiTreeModel<T, TFi
             children,
             { onDidCreateNode: onDidCreateNode, onDidDeleteNode: onDidDeleteNode }
         )
+    }
+
+    public filter(): void {
+        this._model.filter();
     }
 
     public size(): number {

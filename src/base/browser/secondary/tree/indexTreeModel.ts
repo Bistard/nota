@@ -1,4 +1,5 @@
 import { ITreeModel, ITreeSpliceEvent, ITreeNode, ITreeNodeItem, ITreeCollapseStateChangeEvent } from "src/base/browser/secondary/tree/tree";
+import { ITreeFilterProvider } from "src/base/browser/secondary/tree/treeFilter";
 import { Emitter, Register } from "src/base/common/event";
 import { ISpliceable } from "src/base/common/range";
 
@@ -21,12 +22,21 @@ export interface ITreeModelSpliceOptions<T, TFilter> {
 /**
  * An constructor option for {@link IndexTreeModel}.
  */
-export interface IIndexTreeModelOptions {
+export interface IIndexTreeModelOptions<T, TFilter = void> {
     
-    /**
-     * When inserting new node, if sets to collapsed to default.
+    /** 
+     * If the tree node should be collapsed when constructing a new one by 
+     * default. Which means if {@link ITreeNodeItem.collapsed} is not defined,
+     * this will be applied.
+     * @default false
      */
     readonly collapsedByDefault?: boolean;
+
+    /**
+     * The filter provider that can determine whether the provided item is 
+     * filtered.
+     */
+    readonly filter?: ITreeFilterProvider<T, TFilter>;
 }
 
 /**
@@ -38,7 +48,6 @@ export interface IIndexTreeNode<T, TFilter = void> extends ITreeNode<T, TFilter>
     /** override for specifying nodes type. */
     parent: IIndexTreeNode<T, TFilter> | null;
     children: IIndexTreeNode<T, TFilter>[];
-    
 }
 
 /**
@@ -84,20 +93,20 @@ export class IndexTreeModel<T, TFilter = void> implements IIndexTreeModel<T, TFi
     public readonly root: number[] = [];
 
     /** Root does not refer to any specific tree node. */
-    private _root: IIndexTreeNode<T, TFilter>;
+    private readonly _root: IIndexTreeNode<T, TFilter>;
 
     /** The corresponding list-like view component. */
-    private _view: ISpliceable<ITreeNode<T, TFilter>>;
+    private readonly _view: ISpliceable<ITreeNode<T, TFilter>>;
 
-    /** When inserting new node, if sets to collapsed by default. */
-    private _collapsedByDefault: boolean;
+    private readonly _collapsedByDefault: boolean;
+    private readonly _filter?: ITreeFilterProvider<T, TFilter>;
 
     // [constructor]
 
     constructor(
         rootData: T,
         view: ISpliceable<ITreeNode<T, TFilter>>,
-        opt: IIndexTreeModelOptions = {}
+        opt: IIndexTreeModelOptions<T, TFilter> = {}
     ) {
         this._view = view;
         
@@ -113,6 +122,7 @@ export class IndexTreeModel<T, TFilter = void> implements IIndexTreeModel<T, TFi
         };
 
         this._collapsedByDefault = !!(opt?.collapsedByDefault);
+        this._filter = opt.filter;
     }
 
     // [events]
@@ -288,7 +298,74 @@ export class IndexTreeModel<T, TFilter = void> implements IIndexTreeModel<T, TFi
         }
     }
 
+    public filter(): void {
+        // no filters provided, noop.
+        if (!this._filter) {
+            return;
+        }
+        
+        const prevVisibleCount = this._root.visibleNodeCount;
+        const filtered: ITreeNode<T, TFilter>[] = [];
+
+        this.__filter(this._root, filtered);
+
+        this._view.splice(0, prevVisibleCount, filtered);
+    }
+
     // [private helper methods]
+
+    /**
+     * @description Iterates all the nodes of the given node and filter each 
+     * node by the provided filterProvider and push the filtered ones into the 
+     * filtered array.
+     * @param node The node to be filtered first.
+     * @param filtered An array to store all the filtered and visible nodes.
+     * @returns A boolean if the current node is visible.
+     */
+    private __filter(node: IIndexTreeNode<T, TFilter>, filtered: ITreeNode<T, TFilter>[]): boolean {
+        let visible: boolean = true;
+
+        // filters the node except it is root
+        if (node.depth > 0) {
+            this.__filterNode(node);
+            visible = node.visible;
+            
+            // we stop here since the filter provider tells us it should invisible
+            if (!visible) {
+                node.visibleNodeCount = 0;
+                return false;
+            }
+
+            // if the node is visible and filtered
+            if (node.filterMetadata) {
+                filtered.push(node);
+            }
+        }
+
+        // need to recalculate the visible children count of the current node
+        let prevFilteredCount = ((node.depth > 0) ? 1 : 0) + filtered.length;
+
+        // filter each child
+        if (visible) {
+            for (const child of node.children) {
+                this.__filter(child, filtered);
+            }
+        }
+        node.visibleNodeCount = filtered.length - prevFilteredCount;
+
+        return node.visible;
+    }
+    
+    /**
+     * @description Try to filters the given node and updates its `visibility` 
+     * and `filterMetadata`.
+     * @param node The given node.
+     */
+    private __filterNode(node: IIndexTreeNode<T, TFilter>): void {
+        const filterResult = this._filter!.filter(node.data);
+        node.filterMetadata = filterResult.rendererMetadata;
+        node.visible = filterResult.visibility;
+    }
 
     /**
      * @description Check if the provided location is existed under the given node.
