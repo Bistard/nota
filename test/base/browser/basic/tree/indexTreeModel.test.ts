@@ -1,16 +1,22 @@
 import * as assert from 'assert';
 import { ISpliceable } from 'src/base/common/range';
 import { IIndexTreeNode, IndexTreeModel } from 'src/base/browser/secondary/tree/indexTreeModel';
-
-function toList<T>(arr: T[]): ISpliceable<T> {
-	return {
-		splice(start: number, deleteCount: number, elements: T[]): void {
-			arr.splice(start, deleteCount, ...elements);
-		}
-	};
-}
+import { ITreeFilterProvider, ITreeFilterResult } from 'src/base/browser/secondary/tree/treeFilter';
+import { ITreeNode } from 'src/base/browser/secondary/tree/tree';
 
 suite('indexTreeModel-test', () => {
+
+    function toList<T>(arr: T[]): ISpliceable<T> {
+        return {
+            splice(start: number, deleteCount: number, elements: T[]): void {
+                arr.splice(start, deleteCount, ...elements);
+            }
+        };
+    }
+
+    function toArray<T, TFilter>(arr: ITreeNode<T, TFilter>[]): T[] {
+        return arr.map(node => node.data);
+    }
 
     test('constructor', () => {
         const list: IIndexTreeNode<number>[] = [];
@@ -690,4 +696,96 @@ suite('indexTreeModel-test', () => {
 		assert.deepStrictEqual(list[2]!.collapsed, false);
     });
 
+    suite('filter', () => {
+        
+        test('basic', () => {
+            const list: IIndexTreeNode<number, boolean>[] = [];
+            let shouldFilter = false;
+            const filter = new class implements ITreeFilterProvider<number, boolean> {
+                public filter(element: number): ITreeFilterResult<boolean> {
+                    const filtered = (!shouldFilter || element % 2 === 0);
+                    return {
+                        visibility: true,
+                        filterMetadata: filtered === false ? undefined : true,
+                    };
+                }
+            };
+
+            const model = new IndexTreeModel<number, boolean>(-1, toList(list), { 
+                filter: filter,
+                collapsedByDefault: false,
+            });
+
+            model.splice([0], 0, [
+                {
+                    data: 0, children: [
+                        { data: 1 },
+                        { data: 2 },
+                        { data: 3 },
+                        { data: 4 },
+                        { data: 5 },
+                        { data: 6 },
+                        { data: 7 },
+                    ]
+                },
+            ]);
+
+            assert.deepStrictEqual(toArray(list), [0, 1, 2, 3, 4, 5, 6, 7]);
+
+            model.filter();
+            assert.deepStrictEqual(toArray(list), [0, 1, 2, 3, 4, 5, 6, 7]);
+
+            shouldFilter = true;
+            model.filter();
+            assert.deepStrictEqual(toArray(list), [0, 2, 4, 6]);
+
+            shouldFilter = false;
+            model.filter();
+            assert.deepStrictEqual(toArray(list), [0, 1, 2, 3, 4, 5, 6, 7]);
+        });
+
+        test('visibleOnly', () => {
+
+            const list: IIndexTreeNode<number, boolean>[] = [];
+            let shouldFilter = false;
+            const filter = new class implements ITreeFilterProvider<number, boolean> {
+                public filter(element: number): ITreeFilterResult<boolean> {
+                    return {
+                        visibility: true,
+                        filterMetadata: !shouldFilter,
+                    };
+                }
+            };
+
+            const model = new IndexTreeModel<number, boolean>(-1, toList(list), { 
+                filter: filter,
+                collapsedByDefault: false,
+            });
+
+            model.splice([0], 0, [
+                {
+                    data: 0, children: [
+                        { data: 1, collapsed: true, children: [
+                            { data: 4 },
+                        ] },
+                        { data: 2, collapsed: true, children: [
+                            { data: 5 },
+                        ] },
+                        { data: 3, collapsed: true, children: [
+                            { data: 6 },
+                        ] },
+                    ],
+                },
+            ]);
+
+            assert.deepStrictEqual(toArray(list), [0, 1, 2, 3]);
+            shouldFilter = false;
+
+            model.filter(true);
+            assert.deepStrictEqual(toArray(list), [0, 1, 2, 3]);
+
+            model.filter(false);
+            assert.deepStrictEqual(toArray(list), [0, 1, 4, 2, 5, 3, 6]);
+        });
+    });
 });
