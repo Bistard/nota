@@ -45,9 +45,9 @@ export interface IMultiTreeOptions<T, TFilter = void> extends IAbstractTreeOptio
  * @class An inheritance from {@link AbstractTree}, built on top of the 
  * {@link IMultiTreeModel}. 
  * 
- * Almost has nothing new, mainly having this class for wrapping 
- * {@link IMultiTreeModel} and inheriting {@link AbstractTree} away from 
- * abstraction.
+ * Almost has nothing new, except two main features:
+ *      - wrapping {@link IMultiTreeModel}.
+ *      - provide rerender ability to refresh the view of the tree.
  */
 export class MultiTree<T, TFilter = void> extends AbstractTree<T | null, TFilter, T | null> implements IMultiTree<T, TFilter> {
 
