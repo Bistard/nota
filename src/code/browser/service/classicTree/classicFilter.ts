@@ -18,7 +18,7 @@ export class ClassicFilter<T> implements ITreeFilterProvider<T, any> /** FuzzySc
 
         return {
             visibility: true,
-            rendererMetadata: undefined,
+            filterMetadata: undefined,
         };
     }
 }

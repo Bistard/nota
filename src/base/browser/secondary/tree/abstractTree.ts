@@ -378,9 +378,12 @@ export interface IAbstractTree<T, TFilter, TRef> extends IDisposable {
     layout(height?: number): void;
 
     /**
-     * // TODO
+     * @description Filters the whole tree by the provided {@link ITreeFilter}
+     * from the constructor options.
+     * @param visibleOnly If only consider the visible tree nodes. Default to true.
+     * @note The method will modify the tree structure.
      */
-    filter(): void;
+    filter(visibleOnly?: boolean): void;
 
     // [method - tree]
 

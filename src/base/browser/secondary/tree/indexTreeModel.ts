@@ -199,7 +199,7 @@ export class IndexTreeModel<T, TFilter = void> implements IIndexTreeModel<T, TFi
     public getNode(location: number[]): IIndexTreeNode<T, TFilter> {
         const node = this.__getNode(location, this._root);
         
-        if (node === undefined) {
+        if (!node) {
             throw new Error('cannot find the node given the location.');
         }
 
@@ -222,7 +222,7 @@ export class IndexTreeModel<T, TFilter = void> implements IIndexTreeModel<T, TFi
     }
 
     public getNodeListIndex(location: number[]): number {
-        const {listIndex, visible} = this.__getNodeWithListIndex(location, this._root);
+        const {listIndex, visible} = this.__getNodeWithListIndex(location);
         return visible ? listIndex : -1;
     }
     
@@ -284,8 +284,9 @@ export class IndexTreeModel<T, TFilter = void> implements IIndexTreeModel<T, TFi
     public rerender(location: number[]): void {
         
         /**
-         * To achieve rerendering, we simply delete dn reinsert the same item 
-         * into the same position.
+         * To achieve rerendering, we simply delete and re-insert the same items
+         * into the same position. The {@link TreeListWidget} will do the rest
+         * of the jobs for us.
          */
 
         if (location.length === 0) {
@@ -298,7 +299,7 @@ export class IndexTreeModel<T, TFilter = void> implements IIndexTreeModel<T, TFi
         }
     }
 
-    public filter(): void {
+    public filter(visibleOnly: boolean = true): void {
         // no filters provided, noop.
         if (!this._filter) {
             return;
@@ -306,10 +307,15 @@ export class IndexTreeModel<T, TFilter = void> implements IIndexTreeModel<T, TFi
         
         const prevVisibleCount = this._root.visibleNodeCount;
         const filtered: ITreeNode<T, TFilter>[] = [];
+        const expandLocations: number[][] = [];
 
-        this.__filter(this._root, filtered);
+        this.__filter(this._root, filtered, visibleOnly, this._root.collapsed, [], expandLocations);
 
-        this._view.splice(0, prevVisibleCount, filtered);
+        for (const loc of expandLocations) {
+            this.setExpandTo(loc);
+        }
+
+        this._view.splice(0, prevVisibleCount + expandLocations.length, filtered);
     }
 
     // [private helper methods]
@@ -319,51 +325,88 @@ export class IndexTreeModel<T, TFilter = void> implements IIndexTreeModel<T, TFi
      * node by the provided filterProvider and push the filtered ones into the 
      * filtered array.
      * @param node The node to be filtered first.
-     * @param filtered An array to store all the filtered and visible nodes.
-     * @returns A boolean if the current node is visible.
+     * @param filtered An array to store all the filtered nodes.
+     * @param visibleOnly Whether only filters the visible nodes.
+     * @param isParentCollapsed Determines if any parent nodes is collapsed.
+     * @param location Current location of the node.
+     * @param expandLocations An array to store all the nodes that require to
+     *                        expanded. Only useful when `visibleOnly` if on.
+     * @returns A boolean if the current node will be expand.
      */
-    private __filter(node: IIndexTreeNode<T, TFilter>, filtered: ITreeNode<T, TFilter>[]): boolean {
-        let visible: boolean = true;
-
+    private __filter(
+        node: IIndexTreeNode<T, TFilter>, 
+        filtered: ITreeNode<T, TFilter>[], 
+        visibleOnly: boolean, 
+        isParentCollapsed: boolean, 
+        location: number[],
+        expandLocations: number[][]): boolean {
+        
         // filters the node except it is root
         if (node.depth > 0) {
             this.__filterNode(node);
-            visible = node.visible;
             
-            // we stop here since the filter provider tells us it should invisible
-            if (!visible) {
-                node.visibleNodeCount = 0;
+            // we stop since the filter tells us it should be invisible
+            if (!node.visible) {
+                node.visibleNodeCount = 1;
                 return false;
             }
 
             // if the node is visible and filtered
-            if (node.filterMetadata) {
+            if (node.rendererMetadata !== undefined) {
                 filtered.push(node);
             }
         }
 
-        // need to recalculate the visible children count of the current node
         let prevFilteredCount = ((node.depth > 0) ? 1 : 0) + filtered.length;
-
+        let anyChildNeedExpand = false;
+        
         // filter each child
-        if (visible) {
-            for (const child of node.children) {
-                this.__filter(child, filtered);
+        if (!(visibleOnly && node.collapsed)) {
+            for (let i = 0; i < node.children.length; i++) {
+                const child = node.children[i]!;
+
+                if (visibleOnly && !child.visible) {
+                    continue;
+                }
+                
+                location.push(i);
+                anyChildNeedExpand = (this.__filter(
+                        child, 
+                        filtered, 
+                        visibleOnly, 
+                        isParentCollapsed || node.collapsed, 
+                        location, 
+                        expandLocations
+                    ) || anyChildNeedExpand
+                );
+                location.pop();
             }
         }
-        node.visibleNodeCount = filtered.length - prevFilteredCount;
+        
+        if (!visibleOnly) {
+            /**
+             * Only expand to node if and only if the current node is 
+             * filtered and the parent is collapsed and no children 
+             * requires expand.
+             */
+            if (node.rendererMetadata !== undefined && isParentCollapsed && !anyChildNeedExpand) {
+                expandLocations.push([...location]);
+                anyChildNeedExpand = true;
+            }
+        }
 
-        return node.visible;
+        node.visibleNodeCount = filtered.length - prevFilteredCount;
+        return anyChildNeedExpand;
     }
     
     /**
      * @description Try to filters the given node and updates its `visibility` 
-     * and `filterMetadata`.
+     * and `rendererMetadata`.
      * @param node The given node.
      */
     private __filterNode(node: IIndexTreeNode<T, TFilter>): void {
         const filterResult = this._filter!.filter(node.data);
-        node.filterMetadata = filterResult.rendererMetadata;
+        node.rendererMetadata = filterResult.filterMetadata;
         node.visible = filterResult.visibility;
     }
 
@@ -539,7 +582,6 @@ export class IndexTreeModel<T, TFilter = void> implements IIndexTreeModel<T, TFi
     /**
      * @description Rerturns the list index of the given location.
      * @param location The location representation of the node.
-     * @param node The node to start with, default is the root.
      * 
      * @returns An object that contains three info:
      *  node: the corresponding node.

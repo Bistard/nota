@@ -72,7 +72,7 @@ export interface ITreeNode<T, TFilter = void> {
      * Metadata gets forwarded to the renderer after each filter operation.
      * `undefined` means the item is not filtered.
      */
-    filterMetadata?: TFilter;
+    rendererMetadata?: TFilter;
 }
 
 /**
@@ -220,8 +220,10 @@ export interface ITreeModel<T, TFilter = void, TRef = number[]> {
     /**
      * @description Filters the whole tree by the provided {@link ITreeFilter}
      * in the constructor.
+     * @param visibleOnly If only consider the visible tree nodes. Default to 
+     *                    true.
      */
-    filter(): void;
+    filter(visibleOnly?: boolean): void;
 }
 
 /**
