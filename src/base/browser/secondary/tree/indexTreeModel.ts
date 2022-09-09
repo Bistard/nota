@@ -292,7 +292,7 @@ export class IndexTreeModel<T, TFilter = void> implements IIndexTreeModel<T, TFi
             throw new Error('invalid tree location');
         }
         
-        const { node, listIndex, visible } = this.__getNodeWithListIndex(location, this._root);
+        const { node, listIndex, visible } = this.__getNodeWithListIndex(location);
         if (visible) {
             this._view.splice(listIndex, 1, [node]);
         }
@@ -549,10 +549,7 @@ export class IndexTreeModel<T, TFilter = void> implements IIndexTreeModel<T, TFi
      * 
      * @complexity O(h) - h: length of location
      */
-    private __getNodeWithListIndex(
-        location: number[], 
-        node: IIndexTreeNode<T, TFilter> = this._root
-    ): {node: IIndexTreeNode<T, TFilter>, listIndex: number, visible: boolean} 
+    private __getNodeWithListIndex(location: number[]): {node: IIndexTreeNode<T, TFilter>, listIndex: number, visible: boolean} 
     {
         if (location.length === 0) {
             return {
@@ -564,7 +561,7 @@ export class IndexTreeModel<T, TFilter = void> implements IIndexTreeModel<T, TFi
 
         const {parent, listIndex, visible} = this.__getParentNodeWithListIndex(location, this._root);
         const lastIndex = location[location.length - 1]!;
-
+        
         if (lastIndex < 0 || lastIndex > parent.children.length) {
             throw new Error('invalid location');
         }
@@ -605,7 +602,7 @@ export class IndexTreeModel<T, TFilter = void> implements IIndexTreeModel<T, TFi
      * @returns if the collapsed state changed.
      */
     private __setCollapsed(location: number[], collapsed: boolean, recursive: boolean): boolean {
-        const { node, listIndex } = this.__getNodeWithListIndex(location, this._root);
+        const { node, listIndex } = this.__getNodeWithListIndex(location);
 
         // we try to update the tree node state first
         const changed = this.__setTreeNodeCollapsed(node, collapsed, recursive);
