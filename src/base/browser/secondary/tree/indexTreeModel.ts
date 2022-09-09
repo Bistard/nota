@@ -565,7 +565,7 @@ export class IndexTreeModel<T, TFilter = void> implements IIndexTreeModel<T, TFi
         const {parent, listIndex, visible} = this.__getParentNodeWithListIndex(location, this._root);
         const lastIndex = location[location.length - 1]!;
 
-        if (lastIndex < 0 || lastIndex > node.children.length) {
+        if (lastIndex < 0 || lastIndex > parent.children.length) {
             throw new Error('invalid location');
         }
 
