@@ -149,11 +149,12 @@ export class IndexTreeModel<T, TFilter = void> implements IIndexTreeModel<T, TFi
         const treeNodeListToInsert: IIndexTreeNode<T, TFilter>[] = [];
         const treeNodeChildrenToInsert: IIndexTreeNode<T, TFilter>[] = [];
         let visibleNodeCountChange = 0;
-        itemsToInsert.forEach(element => {
+        
+        for (const element of itemsToInsert) {
             const newChild = this.__createNode(element, parent, treeNodeListToInsert, opts.onDidCreateNode);
             treeNodeChildrenToInsert.push(newChild);
             visibleNodeCountChange += newChild.visibleNodeCount;
-        });
+        }
 
         // splice new nodes which directly under the parent node.
         const prevParentHasChildren = parent.children.length > 0;
@@ -161,11 +162,11 @@ export class IndexTreeModel<T, TFilter = void> implements IIndexTreeModel<T, TFi
         const deletedChildren = parent.children.splice(lastIndex, deleteCount, ...treeNodeChildrenToInsert);
         
         let deletedVisibleNodeCount = 0;
-        deletedChildren.forEach(child => {
+        for (const child of deletedChildren) {
             if (child.visible) {
                 deletedVisibleNodeCount += child.visibleNodeCount;
             }
-        });
+        }
         
         // update view and ancestors data.
         if (visible) {
@@ -229,7 +230,7 @@ export class IndexTreeModel<T, TFilter = void> implements IIndexTreeModel<T, TFi
     public isCollapsible(location: number[]): boolean {
         const node = this.__getNode(location, this._root);
         
-        if (node === undefined) {
+        if (!node) {
             throw new Error(`tree node not found at: ${location}`);
         }
 
@@ -250,7 +251,7 @@ export class IndexTreeModel<T, TFilter = void> implements IIndexTreeModel<T, TFi
     public isCollapsed(location: number[]): boolean {
         const node = this.__getNode(location, this._root);
         
-        if (node === undefined) {
+        if (!node) {
             throw new Error(`tree node not found at: ${location}`);
         }
 
@@ -403,8 +404,10 @@ export class IndexTreeModel<T, TFilter = void> implements IIndexTreeModel<T, TFi
      * @description Try to filters the given node and updates its `visibility` 
      * and `rendererMetadata`.
      * @param node The given node.
+     * @throws An exception will be thrown if the filter is not provided.
      */
     private __filterNode(node: IIndexTreeNode<T, TFilter>): void {
+        
         const filterResult = this._filter!.filter(node.data);
         node.rendererMetadata = filterResult.filterMetadata;
         node.visible = filterResult.visibility;
@@ -476,25 +479,33 @@ export class IndexTreeModel<T, TFilter = void> implements IIndexTreeModel<T, TFi
         const ifSetCollapsed = typeof element.collapsed !== 'undefined';
         const ifSetCollapsible = typeof element.collapsible !== 'undefined';
 
-        // If the element collapslation is not provided, we set it to default.
+        // If the element collapsed is not provided, we set it to default.
         const collapsed = ifSetCollapsed ? element.collapsed : this._collapsedByDefault;
-        // If the element collapslation is not provided, we follow if it is collapsed by hint.
+        
+        // If the element collapsible is not provided, we follow if it is collapsed by hint.
         const collapsible = ifSetCollapsible ? element.collapsible : ifSetCollapsed;
-        const visible = parent.visible ? !parent.collapsed : false;
-
+        
         // construct the new node
         const newNode: IIndexTreeNode<T, TFilter> = {
             data: element.data,
             parent: parent,
             depth: parent.depth + 1,
-            visible: visible,
+            visible: true,
             collapsible: collapsible!,
             collapsed: collapsed!,
             children: [],
             visibleNodeCount: 1
         };
         
-        if (visible) {
+        newNode.visible = parent.visible ? !parent.collapsed : false;
+        
+        // TODO
+        // the visibility should determined by the filter provider.
+        // if (parent.visible && this._filter) {
+        //     this.__filterNode(newNode);
+        // }
+
+        if (newNode.visible) {
             toBeRendered.push(newNode);
         }
 
@@ -502,19 +513,19 @@ export class IndexTreeModel<T, TFilter = void> implements IIndexTreeModel<T, TFi
         let visibleNodeCount = 1;
         
         const childrenElements: ITreeNodeItem<T>[]  = element.children || [];
-        childrenElements.forEach(element => {
+        for (const element of childrenElements) {
             const child = this.__createNode(element, newNode, toBeRendered, onDidCreateNode);
             newNode.children.push(child);
             
             visibleNodeCount += child.visibleNodeCount;
-        });
-
+        }
+        
         // if the collapsible setting somehow sets to false, we may correct it here.
         newNode.collapsible = newNode.collapsible || newNode.children.length > 0;
         
-        if (newNode.visible === false) {
+        if (!newNode.visible) {
             newNode.visibleNodeCount = 0;
-        } else if (newNode.collapsed === false) {
+        } else if (!newNode.collapsed) {
             newNode.visibleNodeCount = visibleNodeCount;
         }
 
@@ -798,7 +809,7 @@ export class IndexTreeModel<T, TFilter = void> implements IIndexTreeModel<T, TFi
         for (let i = 0; i < location.length; i++) {
             const index = location[i]!;
             node = node.children[index];
-            if (node === undefined) {
+            if (!node) {
                 throw new Error('invalid location');
             }
 
