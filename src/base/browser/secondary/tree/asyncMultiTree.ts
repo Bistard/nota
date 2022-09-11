@@ -707,7 +707,7 @@ export class AsyncMultiTree<T, TFilter = void> implements IAsyncMultiTree<T, TFi
      * @description Presets the behaviours when the collapsing state inside the
      * {@link MultiTree} is changed.
      */
-    private __internalOnDidChangeCollapseState(e: ITreeCollapseStateChangeEvent<IAsyncTreeNode<T> | null, TFilter>): void {
+    private async __internalOnDidChangeCollapseState(e: ITreeCollapseStateChangeEvent<IAsyncTreeNode<T> | null, TFilter>): Promise<void> {
         
         const node: ITreeNode<IAsyncTreeNode<T> | null, TFilter> = e.node;
         if (node.data === null) {
@@ -715,7 +715,9 @@ export class AsyncMultiTree<T, TFilter = void> implements IAsyncMultiTree<T, TFi
         }
 
         // refresh the given node and its descendants
-        this._model.refreshNode(node.data).then(() => this.__render(node.data!));
+        await this._model.refreshNode(node.data);
+
+        this.__render(node.data!);
     }
 
     /**

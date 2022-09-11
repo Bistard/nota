@@ -294,7 +294,8 @@ export class AsyncMultiTreeModel<T, TFilter = void> implements IAsyncMultiTreeMo
 
         else {
             /**
-             * @note We may set a timer instead of choose `await`. Once timed out,
+             * // REVIEW 
+             * We may set a timer instead of choose `await`. Once timed out,
              * we mark this node as `slow` state, and fires the event to tell 
              * everybody. One of the usage of this could be rendering `loading` 
              * animation. For now, I choose `await` for simplicity.
@@ -321,7 +322,7 @@ export class AsyncMultiTreeModel<T, TFilter = void> implements IAsyncMultiTreeMo
      * @description Given the tree node, returns the newest children of the node.
      * @param node The provided async tree node.
      */
-    private __getChildren(node: IAsyncTreeNode<T>): Promise<Iterable<T>> | Iterable<T> {
+    private async __getChildren(node: IAsyncTreeNode<T>): Promise<Iterable<T>> {
         let refreshing = this._statFetching.get(node);
 
         // since the node is already fetching, we do nothing and return the same promise.
@@ -329,14 +330,15 @@ export class AsyncMultiTreeModel<T, TFilter = void> implements IAsyncMultiTreeMo
             return refreshing;
         }
 
-        const children = this._childrenProvider.getChildren(node.data);
-
-        if (!isIterable(children)) {
-            this._statFetching.set(node, children);
-            return children.finally(() => this._statFetching.delete(node));
-        } else {
-            return children;
-        }
+        // get the children from the provider and set it as refreshing.
+        const childrenPromise = Promise.resolve(this._childrenProvider.getChildren(node.data));
+        this._statFetching.set(node, childrenPromise);
+        
+        // wait for the children to be finished
+        const children = await childrenPromise;
+        this._statFetching.delete(node);
+        
+        return children;
     }
 
     /**
