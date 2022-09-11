@@ -40,7 +40,7 @@ export class ExplorerTreeService extends Disposable implements IExplorerTreeServ
 
     // [field]
 
-    /** The root directory of the opened tree, undefined if not opened.  */
+    /** The root directory of the opened tree, undefined if not opened. */
     private _root?: URI;
     /** The current tree display mode. */
     private _mode: TreeMode;

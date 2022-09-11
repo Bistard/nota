@@ -4,6 +4,7 @@ import { DomUtility } from "src/base/browser/basic/dom";
 /**
  * The type of renderers used in {@link IListView}.
  */
+// TODO: Remove this feature, may just use a regular string
 export const enum RendererType {
 	Unknown,  /** testing purpose. */
 	

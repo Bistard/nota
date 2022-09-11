@@ -14,8 +14,6 @@ export class ClassicFilter<T> implements ITreeFilterProvider<T, any> /** FuzzySc
     // [public methods]
 
     public filter(item: T): ITreeFilterResult<any> {
-        console.log('[filter]', item);
-
         return {
             visibility: true,
             filterMetadata: undefined,
