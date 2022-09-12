@@ -226,12 +226,21 @@ export class ClassicItem implements IClassicItem {
  */
 export class ClassicChildrenProvider implements IAsyncChildrenProvider<ClassicItem> {
 
+    /** 
+     * Determine if the item is first resolved.
+     */
+    private readonly _ifResolved = new Set<ClassicItem>();
+
+    // [constructor]
+
 	constructor(
         private readonly logService: ILogService,
 		private readonly fileService: IFileService,
         private readonly filterOpts?: IFilterOpts,
         private readonly cmpFn: CompareFn<ClassicItem> = defaultCompareFn,
 	) {}
+
+    // [public methods]
 
     public hasChildren(data: ClassicItem): boolean {
         return data.hasChildren();
@@ -263,6 +272,30 @@ export class ClassicChildrenProvider implements IAsyncChildrenProvider<ClassicIt
         });
 
         return promise;
+    }
+
+    /**
+     * @description No need to fetch the latest stat of the children of the 
+     * given item every time when it gets expand.
+     */
+    public shouldRefreshChildren(data: ClassicItem): boolean {
+        const visited = this._ifResolved.has(data);
+        
+        if (!visited) {
+            this._ifResolved.add(data);
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * @description Set the children of the given item as out of updated so that
+     * its children will get refreshed for next expand operation.
+     * @param data The given item.
+     */
+    public forgetChildren(data: ClassicItem): void {
+        this._ifResolved.delete(data);
     }
 
     // public collapseByDefault(data: ClassicItem): boolean {

@@ -27,6 +27,13 @@ export interface IAsyncMultiTreeModel<T, TFilter> extends Omit<ITreeModel<T, TFi
     refreshNode(node: IAsyncTreeNode<T>): Promise<void>;
 
     /**
+     * @description Determine if the node requires a refresh on its children 
+     * when a node is about to expand.
+     * @param node The provided async tree node.
+     */
+    shouldRefreshNodeWhenExpand(node: IAsyncTreeNode<T>): boolean;
+
+    /**
      * @description Given the data, returns the corresponding {@link IAsyncTreeNode}.
      * @param data The provided data.
      * 
@@ -193,6 +200,13 @@ export class AsyncMultiTreeModel<T, TFilter = void> implements IAsyncMultiTreeMo
         this._tree.filter();
     }
 
+    public shouldRefreshNodeWhenExpand(node: IAsyncTreeNode<T>): boolean {
+        if (this._childrenProvider.shouldRefreshChildren) {
+            return this._childrenProvider.shouldRefreshChildren(node.data);
+        }
+        return true;
+    }
+
     // [private helper method]
 
     /**
@@ -263,7 +277,7 @@ export class AsyncMultiTreeModel<T, TFilter = void> implements IAsyncMultiTreeMo
 
         try {
             // wait until finish refreshing all its direct children
-            const children = await this.__refreshChildren(node);
+            const children = await this.__refreshDirectChildren(node);
 
             /**
              * we continue the same work to the direct children, refreshing the 
@@ -283,11 +297,11 @@ export class AsyncMultiTreeModel<T, TFilter = void> implements IAsyncMultiTreeMo
     }
 
     /**
-     * @description Will fetching the updated children of the given node and 
-     * refresh the tree structure by the children.
+     * @description Will fetching the updated direct children stat of the given 
+     * node.
      * @param node The given async tree node.
      */
-    private async __refreshChildren(node: IAsyncTreeNode<T>): Promise<IAsyncTreeNode<T>[]> {
+    private async __refreshDirectChildren(node: IAsyncTreeNode<T>): Promise<IAsyncTreeNode<T>[]> {
 
         let childrenPromise: Promise<Iterable<T>>;
         node.couldHasChildren = this._childrenProvider.hasChildren(node.data);

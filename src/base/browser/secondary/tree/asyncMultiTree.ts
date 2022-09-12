@@ -32,6 +32,14 @@ export interface IAsyncChildrenProvider<T> {
     getChildren(data: T): T[] | Promise<T[]>;
 
     /**
+     * @description Determines if the given data requires to refresh children
+     * when the corresponding tree node of the data is about to expand.
+     * @note If not provided, the tree node will always get refreshed when 
+     * expanding.
+     */
+    shouldRefreshChildren?(data: T): boolean;
+
+    /**
      * @description Determines if the given data should be collapsed when 
      * constructing.
      * @note This has higher priority than `{@link IAsyncMultiTreeOptions.collapsedByDefault}`
@@ -694,7 +702,6 @@ export class AsyncMultiTree<T, TFilter = void> implements IAsyncMultiTree<T, TFi
      * @param node The provided async tree node.
      */
     private __render(node: IAsyncTreeNode<T>): void {
-        
         const children = node.children.map(child => this.__toTreeNodeItem(child));
         
         const root = this._model.getAsyncNode(this._model.root);
@@ -724,6 +731,14 @@ export class AsyncMultiTree<T, TFilter = void> implements IAsyncMultiTree<T, TFi
             if (treeNode.collapsed) {
                 return;
             }
+        }
+
+        /**
+         * An optional optimization that client may prevent the refresh operation
+         * when expanding.
+         */
+        if (this._model.shouldRefreshNodeWhenExpand(node.data) === false) {
+            return;
         }
 
         /**
