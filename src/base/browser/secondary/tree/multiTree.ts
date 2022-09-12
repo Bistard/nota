@@ -14,11 +14,10 @@ export interface IMultiTree<T, TFilter = void> extends IAbstractTree<T | null, T
     /**
      * To insert or delete items in the tree by given the location.
      * @param item The location representation of the node.
-     * @param deleteCount number of deleted nodes after the given location.
      * @param children number of items to be inserted after the given location.
      * @param opts The option for splicing.
      */
-    splice(item: T | null, deleteCount: number, children: ITreeNodeItem<T>[], opts: ITreeModelSpliceOptions<T, TFilter>): void;
+    splice(item: T | null, children: ITreeNodeItem<T>[], opts: ITreeModelSpliceOptions<T, TFilter>): void;
     
     /**
      * @description Returns the number of nodes in the current tree model.
@@ -37,9 +36,7 @@ export interface IMultiTree<T, TFilter = void> extends IAbstractTree<T | null, T
 /**
  * {@link MultiTree} Constructor option.
  */
-export interface IMultiTreeOptions<T, TFilter = void> extends IAbstractTreeOptions<T, TFilter> {
-
-}
+export interface IMultiTreeOptions<T, TFilter = void> extends IAbstractTreeOptions<T, TFilter> {}
 
 /**
  * @class An inheritance from {@link AbstractTree}, built on top of the 
@@ -71,11 +68,10 @@ export class MultiTree<T, TFilter = void> extends AbstractTree<T | null, TFilter
 
     public splice(
         item: T | null, 
-        deleteCount: number = Number.MAX_VALUE,
         children: ITreeNodeItem<T>[] = [],
         opts: ITreeModelSpliceOptions<T, TFilter> = {}
     ): void {
-        this._model.splice(item, deleteCount, children, opts);
+        this._model.splice(item, Number.MAX_VALUE, children, opts);
     }
 
     public rerender(item: T | null): void {

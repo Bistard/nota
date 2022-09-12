@@ -705,10 +705,14 @@ export class AsyncMultiTree<T, TFilter = void> implements IAsyncMultiTree<T, TFi
         const children = node.children.map(child => this.__toTreeNodeItem(child));
         
         const root = this._model.getAsyncNode(this._model.root);
-        this._tree.splice(node === root ? null : node, Number.MAX_VALUE, children, {
-            onDidCreateNode: this._onDidCreateNode,
-            onDidDeleteNode: this._onDidDeleteNode,
-        });
+        this._tree.splice(
+            node === root ? null : node, 
+            children, 
+            {
+                onDidCreateNode: this._onDidCreateNode,
+                onDidDeleteNode: this._onDidDeleteNode,
+            },
+        );
     }
 
     /**
