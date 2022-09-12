@@ -1,7 +1,9 @@
 import { ITreeModel, ITreeSpliceEvent, ITreeNode, ITreeNodeItem, ITreeCollapseStateChangeEvent } from "src/base/browser/secondary/tree/tree";
 import { ITreeFilterProvider } from "src/base/browser/secondary/tree/treeFilter";
-import { Emitter, Register } from "src/base/common/event";
+import { DelayableEmitter, Emitter, Register } from "src/base/common/event";
 import { ISpliceable } from "src/base/common/range";
+
+const INVALID_INDEX = -1;
 
 /**
  * Option type for {@link IIndexTreeModel.splice}.
@@ -130,7 +132,11 @@ export class IndexTreeModel<T, TFilter = void> implements IIndexTreeModel<T, TFi
     private readonly _onDidSplice = new Emitter<ITreeSpliceEvent<T, TFilter>>();
 	public readonly onDidSplice = this._onDidSplice.registerListener;
 
-    private readonly _onDidChangeCollapseState = new Emitter<ITreeCollapseStateChangeEvent<T, TFilter>>();
+    /**
+     * During the process of updating collapse state, we wish to fire the event
+     * once all the recursive nodes are updated.
+     */
+    private readonly _onDidChangeCollapseState = new DelayableEmitter<ITreeCollapseStateChangeEvent<T, TFilter>>();
     public readonly onDidChangeCollapseState = this._onDidChangeCollapseState.registerListener;
 
     // [methods]
@@ -224,7 +230,7 @@ export class IndexTreeModel<T, TFilter = void> implements IIndexTreeModel<T, TFi
 
     public getNodeListIndex(location: number[]): number {
         const {listIndex, visible} = this.__getNodeWithListIndex(location);
-        return visible ? listIndex : -1;
+        return visible ? listIndex : INVALID_INDEX;
     }
     
     public isCollapsible(location: number[]): boolean {
@@ -266,7 +272,11 @@ export class IndexTreeModel<T, TFilter = void> implements IIndexTreeModel<T, TFi
             collapsed = !node.collapsed;
         }
 
-        return this.__setCollapsed(location, collapsed, recursive ? recursive : false);
+        this._onDidChangeCollapseState.pause();
+        const changed = this.__setCollapsed(location, collapsed, recursive ? recursive : false);
+        this._onDidChangeCollapseState.resume();
+        
+        return changed;
     }
 
     public setExpandTo(location: number[]): void {
@@ -607,7 +617,7 @@ export class IndexTreeModel<T, TFilter = void> implements IIndexTreeModel<T, TFi
         if (location.length === 0) {
             return {
                 node: this._root, 
-                listIndex: -1,
+                listIndex: INVALID_INDEX,
                 visible: false
             };
         }
@@ -651,7 +661,6 @@ export class IndexTreeModel<T, TFilter = void> implements IIndexTreeModel<T, TFi
      * @param location The location representation of the node.
      * @param collapsed The new collapsed state.
      * @param recursive Determines if the operation is recursive.
-     * 
      * @returns if the collapsed state changed.
      */
     private __setCollapsed(location: number[], collapsed: boolean, recursive: boolean): boolean {
@@ -662,14 +671,18 @@ export class IndexTreeModel<T, TFilter = void> implements IIndexTreeModel<T, TFi
 
         // if the state changed, we need to update other nodes.
         if (changed && node.visible) {
-
             const prevVisibleNodeCount = node.visibleNodeCount;
 
-            // update visibleRenderCount of its children and ancestors.
+            // update visibleRenderCount of its children and ancestors
             const visibleNodes = this.__updateTreeNodeAfterCollapsed(node);
+            visibleNodes.splice(0, 1);
 
-            // also updates the list node state.
-            this.__updateListNodeCollapsed(listIndex, prevVisibleNodeCount, visibleNodes);
+            /**
+             * Rerenders the view (only if `deleteCount` > 0 and `visibleNodes` 
+             * are not empty).
+             */
+            const deleteCount = prevVisibleNodeCount - (listIndex === INVALID_INDEX ? 0 : 1);
+            this._view.splice(listIndex + 1, deleteCount, visibleNodes);
 
             return true;
         }
@@ -728,20 +741,6 @@ export class IndexTreeModel<T, TFilter = void> implements IIndexTreeModel<T, TFi
         this.__updateAncestorsVisibleNodeCount(node.parent, visibleNodes.length - previousRenderNodeCount); // __updateAncestorVNCAfterCollapsed()
 
 		return visibleNodes;
-    }
-
-    /**
-     * @description Updates the list node after the node with the given listIndex 
-     * is collapsed.
-     * @param listIndex The list index of the provided tree node.
-     * @param prevVisibleNodeCount The previous VNC of the tree node.
-     * @param visibleNodes The array which stores all the visible nodes.
-     * 
-     * @note only be called when `__setTreeNodeCollapsed` returns true.
-     */
-    private __updateListNodeCollapsed(listIndex: number, prevVisibleNodeCount: number, visibleNodes: IIndexTreeNode<T, TFilter>[]): void {
-        const deleteCount = prevVisibleNodeCount - (listIndex === -1 ? 0 : 1);
-        this._view.splice(listIndex + 1, deleteCount, visibleNodes.slice(1));
     }
 
     /**

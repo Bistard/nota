@@ -746,9 +746,22 @@ export class AsyncMultiTree<T, TFilter = void> implements IAsyncMultiTree<T, TFi
          * rerender the whole tree view.
          */
         try {
+
+            // get the updated tree structure into the model
             await this._model.refreshNode(node.data);
+
+            /**
+             * Sets the updated tree structure from the model to the old one in
+             * the {@link MultiTree} and rerender it.
+             */
             this.__render(node.data!);
-        } catch (error) {
+        } 
+
+        /**
+         * Tree rendering process should not expect any errors. Forward it to 
+         * the global.
+         */
+        catch (error) {
             ErrorHandler.onUnexpectedError(error);
         }
     }

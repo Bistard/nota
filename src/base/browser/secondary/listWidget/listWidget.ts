@@ -1155,16 +1155,16 @@ export class ListWidget<T> implements IListWidget<T> {
     }
 
     public splice(index: number, deleteCount: number, items: T[] = []): void {
+        if (deleteCount === 0 && items.length === 0) {
+            return;
+        }
+        
         if (index < 0 || index > this.getItemCount()) {
             throw new ListError(`splice invalid start index: ${index}`);
         }
 
         if (deleteCount < 0) {
             throw new ListError(`splice invalid deleteCount: ${deleteCount}`);
-        }
-
-        if (deleteCount === 0 && items.length === 0) {
-            return;
         }
 
         this.view.splice(index, deleteCount, items);
