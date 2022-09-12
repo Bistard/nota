@@ -4,6 +4,7 @@ import { ITreeModel, ITreeSpliceEvent, ITreeNode, ITreeCollapseStateChangeEvent 
 import { Register } from "src/base/common/event";
 import { Blocker } from "src/base/common/util/async";
 import { Iterable } from "src/base/common/util/iterable";
+import { Mutable } from "src/base/common/util/type";
 
 /**
  * An interface only for {@link AsyncMultiTreeModel}.
@@ -14,9 +15,11 @@ export interface IAsyncMultiTreeModel<T, TFilter> extends Omit<ITreeModel<T, TFi
     
     get rootNode(): IAsyncTreeNode<T>;
 
-    get onDidSplice(): Register<ITreeSpliceEvent<IAsyncTreeNode<T> | null, TFilter>>;
+    get onDidSplice(): Register<ITreeSpliceEvent<IAsyncTreeNode<T>, TFilter>>;
     
-    get onDidChangeCollapseState(): Register<ITreeCollapseStateChangeEvent<IAsyncTreeNode<T> | null, TFilter>>;
+    get onDidChangeCollapseState(): Register<ITreeCollapseStateChangeEvent<IAsyncTreeNode<T>, TFilter>>;
+
+    setTree(tree: IMultiTree<IAsyncTreeNode<T>, TFilter>): void;
 
     /**
      * @description Refreshing the tree structure of the given node and all its 
@@ -72,10 +75,10 @@ export class AsyncMultiTreeModel<T, TFilter = void> implements IAsyncMultiTreeMo
 
     // [field]
 
-    private readonly _tree: IMultiTree<IAsyncTreeNode<T>, TFilter>;
+    private readonly _tree!: IMultiTree<IAsyncTreeNode<T>, TFilter>;
 
     private readonly _root: IAsyncTreeNode<T>;
-    private readonly _nodes: Map<T | null, IAsyncTreeNode<T>>;
+    private readonly _nodes: Map<T, IAsyncTreeNode<T>>;
     
     private readonly _unwrapper: AsyncWeakMap<T, TFilter>;
     private readonly _childrenProvider: IAsyncChildrenProvider<T>;
@@ -96,15 +99,13 @@ export class AsyncMultiTreeModel<T, TFilter = void> implements IAsyncMultiTreeMo
 
     constructor(
         rootData: T,
-        tree: IMultiTree<IAsyncTreeNode<T>, TFilter>,
         childrenProvider: IAsyncChildrenProvider<T>,
         nodemap: AsyncWeakMap<T, TFilter>
     ) {
         
         this._root = this.__createAsyncTreeNode(rootData, null, true);
-        this._tree = tree;
         this._nodes = new Map();
-        this._nodes.set(null, this._root);
+        this._nodes.set(rootData, this._root);
         this._unwrapper = nodemap;
 
         this._childrenProvider = childrenProvider;
@@ -115,14 +116,18 @@ export class AsyncMultiTreeModel<T, TFilter = void> implements IAsyncMultiTreeMo
 
     // [event]
 
-    get onDidSplice(): Register<ITreeSpliceEvent<IAsyncTreeNode<T> | null, TFilter>> { return this._tree.onDidSplice; }
-    get onDidChangeCollapseState(): Register<ITreeCollapseStateChangeEvent<IAsyncTreeNode<T> | null, TFilter>> { return this._tree.onDidChangeCollapseState; }
+    get onDidSplice(): Register<ITreeSpliceEvent<IAsyncTreeNode<T>, TFilter>> { return this._tree.onDidSplice; }
+    get onDidChangeCollapseState(): Register<ITreeCollapseStateChangeEvent<IAsyncTreeNode<T>, TFilter>> { return this._tree.onDidChangeCollapseState; }
 
     // [public method]
 
     get root() { return this._root.data; }
 
     get rootNode() { return this._root; }
+
+    public setTree(tree: IMultiTree<IAsyncTreeNode<T>, TFilter>): void { 
+        (<Mutable<typeof this._tree>>this._tree) = tree; 
+    }
 
     public async refreshNode(node: IAsyncTreeNode<T>): Promise<void> {
         
@@ -157,7 +162,7 @@ export class AsyncMultiTreeModel<T, TFilter = void> implements IAsyncMultiTreeMo
 
     public getNode(data: T): ITreeNode<T, TFilter> {
         const asyncNode = this.__getAsyncNode(data);
-        const node = this._tree.getNode(asyncNode === this._root ? null : asyncNode);
+        const node = this._tree.getNode(asyncNode);
         return this._unwrapper.map(node);
     }
 
@@ -172,28 +177,27 @@ export class AsyncMultiTreeModel<T, TFilter = void> implements IAsyncMultiTreeMo
 
     public isCollapsible(data: T): boolean {
         const asyncNode = this.__getAsyncNode(data);
-        return this._tree.isCollapsible(asyncNode === this._root ? null : asyncNode);
+        return this._tree.isCollapsible(asyncNode);
     }
 
     public isCollapsed(data: T): boolean {
         const asyncNode = this.__getAsyncNode(data);
-        return this._tree.isCollapsed(asyncNode === this._root ? null : asyncNode);
+        return this._tree.isCollapsed(asyncNode);
     }
 
     public setCollapsed(data: T, collapsed?: boolean, recursive?: boolean): boolean {
         const asyncNode = this.__getAsyncNode(data);
 
-        const location = asyncNode === this._root ? null : asyncNode;
         if (collapsed) {
-            return this._tree.collapse(location, recursive ?? false);
+            return this._tree.collapse(asyncNode, recursive ?? false);
         } else {
-            return this._tree.expand(location, recursive ?? false);
+            return this._tree.expand(asyncNode, recursive ?? false);
         };
     }
 
     public rerender(data: T): void {
         const asyncNode = this.__getAsyncNode(data);
-        this._tree.rerender(asyncNode === this._root ? null : asyncNode);
+        this._tree.rerender(asyncNode);
     }
 
     public filter(): void {
@@ -213,15 +217,11 @@ export class AsyncMultiTreeModel<T, TFilter = void> implements IAsyncMultiTreeMo
      * @description Given the data, returns the corresponding async node.
      * @param data The given data.
      */
-     private __getAsyncNode(data: T): IAsyncTreeNode<T> {
-        
-        // given data, gets corresponding async node.
-        const node = this._nodes.get(data === this._root.data ? null : data);
-
-        if (node === undefined) {
-            throw new Error('async node is not founded');
+    private __getAsyncNode(data: T): IAsyncTreeNode<T> {
+        const node = this._nodes.get(data);
+        if (!node) {
+            throw new Error('async node is not found');
         }
-
         return node;
     }
 
@@ -231,7 +231,7 @@ export class AsyncMultiTreeModel<T, TFilter = void> implements IAsyncMultiTreeMo
      * @param other The other node.
      */
     private __isAncestor(node: IAsyncTreeNode<T>, other: IAsyncTreeNode<T>): boolean {
-        if (other.parent === null) {
+        if (!other.parent) {
             return false;
         } 
         

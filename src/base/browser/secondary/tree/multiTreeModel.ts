@@ -5,10 +5,9 @@ import { ITreeModel, ITreeSpliceEvent, ITreeNode, ITreeNodeItem, ITreeCollapseSt
 
 /**
  * An interface only for {@link MultiTreeModel}.
- * 
- * TRef: T | null
+ * TRef: T
  */
-export interface IMultiTreeModel<T, TFilter> extends ITreeModel<T | null, TFilter, T | null> {
+export interface IMultiTreeModel<T, TFilter> extends ITreeModel<T, TFilter, T> {
 
     /**
      * @description Returns the number of nodes in the current tree model.
@@ -22,7 +21,7 @@ export interface IMultiTreeModel<T, TFilter> extends ITreeModel<T | null, TFilte
      * @param children number of items to be inserted after the given location.
      * @param opts The option for splicing.
      */
-    splice(item: T | null, deleteCount: number, children: ITreeNodeItem<T>[], opts: ITreeModelSpliceOptions<T, TFilter>): void;
+    splice(item: T, deleteCount: number, children: ITreeNodeItem<T>[], opts: ITreeModelSpliceOptions<T, TFilter>): void;
 }
 
 export interface IMultiTreeModelOptions<T, TFilter = void> extends IIndexTreeModelOptions<T, TFilter> {
@@ -41,19 +40,20 @@ export class MultiTreeModel<T, TFilter = void> implements IMultiTreeModel<T, TFi
 
     // [field]
 
-    public readonly root = null;
+    public readonly root: T;
 
-    private _model: IIndexTreeModel<T | null, TFilter>;
-	private _nodes: Map<T | null, ITreeNode<T, TFilter>>;
+    private _model: IIndexTreeModel<T, TFilter>;
+	private _nodes: Map<T, ITreeNode<T, TFilter>>;
 
     // [constructor]
 
     constructor(
+        rootData: T,
         view: ISpliceable<ITreeNode<T, TFilter>>,
         opts: IMultiTreeModelOptions<T, TFilter> = {}
     ) {
-
-        this._model = new IndexTreeModel(null, view, opts);
+        this.root = rootData;
+        this._model = new IndexTreeModel<T, TFilter>(rootData, view, opts);
         this._nodes = new Map();
 
         this.onDidSplice = this._model.onDidSplice;
@@ -62,13 +62,13 @@ export class MultiTreeModel<T, TFilter = void> implements IMultiTreeModel<T, TFi
 
     // [event]
 
-    public readonly onDidSplice: Register<ITreeSpliceEvent<T | null, TFilter>>;
-    public readonly onDidChangeCollapseState: Register<ITreeCollapseStateChangeEvent<T | null, TFilter>>;
+    public readonly onDidSplice: Register<ITreeSpliceEvent<T, TFilter>>;
+    public readonly onDidChangeCollapseState: Register<ITreeCollapseStateChangeEvent<T, TFilter>>;
 
     // [public method]
 
     public splice(
-        item: T | null, 
+        item: T, 
         deleteCount: number = Number.MAX_VALUE,
         children: ITreeNodeItem<T>[] = [],
         opts: ITreeModelSpliceOptions<T, TFilter> = {}
@@ -78,10 +78,10 @@ export class MultiTreeModel<T, TFilter = void> implements IMultiTreeModel<T, TFi
         const inserted = new Set<T>();
 
         // callback #1
-        const onDidCreateNode = (node: ITreeNode<T | null, TFilter>): void => {
+        const onDidCreateNode = (node: ITreeNode<T, TFilter>): void => {
             
             // avoid root
-            if (node.data === null) {
+            if (node.data === this.root) {
 				return;
 			}
 
@@ -96,10 +96,10 @@ export class MultiTreeModel<T, TFilter = void> implements IMultiTreeModel<T, TFi
         }
 
         // callback #2
-        const onDidDeleteNode = (node: ITreeNode<T | null, TFilter>): void => {
+        const onDidDeleteNode = (node: ITreeNode<T, TFilter>): void => {
 
             // avoid root
-            if (node.data === null) {
+            if (node.data === this.root) {
 				return;
 			}
 
@@ -131,11 +131,11 @@ export class MultiTreeModel<T, TFilter = void> implements IMultiTreeModel<T, TFi
         return this._nodes.size;
     }
 
-    public hasNode(item: T | null): boolean {
+    public hasNode(item: T): boolean {
         return this._nodes.has(item);
     }
 
-    public getNode(item: T | null): ITreeNode<T, TFilter> {
+    public getNode(item: T): ITreeNode<T, TFilter> {
         const node = this._nodes.get(item);
         if (node === undefined) {
             throw new Error('provided item not found in the tree');
@@ -143,45 +143,45 @@ export class MultiTreeModel<T, TFilter = void> implements IMultiTreeModel<T, TFi
         return node;
     }
 
-    public getRoot(): ITreeNode<T | null, TFilter> {
+    public getRoot(): ITreeNode<T, TFilter> {
         return this._model.getRoot();
     }
 
-    public getNodeLocation(node: ITreeNode<T | null, TFilter>): T | null {
+    public getNodeLocation(node: ITreeNode<T, TFilter>): T {
         return node.data;
     }
 
-    public getNodeListIndex(item: T | null): number {
+    public getNodeListIndex(item: T): number {
         const location = this.__getNodeLocation(item);
         return this._model.getNodeListIndex(location);
     }
 
-    public isCollapsible(item: T | null): boolean {
+    public isCollapsible(item: T): boolean {
         const location = this.__getNodeLocation(item);
         return this._model.isCollapsible(location);
     }
 
-    public setCollapsible(item: T | null, collapsible?: boolean): boolean {
+    public setCollapsible(item: T, collapsible?: boolean): boolean {
         const location = this.__getNodeLocation(item);
         return this._model.setCollapsible(location, collapsible);
     }
 
-    public isCollapsed(item: T | null): boolean {
+    public isCollapsed(item: T): boolean {
         const location = this.__getNodeLocation(item);
         return this._model.isCollapsed(location);
     }
 
-    public setCollapsed(item: T | null, collapsed?: boolean, recursive?: boolean): boolean {
+    public setCollapsed(item: T, collapsed?: boolean, recursive?: boolean): boolean {
         const location = this.__getNodeLocation(item);
         return this._model.setCollapsed(location, collapsed, recursive);
     }
 
-    public setExpandTo(item: T | null): void {
+    public setExpandTo(item: T): void {
         const location = this.__getNodeLocation(item);
         this._model.setExpandTo(location);
     }
 
-    public rerender(item: T | null): void {
+    public rerender(item: T): void {
         const location = this.__getNodeLocation(item);
         this._model.rerender(location);
     }
@@ -192,9 +192,9 @@ export class MultiTreeModel<T, TFilter = void> implements IMultiTreeModel<T, TFi
      * @description Returns the location of the provided item.
      * @param item The provided item.
      */
-    private __getNodeLocation(item: T | null): number[] {
+    private __getNodeLocation(item: T): number[] {
 
-        if (item === null) {
+        if (item === this.root) {
             return [];
         }
 

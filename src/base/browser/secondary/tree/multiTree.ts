@@ -9,7 +9,7 @@ import { ITreeModel, ITreeNode, ITreeNodeItem } from "src/base/browser/secondary
 /**
  * An interface only for {@link MultiTree}.
  */
-export interface IMultiTree<T, TFilter = void> extends IAbstractTree<T | null, TFilter, T | null> {
+export interface IMultiTree<T, TFilter = void> extends IAbstractTree<T, TFilter, T> {
     
     /**
      * To insert or delete items in the tree by given the location.
@@ -17,7 +17,7 @@ export interface IMultiTree<T, TFilter = void> extends IAbstractTree<T | null, T
      * @param children number of items to be inserted after the given location.
      * @param opts The option for splicing.
      */
-    splice(item: T | null, children: ITreeNodeItem<T>[], opts: ITreeModelSpliceOptions<T, TFilter>): void;
+    splice(item: T, children: ITreeNodeItem<T>[], opts: ITreeModelSpliceOptions<T, TFilter>): void;
     
     /**
      * @description Returns the number of nodes in the current tree model.
@@ -25,12 +25,11 @@ export interface IMultiTree<T, TFilter = void> extends IAbstractTree<T | null, T
     size(): number;
 
     /**
-     * @description Rerenders the whole view. If the item is null, the whole 
-     * view will be rerendered. Otherwise will only rerenders the corresponding 
-     * tree node.
+     * @description Rerenders the whole view only with the corresponding tree 
+     * node.
      * @param item The provided item. 
      */
-    rerender(item: T | null): void;
+    rerender(item: T): void;
 }
 
 /**
@@ -46,7 +45,7 @@ export interface IMultiTreeOptions<T, TFilter = void> extends IAbstractTreeOptio
  *      - wrapping {@link IMultiTreeModel}.
  *      - provide rerender ability to refresh the view of the tree.
  */
-export class MultiTree<T, TFilter = void> extends AbstractTree<T | null, TFilter, T | null> implements IMultiTree<T, TFilter> {
+export class MultiTree<T, TFilter = void> extends AbstractTree<T, TFilter, T> implements IMultiTree<T, TFilter> {
 
     // [field]
 
@@ -57,25 +56,26 @@ export class MultiTree<T, TFilter = void> extends AbstractTree<T | null, TFilter
 
     constructor(
         container: HTMLElement,
+        rootData: T,
         renderers: ITreeListRenderer<T, TFilter, any>[],
         itemProvider: IListItemProvider<T>,
         opts: IMultiTreeOptions<T, TFilter> = {}
     ) {
-        super(container, renderers, itemProvider, opts);
+        super(container, rootData, renderers, itemProvider, opts);
     }
 
     // [public method]
 
     public splice(
-        item: T | null, 
+        item: T, 
         children: ITreeNodeItem<T>[] = [],
         opts: ITreeModelSpliceOptions<T, TFilter> = {}
     ): void {
         this._model.splice(item, Number.MAX_VALUE, children, opts);
     }
 
-    public rerender(item: T | null): void {
-        if (item === null) {
+    public rerender(item: T): void {
+        if (item === this._model.root) {
             this._view.rerender();
         }
 
@@ -88,8 +88,7 @@ export class MultiTree<T, TFilter = void> extends AbstractTree<T | null, TFilter
 
     // [private helper method]
 
-    protected override createModel(view: IListWidget<ITreeNode<T, TFilter>>, opts: IMultiTreeOptions<T, TFilter>): ITreeModel<T | null, TFilter, T | null> {
-        return new MultiTreeModel<T, TFilter>(view, opts);
+    protected override createModel(rootData: T, view: IListWidget<ITreeNode<T, TFilter>>, opts: IMultiTreeOptions<T, TFilter>): ITreeModel<T, TFilter, T> {
+        return new MultiTreeModel<T, TFilter>(rootData, view, opts);
     }
-
 }

@@ -51,7 +51,7 @@ suite('AsyncMultiTree-test', () => {
         assert.strictEqual(node1.depth, 1);
         assert.strictEqual(node1.collapsible, true);
         assert.strictEqual(node1.collapsed, false);
-        assert.strictEqual(node1.parent, null);
+        assert.strictEqual(node1.parent?.data, 0);
         assert.strictEqual(node1.visible, true);
         assert.strictEqual(node1.children.length, 2);
         
@@ -60,7 +60,7 @@ suite('AsyncMultiTree-test', () => {
         assert.strictEqual(node2.depth, 1);
         assert.strictEqual(node2.collapsible, true);
         assert.strictEqual(node2.collapsed, false);
-        assert.strictEqual(node2.parent, null);
+        assert.strictEqual(node2.parent?.data, 0);
         assert.strictEqual(node2.visible, true);
         assert.strictEqual(node2.children.length, 1);
 
@@ -69,7 +69,7 @@ suite('AsyncMultiTree-test', () => {
         assert.strictEqual(node3.depth, 1);
         assert.strictEqual(node3.collapsible, false);
         assert.strictEqual(node3.collapsed, false);
-        assert.strictEqual(node3.parent, null);
+        assert.strictEqual(node3.parent?.data, 0);
         assert.strictEqual(node3.visible, true);
         assert.strictEqual(node3.children.length, 0);
 
@@ -122,7 +122,7 @@ suite('AsyncMultiTree-test', () => {
         assert.strictEqual(node3.depth, 1);
         assert.strictEqual(node3.collapsible, true);
         assert.strictEqual(node3.collapsed, false);
-        assert.strictEqual(node3.parent, null);
+        assert.strictEqual(node3.parent?.data, 0);
         assert.strictEqual(node3.visible, true);
         assert.strictEqual(node3.children.length, 2);
         
@@ -183,7 +183,7 @@ suite('AsyncMultiTree-test', () => {
         assert.strictEqual(node1.depth, 1);
         assert.strictEqual(node1.collapsible, false);
         assert.strictEqual(node1.collapsed, false);
-        assert.strictEqual(node1.parent, null);
+        assert.strictEqual(node1.parent?.data, 0);
         assert.strictEqual(node1.visible, true);
         assert.strictEqual(node1.children.length, 0);
 
@@ -195,7 +195,7 @@ suite('AsyncMultiTree-test', () => {
         assert.strictEqual(node3.depth, 1);
         assert.strictEqual(node3.collapsible, false);
         assert.strictEqual(node3.collapsed, false);
-        assert.strictEqual(node3.parent, null);
+        assert.strictEqual(node3.parent?.data, 0);
         assert.strictEqual(node3.visible, true);
         assert.strictEqual(node3.children.length, 0);
 

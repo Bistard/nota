@@ -527,6 +527,7 @@ export abstract class AbstractTree<T, TFilter, TRef> implements IAbstractTree<T,
 
     constructor(
         container: HTMLElement,
+        rootData: T,
         renderers: ITreeListRenderer<T, TFilter, any>[],
         itemProvider: IListItemProvider<T>,
         opts: IAbstractTreeOptions<T, TFilter> = {}
@@ -562,7 +563,7 @@ export abstract class AbstractTree<T, TFilter, TRef> implements IAbstractTree<T,
         );
 
         // create the tree model from abstraction, client may override it.
-        this._model = this.createModel(this._view, opts);
+        this._model = this.createModel(rootData, this._view, opts);
 
         // reset the input event emitter once the model is created
         relayEmitter.setInput(this._model.onDidChangeCollapseState);
@@ -592,7 +593,7 @@ export abstract class AbstractTree<T, TFilter, TRef> implements IAbstractTree<T,
     
     // [abstract methods]
 
-    protected abstract createModel(view: ISpliceable<ITreeNode<T, TFilter>>, opts: IAbstractTreeOptions<T, TFilter>): ITreeModel<T, TFilter, TRef>;
+    protected abstract createModel(rootData: T, view: ISpliceable<ITreeNode<T, TFilter>>, opts: IAbstractTreeOptions<T, TFilter>): ITreeModel<T, TFilter, TRef>;
 
     // [methods - tree]
 
