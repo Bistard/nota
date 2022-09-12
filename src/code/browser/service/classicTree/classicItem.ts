@@ -95,10 +95,16 @@ export class ClassicItem implements IClassicItem {
 
     /** stores all the info about the target. */
     private _stat: IResolvedFileStat;
-    // An array to store the children and will be updated during the refresh.
+    /** An array to store the children and will be updated during the refresh. */
     private _children: ClassicItem[] = [];
-    // the parent of the current item.
+    /** the parent of the current item. */
     private _parent: ClassicItem | null = null;
+
+    /**
+     * An indicator tells if the directory is fully resolved. This is used to
+     * prevent excessive readings from the disk.
+     */
+    private _isResolved = false;
 
     // [constructor]
 
@@ -106,16 +112,25 @@ export class ClassicItem implements IClassicItem {
         stat: IResolvedFileStat,
         parent: ClassicItem | null,
         filters?: IFilterOpts,
-        cmpFn: CompareFn<ClassicItem> = defaultCompareFn
+        cmpFn?: CompareFn<ClassicItem>
     ) {
         this._stat = stat;
         this._parent = parent;
-        for (const stat of (this._stat.children ?? [])) {
-            if (filters && isFiltered(stat.name, filters)) {
-                continue;
-            }
-            this._children.push(new ClassicItem(stat, this));
+        if (!cmpFn) {
+            cmpFn = defaultCompareFn;
         }
+
+        if (stat.children) {
+            this._isResolved = true;
+
+            for (const child of stat.children) {
+                if (filters && isFiltered(child.name, filters)) {
+                    continue;
+                }
+                this._children.push(new ClassicItem(child, this));
+            }
+        }
+        
         if (cmpFn) {
             this._children.sort(cmpFn);
         }
@@ -164,25 +179,34 @@ export class ClassicItem implements IClassicItem {
 
 	public refreshChildren(fileService: IFileService, filters?: IFilterOpts, cmpFn?: CompareFn<ClassicItem>): void | Promise<void> {
         const promise = (async () => {
-            try {
-                const updatedStat = await fileService.stat(
-                    this._stat.uri, { 
-                        resolveChildren: true,
-                    },
-                );
-                this._stat = updatedStat;
-                
-                // update the children stat recursively
-                this._children = [];
-                for (const childStat of (updatedStat.children ?? [])) {
-                    this._children.push(new ClassicItem(childStat, this, filters));
+            
+            /**
+             * Only refresh the children from the disk if this is not resolved
+             * before.
+             */
+            if (this._isResolved === false) {
+                try {
+                    const updatedStat = await fileService.stat(
+                        this._stat.uri, { 
+                            resolveChildren: true,
+                        },
+                    );
+                    this._stat = updatedStat;
+                } 
+                catch (error) {
+                    throw error;
                 }
-                if (cmpFn) {
-                    this._children.sort(cmpFn);
-                }
-            } 
-            catch (err) {
-                throw err;
+
+                this._isResolved = true;
+            }
+
+            // update the children stat recursively
+            this._children = [];
+            for (const childStat of (this._stat.children ?? [])) {
+                this._children.push(new ClassicItem(childStat, this, filters));
+            }
+            if (cmpFn) {
+                this._children.sort(cmpFn);
             }
         })();
 
@@ -190,6 +214,8 @@ export class ClassicItem implements IClassicItem {
 	}
 
 	public forgetChildren(): void {
+        this._children = [];
+        this._isResolved = false;
         (<Mutable<Iterable<IResolvedFileStat> | undefined>>this._stat.children) = undefined;
 	}
 }

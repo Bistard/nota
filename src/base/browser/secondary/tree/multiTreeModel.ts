@@ -120,7 +120,7 @@ export class MultiTreeModel<T, TFilter = void> implements IMultiTreeModel<T, TFi
             deleteCount,
             children,
             { onDidCreateNode: onDidCreateNode, onDidDeleteNode: onDidDeleteNode }
-        )
+        );
     }
 
     public filter(): void {

@@ -14,6 +14,7 @@ import { Pair } from "src/base/common/util/type";
 import { IListDragAndDropProvider } from "src/base/browser/secondary/listWidget/listWidgetDragAndDrop";
 import { ITraitChangeEvent } from "src/base/browser/secondary/listWidget/listWidget";
 import { IStandardKeyboardEvent } from "src/base/common/keyboard";
+import { ErrorHandler } from "src/base/common/error";
 
 /**
  * Provides functionality to determine the children stat of the given data.
@@ -33,8 +34,8 @@ export interface IAsyncChildrenProvider<T> {
     /**
      * @description Determines if the given data should be collapsed when 
      * constructing.
-     * @note This has higher priority than {@link IAsyncMultiTreeOptions.collapseByDefault}
-     * which will only be applied when the function is not defined.
+     * @note This has higher priority than `{@link IAsyncMultiTreeOptions.collapsedByDefault}`
+     * which will only be applied when the function is not provided.
      */
     collapseByDefault?: (data: T) => boolean;
 }
@@ -401,19 +402,19 @@ export interface IAsyncMultiTreeOptions<T, TFilter> extends IMultiTreeOptions<T,
  * @class Built upon a {@link IMultiTree} and {@link IAsyncMultiTreeModel}.
  * 
  * Different from {@link IMultiTree} and any other tree-like structures, the
- * children of each node is NOT decided by the caller, instead, caller needs to 
+ * children of each node is NOT decided by the client, instead, client needs to 
  * provide a {@link IAsyncChildrenProvider} which has the ability to determine 
  * the children of each node.
  * 
- * Since the caller cannot decide the structure of the tree, once the root data 
+ * Since the client cannot decide the structure of the tree, once the root data 
  * is given, the {@link AsyncMultiTree} will build the whole tree under the
  * provided {@link IAsyncChildrenProvider}, and the whole process is implemented
  * asynchronously.
  * 
- * @note RootData is not counted as the part of the tree.
+ * @note `RootData` is not counted as the part of the tree.
  * @note Constructor is protected, use {@link AsyncMultiTree.create} instead.
- * @note The tree will refresh automatically once the collapse state of the node
- * is changed.
+ * @note The subtree will refresh automatically once the collapse state of the 
+ * tree node is changed.
  */
 export class AsyncMultiTree<T, TFilter = void> implements IAsyncMultiTree<T, TFilter>, IDisposable {
 
@@ -689,7 +690,7 @@ export class AsyncMultiTree<T, TFilter = void> implements IAsyncMultiTree<T, TFi
     }
 
     /**
-     * @description Renders the current tree structure given the async tree node.
+     * @description Rerenders the multiTree structure given the async tree node.
      * @param node The provided async tree node.
      */
     private __render(node: IAsyncTreeNode<T>): void {
@@ -710,14 +711,31 @@ export class AsyncMultiTree<T, TFilter = void> implements IAsyncMultiTree<T, TFi
     private async __internalOnDidChangeCollapseState(e: ITreeCollapseStateChangeEvent<IAsyncTreeNode<T> | null, TFilter>): Promise<void> {
         
         const node: ITreeNode<IAsyncTreeNode<T> | null, TFilter> = e.node;
-        if (node.data === null) {
+        if (!node.data) {
             return;
         }
 
-        // refresh the given node and its descendants
-        await this._model.refreshNode(node.data);
+        /**
+         * Skip the refresh operation since there is no reasons to get the 
+         * updated children of the current node if it is collapsed.
+         */
+        if (node.data !== this._model.rootNode) {
+            const treeNode = this._model.getNode(node.data.data);
+            if (treeNode.collapsed) {
+                return;
+            }
+        }
 
-        this.__render(node.data!);
+        /**
+         * Refresh the given node and its descendants with the updated stats and
+         * rerender the whole tree view.
+         */
+        try {
+            await this._model.refreshNode(node.data);
+            this.__render(node.data!);
+        } catch (error) {
+            ErrorHandler.onUnexpectedError(error);
+        }
     }
 
     /**

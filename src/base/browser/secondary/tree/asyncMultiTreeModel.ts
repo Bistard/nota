@@ -4,7 +4,6 @@ import { ITreeModel, ITreeSpliceEvent, ITreeNode, ITreeCollapseStateChangeEvent 
 import { Register } from "src/base/common/event";
 import { Blocker } from "src/base/common/util/async";
 import { Iterable } from "src/base/common/util/iterable";
-import { isIterable } from "src/base/common/util/type";
 
 /**
  * An interface only for {@link AsyncMultiTreeModel}.
@@ -13,6 +12,8 @@ import { isIterable } from "src/base/common/util/type";
  */
 export interface IAsyncMultiTreeModel<T, TFilter> extends Omit<ITreeModel<T, TFilter, T>, 'onDidSplice' | 'onDidChangeCollapseState' | 'getNodeLocation' | 'getNodeListIndex' | 'setCollapsible' | 'setCollapsed' | 'setExpandTo' | 'getRoot'> {
     
+    get rootNode(): IAsyncTreeNode<T>;
+
     get onDidSplice(): Register<ITreeSpliceEvent<IAsyncTreeNode<T> | null, TFilter>>;
     
     get onDidChangeCollapseState(): Register<ITreeCollapseStateChangeEvent<IAsyncTreeNode<T> | null, TFilter>>;
@@ -49,14 +50,16 @@ export interface IAsyncMultiTreeModel<T, TFilter> extends Omit<ITreeModel<T, TFi
  * Except the provided {@link IMultiTree}, the model itself will also maintain a 
  * same tree structure but using {@link IAsyncTreeNode<T>}.
  * 
- * The model only maintaining the inner tree structure. The {@link IMultiTree} 
- * and its view will be maintained by the wrapper class {@link IAsyncMultiTree}.
+ * The model only maintaining its inner tree structure. The {@link IMultiTree} 
+ * will be maintained by its wrapper class {@link IAsyncMultiTree}.
  * 
- * @note Reason for having a same tree structure inside the model, because every
- * `IMultiTree.splice()` call will rerender the whole view. Each `refresh()` 
- * call might causes too many render calls. That is why we need to maintain a 
- * same tree structure, once the build process finished, we only need to render 
- * once in the {@link IAsyncMultiTree}.
+ * @readonly The reason for having the same tree structure inside the model is 
+ * that every `IMultiTree.splice()` call will rerender the whole view. Each 
+ * `IAsyncMultiTree.refresh()` call might cause excessive render calls. That is 
+ * why we need to maintain the same tree structure, once the build process 
+ * finished, we only need to render once in the {@link IAsyncMultiTree}.
+ * 
+ * @perf https://github.com/Bistard/nota/issues/138
  */
 export class AsyncMultiTreeModel<T, TFilter = void> implements IAsyncMultiTreeModel<T, TFilter> {
 
@@ -112,12 +115,14 @@ export class AsyncMultiTreeModel<T, TFilter = void> implements IAsyncMultiTreeMo
 
     get root() { return this._root.data; }
 
+    get rootNode() { return this._root; }
+
     public async refreshNode(node: IAsyncTreeNode<T>): Promise<void> {
         
         /**
          * If any ongoing refreshing node has a connection with the current node 
          * (equal, or either one is the ancestor of the other), we have to wait 
-         * until it has been done, then we retry the method.
+         * until it has been done, then we retry the refresh operation again.
          */
         for (const [other, refreshing] of this._nodeRefreshing) {
             if (node === other || 
@@ -130,7 +135,7 @@ export class AsyncMultiTreeModel<T, TFilter = void> implements IAsyncMultiTreeMo
 
         /**
          * Reaching here meaning the given node and all its descendants are all 
-         * settled. We may be ready for refreshing.
+         * settled for refreshing.
          */
         return this.__refreshNodeAndChildren(node);
     }

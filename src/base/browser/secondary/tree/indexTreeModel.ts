@@ -4,7 +4,7 @@ import { Emitter, Register } from "src/base/common/event";
 import { ISpliceable } from "src/base/common/range";
 
 /**
- * Option type for ITreeModel.splice().
+ * Option type for {@link IIndexTreeModel.splice}.
  */
 export interface ITreeModelSpliceOptions<T, TFilter> {
     
@@ -26,7 +26,7 @@ export interface IIndexTreeModelOptions<T, TFilter = void> {
     
     /** 
      * If the tree node should be collapsed when constructing a new one by 
-     * default. Which means if {@link ITreeNodeItem.collapsed} is not defined,
+     * default. Which means if {@link ITreeNodeItem["collapsed"]} is not defined,
      * this will be applied.
      * @default false
      */
