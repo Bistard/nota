@@ -13,7 +13,7 @@ import { BuiltInConfigScope } from "src/code/platform/configuration/common/confi
 import { IFilterOpts } from "src/base/common/fuzzy";
 import { ClassicFilter } from "src/code/browser/service/classicTree/classicFilter";
 
-export interface IClassicTreeService extends ITreeService<ClassicOpenEvent> {
+export interface IClassicTreeService extends ITreeService<ClassicItem> {
 
 }
 
@@ -78,8 +78,8 @@ export class ClassicTreeService extends Disposable implements IClassicTreeServic
         this._tree?.layout(height);
     }
     
-    public async refresh(): Promise<void> {
-        this._tree?.refresh(undefined);
+    public async refresh(data?: ClassicItem): Promise<void> {
+        this._tree?.refresh(data);
     }
     
     public async close(): Promise<void> {

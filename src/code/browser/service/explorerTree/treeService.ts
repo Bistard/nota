@@ -31,7 +31,7 @@ export interface ITreeService<T> extends IDisposable {
     /**
      * Fires when a file / page is clicked (not opened yet).
      */
-    onDidClick: Register<T>; // TODO
+    onDidClick: Register<any>; // TODO
 
     /**
      * // TODO
@@ -49,7 +49,7 @@ export interface ITreeService<T> extends IDisposable {
     /**
      * @description Refresh the current tree view.
      */
-    refresh(): Promise<void>;
+    refresh(data?: T): Promise<void>;
 
     /**
      * // TODO

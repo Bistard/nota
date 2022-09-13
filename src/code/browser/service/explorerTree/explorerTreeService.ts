@@ -113,7 +113,22 @@ export class ExplorerTreeService extends Disposable implements IExplorerTreeServ
 
         // on did resource change callback
         this._onDidResourceChangeScheduler = new Scheduler(100, events => {
-            // TODO
+            
+            if (!this._root) {
+                return;
+            }
+
+            let affected = false;
+            for (const event of events) {
+                if (event.affect(this._root)) {
+                    affected = true;
+                    break;
+                }
+            }
+
+            if (affected) {
+                this._currentTreeService!.refresh();
+            }
         });
 
         // create a disposable for all the current tree business
