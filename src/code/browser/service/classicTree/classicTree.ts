@@ -1,5 +1,6 @@
 import { IListItemProvider } from "src/base/browser/secondary/listView/listItemProvider";
-import { AsyncMultiTree, IAsyncChildrenProvider, IAsyncMultiTree, IAsyncMultiTreeOptions } from "src/base/browser/secondary/tree/asyncMultiTree";
+import { AsyncMultiTree, IAsyncChildrenProvider } from "src/base/browser/secondary/tree/asyncMultiTree";
+import { AsyncTree, IAsyncMultiTreeOptions } from "src/base/browser/secondary/tree/asyncTree";
 import { ITreeMouseEvent } from "src/base/browser/secondary/tree/tree";
 import { ITreeListRenderer } from "src/base/browser/secondary/tree/treeListRenderer";
 import { Emitter, Register } from "src/base/common/event";
@@ -11,7 +12,7 @@ export interface ClassicOpenEvent {
     readonly browserEvent: UIEvent;
 }
 
-export interface IClassicTree<T, TFilter> extends IAsyncMultiTree<T, TFilter> {
+export interface IClassicTree<T, TFilter> extends AsyncTree<T, TFilter> {
 
     /**
      * Fires when a file / notepage in the explorer tree is about to be opened.
@@ -22,7 +23,7 @@ export interface IClassicTree<T, TFilter> extends IAsyncMultiTree<T, TFilter> {
 /**
  * @class // TODO
  */
-export class ClassicTree<T extends ClassicItem, TFilter> extends AsyncMultiTree<T, TFilter> implements IClassicTree<T, TFilter> {
+export class ClassicTree<T extends ClassicItem, TFilter> extends AsyncTree<T, TFilter> implements IClassicTree<T, TFilter> {
 
     // [field]
 
@@ -42,8 +43,7 @@ export class ClassicTree<T extends ClassicItem, TFilter> extends AsyncMultiTree<
         opts: IAsyncMultiTreeOptions<T, TFilter> = {},
     ) {
         super(container, rootData, renderers, itemProvider, childrenProvider, opts);
-
-        this._disposables.register(this.onClick(e => this.__onTreeClick(e)));
+        this.__register(this.onClick(e => this.__onTreeClick(e)));
     }
 
     // [public static method]
@@ -67,8 +67,7 @@ export class ClassicTree<T extends ClassicItem, TFilter> extends AsyncMultiTree<
     // [private helper method]
 
     private __onTreeClick(event: ITreeMouseEvent<T>): void {
-        
-        // clicking nowhere
+        // clicking no where
         if (event.data === null) {
             return;
         }
@@ -82,5 +81,4 @@ export class ClassicTree<T extends ClassicItem, TFilter> extends AsyncMultiTree<
             browserEvent: event.browserEvent
         });
     }
-
 }

@@ -49,7 +49,7 @@ export class ClassicTreeService extends Disposable implements IClassicTreeServic
     }
     
     get root(): URI | undefined {
-        return (this._tree ? this._tree.root().uri : undefined);
+        return (this._tree ? this._tree.root.uri : undefined);
     }
     
     get isOpened(): boolean {
@@ -68,9 +68,6 @@ export class ClassicTreeService extends Disposable implements IClassicTreeServic
             const rootStat = await this.fileService.stat(root, { resolveChildren: true });
             const rootItem = new ClassicItem(rootStat, null, IFilterOpts);
             await this.__createTree(container, rootItem, IFilterOpts);
-            this._tree?.onContextmenu(e => {
-                console.log(e);
-            });
         }
         catch (error) {
             throw error;

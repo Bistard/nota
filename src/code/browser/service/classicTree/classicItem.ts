@@ -192,6 +192,7 @@ export class ClassicItem implements IClassicItem {
                         },
                     );
                     this._stat = updatedStat;
+                    console.log('[item] refresh');
                 } 
                 catch (error) {
                     throw error;
@@ -285,7 +286,7 @@ export class ClassicChildrenProvider implements IAsyncChildrenProvider<ClassicIt
             this._ifResolved.add(data);
             return true;
         }
-
+        console.log('[item] skip refresh');
         return false;
     }
 
@@ -298,10 +299,10 @@ export class ClassicChildrenProvider implements IAsyncChildrenProvider<ClassicIt
         this._ifResolved.delete(data);
     }
 
-    // public collapseByDefault(data: ClassicItem): boolean {
-    //     // TODO
-    //     return false;
-    // }
+    public collapseByDefault(data: ClassicItem): boolean {
+        // TODO
+        return true;
+    }
 }
 
 /**

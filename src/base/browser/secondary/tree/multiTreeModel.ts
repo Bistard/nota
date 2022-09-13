@@ -55,6 +55,16 @@ export class MultiTreeModel<T, TFilter = void> implements IMultiTreeModel<T, TFi
         this.root = rootData;
         this._model = new IndexTreeModel<T, TFilter>(rootData, view, opts);
         this._nodes = new Map();
+        this._nodes.set(rootData, {
+            data: rootData,
+            children: [],
+            collapsed: false,
+            collapsible: true,
+            depth: 0,
+            parent: null,
+            visible: true,
+            visibleNodeCount: 0,
+        });
 
         this.onDidSplice = this._model.onDidSplice;
         this.onDidChangeCollapseState = this._model.onDidChangeCollapseState;

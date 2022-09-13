@@ -6,10 +6,12 @@ import { AsyncTreeModel } from "src/base/browser/secondary/tree/asyncTreeModel";
 import { AsyncTreeRenderer } from "src/base/browser/secondary/tree/asyncTreeRenderer";
 import { ITreeModelSpliceOptions } from "src/base/browser/secondary/tree/indexTreeModel";
 import { IMultiTreeOptions, MultiTree } from "src/base/browser/secondary/tree/multiTree";
-import { ITreeNode, ITreeModel, ITreeCollapseStateChangeEvent } from "src/base/browser/secondary/tree/tree";
+import { IMultiTreeModelOptions } from "src/base/browser/secondary/tree/multiTreeModel";
+import { ITreeNode, ITreeModel, ITreeCollapseStateChangeEvent, ITreeMouseEvent, ITreeTouchEvent, ITreeContextmenuEvent } from "src/base/browser/secondary/tree/tree";
 import { ITreeListRenderer } from "src/base/browser/secondary/tree/treeListRenderer";
 import { Disposable } from "src/base/common/dispose";
 import { ErrorHandler } from "src/base/common/error";
+import { Event } from "src/base/common/event";
 import { Weakmap } from "src/base/common/util/map";
 
 export interface IAsyncTreeNode<T> {
@@ -21,6 +23,18 @@ export interface IAsyncTreeNode<T> {
 
     /** Determines if the current node is during the refreshing. */
     refreshing: Promise<void> | null;
+}
+
+export interface AsyncTreeItem<T, TFilter = void> extends Omit<Partial<ITreeNode<T, TFilter>>, 'children' | 'parent'> {
+    
+    data: T;
+
+    parent: AsyncTreeItem<T, TFilter> | null;
+    
+    /** 
+     * The childrens of the tree node.
+     */
+    children: AsyncTreeItem<T, TFilter>[];
 }
 
 /**
@@ -78,10 +92,17 @@ class __AsyncMultiTreeDragAndDropProvider<T> implements IListDragAndDropProvider
     }
 }
 
+export interface IAsyncTreeOptions<T, TFilter> extends 
+    IMultiTreeOptions<IAsyncTreeNode<T>, TFilter>, 
+    ITreeModelSpliceOptions<IAsyncTreeNode<T>, TFilter>, 
+    IMultiTreeModelOptions<IAsyncTreeNode<T>, TFilter> 
+{
+    readonly childrenProvider: IAsyncChildrenProvider<T>;
+}
+
 export class AsyncMultiTree<T, TFilter = void> extends MultiTree<IAsyncTreeNode<T>, TFilter> {
 
     declare protected readonly _model: AsyncTreeModel<T, TFilter>;
-
     private readonly _childrenProvider: IAsyncChildrenProvider<T>;
 
     // [constructor]
@@ -91,11 +112,10 @@ export class AsyncMultiTree<T, TFilter = void> extends MultiTree<IAsyncTreeNode<
         rootData: IAsyncTreeNode<T>,
         renderers: ITreeListRenderer<IAsyncTreeNode<T>, TFilter, any>[],
         itemProvider: IListItemProvider<IAsyncTreeNode<T>>,
-        childrenProvider: IAsyncChildrenProvider<T>,
-        opts: IMultiTreeOptions<IAsyncTreeNode<T>, TFilter> = {}
+        opts: IAsyncTreeOptions<T, TFilter>
     ) {
         super(container, rootData, renderers, itemProvider, opts);
-        this._childrenProvider = childrenProvider;
+        this._childrenProvider = opts.childrenProvider;
     }
 
     // [protected override method]
@@ -103,10 +123,10 @@ export class AsyncMultiTree<T, TFilter = void> extends MultiTree<IAsyncTreeNode<
     protected override createModel(
         rootData: IAsyncTreeNode<T>,
         view: IListWidget<ITreeNode<IAsyncTreeNode<T>, TFilter>>, 
-        opts: IMultiTreeOptions<IAsyncTreeNode<T>, TFilter>
+        opts: IAsyncTreeOptions<T, TFilter>,
     ): ITreeModel<IAsyncTreeNode<T>, TFilter, IAsyncTreeNode<T>> 
     {
-        return new AsyncTreeModel(rootData, view, this._childrenProvider, opts);
+        return new AsyncTreeModel(rootData, view, opts.childrenProvider, opts);
     }
 
     // [getter]
@@ -183,10 +203,10 @@ export class AsyncTree<T, TFilter = void> extends Disposable {
             },
             asyncRenderers, 
             asyncProvider, 
-            childrenProvider,
             {
                 collapsedByDefault: opts.collapsedByDefault,
                 dnd: opts.dnd && new __AsyncMultiTreeDragAndDropProvider(opts.dnd),
+                childrenProvider: childrenProvider,
             },
         );
 
@@ -196,9 +216,17 @@ export class AsyncTree<T, TFilter = void> extends Disposable {
 
     // [event]
 
+    get onClick() { return Event.map(this._tree.onClick, e => this.__toTreeMouseEvent(e)); }
+
+    // [getter]
+
+    get DOMElement(): HTMLElement { return this._tree.DOMElement; }
+
+    get root(): T { return this._tree.root; }
+
     // [public methods]
 
-    public async refresh(data: T): Promise<void> {
+    public async refresh(data: T = this._tree.root): Promise<void> {
         
         const asyncNode = this._tree.getAsyncNode(data);
         const node = this._tree.getNode(asyncNode);
@@ -213,6 +241,10 @@ export class AsyncTree<T, TFilter = void> extends Disposable {
 
         // renders the whole view
         this.__render(node);
+    }
+
+    public layout(height?: number): void {
+        this._tree.layout(height);
     }
 
     // [private helper methods]
@@ -278,5 +310,41 @@ export class AsyncTree<T, TFilter = void> extends Disposable {
         catch (error) {
             ErrorHandler.onUnexpectedError(error);
         }
+    }
+
+    /**
+     * @description Converts the event with type {@link ITreeMouseEvent<IAsyncTreeNode<T>>}
+     * to {@link ITreeMouseEvent<T>}.
+     */
+    private __toTreeMouseEvent(event: ITreeMouseEvent<IAsyncTreeNode<T>>): ITreeMouseEvent<T> {
+        return {
+            browserEvent: event.browserEvent,
+            data: event.data && event.data.data,
+            parent: event.parent?.data || null,
+            children: event.children ? event.children.map(child => child.data) : null,
+            depth: event.depth
+        };
+    }
+
+    private __toTreeTouchEvent(event: ITreeTouchEvent<IAsyncTreeNode<T>>): ITreeTouchEvent<T> {
+        return {
+            browserEvent: event.browserEvent,
+            data: event.data && event.data.data,
+            parent: event.parent?.data || null,
+            children: event.children ? event.children.map(child => child.data) : null,
+            depth: event.depth
+        };
+    }
+
+    private __toTreeContextmenuEvent(event: ITreeContextmenuEvent<IAsyncTreeNode<T>>): ITreeContextmenuEvent<T> {
+        return {
+            browserEvent: event.browserEvent,
+            data: event.data && event.data.data,
+            parent: event.parent?.data || null,
+            children: event.children ? event.children.map(child => child.data) : null,
+            depth: event.depth,
+            position: event.position,
+            target: event.target
+        };
     }
 }
