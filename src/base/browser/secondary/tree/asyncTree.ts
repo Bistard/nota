@@ -19,7 +19,7 @@ import { Weakmap } from "src/base/common/util/map";
  * The internal tree node structure that wraps each client data inside the 
  * {@link AsyncTree}.
  */
-export interface IAsyncTreeNode<T> {
+export interface IAsyncNode<T> {
     /** The client-data. */
     data: T;
 
@@ -52,13 +52,13 @@ export interface AsyncTreeItem<T, TFilter = void> extends Omit<Partial<ITreeNode
  * @internal
  * See `@implements` part from {@link IAsyncTreeOptions}.
  */
-class __AsyncFilter<T, TFilter = void> implements ITreeFilterProvider<IAsyncTreeNode<T>, TFilter> {
+class __AsyncFilter<T, TFilter = void> implements ITreeFilterProvider<IAsyncNode<T>, TFilter> {
 
     constructor(
         private readonly _filter: ITreeFilterProvider<T, TFilter>
     ) {}
 
-    public filter(item: IAsyncTreeNode<T>): ITreeFilterResult<TFilter> {
+    public filter(item: IAsyncNode<T>): ITreeFilterResult<TFilter> {
         return this._filter.filter(item.data);
     }
 }
@@ -67,17 +67,17 @@ class __AsyncFilter<T, TFilter = void> implements ITreeFilterProvider<IAsyncTree
  * @internal
  * See `@implements` part from {@link IAsyncTreeOptions}.
  */
-class __AsyncDragAndDropProvider<T> implements IListDragAndDropProvider<IAsyncTreeNode<T>> {
+class __AsyncDragAndDropProvider<T> implements IListDragAndDropProvider<IAsyncNode<T>> {
 
     constructor(
         private readonly dnd: IListDragAndDropProvider<T>
     ) {}
 
-    public getDragData(node: IAsyncTreeNode<T>): string | null {
+    public getDragData(node: IAsyncNode<T>): string | null {
         return this.dnd.getDragData(node.data);
     }
 
-    public getDragTag(items: IAsyncTreeNode<T>[]): string {
+    public getDragTag(items: IAsyncNode<T>[]): string {
         return this.dnd.getDragTag(items.map(item => item.data));
     }
 
@@ -87,25 +87,25 @@ class __AsyncDragAndDropProvider<T> implements IListDragAndDropProvider<IAsyncTr
         }
     }
 
-    public onDragOver(event: DragEvent, currentDragItems: IAsyncTreeNode<T>[], targetOver?: IAsyncTreeNode<T>, targetIndex?: number): boolean {
+    public onDragOver(event: DragEvent, currentDragItems: IAsyncNode<T>[], targetOver?: IAsyncNode<T>, targetIndex?: number): boolean {
         if (this.dnd.onDragOver) {
             return this.dnd.onDragOver(event, currentDragItems.map(node => node.data), targetOver?.data, targetIndex);
         }
         return false;
     }
 
-    public onDragEnter(event: DragEvent, currentDragItems: IAsyncTreeNode<T>[], targetOver?: IAsyncTreeNode<T>, targetIndex?: number): void {
+    public onDragEnter(event: DragEvent, currentDragItems: IAsyncNode<T>[], targetOver?: IAsyncNode<T>, targetIndex?: number): void {
         if (this.dnd.onDragEnter) {
             return this.dnd.onDragEnter(event, currentDragItems.map(node => node.data), targetOver?.data, targetIndex);
         }
     }
 
-    public onDragLeave(event: DragEvent, currentDragItems: IAsyncTreeNode<T>[], targetOver?: IAsyncTreeNode<T>, targetIndex?: number): void {
+    public onDragLeave(event: DragEvent, currentDragItems: IAsyncNode<T>[], targetOver?: IAsyncNode<T>, targetIndex?: number): void {
         if (this.dnd.onDragLeave) {
             return this.dnd.onDragLeave(event, currentDragItems.map(node => node.data), targetOver?.data, targetIndex);
         }
     }
-    public onDragDrop(event: DragEvent, currentDragItems: IAsyncTreeNode<T>[], targetOver?: IAsyncTreeNode<T>, targetIndex?: number): void {
+    public onDragDrop(event: DragEvent, currentDragItems: IAsyncNode<T>[], targetOver?: IAsyncNode<T>, targetIndex?: number): void {
         if (this.dnd.onDragDrop) {
             return this.dnd.onDragDrop(event, currentDragItems.map(node => node.data), targetOver?.data, targetIndex);
         }
@@ -119,7 +119,7 @@ class __AsyncDragAndDropProvider<T> implements IListDragAndDropProvider<IAsyncTr
 }
 
 /** @internal */
-type AsyncWeakMap<T, TFilter> = Weakmap<ITreeNode<IAsyncTreeNode<T>, TFilter>, ITreeNode<T, TFilter>>;
+type AsyncWeakMap<T, TFilter> = Weakmap<ITreeNode<IAsyncNode<T>, TFilter>, ITreeNode<T, TFilter>>;
 
 /**
  * @internal
@@ -127,7 +127,7 @@ type AsyncWeakMap<T, TFilter> = Weakmap<ITreeNode<IAsyncTreeNode<T>, TFilter>, I
  */
 class __AsyncNodeConverter<T, TFilter> implements ITreeNode<T, TFilter> {
 
-    constructor(private readonly _node: ITreeNode<IAsyncTreeNode<T>, TFilter>) {}
+    constructor(private readonly _node: ITreeNode<IAsyncNode<T>, TFilter>) {}
 
     get data(): T { return this._node.data!.data; }
     get parent(): ITreeNode<T, TFilter> | null { return this._node.parent?.data ? new __AsyncNodeConverter(this._node.parent) : null; }
@@ -380,12 +380,12 @@ export interface IAsyncTree<T, TFilter> extends Disposable {
  * Constructor options for {@link AsyncTree}.
  * 
  * @implements The reason to omit all these fields is because {@link AsyncTree} 
- * wraps a {@link IAsyncTreeNode} over each client data. On the client side, 
- * their provider should has generic type `T` instead of `IAsyncTreeNode<T>`. 
+ * wraps a {@link IAsyncNode} over each client data. On the client side, 
+ * their provider should has generic type `T` instead of `IAsyncNode<T>`. 
  * The conversion between different types will be handled inside the 
  * {@link AsyncTree}.
  */
-export interface IAsyncTreeOptions<T, TFilter> extends Omit<IMultiTreeOptions<IAsyncTreeNode<T>, TFilter>, 'filter' | 'dnd'> {
+export interface IAsyncTreeOptions<T, TFilter> extends Omit<IMultiTreeOptions<IAsyncNode<T>, TFilter>, 'filter' | 'dnd'> {
     
     /**
      * Provides functionality to determine the children stat of the given data.
@@ -409,10 +409,10 @@ export interface IAsyncTreeOptions<T, TFilter> extends Omit<IMultiTreeOptions<IA
  * 
  * The biggest difference is that instead of storing the client data with type 
  * `T` directly into each {@link ITreeNode} in {@link MultiTree}. Instead, it 
- * wraps each client data with a {@link IAsyncTreeNode<T>}. See more detailed 
+ * wraps each client data with a {@link IAsyncNode<T>}. See more detailed 
  * implementations in {@link AsyncTreeModel}.
  */
-class AsyncMultiTree<T, TFilter = void> extends MultiTree<IAsyncTreeNode<T>, TFilter> {
+class AsyncMultiTree<T, TFilter = void> extends MultiTree<IAsyncNode<T>, TFilter> {
 
     declare protected readonly _model: IAsyncTreeModel<T, TFilter>;
     private readonly _childrenProvider: IAsyncChildrenProvider<T>;
@@ -421,9 +421,9 @@ class AsyncMultiTree<T, TFilter = void> extends MultiTree<IAsyncTreeNode<T>, TFi
 
     constructor(
         container: HTMLElement,
-        rootData: IAsyncTreeNode<T>,
-        renderers: ITreeListRenderer<IAsyncTreeNode<T>, TFilter, any>[],
-        itemProvider: IListItemProvider<IAsyncTreeNode<T>>,
+        rootData: IAsyncNode<T>,
+        renderers: ITreeListRenderer<IAsyncNode<T>, TFilter, any>[],
+        itemProvider: IListItemProvider<IAsyncNode<T>>,
         opts: IAsyncTreeOptions<T, TFilter>
     ) {
         const multiTreeOpts = 
@@ -440,10 +440,10 @@ class AsyncMultiTree<T, TFilter = void> extends MultiTree<IAsyncTreeNode<T>, TFi
     // [protected override method]
 
     protected override createModel(
-        rootData: IAsyncTreeNode<T>, 
-        view: IListWidget<ITreeNode<IAsyncTreeNode<T>, TFilter>>, 
-        opts: IMultiTreeOptions<IAsyncTreeNode<T>, TFilter>,
-        ): ITreeModel<IAsyncTreeNode<T>, TFilter, IAsyncTreeNode<T>> 
+        rootData: IAsyncNode<T>, 
+        view: IListWidget<ITreeNode<IAsyncNode<T>, TFilter>>, 
+        opts: IMultiTreeOptions<IAsyncNode<T>, TFilter>,
+        ): ITreeModel<IAsyncNode<T>, TFilter, IAsyncNode<T>> 
     {
         return new AsyncTreeModel(
             rootData, 
@@ -462,28 +462,28 @@ class AsyncMultiTree<T, TFilter = void> extends MultiTree<IAsyncTreeNode<T>, TFi
         return this.rootNode.data.data;
     }
 
-    get rootNode(): ITreeNode<IAsyncTreeNode<T>, TFilter> {
+    get rootNode(): ITreeNode<IAsyncNode<T>, TFilter> {
         return this._model.getRoot();
     }
 
     // [public methods]
 
-    public getAsyncNode(data: T): IAsyncTreeNode<T> {
+    public getAsyncNode(data: T): IAsyncNode<T> {
         return this._model.getAsyncNode(data);
     }
 
-    public refreshNode(node: ITreeNode<IAsyncTreeNode<T>, TFilter>): Promise<void> {
+    public refreshNode(node: ITreeNode<IAsyncNode<T>, TFilter>): Promise<void> {
         return this._model.refreshNode(node);
     }
 
-    public shouldRefreshNodeWhenExpand(node: IAsyncTreeNode<T>): boolean {
+    public shouldRefreshNodeWhenExpand(node: IAsyncNode<T>): boolean {
         if (this._childrenProvider.shouldRefreshChildren) {
             return this._childrenProvider.shouldRefreshChildren(node.data);
         }
         return true;
     }
 
-    public setCollapsed(node: IAsyncTreeNode<T>, collapsed?: boolean, recursive?: boolean): boolean {
+    public setCollapsed(node: IAsyncNode<T>, collapsed?: boolean, recursive?: boolean): boolean {
         if (collapsed) {
             return this.collapse(node, recursive ?? false);
         } else {
@@ -526,8 +526,8 @@ export class AsyncTree<T, TFilter = void> extends Disposable implements IAsyncTr
 
     private readonly _nodeConverter: AsyncWeakMap<T, TFilter>;
 
-    private _onDidCreateNode?: (node: ITreeNode<IAsyncTreeNode<T>, TFilter>) => void;
-    private _onDidDeleteNode?: (node: ITreeNode<IAsyncTreeNode<T>, TFilter>) => void;
+    private _onDidCreateNode?: (node: ITreeNode<IAsyncNode<T>, TFilter>) => void;
+    private _onDidDeleteNode?: (node: ITreeNode<IAsyncNode<T>, TFilter>) => void;
 
     // [constructor]
 
@@ -542,7 +542,7 @@ export class AsyncTree<T, TFilter = void> extends Disposable implements IAsyncTr
         
         this._nodeConverter = new Weakmap(node => new __AsyncNodeConverter(node));
         const asyncRenderers = renderers.map(r => new AsyncTreeRenderer(r, this._nodeConverter));
-        const asyncProvider = new composedItemProvider<T, IAsyncTreeNode<T>>(itemProvider);
+        const asyncProvider = new composedItemProvider<T, IAsyncNode<T>>(itemProvider);
 
         this._tree = new AsyncMultiTree(
             container, 
@@ -746,7 +746,7 @@ export class AsyncTree<T, TFilter = void> extends Disposable implements IAsyncTr
 
     // [private helper methods]
 
-    private __render(node: ITreeNode<IAsyncTreeNode<T>, TFilter>): void {
+    private __render(node: ITreeNode<IAsyncNode<T>, TFilter>): void {
         this._tree.splice(
             node.data, 
             node.children, 
@@ -761,9 +761,9 @@ export class AsyncTree<T, TFilter = void> extends Disposable implements IAsyncTr
      * @description Presets the behaviours when the collapsing state inside the
      * {@link MultiTree} is changed.
      */
-    private async __internalOnDidChangeCollapseState(e: ITreeCollapseStateChangeEvent<IAsyncTreeNode<T>, TFilter>): Promise<void> {
+    private async __internalOnDidChangeCollapseState(e: ITreeCollapseStateChangeEvent<IAsyncNode<T>, TFilter>): Promise<void> {
         
-        const node: ITreeNode<IAsyncTreeNode<T>, TFilter> = e.node;
+        const node: ITreeNode<IAsyncNode<T>, TFilter> = e.node;
         if (node === this._tree.rootNode) {
             return;
         }
@@ -810,10 +810,10 @@ export class AsyncTree<T, TFilter = void> extends Disposable implements IAsyncTr
     }
 
     /**
-     * @description Converts the event with type {@link ITreeMouseEvent<IAsyncTreeNode<T>>}
+     * @description Converts the event with type {@link ITreeMouseEvent<IAsyncNode<T>>}
      * to {@link ITreeMouseEvent<T>}.
      */
-    private __toTreeMouseEvent(event: ITreeMouseEvent<IAsyncTreeNode<T>>): ITreeMouseEvent<T> {
+    private __toTreeMouseEvent(event: ITreeMouseEvent<IAsyncNode<T>>): ITreeMouseEvent<T> {
         return {
             browserEvent: event.browserEvent,
             data: event.data && event.data.data,
@@ -823,7 +823,7 @@ export class AsyncTree<T, TFilter = void> extends Disposable implements IAsyncTr
         };
     }
 
-    private __toTreeTouchEvent(event: ITreeTouchEvent<IAsyncTreeNode<T>>): ITreeTouchEvent<T> {
+    private __toTreeTouchEvent(event: ITreeTouchEvent<IAsyncNode<T>>): ITreeTouchEvent<T> {
         return {
             browserEvent: event.browserEvent,
             data: event.data && event.data.data,
@@ -833,7 +833,7 @@ export class AsyncTree<T, TFilter = void> extends Disposable implements IAsyncTr
         };
     }
 
-    private __toTreeContextmenuEvent(event: ITreeContextmenuEvent<IAsyncTreeNode<T>>): ITreeContextmenuEvent<T> {
+    private __toTreeContextmenuEvent(event: ITreeContextmenuEvent<IAsyncNode<T>>): ITreeContextmenuEvent<T> {
         return {
             browserEvent: event.browserEvent,
             data: event.data && event.data.data,
@@ -846,11 +846,11 @@ export class AsyncTree<T, TFilter = void> extends Disposable implements IAsyncTr
     }
 
     /**
-     * @description Recursively converts {@link ITreeNode<IAsyncTreeNode<T>>} to
+     * @description Recursively converts {@link ITreeNode<IAsyncNode<T>>} to
      * {@link ITreeNode<T>}.
      * @param node The provided node.
      */
-    private __unwrapAsyncTreeNode(node: ITreeNode<IAsyncTreeNode<T>, TFilter>): ITreeNode<T, TFilter> {
+    private __unwrapAsyncTreeNode(node: ITreeNode<IAsyncNode<T>, TFilter>): ITreeNode<T, TFilter> {
         return {
             data: node.data!.data,
             depth: node.depth,
@@ -864,7 +864,7 @@ export class AsyncTree<T, TFilter = void> extends Disposable implements IAsyncTr
     }
 
     // REVIEW: this causes recursively converting, prob a pref issue
-    private __toTreeSpliceEvent(event: ITreeSpliceEvent<IAsyncTreeNode<T>, TFilter>): ITreeSpliceEvent<T, TFilter> {
+    private __toTreeSpliceEvent(event: ITreeSpliceEvent<IAsyncNode<T>, TFilter>): ITreeSpliceEvent<T, TFilter> {
         return {
             deleted: event.deleted.map(node => this.__unwrapAsyncTreeNode(node)),
             inserted: event.inserted.map(node => this.__unwrapAsyncTreeNode(node))
@@ -872,7 +872,7 @@ export class AsyncTree<T, TFilter = void> extends Disposable implements IAsyncTr
     }
 
     // REVIEW: this causes recursively converting, prob a pref issue
-    private __toTreeChangeCollapseEvent(event: ITreeCollapseStateChangeEvent<IAsyncTreeNode<T>, TFilter>): ITreeCollapseStateChangeEvent<T, TFilter> {
+    private __toTreeChangeCollapseEvent(event: ITreeCollapseStateChangeEvent<IAsyncNode<T>, TFilter>): ITreeCollapseStateChangeEvent<T, TFilter> {
         return {
             node: this.__unwrapAsyncTreeNode(event.node)
         };

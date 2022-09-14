@@ -1,4 +1,4 @@
-import { AsyncTreeItem, IAsyncTreeNode } from "src/base/browser/secondary/tree/asyncTree";
+import { AsyncTreeItem, IAsyncNode } from "src/base/browser/secondary/tree/asyncTree";
 import { IMultiTreeModelOptions, MultiTreeModel } from "src/base/browser/secondary/tree/multiTreeModel";
 import { ITreeCollapseStateChangeEvent, ITreeNode, ITreeSpliceEvent } from "src/base/browser/secondary/tree/tree";
 import { Register } from "src/base/common/event";
@@ -41,7 +41,7 @@ export interface IAsyncChildrenProvider<T> {
 /**
  * An interface only for {@link AsyncTreeModel}.
  */
-export interface IAsyncTreeModel<T, TFilter> extends MultiTreeModel<IAsyncTreeNode<T>, TFilter> {
+export interface IAsyncTreeModel<T, TFilter> extends MultiTreeModel<IAsyncNode<T>, TFilter> {
     
     /**
      * @description Refreshing the tree structure of the given node and all its 
@@ -49,59 +49,59 @@ export interface IAsyncTreeModel<T, TFilter> extends MultiTreeModel<IAsyncTreeNo
      * @param node The provided async tree node.
      * @returns The {@link Promise} of the work.
      */
-    refreshNode(node: AsyncTreeItem<IAsyncTreeNode<T>, TFilter>): Promise<void>;
+    refreshNode(node: AsyncTreeItem<IAsyncNode<T>, TFilter>): Promise<void>;
 
     /**
-     * @description Given the data, returns the corresponding {@link IAsyncTreeNode}.
+     * @description Given the data, returns the corresponding {@link IAsyncNode}.
      * @param data The provided data.
      * 
      * @throws If node not found, an error will be thrown.
      */
-    getAsyncNode(data: T): IAsyncTreeNode<T>;
+    getAsyncNode(data: T): IAsyncNode<T>;
 }
 
 /**
  * Constructor option for {@link AsyncTreeModel}.
  */
-export interface IAsyncTreeModelOptions<T, TFilter = void> extends IMultiTreeModelOptions<IAsyncTreeNode<T>, TFilter> {
+export interface IAsyncTreeModelOptions<T, TFilter = void> extends IMultiTreeModelOptions<IAsyncNode<T>, TFilter> {
     readonly childrenProvider: IAsyncChildrenProvider<T>;
 }
 
 /**
  * @class A {@link AsyncTreeModel} builts on top of a {@link MultiTreeModel} and
- * also wraps a {@link IAsyncTreeNode} over each client data.
+ * also wraps a {@link IAsyncNode} over each client data.
  * // TODO: complete
  */
-export class AsyncTreeModel<T, TFilter = void> extends MultiTreeModel<IAsyncTreeNode<T>, TFilter> implements IAsyncTreeModel<T, TFilter> {
+export class AsyncTreeModel<T, TFilter = void> extends MultiTreeModel<IAsyncNode<T>, TFilter> implements IAsyncTreeModel<T, TFilter> {
     
     // [field]
 
-    private readonly _root: IAsyncTreeNode<T>;
+    private readonly _root: IAsyncNode<T>;
     private readonly _childrenProvider: IAsyncChildrenProvider<T>;
 
     /**
-     * Mapping the client data to {@link IAsyncTreeNode}. Then each async tree
+     * Mapping the client data to {@link IAsyncNode}. Then each async tree
      * node can be used to map to {@link ITreeNode}.
      */
-    private readonly _asyncNodes = new Map<T, IAsyncTreeNode<T>>();
+    private readonly _asyncNodes = new Map<T, IAsyncNode<T>>();
 
     /**
      * Storing the ongoing {@link Promise} when fetching the children stat of 
      * the corresponding async tree node.
      */
-    private readonly _statFetching = new Map<AsyncTreeItem<IAsyncTreeNode<T>, TFilter>, Promise<Iterable<T>>>();
+    private readonly _statFetching = new Map<AsyncTreeItem<IAsyncNode<T>, TFilter>, Promise<Iterable<T>>>();
     
     /**
      * Storing the ongoing {@link Promise} when refreshing the async tree node and
      * all its descendants.
      */
-    private readonly _nodeRefreshing = new Map<AsyncTreeItem<IAsyncTreeNode<T>, TFilter>, Promise<void>>();
+    private readonly _nodeRefreshing = new Map<AsyncTreeItem<IAsyncNode<T>, TFilter>, Promise<void>>();
 
     // [constructor]
 
     constructor(
-        rootNode: IAsyncTreeNode<T>,
-        view: ISpliceable<ITreeNode<IAsyncTreeNode<T>, TFilter>>,
+        rootNode: IAsyncNode<T>,
+        view: ISpliceable<ITreeNode<IAsyncNode<T>, TFilter>>,
         opts: IAsyncTreeModelOptions<T, TFilter>,
     ) {
         super(rootNode, view, opts);
@@ -117,7 +117,7 @@ export class AsyncTreeModel<T, TFilter = void> extends MultiTreeModel<IAsyncTree
 
     // [public methods]
 
-    public async refreshNode(node: AsyncTreeItem<IAsyncTreeNode<T>, TFilter>): Promise<void> {
+    public async refreshNode(node: AsyncTreeItem<IAsyncNode<T>, TFilter>): Promise<void> {
         
         /**
          * If any ongoing refreshing node has a connection with the current node 
@@ -140,7 +140,7 @@ export class AsyncTreeModel<T, TFilter = void> extends MultiTreeModel<IAsyncTree
         return this.__refreshNodeAndChildren(node);
     }
 
-    public getAsyncNode(data: T): IAsyncTreeNode<T> {
+    public getAsyncNode(data: T): IAsyncNode<T> {
         const node = this._asyncNodes.get(data);
         if (!node) {
             throw new Error('async node is not found');
@@ -156,7 +156,7 @@ export class AsyncTreeModel<T, TFilter = void> extends MultiTreeModel<IAsyncTree
      * @param node The given node.
      * @returns The {@link Promise} of the work.
      */
-    private async __refreshNodeAndChildren(node: AsyncTreeItem<IAsyncTreeNode<T>, TFilter>): Promise<void> {
+    private async __refreshNodeAndChildren(node: AsyncTreeItem<IAsyncNode<T>, TFilter>): Promise<void> {
 
         const asyncNode = node.data;
 
@@ -197,7 +197,7 @@ export class AsyncTreeModel<T, TFilter = void> extends MultiTreeModel<IAsyncTree
      * node.
      * @param node The given async tree node.
      */
-    private async __refreshDirectChildren(node: AsyncTreeItem<IAsyncTreeNode<T>, TFilter>): Promise<AsyncTreeItem<IAsyncTreeNode<T>, TFilter>[]> {
+    private async __refreshDirectChildren(node: AsyncTreeItem<IAsyncNode<T>, TFilter>): Promise<AsyncTreeItem<IAsyncNode<T>, TFilter>[]> {
 
         const asyncNode = node.data;
 
@@ -238,7 +238,7 @@ export class AsyncTreeModel<T, TFilter = void> extends MultiTreeModel<IAsyncTree
      * @description Given the tree node, returns the newest children of the node.
      * @param node The provided async tree node.
      */
-    private async __getChildren(node: AsyncTreeItem<IAsyncTreeNode<T>, TFilter>): Promise<Iterable<T>> {
+    private async __getChildren(node: AsyncTreeItem<IAsyncNode<T>, TFilter>): Promise<Iterable<T>> {
         let refreshing = this._statFetching.get(node);
 
         // since the node is already fetching, we do nothing and return the same promise.
@@ -264,7 +264,7 @@ export class AsyncTreeModel<T, TFilter = void> extends MultiTreeModel<IAsyncTree
      * @returns After the children were inserted, returns a iterable of the new 
      * children tree nodes.
      */
-    private __setChildren(node: AsyncTreeItem<IAsyncTreeNode<T>, TFilter>, childrenIterable: Iterable<T>): AsyncTreeItem<IAsyncTreeNode<T>, TFilter>[] {
+    private __setChildren(node: AsyncTreeItem<IAsyncNode<T>, TFilter>, childrenIterable: Iterable<T>): AsyncTreeItem<IAsyncNode<T>, TFilter>[] {
         
         const children = [...childrenIterable];
 
@@ -278,14 +278,14 @@ export class AsyncTreeModel<T, TFilter = void> extends MultiTreeModel<IAsyncTree
          * children is not collapsed, these children will be returned and for 
          * future refresh.
          */
-        const childrenItemsForRefresh: AsyncTreeItem<IAsyncTreeNode<T>, TFilter>[] = [];
-        const childrenItems: AsyncTreeItem<IAsyncTreeNode<T>, TFilter>[] = [];
+        const childrenItemsForRefresh: AsyncTreeItem<IAsyncNode<T>, TFilter>[] = [];
+        const childrenItems: AsyncTreeItem<IAsyncNode<T>, TFilter>[] = [];
 
         for (const child of children) {
             const hasChildren = this._childrenProvider.hasChildren(child);
             const childAsyncNode = this.__createAsyncTreeNode(child, hasChildren);
             
-            const newChildItem: AsyncTreeItem<IAsyncTreeNode<T>, TFilter> = {
+            const newChildItem: AsyncTreeItem<IAsyncNode<T>, TFilter> = {
                 data: childAsyncNode,
                 parent: node,
                 children: [],
@@ -329,7 +329,7 @@ export class AsyncTreeModel<T, TFilter = void> extends MultiTreeModel<IAsyncTree
      * @description Recursively deletes the given node and its descendants.
      * @param node The provided async tree node.
      */
-    private __dfsDelete(node: AsyncTreeItem<IAsyncTreeNode<T>, TFilter>) {
+    private __dfsDelete(node: AsyncTreeItem<IAsyncNode<T>, TFilter>) {
         this._asyncNodes.delete(node.data.data);
         for (const child of node.children) {
             this.__dfsDelete(child);
@@ -337,9 +337,9 @@ export class AsyncTreeModel<T, TFilter = void> extends MultiTreeModel<IAsyncTree
     }
 
     /**
-     * @description Helper function for fast creating a {@link IAsyncTreeNode}.
+     * @description Helper function for fast creating a {@link IAsyncNode}.
      */
-    private __createAsyncTreeNode(data: T, couldHasChildren: boolean): IAsyncTreeNode<T> {
+    private __createAsyncTreeNode(data: T, couldHasChildren: boolean): IAsyncNode<T> {
         return {
             data: data,
             refreshing: null,
@@ -352,7 +352,7 @@ export class AsyncTreeModel<T, TFilter = void> extends MultiTreeModel<IAsyncTree
      * @param node The given node.
      * @param other The other node.
      */
-    private __isAncestor(node: AsyncTreeItem<IAsyncTreeNode<T>, TFilter>, other: AsyncTreeItem<IAsyncTreeNode<T>, TFilter>): boolean {
+    private __isAncestor(node: AsyncTreeItem<IAsyncNode<T>, TFilter>, other: AsyncTreeItem<IAsyncNode<T>, TFilter>): boolean {
         if (other.parent === null) {
             return false;
         } 
