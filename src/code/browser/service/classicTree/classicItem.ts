@@ -1,4 +1,4 @@
-import { IAsyncChildrenProvider } from "src/base/browser/secondary/tree/asyncMultiTree";
+import { IChildrenProvider } from "src/base/browser/secondary/tree/asyncMultiTree";
 import { FileType, IResolvedFileStat } from "src/base/common/file/file";
 import { URI } from "src/base/common/file/uri";
 import { IFilterOpts, isFiltered } from "src/base/common/fuzzy";
@@ -222,10 +222,10 @@ export class ClassicItem implements IClassicItem {
 }
 
 /**
- * @class A {@link IAsyncChildrenProvider} used in a {@link ClassicTreeService}
+ * @class A {@link IChildrenProvider} used in a {@link ClassicTreeService}
  * and to provide children for {@link ClassicItem}.
  */
-export class ClassicChildrenProvider implements IAsyncChildrenProvider<ClassicItem> {
+export class ClassicChildrenProvider implements IChildrenProvider<ClassicItem> {
 
     /** 
      * Determine if the item is first resolved.

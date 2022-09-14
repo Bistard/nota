@@ -1,7 +1,7 @@
 import { composedItemProvider, IListItemProvider } from "src/base/browser/secondary/listView/listItemProvider";
 import { IListWidget, ITraitChangeEvent } from "src/base/browser/secondary/listWidget/listWidget";
 import { IListDragAndDropProvider } from "src/base/browser/secondary/listWidget/listWidgetDragAndDrop";
-import { AsyncTreeModel, IAsyncChildrenProvider, IAsyncTreeModel } from "src/base/browser/secondary/tree/asyncTreeModel";
+import { AsyncTreeModel, IChildrenProvider, IAsyncTreeModel } from "src/base/browser/secondary/tree/asyncTreeModel";
 import { AsyncTreeRenderer } from "src/base/browser/secondary/tree/asyncTreeRenderer";
 import { IMultiTreeOptions, MultiTree } from "src/base/browser/secondary/tree/multiTree";
 import { ITreeNode, ITreeModel, ITreeCollapseStateChangeEvent, ITreeMouseEvent, ITreeTouchEvent, ITreeContextmenuEvent, ITreeSpliceEvent } from "src/base/browser/secondary/tree/tree";
@@ -390,7 +390,7 @@ export interface IAsyncTreeOptions<T, TFilter> extends Omit<IMultiTreeOptions<IA
     /**
      * Provides functionality to determine the children stat of the given data.
      */
-    readonly childrenProvider: IAsyncChildrenProvider<T>;
+    readonly childrenProvider: IChildrenProvider<T>;
     
     readonly filter?: ITreeFilterProvider<T, TFilter>;
     readonly dnd?: IListDragAndDropProvider<T>;
@@ -415,7 +415,7 @@ export interface IAsyncTreeOptions<T, TFilter> extends Omit<IMultiTreeOptions<IA
 class AsyncMultiTree<T, TFilter = void> extends MultiTree<IAsyncNode<T>, TFilter> {
 
     declare protected readonly _model: IAsyncTreeModel<T, TFilter>;
-    private readonly _childrenProvider: IAsyncChildrenProvider<T>;
+    private readonly _childrenProvider: IChildrenProvider<T>;
 
     // [constructor]
 
@@ -495,13 +495,13 @@ class AsyncMultiTree<T, TFilter = void> extends MultiTree<IAsyncNode<T>, TFilter
 /**
  * @class A {@link AsyncTree} Builts on top of {@link MultiTree}. Different from
  * any other tree-like structures, the children of each node is NOT decided by 
- * the client, instead, client needs to provide a {@link IAsyncChildrenProvider} 
+ * the client, instead, client needs to provide a {@link IChildrenProvider} 
  * which has the actual ability to determine the children of each node after 
  * each refresh.
  * 
  * Since the client cannot decide the structure of the tree, once the root data 
  * is given, the {@link AsyncTree} will build the whole tree under the provided 
- * {@link IAsyncChildrenProvider}, and the whole process is implemented 
+ * {@link IChildrenProvider}, and the whole process is implemented 
  * asynchronously.
  * 
  * @note `RootData` is not counted as the part of the tree.

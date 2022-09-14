@@ -1,7 +1,6 @@
 import { AsyncTreeItem, IAsyncNode } from "src/base/browser/secondary/tree/asyncTree";
 import { IMultiTreeModelOptions, MultiTreeModel } from "src/base/browser/secondary/tree/multiTreeModel";
-import { ITreeCollapseStateChangeEvent, ITreeNode, ITreeSpliceEvent } from "src/base/browser/secondary/tree/tree";
-import { Register } from "src/base/common/event";
+import { ITreeNode } from "src/base/browser/secondary/tree/tree";
 import { ISpliceable } from "src/base/common/range";
 import { Blocker } from "src/base/common/util/async";
 import { Iterable } from "src/base/common/util/iterable";
@@ -9,7 +8,7 @@ import { Iterable } from "src/base/common/util/iterable";
 /**
  * Provides functionality to determine the children stat of the given data.
  */
-export interface IAsyncChildrenProvider<T> {
+export interface IChildrenProvider<T> {
 
     /**
      * @description Check if the given data has children.
@@ -64,7 +63,7 @@ export interface IAsyncTreeModel<T, TFilter> extends MultiTreeModel<IAsyncNode<T
  * Constructor option for {@link AsyncTreeModel}.
  */
 export interface IAsyncTreeModelOptions<T, TFilter = void> extends IMultiTreeModelOptions<IAsyncNode<T>, TFilter> {
-    readonly childrenProvider: IAsyncChildrenProvider<T>;
+    readonly childrenProvider: IChildrenProvider<T>;
 }
 
 /**
@@ -77,7 +76,7 @@ export class AsyncTreeModel<T, TFilter = void> extends MultiTreeModel<IAsyncNode
     // [field]
 
     private readonly _root: IAsyncNode<T>;
-    private readonly _childrenProvider: IAsyncChildrenProvider<T>;
+    private readonly _childrenProvider: IChildrenProvider<T>;
 
     /**
      * Mapping the client data to {@link IAsyncNode}. Then each async tree

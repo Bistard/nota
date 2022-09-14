@@ -19,7 +19,7 @@ import { ErrorHandler } from "src/base/common/error";
 /**
  * Provides functionality to determine the children stat of the given data.
  */
-export interface IAsyncChildrenProvider<T> {
+export interface IChildrenProvider<T> {
 
     /**
      * @description Check if the given data has children.
@@ -411,12 +411,12 @@ export interface IAsyncMultiTreeOptions<T, TFilter> extends IMultiTreeOptions<T,
  * 
  * Different from {@link IMultiTree} and any other tree-like structures, the
  * children of each node is NOT decided by the client, instead, client needs to 
- * provide a {@link IAsyncChildrenProvider} which has the ability to determine 
+ * provide a {@link IChildrenProvider} which has the ability to determine 
  * the children of each node.
  * 
  * Since the client cannot decide the structure of the tree, once the root data 
  * is given, the {@link AsyncMultiTree} will build the whole tree under the
- * provided {@link IAsyncChildrenProvider}, and the whole process is implemented
+ * provided {@link IChildrenProvider}, and the whole process is implemented
  * asynchronously.
  * 
  * @note `RootData` is not counted as the part of the tree.
@@ -445,7 +445,7 @@ export class AsyncMultiTree<T, TFilter = void> implements IAsyncMultiTree<T, TFi
         rootData: T,
         renderers: ITreeListRenderer<T, TFilter, any>[],
         itemProvider: IListItemProvider<T>,
-        childrenProvider: IAsyncChildrenProvider<T>,
+        childrenProvider: IChildrenProvider<T>,
         opts: IAsyncMultiTreeOptions<T, TFilter> = {},
     ) {
         this._disposables = new DisposableManager();
@@ -476,7 +476,7 @@ export class AsyncMultiTree<T, TFilter = void> implements IAsyncMultiTree<T, TFi
         rootData: T, 
         renderers: ITreeListRenderer<T, TFilter, any>[], 
         itemProvider: IListItemProvider<T>, 
-        childrenProvider: IAsyncChildrenProvider<T>,
+        childrenProvider: IChildrenProvider<T>,
         opts: IAsyncMultiTreeOptions<T, TFilter> = {}
     ): Pair<AsyncMultiTree<T, TFilter>, Promise<void>>
     {
@@ -680,7 +680,7 @@ export class AsyncMultiTree<T, TFilter = void> implements IAsyncMultiTree<T, TFi
      */
     private __createModel(
         rootData: T,
-        childrenProvider: IAsyncChildrenProvider<T>,
+        childrenProvider: IChildrenProvider<T>,
         unwrapper: AsyncWeakMap<T, TFilter>
     ): IAsyncMultiTreeModel<T, TFilter> {
         return new AsyncMultiTreeModel<T, TFilter>(rootData, childrenProvider, unwrapper);

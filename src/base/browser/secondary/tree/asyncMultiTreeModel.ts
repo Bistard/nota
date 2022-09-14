@@ -1,4 +1,4 @@
-import { AsyncWeakMap, IAsyncChildrenProvider, IAsyncNode } from "src/base/browser/secondary/tree/asyncMultiTree";
+import { AsyncWeakMap, IChildrenProvider, IAsyncNode } from "src/base/browser/secondary/tree/asyncMultiTree";
 import { IMultiTree } from "src/base/browser/secondary/tree/multiTree";
 import { ITreeModel, ITreeSpliceEvent, ITreeNode, ITreeCollapseStateChangeEvent } from "src/base/browser/secondary/tree/tree";
 import { Register } from "src/base/common/event";
@@ -82,7 +82,7 @@ export class AsyncMultiTreeModel<T, TFilter = void> implements IAsyncMultiTreeMo
     private readonly _nodes: Map<T, IAsyncNode<T>>;
     
     private readonly _unwrapper: AsyncWeakMap<T, TFilter>;
-    private readonly _childrenProvider: IAsyncChildrenProvider<T>;
+    private readonly _childrenProvider: IChildrenProvider<T>;
 
     /**
      * Storing the ongoing {@link Promise} when fetching the children stat of 
@@ -100,7 +100,7 @@ export class AsyncMultiTreeModel<T, TFilter = void> implements IAsyncMultiTreeMo
 
     constructor(
         rootData: T,
-        childrenProvider: IAsyncChildrenProvider<T>,
+        childrenProvider: IChildrenProvider<T>,
         nodemap: AsyncWeakMap<T, TFilter>
     ) {
         
