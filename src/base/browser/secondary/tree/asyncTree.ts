@@ -3,7 +3,6 @@ import { IListWidget, ITraitChangeEvent } from "src/base/browser/secondary/listW
 import { IListDragAndDropProvider } from "src/base/browser/secondary/listWidget/listWidgetDragAndDrop";
 import { AsyncTreeModel, IAsyncChildrenProvider, IAsyncTreeModel } from "src/base/browser/secondary/tree/asyncTreeModel";
 import { AsyncTreeRenderer } from "src/base/browser/secondary/tree/asyncTreeRenderer";
-import { ITreeModelSpliceOptions } from "src/base/browser/secondary/tree/indexTreeModel";
 import { IMultiTreeOptions, MultiTree } from "src/base/browser/secondary/tree/multiTree";
 import { ITreeNode, ITreeModel, ITreeCollapseStateChangeEvent, ITreeMouseEvent, ITreeTouchEvent, ITreeContextmenuEvent, ITreeSpliceEvent } from "src/base/browser/secondary/tree/tree";
 import { ITreeFilterProvider, ITreeFilterResult } from "src/base/browser/secondary/tree/treeFilter";
@@ -15,6 +14,11 @@ import { IStandardKeyboardEvent } from "src/base/common/keyboard";
 import { IScrollEvent } from "src/base/common/scrollable";
 import { Weakmap } from "src/base/common/util/map";
 
+/**
+ * @internal
+ * The internal tree node structure that wraps each client data inside the 
+ * {@link AsyncTree}.
+ */
 export interface IAsyncTreeNode<T> {
     /** The client-data. */
     data: T;
@@ -26,18 +30,28 @@ export interface IAsyncTreeNode<T> {
     refreshing: Promise<void> | null;
 }
 
+/**
+ * @internal
+ * Works similar to {@link ITreeNodeItem}.
+ */
 export interface AsyncTreeItem<T, TFilter = void> extends Omit<Partial<ITreeNode<T, TFilter>>, 'children' | 'parent'> {
     
+    /** The client-data. */
     data: T;
 
+    /** The parent of the tree node. */
     parent: AsyncTreeItem<T, TFilter> | null;
     
-    /** 
-     * The childrens of the tree node.
-     */
+    /** The childrens of the tree node. */
     children: AsyncTreeItem<T, TFilter>[];
 }
 
+//#region type converter
+
+/**
+ * @internal
+ * See `@implements` part from {@link IAsyncTreeOptions}.
+ */
 class __AsyncFilter<T, TFilter = void> implements ITreeFilterProvider<IAsyncTreeNode<T>, TFilter> {
 
     constructor(
@@ -49,6 +63,10 @@ class __AsyncFilter<T, TFilter = void> implements ITreeFilterProvider<IAsyncTree
     }
 }
 
+/**
+ * @internal
+ * See `@implements` part from {@link IAsyncTreeOptions}.
+ */
 class __AsyncDragAndDropProvider<T> implements IListDragAndDropProvider<IAsyncTreeNode<T>> {
 
     constructor(
@@ -100,12 +118,12 @@ class __AsyncDragAndDropProvider<T> implements IListDragAndDropProvider<IAsyncTr
     }
 }
 
+/** @internal */
+type AsyncWeakMap<T, TFilter> = Weakmap<ITreeNode<IAsyncTreeNode<T>, TFilter>, ITreeNode<T, TFilter>>;
+
 /**
- * Since {@link AsyncMultiTree} built upon a {@link MultiTree}, the internal
- * tree has the type {@link IMultiTree<IAsyncTreeNode<T>>}. It represents any 
- * APIs will return a node with type {@link ITreeNode<IAsyncTreeNode<T>>} which
- * is not expected. To convert the return type to the {@link ITreeNode<T>}, this
- * will work just like a wrapper under a {@link Weakmap}.
+ * @internal
+ * See `@implements` part from {@link IAsyncTreeOptions}.
  */
 class __AsyncNodeConverter<T, TFilter> implements ITreeNode<T, TFilter> {
 
@@ -122,7 +140,7 @@ class __AsyncNodeConverter<T, TFilter> implements ITreeNode<T, TFilter> {
     get collapsed(): boolean { return this._node.collapsed; }
 }
 
-type AsyncWeakMap<T, TFilter> = Weakmap<ITreeNode<IAsyncTreeNode<T>, TFilter>, ITreeNode<T, TFilter>>;
+//#endregion
 
 /**
  * An interface only for {@link AsyncTree}.
@@ -213,7 +231,7 @@ export interface IAsyncTree<T, TFilter> extends Disposable {
      * @description Given the data, re-acquires the stat of the the corresponding 
      * tree node and then its descendants asynchronously. The view will be 
      * rerendered after all the tree nodes get refreshed.
-     * @param data The provided data with type `T`. Default is the root.
+     * @param data The provided client data. Defaults to the root.
      */
     refresh(data?: T): Promise<void>;
 
@@ -358,18 +376,41 @@ export interface IAsyncTree<T, TFilter> extends Disposable {
     size(): number;
 }
 
-export interface IAsyncTreeOptions<T, TFilter> extends 
-    Omit<IMultiTreeOptions<IAsyncTreeNode<T>, TFilter>, 'filter' | 'dnd'>, 
-    ITreeModelSpliceOptions<IAsyncTreeNode<T>, TFilter> // review: use a wrapper class so that generic type could be T, combine these into the option itself instead of extend
-{
+/**
+ * Constructor options for {@link AsyncTree}.
+ * 
+ * @implements The reason to omit all these fields is because {@link AsyncTree} 
+ * wraps a {@link IAsyncTreeNode} over each client data. On the client side, 
+ * their provider should has generic type `T` instead of `IAsyncTreeNode<T>`. 
+ * The conversion between different types will be handled inside the 
+ * {@link AsyncTree}.
+ */
+export interface IAsyncTreeOptions<T, TFilter> extends Omit<IMultiTreeOptions<IAsyncTreeNode<T>, TFilter>, 'filter' | 'dnd'> {
+    
+    /**
+     * Provides functionality to determine the children stat of the given data.
+     */
     readonly childrenProvider: IAsyncChildrenProvider<T>;
+    
     readonly filter?: ITreeFilterProvider<T, TFilter>;
     readonly dnd?: IListDragAndDropProvider<T>;
+    onDidCreateNode?: (node: ITreeNode<T, TFilter>) => void;
+    onDidDeleteNode?: (node: ITreeNode<T, TFilter>) => void;
 }
 
 /**
  * @internal
- * @class // TODO
+ * @class A {@link AsyncMultiTree} extends all the abilities from {@link MultiTree}
+ * and creates its own model {@link AsyncTreeModel} which contains the core
+ * business logic for asynchronous functionalities.
+ * 
+ * @implements Extends {@link multiTree} means there will only has one model to
+ * exist (one tree structure for maintaining purpose).
+ * 
+ * The biggest difference is that instead of storing the client data with type 
+ * `T` directly into each {@link ITreeNode} in {@link MultiTree}. Instead, it 
+ * wraps each client data with a {@link IAsyncTreeNode<T>}. See more detailed 
+ * implementations in {@link AsyncTreeModel}.
  */
 class AsyncMultiTree<T, TFilter = void> extends MultiTree<IAsyncTreeNode<T>, TFilter> {
 
@@ -385,11 +426,12 @@ class AsyncMultiTree<T, TFilter = void> extends MultiTree<IAsyncTreeNode<T>, TFi
         itemProvider: IListItemProvider<IAsyncTreeNode<T>>,
         opts: IAsyncTreeOptions<T, TFilter>
     ) {
-        const multiTreeOpts = {
+        const multiTreeOpts = 
+        {
             dnd: opts.dnd && new __AsyncDragAndDropProvider(opts.dnd),
             filter: opts.filter && new __AsyncFilter(opts.filter),
             childrenProvider: opts.childrenProvider,
-        } as IMultiTreeOptions<IAsyncTreeNode<T>, TFilter>;
+        };
 
         super(container, rootData, renderers, itemProvider, multiTreeOpts);
         this._childrenProvider = opts.childrenProvider;
@@ -426,10 +468,6 @@ class AsyncMultiTree<T, TFilter = void> extends MultiTree<IAsyncTreeNode<T>, TFi
 
     // [public methods]
 
-    public override getNode(node: IAsyncTreeNode<T>): ITreeNode<IAsyncTreeNode<T>, TFilter> {
-        return this._model.getNode(node);
-    }
-
     public getAsyncNode(data: T): IAsyncTreeNode<T> {
         return this._model.getAsyncNode(data);
     }
@@ -454,6 +492,32 @@ class AsyncMultiTree<T, TFilter = void> extends MultiTree<IAsyncTreeNode<T>, TFi
     }
 }
 
+/**
+ * @class A {@link AsyncTree} Builts on top of {@link MultiTree}. Different from
+ * any other tree-like structures, the children of each node is NOT decided by 
+ * the client, instead, client needs to provide a {@link IAsyncChildrenProvider} 
+ * which has the actual ability to determine the children of each node after 
+ * each refresh.
+ * 
+ * Since the client cannot decide the structure of the tree, once the root data 
+ * is given, the {@link AsyncTree} will build the whole tree under the provided 
+ * {@link IAsyncChildrenProvider}, and the whole process is implemented 
+ * asynchronously.
+ * 
+ * @note `RootData` is not counted as the part of the tree.
+ * @note The subtree will be refreshed automatically once the collapse state of 
+ * the tree node is changed.
+ * 
+ * @implements 
+ * The tree is wrapping a {@link AsyncMultiTree} which extends {@link MultiTree} 
+ * and the reason for this is to avoid same property names.
+ * 
+ * The idea of {@link AsyncTree} is inspired by a class named `AsyncDataTree` in
+ * Visual Studio Code. They maintains two isomorphismic tree structures to avoid 
+ * excessive rerendering. The {@link AsyncTree} goes one step further, it 
+ * elimates another tree structure which causes less memory usage and a little 
+ * faster.
+ */
 export class AsyncTree<T, TFilter = void> extends Disposable implements IAsyncTree<T, TFilter> {
 
     // [field]
@@ -476,9 +540,6 @@ export class AsyncTree<T, TFilter = void> extends Disposable implements IAsyncTr
     ) {
         super();
         
-        this._onDidCreateNode = opts.onDidCreateNode;
-        this._onDidDeleteNode = opts.onDidDeleteNode;
-
         this._nodeConverter = new Weakmap(node => new __AsyncNodeConverter(node));
         const asyncRenderers = renderers.map(r => new AsyncTreeRenderer(r, this._nodeConverter));
         const asyncProvider = new composedItemProvider<T, IAsyncTreeNode<T>>(itemProvider);
@@ -494,6 +555,13 @@ export class AsyncTree<T, TFilter = void> extends Disposable implements IAsyncTr
             asyncProvider, 
             opts,
         );
+
+        if (opts.onDidCreateNode) {
+            this._onDidCreateNode = asyncNode => opts.onDidCreateNode!(this._nodeConverter.map(asyncNode));
+        }
+        if (opts.onDidDeleteNode) {
+            this._onDidDeleteNode = asyncNode => opts.onDidDeleteNode!(this._nodeConverter.map(asyncNode));
+        }
 
         // presetting behaviours on collapse state change
         this.__register(this._tree.onDidChangeCollapseState(e => this.__internalOnDidChangeCollapseState(e)));

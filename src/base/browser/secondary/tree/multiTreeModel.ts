@@ -147,7 +147,7 @@ export class MultiTreeModel<T, TFilter = void> implements IMultiTreeModel<T, TFi
 
     public getNode(item: T): ITreeNode<T, TFilter> {
         const node = this._nodes.get(item);
-        if (node === undefined) {
+        if (!node) {
             throw new Error('provided item not found in the tree');
         }
         return node;

@@ -1,5 +1,4 @@
 import { IListItemProvider } from "src/base/browser/secondary/listView/listItemProvider";
-import { AsyncMultiTree } from "src/base/browser/secondary/tree/asyncMultiTree";
 import { AsyncTree, IAsyncTreeOptions } from "src/base/browser/secondary/tree/asyncTree";
 import { ITreeMouseEvent } from "src/base/browser/secondary/tree/tree";
 import { ITreeListRenderer } from "src/base/browser/secondary/tree/treeListRenderer";
@@ -50,9 +49,10 @@ export class ClassicTree<T extends ClassicItem, TFilter> extends AsyncTree<T, TF
     // [public static method]
 
     /**
-     * Use this method to create the tree instead of {@link AsyncMultiTree.create}.
+     * @description Use this method to create the tree so that it gets refreshed 
+     * automatcially.
      */
-    public static createTree<T extends ClassicItem, TFilter = void>(
+    public static create<T extends ClassicItem, TFilter = void>(
         container: HTMLElement, 
         rootData: T, 
         renderers: ITreeListRenderer<T, TFilter, any>[], 

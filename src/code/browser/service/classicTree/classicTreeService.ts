@@ -10,7 +10,7 @@ import { ClassicDragAndDropProvider } from "src/code/browser/service/classicTree
 import { ILogService } from "src/base/common/logger";
 import { IConfigService } from "src/code/platform/configuration/common/abstractConfigService";
 import { BuiltInConfigScope } from "src/code/platform/configuration/common/configRegistrant";
-import { IFilterOpts } from "src/base/common/fuzzy";
+import { FuzzyScore, IFilterOpts } from "src/base/common/fuzzy";
 import { ClassicFilter } from "src/code/browser/service/classicTree/classicFilter";
 
 export interface IClassicTreeService extends ITreeService<ClassicItem> {
@@ -98,7 +98,7 @@ export class ClassicTreeService extends Disposable implements IClassicTreeServic
      */
     private async __createTree(container: HTMLElement, root: ClassicItem, filters: IFilterOpts): Promise<void> {
 
-        const [tree, treeCreationPromise] = ClassicTree.createTree<ClassicItem, void>(
+        const [tree, treeCreationPromise] = ClassicTree.create<ClassicItem, FuzzyScore>(
             container, 
             root,
             [new ClassicRenderer()], 

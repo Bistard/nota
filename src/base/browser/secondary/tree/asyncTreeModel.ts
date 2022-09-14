@@ -1,6 +1,6 @@
 import { AsyncTreeItem, IAsyncTreeNode } from "src/base/browser/secondary/tree/asyncTree";
 import { IMultiTreeModelOptions, MultiTreeModel } from "src/base/browser/secondary/tree/multiTreeModel";
-import { ITreeCollapseStateChangeEvent, ITreeModel, ITreeNode, ITreeSpliceEvent } from "src/base/browser/secondary/tree/tree";
+import { ITreeCollapseStateChangeEvent, ITreeNode, ITreeSpliceEvent } from "src/base/browser/secondary/tree/tree";
 import { Register } from "src/base/common/event";
 import { ISpliceable } from "src/base/common/range";
 import { Blocker } from "src/base/common/util/async";
@@ -40,16 +40,9 @@ export interface IAsyncChildrenProvider<T> {
 
 /**
  * An interface only for {@link AsyncTreeModel}.
- * @note We are omitting these properties because the type does not fit.
  */
 export interface IAsyncTreeModel<T, TFilter> extends MultiTreeModel<IAsyncTreeNode<T>, TFilter> {
     
-    get rootNode(): IAsyncTreeNode<T>;
-
-    get onDidSplice(): Register<ITreeSpliceEvent<IAsyncTreeNode<T>, TFilter>>;
-    
-    get onDidChangeCollapseState(): Register<ITreeCollapseStateChangeEvent<IAsyncTreeNode<T>, TFilter>>;
-
     /**
      * @description Refreshing the tree structure of the given node and all its 
      * descendants.
@@ -67,13 +60,17 @@ export interface IAsyncTreeModel<T, TFilter> extends MultiTreeModel<IAsyncTreeNo
     getAsyncNode(data: T): IAsyncTreeNode<T>;
 }
 
+/**
+ * Constructor option for {@link AsyncTreeModel}.
+ */
 export interface IAsyncTreeModelOptions<T, TFilter = void> extends IMultiTreeModelOptions<IAsyncTreeNode<T>, TFilter> {
-
     readonly childrenProvider: IAsyncChildrenProvider<T>;
 }
 
 /**
- * @class // TODO
+ * @class A {@link AsyncTreeModel} builts on top of a {@link MultiTreeModel} and
+ * also wraps a {@link IAsyncTreeNode} over each client data.
+ * // TODO: complete
  */
 export class AsyncTreeModel<T, TFilter = void> extends MultiTreeModel<IAsyncTreeNode<T>, TFilter> implements IAsyncTreeModel<T, TFilter> {
     

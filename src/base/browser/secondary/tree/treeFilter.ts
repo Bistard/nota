@@ -11,6 +11,9 @@ export interface ITreeFilterResult<TFilter> {
     readonly filterMetadata?: TFilter;
 }
 
+/**
+ * // TODO
+ */
 export interface ITreeFilterProvider<T, TFilter = void> {
 
     /**
