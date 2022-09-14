@@ -150,11 +150,7 @@ export class ExplorerTreeService extends Disposable implements IExplorerTreeServ
         if (!this._root) {
             return;
         }
-
-        (this._mode === TreeMode.Notebook 
-            ? this.notebookTreeService.layout(height) 
-            : this.classicTreeService.layout(height)
-        );
+        this._currentTreeService!.layout(height);
     }
 
     public async refresh(): Promise<void> {
@@ -162,10 +158,7 @@ export class ExplorerTreeService extends Disposable implements IExplorerTreeServ
             return;
         }
 
-        return (this._mode === TreeMode.Notebook 
-            ? this.notebookTreeService.refresh() 
-            : this.classicTreeService.refresh()
-        );
+        this._currentTreeService!.refresh();
     }
 
     public async close(): Promise<void> {
@@ -174,12 +167,11 @@ export class ExplorerTreeService extends Disposable implements IExplorerTreeServ
         }
 
         // dispose the watching request on the root
-        this._currTreeDisposable?.dispose();
+        this._currTreeDisposable!.dispose();
+        this._currTreeDisposable = undefined;
 
         // close the actual tree service
-        return (this._mode === TreeMode.Notebook 
-            ? this.notebookTreeService.close() 
-            : this.classicTreeService.close()
-        );
+        this._currentTreeService!.close();
+        this._currentTreeService = undefined;
     }
 }
