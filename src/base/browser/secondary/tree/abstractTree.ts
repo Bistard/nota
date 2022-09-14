@@ -698,8 +698,8 @@ export abstract class AbstractTree<T, TFilter, TRef> implements IAbstractTree<T,
         this._view.layout(height);
     }
 
-    public filter(): void {
-        this._model.filter();
+    public filter(visibleOnly?: boolean): void {
+        this._model.filter(visibleOnly);
     }
 
     public dispose(): void {
