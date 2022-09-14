@@ -11,7 +11,7 @@ import { Event, Register } from "src/base/common/event";
  * TMetadata: type of the user-defined value which returned value by the method 
  *            `render()` for later updating / disposing.
  */
-export interface ITreeListRenderer<T, TFilter = void, TMetadata = void> extends IListViewRenderer<ITreeNode<T, TFilter>, TMetadata> {
+export interface ITreeListRenderer<T, TFilter, TMetadata = void> extends IListViewRenderer<ITreeNode<T, TFilter>, TMetadata> {
 
     /**
      * @description Renders the indentation part if needed.

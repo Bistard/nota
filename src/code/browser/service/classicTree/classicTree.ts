@@ -52,7 +52,7 @@ export class ClassicTree<T extends ClassicItem, TFilter> extends AsyncTree<T, TF
      * @description Use this method to create the tree so that it gets refreshed 
      * automatcially.
      */
-    public static create<T extends ClassicItem, TFilter = void>(
+    public static create<T extends ClassicItem, TFilter>(
         container: HTMLElement, 
         rootData: T, 
         renderers: ITreeListRenderer<T, TFilter, any>[], 

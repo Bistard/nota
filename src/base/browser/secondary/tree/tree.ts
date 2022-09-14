@@ -110,7 +110,7 @@ export interface ITreeNodeItem<T> {
  * TRef: represents the equivalent way representing node in the tree, default is 
  *       {@link number[]} which representing the location of a node.
  */
-export interface ITreeModel<T, TFilter = void, TRef = number[]> {
+export interface ITreeModel<T, TFilter, TRef = number[]> {
 
     /**
      * Represents the root of the tree.

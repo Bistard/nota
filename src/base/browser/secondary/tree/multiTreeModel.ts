@@ -24,7 +24,7 @@ export interface IMultiTreeModel<T, TFilter> extends ITreeModel<T, TFilter, T> {
     splice(item: T, deleteCount: number, children: ITreeNodeItem<T>[], opts: ITreeModelSpliceOptions<T, TFilter>): void;
 }
 
-export interface IMultiTreeModelOptions<T, TFilter = void> extends IIndexTreeModelOptions<T, TFilter> {
+export interface IMultiTreeModelOptions<T, TFilter> extends IIndexTreeModelOptions<T, TFilter> {
 
 }
 
@@ -36,7 +36,7 @@ export interface IMultiTreeModelOptions<T, TFilter = void> extends IIndexTreeMod
  * internal treenode type, so that the caller can do searching without knowing 
  * the location of the actual tree node.
  */
-export class MultiTreeModel<T, TFilter = void> implements IMultiTreeModel<T, TFilter> {
+export class MultiTreeModel<T, TFilter> implements IMultiTreeModel<T, TFilter> {
 
     // [field]
 

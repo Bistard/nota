@@ -34,7 +34,7 @@ export interface IAsyncNode<T> {
  * @internal
  * Works similar to {@link ITreeNodeItem}.
  */
-export interface AsyncTreeItem<T, TFilter = void> extends Omit<Partial<ITreeNode<T, TFilter>>, 'children' | 'parent'> {
+export interface AsyncTreeItem<T, TFilter> extends Omit<Partial<ITreeNode<T, TFilter>>, 'children' | 'parent'> {
     
     /** The client-data. */
     data: T;
@@ -52,7 +52,7 @@ export interface AsyncTreeItem<T, TFilter = void> extends Omit<Partial<ITreeNode
  * @internal
  * See `@implements` part from {@link IAsyncTreeOptions}.
  */
-class __AsyncFilter<T, TFilter = void> implements ITreeFilterProvider<IAsyncNode<T>, TFilter> {
+class __AsyncFilter<T, TFilter> implements ITreeFilterProvider<IAsyncNode<T>, TFilter> {
 
     constructor(
         private readonly _filter: ITreeFilterProvider<T, TFilter>
@@ -412,7 +412,7 @@ export interface IAsyncTreeOptions<T, TFilter> extends Omit<IMultiTreeOptions<IA
  * wraps each client data with a {@link IAsyncNode<T>}. See more detailed 
  * implementations in {@link AsyncTreeModel}.
  */
-class AsyncMultiTree<T, TFilter = void> extends MultiTree<IAsyncNode<T>, TFilter> {
+class AsyncMultiTree<T, TFilter> extends MultiTree<IAsyncNode<T>, TFilter> {
 
     declare protected readonly _model: IAsyncTreeModel<T, TFilter>;
     private readonly _childrenProvider: IChildrenProvider<T>;
@@ -518,7 +518,7 @@ class AsyncMultiTree<T, TFilter = void> extends MultiTree<IAsyncNode<T>, TFilter
  * elimates another tree structure which causes less memory usage and a little 
  * faster.
  */
-export class AsyncTree<T, TFilter = void> extends Disposable implements IAsyncTree<T, TFilter> {
+export class AsyncTree<T, TFilter> extends Disposable implements IAsyncTree<T, TFilter> {
 
     // [field]
 

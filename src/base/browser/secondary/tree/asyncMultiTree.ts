@@ -425,7 +425,7 @@ export interface IAsyncMultiTreeOptions<T, TFilter> extends IMultiTreeOptions<T,
  * tree node is changed.
  * @deprecated
  */
-export class AsyncMultiTree<T, TFilter = void> implements IAsyncMultiTree<T, TFilter>, IDisposable {
+export class AsyncMultiTree<T, TFilter> implements IAsyncMultiTree<T, TFilter>, IDisposable {
 
     // [field]
 

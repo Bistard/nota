@@ -62,7 +62,7 @@ export interface IAsyncTreeModel<T, TFilter> extends MultiTreeModel<IAsyncNode<T
 /**
  * Constructor option for {@link AsyncTreeModel}.
  */
-export interface IAsyncTreeModelOptions<T, TFilter = void> extends IMultiTreeModelOptions<IAsyncNode<T>, TFilter> {
+export interface IAsyncTreeModelOptions<T, TFilter> extends IMultiTreeModelOptions<IAsyncNode<T>, TFilter> {
     readonly childrenProvider: IChildrenProvider<T>;
 }
 
@@ -71,7 +71,7 @@ export interface IAsyncTreeModelOptions<T, TFilter = void> extends IMultiTreeMod
  * also wraps a {@link IAsyncNode} over each client data.
  * // TODO: complete
  */
-export class AsyncTreeModel<T, TFilter = void> extends MultiTreeModel<IAsyncNode<T>, TFilter> implements IAsyncTreeModel<T, TFilter> {
+export class AsyncTreeModel<T, TFilter> extends MultiTreeModel<IAsyncNode<T>, TFilter> implements IAsyncTreeModel<T, TFilter> {
     
     // [field]
 

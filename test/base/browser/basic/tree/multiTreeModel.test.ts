@@ -19,14 +19,14 @@ suite('multiTreeModel-test', () => {
 
     test('constructor', () => {
         const list: ITreeNode<number>[] = [];
-        const model = new MultiTreeModel<number>(-1, toList(list));
+        const model = new MultiTreeModel<number, void>(-1, toList(list));
         assert.deepStrictEqual(list.length, 0);
         assert.deepStrictEqual(model.size(), 0);
     });
 
     test('splice', () => {
         const list: ITreeNode<number>[] = [];
-        const model = new MultiTreeModel<number>(-1, toList(list));
+        const model = new MultiTreeModel<number, void>(-1, toList(list));
 
         model.splice(-1, 0, [
             {data: 1},
@@ -55,7 +55,7 @@ suite('multiTreeModel-test', () => {
 
     test('splice nested', () => {
         const list: ITreeNode<number>[] = [];
-        const model = new MultiTreeModel<number>(-1, toList(list));
+        const model = new MultiTreeModel<number, void>(-1, toList(list));
 
         model.splice(-1, Number.MAX_VALUE, [
 			{
@@ -90,7 +90,7 @@ suite('multiTreeModel-test', () => {
 
     test('splice on collapsed node', () => {
         const list: ITreeNode<number>[] = [];
-		const model = new MultiTreeModel<number>(-1, toList(list));
+		const model = new MultiTreeModel<number, void>(-1, toList(list));
 
 		model.splice(-1, Number.MAX_VALUE, [
 			{ data: 0, collapsed: true }
@@ -111,7 +111,7 @@ suite('multiTreeModel-test', () => {
 
     test('expandTo', () => {
         const list: ITreeNode<number>[] = [];
-		const model = new MultiTreeModel<number>(-1, toList(list), { collapsedByDefault: true });
+		const model = new MultiTreeModel<number, void>(-1, toList(list), { collapsedByDefault: true });
 
 		model.splice(-1, Number.MAX_VALUE, [
 			{

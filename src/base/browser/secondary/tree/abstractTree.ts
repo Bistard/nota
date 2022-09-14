@@ -273,7 +273,7 @@ export class TreeListWidget<T, TFilter, TRef> extends ListWidget<ITreeNode<T, TF
  * An interface for the constructor options of the {@link AbstractTree}. The 
  * interface includes the base interface of a {@link ITreeModel} options.
  */
-export interface IAbstractTreeOptions<T, TFilter = void> extends IIndexTreeModelOptions<T, TFilter> {
+export interface IAbstractTreeOptions<T, TFilter> extends IIndexTreeModelOptions<T, TFilter> {
 
     /**
      * Provides the functionality to achieve drag and drop support in the tree.

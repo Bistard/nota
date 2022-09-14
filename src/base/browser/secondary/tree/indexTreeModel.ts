@@ -24,7 +24,7 @@ export interface ITreeModelSpliceOptions<T, TFilter> {
 /**
  * An constructor option for {@link IndexTreeModel}.
  */
-export interface IIndexTreeModelOptions<T, TFilter = void> {
+export interface IIndexTreeModelOptions<T, TFilter> {
     
     /** 
      * If the tree node should be collapsed when constructing a new one by 
@@ -57,7 +57,7 @@ export interface IIndexTreeNode<T, TFilter = void> extends ITreeNode<T, TFilter>
  * 
  * TRef: number[]
  */
-export interface IIndexTreeModel<T, TFilter = void> extends ITreeModel<T, TFilter, number[]> {
+export interface IIndexTreeModel<T, TFilter> extends ITreeModel<T, TFilter, number[]> {
 
     /**
      * Events when tree splice did happen.
@@ -88,7 +88,7 @@ export interface IIndexTreeModel<T, TFilter = void> extends ITreeModel<T, TFilte
  * The tree model represents a multiway tree-like structure. The prefix `index` 
  * means the tree node can be found by a series of indices.
  */
-export class IndexTreeModel<T, TFilter = void> implements IIndexTreeModel<T, TFilter> {
+export class IndexTreeModel<T, TFilter> implements IIndexTreeModel<T, TFilter> {
 
     // [fields]
 

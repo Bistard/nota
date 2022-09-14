@@ -9,7 +9,7 @@ import { ITreeModel, ITreeNode, ITreeNodeItem } from "src/base/browser/secondary
 /**
  * An interface only for {@link MultiTree}.
  */
-export interface IMultiTree<T, TFilter = void> extends IAbstractTree<T, TFilter, T> {
+export interface IMultiTree<T, TFilter> extends IAbstractTree<T, TFilter, T> {
     
     /**
      * To insert or delete items in the tree by given the location.
@@ -35,7 +35,7 @@ export interface IMultiTree<T, TFilter = void> extends IAbstractTree<T, TFilter,
 /**
  * {@link MultiTree} Constructor option.
  */
-export interface IMultiTreeOptions<T, TFilter = void> extends IAbstractTreeOptions<T, TFilter> {}
+export interface IMultiTreeOptions<T, TFilter> extends IAbstractTreeOptions<T, TFilter> {}
 
 /**
  * @class An inheritance from {@link AbstractTree}, built on top of the 
@@ -45,7 +45,7 @@ export interface IMultiTreeOptions<T, TFilter = void> extends IAbstractTreeOptio
  *      - wrapping {@link IMultiTreeModel}.
  *      - provide rerender ability to refresh the view of the tree.
  */
-export class MultiTree<T, TFilter = void> extends AbstractTree<T, TFilter, T> implements IMultiTree<T, TFilter> {
+export class MultiTree<T, TFilter> extends AbstractTree<T, TFilter, T> implements IMultiTree<T, TFilter> {
 
     // [field]
 

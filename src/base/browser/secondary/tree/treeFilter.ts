@@ -14,7 +14,7 @@ export interface ITreeFilterResult<TFilter> {
 /**
  * // TODO
  */
-export interface ITreeFilterProvider<T, TFilter = void> {
+export interface ITreeFilterProvider<T, TFilter> {
 
     /**
      * @description A tree filter provider decides whether the given item should 
