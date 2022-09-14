@@ -70,6 +70,7 @@ export interface IAsyncMultiTreeModel<T, TFilter> extends Omit<ITreeModel<T, TFi
  * finished, we only need to render once in the {@link IAsyncMultiTree}.
  * 
  * @perf https://github.com/Bistard/nota/issues/138
+ * @deprecated
  */
 export class AsyncMultiTreeModel<T, TFilter = void> implements IAsyncMultiTreeModel<T, TFilter> {
 

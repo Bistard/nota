@@ -423,6 +423,7 @@ export interface IAsyncMultiTreeOptions<T, TFilter> extends IMultiTreeOptions<T,
  * @note Constructor is protected, use {@link AsyncMultiTree.create} instead.
  * @note The subtree will refresh automatically once the collapse state of the 
  * tree node is changed.
+ * @deprecated
  */
 export class AsyncMultiTree<T, TFilter = void> implements IAsyncMultiTree<T, TFilter>, IDisposable {
 
