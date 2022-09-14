@@ -1,6 +1,6 @@
 import { IListItemProvider } from "src/base/browser/secondary/listView/listItemProvider";
-import { AsyncMultiTree, IAsyncChildrenProvider } from "src/base/browser/secondary/tree/asyncMultiTree";
-import { AsyncTree, IAsyncMultiTreeOptions } from "src/base/browser/secondary/tree/asyncTree";
+import { AsyncMultiTree } from "src/base/browser/secondary/tree/asyncMultiTree";
+import { AsyncTree, IAsyncTreeOptions } from "src/base/browser/secondary/tree/asyncTree";
 import { ITreeMouseEvent } from "src/base/browser/secondary/tree/tree";
 import { ITreeListRenderer } from "src/base/browser/secondary/tree/treeListRenderer";
 import { Emitter, Register } from "src/base/common/event";
@@ -19,6 +19,8 @@ export interface IClassicTree<T, TFilter> extends AsyncTree<T, TFilter> {
      */
     readonly onDidClick: Register<ClassicOpenEvent>;
 }
+
+export interface IClassicTreeOptions<T extends ClassicItem, TFilter> extends IAsyncTreeOptions<T, TFilter> {}
 
 /**
  * @class // TODO
@@ -39,10 +41,9 @@ export class ClassicTree<T extends ClassicItem, TFilter> extends AsyncTree<T, TF
         rootData: T,
         renderers: ITreeListRenderer<T, TFilter, any>[],
         itemProvider: IListItemProvider<T>,
-        childrenProvider: IAsyncChildrenProvider<T>,
-        opts: IAsyncMultiTreeOptions<T, TFilter> = {},
+        opts: IClassicTreeOptions<T, TFilter>,
     ) {
-        super(container, rootData, renderers, itemProvider, childrenProvider, opts);
+        super(container, rootData, renderers, itemProvider, opts);
         this.__register(this.onClick(e => this.__onTreeClick(e)));
     }
 
@@ -56,11 +57,10 @@ export class ClassicTree<T extends ClassicItem, TFilter> extends AsyncTree<T, TF
         rootData: T, 
         renderers: ITreeListRenderer<T, TFilter, any>[], 
         itemProvider: IListItemProvider<T>, 
-        childrenProvider: IAsyncChildrenProvider<T>,
-        opts: IAsyncMultiTreeOptions<T, TFilter> = {}
+        opts: IClassicTreeOptions<T, TFilter>
     ): Pair<ClassicTree<T, TFilter>, Promise<void>>
     {
-        const tree = new ClassicTree(container, rootData, renderers, itemProvider, childrenProvider, opts);
+        const tree = new ClassicTree(container, rootData, renderers, itemProvider, opts);
         return [tree, tree.refresh()];
     }
 

@@ -3,7 +3,7 @@ import { ITreeListRenderer } from "src/base/browser/secondary/tree/treeListRende
 import { IListItemProvider } from "src/base/browser/secondary/listView/listItemProvider";
 import { IListWidget } from "src/base/browser/secondary/listWidget/listWidget";
 import { ITreeModelSpliceOptions } from "src/base/browser/secondary/tree/indexTreeModel";
-import { IMultiTreeModel, MultiTreeModel } from "src/base/browser/secondary/tree/multiTreeModel";
+import { IMultiTreeModel, IMultiTreeModelOptions, MultiTreeModel } from "src/base/browser/secondary/tree/multiTreeModel";
 import { ITreeModel, ITreeNode, ITreeNodeItem } from "src/base/browser/secondary/tree/tree";
 
 /**
@@ -88,7 +88,12 @@ export class MultiTree<T, TFilter = void> extends AbstractTree<T, TFilter, T> im
 
     // [private helper method]
 
-    protected override createModel(rootData: T, view: IListWidget<ITreeNode<T, TFilter>>, opts: IMultiTreeOptions<T, TFilter>): ITreeModel<T, TFilter, T> {
+    protected override createModel(
+        rootData: T, 
+        view: IListWidget<ITreeNode<T, TFilter>>, 
+        opts: IMultiTreeOptions<T, TFilter>
+    ): ITreeModel<T, TFilter, T>
+    {
         return new MultiTreeModel<T, TFilter>(rootData, view, opts);
     }
 }

@@ -1,17 +1,18 @@
 import { composedItemProvider, IListItemProvider } from "src/base/browser/secondary/listView/listItemProvider";
-import { IListWidget } from "src/base/browser/secondary/listWidget/listWidget";
+import { IListWidget, ITraitChangeEvent } from "src/base/browser/secondary/listWidget/listWidget";
 import { IListDragAndDropProvider } from "src/base/browser/secondary/listWidget/listWidgetDragAndDrop";
-import { AsyncNodeConverter, AsyncWeakMap, IAsyncChildrenProvider } from "src/base/browser/secondary/tree/asyncMultiTree";
-import { AsyncTreeModel } from "src/base/browser/secondary/tree/asyncTreeModel";
+import { AsyncTreeModel, IAsyncChildrenProvider, IAsyncTreeModel } from "src/base/browser/secondary/tree/asyncTreeModel";
 import { AsyncTreeRenderer } from "src/base/browser/secondary/tree/asyncTreeRenderer";
 import { ITreeModelSpliceOptions } from "src/base/browser/secondary/tree/indexTreeModel";
 import { IMultiTreeOptions, MultiTree } from "src/base/browser/secondary/tree/multiTree";
-import { IMultiTreeModelOptions } from "src/base/browser/secondary/tree/multiTreeModel";
-import { ITreeNode, ITreeModel, ITreeCollapseStateChangeEvent, ITreeMouseEvent, ITreeTouchEvent, ITreeContextmenuEvent } from "src/base/browser/secondary/tree/tree";
+import { ITreeNode, ITreeModel, ITreeCollapseStateChangeEvent, ITreeMouseEvent, ITreeTouchEvent, ITreeContextmenuEvent, ITreeSpliceEvent } from "src/base/browser/secondary/tree/tree";
+import { ITreeFilterProvider, ITreeFilterResult } from "src/base/browser/secondary/tree/treeFilter";
 import { ITreeListRenderer } from "src/base/browser/secondary/tree/treeListRenderer";
 import { Disposable } from "src/base/common/dispose";
 import { ErrorHandler } from "src/base/common/error";
-import { Event } from "src/base/common/event";
+import { Event, Register } from "src/base/common/event";
+import { IStandardKeyboardEvent } from "src/base/common/keyboard";
+import { IScrollEvent } from "src/base/common/scrollable";
 import { Weakmap } from "src/base/common/util/map";
 
 export interface IAsyncTreeNode<T> {
@@ -37,11 +38,18 @@ export interface AsyncTreeItem<T, TFilter = void> extends Omit<Partial<ITreeNode
     children: AsyncTreeItem<T, TFilter>[];
 }
 
-/**
- * @class A wrapper class to convert a basic {@link IListDragAndDropProvider<T>}
- * to {@link IListDragAndDropProvider<IAsyncTreeNode<T>>}.
- */
-class __AsyncMultiTreeDragAndDropProvider<T> implements IListDragAndDropProvider<IAsyncTreeNode<T>> {
+class __AsyncFilter<T, TFilter = void> implements ITreeFilterProvider<IAsyncTreeNode<T>, TFilter> {
+
+    constructor(
+        private readonly _filter: ITreeFilterProvider<T, TFilter>
+    ) {}
+
+    public filter(item: IAsyncTreeNode<T>): ITreeFilterResult<TFilter> {
+        return this._filter.filter(item.data);
+    }
+}
+
+class __AsyncDragAndDropProvider<T> implements IListDragAndDropProvider<IAsyncTreeNode<T>> {
 
     constructor(
         private readonly dnd: IListDragAndDropProvider<T>
@@ -92,17 +100,280 @@ class __AsyncMultiTreeDragAndDropProvider<T> implements IListDragAndDropProvider
     }
 }
 
-export interface IAsyncTreeOptions<T, TFilter> extends 
-    IMultiTreeOptions<IAsyncTreeNode<T>, TFilter>, 
-    ITreeModelSpliceOptions<IAsyncTreeNode<T>, TFilter>, 
-    IMultiTreeModelOptions<IAsyncTreeNode<T>, TFilter> 
-{
-    readonly childrenProvider: IAsyncChildrenProvider<T>;
+/**
+ * Since {@link AsyncMultiTree} built upon a {@link MultiTree}, the internal
+ * tree has the type {@link IMultiTree<IAsyncTreeNode<T>>}. It represents any 
+ * APIs will return a node with type {@link ITreeNode<IAsyncTreeNode<T>>} which
+ * is not expected. To convert the return type to the {@link ITreeNode<T>}, this
+ * will work just like a wrapper under a {@link Weakmap}.
+ */
+class __AsyncNodeConverter<T, TFilter> implements ITreeNode<T, TFilter> {
+
+    constructor(private readonly _node: ITreeNode<IAsyncTreeNode<T>, TFilter>) {}
+
+    get data(): T { return this._node.data!.data; }
+    get parent(): ITreeNode<T, TFilter> | null { return this._node.parent?.data ? new __AsyncNodeConverter(this._node.parent) : null; }
+    // REVIEW: @memoize?
+    get children(): ITreeNode<T, TFilter>[] { return this._node.children.map(child => new __AsyncNodeConverter(child)); }
+    get visibleNodeCount(): number { return this._node.visibleNodeCount; }
+    get depth(): number { return this._node.depth; }
+    get visible(): boolean { return this._node.visible; }
+    get collapsible(): boolean { return this._node.collapsible; }
+    get collapsed(): boolean { return this._node.collapsed; }
 }
 
-export class AsyncMultiTree<T, TFilter = void> extends MultiTree<IAsyncTreeNode<T>, TFilter> {
+type AsyncWeakMap<T, TFilter> = Weakmap<ITreeNode<IAsyncTreeNode<T>, TFilter>, ITreeNode<T, TFilter>>;
 
-    declare protected readonly _model: AsyncTreeModel<T, TFilter>;
+/**
+ * An interface only for {@link AsyncTree}.
+ */
+export interface IAsyncTree<T, TFilter> extends Disposable {
+
+    /**
+     * The container of the whole tree.
+     */
+    readonly DOMElement: HTMLElement;
+
+    /**
+     * The root data of the tree.
+     */
+    readonly root: T;
+
+    /**
+     * Events when tree splice happened.
+     */
+    get onDidSplice(): Register<ITreeSpliceEvent<T, TFilter>>;
+
+    /**
+     * Fires when the tree node collapse state changed.
+     */
+    get onDidChangeCollapseState(): Register<ITreeCollapseStateChangeEvent<T, TFilter>>;
+
+    /**
+     * Fires when the {@link IAsyncMultiTree} is scrolling.
+     */
+    get onDidScroll(): Register<IScrollEvent>;
+
+    /**
+     * Fires when the {@link IAsyncMultiTree} itself is blured or focused.
+     */
+    get onDidChangeFocus(): Register<boolean>;
+    
+    /**
+     * Fires when the focused tree nodes in the {@link IAsyncMultiTree} is changed.
+     */
+    get onDidChangeItemFocus(): Register<ITraitChangeEvent>;
+    
+    /**
+     * Fires when the selected tree nodes in the {@link IAsyncMultiTree} is changed.
+     */
+    get onDidChangeItemSelection(): Register<ITraitChangeEvent>;
+    
+    /**
+     * Fires when the tree node in the {@link IAsyncMultiTree} is clicked.
+     */
+    get onClick(): Register<ITreeMouseEvent<T>>;
+    
+    /**
+     * Fires when the tree node in the {@link IAsyncMultiTree} is double clicked.
+     */
+    get onDoubleclick(): Register<ITreeMouseEvent<T>>;
+
+    /** 
+     * An event sent when the state of contacts with a touch-sensitive surface 
+     * changes. This surface can be a touch screen or trackpad.
+     */
+    get onTouchstart(): Register<ITreeTouchEvent<T>>;
+
+    /**
+     * Fires when the {@link IAsyncMultiTree} is keydowned.
+     */
+    get onKeydown(): Register<IStandardKeyboardEvent>;
+    
+    /** 
+     * Fires when the {@link IAsyncMultiTree} is keyup. 
+     */
+    get onKeyup(): Register<IStandardKeyboardEvent>;
+
+     /** 
+      * Fires when the {@link IAsyncMultiTree} is keypress. 
+      */
+    get onKeypress(): Register<IStandardKeyboardEvent>;
+
+    /** 
+     * Fires when the user attempts to open a context menu {@link IAsyncMultiTree}. 
+     * This event is typically triggered by clicking the right mouse button, or 
+     * by pressing the context menu key.
+     */
+    get onContextmenu(): Register<ITreeContextmenuEvent<T>>;
+
+    // [public method]
+    
+    /**
+     * @description Given the data, re-acquires the stat of the the corresponding 
+     * tree node and then its descendants asynchronously. The view will be 
+     * rerendered after all the tree nodes get refreshed.
+     * @param data The provided data with type `T`. Default is the root.
+     */
+    refresh(data?: T): Promise<void>;
+
+    /**
+     * @description Filters the whole tree by the provided {@link ITreeFilter}
+     * in the constructor.
+     * @param visibleOnly If only consider the visible tree nodes. Default to 
+     *                    true.
+     */
+    filter(visibleOnly?: boolean): void;
+
+    /**
+     * @description Try to get an existed node given the corresponding data.
+     * @param data The corresponding data.
+     * @returns Returns the expected tree node.
+     */
+    getNode(data: T): ITreeNode<T, TFilter>;
+
+    /**
+     * @description Check if the given node is existed.
+     * @param data The corresponding data.
+     * @returns If the node exists.
+     */
+    hasNode(data: T): boolean;
+
+    /**
+     * @description Determines if the corresponding node of the given data is 
+     * collapsible.
+     * @param data The corresponding data.
+     * @returns If it is collapsible.
+     * 
+     * @throws If the location is not found, an error is thrown.
+     */
+    isCollapsible(data: T): boolean;
+
+    /**
+     * @description Determines if the corresponding node of the given data is 
+     * collapsed.
+     * @param data The corresponding data.
+     * @returns If it is collapsed.
+     * 
+     * @throws If the location is not found, an error is thrown.
+     */
+    isCollapsed(data: T): boolean;
+
+    /**
+     * @description Collapses to the tree node with the given data.
+     * @param data The data representation of the node.
+     * @param recursive Determines if the operation is recursive (same operation 
+     *                  to its descendants). if not provided, sets to false as 
+     *                  default.
+     * @returns If the operation successed.
+     */
+    collapse(data: T, recursive: boolean): boolean;
+
+    /**
+     * @description Expands to the tree node with the given data.
+     * @param data The data representation of the node.
+     * @param recursive Determines if the operation is recursive (same operation 
+     *                  to its descendants). if not provided, sets to false as 
+     *                  default.
+     * @returns If the operation successed.
+     * 
+     * @note Since expanding meaning refreshing to the newest children nodes,
+     * asynchronous is required.
+     */
+    expand(data: T, recursive: boolean): Promise<boolean>;
+     
+    /**
+     * @description Toggles the state of collapse or expand to the tree node with
+     * the given data.
+     * @param data The data representation of the node.
+     * @param recursive Determines if the operation is recursive (same operation 
+     *                  to its descendants). if not provided, sets to false as 
+     *                  default.
+     * @returns If the operation successed.
+     */
+    toggleCollapseOrExpand(data: T, recursive: boolean): Promise<boolean>;
+     
+    /**
+     * @description Collapses all the tree nodes.
+     */
+    collapseAll(): void;
+    
+    /**
+     * @description Expands all the tree nodes.
+     */
+    expandAll(): void;
+
+    /**
+     * @description Sets the given item as the anchor.
+     */
+    setAnchor(item: T): void;
+
+    /**
+     * @description Returns the focused item.
+     */
+    getAnchor(): T | null;
+
+    /**
+     * @description Sets the given item as focused.
+     */
+    setFocus(item: T): void;
+
+    /**
+     * @description Returns the focused item.
+     */
+    getFocus(): T | null;
+
+    /**
+     * @description Sets the given a series of items as selected.
+     */
+    setSelections(items: T[]): void;
+
+    /**
+     * @description Returns the selected items.
+     */
+    getSelections(): T[];
+
+    /**
+     * @description Sets the current view as focused in DOM tree.
+     */
+    setDomFocus(): void;
+
+    /**
+     * @description Given the height, re-layouts the height of the whole view.
+     * @param height The given height.
+     * 
+     * @note If no values are provided, it will sets to the height of the 
+     * corresponding DOM element of the view.
+     */
+    layout(height?: number): void;
+    
+    /**
+     * @description Rerenders the whole view.
+     */
+    rerender(data: T): void;
+
+    /**
+     * @description Returns the number of nodes in the tree.
+     */
+    size(): number;
+}
+
+export interface IAsyncTreeOptions<T, TFilter> extends 
+    Omit<IMultiTreeOptions<IAsyncTreeNode<T>, TFilter>, 'filter' | 'dnd'>, 
+    ITreeModelSpliceOptions<IAsyncTreeNode<T>, TFilter> // review: use a wrapper class so that generic type could be T, combine these into the option itself instead of extend
+{
+    readonly childrenProvider: IAsyncChildrenProvider<T>;
+    readonly filter?: ITreeFilterProvider<T, TFilter>;
+    readonly dnd?: IListDragAndDropProvider<T>;
+}
+
+/**
+ * @internal
+ * @class // TODO
+ */
+class AsyncMultiTree<T, TFilter = void> extends MultiTree<IAsyncTreeNode<T>, TFilter> {
+
+    declare protected readonly _model: IAsyncTreeModel<T, TFilter>;
     private readonly _childrenProvider: IAsyncChildrenProvider<T>;
 
     // [constructor]
@@ -114,19 +385,33 @@ export class AsyncMultiTree<T, TFilter = void> extends MultiTree<IAsyncTreeNode<
         itemProvider: IListItemProvider<IAsyncTreeNode<T>>,
         opts: IAsyncTreeOptions<T, TFilter>
     ) {
-        super(container, rootData, renderers, itemProvider, opts);
+        const multiTreeOpts = {
+            dnd: opts.dnd && new __AsyncDragAndDropProvider(opts.dnd),
+            filter: opts.filter && new __AsyncFilter(opts.filter),
+            childrenProvider: opts.childrenProvider,
+        } as IMultiTreeOptions<IAsyncTreeNode<T>, TFilter>;
+
+        super(container, rootData, renderers, itemProvider, multiTreeOpts);
         this._childrenProvider = opts.childrenProvider;
     }
 
     // [protected override method]
 
     protected override createModel(
-        rootData: IAsyncTreeNode<T>,
+        rootData: IAsyncTreeNode<T>, 
         view: IListWidget<ITreeNode<IAsyncTreeNode<T>, TFilter>>, 
-        opts: IAsyncTreeOptions<T, TFilter>,
-    ): ITreeModel<IAsyncTreeNode<T>, TFilter, IAsyncTreeNode<T>> 
+        opts: IMultiTreeOptions<IAsyncTreeNode<T>, TFilter>,
+        ): ITreeModel<IAsyncTreeNode<T>, TFilter, IAsyncTreeNode<T>> 
     {
-        return new AsyncTreeModel(rootData, view, opts.childrenProvider, opts);
+        return new AsyncTreeModel(
+            rootData, 
+            view, 
+            {
+                collapsedByDefault: opts.collapsedByDefault,
+                filter: opts.filter,
+                childrenProvider: (<any>opts).childrenProvider, // TODO
+            }
+        );
     }
 
     // [getter]
@@ -159,18 +444,23 @@ export class AsyncMultiTree<T, TFilter = void> extends MultiTree<IAsyncTreeNode<
         }
         return true;
     }
+
+    public setCollapsed(node: IAsyncTreeNode<T>, collapsed?: boolean, recursive?: boolean): boolean {
+        if (collapsed) {
+            return this.collapse(node, recursive ?? false);
+        } else {
+            return this.expand(node, recursive ?? false);
+        };
+    }
 }
 
-/**
- * {@link AsyncMultiTree} Constructor option.
- */
-export interface IAsyncMultiTreeOptions<T, TFilter> extends IMultiTreeOptions<T, TFilter>, ITreeModelSpliceOptions<IAsyncTreeNode<T>, TFilter> {}
-
-export class AsyncTree<T, TFilter = void> extends Disposable {
+export class AsyncTree<T, TFilter = void> extends Disposable implements IAsyncTree<T, TFilter> {
 
     // [field]
 
     private readonly _tree: AsyncMultiTree<T, TFilter>;
+
+    private readonly _nodeConverter: AsyncWeakMap<T, TFilter>;
 
     private _onDidCreateNode?: (node: ITreeNode<IAsyncTreeNode<T>, TFilter>) => void;
     private _onDidDeleteNode?: (node: ITreeNode<IAsyncTreeNode<T>, TFilter>) => void;
@@ -182,16 +472,15 @@ export class AsyncTree<T, TFilter = void> extends Disposable {
         rootData: T,
         renderers: ITreeListRenderer<T, TFilter, any>[],
         itemProvider: IListItemProvider<T>,
-        childrenProvider: IAsyncChildrenProvider<T>,
-        opts: IAsyncMultiTreeOptions<T, TFilter> = {},
+        opts: IAsyncTreeOptions<T, TFilter>,
     ) {
         super();
-
+        
         this._onDidCreateNode = opts.onDidCreateNode;
         this._onDidDeleteNode = opts.onDidDeleteNode;
 
-        const unwrapper: AsyncWeakMap<T, TFilter> = new Weakmap(node => new AsyncNodeConverter(node));
-        const asyncRenderers = renderers.map(r => new AsyncTreeRenderer(r, unwrapper));
+        this._nodeConverter = new Weakmap(node => new __AsyncNodeConverter(node));
+        const asyncRenderers = renderers.map(r => new AsyncTreeRenderer(r, this._nodeConverter));
         const asyncProvider = new composedItemProvider<T, IAsyncTreeNode<T>>(itemProvider);
 
         this._tree = new AsyncMultiTree(
@@ -203,11 +492,7 @@ export class AsyncTree<T, TFilter = void> extends Disposable {
             },
             asyncRenderers, 
             asyncProvider, 
-            {
-                collapsedByDefault: opts.collapsedByDefault,
-                dnd: opts.dnd && new __AsyncMultiTreeDragAndDropProvider(opts.dnd),
-                childrenProvider: childrenProvider,
-            },
+            opts,
         );
 
         // presetting behaviours on collapse state change
@@ -216,7 +501,22 @@ export class AsyncTree<T, TFilter = void> extends Disposable {
 
     // [event]
 
-    get onClick() { return Event.map(this._tree.onClick, e => this.__toTreeMouseEvent(e)); }
+    get onDidSplice(): Register<ITreeSpliceEvent<T, TFilter>> { return Event.map(this._tree.onDidSplice, e => this.__toTreeSpliceEvent(e)); }
+    get onDidChangeCollapseState(): Register<ITreeCollapseStateChangeEvent<T, TFilter>> { return Event.map(this._tree.onDidChangeCollapseState, e => this.__toTreeChangeCollapseEvent(e)); }
+
+    get onDidScroll(): Register<IScrollEvent> { return this._tree.onDidScroll; }
+    get onDidChangeFocus(): Register<boolean> { return this._tree.onDidChangeFocus; }
+    get onDidChangeItemFocus(): Register<ITraitChangeEvent> { return this._tree.onDidChangeItemFocus; }
+    get onDidChangeItemSelection(): Register<ITraitChangeEvent> { return this._tree.onDidChangeItemSelection; }
+    
+    get onClick(): Register<ITreeMouseEvent<T>> { return Event.map(this._tree.onClick, this.__toTreeMouseEvent); }
+    get onDoubleclick(): Register<ITreeMouseEvent<T>> { return Event.map(this._tree.onDoubleclick, this.__toTreeMouseEvent); }
+    
+    get onTouchstart(): Register<ITreeTouchEvent<T>> { return Event.map(this._tree.onTouchstart, this.__toTreeTouchEvent); }
+    get onKeydown(): Register<IStandardKeyboardEvent> { return this._tree.onKeydown; }
+    get onKeyup(): Register<IStandardKeyboardEvent> { return this._tree.onKeyup; }
+    get onKeypress(): Register<IStandardKeyboardEvent> { return this._tree.onKeypress; }
+    get onContextmenu(): Register<ITreeContextmenuEvent<T>> { return Event.map(this._tree.onContextmenu, this.__toTreeContextmenuEvent); }
 
     // [getter]
 
@@ -243,8 +543,137 @@ export class AsyncTree<T, TFilter = void> extends Disposable {
         this.__render(node);
     }
 
+    public filter(visibleOnly?: boolean): void {
+        this._tree.filter(visibleOnly);
+    }
+
+    public getNode(data: T): ITreeNode<T, TFilter> {
+        const asyncNode = this._tree.getAsyncNode(data);
+        return this._nodeConverter.map(this._tree.getNode(asyncNode));
+    }
+
+    public hasNode(data: T): boolean {
+        const asyncNode = this._tree.getAsyncNode(data);
+        return this._tree.hasNode(asyncNode);
+    }
+
+    public isCollapsible(data: T): boolean {
+        const asyncNode = this._tree.getAsyncNode(data);
+        return this._tree.isCollapsible(asyncNode);
+    }
+
+    public isCollapsed(data: T): boolean {
+        const asyncNode = this._tree.getAsyncNode(data);
+        return this._tree.isCollapsed(asyncNode);
+    }
+
+    public collapse(data: T, recursive: boolean): boolean {
+        const asyncNode = this._tree.getAsyncNode(data);
+        return this._tree.setCollapsed(asyncNode, true, recursive);
+    }
+
+    public async expand(data: T, recursive: boolean): Promise<boolean> {
+
+        const root = this._tree.rootNode.data;
+        if (root.refreshing) {
+            await root.refreshing;
+        }
+        
+        const node = this._tree.getAsyncNode(data);
+        if (this._tree.hasNode(node) && this._tree.isCollapsible(node) === false) {
+            return false;
+        }
+
+        if (node.refreshing) {
+            await node.refreshing;
+        }
+
+        if (node !== root && !node.refreshing && !this._tree.isCollapsed(node)) {
+            return false;
+        }
+
+        const asyncNode = this._tree.getAsyncNode(data);
+        const successOrNot = this._tree.setCollapsed(asyncNode, false, recursive);
+        if (node.refreshing) {
+            await node.refreshing;
+        }
+
+        return successOrNot;
+    }
+
+    public async toggleCollapseOrExpand(data: T, recursive: boolean): Promise<boolean> {
+        const root = this._tree.rootNode.data;
+
+        if (root.refreshing) {
+            await root.refreshing;
+        }
+        
+        const node = this._tree.getAsyncNode(data);
+        if (this._tree.hasNode(node) && this._tree.isCollapsible(node) === false) {
+            return false;
+        }
+
+        if (node.refreshing) {
+            await node.refreshing;
+        }
+
+        const successOrNot = this._tree.toggleCollapseOrExpand(node, recursive);
+        if (node.refreshing) {
+            await node.refreshing;
+        }
+
+        return successOrNot;
+    }
+
+    public collapseAll(): void {
+        this._tree.collapseAll();
+    }
+
+    public expandAll(): void {
+        this._tree.expandAll();
+    }
+
+    public setAnchor(item: T): void {
+        this._tree.setAnchor(this._tree.getAsyncNode(item));
+    }
+
+    public getAnchor(): T | null {
+        const node = this._tree.getAnchor();
+        return node ? node.data : null;
+    }
+
+    public setFocus(item: T): void {
+        this._tree.setFocus(this._tree.getAsyncNode(item));
+    }
+
+    public getFocus(): T | null {
+        const node = this._tree.getFocus();
+        return node ? node.data : null;
+    }
+
+    public setSelections(items: T[]): void {
+        this._tree.setSelections(items.map(node => this._tree.getAsyncNode(node)));
+    }
+
+    public getSelections(): T[] {
+        return this._tree.getSelections().map(node => node!.data);
+    }
+
+    public setDomFocus(): void {
+        this._tree.setDomFocus();
+    }
+
     public layout(height?: number): void {
         this._tree.layout(height);
+    }
+
+    public rerender(data: T): void {
+        const asyncNode = this._tree.getAsyncNode(data);
+        this._tree.rerender(asyncNode);
+    }
+
+    public size(): number {
+        return this._tree.size();
     }
 
     // [private helper methods]
@@ -345,6 +774,39 @@ export class AsyncTree<T, TFilter = void> extends Disposable {
             depth: event.depth,
             position: event.position,
             target: event.target
+        };
+    }
+
+    /**
+     * @description Recursively converts {@link ITreeNode<IAsyncTreeNode<T>>} to
+     * {@link ITreeNode<T>}.
+     * @param node The provided node.
+     */
+    private __unwrapAsyncTreeNode(node: ITreeNode<IAsyncTreeNode<T>, TFilter>): ITreeNode<T, TFilter> {
+        return {
+            data: node.data!.data,
+            depth: node.depth,
+            collapsed: node.collapsed,
+            collapsible: node.collapsible,
+            visible: node.visible,
+            visibleNodeCount: node.visibleNodeCount,
+            parent: this.__unwrapAsyncTreeNode(node.parent!),
+            children: node.children.map(child => this.__unwrapAsyncTreeNode(child)),
+        };
+    }
+
+    // REVIEW: this causes recursively converting, prob a pref issue
+    private __toTreeSpliceEvent(event: ITreeSpliceEvent<IAsyncTreeNode<T>, TFilter>): ITreeSpliceEvent<T, TFilter> {
+        return {
+            deleted: event.deleted.map(node => this.__unwrapAsyncTreeNode(node)),
+            inserted: event.inserted.map(node => this.__unwrapAsyncTreeNode(node))
+        };
+    }
+
+    // REVIEW: this causes recursively converting, prob a pref issue
+    private __toTreeChangeCollapseEvent(event: ITreeCollapseStateChangeEvent<IAsyncTreeNode<T>, TFilter>): ITreeCollapseStateChangeEvent<T, TFilter> {
+        return {
+            node: this.__unwrapAsyncTreeNode(event.node)
         };
     }
 }

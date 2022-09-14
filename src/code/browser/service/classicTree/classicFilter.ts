@@ -1,7 +1,10 @@
 import { ITreeFilterProvider, ITreeFilterResult } from "src/base/browser/secondary/tree/treeFilter";
+import { ClassicItem } from "src/code/browser/service/classicTree/classicItem";
 
-
-export class ClassicFilter<T> implements ITreeFilterProvider<T, any> /** FuzzyScore */ {
+/**
+ * @class // TODO
+ */
+export class ClassicFilter<T extends ClassicItem> implements ITreeFilterProvider<T, any> /** FuzzyScore */ {
 
     // [field]
 
@@ -13,7 +16,7 @@ export class ClassicFilter<T> implements ITreeFilterProvider<T, any> /** FuzzySc
 
     // [public methods]
 
-    public filter(item: T): ITreeFilterResult<any> {
+    public filter(item: ClassicItem): ITreeFilterResult<any> {
         return {
             visibility: true,
             filterMetadata: undefined,

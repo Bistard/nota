@@ -1,12 +1,81 @@
-import { IAsyncChildrenProvider } from "src/base/browser/secondary/tree/asyncMultiTree";
 import { AsyncTreeItem, IAsyncTreeNode } from "src/base/browser/secondary/tree/asyncTree";
 import { IMultiTreeModelOptions, MultiTreeModel } from "src/base/browser/secondary/tree/multiTreeModel";
-import { ITreeNode } from "src/base/browser/secondary/tree/tree";
+import { ITreeCollapseStateChangeEvent, ITreeModel, ITreeNode, ITreeSpliceEvent } from "src/base/browser/secondary/tree/tree";
+import { Register } from "src/base/common/event";
 import { ISpliceable } from "src/base/common/range";
 import { Blocker } from "src/base/common/util/async";
 import { Iterable } from "src/base/common/util/iterable";
 
-export class AsyncTreeModel<T, TFilter = void> extends MultiTreeModel<IAsyncTreeNode<T>, TFilter> {
+/**
+ * Provides functionality to determine the children stat of the given data.
+ */
+export interface IAsyncChildrenProvider<T> {
+
+    /**
+     * @description Check if the given data has children.
+     */
+    hasChildren(data: T): boolean;
+
+    /**
+     * @description Get the children from the given data.
+     */
+    getChildren(data: T): T[] | Promise<T[]>;
+
+    /**
+     * @description Determines if the given data requires to refresh children
+     * when the corresponding tree node of the data is about to expand.
+     * @note If not provided, the tree node will always get refreshed when 
+     * expanding.
+     */
+    shouldRefreshChildren?(data: T): boolean;
+
+    /**
+     * @description Determines if the given data should be collapsed when 
+     * constructing.
+     * @note This has higher priority than `{@link IAsyncMultiTreeOptions.collapsedByDefault}`
+     * which will only be applied when the function is not provided.
+     */
+    collapseByDefault?: (data: T) => boolean;
+}
+
+/**
+ * An interface only for {@link AsyncTreeModel}.
+ * @note We are omitting these properties because the type does not fit.
+ */
+export interface IAsyncTreeModel<T, TFilter> extends MultiTreeModel<IAsyncTreeNode<T>, TFilter> {
+    
+    get rootNode(): IAsyncTreeNode<T>;
+
+    get onDidSplice(): Register<ITreeSpliceEvent<IAsyncTreeNode<T>, TFilter>>;
+    
+    get onDidChangeCollapseState(): Register<ITreeCollapseStateChangeEvent<IAsyncTreeNode<T>, TFilter>>;
+
+    /**
+     * @description Refreshing the tree structure of the given node and all its 
+     * descendants.
+     * @param node The provided async tree node.
+     * @returns The {@link Promise} of the work.
+     */
+    refreshNode(node: AsyncTreeItem<IAsyncTreeNode<T>, TFilter>): Promise<void>;
+
+    /**
+     * @description Given the data, returns the corresponding {@link IAsyncTreeNode}.
+     * @param data The provided data.
+     * 
+     * @throws If node not found, an error will be thrown.
+     */
+    getAsyncNode(data: T): IAsyncTreeNode<T>;
+}
+
+export interface IAsyncTreeModelOptions<T, TFilter = void> extends IMultiTreeModelOptions<IAsyncTreeNode<T>, TFilter> {
+
+    readonly childrenProvider: IAsyncChildrenProvider<T>;
+}
+
+/**
+ * @class // TODO
+ */
+export class AsyncTreeModel<T, TFilter = void> extends MultiTreeModel<IAsyncTreeNode<T>, TFilter> implements IAsyncTreeModel<T, TFilter> {
     
     // [field]
 
@@ -25,10 +94,10 @@ export class AsyncTreeModel<T, TFilter = void> extends MultiTreeModel<IAsyncTree
      */
     private readonly _statFetching = new Map<AsyncTreeItem<IAsyncTreeNode<T>, TFilter>, Promise<Iterable<T>>>();
     
-     /**
-      * Storing the ongoing {@link Promise} when refreshing the async tree node and
-      * all its descendants.
-      */
+    /**
+     * Storing the ongoing {@link Promise} when refreshing the async tree node and
+     * all its descendants.
+     */
     private readonly _nodeRefreshing = new Map<AsyncTreeItem<IAsyncTreeNode<T>, TFilter>, Promise<void>>();
 
     // [constructor]
@@ -36,14 +105,12 @@ export class AsyncTreeModel<T, TFilter = void> extends MultiTreeModel<IAsyncTree
     constructor(
         rootNode: IAsyncTreeNode<T>,
         view: ISpliceable<ITreeNode<IAsyncTreeNode<T>, TFilter>>,
-        childrenProvider: IAsyncChildrenProvider<T>,
-        opts: IMultiTreeModelOptions<IAsyncTreeNode<T>, TFilter>,
+        opts: IAsyncTreeModelOptions<T, TFilter>,
     ) {
         super(rootNode, view, opts);
         
         this._root = rootNode;
-        this._childrenProvider = childrenProvider;
-
+        this._childrenProvider = opts.childrenProvider;
         this._asyncNodes.set(rootNode.data, rootNode);
     }
 
@@ -225,11 +292,11 @@ export class AsyncTreeModel<T, TFilter = void> extends MultiTreeModel<IAsyncTree
                 data: childAsyncNode,
                 parent: node,
                 children: [],
+                collapsible: hasChildren,
+                visibleNodeCount: 1,
             };
 
             if (hasChildren) {
-                newChildItem.collapsible = true;
-                
                 /**
                  * the children of the current children should not be collapsed, 
                  * we need to keep refreshing on next time.
@@ -237,6 +304,8 @@ export class AsyncTreeModel<T, TFilter = void> extends MultiTreeModel<IAsyncTree
                 if (this._childrenProvider.collapseByDefault && !this._childrenProvider.collapseByDefault(child)) {
                     newChildItem.collapsed = false;
                     childrenItemsForRefresh.push(newChildItem);
+                } else {
+                    newChildItem.collapsed = true;
                 }
             }
 
