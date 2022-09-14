@@ -138,7 +138,7 @@ export class MultiTreeModel<T, TFilter> implements IMultiTreeModel<T, TFilter> {
     }
 
     public size(): number {
-        return this._nodes.size;
+        return this._nodes.size - 1; // remove the root node
     }
 
     public hasNode(item: T): boolean {
