@@ -4,11 +4,11 @@ import { IReadableStreamEvent } from "src/base/common/file/stream";
 import { URI } from "src/base/common/file/uri";
 import { IResourceChangeEvent } from "src/code/platform/files/node/watcher";
 
-export namespace ByteSize {
-	export const KB = 1024;
-	export const MB = KB * KB;
-	export const GB = MB * MB;
-	export const TB = GB * GB;
+export const enum ByteSize {
+	KB = 1024,
+	MB = KB * KB,
+	GB = MB * MB,
+	TB = GB * GB,
 }
 
 export const enum FileType {
