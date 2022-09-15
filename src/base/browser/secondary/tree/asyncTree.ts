@@ -423,9 +423,10 @@ class AsyncMultiTree<T, TFilter> extends MultiTree<IAsyncNode<T>, TFilter> {
 
     constructor(
         container: HTMLElement,
-        rootData: IAsyncNode<T>,
-        renderers: ITreeListRenderer<IAsyncNode<T>, TFilter, any>[],
-        itemProvider: IListItemProvider<IAsyncNode<T>>,
+        rootData: T,
+        nodeConverter: AsyncWeakMap<T, TFilter>,
+        renderers: ITreeListRenderer<T, TFilter, any>[],
+        itemProvider: IListItemProvider<T>,
         opts: IAsyncTreeOptions<T, TFilter>
     ) {
         const multiTreeOpts = 
@@ -435,7 +436,15 @@ class AsyncMultiTree<T, TFilter> extends MultiTree<IAsyncNode<T>, TFilter> {
             childrenProvider: opts.childrenProvider,
         };
 
-        super(container, rootData, renderers, itemProvider, multiTreeOpts);
+        const rootNode = {
+            data: rootData,
+            couldHasChildren: true,
+            refreshing: null,
+        };
+        const asyncRenderers = renderers.map(r => new AsyncTreeRenderer(r, nodeConverter));
+        const asyncProvider = new composedItemProvider<T, IAsyncNode<T>>(itemProvider);
+
+        super(container, rootNode, asyncRenderers, asyncProvider, multiTreeOpts);
         this._childrenProvider = opts.childrenProvider;
     }
 
@@ -543,18 +552,12 @@ export class AsyncTree<T, TFilter> extends Disposable implements IAsyncTree<T, T
         super();
         
         this._nodeConverter = new Weakmap(node => new __AsyncNodeConverter(node));
-        const asyncRenderers = renderers.map(r => new AsyncTreeRenderer(r, this._nodeConverter));
-        const asyncProvider = new composedItemProvider<T, IAsyncNode<T>>(itemProvider);
-
         this._tree = new AsyncMultiTree(
             container, 
-            {
-                data: rootData,
-                refreshing: null,
-                couldHasChildren: true,
-            },
-            asyncRenderers, 
-            asyncProvider, 
+            rootData,
+            this._nodeConverter,
+            renderers, 
+            itemProvider, 
             opts,
         );
 
