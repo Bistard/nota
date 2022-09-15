@@ -2,7 +2,7 @@ import { Register } from "src/base/common/event";
 import { CharCode } from "src/base/common/util/char";
 import { IChannel, IServerChannel } from "src/code/platform/ipc/common/channel";
 import { IReviverRegistrant } from "src/code/platform/ipc/common/revive";
-import { Registrants } from "src/code/platform/registrant/common/registrant";
+import { REGISTRANTS } from "src/code/platform/registrant/common/registrant";
 
 /**
  * A namespace that provide functionalities to proxy microservices into different
@@ -13,7 +13,7 @@ import { Registrants } from "src/code/platform/registrant/common/registrant";
  */
 export namespace ProxyChannel {
 
-    const reviverRegistrant = Registrants.get(IReviverRegistrant);
+    const reviverRegistrant = REGISTRANTS.get(IReviverRegistrant);
 
     export function wrapService(service: unknown, opts?: WrapServiceOpt): IServerChannel {
         const object = service as Record<string, unknown>;
