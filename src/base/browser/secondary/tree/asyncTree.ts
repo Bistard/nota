@@ -220,8 +220,10 @@ export interface IAsyncTree<T, TFilter> extends Disposable {
 
     /** 
      * Fires when the user attempts to open a context menu {@link IAsyncMultiTree}. 
-     * This event is typically triggered by clicking the right mouse button, or 
-     * by pressing the context menu key.
+     * This event is typically triggered by:
+     *      - clicking the right mouse button
+     *      - pressing the context menu key
+     *      - Shift F10
      */
     get onContextmenu(): Register<ITreeContextmenuEvent<T>>;
 

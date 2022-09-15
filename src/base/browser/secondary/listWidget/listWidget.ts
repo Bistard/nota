@@ -861,8 +861,10 @@ export interface IListWidget<T> extends IDisposable {
 
     /** 
      * Fires when the user attempts to open a context menu {@link IListWidget}. 
-     * This event is typically triggered by clicking the right mouse button, or 
-     * by pressing the context menu key.
+     * This event is typically triggered by:
+     *      - clicking the right mouse button
+     *      - pressing the context menu key
+     *      - Shift F10
      */
     get onContextmenu(): Register<IListContextmenuEvent<T>>;
 
@@ -1290,19 +1292,11 @@ export class ListWidget<T> implements IListWidget<T> {
 
     private __createContextmenuRegister(): Register<IListContextmenuEvent<T>> {
         
-        /**
-         * A boolean to determine whether the user is pressing on. Useful to
-         * interupt continuous events from `this.view.onContextmenu()`.
-         */
-        let pressingDownKey = false;
         
         // only used to detect if pressing down context menu key
         this.onKeydown(e => {
             e.browserEvent.preventDefault();
             e.browserEvent.stopPropagation();
-            if (e.key === KeyCode.ContextMenu || (e.shift && e.key === KeyCode.F10)) {
-                pressingDownKey = true;
-            }
         });
 
         // mouse right click
@@ -1313,7 +1307,6 @@ export class ListWidget<T> implements IListWidget<T> {
         const onKey = Event.map(onKeyRaw, e => { 
             e.browserEvent.preventDefault();
             e.browserEvent.stopPropagation(); 
-            pressingDownKey = false;
 
             const selections = this.getSelections();
             const actualIndex = selections.length ? selections[0] : undefined;
