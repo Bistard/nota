@@ -20,7 +20,7 @@ export function generateTreeLike<TLeaf>(createLeaf: () => TLeaf, size: number = 
 
     const __aux = (parent: NestedArray<TLeaf>, depth: number): NestedArray<TLeaf> => {
         // the deeper the node, the less likely the children can have.
-        const childrenCnt = 1 + Random.getRandInt(size / depth);
+        const childrenCnt = 1 + Random.int(size / depth);
 
         loop(childrenCnt, () => {
             // the deeper the node, the more likely the node is a leaf.
