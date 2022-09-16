@@ -6,7 +6,9 @@ import { NestedArray } from "src/base/common/util/type";
  * @description Able to generate a random tree like structure with each tree 
  * leaf has a type TLeaf. A node represented by an array of TLeaf.
  * @param createLeaf A function to generate a leaf.
- * @param size A coefficient determines the size of the tree. Defaults to 50.
+ * @param size A coefficient determines the size of the tree. Defaults to 50 and
+ *             the corresponding tree size is arround 25k. 100 could results to
+ *             around 1500k.
  * @returns The generated random tree.
  * 
  * @note The size of the tree may vary a lot.

@@ -389,8 +389,8 @@ export class AsyncMultiTreeModel<T, TFilter> implements IAsyncMultiTreeModel<T, 
             const childAsyncNode = this.__createAsyncTreeNode(child, node, hasChildren);
 
             /**
-             * the children of the current children should not be collapsed, we
-             * need to keep refreshing on next time.
+             * the children of the current node should not be collapsed, we need 
+             * to keep refreshing on next time.
              */
             if (hasChildren && this._childrenProvider.collapseByDefault && !this._childrenProvider.collapseByDefault(child)) {
                 childAsyncNode.collapsed = false;
@@ -411,7 +411,7 @@ export class AsyncMultiTreeModel<T, TFilter> implements IAsyncMultiTreeModel<T, 
         }
         
         // insert the children nodes into the current node
-        node.children.splice(0, node.children.length, ...childrenNodes);
+        node.children = childrenNodes;
 
         return childrenNodesForRefresh;
     }

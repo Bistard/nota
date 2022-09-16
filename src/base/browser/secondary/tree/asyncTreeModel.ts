@@ -282,7 +282,11 @@ export class AsyncTreeModel<T, TFilter> extends MultiTreeModel<IAsyncNode<T>, TF
 
         for (const child of children) {
             const hasChildren = this._childrenProvider.hasChildren(child);
-            const childAsyncNode = this.__createAsyncTreeNode(child, hasChildren);
+            const childAsyncNode = {
+                data: child,
+                couldHasChildren: hasChildren,
+                refreshing: null,
+            };
             
             const newChildItem: AsyncTreeItem<IAsyncNode<T>, TFilter> = {
                 data: childAsyncNode,
@@ -294,8 +298,8 @@ export class AsyncTreeModel<T, TFilter> extends MultiTreeModel<IAsyncNode<T>, TF
 
             if (hasChildren) {
                 /**
-                 * the children of the current children should not be collapsed, 
-                 * we need to keep refreshing on next time.
+                 * the children of the current node should not be collapsed, we 
+                 * need to keep refreshing on next time.
                  */
                 if (this._childrenProvider.collapseByDefault && !this._childrenProvider.collapseByDefault(child)) {
                     newChildItem.collapsed = false;
@@ -319,7 +323,7 @@ export class AsyncTreeModel<T, TFilter> extends MultiTreeModel<IAsyncNode<T>, TF
         }
         
         // insert the children nodes into the current node
-        node.children.splice(0, node.children.length, ...childrenItems);
+        node.children = childrenItems;
 
         return childrenItemsForRefresh;
     }
@@ -333,17 +337,6 @@ export class AsyncTreeModel<T, TFilter> extends MultiTreeModel<IAsyncNode<T>, TF
         for (const child of node.children) {
             this.__dfsDelete(child);
         }
-    }
-
-    /**
-     * @description Helper function for fast creating a {@link IAsyncNode}.
-     */
-    private __createAsyncTreeNode(data: T, couldHasChildren: boolean): IAsyncNode<T> {
-        return {
-            data: data,
-            refreshing: null,
-            couldHasChildren: couldHasChildren,
-        };
     }
 
     /**
