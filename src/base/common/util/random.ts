@@ -35,4 +35,12 @@ export namespace Random {
         }
         return chars.join('');
     }
+
+    /**
+     * @description Returns a true that has a given probability.
+     * @param probability Must be [0, 1]
+     */
+    export function maybe(probability: number): boolean {
+        return Math.random() <= probability;
+    }
 }
