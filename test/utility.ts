@@ -1,5 +1,5 @@
 import { tmpdir } from "os";
-import { join } from "path";
+import { join } from "src/base/common/file/path";
 import { URI } from "src/base/common/file/uri";
 import { AbstractLogger, ILogService } from "src/base/common/logger";
 import { DiskEnvironmentService } from "src/code/platform/environment/common/diskEnvironmentService";
