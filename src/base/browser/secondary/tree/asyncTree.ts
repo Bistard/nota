@@ -118,8 +118,8 @@ class __AsyncDragAndDropProvider<T> implements IListDragAndDropProvider<IAsyncNo
     }
 }
 
-/** @internal */
-type AsyncWeakMap<T, TFilter> = Weakmap<ITreeNode<IAsyncNode<T>, TFilter>, ITreeNode<T, TFilter>>;
+/** @internal SHOULD NOT BE USED DIRECTLY. */
+export type AsyncWeakMap<T, TFilter> = Weakmap<ITreeNode<IAsyncNode<T>, TFilter>, ITreeNode<T, TFilter>>;
 
 /**
  * @internal
@@ -626,8 +626,12 @@ export class AsyncTree<T, TFilter> extends Disposable implements IAsyncTree<T, T
     }
 
     public hasNode(data: T): boolean {
-        const asyncNode = this._tree.getAsyncNode(data);
-        return this._tree.hasNode(asyncNode);
+        try {
+            const asyncNode = this._tree.getAsyncNode(data);
+            return this._tree.hasNode(asyncNode);
+        } catch {
+            return false;
+        }
     }
 
     public isCollapsible(data: T): boolean {

@@ -1,4 +1,4 @@
-import { AsyncWeakMap, IAsyncNode } from "src/base/browser/secondary/tree/asyncMultiTree";
+import { AsyncWeakMap, IAsyncNode } from "src/base/browser/secondary/tree/asyncTree";
 import { ITreeNode } from "src/base/browser/secondary/tree/tree";
 import { ITreeListRenderer } from "src/base/browser/secondary/tree/treeListRenderer";
 

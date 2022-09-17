@@ -316,6 +316,9 @@ export class AsyncTreeModel<T, TFilter> extends MultiTreeModel<IAsyncNode<T>, TF
             childrenItems.push(newChildItem);
         }
 
+        // update parent data
+        node.collapsible = !!childrenItems.length;
+
         // delete the old children mapping
         for (const oldChild of node.children) {
             this.__dfsDelete(oldChild);
