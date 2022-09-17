@@ -10,6 +10,11 @@ import { ITreeModel, ITreeSpliceEvent, ITreeNode, ITreeNodeItem, ITreeCollapseSt
 export interface IMultiTreeModel<T, TFilter> extends ITreeModel<T, TFilter, T> {
 
     /**
+     * The root node of the tree.
+     */
+    readonly rootNode: ITreeNode<T, TFilter>;
+
+    /**
      * @description Returns the number of nodes in the current tree model.
      */
     size(): number;
@@ -41,6 +46,7 @@ export class MultiTreeModel<T, TFilter> implements IMultiTreeModel<T, TFilter> {
     // [field]
 
     public readonly root: T;
+    public readonly rootNode: ITreeNode<T, TFilter>;
 
     private _model: IIndexTreeModel<T, TFilter>;
 	private _nodes: Map<T, ITreeNode<T, TFilter>>;
@@ -55,7 +61,8 @@ export class MultiTreeModel<T, TFilter> implements IMultiTreeModel<T, TFilter> {
         this.root = rootData;
         this._model = new IndexTreeModel<T, TFilter>(rootData, view, opts);
         this._nodes = new Map();
-        this._nodes.set(rootData, {
+
+        this.rootNode = {
             data: rootData,
             children: [],
             collapsed: false,
@@ -64,7 +71,8 @@ export class MultiTreeModel<T, TFilter> implements IMultiTreeModel<T, TFilter> {
             parent: null,
             visible: true,
             visibleNodeCount: 0,
-        });
+        };
+        this._nodes.set(rootData, this.rootNode);
 
         this.onDidSplice = this._model.onDidSplice;
         this.onDidChangeCollapseState = this._model.onDidChangeCollapseState;
