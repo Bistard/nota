@@ -67,9 +67,13 @@ export interface IAsyncTreeModelOptions<T, TFilter> extends IMultiTreeModelOptio
 }
 
 /**
- * @class A {@link AsyncTreeModel} builts on top of a {@link MultiTreeModel} and
- * also wraps a {@link IAsyncNode} over each client data.
- * // TODO: complete
+ * @class A {@link AsyncTreeModel} extends {@link MultiTreeModel} and also wraps 
+ * a {@link IAsyncNode} over each client data.
+ * 
+ * @implements
+ * The node for refreshing should be returned by {@link MultiTreeModel.getNode}
+ * so that we are always modifying the original tree structure instead of 
+ * creating a new one.
  */
 export class AsyncTreeModel<T, TFilter> extends MultiTreeModel<IAsyncNode<T>, TFilter> implements IAsyncTreeModel<T, TFilter> {
     
@@ -282,7 +286,7 @@ export class AsyncTreeModel<T, TFilter> extends MultiTreeModel<IAsyncNode<T>, TF
 
         for (const child of children) {
             const hasChildren = this._childrenProvider.hasChildren(child);
-            const childAsyncNode = {
+            const childAsyncNode: IAsyncNode<T> = {
                 data: child,
                 couldHasChildren: hasChildren,
                 refreshing: null,

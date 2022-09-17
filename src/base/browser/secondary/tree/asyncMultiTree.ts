@@ -440,7 +440,7 @@ export class AsyncMultiTree<T, TFilter> implements IAsyncMultiTree<T, TFilter>, 
     
     // [constructor]
 
-    protected constructor(
+    constructor(
         container: HTMLElement,
         rootData: T,
         renderers: ITreeListRenderer<T, TFilter, any>[],
@@ -463,25 +463,6 @@ export class AsyncMultiTree<T, TFilter> implements IAsyncMultiTree<T, TFilter>, 
 
         // presetting behaviours on collapse state change
         this._disposables.register(this._tree.onDidChangeCollapseState(e => this.__internalOnDidChangeCollapseState(e)));
-    }
-
-    // [static method]
-
-    /**
-     * @description Creates an instance of {@link AsyncMultiTree}. The only 
-     * difference is that the method will call the `refresh()` immediately.
-     */
-    public static create<T = any, TFilter = void>(
-        container: HTMLElement, 
-        rootData: T, 
-        renderers: ITreeListRenderer<T, TFilter, any>[], 
-        itemProvider: IListItemProvider<T>, 
-        childrenProvider: IChildrenProvider<T>,
-        opts: IAsyncMultiTreeOptions<T, TFilter> = {}
-    ): Pair<AsyncMultiTree<T, TFilter>, Promise<void>>
-    {
-        const tree = new AsyncMultiTree(container, rootData, renderers, itemProvider, childrenProvider, opts);
-        return [tree, tree.refresh()];
     }
 
     // [event]

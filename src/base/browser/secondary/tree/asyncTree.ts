@@ -521,12 +521,12 @@ class AsyncMultiTree<T, TFilter> extends MultiTree<IAsyncNode<T>, TFilter> {
  * 
  * @implements 
  * The tree is wrapping a {@link AsyncMultiTree} which extends {@link MultiTree} 
- * and the reason for this is to avoid same property names.
+ * and the reason for this is to avoid having same property names.
  * 
  * The idea of {@link AsyncTree} is inspired by a class named `AsyncDataTree` in
  * Visual Studio Code. They maintains two isomorphismic tree structures to avoid 
  * excessive rerendering. The {@link AsyncTree} goes one step further, it 
- * elimates another tree structure which causes less memory usage and a little 
+ * elimates another tree structure which causes less memory usage and runs 
  * faster.
  */
 export class AsyncTree<T, TFilter> extends Disposable implements IAsyncTree<T, TFilter> {
