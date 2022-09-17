@@ -84,30 +84,26 @@ export class MultiTreeModel<T, TFilter> implements IMultiTreeModel<T, TFilter> {
         opts: ITreeModelSpliceOptions<T, TFilter> = {}
     ): void {
         
-        const location = this.__getNodeLocation(item); // the location in indexTreeModel
+        const location = this.__getNodeLocation(item);
         const inserted = new Set<T>();
 
-        // callback #1
         const onDidCreateNode = (node: ITreeNode<T, TFilter>): void => {
-            
             // avoid root
             if (node.data === this.root) {
 				return;
 			}
 
             // remember the mapping
-            this._nodes.set(node.data, node as ITreeNode<T, TFilter>);
+            this._nodes.set(node.data, node);
             inserted.add(node.data);
 
             // other callback
             if (opts.onDidCreateNode) {
-                opts.onDidCreateNode(node as ITreeNode<T, TFilter>);
+                opts.onDidCreateNode(node);
             }
         }
 
-        // callback #2
         const onDidDeleteNode = (node: ITreeNode<T, TFilter>): void => {
-
             // avoid root
             if (node.data === this.root) {
 				return;
@@ -120,7 +116,7 @@ export class MultiTreeModel<T, TFilter> implements IMultiTreeModel<T, TFilter> {
 
             // other callback
             if (opts.onDidDeleteNode) {
-                opts.onDidDeleteNode(node as ITreeNode<T, TFilter>);
+                opts.onDidDeleteNode(node);
             }
         }
 

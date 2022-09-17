@@ -23,9 +23,6 @@ export interface IAsyncNode<T> {
     /** The client-data. */
     data: T;
 
-    /** If the node could has children. */
-    couldHasChildren: boolean;
-
     /** Determines if the current node is during the refreshing. */
     refreshing: Promise<void> | null;
 }
@@ -436,9 +433,8 @@ class AsyncMultiTree<T, TFilter> extends MultiTree<IAsyncNode<T>, TFilter> {
             childrenProvider: opts.childrenProvider,
         };
 
-        const rootNode = {
+        const rootNode: IAsyncNode<T> = {
             data: rootData,
-            couldHasChildren: true,
             refreshing: null,
         };
         const asyncRenderers = renderers.map(r => new AsyncTreeRenderer(r, nodeConverter));

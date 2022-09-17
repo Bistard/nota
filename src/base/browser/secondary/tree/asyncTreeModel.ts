@@ -205,9 +205,9 @@ export class AsyncTreeModel<T, TFilter> extends MultiTreeModel<IAsyncNode<T>, TF
         const asyncNode = node.data;
 
         let childrenPromise: Promise<Iterable<T>>;
-        asyncNode.couldHasChildren = this._childrenProvider.hasChildren(asyncNode.data);
+        node.collapsible = this._childrenProvider.hasChildren(asyncNode.data);
 
-        if (asyncNode.couldHasChildren === false) {
+        if (node.collapsible === false) {
             // since the current node is a leaf, we return nothing.
             childrenPromise = Promise.resolve(Iterable.empty());
         }
@@ -272,7 +272,7 @@ export class AsyncTreeModel<T, TFilter> extends MultiTreeModel<IAsyncNode<T>, TF
         const children = [...childrenIterable];
 
         // corner case check, performance improvement
-        if (children.length === 0 && node.children.length === 0) {
+        if (!children.length && !node.children.length) {
             return [];
         }
 
@@ -288,7 +288,6 @@ export class AsyncTreeModel<T, TFilter> extends MultiTreeModel<IAsyncNode<T>, TF
             const hasChildren = this._childrenProvider.hasChildren(child);
             const childAsyncNode: IAsyncNode<T> = {
                 data: child,
-                couldHasChildren: hasChildren,
                 refreshing: null,
             };
             
@@ -299,7 +298,7 @@ export class AsyncTreeModel<T, TFilter> extends MultiTreeModel<IAsyncNode<T>, TF
                 collapsible: hasChildren,
                 visibleNodeCount: 1,
             };
-
+            
             if (hasChildren) {
                 /**
                  * the children of the current node should not be collapsed, we 
@@ -315,9 +314,6 @@ export class AsyncTreeModel<T, TFilter> extends MultiTreeModel<IAsyncNode<T>, TF
 
             childrenItems.push(newChildItem);
         }
-
-        // update parent data
-        node.collapsible = !!childrenItems.length;
 
         // delete the old children mapping
         for (const oldChild of node.children) {
