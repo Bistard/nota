@@ -1,4 +1,4 @@
-import { ITreeModel, ITreeSpliceEvent, ITreeNode, ITreeNodeItem, ITreeCollapseStateChangeEvent } from "src/base/browser/secondary/tree/tree";
+import { ITreeModel, ITreeSpliceEvent, ITreeNode, ITreeNodeItem, ITreeCollapseStateChangeEvent, IFlexNode } from "src/base/browser/secondary/tree/tree";
 import { ITreeFilterProvider } from "src/base/browser/secondary/tree/treeFilter";
 import { DelayableEmitter, Emitter, Register } from "src/base/common/event";
 import { ISpliceable } from "src/base/common/range";
@@ -65,6 +65,14 @@ export interface IIndexTreeModel<T, TFilter> extends IIndexTreeModelBase<T, TFil
      * @param opts The option for splicing.
      */
     splice(location: number[], deleteCount: number, itemsToInsert: ITreeNodeItem<T>[], opts: ITreeModelSpliceOptions<T, TFilter>): void;
+}
+
+/**
+ * An interface only for {@link FlexIndexTreeModel}.
+ */
+export interface IFlexIndexTreeModel<T, TFilter> extends IIndexTreeModelBase<T, TFilter> {
+    // TODO
+    refresh(location: number[], opts: ITreeModelSpliceOptions<T, TFilter>): void;
 }
 
 /**
@@ -498,7 +506,7 @@ export class IndexTreeModelBase<T, TFilter> implements IIndexTreeModelBase<T, TF
             return;
         }
 
-        while (node !== null) {
+        while (node) {
             node.visibleNodeCount += diff;
             node = node.parent;
         }
@@ -807,7 +815,6 @@ export class IndexTreeModel<T, TFilter> extends IndexTreeModelBase<T, TFilter> i
          * If the collapsible setting somehow sets to false, we may correct it 
          * here.
          */
-        // REVIEW: remove if possible
         newNode.collapsible = newNode.collapsible || newNode.children.length > 0;
         
         if (!newNode.visible) {
@@ -822,5 +829,123 @@ export class IndexTreeModel<T, TFilter> extends IndexTreeModelBase<T, TFilter> i
         }
 
         return newNode;
+    }
+}
+
+/**
+ * @class // TODO
+ */
+export class FlexIndexTreeModel<T, TFilter> extends IndexTreeModelBase<T, TFilter> implements IFlexIndexTreeModel<T, TFilter> {
+
+    // [methods]
+
+    public refresh(
+        location: number[], 
+        opts: ITreeModelSpliceOptions<T, TFilter> = {},
+    ): void {
+        // finds out the parent node and its listIndex.
+        type parentType = {
+            parent: IFlexNode<T, TFilter>,
+            listIndex: number,
+            visible: boolean,
+        };
+        const { parent, listIndex, visible } = <parentType>this.__getParentNodeWithListIndex(location, this._root);
+        
+        // no changes to the current tree, we ignore the request.
+        if (!parent.refresh) {
+            return;
+        }
+        parent.refresh = false;
+
+        // 1st array will store all the new nodes including nested ones.
+        // 2nd array only store the new nodes under the parent node.
+        const treeNodeListToInsert: IFlexNode<T, TFilter>[] = [];
+        const treeNodeChildrenToInsert: IFlexNode<T, TFilter>[] = [];
+        let newVisibleCount = 0;
+        for (const element of parent.children) {
+            this.__refreshNode(element, parent, treeNodeListToInsert, opts.onDidCreateNode);
+            treeNodeChildrenToInsert.push(element);
+            newVisibleCount += element.visibleNodeCount;
+        }
+
+        let prevhasChildrenState = false;
+        const currHasChildrenState = parent.children.length > 0;
+
+        // update view
+        if (visible) {
+            
+            // calcualte the old visible children node count
+            let oldVisibleCount = 0;
+            if (parent.oldChildren) {
+                prevhasChildrenState = !!parent.oldChildren.length;
+
+                for (const child of parent.oldChildren) {
+                    if (child.visible) {
+                        oldVisibleCount += child.visibleNodeCount;
+                    }
+                }
+            }
+            
+            const changedVisibleCount = newVisibleCount - oldVisibleCount;
+            this.__updateAncestorsVisibleNodeCount(parent, changedVisibleCount);
+            this._view.splice(listIndex, oldVisibleCount, treeNodeListToInsert);
+        }
+
+        // update the ancestors collapsible state
+        if (prevhasChildrenState !== currHasChildrenState) {
+            this.setCollapsible(location.slice(0, -1), currHasChildrenState);
+        }
+
+        if (opts.onDidDeleteNode) {
+            parent.oldChildren!.forEach(node => opts.onDidDeleteNode!(node));
+            parent.oldChildren!.forEach(node => node.children.forEach(child => opts.onDidDeleteNode!(child)));
+        }
+
+        // fire events
+        this._onDidSplice.fire({
+            inserted: treeNodeListToInsert,
+            deleted: parent.oldChildren!,
+        });
+
+        // actual delete the old children
+        parent.oldChildren = undefined;
+    }
+
+    // [private helper methods]
+
+    /**
+     * @description // TODO
+     */
+    private __refreshNode(
+        node: IFlexNode<T, TFilter>, 
+        parent: IFlexNode<T, TFilter>, 
+        toBeRendered: IFlexNode<T, TFilter>[],
+        onDidCreateNode?: (node: ITreeNode<T, TFilter>) => void,
+    ): void {
+        node.refresh = false;
+
+        node.visible = parent.visible ? !parent.collapsed : false;
+        if (node.visible) {
+            toBeRendered.push(node);
+        }
+
+        node.depth = parent.depth + 1;
+
+        let newVisibleCount = 1;
+        for (const child of node.children) {
+            this.__refreshNode(child, node, toBeRendered, onDidCreateNode);
+            newVisibleCount += child.visibleNodeCount;
+        }
+
+        /**
+         * If the collapsible setting somehow sets to false, we may correct it 
+         * here.
+         */
+        node.collapsible = node.collapsible || node.children.length > 0;
+        node.visibleNodeCount = node.visible ? newVisibleCount : 0;
+        
+        if (onDidCreateNode) {
+            onDidCreateNode(node);
+        }
     }
 }

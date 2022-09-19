@@ -97,6 +97,27 @@ export interface ITreeNodeItem<T> {
 }
 
 /**
+ * An optimization of {@link ITreeNode} used for fast splicing. Instead of 
+ * creating nested {@link ITreeNodeItem} to represent the updated tree-like
+ * structures, the client may modify the existing tree structure for better 
+ * memory and speed performance.
+ */
+export interface IFlexNode<T, TFilter = void> extends ITreeNode<T, TFilter> {
+
+    /**
+     * If the current tree node is refreshed.
+     */
+    refresh?: boolean;
+
+    /**
+     * The old children of the current node.
+     * @note client should always remove ALL the old children (cannot delete 
+     * partially) and this will be deleted after refreshed.
+     */
+    oldChildren?: ITreeNode<T, TFilter>[];
+}
+
+/**
  * The actual tree-like data structure representing the Model part in MVVM which
  * mainly handling the data behaviours.
  * 
