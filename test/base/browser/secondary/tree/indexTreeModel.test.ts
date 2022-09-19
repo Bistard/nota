@@ -839,7 +839,7 @@ suite('flexIndexTreeModel-test', () => {
             createFlexNode(3, root), 
             createFlexNode(2, root),
         ]);
-        model.refresh([]);
+        model.refresh();
 
         assert.deepStrictEqual(list.length, 3);
         
@@ -885,7 +885,7 @@ suite('flexIndexTreeModel-test', () => {
             node1,
             node4,
         ]);
-        model.refresh([]);
+        model.refresh();
 
         assert.deepStrictEqual(list.length, 6);
 
@@ -937,13 +937,13 @@ suite('flexIndexTreeModel-test', () => {
             createFlexNode(3, root), 
             createFlexNode(2, root),
         ]);
-        model.refresh([]);
+        model.refresh();
 
 
         assert.strictEqual(cnt, 3);
 
         setNewChildren(root, []);
-        model.refresh([]);
+        model.refresh();
         assert.strictEqual(cnt, 6);
     });
 
@@ -973,7 +973,7 @@ suite('flexIndexTreeModel-test', () => {
             node1,
             node4,
         ]);
-        model.refresh([]);
+        model.refresh();
 
         assert.deepStrictEqual(list.length, 6);
         assert.deepStrictEqual(model.getNodeLocation(list[0]!), [0]);
@@ -1011,7 +1011,7 @@ suite('flexIndexTreeModel-test', () => {
             node1,
             node4,
         ]);
-        model.refresh([]);
+        model.refresh();
 
         assert.deepStrictEqual(list.length, 4);
 
@@ -1050,11 +1050,11 @@ suite('flexIndexTreeModel-test', () => {
             node2, 
             node3,
         ]);
-        model.refresh([]);
+        model.refresh();
         assert.deepStrictEqual(list.length, 3);
         
         setNewChildren(root, [node1, node3]);
-        model.refresh([]);
+        model.refresh();
         assert.deepStrictEqual(list.length, 2);
         assert.deepStrictEqual(list[0]!.data, 1);
 		assert.deepStrictEqual(list[0]!.collapsed, false);
@@ -1065,7 +1065,7 @@ suite('flexIndexTreeModel-test', () => {
 		assert.deepStrictEqual(list[1]!.depth, 1);
 
         setNewChildren(root, []);
-        model.refresh([]);
+        model.refresh();
         assert.deepStrictEqual(list.length, 0);
     });
 
@@ -1096,11 +1096,11 @@ suite('flexIndexTreeModel-test', () => {
             node4,
             node7,
         ]);
-        model.refresh([])
+        model.refresh();
         assert.deepStrictEqual(list.length, 7);
 
         setNewChildren(root, [node1]);
-        model.refresh([]);
+        model.refresh();
         assert.deepStrictEqual(list.length, 3);
         assert.deepStrictEqual(list[0]!.data, 1);
         assert.deepStrictEqual(list[0]!.depth, 1);
@@ -1121,7 +1121,7 @@ suite('flexIndexTreeModel-test', () => {
         assert.deepStrictEqual(list[2]!.visibleNodeCount, 1);
 
         setNewChildren(node1, [node3]);
-        model.refresh([0]);
+        model.refresh(node1);
 
         assert.deepStrictEqual(list.length, 2);
 
@@ -1168,11 +1168,11 @@ suite('flexIndexTreeModel-test', () => {
             node4,
             node7,
         ]);
-        model.refresh([]);
+        model.refresh();
         assert.deepStrictEqual(list.length, 3);
 
         setNewChildren(node1, [node3]);
-        model.refresh([0]);
+        model.refresh(node1);
         assert.deepStrictEqual(list.length, 3);
     });
 
@@ -1204,7 +1204,7 @@ suite('flexIndexTreeModel-test', () => {
             node7,
         ]);
 
-        model.refresh([]);
+        model.refresh();
         assert.deepStrictEqual(list.length, 7);
 
         model.setCollapsed([0], true);
@@ -1255,7 +1255,7 @@ suite('flexIndexTreeModel-test', () => {
         const node7 = createFlexNode(7, root);
         setNewChildren(root, [node1, node7]);
 
-        model.refresh([]);
+        model.refresh();
         assert.deepStrictEqual(list.length, 7);
 
         model.setCollapsed([0], true);
@@ -1310,7 +1310,7 @@ suite('flexIndexTreeModel-test', () => {
         const node7 = createFlexNode(7, root);
         setNewChildren(root, [node1, node7]);
 
-        model.refresh([]);
+        model.refresh();
         assert.deepStrictEqual(list.length, 7);
         assert.deepStrictEqual(list[0]!.data, 1);
 		assert.deepStrictEqual(list[0]!.collapsed, false);
@@ -1384,7 +1384,7 @@ suite('flexIndexTreeModel-test', () => {
         const node7 = createFlexNode(7, root);
         setNewChildren(root, [node1, node7]);
 
-        model.refresh([]);
+        model.refresh();
         assert.deepStrictEqual(list.length, 7);
 
         let collapseCnt = 0;
@@ -1417,7 +1417,7 @@ suite('flexIndexTreeModel-test', () => {
         setNewChildren(node1, [node2]);
         setNewChildren(root, [node1]);
 
-        model.refresh([]);
+        model.refresh();
         assert.deepStrictEqual(list.length, 2);
         
         model.setCollapsible([0], false);
@@ -1481,7 +1481,7 @@ suite('flexIndexTreeModel-test', () => {
         setNewChildren(node1, [node2]);
         setNewChildren(root, [node1]);
 
-        model.refresh([]);
+        model.refresh();
         assert.deepStrictEqual(list.length, 3);
         assert.deepStrictEqual(list[0]!.data, 1);
 		assert.deepStrictEqual(list[0]!.collapsible, true);
@@ -1522,20 +1522,20 @@ suite('flexIndexTreeModel-test', () => {
         setNewChildren(node1, [node2]);
         setNewChildren(root, [node1]);
 
-        model.refresh([]);
+        model.refresh();
 
         assert.strictEqual(list.length, 2);
         assert.strictEqual(list[0]!.collapsible, true);
         assert.strictEqual(list[1]!.collapsible, false);
 
         setNewChildren(node1, []);
-        model.refresh([0]);
+        model.refresh(node1);
         assert.strictEqual(list.length, 1);
         assert.strictEqual(list[0]!.data, 1);
         assert.strictEqual(list[0]!.collapsible, false);
 
         setNewChildren(node1, [node2]);
-        model.refresh([0]);
+        model.refresh(node1);
         assert.strictEqual(list[0]!.collapsible, true);
         assert.strictEqual(list[1]!.collapsible, false);
     });
@@ -1552,7 +1552,7 @@ suite('flexIndexTreeModel-test', () => {
         setNewChildren(node1, [node2]);
         setNewChildren(root, [node1]);
 
-        model.refresh([]);
+        model.refresh();
 
         assert.deepStrictEqual(list.length, 3);
         assert.deepStrictEqual(list[0]!.data, 1);
@@ -1617,7 +1617,7 @@ suite('flexIndexTreeModel-test', () => {
             
             setNewChildren(node0, [node1, node2, node3, node4, node5, node6, node7]);
             setNewChildren(root, [node0]);
-            model.refresh([]);
+            model.refresh();
 
             assert.deepStrictEqual(toArray(list), [0, 1, 2, 3, 4, 5, 6, 7]);
 
@@ -1666,7 +1666,7 @@ suite('flexIndexTreeModel-test', () => {
             setNewChildren(node3, [node6]);
 
             setNewChildren(root, [node0]);
-            model.refresh([]);
+            model.refresh();
 
             assert.deepStrictEqual(toArray(list), [0, 1, 2, 3]);
             shouldFilter = false;

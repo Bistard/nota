@@ -74,14 +74,14 @@ export interface IIndexTreeModel<T, TFilter> extends IIndexTreeModelBase<T, TFil
 export interface IFlexIndexTreeModel<T, TFilter> extends IIndexTreeModelBase<T, TFilter> {
     
     /**
-     * @description Refresh the corresponding tree node by the given location.
+     * @description Refresh the subtree of the given tree node.
      * The tree model will rebuild and reculate all the metadata of the subtree
      * of the given tree node automatically if the client modify the tree node
      * correctly.
-     * @param location The location representation of the node.
+     * @param node The location representation of the node. Defaults to root.
      * @param opts The option for splicing.
      */
-    refresh(location: number[], opts?: ITreeModelSpliceOptions<T, TFilter>): void;
+    refresh(node?: IFlexNode<T, TFilter>, opts?: ITreeModelSpliceOptions<T, TFilter>): void;
 }
 
 /**
@@ -847,7 +847,7 @@ export class FlexIndexTreeModel<T, TFilter> extends IndexTreeModelBase<T, TFilte
     // [methods]
 
     public refresh(
-        location: number[], 
+        node: IFlexNode<T, TFilter> = this._root, 
         opts: ITreeModelSpliceOptions<T, TFilter> = {},
     ): void {
         // finds out the parent node and its listIndex.
@@ -856,7 +856,8 @@ export class FlexIndexTreeModel<T, TFilter> extends IndexTreeModelBase<T, TFilte
             listIndex: number,
             visible: boolean,
         };
-        const { node, listIndex, visible } = <parentType>this.__getNodeWithListIndex(location);
+        const location = this.getNodeLocation(node);
+        const { listIndex, visible } = <parentType>this.__getNodeWithListIndex(location);
         
         // no changes to the current tree, we ignore the request.
         if (!node.refresh) {
