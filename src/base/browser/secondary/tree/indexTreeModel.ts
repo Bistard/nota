@@ -64,7 +64,7 @@ export interface IIndexTreeModel<T, TFilter> extends IIndexTreeModelBase<T, TFil
      * @param itemsToInsert number of items to be inserted after the given location.
      * @param opts The option for splicing.
      */
-    splice(location: number[], deleteCount: number, itemsToInsert: ITreeNodeItem<T>[], opts: ITreeModelSpliceOptions<T, TFilter>): void;
+    splice(location: number[], deleteCount: number, itemsToInsert: ITreeNodeItem<T>[], opts?: ITreeModelSpliceOptions<T, TFilter>): void;
 }
 
 /**
@@ -72,7 +72,7 @@ export interface IIndexTreeModel<T, TFilter> extends IIndexTreeModelBase<T, TFil
  */
 export interface IFlexIndexTreeModel<T, TFilter> extends IIndexTreeModelBase<T, TFilter> {
     // TODO
-    refresh(location: number[], opts: ITreeModelSpliceOptions<T, TFilter>): void;
+    refresh(location: number[], opts?: ITreeModelSpliceOptions<T, TFilter>): void;
 }
 
 /**

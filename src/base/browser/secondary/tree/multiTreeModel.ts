@@ -21,7 +21,7 @@ export interface IMultiTreeModel<T, TFilter> extends ITreeModel<T, TFilter, T> {
      * @param children number of items to be inserted after the given location.
      * @param opts The option for splicing.
      */
-    splice(item: T, deleteCount: number, children: ITreeNodeItem<T>[], opts: ITreeModelSpliceOptions<T, TFilter>): void;
+    splice(item: T, deleteCount: number, children: ITreeNodeItem<T>[], opts?: ITreeModelSpliceOptions<T, TFilter>): void;
 }
 
 export interface IMultiTreeModelOptions<T, TFilter> extends IIndexTreeModelOptions<T, TFilter> {
