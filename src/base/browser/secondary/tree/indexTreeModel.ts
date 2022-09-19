@@ -78,16 +78,18 @@ export interface IFlexIndexTreeModel<T, TFilter> extends IIndexTreeModelBase<T, 
      * The tree model will rebuild and reculate all the metadata of the subtree
      * of the given tree node automatically if the client modify the tree node
      * correctly.
-     * @param node The location representation of the node. Defaults to root.
+     * @param node The given node. Defaults to root.
      * @param opts The option for splicing.
      */
     refresh(node?: IFlexNode<T, TFilter>, opts?: ITreeModelSpliceOptions<T, TFilter>): void;
 }
 
 /**
- * @class // TODO
+ * @class The base class of {@link IndexTreeModel} and {@link FlexIndexTreeModel}.
+ * Integrated all the functionalities except modifying the tree structure (
+ * `splice` or `refresh` methods).
  */
-export class IndexTreeModelBase<T, TFilter> implements IIndexTreeModelBase<T, TFilter> {
+export abstract class IndexTreeModelBase<T, TFilter> implements IIndexTreeModelBase<T, TFilter> {
     
     // [fields]
 
