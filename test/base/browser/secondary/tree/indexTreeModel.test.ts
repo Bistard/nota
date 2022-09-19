@@ -1,6 +1,6 @@
 import * as assert from 'assert';
 import { ISpliceable } from 'src/base/common/range';
-import { IIndexTreeNode, IndexTreeModel } from 'src/base/browser/secondary/tree/indexTreeModel';
+import { IndexTreeModel } from 'src/base/browser/secondary/tree/indexTreeModel';
 import { ITreeFilterProvider, ITreeFilterResult } from 'src/base/browser/secondary/tree/treeFilter';
 import { ITreeNode } from 'src/base/browser/secondary/tree/tree';
 
@@ -19,13 +19,13 @@ suite('indexTreeModel-test', () => {
     }
 
     test('constructor', () => {
-        const list: IIndexTreeNode<number>[] = [];
+        const list: ITreeNode<number>[] = [];
         const model = new IndexTreeModel<number, void>(-1, toList(list));
         assert.deepStrictEqual(list.length, 0);
     });
 
     test('insert', () => {
-        const list: IIndexTreeNode<number>[] = [];
+        const list: ITreeNode<number>[] = [];
         const model = new IndexTreeModel<number, void>(-1, toList(list));
 
         model.splice([0], 0, [
@@ -53,7 +53,7 @@ suite('indexTreeModel-test', () => {
     });
 
     test('nest-insert', () => {
-        const list: IIndexTreeNode<number>[] = [];
+        const list: ITreeNode<number>[] = [];
         const model = new IndexTreeModel<number, void>(-1, toList(list));
 
         model.splice([0], 0, [
@@ -106,7 +106,7 @@ suite('indexTreeModel-test', () => {
     });
 
     test('onDidSplice', () => {
-        const list: IIndexTreeNode<number>[] = [];
+        const list: ITreeNode<number>[] = [];
         const model = new IndexTreeModel<number, void>(-1, toList(list));
 
         let cnt = 0;
@@ -127,7 +127,7 @@ suite('indexTreeModel-test', () => {
     });
 
     test('getNodeLocation', () => {
-        const list: IIndexTreeNode<number>[] = [];
+        const list: ITreeNode<number>[] = [];
         const model = new IndexTreeModel<number, void>(-1, toList(list));
 
         model.splice([0], 0, [
@@ -156,7 +156,7 @@ suite('indexTreeModel-test', () => {
     });
 
     test('nest-insert-collapsed', () => {
-        const list: IIndexTreeNode<number>[] = [];
+        const list: ITreeNode<number>[] = [];
         const model = new IndexTreeModel<number, void>(-1, toList(list));
 
         model.splice([0], 0, [
@@ -200,7 +200,7 @@ suite('indexTreeModel-test', () => {
     });
 
     test('delete', () => {
-        const list: IIndexTreeNode<number>[] = [];
+        const list: ITreeNode<number>[] = [];
         const model = new IndexTreeModel<number, void>(-1, toList(list));
 
         model.splice([0], 0, [
@@ -225,7 +225,7 @@ suite('indexTreeModel-test', () => {
     });
 
     test('nest-delete', () => {
-        const list: IIndexTreeNode<number>[] = [];
+        const list: ITreeNode<number>[] = [];
         const model = new IndexTreeModel<number, void>(-1, toList(list));
 
         model.splice([0], 0, [
@@ -284,7 +284,7 @@ suite('indexTreeModel-test', () => {
     });
 
     test('invisible delete', () => {
-        const list: IIndexTreeNode<number>[] = [];
+        const list: ITreeNode<number>[] = [];
         const model = new IndexTreeModel<number, void>(-1, toList(list));
 
         model.splice([0], 0, [
@@ -318,7 +318,7 @@ suite('indexTreeModel-test', () => {
     });
 
     test('set-collapsed', () => {
-        const list: IIndexTreeNode<number>[] = [];
+        const list: ITreeNode<number>[] = [];
         const model = new IndexTreeModel<number, void>(-1, toList(list));
 
         model.splice([0], 0, [
@@ -368,7 +368,7 @@ suite('indexTreeModel-test', () => {
     });
 
     test('set-nested-collapsed', () => {
-        const list: IIndexTreeNode<number>[] = [];
+        const list: ITreeNode<number>[] = [];
         const model = new IndexTreeModel<number, void>(-1, toList(list));
 
         model.splice([0], 0, [
@@ -420,7 +420,7 @@ suite('indexTreeModel-test', () => {
     });
 
     test('set-collapsed-recursive', () => {
-        const list: IIndexTreeNode<number>[] = [];
+        const list: ITreeNode<number>[] = [];
         const model = new IndexTreeModel<number, void>(-1, toList(list));
 
         model.splice([0], 0, [
@@ -491,7 +491,7 @@ suite('indexTreeModel-test', () => {
     });
 
     test('onDidChangeCollapseState', () => {
-        const list: IIndexTreeNode<number>[] = [];
+        const list: ITreeNode<number>[] = [];
         const model = new IndexTreeModel<number, void>(-1, toList(list));
 
         model.splice([0], 0, [
@@ -531,7 +531,7 @@ suite('indexTreeModel-test', () => {
     });
 
     test('set-collapsible', () => {
-        const list: IIndexTreeNode<number>[] = [];
+        const list: ITreeNode<number>[] = [];
         const model = new IndexTreeModel<number, void>(-1, toList(list));
 
         model.splice([0], 0, [
@@ -591,7 +591,7 @@ suite('indexTreeModel-test', () => {
     });
 
     test('set-nested-collapsible', () => {
-        const list: IIndexTreeNode<number>[] = [];
+        const list: ITreeNode<number>[] = [];
         const model = new IndexTreeModel<number, void>(-1, toList(list));
 
         model.splice([0], 0, [
@@ -632,7 +632,7 @@ suite('indexTreeModel-test', () => {
     });
 
     test('auto-update-collapsible', () => {
-        const list: IIndexTreeNode<number>[] = [];
+        const list: ITreeNode<number>[] = [];
         const model = new IndexTreeModel<number, void>(-1, toList(list));
 
         model.splice([0], 0, [
@@ -655,7 +655,7 @@ suite('indexTreeModel-test', () => {
     });
 
     test('expand', () => {
-        const list: IIndexTreeNode<number>[] = [];
+        const list: ITreeNode<number>[] = [];
         const model = new IndexTreeModel<number, void>(-1, toList(list));
 
         model.splice([0], 0, [
@@ -699,7 +699,7 @@ suite('indexTreeModel-test', () => {
     suite('filter', () => {
         
         test('basic', () => {
-            const list: IIndexTreeNode<number, boolean>[] = [];
+            const list: ITreeNode<number, boolean>[] = [];
             let shouldFilter = false;
             const filter = new class implements ITreeFilterProvider<number, boolean> {
                 public filter(element: number): ITreeFilterResult<boolean> {
@@ -746,7 +746,7 @@ suite('indexTreeModel-test', () => {
 
         test('visibleOnly', () => {
 
-            const list: IIndexTreeNode<number, boolean>[] = [];
+            const list: ITreeNode<number, boolean>[] = [];
             let shouldFilter = false;
             const filter = new class implements ITreeFilterProvider<number, boolean> {
                 public filter(element: number): ITreeFilterResult<boolean> {

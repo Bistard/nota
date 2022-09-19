@@ -1,8 +1,3 @@
-
-/*******************************************************************************
- * A simple file for common and useful interfaces relates to tree.
- ******************************************************************************/
-
 import { Register } from "src/base/common/event";
 
 /**
@@ -40,10 +35,10 @@ export interface ITreeNode<T, TFilter = void> extends ITreeNodeItem<T> {
     data: T;
 
     /** The parent of the tree node. */
-    parent: ITreeNode<T, TFilter> | null;
+    parent: this | null;
 
     /** The childrens of the tree node. */
-    children: ITreeNode<T, TFilter>[];
+    children: this[];
 
     /** counts how many nodes are actually visible / rendered (includes itself). */
     visibleNodeCount: number;
@@ -98,7 +93,7 @@ export interface ITreeNodeItem<T> {
     /** 
      * The children of the current element.
      */
-    children?: ITreeNodeItem<T>[];
+    children?: this[];
 }
 
 /**
@@ -106,9 +101,9 @@ export interface ITreeNodeItem<T> {
  * mainly handling the data behaviours.
  * 
  * T: represents the type of data is stored inside the node.
- * TFilter: represents the type of data for matching purpose, eg. {@link FuzzyScore}.
- * TRef: represents the equivalent way representing node in the tree, default is 
- *       {@link number[]} which representing the location of a node.
+ * TFilter: represents the type of data for matching purpose.
+ * TRef: represents the equivalent way representing node in the tree, default is
+ *       `number[]` which representing the location of a node.
  */
 export interface ITreeModel<T, TFilter, TRef = number[]> {
 

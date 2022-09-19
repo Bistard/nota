@@ -41,17 +41,6 @@ export interface IIndexTreeModelOptions<T, TFilter> {
     readonly filter?: ITreeFilterProvider<T, TFilter>;
 }
 
-/**
- * An internal data structure for {@link IIndexTreeModel}. Represents each tree 
- * node.
- */
-export interface IIndexTreeNode<T, TFilter = void> extends ITreeNode<T, TFilter> {
-    
-    /** override for specifying nodes type. */
-    parent: IIndexTreeNode<T, TFilter> | null;
-    children: IIndexTreeNode<T, TFilter>[];
-}
-
 export interface IIndexTreeModelBase<T, TFilter> extends ITreeModel<T, TFilter, number[]> {
     /**
      * Events when tree splice did happen.
@@ -62,7 +51,7 @@ export interface IIndexTreeModelBase<T, TFilter> extends ITreeModel<T, TFilter, 
     setCollapsible(location: number[], collapsible?: boolean): boolean;
     setCollapsed(location: number[], collapsed?: boolean, recursive?: boolean): boolean;
     setExpandTo(location: number[]): void;
-    getRoot(): IIndexTreeNode<T, TFilter>;
+    getRoot(): ITreeNode<T, TFilter>;
 }
 
 export interface IIndexTreeModel<T, TFilter> extends IIndexTreeModelBase<T, TFilter> {
@@ -86,7 +75,7 @@ export class IndexTreeModelBase<T, TFilter> implements IIndexTreeModelBase<T, TF
     public readonly root: number[] = [];
 
     /** Root does not refer to any specific tree node. */
-    protected readonly _root: IIndexTreeNode<T, TFilter>;
+    protected readonly _root: ITreeNode<T, TFilter>;
 
     /** The corresponding list-like view component. */
     protected readonly _view: ISpliceable<ITreeNode<T, TFilter>>;
@@ -136,7 +125,7 @@ export class IndexTreeModelBase<T, TFilter> implements IIndexTreeModelBase<T, TF
         return this.__hasNode(location, this._root);
     }
 
-    public getNode(location: number[]): IIndexTreeNode<T, TFilter> {
+    public getNode(location: number[]): ITreeNode<T, TFilter> {
         const node = this.__getNode(location, this._root);
         
         if (!node) {
@@ -146,11 +135,11 @@ export class IndexTreeModelBase<T, TFilter> implements IIndexTreeModelBase<T, TF
         return node;
     }
 
-    public getRoot(): IIndexTreeNode<T, TFilter> {
+    public getRoot(): ITreeNode<T, TFilter> {
         return this._root;
     }
 
-    public getNodeLocation(node: IIndexTreeNode<T, TFilter>): number[] {
+    public getNodeLocation(node: ITreeNode<T, TFilter>): number[] {
         const location: number[] = [];
         
         for (let i = node.depth - 1; i >= 0; i--) {
@@ -278,7 +267,7 @@ export class IndexTreeModelBase<T, TFilter> implements IIndexTreeModelBase<T, TF
      * @returns A boolean if the current node will be expand.
      */
     private __filter(
-        node: IIndexTreeNode<T, TFilter>, 
+        node: ITreeNode<T, TFilter>, 
         filtered: ITreeNode<T, TFilter>[], 
         visibleOnly: boolean, 
         isParentCollapsed: boolean, 
@@ -349,7 +338,7 @@ export class IndexTreeModelBase<T, TFilter> implements IIndexTreeModelBase<T, TF
      * @param node The given node.
      * @throws An exception will be thrown if the filter is not provided.
      */
-    private __filterNode(node: IIndexTreeNode<T, TFilter>): void {
+    private __filterNode(node: ITreeNode<T, TFilter>): void {
         
         const filterResult = this._filter!.filter(node.data);
         node.rendererMetadata = filterResult.filterMetadata;
@@ -364,7 +353,7 @@ export class IndexTreeModelBase<T, TFilter> implements IIndexTreeModelBase<T, TF
      * 
      * @complexity O(h) - h: length of location
      */
-    private __hasNode(location: number[], node: IIndexTreeNode<T, TFilter> = this._root): boolean 
+    private __hasNode(location: number[], node: ITreeNode<T, TFilter> = this._root): boolean 
     {
         for (let i = 0; i < location.length; i++) {
             let index = location[i]!;
@@ -384,12 +373,12 @@ export class IndexTreeModelBase<T, TFilter> implements IIndexTreeModelBase<T, TF
      * under the given parent node.
      * @param location The location representation of the node.
      * @param node The node to start with, default is the root.
-     * @returns Returns undefined if not found, returns {@link IIndexTreeNode} vice 
+     * @returns Returns undefined if not found, returns {@link ITreeNode} vice 
      * versa.
      * 
      * @complexity O(h) - h: length of location
      */
-    private __getNode(location: number[], node: IIndexTreeNode<T, TFilter> = this._root): IIndexTreeNode<T, TFilter> | undefined 
+    private __getNode(location: number[], node: ITreeNode<T, TFilter> = this._root): ITreeNode<T, TFilter> | undefined 
     {
         for (let i = 0; i < location.length; i++) {
             let index = location[i]!;
@@ -419,8 +408,8 @@ export class IndexTreeModelBase<T, TFilter> implements IIndexTreeModelBase<T, TF
      */
     protected __getParentNodeWithListIndex(
         location: number[], 
-        node: IIndexTreeNode<T, TFilter> = this._root
-    ): {parent: IIndexTreeNode<T, TFilter>, listIndex: number, visible: boolean} 
+        node: ITreeNode<T, TFilter> = this._root
+    ): {parent: ITreeNode<T, TFilter>, listIndex: number, visible: boolean} 
     {
         let listIndex = 0;
         let visible = true;
@@ -469,7 +458,7 @@ export class IndexTreeModelBase<T, TFilter> implements IIndexTreeModelBase<T, TF
      * 
      * @complexity O(h) - h: length of location
      */
-    private __getNodeWithListIndex(location: number[]): {node: IIndexTreeNode<T, TFilter>, listIndex: number, visible: boolean} 
+    private __getNodeWithListIndex(location: number[]): {node: ITreeNode<T, TFilter>, listIndex: number, visible: boolean} 
     {
         if (location.length === 0) {
             return {
@@ -502,7 +491,7 @@ export class IndexTreeModelBase<T, TFilter> implements IIndexTreeModelBase<T, TF
      * 
      * @note time complexity: O(h) - h: height of the node
      */
-    protected __updateAncestorsVisibleNodeCount(node: IIndexTreeNode<T, TFilter> | null, diff: number): void {
+    protected __updateAncestorsVisibleNodeCount(node: ITreeNode<T, TFilter> | null, diff: number): void {
         if (diff === 0) {
             return;
         }
@@ -555,7 +544,7 @@ export class IndexTreeModelBase<T, TFilter> implements IIndexTreeModelBase<T, TF
      * 
      * @returns if the collapsed state changed.
      */
-    private __setTreeNodeCollapsed(node: IIndexTreeNode<T, TFilter>, collapsed: boolean, recursive: boolean): boolean {
+    private __setTreeNodeCollapsed(node: ITreeNode<T, TFilter>, collapsed: boolean, recursive: boolean): boolean {
 
         let changed = false;
 
@@ -590,10 +579,10 @@ export class IndexTreeModelBase<T, TFilter> implements IIndexTreeModelBase<T, TF
      * 
      * @note only be called when `__setTreeNodeCollapsed` returns true.
      */
-    private __updateTreeNodeAfterCollapsed(node: IIndexTreeNode<T, TFilter>): IIndexTreeNode<T, TFilter>[] {
+    private __updateTreeNodeAfterCollapsed(node: ITreeNode<T, TFilter>): ITreeNode<T, TFilter>[] {
         const previousRenderNodeCount = node.visibleNodeCount;
 		
-        const visibleNodes: IIndexTreeNode<T, TFilter>[] = [];
+        const visibleNodes: ITreeNode<T, TFilter>[] = [];
 		this.__updateChildrenVNCAfterCollapsed(node, visibleNodes);
         this.__updateAncestorsVisibleNodeCount(node.parent, visibleNodes.length - previousRenderNodeCount); // __updateAncestorVNCAfterCollapsed()
 
@@ -608,7 +597,7 @@ export class IndexTreeModelBase<T, TFilter> implements IIndexTreeModelBase<T, TF
      * @param visibleNodes Will stores all the visible tree node into this array
      *                     for later rendering.
      */
-    private __updateChildrenVNCAfterCollapsed(node: IIndexTreeNode<T, TFilter>, visibleNodes: IIndexTreeNode<T, TFilter>[]): void {
+    private __updateChildrenVNCAfterCollapsed(node: ITreeNode<T, TFilter>, visibleNodes: ITreeNode<T, TFilter>[]): void {
 
         const visited = new Set();
         const stack = [node];
@@ -659,7 +648,7 @@ export class IndexTreeModelBase<T, TFilter> implements IIndexTreeModelBase<T, TF
      */
     private __setCollapsible(location: number[], collapsible: boolean): boolean {
 
-        let node: IIndexTreeNode<T, TFilter> | undefined = this._root;
+        let node: ITreeNode<T, TFilter> | undefined = this._root;
         let changed = false;
 
         for (let i = 0; i < location.length; i++) {
@@ -702,8 +691,8 @@ export class IndexTreeModel<T, TFilter> extends IndexTreeModelBase<T, TFilter> i
         
         // 1st array will store all the new nodes including nested ones.
         // 2nd array only store the new nodes under the parent node.
-        const treeNodeListToInsert: IIndexTreeNode<T, TFilter>[] = [];
-        const treeNodeChildrenToInsert: IIndexTreeNode<T, TFilter>[] = [];
+        const treeNodeListToInsert: ITreeNode<T, TFilter>[] = [];
+        const treeNodeChildrenToInsert: ITreeNode<T, TFilter>[] = [];
         let visibleNodeCountChange = 0;
         
         for (const element of itemsToInsert) {
@@ -752,7 +741,7 @@ export class IndexTreeModel<T, TFilter> extends IndexTreeModelBase<T, TFilter> i
     // [private helper methods]
 
     /**
-     * @description Creates a new {@link IIndexTreeNode}.
+     * @description Creates a new {@link ITreeNode}.
      * @param element The provided {@link ITreeNodeItem<T>} for construction.
      * @param parent The parent of the new tree node.
      * @param toBeRendered To stores all the new created tree nodes which should
@@ -761,10 +750,10 @@ export class IndexTreeModel<T, TFilter> extends IndexTreeModelBase<T, TFilter> i
      */
     private __createNode(
         element: ITreeNodeItem<T>, 
-        parent: IIndexTreeNode<T, TFilter>,
-        toBeRendered: IIndexTreeNode<T, TFilter>[],
+        parent: ITreeNode<T, TFilter>,
+        toBeRendered: ITreeNode<T, TFilter>[],
         onDidCreateNode?: (node: ITreeNode<T, TFilter>) => void
-    ): IIndexTreeNode<T, TFilter> 
+    ): ITreeNode<T, TFilter> 
     {
         const ifSetCollapsed = typeof element.collapsed !== 'undefined';
         const ifSetCollapsible = typeof element.collapsible !== 'undefined';
@@ -776,7 +765,7 @@ export class IndexTreeModel<T, TFilter> extends IndexTreeModelBase<T, TFilter> i
         const collapsible = ifSetCollapsible ? element.collapsible : ifSetCollapsed;
         
         // construct the new node
-        const newNode: IIndexTreeNode<T, TFilter> = {
+        const newNode: ITreeNode<T, TFilter> = {
             data: element.data,
             parent: parent,
             depth: parent.depth + 1,
