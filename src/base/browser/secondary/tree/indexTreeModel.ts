@@ -153,12 +153,12 @@ export class IndexTreeModelBase<T, TFilter> implements IIndexTreeModelBase<T, TF
     public getNodeLocation(node: IIndexTreeNode<T, TFilter>): number[] {
         const location: number[] = [];
         
-        while (node.parent) {
-            location.push(node.parent.children.indexOf(node));
-            node = node.parent;
+        for (let i = node.depth - 1; i >= 0; i--) {
+            location[i] = node.parent!.children.indexOf(node);
+            node = node.parent!;
         }
 
-        return location.reverse();
+        return location;
     }
 
     public getNodeListIndex(location: number[]): number {
