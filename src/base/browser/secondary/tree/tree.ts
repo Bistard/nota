@@ -113,6 +113,11 @@ export interface ITreeModel<T, TFilter, TRef = number[]> {
     readonly root: TRef;
 
     /**
+     * Returns the root tree node of the tree model.
+     */
+    readonly rootNode: ITreeNode<T, TFilter>;
+
+    /**
      * Events when tree splice happened.
      */
     readonly onDidSplice: Register<ITreeSpliceEvent<T, TFilter>>;
@@ -137,11 +142,6 @@ export interface ITreeModel<T, TFilter, TRef = number[]> {
      * @throws An exception throws if the node is not found.
      */
     getNode(location: TRef): ITreeNode<T, TFilter>;
-
-    /**
-     * @description Returns the root of the tree model.
-     */
-    getRoot(): ITreeNode<T, TFilter>;
 
     /**
      * @description Returns the location corresponding to the given {@link ITreeNode}.

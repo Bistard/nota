@@ -10,11 +10,6 @@ import { ITreeModel, ITreeSpliceEvent, ITreeNode, ITreeNodeItem, ITreeCollapseSt
 export interface IMultiTreeModel<T, TFilter> extends ITreeModel<T, TFilter, T> {
 
     /**
-     * The root node of the tree.
-     */
-    readonly rootNode: ITreeNode<T, TFilter>;
-
-    /**
      * @description Returns the number of nodes in the current tree model.
      */
     size(): number;
@@ -155,10 +150,6 @@ export class MultiTreeModel<T, TFilter> implements IMultiTreeModel<T, TFilter> {
             throw new Error('provided item not found in the tree');
         }
         return node;
-    }
-
-    public getRoot(): ITreeNode<T, TFilter> {
-        return this._model.getRoot();
     }
 
     public getNodeLocation(node: ITreeNode<T, TFilter>): T {
