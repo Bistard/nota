@@ -820,9 +820,6 @@ suite('flexIndexTreeModel-test', () => {
         node.oldChildren = node.children;
         node.children = children;
         node.refresh = true;
-        if (node.parent) {
-            node.parent.refresh = true;
-        }
     }
 
     test('constructor', () => {
@@ -842,7 +839,7 @@ suite('flexIndexTreeModel-test', () => {
             createFlexNode(3, root), 
             createFlexNode(2, root),
         ]);
-        model.refresh([0]);
+        model.refresh([]);
 
         assert.deepStrictEqual(list.length, 3);
         
@@ -888,7 +885,7 @@ suite('flexIndexTreeModel-test', () => {
             node1,
             node4,
         ]);
-        model.refresh([0]);
+        model.refresh([]);
 
         assert.deepStrictEqual(list.length, 6);
 
@@ -940,13 +937,13 @@ suite('flexIndexTreeModel-test', () => {
             createFlexNode(3, root), 
             createFlexNode(2, root),
         ]);
-        model.refresh([0]);
+        model.refresh([]);
 
 
         assert.strictEqual(cnt, 3);
 
         setNewChildren(root, []);
-        model.refresh([0]);
+        model.refresh([]);
         assert.strictEqual(cnt, 6);
     });
 
@@ -976,7 +973,7 @@ suite('flexIndexTreeModel-test', () => {
             node1,
             node4,
         ]);
-        model.refresh([0]);
+        model.refresh([]);
 
         assert.deepStrictEqual(list.length, 6);
         assert.deepStrictEqual(model.getNodeLocation(list[0]!), [0]);
@@ -1014,7 +1011,7 @@ suite('flexIndexTreeModel-test', () => {
             node1,
             node4,
         ]);
-        model.refresh([0]);
+        model.refresh([]);
 
         assert.deepStrictEqual(list.length, 4);
 
@@ -1053,11 +1050,11 @@ suite('flexIndexTreeModel-test', () => {
             node2, 
             node3,
         ]);
-        model.refresh([0]);
+        model.refresh([]);
         assert.deepStrictEqual(list.length, 3);
         
         setNewChildren(root, [node1, node3]);
-        model.refresh([0]);
+        model.refresh([]);
         assert.deepStrictEqual(list.length, 2);
         assert.deepStrictEqual(list[0]!.data, 1);
 		assert.deepStrictEqual(list[0]!.collapsed, false);
@@ -1068,7 +1065,7 @@ suite('flexIndexTreeModel-test', () => {
 		assert.deepStrictEqual(list[1]!.depth, 1);
 
         setNewChildren(root, []);
-        model.refresh([0]);
+        model.refresh([]);
         assert.deepStrictEqual(list.length, 0);
     });
 
@@ -1099,11 +1096,11 @@ suite('flexIndexTreeModel-test', () => {
             node4,
             node7,
         ]);
-        model.refresh([0])
+        model.refresh([])
         assert.deepStrictEqual(list.length, 7);
 
         setNewChildren(root, [node1]);
-        model.refresh([0]);
+        model.refresh([]);
         assert.deepStrictEqual(list.length, 3);
         assert.deepStrictEqual(list[0]!.data, 1);
         assert.deepStrictEqual(list[0]!.depth, 1);
@@ -1124,7 +1121,7 @@ suite('flexIndexTreeModel-test', () => {
         assert.deepStrictEqual(list[2]!.visibleNodeCount, 1);
 
         setNewChildren(node1, [node3]);
-        model.refresh([0, 0]);
+        model.refresh([0]);
 
         assert.deepStrictEqual(list.length, 2);
 
@@ -1171,11 +1168,11 @@ suite('flexIndexTreeModel-test', () => {
             node4,
             node7,
         ]);
-        model.refresh([0]);
+        model.refresh([]);
         assert.deepStrictEqual(list.length, 3);
 
         setNewChildren(node1, [node3]);
-        model.refresh([0, 0]);
+        model.refresh([0]);
         assert.deepStrictEqual(list.length, 3);
     });
 
@@ -1532,13 +1529,13 @@ suite('flexIndexTreeModel-test', () => {
         assert.strictEqual(list[1]!.collapsible, false);
 
         setNewChildren(node1, []);
-        model.refresh([0, 0]);
+        model.refresh([0]);
         assert.strictEqual(list.length, 1);
         assert.strictEqual(list[0]!.data, 1);
         assert.strictEqual(list[0]!.collapsible, false);
 
         setNewChildren(node1, [node2]);
-        model.refresh([0, 0]);
+        model.refresh([0]);
         assert.strictEqual(list[0]!.collapsible, true);
         assert.strictEqual(list[1]!.collapsible, false);
     });
