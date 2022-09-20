@@ -1,5 +1,5 @@
 import { IAsyncNode } from "src/base/browser/secondary/tree/asyncTree";
-import { IMultiTreeModelOptions, MultiTreeModel } from "src/base/browser/secondary/tree/multiTreeModel";
+import { IMultiTreeModelOptions, FlexMultiTreeModel } from "src/base/browser/secondary/tree/multiTreeModel";
 import { ITreeNode } from "src/base/browser/secondary/tree/tree";
 import { ISpliceable } from "src/base/common/range";
 import { Blocker } from "src/base/common/util/async";
@@ -31,8 +31,8 @@ export interface IChildrenProvider<T> {
     /**
      * @description Determines if the given data should be collapsed when 
      * constructing.
-     * @note This has higher priority than `{@link IAsyncMultiTreeOptions.collapsedByDefault}`
-     * which will only be applied when the function is not provided.
+     * @note This has higher priority than `{@link IIndexTreeModelOptions['collapsedByDefault']}`
+     * which will only be applied when this function is not provided.
      */
     collapseByDefault?: (data: T) => boolean;
 }
@@ -40,7 +40,7 @@ export interface IChildrenProvider<T> {
 /**
  * An interface only for {@link AsyncTreeModel}.
  */
-export interface IAsyncTreeModel<T, TFilter> extends MultiTreeModel<T, TFilter> {
+export interface IAsyncTreeModel<T, TFilter> extends FlexMultiTreeModel<T, TFilter> {
     
     /**
      * @description Refreshing the tree structure of the given node and all its 
@@ -59,15 +59,15 @@ export interface IAsyncTreeModelOptions<T, TFilter> extends IMultiTreeModelOptio
 }
 
 /**
- * @class A {@link AsyncTreeModel} extends {@link MultiTreeModel} and also wraps 
- * a {@link IAsyncNode} over each client data.
+ * @class A {@link AsyncTreeModel} extends {@link FlexMultiTreeModel} and also 
+ * wraps a {@link IAsyncNode} over each client data.
  * 
  * @implements
- * The node for refreshing should be returned by {@link MultiTreeModel.getNode}
+ * The node for refreshing should be returned by {@link FlexMultiTreeModel.getNode}
  * so that we are always modifying the original tree structure instead of 
  * creating a new one.
  */
-export class AsyncTreeModel<T, TFilter> extends MultiTreeModel<T, TFilter> implements IAsyncTreeModel<T, TFilter> {
+export class AsyncTreeModel<T, TFilter> extends FlexMultiTreeModel<T, TFilter> implements IAsyncTreeModel<T, TFilter> {
     
     // [field]
 
@@ -144,13 +144,13 @@ export class AsyncTreeModel<T, TFilter> extends MultiTreeModel<T, TFilter> imple
 
         try {
             // wait until finish refreshing all its direct children
-            const children = await this.__refreshDirectChildren(asyncNode);
+            const childrenToRefresh = await this.__refreshDirectChildren(asyncNode);
 
             /**
              * we continue the same work to the direct children, refreshing the 
              * other descendants.
              */
-            await Promise.all(children.map(child => this.__refreshNodeAndChildren(child)));
+            await Promise.all(childrenToRefresh.map(child => this.__refreshNodeAndChildren(child)));
         }
         
         catch (err) {
@@ -167,6 +167,7 @@ export class AsyncTreeModel<T, TFilter> extends MultiTreeModel<T, TFilter> imple
      * @description Will fetching the updated direct children stat of the given 
      * node.
      * @param asyncNode The given async tree node.
+     * @returns An array of children that requires further refresh.
      */
     private async __refreshDirectChildren(asyncNode: IAsyncNode<T, TFilter>): Promise<IAsyncNode<T, TFilter>[]> {
 
@@ -174,18 +175,8 @@ export class AsyncTreeModel<T, TFilter> extends MultiTreeModel<T, TFilter> imple
         asyncNode.collapsible = this._childrenProvider.hasChildren(asyncNode.data);
 
         if (asyncNode.collapsible === false) {
-            // since the current node is a leaf, we return nothing.
             childrenPromise = Promise.resolve(Iterable.empty());
-        }
-
-        else {
-            /**
-             * // REVIEW 
-             * We may set a timer instead of choose `await`. Once timed out,
-             * we mark this node as `slow` state, and fires the event to tell 
-             * everybody. One of the usage of this could be rendering `loading` 
-             * animation. For now, I choose `await` for simplicity.
-             */
+        } else {
             childrenPromise = Promise.resolve(this.__getChildren(asyncNode));
         }
 
@@ -196,10 +187,6 @@ export class AsyncTreeModel<T, TFilter> extends MultiTreeModel<T, TFilter> imple
         
         catch (err) {
             throw err;
-        } 
-        
-        finally {
-            // do nothing for now
         }
     }
 
@@ -227,17 +214,19 @@ export class AsyncTreeModel<T, TFilter> extends MultiTreeModel<T, TFilter> imple
     }
 
     /**
-     * @description Updates the given children to the provided async tree node.
+     * @description Updates the given children to the provided {@link IAsyncNode}.
      * @param node The provided tree node.
      * @param childrenIterable The direct children of the given node.
-     * @returns After the children were inserted, returns a iterable of the new 
-     * children tree nodes.
+     * @returns An array of children that requires further refresh.
      */
     private __setChildren(node: IAsyncNode<T, TFilter>, childrenIterable: Iterable<T>): IAsyncNode<T, TFilter>[] {
         
         const childrenData = [...childrenIterable];
 
-        // corner case check, performance improvement
+        /**
+         * Was empty children and no children is changed, we should quit and 
+         * refresh nothing.
+         */
         if (!childrenData.length && !node.children.length) {
             return [];
         }
@@ -247,8 +236,8 @@ export class AsyncTreeModel<T, TFilter> extends MultiTreeModel<T, TFilter> imple
          * children is not collapsed, these children will be returned and for 
          * future refresh.
          */
-        const childrenItemsForRefresh: IAsyncNode<T, TFilter>[] = [];
-        const childrenItems: IAsyncNode<T, TFilter>[] = [];
+        const childrenNodesToRefresh: IAsyncNode<T, TFilter>[] = [];
+        const childrenNodes: IAsyncNode<T, TFilter>[] = [];
 
         for (const childData of childrenData) {
             const hasChildren = this._childrenProvider.hasChildren(childData);
@@ -258,12 +247,13 @@ export class AsyncTreeModel<T, TFilter> extends MultiTreeModel<T, TFilter> imple
                 parent: node,
                 children: [],
                 collapsible: hasChildren,
-                visibleNodeCount: 1,
                 
+                refreshing: undefined,
+                
+                visibleNodeCount: undefined!,
                 collapsed: undefined!,
                 depth: undefined!,
                 visible: undefined!,
-                refreshing: undefined!,
                 rendererMetadata: undefined!,
             };
             
@@ -276,19 +266,19 @@ export class AsyncTreeModel<T, TFilter> extends MultiTreeModel<T, TFilter> imple
                     !this._childrenProvider.collapseByDefault(childData)
                 ) {
                     newChildItem.collapsed = false;
-                    childrenItemsForRefresh.push(newChildItem);
-                } else {
-                    newChildItem.collapsed = true;
+                    childrenNodesToRefresh.push(newChildItem);
                 }
             }
 
-            childrenItems.push(newChildItem);
+            childrenNodes.push(newChildItem);
         }
         
         // insert the children nodes into the current node
-        node.children = childrenItems;
+        node.refresh = true;
+        node.oldChildren = node.children;
+        node.children = childrenNodes;
 
-        return childrenItemsForRefresh;
+        return childrenNodesToRefresh;
     }
 
     /**

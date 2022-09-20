@@ -2,8 +2,8 @@ import { IListItemProvider } from "src/base/browser/secondary/listView/listItemP
 import { IListWidget, ITraitChangeEvent } from "src/base/browser/secondary/listWidget/listWidget";
 import { AsyncTreeModel, IChildrenProvider, IAsyncTreeModel } from "src/base/browser/secondary/tree/asyncTreeModel";
 import { ITreeModelSpliceOptions } from "src/base/browser/secondary/tree/indexTreeModel";
-import { IMultiTreeOptions, MultiTree } from "src/base/browser/secondary/tree/multiTree";
-import { ITreeNode, ITreeModel, ITreeCollapseStateChangeEvent, ITreeMouseEvent, ITreeTouchEvent, ITreeContextmenuEvent, ITreeSpliceEvent } from "src/base/browser/secondary/tree/tree";
+import { FlexMultiTree, IMultiTreeOptions, MultiTree } from "src/base/browser/secondary/tree/multiTree";
+import { ITreeNode, ITreeModel, ITreeCollapseStateChangeEvent, ITreeMouseEvent, ITreeTouchEvent, ITreeContextmenuEvent, ITreeSpliceEvent, IFlexNode } from "src/base/browser/secondary/tree/tree";
 import { ITreeListRenderer } from "src/base/browser/secondary/tree/treeListRenderer";
 import { Disposable } from "src/base/common/dispose";
 import { ErrorHandler } from "src/base/common/error";
@@ -14,14 +14,14 @@ import { IScrollEvent } from "src/base/common/scrollable";
 /**
  * @internal
  * The internal tree node structure used to extend the functionalities of the 
- * internal {@link ITreeNode}.
+ * internal {@link IFlexNode}.
  * 
  * @implements
  * This helps us to tree the internal tree node with extra fields to avoid 
  * constructing extra object as a tree node to be nested inside {@link MultiTree}. 
  * Results a faster and less memory costing. 
  */
-export interface IAsyncNode<T, TFilter> extends ITreeNode<T, TFilter> {
+export interface IAsyncNode<T, TFilter> extends IFlexNode<T, TFilter> {
     
     /** Determines if the current node is during the refreshing. */
     refreshing?: Promise<void>;
@@ -294,7 +294,7 @@ export interface IAsyncTreeOptions<T, TFilter> extends IMultiTreeOptions<T, TFil
  * wraps each client data with a {@link IAsyncNode<T>}. See more detailed 
  * implementations in {@link AsyncTreeModel}.
  */
-class AsyncMultiTree<T, TFilter> extends MultiTree<T, TFilter> {
+class AsyncMultiTree<T, TFilter> extends FlexMultiTree<T, TFilter> {
 
     declare protected readonly _model: IAsyncTreeModel<T, TFilter>;
     private readonly _childrenProvider: IChildrenProvider<T>;
@@ -598,9 +598,8 @@ export class AsyncTree<T, TFilter> extends Disposable implements IAsyncTree<T, T
     // [private helper methods]
 
     private __render(node: ITreeNode<T, TFilter>): void {
-        this._tree.splice(
-            node.data, 
-            node.children, 
+        this._tree.refresh(
+            node,
             {
                 onDidCreateNode: this._onDidCreateNode,
                 onDidDeleteNode: this._onDidDeleteNode,

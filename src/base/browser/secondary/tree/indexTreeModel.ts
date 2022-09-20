@@ -958,13 +958,18 @@ export class FlexIndexTreeModel<T, TFilter> extends IndexTreeModelBase<T, TFilte
             newVisibleCount += child.visibleNodeCount;
         }
 
+        node.visibleNodeCount = node.visible ? newVisibleCount : 0;
+
         /**
          * If the collapsible setting somehow sets to false, we may correct it 
          * here.
          */
         node.collapsible = node.collapsible || node.children.length > 0;
-        node.visibleNodeCount = node.visible ? newVisibleCount : 0;
         
+        // If collapse never set by the client, we use the default setting.
+        node.collapsed = node.collapsed ?? this._collapsedByDefault;
+
+        // treats refreshed node as new created node
         if (onDidCreateNode) {
             onDidCreateNode(node);
         }

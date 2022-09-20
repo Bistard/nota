@@ -63,25 +63,16 @@ abstract class MultiTreeModelBase<T, TFilter> implements IMultiTreeModelBase<T, 
     public readonly root: T;
     public readonly rootNode: ITreeNode<T, TFilter>;
 
-    protected abstract _model: IIndexTreeModelBase<T, TFilter>;
+    protected readonly _model: IIndexTreeModelBase<T, TFilter>;
 	protected _nodes: Map<T, ITreeNode<T, TFilter>>;
 
     // [constructor]
 
-    constructor(rootData: T) {
+    constructor(rootData: T, model: IIndexTreeModelBase<T, TFilter>) {
+        this._model = model;
+        this.rootNode = this._model.rootNode;
         this.root = rootData;
         this._nodes = new Map();
-
-        this.rootNode = {
-            data: rootData,
-            children: [],
-            collapsed: false,
-            collapsible: true,
-            depth: 0,
-            parent: null,
-            visible: true,
-            visibleNodeCount: 0,
-        };
         this._nodes.set(rootData, this.rootNode);
     }
 
@@ -226,7 +217,7 @@ export class MultiTreeModel<T, TFilter> extends MultiTreeModelBase<T, TFilter> i
 
     // [field]
 
-    protected readonly _model: IIndexTreeModel<T, TFilter>;
+    declare protected readonly _model: IIndexTreeModel<T, TFilter>;
 
     // [event]
 
@@ -240,8 +231,7 @@ export class MultiTreeModel<T, TFilter> extends MultiTreeModelBase<T, TFilter> i
         view: ISpliceable<ITreeNode<T, TFilter>>,
         opts: IMultiTreeModelOptions<T, TFilter> = {}
     ) {
-        super(rootData);
-        this._model = new IndexTreeModel<T, TFilter>(rootData, view, opts);
+        super(rootData, new IndexTreeModel<T, TFilter>(rootData, view, opts));
         this.onDidSplice = this._model.onDidSplice;
         this.onDidChangeCollapseState = this._model.onDidChangeCollapseState;
     }
@@ -254,11 +244,7 @@ export class MultiTreeModel<T, TFilter> extends MultiTreeModelBase<T, TFilter> i
         children: ITreeNodeItem<T>[] = [],
         opts: ITreeModelSpliceOptions<T, TFilter> = {}
     ): void {
-        
         const location = this.__getNodeLocation(item);
-        
-
-        // the actual splicing
         this._model.splice(
             [...location, 0],
             deleteCount,
@@ -275,7 +261,7 @@ export class FlexMultiTreeModel<T, TFilter> extends MultiTreeModelBase<T, TFilte
 
     // [field]
 
-    protected readonly _model: IFlexIndexTreeModel<T, TFilter>;
+    declare protected readonly _model: IFlexIndexTreeModel<T, TFilter>;
 
     // [event]
 
@@ -289,8 +275,7 @@ export class FlexMultiTreeModel<T, TFilter> extends MultiTreeModelBase<T, TFilte
         view: ISpliceable<ITreeNode<T, TFilter>>,
         opts: IMultiTreeModelOptions<T, TFilter> = {}
     ) {
-        super(rootData);
-        this._model = new FlexIndexTreeModel<T, TFilter>(rootData, view, opts);
+        super(rootData, new FlexIndexTreeModel<T, TFilter>(rootData, view, opts));
         this.onDidSplice = this._model.onDidSplice;
         this.onDidChangeCollapseState = this._model.onDidChangeCollapseState;
     }
