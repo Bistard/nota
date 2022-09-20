@@ -1,4 +1,4 @@
-import { ITreeModel, ITreeSpliceEvent, ITreeNode, ITreeNodeItem, ITreeCollapseStateChangeEvent } from "src/base/browser/secondary/tree/tree";
+import { ITreeModel, ITreeSpliceEvent, ITreeNode, ITreeNodeItem, ITreeCollapseStateChangeEvent, IFlexNode } from "src/base/browser/secondary/tree/tree";
 import { ITreeFilterProvider } from "src/base/browser/secondary/tree/treeFilter";
 import { DelayableEmitter, Emitter, Register } from "src/base/common/event";
 import { ISpliceable } from "src/base/common/range";
@@ -42,66 +42,70 @@ export interface IIndexTreeModelOptions<T, TFilter> {
 }
 
 /**
- * An internal data structure for {@link IIndexTreeModel}. Represents each tree 
- * node.
+ * An interface only for {@link IndexTreeModelBase}.
  */
-export interface IIndexTreeNode<T, TFilter = void> extends ITreeNode<T, TFilter> {
-    
-    /** override for specifying nodes type. */
-    parent: IIndexTreeNode<T, TFilter> | null;
-    children: IIndexTreeNode<T, TFilter>[];
-}
-
-/**
- * Interface only for {@link IndexTreeModel}.
- * 
- * TRef: number[]
- */
-export interface IIndexTreeModel<T, TFilter> extends ITreeModel<T, TFilter, number[]> {
-
+export interface IIndexTreeModelBase<T, TFilter> extends ITreeModel<T, TFilter, number[]> {
     /**
      * Events when tree splice did happen.
      */
-    onDidSplice: Register<ITreeSpliceEvent<T, TFilter>>;
-
-    /**
-     * To insert or delete items in the tree by given the location.
-     * @param location The location representation of the node.
-     * @param deleteCount number of deleted nodes after the given location.
-     * @param itemsToInsert number of items to be inserted after the given location.
-     * @param opts The option for splicing.
-     */
-    splice(location: number[], deleteCount: number, itemsToInsert: ITreeNodeItem<T>[], opts: ITreeModelSpliceOptions<T, TFilter>): void;
-
+    readonly onDidSplice: Register<ITreeSpliceEvent<T, TFilter>>;
     getNodeLocation(node: ITreeNode<T, TFilter>): number[];
     getNodeListIndex(location: number[]): number;
     setCollapsible(location: number[], collapsible?: boolean): boolean;
     setCollapsed(location: number[], collapsed?: boolean, recursive?: boolean): boolean;
     setExpandTo(location: number[]): void;
-    getRoot(): IIndexTreeNode<T, TFilter>;
 }
 
 /**
- * An {@link IndexTreeModel} is a type of {@link ITreeModel}. This is not the 
- * same data structure as Index Binary Tree (IBT).
- * 
- * The tree model represents a multiway tree-like structure. The prefix `index` 
- * means the tree node can be found by a series of indices.
+ * An interface only for {@link IndexTreeModel}.
  */
-export class IndexTreeModel<T, TFilter> implements IIndexTreeModel<T, TFilter> {
+export interface IIndexTreeModel<T, TFilter> extends IIndexTreeModelBase<T, TFilter> {
+    /**
+     * To insert or delete items in the tree by the given location.
+     * @param location The location representation of the node.
+     * @param deleteCount number of deleted nodes after the given location.
+     * @param itemsToInsert number of items to be inserted after the given location.
+     * @param opts The option for splicing.
+     */
+    splice(location: number[], deleteCount: number, itemsToInsert: ITreeNodeItem<T>[], opts?: ITreeModelSpliceOptions<T, TFilter>): void;
+}
 
+/**
+ * An interface only for {@link FlexIndexTreeModel}. 
+ * @note An optimization of {@link IIndexTreeModel}.
+ */
+export interface IFlexIndexTreeModel<T, TFilter> extends IIndexTreeModelBase<T, TFilter> {
+    
+    /**
+     * @description Refresh the subtree of the given tree node.
+     * The tree model will rebuild and reculate all the metadata of the subtree
+     * of the given tree node automatically if the client modify the tree node
+     * correctly.
+     * @param node The given node. Defaults to root.
+     * @param opts The option for splicing.
+     */
+    refresh(node?: IFlexNode<T, TFilter>, opts?: ITreeModelSpliceOptions<T, TFilter>): void;
+}
+
+/**
+ * @class The base class of {@link IndexTreeModel} and {@link FlexIndexTreeModel}.
+ * Integrated all the functionalities except modifying the tree structure (
+ * `splice` or `refresh` methods).
+ */
+abstract class IndexTreeModelBase<T, TFilter> implements IIndexTreeModelBase<T, TFilter> {
+    
     // [fields]
 
     public readonly root: number[] = [];
 
     /** Root does not refer to any specific tree node. */
-    private readonly _root: IIndexTreeNode<T, TFilter>;
+    protected readonly _root: ITreeNode<T, TFilter>;
 
     /** The corresponding list-like view component. */
-    private readonly _view: ISpliceable<ITreeNode<T, TFilter>>;
+    protected readonly _view: ISpliceable<ITreeNode<T, TFilter>>;
 
-    private readonly _collapsedByDefault: boolean;
-    private readonly _filter?: ITreeFilterProvider<T, TFilter>;
+    protected readonly _collapsedByDefault: boolean;
+    protected readonly _filter?: ITreeFilterProvider<T, TFilter>;
 
     // [constructor]
 
@@ -129,81 +133,27 @@ export class IndexTreeModel<T, TFilter> implements IIndexTreeModel<T, TFilter> {
 
     // [events]
 
-    private readonly _onDidSplice = new Emitter<ITreeSpliceEvent<T, TFilter>>();
+    protected readonly _onDidSplice = new Emitter<ITreeSpliceEvent<T, TFilter>>();
 	public readonly onDidSplice = this._onDidSplice.registerListener;
 
     /**
      * During the process of updating collapse state, we wish to fire the event
      * once all the recursive nodes are updated.
      */
-    private readonly _onDidChangeCollapseState = new DelayableEmitter<ITreeCollapseStateChangeEvent<T, TFilter>>();
+    protected readonly _onDidChangeCollapseState = new DelayableEmitter<ITreeCollapseStateChangeEvent<T, TFilter>>();
     public readonly onDidChangeCollapseState = this._onDidChangeCollapseState.registerListener;
 
+    // [getters]
+
+    get rootNode() { return this._root; }
+
     // [methods]
-    
-    public splice(
-        location: number[], 
-        deleteCount: number, 
-        itemsToInsert: ITreeNodeItem<T>[],
-        opts: ITreeModelSpliceOptions<T, TFilter> = {}
-    ): void {
-        // finds out the parent node and its listIndex.
-        let { parent, listIndex, visible } = this.__getParentNodeWithListIndex(location, this._root);
-        
-        // 1st array will store all the new nodes including nested ones.
-        // 2nd array only store the new nodes under the parent node.
-        const treeNodeListToInsert: IIndexTreeNode<T, TFilter>[] = [];
-        const treeNodeChildrenToInsert: IIndexTreeNode<T, TFilter>[] = [];
-        let visibleNodeCountChange = 0;
-        
-        for (const element of itemsToInsert) {
-            const newChild = this.__createNode(element, parent, treeNodeListToInsert, opts.onDidCreateNode);
-            treeNodeChildrenToInsert.push(newChild);
-            visibleNodeCountChange += newChild.visibleNodeCount;
-        }
 
-        // splice new nodes which directly under the parent node.
-        const prevParentHasChildren = parent.children.length > 0;
-        const lastIndex = location[location.length - 1]!;
-        const deletedChildren = parent.children.splice(lastIndex, deleteCount, ...treeNodeChildrenToInsert);
-        
-        let deletedVisibleNodeCount = 0;
-        for (const child of deletedChildren) {
-            if (child.visible) {
-                deletedVisibleNodeCount += child.visibleNodeCount;
-            }
-        }
-        
-        // update view and ancestors data.
-        if (visible) {
-            this.__updateAncestorsVisibleNodeCount(parent, visibleNodeCountChange - deletedVisibleNodeCount);
-            this._view.splice(listIndex, deletedVisibleNodeCount, treeNodeListToInsert);
-        }
-        
-        // update the ancestors' collapsible state
-        const currParentHasChildren = parent.children.length > 0;
-        if (prevParentHasChildren !== currParentHasChildren) {
-            this.setCollapsible(location.slice(0, -1), currParentHasChildren);
-        }
-
-        // deletion callback
-        if (opts.onDidDeleteNode) {
-            deletedChildren.forEach(node => opts.onDidDeleteNode!(node));
-            deletedChildren.forEach(node => node.children.forEach(child => opts.onDidDeleteNode!(child)));
-        }
-
-        // fire events
-        this._onDidSplice.fire({
-            inserted: treeNodeListToInsert,
-            deleted: deletedChildren
-        });
-    }
-
-    public hasNode(location: number[]): boolean {
+    public hasNode(location: readonly number[]): boolean {
         return this.__hasNode(location, this._root);
     }
 
-    public getNode(location: number[]): IIndexTreeNode<T, TFilter> {
+    public getNode(location: readonly number[]): ITreeNode<T, TFilter> {
         const node = this.__getNode(location, this._root);
         
         if (!node) {
@@ -213,23 +163,19 @@ export class IndexTreeModel<T, TFilter> implements IIndexTreeModel<T, TFilter> {
         return node;
     }
 
-    public getRoot(): IIndexTreeNode<T, TFilter> {
-        return this._root;
-    }
-
-    public getNodeLocation(node: IIndexTreeNode<T, TFilter>): number[] {
+    public getNodeLocation(node: ITreeNode<T, TFilter>): number[] {
         const location: number[] = [];
         
-        while (node.parent) {
-            location.push(node.parent.children.indexOf(node));
-            node = node.parent;
+        for (let i = node.depth - 1; i >= 0; i--) {
+            location[i] = node.parent!.children.indexOf(node);
+            node = node.parent!;
         }
 
-        return location.reverse();
+        return location;
     }
 
     public getNodeListIndex(location: number[]): number {
-        const {listIndex, visible} = this.__getNodeWithListIndex(location);
+        const { listIndex, visible } = this.__getNodeWithListIndex(location);
         return visible ? listIndex : INVALID_INDEX;
     }
     
@@ -243,7 +189,7 @@ export class IndexTreeModel<T, TFilter> implements IIndexTreeModel<T, TFilter> {
         return node.collapsible;
     }
 
-    public setCollapsible(location: number[], collapsible?: boolean): boolean {
+    public setCollapsible(location: readonly number[], collapsible?: boolean): boolean {
         const node = this.getNode(location);
 
         // if not provided, we toggle the current state.
@@ -345,7 +291,7 @@ export class IndexTreeModel<T, TFilter> implements IIndexTreeModel<T, TFilter> {
      * @returns A boolean if the current node will be expand.
      */
     private __filter(
-        node: IIndexTreeNode<T, TFilter>, 
+        node: ITreeNode<T, TFilter>, 
         filtered: ITreeNode<T, TFilter>[], 
         visibleOnly: boolean, 
         isParentCollapsed: boolean, 
@@ -416,7 +362,7 @@ export class IndexTreeModel<T, TFilter> implements IIndexTreeModel<T, TFilter> {
      * @param node The given node.
      * @throws An exception will be thrown if the filter is not provided.
      */
-    private __filterNode(node: IIndexTreeNode<T, TFilter>): void {
+    private __filterNode(node: ITreeNode<T, TFilter>): void {
         
         const filterResult = this._filter!.filter(node.data);
         node.rendererMetadata = filterResult.filterMetadata;
@@ -431,7 +377,7 @@ export class IndexTreeModel<T, TFilter> implements IIndexTreeModel<T, TFilter> {
      * 
      * @complexity O(h) - h: length of location
      */
-    private __hasNode(location: number[], node: IIndexTreeNode<T, TFilter> = this._root): boolean 
+    private __hasNode(location: readonly number[], node: ITreeNode<T, TFilter> = this._root): boolean 
     {
         for (let i = 0; i < location.length; i++) {
             let index = location[i]!;
@@ -451,12 +397,12 @@ export class IndexTreeModel<T, TFilter> implements IIndexTreeModel<T, TFilter> {
      * under the given parent node.
      * @param location The location representation of the node.
      * @param node The node to start with, default is the root.
-     * @returns Returns undefined if not found, returns {@link IIndexTreeNode} vice 
+     * @returns Returns undefined if not found, returns {@link ITreeNode} vice 
      * versa.
      * 
      * @complexity O(h) - h: length of location
      */
-    private __getNode(location: number[], node: IIndexTreeNode<T, TFilter> = this._root): IIndexTreeNode<T, TFilter> | undefined 
+    private __getNode(location: readonly number[], node: ITreeNode<T, TFilter> = this._root): ITreeNode<T, TFilter> | undefined 
     {
         for (let i = 0; i < location.length; i++) {
             let index = location[i]!;
@@ -472,82 +418,6 @@ export class IndexTreeModel<T, TFilter> implements IIndexTreeModel<T, TFilter> {
     }
 
     /**
-     * @description Creates a new {@link IIndexTreeNode}.
-     * @param element The provided {@link ITreeNodeItem<T>} for construction.
-     * @param parent The parent of the new tree node.
-     * @param toBeRendered To stores all the new created tree nodes which should
-     * be rendered.
-     * @param onDidCreateNode Callback after creating new tree node.
-     */
-    private __createNode(
-        element: ITreeNodeItem<T>, 
-        parent: IIndexTreeNode<T, TFilter>,
-        toBeRendered: IIndexTreeNode<T, TFilter>[],
-        onDidCreateNode?: (node: ITreeNode<T, TFilter>) => void
-    ): IIndexTreeNode<T, TFilter> 
-    {
-        const ifSetCollapsed = typeof element.collapsed !== 'undefined';
-        const ifSetCollapsible = typeof element.collapsible !== 'undefined';
-
-        // If the element collapsed is not provided, we set it to default.
-        const collapsed = ifSetCollapsed ? element.collapsed : this._collapsedByDefault;
-        
-        // If the element collapsible is not provided, we follow if it is collapsed by hint.
-        const collapsible = ifSetCollapsible ? element.collapsible : ifSetCollapsed;
-        
-        // construct the new node
-        const newNode: IIndexTreeNode<T, TFilter> = {
-            data: element.data,
-            parent: parent,
-            depth: parent.depth + 1,
-            visible: true,
-            collapsible: collapsible!,
-            collapsed: collapsed!,
-            children: [],
-            visibleNodeCount: 1
-        };
-        
-        newNode.visible = parent.visible ? !parent.collapsed : false;
-        
-        // TODO
-        // the visibility should determined by the filter provider.
-        // if (parent.visible && this._filter) {
-        //     this.__filterNode(newNode);
-        // }
-
-        if (newNode.visible) {
-            toBeRendered.push(newNode);
-        }
-
-        // construct the children nodes recursively
-        let visibleNodeCount = 1;
-        
-        const childrenElements: ITreeNodeItem<T>[]  = element.children || [];
-        for (const element of childrenElements) {
-            const child = this.__createNode(element, newNode, toBeRendered, onDidCreateNode);
-            newNode.children.push(child);
-            
-            visibleNodeCount += child.visibleNodeCount;
-        }
-        
-        // if the collapsible setting somehow sets to false, we may correct it here.
-        newNode.collapsible = newNode.collapsible || newNode.children.length > 0;
-        
-        if (!newNode.visible) {
-            newNode.visibleNodeCount = 0;
-        } else if (!newNode.collapsed) {
-            newNode.visibleNodeCount = visibleNodeCount;
-        }
-
-        // callback
-        if (onDidCreateNode) {
-            onDidCreateNode(newNode);
-        }
-
-        return newNode;
-    }
-
-    /**
      * @description Rerturns the list index of the parent of the given location.
      * @param location The location representation of the node.
      * @param node The node to start with, default is the root.
@@ -560,16 +430,16 @@ export class IndexTreeModel<T, TFilter> implements IIndexTreeModel<T, TFilter> {
      * 
      * @complexity O(h) - h: length of location
      */
-    private __getParentNodeWithListIndex(
-        location: number[], 
-        node: IIndexTreeNode<T, TFilter> = this._root
-    ): {parent: IIndexTreeNode<T, TFilter>, listIndex: number, visible: boolean} 
+    protected __getParentNodeWithListIndex(
+        location: readonly number[], 
+        node: ITreeNode<T, TFilter> = this._root,
+    ): { parent: ITreeNode<T, TFilter>, listIndex: number, visible: boolean } 
     {
         let listIndex = 0;
         let visible = true;
         
         for (let i = 0; i < location.length; i++) {
-            let index = location[i]!;
+            const index = location[i]!;
             
             if (index < 0 || index > node.children.length) {
                 throw new Error('invalid location');
@@ -579,7 +449,7 @@ export class IndexTreeModel<T, TFilter> implements IIndexTreeModel<T, TFilter> {
                 listIndex += node.children[j]!.visibleNodeCount;
             }
             
-            visible = visible && node.visible;
+            visible &&= node.visible;
 
             if (i === location.length - 1) {
                 return {
@@ -612,13 +482,13 @@ export class IndexTreeModel<T, TFilter> implements IIndexTreeModel<T, TFilter> {
      * 
      * @complexity O(h) - h: length of location
      */
-    private __getNodeWithListIndex(location: number[]): {node: IIndexTreeNode<T, TFilter>, listIndex: number, visible: boolean} 
+    protected __getNodeWithListIndex(location: readonly number[]): { node: ITreeNode<T, TFilter>, listIndex: number, visible: boolean } 
     {
-        if (location.length === 0) {
+        if (!location.length) {
             return {
                 node: this._root, 
-                listIndex: INVALID_INDEX,
-                visible: false
+                listIndex: 0,
+                visible: true
             };
         }
 
@@ -645,12 +515,12 @@ export class IndexTreeModel<T, TFilter> implements IIndexTreeModel<T, TFilter> {
      * 
      * @note time complexity: O(h) - h: height of the node
      */
-    private __updateAncestorsVisibleNodeCount(node: IIndexTreeNode<T, TFilter> | null, diff: number): void {
+    protected __updateAncestorsVisibleNodeCount(node: ITreeNode<T, TFilter> | null, diff: number): void {
         if (diff === 0) {
             return;
         }
 
-        while (node !== null) {
+        while (node) {
             node.visibleNodeCount += diff;
             node = node.parent;
         }
@@ -663,7 +533,7 @@ export class IndexTreeModel<T, TFilter> implements IIndexTreeModel<T, TFilter> {
      * @param recursive Determines if the operation is recursive.
      * @returns if the collapsed state changed.
      */
-    private __setCollapsed(location: number[], collapsed: boolean, recursive: boolean): boolean {
+    private __setCollapsed(location: readonly number[], collapsed: boolean, recursive: boolean): boolean {
         const { node, listIndex } = this.__getNodeWithListIndex(location);
 
         // we try to update the tree node state first
@@ -698,7 +568,7 @@ export class IndexTreeModel<T, TFilter> implements IIndexTreeModel<T, TFilter> {
      * 
      * @returns if the collapsed state changed.
      */
-    private __setTreeNodeCollapsed(node: IIndexTreeNode<T, TFilter>, collapsed: boolean, recursive: boolean): boolean {
+    private __setTreeNodeCollapsed(node: ITreeNode<T, TFilter>, collapsed: boolean, recursive: boolean): boolean {
 
         let changed = false;
 
@@ -733,10 +603,10 @@ export class IndexTreeModel<T, TFilter> implements IIndexTreeModel<T, TFilter> {
      * 
      * @note only be called when `__setTreeNodeCollapsed` returns true.
      */
-    private __updateTreeNodeAfterCollapsed(node: IIndexTreeNode<T, TFilter>): IIndexTreeNode<T, TFilter>[] {
+    private __updateTreeNodeAfterCollapsed(node: ITreeNode<T, TFilter>): ITreeNode<T, TFilter>[] {
         const previousRenderNodeCount = node.visibleNodeCount;
 		
-        const visibleNodes: IIndexTreeNode<T, TFilter>[] = [];
+        const visibleNodes: ITreeNode<T, TFilter>[] = [];
 		this.__updateChildrenVNCAfterCollapsed(node, visibleNodes);
         this.__updateAncestorsVisibleNodeCount(node.parent, visibleNodes.length - previousRenderNodeCount); // __updateAncestorVNCAfterCollapsed()
 
@@ -751,7 +621,7 @@ export class IndexTreeModel<T, TFilter> implements IIndexTreeModel<T, TFilter> {
      * @param visibleNodes Will stores all the visible tree node into this array
      *                     for later rendering.
      */
-    private __updateChildrenVNCAfterCollapsed(node: IIndexTreeNode<T, TFilter>, visibleNodes: IIndexTreeNode<T, TFilter>[]): void {
+    private __updateChildrenVNCAfterCollapsed(node: ITreeNode<T, TFilter>, visibleNodes: ITreeNode<T, TFilter>[]): void {
 
         const visited = new Set();
         const stack = [node];
@@ -800,9 +670,9 @@ export class IndexTreeModel<T, TFilter> implements IIndexTreeModel<T, TFilter> {
      * 
      * @complexity O(h) - h: length of location
      */
-    private __setCollapsible(location: number[], collapsible: boolean): boolean {
+    private __setCollapsible(location: readonly number[], collapsible: boolean): boolean {
 
-        let node: IIndexTreeNode<T, TFilter> | undefined = this._root;
+        let node: ITreeNode<T, TFilter> | undefined = this._root;
         let changed = false;
 
         for (let i = 0; i < location.length; i++) {
@@ -820,5 +690,288 @@ export class IndexTreeModel<T, TFilter> implements IIndexTreeModel<T, TFilter> {
 
         return changed;
     }
+}
 
+
+/**
+ * An {@link IndexTreeModel} is a type of {@link ITreeModel}. This is not the 
+ * same data structure as Index Binary Tree (IBT).
+ * 
+ * The tree model represents a multiway tree-like structure. The prefix `index` 
+ * means the tree node can be found by a series of indices.
+ * 
+ * Client may provide a new tree-like structure using {@link ITreeNodeItem} that
+ * updates the existed tree structure using method {@link IIndexTreeModel.splice}.
+ */
+export class IndexTreeModel<T, TFilter> extends IndexTreeModelBase<T, TFilter> implements IIndexTreeModel<T, TFilter> {
+
+    // [methods]
+    
+    public splice(
+        location: number[], 
+        deleteCount: number, 
+        itemsToInsert: ITreeNodeItem<T>[],
+        opts: ITreeModelSpliceOptions<T, TFilter> = {}
+    ): void {
+        // finds out the parent node and its listIndex.
+        const { parent, listIndex, visible } = this.__getParentNodeWithListIndex(location, this._root);
+        
+        // 1st array will store all the new nodes including nested ones.
+        // 2nd array only store the new nodes under the parent node.
+        const treeNodeListToBeRendered: ITreeNode<T, TFilter>[] = [];
+        const treeNodeChildrenToInsert: ITreeNode<T, TFilter>[] = [];
+        let newVisibleCount = 0;
+        
+        for (const element of itemsToInsert) {
+            const newChild = this.__createNode(element, parent, treeNodeListToBeRendered, opts.onDidCreateNode);
+            treeNodeChildrenToInsert.push(newChild);
+            newVisibleCount += newChild.visibleNodeCount;
+        }
+
+        // splice new nodes which directly under the parent node.
+        const prevParentHasChildren = parent.children.length > 0;
+        const lastIndex = location[location.length - 1]!;
+        const deletedChildren = parent.children.splice(lastIndex, deleteCount, ...treeNodeChildrenToInsert);
+        
+        // update view
+        if (visible) {
+
+            // calcualte the old visible children node count
+            let oldVisibleCount = 0;
+            for (const child of deletedChildren) {
+                if (child.visible) {
+                    oldVisibleCount += child.visibleNodeCount;
+                }
+            }
+
+            this.__updateAncestorsVisibleNodeCount(parent, newVisibleCount - oldVisibleCount);
+            this._view.splice(listIndex, oldVisibleCount, treeNodeListToBeRendered);
+        }
+        
+        // update the ancestors collapsible state
+        const currParentHasChildren = parent.children.length > 0;
+        if (prevParentHasChildren !== currParentHasChildren) {
+            this.setCollapsible(location.slice(0, -1), currParentHasChildren);
+        }
+
+        // deletion callback
+        if (opts.onDidDeleteNode) {
+            deletedChildren.forEach(node => opts.onDidDeleteNode!(node));
+            deletedChildren.forEach(node => node.children.forEach(child => opts.onDidDeleteNode!(child)));
+        }
+
+        // fire events
+        this._onDidSplice.fire({
+            inserted: treeNodeListToBeRendered,
+            deleted: deletedChildren
+        });
+    }
+
+    // [private helper methods]
+
+    private __createNode(
+        element: ITreeNodeItem<T>, 
+        parent: ITreeNode<T, TFilter>,
+        toBeRendered: ITreeNode<T, TFilter>[],
+        onDidCreateNode?: (node: ITreeNode<T, TFilter>) => void,
+    ): ITreeNode<T, TFilter> 
+    {
+        const ifSetCollapsed = typeof element.collapsed !== 'undefined';
+        const ifSetCollapsible = typeof element.collapsible !== 'undefined';
+
+        // If the element collapsed is not provided, we set it to default.
+        const collapsed = ifSetCollapsed ? element.collapsed : this._collapsedByDefault;
+        
+        // If the element collapsible is not provided, we follow if it is collapsed by hint.
+        const collapsible = ifSetCollapsible ? element.collapsible : ifSetCollapsed;
+        
+        // construct the new node
+        const newNode: ITreeNode<T, TFilter> = {
+            data: element.data,
+            parent: parent,
+            depth: parent.depth + 1,
+            visible: true,
+            collapsible: collapsible!,
+            collapsed: collapsed!,
+            children: [],
+            visibleNodeCount: 1
+        };
+        
+        newNode.visible = parent.visible ? !parent.collapsed : false;
+        
+        // TODO
+        // the visibility should determined by the filter provider.
+        // if (parent.visible && this._filter) {
+        //     this.__filterNode(newNode);
+        // }
+
+        if (newNode.visible) {
+            toBeRendered.push(newNode);
+        }
+
+        // construct the children nodes recursively
+        let visibleNodeCount = 1;
+        
+        const childrenElements: ITreeNodeItem<T>[]  = element.children || [];
+        for (const element of childrenElements) {
+            const child = this.__createNode(element, newNode, toBeRendered, onDidCreateNode);
+            newNode.children.push(child);
+            
+            visibleNodeCount += child.visibleNodeCount;
+        }
+        
+        /**
+         * If the collapsible setting somehow sets to false, we may correct it 
+         * here.
+         */
+        newNode.collapsible = newNode.collapsible || newNode.children.length > 0;
+        
+        if (!newNode.visible) {
+            newNode.visibleNodeCount = 0;
+        } else if (!newNode.collapsed) {
+            newNode.visibleNodeCount = visibleNodeCount;
+        }
+
+        // callback
+        if (onDidCreateNode) {
+            onDidCreateNode(newNode);
+        }
+
+        return newNode;
+    }
+}
+
+/**
+ * @class An optimization data structure different than {@link IndexTreeModel}.
+ * Instead of letting client provide a new tree-like structure, client modify
+ * the existed one and the model will rebuild the tree structure automatically
+ * after calling the method {@link IFlexIndexTreeModel.stale}.
+ */
+export class FlexIndexTreeModel<T, TFilter> extends IndexTreeModelBase<T, TFilter> implements IFlexIndexTreeModel<T, TFilter> {
+
+    // [methods]
+
+    public refresh(
+        node: IFlexNode<T, TFilter> = this._root, 
+        opts: ITreeModelSpliceOptions<T, TFilter> = {},
+    ): void {
+        // finds out the parent node and its listIndex.
+        type parentType = {
+            node: IFlexNode<T, TFilter>,
+            listIndex: number,
+            visible: boolean,
+        };
+        const location = this.getNodeLocation(node);
+        const { listIndex, visible } = <parentType>this.__getNodeWithListIndex(location);
+        
+        // no changes to the current tree, we ignore the request.
+        if (!node.stale) {
+            return;
+        }
+        
+        // 1st array will store all the new visible nodes including nested ones.
+        // 2nd array only store the new nodes under the parent node.
+        const treeNodeListToBeRendered: IFlexNode<T, TFilter>[] = [];
+        const treeNodeChildrenToInsert: IFlexNode<T, TFilter>[] = [];
+        if (node.parent) {
+            treeNodeListToBeRendered.push(node);
+            treeNodeChildrenToInsert.push(node);
+        }
+
+        let newVisibleCount = 1;
+        for (const element of node.children) {
+            this.__refreshNode(element, node, treeNodeListToBeRendered, opts.onDidCreateNode);
+            treeNodeChildrenToInsert.push(element);
+            newVisibleCount += element.visibleNodeCount;
+        }
+
+        let prevhasChildrenState = false;
+        const currHasChildrenState = node.children.length > 0;
+
+        // update view
+        if (visible) {
+            
+            // calcualte the old visible children node count
+            let oldVisibleCount = 1;
+            if (node.oldChildren) {
+                prevhasChildrenState = !!node.oldChildren.length;
+
+                for (const child of node.oldChildren) {
+                    if (child.visible) {
+                        oldVisibleCount += child.visibleNodeCount;
+                    }
+                }
+            }
+            
+            const changedVisibleCount = newVisibleCount - oldVisibleCount;
+            this.__updateAncestorsVisibleNodeCount(node, changedVisibleCount);
+            this._view.splice(listIndex, oldVisibleCount, treeNodeListToBeRendered);
+        }
+
+        // update the ancestors collapsible state
+        if (prevhasChildrenState !== currHasChildrenState) {
+            this.setCollapsible(location, currHasChildrenState);
+        }
+
+        if (opts.onDidDeleteNode) {
+            node.oldChildren!.forEach(node => opts.onDidDeleteNode!(node));
+            node.oldChildren!.forEach(node => node.children.forEach(child => opts.onDidDeleteNode!(child)));
+        }
+
+        // fire events
+        this._onDidSplice.fire({
+            inserted: treeNodeListToBeRendered,
+            deleted: node.oldChildren!,
+        });
+
+        // actual delete the old children
+        node.oldChildren = undefined;
+        node.stale = false;
+    }
+
+    // [private helper methods]
+
+    private __refreshNode(
+        node: IFlexNode<T, TFilter>, 
+        parent: IFlexNode<T, TFilter>, 
+        toBeRendered: IFlexNode<T, TFilter>[],
+        onDidCreateNode?: (node: ITreeNode<T, TFilter>) => void,
+    ): void {
+        node.stale = false;
+
+        node.visible = parent.visible ? !parent.collapsed : false;
+        if (node.visible) {
+            toBeRendered.push(node);
+        }
+
+        // TODO
+        // the visibility should determined by the filter provider.
+        // if (parent.visible && this._filter) {
+        //     this.__filterNode(newNode);
+        // }
+
+        node.depth = parent.depth + 1;
+
+        let newVisibleCount = 1;
+        for (const child of node.children) {
+            this.__refreshNode(child, node, toBeRendered, onDidCreateNode);
+            newVisibleCount += child.visibleNodeCount;
+        }
+
+        node.visibleNodeCount = node.visible ? newVisibleCount : 0;
+
+        /**
+         * If the collapsible setting somehow sets to false, we may correct it 
+         * here.
+         */
+        node.collapsible = node.collapsible || node.children.length > 0;
+        
+        // If collapse never set by the client, we use the default setting.
+        node.collapsed = node.collapsed ?? this._collapsedByDefault;
+
+        // treats refreshed node as new created node
+        if (onDidCreateNode) {
+            onDidCreateNode(node);
+        }
+    }
 }

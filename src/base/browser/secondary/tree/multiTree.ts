@@ -1,15 +1,30 @@
 import { AbstractTree, IAbstractTree, IAbstractTreeOptions } from "src/base/browser/secondary/tree/abstractTree";
-import { ITreeListRenderer } from "src/base/browser/secondary/tree/treeListRenderer";
-import { IListItemProvider } from "src/base/browser/secondary/listView/listItemProvider";
 import { IListWidget } from "src/base/browser/secondary/listWidget/listWidget";
 import { ITreeModelSpliceOptions } from "src/base/browser/secondary/tree/indexTreeModel";
-import { IMultiTreeModel, IMultiTreeModelOptions, MultiTreeModel } from "src/base/browser/secondary/tree/multiTreeModel";
-import { ITreeModel, ITreeNode, ITreeNodeItem } from "src/base/browser/secondary/tree/tree";
+import { FlexMultiTreeModel, IFlexMultiTreeModel, IMultiTreeModel, IMultiTreeModelBase, MultiTreeModel } from "src/base/browser/secondary/tree/multiTreeModel";
+import { IFlexNode, ITreeModel, ITreeNode, ITreeNodeItem } from "src/base/browser/secondary/tree/tree";
+
+/**
+ * An interface only for {@link MultiTreeModelBase}.
+ */
+export interface IMultiTreeBase<T, TFilter> extends IAbstractTree<T, TFilter, T> {
+    /**
+     * @description Returns the number of nodes in the current tree model.
+     */
+    size(): number;
+
+     /**
+      * @description Rerenders the whole view only with the corresponding tree 
+      * node.
+      * @param item The provided item. 
+      */
+    rerender(item: T): void;
+}
 
 /**
  * An interface only for {@link MultiTree}.
  */
-export interface IMultiTree<T, TFilter> extends IAbstractTree<T, TFilter, T> {
+export interface IMultiTree<T, TFilter> extends IMultiTreeBase<T, TFilter> {
     
     /**
      * To insert or delete items in the tree by given the location.
@@ -18,18 +33,19 @@ export interface IMultiTree<T, TFilter> extends IAbstractTree<T, TFilter, T> {
      * @param opts The option for splicing.
      */
     splice(item: T, children: ITreeNodeItem<T>[], opts: ITreeModelSpliceOptions<T, TFilter>): void;
+}
+
+export interface IFlexMultiTree<T, TFilter> extends IMultiTreeBase<T, TFilter> {
     
     /**
-     * @description Returns the number of nodes in the current tree model.
+     * @description Refresh the subtree of the given tree node.
+     * The tree model will rebuild and reculate all the metadata of the subtree
+     * of the given tree node automatically if the client modify the tree node
+     * correctly.
+     * @param node The given node. Defaults to root.
+     * @param opts The option for splicing.
      */
-    size(): number;
-
-    /**
-     * @description Rerenders the whole view only with the corresponding tree 
-     * node.
-     * @param item The provided item. 
-     */
-    rerender(item: T): void;
+    refresh(node?: IFlexNode<T, TFilter>, opts?: ITreeModelSpliceOptions<T, TFilter>): void;
 }
 
 /**
@@ -38,41 +54,16 @@ export interface IMultiTree<T, TFilter> extends IAbstractTree<T, TFilter, T> {
 export interface IMultiTreeOptions<T, TFilter> extends IAbstractTreeOptions<T, TFilter> {}
 
 /**
- * @class An inheritance from {@link AbstractTree}, built on top of the 
- * {@link IMultiTreeModel}. 
- * 
- * Almost has nothing new, except two main features:
- *      - wrapping {@link IMultiTreeModel}.
- *      - provide rerender ability to refresh the view of the tree.
+ * @class An base class for {@link MultiTree} and {@link FlexMultiTree}.
  */
-export class MultiTree<T, TFilter> extends AbstractTree<T, TFilter, T> implements IMultiTree<T, TFilter> {
+abstract class MultiTreeBase<T, TFilter> extends AbstractTree<T, TFilter, T> implements IMultiTreeBase<T, TFilter> {
 
     // [field]
 
     /** overrides for specifying the type of the model. */
-    declare protected _model: IMultiTreeModel<T, TFilter>;
-
-    // [constructor]
-
-    constructor(
-        container: HTMLElement,
-        rootData: T,
-        renderers: ITreeListRenderer<T, TFilter, any>[],
-        itemProvider: IListItemProvider<T>,
-        opts: IMultiTreeOptions<T, TFilter> = {}
-    ) {
-        super(container, rootData, renderers, itemProvider, opts);
-    }
+    declare protected abstract readonly _model: IMultiTreeModelBase<T, TFilter>;
 
     // [public method]
-
-    public splice(
-        item: T, 
-        children: ITreeNodeItem<T>[] = [],
-        opts: ITreeModelSpliceOptions<T, TFilter> = {}
-    ): void {
-        this._model.splice(item, Number.MAX_VALUE, children, opts);
-    }
 
     public rerender(item: T): void {
         if (item === this._model.root) {
@@ -85,6 +76,32 @@ export class MultiTree<T, TFilter> extends AbstractTree<T, TFilter, T> implement
     public size(): number {
         return this._model.size();
     }
+}
+
+/**
+ * @class An inheritance from {@link AbstractTree}, built on top of the 
+ * {@link MultiTreeModel}. Client may provide a new tree-like structure using
+ * {@link ITreeNodeItem} to update the existing tree structure.
+ * 
+ * Almost has nothing new, except two main features:
+ *      - wrapping {@link MultiTreeModel}.
+ *      - provide rerender ability to refresh the view of the tree.
+ */
+export class MultiTree<T, TFilter> extends MultiTreeBase<T, TFilter> implements IMultiTree<T, TFilter> {
+
+    // [field]
+
+    declare protected readonly _model: IMultiTreeModel<T, TFilter>;
+
+    // [public method]
+
+    public splice(
+        item: T, 
+        children: ITreeNodeItem<T>[] = [],
+        opts: ITreeModelSpliceOptions<T, TFilter> = {}
+    ): void {
+        this._model.splice(item, Number.MAX_VALUE, children, opts);
+    }
 
     // [private helper method]
 
@@ -95,5 +112,45 @@ export class MultiTree<T, TFilter> extends AbstractTree<T, TFilter, T> implement
     ): ITreeModel<T, TFilter, T>
     {
         return new MultiTreeModel<T, TFilter>(rootData, view, opts);
+    }
+}
+
+/**
+ * @class An optimization that differents from {@link MultiTree}. Instead of 
+ * letting client provide a new tree-like structure, client modify the existed 
+ * one and the model will rebuild the tree structure automatically after calling 
+ * the method {@link FlexMultiTree.refresh}.
+ * 
+ * @implements
+ * If you wish the client side has the full control of tree structure, using
+ * {@link MultiTree} instead.
+ * 
+ * If you wish to encapsulate the modification process of the tree structure, 
+ * you may consider use {@link FlexMultiTree}.
+ */
+export class FlexMultiTree<T, TFilter> extends MultiTreeBase<T, TFilter> implements IFlexMultiTree<T, TFilter> {
+
+    // [field]
+
+    declare protected readonly _model: IFlexMultiTreeModel<T, TFilter>;
+
+    // [public method]
+
+    public refresh(
+        node?: IFlexNode<T, TFilter>, 
+        opts?: ITreeModelSpliceOptions<T, TFilter>
+    ): void {
+        this._model.refresh(node, opts);
+    }
+
+    // [private helper method]
+
+    protected override createModel(
+        rootData: T, 
+        view: IListWidget<ITreeNode<T, TFilter>>, 
+        opts: IMultiTreeOptions<T, TFilter>
+    ): ITreeModel<T, TFilter, T>
+    {
+        return new FlexMultiTreeModel<T, TFilter>(rootData, view, opts);
     }
 }

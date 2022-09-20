@@ -1,20 +1,20 @@
 import * as assert from 'assert';
-import { AsyncMultiTree } from 'src/base/browser/secondary/tree/asyncMultiTree';
+import { AsyncTree } from 'src/base/browser/secondary/tree/asyncTree';
 
-suite('AsyncMultiTree-test', () => {
+suite('AsyncTree-test', () => {
 
-    const TREE1 = new Map<number, number[]>();
-    TREE1.set(0, [1, 2, 3]);
-    TREE1.set(1, [4, 5]);
-    TREE1.set(2, [6]);
-    TREE1.set(3, []);
-    TREE1.set(4, []);
-    TREE1.set(5, []);
-    TREE1.set(6, []);
-    
     test('constructor / size / getNode / hasNode', async () => {
+        const TREE1 = new Map<number, number[]>();
+        TREE1.set(0, [1, 2, 3]);
+        TREE1.set(1, [4, 5]);
+        TREE1.set(2, [6]);
+        TREE1.set(3, []);
+        TREE1.set(4, []);
+        TREE1.set(5, []);
+        TREE1.set(6, []);
+        
         const container = document.createElement('div');
-        const [tree, promise] = AsyncMultiTree.create<number>(
+        const tree = new AsyncTree<number, void>(
             container, 
             0,
             [],
@@ -23,16 +23,16 @@ suite('AsyncMultiTree-test', () => {
                 getType: (data) => 10
             },
             {
-                getChildren: (data) => TREE1.get(data)!,
-                hasChildren: (data) => !!TREE1.get(data)!.length,
-                collapseByDefault: () => false
-            },
-            {
-                collapsedByDefault: false
+                collapsedByDefault: false,
+                childrenProvider: {
+                    getChildren: (data) => TREE1.get(data)!,
+                    hasChildren: (data) => !!TREE1.get(data)!.length,
+                    collapseByDefault: () => false
+                },
             }
         );
 
-        await promise;
+        await tree.refresh();
 
         assert.strictEqual(tree.size(), 6);
         
@@ -84,7 +84,16 @@ suite('AsyncMultiTree-test', () => {
     });
 
     test('refresh', async () => {
-        const [tree, promise] = AsyncMultiTree.create<number>(
+        const TREE1 = new Map<number, number[]>();
+        TREE1.set(0, [1, 2, 3]);
+        TREE1.set(1, [4, 5]);
+        TREE1.set(2, [6]);
+        TREE1.set(3, []);
+        TREE1.set(4, []);
+        TREE1.set(5, []);
+        TREE1.set(6, []);
+        
+        const tree = new AsyncTree<number, void>(
             document.createElement('div'), 
             0,
             [],
@@ -93,17 +102,16 @@ suite('AsyncMultiTree-test', () => {
                 getType: (data) => 10
             },
             {
-                getChildren: (data) => TREE1.get(data)!,
-                hasChildren: (data) => !!TREE1.get(data)!.length,
-                collapseByDefault: () => false
-            },
-            {
-                collapsedByDefault: false
+                collapsedByDefault: false,
+                childrenProvider: {
+                    getChildren: (data) => TREE1.get(data)!,
+                    hasChildren: (data) => !!TREE1.get(data)!.length,
+                    collapseByDefault: () => false
+                },
             }
         );
 
-        await promise;
-
+        await tree.refresh();
         assert.strictEqual(tree.size(), 6);
 
         TREE1.set(3, [7, 8]);
@@ -219,7 +227,7 @@ suite('AsyncMultiTree-test', () => {
 
     test('collapse / expand', async () => {
 
-        const [tree, promise] = AsyncMultiTree.create<number>(
+        const tree = new AsyncTree<number, void>(
             document.createElement('div'), 
             0,
             [],
@@ -228,16 +236,16 @@ suite('AsyncMultiTree-test', () => {
                 getType: (data) => 10
             },
             {
-                getChildren: (data) => TREE2.get(data)!,
-                hasChildren: (data) => !!TREE2.get(data)!.length,
-                collapseByDefault: () => false
-            },
-            {
-                collapsedByDefault: false
+                collapsedByDefault: false,
+                childrenProvider: {
+                    getChildren: (data) => TREE2.get(data)!,
+                    hasChildren: (data) => !!TREE2.get(data)!.length,
+                    collapseByDefault: () => false
+                },
             }
         );
 
-        await promise;
+        await tree.refresh();
 
         assert.strictEqual(tree.size(), 8);
 

@@ -1,8 +1,3 @@
-
-/*******************************************************************************
- * A simple file for common and useful interfaces relates to tree.
- ******************************************************************************/
-
 import { Register } from "src/base/common/event";
 
 /**
@@ -40,10 +35,10 @@ export interface ITreeNode<T, TFilter = void> extends ITreeNodeItem<T> {
     data: T;
 
     /** The parent of the tree node. */
-    parent: ITreeNode<T, TFilter> | null;
+    parent: this | null;
 
     /** The childrens of the tree node. */
-    children: ITreeNode<T, TFilter>[];
+    children: this[];
 
     /** counts how many nodes are actually visible / rendered (includes itself). */
     visibleNodeCount: number;
@@ -98,7 +93,28 @@ export interface ITreeNodeItem<T> {
     /** 
      * The children of the current element.
      */
-    children?: ITreeNodeItem<T>[];
+    children?: this[];
+}
+
+/**
+ * An optimization of {@link ITreeNode} used for fast splicing. Instead of 
+ * creating nested {@link ITreeNodeItem} to represent the updated tree-like
+ * structures, the client may modify the existing tree structure for better 
+ * memory and speed performance.
+ */
+export interface IFlexNode<T, TFilter = void> extends ITreeNode<T, TFilter> {
+
+    /**
+     * If the current tree node is staled and should be refreshed.
+     */
+    stale?: boolean;
+
+    /**
+     * The old children of the current node.
+     * @note client should always remove ALL the old children (cannot delete 
+     * partially) and this will be deleted after refreshed.
+     */
+    oldChildren?: ITreeNode<T, TFilter>[];
 }
 
 /**
@@ -106,9 +122,9 @@ export interface ITreeNodeItem<T> {
  * mainly handling the data behaviours.
  * 
  * T: represents the type of data is stored inside the node.
- * TFilter: represents the type of data for matching purpose, eg. {@link FuzzyScore}.
- * TRef: represents the equivalent way representing node in the tree, default is 
- *       {@link number[]} which representing the location of a node.
+ * TFilter: represents the type of data for matching purpose.
+ * TRef: represents the equivalent way representing node in the tree, default is
+ *       `number[]` which representing the location of a node.
  */
 export interface ITreeModel<T, TFilter, TRef = number[]> {
 
@@ -116,6 +132,11 @@ export interface ITreeModel<T, TFilter, TRef = number[]> {
      * Represents the root of the tree.
      */
     readonly root: TRef;
+
+    /**
+     * Returns the root tree node of the tree model.
+     */
+    readonly rootNode: ITreeNode<T, TFilter>;
 
     /**
      * Events when tree splice happened.
@@ -142,11 +163,6 @@ export interface ITreeModel<T, TFilter, TRef = number[]> {
      * @throws An exception throws if the node is not found.
      */
     getNode(location: TRef): ITreeNode<T, TFilter>;
-
-    /**
-     * @description Returns the root of the tree model.
-     */
-    getRoot(): ITreeNode<T, TFilter>;
 
     /**
      * @description Returns the location corresponding to the given {@link ITreeNode}.

@@ -35,7 +35,7 @@ export class ClassicTree<T extends ClassicItem, TFilter> extends AsyncTree<T, TF
 
     // [constructor]
 
-    private constructor(
+    constructor(
         container: HTMLElement,
         rootData: T,
         renderers: ITreeListRenderer<T, TFilter, any>[],
@@ -44,24 +44,6 @@ export class ClassicTree<T extends ClassicItem, TFilter> extends AsyncTree<T, TF
     ) {
         super(container, rootData, renderers, itemProvider, opts);
         this.__register(this.onClick(e => this.__onTreeClick(e)));
-    }
-
-    // [public static method]
-
-    /**
-     * @description Use this method to create the tree so that it gets refreshed 
-     * automatcially.
-     */
-    public static create<T extends ClassicItem, TFilter>(
-        container: HTMLElement, 
-        rootData: T, 
-        renderers: ITreeListRenderer<T, TFilter, any>[], 
-        itemProvider: IListItemProvider<T>, 
-        opts: IClassicTreeOptions<T, TFilter>
-    ): Pair<ClassicTree<T, TFilter>, Promise<void>>
-    {
-        const tree = new ClassicTree(container, rootData, renderers, itemProvider, opts);
-        return [tree, tree.refresh()];
     }
 
     // [private helper method]

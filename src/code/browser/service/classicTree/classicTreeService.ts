@@ -98,7 +98,7 @@ export class ClassicTreeService extends Disposable implements IClassicTreeServic
      */
     private async __createTree(container: HTMLElement, root: ClassicItem, filters: IFilterOpts): Promise<void> {
 
-        const [tree, treeCreationPromise] = ClassicTree.create<ClassicItem, FuzzyScore>(
+        const tree = new ClassicTree<ClassicItem, FuzzyScore>(
             container, 
             root,
             [new ClassicRenderer()], 
@@ -113,6 +113,7 @@ export class ClassicTreeService extends Disposable implements IClassicTreeServic
 
         this._tree = tree;
         this.__register(tree);
-        return treeCreationPromise;
+
+        return tree.refresh();
     }
 }

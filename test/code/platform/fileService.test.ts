@@ -8,7 +8,6 @@ import { NullLogger, TestURI } from 'test/utility';
 import { Random } from 'src/base/common/util/random';
 import { Arrays } from 'src/base/common/util/array';
 import { after, before } from 'mocha';
-import { EventBlocker } from 'src/base/common/util/async';
 
 suite('FileService-disk-test', () => {
 

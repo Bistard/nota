@@ -1,4 +1,4 @@
-import { IChildrenProvider } from "src/base/browser/secondary/tree/asyncMultiTree";
+import { IChildrenProvider } from "src/base/browser/secondary/tree/asyncTreeModel";
 import { FileType, IResolvedFileStat } from "src/base/common/file/file";
 import { URI } from "src/base/common/file/uri";
 import { IFilterOpts, isFiltered } from "src/base/common/fuzzy";
@@ -192,7 +192,6 @@ export class ClassicItem implements IClassicItem {
                         },
                     );
                     this._stat = updatedStat;
-                    console.log('[item] refresh');
                 } 
                 catch (error) {
                     throw error;
@@ -286,7 +285,7 @@ export class ClassicChildrenProvider implements IChildrenProvider<ClassicItem> {
             this._ifResolved.add(data);
             return true;
         }
-        console.log('[item] skip refresh');
+        
         return false;
     }
 
