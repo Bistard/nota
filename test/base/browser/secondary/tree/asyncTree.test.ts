@@ -3,16 +3,16 @@ import { AsyncTree } from 'src/base/browser/secondary/tree/asyncTree';
 
 suite('AsyncTree-test', () => {
 
-    const TREE1 = new Map<number, number[]>();
-    TREE1.set(0, [1, 2, 3]);
-    TREE1.set(1, [4, 5]);
-    TREE1.set(2, [6]);
-    TREE1.set(3, []);
-    TREE1.set(4, []);
-    TREE1.set(5, []);
-    TREE1.set(6, []);
-    
     test('constructor / size / getNode / hasNode', async () => {
+        const TREE1 = new Map<number, number[]>();
+        TREE1.set(0, [1, 2, 3]);
+        TREE1.set(1, [4, 5]);
+        TREE1.set(2, [6]);
+        TREE1.set(3, []);
+        TREE1.set(4, []);
+        TREE1.set(5, []);
+        TREE1.set(6, []);
+        
         const container = document.createElement('div');
         const tree = new AsyncTree<number, void>(
             container, 
@@ -84,6 +84,15 @@ suite('AsyncTree-test', () => {
     });
 
     test('refresh', async () => {
+        const TREE1 = new Map<number, number[]>();
+        TREE1.set(0, [1, 2, 3]);
+        TREE1.set(1, [4, 5]);
+        TREE1.set(2, [6]);
+        TREE1.set(3, []);
+        TREE1.set(4, []);
+        TREE1.set(5, []);
+        TREE1.set(6, []);
+        
         const tree = new AsyncTree<number, void>(
             document.createElement('div'), 
             0,
@@ -103,7 +112,6 @@ suite('AsyncTree-test', () => {
         );
 
         await tree.refresh();
-
         assert.strictEqual(tree.size(), 6);
 
         TREE1.set(3, [7, 8]);
@@ -217,85 +225,85 @@ suite('AsyncTree-test', () => {
     TREE2.set(7, []);
     TREE2.set(8, []);
 
-    // test('collapse / expand', async () => {
+    test('collapse / expand', async () => {
 
-    //     const tree = new AsyncTree<number, void>(
-    //         document.createElement('div'), 
-    //         0,
-    //         [],
-    //         {
-    //             getSize: (data) => 10,
-    //             getType: (data) => 10
-    //         },
-    //         {
-    //             collapsedByDefault: false,
-    //             childrenProvider: {
-    //                 getChildren: (data) => TREE2.get(data)!,
-    //                 hasChildren: (data) => !!TREE2.get(data)!.length,
-    //                 collapseByDefault: () => false
-    //             },
-    //         }
-    //     );
+        const tree = new AsyncTree<number, void>(
+            document.createElement('div'), 
+            0,
+            [],
+            {
+                getSize: (data) => 10,
+                getType: (data) => 10
+            },
+            {
+                collapsedByDefault: false,
+                childrenProvider: {
+                    getChildren: (data) => TREE2.get(data)!,
+                    hasChildren: (data) => !!TREE2.get(data)!.length,
+                    collapseByDefault: () => false
+                },
+            }
+        );
 
-    //     await tree.refresh();
+        await tree.refresh();
 
-    //     assert.strictEqual(tree.size(), 8);
+        assert.strictEqual(tree.size(), 8);
 
-    //     assert.strictEqual(tree.isCollapsible(1), true);
-    //     assert.strictEqual(tree.isCollapsed(1), false);
-    //     assert.strictEqual(tree.isCollapsible(2), true);
-    //     assert.strictEqual(tree.isCollapsed(2), false);
-    //     assert.strictEqual(tree.isCollapsible(3), false);
-    //     assert.strictEqual(tree.isCollapsed(3), false);
-    //     assert.strictEqual(tree.isCollapsible(4), false);
-    //     assert.strictEqual(tree.isCollapsed(4), false);
-    //     assert.strictEqual(tree.isCollapsible(5), false);
-    //     assert.strictEqual(tree.isCollapsed(5), false);
-    //     assert.strictEqual(tree.isCollapsible(6), true);
-    //     assert.strictEqual(tree.isCollapsed(6), false);
-    //     assert.strictEqual(tree.isCollapsible(7), false);
-    //     assert.strictEqual(tree.isCollapsed(7), false);
-    //     assert.strictEqual(tree.isCollapsible(8), false);
-    //     assert.strictEqual(tree.isCollapsed(8), false);
+        assert.strictEqual(tree.isCollapsible(1), true);
+        assert.strictEqual(tree.isCollapsed(1), false);
+        assert.strictEqual(tree.isCollapsible(2), true);
+        assert.strictEqual(tree.isCollapsed(2), false);
+        assert.strictEqual(tree.isCollapsible(3), false);
+        assert.strictEqual(tree.isCollapsed(3), false);
+        assert.strictEqual(tree.isCollapsible(4), false);
+        assert.strictEqual(tree.isCollapsed(4), false);
+        assert.strictEqual(tree.isCollapsible(5), false);
+        assert.strictEqual(tree.isCollapsed(5), false);
+        assert.strictEqual(tree.isCollapsible(6), true);
+        assert.strictEqual(tree.isCollapsed(6), false);
+        assert.strictEqual(tree.isCollapsible(7), false);
+        assert.strictEqual(tree.isCollapsed(7), false);
+        assert.strictEqual(tree.isCollapsible(8), false);
+        assert.strictEqual(tree.isCollapsed(8), false);
 
-    //     tree.collapse(1, false);
-    //     tree.collapse(2, false);
-    //     assert.strictEqual(tree.isCollapsed(1), true);
-    //     assert.strictEqual(tree.isCollapsed(2), true);
-    //     assert.strictEqual(tree.isCollapsed(6), false);
+        tree.collapse(1, false);
+        tree.collapse(2, false);
+        assert.strictEqual(tree.isCollapsed(1), true);
+        assert.strictEqual(tree.isCollapsed(2), true);
+        assert.strictEqual(tree.isCollapsed(6), false);
         
-    //     tree.collapse(6, false);
-    //     assert.strictEqual(tree.isCollapsed(6), true);
+        tree.collapse(6, false);
+        assert.strictEqual(tree.isCollapsed(6), true);
 
-    //     await tree.toggleCollapseOrExpand(6, false);
-    //     await tree.refresh();
-    //     assert.strictEqual(tree.isCollapsed(6), false);
+        await tree.toggleCollapseOrExpand(6, false);
+        await tree.refresh();
+        assert.strictEqual(tree.isCollapsed(6), false);
 
-    //     await tree.toggleCollapseOrExpand(2, false);
-    //     await tree.refresh();
-    //     assert.strictEqual(tree.isCollapsed(2), false);
+        await tree.toggleCollapseOrExpand(2, false);
+        await tree.refresh();
+        assert.strictEqual(tree.isCollapsed(2), false);
 
-    //     tree.collapse(2, true);
-    //     assert.strictEqual(tree.isCollapsed(2), true);
-    //     assert.strictEqual(tree.isCollapsed(6), true);
+        tree.collapse(2, true);
+        assert.strictEqual(tree.isCollapsed(2), true);
+        assert.strictEqual(tree.isCollapsed(6), true);
 
-    //     await tree.expand(2, true);
-    //     await tree.refresh();
-    //     assert.strictEqual(tree.isCollapsed(2), false);
-    //     assert.strictEqual(tree.isCollapsed(6), false);
+        await tree.expand(2, true);
+        // await tree.refresh(); // FIX
+        assert.strictEqual(tree.isCollapsed(2), false);
+        assert.strictEqual(tree.isCollapsed(6), false);
 
-    //     tree.expandAll();
-    //     for (let i = 1; i <= 8; i++) {
-    //         if (tree.isCollapsible(i)) {
-    //             assert.strictEqual(tree.isCollapsed(i), false);
-    //         }
-    //     }
+        tree.expandAll();
+        for (let i = 1; i <= 8; i++) {
+            if (tree.isCollapsible(i)) {
+                assert.strictEqual(tree.isCollapsed(i), false);
+            }
+        }
 
-    //     tree.collapseAll();
-    //     for (let i = 1; i <= 8; i++) {
-    //         if (tree.isCollapsible(i)) {
-    //             assert.strictEqual(tree.isCollapsed(i), true);
-    //         }
-    //     }
-    // });
+        tree.collapseAll();
+        for (let i = 1; i <= 8; i++) {
+            if (tree.isCollapsible(i)) {
+                assert.strictEqual(tree.isCollapsed(i), true);
+            }
+        }
+    });
 });
