@@ -2,7 +2,7 @@ import { IListItemProvider } from "src/base/browser/secondary/listView/listItemP
 import { IListWidget, ITraitChangeEvent } from "src/base/browser/secondary/listWidget/listWidget";
 import { AsyncTreeModel, IChildrenProvider, IAsyncTreeModel } from "src/base/browser/secondary/tree/asyncTreeModel";
 import { ITreeModelSpliceOptions } from "src/base/browser/secondary/tree/indexTreeModel";
-import { FlexMultiTree, IMultiTreeOptions, MultiTree } from "src/base/browser/secondary/tree/multiTree";
+import { FlexMultiTree, IMultiTreeBase, IMultiTreeOptions } from "src/base/browser/secondary/tree/multiTree";
 import { ITreeNode, ITreeModel, ITreeCollapseStateChangeEvent, ITreeMouseEvent, ITreeTouchEvent, ITreeContextmenuEvent, ITreeSpliceEvent, IFlexNode } from "src/base/browser/secondary/tree/tree";
 import { ITreeListRenderer } from "src/base/browser/secondary/tree/treeListRenderer";
 import { Disposable } from "src/base/common/dispose";
@@ -15,11 +15,6 @@ import { IScrollEvent } from "src/base/common/scrollable";
  * @internal
  * The internal tree node structure used to extend the functionalities of the 
  * internal {@link IFlexNode}.
- * 
- * @implements
- * This helps us to tree the internal tree node with extra fields to avoid 
- * constructing extra object as a tree node to be nested inside {@link MultiTree}. 
- * Results a faster and less memory costing. 
  */
 export interface IAsyncNode<T, TFilter> extends IFlexNode<T, TFilter> {
     
@@ -30,89 +25,7 @@ export interface IAsyncNode<T, TFilter> extends IFlexNode<T, TFilter> {
 /**
  * An interface only for {@link AsyncTree}.
  */
-export interface IAsyncTree<T, TFilter> extends Disposable {
-
-    /**
-     * The container of the whole tree.
-     */
-    readonly DOMElement: HTMLElement;
-
-    /**
-     * The root data of the tree.
-     */
-    readonly root: T;
-
-    /**
-     * Events when tree splice happened.
-     */
-    get onDidSplice(): Register<ITreeSpliceEvent<T, TFilter>>;
-
-    /**
-     * Fires when the tree node collapse state changed.
-     */
-    get onDidChangeCollapseState(): Register<ITreeCollapseStateChangeEvent<T, TFilter>>;
-
-    /**
-     * Fires when the {@link IAsyncMultiTree} is scrolling.
-     */
-    get onDidScroll(): Register<IScrollEvent>;
-
-    /**
-     * Fires when the {@link IAsyncMultiTree} itself is blured or focused.
-     */
-    get onDidChangeFocus(): Register<boolean>;
-    
-    /**
-     * Fires when the focused tree nodes in the {@link IAsyncMultiTree} is changed.
-     */
-    get onDidChangeItemFocus(): Register<ITraitChangeEvent>;
-    
-    /**
-     * Fires when the selected tree nodes in the {@link IAsyncMultiTree} is changed.
-     */
-    get onDidChangeItemSelection(): Register<ITraitChangeEvent>;
-    
-    /**
-     * Fires when the tree node in the {@link IAsyncMultiTree} is clicked.
-     */
-    get onClick(): Register<ITreeMouseEvent<T>>;
-    
-    /**
-     * Fires when the tree node in the {@link IAsyncMultiTree} is double clicked.
-     */
-    get onDoubleclick(): Register<ITreeMouseEvent<T>>;
-
-    /** 
-     * An event sent when the state of contacts with a touch-sensitive surface 
-     * changes. This surface can be a touch screen or trackpad.
-     */
-    get onTouchstart(): Register<ITreeTouchEvent<T>>;
-
-    /**
-     * Fires when the {@link IAsyncMultiTree} is keydowned.
-     */
-    get onKeydown(): Register<IStandardKeyboardEvent>;
-    
-    /** 
-     * Fires when the {@link IAsyncMultiTree} is keyup. 
-     */
-    get onKeyup(): Register<IStandardKeyboardEvent>;
-
-     /** 
-      * Fires when the {@link IAsyncMultiTree} is keypress. 
-      */
-    get onKeypress(): Register<IStandardKeyboardEvent>;
-
-    /** 
-     * Fires when the user attempts to open a context menu {@link IAsyncMultiTree}. 
-     * This event is typically triggered by:
-     *      - clicking the right mouse button
-     *      - pressing the context menu key
-     *      - Shift F10
-     */
-    get onContextmenu(): Register<ITreeContextmenuEvent<T>>;
-
-    // [public method]
+export interface IAsyncTree<T, TFilter> extends Omit<IMultiTreeBase<T, TFilter>, 'expand' | 'toggleCollapseOrExpand'> {
     
     /**
      * @description Given the data, re-acquires the stat of the the corresponding 
@@ -123,58 +36,6 @@ export interface IAsyncTree<T, TFilter> extends Disposable {
     refresh(data?: T): Promise<void>;
 
     /**
-     * @description Filters the whole tree by the provided {@link ITreeFilter}
-     * in the constructor.
-     * @param visibleOnly If only consider the visible tree nodes. Default to 
-     *                    true.
-     */
-    filter(visibleOnly?: boolean): void;
-
-    /**
-     * @description Try to get an existed node given the corresponding data.
-     * @param data The corresponding data.
-     * @returns Returns the expected tree node.
-     */
-    getNode(data: T): ITreeNode<T, TFilter>;
-
-    /**
-     * @description Check if the given node is existed.
-     * @param data The corresponding data.
-     * @returns If the node exists.
-     */
-    hasNode(data: T): boolean;
-
-    /**
-     * @description Determines if the corresponding node of the given data is 
-     * collapsible.
-     * @param data The corresponding data.
-     * @returns If it is collapsible.
-     * 
-     * @throws If the location is not found, an error is thrown.
-     */
-    isCollapsible(data: T): boolean;
-
-    /**
-     * @description Determines if the corresponding node of the given data is 
-     * collapsed.
-     * @param data The corresponding data.
-     * @returns If it is collapsed.
-     * 
-     * @throws If the location is not found, an error is thrown.
-     */
-    isCollapsed(data: T): boolean;
-
-    /**
-     * @description Collapses to the tree node with the given data.
-     * @param data The data representation of the node.
-     * @param recursive Determines if the operation is recursive (same operation 
-     *                  to its descendants). if not provided, sets to false as 
-     *                  default.
-     * @returns If the operation successed.
-     */
-    collapse(data: T, recursive: boolean): boolean;
-
-    /**
      * @description Expands to the tree node with the given data.
      * @param data The data representation of the node.
      * @param recursive Determines if the operation is recursive (same operation 
@@ -182,7 +43,7 @@ export interface IAsyncTree<T, TFilter> extends Disposable {
      *                  default.
      * @returns If the operation successed.
      * 
-     * @note Since expanding meaning refreshing to the newest children nodes,
+     * @note Since expanding meaning refreshing to the updated children nodes,
      * asynchronous is required.
      */
     expand(data: T, recursive: boolean): Promise<boolean>;
@@ -195,72 +56,11 @@ export interface IAsyncTree<T, TFilter> extends Disposable {
      *                  to its descendants). if not provided, sets to false as 
      *                  default.
      * @returns If the operation successed.
+     * 
+     * @note Since expanding meaning refreshing to the updated children nodes,
+     * asynchronous is required.
      */
     toggleCollapseOrExpand(data: T, recursive: boolean): Promise<boolean>;
-     
-    /**
-     * @description Collapses all the tree nodes.
-     */
-    collapseAll(): void;
-    
-    /**
-     * @description Expands all the tree nodes.
-     */
-    expandAll(): void;
-
-    /**
-     * @description Sets the given item as the anchor.
-     */
-    setAnchor(item: T): void;
-
-    /**
-     * @description Returns the focused item.
-     */
-    getAnchor(): T | null;
-
-    /**
-     * @description Sets the given item as focused.
-     */
-    setFocus(item: T): void;
-
-    /**
-     * @description Returns the focused item.
-     */
-    getFocus(): T | null;
-
-    /**
-     * @description Sets the given a series of items as selected.
-     */
-    setSelections(items: T[]): void;
-
-    /**
-     * @description Returns the selected items.
-     */
-    getSelections(): T[];
-
-    /**
-     * @description Sets the current view as focused in DOM tree.
-     */
-    setDomFocus(): void;
-
-    /**
-     * @description Given the height, re-layouts the height of the whole view.
-     * @param height The given height.
-     * 
-     * @note If no values are provided, it will sets to the height of the 
-     * corresponding DOM element of the view.
-     */
-    layout(height?: number): void;
-    
-    /**
-     * @description Rerenders the whole view.
-     */
-    rerender(data: T): void;
-
-    /**
-     * @description Returns the number of nodes in the tree.
-     */
-    size(): number;
 }
 
 /**
@@ -282,19 +82,14 @@ export interface IAsyncTreeOptions<T, TFilter> extends IMultiTreeOptions<T, TFil
 
 /**
  * @internal
- * @class A {@link AsyncMultiTree} extends all the abilities from {@link MultiTree}
- * and creates its own model {@link AsyncTreeModel} which contains the core
- * business logic for asynchronous functionalities.
- * 
- * @implements Extends {@link multiTree} means there will only has one model to
- * exist (one tree structure for maintaining purpose).
- * 
- * The biggest difference is that instead of storing the client data with type 
- * `T` directly into each {@link ITreeNode} in {@link MultiTree}. Instead, it 
- * wraps each client data with a {@link IAsyncNode<T>}. See more detailed 
- * implementations in {@link AsyncTreeModel}.
+ * @class A {@link AsyncMultiTree} extends all the abilities from a 
+ * {@link FlexMultiTree} and creates its own model {@link AsyncTreeModel} which 
+ * also extends {@link FlexMultiTreeModel} that contains the core business logic 
+ * for asynchronous functionalities.
  */
 class AsyncMultiTree<T, TFilter> extends FlexMultiTree<T, TFilter> {
+
+    // [field]
 
     declare protected readonly _model: IAsyncTreeModel<T, TFilter>;
     private readonly _childrenProvider: IChildrenProvider<T>;
@@ -364,30 +159,33 @@ class AsyncMultiTree<T, TFilter> extends FlexMultiTree<T, TFilter> {
 }
 
 /**
- * @class A {@link AsyncTree} Builts on top of {@link MultiTree}. Different from
- * any other tree-like structures, the children of each node is NOT decided by 
- * the client, instead, client needs to provide a {@link IChildrenProvider} 
- * which has the actual ability to determine the children of each node after 
- * each refresh.
+ * @class A {@link AsyncTree} is different from any other tree-like structures, 
+ * the children of each node is NOT decided by the client, instead, client needs 
+ * to provide a {@link IChildrenProvider} which has the actual ability to 
+ * determine the children of each node after each refresh.
  * 
  * Since the client cannot decide the structure of the tree, once the root data 
  * is given, the {@link AsyncTree} will build the whole tree under the provided 
- * {@link IChildrenProvider}, and the whole process is implemented 
- * asynchronously.
+ * {@link IChildrenProvider}, and the whole process is implemented asynchronously.
  * 
  * @note `RootData` is not counted as the part of the tree.
  * @note The subtree will be refreshed automatically once the collapse state of 
  * the tree node is changed.
  * 
  * @implements 
- * The tree is wrapping a {@link AsyncMultiTree} which extends {@link MultiTree} 
- * and the reason for this is to avoid having same property names.
+ * The tree is wrapping a {@link AsyncMultiTree} and the reason for this is to 
+ * avoid having same property names.
  * 
  * The idea of {@link AsyncTree} is inspired by a class named `AsyncDataTree` in
- * Visual Studio Code. They maintains two isomorphismic tree structures to avoid 
- * excessive rerendering. The {@link AsyncTree} goes one step further, it 
- * elimates another tree structure which causes less memory usage and runs 
- * faster.
+ * Visual Studio Code. They maintain two isomorphismic tree structures to avoid 
+ * excessive rerendering.
+ * 
+ * The {@link AsyncTree} goes one step further, it elimates another tree 
+ * structure and only maintaining one tree which causes less memory usage and 
+ * runs faster.
+ * 
+ * The {@link AsyncMultiTree} builds on top of {@link FlexMultiTree} which does
+ * all the tricks.
  */
 export class AsyncTree<T, TFilter> extends Disposable implements IAsyncTree<T, TFilter> {
 
@@ -473,6 +271,10 @@ export class AsyncTree<T, TFilter> extends Disposable implements IAsyncTree<T, T
 
     public getNode(data: T): ITreeNode<T, TFilter> {
         return this._tree.getNode(data);
+    }
+
+    public getNodeLocation(node: ITreeNode<T, TFilter>): T {
+        return this._tree.getNodeLocation(node);
     }
 
     public hasNode(data: T): boolean {
@@ -609,7 +411,7 @@ export class AsyncTree<T, TFilter> extends Disposable implements IAsyncTree<T, T
 
     /**
      * @description Presets the behaviours when the collapsing state inside the
-     * {@link MultiTree} is changed.
+     * {@link FlexMultiTree} is changed.
      */
     private async __internalOnDidChangeCollapseState(e: ITreeCollapseStateChangeEvent<T, TFilter>): Promise<void> {
         
@@ -642,10 +444,23 @@ export class AsyncTree<T, TFilter> extends Disposable implements IAsyncTree<T, T
 
             // get the updated tree structure into the model
             await this._tree.refreshNode(node);
+            
+            // FIX
+            /**
+             * When expanding a node recursively, the internal event emitter will
+             * fires each expanded node start from the deepest. That means if 
+             * two nodes expanded, the deeper will call `__render` first which
+             * may cause error because the upper node is not refreshed completed
+             * yet.
+             * 
+             * Possible fix: fired event will contain all the nodes instead of
+             * fired one by one.
+             */
+            // FIX
 
             /**
              * Sets the updated tree structure from the model to the old one in
-             * the {@link MultiTree} and rerender it.
+             * the {@link FlexMultiTree} and rerender it.
              */
             this.__render(node);
         } 

@@ -7,7 +7,7 @@ import { IFlexNode, ITreeModel, ITreeNode, ITreeNodeItem } from "src/base/browse
 /**
  * An interface only for {@link MultiTreeModelBase}.
  */
-interface IMultiTreeBase<T, TFilter> extends IAbstractTree<T, TFilter, T> {
+export interface IMultiTreeBase<T, TFilter> extends IAbstractTree<T, TFilter, T> {
     /**
      * @description Returns the number of nodes in the current tree model.
      */

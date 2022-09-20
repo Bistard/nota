@@ -248,7 +248,10 @@ export class AsyncTreeModel<T, TFilter> extends FlexMultiTreeModel<T, TFilter> i
                 children: [],
                 collapsible: hasChildren,
                 
-                refreshing: undefined,
+                /**
+                 * The following metadata will be recalculated correctly at 
+                 * {@link FlexIndexTreeModel}.
+                 */
                 
                 visibleNodeCount: undefined!,
                 collapsed: undefined!,
