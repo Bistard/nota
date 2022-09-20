@@ -27,9 +27,9 @@ const _registarnts = new Map<IRegistrantIdentifier<any>, any>();
  * are done.
  * @returns A class decorator that can be only used once. Once the registrant 
  * class is decorated, the class will be automatically created and stored in
- * {@link Registrants}.
+ * {@link REGISTRANTS}.
  * 
- * @note `Registrant` can only be accessed through {@link Registrants}.
+ * @note `Registrant` can only be accessed through {@link REGISTRANTS}.
  */
 export function createRegistrant<T>(registrantID: RegistrantType, ...args: any[]): IRegistrantIdentifier<T> {
     let registrantIdentifier = _identifiers.get(registrantID);
@@ -57,7 +57,7 @@ export function createRegistrant<T>(registrantID: RegistrantType, ...args: any[]
  * registrants which are registred into this universal registrant through the
  * decorator that are created by {@link createRegistrant}.
  */
-export const Registrants = new class {
+export const REGISTRANTS = new class {
 
     /**
      * @description Get desired registrant.

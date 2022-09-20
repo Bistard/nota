@@ -9,22 +9,23 @@ import { ISpliceable } from "src/base/common/range";
 import { IScrollEvent } from "src/base/common/scrollable";
 import { IListViewRenderer } from "src/base/browser/secondary/listView/listRenderer";
 import { IStandardKeyboardEvent } from "src/base/common/keyboard";
+import { IIndexTreeModelOptions } from "src/base/browser/secondary/tree/indexTreeModel";
 
 /**
  * @class A wrapper class to convert a basic {@link IListDragAndDropProvider<T>}
  * to {@link IListDragAndDropProvider<ITreeNode<T>>}.
  */
-class __TreeListDragAndDropProvider<T> implements IListDragAndDropProvider<ITreeNode<T>> {
+class __TreeListDragAndDropProvider<T, TFilter> implements IListDragAndDropProvider<ITreeNode<T, TFilter>> {
 
     constructor(
         private readonly dnd: IListDragAndDropProvider<T>
     ) {}
 
-    public getDragData(node: ITreeNode<T>): string | null {
+    public getDragData(node: ITreeNode<T, TFilter>): string | null {
         return this.dnd.getDragData(node.data);
     }
 
-    public getDragTag(items: ITreeNode<T>[]): string {
+    public getDragTag(items: ITreeNode<T, TFilter>[]): string {
         return this.dnd.getDragTag(items.map(item => item.data));
     }
 
@@ -34,25 +35,25 @@ class __TreeListDragAndDropProvider<T> implements IListDragAndDropProvider<ITree
         }
     }
 
-    public onDragOver(event: DragEvent, currentDragItems: ITreeNode<T>[], targetOver?: ITreeNode<T>, targetIndex?: number): boolean {
+    public onDragOver(event: DragEvent, currentDragItems: ITreeNode<T, TFilter>[], targetOver?: ITreeNode<T, TFilter>, targetIndex?: number): boolean {
         if (this.dnd.onDragOver) {
             return this.dnd.onDragOver(event, currentDragItems.map(node => node.data), targetOver?.data, targetIndex);
         }
         return false;
     }
 
-    public onDragEnter(event: DragEvent, currentDragItems: ITreeNode<T>[], targetOver?: ITreeNode<T>, targetIndex?: number): void {
+    public onDragEnter(event: DragEvent, currentDragItems: ITreeNode<T, TFilter>[], targetOver?: ITreeNode<T, TFilter>, targetIndex?: number): void {
         if (this.dnd.onDragEnter) {
             return this.dnd.onDragEnter(event, currentDragItems.map(node => node.data), targetOver?.data, targetIndex);
         }
     }
 
-    public onDragLeave(event: DragEvent, currentDragItems: ITreeNode<T>[], targetOver?: ITreeNode<T>, targetIndex?: number): void {
+    public onDragLeave(event: DragEvent, currentDragItems: ITreeNode<T, TFilter>[], targetOver?: ITreeNode<T, TFilter>, targetIndex?: number): void {
         if (this.dnd.onDragLeave) {
             return this.dnd.onDragLeave(event, currentDragItems.map(node => node.data), targetOver?.data, targetIndex);
         }
     }
-    public onDragDrop(event: DragEvent, currentDragItems: ITreeNode<T>[], targetOver?: ITreeNode<T>, targetIndex?: number): void {
+    public onDragDrop(event: DragEvent, currentDragItems: ITreeNode<T, TFilter>[], targetOver?: ITreeNode<T, TFilter>, targetIndex?: number): void {
         if (this.dnd.onDragDrop) {
             return this.dnd.onDragDrop(event, currentDragItems.map(node => node.data), targetOver?.data, targetIndex);
         }
@@ -71,6 +72,7 @@ class __TreeListDragAndDropProvider<T> implements IListDragAndDropProvider<ITree
  * the existance of the collapsed tree nodes.
  * 
  * T: The type of data in {@link AbstractTree}.
+ * `trait` does not care about TFilter type.
  */
 class __TreeListTrait<T> {
 
@@ -116,12 +118,12 @@ class __TreeListTrait<T> {
  * Since the collapsing status is only known by the tree-level, we need to override
  * the behaviours of the list-level mouse controller to achieve customization.
  */
-class __TreeListWidgetMouseController<T, TFilter, TRef> extends __ListWidgetMouseController<ITreeNode<T>> {
+class __TreeListWidgetMouseController<T, TFilter, TRef> extends __ListWidgetMouseController<ITreeNode<T, TFilter>> {
 
     private readonly _tree: IAbstractTree<T, TFilter, TRef>;
 
     constructor(
-        view: IListWidget<ITreeNode<T>>,
+        view: IListWidget<ITreeNode<T, TFilter>>,
         opts: ITreeListWidgetOpts<T, TFilter, TRef>
     ) {
         super(view, opts);
@@ -178,7 +180,7 @@ export interface ITreeListWidgetOpts<T, TFilter, TRef> extends IListWidgetOpts<I
  * @class A simple wrapper class for {@link IListWidget} which converts the type
  * T to ITreeNode<T>.
  */
-export class TreeListWidget<T, TFilter, TRef> extends ListWidget<ITreeNode<T>> {
+export class TreeListWidget<T, TFilter, TRef> extends ListWidget<ITreeNode<T, TFilter>> {
 
     // [field]
 
@@ -268,17 +270,10 @@ export class TreeListWidget<T, TFilter, TRef> extends ListWidget<ITreeNode<T>> {
 }
 
 /**
- * An interface for the constructor options of the {@link AbstractTree}.
+ * An interface for the constructor options of the {@link AbstractTree}. The 
+ * interface includes the base interface of a {@link ITreeModel} options.
  */
-export interface IAbstractTreeOptions<T> {
-
-    /** 
-     * If the tree node should be collapsed when constructing a new one by 
-     * default. Which means if {@link ITreeNodeItem.collapsed} is not defined,
-     * this will be applied.
-     * @default false
-     */
-    readonly collapseByDefault?: boolean;
+export interface IAbstractTreeOptions<T, TFilter> extends IIndexTreeModelOptions<T, TFilter> {
 
     /**
      * Provides the functionality to achieve drag and drop support in the tree.
@@ -289,7 +284,7 @@ export interface IAbstractTreeOptions<T> {
 /**
  * The interface only for {@link AbstractTree}.
  */
-export interface IAbstractTree<T, TFilter, TRef> {
+export interface IAbstractTree<T, TFilter, TRef> extends IDisposable {
 
     /**
      * The container of the whole tree.
@@ -361,8 +356,10 @@ export interface IAbstractTree<T, TFilter, TRef> {
 
     /** 
      * Fires when the user attempts to open a context menu {@link IAbstractTree}. 
-     * This event is typically triggered by clicking the right mouse button, or 
-     * by pressing the context menu key.
+     * This event is typically triggered by:
+     *      - clicking the right mouse button
+     *      - pressing the context menu key
+     *      - Shift F10
      */
     get onContextmenu(): Register<ITreeContextmenuEvent<T>>;
 
@@ -383,9 +380,12 @@ export interface IAbstractTree<T, TFilter, TRef> {
     layout(height?: number): void;
 
     /**
-     * @description Disposes all the used resources.
+     * @description Filters the whole tree by the provided {@link ITreeFilter}
+     * from the constructor options.
+     * @param visibleOnly If only consider the visible tree nodes. Default to true.
+     * @note The method will modify the tree structure.
      */
-    dispose(): void;
+    filter(visibleOnly?: boolean): void;
 
     // [method - tree]
 
@@ -529,9 +529,10 @@ export abstract class AbstractTree<T, TFilter, TRef> implements IAbstractTree<T,
 
     constructor(
         container: HTMLElement,
+        rootData: T,
         renderers: ITreeListRenderer<T, TFilter, any>[],
         itemProvider: IListItemProvider<T>,
-        opts: IAbstractTreeOptions<T> = {}
+        opts: IAbstractTreeOptions<T, TFilter> = {}
     ) {
 
         /**
@@ -550,7 +551,7 @@ export abstract class AbstractTree<T, TFilter, TRef> implements IAbstractTree<T,
         this._selected = new __TreeListTrait();
 
         // construct the atcual view
-        this._view = new TreeListWidget(
+        this._view = new TreeListWidget<T, TFilter, TRef>(
             container, 
             renderers, 
             this._focused,
@@ -564,7 +565,7 @@ export abstract class AbstractTree<T, TFilter, TRef> implements IAbstractTree<T,
         );
 
         // create the tree model from abstraction, client may override it.
-        this._model = this.createModel(this._view, opts);
+        this._model = this.createModel(rootData, this._view, opts);
 
         // reset the input event emitter once the model is created
         relayEmitter.setInput(this._model.onDidChangeCollapseState);
@@ -594,7 +595,7 @@ export abstract class AbstractTree<T, TFilter, TRef> implements IAbstractTree<T,
     
     // [abstract methods]
 
-    protected abstract createModel(view: ISpliceable<ITreeNode<T, TFilter>>, opts: IAbstractTreeOptions<T>): ITreeModel<T, TFilter, TRef>;
+    protected abstract createModel(rootData: T, view: ISpliceable<ITreeNode<T, TFilter>>, opts: IAbstractTreeOptions<T, TFilter>): ITreeModel<T, TFilter, TRef>;
 
     // [methods - tree]
 
@@ -699,6 +700,10 @@ export abstract class AbstractTree<T, TFilter, TRef> implements IAbstractTree<T,
         this._view.layout(height);
     }
 
+    public filter(visibleOnly?: boolean): void {
+        this._model.filter(visibleOnly);
+    }
+
     public dispose(): void {
         this._disposables.dispose();
     }
@@ -709,7 +714,7 @@ export abstract class AbstractTree<T, TFilter, TRef> implements IAbstractTree<T,
      * @description Converts the event {@link IListMouseEvent<ITreeNode<T>>} to
      * {@link ITreeMouseEvent<T>}.
      */
-    private __toTreeMouseEvent(event: IListMouseEvent<ITreeNode<T, any>>): ITreeMouseEvent<T> {
+    private __toTreeMouseEvent(event: IListMouseEvent<ITreeNode<T, TFilter>>): ITreeMouseEvent<T> {
         return {
             browserEvent: event.browserEvent,
             data: event.item ? event.item.data : null,
@@ -719,7 +724,7 @@ export abstract class AbstractTree<T, TFilter, TRef> implements IAbstractTree<T,
         };
     }
 
-    private __toTreeTouchEvent(event: IListTouchEvent<ITreeNode<T, any>>): ITreeTouchEvent<T> {
+    private __toTreeTouchEvent(event: IListTouchEvent<ITreeNode<T, TFilter>>): ITreeTouchEvent<T> {
         return {
             browserEvent: event.browserEvent,
             data: event.item ? event.item.data : null,
@@ -729,7 +734,7 @@ export abstract class AbstractTree<T, TFilter, TRef> implements IAbstractTree<T,
         };
     }
 
-    private __toTreeContextmenuEvent(event: IListContextmenuEvent<ITreeNode<T, any>>): ITreeContextmenuEvent<T> {
+    private __toTreeContextmenuEvent(event: IListContextmenuEvent<ITreeNode<T, TFilter>>): ITreeContextmenuEvent<T> {
         return {
             browserEvent: event.browserEvent,
             data: event.item ? event.item.data : null,

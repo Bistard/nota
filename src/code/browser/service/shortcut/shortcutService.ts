@@ -9,7 +9,7 @@ import { IInstantiationService } from "src/code/platform/instantiation/common/in
 import { ILogService } from "src/base/common/logger";
 import { IBrowserLifecycleService, ILifecycleService, LifecyclePhase } from "src/code/platform/lifecycle/browser/browserLifecycleService";
 import { IShortcutConfiguration, IShortcutRegistrant, IShortcutRegistrantFriendship, IShortcutRegistration } from "src/code/browser/service/shortcut/shortcutRegistrant";
-import { Registrants } from "src/code/platform/registrant/common/registrant";
+import { REGISTRANTS } from "src/code/platform/registrant/common/registrant";
 import { IBrowserEnvironmentService } from "src/code/platform/environment/common/environment";
 
 export const SHORTCUT_CONFIG_NAME = 'shortcut.config.json';
@@ -29,7 +29,7 @@ export class ShortcutService extends Disposable implements IShortcutService {
     // [field]
 
     private _resource: URI;
-    private readonly _registrant = <IShortcutRegistrantFriendship>Registrants.get(IShortcutRegistrant);
+    private readonly _registrant = <IShortcutRegistrantFriendship>REGISTRANTS.get(IShortcutRegistrant);
 
     // [constructor]
 

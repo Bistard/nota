@@ -1,6 +1,6 @@
 import * as assert from 'assert';
 import { IReviverRegistrant } from 'src/code/platform/ipc/common/revive';
-import { Registrants } from 'src/code/platform/registrant/common/registrant';
+import { REGISTRANTS } from 'src/code/platform/registrant/common/registrant';
 
 class BasePrototype1 {
     constructor(public readonly baseField1: number) {}
@@ -18,7 +18,7 @@ class BasePrototype2 {
 
 suite('reviver-registrant-test', () => {
 
-    const registrant = Registrants.get(IReviverRegistrant);
+    const registrant = REGISTRANTS.get(IReviverRegistrant);
     
     test('registerPrototype', () => {
         registrant.registerPrototype(BasePrototype1, (obj: Object) => {

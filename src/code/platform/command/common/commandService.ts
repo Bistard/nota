@@ -4,7 +4,7 @@ import { ILogService } from "src/base/common/logger";
 import { ICommandEvent, ICommandRegistrant } from "src/code/platform/command/common/commandRegistrant";
 import { createService } from "src/code/platform/instantiation/common/decorator";
 import { IInstantiationService } from "src/code/platform/instantiation/common/instantiation";
-import { Registrants } from "src/code/platform/registrant/common/registrant";
+import { REGISTRANTS } from "src/code/platform/registrant/common/registrant";
 
 export const ICommandService = createService<ICommandService>('command-service');
 
@@ -37,7 +37,7 @@ export class CommandService extends Disposable implements ICommandService {
     
     // [field]
 
-    private readonly _registrant: ICommandRegistrant = Registrants.get(ICommandRegistrant);
+    private readonly _registrant: ICommandRegistrant = REGISTRANTS.get(ICommandRegistrant);
 
     private readonly _onDidExecuteCommand = this.__register(new Emitter<ICommandEvent>());
     public readonly onDidExecuteCommand = this._onDidExecuteCommand.registerListener;

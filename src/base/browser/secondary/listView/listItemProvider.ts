@@ -29,7 +29,7 @@ export interface IListItemProvider<T> {
  * the functionality of object with type {@link IListItemProvider<T>} to 
  * {@link IListItemProvider<ITreeNode<T>>}.
  */
-export class TreeListItemProvider<T> implements IListItemProvider<ITreeNode<T>> {
+export class TreeListItemProvider<T, TFilter> implements IListItemProvider<ITreeNode<T, TFilter>> {
 
     // [field]
 
@@ -44,37 +44,12 @@ export class TreeListItemProvider<T> implements IListItemProvider<ITreeNode<T>> 
     // [public method]
 
     
-    public getSize(node: ITreeNode<T>): number {
+    public getSize(node: ITreeNode<T, TFilter>): number {
         return this._provider.getSize(node.data);
     }
 
-    public getType(node: ITreeNode<T>): ListItemType {
+    public getType(node: ITreeNode<T, TFilter>): ListItemType {
         return this._provider.getType(node.data);
-    }
-
-}
-
-/**
- * @class A simple wrapper class that wraps a {@link IListItemProvider<T>} so 
- * that the APIs may given the node with type `R` that contains a type `T`, 
- * instead of just using `T`.
- * 
- * `R`: another type that wraps a type `T` used a field named `data`.
- */
- export class composedItemProvider<T, R extends { data: T }> implements IListItemProvider<R> {
-
-    private _provider: IListItemProvider<T>;
-
-    constructor(itemProvider: IListItemProvider<T>) {
-        this._provider = itemProvider;
-    }
-
-    getSize(data: R): number {
-        return this._provider.getSize(data.data);
-    }
-
-    getType(data: R): number {
-        return this._provider.getType(data.data);
     }
 
 }

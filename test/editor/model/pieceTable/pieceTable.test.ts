@@ -1824,15 +1824,15 @@ suite('PieceTable-test - random', () => {
 		for (let i = 0; i < 1000; i++) {
 			if (Math.random() < 0.6) {
 				// random insert
-				let text = Random.getRandString(100);
-				let pos = Random.getRandInt(str.length + 1);
+				let text = Random.string(100);
+				let pos = Random.int(str.length + 1);
 				table.insertAt(pos, text);
 				str = str.substring(0, pos) + text + str.substring(pos);
 				// output += `table.insertAt(${pos}, '${text.replace(/\n/g, '\\n').replace(/\r/g, '\\r')}');\n`;
 				// output += `str = str.substring(0, ${pos}) + '${text.replace(/\n/g, '\\n').replace(/\r/g, '\\r')}' + str.substring(${pos});\n`;
 			} else {
 				// random delete
-				let pos = Random.getRandInt(str.length);
+				let pos = Random.int(str.length);
 				let length = Math.min(
 					str.length - pos,
 					Math.floor(Math.random() * 10)
@@ -1855,7 +1855,7 @@ suite('PieceTable-test - random', () => {
 		
 		let chunks: string[] = [];
 		for (let i = 0; i < 5; i++) {
-			chunks.push(Random.getRandString(1000));
+			chunks.push(Random.string(1000));
 		}
 
 		let table = buildPieceTable(chunks, false);
@@ -1864,13 +1864,13 @@ suite('PieceTable-test - random', () => {
 		for (let i = 0; i < 1000; i++) {
 			if (Math.random() < 0.6) {
 				// insert
-				let text = Random.getRandString(100);
-				let pos = Random.getRandInt(str.length + 1);
+				let text = Random.string(100);
+				let pos = Random.int(str.length + 1);
 				table.insertAt(pos, text);
 				str = str.substring(0, pos) + text + str.substring(pos);
 			} else {
 				// delete
-				let pos = Random.getRandInt(str.length);
+				let pos = Random.int(str.length);
 				let length = Math.min(
 					str.length - pos,
 					Math.floor(Math.random() * 10)
@@ -1887,7 +1887,7 @@ suite('PieceTable-test - random', () => {
 
 	test('random chunks 2', () => {
 		let chunks: string[] = [];
-		chunks.push(Random.getRandString(1000));
+		chunks.push(Random.string(1000));
 
 		let table = buildPieceTable(chunks, false);
 		let str = chunks.join('');
@@ -1895,13 +1895,13 @@ suite('PieceTable-test - random', () => {
 		for (let i = 0; i < 50; i++) {
 			if (Math.random() < 0.6) {
 				// insert
-				let text = Random.getRandString(30);
-				let pos = Random.getRandInt(str.length + 1);
+				let text = Random.string(30);
+				let pos = Random.int(str.length + 1);
 				table.insertAt(pos, text);
 				str = str.substring(0, pos) + text + str.substring(pos);
 			} else {
 				// delete
-				let pos = Random.getRandInt(str.length);
+				let pos = Random.int(str.length);
 				let length = Math.min(
 					str.length - pos,
 					Math.floor(Math.random() * 10)

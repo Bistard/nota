@@ -118,3 +118,15 @@ export function deepCopy<T extends Object | []>(obj: T): T {
 
 	return copy;
 }
+
+/**
+ * @description Returns a useless but simple object except that whatever you do 
+ * to it will not throw any errors.
+ * @note Testing purpose only.
+ */
+export function nullObject(): any {
+    return new Proxy({}, {
+        get: () => nullObject,
+		set: () => true,
+    });
+}

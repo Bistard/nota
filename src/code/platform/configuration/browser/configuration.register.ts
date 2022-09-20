@@ -2,7 +2,7 @@ import { TreeMode } from "src/code/browser/service/explorerTree/treeService";
 import { BuiltInConfigScope, IConfigRegistrant } from "src/code/platform/configuration/common/configRegistrant";
 import { DefaultConfigStorage } from "src/code/platform/configuration/common/configStorage";
 import { LanguageType } from "src/code/platform/i18n/i18n";
-import { Registrants } from "src/code/platform/registrant/common/registrant";
+import { REGISTRANTS } from "src/code/platform/registrant/common/registrant";
 
 class DefaultUserConfiguration extends DefaultConfigStorage {
     protected createDefaultModel(): Record<PropertyKey, any> {
@@ -25,6 +25,6 @@ class DefaultUserConfiguration extends DefaultConfigStorage {
 }
 
 (function registerBrowserDefaultConfiguration() {
-    const Registrant = Registrants.get(IConfigRegistrant);
+    const Registrant = REGISTRANTS.get(IConfigRegistrant);
     Registrant.registerDefaultBuiltIn(BuiltInConfigScope.User, new DefaultUserConfiguration());
 })();

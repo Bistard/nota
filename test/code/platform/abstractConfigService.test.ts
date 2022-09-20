@@ -7,7 +7,7 @@ import { BuiltInConfigScope, IConfigRegistrant } from 'src/code/platform/configu
 import { DefaultConfigStorage } from 'src/code/platform/configuration/common/configStorage';
 import { FileService } from 'src/code/platform/files/common/fileService';
 import { DiskFileSystemProvider } from 'src/code/platform/files/node/diskFileSystemProvider';
-import { Registrants } from 'src/code/platform/registrant/common/registrant';
+import { REGISTRANTS } from 'src/code/platform/registrant/common/registrant';
 import { NullLifecycleService, NullLogger } from 'test/utility';
 
 class TestDefaultConfigStorage extends DefaultConfigStorage {
@@ -30,7 +30,7 @@ class TestDefaultConfigStorage extends DefaultConfigStorage {
 suite('abstract-config-service-test', () => {
 
     const TestScope: BuiltInConfigScope = <any>'abstractConfigService-test-scope';
-    const registrant = Registrants.get(IConfigRegistrant);
+    const registrant = REGISTRANTS.get(IConfigRegistrant);
 
     const storage = new TestDefaultConfigStorage();
     registrant.registerDefaultBuiltIn(TestScope, storage);

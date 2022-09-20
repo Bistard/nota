@@ -179,7 +179,6 @@ export class __ListWidgetMouseController<T> implements IDisposable {
     private _disposables = new DisposableManager();
     private _view: IListWidget<T>;
 
-    private _mouseSupport: boolean = true;
     private _multiSelectionSupport: boolean = true;
 
     // [constructor]
@@ -189,15 +188,6 @@ export class __ListWidgetMouseController<T> implements IDisposable {
         opts: IListWidgetOpts<T>
     ) {
         this._view = view;
-
-        if (opts.mouseSupport !== undefined) {
-            this._mouseSupport = opts.mouseSupport;
-        }
-        
-        if (this._mouseSupport === false) {
-            // does not support
-            return;
-        }
 
         this._view.DOMElement.classList.add('mouse-support');
 
@@ -218,14 +208,9 @@ export class __ListWidgetMouseController<T> implements IDisposable {
     // [protect methods]
 
     protected __ifSupported(e: IListMouseEvent<T>): boolean {
-        if (this._mouseSupport === false) {
-            return false;
-        }
-
         if (DomUtility.isInputElement(e.browserEvent.target as HTMLElement)) {
             return false;
         }
-
         return true;
     }
 
@@ -399,25 +384,12 @@ class __ListWidgetKeyboardController<T> implements IDisposable {
     private _disposables = new DisposableManager();
     private _view: IListWidget<T>;
 
-    private _keyboardSupport: boolean = true;
-
     // [constructor]
 
     constructor(
-        view: IListWidget<T>,
-        opts: IListWidgetOpts<T>
+        view: IListWidget<T>
     ) {
         this._view = view;
-
-        if (opts.keyboardSupport !== undefined) {
-            this._keyboardSupport = opts.keyboardSupport;
-        }
-
-        if (this._keyboardSupport === false) {
-            // does not support
-            return;
-        }
-
         this._disposables.register(this.onKeydown(e => this.__onDidKeydown(e)));
     }
 
@@ -537,11 +509,11 @@ export class __ListWidgetDragAndDropController<T> implements IDisposable {
 
     constructor(
         view: IListWidget<T>,
-        opts: IListWidgetOpts<T>,
+        dragAndDropProvider: IListDragAndDropProvider<T>,
         toListDragEvent: (e: DragEvent) => IListDragEvent<T>
     ) {
         this._view = view;
-        this._provider = new ListWidgetDragAndDropProvider(view, opts.dragAndDropProvider!);
+        this._provider = new ListWidgetDragAndDropProvider(view, dragAndDropProvider);
         this.__enableDragAndDropSupport(toListDragEvent);
     }
 
@@ -889,8 +861,10 @@ export interface IListWidget<T> extends IDisposable {
 
     /** 
      * Fires when the user attempts to open a context menu {@link IListWidget}. 
-     * This event is typically triggered by clicking the right mouse button, or 
-     * by pressing the context menu key.
+     * This event is typically triggered by:
+     *      - clicking the right mouse button
+     *      - pressing the context menu key
+     *      - Shift F10
      */
     get onContextmenu(): Register<IListContextmenuEvent<T>>;
 
@@ -1095,23 +1069,27 @@ export class ListWidget<T> implements IListWidget<T> {
         this.anchor.getHTMLElement = item => this.view.getElement(item);
         this.focused.getHTMLElement = item => this.view.getElement(item);
 
-        // mouse support integration
-        const mouseController = this.__createListWidgetMouseController(opts);
+        // mouse support integration (defaults on)
+        if (opts.mouseSupport || opts.mouseSupport === undefined) {
+            const mouseController = this.__createListWidgetMouseController(opts);
+            this.disposables.register(mouseController);
+        }
         
         // keyboard support integration
-        const keyboardController = new __ListWidgetKeyboardController(this, opts);
+        if (opts.keyboardSupport || opts.mouseSupport === undefined) {
+            const keyboardController = new __ListWidgetKeyboardController(this);
+            this.disposables.register(keyboardController);
+        }
         
         // drag and drop integration
         if (opts.dragAndDropProvider) {
-            const dndController = new __ListWidgetDragAndDropController(this, opts, e => this.__toListDragEvent(e));
+            const dndController = new __ListWidgetDragAndDropController(this, opts.dragAndDropProvider, e => this.__toListDragEvent(e));
             this.disposables.register(dndController);
         }
 
         this.disposables.register(this.view);
         this.disposables.register(this.selected);
         this.disposables.register(this.focused);
-        this.disposables.register(mouseController);
-        this.disposables.register(keyboardController);
     }
 
     // [getter / setter]
@@ -1155,16 +1133,16 @@ export class ListWidget<T> implements IListWidget<T> {
     }
 
     public splice(index: number, deleteCount: number, items: T[] = []): void {
+        if (deleteCount === 0 && items.length === 0) {
+            return;
+        }
+        
         if (index < 0 || index > this.getItemCount()) {
             throw new ListError(`splice invalid start index: ${index}`);
         }
 
         if (deleteCount < 0) {
             throw new ListError(`splice invalid deleteCount: ${deleteCount}`);
-        }
-
-        if (deleteCount === 0 && items.length === 0) {
-            return;
         }
 
         this.view.splice(index, deleteCount, items);
@@ -1314,19 +1292,11 @@ export class ListWidget<T> implements IListWidget<T> {
 
     private __createContextmenuRegister(): Register<IListContextmenuEvent<T>> {
         
-        /**
-         * A boolean to determine whether the user is pressing on. Useful to
-         * interupt continuous events from `this.view.onContextmenu()`.
-         */
-        let pressingDownKey = false;
         
         // only used to detect if pressing down context menu key
         this.onKeydown(e => {
             e.browserEvent.preventDefault();
             e.browserEvent.stopPropagation();
-            if (e.key === KeyCode.ContextMenu || (e.shift && e.key === KeyCode.F10)) {
-                pressingDownKey = true;
-            }
         });
 
         // mouse right click
@@ -1337,7 +1307,6 @@ export class ListWidget<T> implements IListWidget<T> {
         const onKey = Event.map(onKeyRaw, e => { 
             e.browserEvent.preventDefault();
             e.browserEvent.stopPropagation(); 
-            pressingDownKey = false;
 
             const selections = this.getSelections();
             const actualIndex = selections.length ? selections[0] : undefined;

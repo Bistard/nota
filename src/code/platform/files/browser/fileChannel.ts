@@ -10,7 +10,7 @@ import { ResourceChangeEvent } from "src/code/platform/files/node/resourceChange
 import { IIpcService } from "src/code/platform/ipc/browser/ipcService";
 import { IChannel, IpcChannel } from "src/code/platform/ipc/common/channel";
 import { IReviverRegistrant } from "src/code/platform/ipc/common/revive";
-import { Registrants } from "src/code/platform/registrant/common/registrant";
+import { REGISTRANTS } from "src/code/platform/registrant/common/registrant";
 
 export class BrowserFileChannel extends Disposable implements IFileService {
 
@@ -29,7 +29,7 @@ export class BrowserFileChannel extends Disposable implements IFileService {
 
     // [field]
 
-    private static readonly registrant = Registrants.get(IReviverRegistrant);
+    private static readonly registrant = REGISTRANTS.get(IReviverRegistrant);
     private readonly _channel: IChannel;
 
     // [constructor]
