@@ -158,6 +158,48 @@ export abstract class MultiTreeModelBase<T, TFilter> implements IMultiTreeModelB
 
         return this._model.getNodeLocation(treeNode);
     }
+
+    protected __createSpliceOptions(opts: ITreeModelSpliceOptions<T, TFilter>): ITreeModelSpliceOptions<T, TFilter> {
+        const inserted = new Set<T>();
+
+        const onDidCreateNode = (node: ITreeNode<T, TFilter>): void => {
+            // avoid root
+            if (node.data === this.root) {
+				return;
+			}
+
+            // remember the mapping
+            this._nodes.set(node.data, node);
+            inserted.add(node.data);
+
+            // other callback
+            if (opts.onDidCreateNode) {
+                opts.onDidCreateNode(node);
+            }
+        }
+
+        const onDidDeleteNode = (node: ITreeNode<T, TFilter>): void => {
+            // avoid root
+            if (node.data === this.root) {
+				return;
+			}
+
+            // prevent accidently delete what we just inserted.
+            if (inserted.has(node.data) === false) {
+                this._nodes.delete(node.data);
+            }
+
+            // other callback
+            if (opts.onDidDeleteNode) {
+                opts.onDidDeleteNode(node);
+            }
+        }
+
+        return {
+            onDidCreateNode,
+            onDidDeleteNode,
+        };
+    }
 }
 
 /**
@@ -202,47 +244,14 @@ export class MultiTreeModel<T, TFilter> extends MultiTreeModelBase<T, TFilter> i
     ): void {
         
         const location = this.__getNodeLocation(item);
-        const inserted = new Set<T>();
-
-        const onDidCreateNode = (node: ITreeNode<T, TFilter>): void => {
-            // avoid root
-            if (node.data === this.root) {
-				return;
-			}
-
-            // remember the mapping
-            this._nodes.set(node.data, node);
-            inserted.add(node.data);
-
-            // other callback
-            if (opts.onDidCreateNode) {
-                opts.onDidCreateNode(node);
-            }
-        }
-
-        const onDidDeleteNode = (node: ITreeNode<T, TFilter>): void => {
-            // avoid root
-            if (node.data === this.root) {
-				return;
-			}
-
-            // prevent accidently delete what we just inserted.
-            if (inserted.has(node.data) === false) {
-                this._nodes.delete(node.data);
-            }
-
-            // other callback
-            if (opts.onDidDeleteNode) {
-                opts.onDidDeleteNode(node);
-            }
-        }
+        
 
         // the actual splicing
         this._model.splice(
             [...location, 0],
             deleteCount,
             children,
-            { onDidCreateNode: onDidCreateNode, onDidDeleteNode: onDidDeleteNode }
+            this.__createSpliceOptions(opts),
         );
     }
 }
@@ -280,46 +289,10 @@ export class FlexMultiTreeModel<T, TFilter> extends MultiTreeModelBase<T, TFilte
         node: IFlexNode<T, TFilter> = this.rootNode, 
         opts: ITreeModelSpliceOptions<T, TFilter> = {},
     ): void {
-        
-        const inserted = new Set<T>();
-
-        const onDidCreateNode = (node: ITreeNode<T, TFilter>): void => {
-            // avoid root
-            if (node.data === this.root) {
-				return;
-			}
-
-            // remember the mapping
-            this._nodes.set(node.data, node);
-            inserted.add(node.data);
-
-            // other callback
-            if (opts.onDidCreateNode) {
-                opts.onDidCreateNode(node);
-            }
-        }
-
-        const onDidDeleteNode = (node: ITreeNode<T, TFilter>): void => {
-            // avoid root
-            if (node.data === this.root) {
-				return;
-			}
-
-            // prevent accidently delete what we just inserted.
-            if (inserted.has(node.data) === false) {
-                this._nodes.delete(node.data);
-            }
-
-            // other callback
-            if (opts.onDidDeleteNode) {
-                opts.onDidDeleteNode(node);
-            }
-        }
-
         // the actual refreshing
         this._model.refresh(
             node,
-            { onDidCreateNode: onDidCreateNode, onDidDeleteNode: onDidDeleteNode },
+            this.__createSpliceOptions(opts),
         );
     }
 }
