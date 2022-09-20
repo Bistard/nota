@@ -6,7 +6,7 @@
 import { CharCode } from "src/base/common/util/char";
 import * as paths from "src/base/common/file/path";
 import { IS_WINDOWS } from "src/base/common/platform";
-import { Registrants } from "src/code/platform/registrant/common/registrant";
+import { REGISTRANTS } from "src/code/platform/registrant/common/registrant";
 import { IReviverRegistrant } from "src/code/platform/ipc/common/revive";
 
 /**
@@ -222,7 +222,7 @@ export class URI implements IURI {
     }
 }
 
-const reviverRegistrant = Registrants.get(IReviverRegistrant);
+const reviverRegistrant = REGISTRANTS.get(IReviverRegistrant);
 reviverRegistrant.registerPrototype(URI as any, (obj: Object) => {
 	if (obj.hasOwnProperty('scheme') && 
 		obj.hasOwnProperty('authority') && 

@@ -1,5 +1,5 @@
 import * as assert from 'assert';
-import { deepCopy, mixin } from 'src/base/common/util/object';
+import { deepCopy, mixin, nullObject } from 'src/base/common/util/object';
 
 suite('object-test', () => {
 
@@ -79,4 +79,11 @@ suite('object-test', () => {
         assert.deepStrictEqual(copy2, getArr());
     });
 
+    test('nullObject', () => {
+        const iCanDoWhateverIWant = nullObject();
+        iCanDoWhateverIWant.dao(124, 'asdq').IDK().forEach(() => 'bulabula');
+        delete iCanDoWhateverIWant.hello;
+        iCanDoWhateverIWant.world = 'string';
+        iCanDoWhateverIWant.world = () => iCanDoWhateverIWant;
+    });
 });

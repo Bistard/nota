@@ -40,7 +40,7 @@ export class ExplorerTreeService extends Disposable implements IExplorerTreeServ
 
     // [field]
 
-    /** The root directory of the opened tree, undefined if not opened.  */
+    /** The root directory of the opened tree, undefined if not opened. */
     private _root?: URI;
     /** The current tree display mode. */
     private _mode: TreeMode;
@@ -113,7 +113,22 @@ export class ExplorerTreeService extends Disposable implements IExplorerTreeServ
 
         // on did resource change callback
         this._onDidResourceChangeScheduler = new Scheduler(100, events => {
-            // TODO
+            
+            if (!this._root) {
+                return;
+            }
+
+            let affected = false;
+            for (const event of events) {
+                if (event.affect(this._root)) {
+                    affected = true;
+                    break;
+                }
+            }
+
+            if (affected) {
+                this._currentTreeService!.refresh();
+            }
         });
 
         // create a disposable for all the current tree business
@@ -135,11 +150,7 @@ export class ExplorerTreeService extends Disposable implements IExplorerTreeServ
         if (!this._root) {
             return;
         }
-
-        (this._mode === TreeMode.Notebook 
-            ? this.notebookTreeService.layout(height) 
-            : this.classicTreeService.layout(height)
-        );
+        this._currentTreeService!.layout(height);
     }
 
     public async refresh(): Promise<void> {
@@ -147,10 +158,7 @@ export class ExplorerTreeService extends Disposable implements IExplorerTreeServ
             return;
         }
 
-        return (this._mode === TreeMode.Notebook 
-            ? this.notebookTreeService.refresh() 
-            : this.classicTreeService.refresh()
-        );
+        this._currentTreeService!.refresh();
     }
 
     public async close(): Promise<void> {
@@ -159,12 +167,11 @@ export class ExplorerTreeService extends Disposable implements IExplorerTreeServ
         }
 
         // dispose the watching request on the root
-        this._currTreeDisposable?.dispose();
+        this._currTreeDisposable!.dispose();
+        this._currTreeDisposable = undefined;
 
         // close the actual tree service
-        return (this._mode === TreeMode.Notebook 
-            ? this.notebookTreeService.close() 
-            : this.classicTreeService.close()
-        );
+        this._currentTreeService!.close();
+        this._currentTreeService = undefined;
     }
 }

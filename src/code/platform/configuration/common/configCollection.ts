@@ -7,7 +7,7 @@ import { ConfigModel, IConfigModel } from "src/code/platform/configuration/commo
 import { BuiltInConfigScope, ConfigScope, ExtensionConfigScope, IConfigRegistrant, IScopeConfigChangeEvent } from "src/code/platform/configuration/common/configRegistrant";
 import { ConfigStorage, IConfigStorage } from "src/code/platform/configuration/common/configStorage";
 import { IFileService } from "src/code/platform/files/common/fileService";
-import { Registrants } from "src/code/platform/registrant/common/registrant";
+import { REGISTRANTS } from "src/code/platform/registrant/common/registrant";
 
 /**
  * An option interface for constructing a {@link ConfigCollection}.
@@ -84,7 +84,7 @@ export class ConfigCollection implements IConfigCollection, IDisposable {
 
     // [field]
 
-    private readonly _registrant: IConfigRegistrant = Registrants.get(IConfigRegistrant);
+    private readonly _registrant: IConfigRegistrant = REGISTRANTS.get(IConfigRegistrant);
     
     private readonly _configurations: Map<BuiltInConfigScope, IConfigModel>;
     private readonly _extensionConfigurations: Map<ExtensionConfigScope, IConfigModel>;

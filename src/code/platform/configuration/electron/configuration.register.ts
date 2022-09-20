@@ -1,6 +1,6 @@
 import { BuiltInConfigScope, IConfigRegistrant } from "src/code/platform/configuration/common/configRegistrant";
 import { DefaultConfigStorage } from "src/code/platform/configuration/common/configStorage";
-import { Registrants } from "src/code/platform/registrant/common/registrant";
+import { REGISTRANTS } from "src/code/platform/registrant/common/registrant";
 
 class DefaultApplicationConfiguration extends DefaultConfigStorage {
     protected override createDefaultModel(): Record<PropertyKey, any> {
@@ -11,6 +11,6 @@ class DefaultApplicationConfiguration extends DefaultConfigStorage {
 }
 
 (function registerMainDefaultConfiguration() {
-    const Registrant = Registrants.get(IConfigRegistrant);
+    const Registrant = REGISTRANTS.get(IConfigRegistrant);
     Registrant.registerDefaultBuiltIn(BuiltInConfigScope.Application, new DefaultApplicationConfiguration());
 })();

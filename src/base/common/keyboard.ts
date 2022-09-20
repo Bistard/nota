@@ -325,9 +325,9 @@ const keyCodeMap = new KeyCodeMap();
 const keyCodeStringMap = new KeyCodeStringMap();
 
 /** @internal */
+for (const [keycode, keycodeNum, keycodeStr] of <[number, number, string][]>
 [
     [KeyCode.None,    0, 'None'],
-    
     [KeyCode.F1,  112, 'F1'],
     [KeyCode.F2,  113, 'F2'],
     [KeyCode.F3,  114, 'F3'],
@@ -422,15 +422,10 @@ const keyCodeStringMap = new KeyCodeStringMap();
     [KeyCode.UpArrow,       38, 'UpArrow'],
     [KeyCode.NumLock,      144, 'NumLock'],
     [KeyCode.ContextMenu,   93, 'ContextMenu'],
-]
-.forEach(row => {
-    const keycode = row[0] as KeyCode;
-    const keycodeNum = row[1] as number;
-    const keycodeStr = row[2] as string;
-
+]) {
     keyCodeMap.map[keycodeNum] = keycode;
     keyCodeStringMap.set(keycode, keycodeStr);
-});
+}
 
 /**
  * @class A simple class that represents a key binding and treated as shortcut.

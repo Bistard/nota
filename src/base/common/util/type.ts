@@ -55,6 +55,11 @@ export type Pop<T extends any[]> = T extends [...infer Rest, any] ? [Rest] : nev
 export type Concat<T extends any[], U extends any[]> = [...T, ...U];
 
 /**
+ * Represents T or Array of T or Array of Array of T...
+ */
+export type NestedArray<T> = (T | NestedArray<T>)[];
+
+/**
  * make every parameter of an object and its sub-objects recursively as readonly.
  */
 export type DeepReadonly<T extends Record<string, any>> = {

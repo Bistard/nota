@@ -66,9 +66,9 @@ export async function retry<T>(task: IAsyncTask<T>, delay: number, round: number
 /**
  * @description Runs the given callback in a given times.
  */
-export function loop(round: number, fn: () => void): void {
+export function loop(round: number, fn: (index: number) => void): void {
 	for (let i = 0; i < round; i++) {
-		fn();
+		fn(i);
 	}
 }
 

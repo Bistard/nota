@@ -21,11 +21,15 @@ if (CLIArgv.NODE_ENV) {
 }
 
 // spawn the child process
-const spawn = childProcess.spawn('webpack --config webpack.config.js', [], {
-    env: process.env,
-    cwd: path.resolve(__dirname, '../'),
-    shell: true
-});
+const spawn = childProcess.spawn(
+    'webpack --config webpack.config.js', 
+    [], 
+    {
+        env: process.env,
+        cwd: path.resolve(__dirname, '../'),
+        shell: true
+    },
+);
 
 // register spawn listeners
 registerSpawnListeners(spawn);

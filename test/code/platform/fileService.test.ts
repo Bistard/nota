@@ -8,7 +8,6 @@ import { NullLogger, TestURI } from 'test/utility';
 import { Random } from 'src/base/common/util/random';
 import { Arrays } from 'src/base/common/util/array';
 import { after, before } from 'mocha';
-import { EventBlocker } from 'src/base/common/util/async';
 
 suite('FileService-disk-test', () => {
 
@@ -20,7 +19,7 @@ suite('FileService-disk-test', () => {
 
         if (!defaultChar) {
             for (let i = 0; i < size; i++) {
-                arr[i] = Random.getRandChar();
+                arr[i] = Random.char();
             }
         } else {
             for (let i = 0; i < size; i++) {
@@ -215,7 +214,7 @@ suite('FileService-disk-test', () => {
 
     test('writeFile - 256kb', async () => {
         const uri = URI.join(baseURI, 'files', `file-${256 * ByteSize.KB}.txt`);
-        const buffer = DataBuffer.fromString(Random.getRandString(256 * ByteSize.KB));
+        const buffer = DataBuffer.fromString(Random.string(256 * ByteSize.KB));
         await service.writeFile(uri, buffer, { create: true, overwrite: true, unlock: true });
     });
 
@@ -226,7 +225,7 @@ suite('FileService-disk-test', () => {
 
     test('writeFile - 1mb', async () => {
         const uri = URI.join(baseURI, 'files', `file-${1 * ByteSize.MB}.txt`);
-        const buffer = DataBuffer.fromString(Random.getRandString(ByteSize.MB));
+        const buffer = DataBuffer.fromString(Random.string(ByteSize.MB));
         await service.writeFile(uri, buffer, { create: true, overwrite: true, unlock: true });
     });
 
@@ -237,7 +236,7 @@ suite('FileService-disk-test', () => {
 
     test('writeFile - 10mb', async () => {
         const uri = URI.join(baseURI, 'files', `file-${10 * ByteSize.MB}.txt`);
-        const buffer = DataBuffer.fromString(Random.getRandString(10 * ByteSize.MB));
+        const buffer = DataBuffer.fromString(Random.string(10 * ByteSize.MB));
         await service.writeFile(uri, buffer, { create: true, overwrite: true, unlock: true });
     });
 

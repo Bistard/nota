@@ -1,5 +1,5 @@
 import * as assert from 'assert';
-import { createRegistrant, Registrants, RegistrantType } from 'src/code/platform/registrant/common/registrant';
+import { createRegistrant, REGISTRANTS, RegistrantType } from 'src/code/platform/registrant/common/registrant';
 
 const INullRegistrant = createRegistrant<INullRegistrant>(RegistrantType.Test, true);
 
@@ -24,7 +24,7 @@ class NullRegistrant implements INullRegistrant {
 suite('registrant-test', () => {
 
     test('basic', () => {
-        const nullRegistrant = Registrants.get(INullRegistrant);
+        const nullRegistrant = REGISTRANTS.get(INullRegistrant);
         assert.ok(nullRegistrant.foo());
     });
 });

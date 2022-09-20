@@ -10,9 +10,10 @@ import { ClassicDragAndDropProvider } from "src/code/browser/service/classicTree
 import { ILogService } from "src/base/common/logger";
 import { IConfigService } from "src/code/platform/configuration/common/abstractConfigService";
 import { BuiltInConfigScope } from "src/code/platform/configuration/common/configRegistrant";
-import { IFilterOpts } from "src/base/common/fuzzy";
+import { FuzzyScore, IFilterOpts } from "src/base/common/fuzzy";
+import { ClassicFilter } from "src/code/browser/service/classicTree/classicFilter";
 
-export interface IClassicTreeService extends ITreeService<ClassicOpenEvent> {
+export interface IClassicTreeService extends ITreeService<ClassicItem> {
 
 }
 
@@ -48,7 +49,7 @@ export class ClassicTreeService extends Disposable implements IClassicTreeServic
     }
     
     get root(): URI | undefined {
-        return (this._tree ? this._tree.root().uri : undefined);
+        return (this._tree ? this._tree.root.uri : undefined);
     }
     
     get isOpened(): boolean {
@@ -67,9 +68,6 @@ export class ClassicTreeService extends Disposable implements IClassicTreeServic
             const rootStat = await this.fileService.stat(root, { resolveChildren: true });
             const rootItem = new ClassicItem(rootStat, null, IFilterOpts);
             await this.__createTree(container, rootItem, IFilterOpts);
-            this._tree?.onContextmenu(e => {
-                console.log(e);
-            });
         }
         catch (error) {
             throw error;
@@ -80,8 +78,8 @@ export class ClassicTreeService extends Disposable implements IClassicTreeServic
         this._tree?.layout(height);
     }
     
-    public async refresh(): Promise<void> {
-        this._tree?.refresh(undefined);
+    public async refresh(data?: ClassicItem): Promise<void> {
+        this._tree?.refresh(data);
     }
     
     public async close(): Promise<void> {
@@ -100,20 +98,22 @@ export class ClassicTreeService extends Disposable implements IClassicTreeServic
      */
     private async __createTree(container: HTMLElement, root: ClassicItem, filters: IFilterOpts): Promise<void> {
 
-        const [tree, treeCreationPromise] = ClassicTree.createTree<ClassicItem, void>(
+        const tree = new ClassicTree<ClassicItem, FuzzyScore>(
             container, 
             root,
             [new ClassicRenderer()], 
             new ClassicItemProvider(),
-            new ClassicChildrenProvider(this.logService, this.fileService, filters),
             {
-                collapseByDefault: true,
+                collapsedByDefault: true,
+                filter: new ClassicFilter(),
                 dnd: new ClassicDragAndDropProvider(),
+                childrenProvider: new ClassicChildrenProvider(this.logService, this.fileService, filters),
             },
         );
 
         this._tree = tree;
         this.__register(tree);
-        return treeCreationPromise;
+
+        return tree.refresh();
     }
 }

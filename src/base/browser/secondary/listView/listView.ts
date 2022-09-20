@@ -594,6 +594,8 @@ export class ListView<T> implements IDisposable, ISpliceable<T>, IListView<T> {
          * rerender will do nothing.
          */
 
+        // TODO
+
         return;
     }
 
