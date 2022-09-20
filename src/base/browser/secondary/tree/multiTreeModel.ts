@@ -3,6 +3,10 @@ import { ISpliceable } from "src/base/common/range";
 import { IIndexTreeModelOptions, IIndexTreeModel, IndexTreeModel, ITreeModelSpliceOptions, IIndexTreeModelBase, IFlexIndexTreeModel, FlexIndexTreeModel } from "src/base/browser/secondary/tree/indexTreeModel";
 import { ITreeModel, ITreeSpliceEvent, ITreeNode, ITreeNodeItem, ITreeCollapseStateChangeEvent, IFlexNode } from "src/base/browser/secondary/tree/tree";
 
+/**
+ * An interface only for {@link IMultiTreeModelBase}.
+ * TRef: T
+ */
 export interface IMultiTreeModelBase<T, TFilter> extends ITreeModel<T, TFilter, T> {
     /**
      * @description Returns the number of nodes in the current tree model.
@@ -12,7 +16,6 @@ export interface IMultiTreeModelBase<T, TFilter> extends ITreeModel<T, TFilter, 
 
 /**
  * An interface only for {@link MultiTreeModel}.
- * TRef: T
  */
 export interface IMultiTreeModel<T, TFilter> extends IMultiTreeModelBase<T, TFilter> {
 
@@ -27,6 +30,9 @@ export interface IMultiTreeModel<T, TFilter> extends IMultiTreeModelBase<T, TFil
     splice(item: T, deleteCount: number, children: ITreeNodeItem<T>[], opts?: ITreeModelSpliceOptions<T, TFilter>): void;
 }
 
+/**
+ * An interface only for {@link FlexMultiTreeModel}.
+ */
 export interface IFlexMultiTreeModel<T, TFilter> extends IMultiTreeModelBase<T, TFilter> {
 
     /**
@@ -40,11 +46,17 @@ export interface IFlexMultiTreeModel<T, TFilter> extends IMultiTreeModelBase<T, 
     refresh(node?: IFlexNode<T, TFilter>, opts?: ITreeModelSpliceOptions<T, TFilter>): void;
 }
 
-export interface IMultiTreeModelOptions<T, TFilter> extends IIndexTreeModelOptions<T, TFilter> {
+/**
+ * {@link MultiTreeModelBase} constructor options.
+ */
+export interface IMultiTreeModelOptions<T, TFilter> extends IIndexTreeModelOptions<T, TFilter> {}
 
-}
-
-export abstract class MultiTreeModelBase<T, TFilter> implements IMultiTreeModelBase<T, TFilter> {
+/**
+ * @class A base class for {@link MultiTreeModel} and {@link FlexMultiTreeModel}.
+ * Integrated all the functionalities except modifying the tree structure (
+ * `splice` or `refresh` methods).
+ */
+abstract class MultiTreeModelBase<T, TFilter> implements IMultiTreeModelBase<T, TFilter> {
     
     // [field]
 

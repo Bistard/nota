@@ -41,11 +41,14 @@ export interface IIndexTreeModelOptions<T, TFilter> {
     readonly filter?: ITreeFilterProvider<T, TFilter>;
 }
 
+/**
+ * An interface only for {@link IndexTreeModelBase}.
+ */
 export interface IIndexTreeModelBase<T, TFilter> extends ITreeModel<T, TFilter, number[]> {
     /**
      * Events when tree splice did happen.
      */
-    onDidSplice: Register<ITreeSpliceEvent<T, TFilter>>;
+    readonly onDidSplice: Register<ITreeSpliceEvent<T, TFilter>>;
     getNodeLocation(node: ITreeNode<T, TFilter>): number[];
     getNodeListIndex(location: number[]): number;
     setCollapsible(location: number[], collapsible?: boolean): boolean;
@@ -89,7 +92,7 @@ export interface IFlexIndexTreeModel<T, TFilter> extends IIndexTreeModelBase<T, 
  * Integrated all the functionalities except modifying the tree structure (
  * `splice` or `refresh` methods).
  */
-export abstract class IndexTreeModelBase<T, TFilter> implements IIndexTreeModelBase<T, TFilter> {
+abstract class IndexTreeModelBase<T, TFilter> implements IIndexTreeModelBase<T, TFilter> {
     
     // [fields]
 
