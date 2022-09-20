@@ -399,6 +399,10 @@ export class AsyncTree<T, TFilter> extends Disposable implements IAsyncTree<T, T
 
     // [private helper methods]
 
+    /**
+     * @description Only rerenders the subtree of the given tree node.
+     * @param node The given tree node.
+     */
     private __render(node: ITreeNode<T, TFilter>): void {
         this._tree.refresh(
             node,
@@ -410,8 +414,7 @@ export class AsyncTree<T, TFilter> extends Disposable implements IAsyncTree<T, T
     }
 
     /**
-     * @description Presets the behaviours when the collapsing state inside the
-     * {@link FlexMultiTree} is changed.
+     * @description Presets the behaviours when the collapsing state is changed.
      */
     private async __internalOnDidChangeCollapseState(e: ITreeCollapseStateChangeEvent<T, TFilter>): Promise<void> {
         

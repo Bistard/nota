@@ -819,7 +819,7 @@ suite('flexIndexTreeModel-test', () => {
     function setNewChildren<T, TFilter>(node: IFlexNode<T, TFilter>, children: IFlexNode<T, TFilter>[]): void {
         node.oldChildren = node.children;
         node.children = children;
-        node.refresh = true;
+        node.stale = true;
     }
 
     test('constructor', () => {

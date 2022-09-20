@@ -105,9 +105,9 @@ export interface ITreeNodeItem<T> {
 export interface IFlexNode<T, TFilter = void> extends ITreeNode<T, TFilter> {
 
     /**
-     * If the current tree node is refreshed.
+     * If the current tree node is staled and should be refreshed.
      */
-    refresh?: boolean;
+    stale?: boolean;
 
     /**
      * The old children of the current node.

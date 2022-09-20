@@ -845,7 +845,7 @@ export class IndexTreeModel<T, TFilter> extends IndexTreeModelBase<T, TFilter> i
  * @class An optimization data structure different than {@link IndexTreeModel}.
  * Instead of letting client provide a new tree-like structure, client modify
  * the existed one and the model will rebuild the tree structure automatically
- * after calling the method {@link IFlexIndexTreeModel.refresh}.
+ * after calling the method {@link IFlexIndexTreeModel.stale}.
  */
 export class FlexIndexTreeModel<T, TFilter> extends IndexTreeModelBase<T, TFilter> implements IFlexIndexTreeModel<T, TFilter> {
 
@@ -865,7 +865,7 @@ export class FlexIndexTreeModel<T, TFilter> extends IndexTreeModelBase<T, TFilte
         const { listIndex, visible } = <parentType>this.__getNodeWithListIndex(location);
         
         // no changes to the current tree, we ignore the request.
-        if (!node.refresh) {
+        if (!node.stale) {
             return;
         }
         
@@ -926,7 +926,7 @@ export class FlexIndexTreeModel<T, TFilter> extends IndexTreeModelBase<T, TFilte
 
         // actual delete the old children
         node.oldChildren = undefined;
-        node.refresh = false;
+        node.stale = false;
     }
 
     // [private helper methods]
@@ -937,7 +937,7 @@ export class FlexIndexTreeModel<T, TFilter> extends IndexTreeModelBase<T, TFilte
         toBeRendered: IFlexNode<T, TFilter>[],
         onDidCreateNode?: (node: ITreeNode<T, TFilter>) => void,
     ): void {
-        node.refresh = false;
+        node.stale = false;
 
         node.visible = parent.visible ? !parent.collapsed : false;
         if (node.visible) {

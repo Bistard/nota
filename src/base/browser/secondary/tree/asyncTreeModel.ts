@@ -247,12 +247,13 @@ export class AsyncTreeModel<T, TFilter> extends FlexMultiTreeModel<T, TFilter> i
                 parent: node,
                 children: [],
                 collapsible: hasChildren,
+                stale: true,
                 
                 /**
                  * The following metadata will be recalculated correctly at 
                  * {@link FlexIndexTreeModel}.
                  */
-                
+
                 visibleNodeCount: undefined!,
                 collapsed: undefined!,
                 depth: undefined!,
@@ -276,8 +277,7 @@ export class AsyncTreeModel<T, TFilter> extends FlexMultiTreeModel<T, TFilter> i
             childrenNodes.push(newChildItem);
         }
         
-        // insert the children nodes into the current node
-        node.refresh = true;
+        node.stale = true;
         node.oldChildren = node.children;
         node.children = childrenNodes;
 
