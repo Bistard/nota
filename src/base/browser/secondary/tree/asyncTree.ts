@@ -10,6 +10,7 @@ import { ErrorHandler } from "src/base/common/error";
 import { Register } from "src/base/common/event";
 import { IStandardKeyboardEvent } from "src/base/common/keyboard";
 import { IScrollEvent } from "src/base/common/scrollable";
+import { Blocker } from "src/base/common/util/async";
 
 /**
  * @internal
@@ -414,14 +415,31 @@ export class AsyncTree<T, TFilter> extends Disposable implements IAsyncTree<T, T
     }
 
     /**
+     * Indicates if any tree nodes is collapse changing, prevent parallel 
+     * collapse changings.
+     */
+    private _collapseChanging?: Promise<void>;
+
+    /**
      * @description Presets the behaviours when the collapsing state is changed.
      */
     private async __internalOnDidChangeCollapseState(e: ITreeCollapseStateChangeEvent<T, TFilter>): Promise<void> {
-        
+
+        // ignores the root node
         const node: IAsyncNode<T, TFilter> = e.node;
         if (node === this._tree.rootNode) {
             return;
         }
+
+        // if any current node is collapse changing, wait for it.
+        if (this._collapseChanging) {
+            await this._collapseChanging;
+        }
+
+        // mark the current node as collapse changing
+        const blocker = new Blocker<void>();
+        this._collapseChanging = blocker.waiting();
+        this._collapseChanging.finally(() => this._collapseChanging = undefined);
 
         /**
          * Skip the refresh operation since there is no reasons to get the 
@@ -444,28 +462,18 @@ export class AsyncTree<T, TFilter> extends Disposable implements IAsyncTree<T, T
          * rerender the whole tree view.
          */
         try {
-
+            
             // get the updated tree structure into the model
             await this._tree.refreshNode(node);
             
-            // FIX
-            /**
-             * When expanding a node recursively, the internal event emitter will
-             * fires each expanded node start from the deepest. That means if 
-             * two nodes expanded, the deeper will call `__render` first which
-             * may cause error because the upper node is not refreshed completed
-             * yet.
-             * 
-             * Possible fix: fired event will contain all the nodes instead of
-             * fired one by one.
-             */
-            // FIX
-
             /**
              * Sets the updated tree structure from the model to the old one in
              * the {@link FlexMultiTree} and rerender it.
              */
             this.__render(node);
+            
+            // mark as completed
+            blocker.resolve();
         } 
 
         /**
@@ -473,6 +481,7 @@ export class AsyncTree<T, TFilter> extends Disposable implements IAsyncTree<T, T
          * the global.
          */
         catch (error) {
+            blocker.reject();
             ErrorHandler.onUnexpectedError(error);
         }
     }

@@ -288,7 +288,7 @@ suite('AsyncTree-test', () => {
         assert.strictEqual(tree.isCollapsed(6), true);
 
         await tree.expand(2, true);
-        // await tree.refresh(); // FIX
+        await tree.refresh();
         assert.strictEqual(tree.isCollapsed(2), false);
         assert.strictEqual(tree.isCollapsed(6), false);
 
