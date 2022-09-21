@@ -173,6 +173,10 @@ class AsyncMultiTree<T, TFilter> extends FlexMultiTree<T, TFilter> {
  * @note The subtree will be refreshed automatically once the collapse state of 
  * the tree node is changed.
  * 
+ * @warn If data type `T` is a primitive type, the `size()` function will not 
+ * work properly since it cannot decide which is which when mapping client data 
+ * to tree node.
+ * 
  * @implements 
  * The tree is wrapping a {@link AsyncMultiTree} and the reason for this is to 
  * avoid having same property names.

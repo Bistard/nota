@@ -177,7 +177,7 @@ export class AsyncTreeModel<T, TFilter> extends FlexMultiTreeModel<T, TFilter> i
         if (asyncNode.collapsible === false) {
             childrenPromise = Promise.resolve(Iterable.empty());
         } else {
-            childrenPromise = Promise.resolve(this.__getChildren(asyncNode));
+            childrenPromise = this.__getChildren(asyncNode);
         }
 
         try {
@@ -242,7 +242,7 @@ export class AsyncTreeModel<T, TFilter> extends FlexMultiTreeModel<T, TFilter> i
         for (const childData of childrenData) {
             const hasChildren = this._childrenProvider.hasChildren(childData);
             
-            const newChildItem: IAsyncNode<T, TFilter> = {
+            const newChildNode: IAsyncNode<T, TFilter> = {
                 data: childData,
                 parent: node,
                 children: [],
@@ -250,7 +250,7 @@ export class AsyncTreeModel<T, TFilter> extends FlexMultiTreeModel<T, TFilter> i
                 stale: true,
                 
                 /**
-                 * The following metadata will be recalculated correctly at 
+                 * The following metadata will be recalculated correctly in
                  * {@link FlexIndexTreeModel}.
                  */
 
@@ -269,12 +269,12 @@ export class AsyncTreeModel<T, TFilter> extends FlexMultiTreeModel<T, TFilter> i
                 if (this._childrenProvider.collapseByDefault && 
                     !this._childrenProvider.collapseByDefault(childData)
                 ) {
-                    newChildItem.collapsed = false;
-                    childrenNodesToRefresh.push(newChildItem);
+                    newChildNode.collapsed = false;
+                    childrenNodesToRefresh.push(newChildNode);
                 }
             }
 
-            childrenNodes.push(newChildItem);
+            childrenNodes.push(newChildNode);
         }
         
         node.stale = true;
