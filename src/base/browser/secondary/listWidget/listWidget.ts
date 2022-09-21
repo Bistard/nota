@@ -164,6 +164,7 @@ class __ListTraitRenderer<T> implements IListViewRenderer<T, HTMLElement> {
 }
 
 /**
+ * @internal
  * @class An internal class that handles the mouse support of {@link IListWidget}.
  * It handles:
  *  - when to focus DOM
@@ -172,7 +173,7 @@ class __ListTraitRenderer<T> implements IListViewRenderer<T, HTMLElement> {
  * 
  * @readonly EXPORT FOR OTHER MODULES ONLY. DO NOT USE DIRECTLY.
  */
-export class __ListWidgetMouseController<T> implements IDisposable {
+export class ListWidgetMouseController<T> implements IDisposable {
 
     // [fields]
 
@@ -1259,10 +1260,10 @@ export class ListWidget<T> implements IListWidget<T> {
 
     /**
      * @description Creates an instance of a {@link IListWidgetMouseController}.
-     * May override by the inheritance.
+     * May override by the inheritance to customize the mouse behaviour.
      */
-    protected __createListWidgetMouseController(opts: IListWidgetOpts<T>): __ListWidgetMouseController<T> {
-        return new __ListWidgetMouseController(this, opts);
+    protected __createListWidgetMouseController(opts: IListWidgetOpts<T>): ListWidgetMouseController<T> {
+        return new ListWidgetMouseController(this, opts);
     }
 
     /**

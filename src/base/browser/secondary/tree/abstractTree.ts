@@ -1,7 +1,7 @@
 import { ITreeCollapseStateChangeEvent, ITreeContextmenuEvent, ITreeModel, ITreeMouseEvent, ITreeNode, ITreeSpliceEvent, ITreeTouchEvent } from "src/base/browser/secondary/tree/tree";
 import { ITreeListRenderer, TreeItemRenderer } from "src/base/browser/secondary/tree/treeListRenderer";
 import { IListItemProvider, TreeListItemProvider } from "src/base/browser/secondary/listView/listItemProvider";
-import { IListContextmenuEvent, IListMouseEvent, IListTouchEvent, IListWidget, IListWidgetOpts, ITraitChangeEvent, ListWidget, __ListWidgetMouseController } from "src/base/browser/secondary/listWidget/listWidget";
+import { IListContextmenuEvent, IListMouseEvent, IListTouchEvent, IListWidget, IListWidgetOpts, ITraitChangeEvent, ListWidget, ListWidgetMouseController } from "src/base/browser/secondary/listWidget/listWidget";
 import { IListDragAndDropProvider } from "src/base/browser/secondary/listWidget/listWidgetDragAndDrop";
 import { DisposableManager, IDisposable } from "src/base/common/dispose";
 import { Event, Register, RelayEmitter } from "src/base/common/event";
@@ -112,13 +112,14 @@ class __TreeListTrait<T> {
 }
 
 /**
- * @class A internal tree-level mouse controller that overrides some behaviours 
+ * @internal
+ * @class An internal tree-level mouse controller that overrides some behaviours 
  * on the list-level.
  * 
  * Since the collapsing status is only known by the tree-level, we need to override
  * the behaviours of the list-level mouse controller to achieve customization.
  */
-class __TreeListWidgetMouseController<T, TFilter, TRef> extends __ListWidgetMouseController<ITreeNode<T, TFilter>> {
+class TreeListWidgetMouseController<T, TFilter, TRef> extends ListWidgetMouseController<ITreeNode<T, TFilter>> {
 
     private readonly _tree: IAbstractTree<T, TFilter, TRef>;
 
@@ -225,7 +226,7 @@ export class TreeListWidget<T, TFilter, TRef> extends ListWidget<ITreeNode<T, TF
 
         let i: number;
         let item: ITreeNode<T, TFilter>;
-        for (i = 0; i < items.length; i++) {
+        for (i = index; i < index + items.length; i++) {
             item = items[i]!;
             
             if (this._focused.has(item)) {
@@ -264,8 +265,8 @@ export class TreeListWidget<T, TFilter, TRef> extends ListWidget<ITreeNode<T, TF
      * @description Overrides the mouse controller to customize tree-like mouse
      * behaviours.
      */
-    protected override __createListWidgetMouseController(opts: ITreeListWidgetOpts<T, TFilter, TRef>): __ListWidgetMouseController<ITreeNode<T, TFilter>> {
-        return new __TreeListWidgetMouseController(this, opts);
+    protected override __createListWidgetMouseController(opts: ITreeListWidgetOpts<T, TFilter, TRef>): ListWidgetMouseController<ITreeNode<T, TFilter>> {
+        return new TreeListWidgetMouseController(this, opts);
     }
 }
 
