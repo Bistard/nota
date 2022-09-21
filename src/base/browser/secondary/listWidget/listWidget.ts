@@ -294,7 +294,7 @@ export class ListWidgetMouseController<T> implements IDisposable {
 
         // if no focus yet, we focus on the current.
         if (anchor === null) {
-            anchor = this._view.getFocus() || toFocused;
+            anchor = this._view.getFocus() ?? toFocused;
             this._view.setAnchor(anchor);
         }
 
@@ -369,6 +369,7 @@ export class ListWidgetMouseController<T> implements IDisposable {
 }
 
 /**
+ * @internal
  * @class An internal class that handles the keyboard support of {@link IListWidget}.
  * It handles:
  *  - enter
@@ -435,7 +436,7 @@ class __ListWidgetKeyboardController<T> implements IDisposable {
         e.preventDefault();
 		e.stopPropagation();
         const focused = this._view.getFocus();
-        this._view.setSelections(focused ? [focused] : []);
+        this._view.setSelections(focused !== null ? [focused] : []);
     }
 
     private __onUpArrow(e: IStandardKeyboardEvent): void {
