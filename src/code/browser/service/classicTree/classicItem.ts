@@ -1,4 +1,4 @@
-import { IChildrenProvider } from "src/base/browser/secondary/tree/asyncTreeModel";
+import { IChildrenProvider } from "src/base/browser/secondary/tree/asyncTree";
 import { FileType, IResolvedFileStat } from "src/base/common/file/file";
 import { URI } from "src/base/common/file/uri";
 import { IFilterOpts, isFiltered } from "src/base/common/fuzzy";

@@ -111,35 +111,7 @@ export class ExplorerTreeService extends Disposable implements IExplorerTreeServ
         await this._currentTreeService.init(container, root);
         this._onDidClick.setInput(this._currentTreeService.onDidClick);
 
-        // on did resource change callback
-        this._onDidResourceChangeScheduler = new Scheduler(100, events => {
-            
-            if (!this._root) {
-                return;
-            }
-
-            let affected = false;
-            for (const event of events) {
-                if (event.affect(this._root)) {
-                    affected = true;
-                    break;
-                }
-            }
-
-            if (affected) {
-                this._currentTreeService!.refresh();
-            }
-        });
-
-        // create a disposable for all the current tree business
-        const disposables = new DisposableManager();
-        this._currTreeDisposable = disposables;
-
-        disposables.register(this._onDidResourceChangeScheduler);
-        disposables.register(this.fileService.watch(root, { recursive: true }));
-        disposables.register(this.fileService.onDidResourceChange(e => {
-            this._onDidResourceChangeScheduler!.schedule(e);
-        }));
+        this.__registerTreeListeners(root);
     }
 
     public switchMode(mode: TreeMode): void {
@@ -173,5 +145,43 @@ export class ExplorerTreeService extends Disposable implements IExplorerTreeServ
         // close the actual tree service
         this._currentTreeService!.close();
         this._currentTreeService = undefined;
+    }
+
+    // [private helper methods]
+
+    /**
+     * @description Registers tree related listeners when initializing.
+     */
+    private __registerTreeListeners(root: URI): void {
+        
+        // create a disposable for all the current tree business
+        const disposables = new DisposableManager();
+        this._currTreeDisposable = disposables;
+
+        // on did resource change callback
+        this._onDidResourceChangeScheduler = new Scheduler(100, (events: ResourceChangeEvent[]) => {
+            if (!this._root) {
+                return;
+            }
+
+            let affected = false;
+            for (const event of events) {
+                if (event.affect(this._root)) {
+                    console.log(event);
+                    affected = true;
+                    break;
+                }
+            }
+
+            if (affected) {
+                this._currentTreeService!.refresh();
+            }
+        });
+
+        disposables.register(this._onDidResourceChangeScheduler);
+        disposables.register(this.fileService.watch(root, { recursive: true }));
+        disposables.register(this.fileService.onDidResourceChange(e => {
+            this._onDidResourceChangeScheduler!.schedule(e);
+        }));
     }
 }

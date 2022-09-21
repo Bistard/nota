@@ -101,13 +101,16 @@ export class ClassicTreeService extends Disposable implements IClassicTreeServic
         this._tree = new ClassicTree<ClassicItem, FuzzyScore>(
             container, 
             root,
-            [new ClassicRenderer()], 
-            new ClassicItemProvider(),
             {
+                itemProvider: new ClassicItemProvider(), 
+                renderers: [new ClassicRenderer()],
+                childrenProvider: new ClassicChildrenProvider(this.logService, this.fileService, filters),
+                identityProvider: { getID: (data: ClassicItem) => data.uri.toString() },
+                
+                // optional
                 collapsedByDefault: true,
                 filter: new ClassicFilter(),
                 dnd: new ClassicDragAndDropProvider(),
-                childrenProvider: new ClassicChildrenProvider(this.logService, this.fileService, filters),
             },
         );
 

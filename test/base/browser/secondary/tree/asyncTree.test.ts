@@ -18,12 +18,12 @@ suite('AsyncTree-test', () => {
         const tree = new AsyncTree<number, void>(
             container, 
             0,
-            [],
             {
-                getSize: (data) => 10,
-                getType: (data) => 10
-            },
-            {
+                renderers: [],
+                itemProvider: {
+                    getSize: (data) => 10,
+                    getType: (data) => 10
+                },
                 collapsedByDefault: false,
                 childrenProvider: {
                     getChildren: (data) => TREE1.get(data)!,
@@ -97,12 +97,12 @@ suite('AsyncTree-test', () => {
         const tree = new AsyncTree<number, void>(
             document.createElement('div'), 
             0,
-            [],
             {
-                getSize: (data) => 10,
-                getType: (data) => 10
-            },
-            {
+                renderers: [],
+                itemProvider: {
+                    getSize: (data) => 10,
+                    getType: (data) => 10
+                },
                 collapsedByDefault: false,
                 childrenProvider: {
                     getChildren: (data) => TREE1.get(data)!,
@@ -231,12 +231,12 @@ suite('AsyncTree-test', () => {
         const tree = new AsyncTree<number, void>(
             document.createElement('div'), 
             0,
-            [],
             {
-                getSize: (data) => 10,
-                getType: (data) => 10
-            },
-            {
+                renderers: [],
+                itemProvider: {
+                    getSize: (data) => 10,
+                    getType: (data) => 10
+                },
                 collapsedByDefault: false,
                 childrenProvider: {
                     getChildren: (data) => TREE2.get(data)!,
@@ -313,12 +313,12 @@ suite('AsyncTree-test', () => {
         const tree = new AsyncTree(
             document.createElement('div'), 
             TREE,
-            [],
             {
-                getSize: (data) => 0,
-                getType: (data) => 0
-            },
-            {
+                renderers: [],
+                itemProvider: {
+                    getSize: (data) => 0,
+                    getType: (data) => 0
+                },
                 collapsedByDefault: false,
                 childrenProvider: {
                     getChildren: (item) => Array.isArray(item) ? item : [] as any,

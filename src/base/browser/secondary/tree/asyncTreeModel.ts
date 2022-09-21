@@ -1,41 +1,9 @@
-import { IAsyncNode } from "src/base/browser/secondary/tree/asyncTree";
+import { IAsyncNode, IChildrenProvider, IIdentiityProivder } from "src/base/browser/secondary/tree/asyncTree";
 import { IMultiTreeModelOptions, FlexMultiTreeModel } from "src/base/browser/secondary/tree/multiTreeModel";
 import { ITreeNode } from "src/base/browser/secondary/tree/tree";
 import { ISpliceable } from "src/base/common/range";
 import { Blocker } from "src/base/common/util/async";
 import { Iterable } from "src/base/common/util/iterable";
-
-/**
- * Provides functionality to determine the children stat of the given data.
- */
-export interface IChildrenProvider<T> {
-
-    /**
-     * @description Check if the given data has children.
-     */
-    hasChildren(data: T): boolean;
-
-    /**
-     * @description Get the children from the given data.
-     */
-    getChildren(data: T): T[] | Promise<T[]>;
-
-    /**
-     * @description Determines if the given data requires to refresh children
-     * when the corresponding tree node of the data is about to expand.
-     * @note If not provided, the tree node will always get refreshed when 
-     * expanding.
-     */
-    shouldRefreshChildren?(data: T): boolean;
-
-    /**
-     * @description Determines if the given data should be collapsed when 
-     * constructing.
-     * @note This has higher priority than `{@link IIndexTreeModelOptions['collapsedByDefault']}`
-     * which will only be applied when this function is not provided.
-     */
-    collapseByDefault?: (data: T) => boolean;
-}
 
 /**
  * An interface only for {@link AsyncTreeModel}.
@@ -56,6 +24,7 @@ export interface IAsyncTreeModel<T, TFilter> extends FlexMultiTreeModel<T, TFilt
  */
 export interface IAsyncTreeModelOptions<T, TFilter> extends IMultiTreeModelOptions<T, TFilter> {
     readonly childrenProvider: IChildrenProvider<T>;
+    readonly identityProvider?: IIdentiityProivder<T>;
 }
 
 /**
@@ -72,6 +41,7 @@ export class AsyncTreeModel<T, TFilter> extends FlexMultiTreeModel<T, TFilter> i
     // [field]
 
     private readonly _childrenProvider: IChildrenProvider<T>;
+    private readonly _identityProvider?: IIdentiityProivder<T>;
 
     /**
      * Storing the ongoing {@link Promise} when fetching the children stat of 
@@ -94,6 +64,7 @@ export class AsyncTreeModel<T, TFilter> extends FlexMultiTreeModel<T, TFilter> i
     ) {
         super(rootData, view, opts);
         this._childrenProvider = opts.childrenProvider;
+        this._identityProvider = opts.identityProvider;
     }
 
     // [public methods]
@@ -231,13 +202,19 @@ export class AsyncTreeModel<T, TFilter> extends FlexMultiTreeModel<T, TFilter> i
             return [];
         }
 
-        /**
-         * Create tree node for each child. Moreover check if any of the 
-         * children is not collapsed, these children will be returned and for 
-         * future refresh.
-         */
+        // These children will be returned and for future refresh.
         const childrenNodesToRefresh: IAsyncNode<T, TFilter>[] = [];
+        // These children will be the updated direct children nodes.
         const childrenNodes: IAsyncNode<T, TFilter>[] = [];
+        
+        /**
+         * A mapping that remembers all the existed data, for the re-use purpose
+         * when encountering the same data during the refresh.
+         */
+        const existedNodes = new Map<T, IAsyncNode<T, TFilter>>();
+        for (const existed of node.children) {
+            existedNodes.set(existed.data, existed);
+        }
 
         for (const childData of childrenData) {
             const hasChildren = this._childrenProvider.hasChildren(childData);

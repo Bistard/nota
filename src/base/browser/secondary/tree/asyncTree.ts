@@ -1,6 +1,6 @@
 import { IListItemProvider } from "src/base/browser/secondary/listView/listItemProvider";
 import { IListWidget, ITraitChangeEvent } from "src/base/browser/secondary/listWidget/listWidget";
-import { AsyncTreeModel, IChildrenProvider, IAsyncTreeModel } from "src/base/browser/secondary/tree/asyncTreeModel";
+import { AsyncTreeModel, IAsyncTreeModel } from "src/base/browser/secondary/tree/asyncTreeModel";
 import { ITreeModelSpliceOptions } from "src/base/browser/secondary/tree/indexTreeModel";
 import { FlexMultiTree, IMultiTreeBase, IMultiTreeOptions } from "src/base/browser/secondary/tree/multiTree";
 import { ITreeNode, ITreeModel, ITreeCollapseStateChangeEvent, ITreeMouseEvent, ITreeTouchEvent, ITreeContextmenuEvent, ITreeSpliceEvent, IFlexNode } from "src/base/browser/secondary/tree/tree";
@@ -10,7 +10,7 @@ import { ErrorHandler } from "src/base/common/error";
 import { Register } from "src/base/common/event";
 import { IStandardKeyboardEvent } from "src/base/common/keyboard";
 import { IScrollEvent } from "src/base/common/scrollable";
-import { AsyncQueue, Blocker } from "src/base/common/util/async";
+import { AsyncQueue } from "src/base/common/util/async";
 
 /**
  * @internal
@@ -21,6 +21,51 @@ export interface IAsyncNode<T, TFilter> extends IFlexNode<T, TFilter> {
     
     /** Determines if the current node is during the refreshing. */
     refreshing?: Promise<void>;
+}
+
+/**
+ * Use to identify the uniqueness of different client-provided data.
+ * @implements
+ * It may help the tree to re-use memory when encountering the same client data.
+ */
+export interface IIdentiityProivder<T> {
+    /**
+     * @description Returns the representative ID of the given client data.
+     * @param data The given client-provided data.
+     */
+    getID(data: T): string;
+}
+
+/**
+ * Provides functionality to determine the children stat of the given data.
+ */
+export interface IChildrenProvider<T> {
+
+    /**
+     * @description Check if the given data has children.
+     */
+    hasChildren(data: T): boolean;
+
+    /**
+     * @description Get the children from the given data.
+     */
+    getChildren(data: T): T[] | Promise<T[]>;
+
+    /**
+     * @description Determines if the given data requires to refresh children
+     * when the corresponding tree node of the data is about to expand.
+     * @note If not provided, the tree node will always get refreshed when 
+     * expanding.
+     */
+    shouldRefreshChildren?(data: T): boolean;
+
+    /**
+     * @description Determines if the given data should be collapsed when 
+     * constructing.
+     * @note This has higher priority than `{@link IIndexTreeModelOptions['collapsedByDefault']}`
+     * which will only be applied when this function is not provided.
+     */
+    collapseByDefault?: (data: T) => boolean;
 }
 
 /**
@@ -75,10 +120,18 @@ export interface IAsyncTree<T, TFilter> extends Omit<IMultiTreeBase<T, TFilter>,
  */
 export interface IAsyncTreeOptions<T, TFilter> extends IMultiTreeOptions<T, TFilter>, ITreeModelSpliceOptions<T, TFilter> {
     
+    readonly renderers: ITreeListRenderer<T, TFilter, any>[];
+    readonly itemProvider: IListItemProvider<T>;
+
     /**
      * Provides functionality to determine the children stat of the given data.
      */
     readonly childrenProvider: IChildrenProvider<T>;
+
+    /**
+     * Provides functionality to determine the uniqueness of the given data.
+     */
+    readonly identityProvider?: IIdentiityProivder<T>;
 }
 
 /**
@@ -100,11 +153,9 @@ class AsyncMultiTree<T, TFilter> extends FlexMultiTree<T, TFilter> {
     constructor(
         container: HTMLElement,
         rootData: T,
-        renderers: ITreeListRenderer<T, TFilter, any>[],
-        itemProvider: IListItemProvider<T>,
         opts: IAsyncTreeOptions<T, TFilter>
     ) {
-        super(container, rootData, renderers, itemProvider, opts);
+        super(container, rootData, opts.renderers, opts.itemProvider, opts);
         this._childrenProvider = opts.childrenProvider;
     }
 
@@ -113,7 +164,7 @@ class AsyncMultiTree<T, TFilter> extends FlexMultiTree<T, TFilter> {
     protected override createModel(
         rootData: T, 
         view: IListWidget<ITreeNode<T, TFilter>>, 
-        opts: IMultiTreeOptions<T, TFilter>,
+        opts: IAsyncTreeOptions<T, TFilter>,
         ): ITreeModel<T, TFilter, T> 
     {
         return new AsyncTreeModel(
@@ -122,7 +173,8 @@ class AsyncMultiTree<T, TFilter> extends FlexMultiTree<T, TFilter> {
             {
                 collapsedByDefault: opts.collapsedByDefault,
                 filter: opts.filter,
-                childrenProvider: (<any>opts).childrenProvider, // TODO
+                childrenProvider: opts.childrenProvider,
+                identityProvider: opts.identityProvider,
             }
         );
     }
@@ -212,19 +264,10 @@ export class AsyncTree<T, TFilter> extends Disposable implements IAsyncTree<T, T
     constructor(
         container: HTMLElement,
         rootData: T,
-        renderers: ITreeListRenderer<T, TFilter, any>[],
-        itemProvider: IListItemProvider<T>,
         opts: IAsyncTreeOptions<T, TFilter>,
     ) {
         super();
-        
-        this._tree = new AsyncMultiTree(
-            container, 
-            rootData,
-            renderers, 
-            itemProvider, 
-            opts,
-        );
+        this._tree = new AsyncMultiTree(container, rootData, opts);
 
         this._onDidCreateNode = opts.onDidCreateNode;
         this._onDidDeleteNode = opts.onDidDeleteNode;

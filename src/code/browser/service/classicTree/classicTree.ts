@@ -1,7 +1,5 @@
-import { IListItemProvider } from "src/base/browser/secondary/listView/listItemProvider";
 import { AsyncTree, IAsyncTreeOptions } from "src/base/browser/secondary/tree/asyncTree";
 import { ITreeMouseEvent } from "src/base/browser/secondary/tree/tree";
-import { ITreeListRenderer } from "src/base/browser/secondary/tree/treeListRenderer";
 import { Emitter, Register } from "src/base/common/event";
 import { IStandardKeyboardEvent, KeyCode } from "src/base/common/keyboard";
 import { ClassicItem } from "src/code/browser/service/classicTree/classicItem";
@@ -38,11 +36,9 @@ export class ClassicTree<T extends ClassicItem, TFilter> extends AsyncTree<T, TF
     constructor(
         container: HTMLElement,
         rootData: T,
-        renderers: ITreeListRenderer<T, TFilter, any>[],
-        itemProvider: IListItemProvider<T>,
         opts: IClassicTreeOptions<T, TFilter>,
     ) {
-        super(container, rootData, renderers, itemProvider, opts);
+        super(container, rootData, opts);
         this.__register(this.onClick(e => this.__onClick(e)));
         this.__register(this.onKeydown(e => this.__onKeydown(e)))
     }
