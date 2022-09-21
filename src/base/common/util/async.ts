@@ -364,8 +364,10 @@ export interface IScheduler<T> extends IDisposable {
 }
 
 /**
- * @class A `Scheduler` can schedule a new execution on the given callback with 
- * a delay time when invoking {@link Scheduler.schedule}.
+ * @class A `Scheduler` can schedule a new execution with the provided events on 
+ * the given callback with a delay time when invoking {@link Scheduler.schedule}. 
+ * The new schedule will cancel the previous schedule, the canceld event will be 
+ * stored for the next scheduling.
  */
 export class Scheduler<T> implements IScheduler<T> {
 
