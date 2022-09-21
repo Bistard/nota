@@ -1,5 +1,6 @@
 import * as assert from 'assert';
 import { AsyncTree } from 'src/base/browser/secondary/tree/asyncTree';
+import { generateTreeLike } from 'test/util/helpers';
 
 suite('AsyncTree-test', () => {
 
@@ -305,5 +306,29 @@ suite('AsyncTree-test', () => {
                 assert.strictEqual(tree.isCollapsed(i), true);
             }
         }
+    });
+
+    test('size', async () => {
+        const [TREE, size] = generateTreeLike(() => Object.create(null), 10);
+        const tree = new AsyncTree(
+            document.createElement('div'), 
+            TREE,
+            [],
+            {
+                getSize: (data) => 0,
+                getType: (data) => 0
+            },
+            {
+                collapsedByDefault: false,
+                childrenProvider: {
+                    getChildren: (item) => Array.isArray(item) ? item : [] as any,
+                    hasChildren: (item) => Array.isArray(item),
+                    collapseByDefault: () => false,
+                },
+            }
+        );
+
+        await tree.refresh();
+        assert.strictEqual(tree.size(), size);
     });
 });
