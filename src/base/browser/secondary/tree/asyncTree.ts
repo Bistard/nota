@@ -61,7 +61,7 @@ export interface IAsyncTree<T, TFilter> extends Omit<IMultiTreeBase<T, TFilter>,
      * @note Since expanding meaning refreshing to the updated children nodes,
      * asynchronous is required.
      */
-    toggleCollapseOrExpand(data: T, recursive: boolean): Promise<boolean>;
+    toggleCollapseOrExpand(data: T, recursive?: boolean): Promise<boolean>;
 }
 
 /**
@@ -330,7 +330,7 @@ export class AsyncTree<T, TFilter> extends Disposable implements IAsyncTree<T, T
         return successOrNot;
     }
 
-    public async toggleCollapseOrExpand(data: T, recursive: boolean): Promise<boolean> {
+    public async toggleCollapseOrExpand(data: T, recursive?: boolean): Promise<boolean> {
         const root: IAsyncNode<T, TFilter> = this._tree.rootNode;
 
         if (root.refreshing) {

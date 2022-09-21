@@ -259,6 +259,23 @@ export class TreeListWidget<T, TFilter, TRef> extends ListWidget<ITreeNode<T, TF
         }
     }
 
+    // [public override methods]
+
+    public override setFocus(index: number | null): void {
+        super.setFocus(index);
+        this._focused.set(index !== null ? [this.getItem(index)] : []);
+    }
+
+    public override setAnchor(index: number | null): void {
+        super.setAnchor(index);
+        this._anchor.set(index !== null ? [this.getItem(index)] : []);
+    }
+
+    public override setSelections(indice: number[]): void {
+        super.setSelections(indice);
+        this._selected.set(indice.map(idx => this.getItem(idx)));
+    }
+
     // [protected override methods]
 
     /**

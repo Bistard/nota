@@ -445,6 +445,7 @@ class __ListWidgetKeyboardController<T> implements IDisposable {
             e.stopPropagation();
             const newFoused = this._view.focusPrev(1, false, undefined);
             if (newFoused !== -1) {
+                this._view.setAnchor(newFoused);
                 this._view.reveal(newFoused, undefined);
             }
             this._view.setDomFocus();
@@ -457,6 +458,7 @@ class __ListWidgetKeyboardController<T> implements IDisposable {
             e.stopPropagation();
             const newFoused = this._view.focusNext(1, false, undefined);
             if (newFoused !== -1) {
+                this._view.setAnchor(newFoused);
                 this._view.reveal(newFoused, undefined);
             }
             this._view.setDomFocus();
@@ -938,6 +940,12 @@ export interface IListWidget<T> extends IDisposable {
      */
     getVisibleRange(): IRange;
 
+    /**
+     * @description Returns the item at given index.
+     * @param index The index of the item.
+     */
+    getItem(index: number): T;
+
     // [item traits support]
 
     /**
@@ -1176,6 +1184,10 @@ export class ListWidget<T> implements IListWidget<T> {
 
     public getVisibleRange(): IRange {
         return this.view.getVisibleRange();
+    }
+
+    public getItem(index: number): T {
+        return this.view.getItem(index);
     }
 
     // [item traits support]

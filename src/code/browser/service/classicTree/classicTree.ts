@@ -3,7 +3,7 @@ import { AsyncTree, IAsyncTreeOptions } from "src/base/browser/secondary/tree/as
 import { ITreeMouseEvent } from "src/base/browser/secondary/tree/tree";
 import { ITreeListRenderer } from "src/base/browser/secondary/tree/treeListRenderer";
 import { Emitter, Register } from "src/base/common/event";
-import { Pair } from "src/base/common/util/type";
+import { IStandardKeyboardEvent, KeyCode } from "src/base/common/keyboard";
 import { ClassicItem } from "src/code/browser/service/classicTree/classicItem";
 
 export interface ClassicOpenEvent {
@@ -43,12 +43,13 @@ export class ClassicTree<T extends ClassicItem, TFilter> extends AsyncTree<T, TF
         opts: IClassicTreeOptions<T, TFilter>,
     ) {
         super(container, rootData, renderers, itemProvider, opts);
-        this.__register(this.onClick(e => this.__onTreeClick(e)));
+        this.__register(this.onClick(e => this.__onClick(e)));
+        this.__register(this.onKeydown(e => this.__onKeydown(e)))
     }
 
     // [private helper method]
 
-    private __onTreeClick(event: ITreeMouseEvent<T>): void {
+    private __onClick(event: ITreeMouseEvent<T>): void {
         // clicking no where
         if (event.data === null) {
             return;
@@ -62,5 +63,14 @@ export class ClassicTree<T extends ClassicItem, TFilter> extends AsyncTree<T, TF
             item: event.data,
             browserEvent: event.browserEvent
         });
+    }
+
+    private __onKeydown(event: IStandardKeyboardEvent): void {
+        if (event.key === KeyCode.Enter) {
+            const anchor = this.getAnchor();
+            if (anchor) {
+                this.toggleCollapseOrExpand(anchor, false);
+            }
+        }
     }
 }
