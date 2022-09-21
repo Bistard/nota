@@ -10,7 +10,7 @@ import { ErrorHandler } from "src/base/common/error";
 import { Register } from "src/base/common/event";
 import { IStandardKeyboardEvent } from "src/base/common/keyboard";
 import { IScrollEvent } from "src/base/common/scrollable";
-import { Blocker } from "src/base/common/util/async";
+import { AsyncQueue, Blocker } from "src/base/common/util/async";
 
 /**
  * @internal
@@ -224,7 +224,9 @@ export class AsyncTree<T, TFilter> extends Disposable implements IAsyncTree<T, T
         this._onDidDeleteNode = opts.onDidDeleteNode;
 
         // presetting behaviours on collapse state change
-        this.__register(this._tree.onDidChangeCollapseState(e => this.__internalOnDidChangeCollapseState(e)));
+        this.__register(this._tree.onDidChangeCollapseState(e => 
+            this._ongoingCollapseChange.queue(async () => this.__internalOnDidChangeCollapseState(e))
+        ));
     }
 
     // [event]
@@ -420,9 +422,9 @@ export class AsyncTree<T, TFilter> extends Disposable implements IAsyncTree<T, T
 
     /**
      * Indicates if any tree nodes is collapse changing, prevent parallel 
-     * collapse changings.
+     * collapse changing.
      */
-    private _collapseChanging?: Promise<void>;
+    private readonly _ongoingCollapseChange = new AsyncQueue();
 
     /**
      * @description Presets the behaviours when the collapsing state is changed.
@@ -434,16 +436,6 @@ export class AsyncTree<T, TFilter> extends Disposable implements IAsyncTree<T, T
         if (node === this._tree.rootNode) {
             return;
         }
-
-        // if any current node is collapse changing, wait for it.
-        if (this._collapseChanging) {
-            await this._collapseChanging;
-        }
-
-        // mark the current node as collapse changing
-        const blocker = new Blocker<void>();
-        this._collapseChanging = blocker.waiting();
-        this._collapseChanging.finally(() => this._collapseChanging = undefined);
 
         /**
          * Skip the refresh operation since there is no reasons to get the 
@@ -475,9 +467,6 @@ export class AsyncTree<T, TFilter> extends Disposable implements IAsyncTree<T, T
              * the {@link FlexMultiTree} and rerender it.
              */
             this.__render(node);
-            
-            // mark as completed
-            blocker.resolve();
         } 
 
         /**
@@ -485,7 +474,6 @@ export class AsyncTree<T, TFilter> extends Disposable implements IAsyncTree<T, T
          * the global.
          */
         catch (error) {
-            blocker.reject();
             ErrorHandler.onUnexpectedError(error);
         }
     }

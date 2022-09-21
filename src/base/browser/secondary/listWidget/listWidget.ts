@@ -484,7 +484,6 @@ class __ListWidgetKeyboardController<T> implements IDisposable {
             e.preventDefault();
 		    e.stopPropagation();
             this._view.setSelections([]);
-            this._view.setFocus(null);
             this._view.setAnchor(null);
 			this._view.setDomFocus();
         }
