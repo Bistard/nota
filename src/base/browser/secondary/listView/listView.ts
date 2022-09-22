@@ -605,6 +605,8 @@ export class ListView<T> implements IDisposable, ISpliceable<T>, IListView<T> {
             throw new ListError('cannot splice recursively');
         }
 
+        console.log('[ListView] rendering');
+
         this._splicing = true;
 
         try {

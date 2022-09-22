@@ -3,7 +3,6 @@ import { IMultiTreeModelOptions, FlexMultiTreeModel } from "src/base/browser/sec
 import { ITreeNode } from "src/base/browser/secondary/tree/tree";
 import { ISpliceable } from "src/base/common/range";
 import { Blocker } from "src/base/common/util/async";
-import { Iterable } from "src/base/common/util/iterable";
 
 /**
  * An interface only for {@link AsyncTreeModel}.
@@ -71,6 +70,22 @@ export class AsyncTreeModel<T, TFilter> extends FlexMultiTreeModel<T, TFilter> i
 
     public async refreshNode(node: IAsyncNode<T, TFilter>): Promise<void> {
         
+        /**
+         * Forget the current children of the node so that next `getChildren`
+         * operation will work properly.
+         */
+        if (this._childrenProvider.forgetChildren) {
+            this._childrenProvider.forgetChildren(node.data);
+        }
+
+        /**
+         * The node is already collapsed, we should do nothing since there is
+         * to refresh after we forgot the old children.
+         */
+        if (node.collapsed) {
+            return;
+        }
+
         /**
          * If any ongoing refreshing node has a connection with the current node 
          * (equal, or either one is the ancestor of the other), we have to wait 
@@ -219,67 +234,35 @@ export class AsyncTreeModel<T, TFilter> extends FlexMultiTreeModel<T, TFilter> i
     }
 
     /**
-     * @description Used only in `__setChildren`. 
+     * @description When refreshing the given parent, the children node will 
+     * always be replaced by the new created node.
      */
     private __alwaysCreateNewNode(
         childrenData: readonly T[],
         parent: IAsyncNode<T, TFilter>,
         newNodes: IAsyncNode<T, TFilter>[],
-        newNodesForRefresh: IAsyncNode<T, TFilter>[],
+        newNodesToRefresh: IAsyncNode<T, TFilter>[],
     ): void 
-    {    
+    {
         for (const childData of childrenData) {
             const hasChildren = this._childrenProvider.hasChildren(childData);
-            
-            const newChildNode: IAsyncNode<T, TFilter> = {
-                data: childData,
-                parent: parent,
-                children: [],
-                collapsible: hasChildren,
-                stale: true,
-                
-                /**
-                 * The following metadata will be recalculated correctly in
-                 * {@link FlexIndexTreeModel}.
-                 */
-
-                visibleNodeCount: undefined!,
-                collapsed: undefined!,
-                depth: undefined!,
-                visible: undefined!,
-                rendererMetadata: undefined!,
-            };
-            
-            if (hasChildren) {
-                /**
-                 * the children of the current node should not be collapsed, we 
-                 * need to keep refreshing on next time.
-                 */
-                if (this._childrenProvider.collapseByDefault && 
-                    !this._childrenProvider.collapseByDefault(childData)
-                ) {
-                    newChildNode.collapsed = false;
-                    newNodesForRefresh.push(newChildNode);
-                }
-            }
-
+            const newChildNode = this.__createNewChildNode(childData, parent, hasChildren, newNodesToRefresh);
             newNodes.push(newChildNode);
         }
     }
 
     /**
-     * @description Used only in `__setChildren`.
+     * @description When refreshing the given parent, the old child node may be 
+     * reused when detect duplicate client provided data.
      */
     private __tryReuseOldNode(
         identityProvider: IIdentiityProivder<T>,
         childrenData: readonly T[],
         parent: IAsyncNode<T, TFilter>,
         newNodes: IAsyncNode<T, TFilter>[],
-        newNodesForRefresh: IAsyncNode<T, TFilter>[],
+        newNodesToRefresh: IAsyncNode<T, TFilter>[],
     ): void 
     {
-        // TODO
-        
         /**
          * When an identity provider is given. Use a mapping that remembers all 
          * the existed data, for the re-use purpose when encountering the same 
@@ -290,6 +273,81 @@ export class AsyncTreeModel<T, TFilter> extends FlexMultiTreeModel<T, TFilter> i
             const id = identityProvider.getID(existed.data);
             existedNodes.set(id, existed);
         }
+
+        for (const childData of childrenData) {
+            const hasChildren = this._childrenProvider.hasChildren(childData);
+
+            const id = identityProvider.getID(childData);
+            const existedNode = existedNodes.get(id);
+            
+            // the child node can be reused
+            if (existedNode) {
+                existedNode.data = childData;
+                existedNode.collapsible = hasChildren;
+
+                // forget the old children
+                if (this._childrenProvider.forgetChildren) {
+                    this._childrenProvider.forgetChildren(existedNode.data);
+                }
+
+                /**
+                 * Do not modify the collapse state of the existed node. Only
+                 * keep refreshing when it is not collapsed.
+                 */
+                if (hasChildren && !existedNode.collapsed) {
+                    newNodesToRefresh.push(existedNode);
+                }
+
+                newNodes.push(existedNode);
+            }
+            
+            // no existed nodes, we create a new one as normal.
+            else {
+                const newChildNode = this.__createNewChildNode(childData, parent, hasChildren, newNodesToRefresh);
+                newNodes.push(newChildNode);
+            }
+        }
+    }
+
+    private __createNewChildNode(
+        childData: T, 
+        parent: IAsyncNode<T, TFilter>,
+        hasChildren: boolean,
+        toRefresh: IAsyncNode<T, TFilter>[],
+    ): IAsyncNode<T, TFilter>
+    {
+        const newNode: IAsyncNode<T, TFilter> = {
+            data: childData,
+            parent: parent,
+            children: [],
+            collapsible: hasChildren,
+            
+            /**
+             * The following metadata will be recalculated correctly in
+             * {@link FlexIndexTreeModel}.
+             */
+
+            visibleNodeCount: undefined!,
+            collapsed: undefined!,
+            depth: undefined!,
+            visible: undefined!,
+            rendererMetadata: undefined!,
+        };
+        
+        if (hasChildren) {
+            /**
+             * the children of the current node should not be collapsed, we 
+             * need to keep refreshing on next time.
+             */
+            if (this._childrenProvider.collapseByDefault && 
+                !this._childrenProvider.collapseByDefault(childData)
+            ) {
+                newNode.collapsed = false;
+                toRefresh.push(newNode);
+            }
+        }
+
+        return newNode;
     }
 
     /**
