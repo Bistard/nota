@@ -135,6 +135,10 @@ export function isNumber(obj: any): obj is number {
     return (typeof obj === 'number' && !isNaN(obj));
 }
 
+/**
+ * @description If the given value is an object in general speaking (does not
+ * count as `array`, `null`, {@link RegExp} or {@link Date}).
+ */
 export function isObject(obj: any): obj is any {
     return typeof obj === "object"
         && obj !== null
@@ -165,6 +169,9 @@ export function NulltoUndefined<T>(obj: T | null): T | undefined {
     return obj === null ? undefined : obj;
 }
 
+/**
+ * @deprecated 
+ */
 export function isArray(array: any): array is any[] {
     return Array.isArray(array);
 }
@@ -178,8 +185,7 @@ export function isArray(array: any): array is any[] {
 }
 
 /**
- * @description Determines if the given object is a {@link Promise} or not.
- * @param obj The given object.
+ * @deprecated 
  */
 export function isPromise(obj: any): obj is Promise<any> {
     if (typeof obj === 'object' && typeof obj.then === 'function') {
