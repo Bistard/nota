@@ -420,7 +420,7 @@ export class ListWidget<T> implements IListWidget<T> {
         
         // drag and drop integration
         if (opts.dragAndDropProvider) {
-            const dndController = new ListWidgetDragAndDropController(this, opts.dragAndDropProvider, e => this.__toListDragEvent(e));
+            const dndController = this.__createListWidgetDndController(opts);
             this.disposables.register(dndController);
         }
 
@@ -615,6 +615,15 @@ export class ListWidget<T> implements IListWidget<T> {
      */
     protected __createListWidgetKeyboardController(): ListWidgetKeyboardController<T> {
         return new ListWidgetKeyboardController(this);
+    }
+
+    /**
+     * @description Creates an instance of a {@link ListWidgetDragAndDropController}.
+     * May override the behaviours by the inheritance to customize the darg and
+     * drop behaviour.
+     */
+    protected __createListWidgetDndController(opts: IListWidgetOpts<T>): any {
+        return new ListWidgetDragAndDropController(this, opts.dragAndDropProvider!, e => this.__toListDragEvent(e));
     }
 
     /**
