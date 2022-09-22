@@ -105,7 +105,7 @@ export class ClassicTreeService extends Disposable implements IClassicTreeServic
                 itemProvider: new ClassicItemProvider(), 
                 renderers: [new ClassicRenderer()],
                 childrenProvider: new ClassicChildrenProvider(this.logService, this.fileService, filters),
-                // identityProvider: { getID: (data: ClassicItem) => data.uri.toString() },
+                identityProvider: { getID: (data: ClassicItem) => data.uri.toString() },
                 
                 // optional
                 collapsedByDefault: true,
