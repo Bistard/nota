@@ -232,22 +232,22 @@ class AsyncMultiTree<T, TFilter> extends FlexMultiTree<T, TFilter> {
  * determine the children of each node after each refresh.
  * 
  * Since the client cannot decide the structure of the tree, once the root data 
- * is given, the {@link AsyncTree} will build the whole tree under the provided 
+ * is given, the async tree will try to build the whole tree under the provided 
  * {@link IChildrenProvider}, and the whole process is implemented asynchronously.
  * 
  * @note `RootData` is not counted as the part of the tree.
  * @note The subtree will be refreshed automatically once the collapse state of 
  * the tree node is changed.
  * 
- * @warn If data type `T` is a primitive type, the `size()` function will not 
- * work properly since it cannot decide which is which when mapping client data 
- * to tree node.
+ * @warn If data type `T` is a primitive type, might raises undefined behaviours
+ * if there are two values are the same. For example, `size()` will not work 
+ * properly since the tree cannot decide which is which.
  * 
  * @implements 
  * The tree is wrapping a {@link AsyncMultiTree} and the reason for this is to 
  * avoid having same property names.
  * 
- * The idea of {@link AsyncTree} is inspired by a class named `AsyncDataTree` in
+ * The idea of the architecture is inspired by a class named `AsyncDataTree` in
  * Visual Studio Code. They maintain two isomorphismic tree structures to avoid 
  * excessive rerendering.
  * 
@@ -255,8 +255,7 @@ class AsyncMultiTree<T, TFilter> extends FlexMultiTree<T, TFilter> {
  * structure and only maintaining one tree which causes less memory usage and 
  * runs faster.
  * 
- * The {@link AsyncMultiTree} builds on top of {@link FlexMultiTree} which does
- * all the tricks.
+ * The tree builds on top of {@link FlexMultiTree} which does all the tricks.
  */
 export class AsyncTree<T, TFilter> extends Disposable implements IAsyncTree<T, TFilter> {
 
@@ -281,12 +280,14 @@ export class AsyncTree<T, TFilter> extends Disposable implements IAsyncTree<T, T
         opts: IAsyncTreeOptions<T, TFilter>,
     ) {
         super();
+        
         this._tree = new AsyncMultiTree(container, rootData, opts);
 
         this._onDidCreateNode = opts.onDidCreateNode;
         this._onDidDeleteNode = opts.onDidDeleteNode;
 
-        // presetting behaviours on collapse state change
+        this.__register(this._tree);
+        this.__register(this._ongoingCollapseChange);
         this.__register(this._tree.onDidChangeCollapseState(e => 
             this._ongoingCollapseChange.queue(async () => this.__internalOnDidChangeCollapseState(e))
         ));

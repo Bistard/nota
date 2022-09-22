@@ -19,6 +19,7 @@ suite('AsyncTree-test', () => {
             container, 
             0,
             {
+                forcePrimitiveType: true,
                 renderers: [],
                 itemProvider: {
                     getSize: (data) => 10,
@@ -98,6 +99,7 @@ suite('AsyncTree-test', () => {
             document.createElement('div'), 
             0,
             {
+                forcePrimitiveType: true,
                 renderers: [],
                 itemProvider: {
                     getSize: (data) => 10,
@@ -231,6 +233,7 @@ suite('AsyncTree-test', () => {
             document.createElement('div'), 
             0,
             {
+                forcePrimitiveType: true,
                 renderers: [],
                 itemProvider: {
                     getSize: (data) => 10,
@@ -307,8 +310,7 @@ suite('AsyncTree-test', () => {
         }
     });
 
-    // TODO
-    test('primitive type', async () => {
+    test('size', async () => {
         const [TREE, size] = generateTreeLike(() => Object.create(null), 10);
         const tree = new AsyncTree(
             document.createElement('div'), 
@@ -330,6 +332,32 @@ suite('AsyncTree-test', () => {
 
         await tree.refresh();
         assert.strictEqual(tree.size(), size);
+    });
+
+    test('use primitive type as client data', async () => {
+        const [TREE, size] = generateTreeLike(() => true, 1);
+        try {
+            const tree = new AsyncTree(
+                document.createElement('div'), 
+                TREE,
+                {
+                    renderers: [],
+                    itemProvider: {
+                        getSize: (data) => 0,
+                        getType: (data) => 0
+                    },
+                    collapsedByDefault: false,
+                    childrenProvider: {
+                        getChildren: (item) => Array.isArray(item) ? item : [] as any,
+                        hasChildren: (item) => Array.isArray(item),
+                        collapseByDefault: () => false,
+                    },
+                }
+            );
+            assert.fail('does not support primitive types');
+        } catch {
+            assert.ok(true);
+        }
     });
 
     test('childrenProvider', async () => {

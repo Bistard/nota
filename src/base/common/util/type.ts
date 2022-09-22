@@ -113,6 +113,24 @@ export function mockType<T>(val: any): T {
     return val as unknown as T;
 }
 
+/**
+ * @description Is the given variable is a primitive type: number , string , 
+ * boolean , null , undefined , symbol or bigint.
+ */
+export function isPrimitive(val: any): boolean {
+    if (val === null) {
+        return true;
+    }
+
+    switch (typeof val) {
+        case 'object':
+        case 'function':
+            return false;
+        default:
+            return true;
+    }
+}
+
 export function isNumber(obj: any): obj is number {
     return (typeof obj === 'number' && !isNaN(obj));
 }

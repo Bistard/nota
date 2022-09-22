@@ -3,6 +3,9 @@ import { IListWidget } from "src/base/browser/secondary/listWidget/listWidget";
 import { ITreeModelSpliceOptions } from "src/base/browser/secondary/tree/indexTreeModel";
 import { FlexMultiTreeModel, IFlexMultiTreeModel, IMultiTreeModel, IMultiTreeModelBase, MultiTreeModel } from "src/base/browser/secondary/tree/multiTreeModel";
 import { IFlexNode, ITreeModel, ITreeNode, ITreeNodeItem } from "src/base/browser/secondary/tree/tree";
+import { ITreeListRenderer } from "src/base/browser/secondary/tree/treeListRenderer";
+import { IListItemProvider } from "src/base/browser/secondary/listView/listItemProvider";
+import { isPrimitive } from "src/base/common/util/type";
 
 /**
  * An interface only for {@link MultiTreeModelBase}.
@@ -51,10 +54,22 @@ export interface IFlexMultiTree<T, TFilter> extends IMultiTreeBase<T, TFilter> {
 /**
  * {@link MultiTree} Constructor option.
  */
-export interface IMultiTreeOptions<T, TFilter> extends IAbstractTreeOptions<T, TFilter> {}
+export interface IMultiTreeOptions<T, TFilter> extends IAbstractTreeOptions<T, TFilter> {
+    /**
+     * If force to enable use primitive type for client data.
+     * @warn Enable using primitive type might raises undefined behaviours if
+     * two of the client data have the same values.
+     * @default false
+     */
+    readonly forcePrimitiveType?: boolean;
+}
 
 /**
  * @class An base class for {@link MultiTree} and {@link FlexMultiTree}.
+ * 
+ * @warn If data type `T` is a primitive type, might raises undefined behaviours
+ * if there are two values are the same. For example, `size()` will not work 
+ * properly since the tree cannot decide which is which.
  */
 abstract class MultiTreeBase<T, TFilter> extends AbstractTree<T, TFilter, T> implements IMultiTreeBase<T, TFilter> {
 
@@ -62,6 +77,21 @@ abstract class MultiTreeBase<T, TFilter> extends AbstractTree<T, TFilter, T> imp
 
     /** overrides for specifying the type of the model. */
     declare protected abstract readonly _model: IMultiTreeModelBase<T, TFilter>;
+
+    // [constructor]
+
+    constructor(
+        container: HTMLElement,
+        rootData: T,
+        renderers: ITreeListRenderer<T, TFilter, any>[],
+        itemProvider: IListItemProvider<T>,
+        opts: IMultiTreeOptions<T, TFilter> = {}
+    ) {
+        if (!opts.forcePrimitiveType && isPrimitive(rootData)) {
+            throw new Error('mutli tree does not support primitive types');
+        }
+        super(container, rootData, renderers, itemProvider, opts);
+    }
 
     // [public method]
 
