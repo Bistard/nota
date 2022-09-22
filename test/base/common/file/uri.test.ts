@@ -9,9 +9,9 @@ suite('URI-test', () => {
     const testStr3 = 'file://d:/dev/nota/src/code/common/service/test/file.test.txt';
 
     test('URI#toString()', () => {
-        assert.strictEqual(URI.parse(testStr1).toString(), testStr1);
-        assert.strictEqual(URI.parse(testStr2).toString(), testStr2);
-        assert.strictEqual(URI.parse(testStr3).toString(), testStr3);
+        assert.strictEqual(URI.toString(URI.parse(testStr1)), testStr1);
+        assert.strictEqual(URI.toString(URI.parse(testStr2)), testStr2);
+        assert.strictEqual(URI.toString(URI.parse(testStr3)), testStr3);
     });
 
     test('URI#toFsPath()', () => {
