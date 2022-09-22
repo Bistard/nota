@@ -47,7 +47,7 @@ export class AsyncTreeModel<T, TFilter> extends FlexMultiTreeModel<T, TFilter> i
      * Storing the ongoing {@link Promise} when fetching the children stat of 
      * the corresponding async tree node.
      */
-    private readonly _statFetching = new Map<IAsyncNode<T, TFilter>, Promise<Iterable<T>>>();
+    private readonly _statFetching = new Map<IAsyncNode<T, TFilter>, Promise<T[]>>();
     
     /**
      * Storing the ongoing {@link Promise} when refreshing the async tree node and
@@ -142,11 +142,11 @@ export class AsyncTreeModel<T, TFilter> extends FlexMultiTreeModel<T, TFilter> i
      */
     private async __refreshDirectChildren(asyncNode: IAsyncNode<T, TFilter>): Promise<IAsyncNode<T, TFilter>[]> {
 
-        let childrenPromise: Promise<Iterable<T>>;
+        let childrenPromise: Promise<T[]>;
         asyncNode.collapsible = this._childrenProvider.hasChildren(asyncNode.data);
 
         if (asyncNode.collapsible === false) {
-            childrenPromise = Promise.resolve(Iterable.empty());
+            childrenPromise = Promise.resolve([]);
         } else {
             childrenPromise = this.__getChildren(asyncNode);
         }
@@ -165,7 +165,7 @@ export class AsyncTreeModel<T, TFilter> extends FlexMultiTreeModel<T, TFilter> i
      * @description Given the tree node, returns the newest children of the node.
      * @param node The provided async tree node.
      */
-    private async __getChildren(node: IAsyncNode<T, TFilter>): Promise<Iterable<T>> {
+    private async __getChildren(node: IAsyncNode<T, TFilter>): Promise<T[]> {
         let refreshing = this._statFetching.get(node);
 
         // since the node is already fetching, we do nothing and return the same promise.
@@ -187,13 +187,11 @@ export class AsyncTreeModel<T, TFilter> extends FlexMultiTreeModel<T, TFilter> i
     /**
      * @description Updates the given children to the provided {@link IAsyncNode}.
      * @param node The provided tree node.
-     * @param childrenIterable The direct children of the given node.
+     * @param childrenData The direct children of the given node.
      * @returns An array of children that requires further refresh.
      */
-    private __setChildren(node: IAsyncNode<T, TFilter>, childrenIterable: Iterable<T>): IAsyncNode<T, TFilter>[] {
-        
-        const childrenData = [...childrenIterable];
-
+    private __setChildren(node: IAsyncNode<T, TFilter>, childrenData: readonly T[]): IAsyncNode<T, TFilter>[] 
+    {
         /**
          * Was empty children and no children is changed, we should quit and 
          * refresh nothing.
