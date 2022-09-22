@@ -62,7 +62,7 @@ export type NestedArray<T> = (T | NestedArray<T>)[];
 /**
  * make every parameter of an object and its sub-objects recursively as readonly.
  */
-export type DeepReadonly<T extends Record<string, any>> = {
+export type DeepReadonly<T> = {
     readonly [TKey in keyof T]: T[TKey] extends Function 
       ? T[TKey] 
       : DeepReadonly<T[TKey]>
