@@ -5,7 +5,7 @@ import { IListDragAndDropProvider, ListWidgetDragAndDropController } from "src/b
 import { ListWidgetKeyboardController } from "src/base/browser/secondary/listWidget/listWidgetKeyboardController";
 import { ListWidgetMouseController } from "src/base/browser/secondary/listWidget/listWidgetMouseController";
 import { ListTrait, ListTraitRenderer } from "src/base/browser/secondary/listWidget/listWidgetTrait";
-import { DisposableManager, IDisposable } from "src/base/common/dispose";
+import { Disposable, IDisposable } from "src/base/common/dispose";
 import { Event, Register, SignalEmitter } from "src/base/common/event";
 import { createStandardKeyboardEvent, IStandardKeyboardEvent, KeyCode } from "src/base/common/keyboard";
 import { memoize } from "src/base/common/memoization";
@@ -369,11 +369,10 @@ export interface IListWidget<T> extends IDisposable {
  *  - keyboard support (enter / up / down / pageup / pagedown / escape)
  *  - drag and drop support
  */
-export class ListWidget<T> implements IListWidget<T> {
+export class ListWidget<T> extends Disposable implements IListWidget<T> {
 
     // [fields]
 
-    private disposables: DisposableManager;
     private view: ListView<T>;
 
     /** User's selection. */
@@ -391,8 +390,8 @@ export class ListWidget<T> implements IListWidget<T> {
         itemProvider: IListItemProvider<T>, 
         opts: IListWidgetOpts<T> = {}
     ) {
-        this.disposables = new DisposableManager();
-
+        super();
+        
         // initializes all the item traits
         this.selected = new ListTrait('selected');
         this.anchor = new ListTrait('anchor');
@@ -412,24 +411,25 @@ export class ListWidget<T> implements IListWidget<T> {
         // mouse support integration (defaults on)
         if (opts.mouseSupport || opts.mouseSupport === undefined) {
             const mouseController = this.__createListWidgetMouseController(opts);
-            this.disposables.register(mouseController);
+            this.__register(mouseController);
         }
         
         // keyboard support integration
         if (opts.keyboardSupport || opts.mouseSupport === undefined) {
             const keyboardController = this.__createListWidgetKeyboardController();
-            this.disposables.register(keyboardController);
+            this.__register(keyboardController);
         }
         
         // drag and drop integration
         if (opts.dragAndDropProvider) {
             const dndController = this.__createListWidgetDndController(opts);
-            this.disposables.register(dndController);
+            this.__register(dndController);
         }
 
-        this.disposables.register(this.view);
-        this.disposables.register(this.selected);
-        this.disposables.register(this.focused);
+        this.__register(this.view);
+        this.__register(this.selected);
+        this.__register(this.focused);
+        this.__register(this.anchor);
     }
 
     // [getter / setter]
@@ -443,7 +443,7 @@ export class ListWidget<T> implements IListWidget<T> {
     get onInsertItemInDOM(): Register<IViewItemChangeEvent<T>> { return this.view.onInsertItemInDOM; }
     get onUpdateItemInDOM(): Register<IViewItemChangeEvent<T>> { return this.view.onUpdateItemInDOM; }
     get onRemoveItemInDOM(): Register<IViewItemChangeEvent<T>> { return this.view.onRemoveItemInDOM; }
-    @memoize get onDidChangeFocus(): Register<boolean> { return this.disposables.register(new SignalEmitter<boolean, boolean>([Event.map(this.view.onDidFocus, () => true), Event.map(this.view.onDidBlur, () => false)], (e: boolean) => e)).registerListener; }
+    @memoize get onDidChangeFocus(): Register<boolean> { return this.__register(new SignalEmitter<boolean, boolean>([Event.map(this.view.onDidFocus, () => true), Event.map(this.view.onDidBlur, () => false)], (e: boolean) => e)).registerListener; }
     
     get onClick(): Register<IListMouseEvent<T>> { return Event.map(this.view.onClick, e => this.__toListMouseEvent(e)); }
     get onDoubleclick(): Register<IListMouseEvent<T>> { return Event.map(this.view.onDoubleclick, e => this.__toListMouseEvent(e));  }
@@ -460,10 +460,6 @@ export class ListWidget<T> implements IListWidget<T> {
     @memoize get onContextmenu(): Register<IListContextmenuEvent<T>> { return this.__createContextmenuRegister(); }
 
     // [methods]
-
-    public dispose(): void {
-        this.disposables.dispose();
-    }
 
     public layout(height?: number): void {
         this.view.layout(height);
@@ -660,7 +656,7 @@ export class ListWidget<T> implements IListWidget<T> {
         
         
         // only used to detect if pressing down context menu key
-        this.disposables.register(this.onKeydown(e => {
+        this.__register(this.onKeydown(e => {
             e.browserEvent.preventDefault();
             e.browserEvent.stopPropagation();
         }));
