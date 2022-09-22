@@ -185,7 +185,7 @@ export class FileLoggerService extends AbstractLoggerService {
     }
 
     protected override __doCreateLogger(uri: URI, level: LogLevel, opts: ILoggerOpts): ILogger {
-        const name = opts.name ?? basename(uri.toString());
+        const name = opts.name ?? basename(URI.toString(uri));
         const logger = this.instantiationService.createInstance(
             FileLogger,
             URI.fromFile(join(URI.toFsPath(uri), name)),

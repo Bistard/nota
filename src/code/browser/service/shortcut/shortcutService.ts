@@ -74,7 +74,7 @@ export class ShortcutService extends Disposable implements IShortcutService {
             // read shortcut configuration into memory
             const buffer = await this.fileService.readFile(this._resource);
             const configuration: IShortcutConfiguration[] = JSON.parse(buffer.toString());
-            this.logService.debug(`shortcut configuration loaded at ${this._resource.toString()}`);
+            this.logService.debug(`shortcut configuration loaded at ${URI.toString(this._resource)}`);
             
             // loop each one and try to load it into memory
             configuration.forEach(({ commandID, shortcut, whenID }) => {
@@ -83,7 +83,7 @@ export class ShortcutService extends Disposable implements IShortcutService {
                 // check if the shortcut is valid
                 const newShortcut: Shortcut = Shortcut.fromString(shortcut);
                 if (newShortcut.equal(Shortcut.None)) {
-                    this.logService.warn(`Invalid shortcut registration from the configuration at ${this._resource.toString()}: ${commandID} - ${shortcut}.`);
+                    this.logService.warn(`Invalid shortcut registration from the configuration at ${URI.toString(this._resource)}: ${commandID} - ${shortcut}.`);
                     return;
                 }
                 
@@ -105,7 +105,7 @@ export class ShortcutService extends Disposable implements IShortcutService {
                 });
             });
         } else {
-            this.logService.debug(`shortcut configuration cannot found at ${this._resource.toString()}`);
+            this.logService.debug(`shortcut configuration cannot found at ${URI.toString(this._resource)}`);
         }
     }
 
@@ -118,10 +118,10 @@ export class ShortcutService extends Disposable implements IShortcutService {
                 DataBuffer.fromString(JSON.stringify(bindings, null, 4)), 
                 { create: true, overwrite: true, unlock: true }
             );
-            this.logService.info(`Window ID - ${this.environmentService.windowID} - shortcut configuration saved at ${this._resource.toString()}`);
+            this.logService.info(`Window ID - ${this.environmentService.windowID} - shortcut configuration saved at ${URI.toString(this._resource)}`);
         } 
         catch (err) {
-            this.logService.error(`Window ID - ${this.environmentService.windowID} - shortcut configuration failed to save at ${this._resource.toString()}`, err);
+            this.logService.error(`Window ID - ${this.environmentService.windowID} - shortcut configuration failed to save at ${URI.toString(this._resource)}`, err);
         }
     }
 }

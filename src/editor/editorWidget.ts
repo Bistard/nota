@@ -1,5 +1,6 @@
 import { Disposable, IDisposable } from "src/base/common/dispose";
 import { basename } from "src/base/common/file/path";
+import { URI } from "src/base/common/file/uri";
 import { ILogService } from "src/base/common/logger";
 import { IEditorModel } from "src/editor/common/model";
 import { IEditorView } from "src/editor/common/view";
@@ -70,12 +71,7 @@ export class EditorWidget extends Disposable implements IEditorWidget {
             return;
         }
         
-        this.logService.trace(`Reading file '${basename(model.source.toString())}' successed.`); // REVIEW
-        this.logService.debug(`Reading file '${basename(model.source.toString())}' successed.`); // REVIEW
-        this.logService.info(`Reading file '${basename(model.source.toString())}' successed.`); // REVIEW
-        this.logService.warn(`Reading file '${basename(model.source.toString())}' successed.`); // REVIEW
-        this.logService.error(`Reading file '${basename(model.source.toString())}' successed.`); // REVIEW
-        this.logService.fatal(`Reading file '${basename(model.source.toString())}' successed.`); // REVIEW
+        this.logService.trace(`Reading file '${basename(URI.toString(model.source))}' successed.`);
         this.__attechModel(model);
     }
 

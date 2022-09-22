@@ -115,7 +115,7 @@ export class ExplorerViewComponent extends Component implements IExplorerViewSer
     public async open(root: URI): Promise<void> {
         
         if (this.explorerTreeService.isOpened) {
-            this.logService.warn(`Explorer view is already opened at ${this.explorerTreeService.root!.toString()}`);
+            this.logService.warn(`Explorer view is already opened at ${URI.toString(this.explorerTreeService.root!)}`);
             return;
         }
 
@@ -137,7 +137,7 @@ export class ExplorerViewComponent extends Component implements IExplorerViewSer
             this.explorerTreeService.layout();
         } 
         catch (error) {
-            this.logService.error(`Explorer view cannot open the given path at ${root.toString()}.`);
+            this.logService.error(`Explorer view cannot open the given path at ${URI.toString(root)}.`);
             throw error;
         }
     }
@@ -196,7 +196,7 @@ export class ExplorerViewComponent extends Component implements IExplorerViewSer
         // save the last opened workspace root path.
         if (this.explorerTreeService.root) {
             const workspace = URI.join(this.explorerTreeService.root, '|directory');
-            await hostService.setApplicationStatus(StatusKey.LastOpenedWorkspace, workspace.toString());
+            await hostService.setApplicationStatus(StatusKey.LastOpenedWorkspace, URI.toString(workspace));
         }
     }
 

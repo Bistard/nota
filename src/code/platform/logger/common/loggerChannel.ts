@@ -47,13 +47,13 @@ export class MainLoggerChannel implements IServerChannel {
 
     private async __createLogger(path: URI, opts: ILoggerOpts): Promise<any> {
         const actualLogger = this.loggerService.createLogger(path, opts);
-        this._loggers.set(path.toString(), actualLogger);
+        this._loggers.set(URI.toString(path), actualLogger);
     }
     
     private async __log(path: URI, messages: { level: LogLevel, message: (string | Error), args: any[] }[]): Promise<any> {
-        const logger = this._loggers.get(path.toString());
+        const logger = this._loggers.get(URI.toString(path));
         if (!logger) {
-            throw new Error(`Logger not found: ${path.toString()}`);
+            throw new Error(`Logger not found: ${URI.toString(path)}`);
         }
         for (const { level, message, args } of messages) {
             defaultLog(logger, level, message, args);

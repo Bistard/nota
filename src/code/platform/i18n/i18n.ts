@@ -311,7 +311,7 @@ export class i18n implements Ii18nService {
             Object.assign(this._model, jsonObject);
         } catch (err) {
             // TODO: logService and pops up notification window
-            this.logService.error(`Cannot read locale at ${uri.toString()}`);
+            this.logService.error(`Cannot read locale at ${URI.toString(uri)}`);
             throw err;
         }
     }

@@ -63,12 +63,12 @@ export abstract class AbstractLoggerService extends Disposable implements ILogge
             oldLogger.dispose();
         }
 
-        this._loggers.set(uri.toString(), newLogger);
+        this._loggers.set(URI.toString(uri), newLogger);
         return newLogger;
     }
 
     public getLogger(uri: URI): ILogger | undefined {
-        return this._loggers.get(uri.toString());
+        return this._loggers.get(URI.toString(uri));
     } 
 
     public override dispose(): void {

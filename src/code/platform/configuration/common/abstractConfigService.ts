@@ -10,6 +10,7 @@ import { createService } from "src/code/platform/instantiation/common/decorator"
 import { ILifecycleService } from "src/code/platform/lifecycle/common/lifecycle";
 import { ILifecycleService as ILifecycleServiceDecorator } from "src/code/platform/lifecycle/browser/browserLifecycleService";
 import { DataBuffer } from "src/base/common/file/buffer";
+import { URI } from "src/base/common/file/uri";
 
 export const IConfigService = createService<IConfigService>('configuration-service');
 
@@ -191,9 +192,9 @@ export class AbstractConfigService extends Disposable implements IConfigService 
             try {
                 const serialized = JSON.stringify(model.model, null, 4);
                 await this.fileService.writeFile(resource, DataBuffer.fromString(serialized), { create: true, overwrite: true, unlock: true });
-                this.logService.info(`Configuration saved at ${resource.toString()}`);
+                this.logService.info(`Configuration saved at ${URI.toString(resource)}`);
             } catch (error: any) {
-                this.logService.error(`Cannot save configuration at ${resource.toString()}:`, error);
+                this.logService.error(`Cannot save configuration at ${URI.toString(resource)}:`, error);
             }
         }
     }

@@ -1,4 +1,5 @@
 import { IListDragAndDropProvider } from "src/base/browser/secondary/listWidget/listWidgetDragAndDrop";
+import { URI } from "src/base/common/file/uri";
 import { ClassicItem } from "src/code/browser/service/classicTree/classicItem";
 
 /**
@@ -10,7 +11,7 @@ export class ClassicDragAndDropProvider implements IListDragAndDropProvider<Clas
     constructor() {}
 
     public getDragData(item: ClassicItem): string | null {
-        return item.uri.toString();
+        return URI.toString(item.uri);
     }
 
     public getDragTag(items: ClassicItem[]): string {
