@@ -170,13 +170,6 @@ export function NulltoUndefined<T>(obj: T | null): T | undefined {
 }
 
 /**
- * @deprecated 
- */
-export function isArray(array: any): array is any[] {
-    return Array.isArray(array);
-}
-
-/**
  * @returns whether the provided parameter is an Iterable, and will cast to the 
  * given generic type.
  */
@@ -185,10 +178,15 @@ export function isArray(array: any): array is any[] {
 }
 
 /**
- * @deprecated 
+ * @description Determines if the given object is a {@link Promise} or not.
+ * @param obj The given object.
  */
 export function isPromise(obj: any): obj is Promise<any> {
-    if (typeof obj === 'object' && typeof obj.then === 'function') {
+    if (typeof obj === 'object' && 
+        typeof obj.then === 'function' &&
+        typeof obj.catch === 'function' &&
+        typeof obj.finally === 'function'
+    ) {
       return true;
     }
     return false;

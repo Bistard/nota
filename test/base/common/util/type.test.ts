@@ -1,6 +1,6 @@
 import * as assert from 'assert';
 import { LinkedList } from 'src/base/common/util/linkedList';
-import { isEmptyObject, isIterable, isNumber, isObject, isPrimitive } from 'src/base/common/util/type';
+import { isEmptyObject, isIterable, isNumber, isObject, isPrimitive, isPromise } from 'src/base/common/util/type';
 
 suite('type-test', () => {
 
@@ -58,5 +58,12 @@ suite('type-test', () => {
         assert.strictEqual(isIterable(new LinkedList()), true);
         assert.strictEqual(isIterable([]), true);
         assert.strictEqual(isIterable({}), false);
+    });
+
+    test('isPromise', () => {
+        assert.strictEqual(isPromise(Promise.resolve()), true);
+        assert.strictEqual(isPromise(new Promise(() => {})), true);
+        assert.strictEqual(isPromise({ then: () => {} }), false);
+        assert.strictEqual(isPromise({ then() {}, catch() {}, finally() {} }), true);
     });
 });
