@@ -34,32 +34,32 @@ export interface IClassicItem {
 
     /**
      * @description Returns the root of the current target
-     * time complexity: O(h) - h: height of the tree.
+     * @complexity O(h) - h: height of the tree.
      */
     root(): ClassicItem;
 
     /**
      * @description Is the current item a {@link FileType.DIRECTORY}.
-	 * time complexity: O(1)
+	 * @complexity O(1)
      */
     isDirectory(): boolean;
 
     /**
      * @description Is the current item a {@link FileType.FILE}.
-	 * time complexity: O(1)
+	 * @complexity O(1)
      */
     isFile(): boolean;
 
     /**
      * @description Is the current item has ever update its children before.
-	 * time complexity: O(1)
+	 * @complexity O(1)
      */
     isChildrenResolved(): boolean;
 
     /**
      * @description If the current item is capable having children. Note that
      * it does not prove the item must has at least one child.
-	 * time complexity: O(1)
+	 * @complexity O(1)
      */
     hasChildren(): boolean;
 
@@ -72,6 +72,9 @@ export interface IClassicItem {
      * prevent unnecessary performance loss compares to we filter the result 
      * after the process.
      * @param cmpFn A compare function to sort the children.
+     * @cimplexity 
+     * - O(1): if already resolved.
+     * - O(n): number of children is the file system.
 	 */
 	refreshChildren(fileService: IFileService, filters?: IFilterOpts, cmpFn?: CompareFn<ClassicItem>): void | Promise<void>;
 
@@ -170,7 +173,7 @@ export class ClassicItem implements IClassicItem {
     }
 
     public isChildrenResolved(): boolean {
-        return !!this._stat.children;
+        return this._isResolved;
     }
 
     public hasChildren(): boolean {
@@ -185,6 +188,7 @@ export class ClassicItem implements IClassicItem {
              * before.
              */
             if (this._isResolved === false) {
+                console.log('[item] resolving children');
                 try {
                     const updatedStat = await fileService.stat(
                         this._stat.uri, { 
@@ -216,7 +220,7 @@ export class ClassicItem implements IClassicItem {
 	public forgetChildren(): void {
         this._children = [];
         this._isResolved = false;
-        (<Mutable<Iterable<IResolvedFileStat> | undefined>>this._stat.children) = undefined;
+        (<Mutable<typeof this._stat.children>>this._stat.children) = undefined;
 	}
 }
 
@@ -225,11 +229,6 @@ export class ClassicItem implements IClassicItem {
  * and to provide children for {@link ClassicItem}.
  */
 export class ClassicChildrenProvider implements IChildrenProvider<ClassicItem> {
-
-    /** 
-     * Determine if the item is first resolved.
-     */
-    private readonly _ifResolved = new Set<ClassicItem>();
 
     // [constructor]
 
@@ -274,32 +273,15 @@ export class ClassicChildrenProvider implements IChildrenProvider<ClassicItem> {
         return promise;
     }
 
-    /**
-     * @description No need to fetch the latest stat of the children of the 
-     * given item every time when it gets expand.
-     */
-    public shouldRefreshChildren(data: ClassicItem): boolean {
-        const visited = this._ifResolved.has(data);
-        
-        if (!visited) {
-            this._ifResolved.add(data);
-            return true;
-        }
-        
-        return false;
+    public isChildrenResolved(data: ClassicItem): boolean {
+        return data.isChildrenResolved();
     }
 
-    /**
-     * @description Set the children of the given item as out of updated so that
-     * its children will get refreshed for next expand operation.
-     * @param data The given item.
-     */
     public forgetChildren(data: ClassicItem): void {
-        this._ifResolved.delete(data);
+        data.forgetChildren();
     }
 
     public collapseByDefault(data: ClassicItem): boolean {
-        // TODO
         return true;
     }
 }
