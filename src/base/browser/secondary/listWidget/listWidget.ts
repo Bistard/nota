@@ -625,7 +625,7 @@ export class ListWidget<T> implements IListWidget<T> {
      * May override the behaviours by the inheritance to customize the darg and
      * drop behaviour.
      */
-    protected __createListWidgetDndController(opts: IListWidgetOpts<T>): any {
+    protected __createListWidgetDndController(opts: IListWidgetOpts<T>): ListWidgetDragAndDropController<T> {
         return new ListWidgetDragAndDropController(this, opts.dragAndDropProvider!, e => this.__toListDragEvent(e));
     }
 
