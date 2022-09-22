@@ -207,21 +207,35 @@ export class AsyncTreeModel<T, TFilter> extends FlexMultiTreeModel<T, TFilter> i
         // These children will be the updated direct children nodes.
         const childrenNodes: IAsyncNode<T, TFilter>[] = [];
         
-        /**
-         * A mapping that remembers all the existed data, for the re-use purpose
-         * when encountering the same data during the refresh.
-         */
-        const existedNodes = new Map<T, IAsyncNode<T, TFilter>>();
-        for (const existed of node.children) {
-            existedNodes.set(existed.data, existed);
+        if (!this._identityProvider) {
+            this.__alwaysCreateNewNode(childrenData, node, childrenNodes, childrenNodesToRefresh);
+        } else {
+            this.__tryReuseOldNode(this._identityProvider, childrenData, node, childrenNodes, childrenNodesToRefresh);
         }
 
+        node.stale = true;
+        node.oldChildren = node.children;
+        node.children = childrenNodes;
+
+        return childrenNodesToRefresh;
+    }
+
+    /**
+     * @description Used only in `__setChildren`. 
+     */
+    private __alwaysCreateNewNode(
+        childrenData: readonly T[],
+        parent: IAsyncNode<T, TFilter>,
+        newNodes: IAsyncNode<T, TFilter>[],
+        newNodesForRefresh: IAsyncNode<T, TFilter>[],
+    ): void 
+    {    
         for (const childData of childrenData) {
             const hasChildren = this._childrenProvider.hasChildren(childData);
             
             const newChildNode: IAsyncNode<T, TFilter> = {
                 data: childData,
-                parent: node,
+                parent: parent,
                 children: [],
                 collapsible: hasChildren,
                 stale: true,
@@ -247,18 +261,37 @@ export class AsyncTreeModel<T, TFilter> extends FlexMultiTreeModel<T, TFilter> i
                     !this._childrenProvider.collapseByDefault(childData)
                 ) {
                     newChildNode.collapsed = false;
-                    childrenNodesToRefresh.push(newChildNode);
+                    newNodesForRefresh.push(newChildNode);
                 }
             }
 
-            childrenNodes.push(newChildNode);
+            newNodes.push(newChildNode);
         }
-        
-        node.stale = true;
-        node.oldChildren = node.children;
-        node.children = childrenNodes;
+    }
 
-        return childrenNodesToRefresh;
+    /**
+     * @description Used only in `__setChildren`.
+     */
+    private __tryReuseOldNode(
+        identityProvider: IIdentiityProivder<T>,
+        childrenData: readonly T[],
+        parent: IAsyncNode<T, TFilter>,
+        newNodes: IAsyncNode<T, TFilter>[],
+        newNodesForRefresh: IAsyncNode<T, TFilter>[],
+    ): void 
+    {
+        // TODO
+        
+        /**
+         * When an identity provider is given. Use a mapping that remembers all 
+         * the existed data, for the re-use purpose when encountering the same 
+         * data.
+         */
+        const existedNodes = new Map<string, IAsyncNode<T, TFilter>>();
+        for (const existed of parent.children) {
+            const id = identityProvider.getID(existed.data);
+            existedNodes.set(id, existed);
+        }
     }
 
     /**
