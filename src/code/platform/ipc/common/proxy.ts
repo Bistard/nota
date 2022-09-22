@@ -78,7 +78,7 @@ export namespace ProxyChannel {
                         methodsArgs = [...args, opt.context];
                     }
                     
-                    let result = await channel.callCommand(propName, methodsArgs);
+                    let result: any = await channel.callCommand(propName, methodsArgs);
 
                     if (enableRevivier) {
                         result = reviverRegistrant.revive(result);

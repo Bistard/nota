@@ -20,16 +20,16 @@ export interface IReviverRegistrant {
     
     /**
      * @description Revives the given object with the correct prototype.
-     * @param obj The given object.
+     * @param obj The given object (could be array).
      */
-    revive<T>(obj: any): T;
+    revive<T extends object>(obj: T): T;
 }
 
 /**
  * When processes are communicating with each other under IPC. After the 
- * deserialization process of JSON.stringify and JSON.parse the new serialized 
- * object will not inherit the original prototype which may cause unexpected 
- * behaviours during the runtime.
+ * deserialization process of `JSON.stringify` and `JSON.parse` the new 
+ * serialized object will not inherit the original prototype which may cause 
+ * unexpected behaviours during the runtime.
  * 
  * To solve the above situation, you may register a prototype with a given 
  * matcher to match the object when reviving. When invoking `this.revive(object)`
@@ -62,13 +62,13 @@ class ReviverRegistrant implements IReviverRegistrant {
         this._prototypes.set(prototype, matcher);
     }
 
-    public revive<T>(obj: any): T {
+    public revive<T extends object>(obj: T): T {
         
         if (Array.isArray(obj)) {
             for (let i = 0; i < obj.length; i++) {
 				obj[i] = this.revive(obj[i]);
 			}
-            return <any>obj;
+            return obj;
         }
         
         if (isObject(obj)) {
