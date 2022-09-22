@@ -190,11 +190,11 @@ abstract class MultiTreeModelBase<T, TFilter> implements IMultiTreeModelBase<T, 
             // prevent accidently delete what we just inserted.
             if (inserted.has(node.data) === false) {
                 this._nodes.delete(node.data);
-            }
 
-            // other callback
-            if (opts.onDidDeleteNode) {
-                opts.onDidDeleteNode(node);
+                // other callback
+                if (opts.onDidDeleteNode) {
+                    opts.onDidDeleteNode(node);
+                }
             }
         }
 
