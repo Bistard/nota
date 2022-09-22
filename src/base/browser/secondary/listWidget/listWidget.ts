@@ -361,13 +361,13 @@ export interface IListWidget<T> extends IDisposable {
  * pressing SHIFT will able to mutl-select in range, pressing escape key will
  * lose the current focus item and so on...
  * 
- * Extra Functionalities:
+*  @note You may overrride the corresponding protected methods to customize the
+ * behaviours.
+ * 
+ * Additional Functionalities:
  *  - mouse support (focus / selection)
  *  - keyboard support (enter / up / down / pageup / pagedown / escape)
  *  - drag and drop support
- * 
- * @note You may overrride the corresponding protected methods to customize the
- * behaviours.
  */
 export class ListWidget<T> implements IListWidget<T> {
 

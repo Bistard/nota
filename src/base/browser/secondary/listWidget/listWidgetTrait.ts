@@ -108,7 +108,6 @@ export class ListTrait implements IDisposable {
         this._onDidChange.dispose();
         this.indices = [];
     }
-
 }
 
 

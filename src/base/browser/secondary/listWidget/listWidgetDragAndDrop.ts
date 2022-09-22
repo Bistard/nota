@@ -95,7 +95,7 @@ export interface IListWidgetDragAndDropProvider<T> extends IListDragAndDropProvi
  * @class A wrapper class for {@link IListWidget}.
  * @wran DO NOT USE DIRECTLY.
  */
-export class ListWidgetDragAndDropProvider<T> implements IListWidgetDragAndDropProvider<T> {
+class ListWidgetDragAndDropProvider<T> implements IListWidgetDragAndDropProvider<T> {
 
     private view: IListWidget<T>;
     private dnd: IListDragAndDropProvider<T>;
