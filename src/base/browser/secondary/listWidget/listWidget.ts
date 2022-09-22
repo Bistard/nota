@@ -800,10 +800,11 @@ export interface IListWidget<T> extends IDisposable {
     
     // [events / getter]
     
-    /**
-     * The container of the whole view.
-     */
+    /** The container of the whole view. */
     readonly DOMElement: HTMLElement;
+
+    /** The actual content size in pixels. */
+    readonly contentSize: number;
 
     /** Fires when the {@link IListWidget} is scrolling. */
     get onDidScroll(): Register<IScrollEvent>;
@@ -1104,6 +1105,7 @@ export class ListWidget<T> implements IListWidget<T> {
     // [getter / setter]
 
     get DOMElement(): HTMLElement { return this.view.DOMElement; }
+    get contentSize(): number { return this.view.contentSize; }
     
     get onDidScroll(): Register<IScrollEvent> { return this.view.onDidScroll; }
     get onDidChangeItemFocus(): Register<ITraitChangeEvent> { return this.focused.onDidChange; }

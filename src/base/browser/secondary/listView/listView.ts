@@ -159,6 +159,9 @@ export interface IListView<T> extends IDisposable {
     /** The container of the whole view. */
     readonly DOMElement: HTMLElement;
 
+    /** The actual content size in pixels. */
+    readonly contentSize: number;
+
     // [public methods]
 
     /**
@@ -443,6 +446,7 @@ export class ListView<T> implements IDisposable, ISpliceable<T>, IListView<T> {
     @memoize get onContextmenu(): Register<PointerEvent> { return this.disposables.register(new DomEmitter<PointerEvent>(this.element, EventType.contextmenu)).registerListener; }
 
     get DOMElement(): HTMLElement { return this.element; }
+    get contentSize(): number { return this.scrollable.getScrollSize(); }
 
     // [constructor]
 

@@ -305,9 +305,19 @@ export interface IAbstractTreeOptions<T, TFilter> extends IIndexTreeModelOptions
 export interface IAbstractTree<T, TFilter, TRef> extends IDisposable {
 
     /**
-     * The container of the whole tree.
+     * The HTMLElement container of the tree.
      */
     readonly DOMElement: HTMLElement;
+
+    /**
+     * The viewport size of the tree in pixels.
+     */
+    readonly viewportHeight: number;
+
+    /** 
+     * The actual content size of the tree in pixels. 
+     */
+    readonly contentHeight: number;
 
     // [event]
 
@@ -708,6 +718,14 @@ export abstract class AbstractTree<T, TFilter, TRef> implements IAbstractTree<T,
 
     get DOMElement(): HTMLElement {
         return this._view.DOMElement;
+    }
+
+    get viewportHeight(): number {
+        return this._view.getViewportSize();
+    }
+
+    get contentHeight(): number {
+        return this._view.contentSize;
     }
 
     public setDomFocus(): void {

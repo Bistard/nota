@@ -103,8 +103,8 @@ export interface IAsyncTree<T, TFilter> extends Omit<IMultiTreeBase<T, TFilter>,
      *                  default.
      * @returns If the operation successed.
      * 
-     * @note Since expanding meaning refreshing to the updated children nodes,
-     * asynchronous is required.
+     * @note Since expanding meaning potential refreshing to the latest children 
+     * nodes, thus asynchronous is required.
      */
     expand(data: T, recursive?: boolean): Promise<boolean>;
      
@@ -318,9 +318,11 @@ export class AsyncTree<T, TFilter> extends Disposable implements IAsyncTree<T, T
 
     get root(): T { return this._tree.root; }
 
-    get waitForNextCollapseChange(): Promise<void> {
-        return this._ongoingCollapseChange.waitNext();
-    }
+    get waitForNextCollapseChange(): Promise<void> { return this._ongoingCollapseChange.waitNext(); }
+
+    get viewportHeight(): number { return this._tree.viewportHeight; }
+
+    get contentHeight(): number { return this._tree.contentHeight; }
 
     // [public methods]
 
