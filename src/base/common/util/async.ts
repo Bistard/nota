@@ -229,6 +229,12 @@ export interface IAsyncRunner<T> extends Disposable {
 	 * @description Resumes the flow of executing.
 	 */
 	resume(): void;
+
+	/**
+	 * @description Returns a promise that will resolve once the next queued 
+	 * task is completed.
+	 */
+	waitNext(): Promise<void>;
 }
 
 /**
@@ -287,6 +293,10 @@ export class AsyncRunner<T> extends Disposable implements IAsyncRunner<T> {
 		
 		this._paused = false;
 		this.__consume();
+	}
+
+	public waitNext(): Promise<void> {
+		return (new EventBlocker(this.onDidFlush)).waiting();
 	}
 
 	public override dispose(): void {

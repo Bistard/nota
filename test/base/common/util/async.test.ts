@@ -92,6 +92,29 @@ suite('async-test', () => {
     
             assert.strictEqual(count, 5);
         });
+
+		test('onDidFlush', async () => {
+			let count = 0;
+			const executor = new AsyncRunner<void>(2);
+			const blocker = new EventBlocker(executor.onDidFlush);
+			
+			executor.pause();
+			loop(5, () => executor.queue(() => delayFor(0).then(() => { count++; })));
+			executor.resume();
+
+			await blocker.waiting();
+			assert.strictEqual(count, 5);
+		});
+
+		test('waitNext', async () => {
+			let count = 0;
+			const executor = new AsyncRunner<void>(2);
+			
+			executor.queue(() => delayFor(0).then(() => { count++; }));
+			
+			await executor.waitNext();
+			assert.strictEqual(count, 1);
+		});
     });
 
     suite('throttler', () => {
