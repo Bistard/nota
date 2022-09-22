@@ -365,6 +365,9 @@ export interface IListWidget<T> extends IDisposable {
  *  - mouse support (focus / selection)
  *  - keyboard support (enter / up / down / pageup / pagedown / escape)
  *  - drag and drop support
+ * 
+ * @note You may overrride the corresponding protected methods to customize the
+ * behaviours.
  */
 export class ListWidget<T> implements IListWidget<T> {
 
@@ -597,7 +600,7 @@ export class ListWidget<T> implements IListWidget<T> {
         return this.view.getItemCount();
     }
 
-    // [private helper methods]
+    // [protected override methods]
 
     /**
      * @description Creates an instance of a {@link IListWidgetMouseController}.
@@ -625,6 +628,8 @@ export class ListWidget<T> implements IListWidget<T> {
     protected __createListWidgetDndController(opts: IListWidgetOpts<T>): any {
         return new ListWidgetDragAndDropController(this, opts.dragAndDropProvider!, e => this.__toListDragEvent(e));
     }
+
+    // [private helper methods]
 
     /**
      * @description A mapper function to convert the {@link MouseEvent} to our 
