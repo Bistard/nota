@@ -28,7 +28,6 @@ export interface ITreeCollapseStateChangeEvent<T, TFilter> {
  * T: represents the type of data is stored inside the node.
  * TFilter: represents the type of data for matching purpose, eg. {@link FuzzyScore}.
  */
-
 export interface ITreeNode<T, TFilter = void> extends ITreeNodeItem<T> {
     
     /** The corresponding stored user-defined data. */

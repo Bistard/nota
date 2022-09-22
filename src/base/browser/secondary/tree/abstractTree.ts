@@ -211,7 +211,7 @@ export class TreeListWidget<T, TFilter, TRef> extends ListWidget<ITreeNode<T, TF
     public override splice(index: number, deleteCount: number, items: ITreeNode<T, TFilter>[] = []): void {
         super.splice(index, deleteCount, items);
 
-        if (items.length === 0) {
+        if (!items.length && !deleteCount) {
             return;
         }
 
