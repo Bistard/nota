@@ -445,18 +445,18 @@ export class ListWidget<T> implements IListWidget<T> {
     get onRemoveItemInDOM(): Register<IViewItemChangeEvent<T>> { return this.view.onRemoveItemInDOM; }
     @memoize get onDidChangeFocus(): Register<boolean> { return this.disposables.register(new SignalEmitter<boolean, boolean>([Event.map(this.view.onDidFocus, () => true), Event.map(this.view.onDidBlur, () => false)], (e: boolean) => e)).registerListener; }
     
-    @memoize get onClick(): Register<IListMouseEvent<T>> { return Event.map<MouseEvent, IListMouseEvent<T>>(this.view.onClick, e => this.__toListMouseEvent(e)); }
-    @memoize get onDoubleclick(): Register<IListMouseEvent<T>> { return Event.map<MouseEvent, IListMouseEvent<T>>(this.view.onDoubleclick, e => this.__toListMouseEvent(e));  }
-    @memoize get onMouseover(): Register<IListMouseEvent<T>> { return Event.map<MouseEvent, IListMouseEvent<T>>(this.view.onMouseover, e => this.__toListMouseEvent(e)); }
-    @memoize get onMouseout(): Register<IListMouseEvent<T>> { return Event.map<MouseEvent, IListMouseEvent<T>>(this.view.onMouseout, e => this.__toListMouseEvent(e)); }
-    @memoize get onMousedown(): Register<IListMouseEvent<T>> { return Event.map<MouseEvent, IListMouseEvent<T>>(this.view.onMousedown, e => this.__toListMouseEvent(e)); }
-    @memoize get onMouseup(): Register<IListMouseEvent<T>> { return Event.map<MouseEvent, IListMouseEvent<T>>(this.view.onMouseup, e => this.__toListMouseEvent(e)); }
-    @memoize get onMousemove(): Register<IListMouseEvent<T>> { return Event.map<MouseEvent, IListMouseEvent<T>>(this.view.onMousemove, e => this.__toListMouseEvent(e)); }
-    @memoize get onTouchstart(): Register<IListTouchEvent<T>> { return Event.map<TouchEvent, IListTouchEvent<T>>(this.view.onTouchstart, e => this.__toListTouchEvent(e)); }
+    get onClick(): Register<IListMouseEvent<T>> { return Event.map(this.view.onClick, e => this.__toListMouseEvent(e)); }
+    get onDoubleclick(): Register<IListMouseEvent<T>> { return Event.map(this.view.onDoubleclick, e => this.__toListMouseEvent(e));  }
+    get onMouseover(): Register<IListMouseEvent<T>> { return Event.map(this.view.onMouseover, e => this.__toListMouseEvent(e)); }
+    get onMouseout(): Register<IListMouseEvent<T>> { return Event.map(this.view.onMouseout, e => this.__toListMouseEvent(e)); }
+    get onMousedown(): Register<IListMouseEvent<T>> { return Event.map(this.view.onMousedown, e => this.__toListMouseEvent(e)); }
+    get onMouseup(): Register<IListMouseEvent<T>> { return Event.map(this.view.onMouseup, e => this.__toListMouseEvent(e)); }
+    get onMousemove(): Register<IListMouseEvent<T>> { return Event.map(this.view.onMousemove, e => this.__toListMouseEvent(e)); }
+    get onTouchstart(): Register<IListTouchEvent<T>> { return Event.map(this.view.onTouchstart, e => this.__toListTouchEvent(e)); }
 
-    @memoize get onKeydown(): Register<IStandardKeyboardEvent> { return Event.map<KeyboardEvent, IStandardKeyboardEvent>(this.view.onKeydown, e => createStandardKeyboardEvent(e)); }
-    @memoize get onKeyup(): Register<IStandardKeyboardEvent> { return Event.map<KeyboardEvent, IStandardKeyboardEvent>(this.view.onKeyup, e => createStandardKeyboardEvent(e)); }
-    @memoize get onKeypress(): Register<IStandardKeyboardEvent> { return Event.map<KeyboardEvent, IStandardKeyboardEvent>(this.view.onKeypress, e => createStandardKeyboardEvent(e)); }
+    get onKeydown(): Register<IStandardKeyboardEvent> { return Event.map(this.view.onKeydown, e => createStandardKeyboardEvent(e)); }
+    get onKeyup(): Register<IStandardKeyboardEvent> { return Event.map(this.view.onKeyup, e => createStandardKeyboardEvent(e)); }
+    get onKeypress(): Register<IStandardKeyboardEvent> { return Event.map(this.view.onKeypress, e => createStandardKeyboardEvent(e)); }
     @memoize get onContextmenu(): Register<IListContextmenuEvent<T>> { return this.__createContextmenuRegister(); }
 
     // [methods]
@@ -660,10 +660,10 @@ export class ListWidget<T> implements IListWidget<T> {
         
         
         // only used to detect if pressing down context menu key
-        this.onKeydown(e => {
+        this.disposables.register(this.onKeydown(e => {
             e.browserEvent.preventDefault();
             e.browserEvent.stopPropagation();
-        });
+        }));
 
         // mouse right click
         const onMouse = Event.map<PointerEvent, IListContextmenuEvent<T>>(this.view.onContextmenu, e => this.__toContextmenuEvent(e));
