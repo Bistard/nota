@@ -43,6 +43,8 @@ export class ListWidgetKeyboardController<T> implements IDisposable {
     // [private helper methods]
 
     private __onDidKeydown(e: IStandardKeyboardEvent): void {
+        e.preventDefault();
+        
         switch (e.key) {
             case KeyCode.Enter:
                 this.__onEnter(e);
@@ -68,16 +70,12 @@ export class ListWidgetKeyboardController<T> implements IDisposable {
     }
 
     private __onEnter(e: IStandardKeyboardEvent): void {
-        e.preventDefault();
-		e.stopPropagation();
         const focused = this._view.getFocus();
         this._view.setSelections(focused !== null ? [focused] : []);
     }
 
     private __onUpArrow(e: IStandardKeyboardEvent): void {
         if (this._view.getFocus() !== null) {
-            e.preventDefault();
-            e.stopPropagation();
             const newFoused = this._view.focusPrev(1, false, undefined);
             if (newFoused !== -1) {
                 this._view.setAnchor(newFoused);
@@ -89,8 +87,6 @@ export class ListWidgetKeyboardController<T> implements IDisposable {
 
     private __onDownArrow(e: IStandardKeyboardEvent): void {
         if (this._view.getFocus() !== null) {
-            e.preventDefault();
-            e.stopPropagation();
             const newFoused = this._view.focusNext(1, false, undefined);
             if (newFoused !== -1) {
                 this._view.setAnchor(newFoused);
@@ -101,23 +97,17 @@ export class ListWidgetKeyboardController<T> implements IDisposable {
     }
 
     private __onPageupArrow(e: IStandardKeyboardEvent): void {
-        e.preventDefault();
-		e.stopPropagation();
         // TODO
         console.warn('does not support pageup in ListWidget yet.');
     }
 
     private __onPagedownArrow(e: IStandardKeyboardEvent): void {
-        e.preventDefault();
-		e.stopPropagation();
         // TODO
         console.warn('does not support pagedown in ListWidget yet.');
     }
 
     private __onEscape(e: IStandardKeyboardEvent): void {
         if (this._view.getSelections().length) {
-            e.preventDefault();
-		    e.stopPropagation();
             this._view.setSelections([]);
             this._view.setAnchor(null);
 			this._view.setDomFocus();
