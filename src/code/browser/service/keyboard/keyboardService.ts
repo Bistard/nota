@@ -19,7 +19,6 @@ export interface IKeyboardService {
      * Fires when keyup happens.
      */
     onKeyup: Register<IStandardKeyboardEvent>;
-
 }
 
 /**
@@ -31,13 +30,13 @@ export interface IKeyboardService {
  */
 export class keyboardService implements IDisposable, IKeyboardService {
 
-    private disposables: DisposableManager;
+    private readonly disposables: DisposableManager;
 
-    private _onKeydown = new DomEmitter<KeyboardEvent>(window, EventType.keydown);
-    public onKeydown = Event.map<KeyboardEvent, IStandardKeyboardEvent>(this._onKeydown.registerListener, e => createStandardKeyboardEvent(e));
+    private readonly _onKeydown = new DomEmitter<KeyboardEvent>(window, EventType.keydown);
+    public readonly onKeydown = Event.map<KeyboardEvent, IStandardKeyboardEvent>(this._onKeydown.registerListener, e => createStandardKeyboardEvent(e));
 
-    private _onKeyup = new DomEmitter<KeyboardEvent>(window, EventType.keyup);
-    public onKeyup = Event.map<KeyboardEvent, IStandardKeyboardEvent>(this._onKeyup.registerListener, e => createStandardKeyboardEvent(e));
+    private readonly _onKeyup = new DomEmitter<KeyboardEvent>(window, EventType.keyup);
+    public readonly onKeyup = Event.map<KeyboardEvent, IStandardKeyboardEvent>(this._onKeyup.registerListener, e => createStandardKeyboardEvent(e));
 
     constructor() {
         this.disposables = new DisposableManager();

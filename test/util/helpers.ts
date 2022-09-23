@@ -1,5 +1,5 @@
-import { loop } from "src/base/common/util/async";
 import { Random } from "src/base/common/util/random";
+import { repeat } from "src/base/common/util/timer";
 import { NestedArray } from "src/base/common/util/type";
 
 /**
@@ -24,7 +24,7 @@ export function generateTreeLike<TLeaf>(createLeaf: () => TLeaf, size: number = 
         // the deeper the node, the less likely the children can have.
         const childrenCnt = 1 + Random.int(size / depth);
 
-        loop(childrenCnt, () => {
+        repeat(childrenCnt, () => {
             // the deeper the node, the more likely the node is a leaf.
             if (Random.maybe(1 / depth)) {
                 parent.push(__aux([], depth + 1));

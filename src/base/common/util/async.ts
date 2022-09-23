@@ -64,15 +64,6 @@ export async function retry<T>(task: IAsyncTask<T>, delay: number, round: number
 }
 
 /**
- * @description Runs the given callback in a given times.
- */
-export function loop(round: number, fn: (index: number) => void): void {
-	for (let i = 0; i < round; i++) {
-		fn(i);
-	}
-}
-
-/**
  * @class Acts like a promise by calling {@link Blocker.waiting()} to wait a 
  * data with type T. The only difference is client may signals the blocker to 
  * resolve or reject manually.
