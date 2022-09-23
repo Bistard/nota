@@ -121,7 +121,6 @@ class RendererInstance extends Disposable {
         logService.setLogger(logger);
         
         // file-service
-        // FIX: readFileStream does not work
         const fileService = new BrowserFileChannel(ipcService);
         instantiationService.register(IFileService, fileService);
  
