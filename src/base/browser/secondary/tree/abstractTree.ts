@@ -11,8 +11,10 @@ import { IListViewRenderer } from "src/base/browser/secondary/listView/listRende
 import { IStandardKeyboardEvent } from "src/base/common/keyboard";
 import { IIndexTreeModelOptions } from "src/base/browser/secondary/tree/indexTreeModel";
 import { ListWidgetMouseController } from "src/base/browser/secondary/listWidget/listWidgetMouseController";
+import { ListWidgetKeyboardController } from "src/base/browser/secondary/listWidget/listWidgetKeyboardController";
 
 /**
+ * @internal
  * @class A wrapper class to convert a basic {@link IListDragAndDropProvider<T>}
  * to {@link IListDragAndDropProvider<ITreeNode<T>>}.
  */
@@ -68,6 +70,7 @@ class __TreeListDragAndDropProvider<T, TFilter> implements IListDragAndDropProvi
 }
 
 /**
+ * @internal
  * @class Similar to the {@link __ListTrait} in the {@link ListWidget}. The trait
  * concept need to be exist at the tree level, since the list view does not know
  * the existance of the collapsed tree nodes.
@@ -75,7 +78,7 @@ class __TreeListDragAndDropProvider<T, TFilter> implements IListDragAndDropProvi
  * T: The type of data in {@link AbstractTree}.
  * `trait` does not care about TFilter type.
  */
-class __TreeListTrait<T> {
+class TreeListTrait<T> {
 
     // [field]
 
@@ -118,7 +121,7 @@ class __TreeListTrait<T> {
  * Since the collapsing status is only known by the tree-level, we need to override
  * the behaviours of the list-level mouse controller to achieve customization.
  */
-class TreeListWidgetMouseController<T, TFilter, TRef> extends ListWidgetMouseController<ITreeNode<T, TFilter>> {
+class TreeWidgetMouseController<T, TFilter, TRef> extends ListWidgetMouseController<ITreeNode<T, TFilter>> {
 
     private readonly _tree: IAbstractTree<T, TFilter, TRef>;
 
@@ -149,16 +152,14 @@ class TreeListWidgetMouseController<T, TFilter, TRef> extends ListWidgetMouseCon
 
         /**
          * Otherwise, this is considered as a normal click. We toggle the 
-         * collapse state of the clicked node. 
-         * 
-         * This is the presetting behaviour.
+         * collapse state of the clicked node. This is a presetting behaviour.
          */
         if (node.collapsible) {
             const location = this._tree.getNodeLocation(node);
             
             /**
-             * @readonly Traits indice will be invalid after the actual list 
-             * structure changed. They must be set first.
+             * Traits indice will be invalid after the actual list structure 
+             * changed. They must be set first.
              */
             this._tree.setFocus(location);
             this._tree.setSelections([location]);
@@ -171,37 +172,69 @@ class TreeListWidgetMouseController<T, TFilter, TRef> extends ListWidgetMouseCon
     }
 }
 
+/**
+ * @internal
+ * @class Overrides the keyboard controller with addtional behaviours in the
+ * perspective of tree level.
+ */
+class TreeWidgetKeyboardController<T, TFilter, TRef> extends ListWidgetKeyboardController<ITreeNode<T, TFilter>> {
+
+    // [field]
+
+    declare protected readonly _view: TreeListWidget<T, TFilter, TRef>;
+    protected readonly _tree: IAbstractTree<T, TFilter, TRef>;
+
+    // [constructor]
+
+    constructor(
+        view: TreeListWidget<T, TFilter, TRef>,
+        tree: IAbstractTree<T, TFilter, TRef>,
+    ) {
+        super(view);
+        this._tree = tree;
+    }
+
+    // [protected override methods]
+
+    protected override __onEnter(e: IStandardKeyboardEvent): void {
+        super.__onEnter(e);
+        console.log('[tree] enter');
+        // const anchor = this._view.getAnchorData();
+        // if (anchor) {
+        //     this._tree.toggleCollapseOrExpand(anchor, false);
+        // }
+    }
+}
+
 export interface ITreeListWidgetOpts<T, TFilter, TRef> extends IListWidgetOpts<ITreeNode<T, TFilter>> {
     readonly tree: IAbstractTree<T, TFilter, TRef>;
 }
 
 /**
+ * @internal
  * @class A simple wrapper class for {@link IListWidget} which converts the type
  * T to ITreeNode<T>.
  */
-export class TreeListWidget<T, TFilter, TRef> extends ListWidget<ITreeNode<T, TFilter>> {
+class TreeListWidget<T, TFilter, TRef> extends ListWidget<ITreeNode<T, TFilter>> {
 
     // [field]
 
-    private readonly _focused: __TreeListTrait<T>;
-    private readonly _selected: __TreeListTrait<T>;
-    private readonly _anchor: __TreeListTrait<T>;
+    private readonly _selected: TreeListTrait<T>; // user's selection
+    private readonly _anchor: TreeListTrait<T>;   // user's selection start
+    private readonly _focused: TreeListTrait<T>;  // user's selection end
 
     // [constructor]
 
     constructor(
         container: HTMLElement,
         renderers: IListViewRenderer<any, any>[],
-        focusedTrait: __TreeListTrait<T>,
-        anchorTrait: __TreeListTrait<T>,
-        selectedTrait: __TreeListTrait<T>,
         itemProvider: IListItemProvider<ITreeNode<T, TFilter>>,
         opts: ITreeListWidgetOpts<T, TFilter, TRef>
     ) {
         super(container, renderers, itemProvider, opts);
-        this._focused = focusedTrait;
-        this._anchor = anchorTrait;
-        this._selected = selectedTrait;
+        this._focused = new TreeListTrait();
+        this._anchor = new TreeListTrait();
+        this._selected = new TreeListTrait();
     }
 
     // [public method]
@@ -213,27 +246,27 @@ export class TreeListWidget<T, TFilter, TRef> extends ListWidget<ITreeNode<T, TF
             return;
         }
 
-        let focusedIndex: number = -1;
-        let anchorIndex: number = -1;
+        let focusedIndex = -1;
+        let anchorIndex = -1;
         const selectedIndex: number[] = [];
 
         /**
-         * If the inserting item has trait attribute at the tree level, it should 
-         * also has trait attribute at the list level.
+         * If the inserting item has trait attribute at the tree level, it 
+         * should also has trait attribute at the list level.
          */
-        for (let i = index; i < index + items.length; i++) {
+        for (let i = 0; i < items.length; i++) {
             const item = items[i]!;
             
             if (this._focused.has(item)) {
-                focusedIndex = i;
+                focusedIndex = index + i;
             }
 
             if (this._anchor.has(item)) {
-                anchorIndex = i;
+                anchorIndex = index + i;
             }
 
             if (this._selected.has(item)) {
-                selectedIndex.push(i);
+                selectedIndex.push(index + i);
             }
         }
 
@@ -271,14 +304,26 @@ export class TreeListWidget<T, TFilter, TRef> extends ListWidget<ITreeNode<T, TF
         this._selected.set(indice.map(idx => this.getItem(idx)));
     }
 
+    public getFocusData(): T | null {
+        return this._focused.get()[0] ?? null;
+    }
+
+    public getAnchorData(): T | null {
+        return this._anchor.get()[0] ?? null;
+    }
+
+    public getSelectionData(): T[] {
+        return this._selected.get();
+    }
+
     // [protected override methods]
 
-    /**
-     * @description Overrides the mouse controller to customize tree-like mouse
-     * behaviours.
-     */
     protected override __createListWidgetMouseController(opts: ITreeListWidgetOpts<T, TFilter, TRef>): ListWidgetMouseController<ITreeNode<T, TFilter>> {
-        return new TreeListWidgetMouseController(this, opts);
+        return new TreeWidgetMouseController(this, opts);
+    }
+
+    protected override __createListWidgetKeyboardController(opts: ITreeListWidgetOpts<T, TFilter, TRef>): ListWidgetKeyboardController<ITreeNode<T, TFilter>> {
+        return new TreeWidgetKeyboardController(this, opts.tree);
     }
 }
 
@@ -542,10 +587,6 @@ export abstract class AbstractTree<T, TFilter, TRef> extends Disposable implemen
 
     protected readonly _view: TreeListWidget<T, TFilter, TRef>;
 
-    private readonly _focused: __TreeListTrait<T>;
-    private readonly _anchor: __TreeListTrait<T>;
-    private readonly _selected: __TreeListTrait<T>;
-
     // [constructor]
 
     constructor(
@@ -567,18 +608,10 @@ export abstract class AbstractTree<T, TFilter, TRef> extends Disposable implemen
         // wraps each tree list view renderer with a basic tree item renderer
         renderers = renderers.map(renderer => new TreeItemRenderer<T, TFilter, any>(renderer, relayEmitter.registerListener));
 
-        // create traits for user operations
-        this._focused = new __TreeListTrait();
-        this._anchor = new __TreeListTrait();
-        this._selected = new __TreeListTrait();
-
         // construct the atcual view
         this._view = new TreeListWidget<T, TFilter, TRef>(
             container, 
             renderers, 
-            this._focused,
-            this._anchor,
-            this._selected,
             new TreeListItemProvider(itemProvider), 
             {
                 dragAndDropProvider: opts.dnd && new __TreeListDragAndDropProvider(opts.dnd),
@@ -663,50 +696,38 @@ export abstract class AbstractTree<T, TFilter, TRef> extends Disposable implemen
     }
 
     public setAnchor(item: TRef): void {
-        const node = this._model.getNode(item);
-        this._anchor.set([node]);
         const index = this._model.getNodeListIndex(item);
-
-        // not visible in the list view level.
         if (index === -1) {
+            // not visible in the list view level.
             return;
         }
-
         this._view.setAnchor(index);
     }
 
-    public getAnchor(): T | null {
-        const returned = this._anchor.get();
-        return returned.length ? returned[0]! : null;
-    }
-
     public setFocus(item: TRef): void {
-        const node = this._model.getNode(item);
-        this._focused.set([node]);
         const index = this._model.getNodeListIndex(item);
-
-        // not visible in the list view level.
         if (index === -1) {
+            // not visible in the list view level.
             return;
         }
-
         this._view.setFocus(index);
     }
 
-    public getFocus(): T | null {
-        const returned = this._focused.get();
-        return returned.length ? returned[0]! : null;
-    }
-
     public setSelections(items: TRef[]): void {
-        const nodes = items.map(item => this._model.getNode(item));
-        this._focused.set(nodes);
         const indice = items.map(item => this._model.getNodeListIndex(item)).filter(i => i !== -1);
         this._view.setSelections(indice);
     }
 
+    public getAnchor(): T | null {
+        return this._view.getAnchorData();
+    }
+
+    public getFocus(): T | null {
+        return this._view.getFocusData();
+    }
+
     public getSelections(): T[] {
-        return this._selected.get();
+        return this._view.getSelectionData();
     }
 
     // [methods - general]

@@ -416,7 +416,7 @@ export class ListWidget<T> extends Disposable implements IListWidget<T> {
         
         // keyboard support integration
         if (opts.keyboardSupport || opts.mouseSupport === undefined) {
-            const keyboardController = this.__createListWidgetKeyboardController();
+            const keyboardController = this.__createListWidgetKeyboardController(opts);
             this.__register(keyboardController);
         }
         
@@ -614,7 +614,7 @@ export class ListWidget<T> extends Disposable implements IListWidget<T> {
      * May override the behaviours by the inheritance to customize the keyboard
      * behaviour.
      */
-    protected __createListWidgetKeyboardController(): ListWidgetKeyboardController<T> {
+    protected __createListWidgetKeyboardController(opts: IListWidgetOpts<T>): ListWidgetKeyboardController<T> {
         return new ListWidgetKeyboardController(this);
     }
 

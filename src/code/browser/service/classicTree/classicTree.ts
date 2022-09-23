@@ -40,7 +40,6 @@ export class ClassicTree<T extends ClassicItem, TFilter> extends AsyncTree<T, TF
     ) {
         super(container, rootData, opts);
         this.__register(this.onClick(e => this.__onClick(e)));
-        this.__register(this.onKeydown(e => this.__onKeydown(e)))
     }
 
     // [private helper method]
@@ -59,14 +58,5 @@ export class ClassicTree<T extends ClassicItem, TFilter> extends AsyncTree<T, TF
             item: event.data,
             browserEvent: event.browserEvent
         });
-    }
-
-    private __onKeydown(event: IStandardKeyboardEvent): void {
-        if (event.key === KeyCode.Enter) {
-            const anchor = this.getAnchor();
-            if (anchor) {
-                this.toggleCollapseOrExpand(anchor, false);
-            }
-        }
     }
 }

@@ -1,6 +1,6 @@
 import { DomUtility } from "src/base/browser/basic/dom";
 import { IListWidget } from "src/base/browser/secondary/listWidget/listWidget";
-import { DisposableManager, IDisposable } from "src/base/common/dispose";
+import { Disposable, DisposableManager, IDisposable } from "src/base/common/dispose";
 import { Event, Register } from "src/base/common/event";
 import { IStandardKeyboardEvent, KeyCode } from "src/base/common/keyboard";
 import { memoize } from "src/base/common/memoization";
@@ -8,43 +8,48 @@ import { memoize } from "src/base/common/memoization";
 /**
  * @internal
  * @class An internal class that handles the keyboard support of {@link IListWidget}.
- * It handles:
+ * It presets the following keypress behaviours (you may extend this class and
+ * override the corresponding function):
  *  - enter
- *  - up
- *  - down
+ *  - up arrow
+ *  - down arrow
  *  - page up
  *  - page down
  *  - escape
  */
-export class ListWidgetKeyboardController<T> implements IDisposable {
+export class ListWidgetKeyboardController<T> extends Disposable implements IDisposable {
 
     // [field]
 
-    private readonly _disposables = new DisposableManager();
-    private readonly _view: IListWidget<T>;
+    protected readonly _view: IListWidget<T>;
 
     // [constructor]
 
     constructor(view: IListWidget<T>) {
+        super();
         this._view = view;
-        this._disposables.register(this.onKeydown(e => this.__onDidKeydown(e)));
+        this.__register(this.onKeydown(e => this.__onDidKeydown_aux(e)));
     }
 
     // [private getter]
 
-    @memoize private get onKeydown(): Register<IStandardKeyboardEvent> { return Event.filter(this._view.onKeydown, e => !DomUtility.isInputElement(e.target as HTMLElement)); }
-
-    // [public method]
-
-    public dispose(): void {
-        this._disposables.dispose();
-    }
+    @memoize 
+    protected get onKeydown(): Register<IStandardKeyboardEvent> { return Event.filter(this._view.onKeydown, e => !DomUtility.isInputElement(e.target as HTMLElement)); }
 
     // [private helper methods]
 
-    private __onDidKeydown(e: IStandardKeyboardEvent): void {
+    private __onDidKeydown_aux(e: IStandardKeyboardEvent): void {
         e.preventDefault();
-        
+        this.__onDidKeydown(e);
+    }
+
+    // [protected methods]
+
+    /**
+     * @description Override this method to customize other keydown settings.
+     * @param e The keydown event.
+     */
+    protected __onDidKeydown(e: IStandardKeyboardEvent): void {
         switch (e.key) {
             case KeyCode.Enter:
                 this.__onEnter(e);
@@ -69,12 +74,12 @@ export class ListWidgetKeyboardController<T> implements IDisposable {
         }
     }
 
-    private __onEnter(e: IStandardKeyboardEvent): void {
+    protected __onEnter(e: IStandardKeyboardEvent): void {
         const focused = this._view.getFocus();
         this._view.setSelections(focused !== null ? [focused] : []);
     }
 
-    private __onUpArrow(e: IStandardKeyboardEvent): void {
+    protected __onUpArrow(e: IStandardKeyboardEvent): void {
         if (this._view.getFocus() !== null) {
             const newFoused = this._view.focusPrev(1, false, undefined);
             if (newFoused !== -1) {
@@ -85,7 +90,7 @@ export class ListWidgetKeyboardController<T> implements IDisposable {
         }
     }
 
-    private __onDownArrow(e: IStandardKeyboardEvent): void {
+    protected __onDownArrow(e: IStandardKeyboardEvent): void {
         if (this._view.getFocus() !== null) {
             const newFoused = this._view.focusNext(1, false, undefined);
             if (newFoused !== -1) {
@@ -96,17 +101,17 @@ export class ListWidgetKeyboardController<T> implements IDisposable {
         }
     }
 
-    private __onPageupArrow(e: IStandardKeyboardEvent): void {
+    protected __onPageupArrow(e: IStandardKeyboardEvent): void {
         // TODO
         console.warn('does not support pageup in ListWidget yet.');
     }
 
-    private __onPagedownArrow(e: IStandardKeyboardEvent): void {
+    protected __onPagedownArrow(e: IStandardKeyboardEvent): void {
         // TODO
         console.warn('does not support pagedown in ListWidget yet.');
     }
 
-    private __onEscape(e: IStandardKeyboardEvent): void {
+    protected __onEscape(e: IStandardKeyboardEvent): void {
         if (this._view.getSelections().length) {
             this._view.setSelections([]);
             this._view.setAnchor(null);
