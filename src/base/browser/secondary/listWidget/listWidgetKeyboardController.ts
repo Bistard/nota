@@ -20,8 +20,8 @@ export class ListWidgetKeyboardController<T> implements IDisposable {
 
     // [field]
 
-    private _disposables = new DisposableManager();
-    private _view: IListWidget<T>;
+    private readonly _disposables = new DisposableManager();
+    private readonly _view: IListWidget<T>;
 
     // [constructor]
 

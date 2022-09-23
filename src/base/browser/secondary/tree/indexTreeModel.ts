@@ -242,7 +242,7 @@ abstract class IndexTreeModelBase<T, TFilter> implements IIndexTreeModelBase<T, 
         
         /**
          * To achieve rerendering, we simply delete and re-insert the same items
-         * into the same position. The {@link TreeListWidget} will do the rest
+         * into the same position. The {@link ListWidget} will do the rest
          * of the jobs for us.
          */
 

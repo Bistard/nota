@@ -2,7 +2,7 @@ import { IListViewRow, ListViewCache } from "src/base/browser/secondary/listView
 import { IListViewRenderer, ListItemRenderer, PipelineRenderer, RendererType } from "src/base/browser/secondary/listView/listRenderer";
 import { ScrollableWidget } from "src/base/browser/secondary/scrollableWidget/scrollableWidget";
 import { ScrollbarType } from "src/base/browser/secondary/scrollableWidget/scrollableWidgetOptions";
-import { DisposableManager, IDisposable } from "src/base/common/dispose";
+import { Disposable, DisposableManager, IDisposable } from "src/base/common/dispose";
 import { DomEmitter, DomUtility, EventType } from "src/base/browser/basic/dom";
 import { Emitter, Register } from "src/base/common/event";
 import { IRange, ISpliceable, Range, RangeTable } from "src/base/common/range";
@@ -374,29 +374,27 @@ export interface IListView<T> extends IDisposable {
  *  - performant template-based rendering
  *  - mouse support
  */
-export class ListView<T> implements IDisposable, ISpliceable<T>, IListView<T> {
+export class ListView<T> extends Disposable implements ISpliceable<T>, IListView<T> {
 
     // [fields]
 
-    private disposables: DisposableManager = new DisposableManager();
-
     /** The whole element of the view, including the scrollbar and all the items. */
-    private element: HTMLElement;
-    private focusTracker: FocusTracker;
+    private readonly element: HTMLElement;
+    private readonly focusTracker: FocusTracker;
 
     /** The element contains all the items. */
-    private listContainer: HTMLElement;
+    private readonly listContainer: HTMLElement;
 
-    private scrollable: Scrollable;
-    private scrollableWidget: ScrollableWidget;
+    private readonly scrollable: Scrollable;
+    private readonly scrollableWidget: ScrollableWidget;
 
     private rangeTable: RangeTable;
 
-    private renderers: Map<RendererType, IListViewRenderer<T, any>>;
-    private itemProvider: IListItemProvider<T>;
+    private readonly renderers: Map<RendererType, IListViewRenderer<T, any>>;
+    private readonly itemProvider: IListItemProvider<T>;
     
     private items: IViewItem<T>[];
-    private cache: ListViewCache;
+    private readonly cache: ListViewCache;
 
     /** The `top` pixels relatives to the scrollable view that was previously rendered. */
     private prevRenderTop: number;
@@ -411,16 +409,16 @@ export class ListView<T> implements IDisposable, ISpliceable<T>, IListView<T> {
 
     // [events]
 
-    private readonly _onDidSplice: Emitter<void> = this.disposables.register(new Emitter<void>());
+    private readonly _onDidSplice: Emitter<void> = this.__register(new Emitter<void>());
     public readonly onDidSplice: Register<void> = this._onDidSplice.registerListener;
 
-    private readonly _onInsertItemInDOM: Emitter<IViewItemChangeEvent<T>> = this.disposables.register(new Emitter<IViewItemChangeEvent<T>>());
+    private readonly _onInsertItemInDOM: Emitter<IViewItemChangeEvent<T>> = this.__register(new Emitter<IViewItemChangeEvent<T>>());
     public readonly onInsertItemInDOM: Register<IViewItemChangeEvent<T>> = this._onInsertItemInDOM.registerListener;
 
-    private readonly _onUpdateItemInDOM: Emitter<IViewItemChangeEvent<T>> = this.disposables.register(new Emitter<IViewItemChangeEvent<T>>());
+    private readonly _onUpdateItemInDOM: Emitter<IViewItemChangeEvent<T>> = this.__register(new Emitter<IViewItemChangeEvent<T>>());
     public readonly onUpdateItemInDOM: Register<IViewItemChangeEvent<T>> = this._onUpdateItemInDOM.registerListener;
 
-    private readonly _onRemoveItemInDOM: Emitter<IViewItemChangeEvent<T>> = this.disposables.register(new Emitter<IViewItemChangeEvent<T>>());
+    private readonly _onRemoveItemInDOM: Emitter<IViewItemChangeEvent<T>> = this.__register(new Emitter<IViewItemChangeEvent<T>>());
     public readonly onRemoveItemInDOM: Register<IViewItemChangeEvent<T>> = this._onRemoveItemInDOM.registerListener;
 
     // [getter / setter]
@@ -431,19 +429,19 @@ export class ListView<T> implements IDisposable, ISpliceable<T>, IListView<T> {
     get onDidFocus(): Register<void> { return this.focusTracker.onDidFocus; }
     get onDidBlur(): Register<void> { return this.focusTracker.onDidBlur; }
     
-    @memoize get onClick(): Register<MouseEvent> { return this.disposables.register(new DomEmitter<MouseEvent>(this.element, EventType.click)).registerListener; }
-    @memoize get onDoubleclick(): Register<MouseEvent> { return this.disposables.register(new DomEmitter<MouseEvent>(this.element, EventType.doubleclick)).registerListener; }
-    @memoize get onMouseover(): Register<MouseEvent> { return this.disposables.register(new DomEmitter<MouseEvent>(this.element, EventType.mouseover)).registerListener; }
-    @memoize get onMouseout(): Register<MouseEvent> { return this.disposables.register(new DomEmitter<MouseEvent>(this.element, EventType.mouseout)).registerListener; }
-    @memoize get onMousedown(): Register<MouseEvent> { return this.disposables.register(new DomEmitter<MouseEvent>(this.element, EventType.mousedown)).registerListener; }
-    @memoize get onMouseup(): Register<MouseEvent> { return this.disposables.register(new DomEmitter<MouseEvent>(this.element, EventType.mouseup)).registerListener; }
-    @memoize get onMousemove(): Register<MouseEvent> { return this.disposables.register(new DomEmitter<MouseEvent>(this.element, EventType.mousemove)).registerListener; }
-    @memoize get onTouchstart(): Register<TouchEvent> { return this.disposables.register(new DomEmitter<TouchEvent>(this.element, EventType.touchstart)).registerListener; }
+    @memoize get onClick(): Register<MouseEvent> { return this.__register(new DomEmitter<MouseEvent>(this.element, EventType.click)).registerListener; }
+    @memoize get onDoubleclick(): Register<MouseEvent> { return this.__register(new DomEmitter<MouseEvent>(this.element, EventType.doubleclick)).registerListener; }
+    @memoize get onMouseover(): Register<MouseEvent> { return this.__register(new DomEmitter<MouseEvent>(this.element, EventType.mouseover)).registerListener; }
+    @memoize get onMouseout(): Register<MouseEvent> { return this.__register(new DomEmitter<MouseEvent>(this.element, EventType.mouseout)).registerListener; }
+    @memoize get onMousedown(): Register<MouseEvent> { return this.__register(new DomEmitter<MouseEvent>(this.element, EventType.mousedown)).registerListener; }
+    @memoize get onMouseup(): Register<MouseEvent> { return this.__register(new DomEmitter<MouseEvent>(this.element, EventType.mouseup)).registerListener; }
+    @memoize get onMousemove(): Register<MouseEvent> { return this.__register(new DomEmitter<MouseEvent>(this.element, EventType.mousemove)).registerListener; }
+    @memoize get onTouchstart(): Register<TouchEvent> { return this.__register(new DomEmitter<TouchEvent>(this.element, EventType.touchstart)).registerListener; }
 
-    @memoize get onKeydown(): Register<KeyboardEvent> { return this.disposables.register(new DomEmitter<KeyboardEvent>(this.element, EventType.keydown)).registerListener; }
-    @memoize get onKeyup(): Register<KeyboardEvent> { return this.disposables.register(new DomEmitter<KeyboardEvent>(this.element, EventType.keyup)).registerListener; }
-    @memoize get onKeypress(): Register<KeyboardEvent> { return this.disposables.register(new DomEmitter<KeyboardEvent>(this.element, EventType.keypress)).registerListener; }
-    @memoize get onContextmenu(): Register<PointerEvent> { return this.disposables.register(new DomEmitter<PointerEvent>(this.element, EventType.contextmenu)).registerListener; }
+    @memoize get onKeydown(): Register<KeyboardEvent> { return this.__register(new DomEmitter<KeyboardEvent>(this.element, EventType.keydown)).registerListener; }
+    @memoize get onKeyup(): Register<KeyboardEvent> { return this.__register(new DomEmitter<KeyboardEvent>(this.element, EventType.keyup)).registerListener; }
+    @memoize get onKeypress(): Register<KeyboardEvent> { return this.__register(new DomEmitter<KeyboardEvent>(this.element, EventType.keypress)).registerListener; }
+    @memoize get onContextmenu(): Register<PointerEvent> { return this.__register(new DomEmitter<PointerEvent>(this.element, EventType.contextmenu)).registerListener; }
 
     get DOMElement(): HTMLElement { return this.element; }
     get contentSize(): number { return this.scrollable.getScrollSize(); }
@@ -456,6 +454,8 @@ export class ListView<T> implements IDisposable, ISpliceable<T>, IListView<T> {
         itemProvider: IListItemProvider<T>,
         opts: IListViewOpts<T>
     ) {
+        super();
+
         this.element = document.createElement('div');
         this.element.className = 'list-view';
         this.focusTracker = new FocusTracker(this.element, true);
@@ -505,10 +505,10 @@ export class ListView<T> implements IDisposable, ISpliceable<T>, IListView<T> {
 
         // disposable registration
 
-        this.disposables.register(this.scrollable);
-        this.disposables.register(this.scrollableWidget);
-        this.disposables.register(this.cache);
-        this.disposables.register(this.focusTracker);
+        this.__register(this.scrollable);
+        this.__register(this.scrollableWidget);
+        this.__register(this.cache);
+        this.__register(this.focusTracker);
 
         // optional rendering
         if (opts.layout) {
@@ -518,7 +518,7 @@ export class ListView<T> implements IDisposable, ISpliceable<T>, IListView<T> {
 
     // [methods]
 
-    public dispose(): void {
+    public override dispose(): void {
         
         // try to dispose all the internal data from each renderer.
         for (const item of this.items) {
@@ -542,7 +542,7 @@ export class ListView<T> implements IDisposable, ISpliceable<T>, IListView<T> {
             this.element.parentNode.removeChild(this.element);
         }
 
-        this.disposables.dispose();
+        super.dispose();
     }
 
     public layout(height?: number): void {

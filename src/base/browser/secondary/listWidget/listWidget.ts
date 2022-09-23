@@ -373,14 +373,14 @@ export class ListWidget<T> extends Disposable implements IListWidget<T> {
 
     // [fields]
 
-    private view: ListView<T>;
+    private readonly view: ListView<T>;
 
     /** User's selection. */
-    private selected: ListTrait;
+    private readonly selected: ListTrait;
     /** Where the user's selection start. */
-    private anchor: ListTrait;
+    private readonly anchor: ListTrait;
     /** Where the user's selection end. */
-    private focused: ListTrait;
+    private readonly focused: ListTrait;
 
     // [constructor]
 
@@ -443,7 +443,8 @@ export class ListWidget<T> extends Disposable implements IListWidget<T> {
     get onInsertItemInDOM(): Register<IViewItemChangeEvent<T>> { return this.view.onInsertItemInDOM; }
     get onUpdateItemInDOM(): Register<IViewItemChangeEvent<T>> { return this.view.onUpdateItemInDOM; }
     get onRemoveItemInDOM(): Register<IViewItemChangeEvent<T>> { return this.view.onRemoveItemInDOM; }
-    @memoize get onDidChangeFocus(): Register<boolean> { return this.__register(new SignalEmitter<boolean, boolean>([Event.map(this.view.onDidFocus, () => true), Event.map(this.view.onDidBlur, () => false)], (e: boolean) => e)).registerListener; }
+    @memoize 
+    get onDidChangeFocus(): Register<boolean> { return this.__register(new SignalEmitter<boolean, boolean>([Event.map(this.view.onDidFocus, () => true), Event.map(this.view.onDidBlur, () => false)], (e: boolean) => e)).registerListener; }
     
     get onClick(): Register<IListMouseEvent<T>> { return Event.map(this.view.onClick, e => this.__toListMouseEvent(e)); }
     get onDoubleclick(): Register<IListMouseEvent<T>> { return Event.map(this.view.onDoubleclick, e => this.__toListMouseEvent(e));  }
@@ -457,7 +458,8 @@ export class ListWidget<T> extends Disposable implements IListWidget<T> {
     get onKeydown(): Register<IStandardKeyboardEvent> { return Event.map(this.view.onKeydown, e => createStandardKeyboardEvent(e)); }
     get onKeyup(): Register<IStandardKeyboardEvent> { return Event.map(this.view.onKeyup, e => createStandardKeyboardEvent(e)); }
     get onKeypress(): Register<IStandardKeyboardEvent> { return Event.map(this.view.onKeypress, e => createStandardKeyboardEvent(e)); }
-    @memoize get onContextmenu(): Register<IListContextmenuEvent<T>> { return this.__createContextmenuRegister(); }
+    @memoize 
+    get onContextmenu(): Register<IListContextmenuEvent<T>> { return this.__createContextmenuRegister(); }
 
     // [methods]
 
