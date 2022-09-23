@@ -78,7 +78,7 @@ class __TreeListDragAndDropProvider<T, TFilter> implements IListDragAndDropProvi
  * T: The type of data in {@link AbstractTree}.
  * `trait` does not care about TFilter type.
  */
-class TreeListTrait<T> {
+class TreeTrait<T> {
 
     // [field]
 
@@ -176,18 +176,20 @@ class TreeWidgetMouseController<T, TFilter, TRef> extends ListWidgetMouseControl
  * @internal
  * @class Overrides the keyboard controller with addtional behaviours in the
  * perspective of tree level.
+ * 
+ * // FIX The class assume `T` and `TRef` are the same types. Fix this later.
  */
 class TreeWidgetKeyboardController<T, TFilter, TRef> extends ListWidgetKeyboardController<ITreeNode<T, TFilter>> {
 
     // [field]
 
-    declare protected readonly _view: TreeListWidget<T, TFilter, TRef>;
+    declare protected readonly _view: TreeWidget<T, TFilter, TRef>;
     protected readonly _tree: IAbstractTree<T, TFilter, TRef>;
 
     // [constructor]
 
     constructor(
-        view: TreeListWidget<T, TFilter, TRef>,
+        view: TreeWidget<T, TFilter, TRef>,
         tree: IAbstractTree<T, TFilter, TRef>,
     ) {
         super(view);
@@ -198,11 +200,11 @@ class TreeWidgetKeyboardController<T, TFilter, TRef> extends ListWidgetKeyboardC
 
     protected override __onEnter(e: IStandardKeyboardEvent): void {
         super.__onEnter(e);
-        console.log('[tree] enter');
-        // const anchor = this._view.getAnchorData();
-        // if (anchor) {
-        //     this._tree.toggleCollapseOrExpand(anchor, false);
-        // }
+        
+        const anchor = this._view.getAnchorData() as unknown as (TRef | null);
+        if (anchor) {
+            this._tree.toggleCollapseOrExpand(anchor, false);
+        }
     }
 }
 
@@ -215,13 +217,13 @@ export interface ITreeListWidgetOpts<T, TFilter, TRef> extends IListWidgetOpts<I
  * @class A simple wrapper class for {@link IListWidget} which converts the type
  * T to ITreeNode<T>.
  */
-class TreeListWidget<T, TFilter, TRef> extends ListWidget<ITreeNode<T, TFilter>> {
+class TreeWidget<T, TFilter, TRef> extends ListWidget<ITreeNode<T, TFilter>> {
 
     // [field]
 
-    private readonly _selected: TreeListTrait<T>; // user's selection
-    private readonly _anchor: TreeListTrait<T>;   // user's selection start
-    private readonly _focused: TreeListTrait<T>;  // user's selection end
+    private readonly _selected: TreeTrait<T>; // user's selection
+    private readonly _anchor: TreeTrait<T>;   // user's selection start
+    private readonly _focused: TreeTrait<T>;  // user's selection end
 
     // [constructor]
 
@@ -232,9 +234,9 @@ class TreeListWidget<T, TFilter, TRef> extends ListWidget<ITreeNode<T, TFilter>>
         opts: ITreeListWidgetOpts<T, TFilter, TRef>
     ) {
         super(container, renderers, itemProvider, opts);
-        this._focused = new TreeListTrait();
-        this._anchor = new TreeListTrait();
-        this._selected = new TreeListTrait();
+        this._focused = new TreeTrait();
+        this._anchor = new TreeTrait();
+        this._selected = new TreeTrait();
     }
 
     // [public method]
@@ -585,7 +587,7 @@ export abstract class AbstractTree<T, TFilter, TRef> extends Disposable implemen
     /** the raw data model of the tree. */
     protected readonly _model: ITreeModel<T, TFilter, TRef>;
 
-    protected readonly _view: TreeListWidget<T, TFilter, TRef>;
+    protected readonly _view: TreeWidget<T, TFilter, TRef>;
 
     // [constructor]
 
@@ -609,7 +611,7 @@ export abstract class AbstractTree<T, TFilter, TRef> extends Disposable implemen
         renderers = renderers.map(renderer => new TreeItemRenderer<T, TFilter, any>(renderer, relayEmitter.registerListener));
 
         // construct the atcual view
-        this._view = new TreeListWidget<T, TFilter, TRef>(
+        this._view = new TreeWidget<T, TFilter, TRef>(
             container, 
             renderers, 
             new TreeListItemProvider(itemProvider), 
