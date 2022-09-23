@@ -82,7 +82,7 @@ class TreeTrait<T> {
 
     // [field]
 
-    private readonly _nodes = new Set<ITreeNode<T, any>>();
+    private _nodes = new Set<ITreeNode<T, any>>();
     private _elements?: T[];
 
     // [constructor]
@@ -93,6 +93,7 @@ class TreeTrait<T> {
 
     public set(nodes: ITreeNode<T, any>[]): void {
         this._elements = undefined;
+        this._nodes = new Set();
         
         for (const node of nodes) {
             this._nodes.add(node);
