@@ -410,19 +410,19 @@ export class ListWidget<T> extends Disposable implements IListWidget<T> {
 
         // mouse support integration (defaults on)
         if (opts.mouseSupport || opts.mouseSupport === undefined) {
-            const mouseController = this.__createListWidgetMouseController(opts);
+            const mouseController = this.__createMouseController(opts);
             this.__register(mouseController);
         }
         
         // keyboard support integration
         if (opts.keyboardSupport || opts.mouseSupport === undefined) {
-            const keyboardController = this.__createListWidgetKeyboardController(opts);
+            const keyboardController = this.__createKeyboardController(opts);
             this.__register(keyboardController);
         }
         
         // drag and drop integration
         if (opts.dragAndDropProvider) {
-            const dndController = this.__createListWidgetDndController(opts);
+            const dndController = this.__createDndController(opts);
             this.__register(dndController);
         }
 
@@ -605,7 +605,7 @@ export class ListWidget<T> extends Disposable implements IListWidget<T> {
      * May override the behaviours by the inheritance to customize the mouse 
      * behaviour.
      */
-    protected __createListWidgetMouseController(opts: IListWidgetOpts<T>): ListWidgetMouseController<T> {
+    protected __createMouseController(opts: IListWidgetOpts<T>): ListWidgetMouseController<T> {
         return new ListWidgetMouseController(this, opts);
     }
 
@@ -614,7 +614,7 @@ export class ListWidget<T> extends Disposable implements IListWidget<T> {
      * May override the behaviours by the inheritance to customize the keyboard
      * behaviour.
      */
-    protected __createListWidgetKeyboardController(opts: IListWidgetOpts<T>): ListWidgetKeyboardController<T> {
+    protected __createKeyboardController(opts: IListWidgetOpts<T>): ListWidgetKeyboardController<T> {
         return new ListWidgetKeyboardController(this);
     }
 
@@ -623,7 +623,7 @@ export class ListWidget<T> extends Disposable implements IListWidget<T> {
      * May override the behaviours by the inheritance to customize the darg and
      * drop behaviour.
      */
-    protected __createListWidgetDndController(opts: IListWidgetOpts<T>): ListWidgetDragAndDropController<T> {
+    protected __createDndController(opts: IListWidgetOpts<T>): ListWidgetDragAndDropController<T> {
         return new ListWidgetDragAndDropController(this, opts.dragAndDropProvider!, e => this.__toListDragEvent(e));
     }
 

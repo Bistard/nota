@@ -1,4 +1,4 @@
-import { AbstractTree, IAbstractTree, IAbstractTreeOptions } from "src/base/browser/secondary/tree/abstractTree";
+import { AbstractTree, IAbstractTree, IAbstractTreeOptions, ITreeListWidgetOpts, TreeWidget } from "src/base/browser/secondary/tree/abstractTree";
 import { IListWidget } from "src/base/browser/secondary/listWidget/listWidget";
 import { ITreeModelSpliceOptions } from "src/base/browser/secondary/tree/indexTreeModel";
 import { FlexMultiTreeModel, IFlexMultiTreeModel, IMultiTreeModel, IMultiTreeModelBase, MultiTreeModel } from "src/base/browser/secondary/tree/multiTreeModel";
@@ -6,6 +6,8 @@ import { IFlexNode, ITreeModel, ITreeNode, ITreeNodeItem } from "src/base/browse
 import { ITreeListRenderer } from "src/base/browser/secondary/tree/treeListRenderer";
 import { IListItemProvider } from "src/base/browser/secondary/listView/listItemProvider";
 import { isPrimitive } from "src/base/common/util/type";
+import { ListWidgetKeyboardController } from "src/base/browser/secondary/listWidget/listWidgetKeyboardController";
+import { IStandardKeyboardEvent } from "src/base/common/keyboard";
 
 /**
  * An interface only for {@link MultiTreeModelBase}.
@@ -64,6 +66,52 @@ export interface IMultiTreeOptions<T, TFilter> extends IAbstractTreeOptions<T, T
     readonly forcePrimitiveType?: boolean;
 }
 
+
+/**
+ * @internal
+ * @class Overrides the keyboard controller with addtional behaviours in the
+ * perspective of tree level.
+ */
+class MultiTreeKeyboardController<T, TFilter> extends ListWidgetKeyboardController<ITreeNode<T, TFilter>> {
+
+    // [field]
+
+    declare protected readonly _view: TreeWidget<T, TFilter, T>;
+    protected readonly _tree: IAbstractTree<T, TFilter, T>;
+
+    // [constructor]
+
+    constructor(
+        view: TreeWidget<T, TFilter, T>,
+        tree: IAbstractTree<T, TFilter, T>,
+    ) {
+        super(view);
+        this._tree = tree;
+    }
+
+    // [protected override methods]
+
+    protected override __onEnter(e: IStandardKeyboardEvent): void {
+        super.__onEnter(e); 
+        
+        const anchor = this._view.getAnchorData();
+        if (anchor) {
+            this._tree.toggleCollapseOrExpand(anchor, false);
+        }
+    }
+}
+
+/**
+ * @internal
+ * @class Used to override and add addtional controller behaviours.
+ */
+export class MultiTreeWidget<T, TFilter> extends TreeWidget<T, TFilter, T> {
+    
+    protected override __createKeyboardController(opts: ITreeListWidgetOpts<T, TFilter, T>): ListWidgetKeyboardController<ITreeNode<T, TFilter>> {
+        return new MultiTreeKeyboardController(this, opts.tree);
+    }
+}
+
 /**
  * @class An base class for {@link MultiTree} and {@link FlexMultiTree}.
  * 
@@ -105,6 +153,12 @@ abstract class MultiTreeBase<T, TFilter> extends AbstractTree<T, TFilter, T> imp
 
     public size(): number {
         return this._model.size();
+    }
+
+    // [protected override method]
+
+    protected override createTreeWidget(container: HTMLElement, renderers: ITreeListRenderer<T, TFilter, any>[], itemProvider: IListItemProvider<ITreeNode<T, TFilter>>, opts: ITreeListWidgetOpts<T, TFilter, T>): TreeWidget<T, TFilter, T> {
+        return new MultiTreeWidget(container, renderers, itemProvider, opts);
     }
 }
 

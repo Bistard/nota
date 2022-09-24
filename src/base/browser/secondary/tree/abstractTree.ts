@@ -173,42 +173,6 @@ class TreeWidgetMouseController<T, TFilter, TRef> extends ListWidgetMouseControl
     }
 }
 
-/**
- * @internal
- * @class Overrides the keyboard controller with addtional behaviours in the
- * perspective of tree level.
- * 
- * // FIX The class assume `T` and `TRef` are the same types. Fix this later.
- */
-class TreeWidgetKeyboardController<T, TFilter, TRef> extends ListWidgetKeyboardController<ITreeNode<T, TFilter>> {
-
-    // [field]
-
-    declare protected readonly _view: TreeWidget<T, TFilter, TRef>;
-    protected readonly _tree: IAbstractTree<T, TFilter, TRef>;
-
-    // [constructor]
-
-    constructor(
-        view: TreeWidget<T, TFilter, TRef>,
-        tree: IAbstractTree<T, TFilter, TRef>,
-    ) {
-        super(view);
-        this._tree = tree;
-    }
-
-    // [protected override methods]
-
-    protected override __onEnter(e: IStandardKeyboardEvent): void {
-        super.__onEnter(e);
-        
-        const anchor = this._view.getAnchorData() as unknown as (TRef | null);
-        if (anchor) {
-            this._tree.toggleCollapseOrExpand(anchor, false);
-        }
-    }
-}
-
 export interface ITreeListWidgetOpts<T, TFilter, TRef> extends IListWidgetOpts<ITreeNode<T, TFilter>> {
     readonly tree: IAbstractTree<T, TFilter, TRef>;
 }
@@ -216,9 +180,10 @@ export interface ITreeListWidgetOpts<T, TFilter, TRef> extends IListWidgetOpts<I
 /**
  * @internal
  * @class A simple wrapper class for {@link IListWidget} which converts the type
- * T to ITreeNode<T>.
+ * T to ITreeNode<T>. In addtional, you may override this class to customize
+ * different controller behaviours.
  */
-class TreeWidget<T, TFilter, TRef> extends ListWidget<ITreeNode<T, TFilter>> {
+export class TreeWidget<T, TFilter, TRef> extends ListWidget<ITreeNode<T, TFilter>> {
 
     // [field]
 
@@ -321,25 +286,9 @@ class TreeWidget<T, TFilter, TRef> extends ListWidget<ITreeNode<T, TFilter>> {
 
     // [protected override methods]
 
-    protected override __createListWidgetMouseController(opts: ITreeListWidgetOpts<T, TFilter, TRef>): ListWidgetMouseController<ITreeNode<T, TFilter>> {
+    protected override __createMouseController(opts: ITreeListWidgetOpts<T, TFilter, TRef>): ListWidgetMouseController<ITreeNode<T, TFilter>> {
         return new TreeWidgetMouseController(this, opts);
     }
-
-    protected override __createListWidgetKeyboardController(opts: ITreeListWidgetOpts<T, TFilter, TRef>): ListWidgetKeyboardController<ITreeNode<T, TFilter>> {
-        return new TreeWidgetKeyboardController(this, opts.tree);
-    }
-}
-
-/**
- * An interface for the constructor options of the {@link AbstractTree}. The 
- * interface includes the base interface of a {@link ITreeModel} options.
- */
-export interface IAbstractTreeOptions<T, TFilter> extends IIndexTreeModelOptions<T, TFilter> {
-
-    /**
-     * Provides the functionality to achieve drag and drop support in the tree.
-     */
-    readonly dnd?: IListDragAndDropProvider<T>;
 }
 
 /**
@@ -570,6 +519,18 @@ export interface IAbstractTree<T, TFilter, TRef> extends IDisposable {
 }
 
 /**
+ * An interface for the constructor options of the {@link AbstractTree}. The 
+ * interface includes the base interface of a {@link ITreeModel} options.
+ */
+export interface IAbstractTreeOptions<T, TFilter> extends IIndexTreeModelOptions<T, TFilter> {
+
+    /**
+     * Provides the functionality to achieve drag and drop support in the tree.
+     */
+    readonly dnd?: IListDragAndDropProvider<T>;
+}
+
+/**
  * @class An {@link AbstractTree} is the base class for any tree-like structure
  * that can do expand / collapse / selection to nodes. Built on top of {@link IListWidget}.
  * 
@@ -612,14 +573,14 @@ export abstract class AbstractTree<T, TFilter, TRef> extends Disposable implemen
         renderers = renderers.map(renderer => new TreeItemRenderer<T, TFilter, any>(renderer, relayEmitter.registerListener));
 
         // construct the atcual view
-        this._view = new TreeWidget<T, TFilter, TRef>(
+        this._view = this.createTreeWidget(
             container, 
             renderers, 
             new TreeListItemProvider(itemProvider), 
             {
                 dragAndDropProvider: opts.dnd && new __TreeListDragAndDropProvider(opts.dnd),
-                tree: this
-            }
+                tree: this,
+            },
         );
 
         // create the tree model from abstraction, client may override it.
@@ -653,6 +614,10 @@ export abstract class AbstractTree<T, TFilter, TRef> extends Disposable implemen
     get onContextmenu(): Register<ITreeContextmenuEvent<T>> { return Event.map(this._view.onContextmenu, this.__toTreeContextmenuEvent); }
     
     // [abstract methods]
+
+    protected createTreeWidget(container: HTMLElement, renderers: ITreeListRenderer<T, TFilter, any>[], itemProvider: IListItemProvider<ITreeNode<T, TFilter>>, opts: ITreeListWidgetOpts<T, TFilter, TRef>): TreeWidget<T, TFilter, TRef> {
+        return new TreeWidget(container, renderers, itemProvider, opts);
+    }
 
     protected abstract createModel(rootData: T, view: ISpliceable<ITreeNode<T, TFilter>>, opts: IAbstractTreeOptions<T, TFilter>): ITreeModel<T, TFilter, TRef>;
 
