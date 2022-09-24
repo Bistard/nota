@@ -141,11 +141,6 @@ export interface IAsyncTreeOptions<T, TFilter> extends IMultiTreeOptions<T, TFil
      * Provides functionality to determine the children stat of the given data.
      */
     readonly childrenProvider: IChildrenProvider<T>;
-
-    /**
-     * Provides functionality to determine the uniqueness of the given data.
-     */
-    readonly identityProvider?: IIdentiityProivder<T>;
 }
 
 /**

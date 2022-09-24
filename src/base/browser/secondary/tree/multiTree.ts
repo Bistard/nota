@@ -66,7 +66,6 @@ export interface IMultiTreeOptions<T, TFilter> extends IAbstractTreeOptions<T, T
     readonly forcePrimitiveType?: boolean;
 }
 
-
 /**
  * @internal
  * @class Overrides the keyboard controller with addtional behaviours in the

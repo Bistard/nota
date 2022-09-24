@@ -11,7 +11,7 @@ import { IListViewRenderer } from "src/base/browser/secondary/listView/listRende
 import { IStandardKeyboardEvent } from "src/base/common/keyboard";
 import { IIndexTreeModelOptions } from "src/base/browser/secondary/tree/indexTreeModel";
 import { ListWidgetMouseController } from "src/base/browser/secondary/listWidget/listWidgetMouseController";
-import { ListWidgetKeyboardController } from "src/base/browser/secondary/listWidget/listWidgetKeyboardController";
+import { IIdentiityProivder } from "src/base/browser/secondary/tree/asyncTree";
 
 /**
  * @internal
@@ -111,6 +111,60 @@ class TreeTrait<T> {
 
     public has(nodes: ITreeNode<T, any>): boolean {
         return this._nodes.has(nodes);
+    }
+
+    public onDidSplice(e: ITreeSpliceEvent<T, any>, identityProvider?: IIdentiityProivder<T>): void {
+        
+        /**
+         * Since the tree cannot decide the ID of each node, thus we cannot
+         * determine if any nodes are re-inserted. We only remove the deleted 
+         * traits from the current ones.
+         */
+        if (!identityProvider) {
+            this._elements = undefined;
+            const deletedVisitor = (node: ITreeNode<T, any>) => this._nodes.delete(node);
+            e.deleted.forEach(deleted => deletedVisitor(deleted));
+            return;
+        }
+
+        /**
+         * Use identity provider to determine if any existed nodes are 
+         * re-inserted, if yes, keep the updated one.
+         */
+
+        const dfsNode = function (node: ITreeNode<T, any>, fn: (node: ITreeNode<T, any>) => void) {
+            fn(node);
+            node.children.forEach(child => dfsNode(child, fn));
+        };
+
+        const deletedIDs = new Set<string>();
+        const insertedIDs = new Map<string, ITreeNode<T, any>>();
+        
+        const deletedVisitor = (node: ITreeNode<T, any>) => deletedIDs.add(identityProvider.getID(node.data));
+        const insertedVisitor = (node: ITreeNode<T, any>) => insertedIDs.set(identityProvider.getID(node.data), node);
+        
+        e.deleted.forEach(deleted => dfsNode(deleted, deletedVisitor));
+        e.inserted.forEach(inserted => dfsNode(inserted, insertedVisitor));
+
+        const currNodes: ITreeNode<T, any>[] = [];
+
+        for (const orginal of this._nodes) {
+            const id = identityProvider.getID(orginal.data);
+            const deleted = deletedIDs.has(id);
+            const inserted = insertedIDs.get(id);
+            
+            // if not deleted, keep the orginal trait.
+            if (!deleted) {
+                currNodes.push(orginal);
+            }
+            // if deleted but re-inserted, keep the updated trait.
+            else if (deleted && inserted) {
+                currNodes.push(inserted);
+            }
+        }
+
+        // update the current traits
+        this.set(currNodes);
     }
 }
 
@@ -253,6 +307,19 @@ export class TreeWidget<T, TFilter, TRef> extends ListWidget<ITreeNode<T, TFilte
         if (selectedIndex.length > 0) {
             super.setSelections(selectedIndex);
         }
+    }
+
+    /**
+     * @description Updates tree-level traits after each splice operation. Uses 
+     * identity provider to determine if any existed nodes are re-inserted, if 
+     * yes, keep the updated one in the tree-level.
+     * @param e Event when the splice did happen.
+     * @param identityProvider Optional provider to decide if any nodes with 
+     * trait are re-inserted.
+     */
+    public onDidSplice(e: ITreeSpliceEvent<T, TFilter>, identityProvider?: IIdentiityProivder<T>): void {
+        this._focused.onDidSplice(e, identityProvider);
+        this._selected.onDidSplice(e, identityProvider);
     }
 
     // [public override methods]
@@ -528,6 +595,12 @@ export interface IAbstractTreeOptions<T, TFilter> extends IIndexTreeModelOptions
      * Provides the functionality to achieve drag and drop support in the tree.
      */
     readonly dnd?: IListDragAndDropProvider<T>;
+
+    /**
+     * Provides functionality to determine the uniqueness of each 
+     * client-provided data.
+     */
+    readonly identityProvider?: IIdentiityProivder<T>;
 }
 
 /**
@@ -546,9 +619,7 @@ export abstract class AbstractTree<T, TFilter, TRef> extends Disposable implemen
 
     // [fields]
 
-    /** the raw data model of the tree. */
     protected readonly _model: ITreeModel<T, TFilter, TRef>;
-
     protected readonly _view: TreeWidget<T, TFilter, TRef>;
 
     // [constructor]
@@ -558,7 +629,7 @@ export abstract class AbstractTree<T, TFilter, TRef> extends Disposable implemen
         rootData: T,
         renderers: ITreeListRenderer<T, TFilter, any>[],
         itemProvider: IListItemProvider<T>,
-        opts: IAbstractTreeOptions<T, TFilter> = {}
+        opts: IAbstractTreeOptions<T, TFilter> = {},
     ) {
         super();
 
@@ -585,6 +656,9 @@ export abstract class AbstractTree<T, TFilter, TRef> extends Disposable implemen
 
         // create the tree model from abstraction, client may override it.
         this._model = this.createModel(rootData, this._view, opts);
+        
+        // updates traits in the tree-level after each splice
+        this._model.onDidSplice(e => this._view.onDidSplice(e, opts.identityProvider));
 
         // reset the input event emitter once the model is created
         relayEmitter.setInput(this._model.onDidChangeCollapseState);
