@@ -83,7 +83,7 @@ class TreeTrait<T> {
     // [field]
 
     private _nodes = new Set<ITreeNode<T, any>>();
-    private _elements?: T[];
+    private _nodesDataCache?: T[];
 
     // [constructor]
 
@@ -92,7 +92,7 @@ class TreeTrait<T> {
     // [public methods]
 
     public set(nodes: ITreeNode<T, any>[]): void {
-        this._elements = undefined;
+        this._nodesDataCache = undefined;
         this._nodes = new Set();
         
         for (const node of nodes) {
@@ -101,12 +101,12 @@ class TreeTrait<T> {
     }
 
     public get(): T[] {
-        if (!this._elements) {
-            let elements: T[] = [];
-            this._nodes.forEach(node => elements.push(node.data));
-            this._elements = elements;
+        if (!this._nodesDataCache) {
+            let cache: T[] = [];
+            this._nodes.forEach(node => cache.push(node.data));
+            this._nodesDataCache = cache;
         }
-        return this._elements;
+        return this._nodesDataCache;
     }
 
     public has(nodes: ITreeNode<T, any>): boolean {
@@ -116,12 +116,12 @@ class TreeTrait<T> {
     public onDidSplice(e: ITreeSpliceEvent<T, any>, identityProvider?: IIdentiityProivder<T>): void {
         
         /**
-         * Since the tree cannot decide the ID of each node, thus we cannot
+         * Since the tree cannot decide the ID of each node, thus it cannot
          * determine if any nodes are re-inserted. We only remove the deleted 
          * traits from the current ones.
          */
         if (!identityProvider) {
-            this._elements = undefined;
+            this._nodesDataCache = undefined;
             const deletedVisitor = (node: ITreeNode<T, any>) => this._nodes.delete(node);
             e.deleted.forEach(deleted => deletedVisitor(deleted));
             return;
@@ -318,6 +318,7 @@ export class TreeWidget<T, TFilter, TRef> extends ListWidget<ITreeNode<T, TFilte
      * trait are re-inserted.
      */
     public onDidSplice(e: ITreeSpliceEvent<T, TFilter>, identityProvider?: IIdentiityProivder<T>): void {
+        this._anchor.onDidSplice(e, identityProvider);
         this._focused.onDidSplice(e, identityProvider);
         this._selected.onDidSplice(e, identityProvider);
     }

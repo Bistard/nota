@@ -5,6 +5,7 @@ import { IListDragAndDropProvider, ListWidgetDragAndDropController } from "src/b
 import { ListWidgetKeyboardController } from "src/base/browser/secondary/listWidget/listWidgetKeyboardController";
 import { ListWidgetMouseController } from "src/base/browser/secondary/listWidget/listWidgetMouseController";
 import { ListTrait, ListTraitRenderer } from "src/base/browser/secondary/listWidget/listWidgetTrait";
+import { IIdentiityProivder } from "src/base/browser/secondary/tree/asyncTree";
 import { Disposable, IDisposable } from "src/base/common/dispose";
 import { Event, Register, SignalEmitter } from "src/base/common/event";
 import { createStandardKeyboardEvent, IStandardKeyboardEvent, KeyCode } from "src/base/common/keyboard";
@@ -88,36 +89,6 @@ export interface IListContextmenuEvent<T> {
 
     /** The browser target of the contextmenu if any. */
     target: HTMLElement | undefined;
-}
-
-/**
- * The consturtor options for {@link ListWidget}.
- */
-export interface IListWidgetOpts<T> extends IListViewOpts<T> {
-    
-    /**
-     * A provider that has ability to provide Drag and Drop Support (dnd).
-     */
-    readonly dragAndDropProvider?: IListDragAndDropProvider<T>;
-
-    /** 
-     * If allows mouse support. 
-     * @default true
-     */
-    readonly mouseSupport?: boolean;
-
-    /**
-     * If allows mutiple selection support.
-     * @default true
-     */
-    readonly multiSelectionSupport?: boolean;
-
-    /**
-     * If allows keyboard support.
-     * @default true
-     */
-    readonly keyboardSupport?: boolean;
-
 }
 
 /**
@@ -351,6 +322,41 @@ export interface IListWidget<T> extends IDisposable {
      * @description The number of items in the view (including unrendered ones).
      */
     getItemCount(): number;
+}
+
+/**
+ * The consturtor options for {@link ListWidget}.
+ */
+export interface IListWidgetOpts<T> extends IListViewOpts<T> {
+    
+    /**
+     * A provider that has ability to provide Drag and Drop Support (dnd).
+     */
+    readonly dragAndDropProvider?: IListDragAndDropProvider<T>;
+
+    /** 
+     * If allows mouse support. 
+     * @default true
+     */
+    readonly mouseSupport?: boolean;
+
+    /**
+     * If allows mutiple selection support.
+     * @default true
+     */
+    readonly multiSelectionSupport?: boolean;
+
+    /**
+     * If allows keyboard support.
+     * @default true
+     */
+    readonly keyboardSupport?: boolean;
+
+    /**
+     * Provides functionality to determine the uniqueness of each 
+     * client-provided data.
+     */
+    readonly identityProvider?: IIdentiityProivder<T>;
 }
 
 /**
