@@ -72,7 +72,7 @@ export interface IMultiTreeOptions<T, TFilter> extends IAbstractTreeOptions<T, T
  * @class Overrides the keyboard controller with addtional behaviours in the
  * perspective of tree level.
  */
-class MultiTreeKeyboardController<T, TFilter> extends ListWidgetKeyboardController<ITreeNode<T, TFilter>> {
+export class MultiTreeKeyboardController<T, TFilter> extends ListWidgetKeyboardController<ITreeNode<T, TFilter>> {
 
     // [field]
 
