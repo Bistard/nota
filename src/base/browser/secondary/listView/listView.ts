@@ -2,7 +2,7 @@ import { IListViewRow, ListViewCache } from "src/base/browser/secondary/listView
 import { IListViewRenderer, ListItemRenderer, PipelineRenderer, RendererType } from "src/base/browser/secondary/listView/listRenderer";
 import { ScrollableWidget } from "src/base/browser/secondary/scrollableWidget/scrollableWidget";
 import { ScrollbarType } from "src/base/browser/secondary/scrollableWidget/scrollableWidgetOptions";
-import { Disposable, DisposableManager, IDisposable } from "src/base/common/dispose";
+import { Disposable, IDisposable } from "src/base/common/dispose";
 import { DomEmitter, DomUtility, EventType } from "src/base/browser/basic/dom";
 import { Emitter, Register } from "src/base/common/event";
 import { IRange, ISpliceable, Range, RangeTable } from "src/base/common/range";
@@ -916,7 +916,7 @@ export class ListView<T> extends Disposable implements ISpliceable<T>, IListView
      * @description The auxiliary method for this.splice(). The actual splicing
      * process via this method.
      */
-    private __splice(index: number, deleteCount: number, items: T[] = []): T[] {
+    private __splice(index: number, deleteCount: number, items: T[] = []): void {
         
         const prevRenderRange = this.__getRenderRange(this.prevRenderTop, this.prevRenderHeight);
         
@@ -1035,8 +1035,6 @@ export class ListView<T> extends Disposable implements ISpliceable<T>, IListView
         this.scrollable.setScrollSize(this.rangeTable.size());
         
         this._onDidSplice.fire();
-
-        return waitToDelete.map(item => item.data);
     }
 }
 
