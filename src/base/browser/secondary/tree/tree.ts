@@ -1,15 +1,15 @@
 import { Register } from "src/base/common/event";
 
 /**
- * Type of event when the {@link IIndexTreeModel} splice did happen.
+ * Type of event when the {@link IIndexTreeModelBase} splice did happen.
  */
 export interface ITreeSpliceEvent<T, TFilter> {
     
     /** Inserted nodes */
-    inserted: ITreeNode<T, TFilter>[];
+    readonly inserted: ITreeNode<T, TFilter>[];
 	
     /** Deleted nodes */
-    deleted: ITreeNode<T, TFilter>[];
+    readonly deleted: ITreeNode<T, TFilter>[];
 }
 
 /**
