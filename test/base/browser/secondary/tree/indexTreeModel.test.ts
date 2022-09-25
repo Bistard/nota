@@ -3,6 +3,7 @@ import { ISpliceable } from 'src/base/common/range';
 import { FlexIndexTreeModel, IndexTreeModel } from 'src/base/browser/secondary/tree/indexTreeModel';
 import { ITreeFilterProvider, ITreeFilterResult } from 'src/base/browser/secondary/tree/treeFilter';
 import { IFlexNode, ITreeNode } from 'src/base/browser/secondary/tree/tree';
+import { dfs } from 'test/util/helpers';
 
 suite('indexTreeModel-test', () => {
 
@@ -110,9 +111,14 @@ suite('indexTreeModel-test', () => {
         const model = new IndexTreeModel<number, void>(-1, toList(list));
 
         let cnt = 0;
+        let inserted: ITreeNode<number, void>[] = [];
+        let deleted: ITreeNode<number, void>[] = [];
         model.onDidSplice((e) => {
             e.deleted.forEach(() => cnt++);
             e.inserted.forEach(() => cnt++);
+
+            inserted = e.inserted;
+            deleted = e.deleted;
         });
 
         model.splice([0], 0, [
@@ -121,9 +127,21 @@ suite('indexTreeModel-test', () => {
             {data: 2},
         ]);
         assert.strictEqual(cnt, 3);
+        let deletedValues: number[] = [];
+        deleted.forEach(child => dfs(child, 'children', node => deletedValues.push(node.data)));
+        assert.deepStrictEqual([], deletedValues);
+        let insertedValues: number[] = [];
+        inserted.forEach(child => dfs(child, 'children', node => insertedValues.push(node.data)));
+        assert.deepStrictEqual([1, 3, 2], insertedValues);
 
         model.splice([0], 3, []);
         assert.strictEqual(cnt, 6);
+        deletedValues = [];
+        deleted.forEach(child => dfs(child, 'children', node => deletedValues.push(node.data)));
+        assert.deepStrictEqual([1, 3, 2], deletedValues);
+        insertedValues = [];
+        inserted.forEach(child => dfs(child, 'children', node => insertedValues.push(node.data)));
+        assert.deepStrictEqual([], insertedValues);
     });
 
     test('getNodeLocation', () => {
@@ -925,26 +943,43 @@ suite('flexIndexTreeModel-test', () => {
         const model = new FlexIndexTreeModel<number, void>(-1, toList(list));
 
         let cnt = 0;
+        let inserted: ITreeNode<number, void>[] = [];
+        let deleted: ITreeNode<number, void>[] = [];
         model.onDidSplice((e) => {
             e.deleted.forEach(() => cnt++);
             e.inserted.forEach(() => cnt++);
+            
+            inserted = e.inserted;
+            deleted = e.deleted;
         });
 
         const root: IFlexNode<number> = model.rootNode;
         
         setNewChildren(root, [
-            createFlexNode(1, root), 
-            createFlexNode(3, root), 
+            createFlexNode(1, root),
+            createFlexNode(3, root),
             createFlexNode(2, root),
         ]);
         model.refresh();
-
-
         assert.strictEqual(cnt, 3);
+        
+        let deletedValues: number[] = [];
+        deleted.forEach(child => dfs(child, 'children', node => deletedValues.push(node.data)));
+        assert.deepStrictEqual([], deletedValues);
+        let insertedValues: number[] = [];
+        inserted.forEach(child => dfs(child, 'children', node => insertedValues.push(node.data)));
+        assert.deepStrictEqual([1, 3, 2], insertedValues);
 
         setNewChildren(root, []);
         model.refresh();
         assert.strictEqual(cnt, 6);
+
+        deletedValues = [];
+        deleted.forEach(child => dfs(child, 'children', node => deletedValues.push(node.data)));
+        assert.deepStrictEqual([1, 3, 2], deletedValues);
+        insertedValues = [];
+        inserted.forEach(child => dfs(child, 'children', node => insertedValues.push(node.data)));
+        assert.deepStrictEqual([], insertedValues);
     });
 
     test('getNodeLocation', () => {

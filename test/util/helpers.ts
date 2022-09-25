@@ -3,6 +3,37 @@ import { repeat } from "src/base/common/util/timer";
 import { NestedArray } from "src/base/common/util/type";
 
 /**
+ * @description Iterate the given node using DFS.
+ * @param node The root node.
+ * @param childProp The children property name in string.
+ * @param visitor A visitor function applies to each children node.
+ */
+export function dfs<T>(node: T, childProp: string, visitor: (node: T) => void): void {
+    visitor(node);
+    for (const child of node[childProp]) {
+        visitor(child);
+    }
+}
+
+/**
+ * @description Iterate the given node using BFS.
+ * @param node The root node.
+ * @param childProp The children property name in string.
+ * @param visitor A visitor function applies to each children node.
+ */
+export function bfs<T>(node: T, childProp: string, visitor: (node: T) => void): void {
+    const queue: T[] = [node];
+
+    while (queue.length) {
+        const node = queue.shift()!;
+        visitor(node);
+        for (const child of node[childProp]) {
+            queue.push(child);
+        }
+    }
+}
+
+/**
  * @description Able to generate a random tree like structure with each tree 
  * leaf has a type TLeaf. A node represented by an array of TLeaf.
  * @param createLeaf A function to generate a leaf.
