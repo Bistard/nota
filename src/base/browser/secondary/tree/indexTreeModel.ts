@@ -913,15 +913,15 @@ export class FlexIndexTreeModel<T, TFilter> extends IndexTreeModelBase<T, TFilte
             this.setCollapsible(location, currHasChildrenState);
         }
 
-        if (opts.onDidDeleteNode) {
-            node.oldChildren!.forEach(node => opts.onDidDeleteNode!(node));
-            node.oldChildren!.forEach(node => node.children.forEach(child => opts.onDidDeleteNode!(child)));
+        if (opts.onDidDeleteNode && node.oldChildren) {
+            node.oldChildren.forEach(node => opts.onDidDeleteNode!(node));
+            node.oldChildren.forEach(node => node.children.forEach(child => opts.onDidDeleteNode!(child)));
         }
 
         // fire events
         this._onDidSplice.fire({
             inserted: treeNodeListToBeRendered,
-            deleted: node.oldChildren!,
+            deleted: node.oldChildren ?? [],
         });
 
         // actual delete the old children
