@@ -1,3 +1,5 @@
+import { IViewItemChangeEvent } from "src/base/browser/secondary/listView/listView";
+import { Register } from "src/base/common/event";
 import { IRange } from "src/base/common/range";
 
 /**
@@ -14,6 +16,17 @@ export interface IList<T> {
      * The actual content size in pixels. 
      */
     readonly contentSize: number;
+
+    // [events]
+
+    /** Fires when an DOM element is inserted into the DOM tree. */
+    get onInsertItemInDOM(): Register<IViewItemChangeEvent<T>>;
+
+    /** Fires when an DOM element is updated the DOM tree. */
+    get onUpdateItemInDOM(): Register<IViewItemChangeEvent<T>>;
+
+    /** Fires when an DOM element is removed from DOM tree. */
+    get onRemoveItemInDOM(): Register<IViewItemChangeEvent<T>>;
 
     // [public methods]
 

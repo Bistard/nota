@@ -93,15 +93,6 @@ export interface IListView<T> extends IList<T>, IDisposable {
     /** Fires when the splice operation is invoked. */
     get onDidSplice(): Register<void>;
 
-    /** Fires when an DOM element is inserted into the DOM tree. */
-    get onInsertItemInDOM(): Register<IViewItemChangeEvent<T>>;
-
-    /** Fires when an DOM element is updated the DOM tree. */
-    get onUpdateItemInDOM(): Register<IViewItemChangeEvent<T>>;
-
-    /** Fires when an DOM element is removed from DOM tree. */
-    get onRemoveItemInDOM(): Register<IViewItemChangeEvent<T>>;
-
     /** Fires before the {@link IListView} is scrolling. */
     get onWillScroll(): Register<IScrollEvent>;
 

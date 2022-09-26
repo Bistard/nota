@@ -110,15 +110,6 @@ export interface IListWidget<T> extends IList<T>, IDisposable {
     /** Fires when the selected items in the {@link IListWidget} is changed. */
     get onDidChangeItemSelection(): Register<ITraitChangeEvent>;
 
-    /** Fires when an DOM element is inserted into the DOM tree. */
-    get onInsertItemInDOM(): Register<IViewItemChangeEvent<T>>;
-
-    /** Fires when an DOM element is updated the DOM tree. */
-    get onUpdateItemInDOM(): Register<IViewItemChangeEvent<T>>;
-
-    /** Fires when an DOM element is removed from DOM tree. */
-    get onRemoveItemInDOM(): Register<IViewItemChangeEvent<T>>;
-
     /** Fires when the item in the {@link IListWidget} is clicked. */
     get onClick(): Register<IListMouseEvent<T>>;
     
