@@ -11,7 +11,8 @@ export interface IAsyncTreeModel<T, TFilter> extends FlexMultiTreeModel<T, TFilt
     
     /**
      * @description Refreshing the tree structure of the given node and all its 
-     * descendants.
+     * descendants. This will always fetch the latest children of the current 
+     * node.
      * @param node The provided async tree node.
      * @returns The {@link Promise} of the work.
      */
