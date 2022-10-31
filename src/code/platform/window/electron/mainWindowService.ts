@@ -42,7 +42,7 @@ export interface IMainWindowService extends Disposable {
 }
 
 /**
- * @class Window-service has ability to create windows based on different 
+ * @class Window service has ability to create windows based on different 
  * configurations. It also tracks all the life cycles of every 
  * {@link IWindowInstance}.
  */

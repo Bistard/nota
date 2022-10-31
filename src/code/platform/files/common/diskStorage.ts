@@ -101,7 +101,7 @@ export interface IDiskStorage {
  * V: generic type of the value mapping
  * 
  * @note When setting value with `null`, it will be replace with undefined for
- * simplicity.
+ * simplicity and generality.
  * @note You may await for the set / setLot / delete to ensure that the saving
  * operation has finished (if sync is on).
  */
@@ -119,8 +119,7 @@ export class DiskStorage implements IDiskStorage {
         private readonly path: URI,
         private sync: boolean,
         @IFileService private readonly fileService: IFileService,
-    ) {
-    }
+    ) {}
 
     // [public methods]
 
