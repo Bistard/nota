@@ -18,6 +18,8 @@ import { IExplorerTreeService } from 'src/code/browser/service/explorerTree/expl
 import { URI } from 'src/base/common/file/uri';
 import { IHostService } from 'src/code/platform/host/common/hostService';
 import { StatusKey } from 'src/code/platform/status/common/status';
+import { IMainStatusService } from 'src/code/platform/status/electron/mainStatusService';
+import { DisposableManager } from 'src/base/common/dispose';
 
 export const IExplorerViewService = createService<IExplorerViewService>('explorer-view-service');
 
@@ -74,6 +76,12 @@ export class ExplorerViewComponent extends Component implements IExplorerViewSer
      */
     private _currentView?: HTMLElement;
 
+    /**
+     * A disposable that contains all the UI related listeners of the current 
+     * view.
+     */
+    private _currentListeners = new DisposableManager();
+
     // [event]
 
     private readonly _onDidOpen = this.__register(new Emitter<ClassicOpenEvent>());
@@ -91,13 +99,13 @@ export class ExplorerViewComponent extends Component implements IExplorerViewSer
         @ILogService private readonly logService: ILogService,
         @IWorkbenchService private readonly workbenchService: IWorkbenchService,
         @ILifecycleService lifecycleService: IBrowserLifecycleService,
-        @IHostService hostService: IHostService,
+        @IHostService private readonly hostService: IHostService,
         @IBrowserEnvironmentService private readonly envrionmentService: IBrowserEnvironmentService,
         @IExplorerTreeService private readonly explorerTreeService: IExplorerTreeService,
     ) {
         super(ComponentType.ExplorerView, parentElement, themeService, componentService);
 
-        lifecycleService.onWillQuit(e => e.join(this.__onApplicationClose(hostService)));
+        lifecycleService.onWillQuit(e => e.join(this.__onApplicationClose()));
     }
 
     // [getter]
@@ -119,31 +127,24 @@ export class ExplorerViewComponent extends Component implements IExplorerViewSer
             return;
         }
 
-        try {
-            // unload the current view first
-            this.__unloadCurrentView();
+        // unload the current view first
+        this.__unloadCurrentView();
 
-            // create a new view
-            const view = this.__createOpenedView();
+        // try to open the view at the given root
+        const [view, success] = await this.__tryOpen(root);
+        
+        // load the given view as the current view
+        this.__loadCurrentView(view, !success);
 
-            // try to open the actual explorer view
-            await this.__open(root, view);
-            
-            /**
-             * Once the element is put into the DOM tree, we now can relayout to 
-             * calcualte the correct size of the view.
-             */
-            this.element.appendChild(view);
-            this.explorerTreeService.layout();
-        } 
-        catch (error) {
-            this.logService.error(`Explorer view cannot open the given path at ${URI.toString(root)}.`);
-            throw error;
-        }
+        /**
+         * Once the element is put into the DOM tree, we now can relayout to 
+         * calcualte the correct size of the view.
+         */
+        this.explorerTreeService.layout();
     }
 
     public async close(): Promise<void> {
-        if (this.isOpened === false) {
+        if (!this.isOpened) {
             return;
         }
 
@@ -151,7 +152,7 @@ export class ExplorerViewComponent extends Component implements IExplorerViewSer
 
         this.__unloadCurrentView();
         const emptyView = this.__createEmptyView();
-        this.element.appendChild(emptyView);
+        this.__loadCurrentView(emptyView, true);
     }
 
     // [protected overrdie method]
@@ -167,36 +168,28 @@ export class ExplorerViewComponent extends Component implements IExplorerViewSer
         }
         // we simply put an empty view
         else {
-            this._currentView = this.__createEmptyView();
-            this.element.appendChild(this._currentView);
+            const emptyView = this.__createEmptyView();
+            this.__loadCurrentView(emptyView, true);
         }
     }
 
     protected override _registerListeners(): void {
-        
-        // empty-view listeners
-        this.__registerEmptyViewListeners();
-
         /**
-         * The tree model of the tree-service requires the correct height thus 
-         * we need to update it everytime we are resizing.
+         * No need to register listeners initially, since `__loadCurrentView` 
+         * will do for us internally.
          */
-        this.workbenchService.onDidLayout(() => this.explorerTreeService.layout());
-
-        // on openning file.
-        this.__register(this.explorerTreeService.onDidClick(e => {
-            this.editorService.openEditor(e.item.uri);
-        }));
     }
 
     // [private helper method]
 
-    private async __onApplicationClose(hostService: IHostService): Promise<void> {
-        
+    private async __onApplicationClose(): Promise<void> {
+
         // save the last opened workspace root path.
         if (this.explorerTreeService.root) {
             const workspace = URI.join(this.explorerTreeService.root, '|directory');
-            await hostService.setApplicationStatus(StatusKey.LastOpenedWorkspace, URI.toString(workspace));
+            await this.hostService.setApplicationStatus(StatusKey.LastOpenedWorkspace, URI.toString(workspace));
+        } else {
+            await this.hostService.setApplicationStatus(StatusKey.LastOpenedWorkspace, '');
         }
     }
 
@@ -204,10 +197,33 @@ export class ExplorerViewComponent extends Component implements IExplorerViewSer
         if (this._currentView) {
             this._currentView.remove();
             this._currentView = undefined;
+            this._currentListeners.dispose();
         }
     }
 
-    private async __open(path: URI, container: HTMLElement): Promise<void> {
+    private __loadCurrentView(view: HTMLElement, isEmpty: boolean): void {
+        if (!this._currentView) {
+            this._currentView = view;
+            this.element.appendChild(view);
+            this._currentListeners = new DisposableManager();
+
+            if (isEmpty) {
+                this.__registerEmptyViewListeners();
+            } else {
+                this.__registerNonEmptyViewListeners();
+            }
+        }
+    }
+
+    /**
+     * @description Try to open the explorer tree view at the given path.
+     * @param path The given path.
+     * @returns Returns a new {@link HTMLElement} of the view and a boolean 
+     * indicates if operation successed.
+     */
+    private async __tryOpen(path: URI): Promise<[HTMLElement, boolean]> {
+        let success = true;
+        let container = this.__createOpenedView();
 
         /**
          * Open the root in the explorer tree service who will handle the 
@@ -215,18 +231,25 @@ export class ExplorerViewComponent extends Component implements IExplorerViewSer
          */
         try {
             await this.explorerTreeService.init(container, path);
-        } catch (error: any) {
-            this.logService.error(error);
-            throw error;
+            this._onDidOpen.fire({ path: path });
+        } 
+        /**
+         * If the initialization fails, we capture it and replace it with an
+         * empty view.
+         */
+        catch (_error) {
+            container = this.__createEmptyView();
+            success = false;
+            this.logService.error(`Explorer view cannot open the given path at ${URI.toString(path)}.`);
         }
         
-        // notify everyone we have a opened explorer view.
-        this._onDidOpen.fire({ path: path });
+        return [container, success];
     }
 
     // [private UI helper methods]
 
     private __createEmptyView(): HTMLElement {
+        
         // the view
         const view = document.createElement('div');
         view.className = 'empty-explorer-container';
@@ -253,19 +276,42 @@ export class ExplorerViewComponent extends Component implements IExplorerViewSer
             return;
         }
 
+        const disposables = this._currentListeners;
+
         /**
          * Empty view openning directory dialog listener (only open the last 
          * selected one).
          */
         const emptyView = this._currentView;
         const tag = emptyView.children[0]!;
-        this.__register(addDisposableListener(tag, EventType.click, () => {
-            this.dialogService.openDirectoryDialog({ title: 'open a directory' })
-            .then(path => {
-                if (path.length > 0) {
-                    this.open(URI.fromFile(path.at(-1)!));
-                }
-            });
+        disposables.register(
+            addDisposableListener(tag, EventType.click, () => {
+                this.dialogService.openDirectoryDialog({ title: 'open a directory' })
+                .then(path => {
+                    if (path.length > 0) {
+                        this.open(URI.fromFile(path.at(-1)!));
+                    }
+                });
+            }
+        ));
+    }
+
+    private __registerNonEmptyViewListeners(): void {
+        if (!this.isOpened || !this._currentView) {
+            return;
+        }
+
+        const disposables = this._currentListeners;
+
+        /**
+         * The tree model of the tree-service requires the correct height thus 
+         * we need to update it everytime we are resizing.
+         */
+         disposables.register(this.workbenchService.onDidLayout(() => this.explorerTreeService.layout()));
+
+        // on openning file.
+        disposables.register(this.explorerTreeService.onDidClick(e => {
+            this.editorService.openEditor(e.item.uri);
         }));
     }
 }

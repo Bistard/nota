@@ -95,20 +95,19 @@ export class ExplorerTreeService extends Disposable implements IExplorerTreeServ
     // [public mehtods]
 
     public async init(container: HTMLElement, root: URI, mode?: TreeMode): Promise<void> {
+        const currTreeService = this._mode === TreeMode.Notebook ? this.notebookTreeService : this.classicTreeService;
+
+        // try to create the tree service
+        try {
+            await currTreeService.init(container, root);
+        } catch (error) {
+            throw error;
+        }
+
+        // update the metadata only after successed
+        this._currentTreeService = currTreeService;
         this._root = root;
-        if (mode) {
-            this._mode = mode;
-        }
-
-        if (this._mode === TreeMode.Notebook) {
-            this._currentTreeService = this.notebookTreeService;
-            
-        } else {
-            this._currentTreeService = this.classicTreeService;
-        }
-
-        // create the tree service
-        await this._currentTreeService.init(container, root);
+        this._mode = mode ?? this._mode;
         this._onDidClick.setInput(this._currentTreeService.onDidClick);
 
         this.__registerTreeListeners(root);
