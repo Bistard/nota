@@ -780,9 +780,12 @@ export class IndexTreeModel<T, TFilter> extends IndexTreeModelBase<T, TFilter> i
         }
 
         // deletion callback
-        if (opts.onDidDeleteNode) {
-            deletedChildren.forEach(node => opts.onDidDeleteNode!(node));
-            deletedChildren.forEach(node => node.children.forEach(child => opts.onDidDeleteNode!(child)));
+        if (opts.onDidDeleteNode && deletedChildren.length > 0) {
+            const deleteVisitor = (node: ITreeNode<T, TFilter>) => {
+                opts.onDidDeleteNode!(node);
+                node.children.forEach(deleteVisitor);
+            };
+            deletedChildren.forEach(node => deleteVisitor(node));
         }
 
         // fire events
@@ -881,13 +884,8 @@ export class FlexIndexTreeModel<T, TFilter> extends IndexTreeModelBase<T, TFilte
         opts: ITreeModelSpliceOptions<T, TFilter> = {},
     ): void {
         // finds out the parent node and its listIndex.
-        type parentType = {
-            node: IFlexNode<T, TFilter>,
-            listIndex: number,
-            visible: boolean,
-        };
         const location = this.getNodeLocation(node);
-        const { listIndex, visible } = <parentType>this.__getNodeWithListIndex(location);
+        const { listIndex, visible } = this.__getNodeWithListIndex(location);
         
         // no changes to the current tree, we ignore the request.
         if (!node.stale) {
@@ -938,9 +936,18 @@ export class FlexIndexTreeModel<T, TFilter> extends IndexTreeModelBase<T, TFilte
             this.setCollapsible(location, currHasChildrenState);
         }
 
+        // deletion callback
         if (opts.onDidDeleteNode && node.oldChildren) {
-            node.oldChildren.forEach(node => opts.onDidDeleteNode!(node));
-            node.oldChildren.forEach(node => node.children.forEach(child => opts.onDidDeleteNode!(child)));
+            const deleteVisitor = (node: IFlexNode<T, TFilter>) => {
+                opts.onDidDeleteNode!(node);
+                if (node.children) {
+                    node.children.forEach(deleteVisitor);
+                }
+                if (node.oldChildren) {
+                    node.oldChildren.forEach(deleteVisitor);
+                }
+            };
+            node.oldChildren.forEach(deleteVisitor);
         }
 
         // fire events
