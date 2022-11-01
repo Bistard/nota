@@ -692,7 +692,6 @@ abstract class IndexTreeModelBase<T, TFilter> implements IIndexTreeModelBase<T, 
     }
 }
 
-
 /**
  * An {@link IndexTreeModel} is a type of {@link ITreeModel}. This is not the 
  * same data structure as Index Binary Tree (IBT).
@@ -845,7 +844,7 @@ export class IndexTreeModel<T, TFilter> extends IndexTreeModelBase<T, TFilter> i
  * @class An optimization data structure different than {@link IndexTreeModel}.
  * Instead of letting client provide a new tree-like structure, client modify
  * the existed one and the model will rebuild the tree structure automatically
- * after calling the method {@link IFlexIndexTreeModel.stale}.
+ * after calling the method {@link IFlexIndexTreeModel.splice}.
  */
 export class FlexIndexTreeModel<T, TFilter> extends IndexTreeModelBase<T, TFilter> implements IFlexIndexTreeModel<T, TFilter> {
 

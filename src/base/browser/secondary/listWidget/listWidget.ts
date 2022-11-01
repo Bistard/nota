@@ -274,7 +274,7 @@ export interface IListWidgetOpts<T> extends IListViewOpts<T> {
  * pressing SHIFT will able to mutl-select in range, pressing escape key will
  * lose the current focus item and so on...
  * 
-*  @note You may overrride the corresponding protected methods to customize the
+ * @note You may overrride the corresponding protected methods to customize the
  * behaviours.
  * 
  * Additional Functionalities:
