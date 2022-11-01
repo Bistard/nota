@@ -10,6 +10,7 @@ import { ITreeModel, ITreeSpliceEvent, ITreeNode, ITreeNodeItem, ITreeCollapseSt
 export interface IMultiTreeModelBase<T, TFilter> extends ITreeModel<T, TFilter, T> {
     /**
      * @description Returns the number of nodes in the current tree model.
+     * @complexity O(1)
      */
     size(): number;
 }

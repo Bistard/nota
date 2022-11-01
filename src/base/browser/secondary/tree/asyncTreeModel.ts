@@ -216,15 +216,19 @@ export class AsyncTreeModel<T, TFilter> extends FlexMultiTreeModel<T, TFilter> i
             return [];
         }
 
-        // These children will be returned and for future refresh.
+        // will be returned for the deeper refresh in the future
         const childrenNodesToRefresh: IAsyncNode<T, TFilter>[] = [];
-        // These children will be the updated direct children nodes.
+        // the updated direct children of the current node
         const childrenNodes: IAsyncNode<T, TFilter>[] = [];
         
-        if (!this._identityProvider) {
-            this.__alwaysCreateNewNode(childrenData, node, childrenNodes, childrenNodesToRefresh);
-        } else {
+        /**
+         * If the tree can identify the uniqueness of each node, then it is 
+         * possible to reuse the old nodes instead of creating new ones.
+         */
+        if (this._identityProvider) {
             this.__tryReuseOldNode(this._identityProvider, childrenData, node, childrenNodes, childrenNodesToRefresh);
+        } else {
+            this.__alwaysCreateNewNode(childrenData, node, childrenNodes, childrenNodesToRefresh);
         }
 
         node.stale = true;
@@ -291,15 +295,15 @@ export class AsyncTreeModel<T, TFilter> extends FlexMultiTreeModel<T, TFilter> i
                     this._childrenProvider.forgetChildren(existedNode.data);
                 }
 
+                newNodes.push(existedNode);
+
                 /**
                  * Do not modify the collapse state of the existed node. Only
-                 * keep refreshing when it is not collapsed.
+                 * keep refreshing downwards when it is not collapsed.
                  */
                 if (hasChildren && !existedNode.collapsed) {
                     newNodesToRefresh.push(existedNode);
                 }
-
-                newNodes.push(existedNode);
             }
             
             // no existed nodes, we create a new one as normal.
