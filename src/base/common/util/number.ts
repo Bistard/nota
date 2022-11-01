@@ -13,6 +13,25 @@ export namespace Numbers {
     }
 
     /**
+     * @description Counts the total number of digits of the given number.
+     */
+    export function totalDigit(num: number): number {
+        let digits = (num < 0) ? 1 : 0;
+        while (num) {
+            num /= 10;
+            ++digits;
+        }
+        return digits;
+    }
+
+    /**
+     * @description Get the nth digit of the given number.
+     */
+    export function getDigitAt(num: number, n: number) {
+        return num / 10**n % 10;
+    }
+
+    /**
      * @description Restricts the given number to a given range.
      * @param num The given number.
      */
