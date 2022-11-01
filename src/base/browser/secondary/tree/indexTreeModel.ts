@@ -45,6 +45,13 @@ export interface IIndexTreeModelOptions<T, TFilter> {
  * An interface only for {@link IndexTreeModelBase}.
  */
 export interface IIndexTreeModelBase<T, TFilter> extends ITreeModel<T, TFilter, number[]> {
+    
+    /**
+     * @description Returns the total number of nodes in the tree model.
+     * @complexity O(n)
+     */
+    size(): number;
+    
     /**
      * Events when tree splice did happen.
      */
@@ -148,6 +155,25 @@ abstract class IndexTreeModelBase<T, TFilter> implements IIndexTreeModelBase<T, 
     get rootNode() { return this._root; }
 
     // [methods]
+
+    public size(): number {
+        let count = 0;
+
+        const dfs = (node: ITreeNode<T, TFilter>) => {
+            count++;
+
+            if (!node.children) {
+                return;
+            }
+
+            for (const child of node.children) {
+                dfs(child);
+            }
+        };
+        dfs(this._root);
+
+        return count;
+    }
 
     public hasNode(location: readonly number[]): boolean {
         return this.__hasNode(location, this._root);
