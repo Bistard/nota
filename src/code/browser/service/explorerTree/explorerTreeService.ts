@@ -52,6 +52,8 @@ export class ExplorerTreeService extends Disposable implements IExplorerTreeServ
     private _currentTreeService?: ITreeService<unknown>;
     private _onDidResourceChangeScheduler?: IScheduler<ResourceChangeEvent>;
 
+    private static readonly ON_RESOURCE_CHANGE_DELAY = 100;
+
     // [constructor]
 
     constructor(
@@ -158,29 +160,31 @@ export class ExplorerTreeService extends Disposable implements IExplorerTreeServ
         this._currTreeDisposable = disposables;
 
         // on did resource change callback
-        this._onDidResourceChangeScheduler = new Scheduler(100, (events: ResourceChangeEvent[]) => {
-            if (!this._root) {
-                return;
-            }
+        this._onDidResourceChangeScheduler = new Scheduler(
+            ExplorerTreeService.ON_RESOURCE_CHANGE_DELAY, 
+            (events: ResourceChangeEvent[]) => {
+                if (!this._root || !this._currentTreeService) {
+                    return;
+                }
 
-            let affected = false;
-            for (const event of events) {
-                if (event.affect(this._root)) {
-                    console.log(event);
-                    affected = true;
-                    break;
+                let affected = false;
+                for (const event of events) {
+                    if (event.affect(this._root)) {
+                        affected = true;
+                        break;
+                    }
+                }
+
+                if (affected) {
+                    this._currentTreeService.refresh();
                 }
             }
-
-            if (affected) {
-                this._currentTreeService!.refresh();
-            }
-        });
+        );
 
         disposables.register(this._onDidResourceChangeScheduler);
         disposables.register(this.fileService.watch(root, { recursive: true }));
         disposables.register(this.fileService.onDidResourceChange(e => {
-            this._onDidResourceChangeScheduler!.schedule(e);
+            this._onDidResourceChangeScheduler?.schedule(e);
         }));
     }
 }

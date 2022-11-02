@@ -18,7 +18,6 @@ import { IExplorerTreeService } from 'src/code/browser/service/explorerTree/expl
 import { URI } from 'src/base/common/file/uri';
 import { IHostService } from 'src/code/platform/host/common/hostService';
 import { StatusKey } from 'src/code/platform/status/common/status';
-import { IMainStatusService } from 'src/code/platform/status/electron/mainStatusService';
 import { DisposableManager } from 'src/base/common/dispose';
 
 export const IExplorerViewService = createService<IExplorerViewService>('explorer-view-service');
