@@ -937,6 +937,7 @@ export class FlexIndexTreeModel<T, TFilter> extends IndexTreeModelBase<T, TFilte
         if (opts.onDidDeleteNode && node.oldChildren) {
             const deleteVisitor = (node: IFlexNode<T, TFilter>) => {
                 opts.onDidDeleteNode!(node);
+                node.children?.forEach(deleteVisitor);
                 node.oldChildren?.forEach(deleteVisitor);
             };
             node.oldChildren.forEach(deleteVisitor);
