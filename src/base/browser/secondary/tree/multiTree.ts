@@ -10,7 +10,7 @@ import { ListWidgetKeyboardController } from "src/base/browser/secondary/listWid
 import { IStandardKeyboardEvent } from "src/base/common/keyboard";
 
 /**
- * An interface only for {@link MultiTreeModelBase}.
+ * An interface only for {@link MultiTreeBase}.
  */
 export interface IMultiTreeBase<T, TFilter> extends IAbstractTree<T, TFilter, T> {
     /**
@@ -18,11 +18,11 @@ export interface IMultiTreeBase<T, TFilter> extends IAbstractTree<T, TFilter, T>
      */
     size(): number;
 
-     /**
-      * @description Rerenders the whole view only with the corresponding tree 
-      * node.
-      * @param item The provided item. 
-      */
+    /**
+     * @description Rerenders the whole view only with the corresponding tree 
+     * node.
+     * @param item The provided item.
+     */
     rerender(item: T): void;
 }
 
