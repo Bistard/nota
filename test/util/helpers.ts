@@ -112,7 +112,7 @@ export function printNaryTreeLike<TNode>(
     
     // in-order
     const __print = (node: TNode, prefix: string, isParentTheLast: boolean): void => {
-        process.stdout.write(prefix + getContent(node) + '\n');
+        console.log(prefix + getContent(node));
         
         if (!hasChildren(node)) {
             return;
