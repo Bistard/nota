@@ -284,7 +284,7 @@ export class AsyncTree<T, TFilter> extends Disposable implements IAsyncTree<T, T
         this.__register(this._tree);
         this.__register(this._ongoingCollapseChange);
         this.__register(this._tree.onDidChangeCollapseState(e => 
-            this._ongoingCollapseChange.queue(async () => this.__internalOnDidChangeCollapseState(e))
+            this._ongoingCollapseChange.queue(async () => this.__onDidChangeCollapseState(e))
         ));
     }
 
@@ -322,6 +322,7 @@ export class AsyncTree<T, TFilter> extends Disposable implements IAsyncTree<T, T
     // [public methods]
 
     public async refresh(data: T = this._tree.root): Promise<void> {
+        console.log('[refresh]'); // TEST
         
         const asyncNode: IAsyncNode<T, TFilter> = this._tree.getNode(data);
 
@@ -488,7 +489,8 @@ export class AsyncTree<T, TFilter> extends Disposable implements IAsyncTree<T, T
     /**
      * @description Presets the behaviours when the collapsing state is changed.
      */
-    private async __internalOnDidChangeCollapseState(e: ITreeCollapseStateChangeEvent<T, TFilter>): Promise<void> {
+    private async __onDidChangeCollapseState(e: ITreeCollapseStateChangeEvent<T, TFilter>): Promise<void> {
+        console.log('[onDidChangeCollapseState]'); // TEST
 
         // ignores the root node
         const node: IAsyncNode<T, TFilter> = e.node;
@@ -501,7 +503,7 @@ export class AsyncTree<T, TFilter> extends Disposable implements IAsyncTree<T, T
          * updated children of the current node if it is collapsed.
          */
         if (node.collapsed) {
-            console.log('[item] skip refresh operation since it is collapsing.');
+            console.log('[item] skip refresh operation since it is collapsing.'); // TEST
             return;
         }
 
@@ -510,7 +512,7 @@ export class AsyncTree<T, TFilter> extends Disposable implements IAsyncTree<T, T
          * operation is the children of the node is already resolved (up-to-date).
          */
         if (this._tree.isChildrenResolved(node.data)) {
-            console.log('[item] already resolved, skip when expand.');
+            console.log('[item] already resolved, skip when expand.'); // TEST
             return;
         }
 
