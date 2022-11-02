@@ -848,10 +848,7 @@ export class IndexTreeModel<T, TFilter> extends IndexTreeModelBase<T, TFilter> i
             visibleNodeCount += child.visibleNodeCount;
         }
         
-        /**
-         * If the collapsible setting somehow sets to false, we may correct it 
-         * here.
-         */
+        // If the collapsible setting somehow sets to false, we may correct it here.
         newNode.collapsible = newNode.collapsible || newNode.children.length > 0;
         
         if (!newNode.visible) {
@@ -940,12 +937,7 @@ export class FlexIndexTreeModel<T, TFilter> extends IndexTreeModelBase<T, TFilte
         if (opts.onDidDeleteNode && node.oldChildren) {
             const deleteVisitor = (node: IFlexNode<T, TFilter>) => {
                 opts.onDidDeleteNode!(node);
-                if (node.children) {
-                    node.children.forEach(deleteVisitor);
-                }
-                if (node.oldChildren) {
-                    node.oldChildren.forEach(deleteVisitor);
-                }
+                node.oldChildren?.forEach(deleteVisitor);
             };
             node.oldChildren.forEach(deleteVisitor);
         }
@@ -992,10 +984,7 @@ export class FlexIndexTreeModel<T, TFilter> extends IndexTreeModelBase<T, TFilte
 
         node.visibleNodeCount = node.visible ? newVisibleCount : 0;
 
-        /**
-         * If the collapsible setting somehow sets to false, we may correct it 
-         * here.
-         */
+        // If the collapsible setting somehow sets to false, we may correct it here.
         node.collapsible = node.collapsible || node.children.length > 0;
         
         // If collapse never set by the client, we use the default setting.
