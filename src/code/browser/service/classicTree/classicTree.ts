@@ -50,6 +50,10 @@ export class ClassicTree<T extends ClassicItem, TFilter> extends AsyncTree<T, TF
             return;
         }
 
+        if (event.browserEvent.shiftKey || event.browserEvent.ctrlKey) {
+            return;
+        }
+
         if (event.data.isDirectory()) {
             return;
         }
