@@ -106,7 +106,13 @@ export abstract class AbstractScrollbar extends Widget {
      * @description Returns the scroll delta change in the current direction.
      * @param event The wheel event.
      */
-    public abstract getDelta(event: WheelEvent): number;
+    public abstract getWheelDelta(event: WheelEvent): number;
+
+    /**
+     * @description Returns the touch position (either x or y).
+     * @param touch The specific touch of the user finger.
+     */
+    public abstract getTouchPosition(touch: Touch): number;
 
     /**
      * @description Renders the whole scrollbar.

@@ -12,10 +12,14 @@ export class HorizontalScrollbar extends AbstractScrollbar {
 
     // [override abstract methods]
 
-    public getDelta(event: WheelEvent): number {
+    public getWheelDelta(event: WheelEvent): number {
         return event.deltaX;
     }
 
+    public getTouchPosition(touch: Touch): number {
+        return touch.clientX;
+    }
+    
     protected __renderScrollbar(size: number): void {
         const element = this._element!;
         element.classList.add('scroll-bar', 'horizontal');

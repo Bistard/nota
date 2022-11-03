@@ -8,7 +8,7 @@ export const enum ScrollbarType {
 export interface IScrollableWidgetExtensionOpts {
 
     /**
-     * @readonly Types of scrollbar that the widget supports.
+     * Types of scrollbar that the widget supports.
      * @default ScrollbarType.vertical
      * 
      * @note (right now it cannot support both types at the same time)
@@ -16,25 +16,30 @@ export interface IScrollableWidgetExtensionOpts {
     scrollbarType?: ScrollbarType;
 
     /**
-     * @readonly A multiplier to be used on the `deltaX` and `deltaY` of a mouse 
-     * wheel scroll event.
+     * A multiplier to be used on the `deltaX` and `deltaY` of a mouse wheel 
+     * scroll event.
 	 * @default 1
      */
-    mouseWheelScrollSensibility?: number;
+    scrollSensibility?: number;
 
     /**
-     * @readonly A multiplier to be used for wheel scroll event when `ALT` 
-     * keyword is pressed.
+     * A multiplier to be used for wheel scroll event when `ALT` keyword is 
+     * pressed.
      * @default 5
      */
     mouseWheelFastScrollSensibility?: number;
 
     /**
-     * @readonly When this option is on, mouse wheel goes up, the slider goes 
-     * down.
+     * When this option is on, mouse wheel goes up, the slider goes down.
      * @default false
      */
     reverseMouseWheelDirection?: boolean;
+
+    /**
+     * Whether to support touching pad support.
+     * @default true
+     */
+    touchSupport?: boolean;
 }
 
 export interface IScrollableWidgetOpts extends Required<IScrollableWidgetExtensionOpts> {
@@ -48,12 +53,11 @@ export interface IScrollableWidgetOpts extends Required<IScrollableWidgetExtensi
 * @returns A resolved option {@link IScrollableWidgetOpts}
  */
 export function resolveScrollableWidgetExtensionOpts(opts: IScrollableWidgetExtensionOpts): IScrollableWidgetOpts {
-
     return {
         scrollbarType:                   ifOrDefault(opts.scrollbarType, ScrollbarType.vertical),
-        mouseWheelScrollSensibility:     ifOrDefault(opts.mouseWheelScrollSensibility, 1),
+        scrollSensibility:     ifOrDefault(opts.scrollSensibility, 1),
         mouseWheelFastScrollSensibility: ifOrDefault(opts.mouseWheelFastScrollSensibility, 5),
         reverseMouseWheelDirection:      ifOrDefault(opts.reverseMouseWheelDirection, false),
+        touchSupport:             ifOrDefault(opts.touchSupport, true),
     };
-
 }

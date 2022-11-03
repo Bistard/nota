@@ -12,8 +12,12 @@ export class VerticalScrollbar extends AbstractScrollbar {
 
     // [override abstract methods]
 
-    public getDelta(event: WheelEvent): number {
+    public getWheelDelta(event: WheelEvent): number {
         return event.deltaY;
+    }
+
+    public getTouchPosition(touch: Touch): number {
+        return touch.clientY;
     }
 
     protected __renderScrollbar(size: number): void {
