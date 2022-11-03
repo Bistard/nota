@@ -319,12 +319,6 @@ export class TreeWidget<T, TFilter, TRef> extends ListWidget<ITreeNode<T, TFilte
         this._anchor.onDidSplice(e, identityProvider);
         this._focused.onDidSplice(e, identityProvider);
         this._selected.onDidSplice(e, identityProvider);
-
-        console.log('[onDidSplice] [abstractTree]'); // TEST
-
-        if (this._anchor.get()[0]) console.log('[tree] [anchor]:', (this._anchor.get()[0] as any).name); // TEST
-        if (this._focused.get()[0]) console.log('[tree] [focus]:', (this._focused.get()[0] as any).name); // TEST
-        console.log('[tree] [selection]:', this._selected.get().map(element => (element as any).name)); // TEST
     }
 
     // [public override methods]
