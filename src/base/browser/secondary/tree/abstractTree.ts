@@ -230,9 +230,11 @@ class TreeWidgetMouseController<T, TFilter, TRef> extends ListWidgetMouseControl
  */
 export interface ITreeWidgetOpts<T, TFilter, TRef> extends IListWidgetOpts<ITreeNode<T, TFilter>> {
     /**
-     * The tree that controls the widget.
+     * The tree that inherits {@link AbstractTree} and controls the widget.
      */
     readonly tree: IAbstractTree<T, TFilter, TRef>;
+
+    readonly extraArguments: any[];
 }
 
 /**
@@ -612,6 +614,8 @@ export interface IAbstractTreeOptions<T, TFilter> extends IIndexTreeModelOptions
      * widget instead of inheritance.
      */
     readonly createTreeWidgetExternal?: (container: HTMLElement, renderers: ITreeListRenderer<T, TFilter, any>[], itemProvider: IListItemProvider<ITreeNode<T, TFilter>>, opts: ITreeWidgetOpts<T, TFilter, any>) => TreeWidget<T, TFilter, any>;
+
+    readonly extraArguments?: any[];
 }
 
 /**
@@ -664,7 +668,8 @@ export abstract class AbstractTree<T, TFilter, TRef> extends Disposable implemen
                 dragAndDropProvider: opts.dnd && new __TreeListDragAndDropProvider(opts.dnd),
                 identityProvider: opts.identityProvider && new __TreeIdentityProvider(opts.identityProvider),
                 tree: this,
-            } as ITreeWidgetOpts<T, TFilter, TRef>,
+                extraArguments: opts.extraArguments ?? [],
+            },
         ] as const;
         if (opts.createTreeWidgetExternal) {
             this._view = opts.createTreeWidgetExternal(...treeWidgetArguments);

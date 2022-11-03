@@ -3,7 +3,7 @@ import { IListWidget, ITraitChangeEvent } from "src/base/browser/secondary/listW
 import { ITreeWidgetOpts } from "src/base/browser/secondary/tree/abstractTree";
 import { AsyncTreeModel, IAsyncTreeModel } from "src/base/browser/secondary/tree/asyncTreeModel";
 import { ITreeModelSpliceOptions } from "src/base/browser/secondary/tree/indexTreeModel";
-import { FlexMultiTree, IMultiTreeBase, IMultiTreeOptions, MultiTreeWidget } from "src/base/browser/secondary/tree/multiTree";
+import { FlexMultiTree, IMultiTreeBase, IMultiTreeOptions, IMultiTreeWidgetOpts, MultiTreeWidget } from "src/base/browser/secondary/tree/multiTree";
 import { ITreeNode, ITreeModel, ITreeCollapseStateChangeEvent, ITreeMouseEvent, ITreeTouchEvent, ITreeContextmenuEvent, ITreeSpliceEvent, IFlexNode } from "src/base/browser/secondary/tree/tree";
 import { ITreeListRenderer } from "src/base/browser/secondary/tree/treeListRenderer";
 import { Disposable } from "src/base/common/dispose";
@@ -147,6 +147,16 @@ export interface IAsyncTreeOptions<T, TFilter> extends IMultiTreeOptions<T, TFil
      * Provides functionality to determine the children stat of the given data.
      */
     readonly childrenProvider: IChildrenProvider<T>;
+}
+
+/**
+ * Constructor options for {@link AsyncTreeWidget}.
+ */
+export interface IAsyncTreeWidgetOpts<T, TFilter> extends IMultiTreeWidgetOpts<T, TFilter> {
+    /**
+     * The extra arguments that contains the self reference as the first one.
+     */
+    readonly extraArguments: [IAsyncTree<T, TFilter>];
 }
 
 /**
@@ -322,6 +332,7 @@ export class AsyncTree<T, TFilter> extends Disposable implements IAsyncTree<T, T
         this._tree = new AsyncMultiTree(container, rootData, {
             ...opts,
             createTreeWidgetExternal: (...args) => this.createTreeWidget(...args),
+            extraArguments: [this, ...(opts.extraArguments ?? [])],
         });
 
         this._onDidCreateNode = opts.onDidCreateNode;
