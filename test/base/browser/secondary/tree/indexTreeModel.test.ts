@@ -112,13 +112,9 @@ suite('indexTreeModel-test', () => {
 
         let cnt = 0;
         let inserted: ITreeNode<number, void>[] = [];
-        let deleted: ITreeNode<number, void>[] = [];
         model.onDidSplice((e) => {
-            e.deleted.forEach(() => cnt++);
             e.inserted.forEach(() => cnt++);
-
             inserted = e.inserted;
-            deleted = e.deleted;
         });
 
         model.splice([0], 0, [
@@ -127,18 +123,12 @@ suite('indexTreeModel-test', () => {
             {data: 2},
         ]);
         assert.strictEqual(cnt, 3);
-        let deletedValues: number[] = [];
-        deleted.forEach(child => dfs(child, 'children', node => deletedValues.push(node.data)));
-        assert.deepStrictEqual([], deletedValues);
         let insertedValues: number[] = [];
         inserted.forEach(child => dfs(child, 'children', node => insertedValues.push(node.data)));
         assert.deepStrictEqual([1, 3, 2], insertedValues);
 
         model.splice([0], 3, []);
-        assert.strictEqual(cnt, 6);
-        deletedValues = [];
-        deleted.forEach(child => dfs(child, 'children', node => deletedValues.push(node.data)));
-        assert.deepStrictEqual([1, 3, 2], deletedValues);
+        assert.strictEqual(cnt, 3);
         insertedValues = [];
         inserted.forEach(child => dfs(child, 'children', node => insertedValues.push(node.data)));
         assert.deepStrictEqual([], insertedValues);
@@ -944,13 +934,9 @@ suite('flexIndexTreeModel-test', () => {
 
         let cnt = 0;
         let inserted: ITreeNode<number, void>[] = [];
-        let deleted: ITreeNode<number, void>[] = [];
         model.onDidSplice((e) => {
-            e.deleted.forEach(() => cnt++);
             e.inserted.forEach(() => cnt++);
-            
             inserted = e.inserted;
-            deleted = e.deleted;
         });
 
         const root: IFlexNode<number> = model.rootNode;
@@ -963,20 +949,14 @@ suite('flexIndexTreeModel-test', () => {
         model.refresh();
         assert.strictEqual(cnt, 3);
         
-        let deletedValues: number[] = [];
-        deleted.forEach(child => dfs(child, 'children', node => deletedValues.push(node.data)));
-        assert.deepStrictEqual([], deletedValues);
         let insertedValues: number[] = [];
         inserted.forEach(child => dfs(child, 'children', node => insertedValues.push(node.data)));
         assert.deepStrictEqual([1, 3, 2], insertedValues);
 
         setNewChildren(root, []);
         model.refresh();
-        assert.strictEqual(cnt, 6);
+        assert.strictEqual(cnt, 3);
 
-        deletedValues = [];
-        deleted.forEach(child => dfs(child, 'children', node => deletedValues.push(node.data)));
-        assert.deepStrictEqual([1, 3, 2], deletedValues);
         insertedValues = [];
         inserted.forEach(child => dfs(child, 'children', node => insertedValues.push(node.data)));
         assert.deepStrictEqual([], insertedValues);
