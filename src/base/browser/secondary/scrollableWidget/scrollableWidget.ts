@@ -3,7 +3,7 @@ import { HorizontalScrollbar } from "src/base/browser/basic/scrollbar/horizontal
 import { VerticalScrollbar } from "src/base/browser/basic/scrollbar/verticalScrollbar";
 import { IWidget, Widget } from "src/base/browser/basic/widget";
 import { IScrollableWidgetExtensionOpts, IScrollableWidgetOpts, resolveScrollableWidgetExtensionOpts, ScrollbarType } from "src/base/browser/secondary/scrollableWidget/scrollableWidgetOptions";
-import { Disposable, DisposableManager, IDisposable } from "src/base/common/dispose";
+import { DisposableManager, IDisposable } from "src/base/common/dispose";
 import { Emitter, Register } from "src/base/common/event";
 import { IScrollEvent, Scrollable } from "src/base/common/scrollable";
 
@@ -15,11 +15,8 @@ export interface IScrollableWidget extends IWidget {
     /** Fires after scrolling happens. */
     onDidScroll: Register<IScrollEvent>;
 
-    /**
-     * @description Returns the inside {@link Scrollable}.
-     */
+    /** @description Returns the inside {@link Scrollable}. */
     getScrollable(): Scrollable;
-
 }
 
 /**
@@ -272,7 +269,7 @@ class TouchController implements IDisposable {
         }
 
         event.preventDefault();
-        
+
         const touch = event.changedTouches[0]!;
         const touchPosition = this._scrollbar.getTouchPosition(touch);
         const delta = this._currPosition - touchPosition;
