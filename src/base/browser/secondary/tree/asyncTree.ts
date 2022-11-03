@@ -279,30 +279,6 @@ export class AsyncTree<T, TFilter> extends Disposable implements IAsyncTree<T, T
     private _onDidCreateNode?: (node: ITreeNode<T, TFilter>) => void;
     private _onDidDeleteNode?: (node: ITreeNode<T, TFilter>) => void;
 
-    // [constructor]
-
-    constructor(
-        container: HTMLElement,
-        rootData: T,
-        opts: IAsyncTreeOptions<T, TFilter>,
-    ) {
-        super();
-        
-        this._tree = new AsyncMultiTree(container, rootData, {
-            ...opts,
-            createTreeWidgetExternal: (...args) => this.createTreeWidget(...args),
-        });
-
-        this._onDidCreateNode = opts.onDidCreateNode;
-        this._onDidDeleteNode = opts.onDidDeleteNode;
-
-        this.__register(this._tree);
-        this.__register(this._ongoingCollapseChange);
-        this.__register(this._tree.onDidChangeCollapseState(e => 
-            this._ongoingCollapseChange.queue(async () => this.__onDidChangeCollapseState(e))
-        ));
-    }
-
     // [event]
 
     get onDidSplice(): Register<ITreeSpliceEvent<T, TFilter>> { return this._tree.onDidSplice; }
@@ -333,6 +309,30 @@ export class AsyncTree<T, TFilter> extends Disposable implements IAsyncTree<T, T
     get viewportHeight(): number { return this._tree.viewportHeight; }
 
     get contentHeight(): number { return this._tree.contentHeight; }
+
+    // [constructor]
+
+    constructor(
+        container: HTMLElement,
+        rootData: T,
+        opts: IAsyncTreeOptions<T, TFilter>,
+    ) {
+        super();
+        
+        this._tree = new AsyncMultiTree(container, rootData, {
+            ...opts,
+            createTreeWidgetExternal: (...args) => this.createTreeWidget(...args),
+        });
+
+        this._onDidCreateNode = opts.onDidCreateNode;
+        this._onDidDeleteNode = opts.onDidDeleteNode;
+
+        this.__register(this._tree);
+        this.__register(this._ongoingCollapseChange);
+        this.__register(this._tree.onDidChangeCollapseState(e => 
+            this._ongoingCollapseChange.queue(async () => this.__onDidChangeCollapseState(e))
+        ));
+    }
 
     // [public methods]
 
