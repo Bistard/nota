@@ -536,7 +536,7 @@ export interface IAbstractTree<T, TFilter, TRef> extends IDisposable {
      *                  default.
      * @returns If the operation successed.
      */
-    expand(location: TRef, recursive: boolean): boolean;
+    expand(location: TRef, recursive: boolean): boolean | Promise<boolean>;
     
     /**
      * @description Toggles the state of collapse or expand to the tree node with
@@ -547,7 +547,7 @@ export interface IAbstractTree<T, TFilter, TRef> extends IDisposable {
      *                  default.
      * @returns If the operation successed.
      */
-    toggleCollapseOrExpand(location: TRef, recursive: boolean): boolean;
+    toggleCollapseOrExpand(location: TRef, recursive: boolean): boolean | Promise<boolean>;
     
     /**
      * @description Collapses all the tree nodes.

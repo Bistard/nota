@@ -1,6 +1,6 @@
 import { IListItemProvider } from "src/base/browser/secondary/listView/listItemProvider";
 import { IListWidget, ITraitChangeEvent } from "src/base/browser/secondary/listWidget/listWidget";
-import { ITreeWidgetOpts, TreeWidget } from "src/base/browser/secondary/tree/abstractTree";
+import { ITreeWidgetOpts } from "src/base/browser/secondary/tree/abstractTree";
 import { AsyncTreeModel, IAsyncTreeModel } from "src/base/browser/secondary/tree/asyncTreeModel";
 import { ITreeModelSpliceOptions } from "src/base/browser/secondary/tree/indexTreeModel";
 import { FlexMultiTree, IMultiTreeBase, IMultiTreeOptions, MultiTreeWidget } from "src/base/browser/secondary/tree/multiTree";
@@ -81,7 +81,7 @@ export interface IChildrenProvider<T> {
 /**
  * An interface only for {@link AsyncTree}.
  */
-export interface IAsyncTree<T, TFilter> extends Omit<IMultiTreeBase<T, TFilter>, 'expand' | 'toggleCollapseOrExpand'> {
+export interface IAsyncTree<T, TFilter> extends IMultiTreeBase<T, TFilter> {
     
     /**
      * Returns a promise that resolves once a collapse state has completed.
