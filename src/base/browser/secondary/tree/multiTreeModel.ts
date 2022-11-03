@@ -45,6 +45,12 @@ export interface IFlexMultiTreeModel<T, TFilter> extends IMultiTreeModelBase<T, 
      * @param opts The option for splicing.
      */
     refresh(node?: IFlexNode<T, TFilter>, opts?: ITreeModelSpliceOptions<T, TFilter>): void;
+
+    /**
+     * @description See details in {@link IFlexIndexTreeModel.triggerOnDidSplice}.
+     * @param event The event to be fired.
+     */
+    triggerOnDidSplice(event: ITreeSpliceEvent<T, TFilter>): void;
 }
 
 /**
@@ -292,5 +298,9 @@ export class FlexMultiTreeModel<T, TFilter> extends MultiTreeModelBase<T, TFilte
             node,
             this.__createSpliceOptions(opts),
         );
+    }
+
+    public triggerOnDidSplice(event: ITreeSpliceEvent<T, TFilter>): void {
+        this._model.triggerOnDidSplice(event);
     }
 }

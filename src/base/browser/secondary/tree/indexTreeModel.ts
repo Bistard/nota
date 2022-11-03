@@ -52,10 +52,6 @@ export interface IIndexTreeModelBase<T, TFilter> extends ITreeModel<T, TFilter, 
      */
     size(): number;
     
-    /**
-     * Events when tree splice did happen.
-     */
-    readonly onDidSplice: Register<ITreeSpliceEvent<T, TFilter>>;
     getNodeLocation(node: ITreeNode<T, TFilter>): number[];
     getNodeListIndex(location: number[]): number;
     setCollapsible(location: number[], collapsible?: boolean): boolean;
@@ -92,6 +88,14 @@ export interface IFlexIndexTreeModel<T, TFilter> extends IIndexTreeModelBase<T, 
      * @param opts The option for splicing.
      */
     refresh(node?: IFlexNode<T, TFilter>, opts?: ITreeModelSpliceOptions<T, TFilter>): void;
+
+    /**
+     * @description Fires the `onDidSplice` event without actual refreshing. 
+     * Having this method is useful for some possible optimizations. This can 
+     * avoid the actual refreshing step but still pretend to be refreshed.
+     * @param event The event to be fired.
+     */
+    triggerOnDidSplice(event: ITreeSpliceEvent<T, TFilter>): void;
 }
 
 /**
@@ -943,6 +947,13 @@ export class FlexIndexTreeModel<T, TFilter> extends IndexTreeModelBase<T, TFilte
         // actual delete the old children
         node.oldChildren = undefined;
         node.stale = false;
+
+        // fire events
+        this._onDidSplice.fire({ inserted: treeNodeListToBeRendered });
+    }
+
+    public triggerOnDidSplice(event: ITreeSpliceEvent<T, TFilter>): void {
+        this._onDidSplice.fire(event);
     }
 
     // [private helper methods]
