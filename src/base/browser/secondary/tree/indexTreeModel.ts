@@ -789,10 +789,7 @@ export class IndexTreeModel<T, TFilter> extends IndexTreeModelBase<T, TFilter> i
         }
 
         // fire events
-        this._onDidSplice.fire({
-            inserted: treeNodeListToBeRendered,
-            deleted: deletedChildren
-        });
+        this._onDidSplice.fire({ inserted: treeNodeListToBeRendered });
     }
 
     // [private helper methods]
@@ -942,12 +939,6 @@ export class FlexIndexTreeModel<T, TFilter> extends IndexTreeModelBase<T, TFilte
             };
             node.oldChildren.forEach(deleteVisitor);
         }
-
-        // fire events
-        this._onDidSplice.fire({
-            inserted: treeNodeListToBeRendered,
-            deleted: node.oldChildren ?? [],
-        });
 
         // actual delete the old children
         node.oldChildren = undefined;
