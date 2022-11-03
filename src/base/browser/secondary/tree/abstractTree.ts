@@ -15,6 +15,18 @@ import { IIdentiityProivder } from "src/base/browser/secondary/tree/asyncTree";
 
 /**
  * @internal
+ */
+class __TreeIdentityProvider<T, TFilter> implements IIdentiityProivder<ITreeNode<T, TFilter>> {
+
+    constructor(private readonly identityProvider: IIdentiityProivder<T>) {}
+
+    getID(node: ITreeNode<T, TFilter>): string {
+        return this.identityProvider.getID(node.data);
+    }
+}
+
+/**
+ * @internal
  * @class A wrapper class to convert a basic {@link IListDragAndDropProvider<T>}
  * to {@link IListDragAndDropProvider<ITreeNode<T>>}.
  */
@@ -643,6 +655,7 @@ export abstract class AbstractTree<T, TFilter, TRef> extends Disposable implemen
             new TreeListItemProvider(itemProvider), 
             {
                 dragAndDropProvider: opts.dnd && new __TreeListDragAndDropProvider(opts.dnd),
+                identityProvider: opts.identityProvider && new __TreeIdentityProvider(opts.identityProvider),
                 tree: this,
             },
         );
