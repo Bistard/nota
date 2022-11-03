@@ -503,6 +503,7 @@ export class AsyncTree<T, TFilter> extends Disposable implements IAsyncTree<T, T
          * updated children of the current node if it is collapsed.
          */
         if (node.collapsed) {
+            this._tree.triggerOnDidSplice({ inserted: [e.node] });
             console.log('[item] skip refresh operation since it is collapsing.'); // TEST
             return;
         }
@@ -512,6 +513,7 @@ export class AsyncTree<T, TFilter> extends Disposable implements IAsyncTree<T, T
          * operation is the children of the node is already resolved (up-to-date).
          */
         if (this._tree.isChildrenResolved(node.data)) {
+            this._tree.triggerOnDidSplice({ inserted: [e.node] });
             console.log('[item] already resolved, skip when expand.'); // TEST
             return;
         }
