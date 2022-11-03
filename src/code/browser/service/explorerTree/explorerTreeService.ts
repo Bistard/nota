@@ -35,8 +35,8 @@ export class ExplorerTreeService extends Disposable implements IExplorerTreeServ
 
     // [event]
 
-    private readonly _onDidClick = this.__register(new RelayEmitter<unknown>());
-    public readonly onDidClick = this._onDidClick.registerListener;
+    private readonly _onOpen = this.__register(new RelayEmitter<unknown>());
+    public readonly onOpen = this._onOpen.registerListener;
 
     // [field]
 
@@ -51,6 +51,8 @@ export class ExplorerTreeService extends Disposable implements IExplorerTreeServ
     private _currTreeDisposable?: IDisposable;
     private _currentTreeService?: ITreeService<unknown>;
     private _onDidResourceChangeScheduler?: IScheduler<ResourceChangeEvent>;
+
+    private static readonly ON_RESOURCE_CHANGE_DELAY = 100;
 
     // [constructor]
 
@@ -95,21 +97,20 @@ export class ExplorerTreeService extends Disposable implements IExplorerTreeServ
     // [public mehtods]
 
     public async init(container: HTMLElement, root: URI, mode?: TreeMode): Promise<void> {
+        const currTreeService = this._mode === TreeMode.Notebook ? this.notebookTreeService : this.classicTreeService;
+
+        // try to create the tree service
+        try {
+            await currTreeService.init(container, root);
+        } catch (error) {
+            throw error;
+        }
+
+        // update the metadata only after successed
+        this._currentTreeService = currTreeService;
         this._root = root;
-        if (mode) {
-            this._mode = mode;
-        }
-
-        if (this._mode === TreeMode.Notebook) {
-            this._currentTreeService = this.notebookTreeService;
-            
-        } else {
-            this._currentTreeService = this.classicTreeService;
-        }
-
-        // create the tree service
-        await this._currentTreeService.init(container, root);
-        this._onDidClick.setInput(this._currentTreeService.onDidClick);
+        this._mode = mode ?? this._mode;
+        this._onOpen.setInput(this._currentTreeService.onOpen);
 
         this.__registerTreeListeners(root);
     }
@@ -159,29 +160,31 @@ export class ExplorerTreeService extends Disposable implements IExplorerTreeServ
         this._currTreeDisposable = disposables;
 
         // on did resource change callback
-        this._onDidResourceChangeScheduler = new Scheduler(100, (events: ResourceChangeEvent[]) => {
-            if (!this._root) {
-                return;
-            }
+        this._onDidResourceChangeScheduler = new Scheduler(
+            ExplorerTreeService.ON_RESOURCE_CHANGE_DELAY, 
+            (events: ResourceChangeEvent[]) => {
+                if (!this._root || !this._currentTreeService) {
+                    return;
+                }
 
-            let affected = false;
-            for (const event of events) {
-                if (event.affect(this._root)) {
-                    console.log(event);
-                    affected = true;
-                    break;
+                let affected = false;
+                for (const event of events) {
+                    if (event.affect(this._root)) {
+                        affected = true;
+                        break;
+                    }
+                }
+
+                if (affected) {
+                    this._currentTreeService.refresh();
                 }
             }
-
-            if (affected) {
-                this._currentTreeService!.refresh();
-            }
-        });
+        );
 
         disposables.register(this._onDidResourceChangeScheduler);
         disposables.register(this.fileService.watch(root, { recursive: true }));
         disposables.register(this.fileService.onDidResourceChange(e => {
-            this._onDidResourceChangeScheduler!.schedule(e);
+            this._onDidResourceChangeScheduler?.schedule(e);
         }));
     }
 }

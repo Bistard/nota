@@ -53,6 +53,8 @@ const nota = new class extends class MainProcess implements IMainProcess {
 
     constructor() {}
 
+    // [public methods]
+
     public async start(argv: ICLIArguments): Promise<void> {
         (<any>this.CLIArgv) = argv;
         try {

@@ -7,9 +7,6 @@ export interface ITreeSpliceEvent<T, TFilter> {
     
     /** Inserted nodes */
     readonly inserted: ITreeNode<T, TFilter>[];
-	
-    /** Deleted nodes */
-    readonly deleted: ITreeNode<T, TFilter>[];
 }
 
 /**

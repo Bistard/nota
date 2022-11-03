@@ -80,6 +80,8 @@ export class BrowserLoggerChannel extends AbstractLoggerService {
 
 class __BrowserLogger extends BufferLogger implements ILogger {
 
+    // [field / constructor]
+    
     private _created: boolean = false;
 
     constructor(

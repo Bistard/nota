@@ -188,7 +188,7 @@ export class ClassicItem implements IClassicItem {
              * before.
              */
             if (this._isResolved === false) {
-                console.log('[item] resolving children');
+                console.log('[item] resolving children'); // TEST
                 try {
                     const updatedStat = await fileService.stat(
                         this._stat.uri, { 

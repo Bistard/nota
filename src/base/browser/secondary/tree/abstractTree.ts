@@ -15,6 +15,18 @@ import { IIdentiityProivder } from "src/base/browser/secondary/tree/asyncTree";
 
 /**
  * @internal
+ */
+class __TreeIdentityProvider<T, TFilter> implements IIdentiityProivder<ITreeNode<T, TFilter>> {
+
+    constructor(private readonly identityProvider: IIdentiityProivder<T>) {}
+
+    getID(node: ITreeNode<T, TFilter>): string {
+        return this.identityProvider.getID(node.data);
+    }
+}
+
+/**
+ * @internal
  * @class A wrapper class to convert a basic {@link IListDragAndDropProvider<T>}
  * to {@link IListDragAndDropProvider<ITreeNode<T>>}.
  */
@@ -113,52 +125,38 @@ class TreeTrait<T> {
         return this._nodes.has(nodes);
     }
 
-    public onDidSplice(e: ITreeSpliceEvent<T, any>, identityProvider?: IIdentiityProivder<T>): void {
+    public onDidSplice(event: ITreeSpliceEvent<T, any>, identityProvider?: IIdentiityProivder<T>): void {
         
         /**
          * Since the tree cannot decide the ID of each node, thus it cannot
-         * determine if any nodes are re-inserted. We only remove the deleted 
-         * traits from the current ones.
+         * determine if any nodes are re-inserted. We clean all the current 
+         * traits.
          */
         if (!identityProvider) {
             this._nodesDataCache = undefined;
-            const deletedVisitor = (node: ITreeNode<T, any>) => this._nodes.delete(node);
-            e.deleted.forEach(deleted => deletedVisitor(deleted));
+            this._nodes.clear();
             return;
         }
 
         /**
-         * Use identity provider to determine if any existed nodes are 
-         * re-inserted, if yes, keep the updated one.
+         * Use identity provider to keep any existed nodes if they are 
+         * re-inserted.
          */
 
-        const dfsNode = function (node: ITreeNode<T, any>, fn: (node: ITreeNode<T, any>) => void) {
-            fn(node);
-            node.children.forEach(child => dfsNode(child, fn));
-        };
-
-        const deletedIDs = new Set<string>();
         const insertedIDs = new Map<string, ITreeNode<T, any>>();
-        
-        const deletedVisitor = (node: ITreeNode<T, any>) => deletedIDs.add(identityProvider.getID(node.data));
-        const insertedVisitor = (node: ITreeNode<T, any>) => insertedIDs.set(identityProvider.getID(node.data), node);
-        
-        e.deleted.forEach(deleted => dfsNode(deleted, deletedVisitor));
-        e.inserted.forEach(inserted => dfsNode(inserted, insertedVisitor));
+        const dfsNode = function (node: ITreeNode<T, any>) {
+            insertedIDs.set(identityProvider.getID(node.data), node);
+            node.children.forEach(child => dfsNode(child));
+        };
+        event.inserted.forEach(inserted => dfsNode(inserted));
 
         const currNodes: ITreeNode<T, any>[] = [];
-
         for (const orginal of this._nodes) {
             const id = identityProvider.getID(orginal.data);
-            const deleted = deletedIDs.has(id);
             const inserted = insertedIDs.get(id);
             
-            // if not deleted, keep the orginal trait.
-            if (!deleted) {
-                currNodes.push(orginal);
-            }
-            // if deleted but re-inserted, keep the updated trait.
-            else if (deleted && inserted) {
+            // keep the updated trait if the trait still existed after updated.
+            if (inserted) {
                 currNodes.push(inserted);
             }
         }
@@ -651,6 +649,7 @@ export abstract class AbstractTree<T, TFilter, TRef> extends Disposable implemen
             new TreeListItemProvider(itemProvider), 
             {
                 dragAndDropProvider: opts.dnd && new __TreeListDragAndDropProvider(opts.dnd),
+                identityProvider: opts.identityProvider && new __TreeIdentityProvider(opts.identityProvider),
                 tree: this,
             },
         );

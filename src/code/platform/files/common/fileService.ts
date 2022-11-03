@@ -111,6 +111,9 @@ export interface IFileService extends IDisposable {
     watch(uri: URI, opts?: IWatchOptions): IDisposable;
 }
 
+/**
+ * @class // TODO
+ */
 export class FileService extends Disposable implements IFileService {
 
     // [event]

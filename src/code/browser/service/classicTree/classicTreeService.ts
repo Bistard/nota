@@ -24,8 +24,8 @@ export class ClassicTreeService extends Disposable implements IClassicTreeServic
 
     // [event]
 
-    get onDidClick(): Register<ClassicOpenEvent> {
-        return this._tree!.onDidClick;
+    get onOpen(): Register<ClassicOpenEvent> {
+        return this._tree!.onOpen;
     };
 
     // [field]
@@ -70,21 +70,23 @@ export class ClassicTreeService extends Disposable implements IClassicTreeServic
             const rootItem = new ClassicItem(rootStat, null, filterOpts);
             
             // create the actual file system hierarchy
-            this._tree = this.__register(new ClassicTree<ClassicItem, FuzzyScore>(
-                container, 
-                rootItem,
-                {
-                    itemProvider: new ClassicItemProvider(), 
-                    renderers: [new ClassicRenderer()],
-                    childrenProvider: new ClassicChildrenProvider(this.logService, this.fileService, filterOpts),
-                    identityProvider: { getID: (data: ClassicItem) => URI.toString(data.uri) },
-                    
-                    // optional
-                    collapsedByDefault: true,
-                    filter: new ClassicFilter(),
-                    dnd: new ClassicDragAndDropProvider(),
-                },
-            ));
+            this._tree = this.__register(
+                new ClassicTree<ClassicItem, FuzzyScore>(
+                    container, 
+                    rootItem,
+                    {
+                        itemProvider: new ClassicItemProvider(), 
+                        renderers: [new ClassicRenderer()],
+                        childrenProvider: new ClassicChildrenProvider(this.logService, this.fileService, filterOpts),
+                        identityProvider: { getID: (data: ClassicItem) => URI.toString(data.uri) },
+                        
+                        // optional
+                        collapsedByDefault: true,
+                        filter: new ClassicFilter(),
+                        dnd: new ClassicDragAndDropProvider(),
+                    },
+                )
+            );
 
             await this._tree.refresh();
         }

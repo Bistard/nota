@@ -26,10 +26,10 @@ export class ClassicDragAndDropProvider implements IListDragAndDropProvider<Clas
     }
 
     public onDragEnter(event: DragEvent, currentDragItems: ClassicItem[], targetOver?: ClassicItem, targetIndex?: number): void {
-        console.log('enter item: ', targetOver?.name);
+        console.log('enter item: ', targetOver?.name); // TEST
     }
 
     public onDragLeave(event: DragEvent, currentDragItems: ClassicItem[], targetOver?: ClassicItem, targetIndex?: number): void {
-        console.log('leave item: ', targetOver?.name);
+        console.log('leave item: ', targetOver?.name); // TEST
     }
 }

@@ -1,10 +1,11 @@
 import { IListItemProvider } from "src/base/browser/secondary/listView/listItemProvider";
 import { IListViewRenderer, PipelineRenderer } from "src/base/browser/secondary/listView/listRenderer";
 import { IListViewOpts, IViewItemChangeEvent, ListError, ListView } from "src/base/browser/secondary/listView/listView";
+import { IList } from "src/base/browser/secondary/listWidget/list";
 import { IListDragAndDropProvider, ListWidgetDragAndDropController } from "src/base/browser/secondary/listWidget/listWidgetDragAndDrop";
 import { ListWidgetKeyboardController } from "src/base/browser/secondary/listWidget/listWidgetKeyboardController";
 import { ListWidgetMouseController } from "src/base/browser/secondary/listWidget/listWidgetMouseController";
-import { ListTrait, ListTraitRenderer } from "src/base/browser/secondary/listWidget/listWidgetTrait";
+import { ListTrait } from "src/base/browser/secondary/listWidget/listWidgetTrait";
 import { IIdentiityProivder } from "src/base/browser/secondary/tree/asyncTree";
 import { Disposable, IDisposable } from "src/base/common/dispose";
 import { Event, Register, SignalEmitter } from "src/base/common/event";
@@ -288,11 +289,13 @@ export class ListWidget<T> extends Disposable implements IListWidget<T> {
     private readonly view: ListView<T>;
 
     /** User's selection. */
-    private readonly selected: ListTrait;
+    private readonly selected: ListTrait<T>;
     /** Where the user's selection start. */
-    private readonly anchor: ListTrait;
+    private readonly anchor: ListTrait<T>;
     /** Where the user's selection end. */
-    private readonly focused: ListTrait;
+    private readonly focused: ListTrait<T>;
+
+    private readonly identityProvider?: IIdentiityProivder<T>;
 
     // [constructor]
 
@@ -308,9 +311,10 @@ export class ListWidget<T> extends Disposable implements IListWidget<T> {
         this.selected = new ListTrait('selected');
         this.anchor = new ListTrait('anchor');
         this.focused = new ListTrait('focused');
+        this.identityProvider = opts.identityProvider;
 
         // integrates all the renderers
-        const baseRenderers = [new ListTraitRenderer(this.selected), new ListTraitRenderer(this.focused)];
+        const baseRenderers = [this.selected.renderer, this.focused.renderer];
         renderers = renderers.map(renderer => new PipelineRenderer(renderer.type, [...baseRenderers, renderer]));
         
         // construct list view
@@ -396,6 +400,10 @@ export class ListWidget<T> extends Disposable implements IListWidget<T> {
             throw new ListError(`splice invalid deleteCount: ${deleteCount}`);
         }
 
+        // traits react to splice
+        this.__traitSplice(index, deleteCount, items);
+
+        // actual view rendering
         this.view.splice(index, deleteCount, items);
     }
 
@@ -542,6 +550,47 @@ export class ListWidget<T> extends Disposable implements IListWidget<T> {
     // [private helper methods]
 
     /**
+     * @description Updates trait indice after each splice.
+     */
+    private __traitSplice(index: number, deleteCount: number, items: readonly T[]): void {
+        
+        for (const trait of [this.anchor, this.focused, this.selected]) {
+            const reinserted: boolean[] = [];
+            
+            /**
+             * Assume all the inserted items are new (thus they have no existed 
+             * traits).
+             */
+            if (!this.identityProvider) {
+                for (const _ of items) {
+                    reinserted.push(false);
+                }
+            } 
+            /**
+             * Use identity provider to determine if the inserted items are
+             * re-inserted.
+             */
+            else {
+                const prevIDs: string[] = [];
+                for (const currTraitIdx of trait.items()) {
+                    const id = this.identityProvider.getID(this.getItem(currTraitIdx));
+                    prevIDs.push(id);
+                }
+                
+                for (const newTraitItem of items) {
+                    const id = this.identityProvider.getID(newTraitItem);
+                    const ifExisted = (prevIDs.indexOf(id) !== -1);
+                    reinserted.push(ifExisted);
+                }
+            }
+
+            // trait update
+            trait.splice(index, deleteCount, reinserted);
+            trait.renderer.splice(index, deleteCount, reinserted.length);
+        }
+    }
+
+    /**
      * @description A mapper function to convert the {@link MouseEvent} to our 
      * standard {@link IListMouseEvent}.
      */
@@ -567,7 +616,6 @@ export class ListWidget<T> extends Disposable implements IListWidget<T> {
     }
 
     private __createContextmenuRegister(): Register<IListContextmenuEvent<T>> {
-        
         
         // only used to detect if pressing down context menu key
         this.__register(this.onKeydown(e => {

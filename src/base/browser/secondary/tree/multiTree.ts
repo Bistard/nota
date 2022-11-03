@@ -2,7 +2,7 @@ import { AbstractTree, IAbstractTree, IAbstractTreeOptions, ITreeListWidgetOpts,
 import { IListWidget } from "src/base/browser/secondary/listWidget/listWidget";
 import { ITreeModelSpliceOptions } from "src/base/browser/secondary/tree/indexTreeModel";
 import { FlexMultiTreeModel, IFlexMultiTreeModel, IMultiTreeModel, IMultiTreeModelBase, MultiTreeModel } from "src/base/browser/secondary/tree/multiTreeModel";
-import { IFlexNode, ITreeModel, ITreeNode, ITreeNodeItem } from "src/base/browser/secondary/tree/tree";
+import { IFlexNode, ITreeModel, ITreeNode, ITreeNodeItem, ITreeSpliceEvent } from "src/base/browser/secondary/tree/tree";
 import { ITreeListRenderer } from "src/base/browser/secondary/tree/treeListRenderer";
 import { IListItemProvider } from "src/base/browser/secondary/listView/listItemProvider";
 import { isPrimitive } from "src/base/common/util/type";
@@ -10,7 +10,7 @@ import { ListWidgetKeyboardController } from "src/base/browser/secondary/listWid
 import { IStandardKeyboardEvent } from "src/base/common/keyboard";
 
 /**
- * An interface only for {@link MultiTreeModelBase}.
+ * An interface only for {@link MultiTreeBase}.
  */
 export interface IMultiTreeBase<T, TFilter> extends IAbstractTree<T, TFilter, T> {
     /**
@@ -18,11 +18,11 @@ export interface IMultiTreeBase<T, TFilter> extends IAbstractTree<T, TFilter, T>
      */
     size(): number;
 
-     /**
-      * @description Rerenders the whole view only with the corresponding tree 
-      * node.
-      * @param item The provided item. 
-      */
+    /**
+     * @description Rerenders the whole view only with the corresponding tree 
+     * node.
+     * @param item The provided item.
+     */
     rerender(item: T): void;
 }
 
@@ -51,6 +51,12 @@ export interface IFlexMultiTree<T, TFilter> extends IMultiTreeBase<T, TFilter> {
      * @param opts The option for splicing.
      */
     refresh(node?: IFlexNode<T, TFilter>, opts?: ITreeModelSpliceOptions<T, TFilter>): void;
+
+    /**
+     * @description See details in {@link IFlexMultiTreeModel.triggerOnDidSplice}.
+     * @param event The event to be fired.
+     */
+    triggerOnDidSplice(event: ITreeSpliceEvent<T, TFilter>): void;
 }
 
 /**
@@ -224,6 +230,10 @@ export class FlexMultiTree<T, TFilter> extends MultiTreeBase<T, TFilter> impleme
         opts?: ITreeModelSpliceOptions<T, TFilter>
     ): void {
         this._model.refresh(node, opts);
+    }
+
+    public triggerOnDidSplice(event: ITreeSpliceEvent<T, TFilter>): void {
+        this._model.triggerOnDidSplice(event);
     }
 
     // [private helper method]

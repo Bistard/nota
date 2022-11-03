@@ -49,13 +49,12 @@ export const enum ApplicationMode {
 }
 
 /**
- * A shared environment interface that can be used in either main process or 
- * renderer process.
+ * A shared environment interface that can be used in any places.
  * 
- * Unlike configuration service that might be changed during runtime, instead of 
+ * Unlike configuration service that might be changed during runtime, instead,
  * data remain constants when running on different places (environment).
  * 
- * If a different specific environment is required you need to extend this 
+ * @note If a different specific environment is required you need to extend this
  * interface as a base interface.
  */
 export interface IEnvironmentService {
@@ -87,6 +86,10 @@ export interface IEnvironmentService {
     readonly logLevel: LogLevel;
 }
 
+/**
+ * A base environment interface for the renderer process or the main process of 
+ * Electron.
+ */
 export interface IDiskEnvironmentService extends IEnvironmentService {
     /**
      * The arguments from command line interface.
@@ -118,7 +121,7 @@ export interface IDiskEnvironmentService extends IEnvironmentService {
 }
 
 /**
- * The native environment works only in main process in Electron.
+ * The native environment works only in the main process of Electron.
  */
 export interface IMainEnvironmentService extends IDiskEnvironmentService {
     
@@ -130,7 +133,7 @@ export interface IMainEnvironmentService extends IDiskEnvironmentService {
 }
 
 /**
- * Environment used in renderer process.
+ * Environment used in the renderer process of Electron.
  */
 export interface IBrowserEnvironmentService extends IDiskEnvironmentService {
 
