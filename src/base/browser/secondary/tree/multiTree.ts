@@ -40,6 +40,9 @@ export interface IMultiTree<T, TFilter> extends IMultiTreeBase<T, TFilter> {
     splice(item: T, children: ITreeNodeItem<T>[], opts: ITreeModelSpliceOptions<T, TFilter>): void;
 }
 
+/** 
+ * An interface only for {@link FlexMultiTree}. 
+ */
 export interface IFlexMultiTree<T, TFilter> extends IMultiTreeBase<T, TFilter> {
     
     /**
@@ -73,6 +76,13 @@ export interface IMultiTreeOptions<T, TFilter> extends IAbstractTreeOptions<T, T
 }
 
 /**
+ * {@link MultiTreeWidget} constructor option.
+ */
+export interface IMultiTreeWidgetOpts<T, TFilter> extends ITreeWidgetOpts<T, TFilter, T> {
+    readonly tree: MultiTreeBase<T, TFilter>;
+}
+
+/**
  * @internal
  * @class Overrides the keyboard controller with addtional behaviours in the
  * perspective of tree level.
@@ -81,14 +91,14 @@ export class MultiTreeKeyboardController<T, TFilter> extends ListWidgetKeyboardC
 
     // [field]
 
-    declare protected readonly _view: TreeWidget<T, TFilter, T>;
-    protected readonly _tree: IAbstractTree<T, TFilter, T>;
+    declare protected readonly _view: MultiTreeWidget<T, TFilter>;
+    protected readonly _tree: IMultiTreeBase<T, TFilter>;
 
     // [constructor]
 
     constructor(
-        view: TreeWidget<T, TFilter, T>,
-        tree: IAbstractTree<T, TFilter, T>,
+        view: MultiTreeWidget<T, TFilter>,
+        tree: IMultiTreeBase<T, TFilter>,
     ) {
         super(view);
         this._tree = tree;
@@ -112,7 +122,7 @@ export class MultiTreeKeyboardController<T, TFilter> extends ListWidgetKeyboardC
  */
 export class MultiTreeWidget<T, TFilter> extends TreeWidget<T, TFilter, T> {
     
-    protected override __createKeyboardController(opts: ITreeWidgetOpts<T, TFilter, T>): ListWidgetKeyboardController<ITreeNode<T, TFilter>> {
+    protected override __createKeyboardController(opts: IMultiTreeWidgetOpts<T, TFilter>): MultiTreeKeyboardController<T, TFilter> {
         return new MultiTreeKeyboardController(this, opts.tree);
     }
 }
