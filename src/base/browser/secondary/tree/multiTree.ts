@@ -108,7 +108,7 @@ export class MultiTreeKeyboardController<T, TFilter> extends ListWidgetKeyboardC
 
 /**
  * @internal
- * @class Used to override and add addtional controller behaviours.
+ * @class Used to override and add additional controller behaviours.
  */
 export class MultiTreeWidget<T, TFilter> extends TreeWidget<T, TFilter, T> {
     
