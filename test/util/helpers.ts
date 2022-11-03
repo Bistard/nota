@@ -3,6 +3,18 @@ import { repeat } from "src/base/common/util/timer";
 import { NestedArray } from "src/base/common/util/type";
 
 /**
+ * @description Returns a useless but simple object except that whatever you do 
+ * to it will not throw any errors.
+ * @note Testing purpose only.
+ */
+export function nullObject(): any {
+    return new Proxy({}, {
+        get: () => nullObject,
+		set: () => true,
+    });
+}
+
+/**
  * @description Iterate the given node using DFS.
  * @param node The root node.
  * @param childProp The children property name in string.
