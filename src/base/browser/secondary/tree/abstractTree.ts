@@ -180,7 +180,7 @@ class TreeWidgetMouseController<T, TFilter, TRef> extends ListWidgetMouseControl
 
     constructor(
         view: IListWidget<ITreeNode<T, TFilter>>,
-        opts: ITreeListWidgetOpts<T, TFilter, TRef>
+        opts: ITreeWidgetOpts<T, TFilter, TRef>
     ) {
         super(view, opts);
         this._tree = opts.tree;
@@ -225,7 +225,7 @@ class TreeWidgetMouseController<T, TFilter, TRef> extends ListWidgetMouseControl
     }
 }
 
-export interface ITreeListWidgetOpts<T, TFilter, TRef> extends IListWidgetOpts<ITreeNode<T, TFilter>> {
+export interface ITreeWidgetOpts<T, TFilter, TRef> extends IListWidgetOpts<ITreeNode<T, TFilter>> {
     readonly tree: IAbstractTree<T, TFilter, TRef>;
 }
 
@@ -249,7 +249,7 @@ export class TreeWidget<T, TFilter, TRef> extends ListWidget<ITreeNode<T, TFilte
         container: HTMLElement,
         renderers: IListViewRenderer<any, any>[],
         itemProvider: IListItemProvider<ITreeNode<T, TFilter>>,
-        opts: ITreeListWidgetOpts<T, TFilter, TRef>
+        opts: ITreeWidgetOpts<T, TFilter, TRef>
     ) {
         super(container, renderers, itemProvider, opts);
         this._focused = new TreeTrait();
@@ -352,7 +352,7 @@ export class TreeWidget<T, TFilter, TRef> extends ListWidget<ITreeNode<T, TFilte
 
     // [protected override methods]
 
-    protected override __createMouseController(opts: ITreeListWidgetOpts<T, TFilter, TRef>): ListWidgetMouseController<ITreeNode<T, TFilter>> {
+    protected override __createMouseController(opts: ITreeWidgetOpts<T, TFilter, TRef>): ListWidgetMouseController<ITreeNode<T, TFilter>> {
         return new TreeWidgetMouseController(this, opts);
     }
 }
@@ -689,7 +689,7 @@ export abstract class AbstractTree<T, TFilter, TRef> extends Disposable implemen
     
     // [abstract methods]
 
-    protected createTreeWidget(container: HTMLElement, renderers: ITreeListRenderer<T, TFilter, any>[], itemProvider: IListItemProvider<ITreeNode<T, TFilter>>, opts: ITreeListWidgetOpts<T, TFilter, TRef>): TreeWidget<T, TFilter, TRef> {
+    protected createTreeWidget(container: HTMLElement, renderers: ITreeListRenderer<T, TFilter, any>[], itemProvider: IListItemProvider<ITreeNode<T, TFilter>>, opts: ITreeWidgetOpts<T, TFilter, TRef>): TreeWidget<T, TFilter, TRef> {
         return new TreeWidget(container, renderers, itemProvider, opts);
     }
 

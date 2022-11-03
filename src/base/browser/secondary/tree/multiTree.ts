@@ -1,4 +1,4 @@
-import { AbstractTree, IAbstractTree, IAbstractTreeOptions, ITreeListWidgetOpts, TreeWidget } from "src/base/browser/secondary/tree/abstractTree";
+import { AbstractTree, IAbstractTree, IAbstractTreeOptions, ITreeWidgetOpts, TreeWidget } from "src/base/browser/secondary/tree/abstractTree";
 import { IListWidget } from "src/base/browser/secondary/listWidget/listWidget";
 import { ITreeModelSpliceOptions } from "src/base/browser/secondary/tree/indexTreeModel";
 import { FlexMultiTreeModel, IFlexMultiTreeModel, IMultiTreeModel, IMultiTreeModelBase, MultiTreeModel } from "src/base/browser/secondary/tree/multiTreeModel";
@@ -112,7 +112,7 @@ export class MultiTreeKeyboardController<T, TFilter> extends ListWidgetKeyboardC
  */
 export class MultiTreeWidget<T, TFilter> extends TreeWidget<T, TFilter, T> {
     
-    protected override __createKeyboardController(opts: ITreeListWidgetOpts<T, TFilter, T>): ListWidgetKeyboardController<ITreeNode<T, TFilter>> {
+    protected override __createKeyboardController(opts: ITreeWidgetOpts<T, TFilter, T>): ListWidgetKeyboardController<ITreeNode<T, TFilter>> {
         return new MultiTreeKeyboardController(this, opts.tree);
     }
 }
@@ -162,7 +162,7 @@ abstract class MultiTreeBase<T, TFilter> extends AbstractTree<T, TFilter, T> imp
 
     // [protected override method]
 
-    protected override createTreeWidget(container: HTMLElement, renderers: ITreeListRenderer<T, TFilter, any>[], itemProvider: IListItemProvider<ITreeNode<T, TFilter>>, opts: ITreeListWidgetOpts<T, TFilter, T>): TreeWidget<T, TFilter, T> {
+    protected override createTreeWidget(container: HTMLElement, renderers: ITreeListRenderer<T, TFilter, any>[], itemProvider: IListItemProvider<ITreeNode<T, TFilter>>, opts: ITreeWidgetOpts<T, TFilter, T>): TreeWidget<T, TFilter, T> {
         return new MultiTreeWidget(container, renderers, itemProvider, opts);
     }
 }
