@@ -225,7 +225,13 @@ class TreeWidgetMouseController<T, TFilter, TRef> extends ListWidgetMouseControl
     }
 }
 
+/**
+ * An option for constructing a {@link TreeWidget}.
+ */
 export interface ITreeWidgetOpts<T, TFilter, TRef> extends IListWidgetOpts<ITreeNode<T, TFilter>> {
+    /**
+     * The tree that controls the widget.
+     */
     readonly tree: IAbstractTree<T, TFilter, TRef>;
 }
 
@@ -600,6 +606,12 @@ export interface IAbstractTreeOptions<T, TFilter> extends IIndexTreeModelOptions
      * client-provided data.
      */
     readonly identityProvider?: IIdentiityProivder<T>;
+
+    /**
+     * An option for the external to provide a function to create the tree 
+     * widget instead of inheritance.
+     */
+    readonly createTreeWidgetExternal?: (container: HTMLElement, renderers: ITreeListRenderer<T, TFilter, any>[], itemProvider: IListItemProvider<ITreeNode<T, TFilter>>, opts: ITreeWidgetOpts<T, TFilter, any>) => TreeWidget<T, TFilter, any>;
 }
 
 /**
@@ -642,8 +654,9 @@ export abstract class AbstractTree<T, TFilter, TRef> extends Disposable implemen
         // wraps each tree list view renderer with a basic tree item renderer
         renderers = renderers.map(renderer => new TreeItemRenderer<T, TFilter, any>(renderer, relayEmitter.registerListener));
 
-        // construct the atcual view
-        this._view = this.createTreeWidget(
+        // tree view
+        const treeWidgetArguments = 
+        [
             container, 
             renderers, 
             new TreeListItemProvider(itemProvider), 
@@ -651,8 +664,13 @@ export abstract class AbstractTree<T, TFilter, TRef> extends Disposable implemen
                 dragAndDropProvider: opts.dnd && new __TreeListDragAndDropProvider(opts.dnd),
                 identityProvider: opts.identityProvider && new __TreeIdentityProvider(opts.identityProvider),
                 tree: this,
-            },
-        );
+            } as ITreeWidgetOpts<T, TFilter, TRef>,
+        ] as const;
+        if (opts.createTreeWidgetExternal) {
+            this._view = opts.createTreeWidgetExternal(...treeWidgetArguments);
+        } else {
+            this._view = this.createTreeWidget(...treeWidgetArguments);
+        }
 
         // create the tree model from abstraction, client may override it.
         this._model = this.createModel(rootData, this._view, opts);
@@ -687,7 +705,7 @@ export abstract class AbstractTree<T, TFilter, TRef> extends Disposable implemen
     get onKeypress(): Register<IStandardKeyboardEvent> { return this._view.onKeypress; }
     get onContextmenu(): Register<ITreeContextmenuEvent<T>> { return Event.map(this._view.onContextmenu, this.__toTreeContextmenuEvent); }
     
-    // [abstract methods]
+    // [protected methods]
 
     protected createTreeWidget(container: HTMLElement, renderers: ITreeListRenderer<T, TFilter, any>[], itemProvider: IListItemProvider<ITreeNode<T, TFilter>>, opts: ITreeWidgetOpts<T, TFilter, TRef>): TreeWidget<T, TFilter, TRef> {
         return new TreeWidget(container, renderers, itemProvider, opts);
