@@ -110,6 +110,7 @@ export interface IFlexNode<T, TFilter = void> extends ITreeNode<T, TFilter> {
      * @note client should always remove ALL the old children (cannot delete 
      * partially) and this will be deleted after refreshed.
      */
+    // FIX: this field only works in normal version, but not flex version.
     oldChildren?: ITreeNode<T, TFilter>[];
 }
 
