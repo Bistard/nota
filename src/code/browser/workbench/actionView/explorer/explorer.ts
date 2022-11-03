@@ -309,7 +309,7 @@ export class ExplorerViewComponent extends Component implements IExplorerViewSer
          disposables.register(this.workbenchService.onDidLayout(() => this.explorerTreeService.layout()));
 
         // on openning file.
-        disposables.register(this.explorerTreeService.onDidClick(e => {
+        disposables.register(this.explorerTreeService.onOpen(e => {
             this.editorService.openEditor(e.item.uri);
         }));
     }

@@ -14,7 +14,7 @@ export interface IClassicTree<T, TFilter> extends AsyncTree<T, TFilter> {
     /**
      * Fires when a file / notepage in the explorer tree is about to be opened.
      */
-    readonly onDidClick: Register<ClassicOpenEvent>;
+    readonly onOpen: Register<ClassicOpenEvent>;
 }
 
 export interface IClassicTreeOptions<T extends ClassicItem, TFilter> extends IAsyncTreeOptions<T, TFilter> {}
@@ -28,8 +28,8 @@ export class ClassicTree<T extends ClassicItem, TFilter> extends AsyncTree<T, TF
 
     // [event]
 
-    private readonly _onDidClick = new Emitter<ClassicOpenEvent>();
-    public readonly onDidClick = this._onDidClick.registerListener;
+    private readonly _onOpen = new Emitter<ClassicOpenEvent>();
+    public readonly onOpen = this._onOpen.registerListener;
 
     // [constructor]
 
@@ -58,7 +58,7 @@ export class ClassicTree<T extends ClassicItem, TFilter> extends AsyncTree<T, TF
             return;
         }
 
-        this._onDidClick.fire({
+        this._onOpen.fire({
             item: event.data,
             browserEvent: event.browserEvent
         });

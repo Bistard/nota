@@ -35,8 +35,8 @@ export class ExplorerTreeService extends Disposable implements IExplorerTreeServ
 
     // [event]
 
-    private readonly _onDidClick = this.__register(new RelayEmitter<unknown>());
-    public readonly onDidClick = this._onDidClick.registerListener;
+    private readonly _onOpen = this.__register(new RelayEmitter<unknown>());
+    public readonly onOpen = this._onOpen.registerListener;
 
     // [field]
 
@@ -110,7 +110,7 @@ export class ExplorerTreeService extends Disposable implements IExplorerTreeServ
         this._currentTreeService = currTreeService;
         this._root = root;
         this._mode = mode ?? this._mode;
-        this._onDidClick.setInput(this._currentTreeService.onDidClick);
+        this._onOpen.setInput(this._currentTreeService.onOpen);
 
         this.__registerTreeListeners(root);
     }
