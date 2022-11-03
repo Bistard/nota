@@ -1,5 +1,5 @@
 import { DomUtility } from "src/base/browser/basic/dom";
-import { IListMouseEvent, IListWidget, IListWidgetOpts } from "src/base/browser/secondary/listWidget/listWidget";
+import { IListMouseEvent, IListTouchEvent, IListWidget, IListWidgetOpts } from "src/base/browser/secondary/listWidget/listWidget";
 import { DisposableManager, IDisposable } from "src/base/common/dispose";
 import { IS_MAC } from "src/base/common/platform";
 import { Arrays } from "src/base/common/util/array";
@@ -35,6 +35,7 @@ export class ListWidgetMouseController<T> implements IDisposable {
         }
 
         this._disposables.register(view.onMousedown(e => this.__onMouseDown(e)));
+        this._disposables.register(view.onTouchstart(e => this.__onMouseDown(e)));
         this._disposables.register(view.onClick(e => this.__onMouseClick(e)));
     }
 
@@ -116,7 +117,7 @@ export class ListWidgetMouseController<T> implements IDisposable {
     /**
      * @description Focuses the event target element.
      */
-    private __onMouseDown(e: IListMouseEvent<T>): void {
+    private __onMouseDown(e: IListMouseEvent<T> | IListTouchEvent<T>): void {
         // prevent double focus
         if (document.activeElement !== e.browserEvent.target) {
 			this._view.setDomFocus();
@@ -151,12 +152,13 @@ export class ListWidgetMouseController<T> implements IDisposable {
         if (!contiguousRange.length) {
             return;
         }
-        const newSelection = Arrays.union(toSelectRange, 
-                                Arrays.union(
-                                    Arrays.relativeComplement(currSelection, contiguousRange), 
-                                    Arrays.relativeComplement(contiguousRange, currSelection)
-                                )
-                            );
+        const newSelection = 
+            Arrays.union(toSelectRange, 
+                Arrays.union(
+                    Arrays.relativeComplement(currSelection, contiguousRange), 
+                    Arrays.relativeComplement(contiguousRange, currSelection)
+                )
+            );
         
         // update selections and focused
         this._view.setSelections(newSelection);
