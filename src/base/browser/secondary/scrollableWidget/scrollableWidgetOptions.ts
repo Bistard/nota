@@ -55,9 +55,9 @@ export interface IScrollableWidgetOpts extends Required<IScrollableWidgetExtensi
 export function resolveScrollableWidgetExtensionOpts(opts: IScrollableWidgetExtensionOpts): IScrollableWidgetOpts {
     return {
         scrollbarType:                   ifOrDefault(opts.scrollbarType, ScrollbarType.vertical),
-        scrollSensibility:     ifOrDefault(opts.scrollSensibility, 1),
+        scrollSensibility:               ifOrDefault(opts.scrollSensibility, 1),
         mouseWheelFastScrollSensibility: ifOrDefault(opts.mouseWheelFastScrollSensibility, 5),
         reverseMouseWheelDirection:      ifOrDefault(opts.reverseMouseWheelDirection, false),
-        touchSupport:             ifOrDefault(opts.touchSupport, true),
+        touchSupport:                    ifOrDefault(opts.touchSupport, true),
     };
 }
