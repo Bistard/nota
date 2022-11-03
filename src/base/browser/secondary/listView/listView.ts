@@ -381,10 +381,11 @@ export class ListView<T> extends Disposable implements ISpliceable<T>, IListView
         this.scrollable = new Scrollable(opts.scrollbarSize ? opts.scrollbarSize : 10, 0, 0, 0);
         
         this.scrollableWidget = new ScrollableWidget(this.scrollable, {
-            mouseWheelScrollSensibility: opts.mouseWheelScrollSensitivity,
+            scrollSensibility: opts.mouseWheelScrollSensitivity,
             mouseWheelFastScrollSensibility: opts.fastScrollSensitivity,
             reverseMouseWheelDirection: opts.reverseMouseWheelDirection,
             scrollbarType: ScrollbarType.vertical,
+            touchSupport: true,
         });
         this.scrollableWidget.render(this.element);
         this.scrollableWidget.onDidScroll((e: IScrollEvent) => {
