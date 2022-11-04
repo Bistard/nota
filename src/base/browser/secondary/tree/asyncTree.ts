@@ -84,11 +84,6 @@ export interface IChildrenProvider<T> {
 export interface IAsyncTree<T, TFilter> extends IMultiTreeBase<T, TFilter> {
     
     /**
-     * Returns a promise that resolves once a collapse state has completed.
-     */
-    get waitForNextCollapseChange(): Promise<void>;
-
-    /**
      * The root data of the tree.
      */
     get root(): T;
@@ -107,7 +102,7 @@ export interface IAsyncTree<T, TFilter> extends IMultiTreeBase<T, TFilter> {
      * @param recursive Determines if the operation is recursive (same operation 
      *                  to its descendants). if not provided, sets to false as 
      *                  default.
-     * @returns If the operation successed.
+     * @returns If the operation successed. Await to ensure the operation is done.
      * 
      * @note Since expanding meaning potential refreshing to the latest children 
      * nodes, thus asynchronous is required.
@@ -121,7 +116,7 @@ export interface IAsyncTree<T, TFilter> extends IMultiTreeBase<T, TFilter> {
      * @param recursive Determines if the operation is recursive (same operation 
      *                  to its descendants). if not provided, sets to false as 
      *                  default.
-     * @returns If the operation successed.
+     * @returns If the operation successed. Await to ensure the operation is done.
      * 
      * @note Since expanding meaning refreshing to the updated children nodes,
      * asynchronous is required.
@@ -314,8 +309,6 @@ export class AsyncTree<T, TFilter> extends Disposable implements IAsyncTree<T, T
 
     get root(): T { return this._tree.root; }
 
-    get waitForNextCollapseChange(): Promise<void> { return this._ongoingCollapseChange.waitNext(); }
-
     get viewportHeight(): number { return this._tree.viewportHeight; }
 
     get contentHeight(): number { return this._tree.contentHeight; }
@@ -419,6 +412,8 @@ export class AsyncTree<T, TFilter> extends Disposable implements IAsyncTree<T, T
             await asyncNode.refreshing;
         }
 
+        await this._ongoingCollapseChange.waitNext();
+
         return successOrNot;
     }
 
@@ -446,6 +441,8 @@ export class AsyncTree<T, TFilter> extends Disposable implements IAsyncTree<T, T
         if (asyncNode.refreshing) {
             await asyncNode.refreshing;
         }
+
+        await this._ongoingCollapseChange.waitNext();
 
         return successOrNot;
     }

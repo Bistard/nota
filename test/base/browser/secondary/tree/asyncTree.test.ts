@@ -424,11 +424,9 @@ suite('AsyncTree-test', () => {
 
         const child1 = children.get(1)!;
         await tree.expand(child1);
-        await tree.waitForNextCollapseChange;
         assert.strictEqual(tree.size(), 2);
 
         tree.collapse(child1);
-        await tree.waitForNextCollapseChange;
         assert.strictEqual(tree.size(), 2);
 
         TREE.set(1, [3, 4]);
@@ -438,7 +436,6 @@ suite('AsyncTree-test', () => {
         assert.strictEqual(tree.size(), 2);
 
         await tree.expand(child1);
-        await tree.waitForNextCollapseChange;
         assert.strictEqual(tree.size(), 3);
     });
 
@@ -509,11 +506,9 @@ suite('AsyncTree-test', () => {
 
         const child1 = children.get(1)!;
         await tree.expand(child1);
-        await tree.waitForNextCollapseChange;
         assert.strictEqual(tree.size(), 2);
 
         tree.collapse(child1);
-        await tree.waitForNextCollapseChange;
         assert.strictEqual(tree.size(), 2);
 
         TREE.set(1, [3, 4]);
@@ -523,7 +518,6 @@ suite('AsyncTree-test', () => {
         assert.strictEqual(tree.size(), 2);
 
         await tree.expand(child1);
-        await tree.waitForNextCollapseChange;
         assert.strictEqual(tree.size(), 3);
     });
 });
