@@ -36,7 +36,6 @@
 
 .list-view-container > .list-view-row {
 	position: absolute;
-	box-sizing: border-box;
 	overflow: hidden;
 	width: 100%;
 }
