@@ -6,6 +6,7 @@ import { Scheduler } from "src/base/common/util/async";
 import { Mutable } from "src/base/common/util/type";
 import { ClassicItem } from "src/code/browser/service/classicTree/classicItem";
 import { IClassicTree } from "src/code/browser/service/classicTree/classicTree";
+import { IFileService } from "src/code/platform/files/common/fileService";
 
 /**
  * @class A type of {@link IListDragAndDropProvider} to support drag and drop
@@ -27,7 +28,9 @@ export class ClassicDragAndDropProvider implements IListDragAndDropProvider<Clas
 
     // [constructor]
 
-    constructor() {
+    constructor(
+        private readonly fileService: IFileService,
+    ) {
 
         this._delayExpand = new Scheduler(ClassicDragAndDropProvider.EXPAND_DELAY, async (event) => {
             const { item, index } = event[0]!;

@@ -70,7 +70,7 @@ export class ClassicTreeService extends Disposable implements IClassicTreeServic
             const rootItem = new ClassicItem(rootStat, null, filterOpts);
             
             // construct the file system hierarchy
-            const dndProvider = new ClassicDragAndDropProvider();
+            const dndProvider = new ClassicDragAndDropProvider(this.fileService);
             this._tree = this.__register(
                 new ClassicTree<ClassicItem, FuzzyScore>(
                     container, 
