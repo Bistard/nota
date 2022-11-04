@@ -112,4 +112,11 @@ export interface IList<T> {
      * @param index The index of the item.
      */
     getItem(index: number): T;
+
+    /**
+     * @description Determines if the item with the given index is visible 
+     * (rendered).
+     * @param index The index of the item.
+     */
+    isItemVisible(index: number): boolean;
 }

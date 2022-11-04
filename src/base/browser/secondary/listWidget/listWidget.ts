@@ -439,6 +439,10 @@ export class ListWidget<T> extends Disposable implements IListWidget<T> {
         return this.view.getItem(index);
     }
 
+    public isItemVisible(index: number): boolean {
+        return this.view.isItemVisible(index);
+    }
+
     // [item traits support]
 
     public setAnchor(index: number | null): void {

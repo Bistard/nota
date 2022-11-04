@@ -375,11 +375,7 @@ export class AsyncTree<T, TFilter> extends Disposable implements IAsyncTree<T, T
     }
 
     public hasNode(data: T): boolean {
-        try {
-            return this._tree.hasNode(data);
-        } catch {
-            return false;
-        }
+        return this._tree.hasNode(data);
     }
 
     public isCollapsible(data: T): boolean {
@@ -388,6 +384,10 @@ export class AsyncTree<T, TFilter> extends Disposable implements IAsyncTree<T, T
 
     public isCollapsed(data: T): boolean {
         return this._tree.isCollapsed(data);
+    }
+
+    public isItemVisible(data: T): boolean {
+        return this._tree.isItemVisible(data);
     }
 
     public collapse(data: T, recursive?: boolean): boolean {

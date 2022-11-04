@@ -519,6 +519,13 @@ export interface IAbstractTree<T, TFilter, TRef> extends IDisposable {
      *          returned.
      */
     isCollapsible(location: TRef): boolean;
+
+    /**
+     * @description Determines if the given location of a node is visible 
+     * (rendered).
+     * @param location The location representation of the node.
+     */
+    isItemVisible(location: TRef): boolean;
     
     /**
      * @description Collapses to the tree node with the given location.
@@ -742,6 +749,11 @@ export abstract class AbstractTree<T, TFilter, TRef> extends Disposable implemen
 
     public isCollapsible(location: TRef): boolean {
         return this._model.isCollapsible(location);
+    }
+
+    public isItemVisible(location: TRef): boolean {
+        const index = this._model.getNodeListIndex(location);
+        return this._view.isItemVisible(index);
     }
 
     public collapse(location: TRef, recursive: boolean = false): boolean {

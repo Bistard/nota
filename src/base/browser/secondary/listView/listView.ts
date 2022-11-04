@@ -676,6 +676,10 @@ export class ListView<T> extends Disposable implements ISpliceable<T>, IListView
         }
         return null;
     }
+
+    public isItemVisible(index: number): boolean {
+        return !!this.getElement(index);
+    }
     
     public getItemHeight(index: number): number {
         const item = this.getItem(index);
