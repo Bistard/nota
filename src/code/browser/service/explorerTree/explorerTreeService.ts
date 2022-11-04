@@ -2,6 +2,7 @@ import { Disposable, DisposableManager, IDisposable } from "src/base/common/disp
 import { RelayEmitter } from "src/base/common/event";
 import { URI } from "src/base/common/file/uri";
 import { IScheduler, Scheduler } from "src/base/common/util/async";
+import { ClassicItem } from "src/code/browser/service/classicTree/classicItem";
 import { ClassicOpenEvent } from "src/code/browser/service/classicTree/classicTree";
 import { ClassicTreeService, IClassicTreeService } from "src/code/browser/service/classicTree/classicTreeService";
 import { ITreeService, TreeMode } from "src/code/browser/service/explorerTree/treeService";
@@ -15,7 +16,7 @@ import { IInstantiationService } from "src/code/platform/instantiation/common/in
 
 export const IExplorerTreeService = createService<IExplorerTreeService>('explorer-tree-service');
 
-export interface IExplorerTreeService extends ITreeService<ClassicOpenEvent | any> {
+export interface IExplorerTreeService extends ITreeService<ClassicOpenEvent<ClassicItem> | any> {
     
     /**
      * The displaying tree mode.
