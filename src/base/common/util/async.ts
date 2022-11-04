@@ -353,6 +353,11 @@ export interface IScheduler<T> extends IDisposable {
 	schedule(event: T, clearBuffer?: boolean, delay?: number): void;
 
 	/**
+	 * @description Executes the callack with the existed event buffer if any.
+	 */
+	execute(): void;
+
+	/**
 	 * @description Determines if there is a scheduled execution.
 	 */
 	isScheduled(): boolean;
@@ -393,6 +398,13 @@ export class Scheduler<T> implements IScheduler<T> {
 		}, delay);
 	}
 
+	public execute(): void {
+		this.cancel(false);
+		const buffer = this._eventBuffer;
+		this._eventBuffer = [];
+		this._fn(buffer);
+	}
+
 	public cancel(clearBuffer?: boolean): boolean {
 		if (clearBuffer) {
 			this._eventBuffer = [];
@@ -410,9 +422,8 @@ export class Scheduler<T> implements IScheduler<T> {
 	}
 
 	public dispose(): void {
-		this.cancel();
+		this.cancel(true);
 		this._fn = () => {};
-		return;
 	}
 }
 

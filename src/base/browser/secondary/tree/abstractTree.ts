@@ -376,6 +376,11 @@ export interface IAbstractTree<T, TFilter, TRef> extends IDisposable {
     readonly DOMElement: HTMLElement;
 
     /**
+     * The HTMLElement container of the tree rows.
+     */
+    readonly listElement: HTMLElement;
+
+    /**
      * The viewport size of the tree in pixels.
      */
     readonly viewportHeight: number;
@@ -603,6 +608,26 @@ export interface IAbstractTree<T, TFilter, TRef> extends IDisposable {
      * @description Returns the selected items.
      */
     getSelections(): T[];
+
+    /**
+     * @description Get the total visible subtree node count of the given node (
+     * including itself).
+     * @param item The root of the subtree.
+     */
+    getVisibleNodeCount(item: TRef): number;
+
+    /**
+     * @description Returns the HTMLElement of the item at given index, null if
+     * the item is not rendered yet.
+     * @param index The index of the item.
+     */
+    getHTMLElement(index: number): HTMLElement | null;
+
+    /**
+     * @description Returns the item at given index.
+     * @param index The index of the item.
+     */
+    getItem(index: number): T;
 }
 
 /**
@@ -822,10 +847,39 @@ export abstract class AbstractTree<T, TFilter, TRef> extends Disposable implemen
         return this._view.getSelectionData();
     }
 
+    public getVisibleNodeCount(item: TRef): number {
+        const node = this._model.getNode(item);
+        let nodeCount = 0;
+            
+        const dfs = (node: ITreeNode<T, TFilter>) => {
+            nodeCount++;
+            for (const child of node.children) {
+                if (child.visible) {
+                    dfs(child);
+                }
+            }
+        };
+        dfs(node);
+
+        return nodeCount;
+    }
+
+    public getHTMLElement(index: number): HTMLElement | null {
+        return this._view.getHTMLElement(index);
+    }
+
+    public getItem(index: number): T {
+        return this._view.getItem(index).data;
+    }
+
     // [methods - general]
 
     get DOMElement(): HTMLElement {
         return this._view.DOMElement;
+    }
+
+    get listElement(): HTMLElement { 
+        return this._view.listElement; 
     }
 
     get viewportHeight(): number {

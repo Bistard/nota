@@ -320,9 +320,9 @@ export class ListWidget<T> extends Disposable implements IListWidget<T> {
         // construct list view
         this.view = new ListView(container, renderers, itemProvider, opts);
 
-        this.selected.getHTMLElement = item => this.view.getElement(item);
-        this.anchor.getHTMLElement = item => this.view.getElement(item);
-        this.focused.getHTMLElement = item => this.view.getElement(item);
+        this.selected.getHTMLElement = item => this.view.getHTMLElement(item);
+        this.anchor.getHTMLElement = item => this.view.getHTMLElement(item);
+        this.focused.getHTMLElement = item => this.view.getHTMLElement(item);
 
         // mouse support integration (defaults on)
         if (opts.mouseSupport || opts.mouseSupport === undefined) {
@@ -351,6 +351,7 @@ export class ListWidget<T> extends Disposable implements IListWidget<T> {
     // [getter / setter]
 
     get DOMElement(): HTMLElement { return this.view.DOMElement; }
+    get listElement(): HTMLElement { return this.view.listElement; }
     get contentSize(): number { return this.view.contentSize; }
     
     get onDidScroll(): Register<IScrollEvent> { return this.view.onDidScroll; }
@@ -522,6 +523,14 @@ export class ListWidget<T> extends Disposable implements IListWidget<T> {
         return this.view.getItemCount();
     }
 
+    public getRenderIndex(actualIndex: number): number {
+        return this.view.getRenderIndex(actualIndex);
+    }
+
+    public getHTMLElement(index: number): HTMLElement | null {
+        return this.view.getHTMLElement(index);
+    }
+
     // [protected override methods]
 
     /**
@@ -615,7 +624,7 @@ export class ListWidget<T> extends Disposable implements IListWidget<T> {
         return {
             ...event,
             position: { x: e.pageX + 1, y: e.pageY },
-            target: isNumber(event.actualIndex) ? NulltoUndefined(this.view.getElement(event.actualIndex)) : undefined,
+            target: isNumber(event.actualIndex) ? NulltoUndefined(this.view.getHTMLElement(event.actualIndex)) : undefined,
         }
     }
 
@@ -645,7 +654,7 @@ export class ListWidget<T> extends Disposable implements IListWidget<T> {
             if (actualIndex !== undefined) {
                 renderIndex = this.view.getRenderIndex(actualIndex);
                 item = this.view.getItem(actualIndex);
-                target = this.view.getElement(actualIndex) ?? target;
+                target = this.view.getHTMLElement(actualIndex) ?? target;
             }
 
             return <IListContextmenuEvent<T>>{

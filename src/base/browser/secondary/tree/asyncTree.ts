@@ -307,6 +307,8 @@ export class AsyncTree<T, TFilter> extends Disposable implements IAsyncTree<T, T
 
     get DOMElement(): HTMLElement { return this._tree.DOMElement; }
 
+    get listElement(): HTMLElement { return this._tree.listElement; }
+
     get root(): T { return this._tree.root; }
 
     get viewportHeight(): number { return this._tree.viewportHeight; }
@@ -477,6 +479,18 @@ export class AsyncTree<T, TFilter> extends Disposable implements IAsyncTree<T, T
 
     public getSelections(): T[] {
         return this._tree.getSelections();
+    }
+
+    public getVisibleNodeCount(item: T): number {
+        return this._tree.getVisibleNodeCount(item);
+    }
+
+    public getHTMLElement(index: number): HTMLElement | null {
+        return this._tree.getHTMLElement(index);
+    }
+
+    public getItem(index: number): T {
+        return this._tree.getItem(index);
     }
 
     public setDomFocus(): void {

@@ -12,6 +12,12 @@ export interface IList<T> {
      */
     readonly DOMElement: HTMLElement;
 
+    /**
+     * The container of the list. Its direct children will be all the rows of
+     * the list.
+     */
+    readonly listElement: HTMLElement;
+
     /** 
      * The actual content size in pixels. 
      */
@@ -112,6 +118,20 @@ export interface IList<T> {
      * @param index The index of the item.
      */
     getItem(index: number): T;
+
+    /**
+     * @description Returns the rendering index of the item with the given actual
+     * index. If not found, -1 will be returned.
+     * @param actualIndex The actual index of the item in the list view.
+     */
+    getRenderIndex(actualIndex: number): number;
+
+    /**
+     * @description Returns the HTMLElement of the item at given index, null if
+     * the item is not rendered yet.
+     * @param index The index of the item.
+     */
+    getHTMLElement(index: number): HTMLElement | null;
 
     /**
      * @description Determines if the item with the given index is visible 
