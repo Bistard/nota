@@ -14,7 +14,7 @@ export class NotebookTreeService extends Disposable implements INotebookTreeServ
     
     // [event]
 
-    get onOpen(): Register<any> {
+    get onSelect(): Register<any> {
         return undefined!;
     }
 

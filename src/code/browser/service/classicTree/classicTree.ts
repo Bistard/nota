@@ -56,7 +56,7 @@ export class ClassicTreeKeyboardController<T extends ClassicItem, TFilter> exten
             return;
         }
 
-        this._tree.open(anchor);
+        this._tree.select(anchor);
     }
 }
 
@@ -78,9 +78,9 @@ export interface IClassicTree<T extends ClassicItem, TFilter> extends IAsyncTree
     /**
      * Fires when a file / notepage in the explorer tree is about to be opened.
      */
-    readonly onOpen: Register<ClassicOpenEvent<T>>;
+    readonly onSelect: Register<ClassicOpenEvent<T>>;
 
-    open(item: T): void;
+    select(item: T): void;
 }
 
 /**
@@ -92,8 +92,8 @@ export class ClassicTree<T extends ClassicItem, TFilter> extends AsyncTree<T, TF
 
     // [event]
 
-    private readonly _onOpen = new Emitter<ClassicOpenEvent<T>>();
-    public readonly onOpen = this._onOpen.registerListener;
+    private readonly _select = new Emitter<ClassicOpenEvent<T>>();
+    public readonly onSelect = this._select.registerListener;
 
     // [constructor]
 
@@ -108,8 +108,8 @@ export class ClassicTree<T extends ClassicItem, TFilter> extends AsyncTree<T, TF
 
     // [public methods]
 
-    public open(item: T): void {
-        this._onOpen.fire({ item: item });
+    public select(item: T): void {
+        this._select.fire({ item: item });
     }
 
     // [protected override method]
@@ -134,6 +134,6 @@ export class ClassicTree<T extends ClassicItem, TFilter> extends AsyncTree<T, TF
             return;
         }
 
-        this._onOpen.fire({ item: event.data });
+        this._select.fire({ item: event.data });
     }
 }
