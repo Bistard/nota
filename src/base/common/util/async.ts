@@ -64,15 +64,6 @@ export async function retry<T>(task: IAsyncTask<T>, delay: number, round: number
 }
 
 /**
- * @description Runs the given callback in a given times.
- */
-export function loop(round: number, fn: (index: number) => void): void {
-	for (let i = 0; i < round; i++) {
-		fn(i);
-	}
-}
-
-/**
  * @class Acts like a promise by calling {@link Blocker.waiting()} to wait a 
  * data with type T. The only difference is client may signals the blocker to 
  * resolve or reject manually.
@@ -229,6 +220,12 @@ export interface IAsyncRunner<T> extends Disposable {
 	 * @description Resumes the flow of executing.
 	 */
 	resume(): void;
+
+	/**
+	 * @description Returns a promise that will resolve once the next queued 
+	 * task is completed.
+	 */
+	waitNext(): Promise<void>;
 }
 
 /**
@@ -287,6 +284,10 @@ export class AsyncRunner<T> extends Disposable implements IAsyncRunner<T> {
 		
 		this._paused = false;
 		this.__consume();
+	}
+
+	public waitNext(): Promise<void> {
+		return (new EventBlocker(this.onDidFlush)).waiting();
 	}
 
 	public override dispose(): void {
@@ -364,8 +365,10 @@ export interface IScheduler<T> extends IDisposable {
 }
 
 /**
- * @class A `Scheduler` can schedule a new execution on the given callback with 
- * a delay time when invoking {@link Scheduler.schedule}.
+ * @class A `Scheduler` can schedule a new execution with the provided events on 
+ * the given callback with a delay time when invoking {@link Scheduler.schedule}. 
+ * The new schedule will cancel the previous schedule, the canceld event will be 
+ * stored for the next scheduling.
  */
 export class Scheduler<T> implements IScheduler<T> {
 

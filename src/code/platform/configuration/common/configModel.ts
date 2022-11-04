@@ -74,7 +74,7 @@ export class ConfigModel extends Disposable implements IConfigModel {
             const model = JSON.parse(raw.toString());
             const latestStorage = new ConfigStorage(undefined, model);
             this.merge([latestStorage]);
-            this.logService.info(`Configuration loaded at ${this.resource.toString()}.`);
+            this.logService.info(`Configuration loaded at ${URI.toString(this.resource)}.`);
             return;
         } catch (error: any) {
             // only throw if it is not Error NO ENTry
@@ -87,9 +87,9 @@ export class ConfigModel extends Disposable implements IConfigModel {
         try {
             const serialized = JSON.stringify(this.model, null, 4);
             await this.fileService.createFile(this._resource, DataBuffer.fromString(serialized));
-            this.logService.info(`Configuration saved at ${this.resource.toString()}.`);
+            this.logService.info(`Configuration saved at ${URI.toString(this.resource)}.`);
         } catch (error: any) {
-            this.logService.error(`Cofniguration failed writing at ${this.resource.toString()}.`);
+            this.logService.error(`Cofniguration failed writing at ${URI.toString(this.resource)}.`);
             throw error;
         }
     }

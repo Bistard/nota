@@ -42,7 +42,7 @@ export interface IMainWindowService extends Disposable {
 }
 
 /**
- * @class Window-service has ability to create windows based on different 
+ * @class Window service has ability to create windows based on different 
  * configurations. It also tracks all the life cycles of every 
  * {@link IWindowInstance}.
  */
@@ -118,7 +118,18 @@ export class MainWindowService extends Disposable implements IMainWindowService 
         // get openning URIs configuration
         let uriToOpenConfiguration: IUriToOpenConfiguration = Object.create(null);
         if (opts.uriToOpen && opts.uriToOpen.length > 0) {
-            uriToOpenConfiguration = UriToOpenResolver.resolve(opts.uriToOpen);
+            const resolveResult = UriToOpenResolver.resolve(opts.uriToOpen);
+            uriToOpenConfiguration = resolveResult[0];
+            
+            // logging any errored openning URIs
+            const errorURIs = resolveResult[1];
+            if (errorURIs.length) {
+                let message = 'Invalid URI when openning in windows. Format should be `path|directory/workspace/file(|<gotoLine>)`. The erroring URIs are: ';
+                for (const uri of errorURIs) {
+                    message += '\n\t' + URI.toString(uri);
+                }
+                this.logService.error(message);
+            }
         }
         
         /**
@@ -186,8 +197,6 @@ namespace UriToOpenResolver {
     /**
      * @description Given an array of URIs, resolves the ones that follow the
      * following parsing rule.
-     * @throws An exception will be thrown if one of the URI does not follow the
-     * following pasring rule.
      * ```txt
      * Parsing rule:
      *      Directory - directory_path|directory
@@ -195,11 +204,18 @@ namespace UriToOpenResolver {
      *      File      - file_path|file(|gotoLine)
      * ```
      */
-    export function resolve(uris: URI[]): IUriToOpenConfiguration {
+    export function resolve(uris: URI[]): [IUriToOpenConfiguration, URI[]] {
         const config: Mutable<IUriToOpenConfiguration> = {};
-        
+        const errorURIs: URI[] = [];
+
         for (const uri of uris) {
             const parseResult = __parseURI(uri);
+            
+            // the parsing fails, we record this URI and continue.
+            if (parseResult.fail) {
+                errorURIs.push(uri);
+                continue;
+            }
             
             if (parseResult.type === ToOpenType.Directory) {
                 config.directory = URI.fromFile(parseResult.resource);
@@ -215,33 +231,35 @@ namespace UriToOpenResolver {
             }
         }
 
-        return config;
+        return [config, errorURIs];
     }
 
     // [private helper methods]
 
-    function __parseURI(uri: URI): { resource: string, type: ToOpenType, gotoLine?: number } {
+    function __parseURI(uri: URI): { resource: string, type: ToOpenType, gotoLine?: number, fail?: boolean } {
         const sections = URI.toFsPath(uri).split('|');
         
         const resource = sections[0];
         const type = sections[1];
         const gotoLine = isNumber(sections[2]) ? Number(sections[2]) : undefined;
+        let fail: boolean | undefined;
 
         if (!resource || !type) {
-            throw new Error('Invalid URI for openning in windows. Format should be `path|directory/workspace/file(|<gotoLine>)`');
+            fail = true;
         }
 
         const isDir = type === 'directory' ? ToOpenType.Directory : ToOpenType.Unknown;
         const isFile = type === 'file' ? ToOpenType.File : ToOpenType.Unknown;
 
         if (isDir === ToOpenType.Unknown && isFile === ToOpenType.Unknown) {
-            throw new Error('Invalid URI for openning in windows. Format should be `path|directory/workspace/file(|<gotoLine>)`');
+            fail = true;
         }
 
         return {
-            resource: resource,
+            resource: resource!,
             type: isDir | isFile,
             gotoLine: gotoLine,
+            fail: fail,
         }
     }
 

@@ -94,7 +94,7 @@ export function iterPropEnumerable(obj: any, fn: (propName: string, index: numbe
 /**
  * @description Returns a deep copy version of the given object or array.
  */
-export function deepCopy<T extends Object | []>(obj: T): T {
+export function deepCopy<T extends object | []>(obj: T): T {
 	
 	// ensure `null` does not count and other weird stuff
 	if (!obj || typeof obj !== 'object') {
@@ -109,7 +109,7 @@ export function deepCopy<T extends Object | []>(obj: T): T {
 	for (const propName of Object.keys(obj)) {
 		const value = obj[propName]!;
 		
-		if (typeof value === 'object') {
+		if (value && typeof value === 'object') {
 			copy[propName] = deepCopy(value);
 		} else {
 			copy[propName] = value;
@@ -119,14 +119,3 @@ export function deepCopy<T extends Object | []>(obj: T): T {
 	return copy;
 }
 
-/**
- * @description Returns a useless but simple object except that whatever you do 
- * to it will not throw any errors.
- * @note Testing purpose only.
- */
-export function nullObject(): any {
-    return new Proxy({}, {
-        get: () => nullObject,
-		set: () => true,
-    });
-}

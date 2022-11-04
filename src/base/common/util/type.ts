@@ -62,7 +62,7 @@ export type NestedArray<T> = (T | NestedArray<T>)[];
 /**
  * make every parameter of an object and its sub-objects recursively as readonly.
  */
-export type DeepReadonly<T extends Record<string, any>> = {
+export type DeepReadonly<T> = {
     readonly [TKey in keyof T]: T[TKey] extends Function 
       ? T[TKey] 
       : DeepReadonly<T[TKey]>
@@ -113,10 +113,32 @@ export function mockType<T>(val: any): T {
     return val as unknown as T;
 }
 
+/**
+ * @description Is the given variable is a primitive type: number , string , 
+ * boolean , null , undefined , symbol or bigint.
+ */
+export function isPrimitive(val: any): boolean {
+    if (val === null) {
+        return true;
+    }
+
+    switch (typeof val) {
+        case 'object':
+        case 'function':
+            return false;
+        default:
+            return true;
+    }
+}
+
 export function isNumber(obj: any): obj is number {
     return (typeof obj === 'number' && !isNaN(obj));
 }
 
+/**
+ * @description If the given value is an object in general speaking (does not
+ * count as `array`, `null`, {@link RegExp} or {@link Date}).
+ */
 export function isObject(obj: any): obj is any {
     return typeof obj === "object"
         && obj !== null
@@ -147,10 +169,6 @@ export function NulltoUndefined<T>(obj: T | null): T | undefined {
     return obj === null ? undefined : obj;
 }
 
-export function isArray(array: any): array is any[] {
-    return Array.isArray(array);
-}
-
 /**
  * @returns whether the provided parameter is an Iterable, and will cast to the 
  * given generic type.
@@ -164,7 +182,11 @@ export function isArray(array: any): array is any[] {
  * @param obj The given object.
  */
 export function isPromise(obj: any): obj is Promise<any> {
-    if (typeof obj === 'object' && typeof obj.then === 'function') {
+    if (typeof obj === 'object' && 
+        typeof obj.then === 'function' &&
+        typeof obj.catch === 'function' &&
+        typeof obj.finally === 'function'
+    ) {
       return true;
     }
     return false;
@@ -176,6 +198,8 @@ export function isPromise(obj: any): obj is Promise<any> {
  * @param value provided value which could be `undefined`.
  * @param defaultValue provided default value which cannot be `undefined`.
  * @returns the default value.
+ * 
+ * @note Alternatively, you may use `(value ?? defaultValue)` instead.
  */
 export function ifOrDefault<T>(value: T, defaultValue: NonNullable<T>): NonNullable<T> {
     if (typeof value === 'undefined' || value === null) {

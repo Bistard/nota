@@ -1,25 +1,87 @@
 import { IListItemProvider } from "src/base/browser/secondary/listView/listItemProvider";
-import { AsyncTree, IAsyncTreeOptions } from "src/base/browser/secondary/tree/asyncTree";
-import { ITreeMouseEvent } from "src/base/browser/secondary/tree/tree";
+import { AsyncTree, AsyncTreeWidget, IAsyncTree, IAsyncTreeOptions, IAsyncTreeWidgetOpts } from "src/base/browser/secondary/tree/asyncTree";
+import { MultiTreeKeyboardController } from "src/base/browser/secondary/tree/multiTree";
+import { ITreeMouseEvent, ITreeNode } from "src/base/browser/secondary/tree/tree";
 import { ITreeListRenderer } from "src/base/browser/secondary/tree/treeListRenderer";
 import { Emitter, Register } from "src/base/common/event";
-import { IStandardKeyboardEvent, KeyCode } from "src/base/common/keyboard";
+import { IStandardKeyboardEvent } from "src/base/common/keyboard";
 import { ClassicItem } from "src/code/browser/service/classicTree/classicItem";
 
-export interface ClassicOpenEvent {
-    readonly item: ClassicItem;
-    readonly browserEvent: UIEvent;
+export interface ClassicOpenEvent<T extends ClassicItem> {
+    readonly item: T;
 }
 
-export interface IClassicTree<T, TFilter> extends AsyncTree<T, TFilter> {
+/** 
+ * Option for constructing a {@link ClassicTree}. 
+ */
+export interface IClassicTreeOptions<T extends ClassicItem, TFilter> extends IAsyncTreeOptions<T, TFilter> {}
+
+/** 
+ * Option for constructing a {@link ClassicTreeWidget}. 
+ */
+export interface IClassicTreeWidgetOpts<T extends ClassicItem, TFilter> extends IAsyncTreeWidgetOpts<T, TFilter> {
+    readonly extraArguments: [IClassicTree<T, TFilter>];
+}
+
+/**
+ * @internal
+ */
+export class ClassicTreeKeyboardController<T extends ClassicItem, TFilter> extends MultiTreeKeyboardController<T, TFilter> {
+
+    // [field]
+
+    declare protected readonly _view: ClassicTreeWidget<T, TFilter>;
+    declare protected readonly _tree: ClassicTree<T, TFilter>;
+
+    // [constructor]
+
+    constructor(
+        view: ClassicTreeWidget<T, TFilter>,
+        tree: IClassicTree<T, TFilter>,
+    ) {
+        super(view, tree);
+    }
+
+    // [protected override methods]
+
+    protected override __onEnter(e: IStandardKeyboardEvent): void {
+        super.__onEnter(e); 
+        
+        const anchor = this._tree.getAnchor();
+        if (!anchor) {
+            return;
+        }
+
+        if (anchor.isDirectory()) {
+            return;
+        }
+
+        this._tree.open(anchor);
+    }
+}
+
+/**
+ * @class Used to override and add additional controller behaviours.
+ */
+export class ClassicTreeWidget<T extends ClassicItem, TFilter> extends AsyncTreeWidget<T, TFilter> {
+
+    protected override __createKeyboardController(opts: IClassicTreeWidgetOpts<T, TFilter>): ClassicTreeKeyboardController<T, TFilter> {
+        return new ClassicTreeKeyboardController(this, opts.extraArguments[0]);
+    }
+}
+
+/**
+ * An interface only for {@link ClassicTree}.
+ */
+export interface IClassicTree<T extends ClassicItem, TFilter> extends IAsyncTree<T, TFilter> {
 
     /**
      * Fires when a file / notepage in the explorer tree is about to be opened.
      */
-    readonly onDidClick: Register<ClassicOpenEvent>;
-}
+    readonly onOpen: Register<ClassicOpenEvent<T>>;
 
-export interface IClassicTreeOptions<T extends ClassicItem, TFilter> extends IAsyncTreeOptions<T, TFilter> {}
+    open(item: T): void;
+}
 
 /**
  * @class // TODO
@@ -30,21 +92,30 @@ export class ClassicTree<T extends ClassicItem, TFilter> extends AsyncTree<T, TF
 
     // [event]
 
-    private readonly _onDidClick = new Emitter<ClassicOpenEvent>();
-    public readonly onDidClick = this._onDidClick.registerListener;
+    private readonly _onOpen = new Emitter<ClassicOpenEvent<T>>();
+    public readonly onOpen = this._onOpen.registerListener;
 
     // [constructor]
 
     constructor(
         container: HTMLElement,
         rootData: T,
-        renderers: ITreeListRenderer<T, TFilter, any>[],
-        itemProvider: IListItemProvider<T>,
         opts: IClassicTreeOptions<T, TFilter>,
     ) {
-        super(container, rootData, renderers, itemProvider, opts);
+        super(container, rootData, opts);
         this.__register(this.onClick(e => this.__onClick(e)));
-        this.__register(this.onKeydown(e => this.__onKeydown(e)))
+    }
+
+    // [public methods]
+
+    public open(item: T): void {
+        this._onOpen.fire({ item: item });
+    }
+
+    // [protected override method]
+
+    protected override createTreeWidget(container: HTMLElement, renderers: ITreeListRenderer<T, TFilter, any>[], itemProvider: IListItemProvider<ITreeNode<T, TFilter>>, opts: IClassicTreeWidgetOpts<T, TFilter>): ClassicTreeWidget<T, TFilter> {
+        return new ClassicTreeWidget(container, renderers, itemProvider, opts);
     }
 
     // [private helper method]
@@ -55,22 +126,14 @@ export class ClassicTree<T extends ClassicItem, TFilter> extends AsyncTree<T, TF
             return;
         }
 
+        if (event.browserEvent.shiftKey || event.browserEvent.ctrlKey) {
+            return;
+        }
+
         if (event.data.isDirectory()) {
             return;
         }
 
-        this._onDidClick.fire({
-            item: event.data,
-            browserEvent: event.browserEvent
-        });
-    }
-
-    private __onKeydown(event: IStandardKeyboardEvent): void {
-        if (event.key === KeyCode.Enter) {
-            const anchor = this.getAnchor();
-            if (anchor) {
-                this.toggleCollapseOrExpand(anchor, false);
-            }
-        }
+        this._onOpen.fire({ item: event.data });
     }
 }

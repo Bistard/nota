@@ -2,6 +2,7 @@ import { Disposable } from "src/base/common/dispose";
 import { Emitter, Register } from "src/base/common/event";
 import { mockType } from "src/base/common/util/type";
 import { createService } from "src/code/platform/instantiation/common/decorator";
+import { IInstantiationService } from "src/code/platform/instantiation/common/instantiation";
 
 export const ILogService = createService<ILogService>('log-service');
 export const DEFAULT_LOG_LEVEL = LogLevel.INFO;

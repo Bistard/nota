@@ -1,6 +1,7 @@
 import * as assert from 'assert';
 import { Emitter } from 'src/base/common/event';
-import { AsyncRunner, Blocker, Debouncer, delayFor, EventBlocker, loop, MicrotaskDelay, PromiseTimeout, retry, Scheduler, ThrottleDebouncer, Throttler } from 'src/base/common/util/async';
+import { AsyncRunner, Blocker, Debouncer, delayFor, EventBlocker, MicrotaskDelay, PromiseTimeout, retry, Scheduler, ThrottleDebouncer, Throttler } from 'src/base/common/util/async';
+import { repeat } from 'src/base/common/util/timer';
 
 suite('async-test', () => {
 
@@ -45,7 +46,7 @@ suite('async-test', () => {
 		const scheduler = new Scheduler<number>(0, e => {
 			cnt += e.reduce((prev, curr) => prev += curr);
 		});
-		loop(10, () => scheduler.schedule(1));
+		repeat(10, () => scheduler.schedule(1));
 		await delayFor(10, () => {
 			assert.strictEqual(cnt, 10);
 		});
@@ -92,6 +93,29 @@ suite('async-test', () => {
     
             assert.strictEqual(count, 5);
         });
+
+		test('onDidFlush', async () => {
+			let count = 0;
+			const executor = new AsyncRunner<void>(2);
+			const blocker = new EventBlocker(executor.onDidFlush);
+			
+			executor.pause();
+			repeat(5, () => executor.queue(() => delayFor(0).then(() => { count++; })));
+			executor.resume();
+
+			await blocker.waiting();
+			assert.strictEqual(count, 5);
+		});
+
+		test('waitNext', async () => {
+			let count = 0;
+			const executor = new AsyncRunner<void>(2);
+			
+			executor.queue(() => delayFor(0).then(() => { count++; }));
+			
+			await executor.waitNext();
+			assert.strictEqual(count, 1);
+		});
     });
 
     suite('throttler', () => {

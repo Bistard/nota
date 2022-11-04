@@ -283,7 +283,7 @@ export class WatchInstance implements IWatchInstance {
          * The `fs.watch` is not 100% consistent across platforms and will not
          * work in some cases. Moreover, the `fs.watch` also has other kinds
          * of flaws when using. This is where Chokidar comes in which I believe
-         * is more reliable and much more API friendly.
+         * is more reliable and API friendly.
          * 
          * @see https://nodejs.org/api/fs.html#filename-argument
          * @see https://github.com/paulmillr/chokidar
@@ -293,9 +293,10 @@ export class WatchInstance implements IWatchInstance {
                 alwaysStat: true,
                 atomic: WatchInstance.FILE_CHANGE_DELAY,
                 ignored: this._request.exclude,
-                ignorePermissionErrors: true,
+                ignorePermissionErrors: false,
                 ignoreInitial: true,
                 depth: this._request.recursive ? undefined : 1,
+                usePolling: true, // issue: https://github.com/Bistard/nota/issues/149
             });
             
             watcher

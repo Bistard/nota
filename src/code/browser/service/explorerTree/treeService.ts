@@ -29,9 +29,9 @@ export interface ITreeService<T> extends IDisposable {
     readonly isOpened: boolean;
 
     /**
-     * Fires when a file / page is clicked (not opened yet).
+     * Fires when a file / page is about to open (not opened yet).
      */
-    onDidClick: Register<any>; // TODO
+    onOpen: Register<any>; // TODO
 
     /**
      * // TODO

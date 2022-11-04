@@ -111,6 +111,9 @@ export interface IFileService extends IDisposable {
     watch(uri: URI, opts?: IWatchOptions): IDisposable;
 }
 
+/**
+ * @class // TODO
+ */
 export class FileService extends Disposable implements IFileService {
 
     // [event]
@@ -568,7 +571,7 @@ export class FileService extends Disposable implements IFileService {
     }
 
     private async __doMoveTo(from: URI, fromProvider: IFileSystemProvider, to: URI, toProvider: IFileSystemProvider, overwrite?: boolean): Promise<void> {
-        if (from.toString() === to.toString()) {
+        if (URI.toString(from) === URI.toString(to)) {
             return;
         }
 
@@ -585,7 +588,7 @@ export class FileService extends Disposable implements IFileService {
     }
 
     private async __doCopyTo(from: URI, fromProvider: IFileSystemProvider, to: URI, toProvider: IFileSystemProvider, overwrite?: boolean): Promise<void> {
-        if (from.toString() === to.toString()) {
+        if (URI.toString(from) === URI.toString(to)) {
             return;
         }
 
@@ -600,14 +603,14 @@ export class FileService extends Disposable implements IFileService {
         if (hasCopyCapability(fromProvider)) {
             await fromProvider.copy(from, to, { overwrite: !!overwrite });
         } else {
-            throw new FileOperationError(`Unable to move / copy to the target path ${to.toString()} because the provider does not provide move / copy functionality.`, FileOperationErrorType.UNKNOWN);
+            throw new FileOperationError(`Unable to move / copy to the target path ${URI.toString(to)} because the provider does not provide move / copy functionality.`, FileOperationErrorType.UNKNOWN);
         }
     }
 
     private async __validateMoveOrCopy(to: URI, overwrite?: boolean): Promise<boolean> {
         const exist = await this.exist(to);
         if (exist && overwrite === false) {
-            throw new FileOperationError(`Unable to move / copy to the target path ${to.toString()} because already exists.`, FileOperationErrorType.FILE_EXISTS);
+            throw new FileOperationError(`Unable to move / copy to the target path ${URI.toString(to)} because already exists.`, FileOperationErrorType.FILE_EXISTS);
         }
         return exist;
     }
@@ -652,7 +655,7 @@ export class FileService extends Disposable implements IFileService {
 		// Assert provider
 		const provider = this._providers.get(uri.scheme);
 		if (!provider) {
-			throw new FileOperationError(`no provider found given ${uri.scheme.toString()}`, FileOperationErrorType.FILE_INVALID_PATH);
+			throw new FileOperationError(`no provider found given ${uri.scheme}`, FileOperationErrorType.FILE_INVALID_PATH);
 		}
 
 		return provider;

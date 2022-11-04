@@ -1,5 +1,7 @@
-import { IListWidget } from "src/base/browser/secondary/listWidget/listWidget";
-import { EventType } from "src/base/browser/basic/dom";
+import { IListDragEvent, IListWidget } from "src/base/browser/secondary/listWidget/listWidget";
+import { addDisposableListener, DomUtility, EventType, requestAnimate } from "src/base/browser/basic/dom";
+import { DisposableManager, IDisposable } from "src/base/common/dispose";
+import { IViewItem, IViewItemChangeEvent } from "src/base/browser/secondary/listView/listView";
 
 /**
  * An interface that provides drag and drop support (dnd).
@@ -93,7 +95,7 @@ export interface IListWidgetDragAndDropProvider<T> extends IListDragAndDropProvi
  * @class A wrapper class for {@link IListWidget}.
  * @wran DO NOT USE DIRECTLY.
  */
-export class ListWidgetDragAndDropProvider<T> implements IListWidgetDragAndDropProvider<T> {
+class ListWidgetDragAndDropProvider<T> implements IListWidgetDragAndDropProvider<T> {
 
     private view: IListWidget<T>;
     private dnd: IListDragAndDropProvider<T>;
@@ -153,5 +155,210 @@ export class ListWidgetDragAndDropProvider<T> implements IListWidgetDragAndDropP
         if (this.dnd.onDragEnd) {
             return this.dnd.onDragEnd(event);
         }
+    }
+}
+
+/**
+ * @internal
+ * @class An internal class that handles the dnd support of {@link IListWidget}.
+ */
+export class ListWidgetDragAndDropController<T> implements IDisposable {
+
+    // [field]
+
+    private _disposables = new DisposableManager();
+    private _view: IListWidget<T>;
+
+    private _provider!: ListWidgetDragAndDropProvider<T>;
+
+    private _currDragItems: T[] = []; // when drag starts this is the place to hold the dragging items
+    private _allowDrop: boolean = false;
+    private _scrollAnimationOnEdgeDisposable?: IDisposable;
+    private _scrollAnimationMouseTop?: number;
+
+    // [constructor]
+
+    constructor(
+        view: IListWidget<T>,
+        dragAndDropProvider: IListDragAndDropProvider<T>,
+        toListDragEvent: (e: DragEvent) => IListDragEvent<T>
+    ) {
+        this._view = view;
+        this._provider = new ListWidgetDragAndDropProvider(view, dragAndDropProvider);
+        this.__enableDragAndDropSupport(toListDragEvent);
+    }
+
+    // [public method]
+
+    public dispose(): void {
+        this._disposables.dispose();
+    }
+
+    // [private helper methods]
+
+    /**
+     * @description Enables the drag and drop (dnd) support in {@link ListView}.
+     */
+    private __enableDragAndDropSupport(converter: (e: DragEvent) => IListDragEvent<T>): void {
+        this._disposables.register(addDisposableListener(this._view.DOMElement, EventType.dragover, e => this.__onDragOver(converter(e))));
+        this._disposables.register(addDisposableListener(this._view.DOMElement, EventType.drop, e => this.__onDragDrop(converter(e))));
+        this._disposables.register(addDisposableListener(this._view.DOMElement, EventType.dragenter, e => this.__onDragEnter(converter(e))));
+        this._disposables.register(addDisposableListener(this._view.DOMElement, EventType.dragleave, e => this.__onDragLeave(converter(e))));
+        this._disposables.register(addDisposableListener(this._view.DOMElement, EventType.dragend, e => this.__onDragEnd(e)));
+
+        // dragstart listener
+        this._disposables.register(this._view.onInsertItemInDOM((e: IViewItemChangeEvent<T>) => this.__initItemWithDragStart(e.item, e.index)));
+        this._disposables.register(this._view.onRemoveItemInDOM((e: IViewItemChangeEvent<T>) => e.item.dragStart?.dispose()));
+    }
+
+    /**
+     * @description Initializes the dragstart event listener of the given list 
+     * item.
+     * @param item The given item.
+     * @param index The index of the item in the list view.
+     */
+    private __initItemWithDragStart(item: IViewItem<T>, index: number): void {
+        
+        // avoid weird stuff happens
+        if (item.dragStart) {
+            item.dragStart.dispose();
+        }
+
+        // get the drag data
+        const userData = this._provider.getDragData(item.data);
+
+        // make the HTMLElement actually draggable
+        item.row!.dom.draggable = !!userData;
+
+        // add event listener
+        if (userData) {
+            item.dragStart = addDisposableListener(item.row!.dom, EventType.dragstart, (e: DragEvent) => this.__onDragStart(item.data, userData, e));
+        }
+    }
+    
+    private __onDragStart(data: T, userData: string, event: DragEvent): void {
+        
+        if (event.dataTransfer === null) {
+            return;
+        }
+
+        const dragItems = this._provider.getDragItems(data);
+
+        event.dataTransfer.effectAllowed = 'copyMove';
+		event.dataTransfer.setData('text/plain', userData);
+        
+        // set the drag image
+        const tag = this._provider.getDragTag(dragItems);
+        const dragImage = document.createElement('div');
+        dragImage.className = 'list-drag-image';
+        dragImage.innerHTML = tag;
+        document.body.appendChild(dragImage);
+        event.dataTransfer.setDragImage(dragImage, -10, -10);
+        setTimeout(() => document.body.removeChild(dragImage), 0);
+        
+        this._currDragItems = dragItems;
+
+        if (this._provider.onDragStart) {
+            this._provider.onDragStart(event);
+        }
+    }
+
+    private __onDragOver(event: IListDragEvent<T>): void {
+    
+        // https://stackoverflow.com/questions/21339924/drop-event-not-firing-in-chrome
+        event.browserEvent.preventDefault();
+
+        // set up dnd scroll edge animation
+        this.__setScrollAnimationOnEdge(event.browserEvent);
+
+        if (event.browserEvent.dataTransfer === null) {
+            return;
+        }
+        
+        // notify client
+        const allowDrop = this._provider.onDragOver(event.browserEvent, this._currDragItems, event.item, event.actualIndex);
+        this._allowDrop = allowDrop;
+        if (!allowDrop) {
+            return;
+        }
+
+        // set drop type
+        event.browserEvent.dataTransfer.dropEffect = 'move';
+    }
+
+    private __onDragDrop(event: IListDragEvent<T>): void {
+        
+        // do not allow to drop, we ignore the event
+        if (this._allowDrop === false) {
+            return;
+        }
+        
+        // get the data
+        const dragItems = this._currDragItems;
+
+        // clear dragover meatadata
+        this.__clearDragoverData();
+
+        // no data to drop
+        if (event.browserEvent.dataTransfer === null || dragItems.length === 0) {
+            return;
+        }
+
+        // notify client
+        event.browserEvent.preventDefault();
+        this._provider.onDragDrop(event.browserEvent, dragItems, event.item, event.actualIndex);
+    }
+
+    private __onDragEnter(event: IListDragEvent<T>): void {
+        // notify client
+        this._provider.onDragEnter(event.browserEvent, this._currDragItems, event.item, event.actualIndex);
+    }
+
+    private __onDragLeave(event: IListDragEvent<T>): void {
+        // notify client
+        this._provider.onDragLeave(event.browserEvent, this._currDragItems, event.item, event.actualIndex);
+    }
+
+    private __onDragEnd(event: DragEvent): void {
+        
+        // clear dragover meatadata
+        this.__clearDragoverData();
+
+        // notify client
+        this._provider.onDragEnd(event);
+    }
+
+    private __clearDragoverData(): void {
+        this._currDragItems = [];
+        this._allowDrop = false;
+        this._scrollAnimationMouseTop = undefined;
+        this._scrollAnimationOnEdgeDisposable?.dispose();
+        this._scrollAnimationOnEdgeDisposable = undefined;
+    }
+
+    // [private animation helper methods]
+
+    private __setScrollAnimationOnEdge(event: DragEvent): void {
+        if (!this._scrollAnimationOnEdgeDisposable) {
+            const top = DomUtility.getViewportTop(this._view.DOMElement);
+            this._scrollAnimationOnEdgeDisposable = requestAnimate(() => this.__animationOnEdge(top));
+        }
+        this._scrollAnimationMouseTop = event.pageY;
+    }
+
+    private __animationOnEdge(viewTop: number): void {
+        if (this._scrollAnimationMouseTop === undefined) {
+            return;
+        }
+
+        const diff = this._scrollAnimationMouseTop - viewTop;
+		const upperLimit = this._view.getViewportSize() - 35;
+        const scrollPosition = this._view.getScrollPosition();
+        
+		if (diff < 35) {
+			this._view.setScrollPosition(scrollPosition + Math.max(-14, Math.floor(0.3 * (diff - 35))));
+		} else if (diff > upperLimit) {
+            this._view.setScrollPosition(scrollPosition + Math.min(14, Math.floor(0.3 * (diff - upperLimit))));
+		}
     }
 }

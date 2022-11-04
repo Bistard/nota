@@ -45,10 +45,13 @@ export interface IIndexTreeModelOptions<T, TFilter> {
  * An interface only for {@link IndexTreeModelBase}.
  */
 export interface IIndexTreeModelBase<T, TFilter> extends ITreeModel<T, TFilter, number[]> {
+    
     /**
-     * Events when tree splice did happen.
+     * @description Returns the total number of nodes in the tree model.
+     * @complexity O(n)
      */
-    readonly onDidSplice: Register<ITreeSpliceEvent<T, TFilter>>;
+    size(): number;
+    
     getNodeLocation(node: ITreeNode<T, TFilter>): number[];
     getNodeListIndex(location: number[]): number;
     setCollapsible(location: number[], collapsible?: boolean): boolean;
@@ -85,6 +88,14 @@ export interface IFlexIndexTreeModel<T, TFilter> extends IIndexTreeModelBase<T, 
      * @param opts The option for splicing.
      */
     refresh(node?: IFlexNode<T, TFilter>, opts?: ITreeModelSpliceOptions<T, TFilter>): void;
+
+    /**
+     * @description Fires the `onDidSplice` event without actual refreshing. 
+     * Having this method is useful for some possible optimizations. This can 
+     * avoid the actual refreshing step but still pretend to be refreshed.
+     * @param event The event to be fired.
+     */
+    triggerOnDidSplice(event: ITreeSpliceEvent<T, TFilter>): void;
 }
 
 /**
@@ -148,6 +159,25 @@ abstract class IndexTreeModelBase<T, TFilter> implements IIndexTreeModelBase<T, 
     get rootNode() { return this._root; }
 
     // [methods]
+
+    public size(): number {
+        let count = 0;
+
+        const dfs = (node: ITreeNode<T, TFilter>) => {
+            count++;
+
+            if (!node.children) {
+                return;
+            }
+
+            for (const child of node.children) {
+                dfs(child);
+            }
+        };
+        dfs(this._root);
+
+        return count;
+    }
 
     public hasNode(location: readonly number[]): boolean {
         return this.__hasNode(location, this._root);
@@ -242,7 +272,7 @@ abstract class IndexTreeModelBase<T, TFilter> implements IIndexTreeModelBase<T, 
         
         /**
          * To achieve rerendering, we simply delete and re-insert the same items
-         * into the same position. The {@link TreeListWidget} will do the rest
+         * into the same position. The {@link ListWidget} will do the rest
          * of the jobs for us.
          */
 
@@ -692,7 +722,6 @@ abstract class IndexTreeModelBase<T, TFilter> implements IIndexTreeModelBase<T, 
     }
 }
 
-
 /**
  * An {@link IndexTreeModel} is a type of {@link ITreeModel}. This is not the 
  * same data structure as Index Binary Tree (IBT).
@@ -755,16 +784,16 @@ export class IndexTreeModel<T, TFilter> extends IndexTreeModelBase<T, TFilter> i
         }
 
         // deletion callback
-        if (opts.onDidDeleteNode) {
-            deletedChildren.forEach(node => opts.onDidDeleteNode!(node));
-            deletedChildren.forEach(node => node.children.forEach(child => opts.onDidDeleteNode!(child)));
+        if (opts.onDidDeleteNode && deletedChildren.length > 0) {
+            const deleteVisitor = (node: ITreeNode<T, TFilter>) => {
+                opts.onDidDeleteNode!(node);
+                node.children.forEach(deleteVisitor);
+            };
+            deletedChildren.forEach(node => deleteVisitor(node));
         }
 
         // fire events
-        this._onDidSplice.fire({
-            inserted: treeNodeListToBeRendered,
-            deleted: deletedChildren
-        });
+        this._onDidSplice.fire({ inserted: treeNodeListToBeRendered });
     }
 
     // [private helper methods]
@@ -820,10 +849,7 @@ export class IndexTreeModel<T, TFilter> extends IndexTreeModelBase<T, TFilter> i
             visibleNodeCount += child.visibleNodeCount;
         }
         
-        /**
-         * If the collapsible setting somehow sets to false, we may correct it 
-         * here.
-         */
+        // If the collapsible setting somehow sets to false, we may correct it here.
         newNode.collapsible = newNode.collapsible || newNode.children.length > 0;
         
         if (!newNode.visible) {
@@ -845,7 +871,7 @@ export class IndexTreeModel<T, TFilter> extends IndexTreeModelBase<T, TFilter> i
  * @class An optimization data structure different than {@link IndexTreeModel}.
  * Instead of letting client provide a new tree-like structure, client modify
  * the existed one and the model will rebuild the tree structure automatically
- * after calling the method {@link IFlexIndexTreeModel.stale}.
+ * after calling the method {@link IFlexIndexTreeModel.splice}.
  */
 export class FlexIndexTreeModel<T, TFilter> extends IndexTreeModelBase<T, TFilter> implements IFlexIndexTreeModel<T, TFilter> {
 
@@ -856,13 +882,8 @@ export class FlexIndexTreeModel<T, TFilter> extends IndexTreeModelBase<T, TFilte
         opts: ITreeModelSpliceOptions<T, TFilter> = {},
     ): void {
         // finds out the parent node and its listIndex.
-        type parentType = {
-            node: IFlexNode<T, TFilter>,
-            listIndex: number,
-            visible: boolean,
-        };
         const location = this.getNodeLocation(node);
-        const { listIndex, visible } = <parentType>this.__getNodeWithListIndex(location);
+        const { listIndex, visible } = this.__getNodeWithListIndex(location);
         
         // no changes to the current tree, we ignore the request.
         if (!node.stale) {
@@ -913,20 +934,26 @@ export class FlexIndexTreeModel<T, TFilter> extends IndexTreeModelBase<T, TFilte
             this.setCollapsible(location, currHasChildrenState);
         }
 
-        if (opts.onDidDeleteNode) {
-            node.oldChildren!.forEach(node => opts.onDidDeleteNode!(node));
-            node.oldChildren!.forEach(node => node.children.forEach(child => opts.onDidDeleteNode!(child)));
+        // deletion callback
+        if (opts.onDidDeleteNode && node.oldChildren) {
+            const deleteVisitor = (node: IFlexNode<T, TFilter>) => {
+                opts.onDidDeleteNode!(node);
+                node.children?.forEach(deleteVisitor);
+                node.oldChildren?.forEach(deleteVisitor);
+            };
+            node.oldChildren.forEach(deleteVisitor);
         }
-
-        // fire events
-        this._onDidSplice.fire({
-            inserted: treeNodeListToBeRendered,
-            deleted: node.oldChildren!,
-        });
 
         // actual delete the old children
         node.oldChildren = undefined;
         node.stale = false;
+
+        // fire events
+        this._onDidSplice.fire({ inserted: treeNodeListToBeRendered });
+    }
+
+    public triggerOnDidSplice(event: ITreeSpliceEvent<T, TFilter>): void {
+        this._onDidSplice.fire(event);
     }
 
     // [private helper methods]
@@ -960,10 +987,7 @@ export class FlexIndexTreeModel<T, TFilter> extends IndexTreeModelBase<T, TFilte
 
         node.visibleNodeCount = node.visible ? newVisibleCount : 0;
 
-        /**
-         * If the collapsible setting somehow sets to false, we may correct it 
-         * here.
-         */
+        // If the collapsible setting somehow sets to false, we may correct it here.
         node.collapsible = node.collapsible || node.children.length > 0;
         
         // If collapse never set by the client, we use the default setting.

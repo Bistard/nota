@@ -18,12 +18,13 @@ suite('AsyncTree-test', () => {
         const tree = new AsyncTree<number, void>(
             container, 
             0,
-            [],
             {
-                getSize: (data) => 10,
-                getType: (data) => 10
-            },
-            {
+                forcePrimitiveType: true,
+                renderers: [],
+                itemProvider: {
+                    getSize: (data) => 10,
+                    getType: (data) => 10
+                },
                 collapsedByDefault: false,
                 childrenProvider: {
                     getChildren: (data) => TREE1.get(data)!,
@@ -97,12 +98,13 @@ suite('AsyncTree-test', () => {
         const tree = new AsyncTree<number, void>(
             document.createElement('div'), 
             0,
-            [],
             {
-                getSize: (data) => 10,
-                getType: (data) => 10
-            },
-            {
+                forcePrimitiveType: true,
+                renderers: [],
+                itemProvider: {
+                    getSize: (data) => 10,
+                    getType: (data) => 10
+                },
                 collapsedByDefault: false,
                 childrenProvider: {
                     getChildren: (data) => TREE1.get(data)!,
@@ -214,29 +216,29 @@ suite('AsyncTree-test', () => {
         assert.strictEqual(tree.size(), 0);
     });
 
-    const TREE2 = new Map<number, number[]>();
-
-    TREE2.set(0, [1, 2, 3]);
-    TREE2.set(1, [4, 5]);
-    TREE2.set(2, [6]);
-    TREE2.set(3, []);
-    TREE2.set(4, []);
-    TREE2.set(5, []);
-    TREE2.set(6, [7, 8]);
-    TREE2.set(7, []);
-    TREE2.set(8, []);
-
     test('collapse / expand', async () => {
+
+        const TREE2 = new Map<number, number[]>();
+        TREE2.set(0, [1, 2, 3]);
+        TREE2.set(1, [4, 5]);
+        TREE2.set(2, [6]);
+        TREE2.set(3, []);
+        TREE2.set(4, []);
+        TREE2.set(5, []);
+        TREE2.set(6, [7, 8]);
+        TREE2.set(7, []);
+        TREE2.set(8, []);
 
         const tree = new AsyncTree<number, void>(
             document.createElement('div'), 
             0,
-            [],
             {
-                getSize: (data) => 10,
-                getType: (data) => 10
-            },
-            {
+                forcePrimitiveType: true,
+                renderers: [],
+                itemProvider: {
+                    getSize: (data) => 10,
+                    getType: (data) => 10
+                },
                 collapsedByDefault: false,
                 childrenProvider: {
                     getChildren: (data) => TREE2.get(data)!,
@@ -313,12 +315,12 @@ suite('AsyncTree-test', () => {
         const tree = new AsyncTree(
             document.createElement('div'), 
             TREE,
-            [],
             {
-                getSize: (data) => 0,
-                getType: (data) => 0
-            },
-            {
+                renderers: [],
+                itemProvider: {
+                    getSize: (data) => 0,
+                    getType: (data) => 0
+                },
                 collapsedByDefault: false,
                 childrenProvider: {
                     getChildren: (item) => Array.isArray(item) ? item : [] as any,
@@ -330,5 +332,198 @@ suite('AsyncTree-test', () => {
 
         await tree.refresh();
         assert.strictEqual(tree.size(), size);
+    });
+
+    test('use primitive type as client data', async () => {
+        const [TREE, size] = generateTreeLike(() => true, 1);
+        try {
+            const tree = new AsyncTree(
+                document.createElement('div'), 
+                TREE,
+                {
+                    renderers: [],
+                    itemProvider: {
+                        getSize: (data) => 0,
+                        getType: (data) => 0
+                    },
+                    collapsedByDefault: false,
+                    childrenProvider: {
+                        getChildren: (item) => Array.isArray(item) ? item : [] as any,
+                        hasChildren: (item) => Array.isArray(item),
+                        collapseByDefault: () => false,
+                    },
+                }
+            );
+            assert.fail('does not support primitive types');
+        } catch {
+            assert.ok(true);
+        }
+    });
+
+    test('childrenProvider', async () => {
+        const TREE = new Map<number, number[]>();
+        TREE.set(0, [1]);
+        TREE.set(1, [2]);
+        TREE.set(2, []);
+
+        class Child {
+            constructor(public readonly data: number) {}
+            resolved = false;
+            children: Child[] = [];
+
+            getChildren() {
+                if (this.resolved) {
+                    return this.children;
+                }
+                this.children = TREE.get(this.data)!.map(num => new Child(num));
+                this.resolved = true;
+                return this.children;
+            }
+
+            hasChildren() {
+                return !!TREE.get(this.data)!.length;
+            }
+
+            forgetChildren() {
+                this.resolved = false;
+                this.children = [];
+            }
+        }
+        
+        const children = new Map<number, Child>();
+        const tree = new AsyncTree<Child, void>(
+            document.createElement('div'), 
+            new Child(0),
+            {
+                renderers: [],
+                itemProvider: {
+                    getSize: (data) => 1,
+                    getType: (data) => 1
+                },
+                collapsedByDefault: true,
+                childrenProvider: {
+                    getChildren: (data) => data.getChildren(),
+                    hasChildren: (data) => data.hasChildren(),
+                    forgetChildren: data => data.forgetChildren(),
+                    isChildrenResolved: data => data.resolved,
+                },
+                onDidCreateNode: data => {
+                    children.set(data.data.data, data.data);
+                },
+                onDidDeleteNode: data => {
+                    children.delete(data.data.data);
+                },
+            }
+        );
+
+        await tree.refresh();
+        assert.strictEqual(tree.size(), 1);
+
+        await tree.refresh(children.get(1));
+        assert.strictEqual(tree.size(), 1);
+
+        const child1 = children.get(1)!;
+        await tree.expand(child1);
+        await tree.waitForNextCollapseChange;
+        assert.strictEqual(tree.size(), 2);
+
+        tree.collapse(child1);
+        await tree.waitForNextCollapseChange;
+        assert.strictEqual(tree.size(), 2);
+
+        TREE.set(1, [3, 4]);
+        TREE.set(3, []);
+        TREE.set(4, []);
+        await tree.refresh(child1);
+        assert.strictEqual(tree.size(), 2);
+
+        await tree.expand(child1);
+        await tree.waitForNextCollapseChange;
+        assert.strictEqual(tree.size(), 3);
+    });
+
+    test('identityProvider', async () => {
+        const TREE = new Map<number, number[]>();
+        TREE.set(0, [1]);
+        TREE.set(1, [2]);
+        TREE.set(2, []);
+
+        class Child {
+            constructor(public readonly data: number) {}
+            resolved = false;
+            children: Child[] = [];
+
+            getChildren() {
+                if (this.resolved) {
+                    return this.children;
+                }
+                this.children = TREE.get(this.data)!.map(num => new Child(num));
+                this.resolved = true;
+                return this.children;
+            }
+
+            hasChildren() {
+                return !!TREE.get(this.data)!.length;
+            }
+
+            forgetChildren() {
+                this.resolved = false;
+                this.children = [];
+            }
+        }
+        
+        const children = new Map<number, Child>();
+        const tree = new AsyncTree<Child, void>(
+            document.createElement('div'), 
+            new Child(0),
+            {
+                renderers: [],
+                itemProvider: {
+                    getSize: (data) => 1,
+                    getType: (data) => 1
+                },
+                collapsedByDefault: true,
+                childrenProvider: {
+                    getChildren: (data) => data.getChildren(),
+                    hasChildren: (data) => data.hasChildren(),
+                    forgetChildren: data => data.forgetChildren(),
+                    isChildrenResolved: data => data.resolved,
+                },
+                onDidCreateNode: data => {
+                    children.set(data.data.data, data.data);
+                },
+                onDidDeleteNode: data => {
+                    children.delete(data.data.data);
+                },
+                identityProvider: {
+                    getID: item => item.toString(),
+                },
+            }
+        );
+
+        await tree.refresh();
+        assert.strictEqual(tree.size(), 1);
+
+        await tree.refresh(children.get(1));
+        assert.strictEqual(tree.size(), 1);
+
+        const child1 = children.get(1)!;
+        await tree.expand(child1);
+        await tree.waitForNextCollapseChange;
+        assert.strictEqual(tree.size(), 2);
+
+        tree.collapse(child1);
+        await tree.waitForNextCollapseChange;
+        assert.strictEqual(tree.size(), 2);
+
+        TREE.set(1, [3, 4]);
+        TREE.set(3, []);
+        TREE.set(4, []);
+        await tree.refresh(child1);
+        assert.strictEqual(tree.size(), 2);
+
+        await tree.expand(child1);
+        await tree.waitForNextCollapseChange;
+        assert.strictEqual(tree.size(), 3);
     });
 });

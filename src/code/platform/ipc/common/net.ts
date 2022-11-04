@@ -226,8 +226,11 @@ export interface IChannelClient {
 /**
  * @class A channel client relies on the given {@link IProtocol}, it integrates
  * two things: 
- *      1. Get a channel and can manually send serialized data to the protocol.
- *      2. Listens to the protocol's response and deserialize the data.
+ *      1. Get the corresponding channel and can manually send command through 
+ *          the protocol. It returns a promise that resolves with the 
+ *          corresponding response from the server.
+ *      2. Register an event listener to the server side.
+ * 
  * @note Serialization process are predefined by {@link DataSerializer} and 
  * {@link BufferDeserializer}.
  */
@@ -413,9 +416,10 @@ export interface IChannelServer {
 /**
  * @class A channel server relies on the given {@link IProtocol}, it integrates
  * two things: 
- *      1. Listens to the protocol's request and deserialize it.
- *      2. Send serialized response back through the protocol when the request
- *         is done by the registered channels.
+ *      1. Register a channel and starts listening to the client request.
+ *      2. Send response back to the client when the request is done by the 
+ *          corresponding channel.
+ * 
  * @note Serialization process are predefined by {@link DataSerializer} and 
  * {@link BufferDeserializer}.
  */
@@ -618,27 +622,34 @@ export class ServerBase extends Disposable implements IChannelServer {
          * register all the current channels to it and register its onDisconnect
          * event.
          */
-        this.__register(onClientConnect(event => {
+        this.__register(onClientConnect((event: ClientConnectEvent) => {
             this.logService?.debug(`Main#Renderer client on connection with ID: ${event.clientID}`);
             const protocol = event.protocol;
             
+            /**
+             * Since a {@link ClientBase} will send a one-time request during 
+             * initialization, we need to capture it first.
+             */
             const onClientDisconnect = Event.once(event.onClientDisconnect);
             const onFirstRequest = Event.once(protocol.onData);
-
             onFirstRequest(data => {
+
+                /**
+                 * The first request is pre-defined. it only contains an ID of 
+                 * the client in the body part of the request (empty header).
+                 */
                 const deserializer = new BufferDeserializer(data);
                 const clientID = deserializer.deserialize<false, true>() as string;
 
+                // create the corresponding channel.
                 const channelServer = new ChannelServer(protocol, clientID);
 
-                /**
-                 * Register all the current channels for the new connection.
-                 */
+                // Register all the existed channels to the new connection.
                 for (const [name, channel] of this._channels) {
                     channelServer.registerChannel(name, channel);
                 }
 
-                const connection: IConnection = { channelClient: <any>toDisposable(() => {}), channelServer, id: clientID };
+                const connection: IConnection = { channelClient: <any>Disposable.NONE, channelServer, id: clientID };
                 this._connections.add(connection);
 
                 onClientDisconnect(() => {

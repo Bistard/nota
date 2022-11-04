@@ -1,29 +1,29 @@
 import { IDisposable } from "src/base/common/dispose";
-import { ITask } from "src/base/common/util/async";
 
-export function repeat(count: number, fn: ITask<any>, ...args: any[]): void {
+/**
+ * @description Runs the given callback in a given times.
+ */
+export function repeat(round: number, fn: (index: number) => void): void {
     let i: number;
-    for (i = 0; i < count; i++) {
-        fn(...args);
+    for (i = 0; i < round; i++) {
+        fn(i);
     }
 }
 
 export class IntervalTimer implements IDisposable {
 
-    private _handle: boolean | NodeJS.Timer;
+    private _handle?: NodeJS.Timer = undefined;
 
-    constructor() {
-        this._handle = false;
-    }
+    constructor() {}
 
     public cancel(): void {
-        if (typeof this._handle !== 'boolean') {
+        if (this._handle) {
             clearInterval(this._handle);
-            this._handle = false;
+            this._handle = undefined;
         }
     }
 
-    public set(callback: () => any, ms: number): void {
+    public set(callback: () => void, ms: number): void {
         this.cancel();
         this._handle = setInterval(() => callback(), ms);
     }
@@ -31,5 +31,4 @@ export class IntervalTimer implements IDisposable {
     public dispose(): void {
         this.cancel();
     }
-
 }

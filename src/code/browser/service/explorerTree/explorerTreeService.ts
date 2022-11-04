@@ -2,6 +2,7 @@ import { Disposable, DisposableManager, IDisposable } from "src/base/common/disp
 import { RelayEmitter } from "src/base/common/event";
 import { URI } from "src/base/common/file/uri";
 import { IScheduler, Scheduler } from "src/base/common/util/async";
+import { ClassicItem } from "src/code/browser/service/classicTree/classicItem";
 import { ClassicOpenEvent } from "src/code/browser/service/classicTree/classicTree";
 import { ClassicTreeService, IClassicTreeService } from "src/code/browser/service/classicTree/classicTreeService";
 import { ITreeService, TreeMode } from "src/code/browser/service/explorerTree/treeService";
@@ -15,7 +16,7 @@ import { IInstantiationService } from "src/code/platform/instantiation/common/in
 
 export const IExplorerTreeService = createService<IExplorerTreeService>('explorer-tree-service');
 
-export interface IExplorerTreeService extends ITreeService<ClassicOpenEvent | any> {
+export interface IExplorerTreeService extends ITreeService<ClassicOpenEvent<ClassicItem> | any> {
     
     /**
      * The displaying tree mode.
@@ -35,8 +36,8 @@ export class ExplorerTreeService extends Disposable implements IExplorerTreeServ
 
     // [event]
 
-    private readonly _onDidClick = this.__register(new RelayEmitter<unknown>());
-    public readonly onDidClick = this._onDidClick.registerListener;
+    private readonly _onOpen = this.__register(new RelayEmitter<unknown>());
+    public readonly onOpen = this._onOpen.registerListener;
 
     // [field]
 
@@ -51,6 +52,8 @@ export class ExplorerTreeService extends Disposable implements IExplorerTreeServ
     private _currTreeDisposable?: IDisposable;
     private _currentTreeService?: ITreeService<unknown>;
     private _onDidResourceChangeScheduler?: IScheduler<ResourceChangeEvent>;
+
+    private static readonly ON_RESOURCE_CHANGE_DELAY = 100;
 
     // [constructor]
 
@@ -95,51 +98,22 @@ export class ExplorerTreeService extends Disposable implements IExplorerTreeServ
     // [public mehtods]
 
     public async init(container: HTMLElement, root: URI, mode?: TreeMode): Promise<void> {
+        const currTreeService = this._mode === TreeMode.Notebook ? this.notebookTreeService : this.classicTreeService;
+
+        // try to create the tree service
+        try {
+            await currTreeService.init(container, root);
+        } catch (error) {
+            throw error;
+        }
+
+        // update the metadata only after successed
+        this._currentTreeService = currTreeService;
         this._root = root;
-        if (mode) {
-            this._mode = mode;
-        }
+        this._mode = mode ?? this._mode;
+        this._onOpen.setInput(this._currentTreeService.onOpen);
 
-        if (this._mode === TreeMode.Notebook) {
-            this._currentTreeService = this.notebookTreeService;
-            
-        } else {
-            this._currentTreeService = this.classicTreeService;
-        }
-
-        // create the tree service
-        await this._currentTreeService.init(container, root);
-        this._onDidClick.setInput(this._currentTreeService.onDidClick);
-
-        // on did resource change callback
-        this._onDidResourceChangeScheduler = new Scheduler(100, events => {
-            
-            if (!this._root) {
-                return;
-            }
-
-            let affected = false;
-            for (const event of events) {
-                if (event.affect(this._root)) {
-                    affected = true;
-                    break;
-                }
-            }
-
-            if (affected) {
-                this._currentTreeService!.refresh();
-            }
-        });
-
-        // create a disposable for all the current tree business
-        const disposables = new DisposableManager();
-        this._currTreeDisposable = disposables;
-
-        disposables.register(this._onDidResourceChangeScheduler);
-        disposables.register(this.fileService.watch(root, { recursive: true }));
-        disposables.register(this.fileService.onDidResourceChange(e => {
-            this._onDidResourceChangeScheduler!.schedule(e);
-        }));
+        this.__registerTreeListeners(root);
     }
 
     public switchMode(mode: TreeMode): void {
@@ -173,5 +147,45 @@ export class ExplorerTreeService extends Disposable implements IExplorerTreeServ
         // close the actual tree service
         this._currentTreeService!.close();
         this._currentTreeService = undefined;
+    }
+
+    // [private helper methods]
+
+    /**
+     * @description Registers tree related listeners when initializing.
+     */
+    private __registerTreeListeners(root: URI): void {
+        
+        // create a disposable for all the current tree business
+        const disposables = new DisposableManager();
+        this._currTreeDisposable = disposables;
+
+        // on did resource change callback
+        this._onDidResourceChangeScheduler = new Scheduler(
+            ExplorerTreeService.ON_RESOURCE_CHANGE_DELAY, 
+            (events: ResourceChangeEvent[]) => {
+                if (!this._root || !this._currentTreeService) {
+                    return;
+                }
+
+                let affected = false;
+                for (const event of events) {
+                    if (event.affect(this._root)) {
+                        affected = true;
+                        break;
+                    }
+                }
+
+                if (affected) {
+                    this._currentTreeService.refresh();
+                }
+            }
+        );
+
+        disposables.register(this._onDidResourceChangeScheduler);
+        disposables.register(this.fileService.watch(root, { recursive: true }));
+        disposables.register(this.fileService.onDidResourceChange(e => {
+            this._onDidResourceChangeScheduler?.schedule(e);
+        }));
     }
 }

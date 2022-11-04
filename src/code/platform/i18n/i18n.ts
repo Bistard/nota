@@ -2,7 +2,7 @@ import { Emitter, Register } from "src/base/common/event";
 import { URI } from "src/base/common/file/uri";
 import * as path from "src/base/common/file/path";
 import { IFileService } from "src/code/platform/files/common/fileService";
-import { isArray, isObject } from "src/base/common/util/type";
+import { isObject } from "src/base/common/util/type";
 import { Section } from "src/code/platform/section";
 import { createService } from "src/code/platform/instantiation/common/decorator";
 import { ILogService } from "src/base/common/logger";
@@ -224,7 +224,7 @@ export class i18n implements Ii18nService {
         
         let get: (key: string) => string | undefined;
 
-        if (isArray(interpolation)) {
+        if (Array.isArray(interpolation)) {
             get = (key: string) => { 
                 const index = parseInt(key);
                 if (index === NaN) {
@@ -311,7 +311,7 @@ export class i18n implements Ii18nService {
             Object.assign(this._model, jsonObject);
         } catch (err) {
             // TODO: logService and pops up notification window
-            this.logService.error(`Cannot read locale at ${uri.toString()}`);
+            this.logService.error(`Cannot read locale at ${URI.toString(uri)}`);
             throw err;
         }
     }

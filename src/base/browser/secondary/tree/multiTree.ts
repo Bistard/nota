@@ -1,11 +1,16 @@
-import { AbstractTree, IAbstractTree, IAbstractTreeOptions } from "src/base/browser/secondary/tree/abstractTree";
+import { AbstractTree, IAbstractTree, IAbstractTreeOptions, ITreeWidgetOpts, TreeWidget } from "src/base/browser/secondary/tree/abstractTree";
 import { IListWidget } from "src/base/browser/secondary/listWidget/listWidget";
 import { ITreeModelSpliceOptions } from "src/base/browser/secondary/tree/indexTreeModel";
 import { FlexMultiTreeModel, IFlexMultiTreeModel, IMultiTreeModel, IMultiTreeModelBase, MultiTreeModel } from "src/base/browser/secondary/tree/multiTreeModel";
-import { IFlexNode, ITreeModel, ITreeNode, ITreeNodeItem } from "src/base/browser/secondary/tree/tree";
+import { IFlexNode, ITreeModel, ITreeNode, ITreeNodeItem, ITreeSpliceEvent } from "src/base/browser/secondary/tree/tree";
+import { ITreeListRenderer } from "src/base/browser/secondary/tree/treeListRenderer";
+import { IListItemProvider } from "src/base/browser/secondary/listView/listItemProvider";
+import { isPrimitive } from "src/base/common/util/type";
+import { ListWidgetKeyboardController } from "src/base/browser/secondary/listWidget/listWidgetKeyboardController";
+import { IStandardKeyboardEvent } from "src/base/common/keyboard";
 
 /**
- * An interface only for {@link MultiTreeModelBase}.
+ * An interface only for {@link MultiTreeBase}.
  */
 export interface IMultiTreeBase<T, TFilter> extends IAbstractTree<T, TFilter, T> {
     /**
@@ -13,11 +18,11 @@ export interface IMultiTreeBase<T, TFilter> extends IAbstractTree<T, TFilter, T>
      */
     size(): number;
 
-     /**
-      * @description Rerenders the whole view only with the corresponding tree 
-      * node.
-      * @param item The provided item. 
-      */
+    /**
+     * @description Rerenders the whole view only with the corresponding tree 
+     * node.
+     * @param item The provided item.
+     */
     rerender(item: T): void;
 }
 
@@ -35,6 +40,9 @@ export interface IMultiTree<T, TFilter> extends IMultiTreeBase<T, TFilter> {
     splice(item: T, children: ITreeNodeItem<T>[], opts: ITreeModelSpliceOptions<T, TFilter>): void;
 }
 
+/** 
+ * An interface only for {@link FlexMultiTree}. 
+ */
 export interface IFlexMultiTree<T, TFilter> extends IMultiTreeBase<T, TFilter> {
     
     /**
@@ -46,15 +54,85 @@ export interface IFlexMultiTree<T, TFilter> extends IMultiTreeBase<T, TFilter> {
      * @param opts The option for splicing.
      */
     refresh(node?: IFlexNode<T, TFilter>, opts?: ITreeModelSpliceOptions<T, TFilter>): void;
+
+    /**
+     * @description See details in {@link IFlexMultiTreeModel.triggerOnDidSplice}.
+     * @param event The event to be fired.
+     */
+    triggerOnDidSplice(event: ITreeSpliceEvent<T, TFilter>): void;
 }
 
 /**
  * {@link MultiTree} Constructor option.
  */
-export interface IMultiTreeOptions<T, TFilter> extends IAbstractTreeOptions<T, TFilter> {}
+export interface IMultiTreeOptions<T, TFilter> extends IAbstractTreeOptions<T, TFilter> {
+    /**
+     * If force to enable use primitive type for client data.
+     * @warn Enable using primitive type might raises undefined behaviours if
+     * two of the client data have the same values.
+     * @default false
+     */
+    readonly forcePrimitiveType?: boolean;
+}
+
+/**
+ * {@link MultiTreeWidget} constructor option.
+ */
+export interface IMultiTreeWidgetOpts<T, TFilter> extends ITreeWidgetOpts<T, TFilter, T> {
+    readonly tree: MultiTreeBase<T, TFilter>;
+}
+
+/**
+ * @internal
+ * @class Overrides the keyboard controller with addtional behaviours in the
+ * perspective of tree level.
+ */
+export class MultiTreeKeyboardController<T, TFilter> extends ListWidgetKeyboardController<ITreeNode<T, TFilter>> {
+
+    // [field]
+
+    declare protected readonly _view: MultiTreeWidget<T, TFilter>;
+    protected readonly _tree: IMultiTreeBase<T, TFilter>;
+
+    // [constructor]
+
+    constructor(
+        view: MultiTreeWidget<T, TFilter>,
+        tree: IMultiTreeBase<T, TFilter>,
+    ) {
+        super(view);
+        this._tree = tree;
+    }
+
+    // [protected override methods]
+
+    protected override __onEnter(e: IStandardKeyboardEvent): void {
+        super.__onEnter(e); 
+        
+        const anchor = this._view.getAnchorData();
+        if (anchor) {
+            this._tree.toggleCollapseOrExpand(anchor, false);
+        }
+    }
+}
+
+/**
+ * @internal
+ * @class Used to override and add additional controller behaviours.
+ */
+export class MultiTreeWidget<T, TFilter> extends TreeWidget<T, TFilter, T> {
+    
+    protected override __createKeyboardController(opts: IMultiTreeWidgetOpts<T, TFilter>): MultiTreeKeyboardController<T, TFilter> {
+        return new MultiTreeKeyboardController(this, opts.tree);
+    }
+}
 
 /**
  * @class An base class for {@link MultiTree} and {@link FlexMultiTree}.
+ * 
+ * @warn If data type `T` is a primitive type, might raises undefined behaviours
+ * if there are two values are the same. For example, `size()` will not work 
+ * properly since the tree cannot decide which is which.
  */
 abstract class MultiTreeBase<T, TFilter> extends AbstractTree<T, TFilter, T> implements IMultiTreeBase<T, TFilter> {
 
@@ -62,6 +140,21 @@ abstract class MultiTreeBase<T, TFilter> extends AbstractTree<T, TFilter, T> imp
 
     /** overrides for specifying the type of the model. */
     declare protected abstract readonly _model: IMultiTreeModelBase<T, TFilter>;
+
+    // [constructor]
+
+    constructor(
+        container: HTMLElement,
+        rootData: T,
+        renderers: ITreeListRenderer<T, TFilter, any>[],
+        itemProvider: IListItemProvider<T>,
+        opts: IMultiTreeOptions<T, TFilter> = {}
+    ) {
+        if (!opts.forcePrimitiveType && isPrimitive(rootData)) {
+            throw new Error('mutli tree does not support primitive types');
+        }
+        super(container, rootData, renderers, itemProvider, opts);
+    }
 
     // [public method]
 
@@ -75,6 +168,12 @@ abstract class MultiTreeBase<T, TFilter> extends AbstractTree<T, TFilter, T> imp
 
     public size(): number {
         return this._model.size();
+    }
+
+    // [protected override method]
+
+    protected override createTreeWidget(container: HTMLElement, renderers: ITreeListRenderer<T, TFilter, any>[], itemProvider: IListItemProvider<ITreeNode<T, TFilter>>, opts: ITreeWidgetOpts<T, TFilter, T>): TreeWidget<T, TFilter, T> {
+        return new MultiTreeWidget(container, renderers, itemProvider, opts);
     }
 }
 
@@ -141,6 +240,10 @@ export class FlexMultiTree<T, TFilter> extends MultiTreeBase<T, TFilter> impleme
         opts?: ITreeModelSpliceOptions<T, TFilter>
     ): void {
         this._model.refresh(node, opts);
+    }
+
+    public triggerOnDidSplice(event: ITreeSpliceEvent<T, TFilter>): void {
+        this._model.triggerOnDidSplice(event);
     }
 
     // [private helper method]

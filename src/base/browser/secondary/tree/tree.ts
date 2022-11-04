@@ -1,15 +1,12 @@
 import { Register } from "src/base/common/event";
 
 /**
- * Type of event when the {@link IIndexTreeModel} splice did happen.
+ * Type of event when the {@link IIndexTreeModelBase} splice did happen.
  */
 export interface ITreeSpliceEvent<T, TFilter> {
     
     /** Inserted nodes */
-    inserted: ITreeNode<T, TFilter>[];
-	
-    /** Deleted nodes */
-    deleted: ITreeNode<T, TFilter>[];
+    readonly inserted: ITreeNode<T, TFilter>[];
 }
 
 /**
@@ -28,7 +25,6 @@ export interface ITreeCollapseStateChangeEvent<T, TFilter> {
  * T: represents the type of data is stored inside the node.
  * TFilter: represents the type of data for matching purpose, eg. {@link FuzzyScore}.
  */
-
 export interface ITreeNode<T, TFilter = void> extends ITreeNodeItem<T> {
     
     /** The corresponding stored user-defined data. */
@@ -114,6 +110,7 @@ export interface IFlexNode<T, TFilter = void> extends ITreeNode<T, TFilter> {
      * @note client should always remove ALL the old children (cannot delete 
      * partially) and this will be deleted after refreshed.
      */
+    // FIX: this field only works in normal version, but not flex version.
     oldChildren?: ITreeNode<T, TFilter>[];
 }
 

@@ -40,6 +40,9 @@ export const enum EventType {
 	wheel = 'wheel',
 
 	touchstart = 'touchstart',
+	touchmove = 'touchmove',
+	touchend = 'touchend',
+	touchcancel = 'touchcancel',
 
 	keydown = 'keydown',
 	keyup = 'keyup',

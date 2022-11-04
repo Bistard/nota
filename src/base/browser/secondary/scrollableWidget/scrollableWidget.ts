@@ -3,7 +3,8 @@ import { HorizontalScrollbar } from "src/base/browser/basic/scrollbar/horizontal
 import { VerticalScrollbar } from "src/base/browser/basic/scrollbar/verticalScrollbar";
 import { IWidget, Widget } from "src/base/browser/basic/widget";
 import { IScrollableWidgetExtensionOpts, IScrollableWidgetOpts, resolveScrollableWidgetExtensionOpts, ScrollbarType } from "src/base/browser/secondary/scrollableWidget/scrollableWidgetOptions";
-import { Register } from "src/base/common/event";
+import { DisposableManager, IDisposable } from "src/base/common/dispose";
+import { Emitter, Register } from "src/base/common/event";
 import { IScrollEvent, Scrollable } from "src/base/common/scrollable";
 
 export interface IScrollableWidget extends IWidget {
@@ -14,11 +15,8 @@ export interface IScrollableWidget extends IWidget {
     /** Fires after scrolling happens. */
     onDidScroll: Register<IScrollEvent>;
 
-    /**
-     * @description Returns the inside {@link Scrollable}.
-     */
+    /** @description Returns the inside {@link Scrollable}. */
     getScrollable(): Scrollable;
-
 }
 
 /**
@@ -30,7 +28,7 @@ export class ScrollableWidget extends Widget implements IScrollableWidget {
 
     // [fields]
 
-    private _opts: IScrollableWidgetOpts;
+    private readonly _opts: IScrollableWidgetOpts;
 
     protected _scrollable: Scrollable;
     protected _scrollbar: AbstractScrollbar;
@@ -82,16 +80,21 @@ export class ScrollableWidget extends Widget implements IScrollableWidget {
     public override render(element: HTMLElement): void {
         super.render(element);
         
-        this._element!.classList.add('scrollable-element');
+        if (!this._element) {
+            return;
+        }
+
+        this._element.classList.add('scrollable-element');
         
         // scrollbar visibility
-        this.onMouseover(this._element!, () => this._onMouseover());
-        this.onMouseout(this._element!, () => this._onMouseout());
+        this.onMouseover(this._element, () => this._onMouseover());
+        this.onMouseout(this._element, () => this._onMouseout());
+        this.onTouchmove(this._element, () => this._onMouseover());
+        this.onTouchend(this._element, () => this._onMouseout());
+        this.onTouchcancel(this._element, () => this._onMouseout());
 
-        // register on mouse wheel listener
-        this.__registerMouseWheelListener();
+        this.__registerListeners();
 
-        // render scrollbar
         const scrollbarElement = document.createElement('div');
         this._scrollbar.render(scrollbarElement);
         this._scrollbar.hide();
@@ -104,12 +107,20 @@ export class ScrollableWidget extends Widget implements IScrollableWidget {
     /**
      * @description Register mouse wheel listener to the scrollable DOM element.
      */
-    private __registerMouseWheelListener(): void {
-        if (this._element === undefined) {
+    private __registerListeners(): void {
+        if (!this._element) {
             return;
         }
 
-        this.onWheel(this.element!, (event: WheelEvent) => { this.__onDidWheel(event) });
+        // mouse wheel scroll support
+        this.onWheel(this._element, event => this.__onDidWheel(event));
+        
+        // touchpad scroll support
+        if (this._opts.touchSupport) {
+            const touchController = new TouchController(this, this._scrollbar);
+            touchController.onDidTouchmove(delta => this.__actualScroll(delta));
+            this.__register(touchController);
+        }
     }
 
     /**
@@ -117,22 +128,30 @@ export class ScrollableWidget extends Widget implements IScrollableWidget {
      * @param event The scroll delta.
      */
     private __onDidWheel(event: WheelEvent): void {
-        
         event.preventDefault();
-
+        
         // no need for a scrollable (enough viewport for displaying)
         if (this._scrollable.required() === false) {
             return;
         }
 
-        const scrollDelta = this._scrollbar.getDelta(event) * this._opts.mouseWheelScrollSensibility;
+        const delta = this._scrollbar.getWheelDelta(event);
+        this.__actualScroll(delta);
+    }
 
-        // check if the scroll reaches the edge
+    /**
+     * @description Given a delta change in position, make a scroll.
+     * @param delta The delta in position.
+     */
+    private __actualScroll(delta: number): void {
+        delta *= this._opts.scrollSensibility;
+
+        // check if the scroll reaches the edges
         const currScrollPosition = this._scrollable.getScrollPosition();
         const maxScrollPosition = this._scrollable.getScrollSize() - this._scrollable.getViewportSize();
         if (
-            (currScrollPosition >= maxScrollPosition && scrollDelta > 0) ||
-            (currScrollPosition <= 0 && scrollDelta < 0)
+            (currScrollPosition >= maxScrollPosition && delta > 0) ||
+            (currScrollPosition <= 0 && delta < 0)
         ) {
             return;
         }
@@ -145,14 +164,13 @@ export class ScrollableWidget extends Widget implements IScrollableWidget {
          * in this case.
          */
         let newScrollPosition: number;
-        if (scrollDelta < 0) {
-            newScrollPosition = Math.max(0, Math.ceil(this._scrollable.getScrollPosition() + scrollDelta));
+        if (delta < 0) {
+            newScrollPosition = Math.max(0, Math.ceil(this._scrollable.getScrollPosition() + delta));
         } else {
-            newScrollPosition = Math.min(maxScrollPosition, Math.floor(this._scrollable.getScrollPosition() + scrollDelta));
+            newScrollPosition = Math.min(maxScrollPosition, Math.floor(this._scrollable.getScrollPosition() + delta));
         }
         
         this._scrollable.setScrollPosition(newScrollPosition);
-        
     }
 
     private _onSliderDragStart(): void {
@@ -178,5 +196,85 @@ export class ScrollableWidget extends Widget implements IScrollableWidget {
         if (!this._isSliderDragging) {
             this._scrollbar.hide();
         }
+    }
+}
+
+/**
+ * @internal
+ */
+class TouchController implements IDisposable {
+
+    // [field]
+
+    private static readonly TOUCH_SENSIBILITY = 1.5;
+
+    private readonly _widget: ScrollableWidget;
+    private readonly _scrollbar: AbstractScrollbar;
+    private readonly _disposables: DisposableManager;
+    private _currPosition: number;
+
+    // [event]
+
+    private readonly _onDidTouchmove = new Emitter<number>();
+    public readonly onDidTouchmove = this._onDidTouchmove.registerListener;
+
+    // [constructor]
+
+    constructor(widget: ScrollableWidget, scrollbar: AbstractScrollbar) {
+        
+        this._widget = widget;
+        this._scrollbar = scrollbar;
+        this._currPosition = -1;
+        this._disposables = new DisposableManager();
+        
+        if (!widget.element) {
+            return;
+        }
+
+        const element = widget.element;
+
+        const onTouchStart = widget.onTouchstart(element, (event: TouchEvent) => {
+            if (!element || event.changedTouches.length == 0) {
+                return;
+            }
+
+            const disposables = new DisposableManager();
+            const touch = event.changedTouches[0]!;
+            this._currPosition = this._scrollbar.getTouchPosition(touch);
+
+            disposables.register(widget.onTouchmove(element, (e) => this.__onTouchmove(e)));
+            disposables.register(widget.onTouchcancel(element, () => disposables.dispose()));
+            disposables.register(widget.onTouchend(element, () => disposables.dispose()));
+        });
+        
+        this._disposables.register(this._onDidTouchmove);
+        this._disposables.register(onTouchStart);
+    }
+
+    // [public method]
+     
+    public dispose(): void {
+        this._disposables.dispose();
+    }
+
+    // [private helper methods]
+
+    private __onTouchmove(event: TouchEvent): void {
+        if (event.changedTouches.length == 0) {
+            return;
+        }
+        
+        if (this._widget.getScrollable().required() === false) {
+            return;
+        }
+
+        event.preventDefault();
+
+        const touch = event.changedTouches[0]!;
+        const touchPosition = this._scrollbar.getTouchPosition(touch);
+        const delta = this._currPosition - touchPosition;
+
+        this._currPosition = touchPosition;
+        this._onDidTouchmove.fire(delta * TouchController.TOUCH_SENSIBILITY);
     }
 }

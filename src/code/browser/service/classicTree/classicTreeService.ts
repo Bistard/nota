@@ -24,8 +24,8 @@ export class ClassicTreeService extends Disposable implements IClassicTreeServic
 
     // [event]
 
-    get onDidClick(): Register<ClassicOpenEvent> {
-        return this._tree!.onDidClick;
+    get onOpen(): Register<ClassicOpenEvent<ClassicItem>> {
+        return this._tree!.onOpen;
     };
 
     // [field]
@@ -60,14 +60,35 @@ export class ClassicTreeService extends Disposable implements IClassicTreeServic
     
     public async init(container: HTMLElement, root: URI): Promise<void> {
         try {
-            const IFilterOpts: IFilterOpts = {
+            const filterOpts: IFilterOpts = {
                 exclude: this.configService.get<string[]>(BuiltInConfigScope.User, 'actionView.explorer.exclude', []).map(s => new RegExp(s)),
                 include: this.configService.get<string[]>(BuiltInConfigScope.User, 'actionView.explorer.include', []).map(s => new RegExp(s)),
             };
 
+            // resolve the root of the directory first
             const rootStat = await this.fileService.stat(root, { resolveChildren: true });
-            const rootItem = new ClassicItem(rootStat, null, IFilterOpts);
-            await this.__createTree(container, rootItem, IFilterOpts);
+            const rootItem = new ClassicItem(rootStat, null, filterOpts);
+            
+            // create the actual file system hierarchy
+            this._tree = this.__register(
+                new ClassicTree<ClassicItem, FuzzyScore>(
+                    container, 
+                    rootItem,
+                    {
+                        itemProvider: new ClassicItemProvider(), 
+                        renderers: [new ClassicRenderer()],
+                        childrenProvider: new ClassicChildrenProvider(this.logService, this.fileService, filterOpts),
+                        identityProvider: { getID: (data: ClassicItem) => URI.toString(data.uri) },
+                        
+                        // optional
+                        collapsedByDefault: true,
+                        filter: new ClassicFilter(),
+                        dnd: new ClassicDragAndDropProvider(),
+                    },
+                )
+            );
+
+            await this._tree.refresh();
         }
         catch (error) {
             throw error;
@@ -84,35 +105,5 @@ export class ClassicTreeService extends Disposable implements IClassicTreeServic
     
     public async close(): Promise<void> {
         // TODO
-    }
-    
-    // [private helper methods]
-
-    /**
-     * @description Creates the tree structure by the given URI asynchronously.
-     * @param container The HTMLElement container of the tree view.
-     * @param root The root element of the tree.
-     * @param filters The filter options during tree creation.
-     * 
-     * @note The related event will fire once the tree is created.
-     */
-    private async __createTree(container: HTMLElement, root: ClassicItem, filters: IFilterOpts): Promise<void> {
-
-        this._tree = new ClassicTree<ClassicItem, FuzzyScore>(
-            container, 
-            root,
-            [new ClassicRenderer()], 
-            new ClassicItemProvider(),
-            {
-                collapsedByDefault: true,
-                filter: new ClassicFilter(),
-                dnd: new ClassicDragAndDropProvider(),
-                childrenProvider: new ClassicChildrenProvider(this.logService, this.fileService, filters),
-            },
-        );
-
-        this.__register(this._tree);
-
-        return this._tree.refresh();
     }
 }

@@ -10,6 +10,7 @@ import { ITreeModel, ITreeSpliceEvent, ITreeNode, ITreeNodeItem, ITreeCollapseSt
 export interface IMultiTreeModelBase<T, TFilter> extends ITreeModel<T, TFilter, T> {
     /**
      * @description Returns the number of nodes in the current tree model.
+     * @complexity O(1)
      */
     size(): number;
 }
@@ -44,6 +45,12 @@ export interface IFlexMultiTreeModel<T, TFilter> extends IMultiTreeModelBase<T, 
      * @param opts The option for splicing.
      */
     refresh(node?: IFlexNode<T, TFilter>, opts?: ITreeModelSpliceOptions<T, TFilter>): void;
+
+    /**
+     * @description See details in {@link IFlexIndexTreeModel.triggerOnDidSplice}.
+     * @param event The event to be fired.
+     */
+    triggerOnDidSplice(event: ITreeSpliceEvent<T, TFilter>): void;
 }
 
 /**
@@ -190,11 +197,11 @@ abstract class MultiTreeModelBase<T, TFilter> implements IMultiTreeModelBase<T, 
             // prevent accidently delete what we just inserted.
             if (inserted.has(node.data) === false) {
                 this._nodes.delete(node.data);
-            }
 
-            // other callback
-            if (opts.onDidDeleteNode) {
-                opts.onDidDeleteNode(node);
+                // other callback
+                if (opts.onDidDeleteNode) {
+                    opts.onDidDeleteNode(node);
+                }
             }
         }
 
@@ -291,5 +298,9 @@ export class FlexMultiTreeModel<T, TFilter> extends MultiTreeModelBase<T, TFilte
             node,
             this.__createSpliceOptions(opts),
         );
+    }
+
+    public triggerOnDidSplice(event: ITreeSpliceEvent<T, TFilter>): void {
+        this._model.triggerOnDidSplice(event);
     }
 }

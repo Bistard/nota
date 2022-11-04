@@ -86,7 +86,7 @@ export class BrowserFileChannel extends Disposable implements IFileService {
         const wrapperStream = newWriteableBufferStream();
 
         // TODO
-        // FIX
+        // FIX: readFileStream does not work
         const listener = this._channel.registerListener(FileCommand.readFileStream, [uri, opts]);
 
         return wrapperStream;

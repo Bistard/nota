@@ -90,8 +90,11 @@ export class MainLifecycleService extends AbstractLifecycleService<LifecyclePhas
 
     constructor(@ILogService logService: ILogService) {
         super('Main', LifecyclePhase.Starting, parsePhaseString, logService);
-        this.when(LifecyclePhase.Ready).then(() => this.__registerListeners());
+        this.when(LifecyclePhase.Ready)
+            .then(() => this.__registerListeners());
     }
+
+    // [public methods]
 
     public override async quit(): Promise<void> {
         if (this._pendingQuitBlocker) {

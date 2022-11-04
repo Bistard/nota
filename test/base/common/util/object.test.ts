@@ -1,5 +1,6 @@
 import * as assert from 'assert';
-import { deepCopy, mixin, nullObject } from 'src/base/common/util/object';
+import { deepCopy, mixin } from 'src/base/common/util/object';
+import { nullObject } from 'test/util/helpers';
 
 suite('object-test', () => {
 

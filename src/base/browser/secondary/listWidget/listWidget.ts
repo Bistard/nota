@@ -1,699 +1,27 @@
-import { IListViewRenderer, PipelineRenderer, RendererType } from "src/base/browser/secondary/listView/listRenderer";
-import { IListViewOpts, IViewItem, IViewItemChangeEvent, ListError, ListView } from "src/base/browser/secondary/listView/listView";
-import { DisposableManager, IDisposable } from "src/base/common/dispose";
-import { addDisposableListener, DomEmitter, DomUtility, EventType, requestAnimate } from "src/base/browser/basic/dom";
-import { Emitter, Event, Register, SignalEmitter } from "src/base/common/event";
-import { IScrollEvent } from "src/base/common/scrollable";
 import { IListItemProvider } from "src/base/browser/secondary/listView/listItemProvider";
-import { IListDragAndDropProvider, ListWidgetDragAndDropProvider } from "src/base/browser/secondary/listWidget/listWidgetDragAndDrop";
-import { memoize } from "src/base/common/memoization";
-import { hash } from "src/base/common/util/hash";
-import { Arrays } from "src/base/common/util/array";
-import { IS_MAC } from "src/base/common/platform";
+import { IListViewRenderer, PipelineRenderer } from "src/base/browser/secondary/listView/listRenderer";
+import { IListViewOpts, IViewItemChangeEvent, ListError, ListView } from "src/base/browser/secondary/listView/listView";
+import { IList } from "src/base/browser/secondary/listWidget/list";
+import { IListDragAndDropProvider, ListWidgetDragAndDropController } from "src/base/browser/secondary/listWidget/listWidgetDragAndDrop";
+import { ListWidgetKeyboardController } from "src/base/browser/secondary/listWidget/listWidgetKeyboardController";
+import { ListWidgetMouseController } from "src/base/browser/secondary/listWidget/listWidgetMouseController";
+import { ListTrait } from "src/base/browser/secondary/listWidget/listWidgetTrait";
+import { IIdentiityProivder } from "src/base/browser/secondary/tree/asyncTree";
+import { Disposable, IDisposable } from "src/base/common/dispose";
+import { Event, Register, SignalEmitter } from "src/base/common/event";
 import { createStandardKeyboardEvent, IStandardKeyboardEvent, KeyCode } from "src/base/common/keyboard";
+import { memoize } from "src/base/common/memoization";
 import { IRange } from "src/base/common/range";
+import { IScrollEvent } from "src/base/common/scrollable";
 import { isNumber, NulltoUndefined } from "src/base/common/util/type";
 
 /**
- * The index changed in {@link __ListTrait}.
+ * The index changed in {@link ListTrait}.
  */
 export interface ITraitChangeEvent {
 
     /** The new indices with the corresponding trait. */
     indice: number[];
-}
-
-/**
- * @class A {@link __ListTrait} implements a set of methods for toggling one type 
- * of the characteristic of items in {@link ListWidget}, such as item selecting
- * and focusing.
- * 
- * @warn SHOULD NOT BE USED DIRECTLY.
- */
-class __ListTrait<T> implements IDisposable {
-
-    // [field]
-
-    /** A trait is a string that represents an CSS class. */
-    public trait: string;
-
-    private _onDidChange = new Emitter<ITraitChangeEvent>();
-    public onDidChange = this._onDidChange.registerListener;
-
-    private indices: number[] = [];
-    private _getHTMLElement!: (index: number) => HTMLElement | null;
-
-    /** For fast querying */
-    private indicesSet: Set<number> | undefined = undefined;
-
-    // [constructor]
-
-    constructor(trait: string) {
-        this.trait = trait;
-    }
-
-    // [public method]
-
-    set getHTMLElement(value: (index: number) => HTMLElement | null) {
-        this._getHTMLElement = value;
-    }
-
-    /**
-     * @description Sets the given items with the current trait.
-     * @param indice The indice of the items.
-     * @param fire If fires the onDidChange event.
-     */
-    public set(indice: number[], fire: boolean = true): void {
-        
-        const oldIndice = this.indices;
-        this.indices = indice;
-        this.indicesSet = undefined;
-
-        const toUnrender = Arrays.relativeComplement(indice, oldIndice);
-        const toRender = Arrays.relativeComplement(oldIndice, indice);
-
-        if (this._getHTMLElement) {
-            for (const index of toUnrender) {
-                const item = this._getHTMLElement(index);
-                if (item) {
-                    item.classList.toggle(this.trait, false);
-                }
-            }
-    
-            for (const index of toRender) {
-                const item = this._getHTMLElement(index);
-                if (item) {
-                    item.classList.toggle(this.trait, true);
-                }
-            }
-        }
-        
-        if (fire) {
-            this._onDidChange.fire({ indice });
-        }
-    }
-
-    /**
-     * @description Returns how many items has such trait.
-     */
-    public size(): number {
-        return this.indices.length;
-    }
-
-    /**
-     * @description Returns all the indices of items with the current trait.
-     */
-    public items(): number[] {
-        return this.indices;
-    }
-
-    /**
-     * @description Determines if the item with the given index has the current
-     * trait.
-     * @param index The index of the item.
-     */
-    public has(index: number): boolean {
-        if (!this.indicesSet) {
-            this.indicesSet = new Set();
-            this.indices.forEach(index => this.indicesSet!.add(index));
-        }
-        return this.indicesSet.has(index);
-    }
-
-    /**
-     * @description All the listeners will be removed and indices will be reset.
-     */
-    public dispose(): void {
-        this._onDidChange.dispose();
-        this.indices = [];
-    }
-
-}
-
-
-/**
- * @class A type of {@link IListViewRenderer} for rendering {@link __ListTrait}.
- */
-class __ListTraitRenderer<T> implements IListViewRenderer<T, HTMLElement> {
-
-    public readonly type: RendererType;
-
-    private _trait: __ListTrait<T>;
-
-    constructor(trait: __ListTrait<T>) {
-        this._trait = trait;
-        this.type = hash(this._trait.trait);
-    }
-
-    public render(element: HTMLElement): HTMLElement {
-        return element;
-    }
-
-    public update(item: T, index: number, data: HTMLElement, size?: number): void {
-        if (this._trait.has(index)) {
-            data.classList.toggle(this._trait.trait, true);
-        } else {
-            data.classList.toggle(this._trait.trait, false);
-        }
-    }
-
-    public dispose(element: HTMLElement): void {
-        // do nothing
-    }
-
-}
-
-/**
- * @internal
- * @class An internal class that handles the mouse support of {@link IListWidget}.
- * It handles:
- *  - when to focus DOM
- *  - when to focus item
- *  - when to select item(s)
- * 
- * @readonly EXPORT FOR OTHER MODULES ONLY. DO NOT USE DIRECTLY.
- */
-export class ListWidgetMouseController<T> implements IDisposable {
-
-    // [fields]
-
-    private _disposables = new DisposableManager();
-    private _view: IListWidget<T>;
-
-    private _multiSelectionSupport: boolean = true;
-
-    // [constructor]
-
-    constructor(
-        view: IListWidget<T>,
-        opts: IListWidgetOpts<T>
-    ) {
-        this._view = view;
-
-        this._view.DOMElement.classList.add('mouse-support');
-
-        if (opts.multiSelectionSupport !== undefined) {
-            this._multiSelectionSupport = opts.multiSelectionSupport;
-        }
-
-        this._disposables.register(view.onMousedown(e => this.__onMouseDown(e)));
-        this._disposables.register(view.onClick(e => this.__onMouseClick(e)));
-    }
-
-    // [public methods]
-
-    public dispose(): void {
-        this._disposables.dispose();
-    }
-
-    // [protect methods]
-
-    protected __ifSupported(e: IListMouseEvent<T>): boolean {
-        if (DomUtility.isInputElement(e.browserEvent.target as HTMLElement)) {
-            return false;
-        }
-        return true;
-    }
-
-    /**
-     * @description Handles item focus and selection logic.
-     */
-    protected __onMouseClick(e: IListMouseEvent<T>): void {
-
-        if (this.__ifSupported(e) === false) {
-            return;
-        }
-
-        const toFocused = e.actualIndex;
-        
-        // clicking nowhere, we reset all the traits
-        if (toFocused === undefined) {
-            this._view.setFocus(null);
-            this._view.setAnchor(null);
-            this._view.setSelections([]);
-            return;
-        }
-
-        // check if selecting in range
-        if (this.__isSelectingInRangeEvent(e)) {
-            this.__multiSelectionInRange(e);
-            return;
-        } else if (this.__isSelectingInSingleEvent(e)) {
-            this._mutliSelectionInSingle(e);
-            return;
-        }
-
-        // normal click
-        this._view.setAnchor(toFocused);
-        this._view.setFocus(toFocused);
-        if (DomUtility.isMouseRightClick(e.browserEvent) === false) {
-            this._view.setSelections([toFocused]);
-        }
-    }
-
-    /**
-     * @description Determines if the event is selecting in range. In other words,
-     * pressing SHIFT.
-     */
-    protected __isSelectingInRangeEvent(e: IListMouseEvent<T>): boolean {
-        if (this._multiSelectionSupport === false) {
-            return false;
-        }
-        return e.browserEvent.shiftKey;
-    }
-
-    /**
-     * @description Determines if the event is selecting in single. In other words,
-     * pressing CTRL in Windows or META in Macintosh.
-     */
-    protected __isSelectingInSingleEvent(e: IListMouseEvent<T>): boolean {
-        if (this._multiSelectionSupport === false) {
-            return false;
-        }
-        return IS_MAC ? e.browserEvent.metaKey : e.browserEvent.ctrlKey;
-    }
-
-    // [private helper methods]
-
-    /**
-     * @description Focuses the event target element.
-     */
-    private __onMouseDown(e: IListMouseEvent<T>): void {
-        // prevent double focus
-        if (document.activeElement !== e.browserEvent.target) {
-			this._view.setDomFocus();
-		}
-    }
-
-    /**
-     * @description Applies multi-selection when selecting in range.
-     */
-    private __multiSelectionInRange(e: IListMouseEvent<T>): void {
-        const toFocused = e.actualIndex!;
-        let anchor = this._view.getAnchor();
-
-        // if no focus yet, we focus on the current.
-        if (anchor === null) {
-            anchor = this._view.getFocus() ?? toFocused;
-            this._view.setAnchor(anchor);
-        }
-
-        /**
-         * @readonly Below is not really a good implementation (could be optimized), 
-         * but works.
-         */
-
-        // calculates the selection range
-        const toSelectRange = Arrays.range(
-            Math.min(toFocused, anchor), 
-            Math.max(toFocused, anchor) + 1
-        );
-        const currSelection = this._view.getSelections().sort((a, b) => a - b);
-        const contiguousRange = this.__getNearestContiguousRange(Arrays.unique(Arrays.insert(currSelection, anchor)), anchor);
-        if (!contiguousRange.length) {
-            return;
-        }
-        const newSelection = Arrays.union(toSelectRange, 
-                                Arrays.union(
-                                    Arrays.relativeComplement(currSelection, contiguousRange), 
-                                    Arrays.relativeComplement(contiguousRange, currSelection)
-                                )
-                            );
-        
-        // update selections and focused
-        this._view.setSelections(newSelection);
-        this._view.setFocus(toFocused);
-    }
-
-    /**
-     * @description Applies multi-selection when selecting in single.
-     */
-    private _mutliSelectionInSingle(e: IListMouseEvent<T>): void {
-        const toFocused = e.actualIndex!;
-
-        const currSelection = this._view.getSelections();
-        const newSelection = Arrays.remove(currSelection, toFocused);
-
-        this._view.setFocus(toFocused);
-        this._view.setAnchor(toFocused);
-
-        if (newSelection.length === currSelection.length) {
-            // we are not removing any of the current selections
-            this._view.setSelections([...newSelection, toFocused]);
-        } else {
-            // we removed one of the selections
-            this._view.setSelections(newSelection);
-        }
-    }
-
-    private __getNearestContiguousRange(range: number[], anchor: number): number[] {
-        const index = range.indexOf(anchor);
-        if (index === -1) {
-            return [];
-        }
-
-        const result: number[] = [];
-        let i = index - 1;
-        while (i >= 0 && range[i] === anchor - (index - i)) {
-            result.push(range[i--]!);
-        }
-
-        result.reverse();
-        i = index;
-        while (i < range.length && range[i] === anchor + (i - index)) {
-            result.push(range[i++]!);
-        }
-
-        return result;
-    }
-}
-
-/**
- * @internal
- * @class An internal class that handles the keyboard support of {@link IListWidget}.
- * It handles:
- *  - enter
- *  - up
- *  - down
- *  - page up
- *  - page down
- *  - escape
- */
-class __ListWidgetKeyboardController<T> implements IDisposable {
-
-    // [field]
-
-    private _disposables = new DisposableManager();
-    private _view: IListWidget<T>;
-
-    // [constructor]
-
-    constructor(
-        view: IListWidget<T>
-    ) {
-        this._view = view;
-        this._disposables.register(this.onKeydown(e => this.__onDidKeydown(e)));
-    }
-
-    // [private getter]
-
-    @memoize private get onKeydown(): Register<IStandardKeyboardEvent> { return Event.filter(this._view.onKeydown, e => !DomUtility.isInputElement(e.target as HTMLElement)); }
-
-    // [public method]
-
-    public dispose(): void {
-        this._disposables.dispose();
-    }
-
-    // [private helper methods]
-
-    private __onDidKeydown(e: IStandardKeyboardEvent): void {
-        switch (e.key) {
-            case KeyCode.Enter:
-                this.__onEnter(e);
-                break;
-            case KeyCode.UpArrow:
-                this.__onUpArrow(e);
-                break;
-            case KeyCode.DownArrow:
-                this.__onDownArrow(e);
-                break;
-            case KeyCode.PageUp:
-                this.__onPageupArrow(e);
-                break;
-            case KeyCode.PageDown:
-                this.__onPagedownArrow(e);
-                break;
-            case KeyCode.Escape:
-                this.__onEscape(e);
-                break;
-            default:
-                break;
-        }
-    }
-
-    private __onEnter(e: IStandardKeyboardEvent): void {
-        e.preventDefault();
-		e.stopPropagation();
-        const focused = this._view.getFocus();
-        this._view.setSelections(focused !== null ? [focused] : []);
-    }
-
-    private __onUpArrow(e: IStandardKeyboardEvent): void {
-        if (this._view.getFocus() !== null) {
-            e.preventDefault();
-            e.stopPropagation();
-            const newFoused = this._view.focusPrev(1, false, undefined);
-            if (newFoused !== -1) {
-                this._view.setAnchor(newFoused);
-                this._view.reveal(newFoused, undefined);
-            }
-            this._view.setDomFocus();
-        }
-    }
-
-    private __onDownArrow(e: IStandardKeyboardEvent): void {
-        if (this._view.getFocus() !== null) {
-            e.preventDefault();
-            e.stopPropagation();
-            const newFoused = this._view.focusNext(1, false, undefined);
-            if (newFoused !== -1) {
-                this._view.setAnchor(newFoused);
-                this._view.reveal(newFoused, undefined);
-            }
-            this._view.setDomFocus();
-        }
-    }
-
-    private __onPageupArrow(e: IStandardKeyboardEvent): void {
-        e.preventDefault();
-		e.stopPropagation();
-        // TODO
-        console.warn('does not support pageup in ListWidget yet.');
-    }
-
-    private __onPagedownArrow(e: IStandardKeyboardEvent): void {
-        e.preventDefault();
-		e.stopPropagation();
-        // TODO
-        console.warn('does not support pagedown in ListWidget yet.');
-    }
-
-    private __onEscape(e: IStandardKeyboardEvent): void {
-        if (this._view.getSelections().length) {
-            e.preventDefault();
-		    e.stopPropagation();
-            this._view.setSelections([]);
-            this._view.setFocus(null);
-            this._view.setAnchor(null);
-			this._view.setDomFocus();
-        }
-    }
-
-}
-
-/**
- * @class An internal class that handles the dnd support of {@link IListWidget}.
- */
-export class __ListWidgetDragAndDropController<T> implements IDisposable {
-
-    // [field]
-
-    private _disposables = new DisposableManager();
-    private _view: IListWidget<T>;
-
-    private _provider!: ListWidgetDragAndDropProvider<T>;
-
-    private _currDragItems: T[] = []; // when drag starts this is the place to hold the dragging items
-    private _allowDrop: boolean = false;
-    private _scrollAnimationOnEdgeDisposable?: IDisposable;
-    private _scrollAnimationMouseTop?: number;
-
-    // [constructor]
-
-    constructor(
-        view: IListWidget<T>,
-        dragAndDropProvider: IListDragAndDropProvider<T>,
-        toListDragEvent: (e: DragEvent) => IListDragEvent<T>
-    ) {
-        this._view = view;
-        this._provider = new ListWidgetDragAndDropProvider(view, dragAndDropProvider);
-        this.__enableDragAndDropSupport(toListDragEvent);
-    }
-
-    // [public method]
-
-    public dispose(): void {
-        this._disposables.dispose();
-    }
-
-    // [private helper methods]
-
-    /**
-     * @description Enables the drag and drop (dnd) support in {@link ListView}.
-     */
-    private __enableDragAndDropSupport(converter: (e: DragEvent) => IListDragEvent<T>): void {
-        this._disposables.register(addDisposableListener(this._view.DOMElement, EventType.dragover, e => this.__onDragOver(converter(e))));
-        this._disposables.register(addDisposableListener(this._view.DOMElement, EventType.drop, e => this.__onDragDrop(converter(e))));
-        this._disposables.register(addDisposableListener(this._view.DOMElement, EventType.dragenter, e => this.__onDragEnter(converter(e))));
-        this._disposables.register(addDisposableListener(this._view.DOMElement, EventType.dragleave, e => this.__onDragLeave(converter(e))));
-        this._disposables.register(addDisposableListener(this._view.DOMElement, EventType.dragend, e => this.__onDragEnd(e)));
-
-        // dragstart listener
-        this._disposables.register(this._view.onInsertItemInDOM((e: IViewItemChangeEvent<T>) => this.__initItemWithDragStart(e.item, e.index)));
-        this._disposables.register(this._view.onRemoveItemInDOM((e: IViewItemChangeEvent<T>) => e.item.dragStart?.dispose()));
-    }
-
-    /**
-     * @description Initializes the dragstart event listener of the given list 
-     * item.
-     * @param item The given item.
-     * @param index The index of the item in the list view.
-     */
-    private __initItemWithDragStart(item: IViewItem<T>, index: number): void {
-        
-        // avoid weird stuff happens
-        if (item.dragStart) {
-            item.dragStart.dispose();
-        }
-
-        // get the drag data
-        const userData = this._provider.getDragData(item.data);
-
-        // make the HTMLElement actually draggable
-        item.row!.dom.draggable = !!userData;
-
-        // add event listener
-        if (userData) {
-            item.dragStart = addDisposableListener(item.row!.dom, EventType.dragstart, (e: DragEvent) => this.__onDragStart(item.data, userData, e));
-        }
-    }
-    
-    private __onDragStart(data: T, userData: string, event: DragEvent): void {
-        
-        if (event.dataTransfer === null) {
-            return;
-        }
-
-        const dragItems = this._provider.getDragItems(data);
-
-        event.dataTransfer.effectAllowed = 'copyMove';
-		event.dataTransfer.setData('text/plain', userData);
-        
-        // set the drag image
-        const tag = this._provider.getDragTag(dragItems);
-        const dragImage = document.createElement('div');
-        dragImage.className = 'list-drag-image';
-        dragImage.innerHTML = tag;
-        document.body.appendChild(dragImage);
-        event.dataTransfer.setDragImage(dragImage, -10, -10);
-        setTimeout(() => document.body.removeChild(dragImage), 0);
-        
-        this._currDragItems = dragItems;
-
-        if (this._provider.onDragStart) {
-            this._provider.onDragStart(event);
-        }
-    }
-
-    private __onDragOver(event: IListDragEvent<T>): void {
-    
-        // https://stackoverflow.com/questions/21339924/drop-event-not-firing-in-chrome
-        event.browserEvent.preventDefault();
-
-        // set up dnd scroll edge animation
-        this.__setScrollAnimationOnEdge(event.browserEvent);
-
-        if (event.browserEvent.dataTransfer === null) {
-            return;
-        }
-        
-        // notify client
-        const allowDrop = this._provider.onDragOver(event.browserEvent, this._currDragItems, event.item, event.actualIndex);
-        this._allowDrop = allowDrop;
-        if (!allowDrop) {
-            return;
-        }
-
-        // set drop type
-        event.browserEvent.dataTransfer.dropEffect = 'move';
-    }
-
-    private __onDragDrop(event: IListDragEvent<T>): void {
-        
-        // do not allow to drop, we ignore the event
-        if (this._allowDrop === false) {
-            return;
-        }
-        
-        // get the data
-        const dragItems = this._currDragItems;
-
-        // clear dragover meatadata
-        this.__clearDragoverData();
-
-        // no data to drop
-        if (event.browserEvent.dataTransfer === null || dragItems.length === 0) {
-            return;
-        }
-
-        // notify client
-        event.browserEvent.preventDefault();
-        this._provider.onDragDrop(event.browserEvent, dragItems, event.item, event.actualIndex);
-    }
-
-    private __onDragEnter(event: IListDragEvent<T>): void {
-        // notify client
-        this._provider.onDragEnter(event.browserEvent, this._currDragItems, event.item, event.actualIndex);
-    }
-
-    private __onDragLeave(event: IListDragEvent<T>): void {
-        // notify client
-        this._provider.onDragLeave(event.browserEvent, this._currDragItems, event.item, event.actualIndex);
-    }
-
-    private __onDragEnd(event: DragEvent): void {
-        
-        // clear dragover meatadata
-        this.__clearDragoverData();
-
-        // notify client
-        this._provider.onDragEnd(event);
-    }
-
-    private __clearDragoverData(): void {
-        this._currDragItems = [];
-        this._allowDrop = false;
-        this._scrollAnimationMouseTop = undefined;
-        this._scrollAnimationOnEdgeDisposable?.dispose();
-        this._scrollAnimationOnEdgeDisposable = undefined;
-    }
-
-    // [private animation helper methods]
-
-    private __setScrollAnimationOnEdge(event: DragEvent): void {
-        if (!this._scrollAnimationOnEdgeDisposable) {
-            const top = DomUtility.getViewportTop(this._view.DOMElement);
-            this._scrollAnimationOnEdgeDisposable = requestAnimate(() => this.__animationOnEdge(top));
-        }
-        this._scrollAnimationMouseTop = event.pageY;
-    }
-
-    private __animationOnEdge(viewTop: number): void {
-        if (this._scrollAnimationMouseTop === undefined) {
-            return;
-        }
-
-        const diff = this._scrollAnimationMouseTop - viewTop;
-		const upperLimit = this._view.getViewportSize() - 35;
-        const scrollPosition = this._view.getScrollPosition();
-        
-		if (diff < 35) {
-			this._view.setScrollPosition(scrollPosition + Math.max(-14, Math.floor(0.3 * (diff - 35))));
-		} else if (diff > upperLimit) {
-            this._view.setScrollPosition(scrollPosition + Math.min(14, Math.floor(0.3 * (diff - upperLimit))));
-		}
-    }
 }
 
 /**
@@ -765,47 +93,12 @@ export interface IListContextmenuEvent<T> {
 }
 
 /**
- * The consturtor options for {@link ListWidget}.
- */
-export interface IListWidgetOpts<T> extends IListViewOpts<T> {
-    
-    /**
-     * A provider that has ability to provide Drag and Drop Support (dnd).
-     */
-    readonly dragAndDropProvider?: IListDragAndDropProvider<T>;
-
-    /** 
-     * If allows mouse support. 
-     * @default true
-     */
-    readonly mouseSupport?: boolean;
-
-    /**
-     * If allows mutiple selection support.
-     * @default true
-     */
-    readonly multiSelectionSupport?: boolean;
-
-    /**
-     * If allows keyboard support.
-     * @default true
-     */
-    readonly keyboardSupport?: boolean;
-
-}
-
-/**
  * The interface for {@link ListWidget}.
  */
-export interface IListWidget<T> extends IDisposable {
+export interface IListWidget<T> extends IList<T>, IDisposable {
     
     // [events / getter]
     
-    /**
-     * The container of the whole view.
-     */
-    readonly DOMElement: HTMLElement;
-
     /** Fires when the {@link IListWidget} is scrolling. */
     get onDidScroll(): Register<IScrollEvent>;
     
@@ -817,15 +110,6 @@ export interface IListWidget<T> extends IDisposable {
 
     /** Fires when the selected items in the {@link IListWidget} is changed. */
     get onDidChangeItemSelection(): Register<ITraitChangeEvent>;
-
-    /** Fires when an DOM element is inserted into the DOM tree. */
-    get onInsertItemInDOM(): Register<IViewItemChangeEvent<T>>;
-
-    /** Fires when an DOM element is updated the DOM tree. */
-    get onUpdateItemInDOM(): Register<IViewItemChangeEvent<T>>;
-
-    /** Fires when an DOM element is removed from DOM tree. */
-    get onRemoveItemInDOM(): Register<IViewItemChangeEvent<T>>;
 
     /** Fires when the item in the {@link IListWidget} is clicked. */
     get onClick(): Register<IListMouseEvent<T>>;
@@ -871,80 +155,6 @@ export interface IListWidget<T> extends IDisposable {
      *      - Shift F10
      */
     get onContextmenu(): Register<IListContextmenuEvent<T>>;
-
-    // [methods]
-
-    /**
-     * @description Given the height, re-layouts the height of the whole view.
-     * @param height The given height.
-     * 
-     * @note If no values are provided, it will sets to the height of the 
-     * corresponding DOM element of the view.
-     */
-    layout(height?: number): void;
-
-    /**
-     * @description Rerenders the whole view.
-     */
-    rerender(): void;
-
-    /**
-     * @description Deletes an amount of elements in the {@link IListWidget} at 
-     * the given index, if necessary, inserts the provided items after the given 
-     * index.
-     * @param index The given index.
-     * @param deleteCount The amount of items to be deleted.
-     * @param items The items to be inserted.
-     */
-    splice(index: number, deleteCount: number, items: T[]): void;
-
-    /**
-     * @description Reveals (does not scroll to) the item in the {@link IListWidget} 
-     * with the given index.
-     * @param index The index of the revealing item.
-     * @param relativePositionPercentage A percentage indicates the relative 
-     * position of the revealed item. Must be in range [0, 1]. If not provided,
-     * it will adjust the item to the edge depending on which side from revealing.
-     */
-    reveal(index: number, relativePositionPercentage?: number): void;
-
-    /**
-     * @description Sets the current view as focused in DOM tree.
-     */
-    setDomFocus(): void;
-
-    /**
-     * @description Sets the viewport size of the list view.
-     * @param size The size of viewport.
-     */
-    setViewportSize(size: number): void;
-
-    /**
-     * @description Sets the scrollable position (top) of the list view.
-     * @param position The numerated size.
-     */
-    setScrollPosition(position: number): void;
-
-    /**
-     * @description Returns the viewport size of the list view.
-     */
-    getViewportSize(): number;
-
-    /**
-     * @description Returns the scrollable position (top) of the list view.
-     */
-    getScrollPosition(): number;
-
-    /**
-     * @description Returns a range represents the visible items of the list view.
-     */
-    getVisibleRange(): IRange;
-
-    /**
-     * @description Returns the item at given index.
-     * @param index The index of the item.
-     */
-    getItem(index: number): T;
 
     // [item traits support]
 
@@ -1019,11 +229,41 @@ export interface IListWidget<T> extends IDisposable {
      * @returns The index of the newly focused item. -1 if not found.
      */
     focusPrev(prev: number, fullLoop: boolean, match?: (item: T) => boolean): number;
+}
+
+/**
+ * The consturtor options for {@link ListWidget}.
+ */
+export interface IListWidgetOpts<T> extends IListViewOpts<T> {
+    
+    /**
+     * A provider that has ability to provide Drag and Drop Support (dnd).
+     */
+    readonly dragAndDropProvider?: IListDragAndDropProvider<T>;
 
     /** 
-     * @description The number of items in the view (including unrendered ones).
+     * If allows mouse support. 
+     * @default true
      */
-    getItemCount(): number;
+    readonly mouseSupport?: boolean;
+
+    /**
+     * If allows mutiple selection support.
+     * @default true
+     */
+    readonly multiSelectionSupport?: boolean;
+
+    /**
+     * If allows keyboard support.
+     * @default true
+     */
+    readonly keyboardSupport?: boolean;
+
+    /**
+     * Provides functionality to determine the uniqueness of each 
+     * client-provided data.
+     */
+    readonly identityProvider?: IIdentiityProivder<T>;
 }
 
 /**
@@ -1034,24 +274,28 @@ export interface IListWidget<T> extends IDisposable {
  * pressing SHIFT will able to mutl-select in range, pressing escape key will
  * lose the current focus item and so on...
  * 
- * Extra Functionalities:
+*  @note You may overrride the corresponding protected methods to customize the
+ * behaviours.
+ * 
+ * Additional Functionalities:
  *  - mouse support (focus / selection)
  *  - keyboard support (enter / up / down / pageup / pagedown / escape)
  *  - drag and drop support
  */
-export class ListWidget<T> implements IListWidget<T> {
+export class ListWidget<T> extends Disposable implements IListWidget<T> {
 
     // [fields]
 
-    private disposables: DisposableManager;
-    private view: ListView<T>;
+    private readonly view: ListView<T>;
 
     /** User's selection. */
-    private selected: __ListTrait<T>;
+    private readonly selected: ListTrait<T>;
     /** Where the user's selection start. */
-    private anchor: __ListTrait<T>;
+    private readonly anchor: ListTrait<T>;
     /** Where the user's selection end. */
-    private focused: __ListTrait<T>;
+    private readonly focused: ListTrait<T>;
+
+    private readonly identityProvider?: IIdentiityProivder<T>;
 
     // [constructor]
 
@@ -1061,15 +305,16 @@ export class ListWidget<T> implements IListWidget<T> {
         itemProvider: IListItemProvider<T>, 
         opts: IListWidgetOpts<T> = {}
     ) {
-        this.disposables = new DisposableManager();
-
+        super();
+        
         // initializes all the item traits
-        this.selected = new __ListTrait<T>('selected');
-        this.anchor = new __ListTrait<T>('anchor');
-        this.focused = new __ListTrait<T>('focused');
+        this.selected = new ListTrait('selected');
+        this.anchor = new ListTrait('anchor');
+        this.focused = new ListTrait('focused');
+        this.identityProvider = opts.identityProvider;
 
         // integrates all the renderers
-        const baseRenderers = [new __ListTraitRenderer(this.selected), new __ListTraitRenderer(this.focused)];
+        const baseRenderers = [this.selected.renderer, this.focused.renderer];
         renderers = renderers.map(renderer => new PipelineRenderer(renderer.type, [...baseRenderers, renderer]));
         
         // construct list view
@@ -1081,30 +326,32 @@ export class ListWidget<T> implements IListWidget<T> {
 
         // mouse support integration (defaults on)
         if (opts.mouseSupport || opts.mouseSupport === undefined) {
-            const mouseController = this.__createListWidgetMouseController(opts);
-            this.disposables.register(mouseController);
+            const mouseController = this.__createMouseController(opts);
+            this.__register(mouseController);
         }
         
         // keyboard support integration
         if (opts.keyboardSupport || opts.mouseSupport === undefined) {
-            const keyboardController = new __ListWidgetKeyboardController(this);
-            this.disposables.register(keyboardController);
+            const keyboardController = this.__createKeyboardController(opts);
+            this.__register(keyboardController);
         }
         
         // drag and drop integration
         if (opts.dragAndDropProvider) {
-            const dndController = new __ListWidgetDragAndDropController(this, opts.dragAndDropProvider, e => this.__toListDragEvent(e));
-            this.disposables.register(dndController);
+            const dndController = this.__createDndController(opts);
+            this.__register(dndController);
         }
 
-        this.disposables.register(this.view);
-        this.disposables.register(this.selected);
-        this.disposables.register(this.focused);
+        this.__register(this.view);
+        this.__register(this.selected);
+        this.__register(this.focused);
+        this.__register(this.anchor);
     }
 
     // [getter / setter]
 
     get DOMElement(): HTMLElement { return this.view.DOMElement; }
+    get contentSize(): number { return this.view.contentSize; }
     
     get onDidScroll(): Register<IScrollEvent> { return this.view.onDidScroll; }
     get onDidChangeItemFocus(): Register<ITraitChangeEvent> { return this.focused.onDidChange; }
@@ -1112,27 +359,25 @@ export class ListWidget<T> implements IListWidget<T> {
     get onInsertItemInDOM(): Register<IViewItemChangeEvent<T>> { return this.view.onInsertItemInDOM; }
     get onUpdateItemInDOM(): Register<IViewItemChangeEvent<T>> { return this.view.onUpdateItemInDOM; }
     get onRemoveItemInDOM(): Register<IViewItemChangeEvent<T>> { return this.view.onRemoveItemInDOM; }
-    @memoize get onDidChangeFocus(): Register<boolean> { return this.disposables.register(new SignalEmitter<boolean, boolean>([Event.map(this.view.onDidFocus, () => true), Event.map(this.view.onDidBlur, () => false)], (e: boolean) => e)).registerListener; }
+    @memoize 
+    get onDidChangeFocus(): Register<boolean> { return this.__register(new SignalEmitter<boolean, boolean>([Event.map(this.view.onDidFocus, () => true), Event.map(this.view.onDidBlur, () => false)], (e: boolean) => e)).registerListener; }
     
-    @memoize get onClick(): Register<IListMouseEvent<T>> { return Event.map<MouseEvent, IListMouseEvent<T>>(this.view.onClick, e => this.__toListMouseEvent(e)); }
-    @memoize get onDoubleclick(): Register<IListMouseEvent<T>> { return Event.map<MouseEvent, IListMouseEvent<T>>(this.view.onDoubleclick, e => this.__toListMouseEvent(e));  }
-    @memoize get onMouseover(): Register<IListMouseEvent<T>> { return Event.map<MouseEvent, IListMouseEvent<T>>(this.view.onMouseover, e => this.__toListMouseEvent(e)); }
-    @memoize get onMouseout(): Register<IListMouseEvent<T>> { return Event.map<MouseEvent, IListMouseEvent<T>>(this.view.onMouseout, e => this.__toListMouseEvent(e)); }
-    @memoize get onMousedown(): Register<IListMouseEvent<T>> { return Event.map<MouseEvent, IListMouseEvent<T>>(this.view.onMousedown, e => this.__toListMouseEvent(e)); }
-    @memoize get onMouseup(): Register<IListMouseEvent<T>> { return Event.map<MouseEvent, IListMouseEvent<T>>(this.view.onMouseup, e => this.__toListMouseEvent(e)); }
-    @memoize get onMousemove(): Register<IListMouseEvent<T>> { return Event.map<MouseEvent, IListMouseEvent<T>>(this.view.onMousemove, e => this.__toListMouseEvent(e)); }
-    @memoize get onTouchstart(): Register<IListTouchEvent<T>> { return Event.map<TouchEvent, IListTouchEvent<T>>(this.view.onTouchstart, e => this.__toListTouchEvent(e)); }
+    get onClick(): Register<IListMouseEvent<T>> { return Event.map(this.view.onClick, e => this.__toListMouseEvent(e)); }
+    get onDoubleclick(): Register<IListMouseEvent<T>> { return Event.map(this.view.onDoubleclick, e => this.__toListMouseEvent(e));  }
+    get onMouseover(): Register<IListMouseEvent<T>> { return Event.map(this.view.onMouseover, e => this.__toListMouseEvent(e)); }
+    get onMouseout(): Register<IListMouseEvent<T>> { return Event.map(this.view.onMouseout, e => this.__toListMouseEvent(e)); }
+    get onMousedown(): Register<IListMouseEvent<T>> { return Event.map(this.view.onMousedown, e => this.__toListMouseEvent(e)); }
+    get onMouseup(): Register<IListMouseEvent<T>> { return Event.map(this.view.onMouseup, e => this.__toListMouseEvent(e)); }
+    get onMousemove(): Register<IListMouseEvent<T>> { return Event.map(this.view.onMousemove, e => this.__toListMouseEvent(e)); }
+    get onTouchstart(): Register<IListTouchEvent<T>> { return Event.map(this.view.onTouchstart, e => this.__toListTouchEvent(e)); }
 
-    @memoize get onKeydown(): Register<IStandardKeyboardEvent> { return Event.map<KeyboardEvent, IStandardKeyboardEvent>(this.view.onKeydown, e => createStandardKeyboardEvent(e)); }
-    @memoize get onKeyup(): Register<IStandardKeyboardEvent> { return Event.map<KeyboardEvent, IStandardKeyboardEvent>(this.view.onKeyup, e => createStandardKeyboardEvent(e)); }
-    @memoize get onKeypress(): Register<IStandardKeyboardEvent> { return Event.map<KeyboardEvent, IStandardKeyboardEvent>(this.view.onKeypress, e => createStandardKeyboardEvent(e)); }
-    @memoize get onContextmenu(): Register<IListContextmenuEvent<T>> { return this.__createContextmenuRegister(); }
+    get onKeydown(): Register<IStandardKeyboardEvent> { return Event.map(this.view.onKeydown, e => createStandardKeyboardEvent(e)); }
+    get onKeyup(): Register<IStandardKeyboardEvent> { return Event.map(this.view.onKeyup, e => createStandardKeyboardEvent(e)); }
+    get onKeypress(): Register<IStandardKeyboardEvent> { return Event.map(this.view.onKeypress, e => createStandardKeyboardEvent(e)); }
+    @memoize 
+    get onContextmenu(): Register<IListContextmenuEvent<T>> { return this.__createContextmenuRegister(); }
 
     // [methods]
-
-    public dispose(): void {
-        this.disposables.dispose();
-    }
 
     public layout(height?: number): void {
         this.view.layout(height);
@@ -1155,6 +400,10 @@ export class ListWidget<T> implements IListWidget<T> {
             throw new ListError(`splice invalid deleteCount: ${deleteCount}`);
         }
 
+        // traits react to splice
+        this.__traitSplice(index, deleteCount, items);
+
+        // actual view rendering
         this.view.splice(index, deleteCount, items);
     }
 
@@ -1269,14 +518,76 @@ export class ListWidget<T> implements IListWidget<T> {
         return this.view.getItemCount();
     }
 
-    // [private helper methods]
+    // [protected override methods]
 
     /**
      * @description Creates an instance of a {@link IListWidgetMouseController}.
-     * May override by the inheritance to customize the mouse behaviour.
+     * May override the behaviours by the inheritance to customize the mouse 
+     * behaviour.
      */
-    protected __createListWidgetMouseController(opts: IListWidgetOpts<T>): ListWidgetMouseController<T> {
+    protected __createMouseController(opts: IListWidgetOpts<T>): ListWidgetMouseController<T> {
         return new ListWidgetMouseController(this, opts);
+    }
+
+    /**
+     * @description Creates an instance of a {@link ListWidgetKeyboardController}.
+     * May override the behaviours by the inheritance to customize the keyboard
+     * behaviour.
+     */
+    protected __createKeyboardController(opts: IListWidgetOpts<T>): ListWidgetKeyboardController<T> {
+        return new ListWidgetKeyboardController(this);
+    }
+
+    /**
+     * @description Creates an instance of a {@link ListWidgetDragAndDropController}.
+     * May override the behaviours by the inheritance to customize the darg and
+     * drop behaviour.
+     */
+    protected __createDndController(opts: IListWidgetOpts<T>): ListWidgetDragAndDropController<T> {
+        return new ListWidgetDragAndDropController(this, opts.dragAndDropProvider!, e => this.__toListDragEvent(e));
+    }
+
+    // [private helper methods]
+
+    /**
+     * @description Updates trait indice after each splice.
+     */
+    private __traitSplice(index: number, deleteCount: number, items: readonly T[]): void {
+        
+        for (const trait of [this.anchor, this.focused, this.selected]) {
+            const reinserted: boolean[] = [];
+            
+            /**
+             * Assume all the inserted items are new (thus they have no existed 
+             * traits).
+             */
+            if (!this.identityProvider) {
+                for (const _ of items) {
+                    reinserted.push(false);
+                }
+            } 
+            /**
+             * Use identity provider to determine if the inserted items are
+             * re-inserted.
+             */
+            else {
+                const prevIDs: string[] = [];
+                for (const currTraitIdx of trait.items()) {
+                    const id = this.identityProvider.getID(this.getItem(currTraitIdx));
+                    prevIDs.push(id);
+                }
+                
+                for (const newTraitItem of items) {
+                    const id = this.identityProvider.getID(newTraitItem);
+                    const ifExisted = (prevIDs.indexOf(id) !== -1);
+                    reinserted.push(ifExisted);
+                }
+            }
+
+            // trait update
+            trait.splice(index, deleteCount, reinserted);
+            trait.renderer.splice(index, deleteCount, reinserted.length);
+        }
     }
 
     /**
@@ -1306,12 +617,11 @@ export class ListWidget<T> implements IListWidget<T> {
 
     private __createContextmenuRegister(): Register<IListContextmenuEvent<T>> {
         
-        
         // only used to detect if pressing down context menu key
-        this.onKeydown(e => {
+        this.__register(this.onKeydown(e => {
             e.browserEvent.preventDefault();
             e.browserEvent.stopPropagation();
-        });
+        }));
 
         // mouse right click
         const onMouse = Event.map<PointerEvent, IListContextmenuEvent<T>>(this.view.onContextmenu, e => this.__toContextmenuEvent(e));

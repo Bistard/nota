@@ -22,7 +22,6 @@ export interface IKeyboardScreenCastService extends IDisposable {
      * @description Stop listening to user's keypress.
      */
     dispose(): void;
-
 }
 
 /**
@@ -51,7 +50,7 @@ export class KeyboardScreenCastService implements IKeyboardScreenCastService {
     // [constructor]
     
     constructor(
-        @IKeyboardService private keyboardService: IKeyboardService,
+        @IKeyboardService private readonly keyboardService: IKeyboardService,
     ) {
         this._visibilityController = new VisibilityController('visible', 'invisible', 'fade');
         this._childrenCount = 0;

@@ -111,7 +111,7 @@ export class MainStatusService extends Disposable implements IMainStatusService 
     public async init(): Promise<void> {
         try {
             await this._storage.init();
-            this.logService.trace(`Main#StatusService#initialized at ${this._storage.resource.toString()}.`);
+            this.logService.trace(`Main#StatusService#initialized at ${URI.toString(this._storage.resource)}.`);
         } catch (error: any) {
             this.logService.error(error);
             throw error;
