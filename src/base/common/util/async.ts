@@ -347,9 +347,10 @@ export interface IScheduler<T> extends IDisposable {
 	 * event to the callback, the event will be stored as a buffer inside the
 	 * scheduler.
 	 * @param event Pass the event as the parameter to the callback.
+	 * @param clearBuffer If to clear the buffered event.
 	 * @param delay Defaults to the delay option passed into the constructor.
 	 */
-	schedule(event: T, delay?: number): void;
+	schedule(event: T, clearBuffer?: boolean, delay?: number): void;
 
 	/**
 	 * @description Determines if there is a scheduled execution.
@@ -382,8 +383,8 @@ export class Scheduler<T> implements IScheduler<T> {
 		this._delay = delay;
 	}
 
-	public schedule(event: T, delay: number = this._delay): void {
-		this.cancel();
+	public schedule(event: T, clearBuffer: boolean = false, delay: number = this._delay): void {
+		this.cancel(clearBuffer);
 		this._eventBuffer.push(event);
 		this._timeoutToken = setTimeout(() => {
 			const buffer = this._eventBuffer;
