@@ -7,8 +7,8 @@ import { Emitter, Register } from "src/base/common/event";
 import { IStandardKeyboardEvent } from "src/base/common/keyboard";
 import { ClassicItem } from "src/code/browser/service/classicTree/classicItem";
 
-export interface ClassicOpenEvent {
-    readonly item: ClassicItem;
+export interface ClassicOpenEvent<T extends ClassicItem> {
+    readonly item: T;
 }
 
 /** 
@@ -73,14 +73,14 @@ export class ClassicTreeWidget<T extends ClassicItem, TFilter> extends AsyncTree
 /**
  * An interface only for {@link ClassicTree}.
  */
-export interface IClassicTree<T, TFilter> extends IAsyncTree<T, TFilter> {
+export interface IClassicTree<T extends ClassicItem, TFilter> extends IAsyncTree<T, TFilter> {
 
     /**
      * Fires when a file / notepage in the explorer tree is about to be opened.
      */
-    readonly onOpen: Register<ClassicOpenEvent>;
+    readonly onOpen: Register<ClassicOpenEvent<T>>;
 
-    open(item: ClassicItem): void;
+    open(item: T): void;
 }
 
 /**
@@ -92,7 +92,7 @@ export class ClassicTree<T extends ClassicItem, TFilter> extends AsyncTree<T, TF
 
     // [event]
 
-    private readonly _onOpen = new Emitter<ClassicOpenEvent>();
+    private readonly _onOpen = new Emitter<ClassicOpenEvent<T>>();
     public readonly onOpen = this._onOpen.registerListener;
 
     // [constructor]
@@ -108,7 +108,7 @@ export class ClassicTree<T extends ClassicItem, TFilter> extends AsyncTree<T, TF
 
     // [public methods]
 
-    public open(item: ClassicItem): void {
+    public open(item: T): void {
         this._onOpen.fire({ item: item });
     }
 

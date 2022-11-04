@@ -24,7 +24,7 @@ export class ClassicTreeService extends Disposable implements IClassicTreeServic
 
     // [event]
 
-    get onOpen(): Register<ClassicOpenEvent> {
+    get onOpen(): Register<ClassicOpenEvent<ClassicItem>> {
         return this._tree!.onOpen;
     };
 
