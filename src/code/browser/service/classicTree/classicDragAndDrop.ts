@@ -1,6 +1,7 @@
 import { IListDragAndDropProvider } from "src/base/browser/secondary/listWidget/listWidgetDragAndDrop";
 import { URI } from "src/base/common/file/uri";
 import { FuzzyScore } from "src/base/common/fuzzy";
+import { Arrays } from "src/base/common/util/array";
 import { Scheduler } from "src/base/common/util/async";
 import { Mutable } from "src/base/common/util/type";
 import { ClassicItem } from "src/code/browser/service/classicTree/classicItem";
@@ -16,15 +17,22 @@ export class ClassicDragAndDropProvider implements IListDragAndDropProvider<Clas
 
     private readonly _tree!: IClassicTree<ClassicItem, FuzzyScore>;
     
-    private static readonly EXPAND_DELAY = 500;
-    private readonly _delayExpand: Scheduler<ClassicItem>;
+    private static readonly EXPAND_DELAY = 300;
+    private readonly _delayExpand: Scheduler<{ item: ClassicItem, index: number }>;
+    /**
+     * When dragging over an item, this array is a temporary place to store the 
+     * hoving subtree items. Used for unselecting them when the drag is over.
+     */
+    private _dragSelections: ClassicItem[] = [];
 
     // [constructor]
 
     constructor() {
-        this._delayExpand = new Scheduler(ClassicDragAndDropProvider.EXPAND_DELAY, (item) => {
-            const toExpandItem = item[0]!;
-            this._tree.expand(toExpandItem, false);
+
+        this._delayExpand = new Scheduler(ClassicDragAndDropProvider.EXPAND_DELAY, async (event) => {
+            const { item, index } = event[0]!;
+            await this._tree.expand(item);
+            this._dragSelections = this._tree.selectRecursive(item, index);
         });
     }
 
@@ -42,41 +50,98 @@ export class ClassicDragAndDropProvider implements IListDragAndDropProvider<Clas
     }
 
     public onDragStart(event: DragEvent): void {
-        console.log('drop start'); // TEST
+
     }
 
     public onDragEnter(event: DragEvent, currentDragItems: ClassicItem[], targetOver?: ClassicItem, targetIndex?: number): void {
-        if (!targetOver) {
+        console.log('[drag enter]'); // TEST
+        
+        if (!targetOver || !targetIndex) {
             return;
         }
 
-        this._delayExpand.schedule(targetOver, true);
-    }
+        // simulate hover effect
+        this._tree.setSelections([targetOver]);
 
-    public onDragLeave(event: DragEvent, currentDragItems: ClassicItem[], targetOver?: ClassicItem, targetIndex?: number): void {
-        if (!targetOver) {
+        // the target is not collapsible
+        if (!this._tree.isCollapsible(targetOver)) {
             this._delayExpand.cancel(true);
             return;
         }
+
+        // the target is collapsed thus it requies a delay of expanding
+        if (this._tree.isCollapsed(targetOver)) {
+            this._delayExpand.schedule({ item: targetOver, index: targetIndex }, true);
+            return;
+        }
+
+        // the target is already expanded, select it immediately.
+        this._delayExpand.cancel(true);
+        this._dragSelections = this._tree.selectRecursive(targetOver, targetIndex);
+        console.log('[drag selections] immediately', this._dragSelections);
+    }
+
+    public onDragLeave(event: DragEvent, currentDragItems: ClassicItem[], targetOver?: ClassicItem, targetIndex?: number): void {
+        console.log('[drag leave]'); // TEST
         
-        console.log('leave item: ', targetOver?.name); // TEST
+        if (!targetOver || !targetIndex) {
+            this.__removeDragSelections();
+            this._delayExpand.cancel(true);
+            return;
+        }
     }
 
     public onDragOver(event: DragEvent, currentDragItems: ClassicItem[], targetOver?: ClassicItem | undefined, targetIndex?: number | undefined): boolean {
+        console.log('[drag over]'); // TEST
+        
+        if (!targetOver || !targetIndex) {
+            this.__removeDragSelections();
+            this._delayExpand.cancel(true);
+            return false;
+        }
         return true;
     }
 
     public onDragDrop(event: DragEvent, currentDragItems: ClassicItem[], targetOver?: ClassicItem | undefined, targetIndex?: number | undefined): void {
-        console.log('drop item: ', targetOver?.name); // TEST
+        console.log('[drag drop]'); // TEST
+
+        // dropping target is invalid
+        if (!targetOver || !targetIndex) {
+            return;
+        }
+        
+        // expand immediately
+        this._delayExpand.cancel(true);
+        this._tree.expand(targetOver);
+        
+        this.__removeDragSelections();
     }
 
     public onDragEnd(event: DragEvent): void {
-        console.log('drop end'); // TEST
+        console.log('[drag end]'); // TEST
+        this._delayExpand.cancel(true);
+        this.__removeDragSelections();
     }
 
     // [public helper methods]
 
     public bindWithTree(tree: IClassicTree<ClassicItem, FuzzyScore>): void {
         (<Mutable<typeof tree>>this._tree) = tree;
+    }
+
+    // [private helper methods]
+
+    private __removeDragSelections(): void {
+        if (this._dragSelections.length === 0) {
+            return;
+        }
+
+        console.log('[removed drag selections]');
+        
+        const currSelections = this._tree.getSelections();
+        const updatedSelections = Arrays.relativeComplement(this._dragSelections, currSelections);
+
+        this._tree.setSelections(updatedSelections);
+        this._dragSelections = [];
     }
 }

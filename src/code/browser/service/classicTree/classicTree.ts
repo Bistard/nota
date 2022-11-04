@@ -72,6 +72,7 @@ export class ClassicTreeWidget<T extends ClassicItem, TFilter> extends AsyncTree
 
 /**
  * An interface only for {@link ClassicTree}.
+ * // TODO
  */
 export interface IClassicTree<T extends ClassicItem, TFilter> extends IAsyncTree<T, TFilter> {
 
@@ -81,12 +82,13 @@ export interface IClassicTree<T extends ClassicItem, TFilter> extends IAsyncTree
     readonly onSelect: Register<ClassicOpenEvent<T>>;
 
     /**
-     * @description // TODO
+     * @description
      * @param item 
      * 
      * @note Will reveal to the item if not visible (not rendered).
      */
     select(item: T): void;
+    selectRecursive(item: T, index: number): T[];
 }
 
 /**
@@ -120,7 +122,23 @@ export class ClassicTree<T extends ClassicItem, TFilter> extends AsyncTree<T, TF
             this.reveal(item);
         }
 
+        this.setFocus(item);
+        this.setSelections([item]);
+
         this._select.fire({ item: item });
+    }
+
+    public selectRecursive(item: T, index: number): T[] {
+        const subTreeSize = this.getVisibleNodeCount(item);
+        const toSelected: T[] = [];
+        for (let i = 0; i < subTreeSize; i++) {
+            const currIndex = index + i;
+            const item = this.getItem(currIndex);
+            toSelected.push(item);
+        }
+
+        this.setSelections(toSelected);
+        return toSelected;
     }
 
     // [protected override method]
