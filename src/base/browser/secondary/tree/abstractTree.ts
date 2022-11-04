@@ -548,6 +548,12 @@ export interface IAbstractTree<T, TFilter, TRef> extends IDisposable {
     expand(location: TRef, recursive: boolean): boolean | Promise<boolean>;
     
     /**
+     * @description Reveals (does not scroll to) the tree node.
+     * @param location The location representation of the node.
+     */
+    reveal(location: TRef): void;
+
+    /**
      * @description Toggles the state of collapse or expand to the tree node with
      * the given location.
      * @param location The location representation of the node.
@@ -762,6 +768,11 @@ export abstract class AbstractTree<T, TFilter, TRef> extends Disposable implemen
 
     public expand(location: TRef, recursive: boolean = false): boolean {
         return this._model.setCollapsed(location, false, recursive);
+    }
+
+    public reveal(location: TRef): void {
+        const index = this._model.getNodeListIndex(location);
+        this._view.reveal(index, undefined);
     }
 
     public toggleCollapseOrExpand(location: TRef, recursive: boolean = false): boolean {

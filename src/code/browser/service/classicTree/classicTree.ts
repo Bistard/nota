@@ -80,6 +80,12 @@ export interface IClassicTree<T extends ClassicItem, TFilter> extends IAsyncTree
      */
     readonly onSelect: Register<ClassicOpenEvent<T>>;
 
+    /**
+     * @description // TODO
+     * @param item 
+     * 
+     * @note Will reveal to the item if not visible (not rendered).
+     */
     select(item: T): void;
 }
 
@@ -109,6 +115,11 @@ export class ClassicTree<T extends ClassicItem, TFilter> extends AsyncTree<T, TF
     // [public methods]
 
     public select(item: T): void {
+        
+        if (!this.isItemVisible(item)) {
+            this.reveal(item);
+        }
+
         this._select.fire({ item: item });
     }
 

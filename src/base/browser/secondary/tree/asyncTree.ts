@@ -113,7 +113,7 @@ export interface IAsyncTree<T, TFilter> extends IMultiTreeBase<T, TFilter> {
      * nodes, thus asynchronous is required.
      */
     expand(data: T, recursive?: boolean): Promise<boolean>;
-     
+
     /**
      * @description Toggles the state of collapse or expand to the tree node with
      * the given data.
@@ -420,6 +420,10 @@ export class AsyncTree<T, TFilter> extends Disposable implements IAsyncTree<T, T
         }
 
         return successOrNot;
+    }
+
+    public reveal(data: T): void {
+        this._tree.reveal(data);
     }
 
     public async toggleCollapseOrExpand(data: T, recursive?: boolean): Promise<boolean> {
