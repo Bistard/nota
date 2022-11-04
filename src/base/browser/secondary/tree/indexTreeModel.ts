@@ -51,12 +51,6 @@ export interface IIndexTreeModelBase<T, TFilter> extends ITreeModel<T, TFilter, 
      * @complexity O(n)
      */
     size(): number;
-    
-    getNodeLocation(node: ITreeNode<T, TFilter>): number[];
-    getNodeListIndex(location: number[]): number;
-    setCollapsible(location: number[], collapsible?: boolean): boolean;
-    setCollapsed(location: number[], collapsed?: boolean, recursive?: boolean): boolean;
-    setExpandTo(location: number[]): void;
 }
 
 /**
