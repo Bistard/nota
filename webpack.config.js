@@ -46,7 +46,7 @@ const baseConfiguration = {
     watch: IS_WATCH,
     watchOptions: {
         poll: 1000, // check for changes in milliseconds.
-        aggregateTimeout: 1000, // aggregates any changes during the period into one rebuild.
+        aggregateTimeout: 500, // aggregates any changes during the period into one rebuild.
         ignored: /node_modules/,
     },
 
