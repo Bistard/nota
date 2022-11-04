@@ -69,7 +69,8 @@ export class ClassicTreeService extends Disposable implements IClassicTreeServic
             const rootStat = await this.fileService.stat(root, { resolveChildren: true });
             const rootItem = new ClassicItem(rootStat, null, filterOpts);
             
-            // create the actual file system hierarchy
+            // construct the file system hierarchy
+            const dndProvider = new ClassicDragAndDropProvider();
             this._tree = this.__register(
                 new ClassicTree<ClassicItem, FuzzyScore>(
                     container, 
@@ -83,10 +84,11 @@ export class ClassicTreeService extends Disposable implements IClassicTreeServic
                         // optional
                         collapsedByDefault: true,
                         filter: new ClassicFilter(),
-                        dnd: new ClassicDragAndDropProvider(),
+                        dnd: dndProvider,
                     },
                 )
             );
+            dndProvider.bindWithTree(this._tree);
 
             await this._tree.refresh();
         }
