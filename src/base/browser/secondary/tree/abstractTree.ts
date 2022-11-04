@@ -615,6 +615,10 @@ export interface IAbstractTreeOptions<T, TFilter> extends IIndexTreeModelOptions
      */
     readonly createTreeWidgetExternal?: (container: HTMLElement, renderers: ITreeListRenderer<T, TFilter, any>[], itemProvider: IListItemProvider<ITreeNode<T, TFilter>>, opts: ITreeWidgetOpts<T, TFilter, any>) => TreeWidget<T, TFilter, any>;
 
+    /**
+     * An array of arguments that passed by the inheritance. These arguments 
+     * will be used in the {@link ITreeWidgetOpts}.
+     */
     readonly extraArguments?: any[];
 }
 
