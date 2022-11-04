@@ -54,8 +54,6 @@ export class ClassicDragAndDropProvider implements IListDragAndDropProvider<Clas
     }
 
     public onDragEnter(event: DragEvent, currentDragItems: ClassicItem[], targetOver?: ClassicItem, targetIndex?: number): void {
-        console.log('[drag enter]'); // TEST
-        
         if (!targetOver || !targetIndex) {
             return;
         }
@@ -78,11 +76,17 @@ export class ClassicDragAndDropProvider implements IListDragAndDropProvider<Clas
         // the target is already expanded, select it immediately.
         this._delayExpand.cancel(true);
         this._dragSelections = this._tree.selectRecursive(targetOver, targetIndex);
-        console.log('[drag selections] immediately', this._dragSelections);
     }
 
     public onDragLeave(event: DragEvent, currentDragItems: ClassicItem[], targetOver?: ClassicItem, targetIndex?: number): void {
-        console.log('[drag leave]'); // TEST
+        
+        /**
+         * Since the leaving target is not the tree. That means the user is 
+         * dragging from outside.
+         */
+        if (event.target !== this._tree.DOMElement) {
+            return;
+        }
         
         if (!targetOver || !targetIndex) {
             this.__removeDragSelections();
@@ -92,8 +96,6 @@ export class ClassicDragAndDropProvider implements IListDragAndDropProvider<Clas
     }
 
     public onDragOver(event: DragEvent, currentDragItems: ClassicItem[], targetOver?: ClassicItem | undefined, targetIndex?: number | undefined): boolean {
-        console.log('[drag over]'); // TEST
-        
         if (!targetOver || !targetIndex) {
             this.__removeDragSelections();
             this._delayExpand.cancel(true);
@@ -103,8 +105,7 @@ export class ClassicDragAndDropProvider implements IListDragAndDropProvider<Clas
     }
 
     public onDragDrop(event: DragEvent, currentDragItems: ClassicItem[], targetOver?: ClassicItem | undefined, targetIndex?: number | undefined): void {
-        console.log('[drag drop]'); // TEST
-
+        
         // dropping target is invalid
         if (!targetOver || !targetIndex) {
             return;
@@ -118,7 +119,6 @@ export class ClassicDragAndDropProvider implements IListDragAndDropProvider<Clas
     }
 
     public onDragEnd(event: DragEvent): void {
-        console.log('[drag end]'); // TEST
         this._delayExpand.cancel(true);
         this.__removeDragSelections();
     }
