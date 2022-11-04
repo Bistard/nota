@@ -236,6 +236,11 @@ export interface ITreeModel<T, TFilter, TRef = number[]> {
      *                    true.
      */
     filter(visibleOnly?: boolean): void;
+
+    /**
+     * @description Returns the total number of nodes in the tree.
+     */
+    size(): number;
 }
 
 /**
