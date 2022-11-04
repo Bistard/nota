@@ -20,6 +20,9 @@ if (CLIArgv.NODE_ENV) {
     process.env.NODE_ENV = 'development';
 }
 
+// watch arguments
+process.env.WATCH_MODE = CLIArgv.watch;
+
 // spawn the child process
 const spawn = childProcess.spawn(
     'webpack --config webpack.config.js', 
@@ -27,7 +30,7 @@ const spawn = childProcess.spawn(
     {
         env: process.env,
         cwd: path.resolve(__dirname, '../'),
-        shell: true
+        shell: true,
     },
 );
 
@@ -58,6 +61,7 @@ function wrapSpawnWithPrintMessage() {
             output += `${stamp} [CHROME_VER]: ${process.versions.chrome ?? 'N/A'}\n`;
             output += `${stamp} [V8_VER]: ${process.versions.v8 ?? 'N/A'}\n`;
             output += `${stamp} [NODE_VER]: ${process.versions.node ?? 'N/A'}\n`;
+            output += `${stamp} [WATCH_MODE]: ${process.env.WATCH_MODE ?? 'false'}\n`;
         }
         
         process.stdout.write(output);
