@@ -1,6 +1,12 @@
 
 .opened-explorer-container > .list-view > .list-view-container > .list-view-row {
-    border: 1px solid transparent;
+    /* 
+    The reason using a `outline` instead of `border` is because border is 
+    counted as part of the element's dimension and that affects the drag and 
+    drop detection.
+     */
+    outline: 1px solid transparent;
+    outline-offset: -1px; /* make the outline placed inside the row. */
 }
 
 .opened-explorer-container > .list-view > .list-view-container > .list-view-row:hover {
@@ -8,7 +14,7 @@
 }
 
 .opened-explorer-container > .list-view > .list-view-container > .list-view-row.focused {
-    border: 1px solid #cf6060;
+    outline: 1px solid #cf6060;
 }
 
 .opened-explorer-container > .list-view > .list-view-container > .list-view-row.selected {

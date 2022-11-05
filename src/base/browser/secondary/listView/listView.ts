@@ -191,13 +191,6 @@ export interface IListView<T> extends IList<T>, IDisposable {
     // [Item Related Methods]
 
     /**
-     * @description Returns the HTMLElement of the item at given index, null if
-     * the item is not rendered yet.
-     * @param index The index of the item.
-     */
-    getElement(index: number): HTMLElement | null;
-    
-    /**
      * @description Returns the height of the item in DOM.
      * @param index The index of the item.
      */
@@ -210,13 +203,6 @@ export interface IListView<T> extends IList<T>, IDisposable {
      * @param index The index of the item.
      */
     getItemRenderTop(index: number): number;
-
-    /**
-     * @description Returns the rendering index of the item with the given actual
-     * index. If not found, -1 will be returned.
-     * @param actualIndex The actual index of the item in the list view.
-     */
-    getRenderIndex(actualIndex: number): number;
 
     /**
      * @description Returns the item's DOM position (top) given the index 
@@ -356,6 +342,7 @@ export class ListView<T> extends Disposable implements ISpliceable<T>, IListView
     @memoize get onContextmenu(): Register<PointerEvent> { return this.__register(new DomEmitter<PointerEvent>(this.element, EventType.contextmenu)).registerListener; }
 
     get DOMElement(): HTMLElement { return this.element; }
+    get listElement(): HTMLElement { return this.listContainer; }
     get contentSize(): number { return this.scrollable.getScrollSize(); }
 
     // [constructor]
@@ -584,12 +571,8 @@ export class ListView<T> extends Disposable implements ISpliceable<T>, IListView
     public insertItemInDOM(index: number, insertBefore: HTMLElement | null, row?: IListViewRow): void {
         const item = this.items[index]!;
         
-        if (item.row === null) {
-            if (row) {
-                item.row = row;
-            } else {
-                item.row = this.cache.get(item.type);
-            }
+        if (!item.row) {
+            item.row = row ?? this.cache.get(item.type);
         }
 
         this.updateItemInDOM(index);
@@ -599,12 +582,12 @@ export class ListView<T> extends Disposable implements ISpliceable<T>, IListView
             throw new Error(`no renderer provided for the given type: ${item.type}`);
         }
 
-        renderer.update(item.data, index, item.row!.metadata, item.size);
+        renderer.update(item.data, index, item.row.metadata, item.size);
 
         if (insertBefore) {
-            this.listContainer.insertBefore(item.row!.dom, insertBefore);
+            this.listContainer.insertBefore(item.row.dom, insertBefore);
         } else {
-            this.listContainer.appendChild(item.row!.dom);
+            this.listContainer.appendChild(item.row.dom);
         }
 
         this._onInsertItemInDOM.fire({ item: item, index: index });
@@ -667,7 +650,7 @@ export class ListView<T> extends Disposable implements ISpliceable<T>, IListView
         return this.items[index]!.data;
     }
 
-    public getElement(index: number): HTMLElement | null {
+    public getHTMLElement(index: number): HTMLElement | null {
         if (index < 0 || index >= this.items.length) {
             throw new ListError(`invalid get item index: ${index}`);
         }
@@ -675,6 +658,10 @@ export class ListView<T> extends Disposable implements ISpliceable<T>, IListView
             return this.items[index]!.row!.dom;
         }
         return null;
+    }
+
+    public isItemVisible(index: number): boolean {
+        return !!this.getHTMLElement(index);
     }
     
     public getItemHeight(index: number): number {
@@ -774,7 +761,7 @@ export class ListView<T> extends Disposable implements ISpliceable<T>, IListView
 
     /**
      * @description Try to get the next element in the given range list.
-     * @param range The range list.
+     * @param ranges The range list.
      * @returns The next element in the range or null if the range already 
      * reaches the end.
      * 
@@ -782,16 +769,16 @@ export class ListView<T> extends Disposable implements ISpliceable<T>, IListView
      * [0-50], the 50th HTMLElement will be returned. Null will be returned if 
      * the given range is something like [x-100].
      */
-    private __getNextElement(range: IRange[]): HTMLElement | null {
-        const lastRange = range[range.length - 1];
+    private __getNextElement(ranges: IRange[]): HTMLElement | null {
+        const lastRange = ranges[ranges.length - 1];
 
-        if (lastRange === undefined) {
+        if (!lastRange) {
             return null;
         }
 
         const nextItem = this.items[lastRange.end];
 
-        if (nextItem === undefined || nextItem.row === null) {
+        if (!nextItem || !nextItem.row) {
             return null;
         }
 

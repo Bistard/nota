@@ -376,6 +376,11 @@ export interface IAbstractTree<T, TFilter, TRef> extends IDisposable {
     readonly DOMElement: HTMLElement;
 
     /**
+     * The HTMLElement container of the tree rows.
+     */
+    readonly listElement: HTMLElement;
+
+    /**
      * The viewport size of the tree in pixels.
      */
     readonly viewportHeight: number;
@@ -519,6 +524,13 @@ export interface IAbstractTree<T, TFilter, TRef> extends IDisposable {
      *          returned.
      */
     isCollapsible(location: TRef): boolean;
+
+    /**
+     * @description Determines if the given location of a node is visible 
+     * (rendered).
+     * @param location The location representation of the node.
+     */
+    isItemVisible(location: TRef): boolean;
     
     /**
      * @description Collapses to the tree node with the given location.
@@ -540,6 +552,12 @@ export interface IAbstractTree<T, TFilter, TRef> extends IDisposable {
      */
     expand(location: TRef, recursive: boolean): boolean | Promise<boolean>;
     
+    /**
+     * @description Reveals (does not scroll to) the tree node.
+     * @param location The location representation of the node.
+     */
+    reveal(location: TRef): void;
+
     /**
      * @description Toggles the state of collapse or expand to the tree node with
      * the given location.
@@ -590,6 +608,26 @@ export interface IAbstractTree<T, TFilter, TRef> extends IDisposable {
      * @description Returns the selected items.
      */
     getSelections(): T[];
+
+    /**
+     * @description Get the total visible subtree node count of the given node (
+     * including itself).
+     * @param item The root of the subtree.
+     */
+    getVisibleNodeCount(item: TRef): number;
+
+    /**
+     * @description Returns the HTMLElement of the item at given index, null if
+     * the item is not rendered yet.
+     * @param index The index of the item.
+     */
+    getHTMLElement(index: number): HTMLElement | null;
+
+    /**
+     * @description Returns the item at given index.
+     * @param index The index of the item.
+     */
+    getItem(index: number): T;
 }
 
 /**
@@ -615,6 +653,10 @@ export interface IAbstractTreeOptions<T, TFilter> extends IIndexTreeModelOptions
      */
     readonly createTreeWidgetExternal?: (container: HTMLElement, renderers: ITreeListRenderer<T, TFilter, any>[], itemProvider: IListItemProvider<ITreeNode<T, TFilter>>, opts: ITreeWidgetOpts<T, TFilter, any>) => TreeWidget<T, TFilter, any>;
 
+    /**
+     * An array of arguments that passed by the inheritance. These arguments 
+     * will be used in the {@link ITreeWidgetOpts}.
+     */
     readonly extraArguments?: any[];
 }
 
@@ -740,12 +782,22 @@ export abstract class AbstractTree<T, TFilter, TRef> extends Disposable implemen
         return this._model.isCollapsible(location);
     }
 
+    public isItemVisible(location: TRef): boolean {
+        const index = this._model.getNodeListIndex(location);
+        return this._view.isItemVisible(index);
+    }
+
     public collapse(location: TRef, recursive: boolean = false): boolean {
         return this._model.setCollapsed(location, true, recursive);
     }
 
     public expand(location: TRef, recursive: boolean = false): boolean {
         return this._model.setCollapsed(location, false, recursive);
+    }
+
+    public reveal(location: TRef): void {
+        const index = this._model.getNodeListIndex(location);
+        this._view.reveal(index, undefined);
     }
 
     public toggleCollapseOrExpand(location: TRef, recursive: boolean = false): boolean {
@@ -795,10 +847,39 @@ export abstract class AbstractTree<T, TFilter, TRef> extends Disposable implemen
         return this._view.getSelectionData();
     }
 
+    public getVisibleNodeCount(item: TRef): number {
+        const node = this._model.getNode(item);
+        let nodeCount = 0;
+            
+        const dfs = (node: ITreeNode<T, TFilter>) => {
+            nodeCount++;
+            for (const child of node.children) {
+                if (child.visible) {
+                    dfs(child);
+                }
+            }
+        };
+        dfs(node);
+
+        return nodeCount;
+    }
+
+    public getHTMLElement(index: number): HTMLElement | null {
+        return this._view.getHTMLElement(index);
+    }
+
+    public getItem(index: number): T {
+        return this._view.getItem(index).data;
+    }
+
     // [methods - general]
 
     get DOMElement(): HTMLElement {
         return this._view.DOMElement;
+    }
+
+    get listElement(): HTMLElement { 
+        return this._view.listElement; 
     }
 
     get viewportHeight(): number {

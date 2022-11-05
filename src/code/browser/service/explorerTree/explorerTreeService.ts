@@ -36,8 +36,8 @@ export class ExplorerTreeService extends Disposable implements IExplorerTreeServ
 
     // [event]
 
-    private readonly _onOpen = this.__register(new RelayEmitter<unknown>());
-    public readonly onOpen = this._onOpen.registerListener;
+    private readonly _onSelect = this.__register(new RelayEmitter<unknown>());
+    public readonly onSelect = this._onSelect.registerListener;
 
     // [field]
 
@@ -111,7 +111,7 @@ export class ExplorerTreeService extends Disposable implements IExplorerTreeServ
         this._currentTreeService = currTreeService;
         this._root = root;
         this._mode = mode ?? this._mode;
-        this._onOpen.setInput(this._currentTreeService.onOpen);
+        this._onSelect.setInput(this._currentTreeService.onSelect);
 
         this.__registerTreeListeners(root);
     }

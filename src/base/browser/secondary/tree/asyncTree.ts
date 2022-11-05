@@ -84,11 +84,6 @@ export interface IChildrenProvider<T> {
 export interface IAsyncTree<T, TFilter> extends IMultiTreeBase<T, TFilter> {
     
     /**
-     * Returns a promise that resolves once a collapse state has completed.
-     */
-    get waitForNextCollapseChange(): Promise<void>;
-
-    /**
      * The root data of the tree.
      */
     get root(): T;
@@ -107,13 +102,13 @@ export interface IAsyncTree<T, TFilter> extends IMultiTreeBase<T, TFilter> {
      * @param recursive Determines if the operation is recursive (same operation 
      *                  to its descendants). if not provided, sets to false as 
      *                  default.
-     * @returns If the operation successed.
+     * @returns If the operation successed. Await to ensure the operation is done.
      * 
      * @note Since expanding meaning potential refreshing to the latest children 
      * nodes, thus asynchronous is required.
      */
     expand(data: T, recursive?: boolean): Promise<boolean>;
-     
+
     /**
      * @description Toggles the state of collapse or expand to the tree node with
      * the given data.
@@ -121,7 +116,7 @@ export interface IAsyncTree<T, TFilter> extends IMultiTreeBase<T, TFilter> {
      * @param recursive Determines if the operation is recursive (same operation 
      *                  to its descendants). if not provided, sets to false as 
      *                  default.
-     * @returns If the operation successed.
+     * @returns If the operation successed. Await to ensure the operation is done.
      * 
      * @note Since expanding meaning refreshing to the updated children nodes,
      * asynchronous is required.
@@ -312,9 +307,9 @@ export class AsyncTree<T, TFilter> extends Disposable implements IAsyncTree<T, T
 
     get DOMElement(): HTMLElement { return this._tree.DOMElement; }
 
-    get root(): T { return this._tree.root; }
+    get listElement(): HTMLElement { return this._tree.listElement; }
 
-    get waitForNextCollapseChange(): Promise<void> { return this._ongoingCollapseChange.waitNext(); }
+    get root(): T { return this._tree.root; }
 
     get viewportHeight(): number { return this._tree.viewportHeight; }
 
@@ -375,11 +370,7 @@ export class AsyncTree<T, TFilter> extends Disposable implements IAsyncTree<T, T
     }
 
     public hasNode(data: T): boolean {
-        try {
-            return this._tree.hasNode(data);
-        } catch {
-            return false;
-        }
+        return this._tree.hasNode(data);
     }
 
     public isCollapsible(data: T): boolean {
@@ -388,6 +379,10 @@ export class AsyncTree<T, TFilter> extends Disposable implements IAsyncTree<T, T
 
     public isCollapsed(data: T): boolean {
         return this._tree.isCollapsed(data);
+    }
+
+    public isItemVisible(data: T): boolean {
+        return this._tree.isItemVisible(data);
     }
 
     public collapse(data: T, recursive?: boolean): boolean {
@@ -419,7 +414,13 @@ export class AsyncTree<T, TFilter> extends Disposable implements IAsyncTree<T, T
             await asyncNode.refreshing;
         }
 
+        await this._ongoingCollapseChange.waitNext();
+
         return successOrNot;
+    }
+
+    public reveal(data: T): void {
+        this._tree.reveal(data);
     }
 
     public async toggleCollapseOrExpand(data: T, recursive?: boolean): Promise<boolean> {
@@ -442,6 +443,8 @@ export class AsyncTree<T, TFilter> extends Disposable implements IAsyncTree<T, T
         if (asyncNode.refreshing) {
             await asyncNode.refreshing;
         }
+
+        await this._ongoingCollapseChange.waitNext();
 
         return successOrNot;
     }
@@ -476,6 +479,18 @@ export class AsyncTree<T, TFilter> extends Disposable implements IAsyncTree<T, T
 
     public getSelections(): T[] {
         return this._tree.getSelections();
+    }
+
+    public getVisibleNodeCount(item: T): number {
+        return this._tree.getVisibleNodeCount(item);
+    }
+
+    public getHTMLElement(index: number): HTMLElement | null {
+        return this._tree.getHTMLElement(index);
+    }
+
+    public getItem(index: number): T {
+        return this._tree.getItem(index);
     }
 
     public setDomFocus(): void {

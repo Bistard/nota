@@ -65,16 +65,12 @@ export class ListTrait<T> implements IDisposable {
         if (this._getHTMLElement) {
             for (const index of toUnrender) {
                 const item = this._getHTMLElement(index);
-                if (item) {
-                    item.classList.toggle(this.traitID, false);
-                }
+                item?.classList.toggle(this.traitID, false);
             }
     
             for (const index of toRender) {
                 const item = this._getHTMLElement(index);
-                if (item) {
-                    item.classList.toggle(this.traitID, true);
-                }
+                item?.classList.toggle(this.traitID, true);
             }
         }
         

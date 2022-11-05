@@ -56,7 +56,7 @@ export class ClassicTreeKeyboardController<T extends ClassicItem, TFilter> exten
             return;
         }
 
-        this._tree.open(anchor);
+        this._tree.select(anchor);
     }
 }
 
@@ -72,15 +72,23 @@ export class ClassicTreeWidget<T extends ClassicItem, TFilter> extends AsyncTree
 
 /**
  * An interface only for {@link ClassicTree}.
+ * // TODO
  */
 export interface IClassicTree<T extends ClassicItem, TFilter> extends IAsyncTree<T, TFilter> {
 
     /**
      * Fires when a file / notepage in the explorer tree is about to be opened.
      */
-    readonly onOpen: Register<ClassicOpenEvent<T>>;
+    readonly onSelect: Register<ClassicOpenEvent<T>>;
 
-    open(item: T): void;
+    /**
+     * @description
+     * @param item 
+     * 
+     * @note Will reveal to the item if not visible (not rendered).
+     */
+    select(item: T): void;
+    selectRecursive(item: T, index: number): T[];
 }
 
 /**
@@ -92,8 +100,8 @@ export class ClassicTree<T extends ClassicItem, TFilter> extends AsyncTree<T, TF
 
     // [event]
 
-    private readonly _onOpen = new Emitter<ClassicOpenEvent<T>>();
-    public readonly onOpen = this._onOpen.registerListener;
+    private readonly _select = new Emitter<ClassicOpenEvent<T>>();
+    public readonly onSelect = this._select.registerListener;
 
     // [constructor]
 
@@ -108,8 +116,29 @@ export class ClassicTree<T extends ClassicItem, TFilter> extends AsyncTree<T, TF
 
     // [public methods]
 
-    public open(item: T): void {
-        this._onOpen.fire({ item: item });
+    public select(item: T): void {
+        
+        if (!this.isItemVisible(item)) {
+            this.reveal(item);
+        }
+
+        this.setFocus(item);
+        this.setSelections([item]);
+
+        this._select.fire({ item: item });
+    }
+
+    public selectRecursive(item: T, index: number): T[] {
+        const subTreeSize = this.getVisibleNodeCount(item);
+        const toSelected: T[] = [];
+        for (let i = 0; i < subTreeSize; i++) {
+            const currIndex = index + i;
+            const item = this.getItem(currIndex);
+            toSelected.push(item);
+        }
+
+        this.setSelections(toSelected);
+        return toSelected;
     }
 
     // [protected override method]
@@ -134,6 +163,6 @@ export class ClassicTree<T extends ClassicItem, TFilter> extends AsyncTree<T, TF
             return;
         }
 
-        this._onOpen.fire({ item: event.data });
+        this._select.fire({ item: event.data });
     }
 }
