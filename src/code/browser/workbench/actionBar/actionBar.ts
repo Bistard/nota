@@ -33,12 +33,15 @@ export interface IActionBarButtonClickEvent {
     readonly prevType: ActionType;
 }
 
+/**
+ * An interface only for {@link ActionBarComponent}.
+ */
 export interface IActionBarService extends IComponent {
     
     /**
      * Events fired when the button is clicked.
      */
-    onDidButtonClick: Register<IActionBarButtonClickEvent>;
+    readonly onDidClick: Register<IActionBarButtonClickEvent>;
 
     /**
      * @description Returns a button by provided a buttion type.
@@ -74,15 +77,14 @@ export class ActionBarComponent extends Component implements IActionBarService {
 
     // [field]
 
-    public static readonly width = 50;
+    public static readonly WIDTH = 50;
 
-    /* Stores all the action buttons. */
-    private readonly _widgetBar!: WidgetBar<ActionButton>;
+    private readonly _upperBtnGroup!: WidgetBar<ActionButton>;
 
     private _currButtonType = ActionType.NONE;
 
-    private _onDidButtonClick = this.__register(new Emitter<IActionBarButtonClickEvent>());
-    public onDidButtonClick = this._onDidButtonClick.registerListener;
+    private readonly _onDidClick = this.__register(new Emitter<IActionBarButtonClickEvent>());
+    public readonly onDidClick = this._onDidClick.registerListener;
 
     // [constructor]
 
@@ -96,16 +98,18 @@ export class ActionBarComponent extends Component implements IActionBarService {
     // [public method]
 
     public getButton(type: ActionType): ActionButton | undefined {
-        return this._widgetBar.getItem(type);
+        return this._upperBtnGroup.getItem(type);
     }
 
     // [protected override method]
 
     protected override _createContent(): void {
-        const container = document.createElement('div');
-        container.id = 'action-button-container';
-        this.element.appendChild(container);
-        (<Mutable<typeof this._widgetBar>>this._widgetBar) = this.__register(this.__createWidgetBar(container));
+        
+        // upper button group
+        const container1 = document.createElement('div');
+        container1.className = 'action-button-container';
+        this.element.appendChild(container1);
+        (<Mutable<WidgetBar<ActionButton>>>this._upperBtnGroup) = this.__register(this.__createWidgetBar(container1));
     }
 
     protected override _registerListeners(): void {
@@ -113,7 +117,7 @@ export class ActionBarComponent extends Component implements IActionBarService {
         /**
          * Register all the action buttons click event.
          */
-        this._widgetBar.items().forEach(item => {
+        this._upperBtnGroup.items().forEach(item => {
             item.onDidClick(() => {
                 this.__actionButtonClick(item.type);
             });
@@ -129,7 +133,7 @@ export class ActionBarComponent extends Component implements IActionBarService {
      * @description Invoked when the action button is clicked.
      * @param clickedType The type of buttion is clicked.
      * 
-     * @note Method will fire `this._onDidButtonClick`.
+     * @note Method will fire `this._onDidClick`.
      */
     private __actionButtonClick(buttonType: ActionType): void {
 
@@ -163,7 +167,7 @@ export class ActionBarComponent extends Component implements IActionBarService {
         }
 
         // fires event
-        this._onDidButtonClick.fire({
+        this._onDidClick.fire({
             type: buttonType,
             prevType: previousType
         });

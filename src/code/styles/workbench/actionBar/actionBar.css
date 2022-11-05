@@ -1,4 +1,4 @@
-#action-bar {
+.action-bar {
     position: relative;
     width: 50px;
     min-width: 50px;
@@ -12,7 +12,7 @@
     -webkit-app-region: drag; /* draggable */
 }
 
-#action-button-container {
+.action-button-container {
     display: flex;
     flex-direction: column;
     align-items: center;

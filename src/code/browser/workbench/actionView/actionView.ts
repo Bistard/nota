@@ -59,7 +59,7 @@ export class ActionViewComponent extends Component implements IActionViewService
 
     // [field]
 
-    public static readonly width: number = 300;
+    public static readonly WIDTH: number = 300;
 
     private actionViewContentContainer!: HTMLElement;
 

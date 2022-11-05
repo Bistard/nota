@@ -57,8 +57,8 @@ export abstract class WorkbenchLayout extends Component {
 
         // Constructs each component of the workbench.
         const configurations: [IComponent, number, number, number, Priority][] = [
-            [this.actionBarService , ActionBarComponent.width , ActionBarComponent.width     , ActionBarComponent.width , Priority.Low   ],
-            [this.actionViewService, 100                      , ActionViewComponent.width * 2, ActionViewComponent.width, Priority.Normal],
+            [this.actionBarService , ActionBarComponent.WIDTH , ActionBarComponent.WIDTH     , ActionBarComponent.WIDTH , Priority.Low   ],
+            [this.actionViewService, 100                      , ActionViewComponent.WIDTH * 2, ActionViewComponent.WIDTH, Priority.Normal],
             [this.workspaceService , 0                        , Number.POSITIVE_INFINITY     , 0                        , Priority.High  ],
         ]
         for (const [component, minSize, maxSize, initSize, priority] of configurations) {
@@ -89,7 +89,7 @@ export abstract class WorkbenchLayout extends Component {
          * Listens to each ActionBar button click events and notifies the 
          * actionView to swtich the view.
          */
-        this.actionBarService.onDidButtonClick(e => {
+        this.actionBarService.onDidClick(e => {
             this.actionViewService.setActionView(e.type);
         });
     }
