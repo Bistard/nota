@@ -7,6 +7,7 @@ import { Orientation } from 'src/base/browser/basic/dom';
 import { Icons } from 'src/base/browser/icon/icons';
 import { Emitter, Register } from 'src/base/common/event';
 import { IThemeService } from 'src/code/browser/service/theme/themeService';
+import { Mutable } from 'src/base/common/util/type';
 
 export const IActionBarService = createService<IActionBarService>('action-bar-service');
 
@@ -76,7 +77,7 @@ export class ActionBarComponent extends Component implements IActionBarService {
     public static readonly width = 50;
 
     /* Stores all the action buttons. */
-    private _widgetBar!: WidgetBar<ActionButton>;
+    private readonly _widgetBar!: WidgetBar<ActionButton>;
 
     private _currButtonType = ActionType.NONE;
 
@@ -101,11 +102,10 @@ export class ActionBarComponent extends Component implements IActionBarService {
     // [protected override method]
 
     protected override _createContent(): void {
-        this.contentArea = document.createElement('div');
-        this.contentArea.id = 'action-button-container';
-        this.element.appendChild(this.contentArea);
-
-        this._widgetBar = this.__register(this.__createWidgetBar(this.contentArea));
+        const container = document.createElement('div');
+        container.id = 'action-button-container';
+        this.element.appendChild(container);
+        (<Mutable<typeof this._widgetBar>>this._widgetBar) = this.__register(this.__createWidgetBar(container));
     }
 
     protected override _registerListeners(): void {

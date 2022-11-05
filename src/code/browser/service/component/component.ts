@@ -40,9 +40,7 @@ export interface IComponent extends ICreateable {
     readonly parent: HTMLElement | undefined;
 
     /** The DOM element of the current component. */
-    element: FastElement<HTMLElement>;
-
-    contentArea: HTMLElement | undefined;
+    readonly element: FastElement<HTMLElement>;
 
     /**
      * @description Renders the component itself.
@@ -144,17 +142,13 @@ export abstract class Component extends Themable implements IComponent {
     
     private _parentComponent?: IComponent;
     private _parent?: HTMLElement;
-    private _element: FastElement<HTMLElement>;
+
+    private readonly _element: FastElement<HTMLElement>;
+    private readonly _children: Map<string, Component> = new Map();
     private _dimension?: Dimension;
-    
-    // TODO: try to remove this stupid design
-    public contentArea: HTMLElement | undefined;
-    
 
-    private readonly _childComponents: Map<string, Component> = new Map();
-
-    private _created: boolean = false;
-    private _registered: boolean = false;
+    private _created: boolean;
+    private _registered: boolean;
 
     // [event]
     
@@ -178,6 +172,9 @@ export abstract class Component extends Themable implements IComponent {
                 componentService: IComponentService,
     ) {
         super(themeService);
+
+        this._created = false;
+        this._registered = false;
 
         this._element = new FastElement(document.createElement('div'));
         this._element.setID(id);
@@ -273,18 +270,18 @@ export abstract class Component extends Themable implements IComponent {
 
     public registerComponent(component: Component, override: boolean = false): void {
         const id = component.getId();
-        const registered = this._childComponents.has(id);
+        const registered = this._children.has(id);
         
         if (registered && !override) {
             throw new Error('component has been already registered');
         }
 
         if (registered && override) {
-            const deprecated = this._childComponents.get(id)!;
+            const deprecated = this._children.get(id)!;
             deprecated.dispose();
         }
 
-        this._childComponents.set(id, component);
+        this._children.set(id, component);
         this.__register(component);
     }
 
@@ -308,11 +305,11 @@ export abstract class Component extends Themable implements IComponent {
     }
 
     public hasComponent(id: string): boolean {
-        return this._childComponents.has(id);
+        return this._children.has(id);
     }
 
     public getComponent(id: string): Component {
-        const component = this._childComponents.get(id);
+        const component = this._children.get(id);
         if (!component) {
             throw new Error(`trying to get an unknown component ${id}`);
         }
@@ -321,7 +318,7 @@ export abstract class Component extends Themable implements IComponent {
 
     public override dispose(): void {
         super.dispose();
-        for (const [id, child] of this._childComponents) {
+        for (const [id, child] of this._children) {
             child.dispose();
         }
     }

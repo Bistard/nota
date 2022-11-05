@@ -98,8 +98,8 @@ export class ActionViewComponent extends Component implements IActionViewService
     protected override _createContent(): void {
         
         // wrapper
-        this.contentArea = document.createElement('div');
-        this.contentArea.id = 'action-view-container';
+        const container = document.createElement('div');
+        container.id = 'action-view-container';
         
         // action-view content
         this.actionViewContentContainer = document.createElement('div');
@@ -113,8 +113,8 @@ export class ActionViewComponent extends Component implements IActionViewService
         this.__switchToActionView(ActionType.EXPLORER);
         
         // render them
-        this.contentArea.appendChild(this.actionViewContentContainer);
-        this.element.appendChild(this.contentArea);
+        container.appendChild(this.actionViewContentContainer);
+        this.element.appendChild(container);
     }
 
     protected override _registerListeners(): void {

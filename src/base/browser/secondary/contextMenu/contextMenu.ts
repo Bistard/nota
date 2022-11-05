@@ -64,6 +64,7 @@ export interface IContextMenuOption {
     contextMenuItems: IMenuItemOption[];
 }
 
+/** @deprecated */
 export abstract class ContextMenu extends Component implements IContextMenu {
 
     public readonly type: ContextMenuType;
@@ -126,17 +127,17 @@ export abstract class ContextMenu extends Component implements IContextMenu {
 
     protected override _createContent(): void {
         this.setNewPosition(this._coordinate);
-        this.contentArea = document.createElement('ul');
-        this.contentArea.id = 'context-menu-container';
-        this.element.appendChild(this.contentArea);
+        // this.contentArea = document.createElement('ul');
+        // this.contentArea.id = 'context-menu-container';
+        // this.element.appendChild(this.contentArea);
 
         this._createMenuItems(this._menuItemOptions);
     }
 
     private _createMenuItems(menuItemOptions: IMenuItemOption[]): void {
         for (const opt of menuItemOptions) {
-            const item = new MenuItem(this.contentArea!, opt);
-            this._menuItemGroups.set(opt.id, item);
+            // const item = new MenuItem(this.contentArea!, opt);
+            // this._menuItemGroups.set(opt.id, item);
         }
     }
 }
