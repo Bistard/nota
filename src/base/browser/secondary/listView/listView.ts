@@ -10,7 +10,7 @@ import { IScrollEvent, Scrollable } from "src/base/common/scrollable";
 import { IListItemProvider } from "src/base/browser/secondary/listView/listItemProvider";
 import { memoize } from "src/base/common/memoization";
 import { FocusTracker } from "src/base/browser/basic/focusTracker";
-import { IList } from "src/base/browser/secondary/listWidget/list";
+import { IList } from "src/base/browser/secondary/listView/list";
 import { ifOrDefault } from "src/base/common/util/type";
 
 /**

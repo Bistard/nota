@@ -1,4 +1,5 @@
-import { IViewItemChangeEvent } from "src/base/browser/secondary/listView/listView";
+import { IListView, IViewItemChangeEvent } from "src/base/browser/secondary/listView/listView";
+import { IListWidget } from "src/base/browser/secondary/listWidget/listWidget";
 import { Register } from "src/base/common/event";
 import { IRange } from "src/base/common/range";
 

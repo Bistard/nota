@@ -1,7 +1,7 @@
 import { IListItemProvider } from "src/base/browser/secondary/listView/listItemProvider";
 import { IListViewRenderer, PipelineRenderer } from "src/base/browser/secondary/listView/listRenderer";
 import { IListViewOpts, IViewItemChangeEvent, ListError, ListView } from "src/base/browser/secondary/listView/listView";
-import { IList } from "src/base/browser/secondary/listWidget/list";
+import { IList } from "src/base/browser/secondary/listView/list";
 import { IListDragAndDropProvider, ListWidgetDragAndDropController } from "src/base/browser/secondary/listWidget/listWidgetDragAndDrop";
 import { ListWidgetKeyboardController } from "src/base/browser/secondary/listWidget/listWidgetKeyboardController";
 import { ListWidgetMouseController } from "src/base/browser/secondary/listWidget/listWidgetMouseController";
