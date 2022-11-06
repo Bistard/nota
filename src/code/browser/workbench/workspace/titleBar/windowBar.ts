@@ -36,7 +36,7 @@ export class WindowBarComponent extends Component {
         
         // creates all the window buttons
         [
-            {id: 'min-btn', icon: Icons.Minus, classes: [], fn: () => this.hostService.minimizeWindow()},
+            {id: 'min-btn', icon: Icons.Minuss, classes: [], fn: () => this.hostService.minimizeWindow()},
             {id: 'max-btn', icon: Icons.Square, classes: [], fn: () => this.hostService.toggleMaximizeWindow()},
             {id: 'close-btn', icon: Icons.Cross, classes: ['closeToggleBtn'], fn: () => this.hostService.closeWindow()},
         ]
