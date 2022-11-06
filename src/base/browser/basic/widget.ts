@@ -1,6 +1,6 @@
-
 import { Disposable, IDisposable } from "src/base/common/dispose";
 import { addDisposableListener, EventType } from "src/base/browser/basic/dom";
+import { Mutable } from "src/base/common/util/type";
 
 export interface IWidget extends IDisposable {
     
@@ -14,7 +14,7 @@ export interface IWidget extends IDisposable {
 
      /**
       * @description Applys the styles to the current HTMLElement. 
-      * May be override by the derived classes.
+      * @note May be override by the derived classes.
       */
     applyStyle(): void;
 
@@ -38,13 +38,17 @@ export interface IWidget extends IDisposable {
  */
 export abstract class Widget extends Disposable implements IWidget {
     
-    // [attributes]
-    protected _element: HTMLElement | undefined = undefined;
+    // [field]
+    
+    protected readonly _element: HTMLElement | undefined = undefined;
 
     // [constructor]
+
     constructor() {
         super();
     }
+
+    // [method]
 
     get element(): HTMLElement | undefined {
         return this._element;
@@ -122,19 +126,23 @@ export abstract class Widget extends Disposable implements IWidget {
     }
 
     public render(element: HTMLElement): void {
-        this._element = element;
+        (<Mutable<HTMLElement>>this._element) = element;
+        // TODO
+        /**
+         * this.__render();
+         * this.__applyStyle();
+         * this.__registerListeners();
+         */
     }
 
     public applyStyle(): void {
-        
+        // noop
     }
 
     public override dispose(): void {
 		if (this._element) {
-            // REVIEW: check if remove() will automatically calling `removeEventListener()`.
-            // REVIEW: if yes, we then do not need to register its own event listener at the first place.
 			this._element.remove();
-			this._element = undefined;
+            (<Mutable<HTMLElement | undefined>>this._element) = undefined;
 		}
         super.dispose();
 	}
