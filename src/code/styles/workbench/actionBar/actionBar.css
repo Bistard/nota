@@ -1,4 +1,4 @@
-.action-bar {
+#action-bar {
     position: relative;
     width: 50px;
     min-width: 50px;
@@ -12,31 +12,49 @@
     -webkit-app-region: drag; /* draggable */
 }
 
-.action-button-container {
+#action-bar > .general-button-container {
+    position: absolute;
+    top: 0px;
+
     display: flex;
     flex-direction: column;
     align-items: center;
+    
     width: 100%;
-    height: 100%;
+    height: auto;
 }
 
-.action-button {
+#action-bar > .secondary-button-container {
+    position: absolute;
+    bottom: 0px;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    
+    width: 100%;
+    height: auto;
+}
+
+#action-bar .action-button {
     width: 50px;
     height: 50px;
+    align-content: center;
+    display: flex;
 }
 
-.action-button > .icon {
+#action-bar .action-button > .icon {
     font-size: 18px;
 }
 
-.action-button:hover {
+#action-bar .action-button:hover {
     filter: invert(15%) sepia(100%) saturate(2427%) hue-rotate(343deg) brightness(112%) contrast(97%);
 }
 
-.action-button:active {
+#action-bar .action-button:active {
     opacity: 70%;
 }
 
-.action-button-focus {
+#action-bar .action-button.focus {
     filter: invert(15%) sepia(100%) saturate(2427%) hue-rotate(343deg) brightness(112%) contrast(97%);
 }

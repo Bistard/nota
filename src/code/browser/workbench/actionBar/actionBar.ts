@@ -17,6 +17,8 @@ export const enum ActionType {
     OUTLINE = 'outline',
     SEARCH = 'search',
     GIT = 'git',
+
+    HELPER = 'helper',
     SETTINGS = 'setting',
 }
 
@@ -79,7 +81,8 @@ export class ActionBarComponent extends Component implements IActionBarService {
 
     public static readonly WIDTH = 50;
 
-    private readonly _upperBtnGroup!: WidgetBar<ActionButton>;
+    private readonly _generalGroup!: WidgetBar<ActionButton>;
+    private readonly _secondaryGroup!: WidgetBar<ActionButton>;
 
     private _currButtonType = ActionType.NONE;
 
@@ -98,7 +101,7 @@ export class ActionBarComponent extends Component implements IActionBarService {
     // [public method]
 
     public getButton(type: ActionType): ActionButton | undefined {
-        return this._upperBtnGroup.getItem(type);
+        return this._generalGroup.getItem(type);
     }
 
     // [protected override method]
@@ -107,9 +110,18 @@ export class ActionBarComponent extends Component implements IActionBarService {
         
         // upper button group
         const container1 = document.createElement('div');
-        container1.className = 'action-button-container';
+        container1.className = 'general-button-container';
         this.element.appendChild(container1);
-        (<Mutable<WidgetBar<ActionButton>>>this._upperBtnGroup) = this.__register(this.__createWidgetBar(container1));
+        (<Mutable<WidgetBar<ActionButton>>>this._generalGroup) = this.__createGeneralButtonGroup(container1);
+
+        // lower button group
+        const container2 = document.createElement('div');
+        container2.className = 'secondary-button-container';
+        this.element.appendChild(container2);
+        (<Mutable<WidgetBar<ActionButton>>>this._secondaryGroup) = this.__createSecondaryButtonGroup(container2);
+
+        this.__register(this._generalGroup);
+        this.__register(this._secondaryGroup);
     }
 
     protected override _registerListeners(): void {
@@ -117,7 +129,7 @@ export class ActionBarComponent extends Component implements IActionBarService {
         /**
          * Register all the action buttons click event.
          */
-        this._upperBtnGroup.items().forEach(item => {
+        this._generalGroup.items().forEach(item => {
             item.onDidClick(() => {
                 this.__actionButtonClick(item.type);
             });
@@ -148,22 +160,22 @@ export class ActionBarComponent extends Component implements IActionBarService {
         // none of action button is focused, focus the button.
         if (this._currButtonType === ActionType.NONE) {
             this._currButtonType = buttonType;
-            button.element.classList.add('action-button-focus');
+            button.element.classList.add('focus');
         } 
         
         // if the current focused button is clicked again, remove focus.
         else if (this._currButtonType === buttonType) {
             this._currButtonType = ActionType.NONE;
-            button.element.classList.remove('action-button-focus');
+            button.element.classList.remove('focus');
         } 
         
         // other action button is clicked, focus the new button.
         else {
             const prevButton = this.getButton(this._currButtonType)!;
-            prevButton.element!.classList.remove('action-button-focus');
+            prevButton.element!.classList.remove('focus');
             
             this._currButtonType = buttonType;
-            button.element.classList.add('action-button-focus');
+            button.element.classList.add('focus');
         }
 
         // fires event
@@ -173,32 +185,45 @@ export class ActionBarComponent extends Component implements IActionBarService {
         });
     }
 
-    /**
-     * @description A helper method for creating a series of action buttons using
-     * {@link WidgetBar}.
-     * @param container The container of the widget bar.
-     * @returns The created widget bar.
-     */
-    private __createWidgetBar(container: HTMLElement): WidgetBar<ActionButton> {
+    private __createGeneralButtonGroup(container: HTMLElement): WidgetBar<ActionButton> {
         
-        // constructs a new widgetBar
         const widgetBar = new WidgetBar<ActionButton>(container, {
             orientation: Orientation.Vertical
         });
 
-        // creates all the action buttons
         [
-            {type: ActionType.EXPLORER, icon: Icons.Book},
+            {type: ActionType.EXPLORER, icon: Icons.Folder},
             {type: ActionType.OUTLINE, icon: Icons.List},
             {type: ActionType.SEARCH, icon: Icons.Search},
-            {type: ActionType.GIT, icon: Icons.Share},
+            {type: ActionType.GIT, icon: Icons.CodeBranch},
+        ]
+        .forEach(({ type, icon }) => {
+            const button = new ActionButton(type, { icon: icon });
+            widgetBar.addItem({
+                id: type, 
+                item: button,
+                dispose: button.dispose,
+            });
+        });
+
+        return widgetBar;
+    }
+
+    private __createSecondaryButtonGroup(container: HTMLElement): WidgetBar<ActionButton> {
+        const widgetBar = new WidgetBar<ActionButton>(container, {
+            orientation: Orientation.Vertical
+        });
+
+        [
+            {type: ActionType.HELPER, icon: Icons.CommentQuestion},
+            {type: ActionType.SETTINGS, icon: Icons.Settings},
         ]
         .forEach(({ type, icon }) => {
             const button = new ActionButton(type, {icon: icon});
             widgetBar.addItem({
                 id: type, 
                 item: button,
-                dispose: button.dispose
+                dispose: button.dispose,
             });
         });
 

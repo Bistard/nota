@@ -1,10 +1,5 @@
 import { Button, IButton, IButtonOptions } from "src/base/browser/basic/button/button";
-import { getIconClass } from "src/base/browser/icon/iconRegistry";
 import { ActionType } from "src/code/browser/workbench/actionBar/actionBar";
-
-export interface IActionButtonOptions extends IButtonOptions {
-    
-}
 
 export interface IActionButton extends IButton {
     
@@ -12,24 +7,29 @@ export interface IActionButton extends IButton {
      * The type of the action button.
      */
     readonly type: ActionType;
-
 }
 
 /**
- * @class A simple encapsulation built upon {@link IButton} from actionBarCompoent.
+ * @class A simple encapsulation built upon {@link Button}. Specific for action
+ * bar.
  */
 export class ActionButton extends Button implements IActionButton {
 
     public readonly type: ActionType;
 
-    constructor(type: ActionType, opts?: IActionButtonOptions) {
+    constructor(type: ActionType, opts?: IButtonOptions) {
         super({
             ...opts,
-            classes: ['action-button'],
+            classes: [...(opts?.classes ?? []), 'action-button'],
         });
-
         this.type = type;
     }
-    
-    // TODO: a hover listener to show a message box
+
+    protected override __registerListeners(): void {
+        super.__registerListeners();
+
+        this.__register(this.onHover(e => {
+            // TODO
+        }));
+    }
 }
