@@ -8,19 +8,14 @@
   "scripts": {
     "run": "electron .",
     "_run": "electron . --- --log=trace --open-devtools",
-    
     "start": "npm run build && electron .",
     "_start": "npm start --- --log=trace --open-devtools",
-    
     "test": "mocha --ui tdd -r jsdom-global/register --config '.mocharc.jsonc' --timeout 10000",
     "_test": "mocha --ui tdd -r jsdom-global/register --config 'test/.mocharc.jsonc'",
-    
     "build": "node ./scripts/build.js",
     "watch": "npm run build --- --watch=true",
-
     "benchmark": "node benchmark/benchmark.js",
-
-    "_gen-icons": "fantasticon -c .fantasticonrc.js"
+    "_gen-icons": "node ./scripts/icon.js"
   },
   "repository": {
     "type": "git",

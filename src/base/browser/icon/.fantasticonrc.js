@@ -3,12 +3,13 @@
  * font icons using `fantasticon`.
  */
 
-module.exports = {
+const configuration = {
     inputDir: 'assets/svg', // (required)
     outputDir: 'src/base/browser/icon', // (required)
     fontTypes: [/* 'ttf', 'woff', */ 'woff2'],
     assetTypes: ['ts', 'css', /* 'json', 'html' */],
-    fontsUrl: 'src/base/browser/icon',
+    // fontsUrl: 'src/base/browser/icon',
+    
     formatOptions: {
         // Pass options directly to `svgicons2svgfont`
         woff: {
@@ -27,3 +28,5 @@ module.exports = {
         }
     },
 };
+
+module.exports = configuration;
