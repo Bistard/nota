@@ -1,4 +1,4 @@
-export enum Icons {
+export const enum Icons {
   A = 'a',
   Ad = 'ad',
   Add = 'add',
