@@ -43,6 +43,11 @@
     src: url(../../assets/font/HarmonyOS_Sans/HarmonyOS_Sans_Light.ttf);
 }
 
+@font-face {
+    font-family: happy family;
+    src: url(../../assets/font/happy_monkey/HappyMonkey-Regular.ttf);
+}
+
 body {
     cursor: default;
     margin: 0px;

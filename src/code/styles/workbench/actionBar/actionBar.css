@@ -5,35 +5,30 @@
     height: 100%;
     background-color: #fcfcfc;
     
-    border-width: 1px;
-    border-style: solid;
-    border-color: #f1f1f1;
-
     -webkit-app-region: drag; /* draggable */
 }
 
-#action-bar > .general-button-container {
+#action-bar > div {
     position: absolute;
-    top: 0px;
+}
 
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    
-    width: 100%;
-    height: auto;
+#action-bar > .logo {
+    top: 0px;
+    justify-content: center;
+    font-size: 26px;
+    font-family: 'happy family';
+}
+
+#action-bar > .logo:hover {
+    filter: invert(15%) sepia(100%) saturate(2427%) hue-rotate(343deg) brightness(112%) contrast(97%);
+}
+
+#action-bar > .general-button-container {
+    top: 70px;
 }
 
 #action-bar > .secondary-button-container {
-    position: absolute;
     bottom: 0px;
-
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    
-    width: 100%;
-    height: auto;
 }
 
 #action-bar .action-button {

@@ -13,6 +13,8 @@ export const IActionBarService = createService<IActionBarService>('action-bar-se
 
 export const enum ActionType {
     NONE = 'none',
+    LOGO = 'logo',
+
     EXPLORER = 'explorer',
     OUTLINE = 'outline',
     SEARCH = 'search',
@@ -81,6 +83,7 @@ export class ActionBarComponent extends Component implements IActionBarService {
 
     public static readonly WIDTH = 50;
 
+    private readonly _logoButton!: ActionButton;
     private readonly _generalGroup!: WidgetBar<ActionButton>;
     private readonly _secondaryGroup!: WidgetBar<ActionButton>;
 
@@ -108,17 +111,23 @@ export class ActionBarComponent extends Component implements IActionBarService {
 
     protected override _createContent(): void {
         
+        // logo
+        const logo = this.__createLogo();
+        
         // upper button group
         const container1 = document.createElement('div');
         container1.className = 'general-button-container';
-        this.element.appendChild(container1);
         (<Mutable<WidgetBar<ActionButton>>>this._generalGroup) = this.__createGeneralButtonGroup(container1);
+        
 
         // lower button group
         const container2 = document.createElement('div');
         container2.className = 'secondary-button-container';
-        this.element.appendChild(container2);
         (<Mutable<WidgetBar<ActionButton>>>this._secondaryGroup) = this.__createSecondaryButtonGroup(container2);
+
+        this.element.appendChild(logo.element);
+        this.element.appendChild(container1);
+        this.element.appendChild(container2);
 
         this.__register(this._generalGroup);
         this.__register(this._secondaryGroup);
@@ -183,6 +192,17 @@ export class ActionBarComponent extends Component implements IActionBarService {
             type: buttonType,
             prevType: previousType
         });
+    }
+
+    private __createLogo(): ActionButton {
+        const logo = new ActionButton(ActionType.LOGO, { classes: ['logo'] });
+        logo.render(document.createElement('div'));
+
+        const text = document.createElement('div');
+        text.innerText = 'N';
+        logo.element.appendChild(text);
+
+        return logo;
     }
 
     private __createGeneralButtonGroup(container: HTMLElement): WidgetBar<ActionButton> {
