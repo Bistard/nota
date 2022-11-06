@@ -77,8 +77,11 @@ interface IWidgetBarItem<T> extends IDisposable {
  * @readonly The options for the WidgetBar. 
  */
 export interface IWidgetBarOptions {
-    orientation: Orientation // displaying vertical or horizontal
-    // more and more...
+
+    /**
+     * displaying vertical or horizontal.
+     */
+    readonly orientation: Orientation;
 }
 
 /**
@@ -92,8 +95,9 @@ export class WidgetBar<T extends IWidget> extends Disposable implements IWidgetB
     protected readonly _container: HTMLElement;
     protected readonly _itemContainer: HTMLElement;
     private _items: IWidgetBarItem<T>[];
-    protected opts: IWidgetBarOptions;
-
+    
+    protected readonly opts: IWidgetBarOptions;
+    
     // [constructor]
 
     constructor(
