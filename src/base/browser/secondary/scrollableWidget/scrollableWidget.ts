@@ -77,23 +77,16 @@ export class ScrollableWidget extends Widget implements IScrollableWidget {
         return this._scrollable;
     }
 
-    public override render(element: HTMLElement): void {
-        super.render(element);
-        
-        if (!this._element) {
-            return;
-        }
-
-        this._element.classList.add('scrollable-element');
+    protected override __render(): void {
+        const element = this.element;
+        element.classList.add('scrollable-element');
         
         // scrollbar visibility
-        this.onMouseover(this._element, () => this._onMouseover());
-        this.onMouseout(this._element, () => this._onMouseout());
-        this.onTouchmove(this._element, () => this._onMouseover());
-        this.onTouchend(this._element, () => this._onMouseout());
-        this.onTouchcancel(this._element, () => this._onMouseout());
-
-        this.__registerListeners();
+        this.onMouseover(element, () => this._onMouseover());
+        this.onMouseout(element, () => this._onMouseout());
+        this.onTouchmove(element, () => this._onMouseover());
+        this.onTouchend(element, () => this._onMouseout());
+        this.onTouchcancel(element, () => this._onMouseout());
 
         const scrollbarElement = document.createElement('div');
         this._scrollbar.render(scrollbarElement);
@@ -107,13 +100,10 @@ export class ScrollableWidget extends Widget implements IScrollableWidget {
     /**
      * @description Register mouse wheel listener to the scrollable DOM element.
      */
-    private __registerListeners(): void {
-        if (!this._element) {
-            return;
-        }
-
+    protected override __registerListeners(): void {
+        
         // mouse wheel scroll support
-        this.onWheel(this._element, event => this.__onDidWheel(event));
+        this.onWheel(this.element, event => this.__onDidWheel(event));
         
         // touchpad scroll support
         if (this._opts.touchSupport) {

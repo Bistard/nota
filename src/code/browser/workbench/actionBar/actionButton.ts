@@ -31,8 +31,5 @@ export class ActionButton extends Button implements IActionButton {
         this.type = type;
     }
     
-    public override render(container: HTMLElement): void {
-        super.render(container);
-    }
     // TODO: a hover listener to show a message box
 }

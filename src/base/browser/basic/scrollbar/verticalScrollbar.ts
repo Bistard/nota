@@ -21,9 +21,8 @@ export class VerticalScrollbar extends AbstractScrollbar {
     }
 
     protected __renderScrollbar(size: number): void {
-        const element = this._element!;
-        element.classList.add('scroll-bar', 'vertical');
-        element.style.width = size + 'px';
+        this.element.classList.add('scroll-bar', 'vertical');
+        this.element.style.width = size + 'px';
     }
 
     protected __updateSlider(size: number, position: number): void {

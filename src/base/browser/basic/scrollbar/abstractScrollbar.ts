@@ -64,12 +64,9 @@ export abstract class AbstractScrollbar extends Widget {
 
     // [fields]
 
-    protected _slider: HTMLElement;
-
+    protected readonly _slider: HTMLElement;
     protected _host: ScrollBarHost;
-
     protected _scrollable: Scrollable;
-
     private _visibilityController: VisibilityController;
 
     // [event]
@@ -134,24 +131,20 @@ export abstract class AbstractScrollbar extends Widget {
      */
     protected abstract __getMousePosition(event: MouseEvent): number;
 
-    // [methods]
+    // [protected override methods]
 
-    /**
-     * @description Renders the provided HTMLElement as a scrollbar.
-     * @param element The HTMLElement of the scrollbar.
-     * 
-     * @warn Do not render twice.
-     */
-    public override render(element: HTMLElement): void {
-        super.render(element);
-        
-        this._visibilityController.setDomNode(this._element!);
+    protected override __render(): void {
+        this._visibilityController.setDomNode(this.element);
 
         // render scrollbar
         this.__renderScrollbar(this._scrollable.getScrollbarSize());
+        // render slider
+        this.__renderSlider(this._scrollable.getSliderSize(), this._scrollable.getSliderPosition());
+    }
 
+    protected override __registerListeners(): void {
         // mouse down on the scrollbar or slider
-        this.__register(this.onMousedown(this._element!, (e) => {
+        this.__register(this.onMousedown(this.element, (e) => {
             e.stopPropagation();
 
             if (this._scrollable.required() === false) {
@@ -160,10 +153,9 @@ export abstract class AbstractScrollbar extends Widget {
 
             this.__scrollbarOrSliderOnDrag(e);
         }));
-
-        // render slider
-        this.__renderSlider(this._scrollable.getSliderSize(), this._scrollable.getSliderPosition());
     }
+    
+    // [public methods]
 
     /**
      * @description Rerenders the slider.
@@ -199,7 +191,7 @@ export abstract class AbstractScrollbar extends Widget {
      */
     private __renderSlider(size: number, position: number): void {
         this.__updateSlider(size, position);
-        this._element!.appendChild(this._slider);
+        this.element.appendChild(this._slider);
     }
     
     /**
@@ -316,7 +308,7 @@ export abstract class AbstractScrollbar extends Widget {
     private __scrollbarOrSliderOnDrag(event: MouseEvent): void {
 
         // determine which part is mousedowned
-        const scrollbarTop = this._element!.getClientRects()[0]!.top;
+        const scrollbarTop = this.element.getClientRects()[0]!.top;
         const mousePosition = this.__getMousePosition(event);
         const sliderStart = scrollbarTop + this._scrollable.getSliderPosition();
         const sliderEnd = sliderStart + this._scrollable.getSliderSize();

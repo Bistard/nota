@@ -77,30 +77,49 @@ export class Button extends Widget implements IButton {
     // [getter]
 
 	get enabled(): boolean {
-		return !!this._element && this._enabled;
+		return this.rendered && this._enabled;
 	}
 
-    // [public methods]
+    // [protected override methods]
 
-    public override render(container: HTMLElement): void {
-        super.render(container);
+    protected override __render(): void {
         
-        if (!this._element) {
-            return;
+        // set icon if provided
+        if (this._opts?.icon) {
+            const iconElement = document.createElement('i');
+            iconElement.classList.add(...getIconClass(this._opts.icon));
+            this.element.appendChild(iconElement);
         }
-
-        this.applyStyle();
-        this.__registerListeners(this._element);
     }
+
+    protected override __applyStyle(): void {
+        
+        this.element.classList.add('button');
+        this._opts?.classes?.forEach(className => this.element.classList.add(className));
+    }
+
+    protected override __registerListeners(): void {
+        
+        // click event
+        this.__register(this.onClick(this.element, (e) => {
+            if (!this.enabled) return;
+            this._onDidClick.fire();
+        }));
+
+        // hover event
+        this.__register(this.onMouseover(this.element, (e) => {
+            if (!this.enabled) return;
+            this._onHover.fire(e);
+        }));
+    }
+
+    // [public methods]
 
     public click(): void {
         this._onDidClick.fire();
     }
 
     public toggle(value?: boolean): void {
-		if (!this._element) {
-            return;
-        }
         
         const before = this._enabled;
         this._enabled = value || !this._enabled;
@@ -110,50 +129,12 @@ export class Button extends Widget implements IButton {
         }
 
         if (this._enabled) {
-            this._element.classList.remove('disabled');
-            this._element.setAttribute('disabled', String(false));
-            this._element.tabIndex = 0;
+            this.element.classList.remove('disabled');
+            this.element.setAttribute('disabled', String(false));
+            this.element.tabIndex = 0;
         } else {
-            this._element.classList.add('disabled');
-            this._element.setAttribute('disabled', String(true));
+            this.element.classList.add('disabled');
+            this.element.setAttribute('disabled', String(true));
         }
 	}
-
-    // [private helper methods]
-
-    public override applyStyle(): void {
-        if (!this._element) {
-            return;
-        }
-
-        this._element.classList.add('button');
-
-        if (this._opts) {
-
-            // set icon if provided
-            if (this._opts.icon) {
-                const iconElement = document.createElement('i');
-                iconElement.classList.add(...getIconClass(this._opts.icon));
-                this._element.appendChild(iconElement);
-            }
-
-            // add extra classes
-            this._opts.classes?.forEach(className => this._element?.classList.add(className));
-        }
-    }
-
-    private __registerListeners(element: HTMLElement): void {
-
-        // click event
-        this.__register(this.onClick(element, (e) => {
-            if (!this.enabled) return;
-            this._onDidClick.fire();
-        }));
-
-        // hover event
-        this.__register(this.onMouseover(element, (e) => {
-            if (!this.enabled) return;
-            this._onHover.fire(e);
-        }));
-    }
 }
