@@ -41,18 +41,18 @@ export interface ISideViewComponent extends IComponent {
 export interface ISideViewService extends IComponent {
 
     /** 
-     * Events fired when the current action view has changed.
+     * Events fired when the current side view has changed.
      */
     onDidViewChange: Register<ISideViewChangeEvent>;
 
     /**
-     * @description Switch to the action view by the provided type.
+     * @description Switch to the side view by the provided type.
      */
     setView(viewType: SideType): void;
 }
 
 /**
- * @class SideViewComponent displays different action view such as 
+ * @class SideViewComponent displays different side view such as 
  * explorerView, outlineView, gitView and so on.
  */
 export class SideViewComponent extends Component implements ISideViewService {
@@ -67,7 +67,7 @@ export class SideViewComponent extends Component implements ISideViewService {
 
     private readonly _components: Map<string, ISideViewComponent>;
 
-    private sideViewTitlePart!: ActionViewTitlePart;
+    private sideViewTitlePart!: SideViewTitlePart;
 
     // [event]
 
@@ -106,7 +106,7 @@ export class SideViewComponent extends Component implements ISideViewService {
         this._contentContainer.id = 'side-view-content-container';
 
         // side-view-title
-        this.sideViewTitlePart = this.__register(new SideViewTitlePart(this.i18nService)); // TODO
+        this.sideViewTitlePart = this.__register(new ExplorerViewTitlePart(this.i18nService)); // TODO
         this.sideViewTitlePart.render(this._contentContainer);
 
         // default to explorer-view
@@ -205,9 +205,9 @@ export class SideViewComponent extends Component implements ISideViewService {
 }
 
 /**
- * @class The base class for top view part in the action view.
+ * @class The base class for top view part in the side view.
  */
-export class ActionViewTitlePart extends Disposable {
+export class SideViewTitlePart extends Disposable {
 
     protected _element: HTMLElement;
 
@@ -248,7 +248,7 @@ export class ActionViewTitlePart extends Disposable {
     }
 }
 
-export class SideViewTitlePart extends ActionViewTitlePart {
+export class ExplorerViewTitlePart extends SideViewTitlePart {
 
     constructor(
         private readonly i18nService: Ii18nService,

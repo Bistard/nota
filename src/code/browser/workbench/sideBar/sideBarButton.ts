@@ -4,13 +4,13 @@ import { SideType } from "src/code/browser/workbench/sideBar/sideBar";
 export interface ISideButton extends IButton {
     
     /**
-     * The type of the action button.
+     * The type of the button.
      */
     readonly type: SideType;
 }
 
 /**
- * @class A simple encapsulation built upon {@link Button}. Specific for action
+ * @class A simple encapsulation built upon {@link Button}. Specific for side
  * bar.
  */
 export class SideButton extends Button implements ISideButton {

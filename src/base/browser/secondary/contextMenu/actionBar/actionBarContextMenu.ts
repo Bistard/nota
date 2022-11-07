@@ -56,11 +56,11 @@ export class ActionBarContextMenu extends ContextMenu implements IContextMenu {
     // TODO: this function needs to be refactor
     /**
      * @description unchecks a given button. If it is not focused, set it as 
-     * focused. Moreover, switch to that action view.
+     * focused. Moreover, switch to that side view.
      */
     // public switchActionViewDisplay(sideBarService: ISideBarService, clickedBtn: IButton, closeOrOpen: boolean, clickedIndex: number): void {
 
-    //     // focus the action button and reverse the state of action view
+    //     // focus the action button and reverse the state of side view
     //     const actionBtnContainer = sideBarService.contentArea!;
     //     const currFocus = sideBarService.getFocusIndex() as number;
     //     const currFocusBtn = actionBtnContainer.children[currFocus] as HTMLElement;

@@ -135,7 +135,7 @@ export class SideBarComponent extends Component implements ISideBarService {
     protected override _registerListeners(): void {
         
         /**
-         * Register all the action buttons click event.
+         * Register all the buttons click event.
          */
         this._generalGroup.items().forEach(item => {
             item.onDidClick(() => {
@@ -150,7 +150,7 @@ export class SideBarComponent extends Component implements ISideBarService {
     // [private helper method]
 
     /**
-     * @description Invoked when the action button is clicked.
+     * @description Invoked when the button is clicked.
      * @param clickedType The type of buttion is clicked.
      * 
      * @note Method will fire `this._onDidClick`.
@@ -165,7 +165,7 @@ export class SideBarComponent extends Component implements ISideBarService {
             return;
         }
         
-        // none of action button is focused, focus the button.
+        // none of button is focused, focus the button.
         if (this._currButtonType === SideType.NONE) {
             this._currButtonType = buttonType;
             button.element.classList.add('focus');
@@ -177,7 +177,7 @@ export class SideBarComponent extends Component implements ISideBarService {
             button.element.classList.remove('focus');
         } 
         
-        // other action button is clicked, focus the new button.
+        // other button is clicked, focus the new button.
         else {
             const prevButton = this.getButton(this._currButtonType)!;
             prevButton.element!.classList.remove('focus');
