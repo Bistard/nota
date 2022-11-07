@@ -1,5 +1,5 @@
 import { Component } from 'src/code/browser/service/component/component';
-import { WindowBarComponent } from 'src/code/browser/workbench/workspace/titleBar/windowBar';
+import { WindowBar } from 'src/code/browser/workbench/workspace/titleBar/windowBar';
 import { WorkspaceComponentType } from 'src/code/browser/workbench/workspace/workspace';
 import { IComponentService } from 'src/code/browser/service/component/componentService';
 import { IInstantiationService } from 'src/code/platform/instantiation/common/instantiation';
@@ -11,12 +11,12 @@ export const enum TitleBarComponentType {
 }
 
 /**
- * @class TitleBarComponent stores and handles all the titleBar and functionBar 
+ * @class TitleBar stores and handles all the titleBar and functionBar 
  * relevant business. 
  */
-export class TitleBarComponent extends Component {
+export class TitleBar extends Component {
     
-    windowBarComponent!: WindowBarComponent;
+    windowBarComponent!: WindowBar;
 
     constructor(
         @IComponentService componentService: IComponentService,
@@ -38,7 +38,7 @@ export class TitleBarComponent extends Component {
     }
 
     private _createWindowBar(): void {
-        this.windowBarComponent = this.instantiationService.createInstance(WindowBarComponent);
+        this.windowBarComponent = this.instantiationService.createInstance(WindowBar);
         this.windowBarComponent.create(this);
     }
     

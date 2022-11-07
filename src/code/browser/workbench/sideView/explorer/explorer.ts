@@ -19,11 +19,14 @@ import { URI } from 'src/base/common/file/uri';
 import { IHostService } from 'src/code/platform/host/common/hostService';
 import { StatusKey } from 'src/code/platform/status/common/status';
 import { DisposableManager } from 'src/base/common/dispose';
+import { getIconClass } from 'src/base/browser/icon/iconRegistry';
+import { Icons } from 'src/base/browser/icon/icons';
+import { SideViewTitlePart } from 'src/code/browser/workbench/sideView/sideViewTitle';
 
 export const IExplorerViewService = createService<IExplorerViewService>('explorer-view-service');
 
 /**
- * An interface only for {@link ExplorerViewComponent}.
+ * An interface only for {@link ExplorerView}.
  */
 export interface IExplorerViewService extends IComponent {
     
@@ -65,7 +68,7 @@ export interface ClassicOpenEvent {
 /**
  * @class TODO: complete comments
  */
-export class ExplorerViewComponent extends Component implements IExplorerViewService {
+export class ExplorerView extends Component implements IExplorerViewService {
 
     // [field]
 
@@ -315,4 +318,39 @@ export class ExplorerViewComponent extends Component implements IExplorerViewSer
     }
 }
 
-registerSingleton(IExplorerViewService, new ServiceDescriptor(ExplorerViewComponent));
+export class ExplorerTitlePart extends SideViewTitlePart {
+
+    constructor(
+        private readonly i18nService: Ii18nService,
+    ) {
+        super();
+    }
+
+    public override render(container: HTMLElement): void {
+        super.render(container);
+        
+        if (!this._element) {
+            return;
+        }
+        
+        // wrapper
+        const wrapper = document.createElement('div');
+        wrapper.className = 'side-view-title-container';
+
+        // dropdown icon
+        const dropdownIcon = document.createElement('i');
+        dropdownIcon.classList.add(...getIconClass(Icons.AddressBook));
+        this._element.appendChild(dropdownIcon);
+
+        // title text
+        const topText = document.createElement('div');
+        topText.className = 'title-text';
+        topText.textContent = this.i18nService.trans(Section.Explorer, 'notebook');
+
+        wrapper.append(dropdownIcon);
+        wrapper.append(topText);
+        this._element.appendChild(wrapper);
+    }
+}
+
+registerSingleton(IExplorerViewService, new ServiceDescriptor(ExplorerView));

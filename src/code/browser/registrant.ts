@@ -7,9 +7,9 @@ import { IKeyboardService, keyboardService } from "src/code/browser/service/keyb
 import { BrowserDialogService, IDialogService } from 'src/code/platform/dialog/browser/browserDialogService';
 import { IShortcutService, ShortcutService } from 'src/code/browser/service/shortcut/shortcutService';
 import { IThemeService, ThemeService } from 'src/code/browser/service/theme/themeService';
-import { SideBarComponent, ISideBarService } from 'src/code/browser/workbench/sideBar/sideBar';
+import { SideBar, ISideBarService } from 'src/code/browser/workbench/sideBar/sideBar';
 import { IWorkspaceService, WorkspaceComponent } from 'src/code/browser/workbench/workspace/workspace';
-import { SideViewComponent, ISideViewService } from 'src/code/browser/workbench/sideView/sideView';
+import { SideView, ISideViewService } from 'src/code/browser/workbench/sideView/sideView';
 import { ExplorerTreeService, IExplorerTreeService } from 'src/code/browser/service/explorerTree/explorerTreeService';
 
 /*******************************************************************************
@@ -25,9 +25,9 @@ registerSingleton(IShortcutService, new ServiceDescriptor(ShortcutService));
 registerSingleton(ICommandService, new ServiceDescriptor(CommandService));
 
 // User Interface
-registerSingleton(ISideBarService, new ServiceDescriptor(SideBarComponent));
+registerSingleton(ISideBarService, new ServiceDescriptor(SideBar));
 registerSingleton(IWorkspaceService, new ServiceDescriptor(WorkspaceComponent));
-registerSingleton(ISideViewService, new ServiceDescriptor(SideViewComponent));
+registerSingleton(ISideViewService, new ServiceDescriptor(SideView));
 registerSingleton(IKeyboardScreenCastService, new ServiceDescriptor(KeyboardScreenCastService));
 registerSingleton(IThemeService, new ServiceDescriptor(ThemeService)); // TODO: themeService
 registerSingleton(IExplorerTreeService, new ServiceDescriptor(ExplorerTreeService));

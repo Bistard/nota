@@ -22,7 +22,7 @@ export interface IEditorService extends IComponent {
     openEditor(uriOrString: URI | string): void;
 }
 
-export class EditorComponent extends Component implements IEditorService {
+export class Editor extends Component implements IEditorService {
 
     // [field]
 
@@ -82,4 +82,4 @@ export class EditorComponent extends Component implements IEditorService {
 
 }
 
-registerSingleton(IEditorService, new ServiceDescriptor(EditorComponent));
+registerSingleton(IEditorService, new ServiceDescriptor(Editor));

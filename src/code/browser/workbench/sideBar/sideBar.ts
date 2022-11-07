@@ -38,7 +38,7 @@ export interface ISideBarButtonClickEvent {
 }
 
 /**
- * An interface only for {@link SideBarComponent}.
+ * An interface only for {@link SideBar}.
  */
 export interface ISideBarService extends IComponent {
     
@@ -73,10 +73,10 @@ export interface ISideBarOptions {
 }
 
 /**
- * @class SideBarComponent provides access to each view and handles the state 
+ * @class SideBar provides access to each view and handles the state 
  * transition between each button and display coressponding view.
  */
-export class SideBarComponent extends Component implements ISideBarService {
+export class SideBar extends Component implements ISideBarService {
 
     // [field]
 

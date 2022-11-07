@@ -8,7 +8,7 @@ import { TitleBarComponentType } from "src/code/browser/workbench/workspace/titl
 import { WindowButton } from "src/code/browser/workbench/workspace/titleBar/windowButton";
 import { IHostService } from "src/code/platform/host/common/hostService";
 
-export class WindowBarComponent extends Component {
+export class WindowBar extends Component {
 
     protected _widgetBar: WidgetBar<WindowButton> | undefined;
 

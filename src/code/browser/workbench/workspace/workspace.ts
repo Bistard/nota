@@ -1,10 +1,10 @@
 import { IComponentService } from "src/code/browser/service/component/componentService";
 import { Component, ComponentType, IComponent } from "src/code/browser/service/component/component";
 import { MarkdownComponent } from "src/code/browser/workbench/workspace/markdown/markdown";
-import { TitleBarComponent } from "src/code/browser/workbench/workspace/titleBar/titleBar";
+import { TitleBar } from "src/code/browser/workbench/workspace/titleBar/titleBar";
 import { createService } from "src/code/platform/instantiation/common/decorator";
 import { IInstantiationService } from "src/code/platform/instantiation/common/instantiation";
-import { EditorComponent, IEditorService } from "src/code/browser/workbench/workspace/editor/editor";
+import { Editor, IEditorService } from "src/code/browser/workbench/workspace/editor/editor";
 import { IThemeService } from "src/code/browser/service/theme/themeService";
 
 export const enum WorkspaceComponentType {
@@ -26,8 +26,8 @@ export class WorkspaceComponent extends Component implements IWorkspaceService {
 
     // [field]
 
-    private titleBarComponent!: TitleBarComponent;
-    private editorComponent!: EditorComponent;
+    private titleBarComponent!: TitleBar;
+    private editorComponent!: Editor;
     private markdownComponent!: MarkdownComponent;
 
     // [constructor]
@@ -58,12 +58,12 @@ export class WorkspaceComponent extends Component implements IWorkspaceService {
     // [private helper methods]
 
     private _createTitleBar(): void {
-        this.titleBarComponent = this.instantiationService.createInstance(TitleBarComponent);
+        this.titleBarComponent = this.instantiationService.createInstance(TitleBar);
         this.titleBarComponent.create(this);
     }
 
     private _createEditor(): void {
-        this.editorComponent = this.instantiationService.getOrCreateService(IEditorService) as EditorComponent;
+        this.editorComponent = this.instantiationService.getOrCreateService(IEditorService) as Editor;
         this.editorComponent.create(this);
     }
 
