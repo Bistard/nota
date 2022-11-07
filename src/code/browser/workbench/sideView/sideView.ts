@@ -1,4 +1,4 @@
-import { Component, ComponentType, IComponent } from 'src/code/browser/service/component/component';
+import { Component, IComponent } from 'src/code/browser/service/component/component';
 import { Emitter, Register } from 'src/base/common/event';
 import { createService } from 'src/code/platform/instantiation/common/decorator';
 import { IComponentService } from 'src/code/browser/service/component/componentService';
@@ -100,7 +100,7 @@ export class SideViewService extends Component implements ISideViewService {
         @IThemeService themeService: IThemeService,
         @ILogService private readonly logService: ILogService,
     ) {
-        super(ComponentType.SideView, null, themeService, componentService);
+        super('side-view', null, themeService, componentService);
         this._viewCtors = new Map();
     }
 

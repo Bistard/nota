@@ -1,4 +1,4 @@
-import { Component, ComponentType, IComponent } from 'src/code/browser/service/component/component';
+import { Component, IComponent } from 'src/code/browser/service/component/component';
 import { Emitter, Register } from 'src/base/common/event';
 import { IComponentService } from 'src/code/browser/service/component/componentService';
 import { createService } from 'src/code/platform/instantiation/common/decorator';
@@ -105,7 +105,7 @@ export class ExplorerView extends Component implements IExplorerViewService {
         @IBrowserEnvironmentService private readonly envrionmentService: IBrowserEnvironmentService,
         @IExplorerTreeService private readonly explorerTreeService: IExplorerTreeService,
     ) {
-        super(ComponentType.ExplorerView, parentElement, themeService, componentService);
+        super('explorer-view', parentElement, themeService, componentService);
 
         lifecycleService.onWillQuit(e => e.join(this.__onApplicationClose()));
     }

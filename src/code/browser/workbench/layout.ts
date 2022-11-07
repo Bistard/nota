@@ -3,7 +3,7 @@ import { IComponentService } from "src/code/browser/service/component/componentS
 import { IThemeService } from "src/code/browser/service/theme/themeService";
 import { SideBar, ISideBarService, SideType } from "src/code/browser/workbench/sideBar/sideBar";
 import { ISideViewService, SideView } from "src/code/browser/workbench/sideView/sideView";
-import { Component, ComponentType } from "src/code/browser/service/component/component";
+import { Component } from "src/code/browser/service/component/component";
 import { IWorkspaceService } from "src/code/browser/workbench/workspace/workspace";
 import { IInstantiationService } from "src/code/platform/instantiation/common/instantiation";
 import { ISplitView, ISplitViewOpts, SplitView } from "src/base/browser/secondary/splitView/splitView";
@@ -33,7 +33,7 @@ export abstract class WorkbenchLayout extends Component {
         @IWorkspaceService protected readonly workspaceService: IWorkspaceService,
         @IConfigService protected readonly configService: IConfigService,
     ) {
-        super(ComponentType.Workbench, parent, themeService, componentService);
+        super('workbench', parent, themeService, componentService);
 
         this.__registerSideViews();
     }

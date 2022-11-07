@@ -6,20 +6,6 @@ import { IComponentService } from "src/code/browser/service/component/componentS
 import { Themable } from "src/code/browser/service/theme/theme";
 import { IThemeService } from "src/code/browser/service/theme/themeService";
 
-/**
- * List of all the types of {@link Component}.
- */
-export const enum ComponentType {
-    Workbench = 'workbench',
-    SideBar = 'side-bar',
-    SideView = 'side-view',
-    Workspace = 'workspace',
-    ExplorerView = 'explorer-view',
-    OutlineView = 'outline-view',
-    SearchView = 'search-view',
-    GitView = 'git-view',
-}
-
 export interface ICreateable {
     create(): void;
     registerListeners(): void;

@@ -1,5 +1,5 @@
 import { IComponentService } from "src/code/browser/service/component/componentService";
-import { Component, ComponentType, IComponent } from "src/code/browser/service/component/component";
+import { Component, IComponent } from "src/code/browser/service/component/component";
 import { MarkdownComponent } from "src/code/browser/workbench/workspace/markdown/markdown";
 import { TitleBar } from "src/code/browser/workbench/workspace/titleBar/titleBar";
 import { createService } from "src/code/platform/instantiation/common/decorator";
@@ -37,7 +37,7 @@ export class WorkspaceComponent extends Component implements IWorkspaceService {
         @IInstantiationService private readonly instantiationService: IInstantiationService,
         @IThemeService themeService: IThemeService,
     ) {
-        super(ComponentType.Workspace, null, themeService, componentService);
+        super('workspace', null, themeService, componentService);
     }
 
     // [protected override methods]

@@ -1,4 +1,4 @@
-import { Component, ComponentType, IComponent } from 'src/code/browser/service/component/component';
+import { Component, IComponent } from 'src/code/browser/service/component/component';
 import { createService } from 'src/code/platform/instantiation/common/decorator';
 import { IComponentService } from 'src/code/browser/service/component/componentService';
 import { SideButton } from 'src/code/browser/workbench/sideBar/sideBarButton';
@@ -97,7 +97,7 @@ export class SideBar extends Component implements ISideBarService {
         @IComponentService componentService: IComponentService,
         @IThemeService themeService: IThemeService,
     ) {
-        super(ComponentType.SideBar, null, themeService, componentService);
+        super('side-bar', null, themeService, componentService);
     }
 
     // [public method]
