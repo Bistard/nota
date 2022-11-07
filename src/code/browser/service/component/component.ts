@@ -14,10 +14,10 @@ export const enum ComponentType {
     SideBar = 'side-bar',
     SideView = 'side-view',
     Workspace = 'workspace',
-    ExplorerView = 'explorer-container',
-    OutlineView = 'outline-container',
-    SearchView = 'search-container',
-    GitView = 'git-container',
+    ExplorerView = 'explorer-view',
+    OutlineView = 'outline-view',
+    SearchView = 'search-view',
+    GitView = 'git-view',
 }
 
 export interface ICreateable {
@@ -29,6 +29,11 @@ export interface ICreateable {
  * An interface only for {@link Component}.
  */
 export interface IComponent extends ICreateable {
+
+    /**
+     * @description Returns the string id of the component.
+     */
+    readonly id: string;
 
     /** Fires when the component is layouting. */
     readonly onDidLayout: Register<IDimension>;
@@ -54,7 +59,7 @@ export interface IComponent extends ICreateable {
      * @note If both not provided, either renders under the constructor provided 
      * element, or `document.body`.
      */
-    create(parentComponent?: Component, parentElement?: HTMLElement): void;
+    create(parentComponent?: IComponent, parentElement?: HTMLElement): void;
 
     /**
      * @description Layout the component to the given dimension.
@@ -64,7 +69,7 @@ export interface IComponent extends ICreateable {
      * with the parent HTMLElement. If any dimensions is provided, the component
      * will layout the missing one either with the previous value or just zero.
      */
-    layout(width: number | undefined, height: number | undefined): void;
+    layout(width?: number, height?: number): void;
 
     /**
      * @description Registers any listeners in the component.
@@ -72,14 +77,14 @@ export interface IComponent extends ICreateable {
     registerListeners(): void;
 
     /**
-     * @description Register a child {@link Component} into the current Component.
+     * @description Register a child {@link IComponent} into the current Component.
      * @param override If sets to true, it will override the existed one which 
      *                 has the same component id. Defaults to false.
      * 
      * @warn Throws an error if the component has already been registered and
      *       override sets to false.
      */
-    registerComponent(component: Component, override?: boolean): void;
+    registerComponent(component: IComponent, override?: boolean): void;
     
     /**
      * @description Determines if the component with the given id has been 
@@ -92,24 +97,30 @@ export interface IComponent extends ICreateable {
 
     /**
      * @description Returns the sub component by id.
-     * 
-     * @warn If no such component exists, an error throws.
-     * 
      * @param id The string ID of the component.
      * @returns The required Component.
+     * @warn If no such component exists, an error throws.
      */
-    getComponent(id: string): Component;
+    getComponent<T extends IComponent>(id: string): T | undefined;
+
+    /**
+     * @description Unregisters the component with the given id.
+     * @param id The id of the component.
+     * @note The corresponding component will not be disposed automatically.
+     */
+    unregisterComponent(id: string): void;
+
+    /**
+     * @description Returns all the registered components that as the direct
+     * children of the current component.
+     */
+    getDirectComponents(): [string, IComponent][];
 
     /**
      * @description Sets the visibility of the current component.
      * @param value to visible or invisible.
      */
     setVisible(value: boolean): void;
-
-    /**
-     * @description Returns the string id of the component.
-     */
-    getId(): string;
 
     /**
      * @description Checks if the component has created.
@@ -121,7 +132,6 @@ export interface IComponent extends ICreateable {
      * components.
      */
     dispose(): void;
-
 }
 
 /**
@@ -144,7 +154,7 @@ export abstract class Component extends Themable implements IComponent {
     private _parent?: HTMLElement;
 
     private readonly _element: FastElement<HTMLElement>;
-    private readonly _children: Map<string, Component> = new Map();
+    private readonly _children: Map<string, IComponent> = new Map();
     private _dimension?: Dimension;
 
     private _created: boolean;
@@ -217,6 +227,10 @@ export abstract class Component extends Themable implements IComponent {
 
     // [public method]
 
+    get id(): string {
+        return this._element.getID();
+    }
+
     public create(parentComponent?: Component, parentElement?: HTMLElement): void {
         if (this._created || this.isDisposed()) {
             return; 
@@ -234,7 +248,7 @@ export abstract class Component extends Themable implements IComponent {
         this._created = true;
     }
 
-    public layout(width: number | undefined, height: number | undefined): void {
+    public layout(width?: number, height?: number): void {
         if (!this._parent) {
             return;
         }
@@ -268,8 +282,8 @@ export abstract class Component extends Themable implements IComponent {
         this._registered = true;
     }
 
-    public registerComponent(component: Component, override: boolean = false): void {
-        const id = component.getId();
+    public registerComponent(component: IComponent, override: boolean = false): void {
+        const id = component.id;
         const registered = this._children.has(id);
         
         if (registered && !override) {
@@ -283,10 +297,6 @@ export abstract class Component extends Themable implements IComponent {
 
         this._children.set(id, component);
         this.__register(component);
-    }
-
-    public getId(): string {
-        return this._element.getID();
     }
 
     public created(): boolean {
@@ -308,12 +318,24 @@ export abstract class Component extends Themable implements IComponent {
         return this._children.has(id);
     }
 
-    public getComponent(id: string): Component {
+    public getComponent<T extends IComponent>(id: string): T | undefined {
         const component = this._children.get(id);
         if (!component) {
-            throw new Error(`trying to get an unknown component ${id}`);
+            return undefined;
         }
-        return component;
+        return component as T;
+    }
+
+    public unregisterComponent(id: string): void {
+        this._children.delete(id);
+    }
+
+    public getDirectComponents(): [string, IComponent][] {
+        const result: [string, IComponent][] = [];
+        for (const entry of this._children) {
+            result.push(entry);
+        }
+        return result;
     }
 
     public override dispose(): void {

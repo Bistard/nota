@@ -22,10 +22,10 @@ export class ComponentService {
     }
 
     public register(component: IComponent, force?: boolean): void {
-        if (this._componentMap.has(component.getId()) && force === false) {
+        if (this._componentMap.has(component.id) && force === false) {
             // do log here
         }
-        this._componentMap.set(component.getId(), component);
+        this._componentMap.set(component.id, component);
     }
 
     public unregister(id: string): void {
