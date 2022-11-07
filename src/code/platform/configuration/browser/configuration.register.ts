@@ -12,6 +12,7 @@ class DefaultUserConfiguration extends DefaultConfigStorage {
                 keyboardScreenCast: false,
             },
             'sideView': {
+                default: 'explorer-view',
                 'explorer': {
                     mode: 'classic' as TreeMode,
                     exclude: ['^\\..*'] as string[],

@@ -1,13 +1,15 @@
 import { addDisposableListener, DomUtility, EventType, Orientation } from "src/base/browser/basic/dom";
 import { IComponentService } from "src/code/browser/service/component/componentService";
 import { IThemeService } from "src/code/browser/service/theme/themeService";
-import { SideBar, ISideBarService } from "src/code/browser/workbench/sideBar/sideBar";
-import { SideViewService, ISideViewService } from "src/code/browser/workbench/sideView/sideView";
-import { Component, ComponentType, IComponent } from "src/code/browser/service/component/component";
+import { SideBar, ISideBarService, SideType } from "src/code/browser/workbench/sideBar/sideBar";
+import { ISideViewService, SideView } from "src/code/browser/workbench/sideView/sideView";
+import { Component, ComponentType } from "src/code/browser/service/component/component";
 import { IWorkspaceService } from "src/code/browser/workbench/workspace/workspace";
 import { IInstantiationService } from "src/code/platform/instantiation/common/instantiation";
 import { ISplitView, ISplitViewOpts, SplitView } from "src/base/browser/secondary/splitView/splitView";
 import { Priority } from "src/base/common/event";
+import { IConfigService } from "src/code/platform/configuration/common/abstractConfigService";
+import { ExplorerView } from "src/code/browser/workbench/sideView/explorer/explorer";
 
 /**
  * @description A base class for Workbench to create and manage the behaviour of
@@ -26,11 +28,14 @@ export abstract class WorkbenchLayout extends Component {
         protected readonly instantiationService: IInstantiationService,
         @IComponentService componentService: IComponentService,
         @IThemeService themeService: IThemeService,
-        @ISideBarService private readonly sideBarService: ISideBarService,
-        @ISideViewService private readonly sideViewService: ISideViewService,
-        @IWorkspaceService private readonly workspaceService: IWorkspaceService,
+        @ISideBarService protected readonly sideBarService: ISideBarService,
+        @ISideViewService protected readonly sideViewService: ISideViewService,
+        @IWorkspaceService protected readonly workspaceService: IWorkspaceService,
+        @IConfigService protected readonly configService: IConfigService,
     ) {
         super(ComponentType.Workbench, parent, themeService, componentService);
+
+        this.__registerSideViews();
     }
 
     // [protected methods]
@@ -55,11 +60,12 @@ export abstract class WorkbenchLayout extends Component {
         };
 
         // Constructs each component of the workbench.
-        const configurations: [IComponent, number, number, number, Priority][] = [
-            [this.sideBarService , SideBar.WIDTH , SideBar.WIDTH     , SideBar.WIDTH , Priority.Low   ],
-            [this.sideViewService, 100                      , SideViewService.WIDTH * 2, SideViewService.WIDTH, Priority.Normal],
-            [this.workspaceService , 0                        , Number.POSITIVE_INFINITY     , 0                        , Priority.High  ],
-        ]
+        const configurations = [
+            [this.sideBarService , SideBar.WIDTH , SideBar.WIDTH, SideBar.WIDTH , Priority.Low],
+            [this.sideViewService, 100, SideView.WIDTH * 2, SideView.WIDTH, Priority.Normal],
+            [this.workspaceService , 0, Number.POSITIVE_INFINITY, 0, Priority.High],
+        ] as const;
+        
         for (const [component, minSize, maxSize, initSize, priority] of configurations) {
             component.create(this, splitViewContainer);
             component.registerListeners();
@@ -95,10 +101,13 @@ export abstract class WorkbenchLayout extends Component {
          * sideView to swtich the view.
          */
         this.sideBarService.onDidClick(e => {
-            this.sideViewService.setView(e.type);
+            this.sideViewService.switchView(e.type);
         });
     }
 
     // [private helper functions]
 
+    private __registerSideViews(): void {
+        this.sideViewService.registerView(SideType.EXPLORER, ExplorerView);
+    }
 }
