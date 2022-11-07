@@ -31,25 +31,25 @@
     bottom: 0px;
 }
 
-#side-bar .action-button {
+#side-bar .side-button {
     width: 50px;
     height: 50px;
     align-content: center;
     display: flex;
 }
 
-#side-bar .action-button > .icon {
+#side-bar .side-button > .icon {
     font-size: 18px;
 }
 
-#side-bar .action-button:hover {
+#side-bar .side-button:hover {
     filter: invert(15%) sepia(100%) saturate(2427%) hue-rotate(343deg) brightness(112%) contrast(97%);
 }
 
-#side-bar .action-button:active {
+#side-bar .side-button:active {
     opacity: 70%;
 }
 
-#side-bar .action-button.focus {
+#side-bar .side-button.focus {
     filter: invert(15%) sepia(100%) saturate(2427%) hue-rotate(343deg) brightness(112%) contrast(97%);
 }

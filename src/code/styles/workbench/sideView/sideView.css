@@ -1,4 +1,4 @@
-#action-view {
+#side-view {
     position: relative;
     display: flex;
     flex-direction: column;
@@ -7,13 +7,13 @@
     background-color: #fcfcfc;
 }
 
-#action-view-container {
+#side-view-container {
     position: relative;
     width: 100%;
     height: 100%;
 }
 
-#action-content-container {
+#side-view-content-container {
     position: relative;
     width: 100%;
     height: 100%;
@@ -21,7 +21,7 @@
     flex-direction: column;
 }
 
-.action-view-title {
+.side-view-title {
     position: relative;
     
     width: 100%;
@@ -33,7 +33,7 @@
     border-bottom: 1px solid #dfdfdf;
 }
 
-.action-view-title > .action-view-title-container {
+.side-view-title > .side-view-title-container {
     position: relative;
     
     color: rgb(59, 59, 59);
@@ -48,12 +48,12 @@
     user-select: none;
 }
 
-.action-view-title > .action-view-title-container > .title-text {
+.side-view-title > .side-view-title-container > .title-text {
     margin-left: 4px;
     margin-right: 4px;
 }
 
-.action-view-title > .action-view-title-container > .icon {
+.side-view-title > .side-view-title-container > .icon {
     margin-left: 3px;
     margin-top: 3px;
     font-size: 14px;

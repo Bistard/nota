@@ -1,8 +1,8 @@
 {
-    "src/code/browser/workbench/actionView": {
+    "src/code/browser/workbench/sideView": {
         
     },
-    "src/code/browser/workbench/actionView/explorer": {
+    "src/code/browser/workbench/sideView/explorer": {
         "notebook": "NOTEBOOK",
         "openDirectory": "OPEN A FOLDER"
     }

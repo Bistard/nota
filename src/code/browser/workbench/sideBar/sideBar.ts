@@ -11,7 +11,7 @@ import { Mutable } from 'src/base/common/util/type';
 
 export const ISideBarService = createService<ISideBarService>('side-bar-service');
 
-export const enum ActionType {
+export const enum SideType {
     NONE = 'none',
     LOGO = 'logo',
 
@@ -29,12 +29,12 @@ export interface ISideBarButtonClickEvent {
     /**
      * The type of button is clicked.
      */
-    readonly type: ActionType;
+    readonly type: SideType;
 
     /**
      * The previous type of button was clicked.
      */
-    readonly prevType: ActionType;
+    readonly prevType: SideType;
 }
 
 /**
@@ -52,7 +52,7 @@ export interface ISideBarService extends IComponent {
      * @param type The type of the required button.
      * @returns The required button. Returns undefined if it does not exists.
      */
-    getButton(type: ActionType): SideButton | undefined;
+    getButton(type: SideType): SideButton | undefined;
 
 }
 
@@ -86,7 +86,7 @@ export class SideBarComponent extends Component implements ISideBarService {
     private readonly _generalGroup!: WidgetBar<SideButton>;
     private readonly _secondaryGroup!: WidgetBar<SideButton>;
 
-    private _currButtonType = ActionType.NONE;
+    private _currButtonType = SideType.NONE;
 
     private readonly _onDidClick = this.__register(new Emitter<ISideBarButtonClickEvent>());
     public readonly onDidClick = this._onDidClick.registerListener;
@@ -102,7 +102,7 @@ export class SideBarComponent extends Component implements ISideBarService {
 
     // [public method]
 
-    public getButton(type: ActionType): SideButton | undefined {
+    public getButton(type: SideType): SideButton | undefined {
         return this._generalGroup.getItem(type);
     }
 
@@ -139,12 +139,12 @@ export class SideBarComponent extends Component implements ISideBarService {
          */
         this._generalGroup.items().forEach(item => {
             item.onDidClick(() => {
-                this.__actionButtonClick(item.type);
+                this.__buttonClick(item.type);
             });
         })
         
         // default with opening explorer view
-        this.__actionButtonClick(ActionType.EXPLORER);
+        this.__buttonClick(SideType.EXPLORER);
     }
 
     // [private helper method]
@@ -155,7 +155,7 @@ export class SideBarComponent extends Component implements ISideBarService {
      * 
      * @note Method will fire `this._onDidClick`.
      */
-    private __actionButtonClick(buttonType: ActionType): void {
+    private __buttonClick(buttonType: SideType): void {
 
         const button = this.getButton(buttonType)!;
         let previousType = this._currButtonType;
@@ -166,14 +166,14 @@ export class SideBarComponent extends Component implements ISideBarService {
         }
         
         // none of action button is focused, focus the button.
-        if (this._currButtonType === ActionType.NONE) {
+        if (this._currButtonType === SideType.NONE) {
             this._currButtonType = buttonType;
             button.element.classList.add('focus');
         } 
         
         // if the current focused button is clicked again, remove focus.
         else if (this._currButtonType === buttonType) {
-            this._currButtonType = ActionType.NONE;
+            this._currButtonType = SideType.NONE;
             button.element.classList.remove('focus');
         } 
         
@@ -194,7 +194,7 @@ export class SideBarComponent extends Component implements ISideBarService {
     }
 
     private __createLogo(): SideButton {
-        const logo = new SideButton(ActionType.LOGO, { classes: ['logo'] });
+        const logo = new SideButton(SideType.LOGO, { classes: ['logo'] });
         logo.render(document.createElement('div'));
 
         const text = document.createElement('div');
@@ -211,10 +211,10 @@ export class SideBarComponent extends Component implements ISideBarService {
         });
 
         [
-            {type: ActionType.EXPLORER, icon: Icons.Folder},
-            {type: ActionType.OUTLINE, icon: Icons.List},
-            {type: ActionType.SEARCH, icon: Icons.Search},
-            {type: ActionType.GIT, icon: Icons.CodeBranch},
+            {type: SideType.EXPLORER, icon: Icons.Folder},
+            {type: SideType.OUTLINE, icon: Icons.List},
+            {type: SideType.SEARCH, icon: Icons.Search},
+            {type: SideType.GIT, icon: Icons.CodeBranch},
         ]
         .forEach(({ type, icon }) => {
             const button = new SideButton(type, { icon: icon });
@@ -234,8 +234,8 @@ export class SideBarComponent extends Component implements ISideBarService {
         });
 
         [
-            {type: ActionType.HELPER, icon: Icons.CommentQuestion},
-            {type: ActionType.SETTINGS, icon: Icons.Settings},
+            {type: SideType.HELPER, icon: Icons.CommentQuestion},
+            {type: SideType.SETTINGS, icon: Icons.Settings},
         ]
         .forEach(({ type, icon }) => {
             const button = new SideButton(type, {icon: icon});

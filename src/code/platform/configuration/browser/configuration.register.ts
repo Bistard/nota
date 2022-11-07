@@ -11,7 +11,7 @@ class DefaultUserConfiguration extends DefaultConfigStorage {
                 language: 'en' as LanguageType,
                 keyboardScreenCast: false,
             },
-            'actionView': {
+            'sideView': {
                 'explorer': {
                     mode: 'classic' as TreeMode,
                     exclude: ['^\\..*'] as string[],

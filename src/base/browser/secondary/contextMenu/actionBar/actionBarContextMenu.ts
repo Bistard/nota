@@ -35,18 +35,18 @@ export class ActionBarContextMenu extends ContextMenu implements IContextMenu {
     protected override _registerListeners(): void {
         
         // TODO: refactor
-        // const actionBarService = this.componentService.get(ComponentType.SideBar) as ISideBarService;
+        // const sideBarService = this.componentService.get(ComponentType.SideBar) as ISideBarService;
 
         // [
-        //     { contextMenuBtn: this._menuItemGroups.get('select-explorer-button')!, actionBtn: actionBarService.getButton(ActionType.EXPLORER)! },
-        //     { contextMenuBtn: this._menuItemGroups.get('select-outline-button')!, actionBtn: actionBarService.getButton(ActionType.OUTLINE)! },
-        //     { contextMenuBtn: this._menuItemGroups.get('select-search-button')!, actionBtn: actionBarService.getButton(ActionType.SEARCH)! },
-        //     { contextMenuBtn: this._menuItemGroups.get('select-git-button')!, actionBtn: actionBarService.getButton(ActionType.GIT)! },
+        //     { contextMenuBtn: this._menuItemGroups.get('select-explorer-button')!, actionBtn: sideBarService.getButton(SideType.EXPLORER)! },
+        //     { contextMenuBtn: this._menuItemGroups.get('select-outline-button')!, actionBtn: sideBarService.getButton(SideType.OUTLINE)! },
+        //     { contextMenuBtn: this._menuItemGroups.get('select-search-button')!, actionBtn: sideBarService.getButton(SideType.SEARCH)! },
+        //     { contextMenuBtn: this._menuItemGroups.get('select-git-button')!, actionBtn: sideBarService.getButton(SideType.GIT)! },
         // ]
         // .forEach(({contextMenuBtn, actionBtn}, index: number ) => {
         //     contextMenuBtn.element.addEventListener('click', () => {
         //         const closeOrOpen = this.switchButtonDisplay(actionBtn, index);
-        //         this.switchActionViewDisplay(actionBarService, actionBtn, closeOrOpen, index);
+        //         this.switchActionViewDisplay(sideBarService, actionBtn, closeOrOpen, index);
         //         this.contextMenuService.removeContextMenu();
         //     });
         // });
@@ -58,13 +58,13 @@ export class ActionBarContextMenu extends ContextMenu implements IContextMenu {
      * @description unchecks a given button. If it is not focused, set it as 
      * focused. Moreover, switch to that action view.
      */
-    // public switchActionViewDisplay(actionBarService: ISideBarService, clickedBtn: IButton, closeOrOpen: boolean, clickedIndex: number): void {
+    // public switchActionViewDisplay(sideBarService: ISideBarService, clickedBtn: IButton, closeOrOpen: boolean, clickedIndex: number): void {
 
     //     // focus the action button and reverse the state of action view
-    //     const actionBtnContainer = actionBarService.contentArea!;
-    //     const currFocus = actionBarService.getFocusIndex() as number;
+    //     const actionBtnContainer = sideBarService.contentArea!;
+    //     const currFocus = sideBarService.getFocusIndex() as number;
     //     const currFocusBtn = actionBtnContainer.children[currFocus] as HTMLElement;
-    //     const actionViewService = this.componentService.get(ComponentType.ActionView) as IActionViewService;
+    //     const sideViewService = this.componentService.get(ComponentType.SideView) as ISideViewService;
 
     //     let activeBtnCount = 0;
     //     const activeBtnIndex: number[] = [];
@@ -76,36 +76,36 @@ export class ActionBarContextMenu extends ContextMenu implements IContextMenu {
     //     }
         
     //     if (activeBtnCount === 0) {
-    //         actionBarService.modifyFocusIndex(-1);
+    //         sideBarService.modifyFocusIndex(-1);
     //         //EVENT_EMITTER.emit('EOnActionViewClose');
-    //         actionViewService.EOnActionViewClose.fire();
-    //         currFocusBtn.classList.remove('action-button-focus'); 
+    //         sideViewService.EOnActionViewClose.fire();
+    //         currFocusBtn.classList.remove('side-button-focus'); 
     //     } else if (activeBtnCount === 1) {
     //         // reaches when re-displaying actionBarButton
     //         const i = activeBtnIndex[0]!;
-    //         actionBarService.modifyFocusIndex(i);
+    //         sideBarService.modifyFocusIndex(i);
     //         //EVENT_EMITTER.emit('EOnActionViewOpen');
-    //         actionViewService.EOnActionViewOpen.fire();
+    //         sideViewService.EOnActionViewOpen.fire();
     //         const checkedBtn = actionBtnContainer.children[i] as HTMLElement;
-    //         checkedBtn.classList.add('action-button-focus');
+    //         checkedBtn.classList.add('side-button-focus');
     //         EVENT_EMITTER.emit('onActionViewChange', actionBarOpts.id[i]);  
     //     } else if (clickedIndex >= 0) {
     //         for (let i = clickedIndex; i < 4; i++) {
     //             if (actionBarOpts.options[i]) {
-    //                 actionBarService.modifyFocusIndex(i);
+    //                 sideBarService.modifyFocusIndex(i);
     //                 const checkedBtn = actionBtnContainer.children[i] as HTMLElement;
-    //                 currFocusBtn.classList.remove('action-button-focus');
-    //                 checkedBtn.classList.add('action-button-focus');
+    //                 currFocusBtn.classList.remove('side-button-focus');
+    //                 checkedBtn.classList.add('side-button-focus');
     //                 EVENT_EMITTER.emit('onActionViewChange', actionBarOpts.id[i]);
     //                 return;
     //            }
     //         }
     //         for (let i = clickedIndex; i >= 0; i--) {
     //             if (actionBarOpts.options[i]) {
-    //                 actionBarService.modifyFocusIndex(i);
+    //                 sideBarService.modifyFocusIndex(i);
     //                 const checkedBtn = actionBtnContainer.children[i] as HTMLElement;
-    //                 currFocusBtn.classList.remove('action-button-focus');
-    //                 checkedBtn.classList.add('action-button-focus');  
+    //                 currFocusBtn.classList.remove('side-button-focus');
+    //                 checkedBtn.classList.add('side-button-focus');  
     //                 EVENT_EMITTER.emit('onActionViewChange', actionBarOpts.id[i]);  
     //                 return;
     //             }

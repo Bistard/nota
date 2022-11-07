@@ -1,10 +1,10 @@
 import { Component, ComponentType, IComponent } from 'src/code/browser/service/component/component';
-import { ExplorerViewComponent } from "src/code/browser/workbench/actionView/explorer/explorer";
+import { ExplorerViewComponent } from "src/code/browser/workbench/sideView/explorer/explorer";
 import { Emitter, Register } from 'src/base/common/event';
 import { createService } from 'src/code/platform/instantiation/common/decorator';
 import { IComponentService } from 'src/code/browser/service/component/componentService';
 import { IInstantiationService } from 'src/code/platform/instantiation/common/instantiation';
-import { ActionType } from 'src/code/browser/workbench/sideBar/sideBar';
+import { SideType } from 'src/code/browser/workbench/sideBar/sideBar';
 import { Disposable } from 'src/base/common/dispose';
 import { getIconClass } from 'src/base/browser/icon/iconRegistry';
 import { Icons } from 'src/base/browser/icon/icons';
@@ -12,67 +12,67 @@ import { Ii18nService } from 'src/code/platform/i18n/i18n';
 import { Section } from 'src/code/platform/section';
 import { IThemeService } from 'src/code/browser/service/theme/themeService';
 
-export const IActionViewService = createService<IActionViewService>('action-view-service');
+export const ISideViewService = createService<ISideViewService>('side-view-service');
 
-export interface IActionViewChangeEvent {
+export interface ISideViewChangeEvent {
 
     /**
      * The type of view is displaying.
      */
-     type: ActionType;
+     type: SideType;
 
      /**
       * The previous type of view was displaying.
       */
-     prevType: ActionType;
+     prevType: SideType;
 
 }
 
 /**
- * Representing components which only belongs to {@link ActionViewComponent}.
+ * Representing components which only belongs to {@link SideViewComponent}.
  */
-export interface IActionViewComponent extends IComponent {
+export interface ISideViewComponent extends IComponent {
     // empty
 }
 
 /**
- * An interface only for {@link ActionViewComponent}.
+ * An interface only for {@link SideViewComponent}.
  */
-export interface IActionViewService extends IComponent {
+export interface ISideViewService extends IComponent {
 
     /** 
      * Events fired when the current action view has changed.
      */
-    onDidActionViewChange: Register<IActionViewChangeEvent>;
+    onDidViewChange: Register<ISideViewChangeEvent>;
 
     /**
      * @description Switch to the action view by the provided type.
      */
-    setActionView(viewType: ActionType): void;
+    setView(viewType: SideType): void;
 }
 
 /**
- * @class ActionViewComponent displays different action view such as 
+ * @class SideViewComponent displays different action view such as 
  * explorerView, outlineView, gitView and so on.
  */
-export class ActionViewComponent extends Component implements IActionViewService {
+export class SideViewComponent extends Component implements ISideViewService {
 
     // [field]
 
     public static readonly WIDTH: number = 300;
 
-    private actionViewContentContainer!: HTMLElement;
+    private _contentContainer!: HTMLElement;
 
-    private _currentViewType: ActionType;
+    private _currentViewType: SideType;
 
-    private readonly _components: Map<string, IActionViewComponent>;
+    private readonly _components: Map<string, ISideViewComponent>;
 
-    private actionViewTitlePart!: ActionViewTitlePart;
+    private sideViewTitlePart!: ActionViewTitlePart;
 
     // [event]
 
-    private readonly _onActionViewChange = this.__register( new Emitter<IActionViewChangeEvent>() );
-    public readonly onDidActionViewChange = this._onActionViewChange.registerListener;
+    private readonly _onDidViewChange = this.__register( new Emitter<ISideViewChangeEvent>() );
+    public readonly onDidViewChange = this._onDidViewChange.registerListener;
     
     // [constructor]
 
@@ -82,15 +82,15 @@ export class ActionViewComponent extends Component implements IActionViewService
         @IComponentService componentService: IComponentService,
         @IThemeService themeService: IThemeService,
     ) {
-        super(ComponentType.ActionView, null, themeService, componentService);
-        this._currentViewType = ActionType.NONE;
+        super(ComponentType.SideView, null, themeService, componentService);
+        this._currentViewType = SideType.NONE;
         this._components = new Map();
     }
 
     // [public method]
 
-    public setActionView(viewType: ActionType): void {
-        this.__switchToActionView(viewType);
+    public setView(viewType: SideType): void {
+        this.__switchToView(viewType);
     }
 
     // [protected override methods]
@@ -99,21 +99,21 @@ export class ActionViewComponent extends Component implements IActionViewService
         
         // wrapper
         const container = document.createElement('div');
-        container.id = 'action-view-container';
+        container.id = 'side-view-container';
         
-        // action-view content
-        this.actionViewContentContainer = document.createElement('div');
-        this.actionViewContentContainer.id = 'action-content-container';
+        // side-view content
+        this._contentContainer = document.createElement('div');
+        this._contentContainer.id = 'side-view-content-container';
 
-        // action-view-title
-        this.actionViewTitlePart = this.__register(new ExplorerTitlePart(this.i18nService)); // TODO
-        this.actionViewTitlePart.render(this.actionViewContentContainer);
+        // side-view-title
+        this.sideViewTitlePart = this.__register(new SideViewTitlePart(this.i18nService)); // TODO
+        this.sideViewTitlePart.render(this._contentContainer);
 
         // default to explorer-view
-        this.__switchToActionView(ActionType.EXPLORER);
+        this.__switchToView(SideType.EXPLORER);
         
         // render them
-        container.appendChild(this.actionViewContentContainer);
+        container.appendChild(this._contentContainer);
         this.element.appendChild(container);
     }
 
@@ -126,38 +126,38 @@ export class ActionViewComponent extends Component implements IActionViewService
     // [private helper methods]
 
     /**
-     * @description A helper method to switch to the {@link IActionViewComponent}
-     * by the provided {@link ActionType}.
-     * @param viewType The {@link ActionType} determines which view to display.
+     * @description A helper method to switch to the {@link ISideViewComponent}
+     * by the provided {@link SideType}.
+     * @param viewType The {@link SideType} determines which view to display.
      */
-    private __switchToActionView(viewType: ActionType): void {
+    private __switchToView(viewType: SideType): void {
         if (viewType === this._currentViewType) {
             return;
         }
 
-        let previousView: ActionType = this._currentViewType;
+        let previousView: SideType = this._currentViewType;
         
-        this.__switchOrCreateActionView(this.actionViewContentContainer, viewType);
+        this.__switchOrCreateView(this._contentContainer, viewType);
 
         this._currentViewType = viewType;
 
         // fires event
-        this._onActionViewChange.fire({
+        this._onDidViewChange.fire({
             type: viewType,
             prevType: previousView
         });
     }
 
     /**
-     * @description Switches to the corresponding {@link IActionViewComponent}
+     * @description Switches to the corresponding {@link ISideViewComponent}
      * by the provided view type.
      * @param container The HTML container where the new created view to be inserted.
-     * @param viewType The {@link ActionType} type to determine which view to display.
+     * @param viewType The {@link SideType} type to determine which view to display.
      * 
      * @note `switching` means removing the old DOM element and inserting the new one.
-     * @note If the {@link IActionViewComponent} never created before, we will create one.
+     * @note If the {@link ISideViewComponent} never created before, we will create one.
      */
-    private __switchOrCreateActionView(container: HTMLElement, viewType: ActionType): void {
+    private __switchOrCreateView(container: HTMLElement, viewType: SideType): void {
         
         let prevView = this._components.get(this._currentViewType);
         let view = this._components.get(viewType);
@@ -167,20 +167,20 @@ export class ActionViewComponent extends Component implements IActionViewService
         if (view === undefined) {
             
             switch (viewType) {
-                case ActionType.EXPLORER:
-                    view = this.instantiationService.createInstance(ExplorerViewComponent, container) as IActionViewComponent;
+                case SideType.EXPLORER:
+                    view = this.instantiationService.createInstance(ExplorerViewComponent, container) as ISideViewComponent;
                     this._components.set(viewType, view);
                     break;
     
-                case ActionType.OUTLINE:
+                case SideType.OUTLINE:
                     // TODO
                     break;
     
-                case ActionType.SEARCH:
+                case SideType.SEARCH:
                     // TODO
                     break;
                     
-                case ActionType.GIT:
+                case SideType.GIT:
                     // TODO
                     break;
             }
@@ -215,7 +215,7 @@ export class ActionViewTitlePart extends Disposable {
         super();
 
         this._element = document.createElement('div');
-        this._element.className = 'action-view-title';
+        this._element.className = 'side-view-title';
     }
     
     /**
@@ -248,7 +248,7 @@ export class ActionViewTitlePart extends Disposable {
     }
 }
 
-export class ExplorerTitlePart extends ActionViewTitlePart {
+export class SideViewTitlePart extends ActionViewTitlePart {
 
     constructor(
         private readonly i18nService: Ii18nService,
@@ -265,7 +265,7 @@ export class ExplorerTitlePart extends ActionViewTitlePart {
         
         // wrapper
         const wrapper = document.createElement('div');
-        wrapper.className = 'action-view-title-container';
+        wrapper.className = 'side-view-title-container';
 
         // dropdown icon
         const dropdownIcon = document.createElement('i');

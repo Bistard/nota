@@ -26,7 +26,7 @@ export class ContextMenuService implements IContextMenuService {
         //     case ContextMenuType.sideBar:
         //         this._contextMenu = new ActionBarContextMenu(coordinate, this, this.componentService);
         //         break;
-        //     case ContextMenuType.actionView:
+        //     case ContextMenuType.sideView:
         //         break;
         //     case ContextMenuType.explorerView:
         //         this._contextMenu = new ExplorerViewContextMenu(coordinate, this, this.componentService);

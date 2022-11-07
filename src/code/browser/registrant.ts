@@ -9,7 +9,7 @@ import { IShortcutService, ShortcutService } from 'src/code/browser/service/shor
 import { IThemeService, ThemeService } from 'src/code/browser/service/theme/themeService';
 import { SideBarComponent, ISideBarService } from 'src/code/browser/workbench/sideBar/sideBar';
 import { IWorkspaceService, WorkspaceComponent } from 'src/code/browser/workbench/workspace/workspace';
-import { ActionViewComponent, IActionViewService } from 'src/code/browser/workbench/actionView/actionView';
+import { SideViewComponent, ISideViewService } from 'src/code/browser/workbench/sideView/sideView';
 import { ExplorerTreeService, IExplorerTreeService } from 'src/code/browser/service/explorerTree/explorerTreeService';
 
 /*******************************************************************************
@@ -27,7 +27,7 @@ registerSingleton(ICommandService, new ServiceDescriptor(CommandService));
 // User Interface
 registerSingleton(ISideBarService, new ServiceDescriptor(SideBarComponent));
 registerSingleton(IWorkspaceService, new ServiceDescriptor(WorkspaceComponent));
-registerSingleton(IActionViewService, new ServiceDescriptor(ActionViewComponent));
+registerSingleton(ISideViewService, new ServiceDescriptor(SideViewComponent));
 registerSingleton(IKeyboardScreenCastService, new ServiceDescriptor(KeyboardScreenCastService));
 registerSingleton(IThemeService, new ServiceDescriptor(ThemeService)); // TODO: themeService
 registerSingleton(IExplorerTreeService, new ServiceDescriptor(ExplorerTreeService));

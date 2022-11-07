@@ -6,7 +6,7 @@ import { Component, IComponent } from "src/code/browser/service/component/compon
 
 export const enum ContextMenuType {
     sideBar,
-    actionView,
+    sideView,
     editor,
     explorerView,
     // more and more...

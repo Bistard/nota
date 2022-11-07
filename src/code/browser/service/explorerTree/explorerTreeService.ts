@@ -64,7 +64,7 @@ export class ExplorerTreeService extends Disposable implements IExplorerTreeServ
     ) {
         super();
         this._root = undefined;
-        this._mode = configService.get<TreeMode>(BuiltInConfigScope.User, 'actionView.explorer.mode') ?? TreeMode.Notebook;
+        this._mode = configService.get<TreeMode>(BuiltInConfigScope.User, 'sideView.explorer.mode') ?? TreeMode.Notebook;
         this.classicTreeService = instantiationService.createInstance(ClassicTreeService);
         this.notebookTreeService = instantiationService.createInstance(NotebookTreeService);
         this.__register(this.classicTreeService);

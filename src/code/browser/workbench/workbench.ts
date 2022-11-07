@@ -9,7 +9,7 @@ import { IConfigService } from "src/code/platform/configuration/common/abstractC
 import { BuiltInConfigScope } from "src/code/platform/configuration/common/configRegistrant";
 import { IThemeService } from "src/code/browser/service/theme/themeService";
 import { ISideBarService } from "src/code/browser/workbench/sideBar/sideBar";
-import { IActionViewService } from "src/code/browser/workbench/actionView/actionView";
+import { ISideViewService } from "src/code/browser/workbench/sideView/sideView";
 import { IWorkspaceService } from "src/code/browser/workbench/workspace/workspace";
 
 /**
@@ -23,11 +23,11 @@ export class Workbench extends WorkbenchLayout implements IWorkbenchService {
         @IConfigService private readonly configService: IConfigService,
         @IComponentService componentService: IComponentService,
         @IThemeService themeService: IThemeService,
-        @ISideBarService actionBarService: ISideBarService,
-        @IActionViewService actionViewService: IActionViewService,
+        @ISideBarService sideBarService: ISideBarService,
+        @ISideViewService sideViewService: ISideViewService,
         @IWorkspaceService workspaceService: IWorkspaceService,
     ) {
-        super(parent, instantiationService, componentService, themeService, actionBarService, actionViewService, workspaceService);
+        super(parent, instantiationService, componentService, themeService, sideBarService, sideViewService, workspaceService);
     }
 
     public init(): void {

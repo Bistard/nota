@@ -1,8 +1,8 @@
 {
-    "src/code/browser/workbench/actionView": {
+    "src/code/browser/workbench/sideView": {
         
     },
-    "src/code/browser/workbench/actionView/explorer": {
+    "src/code/browser/workbench/sideView/explorer": {
         "notebook": "笔记本",
         "openDirectory": "打开文件夹"
     }

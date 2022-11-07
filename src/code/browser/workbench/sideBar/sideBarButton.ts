@@ -1,26 +1,26 @@
 import { Button, IButton, IButtonOptions } from "src/base/browser/basic/button/button";
-import { ActionType } from "src/code/browser/workbench/sideBar/sideBar";
+import { SideType } from "src/code/browser/workbench/sideBar/sideBar";
 
-export interface IActionButton extends IButton {
+export interface ISideButton extends IButton {
     
     /**
      * The type of the action button.
      */
-    readonly type: ActionType;
+    readonly type: SideType;
 }
 
 /**
  * @class A simple encapsulation built upon {@link Button}. Specific for action
  * bar.
  */
-export class SideButton extends Button implements IActionButton {
+export class SideButton extends Button implements ISideButton {
 
-    public readonly type: ActionType;
+    public readonly type: SideType;
 
-    constructor(type: ActionType, opts?: IButtonOptions) {
+    constructor(type: SideType, opts?: IButtonOptions) {
         super({
             ...opts,
-            classes: [...(opts?.classes ?? []), 'action-button'],
+            classes: [...(opts?.classes ?? []), 'side-button'],
         });
         this.type = type;
     }

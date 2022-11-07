@@ -2,7 +2,7 @@ import { addDisposableListener, DomUtility, EventType, Orientation } from "src/b
 import { IComponentService } from "src/code/browser/service/component/componentService";
 import { IThemeService } from "src/code/browser/service/theme/themeService";
 import { SideBarComponent, ISideBarService } from "src/code/browser/workbench/sideBar/sideBar";
-import { ActionViewComponent, IActionViewService } from "src/code/browser/workbench/actionView/actionView";
+import { SideViewComponent, ISideViewService } from "src/code/browser/workbench/sideView/sideView";
 import { Component, ComponentType, IComponent } from "src/code/browser/service/component/component";
 import { IWorkspaceService } from "src/code/browser/workbench/workspace/workspace";
 import { IInstantiationService } from "src/code/platform/instantiation/common/instantiation";
@@ -26,8 +26,8 @@ export abstract class WorkbenchLayout extends Component {
         protected readonly instantiationService: IInstantiationService,
         @IComponentService componentService: IComponentService,
         @IThemeService themeService: IThemeService,
-        @ISideBarService private readonly actionBarService: ISideBarService,
-        @IActionViewService private readonly actionViewService: IActionViewService,
+        @ISideBarService private readonly sideBarService: ISideBarService,
+        @ISideViewService private readonly sideViewService: ISideViewService,
         @IWorkspaceService private readonly workspaceService: IWorkspaceService,
     ) {
         super(ComponentType.Workbench, parent, themeService, componentService);
@@ -56,8 +56,8 @@ export abstract class WorkbenchLayout extends Component {
 
         // Constructs each component of the workbench.
         const configurations: [IComponent, number, number, number, Priority][] = [
-            [this.actionBarService , SideBarComponent.WIDTH , SideBarComponent.WIDTH     , SideBarComponent.WIDTH , Priority.Low   ],
-            [this.actionViewService, 100                      , ActionViewComponent.WIDTH * 2, ActionViewComponent.WIDTH, Priority.Normal],
+            [this.sideBarService , SideBarComponent.WIDTH , SideBarComponent.WIDTH     , SideBarComponent.WIDTH , Priority.Low   ],
+            [this.sideViewService, 100                      , SideViewComponent.WIDTH * 2, SideViewComponent.WIDTH, Priority.Normal],
             [this.workspaceService , 0                        , Number.POSITIVE_INFINITY     , 0                        , Priority.High  ],
         ]
         for (const [component, minSize, maxSize, initSize, priority] of configurations) {
@@ -92,10 +92,10 @@ export abstract class WorkbenchLayout extends Component {
 
         /**
          * Listens to each SideBar button click events and notifies the 
-         * actionView to swtich the view.
+         * sideView to swtich the view.
          */
-        this.actionBarService.onDidClick(e => {
-            this.actionViewService.setActionView(e.type);
+        this.sideBarService.onDidClick(e => {
+            this.sideViewService.setView(e.type);
         });
     }
 

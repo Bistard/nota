@@ -21,10 +21,10 @@
 @import "../base/browser/secondary/splitView/splitView.css";
 
 @import "../code/styles/workbench/sideBar/sideBar.css";
-@import "../code/styles/workbench/actionView/actionView.css";
-@import "../code/styles/workbench/actionView/explorer/explorerView.css";
-@import "../code/styles/workbench/actionView/explorer/explorerItem.css";
-@import "../code/styles/workbench/actionView/outline/outlineView.css";
+@import "../code/styles/workbench/sideView/sideView.css";
+@import "../code/styles/workbench/sideView/explorer/explorerView.css";
+@import "../code/styles/workbench/sideView/explorer/explorerItem.css";
+@import "../code/styles/workbench/sideView/outline/outlineView.css";
 @import "../code/styles/workbench/workspace/workspace.css";
 @import "../code/styles/workbench/workspace/titleBar/titleBarView.css";
 @import "../code/styles/workbench/workspace/titleBar/windowBarView.css";
