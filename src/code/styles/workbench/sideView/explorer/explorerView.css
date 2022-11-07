@@ -9,6 +9,7 @@
 
 #explorer-view .side-view-title > .title-text {
     margin-left: 12px;
+    user-select: none;
 }
 
 #explorer-view .side-view-title > .icon {
