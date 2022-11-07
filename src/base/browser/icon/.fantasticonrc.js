@@ -3,9 +3,11 @@
  * font icons using `fantasticon`.
  */
 
+console.log(process.env.outputDir);
+
 const configuration = {
-    inputDir: 'assets/svg', // (required)
-    outputDir: 'src/base/browser/icon', // (required)
+    inputDir: process.env.inputDir,     // (required) eg. 'assets/svg'
+    outputDir: process.env.outputDir,   // (required) eg. 'src/base/browser/icon'
     fontTypes: [/* 'ttf', 'woff', */ 'woff2'],
     assetTypes: ['ts', 'css', /* 'json', 'html' */],
     // fontsUrl: 'src/base/browser/icon',
