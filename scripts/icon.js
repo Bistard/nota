@@ -8,9 +8,13 @@ const { c, getTime, setCharAt, ifMissingFile } = require("./utility");
  * The script is to remove all the prefix of every svg files that are downloaded 
  * from the website and regenerate the icon using `fantasticon`.
  * 
+ * The script is avaliable in `package.json`. The options of the script are 
+ * listed below:
+ *      --force=true
+ * 
  * @note Icon library: https://www.flaticon.com/uicons/interface-icons
  */
-console.log(`${getTime()} starting icon.js.`);
+console.log(`${getTime(c.FgGreen)} starting icon.js.`);
 
 
 run();
@@ -188,7 +192,7 @@ async function generateIcons(srcRoot, outputRoot) {
  * @param {string} outputRoot The root directory of the files.
  */
 async function repair(outputRoot) {
-    console.log(`${getTime()} start fixing generated icon files....`);
+    console.log(`${getTime(c.FgGreen)} start fixing generated icon files....`);
 
     const fixFileName = 'icons.ts';
     const expectedFirstLine = 'export enum Icons {';
@@ -222,7 +226,7 @@ async function repair(outputRoot) {
     const newContent = revisedFirstLine + '\n' + content.substring(i, undefined);
     await fs.promises.writeFile(filePath, newContent);
 
-    console.log(`${getTime()} Fix successfully.`);
+    console.log(`${getTime(c.FgGreen)} Fix successfully.`);
 }
 
 // #endregion
@@ -235,7 +239,7 @@ async function repair(outputRoot) {
  * @param {string} outputRoot The root path for the generated files.
  */
 async function reduceUnusedIcons(srcRoot, codeRoot, outputRoot) {
-    console.log(`${getTime()} Start removing unsed icons...`);
+    console.log(`${getTime(c.FgGreen)} Start removing unsed icons...`);
 
     // create a temporary directory to store all the used icon svg
     const tempRoot = path.resolve(srcRoot, 'temp');
@@ -250,7 +254,7 @@ async function reduceUnusedIcons(srcRoot, codeRoot, outputRoot) {
     // regenerate icons from the tempRoot
     console.log(`${getTime()} Start regenerating used icons...`);
     await generateIcons(tempRoot, outputRoot);
-    console.log(`${getTime()} Start regeneration finished.`);
+    console.log(`${getTime(c.FgGreen)} Start regeneration finished.`);
 
     // repair generated typescript file
     await repair(outputRoot);
@@ -258,7 +262,7 @@ async function reduceUnusedIcons(srcRoot, codeRoot, outputRoot) {
     // clean up
     console.log(`${getTime()} Cleanning temporary icon files....`);
     await fs.promises.rm(tempRoot, {force: true, recursive: true});
-    console.log(`${getTime()} Cleanning finished.`);
+    console.log(`${getTime(c.FgGreen)} Cleanning finished.`);
 }
 
 /**
