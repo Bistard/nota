@@ -13,8 +13,9 @@
 }
 
 #side-bar > .logo {
-    top: 0px;
+    top: 5px;
     justify-content: center;
+    
     font-size: 26px;
     font-family: 'happy family';
 }
