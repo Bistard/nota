@@ -2,7 +2,7 @@ import { addDisposableListener, DomUtility, EventType, Orientation } from "src/b
 import { IComponentService } from "src/code/browser/service/component/componentService";
 import { IThemeService } from "src/code/browser/service/theme/themeService";
 import { SideBar, ISideBarService } from "src/code/browser/workbench/sideBar/sideBar";
-import { SideView, ISideViewService } from "src/code/browser/workbench/sideView/sideView";
+import { SideViewService, ISideViewService } from "src/code/browser/workbench/sideView/sideView";
 import { Component, ComponentType, IComponent } from "src/code/browser/service/component/component";
 import { IWorkspaceService } from "src/code/browser/workbench/workspace/workspace";
 import { IInstantiationService } from "src/code/platform/instantiation/common/instantiation";
@@ -57,7 +57,7 @@ export abstract class WorkbenchLayout extends Component {
         // Constructs each component of the workbench.
         const configurations: [IComponent, number, number, number, Priority][] = [
             [this.sideBarService , SideBar.WIDTH , SideBar.WIDTH     , SideBar.WIDTH , Priority.Low   ],
-            [this.sideViewService, 100                      , SideView.WIDTH * 2, SideView.WIDTH, Priority.Normal],
+            [this.sideViewService, 100                      , SideViewService.WIDTH * 2, SideViewService.WIDTH, Priority.Normal],
             [this.workspaceService , 0                        , Number.POSITIVE_INFINITY     , 0                        , Priority.High  ],
         ]
         for (const [component, minSize, maxSize, initSize, priority] of configurations) {

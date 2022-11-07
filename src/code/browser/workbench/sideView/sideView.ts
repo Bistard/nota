@@ -26,14 +26,7 @@ export interface ISideViewChangeEvent {
 }
 
 /**
- * Representing components which only belongs to {@link SideView}.
- */
-export interface ISideView extends IComponent {
-    // empty
-}
-
-/**
- * An interface only for {@link SideView}.
+ * An interface only for {@link SideViewService}.
  */
 export interface ISideViewService extends IComponent {
 
@@ -49,10 +42,10 @@ export interface ISideViewService extends IComponent {
 }
 
 /**
- * @class SideView displays different side view such as 
- * explorerView, outlineView, gitView and so on.
+ * @class The service manages and displays different {@link ISideView}. It is
+ * also a {@link Component}.
  */
-export class SideView extends Component implements ISideViewService {
+export class SideViewService extends Component implements ISideViewService {
 
     // [field]
 
@@ -201,3 +194,17 @@ export class SideView extends Component implements ISideViewService {
 
 }
 
+/**
+ * An interface only for {@link SideView}.
+ */
+export interface ISideView extends IComponent {
+
+}
+
+/**
+ * @class The base class to be inherited from to be inserted into 
+ * {@link SideViewService}.
+ */
+export abstract class SideView extends Component {
+
+}

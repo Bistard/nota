@@ -64,7 +64,7 @@ export class ActionBarContextMenu extends ContextMenu implements IContextMenu {
     //     const actionBtnContainer = sideBarService.contentArea!;
     //     const currFocus = sideBarService.getFocusIndex() as number;
     //     const currFocusBtn = actionBtnContainer.children[currFocus] as HTMLElement;
-    //     const sideViewService = this.componentService.get(ComponentType.SideView) as ISideViewService;
+    //     const sideViewService = this.componentService.get(ComponentType.SideViewService) as ISideViewService;
 
     //     let activeBtnCount = 0;
     //     const activeBtnIndex: number[] = [];
