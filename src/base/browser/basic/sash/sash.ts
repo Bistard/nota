@@ -1,8 +1,9 @@
-import { AbstractSashController, HorizontalSashController, VerticalSashController } from "src/base/browser/basic/sash/sashController";
+import { AbstractSashController, HorizontalSashController, IAbstractSashController, VerticalSashController } from "src/base/browser/basic/sash/sashController";
 import { Disposable } from "src/base/common/dispose";
 import { addDisposableListener, EventType, Orientation } from "src/base/browser/basic/dom";
 import { Emitter, Register } from "src/base/common/event";
 import { IRange } from "src/base/common/range";
+import { Mutable } from "src/base/common/util/type";
 
 /**
  * An interface for {@link Sash} construction.
@@ -49,6 +50,20 @@ export interface ISashOpts {
      * understand how the controller works.
      */
     readonly controller?: AbstractSashController;
+
+    /**
+     * Sets the visibility of the sash. If visible, the sash will has a class 
+     * `visible`.
+     * @default false
+     */
+    readonly visible?: boolean;
+
+    /**
+     * If the sash is enabled in the beginning. If visible, the sash will has a 
+     * class `disable`.
+     * @default true
+     */
+    readonly enable?: boolean;
 }
 
 /**
@@ -90,9 +105,10 @@ export interface ISash {
     readonly element: HTMLElement;
 
     /**
-     * The width / height of the sash. Default is 4.
+     * The width / height of the sash. 
+     * @default 4
      */
-    readonly size: number;
+    size: number;
 
     /**
      * Describes if the sash is vertical or horizontal.
@@ -110,6 +126,18 @@ export interface ISash {
      * The draggable range of the sash.
      */
     range: IRange;
+
+    /**
+     * If sets to false the sash is no longer supports dragging.
+     * @default true
+     */
+    enable: boolean;
+
+    /**
+     * If sets to true the sash will be visible even if not hovering.
+     * @default false
+     */
+    visible: boolean;
 
     /**
      * Fires when the sash dragging is started (mouse-down).
@@ -169,7 +197,7 @@ export class Sash extends Disposable implements ISash {
      * when vertical: width of the sash.
      * when horizontal: height of the sash.
      */
-    public readonly size: number;
+    public _size: number;
 
     /**
      * when vertical: left of the sash relatives to the container.
@@ -189,17 +217,19 @@ export class Sash extends Disposable implements ISash {
      * {@link Orientation.Horizontal} means sash lays out horizontally.
      * {@link Orientation.vertical} means lays out vertically.
      */
-    private _orientation: Orientation;
-
-    /**
-     * Using controller to determine the behaviour of the sash movement.
-     */
-    private _controller?: AbstractSashController;
+    private readonly _orientation: Orientation;
 
     /* The HTMLElement of the sash. */
-    private _element!: HTMLElement;
+    private readonly _element!: HTMLElement;
+
     /* The parent HTMLElement to be appended to. */
-    private _parentElement: HTMLElement;
+    private readonly _parentElement: HTMLElement;
+
+    /** if the sash is enabled. */
+    private _enabled: boolean;
+
+    /** visibility of the sash in general case. */
+    private _visible: boolean;
 
     // [event]
 
@@ -225,16 +255,12 @@ export class Sash extends Disposable implements ISash {
         super();
 
         this._parentElement = parentElement;
-
-        // Option construction
         this._orientation = opts.orientation;
         this._position = opts.initPosition ?? 0;
-        this.size = opts.size ? opts.size : 4;
-        if (opts.range) {
-            this._range = opts.range;
-        } else {
-            this._range = { start: -1, end: -1 };
-        }
+        this._size = opts.size ?? 4;
+        this._range = opts.range ?? { start: -1, end: -1 };
+        this._enabled = opts.enable ?? true;
+        this._visible = opts.visible ?? false;
 
         this.__render();
     }
@@ -243,6 +269,19 @@ export class Sash extends Disposable implements ISash {
 
     get element(): HTMLElement {
         return this._element;
+    }
+
+    get size(): number {
+        return this._size;
+    }
+
+    set size(val: number) {
+        this._size = val;
+        if (this._orientation === Orientation.Vertical) {
+            this._element.style.width = `${val}px`;
+        } else {
+            this._element.style.height = `${val}px`;
+        }
     }
 
     get orientation(): Orientation {
@@ -263,6 +302,24 @@ export class Sash extends Disposable implements ISash {
 
     set position(newVal: number) {
         this._position = newVal;
+    }
+
+    set visible(val: boolean) {
+        this._visible = val;
+        this._element.classList.toggle('visible', this._visible);
+    }
+
+    get visible(): boolean {
+        return this._visible;
+    }
+
+    set enable(val: boolean) {
+        this._enabled = val;
+        this._element.classList.toggle('disable', !this._enabled);
+    }
+
+    get enable(): boolean {
+        return this._enabled;
     }
 
     // [public methods]
@@ -300,18 +357,21 @@ export class Sash extends Disposable implements ISash {
      * the DOM tree.
      */
     private __render(): void {
-        this._element = document.createElement('div');
+        (<Mutable<HTMLElement>>this._element) = document.createElement('div');
         this._element.classList.add('sash');
 
         if (this._orientation === Orientation.Vertical) {
             this._element.classList.add('vertical');
-            this._element.style.width = `${this.size}px`;
+            this._element.style.width = `${this._size}px`;
             this._element.style.left = `${this._position}px`;
         } else {
             this._element.classList.add('horizontal');
-            this._element.style.height = `${this.size}px`;
+            this._element.style.height = `${this._size}px`;
             this._element.style.top = `${this._position}px`;
         }
+
+        this.visible = this._visible;
+        this.enable = this._enabled;
 
         this._parentElement.append(this._element);
     }
@@ -324,12 +384,14 @@ export class Sash extends Disposable implements ISash {
     private __initDrag(initEvent: MouseEvent): void {
         initEvent.preventDefault();
 
+        let controller: IAbstractSashController;
         if (this._orientation === Orientation.Vertical) {
-            this._controller = new VerticalSashController(this);
+            controller = new VerticalSashController(this);
         } else {
-            this._controller = new HorizontalSashController(this);
+            controller = new HorizontalSashController(this);
         }
-        this._controller.onMouseStart();
+        controller.onMouseStart();
+        this.__register(controller);
     }
 
 }

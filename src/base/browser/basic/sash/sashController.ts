@@ -1,13 +1,12 @@
 import { ISash, ISashEvent } from "src/base/browser/basic/sash/sash";
-import { DisposableManager } from "src/base/common/dispose";
+import { DisposableManager, IDisposable } from "src/base/common/dispose";
 import { addDisposableListener, createStyleInCSS, EventType, Orientation } from "src/base/browser/basic/dom";
 
-export interface IAbstractSashController {
+export interface IAbstractSashController extends IDisposable {
     /** 
      * @description Fires when the {@link EventType.mousedown} happens. 
-     * @param event The mouse event when mouse-down.
      */
-    onMouseStart(event: MouseEvent): void;
+    onMouseStart(): void;
 
     /** 
      * @description Fires when the {@link EventType.mousemove} happens. 
@@ -54,7 +53,7 @@ export abstract class AbstractSashController implements IAbstractSashController 
         /**
          * The CSS stylesheet is neccessary when the user cursor is reaching the
          * edge of the sash range but still wish the cursor style to be 
-         * consistent. Will be removed once the mouse-up event happens.
+         * consistent. This will be removed once the mouse-up event happens.
          */
         const cursorStyleDisposable = createStyleInCSS(this.sash.element);
         const cursor = (this.sash.orientation === Orientation.Vertical) ? 'ew-resize' : 'ns-resize';
@@ -63,9 +62,12 @@ export abstract class AbstractSashController implements IAbstractSashController 
         this.disposables.register(cursorStyleDisposable);
     }
 
-    // [public methods]
-
+    // [abstraction]
+    
     public abstract onMouseMove(event: MouseEvent): void;
+    protected abstract __onMouseStart(): void;
+
+    // [public methods]
 
     public onMouseStart(): void {
         this.__onMouseStart();
@@ -80,9 +82,11 @@ export abstract class AbstractSashController implements IAbstractSashController 
         (<any>this.sash)._onDidEnd.fire();
     }
 
-    // [private helper methods]
+    public dispose(): void {
+        this.onMouseUp();
+    }
 
-    protected abstract __onMouseStart(): void;
+    // [private helper methods]
 
     protected __fireMoveEvent(currX: number, currY: number, deltaX: number, deltaY: number): void {
         const event: ISashEvent = {
