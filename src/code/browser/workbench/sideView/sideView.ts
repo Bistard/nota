@@ -1,28 +1,25 @@
 import { Component, ComponentType, IComponent } from 'src/code/browser/service/component/component';
-import { ExplorerView, ExplorerTitlePart } from "src/code/browser/workbench/sideView/explorer/explorer";
 import { Emitter, Register } from 'src/base/common/event';
 import { createService } from 'src/code/platform/instantiation/common/decorator';
 import { IComponentService } from 'src/code/browser/service/component/componentService';
 import { IInstantiationService } from 'src/code/platform/instantiation/common/instantiation';
-import { SideType } from 'src/code/browser/workbench/sideBar/sideBar';
-import { Ii18nService } from 'src/code/platform/i18n/i18n';
 import { IThemeService } from 'src/code/browser/service/theme/themeService';
-import { SideViewTitlePart } from 'src/code/browser/workbench/sideView/sideViewTitle';
+import { Constructor } from 'src/base/common/util/type';
+import { ILogService } from 'src/base/common/logger';
 
 export const ISideViewService = createService<ISideViewService>('side-view-service');
 
 export interface ISideViewChangeEvent {
 
     /**
-     * The type of view is displaying.
+     * The current id of the view that is displaying.
      */
-     type: SideType;
+    readonly id: string;
 
-     /**
-      * The previous type of view was displaying.
-      */
-     prevType: SideType;
-
+    /**
+     * The current displaying view.
+     */
+    readonly view: ISideView;
 }
 
 /**
@@ -31,14 +28,47 @@ export interface ISideViewChangeEvent {
 export interface ISideViewService extends IComponent {
 
     /** 
-     * Events fired when the current side view has changed.
+     * Events fired when the current side view has changed. 
      */
     onDidViewChange: Register<ISideViewChangeEvent>;
 
     /**
-     * @description Switch to the side view by the provided type.
+     * @description Register a view with the corresponding ID. The view will not
+     * be created immediately.
+     * @param id The id of the view for future look up.
+     * @param viewCtor The side view.
      */
-    setView(viewType: SideType): void;
+    registerView(id: string, viewCtor: Constructor<ISideView>): void;
+
+    /**
+     * @description Unregisters a view if ever registered.
+     * @param id The id of the view.
+     * @returns A boolean returned if the operation is successed.
+     */
+    unregisterView(id: string): boolean;
+
+    /**
+     * @description Switch to the view by the provided id.
+     * @param id The id of the view.
+     */
+    switchView(id: string): void;
+
+    /**
+     * @description Closes the current view.
+     */
+    closeView(): void;
+
+    /**
+     * @description Returns the registered view by the given ID.
+     * @param id The id of the view.
+     */
+    getView<T extends ISideView>(id: string): T | undefined;
+
+    /**
+     * @description Returns the current displaying side view. Undefined is
+     * returned if no views are displaying.
+     */
+    currView<T extends ISideView>(): T | undefined;
 }
 
 /**
@@ -49,15 +79,13 @@ export class SideViewService extends Component implements ISideViewService {
 
     // [field]
 
-    public static readonly WIDTH: number = 300;
+    /** The id of the current displaying view. */
+    private _currView?: string;
 
-    private _contentContainer!: HTMLElement;
+    /** The container that only contains the {@link ISideView}. */
+    private _viewContainer?: HTMLElement;
 
-    private _currentViewType: SideType;
-
-    private readonly _components: Map<string, ISideView>;
-
-    private sideViewTitlePart!: SideViewTitlePart;
+    private readonly _viewCtors: Map<string, Constructor<ISideView>>;
 
     // [event]
 
@@ -67,131 +95,178 @@ export class SideViewService extends Component implements ISideViewService {
     // [constructor]
 
     constructor(
-        @Ii18nService private readonly i18nService: Ii18nService,
         @IInstantiationService private readonly instantiationService: IInstantiationService,
         @IComponentService componentService: IComponentService,
         @IThemeService themeService: IThemeService,
+        @ILogService private readonly logService: ILogService,
     ) {
         super(ComponentType.SideView, null, themeService, componentService);
-        this._currentViewType = SideType.NONE;
-        this._components = new Map();
+        this._viewCtors = new Map();
     }
 
     // [public method]
 
-    public setView(viewType: SideType): void {
-        this.__switchToView(viewType);
+    public registerView(id: string, viewCtor: Constructor<ISideView>): void {
+        this.logService.trace(`sideViewService#registers a view with id ${id}`);
+
+        if (this.hasComponent(id)) {
+            this.logService.warn(`The side view with id ${id} is already registered.`);
+            return;
+        }
+
+        this._viewCtors.set(id, viewCtor);
+    }
+
+    public unregisterView(id: string): boolean {
+        
+        /**
+         * If the view is never constructed, we simply delete the registered 
+         * constructor.
+         */
+        const ctor = this._viewCtors.get(id);
+        if (ctor) {
+            this._viewCtors.delete(id);
+            return true;
+        }
+
+        /**
+         * If the corresponding view does not exist, returns false indicates
+         * the operation fails.
+         */
+        const view = this.getComponent<ISideView>(id);
+        if (!view) {
+            return false;
+        }
+
+        /**
+         * If the view is created and also displaying currently, switch to any
+         * other avaliable views if any, then destroy the view.
+         */
+        if (id === this._currView) {
+            const avaliableID = this.__getAnyAvaliableView();
+            if (avaliableID) {
+                this.switchView(avaliableID);
+            } else {
+                this.closeView();
+            }
+        }
+
+        this.__destroyView(id);
+        return true;
+    }
+
+    public switchView(id: string): void {
+        const view = this.__getOrConstructView(id);
+        if (!view) {
+            return;
+        }
+        this.__switchView(view);
+    }
+
+    public closeView(): void {
+        if (this._currView) {
+            this.__unloadView(this._currView);
+        }
+    }
+ 
+    public getView<T extends ISideView>(id: string): T | undefined {
+        const view = this.getComponent<T>(id);
+        if (view) {
+            return view;
+        }
+
+        const ctor = this._viewCtors.get(id);
+        if (!ctor) {
+            return undefined;
+        }
+
+        const newView = this.__getOrConstructView<T>(id);
+        return newView;
+    }
+ 
+    public currView<T extends ISideView>(): T | undefined {
+        if (this._currView) {
+            return this.getComponent<T>(this._currView);
+        }
+        return undefined;
     }
 
     // [protected override methods]
 
     protected override _createContent(): void {
-        
-        // wrapper
-        const container = document.createElement('div');
-        container.id = 'side-view-container';
-        
-        // side-view content
-        this._contentContainer = document.createElement('div');
-        this._contentContainer.id = 'side-view-content-container';
 
-        // side-view-title
-        this.sideViewTitlePart = this.__register(new ExplorerTitlePart(this.i18nService)); // TODO
-        this.sideViewTitlePart.render(this._contentContainer);
-
-        // default to explorer-view
-        this.__switchToView(SideType.EXPLORER);
-        
-        // render them
-        container.appendChild(this._contentContainer);
-        this.element.appendChild(container);
+        // empty side view at the beginning
+        this._viewContainer = document.createElement('div');
+        this._viewContainer.className = 'side-view-container';
+        this.element.appendChild(this._viewContainer);
     }
 
-    protected override _registerListeners(): void {
-        for (const component of this._components.values()) {
-            component.registerListeners();
-        }
-    }
+    protected _registerListeners(): void {}
 
     // [private helper methods]
 
-    /**
-     * @description A helper method to switch to the {@link ISideView}
-     * by the provided {@link SideType}.
-     * @param viewType The {@link SideType} determines which view to display.
-     */
-    private __switchToView(viewType: SideType): void {
-        if (viewType === this._currentViewType) {
+    private __getOrConstructView<T extends ISideView>(id: string): T | undefined {
+        const view = this.getComponent<T>(id);
+        if (view) {
+            return view;
+        }
+        
+        const viewOrCtor = this._viewCtors.get(id);
+        if (!viewOrCtor) {
+            return undefined;
+        }
+
+        const newView = this.instantiationService.createInstance(viewOrCtor, this._viewContainer);
+        this._viewCtors.delete(id);
+
+        newView.create();
+        newView.registerListeners();
+        this.registerComponent(newView);
+        
+        return newView as T;
+    }
+
+    private __switchView(view: ISideView): void {
+        if (!this._viewContainer) {
             return;
         }
 
-        let previousView: SideType = this._currentViewType;
-        
-        this.__switchOrCreateView(this._contentContainer, viewType);
+        // if any view is displaying, unload it first.
+        if (this._currView) {
+            this.__unloadView(this._currView);
+        }
 
-        this._currentViewType = viewType;
-
-        // fires event
-        this._onDidViewChange.fire({
-            type: viewType,
-            prevType: previousView
-        });
+        // load the new view
+        this._viewContainer.appendChild(view.element.element);
+        this._currView = view.id;
+        console.log('[switch view]', view);
     }
 
-    /**
-     * @description Switches to the corresponding {@link ISideView}
-     * by the provided view type.
-     * @param container The HTML container where the new created view to be inserted.
-     * @param viewType The {@link SideType} type to determine which view to display.
-     * 
-     * @note `switching` means removing the old DOM element and inserting the new one.
-     * @note If the {@link ISideView} never created before, we will create one.
-     */
-    private __switchOrCreateView(container: HTMLElement, viewType: SideType): void {
-        
-        let prevView = this._components.get(this._currentViewType);
-        let view = this._components.get(viewType);
-        let justCreated = false;
-
-        // if we are switching to a view that is not in memory
-        if (view === undefined) {
-            
-            switch (viewType) {
-                case SideType.EXPLORER:
-                    view = this.instantiationService.createInstance(ExplorerView, container) as ISideView;
-                    this._components.set(viewType, view);
-                    break;
-    
-                case SideType.OUTLINE:
-                    // TODO
-                    break;
-    
-                case SideType.SEARCH:
-                    // TODO
-                    break;
-                    
-                case SideType.GIT:
-                    // TODO
-                    break;
-            }
-            justCreated = true;
-        }
-
-        if (justCreated && view) {
-            view.create(this);
-        }
-
-        if (prevView) {
-            // prevView.setVisible(false);
-            container.removeChild(prevView.element.element);
+    private __unloadView(id: string): void {
+        if (!this._viewContainer) {
+            return;
         }
         
+        const currView = this.getComponent<ISideView>(id)!;
+        this._viewContainer.removeChild(currView.element.element);
+        this._currView = undefined;
+    }
+
+    private __destroyView(id: string): void {
+        const view = this.getComponent<ISideView>(id);
         if (view) {
-            container.appendChild(view.element.element);
-            // view.setVisible(true);
+            this.unregisterComponent(id);
+            view.dispose();
         }
     }
 
+    private __getAnyAvaliableView(): string | undefined {
+        const children = this.getDirectComponents();
+        if (children.length === 0) {
+            return undefined;
+        }
+        return children[0]![0];
+    }
 }
 
 /**
@@ -199,6 +274,10 @@ export class SideViewService extends Component implements ISideViewService {
  */
 export interface ISideView extends IComponent {
 
+    /**
+     * The ID of the view.
+     */
+    readonly id: string;
 }
 
 /**
@@ -207,4 +286,7 @@ export interface ISideView extends IComponent {
  */
 export abstract class SideView extends Component {
 
+    // [field]
+
+    public static readonly WIDTH = 300;
 }
