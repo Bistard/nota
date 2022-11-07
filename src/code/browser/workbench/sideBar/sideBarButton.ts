@@ -1,5 +1,5 @@
 import { Button, IButton, IButtonOptions } from "src/base/browser/basic/button/button";
-import { ActionType } from "src/code/browser/workbench/actionBar/actionBar";
+import { ActionType } from "src/code/browser/workbench/sideBar/sideBar";
 
 export interface IActionButton extends IButton {
     
@@ -13,7 +13,7 @@ export interface IActionButton extends IButton {
  * @class A simple encapsulation built upon {@link Button}. Specific for action
  * bar.
  */
-export class ActionButton extends Button implements IActionButton {
+export class SideButton extends Button implements IActionButton {
 
     public readonly type: ActionType;
 

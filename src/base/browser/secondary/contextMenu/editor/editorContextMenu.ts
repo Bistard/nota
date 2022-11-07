@@ -14,7 +14,7 @@ export class EditorContextMenu extends ContextMenu implements IContextMenu {
         @IThemeService themeService: IThemeService,
     ) {
         super(
-            ContextMenuType.actionBar, 
+            ContextMenuType.sideBar, 
             coordinate,
             [
                 {id: 'copy', classes: ['menu-item'], text: 'Copy', role: 'normal'},

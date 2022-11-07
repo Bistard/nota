@@ -1,11 +1,11 @@
 import { ContextMenu, ContextMenuType, Coordinate, IContextMenu } from "src/base/browser/secondary/contextMenu/contextMenu";
 import { IComponentService } from "src/code/browser/service/component/componentService";
 import { IContextMenuService } from "src/code/browser/service/contextMenuService";
-import { IActionBarOptions } from "src/code/browser/workbench/actionBar/actionBar";
+import { ISideBarOptions } from "src/code/browser/workbench/sideBar/sideBar";
 import { IButton } from "src/base/browser/basic/button/button";
 import { IThemeService } from "src/code/browser/service/theme/themeService";
 
-const actionBarOpts: IActionBarOptions = { 
+const actionBarOpts: ISideBarOptions = { 
     options: [true, true, true, true],
     id: ['explorer', 'outline', 'search', 'git'],
 }
@@ -19,7 +19,7 @@ export class ActionBarContextMenu extends ContextMenu implements IContextMenu {
         @IThemeService themeService: IThemeService,
     ) {
         super(
-            ContextMenuType.actionBar,
+            ContextMenuType.sideBar,
             coordinate,
             [
                 { id: 'select-explorer-button', classes: ['menu-item'], text: 'File Explorer', role: 'checkBox', checked: actionBarOpts.options[0] },
@@ -35,7 +35,7 @@ export class ActionBarContextMenu extends ContextMenu implements IContextMenu {
     protected override _registerListeners(): void {
         
         // TODO: refactor
-        // const actionBarService = this.componentService.get(ComponentType.ActionBar) as IActionBarService;
+        // const actionBarService = this.componentService.get(ComponentType.SideBar) as ISideBarService;
 
         // [
         //     { contextMenuBtn: this._menuItemGroups.get('select-explorer-button')!, actionBtn: actionBarService.getButton(ActionType.EXPLORER)! },
@@ -58,7 +58,7 @@ export class ActionBarContextMenu extends ContextMenu implements IContextMenu {
      * @description unchecks a given button. If it is not focused, set it as 
      * focused. Moreover, switch to that action view.
      */
-    // public switchActionViewDisplay(actionBarService: IActionBarService, clickedBtn: IButton, closeOrOpen: boolean, clickedIndex: number): void {
+    // public switchActionViewDisplay(actionBarService: ISideBarService, clickedBtn: IButton, closeOrOpen: boolean, clickedIndex: number): void {
 
     //     // focus the action button and reverse the state of action view
     //     const actionBtnContainer = actionBarService.contentArea!;

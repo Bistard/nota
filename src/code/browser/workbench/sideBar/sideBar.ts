@@ -1,7 +1,7 @@
 import { Component, ComponentType, IComponent } from 'src/code/browser/service/component/component';
 import { createService } from 'src/code/platform/instantiation/common/decorator';
 import { IComponentService } from 'src/code/browser/service/component/componentService';
-import { ActionButton } from 'src/code/browser/workbench/actionBar/actionButton';
+import { SideButton } from 'src/code/browser/workbench/sideBar/sideBarButton';
 import { WidgetBar } from 'src/base/browser/secondary/widgetBar/widgetBar';
 import { Orientation } from 'src/base/browser/basic/dom';
 import { Icons } from 'src/base/browser/icon/icons';
@@ -9,7 +9,7 @@ import { Emitter, Register } from 'src/base/common/event';
 import { IThemeService } from 'src/code/browser/service/theme/themeService';
 import { Mutable } from 'src/base/common/util/type';
 
-export const IActionBarService = createService<IActionBarService>('action-bar-service');
+export const ISideBarService = createService<ISideBarService>('side-bar-service');
 
 export const enum ActionType {
     NONE = 'none',
@@ -24,7 +24,7 @@ export const enum ActionType {
     SETTINGS = 'setting',
 }
 
-export interface IActionBarButtonClickEvent {
+export interface ISideBarButtonClickEvent {
     
     /**
      * The type of button is clicked.
@@ -38,26 +38,26 @@ export interface IActionBarButtonClickEvent {
 }
 
 /**
- * An interface only for {@link ActionBarComponent}.
+ * An interface only for {@link SideBarComponent}.
  */
-export interface IActionBarService extends IComponent {
+export interface ISideBarService extends IComponent {
     
     /**
      * Events fired when the button is clicked.
      */
-    readonly onDidClick: Register<IActionBarButtonClickEvent>;
+    readonly onDidClick: Register<ISideBarButtonClickEvent>;
 
     /**
      * @description Returns a button by provided a buttion type.
      * @param type The type of the required button.
      * @returns The required button. Returns undefined if it does not exists.
      */
-    getButton(type: ActionType): ActionButton | undefined;
+    getButton(type: ActionType): SideButton | undefined;
 
 }
 
 /** @deprecated */
-export interface IActionBarOptions {
+export interface ISideBarOptions {
     options: [
         isExplorerChecked: boolean,
         isOutlineCheckd:   boolean,
@@ -73,23 +73,22 @@ export interface IActionBarOptions {
 }
 
 /**
- * @class ActionBarComponent provides access to each action view and handles 
- * the state transition between each action button and display coressponding 
- * action view.
+ * @class SideBarComponent provides access to each view and handles the state 
+ * transition between each button and display coressponding view.
  */
-export class ActionBarComponent extends Component implements IActionBarService {
+export class SideBarComponent extends Component implements ISideBarService {
 
     // [field]
 
     public static readonly WIDTH = 50;
 
-    private readonly _logoButton!: ActionButton;
-    private readonly _generalGroup!: WidgetBar<ActionButton>;
-    private readonly _secondaryGroup!: WidgetBar<ActionButton>;
+    private readonly _logoButton!: SideButton;
+    private readonly _generalGroup!: WidgetBar<SideButton>;
+    private readonly _secondaryGroup!: WidgetBar<SideButton>;
 
     private _currButtonType = ActionType.NONE;
 
-    private readonly _onDidClick = this.__register(new Emitter<IActionBarButtonClickEvent>());
+    private readonly _onDidClick = this.__register(new Emitter<ISideBarButtonClickEvent>());
     public readonly onDidClick = this._onDidClick.registerListener;
 
     // [constructor]
@@ -98,12 +97,12 @@ export class ActionBarComponent extends Component implements IActionBarService {
         @IComponentService componentService: IComponentService,
         @IThemeService themeService: IThemeService,
     ) {
-        super(ComponentType.ActionBar, null, themeService, componentService);
+        super(ComponentType.SideBar, null, themeService, componentService);
     }
 
     // [public method]
 
-    public getButton(type: ActionType): ActionButton | undefined {
+    public getButton(type: ActionType): SideButton | undefined {
         return this._generalGroup.getItem(type);
     }
 
@@ -117,13 +116,13 @@ export class ActionBarComponent extends Component implements IActionBarService {
         // upper button group
         const container1 = document.createElement('div');
         container1.className = 'general-button-container';
-        (<Mutable<WidgetBar<ActionButton>>>this._generalGroup) = this.__createGeneralButtonGroup(container1);
+        (<Mutable<WidgetBar<SideButton>>>this._generalGroup) = this.__createGeneralButtonGroup(container1);
         
 
         // lower button group
         const container2 = document.createElement('div');
         container2.className = 'secondary-button-container';
-        (<Mutable<WidgetBar<ActionButton>>>this._secondaryGroup) = this.__createSecondaryButtonGroup(container2);
+        (<Mutable<WidgetBar<SideButton>>>this._secondaryGroup) = this.__createSecondaryButtonGroup(container2);
 
         this.element.appendChild(logo.element);
         this.element.appendChild(container1);
@@ -194,8 +193,8 @@ export class ActionBarComponent extends Component implements IActionBarService {
         });
     }
 
-    private __createLogo(): ActionButton {
-        const logo = new ActionButton(ActionType.LOGO, { classes: ['logo'] });
+    private __createLogo(): SideButton {
+        const logo = new SideButton(ActionType.LOGO, { classes: ['logo'] });
         logo.render(document.createElement('div'));
 
         const text = document.createElement('div');
@@ -205,9 +204,9 @@ export class ActionBarComponent extends Component implements IActionBarService {
         return logo;
     }
 
-    private __createGeneralButtonGroup(container: HTMLElement): WidgetBar<ActionButton> {
+    private __createGeneralButtonGroup(container: HTMLElement): WidgetBar<SideButton> {
         
-        const widgetBar = new WidgetBar<ActionButton>(container, {
+        const widgetBar = new WidgetBar<SideButton>(container, {
             orientation: Orientation.Vertical
         });
 
@@ -218,7 +217,7 @@ export class ActionBarComponent extends Component implements IActionBarService {
             {type: ActionType.GIT, icon: Icons.CodeBranch},
         ]
         .forEach(({ type, icon }) => {
-            const button = new ActionButton(type, { icon: icon });
+            const button = new SideButton(type, { icon: icon });
             widgetBar.addItem({
                 id: type, 
                 item: button,
@@ -229,8 +228,8 @@ export class ActionBarComponent extends Component implements IActionBarService {
         return widgetBar;
     }
 
-    private __createSecondaryButtonGroup(container: HTMLElement): WidgetBar<ActionButton> {
-        const widgetBar = new WidgetBar<ActionButton>(container, {
+    private __createSecondaryButtonGroup(container: HTMLElement): WidgetBar<SideButton> {
+        const widgetBar = new WidgetBar<SideButton>(container, {
             orientation: Orientation.Vertical
         });
 
@@ -239,7 +238,7 @@ export class ActionBarComponent extends Component implements IActionBarService {
             {type: ActionType.SETTINGS, icon: Icons.Settings},
         ]
         .forEach(({ type, icon }) => {
-            const button = new ActionButton(type, {icon: icon});
+            const button = new SideButton(type, {icon: icon});
             widgetBar.addItem({
                 id: type, 
                 item: button,

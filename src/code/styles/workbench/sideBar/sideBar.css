@@ -1,4 +1,4 @@
-#action-bar {
+#side-bar {
     position: relative;
     width: 50px;
     min-width: 50px;
@@ -8,48 +8,48 @@
     -webkit-app-region: drag; /* draggable */
 }
 
-#action-bar > div {
+#side-bar > div {
     position: absolute;
 }
 
-#action-bar > .logo {
+#side-bar > .logo {
     top: 0px;
     justify-content: center;
     font-size: 26px;
     font-family: 'happy family';
 }
 
-#action-bar > .logo:hover {
+#side-bar > .logo:hover {
     filter: invert(15%) sepia(100%) saturate(2427%) hue-rotate(343deg) brightness(112%) contrast(97%);
 }
 
-#action-bar > .general-button-container {
+#side-bar > .general-button-container {
     top: 70px;
 }
 
-#action-bar > .secondary-button-container {
+#side-bar > .secondary-button-container {
     bottom: 0px;
 }
 
-#action-bar .action-button {
+#side-bar .action-button {
     width: 50px;
     height: 50px;
     align-content: center;
     display: flex;
 }
 
-#action-bar .action-button > .icon {
+#side-bar .action-button > .icon {
     font-size: 18px;
 }
 
-#action-bar .action-button:hover {
+#side-bar .action-button:hover {
     filter: invert(15%) sepia(100%) saturate(2427%) hue-rotate(343deg) brightness(112%) contrast(97%);
 }
 
-#action-bar .action-button:active {
+#side-bar .action-button:active {
     opacity: 70%;
 }
 
-#action-bar .action-button.focus {
+#side-bar .action-button.focus {
     filter: invert(15%) sepia(100%) saturate(2427%) hue-rotate(343deg) brightness(112%) contrast(97%);
 }

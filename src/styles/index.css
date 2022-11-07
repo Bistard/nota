@@ -20,7 +20,7 @@
 @import "../base/browser/secondary/tree/tree.css";
 @import "../base/browser/secondary/splitView/splitView.css";
 
-@import "../code/styles/workbench/actionBar/actionBar.css";
+@import "../code/styles/workbench/sideBar/sideBar.css";
 @import "../code/styles/workbench/actionView/actionView.css";
 @import "../code/styles/workbench/actionView/explorer/explorerView.css";
 @import "../code/styles/workbench/actionView/explorer/explorerItem.css";

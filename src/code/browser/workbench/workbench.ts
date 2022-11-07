@@ -8,7 +8,7 @@ import { IKeyboardScreenCastService } from "src/code/browser/service/keyboard/ke
 import { IConfigService } from "src/code/platform/configuration/common/abstractConfigService";
 import { BuiltInConfigScope } from "src/code/platform/configuration/common/configRegistrant";
 import { IThemeService } from "src/code/browser/service/theme/themeService";
-import { IActionBarService } from "src/code/browser/workbench/actionBar/actionBar";
+import { ISideBarService } from "src/code/browser/workbench/sideBar/sideBar";
 import { IActionViewService } from "src/code/browser/workbench/actionView/actionView";
 import { IWorkspaceService } from "src/code/browser/workbench/workspace/workspace";
 
@@ -23,7 +23,7 @@ export class Workbench extends WorkbenchLayout implements IWorkbenchService {
         @IConfigService private readonly configService: IConfigService,
         @IComponentService componentService: IComponentService,
         @IThemeService themeService: IThemeService,
-        @IActionBarService actionBarService: IActionBarService,
+        @ISideBarService actionBarService: ISideBarService,
         @IActionViewService actionViewService: IActionViewService,
         @IWorkspaceService workspaceService: IWorkspaceService,
     ) {

@@ -4,7 +4,7 @@ import { Emitter, Register } from 'src/base/common/event';
 import { createService } from 'src/code/platform/instantiation/common/decorator';
 import { IComponentService } from 'src/code/browser/service/component/componentService';
 import { IInstantiationService } from 'src/code/platform/instantiation/common/instantiation';
-import { ActionType } from 'src/code/browser/workbench/actionBar/actionBar';
+import { ActionType } from 'src/code/browser/workbench/sideBar/sideBar';
 import { Disposable } from 'src/base/common/dispose';
 import { getIconClass } from 'src/base/browser/icon/iconRegistry';
 import { Icons } from 'src/base/browser/icon/icons';

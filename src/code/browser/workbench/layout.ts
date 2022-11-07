@@ -1,7 +1,7 @@
 import { addDisposableListener, DomUtility, EventType, Orientation } from "src/base/browser/basic/dom";
 import { IComponentService } from "src/code/browser/service/component/componentService";
 import { IThemeService } from "src/code/browser/service/theme/themeService";
-import { ActionBarComponent, IActionBarService } from "src/code/browser/workbench/actionBar/actionBar";
+import { SideBarComponent, ISideBarService } from "src/code/browser/workbench/sideBar/sideBar";
 import { ActionViewComponent, IActionViewService } from "src/code/browser/workbench/actionView/actionView";
 import { Component, ComponentType, IComponent } from "src/code/browser/service/component/component";
 import { IWorkspaceService } from "src/code/browser/workbench/workspace/workspace";
@@ -26,7 +26,7 @@ export abstract class WorkbenchLayout extends Component {
         protected readonly instantiationService: IInstantiationService,
         @IComponentService componentService: IComponentService,
         @IThemeService themeService: IThemeService,
-        @IActionBarService private readonly actionBarService: IActionBarService,
+        @ISideBarService private readonly actionBarService: ISideBarService,
         @IActionViewService private readonly actionViewService: IActionViewService,
         @IWorkspaceService private readonly workspaceService: IWorkspaceService,
     ) {
@@ -56,7 +56,7 @@ export abstract class WorkbenchLayout extends Component {
 
         // Constructs each component of the workbench.
         const configurations: [IComponent, number, number, number, Priority][] = [
-            [this.actionBarService , ActionBarComponent.WIDTH , ActionBarComponent.WIDTH     , ActionBarComponent.WIDTH , Priority.Low   ],
+            [this.actionBarService , SideBarComponent.WIDTH , SideBarComponent.WIDTH     , SideBarComponent.WIDTH , Priority.Low   ],
             [this.actionViewService, 100                      , ActionViewComponent.WIDTH * 2, ActionViewComponent.WIDTH, Priority.Normal],
             [this.workspaceService , 0                        , Number.POSITIVE_INFINITY     , 0                        , Priority.High  ],
         ]
@@ -75,7 +75,7 @@ export abstract class WorkbenchLayout extends Component {
         // construct the split-view
         this._splitView = new SplitView(this.element.element, splitViewOpt);
 
-        // set the sash next to actionBar is visible and disabled.
+        // set the sash next to sideBar is visible and disabled.
         const sash = this._splitView.getSashAt(0)!;
         sash.enable = false;
         sash.visible = true;
@@ -91,7 +91,7 @@ export abstract class WorkbenchLayout extends Component {
         }));
 
         /**
-         * Listens to each ActionBar button click events and notifies the 
+         * Listens to each SideBar button click events and notifies the 
          * actionView to swtich the view.
          */
         this.actionBarService.onDidClick(e => {

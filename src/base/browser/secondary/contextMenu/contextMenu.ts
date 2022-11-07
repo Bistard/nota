@@ -5,7 +5,7 @@ import { IThemeService } from "src/code/browser/service/theme/themeService";
 import { Component, IComponent } from "src/code/browser/service/component/component";
 
 export const enum ContextMenuType {
-    actionBar,
+    sideBar,
     actionView,
     editor,
     explorerView,

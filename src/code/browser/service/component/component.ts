@@ -11,7 +11,7 @@ import { IThemeService } from "src/code/browser/service/theme/themeService";
  */
 export const enum ComponentType {
     Workbench = 'workbench',
-    ActionBar = 'action-bar',
+    SideBar = 'side-bar',
     ActionView = 'action-view',
     Workspace = 'workspace',
     ExplorerView = 'explorer-container',
