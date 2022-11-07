@@ -63,6 +63,13 @@ export interface ISplitView extends Disposable {
     swapView(first: number, second: number): void;
 
     /**
+     * @description Returns the corresponding sash at the given index. Undefined
+     * if not exist.
+     * @param index The index of the sash inside splitView.
+     */
+    getSashAt(index: number): ISash | undefined;
+
+    /**
      * @description Layout the split view with the updated width and height.
      */
     layout(width: number, height: number): void;
@@ -238,6 +245,10 @@ export class SplitView extends Disposable implements ISplitView {
             width: width,
             height: height,
         });
+    }
+
+    public getSashAt(index: number): ISash | undefined {
+        return this.sashItems[index];
     }
 
     // [private helper methods]

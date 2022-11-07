@@ -1,5 +1,4 @@
-import { ISashEvent, Sash } from "src/base/browser/basic/sash/sash";
-import { addDisposableListener, DomUtility, EventType, Orientation, requestAnimate } from "src/base/browser/basic/dom";
+import { addDisposableListener, DomUtility, EventType, Orientation } from "src/base/browser/basic/dom";
 import { IComponentService } from "src/code/browser/service/component/componentService";
 import { IThemeService } from "src/code/browser/service/theme/themeService";
 import { ActionBarComponent, IActionBarService } from "src/code/browser/workbench/actionBar/actionBar";
@@ -75,6 +74,12 @@ export abstract class WorkbenchLayout extends Component {
 
         // construct the split-view
         this._splitView = new SplitView(this.element.element, splitViewOpt);
+
+        // set the sash next to actionBar is visible and disabled.
+        const sash = this._splitView.getSashAt(0)!;
+        sash.enable = false;
+        sash.visible = true;
+        sash.size = 1;
     }
 
     protected __registerLayoutListeners(): void {
