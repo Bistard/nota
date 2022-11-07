@@ -3,7 +3,7 @@
         
     },
     "src/code/browser/workbench/sideView/explorer": {
-        "notebook": "NOTEBOOK",
+        "file": "FILE",
         "openDirectory": "OPEN A FOLDER"
     }
 }

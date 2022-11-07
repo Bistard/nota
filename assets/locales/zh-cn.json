@@ -3,7 +3,7 @@
         
     },
     "src/code/browser/workbench/sideView/explorer": {
-        "notebook": "笔记本",
+        "file": "文件",
         "openDirectory": "打开文件夹"
     }
 }

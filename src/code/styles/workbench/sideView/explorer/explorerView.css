@@ -7,6 +7,17 @@
     overflow: hidden;
 }
 
+#explorer-view .side-view-title > .title-text {
+    margin-left: 12px;
+}
+
+#explorer-view .side-view-title > .icon {
+    margin-left: 8px;
+
+    margin-top: 2px;
+    font-size: 10px;
+}
+
 .opened-explorer-container, .empty-explorer-container {
     position: relative;
     width: 100%;

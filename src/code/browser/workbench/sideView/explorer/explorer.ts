@@ -1,4 +1,3 @@
-import { Component, IComponent } from 'src/code/browser/service/component/component';
 import { Emitter, Register } from 'src/base/common/event';
 import { IComponentService } from 'src/code/browser/service/component/componentService';
 import { createService } from 'src/code/platform/instantiation/common/decorator';
@@ -22,13 +21,14 @@ import { DisposableManager } from 'src/base/common/dispose';
 import { getIconClass } from 'src/base/browser/icon/iconRegistry';
 import { Icons } from 'src/base/browser/icon/icons';
 import { SideViewTitlePart } from 'src/code/browser/workbench/sideView/sideViewTitle';
+import { ISideView, SideView } from 'src/code/browser/workbench/sideView/sideView';
 
 export const IExplorerViewService = createService<IExplorerViewService>('explorer-view-service');
 
 /**
  * An interface only for {@link ExplorerView}.
  */
-export interface IExplorerViewService extends IComponent {
+export interface IExplorerViewService extends ISideView {
     
     /**
      * Determine if the explorer view is opened right now.
@@ -68,7 +68,7 @@ export interface ClassicOpenEvent {
 /**
  * @class TODO: complete comments
  */
-export class ExplorerView extends Component implements IExplorerViewService {
+export class ExplorerView extends SideView implements IExplorerViewService {
 
     // [field]
 
@@ -159,7 +159,17 @@ export class ExplorerView extends Component implements IExplorerViewService {
 
     // [protected overrdie method]
 
+    protected override __createTitlePart(): ExplorerTitlePart {
+        return new ExplorerTitlePart(this.i18nService);
+    }
+
     protected override _createContent(): void {
+        super._createContent();
+
+        // render title part
+        this._titlePart.render(document.createElement('div'));
+        this.element.appendChild(this._titlePart.element);
+
         /**
          * If there are waiting URIs to be opened, we will open it once we are 
          * creating the UI component.
@@ -176,6 +186,8 @@ export class ExplorerView extends Component implements IExplorerViewService {
     }
 
     protected override _registerListeners(): void {
+        super._registerListeners();
+        
         /**
          * No need to register listeners initially, since `__loadCurrentView` 
          * will do for us internally.
@@ -326,30 +338,21 @@ export class ExplorerTitlePart extends SideViewTitlePart {
         super();
     }
 
-    public override render(container: HTMLElement): void {
-        super.render(container);
+    public override render(element: HTMLElement): void {
+        super.render(element);
         
-        if (!this._element) {
-            return;
-        }
-        
-        // wrapper
-        const wrapper = document.createElement('div');
-        wrapper.className = 'side-view-title-container';
-
-        // dropdown icon
-        const dropdownIcon = document.createElement('i');
-        dropdownIcon.classList.add(...getIconClass(Icons.AddressBook));
-        this._element.appendChild(dropdownIcon);
-
         // title text
         const topText = document.createElement('div');
         topText.className = 'title-text';
-        topText.textContent = this.i18nService.trans(Section.Explorer, 'notebook');
+        topText.textContent = this.i18nService.trans(Section.Explorer, 'file');
 
-        wrapper.append(dropdownIcon);
-        wrapper.append(topText);
-        this._element.appendChild(wrapper);
+        // dropdown icon
+        const dropdownIcon = document.createElement('i');
+        dropdownIcon.classList.add(...getIconClass(Icons.AngleDown));
+        this.element.appendChild(dropdownIcon);
+
+        this.element.append(topText);
+        this.element.append(dropdownIcon);
     }
 }
 

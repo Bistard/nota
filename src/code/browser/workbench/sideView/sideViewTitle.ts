@@ -1,45 +1,13 @@
-import { Disposable } from "src/base/common/dispose";
+import { Widget } from "src/base/browser/basic/widget";
 
 /**
- * @class The base class for top view part in the side view.
+ * @class The base class for top view part in the side view. The title part can
+ * be ignored since the `render()` is decided by `ISideView`.
  */
-export class SideViewTitlePart extends Disposable {
+export class SideViewTitlePart extends Widget {
 
-    protected _element: HTMLElement;
-
-    constructor() {
-        super();
-
-        this._element = document.createElement('div');
-        this._element.className = 'side-view-title';
-    }
-    
-    /**
-     * @description Renders the title part into the provided container.
-     * @param container The HTMLElement to be inserted below.
-     */
-    public render(container: HTMLElement): void {
-        if (this._element === undefined) {
-            return;
-        }
-        
-        container.appendChild(this._element);
-    }
-    
-    public hide(value: boolean): void {
-        if (this._element) {
-            if (value) {
-                this._element.classList.add('disabled');
-                this._element.setAttribute('disabled', String(true));
-            } else {
-                this._element.classList.remove('disabled');
-                this._element.setAttribute('disabled', String(false));
-                this._element.tabIndex = 0;
-            }
-        }
-    }
-
-    public hidden(): boolean {
-        return this._element?.classList.contains('disabled') === false;
+    public override render(element: HTMLElement): void {
+        element.classList.add('side-view-title');
+        super.render(element);
     }
 }

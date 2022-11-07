@@ -4,8 +4,9 @@ import { createService } from 'src/code/platform/instantiation/common/decorator'
 import { IComponentService } from 'src/code/browser/service/component/componentService';
 import { IInstantiationService } from 'src/code/platform/instantiation/common/instantiation';
 import { IThemeService } from 'src/code/browser/service/theme/themeService';
-import { Constructor } from 'src/base/common/util/type';
+import { Constructor, Mutable } from 'src/base/common/util/type';
 import { ILogService } from 'src/base/common/logger';
+import { SideViewTitlePart } from 'src/code/browser/workbench/sideView/sideViewTitle';
 
 export const ISideViewService = createService<ISideViewService>('side-view-service');
 
@@ -239,7 +240,8 @@ export class SideViewService extends Component implements ISideViewService {
         // load the new view
         this._viewContainer.appendChild(view.element.element);
         this._currView = view.id;
-        console.log('[switch view]', view);
+        
+        this._onDidViewChange.fire({ id: view.id, view: view });
     }
 
     private __unloadView(id: string): void {
@@ -284,9 +286,28 @@ export interface ISideView extends IComponent {
  * @class The base class to be inherited from to be inserted into 
  * {@link SideViewService}.
  */
-export abstract class SideView extends Component {
+export abstract class SideView extends Component implements ISideView {
 
     // [field]
 
     public static readonly WIDTH = 300;
+
+    // TODO: try to use a splitView. So that we can use a sash instead of manually set the border.
+    protected readonly _titlePart!: SideViewTitlePart;
+    
+    // [abstraction]
+
+    // [protected override methods]
+
+    protected __createTitlePart(): SideViewTitlePart {
+        return new SideViewTitlePart();
+    };
+
+    protected _createContent(): void {
+        (<Mutable<SideViewTitlePart>>this._titlePart) = this.__createTitlePart();
+    }
+
+    protected _registerListeners(): void {}
+
+    // [private methods]
 }
