@@ -173,13 +173,13 @@ const nota = new class extends class MainProcess implements IMainProcess {
      */
     private async initServices(): Promise<any> {
         
-        return Promise.all<any>([
+        return Promise.all([
             /**
              * At the very beginning state of the program, we need to initialize
              * all the necessary directories first. We need to ensure each one 
              * is created successfully.
              */
-            Promise.all<string | undefined>([
+            Promise.all([
                 this.environmentService.logPath,
                 this.environmentService.appConfigurationPath,
                 this.environmentService.userDataPath,
