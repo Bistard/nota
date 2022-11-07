@@ -5,22 +5,32 @@ const fs = require('fs');
 const { c, getTime, setCharAt, ifMissingFile } = require("./utility");
 
 /**
+ * @description
  * The script is to remove all the prefix of every svg files that are downloaded 
- * from the website and regenerate the icon using `fantasticon`.
- * 
- * The script is avaliable in `package.json`. The options of the script are 
- * listed below:
- *      --force=true
+ * from the website and regenerate the icon from svg into font file using 
+ * `fantasticon`.
  * 
  * @note Icon library: https://www.flaticon.com/uicons/interface-icons
+ * 
+ * @option
+ * The script is avaliable in `package.json`. The options of the script are 
+ * listed below:
+ * 
+ * I. Force the script to regenerate icon files even there is no changes or 
+ * missing target files.
+ *      --force=true
+ * 
+ * II.  A way to manually add extra icons even the code section does not use it 
+ * yet. The caller should provide a list of icon file names seperated by '|'. 
+ * Each name should be in Hanguarian Notation except that the first character 
+ * should also be capitalized.
+ *      --extra=NewIconName1|NewIconName2
  */
-console.log(`${getTime(c.FgGreen)} starting icon.js.`);
-
-
 run();
 
 
 async function run() {
+    console.log(`${getTime(c.FgGreen)} Running icon.js.`);
 
     const srcRoot = './assets/svg';
     const outputRoot = './src/base/browser/icon';
@@ -29,28 +39,25 @@ async function run() {
     // command line argument
     const CLIArgv = minimist(process.argv.slice(2));
     console.log(`${getTime()} [script arguments]`, CLIArgv);
+    const force = (CLIArgv.force == 'true');
+    const extraIcons = CLIArgv.extra?.split('|') ?? [];
+    console.log(extraIcons);
     
     /**
      * Either force to regenerate files or, check if any prefix need to remove 
      * or any missing target icon files.
      */
-    const needed = (CLIArgv.force == 'true') || await checkIfRegenerate(outputRoot);
+    const needed = force || (extraIcons.length > 0) || await checkIfRegenerate(outputRoot);
     if (!needed) {
         return;
     }
-
-    // actual regenerate icons
-    await generateIcons(srcRoot, outputRoot);
-
-    // repair generated typescript file (fantasticon generated enum is not const).
-    await repair(outputRoot);
 
     /**
      * To avoid generate the entire icon libraries, we need to scan the entire
      * code section and regenerate the icon files that does not contain any 
      * unused icons.
      */
-    await reduceUnusedIcons(srcRoot, codeRoot, outputRoot);
+    await reduceUnusedIcons(srcRoot, codeRoot, outputRoot, extraIcons);
 };
 
 //#region helper functions
@@ -237,8 +244,10 @@ async function repair(outputRoot) {
  * @param {string} srcRoot The root path of the resource of the icons.
  * @param {string} codeRoot The root path of the resource of the entire code section.
  * @param {string} outputRoot The root path for the generated files.
+ * @param {string[]} extraIcons An array of string that contains the extra icons.
+ * for usage.
  */
-async function reduceUnusedIcons(srcRoot, codeRoot, outputRoot) {
+async function reduceUnusedIcons(srcRoot, codeRoot, outputRoot, extraIcons) {
     console.log(`${getTime(c.FgGreen)} Start removing unsed icons...`);
 
     // create a temporary directory to store all the used icon svg
@@ -248,17 +257,21 @@ async function reduceUnusedIcons(srcRoot, codeRoot, outputRoot) {
     } catch {}
     await fs.promises.mkdir(tempRoot);
 
+
     // scans the used icons and copy each used icon file into the temporary root path
-    await scanUsedIcons(srcRoot, codeRoot, tempRoot);
+    await scanUsedIcons(srcRoot, codeRoot, tempRoot, extraIcons);
+
 
     // regenerate icons from the tempRoot
-    console.log(`${getTime()} Start regenerating used icons...`);
+    console.log(`${getTime()} Start creating icon files...`);
     await generateIcons(tempRoot, outputRoot);
-    console.log(`${getTime(c.FgGreen)} Start regeneration finished.`);
+    console.log(`${getTime(c.FgGreen)} Creation finished.`);
+
 
     // repair generated typescript file
     await repair(outputRoot);
 
+    
     // clean up
     console.log(`${getTime()} Cleanning temporary icon files....`);
     await fs.promises.rm(tempRoot, {force: true, recursive: true});
@@ -269,8 +282,9 @@ async function reduceUnusedIcons(srcRoot, codeRoot, outputRoot) {
  * @param {string} srcRoot The root path of the resource of the icons.
  * @param {string} codeRoot The root path of the resource of the entire code section.
  * @param {string} tempRoot The temporary root path of the resource of the icons.
+ * @param {string[]} extraIcons An array of string that contains the extra icons.
  */
-async function scanUsedIcons(srcRoot, codeRoot, tempRoot) {
+async function scanUsedIcons(srcRoot, codeRoot, tempRoot, extraIcons) {
     
     /**
      * Finds out all the icons first. These icon names should has a hanguarain 
@@ -293,6 +307,11 @@ async function scanUsedIcons(srcRoot, codeRoot, tempRoot) {
     const regexp = new RegExp(`\\bIcons\\.(${allIcons.join('|')})\\b`, 'g');
     const usedIcons = new Set();
     
+    // put any extra icons first if provided
+    for (const extraIcon of extraIcons) {
+        usedIcons.add(extraIcon);
+    }
+
     // callback for every directory
     console.log(`${getTime()} Start scanning repository at '${codeRoot}'...`);
     const scan = async (parentPath) => {
@@ -318,7 +337,6 @@ async function scanUsedIcons(srcRoot, codeRoot, tempRoot) {
     console.log(`${getTime()} Scanning ended.`);
     console.log(`${getTime()} Detected total of ${usedIcons.size} of used icons in the code section.`);
     
-    
     /**
      * Loop all the icons again and copy all the used icons into the temp 
      * directory.
@@ -327,7 +345,14 @@ async function scanUsedIcons(srcRoot, codeRoot, tempRoot) {
         if (usedIcons.has(icon)) {
             lowerCaseIcon = setCharAt(icon, 0, icon[0].toLowerCase()) + '.svg';
             await fs.promises.copyFile(path.resolve(srcRoot, lowerCaseIcon), path.resolve(tempRoot, lowerCaseIcon));
+            usedIcons.delete(icon);
         }
+    }
+
+    if (usedIcons.size > 0) {
+        process.stdout.write(`${getTime(c.FgRed)} Detected total of ${usedIcons.size} of icons that did not found the source svg files. These are: `);
+        process.stdout.write(Array.from(usedIcons.values()).join(','));
+        process.stdout.write('.\n');
     }
 }
 

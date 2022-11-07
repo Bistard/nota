@@ -1,6 +1,6 @@
 @font-face {
     font-family: "icons";
-    src: url("./icons.woff2?963209b58218b385a7b1ecdbcd36b9e6") format("woff2");
+    src: url("./icons.woff2?51008937a03c885de247c6fd284d8511") format("woff2");
 }
 
 i[class^="icon-"]:before, i[class*=" icon-"]:before {
@@ -14,28 +14,28 @@ i[class^="icon-"]:before, i[class*=" icon-"]:before {
     -moz-osx-font-smoothing: grayscale;
 }
 
-.icon-addressBook:before {
+.icon-angleDown:before {
     content: "\f101";
 }
-.icon-angleDown:before {
+.icon-caretDown:before {
     content: "\f102";
 }
-.icon-caretDown:before {
+.icon-codeBranch:before {
     content: "\f103";
 }
-.icon-codeBranch:before {
+.icon-commentQuestion:before {
     content: "\f104";
 }
-.icon-commentQuestion:before {
+.icon-cross:before {
     content: "\f105";
 }
-.icon-cross:before {
+.icon-folder:before {
     content: "\f106";
 }
-.icon-folder:before {
+.icon-list:before {
     content: "\f107";
 }
-.icon-list:before {
+.icon-menuDots:before {
     content: "\f108";
 }
 .icon-minuss:before {

@@ -1,5 +1,4 @@
 export const enum Icons {
-  AddressBook = 'addressBook',
   AngleDown = 'angleDown',
   CaretDown = 'caretDown',
   CodeBranch = 'codeBranch',
@@ -7,6 +6,7 @@ export const enum Icons {
   Cross = 'cross',
   Folder = 'folder',
   List = 'list',
+  MenuDots = 'menuDots',
   Minuss = 'minuss',
   Search = 'search',
   Settings = 'settings',
