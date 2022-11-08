@@ -47,6 +47,13 @@
     overflow: hidden;
 }
 
+/* 
+Always make a top gap.
+ */
+.opened-explorer-container > div {
+    margin-top: 30px;
+}
+
 .empty-explorer-container > .explorer-open-tag {
     color: transparent;
     font-size: 10pt;
