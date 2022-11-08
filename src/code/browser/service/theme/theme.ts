@@ -1,4 +1,4 @@
-import { Color } from "src/base/common/color";
+import { RGBA } from "src/base/common/color";
 import { Disposable } from "src/base/common/dispose";
 import { IThemeService } from "src/code/browser/service/theme/themeService";
 
@@ -12,7 +12,7 @@ export interface ITheme {
      */
     readonly name: ThemeType;
 
-    getColor(id: string, useDefault?: boolean): Color;
+    getColor(id: string, useDefault?: boolean): RGBA;
 }
 
 /**
