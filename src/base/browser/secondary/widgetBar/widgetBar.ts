@@ -15,6 +15,13 @@ export interface IWidgetBar<T extends IWidget> extends IDisposable {
     readonly viewsContainer: HTMLElement;
 
     /**
+     * @description Renders the widget bar (appending the element into the 
+     * provided parent element).
+     * @note Can only render twice.
+     */
+    render(): void;
+
+    /**
      * @description Inserts the provided widget item into the bar.
      * @param item The widget item to be added.
      * @param index The index to be inserted at. If not given, pushes to the back 
@@ -82,6 +89,18 @@ export interface IWidgetBarOptions {
      * displaying vertical or horizontal.
      */
     readonly orientation: Orientation;
+
+    /**
+     * If render immediately after construction.
+     */
+    readonly render?: boolean;
+}
+
+function getDefaultOpts(): IWidgetBarOptions {
+    return {
+        orientation: Orientation.Horizontal,
+        render: true,
+    };
 }
 
 /**
@@ -92,22 +111,27 @@ export class WidgetBar<T extends IWidget> extends Disposable implements IWidgetB
 
     // [field]
 
+    protected readonly opts: IWidgetBarOptions;
+
+    protected _parentContainer?: HTMLElement;
     protected readonly _container: HTMLElement;
     protected readonly _itemContainer: HTMLElement;
+    
     private _items: IWidgetBarItem<T>[];
-    
-    protected readonly opts: IWidgetBarOptions;
-    
+    private _rendered: boolean;
+
     // [constructor]
 
     constructor(
-        parentContainer: HTMLElement,
-        opts: IWidgetBarOptions
+        parentContainer?: HTMLElement,
+        opts?: IWidgetBarOptions,
     ) {
         super();
 
         this._items = [];
-        this.opts = opts;
+        this.opts = opts ?? getDefaultOpts();
+        this._rendered = false;
+        this._parentContainer = parentContainer;
 
         this._container = document.createElement('div');
         this._container.className = 'widget-bar';
@@ -120,7 +144,11 @@ export class WidgetBar<T extends IWidget> extends Disposable implements IWidgetB
         }
 
         this._container.appendChild(this._itemContainer);
-        parentContainer.appendChild(this._container);
+
+        if (opts?.render === true && parentContainer) {
+            parentContainer.appendChild(this._container);
+            this._rendered = true;
+        }
     }
 
     // [getter]
@@ -134,6 +162,14 @@ export class WidgetBar<T extends IWidget> extends Disposable implements IWidgetB
     }
 
     // [public methods]
+
+    public render(parentContainer?: HTMLElement): void {
+        this._parentContainer = parentContainer;
+        if (this._rendered || !this._parentContainer) {
+            return;
+        }
+        this._parentContainer.appendChild(this._container);
+    }
 
     public addItem(item: IWidgetBarItem<T>, index?: number): void {
 

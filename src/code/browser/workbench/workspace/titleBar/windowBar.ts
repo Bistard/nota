@@ -31,7 +31,8 @@ export class WindowBar extends Component {
         
         // constructs a new widgetBar
         const widgetBar = new WidgetBar<WindowButton>(container, {
-            orientation: Orientation.Horizontal
+            orientation: Orientation.Horizontal,
+            render: true,
         });
         
         // creates all the window buttons

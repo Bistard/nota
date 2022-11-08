@@ -5,7 +5,7 @@ import { Ii18nService } from 'src/code/platform/i18n/i18n';
 import { Section } from 'src/code/platform/section';
 import { registerSingleton } from 'src/code/platform/instantiation/common/serviceCollection';
 import { ServiceDescriptor } from 'src/code/platform/instantiation/common/descriptor';
-import { addDisposableListener, EventType } from 'src/base/browser/basic/dom';
+import { addDisposableListener, EventType, Orientation } from 'src/base/browser/basic/dom';
 import { IEditorService } from 'src/code/browser/workbench/workspace/editor/editor';
 import { IBrowserDialogService, IDialogService } from 'src/code/platform/dialog/browser/browserDialogService';
 import { IThemeService } from 'src/code/browser/service/theme/themeService';
@@ -22,6 +22,10 @@ import { createIcon } from 'src/base/browser/icon/iconRegistry';
 import { Icons } from 'src/base/browser/icon/icons';
 import { SideViewTitlePart } from 'src/code/browser/workbench/sideView/sideViewTitle';
 import { ISideView, SideView } from 'src/code/browser/workbench/sideView/sideView';
+import { VisibilityController } from 'src/base/browser/basic/visibilityController';
+import { WidgetBar } from 'src/base/browser/secondary/widgetBar/widgetBar';
+import { Button } from 'src/base/browser/basic/button/button';
+import { RGBA } from 'src/base/common/color';
 
 export const IExplorerViewService = createService<IExplorerViewService>('explorer-view-service');
 
@@ -83,6 +87,8 @@ export class ExplorerView extends SideView implements IExplorerViewService {
      * view.
      */
     private _currentListeners = new DisposableManager();
+
+    private readonly _toolbar = new Toolbar();
 
     // [event]
 
@@ -224,7 +230,7 @@ export class ExplorerView extends SideView implements IExplorerViewService {
             if (isEmpty) {
                 this.__registerEmptyViewListeners();
             } else {
-                this.__registerNonEmptyViewListeners();
+                this.__registerNonEmptyViewListeners(view);
             }
         }
     }
@@ -279,9 +285,13 @@ export class ExplorerView extends SideView implements IExplorerViewService {
     }
 
     private __createOpenedView(): HTMLElement {
-        // the view
+        // create view
         const view = document.createElement('div');
         view.className = 'opened-explorer-container';
+
+        // renders toolbar
+        this._toolbar.render(view);
+
         return view;
     }
 
@@ -310,7 +320,7 @@ export class ExplorerView extends SideView implements IExplorerViewService {
         ));
     }
 
-    private __registerNonEmptyViewListeners(): void {
+    private __registerNonEmptyViewListeners(view: HTMLElement): void {
         if (!this.isOpened || !this._currentView) {
             return;
         }
@@ -321,12 +331,82 @@ export class ExplorerView extends SideView implements IExplorerViewService {
          * The tree model of the tree-service requires the correct height thus 
          * we need to update it everytime we are resizing.
          */
-         disposables.register(this.workbenchService.onDidLayout(() => this.explorerTreeService.layout()));
+        disposables.register(this.workbenchService.onDidLayout(() => this.explorerTreeService.layout()));
 
         // on openning file.
         disposables.register(this.explorerTreeService.onSelect(e => {
             this.editorService.openEditor(e.item.uri);
         }));
+
+        // Displays the utility buttons only when hovering the view.
+        disposables.register(addDisposableListener(view, EventType.mouseover, () => this._toolbar.show()));
+        disposables.register(addDisposableListener(view, EventType.mouseout, () => this._toolbar.hide()));
+    }
+}
+
+export class Toolbar {
+
+    // [field]
+
+    private readonly _element: HTMLElement;
+    private readonly _visibilityController = new VisibilityController();
+    private readonly _buttons: WidgetBar<Button>;
+
+    // [constructor]
+
+    constructor() {
+        
+        this._element = document.createElement('div');
+        this._element.className = 'toolbar';
+
+        this._visibilityController.setDomNode(this._element);
+
+        this._buttons = new WidgetBar(undefined, {
+            orientation: Orientation.Horizontal,
+            render: false,
+        });
+        [
+            {id: 'new-file', icon: Icons.AddDocument, classes: [], fn: () => {} },
+            {id: 'new-directory', icon: Icons.AddFolder, classes: [], fn: () => {}},
+            {id: 'collapse-all', icon: Icons.AddFolder, classes: [], fn: () => {}},
+        ]
+        .forEach(( { id, icon, classes, fn } ) => {
+            const button = new Button({
+                icon: icon, 
+                classes: classes, 
+            });
+            
+            button.onDidClick(fn);
+            this._buttons.addItem({
+                id: id,
+                item: button,
+                dispose: button.dispose,
+            });
+        });
+    }
+
+    // [public methods]
+
+    public render(parent: HTMLElement): void {
+        
+        this._visibilityController.setVisibility(false);
+
+        // toolbar container
+        const toolBarContainer = document.createElement('div');
+        toolBarContainer.className = 'toolbar-container';
+        toolBarContainer.style.setProperty('--toolbar-container-background', (new RGBA(0, 0, 0, 0.05)).toString());
+        this._buttons.render(toolBarContainer);
+
+        this._element.appendChild(toolBarContainer);
+        parent.appendChild(this._element);
+    }
+
+    public show(): void {
+        this._visibilityController.setVisibility(true);
+    }
+
+    public hide(): void {
+        this._visibilityController.setVisibility(false);
     }
 }
 

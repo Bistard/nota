@@ -6,6 +6,8 @@
 
 .widget-bar > .widget-item-container {
 	display: flex; /* Default is displaying horizontal bar */
+	justify-content: space-between;
+	
 	margin: 0 auto;
 	padding: 0;
 	height: 100%;

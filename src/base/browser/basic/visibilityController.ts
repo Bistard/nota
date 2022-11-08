@@ -8,15 +8,9 @@
     // [fields]
 
     private _dom: HTMLElement | undefined;
-    private _visibleClassName: string;
-    private _inVisibleClassName: string;
-    private _fadeClassName?: string;
-
-    /**
-     * false: The DOM element is permanent invisible until this switch is on.
-     * true: behaviour depends on `_visible`.
-     */
-    private _hardVisible: boolean;
+    private _visibleClass: string;
+    private _invisibleClass: string;
+    private _fadeClass?: string;
 
     /**
      * false: hides the DOM with fading animation.
@@ -24,22 +18,13 @@
      */
     private _visible: boolean;
     
-    /**
-     * inner boolean to remember if last time hiding is with fade or not.
-     */
-    private _fade: boolean;
-
     // [constructor]
 
-    constructor(visibleClassName: string = 'visible', invisibleClassName: string = 'invisible', fadeClassName?: string) {
-        this._visibleClassName = visibleClassName;
-        this._inVisibleClassName = invisibleClassName;
-        this._fadeClassName = fadeClassName;
-        
-        this._hardVisible = true;
-
-        this._visible = false;
-        this._fade = false;
+    constructor(visibleClass = 'visible', invisibleClass = 'invisible', fadeClassName?: string /** 'fade' */) {
+        this._visibleClass = visibleClass;
+        this._invisibleClass = invisibleClass;
+        this._fadeClass = fadeClassName;
+        this._visible = true;
     }
 
     // [methods]
@@ -50,67 +35,61 @@
      */
     public setDomNode(dom: HTMLElement): void {
         this._dom = dom;
+        if (this._dom && this._fadeClass) {
+            this.toggleFade(true);
+        }
+        this.__refreshVisibility();
     }
 
     /**
-     * @description Sets to false will set the DOM as invisible without fading.
-     * @param hardVisibility hard visibility.
+     * @description Toggles if the element should fade between states.
+     * @param val If sets to fade.
+     * @param fadeClass The optional updated fade class.
      */
-    public setHardVisibility(hardVisibility: boolean): void {
-        if (this._hardVisible !== hardVisibility) {
-            this._hardVisible = hardVisibility;
-            this.__refreshVisibility();
+    public toggleFade(val: boolean, fadeClass?: string): void {
+        this._fadeClass = fadeClass;
+        
+        if (this._dom && this._fadeClass) {
+            this._dom.classList.toggle(this._fadeClass, val);
         }
     }
 
     /**
-     * @description Sets visibility to true or false with fading in or out animation.
+     * @description Sets the visibility of the DOM element.
      * @param visibility visibility.
      */
     public setVisibility(visibility: boolean) {
-        this._visible = visibility;
-        this.__refreshVisibility();
+        if (this._visible !== visibility) {
+            this._visible = visibility;
+            this.__refreshVisibility();
+        }
     }
 
     // [private helper methods]
 
     private __refreshVisibility(): void {
-        // should not be seen, we set as invisible without fade out.
-        if (this._hardVisible === false) {
-            this._hide(false);
+        if (this._visible) {
+            this.__show();
+        } else {
+            this.__hide();
+        }
+    }
+
+    private __show(): void {
+        if (!this._dom) {
             return;
         }
-        
-        // should be visible, we display it
-        if (this._visible) {
-            this._show();
-        } 
-        
-        // hide with fading animation
-        else {
-            this._hide(true);
-        }
 
+        this._dom.classList.remove(this._invisibleClass);
+        this._dom.classList.add(this._visibleClass);
     }
 
-    private _show(): void {
-        this._dom!.classList.remove(this._inVisibleClassName);
-        if (this._fade) {
-            this._dom!.classList.remove(this._fadeClassName ? this._fadeClassName : 'fade');
+    private __hide(): void {
+        if (!this._dom) {
+            return;
         }
 
-        this._dom!.classList.add(this._visibleClassName);
+        this._dom.classList.remove(this._visibleClass);
+        this._dom.classList.add(this._invisibleClass);
     }
-
-    private _hide(fade: boolean): void {
-        this._fade = fade;
-        this._dom!.classList.remove(this._visibleClassName);
-        
-        if (fade) {
-            this._dom!.classList.add(this._inVisibleClassName, this._fadeClassName ? this._fadeClassName : 'fade');
-        } else {
-            this._dom!.classList.add(this._inVisibleClassName);
-        }
-    }
-
 }

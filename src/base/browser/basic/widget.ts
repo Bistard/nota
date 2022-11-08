@@ -29,6 +29,7 @@ export interface IWidget extends IDisposable {
     onClick(element: HTMLElement, callback: (event: MouseEvent) => void): IDisposable;
     onDoubleclick(element: HTMLElement, callback: (event: MouseEvent) => void): IDisposable;
     onMouseover(element: HTMLElement, callback: (event: MouseEvent) => void): IDisposable;
+    onMouseenter(element: HTMLElement, callback: (event: MouseEvent) => void): IDisposable;
     onMouseout(element: HTMLElement, callback: (event: MouseEvent) => void): IDisposable;
     onMousedown(element: HTMLElement, callback: (event: MouseEvent) => void): IDisposable;    
     onMouseup(element: HTMLElement, callback: (event: MouseEvent) => void): IDisposable;
@@ -84,6 +85,12 @@ export abstract class Widget extends Disposable implements IWidget {
     }
     public onMouseover(element: HTMLElement, callback: (event: MouseEvent) => void): IDisposable {
         return this.__register(addDisposableListener(element, EventType.mouseover, (e: MouseEvent) => {
+            callback(e);
+        }));
+    }
+
+    public onMouseenter(element: HTMLElement, callback: (event: MouseEvent) => void): IDisposable {
+        return this.__register(addDisposableListener(element, EventType.mouseenter, (e: MouseEvent) => {
             callback(e);
         }));
     }

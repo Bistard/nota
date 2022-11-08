@@ -207,7 +207,8 @@ export class SideBar extends Component implements ISideBarService {
     private __createGeneralButtonGroup(container: HTMLElement): WidgetBar<SideButton> {
         
         const widgetBar = new WidgetBar<SideButton>(container, {
-            orientation: Orientation.Vertical
+            orientation: Orientation.Vertical,
+            render: true,
         });
 
         [
@@ -230,7 +231,8 @@ export class SideBar extends Component implements ISideBarService {
 
     private __createSecondaryButtonGroup(container: HTMLElement): WidgetBar<SideButton> {
         const widgetBar = new WidgetBar<SideButton>(container, {
-            orientation: Orientation.Vertical
+            orientation: Orientation.Vertical,
+            render: true,
         });
 
         [
