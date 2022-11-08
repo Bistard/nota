@@ -7,16 +7,37 @@
     overflow: hidden;
 }
 
-#explorer-view .side-view-title > .title-text {
+#explorer-view .side-view-title .icon {
+    margin-top: 2px;
+    font-size: 10px;
+}
+
+#explorer-view .side-view-title > .left-part, .right-part {
+    position: absolute;
+    display: flex;
+    flex-direction: row;
+}
+
+#explorer-view .side-view-title > .left-part {
+    left: 0px;
+}
+
+#explorer-view .side-view-title > .left-part > .title-text {
     margin-left: 12px;
     user-select: none;
 }
 
-#explorer-view .side-view-title > .icon {
+#explorer-view .side-view-title > .left-part > .icon {
     margin-left: 8px;
+}
 
-    margin-top: 2px;
-    font-size: 10px;
+#explorer-view .side-view-title > .right-part {
+    right: 0px;
+}
+
+#explorer-view .side-view-title > .right-part > .icon {
+    margin-right: 8px;
+    font-size: 14px;
 }
 
 .opened-explorer-container, .empty-explorer-container {

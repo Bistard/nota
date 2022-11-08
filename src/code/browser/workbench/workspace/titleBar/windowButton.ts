@@ -1,5 +1,4 @@
 import { Button, IButtonOptions } from "src/base/browser/basic/button/button"
-import { getIconClass } from "src/base/browser/icon/iconRegistry";
 
 export interface IWindowButtonOptions extends IButtonOptions {
 

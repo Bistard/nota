@@ -1,5 +1,5 @@
 import { IWidget, Widget } from "src/base/browser/basic/widget";
-import { getIconClass } from "src/base/browser/icon/iconRegistry";
+import { createIcon, getIconClass } from "src/base/browser/icon/iconRegistry";
 import { Icons } from "src/base/browser/icon/icons";
 import { Emitter, Register } from "src/base/common/event";
 
@@ -86,8 +86,7 @@ export class Button extends Widget implements IButton {
         
         // set icon if provided
         if (this._opts?.icon) {
-            const iconElement = document.createElement('i');
-            iconElement.classList.add(...getIconClass(this._opts.icon));
+            const iconElement = createIcon(this._opts.icon);
             this.element.appendChild(iconElement);
         }
     }

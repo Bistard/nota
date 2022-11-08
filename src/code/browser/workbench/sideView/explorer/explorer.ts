@@ -18,7 +18,7 @@ import { URI } from 'src/base/common/file/uri';
 import { IHostService } from 'src/code/platform/host/common/hostService';
 import { StatusKey } from 'src/code/platform/status/common/status';
 import { DisposableManager } from 'src/base/common/dispose';
-import { getIconClass } from 'src/base/browser/icon/iconRegistry';
+import { createIcon } from 'src/base/browser/icon/iconRegistry';
 import { Icons } from 'src/base/browser/icon/icons';
 import { SideViewTitlePart } from 'src/code/browser/workbench/sideView/sideViewTitle';
 import { ISideView, SideView } from 'src/code/browser/workbench/sideView/sideView';
@@ -340,19 +340,31 @@ export class ExplorerTitlePart extends SideViewTitlePart {
 
     public override render(element: HTMLElement): void {
         super.render(element);
-        
+
+        // left part
+        const leftContainer = document.createElement('div');
+        leftContainer.className = 'left-part';
+
         // title text
         const topText = document.createElement('div');
         topText.className = 'title-text';
         topText.textContent = this.i18nService.trans(Section.Explorer, 'file');
-
         // dropdown icon
-        const dropdownIcon = document.createElement('i');
-        dropdownIcon.classList.add(...getIconClass(Icons.AngleDown));
-        this.element.appendChild(dropdownIcon);
+        const dropdownIcon = createIcon(Icons.AngleDown);
 
-        this.element.append(topText);
-        this.element.append(dropdownIcon);
+        // right part
+        const rightContainer = document.createElement('div');
+        rightContainer.className = 'right-part';
+        // menu dots
+        const menuDots = createIcon(Icons.MenuDots);
+        
+        leftContainer.append(topText);
+        leftContainer.append(dropdownIcon);
+        
+        rightContainer.append(menuDots);
+
+        this.element.appendChild(leftContainer);
+        this.element.appendChild(rightContainer);
     }
 }
 
