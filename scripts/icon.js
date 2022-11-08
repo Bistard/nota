@@ -40,7 +40,7 @@ async function run() {
     const CLIArgv = minimist(process.argv.slice(2));
     console.log(`${getTime()} [script arguments]`, CLIArgv);
     const force = (CLIArgv.force == 'true');
-    const extraIcons = CLIArgv.extra?.split('|') ?? [];
+    const extraIcons = CLIArgv.extra?.split(':') ?? [];
     console.log(extraIcons);
     
     /**

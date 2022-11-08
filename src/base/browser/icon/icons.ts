@@ -1,4 +1,6 @@
 export const enum Icons {
+  AddDocument = 'addDocument',
+  AddFolder = 'addFolder',
   AngleDown = 'angleDown',
   CaretDown = 'caretDown',
   CodeBranch = 'codeBranch',
