@@ -94,7 +94,7 @@ export class Button extends Widget implements IButton {
     protected override __applyStyle(): void {
         
         this.element.classList.add('button');
-        this._opts?.classes?.forEach(className => this.element.classList.add(className));
+        this.element.classList.add(...(this._opts?.classes ?? []));
     }
 
     protected override __registerListeners(): void {

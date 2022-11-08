@@ -4,7 +4,10 @@ import { WorkspaceComponentType } from 'src/code/browser/workbench/workspace/wor
 import { IComponentService } from 'src/code/browser/service/component/componentService';
 import { IInstantiationService } from 'src/code/platform/instantiation/common/instantiation';
 import { IThemeService } from 'src/code/browser/service/theme/themeService';
+import { SearchBar } from 'src/base/browser/basic/searchbar/searchbar';
+import { Icons } from 'src/base/browser/icon/icons';
 
+// TODO: remove
 export const enum TitleBarComponentType {
     functionBar = 'function-bar',
     windowBar = 'window-bar',
@@ -16,7 +19,7 @@ export const enum TitleBarComponentType {
  */
 export class TitleBar extends Component {
     
-    windowBarComponent!: WindowBar;
+    private windowBar!: WindowBar;
 
     constructor(
         @IComponentService componentService: IComponentService,
@@ -27,19 +30,35 @@ export class TitleBar extends Component {
     }
 
     protected override _createContent(): void {
-        this._createWindowBar();
+        
+        // utility bar
+        const utilityBar = this.__createUtilityBar();
+        this.element.appendChild(utilityBar);
+        
+        // window bar
+        this.windowBar = this.instantiationService.createInstance(WindowBar);
+        this.windowBar.create(this);
     }
 
     protected override _registerListeners(): void {
         
         // component registration
-        this.windowBarComponent.registerListeners();
-        
+        this.windowBar.registerListeners();
     }
 
-    private _createWindowBar(): void {
-        this.windowBarComponent = this.instantiationService.createInstance(WindowBar);
-        this.windowBarComponent.create(this);
+    // [private helper methods]
+
+    private __createUtilityBar(): HTMLElement {
+        const utilityBar = document.createElement('div');
+        utilityBar.className = 'utility-bar';
+        
+        // search bar
+        const searchBar = new SearchBar({
+            icon: Icons.Search
+        });
+        searchBar.render(document.createElement('div'));
+        utilityBar.appendChild(searchBar.element);
+
+        return utilityBar;
     }
-    
 }

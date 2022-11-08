@@ -1,18 +1,18 @@
 #window-bar {
-    position: absolute;
-    right: 0px;
+    position: relative;
+    
+    flex-grow: 0;
+    flex-shrink: 0;
+
+    align-items: center;
     
     width: auto;
-    height: 40px;
-    
-    align-items: center;
+    height: 100%;
 }
 
 #window-bar .widget-item {
     width: 40px;
     height: 40px;
-    align-content: center;
-    display: flex;
 }
 
 #window-bar .widget-item .icon {
