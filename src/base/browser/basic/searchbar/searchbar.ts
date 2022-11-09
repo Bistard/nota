@@ -18,7 +18,7 @@ export interface ISearchBarOpts {
     readonly classes?: string[];
     
     readonly icon?: Icons;
-    readonly emptyText?: string;
+    readonly placeHolder?: string;
 }
 
 export interface ISearchBar extends IWidget {
@@ -54,7 +54,7 @@ export class SearchBar extends Widget implements ISearchBar {
 
     // [field]
 
-    private _emptyText: string;
+    private _placeHolder: string;
     private _innerText?: HTMLElement;
 
     private _opts?: ISearchBarOpts;
@@ -69,7 +69,7 @@ export class SearchBar extends Widget implements ISearchBar {
     constructor(opts?: ISearchBarOpts) {
         super();
         this._opts = opts;
-        this._emptyText = this._opts?.emptyText ?? '';
+        this._placeHolder = this._opts?.placeHolder ?? '';
     }
 
     // [public methods]
@@ -110,7 +110,7 @@ export class SearchBar extends Widget implements ISearchBar {
         // inner text
         const innerText = document.createElement('div');
         innerText.className = 'inner-text';
-        innerText.innerText = this._emptyText;
+        innerText.innerText = this._placeHolder;
         
         // render
         if (searchIcon) {
