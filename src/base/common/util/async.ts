@@ -59,9 +59,9 @@ export class CancellablePromise<T> implements Promise<T>, ICancellable {
 
 	// [constructor]
 
-	constructor(callback: (token: CancellationToken) => Promise<T>) {
+	constructor(callback: (token: CancellationToken) => Promise<T>, token?: CancellationToken) {
 	
-		this._token = new CancellationToken();
+		this._token = token ?? new CancellationToken();
 		const thenable = callback(this._token);
 
 		this._promise = new Promise((resolve, reject) => {
@@ -118,6 +118,35 @@ export class CancellablePromise<T> implements Promise<T>, ICancellable {
 	get [Symbol.toStringTag]() {
 		return 'Promise';
 	}
+}
+
+/**
+ * @description Returns a {@link Promise} that resolves on the given ms, it can 
+ * be cancelled by the given token. Returns a {@link CancellablePromise} if
+ * no token is given which the client may cancel manually.
+ * @param ms timeout in milliseconds.
+ * @param token The cancellation token binds to the promise if provided.
+ */
+export function cancellableTimeout(ms: number): CancellablePromise<void>;
+export function cancellableTimeout(ms: number, token: CancellationToken): Promise<void>;
+export function cancellableTimeout(ms: number, token?: CancellationToken): CancellablePromise<void> | Promise<void> {
+	if (!token) {
+		return new CancellablePromise((token) => cancellableTimeout(ms, token));
+	}
+	
+	return new Promise((resolve, reject) => {
+
+		const handle = setTimeout(() => {
+			tokenListener.dispose();
+			resolve();
+		}, ms);
+
+		const tokenListener = token.onDidCancel(() => {
+			clearTimeout(handle);
+			tokenListener.dispose();
+			reject(new CancellationError());
+		});
+	});
 }
 
 /**
