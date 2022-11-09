@@ -1,6 +1,5 @@
 import { IComponentService } from "src/code/browser/service/component/componentService";
 import { Component, IComponent } from "src/code/browser/service/component/component";
-import { MarkdownComponent } from "src/code/browser/workbench/workspace/markdown/markdown";
 import { TitleBar } from "src/code/browser/workbench/workspace/titleBar/titleBar";
 import { createService } from "src/code/platform/instantiation/common/decorator";
 import { IInstantiationService } from "src/code/platform/instantiation/common/instantiation";
@@ -22,7 +21,6 @@ export class WorkspaceComponent extends Component implements IWorkspaceService {
 
     private titleBarComponent!: TitleBar;
     private editorComponent!: Editor;
-    private markdownComponent!: MarkdownComponent;
 
     // [constructor]
 
@@ -60,15 +58,4 @@ export class WorkspaceComponent extends Component implements IWorkspaceService {
         this.editorComponent = this.instantiationService.getOrCreateService(IEditorService) as Editor;
         this.editorComponent.create(this);
     }
-
-    private _createMarkdown(): void {
-        const markdownView = document.createElement('div');
-        markdownView.id = 'markdown-view';
-
-        this.markdownComponent = this.instantiationService.createInstance(MarkdownComponent, markdownView);
-        this.markdownComponent.create(this);
-
-        this.element.appendChild(markdownView);
-    }
-
 }
