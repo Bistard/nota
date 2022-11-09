@@ -2,6 +2,15 @@ import { Random } from "src/base/common/util/random";
 import { repeat } from "src/base/common/util/timer";
 import { NestedArray } from "src/base/common/util/type";
 
+let hitCount = 0;
+
+/**
+ * @description Simple printing debug strategy.
+ */
+export function hit(): void {
+    console.log(hitCount++);
+}
+
 /**
  * @description Returns a useless but simple object except that whatever you do 
  * to it will not throw any errors.
