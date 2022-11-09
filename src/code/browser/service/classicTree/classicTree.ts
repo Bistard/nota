@@ -100,8 +100,8 @@ export class ClassicTree<T extends ClassicItem, TFilter> extends AsyncTree<T, TF
 
     // [event]
 
-    private readonly _select = new Emitter<ClassicOpenEvent<T>>();
-    public readonly onSelect = this._select.registerListener;
+    private readonly _onSelect = new Emitter<ClassicOpenEvent<T>>();
+    public readonly onSelect = this._onSelect.registerListener;
 
     // [constructor]
 
@@ -125,7 +125,7 @@ export class ClassicTree<T extends ClassicItem, TFilter> extends AsyncTree<T, TF
         this.setFocus(item);
         this.setSelections([item]);
 
-        this._select.fire({ item: item });
+        this._onSelect.fire({ item: item });
     }
 
     public selectRecursive(item: T, index: number): T[] {
@@ -163,6 +163,6 @@ export class ClassicTree<T extends ClassicItem, TFilter> extends AsyncTree<T, TF
             return;
         }
 
-        this._select.fire({ item: event.data });
+        this._onSelect.fire({ item: event.data });
     }
 }
