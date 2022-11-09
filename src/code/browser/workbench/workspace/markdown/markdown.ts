@@ -23,7 +23,6 @@ import { ContextMenuType, Coordinate } from 'src/base/browser/secondary/contextM
 import { IContextMenuService } from 'src/code/browser/service/contextMenuService';
 import { createService } from 'src/code/platform/instantiation/common/decorator';
 import { IComponentService } from 'src/code/browser/service/component/componentService';
-import { WorkspaceComponentType } from 'src/code/browser/workbench/workspace/workspace';
 import { IThemeService } from 'src/code/browser/service/theme/themeService';
 
 export const IMarkdownService = createService<IMarkdownService>('markdown-service');
@@ -55,7 +54,7 @@ export class MarkdownComponent extends Component implements IMarkdownService {
                 @IContextMenuService private readonly contextMenuService: IContextMenuService,
                 @IThemeService themeService: IThemeService,
         ) {
-        super(WorkspaceComponentType.editor, parentElement, themeService, componentService);
+        super('editor', parentElement, themeService, componentService);
 
         this.editor = null;
         

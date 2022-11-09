@@ -7,12 +7,6 @@ import { IInstantiationService } from "src/code/platform/instantiation/common/in
 import { Editor, IEditorService } from "src/code/browser/workbench/workspace/editor/editor";
 import { IThemeService } from "src/code/browser/service/theme/themeService";
 
-export const enum WorkspaceComponentType {
-    titleBar = 'title-bar',
-    tabBar = 'tab-bar',
-    editor = 'editor',
-}
-
 export const IWorkspaceService = createService<IWorkspaceService>('workspace-service');
 
 export interface IWorkspaceService extends IComponent {

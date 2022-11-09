@@ -1,17 +1,10 @@
 import { Component } from 'src/code/browser/service/component/component';
 import { WindowBar } from 'src/code/browser/workbench/workspace/titleBar/windowBar';
-import { WorkspaceComponentType } from 'src/code/browser/workbench/workspace/workspace';
 import { IComponentService } from 'src/code/browser/service/component/componentService';
 import { IInstantiationService } from 'src/code/platform/instantiation/common/instantiation';
 import { IThemeService } from 'src/code/browser/service/theme/themeService';
 import { SearchBar } from 'src/base/browser/basic/searchbar/searchbar';
 import { Icons } from 'src/base/browser/icon/icons';
-
-// TODO: remove
-export const enum TitleBarComponentType {
-    functionBar = 'function-bar',
-    windowBar = 'window-bar',
-}
 
 /**
  * @class TitleBar stores and handles all the titleBar and functionBar 
@@ -26,7 +19,7 @@ export class TitleBar extends Component {
         @IInstantiationService private readonly instantiationService: IInstantiationService,
         @IThemeService themeService: IThemeService,
     ) {
-        super(WorkspaceComponentType.titleBar, null, themeService, componentService);
+        super('title-bar', null, themeService, componentService);
     }
 
     protected override _createContent(): void {

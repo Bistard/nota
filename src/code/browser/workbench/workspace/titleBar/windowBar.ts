@@ -4,7 +4,6 @@ import { Orientation } from "src/base/browser/basic/dom";
 import { IComponentService } from "src/code/browser/service/component/componentService";
 import { IThemeService } from "src/code/browser/service/theme/themeService";
 import { Component } from "src/code/browser/service/component/component";
-import { TitleBarComponentType } from "src/code/browser/workbench/workspace/titleBar/titleBar";
 import { WindowButton } from "src/code/browser/workbench/workspace/titleBar/windowButton";
 import { IHostService } from "src/code/platform/host/common/hostService";
 
@@ -17,7 +16,7 @@ export class WindowBar extends Component {
         @IHostService private readonly hostService: IHostService,
         @IThemeService themeService: IThemeService,
     ) {
-        super(TitleBarComponentType.windowBar, null, themeService, componentService);
+        super('window-bar', null, themeService, componentService);
 
     }
 
