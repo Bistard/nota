@@ -2,7 +2,7 @@ import 'src/code/electron/registrant';
 import { app, dialog } from 'electron';
 import { createServer, Server } from 'net';
 import { mkdir } from 'fs/promises';
-import { ErrorHandler, ExpectedError } from 'src/base/common/error';
+import { ErrorHandler, ExpectedError, isExpectedError } from 'src/base/common/error';
 import { Event } from 'src/base/common/event';
 import { Schemas, URI } from 'src/base/common/file/uri';
 import { BufferLogger, ILogService, LogLevel, PipelineLogger } from 'src/base/common/logger';
@@ -229,7 +229,7 @@ const nota = new class extends class MainProcess implements IMainProcess {
     private kill(error: Error): void {
         let code = 0;
         
-        if ((<ExpectedError>error).isExpected) {
+        if (isExpectedError(error)) {
             if (error.message) {
                 this.logService.trace(`${error.message}`);
             }

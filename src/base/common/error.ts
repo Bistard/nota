@@ -64,10 +64,6 @@ const _ErrorRegistrant = new class extends class ErrorRegistrant {
 
 } {};
 
-export class ExpectedError extends Error {
-	readonly isExpected = true;
-}
-
 /**
  * @namespace ErrorHandler Supports a series of functions to handle unexpected
  * errors.
@@ -112,5 +108,25 @@ export namespace ErrorHandler {
     export function onUnexpectedExternalError(error: any): void {
         _ErrorRegistrant.onUnexpectedExternalError(error);
     }
+}
 
+export const enum ErrorType {
+    Cancelled = 'cancelled',
+    Expected = 'expected',
+}
+
+export class CancellationError extends Error {
+    public readonly type = ErrorType.Cancelled;
+}
+
+export class ExpectedError extends Error {
+	public readonly type = ErrorType.Expected;
+}
+
+export function isCancellationError(error: any): error is CancellationError {
+    return error.type === ErrorType.Cancelled;
+}
+
+export function isExpectedError(error: any): error is ExpectedError {
+    return error.type === ErrorType.Expected;
 }
