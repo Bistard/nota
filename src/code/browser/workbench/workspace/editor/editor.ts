@@ -9,6 +9,7 @@ import { IInstantiationService } from "src/code/platform/instantiation/common/in
 import { registerSingleton } from "src/code/platform/instantiation/common/serviceCollection";
 import { EditorWidget, IEditorWidget } from "src/editor/editorWidget";
 import { EditorModel } from "src/editor/model/editorModel";
+import { Editor as MilkdownEditor, rootCtx } from '@milkdown/core';
 
 export const IEditorService = createService<IEditorService>('editor-service');
 
@@ -61,6 +62,12 @@ export class Editor extends Component implements IEditorService {
                 console.warn(result);
             }
         })
+    }
+
+    public openMilkdownEditor(uriOrString: URI | string): void {
+        MilkdownEditor.make().config((ctx) => {
+            ctx.set(rootCtx, this.element.element);
+        });
     }
 
     // [override protected methods]
