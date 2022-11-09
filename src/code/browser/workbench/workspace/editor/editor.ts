@@ -119,7 +119,9 @@ export class Editor extends Component implements IEditorService {
         }
 
         const content = (await this.fileService.readFile(uri)).toString();
-        this.editor.action(milkdownUtility.replaceAll(content, true));
+
+        // replace all text
+        this.editor.action(milkdownUtility.replaceAll(content));
     }
 
     // [override protected methods]
