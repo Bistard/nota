@@ -1,5 +1,5 @@
 import * as assert from 'assert';
-import { isCancellationError } from 'src/base/common/error';
+import { ExpectedError, isCancellationError, isExpectedError } from 'src/base/common/error';
 import { Emitter } from 'src/base/common/event';
 import { AsyncRunner, Blocker, CancellablePromise, Debouncer, delayFor, EventBlocker, MicrotaskDelay, PromiseTimeout, retry, Scheduler, ThrottleDebouncer, Throttler } from 'src/base/common/util/async';
 import { repeat } from 'src/base/common/util/timer';
@@ -400,19 +400,22 @@ suite('async-test', () => {
         });
     });
 
-	test('CancellablePromise - cancel', () => {
+	test('CancellablePromise - cancel', async () => {
 		const promise = new CancellablePromise(async (token) => {
 			token.cancel();
 		});
 
-		let hit = false;
-
-		promise
-		.then(() => assert.fail('should be cancelled'))
-		.catch((err) => assert.ok(isCancellationError(err)))
-		.finally(() => hit = true);
-
-		assert.ok(hit);
+		try {
+			await promise
+			.then(() => assert.fail('should be cancelled'))
+			.catch((err) => assert.ok(isCancellationError(err)))
+			.finally(() => { throw new ExpectedError(); });
+		} catch (error) {
+			assert.ok(isExpectedError(error));
+			return;
+		}
+		
+		assert.fail('should not reach');
 	});
 
 	test('CancellablePromise - await cancel', async () => {
