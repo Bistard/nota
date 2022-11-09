@@ -59,7 +59,7 @@ const baseConfiguration = {
     stats: 'normal',
     bail: !IS_WATCH,
 
-    plugins: getPlugins({ circular: process.env.CIRCULAR }),
+    plugins: getPlugins({ circular: process.env.CIRCULAR === 'true' }),
 };
 
 // entries
