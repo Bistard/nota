@@ -1,6 +1,6 @@
 @font-face {
     font-family: "icons";
-    src: url("./icons.woff2?c642f91d2bb651a700421363871c2db9") format("woff2");
+    src: url("./icons.woff2?339ec6ba902ba7858ac2298dbfae1ccc") format("woff2");
 }
 
 i[class^="icon-"]:before, i[class*=" icon-"]:before {
@@ -38,21 +38,24 @@ i[class^="icon-"]:before, i[class*=" icon-"]:before {
 .icon-folder:before {
     content: "\f108";
 }
-.icon-list:before {
+.icon-folderMinus:before {
     content: "\f109";
 }
-.icon-menuDots:before {
+.icon-list:before {
     content: "\f10a";
 }
-.icon-minuss:before {
+.icon-menuDots:before {
     content: "\f10b";
 }
-.icon-search:before {
+.icon-minuss:before {
     content: "\f10c";
 }
-.icon-settings:before {
+.icon-search:before {
     content: "\f10d";
 }
-.icon-square:before {
+.icon-settings:before {
     content: "\f10e";
+}
+.icon-square:before {
+    content: "\f10f";
 }

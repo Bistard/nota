@@ -368,7 +368,7 @@ export class Toolbar {
         [
             {id: 'new-file', icon: Icons.AddDocument, classes: [], fn: () => {} },
             {id: 'new-directory', icon: Icons.AddFolder, classes: [], fn: () => {}},
-            {id: 'collapse-all', icon: Icons.AddFolder, classes: [], fn: () => {}},
+            {id: 'collapse-all', icon: Icons.FolderMinus, classes: [], fn: () => {}},
         ]
         .forEach(( { id, icon, classes, fn } ) => {
             const button = new Button({

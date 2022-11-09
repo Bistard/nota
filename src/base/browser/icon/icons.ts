@@ -7,6 +7,7 @@ export const enum Icons {
   CommentQuestion = 'commentQuestion',
   Cross = 'cross',
   Folder = 'folder',
+  FolderMinus = 'folderMinus',
   List = 'list',
   MenuDots = 'menuDots',
   Minuss = 'minuss',
