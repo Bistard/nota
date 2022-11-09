@@ -48,7 +48,7 @@ export class TitleBar extends Component {
         // search bar
         const searchBar = new SearchBar({
             icon: Icons.Search,
-            emptyText: 'nota',
+            placeHolder: 'nota',
         });
         searchBar.render(document.createElement('div'));
         utilityBar.appendChild(searchBar.element);
