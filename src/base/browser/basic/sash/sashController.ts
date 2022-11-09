@@ -3,21 +3,14 @@ import { DisposableManager, IDisposable } from "src/base/common/dispose";
 import { addDisposableListener, createStyleInCSS, EventType, Orientation } from "src/base/browser/basic/dom";
 
 export interface IAbstractSashController extends IDisposable {
+    
+    // readonly onDid
+    
     /** 
-     * @description Fires when the {@link EventType.mousedown} happens. 
+     * @description Fires when the {@link EventType.mousedown} happens on 
+     * {@link Sash}. 
      */
     onMouseStart(): void;
-
-    /** 
-     * @description Fires when the {@link EventType.mousemove} happens. 
-     * @param event The mouse event when mouse-move.
-     */
-    onMouseMove(event: MouseEvent): void;
-
-    /** 
-     * @description Fires when the {@link EventType.mouseup} happens. 
-     */
-    onMouseUp(): void;
 }
 
 /**
@@ -41,7 +34,12 @@ export abstract class AbstractSashController implements IAbstractSashController 
 
     // [constructor]
     
-    constructor(sash: ISash) {
+    constructor(
+        sash: ISash, 
+        private readonly _onDidStart: (event: ISashEvent) => void,
+        private readonly _onDidMove: (event: ISashEvent) => void,
+        private readonly _onDidEnd: () => void,
+    ) {
         this.sash = sash;
         this.posOffset = Math.round(sash.size / 2);
 
@@ -64,26 +62,27 @@ export abstract class AbstractSashController implements IAbstractSashController 
 
     // [abstraction]
     
-    public abstract onMouseMove(event: MouseEvent): void;
+    protected abstract __onMouseMove(event: MouseEvent): void;
     protected abstract __onMouseStart(): void;
+    
+    protected __onMouseUp(): void {
+        this.disposables.dispose();
+        this._onDidEnd();
+    }
 
     // [public methods]
 
     public onMouseStart(): void {
         this.__onMouseStart();
 
-        this.disposables.register(addDisposableListener(window, EventType.mousemove, e => this.onMouseMove(e)));
-        this.disposables.register(addDisposableListener(window, EventType.mouseup, () => this.onMouseUp()));
-        (<any>this.sash)._onDidStart.fire(this.prevEvent);
-    }
+        this.disposables.register(addDisposableListener(window, EventType.mousemove, e => this.__onMouseMove(e)));
+        this.disposables.register(addDisposableListener(window, EventType.mouseup, () => this.__onMouseUp()));
 
-    public onMouseUp(): void {
-        this.disposables.dispose();
-        (<any>this.sash)._onDidEnd.fire();
+        this._onDidStart(this.prevEvent);
     }
 
     public dispose(): void {
-        this.onMouseUp();
+        this.__onMouseUp();
     }
 
     // [private helper methods]
@@ -95,15 +94,20 @@ export abstract class AbstractSashController implements IAbstractSashController 
             deltaX: deltaX, 
             deltaY: deltaY
         };
-        (<any>this.sash)._onDidMove.fire(event);
         this.prevEvent = event;
+        this._onDidMove(event);
     }
 }
 
 export class VerticalSashController extends AbstractSashController {
 
-    constructor(sash: ISash) {
-        super(sash);
+    constructor(
+        sash: ISash,
+        _onDidStart: (event: ISashEvent) => void,
+        _onDidMove: (event: ISashEvent) => void,
+        _onDidEnd: () => void,
+    ) {
+        super(sash, _onDidStart, _onDidMove, _onDidEnd);
     }
 
     protected override __onMouseStart(): void {
@@ -115,7 +119,7 @@ export class VerticalSashController extends AbstractSashController {
         };
     }
 
-    public override onMouseMove(e: MouseEvent): void {
+    public override __onMouseMove(e: MouseEvent): void {
         
         let deltaPosition = e.movementX;
         if (deltaPosition === 0) {
@@ -157,8 +161,13 @@ export class VerticalSashController extends AbstractSashController {
 
 export class HorizontalSashController extends AbstractSashController {
 
-    constructor(sash: ISash) {
-        super(sash);
+    constructor(
+        sash: ISash,
+        _onDidStart: (event: ISashEvent) => void,
+        _onDidMove: (event: ISashEvent) => void,
+        _onDidEnd: () => void,
+    ) {
+        super(sash, _onDidStart, _onDidMove, _onDidEnd);
     }
 
     protected override __onMouseStart(): void {
@@ -170,7 +179,7 @@ export class HorizontalSashController extends AbstractSashController {
         };
     }
 
-    public override onMouseMove(e: MouseEvent): void {
+    public override __onMouseMove(e: MouseEvent): void {
         
         let deltaPosition = e.movementY;
         if (deltaPosition === 0) {

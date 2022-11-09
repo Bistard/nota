@@ -1,9 +1,11 @@
 import { AbstractSashController, HorizontalSashController, IAbstractSashController, VerticalSashController } from "src/base/browser/basic/sash/sashController";
-import { Disposable } from "src/base/common/dispose";
+import { Disposable, DisposableManager } from "src/base/common/dispose";
 import { addDisposableListener, EventType, Orientation } from "src/base/browser/basic/dom";
 import { Emitter, Register } from "src/base/common/event";
 import { IRange } from "src/base/common/range";
 import { Mutable } from "src/base/common/util/type";
+import { cancellableTimeout } from "src/base/common/util/async";
+import { VisibilityController } from "src/base/browser/basic/visibilityController";
 
 /**
  * An interface for {@link Sash} construction.
@@ -228,8 +230,12 @@ export class Sash extends Disposable implements ISash {
     /** if the sash is enabled. */
     private _enabled: boolean;
 
+    /** If the sash is currently marked as hovering. */
+    private _hovering: boolean;
+
     /** visibility of the sash in general case. */
     private _visible: boolean;
+    private readonly _visibilityController: VisibilityController;
 
     // [event]
 
@@ -261,8 +267,12 @@ export class Sash extends Disposable implements ISash {
         this._range = opts.range ?? { start: -1, end: -1 };
         this._enabled = opts.enable ?? true;
         this._visible = opts.visible ?? false;
+        this._hovering = false;
+        this._visibilityController = new VisibilityController('visible', 'invisible', 'fade', false);
 
         this.__render();
+
+        this._visibilityController.setDomNode(this._element);
     }
 
     // [getter / setter]
@@ -305,8 +315,10 @@ export class Sash extends Disposable implements ISash {
     }
 
     set visible(val: boolean) {
-        this._visible = val;
-        this._element.classList.toggle('visible', this._visible);
+        if (this._visible !== val) {
+            this._visible = val;
+            this._visibilityController.setVisibility(this._visible);
+        }
     }
 
     get visible(): boolean {
@@ -314,8 +326,10 @@ export class Sash extends Disposable implements ISash {
     }
 
     set enable(val: boolean) {
-        this._enabled = val;
-        this._element.classList.toggle('disable', !this._enabled);
+        if (this._enabled !== val) {
+            this._enabled = val;
+            this._element.classList.toggle('disable', !this._enabled);
+        }
     }
 
     get enable(): boolean {
@@ -347,15 +361,12 @@ export class Sash extends Disposable implements ISash {
         }
 
         this.__register(addDisposableListener(this._element, EventType.mousedown, e => this.__initDrag(e)));
+        this.__register(addDisposableListener(this._element, EventType.mouseenter, () => this.__initHover()));
         this.__register(addDisposableListener(this._element, EventType.doubleclick, () => this._onDidReset.fire()));
     }
 
     // [private helper methods]
 
-    /**
-     * @description Renders the DOM elements of the {@link Sash} and put it into
-     * the DOM tree.
-     */
     private __render(): void {
         (<Mutable<HTMLElement>>this._element) = document.createElement('div');
         this._element.classList.add('sash');
@@ -376,22 +387,64 @@ export class Sash extends Disposable implements ISash {
         this._parentElement.append(this._element);
     }
 
-    /**
-     * @description Once the {@link Sash} has been mouse-downed, function will 
-     * be invoked to achieve draggable animation.
-     * @param initEvent The mouse event when the mouse-downed.
-     */
     private __initDrag(initEvent: MouseEvent): void {
         initEvent.preventDefault();
 
         let controller: IAbstractSashController;
+        const opts = [
+            (event: ISashEvent) => this._onDidStart.fire(event),
+            (event: ISashEvent) => this._onDidMove.fire(event),
+            () => this._onDidEnd.fire(),
+        ] as const;
+
         if (this._orientation === Orientation.Vertical) {
-            controller = new VerticalSashController(this);
+            controller = new VerticalSashController(this, ...opts);
         } else {
-            controller = new HorizontalSashController(this);
+            controller = new HorizontalSashController(this, ...opts);
         }
+        
         controller.onMouseStart();
         this.__register(controller);
     }
+    
+    private __initHover(): void {
+        if (this._hovering) {
+            return;
+        }
+        this._hovering = true;
 
+        const cancellable = cancellableTimeout(500);
+        cancellable
+        .then(() => {
+            this._element.classList.add('hover');
+        })
+        .catch(() => {}); // cath cancel error
+
+        const disposables = new DisposableManager();
+        
+        let mouseenter = true;
+        let mousedown = false;
+
+        disposables.register(addDisposableListener(this._element, EventType.mouseenter, () => mouseenter = true));
+        disposables.register(addDisposableListener(this._element, EventType.mousedown, () => mousedown = true));
+        disposables.register(addDisposableListener(window, EventType.mouseup, () => {
+            mousedown = false;
+            if (!mouseenter) {
+                cleanup();
+            }
+        }));
+        disposables.register(addDisposableListener(this._element, EventType.mouseout, () => {
+            mouseenter = false;
+            if (!mousedown) {
+                cleanup();
+            }
+        }));
+
+        const cleanup = () => {
+            this._hovering = false;
+            disposables.dispose();
+            cancellable.cancel();
+            this._element.classList.remove('hover');
+        };
+    }
 }

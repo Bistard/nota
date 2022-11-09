@@ -20,11 +20,11 @@
     
     // [constructor]
 
-    constructor(visibleClass = 'visible', invisibleClass = 'invisible', fadeClassName?: string /** 'fade' */) {
+    constructor(visibleClass = 'visible', invisibleClass = 'invisible', fadeClassName?: string /** 'fade' */, defaultVisibility = true) {
         this._visibleClass = visibleClass;
         this._invisibleClass = invisibleClass;
         this._fadeClass = fadeClassName;
-        this._visible = true;
+        this._visible = defaultVisibility;
     }
 
     // [methods]
@@ -79,7 +79,6 @@
         if (!this._dom) {
             return;
         }
-
         this._dom.classList.remove(this._invisibleClass);
         this._dom.classList.add(this._visibleClass);
     }
@@ -88,7 +87,6 @@
         if (!this._dom) {
             return;
         }
-
         this._dom.classList.remove(this._visibleClass);
         this._dom.classList.add(this._invisibleClass);
     }
