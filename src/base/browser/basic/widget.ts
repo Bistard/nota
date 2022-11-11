@@ -1,26 +1,35 @@
-
 import { Disposable, IDisposable } from "src/base/common/dispose";
 import { addDisposableListener, EventType } from "src/base/browser/basic/dom";
+import { Mutable } from "src/base/common/util/type";
 
 export interface IWidget extends IDisposable {
     
-    readonly element: HTMLElement | undefined;
+    /**
+     * The HTMLElement of the widget. 
+     * @throws If not rendered, this getter will throw an error.
+     */
+    readonly element: HTMLElement;
 
     /**
-     * @description Renders and auto registers listeners.
-     * @param container The provided HTMLElement of the button.
+     * Determine if the widget is rendered.
      */
-    render(container: HTMLElement): void;
+    readonly rendered: boolean;
 
-     /**
-      * @description Applys the styles to the current HTMLElement. 
-      * May be override by the derived classes.
-      */
-    applyStyle(): void;
+    /**
+     * @description Renders, apply styles and register listeners in 
+     * chronological order.
+     * @param element The provided HTMLElement to be treated as the widget's
+     * element.
+     * 
+     * @note A widget can only be rendered once.
+     * @throws If the element is undefined or null, an throw will be thrown.
+     */
+    render(element: HTMLElement): void;
 
     onClick(element: HTMLElement, callback: (event: MouseEvent) => void): IDisposable;
     onDoubleclick(element: HTMLElement, callback: (event: MouseEvent) => void): IDisposable;
     onMouseover(element: HTMLElement, callback: (event: MouseEvent) => void): IDisposable;
+    onMouseenter(element: HTMLElement, callback: (event: MouseEvent) => void): IDisposable;
     onMouseout(element: HTMLElement, callback: (event: MouseEvent) => void): IDisposable;
     onMousedown(element: HTMLElement, callback: (event: MouseEvent) => void): IDisposable;    
     onMouseup(element: HTMLElement, callback: (event: MouseEvent) => void): IDisposable;
@@ -38,16 +47,29 @@ export interface IWidget extends IDisposable {
  */
 export abstract class Widget extends Disposable implements IWidget {
     
-    // [attributes]
-    protected _element: HTMLElement | undefined = undefined;
+    // [field]
+    
+    private _rendered: boolean;
+    private readonly _element!: HTMLElement;
 
     // [constructor]
+
     constructor() {
         super();
+        this._rendered = false;
     }
 
-    get element(): HTMLElement | undefined {
+    // [method]
+
+    get element(): HTMLElement {
+        if (!this._element) {
+            throw new Error('The widget is not rendered');
+        }
         return this._element;
+    }
+
+    get rendered(): boolean {
+        return this._rendered;
     }
 
     public onClick(element: HTMLElement, callback: (event: MouseEvent) => void): IDisposable {
@@ -63,6 +85,12 @@ export abstract class Widget extends Disposable implements IWidget {
     }
     public onMouseover(element: HTMLElement, callback: (event: MouseEvent) => void): IDisposable {
         return this.__register(addDisposableListener(element, EventType.mouseover, (e: MouseEvent) => {
+            callback(e);
+        }));
+    }
+
+    public onMouseenter(element: HTMLElement, callback: (event: MouseEvent) => void): IDisposable {
+        return this.__register(addDisposableListener(element, EventType.mouseenter, (e: MouseEvent) => {
             callback(e);
         }));
     }
@@ -122,19 +150,31 @@ export abstract class Widget extends Disposable implements IWidget {
     }
 
     public render(element: HTMLElement): void {
-        this._element = element;
+        if (this._rendered) {
+            console.warn('Cannot render the widget twice');
+            return;
+        }
+
+        (<Mutable<HTMLElement>>this._element) = element;
+        if (!this._element) {
+            throw new Error('The widget is not rendered properly');
+        }
+        
+        this._rendered = true;
+        
+        this.__render();
+        this.__applyStyle();
+        this.__registerListeners();
     }
 
-    public applyStyle(): void {
-        
-    }
+    protected __render(): void {}
+    protected __applyStyle(): void {}
+    protected __registerListeners(): void {}
 
     public override dispose(): void {
 		if (this._element) {
-            // REVIEW: check if remove() will automatically calling `removeEventListener()`.
-            // REVIEW: if yes, we then do not need to register its own event listener at the first place.
 			this._element.remove();
-			this._element = undefined;
+            (<Mutable<HTMLElement | undefined>>this._element) = undefined;
 		}
         super.dispose();
 	}

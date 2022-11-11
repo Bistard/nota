@@ -18,7 +18,7 @@ export namespace ProxyChannel {
     export function wrapService(service: unknown, opts?: WrapServiceOpt): IServerChannel {
         const object = service as Record<string, unknown>;
         const eventRegisters = new Map<string, Register<unknown>>();
-        const enableRevivier = (opts && opts.enableRevivier) || false;
+        const enableRevivier = opts?.enableRevivier ?? true;
 
         for (const propName in object) {
             if (__guessIfEventRegister(propName)) {
@@ -53,7 +53,7 @@ export namespace ProxyChannel {
     }
 
     export function unwrapChannel<T extends object>(channel: IChannel, opt?: UnwrapChannelOpt): T {
-        const enableRevivier = opt ? opt.enableRevivier : false;
+        const enableRevivier = opt?.enableRevivier ?? true;
         
         return <T>(new Proxy(
             {}, {

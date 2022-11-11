@@ -1,16 +1,11 @@
  /*---------------------------------------------------------------------------
   *  importing .css might cause preformance issue, further research is needed.
   *---------------------------------------------------------------------------*/
-@import "../../node_modules/@toast-ui/editor/dist/toastui-editor.css";
-@import "../../node_modules/prismjs/themes/prism.css";
-@import "../../node_modules/@toast-ui/editor-plugin-code-syntax-highlight/dist/toastui-editor-plugin-code-syntax-highlight.css";
-@import "../../node_modules/tui-color-picker/dist/tui-color-picker.css";
-@import "../../node_modules/@toast-ui/editor-plugin-color-syntax/dist/toastui-editor-plugin-color-syntax.css";
-
 @import "./common.css";
 
 @import "../base/browser/icon/icons.css";
 @import "../base/browser/basic/button/button.css";
+@import "../base/browser/basic/searchBar/searchBar.css";
 @import "../base/browser/basic/sash/sash.css";
 @import "../base/browser/basic/scrollbar/scrollbar.css";
 @import "../base/browser/secondary/widgetBar/WidgetBar.css";
@@ -20,17 +15,15 @@
 @import "../base/browser/secondary/tree/tree.css";
 @import "../base/browser/secondary/splitView/splitView.css";
 
-@import "../code/styles/workbench/actionBar/actionBar.css";
-@import "../code/styles/workbench/actionView/actionView.css";
-@import "../code/styles/workbench/actionView/explorer/explorerView.css";
-@import "../code/styles/workbench/actionView/explorer/explorerItem.css";
-@import "../code/styles/workbench/actionView/outline/outlineView.css";
+@import "../code/styles/workbench/sideBar/sideBar.css";
+@import "../code/styles/workbench/sideView/sideView.css";
+@import "../code/styles/workbench/sideView/explorer/explorerView.css";
+@import "../code/styles/workbench/sideView/explorer/explorerItem.css";
+@import "../code/styles/workbench/sideView/outline/outlineView.css";
 @import "../code/styles/workbench/workspace/workspace.css";
 @import "../code/styles/workbench/workspace/titleBar/titleBarView.css";
 @import "../code/styles/workbench/workspace/titleBar/windowBarView.css";
 @import "../code/styles/workbench/workspace/editor/editor.css";
-@import "../code/styles/workbench/workspace/markdown/markdownView.css";
-@import "../code/styles/workbench/workspace/markdown/customToastuiStyle.css";
 
 @import "../code/browser/service/keyboard/media.css";
 
@@ -41,6 +34,11 @@
 @font-face {
     font-family: harmonyOS sans;
     src: url(../../assets/font/HarmonyOS_Sans/HarmonyOS_Sans_Light.ttf);
+}
+
+@font-face {
+    font-family: happy family;
+    src: url(../../assets/font/happy_monkey/HappyMonkey-Regular.ttf);
 }
 
 body {

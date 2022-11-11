@@ -80,7 +80,7 @@ export class MainLifecycleService extends AbstractLifecycleService<LifecyclePhas
     /** prevent calling `this.quit()` twice. */
     private _pendingQuitBlocker?: Blocker<void>;
 
-    /** The application is being requested to quit. This may be canceled. */
+    /** The application is being requested to quit. This may be cancelled. */
     private _requestQuit: boolean = false;
     private _ongoingBeforeQuitPromise?: Promise<void>;
 

@@ -71,14 +71,17 @@ const _regexp = /^(([^:/?#]+?):)?(\/\/([^/?#]*))?([^?#]*)(\?([^#]*))?(#(.*))?/;
 
 export class URI implements IURI {
     
+	// [field]
+
     public readonly scheme!: string;
     public readonly authority!: string;
 	public readonly path!: string;
 	public readonly query!: string;
 	public readonly fragment!: string;
 
-	/** @internal */
-    private constructor(scheme: string, authority: string, path: string, query: string, fragment: string) {
+	// [constructor]
+
+	constructor(scheme: string, authority: string, path: string, query: string, fragment: string) {
         this.scheme = scheme;
         this.authority = authority;
         this.path = path;
@@ -218,7 +221,7 @@ export class URI implements IURI {
 }
 
 const reviverRegistrant = REGISTRANTS.get(IReviverRegistrant);
-reviverRegistrant.registerPrototype(URI as any, (obj: Object) => {
+reviverRegistrant.registerPrototype(URI, (obj: Object) => {
 	if (obj.hasOwnProperty('scheme') && 
 		obj.hasOwnProperty('authority') && 
 		obj.hasOwnProperty('path') && 

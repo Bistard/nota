@@ -8,19 +8,14 @@
   "scripts": {
     "run": "electron .",
     "_run": "electron . --- --log=trace --open-devtools",
-    
     "start": "npm run build && electron .",
     "_start": "npm start --- --log=trace --open-devtools",
-    
     "test": "mocha --ui tdd -r jsdom-global/register --config '.mocharc.jsonc' --timeout 10000",
     "_test": "mocha --ui tdd -r jsdom-global/register --config 'test/.mocharc.jsonc'",
-    
     "build": "node ./scripts/build.js",
-    "watch": "npm run build --- --watch=true",
-
+    "watch": "npm run build --- --watch=true --circular=false",
     "benchmark": "node benchmark/benchmark.js",
-
-    "_gen-icons": "fantasticon -c .fantasticonrc.js"
+    "_gen-icons": "node ./scripts/icon.js"
   },
   "repository": {
     "type": "git",
@@ -36,9 +31,10 @@
   },
   "homepage": "https://github.com/Bistard/nota#readme",
   "devDependencies": {
-    "@types/electron": "^1.6.10",
     "@types/mocha": "^9.0.0",
+    "@types/node": "^16.11.56",
     "@types/prismjs": "^1.16.6",
+    "@types/requestidlecallback": "^0.3.4",
     "benchmark": "^2.1.4",
     "circular-dependency-plugin": "^5.2.2",
     "cross-env": "^7.0.3",
@@ -48,20 +44,32 @@
     "jsdom-global": "3.0.2",
     "minimist": "^1.2.6",
     "mocha": "^9.1.3",
+    "node-loader": "^2.0.0",
     "ts-loader": "^9.2.5",
     "ts-node": "^10.4.0",
     "tsconfig-paths": "^3.12.0",
     "typescript": "^4.4.4",
     "webpack": "^5.74.0",
-    "webpack-cli": "^4.7.2",
-    "node-loader": "^2.0.0"
+    "webpack-cli": "^4.7.2"
   },
   "dependencies": {
-    "@toast-ui/editor": "^3.0.1",
-    "@toast-ui/editor-plugin-code-syntax-highlight": "^3.0.0",
-    "@toast-ui/editor-plugin-color-syntax": "^3.0.1",
-    "@types/node": "^16.11.56",
-    "@types/requestidlecallback": "^0.3.4",
+    "@milkdown/core": "^6.5.0",
+    "@milkdown/plugin-block": "^6.5.0",
+    "@milkdown/plugin-clipboard": "^6.5.0",
+    "@milkdown/plugin-cursor": "^6.5.0",
+    "@milkdown/plugin-emoji": "^6.5.1",
+    "@milkdown/plugin-history": "^6.5.0",
+    "@milkdown/plugin-indent": "^6.5.0",
+    "@milkdown/plugin-listener": "^6.5.0",
+    "@milkdown/plugin-math": "^6.5.0",
+    "@milkdown/plugin-menu": "^6.5.0",
+    "@milkdown/plugin-prism": "^6.5.0",
+    "@milkdown/plugin-slash": "^6.5.0",
+    "@milkdown/plugin-tooltip": "^6.5.0",
+    "@milkdown/plugin-upload": "^6.5.0",
+    "@milkdown/preset-commonmark": "^6.5.1",
+    "@milkdown/preset-gfm": "^6.5.0",
+    "@milkdown/theme-nord": "^6.5.0",
     "chokidar": "^3.5.3"
   }
 }

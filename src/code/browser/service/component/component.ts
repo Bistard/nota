@@ -6,20 +6,6 @@ import { IComponentService } from "src/code/browser/service/component/componentS
 import { Themable } from "src/code/browser/service/theme/theme";
 import { IThemeService } from "src/code/browser/service/theme/themeService";
 
-/**
- * List of all the types of {@link Component}.
- */
-export const enum ComponentType {
-    Workbench = 'workbench',
-    ActionBar = 'action-bar',
-    ActionView = 'action-view',
-    Workspace = 'workspace',
-    ExplorerView = 'explorer-container',
-    OutlineView = 'outline-container',
-    SearchView = 'search-container',
-    GitView = 'git-container',
-}
-
 export interface ICreateable {
     create(): void;
     registerListeners(): void;
@@ -29,6 +15,11 @@ export interface ICreateable {
  * An interface only for {@link Component}.
  */
 export interface IComponent extends ICreateable {
+
+    /**
+     * @description Returns the string id of the component.
+     */
+    readonly id: string;
 
     /** Fires when the component is layouting. */
     readonly onDidLayout: Register<IDimension>;
@@ -40,9 +31,7 @@ export interface IComponent extends ICreateable {
     readonly parent: HTMLElement | undefined;
 
     /** The DOM element of the current component. */
-    element: FastElement<HTMLElement>;
-
-    contentArea: HTMLElement | undefined;
+    readonly element: FastElement<HTMLElement>;
 
     /**
      * @description Renders the component itself.
@@ -56,7 +45,7 @@ export interface IComponent extends ICreateable {
      * @note If both not provided, either renders under the constructor provided 
      * element, or `document.body`.
      */
-    create(parentComponent?: Component, parentElement?: HTMLElement): void;
+    create(parentComponent?: IComponent, parentElement?: HTMLElement): void;
 
     /**
      * @description Layout the component to the given dimension.
@@ -66,7 +55,7 @@ export interface IComponent extends ICreateable {
      * with the parent HTMLElement. If any dimensions is provided, the component
      * will layout the missing one either with the previous value or just zero.
      */
-    layout(width: number | undefined, height: number | undefined): void;
+    layout(width?: number, height?: number): void;
 
     /**
      * @description Registers any listeners in the component.
@@ -74,14 +63,14 @@ export interface IComponent extends ICreateable {
     registerListeners(): void;
 
     /**
-     * @description Register a child {@link Component} into the current Component.
+     * @description Register a child {@link IComponent} into the current Component.
      * @param override If sets to true, it will override the existed one which 
      *                 has the same component id. Defaults to false.
      * 
      * @warn Throws an error if the component has already been registered and
      *       override sets to false.
      */
-    registerComponent(component: Component, override?: boolean): void;
+    registerComponent(component: IComponent, override?: boolean): void;
     
     /**
      * @description Determines if the component with the given id has been 
@@ -94,24 +83,30 @@ export interface IComponent extends ICreateable {
 
     /**
      * @description Returns the sub component by id.
-     * 
-     * @warn If no such component exists, an error throws.
-     * 
      * @param id The string ID of the component.
      * @returns The required Component.
+     * @warn If no such component exists, an error throws.
      */
-    getComponent(id: string): Component;
+    getComponent<T extends IComponent>(id: string): T | undefined;
+
+    /**
+     * @description Unregisters the component with the given id.
+     * @param id The id of the component.
+     * @note The corresponding component will not be disposed automatically.
+     */
+    unregisterComponent(id: string): void;
+
+    /**
+     * @description Returns all the registered components that as the direct
+     * children of the current component.
+     */
+    getDirectComponents(): [string, IComponent][];
 
     /**
      * @description Sets the visibility of the current component.
      * @param value to visible or invisible.
      */
     setVisible(value: boolean): void;
-
-    /**
-     * @description Returns the string id of the component.
-     */
-    getId(): string;
 
     /**
      * @description Checks if the component has created.
@@ -123,7 +118,6 @@ export interface IComponent extends ICreateable {
      * components.
      */
     dispose(): void;
-
 }
 
 /**
@@ -144,17 +138,13 @@ export abstract class Component extends Themable implements IComponent {
     
     private _parentComponent?: IComponent;
     private _parent?: HTMLElement;
-    private _element: FastElement<HTMLElement>;
+
+    private readonly _element: FastElement<HTMLElement>;
+    private readonly _children: Map<string, IComponent> = new Map();
     private _dimension?: Dimension;
-    
-    // TODO: try to remove this stupid design
-    public contentArea: HTMLElement | undefined;
-    
 
-    private readonly _childComponents: Map<string, Component> = new Map();
-
-    private _created: boolean = false;
-    private _registered: boolean = false;
+    private _created: boolean;
+    private _registered: boolean;
 
     // [event]
     
@@ -178,6 +168,9 @@ export abstract class Component extends Themable implements IComponent {
                 componentService: IComponentService,
     ) {
         super(themeService);
+
+        this._created = false;
+        this._registered = false;
 
         this._element = new FastElement(document.createElement('div'));
         this._element.setID(id);
@@ -220,6 +213,10 @@ export abstract class Component extends Themable implements IComponent {
 
     // [public method]
 
+    get id(): string {
+        return this._element.getID();
+    }
+
     public create(parentComponent?: Component, parentElement?: HTMLElement): void {
         if (this._created || this.isDisposed()) {
             return; 
@@ -237,7 +234,7 @@ export abstract class Component extends Themable implements IComponent {
         this._created = true;
     }
 
-    public layout(width: number | undefined, height: number | undefined): void {
+    public layout(width?: number, height?: number): void {
         if (!this._parent) {
             return;
         }
@@ -271,25 +268,21 @@ export abstract class Component extends Themable implements IComponent {
         this._registered = true;
     }
 
-    public registerComponent(component: Component, override: boolean = false): void {
-        const id = component.getId();
-        const registered = this._childComponents.has(id);
+    public registerComponent(component: IComponent, override: boolean = false): void {
+        const id = component.id;
+        const registered = this._children.has(id);
         
         if (registered && !override) {
             throw new Error('component has been already registered');
         }
 
         if (registered && override) {
-            const deprecated = this._childComponents.get(id)!;
+            const deprecated = this._children.get(id)!;
             deprecated.dispose();
         }
 
-        this._childComponents.set(id, component);
+        this._children.set(id, component);
         this.__register(component);
-    }
-
-    public getId(): string {
-        return this._element.getID();
     }
 
     public created(): boolean {
@@ -308,20 +301,32 @@ export abstract class Component extends Themable implements IComponent {
     }
 
     public hasComponent(id: string): boolean {
-        return this._childComponents.has(id);
+        return this._children.has(id);
     }
 
-    public getComponent(id: string): Component {
-        const component = this._childComponents.get(id);
+    public getComponent<T extends IComponent>(id: string): T | undefined {
+        const component = this._children.get(id);
         if (!component) {
-            throw new Error(`trying to get an unknown component ${id}`);
+            return undefined;
         }
-        return component;
+        return component as T;
+    }
+
+    public unregisterComponent(id: string): void {
+        this._children.delete(id);
+    }
+
+    public getDirectComponents(): [string, IComponent][] {
+        const result: [string, IComponent][] = [];
+        for (const entry of this._children) {
+            result.push(entry);
+        }
+        return result;
     }
 
     public override dispose(): void {
         super.dispose();
-        for (const [id, child] of this._childComponents) {
+        for (const [id, child] of this._children) {
             child.dispose();
         }
     }

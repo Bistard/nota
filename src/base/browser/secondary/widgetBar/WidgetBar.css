@@ -4,8 +4,10 @@
 	height: 100%;
 }
 
-.widget-bar > .widget-list {
+.widget-bar > .widget-item-container {
 	display: flex; /* Default is displaying horizontal bar */
+	justify-content: space-between;
+	
 	margin: 0 auto;
 	padding: 0;
 	height: 100%;
@@ -13,7 +15,7 @@
 	align-items: center;
 }
 
-.widget-list > .widget-item {
+.widget-item-container > .widget-item {
     display: block;
 	align-items: center;
 	justify-content: center;

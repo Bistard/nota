@@ -32,6 +32,7 @@ export const enum EventType {
 	click = 'click',
 	contextmenu = 'contextmenu',
 	mouseover = 'mouseover',
+	mouseenter = 'mouseenter',
 	mouseout = 'mouseout',
 	mousedown = 'mousedown',
 	mouseup = 'mouseup',

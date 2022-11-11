@@ -1,7 +1,4 @@
-import { ActionBarContextMenu } from "src/base/browser/secondary/contextMenu/actionBar/actionBarContextMenu";
-import { ExplorerViewContextMenu } from "src/base/browser/secondary/contextMenu/actionView/explorerViewContextMenu";
 import { ContextMenuType, Coordinate, ContextMenuDimension, IContextMenu } from "src/base/browser/secondary/contextMenu/contextMenu";
-import { EditorContextMenu } from "src/base/browser/secondary/contextMenu/editor/editorContextMenu";
 import { IComponentService } from "src/code/browser/service/component/componentService";
 import { createService } from "src/code/platform/instantiation/common/decorator";
 
@@ -26,10 +23,10 @@ export class ContextMenuService implements IContextMenuService {
 
     private _initContextMenu(type: ContextMenuType, coordinate: Coordinate): void {
         // switch (type) {
-        //     case ContextMenuType.actionBar:
+        //     case ContextMenuType.sideBar:
         //         this._contextMenu = new ActionBarContextMenu(coordinate, this, this.componentService);
         //         break;
-        //     case ContextMenuType.actionView:
+        //     case ContextMenuType.sideView:
         //         break;
         //     case ContextMenuType.explorerView:
         //         this._contextMenu = new ExplorerViewContextMenu(coordinate, this, this.componentService);
@@ -70,7 +67,7 @@ export class ContextMenuService implements IContextMenuService {
 
     public removeContextMenu(): void {
         if (this._contextMenu) {
-            this.componentService.unregister(this._contextMenu!.getId());
+            this.componentService.unregister(this._contextMenu!.id);
             this._contextMenu.element.element.remove();
             this._contextMenu = null;
         }

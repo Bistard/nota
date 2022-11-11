@@ -21,9 +21,8 @@ export class HorizontalScrollbar extends AbstractScrollbar {
     }
     
     protected __renderScrollbar(size: number): void {
-        const element = this._element!;
-        element.classList.add('scroll-bar', 'horizontal');
-        element.style.height = size + 'px';
+        this.element.classList.add('scroll-bar', 'horizontal');
+        this.element.style.height = size + 'px';
     }
 
     protected __updateSlider(size: number, position: number): void {

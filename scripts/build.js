@@ -9,19 +9,10 @@ console.log(`${getTime(c.FgGreen)} Building...`);
 
 // wrap spawn so that we may print message properly
 const oldSpawn = childProcess.spawn;
-childProcess.spawn = wrapSpawnWithPrintMessage;
+childProcess.spawn = wrapSpawn;
 
 // parse CLI arguments
-const CLIArgv = minimist(process.argv.slice(2));
-console.log(`${getTime()} [Building arguments]`, CLIArgv);
-if (CLIArgv.NODE_ENV) {
-    process.env.NODE_ENV = CLIArgv.NODE_ENV;
-} else {
-    process.env.NODE_ENV = 'development';
-}
-
-// watch arguments
-process.env.WATCH_MODE = CLIArgv.watch;
+parsingCLI();
 
 // spawn the child process
 const spawn = childProcess.spawn(
@@ -39,7 +30,16 @@ registerSpawnListeners(spawn);
 
 
 // #region helper functions
-function wrapSpawnWithPrintMessage() {
+
+function parsingCLI() {
+    const CLIArgv = minimist(process.argv.slice(2));
+    console.log(`${getTime()} [Building arguments]`, CLIArgv);
+    process.env.NODE_ENV = CLIArgv.NODE_ENV ?? 'development';
+    process.env.CIRCULAR = CLIArgv.circular ?? 'true';
+    process.env.WATCH_MODE = CLIArgv.watch;
+}
+
+function wrapSpawn() {
     for (const arg of arguments) {
 
         let output = `${getTime()} `;
@@ -62,6 +62,7 @@ function wrapSpawnWithPrintMessage() {
             output += `${stamp} [V8_VER]: ${process.versions.v8 ?? 'N/A'}\n`;
             output += `${stamp} [NODE_VER]: ${process.versions.node ?? 'N/A'}\n`;
             output += `${stamp} [WATCH_MODE]: ${process.env.WATCH_MODE ?? 'false'}\n`;
+            output += `${stamp} [CIRCULAR_CHECK]: ${process.env.CIRCULAR ?? 'true'}\n`;
         }
         
         process.stdout.write(output);

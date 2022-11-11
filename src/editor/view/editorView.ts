@@ -30,7 +30,7 @@ export class EditorView extends Disposable implements IEditorView {
     private readonly _context: IEditorViewContext;
     
     // <section> - view components
-    private readonly _viewComponents: Map<string, IEditorViewComponent>;
+    private readonly _viewMap: Map<string, IEditorViewComponent>;
     private readonly _viewLineWidget: ViewLineWidget;
     // <section> - end
 
@@ -50,7 +50,7 @@ export class EditorView extends Disposable implements IEditorView {
         
         const context = new EditorViewContext(viewModel, undefined, undefined);
         this._context = context;
-        this._viewComponents = new Map();
+        this._viewMap = new Map();
 
         this._viewLineWidget = new ViewLineWidget(context);
         this.__registerComponent(this._viewLineWidget);
@@ -62,7 +62,7 @@ export class EditorView extends Disposable implements IEditorView {
 
     public render(now: boolean = false, everything: boolean = false): void {
         if (everything) {
-            for (const [id, component] of this._viewComponents) {
+            for (const [id, component] of this._viewMap) {
                 component.forceRender();
             }
         }
@@ -103,7 +103,7 @@ export class EditorView extends Disposable implements IEditorView {
 
         const metadata = new RenderMetadata(this._context);
 
-        for (const [id, component] of this._viewComponents) {
+        for (const [id, component] of this._viewMap) {
             component.render(metadata);
             component.onDidRender();
         }
@@ -112,7 +112,7 @@ export class EditorView extends Disposable implements IEditorView {
 
     private __getShouldRenderComponents(): IEditorViewComponent[] {
         let shouldRender: IEditorViewComponent[] = [];
-        for (const [id, component] of this._viewComponents) {
+        for (const [id, component] of this._viewMap) {
             if (component.shouldRender()) {
                 shouldRender.push(component);
             }
@@ -121,7 +121,7 @@ export class EditorView extends Disposable implements IEditorView {
     }
 
     private __registerComponent(component: IEditorViewComponent): void {
-        this._viewComponents.set(component.id, component);
+        this._viewMap.set(component.id, component);
     }
 
 }

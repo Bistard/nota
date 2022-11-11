@@ -1,17 +1,10 @@
 import { IComponentService } from "src/code/browser/service/component/componentService";
-import { Component, ComponentType, IComponent } from "src/code/browser/service/component/component";
-import { MarkdownComponent } from "src/code/browser/workbench/workspace/markdown/markdown";
-import { TitleBarComponent } from "src/code/browser/workbench/workspace/titleBar/titleBar";
+import { Component, IComponent } from "src/code/browser/service/component/component";
+import { TitleBar } from "src/code/browser/workbench/workspace/titleBar/titleBar";
 import { createService } from "src/code/platform/instantiation/common/decorator";
 import { IInstantiationService } from "src/code/platform/instantiation/common/instantiation";
-import { EditorComponent, IEditorService } from "src/code/browser/workbench/workspace/editor/editor";
+import { Editor, IEditorService } from "src/code/browser/workbench/workspace/editor/editor";
 import { IThemeService } from "src/code/browser/service/theme/themeService";
-
-export const enum WorkspaceComponentType {
-    titleBar = 'title-bar',
-    tabBar = 'tab-bar',
-    editor = 'editor',
-}
 
 export const IWorkspaceService = createService<IWorkspaceService>('workspace-service');
 
@@ -26,9 +19,8 @@ export class WorkspaceComponent extends Component implements IWorkspaceService {
 
     // [field]
 
-    private titleBarComponent!: TitleBarComponent;
-    private editorComponent!: EditorComponent;
-    private markdownComponent!: MarkdownComponent;
+    private titleBarComponent!: TitleBar;
+    private editorComponent!: Editor;
 
     // [constructor]
 
@@ -37,7 +29,7 @@ export class WorkspaceComponent extends Component implements IWorkspaceService {
         @IInstantiationService private readonly instantiationService: IInstantiationService,
         @IThemeService themeService: IThemeService,
     ) {
-        super(ComponentType.Workspace, null, themeService, componentService);
+        super('workspace', null, themeService, componentService);
     }
 
     // [protected override methods]
@@ -58,23 +50,12 @@ export class WorkspaceComponent extends Component implements IWorkspaceService {
     // [private helper methods]
 
     private _createTitleBar(): void {
-        this.titleBarComponent = this.instantiationService.createInstance(TitleBarComponent);
+        this.titleBarComponent = this.instantiationService.createInstance(TitleBar);
         this.titleBarComponent.create(this);
     }
 
     private _createEditor(): void {
-        this.editorComponent = this.instantiationService.getOrCreateService(IEditorService) as EditorComponent;
+        this.editorComponent = this.instantiationService.getOrCreateService(IEditorService) as Editor;
         this.editorComponent.create(this);
     }
-
-    private _createMarkdown(): void {
-        const markdownView = document.createElement('div');
-        markdownView.id = 'markdown-view';
-
-        this.markdownComponent = this.instantiationService.createInstance(MarkdownComponent, markdownView);
-        this.markdownComponent.create(this);
-
-        this.element.appendChild(markdownView);
-    }
-
 }

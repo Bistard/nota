@@ -300,21 +300,40 @@ export const enum FileOperationErrorType {
 	UNKNOWN,
 }
 
+function convertFileOperationErrorToString(type: FileOperationErrorType): string {
+	switch (type) {
+		case FileOperationErrorType.FILE_EXCEEDS_MEMORY_LIMIT: return 'FILE_EXCEEDS_MEMORY_LIMIT';
+		case FileOperationErrorType.FILE_TOO_LARGE: return 'FILE_TOO_LARGE';
+		case FileOperationErrorType.FILE_EXISTS: return 'FILE_EXISTS';
+		case FileOperationErrorType.FILE_NOT_FOUND: return 'FILE_NOT_FOUND';
+		case FileOperationErrorType.FILE_IS_DIRECTORY: return 'FILE_IS_DIRECTORY';
+		case FileOperationErrorType.FILE_INVALID_PATH: return 'FILE_INVALID_PATH';
+		case FileOperationErrorType.FILE_READONLY: return 'FILE_READONLY';
+		case FileOperationErrorType.UNKNOWN: return 'UNKNOWN';
+		default: return 'UNKNOWN';
+	}
+}
+
 export class FileSystemProviderError extends Error {
+	public readonly operation: string;
 	constructor(
 		message: string,
-		public readonly operation: FileOperationErrorType,
+		public readonly code: FileOperationErrorType,
 	) {
 		super(message);
+		this.operation = convertFileOperationErrorToString(code);
 	}
 }
 
 export class FileOperationError extends Error {
+	public readonly operation: string;
 	constructor(
 		message: string,
-		public readonly operation: FileOperationErrorType,
+		public readonly code: FileOperationErrorType,
+		public readonly nestedError?: unknown
 	) {
 		super(message);
+		this.operation = convertFileOperationErrorToString(code);
 	}
 }
 

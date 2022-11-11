@@ -1,3 +1,6 @@
+const path = require("path");
+const fs = require('fs');
+
 /**
  * @description Returns the current time in a standard format.
  * @example 2022-08-24 00:33:58.226
@@ -61,4 +64,20 @@ function getPerf() {
     return marks;
 }
 
-module.exports = { c, getTime, perf, getPerf, };
+function setCharAt(str, index, c) {
+    if(index > str.length - 1) {
+        return str;
+    }
+    return str.substring(0, index) + c + str.substring(index + 1);
+}
+
+async function ifMissingFile(root, name) {
+    try {
+        await fs.promises.stat(path.resolve(root, name));
+        return false;
+    } catch {
+        return true;
+    }
+}
+
+module.exports = { c, getTime, perf, getPerf, setCharAt, ifMissingFile};

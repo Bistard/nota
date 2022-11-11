@@ -5,10 +5,10 @@
  */
 export const enum Section {
 
-    ActionBar = 'src/code/browser/workbench/actionBar',
+    SideBar = 'src/code/browser/workbench/sideBar',
     
-    ActionView = 'src/code/browser/workbench/actionView',
-    Explorer = 'src/code/browser/workbench/actionView/explorer',
+    SideView = 'src/code/browser/workbench/sideView',
+    Explorer = 'src/code/browser/workbench/sideView/explorer',
 
     Editor = 'src/code/browser/workbench/editor',
 

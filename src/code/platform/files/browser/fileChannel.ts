@@ -4,6 +4,7 @@ import { DataBuffer } from "src/base/common/file/buffer";
 import { FileType, ICreateFileOptions, IDeleteFileOptions, IFileSystemProvider, IReadFileOptions, IResolvedFileStat, IResolveStatOptions, IWatchOptions, IWriteFileOptions } from "src/base/common/file/file";
 import { IReadableStream, newWriteableBufferStream } from "src/base/common/file/stream";
 import { URI } from "src/base/common/file/uri";
+import { Mutable } from "src/base/common/util/type";
 import { IFileService } from "src/code/platform/files/common/fileService";
 import { FileCommand } from "src/code/platform/files/electron/mainFileChannel";
 import { ResourceChangeEvent } from "src/code/platform/files/node/resourceChangeEvent";
@@ -70,8 +71,17 @@ export class BrowserFileChannel extends Disposable implements IFileService {
         return undefined;
     }
 
-    public stat(uri: URI, opts?: IResolveStatOptions): Promise<IResolvedFileStat> {
-        return this._channel.callCommand(FileCommand.stat, [uri, opts]);
+    public async stat(uri: URI, opts?: IResolveStatOptions): Promise<IResolvedFileStat> {
+        const res: IResolvedFileStat = await this._channel.callCommand(FileCommand.stat, [uri, opts]);
+        
+        const revive = (stat: IResolvedFileStat) => {
+            (<Mutable<URI>>stat.uri) = BrowserFileChannel.registrant.revive(stat.uri);
+            for (const child of (stat?.children ?? [])) {
+                revive(child);
+            }
+        };
+        revive(res);
+        return Promise.resolve(BrowserFileChannel.registrant.revive(res));
     }
  
     public readFile(uri: URI, opts?: IReadFileOptions): Promise<DataBuffer> {

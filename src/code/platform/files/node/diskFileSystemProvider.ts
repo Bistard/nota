@@ -222,7 +222,7 @@ export class DiskFileSystemProvider extends Disposable implements
 
 	public async mkdir(uri: URI): Promise<void> {
         try {
-            await fs.promises.mkdir(URI.toFsPath(uri));
+            await fs.promises.mkdir(URI.toFsPath(uri), { recursive: true });
         } catch (err) {
             throw err;
         }

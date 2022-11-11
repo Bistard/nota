@@ -1,8 +1,11 @@
 import { Disposable, IDisposable } from "src/base/common/dispose";
+import { CancellationError } from "src/base/common/error";
 import { Emitter, Register } from "src/base/common/event";
+import { CancellationToken, ICancellable } from "src/base/common/util/cacellation";
 import { isNumber } from "src/base/common/util/type";
 
 /**
+ * {@link CancellablePromise}
  * {@link Blocker}
  * {@link EventBlocker}
  * {@link PromiseTimeout}
@@ -27,13 +30,123 @@ export type IAsyncTask<T> = ITask<Promise<T>>;
  * @param callback Callback function after the waiting ends.
  */
 export async function delayFor(ms: number, callback?: ITask<void>): Promise<void> {
-    return new Promise(resolve => setTimeout(() => {
+    return new Promise(
+		(resolve, reject) => setTimeout(() => {
 			if (callback) {
-				callback();
+				try {
+					callback();
+				} catch (error) {
+					reject();
+				}
 			}
 			resolve();
 		}, ms)
 	);
+}
+
+/**
+ * @class A class that simulates the native behaviours of {@link Promise} but 
+ * with an addtional {@link CancellationToken}. You may decide the control flow
+ * by the token. If the token is cancelled, the corresponding cancellable 
+ * promise will reject with an {@link CancellationError}.
+ */
+export class CancellablePromise<T> implements Promise<T>, ICancellable {
+
+	// [field]
+
+	private readonly _token: CancellationToken;
+	private readonly _promise: Promise<T>;
+
+	// [constructor]
+
+	constructor(callback: (token: CancellationToken) => Promise<T>, token?: CancellationToken) {
+	
+		this._token = token ?? new CancellationToken();
+		const thenable = callback(this._token);
+
+		this._promise = new Promise((resolve, reject) => {
+			
+			const tokenListener = this._token.onDidCancel(() => {
+				tokenListener.dispose();
+				this._token.dispose();
+				reject(new CancellationError());
+			});
+			
+			const onResolve = (value: T) => {
+				tokenListener.dispose();
+				this._token.dispose();
+				resolve(value);
+			};
+
+			const onReject = (error: any) => {
+				tokenListener.dispose();
+				this._token.dispose();
+				reject(error);
+			};
+
+			// catch the callback if the token is already cancelled
+			thenable
+			.then((value) => {
+				if (this._token.isCancelled()) {
+					onReject(new CancellationError());
+				} else {
+					onResolve(value);
+				}
+			})
+			.catch((err) => onReject(err));
+		});
+	}
+
+	// [public methods]
+
+	public then<TResult1 = T, TResult2 = never>(resolve? :(value: T) => TResult1 | PromiseLike<TResult1>, reject?: (reason: any) => TResult2 | PromiseLike<TResult2>): Promise<TResult1 | TResult2> {
+		return this._promise.then(resolve, reject);
+	}
+
+	public catch<TResult = never>(reject?: (reason: any) => TResult | PromiseLike<TResult>): Promise<T | TResult> {
+		return this._promise.catch(reject);
+	}
+
+	public finally(onfinally?: () => void): Promise<T> {
+		return this._promise.finally(onfinally);
+	}
+
+	public cancel(): void {
+		this._token.cancel();
+	}
+
+	get [Symbol.toStringTag]() {
+		return 'Promise';
+	}
+}
+
+/**
+ * @description Returns a {@link Promise} that resolves on the given ms, it can 
+ * be cancelled by the given token. Returns a {@link CancellablePromise} if
+ * no token is given which the client may cancel manually.
+ * @param ms timeout in milliseconds.
+ * @param token The cancellation token binds to the promise if provided.
+ */
+export function cancellableTimeout(ms: number): CancellablePromise<void>;
+export function cancellableTimeout(ms: number, token: CancellationToken): Promise<void>;
+export function cancellableTimeout(ms: number, token?: CancellationToken): CancellablePromise<void> | Promise<void> {
+	if (!token) {
+		return new CancellablePromise((token) => cancellableTimeout(ms, token));
+	}
+	
+	return new Promise((resolve, reject) => {
+
+		const handle = setTimeout(() => {
+			tokenListener.dispose();
+			resolve();
+		}, ms);
+
+		const tokenListener = token.onDidCancel(() => {
+			clearTimeout(handle);
+			tokenListener.dispose();
+			reject(new CancellationError());
+		});
+	});
 }
 
 /**

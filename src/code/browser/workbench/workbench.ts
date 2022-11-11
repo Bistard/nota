@@ -8,8 +8,8 @@ import { IKeyboardScreenCastService } from "src/code/browser/service/keyboard/ke
 import { IConfigService } from "src/code/platform/configuration/common/abstractConfigService";
 import { BuiltInConfigScope } from "src/code/platform/configuration/common/configRegistrant";
 import { IThemeService } from "src/code/browser/service/theme/themeService";
-import { IActionBarService } from "src/code/browser/workbench/actionBar/actionBar";
-import { IActionViewService } from "src/code/browser/workbench/actionView/actionView";
+import { ISideBarService } from "src/code/browser/workbench/sideBar/sideBar";
+import { ISideViewService } from "src/code/browser/workbench/sideView/sideView";
 import { IWorkspaceService } from "src/code/browser/workbench/workspace/workspace";
 
 /**
@@ -20,14 +20,14 @@ export class Workbench extends WorkbenchLayout implements IWorkbenchService {
     constructor(
         parent: HTMLElement,
         @IInstantiationService instantiationService: IInstantiationService,
-        @IConfigService private readonly configService: IConfigService,
+        @IConfigService configService: IConfigService,
         @IComponentService componentService: IComponentService,
         @IThemeService themeService: IThemeService,
-        @IActionBarService actionBarService: IActionBarService,
-        @IActionViewService actionViewService: IActionViewService,
+        @ISideBarService sideBarService: ISideBarService,
+        @ISideViewService sideViewService: ISideViewService,
         @IWorkspaceService workspaceService: IWorkspaceService,
     ) {
-        super(parent, instantiationService, componentService, themeService, actionBarService, actionViewService, workspaceService);
+        super(parent, instantiationService, componentService, themeService, sideBarService, sideViewService, workspaceService, configService);
     }
 
     public init(): void {
@@ -58,6 +58,10 @@ export class Workbench extends WorkbenchLayout implements IWorkbenchService {
      */
     protected override _createContent(): void {
         this.__createLayout();
+
+        // open the side view with default one
+        const defaultView = this.configService.get<string>(BuiltInConfigScope.User, 'sideView.default', 'explorer');
+        this.sideViewService.switchView(defaultView);
     }
 
     /**

@@ -218,7 +218,7 @@ export class FileService extends Disposable implements IFileService {
         }
 
         catch (error) {
-            throw new FileOperationError(`unable to write file to ${URI.toFsPath(uri)}`, FileOperationErrorType.UNKNOWN);
+            throw new FileOperationError(`unable to write file to ${URI.toFsPath(uri)}`, FileOperationErrorType.UNKNOWN, error);
         }
 
     }
@@ -364,7 +364,7 @@ export class FileService extends Disposable implements IFileService {
         } 
         
         catch(err) {
-            throw new FileOperationError(`unable to read file ${URI.toFsPath(uri)}`, FileOperationErrorType.UNKNOWN);
+            throw new FileOperationError(`unable to read the file ${URI.toFsPath(uri)}`, FileOperationErrorType.UNKNOWN, err);
         }
     }
 
@@ -467,7 +467,7 @@ export class FileService extends Disposable implements IFileService {
         } 
    
         catch (error) {
-            throw new FileOperationError(`unable to write file buffered ${URI.toFsPath(uri)}`, FileOperationErrorType.UNKNOWN);
+            throw new FileOperationError(`unable to write the file buffered ${URI.toFsPath(uri)}`, FileOperationErrorType.UNKNOWN, error);
         } 
         
         finally {
@@ -524,7 +524,7 @@ export class FileService extends Disposable implements IFileService {
             try {
                 await provider.mkdir(URI.fromFile(path));
             } catch (err) {
-                throw new FileOperationError(`cannot make directory '${path}'`, FileOperationErrorType.UNKNOWN);
+                throw new FileOperationError(`cannot make directory '${path}'`, FileOperationErrorType.UNKNOWN, err);
             }
         }
     }

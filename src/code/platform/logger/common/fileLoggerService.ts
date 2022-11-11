@@ -61,8 +61,8 @@ export class FileLogger extends AbstractLogger implements ILogger {
             try {
                 await this.fileService.createFile(uri, DataBuffer.alloc(0), { overwrite: false });
             } catch (error) {
-                // ignore when the file already exists
-                if ((<FileOperationError>error).operation !== FileOperationErrorType.FILE_EXISTS) {
+                // only ignores when the file already exists
+                if ((<FileOperationError>error).code !== FileOperationErrorType.FILE_EXISTS) {
                     reject(error);
                 }
             }
@@ -147,12 +147,23 @@ export class FileLogger extends AbstractLogger implements ILogger {
 
             let content = (await this.fileService.readFile(this._uri)).toString();
             if (content.length >= MAX_LOG_SIZE) {
-                this.fileService.writeFile(this.__getBackupURI(), DataBuffer.fromString(content), { create: true, overwrite: true, unlock: true });
+                await this.fileService.writeFile(this.__getBackupURI(), DataBuffer.fromString(content), { create: true, overwrite: true, unlock: true });
                 content = '';
             }
 
             content += message;
             await this.fileService.writeFile(this._uri, DataBuffer.fromString(content), { create: false, overwrite: true, unlock: true });
+        })
+
+        /**
+         * If pass the error into the `ErrorHandler`, the error will eventually
+         * re-enter this code section since the program will log the error and
+         * causes circular calling.
+         * 
+         * The best way I can think of is to console.error out the error.
+         */
+        .catch(err => {
+            console.error(err);
         });
     }
 
