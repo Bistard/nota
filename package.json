@@ -70,6 +70,9 @@
     "@milkdown/preset-commonmark": "^6.5.1",
     "@milkdown/preset-gfm": "^6.5.0",
     "@milkdown/theme-nord": "^6.5.0",
-    "chokidar": "^3.5.3"
+    "chokidar": "^3.5.3",
+    "prosemirror-model": "^1.18.1",
+    "prosemirror-state": "^1.4.2",
+    "prosemirror-view": "^1.29.0"
   }
 }
