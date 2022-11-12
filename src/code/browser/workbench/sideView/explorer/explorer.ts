@@ -335,7 +335,7 @@ export class ExplorerView extends SideView implements IExplorerViewService {
 
         // on openning file.
         disposables.register(this.explorerTreeService.onSelect(e => {
-            this.editorService.updateMilkdownText(e.item.uri);
+            this.editorService.openSource(e.item.uri);
         }));
 
         // Displays the utility buttons only when hovering the view.

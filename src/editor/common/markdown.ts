@@ -1,3 +1,4 @@
+import { marked } from "src/editor/model/markdown/marked/marked";
 
 export interface IMarkdownLexerOptions {
 
@@ -226,8 +227,7 @@ export interface IMarkdownLexer {
      * 
      * @note Each token index is relatives to the whole text model (absolute).
      */
-    lex(text: string, offset?: number): Markdown.Token[];
-    
+    lex(text: string, offset?: number): marked.Token[];
 }
 
 /**

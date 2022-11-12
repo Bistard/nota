@@ -109,7 +109,7 @@ export class URI implements IURI {
 		);
 	}
 
-    public static isUri(thing: any): thing is URI {
+    public static isURI(thing: any): thing is URI {
 		if (thing instanceof URI) {
 			return true;
 		}

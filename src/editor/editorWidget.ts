@@ -3,10 +3,6 @@ import { basename } from "src/base/common/file/path";
 import { URI } from "src/base/common/file/uri";
 import { ILogService } from "src/base/common/logger";
 import { IEditorModel } from "src/editor/common/model";
-import { IEditorView } from "src/editor/common/view";
-import { IEditorViewModel } from "src/editor/common/viewModel";
-import { EditorView } from "src/editor/view/editorView";
-import { EditorViewModel } from "src/editor/viewModel/editorViewModel";
 
 /**
  * An interface only for {@link EditorWidget}.
@@ -37,8 +33,6 @@ export class EditorWidget extends Disposable implements IEditorWidget {
     private _container: HTMLElement;
 
     private _model: IEditorModel | null;
-    private _viewModel: IEditorViewModel | null;
-    private _view: IEditorView | null;
 
     // [events]
 
@@ -52,10 +46,7 @@ export class EditorWidget extends Disposable implements IEditorWidget {
         super();
 
         this._container = container;
-
         this._model = null;
-        this._viewModel = null;
-        this._view = null;
     }
 
     // [public methods]
@@ -71,7 +62,7 @@ export class EditorWidget extends Disposable implements IEditorWidget {
             return;
         }
         
-        this.logService.trace(`Reading file '${basename(URI.toString(model.source))}' successed.`);
+        this.logService.trace(`Reading file '${basename(URI.toString(model.source))}'.`);
         this.__attechModel(model);
     }
 
@@ -88,13 +79,6 @@ export class EditorWidget extends Disposable implements IEditorWidget {
     private __attechModel(model: IEditorModel): void {
 
         this._model = model;
-        const viewModel = new EditorViewModel(model);
-        const view = new EditorView(this._container, viewModel);
-        
-        view.render(false, true);
-
-        this._viewModel = viewModel;
-        this._view = view;
     }
 
 }

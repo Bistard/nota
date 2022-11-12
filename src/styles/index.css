@@ -27,10 +27,6 @@
 
 @import "../code/browser/service/keyboard/media.css";
 
-@import "../editor/view/editorRenderer.css";
-@import "../editor/styles/editorView.css";
-
-
 @font-face {
     font-family: harmonyOS sans;
     src: url(../../assets/font/HarmonyOS_Sans/HarmonyOS_Sans_Light.ttf);

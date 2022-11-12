@@ -33,11 +33,11 @@ export interface IEditorService extends IComponent {
 
     /**
      * @description Openning a source given the URI in the editor.
-     * @param uriOrString The uri or in the string form.
+     * @param source The {@link URI} or an RUI in the string form.
      */
-    openEditor(uriOrString: URI | string): void;
+    openSource(source: URI | string): void;
 
-    updateMilkdownText(uriOrString: URI | string): Promise<void>;
+    updateMilkdownText(source: URI | string): Promise<void>;
 }
 
 export class Editor extends Component implements IEditorService {
@@ -62,26 +62,26 @@ export class Editor extends Component implements IEditorService {
 
     // [public methods]
 
-    public openEditor(uriOrString: URI | string): void {
+    public openSource(source: URI | string): void {
         
         if (this._editorWidget === null) {
             throw new Error('editor service is currently not created');
         }
         
-        let uri = uriOrString;
-        if (!(uriOrString instanceof URI)) {
-            uri = URI.fromFile(uriOrString);
+        let uri = source;
+        if (!(uri instanceof URI) && !URI.isURI(uri)) {
+            uri = URI.fromFile(<string>source);
         }
         
-        const textModel = new EditorModel(uri as URI, this.fileService);
-        textModel.onDidBuild(result => {
-            if (result === true) {
-                this._editorWidget!.attachModel(textModel);
-            } else {
-                // logService
-                console.warn(result);
+        const textModel = new EditorModel(uri, this.fileService);
+        textModel.onDidBuild(isSuccess => {
+            if (!isSuccess || !this._editorWidget) {
+                console.warn(isSuccess);
+                return;
             }
-        })
+
+            this._editorWidget.attachModel(textModel);
+        });
     }
 
     private editor!: MilkdownEditor;
@@ -109,13 +109,13 @@ export class Editor extends Component implements IEditorService {
             .create();
     }
 
-    public async updateMilkdownText(uriOrString: URI | string): Promise<void> {
+    public async updateMilkdownText(source: URI | string): Promise<void> {
         let uri: URI;
         
-        if ((uriOrString instanceof URI)) {
-            uri = uriOrString;
+        if ((source instanceof URI)) {
+            uri = source;
         } else {
-            uri = URI.fromFile(uriOrString);
+            uri = URI.fromFile(source);
         }
 
         const content = (await this.fileService.readFile(uri)).toString();
