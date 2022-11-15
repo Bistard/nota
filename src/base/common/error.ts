@@ -1,4 +1,6 @@
 import { IDisposable, toDisposable } from "src/base/common/dispose";
+import { Arrays } from "src/base/common/util/array";
+import { Strings } from "src/base/common/util/string";
 
 type IErrorCallback = (error: any) => void;
 type IErrorListener = IErrorCallback;
@@ -129,4 +131,51 @@ export function isCancellationError(error: any): error is CancellationError {
 
 export function isExpectedError(error: any): error is ExpectedError {
     return error.type === ErrorType.Expected;
+}
+
+const UNKNOWN_MESSAGE = 'An unknown error occured. Please consult the log for more detaileds.';
+
+/**
+ * @description Try to convert an error to a human readable message in string.
+ * @param error The given error.
+ * @param verbose If output the stack trace.
+ * @returns A string formated error message.
+ */
+export function errorToMessage(error: any, verbose: boolean = false): string {
+    if (!error) {
+        return UNKNOWN_MESSAGE;
+    }
+
+    if (Array.isArray(error)) {
+        const errors = Arrays.coalesce(error);
+        const firstErrorMessage = errorToMessage(errors[0], verbose);
+
+        if (errors.length > 1) {
+            return Strings.format('{0}, ({1} more errors in total)', [firstErrorMessage, errors.length - 1]);
+        }
+
+        return firstErrorMessage;
+    }
+
+    if (typeof error === 'string') {
+        return error;
+    }
+
+    if (error.stack && verbose) {
+        return Strings.format('{0} (stack trace - {1})', [error.message || UNKNOWN_MESSAGE, stackToMessage(error.stack)]);
+    }
+
+    if (error.message) {
+		return error.message;
+	}
+
+    return UNKNOWN_MESSAGE;
+}
+
+function stackToMessage(stack: any): string {
+    if (Array.isArray(stack)) {
+        return stack.join('\n');
+    } else {
+        return stack;
+    }
 }
