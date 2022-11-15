@@ -29,10 +29,10 @@ export class EditorModel extends Disposable implements IEditorModel {
     private readonly _source: URI;
 
     /**
-     * `null` indicates the model is not built yet. The text model is registered,
-     * need to be disposed manually.
+     * `undefined` indicates the model is not built yet. The text model is 
+     * registered, need to be disposed manually.
      */
-    private _textModel: IPieceTableModel = null!;
+    private _textModel: IPieceTableModel = undefined!;
 
     private readonly _lexer: IMarkdownLexer;
 
@@ -40,7 +40,7 @@ export class EditorModel extends Disposable implements IEditorModel {
 
     constructor(
         source: URI,
-        private fileService: IFileService
+        private readonly fileService: IFileService,
     ) {
         super();
         this._source = source;
@@ -67,7 +67,7 @@ export class EditorModel extends Disposable implements IEditorModel {
         const newTextModel = builder.create();
 
         this._textModel.dispose();
-        this._textModel = null!;
+        this._textModel = undefined!;
         this._textModel = newTextModel;
 
         this._onDidBuild.fire(true);
@@ -76,6 +76,11 @@ export class EditorModel extends Disposable implements IEditorModel {
     public getContent(): string[] {
         this.__assertModel();
         return this._textModel.getContent();
+    }
+
+    public getRawContent(): string {
+        this.__assertModel();
+        return this._textModel.getRawContent();
     }
 
     public getLineCount(): number {
@@ -131,18 +136,16 @@ export class EditorModel extends Disposable implements IEditorModel {
     private async __createModel(source: URI): Promise<void> {
         
         const builder = await this.__createTextBufferBuilder(source);
-        if (builder === undefined) {
+        if (!builder) {
             return;
         }
 
         const textModel = builder.create();
         this._textModel = textModel;
 
-        // REVIEW
         const rawContent = this._textModel.getRawContent();
-        console.log(rawContent);
         const tokens = this._lexer.lex(rawContent);
-        console.log(tokens);
+        console.log(tokens); // TEST
         
         this._onDidBuild.fire(true);
     }
@@ -160,19 +163,21 @@ export class EditorModel extends Disposable implements IEditorModel {
     private async __createTextBufferBuilder(source: URI): Promise<TextBufferBuilder | undefined> {
 
         const blocker = new Blocker<TextBufferBuilder | undefined>();
-        let builder: TextBufferBuilder = new TextBufferBuilder();
-
+        const builder = new TextBufferBuilder();
         const stream = await this.fileService.readFileStream(source);
+
         stream.on('data', (data: DataBuffer) => {
-            builder!.receive(data.toString());
+            builder.receive(data.toString());
         });
 
         stream.on('end', () => {
-            builder!.build();
+            stream.destroy();
+            builder.build();
             blocker.resolve(builder);
         });
 
-        stream.on('error', (error) => {
+        stream.on('error', (error: Error) => {
+            stream.destroy();
             this._onDidBuild.fire(error);
             blocker.resolve(undefined);
         });

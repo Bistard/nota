@@ -330,7 +330,7 @@ export interface IEditorModel extends IDisposable {
 
     /**
      * Fires when the model related events happens. See more event details from
-     * {@link ModelEvent.Events}.
+     * {@link ModelEvent[Events]}.
      */
     readonly onEvent: Register<ModelEvent.Events>;
 
@@ -349,6 +349,11 @@ export interface IEditorModel extends IDisposable {
      * @description Returns all the lines of the model.
      */
     getContent(): string[];
+
+    /**
+     * @description Returns the raw content of the model.
+     */
+    getRawContent(): string;
 
     /**
      * @description Returns the number of lines in the model.

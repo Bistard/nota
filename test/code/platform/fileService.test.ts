@@ -8,6 +8,7 @@ import { NullLogger, TestURI } from 'test/utility';
 import { Random } from 'src/base/common/util/random';
 import { Arrays } from 'src/base/common/util/array';
 import { after, before } from 'mocha';
+import { Blocker } from 'src/base/common/util/async';
 
 suite('FileService-disk-test', () => {
 
@@ -242,19 +243,24 @@ suite('FileService-disk-test', () => {
 
     test('readFileStream', async () => {
         let cnt = 0;
+
         const totalSize = 1 * ByteSize.MB;
         const uri = URI.join(baseURI, 'files', `file-${totalSize}.txt`);
         const stream = await service.readFileStream(uri);
+        const end = new Blocker<void>();
+        
         stream.on('data', (data) => {
             cnt++;
         });
         stream.on('end', () => {
             assert.strictEqual(cnt, totalSize / FileService.bufferSize);
+            end.resolve();
         });
         stream.on('error', (err) => {
-            assert.strictEqual(false, true);
+            assert.fail();
         }); 
 
+        await end.waiting();
         stream.destroy();
     });
 

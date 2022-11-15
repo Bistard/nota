@@ -63,6 +63,8 @@ export class EditorWidget extends Disposable implements IEditorWidget {
         }
         
         this.logService.trace(`Reading file '${basename(URI.toString(model.source))}'.`);
+        console.log(model.getContent()); // TEST
+
         this.__attechModel(model);
     }
 
