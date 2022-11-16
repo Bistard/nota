@@ -33,6 +33,10 @@ export class EditorView extends Disposable implements IEditorView {
 
     // [public methods]
 
+    public isEditable(): boolean {
+        return this._view.isEditable();
+    }
+
     public focus(): void {
         this._view.focus();
     }

@@ -1,3 +1,4 @@
+import { Node as ProseNode, Slice } from "prosemirror-model";
 import { EditorState as ProseEditorState, Transaction } from "prosemirror-state";
 import { EditorView as ProseEditorView } from "prosemirror-view";
 import { Disposable } from "src/base/common/dispose";
@@ -13,6 +14,12 @@ export interface IEditorViewCore extends Disposable {
      * Event fires before next rendering on DOM tree.
      */
     readonly onRender: Register<void>;
+
+    /**
+     * @description If the content of the view is directly editable.
+     * @note The content may still be modified programatically.
+     */
+    isEditable(): boolean;
 
     /**
      * @description Focus the view.
@@ -66,16 +73,23 @@ export class EditorViewCore extends Disposable implements IEditorViewCore {
             container, 
             {
                 state: initState,
-                dispatchTransaction: (transaction: Transaction) => {
-                    this._onRender.fire();
-                    const newState = this._view.state.apply(transaction);
-                    this._view.updateState(newState);
-                },
+                dispatchTransaction: this.__onDispatchTransaction.bind(this),
+                handleClickOn: this.__onClick.bind(this),
+                handleDoubleClickOn: this.__onDoubleClick.bind(this),
+                handleKeyDown: this.__onKeydown.bind(this),
+                handleKeyPress: this.__onKeypress.bind(this),
+                handleTextInput: this.__onTextinput.bind(this),
+                handlePaste: this.__onPaste.bind(this),
+                handleDrop: this.__onDrop.bind(this),
             }
         );
     }
 
     // [public methods]
+
+    public isEditable(): boolean {
+        return this._view.editable;
+    }
 
     public focus(): void {
         this._view.focus();
@@ -109,4 +123,37 @@ export class EditorViewCore extends Disposable implements IEditorViewCore {
         });
     }
 
+    private __onDispatchTransaction(tr: Transaction): void {
+        this._onRender.fire();
+        const newState = this._view.state.apply(tr);
+        this._view.updateState(newState);
+    }
+
+    private __onClick(view: ProseEditorView, pos: number, node: ProseNode, nodePos: number, event: MouseEvent, direct: boolean): void {
+
+    }
+
+    private __onDoubleClick(view: ProseEditorView, pos: number, node: ProseNode, nodePos: number, event: MouseEvent, direct: boolean): void {
+
+    }
+
+    private __onKeydown(view: ProseEditorView, event: KeyboardEvent): void {
+
+    }
+
+    private __onKeypress(view: ProseEditorView, event: KeyboardEvent): void {
+        
+    }
+
+    private __onTextinput(view: ProseEditorView, from: number, to: number, text: string): void {
+
+    }
+
+    private __onPaste(view: ProseEditorView, event: ClipboardEvent, slice: Slice): void {
+
+    }
+
+    private __onDrop(view: ProseEditorView, event: DragEvent, slice: Slice, moved: boolean): void {
+
+    }
 }
