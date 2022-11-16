@@ -4,9 +4,8 @@ import { DataBuffer } from "src/base/common/file/buffer";
 import { URI } from "src/base/common/file/uri";
 import { Blocker } from "src/base/common/util/async";
 import { IFileService } from "src/code/platform/files/common/fileService";
-import { IMarkdownLexer } from "src/editor/common/markdown";
 import { ModelEvent, IEditorModel, IPieceTableModel } from "src/editor/common/model";
-import { MarkdownLexer } from "src/editor/model/markdown/lexer";
+import { IMarkdownLexer, MarkdownLexer } from "src/editor/model/markdown/lexer";
 import { TextBufferBuilder } from "src/editor/model/textBufferBuilder";
 
 /**
@@ -45,6 +44,8 @@ export class EditorModel extends Disposable implements IEditorModel {
         super();
         this._source = source;
         this._lexer = new MarkdownLexer();
+
+        // 
 
         this.__createModel(source);
     }
@@ -130,11 +131,9 @@ export class EditorModel extends Disposable implements IEditorModel {
         }
     }
 
-    /**
-     * @description // TODO
-     */
     private async __createModel(source: URI): Promise<void> {
         
+        // building plain text into piece-table
         const builder = await this.__createTextBufferBuilder(source);
         if (!builder) {
             return;
@@ -145,7 +144,6 @@ export class EditorModel extends Disposable implements IEditorModel {
 
         const rawContent = this._textModel.getRawContent();
         const tokens = this._lexer.lex(rawContent);
-        console.log(tokens); // TEST
         
         this._onDidBuild.fire(true);
     }
