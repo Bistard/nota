@@ -6,6 +6,10 @@
     "src/**/*", 
     "test/**/*",
     "test/util/**/*",
+    "./node_modules/prosemirror-view/**/*",
+    "./node_modules/prosemirror-model/**/*",
+    "./node_modules/prosemirror-state/**/*",
+    "./node_modules/prosemirror-transform/**/*",
   ],
   "exclude": [
     "./node_modules",
