@@ -4,7 +4,7 @@ import { DataBuffer } from "src/base/common/file/buffer";
 import { URI } from "src/base/common/file/uri";
 import { Blocker } from "src/base/common/util/async";
 import { IFileService } from "src/code/platform/files/common/fileService";
-import { ModelEvent, IEditorModel, IPieceTableModel } from "src/editor/common/model";
+import { IEditorModel, IPieceTableModel } from "src/editor/common/model";
 import { IMarkdownLexer, MarkdownLexer } from "src/editor/model/markdown/lexer";
 import { TextBufferBuilder } from "src/editor/model/textBufferBuilder";
 
@@ -17,12 +17,9 @@ export class EditorModel extends Disposable implements IEditorModel {
 
     // [event]
 
-    private readonly _onDidBuild = this.__register(new Emitter<true | Error>());
+    private readonly _onDidBuild = this.__register(new Emitter<void | Error>());
     public readonly onDidBuild = this._onDidBuild.registerListener;
-
-    private readonly _onEvent = this.__register(new Emitter<ModelEvent.Events>());
-    public readonly onEvent = this._onEvent.registerListener;
-
+    
     // [field]
 
     private readonly _source: URI;
@@ -45,9 +42,7 @@ export class EditorModel extends Disposable implements IEditorModel {
         this._source = source;
         this._lexer = new MarkdownLexer();
 
-        // 
-
-        this.__createModel(source);
+        this.__buildModel(source);
     }
 
     // [getter / setter]
@@ -58,20 +53,17 @@ export class EditorModel extends Disposable implements IEditorModel {
 
     // [public methods]
 
-    // REVIEW: maybe we need a URI and do it asynchronous.
-    public replaceModelWith(text: string): void {
-        this.__assertModel();
+    public replaceWith(source: URI): Promise<void> {
+        if (this.isDisposed()) {
+            throw new Error('editor model is already disposed.');
+        }
         
-        const builder = new TextBufferBuilder();
-        builder.receive(text);
-        builder.build();
-        const newTextModel = builder.create();
+        if (this._textModel) {
+            this._textModel.dispose();
+            this._textModel = undefined!;
+        }
 
-        this._textModel.dispose();
-        this._textModel = undefined!;
-        this._textModel = newTextModel;
-
-        this._onDidBuild.fire(true);
+        return this.__buildModel(source);
     }
 
     public getContent(): string[] {
@@ -99,12 +91,6 @@ export class EditorModel extends Disposable implements IEditorModel {
         return this._textModel.getLineLength(lineNumber);
     }
 
-    public tokenizationBetween(startLineNumber: number, endLineNumber: number): void {
-        startLineNumber = Math.max(0, startLineNumber);
-        endLineNumber = Math.min(this.getLineCount(), endLineNumber);
-        // TODO
-    }
-
     public override dispose(): void {
         super.dispose();
         if (this._textModel !== null) {
@@ -114,30 +100,31 @@ export class EditorModel extends Disposable implements IEditorModel {
 
     // [private helper methods]
 
-    /**
-     * @description Raises any assertions if the model is 
-     */
     private __assertModel(): void {
         if (this.isDisposed()) {
-            throw new Error('editor model is already disposed');
+            throw new Error('editor model is already disposed.');
         }
         
-        if (this._textModel === null) {
+        if (!this._textModel) {
             throw new Error('model is not built yet.');
         }
 
         if (this._textModel.isDisposed()) {
-            throw new Error('text model is already disposed');
+            throw new Error('text model is already disposed.');
         }
     }
 
-    private async __createModel(source: URI): Promise<void> {
+    private async __buildModel(source: URI): Promise<void> {
         
         // building plain text into piece-table
-        const builder = await this.__createTextBufferBuilder(source);
-        if (!builder) {
+        const builderOrError = await this.__createTextBufferBuilder(source);
+        if (builderOrError instanceof Error) {
+            const error = builderOrError;
+            this._onDidBuild.fire(error);
             return;
         }
+
+        const builder = builderOrError;
 
         const textModel = builder.create();
         this._textModel = textModel;
@@ -145,7 +132,7 @@ export class EditorModel extends Disposable implements IEditorModel {
         const rawContent = this._textModel.getRawContent();
         const tokens = this._lexer.lex(rawContent);
         
-        this._onDidBuild.fire(true);
+        this._onDidBuild.fire();
     }
 
     /**
@@ -158,9 +145,9 @@ export class EditorModel extends Disposable implements IEditorModel {
      * 
      * @note method will invoke `TextBufferBuilder.build()` automatically.
      */
-    private async __createTextBufferBuilder(source: URI): Promise<TextBufferBuilder | undefined> {
+    private async __createTextBufferBuilder(source: URI): Promise<TextBufferBuilder | Error> {
 
-        const blocker = new Blocker<TextBufferBuilder | undefined>();
+        const blocker = new Blocker<TextBufferBuilder | Error>();
         const builder = new TextBufferBuilder();
         const stream = await this.fileService.readFileStream(source);
 
@@ -176,8 +163,7 @@ export class EditorModel extends Disposable implements IEditorModel {
 
         stream.on('error', (error: Error) => {
             stream.destroy();
-            this._onDidBuild.fire(error);
-            blocker.resolve(undefined);
+            blocker.resolve(error);
         });
 
         return blocker.waiting();

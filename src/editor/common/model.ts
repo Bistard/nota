@@ -297,8 +297,7 @@ export interface IPieceTableModel extends Omit<IPieceTable, 'root'>, Disposable 
      * @description Apply edit operations to the piece table model.
      * @param operations The raw edit operations.
      */
-    edit(operations: IEditOperation[]): IApplyEditResult;
-
+    // edit(operations: IEditOperation[]): IApplyEditResult;
 }
 
 export interface IEditOperation {
@@ -314,36 +313,27 @@ export interface IEditOperation {
     readonly text: string;
 }
 
-export interface IApplyEditResult {
-    changes: ModelEvent.IContentChange[];
-}
-
 /**
  * An interface only for {@link EditorModel}.
  */
 export interface IEditorModel extends IDisposable {
-
-    /** 
-     * Fires when the model is build whether successed or failed.
-     */
-    readonly onDidBuild: Register<true | Error>;
-
-    /**
-     * Fires when the model related events happens. See more event details from
-     * {@link ModelEvent[Events]}.
-     */
-    readonly onEvent: Register<ModelEvent.Events>;
 
     /**
      * The source of the text model.
      */
     readonly source: URI;
 
-    /**
-     * @description Replace the entire model with the provided text.
-     * @param text The new text.
+    /** 
+     * Fires when the model is built or rebuilt whether successed or failed.
      */
-    replaceModelWith(text: string): void;
+    readonly onDidBuild: Register<void | Error>;
+
+    /**
+     * @description Replace the entire model with the new provided URI.
+     * @param source The new source in URI form.
+     * @note This will trigger `onDidBuild` event.
+     */
+    replaceWith(source: URI): Promise<void>;
 
     /**
      * @description Returns all the lines of the model.
@@ -371,43 +361,5 @@ export interface IEditorModel extends IDisposable {
      * @param lineNumber line number (zero-based).
      */
     getLineLength(lineNumber: number): number;
-
-    /**
-     * @description Apply tokenization process to the given range of lines.
-     * @param startLineNumber The start line number (zero-based).
-     * @param endLineNumber The end line number (zero-based && not included).
-     */
-    tokenizationBetween(startLineNumber: number, endLineNumber: number): void;
 }
 
-/**
- * Events fired by the {@link IEditorModel}.
- */
-export namespace ModelEvent {
-
-    export interface IContentChange {
-
-        /**
-         * The range to replace.
-         */
-        readonly range: IEditorRange;
-
-        /**
-         * The new text.
-         */
-        readonly text: string;
-    }
-
-    export type Events = (IContentFlushEvent | IContentChangeEvent);
-
-    export interface IContentFlushEvent {
-        // nothing
-    }
-
-    export interface IContentChangeEvent {
-    
-        readonly changes: IContentChange[];
-    
-    }
-
-}

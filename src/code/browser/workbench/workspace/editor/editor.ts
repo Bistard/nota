@@ -9,6 +9,7 @@ import { IInstantiationService } from "src/code/platform/instantiation/common/in
 import { registerSingleton } from "src/code/platform/instantiation/common/serviceCollection";
 import { EditorWidget, IEditorWidget } from "src/editor/editorWidget";
 import { EditorModel } from "src/editor/model/editorModel";
+import { Mutable } from "src/base/common/util/type";
 
 export const IEditorService = createService<IEditorService>('editor-service');
 
@@ -25,7 +26,7 @@ export class Editor extends Component implements IEditorService {
 
     // [field]
 
-    private _editorWidget: IEditorWidget | null;
+    private readonly _editorWidget!: IEditorWidget;
 
     // [constructor]
 
@@ -36,41 +37,34 @@ export class Editor extends Component implements IEditorService {
         @IThemeService themeService: IThemeService,
     ) {
         super('editor', null, themeService, componentService);
-        this._editorWidget = null;
     }
 
     // [public methods]
 
     public openSource(source: URI | string): void {
         
-        if (this._editorWidget === null) {
+        if (!this._editorWidget) {
             throw new Error('editor service is currently not created');
         }
         
         let uri = source;
-        if (!(uri instanceof URI) && !URI.isURI(uri)) {
+        if (!URI.isURI(uri)) {
             uri = URI.fromFile(<string>source);
         }
         
-        const textModel = new EditorModel(uri, this.fileService);
-        textModel.onDidBuild(isSuccess => {
-            if (!isSuccess || !this._editorWidget) {
-                console.warn(isSuccess);
-                return;
-            }
-            
-            this._editorWidget.attachModel(textModel);
-        });
+        this._editorWidget.open(uri);
     }
 
     // [override protected methods]
 
     protected override _createContent(): void {
-        this._editorWidget = this.instantiationService.createInstance(
+        const editor = this.instantiationService.createInstance(
             EditorWidget, 
             this.element.element,
             {},
         );
+
+        (<Mutable<EditorWidget>>this._editorWidget) = editor;
     }
 
     protected override _registerListeners(): void {

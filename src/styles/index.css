@@ -25,6 +25,8 @@
 @import "../code/styles/workbench/workspace/titleBar/windowBarView.css";
 @import "../code/styles/workbench/workspace/editor/editor.css";
 
+@import "../editor/styles/index.css";
+
 @import "../code/browser/service/keyboard/media.css";
 
 @font-face {

@@ -1,6 +1,6 @@
 import { Disposable } from "src/base/common/dispose";
 import { Register } from "src/base/common/event";
-import { IEditorView } from "src/editor/common/view";
+import { IEditorView, IEditorViewOptions } from "src/editor/common/view";
 import { EditorViewCore, IEditorViewCore } from "src/editor/view/editorViewCore";
 
 export class EditorView extends Disposable implements IEditorView {
@@ -17,6 +17,7 @@ export class EditorView extends Disposable implements IEditorView {
     
     constructor(
         container: HTMLElement,
+        options: IEditorViewOptions,
     ) {
         super();
 
