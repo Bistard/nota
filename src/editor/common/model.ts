@@ -326,7 +326,13 @@ export interface IEditorModel extends IDisposable {
     /** 
      * Fires when the model is built or rebuilt whether successed or failed.
      */
-    readonly onDidBuild: Register<void | Error>;
+    readonly onDidBuild: Register<boolean>;
+
+    /**
+     * @description Start building the model.
+     * @note This will trigger `onDidBuild` event.
+     */
+    build(): Promise<void>;
 
     /**
      * @description Replace the entire model with the new provided URI.
@@ -363,3 +369,10 @@ export interface IEditorModel extends IDisposable {
     getLineLength(lineNumber: number): number;
 }
 
+export namespace IModelEvent {
+
+    export interface ContentChange {
+
+    }
+
+}

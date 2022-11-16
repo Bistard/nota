@@ -1,6 +1,7 @@
 import { Disposable } from "src/base/common/dispose";
 import { Register } from "src/base/common/event";
 import { IEditorView, IEditorViewOptions } from "src/editor/common/view";
+import { IEditorViewModel } from "src/editor/common/viewModel";
 import { EditorViewCore, IEditorViewCore } from "src/editor/view/editorViewCore";
 
 export class EditorView extends Disposable implements IEditorView {
@@ -8,6 +9,7 @@ export class EditorView extends Disposable implements IEditorView {
     // [fields]
 
     private readonly _view: IEditorViewCore;
+    private readonly _ctx: ViewContext;
 
     // [events]
 
@@ -17,9 +19,11 @@ export class EditorView extends Disposable implements IEditorView {
     
     constructor(
         container: HTMLElement,
+        viewModel: IEditorViewModel,
         options: IEditorViewOptions,
     ) {
         super();
+        this._ctx = new ViewContext(viewModel, options);
 
         const editorContainer = document.createElement('div');
         editorContainer.className = 'editor-container';
@@ -30,6 +34,8 @@ export class EditorView extends Disposable implements IEditorView {
         
         container.appendChild(editorContainer);
         this.__register(this._view);
+
+        this.__registerViewModelListeners();
     }
 
     // [public methods]
@@ -59,4 +65,20 @@ export class EditorView extends Disposable implements IEditorView {
     }
 
     // [private helper methods]
+
+    private __registerViewModelListeners(): void {
+        const viewModel = this._ctx.viewModel;
+
+        viewModel.onFlush((contents: string[]) => {
+            console.log(contents);
+        });
+    }
+}
+
+class ViewContext {
+
+    constructor(
+        public readonly viewModel: IEditorViewModel,
+        public readonly options: IEditorViewOptions,
+    ) {}
 }

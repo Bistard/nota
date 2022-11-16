@@ -6,8 +6,10 @@ import { EventBlocker } from "src/base/common/util/async";
 import { IFileService } from "src/code/platform/files/common/fileService";
 import { IEditorModel } from "src/editor/common/model";
 import { EditorViewDisplayType, IEditorView } from "src/editor/common/view";
+import { IEditorViewModel } from "src/editor/common/viewModel";
 import { EditorModel } from "src/editor/model/editorModel";
 import { EditorView } from "src/editor/view/editorView";
+import { EditorViewModel } from "src/editor/viewModel/editorViewModel";
 
 /**
  * An interface only for {@link EditorWidget}.
@@ -21,11 +23,6 @@ export interface IEditorWidget extends IDisposable {
      * @throws An exception will be thrown if the editor cannot open it.
      */
     open(source: URI): Promise<void>;
-
-    /**
-     * @description Attech the given {@link IEditorModel} to the editor.
-     */
-    attachModel(model: IEditorModel): void;
 }
 
 /**
@@ -50,6 +47,7 @@ export class EditorWidget extends Disposable implements IEditorWidget {
     private _options: IEditorWidgetOptions;
 
     private _model: IEditorModel | null;
+    private _viewModel: IEditorViewModel | null;
     private _view: IEditorView | null;
 
     // [events]
@@ -66,6 +64,7 @@ export class EditorWidget extends Disposable implements IEditorWidget {
 
         this._container = container;
         this._model = null;
+        this._viewModel = null;
         this._view = null;
 
         this._options = options;
@@ -76,28 +75,7 @@ export class EditorWidget extends Disposable implements IEditorWidget {
     public async open(source: URI): Promise<void> {
         const textModel = new EditorModel(source, this.fileService);
         
-        const build = new EventBlocker(textModel.onDidBuild, 3000);
-        const result = await build.waiting();
-        if (result) {
-            throw result;
-        }
-        
-        this.attachModel(textModel);
-    }
-
-    public attachModel(model: IEditorModel | null): void {
-
-        if (this._model === model) {
-            return;
-        }
-
-        if (model === null) {
-            this._model = null;
-            return;
-        }
-        
-        this.logService.trace(`Reading file '${basename(URI.toString(model.source))}'.`);
-        this.__attechModel(model);
+        this.__attachModel(textModel);
     }
 
     public override dispose(): void {
@@ -109,12 +87,34 @@ export class EditorWidget extends Disposable implements IEditorWidget {
 
     // [private helper methods]
 
-    private __attechModel(model: IEditorModel): void {
+    private __attachModel(model?: IEditorModel): void {
+        
+        if (!model) {
+            this._model = null;
+            return;
+        }
 
+        if (this._model === model) {
+            return;
+        }
+        
+        this.logService.trace(`Reading file '${basename(URI.toString(model.source))}'.`);
+
+        // model attachment
         this._model = model;
 
-        this._view = new EditorView(this._container, {
-            display: this._options.display,
-        });
+        // view-model connection
+        this._viewModel = new EditorViewModel(model);
+
+        // view construction
+        this._view = new EditorView(
+            this._container, 
+            this._viewModel,
+            {
+                display: this._options.display,
+            }
+        );
+
+        this._model.build();
     }
 }

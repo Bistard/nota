@@ -4,7 +4,7 @@ import { DataBuffer } from "src/base/common/file/buffer";
 import { URI } from "src/base/common/file/uri";
 import { Blocker } from "src/base/common/util/async";
 import { IFileService } from "src/code/platform/files/common/fileService";
-import { IEditorModel, IPieceTableModel } from "src/editor/common/model";
+import { IEditorModel, IModelEvent, IPieceTableModel } from "src/editor/common/model";
 import { IMarkdownLexer, MarkdownLexer } from "src/editor/model/markdown/lexer";
 import { TextBufferBuilder } from "src/editor/model/textBufferBuilder";
 
@@ -17,8 +17,11 @@ export class EditorModel extends Disposable implements IEditorModel {
 
     // [event]
 
-    private readonly _onDidBuild = this.__register(new Emitter<void | Error>());
+    private readonly _onDidBuild = this.__register(new Emitter<boolean>());
     public readonly onDidBuild = this._onDidBuild.registerListener;
+
+    private readonly _onDidContentChange = this.__register(new Emitter<IModelEvent.ContentChange>());
+    public readonly onDidContentChange = this._onDidContentChange.registerListener;
     
     // [field]
 
@@ -41,8 +44,6 @@ export class EditorModel extends Disposable implements IEditorModel {
         super();
         this._source = source;
         this._lexer = new MarkdownLexer();
-
-        this.__buildModel(source);
     }
 
     // [getter / setter]
@@ -53,15 +54,16 @@ export class EditorModel extends Disposable implements IEditorModel {
 
     // [public methods]
 
+    public build(): Promise<void> {
+        return this.__buildModel(this._source);
+    }
+
     public replaceWith(source: URI): Promise<void> {
         if (this.isDisposed()) {
             throw new Error('editor model is already disposed.');
         }
         
-        if (this._textModel) {
-            this._textModel.dispose();
-            this._textModel = undefined!;
-        }
+        this.__detachModel();
 
         return this.__buildModel(source);
     }
@@ -93,9 +95,7 @@ export class EditorModel extends Disposable implements IEditorModel {
 
     public override dispose(): void {
         super.dispose();
-        if (this._textModel !== null) {
-            this._textModel.dispose();
-        }
+        this.__detachModel();
     }
 
     // [private helper methods]
@@ -114,13 +114,19 @@ export class EditorModel extends Disposable implements IEditorModel {
         }
     }
 
+    private __detachModel(): void {
+        if (this._textModel) {
+            this._textModel.dispose();
+            this._textModel = undefined!;
+        }
+    }
+
     private async __buildModel(source: URI): Promise<void> {
         
         // building plain text into piece-table
         const builderOrError = await this.__createTextBufferBuilder(source);
         if (builderOrError instanceof Error) {
-            const error = builderOrError;
-            this._onDidBuild.fire(error);
+            this._onDidBuild.fire(false);
             return;
         }
 
@@ -132,7 +138,7 @@ export class EditorModel extends Disposable implements IEditorModel {
         const rawContent = this._textModel.getRawContent();
         const tokens = this._lexer.lex(rawContent);
         
-        this._onDidBuild.fire();
+        this._onDidBuild.fire(true);
     }
 
     /**
