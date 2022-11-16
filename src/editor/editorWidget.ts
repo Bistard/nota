@@ -3,6 +3,8 @@ import { basename } from "src/base/common/file/path";
 import { URI } from "src/base/common/file/uri";
 import { ILogService } from "src/base/common/logger";
 import { IEditorModel } from "src/editor/common/model";
+import { IEditorView } from "src/editor/common/view";
+import { EditorView } from "src/editor/view/editorView";
 
 /**
  * An interface only for {@link EditorWidget}.
@@ -33,6 +35,7 @@ export class EditorWidget extends Disposable implements IEditorWidget {
     private _container: HTMLElement;
 
     private _model: IEditorModel | null;
+    private _view: IEditorView | null;
 
     // [events]
 
@@ -47,6 +50,7 @@ export class EditorWidget extends Disposable implements IEditorWidget {
 
         this._container = container;
         this._model = null;
+        this._view = null;
     }
 
     // [public methods]
@@ -63,8 +67,6 @@ export class EditorWidget extends Disposable implements IEditorWidget {
         }
         
         this.logService.trace(`Reading file '${basename(URI.toString(model.source))}'.`);
-        console.log(model.getContent()); // TEST
-
         this.__attechModel(model);
     }
 
@@ -81,6 +83,10 @@ export class EditorWidget extends Disposable implements IEditorWidget {
     private __attechModel(model: IEditorModel): void {
 
         this._model = model;
+        this._view = new EditorView(this._container);
+        this._view.onRender(() => {
+            console.log('before render');
+        });
     }
 
 }
