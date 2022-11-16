@@ -8,7 +8,6 @@ import { ServiceDescriptor } from "src/code/platform/instantiation/common/descri
 import { IInstantiationService } from "src/code/platform/instantiation/common/instantiation";
 import { registerSingleton } from "src/code/platform/instantiation/common/serviceCollection";
 import { EditorWidget, IEditorWidget } from "src/editor/editorWidget";
-import { EditorModel } from "src/editor/model/editorModel";
 import { Mutable } from "src/base/common/util/type";
 
 export const IEditorService = createService<IEditorService>('editor-service');
