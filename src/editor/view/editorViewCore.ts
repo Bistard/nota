@@ -1,8 +1,6 @@
-import { Node as ProseNode, Slice } from "prosemirror-model";
-import { EditorState as ProseEditorState, Transaction } from "prosemirror-state";
-import { EditorView as ProseEditorView } from "prosemirror-view";
 import { Disposable } from "src/base/common/dispose";
 import { Emitter, Register } from "src/base/common/event";
+import { ProseEditorState, ProseEditorView, ProseNode, Slice, Transaction } from "src/editor/common/prose";
 import { MarkdownSchema } from "src/editor/model/markdown/schema";
 
 /**
@@ -114,7 +112,7 @@ export class EditorViewCore extends Disposable implements IEditorViewCore {
         }
     }
 
-    // [private helper methods]
+    // [private helper methods (general)]
 
     private __createDefaultInitState(): ProseEditorState {
         return ProseEditorState.create({
@@ -122,6 +120,8 @@ export class EditorViewCore extends Disposable implements IEditorViewCore {
             plugins: [],
         });
     }
+
+    // [private helper methods (callback)]
 
     private __onDispatchTransaction(tr: Transaction): void {
         this._onRender.fire();

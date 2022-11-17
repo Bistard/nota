@@ -29,13 +29,14 @@ export class EditorView extends Disposable implements IEditorView {
         editorContainer.className = 'editor-container';
 
         this._view = new EditorViewCore(editorContainer);
-
         this.onRender = this._view.onRender;
         
+        // update listener registration from view-model
+        this.__registerViewModelListeners();
+
+        // resource registration
         container.appendChild(editorContainer);
         this.__register(this._view);
-
-        this.__registerViewModelListeners();
     }
 
     // [public methods]
@@ -69,9 +70,7 @@ export class EditorView extends Disposable implements IEditorView {
     private __registerViewModelListeners(): void {
         const viewModel = this._ctx.viewModel;
 
-        viewModel.onFlush((contents: string[]) => {
-            console.log(contents);
-        });
+        // TODO
     }
 }
 

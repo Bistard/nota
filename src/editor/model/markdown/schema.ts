@@ -1,4 +1,4 @@
-import { MarkSpec, NodeSpec, Schema as ProseSchema } from "prosemirror-model";
+import { MarkSpec, NodeSpec, ProseSchema } from "src/editor/common/prose";
 
 export class MarkdownSchema extends ProseSchema<string, string> {
 
@@ -61,12 +61,14 @@ export class MarkdownSchema extends ProseSchema<string, string> {
 				content: "inline*",
 				group: "block",
 				defining: true,
-				parseDOM: [{ tag: "h1", attrs: { level: 1 } },
-				{ tag: "h2", attrs: { level: 2 } },
-				{ tag: "h3", attrs: { level: 3 } },
-				{ tag: "h4", attrs: { level: 4 } },
-				{ tag: "h5", attrs: { level: 5 } },
-				{ tag: "h6", attrs: { level: 6 } }],
+				parseDOM: [
+					{ tag: "h1", attrs: { level: 1 } },
+					{ tag: "h2", attrs: { level: 2 } },
+					{ tag: "h3", attrs: { level: 3 } },
+					{ tag: "h4", attrs: { level: 4 } },
+					{ tag: "h5", attrs: { level: 5 } },
+					{ tag: "h6", attrs: { level: 6 } },
+				],
 				toDOM(node) { return ["h" + node.attrs['level'], 0]; }
 			},
 
@@ -76,10 +78,9 @@ export class MarkdownSchema extends ProseSchema<string, string> {
 			 * inside of it.
 			 */
 			code_block: <NodeSpec>{
-				a: 1,
 				content: "text*",
-				marks: "",
 				group: "block",
+				marks: "",
 				code: true,
 				defining: true,
 				parseDOM: [

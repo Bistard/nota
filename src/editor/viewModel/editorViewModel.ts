@@ -1,8 +1,8 @@
 import { Disposable } from "src/base/common/dispose";
 import { Emitter } from "src/base/common/event";
 import { IEditorModel } from "src/editor/common/model";
+import { ProseNode } from "src/editor/common/prose";
 import { IEditorViewModel } from "src/editor/common/viewModel";
-import { hit } from "test/util/helpers";
 
 export class EditorViewModel extends Disposable implements IEditorViewModel {
 
@@ -12,7 +12,7 @@ export class EditorViewModel extends Disposable implements IEditorViewModel {
 
     // [event]
 
-    private readonly _onFlush = this.__register(new Emitter<string[]>());
+    private readonly _onFlush = this.__register(new Emitter<ProseNode>());
     public readonly onFlush = this._onFlush.registerListener;
 
     // [constructor]
@@ -36,7 +36,7 @@ export class EditorViewModel extends Disposable implements IEditorViewModel {
     }
 
     private __onDidBuild(): void {
-        const newTextLines = this._model.getContent();
-        this._onFlush.fire(newTextLines);
+        const content = this._model.getRawContent();
+        
     }
 }
