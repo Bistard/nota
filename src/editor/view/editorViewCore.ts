@@ -1,7 +1,8 @@
 import { Disposable } from "src/base/common/dispose";
 import { Emitter, Register } from "src/base/common/event";
 import { ProseEditorState, ProseEditorView, ProseNode, Slice, Transaction } from "src/editor/common/prose";
-import { MarkdownSchema } from "src/editor/model/markdown/schema";
+import { MarkdownSchema } from "src/editor/viewModel/schema";
+import { ViewContext } from "src/editor/view/editorView";
 
 /**
  * An interface only for {@link EditorViewCore}.
@@ -50,6 +51,7 @@ export class EditorViewCore extends Disposable implements IEditorViewCore {
 
     // [field]
 
+    private readonly _ctx: ViewContext;
     private readonly _view: ProseEditorView;
 
     // [event]
@@ -61,9 +63,11 @@ export class EditorViewCore extends Disposable implements IEditorViewCore {
 
     constructor(
         container: HTMLElement,
+        context: ViewContext,
         initState?: ProseEditorState,
     ) {
         super();
+        this._ctx = context;
 
         initState = initState ?? this.__createDefaultInitState();
 
@@ -84,6 +88,17 @@ export class EditorViewCore extends Disposable implements IEditorViewCore {
     }
 
     // [public methods]
+
+    public updateContent(doc: ProseNode): void {
+        
+        // TEST
+        
+        const newState = ProseEditorState.create({
+            schema: new MarkdownSchema(),
+            doc: doc,
+        });
+        this._view.updateState(newState);
+    }
 
     public isEditable(): boolean {
         return this._view.editable;
@@ -116,7 +131,7 @@ export class EditorViewCore extends Disposable implements IEditorViewCore {
 
     private __createDefaultInitState(): ProseEditorState {
         return ProseEditorState.create({
-            schema: new MarkdownSchema(),
+            schema: this._ctx.viewModel.getSchema(),
             plugins: [],
         });
     }

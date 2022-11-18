@@ -3,6 +3,7 @@ import { Register } from "src/base/common/event";
 import { URI } from "src/base/common/file/uri";
 import { IEditorPosition } from "src/editor/common/position";
 import { IEditorRange } from "src/editor/common/range";
+import { marked } from "src/editor/model/markdown/marked/marked";
 
 export const enum EndOfLineType {
     /** 
@@ -313,6 +314,8 @@ export interface IEditOperation {
     readonly text: string;
 }
 
+export type EditorToken = marked.Token;
+
 /**
  * An interface only for {@link EditorModel}.
  */
@@ -367,6 +370,8 @@ export interface IEditorModel extends IDisposable {
      * @param lineNumber line number (zero-based).
      */
     getLineLength(lineNumber: number): number;
+
+    getTokens(): EditorToken[];
 }
 
 export namespace IModelEvent {

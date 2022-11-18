@@ -1,6 +1,13 @@
-import { MarkSpec, NodeSpec, ProseSchema } from "src/editor/common/prose";
+import { MarkSpec, NodeSpec, ProseNodeType, ProseSchema } from "src/editor/common/prose";
 
-export class MarkdownSchema extends ProseSchema<string, string> {
+export class EditorSchema extends ProseSchema<string, string> {
+
+	public getNodeType(name: string): ProseNodeType | undefined {
+		return this.nodes[name];
+	}
+}
+
+export class MarkdownSchema extends EditorSchema  {
 
 	constructor() {
 		super({
@@ -140,7 +147,7 @@ export class MarkdownSchema extends ProseSchema<string, string> {
 		};
 	}
 
-	static getMarksSpecs(): Record<string, MarkSpec> {
+	private static getMarksSpecs(): Record<string, MarkSpec> {
 		return {
 			/**
 			 * A link. Has `href` and `title` attributes. `title` defaults to 

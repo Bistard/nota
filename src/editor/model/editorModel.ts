@@ -4,15 +4,10 @@ import { DataBuffer } from "src/base/common/file/buffer";
 import { URI } from "src/base/common/file/uri";
 import { Blocker } from "src/base/common/util/async";
 import { IFileService } from "src/code/platform/files/common/fileService";
-import { IEditorModel, IModelEvent, IPieceTableModel } from "src/editor/common/model";
+import { EditorToken, IEditorModel, IModelEvent, IPieceTableModel } from "src/editor/common/model";
 import { IMarkdownLexer, MarkdownLexer } from "src/editor/model/markdown/lexer";
 import { TextBufferBuilder } from "src/editor/model/textBufferBuilder";
 
-/**
- * @class // TODO
- * 
- * @throws If the model is disposed, any operations will throw an error.
- */
 export class EditorModel extends Disposable implements IEditorModel {
 
     // [event]
@@ -27,13 +22,14 @@ export class EditorModel extends Disposable implements IEditorModel {
 
     private readonly _source: URI;
 
+    private readonly _lexer: IMarkdownLexer;
+
     /**
      * `undefined` indicates the model is not built yet. The text model is 
      * registered, need to be disposed manually.
      */
     private _textModel: IPieceTableModel = undefined!;
-
-    private readonly _lexer: IMarkdownLexer;
+    private _tokens: EditorToken[] = [];
 
     // [constructor]
 
@@ -93,6 +89,10 @@ export class EditorModel extends Disposable implements IEditorModel {
         return this._textModel.getLineLength(lineNumber);
     }
 
+    public getTokens(): EditorToken[] {
+        return this._tokens;
+    }
+
     public override dispose(): void {
         super.dispose();
         this.__detachModel();
@@ -136,7 +136,7 @@ export class EditorModel extends Disposable implements IEditorModel {
         this._textModel = textModel;
 
         const rawContent = this._textModel.getRawContent();
-        const tokens = this._lexer.lex(rawContent);
+        this._tokens = this._lexer.lex(rawContent);
         
         this._onDidBuild.fire(true);
     }

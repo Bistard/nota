@@ -2,13 +2,13 @@ import { Disposable } from "src/base/common/dispose";
 import { Register } from "src/base/common/event";
 import { IEditorView, IEditorViewOptions } from "src/editor/common/view";
 import { IEditorViewModel } from "src/editor/common/viewModel";
-import { EditorViewCore, IEditorViewCore } from "src/editor/view/editorViewCore";
+import { EditorViewCore } from "src/editor/view/editorViewCore";
 
 export class EditorView extends Disposable implements IEditorView {
 
     // [fields]
 
-    private readonly _view: IEditorViewCore;
+    private readonly _view: EditorViewCore;
     private readonly _ctx: ViewContext;
 
     // [events]
@@ -23,12 +23,13 @@ export class EditorView extends Disposable implements IEditorView {
         options: IEditorViewOptions,
     ) {
         super();
-        this._ctx = new ViewContext(viewModel, options);
+        const ctx = new ViewContext(viewModel, options);
+        this._ctx = ctx;
 
         const editorContainer = document.createElement('div');
         editorContainer.className = 'editor-container';
 
-        this._view = new EditorViewCore(editorContainer);
+        this._view = new EditorViewCore(editorContainer, ctx);
         this.onRender = this._view.onRender;
         
         // update listener registration from view-model
@@ -70,11 +71,13 @@ export class EditorView extends Disposable implements IEditorView {
     private __registerViewModelListeners(): void {
         const viewModel = this._ctx.viewModel;
 
-        // TODO
+        viewModel.onFlush(doc => {
+            this._view.updateContent(doc);
+        });
     }
 }
 
-class ViewContext {
+export class ViewContext {
 
     constructor(
         public readonly viewModel: IEditorViewModel,

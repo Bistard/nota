@@ -1,3 +1,4 @@
+import { EditorToken } from "src/editor/common/model";
 import { marked } from "src/editor/model/markdown/marked/marked";
 
 /**
@@ -13,7 +14,7 @@ export interface IMarkdownLexer {
      * 
      * @note Each token index is relatives to the whole text model (absolute).
      */
-    lex(text: string, offset?: number): marked.Token[];
+    lex(text: string, offset?: number): EditorToken[];
 }
 
 export class MarkdownLexer implements IMarkdownLexer {
@@ -22,7 +23,7 @@ export class MarkdownLexer implements IMarkdownLexer {
 
     // [public methods]
 
-    public lex(text: string, offset?: number): marked.Token[] {
+    public lex(text: string, offset?: number): EditorToken[] {
         const tokens = marked.lexer(text);
         return tokens;
     }

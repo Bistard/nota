@@ -3,12 +3,14 @@ import { Emitter } from "src/base/common/event";
 import { IEditorModel } from "src/editor/common/model";
 import { ProseNode } from "src/editor/common/prose";
 import { IEditorViewModel } from "src/editor/common/viewModel";
+import { EditorSchema, MarkdownSchema } from "src/editor/viewModel/schema";
 
 export class EditorViewModel extends Disposable implements IEditorViewModel {
 
     // [field]
 
     private readonly _model: IEditorModel;
+    private readonly _schema: EditorSchema;
 
     // [event]
 
@@ -22,11 +24,16 @@ export class EditorViewModel extends Disposable implements IEditorViewModel {
     ) {
         super();
         this._model = model;
+        this._schema = new MarkdownSchema();
 
         this.__registerModelListeners();
     }
 
     // [public methods]
+
+    public getSchema(): EditorSchema {
+        return this._schema;
+    }
 
     // [private helper methods]
 
@@ -38,5 +45,11 @@ export class EditorViewModel extends Disposable implements IEditorViewModel {
     private __onDidBuild(): void {
         const content = this._model.getRawContent();
         
+        console.log(this._model.getTokens());
+
+        // const doc = defaultMarkdownParser.parse(content);
+        // if (doc) {
+        //     this._onFlush.fire(doc);
+        // }
     }
 }
