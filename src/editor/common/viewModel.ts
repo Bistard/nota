@@ -9,3 +9,8 @@ export interface IEditorViewModel extends Disposable {
 
     getSchema(): EditorSchema;
 }
+
+export const enum DocumentNodeType {
+    Block,
+    Mark,
+}
