@@ -1,5 +1,5 @@
 import { MarkEnum, TokenEnum } from "src/editor/common/markdown";
-import { MarkSpec, NodeSpec, ProseNodeType, ProseSchema } from "src/editor/common/prose";
+import { ProseMarkSpec, ProseNodeSpec, ProseNodeType, ProseSchema } from "src/editor/common/prose";
 
 export class EditorSchema extends ProseSchema<string, string> {
 
@@ -18,12 +18,12 @@ export class MarkdownSchema extends EditorSchema  {
 		});
 	}
 
-	private static getNodeSpecs(): Record<string, NodeSpec> {
+	private static getNodeSpecs(): Record<string, ProseNodeSpec> {
 		return {
 			/**
-			 * NodeSpec The top level document node.
+			 * The top level document node.
 			 */
-			doc: <NodeSpec>{
+			doc: <ProseNodeSpec>{
 				content: "block+",
 			},
 
@@ -31,7 +31,7 @@ export class MarkdownSchema extends EditorSchema  {
 			 * A plain paragraph textblock. Represented in the DOM as a `<p>` 
 			 * element.
 			 */
-			[TokenEnum.Paragraph]: <NodeSpec>{
+			[TokenEnum.Paragraph]: <ProseNodeSpec>{
 				content: "inline*",
 				group: "block",
 				parseDOM: [{ tag: "p" }],
@@ -41,7 +41,7 @@ export class MarkdownSchema extends EditorSchema  {
 			/**
 			 * A blockquote (`<blockquote>`) wrapping one or more blocks.
 			 */
-			 [TokenEnum.Blockquote]: <NodeSpec>{
+			[TokenEnum.Blockquote]: <ProseNodeSpec>{
 				content: "block+",
 				group: "block",
 				defining: true,
@@ -52,7 +52,7 @@ export class MarkdownSchema extends EditorSchema  {
 			/**
 			 * A horizontal rule (`<hr>`).
 			 */
-			[TokenEnum.HorizontalRule]: <NodeSpec>{
+			[TokenEnum.HorizontalRule]: <ProseNodeSpec>{
 				content: undefined,
 				group: "block",
 				parseDOM: [{ tag: "hr" }],
@@ -64,7 +64,7 @@ export class MarkdownSchema extends EditorSchema  {
 			 * the number 1 to 6. Parsed and serialized as `<h1>` to `<h6>` 
 			 * elements.
 			 */
-			 [TokenEnum.Heading]: <NodeSpec>{
+			[TokenEnum.Heading]: <ProseNodeSpec>{
 				attrs: { level: { default: 1 } },
 				content: "inline*",
 				group: "block",
@@ -85,7 +85,7 @@ export class MarkdownSchema extends EditorSchema  {
 			 * default. Represented as a `<pre>` element with a `<code>` element 
 			 * inside of it.
 			 */
-			 [TokenEnum.CodeBlock]: <NodeSpec>{
+			[TokenEnum.CodeBlock]: <ProseNodeSpec>{
 				content: "text*",
 				group: "block",
 				marks: "",
@@ -100,7 +100,7 @@ export class MarkdownSchema extends EditorSchema  {
 			/**
 			 * The plain-text node.
 			 */
-			 [TokenEnum.Text]: <NodeSpec>{
+			[TokenEnum.Text]: <ProseNodeSpec>{
 				group: "inline"
 			},
 
@@ -108,7 +108,7 @@ export class MarkdownSchema extends EditorSchema  {
 			 * An inline image (`<img>`) node. Supports `src`, `alt`, and `href` 
 			 * attributes. The latter two default to the empty string.
 			 */
-			 [TokenEnum.Image]: <NodeSpec>{
+			[TokenEnum.Image]: <ProseNodeSpec>{
 				inline: true,
 				attrs: {
 					src: {},
@@ -138,7 +138,7 @@ export class MarkdownSchema extends EditorSchema  {
 			/**
 			 * A hard line break, represented in the DOM as `<br>`.
 			 */
-			 [TokenEnum.LineBreak]: <NodeSpec>{
+			[TokenEnum.LineBreak]: <ProseNodeSpec>{
 				inline: true,
 				group: "inline",
 				selectable: false,
@@ -148,13 +148,13 @@ export class MarkdownSchema extends EditorSchema  {
 		};
 	}
 
-	private static getMarksSpecs(): Record<string, MarkSpec> {
+	private static getMarksSpecs(): Record<string, ProseMarkSpec> {
 		return {
 			/**
 			 * A link. Has `href` and `title` attributes. `title` defaults to 
 			 * the empty string. Rendered and parsed as an `<a>` element.
 			 */
-			 [MarkEnum.Link]: <MarkSpec>{
+			[MarkEnum.Link]: <ProseMarkSpec>{
 				attrs: {
 					href: {},
 					title: { default: null }
@@ -180,7 +180,7 @@ export class MarkdownSchema extends EditorSchema  {
 			 * An emphasis mark. Rendered as an `<em>` element. Has parse rules
 			 * that also match `<i>` and `font-style: italic`.
 			 */
-			 [MarkEnum.Em]: <MarkSpec>{
+			[MarkEnum.Em]: <ProseMarkSpec>{
 				parseDOM: [
 					{ tag: "i" }, 
 					{ tag: "em" }, 
@@ -193,7 +193,7 @@ export class MarkdownSchema extends EditorSchema  {
 			 * A strong mark. Rendered as `<strong>`, parse rules also match
 			 * `<b>` and `font-weight: bold`.
 			 */
-			 [MarkEnum.Strong]: <MarkSpec>{
+			[MarkEnum.Strong]: <ProseMarkSpec>{
 				parseDOM: [
 					{ tag: "strong" },
 					/**
@@ -216,7 +216,7 @@ export class MarkdownSchema extends EditorSchema  {
 			/**
 			 * Code font mark. Represented as a `<code>` element.
 			 */
-			[MarkEnum.CodeInline]: <MarkSpec>{
+			[MarkEnum.CodeInline]: <ProseMarkSpec>{
 				parseDOM: [{ tag: "code" }],
 				toDOM: () => { return ["code", 0]; }
 			}
