@@ -5,11 +5,12 @@ import { Constructor } from "src/base/common/util/type";
  * The type of built-in registrants.
  */
 export const enum RegistrantType {
-    Test = 0,
-    Command,
-    Configuration,
-    Shortcut,
-    Reviver,
+    Test = 'test',
+    Command = 'command',
+    Configuration = 'configuration',
+    Shortcut = 'shortcut',
+    Reviver = 'reviver',
+    DocumentNode = 'document-node',
 }
 
 export interface IRegistrantIdentifier<T> {
