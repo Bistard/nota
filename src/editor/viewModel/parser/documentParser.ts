@@ -1,106 +1,145 @@
 import { EditorToken } from "src/editor/common/model";
-import { ProseAttrs, ProseMark, ProseMarkType, ProseNode, ProseNodeType } from "src/editor/common/prose";
-import { DocumentNodeType } from "src/editor/common/viewModel";
+import { ProseAttrs, ProseMark, ProseNode, ProseNodeType } from "src/editor/common/prose";
+import { DocumentNodeProvider, IDocumentNodeType } from "src/editor/viewModel/parser/documentNode";
 import { EditorSchema } from "src/editor/viewModel/schema";
 
-interface DocumentNode {
+interface DocumentNodeState {
     readonly type: ProseNodeType;
-    readonly children: DocumentNode[];
-    readonly marks: ProseMark[];
+    readonly children?: DocumentNodeState[];
+    readonly marks?: ProseMark[];
     readonly attrs?: ProseAttrs;
+}
+
+type DocumentParseFunction = (token: EditorToken) => void;
+
+export interface IDocumentParser {
+    parse(tokens: EditorToken[]): ProseNode | null;
 }
 
 /**
  * @class Parsing markdown tokens into document nodes that are used for 
  * rendering purpose in prosemirror view.
  */
-export class DocumentParser {
+export class DocumentParser implements IDocumentParser {
     
     // [field]
 
     private readonly _schema: EditorSchema;
-    private readonly _tokens: EditorToken[];
-    private readonly _tokenToNodeTypes: Map<string, DocumentNodeType>;
+    private readonly _nodeProvider: DocumentNodeProvider;
 
-    private readonly _stack: DocumentNode[];
-    private readonly _parseTokensToNode: Map<string, Function>;
+    // [constructor]
 
-    // [private constructor]
-
-    /**
-     * The reason to make the constructor private is to avoid accidently holding 
-     * the data references. To release the references properly, this is where
-     * the static method {@link DocumentParser.parse} comes in.
-     */
-    private constructor(
+    constructor(
         schema: EditorSchema,
-        tokens: EditorToken[],
-        tokenToNodeTypes: Map<string, DocumentNodeType>,
+        nodeProvider: DocumentNodeProvider,
     ) {
         this._schema = schema;
-        this._tokens = tokens;
-        
-        this._tokenToNodeTypes = tokenToNodeTypes;
-        this._parseTokensToNode = new Map();
-        this.__buildParseFunctions();
-
-        this._stack = [];
-        this._stack.push({ type: schema.topNodeType, children: [], marks: [], attrs: undefined });
+        this._nodeProvider = nodeProvider;
     }
 
-    // [public static methods]
+    // [public methods]
 
-    public static parse(
-        schema: EditorSchema,
+    public parse(tokens: EditorToken[]): ProseNode | null {        
+        const state = new DocumentParseState(this._schema.topNodeType, this._nodeProvider, tokens);
+        return state.parse();
+    }
+}
+
+/**
+ * @internal
+ * @class Use to maintain the parsing process for each parse request from the
+ * {@link DocumentParser}.
+ */
+class DocumentParseState {
+
+    // [field]
+
+    private readonly _defaultNodeType: ProseNodeType;
+    private readonly _tokens: EditorToken[];
+    private readonly _nodeProvider: DocumentNodeProvider;
+    private readonly _parseMap = new Map<IDocumentNodeType, DocumentParseFunction>();
+    
+    private readonly _unfinishedToken: DocumentNodeState[] = [];
+
+    // [constructor]
+
+    constructor(
+        defaultNodeType: ProseNodeType, 
+        provider: DocumentNodeProvider, 
         tokens: EditorToken[],
-        tokenToNodeTypes: Map<string, DocumentNodeType>,
-    ): ProseNode | null 
-    {
-        const parser = new DocumentParser(schema, tokens, tokenToNodeTypes);
-        return parser.parse();
+    ) {
+        this._defaultNodeType = defaultNodeType;
+        this._tokens = tokens;
+        this._nodeProvider = provider;
+        this._unfinishedToken.push({ type: defaultNodeType, children: [], marks: [], attrs: undefined });
+        this.__registerParseFunction();
     }
 
     // [public methods]
 
     public parse(): ProseNode | null {
+
         for (const token of this._tokens) {
+            const name = token.type;
+            const node = this._nodeProvider.getNode(name) ?? this._nodeProvider.getMark(name);
+            if (!node) {
+                console.warn(`cannot find any registered document nodes that matches the given token with type ${name}`);
+                return null;
+            }
             
-            const parseToNode = this._parseTokensToNode.get(token.type);
+            const type = node.type;
+            const parseToNode = this._parseMap.get(type);
             if (!parseToNode) {
-                console.warn(`cannot find parse function with given token with type ${token.type}`);
-                continue;
+                console.warn(`cannot parse the given token with type ${name}`);
+                return null;
             }
 
             parseToNode(token);
         }
 
-        return this._schema.topNodeType.createAndFill();
+        return this._defaultNodeType.createAndFill();
     }
 
     // [private helper methods]
 
-    private __buildParseFunctions(): void {
-        for (const [tokenName, nodeType] of this._tokenToNodeTypes) {
-            
-            if (nodeType === DocumentNodeType.Block) {
-                this._parseTokensToNode.set(tokenName, this.__tokenToBlockNode);
-            } 
-            
-            else if (nodeType === DocumentNodeType.Mark) {
-                this._parseTokensToNode.set(tokenName, this.__tokenToMarkNode);
-            }
+    // TODO
+    private __registerParseFunction(): void {
+        
+        const parseToText = (token: EditorToken) => {
 
-            else {
-                throw new Error(`cannot identify the given document node type ${nodeType}`);
-            }
-        }
+        };
+
+        const parseToInline = (token: EditorToken) => {
+
+        };
+
+        const parseToBlock = (token: EditorToken) => {
+            this.__pushUnfinishedToken(token);
+        };
+
+        const parseToMark = (token: EditorToken) => {
+
+        };
+
+
+        this._parseMap.set(IDocumentNodeType.Text, parseToText);
+        this._parseMap.set(IDocumentNodeType.Inline, parseToInline);
+        this._parseMap.set(IDocumentNodeType.Block, parseToBlock);
+        this._parseMap.set(IDocumentNodeType.Mark, parseToMark);
     }
 
-    private __tokenToBlockNode(nodeType: ProseNodeType, token: EditorToken): void {
-        // TODO
+    // TODO
+    private __pushUnfinishedToken(token: EditorToken): void {
+        
     }
 
-    private __tokenToMarkNode(markType: ProseMarkType, token: EditorToken): void {
-        // TODO
+    // TODO
+    private __insertToCurrentToken(token: EditorToken): void {
+
+    }
+
+    // TODO
+    private __popUnfinishedToken(token: EditorToken): void {
+
     }
 }

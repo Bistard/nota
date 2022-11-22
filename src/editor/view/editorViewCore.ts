@@ -1,7 +1,6 @@
 import { Disposable } from "src/base/common/dispose";
 import { Emitter, Register } from "src/base/common/event";
 import { ProseEditorState, ProseEditorView, ProseNode, Slice, Transaction } from "src/editor/common/prose";
-import { MarkdownSchema } from "src/editor/viewModel/schema";
 import { ViewContext } from "src/editor/view/editorView";
 
 /**
@@ -94,7 +93,7 @@ export class EditorViewCore extends Disposable implements IEditorViewCore {
         // TEST
         
         const newState = ProseEditorState.create({
-            schema: new MarkdownSchema(),
+            // schema: this._view/,
             doc: doc,
         });
         this._view.updateState(newState);

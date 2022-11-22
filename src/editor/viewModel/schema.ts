@@ -1,23 +1,44 @@
 import { MarkEnum, TokenEnum } from "src/editor/common/markdown";
-import { ProseMarkSpec, ProseNodeSpec, ProseNodeType, ProseSchema } from "src/editor/common/prose";
+import { ProseMarkSpec, ProseMarkType, ProseNodeSpec, ProseNodeType, ProseSchema } from "src/editor/common/prose";
+import { DocumentNodeProvider } from "src/editor/viewModel/parser/documentNode";
+
+export const TOP_NODE_NAME = 'doc';
 
 export class EditorSchema extends ProseSchema<string, string> {
 
 	public getNodeType(name: string): ProseNodeType | undefined {
 		return this.nodes[name];
 	}
+
+	public getMarkType(name: string): ProseMarkType | undefined {
+		return this.marks[name];
+	}
 }
 
 export class MarkdownSchema extends EditorSchema  {
 
-	constructor() {
+	constructor(nodeProvider: DocumentNodeProvider) {
+		const nodeSpec: Record<string, ProseNodeSpec> = { doc: <ProseNodeSpec>{ content: 'block+' } };
+		const markSpec: Record<string, ProseMarkSpec> = {};
+		
+		const nodes = nodeProvider.getRegisteredNodes();
+		for (const node of nodes) {
+			nodeSpec[node.name] = node.getSchema();
+		}
+
+		const marks = nodeProvider.getRegisteredMarks();
+		for (const mark of marks) {
+			markSpec[mark.name] = mark.getSchema();
+		}
+
 		super({
-			nodes: MarkdownSchema.getNodeSpecs(),
-			marks: MarkdownSchema.getMarksSpecs(),
-			topNode: 'doc',
+			topNode: TOP_NODE_NAME,
+			nodes: nodeSpec,
+			marks: markSpec,
 		});
 	}
 
+	// TODO
 	private static getNodeSpecs(): Record<string, ProseNodeSpec> {
 		return {
 			/**
