@@ -1,5 +1,5 @@
 import { MarkEnum, TokenEnum } from "src/editor/common/markdown";
-import { ProseMarkSpec, ProseMarkType, ProseNodeSpec, ProseNodeType, ProseSchema } from "src/editor/common/prose";
+import { ProseMark, ProseMarkSpec, ProseMarkType, ProseNodeSpec, ProseNodeType, ProseSchema, ProseTextNode } from "src/editor/common/prose";
 import { DocumentNodeProvider } from "src/editor/viewModel/parser/documentNode";
 
 export const TOP_NODE_NAME = 'doc';
@@ -12,6 +12,10 @@ export class EditorSchema extends ProseSchema<string, string> {
 
 	public getMarkType(name: string): ProseMarkType | undefined {
 		return this.marks[name];
+	}
+
+	public override text(text: string, marks?: readonly ProseMark[]): ProseTextNode {
+		return <ProseTextNode>super.text(text, marks);
 	}
 }
 
