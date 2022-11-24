@@ -1,7 +1,7 @@
 import { IEditorViewCore } from "src/editor/view/editorViewCore";
 
 export const enum EditorViewDisplayType {
-    Classic,
+    Plain,
     Split,
     WYSIWYG,
 }
