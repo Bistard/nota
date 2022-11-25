@@ -1,4 +1,8 @@
 
+export interface IIterable<T> {
+	[Symbol.iterator](): Iterator<T>;
+}
+
 /**
  * @namespace Iterable A collection of helper functions that relates to 
  * {@link Iterable}.

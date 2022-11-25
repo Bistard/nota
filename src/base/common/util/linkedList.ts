@@ -1,5 +1,6 @@
+import { IIterable } from "src/base/common/util/iterable";
 
-export interface ILinkedList<T> {
+export interface ILinkedList<T> extends IIterable<T> {
 
     /** 
      * @description Determines if the list is empty. 
