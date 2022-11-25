@@ -316,9 +316,6 @@ export interface IDeque<T> extends IIterable<T> {
     swap(first: number, second: number): void;
     reverse(): void;
     
-    count(element: T, cmp?: CompareFn<T>): number;
-    find(element: T, cmp?: CompareFn<T>): T | null;
-
     extendFront(other: Deque<T>): void;
     extendBack(other: Deque<T>): void;
     clear(): number;
@@ -351,11 +348,10 @@ export class Deque<T> implements IDeque<T> {
     }
 
     public at(index: number): T {
-        const element = this._arr[index];
-        if (!element) {
+        if (index < 0 || index >= this.size()) {
             throw new Error(`Invalid index when getting elements in deque at ${index}.`);
         }
-        return element;
+        return this._arr[index]!;
     }
 
     public front(): T {
@@ -392,7 +388,7 @@ export class Deque<T> implements IDeque<T> {
         if (index < 0 || index > this.size()) {
             throw new Error(`Invalid index when inserting elements in deque at ${index}.`);
         }
-        this._arr.splice(index, 1, element);
+        this._arr.splice(index, 0, element);
     }
 
     public remove(index: number): T {
@@ -417,21 +413,6 @@ export class Deque<T> implements IDeque<T> {
 
     public reverse(): void {
         this._arr.reverse();
-    }
-
-    public count(element: T, cmp: CompareFn<T> = this._defaultCmp): number {
-        let cnt = 0;
-        for (const ele of this._arr) {
-            if (cmp(ele, element)) {
-                cnt += 1;
-            }
-        }
-        return cnt;
-    }
-
-    public find(element: T, cmp: CompareFn<T> = this._defaultCmp): T | null {
-        const found = this._arr.find((val: T) => cmp!(val, element) === 1);
-        return found ? found : null;
     }
 
     public extendFront(other: Deque<T>): void {
