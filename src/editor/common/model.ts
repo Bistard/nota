@@ -314,7 +314,34 @@ export interface IEditOperation {
     readonly text: string;
 }
 
-export type EditorToken = marked.Tokens.Generic;
+
+export type EditorToken = marked.Token;
+export type EditorTokenGeneric = marked.Tokens.Generic;
+export namespace EditorTokens {
+    export type Space = marked.Tokens.Space;
+    export type Code = marked.Tokens.Code;
+    export type Heading = marked.Tokens.Heading;
+    export type Table = marked.Tokens.Table;
+    export type TableCell = marked.Tokens.TableCell;
+    export type Hr = marked.Tokens.Hr;
+    export type Blockquote = marked.Tokens.Blockquote;
+    export type List = marked.Tokens.List;
+    export type ListItem = marked.Tokens.ListItem;
+    export type Paragraph = marked.Tokens.Paragraph;
+    export type HTML = marked.Tokens.HTML;
+    export type Text = marked.Tokens.Text;
+    export type Def = marked.Tokens.Def;
+    export type Escape = marked.Tokens.Escape;
+    export type Tag = marked.Tokens.Tag;
+    export type Link = marked.Tokens.Link;
+    export type Image = marked.Tokens.Image;
+    export type Strong = marked.Tokens.Strong;
+    export type Em = marked.Tokens.Em;
+    export type Codespan = marked.Tokens.Codespan;
+    export type Br = marked.Tokens.Br;
+    export type Del = marked.Tokens.Del;
+    export type Generic = marked.Tokens.Generic;
+}
 
 /**
  * An interface only for {@link EditorModel}.

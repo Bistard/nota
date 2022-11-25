@@ -1,8 +1,11 @@
 import { Mutable } from "src/base/common/util/type";
 import { MarkEnum, TokenEnum } from "src/editor/common/markdown";
+import { EditorToken } from "src/editor/common/model";
 import { ProseMarkSpec, ProseMarkType, ProseNodeSpec, ProseNodeType } from "src/editor/common/prose";
+import { IDocumentParseState } from "src/editor/viewModel/parser/documentParser";
 import { EditorSchema, TOP_NODE_NAME } from "src/editor/viewModel/schema";
 
+// todo: unused
 export const enum IDocumentNodeType {
     Text,
     Inline,
@@ -10,7 +13,7 @@ export const enum IDocumentNodeType {
     Mark,
 }
 
-export interface IDocumentNode<TCtor = any, TSpec = any> {
+export interface IDocumentNode<TCtor, TSpec, TToken = EditorToken> {
     /**
      * Represents a corresponding markdown token type (original tokens parsed
      * by Marked). It matchs to {@link TokenEnum}.
@@ -22,33 +25,36 @@ export interface IDocumentNode<TCtor = any, TSpec = any> {
     readonly ctor: TCtor;
     
     getSchema(): TSpec;
+
+    parseFromToken(state: IDocumentParseState, token: TToken): void;
 }
 
-abstract class DocumentNodeBase<TCtor, TSpec> implements IDocumentNode<TCtor, TSpec> {
+abstract class DocumentNodeBase<TCtor, TSpec, TToken> implements IDocumentNode<TCtor, TSpec, TToken> {
     constructor(public readonly name: string) {}
     public abstract readonly type: IDocumentNodeType;
     public declare readonly ctor: TCtor;
     public abstract getSchema(): TSpec;
+    public abstract parseFromToken(state: IDocumentParseState, token: TToken): void;
 }
 
-export abstract class DocumentNode extends DocumentNodeBase<ProseNodeType, ProseNodeSpec> {}
+export abstract class DocumentNode<TToken> extends DocumentNodeBase<ProseNodeType, ProseNodeSpec, TToken> {}
 
-export abstract class DocumentMark extends DocumentNodeBase<ProseMarkType, ProseMarkSpec> {}
+export abstract class DocumentMark<TToken> extends DocumentNodeBase<ProseMarkType, ProseMarkSpec, TToken> {}
 
-function initDocumentNode(node: DocumentNode, ctor: ProseNodeType): void {
-    (<Mutable<DocumentNode>>node).ctor = ctor;
+function initDocumentNode(node: DocumentNode<any>, ctor: ProseNodeType): void {
+    (<Mutable<typeof node>>node).ctor = ctor;
 }
 
-function initDocumentMark(mark: DocumentMark, ctor: ProseMarkType): void {
-    (<Mutable<DocumentMark>>mark).ctor = ctor;
+function initDocumentMark(mark: DocumentMark<any>, ctor: ProseMarkType): void {
+    (<Mutable<typeof mark>>mark).ctor = ctor;
 }
 
 export class DocumentNodeProvider {
 
     // [field]
 
-    private readonly _nodes = new Map<string, DocumentNode>();
-    private readonly _marks = new Map<string, DocumentMark>();
+    private readonly _nodes = new Map<string, DocumentNode<any>>();
+    private readonly _marks = new Map<string, DocumentMark<any>>();
 
     // [constructor]
 
@@ -64,32 +70,32 @@ export class DocumentNodeProvider {
         return this._marks.has(name);
     }
 
-    public registerNode(node: DocumentNode): void {
+    public registerNode(node: DocumentNode<any>): void {
         if (!this.__assertIfValid(node.name)) return;
         this._nodes.set(node.name, node);
     }
 
-    public registerMark(mark: DocumentMark): void {
+    public registerMark(mark: DocumentMark<any>): void {
         if (!this.__assertIfValid(mark.name)) return;
         this._marks.set(mark.name, mark);
     }
 
-    public getNode(name: TokenEnum | string): DocumentNode | undefined {
+    public getNode<TToken>(name: TokenEnum | string): DocumentNode<TToken> | undefined {
         return this._nodes.get(name);
     }
 
-    public getMark(name: MarkEnum | string): DocumentMark | undefined {
+    public getMark<TToken>(name: MarkEnum | string): DocumentMark<TToken> | undefined {
         return this._marks.get(name);
     }
 
-    public getRegisteredNodes(): readonly DocumentNode[] {
-        const arr: DocumentNode[] = [];
+    public getRegisteredNodes(): readonly DocumentNode<any>[] {
+        const arr: DocumentNode<any>[] = [];
         for (const [name, node] of this._nodes) { arr.push(node); }
         return arr;
     }
 
-    public getRegisteredMarks(): readonly DocumentMark[] {
-        const arr: DocumentMark[] = [];
+    public getRegisteredMarks(): readonly DocumentMark<any>[] {
+        const arr: DocumentMark<any>[] = [];
         for (const [name, mark] of this._marks) { arr.push(mark); }
         return arr;
     }

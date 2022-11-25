@@ -1,9 +1,8 @@
-import { EditorToken } from "src/editor/common/model";
+import { Arrays, Stack } from "src/base/common/util/array";
+import { EditorToken, EditorTokenGeneric } from "src/editor/common/model";
 import { ProseAttrs, ProseMark, ProseNode, ProseNodeType, ProseTextNode } from "src/editor/common/prose";
-import { DocumentMark, DocumentNode, DocumentNodeProvider, IDocumentNode, IDocumentNodeType } from "src/editor/viewModel/parser/documentNode";
+import { DocumentNodeProvider, IDocumentNode } from "src/editor/viewModel/parser/documentNode";
 import { EditorSchema } from "src/editor/viewModel/schema";
-
-type TokenParseFn<TNode> = (token: EditorToken, node: TNode) => void;
 
 export interface IDocumentParser {
     parse(tokens: EditorToken[]): ProseNode | null;
@@ -35,17 +34,45 @@ export class DocumentParser implements IDocumentParser {
     // [public methods]
 
     public parse(tokens: EditorToken[]): ProseNode | null {        
-        const documentTree = this._state.parse(tokens);
+        
+        
+        this._state.parseTokens(tokens);
+        const documentRoot = this._state.complete();
         this._state.clean();
-        return documentTree;
+        
+        return documentRoot ?? this._schema.topNodeType.createAndFill();
     }
 }
 
 interface ParsingNodeState {
     readonly ctor: ProseNodeType;
-    readonly children: ProseNode[];
-    readonly marks: ProseMark[];
-    readonly attrs?: ProseAttrs;
+    children: ProseNode[];
+    marks: readonly ProseMark[];
+    attrs?: ProseAttrs;
+}
+
+/**
+ * Interface only for {@link DocumentParseState}.
+ * The {@link IDocumentNode} has full accessbility to control the parsing flow.
+ * The state provides a series of methods for different tokens so that they can 
+ * decide how to parse themselves correctly.
+ * 
+ * @implements
+ * The state will invoke {@link IDocumentNode.parseFromToken} for each token
+ * internally.
+ */
+export interface IDocumentParseState {
+    activateNode(ctor: ProseNodeType): void;
+    deactivateNode(): ProseNode | null;
+    
+    addToActive(ctor: ProseNodeType, attr?: ProseAttrs): ProseNode | null;
+    addText(text: string): void;
+
+    activateMark(mark: ProseMark): void;
+    deactivateMark(mark: ProseMark): void;
+
+    getActiveNode(): ProseNodeType | null;
+    getActiveMark(): readonly ProseMark[];
 }
 
 /**
@@ -53,16 +80,14 @@ interface ParsingNodeState {
  * @class Use to maintain the parsing process for each parse request from the
  * {@link DocumentParser}.
  */
-class DocumentParseState {
+class DocumentParseState implements IDocumentParseState {
 
     // [field]
 
     private readonly _defaultNodeType: ProseNodeType;
     private readonly _createTextNode: (text: string, marks?: readonly ProseMark[]) => ProseTextNode;
     private readonly _nodeProvider: DocumentNodeProvider;
-    private readonly _parseMap: Map<IDocumentNode, TokenParseFn<IDocumentNode>>;
-    
-    private _ongoingTokens: ParsingNodeState[] = [];
+    private _actives: Stack<ParsingNodeState>;
 
     // [constructor]
 
@@ -73,97 +98,51 @@ class DocumentParseState {
         this._defaultNodeType = schema.topNodeType;
         this._createTextNode = schema.text;
         this._nodeProvider = provider;
-        this._parseMap = new Map();
 
-        this._ongoingTokens.push({ ctor: this._defaultNodeType, children: [], marks: [], attrs: undefined });
-        this.__registerParseFunction(provider);
+        this._actives = new Stack([{ ctor: this._defaultNodeType, children: [], marks: [], attrs: undefined }]);
     }
 
     // [public methods]
 
-    public parse(tokens: EditorToken[]): ProseNode | null {
+    public parseTokens(tokens: EditorTokenGeneric[]): void {
+        const stack = new Stack<EditorTokenGeneric>(tokens);
         
-        
-        this.__parseTokens(tokens);
+        while (!stack.empty()) {
+            const token = stack.pop();
 
-        return this._defaultNodeType.createAndFill();
-    }
-    
-    public clean(): void {
-        this._ongoingTokens = [];
-    }
-
-    // [private helper methods]
-
-    // TODO
-    private __registerParseFunction(provider: DocumentNodeProvider): void {
-        
-        const parseToText = (token: EditorToken) => {
-            this.__insertTextToOngoing(token.raw);
-        };
-
-        const parseToInline = (token: EditorToken) => {
-            this.__parseTokens(token.tokens ?? []);
-        };
-
-        const parseToBlock = (token: EditorToken, node: DocumentNode) => {
-            
-        };
-
-        const parseToMark = (token: EditorToken) => {
-
-        };
-
-        const nodes = provider.getRegisteredNodes();
-        for (const node of nodes) {
-            switch (node.type) {
-                case IDocumentNodeType.Block: {
-                    this._parseMap.set(node, parseToBlock);
-                    break;
-                }
-                case IDocumentNodeType.Mark: {
-                    this._parseMap.set(node, parseToMark);
-                    break;
-                }
-                case IDocumentNodeType.Inline: {
-                    this._parseMap.set(node, parseToInline);
-                    break;
-                }
-                case IDocumentNodeType.Text: {
-                    this._parseMap.set(node, parseToText);
-                    break;
-                }
-                default: {
-                    console.warn(`Cannot identify the given document node type: ${node.type}`);
-                }
-            }
-        }
-    }
-
-    private __parseTokens(tokens: EditorToken[]): void {
-
-        for (const token of tokens) {
             const name = token.type;
             const node = this._nodeProvider.getNode(name) ?? this._nodeProvider.getMark(name);
             if (!node) {
                 throw new Error(`cannot find any registered document nodes that matches the given token with type ${name}`);
             }
             
-            const parseToNode = this._parseMap.get(node);
-            if (!parseToNode) {
-                throw new Error(`cannot parse the given token with type ${name}`);
+            node.parseFromToken(this, token);
+            if (!token.tokens) {
+                continue;
             }
 
-            parseToNode(token, node);
+            Arrays.reverseIterate(token.tokens, (child) => {
+                stack.push(child);
+            });
         }
     }
 
-    private __getOngoingToken(): ParsingNodeState | undefined {
-        return this._ongoingTokens[this._ongoingTokens.length - 1];
+    public complete(): ProseNode | null {
+        let root: ProseNode | null = null;
+        while (!this._actives.empty()) {
+            root = this.deactivateNode();
+        }
+        return root;
     }
 
-    private __pushOngoingToken(ctor: ProseNodeType): void {
-        this._ongoingTokens.push({
+    public clean(): void {
+        this._actives.clear();
+    }
+
+    // [public state methods]
+
+    public activateNode(ctor: ProseNodeType): void {
+        this._actives.push({
             ctor: ctor,
             children: [],
             marks: [],
@@ -171,37 +150,34 @@ class DocumentParseState {
         });
     }
 
-    private __popOngoingToken(): ProseNode | undefined {
-        const ongoing = this.__getOngoingToken();
-        if (!ongoing) {
-            return undefined;
-        }
-        
-        const proseNode = ongoing.ctor.createAndFill(null, ongoing.children, ongoing.marks);
+    public addToActive(ctor: ProseNodeType, attr?: ProseAttrs): ProseNode | null {
+        const active = this.__getActive();
+        const proseNode = ctor.createAndFill(attr, [], active.marks);
         if (!proseNode) {
-            return undefined;
+            return null;
         }
 
-        ongoing.children.push(proseNode);
+        active.children.push(proseNode);
         return proseNode;
     }
 
-    private __insertTextToOngoing(text: string): void {
+    public deactivateNode(): ProseNode | null {
+        const active = this.__getActive();
+        return this.addToActive(active.ctor, active.attrs);
+    }
+
+    public addText(text: string): void {
         if (!text) {
             return;
         }
 
-        const ongoing = this.__getOngoingToken();
-        if (!ongoing) {
-            return;
-        }
-
-        const textNode = this._createTextNode(text, ongoing.marks);
+        const active = this.__getActive();
+        const textNode = this._createTextNode(text, active.marks);
         
-        const lastIdx = ongoing.children.length - 1;
-        const previous = ongoing.children[lastIdx];
+        const lastIdx = active.children.length - 1;
+        const previous = active.children[lastIdx];
         if (!previous) {
-            ongoing.children.push(textNode);
+            active.children.push(textNode);
             return;
         }
 
@@ -213,18 +189,51 @@ class DocumentParseState {
         };
 
         if (!mergable(previous, textNode)) {
-            ongoing.children.push(textNode);
+            active.children.push(textNode);
             return;
         };
 
         if (!previous.text || !textNode.text) {
-            ongoing.children[lastIdx] = (previous.text) ? previous : textNode;
+            active.children[lastIdx] = (previous.text) ? previous : textNode;
             return;
         }
         
         const newText = previous.text + textNode.text;
         const mergedNode = (<ProseTextNode>previous).withText(newText);
         
-        ongoing.children[lastIdx] = mergedNode;
+        active.children[lastIdx] = mergedNode;
+    }
+
+    public activateMark(mark: ProseMark): void {
+        const active = this.__getActive();
+        active.marks = mark.addToSet(active.marks);
+    }
+
+    public deactivateMark(mark: ProseMark): void {
+        const active = this.__getActive();
+        active.marks = mark.removeFromSet(active.marks);
+    }
+
+    public getActiveNode(): ProseNodeType | null {
+        if (this._actives.empty()) {
+            return null;
+        }
+        return this._actives.top().ctor;
+    }
+
+    public getActiveMark(): readonly ProseMark[] {
+        if (this._actives.empty()) {
+            return [];
+        }
+        return this._actives.top().marks;
+    }
+
+    // [private helper methods]
+
+    private __getActive(): ParsingNodeState {
+        if (this._actives.empty()) {
+            throw new Error('Current document parsing state has no active tokens.');
+        }
+        return this._actives.top();
     }
 }
