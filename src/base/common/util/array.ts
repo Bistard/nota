@@ -31,6 +31,17 @@ export namespace Arrays {
     }
 
     /**
+     * @description Reversely iterate the given array.
+     * @param array The given array.
+     * @param each The visit callback for each element in array.
+     */
+    export function reverseIterate<T>(array: T[], each: (element: T, index: number) => void): void {
+        for (let idx = array.length - 1; idx >= 0; idx--) {
+            each(array[idx]!, idx);
+        }
+    }
+
+    /**
      * @description Insert the given item to the sorted array in a sort way. The
      * method mutates the original array and returns a reference to the same one.
      * @param sorted The sorted array.

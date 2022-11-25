@@ -3,7 +3,7 @@ import { Arrays, Deque, Queue, Stack } from 'src/base/common/util/array';
 
 suite('array-test', () => {
 
-    test('Array.remove()', () => {
+    test('remove', () => {
         const arr = [1, 1, 2, 3, 4, 5];
         assert.deepStrictEqual(Arrays.remove(arr, 1), [1, 2, 3, 4, 5]);
         assert.deepStrictEqual(Arrays.remove(arr, 1), [2, 3, 4, 5]);
@@ -11,7 +11,14 @@ suite('array-test', () => {
         assert.deepStrictEqual(Arrays.remove(arr, 5), [2, 3, 4]);
     });
 
-    test('Array.insert()', () => {
+    test('reverseIterate', () => {
+        const arr = [1, 2, 3, 4, 5];
+        const newArr: number[] = [];
+        Arrays.reverseIterate(arr, (ele) => newArr.push(ele));
+        assert.deepStrictEqual(newArr, arr.reverse());
+    });
+
+    test('insert', () => {
         assert.deepStrictEqual(Arrays.insert([], 3), [3]);
         assert.deepStrictEqual(Arrays.insert([1], 3), [1, 3]);
         assert.deepStrictEqual(Arrays.insert([1], 0), [0, 1]);
@@ -26,7 +33,7 @@ suite('array-test', () => {
         assert.deepStrictEqual(Arrays.insert([3, 3, 3, 9], 6), [3, 3, 3, 6, 9]);
     });
 
-    test('Array.equals()', () => {
+    test('equals', () => {
         const ref = [1, 2, 3];
         assert.strictEqual(Arrays.equals([], []), true);
         assert.strictEqual(Arrays.equals(ref, ref), true);
@@ -36,14 +43,14 @@ suite('array-test', () => {
         assert.strictEqual(Arrays.equals([1, 2, 3, 4], [4, 3, 2, 1]), false);
     });
 
-    test('Array.range()', () => {
+    test('range', () => {
         assert.deepStrictEqual(Arrays.range(0, 5), [0, 1, 2, 3, 4]);
         assert.deepStrictEqual(Arrays.range(1, 5), [1, 2, 3, 4]);
         assert.deepStrictEqual(Arrays.range(5, 0), [5, 4, 3, 2, 1]);
         assert.deepStrictEqual(Arrays.range(5, 1), [5, 4, 3, 2]);
     });
 
-    test('Array.union()', () => {
+    test('union', () => {
         assert.deepStrictEqual(Arrays.union([], []), []);
         assert.deepStrictEqual(Arrays.union([], [2]), [2]);
         assert.deepStrictEqual(Arrays.union([1], [2]), [1, 2]);
@@ -52,7 +59,7 @@ suite('array-test', () => {
         assert.deepStrictEqual(Arrays.union([1, 1, 2, 3], [4, 5]), [1, 2, 3, 4, 5]);
     });
 
-    test('Array.intersection()', () => {
+    test('intersection', () => {
         assert.deepStrictEqual(Arrays.intersection([], []), []);
         assert.deepStrictEqual(Arrays.intersection([], [2]), []);
         assert.deepStrictEqual(Arrays.intersection([1], [2]), []);
@@ -62,7 +69,7 @@ suite('array-test', () => {
         assert.deepStrictEqual(Arrays.intersection([1, 1, 2, 3], [1, 1, 2, 3]), [1, 2, 3]);
     });
 
-    test('Array.disjunction()', () => {
+    test('disjunction', () => {
         assert.deepStrictEqual(Arrays.disjunction([], []), []);
         assert.deepStrictEqual(Arrays.disjunction([], [2]), [2]);
         assert.deepStrictEqual(Arrays.disjunction([1], [2]), [1, 2]);
@@ -73,7 +80,7 @@ suite('array-test', () => {
         assert.deepStrictEqual(Arrays.disjunction([1, 2, 3], [4, 5, 6]), [1, 2, 3, 4, 5, 6]);
     });
 
-    test('Array.complement()', () => {
+    test('complement', () => {
         assert.deepStrictEqual(Arrays.relativeComplement([], []), []);
         assert.deepStrictEqual(Arrays.relativeComplement([], [2]), [2]);
         assert.deepStrictEqual(Arrays.relativeComplement([1, 2], []), []);
@@ -85,14 +92,14 @@ suite('array-test', () => {
         assert.deepStrictEqual(Arrays.relativeComplement([1, 2, 3], [4, 5, 6]), [4, 5, 6]);
     });
 
-    test('Array.unique()', () => {
+    test('unique', () => {
         assert.deepStrictEqual(Arrays.unique([]), []);
         assert.deepStrictEqual(Arrays.unique([1, 2]), [1, 2]);
         assert.deepStrictEqual(Arrays.unique([1, 1, 1]), [1]);
         assert.deepStrictEqual(Arrays.unique([1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 3]), [1, 2, 3]);
     });
 
-    test('Array.matchAny()', () => {
+    test('matchAny', () => {
         const cmp = (arrVal, myVal) => arrVal === myVal;
         assert.strictEqual(Arrays.matchAny([true], [false, false], cmp), false);
         assert.strictEqual(Arrays.matchAny([true], [true, false], cmp), true);
