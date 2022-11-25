@@ -314,7 +314,7 @@ export interface IEditOperation {
     readonly text: string;
 }
 
-export type EditorToken = marked.Token;
+export type EditorToken = marked.Tokens.Generic;
 
 /**
  * An interface only for {@link EditorModel}.

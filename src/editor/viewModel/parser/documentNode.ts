@@ -1,8 +1,6 @@
 import { Mutable } from "src/base/common/util/type";
-import { TokenEnum } from "src/editor/common/markdown";
+import { MarkEnum, TokenEnum } from "src/editor/common/markdown";
 import { ProseMarkSpec, ProseMarkType, ProseNodeSpec, ProseNodeType } from "src/editor/common/prose";
-import { Blockquote } from "src/editor/viewModel/parser/node/blockquote";
-import { Text } from "src/editor/viewModel/parser/node/text";
 import { EditorSchema, TOP_NODE_NAME } from "src/editor/viewModel/schema";
 
 export const enum IDocumentNodeType {
@@ -12,7 +10,7 @@ export const enum IDocumentNodeType {
     Mark,
 }
 
-export interface IDocumentNode {
+export interface IDocumentNode<TCtor = any, TSpec = any> {
     /**
      * Represents a corresponding markdown token type (original tokens parsed
      * by Marked). It matchs to {@link TokenEnum}.
@@ -20,12 +18,22 @@ export interface IDocumentNode {
     readonly name: string;
 
     readonly type: IDocumentNodeType;
+
+    readonly ctor: TCtor;
+    
+    getSchema(): TSpec;
 }
 
-abstract class DocumentNodeBase implements IDocumentNode {
+abstract class DocumentNodeBase<TCtor, TSpec> implements IDocumentNode<TCtor, TSpec> {
     constructor(public readonly name: string) {}
     public abstract readonly type: IDocumentNodeType;
+    public declare readonly ctor: TCtor;
+    public abstract getSchema(): TSpec;
 }
+
+export abstract class DocumentNode extends DocumentNodeBase<ProseNodeType, ProseNodeSpec> {}
+
+export abstract class DocumentMark extends DocumentNodeBase<ProseMarkType, ProseMarkSpec> {}
 
 function initDocumentNode(node: DocumentNode, ctor: ProseNodeType): void {
     (<Mutable<DocumentNode>>node).ctor = ctor;
@@ -33,16 +41,6 @@ function initDocumentNode(node: DocumentNode, ctor: ProseNodeType): void {
 
 function initDocumentMark(mark: DocumentMark, ctor: ProseMarkType): void {
     (<Mutable<DocumentMark>>mark).ctor = ctor;
-}
-
-export abstract class DocumentNode extends DocumentNodeBase {
-    declare public readonly ctor: ProseNodeType;
-    public abstract getSchema(): ProseNodeSpec;
-}
-
-export abstract class DocumentMark extends DocumentNodeBase {
-    declare public readonly ctor: ProseMarkType;
-    public abstract getSchema(): ProseMarkSpec;
 }
 
 export class DocumentNodeProvider {
@@ -54,15 +52,16 @@ export class DocumentNodeProvider {
 
     // [constructor]
 
-    constructor() {
-        registerDefaultNodes(this);
-        registerDefaultMarks(this);
-    }
+    constructor() {}
 
     // [public methods]
 
     public isNodeRegistered(name: string): boolean {
         return this._nodes.has(name);
+    }
+
+    public isMarkRegistered(name: string): boolean {
+        return this._marks.has(name);
     }
 
     public registerNode(node: DocumentNode): void {
@@ -75,11 +74,11 @@ export class DocumentNodeProvider {
         this._marks.set(mark.name, mark);
     }
 
-    public getNode(name: string): DocumentNode | undefined {
+    public getNode(name: TokenEnum | string): DocumentNode | undefined {
         return this._nodes.get(name);
     }
 
-    public getMark(name: string): DocumentMark | undefined {
+    public getMark(name: MarkEnum | string): DocumentMark | undefined {
         return this._marks.get(name);
     }
 
@@ -133,13 +132,4 @@ export class DocumentNodeProvider {
 
         return true;
     }
-}
-
-function registerDefaultNodes(provider: DocumentNodeProvider): void {
-    // provider.registerNode(new Text());
-    // provider.registerNode(new Blockquote());
-}
-
-function registerDefaultMarks(provider: DocumentNodeProvider): void {
-
 }

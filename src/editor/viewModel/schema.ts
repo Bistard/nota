@@ -40,6 +40,12 @@ export class MarkdownSchema extends EditorSchema  {
 			nodes: nodeSpec,
 			marks: markSpec,
 		});
+
+		// super({
+		// 	topNode: TOP_NODE_NAME,
+		// 	nodes: MarkdownSchema.getNodeSpecs(),
+		// 	marks: MarkdownSchema.getMarksSpecs(),
+		// });
 	}
 
 	// TODO

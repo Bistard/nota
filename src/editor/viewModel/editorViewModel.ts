@@ -30,6 +30,7 @@ export class EditorViewModel extends Disposable implements IEditorViewModel {
         this._model = model;
 
         this._nodeProvider = new DocumentNodeProvider();
+        this.__registerNodeAndMark(this._nodeProvider);
         this._schema = new MarkdownSchema(this._nodeProvider);
         this._nodeProvider.init(this._schema);
 
@@ -61,5 +62,9 @@ export class EditorViewModel extends Disposable implements IEditorViewModel {
         // if (document) {
         //     this._onFlush.fire(document);
         // }
+    }
+
+    private __registerNodeAndMark(provider: DocumentNodeProvider): void {
+        // TODO
     }
 }
