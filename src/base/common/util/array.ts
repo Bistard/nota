@@ -297,6 +297,9 @@ export namespace Arrays {
     }
 }
 
+/**
+ * Interface for {@link IDeque}.
+ */
 export interface IDeque<T> extends IIterable<T> {
     size(): number;
     empty(): boolean;
@@ -326,7 +329,6 @@ export class Deque<T> implements IDeque<T> {
     // [field]
 
     private _arr: T[];
-    private _defaultCmp: CompareFn<T> = (a: T, b: T) => a === b ? 1 : 0;
     
     // [constructor]
 
@@ -437,6 +439,107 @@ export class Deque<T> implements IDeque<T> {
 		let idx = 0;
         while (idx < this.size()) {
 			yield this._arr[idx]!;
+			idx += 1;
+		}
+	}
+}
+
+/**
+ * Interface for {@link Stack}.
+ */
+export interface IStack<T> extends IIterable<T> {
+    size(): number;
+    empty(): boolean;
+    top(): T;
+    push(element: T): void;
+    pop(): T;
+}
+
+export class Stack<T> implements IStack<T> {
+
+    private readonly _deque: Deque<T>;
+
+    constructor(elements: T[] = []) {
+        this._deque = new Deque(elements);
+    }
+
+    public size(): number {
+        return this._deque.size();
+    }
+
+    public empty(): boolean {
+        return this._deque.empty();
+    }
+
+    public top(): T {
+        return this._deque.front();
+    }
+
+    public push(element: T): void {
+        this._deque.pushFront(element);
+    }
+
+    public pop(): T {
+        return this._deque.popFront();
+    }
+
+    *[Symbol.iterator](): Iterator<T> {
+		let idx = 0;
+        while (idx < this.size()) {
+			yield this._deque.at(idx);
+			idx += 1;
+		}
+	}
+}
+
+/**
+ * Interface only for {@link Queue}.
+ */
+export interface IQueue<T> extends IIterable<T> {
+    size(): number;
+    empty(): boolean;
+    front(): T;
+    back(): T;
+    pushBack(element: T): void;
+    popFront(): T;
+}
+
+export class Queue<T> implements IQueue<T> {
+
+    private readonly _deque: Deque<T>;
+
+    constructor(elements: T[] = []) {
+        this._deque = new Deque(elements);
+    }
+
+    public size(): number {
+        return this._deque.size();
+    }
+
+    public empty(): boolean {
+        return this._deque.empty();
+    }
+
+    public front(): T {
+        return this._deque.front();
+    }
+
+    public back(): T {
+        return this._deque.back();
+    }
+
+    public pushBack(element: T): void {
+        this._deque.pushBack(element);
+    }
+
+    public popFront(): T {
+        return this._deque.popFront();
+    }
+
+    *[Symbol.iterator](): Iterator<T> {
+		let idx = 0;
+        while (idx < this.size()) {
+			yield this._deque.at(idx);
 			idx += 1;
 		}
 	}
