@@ -453,6 +453,7 @@ export interface IStack<T> extends IIterable<T> {
     top(): T;
     push(element: T): void;
     pop(): T;
+    clear(): void;
 }
 
 export class Stack<T> implements IStack<T> {
@@ -483,6 +484,10 @@ export class Stack<T> implements IStack<T> {
         return this._deque.popFront();
     }
 
+    public clear(): void {
+        this._deque.clear();
+    }
+
     *[Symbol.iterator](): Iterator<T> {
 		let idx = 0;
         while (idx < this.size()) {
@@ -502,6 +507,7 @@ export interface IQueue<T> extends IIterable<T> {
     back(): T;
     pushBack(element: T): void;
     popFront(): T;
+    clear(): void;
 }
 
 export class Queue<T> implements IQueue<T> {
@@ -534,6 +540,10 @@ export class Queue<T> implements IQueue<T> {
 
     public popFront(): T {
         return this._deque.popFront();
+    }
+
+    public clear(): void {
+        this._deque.clear();
     }
 
     *[Symbol.iterator](): Iterator<T> {
