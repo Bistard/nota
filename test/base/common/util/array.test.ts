@@ -1,5 +1,5 @@
 import * as assert from 'assert';
-import { Arrays, Deque } from 'src/base/common/util/array';
+import { Arrays, Deque, Queue, Stack } from 'src/base/common/util/array';
 
 suite('array-test', () => {
 
@@ -204,5 +204,66 @@ suite('deque-test', () => {
         deq.clear();
         assert.deepStrictEqual(toArray(deq), []);
         assert.deepStrictEqual(deq.empty(), true);
+    });
+});
+
+suite('stack-test', () => {
+   
+    test('basic', () => {
+        const s = new Stack<number>();
+        assert.strictEqual(s.empty(), true);
+        assert.strictEqual(s.size(), 0);
+        
+        s.push(0);
+        assert.strictEqual(s.top(), 0);
+
+        s.push(10);
+        assert.strictEqual(s.top(), 10);
+
+        s.push(11);
+        assert.strictEqual(s.top(), 11);
+
+        s.pop();
+        assert.strictEqual(s.top(), 10);
+
+        s.pop();
+        assert.strictEqual(s.top(), 0);
+
+        s.pop();
+        assert.strictEqual(s.empty(), true);
+        assert.strictEqual(s.size(), 0);
+    });
+});
+
+suite('queue-test', () => {
+   
+    test('basic', () => {
+        const q = new Queue<number>();
+        assert.strictEqual(q.empty(), true);
+        assert.strictEqual(q.size(), 0);
+        
+        q.pushBack(0);
+        assert.strictEqual(q.back(), 0);
+        assert.strictEqual(q.front(), 0);
+
+        q.pushBack(10);
+        assert.strictEqual(q.front(), 0);
+        assert.strictEqual(q.back(), 10);
+
+        q.pushBack(11);
+        assert.strictEqual(q.front(), 0);
+        assert.strictEqual(q.back(), 11);
+
+        q.popFront();
+        assert.strictEqual(q.front(), 10);
+        assert.strictEqual(q.back(), 11);
+
+        q.popFront();
+        assert.strictEqual(q.front(), 11);
+        assert.strictEqual(q.back(), 11);
+
+        q.popFront();
+        assert.strictEqual(q.empty(), true);
+        assert.strictEqual(q.size(), 0);
     });
 });
