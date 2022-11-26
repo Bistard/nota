@@ -12,8 +12,8 @@ export class Blockquote extends DocumentNode<EditorTokens.Blockquote> {
 
     public getSchema(): ProseNodeSpec {
         return {
-            content: 'block+',
             group: 'block',
+            content: 'block+',
             defining: true,
             parseDOM: [{ tag: 'blockquote' }],
             toDOM: () => { return ['blockquote', 0]; }

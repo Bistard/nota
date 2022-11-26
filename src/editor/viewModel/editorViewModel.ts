@@ -57,7 +57,11 @@ export class EditorViewModel extends Disposable implements IEditorViewModel {
 
     private __registerModelListeners(): void {
         
-        this.__register(this._model.onDidBuild(success => { if (success) this.__onDidBuild(); }));
+        this.__register(this._model.onDidBuild(success => { 
+            if (success) {
+                this.__onDidBuild();
+            }
+        }));
     }
 
     private __onDidBuild(): void {

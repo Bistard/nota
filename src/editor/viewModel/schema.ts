@@ -58,7 +58,7 @@ export class MarkdownSchema extends EditorSchema  {
 			 * The top level document node.
 			 */
 			doc: <ProseNodeSpec>{
-				content: "block+",
+				content: 'block+',
 			},
 
 			/**
@@ -66,31 +66,31 @@ export class MarkdownSchema extends EditorSchema  {
 			 * element.
 			 */
 			[TokenEnum.Paragraph]: <ProseNodeSpec>{
-				content: "inline*",
-				group: "block",
-				parseDOM: [{ tag: "p" }],
-				toDOM: () => { return ["p", 0]; }
+				content: 'inline*',
+				group: 'block',
+				parseDOM: [{ tag: 'p' }],
+				toDOM: () => { return ['p', 0]; }
 			},
 
 			/**
 			 * A blockquote (`<blockquote>`) wrapping one or more blocks.
 			 */
 			[TokenEnum.Blockquote]: <ProseNodeSpec>{
-				content: "block+",
-				group: "block",
+				content: 'block+',
+				group: 'block',
 				defining: true,
-				parseDOM: [{ tag: "blockquote" }],
-				toDOM: () => { return ["blockquote", 0]; }
+				parseDOM: [{ tag: 'blockquote' }],
+				toDOM: () => { return ['blockquote', 0]; }
 			},
 
 			/**
 			 * A horizontal rule (`<hr>`).
 			 */
 			[TokenEnum.HorizontalRule]: <ProseNodeSpec>{
+				group: 'block',
 				content: undefined,
-				group: "block",
-				parseDOM: [{ tag: "hr" }],
-				toDOM: () => { return ["hr"]; }
+				parseDOM: [{ tag: 'hr' }],
+				toDOM: () => { return ['hr']; }
 			},
 
 			/**
@@ -100,18 +100,18 @@ export class MarkdownSchema extends EditorSchema  {
 			 */
 			[TokenEnum.Heading]: <ProseNodeSpec>{
 				attrs: { level: { default: 1 } },
-				content: "inline*",
-				group: "block",
+				content: 'inline*',
+				group: 'block',
 				defining: true,
 				parseDOM: [
-					{ tag: "h1", attrs: { level: 1 } },
-					{ tag: "h2", attrs: { level: 2 } },
-					{ tag: "h3", attrs: { level: 3 } },
-					{ tag: "h4", attrs: { level: 4 } },
-					{ tag: "h5", attrs: { level: 5 } },
-					{ tag: "h6", attrs: { level: 6 } },
+					{ tag: 'h1', attrs: { level: 1 } },
+					{ tag: 'h2', attrs: { level: 2 } },
+					{ tag: 'h3', attrs: { level: 3 } },
+					{ tag: 'h4', attrs: { level: 4 } },
+					{ tag: 'h5', attrs: { level: 5 } },
+					{ tag: 'h6', attrs: { level: 6 } },
 				],
-				toDOM(node) { return ["h" + node.attrs['level'], 0]; }
+				toDOM(node) { return ['h' + node.attrs['level'], 0]; }
 			},
 
 			/**
@@ -120,22 +120,22 @@ export class MarkdownSchema extends EditorSchema  {
 			 * inside of it.
 			 */
 			[TokenEnum.CodeBlock]: <ProseNodeSpec>{
-				content: "text*",
-				group: "block",
-				marks: "",
+				content: 'text*',
+				group: 'block',
+				marks: '',
 				code: true,
 				defining: true,
 				parseDOM: [
-					{ tag: "pre", preserveWhitespace: "full" },
+					{ tag: 'pre', preserveWhitespace: 'full' },
 				],
-				toDOM: () => { return ["pre", ["code", 0]]; }
+				toDOM: () => { return ['pre', ['code', 0]]; }
 			},
 
 			/**
 			 * The plain-text node.
 			 */
 			[TokenEnum.Text]: <ProseNodeSpec>{
-				group: "inline"
+				group: 'inline'
 			},
 
 			/**
@@ -149,23 +149,23 @@ export class MarkdownSchema extends EditorSchema  {
 					alt: { default: null },
 					title: { default: null }
 				},
-				group: "inline",
+				group: 'inline',
 				draggable: true,
 				parseDOM: [
 					{
-						tag: "img[src]", 
+						tag: 'img[src]', 
 						getAttrs: (dom: HTMLElement) => {
 							return {
-								src: dom.getAttribute("src"),
-								title: dom.getAttribute("title"),
-								alt: dom.getAttribute("alt")
+								src: dom.getAttribute('src'),
+								title: dom.getAttribute('title'),
+								alt: dom.getAttribute('alt')
 							};
 						}
 					}
 				],
 				toDOM: (node) => {
 					const { src, alt, title } = node.attrs;
-					return ["img", { src, alt, title }];
+					return ['img', { src, alt, title }];
 				}
 			},
 
@@ -174,10 +174,10 @@ export class MarkdownSchema extends EditorSchema  {
 			 */
 			[TokenEnum.LineBreak]: <ProseNodeSpec>{
 				inline: true,
-				group: "inline",
+				group: 'inline',
 				selectable: false,
-				parseDOM: [{ tag: "br" }],
-				toDOM: () => { return ["br"]; }
+				parseDOM: [{ tag: 'br' }],
+				toDOM: () => { return ['br']; }
 			},
 		};
 	}
@@ -196,17 +196,17 @@ export class MarkdownSchema extends EditorSchema  {
 				inclusive: false,
 				parseDOM: [
 				{
-					tag: "a[href]", 
+					tag: 'a[href]', 
 					getAttrs: (dom: HTMLElement) => {
 						return {
-							href: dom.getAttribute("href"),
-							title: dom.getAttribute("title"),
+							href: dom.getAttribute('href'),
+							title: dom.getAttribute('title'),
 						};
 					}
 				}],
 				toDOM: (node) => {
 					const { href, title } = node.attrs;
-					return ["a", { href, title }, 0];
+					return ['a', { href, title }, 0];
 				}
 			},
 
@@ -216,11 +216,11 @@ export class MarkdownSchema extends EditorSchema  {
 			 */
 			[MarkEnum.Em]: <ProseMarkSpec>{
 				parseDOM: [
-					{ tag: "i" }, 
-					{ tag: "em" }, 
-					{ style: "font-style=italic" }
+					{ tag: 'i' }, 
+					{ tag: 'em' }, 
+					{ style: 'font-style=italic' }
 				],
-				toDOM: () => { return ["em", 0]; }
+				toDOM: () => { return ['em', 0]; }
 			},
 
 			/**
@@ -229,30 +229,30 @@ export class MarkdownSchema extends EditorSchema  {
 			 */
 			[MarkEnum.Strong]: <ProseMarkSpec>{
 				parseDOM: [
-					{ tag: "strong" },
+					{ tag: 'strong' },
 					/**
 					 * This works around a Google Docs misbehavior where pasted 
 					 * content will be inexplicably wrapped in `<b>` tags with a 
 					 * font-weight normal.
 					 */
 					{ 
-						tag: "b", 
-						getAttrs: (node: HTMLElement) => (node.style.fontWeight != "normal") && null 
+						tag: 'b', 
+						getAttrs: (node: HTMLElement) => (node.style.fontWeight != 'normal') && null 
 					},
 					{ 
-						style: "font-weight", 
+						style: 'font-weight', 
 						getAttrs: (value: string) => /^(bold(er)?|[5-9]\d{2,})$/.test(value) && null 
 					}
 				],
-				toDOM: () => { return ["strong", 0]; }
+				toDOM: () => { return ['strong', 0]; }
 			},
 
 			/**
 			 * Code font mark. Represented as a `<code>` element.
 			 */
 			[MarkEnum.CodeInline]: <ProseMarkSpec>{
-				parseDOM: [{ tag: "code" }],
-				toDOM: () => { return ["code", 0]; }
+				parseDOM: [{ tag: 'code' }],
+				toDOM: () => { return ['code', 0]; }
 			}
 		};
 	}

@@ -12,8 +12,8 @@ export class Heading extends DocumentNode<EditorTokens.Heading> {
 
     public getSchema(): ProseNodeSpec {
         return {
-            content: 'inline*',
             group: 'block',
+            content: 'inline*',
             defining: true,
             attrs: { 
                 level: { default: 1 } 

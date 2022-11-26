@@ -148,8 +148,9 @@ class DocumentParseState implements IDocumentParseState {
 
     public deactivateNode(): ProseNode | null {
         const active = this.__popActive();
+        
+        // happens when deactivating the root document node
         if (this._actives.empty()) {
-            // the root document node
             return active.ctor.createAndFill(active.attrs, active.children, active.marks);
         }
 
