@@ -4,27 +4,23 @@ import { ProseNodeSpec } from "src/editor/common/prose";
 import { DocumentNode } from "src/editor/viewModel/parser/documentNode";
 import { IDocumentParseState } from "src/editor/viewModel/parser/documentParser";
 
-export class Blockquote extends DocumentNode<EditorTokens.Blockquote> {
+export class Space extends DocumentNode<EditorTokens.Space> {
 
     constructor() {
-        super(TokenEnum.Blockquote);
+        super(TokenEnum.Space);
     }
 
     public getSchema(): ProseNodeSpec {
         return {
-            content: 'block+',
             group: 'block',
-            defining: true,
-            parseDOM: [{ tag: 'blockquote' }],
-            toDOM: () => { return ['blockquote', 0]; }
+            content: undefined,
+            parseDOM: [{ tag: 'p' }],
+            toDOM: () => { return ['p', 0]; }
         };
     }
 
-    public parseFromToken(state: IDocumentParseState, token: EditorTokens.Blockquote): void {
+    public parseFromToken(state: IDocumentParseState, token: EditorTokens.Space): void {
         state.activateNode(this.ctor);
-        if (token.tokens) {
-            state.parseTokens(token.tokens);
-        }
         state.deactivateNode();
     }
 }

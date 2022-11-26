@@ -1,6 +1,6 @@
-import { Arrays, Stack } from "src/base/common/util/array";
-import { EditorToken, EditorTokenGeneric } from "src/editor/common/model";
-import { ProseAttrs, ProseMark, ProseNode, ProseNodeType, ProseTextNode } from "src/editor/common/prose";
+import { Stack } from "src/base/common/util/array";
+import { EditorToken } from "src/editor/common/model";
+import { ProseAttrs, ProseMark, ProseMarkType, ProseNode, ProseNodeType, ProseTextNode } from "src/editor/common/prose";
 import { DocumentNodeProvider, IDocumentNode } from "src/editor/viewModel/parser/documentNode";
 import { EditorSchema } from "src/editor/viewModel/schema";
 
@@ -16,8 +16,6 @@ export class DocumentParser implements IDocumentParser {
     
     // [field]
 
-    private readonly _schema: EditorSchema;
-    private readonly _nodeProvider: DocumentNodeProvider;
     private readonly _state: DocumentParseState;
 
     // [constructor]
@@ -26,8 +24,6 @@ export class DocumentParser implements IDocumentParser {
         schema: EditorSchema,
         nodeProvider: DocumentNodeProvider,
     ) {
-        this._schema = schema;
-        this._nodeProvider = nodeProvider;
         this._state = new DocumentParseState(schema, nodeProvider);
     }
 
@@ -35,12 +31,11 @@ export class DocumentParser implements IDocumentParser {
 
     public parse(tokens: EditorToken[]): ProseNode | null {        
         
-        
         this._state.parseTokens(tokens);
         const documentRoot = this._state.complete();
         this._state.clean();
         
-        return documentRoot ?? this._schema.topNodeType.createAndFill();
+        return documentRoot;
     }
 }
 
@@ -64,12 +59,13 @@ interface ParsingNodeState {
 export interface IDocumentParseState {
     activateNode(ctor: ProseNodeType): void;
     deactivateNode(): ProseNode | null;
+    parseTokens(tokens: EditorToken[]): void;
     
     addToActive(ctor: ProseNodeType, attr?: ProseAttrs): ProseNode | null;
     addText(text: string): void;
 
     activateMark(mark: ProseMark): void;
-    deactivateMark(mark: ProseMark): void;
+    deactivateMark(mark: ProseMarkType): void;
 
     getActiveNode(): ProseNodeType | null;
     getActiveMark(): readonly ProseMark[];
@@ -96,7 +92,7 @@ class DocumentParseState implements IDocumentParseState {
         provider: DocumentNodeProvider,
     ) {
         this._defaultNodeType = schema.topNodeType;
-        this._createTextNode = schema.text;
+        this._createTextNode = schema.text.bind(schema);
         this._nodeProvider = provider;
 
         this._actives = new Stack([{ ctor: this._defaultNodeType, children: [], marks: [], attrs: undefined }]);
@@ -104,26 +100,15 @@ class DocumentParseState implements IDocumentParseState {
 
     // [public methods]
 
-    public parseTokens(tokens: EditorTokenGeneric[]): void {
-        const stack = new Stack<EditorTokenGeneric>(tokens);
-        
-        while (!stack.empty()) {
-            const token = stack.pop();
-
+    public parseTokens(tokens: EditorToken[]): void {
+        for (const token of tokens) {
             const name = token.type;
             const node = this._nodeProvider.getNode(name) ?? this._nodeProvider.getMark(name);
             if (!node) {
-                throw new Error(`cannot find any registered document nodes that matches the given token with type ${name}`);
+                throw new Error(`cannot find any registered document nodes that matches the given token with type '${name}'`);
             }
             
             node.parseFromToken(this, token);
-            if (!token.tokens) {
-                continue;
-            }
-
-            Arrays.reverseIterate(token.tokens, (child) => {
-                stack.push(child);
-            });
         }
     }
 
@@ -132,14 +117,14 @@ class DocumentParseState implements IDocumentParseState {
         while (!this._actives.empty()) {
             root = this.deactivateNode();
         }
-        return root;
+        return root ?? this._defaultNodeType.createAndFill();
     }
 
     public clean(): void {
         this._actives.clear();
     }
 
-    // [public state methods]
+    // [public methods]
 
     public activateNode(ctor: ProseNodeType): void {
         this._actives.push({
@@ -150,9 +135,9 @@ class DocumentParseState implements IDocumentParseState {
         });
     }
 
-    public addToActive(ctor: ProseNodeType, attr?: ProseAttrs): ProseNode | null {
+    public addToActive(ctor: ProseNodeType, attr?: ProseAttrs, children?: ProseNode[]): ProseNode | null {
         const active = this.__getActive();
-        const proseNode = ctor.createAndFill(attr, [], active.marks);
+        const proseNode = ctor.createAndFill(attr, children, active.marks);
         if (!proseNode) {
             return null;
         }
@@ -162,8 +147,14 @@ class DocumentParseState implements IDocumentParseState {
     }
 
     public deactivateNode(): ProseNode | null {
-        const active = this.__getActive();
-        return this.addToActive(active.ctor, active.attrs);
+        const active = this.__popActive();
+        if (this._actives.empty()) {
+            // the root document node
+            return active.ctor.createAndFill(active.attrs, active.children, active.marks);
+        }
+
+        const node = this.addToActive(active.ctor, active.attrs, active.children);
+        return node;
     }
 
     public addText(text: string): void {
@@ -209,7 +200,7 @@ class DocumentParseState implements IDocumentParseState {
         active.marks = mark.addToSet(active.marks);
     }
 
-    public deactivateMark(mark: ProseMark): void {
+    public deactivateMark(mark: ProseMarkType): void {
         const active = this.__getActive();
         active.marks = mark.removeFromSet(active.marks);
     }
@@ -235,5 +226,12 @@ class DocumentParseState implements IDocumentParseState {
             throw new Error('Current document parsing state has no active tokens.');
         }
         return this._actives.top();
+    }
+
+    private __popActive(): ParsingNodeState {
+        if (this._actives.empty()) {
+            throw new Error('Current document parsing state has no active tokens.');
+        }
+        return this._actives.pop();
     }
 }

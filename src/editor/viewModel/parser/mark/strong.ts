@@ -1,0 +1,40 @@
+import { MarkEnum } from "src/editor/common/markdown";
+import { EditorTokens } from "src/editor/common/model";
+import { ProseMarkSpec } from "src/editor/common/prose";
+import { DocumentMark } from "src/editor/viewModel/parser/documentNode";
+import { IDocumentParseState } from "src/editor/viewModel/parser/documentParser";
+
+export class Strong extends DocumentMark<EditorTokens.Strong> {
+
+    constructor() {
+        super(MarkEnum.Strong);
+    }
+
+    public getSchema(): ProseMarkSpec {
+        return <ProseMarkSpec>{
+            parseDOM: [
+                { tag: "strong" },
+                /**
+                 * This works around a Google Docs misbehavior where pasted 
+                 * content will be inexplicably wrapped in `<b>` tags with a 
+                 * font-weight normal.
+                 */
+                { 
+                    tag: "b", 
+                    getAttrs: (node: HTMLElement) => (node.style.fontWeight != "normal") && null 
+                },
+                { 
+                    style: "font-weight", 
+                    getAttrs: (value: string) => /^(bold(er)?|[5-9]\d{2,})$/.test(value) && null 
+                }
+            ],
+            toDOM: () => { return ["strong", 0]; }
+        };
+    }
+
+    public parseFromToken(state: IDocumentParseState, token: EditorTokens.Strong): void {
+        state.activateMark(this.ctor.create());
+        state.addText(token.text);
+        state.deactivateMark(this.ctor);
+    }
+}

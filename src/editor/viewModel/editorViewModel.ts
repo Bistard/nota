@@ -5,6 +5,14 @@ import { ProseNode } from "src/editor/common/prose";
 import { IEditorViewModel } from "src/editor/common/viewModel";
 import { DocumentNodeProvider } from "src/editor/viewModel/parser/documentNode";
 import { DocumentParser, IDocumentParser } from "src/editor/viewModel/parser/documentParser";
+import { Emphasis } from "src/editor/viewModel/parser/mark/emphasis";
+import { Link } from "src/editor/viewModel/parser/mark/link";
+import { Strong } from "src/editor/viewModel/parser/mark/strong";
+import { Blockquote } from "src/editor/viewModel/parser/node/blockquote";
+import { Heading } from "src/editor/viewModel/parser/node/heading";
+import { Paragraph } from "src/editor/viewModel/parser/node/paragraph";
+import { Space } from "src/editor/viewModel/parser/node/space";
+import { Text } from "src/editor/viewModel/parser/node/text";
 import { EditorSchema, MarkdownSchema } from "src/editor/viewModel/schema";
 
 export class EditorViewModel extends Disposable implements IEditorViewModel {
@@ -65,6 +73,14 @@ export class EditorViewModel extends Disposable implements IEditorViewModel {
     }
 
     private __registerNodeAndMark(provider: DocumentNodeProvider): void {
-        // TODO
+        provider.registerNode(new Space());
+        provider.registerNode(new Text());
+        provider.registerNode(new Heading());
+        provider.registerNode(new Paragraph());
+        provider.registerNode(new Blockquote());
+
+        provider.registerMark(new Link());
+        provider.registerMark(new Emphasis());
+        provider.registerMark(new Strong());
     }
 }

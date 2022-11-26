@@ -22,7 +22,7 @@ export class EditorSchema extends ProseSchema<string, string> {
 export class MarkdownSchema extends EditorSchema  {
 
 	constructor(nodeProvider: DocumentNodeProvider) {
-		const nodeSpec: Record<string, ProseNodeSpec> = { doc: <ProseNodeSpec>{ content: 'block+' } };
+		const nodeSpec: Record<string, ProseNodeSpec> = { [TOP_NODE_NAME]: <ProseNodeSpec>{ content: 'block+' } };
 		const markSpec: Record<string, ProseMarkSpec> = {};
 		
 		const nodes = nodeProvider.getRegisteredNodes();
@@ -34,6 +34,9 @@ export class MarkdownSchema extends EditorSchema  {
 		for (const mark of marks) {
 			markSpec[mark.name] = mark.getSchema();
 		}
+
+		console.log('[schema]', nodeSpec);
+		console.log('[schema]', markSpec);
 
 		super({
 			topNode: TOP_NODE_NAME,

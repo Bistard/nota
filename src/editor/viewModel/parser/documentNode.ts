@@ -5,22 +5,12 @@ import { ProseMarkSpec, ProseMarkType, ProseNodeSpec, ProseNodeType } from "src/
 import { IDocumentParseState } from "src/editor/viewModel/parser/documentParser";
 import { EditorSchema, TOP_NODE_NAME } from "src/editor/viewModel/schema";
 
-// todo: unused
-export const enum IDocumentNodeType {
-    Text,
-    Inline,
-    Block,
-    Mark,
-}
-
 export interface IDocumentNode<TCtor, TSpec, TToken = EditorToken> {
     /**
      * Represents a corresponding markdown token type (original tokens parsed
      * by Marked). It matchs to {@link TokenEnum}.
      */
     readonly name: string;
-
-    readonly type: IDocumentNodeType;
 
     readonly ctor: TCtor;
     
@@ -31,7 +21,6 @@ export interface IDocumentNode<TCtor, TSpec, TToken = EditorToken> {
 
 abstract class DocumentNodeBase<TCtor, TSpec, TToken> implements IDocumentNode<TCtor, TSpec, TToken> {
     constructor(public readonly name: string) {}
-    public abstract readonly type: IDocumentNodeType;
     public declare readonly ctor: TCtor;
     public abstract getSchema(): TSpec;
     public abstract parseFromToken(state: IDocumentParseState, token: TToken): void;
