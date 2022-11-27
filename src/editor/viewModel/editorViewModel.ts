@@ -5,6 +5,7 @@ import { ProseNode } from "src/editor/common/prose";
 import { IEditorViewModel } from "src/editor/common/viewModel";
 import { DocumentNodeProvider } from "src/editor/viewModel/parser/documentNode";
 import { DocumentParser, IDocumentParser } from "src/editor/viewModel/parser/documentParser";
+import { Codespan } from "src/editor/viewModel/parser/mark/codespan";
 import { Emphasis } from "src/editor/viewModel/parser/mark/emphasis";
 import { Link } from "src/editor/viewModel/parser/mark/link";
 import { Strong } from "src/editor/viewModel/parser/mark/strong";
@@ -12,6 +13,7 @@ import { Blockquote } from "src/editor/viewModel/parser/node/blockquote";
 import { CodeBlock } from "src/editor/viewModel/parser/node/codeBlock";
 import { Heading } from "src/editor/viewModel/parser/node/heading";
 import { HorizontalRule } from "src/editor/viewModel/parser/node/horizontalRule";
+import { Image } from "src/editor/viewModel/parser/node/image";
 import { LineBreak } from "src/editor/viewModel/parser/node/lineBreak";
 import { Paragraph } from "src/editor/viewModel/parser/node/paragraph";
 import { Space } from "src/editor/viewModel/parser/node/space";
@@ -88,9 +90,11 @@ export class EditorViewModel extends Disposable implements IEditorViewModel {
         provider.registerNode(new HorizontalRule());
         provider.registerNode(new CodeBlock());
         provider.registerNode(new LineBreak());
+        provider.registerNode(new Image());
 
         provider.registerMark(new Link());
         provider.registerMark(new Emphasis());
         provider.registerMark(new Strong());
+        provider.registerMark(new Codespan());
     }
 }

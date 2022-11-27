@@ -1,4 +1,3 @@
-import { MarkEnum, TokenEnum } from "src/editor/common/markdown";
 import { ProseMark, ProseMarkSpec, ProseMarkType, ProseNodeSpec, ProseNodeType, ProseSchema, ProseTextNode } from "src/editor/common/prose";
 import { DocumentNodeProvider } from "src/editor/viewModel/parser/documentNode";
 
@@ -49,54 +48,5 @@ export class MarkdownSchema extends EditorSchema  {
 		 * the 'ctor' field of each nodes will not work.
 		 */
 		nodeProvider.init(this);
-	}
-
-	// TODO
-	private static getNodeSpecs(): Record<string, ProseNodeSpec> {
-		return {
-
-			/**
-			 * An inline image (`<img>`) node. Supports `src`, `alt`, and `href` 
-			 * attributes. The latter two default to the empty string.
-			 */
-			[TokenEnum.Image]: <ProseNodeSpec>{
-				inline: true,
-				attrs: {
-					src: {},
-					alt: { default: null },
-					title: { default: null }
-				},
-				group: 'inline',
-				draggable: true,
-				parseDOM: [
-					{
-						tag: 'img[src]', 
-						getAttrs: (dom: HTMLElement) => {
-							return {
-								src: dom.getAttribute('src'),
-								title: dom.getAttribute('title'),
-								alt: dom.getAttribute('alt')
-							};
-						}
-					}
-				],
-				toDOM: (node) => {
-					const { src, alt, title } = node.attrs;
-					return ['img', { src, alt, title }];
-				}
-			},
-		};
-	}
-
-	private static getMarksSpecs(): Record<string, ProseMarkSpec> {
-		return {
-			/**
-			 * Code font mark. Represented as a `<code>` element.
-			 */
-			[MarkEnum.CodeInline]: <ProseMarkSpec>{
-				parseDOM: [{ tag: 'code' }],
-				toDOM: () => { return ['code', 0]; }
-			}
-		};
 	}
 }

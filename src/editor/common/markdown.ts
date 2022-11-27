@@ -16,14 +16,14 @@ export const enum TokenEnum {
     Def = 'def', // TODO
     Escape = 'escape',
     Image = 'image',
-    LineBreak = 'br', // TODO
+    LineBreak = 'br',
 }
 
 export const enum MarkEnum {
-    // marked.Tokens.Tag // TODO
     Link = 'link',
     Strong = 'strong',
     Em = 'em',
-    CodeInline = 'codespan',
+    Codespan = 'codespan',
+    // marked.Tokens.Tag // TODO
     Del = 'del', // TODO
 }

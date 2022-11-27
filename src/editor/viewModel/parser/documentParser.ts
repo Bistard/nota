@@ -71,8 +71,9 @@ export interface IDocumentParseState {
      * stack. All the newly deactivated nodes will be added as a child node into 
      * this one.
      * @param ctor The constructor for the newly activated document node.
+     * @param attrs The attributes for the newly activated document node.
      */
-    activateNode(ctor: ProseNodeType): void;
+    activateNode(ctor: ProseNodeType, attrs?: ProseAttrs): void;
 
     /**
      * @description Deactivates the current node and creates the corresponding
@@ -180,12 +181,12 @@ class DocumentParseState implements IDocumentParseState {
 
     // [public methods]
 
-    public activateNode(ctor: ProseNodeType): void {
+    public activateNode(ctor: ProseNodeType, attrs?: ProseAttrs): void {
         this._actives.push({
             ctor: ctor,
             children: [],
             marks: [],
-            attrs: undefined,
+            attrs: attrs,
         });
     }
 
