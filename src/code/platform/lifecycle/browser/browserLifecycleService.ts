@@ -47,13 +47,15 @@ export class BrowserLifecycleService extends AbstractLifecycleService<LifecycleP
     // [public methods]
 
     public override async quit(): Promise<void> {
+        this._onBeforeQuit.fire();
         await this.__fireWillQuit();
         return this.hostService.closeWindow();
     }
 
     // [private helper methods]
 
-    private __fireWillQuit(): Promise<void> {
+    private async __fireWillQuit(): Promise<void> {
+        
         if (this._ongoingQuitPromise) {
             return this._ongoingQuitPromise;
         }
@@ -74,7 +76,8 @@ export class BrowserLifecycleService extends AbstractLifecycleService<LifecycleP
             }
         })();
         
-        return this._ongoingQuitPromise.then(() => this._ongoingQuitPromise = undefined);
+        await this._ongoingQuitPromise;
+        this._ongoingQuitPromise = undefined;
     }
 }
 
