@@ -17,9 +17,13 @@ export class Space extends DocumentNode<EditorTokens.Space> {
     public getSchema(): ProseNodeSpec {
         return {
             group: 'block',
-            content: undefined,
-            parseDOM: [{ tag: 'p' }],
-            toDOM: () => { return ['p', 0]; }
+            content: 'inline*',
+            parseDOM: [{ tag: 'div' }],
+            toDOM: () => {
+                const dom = document.createElement('div');
+                dom.innerHTML = '&nbsp;';
+                return dom;
+            }
         };
     }
 
