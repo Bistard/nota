@@ -119,6 +119,9 @@ export class FileLogger extends AbstractLogger implements ILogger {
     }
 
     public async flush(): Promise<void> {
+        if (this._queue.size === 0) {
+            return;
+        }
         const blocker = new Blocker<void>();
         this._queue.onDidFlush(() => blocker.resolve());
         return blocker.waiting();

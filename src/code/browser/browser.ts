@@ -1,3 +1,4 @@
+import { ILogService } from "src/base/common/logger";
 import { workbenchDefaultShortcutRegistrations } from "src/code/browser/service/workbench/shortcut.register";
 import { IFileService } from "src/code/platform/files/common/fileService";
 import { IInstantiationService } from "src/code/platform/instantiation/common/instantiation";
@@ -15,6 +16,7 @@ export class BrowserInstance implements IBrowser {
         @IInstantiationService private readonly instantiationService: IInstantiationService,
         @ILifecycleService private readonly lifecycleService: IBrowserLifecycleService,
         @IFileService private readonly fileService: IFileService,
+        @ILogService private readonly logService: ILogService,
     ) {}
 
     // [public methods]
@@ -36,8 +38,11 @@ export class BrowserInstance implements IBrowser {
 
         // when the window is about to quit
         this.lifecycleService.onWillQuit(e => {
-            // e.join(new EventBlocker(this.fileService.onDidAllResourceClosed).waiting());
-            // this.fileService.dispose();
+            /**
+             * Making sure all the logging message from the browser side is 
+             * correctly sending to the main process.
+             */
+            e.join(this.logService.flush().then(() => this.logService.dispose()));
         });
     }
 
