@@ -158,6 +158,7 @@ class DocumentParseState implements IDocumentParseState {
             const name = token.type;
             const node = this._nodeProvider.getNode(name) ?? this._nodeProvider.getMark(name);
             if (!node) {
+                // TODO: should log out and conitnue instead of throw it out.
                 throw new Error(`cannot find any registered document nodes that matches the given token with type '${name}'`);
             }
             
