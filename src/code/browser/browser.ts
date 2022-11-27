@@ -1,4 +1,3 @@
-import { EventBlocker } from "src/base/common/util/async";
 import { workbenchDefaultShortcutRegistrations } from "src/code/browser/service/workbench/shortcut.register";
 import { IFileService } from "src/code/platform/files/common/fileService";
 import { IInstantiationService } from "src/code/platform/instantiation/common/instantiation";
@@ -10,18 +9,24 @@ export interface IBrowser {
 
 export class BrowserInstance implements IBrowser {
 
+    // [constructor]
+
     constructor(
         @IInstantiationService private readonly instantiationService: IInstantiationService,
         @ILifecycleService private readonly lifecycleService: IBrowserLifecycleService,
         @IFileService private readonly fileService: IFileService,
     ) {}
 
+    // [public methods]
+
     public init(): void {
         this.registerListeners();
         this.lifecycleService.setPhase(LifecyclePhase.Ready);
     }
 
-    public registerListeners(): void {
+    // [private helper methods]
+
+    private registerListeners(): void {
         
         // when the window is ready
         this.lifecycleService.when(LifecyclePhase.Ready)

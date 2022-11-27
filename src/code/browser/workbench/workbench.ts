@@ -49,7 +49,7 @@ export class Workbench extends WorkbenchLayout implements IWorkbenchService {
         // workbench-service
         this.instantiationService.register(IWorkbenchService, this);
 
-        // @deprecated
+        // TODO: deprecated
         this.instantiationService.register(IContextMenuService, new ServiceDescriptor(ContextMenuService));
     }
 

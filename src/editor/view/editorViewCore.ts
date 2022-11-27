@@ -90,12 +90,11 @@ export class EditorViewCore extends Disposable implements IEditorViewCore {
 
     public updateContent(doc: ProseNode): void {
         
-        // TEST
-        
         const newState = ProseEditorState.create({
             schema: this._ctx.viewModel.getSchema(),
             doc: doc,
         });
+        
         this._view.updateState(newState);
     }
 

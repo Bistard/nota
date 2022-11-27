@@ -71,10 +71,10 @@ export class EditorViewModel extends Disposable implements IEditorViewModel {
 
     private __onDidBuild(): void {
         const tokens = this._model.getTokens();
-        console.log('[tokens]', tokens);
+        console.log('[tokens]', tokens); // TEST
 
         const document = this._docParser.parse(tokens);
-        console.log('[document]', document);
+        console.log('[document]', document); // TEST
 
         if (document) {
             this._onFlush.fire(document);

@@ -69,7 +69,7 @@ class RendererInstance extends Disposable {
             browser.init();
         } 
         catch (error: any) {
-            const logService = instantiaionService?.getService(ILogService);
+            const logService = instantiaionService.getService(ILogService);
             logService.error(error);
             ErrorHandler.onUnexpectedError(error);
         }

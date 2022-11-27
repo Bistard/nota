@@ -44,7 +44,6 @@ export class Image extends DocumentNode<EditorTokens.Image> {
     }
 
     public parseFromToken(state: IDocumentParseState, token: EditorTokens.Image): void {
-        // TODO: token.href should be redirected to the correct one
         state.activateNode(this.ctor, {
             src: token.href,
             title: token.title,
