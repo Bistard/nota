@@ -56,33 +56,6 @@ export class MarkdownSchema extends EditorSchema  {
 		return {
 
 			/**
-			 * A horizontal rule (`<hr>`).
-			 */
-			[TokenEnum.HorizontalRule]: <ProseNodeSpec>{
-				group: 'block',
-				content: undefined,
-				parseDOM: [{ tag: 'hr' }],
-				toDOM: () => { return ['hr']; }
-			},
-
-			/**
-			 * A code listing. Disallows marks or non-text inline nodes by 
-			 * default. Represented as a `<pre>` element with a `<code>` element 
-			 * inside of it.
-			 */
-			[TokenEnum.CodeBlock]: <ProseNodeSpec>{
-				content: 'text*',
-				group: 'block',
-				marks: '',
-				code: true,
-				defining: true,
-				parseDOM: [
-					{ tag: 'pre', preserveWhitespace: 'full' },
-				],
-				toDOM: () => { return ['pre', ['code', 0]]; }
-			},
-
-			/**
 			 * An inline image (`<img>`) node. Supports `src`, `alt`, and `href` 
 			 * attributes. The latter two default to the empty string.
 			 */
@@ -111,17 +84,6 @@ export class MarkdownSchema extends EditorSchema  {
 					const { src, alt, title } = node.attrs;
 					return ['img', { src, alt, title }];
 				}
-			},
-
-			/**
-			 * A hard line break, represented in the DOM as `<br>`.
-			 */
-			[TokenEnum.LineBreak]: <ProseNodeSpec>{
-				inline: true,
-				group: 'inline',
-				selectable: false,
-				parseDOM: [{ tag: 'br' }],
-				toDOM: () => { return ['br']; }
 			},
 		};
 	}

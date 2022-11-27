@@ -319,7 +319,7 @@ export type EditorToken = marked.Token;
 export type EditorTokenGeneric = marked.Tokens.Generic;
 export namespace EditorTokens {
     export type Space = marked.Tokens.Space;
-    export type Code = marked.Tokens.Code;
+    export type CodeBlock = marked.Tokens.Code;
     export type Heading = marked.Tokens.Heading;
     export type Table = marked.Tokens.Table;
     export type TableCell = marked.Tokens.TableCell;
