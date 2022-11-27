@@ -4,6 +4,10 @@ import { ProseMarkSpec } from "src/editor/common/prose";
 import { DocumentMark } from "src/editor/viewModel/parser/documentNode";
 import { IDocumentParseState } from "src/editor/viewModel/parser/documentParser";
 
+/**
+ * @class A link. Has `href` and `title` attributes. `title` defaults to the 
+ * empty string. Rendered as an `<a>` element.
+ */
 export class Link extends DocumentMark<EditorTokens.Link> {
 
     constructor() {

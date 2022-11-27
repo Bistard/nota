@@ -2,7 +2,7 @@
  * Those token types are identical to {@link marked.Tokens.type}.
  */
 export const enum TokenEnum {
-    Space = 'space', // TODO
+    Space = 'space',
     CodeBlock = 'code',
     Heading = 'heading',
     Table = 'table',

@@ -4,7 +4,15 @@ import { ProseAttrs, ProseMark, ProseMarkType, ProseNode, ProseNodeType, ProseTe
 import { DocumentNodeProvider, IDocumentNode } from "src/editor/viewModel/parser/documentNode";
 import { EditorSchema } from "src/editor/viewModel/schema";
 
+/**
+ * Interface only for {@link DocumentParser}.
+ */
 export interface IDocumentParser {
+    /**
+     * @description Parsing the given tokens into document nodes used for 
+     * rendering in prosemirror view.
+     * @param tokens The markdown tokens that are parsed from the model.
+     */
     parse(tokens: EditorToken[]): ProseNode | null;
 }
 
@@ -57,17 +65,61 @@ interface ParsingNodeState {
  * internally.
  */
 export interface IDocumentParseState {
+    
+    /**
+     * @description Activates a new document node and pushes into the internal 
+     * stack. All the newly deactivated nodes will be added as a child node into 
+     * this one.
+     * @param ctor The constructor for the newly activated document node.
+     */
     activateNode(ctor: ProseNodeType): void;
+
+    /**
+     * @description Deactivates the current node and creates the corresponding
+     * {@link ProseNode} from the constructor that is provided when it is 
+     * activated. The created node will be pops out from the internal stack to 
+     * be inserted as a child into the parent document node.
+     */
     deactivateNode(): ProseNode | null;
+
+    /**
+     * @description Given an array of tokens and parses them recursively. All
+     * the newly activated nodes will be inserted as the children of the current
+     * active ones.
+     * @param tokens The provided markdown tokens.
+     */
     parseTokens(tokens: EditorToken[]): void;
     
-    addToActive(ctor: ProseNodeType, attr?: ProseAttrs): ProseNode | null;
+    /**
+     * @description Insert the text of the current active document node.
+     * @param text 
+     */
     addText(text: string): void;
 
+    /**
+     * @description Active the provided document mark. All the newly activated
+     * document nodes will automatically having this mark.
+     * @param mark The provided mark.
+     */
     activateMark(mark: ProseMark): void;
+
+    /**
+     * @description Deactives the given mark. Stop automatically adding this
+     * mark to the newly activated document nodes.
+     * @param mark 
+     */
     deactivateMark(mark: ProseMarkType): void;
 
+    /**
+     * @description Check out what is the current active document node. Might be
+     * used for debugging.
+     */
     getActiveNode(): ProseNodeType | null;
+
+    /**
+     * @description Check out what is the current active document marks. Might 
+     * be used for debugging.
+     */
     getActiveMark(): readonly ProseMark[];
 }
 
@@ -80,10 +132,11 @@ class DocumentParseState implements IDocumentParseState {
 
     // [field]
 
+    private readonly _nodeProvider: DocumentNodeProvider;
+    private readonly _actives: Stack<ParsingNodeState>;
+
     private readonly _defaultNodeType: ProseNodeType;
     private readonly _createTextNode: (text: string, marks?: readonly ProseMark[]) => ProseTextNode;
-    private readonly _nodeProvider: DocumentNodeProvider;
-    private _actives: Stack<ParsingNodeState>;
 
     // [constructor]
 
@@ -91,9 +144,9 @@ class DocumentParseState implements IDocumentParseState {
         schema: EditorSchema,
         provider: DocumentNodeProvider,
     ) {
+        this._nodeProvider = provider;
         this._defaultNodeType = schema.topNodeType;
         this._createTextNode = schema.text.bind(schema);
-        this._nodeProvider = provider;
 
         this._actives = new Stack([{ ctor: this._defaultNodeType, children: [], marks: [], attrs: undefined }]);
     }
@@ -135,26 +188,21 @@ class DocumentParseState implements IDocumentParseState {
         });
     }
 
-    public addToActive(ctor: ProseNodeType, attr?: ProseAttrs, children?: ProseNode[]): ProseNode | null {
-        const active = this.__getActive();
-        const proseNode = ctor.createAndFill(attr, children, active.marks);
-        if (!proseNode) {
-            return null;
-        }
-
-        active.children.push(proseNode);
-        return proseNode;
-    }
-
     public deactivateNode(): ProseNode | null {
-        const active = this.__popActive();
+        const current = this.__popActive();
         
         // happens when deactivating the root document node
         if (this._actives.empty()) {
-            return active.ctor.createAndFill(active.attrs, active.children, active.marks);
+            return current.ctor.createAndFill(current.attrs, current.children, current.marks);
         }
 
-        const node = this.addToActive(active.ctor, active.attrs, active.children);
+        const active = this.__getActive();
+        const node = current.ctor.createAndFill(current.attrs, current.children, active.marks);
+        if (!node) {
+            return null;
+        }
+
+        active.children.push(node);
         return node;
     }
 
@@ -173,6 +221,7 @@ class DocumentParseState implements IDocumentParseState {
             return;
         }
 
+        // try to merge two nodes into one if they are both text nodes
         const mergable = (node1: ProseNode, node2: ProseNode): boolean => {
             if (node1.isText && node2.isText && ProseMark.sameSet(node1.marks, node2.marks)) {
                 return true;

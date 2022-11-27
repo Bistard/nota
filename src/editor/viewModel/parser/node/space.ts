@@ -4,6 +4,10 @@ import { ProseNodeSpec } from "src/editor/common/prose";
 import { DocumentNode } from "src/editor/viewModel/parser/documentNode";
 import { IDocumentParseState } from "src/editor/viewModel/parser/documentParser";
 
+/**
+ * @class An empty space block. Represented in the DOM as an empty `<p>` 
+ * element.
+ */
 export class Space extends DocumentNode<EditorTokens.Space> {
 
     constructor() {

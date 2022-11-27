@@ -4,6 +4,10 @@ import { ProseNodeSpec } from "src/editor/common/prose";
 import { DocumentNode } from "src/editor/viewModel/parser/documentNode";
 import { IDocumentParseState } from "src/editor/viewModel/parser/documentParser";
 
+/**
+ * @class A heading textblock, with a `level` attribute that should hold the 
+ * number 1 to 6. Parsed and serialized as `<h1>` to `<h6>` elements.
+ */
 export class Heading extends DocumentNode<EditorTokens.Heading> {
 
     constructor() {

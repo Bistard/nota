@@ -4,6 +4,10 @@ import { ProseNodeSpec } from "src/editor/common/prose";
 import { DocumentNode } from "src/editor/viewModel/parser/documentNode";
 import { IDocumentParseState } from "src/editor/viewModel/parser/documentParser";
 
+/**
+ * @class A plain paragraph textblock. Represented in the DOM as a `<p>` 
+ * element.
+ */
 export class Paragraph extends DocumentNode<EditorTokens.Paragraph> {
 
     constructor() {

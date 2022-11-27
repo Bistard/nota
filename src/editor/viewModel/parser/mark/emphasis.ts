@@ -4,6 +4,10 @@ import { ProseMarkSpec } from "src/editor/common/prose";
 import { DocumentMark } from "src/editor/viewModel/parser/documentNode";
 import { IDocumentParseState } from "src/editor/viewModel/parser/documentParser";
 
+/**
+ * @class An emphasis mark. Rendered as an `<em>` element. Has parse rules that 
+ * also match `<i>` and `font-style: italic`.
+ */
 export class Emphasis extends DocumentMark<EditorTokens.Em> {
 
     constructor() {

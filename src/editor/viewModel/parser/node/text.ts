@@ -4,6 +4,9 @@ import { ProseNodeSpec } from "src/editor/common/prose";
 import { DocumentNode } from "src/editor/viewModel/parser/documentNode";
 import { IDocumentParseState } from "src/editor/viewModel/parser/documentParser";
 
+/**
+ * @class The plain-text node.
+ */
 export class Text extends DocumentNode<EditorTokens.Text> {
 
     constructor() {

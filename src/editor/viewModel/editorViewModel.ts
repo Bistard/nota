@@ -39,8 +39,8 @@ export class EditorViewModel extends Disposable implements IEditorViewModel {
 
         this._nodeProvider = new DocumentNodeProvider();
         this.__registerNodeAndMark(this._nodeProvider);
+
         this._schema = new MarkdownSchema(this._nodeProvider);
-        this._nodeProvider.init(this._schema);
 
         this._docParser = new DocumentParser(this._schema, this._nodeProvider);
 
@@ -66,14 +66,14 @@ export class EditorViewModel extends Disposable implements IEditorViewModel {
 
     private __onDidBuild(): void {
         const tokens = this._model.getTokens();
-        console.log(tokens);
+        console.log('[tokens]', tokens);
 
         const document = this._docParser.parse(tokens);
-        console.log(document);
+        console.log('[document]', document);
 
-        // if (document) {
-        //     this._onFlush.fire(document);
-        // }
+        if (document) {
+            this._onFlush.fire(document);
+        }
     }
 
     private __registerNodeAndMark(provider: DocumentNodeProvider): void {

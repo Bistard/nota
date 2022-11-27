@@ -44,7 +44,7 @@ export interface IEditorViewCore extends Disposable {
 }
 
 /**
- * @class Adaptation over {@link ProseEditorState}.
+ * @class Adaptation over {@link ProseEditorView}.
  */
 export class EditorViewCore extends Disposable implements IEditorViewCore {
 

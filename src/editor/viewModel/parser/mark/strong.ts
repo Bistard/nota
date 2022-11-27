@@ -4,6 +4,10 @@ import { ProseMarkSpec } from "src/editor/common/prose";
 import { DocumentMark } from "src/editor/viewModel/parser/documentNode";
 import { IDocumentParseState } from "src/editor/viewModel/parser/documentParser";
 
+/**
+ * @class A strong mark. Rendered as `<strong>`, parse rules also match `<b>` 
+ * and `font-weight: bold`.
+ */
 export class Strong extends DocumentMark<EditorTokens.Strong> {
 
     constructor() {
