@@ -1,6 +1,5 @@
-import { Emitter, Register } from 'src/base/common/event';
+import { Emitter } from 'src/base/common/event';
 import { IComponentService } from 'src/code/browser/service/component/componentService';
-import { createService } from 'src/code/platform/instantiation/common/decorator';
 import { Ii18nService } from 'src/code/platform/i18n/i18n';
 import { Section } from 'src/code/platform/section';
 import { registerSingleton } from 'src/code/platform/instantiation/common/serviceCollection';
@@ -21,53 +20,12 @@ import { DisposableManager } from 'src/base/common/dispose';
 import { createIcon } from 'src/base/browser/icon/iconRegistry';
 import { Icons } from 'src/base/browser/icon/icons';
 import { SideViewTitlePart } from 'src/code/browser/workbench/sideView/sideViewTitle';
-import { ISideView, SideView } from 'src/code/browser/workbench/sideView/sideView';
+import { SideView } from 'src/code/browser/workbench/sideView/sideView';
 import { VisibilityController } from 'src/base/browser/basic/visibilityController';
 import { WidgetBar } from 'src/base/browser/secondary/widgetBar/widgetBar';
 import { Button } from 'src/base/browser/basic/button/button';
 import { RGBA } from 'src/base/common/color';
-
-export const IExplorerViewService = createService<IExplorerViewService>('explorer-view-service');
-
-/**
- * An interface only for {@link ExplorerView}.
- */
-export interface IExplorerViewService extends ISideView {
-    
-    /**
-     * Determine if the explorer view is opened right now.
-     */
-    readonly isOpened: boolean;
-
-    /**
-     * The root directory of the current opened explorer view. `undefined` if 
-     * the view is not opened yet.
-     */
-    readonly root: URI | undefined;
-
-    /**
-     * Fired when the directory is opened.
-     */
-    onDidOpen: Register<ClassicOpenEvent>;
-
-    /**
-     * Open the explorer view under the given root path.
-     */
-    open(root: URI): Promise<void>;
-
-    /**
-     * Close the explorer view if any path is opened.
-     */
-    close(): Promise<void>;
-}
-
-export interface ClassicOpenEvent {
-
-    /**
-     * The path of the directory in string form.
-     */
-    readonly path: URI;
-}
+import { ClassicOpenEvent, IExplorerViewService } from 'src/code/browser/workbench/sideView/explorer/explorerService';
 
 /**
  * @class TODO: complete comments
