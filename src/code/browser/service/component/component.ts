@@ -39,13 +39,10 @@ export interface IComponent extends ICreateable {
      *                        under this component. If no parentElement is 
      *                        provided, the component will be rendered under 
      *                        this parent component.
-     * @param parentElement If provided, the component will be rendered under
-     *                      this parent element (will override the constructor 
-     *                      provided ones and parentComponent ones).
      * @note If both not provided, either renders under the constructor provided 
      * element, or `document.body`.
      */
-    create(parentComponent?: IComponent, parentElement?: HTMLElement): void;
+    create(parentComponent?: IComponent): void;
 
     /**
      * @description Layout the component to the given dimension.
@@ -217,7 +214,7 @@ export abstract class Component extends Themable implements IComponent {
         return this._element.getID();
     }
 
-    public create(parentComponent?: Component, parentElement?: HTMLElement): void {
+    public create(parentComponent?: Component): void {
         if (this._created || this.isDisposed()) {
             return; 
         }
@@ -227,7 +224,7 @@ export abstract class Component extends Themable implements IComponent {
             parentComponent.registerComponent(this);
         }
 
-        this._parent = parentElement ? parentElement : ((parentComponent?.element.element ?? this._parent) ?? document.body);
+        this._parent = ((parentComponent?.element.element ?? this._parent) ?? document.body);
         this._parent.appendChild(this._element.element);
         
         this._createContent();
