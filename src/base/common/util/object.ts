@@ -6,7 +6,7 @@ import { isObject } from "src/base/common/util/type";
  * should be overwritten or not.
  * @default overwrite true
  */
-export function mixin(destination: any, source: any, overwrite: boolean = true): any {
+export function mixin<T>(destination: any, source: any, overwrite: boolean = true): T {
 	if (isObject(destination) === false) {
 		return source;
 	}
