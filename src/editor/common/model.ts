@@ -1,9 +1,9 @@
-import { marked } from "marked";
 import { Disposable, IDisposable } from "src/base/common/dispose";
 import { Register } from "src/base/common/event";
 import { URI } from "src/base/common/file/uri";
 import { IEditorPosition } from "src/editor/common/position";
 import { IEditorRange } from "src/editor/common/range";
+import { marked } from "src/editor/model/markdown/marked/marked";
 
 export const enum EndOfLineType {
     /** 
