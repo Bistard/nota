@@ -35,7 +35,6 @@
     "@types/node": "^16.11.56",
     "@types/prismjs": "^1.16.6",
     "@types/requestidlecallback": "^0.3.4",
-    "@types/marked": "^4.0.7",
     "benchmark": "^2.1.4",
     "circular-dependency-plugin": "^5.2.2",
     "cross-env": "^7.0.3",
@@ -56,7 +55,6 @@
   "dependencies": {
     "chokidar": "^3.5.3",
     "highlight.js": "^11.7.0",
-    "marked": "^4.2.3",
     "prosemirror-model": "^1.18.1",
     "prosemirror-state": "^1.4.2",
     "prosemirror-transform": "^1.7.0",

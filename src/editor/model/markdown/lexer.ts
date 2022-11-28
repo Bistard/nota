@@ -1,6 +1,6 @@
 import hljs from "highlight.js";
-import { marked } from "marked";
 import { EditorToken } from "src/editor/common/model";
+import { marked } from "src/editor/model/markdown/marked/marked";
 
 /**
  * The options for markdown pasring.
