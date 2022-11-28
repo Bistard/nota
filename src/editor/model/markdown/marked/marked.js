@@ -1,3 +1,13 @@
+
+/**
+ * Chris: There are a few reasons that I am having the source code instead of 
+ * simply npm install the repository:
+ *    1. Add some option support that was originally not supported in the lexer 
+ *       process.
+ *    2. Since I am only use the lexer, I may reduce the file size by removing 
+ *       unused code.
+ */
+
 /**
  * marked - a markdown parser
  * Copyright (c) 2011-2022, Christopher Jeffrey. (MIT Licensed)
@@ -10,6 +20,8 @@
  */
 
 'use strict';
+
+const { join } = require("src/base/common/file/path");
 
 function _defineProperties(target, props) {
   for (var i = 0; i < props.length; i++) {
@@ -159,7 +171,7 @@ var nonWordAndColonTest = /[^\w:]/g;
 var originIndependentUrl = /^$|^[a-z][a-z0-9+.-]*:|^[?#]/i;
 
 /**
- * @param {boolean} sanitize
+ * @param {boolean} sanitize 
  * @param {string} base
  * @param {string} href
  */
@@ -374,10 +386,15 @@ function outputLink(cap, link, raw, lexer) {
     lexer.state.inLink = false;
     return token;
   }
+
+  // Chris: baseUrl support
+  const baseUrl = lexer.baseUrl;
+  const resolvedHref = baseUrl ? join(baseUrl, href) : href;
+
   return {
     type: 'image',
     raw: raw,
-    href: href,
+    href: resolvedHref,
     title: title,
     text: escape(text)
   };
@@ -1297,12 +1314,16 @@ function mangle(text) {
   return out;
 }
 
-// TODO
+// REVIEW
 /**
  * Block Lexer
  */
 var Lexer = /*#__PURE__*/function () {
   function Lexer(options) {
+    
+    // Chris: baseUrl option support
+    this.baseUrl = options.baseUrl;
+    
     this.tokens = [];
     this.tokens.links = Object.create(null);
     this.options = options || exports.defaults;
