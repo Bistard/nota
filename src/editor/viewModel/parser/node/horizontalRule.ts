@@ -2,7 +2,7 @@ import { TokenEnum } from "src/editor/common/markdown";
 import { EditorTokens } from "src/editor/common/model";
 import { ProseNodeSpec } from "src/editor/common/prose";
 import { DocumentNode } from "src/editor/viewModel/parser/documentNode";
-import { IDocumentParseState } from "src/editor/viewModel/parser/documentParser";
+import { IDocumentParseState } from "src/editor/viewModel/parser/parser";
 
 /**
  * @class A horizontal rule (`<hr>`).

@@ -4,7 +4,7 @@ import { IEditorModel } from "src/editor/common/model";
 import { ProseNode } from "src/editor/common/prose";
 import { IEditorViewModel } from "src/editor/common/viewModel";
 import { DocumentNodeProvider } from "src/editor/viewModel/parser/documentNode";
-import { DocumentParser, IDocumentParser } from "src/editor/viewModel/parser/documentParser";
+import { DocumentParser, IDocumentParser } from "src/editor/viewModel/parser/parser";
 import { Codespan } from "src/editor/viewModel/parser/mark/codespan";
 import { Emphasis } from "src/editor/viewModel/parser/mark/emphasis";
 import { Link } from "src/editor/viewModel/parser/mark/link";

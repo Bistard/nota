@@ -2,7 +2,7 @@ import { MarkEnum } from "src/editor/common/markdown";
 import { EditorTokens } from "src/editor/common/model";
 import { ProseMarkSpec } from "src/editor/common/prose";
 import { DocumentMark } from "src/editor/viewModel/parser/documentNode";
-import { IDocumentParseState } from "src/editor/viewModel/parser/documentParser";
+import { IDocumentParseState } from "src/editor/viewModel/parser/parser";
 
 /**
  * @class A link. Has `href` and `title` attributes. `title` defaults to the 
