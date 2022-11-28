@@ -21,6 +21,11 @@ class DefaultUserConfiguration extends DefaultConfigStorage {
                 'outline': {},
                 'search': {},
             },
+            'editor': {
+                'lexer': {
+                    enableHighlight: true,
+                },
+            },
         };
     }
 }

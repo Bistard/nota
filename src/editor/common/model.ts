@@ -1,9 +1,9 @@
+import { marked } from "marked";
 import { Disposable, IDisposable } from "src/base/common/dispose";
 import { Register } from "src/base/common/event";
 import { URI } from "src/base/common/file/uri";
 import { IEditorPosition } from "src/editor/common/position";
 import { IEditorRange } from "src/editor/common/range";
-import { marked } from "src/editor/model/markdown/marked/marked";
 
 export const enum EndOfLineType {
     /** 
@@ -398,7 +398,17 @@ export interface IEditorModel extends IDisposable {
      */
     getLineLength(lineNumber: number): number;
 
+    /**
+     * @description Inspect the current markdown tokens that is parsed by the
+     * lexer.
+     */
     getTokens(): EditorToken[];
+
+    /**
+     * @description Invokes only when the applicaion is about to quit. Should
+     * invoked and decided by the eidtor itself.
+     */
+    onQuit(): void;
 }
 
 export namespace IModelEvent {

@@ -2,8 +2,6 @@ import { Emitter } from 'src/base/common/event';
 import { IComponentService } from 'src/code/browser/service/component/componentService';
 import { Ii18nService } from 'src/code/platform/i18n/i18n';
 import { Section } from 'src/code/platform/section';
-import { registerSingleton } from 'src/code/platform/instantiation/common/serviceCollection';
-import { ServiceDescriptor } from 'src/code/platform/instantiation/common/descriptor';
 import { addDisposableListener, EventType, Orientation } from 'src/base/browser/basic/dom';
 import { IEditorService } from 'src/code/browser/workbench/workspace/editor/editor';
 import { IBrowserDialogService, IDialogService } from 'src/code/platform/dialog/browser/browserDialogService';
@@ -25,7 +23,7 @@ import { VisibilityController } from 'src/base/browser/basic/visibilityControlle
 import { WidgetBar } from 'src/base/browser/secondary/widgetBar/widgetBar';
 import { Button } from 'src/base/browser/basic/button/button';
 import { RGBA } from 'src/base/common/color';
-import { ClassicOpenEvent, IExplorerViewService } from 'src/code/browser/workbench/sideView/explorer/explorerService';
+import { ClassicOpenEvent, ExplorerViewID, IExplorerViewService } from 'src/code/browser/workbench/sideView/explorer/explorerService';
 
 /**
  * @class TODO: complete comments
@@ -69,7 +67,7 @@ export class ExplorerView extends SideView implements IExplorerViewService {
         @IBrowserEnvironmentService private readonly envrionmentService: IBrowserEnvironmentService,
         @IExplorerTreeService private readonly explorerTreeService: IExplorerTreeService,
     ) {
-        super('explorer-view', parentElement, themeService, componentService);
+        super(ExplorerViewID, parentElement, themeService, componentService);
 
         lifecycleService.onWillQuit(e => e.join(this.__onApplicationClose()));
     }
@@ -405,5 +403,3 @@ export class ExplorerTitlePart extends SideViewTitlePart {
         this.element.appendChild(rightContainer);
     }
 }
-
-registerSingleton(IExplorerViewService, new ServiceDescriptor(ExplorerView));

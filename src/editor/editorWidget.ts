@@ -2,8 +2,9 @@ import { Disposable, IDisposable } from "src/base/common/dispose";
 import { basename } from "src/base/common/file/path";
 import { URI } from "src/base/common/file/uri";
 import { ILogService } from "src/base/common/logger";
-import { EventBlocker } from "src/base/common/util/async";
 import { IFileService } from "src/code/platform/files/common/fileService";
+import { IInstantiationService } from "src/code/platform/instantiation/common/instantiation";
+import { IBrowserLifecycleService, ILifecycleService } from "src/code/platform/lifecycle/browser/browserLifecycleService";
 import { IEditorModel } from "src/editor/common/model";
 import { EditorViewDisplayType, IEditorView } from "src/editor/common/view";
 import { IEditorViewModel } from "src/editor/common/viewModel";
@@ -59,6 +60,8 @@ export class EditorWidget extends Disposable implements IEditorWidget {
         options: IEditorWidgetOptions,
         @IFileService private readonly fileService: IFileService,
         @ILogService private readonly logService: ILogService,
+        @IInstantiationService private readonly instantiationService: IInstantiationService,
+        @ILifecycleService private readonly lifecycleService: IBrowserLifecycleService,
     ) {
         super();
 
@@ -68,12 +71,14 @@ export class EditorWidget extends Disposable implements IEditorWidget {
         this._view = null;
 
         this._options = options;
+
+        this.__registerListeners();
     }
 
     // [public methods]
 
     public async open(source: URI): Promise<void> {
-        const textModel = new EditorModel(source, this.fileService);
+        const textModel = this.instantiationService.createInstance(EditorModel, source);
         
         this.__attachModel(textModel);
     }
@@ -116,5 +121,14 @@ export class EditorWidget extends Disposable implements IEditorWidget {
         );
 
         this._model.build();
+    }
+
+    private __registerListeners(): void {
+
+        this.lifecycleService.onBeforeQuit(() => this.__onQuit());
+    }
+
+    private __onQuit(): void {
+        this._model?.onQuit();
     }
 }

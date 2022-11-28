@@ -1,9 +1,8 @@
 import { Register } from "src/base/common/event";
 import { URI } from "src/base/common/file/uri";
 import { ISideView } from "src/code/browser/workbench/sideView/sideView";
-import { createService } from "src/code/platform/instantiation/common/decorator";
 
-export const IExplorerViewService = createService<IExplorerViewService>('explorer-view-service');
+export const ExplorerViewID = 'explorer-view';
 
 /**
  * An interface only for {@link ExplorerView}.
