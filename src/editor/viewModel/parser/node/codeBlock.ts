@@ -24,7 +24,9 @@ export class CodeBlock extends DocumentNode<EditorTokens.CodeBlock> {
             parseDOM: [
                 { tag: 'pre', preserveWhitespace: 'full' },
             ],
-            toDOM: () => { return ['pre', ['code', 0]]; }
+            toDOM: () => { 
+                return ['pre', ['code', 0]]; 
+            }
         };
     }
 

@@ -24,6 +24,8 @@ export class EditorViewModel extends Disposable implements IEditorViewModel {
 
     // [field]
 
+    private readonly _options: IEditorViewModelOptions;
+
     private readonly _model: IEditorModel;
     private readonly _nodeProvider: DocumentNodeProvider;
     private readonly _schema: EditorSchema;
@@ -42,13 +44,14 @@ export class EditorViewModel extends Disposable implements IEditorViewModel {
     ) {
         super();
         this._model = model;
+        this._options = options;
 
         this._nodeProvider = new DocumentNodeProvider();
         this.__registerNodeAndMark(this._nodeProvider);
 
         this._schema = new MarkdownSchema(this._nodeProvider);
 
-        this._docParser = new DocumentParser(this._schema, this._nodeProvider);
+        this._docParser = new DocumentParser(this._schema, this._nodeProvider, /* options */);
 
         this.__registerModelListeners();
     }

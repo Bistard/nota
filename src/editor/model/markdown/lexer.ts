@@ -1,4 +1,3 @@
-import hljs from "highlight.js";
 import { EditorToken } from "src/editor/common/model";
 import { marked } from "src/editor/model/markdown/marked/marked";
 
@@ -79,13 +78,5 @@ export class MarkdownLexer implements IMarkdownLexer {
 
     public updateOptions(options: Partial<IMarkdownLexerOptions>): void {
         this._parseOpts.baseURI = options.baseURI;
-    }
-
-    // [private helper methods]
-
-    private __highlight(code: string, language: string): string {
-        const lang = hljs.getLanguage(language) ? language : 'plaintext';
-        const result = hljs.highlight(code, { language: lang });
-        return result.value;
     }
 }
