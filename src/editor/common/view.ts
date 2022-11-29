@@ -1,12 +1,13 @@
+import { Register } from "src/base/common/event";
+import { ILogEvent } from "src/base/common/logger";
 import { IEditorViewCore } from "src/editor/view/editorViewCore";
 
-export const enum EditorViewDisplayType {
-    Plain,
-    Split,
-    WYSIWYG,
-}
-
 export interface IEditorView extends IEditorViewCore {
+
+    /**
+     * Fires when a log is about happen.
+     */
+    readonly onLog: Register<ILogEvent<string | Error>>;
 
     /**
      * @description Updates the options of the editor view.
@@ -17,9 +18,4 @@ export interface IEditorView extends IEditorViewCore {
 
 export interface IEditorViewOptions {
 
-    /**
-     * Determines how the editor is about to render the view.
-     * @default EditorViewDisplayType.WYSIWYG
-     */
-    readonly display?: EditorViewDisplayType;
 }

@@ -2,9 +2,10 @@ import { Disposable } from "src/base/common/dispose";
 import { Emitter } from "src/base/common/event";
 import { DataBuffer } from "src/base/common/file/buffer";
 import { URI } from "src/base/common/file/uri";
+import { ILogEvent, LogLevel } from "src/base/common/logger";
 import { Blocker } from "src/base/common/util/async";
 import { IFileService } from "src/code/platform/files/common/fileService";
-import { EditorToken, IEditorModel, IEditorModelOptions, IModelEvent, IPieceTableModel } from "src/editor/common/model";
+import { EditorToken, IEditorModel, IEditorModelOptions, IPieceTableModel } from "src/editor/common/model";
 import { IMarkdownLexer, IMarkdownLexerOptions, MarkdownLexer } from "src/editor/model/markdown/lexer";
 import { TextBufferBuilder } from "src/editor/model/textBufferBuilder";
 
@@ -12,10 +13,13 @@ export class EditorModel extends Disposable implements IEditorModel {
 
     // [event]
 
-    private readonly _onDidBuild = this.__register(new Emitter<boolean>());
+    private readonly _onLog = this.__register(new Emitter<ILogEvent<string | Error>>());
+    public readonly onLog = this._onLog.registerListener;
+
+    private readonly _onDidBuild = this.__register(new Emitter<void>());
     public readonly onDidBuild = this._onDidBuild.registerListener;
 
-    private readonly _onDidContentChange = this.__register(new Emitter<IModelEvent.ContentChange>());
+    private readonly _onDidContentChange = this.__register(new Emitter<void>());
     public readonly onDidContentChange = this._onDidContentChange.registerListener;
     
     // [field]
@@ -142,7 +146,7 @@ export class EditorModel extends Disposable implements IEditorModel {
         // building plain text into piece-table
         const builderOrError = await this.__createTextBufferBuilder(source);
         if (builderOrError instanceof Error) {
-            this._onDidBuild.fire(false);
+            this._onLog.fire({ level: LogLevel.ERROR, data: new Error(`cannot build text model at ${URI.toFsPath(source)}`) });
             return;
         }
 
@@ -154,7 +158,7 @@ export class EditorModel extends Disposable implements IEditorModel {
         const rawContent = this._textModel.getRawContent();
         this._tokens = this._lexer.lex(rawContent);
 
-        this._onDidBuild.fire(true);
+        this._onDidBuild.fire();
     }
 
     /**

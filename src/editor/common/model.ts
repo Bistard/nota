@@ -1,6 +1,7 @@
 import { Disposable, IDisposable } from "src/base/common/dispose";
 import { Register } from "src/base/common/event";
 import { URI } from "src/base/common/file/uri";
+import { ILogEvent } from "src/base/common/logger";
 import { IEditorPosition } from "src/editor/common/position";
 import { IEditorRange } from "src/editor/common/range";
 import { marked } from "src/editor/model/markdown/marked/marked";
@@ -353,10 +354,17 @@ export interface IEditorModel extends IDisposable {
      */
     readonly source: URI;
 
-    /** 
-     * Fires when the model is built or rebuilt whether successed or failed.
+    /**
+     * Fires when a log is about happen.
      */
-    readonly onDidBuild: Register<boolean>;
+    readonly onLog: Register<ILogEvent<string | Error>>;
+
+    /** 
+     * Fires when the model is built.
+     */
+    readonly onDidBuild: Register<void>;
+
+    readonly onDidContentChange: Register<void>;
 
     /**
      * @description Start building the model.

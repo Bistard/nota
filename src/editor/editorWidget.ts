@@ -1,14 +1,15 @@
 import { FastElement } from "src/base/browser/basic/fastElement";
 import { Disposable, IDisposable } from "src/base/common/dispose";
+import { Event } from "src/base/common/event";
 import { basename } from "src/base/common/file/path";
 import { URI } from "src/base/common/file/uri";
-import { ILogService } from "src/base/common/logger";
+import { defaultLog, ILogService } from "src/base/common/logger";
 import { mixin } from "src/base/common/util/object";
 import { IFileService } from "src/code/platform/files/common/fileService";
 import { IInstantiationService } from "src/code/platform/instantiation/common/instantiation";
 import { IBrowserLifecycleService, ILifecycleService } from "src/code/platform/lifecycle/browser/browserLifecycleService";
 import { IEditorModel, IEditorModelOptions } from "src/editor/common/model";
-import { EditorViewDisplayType, IEditorView, IEditorViewOptions } from "src/editor/common/view";
+import { IEditorView, IEditorViewOptions } from "src/editor/common/view";
 import { IEditorViewModel, IEditorViewModelOptions } from "src/editor/common/viewModel";
 import { EditorModel } from "src/editor/model/editorModel";
 import { EditorView } from "src/editor/view/editorView";
@@ -123,6 +124,8 @@ export class EditorWidget extends Disposable implements IEditorWidget {
         // view construction
         this._view = this.instantiationService.createInstance(EditorView, this._container.element, this._viewModel, this._options);
 
+        this.__registerMVVMListeners(this._model, this._viewModel, this._view);
+
         this._model.build();
     }
 
@@ -150,5 +153,13 @@ export class EditorWidget extends Disposable implements IEditorWidget {
 
     private __onQuit(): void {
         this._model?.onQuit();
+    }
+
+    private __registerMVVMListeners(model: IEditorModel, viewModel: IEditorViewModel, view: IEditorView): void {
+
+        // log out all the messages from MVVM.
+        Event.any([model.onLog, viewModel.onLog, view.onLog])((event) => {
+            defaultLog(this.logService, event.level, event.data);
+        });
     }
 }
