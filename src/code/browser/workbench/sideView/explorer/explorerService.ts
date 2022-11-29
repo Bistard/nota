@@ -39,7 +39,7 @@ export interface IExplorerViewService extends ISideView {
 export interface ClassicOpenEvent {
 
     /**
-     * The path of the directory in URI form.
+     * The path of the current opened directory in URI form.
      */
     readonly path: URI;
 }
