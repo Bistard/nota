@@ -1,8 +1,17 @@
 import { Disposable } from "src/base/common/dispose";
-import { Register } from "src/base/common/event";
+import { Emitter, Register } from "src/base/common/event";
+import { ILogEvent, LogLevel } from "src/base/common/logger";
 import { IEditorView, IEditorViewOptions } from "src/editor/common/view";
-import { IEditorViewModel } from "src/editor/common/viewModel";
+import { IEditorViewModel, IRenderPlainEvent, IRenderRichEvent, IRenderSplitEvent, isRenderPlainEvent, isRenderRichEvent, isRenderSplitEvent } from "src/editor/common/viewModel";
 import { EditorViewCore } from "src/editor/view/editorViewCore";
+
+export class ViewContext {
+
+    constructor(
+        public readonly viewModel: IEditorViewModel,
+        public readonly options: IEditorViewOptions,
+    ) {}
+}
 
 export class EditorView extends Disposable implements IEditorView {
 
@@ -12,6 +21,9 @@ export class EditorView extends Disposable implements IEditorView {
     private readonly _ctx: ViewContext;
 
     // [events]
+
+    private readonly _onLog = this.__register(new Emitter<ILogEvent<string | Error>>());
+    public readonly onLog = this._onLog.registerListener;
 
     public readonly onRender: Register<void>;
 
@@ -75,16 +87,34 @@ export class EditorView extends Disposable implements IEditorView {
     private __registerViewModelListeners(): void {
         const viewModel = this._ctx.viewModel;
 
-        viewModel.onFlush(doc => {
-            this._view.updateContent(doc);
+        viewModel.onRender(event => {
+            console.log('[view] on render event', event);
+
+            if (isRenderPlainEvent(event)) {
+                this.__renderAsPlaintext(event);
+            } 
+            else if (isRenderSplitEvent(event)) {
+                this.__renderAsSplit(event);
+            } 
+            else if (isRenderRichEvent(event)) {
+                this.__renderAsRich(event);
+            } 
+            else {
+                // unknown render event
+                this._onLog.fire({ level: LogLevel.ERROR, data: new Error('unknown view render type.') });
+            }
         });
     }
-}
 
-export class ViewContext {
+    private __renderAsPlaintext(event: IRenderPlainEvent): void {
 
-    constructor(
-        public readonly viewModel: IEditorViewModel,
-        public readonly options: IEditorViewOptions,
-    ) {}
+    }
+
+    private __renderAsSplit(event: IRenderSplitEvent): void {
+
+    }
+
+    private __renderAsRich(event: IRenderRichEvent): void {
+        this._view.updateContent(event.document);
+    }
 }

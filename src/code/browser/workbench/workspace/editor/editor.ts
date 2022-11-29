@@ -9,13 +9,13 @@ import { IInstantiationService } from "src/code/platform/instantiation/common/in
 import { registerSingleton } from "src/code/platform/instantiation/common/serviceCollection";
 import { EditorWidget, IEditorWidget, IEditorWidgetOptions } from "src/editor/editorWidget";
 import { Mutable } from "src/base/common/util/type";
-import { EditorViewDisplayType } from "src/editor/common/view";
 import { ISideViewService } from "src/code/browser/workbench/sideView/sideView";
 import { ExplorerViewID, IExplorerViewService } from "src/code/browser/workbench/sideView/explorer/explorerService";
 import { IBrowserLifecycleService, ILifecycleService, LifecyclePhase } from "src/code/platform/lifecycle/browser/browserLifecycleService";
 import { ILogService } from "src/base/common/logger";
 import { IConfigService } from "src/code/platform/configuration/common/abstractConfigService";
 import { BuiltInConfigScope } from "src/code/platform/configuration/common/configRegistrant";
+import { parseToRenderType } from "src/editor/common/viewModel";
 
 export const IEditorService = createService<IEditorService>('editor-service');
 
@@ -73,7 +73,7 @@ export class Editor extends Component implements IEditorService {
             
         // option base
         const options = <IEditorWidgetOptions>{
-            display: EditorViewDisplayType.WYSIWYG,
+            display: parseToRenderType(this.configService.get<string>(BuiltInConfigScope.User, 'editor.display')),
             baseURI: undefined,
             codeblockHighlight: this.configService.get<boolean>(BuiltInConfigScope.User, 'editor.parser.codeblockHighlight'),
         };

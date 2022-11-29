@@ -22,6 +22,7 @@ class DefaultUserConfiguration extends DefaultConfigStorage {
                 'search': {},
             },
             'editor': {
+                display: 'rich',
                 'parser': {
                     codeblockHighlight: true,
                 },
