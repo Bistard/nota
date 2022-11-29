@@ -1,6 +1,6 @@
 import { Stack } from "src/base/common/util/array";
 import { EditorToken } from "src/editor/common/model";
-import { ProseAttrs, ProseMark, ProseMarkType, ProseNode, ProseNodeType, ProseTextNode } from "src/editor/common/prose";
+import { ProseAttrs, ProseMark, ProseMarkType, ProseNode, ProseNodeType, ProseTextNode } from "src/editor/common/proseMirror";
 import { DocumentNodeProvider, IDocumentNode } from "src/editor/viewModel/parser/documentNode";
 import { EditorSchema } from "src/editor/viewModel/schema";
 

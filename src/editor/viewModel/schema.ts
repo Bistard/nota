@@ -1,4 +1,4 @@
-import { ProseMark, ProseMarkSpec, ProseMarkType, ProseNodeSpec, ProseNodeType, ProseSchema, ProseTextNode } from "src/editor/common/prose";
+import { ProseMark, ProseMarkSpec, ProseMarkType, ProseNodeSpec, ProseNodeType, ProseSchema, ProseTextNode } from "src/editor/common/proseMirror";
 import { DocumentNodeProvider } from "src/editor/viewModel/parser/documentNode";
 
 /**

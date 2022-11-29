@@ -1,7 +1,7 @@
 import { Mutable } from "src/base/common/util/type";
 import { MarkEnum, TokenEnum } from "src/editor/common/markdown";
 import { EditorToken } from "src/editor/common/model";
-import { ProseMarkSpec, ProseMarkType, ProseNodeSpec, ProseNodeType } from "src/editor/common/prose";
+import { ProseMarkSpec, ProseMarkType, ProseNodeSpec, ProseNodeType } from "src/editor/common/proseMirror";
 import { IDocumentParseState } from "src/editor/viewModel/parser/parser";
 import { EditorSchema, TOP_NODE_NAME } from "src/editor/viewModel/schema";
 

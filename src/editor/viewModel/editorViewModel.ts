@@ -1,7 +1,7 @@
 import { Disposable } from "src/base/common/dispose";
 import { Emitter } from "src/base/common/event";
 import { IEditorModel } from "src/editor/common/model";
-import { ProseNode } from "src/editor/common/prose";
+import { ProseNode } from "src/editor/common/proseMirror";
 import { IEditorViewModel, IEditorViewModelOptions } from "src/editor/common/viewModel";
 import { DocumentNodeProvider } from "src/editor/viewModel/parser/documentNode";
 import { DocumentParser, IDocumentParser } from "src/editor/viewModel/parser/parser";

@@ -1,6 +1,6 @@
 import { Disposable } from "src/base/common/dispose";
 import { Emitter, Register } from "src/base/common/event";
-import { ProseEditorState, ProseEditorView, ProseNode, Slice, Transaction } from "src/editor/common/prose";
+import { ProseEditorState, ProseEditorView, ProseNode, Slice, Transaction } from "src/editor/common/proseMirror";
 import { ViewContext } from "src/editor/view/editorView";
 
 /**
