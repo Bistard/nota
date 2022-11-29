@@ -82,14 +82,16 @@ export class EditorWidget extends Disposable implements IEditorWidget {
     // [public methods]
 
     public async open(source: URI): Promise<void> {
+
+        this.__detachModel();
+
         const textModel = this.instantiationService.createInstance(EditorModel, source, this._options);
         this.__attachModel(textModel);
     }
 
     public override dispose(): void {
         super.dispose();
-        this._model?.dispose();
-        this._view?.dispose();
+        this.__detachModel();
     }
 
     public updateOptions(options: Partial<IEditorWidgetOptions>): void {
@@ -122,6 +124,23 @@ export class EditorWidget extends Disposable implements IEditorWidget {
         this._view = this.instantiationService.createInstance(EditorView, this._container.element, this._viewModel, this._options);
 
         this._model.build();
+    }
+
+    private __detachModel(): void {
+        if (this._model) {
+            this._model.dispose();
+            this._model = null;
+        }
+
+        if (this._viewModel) {
+            this._viewModel.dispose();
+            this._viewModel = null;
+        }
+
+        if (this._view) {
+            this._view.dispose();
+            this._view = null;
+        }
     }
 
     private __registerListeners(): void {
