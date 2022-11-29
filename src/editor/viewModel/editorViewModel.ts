@@ -21,6 +21,7 @@ import { Text } from "src/editor/viewModel/parser/node/text";
 import { EditorSchema, MarkdownSchema } from "src/editor/viewModel/schema";
 import { defaultLog, ILogService, LogLevel } from "src/base/common/logger";
 import { List, ListItem } from "src/editor/viewModel/parser/node/list";
+import { HTML } from "src/editor/viewModel/parser/node/html";
 
 export class EditorViewModel extends Disposable implements IEditorViewModel {
 
@@ -108,6 +109,7 @@ export class EditorViewModel extends Disposable implements IEditorViewModel {
         provider.registerNode(new Image());
         provider.registerNode(new List());
         provider.registerNode(new ListItem());
+        provider.registerNode(new HTML());
 
         // marks
         provider.registerMark(new Link());
