@@ -8,8 +8,8 @@ export const enum TokenEnum {
     Table = 'table',
     HorizontalRule = 'hr',
     Blockquote = 'blockquote',
-    List = 'list', // TODO
-    ListItem = 'list_item', // TODO
+    List = 'list',
+    ListItem = 'list_item',
     Paragraph = 'paragraph',
     HTML = 'html', // TODO
     Text = 'text',

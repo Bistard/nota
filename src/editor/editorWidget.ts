@@ -116,10 +116,10 @@ export class EditorWidget extends Disposable implements IEditorWidget {
         this._model = model;
 
         // view-model connection
-        this._viewModel = new EditorViewModel(model, this._options);
+        this._viewModel = this.instantiationService.createInstance(EditorViewModel, model, this._options);
 
         // view construction
-        this._view = new EditorView(this._container.element, this._viewModel, this._options);
+        this._view = this.instantiationService.createInstance(EditorView, this._container.element, this._viewModel, this._options);
 
         this._model.build();
     }
