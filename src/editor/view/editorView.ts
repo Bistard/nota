@@ -61,6 +61,10 @@ export class EditorView extends Disposable implements IEditorView {
     public isDestroyed(): boolean {
         return this.isDisposed();
     }
+    
+    public updateOptions(options: Partial<IEditorViewOptions>): void {
+        
+    }
 
     public override dispose(): void {
         super.dispose();

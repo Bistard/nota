@@ -12,26 +12,11 @@ export interface IMarkdownLexerOptions {
      * @default undefined
      */
     baseURI?: string;
-
-    /**
-     * A string to prefix the className in a <code> block. Useful for syntax 
-     * highlighting.
-     * @default 'language-'
-     */
-    languagePrefix: string;
-
-    /**
-     * If enables code-block highlight functionality.
-     * @default true
-     */
-    enableHighlight: boolean;
 }
 
 export function getDefaultLexerOptions(): IMarkdownLexerOptions {
     return {
         baseURI: undefined,
-        languagePrefix: 'language-',
-        enableHighlight: true,
     };
 }
 
@@ -53,6 +38,12 @@ export interface IMarkdownLexer {
      * @description Returns the current markdown lexer options.
      */
     getOptions(): IMarkdownLexerOptions;
+
+    /**
+     * @description Updates the options of the lexer.
+     * @param options The options.
+     */
+    updateOptions(options: Partial<IMarkdownLexerOptions>): void;
 }
 
 export class MarkdownLexer implements IMarkdownLexer {
@@ -67,10 +58,6 @@ export class MarkdownLexer implements IMarkdownLexer {
 
     constructor(options?: IMarkdownLexerOptions) {
         this._parseOpts = options ?? getDefaultLexerOptions();
-        
-        if (this._parseOpts.enableHighlight) {
-            this._highlightFn = this.__highlight.bind(this);
-        }
     }
 
     // [public methods]
@@ -79,8 +66,6 @@ export class MarkdownLexer implements IMarkdownLexer {
         
         const lexOption = <marked.MarkedOptions>{
             baseUrl: this._parseOpts.baseURI,
-            langPrefix: this._parseOpts.languagePrefix,
-            highlight: this._highlightFn,
         };
 
         const tokens = marked.lexer(text, lexOption);
@@ -90,6 +75,10 @@ export class MarkdownLexer implements IMarkdownLexer {
 
     public getOptions(): IMarkdownLexerOptions {
         return this._parseOpts;
+    }
+
+    public updateOptions(options: Partial<IMarkdownLexerOptions>): void {
+        this._parseOpts.baseURI = options.baseURI;
     }
 
     // [private helper methods]

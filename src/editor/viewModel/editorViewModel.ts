@@ -2,7 +2,7 @@ import { Disposable } from "src/base/common/dispose";
 import { Emitter } from "src/base/common/event";
 import { IEditorModel } from "src/editor/common/model";
 import { ProseNode } from "src/editor/common/prose";
-import { IEditorViewModel } from "src/editor/common/viewModel";
+import { IEditorViewModel, IEditorViewModelOptions } from "src/editor/common/viewModel";
 import { DocumentNodeProvider } from "src/editor/viewModel/parser/documentNode";
 import { DocumentParser, IDocumentParser } from "src/editor/viewModel/parser/parser";
 import { Codespan } from "src/editor/viewModel/parser/mark/codespan";
@@ -38,6 +38,7 @@ export class EditorViewModel extends Disposable implements IEditorViewModel {
 
     constructor(
         model: IEditorModel,
+        options: IEditorViewModelOptions,
     ) {
         super();
         this._model = model;
@@ -56,6 +57,10 @@ export class EditorViewModel extends Disposable implements IEditorViewModel {
 
     public getSchema(): EditorSchema {
         return this._schema;
+    }
+
+    public updateOptions(options: Partial<IEditorViewModelOptions>): void {
+
     }
 
     // [private helper methods]

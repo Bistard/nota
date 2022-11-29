@@ -3,14 +3,9 @@ import { Emitter } from "src/base/common/event";
 import { DataBuffer } from "src/base/common/file/buffer";
 import { URI } from "src/base/common/file/uri";
 import { Blocker } from "src/base/common/util/async";
-import { mixin } from "src/base/common/util/object";
-import { ExplorerViewID, IExplorerViewService } from "src/code/browser/workbench/sideView/explorer/explorerService";
-import { ISideViewService } from "src/code/browser/workbench/sideView/sideView";
-import { IConfigService } from "src/code/platform/configuration/common/abstractConfigService";
-import { BuiltInConfigScope } from "src/code/platform/configuration/common/configRegistrant";
 import { IFileService } from "src/code/platform/files/common/fileService";
-import { EditorToken, IEditorModel, IModelEvent, IPieceTableModel } from "src/editor/common/model";
-import { getDefaultLexerOptions, IMarkdownLexer, IMarkdownLexerOptions, MarkdownLexer } from "src/editor/model/markdown/lexer";
+import { EditorToken, IEditorModel, IEditorModelOptions, IModelEvent, IPieceTableModel } from "src/editor/common/model";
+import { IMarkdownLexer, IMarkdownLexerOptions, MarkdownLexer } from "src/editor/model/markdown/lexer";
 import { TextBufferBuilder } from "src/editor/model/textBufferBuilder";
 
 export class EditorModel extends Disposable implements IEditorModel {
@@ -26,6 +21,7 @@ export class EditorModel extends Disposable implements IEditorModel {
     // [field]
 
     private readonly _source: URI;
+    private readonly _options: IEditorModelOptions;
 
     private readonly _lexer: IMarkdownLexer;
 
@@ -40,15 +36,15 @@ export class EditorModel extends Disposable implements IEditorModel {
 
     constructor(
         source: URI,
+        options: IEditorModelOptions,
         @IFileService private readonly fileService: IFileService,
-        @IConfigService private readonly configService: IConfigService,
-        @ISideViewService private readonly sideViewService: ISideViewService,
     ) {
         super();
         this._source = source;
+        this._options = options;
 
         // lexer construction
-        const lexerOptions = this.__initLexerOptions();
+        const lexerOptions = this.__initLexerOptions(options);
         this._lexer = new MarkdownLexer(lexerOptions);
     }
 
@@ -103,11 +99,14 @@ export class EditorModel extends Disposable implements IEditorModel {
         return this._tokens;
     }
 
+    public updateOptions(options: Partial<IEditorModelOptions>): void {
+        if (options.baseURI) {
+            this._lexer.updateOptions({ baseURI: URI.toFsPath(options.baseURI) });
+        }
+    }
+
     public onQuit(): void {
-        
-        // save lexer settings
-        const lexerOptions = this._lexer.getOptions();
-        this.configService.set(BuiltInConfigScope.User, 'editor.lexer.enableHighlight', lexerOptions.enableHighlight);
+        // TODO
     }
 
     public override dispose(): void {
@@ -192,23 +191,9 @@ export class EditorModel extends Disposable implements IEditorModel {
         return blocker.waiting();
     }
 
-    private __initLexerOptions(): IMarkdownLexerOptions {
-        
-        const overwrite = {
-            enableHighlight: this.configService.get<boolean>(BuiltInConfigScope.User, 'editor.lexer.enableHighlight'),
+    private __initLexerOptions(options: IEditorModelOptions): IMarkdownLexerOptions {
+        return { 
+            baseURI: options.baseURI && URI.toFsPath(options.baseURI, true),
         };
-        
-        const explorerView = this.sideViewService.getView<IExplorerViewService>(ExplorerViewID);
-        if (explorerView?.root) {
-            overwrite['baseURI'] = URI.toFsPath(explorerView.root, true);
-        }
-
-        const lexerOptionBase = mixin<IMarkdownLexerOptions>(
-            getDefaultLexerOptions(),
-            overwrite,
-            true,
-        );
-        
-        return lexerOptionBase;
     }
 }

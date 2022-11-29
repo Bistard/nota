@@ -7,8 +7,13 @@ import { createService } from "src/code/platform/instantiation/common/decorator"
 import { ServiceDescriptor } from "src/code/platform/instantiation/common/descriptor";
 import { IInstantiationService } from "src/code/platform/instantiation/common/instantiation";
 import { registerSingleton } from "src/code/platform/instantiation/common/serviceCollection";
-import { EditorWidget, IEditorWidget } from "src/editor/editorWidget";
+import { EditorWidget, IEditorWidget, IEditorWidgetOptions } from "src/editor/editorWidget";
 import { Mutable } from "src/base/common/util/type";
+import { EditorViewDisplayType } from "src/editor/common/view";
+import { ISideViewService } from "src/code/browser/workbench/sideView/sideView";
+import { ExplorerViewID, IExplorerViewService } from "src/code/browser/workbench/sideView/explorer/explorerService";
+import { IBrowserLifecycleService, ILifecycleService, LifecyclePhase } from "src/code/platform/lifecycle/browser/browserLifecycleService";
+import { ILogService } from "src/base/common/logger";
 
 export const IEditorService = createService<IEditorService>('editor-service');
 
@@ -34,6 +39,9 @@ export class Editor extends Component implements IEditorService {
         @IInstantiationService private readonly instantiationService: IInstantiationService,
         @IFileService private readonly fileService: IFileService,
         @IThemeService themeService: IThemeService,
+        @ISideViewService private readonly sideViewService: ISideViewService,
+        @ILifecycleService private readonly lifecycleService: IBrowserLifecycleService,
+        @ILogService private readonly logService: ILogService,
     ) {
         super('editor', null, themeService, componentService);
     }
@@ -57,17 +65,47 @@ export class Editor extends Component implements IEditorService {
     // [override protected methods]
 
     protected override _createContent(): void {
-        const editor = this.instantiationService.createInstance(
-            EditorWidget, 
-            this.element.element,
-            {},
-        );
 
-        (<Mutable<EditorWidget>>this._editorWidget) = editor;
+        this.lifecycleService.when(LifecyclePhase.Ready).then(() => {
+            
+            // option base
+            const options = <IEditorWidgetOptions>{
+                display: EditorViewDisplayType.WYSIWYG,
+                baseURI: undefined
+            };
+
+            // building options
+            const explorerView = this.sideViewService.getView<IExplorerViewService>(ExplorerViewID);
+            if (explorerView?.root) {
+                options.baseURI = explorerView.root;
+            }
+
+            this.logService.trace(`Renderer#editorWidget#option#${options}`);
+
+            // eidtor widget construction
+            const editor = this.instantiationService.createInstance(EditorWidget, this.element.element, options);
+            (<Mutable<EditorWidget>>this._editorWidget) = editor;
+        });
     }
 
-    protected override _registerListeners(): void {
-        
+    protected override _registerListeners(): Promise<void> {
+
+        /**
+         * It should be better idea to collect all the settings and options and 
+         * register the editor related listeners when the browser-side lifecycle 
+         * turns into ready state.
+         */
+
+        return this.lifecycleService.when(LifecyclePhase.Ready).then(() => {
+            
+            // building options
+            const explorerView = this.sideViewService.getView<IExplorerViewService>(ExplorerViewID);
+            if (explorerView) {
+                explorerView.onDidOpen((e) => {
+                    this._editorWidget.updateOptions({ baseURI: e.path });
+                });
+            }
+        });
     }
 
     // [private helper methods]

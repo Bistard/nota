@@ -405,10 +405,24 @@ export interface IEditorModel extends IDisposable {
     getTokens(): EditorToken[];
 
     /**
+     * @description Updates the options of the editor model.
+     * @param options The option.
+     */
+    updateOptions(options: Partial<IEditorModelOptions>): void;
+
+    /**
      * @description Invokes only when the applicaion is about to quit. Should
      * invoked and decided by the eidtor itself.
      */
     onQuit(): void;
+}
+
+export interface IEditorModelOptions {
+
+    /**
+     * A prefix URI for any relative link token.
+     */
+    baseURI?: URI;
 }
 
 export namespace IModelEvent {
