@@ -1,3 +1,6 @@
+import { Disposable, IDisposable } from "src/base/common/dispose";
+import { Emitter, Register } from "src/base/common/event";
+import { ILogEvent, LogLevel } from "src/base/common/logger";
 import { Stack } from "src/base/common/util/array";
 import { EditorToken } from "src/editor/common/model";
 import { ProseAttrs, ProseMark, ProseMarkType, ProseNode, ProseNodeType, ProseTextNode } from "src/editor/common/proseMirror";
@@ -8,6 +11,12 @@ import { EditorSchema } from "src/editor/viewModel/schema";
  * Interface only for {@link DocumentParser}.
  */
 export interface IDocumentParser {
+    
+    /**
+     * Fires when the parser wish to log out a message.
+     */
+    readonly onLog: Register<ILogEvent<string | Error>>;
+
     /**
      * @description Parsing the given tokens into document nodes used for 
      * rendering in prosemirror view.
@@ -20,11 +29,15 @@ export interface IDocumentParser {
  * @class Parsing markdown tokens into document nodes that are used for 
  * rendering purpose in prosemirror view.
  */
-export class DocumentParser implements IDocumentParser {
+export class DocumentParser extends Disposable implements IDocumentParser {
     
     // [field]
 
     private readonly _state: DocumentParseState;
+
+    // [event]
+
+    public readonly onLog: Register<ILogEvent<string | Error>>;
 
     // [constructor]
 
@@ -32,7 +45,10 @@ export class DocumentParser implements IDocumentParser {
         schema: EditorSchema,
         nodeProvider: DocumentNodeProvider,
     ) {
-        this._state = new DocumentParseState(schema, nodeProvider);
+        super();
+
+        this._state = this.__register(new DocumentParseState(schema, nodeProvider));
+        this.onLog = this._state.onLog;
     }
 
     // [public methods]
@@ -44,6 +60,10 @@ export class DocumentParser implements IDocumentParser {
         this._state.clean();
         
         return documentRoot;
+    }
+
+    public override dispose(): void {
+        super.dispose();
     }
 }
 
@@ -129,7 +149,7 @@ export interface IDocumentParseState {
  * @class Use to maintain the parsing process for each parse request from the
  * {@link DocumentParser}.
  */
-class DocumentParseState implements IDocumentParseState {
+class DocumentParseState implements IDocumentParseState, IDisposable {
 
     // [field]
 
@@ -138,6 +158,11 @@ class DocumentParseState implements IDocumentParseState {
 
     private readonly _defaultNodeType: ProseNodeType;
     private readonly _createTextNode: (text: string, marks?: readonly ProseMark[]) => ProseTextNode;
+
+    // [event]
+
+    private readonly _onLog = new Emitter<ILogEvent<string | Error>>();
+    public readonly onLog = this._onLog.registerListener;
 
     // [constructor]
 
@@ -157,10 +182,14 @@ class DocumentParseState implements IDocumentParseState {
     public parseTokens(tokens: EditorToken[]): void {
         for (const token of tokens) {
             const name = token.type;
+            
             const node = this._nodeProvider.getNode(name) ?? this._nodeProvider.getMark(name);
             if (!node) {
-                // TODO: should log out and conitnue instead of throw it out.
-                throw new Error(`cannot find any registered document nodes that matches the given token with type '${name}'`);
+                this._onLog.fire({
+                    data: new Error(`cannot find any registered document nodes that matches the given token with type '${name}'`),
+                    level: LogLevel.ERROR,
+                });
+                continue;
             }
             
             node.parseFromToken(this, token);
@@ -269,6 +298,11 @@ class DocumentParseState implements IDocumentParseState {
             return [];
         }
         return this._actives.top().marks;
+    }
+
+    public dispose(): void {
+        this.clean();
+        this._onLog.dispose();
     }
 
     // [private helper methods]

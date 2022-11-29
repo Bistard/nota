@@ -19,6 +19,8 @@ import { Paragraph } from "src/editor/viewModel/parser/node/paragraph";
 import { Space } from "src/editor/viewModel/parser/node/space";
 import { Text } from "src/editor/viewModel/parser/node/text";
 import { EditorSchema, MarkdownSchema } from "src/editor/viewModel/schema";
+import { defaultLog, ILogService, LogLevel } from "src/base/common/logger";
+import { List, ListItem } from "src/editor/viewModel/parser/node/list";
 
 export class EditorViewModel extends Disposable implements IEditorViewModel {
 
@@ -41,17 +43,19 @@ export class EditorViewModel extends Disposable implements IEditorViewModel {
     constructor(
         model: IEditorModel,
         options: IEditorViewModelOptions,
+        @ILogService private readonly logService: ILogService,
     ) {
         super();
         this._model = model;
         this._options = options;
 
         this._nodeProvider = new DocumentNodeProvider();
-        this.__registerNodeAndMark(this._nodeProvider);
+        this.__registerNodeProvider();
 
         this._schema = new MarkdownSchema(this._nodeProvider);
 
         this._docParser = new DocumentParser(this._schema, this._nodeProvider, /* options */);
+        this._docParser.onLog( event => defaultLog(this.logService, event.level, event.data) );
 
         this.__registerModelListeners();
     }
@@ -89,7 +93,10 @@ export class EditorViewModel extends Disposable implements IEditorViewModel {
         }
     }
 
-    private __registerNodeAndMark(provider: DocumentNodeProvider): void {
+    private __registerNodeProvider(): void {
+        const provider = this._nodeProvider;
+
+        // nodes
         provider.registerNode(new Space());
         provider.registerNode(new Text());
         provider.registerNode(new Heading());
@@ -99,7 +106,10 @@ export class EditorViewModel extends Disposable implements IEditorViewModel {
         provider.registerNode(new CodeBlock());
         provider.registerNode(new LineBreak());
         provider.registerNode(new Image());
+        provider.registerNode(new List());
+        provider.registerNode(new ListItem());
 
+        // marks
         provider.registerMark(new Link());
         provider.registerMark(new Emphasis());
         provider.registerMark(new Strong());
