@@ -1,3 +1,4 @@
+import { CodeEditorView, minimalSetup } from "src/editor/common/codeMirrror";
 import { TokenEnum } from "src/editor/common/markdown";
 import { EditorTokens } from "src/editor/common/model";
 import { ProseNodeSpec } from "src/editor/common/proseMirror";
@@ -21,18 +22,29 @@ export class CodeBlock extends DocumentNode<EditorTokens.CodeBlock> {
             marks: '',
             code: true,
             defining: true,
+            attrs: {
+                view: {},
+            },
             parseDOM: [
                 { tag: 'pre', preserveWhitespace: 'full' },
             ],
-            toDOM: () => { 
-                return ['pre', ['code', 0]]; 
-            }
+            toDOM: (node) => { 
+                const { view } = node.attrs;
+                return view.dom;
+            },
         };
     }
 
     public parseFromToken(state: IDocumentParseState, token: EditorTokens.CodeBlock): void {
-        state.activateNode(this.ctor);
-        state.addText(token.text);
+        
+        const view = new CodeEditorView({
+            doc: token.text,
+            extensions: [minimalSetup]
+        });
+        
+        state.activateNode(this.ctor, { view: view });
         state.deactivateNode();
     }
+
+    // [private helper methods]
 }
