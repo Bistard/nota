@@ -2,4 +2,5 @@
 /** link */
 .ProseMirror a {
     color: rgb(0, 140, 255);
+    text-decoration: underline;
 }

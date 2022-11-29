@@ -35,10 +35,14 @@ export class Heading extends DocumentNode<EditorTokens.Heading> {
     }
 
     public parseFromToken(state: IDocumentParseState, token: EditorTokens.Heading): void {
-        state.activateNode(this.ctor);
+        state.activateNode(this.ctor, {
+            level: token.depth,
+        });
+
         if (token.tokens) {
             state.parseTokens(token.tokens);
         }
+        
         state.deactivateNode();
     }
 }
