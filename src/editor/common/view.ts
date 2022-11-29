@@ -1,6 +1,6 @@
 import { Register } from "src/base/common/event";
 import { ILogEvent } from "src/base/common/logger";
-import { IEditorViewCore } from "src/editor/view/editorViewCore";
+import { IEditorViewCore } from "src/editor/view/viewPart/viewWindow/editorViewCore";
 
 export interface IEditorView extends IEditorViewCore {
 

@@ -3,7 +3,7 @@ import { Emitter, Register } from "src/base/common/event";
 import { ILogEvent, LogLevel } from "src/base/common/logger";
 import { IEditorView, IEditorViewOptions } from "src/editor/common/view";
 import { IEditorViewModel, IRenderPlainEvent, IRenderRichEvent, IRenderSplitEvent, isRenderPlainEvent, isRenderRichEvent, isRenderSplitEvent } from "src/editor/common/viewModel";
-import { EditorViewCore } from "src/editor/view/editorViewCore";
+import { EditorViewCore } from "src/editor/view/viewPart/viewWindow/editorViewCore";
 
 export class ViewContext {
 

@@ -18,7 +18,7 @@ import { Paragraph } from "src/editor/viewModel/parser/node/paragraph";
 import { Space } from "src/editor/viewModel/parser/node/space";
 import { Text } from "src/editor/viewModel/parser/node/text";
 import { EditorSchema, MarkdownSchema } from "src/editor/viewModel/schema";
-import { defaultLog, ILogEvent, ILogService } from "src/base/common/logger";
+import { ILogEvent, ILogService } from "src/base/common/logger";
 import { List, ListItem } from "src/editor/viewModel/parser/node/list";
 import { HTML } from "src/editor/viewModel/parser/node/html";
 import { ifOrDefault } from "src/base/common/util/type";
