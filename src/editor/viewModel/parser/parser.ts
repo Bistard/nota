@@ -22,7 +22,7 @@ export interface IDocumentParser {
      * rendering in prosemirror view.
      * @param tokens The markdown tokens that are parsed from the model.
      */
-    parse(tokens: EditorToken[]): ProseNode | null;
+    parse(tokens: EditorToken[]): ProseNode;
 }
 
 /**
@@ -53,7 +53,7 @@ export class DocumentParser extends Disposable implements IDocumentParser {
 
     // [public methods]
 
-    public parse(tokens: EditorToken[]): ProseNode | null {        
+    public parse(tokens: EditorToken[]): ProseNode {        
         
         this._state.parseTokens(tokens);
         const documentRoot = this._state.complete();
@@ -196,12 +196,12 @@ class DocumentParseState implements IDocumentParseState, IDisposable {
         }
     }
 
-    public complete(): ProseNode | null {
+    public complete(): ProseNode {
         let root: ProseNode | null = null;
         while (!this._actives.empty()) {
             root = this.deactivateNode();
         }
-        return root ?? this._defaultNodeType.createAndFill();
+        return root ?? this._defaultNodeType.create();
     }
 
     public clean(): void {
@@ -244,7 +244,7 @@ class DocumentParseState implements IDocumentParseState, IDisposable {
 
         const active = this.__getActive();
         const textNode = this._createTextNode(text, active.marks);
-        
+
         const lastIdx = active.children.length - 1;
         const previous = active.children[lastIdx];
         if (!previous) {
