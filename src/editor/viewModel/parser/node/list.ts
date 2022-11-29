@@ -65,7 +65,7 @@ export class ListItem extends DocumentNode<EditorTokens.ListItem> {
     public getSchema(): ProseNodeSpec {
         return {
             group: 'list_item',
-            content: 'paragraph block*',
+            content: 'block*',
             defining: true,
             attrs: {
                 task: { default: false },
@@ -74,7 +74,8 @@ export class ListItem extends DocumentNode<EditorTokens.ListItem> {
             parseDOM: [
                 { tag: 'li' },
             ],
-            toDOM(node) { // TODO
+            toDOM(node) { 
+                // TODO: parsing by attributes
                 return ['li', 0]; 
             }
         };
@@ -85,6 +86,16 @@ export class ListItem extends DocumentNode<EditorTokens.ListItem> {
             task: token.task,
             checked: token.checked,
         });
+        
+        /**
+         * Force the text token be parsed as paragraph since the list-item 
+         * cannot hold any inline.
+         */
+        if (token.tokens.length >= 1) {
+            const textToken = token.tokens[0]!;
+            textToken.type = TokenEnum.Paragraph;
+        }
+
         state.parseTokens(token.tokens);
         state.deactivateNode();
     }
