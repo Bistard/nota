@@ -16,11 +16,22 @@ export class Text extends DocumentNode<EditorTokens.Text> {
     public getSchema(): ProseNodeSpec {
         return {
             group: 'inline',
+            inline: true,
             content: undefined,
         };
     }
 
     public parseFromToken(state: IDocumentParseState, token: EditorTokens.Text): void {
-        state.addText(token.text);
+        if (!token.tokens) {
+            state.addText(token.text);
+            return;
+        }
+
+        /**
+         * If a `text` token has a list of children, it will be treated as a
+         * `paragraph` for easy handling.
+         */
+        (<string>token.type) = TokenEnum.Paragraph;
+        state.parseTokens([token]);
     }
 }
