@@ -412,7 +412,7 @@ export interface IEditorModel extends IDisposable {
 
     /**
      * @description Invokes only when the applicaion is about to quit. Should
-     * invoked and decided by the eidtor itself.
+     * invoked and decided by the editor itself.
      */
     onQuit(): void;
 }

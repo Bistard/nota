@@ -17,5 +17,9 @@ export interface IEditorView extends IEditorViewCore {
 
 export interface IEditorViewOptions {
 
-    readonly display: EditorViewDisplayType;
+    /**
+     * Determines how the editor is about to render the view.
+     * @default EditorViewDisplayType.WYSIWYG
+     */
+    readonly display?: EditorViewDisplayType;
 }

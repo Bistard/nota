@@ -14,6 +14,8 @@ import { ISideViewService } from "src/code/browser/workbench/sideView/sideView";
 import { ExplorerViewID, IExplorerViewService } from "src/code/browser/workbench/sideView/explorer/explorerService";
 import { IBrowserLifecycleService, ILifecycleService, LifecyclePhase } from "src/code/platform/lifecycle/browser/browserLifecycleService";
 import { ILogService } from "src/base/common/logger";
+import { IConfigService } from "src/code/platform/configuration/common/abstractConfigService";
+import { BuiltInConfigScope } from "src/code/platform/configuration/common/configRegistrant";
 
 export const IEditorService = createService<IEditorService>('editor-service');
 
@@ -42,6 +44,7 @@ export class Editor extends Component implements IEditorService {
         @ISideViewService private readonly sideViewService: ISideViewService,
         @ILifecycleService private readonly lifecycleService: IBrowserLifecycleService,
         @ILogService private readonly logService: ILogService,
+        @IConfigService private readonly configService: IConfigService,
     ) {
         super('editor', null, themeService, componentService);
     }
@@ -64,48 +67,46 @@ export class Editor extends Component implements IEditorService {
 
     // [override protected methods]
 
-    protected override _createContent(): void {
+    protected override async _createContent(): Promise<void> {
 
-        this.lifecycleService.when(LifecyclePhase.Ready).then(() => {
+        await this.lifecycleService.when(LifecyclePhase.Ready);
             
-            // option base
-            const options = <IEditorWidgetOptions>{
-                display: EditorViewDisplayType.WYSIWYG,
-                baseURI: undefined
-            };
+        // option base
+        const options = <IEditorWidgetOptions>{
+            display: EditorViewDisplayType.WYSIWYG,
+            baseURI: undefined,
+            codeblockHighlight: this.configService.get<boolean>(BuiltInConfigScope.User, 'editor.parser.codeblockHighlight'),
+        };
 
-            // building options
-            const explorerView = this.sideViewService.getView<IExplorerViewService>(ExplorerViewID);
-            if (explorerView?.root) {
-                options.baseURI = explorerView.root;
-            }
+        // building options
+        const explorerView = this.sideViewService.getView<IExplorerViewService>(ExplorerViewID);
+        if (explorerView?.root) {
+            options.baseURI = explorerView.root;
+        }
 
-            this.logService.trace(`EditorWidget#option#${options}`);
+        this.logService.trace(`EditorWidget#option#${options}`);
 
-            // eidtor widget construction
-            const editor = this.instantiationService.createInstance(EditorWidget, this.element.element, options);
-            (<Mutable<EditorWidget>>this._editorWidget) = editor;
-        });
+        // editor widget construction
+        const editor = this.instantiationService.createInstance(EditorWidget, this.element.element, options);
+        (<Mutable<EditorWidget>>this._editorWidget) = editor;
     }
 
-    protected override _registerListeners(): Promise<void> {
+    protected override async _registerListeners(): Promise<void> {
 
         /**
-         * It should be better idea to collect all the settings and options and 
-         * register the editor related listeners when the browser-side lifecycle 
-         * turns into ready state.
+         * It should be a better idea to collect all the settings and options 
+         * and register the editor related listeners when the browser-side 
+         * lifecycle turns into ready state.
          */
-
-        return this.lifecycleService.when(LifecyclePhase.Ready).then(() => {
+        await this.lifecycleService.when(LifecyclePhase.Ready);
             
-            // building options
-            const explorerView = this.sideViewService.getView<IExplorerViewService>(ExplorerViewID);
-            if (explorerView) {
-                explorerView.onDidOpen((e) => {
-                    this._editorWidget.updateOptions({ baseURI: e.path });
-                });
-            }
-        });
+        // building options
+        const explorerView = this.sideViewService.getView<IExplorerViewService>(ExplorerViewID);
+        if (explorerView) {
+            explorerView.onDidOpen((e) => {
+                this._editorWidget.updateOptions({ baseURI: e.path });
+            });
+        }
     }
 
     // [private helper methods]

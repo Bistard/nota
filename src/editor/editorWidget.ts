@@ -8,7 +8,7 @@ import { IFileService } from "src/code/platform/files/common/fileService";
 import { IInstantiationService } from "src/code/platform/instantiation/common/instantiation";
 import { IBrowserLifecycleService, ILifecycleService } from "src/code/platform/lifecycle/browser/browserLifecycleService";
 import { IEditorModel, IEditorModelOptions } from "src/editor/common/model";
-import { EditorViewDisplayType, IEditorView } from "src/editor/common/view";
+import { EditorViewDisplayType, IEditorView, IEditorViewOptions } from "src/editor/common/view";
 import { IEditorViewModel, IEditorViewModelOptions } from "src/editor/common/viewModel";
 import { EditorModel } from "src/editor/model/editorModel";
 import { EditorView } from "src/editor/view/editorView";
@@ -37,12 +37,8 @@ export interface IEditorWidget extends IDisposable {
 /**
  * Consturctor option for {@link EditorWidget}.
  */
-export interface IEditorWidgetOptions extends IEditorModelOptions, IEditorViewModelOptions {
-    
-    /**
-     * Determines how the editor is about to render the view.
-     */
-    readonly display: EditorViewDisplayType;
+export interface IEditorWidgetOptions extends IEditorModelOptions, IEditorViewModelOptions, IEditorViewOptions {
+
 }
 
 /**

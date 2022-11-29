@@ -19,15 +19,8 @@ export interface IEditorViewModel extends Disposable {
 export interface IEditorViewModelOptions {
 
     /**
-     * A string to prefix the className in a <code> block. Useful for syntax 
-     * highlighting.
-     * @default 'language-'
-     */
-    languagePrefix?: string;
-
-    /**
      * If enables code-block highlight functionality.
      * @default true
      */
-    enableHighlight?: boolean;
+    codeblockHighlight?: boolean;
 }
