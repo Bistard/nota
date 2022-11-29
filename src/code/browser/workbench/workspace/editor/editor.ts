@@ -80,7 +80,7 @@ export class Editor extends Component implements IEditorService {
                 options.baseURI = explorerView.root;
             }
 
-            this.logService.trace(`Renderer#editorWidget#option#${options}`);
+            this.logService.trace(`EditorWidget#option#${options}`);
 
             // eidtor widget construction
             const editor = this.instantiationService.createInstance(EditorWidget, this.element.element, options);

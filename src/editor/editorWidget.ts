@@ -114,7 +114,7 @@ export class EditorWidget extends Disposable implements IEditorWidget {
             return;
         }
         
-        this.logService.trace(`Reading file '${basename(URI.toString(model.source))}'.`);
+        this.logService.trace(`EditorWidget#Reading file '${basename(URI.toString(model.source))}'`);
 
         // model attachment
         this._model = model;
