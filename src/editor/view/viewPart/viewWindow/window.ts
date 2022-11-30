@@ -70,10 +70,11 @@ export abstract class ViewWindow extends Disposable implements IViewWindow {
 
     // [constructor]
 
-    constructor(container: HTMLElement, context: ViewContext) {
+    constructor(container: HTMLElement, context: ViewContext, type: string) {
         super();
         this._container = container;
         this._context = context;
+        container.classList.add(type);
     }
 
     // [event]

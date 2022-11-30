@@ -18,7 +18,7 @@ export class RichtextWindow extends ViewWindow {
     // [constructor]
 
     constructor(container: HTMLElement, context: ViewContext, initState?: ProseEditorState) {
-        super(container, context);
+        super(container, context, 'rich-text');
 
         this._window = new RichtextWindowCore(container, context, initState);
         

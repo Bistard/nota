@@ -1,3 +1,2 @@
-@import './prosemirror.css';
-@import './mark.css';
-@import './node.css';
+@import './window.css';
+@import './richtext/index.css';

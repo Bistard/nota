@@ -43,7 +43,12 @@ export class EditorView extends Disposable implements IEditorView {
         const context = new ViewContext(viewModel, this, options, this._onLog.fire.bind(this));
         this._ctx = context;
 
-        this._winCentre = new ViewWindowCentre(context);
+        // the overall element that contains all the relevant components
+        const editorContainer = document.createElement('div');
+        editorContainer.className = 'editor-container';
+
+        // the centre that integrates the window-related functionalities
+        this._winCentre = new ViewWindowCentre(editorContainer, context);
         this.onRender = this._winCentre.window.onRender;
         
         // update listener registration from view-model
@@ -51,6 +56,8 @@ export class EditorView extends Disposable implements IEditorView {
 
         // resource registration
         this.__register(this._winCentre);
+
+        // render
         container.appendChild(this._winCentre.container);
     }
 
@@ -135,20 +142,22 @@ class ViewWindowCentre extends Disposable implements IViewWindowCentre {
 
     // [constructor]
 
-    constructor(context: ViewContext) {
+    constructor(container: HTMLElement, context: ViewContext) {
         super();
 
         this._ctx = context;
 
-        const container = document.createElement('div');
-        container.className = 'editor-container';
-        this._container = container;
+        const winContainer = document.createElement('div');
+        winContainer.className = 'window-container';
+        this._container = winContainer;
 
         const mode = context.viewModel.renderMode;
         const window = this.__createWindow(mode);
 
         this._renderMode = mode;
         this._window = window;
+
+        container.appendChild(winContainer);
     }
 
     // [getter]
