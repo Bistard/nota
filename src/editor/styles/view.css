@@ -1,6 +1,8 @@
 
+/** window-related */
+
 .window-container {
-    position: absolute;
+    position: relative;
     
     height: 100%;
     width: 100%;
@@ -29,3 +31,5 @@
 .window-container::-webkit-scrollbar-thumb:hover {
     background: rgb(73, 73, 73);
 }
+
+/** window-related (end) */

@@ -15,9 +15,10 @@ export class Space extends DocumentNode<EditorTokens.Space> {
     }
 
     public getSchema(): ProseNodeSpec {
-        return {
+        return <ProseNodeSpec>{
             group: 'block',
-            content: 'inline*',
+            content: 'block*',
+            selectable: true,
             parseDOM: [{ tag: 'div' }],
             toDOM: () => {
                 const dom = document.createElement('div');
