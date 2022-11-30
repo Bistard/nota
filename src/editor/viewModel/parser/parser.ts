@@ -153,8 +153,13 @@ class DocumentParseState implements IDocumentParseState, IDisposable {
 
     // [field]
 
-    private readonly _nodeProvider: DocumentNodeProvider;
+    /**
+     * A stack that holds every ongoing parsing nodes (unfinished). The state
+     * itself does not control the process, the {@link IDocumentNode} has full
+     * control over it.
+     */
     private readonly _actives: Stack<ParsingNodeState>;
+    private readonly _nodeProvider: DocumentNodeProvider;
 
     private readonly _defaultNodeType: ProseNodeType;
     private readonly _createTextNode: (text: string, marks?: readonly ProseMark[]) => ProseTextNode;
