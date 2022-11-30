@@ -52,6 +52,7 @@ export interface IWindowCore extends Disposable {
  * specific rendering mode.
  */
 export interface IViewWindow extends IWindowCore {
+    
     /**
      * The parent HTML container of the window.
      */

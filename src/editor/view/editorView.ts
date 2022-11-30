@@ -92,6 +92,10 @@ export class EditorView extends Disposable implements IEditorView {
         viewModel.onRender(event => {
             this._winCentre.render(event);
         });
+
+        viewModel.onDidChangeRenderMode(mode => {
+            this._winCentre.setRenderMode(mode);
+        });
     }
 }
 
