@@ -51,8 +51,6 @@ export class MarkdownLexer implements IMarkdownLexer {
 
     private readonly _parseOpts: IMarkdownLexerOptions;
     
-    private readonly _highlightFn?: Function;
-
     // [constructor]
 
     constructor(options?: IMarkdownLexerOptions) {
@@ -62,13 +60,11 @@ export class MarkdownLexer implements IMarkdownLexer {
     // [public methods]
 
     public lex(text: string): EditorToken[] {
-        
         const lexOption = <marked.MarkedOptions>{
             baseUrl: this._parseOpts.baseURI,
         };
 
         const tokens = marked.lexer(text, lexOption);
-
         return tokens;
     }
 
