@@ -1,13 +1,18 @@
+import { Disposable } from "src/base/common/dispose";
 import { Register } from "src/base/common/event";
 import { ILogEvent } from "src/base/common/logger";
-import { IEditorViewCore } from "src/editor/view/viewPart/viewWindow/editorViewCore";
 
-export interface IEditorView extends IEditorViewCore {
+export interface IEditorView extends Disposable {
 
     /**
      * Fires when a log is about happen.
      */
     readonly onLog: Register<ILogEvent<string | Error>>;
+
+    /**
+     * Fires right before the rendering happens.
+     */
+    readonly onRender: Register<void>;
 
     /**
      * @description Updates the options of the editor view.

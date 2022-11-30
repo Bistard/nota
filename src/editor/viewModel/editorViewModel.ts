@@ -18,7 +18,7 @@ import { Paragraph } from "src/editor/viewModel/parser/node/paragraph";
 import { Space } from "src/editor/viewModel/parser/node/space";
 import { Text } from "src/editor/viewModel/parser/node/text";
 import { EditorSchema, MarkdownSchema } from "src/editor/viewModel/schema";
-import { ILogEvent, ILogService } from "src/base/common/logger";
+import { ILogEvent } from "src/base/common/logger";
 import { List, ListItem } from "src/editor/viewModel/parser/node/list";
 import { HTML } from "src/editor/viewModel/parser/node/html";
 import { ifOrDefault } from "src/base/common/util/type";
@@ -43,12 +43,14 @@ export class EditorViewModel extends Disposable implements IEditorViewModel {
     private readonly _onRender = this.__register(new Emitter<IRenderEvent>());
     public readonly onRender = this._onRender.registerListener;
 
+    private readonly _onDidChangeRenderMode = this.__register(new Emitter<EditorRenderType>());
+    public readonly onDidChangeRenderMode = this._onDidChangeRenderMode.registerListener;
+
     // [constructor]
 
     constructor(
         model: IEditorModel,
         options: IEditorViewModelOptions,
-        @ILogService private readonly logService: ILogService,
     ) {
         super();
         this._model = model;
@@ -65,6 +67,12 @@ export class EditorViewModel extends Disposable implements IEditorViewModel {
         this.__registerModelListeners();
     }
 
+    // [getter]
+
+    get renderMode(): EditorRenderType {
+        return this._options.mode;
+    }
+
     // [public methods]
 
     public getSchema(): EditorSchema {
@@ -72,7 +80,11 @@ export class EditorViewModel extends Disposable implements IEditorViewModel {
     }
 
     public updateOptions(options: Partial<IEditorViewModelOptions>): void {
-
+        
+        if (options.mode) {
+            this._options.mode = options.mode;
+            this._onDidChangeRenderMode.fire(this._options.mode);
+        }
     }
 
     // [private helper methods]
@@ -92,7 +104,7 @@ export class EditorViewModel extends Disposable implements IEditorViewModel {
         console.log('[tokens]', tokens); // TEST
         console.log('[document]', document); // TEST
 
-        const renderType = this._options.display;
+        const renderType = this._options.mode;
         let event: IRenderEvent;
 
         if (renderType === EditorRenderType.Plain) {
@@ -144,7 +156,7 @@ export class EditorViewModel extends Disposable implements IEditorViewModel {
 
     private __initOptions(options: IEditorViewModelOptions): Required<IEditorViewModelOptions> {
 
-        options.display =            ifOrDefault(options.display, EditorRenderType.Rich);
+        options.mode =               ifOrDefault(options.mode, EditorRenderType.Rich);
         options.codeblockHighlight = ifOrDefault(options.codeblockHighlight, true);
 
         return <Required<IEditorViewModelOptions>>options;

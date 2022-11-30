@@ -31,11 +31,18 @@ export function parseFromRenderType(type: EditorRenderType): string {
 export interface IEditorViewModel extends Disposable {
 
     /**
+     * The current rendering mode of the view.
+     */
+    readonly renderMode: EditorRenderType;
+
+    /**
      * Fires when a log is about happen.
      */
     readonly onLog: Register<ILogEvent<string | Error>>;
 
     readonly onRender: Register<IRenderEvent>;
+
+    readonly onDidChangeRenderMode: Register<EditorRenderType>;
 
     getSchema(): EditorSchema;
 
@@ -52,7 +59,7 @@ export interface IEditorViewModelOptions {
      * Determines how the editor is about to render the view.
      * @default EditorRenderType.Rich
      */
-    display?: EditorRenderType;
+    mode?: EditorRenderType;
 
     /**
      * If enables code-block highlight functionality.

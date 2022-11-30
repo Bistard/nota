@@ -1,52 +1,76 @@
 import { Disposable } from "src/base/common/dispose";
 import { Emitter, Register } from "src/base/common/event";
 import { ProseEditorState, ProseEditorView, ProseNode, Slice, Transaction } from "src/editor/common/proseMirror";
+import { IRenderRichEvent } from "src/editor/common/viewModel";
 import { ViewContext } from "src/editor/view/editorView";
+import { IWindowCore, ViewWindow } from "src/editor/view/viewPart/viewWindow/window";
+
+export class RichtextWindow extends ViewWindow {
+
+    // [field]
+
+    private readonly _window: RichtextWindowCore;
+
+    // [event]
+
+    public readonly onRender: Register<void>;
+
+    // [constructor]
+
+    constructor(container: HTMLElement, context: ViewContext, initState?: ProseEditorState) {
+        super(container, context);
+
+        this._window = new RichtextWindowCore(container, context, initState);
+        
+        this.onRender = this._window.onRender;
+
+        this.__register(this._window);
+    }
+
+    // [getter]
+
+    get state(): ProseEditorState {
+        return this._window.state;
+    }
+
+    // [public methods]
+
+    public updateContent(event: IRenderRichEvent): void {
+        this._window.updateContent(event.document);
+    }
+
+    public isEditable(): boolean {
+        return this._window.isEditable();
+    }
+
+    public destroy(): void {
+        this._window.destroy();
+    }
+
+    public isDestroyed(): boolean {
+        return this._window.isDestroyed();
+    }
+
+    public isFocused(): boolean {
+        return this._window.isFocused();
+    }
+
+    public focus(): void {
+        this._window.focus();
+    }
+}
 
 /**
- * An interface only for {@link EditorViewCore}.
+ * An interface only for {@link RichtextWindowCore}.
  */
-export interface IEditorViewCore extends Disposable {
+interface IRichtextWindowCore extends IWindowCore {
 
-    /**
-     * Event fires before next rendering on DOM tree.
-     */
-    readonly onRender: Register<void>;
-
-    /**
-     * @description If the content of the view is directly editable.
-     * @note The content may still be modified programatically.
-     */
-    isEditable(): boolean;
-
-    /**
-     * @description Focus the view.
-     */
-    focus(): void;
-
-    /**
-     * @description Is the view focused.
-     */
-    isFocused(): boolean;
-    
-    /**
-     * @description Removes the editor from the DOM and destroys all the 
-     * resources relate to editor. 
-     * @note Alternatives to {@link IEditorViewCore.dispose}.
-     */
-    destroy(): void;
-
-    /**
-     * @description If the view is destroyed. 
-     * @note Alternatives to {@link IEditorViewCore.isDisposed}.
-     */
-    isDestroyed(): boolean;
 }
 
 /**
  * @class Adaptation over {@link ProseEditorView}.
  */
-export class EditorViewCore extends Disposable implements IEditorViewCore {
+class RichtextWindowCore extends Disposable implements IRichtextWindowCore {
 
     // [field]
 
@@ -84,6 +108,12 @@ export class EditorViewCore extends Disposable implements IEditorViewCore {
                 handleDrop: this.__onDrop.bind(this),
             }
         );
+    }
+
+    // [getter]
+
+    get state(): ProseEditorState {
+        return this._view.state;
     }
 
     // [public methods]

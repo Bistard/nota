@@ -73,7 +73,7 @@ export class Editor extends Component implements IEditorService {
             
         // option base
         const options = <IEditorWidgetOptions>{
-            display: parseToRenderType(this.configService.get<string>(BuiltInConfigScope.User, 'editor.display')),
+            mode: parseToRenderType(this.configService.get<string>(BuiltInConfigScope.User, 'editor.display')),
             baseURI: undefined,
             codeblockHighlight: this.configService.get<boolean>(BuiltInConfigScope.User, 'editor.parser.codeblockHighlight'),
         };
