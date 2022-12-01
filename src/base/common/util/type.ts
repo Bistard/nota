@@ -161,8 +161,12 @@ export function isEmptyObject(obj: any): boolean {
     return true;
 }
 
+export function isNullable(value: any): boolean {
+    return (typeof value === 'undefined' || value === null);
+}
+
 export function isNonNullable(value: any): boolean {
-    return !(typeof value === 'undefined' || value === null);
+    return !isNullable(value);
 }
 
 export function NulltoUndefined<T>(obj: T | null): T | undefined {
