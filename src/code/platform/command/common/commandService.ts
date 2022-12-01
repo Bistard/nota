@@ -20,7 +20,7 @@ export interface ICommandService {
     
     /**
      * @description Execute the command that is registered in the 
-     * {@link CommandRegistrant}. Returns a promise that will resolve if the 
+     * {@link ICommandRegistrant}. Returns a promise that will resolve if the 
      * execution successed, it will resolve either the command is not found or
      * encounter errors during the execution.
      * @param id The id of the command.
@@ -31,7 +31,7 @@ export interface ICommandService {
 
 /**
  * @class A micro-service that able to execute commands which are registered
- * through {@link CommandRegistrant}.
+ * through {@link ICommandRegistrant}.
  */
 export class CommandService extends Disposable implements ICommandService {
     

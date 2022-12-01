@@ -82,39 +82,20 @@ export namespace Keyboard {
     }
     
     /**
+     * @description Converts the given {@link IStandardKeyboardEvent} to a 
+     * {@link Shortcut}.
+     */
+    export function eventToShortcut(event: IStandardKeyboardEvent): Shortcut {
+        return new Shortcut(event.ctrl, event.shift, event.alt, event.meta, event.key);
+    }
+
+    /**
      * @description Converts the given {@link IStandardKeyboardEvent} to a nice
      * looking string form.
      * @example `Ctrl+Shift+R`
      */
     export function eventToString(event: IStandardKeyboardEvent): string {
-        let mask = 0;
-        const result: string[] = [];
-        
-        if (event.ctrl) {
-            mask |= KeyCode.Ctrl;
-            result.push('Ctrl');
-        }
-        if (event.shift) {
-            mask |= KeyCode.Shift;
-            result.push('Shift');
-        }
-        if (event.alt) {
-            mask |= KeyCode.Alt;
-            result.push('Alt');
-        }
-        if (event.meta) {
-            mask |= KeyCode.Meta;
-            result.push('Meta');
-        }
-        
-        if ((!Keyboard.isModifier(event.key) || (event.key | mask) !== mask) && 
-            event.key !== KeyCode.None) 
-        {
-            const key = Keyboard.toString(event.key);
-            result.push(key);
-        }
-        
-        return result.join('+');
+        return new Shortcut(event.ctrl, event.shift, event.alt, event.meta, event.key).toString();
     }
 
 }
