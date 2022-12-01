@@ -22,6 +22,7 @@ import { ILogEvent } from "src/base/common/logger";
 import { List, ListItem } from "src/editor/viewModel/parser/node/list";
 import { HTML } from "src/editor/viewModel/parser/node/html";
 import { ifOrDefault } from "src/base/common/util/type";
+import { TokenEnum } from "src/editor/common/markdown";
 
 export class EditorViewModel extends Disposable implements IEditorViewModel {
 
@@ -62,7 +63,7 @@ export class EditorViewModel extends Disposable implements IEditorViewModel {
         this._schema = new MarkdownSchema(this._nodeProvider);
 
         this._docParser = new DocumentParser(this._schema, this._nodeProvider, /* options */);
-        this._docParser.onLog(event => this._onLog.fire(event));
+        this.__initDocParser();
 
         this.__registerModelListeners();
     }
@@ -154,10 +155,21 @@ export class EditorViewModel extends Disposable implements IEditorViewModel {
         provider.registerMark(new Codespan());
     }
 
+    private __initDocParser(): void {
+        const parser = this._docParser;
+        
+        parser.onLog(event => this._onLog.fire(event));
+        
+        if (this._options.ignoreHTML) {
+            parser.ignoreToken(TokenEnum.HTML, true);
+        }
+    }
+
     private __initOptions(options: IEditorViewModelOptions): Required<IEditorViewModelOptions> {
 
         options.mode =               ifOrDefault(options.mode, EditorRenderType.Rich);
         options.codeblockHighlight = ifOrDefault(options.codeblockHighlight, true);
+        options.ignoreHTML         = ifOrDefault(options.ignoreHTML, false);
 
         return <Required<IEditorViewModelOptions>>options;
     }

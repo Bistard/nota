@@ -66,6 +66,12 @@ export interface IEditorViewModelOptions {
      * @default true
      */
     codeblockHighlight?: boolean;
+
+    /**
+     * When parsing, if ignores parse HTML content.
+     * @default false
+     */
+    ignoreHTML?: boolean;
 }
 
 /**

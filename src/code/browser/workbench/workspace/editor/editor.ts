@@ -76,6 +76,7 @@ export class Editor extends Component implements IEditorService {
             mode: parseToRenderType(this.configService.get<string>(BuiltInConfigScope.User, 'editor.display')),
             baseURI: undefined,
             codeblockHighlight: this.configService.get<boolean>(BuiltInConfigScope.User, 'editor.parser.codeblockHighlight'),
+            ignoreHTML: this.configService.get<boolean>(BuiltInConfigScope.User, 'editor.parser.ignoreHTML'),
         };
 
         // building options

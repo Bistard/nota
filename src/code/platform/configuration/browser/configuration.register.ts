@@ -25,6 +25,7 @@ class DefaultUserConfiguration extends DefaultConfigStorage {
                 display: 'rich',
                 'parser': {
                     codeblockHighlight: true,
+                    ignoreHTML: false,
                 },
             },
         };

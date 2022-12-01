@@ -2,6 +2,8 @@ import { Disposable, IDisposable } from "src/base/common/dispose";
 import { Emitter, Register } from "src/base/common/event";
 import { ILogEvent, LogLevel } from "src/base/common/logger";
 import { Stack } from "src/base/common/util/array";
+import { isNullable } from "src/base/common/util/type";
+import { MarkEnum, TokenEnum } from "src/editor/common/markdown";
 import { EditorToken } from "src/editor/common/model";
 import { ProseAttrs, ProseMark, ProseMarkType, ProseNode, ProseNodeType, ProseTextNode } from "src/editor/common/proseMirror";
 import { DocumentNodeProvider, IDocumentNode } from "src/editor/viewModel/parser/documentNode";
@@ -23,6 +25,23 @@ export interface IDocumentParser {
      * @param tokens The markdown tokens that are parsed from the model.
      */
     parse(tokens: EditorToken[]): ProseNode;
+
+    /**
+     * @description Ignores the given type of token when parsing (the token will
+     * be ignored and will not log an error message).
+     * @param type The token type.
+     * @param ignore When the value is given, the parser will force to either 
+     *               ignore or NOT ignore the token by the given boolean. If not 
+     *               given, the parser to toggle the value of the current 
+     *               ignoreness.
+     */
+    ignoreToken(type: TokenEnum | MarkEnum | string, ignore?: boolean): void;
+
+    /**
+     * @description Check is the token ignored.
+     * @param type The token type.
+     */
+    isTokenIgnored(type: TokenEnum | MarkEnum | string): boolean;
 }
 
 /**
@@ -34,6 +53,7 @@ export class DocumentParser extends Disposable implements IDocumentParser {
     // [field]
 
     private readonly _state: DocumentParseState;
+    private readonly _ignored: Set<string>;
 
     // [event]
 
@@ -46,8 +66,9 @@ export class DocumentParser extends Disposable implements IDocumentParser {
         nodeProvider: DocumentNodeProvider,
     ) {
         super();
+        this._ignored = new Set();
 
-        this._state = this.__register(new DocumentParseState(schema, nodeProvider));
+        this._state = this.__register(new DocumentParseState(this, schema, nodeProvider));
         this.onLog = this._state.onLog;
     }
 
@@ -62,8 +83,31 @@ export class DocumentParser extends Disposable implements IDocumentParser {
         return documentRoot;
     }
 
+    public ignoreToken(type: TokenEnum | MarkEnum | string, ignore?: boolean): void {
+        
+        // toggling
+        if (isNullable(ignore)) {
+            const has = this._ignored.has(type);
+            if (has) {
+                this._ignored.delete(type);
+            } else {
+                this._ignored.add(type);
+            }
+        }
+        else if (ignore) {
+            this._ignored.add(type);
+        } else {
+            this._ignored.delete(type);
+        }
+    }
+
+    public isTokenIgnored(type: TokenEnum | MarkEnum | string): boolean {
+        return this._ignored.has(type);
+    }
+
     public override dispose(): void {
         super.dispose();
+        this._ignored.clear();
     }
 }
 
@@ -160,6 +204,7 @@ class DocumentParseState implements IDocumentParseState, IDisposable {
      */
     private readonly _actives: Stack<ParsingNodeState>;
     private readonly _nodeProvider: DocumentNodeProvider;
+    private readonly _parser: DocumentParser;
 
     private readonly _defaultNodeType: ProseNodeType;
     private readonly _createTextNode: (text: string, marks?: readonly ProseMark[]) => ProseTextNode;
@@ -172,9 +217,11 @@ class DocumentParseState implements IDocumentParseState, IDisposable {
     // [constructor]
 
     constructor(
+        parser: DocumentParser,
         schema: EditorSchema,
         provider: DocumentNodeProvider,
     ) {
+        this._parser = parser;
         this._nodeProvider = provider;
         this._defaultNodeType = schema.topNodeType;
         this._createTextNode = schema.text.bind(schema);
@@ -186,13 +233,17 @@ class DocumentParseState implements IDocumentParseState, IDisposable {
 
     public parseTokens(tokens: EditorToken[]): void {
         for (const token of tokens) {
-            const name = token.type;
             
+            const name = token.type;
+            if (this._parser.isTokenIgnored(name)) {
+                continue;
+            }
+
             const node = this._nodeProvider.getNode(name) ?? this._nodeProvider.getMark(name);
             if (!node) {
                 this._onLog.fire({
-                    data: new Error(`cannot find any registered document nodes that matches the given token with type '${name}'`),
-                    level: LogLevel.ERROR,
+                    data: `cannot find any registered document nodes that matches the given token with type '${name}'`,
+                    level: LogLevel.WARN,
                 });
                 continue;
             }
