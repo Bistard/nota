@@ -161,5 +161,7 @@ export class EditorWidget extends Disposable implements IEditorWidget {
         Event.any([model.onLog, viewModel.onLog, view.onLog])((event) => {
             defaultLog(this.logService, event.level, event.data);
         });
+
+        // TODO: configuration auto updation
     }
 }
