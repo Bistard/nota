@@ -11,6 +11,7 @@ export const enum RegistrantType {
     Shortcut = 'shortcut',
     Reviver = 'reviver',
     DocumentNode = 'document-node',
+    EditorExtension = 'editor-extension',
 }
 
 export interface IRegistrantIdentifier<T> {

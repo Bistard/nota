@@ -1,20 +1,24 @@
 import { FastElement } from "src/base/browser/basic/fastElement";
 import { Disposable, IDisposable } from "src/base/common/dispose";
+import { ErrorHandler } from "src/base/common/error";
 import { Event } from "src/base/common/event";
 import { basename } from "src/base/common/file/path";
 import { URI } from "src/base/common/file/uri";
 import { defaultLog, ILogService } from "src/base/common/logger";
-import { mixin } from "src/base/common/util/object";
 import { isNonNullable } from "src/base/common/util/type";
+import { ICommandService } from "src/code/platform/command/common/commandService";
 import { IConfigService } from "src/code/platform/configuration/common/abstractConfigService";
 import { BuiltInConfigScope } from "src/code/platform/configuration/common/configRegistrant";
 import { IFileService } from "src/code/platform/files/common/fileService";
 import { IInstantiationService } from "src/code/platform/instantiation/common/instantiation";
 import { IBrowserLifecycleService, ILifecycleService } from "src/code/platform/lifecycle/browser/browserLifecycleService";
+import { REGISTRANTS } from "src/code/platform/registrant/common/registrant";
 import { IEditorModel } from "src/editor/common/model";
 import { IEditorView } from "src/editor/common/view";
 import { IEditorViewModel } from "src/editor/common/viewModel";
 import { EditorOptions, EditorOptionsType, IEditorOption, IEditorWidgetOptions } from "src/editor/configuration/editorConfiguration";
+import { IEditorExtension } from "src/editor/contrib/extensions/editorExtension";
+import { IEditorExtensionRegistrant } from "src/editor/contrib/extensions/editorExtensionRegistrant";
 import { EditorModel } from "src/editor/model/editorModel";
 import { EditorView } from "src/editor/view/editorView";
 import { EditorViewModel } from "src/editor/viewModel/editorViewModel";
@@ -53,6 +57,8 @@ export class EditorWidget extends Disposable implements IEditorWidget {
     private _viewModel: IEditorViewModel | null;
     private _view: IEditorView | null;
 
+    private readonly _extensionCentre: EditorExtensionCentre;
+
     // [events]
 
     // [constructor]
@@ -65,6 +71,7 @@ export class EditorWidget extends Disposable implements IEditorWidget {
         @IInstantiationService private readonly instantiationService: IInstantiationService,
         @ILifecycleService private readonly lifecycleService: IBrowserLifecycleService,
         @IConfigService private readonly configService: IConfigService,
+        @ICommandService private readonly commandService: ICommandService,
     ) {
         super();
 
@@ -75,7 +82,12 @@ export class EditorWidget extends Disposable implements IEditorWidget {
 
         this._options = this.__initOptions(options);
 
+        this._extensionCentre = new EditorExtensionCentre(instantiationService);
+
         this.__registerListeners();
+
+        // resource registrantion
+        this.__register(this._extensionCentre);
     }
 
     // [public methods]
@@ -188,5 +200,54 @@ export class EditorWidget extends Disposable implements IEditorWidget {
         });
 
         // TODO: configuration auto updation
+    }
+}
+
+/**
+ * @internal
+ * @class Use to manage all the editor-related extensions lifecycle.
+ */
+class EditorExtensionCentre implements IDisposable {
+
+    // [field]
+
+    private readonly _extensions: Map<string, IEditorExtension>;
+    private readonly _registrant: IEditorExtensionRegistrant;
+
+    // [constructor]
+
+    constructor(
+        instantiationService: IInstantiationService,
+    ) {
+
+        this._extensions = new Map();
+        this._registrant = REGISTRANTS.get(IEditorExtensionRegistrant);
+
+        // constructs all the extensions for the editor
+        const descriptors = this._registrant.getEditorExtensions();
+        for (const { ID, ctor } of descriptors) {
+
+            const exist = this._extensions.get(ID);
+            if (exist) {
+                ErrorHandler.onUnexpectedError(new Error(`Cannot register two editor extensions with the same ID: '${ID}'`));
+                continue;
+            }
+
+            try {
+                const extension = instantiationService.createInstance(ctor, this);
+                this._extensions.set(ID, extension);
+            } catch (err) {
+                ErrorHandler.onUnexpectedError(err);
+            }
+        }
+    }
+
+    // [public methods]
+
+    public dispose(): void {
+        for (const extension of this._extensions.values()) {
+            extension.dispose();
+        }
+        this._extensions.clear();
     }
 }
