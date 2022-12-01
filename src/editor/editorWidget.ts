@@ -82,7 +82,7 @@ export class EditorWidget extends Disposable implements IEditorWidget {
 
         this._options = this.__initOptions(options);
 
-        this._extensionCentre = new EditorExtensionCentre(instantiationService);
+        this._extensionCentre = new EditorExtensionCentre(this, instantiationService);
 
         this.__registerListeners();
 
@@ -217,6 +217,7 @@ class EditorExtensionCentre implements IDisposable {
     // [constructor]
 
     constructor(
+        editorWidget: IEditorWidget,
         instantiationService: IInstantiationService,
     ) {
 
@@ -234,7 +235,7 @@ class EditorExtensionCentre implements IDisposable {
             }
 
             try {
-                const extension = instantiationService.createInstance(ctor, this);
+                const extension = instantiationService.createInstance(ctor, editorWidget, this);
                 this._extensions.set(ID, extension);
             } catch (err) {
                 ErrorHandler.onUnexpectedError(err);
