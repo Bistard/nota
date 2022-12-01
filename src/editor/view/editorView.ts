@@ -58,7 +58,7 @@ export class EditorView extends Disposable implements IEditorView {
         this.__register(this._winCentre);
 
         // render
-        container.appendChild(this._winCentre.container);
+        container.appendChild(editorContainer);
     }
 
     // [public methods]
