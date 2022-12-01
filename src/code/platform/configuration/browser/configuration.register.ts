@@ -21,13 +21,7 @@ class DefaultUserConfiguration extends DefaultConfigStorage {
                 'outline': {},
                 'search': {},
             },
-            'editor': {
-                display: 'rich',
-                'parser': {
-                    codeblockHighlight: true,
-                    ignoreHTML: false,
-                },
-            },
+            'editor': {}, // the editor configuration is defined in `editorConfiguration.ts`
         };
     }
 }

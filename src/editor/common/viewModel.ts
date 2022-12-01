@@ -5,27 +5,9 @@ import { ProseNode } from "src/editor/common/proseMirror";
 import { EditorSchema } from "src/editor/viewModel/schema";
 
 export const enum EditorRenderType {
-    Plain,
-    Split,
-    Rich,
-}
-
-export function parseToRenderType(str: string): EditorRenderType {
-    switch (str) {
-        case 'plain': return EditorRenderType.Plain;
-        case 'split': return EditorRenderType.Split;
-        case 'rich': return EditorRenderType.Rich;
-        default: return undefined!;
-    }
-}
-
-export function parseFromRenderType(type: EditorRenderType): string {
-    switch (type) {
-        case EditorRenderType.Plain: return 'plain';
-        case EditorRenderType.Split: return 'split';
-        case EditorRenderType.Rich: return 'rich';
-        default: return undefined!;
-    }
+    Plain = 'plain',
+    Split = 'split',
+    Rich = 'rich',
 }
 
 export interface IEditorViewModel extends Disposable {

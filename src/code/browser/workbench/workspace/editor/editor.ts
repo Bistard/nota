@@ -7,7 +7,7 @@ import { createService } from "src/code/platform/instantiation/common/decorator"
 import { ServiceDescriptor } from "src/code/platform/instantiation/common/descriptor";
 import { IInstantiationService } from "src/code/platform/instantiation/common/instantiation";
 import { registerSingleton } from "src/code/platform/instantiation/common/serviceCollection";
-import { EditorWidget, IEditorWidget, IEditorWidgetOptions } from "src/editor/editorWidget";
+import { EditorWidget, IEditorWidget } from "src/editor/editorWidget";
 import { Mutable } from "src/base/common/util/type";
 import { ISideViewService } from "src/code/browser/workbench/sideView/sideView";
 import { ExplorerViewID, IExplorerViewService } from "src/code/browser/workbench/sideView/explorer/explorerService";
@@ -15,7 +15,8 @@ import { IBrowserLifecycleService, ILifecycleService, LifecyclePhase } from "src
 import { ILogService } from "src/base/common/logger";
 import { IConfigService } from "src/code/platform/configuration/common/abstractConfigService";
 import { BuiltInConfigScope } from "src/code/platform/configuration/common/configRegistrant";
-import { parseToRenderType } from "src/editor/common/viewModel";
+import { IEditorWidgetOptions } from "src/editor/configuration/editorConfiguration";
+import { deepCopy } from "src/base/common/util/object";
 
 export const IEditorService = createService<IEditorService>('editor-service');
 
@@ -71,21 +72,13 @@ export class Editor extends Component implements IEditorService {
 
         await this.lifecycleService.when(LifecyclePhase.Ready);
             
-        // option base
-        const options = <IEditorWidgetOptions>{
-            mode: parseToRenderType(this.configService.get<string>(BuiltInConfigScope.User, 'editor.display')),
-            baseURI: undefined,
-            codeblockHighlight: this.configService.get<boolean>(BuiltInConfigScope.User, 'editor.parser.codeblockHighlight'),
-            ignoreHTML: this.configService.get<boolean>(BuiltInConfigScope.User, 'editor.parser.ignoreHTML'),
-        };
+        const options = <Mutable<IEditorWidgetOptions>>deepCopy(this.configService.get(BuiltInConfigScope.User, 'editor'));
 
         // building options
         const explorerView = this.sideViewService.getView<IExplorerViewService>(ExplorerViewID);
         if (explorerView?.root) {
-            options.baseURI = explorerView.root;
+            options.baseURI = URI.toFsPath(explorerView.root);
         }
-
-        this.logService.trace(`EditorWidget#option#${options}`);
 
         // editor widget construction
         const editor = this.instantiationService.createInstance(EditorWidget, this.element.element, options);
@@ -105,7 +98,7 @@ export class Editor extends Component implements IEditorService {
         const explorerView = this.sideViewService.getView<IExplorerViewService>(ExplorerViewID);
         if (explorerView) {
             explorerView.onDidOpen((e) => {
-                this._editorWidget.updateOptions({ baseURI: e.path });
+                this._editorWidget.updateOptions({ baseURI: URI.toFsPath(e.path) });
             });
         }
     }

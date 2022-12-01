@@ -4,6 +4,7 @@ import { URI } from "src/base/common/file/uri";
 import { ILogEvent } from "src/base/common/logger";
 import { IEditorPosition } from "src/editor/common/position";
 import { IEditorRange } from "src/editor/common/range";
+import { EditorOptionsType } from "src/editor/configuration/editorConfiguration";
 import { marked } from "src/editor/model/markdown/marked/marked";
 
 export const enum EndOfLineType {
@@ -414,15 +415,9 @@ export interface IEditorModel extends IDisposable {
 
     /**
      * @description Updates the options of the editor model.
-     * @param options The option.
+     * @param options The editor option.
      */
-    updateOptions(options: Partial<IEditorModelOptions>): void;
-
-    /**
-     * @description Invokes only when the applicaion is about to quit. Should
-     * invoked and decided by the editor itself.
-     */
-    onQuit(): void;
+    updateOptions(options: EditorOptionsType): void;
 }
 
 export interface IEditorModelOptions {
@@ -430,7 +425,7 @@ export interface IEditorModelOptions {
     /**
      * A prefix URI for any relative link token.
      */
-    baseURI?: URI;
+    baseURI?: string;
 }
 
 export namespace IModelEvent {

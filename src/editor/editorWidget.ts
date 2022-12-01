@@ -5,12 +5,16 @@ import { basename } from "src/base/common/file/path";
 import { URI } from "src/base/common/file/uri";
 import { defaultLog, ILogService } from "src/base/common/logger";
 import { mixin } from "src/base/common/util/object";
+import { isNonNullable } from "src/base/common/util/type";
+import { IConfigService } from "src/code/platform/configuration/common/abstractConfigService";
+import { BuiltInConfigScope } from "src/code/platform/configuration/common/configRegistrant";
 import { IFileService } from "src/code/platform/files/common/fileService";
 import { IInstantiationService } from "src/code/platform/instantiation/common/instantiation";
 import { IBrowserLifecycleService, ILifecycleService } from "src/code/platform/lifecycle/browser/browserLifecycleService";
-import { IEditorModel, IEditorModelOptions } from "src/editor/common/model";
-import { IEditorView, IEditorViewOptions } from "src/editor/common/view";
-import { IEditorViewModel, IEditorViewModelOptions } from "src/editor/common/viewModel";
+import { IEditorModel } from "src/editor/common/model";
+import { IEditorView } from "src/editor/common/view";
+import { IEditorViewModel } from "src/editor/common/viewModel";
+import { EditorOptions, EditorOptionsType, IEditorOption, IEditorWidgetOptions } from "src/editor/configuration/editorConfiguration";
 import { EditorModel } from "src/editor/model/editorModel";
 import { EditorView } from "src/editor/view/editorView";
 import { EditorViewModel } from "src/editor/viewModel/editorViewModel";
@@ -36,13 +40,6 @@ export interface IEditorWidget extends IDisposable {
 }
 
 /**
- * Consturctor option for {@link EditorWidget}.
- */
-export interface IEditorWidgetOptions extends IEditorModelOptions, IEditorViewModelOptions, IEditorViewOptions {
-
-}
-
-/**
  * @class // TODO
  */
 export class EditorWidget extends Disposable implements IEditorWidget {
@@ -50,7 +47,7 @@ export class EditorWidget extends Disposable implements IEditorWidget {
     // [fields]
 
     private readonly _container: FastElement<HTMLElement>;
-    private _options: IEditorWidgetOptions;
+    private readonly _options: EditorOptionsType;
 
     private _model: IEditorModel | null;
     private _viewModel: IEditorViewModel | null;
@@ -67,6 +64,7 @@ export class EditorWidget extends Disposable implements IEditorWidget {
         @ILogService private readonly logService: ILogService,
         @IInstantiationService private readonly instantiationService: IInstantiationService,
         @ILifecycleService private readonly lifecycleService: IBrowserLifecycleService,
+        @IConfigService private readonly configService: IConfigService,
     ) {
         super();
 
@@ -75,7 +73,7 @@ export class EditorWidget extends Disposable implements IEditorWidget {
         this._viewModel = null;
         this._view = null;
 
-        this._options = options;
+        this._options = this.__initOptions(options);
 
         this.__registerListeners();
     }
@@ -95,9 +93,9 @@ export class EditorWidget extends Disposable implements IEditorWidget {
         this.__detachModel();
     }
 
-    public updateOptions(options: Partial<IEditorWidgetOptions>): void {
-        this._options = mixin(this._options, options, true);
-        this._model?.updateOptions(options);
+    public updateOptions(newOption: Partial<IEditorWidgetOptions>): void {
+        this.__updateOptions(this._options, newOption);
+        this._model?.updateOptions(this._options);
     }
 
     // [private helper methods]
@@ -147,12 +145,39 @@ export class EditorWidget extends Disposable implements IEditorWidget {
     }
 
     private __registerListeners(): void {
+        this.lifecycleService.onBeforeQuit(() => this.__saveEditorOptions());
 
-        this.lifecycleService.onBeforeQuit(() => this.__onQuit());
+        this.configService.onDidChange<IEditorWidgetOptions>(BuiltInConfigScope.User, 'editor', (newOption) => {
+            console.log('[on did change config]', newOption);
+            this.__updateOptions(this._options, newOption);
+        });
     }
 
-    private __onQuit(): void {
-        this._model?.onQuit();
+    private __initOptions(newOption: IEditorWidgetOptions): EditorOptionsType {
+        const mixOptions = EditorOptions;
+        this.__updateOptions(mixOptions, newOption);
+        return mixOptions;
+    }
+
+    private __updateOptions(option: EditorOptionsType, newOption: Partial<IEditorWidgetOptions>): void {
+        for (const [key, value] of Object.entries(newOption)) {
+            
+            // only updates the option if they both have the same key
+            if (isNonNullable(option[key])) {
+                const opt = <IEditorOption<any, any>>option[key];
+                opt.updateWith(value);
+            }
+        }
+    }
+
+    private __saveEditorOptions(): void {
+
+        let option: IEditorWidgetOptions = {};
+        for (const [key, value] of Object.entries(this._options)) {
+            option[key] = value.value;
+        }
+
+        this.configService.set(BuiltInConfigScope.User, 'editor', option);
     }
 
     private __registerMVVMListeners(model: IEditorModel, viewModel: IEditorViewModel, view: IEditorView): void {

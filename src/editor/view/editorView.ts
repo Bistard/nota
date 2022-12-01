@@ -4,6 +4,7 @@ import { ILogEvent } from "src/base/common/logger";
 import { ProseEditorState } from "src/editor/common/proseMirror";
 import { IEditorView, IEditorViewOptions } from "src/editor/common/view";
 import { EditorRenderType, IEditorViewModel, IRenderEvent } from "src/editor/common/viewModel";
+import { EditorOptionsType } from "src/editor/configuration/editorConfiguration";
 import { RichtextWindow } from "src/editor/view/viewPart/viewWindow/richtext/richtextWindow";
 import { IViewWindow } from "src/editor/view/viewPart/viewWindow/window";
 
@@ -12,7 +13,7 @@ export class ViewContext {
     constructor(
         public readonly viewModel: IEditorViewModel,
         public readonly view: IEditorView,
-        public readonly options: IEditorViewOptions,
+        public readonly options: EditorOptionsType,
         public readonly log: (event: ILogEvent<string | Error>) => void,
     ) {}
 }
@@ -36,7 +37,7 @@ export class EditorView extends Disposable implements IEditorView {
     constructor(
         container: HTMLElement,
         viewModel: IEditorViewModel,
-        options: IEditorViewOptions,
+        options: EditorOptionsType,
     ) {
         super();
 

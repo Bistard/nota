@@ -6,6 +6,7 @@ import { ILogEvent, LogLevel } from "src/base/common/logger";
 import { Blocker } from "src/base/common/util/async";
 import { IFileService } from "src/code/platform/files/common/fileService";
 import { EditorToken, IEditorModel, IEditorModelOptions, IPieceTableModel } from "src/editor/common/model";
+import { EditorOptionsType } from "src/editor/configuration/editorConfiguration";
 import { IMarkdownLexer, IMarkdownLexerOptions, MarkdownLexer } from "src/editor/model/markdown/lexer";
 import { TextBufferBuilder } from "src/editor/model/textBufferBuilder";
 
@@ -25,7 +26,7 @@ export class EditorModel extends Disposable implements IEditorModel {
     // [field]
 
     private readonly _source: URI;
-    private readonly _options: IEditorModelOptions;
+    private readonly _options: EditorOptionsType;
 
     private readonly _lexer: IMarkdownLexer;
 
@@ -40,7 +41,7 @@ export class EditorModel extends Disposable implements IEditorModel {
 
     constructor(
         source: URI,
-        options: IEditorModelOptions,
+        options: EditorOptionsType,
         @IFileService private readonly fileService: IFileService,
     ) {
         super();
@@ -103,14 +104,10 @@ export class EditorModel extends Disposable implements IEditorModel {
         return this._tokens;
     }
 
-    public updateOptions(options: Partial<IEditorModelOptions>): void {
-        if (options.baseURI) {
-            this._lexer.updateOptions({ baseURI: URI.toFsPath(options.baseURI) });
+    public updateOptions(options: EditorOptionsType): void {
+        if (options.baseURI.value) {
+            this._lexer.updateOptions({ baseURI: options.baseURI.value });
         }
-    }
-
-    public onQuit(): void {
-        // TODO
     }
 
     public override dispose(): void {
@@ -195,9 +192,9 @@ export class EditorModel extends Disposable implements IEditorModel {
         return blocker.waiting();
     }
 
-    private __initLexerOptions(options: IEditorModelOptions): IMarkdownLexerOptions {
+    private __initLexerOptions(options: EditorOptionsType): IMarkdownLexerOptions {
         return { 
-            baseURI: options.baseURI && URI.toFsPath(options.baseURI, true),
+            baseURI: options.baseURI.value,
         };
     }
 }
