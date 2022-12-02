@@ -55,7 +55,7 @@ export function createRegistrant<T>(registrantID: RegistrantType, ...args: any[]
 }
 
 /**
- * This is a universal regisrant. It is the only way to get all the other
+ * This is a universal registrant. It is the only way to get all the other
  * registrants which are registred into this universal registrant through the
  * decorator that are created by {@link createRegistrant}.
  */
@@ -67,10 +67,10 @@ export const REGISTRANTS = new class {
      * @throws An exception will be thrown if the registrant is never registrant.
      */
     public get<T>(id: IRegistrantIdentifier<T>): T {
-        const regisrant = _registarnts.get(id);
-        if (!regisrant) {
+        const registrant = _registarnts.get(id);
+        if (!registrant) {
             throw new Error(`Unknown registrant: ${id}`);
         }
-        return regisrant;
+        return registrant;
     }
 };
