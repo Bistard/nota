@@ -162,7 +162,7 @@ export abstract class Component extends Themable implements IComponent {
     
     public readonly onDidFocusChange: Register<boolean>;
 
-    private readonly _onDidVisibilityChange = this.__register( new Emitter<boolean>() );
+    private readonly _onDidVisibilityChange = this.__register(new Emitter<boolean>());
     public readonly onDidVisibilityChange = this._onDidVisibilityChange.registerListener;
 
     private readonly _onDidLayout = this.__register(new Emitter<IDimension>());
@@ -189,7 +189,7 @@ export abstract class Component extends Themable implements IComponent {
         this._element = new FastElement(document.createElement('div'));
         this._element.setID(id);
         
-        this._focusTracker = new FocusTracker(this._element.element, false);
+        this._focusTracker = this.__register(new FocusTracker(this._element.element, false));
         this.onDidFocusChange = this.__register(new SignalEmitter<boolean, boolean>([Event.map(this._focusTracker.onDidFocus, () => true), Event.map(this._focusTracker.onDidBlur, () => false)], (e: boolean) => e)).registerListener;
         
         if (parentElement) {
