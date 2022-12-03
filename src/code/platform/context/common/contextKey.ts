@@ -15,6 +15,7 @@ import { IContextServiceFriendship } from "src/code/platform/context/common/cont
  */
 export interface IContextKey<T> {
     readonly key: string;
+    readonly description: string | undefined;
     set(value: T): void;
     reset(): void;
     get(): T | undefined;
@@ -26,13 +27,15 @@ export class ContextKey<T extends NonUndefined> implements IContextKey<T> {
 
     private readonly _key: string;
     private readonly _defaultValue: T | undefined;
+    private readonly _description?: string;
     private readonly _service: IContextServiceFriendship;
 
     // [constructor]
 
-    constructor(key: string, defaultValue: T | undefined, service: IContextServiceFriendship) {
+    constructor(service: IContextServiceFriendship, key: string, defaultValue: T | undefined, description?: string) {
         this._key = key;
         this._defaultValue = defaultValue;
+        this._description = description;
         this._service = service;
         this.reset();
     }
@@ -41,6 +44,10 @@ export class ContextKey<T extends NonUndefined> implements IContextKey<T> {
 
     public get key() : string {
         return this._key;
+    }
+
+    public get description(): string | undefined {
+        return this._description;
     }
     
     public set(value: T): void {
