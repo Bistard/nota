@@ -16,21 +16,15 @@ export class Context implements IContext {
 
     // [field]
 
-    private readonly _id: number;
     private readonly _context: Record<string, any>;
 
     // [constructor]
 
-    constructor(id: number) {
-        this._id = id;
+    constructor() {
         this._context = Object.create(null);
     }
 
     // [public methods]
-
-    get id(): number {
-        return this._id;
-    }
 
     public getValue<T>(key: string): T | undefined {
         return this._context[key];
