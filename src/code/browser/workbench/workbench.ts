@@ -11,11 +11,23 @@ import { IThemeService } from "src/code/browser/service/theme/themeService";
 import { ISideBarService } from "src/code/browser/workbench/sideBar/sideBar";
 import { ISideViewService } from "src/code/browser/workbench/sideView/sideView";
 import { IWorkspaceService } from "src/code/browser/workbench/workspace/workspace";
+import { Disposable } from 'src/base/common/dispose';
+import { IContextService } from 'src/code/platform/context/common/contextService';
+import { IContextKey } from 'src/code/platform/context/common/contextKey';
+import { IS_LINUX, IS_MAC, IS_WINDOWS } from 'src/base/common/platform';
+import { IEditorService } from 'src/code/browser/workbench/workspace/editor/editor';
+import { IBrowserLifecycleService, ILifecycleService, LifecyclePhase } from 'src/code/platform/lifecycle/browser/browserLifecycleService';
 
 /**
  * @class Workbench represents all the Components in the web browser.
  */
 export class Workbench extends WorkbenchLayout implements IWorkbenchService {
+
+    // [field]
+
+    private _contextKeyCentre?: WorkbenchContextKeyCentre;
+
+    // [constructor]
 
     constructor(
         parent: HTMLElement,
@@ -26,9 +38,12 @@ export class Workbench extends WorkbenchLayout implements IWorkbenchService {
         @ISideBarService sideBarService: ISideBarService,
         @ISideViewService sideViewService: ISideViewService,
         @IWorkspaceService workspaceService: IWorkspaceService,
+        @ILifecycleService private readonly lifecycleService: IBrowserLifecycleService,
     ) {
         super(parent, instantiationService, componentService, themeService, sideBarService, sideViewService, workspaceService, configService);
     }
+
+    // [public methods]
 
     public init(): void {
         // initialization services
@@ -70,6 +85,12 @@ export class Workbench extends WorkbenchLayout implements IWorkbenchService {
     protected override _registerListeners(): void {
         this.__registerLayoutListeners();
         this.__registerConfigurationChange();
+
+        // initialize all the context keys only when the application is ready
+        this.lifecycleService.when(LifecyclePhase.Ready).then(() => {
+            this._contextKeyCentre = this.instantiationService.createInstance(WorkbenchContextKeyCentre);
+            this.__register(this._contextKeyCentre);
+        });
     }
 
     // [private helper methods]
@@ -98,5 +119,58 @@ export class Workbench extends WorkbenchLayout implements IWorkbenchService {
                 screenCastService.dispose();
             }
         });
+    }
+}
+
+export class WorkbenchContextKeyCentre extends Disposable {
+
+    // [context - platform]
+
+    // [context - side view]
+
+    private readonly visibleSideView: IContextKey<boolean>;
+    private readonly focusedSideView: IContextKey<boolean>;
+
+    // [context - editor]
+
+    private readonly focusedEditor: IContextKey<boolean>;
+
+    // [constructor]
+
+    constructor(
+        @IContextService contextService: IContextService,
+        @ISideViewService private readonly sideViewService: ISideViewService,
+        @IEditorService private readonly editorService: IEditorService,
+    ) {
+        super();
+
+        // platform
+        contextService.createContextKey('isMac', IS_MAC, 'If the running platform is macOS');
+        contextService.createContextKey('isLinux', IS_LINUX, 'If the running platform is Linux');
+        contextService.createContextKey('isWindows', IS_WINDOWS, 'If the running platform is Windows');
+
+        // side view
+        this.visibleSideView = contextService.createContextKey('visibleSideView', false, 'Whether a side view is visible');
+        this.focusedSideView = contextService.createContextKey('focusedSideView', false, 'Whether a side view is focused');
+
+        // editor
+        this.focusedEditor = contextService.createContextKey('focusedEditor', false, 'Whether an editor is focused');
+
+        // auto updates the context keys
+        this.__registerListeners();
+    }
+
+    // [private helper methods]
+
+    private __registerListeners(): void {
+
+        // side view
+        const currSideView = this.sideViewService.currView();
+        this.visibleSideView.set(!!currSideView);
+        this.__register(this.sideViewService.onDidViewChange(e => this.visibleSideView.set(!!e.view)));
+        this.__register(this.sideViewService.onDidFocusChange(isFocused => this.focusedSideView.set(isFocused)));
+
+        // editor
+        this.__register(this.editorService.onDidFocusChange(isFocused => this.focusedEditor.set(isFocused)));
     }
 }
