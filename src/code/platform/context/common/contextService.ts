@@ -4,18 +4,23 @@ import { NonUndefined } from "src/base/common/util/type";
 import { Context, IContext, IReadonlyContext } from "src/code/platform/context/common/context";
 import { ContextKey, IContextKey } from "src/code/platform/context/common/contextKey";
 import { ContextKeyExpr } from "src/code/platform/context/common/contextKeyExpr";
+import { createService } from "src/code/platform/instantiation/common/decorator";
+
+export const IContextService = createService<IContextService>('context-service');
 
 export interface IContextService extends IDisposable {
     
     readonly onDidContextChange: Register<IContextChangeEvent>;
 
-    createContextKey<T extends NonUndefined>(key: string, defaultValue: T | undefined): IContextKey<T>;
+    createContextKey<T extends NonUndefined>(key: string, defaultValue: T | undefined, description?: string): IContextKey<T>;
 
     getContextValue<T>(key: string): T | undefined;
 
     contextMatchExpr(expression: ContextKeyExpr | null): boolean;
 
     getContext(): IReadonlyContext;
+
+    getAllContextKeys(): readonly IContextKey<any>[];
 }
 
 export interface IContextServiceFriendship extends IContextService {
@@ -32,6 +37,7 @@ export class ContextService extends Disposable implements IContextServiceFriends
     // [field]
 
     private readonly _context: IContext;
+    private readonly _contextKeys: IContextKey<any>[];
 
     // [event]
 
@@ -43,13 +49,16 @@ export class ContextService extends Disposable implements IContextServiceFriends
     constructor() {
         super();
         this._context = new Context();
+        this._contextKeys = [];
     }
 
     // [public methods]
 
-    public createContextKey<T extends NonUndefined>(key: string, defaultValue: T | undefined): IContextKey<T> {
+    public createContextKey<T extends NonUndefined>(key: string, defaultValue: T | undefined, description?: string): IContextKey<T> {
         this.__assertDisposed();
-        return new ContextKey<T>(key, defaultValue, this);
+        const contextKey = new ContextKey<T>(this, key, defaultValue, description);
+        this._contextKeys.push(contextKey);
+        return contextKey;
     }
 
     public getContextValue<T>(key: string): T | undefined {
@@ -82,6 +91,10 @@ export class ContextService extends Disposable implements IContextServiceFriends
     public getContext(): IReadonlyContext {
         this.__assertDisposed();
         return this._context;
+    }
+
+    public getAllContextKeys(): readonly IContextKey<any>[] {
+        return this._contextKeys;
     }
 
     // [private helper methods]
