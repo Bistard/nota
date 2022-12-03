@@ -107,6 +107,11 @@ export type SplitString<S extends string, D extends string> =
 export type CompareFn<T> = (a: T, b: T) => number;
 
 /**
+ * More narrows than {@link NonNullable}, it only removes `undefined`.
+ */
+export type NonUndefined = {} | null;
+
+/**
  * @description Mocks the given value's type.
  */
 export function mockType<T>(val: any): T {
