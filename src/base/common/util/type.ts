@@ -140,6 +140,10 @@ export function isNumber(obj: any): obj is number {
     return (typeof obj === 'number' && !isNaN(obj));
 }
 
+export function isString(obj: any): obj is string {
+    return typeof obj === 'string';
+}
+
 /**
  * @description If the given value is an object in general speaking (does not
  * count as `array`, `null`, {@link RegExp} or {@link Date}).
