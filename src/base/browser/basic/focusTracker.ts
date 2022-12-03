@@ -40,7 +40,6 @@ export class FocusTracker implements IFocusTracker, IDisposable {
 
 		this._disposables.register(addDisposableListener(element, EventType.focus, this.__onFocus));
 		this._disposables.register(addDisposableListener(element, EventType.blur, this.__onBlur));
-
 	}
 	
 	// [event]

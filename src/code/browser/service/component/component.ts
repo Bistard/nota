@@ -1,10 +1,11 @@
 import { FastElement } from "src/base/browser/basic/fastElement";
 import { DomUtility } from "src/base/browser/basic/dom";
-import { Emitter, Register } from "src/base/common/event";
+import { Emitter, Event, Register, SignalEmitter } from "src/base/common/event";
 import { Dimension, IDimension } from "src/base/common/util/size";
 import { IComponentService } from "src/code/browser/service/component/componentService";
 import { Themable } from "src/code/browser/service/theme/theme";
 import { IThemeService } from "src/code/browser/service/theme/themeService";
+import { FocusTracker } from "src/base/browser/basic/focusTracker";
 
 export interface ICreateable {
     create(): void;
@@ -20,6 +21,12 @@ export interface IComponent extends ICreateable {
      * @description Returns the string id of the component.
      */
     readonly id: string;
+
+    /** Fires when the component is focused or blured (true represents focused). */
+    readonly onDidFocusChange: Register<boolean>;
+
+    /** Fires when the component visibility is changed. */
+    readonly onDidVisibilityChange: Register<boolean>;
 
     /** Fires when the component is layouting. */
     readonly onDidLayout: Register<IDimension>;
@@ -106,6 +113,12 @@ export interface IComponent extends ICreateable {
     setVisible(value: boolean): void;
 
     /**
+     * @description Sets if to focus the current component.
+     * @param value To focus or blur.
+     */
+    setFocusable(value: boolean): void;
+
+    /**
      * @description Checks if the component has created.
      */
     created(): boolean;
@@ -140,11 +153,15 @@ export abstract class Component extends Themable implements IComponent {
     private readonly _children: Map<string, IComponent> = new Map();
     private _dimension?: Dimension;
 
+    private readonly _focusTracker: FocusTracker;
+
     private _created: boolean;
     private _registered: boolean;
 
     // [event]
     
+    public readonly onDidFocusChange: Register<boolean>;
+
     private readonly _onDidVisibilityChange = this.__register( new Emitter<boolean>() );
     public readonly onDidVisibilityChange = this._onDidVisibilityChange.registerListener;
 
@@ -171,6 +188,10 @@ export abstract class Component extends Themable implements IComponent {
 
         this._element = new FastElement(document.createElement('div'));
         this._element.setID(id);
+        
+        this._focusTracker = new FocusTracker(this._element.element, false);
+        this.onDidFocusChange = this.__register(new SignalEmitter<boolean, boolean>([Event.map(this._focusTracker.onDidFocus, () => true), Event.map(this._focusTracker.onDidBlur, () => false)], (e: boolean) => e)).registerListener;
+        
         if (parentElement) {
             this._parent = parentElement;
         }
@@ -295,6 +316,10 @@ export abstract class Component extends Themable implements IComponent {
         }
 
         this._onDidVisibilityChange.fire(value);
+    }
+
+    public setFocusable(value: boolean): void {
+        this._focusTracker.setFocusable(value);
     }
 
     public hasComponent(id: string): boolean {
