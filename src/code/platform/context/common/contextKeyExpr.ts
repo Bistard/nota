@@ -1,5 +1,4 @@
-import { Arrays } from "src/base/common/util/array";
-import { isNumber, isObject, isString } from "src/base/common/util/type";
+import { isNonNullable, isNumber, isObject, isString } from "src/base/common/util/type";
 import { IReadonlyContext } from "src/code/platform/context/common/context";
 
 /**
@@ -212,6 +211,10 @@ abstract class ContextKeyExprBase<TType extends ContextKeyExprType> implements I
     }
 }
 
+const constants = new Map<string, boolean>();
+constants.set('false', false);
+constants.set('true', true);
+
 function __compare1(key1: string, key2: string): number {
     if (key1 < key2) {
 		return -1;
@@ -334,6 +337,10 @@ class ContextKeyTrueExpr extends ContextKeyExprBase<ContextKeyExprType.True> {
 class ContextKeyHasExpr extends ContextKeyExprBase<ContextKeyExprType.Has> {
 
     public static create(key: string): ContextKeyExpr {
+        const value = constants.get(key);
+        if (isNonNullable(value)) {
+            return value ? ContextKeyTrueExpr.Instance : ContextKeyFalseExpr.Instance;
+        }
         return new ContextKeyHasExpr(key);
     }
 
@@ -375,6 +382,10 @@ class ContextKeyHasExpr extends ContextKeyExprBase<ContextKeyExprType.Has> {
 class ContextKeyNotExpr extends ContextKeyExprBase<ContextKeyExprType.Not> {
 
     public static create(key: string): ContextKeyExpr {
+        const value = constants.get(key);
+        if (isNonNullable(value)) {
+            return value ? ContextKeyFalseExpr.Instance : ContextKeyTrueExpr.Instance;
+        }
         return new ContextKeyNotExpr(key);
     }
 
@@ -507,9 +518,11 @@ class ContextKeyAndExpr extends ContextKeyExprBase<ContextKeyExprType.And> {
             if (expr.type === ContextKeyExprType.True) {
                 continue;
             }
+
             if (expr.type === ContextKeyExprType.False) {
                 return ContextKeyFalseExpr.Instance;
             }
+            
             if (expr.type === ContextKeyExprType.And) {
                 valid.push(...expr.expressions);
                 continue;
@@ -659,7 +672,7 @@ class ContextKeyOrExpr extends ContextKeyExprBase<ContextKeyExprType.Or> {
         }
 
         if (valid.length === 0) {
-            return ContextKeyTrueExpr.Instance;
+            return ContextKeyFalseExpr.Instance;
         }
         
         // sort the expressions
@@ -1061,12 +1074,12 @@ export namespace ContextKeyDeserializer {
 
     function deserializeOR(serialized: string): ContextKeyExpr {
         const expressions = serialized.split('||');
-        return ContextKeyOrExpr.create(Arrays.coalesce(expressions.map(expr => deserializeAND(expr))), true);
+        return ContextKeyOrExpr.create(expressions.map(expr => deserializeAND(expr)), true);
     }
 
     function deserializeAND(serialized: string): ContextKeyExpr {
         const expressions = serialized.split('&&');
-        return ContextKeyAndExpr.create(Arrays.coalesce(expressions.map(expr => __deserialize(expr))));
+        return ContextKeyAndExpr.create(expressions.map(expr => __deserialize(expr)));
     }
     
     function __deserialize(serialized: string): ContextKeyExpr {
@@ -1113,7 +1126,7 @@ export namespace ContextKeyDeserializer {
 		}
 
 		if (/^\!\s*/.test(serialized)) {
-			return ContextKeyNotExpr.create(serialized.substr(1).trim());
+            return ContextKeyNotExpr.create(serialized.substring(1).trim());
 		}
 
 		return ContextKeyHasExpr.create(serialized);
