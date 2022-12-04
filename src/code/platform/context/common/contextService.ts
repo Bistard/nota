@@ -8,18 +8,52 @@ import { createService } from "src/code/platform/instantiation/common/decorator"
 
 export const IContextService = createService<IContextService>('context-service');
 
+/**
+ * An interface only for {@link ContextService}.
+ */
 export interface IContextService extends IDisposable {
     
+    /**
+     * Fires when the binded context has changed.
+     */
     readonly onDidContextChange: Register<IContextChangeEvent>;
 
+    /**
+     * @description Creates a new {@link IContextKey} that binds to the context.
+     * You may update the context value (it is also the only way) through the 
+     * created {@link IContextKey}.
+     * @param key The key value in the {@link IContext}.
+     * @param defaultValue The default value to be set in the {@link IContext}
+     * when the {@link IContextKey} is created.
+     * @param description The description of the created context key if provided.
+     * @returns A new {@link IContextKey}.
+     */
     createContextKey<T extends NonUndefined>(key: string, defaultValue: T | undefined, description?: string): IContextKey<T>;
 
+    /**
+     * @description Peek the context value in the {@link IContext} by the given
+     * key name.
+     * @param key The key name in string form.
+     * @returns Returns the context value or undefined if does not exist.
+     */
     getContextValue<T>(key: string): T | undefined;
 
+    /**
+     * @description Given a context key expression ({@link ContextKeyExpr}), 
+     * check if the expression evaluates to true to the current {@link IContext}.
+     * @param expression The given context key expression.
+     * @returns A boolean indicates the evluation result.
+     */
     contextMatchExpr(expression: ContextKeyExpr | null): boolean;
 
+    /**
+     * @description Returns the readonly {@link IContext}.
+     */
     getContext(): IReadonlyContext;
 
+    /**
+     * @description Returns all the created {@link IContextKey}.
+     */
     getAllContextKeys(): readonly IContextKey<any>[];
 }
 
