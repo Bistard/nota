@@ -1,11 +1,11 @@
 import { Arrays } from "src/base/common/util/array";
-import { isObject, isString } from "src/base/common/util/type";
+import { isNumber, isObject, isString } from "src/base/common/util/type";
 import { IReadonlyContext } from "src/code/platform/context/common/context";
 
 /**
  * A context key expression (ContextKeyExpr) is a series of logical expression
- * that can either be evaluated TRUE or FALSE depends on the given context by 
- * calling {@link IContextKeyExpr['evaluate']}.
+ * that can either be evaluated as TRUE or FALSE depends on the given 
+ * {@link IContext} by calling {@link IContextKeyExpr['evaluate']}.
  * 
  * All the expressions (except False, True, And, Or) requires a `key` input as
  * the key of the context during the evaluation.
@@ -866,14 +866,22 @@ class ContextKeyRegexExpr extends ContextKeyExprBase<ContextKeyExprType.Regex> {
     }
 }
 
-function __tryConvertToFloat(value: any, callback: (value: number) => ContextKeyExpr): ContextKeyExpr {
-    if (isString(value)) {
-        value = parseFloat(value);
-    } else {
+function __toStringOrFloat(value: any, callback: (value: number | string) => ContextKeyExpr): ContextKeyExpr {
+    const isStr = isString(value);
+    const isNum = isNumber(value);
+
+    if (!isStr && !isNum) {
         return ContextKeyFalseExpr.Instance;
+    } 
+    
+    if (isStr) {
+        const result = parseFloat(value);
+        if (!isNaN(result)) {
+            value = result;
+        }
     }
 
-    if (isNaN(value)) {
+    if (isNum && isNaN(value)) {
         return ContextKeyFalseExpr.Instance;
     }
 
@@ -887,10 +895,10 @@ function __tryConvertToFloat(value: any, callback: (value: number) => ContextKey
 class ContextKeyGreaterExpr extends ContextKeyExprBase<ContextKeyExprType.Greater> {
 
     public static create(key: string, value: number | string): ContextKeyExpr {
-        return __tryConvertToFloat(value, val => new ContextKeyGreaterExpr(key, val));
+        return __toStringOrFloat(value, val => new ContextKeyGreaterExpr(key, val));
     }
 
-    private constructor(private readonly key: string, private readonly value: number) {
+    private constructor(private readonly key: string, private readonly value: number | string) {
         super(ContextKeyExprType.Greater);
     }
 
@@ -928,10 +936,10 @@ class ContextKeyGreaterExpr extends ContextKeyExprBase<ContextKeyExprType.Greate
 class ContextKeyGreaterEqualExpr extends ContextKeyExprBase<ContextKeyExprType.GreaterEqual> {
 
     public static create(key: string, value: string | number): ContextKeyExpr {
-        return __tryConvertToFloat(value, val => new ContextKeyGreaterEqualExpr(key, val));
+        return __toStringOrFloat(value, val => new ContextKeyGreaterEqualExpr(key, val));
     }
 
-    private constructor(private readonly key: string, private readonly value: number) {
+    private constructor(private readonly key: string, private readonly value: number | string) {
         super(ContextKeyExprType.GreaterEqual);
     }
 
@@ -969,10 +977,10 @@ class ContextKeyGreaterEqualExpr extends ContextKeyExprBase<ContextKeyExprType.G
 class ContextKeySmallerExpr extends ContextKeyExprBase<ContextKeyExprType.Smaller> {
 
     public static create(key: string, value: string | number): ContextKeyExpr {
-        return __tryConvertToFloat(value, val => new ContextKeySmallerExpr(key, val));
+        return __toStringOrFloat(value, val => new ContextKeySmallerExpr(key, val));
     }
 
-    private constructor(private readonly key: string, private readonly value: number) {
+    private constructor(private readonly key: string, private readonly value: number | string) {
         super(ContextKeyExprType.Smaller);
     }
 
@@ -1010,10 +1018,10 @@ class ContextKeySmallerExpr extends ContextKeyExprBase<ContextKeyExprType.Smalle
 class ContextKeySmallerEqualExpr extends ContextKeyExprBase<ContextKeyExprType.SmallerEqual> {
 
     public static create(key: string, value: string | number): ContextKeyExpr {
-        return __tryConvertToFloat(value, val => new ContextKeySmallerEqualExpr(key, val));
+        return __toStringOrFloat(value, val => new ContextKeySmallerEqualExpr(key, val));
     }
 
-    private constructor(private readonly key: string, private readonly value: number) {
+    private constructor(private readonly key: string, private readonly value: number | string) {
         super(ContextKeyExprType.SmallerEqual);
     }
 
@@ -1063,43 +1071,43 @@ export namespace ContextKeyDeserializer {
         serialized = serialized.trim();
 
         if (serialized.indexOf('!=') >= 0) {
-			const pieces = serialized.split('!=');
-			return ContextKeyNotEqualExpr.create(pieces[0]!.trim(), __deserializeValue(pieces[1]!));
+			const [key, value] = serialized.split('!=');
+			return ContextKeyNotEqualExpr.create(key!.trim(), __deserializeValue(value!));
 		}
 
 		if (serialized.indexOf('==') >= 0) {
-			const pieces = serialized.split('==');
-			return ContextKeyEqualExpr.create(pieces[0]!.trim(), __deserializeValue(pieces[1]!));
+			const [key, value] = serialized.split('==');
+			return ContextKeyEqualExpr.create(key!.trim(), __deserializeValue(value!));
 		}
 
 		if (serialized.indexOf('=~') >= 0) {
-			const pieces = serialized.split('=~');
-			return ContextKeyRegexExpr.create(pieces[0]!.trim(), __deserializeRegexValue(pieces[1]!));
+			const [key, value] = serialized.split('=~');
+			return ContextKeyRegexExpr.create(key!.trim(), __deserializeRegexValue(value!));
 		}
 
 		if (serialized.indexOf(' in ') >= 0) {
-			const pieces = serialized.split(' in ');
-			return ContextKeyInExpr.create(pieces[0]!.trim(), pieces[1]!.trim());
+			const [key, value] = serialized.split(' in ');
+			return ContextKeyInExpr.create(key!.trim(), value!.trim());
 		}
 
 		if (/^[^<=>]+>=[^<=>]+$/.test(serialized)) {
-			const pieces = serialized.split('>=');
-			return ContextKeyGreaterEqualExpr.create(pieces[0]!.trim(), pieces[1]!.trim());
+			const [key, value] = serialized.split('>=');
+			return ContextKeyGreaterEqualExpr.create(key!.trim(), value!.trim());
 		}
 
 		if (/^[^<=>]+>[^<=>]+$/.test(serialized)) {
-			const pieces = serialized.split('>');
-			return ContextKeyGreaterExpr.create(pieces[0]!.trim(), pieces[1]!.trim());
+			const [key, value] = serialized.split('>');
+			return ContextKeyGreaterExpr.create(key!.trim(), value!.trim());
 		}
 
 		if (/^[^<=>]+<=[^<=>]+$/.test(serialized)) {
-			const pieces = serialized.split('<=');
-			return ContextKeySmallerEqualExpr.create(pieces[0]!.trim(), pieces[1]!.trim());
+			const [key, value] = serialized.split('<=');
+			return ContextKeySmallerEqualExpr.create(key!.trim(), value!.trim());
 		}
 
 		if (/^[^<=>]+<[^<=>]+$/.test(serialized)) {
-			const pieces = serialized.split('<');
-			return ContextKeySmallerExpr.create(pieces[0]!.trim(), pieces[1]!.trim());
+			const [key, value] = serialized.split('<');
+			return ContextKeySmallerExpr.create(key!.trim(), value!.trim());
 		}
 
 		if (/^\!\s*/.test(serialized)) {
