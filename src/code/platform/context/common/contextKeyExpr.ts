@@ -54,7 +54,7 @@ export interface IContextKeyExpr {
 
     /**
      * @description Compares if two expressions are the same.
-     * @param other 
+     * @param other The other expression.
      */
     equal(other: ContextKeyExpr): boolean;
 
@@ -144,15 +144,83 @@ export namespace CreateContextKeyExpr {
     }
 }
 
+abstract class ContextKeyExprBase<TType extends ContextKeyExprType> implements IContextKeyExpr {
+
+    public readonly type: TType;
+
+    constructor(type: TType) {
+        this.type = type;
+    }
+
+    public abstract evaluate(context: IReadonlyContext): boolean;
+    public abstract equal(other: ContextKeyExpr): boolean;
+    public abstract serialize(): string;
+
+    /**
+     * @internal
+     * @description Compares the order of two expressions. Useful when sorting.
+     * @param other The other expression.
+     * @returns A negative number if the current expression comes first. A
+     *          positive number if the other expression comes first. Zero if two
+     *          are identical.
+     */
+    public abstract compare(other: ContextKeyExpr): number;
+}
+
+function __compare1(key1: string, key2: string): number {
+    if (key1 < key2) {
+		return -1;
+	}
+	if (key1 > key2) {
+		return 1;
+	}
+	return 0;
+}
+
+function __compare2(key1: string, value1: any, key2: string, value2: any): number {
+	if (key1 < key2) {
+		return -1;
+	}
+	if (key1 > key2) {
+		return 1;
+	}
+	if (value1 < value2) {
+		return -1;
+	}
+	if (value1 > value2) {
+		return 1;
+	}
+	return 0;
+}
+
+function __compare3(expr1: readonly ContextKeyExpr[], expr2: readonly ContextKeyExpr[]): number {
+    if (expr1.length < expr2.length) {
+        return -1;
+    }
+    if (expr1.length > expr2.length) {
+        return 1;
+    }
+    for (let i = 0; i < expr1.length; i++) {
+        const expr = expr1[i]!;
+        const otherExpr = expr2[i]!;
+        const r = expr.compare(otherExpr);
+        if (r !== 0) {
+            return r;
+        }
+    }
+    return 0;
+}
+
 /**
  * An expression that always evaluates as false.
  */
-class ContextKeyFalseExpr implements IContextKeyExpr {
+class ContextKeyFalseExpr extends ContextKeyExprBase<ContextKeyExprType.False> {
 
     public static readonly Instance = new ContextKeyFalseExpr();
     
-    public readonly type = ContextKeyExprType.False;
-    private constructor() {}
+    private constructor() {
+        super(ContextKeyExprType.False);
+    }
 
     public evaluate(context: IReadonlyContext): boolean {
         return false;
@@ -165,17 +233,22 @@ class ContextKeyFalseExpr implements IContextKeyExpr {
     public serialize(): string {
         return 'false';
     }
+
+    public compare(other: ContextKeyExpr): number {
+        return this.type - other.type;
+    }
 }
 
 /**
  * An expression that always evaluates as true.
  */
-class ContextKeyTrueExpr implements IContextKeyExpr {
+class ContextKeyTrueExpr extends ContextKeyExprBase<ContextKeyExprType.True> {
 
     public static readonly Instance = new ContextKeyTrueExpr();
     
-    public readonly type = ContextKeyExprType.True;
-    private constructor() {}
+    private constructor() {
+        super(ContextKeyExprType.True);
+    }
 
     public evaluate(context: IReadonlyContext): boolean {
         return true;
@@ -188,20 +261,25 @@ class ContextKeyTrueExpr implements IContextKeyExpr {
     public serialize(): string {
         return 'true';
     }
+
+    public compare(other: ContextKeyExpr): number {
+        return this.type - other.type;
+    }
 }
 
 /**
  * An expression that only evaluates as true when the given context defines the
  * `key`.
  */
-class ContextKeyHasExpr implements IContextKeyExpr {
+class ContextKeyHasExpr extends ContextKeyExprBase<ContextKeyExprType.Has> {
 
     public static create(key: string): ContextKeyExpr {
         return new ContextKeyHasExpr(key);
     }
 
-    public readonly type = ContextKeyExprType.Has;
-    private constructor(public readonly key: string) {}
+    private constructor(public readonly key: string) {
+        super(ContextKeyExprType.Has);
+    }
 
     public evaluate(context: IReadonlyContext): boolean {
         return !!context.getValue(this.key);
@@ -214,20 +292,28 @@ class ContextKeyHasExpr implements IContextKeyExpr {
     public serialize(): string {
         return this.key;
     }
+
+    public compare(other: ContextKeyExpr): number {
+        if (other.type !== this.type) {
+			return this.type - other.type;
+		}
+        return __compare1(this.key, other.key);
+    }
 }
 
 /**
  * An expression that only evaluates as true when the given context does not
  * define, OR the context value of the `key` is null or undefined.
  */
-class ContextKeyNotExpr implements IContextKeyExpr {
+class ContextKeyNotExpr extends ContextKeyExprBase<ContextKeyExprType.Not> {
 
     public static create(key: string): ContextKeyExpr {
         return new ContextKeyNotExpr(key);
     }
 
-    public readonly type = ContextKeyExprType.Not;
-    private constructor(public readonly key: string) {}
+    private constructor(public readonly key: string) {
+        super(ContextKeyExprType.Not);
+    }
 
     public evaluate(context: IReadonlyContext): boolean {
         return !context.getValue(this.key);
@@ -240,20 +326,28 @@ class ContextKeyNotExpr implements IContextKeyExpr {
     public serialize(): string {
         return `!${this.key}`;
     }
+
+    public compare(other: ContextKeyExpr): number {
+        if (other.type !== this.type) {
+			return this.type - other.type;
+		}
+		return __compare1(this.key, other.key);
+    }
 }
 
 /**
  * An expression that only evaluates as true when the context value equals to 
  * the desired value.
  */
-class ContextKeyEqualsExpr implements IContextKeyExpr {
+class ContextKeyEqualsExpr extends ContextKeyExprBase<ContextKeyExprType.Equals> {
 
     public static create(key: string, value: any): ContextKeyExpr {
         return new ContextKeyEqualsExpr(key, value);
     }
 
-    public readonly type = ContextKeyExprType.Equals;
-    private constructor(private readonly key: string, private readonly value: any) {}
+    private constructor(private readonly key: string, private readonly value: any) {
+        super(ContextKeyExprType.Equals);
+    }
 
     public evaluate(context: IReadonlyContext): boolean {
         return context.getValue(this.key) === this.value;
@@ -266,20 +360,28 @@ class ContextKeyEqualsExpr implements IContextKeyExpr {
     public serialize(): string {
         return `${this.key} == ${this.value}`;
     }
+
+    public compare(other: ContextKeyExpr): number {
+        if (other.type !== this.type) {
+			return this.type - other.type;
+		}
+		return __compare2(this.key, this.value, other.key, other.value);
+    }
 }
 
 /**
  * An expression that only evaluates as true when the context value not equals 
  * to the desired value.
  */
-class ContextKeyNotEqualsExpr implements IContextKeyExpr {
+class ContextKeyNotEqualsExpr extends ContextKeyExprBase<ContextKeyExprType.NotEquals> {
 
     public static create(key: string, value: any): ContextKeyExpr {
         return new ContextKeyNotEqualsExpr(key, value);
     }
 
-    public readonly type = ContextKeyExprType.NotEquals;
-    private constructor(private readonly key: string, private readonly value: any) {}
+    private constructor(private readonly key: string, private readonly value: any) {
+        super(ContextKeyExprType.NotEquals);
+    }
 
     public evaluate(context: IReadonlyContext): boolean {
         return context.getValue(this.key) !== this.value;
@@ -292,13 +394,20 @@ class ContextKeyNotEqualsExpr implements IContextKeyExpr {
     public serialize(): string {
         return `${this.key} != ${this.value}`;
     }
+
+    public compare(other: ContextKeyExpr): number {
+        if (other.type !== this.type) {
+			return this.type - other.type;
+		}
+		return __compare2(this.key, this.value, other.key, other.value);
+    }
 }
 
 /**
  * An expression that only evaluates as true when all the given expressions are
  * evaluated to true.
  */
-class ContextKeyAndExpr implements IContextKeyExpr {
+class ContextKeyAndExpr extends ContextKeyExprBase<ContextKeyExprType.And> {
 
     public static create(expressions: ContextKeyExpr[]): ContextKeyExpr {
         
@@ -343,8 +452,9 @@ class ContextKeyAndExpr implements IContextKeyExpr {
         return new ContextKeyAndExpr(valid);
     }
 
-    public readonly type = ContextKeyExprType.And;
-    private constructor(private readonly expressions: ContextKeyExpr[]) {}
+    private constructor(private readonly expressions: ContextKeyExpr[]) {
+        super(ContextKeyExprType.And);
+    }
 
     public evaluate(context: IReadonlyContext): boolean {
         for (const expr of this.expressions) {
@@ -375,13 +485,20 @@ class ContextKeyAndExpr implements IContextKeyExpr {
     public serialize(): string {
         return this.expressions.map(e => e.serialize()).join(' && ');
     }
+
+    public compare(other: ContextKeyExpr): number {
+        if (other.type !== this.type) {
+			return this.type - other.type;
+		}
+		return __compare3(this.expressions, other.expressions);
+    }
 }
 
 /**
  * An expression that only evaluates as true when any of the given expressions 
  * are evaluated to true.
  */
-class ContextKeyOrExpr implements IContextKeyExpr {
+class ContextKeyOrExpr extends ContextKeyExprBase<ContextKeyExprType.Or> {
 
     public static create(expressions: ContextKeyExpr[]): ContextKeyExpr {
         
@@ -428,8 +545,9 @@ class ContextKeyOrExpr implements IContextKeyExpr {
         return new ContextKeyOrExpr(valid);
     }
 
-    public readonly type = ContextKeyExprType.Or;
-    private constructor(private readonly expressions: ContextKeyExpr[]) {}
+    private constructor(private readonly expressions: ContextKeyExpr[]) {
+        super(ContextKeyExprType.Or);
+    }
 
     public evaluate(context: IReadonlyContext): boolean {
         for (const expr of this.expressions) {
@@ -460,20 +578,28 @@ class ContextKeyOrExpr implements IContextKeyExpr {
     public serialize(): string {
         return this.expressions.map(e => e.serialize()).join(' || ');
     }
+
+    public compare(other: ContextKeyExpr): number {
+        if (other.type !== this.type) {
+			return this.type - other.type;
+		}
+		return __compare3(this.expressions, other.expressions);
+    }
 }
 
 /**
  * An expression that only evaluates as true when the `key` is defined in the 
  * context value of the `valueKey`.
  */
-class ContextKeyInExpr implements IContextKeyExpr {
+class ContextKeyInExpr extends ContextKeyExprBase<ContextKeyExprType.In> {
 
     public static create(key: string, valueKey: string): ContextKeyExpr {
         return new ContextKeyInExpr(key, valueKey);
     }
 
-    public readonly type = ContextKeyExprType.In;
-    private constructor(private readonly key: string, private readonly valueKey: string) {}
+    private constructor(private readonly key: string, private readonly valueKey: string) {
+        super(ContextKeyExprType.In);
+    }
 
     public evaluate(context: IReadonlyContext): boolean {
         const value = context.getValue(this.valueKey);
@@ -496,20 +622,28 @@ class ContextKeyInExpr implements IContextKeyExpr {
     public serialize(): string {
         return `${this.key} in '${this.valueKey}'`;
     }
+
+    public compare(other: ContextKeyExpr): number {
+        if (other.type !== this.type) {
+			return this.type - other.type;
+		}
+		return __compare2(this.key, this.valueKey, other.key, other.valueKey);
+    }
 }
 
 /**
  * An expression that only evaluates as true when the context value matches the
  * regular expression `regexp`.
  */
-class ContextKeyRegexExpr implements IContextKeyExpr {
+class ContextKeyRegexExpr extends ContextKeyExprBase<ContextKeyExprType.Regex> {
 
     public static create(key: string, regexp: RegExp): ContextKeyExpr {
         return new ContextKeyRegexExpr(key, regexp);
     }
 
-    public readonly type = ContextKeyExprType.Regex;
-    private constructor(private readonly key: string, private readonly regexp: RegExp) {}
+    private constructor(private readonly key: string, private readonly regexp: RegExp) {
+        super(ContextKeyExprType.Regex);
+    }
 
     public evaluate(context: IReadonlyContext): boolean {
         const value = context.getValue<any>(this.key);
@@ -524,9 +658,30 @@ class ContextKeyRegexExpr implements IContextKeyExpr {
         const value = `/${this.regexp.source}/${this.regexp.ignoreCase ? 'i' : ''}`;
 		return `${this.key} =~ ${value}`;
     }
+
+    public compare(other: ContextKeyExpr): number {
+        if (other.type !== this.type) {
+			return this.type - other.type;
+		}
+		if (this.key < other.key) {
+			return -1;
+		}
+		if (this.key > other.key) {
+			return 1;
+		}
+		const thisSource = this.regexp.source;
+		const otherSource = other.regexp.source;
+		if (thisSource < otherSource) {
+			return -1;
+		}
+		if (thisSource > otherSource) {
+			return 1;
+		}
+		return 0;
+    }
 }
 
-function tryConvertToFloat(value: any, callback: (value: number) => ContextKeyExpr): ContextKeyExpr {
+function __tryConvertToFloat(value: any, callback: (value: number) => ContextKeyExpr): ContextKeyExpr {
     if (isString(value)) {
         value = parseFloat(value);
     } else {
@@ -544,14 +699,15 @@ function tryConvertToFloat(value: any, callback: (value: number) => ContextKeyEx
  * An expression that only evaluates as true when the desired value is greater
  * than the context value.
  */
-class ContextKeyGreaterExpr implements IContextKeyExpr {
+class ContextKeyGreaterExpr extends ContextKeyExprBase<ContextKeyExprType.Greater> {
 
     public static create(key: string, value: number | string): ContextKeyExpr {
-        return tryConvertToFloat(value, val => new ContextKeyGreaterExpr(key, val));
+        return __tryConvertToFloat(value, val => new ContextKeyGreaterExpr(key, val));
     }
 
-    public readonly type = ContextKeyExprType.Greater;
-    private constructor(private readonly key: string, private readonly value: number) {}
+    private constructor(private readonly key: string, private readonly value: number) {
+        super(ContextKeyExprType.Greater);
+    }
 
     public evaluate(context: IReadonlyContext): boolean {
         return (parseFloat(<any>context.getValue(this.key))) > this.value;
@@ -564,20 +720,28 @@ class ContextKeyGreaterExpr implements IContextKeyExpr {
     public serialize(): string {
         return `${this.key} > ${this.value}`;
     }
+
+    public compare(other: ContextKeyExpr): number {
+        if (other.type !== this.type) {
+			return this.type - other.type;
+		}
+		return __compare2(this.key, this.value, other.key, other.value);
+    }
 }
 
 /**
  * An expression that only evaluates as true when the desired value is greater
  * or equal to the context value.
  */
-class ContextKeyGreaterEqualsExpr implements IContextKeyExpr {
+class ContextKeyGreaterEqualsExpr extends ContextKeyExprBase<ContextKeyExprType.GreaterEquals> {
 
     public static create(key: string, value: string | number): ContextKeyExpr {
-        return tryConvertToFloat(value, val => new ContextKeyGreaterEqualsExpr(key, val));
+        return __tryConvertToFloat(value, val => new ContextKeyGreaterEqualsExpr(key, val));
     }
 
-    public readonly type = ContextKeyExprType.GreaterEquals;
-    private constructor(private readonly key: string, private readonly value: number) {}
+    private constructor(private readonly key: string, private readonly value: number) {
+        super(ContextKeyExprType.GreaterEquals);
+    }
 
     public evaluate(context: IReadonlyContext): boolean {
         return (parseFloat(<any>context.getValue(this.key))) >= this.value;
@@ -590,20 +754,28 @@ class ContextKeyGreaterEqualsExpr implements IContextKeyExpr {
     public serialize(): string {
         return `${this.key} >= ${this.value}`;
     }
+
+    public compare(other: ContextKeyExpr): number {
+        if (other.type !== this.type) {
+			return this.type - other.type;
+		}
+		return __compare2(this.key, this.value, other.key, other.value);
+    }
 }
 
 /**
  * An expression that only evaluates as true when the desired value is smaller
  * than the context value.
  */
-class ContextKeySmallerExpr implements IContextKeyExpr {
+class ContextKeySmallerExpr extends ContextKeyExprBase<ContextKeyExprType.Smaller> {
 
     public static create(key: string, value: string | number): ContextKeyExpr {
-        return tryConvertToFloat(value, val => new ContextKeySmallerExpr(key, val));
+        return __tryConvertToFloat(value, val => new ContextKeySmallerExpr(key, val));
     }
 
-    public readonly type = ContextKeyExprType.Smaller;
-    private constructor(private readonly key: string, private readonly value: number) {}
+    private constructor(private readonly key: string, private readonly value: number) {
+        super(ContextKeyExprType.Smaller);
+    }
 
     public evaluate(context: IReadonlyContext): boolean {
         return (parseFloat(<any>context.getValue(this.key))) < this.value;
@@ -616,20 +788,28 @@ class ContextKeySmallerExpr implements IContextKeyExpr {
     public serialize(): string {
         return `${this.key} < ${this.value}`;
     }
+
+    public compare(other: ContextKeyExpr): number {
+        if (other.type !== this.type) {
+			return this.type - other.type;
+		}
+		return __compare2(this.key, this.value, other.key, other.value);
+    }
 }
 
 /**
  * An expression that only evaluates as true when the desired value is smaller
  * or equal to the context value.
  */
-class ContextKeySmallerEqualsExpr implements IContextKeyExpr {
+class ContextKeySmallerEqualsExpr extends ContextKeyExprBase<ContextKeyExprType.SmallerEquals> {
 
     public static create(key: string, value: string | number): ContextKeyExpr {
-        return tryConvertToFloat(value, val => new ContextKeySmallerEqualsExpr(key, val));
+        return __tryConvertToFloat(value, val => new ContextKeySmallerEqualsExpr(key, val));
     }
 
-    public readonly type = ContextKeyExprType.SmallerEquals;
-    private constructor(private readonly key: string, private readonly value: number) {}
+    private constructor(private readonly key: string, private readonly value: number) {
+        super(ContextKeyExprType.SmallerEquals);
+    }
 
     public evaluate(context: IReadonlyContext): boolean {
         return (parseFloat(<any>context.getValue(this.key))) <= this.value;
@@ -641,6 +821,13 @@ class ContextKeySmallerEqualsExpr implements IContextKeyExpr {
     
     public serialize(): string {
         return `${this.key} <= ${this.value}`;
+    }
+
+    public compare(other: ContextKeyExpr): number {
+        if (other.type !== this.type) {
+			return this.type - other.type;
+		}
+		return __compare2(this.key, this.value, other.key, other.value);
     }
 }
 
