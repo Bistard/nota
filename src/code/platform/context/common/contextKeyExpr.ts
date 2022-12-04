@@ -5,7 +5,7 @@ import { IReadonlyContext } from "src/code/platform/context/common/context";
 /**
  * A context key expression (ContextKeyExpr) is a series of logical expression
  * that can either be evaluated TRUE or FALSE depends on the given context by 
- * calling {@link IContextKeyExpr.evaluate}.
+ * calling {@link IContextKeyExpr['evaluate']}.
  * 
  * All the expressions (except False, True, And, Or) requires a `key` input as
  * the key of the context during the evaluation.
@@ -23,16 +23,16 @@ export type ContextKeyExpr = (
     ContextKeyTrueExpr |
     ContextKeyHasExpr |
     ContextKeyNotExpr |
-    ContextKeyEqualsExpr |
-    ContextKeyNotEqualsExpr |
+    ContextKeyEqualExpr |
+    ContextKeyNotEqualExpr |
     ContextKeyAndExpr |
     ContextKeyOrExpr |
     ContextKeyInExpr |
     ContextKeyRegexExpr |
     ContextKeyGreaterExpr |
-    ContextKeyGreaterEqualsExpr |
+    ContextKeyGreaterEqualExpr |
     ContextKeySmallerExpr |
-    ContextKeySmallerEqualsExpr
+    ContextKeySmallerEqualExpr
 );
 
 /**
@@ -59,6 +59,26 @@ export interface IContextKeyExpr {
     equal(other: ContextKeyExpr): boolean;
 
     /**
+     * @description Returns the negation of the current expression.
+     */
+    negate(): ContextKeyExpr;
+
+    /**
+     * @description Returns true if it is provable `this` implies `other`.
+     * @param other The other expression.
+     */
+    imply(other: ContextKeyExpr): boolean;
+
+    /**
+     * @description Compares the order of two expressions. Useful when sorting.
+     * @param other The other expression.
+     * @returns A negative number if the current expression comes first. A
+     *          positive number if the other expression comes first. Zero if two
+     *          are identical.
+     */
+    compare(other: ContextKeyExpr): number;
+
+    /**
      * @description Serializes the expressions into string.
      */
     serialize(): string;
@@ -69,16 +89,16 @@ export const enum ContextKeyExprType {
 	True,
 	Has,
 	Not,
-	Equals,
-	NotEquals,
+	Equal,
+	NotEqual,
 	And,
 	Or,
 	In,
     Regex,
 	Greater,
-	GreaterEquals,
+	GreaterEqual,
 	Smaller,
-	SmallerEquals,
+	SmallerEqual,
 }
 
 /**
@@ -103,12 +123,12 @@ export namespace CreateContextKeyExpr {
         return ContextKeyNotExpr.create(key);
     }
 
-    export function Equals(key: string, value: any): ContextKeyExpr {
-        return ContextKeyEqualsExpr.create(key, value);
+    export function Equal(key: string, value: any): ContextKeyExpr {
+        return ContextKeyEqualExpr.create(key, value);
     }
 
-    export function NotEquals(key: string, value: any): ContextKeyExpr {
-        return ContextKeyNotEqualsExpr.create(key, value);
+    export function NotEqual(key: string, value: any): ContextKeyExpr {
+        return ContextKeyNotEqualExpr.create(key, value);
     }
 
     export function And(...expressions: ContextKeyExpr[]): ContextKeyExpr {
@@ -120,7 +140,7 @@ export namespace CreateContextKeyExpr {
     }
 
     export function Or(...expressions: ContextKeyExpr[]): ContextKeyExpr {
-        return ContextKeyOrExpr.create(expressions);
+        return ContextKeyOrExpr.create(expressions, true);
     }
 
     export function In(key: string, valueKey: string): ContextKeyExpr {
@@ -131,40 +151,65 @@ export namespace CreateContextKeyExpr {
         return ContextKeyGreaterExpr.create(key, value);
     }
 
-    export function GreaterEquals(key: string, value: string | number): ContextKeyExpr {
-        return ContextKeyGreaterEqualsExpr.create(key, value);
+    export function GreaterEqual(key: string, value: string | number): ContextKeyExpr {
+        return ContextKeyGreaterEqualExpr.create(key, value);
     }
 
     export function Smaller(key: string, value: string | number): ContextKeyExpr {
         return ContextKeySmallerExpr.create(key, value);
     }
 
-    export function SmallerEquals(key: string, value: string | number): ContextKeyExpr {
-        return ContextKeySmallerEqualsExpr.create(key, value);
+    export function SmallerEqual(key: string, value: string | number): ContextKeyExpr {
+        return ContextKeySmallerEqualExpr.create(key, value);
     }
 }
 
 abstract class ContextKeyExprBase<TType extends ContextKeyExprType> implements IContextKeyExpr {
 
     public readonly type: TType;
+    public negated: ContextKeyExpr | undefined;
 
     constructor(type: TType) {
         this.type = type;
+        this.negated = undefined;
     }
 
     public abstract evaluate(context: IReadonlyContext): boolean;
     public abstract equal(other: ContextKeyExpr): boolean;
+    public abstract negate(): ContextKeyExpr;
     public abstract serialize(): string;
-
-    /**
-     * @internal
-     * @description Compares the order of two expressions. Useful when sorting.
-     * @param other The other expression.
-     * @returns A negative number if the current expression comes first. A
-     *          positive number if the other expression comes first. Zero if two
-     *          are identical.
-     */
     public abstract compare(other: ContextKeyExpr): number;
+
+    public imply(other: ContextKeyExpr): boolean {
+        if ((other.type === ContextKeyExprType.And) && 
+                ((this.type !== ContextKeyExprType.Or) && 
+                 (this.type !== ContextKeyExprType.And)
+        )) {
+            // covers the case: A imply A && B
+            for (const qTerm of other.expressions) {
+                if (this.equal(qTerm)) {
+                    return true;
+                }
+            }
+        }
+    
+        const notP = this.negate();
+        const expr = __getTerminals(notP).concat(__getTerminals(other));
+        expr.sort((a, b) => a.compare(b));
+    
+        for (let i = 0; i < expr.length; i++) {
+            const a = expr[i]!;
+            const notA = a.negate();
+            for (let j = i + 1; j < expr.length; j++) {
+                const b = expr[j]!;
+                if (notA.equal(b)) {
+                    return true;
+                }
+            }
+        }
+    
+        return false;
+    }
 }
 
 function __compare1(key1: string, key2: string): number {
@@ -211,6 +256,13 @@ function __compare3(expr1: readonly ContextKeyExpr[], expr2: readonly ContextKey
     return 0;
 }
 
+function __getTerminals(node: ContextKeyExpr): ContextKeyExpr[] {
+	if (node.type === ContextKeyExprType.Or) {
+		return node.expressions;
+	}
+	return [node];
+}
+
 /**
  * An expression that always evaluates as false.
  */
@@ -228,6 +280,10 @@ class ContextKeyFalseExpr extends ContextKeyExprBase<ContextKeyExprType.False> {
 
     public equal(other: ContextKeyExpr): boolean {
         return this.type === other.type;
+    }
+    
+    public negate(): ContextKeyExpr {
+        return ContextKeyTrueExpr.Instance;
     }
     
     public serialize(): string {
@@ -256,6 +312,10 @@ class ContextKeyTrueExpr extends ContextKeyExprBase<ContextKeyExprType.True> {
 
     public equal(other: ContextKeyExpr): boolean {
         return this.type === other.type;
+    }
+    
+    public negate(): ContextKeyExpr {
+        return ContextKeyFalseExpr.Instance;
     }
     
     public serialize(): string {
@@ -287,6 +347,13 @@ class ContextKeyHasExpr extends ContextKeyExprBase<ContextKeyExprType.Has> {
 
     public equal(other: ContextKeyExpr): boolean {
         return (this.type === other.type) && (this.key === other.key);
+    }
+    
+    public negate(): ContextKeyExpr {
+        if (!this.negated) {
+            this.negated = ContextKeyNotExpr.create(this.key);
+        }
+        return this.negated;
     }
     
     public serialize(): string {
@@ -323,6 +390,13 @@ class ContextKeyNotExpr extends ContextKeyExprBase<ContextKeyExprType.Not> {
         return (this.type === other.type) && (this.key === other.key);
     }
     
+    public negate(): ContextKeyExpr {
+        if (!this.negated) {
+            this.negated = ContextKeyHasExpr.create(this.key);
+        }
+        return this.negated;
+    }
+    
     public serialize(): string {
         return `!${this.key}`;
     }
@@ -339,14 +413,14 @@ class ContextKeyNotExpr extends ContextKeyExprBase<ContextKeyExprType.Not> {
  * An expression that only evaluates as true when the context value equals to 
  * the desired value.
  */
-class ContextKeyEqualsExpr extends ContextKeyExprBase<ContextKeyExprType.Equals> {
+class ContextKeyEqualExpr extends ContextKeyExprBase<ContextKeyExprType.Equal> {
 
     public static create(key: string, value: any): ContextKeyExpr {
-        return new ContextKeyEqualsExpr(key, value);
+        return new ContextKeyEqualExpr(key, value);
     }
 
     private constructor(private readonly key: string, private readonly value: any) {
-        super(ContextKeyExprType.Equals);
+        super(ContextKeyExprType.Equal);
     }
 
     public evaluate(context: IReadonlyContext): boolean {
@@ -355,6 +429,13 @@ class ContextKeyEqualsExpr extends ContextKeyExprBase<ContextKeyExprType.Equals>
 
     public equal(other: ContextKeyExpr): boolean {
         return (this.type === other.type) && (this.key === other.key) && (this.value === other.value);
+    }
+    
+    public negate(): ContextKeyExpr {
+        if (!this.negated) {
+			this.negated = ContextKeyNotEqualExpr.create(this.key, this.value);
+		}
+		return this.negated;
     }
     
     public serialize(): string {
@@ -373,14 +454,14 @@ class ContextKeyEqualsExpr extends ContextKeyExprBase<ContextKeyExprType.Equals>
  * An expression that only evaluates as true when the context value not equals 
  * to the desired value.
  */
-class ContextKeyNotEqualsExpr extends ContextKeyExprBase<ContextKeyExprType.NotEquals> {
+class ContextKeyNotEqualExpr extends ContextKeyExprBase<ContextKeyExprType.NotEqual> {
 
     public static create(key: string, value: any): ContextKeyExpr {
-        return new ContextKeyNotEqualsExpr(key, value);
+        return new ContextKeyNotEqualExpr(key, value);
     }
 
     private constructor(private readonly key: string, private readonly value: any) {
-        super(ContextKeyExprType.NotEquals);
+        super(ContextKeyExprType.NotEqual);
     }
 
     public evaluate(context: IReadonlyContext): boolean {
@@ -389,6 +470,13 @@ class ContextKeyNotEqualsExpr extends ContextKeyExprBase<ContextKeyExprType.NotE
 
     public equal(other: ContextKeyExpr): boolean {
         return (this.type === other.type) && (this.key === other.key) && (this.value === other.value);
+    }
+    
+    public negate(): ContextKeyExpr {
+        if (!this.negated) {
+			this.negated = ContextKeyEqualExpr.create(this.key, this.value);
+		}
+		return this.negated;
     }
     
     public serialize(): string {
@@ -434,9 +522,12 @@ class ContextKeyAndExpr extends ContextKeyExprBase<ContextKeyExprType.And> {
             return ContextKeyTrueExpr.Instance;
         }
         
+        // sort the expressions
+        valid.sort((a, b) => a.compare(b));
+
         /**
-         * This does not necessarily remove duplicates one since the expressions
-         * are not sorted.
+         * This will properly remove all the duplicate terms since the 
+         * expressions are already sorted properly.
          */
 		for (let i = 1; i < valid.length; i++) {
 			if (valid[i - 1]!.equal(valid[i]!)) {
@@ -449,10 +540,43 @@ class ContextKeyAndExpr extends ContextKeyExprBase<ContextKeyExprType.And> {
             return valid[0]!;
         }
 
+        /**
+         * We must distribute any OR expression because we don't support parens 
+         * OR extensions will be at the end (due to sorting rules).
+         */
+		while (valid.length > 1) {
+			const lastElement = valid[valid.length - 1]!;
+			if (lastElement.type !== ContextKeyExprType.Or) {
+				break;
+			}
+			// pop the last element
+			valid.pop();
+
+			// pop the second to last element
+			const secondToLastElement = valid.pop()!;
+
+			const isFinished = (valid.length === 0);
+
+			// distribute `lastElement` over `secondToLastElement`
+			const resultElement = ContextKeyOrExpr.create(
+				lastElement.expressions.map(el => ContextKeyAndExpr.create([el, secondToLastElement])),
+				isFinished
+			);
+
+			if (resultElement) {
+				valid.push(resultElement);
+				valid.sort((a, b) => a.compare(b));
+			}
+		}
+
+        if (valid.length === 1) {
+            return valid[0]!;
+        }
+
         return new ContextKeyAndExpr(valid);
     }
 
-    private constructor(private readonly expressions: ContextKeyExpr[]) {
+    private constructor(public readonly expressions: ContextKeyExpr[]) {
         super(ContextKeyExprType.And);
     }
 
@@ -482,6 +606,17 @@ class ContextKeyAndExpr extends ContextKeyExprBase<ContextKeyExprType.And> {
         return false;
     }
     
+    public negate(): ContextKeyExpr {
+        if (!this.negated) {
+			const allNegated: ContextKeyExpr[] = [];
+			for (const expr of this.expressions) {
+				allNegated.push(expr.negate());
+			}
+			this.negated = ContextKeyOrExpr.create(allNegated, true);
+		}
+		return this.negated;
+    }
+    
     public serialize(): string {
         return this.expressions.map(e => e.serialize()).join(' && ');
     }
@@ -500,7 +635,7 @@ class ContextKeyAndExpr extends ContextKeyExprBase<ContextKeyExprType.And> {
  */
 class ContextKeyOrExpr extends ContextKeyExprBase<ContextKeyExprType.Or> {
 
-    public static create(expressions: ContextKeyExpr[]): ContextKeyExpr {
+    public static create(expressions: ContextKeyExpr[], extraRedundantCheck: boolean): ContextKeyExpr {
         
         // normalization
         const valid: ContextKeyExpr[] = [];
@@ -527,10 +662,10 @@ class ContextKeyOrExpr extends ContextKeyExprBase<ContextKeyExprType.Or> {
             return ContextKeyTrueExpr.Instance;
         }
         
-        /**
-         * This does not necessarily remove duplicates one since the expressions
-         * are not sorted.
-         */
+        // sort the expressions
+        valid.sort((a, b) => a.compare(b));
+
+        // remove duplicates expressions
 		for (let i = 1; i < valid.length; i++) {
 			if (valid[i - 1]!.equal(valid[i]!)) {
 				valid.splice(i, 1);
@@ -538,14 +673,23 @@ class ContextKeyOrExpr extends ContextKeyExprBase<ContextKeyExprType.Or> {
 			}
 		}
 
+        for (let i = 0; i < valid.length; i++) {
+            for (let j = i + 1; j < valid.length; j++) {
+                if (valid[i]!.imply(valid[j]!)) {
+                    valid.splice(j, 1);
+                    j--;
+                }
+            }
+        }
+
         if (valid.length === 1) {
             return valid[0]!;
         }
-        
+
         return new ContextKeyOrExpr(valid);
     }
 
-    private constructor(private readonly expressions: ContextKeyExpr[]) {
+    private constructor(public readonly expressions: ContextKeyExpr[]) {
         super(ContextKeyExprType.Or);
     }
 
@@ -573,6 +717,39 @@ class ContextKeyOrExpr extends ContextKeyExprBase<ContextKeyExprType.Or> {
             return true;
         }
         return false;
+    }
+    
+    public negate(): ContextKeyExpr {
+        if (!this.negated) {
+			
+            const allNegated: ContextKeyExpr[] = [];
+			for (const expr of this.expressions) {
+				allNegated.push(expr.negate());
+			}
+
+			/**
+             * We don't support parens, so here we distribute the AND over the 
+             * OR terminals. We always take the first 2 AND pairs and distribute 
+             * them.
+             */
+			while (allNegated.length > 1) {
+				const LEFT = allNegated.shift()!;
+				const RIGHT = allNegated.shift()!;
+
+				const all: ContextKeyExpr[] = [];
+				for (const left of __getTerminals(LEFT)) {
+					for (const right of __getTerminals(RIGHT)) {
+						all.push(ContextKeyAndExpr.create([left, right]));
+					}
+				}
+
+				const isFinished = (allNegated.length === 0);
+				allNegated.unshift(ContextKeyOrExpr.create(all, isFinished));
+			}
+
+			this.negated = allNegated[0]!;
+		}
+		return this.negated;
     }
     
     public serialize(): string {
@@ -619,6 +796,10 @@ class ContextKeyInExpr extends ContextKeyExprBase<ContextKeyExprType.In> {
         return (this.type === other.type) && (this.key === other.key) && (this.valueKey === other.valueKey);
     }
     
+    public negate(): ContextKeyExpr {
+        throw new Error('Context key expression IN does not support negate.');
+    }
+    
     public serialize(): string {
         return `${this.key} in '${this.valueKey}'`;
     }
@@ -652,6 +833,10 @@ class ContextKeyRegexExpr extends ContextKeyExprBase<ContextKeyExprType.Regex> {
 
     public equal(other: ContextKeyExpr): boolean {
         return (this.type === other.type) && (this.key === other.key) && (this.regexp.source === other.regexp.source);
+    }
+    
+    public negate(): ContextKeyExpr {
+        throw new Error('Context key expression REGEX does not support negate.');
     }
     
     public serialize(): string {
@@ -717,6 +902,13 @@ class ContextKeyGreaterExpr extends ContextKeyExprBase<ContextKeyExprType.Greate
         return (other.type === this.type) && (this.key === other.key) && (this.value === other.value);
     }
     
+    public negate(): ContextKeyExpr {
+        if (!this.negated) {
+			this.negated = ContextKeySmallerEqualExpr.create(this.key, this.value);
+		}
+		return this.negated;
+    }
+    
     public serialize(): string {
         return `${this.key} > ${this.value}`;
     }
@@ -733,14 +925,14 @@ class ContextKeyGreaterExpr extends ContextKeyExprBase<ContextKeyExprType.Greate
  * An expression that only evaluates as true when the desired value is greater
  * or equal to the context value.
  */
-class ContextKeyGreaterEqualsExpr extends ContextKeyExprBase<ContextKeyExprType.GreaterEquals> {
+class ContextKeyGreaterEqualExpr extends ContextKeyExprBase<ContextKeyExprType.GreaterEqual> {
 
     public static create(key: string, value: string | number): ContextKeyExpr {
-        return __tryConvertToFloat(value, val => new ContextKeyGreaterEqualsExpr(key, val));
+        return __tryConvertToFloat(value, val => new ContextKeyGreaterEqualExpr(key, val));
     }
 
     private constructor(private readonly key: string, private readonly value: number) {
-        super(ContextKeyExprType.GreaterEquals);
+        super(ContextKeyExprType.GreaterEqual);
     }
 
     public evaluate(context: IReadonlyContext): boolean {
@@ -749,6 +941,13 @@ class ContextKeyGreaterEqualsExpr extends ContextKeyExprBase<ContextKeyExprType.
 
     public equal(other: ContextKeyExpr): boolean {
         return (other.type === this.type) && (this.key === other.key) && (this.value === other.value);
+    }
+    
+    public negate(): ContextKeyExpr {
+        if (!this.negated) {
+			this.negated = ContextKeySmallerExpr.create(this.key, this.value);
+		}
+		return this.negated;
     }
     
     public serialize(): string {
@@ -785,6 +984,13 @@ class ContextKeySmallerExpr extends ContextKeyExprBase<ContextKeyExprType.Smalle
         return (other.type === this.type) && (this.key === other.key) && (this.value === other.value);
     }
     
+    public negate(): ContextKeyExpr {
+        if (!this.negated) {
+			this.negated = ContextKeyGreaterEqualExpr.create(this.key, this.value);
+		}
+		return this.negated;
+    }
+    
     public serialize(): string {
         return `${this.key} < ${this.value}`;
     }
@@ -801,14 +1007,14 @@ class ContextKeySmallerExpr extends ContextKeyExprBase<ContextKeyExprType.Smalle
  * An expression that only evaluates as true when the desired value is smaller
  * or equal to the context value.
  */
-class ContextKeySmallerEqualsExpr extends ContextKeyExprBase<ContextKeyExprType.SmallerEquals> {
+class ContextKeySmallerEqualExpr extends ContextKeyExprBase<ContextKeyExprType.SmallerEqual> {
 
     public static create(key: string, value: string | number): ContextKeyExpr {
-        return __tryConvertToFloat(value, val => new ContextKeySmallerEqualsExpr(key, val));
+        return __tryConvertToFloat(value, val => new ContextKeySmallerEqualExpr(key, val));
     }
 
     private constructor(private readonly key: string, private readonly value: number) {
-        super(ContextKeyExprType.SmallerEquals);
+        super(ContextKeyExprType.SmallerEqual);
     }
 
     public evaluate(context: IReadonlyContext): boolean {
@@ -817,6 +1023,13 @@ class ContextKeySmallerEqualsExpr extends ContextKeyExprBase<ContextKeyExprType.
 
     public equal(other: ContextKeyExpr): boolean {
         return (other.type === this.type) && (this.key === other.key) && (this.value === other.value);
+    }
+    
+    public negate(): ContextKeyExpr {
+        if (!this.negated) {
+			this.negated = ContextKeyGreaterExpr.create(this.key, this.value);
+		}
+		return this.negated;
     }
     
     public serialize(): string {
@@ -832,34 +1045,31 @@ class ContextKeySmallerEqualsExpr extends ContextKeyExprBase<ContextKeyExprType.
 }
 
 export namespace ContextKeyDeserializer {
-    export function deserialize(serialized: string): ContextKeyExpr | undefined {
-        if (!serialized) {
-            return undefined;
-        }
+    export function deserialize(serialized: string): ContextKeyExpr {
         return deserializeOR(serialized);
     }
 
-    function deserializeOR(serialized: string): ContextKeyExpr | undefined {
+    function deserializeOR(serialized: string): ContextKeyExpr {
         const expressions = serialized.split('||');
-        return ContextKeyOrExpr.create(Arrays.coalesce(expressions.map(expr => deserializeAND(expr))));
+        return ContextKeyOrExpr.create(Arrays.coalesce(expressions.map(expr => deserializeAND(expr))), true);
     }
 
-    function deserializeAND(serialized: string): ContextKeyExpr | undefined {
+    function deserializeAND(serialized: string): ContextKeyExpr {
         const expressions = serialized.split('&&');
         return ContextKeyAndExpr.create(Arrays.coalesce(expressions.map(expr => __deserialize(expr))));
     }
     
-    function __deserialize(serialized: string): ContextKeyExpr | undefined {
+    function __deserialize(serialized: string): ContextKeyExpr {
         serialized = serialized.trim();
 
         if (serialized.indexOf('!=') >= 0) {
 			const pieces = serialized.split('!=');
-			return ContextKeyNotEqualsExpr.create(pieces[0]!.trim(), __deserializeValue(pieces[1]!));
+			return ContextKeyNotEqualExpr.create(pieces[0]!.trim(), __deserializeValue(pieces[1]!));
 		}
 
 		if (serialized.indexOf('==') >= 0) {
 			const pieces = serialized.split('==');
-			return ContextKeyEqualsExpr.create(pieces[0]!.trim(), __deserializeValue(pieces[1]!));
+			return ContextKeyEqualExpr.create(pieces[0]!.trim(), __deserializeValue(pieces[1]!));
 		}
 
 		if (serialized.indexOf('=~') >= 0) {
@@ -874,7 +1084,7 @@ export namespace ContextKeyDeserializer {
 
 		if (/^[^<=>]+>=[^<=>]+$/.test(serialized)) {
 			const pieces = serialized.split('>=');
-			return ContextKeyGreaterEqualsExpr.create(pieces[0]!.trim(), pieces[1]!.trim());
+			return ContextKeyGreaterEqualExpr.create(pieces[0]!.trim(), pieces[1]!.trim());
 		}
 
 		if (/^[^<=>]+>[^<=>]+$/.test(serialized)) {
@@ -884,7 +1094,7 @@ export namespace ContextKeyDeserializer {
 
 		if (/^[^<=>]+<=[^<=>]+$/.test(serialized)) {
 			const pieces = serialized.split('<=');
-			return ContextKeySmallerEqualsExpr.create(pieces[0]!.trim(), pieces[1]!.trim());
+			return ContextKeySmallerEqualExpr.create(pieces[0]!.trim(), pieces[1]!.trim());
 		}
 
 		if (/^[^<=>]+<[^<=>]+$/.test(serialized)) {
