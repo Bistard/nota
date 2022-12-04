@@ -869,6 +869,7 @@ class ContextKeyRegexExpr extends ContextKeyExprBase<ContextKeyExprType.Regex> {
     }
     
     public negate(): ContextKeyExpr {
+        // TODO
         throw new Error('Context key expression REGEX does not support negate.');
     }
     
