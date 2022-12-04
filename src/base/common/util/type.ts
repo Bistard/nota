@@ -144,6 +144,10 @@ export function isString(obj: any): obj is string {
     return typeof obj === 'string';
 }
 
+export function isBoolean(obj: any): obj is boolean {
+    return typeof obj === 'boolean';
+}
+
 /**
  * @description If the given value is an object in general speaking (does not
  * count as `array`, `null`, {@link RegExp} or {@link Date}).

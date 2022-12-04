@@ -1,4 +1,4 @@
-import { isNonNullable, isNumber, isObject, isString } from "src/base/common/util/type";
+import { isBoolean, isNonNullable, isNumber, isObject, isString } from "src/base/common/util/type";
 import { IReadonlyContext } from "src/code/platform/context/common/context";
 
 /**
@@ -427,6 +427,15 @@ class ContextKeyNotExpr extends ContextKeyExprBase<ContextKeyExprType.Not> {
 class ContextKeyEqualExpr extends ContextKeyExprBase<ContextKeyExprType.Equal> {
 
     public static create(key: string, value: any): ContextKeyExpr {
+        if (isBoolean(value)) {
+			return value ? ContextKeyHasExpr.create(key) : ContextKeyNotExpr.create(key);
+		}
+		
+        const constFound = constants.get(key);
+		if (isBoolean(constFound)) {
+			return (value === String(constFound) ? ContextKeyTrueExpr.Instance : ContextKeyFalseExpr.Instance);
+		}
+
         return new ContextKeyEqualExpr(key, value);
     }
 
@@ -1135,13 +1144,11 @@ export namespace ContextKeyDeserializer {
     function __deserializeValue(serialized: string): any {
         serialized = serialized.trim();
 
-		if (serialized === 'true') {
-			return true;
-		}
-        if (serialized === 'false') {
-			return false;
-		}
-
+        const value = constants.get(serialized);
+        if (isNonNullable(value)) {
+            return value;
+        }
+        
 		const m = /^'([^']*)'$/.exec(serialized);
 		if (m) {
 			return m[1]!.trim();
