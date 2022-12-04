@@ -477,6 +477,15 @@ class ContextKeyEqualExpr extends ContextKeyExprBase<ContextKeyExprType.Equal> {
 class ContextKeyNotEqualExpr extends ContextKeyExprBase<ContextKeyExprType.NotEqual> {
 
     public static create(key: string, value: any): ContextKeyExpr {
+        if (isBoolean(value)) {
+			return value ? ContextKeyNotExpr.create(key) : ContextKeyHasExpr.create(key);
+		}
+		
+        const constFound = constants.get(key);
+		if (isBoolean(constFound)) {
+			return (value === String(constFound) ? ContextKeyFalseExpr.Instance : ContextKeyTrueExpr.Instance);
+		}
+
         return new ContextKeyNotEqualExpr(key, value);
     }
 
