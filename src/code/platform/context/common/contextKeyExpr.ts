@@ -765,8 +765,8 @@ class ContextKeyOrExpr extends ContextKeyExprBase<ContextKeyExprType.Or> {
 }
 
 /**
- * An expression that only evaluates as true when the `key` is defined in the 
- * context value of the `valueKey`.
+ * An expression that only evaluates as true when the context value of `key` is 
+ * defined in the context value of the `valueKey`.
  */
 class ContextKeyInExpr extends ContextKeyExprBase<ContextKeyExprType.In> {
 
@@ -780,13 +780,14 @@ class ContextKeyInExpr extends ContextKeyExprBase<ContextKeyExprType.In> {
 
     public evaluate(context: IReadonlyContext): boolean {
         const value = context.getValue(this.valueKey);
+        const desired = context.getValue(this.key);
 
         if (Array.isArray(value)) {
-            return value.indexOf(this.key) >= 0;
+            return value.indexOf(desired) >= 0;
         }
 
-        if (isObject(value) || isString(value)) {
-            value.hasOwnProperty(this.key);
+        if (isObject(value) && isString(desired)) {
+            return Object.prototype.hasOwnProperty.call(value, desired);
         }
         
         return false;
@@ -797,6 +798,7 @@ class ContextKeyInExpr extends ContextKeyExprBase<ContextKeyExprType.In> {
     }
     
     public negate(): ContextKeyExpr {
+        // TODO
         throw new Error('Context key expression IN does not support negate.');
     }
     
