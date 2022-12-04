@@ -1,5 +1,4 @@
 import { IIterable } from "src/base/common/util/iterable";
-import { CompareFn } from "src/base/common/util/type";
 
 /**
  * @namespace Array A series of helper functions that relates to array.

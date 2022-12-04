@@ -170,11 +170,11 @@ export function isEmptyObject(obj: any): boolean {
     return true;
 }
 
-export function isNullable(value: any): boolean {
+export function isNullable(value: any): value is undefined | null {
     return (typeof value === 'undefined' || value === null);
 }
 
-export function isNonNullable(value: any): boolean {
+export function isNonNullable<T>(value: T): value is NonNullable<T> {
     return !isNullable(value);
 }
 
