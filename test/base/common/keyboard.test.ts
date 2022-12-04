@@ -1,5 +1,6 @@
 import * as assert from 'assert';
 import { Keyboard, KeyCode, Shortcut } from 'src/base/common/keyboard';
+import { PLATFORM } from 'src/base/common/platform';
 
 suite('keyboard-test', () => {
 
@@ -92,6 +93,24 @@ suite('keyboard-test', () => {
             assert.strictEqual(Shortcut.fromString('00').equal(Shortcut.None), true);
         });
 
+        test('shortcut hashcode', () => {
+            const testHash = function (shortcut: Shortcut): void {
+                const hashcode = shortcut.toHashcode();
+                const converted = Shortcut.fromHashcode(hashcode, PLATFORM);
+                assert.ok(converted.equal(shortcut));
+            }
+
+            testHash(new Shortcut(false, false, false, false, KeyCode.Digit9));
+            testHash(new Shortcut(true, false, false, false, KeyCode.Digit6));
+            testHash(new Shortcut(true, true, false, false, KeyCode.Digit6));
+            testHash(new Shortcut(true, true, true, false, KeyCode.Digit1));
+            testHash(new Shortcut(true, true, true, true, KeyCode.Digit7));
+            testHash(new Shortcut(false, true, true, true, KeyCode.Digit2));
+            testHash(new Shortcut(false, false, true, true, KeyCode.Digit5));
+            testHash(new Shortcut(false, false, false, true, KeyCode.Digit5));
+            testHash(new Shortcut(false, true, false, true, KeyCode.Digit2));
+            testHash(new Shortcut(true, true, false, true, KeyCode.Digit0));
+        });
     });
 
 });
