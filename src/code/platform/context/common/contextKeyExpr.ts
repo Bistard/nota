@@ -861,7 +861,7 @@ class ContextKeyRegexExpr extends ContextKeyExprBase<ContextKeyExprType.Regex> {
 
     public evaluate(context: IReadonlyContext): boolean {
         const value = context.getValue<any>(this.key);
-        return value && this.regexp.test(value);
+        return this.regexp.test(value);
     }
 
     public equal(other: ContextKeyExpr): boolean {
