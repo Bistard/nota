@@ -17,6 +17,7 @@ import { IContextKey } from 'src/code/platform/context/common/contextKey';
 import { IS_LINUX, IS_MAC, IS_WINDOWS } from 'src/base/common/platform';
 import { IEditorService } from 'src/code/browser/workbench/workspace/editor/editor';
 import { IBrowserLifecycleService, ILifecycleService, LifecyclePhase } from 'src/code/platform/lifecycle/browser/browserLifecycleService';
+import { IBrowserEnvironmentService, IEnvironmentService } from 'src/code/platform/environment/common/environment';
 
 /**
  * @class Workbench represents all the Components in the web browser.
@@ -141,6 +142,7 @@ export class WorkbenchContextKeyCentre extends Disposable {
         @IContextService contextService: IContextService,
         @ISideViewService private readonly sideViewService: ISideViewService,
         @IEditorService private readonly editorService: IEditorService,
+        @IEnvironmentService environmentService: IBrowserEnvironmentService,
     ) {
         super();
 
@@ -148,6 +150,9 @@ export class WorkbenchContextKeyCentre extends Disposable {
         contextService.createContextKey('isMac', IS_MAC, 'If the running platform is macOS');
         contextService.createContextKey('isLinux', IS_LINUX, 'If the running platform is Linux');
         contextService.createContextKey('isWindows', IS_WINDOWS, 'If the running platform is Windows');
+
+        // environment
+        contextService.createContextKey('isPackaged', environmentService.isPackaged);
 
         // side view
         this.visibleSideView = contextService.createContextKey('visibleSideView', false, 'Whether a side view is visible');

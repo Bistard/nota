@@ -1,5 +1,4 @@
 import { ILogService } from "src/base/common/logger";
-import { workbenchDefaultShortcutRegistrations } from "src/code/browser/service/workbench/shortcut.register";
 import { IFileService } from "src/code/platform/files/common/fileService";
 import { IInstantiationService } from "src/code/platform/instantiation/common/instantiation";
 import { IBrowserLifecycleService, ILifecycleService, LifecyclePhase } from "src/code/platform/lifecycle/browser/browserLifecycleService";
@@ -31,10 +30,7 @@ export class BrowserInstance implements IBrowser {
     private registerListeners(): void {
         
         // when the window is ready
-        this.lifecycleService.when(LifecyclePhase.Ready)
-        .then(() => {
-            workbenchDefaultShortcutRegistrations(this.instantiationService);
-        });
+        this.lifecycleService.when(LifecyclePhase.Ready).then(() => {});
 
         // when the window is about to quit
         this.lifecycleService.onWillQuit(e => {
