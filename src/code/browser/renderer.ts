@@ -1,6 +1,8 @@
 import { Workbench } from "src/code/browser/workbench/workbench";
 import { registerBrowserDefaultConfiguration } from "src/code/platform/configuration/browser/configuration.register";
 import { rendererServiceRegistrations } from "src/code/browser/service.register";
+import { workbenchShortcutRegistrations } from "src/code/browser/service/workbench/shortcut.register";
+import { workbenchCommandRegistrations } from "src/code/browser/service/workbench/command.register";
 import { IInstantiationService, InstantiationService } from "src/code/platform/instantiation/common/instantiation";
 import { getSingletonServiceDescriptors, ServiceCollection } from "src/code/platform/instantiation/common/serviceCollection";
 import { waitDomToBeLoad } from "src/base/browser/basic/dom";
@@ -29,8 +31,6 @@ import { BrowserLifecycleService, ILifecycleService } from "src/code/platform/li
 import { i18n, Ii18nOpts, Ii18nService, LanguageType } from "src/code/platform/i18n/i18n";
 import { BuiltInConfigScope } from "src/code/platform/configuration/common/configRegistrant";
 import { BrowserInstance } from "src/code/browser/browser";
-import { workbenchShortcutRegistrations } from "src/code/browser/service/workbench/shortcut.register";
-import { workbenchCommandRegistrations } from "src/code/browser/service/workbench/command.register";
 
 /**
  * @class This is the main entry of the renderer process.
@@ -49,7 +49,7 @@ class RendererInstance extends Disposable {
     private async run(): Promise<void> {
         ErrorHandler.setUnexpectedErrorExternalCallback((error: any) => console.error(error));
 
-        let instantiaionService!: IInstantiationService;
+        let instantiaionService: IInstantiationService | undefined;
         try {
             // retrieve the exposed APIs from preload.js
             initExposedElectronAPIs();
@@ -75,8 +75,13 @@ class RendererInstance extends Disposable {
             browser.init();
         } 
         catch (error: any) {
-            const logService = instantiaionService.getService(ILogService);
-            logService.error(error);
+            // try to log out the error message
+            if (instantiaionService) {
+                try {
+                    const logService = instantiaionService.getService(ILogService);
+                    logService.error(error);
+                } catch {}
+            }
             ErrorHandler.onUnexpectedError(error);
         }
     }
