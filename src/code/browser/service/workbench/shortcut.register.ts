@@ -1,47 +1,28 @@
 import { KeyCode, Shortcut } from "src/base/common/keyboard";
-import { IShortcutService } from "src/code/browser/service/shortcut/shortcutService";
-import { IHostService } from "src/code/platform/host/common/hostService";
-import { IServiceProvider } from "src/code/platform/instantiation/common/instantiation";
-import { ILifecycleService } from "src/code/platform/lifecycle/browser/browserLifecycleService";
+import { IShortcutRegistrant, ShortcutWeight } from "src/code/browser/service/shortcut/shortcutRegistrant";
+import { WorkbenchCommand } from "src/code/browser/service/workbench/command.register";
+import { inDevelopContext } from "src/code/browser/service/workbench/context";
+import { REGISTRANTS } from "src/code/platform/registrant/common/registrant";
 
-export function workbenchDefaultShortcutRegistrations(provider: IServiceProvider) {
-    const shortcutService = provider.getOrCreateService(IShortcutService);
-    const hostService = provider.getOrCreateService(IHostService);
-    const lifecycleService = provider.getOrCreateService(ILifecycleService);
+const registrant = REGISTRANTS.get(IShortcutRegistrant);
 
-    shortcutService.register({
-        commandID: 'workbench.open-develop-tool',
-        whenID: 'N/A',
-        shortcut: new Shortcut(true, true, false, false, KeyCode.KeyI),
-        when: null,
-        command: () => {
-            hostService.toggleDevTools();
-        },
-        override: false,
-        activate: true
-    });
+registrant.register({
+    commandID: WorkbenchCommand.toggleDevTool,
+    shortcut: new Shortcut(true, true, false, false, KeyCode.KeyI),
+    weight: ShortcutWeight.Core,
+    when: inDevelopContext,
+});
 
-    shortcutService.register({
-        commandID: 'workbench.reload-window',
-        whenID: 'N/A',
-        shortcut: new Shortcut(true, false, false, false, KeyCode.KeyR),
-        when: null,
-        command: () => {
-            hostService.reloadWebPage();
-        },
-        override: false,
-        activate: true
-    });
+registrant.register({
+    commandID: WorkbenchCommand.reloadWindow,
+    shortcut: new Shortcut(true, false, false, false, KeyCode.KeyR),
+    weight: ShortcutWeight.Core,
+    when: inDevelopContext,
+});
 
-    shortcutService.register({
-        commandID: 'workbench.close-window',
-        whenID: 'N/A',
-        shortcut: new Shortcut(true, false, false, false, KeyCode.KeyQ),
-        when: null,
-        command: () => {
-            lifecycleService.quit();
-        },
-        override: false,
-        activate: true
-    });
-}
+registrant.register({
+    commandID: WorkbenchCommand.closeApplication,
+    shortcut: new Shortcut(true, false, false, false, KeyCode.KeyQ),
+    weight: ShortcutWeight.Core,
+    when: inDevelopContext,
+});

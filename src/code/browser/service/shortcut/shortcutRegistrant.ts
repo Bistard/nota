@@ -1,229 +1,212 @@
 import { IDisposable, toDisposable } from "src/base/common/dispose";
-import { Emitter, PauseableEmitter, Register } from "src/base/common/event";
-import { Shortcut } from "src/base/common/keyboard";
-import { hash } from "src/base/common/util/hash";
+import { Shortcut, ShortcutHash } from "src/base/common/keyboard";
+import { isNumber } from "src/base/common/util/type";
+import { ICommandRegistrant } from "src/code/platform/command/common/commandRegistrant";
+import { ContextKeyExpr } from "src/code/platform/context/common/contextKeyExpr";
 import { IServiceProvider } from "src/code/platform/instantiation/common/instantiation";
-import { createRegistrant, RegistrantType } from "src/code/platform/registrant/common/registrant";
+import { createRegistrant, REGISTRANTS, RegistrantType } from "src/code/platform/registrant/common/registrant";
 
 export const IShortcutRegistrant = createRegistrant<IShortcutRegistrant>(RegistrantType.Shortcut);
 
-export interface IShortcutRegistrant {
-    /**
-     * Fires when one of the registered shortcut is pressed.
-     */
-    readonly onDidPress: Register<ShortcutPressEvent>;
-
-    /**
-     * @description Register a {@link Shortcut} with a callback.
-     * @param registration The shortcut registration information.
-     * @returns A disposable to unregister the callback itself.
-     */
-    register(registration: IShortcutRegistration): IDisposable;
-    
-     /**
-      * @description Unregister the given command c with all its listeners.
-      * @param commandID The id of the command to be unregistered.
-      * @returns If the unregistration successed.
-      */
-    unRegister(commandID: string): boolean;
+export const enum ShortcutWeight {
+    Core              = 0,
+    Editor            = 100,
+    workbench         = 200,
+    BuiltInExtension  = 300,
+    ExternalExtension = 400,
 }
 
-/** @internal */
-export interface IShortcutRegistrantFriendship extends IShortcutRegistrant {
-    onShortcutPress(shortcut: Shortcut, provider: IServiceProvider): void;
-    getShortcut(command: string): Shortcut | undefined;
-    getAllShortcutBindings(): IShortcutConfiguration[];
-}
-
-export interface ShortcutPressEvent {
+interface IShortcutBase {
     /**
-     * The pressed shortcut.
-     */
-    readonly shortcut: Shortcut;
-}
-
-export interface IShortcutRegistration {
-    /**
-     * The id of the command.
+     * The id of the command. It indicates which command the shortcut is binding
+     * to. When shortcut is triggered, the application will try to lookup by the
+     * ID in the {@link ICommandRegistrant}.
      */
     readonly commandID: string;
 
     /**
-     * The id of the `when`.
+     * The arguments for the command when it is executed.
      */
-    readonly whenID: string;
+    readonly commandArgs?: any[];
 
     /**
-     * The shortcut to be registered.
+     * The command will only be executed when the expression (precondition) 
+     * evaluates to true by given a context. Given a null will evaluate the 
+     * expression always to true.
      */
-    readonly shortcut: Shortcut;
+    readonly when: ContextKeyExpr | null;
 
     /**
-     * The callback to tell when the shortcut should be turned on or off.
+     * When a shortcut is registered with more than one command. The weight will
+     * tell the program which command should choose be execute. Given a number, 
+     * the less the number is the higher the priority of the shortcut is.
      */
-    readonly when: Register<boolean> | null;
-
-    /**
-     * The command to be excuated when shorcut invokes.
-     */
-    readonly command: (serviceProvider: IServiceProvider) => void;
-
-    /**
-     * Overrides the shortcut.
-     */
-    readonly override: boolean;
-
-    /**
-     * Activates the shortcut by default.
-     */
-    readonly activate: boolean;
-}
-
-export interface IShortcutConfiguration {
-    readonly commandID: string;
-    readonly whenID: string;
-    readonly shortcut: string;
+    readonly weight: ShortcutWeight;
 }
 
 /**
- * @internal Mapping data structure stored in {@link IShortcutService}.
+ * An interface describes the shortcut when registrating programmatically.
  */
-interface __IShortcutBinding {
-    readonly commandID: string;
-    readonly whenID: string;
-    readonly when: IDisposable | null;
-    readonly executor: PauseableEmitter<IServiceProvider>;
+export interface IShortcutRegistration extends IShortcutBase {
+
+    /**
+     * The shortcut of the given command.
+     */
+    readonly shortcut: Shortcut;
+}
+
+/**
+ * Another way to register a shortcut along with the command itself. The command
+ * will be registered into the {@link ICommandRegistrant}.
+ */
+export interface IShortcutWithCommandRegistration extends IShortcutRegistration {
+    
+    /**
+     * The command to be executed when the shortcut is invoked. The arguments 
+     * will be provided by the shortcut registration.
+     */
+    readonly command: (provider: IServiceProvider, ...args: any[]) => void;
+
+    /**
+     * The description of the command if provided.
+     */
+    readonly description?: string;
+
+    /**
+     * If to overwrite the existing command.
+     * @default false
+     */
+    readonly overwrite?: boolean;
+}
+
+/**
+ * The data structure used to represent the registered shortcut.
+ */
+export interface IShortcutItem extends IShortcutBase {
+    /** @internal */
+    readonly id: number;
+}
+
+/**
+ * An interface only for {@link ShortcutRegistrant}.
+ */
+export interface IShortcutRegistrant {
+    
+    /**
+     * @description Register a {@link Shortcut}.
+     * @param registration The shortcut registration information.
+     * @returns A disposable to unregister the shortcut itself.
+     */
+    register(registration: IShortcutRegistration): IDisposable;
+    
+    /**
+     * @description Except a general registration, you may also register a 
+     * shortcut alongs with a new command which will be also registered into
+     * {@link ICommandRegistrant}.
+     * @param registration The shortcut registration with command information.
+     * @returns A disposable to unregister the shortcut itself. 
+     * 
+     * @note When unregistering, the command will not be unregistered.
+     */
+    registerWithCommand(registration: IShortcutWithCommandRegistration): IDisposable;
+
+    /**
+     * @description Given the shortcut or the hashcode, returns an array that 
+     * contains all the items that have the same shortcut.
+     * @param shortcut The given shortcut or the hashcode.
+     */
+    findShortcut(shortcut: Shortcut | ShortcutHash): IShortcutItem[];
+
+    /**
+     * @description Returns all the registered shortcuts. Mapping from the hash 
+     * code of the shortcut to an array that stores all the commands that binds
+     * to that shortcut.
+     */
+    getAllShortcutRegistrations(): ReadonlyMap<number, IShortcutItem[]>;
 }
 
 @IShortcutRegistrant
-class ShortcutRegistrant implements IShortcutRegistrant, IShortcutRegistrantFriendship {
+class ShortcutRegistrant implements IShortcutRegistrant {
 
-    // [event]
+    // [field]
 
-    private readonly _onDidPress = new Emitter<ShortcutPressEvent>();
-    public readonly onDidPress = this._onDidPress.registerListener;
-
-    // [fields]
+    private static _shortcutID = 0;
+    private readonly _commandRegistrant = REGISTRANTS.get(ICommandRegistrant);
 
     /**
-     * Represents how many unique shortcuts have been registered. Mapping from
-     * command ID to shortcut.
+     * A map that stores all the registered shortcuts. Mapping from the hash 
+     * code of the shortcut to an array that stores all the commands that binds
+     * to that shortcut.
      */
-    private idMap: Map<string, Shortcut> = new Map();
+    private readonly _shortcuts: Map<number, IShortcutItem[]>;
 
-    /**
-     * Represent what commands are registered under each shortcut. Mapping the
-     * hash value of the shortcut to all the corresponding bindings.
-     */
-    private map: Map<number, __IShortcutBinding> = new Map();
+    private _bufferSortedShortcuts?: [number, IShortcutItem[]][];
 
     // [constructor]
 
-    constructor() {}
+    constructor() {
+        this._shortcuts = new Map();
+    }
 
     // [public methods]
 
     public register(registration: IShortcutRegistration): IDisposable {
 
-        // hash the shortcut into a number for fast future map searching.
-        const hashVal = hash(registration.shortcut.toString());
-        let newBinding = this.map.get(hashVal);
+        // clean the sorted shortcuts buffer
+        this._bufferSortedShortcuts = undefined;
         
-        // if the shortcut is never registered, we create one.
-        if (newBinding === undefined) {
-            newBinding = {
-                commandID: registration.commandID,
-                whenID: registration.whenID,
-                executor: new PauseableEmitter(registration.activate),
-                when: registration.when ? registration.when((on: boolean) => {
-                    if (on) {
-                        newBinding!.executor.resume();
-                    } else {
-                        newBinding!.executor.pause();
-                    }
-                }) : null,
-            };
-
-            this.map.set(hashVal, newBinding);
-            this.idMap.set(registration.commandID, registration.shortcut);
+        const hashcode = registration.shortcut.toHashcode();
+        let arr = this._shortcuts.get(hashcode);
+        if (!arr) {
+            arr = [];
+            this._shortcuts.set(hashcode, arr);
         }
 
-        // overrides the shortcut
-        else if (registration.override) {
-            const oldBindings = this.map.get(hashVal);
-            if (oldBindings) {
-                this.__disposeBinding(oldBindings);
-                this.map.delete(hashVal);
-            }
-            
-            const newVal = hash(registration.shortcut.toString());
-            this.idMap.set(registration.commandID, registration.shortcut);
-            this.map.set(newVal, newBinding);
-        }
+        const ID = ShortcutRegistrant._shortcutID++;
+        arr.push({
+            id: ID,
+            commandID: registration.commandID,
+            commandArgs: registration.commandArgs,
+            when: registration.when,
+            weight: registration.weight,
+        });
 
-        // register command
-        newBinding.executor.registerListener(registration.command);
-
-        // for unregister purpose
         return toDisposable(() => {
-            this.unRegister(registration.commandID);
+            if (arr) {
+                const itemIdx = arr.findIndex((item) => item.id === ID);
+                arr.splice(itemIdx, 1);
+                if (arr.length === 0) {
+                    this._shortcuts.delete(hashcode);
+                }
+            }
         });
     }
 
-    public unRegister(commandID: string): boolean {
-        const shortcut = this.idMap.get(commandID);
-        if (shortcut === undefined) {
-            return false;
+    public registerWithCommand(registration: IShortcutWithCommandRegistration): IDisposable {
+        const unregister = this.register(registration);
+        this._commandRegistrant.registerCommand(
+            { 
+                id: registration.commandID, 
+                description: registration.description, 
+                overwrite: registration.overwrite 
+            }, 
+            registration.command,
+        );
+        return unregister;
+    }
+
+    public findShortcut(shortcut: Shortcut | ShortcutHash): IShortcutItem[] {
+        if (!isNumber(shortcut)) {
+            shortcut = shortcut.toHashcode();
         }
-
-        const hashVal = hash(shortcut.toString());
-        const oldBindings = this.map.get(hashVal);
-        if (oldBindings) {
-            this.__disposeBinding(oldBindings);
-            this.idMap.delete(commandID);
-            return this.map.delete(hashVal);
-        }
-        
-        return false;
+        const registered = this._shortcuts.get(shortcut);
+        return registered ?? [];
     }
 
-    // [public internal methods]
-
-    public onShortcutPress(shortcut: Shortcut, provider: IServiceProvider): void {
-        const val = hash(shortcut.toString());
-        const cache = this.map.get(val);
-        if (cache) {
-            cache.executor.fire(provider);
-        }
-        this._onDidPress.fire({
-            shortcut: shortcut,
-        });
+    public getAllShortcutRegistrations(): ReadonlyMap<number, IShortcutItem[]> {
+        return this._shortcuts;
     }
-
-    public getShortcut(command: string): Shortcut | undefined {
-        return this.idMap.get(command);
-    }
-
-    public getAllShortcutBindings(): IShortcutConfiguration[] {
-        const bindings: IShortcutConfiguration[] = [];
-        for (const [commandID, shortcut] of this.idMap) {
-            const hashVal = hash(shortcut.toString());
-            const whenID = this.map.get(hashVal)!.whenID;
-            bindings.push({
-                commandID: commandID,
-                shortcut: shortcut.toString(),
-                whenID: whenID,
-            });
-        };
-        return bindings;
-    }
-
+    
     // [private helper methods]
 
-    private __disposeBinding(registration: __IShortcutBinding): void {
-        registration.executor.dispose();
-        if (registration.when) {
-            registration.when.dispose();
-        }
-    }
 }

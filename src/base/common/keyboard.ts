@@ -417,6 +417,8 @@ const enum BinaryShortcutMask {
 	KeyCode = 0x000000FF,
 }
 
+export type ShortcutHash = number;
+
 /**
  * @class A simple class that represents a key binding.
  */
