@@ -146,13 +146,16 @@ export class WorkbenchContextKeyCentre extends Disposable {
     ) {
         super();
 
-        // platform
-        contextService.createContextKey('isMac', IS_MAC, 'If the running platform is macOS');
-        contextService.createContextKey('isLinux', IS_LINUX, 'If the running platform is Linux');
-        contextService.createContextKey('isWindows', IS_WINDOWS, 'If the running platform is Windows');
+        // constant contexts
+        {
+            // platform
+            contextService.createContextKey('isMac', IS_MAC, 'If the running platform is macOS');
+            contextService.createContextKey('isLinux', IS_LINUX, 'If the running platform is Linux');
+            contextService.createContextKey('isWindows', IS_WINDOWS, 'If the running platform is Windows');
 
-        // environment
-        contextService.createContextKey('isPackaged', environmentService.isPackaged);
+            // environment
+            contextService.createContextKey('isPackaged', environmentService.isPackaged, 'Whether the application is in release mode or develop mode');
+        }
 
         // side view
         this.visibleSideView = contextService.createContextKey('visibleSideView', false, 'Whether a side view is visible');

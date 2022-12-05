@@ -28,6 +28,8 @@ import { BrowserLifecycleService, ILifecycleService } from "src/code/platform/li
 import { i18n, Ii18nOpts, Ii18nService, LanguageType } from "src/code/platform/i18n/i18n";
 import { BuiltInConfigScope } from "src/code/platform/configuration/common/configRegistrant";
 import { BrowserInstance } from "src/code/browser/browser";
+import { workbenchShortcutRegistrations } from "src/code/browser/service/workbench/shortcut.register";
+import { workbenchCommandRegistrations } from "src/code/browser/service/workbench/command.register";
 
 /**
  * @class This is the main entry of the renderer process.
@@ -59,6 +61,9 @@ class RendererInstance extends Disposable {
                 this.initServices(instantiaionService),
                 waitDomToBeLoad(),
             ]);
+
+            // init all kinds of registrations by registrants
+            this.initRegistrations();
 
             // create workbench UI
             const workbench = instantiaionService.createInstance(Workbench, document.body);
@@ -157,6 +162,11 @@ class RendererInstance extends Disposable {
             configService.init(environmentService.logLevel),
             i18nService.init(),
         ]);
+    }
+
+    private initRegistrations(): void {
+        workbenchShortcutRegistrations();
+        workbenchCommandRegistrations();
     }
 }
 

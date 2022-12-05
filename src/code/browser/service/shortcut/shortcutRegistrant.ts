@@ -8,6 +8,9 @@ import { createRegistrant, REGISTRANTS, RegistrantType } from "src/code/platform
 
 export const IShortcutRegistrant = createRegistrant<IShortcutRegistrant>(RegistrantType.Shortcut);
 
+/**
+ * The less the number is, the higher the priority of the shortcut is.
+ */
 export const enum ShortcutWeight {
     Core              = 0,
     Editor            = 100,
@@ -38,8 +41,7 @@ interface IShortcutBase {
 
     /**
      * When a shortcut is registered with more than one command. The weight will
-     * tell the program which command should choose be execute. Given a number, 
-     * the less the number is the higher the priority of the shortcut is.
+     * tell the program which command should choose be execute.
      */
     readonly weight: ShortcutWeight;
 }
@@ -140,8 +142,6 @@ class ShortcutRegistrant implements IShortcutRegistrant {
      */
     private readonly _shortcuts: Map<number, IShortcutItem[]>;
 
-    private _bufferSortedShortcuts?: [number, IShortcutItem[]][];
-
     // [constructor]
 
     constructor() {
@@ -152,9 +152,6 @@ class ShortcutRegistrant implements IShortcutRegistrant {
 
     public register(registration: IShortcutRegistration): IDisposable {
 
-        // clean the sorted shortcuts buffer
-        this._bufferSortedShortcuts = undefined;
-        
         const hashcode = registration.shortcut.toHashcode();
         let arr = this._shortcuts.get(hashcode);
         if (!arr) {

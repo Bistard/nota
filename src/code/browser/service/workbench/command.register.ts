@@ -11,35 +11,38 @@ export const enum WorkbenchCommand {
     closeApplication = 'close-application',
 }
 
-registrant.registerCommand(
-    {
-        id: WorkbenchCommand.toggleDevTool, 
-        description: 'Toggle the developer tool of the whole application.',
-    },
-    (provider) => {
-        const hostService = provider.getOrCreateService(IHostService);
-        hostService.toggleDevTools();
-    },
-);
-
-registrant.registerCommand(
-    {
-        id: WorkbenchCommand.reloadWindow,
-        description: 'Reload the current window entirely.',
-    }, 
-    (provider) => {
-        const hostService = provider.getOrCreateService(IHostService);
-        hostService.reloadWebPage();
-    },
-);
-
-registrant.registerCommand(
-    {
-        id: WorkbenchCommand.closeApplication,
-        description: 'Close the application.',
-    }, 
-    (provider) => {
-        const lifecycleService = provider.getOrCreateService(ILifecycleService);
-        lifecycleService.quit();
-    },
-);
+export function workbenchCommandRegistrations(): void {
+    
+    registrant.registerCommand(
+        {
+            id: WorkbenchCommand.toggleDevTool, 
+            description: 'Toggle the developer tool of the whole application.',
+        },
+        (provider) => {
+            const hostService = provider.getOrCreateService(IHostService);
+            hostService.toggleDevTools();
+        },
+    );
+    
+    registrant.registerCommand(
+        {
+            id: WorkbenchCommand.reloadWindow,
+            description: 'Reload the current window entirely.',
+        }, 
+        (provider) => {
+            const hostService = provider.getOrCreateService(IHostService);
+            hostService.reloadWebPage();
+        },
+    );
+    
+    registrant.registerCommand(
+        {
+            id: WorkbenchCommand.closeApplication,
+            description: 'Close the application.',
+        }, 
+        (provider) => {
+            const lifecycleService = provider.getOrCreateService(ILifecycleService);
+            lifecycleService.quit();
+        },
+    );
+}

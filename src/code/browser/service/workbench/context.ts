@@ -8,5 +8,5 @@ import { CreateContextKeyExpr } from "src/code/platform/context/common/contextKe
 export const inReleaseContext = CreateContextKeyExpr.Equal('isPackaged', true);
 
 /** Is the application is in develop mode. */
-export const inDevelopContext = CreateContextKeyExpr.NotEqual('isPackaged', false);
+export const inDevelopContext = CreateContextKeyExpr.Equal('isPackaged', false);
 

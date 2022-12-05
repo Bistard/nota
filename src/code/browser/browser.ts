@@ -1,4 +1,5 @@
 import { ILogService } from "src/base/common/logger";
+import { IShortcutService } from "src/code/browser/service/shortcut/shortcutService";
 import { IFileService } from "src/code/platform/files/common/fileService";
 import { IInstantiationService } from "src/code/platform/instantiation/common/instantiation";
 import { IBrowserLifecycleService, ILifecycleService, LifecyclePhase } from "src/code/platform/lifecycle/browser/browserLifecycleService";
@@ -16,6 +17,7 @@ export class BrowserInstance implements IBrowser {
         @ILifecycleService private readonly lifecycleService: IBrowserLifecycleService,
         @IFileService private readonly fileService: IFileService,
         @ILogService private readonly logService: ILogService,
+        @IShortcutService private readonly shortcutService: IShortcutService,
     ) {}
 
     // [public methods]
@@ -30,7 +32,9 @@ export class BrowserInstance implements IBrowser {
     private registerListeners(): void {
         
         // when the window is ready
-        this.lifecycleService.when(LifecyclePhase.Ready).then(() => {});
+        this.lifecycleService.when(LifecyclePhase.Ready).then(() => {
+            // noop
+        });
 
         // when the window is about to quit
         this.lifecycleService.onWillQuit(e => {
