@@ -1,7 +1,11 @@
 import { tmpdir } from "os";
+import { Emitter, Register } from "src/base/common/event";
 import { join } from "src/base/common/file/path";
 import { URI } from "src/base/common/file/uri";
+import { IStandardKeyboardEvent } from "src/base/common/keyboard";
 import { AbstractLogger, ILogService } from "src/base/common/logger";
+import { IKeyboardService } from "src/code/browser/service/keyboard/keyboardService";
+import { ContextService } from "src/code/platform/context/common/contextService";
 import { DiskEnvironmentService } from "src/code/platform/environment/common/diskEnvironmentService";
 import { AbstractLifecycleService } from "src/code/platform/lifecycle/common/abstractLifecycleService";
 
@@ -38,9 +42,6 @@ export class NullEnvironmentService extends DiskEnvironmentService {
     }
 }
 
-/**
- * @class A logger that does nothing. Usually used for testing purpose.
- */
 export class NullLogger extends AbstractLogger implements ILogService {
     constructor() {
         super();
@@ -52,4 +53,29 @@ export class NullLogger extends AbstractLogger implements ILogService {
     public error(message: string | Error, ...args: any[]): void {}
     public fatal(message: string | Error, ...args: any[]): void {}
     public async flush(): Promise<void> {}
+}
+
+export class NullContextService extends ContextService {}
+
+export class TestKeyboardService implements IKeyboardService {
+
+    private emitter: Emitter<IStandardKeyboardEvent> = new Emitter();
+
+    constructor() {}
+
+    public fire(event: IStandardKeyboardEvent): void {
+        this.emitter.fire(event);
+    }
+
+    get onKeydown(): Register<IStandardKeyboardEvent> {
+        return this.emitter.registerListener;
+    }
+    
+    get onKeyup(): Register<IStandardKeyboardEvent> {
+        return this.emitter.registerListener;
+    }
+
+    dispose(): void {
+        this.emitter.dispose();
+    }
 }

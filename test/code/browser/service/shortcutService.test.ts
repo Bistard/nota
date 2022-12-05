@@ -1,143 +1,79 @@
 import * as assert from 'assert';
-import { Emitter, Register } from 'src/base/common/event';
 import { IStandardKeyboardEvent, KeyCode, Shortcut } from 'src/base/common/keyboard';
 import { mockType } from 'src/base/common/util/type';
-import { IKeyboardService } from 'src/code/browser/service/keyboard/keyboardService';
+import { ShortcutWeight } from 'src/code/browser/service/shortcut/shortcutRegistrant';
 import { ShortcutService } from 'src/code/browser/service/shortcut/shortcutService';
+import { ICommandRegistrant } from 'src/code/platform/command/common/commandRegistrant';
+import { CreateContextKeyExpr } from 'src/code/platform/context/common/contextKeyExpr';
+import { ContextService } from 'src/code/platform/context/common/contextService';
 import { FileService } from 'src/code/platform/files/common/fileService';
 import { InstantiationService } from 'src/code/platform/instantiation/common/instantiation';
-import { NullEnvironmentService, NullLifecycleService, NullLogger } from 'test/utility';
-
-class TestKeyboardService implements IKeyboardService {
-
-    private emitter: Emitter<IStandardKeyboardEvent> = new Emitter();
-
-    constructor() {
-        
-    }
-
-    public fire(event: IStandardKeyboardEvent): void {
-        this.emitter.fire(event);
-    }
-
-    get onKeydown(): Register<IStandardKeyboardEvent> {
-        return this.emitter.registerListener;
-    }
-    
-    get onKeyup(): Register<IStandardKeyboardEvent> {
-        return this.emitter.registerListener;
-    }
-
-    dispose(): void {
-        this.emitter.dispose();
-    }
-
-}
+import { REGISTRANTS } from 'src/code/platform/registrant/common/registrant';
+import { NullEnvironmentService, NullLifecycleService, NullLogger, TestKeyboardService } from 'test/utility';
 
 suite('shortcutService-test', () => {
 
     let keyboardService!: TestKeyboardService;
     let shortcutService!: ShortcutService; 
+    let contextService!: ContextService;
 
     setup(() => {
         keyboardService = new TestKeyboardService();
         const logService = new NullLogger();
         const fileService = new FileService(logService);
         const instantiaionService = new InstantiationService();
-        shortcutService = new ShortcutService(keyboardService, new NullLifecycleService(), instantiaionService, mockType(new NullEnvironmentService()), fileService, logService);
+        contextService = new ContextService();
+        shortcutService = new ShortcutService(keyboardService, new NullLifecycleService(), instantiaionService, mockType(new NullEnvironmentService()), fileService, logService, contextService);
     });
+
+    function createKeyboardEvent(shortcut: Shortcut): IStandardKeyboardEvent {
+        return {
+            ctrl: shortcut.ctrl,
+            alt: shortcut.alt,
+            shift: shortcut.shift,
+            meta: shortcut.meta,
+            key: shortcut.key,
+            browserEvent: null as unknown as KeyboardEvent,
+            target: null as unknown as HTMLElement,
+            preventDefault: () => {},
+            stopPropagation: () => {},
+        };
+    }
 
     test('register and unregister', () => {
         
         let pressed = 0;
+        const commandRegistrant = REGISTRANTS.get(ICommandRegistrant);
+        commandRegistrant.registerCommand({ id: 'test-shortcut' }, () => pressed++);
 
-        const windowFocusOnChange = new Emitter<boolean>();
-        
         const shortcut = new Shortcut(true, false, false, false, KeyCode.Space);
+        const precondition = CreateContextKeyExpr.Equal('value', true);
         
         const unregister = shortcutService.register({
             shortcut: shortcut,
-            when: windowFocusOnChange.registerListener,
-            command: () => pressed++,
-            activate: false,
-            override: false,
-            commandID: 'test.shortcut',
-            whenID: 'N/A',
+            when: precondition,
+            commandID: 'test-shortcut',
+            weight: ShortcutWeight.ExternalExtension,
         });
 
-        keyboardService.fire({
-            ctrl: true,
-            alt: false,
-            shift: false,
-            meta: false,
-            key: KeyCode.Space,
-            browserEvent: null as unknown as KeyboardEvent,
-            target: null as unknown as HTMLElement,
-            preventDefault: () => {},
-            stopPropagation: () => {},
-        });
-
+        contextService.setContext('value', false);
+        keyboardService.fire(createKeyboardEvent(new Shortcut(true, false, false, false, KeyCode.Space)));
         assert.strictEqual(pressed, 0);
 
-        windowFocusOnChange.fire(true);
-
-        keyboardService.fire({
-            ctrl: true,
-            alt: false,
-            shift: false,
-            meta: false,
-            key: KeyCode.Space,
-            browserEvent: null as unknown as KeyboardEvent,
-            target: null as unknown as HTMLElement,
-            preventDefault: () => {},
-            stopPropagation: () => {},
-        });
-
+        contextService.setContext('value', true);
+        keyboardService.fire(createKeyboardEvent(new Shortcut(true, false, false, false, KeyCode.Space)));
         assert.strictEqual(pressed, 1);
 
-        windowFocusOnChange.fire(false);
-        keyboardService.fire({
-            ctrl: true,
-            alt: false,
-            shift: false,
-            meta: false,
-            key: KeyCode.Space,
-            browserEvent: null as unknown as KeyboardEvent,
-            target: null as unknown as HTMLElement,
-            preventDefault: () => {},
-            stopPropagation: () => {},
-        });
-
+        contextService.setContext('value', false);
+        keyboardService.fire(createKeyboardEvent(new Shortcut(true, false, false, false, KeyCode.Space)));
         assert.strictEqual(pressed, 1);
 
-        windowFocusOnChange.fire(true);
-        keyboardService.fire({
-            ctrl: true,
-            alt: false,
-            shift: false,
-            meta: false,
-            key: KeyCode.Space,
-            browserEvent: null as unknown as KeyboardEvent,
-            target: null as unknown as HTMLElement,
-            preventDefault: () => {},
-            stopPropagation: () => {},
-        });
-
+        contextService.setContext('value', true);
+        keyboardService.fire(createKeyboardEvent(new Shortcut(true, false, false, false, KeyCode.Space)));
         assert.strictEqual(pressed, 2);
 
         unregister.dispose();
-        keyboardService.fire({
-            ctrl: true,
-            alt: false,
-            shift: false,
-            meta: false,
-            key: KeyCode.Space,
-            browserEvent: null as unknown as KeyboardEvent,
-            target: null as unknown as HTMLElement,
-            preventDefault: () => {},
-            stopPropagation: () => {},
-        });
-
+        keyboardService.fire(createKeyboardEvent(new Shortcut(true, false, false, false, KeyCode.Space)));
         assert.strictEqual(pressed, 2);
     });
 });
