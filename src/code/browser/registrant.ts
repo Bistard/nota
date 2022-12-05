@@ -11,6 +11,7 @@ import { SideBar, ISideBarService } from 'src/code/browser/workbench/sideBar/sid
 import { IWorkspaceService, WorkspaceComponent } from 'src/code/browser/workbench/workspace/workspace';
 import { SideViewService, ISideViewService } from 'src/code/browser/workbench/sideView/sideView';
 import { ExplorerTreeService, IExplorerTreeService } from 'src/code/browser/service/explorerTree/explorerTreeService';
+import { ContextService, IContextService } from 'src/code/platform/context/common/contextService';
 
 /*******************************************************************************
  * Registraion for desktop browser-side non-important microservices.
@@ -33,7 +34,7 @@ registerSingleton(IThemeService, new ServiceDescriptor(ThemeService)); // TODO: 
 registerSingleton(IExplorerTreeService, new ServiceDescriptor(ExplorerTreeService));
 
 // utilities && tools
-// TODO: contextService
+registerSingleton(IContextService, new ServiceDescriptor(ContextService));
 // TODO: performanceService
 // TODO: folderTreeService
 // TODO: notebookTreeService
