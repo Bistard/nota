@@ -1,9 +1,17 @@
 import { IIterable } from "src/base/common/util/iterable";
+import { NonUndefined } from "src/base/common/util/type";
 
 /**
  * @namespace Array A series of helper functions that relates to array.
  */
 export namespace Arrays {
+
+    /**
+     * @description Whether the given value exsits in the given array.
+     */
+    export function exist<T>(array: ReadonlyArray<T>, value: T): boolean {
+        return array.indexOf(value) >= 0;
+    }
 
     /**
      * @description Returns a new elements of an array that removed all the 
@@ -304,6 +312,39 @@ export namespace Arrays {
             }
         }
         return false;
+    }
+
+    /**
+     * @description Apply a binary search on the given array.
+     * @param array The given array.
+     * @param match A callback function that will apply to all the possible 
+     * items in the array. Returns a number to indicate if the item is too left 
+     * or too right. A negative value indicates the item is too left. A positive
+     * value indicates the item is too right.
+     * @returns The found item or undefined if not found.
+     */
+    export function binarySearch<T extends NonUndefined>(array: ReadonlyArray<T>, match: (value: T) => number): T | undefined {
+
+        let l = -1;
+        let r = array.length;
+
+        while (l + 1 < r) {
+            const m = ((l + r) / 2) | 0;
+            const value = array[m]!;
+            const result = match(value);
+
+            if (result === 0) {
+                return value;
+            }
+
+            if (result < 0) {
+                l = m;
+            } else {
+                r = m;
+            }
+        }
+
+        return undefined;
     }
 }
 

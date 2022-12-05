@@ -1,5 +1,6 @@
 import * as assert from 'assert';
 import { Arrays, Deque, Queue, Stack } from 'src/base/common/util/array';
+import { isNumber } from 'src/base/common/util/type';
 
 suite('array-test', () => {
 
@@ -111,6 +112,44 @@ suite('array-test', () => {
         assert.strictEqual(Arrays.matchAny(['path1.path2'], ['path1.path2'], cmp1), true);
         assert.strictEqual(Arrays.matchAny(['path1'], ['path1.path2'], cmp1), true);
         assert.strictEqual(Arrays.matchAny(['path1.path3'], ['path1.path2'], cmp1), false);
+    });
+
+    test('binarySearch', () => {
+        
+        function bs (arr: number[], expect: number, expectResult: boolean) {
+            const match = (value: number) => { 
+                if (value === expect) {
+                    return 0;
+                } else if (value < expect) {
+                    return -1;
+                } else {
+                    return 1;
+                }
+            };
+            assert.strictEqual(isNumber(Arrays.binarySearch(arr, match)), expectResult, `array: [${arr}], searchFor: ${expect}, expectResult: ${expectResult}`);
+        };
+
+        function bsArr(arr: number[]) {
+            if (arr.length === 0) {
+                bs([], 0, false);
+                return;
+            }
+            
+            const min = Math.min(...arr);
+            const max = Math.max(...arr);
+
+            for (let num = min; num <= max; num++) {
+                const existed = !(arr.indexOf(num) === -1);
+                bs(arr, num, existed);
+            }
+        };
+
+        bsArr([]);
+        bsArr([1]);
+        bsArr([1, 2]);
+        bsArr([1, 10]);
+        bsArr([1, 10, 11]);
+        bsArr([0, 1, 2, 3, 4, 5, 6, 7, 10, 11, 12, 100]);
     });
 });
 
