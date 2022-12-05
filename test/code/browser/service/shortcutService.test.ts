@@ -1,13 +1,18 @@
 import * as assert from 'assert';
 import { IStandardKeyboardEvent, KeyCode, Shortcut } from 'src/base/common/keyboard';
+import { ILogService } from 'src/base/common/logger';
 import { mockType } from 'src/base/common/util/type';
+import { IKeyboardService } from 'src/code/browser/service/keyboard/keyboardService';
 import { ShortcutWeight } from 'src/code/browser/service/shortcut/shortcutRegistrant';
 import { ShortcutService } from 'src/code/browser/service/shortcut/shortcutService';
 import { ICommandRegistrant } from 'src/code/platform/command/common/commandRegistrant';
+import { CommandService, ICommandService } from 'src/code/platform/command/common/commandService';
 import { CreateContextKeyExpr } from 'src/code/platform/context/common/contextKeyExpr';
-import { ContextService } from 'src/code/platform/context/common/contextService';
-import { FileService } from 'src/code/platform/files/common/fileService';
-import { InstantiationService } from 'src/code/platform/instantiation/common/instantiation';
+import { ContextService, IContextService } from 'src/code/platform/context/common/contextService';
+import { IEnvironmentService } from 'src/code/platform/environment/common/environment';
+import { FileService, IFileService } from 'src/code/platform/files/common/fileService';
+import { IInstantiationService, InstantiationService } from 'src/code/platform/instantiation/common/instantiation';
+import { ILifecycleService } from 'src/code/platform/lifecycle/browser/browserLifecycleService';
 import { REGISTRANTS } from 'src/code/platform/registrant/common/registrant';
 import { NullEnvironmentService, NullLifecycleService, NullLogger, TestKeyboardService } from 'test/utility';
 
@@ -18,12 +23,24 @@ suite('shortcutService-test', () => {
     let contextService!: ContextService;
 
     setup(() => {
+        const DI = new InstantiationService();
+
         keyboardService = new TestKeyboardService();
         const logService = new NullLogger();
         const fileService = new FileService(logService);
-        const instantiaionService = new InstantiationService();
         contextService = new ContextService();
-        shortcutService = new ShortcutService(keyboardService, new NullLifecycleService(), instantiaionService, mockType(new NullEnvironmentService()), fileService, logService, contextService);
+        const commandService = new CommandService(DI, logService);
+
+        DI.register(IInstantiationService, DI);
+        DI.register(IKeyboardService, keyboardService);
+        DI.register(ILogService, logService);
+        DI.register(IFileService, fileService);
+        DI.register(IContextService, contextService);
+        DI.register(ICommandService, commandService);
+        DI.register(ILifecycleService, new NullLifecycleService());
+        DI.register(IEnvironmentService, new NullEnvironmentService());
+        
+        shortcutService = DI.createInstance(ShortcutService);
     });
 
     function createKeyboardEvent(shortcut: Shortcut): IStandardKeyboardEvent {

@@ -5,7 +5,6 @@ import { Shortcut, ShortcutHash } from "src/base/common/keyboard";
 import { IKeyboardService } from "src/code/browser/service/keyboard/keyboardService";
 import { IFileService } from "src/code/platform/files/common/fileService";
 import { createService } from "src/code/platform/instantiation/common/decorator";
-import { IInstantiationService } from "src/code/platform/instantiation/common/instantiation";
 import { ILogService } from "src/base/common/logger";
 import { IBrowserLifecycleService, ILifecycleService, LifecyclePhase } from "src/code/platform/lifecycle/browser/browserLifecycleService";
 import { IShortcutItem, IShortcutRegistrant, IShortcutRegistration, IShortcutWithCommandRegistration, ShortcutWeight } from "src/code/browser/service/shortcut/shortcutRegistrant";
@@ -13,7 +12,7 @@ import { REGISTRANTS } from "src/code/platform/registrant/common/registrant";
 import { IBrowserEnvironmentService } from "src/code/platform/environment/common/environment";
 import { Emitter, Register } from "src/base/common/event";
 import { IContextService } from "src/code/platform/context/common/contextService";
-import { ICommandRegistrant } from "src/code/platform/command/common/commandRegistrant";
+import { ICommandService } from "src/code/platform/command/common/commandService";
 
 export const SHORTCUT_CONFIG_NAME = 'shortcut.config.json';
 export const IShortcutService = createService<IShortcutService>('shortcut-service');
@@ -68,7 +67,6 @@ export class ShortcutService extends Disposable implements IShortcutService {
     // [field]
 
     private readonly _shortcutRegistrant = REGISTRANTS.get(IShortcutRegistrant);
-    private readonly _commandRegistrant = REGISTRANTS.get(ICommandRegistrant);
 
     /** The resource of the shortcut configuration. */
     private readonly _resource: URI;
@@ -78,11 +76,11 @@ export class ShortcutService extends Disposable implements IShortcutService {
     constructor(
         @IKeyboardService keyboardService: IKeyboardService,
         @ILifecycleService lifecycleService: IBrowserLifecycleService,
-        @IInstantiationService private readonly instantiaionService: IInstantiationService,
         @IBrowserEnvironmentService private readonly environmentService: IBrowserEnvironmentService,
         @IFileService private readonly fileService: IFileService,
         @ILogService private readonly logService: ILogService,
         @IContextService private readonly contextService: IContextService,
+        @ICommandService private readonly commandService: ICommandService,
     ) {
         super();
         this._resource = URI.join(environmentService.appConfigurationPath, SHORTCUT_CONFIG_NAME);
@@ -113,14 +111,11 @@ export class ShortcutService extends Disposable implements IShortcutService {
                 return;
             }
 
-            // fires the coressponding command
-            const command = this._commandRegistrant.getCommand(shortcut.commandID);
-            if (!command) {
-                this.logService.warn(`The shortcut '${pressed.toString()}' binding to the command '${shortcut.commandID}' is not found.`);
-                return;
-            }
-
-            command.executor(this.instantiaionService, ...(shortcut.commandArgs ?? []));
+            // executing the coressponding command
+            this.commandService.executeCommand(shortcut.commandID, ...(shortcut.commandArgs ?? []))
+            .catch(() => {
+                this.logService.warn(`The shortcut '${pressed.toString()}' binding to the command '${shortcut!.commandID}' is not found.`);
+            });
         }));
         
         // When the browser side is ready, we update registrations by reading from disk.

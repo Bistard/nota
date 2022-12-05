@@ -57,16 +57,17 @@ export class CommandService extends Disposable implements ICommandService {
 
         const command = this._registrant.getCommand(id);
         if (!command) {
-			return Promise.reject(new Error(`command '${id}' not found`));
+			return Promise.reject(new Error(`command with ID '${id}' is not found`));
 		}
 
         try {
             const result = command.executor(this.instantiationService, ...args);
             this._onDidExecuteCommand.fire({ commandID: id, args: args });
-            this.logService.trace('CommandService execute command:', id);
+            this.logService.trace(`Command-service executed the command '${id}'`);
             return Promise.resolve(<T>result);
-        } catch (error) {
-            this.logService.trace('CommandService not found command:', id);
+        } 
+        catch (error) {
+            this.logService.trace(`Command-service does not found the command '${id}'`);
             return Promise.reject(error);
         }
     }
