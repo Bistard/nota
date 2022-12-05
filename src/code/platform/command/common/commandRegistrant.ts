@@ -4,12 +4,6 @@ import { createRegistrant, RegistrantType } from "src/code/platform/registrant/c
 
 export const ICommandRegistrant = createRegistrant<ICommandRegistrant>(RegistrantType.Command);
 
-export interface ICommand<T = any> {
-    readonly id: string;
-    readonly description?: string;
-    readonly executor: ICommandExecutor<T>;
-}
-
 export interface ICommandExecutor<T = any> {
     (provider: IServiceProvider, ...args: any[]): T;
 }
@@ -20,18 +14,39 @@ export interface ICommandEvent {
 }
 
 /**
+ * A set of metadata that describes the command.
+ */
+export interface ICommandSchema {
+    
+    /**
+     * The name of the command for later access.
+     */
+    readonly id: string; 
+
+    /**
+     * The description of the command.
+     */
+    description?: string;
+
+    /**
+     * If to overwrite the exsiting command. 
+     * @default false
+     */
+    overwrite?: boolean;
+}
+
+/**
  * An interface only for {@link CommandRegistrant}.
  */
 export interface ICommandRegistrant {
 
     /**
      * @description Registers a command by storing it in a map with its id as the key.
-     * @param id The name of the command for later access.
+     * @param schema A set of metadata that describes the command.
      * @param executor The actual callback function of the command. 
-     * @param description The description of the command.
      * @returns A disposible for unregistration.
      */
-    registerCommand(id: string, executor: ICommandExecutor, description?: string): IDisposable;
+    registerCommand(schema: ICommandSchema, executor: ICommandExecutor): IDisposable;
 
     /**
      * @description Get the {@link ICommand} object through the command id.
@@ -44,6 +59,12 @@ export interface ICommandRegistrant {
     getAllCommands(): Map<string, ICommand>;
 }
 
+interface ICommand<T = any> {
+    readonly id: string;
+    readonly description?: string;
+    readonly executor: ICommandExecutor<T>;
+}
+
 /**
  * A command registrant can register commands and can be executed through 
  * the {@link ICommandService}.
@@ -51,19 +72,21 @@ export interface ICommandRegistrant {
 @ICommandRegistrant
 class CommandRegistrant implements ICommandRegistrant {
 
-    private _commands = new Map<string, ICommand>();
+    private readonly _commands = new Map<string, ICommand>();
 
     constructor() {
         // noop
     }
 
-    public registerCommand(id: string, executor: ICommandExecutor, description?: string, overwrite: boolean = false): IDisposable {
-        if (!description) {
-            description = 'No descriptions';
+    public registerCommand(schema: ICommandSchema, executor: ICommandExecutor): IDisposable {
+        const id = schema.id;
+        
+        if (!schema.description) {
+            schema.description = 'No descriptions are provided.';
         }
 
-        if (overwrite === true || !this._commands.has(id)) {
-            this._commands.set(id, {id, executor, description});
+        if (schema.overwrite === true || !this._commands.has(id)) {
+            this._commands.set(id, { id, executor, description: schema.description });
         }
         
         let unregister = toDisposable(() => {
