@@ -1,4 +1,3 @@
-import 'src/code/platform/configuration/browser/configuration.register';
 import { ServiceDescriptor } from "src/code/platform/instantiation/common/descriptor";
 import { registerSingleton } from "src/code/platform/instantiation/common/serviceCollection";
 import { CommandService, ICommandService } from "src/code/platform/command/common/commandService";
@@ -17,24 +16,27 @@ import { ContextService, IContextService } from 'src/code/platform/context/commo
  * Registraion for desktop browser-side non-important microservices.
  ******************************************************************************/
 
-// communication
-registerSingleton(IDialogService, new ServiceDescriptor(BrowserDialogService));
+export function rendererServiceRegistrations(): void {
+    
+    // communication
+    registerSingleton(IDialogService, new ServiceDescriptor(BrowserDialogService));
 
-// registration
-registerSingleton(IKeyboardService, new ServiceDescriptor(keyboardService));
-registerSingleton(IShortcutService, new ServiceDescriptor(ShortcutService));
-registerSingleton(ICommandService, new ServiceDescriptor(CommandService));
+    // registration
+    registerSingleton(IKeyboardService, new ServiceDescriptor(keyboardService));
+    registerSingleton(IShortcutService, new ServiceDescriptor(ShortcutService));
+    registerSingleton(ICommandService, new ServiceDescriptor(CommandService));
 
-// User Interface
-registerSingleton(ISideBarService, new ServiceDescriptor(SideBar));
-registerSingleton(IWorkspaceService, new ServiceDescriptor(WorkspaceComponent));
-registerSingleton(ISideViewService, new ServiceDescriptor(SideViewService));
-registerSingleton(IKeyboardScreenCastService, new ServiceDescriptor(KeyboardScreenCastService));
-registerSingleton(IThemeService, new ServiceDescriptor(ThemeService)); // TODO: themeService
-registerSingleton(IExplorerTreeService, new ServiceDescriptor(ExplorerTreeService));
+    // User Interface
+    registerSingleton(ISideBarService, new ServiceDescriptor(SideBar));
+    registerSingleton(IWorkspaceService, new ServiceDescriptor(WorkspaceComponent));
+    registerSingleton(ISideViewService, new ServiceDescriptor(SideViewService));
+    registerSingleton(IKeyboardScreenCastService, new ServiceDescriptor(KeyboardScreenCastService));
+    registerSingleton(IThemeService, new ServiceDescriptor(ThemeService)); // TODO: themeService
+    registerSingleton(IExplorerTreeService, new ServiceDescriptor(ExplorerTreeService));
 
-// utilities && tools
-registerSingleton(IContextService, new ServiceDescriptor(ContextService));
-// TODO: performanceService
-// TODO: folderTreeService
-// TODO: notebookTreeService
+    // utilities && tools
+    registerSingleton(IContextService, new ServiceDescriptor(ContextService));
+    // TODO: performanceService
+    // TODO: folderTreeService
+    // TODO: notebookTreeService
+}

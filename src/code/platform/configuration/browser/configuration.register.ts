@@ -26,7 +26,7 @@ class DefaultUserConfiguration extends DefaultConfigStorage {
     }
 }
 
-(function registerBrowserDefaultConfiguration() {
+export function registerBrowserDefaultConfiguration(): void {
     const Registrant = REGISTRANTS.get(IConfigRegistrant);
     Registrant.registerDefaultBuiltIn(BuiltInConfigScope.User, new DefaultUserConfiguration());
-})();
+}

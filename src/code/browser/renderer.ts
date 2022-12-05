@@ -1,5 +1,6 @@
-import "src/code/browser/registrant";
 import { Workbench } from "src/code/browser/workbench/workbench";
+import { registerBrowserDefaultConfiguration } from "src/code/platform/configuration/browser/configuration.register";
+import { rendererServiceRegistrations } from "src/code/browser/service.register";
 import { IInstantiationService, InstantiationService } from "src/code/platform/instantiation/common/instantiation";
 import { getSingletonServiceDescriptors, ServiceCollection } from "src/code/platform/instantiation/common/serviceCollection";
 import { waitDomToBeLoad } from "src/base/browser/basic/dom";
@@ -53,6 +54,9 @@ class RendererInstance extends Disposable {
             // retrieve the exposed APIs from preload.js
             initExposedElectronAPIs();
 
+            // init all kinds of registrations by registrants
+            this.initRegistrations();
+
             // core service construction
             instantiaionService = this.createCoreServices();
 
@@ -61,9 +65,6 @@ class RendererInstance extends Disposable {
                 this.initServices(instantiaionService),
                 waitDomToBeLoad(),
             ]);
-
-            // init all kinds of registrations by registrants
-            this.initRegistrations();
 
             // create workbench UI
             const workbench = instantiaionService.createInstance(Workbench, document.body);
@@ -165,6 +166,8 @@ class RendererInstance extends Disposable {
     }
 
     private initRegistrations(): void {
+        rendererServiceRegistrations();
+        registerBrowserDefaultConfiguration();
         workbenchShortcutRegistrations();
         workbenchCommandRegistrations();
     }
