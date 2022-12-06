@@ -28,10 +28,22 @@ export class EditorView extends Disposable implements IEditorView {
 
     // [events]
     
-    public readonly onBeforeRender: Register<void>;
-
+    
     private readonly _onLog = this.__register(new Emitter<ILogEvent<string | Error>>());
     public readonly onLog = this._onLog.registerListener;
+    
+    public readonly onBeforeRender: Register<void>;
+    public readonly onClick: Register<unknown>;
+    public readonly onDidClick: Register<unknown>;
+    public readonly onDoubleClick: Register<unknown>;
+    public readonly onDidDoubleClick: Register<unknown>;
+    public readonly onTripleClick: Register<unknown>;
+    public readonly onDidTripleClick: Register<unknown>;
+    public readonly onKeydown: Register<unknown>;
+    public readonly onKeypress: Register<unknown>;
+    public readonly onTextInput: Register<unknown>;
+    public readonly onPaste: Register<unknown>;
+    public readonly onDrop: Register<unknown>;
 
     // [constructor]
     
@@ -55,6 +67,18 @@ export class EditorView extends Disposable implements IEditorView {
         this._editorManager = new EditorManager(editorContainer, context);
         this.onBeforeRender = this._editorManager.editor.onBeforeRender;
         
+        this.onClick = this._editorManager.editor.onClick;
+        this.onDidClick = this._editorManager.editor.onDidClick;
+        this.onDoubleClick = this._editorManager.editor.onDoubleClick;
+        this.onDidDoubleClick = this._editorManager.editor.onDidDoubleClick;
+        this.onTripleClick = this._editorManager.editor.onTripleClick;
+        this.onDidTripleClick = this._editorManager.editor.onDidTripleClick;
+        this.onKeydown = this._editorManager.editor.onKeydown;
+        this.onKeypress = this._editorManager.editor.onKeypress;
+        this.onTextInput = this._editorManager.editor.onTextInput;
+        this.onPaste = this._editorManager.editor.onPaste;
+        this.onDrop = this._editorManager.editor.onDrop;
+
         // update listener registration from view-model
         this.__registerViewModelListeners();
 

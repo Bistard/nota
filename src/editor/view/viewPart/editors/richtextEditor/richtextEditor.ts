@@ -20,6 +20,17 @@ export class RichtextEditor extends BaseEditor {
     // [event]
 
     public readonly onBeforeRender: Register<void>;
+    public readonly onClick: Register<unknown>;
+    public readonly onDidClick: Register<unknown>;
+    public readonly onDoubleClick: Register<unknown>;
+    public readonly onDidDoubleClick: Register<unknown>;
+    public readonly onTripleClick: Register<unknown>;
+    public readonly onDidTripleClick: Register<unknown>;
+    public readonly onKeydown: Register<unknown>;
+    public readonly onKeypress: Register<unknown>;
+    public readonly onTextInput: Register<unknown>;
+    public readonly onPaste: Register<unknown>;
+    public readonly onDrop: Register<unknown>;
 
     // [constructor]
 
@@ -33,6 +44,17 @@ export class RichtextEditor extends BaseEditor {
         this._core = new RichtextEditorCore(container, context, initState);
         
         this.onBeforeRender = this._core.onBeforeRender;
+        this.onClick = this._core.onClick;
+        this.onDidClick = this._core.onDidClick;
+        this.onDoubleClick = this._core.onDoubleClick;
+        this.onDidDoubleClick = this._core.onDidDoubleClick;
+        this.onTripleClick = this._core.onTripleClick;
+        this.onDidTripleClick = this._core.onDidTripleClick;
+        this.onKeydown = this._core.onKeydown;
+        this.onKeypress = this._core.onKeypress;
+        this.onTextInput = this._core.onTextInput;
+        this.onPaste = this._core.onPaste;
+        this.onDrop = this._core.onDrop;
 
         this.__register(this._core);
     }
@@ -73,14 +95,14 @@ export class RichtextEditor extends BaseEditor {
 /**
  * An interface only for {@link RichtextEditorCore}.
  */
-interface IRichtextWindowCore extends IEditorCore {
+interface IRichtextEditorCore extends IEditorCore {
 
 }
 
 /**
  * @class Adaptation over {@link ProseEditorView}.
  */
-class RichtextEditorCore extends Disposable implements IRichtextWindowCore {
+class RichtextEditorCore extends Disposable implements IRichtextEditorCore {
 
     // [field]
 
@@ -91,6 +113,39 @@ class RichtextEditorCore extends Disposable implements IRichtextWindowCore {
 
     private readonly _onBeforeRender = this.__register(new Emitter<void>());
     public readonly onBeforeRender = this._onBeforeRender.registerListener;
+
+    private readonly _onClick = this.__register(new Emitter<unknown>());
+    public readonly onClick = this._onClick.registerListener;
+
+    private readonly _onDidClick = this.__register(new Emitter<unknown>());
+    public readonly onDidClick = this._onDidClick.registerListener;
+
+    private readonly _onDoubleClick = this.__register(new Emitter<unknown>());
+    public readonly onDoubleClick = this._onDoubleClick.registerListener;
+
+    private readonly _onDidDoubleClick = this.__register(new Emitter<unknown>());
+    public readonly onDidDoubleClick = this._onDidDoubleClick.registerListener;
+
+    private readonly _onTripleClick = this.__register(new Emitter<unknown>());
+    public readonly onTripleClick = this._onTripleClick.registerListener;
+
+    private readonly _onDidTripleClick = this.__register(new Emitter<unknown>());
+    public readonly onDidTripleClick = this._onDidTripleClick.registerListener;
+
+    private readonly _onKeydown = this.__register(new Emitter<unknown>());
+    public readonly onKeydown = this._onKeydown.registerListener;
+
+    private readonly _onKeypress = this.__register(new Emitter<unknown>());
+    public readonly onKeypress = this._onKeypress.registerListener;
+    
+    private readonly _onTextInput = this.__register(new Emitter<unknown>());
+    public readonly onTextInput = this._onTextInput.registerListener;
+
+    private readonly _onPaste = this.__register(new Emitter<unknown>());
+    public readonly onPaste = this._onPaste.registerListener;
+
+    private readonly _onDrop = this.__register(new Emitter<unknown>());
+    public readonly onDrop = this._onDrop.registerListener;
 
     // [constructor]
 
@@ -108,9 +163,14 @@ class RichtextEditorCore extends Disposable implements IRichtextWindowCore {
             container, 
             {
                 state: initState,
+                handleDOMEvents: {},
                 dispatchTransaction: this.__onDispatchTransaction.bind(this),
                 handleClickOn: this.__onClick.bind(this),
+                handleClick: () => {},
                 handleDoubleClickOn: this.__onDoubleClick.bind(this),
+                handleDoubleClick: () => {},
+                handleTripleClickOn: () => {},
+                handleTripleClick: () => {},
                 handleKeyDown: this.__onKeydown.bind(this),
                 handleKeyPress: this.__onKeypress.bind(this),
                 handleTextInput: this.__onTextinput.bind(this),

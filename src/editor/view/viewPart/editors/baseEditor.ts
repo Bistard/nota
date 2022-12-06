@@ -19,6 +19,18 @@ export interface IEditorCore extends Disposable {
      */
     readonly onBeforeRender: Register<void>;
 
+    readonly onClick: Register<unknown>;
+    readonly onDidClick: Register<unknown>;
+    readonly onDoubleClick: Register<unknown>;
+    readonly onDidDoubleClick: Register<unknown>;
+    readonly onTripleClick: Register<unknown>;
+    readonly onDidTripleClick: Register<unknown>;
+    readonly onKeydown: Register<unknown>;
+    readonly onKeypress: Register<unknown>;
+    readonly onTextInput: Register<unknown>;
+    readonly onPaste: Register<unknown>;
+    readonly onDrop: Register<unknown>;
+
     /**
      * @description If the content of the window is directly editable.
      * @note The content may still be modified programatically.
@@ -79,7 +91,18 @@ export abstract class BaseEditor extends Disposable implements IBaseEditor {
 
     // [event]
 
-    public abstract get onBeforeRender(): Register<void>;
+    public abstract readonly onBeforeRender: Register<void>;
+    public abstract readonly onClick: Register<unknown>;
+    public abstract readonly onDidClick: Register<unknown>;
+    public abstract readonly onDoubleClick: Register<unknown>;
+    public abstract readonly onDidDoubleClick: Register<unknown>;
+    public abstract readonly onTripleClick: Register<unknown>;
+    public abstract readonly onDidTripleClick: Register<unknown>;
+    public abstract readonly onKeydown: Register<unknown>;
+    public abstract readonly onKeypress: Register<unknown>;
+    public abstract readonly onTextInput: Register<unknown>;
+    public abstract readonly onPaste: Register<unknown>;
+    public abstract readonly onDrop: Register<unknown>;
 
     // [public abstract methods]
 

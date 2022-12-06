@@ -83,6 +83,7 @@ export class Editor extends Component implements IEditorService {
         // editor widget construction
         const editor = this.instantiationService.createInstance(EditorWidget, this.element.element, options);
         (<Mutable<EditorWidget>>this._editorWidget) = editor;
+        editor
     }
 
     protected override async _registerListeners(): Promise<void> {

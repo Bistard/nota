@@ -1,11 +1,11 @@
 import { FastElement } from "src/base/browser/basic/fastElement";
-import { Disposable, IDisposable } from "src/base/common/dispose";
+import { Disposable, DisposableManager, IDisposable } from "src/base/common/dispose";
 import { ErrorHandler } from "src/base/common/error";
-import { Event } from "src/base/common/event";
+import { Emitter, Event, Register } from "src/base/common/event";
 import { basename } from "src/base/common/file/path";
 import { URI } from "src/base/common/file/uri";
 import { defaultLog, ILogService } from "src/base/common/logger";
-import { isNonNullable } from "src/base/common/util/type";
+import { isNonNullable, NulltoUndefined } from "src/base/common/util/type";
 import { ICommandService } from "src/code/platform/command/common/commandService";
 import { IConfigService } from "src/code/platform/configuration/common/abstractConfigService";
 import { BuiltInConfigScope } from "src/code/platform/configuration/common/configRegistrant";
@@ -28,6 +28,23 @@ import { EditorViewModel } from "src/editor/viewModel/editorViewModel";
  */
 export interface IEditorWidget extends IDisposable {
     
+    /**
+     * Fires right before the rendering happens.
+     */
+    readonly onBeforeRender: Register<void>;
+
+    readonly onClick: Register<unknown>;
+    readonly onDidClick: Register<unknown>;
+    readonly onDoubleClick: Register<unknown>;
+    readonly onDidDoubleClick: Register<unknown>;
+    readonly onTripleClick: Register<unknown>;
+    readonly onDidTripleClick: Register<unknown>;
+    readonly onKeydown: Register<unknown>;
+    readonly onKeypress: Register<unknown>;
+    readonly onTextInput: Register<unknown>;
+    readonly onPaste: Register<unknown>;
+    readonly onDrop: Register<unknown>;
+
     /**
      * @description Opens the source in the editor.
      * @param source The source in URI form.
@@ -56,10 +73,47 @@ export class EditorWidget extends Disposable implements IEditorWidget {
     private _model: IEditorModel | null;
     private _viewModel: IEditorViewModel | null;
     private _view: IEditorView | null;
+    private _editorData: EditorData | null;
 
     private readonly _extensionCentre: EditorExtensionCentre;
 
     // [events]
+
+    private readonly _onBeforeRender = this.__register(new Emitter<void>());
+    public readonly onBeforeRender = this._onBeforeRender.registerListener;
+
+    private readonly _onClick = this.__register(new Emitter<unknown>());
+    public readonly onClick = this._onClick.registerListener;
+
+    private readonly _onDidClick = this.__register(new Emitter<unknown>());
+    public readonly onDidClick = this._onDidClick.registerListener;
+
+    private readonly _onDoubleClick = this.__register(new Emitter<unknown>());
+    public readonly onDoubleClick = this._onDoubleClick.registerListener;
+
+    private readonly _onDidDoubleClick = this.__register(new Emitter<unknown>());
+    public readonly onDidDoubleClick = this._onDidDoubleClick.registerListener;
+
+    private readonly _onTripleClick = this.__register(new Emitter<unknown>());
+    public readonly onTripleClick = this._onTripleClick.registerListener;
+
+    private readonly _onDidTripleClick = this.__register(new Emitter<unknown>());
+    public readonly onDidTripleClick = this._onDidTripleClick.registerListener;
+
+    private readonly _onKeydown = this.__register(new Emitter<unknown>());
+    public readonly onKeydown = this._onKeydown.registerListener;
+
+    private readonly _onKeypress = this.__register(new Emitter<unknown>());
+    public readonly onKeypress = this._onKeypress.registerListener;
+    
+    private readonly _onTextInput = this.__register(new Emitter<unknown>());
+    public readonly onTextInput = this._onTextInput.registerListener;
+
+    private readonly _onPaste = this.__register(new Emitter<unknown>());
+    public readonly onPaste = this._onPaste.registerListener;
+
+    private readonly _onDrop = this.__register(new Emitter<unknown>());
+    public readonly onDrop = this._onDrop.registerListener;
 
     // [constructor]
 
@@ -79,6 +133,7 @@ export class EditorWidget extends Disposable implements IEditorWidget {
         this._model = null;
         this._viewModel = null;
         this._view = null;
+        this._editorData = null;
 
         this._options = this.__initOptions(options);
 
@@ -122,36 +177,23 @@ export class EditorWidget extends Disposable implements IEditorWidget {
         }
         
         this.logService.trace(`EditorWidget#Reading file '${basename(URI.toString(model.source))}'`);
-
-        // model attachment
+        
         this._model = model;
-
-        // view-model connection
         this._viewModel = this.instantiationService.createInstance(EditorViewModel, model, this._options);
-
-        // view construction
         this._view = this.instantiationService.createInstance(EditorView, this._container.element, this._viewModel, this._options);
-
-        this.__registerMVVMListeners(this._model, this._viewModel, this._view);
-
+        
+        const listeners = this.__registerMVVMListeners(this._model, this._viewModel, this._view);
         this._model.build();
+
+        this._editorData = new EditorData(this._model, this._viewModel, this._view, listeners);
     }
 
     private __detachModel(): void {
-        if (this._model) {
-            this._model.dispose();
-            this._model = null;
-        }
-
-        if (this._viewModel) {
-            this._viewModel.dispose();
-            this._viewModel = null;
-        }
-
-        if (this._view) {
-            this._view.dispose();
-            this._view = null;
-        }
+        this._editorData?.dispose();
+        this._model = null;
+        this._viewModel = null;
+        this._view = null;
+        this._editorData = null;
     }
 
     private __registerListeners(): void {
@@ -190,14 +232,47 @@ export class EditorWidget extends Disposable implements IEditorWidget {
         this.configService.set(BuiltInConfigScope.User, 'editor', option);
     }
 
-    private __registerMVVMListeners(model: IEditorModel, viewModel: IEditorViewModel, view: IEditorView): void {
+    private __registerMVVMListeners(model: IEditorModel, viewModel: IEditorViewModel, view: IEditorView): IDisposable {
+        const disposables = new DisposableManager();
 
         // log out all the messages from MVVM.
-        Event.any([model.onLog, viewModel.onLog, view.onLog])((event) => {
+        disposables.register(Event.any([model.onLog, viewModel.onLog, view.onLog])((event) => {
             defaultLog(this.logService, event.level, event.data);
-        });
+        }));
+
+        disposables.register(view.onBeforeRender(e => this._onBeforeRender.fire(e)));
+        disposables.register(view.onClick(e => this._onClick.fire(e)));
+        disposables.register(view.onDidClick(e => this._onDidClick.fire(e)));
+        disposables.register(view.onDoubleClick(e => this._onDoubleClick.fire(e)));
+        disposables.register(view.onDidDoubleClick(e => this._onDidDoubleClick.fire(e)));
+        disposables.register(view.onTripleClick(e => this._onTripleClick.fire(e)));
+        disposables.register(view.onDidTripleClick(e => this._onDidTripleClick.fire(e)));
+        disposables.register(view.onKeydown(e => this._onKeydown.fire(e)));
+        disposables.register(view.onKeypress(e => this._onKeypress.fire(e)));
+        disposables.register(view.onTextInput(e => this._onTextInput.fire(e)));
+        disposables.register(view.onPaste(e => this._onPaste.fire(e)));
+        disposables.register(view.onDrop(e => this._onDrop.fire(e)));
 
         // TODO: configuration auto updation
+
+        return disposables;
+    }
+}
+
+class EditorData implements IDisposable {
+    
+    constructor(
+        public readonly model: IEditorModel, 
+        public readonly viewModel: IEditorViewModel, 
+        public readonly view: IEditorView, 
+        public readonly listeners: IDisposable,
+    ) {}
+
+    public dispose(): void {
+        this.listeners.dispose();
+        this.model.dispose();
+        this.viewModel.dispose();
+        this.view.dispose();
     }
 }
 
