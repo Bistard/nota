@@ -59,7 +59,7 @@ export class EditorView extends Disposable implements IEditorView {
 
         // the overall element that contains all the relevant components
         const editorContainer = document.createElement('div');
-        editorContainer.className = 'editor-container';
+        editorContainer.className = 'editor-view-container';
         this._container = editorContainer;
 
         // the centre that integrates the editor-related functionalities
@@ -184,7 +184,7 @@ class EditorManager extends Disposable implements IEditorManager {
         this._ctx = context;
 
         const winContainer = document.createElement('div');
-        winContainer.className = '.editor-container';
+        winContainer.className = 'editor-container';
         this._container = winContainer;
 
         const mode = context.viewModel.renderMode;
