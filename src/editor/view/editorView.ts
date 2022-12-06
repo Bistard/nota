@@ -28,7 +28,6 @@ export class EditorView extends Disposable implements IEditorView {
 
     // [events]
     
-    
     private readonly _onLog = this.__register(new Emitter<ILogEvent<string | Error>>());
     public readonly onLog = this._onLog.registerListener;
     
@@ -90,6 +89,10 @@ export class EditorView extends Disposable implements IEditorView {
     }
 
     // [public methods]
+
+    get viewModel(): IEditorViewModel {
+        return this._ctx.viewModel;
+    }
 
     public isEditable(): boolean {
         return this._editorManager.editor.isEditable();

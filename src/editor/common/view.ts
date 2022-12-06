@@ -1,8 +1,11 @@
 import { Disposable } from "src/base/common/dispose";
 import { Register } from "src/base/common/event";
 import { ILogEvent } from "src/base/common/logger";
+import { IEditorViewModel } from "src/editor/common/viewModel";
 
 export interface IEditorView extends Disposable {
+
+    readonly viewModel: IEditorViewModel;
 
     /**
      * Fires when a log is about happen.

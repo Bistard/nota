@@ -74,6 +74,10 @@ export class EditorViewModel extends Disposable implements IEditorViewModel {
         return this._options.mode.value;
     }
 
+    get model(): IEditorModel {
+        return this._model;
+    }
+
     // [public methods]
 
     public getSchema(): EditorSchema {

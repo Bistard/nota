@@ -60,10 +60,16 @@ export interface IEditorWidget extends IDisposable {
     updateOptions(options: Partial<IEditorWidgetOptions>): void;
 }
 
+export interface IEditorWidgetFriendship extends IEditorWidget {
+    readonly model: IEditorModel | null;
+    readonly viewModel: IEditorViewModel | null;
+    readonly view: IEditorView | null;
+}
+
 /**
  * @class // TODO
  */
-export class EditorWidget extends Disposable implements IEditorWidget {
+export class EditorWidget extends Disposable implements IEditorWidgetFriendship {
 
     // [fields]
 
@@ -144,6 +150,21 @@ export class EditorWidget extends Disposable implements IEditorWidget {
         // resource registrantion
         this.__register(this._extensionCentre);
     }
+
+    // [getter]
+
+    get model(): IEditorModel | null {
+        return this._model;
+    }
+
+    get viewModel(): IEditorViewModel | null {
+        return this._viewModel;
+    }
+
+    get view(): IEditorView | null {
+        return this._view;
+    }
+
 
     // [public methods]
 
