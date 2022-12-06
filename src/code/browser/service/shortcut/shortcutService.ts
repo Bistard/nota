@@ -13,6 +13,7 @@ import { IBrowserEnvironmentService } from "src/code/platform/environment/common
 import { Emitter, Register } from "src/base/common/event";
 import { IContextService } from "src/code/platform/context/common/contextService";
 import { ICommandService } from "src/code/platform/command/common/commandService";
+import { ContextKeyDeserializer } from "src/code/platform/context/common/contextKeyExpr";
 
 export const SHORTCUT_CONFIG_NAME = 'shortcut.config.json';
 export const IShortcutService = createService<IShortcutService>('shortcut-service');
@@ -129,6 +130,10 @@ export class ShortcutService extends Disposable implements IShortcutService {
         return this._shortcutRegistrant.register(registration);
     }
 
+    public isRegistered(shortcut: number | Shortcut, commandID: string): boolean {
+        return this._shortcutRegistrant.isRegistered(shortcut, commandID);
+    }
+
     public registerWithCommand(registration: IShortcutWithCommandRegistration): IDisposable {
         return this._shortcutRegistrant.registerWithCommand(registration);
     }
@@ -137,7 +142,7 @@ export class ShortcutService extends Disposable implements IShortcutService {
         return this._shortcutRegistrant.findShortcut(shortcut);
     }
 
-    public getAllShortcutRegistrations(): ReadonlyMap<number, IShortcutItem[]> {
+    public getAllShortcutRegistrations(): Map<number, IShortcutItem[]> {
         return this._shortcutRegistrant.getAllShortcutRegistrations();
     }
 
@@ -190,34 +195,27 @@ export class ShortcutService extends Disposable implements IShortcutService {
         this.logService.debug(`shortcut configuration loaded at ${URI.toString(this._resource)}`);
         
         // loop each one and try to load it into memory
-        for (const value of configuration) {
-            // FIX
-            // this._shortcutRegistrant.register();
-
-            // const registered = this._shortcutRegistrant.getShortcut(commandID);
-
-            // // check if the shortcut is valid
-            // const newShortcut: Shortcut = Shortcut.fromString(shortcut);
-            // if (newShortcut.equal(Shortcut.None)) {
-            //     this.logService.warn(`Invalid shortcut registration from the configuration at ${URI.toString(this._resource)}: ${commandID} - ${shortcut}.`);
-            //     return;
-            // }
+        for (const { commandID, shortcut: shortcutName, when, weight } of configuration) {
             
-            // // same shortcut, we ignore it
-            // if (registered && newShortcut.equal(registered)) {
-            //     return;
-            // }
+            /**
+             * Checks if the shortcut read from the configuration that is 
+             * already registered.
+             */
+            const shortcut = Shortcut.fromString(shortcutName);
+            if (this._shortcutRegistrant.isRegistered(shortcut, commandID)) {
+                if (weight === ShortcutWeight.ExternalExtension) {
+                    this.logService.warn(`The shortcut '${shortcut}' that binds with the command '${commandID}' that is already registered`);
+                }
+                continue;
+            }
 
-            // // we update this shortcut by overriding.
-            // this._shortcutRegistrant.register({
-            //     commandID: commandID,
-            //     whenID: whenID,
-            //     shortcut: newShortcut,
-            //     when: null,
-            //     command: () => {},
-            //     override: true,
-            //     activate: true,
-            // });
+            this._shortcutRegistrant.register({
+                commandID: commandID,
+                shortcut: shortcut,
+                when: ContextKeyDeserializer.deserialize(when),
+                weight: weight,
+                commandArgs: undefined, // review
+            });
         }
     }
 }

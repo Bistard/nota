@@ -1,4 +1,4 @@
-import { IDisposable, toDisposable } from "src/base/common/dispose";
+import { Disposable, IDisposable, toDisposable } from "src/base/common/dispose";
 import { Shortcut, ShortcutHash } from "src/base/common/keyboard";
 import { isNumber } from "src/base/common/util/type";
 import { ICommandRegistrant } from "src/code/platform/command/common/commandRegistrant";
@@ -89,6 +89,11 @@ export interface IShortcutItem extends IShortcutBase {
     readonly id: number;
 }
 
+interface IShortcutItems {
+    readonly commands: Set<string>;
+    readonly shortcuts: IShortcutItem[];
+}
+
 /**
  * An interface only for {@link ShortcutRegistrant}.
  */
@@ -113,6 +118,14 @@ export interface IShortcutRegistrant {
     registerWithCommand(registration: IShortcutWithCommandRegistration): IDisposable;
 
     /**
+     * @description Check if the command is already registered with the given
+     * shortcut.
+     * @param shortcut The given shortcut or the hashcode.
+     * @param commandID The id of the command.
+     */
+    isRegistered(shortcut: Shortcut | ShortcutHash, commandID: string): boolean;
+
+    /**
      * @description Given the shortcut or the hashcode, returns an array that 
      * contains all the items that have the same shortcut.
      * @param shortcut The given shortcut or the hashcode.
@@ -124,7 +137,7 @@ export interface IShortcutRegistrant {
      * code of the shortcut to an array that stores all the commands that binds
      * to that shortcut.
      */
-    getAllShortcutRegistrations(): ReadonlyMap<number, IShortcutItem[]>;
+    getAllShortcutRegistrations(): Map<number, IShortcutItem[]>;
 }
 
 @IShortcutRegistrant
@@ -137,10 +150,11 @@ class ShortcutRegistrant implements IShortcutRegistrant {
 
     /**
      * A map that stores all the registered shortcuts. Mapping from the hash 
-     * code of the shortcut to an array that stores all the commands that binds
-     * to that shortcut.
+     * code of the shortcut to an object which contains a set and an array,
+     * where the set stores all the unique names of each binding command and the
+     * array stores all the binding shortcuts.
      */
-    private readonly _shortcuts: Map<number, IShortcutItem[]>;
+    private readonly _shortcuts: Map<number, IShortcutItems>;
 
     // [constructor]
 
@@ -153,26 +167,40 @@ class ShortcutRegistrant implements IShortcutRegistrant {
     public register(registration: IShortcutRegistration): IDisposable {
 
         const hashcode = registration.shortcut.toHashcode();
-        let arr = this._shortcuts.get(hashcode);
-        if (!arr) {
-            arr = [];
-            this._shortcuts.set(hashcode, arr);
+        let items = this._shortcuts.get(hashcode);
+        if (!items) {
+            items = {
+                commands: new Set(),
+                shortcuts: [],
+            };
+            this._shortcuts.set(hashcode, items);
         }
 
+        /**
+         * Checks if there is a same command with the same shortcut that is 
+         * registered.
+         */
+        const commandID = registration.commandID;
+        if (items.commands.has(commandID)) {
+            throw new Error(`There exists a command with ID '${commandID}' that is already registered`);
+        }
+        
+        // registere the shortcut
         const ID = ShortcutRegistrant._shortcutID++;
-        arr.push({
+        items.shortcuts.push({
             id: ID,
-            commandID: registration.commandID,
+            commandID: commandID,
             commandArgs: registration.commandArgs,
             when: registration.when,
             weight: registration.weight,
         });
+        items.commands.add(commandID);
 
         return toDisposable(() => {
-            if (arr) {
-                const itemIdx = arr.findIndex((item) => item.id === ID);
-                arr.splice(itemIdx, 1);
-                if (arr.length === 0) {
+            if (items) {
+                const itemIdx = items.shortcuts.findIndex((item) => item.id === ID);
+                items.shortcuts.splice(itemIdx, 1);
+                if (items.shortcuts.length === 0) {
                     this._shortcuts.delete(hashcode);
                 }
             }
@@ -192,16 +220,29 @@ class ShortcutRegistrant implements IShortcutRegistrant {
         return unregister;
     }
 
+    public isRegistered(shortcut: Shortcut | ShortcutHash, commandID: string): boolean {
+        if (!isNumber(shortcut)) {
+            shortcut = shortcut.toHashcode();
+        }
+        const items = this._shortcuts.get(shortcut);
+        return items?.commands.has(commandID) ?? false;
+    }
+
     public findShortcut(shortcut: Shortcut | ShortcutHash): IShortcutItem[] {
         if (!isNumber(shortcut)) {
             shortcut = shortcut.toHashcode();
         }
-        const registered = this._shortcuts.get(shortcut);
+        const registered = this._shortcuts.get(shortcut)?.shortcuts;
         return registered ?? [];
     }
 
-    public getAllShortcutRegistrations(): ReadonlyMap<number, IShortcutItem[]> {
-        return this._shortcuts;
+    public getAllShortcutRegistrations(): Map<number, IShortcutItem[]> {
+        const map = new Map();
+
+        for (const [hashcode, shortcuts] of this._shortcuts) {
+            map.set(hashcode, shortcuts.shortcuts);
+        }
+        return map;
     }
     
     // [private helper methods]
