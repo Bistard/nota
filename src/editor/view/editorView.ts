@@ -5,11 +5,10 @@ import { ProseEditorState } from "src/editor/common/proseMirror";
 import { IEditorView, IEditorViewOptions } from "src/editor/common/view";
 import { EditorRenderType, IEditorViewModel, IRenderEvent } from "src/editor/common/viewModel";
 import { EditorOptionsType } from "src/editor/common/configuration/editorConfiguration";
-import { RichtextWindow } from "src/editor/view/viewPart/viewWindow/richtext/richtextWindow";
-import { IViewWindow } from "src/editor/view/viewPart/viewWindow/window";
+import { RichtextEditor } from "src/editor/view/viewPart/editors/richtextEditor/richtextEditor";
+import { IBaseEditor } from "src/editor/view/viewPart/editors/baseEditor";
 
 export class ViewContext {
-
     constructor(
         public readonly viewModel: IEditorViewModel,
         public readonly view: IEditorView,
@@ -22,8 +21,10 @@ export class EditorView extends Disposable implements IEditorView {
 
     // [fields]
 
+    private readonly _container: HTMLElement;
+
     private readonly _ctx: ViewContext;
-    private readonly _winCentre: ViewWindowCentre;
+    private readonly _editorManager: IEditorManager;
 
     // [events]
     
@@ -48,41 +49,42 @@ export class EditorView extends Disposable implements IEditorView {
         // the overall element that contains all the relevant components
         const editorContainer = document.createElement('div');
         editorContainer.className = 'editor-container';
+        this._container = editorContainer;
 
-        // the centre that integrates the window-related functionalities
-        this._winCentre = new ViewWindowCentre(editorContainer, context);
-        this.onBeforeRender = this._winCentre.window.onBeforeRender;
+        // the centre that integrates the editor-related functionalities
+        this._editorManager = new EditorManager(editorContainer, context);
+        this.onBeforeRender = this._editorManager.editor.onBeforeRender;
         
         // update listener registration from view-model
         this.__registerViewModelListeners();
 
         // resource registration
-        this.__register(this._winCentre);
+        this.__register(this._editorManager);
 
         // render
-        container.appendChild(editorContainer);
+        container.appendChild(this._container);
     }
 
     // [public methods]
 
     public isEditable(): boolean {
-        return this._winCentre.window.isEditable();
+        return this._editorManager.editor.isEditable();
     }
 
     public focus(): void {
-        this._winCentre.window.focus();
+        this._editorManager.editor.focus();
     }
 
     public isFocused(): boolean {
-        return this._winCentre.window.isFocused();
+        return this._editorManager.editor.isFocused();
     }
 
     public destroy(): void {
-        this._winCentre.window.destroy();
+        this._editorManager.editor.destroy();
     }
 
     public isDestroyed(): boolean {
-        return this._winCentre.window.isDestroyed();
+        return this._editorManager.editor.isDestroyed();
     }
     
     public updateOptions(options: Partial<IEditorViewOptions>): void {
@@ -91,6 +93,7 @@ export class EditorView extends Disposable implements IEditorView {
 
     public override dispose(): void {
         super.dispose();
+        this._container.remove();
     }
 
     // [private helper methods]
@@ -99,23 +102,27 @@ export class EditorView extends Disposable implements IEditorView {
         const viewModel = this._ctx.viewModel;
 
         viewModel.onRender(event => {
-            this._winCentre.render(event);
+            this._editorManager.render(event);
         });
 
         viewModel.onDidChangeRenderMode(mode => {
-            this._winCentre.setRenderMode(mode);
+            this._editorManager.setRenderMode(mode);
         });
     }
 }
 
 /**
- * Interface only for {@link ViewWindowCentre}.
+ * Interface only for {@link EditorManager}.
  */
-interface IViewWindowCentre extends Disposable {
+interface IEditorManager extends Disposable {
+
+    readonly container: HTMLElement;
+    readonly editor: IBaseEditor;
+    readonly renderMode: EditorRenderType;
 
     /**
-     * @description Render the given context to the editor window. Depending on
-     * the rendering mode, the centre will decide which type of window to be 
+     * @description Render the given context to the editor editor. Depending on
+     * the rendering mode, the centre will decide which type of editor to be 
      * created.
      * @param event The event that contains the context for rendering. 
      */
@@ -123,16 +130,16 @@ interface IViewWindowCentre extends Disposable {
 
     /**
      * @description Change the current rendering mode. This will recreate the
-     * current editor window to fit the desired rendering mode.
+     * current editor editor to fit the desired rendering mode.
      * @param mode The desired rendering mode.
      */
     setRenderMode(mode: EditorRenderType): void;
 }
 
 /**
- * @class Integration on {@link IViewWindow} management.
+ * @class Integration on {@link IBaseEditor} management.
  */
-class ViewWindowCentre extends Disposable implements IViewWindowCentre {
+class EditorManager extends Disposable implements IEditorManager {
 
     // [field]
 
@@ -140,7 +147,7 @@ class ViewWindowCentre extends Disposable implements IViewWindowCentre {
     private readonly _ctx: ViewContext;
     
     private _renderMode: EditorRenderType;
-    private _window: IViewWindow;
+    private _editor: IBaseEditor;
 
     // [constructor]
 
@@ -150,14 +157,14 @@ class ViewWindowCentre extends Disposable implements IViewWindowCentre {
         this._ctx = context;
 
         const winContainer = document.createElement('div');
-        winContainer.className = 'window-container';
+        winContainer.className = '.editor-container';
         this._container = winContainer;
 
         const mode = context.viewModel.renderMode;
-        const window = this.__createWindow(mode);
+        const editor = this.__createWindow(mode);
 
         this._renderMode = mode;
-        this._window = window;
+        this._editor = editor;
 
         container.appendChild(winContainer);
     }
@@ -168,8 +175,8 @@ class ViewWindowCentre extends Disposable implements IViewWindowCentre {
         return this._container;
     }
 
-    get window(): IViewWindow {
-        return this._window;
+    get editor(): IBaseEditor {
+        return this._editor;
     }
     
     get renderMode(): EditorRenderType {
@@ -184,14 +191,14 @@ class ViewWindowCentre extends Disposable implements IViewWindowCentre {
 
         /**
          * The new render event requires new type of rendering mode, destroys
-         * the old window and create the new one.
+         * the old editor and create the new one.
          */
         if (event.type !== this._renderMode) {
             this.__destroyCurrWindow();
-            this._window = this.__createWindow(event.type);
+            this._editor = this.__createWindow(event.type);
         }
 
-        this._window.updateContent(event);
+        this._editor.updateContent(event);
     }
 
     public setRenderMode(mode: EditorRenderType): void {
@@ -199,51 +206,50 @@ class ViewWindowCentre extends Disposable implements IViewWindowCentre {
             return;
         }
 
-        const oldState = this._window.state;
+        const oldState = this._editor.state;
         this.__destroyCurrWindow();
-        this._window = this.__createWindow(mode, oldState);
+        this._editor = this.__createWindow(mode, oldState);
     }
 
     // [private helper methods]
 
     /**
-     * @description Constructs a new {@link IViewWindow} with the given render
+     * @description Constructs a new {@link IBaseEditor} with the given render
      * type.
      * @param mode The given render type.
      * @param initState The initial state of the editor if provided.
-     * @returns A newly constructed window.
+     * @returns A newly constructed editor.
      */
-    private __createWindow(mode: EditorRenderType, initState?: ProseEditorState): IViewWindow {
+    private __createWindow(mode: EditorRenderType, initState?: ProseEditorState): IBaseEditor {
         
         const winArgs = [this._container, this._ctx, initState] as const;
-        let window: IViewWindow;
+        let editor: IBaseEditor;
         
         switch (mode) {
             case EditorRenderType.Plain: {
-                throw new Error('does not support plain text window yet.');
+                // todo: splitWindow
+                throw new Error('does not support plain text editor yet.');
             }
             case EditorRenderType.Rich: {
-                window = new RichtextWindow(...winArgs);
+                editor = new RichtextEditor(...winArgs);
                 break;
             }
             case EditorRenderType.Split: {
                 // todo: splitWindow
-                window = undefined!;
-                throw new Error('does not support split window yet.');
+                throw new Error('does not support split editor yet.');
             }
             default: {
                 // todo: emptyWindow
-                window = undefined!;
-                throw new Error('does not support empty window yet.');
+                throw new Error('does not support empty editor yet.');
             }
         }
 
-        this.__register(window);
-        return window;
+        this.__register(editor);
+        return editor;
     }
 
     private __destroyCurrWindow(): void {
-        this._window.destroy();
-        this._window = undefined!;
+        this._editor.destroy();
+        this._editor = undefined!;
     }
 }

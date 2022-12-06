@@ -5,9 +5,9 @@ import { IRenderEvent } from "src/editor/common/viewModel";
 import { ViewContext } from "src/editor/view/editorView";
 
 /**
- * Every {@link IViewWindow} might has implement a core internally.
+ * Every {@link IBaseEditor} might has implement a core internally.
  */
-export interface IWindowCore extends Disposable {
+export interface IEditorCore extends Disposable {
 
     /**
      * The current editor state.
@@ -48,10 +48,10 @@ export interface IWindowCore extends Disposable {
 }
 
 /**
- * A {@link IViewWindow} represents an editor window itself corresponding to a 
+ * A {@link IBaseEditor} represents an editor window itself corresponding to a 
  * specific rendering mode.
  */
-export interface IViewWindow extends IWindowCore {
+export interface IBaseEditor extends IEditorCore {
     
     /**
      * The parent HTML container of the window.
@@ -61,7 +61,7 @@ export interface IViewWindow extends IWindowCore {
     updateContent(event: IRenderEvent): void;
 }
 
-export abstract class ViewWindow extends Disposable implements IViewWindow {
+export abstract class BaseEditor extends Disposable implements IBaseEditor {
 
     // [field]
 

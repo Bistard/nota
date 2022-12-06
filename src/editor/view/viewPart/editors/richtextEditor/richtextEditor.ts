@@ -1,21 +1,21 @@
 import { Disposable } from "src/base/common/dispose";
 import { Emitter, Register } from "src/base/common/event";
-import { ProseEditorState, ProseEditorView, ProseNode, ProseExtension, Slice, Transaction } from "src/editor/common/proseMirror";
+import { ProseEditorState, ProseEditorView, ProseNode, Slice, Transaction } from "src/editor/common/proseMirror";
 import { IRenderRichEvent } from "src/editor/common/viewModel";
 import { ViewContext } from "src/editor/view/editorView";
-import { IWindowCore, ViewWindow } from "src/editor/view/viewPart/viewWindow/window";
+import { IEditorCore, BaseEditor } from "src/editor/view/viewPart/editors/baseEditor";
 
 /**
- * @class A window that renders the editor content as rich-text (a.k.a What-You
- * -See-Is-What-You-Get). The user will not be able to see the source content 
- * directly. Instead, all the user operations will be applied on the virtual
- * nodes and modify the source content indirectly.
+ * @class An editor that renders the content as rich-text (a.k.a What-You-See-Is
+ * -What-You-Get). The user will not be able to see the source content directly. 
+ * Instead, all the user operations will be applied on the virtual nodes and 
+ * modify the source content indirectly.
  */
-export class RichtextWindow extends ViewWindow {
+export class RichtextEditor extends BaseEditor {
 
     // [field]
 
-    private readonly _window: RichtextWindowCore;
+    private readonly _core: RichtextEditorCore;
 
     // [event]
 
@@ -23,60 +23,64 @@ export class RichtextWindow extends ViewWindow {
 
     // [constructor]
 
-    constructor(container: HTMLElement, context: ViewContext, initState?: ProseEditorState) {
+    constructor(
+        container: HTMLElement, 
+        context: ViewContext, 
+        initState?: ProseEditorState,
+    ) {
         super(container, context, 'rich-text');
 
-        this._window = new RichtextWindowCore(container, context, initState);
+        this._core = new RichtextEditorCore(container, context, initState);
         
-        this.onBeforeRender = this._window.onBeforeRender;
+        this.onBeforeRender = this._core.onBeforeRender;
 
-        this.__register(this._window);
+        this.__register(this._core);
     }
 
     // [getter]
 
     get state(): ProseEditorState {
-        return this._window.state;
+        return this._core.state;
     }
 
     // [public methods]
 
     public updateContent(event: IRenderRichEvent): void {
-        this._window.updateContent(event.document);
+        this._core.updateContent(event.document);
     }
 
     public isEditable(): boolean {
-        return this._window.isEditable();
+        return this._core.isEditable();
     }
 
     public destroy(): void {
-        this._window.destroy();
+        this._core.destroy();
     }
 
     public isDestroyed(): boolean {
-        return this._window.isDestroyed();
+        return this._core.isDestroyed();
     }
 
     public isFocused(): boolean {
-        return this._window.isFocused();
+        return this._core.isFocused();
     }
 
     public focus(): void {
-        this._window.focus();
+        this._core.focus();
     }
 }
 
 /**
- * An interface only for {@link RichtextWindowCore}.
+ * An interface only for {@link RichtextEditorCore}.
  */
-interface IRichtextWindowCore extends IWindowCore {
+interface IRichtextWindowCore extends IEditorCore {
 
 }
 
 /**
  * @class Adaptation over {@link ProseEditorView}.
  */
-class RichtextWindowCore extends Disposable implements IRichtextWindowCore {
+class RichtextEditorCore extends Disposable implements IRichtextWindowCore {
 
     // [field]
 
@@ -112,7 +116,7 @@ class RichtextWindowCore extends Disposable implements IRichtextWindowCore {
                 handleTextInput: this.__onTextinput.bind(this),
                 handlePaste: this.__onPaste.bind(this),
                 handleDrop: this.__onDrop.bind(this),
-                plugins: this.__getAllPlugins(),
+                plugins: [],
             }
         );
     }
@@ -169,14 +173,6 @@ class RichtextWindowCore extends Disposable implements IRichtextWindowCore {
             schema: this._ctx.viewModel.getSchema(),
             plugins: [],
         });
-    }
-
-    private __getAllPlugins(): ProseExtension[] {
-        const plugins: ProseExtension[] = [];
-
-        // plugins.push(new KeyboardController());
-
-        return plugins;
     }
 
     // [private helper methods (callback)]

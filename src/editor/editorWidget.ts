@@ -93,9 +93,7 @@ export class EditorWidget extends Disposable implements IEditorWidget {
     // [public methods]
 
     public async open(source: URI): Promise<void> {
-
         this.__detachModel();
-
         const textModel = this.instantiationService.createInstance(EditorModel, source, this._options);
         this.__attachModel(textModel);
     }
