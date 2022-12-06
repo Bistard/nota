@@ -56,7 +56,7 @@ export function createRegistrant<T>(registrantID: RegistrantType, ...args: any[]
 
 /**
  * This is a universal registrant. It is the only way to get all the other
- * registrants which are registred into this universal registrant through the
+ * registrants which are registered into this universal registrant through the
  * decorator that are created by {@link createRegistrant}.
  */
 export const REGISTRANTS = new class {
