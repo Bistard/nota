@@ -19,7 +19,7 @@ export class RichtextWindow extends ViewWindow {
 
     // [event]
 
-    public readonly onRender: Register<void>;
+    public readonly onBeforeRender: Register<void>;
 
     // [constructor]
 
@@ -28,7 +28,7 @@ export class RichtextWindow extends ViewWindow {
 
         this._window = new RichtextWindowCore(container, context, initState);
         
-        this.onRender = this._window.onRender;
+        this.onBeforeRender = this._window.onBeforeRender;
 
         this.__register(this._window);
     }
@@ -85,8 +85,8 @@ class RichtextWindowCore extends Disposable implements IRichtextWindowCore {
 
     // [event]
 
-    private readonly _onRender = this.__register(new Emitter<void>());
-    public readonly onRender = this._onRender.registerListener;
+    private readonly _onBeforeRender = this.__register(new Emitter<void>());
+    public readonly onBeforeRender = this._onBeforeRender.registerListener;
 
     // [constructor]
 
@@ -182,7 +182,7 @@ class RichtextWindowCore extends Disposable implements IRichtextWindowCore {
     // [private helper methods (callback)]
 
     private __onDispatchTransaction(tr: Transaction): void {
-        this._onRender.fire();
+        this._onBeforeRender.fire();
         const newState = this._view.state.apply(tr);
         this._view.updateState(newState);
     }

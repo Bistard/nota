@@ -27,7 +27,7 @@ export class EditorView extends Disposable implements IEditorView {
 
     // [events]
     
-    public readonly onRender: Register<void>;
+    public readonly onBeforeRender: Register<void>;
 
     private readonly _onLog = this.__register(new Emitter<ILogEvent<string | Error>>());
     public readonly onLog = this._onLog.registerListener;
@@ -51,7 +51,7 @@ export class EditorView extends Disposable implements IEditorView {
 
         // the centre that integrates the window-related functionalities
         this._winCentre = new ViewWindowCentre(editorContainer, context);
-        this.onRender = this._winCentre.window.onRender;
+        this.onBeforeRender = this._winCentre.window.onBeforeRender;
         
         // update listener registration from view-model
         this.__registerViewModelListeners();

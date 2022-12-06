@@ -12,7 +12,7 @@ export interface IEditorView extends Disposable {
     /**
      * Fires right before the rendering happens.
      */
-    readonly onRender: Register<void>;
+    readonly onBeforeRender: Register<void>;
 
     /**
      * @description Updates the options of the editor view.

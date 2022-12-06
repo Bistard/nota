@@ -17,7 +17,7 @@ export interface IWindowCore extends Disposable {
     /**
      * Event fires before next rendering on DOM tree.
      */
-    readonly onRender: Register<void>;
+    readonly onBeforeRender: Register<void>;
 
     /**
      * @description If the content of the window is directly editable.
@@ -79,7 +79,7 @@ export abstract class ViewWindow extends Disposable implements IViewWindow {
 
     // [event]
 
-    public abstract get onRender(): Register<void>;
+    public abstract get onBeforeRender(): Register<void>;
 
     // [public abstract methods]
 
