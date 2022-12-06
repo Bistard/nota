@@ -5,7 +5,7 @@ import { Emitter, Event, Register } from "src/base/common/event";
 import { basename } from "src/base/common/file/path";
 import { URI } from "src/base/common/file/uri";
 import { defaultLog, ILogService } from "src/base/common/logger";
-import { isNonNullable, NulltoUndefined } from "src/base/common/util/type";
+import { isNonNullable } from "src/base/common/util/type";
 import { ICommandService } from "src/code/platform/command/common/commandService";
 import { IConfigService } from "src/code/platform/configuration/common/abstractConfigService";
 import { BuiltInConfigScope } from "src/code/platform/configuration/common/configRegistrant";
