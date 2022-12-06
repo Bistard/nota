@@ -5,7 +5,7 @@ import { REGISTRANTS } from "src/code/platform/registrant/common/registrant";
 
 const registrant = REGISTRANTS.get(ICommandRegistrant);
 
-export const enum WorkbenchCommand {
+export const enum WorkbenchCommands {
     toggleDevTool = 'toggle-develop-tool',
     reloadWindow = 'reload-window',
     closeApplication = 'close-application',
@@ -15,7 +15,7 @@ export function workbenchCommandRegistrations(): void {
     
     registrant.registerCommand(
         {
-            id: WorkbenchCommand.toggleDevTool, 
+            id: WorkbenchCommands.toggleDevTool, 
             description: 'Toggle the developer tool of the whole application.',
         },
         (provider) => {
@@ -26,7 +26,7 @@ export function workbenchCommandRegistrations(): void {
     
     registrant.registerCommand(
         {
-            id: WorkbenchCommand.reloadWindow,
+            id: WorkbenchCommands.reloadWindow,
             description: 'Reload the current window entirely.',
         }, 
         (provider) => {
@@ -37,7 +37,7 @@ export function workbenchCommandRegistrations(): void {
     
     registrant.registerCommand(
         {
-            id: WorkbenchCommand.closeApplication,
+            id: WorkbenchCommands.closeApplication,
             description: 'Close the application.',
         }, 
         (provider) => {
