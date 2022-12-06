@@ -65,7 +65,7 @@ export class Workbench extends WorkbenchLayout implements IWorkbenchService {
         // workbench-service
         this.instantiationService.register(IWorkbenchService, this);
 
-        // TODO: deprecated
+        // FIX: deprecated
         this.instantiationService.register(IContextMenuService, new ServiceDescriptor(ContextMenuService));
     }
 
