@@ -15,7 +15,7 @@ import { IBrowserLifecycleService, ILifecycleService, LifecyclePhase } from "src
 import { ILogService } from "src/base/common/logger";
 import { IConfigService } from "src/code/platform/configuration/common/abstractConfigService";
 import { BuiltInConfigScope } from "src/code/platform/configuration/common/configRegistrant";
-import { IEditorWidgetOptions } from "src/editor/configuration/editorConfiguration";
+import { IEditorWidgetOptions } from "src/editor/common/configuration/editorConfiguration";
 import { deepCopy } from "src/base/common/util/object";
 
 export const IEditorService = createService<IEditorService>('editor-service');

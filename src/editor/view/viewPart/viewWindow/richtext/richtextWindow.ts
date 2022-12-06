@@ -1,10 +1,16 @@
 import { Disposable } from "src/base/common/dispose";
 import { Emitter, Register } from "src/base/common/event";
-import { ProseEditorState, ProseEditorView, ProseNode, Slice, Transaction } from "src/editor/common/proseMirror";
+import { ProseEditorState, ProseEditorView, ProseNode, ProseExtension, Slice, Transaction } from "src/editor/common/proseMirror";
 import { IRenderRichEvent } from "src/editor/common/viewModel";
 import { ViewContext } from "src/editor/view/editorView";
 import { IWindowCore, ViewWindow } from "src/editor/view/viewPart/viewWindow/window";
 
+/**
+ * @class A window that renders the editor content as rich-text (a.k.a What-You
+ * -See-Is-What-You-Get). The user will not be able to see the source content 
+ * directly. Instead, all the user operations will be applied on the virtual
+ * nodes and modify the source content indirectly.
+ */
 export class RichtextWindow extends ViewWindow {
 
     // [field]
@@ -106,6 +112,7 @@ class RichtextWindowCore extends Disposable implements IRichtextWindowCore {
                 handleTextInput: this.__onTextinput.bind(this),
                 handlePaste: this.__onPaste.bind(this),
                 handleDrop: this.__onDrop.bind(this),
+                plugins: this.__getAllPlugins(),
             }
         );
     }
@@ -162,6 +169,14 @@ class RichtextWindowCore extends Disposable implements IRichtextWindowCore {
             schema: this._ctx.viewModel.getSchema(),
             plugins: [],
         });
+    }
+
+    private __getAllPlugins(): ProseExtension[] {
+        const plugins: ProseExtension[] = [];
+
+        // plugins.push(new KeyboardController());
+
+        return plugins;
     }
 
     // [private helper methods (callback)]

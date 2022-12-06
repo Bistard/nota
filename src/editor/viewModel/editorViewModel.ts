@@ -22,7 +22,7 @@ import { ILogEvent } from "src/base/common/logger";
 import { List, ListItem } from "src/editor/viewModel/parser/node/list";
 import { HTML } from "src/editor/viewModel/parser/node/html";
 import { TokenEnum } from "src/editor/common/markdown";
-import { EditorOptionsType } from "src/editor/configuration/editorConfiguration";
+import { EditorOptionsType } from "src/editor/common/configuration/editorConfiguration";
 
 export class EditorViewModel extends Disposable implements IEditorViewModel {
 

@@ -6,7 +6,7 @@ import { ILogEvent, LogLevel } from "src/base/common/logger";
 import { Blocker } from "src/base/common/util/async";
 import { IFileService } from "src/code/platform/files/common/fileService";
 import { EditorToken, IEditorModel, IEditorModelOptions, IPieceTableModel } from "src/editor/common/model";
-import { EditorOptionsType } from "src/editor/configuration/editorConfiguration";
+import { EditorOptionsType } from "src/editor/common/configuration/editorConfiguration";
 import { IMarkdownLexer, IMarkdownLexerOptions, MarkdownLexer } from "src/editor/model/markdown/lexer";
 import { TextBufferBuilder } from "src/editor/model/textBufferBuilder";
 

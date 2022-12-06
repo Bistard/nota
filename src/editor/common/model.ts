@@ -4,7 +4,7 @@ import { URI } from "src/base/common/file/uri";
 import { ILogEvent } from "src/base/common/logger";
 import { IEditorPosition } from "src/editor/common/position";
 import { IEditorRange } from "src/editor/common/range";
-import { EditorOptionsType } from "src/editor/configuration/editorConfiguration";
+import { EditorOptionsType } from "src/editor/common/configuration/editorConfiguration";
 import { marked } from "src/editor/model/markdown/marked/marked";
 
 export const enum EndOfLineType {

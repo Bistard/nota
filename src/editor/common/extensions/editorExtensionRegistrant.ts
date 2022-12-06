@@ -1,5 +1,5 @@
 import { createRegistrant, RegistrantType } from "src/code/platform/registrant/common/registrant";
-import { IEditorExtensionCtor } from "src/editor/contrib/extensions/editorExtension";
+import { IEditorExtensionCtor } from "src/editor/common/extensions/editorExtension";
 
 export const IEditorExtensionRegistrant = createRegistrant<IEditorExtensionRegistrant>(RegistrantType.EditorExtension);
 
@@ -22,7 +22,7 @@ export interface IEditorExtensionRegistrant {
 }
 
 @IEditorExtensionRegistrant
-class EditorExtensionRegistrant {
+class EditorExtensionRegistrant implements IEditorExtensionRegistrant {
 
     // [field]
 
