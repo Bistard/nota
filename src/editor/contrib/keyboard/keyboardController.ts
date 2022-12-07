@@ -17,7 +17,7 @@ export class KeyboardController extends EditorExtension {
         super();
         
         this.onKeydown(event => {
-            // TODO
+            // FIX
             this.commandService.executeCommand(EditorCommandsEnum.deleteCurrentSelection, <IEditorCommandEvent>{
                 state: event.view.state,
                 dispatch: event.view.dispatch,
