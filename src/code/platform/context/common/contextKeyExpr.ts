@@ -130,7 +130,7 @@ export namespace CreateContextKeyExpr {
         return ContextKeyNotEqualExpr.create(key, value);
     }
 
-    export function And(...expressions: ContextKeyExpr[]): ContextKeyExpr {
+    export function And(...expressions: (ContextKeyExpr | null)[]): ContextKeyExpr {
         return ContextKeyAndExpr.create(expressions);
     }
 
@@ -138,7 +138,7 @@ export namespace CreateContextKeyExpr {
         return ContextKeyRegexExpr.create(key, regexp);
     }
 
-    export function Or(...expressions: ContextKeyExpr[]): ContextKeyExpr {
+    export function Or(...expressions: (ContextKeyExpr | null)[]): ContextKeyExpr {
         return ContextKeyOrExpr.create(expressions, true);
     }
 
@@ -526,12 +526,15 @@ class ContextKeyNotEqualExpr extends ContextKeyExprBase<ContextKeyExprType.NotEq
  */
 class ContextKeyAndExpr extends ContextKeyExprBase<ContextKeyExprType.And> {
 
-    public static create(expressions: ContextKeyExpr[]): ContextKeyExpr {
+    public static create(expressions: (ContextKeyExpr | null)[]): ContextKeyExpr {
         
         // normalization
         const valid: ContextKeyExpr[] = [];
 
         for (const expr of expressions) {
+            if (!expr) {
+                continue;
+            }
 
             if (expr.type === ContextKeyExprType.True) {
                 continue;
@@ -666,12 +669,15 @@ class ContextKeyAndExpr extends ContextKeyExprBase<ContextKeyExprType.And> {
  */
 class ContextKeyOrExpr extends ContextKeyExprBase<ContextKeyExprType.Or> {
 
-    public static create(expressions: ContextKeyExpr[], extraRedundantCheck: boolean): ContextKeyExpr {
+    public static create(expressions: (ContextKeyExpr | null)[], extraRedundantCheck: boolean): ContextKeyExpr {
         
         // normalization
         const valid: ContextKeyExpr[] = [];
         
         for (const expr of expressions) {
+            if (!expr) {
+                continue;
+            }
 
             if (expr.type === ContextKeyExprType.False) {
                 continue;
