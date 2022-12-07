@@ -1,5 +1,5 @@
 import { createRegistrant, RegistrantType } from "src/code/platform/registrant/common/registrant";
-import { IEditorExtensionCtor } from "src/editor/common/extensions/editorExtension";
+import { IEditorExtensionCtor } from "src/editor/common/extension/editorExtension";
 
 export const IEditorExtensionRegistrant = createRegistrant<IEditorExtensionRegistrant>(RegistrantType.EditorExtension);
 
