@@ -1,4 +1,5 @@
 import { Disposable } from "src/base/common/dispose";
+import { errorToMessage } from "src/base/common/error";
 import { Emitter, Register } from "src/base/common/event";
 import { ILogService } from "src/base/common/logger";
 import { ICommandEvent, ICommandRegistrant } from "src/code/platform/command/common/commandRegistrant";
@@ -20,7 +21,7 @@ export interface ICommandService {
     
     /**
      * @description Execute the command that is registered in the 
-     * {@link CommandRegistrant}. Returns a promise that will resolve if the 
+     * {@link ICommandRegistrant}. Returns a promise that will resolve if the 
      * execution successed, it will resolve either the command is not found or
      * encounter errors during the execution.
      * @param id The id of the command.
@@ -31,7 +32,7 @@ export interface ICommandService {
 
 /**
  * @class A micro-service that able to execute commands which are registered
- * through {@link CommandRegistrant}.
+ * through {@link ICommandRegistrant}.
  */
 export class CommandService extends Disposable implements ICommandService {
     
@@ -57,17 +58,18 @@ export class CommandService extends Disposable implements ICommandService {
 
         const command = this._registrant.getCommand(id);
         if (!command) {
-			return Promise.reject(new Error(`command '${id}' not found`));
+			return Promise.reject(new Error(`command with ID '${id}' is not found`));
 		}
 
         try {
             const result = command.executor(this.instantiationService, ...args);
             this._onDidExecuteCommand.fire({ commandID: id, args: args });
-            this.logService.trace('CommandService execute command:', id);
+            this.logService.trace(`Command service executed the command '${id}'`);
             return Promise.resolve(<T>result);
-        } catch (error) {
-            this.logService.trace('CommandService not found command:', id);
-            return Promise.reject(error);
+        } 
+        catch (error) {
+            this.logService.error(`Command service encounters an error with command '${id}': ${errorToMessage(error)}`);
+            return Promise.reject();
         }
     }
 }

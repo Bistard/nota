@@ -2,13 +2,29 @@ import { Random } from "src/base/common/util/random";
 import { repeat } from "src/base/common/util/timer";
 import { NestedArray } from "src/base/common/util/type";
 
-let hitCount = 0;
+let _hitCount = 0;
+const _context = new Set<number>();
 
 /**
  * @description Simple printing debug strategy.
  */
 export function hit(): void {
-    console.log(hitCount++);
+    console.log(_hitCount++);
+}
+
+export function toggleContext(id: number): void {
+    const exist = _context.has(id);
+    if (exist) {
+        _context.delete(id);
+    } else {
+        _context.add(id);
+    }
+}
+
+export function print(id: number, message: any): void {
+    if (_context.has(id)) {
+        console.log(message);
+    }
 }
 
 /**

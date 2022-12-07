@@ -1,74 +1,175 @@
-import { Disposable, IDisposable } from "src/base/common/dispose";
-import { Emitter } from "src/base/common/event";
+import { Disposable } from "src/base/common/dispose";
+import { Emitter, Event } from "src/base/common/event";
 import { IEditorModel } from "src/editor/common/model";
-import { ViewEvent } from "src/editor/common/view";
-import { IEditorViewModel, ILineWidget } from "src/editor/common/viewModel";
-import { EditorViewComponent } from "src/editor/view/component/viewComponent";
-import { EditorViewModelEventEmitter } from "src/editor/viewModel/editorViewModelEmitter";
-import { LineWidget } from "src/editor/viewModel/lineWidget";
+import { EditorRenderType, IEditorViewModel, IEditorViewModelOptions, IRenderEvent } from "src/editor/common/viewModel";
+import { DocumentNodeProvider } from "src/editor/viewModel/parser/documentNode";
+import { DocumentParser, IDocumentParser } from "src/editor/viewModel/parser/parser";
+import { Codespan } from "src/editor/viewModel/parser/mark/codespan";
+import { Emphasis } from "src/editor/viewModel/parser/mark/emphasis";
+import { Link } from "src/editor/viewModel/parser/mark/link";
+import { Strong } from "src/editor/viewModel/parser/mark/strong";
+import { Blockquote } from "src/editor/viewModel/parser/node/blockquote";
+import { CodeBlock } from "src/editor/viewModel/parser/node/codeBlock";
+import { Heading } from "src/editor/viewModel/parser/node/heading";
+import { HorizontalRule } from "src/editor/viewModel/parser/node/horizontalRule";
+import { Image } from "src/editor/viewModel/parser/node/image";
+import { LineBreak } from "src/editor/viewModel/parser/node/lineBreak";
+import { Paragraph } from "src/editor/viewModel/parser/node/paragraph";
+import { Space } from "src/editor/viewModel/parser/node/space";
+import { Text } from "src/editor/viewModel/parser/node/text";
+import { EditorSchema, MarkdownSchema } from "src/editor/viewModel/schema";
+import { ILogEvent } from "src/base/common/logger";
+import { List, ListItem } from "src/editor/viewModel/parser/node/list";
+import { HTML } from "src/editor/viewModel/parser/node/html";
+import { TokenEnum } from "src/editor/common/markdown";
+import { EditorOptionsType } from "src/editor/common/configuration/editorConfiguration";
+import { IEditorExtension } from "src/editor/common/extension/editorExtension";
 
-/**
- * @class // TODO
- */
 export class EditorViewModel extends Disposable implements IEditorViewModel {
 
-    // [event]
-    
-    private readonly _onViewEvent = this.__register(new Emitter<ViewEvent.Events>());
-    public readonly onViewEvent = this._onViewEvent.registerListener;
-
     // [field]
-    
-    private readonly _model: IEditorModel;
-    private readonly _lineWidget: LineWidget;
 
-    private readonly _emitter: EditorViewModelEventEmitter;
+    private readonly _options: EditorOptionsType;
+
+    private readonly _model: IEditorModel;
+    private readonly _extensions: IEditorExtension[];
+
+    private readonly _nodeProvider: DocumentNodeProvider;
+    private readonly _schema: EditorSchema;
+    private readonly _docParser: IDocumentParser;
+
+    // [event]
+
+    private readonly _onLog = this.__register(new Emitter<ILogEvent<string | Error>>());
+    public readonly onLog = this._onLog.registerListener;
+
+    private readonly _onRender = this.__register(new Emitter<IRenderEvent>());
+    public readonly onRender = this._onRender.registerListener;
+
+    private readonly _onDidChangeRenderMode = this.__register(new Emitter<EditorRenderType>());
+    public readonly onDidChangeRenderMode = this._onDidChangeRenderMode.registerListener;
 
     // [constructor]
 
     constructor(
         model: IEditorModel,
+        extensions: IEditorExtension[],
+        options: EditorOptionsType,
     ) {
         super();
-        
         this._model = model;
-        
-        this._lineWidget = new LineWidget(this, model);
-        // ViewEvent.ScrollEvent
-        this.__register(this._lineWidget.onDidScroll(e => {
-            this._emitter.fire(new ViewEvent.ScrollEvent(e));
-        }));
+        this._options = options;
+        this._extensions = extensions;
 
-        this._emitter = new EditorViewModelEventEmitter();
+        this._nodeProvider = new DocumentNodeProvider();
+        this.__registerNodeProvider();
+
+        this._schema = new MarkdownSchema(this._nodeProvider);
+
+        this._docParser = new DocumentParser(this._schema, this._nodeProvider, /* options */);
+        this.__initDocParser();
 
         this.__registerModelListeners();
     }
 
-    // [public methods]
+    // [getter]
 
-    public addViewComponent(id: string, component: EditorViewComponent): IDisposable {
-        return this._emitter.addViewComponent(id, component);
+    get renderMode(): EditorRenderType {
+        return this._options.mode.value;
     }
 
-    public getLineWidget(): ILineWidget {
-        return this._lineWidget;
+    get model(): IEditorModel {
+        return this._model;
+    }
+
+    // [public methods]
+
+    public getSchema(): EditorSchema {
+        return this._schema;
+    }
+
+    public getExtensions(): IEditorExtension[] {
+        return this._extensions;
+    }
+
+    public updateOptions(options: Partial<IEditorViewModelOptions>): void {
+        
     }
 
     // [private helper methods]
 
-    /**
-     * @description Registrations for {@link EditorModel} events.
-     */
     private __registerModelListeners(): void {
         
-        this._model.onEvent((events) => {
-            
-            this._emitter.pause();
-
-            // TODO
-
-            this._emitter.resume();
-        });
+        this.__register(Event.any([this._model.onDidContentChange, this._model.onDidBuild])(() => {
+            this.__onDidModelContentChange();
+        }));
     }
 
+    private __onDidModelContentChange(): void {
+
+        const tokens = this._model.getTokens();
+        const document = this._docParser.parse(tokens);
+        
+        console.log('[tokens]', tokens); // TEST
+        console.log('[document]', document); // TEST
+
+        const renderType = this._options.mode.value;
+        let event: IRenderEvent;
+
+        if (renderType === EditorRenderType.Plain) {
+            event = {
+                type: renderType,
+                plainText: this._model.getContent(),
+            };
+        }
+        else if (renderType === EditorRenderType.Split) {
+            event = {
+                type: renderType,
+                plainText: this._model.getContent(),
+                document: document,
+            };
+        }
+        else {
+            event = {
+                type: renderType,
+                document: document,
+            };
+        }
+
+        this._onRender.fire(event);
+    }
+
+    private __registerNodeProvider(): void {
+        const provider = this._nodeProvider;
+
+        // nodes
+        provider.registerNode(new Space());
+        provider.registerNode(new Text());
+        provider.registerNode(new Heading());
+        provider.registerNode(new Paragraph());
+        provider.registerNode(new Blockquote());
+        provider.registerNode(new HorizontalRule());
+        provider.registerNode(new CodeBlock());
+        provider.registerNode(new LineBreak());
+        provider.registerNode(new Image());
+        provider.registerNode(new List());
+        provider.registerNode(new ListItem());
+        provider.registerNode(new HTML());
+
+        // marks
+        provider.registerMark(new Link());
+        provider.registerMark(new Emphasis());
+        provider.registerMark(new Strong());
+        provider.registerMark(new Codespan());
+    }
+
+    private __initDocParser(): void {
+        const parser = this._docParser;
+        
+        parser.onLog(event => this._onLog.fire(event));
+        
+        if (this._options.ignoreHTML.value) {
+            parser.ignoreToken(TokenEnum.HTML, true);
+        }
+    }
 }

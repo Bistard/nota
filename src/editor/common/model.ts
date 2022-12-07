@@ -1,8 +1,11 @@
 import { Disposable, IDisposable } from "src/base/common/dispose";
 import { Register } from "src/base/common/event";
 import { URI } from "src/base/common/file/uri";
+import { ILogEvent } from "src/base/common/logger";
 import { IEditorPosition } from "src/editor/common/position";
 import { IEditorRange } from "src/editor/common/range";
+import { EditorOptionsType } from "src/editor/common/configuration/editorConfiguration";
+import { marked } from "src/editor/model/markdown/marked/marked";
 
 export const enum EndOfLineType {
     /** 
@@ -297,8 +300,7 @@ export interface IPieceTableModel extends Omit<IPieceTable, 'root'>, Disposable 
      * @description Apply edit operations to the piece table model.
      * @param operations The raw edit operations.
      */
-    edit(operations: IEditOperation[]): IApplyEditResult;
-
+    // edit(operations: IEditOperation[]): IApplyEditResult;
 }
 
 export interface IEditOperation {
@@ -314,8 +316,33 @@ export interface IEditOperation {
     readonly text: string;
 }
 
-export interface IApplyEditResult {
-    changes: ModelEvent.IContentChange[];
+
+export type EditorToken = marked.Token;
+export type EditorTokenGeneric = marked.Tokens.Generic;
+export namespace EditorTokens {
+    export type Space = marked.Tokens.Space;
+    export type CodeBlock = marked.Tokens.Code;
+    export type Heading = marked.Tokens.Heading;
+    export type Table = marked.Tokens.Table;
+    export type TableCell = marked.Tokens.TableCell;
+    export type Hr = marked.Tokens.Hr;
+    export type Blockquote = marked.Tokens.Blockquote;
+    export type List = marked.Tokens.List;
+    export type ListItem = marked.Tokens.ListItem;
+    export type Paragraph = marked.Tokens.Paragraph;
+    export type HTML = marked.Tokens.HTML;
+    export type Text = marked.Tokens.Text;
+    export type Def = marked.Tokens.Def;
+    export type Escape = marked.Tokens.Escape;
+    export type Tag = marked.Tokens.Tag;
+    export type Link = marked.Tokens.Link;
+    export type Image = marked.Tokens.Image;
+    export type Strong = marked.Tokens.Strong;
+    export type Em = marked.Tokens.Em;
+    export type Codespan = marked.Tokens.Codespan;
+    export type Br = marked.Tokens.Br;
+    export type Del = marked.Tokens.Del;
+    export type Generic = marked.Tokens.Generic;
 }
 
 /**
@@ -323,32 +350,45 @@ export interface IApplyEditResult {
  */
 export interface IEditorModel extends IDisposable {
 
-    /** 
-     * Fires when the model is build whether successed or failed.
-     */
-    readonly onDidBuild: Register<true | Error>;
-
-    /**
-     * Fires when the model related events happens. See more event details from
-     * {@link ModelEvent.Events}.
-     */
-    readonly onEvent: Register<ModelEvent.Events>;
-
     /**
      * The source of the text model.
      */
     readonly source: URI;
 
     /**
-     * @description Replace the entire model with the provided text.
-     * @param text The new text.
+     * Fires when a log is about happen.
      */
-    replaceModelWith(text: string): void;
+    readonly onLog: Register<ILogEvent<string | Error>>;
+
+    /** 
+     * Fires when the model is built.
+     */
+    readonly onDidBuild: Register<void>;
+
+    readonly onDidContentChange: Register<void>;
+
+    /**
+     * @description Start building the model.
+     * @note This will trigger `onDidBuild` event.
+     */
+    build(): Promise<void>;
+
+    /**
+     * @description Replace the entire model with the new provided URI.
+     * @param source The new source in URI form.
+     * @note This will trigger `onDidBuild` event.
+     */
+    replaceWith(source: URI): Promise<void>;
 
     /**
      * @description Returns all the lines of the model.
      */
     getContent(): string[];
+
+    /**
+     * @description Returns the raw content of the model.
+     */
+    getRawContent(): string;
 
     /**
      * @description Returns the number of lines in the model.
@@ -368,41 +408,30 @@ export interface IEditorModel extends IDisposable {
     getLineLength(lineNumber: number): number;
 
     /**
-     * @description Apply tokenization process to the given range of lines.
-     * @param startLineNumber The start line number (zero-based).
-     * @param endLineNumber The end line number (zero-based && not included).
+     * @description Inspect the current markdown tokens that is parsed by the
+     * lexer.
      */
-    tokenizationBetween(startLineNumber: number, endLineNumber: number): void;
+    getTokens(): EditorToken[];
+
+    /**
+     * @description Updates the options of the editor model.
+     * @param options The editor option.
+     */
+    updateOptions(options: EditorOptionsType): void;
 }
 
-/**
- * Events fired by the {@link IEditorModel}.
- */
-export namespace ModelEvent {
+export interface IEditorModelOptions {
 
-    export interface IContentChange {
+    /**
+     * A prefix URI for any relative link token.
+     */
+    baseURI?: string;
+}
 
-        /**
-         * The range to replace.
-         */
-        readonly range: IEditorRange;
+export namespace IModelEvent {
 
-        /**
-         * The new text.
-         */
-        readonly text: string;
-    }
+    export interface ContentChange {
 
-    export type Events = (IContentFlushEvent | IContentChangeEvent);
-
-    export interface IContentFlushEvent {
-        // nothing
-    }
-
-    export interface IContentChangeEvent {
-    
-        readonly changes: IContentChange[];
-    
     }
 
 }

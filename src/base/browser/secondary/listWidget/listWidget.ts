@@ -8,7 +8,7 @@ import { ListWidgetMouseController } from "src/base/browser/secondary/listWidget
 import { ListTrait } from "src/base/browser/secondary/listWidget/listWidgetTrait";
 import { IIdentiityProivder } from "src/base/browser/secondary/tree/asyncTree";
 import { Disposable, IDisposable } from "src/base/common/dispose";
-import { Event, Register, SignalEmitter } from "src/base/common/event";
+import { Event, Register } from "src/base/common/event";
 import { createStandardKeyboardEvent, IStandardKeyboardEvent, KeyCode } from "src/base/common/keyboard";
 import { memoize } from "src/base/common/memoization";
 import { IRange } from "src/base/common/range";
@@ -360,8 +360,7 @@ export class ListWidget<T> extends Disposable implements IListWidget<T> {
     get onInsertItemInDOM(): Register<IViewItemChangeEvent<T>> { return this.view.onInsertItemInDOM; }
     get onUpdateItemInDOM(): Register<IViewItemChangeEvent<T>> { return this.view.onUpdateItemInDOM; }
     get onRemoveItemInDOM(): Register<IViewItemChangeEvent<T>> { return this.view.onRemoveItemInDOM; }
-    @memoize 
-    get onDidChangeFocus(): Register<boolean> { return this.__register(new SignalEmitter<boolean, boolean>([Event.map(this.view.onDidFocus, () => true), Event.map(this.view.onDidBlur, () => false)], (e: boolean) => e)).registerListener; }
+    get onDidChangeFocus(): Register<boolean> { return Event.any([Event.map(this.view.onDidFocus, () => true), Event.map(this.view.onDidBlur, () => false)]); }
     
     get onClick(): Register<IListMouseEvent<T>> { return Event.map(this.view.onClick, e => this.__toListMouseEvent(e)); }
     get onDoubleclick(): Register<IListMouseEvent<T>> { return Event.map(this.view.onDoubleclick, e => this.__toListMouseEvent(e));  }

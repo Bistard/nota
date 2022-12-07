@@ -1,12 +1,8 @@
-import { Emitter, Register } from 'src/base/common/event';
+import { Emitter } from 'src/base/common/event';
 import { IComponentService } from 'src/code/browser/service/component/componentService';
-import { createService } from 'src/code/platform/instantiation/common/decorator';
 import { Ii18nService } from 'src/code/platform/i18n/i18n';
 import { Section } from 'src/code/platform/section';
-import { registerSingleton } from 'src/code/platform/instantiation/common/serviceCollection';
-import { ServiceDescriptor } from 'src/code/platform/instantiation/common/descriptor';
 import { addDisposableListener, EventType, Orientation } from 'src/base/browser/basic/dom';
-import { IEditorService } from 'src/code/browser/workbench/workspace/editor/editor';
 import { IBrowserDialogService, IDialogService } from 'src/code/platform/dialog/browser/browserDialogService';
 import { IThemeService } from 'src/code/browser/service/theme/themeService';
 import { ILogService } from 'src/base/common/logger';
@@ -21,53 +17,13 @@ import { DisposableManager } from 'src/base/common/dispose';
 import { createIcon } from 'src/base/browser/icon/iconRegistry';
 import { Icons } from 'src/base/browser/icon/icons';
 import { SideViewTitlePart } from 'src/code/browser/workbench/sideView/sideViewTitle';
-import { ISideView, SideView } from 'src/code/browser/workbench/sideView/sideView';
+import { SideView } from 'src/code/browser/workbench/sideView/sideView';
 import { VisibilityController } from 'src/base/browser/basic/visibilityController';
 import { WidgetBar } from 'src/base/browser/secondary/widgetBar/widgetBar';
 import { Button } from 'src/base/browser/basic/button/button';
 import { RGBA } from 'src/base/common/color';
-
-export const IExplorerViewService = createService<IExplorerViewService>('explorer-view-service');
-
-/**
- * An interface only for {@link ExplorerView}.
- */
-export interface IExplorerViewService extends ISideView {
-    
-    /**
-     * Determine if the explorer view is opened right now.
-     */
-    readonly isOpened: boolean;
-
-    /**
-     * The root directory of the current opened explorer view. `undefined` if 
-     * the view is not opened yet.
-     */
-    readonly root: URI | undefined;
-
-    /**
-     * Fired when the directory is opened.
-     */
-    onDidOpen: Register<ClassicOpenEvent>;
-
-    /**
-     * Open the explorer view under the given root path.
-     */
-    open(root: URI): Promise<void>;
-
-    /**
-     * Close the explorer view if any path is opened.
-     */
-    close(): Promise<void>;
-}
-
-export interface ClassicOpenEvent {
-
-    /**
-     * The path of the directory in string form.
-     */
-    readonly path: URI;
-}
+import { ClassicOpenEvent, ExplorerViewID, IExplorerViewService } from 'src/code/browser/workbench/sideView/explorer/explorerService';
+import { IEditorService } from 'src/code/browser/workbench/workspace/editor/editorService';
 
 /**
  * @class TODO: complete comments
@@ -111,7 +67,7 @@ export class ExplorerView extends SideView implements IExplorerViewService {
         @IBrowserEnvironmentService private readonly envrionmentService: IBrowserEnvironmentService,
         @IExplorerTreeService private readonly explorerTreeService: IExplorerTreeService,
     ) {
-        super('explorer-view', parentElement, themeService, componentService);
+        super(ExplorerViewID, parentElement, themeService, componentService);
 
         lifecycleService.onWillQuit(e => e.join(this.__onApplicationClose()));
     }
@@ -335,7 +291,7 @@ export class ExplorerView extends SideView implements IExplorerViewService {
 
         // on openning file.
         disposables.register(this.explorerTreeService.onSelect(e => {
-            this.editorService.updateMilkdownText(e.item.uri);
+            this.editorService.openSource(e.item.uri);
         }));
 
         // Displays the utility buttons only when hovering the view.
@@ -447,5 +403,3 @@ export class ExplorerTitlePart extends SideViewTitlePart {
         this.element.appendChild(rightContainer);
     }
 }
-
-registerSingleton(IExplorerViewService, new ServiceDescriptor(ExplorerView));

@@ -52,8 +52,6 @@ export abstract class WorkbenchLayout extends Component {
 
     protected __createLayout(): void {
         
-        const splitViewContainer = document.createElement('div');
-        splitViewContainer.className = 'split-view';
         const splitViewOpt: ISplitViewOpts = {
             orientation: Orientation.Horizontal,
             viewOpts: [],
@@ -67,7 +65,7 @@ export abstract class WorkbenchLayout extends Component {
         ] as const;
         
         for (const [component, minSize, maxSize, initSize, priority] of configurations) {
-            component.create(this, splitViewContainer);
+            component.create(this);
             component.registerListeners();
             splitViewOpt.viewOpts!.push({
                 element: component.element.element, 

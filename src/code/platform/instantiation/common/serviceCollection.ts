@@ -4,7 +4,7 @@ import { ServiceIdentifier } from "src/code/platform/instantiation/common/decora
 export class ServiceCollection {
 
 	// stores either T | ServiceDescriptor<T>
-    private _services: Map<ServiceIdentifier<any>, any> = new Map();
+    private readonly _services: Map<ServiceIdentifier<any>, any> = new Map();
 
     constructor(...services: [ServiceIdentifier<any>, any][]) {
         for (let [id, service] of services) {

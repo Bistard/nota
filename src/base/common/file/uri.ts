@@ -109,19 +109,32 @@ export class URI implements IURI {
 		);
 	}
 
-    public static isUri(thing: any): thing is URI {
-		if (thing instanceof URI) {
+    public static isURI(obj: any): obj is URI {
+		if (obj instanceof URI) {
 			return true;
 		}
-		if (!thing) {
+		if (!obj) {
 			return false;
 		}
-		return typeof (<URI>thing).authority === 'string'
-			&& typeof (<URI>thing).fragment === 'string'
-			&& typeof (<URI>thing).path === 'string'
-			&& typeof (<URI>thing).query === 'string'
-			&& typeof (<URI>thing).scheme === 'string'
-			&& typeof (<URI>thing).toString === 'function';
+		return typeof (<URI>obj).authority === 'string'
+			&& typeof (<URI>obj).fragment === 'string'
+			&& typeof (<URI>obj).path === 'string'
+			&& typeof (<URI>obj).query === 'string'
+			&& typeof (<URI>obj).scheme === 'string'
+			&& typeof (<URI>obj).toString === 'function';
+	}
+
+	public static revive(obj: any): URI {
+		if (!obj) {
+			return obj;
+		}
+
+		if (obj instanceof URI) {
+			return obj;
+		}
+
+		const uri = reviverRegistrant.revive<URI>(obj);
+		return uri;
 	}
 
 	/** @description Compute `fsPath` for the given uri. */

@@ -1,70 +1,122 @@
-import { FastElement } from "src/base/browser/basic/fastElement";
-import { Disposable, IDisposable } from "src/base/common/dispose";
+import { Disposable } from "src/base/common/dispose";
 import { Register } from "src/base/common/event";
-import { IRange } from "src/base/common/range";
-import { IScrollEvent } from "src/base/common/scrollable";
-import { ViewEvent } from "src/editor/common/view";
-import { EditorViewComponent } from "src/editor/view/component/viewComponent";
-import { EditorItem } from "src/editor/viewModel/editorItem";
+import { ILogEvent } from "src/base/common/logger";
+import { IEditorExtension } from "src/editor/common/extension/editorExtension";
+import { IEditorModel } from "src/editor/common/model";
+import { ProseNode } from "src/editor/common/proseMirror";
+import { EditorSchema } from "src/editor/viewModel/schema";
 
-/**
- * An interface only for {@link EditorViewModel}.
- */
+export const enum EditorRenderType {
+    Plain = 'plain',
+    Split = 'split',
+    Rich = 'rich',
+}
+
 export interface IEditorViewModel extends Disposable {
 
-    onViewEvent: Register<ViewEvent.Events>;
+    /**
+     * The current rendering mode of the view.
+     */
+    readonly renderMode: EditorRenderType;
 
-    addViewComponent(id: string, component: EditorViewComponent): IDisposable;
+    readonly model: IEditorModel;
 
-    getLineWidget(): ILineWidget;
+    /**
+     * Fires when a log is about happen.
+     */
+    readonly onLog: Register<ILogEvent<string | Error>>;
+
+    readonly onRender: Register<IRenderEvent>;
+
+    readonly onDidChangeRenderMode: Register<EditorRenderType>;
+
+    getSchema(): EditorSchema;
+
+    getExtensions(): IEditorExtension[];
+
+    /**
+     * @description Updates the options of the editor view model.
+     * @param options The options.
+     */
+    updateOptions(options: Partial<IEditorViewModelOptions>): void;
+}
+
+export interface IEditorViewModelOptions {
+
+    /**
+     * Determines how the editor is about to render the view.
+     * @default EditorRenderType.Rich
+     */
+    mode?: EditorRenderType;
+
+    /**
+     * If enables code-block highlight functionality.
+     * @default true
+     */
+    codeblockHighlight?: boolean;
+
+    /**
+     * When parsing, if ignores parse HTML content.
+     * @default false
+     */
+    ignoreHTML?: boolean;
 }
 
 /**
- * An interface only for {@link EditorViewModelEventEmitter}.
+ * Type of event to indicate how to render the data from the text model into the 
+ * view.
  */
-export interface IEditorViewModelEventEmitter extends Disposable {
+export type IRenderEvent = IRenderPlainEvent | IRenderSplitEvent | IRenderRichEvent;
 
-    addViewComponent(id: string, component: EditorViewComponent): IDisposable;
-
-    fire(event: ViewEvent.Events): void;
-
-    pause(): void;
-
-    resume(): void;
-}
-
-
-/**
- * An interface only for {@link LineWidget}.
- */
-export interface ILineWidget extends Disposable {
-
-    /**
-     * Invokes when the scroll event happens.
-     */
-    readonly onDidScroll: Register<IScrollEvent>;
-
-    /**
-     * @description Returns the DOM element of the widget.
-     */
-    getDomElement(): FastElement<HTMLElement>;
-
-    /**
-     * @description Returns a range represents the visible items of the view.
-     */
-    getVisibleRange(): IRange;
-
-    /**
-     * @description Returns the scrollable position (top) of the view.
-     */
-    getScrollPosition(): number;
+export interface IRenderPlainEvent {
     
     /**
-     * @description Returns the viewport size of the view.
+     * The target displaying type for the view.
      */
-    getViewportSize(): number;
+    readonly type: EditorRenderType.Plain;
 
-    init(): void;
+    /**
+     * The plain text for rendering.
+     */
+    readonly plainText: string[];
+}
 
-    splice(index: number, deleteCount: number, items: EditorItem[]): void;
+export interface IRenderSplitEvent {
+
+    /**
+     * The target displaying type for the view.
+     */
+    readonly type: EditorRenderType.Split;
+
+    /**
+     * The plain text for rendering.
+     */
+    readonly plainText: string[];
+
+    /**
+     * The parsed document that is used for user displaying.
+     */
+    readonly document: ProseNode;
+}
+
+export interface IRenderRichEvent {
+    /**
+     * The target displaying type for the view.
+     */
+    readonly type: EditorRenderType.Rich;
+
+    /**
+     * The parsed document that is used for user displaying.
+     */
+    readonly document: ProseNode;
+}
+
+export function isRenderPlainEvent(event: any): event is IRenderPlainEvent {
+    return event.type === EditorRenderType.Plain;
+}
+export function isRenderSplitEvent(event: any): event is IRenderSplitEvent {
+    return event.type === EditorRenderType.Split;
+}
+export function isRenderRichEvent(event: any): event is IRenderRichEvent {
+    return event.type === EditorRenderType.Rich;
 }

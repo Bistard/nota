@@ -47,18 +47,26 @@ export class BrowserLifecycleService extends AbstractLifecycleService<LifecycleP
     // [public methods]
 
     public override async quit(): Promise<void> {
+        this.logService.trace('Renderer#LifecycleService#quit');
+
+        this.logService.trace('Renderer#LifecycleService#beforeQuit');
+        this._onBeforeQuit.fire();
+
         await this.__fireWillQuit();
+
         return this.hostService.closeWindow();
     }
 
     // [private helper methods]
 
-    private __fireWillQuit(): Promise<void> {
+    private async __fireWillQuit(): Promise<void> {
+        
         if (this._ongoingQuitPromise) {
             return this._ongoingQuitPromise;
         }
 
         // notify all listeners
+        this.logService.trace('Renderer#LifecycleService#willQuit');
         const participants: Promise<void>[] = [];
         this._onWillQuit.fire({
             reason: QuitReason.Quit,
@@ -68,13 +76,15 @@ export class BrowserLifecycleService extends AbstractLifecycleService<LifecycleP
         this._ongoingQuitPromise = (async () => {
             // we need to ensure all the participants have completed their jobs.
             try {
+                this.logService.trace('Renderer#LifecycleService#willQuit#AllSettling');
                 await Promise.allSettled(participants);
             } catch (error: any) {
                 this.logService.error(error);
             }
         })();
         
-        return this._ongoingQuitPromise.then(() => this._ongoingQuitPromise = undefined);
+        await this._ongoingQuitPromise;
+        this._ongoingQuitPromise = undefined;
     }
 }
 

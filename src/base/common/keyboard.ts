@@ -1,3 +1,4 @@
+import { PLATFORM, Platform } from "src/base/common/platform";
 
 export type KeyboardModifier = 'Ctrl' | 'Shift' | 'Alt' | 'Meta';
 
@@ -82,39 +83,20 @@ export namespace Keyboard {
     }
     
     /**
+     * @description Converts the given {@link IStandardKeyboardEvent} to a 
+     * {@link Shortcut}.
+     */
+    export function eventToShortcut(event: IStandardKeyboardEvent): Shortcut {
+        return new Shortcut(event.ctrl, event.shift, event.alt, event.meta, event.key);
+    }
+
+    /**
      * @description Converts the given {@link IStandardKeyboardEvent} to a nice
      * looking string form.
      * @example `Ctrl+Shift+R`
      */
     export function eventToString(event: IStandardKeyboardEvent): string {
-        let mask = 0;
-        const result: string[] = [];
-        
-        if (event.ctrl) {
-            mask |= KeyCode.Ctrl;
-            result.push('Ctrl');
-        }
-        if (event.shift) {
-            mask |= KeyCode.Shift;
-            result.push('Shift');
-        }
-        if (event.alt) {
-            mask |= KeyCode.Alt;
-            result.push('Alt');
-        }
-        if (event.meta) {
-            mask |= KeyCode.Meta;
-            result.push('Meta');
-        }
-        
-        if ((!Keyboard.isModifier(event.key) || (event.key | mask) !== mask) && 
-            event.key !== KeyCode.None) 
-        {
-            const key = Keyboard.toString(event.key);
-            result.push(key);
-        }
-        
-        return result.join('+');
+        return new Shortcut(event.ctrl, event.shift, event.alt, event.meta, event.key).toString();
     }
 
 }
@@ -427,8 +409,18 @@ for (const [keycode, keycodeNum, keycodeStr] of <[number, number, string][]>
     keyCodeStringMap.set(keycode, keycodeStr);
 }
 
+const enum BinaryShortcutMask {
+	CtrlCmd = (1 << 11) >>> 0,
+	Shift   = (1 << 10) >>> 0,
+	Alt     = (1 << 9)  >>> 0,
+	WinCtrl = (1 << 8)  >>> 0,
+	KeyCode = 0x000000FF,
+}
+
+export type ShortcutHash = number;
+
 /**
- * @class A simple class that represents a key binding and treated as shortcut.
+ * @class A simple class that represents a key binding.
  */
 export class Shortcut {
 
@@ -494,7 +486,7 @@ export class Shortcut {
         
         return result.join('+');
     }
-    
+
     public static fromString(string: string): Shortcut {
         
         const shortcut = new Shortcut(false, false, false, false, KeyCode.None);
@@ -526,4 +518,24 @@ export class Shortcut {
         return shortcut;
     }
 
+    public toHashcode(): number {
+        const ctrl =  Number(this.ctrl)  << 11 >>> 0;
+        const shift = Number(this.shift) << 10 >>> 0;
+        const alt =   Number(this.alt)   << 9  >>> 0;
+        const meta =  Number(this.meta)  << 8  >>> 0;
+        return ctrl + shift + alt + meta + this.key;
+    }
+
+    public static fromHashcode(hashcode: number, os: Platform = PLATFORM): Shortcut {
+        const ctrlCmd = (hashcode & BinaryShortcutMask.CtrlCmd ? true : false);
+        const winCtrl = (hashcode & BinaryShortcutMask.WinCtrl ? true : false);
+
+        const ctrl = (os === Platform.Mac ? winCtrl : ctrlCmd);
+        const shift = (hashcode & BinaryShortcutMask.Shift ? true : false);
+        const alt = (hashcode & BinaryShortcutMask.Alt ? true : false);
+        const meta = (os === Platform.Mac ? ctrlCmd : winCtrl);
+        const keyCode = (hashcode & BinaryShortcutMask.KeyCode);
+
+        return new Shortcut(ctrl, shift, alt, meta, keyCode);
+    }
 }

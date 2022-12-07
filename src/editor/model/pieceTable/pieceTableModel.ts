@@ -1,6 +1,6 @@
 import { Disposable } from "src/base/common/dispose";
 import { Emitter } from "src/base/common/event";
-import { EndOfLine, IApplyEditResult, IEditOperation, IPieceNode, IPieceTable, IPieceTableModel, ITextBuffer } from "src/editor/common/model";
+import { EndOfLine, IPieceNode, IPieceTable, IPieceTableModel, ITextBuffer } from "src/editor/common/model";
 import { IEditorPosition } from "src/editor/common/position";
 import { PieceTable } from "src/editor/model/pieceTable/pieceTable";
 
@@ -96,19 +96,19 @@ export class PieceTableModel extends Disposable implements IPieceTableModel {
         this._table.forEach(fn);
     }
 
-    public edit(rawOperations: IEditOperation[]): IApplyEditResult {
+    // public edit(rawOperations: IEditOperation[]): IApplyEditResult {
         
-        const operations: any[] = [];
+    //     const operations: any[] = [];
 
-        for (let i = 0; i < rawOperations.length; i++) {
-            const oper = rawOperations[i]!;
-        }
+    //     for (let i = 0; i < rawOperations.length; i++) {
+    //         const oper = rawOperations[i]!;
+    //     }
 
-        // TODO
-        return {
-            changes: []
-        };
-    }
+    //     // TODO
+    //     return {
+    //         changes: []
+    //     };
+    // }
 
     public override dispose(): void {
         super.dispose();

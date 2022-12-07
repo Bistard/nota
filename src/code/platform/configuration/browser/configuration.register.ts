@@ -21,11 +21,12 @@ class DefaultUserConfiguration extends DefaultConfigStorage {
                 'outline': {},
                 'search': {},
             },
+            'editor': {}, // the editor configuration is defined in `editorConfiguration.ts`
         };
     }
 }
 
-(function registerBrowserDefaultConfiguration() {
+export function registerBrowserDefaultConfiguration(): void {
     const Registrant = REGISTRANTS.get(IConfigRegistrant);
     Registrant.registerDefaultBuiltIn(BuiltInConfigScope.User, new DefaultUserConfiguration());
-})();
+}

@@ -33,7 +33,6 @@ suite('command-test', () => {
         return testService.foo(num);
     } 
 
-
     setup(() => {
         instantiationService = new InstantiationService();
         const testService = new TestService();
@@ -44,13 +43,13 @@ suite('command-test', () => {
 
     test('register-command', () => {
         const CommandRegistrant = REGISTRANTS.get(ICommandRegistrant);
-        CommandRegistrant.registerCommand(id, executor);
+        CommandRegistrant.registerCommand({ id }, executor);
 
         const command = CommandRegistrant.getCommand(id);
         assert.deepStrictEqual(command, {
             id: id, 
             executor: executor,
-            description: 'No descriptions',
+            description: 'No descriptions are provided.',
         });
     });
 

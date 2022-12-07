@@ -5,6 +5,7 @@ import { Dimension, IDimension } from "src/base/common/util/size";
 import { IComponentService } from "src/code/browser/service/component/componentService";
 import { Themable } from "src/code/browser/service/theme/theme";
 import { IThemeService } from "src/code/browser/service/theme/themeService";
+import { FocusTracker } from "src/base/browser/basic/focusTracker";
 
 export interface ICreateable {
     create(): void;
@@ -20,6 +21,12 @@ export interface IComponent extends ICreateable {
      * @description Returns the string id of the component.
      */
     readonly id: string;
+
+    /** Fires when the component is focused or blured (true represents focused). */
+    readonly onDidFocusChange: Register<boolean>;
+
+    /** Fires when the component visibility is changed. */
+    readonly onDidVisibilityChange: Register<boolean>;
 
     /** Fires when the component is layouting. */
     readonly onDidLayout: Register<IDimension>;
@@ -39,13 +46,10 @@ export interface IComponent extends ICreateable {
      *                        under this component. If no parentElement is 
      *                        provided, the component will be rendered under 
      *                        this parent component.
-     * @param parentElement If provided, the component will be rendered under
-     *                      this parent element (will override the constructor 
-     *                      provided ones and parentComponent ones).
      * @note If both not provided, either renders under the constructor provided 
      * element, or `document.body`.
      */
-    create(parentComponent?: IComponent, parentElement?: HTMLElement): void;
+    create(parentComponent?: IComponent): void;
 
     /**
      * @description Layout the component to the given dimension.
@@ -109,6 +113,12 @@ export interface IComponent extends ICreateable {
     setVisible(value: boolean): void;
 
     /**
+     * @description Sets if to focus the current component.
+     * @param value To focus or blur.
+     */
+    setFocusable(value: boolean): void;
+
+    /**
      * @description Checks if the component has created.
      */
     created(): boolean;
@@ -143,12 +153,16 @@ export abstract class Component extends Themable implements IComponent {
     private readonly _children: Map<string, IComponent> = new Map();
     private _dimension?: Dimension;
 
+    private readonly _focusTracker: FocusTracker;
+
     private _created: boolean;
     private _registered: boolean;
 
     // [event]
     
-    private readonly _onDidVisibilityChange = this.__register( new Emitter<boolean>() );
+    public readonly onDidFocusChange: Register<boolean>;
+
+    private readonly _onDidVisibilityChange = this.__register(new Emitter<boolean>());
     public readonly onDidVisibilityChange = this._onDidVisibilityChange.registerListener;
 
     private readonly _onDidLayout = this.__register(new Emitter<IDimension>());
@@ -174,6 +188,10 @@ export abstract class Component extends Themable implements IComponent {
 
         this._element = new FastElement(document.createElement('div'));
         this._element.setID(id);
+        
+        this._focusTracker = this.__register(new FocusTracker(this._element.element, false));
+        this.onDidFocusChange = this._focusTracker.onDidFocusChange;
+        
         if (parentElement) {
             this._parent = parentElement;
         }
@@ -217,7 +235,7 @@ export abstract class Component extends Themable implements IComponent {
         return this._element.getID();
     }
 
-    public create(parentComponent?: Component, parentElement?: HTMLElement): void {
+    public create(parentComponent?: Component): void {
         if (this._created || this.isDisposed()) {
             return; 
         }
@@ -227,7 +245,7 @@ export abstract class Component extends Themable implements IComponent {
             parentComponent.registerComponent(this);
         }
 
-        this._parent = parentElement ? parentElement : ((parentComponent?.element.element ?? this._parent) ?? document.body);
+        this._parent = ((parentComponent?.element.element ?? this._parent) ?? document.body);
         this._parent.appendChild(this._element.element);
         
         this._createContent();
@@ -298,6 +316,10 @@ export abstract class Component extends Themable implements IComponent {
         }
 
         this._onDidVisibilityChange.fire(value);
+    }
+
+    public setFocusable(value: boolean): void {
+        this._focusTracker.setFocusable(value);
     }
 
     public hasComponent(id: string): boolean {

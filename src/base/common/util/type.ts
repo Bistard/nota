@@ -107,6 +107,11 @@ export type SplitString<S extends string, D extends string> =
 export type CompareFn<T> = (a: T, b: T) => number;
 
 /**
+ * More narrows than {@link NonNullable}, it only removes `undefined`.
+ */
+export type NonUndefined = {} | null;
+
+/**
  * @description Mocks the given value's type.
  */
 export function mockType<T>(val: any): T {
@@ -135,6 +140,14 @@ export function isNumber(obj: any): obj is number {
     return (typeof obj === 'number' && !isNaN(obj));
 }
 
+export function isString(obj: any): obj is string {
+    return typeof obj === 'string';
+}
+
+export function isBoolean(obj: any): obj is boolean {
+    return typeof obj === 'boolean';
+}
+
 /**
  * @description If the given value is an object in general speaking (does not
  * count as `array`, `null`, {@link RegExp} or {@link Date}).
@@ -161,8 +174,12 @@ export function isEmptyObject(obj: any): boolean {
     return true;
 }
 
-export function isNonNullable(value: any): boolean {
-    return !(typeof value === 'undefined' || value === null);
+export function isNullable(value: any): value is undefined | null {
+    return (typeof value === 'undefined' || value === null);
+}
+
+export function isNonNullable<T>(value: T): value is NonNullable<T> {
+    return !isNullable(value);
 }
 
 export function NulltoUndefined<T>(obj: T | null): T | undefined {

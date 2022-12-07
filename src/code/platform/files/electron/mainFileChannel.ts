@@ -1,13 +1,17 @@
 import { IDisposable } from "src/base/common/dispose";
-import { Register } from "src/base/common/event";
+import { Emitter, Register } from "src/base/common/event";
 import { DataBuffer } from "src/base/common/file/buffer";
-import { FileType, ICreateFileOptions, IDeleteFileOptions, IReadFileOptions, IResolvedFileStat, IResolveStatOptions, IWatchOptions, IWriteFileOptions } from "src/base/common/file/file";
-import { IReadableStream } from "src/base/common/file/stream";
-import { URI } from "src/base/common/file/uri";
+import { FileType, hasReadFileStreamCapability, ICreateFileOptions, IDeleteFileOptions, IReadFileOptions, IResolvedFileStat, IResolveStatOptions, IWatchOptions, IWriteFileOptions } from "src/base/common/file/file";
+import { IReadableStream, listenStream } from "src/base/common/file/stream";
+import { Schemas, URI } from "src/base/common/file/uri";
 import { ILogService } from "src/base/common/logger";
+import { CancellationToken } from "src/base/common/util/cacellation";
 import { IFileService } from "src/code/platform/files/common/fileService";
 import { ResourceChangeEvent } from "src/code/platform/files/node/resourceChangeEvent";
 import { IServerChannel } from "src/code/platform/ipc/common/channel";
+
+/** @internal */
+export type ReadableStreamDataFlowType<TData> = TData | Error | 'end';
 
 /**
  * @internal
@@ -52,7 +56,6 @@ export class MainFileChannel implements IServerChannel {
             case FileCommand.stat: return this.__stat(arg[0], arg[1]);
             case FileCommand.readFile: return this.__readFile(arg[0], arg[1]);
             case FileCommand.readDir: return this.__readDir(arg[0]);
-            case FileCommand.readFileStream: return this.__readFileStream(arg[0], arg[1]);
             case FileCommand.writeFile: return this.__writeFile(arg[0], arg[1], arg[2]);
             case FileCommand.exist: return this.__exist(arg[0]);
             case FileCommand.createFile: return this.__createFile(arg[0], arg[1], arg[2]);
@@ -66,8 +69,9 @@ export class MainFileChannel implements IServerChannel {
         throw new Error(`main file channel - unknown file command ${command}`);
     }
 
-    public registerListener(_id: string, event: FileCommand, arg?: any[]): Register<any> {
+    public registerListener(_id: string, event: FileCommand, arg: any[]): Register<any> {
         switch (event) {
+            case FileCommand.readFileStream: return this.__onReadFileStream(arg[0], arg[1]);
             case FileCommand.onDidResourceChange: return this.__onDidResourceChange();
             case FileCommand.onDidResourceClose: return this.__onDidResourceClose();
             case FileCommand.onDidAllResourceClosed: return this.__onDidAllResourceClosed();
@@ -90,8 +94,40 @@ export class MainFileChannel implements IServerChannel {
         return this.fileService.readDir(uri);
     }
 
-    private async __readFileStream(uri: URI, opts?: IReadFileOptions): Promise<IReadableStream<DataBuffer>> {
-        return this.fileService.readFileStream(uri, opts);
+    /**
+     * Reading file using stream needs to be handled specially when acrossing 
+     * IPC. The channels between client and server is using `registerListener` 
+     * API instead of using `callCommand` internally.
+     */
+    private __onReadFileStream(uri: URI, opts?: IReadFileOptions): Register<ReadableStreamDataFlowType<DataBuffer>> {
+        const token = new CancellationToken();
+        uri = URI.revive(uri);
+
+        const emitter = new Emitter<ReadableStreamDataFlowType<DataBuffer>>({
+            onLastListenerRemoved: () => token.cancel()
+        });
+
+        const provider = this.fileService.getProvider(Schemas.FILE);
+        if (!provider) {
+            throw new Error(`Cannot read file on stream since the corresponding provider with type ${Schemas.FILE} is not registered.`);
+        }
+
+        if (!hasReadFileStreamCapability(provider)) {
+            throw new Error('The registered provider does not has read file stream capability.');
+        }
+
+        const stream = provider.readFileStream(uri, opts);
+        listenStream(stream, {
+            onData: (data) => emitter.fire(DataBuffer.wrap(data)),
+            onError: (error) => emitter.fire(error),
+            onEnd: () => {
+                emitter.fire('end');
+                emitter.dispose();
+                token.cancel();
+            }
+        });
+
+        return emitter.registerListener;
     }
 
     private async __writeFile(uri: URI, bufferOrStream: DataBuffer | IReadableStream<DataBuffer>, opts?: IWriteFileOptions): Promise<void> {
@@ -123,10 +159,12 @@ export class MainFileChannel implements IServerChannel {
     }
 
     private __watch(uri: URI, opts?: IWatchOptions): void {
-        // TODO
+        
         /**
+         * // FIX
          * Each watching request from different processes should be archived.
-         * This can prevent when overlapping watch request from different processes.
+         * This can prevent when overlapping watch request from different 
+         * processes.
          */
 
         const raw = URI.toString(uri);

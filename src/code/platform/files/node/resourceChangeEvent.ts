@@ -44,6 +44,21 @@ export class ResourceChangeEvent {
         return this.__search(resource, true, typeFilter, isDirectory);
     }
 
+    // [static public methods]
+
+    public static revive(obj: any): ResourceChangeEvent {
+        if (!obj) {
+			return obj;
+		}
+
+		if (obj instanceof ResourceChangeEvent) {
+			return obj;
+		}
+
+		const uri = reviverRegistrant.revive<ResourceChangeEvent>(obj);
+		return uri;
+    }
+
     // [private helper methods]
 
     private __search(resource: URI, searchChildren: boolean, typeFilter?: ResourceChangeType[], isDirectory?: boolean): boolean {

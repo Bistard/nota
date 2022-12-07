@@ -253,7 +253,7 @@ export class PieceTable implements IPieceTable {
      *      - [0]: added buffer
      *      - [i]: original buffer, 1 <= i
      */
-    private _buffer: TextBuffer[];
+    private readonly _buffer: TextBuffer[];
 
     private _lastAddBufferPosition: IBufferPosition;
 

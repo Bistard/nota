@@ -50,7 +50,7 @@ export interface IScrollableWidgetOpts extends Required<IScrollableWidgetExtensi
  * @description Resolves the given possible incompleted option into a complete 
  * option with default values.
  * @param opts A scrollable widget option might not be completed.
-* @returns A resolved option {@link IScrollableWidgetOpts}
+ * @returns A resolved option {@link IScrollableWidgetOpts}
  */
 export function resolveScrollableWidgetExtensionOpts(opts: IScrollableWidgetExtensionOpts): IScrollableWidgetOpts {
     return {

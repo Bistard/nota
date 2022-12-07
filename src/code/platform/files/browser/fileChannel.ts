@@ -1,17 +1,16 @@
 import { Disposable, IDisposable, toDisposable } from "src/base/common/dispose";
+import { errorToMessage } from "src/base/common/error";
 import { Emitter } from "src/base/common/event";
 import { DataBuffer } from "src/base/common/file/buffer";
-import { FileType, ICreateFileOptions, IDeleteFileOptions, IFileSystemProvider, IReadFileOptions, IResolvedFileStat, IResolveStatOptions, IWatchOptions, IWriteFileOptions } from "src/base/common/file/file";
+import { FileOperationError, FileOperationErrorType, FileType, ICreateFileOptions, IDeleteFileOptions, IFileSystemProvider, IReadFileOptions, IResolvedFileStat, IResolveStatOptions, IWatchOptions, IWriteFileOptions } from "src/base/common/file/file";
 import { IReadableStream, newWriteableBufferStream } from "src/base/common/file/stream";
 import { URI } from "src/base/common/file/uri";
 import { Mutable } from "src/base/common/util/type";
 import { IFileService } from "src/code/platform/files/common/fileService";
-import { FileCommand } from "src/code/platform/files/electron/mainFileChannel";
+import { FileCommand, ReadableStreamDataFlowType } from "src/code/platform/files/electron/mainFileChannel";
 import { ResourceChangeEvent } from "src/code/platform/files/node/resourceChangeEvent";
 import { IIpcService } from "src/code/platform/ipc/browser/ipcService";
 import { IChannel, IpcChannel } from "src/code/platform/ipc/common/channel";
-import { IReviverRegistrant } from "src/code/platform/ipc/common/revive";
-import { REGISTRANTS } from "src/code/platform/registrant/common/registrant";
 
 export class BrowserFileChannel extends Disposable implements IFileService {
 
@@ -30,7 +29,6 @@ export class BrowserFileChannel extends Disposable implements IFileService {
 
     // [field]
 
-    private static readonly registrant = REGISTRANTS.get(IReviverRegistrant);
     private readonly _channel: IChannel;
 
     // [constructor]
@@ -43,14 +41,14 @@ export class BrowserFileChannel extends Disposable implements IFileService {
             if (event instanceof Error) {
                 throw event;
             } 
-            this._onDidResourceChange.fire(BrowserFileChannel.registrant.revive(event));
+            this._onDidResourceChange.fire(ResourceChangeEvent.revive(event));
         }));
 
         this.__register(this._channel.registerListener<URI>(FileCommand.onDidResourceClose)(event => {
             if (event instanceof Error) {
                 throw event;
             }
-            this._onDidResourceClose.fire(BrowserFileChannel.registrant.revive(event));
+            this._onDidResourceClose.fire(URI.revive(event));
         }));
 
         this.__register(this._channel.registerListener<void | Error>(FileCommand.onDidAllResourceClosed)(error => {
@@ -75,13 +73,14 @@ export class BrowserFileChannel extends Disposable implements IFileService {
         const res: IResolvedFileStat = await this._channel.callCommand(FileCommand.stat, [uri, opts]);
         
         const revive = (stat: IResolvedFileStat) => {
-            (<Mutable<URI>>stat.uri) = BrowserFileChannel.registrant.revive(stat.uri);
+            (<Mutable<URI>>stat.uri) = URI.revive(stat.uri);
             for (const child of (stat?.children ?? [])) {
                 revive(child);
             }
         };
         revive(res);
-        return Promise.resolve(BrowserFileChannel.registrant.revive(res));
+
+        return res;
     }
  
     public readFile(uri: URI, opts?: IReadFileOptions): Promise<DataBuffer> {
@@ -93,13 +92,37 @@ export class BrowserFileChannel extends Disposable implements IFileService {
     }
  
     public async readFileStream(uri: URI, opts?: IReadFileOptions | undefined): Promise<IReadableStream<DataBuffer>> {
-        const wrapperStream = newWriteableBufferStream();
+        const stream = newWriteableBufferStream();
 
-        // TODO
-        // FIX: readFileStream does not work
-        const listener = this._channel.registerListener(FileCommand.readFileStream, [uri, opts]);
+        const listener = this._channel.registerListener<ReadableStreamDataFlowType<DataBuffer>>(FileCommand.readFileStream, [uri, opts]);
+        const disconnect = listener((flowingData) => {
+            
+            // normal data
+            if (flowingData instanceof DataBuffer) {
+                stream.write(flowingData);
+            }
 
-        return wrapperStream;
+            // end or error
+            else {
+                if (flowingData === 'end') {
+                    stream.end();
+                }
+    
+                else {
+                    let error = flowingData;
+                    if (!(error instanceof Error)) {
+                        error = new FileOperationError('', FileOperationErrorType.UNKNOWN, (<any>error).nestedError && errorToMessage((<any>error).nestedError));
+                    }
+
+                    stream.error(error);
+                    stream.end();
+                }
+
+                disconnect.dispose();
+            }
+        });
+
+        return stream;
     }
  
     public writeFile(uri: URI, bufferOrStream: DataBuffer | IReadableStream<DataBuffer>, opts?: IWriteFileOptions): Promise<void> {

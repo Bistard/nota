@@ -32,9 +32,7 @@ import { TextBuffer } from "src/editor/model/textBuffer";
 
     // [constructor]
 
-    constructor() {
-
-    }
+    constructor() {}
 
     // [public methods]
 

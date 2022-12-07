@@ -1,11 +1,15 @@
 import { Disposable } from "src/base/common/dispose";
 import { Emitter, Register } from "src/base/common/event";
-import { mockType } from "src/base/common/util/type";
 import { createService } from "src/code/platform/instantiation/common/decorator";
 import { IInstantiationService } from "src/code/platform/instantiation/common/instantiation";
 
 export const ILogService = createService<ILogService>('log-service');
 export const DEFAULT_LOG_LEVEL = LogLevel.INFO;
+
+export interface ILogEvent<T> {
+    readonly data: T;
+    readonly level: LogLevel;
+}
 
 /**
  * Representing the maximum logging level of a {@link ILoggerService} or
@@ -334,25 +338,25 @@ export class BufferLogger extends AbstractLogger implements ILogService {
 
 export type LogFunction = (logger: ILogger, level: LogLevel, message: string | Error, args: any[]) => void;
 
-export function defaultLog(logger: ILogger, level: LogLevel, message: string | Error, args: any[]): void {
+export function defaultLog(logger: ILogger, level: LogLevel, message: string | Error, args: any[] = []): void {
     switch (level) {
         case LogLevel.TRACE:
-            logger.trace(mockType(message), ...args);
+            logger.trace(<any>message, ...args);
             break;
         case LogLevel.DEBUG: 
-            logger.debug(mockType(message), ...args);
+            logger.debug(<any>message, ...args);
             break;
         case LogLevel.INFO: 
-            logger.info(mockType(message), ...args);
+            logger.info(<any>message, ...args);
             break;
         case LogLevel.WARN: 
-            logger.warn(mockType(message), ...args);
+            logger.warn(<any>message, ...args);
             break;
         case LogLevel.ERROR: 
-            logger.error(mockType(message), ...args);
+            logger.error(<any>message, ...args);
             break;
         case LogLevel.FATAL: 
-            logger.fatal(mockType(message), ...args);
+            logger.fatal(<any>message, ...args);
             break;
     }
 }

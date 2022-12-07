@@ -1,5 +1,5 @@
 import { Component, IComponent } from 'src/code/browser/service/component/component';
-import { Emitter, Register } from 'src/base/common/event';
+import { Emitter, Register, RelayEmitter } from 'src/base/common/event';
 import { createService } from 'src/code/platform/instantiation/common/decorator';
 import { IComponentService } from 'src/code/browser/service/component/componentService';
 import { IInstantiationService } from 'src/code/platform/instantiation/common/instantiation';
@@ -15,12 +15,12 @@ export interface ISideViewChangeEvent {
     /**
      * The current id of the view that is displaying.
      */
-    readonly id: string;
+    readonly id?: string;
 
     /**
      * The current displaying view.
      */
-    readonly view: ISideView;
+    readonly view?: ISideView;
 }
 
 /**
@@ -31,7 +31,7 @@ export interface ISideViewService extends IComponent {
     /** 
      * Events fired when the current side view has changed. 
      */
-    onDidViewChange: Register<ISideViewChangeEvent>;
+    readonly onDidViewChange: Register<ISideViewChangeEvent>;
 
     /**
      * @description Register a view with the corresponding ID. The view will not
@@ -168,6 +168,7 @@ export class SideViewService extends Component implements ISideViewService {
         if (this._currView) {
             this.__unloadView(this._currView);
         }
+        this._onDidViewChange.fire({ id: undefined, view: undefined });
     }
  
     public getView<T extends ISideView>(id: string): T | undefined {
@@ -294,8 +295,6 @@ export abstract class SideView extends Component implements ISideView {
 
     // TODO: try to use a splitView. So that we can use a sash instead of manually set the border.
     protected readonly _titlePart!: SideViewTitlePart;
-    
-    // [abstraction]
 
     // [protected override methods]
 

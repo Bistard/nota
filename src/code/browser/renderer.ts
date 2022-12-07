@@ -1,5 +1,9 @@
-import "src/code/browser/registrant";
+import "src/code/browser/workbench/workspace/editor/editor";
 import { Workbench } from "src/code/browser/workbench/workbench";
+import { registerBrowserDefaultConfiguration } from "src/code/platform/configuration/browser/configuration.register";
+import { rendererServiceRegistrations } from "src/code/browser/service.register";
+import { workbenchShortcutRegistrations } from "src/code/browser/service/workbench/shortcut.register";
+import { workbenchCommandRegistrations } from "src/code/browser/service/workbench/command.register";
 import { IInstantiationService, InstantiationService } from "src/code/platform/instantiation/common/instantiation";
 import { getSingletonServiceDescriptors, ServiceCollection } from "src/code/platform/instantiation/common/serviceCollection";
 import { waitDomToBeLoad } from "src/base/browser/basic/dom";
@@ -46,10 +50,13 @@ class RendererInstance extends Disposable {
     private async run(): Promise<void> {
         ErrorHandler.setUnexpectedErrorExternalCallback((error: any) => console.error(error));
 
-        let instantiaionService!: IInstantiationService;
+        let instantiaionService: IInstantiationService | undefined;
         try {
             // retrieve the exposed APIs from preload.js
             initExposedElectronAPIs();
+
+            // init all kinds of registrations by registrants
+            this.initRegistrations();
 
             // core service construction
             instantiaionService = this.createCoreServices();
@@ -69,8 +76,13 @@ class RendererInstance extends Disposable {
             browser.init();
         } 
         catch (error: any) {
-            const logService = instantiaionService?.getService(ILogService);
-            logService.error(error);
+            // try to log out the error message
+            if (instantiaionService) {
+                try {
+                    const logService = instantiaionService.getService(ILogService);
+                    logService.error(error);
+                } catch {}
+            }
             ErrorHandler.onUnexpectedError(error);
         }
     }
@@ -157,6 +169,13 @@ class RendererInstance extends Disposable {
             configService.init(environmentService.logLevel),
             i18nService.init(),
         ]);
+    }
+
+    private initRegistrations(): void {
+        rendererServiceRegistrations();
+        registerBrowserDefaultConfiguration();
+        workbenchShortcutRegistrations();
+        workbenchCommandRegistrations();
     }
 }
 

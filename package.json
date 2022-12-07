@@ -53,23 +53,11 @@
     "webpack-cli": "^4.7.2"
   },
   "dependencies": {
-    "@milkdown/core": "^6.5.0",
-    "@milkdown/plugin-block": "^6.5.0",
-    "@milkdown/plugin-clipboard": "^6.5.0",
-    "@milkdown/plugin-cursor": "^6.5.0",
-    "@milkdown/plugin-emoji": "^6.5.1",
-    "@milkdown/plugin-history": "^6.5.0",
-    "@milkdown/plugin-indent": "^6.5.0",
-    "@milkdown/plugin-listener": "^6.5.0",
-    "@milkdown/plugin-math": "^6.5.0",
-    "@milkdown/plugin-menu": "^6.5.0",
-    "@milkdown/plugin-prism": "^6.5.0",
-    "@milkdown/plugin-slash": "^6.5.0",
-    "@milkdown/plugin-tooltip": "^6.5.0",
-    "@milkdown/plugin-upload": "^6.5.0",
-    "@milkdown/preset-commonmark": "^6.5.1",
-    "@milkdown/preset-gfm": "^6.5.0",
-    "@milkdown/theme-nord": "^6.5.0",
-    "chokidar": "^3.5.3"
+    "chokidar": "^3.5.3",
+    "codemirror": "^6.0.1",
+    "prosemirror-model": "^1.18.1",
+    "prosemirror-state": "^1.4.2",
+    "prosemirror-transform": "^1.7.0",
+    "prosemirror-view": "^1.29.0"
   }
 }

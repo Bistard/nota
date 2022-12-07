@@ -142,9 +142,7 @@ function getPlugins(opts) {
                 onEnd({ compilation }) {
                     console.log('end detecting webpack modules cycles');
                     if (detectedCycleCount > MAX_CYCLES) {
-                        compilation.errors.push(new Error(
-                            `Detected ${detectedCycleCount} cycles which exceeds configured limit of ${__MAX_CYCLES}`
-                        ));
+                        compilation.errors.push(new Error(`Detected ${detectedCycleCount} cycles which exceeds configured limit of ${MAX_CYCLES}`));
                     }
                 },
             }
