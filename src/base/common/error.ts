@@ -140,6 +140,8 @@ const UNKNOWN_MESSAGE = 'An unknown error occured. Please consult the log for mo
  * @param error The given error.
  * @param verbose If output the stack trace.
  * @returns A string formated error message.
+ * 
+ * @note This function never throws.
  */
 export function errorToMessage(error: any, verbose: boolean = false): string {
     if (!error) {

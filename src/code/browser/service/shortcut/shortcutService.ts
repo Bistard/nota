@@ -114,9 +114,7 @@ export class ShortcutService extends Disposable implements IShortcutService {
 
             // executing the coressponding command
             this.commandService.executeCommand(shortcut.commandID, ...(shortcut.commandArgs ?? []))
-            .catch(() => {
-                this.logService.warn(`The shortcut '${pressed.toString()}' binding to the command '${shortcut!.commandID}' is not found.`);
-            });
+            .catch();
         }));
         
         // When the browser side is ready, we update registrations by reading from disk.
