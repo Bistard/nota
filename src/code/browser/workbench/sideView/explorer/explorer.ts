@@ -3,7 +3,6 @@ import { IComponentService } from 'src/code/browser/service/component/componentS
 import { Ii18nService } from 'src/code/platform/i18n/i18n';
 import { Section } from 'src/code/platform/section';
 import { addDisposableListener, EventType, Orientation } from 'src/base/browser/basic/dom';
-import { IEditorService } from 'src/code/browser/workbench/workspace/editor/editor';
 import { IBrowserDialogService, IDialogService } from 'src/code/platform/dialog/browser/browserDialogService';
 import { IThemeService } from 'src/code/browser/service/theme/themeService';
 import { ILogService } from 'src/base/common/logger';
@@ -24,6 +23,7 @@ import { WidgetBar } from 'src/base/browser/secondary/widgetBar/widgetBar';
 import { Button } from 'src/base/browser/basic/button/button';
 import { RGBA } from 'src/base/common/color';
 import { ClassicOpenEvent, ExplorerViewID, IExplorerViewService } from 'src/code/browser/workbench/sideView/explorer/explorerService';
+import { IEditorService } from 'src/code/browser/workbench/workspace/editor/editorService';
 
 /**
  * @class TODO: complete comments

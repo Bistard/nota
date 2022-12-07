@@ -1,9 +1,8 @@
 import { URI } from "src/base/common/file/uri";
 import { IComponentService } from "src/code/browser/service/component/componentService";
 import { IThemeService } from "src/code/browser/service/theme/themeService";
-import { Component, IComponent } from "src/code/browser/service/component/component";
+import { Component,  } from "src/code/browser/service/component/component";
 import { IFileService } from "src/code/platform/files/common/fileService";
-import { createService } from "src/code/platform/instantiation/common/decorator";
 import { ServiceDescriptor } from "src/code/platform/instantiation/common/descriptor";
 import { IInstantiationService } from "src/code/platform/instantiation/common/instantiation";
 import { registerSingleton } from "src/code/platform/instantiation/common/serviceCollection";
@@ -17,23 +16,7 @@ import { IConfigService } from "src/code/platform/configuration/common/abstractC
 import { BuiltInConfigScope } from "src/code/platform/configuration/common/configRegistrant";
 import { IEditorWidgetOptions } from "src/editor/common/configuration/editorConfiguration";
 import { deepCopy } from "src/base/common/util/object";
-import { editorCommandRegistrantions } from "src/editor/common/command/editorCommand";
-
-export const IEditorService = createService<IEditorService>('editor-service');
-
-export interface IEditorService extends IComponent {
-
-    /**
-     * The actual editor widget.
-     */
-    readonly editor: IEditorWidget | null;
-
-    /**
-     * @description Openning a source given the URI in the editor.
-     * @param source The {@link URI} or an RUI in the string form.
-     */
-    openSource(source: URI | string): void;
-}
+import { IEditorService } from "src/code/browser/workbench/workspace/editor/editorService";
 
 export class Editor extends Component implements IEditorService {
 
@@ -54,7 +37,6 @@ export class Editor extends Component implements IEditorService {
         @IConfigService private readonly configService: IConfigService,
     ) {
         super('editor', null, themeService, componentService);
-        editorCommandRegistrantions();
     }
 
     // [getter]

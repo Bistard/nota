@@ -3,8 +3,8 @@ import { Component, IComponent } from "src/code/browser/service/component/compon
 import { TitleBar } from "src/code/browser/workbench/workspace/titleBar/titleBar";
 import { createService } from "src/code/platform/instantiation/common/decorator";
 import { IInstantiationService } from "src/code/platform/instantiation/common/instantiation";
-import { Editor, IEditorService } from "src/code/browser/workbench/workspace/editor/editor";
 import { IThemeService } from "src/code/browser/service/theme/themeService";
+import { IEditorService } from "src/code/browser/workbench/workspace/editor/editorService";
 
 export const IWorkspaceService = createService<IWorkspaceService>('workspace-service');
 
@@ -20,7 +20,7 @@ export class WorkspaceComponent extends Component implements IWorkspaceService {
     // [field]
 
     private titleBarComponent!: TitleBar;
-    private editorComponent!: Editor;
+    private editorComponent!: IEditorService;
 
     // [constructor]
 
@@ -55,7 +55,7 @@ export class WorkspaceComponent extends Component implements IWorkspaceService {
     }
 
     private _createEditor(): void {
-        this.editorComponent = this.instantiationService.getOrCreateService(IEditorService) as Editor;
+        this.editorComponent = this.instantiationService.getOrCreateService(IEditorService);
         this.editorComponent.create(this);
     }
 }

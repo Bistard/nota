@@ -7,26 +7,27 @@ export const enum EditorCommandsEnum {
     deleteCurrentSelection = 'delete-current-selection',
 }
 
-export namespace EditorCommands {
-    
-    export const deleteCurrentSelection = (new class extends EditorCommand {
-        constructor() {
-            super({
-                id: EditorCommandsEnum.deleteCurrentSelection,
-                when: EditorContextKeys.editorFocusedContext,
-                description: 'Delete the current editor selection.',
-            });
-        }
+const deleteCurrentSelectionCmd = (new class extends EditorCommand {
+    constructor() {
+        super({
+            id: EditorCommandsEnum.deleteCurrentSelection,
+            when: EditorContextKeys.editorFocusedContext,
+            description: 'Delete the current editor selection.',
+        });
+    }
 
-        protected command(provider: IServiceProvider, editor: IEditorWidget, { state, dispatch }: IEditorCommandEvent): void {
-            console.log('command reached'); // TEST
-            
-            if (state.selection.empty) {
-                return;
-            }
-            if (dispatch) {
-                dispatch(state.tr.deleteSelection().scrollIntoView());
-            }
+    protected command(provider: IServiceProvider, editor: IEditorWidget, { state, dispatch }: IEditorCommandEvent): void {
+        console.log('command reached'); // TEST
+        
+        if (state.selection.empty) {
+            return;
         }
-    });
+        if (dispatch) {
+            dispatch(state.tr.deleteSelection().scrollIntoView());
+        }
+    }
+});
+
+export namespace EditorCommands {
+    export const deleteCurrentSelection = deleteCurrentSelectionCmd;
 }

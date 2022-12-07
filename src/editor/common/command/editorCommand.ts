@@ -1,5 +1,5 @@
 import { IShortcutRegistrant, IShortcutRegistration } from "src/code/browser/service/shortcut/shortcutRegistrant";
-import { IEditorService } from "src/code/browser/workbench/workspace/editor/editor";
+import { IEditorService } from "src/code/browser/workbench/workspace/editor/editorService";
 import { ICommandRegistrant, ICommandSchema } from "src/code/platform/command/common/commandRegistrant";
 import { ContextKeyExpr, CreateContextKeyExpr } from "src/code/platform/context/common/contextKeyExpr";
 import { IContextService } from "src/code/platform/context/common/contextService";
@@ -33,14 +33,6 @@ export interface IEditorCommandEvent {
     readonly view?: ProseEditorView;
 }
 
-const COMMANDS_SET = new Map<string, EditorCommand>();
-
-export function editorCommandRegistrantions(): void {
-    for (const [id, command] of COMMANDS_SET) {
-        command.register();
-    }
-}
-
 export abstract class EditorCommand {
 
     // [field]
@@ -51,7 +43,23 @@ export abstract class EditorCommand {
 
     constructor(schema: IEditorCommandSchema) {
         this._schema = schema;
-        COMMANDS_SET.set(this.id, this);
+        const actualSchema = { 
+            ...schema, 
+            overwrite: true,
+        };
+
+        console.log('[command ctor]');
+
+        // register as the shortcut if needed
+        if (schema.shortcutOptions) {
+            shortcutRegistrant.register({
+                ...schema.shortcutOptions,
+                when: CreateContextKeyExpr.And(schema.when, schema.shortcutOptions.when),
+            });
+        }
+        
+        // command registration
+        commandRegistrant.registerCommand(actualSchema, this.runCommand.bind(this));
     }
 
     // [protected abstract methods]
@@ -71,25 +79,6 @@ export abstract class EditorCommand {
 
     get id(): string {
         return this._schema.id;
-    }
-
-    public register(): void {
-        const schema = this._schema;
-        const actualSchema = { 
-            ...schema, 
-            overwrite: true,
-        };
-
-        // register as the shortcut if needed
-        if (schema.shortcutOptions) {
-            shortcutRegistrant.register({
-                ...schema.shortcutOptions,
-                when: CreateContextKeyExpr.And(schema.when, schema.shortcutOptions.when),
-            });
-        }
-        
-        // command registration
-        commandRegistrant.registerCommand(actualSchema, this.runCommand.bind(this));
     }
 
     public runCommand(provider: IServiceProvider, event: IEditorCommandEvent, ...args: any[]): void {
