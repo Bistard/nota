@@ -1,6 +1,6 @@
-import { FocusTracker } from "src/base/browser/basic/focusTracker";
 import { Disposable } from "src/base/common/dispose";
 import { Register } from "src/base/common/event";
+import { IEditorEventBroadcaster, IOnBeforeRenderEvent, IOnClickEvent, IOnDidClickEvent, IOnDidDoubleClickEvent, IOnDidTripleClickEvent, IOnDoubleClickEvent, IOnDropEvent, IOnKeydownEvent, IOnKeypressEvent, IOnPasteEvent, IOnTextInputEvent, IOnTripleClickEvent } from "src/editor/common/eventBroadcaster";
 import { ProseEditorState } from "src/editor/common/proseMirror";
 import { IRenderEvent } from "src/editor/common/viewModel";
 import { ViewContext } from "src/editor/view/editorView";
@@ -8,35 +8,12 @@ import { ViewContext } from "src/editor/view/editorView";
 /**
  * Every {@link IBaseEditor} might has implement a core internally.
  */
-export interface IEditorCore extends Disposable {
+export interface IEditorCore extends IEditorEventBroadcaster {
 
     /**
      * The current editor state.
      */
     readonly state: ProseEditorState;
-
-    /** 
-	 * Fires when the component is either focused or blured (true represents 
-	 * focused). 
-	 */
-    readonly onDidFocusChange: Register<boolean>;
-
-    /**
-     * Event fires before next rendering on DOM tree.
-     */
-    readonly onBeforeRender: Register<void>;
-
-    readonly onClick: Register<unknown>;
-    readonly onDidClick: Register<unknown>;
-    readonly onDoubleClick: Register<unknown>;
-    readonly onDidDoubleClick: Register<unknown>;
-    readonly onTripleClick: Register<unknown>;
-    readonly onDidTripleClick: Register<unknown>;
-    readonly onKeydown: Register<unknown>;
-    readonly onKeypress: Register<unknown>;
-    readonly onTextInput: Register<unknown>;
-    readonly onPaste: Register<unknown>;
-    readonly onDrop: Register<unknown>;
 
     /**
      * @description If the content of the window is directly editable.
@@ -80,50 +57,35 @@ export interface IBaseEditor extends IEditorCore {
     updateContent(event: IRenderEvent): void;
 }
 
-export abstract class BaseEditor extends Disposable implements IBaseEditor {
+export abstract class BaseEditor<TCore extends IEditorCore> extends Disposable {
 
     // [field]
 
     private readonly _container: HTMLElement;
     protected readonly _context: ViewContext;
+    protected readonly _core: TCore;
 
     // [constructor]
 
-    constructor(container: HTMLElement, context: ViewContext, type: string) {
+    constructor(container: HTMLElement, context: ViewContext, type: string, initState?: ProseEditorState) {
         super();
         this._container = container;
         this._context = context;
         container.classList.add(type);
+        initState = initState ?? this.__createDefaultInitState(context);
+
+        this._core = this.createEditorCore(container, context, initState);
+        this.__register(this._core);
     }
-
-    // [event]
-
-    public abstract readonly onDidFocusChange: Register<boolean>;
-    public abstract readonly onBeforeRender: Register<void>;
-    public abstract readonly onClick: Register<unknown>;
-    public abstract readonly onDidClick: Register<unknown>;
-    public abstract readonly onDoubleClick: Register<unknown>;
-    public abstract readonly onDidDoubleClick: Register<unknown>;
-    public abstract readonly onTripleClick: Register<unknown>;
-    public abstract readonly onDidTripleClick: Register<unknown>;
-    public abstract readonly onKeydown: Register<unknown>;
-    public abstract readonly onKeypress: Register<unknown>;
-    public abstract readonly onTextInput: Register<unknown>;
-    public abstract readonly onPaste: Register<unknown>;
-    public abstract readonly onDrop: Register<unknown>;
 
     // [public abstract methods]
 
+    protected abstract createEditorCore(container: HTMLElement, context: ViewContext, initState: ProseEditorState): TCore;
     public abstract updateContent(event: IRenderEvent): void;
-
     public abstract isEditable(): boolean;
-
     public abstract destroy(): void;
-
     public abstract isDestroyed(): boolean;
-
     public abstract isFocused(): boolean;
-
     public abstract focus(): void;
 
     // [public methods]
@@ -132,5 +94,14 @@ export abstract class BaseEditor extends Disposable implements IBaseEditor {
 
     public get container(): HTMLElement {
         return this._container;
+    }
+
+    // [private helper methods]
+
+    private __createDefaultInitState(context: ViewContext): ProseEditorState {
+        return ProseEditorState.create({
+            schema: context.viewModel.getSchema(),
+            plugins: [],
+        });
     }
 }

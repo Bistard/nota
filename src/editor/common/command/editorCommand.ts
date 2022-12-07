@@ -5,7 +5,7 @@ import { ContextKeyExpr, CreateContextKeyExpr } from "src/code/platform/context/
 import { IContextService } from "src/code/platform/context/common/contextService";
 import { IServiceProvider } from "src/code/platform/instantiation/common/instantiation";
 import { REGISTRANTS } from "src/code/platform/registrant/common/registrant";
-import { ProseEditorState, ProseEditorView, Transaction } from "src/editor/common/proseMirror";
+import { ProseEditorState, ProseEditorView, ProseTransaction } from "src/editor/common/proseMirror";
 import { IEditorWidget } from "src/editor/editorWidget";
 
 const shortcutRegistrant = REGISTRANTS.get(IShortcutRegistrant);
@@ -29,7 +29,7 @@ export interface IEditorCommandSchema extends Omit<ICommandSchema, 'overwrite'> 
 
 export interface IEditorCommandEvent {
     readonly state: ProseEditorState;
-    readonly dispatch?: (tr: Transaction) => void;
+    readonly dispatch?: (tr: ProseTransaction) => void;
     readonly view?: ProseEditorView;
 }
 
@@ -47,8 +47,6 @@ export abstract class EditorCommand {
             ...schema, 
             overwrite: true,
         };
-
-        console.log('[command ctor]');
 
         // register as the shortcut if needed
         if (schema.shortcutOptions) {

@@ -23,35 +23,13 @@ import { EditorViewModel } from "src/editor/viewModel/editorViewModel";
 import { IContextService } from "src/code/platform/context/common/contextService";
 import { IContextKey } from "src/code/platform/context/common/contextKey";
 import "src/editor/common/command/command.register";
+import { IEditorEventBroadcaster, IOnBeforeRenderEvent, IOnClickEvent, IOnDidClickEvent, IOnDidDoubleClickEvent, IOnDidTripleClickEvent, IOnDoubleClickEvent, IOnDropEvent, IOnKeydownEvent, IOnKeypressEvent, IOnPasteEvent, IOnTextInputEvent, IOnTripleClickEvent } from "src/editor/common/eventBroadcaster";
 
 /**
  * An interface only for {@link EditorWidget}.
  */
-export interface IEditorWidget extends IDisposable {
+export interface IEditorWidget extends IEditorEventBroadcaster {
     
-    /** 
-	 * Fires when the component is either focused or blured (true represents 
-	 * focused). 
-	 */
-    readonly onDidFocusChange: Register<boolean>;
-
-    /**
-     * Fires right before the rendering happens.
-     */
-    readonly onBeforeRender: Register<void>;
-
-    readonly onClick: Register<unknown>;
-    readonly onDidClick: Register<unknown>;
-    readonly onDoubleClick: Register<unknown>;
-    readonly onDidDoubleClick: Register<unknown>;
-    readonly onTripleClick: Register<unknown>;
-    readonly onDidTripleClick: Register<unknown>;
-    readonly onKeydown: Register<unknown>;
-    readonly onKeypress: Register<unknown>;
-    readonly onTextInput: Register<unknown>;
-    readonly onPaste: Register<unknown>;
-    readonly onDrop: Register<unknown>;
-
     /**
      * @description Opens the source in the editor.
      * @param source The source in URI form.
@@ -96,40 +74,40 @@ export class EditorWidget extends Disposable implements IEditorWidgetFriendship 
     private readonly _onDidFocusChange = this.__register(new Emitter<boolean>());
     public readonly onDidFocusChange = this._onDidFocusChange.registerListener;
 
-    private readonly _onBeforeRender = this.__register(new Emitter<void>());
+    private readonly _onBeforeRender = this.__register(new Emitter<IOnBeforeRenderEvent>());
     public readonly onBeforeRender = this._onBeforeRender.registerListener;
 
-    private readonly _onClick = this.__register(new Emitter<unknown>());
+    private readonly _onClick = this.__register(new Emitter<IOnClickEvent>());
     public readonly onClick = this._onClick.registerListener;
 
-    private readonly _onDidClick = this.__register(new Emitter<unknown>());
+    private readonly _onDidClick = this.__register(new Emitter<IOnDidClickEvent>());
     public readonly onDidClick = this._onDidClick.registerListener;
 
-    private readonly _onDoubleClick = this.__register(new Emitter<unknown>());
+    private readonly _onDoubleClick = this.__register(new Emitter<IOnDoubleClickEvent>());
     public readonly onDoubleClick = this._onDoubleClick.registerListener;
 
-    private readonly _onDidDoubleClick = this.__register(new Emitter<unknown>());
+    private readonly _onDidDoubleClick = this.__register(new Emitter<IOnDidDoubleClickEvent>());
     public readonly onDidDoubleClick = this._onDidDoubleClick.registerListener;
 
-    private readonly _onTripleClick = this.__register(new Emitter<unknown>());
+    private readonly _onTripleClick = this.__register(new Emitter<IOnTripleClickEvent>());
     public readonly onTripleClick = this._onTripleClick.registerListener;
 
-    private readonly _onDidTripleClick = this.__register(new Emitter<unknown>());
+    private readonly _onDidTripleClick = this.__register(new Emitter<IOnDidTripleClickEvent>());
     public readonly onDidTripleClick = this._onDidTripleClick.registerListener;
 
-    private readonly _onKeydown = this.__register(new Emitter<unknown>());
+    private readonly _onKeydown = this.__register(new Emitter<IOnKeydownEvent>());
     public readonly onKeydown = this._onKeydown.registerListener;
 
-    private readonly _onKeypress = this.__register(new Emitter<unknown>());
+    private readonly _onKeypress = this.__register(new Emitter<IOnKeypressEvent>());
     public readonly onKeypress = this._onKeypress.registerListener;
     
-    private readonly _onTextInput = this.__register(new Emitter<unknown>());
+    private readonly _onTextInput = this.__register(new Emitter<IOnTextInputEvent>());
     public readonly onTextInput = this._onTextInput.registerListener;
 
-    private readonly _onPaste = this.__register(new Emitter<unknown>());
+    private readonly _onPaste = this.__register(new Emitter<IOnPasteEvent>());
     public readonly onPaste = this._onPaste.registerListener;
 
-    private readonly _onDrop = this.__register(new Emitter<unknown>());
+    private readonly _onDrop = this.__register(new Emitter<IOnDropEvent>());
     public readonly onDrop = this._onDrop.registerListener;
 
     // [constructor]
@@ -233,7 +211,7 @@ export class EditorWidget extends Disposable implements IEditorWidgetFriendship 
         this.__register(this.lifecycleService.onBeforeQuit(() => this.__saveEditorOptions()));
 
         this.__register(this.configService.onDidChange<IEditorWidgetOptions>(BuiltInConfigScope.User, 'editor', (newOption) => {
-            console.log('[on did change config]', newOption);
+            console.log('[on did change config]', newOption); // TEST
             this.__updateOptions(this._options, newOption);
         }));
     }

@@ -7,6 +7,7 @@ import { EditorRenderType, IEditorViewModel, IRenderEvent } from "src/editor/com
 import { EditorOptionsType } from "src/editor/common/configuration/editorConfiguration";
 import { RichtextEditor } from "src/editor/view/viewPart/editors/richtextEditor/richtextEditor";
 import { IBaseEditor } from "src/editor/view/viewPart/editors/baseEditor";
+import { IOnBeforeRenderEvent, IOnClickEvent, IOnDidClickEvent, IOnDidDoubleClickEvent, IOnDidTripleClickEvent, IOnDoubleClickEvent, IOnDropEvent, IOnKeydownEvent, IOnKeypressEvent, IOnPasteEvent, IOnTextInputEvent, IOnTripleClickEvent } from "src/editor/common/eventBroadcaster";
 
 export class ViewContext {
     constructor(
@@ -32,19 +33,18 @@ export class EditorView extends Disposable implements IEditorView {
     public readonly onLog = this._onLog.registerListener;
     
     public readonly onDidFocusChange: Register<boolean>;
-
-    public readonly onBeforeRender: Register<void>;
-    public readonly onClick: Register<unknown>;
-    public readonly onDidClick: Register<unknown>;
-    public readonly onDoubleClick: Register<unknown>;
-    public readonly onDidDoubleClick: Register<unknown>;
-    public readonly onTripleClick: Register<unknown>;
-    public readonly onDidTripleClick: Register<unknown>;
-    public readonly onKeydown: Register<unknown>;
-    public readonly onKeypress: Register<unknown>;
-    public readonly onTextInput: Register<unknown>;
-    public readonly onPaste: Register<unknown>;
-    public readonly onDrop: Register<unknown>;
+    public readonly onBeforeRender: Register<IOnBeforeRenderEvent>;
+    public readonly onClick: Register<IOnClickEvent>;
+    public readonly onDidClick: Register<IOnDidClickEvent>;
+    public readonly onDoubleClick: Register<IOnDoubleClickEvent>;
+    public readonly onDidDoubleClick: Register<IOnDidDoubleClickEvent>;
+    public readonly onTripleClick: Register<IOnTripleClickEvent>;
+    public readonly onDidTripleClick: Register<IOnDidTripleClickEvent>;
+    public readonly onKeydown: Register<IOnKeydownEvent>;
+    public readonly onKeypress: Register<IOnKeypressEvent>;
+    public readonly onTextInput: Register<IOnTextInputEvent>;
+    public readonly onPaste: Register<IOnPasteEvent>;
+    public readonly onDrop: Register<IOnDropEvent>;
 
     // [constructor]
     
