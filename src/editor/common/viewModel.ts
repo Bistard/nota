@@ -1,6 +1,7 @@
 import { Disposable } from "src/base/common/dispose";
 import { Register } from "src/base/common/event";
 import { ILogEvent } from "src/base/common/logger";
+import { IEditorExtension } from "src/editor/common/extension/editorExtension";
 import { IEditorModel } from "src/editor/common/model";
 import { ProseNode } from "src/editor/common/proseMirror";
 import { EditorSchema } from "src/editor/viewModel/schema";
@@ -30,6 +31,8 @@ export interface IEditorViewModel extends Disposable {
     readonly onDidChangeRenderMode: Register<EditorRenderType>;
 
     getSchema(): EditorSchema;
+
+    getExtensions(): IEditorExtension[];
 
     /**
      * @description Updates the options of the editor view model.

@@ -37,12 +37,12 @@ export interface IOnDidTripleClickEvent extends IOnDidClickEventBase {}
 
 export interface IOnKeydownEvent {
     readonly view: ProseEditorView;
-    readonly browserEvent: IStandardKeyboardEvent;
+    readonly event: IStandardKeyboardEvent;
 }
 
 export interface IOnKeypressEvent {
     readonly view: ProseEditorView;
-    readonly browserEvent: IStandardKeyboardEvent;
+    readonly event: IStandardKeyboardEvent;
 }
 
 export interface IOnTextInputEvent {
@@ -309,7 +309,7 @@ export class EditorEventBroadcaster extends Disposable implements IEditorEventBr
         property.handleKeyDown = (view, event) => {
             this._onKeydown.fire({
                 view: view,
-                browserEvent: createStandardKeyboardEvent(event),
+                event: createStandardKeyboardEvent(event),
             });
         };
         
@@ -317,7 +317,7 @@ export class EditorEventBroadcaster extends Disposable implements IEditorEventBr
         property.handleKeyPress = (view, event) => {
             this._onKeypress.fire({
                 view: view,
-                browserEvent: createStandardKeyboardEvent(event),
+                event: createStandardKeyboardEvent(event),
             });
         };
         

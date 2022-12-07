@@ -1,3 +1,4 @@
+import "src/editor/contrib/contribution.register";
 import "src/editor/common/command/command.register";
 import { FastElement } from "src/base/browser/basic/fastElement";
 import { Disposable, DisposableManager, IDisposable } from "src/base/common/dispose";
@@ -190,8 +191,18 @@ export class EditorWidget extends Disposable implements IEditorWidgetFriendship 
         this.logService.trace(`EditorWidget#Reading file '${basename(URI.toString(model.source))}'`);
         
         this._model = model;
-        this._viewModel = this.instantiationService.createInstance(EditorViewModel, model, this._options);
-        this._view = this.instantiationService.createInstance(EditorView, this._container.element, this._viewModel, this._options);
+        this._viewModel = this.instantiationService.createInstance(
+            EditorViewModel, 
+            model, 
+            this._extensionManager.getExtensions(), 
+            this._options,
+        );
+        this._view = this.instantiationService.createInstance(
+            EditorView, 
+            this._container.element, 
+            this._viewModel, 
+            this._options,
+        );
         
         const listeners = this.__registerMVVMListeners(this._model, this._viewModel, this._view);
         this._model.build();
@@ -321,7 +332,7 @@ class EditorExtensionManager implements IDisposable {
             }
 
             try {
-                const extension = instantiationService.createInstance(ctor, editorWidget, this);
+                const extension = instantiationService.createInstance(ctor, editorWidget);
                 this._extensions.set(ID, extension);
             } catch (err) {
                 ErrorHandler.onUnexpectedError(err);
@@ -330,6 +341,14 @@ class EditorExtensionManager implements IDisposable {
     }
 
     // [public methods]
+
+    public getExtensions(): IEditorExtension[] {
+        const extensions: IEditorExtension[] = [];
+        for (const [id, extension] of this._extensions) {
+            extensions.push(extension);
+        }
+        return extensions;
+    }
 
     public dispose(): void {
         for (const extension of this._extensions.values()) {

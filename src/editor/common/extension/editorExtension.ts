@@ -9,12 +9,12 @@ import { IEditorWidget } from "src/editor/editorWidget";
  * An interface used to describe an extension for an editor that is created for
  * every time when an editor is created and disposed when the editor is disposed.
  */
-export interface IEditorExtension extends IEditorEventBroadcaster {
+export interface IEditorExtension extends IEditorEventBroadcaster, ProseExtension {
     
 }
 
 export interface IEditorExtensionCtor {
-    new (editor: IEditorWidget, service: IServiceProvider): IEditorExtension;
+    new (editor: IEditorWidget, ...services: any[]): IEditorExtension;
 }
 
 /**
