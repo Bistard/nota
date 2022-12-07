@@ -1,6 +1,6 @@
 import { FastElement } from "src/base/browser/basic/fastElement";
 import { DomUtility } from "src/base/browser/basic/dom";
-import { Emitter, Event, Register, SignalEmitter } from "src/base/common/event";
+import { Emitter, Register } from "src/base/common/event";
 import { Dimension, IDimension } from "src/base/common/util/size";
 import { IComponentService } from "src/code/browser/service/component/componentService";
 import { Themable } from "src/code/browser/service/theme/theme";
@@ -190,7 +190,7 @@ export abstract class Component extends Themable implements IComponent {
         this._element.setID(id);
         
         this._focusTracker = this.__register(new FocusTracker(this._element.element, false));
-        this.onDidFocusChange = this.__register(new SignalEmitter<boolean, boolean>([Event.map(this._focusTracker.onDidFocus, () => true), Event.map(this._focusTracker.onDidBlur, () => false)], (e: boolean) => e)).registerListener;
+        this.onDidFocusChange = this._focusTracker.onDidFocusChange;
         
         if (parentElement) {
             this._parent = parentElement;
