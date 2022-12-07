@@ -1,7 +1,7 @@
 import { Disposable, IDisposable } from "src/base/common/dispose";
 import { Emitter, Register } from "src/base/common/event";
 import { createStandardKeyboardEvent, IStandardKeyboardEvent } from "src/base/common/keyboard";
-import { ProseEditorView, ProseNode, ProseSlice, ProseTransaction } from "src/editor/common/proseMirror";
+import { ProseDirectEditorProperty, ProseEditorProperty, ProseEditorView, ProseNode, ProseSlice, ProseTransaction } from "src/editor/common/proseMirror";
 
 export interface IOnBeforeRenderEvent {
     readonly tr: ProseTransaction;
@@ -148,9 +148,14 @@ export interface IEditorEventBroadcaster extends IDisposable {
     readonly onDrop: Register<IOnDropEvent>;
 }
 
+function isProseEditorView(obj: any): obj is ProseEditorView {
+    return !!obj.state;
+}
+
 /**
- * @class Given a prosemirror view, binds all the pre-defined event emitter with
- * that view.
+ * @class Given either a prosemirror view, or a property object from an 
+ * extension, the boradcaster will bind all the pre-defined event emitter with 
+ * that target properly.
  */
 export class EditorEventBroadcaster extends Disposable implements IEditorEventBroadcaster {
 
@@ -197,35 +202,48 @@ export class EditorEventBroadcaster extends Disposable implements IEditorEventBr
 
     // [constructor]
 
-    constructor(view: ProseEditorView) {
+    constructor(viewOrExtensionProperty: ProseEditorView | ProseEditorProperty<any>) {
         super();
-        const props = view.props;
         
+        let view!: ProseEditorView;
+        let property: ProseDirectEditorProperty | ProseEditorProperty<any>;
+        if (isProseEditorView(viewOrExtensionProperty)) {
+            view = viewOrExtensionProperty;
+            property = view.props;
+        } else {
+            property = viewOrExtensionProperty;
+        }
+
+        /**
+         * Only applied when the event broadcaster is binding to the actual 
+         * prosemirror view directly.
+         */
+        if (view) {
+            (<ProseDirectEditorProperty>property).dispatchTransaction = (tr) => {
+                let prevented = false;
+                this._onBeforeRender.fire({ 
+                    tr: tr, 
+                    prevent: () => prevented = true,
+                });
+    
+                if (prevented) {
+                    return;
+                }
+    
+                const newState = view.state.apply(tr);
+                view.updateState(newState);
+            };
+        }
+
         // dom event listeners
-        props.handleDOMEvents = {
-            ...props.handleDOMEvents,
+        property.handleDOMEvents = {
+            ...property.handleDOMEvents,
             focus: () => this._onDidFocusChange.fire(true),
             blur: () => this._onDidFocusChange.fire(false),
         };
 
-        // on before render
-        props.dispatchTransaction = (tr) => {
-            let prevented = false;
-            this._onBeforeRender.fire({ 
-                tr: tr, 
-                prevent: () => prevented = true,
-            });
-
-            if (prevented) {
-                return;
-            }
-
-            const newState = view.state.apply(tr);
-            view.updateState(newState);
-        };
-
         // on before click
-        props.handleClickOn = (view, pos, node, nodePos, event, direct) => {
+        property.handleClickOn = (view, pos, node, nodePos, event, direct) => {
             this._onClick.fire({
                 view: view,
                 position: pos,
@@ -237,7 +255,7 @@ export class EditorEventBroadcaster extends Disposable implements IEditorEventBr
         };
         
         // on did click
-        props.handleClick = (view, pos, event) => {
+        property.handleClick = (view, pos, event) => {
             this._onDidClick.fire({
                 view: view,
                 position: pos,
@@ -246,7 +264,7 @@ export class EditorEventBroadcaster extends Disposable implements IEditorEventBr
         };
 
         // on before double click
-        props.handleDoubleClickOn = (view, pos, node, nodePos, event, direct) => {
+        property.handleDoubleClickOn = (view, pos, node, nodePos, event, direct) => {
             this._onDoubleClick.fire({
                 view: view,
                 position: pos,
@@ -258,7 +276,7 @@ export class EditorEventBroadcaster extends Disposable implements IEditorEventBr
         };
         
         // on did double click
-        props.handleDoubleClick = (view, pos, event) => {
+        property.handleDoubleClick = (view, pos, event) => {
             this._onDidDoubleClick.fire({
                 view: view,
                 position: pos,
@@ -267,7 +285,7 @@ export class EditorEventBroadcaster extends Disposable implements IEditorEventBr
         };
 
         // on before triple click
-        props.handleTripleClickOn = (view, pos, node, nodePos, event, direct) => {
+        property.handleTripleClickOn = (view, pos, node, nodePos, event, direct) => {
             this._onTripleClick.fire({
                 view: view,
                 position: pos,
@@ -279,7 +297,7 @@ export class EditorEventBroadcaster extends Disposable implements IEditorEventBr
         };
 
         // on did triple click
-        props.handleTripleClick = (view, pos, event) => {
+        property.handleTripleClick = (view, pos, event) => {
             this._onDidTripleClick.fire({
                 view: view,
                 position: pos,
@@ -288,7 +306,7 @@ export class EditorEventBroadcaster extends Disposable implements IEditorEventBr
         };
         
         // on key down
-        props.handleKeyDown = (view, event) => {
+        property.handleKeyDown = (view, event) => {
             this._onKeydown.fire({
                 view: view,
                 browserEvent: createStandardKeyboardEvent(event),
@@ -296,7 +314,7 @@ export class EditorEventBroadcaster extends Disposable implements IEditorEventBr
         };
         
         // on key press
-        props.handleKeyPress = (view, event) => {
+        property.handleKeyPress = (view, event) => {
             this._onKeypress.fire({
                 view: view,
                 browserEvent: createStandardKeyboardEvent(event),
@@ -304,7 +322,7 @@ export class EditorEventBroadcaster extends Disposable implements IEditorEventBr
         };
         
         // on text input
-        props.handleTextInput = (view, from, to, text) => {
+        property.handleTextInput = (view, from, to, text) => {
             let prevented = false;
             
             this._onTextInput.fire({
@@ -319,7 +337,7 @@ export class EditorEventBroadcaster extends Disposable implements IEditorEventBr
         };
         
         // on paste
-        props.handlePaste = (view, event, slice) => {
+        property.handlePaste = (view, event, slice) => {
             this._onPaste.fire({
                 view: view,
                 browserEvent: event,
@@ -328,7 +346,7 @@ export class EditorEventBroadcaster extends Disposable implements IEditorEventBr
         };
         
         // on drop
-        props.handleDrop = (view, event, slice, moved) => {
+        property.handleDrop = (view, event, slice, moved) => {
             this._onDrop.fire({
                 view: view,
                 browserEvent: event,

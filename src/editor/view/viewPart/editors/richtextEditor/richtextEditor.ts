@@ -135,7 +135,7 @@ class RichtextEditorCore extends EditorEventBroadcaster implements IRichtextEdit
                 plugins: [],
             }
         );
-        super(view)
+        super(view);
         this._view = view;
         this._ctx = context;
     }
