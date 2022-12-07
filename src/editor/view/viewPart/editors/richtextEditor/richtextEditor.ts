@@ -19,6 +19,7 @@ export class RichtextEditor extends BaseEditor {
 
     // [event]
 
+    public readonly onDidFocusChange: Register<boolean>;
     public readonly onBeforeRender: Register<void>;
     public readonly onClick: Register<unknown>;
     public readonly onDidClick: Register<unknown>;
@@ -43,6 +44,7 @@ export class RichtextEditor extends BaseEditor {
 
         this._core = new RichtextEditorCore(container, context, initState);
         
+        this.onDidFocusChange = this._core.onDidFocusChange;
         this.onBeforeRender = this._core.onBeforeRender;
         this.onClick = this._core.onClick;
         this.onDidClick = this._core.onDidClick;
@@ -111,6 +113,9 @@ class RichtextEditorCore extends Disposable implements IRichtextEditorCore {
 
     // [event]
 
+    private readonly _onDidFocusChange = this.__register(new Emitter<boolean>());
+    public readonly onDidFocusChange = this._onDidFocusChange.registerListener;
+
     private readonly _onBeforeRender = this.__register(new Emitter<void>());
     public readonly onBeforeRender = this._onBeforeRender.registerListener;
 
@@ -163,7 +168,10 @@ class RichtextEditorCore extends Disposable implements IRichtextEditorCore {
             container, 
             {
                 state: initState,
-                handleDOMEvents: {},
+                handleDOMEvents: {
+                    focus: () => this._onDidFocusChange.fire(true),
+                    blur: () => this._onDidFocusChange.fire(false),
+                },
                 dispatchTransaction: this.__onDispatchTransaction.bind(this),
                 handleClickOn: this.__onClick.bind(this),
                 handleClick: () => {},

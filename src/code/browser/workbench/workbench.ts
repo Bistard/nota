@@ -15,7 +15,6 @@ import { Disposable } from 'src/base/common/dispose';
 import { IContextService } from 'src/code/platform/context/common/contextService';
 import { IContextKey } from 'src/code/platform/context/common/contextKey';
 import { IS_LINUX, IS_MAC, IS_WINDOWS } from 'src/base/common/platform';
-import { IEditorService } from 'src/code/browser/workbench/workspace/editor/editor';
 import { IBrowserLifecycleService, ILifecycleService, LifecyclePhase } from 'src/code/platform/lifecycle/browser/browserLifecycleService';
 import { IBrowserEnvironmentService, IEnvironmentService } from 'src/code/platform/environment/common/environment';
 
@@ -26,7 +25,7 @@ export class Workbench extends WorkbenchLayout implements IWorkbenchService {
 
     // [field]
 
-    private _contextKeyCentre?: WorkbenchContextKeyCentre;
+    private _contextManager?: WorkbenchContextManager;
 
     // [constructor]
 
@@ -89,8 +88,8 @@ export class Workbench extends WorkbenchLayout implements IWorkbenchService {
 
         // initialize all the context keys only when the application is ready
         this.lifecycleService.when(LifecyclePhase.Ready).then(() => {
-            this._contextKeyCentre = this.instantiationService.createInstance(WorkbenchContextKeyCentre);
-            this.__register(this._contextKeyCentre);
+            this._contextManager = this.instantiationService.createInstance(WorkbenchContextManager);
+            this.__register(this._contextManager);
         });
     }
 
@@ -123,7 +122,7 @@ export class Workbench extends WorkbenchLayout implements IWorkbenchService {
     }
 }
 
-export class WorkbenchContextKeyCentre extends Disposable {
+export class WorkbenchContextManager extends Disposable {
 
     // [context - platform]
 
@@ -132,16 +131,11 @@ export class WorkbenchContextKeyCentre extends Disposable {
     private readonly visibleSideView: IContextKey<boolean>;
     private readonly focusedSideView: IContextKey<boolean>;
 
-    // [context - editor]
-
-    private readonly focusedEditor: IContextKey<boolean>;
-
     // [constructor]
 
     constructor(
         @IContextService contextService: IContextService,
         @ISideViewService private readonly sideViewService: ISideViewService,
-        @IEditorService private readonly editorService: IEditorService,
         @IEnvironmentService environmentService: IBrowserEnvironmentService,
     ) {
         super();
@@ -161,9 +155,6 @@ export class WorkbenchContextKeyCentre extends Disposable {
         this.visibleSideView = contextService.createContextKey('visibleSideView', false, 'Whether a side view is visible');
         this.focusedSideView = contextService.createContextKey('focusedSideView', false, 'Whether a side view is focused');
 
-        // editor
-        this.focusedEditor = contextService.createContextKey('focusedEditor', false, 'Whether an editor is focused');
-
         // auto updates the context keys
         this.__registerListeners();
     }
@@ -177,8 +168,5 @@ export class WorkbenchContextKeyCentre extends Disposable {
         this.visibleSideView.set(!!currSideView);
         this.__register(this.sideViewService.onDidViewChange(e => this.visibleSideView.set(!!e.view)));
         this.__register(this.sideViewService.onDidFocusChange(isFocused => this.focusedSideView.set(isFocused)));
-
-        // editor
-        this.__register(this.editorService.onDidFocusChange(isFocused => this.focusedEditor.set(isFocused)));
     }
 }

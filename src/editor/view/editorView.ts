@@ -31,6 +31,8 @@ export class EditorView extends Disposable implements IEditorView {
     private readonly _onLog = this.__register(new Emitter<ILogEvent<string | Error>>());
     public readonly onLog = this._onLog.registerListener;
     
+    public readonly onDidFocusChange: Register<boolean>;
+
     public readonly onBeforeRender: Register<void>;
     public readonly onClick: Register<unknown>;
     public readonly onDidClick: Register<unknown>;
@@ -49,7 +51,6 @@ export class EditorView extends Disposable implements IEditorView {
     constructor(
         container: HTMLElement,
         viewModel: IEditorViewModel,
-        // commandDelegate: ICommandDelegate,
         options: EditorOptionsType,
     ) {
         super();
@@ -64,6 +65,7 @@ export class EditorView extends Disposable implements IEditorView {
 
         // the centre that integrates the editor-related functionalities
         this._editorManager = new EditorManager(editorContainer, context);
+        this.onDidFocusChange = this._editorManager.editor.onDidFocusChange;
         this.onBeforeRender = this._editorManager.editor.onBeforeRender;
         
         this.onClick = this._editorManager.editor.onClick;

@@ -1,3 +1,4 @@
+import "src/editor/common/command/command.register";
 import { FastElement } from "src/base/browser/basic/fastElement";
 import { Disposable, DisposableManager, IDisposable } from "src/base/common/dispose";
 import { ErrorHandler } from "src/base/common/error";
@@ -6,10 +7,8 @@ import { basename } from "src/base/common/file/path";
 import { URI } from "src/base/common/file/uri";
 import { defaultLog, ILogService } from "src/base/common/logger";
 import { isNonNullable } from "src/base/common/util/type";
-import { ICommandService } from "src/code/platform/command/common/commandService";
 import { IConfigService } from "src/code/platform/configuration/common/abstractConfigService";
 import { BuiltInConfigScope } from "src/code/platform/configuration/common/configRegistrant";
-import { IFileService } from "src/code/platform/files/common/fileService";
 import { IInstantiationService } from "src/code/platform/instantiation/common/instantiation";
 import { IBrowserLifecycleService, ILifecycleService } from "src/code/platform/lifecycle/browser/browserLifecycleService";
 import { REGISTRANTS } from "src/code/platform/registrant/common/registrant";
@@ -22,12 +21,20 @@ import { IEditorExtensionRegistrant } from "src/editor/common/extensions/editorE
 import { EditorModel } from "src/editor/model/editorModel";
 import { EditorView } from "src/editor/view/editorView";
 import { EditorViewModel } from "src/editor/viewModel/editorViewModel";
+import { IContextService } from "src/code/platform/context/common/contextService";
+import { IContextKey } from "src/code/platform/context/common/contextKey";
 
 /**
  * An interface only for {@link EditorWidget}.
  */
 export interface IEditorWidget extends IDisposable {
     
+    /** 
+	 * Fires when the component is either focused or blured (true represents 
+	 * focused). 
+	 */
+    readonly onDidFocusChange: Register<boolean>;
+
     /**
      * Fires right before the rendering happens.
      */
@@ -81,9 +88,13 @@ export class EditorWidget extends Disposable implements IEditorWidgetFriendship 
     private _view: IEditorView | null;
     private _editorData: EditorData | null;
 
-    private readonly _extensionCentre: EditorExtensionCentre;
+    private readonly _extensionManager: EditorExtensionManager;
+    private readonly _editorContextManager: EditorContextManager;
 
     // [events]
+
+    private readonly _onDidFocusChange = this.__register(new Emitter<boolean>());
+    public readonly onDidFocusChange = this._onDidFocusChange.registerListener;
 
     private readonly _onBeforeRender = this.__register(new Emitter<void>());
     public readonly onBeforeRender = this._onBeforeRender.registerListener;
@@ -126,12 +137,11 @@ export class EditorWidget extends Disposable implements IEditorWidgetFriendship 
     constructor(
         container: HTMLElement,
         options: IEditorWidgetOptions,
-        @IFileService private readonly fileService: IFileService,
         @ILogService private readonly logService: ILogService,
         @IInstantiationService private readonly instantiationService: IInstantiationService,
         @ILifecycleService private readonly lifecycleService: IBrowserLifecycleService,
         @IConfigService private readonly configService: IConfigService,
-        @ICommandService private readonly commandService: ICommandService,
+        @IContextService contextService: IContextService,
     ) {
         super();
 
@@ -143,12 +153,14 @@ export class EditorWidget extends Disposable implements IEditorWidgetFriendship 
 
         this._options = this.__initOptions(options);
 
-        this._extensionCentre = new EditorExtensionCentre(this, instantiationService);
+        this._extensionManager = new EditorExtensionManager(this, instantiationService);
+        this._editorContextManager = new EditorContextManager(this, contextService);
 
         this.__registerListeners();
 
         // resource registrantion
-        this.__register(this._extensionCentre);
+        this.__register(this._extensionManager);
+        this.__register(this._editorContextManager);
     }
 
     // [getter]
@@ -218,12 +230,12 @@ export class EditorWidget extends Disposable implements IEditorWidgetFriendship 
     }
 
     private __registerListeners(): void {
-        this.lifecycleService.onBeforeQuit(() => this.__saveEditorOptions());
+        this.__register(this.lifecycleService.onBeforeQuit(() => this.__saveEditorOptions()));
 
-        this.configService.onDidChange<IEditorWidgetOptions>(BuiltInConfigScope.User, 'editor', (newOption) => {
+        this.__register(this.configService.onDidChange<IEditorWidgetOptions>(BuiltInConfigScope.User, 'editor', (newOption) => {
             console.log('[on did change config]', newOption);
             this.__updateOptions(this._options, newOption);
-        });
+        }));
     }
 
     private __initOptions(newOption: IEditorWidgetOptions): EditorOptionsType {
@@ -256,11 +268,13 @@ export class EditorWidget extends Disposable implements IEditorWidgetFriendship 
     private __registerMVVMListeners(model: IEditorModel, viewModel: IEditorViewModel, view: IEditorView): IDisposable {
         const disposables = new DisposableManager();
 
-        // log out all the messages from MVVM.
+        // log out all the messages from MVVM
         disposables.register(Event.any([model.onLog, viewModel.onLog, view.onLog])((event) => {
             defaultLog(this.logService, event.level, event.data);
         }));
 
+        // binding to the view
+        disposables.register(view.onDidFocusChange(e => this._onDidFocusChange.fire(e)));
         disposables.register(view.onBeforeRender(e => this._onBeforeRender.fire(e)));
         disposables.register(view.onClick(e => this._onClick.fire(e)));
         disposables.register(view.onDidClick(e => this._onDidClick.fire(e)));
@@ -301,7 +315,7 @@ class EditorData implements IDisposable {
  * @internal
  * @class Use to manage all the editor-related extensions lifecycle.
  */
-class EditorExtensionCentre implements IDisposable {
+class EditorExtensionManager implements IDisposable {
 
     // [field]
 
@@ -344,5 +358,33 @@ class EditorExtensionCentre implements IDisposable {
             extension.dispose();
         }
         this._extensions.clear();
+    }
+}
+
+class EditorContextManager extends Disposable {
+
+    // [context]
+
+    private readonly focusedEditor: IContextKey<boolean>;
+
+    // [constructor]
+
+    constructor(
+        private readonly editor: IEditorWidget,
+        contextService: IContextService,
+    ) {
+        super();
+
+        this.focusedEditor = contextService.createContextKey('isEditorFocused', false, 'Whether the editor is focused.');
+
+        this.__registerListeners();
+    }
+
+    // [private helper methods]
+
+    private __registerListeners(): void {
+        this.__register(this.editor.onDidFocusChange(isFocused => {
+            this.focusedEditor.set(isFocused);
+        }));
     }
 }

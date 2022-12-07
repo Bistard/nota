@@ -12,6 +12,12 @@ export interface IEditorView extends Disposable {
      */
     readonly onLog: Register<ILogEvent<string | Error>>;
 
+    /** 
+	 * Fires when the component is either focused or blured (true represents 
+	 * focused). 
+	 */
+    readonly onDidFocusChange: Register<boolean>;
+
     /**
      * Fires before the actual rendering happens.
      */

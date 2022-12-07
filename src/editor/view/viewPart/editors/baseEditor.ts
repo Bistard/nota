@@ -1,3 +1,4 @@
+import { FocusTracker } from "src/base/browser/basic/focusTracker";
 import { Disposable } from "src/base/common/dispose";
 import { Register } from "src/base/common/event";
 import { ProseEditorState } from "src/editor/common/proseMirror";
@@ -13,6 +14,12 @@ export interface IEditorCore extends Disposable {
      * The current editor state.
      */
     readonly state: ProseEditorState;
+
+    /** 
+	 * Fires when the component is either focused or blured (true represents 
+	 * focused). 
+	 */
+    readonly onDidFocusChange: Register<boolean>;
 
     /**
      * Event fires before next rendering on DOM tree.
@@ -91,6 +98,7 @@ export abstract class BaseEditor extends Disposable implements IBaseEditor {
 
     // [event]
 
+    public abstract readonly onDidFocusChange: Register<boolean>;
     public abstract readonly onBeforeRender: Register<void>;
     public abstract readonly onClick: Register<unknown>;
     public abstract readonly onDidClick: Register<unknown>;
