@@ -67,7 +67,7 @@ export class CommandService extends Disposable implements ICommandService {
             return Promise.resolve(<T>result);
         } 
         catch (error) {
-            this.logService.trace(`Command-service does not found the command '${id}'`);
+            this.logService.warn(`Command-service does not found the command '${id}'`);
             return Promise.reject(error);
         }
     }
