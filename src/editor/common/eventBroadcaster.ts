@@ -148,6 +148,10 @@ export interface IEditorEventBroadcaster extends IDisposable {
     readonly onDrop: Register<IOnDropEvent>;
 }
 
+/**
+ * @class Given a prosemirror view, binds all the pre-defined event emitter with
+ * that view.
+ */
 export class EditorEventBroadcaster extends Disposable implements IEditorEventBroadcaster {
 
     // [event]
