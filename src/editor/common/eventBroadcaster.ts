@@ -212,7 +212,7 @@ export class EditorEventBroadcaster extends Disposable implements IEditorEventBr
                 prevent: () => prevented = true,
             });
 
-            if (!prevented) {
+            if (prevented) {
                 return;
             }
 

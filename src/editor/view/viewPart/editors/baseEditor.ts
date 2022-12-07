@@ -1,6 +1,5 @@
 import { Disposable } from "src/base/common/dispose";
-import { Register } from "src/base/common/event";
-import { IEditorEventBroadcaster, IOnBeforeRenderEvent, IOnClickEvent, IOnDidClickEvent, IOnDidDoubleClickEvent, IOnDidTripleClickEvent, IOnDoubleClickEvent, IOnDropEvent, IOnKeydownEvent, IOnKeypressEvent, IOnPasteEvent, IOnTextInputEvent, IOnTripleClickEvent } from "src/editor/common/eventBroadcaster";
+import { IEditorEventBroadcaster } from "src/editor/common/eventBroadcaster";
 import { ProseEditorState } from "src/editor/common/proseMirror";
 import { IRenderEvent } from "src/editor/common/viewModel";
 import { ViewContext } from "src/editor/view/editorView";
@@ -82,12 +81,7 @@ export abstract class BaseEditor<TCore extends IEditorCore> extends Disposable {
 
     protected abstract createEditorCore(container: HTMLElement, context: ViewContext, initState: ProseEditorState): TCore;
     public abstract updateContent(event: IRenderEvent): void;
-    public abstract isEditable(): boolean;
-    public abstract destroy(): void;
-    public abstract isDestroyed(): boolean;
-    public abstract isFocused(): boolean;
-    public abstract focus(): void;
-
+    
     // [public methods]
     
     public abstract get state(): ProseEditorState;

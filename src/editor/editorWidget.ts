@@ -1,7 +1,8 @@
+import "src/editor/common/command/command.register";
 import { FastElement } from "src/base/browser/basic/fastElement";
 import { Disposable, DisposableManager, IDisposable } from "src/base/common/dispose";
 import { ErrorHandler } from "src/base/common/error";
-import { Emitter, Event, Register } from "src/base/common/event";
+import { Emitter, Event } from "src/base/common/event";
 import { basename } from "src/base/common/file/path";
 import { URI } from "src/base/common/file/uri";
 import { defaultLog, ILogService } from "src/base/common/logger";
@@ -22,7 +23,6 @@ import { EditorView } from "src/editor/view/editorView";
 import { EditorViewModel } from "src/editor/viewModel/editorViewModel";
 import { IContextService } from "src/code/platform/context/common/contextService";
 import { IContextKey } from "src/code/platform/context/common/contextKey";
-import "src/editor/common/command/command.register";
 import { IEditorEventBroadcaster, IOnBeforeRenderEvent, IOnClickEvent, IOnDidClickEvent, IOnDidDoubleClickEvent, IOnDidTripleClickEvent, IOnDoubleClickEvent, IOnDropEvent, IOnKeydownEvent, IOnKeypressEvent, IOnPasteEvent, IOnTextInputEvent, IOnTripleClickEvent } from "src/editor/common/eventBroadcaster";
 
 /**
