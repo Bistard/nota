@@ -26,7 +26,7 @@ class EditorExtensionRegistrant implements IEditorExtensionRegistrant {
 
     // [field]
 
-    private readonly _descriptors: IEditorExtensionDescriptor[];    
+    private readonly _descriptors: IEditorExtensionDescriptor[];
 
     // [constructor]
 

@@ -1,4 +1,3 @@
-import "src/editor/common/command/command.register";
 import { FastElement } from "src/base/browser/basic/fastElement";
 import { Disposable, DisposableManager, IDisposable } from "src/base/common/dispose";
 import { ErrorHandler } from "src/base/common/error";
@@ -23,6 +22,7 @@ import { EditorView } from "src/editor/view/editorView";
 import { EditorViewModel } from "src/editor/viewModel/editorViewModel";
 import { IContextService } from "src/code/platform/context/common/contextService";
 import { IContextKey } from "src/code/platform/context/common/contextKey";
+import "src/editor/common/command/command.register";
 
 /**
  * An interface only for {@link EditorWidget}.
