@@ -1,14 +1,24 @@
 import { DisposableManager, IDisposable } from "src/base/common/dispose";
 import { addDisposableListener, EventType } from "src/base/browser/basic/dom";
-import { Emitter, Register } from "src/base/common/event";
+import { Emitter, Event, Register } from "src/base/common/event";
 
 interface IFocusTracker extends IDisposable {
 
-	/** Fires when the element is focused. */
+	/** 
+	 * Fires when the element is focused. 
+	 */
 	onDidFocus: Register<void>;
 
-	/** Fires when the element is blured. */
+	/** 
+	 * Fires when the element is blured. 
+	 */
 	onDidBlur: Register<void>;
+
+	/** 
+	 * Fires when the component is either focused or blured (true represents 
+	 * focused). 
+	 */
+	onDidFocusChange: Register<boolean>;
 
 	/**
 	 * @description Sets the element as focusable or non-focusable.
@@ -23,9 +33,9 @@ export class FocusTracker implements IFocusTracker, IDisposable {
 
 	// [field]
 
-	private _disposables = new DisposableManager();
+	private readonly _disposables = new DisposableManager();
 
-	private _element: HTMLElement;
+	private readonly _element: HTMLElement;
 	private _focused = false;
 	private _loosingFocused = false;
 
@@ -38,8 +48,8 @@ export class FocusTracker implements IFocusTracker, IDisposable {
 			this._element.tabIndex = 0;
 		}
 
-		this._disposables.register(addDisposableListener(element, EventType.focus, this.__onFocus));
-		this._disposables.register(addDisposableListener(element, EventType.blur, this.__onBlur));
+		this._disposables.register(addDisposableListener(element, EventType.focus, this.__onFocus.bind(this)));
+		this._disposables.register(addDisposableListener(element, EventType.blur, this.__onBlur.bind(this)));
 	}
 	
 	// [event]
@@ -49,6 +59,8 @@ export class FocusTracker implements IFocusTracker, IDisposable {
 
 	private readonly _onDidBlur = this._disposables.register(new Emitter<void>());
 	public readonly onDidBlur: Register<void> = this._onDidBlur.registerListener;
+
+	public readonly onDidFocusChange = Event.any([Event.map(this.onDidFocus, () => true), Event.map(this.onDidBlur, () => false)]);
 
 	// [public method]
 
@@ -86,5 +98,4 @@ export class FocusTracker implements IFocusTracker, IDisposable {
 			}, 0);
 		}
 	}
-
 }
