@@ -96,6 +96,10 @@ export class EditorView extends Disposable implements IEditorView {
         return this._ctx.viewModel;
     }
 
+    get editor(): IBaseEditor {
+        return this._editorManager.editor;
+    }
+
     public isEditable(): boolean {
         return this._editorManager.editor.isEditable();
     }
