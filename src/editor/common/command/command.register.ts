@@ -1,6 +1,7 @@
 import { IServiceProvider } from "src/code/platform/instantiation/common/instantiation";
-import { EditorCommand, IEditorCommandEvent } from "src/editor/common/command/editorCommand";
+import { EditorCommand } from "src/editor/common/command/editorCommand";
 import { EditorContextKeys } from "src/editor/common/editorContextKeys";
+import { ProseEditorView } from "src/editor/common/proseMirror";
 import { IEditorWidget } from "src/editor/editorWidget";
 
 export const enum EditorCommandsEnum {
@@ -16,7 +17,10 @@ export const deleteCurrentSelection = (new class extends EditorCommand {
         });
     }
 
-    protected command(provider: IServiceProvider, editor: IEditorWidget, { state, dispatch }: IEditorCommandEvent): void {
+    protected command(provider: IServiceProvider, editor: IEditorWidget, view: ProseEditorView): void {
+        const state = view.state;
+        const dispatch = view.dispatch;
+        
         if (state.selection.empty) {
             return;
         }

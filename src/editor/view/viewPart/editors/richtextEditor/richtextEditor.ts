@@ -80,7 +80,7 @@ export class RichtextEditor extends BaseEditor<EditorType.Rich, RichtextEditorCo
 
     public static create(container: HTMLElement, context: ViewContext, oldEdtior?: EditorInstance): RichtextEditor {
         if (oldEdtior?.type === EditorType.Rich) {
-            return new RichtextEditor(container, context, oldEdtior.view.state);
+            return new RichtextEditor(container, context, oldEdtior._core.view.state);
         }
         return new RichtextEditor(container, context);
     }
@@ -92,10 +92,6 @@ export class RichtextEditor extends BaseEditor<EditorType.Rich, RichtextEditorCo
     }
 
     // [private getter]
-
-    private get view(): ProseEditorView {
-        return this._core.view;
-    }
 
     // [public methods]
 

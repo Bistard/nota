@@ -1,7 +1,6 @@
 import { ICommandService } from "src/code/platform/command/common/commandService";
 import { REGISTRANTS } from "src/code/platform/registrant/common/registrant";
 import { EditorCommandsEnum } from "src/editor/common/command/command.register";
-import { IEditorCommandEvent } from "src/editor/common/command/editorCommand";
 import { EditorExtension } from "src/editor/common/extension/editorExtension";
 import { IEditorExtensionRegistrant } from "src/editor/common/extension/editorExtensionRegistrant";
 import { IEditorWidget } from "src/editor/editorWidget";
@@ -18,11 +17,7 @@ export class KeyboardController extends EditorExtension {
         
         this.onKeydown(event => {
             // FIX
-            this.commandService.executeCommand(EditorCommandsEnum.deleteCurrentSelection, <IEditorCommandEvent>{
-                state: event.view.state,
-                dispatch: event.view.dispatch,
-                view: event.view,
-            });
+            this.commandService.executeCommand(EditorCommandsEnum.deleteCurrentSelection, event.view);
         });
     }
 
