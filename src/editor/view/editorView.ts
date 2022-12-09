@@ -1,12 +1,10 @@
 import { Disposable } from "src/base/common/dispose";
 import { Emitter, Register } from "src/base/common/event";
 import { ILogEvent } from "src/base/common/logger";
-import { ProseEditorState } from "src/editor/common/proseMirror";
-import { IEditorView, IEditorViewOptions } from "src/editor/common/view";
+import { EditorInstance, IEditorView, IEditorViewOptions } from "src/editor/common/view";
 import { EditorType, IEditorViewModel, IRenderEvent } from "src/editor/common/viewModel";
 import { EditorOptionsType } from "src/editor/common/configuration/editorConfiguration";
 import { RichtextEditor } from "src/editor/view/viewPart/editors/richtextEditor/richtextEditor";
-import { IBaseEditor } from "src/editor/view/viewPart/editors/baseEditor";
 import { IOnBeforeRenderEvent, IOnClickEvent, IOnDidClickEvent, IOnDidDoubleClickEvent, IOnDidTripleClickEvent, IOnDoubleClickEvent, IOnDropEvent, IOnKeydownEvent, IOnKeypressEvent, IOnPasteEvent, IOnTextInputEvent, IOnTripleClickEvent } from "src/editor/common/eventBroadcaster";
 
 export class ViewContext {
@@ -96,7 +94,7 @@ export class EditorView extends Disposable implements IEditorView {
         return this._ctx.viewModel;
     }
 
-    get editor(): IBaseEditor {
+    get editor(): EditorInstance {
         return this._editorManager.editor;
     }
 
@@ -150,7 +148,7 @@ export class EditorView extends Disposable implements IEditorView {
 interface IEditorManager extends Disposable {
 
     readonly container: HTMLElement;
-    readonly editor: IBaseEditor;
+    readonly editor: EditorInstance;
     readonly renderMode: EditorType;
 
     /**
@@ -170,7 +168,7 @@ interface IEditorManager extends Disposable {
 }
 
 /**
- * @class Integration on {@link IBaseEditor} management.
+ * @class Integration on {@link EditorInstance} management.
  */
 class EditorManager extends Disposable implements IEditorManager {
 
@@ -180,7 +178,7 @@ class EditorManager extends Disposable implements IEditorManager {
     private readonly _ctx: ViewContext;
     
     private _renderMode: EditorType;
-    private _editor: IBaseEditor;
+    private _editor: EditorInstance;
 
     // [constructor]
 
@@ -208,7 +206,7 @@ class EditorManager extends Disposable implements IEditorManager {
         return this._container;
     }
 
-    get editor(): IBaseEditor {
+    get editor(): EditorInstance {
         return this._editor;
     }
     
@@ -231,7 +229,7 @@ class EditorManager extends Disposable implements IEditorManager {
             this._editor = this.__createWindow(event.type);
         }
 
-        this._editor.updateContent(event);
+        this._editor.updateContent(event as any);
     }
 
     public setRenderMode(mode: EditorType): void {
@@ -239,24 +237,16 @@ class EditorManager extends Disposable implements IEditorManager {
             return;
         }
 
-        const oldState = this._editor.state;
         this.__destroyCurrWindow();
-        this._editor = this.__createWindow(mode, oldState);
+        this._editor = this.__createWindow(mode, this._editor);
     }
 
     // [private helper methods]
 
-    /**
-     * @description Constructs a new {@link IBaseEditor} with the given render
-     * type.
-     * @param mode The given render type.
-     * @param initState The initial state of the editor if provided.
-     * @returns A newly constructed editor.
-     */
-    private __createWindow(mode: EditorType, initState?: ProseEditorState): IBaseEditor {
+    private __createWindow(mode: EditorType, oldEdtior?: EditorInstance): EditorInstance {
         
-        const winArgs = [this._container, this._ctx, initState] as const;
-        let editor: IBaseEditor;
+        const winArgs = [this._container, this._ctx, oldEdtior] as const;
+        let editor: EditorInstance;
         
         switch (mode) {
             case EditorType.Plain: {
@@ -264,7 +254,7 @@ class EditorManager extends Disposable implements IEditorManager {
                 throw new Error('does not support plain text editor yet.');
             }
             case EditorType.Rich: {
-                editor = new RichtextEditor(...winArgs);
+                editor = RichtextEditor.create(...winArgs);
                 break;
             }
             case EditorType.Split: {
@@ -282,7 +272,7 @@ class EditorManager extends Disposable implements IEditorManager {
     }
 
     private __destroyCurrWindow(): void {
-        this._editor.destroy();
+        this._editor.dispose();
         this._editor = undefined!;
     }
 }

@@ -1,14 +1,22 @@
 import { Register } from "src/base/common/event";
 import { EditorEventBroadcaster, IOnBeforeRenderEvent, IOnClickEvent, IOnDidClickEvent, IOnDidDoubleClickEvent, IOnDidTripleClickEvent, IOnDoubleClickEvent, IOnDropEvent, IOnKeydownEvent, IOnKeypressEvent, IOnPasteEvent, IOnTextInputEvent, IOnTripleClickEvent } from "src/editor/common/eventBroadcaster";
 import { ProseEditorState, ProseEditorView, ProseNode } from "src/editor/common/proseMirror";
-import { IRenderRichEvent } from "src/editor/common/viewModel";
+import { EditorInstance } from "src/editor/common/view";
+import { EditorType, IRenderRichEvent } from "src/editor/common/viewModel";
 import { ViewContext } from "src/editor/view/editorView";
 import { IEditorCore, BaseEditor, IBaseEditor } from "src/editor/view/viewPart/editors/baseEditor";
+
+function createRichtextDefaultState(context: ViewContext): ProseEditorState {
+    return ProseEditorState.create({
+        schema: context.viewModel.getSchema(),
+        plugins: [],
+    });
+}
 
 /**
  * An interface only for {@link RichtextEditor}.
  */
-export interface IRichtextEditor extends IBaseEditor {
+export interface IRichtextEditor extends IBaseEditor<EditorType.Rich> {
 
 }
 
@@ -18,7 +26,7 @@ export interface IRichtextEditor extends IBaseEditor {
  * Instead, all the user operations will be applied on the virtual nodes and 
  * modify the source content indirectly.
  */
-export class RichtextEditor extends BaseEditor<RichtextEditorCore> implements IRichtextEditor {
+export class RichtextEditor extends BaseEditor<EditorType.Rich, RichtextEditorCore> implements IRichtextEditor {
 
     // [field]
 
@@ -38,14 +46,17 @@ export class RichtextEditor extends BaseEditor<RichtextEditorCore> implements IR
     public readonly onPaste: Register<IOnPasteEvent>;
     public readonly onDrop: Register<IOnDropEvent>;
 
-    // [constructor]
+    // [private constructor]
 
-    constructor(
+    private constructor(
         container: HTMLElement, 
         context: ViewContext, 
         initState?: ProseEditorState,
     ) {
-        super(container, context, 'rich-text', initState);
+        const coreArguments: any[] = [];
+        coreArguments.push(initState ?? createRichtextDefaultState(context));
+
+        super(EditorType.Rich, container, context, coreArguments);
 
         // event bindings
         {
@@ -65,16 +76,25 @@ export class RichtextEditor extends BaseEditor<RichtextEditorCore> implements IR
         }
     }
 
-    // [protected method]
+    // [static methods]
+
+    public static create(container: HTMLElement, context: ViewContext, oldEdtior?: EditorInstance): RichtextEditor {
+        if (oldEdtior?.type === EditorType.Rich) {
+            return new RichtextEditor(container, context, oldEdtior.view.state);
+        }
+        return new RichtextEditor(container, context);
+    }
+
+    // [protected methods]
 
     protected createEditorCore(container: HTMLElement, context: ViewContext, initState: ProseEditorState): RichtextEditorCore {
         return new RichtextEditorCore(container, context, initState);
     }
 
-    // [getter]
+    // [private getter]
 
-    get state(): ProseEditorState {
-        return this._core.state;
+    private get view(): ProseEditorView {
+        return this._core.view;
     }
 
     // [public methods]
@@ -102,6 +122,8 @@ export class RichtextEditor extends BaseEditor<RichtextEditorCore> implements IR
     public focus(): void {
         this._core.focus();
     }
+
+    // [private helper methods]
 }
 
 /**
@@ -142,8 +164,11 @@ class RichtextEditorCore extends EditorEventBroadcaster implements IRichtextEdit
 
     // [getter]
 
-    get state(): ProseEditorState {
-        return this._view.state;
+    /**
+     * asd
+     */
+    get view(): ProseEditorView {
+        return this._view;
     }
 
     // [public methods]
