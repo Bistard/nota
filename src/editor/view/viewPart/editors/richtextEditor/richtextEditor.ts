@@ -2,7 +2,6 @@ import { Register } from "src/base/common/event";
 import { EditorEventBroadcaster, IOnBeforeRenderEvent, IOnClickEvent, IOnDidClickEvent, IOnDidDoubleClickEvent, IOnDidTripleClickEvent, IOnDoubleClickEvent, IOnDropEvent, IOnKeydownEvent, IOnKeypressEvent, IOnPasteEvent, IOnTextInputEvent, IOnTripleClickEvent } from "src/editor/common/eventBroadcaster";
 import { ProseEditorState, ProseEditorView, ProseNode } from "src/editor/common/proseMirror";
 import { IRenderRichEvent } from "src/editor/common/viewModel";
-import { KeyboardController } from "src/editor/contrib/keyboard/keyboardController";
 import { ViewContext } from "src/editor/view/editorView";
 import { IEditorCore, BaseEditor, IBaseEditor } from "src/editor/view/viewPart/editors/baseEditor";
 

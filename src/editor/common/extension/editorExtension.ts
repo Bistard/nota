@@ -1,6 +1,5 @@
 import { DisposableManager, IDisposable } from "src/base/common/dispose";
 import { Register } from "src/base/common/event";
-import { IServiceProvider } from "src/code/platform/instantiation/common/instantiation";
 import { EditorEventBroadcaster, IEditorEventBroadcaster, IOnBeforeRenderEvent, IOnClickEvent, IOnDidClickEvent, IOnDidDoubleClickEvent, IOnDidTripleClickEvent, IOnDoubleClickEvent, IOnDropEvent, IOnKeydownEvent, IOnKeypressEvent, IOnPasteEvent, IOnTextInputEvent, IOnTripleClickEvent } from "src/editor/common/eventBroadcaster";
 import { ProseExtension } from "src/editor/common/proseMirror";
 import { IEditorWidget } from "src/editor/editorWidget";
