@@ -1,7 +1,7 @@
 import { Disposable } from "src/base/common/dispose";
 import { Emitter, Event } from "src/base/common/event";
 import { IEditorModel } from "src/editor/common/model";
-import { EditorRenderType, IEditorViewModel, IEditorViewModelOptions, IRenderEvent } from "src/editor/common/viewModel";
+import { EditorType, IEditorViewModel, IEditorViewModelOptions, IRenderEvent } from "src/editor/common/viewModel";
 import { DocumentNodeProvider } from "src/editor/viewModel/parser/documentNode";
 import { DocumentParser, IDocumentParser } from "src/editor/viewModel/parser/parser";
 import { Codespan } from "src/editor/viewModel/parser/mark/codespan";
@@ -46,7 +46,7 @@ export class EditorViewModel extends Disposable implements IEditorViewModel {
     private readonly _onRender = this.__register(new Emitter<IRenderEvent>());
     public readonly onRender = this._onRender.registerListener;
 
-    private readonly _onDidChangeRenderMode = this.__register(new Emitter<EditorRenderType>());
+    private readonly _onDidChangeRenderMode = this.__register(new Emitter<EditorType>());
     public readonly onDidChangeRenderMode = this._onDidChangeRenderMode.registerListener;
 
     // [constructor]
@@ -74,7 +74,7 @@ export class EditorViewModel extends Disposable implements IEditorViewModel {
 
     // [getter]
 
-    get renderMode(): EditorRenderType {
+    get renderMode(): EditorType {
         return this._options.mode.value;
     }
 
@@ -116,13 +116,13 @@ export class EditorViewModel extends Disposable implements IEditorViewModel {
         const renderType = this._options.mode.value;
         let event: IRenderEvent;
 
-        if (renderType === EditorRenderType.Plain) {
+        if (renderType === EditorType.Plain) {
             event = {
                 type: renderType,
                 plainText: this._model.getContent(),
             };
         }
-        else if (renderType === EditorRenderType.Split) {
+        else if (renderType === EditorType.Split) {
             event = {
                 type: renderType,
                 plainText: this._model.getContent(),

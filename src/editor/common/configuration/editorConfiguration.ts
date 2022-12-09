@@ -1,6 +1,6 @@
 import { IEditorModelOptions } from "src/editor/common/model";
 import { IEditorViewOptions } from "src/editor/common/view";
-import { EditorRenderType, IEditorViewModelOptions } from "src/editor/common/viewModel";
+import { EditorType, IEditorViewModelOptions } from "src/editor/common/viewModel";
 
 /**
  * Consturctor option for 'EditorWidget'.
@@ -85,7 +85,7 @@ export class StringEditorOption<K extends EditorOptionEnum> extends BasicEditorO
 
 //#region [advanced options]
 
-export class EditorModeOption<K extends EditorOptionEnum> extends BasicEditorOption<K, EditorRenderType> {}
+export class EditorModeOption<K extends EditorOptionEnum> extends BasicEditorOption<K, EditorType> {}
 
 //#endregion
 
@@ -101,7 +101,7 @@ export const enum EditorOptionEnum {
  */
 export const EditorOptions = {
     baseURI: new StringEditorOption(EditorOptionEnum.baseURI, 'baseURI', '', {}),
-    mode: new EditorModeOption(EditorOptionEnum.mode, 'mode', EditorRenderType.Rich, {}),
+    mode: new EditorModeOption(EditorOptionEnum.mode, 'mode', EditorType.Rich, {}),
     codeblockHighlight: new BooleanEditorOption(EditorOptionEnum.codeblockHighlight, 'codeblockHighlight', true, {}),
     ignoreHTML: new BooleanEditorOption(EditorOptionEnum.ignoreHTML, 'ignoreHTML', false, {}),
 };

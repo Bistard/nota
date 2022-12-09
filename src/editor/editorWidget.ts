@@ -15,7 +15,7 @@ import { IBrowserLifecycleService, ILifecycleService } from "src/code/platform/l
 import { REGISTRANTS } from "src/code/platform/registrant/common/registrant";
 import { IEditorModel } from "src/editor/common/model";
 import { IEditorView } from "src/editor/common/view";
-import { IEditorViewModel } from "src/editor/common/viewModel";
+import { EditorType, IEditorViewModel } from "src/editor/common/viewModel";
 import { EditorOptions, EditorOptionsType, IEditorOption, IEditorWidgetOptions } from "src/editor/common/configuration/editorConfiguration";
 import { IEditorExtension } from "src/editor/common/extension/editorExtension";
 import { IEditorExtensionRegistrant } from "src/editor/common/extension/editorExtensionRegistrant";
@@ -31,6 +31,11 @@ import { IEditorEventBroadcaster, IOnBeforeRenderEvent, IOnClickEvent, IOnDidCli
  */
 export interface IEditorWidget extends IEditorEventBroadcaster {
     
+    /**
+     * The current rendering mode of the view.
+     */
+    readonly renderMode: EditorType | null;
+
     /**
      * @description Opens the source in the editor.
      * @param source The source in URI form.
@@ -156,6 +161,9 @@ export class EditorWidget extends Disposable implements IEditorWidgetFriendship 
         return this._view;
     }
 
+    get renderMode(): EditorType | null {
+        return this._viewModel?.renderMode ?? null;
+    }
 
     // [public methods]
 

@@ -3,7 +3,7 @@ import { Emitter, Register } from "src/base/common/event";
 import { ILogEvent } from "src/base/common/logger";
 import { ProseEditorState } from "src/editor/common/proseMirror";
 import { IEditorView, IEditorViewOptions } from "src/editor/common/view";
-import { EditorRenderType, IEditorViewModel, IRenderEvent } from "src/editor/common/viewModel";
+import { EditorType, IEditorViewModel, IRenderEvent } from "src/editor/common/viewModel";
 import { EditorOptionsType } from "src/editor/common/configuration/editorConfiguration";
 import { RichtextEditor } from "src/editor/view/viewPart/editors/richtextEditor/richtextEditor";
 import { IBaseEditor } from "src/editor/view/viewPart/editors/baseEditor";
@@ -151,7 +151,7 @@ interface IEditorManager extends Disposable {
 
     readonly container: HTMLElement;
     readonly editor: IBaseEditor;
-    readonly renderMode: EditorRenderType;
+    readonly renderMode: EditorType;
 
     /**
      * @description Render the given context to the editor editor. Depending on
@@ -166,7 +166,7 @@ interface IEditorManager extends Disposable {
      * current editor editor to fit the desired rendering mode.
      * @param mode The desired rendering mode.
      */
-    setRenderMode(mode: EditorRenderType): void;
+    setRenderMode(mode: EditorType): void;
 }
 
 /**
@@ -179,7 +179,7 @@ class EditorManager extends Disposable implements IEditorManager {
     private readonly _container: HTMLElement;
     private readonly _ctx: ViewContext;
     
-    private _renderMode: EditorRenderType;
+    private _renderMode: EditorType;
     private _editor: IBaseEditor;
 
     // [constructor]
@@ -212,7 +212,7 @@ class EditorManager extends Disposable implements IEditorManager {
         return this._editor;
     }
     
-    get renderMode(): EditorRenderType {
+    get renderMode(): EditorType {
         return this._renderMode;
     }
 
@@ -234,7 +234,7 @@ class EditorManager extends Disposable implements IEditorManager {
         this._editor.updateContent(event);
     }
 
-    public setRenderMode(mode: EditorRenderType): void {
+    public setRenderMode(mode: EditorType): void {
         if (mode === this._renderMode) {
             return;
         }
@@ -253,21 +253,21 @@ class EditorManager extends Disposable implements IEditorManager {
      * @param initState The initial state of the editor if provided.
      * @returns A newly constructed editor.
      */
-    private __createWindow(mode: EditorRenderType, initState?: ProseEditorState): IBaseEditor {
+    private __createWindow(mode: EditorType, initState?: ProseEditorState): IBaseEditor {
         
         const winArgs = [this._container, this._ctx, initState] as const;
         let editor: IBaseEditor;
         
         switch (mode) {
-            case EditorRenderType.Plain: {
+            case EditorType.Plain: {
                 // todo: splitWindow
                 throw new Error('does not support plain text editor yet.');
             }
-            case EditorRenderType.Rich: {
+            case EditorType.Rich: {
                 editor = new RichtextEditor(...winArgs);
                 break;
             }
-            case EditorRenderType.Split: {
+            case EditorType.Split: {
                 // todo: splitWindow
                 throw new Error('does not support split editor yet.');
             }
