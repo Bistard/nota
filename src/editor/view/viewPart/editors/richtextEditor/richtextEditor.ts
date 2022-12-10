@@ -85,13 +85,15 @@ export class RichtextEditor extends BaseEditor<EditorType.Rich, RichtextEditorCo
         return new RichtextEditor(container, context);
     }
 
+    public static getInternalView(editor: RichtextEditor): ProseEditorView {
+        return editor._core.view;
+    }
+
     // [protected methods]
 
     protected createEditorCore(container: HTMLElement, context: ViewContext, initState: ProseEditorState): RichtextEditorCore {
         return new RichtextEditorCore(container, context, initState);
     }
-
-    // [private getter]
 
     // [public methods]
 
@@ -160,9 +162,6 @@ class RichtextEditorCore extends EditorEventBroadcaster implements IRichtextEdit
 
     // [getter]
 
-    /**
-     * asd
-     */
     get view(): ProseEditorView {
         return this._view;
     }
