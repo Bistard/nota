@@ -63,20 +63,21 @@ export class EditorView extends Disposable implements IEditorView {
 
         // the centre that integrates the editor-related functionalities
         this._editorManager = new EditorManager(editorContainer, context);
-        this.onDidFocusChange = this._editorManager.editor.onDidFocusChange;
-        this.onBeforeRender = this._editorManager.editor.onBeforeRender;
-        
-        this.onClick = this._editorManager.editor.onClick;
-        this.onDidClick = this._editorManager.editor.onDidClick;
-        this.onDoubleClick = this._editorManager.editor.onDoubleClick;
-        this.onDidDoubleClick = this._editorManager.editor.onDidDoubleClick;
-        this.onTripleClick = this._editorManager.editor.onTripleClick;
-        this.onDidTripleClick = this._editorManager.editor.onDidTripleClick;
-        this.onKeydown = this._editorManager.editor.onKeydown;
-        this.onKeypress = this._editorManager.editor.onKeypress;
-        this.onTextInput = this._editorManager.editor.onTextInput;
-        this.onPaste = this._editorManager.editor.onPaste;
-        this.onDrop = this._editorManager.editor.onDrop;
+        {
+            this.onDidFocusChange = this._editorManager.editor.onDidFocusChange;
+            this.onBeforeRender = this._editorManager.editor.onBeforeRender;
+            this.onClick = this._editorManager.editor.onClick;
+            this.onDidClick = this._editorManager.editor.onDidClick;
+            this.onDoubleClick = this._editorManager.editor.onDoubleClick;
+            this.onDidDoubleClick = this._editorManager.editor.onDidDoubleClick;
+            this.onTripleClick = this._editorManager.editor.onTripleClick;
+            this.onDidTripleClick = this._editorManager.editor.onDidTripleClick;
+            this.onKeydown = this._editorManager.editor.onKeydown;
+            this.onKeypress = this._editorManager.editor.onKeypress;
+            this.onTextInput = this._editorManager.editor.onTextInput;
+            this.onPaste = this._editorManager.editor.onPaste;
+            this.onDrop = this._editorManager.editor.onDrop;
+        }
 
         // update listener registration from view-model
         this.__registerViewModelListeners();
@@ -132,13 +133,13 @@ export class EditorView extends Disposable implements IEditorView {
     private __registerViewModelListeners(): void {
         const viewModel = this._ctx.viewModel;
 
-        viewModel.onRender(event => {
+        this.__register(viewModel.onRender(event => {
             this._editorManager.render(event);
-        });
+        }));
 
-        viewModel.onDidChangeRenderMode(mode => {
+        this.__register(viewModel.onDidChangeRenderMode(mode => {
             this._editorManager.setRenderMode(mode);
-        });
+        }));
     }
 }
 
