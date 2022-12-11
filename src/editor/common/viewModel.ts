@@ -25,13 +25,10 @@ export interface IEditorViewModel extends Disposable {
      * Fires when a log is about happen.
      */
     readonly onLog: Register<ILogEvent<string | Error>>;
-
     readonly onRender: Register<IRenderEvent>;
-
-    readonly onDidChangeRenderMode: Register<EditorType>;
+    readonly onDidRenderModeChange: Register<EditorType>;
 
     getSchema(): EditorSchema;
-
     getExtensions(): IEditorExtension[];
 
     /**

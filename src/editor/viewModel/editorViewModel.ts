@@ -46,8 +46,8 @@ export class EditorViewModel extends Disposable implements IEditorViewModel {
     private readonly _onRender = this.__register(new Emitter<IRenderEvent>());
     public readonly onRender = this._onRender.registerListener;
 
-    private readonly _onDidChangeRenderMode = this.__register(new Emitter<EditorType>());
-    public readonly onDidChangeRenderMode = this._onDidChangeRenderMode.registerListener;
+    private readonly _onDidRenderModeChange = this.__register(new Emitter<EditorType>());
+    public readonly onDidRenderModeChange = this._onDidRenderModeChange.registerListener;
 
     // [constructor]
 
@@ -93,7 +93,12 @@ export class EditorViewModel extends Disposable implements IEditorViewModel {
     }
 
     public updateOptions(options: Partial<IEditorViewModelOptions>): void {
-        
+        if (options.mode) {
+            const changed = this._options.mode.updateWith(options.mode);
+            if (changed) {
+                this._onDidRenderModeChange.fire(options.mode);
+            }
+        }
     }
 
     // [private helper methods]

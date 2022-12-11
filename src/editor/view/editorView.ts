@@ -137,7 +137,7 @@ export class EditorView extends Disposable implements IEditorView {
             this._editorManager.render(event);
         }));
 
-        this.__register(viewModel.onDidChangeRenderMode(mode => {
+        this.__register(viewModel.onDidRenderModeChange(mode => {
             this._editorManager.setRenderMode(mode);
         }));
     }

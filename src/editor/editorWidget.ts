@@ -3,7 +3,7 @@ import "src/editor/common/command/command.register";
 import { FastElement } from "src/base/browser/basic/fastElement";
 import { Disposable, DisposableManager, IDisposable } from "src/base/common/dispose";
 import { ErrorHandler } from "src/base/common/error";
-import { Emitter, Event } from "src/base/common/event";
+import { Emitter, Event, Register } from "src/base/common/event";
 import { basename } from "src/base/common/file/path";
 import { URI } from "src/base/common/file/uri";
 import { defaultLog, ILogService } from "src/base/common/logger";
@@ -35,6 +35,11 @@ export interface IEditorWidget extends IEditorEventBroadcaster {
      * The current rendering mode of the view.
      */
     readonly renderMode: EditorType | null;
+
+    /**
+     * Fires when the editor render mode has changed.
+     */
+    readonly onDidRenderModeChange: Register<EditorType>;
 
     /**
      * @description Opens the source in the editor.
@@ -79,6 +84,9 @@ export class EditorWidget extends Disposable implements IEditorWidgetFriendship 
 
     private readonly _onDidFocusChange = this.__register(new Emitter<boolean>());
     public readonly onDidFocusChange = this._onDidFocusChange.registerListener;
+
+    private readonly _onDidRenderModeChange = this.__register(new Emitter<EditorType>());
+    public readonly onDidRenderModeChange = this._onDidRenderModeChange.registerListener;
 
     private readonly _onBeforeRender = this.__register(new Emitter<IOnBeforeRenderEvent>());
     public readonly onBeforeRender = this._onBeforeRender.registerListener;
@@ -270,6 +278,9 @@ export class EditorWidget extends Disposable implements IEditorWidgetFriendship 
             defaultLog(this.logService, event.level, event.data);
         }));
 
+        // binding to the view model
+        disposables.register(viewModel.onDidRenderModeChange(e => this._onDidRenderModeChange.fire(e)));
+
         // binding to the view
         disposables.register(view.onDidFocusChange(e => this._onDidFocusChange.fire(e)));
         disposables.register(view.onBeforeRender(e => this._onBeforeRender.fire(e)));
@@ -371,6 +382,7 @@ class EditorContextManager extends Disposable {
     // [context]
 
     private readonly focusedEditor: IContextKey<boolean>;
+    private readonly editorRenderMode: IContextKey<EditorType | null>;
 
     // [constructor]
 
@@ -381,6 +393,7 @@ class EditorContextManager extends Disposable {
         super();
 
         this.focusedEditor = contextService.createContextKey('isEditorFocused', false, 'Whether the editor is focused.');
+        this.editorRenderMode = contextService.createContextKey('editorRenderMode', editor.renderMode, 'The render mode of the editor.');
 
         this.__registerListeners();
     }
@@ -388,8 +401,7 @@ class EditorContextManager extends Disposable {
     // [private helper methods]
 
     private __registerListeners(): void {
-        this.__register(this.editor.onDidFocusChange(isFocused => {
-            this.focusedEditor.set(isFocused);
-        }));
+        this.__register(this.editor.onDidFocusChange(isFocused => this.focusedEditor.set(isFocused)));
+        this.__register(this.editor.onDidRenderModeChange(mode => this.editorRenderMode.set(mode)));
     }
 }
