@@ -1,44 +1,71 @@
+import { AllSelection } from "prosemirror-state";
+import { KeyCode, Shortcut } from "src/base/common/keyboard";
+import { ShortcutWeight } from "src/code/browser/service/shortcut/shortcutRegistrant";
 import { IServiceProvider } from "src/code/platform/instantiation/common/instantiation";
-import { EditorCommand } from "src/editor/common/command/editorCommand";
+import { EditorViewCommand } from "src/editor/common/command/editorCommand";
 import { EditorContextKeys } from "src/editor/common/editorContextKeys";
 import { ProseEditorView } from "src/editor/common/proseMirror";
-import { EditorType } from "src/editor/common/viewModel";
-import { IEditorWidget, IEditorWidgetFriendship } from "src/editor/editorWidget";
-import { RichtextEditor } from "src/editor/view/viewPart/editors/richtextEditor/richtextEditor";
+import { IEditorWidget } from "src/editor/editorWidget";
 
 export const enum EditorCommandsEnum {
+    selectAllContent = 'select-all-content',
     deleteCurrentSelection = 'delete-current-selection',
 }
 
-export const deleteCurrentSelection = (new class extends EditorCommand {
+export const selectAllContent = (new class extends EditorViewCommand {
+    constructor() {
+        super({
+            id: EditorCommandsEnum.selectAllContent,
+            when: EditorContextKeys.editorFocusedContext,
+            description: 'Select all the context.',
+            shortcutOptions: {
+                shortcut: new Shortcut(true, false, false, false, KeyCode.KeyA),
+                weight: ShortcutWeight.Editor,
+                when: null,
+            }
+        });
+    }
+
+    protected override richtextCommand(provider: IServiceProvider, editorWidget: IEditorWidget, view: ProseEditorView, ...args: any[]): boolean | Promise<boolean> {
+        const state = view.state;
+        if (state.selection.empty) {
+            return false;
+        }
+        
+        if (!view.dispatch) {
+            return false;
+        }
+
+        view.dispatch(state.tr.setSelection(new AllSelection(state.doc)));
+        return true;
+    }
+});
+
+export const deleteCurrentSelection = (new class extends EditorViewCommand {
     constructor() {
         super({
             id: EditorCommandsEnum.deleteCurrentSelection,
             when: EditorContextKeys.editorFocusedContext,
             description: 'Delete the current editor selection.',
+            shortcutOptions: {
+                shortcut: new Shortcut(false, false, false, false, KeyCode.Delete),
+                weight: ShortcutWeight.Editor,
+                when: null,
+            }
         });
     }
 
-    protected command(provider: IServiceProvider, editorWidget: IEditorWidget, view?: ProseEditorView): void {
-        
-        if (!view) {
-            const editor = (<IEditorWidgetFriendship>editorWidget).view?.editor;
-            if (editor?.type === EditorType.Rich) {
-                view = RichtextEditor.getInternalView(editor);
-            }
-        }
-        
-        if (!view) {
-            return;
-        }
-
+    protected override richtextCommand(provider: IServiceProvider, editorWidget: IEditorWidget, view: ProseEditorView, ...args: any[]): boolean | Promise<boolean> {
         const state = view.state;
         if (state.selection.empty) {
-            return;
+            return false;
         }
 
-        if (view.dispatch) {
-            view.dispatch(state.tr.deleteSelection().scrollIntoView());
+        if (!view.dispatch) {
+            return false;
         }
+
+        view.dispatch(state.tr.deleteSelection().scrollIntoView());
+        return true;
     }
 });

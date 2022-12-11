@@ -1,87 +1,63 @@
-import { IShortcutRegistrant, IShortcutRegistration } from "src/code/browser/service/shortcut/shortcutRegistrant";
 import { IEditorService } from "src/code/browser/workbench/workspace/editor/editorService";
-import { ICommandRegistrant, ICommandSchema } from "src/code/platform/command/common/commandRegistrant";
-import { ContextKeyExpr, CreateContextKeyExpr } from "src/code/platform/context/common/contextKeyExpr";
-import { IContextService } from "src/code/platform/context/common/contextService";
+import { Command } from "src/code/platform/command/common/command";
 import { IServiceProvider } from "src/code/platform/instantiation/common/instantiation";
-import { REGISTRANTS } from "src/code/platform/registrant/common/registrant";
-import { IEditorWidget } from "src/editor/editorWidget";
+import { ProseEditorView } from "src/editor/common/proseMirror";
+import { EditorInstance } from "src/editor/common/view";
+import { EditorType } from "src/editor/common/viewModel";
+import { IEditorWidget, IEditorWidgetFriendship } from "src/editor/editorWidget";
+import { RichtextEditor } from "src/editor/view/viewPart/editors/richtextEditor/richtextEditor";
 
-const shortcutRegistrant = REGISTRANTS.get(IShortcutRegistrant);
-const commandRegistrant = REGISTRANTS.get(ICommandRegistrant);
+export abstract class EditorCommand extends Command {
 
-export interface IEditorCommandSchema extends Omit<ICommandSchema, 'overwrite'> {
-    
-    /**
-     * The precondition that indicates if the command is valid to be invoked.
-     */
-    readonly when: ContextKeyExpr | null;
+    protected override __runCommand(provider: IServiceProvider, ...args: any[]): boolean | Promise<boolean> {
+        const editorService = provider.getOrCreateService(IEditorService);
+        const editor = editorService.editor;
+        if (!editor) {
+            return false;
+        }
+        return super.__runCommand(provider, ...[editor, ...args]);
+    }
 
-    /**
-     * If the option is provided, the command will also be registered as a
-     * shortcut.
-     * @note The shortcut will only be avaliable when the command schema `when`
-     * is satisfied.
-     */
-    readonly shortcutOptions?: IShortcutRegistration;
+    public abstract override run(provider: IServiceProvider, editorWidget: IEditorWidget, ...args: any[]): boolean | Promise<boolean>;
 }
 
-export abstract class EditorCommand {
+export abstract class EditorViewCommand extends EditorCommand {
 
-    // [field]
-
-    private readonly _schema: IEditorCommandSchema;
-
-    // [constructor]
-
-    constructor(schema: IEditorCommandSchema) {
-        this._schema = schema;
-        const actualSchema = { 
-            ...schema, 
-            overwrite: true,
-        };
-
-        // register as the shortcut if needed
-        if (schema.shortcutOptions) {
-            shortcutRegistrant.register({
-                ...schema.shortcutOptions,
-                when: CreateContextKeyExpr.And(schema.when, schema.shortcutOptions.when),
-            });
-        }
-        
-        // command registration
-        commandRegistrant.registerCommand(actualSchema, this.runCommand.bind(this));
-    }
-
-    // [protected abstract methods]
-
-    /**
-     * @description The actual command implementation. 
-     * @param provider A service provider that gives permission to access the
-     *                 internal dependency injection to get all kinds of 
-     *                 different micro-services.
-     * @param editorWidget The actual editor instance.
-     * @param args The other provided data.
-     */
-    protected abstract command(provider: IServiceProvider, editorWidget: IEditorWidget, ...args: any[]): void;
-
-    // [public methods]
-
-    get id(): string {
-        return this._schema.id;
-    }
-
-    public runCommand(provider: IServiceProvider, ...args: any[]): void {
+    protected override __runCommand(provider: IServiceProvider, ...args: any[]): boolean | Promise<boolean> {
         const editorService = provider.getOrCreateService(IEditorService);
-        if (!editorService.editor) {
-            return;
+        const widget = editorService.editor;
+        if (!widget) {
+            return false;
         }
 
-        const contextService = provider.getOrCreateService(IContextService);
-        if (!contextService.contextMatchExpr(this._schema.when)) {
-            return;
+        const view = (<IEditorWidgetFriendship>widget).view;
+        if (!view) {
+            return false;
         }
 
-        this.command(provider, editorService.editor, ...args);
+        return super.__runCommand(provider, ...[view.editor, ...args]);
+    }
+
+    public run(provider: IServiceProvider, editorWidget: IEditorWidget, editor: EditorInstance, ...args: any[]): boolean | Promise<boolean> {
+        switch (editor.type) {
+            case EditorType.Rich:
+                return this.richtextCommand(provider, editorWidget, RichtextEditor.getInternalView(editor), ...args);
+            case EditorType.Plain:
+                return this.plaintextCommand(provider, editorWidget, undefined!, ...args); // TODO
+            case EditorType.Split:
+                return this.splitViewCommand(provider, editorWidget, undefined!, ...args); // TODO
+        }
+    }
+
+    protected richtextCommand(provider: IServiceProvider, editorWidget: IEditorWidget, view: ProseEditorView, ...args: any[]): boolean | Promise<boolean> {
+        return false;
+    }
+
+    protected plaintextCommand(provider: IServiceProvider, editorWidget: IEditorWidget, view: never, ...args: any[]): boolean | Promise<boolean> {
+        return false;
+    }
+
+    protected splitViewCommand(provider: IServiceProvider, editorWidget: IEditorWidget, view: never, ...args: any[]): boolean | Promise<boolean> {
+        return false;
     }
 }

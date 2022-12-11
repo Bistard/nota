@@ -1,4 +1,5 @@
 import { IDisposable, toDisposable } from "src/base/common/dispose";
+import { Mutable } from "src/base/common/util/type";
 import { IServiceProvider } from "src/code/platform/instantiation/common/instantiation";
 import { createRegistrant, RegistrantType } from "src/code/platform/registrant/common/registrant";
 
@@ -14,7 +15,7 @@ export interface ICommandEvent {
 }
 
 /**
- * A set of metadata that describes the command.
+ * A set of metadata that describes the command that is about to be registered.
  */
 export interface ICommandSchema {
     
@@ -26,13 +27,20 @@ export interface ICommandSchema {
     /**
      * The description of the command.
      */
-    description?: string;
+    readonly description?: string;
 
     /**
      * If to overwrite the exsiting command. 
      * @default false
      */
-    overwrite?: boolean;
+    readonly overwrite?: boolean;
+}
+
+export interface ICommand extends ICommandSchema {
+    /**
+     * The actual command implementation.
+     */
+    readonly command: ICommandExecutor;
 }
 
 /**
@@ -43,10 +51,10 @@ export interface ICommandRegistrant {
     /**
      * @description Registers a command by storing it in a map with its id as the key.
      * @param schema A set of metadata that describes the command.
-     * @param executor The actual callback function of the command. 
+     * @param command The actual implementation of the command. 
      * @returns A disposible for unregistration.
      */
-    registerCommand(schema: ICommandSchema, executor: ICommandExecutor): IDisposable;
+    registerCommand(schema: ICommandSchema, command: ICommandExecutor): IDisposable;
 
     /**
      * @description Get the {@link ICommand} object through the command id.
@@ -57,12 +65,6 @@ export interface ICommandRegistrant {
      * @description Return all the registered commands.
      */
     getAllCommands(): Map<string, ICommand>;
-}
-
-interface ICommand<T = any> {
-    readonly id: string;
-    readonly description?: string;
-    readonly executor: ICommandExecutor<T>;
 }
 
 /**
@@ -78,15 +80,19 @@ class CommandRegistrant implements ICommandRegistrant {
         // noop
     }
 
-    public registerCommand(schema: ICommandSchema, executor: ICommandExecutor): IDisposable {
+    public registerCommand(schema: ICommandSchema, command: ICommandExecutor): IDisposable {
         const id = schema.id;
+        const cmd: Mutable<ICommand> = {
+            ...schema,
+            command: command,
+        };
         
         if (!schema.description) {
-            schema.description = 'No descriptions are provided.';
+            cmd.description = 'No descriptions are provided.';
         }
 
         if (schema.overwrite === true || !this._commands.has(id)) {
-            this._commands.set(id, { id, executor, description: schema.description });
+            this._commands.set(id, cmd);
         }
         
         let unregister = toDisposable(() => {

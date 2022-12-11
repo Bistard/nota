@@ -7,8 +7,9 @@ import { RichtextEditor } from "src/editor/view/viewPart/editors/richtextEditor/
 
 // TEST
 export type PlaintextEditor = {} & IBaseEditor<EditorType.Plain>;
+export type SplitviewEditor = {} & IBaseEditor<EditorType.Split>;
 
-export type EditorInstance = RichtextEditor | PlaintextEditor;
+export type EditorInstance = RichtextEditor | PlaintextEditor | SplitviewEditor;
 
 export interface IEditorView extends IEditorEventBroadcaster {
 
