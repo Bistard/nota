@@ -10,8 +10,6 @@ export class KeyboardController extends EditorExtension {
 
     // [field]
 
-    // private readonly _keybindings: Map<number, string>;
-
     // [constructor]
 
     constructor(
