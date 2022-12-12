@@ -7,9 +7,9 @@ import { ProseNode } from "src/editor/common/proseMirror";
 import { EditorSchema } from "src/editor/viewModel/schema";
 
 export const enum EditorType {
-    Plain = 'plain',
-    Split = 'split',
-    Rich = 'rich',
+    Plain = 'plain-text',
+    Split = 'split-view',
+    Rich = 'rich-text',
 }
 
 export interface IEditorViewModel extends Disposable {
