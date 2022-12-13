@@ -48,6 +48,16 @@ export interface ICommand {
     run: CommandImplementation;
 }
 
+/**
+ * @class Instead of register a command into the {@link ICommandRegistrant} 
+ * directly. A {@link Command} provides extra functionalities and a series of 
+ * inherited classes that supports additional behaviours.
+ * 
+ * @note The abstract method `run` indicates the actual command implementation.
+ * 
+ * @note When a {@link Command} is constructed, the abstract method `run` will 
+ * be automatically wrapped and registered into the {@link ICommandRegistrant}.
+ */
 export abstract class Command implements ICommand {
 
     // [field]
