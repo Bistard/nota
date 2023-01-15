@@ -44,6 +44,8 @@ interface IShortcutBase {
      * tell the program which command should choose be execute.
      */
     readonly weight: ShortcutWeight;
+
+    // TODO: description?: string;
 }
 
 /**
