@@ -27,15 +27,25 @@ export const selectAllContent = (new class extends EditorViewCommand {
     }
 
     protected override richtextCommand(provider: IServiceProvider, editorWidget: IEditorWidget, view: ProseEditorView, ...args: any[]): boolean | Promise<boolean> {
-        const state = view.state;
-        if (state.selection.empty) {
-            return false;
-        }
-        
         if (!view.dispatch) {
             return false;
         }
 
+        // {
+        //     const state = view.state;
+        //     console.log('[old state json]', state.toJSON());
+
+        //     const allSelection = new AllSelection(state.doc);
+        //     console.log('[all selection]', allSelection.toJSON());
+
+        //     const newState = state.tr.setSelection(allSelection);
+        //     state.apply(newState);
+        //     console.log('[new state json]', state.toJSON());
+
+        //     view.updateState(state);
+        // }
+
+        const state = view.state;
         view.dispatch(state.tr.setSelection(new AllSelection(state.doc)));
         return true;
     }
