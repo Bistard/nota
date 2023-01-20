@@ -1,5 +1,4 @@
 const childProcess = require("child_process");
-const minimist = require("minimist");
 const path = require("path");
 const utils = require("./utility");
 
@@ -32,7 +31,7 @@ registerSpawnListeners(spawn);
 // #region helper functions
 
 function parsingCLI() {
-    const CLIArgv = minimist(process.argv.slice(2));
+    const CLIArgv = utils.parseCLI();
     console.log(`${utils.getTime()} [Building arguments]`, CLIArgv);
     process.env.NODE_ENV = CLIArgv.NODE_ENV ?? 'development';
     process.env.CIRCULAR = CLIArgv.circular ?? 'true';
