@@ -4,8 +4,6 @@ const path = require("path");
 const fs = require('fs');
 const utils = require("./utility");
 
-// const { utils.c, utils.getTime, utils.setCharAt, utils.ifMissingFile } = require("./utility");
-
 /**
  * @description
  * The script is to remove all the prefix of every svg files that are downloaded 
@@ -15,8 +13,7 @@ const utils = require("./utility");
  * @note Icon library: https://www.flaticon.com/uicons/interface-icons
  * 
  * @option
- * The script is avaliable in `package.json`. The options of the script are 
- * listed below:
+ * The options of the script are listed below:
  * 
  * I. Force the script to regenerate icon files even there is no changes or 
  * missing target files.
