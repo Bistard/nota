@@ -6,16 +6,8 @@
   "type": "commonjs",
   "private": true,
   "scripts": {
-    "run": "electron .",
-    "_run": "electron . --- --log=trace --open-devtools",
-    "start": "npm run build && electron .",
-    "_start": "npm start --- --log=trace --open-devtools",
-    "test": "mocha --ui tdd -r jsdom-global/register --config '.mocharc.jsonc' --timeout 10000",
-    "_test": "mocha --ui tdd -r jsdom-global/register --config 'test/.mocharc.jsonc'",
-    "build": "node ./scripts/build.js",
-    "watch": "npm run build --- --watch=true --circular=false",
-    "benchmark": "node benchmark/benchmark.js",
-    "_gen-icons": "node ./scripts/icon.js"
+    "nota": "node ./scripts/script.js",
+    "script": "node ./scripts/script.js"
   },
   "repository": {
     "type": "git",

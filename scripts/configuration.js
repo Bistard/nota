@@ -26,12 +26,12 @@ const configuration = {
     },
 
     "watch": {
-        command: "npm run build --- --watch=true --circular=false",
+        command: "npm run script build -- --watch=true --circular=false",
         description: 'Build the Nota and wait to rebuild by watching the change of the source directory.'
     },
 
     "start": {
-        command: "npm run build && electron .",
+        command: "npm run script build && electron .",
         description: 'Build nota and run Nota.'
     },
 

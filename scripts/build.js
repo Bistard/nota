@@ -77,7 +77,7 @@ function registerSpawnListeners(spawn) {
         process.stdout.write(`${utils.getTime()} ${output}`);
     });
       
-    spawn.stderr.on('error', (error) => {
+    spawn.stderr.on('data', (error) => {
         console.error(`${utils.getTime()} ${error}`);
     });
     
@@ -87,7 +87,7 @@ function registerSpawnListeners(spawn) {
 
         if (code) {
             fail = true;
-            process.stdout.write(`${utils.getTime(utils.c.FgRed)} child process exited with code ${code}`);
+            process.stdout.write(`${utils.getTime(utils.c.FgRed)} child process exited with error code ${code}`);
         } else {
             process.stdout.write(`${utils.getTime(utils.c.FgGreen)} Building success`);
         }
