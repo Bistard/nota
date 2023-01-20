@@ -34,7 +34,6 @@ const INVALID_SCRIPT_COMMAND = `Invalid script command format. Please follow: ${
     const scriptConfiguraion = require(SCRIPT_CONFIG_PATH);
 
     // try interpret CLI
-    console.log(process.argv);
     const cliArgs = process.argv.slice(2);
     const [cmd, args] = validateCLI(cliArgs);
 
