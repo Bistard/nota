@@ -72,9 +72,10 @@ function executeHelp() {
  * @param {ScriptConfiguration} configuration 
  */
 function executeList(configuration) {
+    console.log(`${'[command]'.padStart(10, ' ').padEnd(13, ' ')}[description]`);
     for (const key of Object.getOwnPropertyNames(configuration)) {
         const { _command, description } = configuration[key];
-            console.log(`${key}   ${description}`);
+            console.log(`${key.padStart(10, ' ').padEnd(14, ' ')}${description}`);
     }
 }
 
