@@ -77,7 +77,7 @@ function registerSpawnListeners(spawn) {
         process.stdout.write(`${utils.getTime()} ${output}`);
     });
       
-    spawn.stderr.on('data', (error) => {
+    spawn.stderr.on('error', (error) => {
         console.error(`${utils.getTime()} ${error}`);
     });
     
