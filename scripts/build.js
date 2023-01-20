@@ -1,11 +1,11 @@
 const childProcess = require("child_process");
 const minimist = require("minimist");
 const path = require("path");
-const { c, getTime, perf, getPerf } = require("./utility");
+const utils = require("./utility");
 
 // Start building...
-perf('build');
-console.log(`${getTime(c.FgGreen)} Building...`);
+utils.perf('build');
+console.log(`${utils.getTime(utils.c.FgGreen)} Building...`);
 
 // wrap spawn so that we may print message properly
 const oldSpawn = childProcess.spawn;
@@ -33,7 +33,7 @@ registerSpawnListeners(spawn);
 
 function parsingCLI() {
     const CLIArgv = minimist(process.argv.slice(2));
-    console.log(`${getTime()} [Building arguments]`, CLIArgv);
+    console.log(`${utils.getTime()} [Building arguments]`, CLIArgv);
     process.env.NODE_ENV = CLIArgv.NODE_ENV ?? 'development';
     process.env.CIRCULAR = CLIArgv.circular ?? 'true';
     process.env.WATCH_MODE = CLIArgv.watch;
@@ -42,7 +42,7 @@ function parsingCLI() {
 function wrapSpawn() {
     for (const arg of arguments) {
 
-        let output = `${getTime()} `;
+        let output = `${utils.getTime()} `;
         if (typeof arg === 'string') {
             output += `[Executing command] ${arg}\n`;
         } 
@@ -54,7 +54,7 @@ function wrapSpawn() {
             }
         } 
         else {
-            const stamp = getTime();
+            const stamp = utils.getTime();
             output = `${stamp} [CWD]: ${arg.cwd}\n`;
             output += `${stamp} [NODE_ENV]: ${arg.env.NODE_ENV ?? 'N/A'}\n`;
             output += `${stamp} [ELECTRON_VER]: ${process.versions.electron ?? 'N/A'}\n`;
@@ -75,11 +75,11 @@ function wrapSpawn() {
 function registerSpawnListeners(spawn) {
 
     spawn.stdout.on('data', (output) => {
-        process.stdout.write(`${getTime()} ${output}`);
+        process.stdout.write(`${utils.getTime()} ${output}`);
     });
       
     spawn.stderr.on('data', (error) => {
-        console.error(`${getTime()} ${error}`);
+        console.error(`${utils.getTime()} ${error}`);
     });
     
     spawn.on('close', (code) => {
@@ -88,13 +88,13 @@ function registerSpawnListeners(spawn) {
 
         if (code) {
             fail = true;
-            process.stdout.write(`${getTime(c.FgRed)} child process exited with code ${code}`);
+            process.stdout.write(`${utils.getTime(utils.c.FgRed)} child process exited with code ${code}`);
         } else {
-            process.stdout.write(`${getTime(c.FgGreen)} Building success`);
+            process.stdout.write(`${utils.getTime(utils.c.FgGreen)} Building success`);
         }
-        perf('build');
+        utils.perf('build');
 
-        const [begin, end] = getPerf();
+        const [begin, end] = utils.getPerf();
         const spentInSec = (end.time - begin.time) / 1000;
         process.stdout.write(` in ${Math.round(spentInSec * 100) / 100} seconds.\n`);
 

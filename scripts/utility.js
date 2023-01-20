@@ -1,14 +1,6 @@
 const path = require("path");
 const fs = require('fs');
-
-/**
- * @description Returns the current time in a standard format.
- * @example 2022-08-24 00:33:58.226
- */
-function getCurrTimeStamp() {
-    const currentTime = new Date();
-    return `${currentTime.getFullYear()}-${(currentTime.getMonth() + 1).toString().padStart(2, '0')}-${currentTime.getDate().toString().padStart(2, '0')} ${(currentTime.getHours()).toString().padStart(2, '0')}:${(currentTime.getMinutes()).toString().padStart(2, '0')}:${(currentTime.getSeconds()).toString().padStart(2, '0')}.${(currentTime.getMilliseconds()).toString().padStart(3, '0')}`;
-}
+const minimist = require("minimist");
 
 const c = {
     Reset: "\x1b[0m",
@@ -39,45 +31,82 @@ const c = {
     BgWhite: "\x1b[47m",
 };
 
-function getTime(color) {
-    if (!color) {
-        return `${c.Gray}[${getCurrTimeStamp()}]\x1b[0m`;
-    }
-    return `${color}[${getCurrTimeStamp()}]\x1b[0m`;
-}
-
 const _perfRecord = [];
 
-function perf(stage) {
-    _perfRecord.push(stage, Date.now());
-}
+const utils = new (class UtilCollection {
+   
+    constructor() {}
 
-function getPerf() {
-    const marks = [];
-    let i = 0;
-    for (i = 0; i < _perfRecord.length; i += 2) {
-        marks.push({
-            stage: _perfRecord[i],
-            time: _perfRecord[i + 1],
-        });
+    /**
+     * @description Returns the current time in a standard format.
+     * @example 2022-08-24 00:33:58.226
+     */
+    getCurrTimeStamp() {
+        const currentTime = new Date();
+        return `${currentTime.getFullYear()}-${(currentTime.getMonth() + 1).toString().padStart(2, '0')}-${currentTime.getDate().toString().padStart(2, '0')} ${(currentTime.getHours()).toString().padStart(2, '0')}:${(currentTime.getMinutes()).toString().padStart(2, '0')}:${(currentTime.getSeconds()).toString().padStart(2, '0')}.${(currentTime.getMilliseconds()).toString().padStart(3, '0')}`;
     }
-    return marks;
-}
 
-function setCharAt(str, index, c) {
-    if(index > str.length - 1) {
-        return str;
+    /**
+     * @description Parses the command line interface of the current script.
+     * @returns Returning an object that contains all the command line 
+     * arguments. Already processed by minimist.
+     * 
+     * @example
+     * ```
+     * > node ./scripts/script.js "a" "-b" "--c=d" "---e"
+     * { _: [ 'a' ], b: true, c: 'd', '-e': true }
+     * ```
+     */
+    parseCLI() {
+        const CLIArgv = minimist(process.argv.slice(2));
+        return CLIArgv;
     }
-    return str.substring(0, index) + c + str.substring(index + 1);
-}
 
-async function ifMissingFile(root, name) {
-    try {
-        await fs.promises.stat(path.resolve(root, name));
-        return false;
-    } catch {
-        return true;
+    getTime(color) {
+        if (!color) {
+            return `${c.Gray}[${this.getCurrTimeStamp()}]\x1b[0m`;
+        }
+        return `${color}[${this.getCurrTimeStamp()}]\x1b[0m`;
     }
-}
 
-module.exports = { c, getTime, perf, getPerf, setCharAt, ifMissingFile};
+    perf(stage) {
+        _perfRecord.push(stage, Date.now());
+    }
+
+    getPerf() {
+        const marks = [];
+        let i = 0;
+        for (i = 0; i < _perfRecord.length; i += 2) {
+            marks.push({
+                stage: _perfRecord[i],
+                time: _perfRecord[i + 1],
+            });
+        }
+        return marks;
+    }
+
+    setCharAt(str, index, c) {
+        if(index > str.length - 1) {
+            return str;
+        }
+        return str.substring(0, index) + c + str.substring(index + 1);
+    }
+
+    async ifMissingFile(root, name) {
+        try {
+            await fs.promises.stat(path.resolve(root, name));
+            return false;
+        } catch {
+            return true;
+        }
+    }
+});
+
+// #region CONSTANT
+
+utils.c = c;
+
+// #endregion
+
+// export
+module.exports = utils;
