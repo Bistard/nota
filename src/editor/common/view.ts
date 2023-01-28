@@ -1,8 +1,15 @@
 import { Register } from "src/base/common/event";
 import { ILogEvent } from "src/base/common/logger";
 import { IEditorEventBroadcaster } from "src/editor/common/eventBroadcaster";
-import { IEditorViewModel } from "src/editor/common/viewModel";
+import { EditorType, IEditorViewModel } from "src/editor/common/viewModel";
 import { IBaseEditor } from "src/editor/view/viewPart/editors/baseEditor";
+import { RichtextEditor } from "src/editor/view/viewPart/editors/richtextEditor/richtextEditor";
+
+// TEST
+export type PlaintextEditor = {} & IBaseEditor<EditorType.Plain>;
+export type SplitviewEditor = {} & IBaseEditor<EditorType.Split>;
+
+export type EditorInstance = RichtextEditor | PlaintextEditor | SplitviewEditor;
 
 export interface IEditorView extends IEditorEventBroadcaster {
 
@@ -14,7 +21,7 @@ export interface IEditorView extends IEditorEventBroadcaster {
     /**
      * The actual editor instance.
      */
-    readonly editor: IBaseEditor;
+    readonly editor: EditorInstance;
 
     /**
      * Fires when a log is about happen.

@@ -113,6 +113,7 @@ export type NonUndefined = {} | null;
 
 /**
  * @description Mocks the given value's type.
+ * @deprecated Try not to use it since it causes unnecessary runtime impact.
  */
 export function mockType<T>(val: any): T {
     return val as unknown as T;

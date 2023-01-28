@@ -1,12 +1,10 @@
 import { Disposable } from "src/base/common/dispose";
 import { Emitter, Register } from "src/base/common/event";
 import { ILogEvent } from "src/base/common/logger";
-import { ProseEditorState } from "src/editor/common/proseMirror";
-import { IEditorView, IEditorViewOptions } from "src/editor/common/view";
-import { EditorRenderType, IEditorViewModel, IRenderEvent } from "src/editor/common/viewModel";
+import { EditorInstance, IEditorView, IEditorViewOptions } from "src/editor/common/view";
+import { EditorType, IEditorViewModel, IRenderEvent } from "src/editor/common/viewModel";
 import { EditorOptionsType } from "src/editor/common/configuration/editorConfiguration";
 import { RichtextEditor } from "src/editor/view/viewPart/editors/richtextEditor/richtextEditor";
-import { IBaseEditor } from "src/editor/view/viewPart/editors/baseEditor";
 import { IOnBeforeRenderEvent, IOnClickEvent, IOnDidClickEvent, IOnDidDoubleClickEvent, IOnDidTripleClickEvent, IOnDoubleClickEvent, IOnDropEvent, IOnKeydownEvent, IOnKeypressEvent, IOnPasteEvent, IOnTextInputEvent, IOnTripleClickEvent } from "src/editor/common/eventBroadcaster";
 
 export class ViewContext {
@@ -65,20 +63,21 @@ export class EditorView extends Disposable implements IEditorView {
 
         // the centre that integrates the editor-related functionalities
         this._editorManager = new EditorManager(editorContainer, context);
-        this.onDidFocusChange = this._editorManager.editor.onDidFocusChange;
-        this.onBeforeRender = this._editorManager.editor.onBeforeRender;
-        
-        this.onClick = this._editorManager.editor.onClick;
-        this.onDidClick = this._editorManager.editor.onDidClick;
-        this.onDoubleClick = this._editorManager.editor.onDoubleClick;
-        this.onDidDoubleClick = this._editorManager.editor.onDidDoubleClick;
-        this.onTripleClick = this._editorManager.editor.onTripleClick;
-        this.onDidTripleClick = this._editorManager.editor.onDidTripleClick;
-        this.onKeydown = this._editorManager.editor.onKeydown;
-        this.onKeypress = this._editorManager.editor.onKeypress;
-        this.onTextInput = this._editorManager.editor.onTextInput;
-        this.onPaste = this._editorManager.editor.onPaste;
-        this.onDrop = this._editorManager.editor.onDrop;
+        {
+            this.onDidFocusChange = this._editorManager.editor.onDidFocusChange;
+            this.onBeforeRender = this._editorManager.editor.onBeforeRender;
+            this.onClick = this._editorManager.editor.onClick;
+            this.onDidClick = this._editorManager.editor.onDidClick;
+            this.onDoubleClick = this._editorManager.editor.onDoubleClick;
+            this.onDidDoubleClick = this._editorManager.editor.onDidDoubleClick;
+            this.onTripleClick = this._editorManager.editor.onTripleClick;
+            this.onDidTripleClick = this._editorManager.editor.onDidTripleClick;
+            this.onKeydown = this._editorManager.editor.onKeydown;
+            this.onKeypress = this._editorManager.editor.onKeypress;
+            this.onTextInput = this._editorManager.editor.onTextInput;
+            this.onPaste = this._editorManager.editor.onPaste;
+            this.onDrop = this._editorManager.editor.onDrop;
+        }
 
         // update listener registration from view-model
         this.__registerViewModelListeners();
@@ -96,7 +95,7 @@ export class EditorView extends Disposable implements IEditorView {
         return this._ctx.viewModel;
     }
 
-    get editor(): IBaseEditor {
+    get editor(): EditorInstance {
         return this._editorManager.editor;
     }
 
@@ -134,13 +133,13 @@ export class EditorView extends Disposable implements IEditorView {
     private __registerViewModelListeners(): void {
         const viewModel = this._ctx.viewModel;
 
-        viewModel.onRender(event => {
+        this.__register(viewModel.onRender(event => {
             this._editorManager.render(event);
-        });
+        }));
 
-        viewModel.onDidChangeRenderMode(mode => {
+        this.__register(viewModel.onDidRenderModeChange(mode => {
             this._editorManager.setRenderMode(mode);
-        });
+        }));
     }
 }
 
@@ -150,8 +149,8 @@ export class EditorView extends Disposable implements IEditorView {
 interface IEditorManager extends Disposable {
 
     readonly container: HTMLElement;
-    readonly editor: IBaseEditor;
-    readonly renderMode: EditorRenderType;
+    readonly editor: EditorInstance;
+    readonly renderMode: EditorType;
 
     /**
      * @description Render the given context to the editor editor. Depending on
@@ -166,11 +165,11 @@ interface IEditorManager extends Disposable {
      * current editor editor to fit the desired rendering mode.
      * @param mode The desired rendering mode.
      */
-    setRenderMode(mode: EditorRenderType): void;
+    setRenderMode(mode: EditorType): void;
 }
 
 /**
- * @class Integration on {@link IBaseEditor} management.
+ * @class Integration on {@link EditorInstance} management.
  */
 class EditorManager extends Disposable implements IEditorManager {
 
@@ -179,8 +178,8 @@ class EditorManager extends Disposable implements IEditorManager {
     private readonly _container: HTMLElement;
     private readonly _ctx: ViewContext;
     
-    private _renderMode: EditorRenderType;
-    private _editor: IBaseEditor;
+    private _renderMode: EditorType;
+    private _editor: EditorInstance;
 
     // [constructor]
 
@@ -208,11 +207,11 @@ class EditorManager extends Disposable implements IEditorManager {
         return this._container;
     }
 
-    get editor(): IBaseEditor {
+    get editor(): EditorInstance {
         return this._editor;
     }
     
-    get renderMode(): EditorRenderType {
+    get renderMode(): EditorType {
         return this._renderMode;
     }
 
@@ -231,43 +230,35 @@ class EditorManager extends Disposable implements IEditorManager {
             this._editor = this.__createWindow(event.type);
         }
 
-        this._editor.updateContent(event);
+        this._editor.updateContent(event as any);
     }
 
-    public setRenderMode(mode: EditorRenderType): void {
+    public setRenderMode(mode: EditorType): void {
         if (mode === this._renderMode) {
             return;
         }
 
-        const oldState = this._editor.state;
         this.__destroyCurrWindow();
-        this._editor = this.__createWindow(mode, oldState);
+        this._editor = this.__createWindow(mode, this._editor);
     }
 
     // [private helper methods]
 
-    /**
-     * @description Constructs a new {@link IBaseEditor} with the given render
-     * type.
-     * @param mode The given render type.
-     * @param initState The initial state of the editor if provided.
-     * @returns A newly constructed editor.
-     */
-    private __createWindow(mode: EditorRenderType, initState?: ProseEditorState): IBaseEditor {
+    private __createWindow(mode: EditorType, oldEdtior?: EditorInstance): EditorInstance {
         
-        const winArgs = [this._container, this._ctx, initState] as const;
-        let editor: IBaseEditor;
+        const winArgs = [this._container, this._ctx, oldEdtior] as const;
+        let editor: EditorInstance;
         
         switch (mode) {
-            case EditorRenderType.Plain: {
+            case EditorType.Plain: {
                 // todo: splitWindow
                 throw new Error('does not support plain text editor yet.');
             }
-            case EditorRenderType.Rich: {
-                editor = new RichtextEditor(...winArgs);
+            case EditorType.Rich: {
+                editor = RichtextEditor.create(...winArgs);
                 break;
             }
-            case EditorRenderType.Split: {
+            case EditorType.Split: {
                 // todo: splitWindow
                 throw new Error('does not support split editor yet.');
             }
@@ -282,7 +273,7 @@ class EditorManager extends Disposable implements IEditorManager {
     }
 
     private __destroyCurrWindow(): void {
-        this._editor.destroy();
+        this._editor.dispose();
         this._editor = undefined!;
     }
 }

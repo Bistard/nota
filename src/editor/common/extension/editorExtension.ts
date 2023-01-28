@@ -1,6 +1,5 @@
 import { DisposableManager, IDisposable } from "src/base/common/dispose";
 import { Register } from "src/base/common/event";
-import { IServiceProvider } from "src/code/platform/instantiation/common/instantiation";
 import { EditorEventBroadcaster, IEditorEventBroadcaster, IOnBeforeRenderEvent, IOnClickEvent, IOnDidClickEvent, IOnDidDoubleClickEvent, IOnDidTripleClickEvent, IOnDoubleClickEvent, IOnDropEvent, IOnKeydownEvent, IOnKeypressEvent, IOnPasteEvent, IOnTextInputEvent, IOnTripleClickEvent } from "src/editor/common/eventBroadcaster";
 import { ProseExtension } from "src/editor/common/proseMirror";
 import { IEditorWidget } from "src/editor/editorWidget";
@@ -77,8 +76,22 @@ export abstract class EditorExtension extends ProseExtension implements IEditorE
         this._disposables.dispose();
     }
 
+    /** 
+	 * @description Determines if the current object is disposed already. 
+	 */
+	public isDisposed(): boolean {
+		return this._disposables.disposed;
+	}
+
     // [protected methods]
 
+    /**
+	 * @description Trys to register a disposable object. Once this.dispose() is 
+	 * invoked, all the registered disposables will be disposed.
+	 * 
+	 * If this object is already disposed, a console warning will be printed.
+	 * If self-registering is encountered, an error will be thrown.
+	 */
     protected __register<T extends IDisposable>(obj: T): T {
         if (obj && (obj as IDisposable) === this) {
 			throw new Error('cannot register the disposable object to itself');

@@ -11,8 +11,8 @@ jobs:
           node-version: ${{ matrix.node-version }}
       - name: Install dependencies
         run: npm install
-      - run: npm run build
-      - run: npm test
+      - run: npm run script build
+      - run: npm run script test
 
   Build-On-Mac:
     runs-on: macos-latest
@@ -24,8 +24,8 @@ jobs:
           node-version: ${{ matrix.node-version }}
       - name: Install dependencies
         run: npm install
-      - run: npm run build
-      - run: npm test
+      - run: npm run script build
+      - run: npm run script test
 
   Build-On-Ubuntu:
     runs-on: ubuntu-latest
@@ -37,5 +37,5 @@ jobs:
           node-version: ${{ matrix.node-version }}
       - name: Install dependencies
         run: npm install
-      - run: npm run build
-      - run: npm test
+      - run: npm run script build
+      - run: npm run script test

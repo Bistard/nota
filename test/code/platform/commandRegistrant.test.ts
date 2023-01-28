@@ -48,7 +48,7 @@ suite('command-test', () => {
         const command = CommandRegistrant.getCommand(id);
         assert.deepStrictEqual(command, {
             id: id, 
-            executor: executor,
+            command: executor,
             description: 'No descriptions are provided.',
         });
     });

@@ -27,6 +27,12 @@ export class Text extends DocumentNode<EditorTokens.Text> {
             return;
         }
 
+        
+        /**
+         * The following special handling cases can be linked by this issue
+         * {@link https://github.com/markedjs/marked/issues/2684}.
+         */
+
         /**
          * If a `text` token has a list of children, it will be treated as a
          * `paragraph` for easy handling.
