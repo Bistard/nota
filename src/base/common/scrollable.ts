@@ -19,6 +19,9 @@ import { Emitter } from "src/base/common/event";
     viewportSize: number;
 }
 
+/**
+ * An interface only for {@link Scrollable}.
+ */
 export interface IScrollable {
 	
 	setScrollbarSize(size: number): void;
@@ -118,8 +121,8 @@ export class Scrollable implements IScrollable, IDisposable {
     /**
      * fires when scroll happens.
      */
-    private _onDidScroll = new Emitter<IScrollEvent>();
-    public onDidScroll = this._onDidScroll.registerListener;
+    private readonly _onDidScroll = new Emitter<IScrollEvent>();
+    public readonly onDidScroll = this._onDidScroll.registerListener;
 
     // [constructor]
 
