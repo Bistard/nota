@@ -32,7 +32,7 @@ export interface IKeyIterator<K> {
     /**
      * 
      */
-    currVal(): string;
+    currSegment(): string;
 }
 
 export class StringIterator implements IKeyIterator<string> {
@@ -60,7 +60,7 @@ export class StringIterator implements IKeyIterator<string> {
         return inputChar - iterChar;
     }
 
-    currVal(): string {
+    currSegment(): string {
         return this._value[this._pos]!;
     }
 }
@@ -112,18 +112,18 @@ export interface ITernarySearchTree<K, V> {
 }
 
 class TernarySearchTreeNode<K, V> {
-    height: number = 1;
+    public height: number = 1;
 
     // current segment of the key, assigned by key[pos]
-    segment!: string;
+    public segment!: string;
 
     // the entire key
-    key: K | undefined;
+    public key: K | undefined;
 
-    value: V | undefined;
-    left: TernarySearchTreeNode<K, V> | undefined;
-    mid: TernarySearchTreeNode<K, V> | undefined;
-    right: TernarySearchTreeNode<K, V> | undefined;
+    public value: V | undefined;
+    public left: TernarySearchTreeNode<K, V> | undefined;
+    public mid: TernarySearchTreeNode<K, V> | undefined;
+    public right: TernarySearchTreeNode<K, V> | undefined;
 
     // AVL rotate
 
@@ -207,8 +207,76 @@ export class TernarySearchTree<K, V> implements ITernarySearchTree<K, V> {
             this._root = new TernarySearchTreeNode
         }
 
+        // stores directions take by the path nodes to reach the target node
         const path: [Dir, TernarySearchTreeNode<K, V>][] = [];
 
+        node = this._root;
+
+        // find(or create based on the key) the target node to insert the value
+        while (true) {
+
+            // compare index
+            const val = iter.cmp(node.segment);
+            if (val > 0) {
+                // current node larger than target node, go to left
+                if (!node.left) {
+                    node.left = new TernarySearchTreeNode<K, V>();
+                    node.left.segment = iter.currSegment();
+                }
+                path.push([Dir.Left, node]);
+                node = node.left;
+
+            } else if (val < 0) {
+                // current node smaller than target node, go to right
+                if (!node.right) {
+                    node.right = new TernarySearchTreeNode<K, V>();
+                    node.right.segment = iter.currSegment();
+                }
+                path.push([Dir.Right, node]);
+                node = node.right;
+
+            } else if (iter.hasNext()) {
+                iter.next();
+                if (!node.mid) {
+                    node.mid = new TernarySearchTreeNode<K, V>();
+                    node.mid.segment = iter.currSegment();
+                }
+                path.push([Dir.Mid, node])
+                node = node.mid;
+            } else {
+                break;
+            }
+        }
+        
+        // store the old value, could be undefined
+        const oldValue = node.value;
+        node.value = value;
+        node.key = key;
+
+        // bottom-up update height and AVL balance
+        for (let i = path.length - 1; i >= 0; i++) {
+            const node = path[i]![1]!;
+            
+            node.updateNodeHeight();
+            const bf = node.balanceFactor();
+
+            if (bf < 1 || bf > 1) {
+                // unbalanced
+                const d1 = path[i]![0];
+                const node1 = path[i]![1];
+                const d2 = path[i + 1]![0];
+                const node2 = path[i + 1]![1];
+
+                if (d1 == Dir.Left && d2 == Dir.Left) {
+                    // left heavy, rotate right
+                    node1.rotateRight();
+                } else if (d1 == Dir.Right && d2 == Dir.Right) {
+                    node1.rotateLeft();
+                } else if (d1 == Dir.Right && d2 == Dir.Left) {
+
+                }
+            }
+        }
         return undefined;
     }
 
