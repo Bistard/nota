@@ -183,7 +183,7 @@ export class TernarySearchTree<K, V> implements ITernarySearchTree<K, V> {
     private _root: TernarySearchTreeNode<K, V> | undefined;
     private _iter: IKeyIterator<K>;
 
-    clear(): void {
+    public clear(): void {
         this._root = undefined;
     }
 
@@ -191,7 +191,7 @@ export class TernarySearchTree<K, V> implements ITernarySearchTree<K, V> {
         this._iter = keyIter;
     }
 
-    fill(values: readonly [K, V][]): void {
+    public fill(values: readonly [K, V][]): void {
         const arr = values.slice(0);
         Random.shuffle(arr);
         for (const entry of arr) {
@@ -199,7 +199,7 @@ export class TernarySearchTree<K, V> implements ITernarySearchTree<K, V> {
         }
     }
 
-    set(key: K, value: V): V | undefined {
+    public set(key: K, value: V): V | undefined {
         const iter = this._iter.reset(key);
         let node: TernarySearchTreeNode<K, V>;
 
@@ -249,7 +249,7 @@ export class TernarySearchTree<K, V> implements ITernarySearchTree<K, V> {
         }
         
         // store the old value, could be undefined
-        const oldValue = node.value;
+        const oldVal = node.value;
         node.value = value;
         node.key = key;
 
@@ -260,39 +260,88 @@ export class TernarySearchTree<K, V> implements ITernarySearchTree<K, V> {
             node.updateNodeHeight();
             const bf = node.balanceFactor();
 
-            if (bf < 1 || bf > 1) {
+                if (bf < 1 || bf > 1) {
                 // unbalanced
                 const d1 = path[i]![0];
-                const node1 = path[i]![1];
+                let node1 = path[i]![1];
                 const d2 = path[i + 1]![0];
-                const node2 = path[i + 1]![1];
+                let node2 = path[i + 1]![1];
 
                 if (d1 == Dir.Left && d2 == Dir.Left) {
                     // left heavy, rotate right
-                    node1.rotateRight();
+                    node1 = path[i]![1] = node1.rotateRight();
                 } else if (d1 == Dir.Right && d2 == Dir.Right) {
-                    node1.rotateLeft();
+                    // right heavy, rotate left
+                    node1 = path[i]![1] = node1.rotateLeft();
                 } else if (d1 == Dir.Right && d2 == Dir.Left) {
+                    node1.right = node2.rotateRight();
+                    node1 = path[i]![1] = node1.rotateLeft();
+                } else if (d1 == Dir.Left && d2 == Dir.Right) {
+                    node1.left = node2.rotateLeft();
+                    node1 = path[i]![1] = node1.rotateRight();
+                } else {
+                    throw new Error("TST wrong path");
+                }
 
+                // correct the parent of node1
+                if (i > 0) {
+                    switch(path[i]![0]) {
+                        case Dir.Left:
+                            path[i - 1]![1].left = node1;
+                            break;
+                        case Dir.Right:
+                            path[i - 1]![1].right = node1;
+                            break;
+                        case Dir.Mid:
+                            path[i - 1]![1].mid = node1;
+                            break;
+                    }
+                } else {
+                    this._root = node1;
                 }
             }
         }
-        return undefined;
+        // Note: the path is off after rotation, its value should no longer be used
+
+        return oldVal;
     }
 
-    get(key: K): V | undefined {
-        return undefined;
+    private _findNode(key: K, path?: [Dir, TernarySearchTreeNode<K, V>][]): TernarySearchTreeNode<K, V> | undefined {
+
+        let node =  this._root;
+        let iter = this._iter;
+
+        while (node) {
+            const val = iter.cmp(node.segment);
+            if (val > 0) {
+                node = node.left;
+            } else if (val < 0) {
+                node = node.right;
+            } else if (iter.hasNext()) {
+                iter.next();
+                node = node.mid;
+            } else {
+                break;
+            }
+        }
+        return node;
     }
 
-    has(key: K): boolean {
-        return false;
+    public get(key: K): V | undefined {
+        const node = this._findNode(key);
+        return node?.value;
     }
 
-    delete(key: K): void {
-        
+    public has(key: K): boolean {
+        const node = this._findNode(key);
+        return (node?.value === undefined);
     }
 
-    findSubtr(key: K): V | undefined {
+    public delete(key: K): void {
+
+    }
+
+    public findSubtr(key: K): V | undefined {
         return undefined;
     }
 }
