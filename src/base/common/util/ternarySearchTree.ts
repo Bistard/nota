@@ -204,7 +204,7 @@ export class TernarySearchTree<K, V> implements ITernarySearchTree<K, V> {
         let node: TernarySearchTreeNode<K, V>;
 
         if (!this._root) {
-            this._root = new TernarySearchTreeNode
+            this._root = new TernarySearchTreeNode<K, V>;
         }
 
         // stores directions take by the path nodes to reach the target node
@@ -337,8 +337,62 @@ export class TernarySearchTree<K, V> implements ITernarySearchTree<K, V> {
         return (node?.value === undefined);
     }
 
-    public delete(key: K): void {
+    private _delete(key: K, superStr: boolean): void {
+        let node = this._root;
+        const path: [Dir, TernarySearchTreeNode<K, V>][] = [];
+        const iter = this._iter.reset(key);
 
+        while (node) {
+            const val = iter.cmp(node.segment);
+            if (val > 0) {
+                path.push([Dir.Left, node]);
+                node = node.left;
+            } else if (val < 0) {
+                path.push([Dir.Right, node]);
+                node = node.right;
+            } else if (iter.hasNext()) {
+                path.push([Dir.Mid, node]);
+                node = node.mid;
+                iter.next();
+            } else {
+                break;
+            }
+        }
+
+        if (!node) {
+            // node is not found
+            return
+        }
+
+        // delete all super string
+        if (superStr) {
+            node.mid = undefined;
+            node.left =  undefined;
+            node.right = undefined;
+            node.height = 1;
+        } else {
+            node.value = undefined;
+            node.key = undefined;
+        }
+
+        // if node segment is not a part of any string
+        if (!node.mid && !node.value) {
+            
+        }
+    }
+
+    private _leftest(node: TernarySearchTreeNode<K, V>): TernarySearchTreeNode<K, V> {
+        
+    }
+
+    private _bstRemoval(node: TernarySearchTreeNode<K, V>) {
+        if (node.left && node.right) {
+            const leftest = this._leftest(node.right);
+            const { key, value, segment} = 
+        }
+    }
+    public delete(key: K): void {
+       
     }
 
     public findSubtr(key: K): V | undefined {
