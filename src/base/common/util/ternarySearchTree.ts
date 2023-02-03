@@ -1,3 +1,4 @@
+import { IIterable } from "src/base/common/util/iterable";
 import { Random } from "src/base/common/util/random";
 
 const enum Dir {
@@ -65,7 +66,7 @@ export class StringIterator implements IKeyIterator<string> {
     }
 }
 
-export interface ITernarySearchTree<K, V> {
+export interface ITernarySearchTree<K, V> extends IIterable<[K, V]> {
     
     /** 
      * TODO:
@@ -178,7 +179,7 @@ export namespace CreateTernarySearchTree {
 /**
  * 
  */
-export class TernarySearchTree<K, V> implements ITernarySearchTree<K, V> {
+export class TernarySearchTree<K, V extends NonNullable<any>> implements ITernarySearchTree<K, V> {
 
     private _root: TernarySearchTreeNode<K, V> | undefined;
     private _iter: IKeyIterator<K>;
@@ -253,6 +254,90 @@ export class TernarySearchTree<K, V> implements ITernarySearchTree<K, V> {
         node.value = value;
         node.key = key;
 
+        // AVL balance
+        this._avlBalance(path);
+
+        return oldVal;
+    }
+
+    private _findNode(key: K, path?: [Dir, TernarySearchTreeNode<K, V>][]): TernarySearchTreeNode<K, V> | undefined {
+        const iter = this._iter;
+        let node =  this._root;
+
+        while (node) {
+            const val = iter.cmp(node.segment);
+            if (val > 0) {
+                node = node.left;
+            } else if (val < 0) {
+                node = node.right;
+            } else if (iter.hasNext()) {
+                iter.next();
+                node = node.mid;
+            } else {
+                break;
+            }
+        }
+        return node;
+    }
+
+    public get(key: K): V | undefined {
+        const node = this._findNode(key);
+        return node?.value;
+    }
+
+    public has(key: K): boolean {
+        const node = this._findNode(key);
+        return (node?.value === undefined);
+    }
+
+    private _delete(key: K, superStr: boolean): void {
+        const path: [Dir, TernarySearchTreeNode<K, V>][] = [];
+        const iter = this._iter.reset(key);
+        let node = this._root;
+
+        while (node) {
+            const val = iter.cmp(node.segment);
+            if (val > 0) {
+                path.push([Dir.Left, node]);
+                node = node.left;
+            } else if (val < 0) {
+                path.push([Dir.Right, node]);
+                node = node.right;
+            } else if (iter.hasNext()) {
+                path.push([Dir.Mid, node]);
+                node = node.mid;
+                iter.next();
+            } else {
+                break;
+            }
+        }
+
+        if (!node) {
+            // node is not found
+            return;
+        }
+
+        // delete all super string
+        if (superStr) {
+            node.mid = undefined;
+            node.left =  undefined;
+            node.right = undefined;
+            node.height = 1;
+        } else {
+            node.value = undefined;
+            node.key = undefined;
+        }
+
+        // if node segment is not a part of any string
+        if (!node.mid && !node.value) {
+            this._bstRemoveNode(node, path);
+        }
+
+        // AVL balance
+        this._avlBalance(path);
+    }
+    
+    private _avlBalance(path: [Dir, TernarySearchTreeNode<K, V>][]): void {
         // bottom-up update height and AVL balance
         for (let i = path.length - 1; i >= 0; i++) {
             const node = path[i]![1]!;
@@ -301,101 +386,118 @@ export class TernarySearchTree<K, V> implements ITernarySearchTree<K, V> {
                 }
             }
         }
-        // Note: the path is off after rotation, its value should no longer be used
-
-        return oldVal;
     }
 
-    private _findNode(key: K, path?: [Dir, TernarySearchTreeNode<K, V>][]): TernarySearchTreeNode<K, V> | undefined {
-
-        let node =  this._root;
-        let iter = this._iter;
-
-        while (node) {
-            const val = iter.cmp(node.segment);
-            if (val > 0) {
-                node = node.left;
-            } else if (val < 0) {
-                node = node.right;
-            } else if (iter.hasNext()) {
-                iter.next();
-                node = node.mid;
-            } else {
-                break;
-            }
+    private _leftest(node: TernarySearchTreeNode<K, V>): TernarySearchTreeNode<K, V> {
+        while (node.left) {
+            node = node.left;
         }
         return node;
     }
 
-    public get(key: K): V | undefined {
-        const node = this._findNode(key);
-        return node?.value;
+    private _bstRemoveNode(node: TernarySearchTreeNode<K, V>, path: [Dir, TernarySearchTreeNode<K, V>][]): void {
+        if (node.left && node.right) {
+            const leftest = this._leftest(node.right);
+            if (leftest) {
+                const { key, value, segment } = leftest;
+                this._delete(leftest.key!, false);
+                node.key = key;
+                node.value = value;
+                node.segment = segment;
+            }
+        } else {
+            // empty or only left\right
+            const child = node.left ?? node.right;
+            if (path.length > 0) {
+                const [dir, parent] =  path[path.length - 1]!;
+                switch(dir) {
+                    case Dir.Left:
+                        parent.left = child;
+                        break;
+                    case Dir.Mid:
+                        parent.mid = child;
+                        break;
+                    case Dir.Right:
+                        parent.right = child;
+                        break;
+                }
+            } else {
+                // no node is left
+                this._root = child;
+            }
+        }
     }
 
-    public has(key: K): boolean {
-        const node = this._findNode(key);
-        return (node?.value === undefined);
+    public delete(key: K): void {
+       this._delete(key, false);
     }
 
-    private _delete(key: K, superStr: boolean): void {
-        let node = this._root;
-        const path: [Dir, TernarySearchTreeNode<K, V>][] = [];
-        const iter = this._iter.reset(key);
+    // delete any superStr that has key as a substring
+    public deleteSuperStr(key: K): void {
+        this._delete(key, true);
+    }
+
+    public findSubtr(key: K): V | undefined {
+        const iter = this._iter;
+        let node =  this._root;
+        let candidate: V | undefined = undefined;
 
         while (node) {
             const val = iter.cmp(node.segment);
             if (val > 0) {
-                path.push([Dir.Left, node]);
                 node = node.left;
             } else if (val < 0) {
-                path.push([Dir.Right, node]);
                 node = node.right;
             } else if (iter.hasNext()) {
-                path.push([Dir.Mid, node]);
-                node = node.mid;
                 iter.next();
+                candidate = node.value ?? candidate;
+                node = node.mid;
             } else {
                 break;
             }
         }
+        if (node?.value) {
+            return node.value;
+        }
+        return candidate;
+    }
 
+    forEach(callback: (key: K, value: V) => any): void {
+        for (const [key, value] of this) {
+            callback(key, value);
+        }
+    }
+
+    *[Symbol.iterator](): IterableIterator<[K, V]> {
+        yield* this._nodeIter(this._root);
+    }
+
+    private _nodeIter(node: TernarySearchTreeNode<K, V> | undefined): IterableIterator<[K, V]> {
+        const nodeArr: [K, V][] = [];
+        this._dfsNodes(node, nodeArr);
+        return nodeArr[Symbol.iterator]();
+    }
+
+    private _dfsNodes(node: TernarySearchTreeNode<K, V> | undefined, nodeArr: [K, V][]): void {
         if (!node) {
-            // node is not found
             return
         }
 
-        // delete all super string
-        if (superStr) {
-            node.mid = undefined;
-            node.left =  undefined;
-            node.right = undefined;
-            node.height = 1;
-        } else {
-            node.value = undefined;
-            node.key = undefined;
+        if (node.left) {
+            this._dfsNodes(node.left, nodeArr);
         }
 
-        // if node segment is not a part of any string
-        if (!node.mid && !node.value) {
-            
+        if (node.value) {
+            nodeArr.push([node.key!, node.value]);
+        }
+
+        if (node.mid) {
+            this._dfsNodes(node.mid, nodeArr);
+        }
+
+        if (node.right) {
+            this._dfsNodes(node.right, nodeArr);
         }
     }
 
-    private _leftest(node: TernarySearchTreeNode<K, V>): TernarySearchTreeNode<K, V> {
-        
-    }
-
-    private _bstRemoval(node: TernarySearchTreeNode<K, V>) {
-        if (node.left && node.right) {
-            const leftest = this._leftest(node.right);
-            const { key, value, segment} = 
-        }
-    }
-    public delete(key: K): void {
-       
-    }
-
-    public findSubtr(key: K): V | undefined {
-        return undefined;
-    }
 }
