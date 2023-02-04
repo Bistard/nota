@@ -10,30 +10,32 @@ const enum Dir {
 export interface IKeyIterator<K> {
 
     /**
-     * 
+     * @description Modify the iterator to point to the next item in the value.
      */
     next(): void;
 
     /**
-     * 
+     * @description Check if the key iterator has a next item in the key.
      */
     hasNext(): boolean;
     
     /**
-     * 
+     * @description Reset key value of the key iterator.
      */
     reset(value: K): this;
 
     /**
-     * 
-     * @param input 
+     * @description Compare the `input` with the item currently pointed by
+     * the iterator.
+     * @returns negative if input is smaller, postive if current item is
+     * smaller, 0 if equal.
      */
     cmp(input: string): number;
 
     /**
-     * 
+     * @description Return the current item the iterator points to.
      */
-    currSegment(): string;
+    currItem(): string;
 }
 
 export class StringIterator implements IKeyIterator<string> {
@@ -41,77 +43,124 @@ export class StringIterator implements IKeyIterator<string> {
     private _value: string = '';
     private _pos: number = 0;
 
-    next(): void {
+    public next(): void {
         this._pos += 1;
     }
 
-    hasNext(): boolean {
+    public hasNext(): boolean {
         return this._pos < (this._value.length - 1)
     }
 
-    reset(value: string): this {
+    public reset(value: string): this {
         this._value = value;
         this._pos = 0;
         return this;
     }
 
-    cmp(input: string): number {
+    public cmp(input: string): number {
         const inputChar = input.charCodeAt(0);
         const iterChar = this._value.charCodeAt(this._pos);
         return inputChar - iterChar;
     }
 
-    currSegment(): string {
+    public currItem(): string {
         return this._value[this._pos]!;
     }
 }
 
 export interface ITernarySearchTree<K, V> extends IIterable<[K, V]> {
     
-    /** 
-     * TODO:
-    */
+    /**
+     * @description Clear the ternary search tree.
+     * @complexity O(1)
+     */
     clear(): void;
 
     /**
-     * 
-     * @param values 
-     * @param keys 
+     * @description Fill the ternary search tree with an array of (key, value) 
+     * pairs.
+     * @param values An array of (key, value) pairs.
+     * @complexity O(mlogn), m: length of {@link values}
+     *                       n: number of nodes
      */
-    fill(values: readonly [K, V][] | V, keys?: readonly K[]): void;
+    fill(values: readonly [K, V][]): void;
 
     /**
-     * 
-     * @param value 
-     * @param key 
+     * @description Insert `value` with `key` as search key.
+     * @param value The value to be inserted.
+     * @param key The key can be used to reference the value.
+     * @complexity O(logn + k), n: number of nodes
+     *                          k: length of key
      */
     set(key: K, value: V): V | undefined;
 
     /**
-     * 
-     * @param key 
+     * @description Get the value in the tree that corresponds to the key.
+     * @param key A key to search its corresponding value.
+     * @returns Return the value if searched, otherwise return undefined.
+     * @complexity O(logn + k), n: number of nodes
+     *                          k: length of key
      */
     get(key: K): V | undefined;
 
     /**
-     * TODO: test has, cat and cata
-     * @param key 
+     * @description Return if the tree constains a value that corresponds to
+     * `key`.
+     * @param key A key to search its corresponding value.
+     * @complexity O(logn + k), n: number of nodes
+     *                          k: length of key
      */
     has(key: K): boolean;
 
     /**
-     * TODO:
-     * @param key 
+     * @description Delete the value corresponds to the `key` in the tree.
+     * @param key A key to search its corresponding value.
+     * @complexity O(logn + k), n: number of nodes
+     *                          k: length of key
      */
     delete(key: K): void;
+
+    /**
+     * @description Delete any values with given key that which contains the 
+     * key as the superstring.
+     * @param key A key to search its corresponding value.
+     * @complexity O(logn + k), n: number of nodes
+     *                          k: length of key
+     * 
+     * @example
+     * Given two string 'cat' and 'cats' stored in the tree with their values 
+     * equals to keys. 
+     * * deleteSuperStr('cat') will delete 'cats' but not deleting 'cat' itself. 
+     */
+    deleteSuperStr(key: K): void;
     
     /**
+     * @description Find the longest substring of the `key` that has a value.
+     * @param key A key to search its corresponding value.
+     * @complexity O(logn + k), n: number of nodes
+     *                          k: length of key
      * 
-     * @param key 
+     * @example
+     * Given two string 'cat' and 'cats' stored in the tree with their values 
+     * equals to keys:
+     * * findSubtr('cat') returns 'cat'
+     * * findSubstr('cats') returns 'cats'
+     * 
+     * If 'cats' is input key that does not have a value:
+     * * findSubstr('cats') returns cat.
      */
     findSubtr(key: K): V | undefined;
+
+    /**
+     * @description Iterate the whole tree with in-order.
+     * @param callback The function to visit every key-value pair.
+     */
+    forEach(callback: (key: K, value: V) => any): void;
 }
 
+/**
+ * @internal
+ */
 class TernarySearchTreeNode<K, V> {
     public height: number = 1;
 
@@ -129,22 +178,28 @@ class TernarySearchTreeNode<K, V> {
     // AVL rotate
 
     /**
+     * @description AVL-rotate the subtree left and update height.
      * @assert Requires `node.right` to be non-nullity.
      */
     public rotateLeft(): TernarySearchTreeNode<K, V> {
         const tmp = this.right!;
         this.right = tmp.left;
         tmp.left = this;
+        this.updateNodeHeight();
+        tmp.updateNodeHeight();
         return tmp;
     }
 
     /**
-     * @assert Requires `node.right` to be non-nullity.
+     * @description AVL-rotate the subtree right and update height.
+     * @assert Requires `node.left` to be non-nullity.
      */
     public rotateRight(): TernarySearchTreeNode<K, V> {
         const tmp = this.left!;
         this.left = tmp.right;
         tmp.right = this;
+        this.updateNodeHeight();
+        tmp.updateNodeHeight();
         return tmp;
     }
 
@@ -173,23 +228,34 @@ export namespace CreateTernarySearchTree {
         return new TernarySearchTree<string, E>(new StringIterator());
     }
 
-
+    // TODO: other iters
 }
 
 /**
+ * @class An AVL-balanced prefix tree(trie) structure that supports fast insert, 
+ * search and delete. It is iterator-based which defines the how to iterate over a 
+ * key.
  * 
+ * @note The key type is restricted by the providing iterator.
+ * @note The value type cannot be nullity.
  */
 export class TernarySearchTree<K, V extends NonNullable<any>> implements ITernarySearchTree<K, V> {
+
+    // [fields]
 
     private _root: TernarySearchTreeNode<K, V> | undefined;
     private _iter: IKeyIterator<K>;
 
-    public clear(): void {
-        this._root = undefined;
-    }
-
+    // [constructor]
+    
     constructor(keyIter: IKeyIterator<K>) {
         this._iter = keyIter;
+    }
+
+    // [public methods]
+
+    public clear(): void {
+        this._root = undefined;
     }
 
     public fill(values: readonly [K, V][]): void {
@@ -222,7 +288,7 @@ export class TernarySearchTree<K, V extends NonNullable<any>> implements ITernar
                 // current node larger than target node, go to left
                 if (!node.left) {
                     node.left = new TernarySearchTreeNode<K, V>();
-                    node.left.segment = iter.currSegment();
+                    node.left.segment = iter.currItem();
                 }
                 path.push([Dir.Left, node]);
                 node = node.left;
@@ -231,7 +297,7 @@ export class TernarySearchTree<K, V extends NonNullable<any>> implements ITernar
                 // current node smaller than target node, go to right
                 if (!node.right) {
                     node.right = new TernarySearchTreeNode<K, V>();
-                    node.right.segment = iter.currSegment();
+                    node.right.segment = iter.currItem();
                 }
                 path.push([Dir.Right, node]);
                 node = node.right;
@@ -240,7 +306,7 @@ export class TernarySearchTree<K, V extends NonNullable<any>> implements ITernar
                 iter.next();
                 if (!node.mid) {
                     node.mid = new TernarySearchTreeNode<K, V>();
-                    node.mid.segment = iter.currSegment();
+                    node.mid.segment = iter.currItem();
                 }
                 path.push([Dir.Mid, node])
                 node = node.mid;
@@ -260,6 +326,62 @@ export class TernarySearchTree<K, V extends NonNullable<any>> implements ITernar
         return oldVal;
     }
 
+    public get(key: K): V | undefined {
+        const node = this._findNode(key);
+        return node?.value;
+    }
+
+    public has(key: K): boolean {
+        const node = this._findNode(key);
+        return (node?.value === undefined);
+    }
+
+    public delete(key: K): void {
+        this._delete(key, false);
+    }
+ 
+     // delete any superStr that has key as a substring
+    public deleteSuperStr(key: K): void {
+         this._delete(key, true);
+    }
+ 
+    public findSubtr(key: K): V | undefined {
+        const iter = this._iter;
+        let node =  this._root;
+        let candidate: V | undefined = undefined;
+
+        while (node) {
+            const val = iter.cmp(node.segment);
+            if (val > 0) {
+                node = node.left;
+            } else if (val < 0) {
+                node = node.right;
+            } else if (iter.hasNext()) {
+                iter.next();
+                candidate = node.value ?? candidate;
+                node = node.mid;
+            } else {
+                break;
+            }
+        }
+        if (node?.value) {
+            return node.value;
+        }
+        return candidate;
+     }
+ 
+    public forEach(callback: (key: K, value: V) => any): void {
+        for (const [key, value] of this) {
+            callback(key, value);
+        }
+    }
+ 
+    *[Symbol.iterator](): IterableIterator<[K, V]> {
+        yield* this._nodeIter(this._root);
+    }
+
+    // [private methods]
+
     private _findNode(key: K, path?: [Dir, TernarySearchTreeNode<K, V>][]): TernarySearchTreeNode<K, V> | undefined {
         const iter = this._iter;
         let node =  this._root;
@@ -278,16 +400,6 @@ export class TernarySearchTree<K, V extends NonNullable<any>> implements ITernar
             }
         }
         return node;
-    }
-
-    public get(key: K): V | undefined {
-        const node = this._findNode(key);
-        return node?.value;
-    }
-
-    public has(key: K): boolean {
-        const node = this._findNode(key);
-        return (node?.value === undefined);
     }
 
     private _delete(key: K, superStr: boolean): void {
@@ -361,11 +473,9 @@ export class TernarySearchTree<K, V extends NonNullable<any>> implements ITernar
                 } else if (d1 == Dir.Right && d2 == Dir.Left) {
                     node1.right = node2.rotateRight();
                     node1 = path[i]![1] = node1.rotateLeft();
-                } else if (d1 == Dir.Left && d2 == Dir.Right) {
+                } else { // d1 == Dir.Left && d2 == Dir.Right
                     node1.left = node2.rotateLeft();
                     node1 = path[i]![1] = node1.rotateRight();
-                } else {
-                    throw new Error("TST wrong path");
                 }
 
                 // correct the parent of node1
@@ -426,50 +536,6 @@ export class TernarySearchTree<K, V extends NonNullable<any>> implements ITernar
                 this._root = child;
             }
         }
-    }
-
-    public delete(key: K): void {
-       this._delete(key, false);
-    }
-
-    // delete any superStr that has key as a substring
-    public deleteSuperStr(key: K): void {
-        this._delete(key, true);
-    }
-
-    public findSubtr(key: K): V | undefined {
-        const iter = this._iter;
-        let node =  this._root;
-        let candidate: V | undefined = undefined;
-
-        while (node) {
-            const val = iter.cmp(node.segment);
-            if (val > 0) {
-                node = node.left;
-            } else if (val < 0) {
-                node = node.right;
-            } else if (iter.hasNext()) {
-                iter.next();
-                candidate = node.value ?? candidate;
-                node = node.mid;
-            } else {
-                break;
-            }
-        }
-        if (node?.value) {
-            return node.value;
-        }
-        return candidate;
-    }
-
-    forEach(callback: (key: K, value: V) => any): void {
-        for (const [key, value] of this) {
-            callback(key, value);
-        }
-    }
-
-    *[Symbol.iterator](): IterableIterator<[K, V]> {
-        yield* this._nodeIter(this._root);
     }
 
     private _nodeIter(node: TernarySearchTreeNode<K, V> | undefined): IterableIterator<[K, V]> {
