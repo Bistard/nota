@@ -40,8 +40,13 @@ export interface IKeyIterator<K> {
 
 export class StringIterator implements IKeyIterator<string> {
 
-    private _value: string = '';
-    private _pos: number = 0;
+    private _value: string;
+    private _pos: number;
+
+    constructor() {
+        this._value = '';
+        this._pos = 0;
+    }
 
     public next(): void {
         this._pos += 1;
@@ -221,7 +226,13 @@ class TernarySearchTreeNode<K, V> {
 }
 
 /**
+ * @namespace CreateTernarySearchTree includes a series of functions that 
+ * create a ternary search tree structure for different types of keys.
  * 
+ * Currently, it supports keys types: string, URI, and path(string).
+ *  
+ * Note: All functions require a key iterator to generate the ternary search
+ * Tree.
  */
 export namespace CreateTernarySearchTree {
     export function forStrings<E>(): TernarySearchTree<string, E> {
