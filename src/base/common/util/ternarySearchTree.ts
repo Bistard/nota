@@ -1,5 +1,6 @@
 import { IIterable } from "src/base/common/util/iterable";
 import { Random } from "src/base/common/util/random";
+import { isNonNullable } from "src/base/common/util/type";
 
 const enum Dir {
     Left = -1,
@@ -160,17 +161,17 @@ export interface ITernarySearchTree<K, V> extends IIterable<[K, V]> {
      * @description Iterate the whole tree with in-order.
      * @param callback The function to visit every key-value pair.
      */
-    forEach(callback: (key: K, value: V) => any): void;
+    forEach(callback: (value: V, key: K) => any): void;
 }
 
 /**
  * @internal
  */
-class TernarySearchTreeNode<K, V> {
+export class TernarySearchTreeNode<K, V> {
     public height: number = 1;
 
     // current segment of the key, assigned by key[pos]
-    public segment!: string;
+    public segment: string;
 
     // the entire key
     public key: K | undefined;
@@ -179,6 +180,10 @@ class TernarySearchTreeNode<K, V> {
     public left: TernarySearchTreeNode<K, V> | undefined;
     public mid: TernarySearchTreeNode<K, V> | undefined;
     public right: TernarySearchTreeNode<K, V> | undefined;
+
+    constructor(segment: string) {
+        this.segment = segment;
+    }
 
     // AVL rotate
 
@@ -282,7 +287,8 @@ export class TernarySearchTree<K, V extends NonNullable<any>> implements ITernar
         let node: TernarySearchTreeNode<K, V>;
 
         if (!this._root) {
-            this._root = new TernarySearchTreeNode<K, V>;
+            this._root = new TernarySearchTreeNode<K, V>(iter.currItem());
+
         }
 
         // stores directions take by the path nodes to reach the target node
@@ -298,8 +304,7 @@ export class TernarySearchTree<K, V extends NonNullable<any>> implements ITernar
             if (val > 0) {
                 // current node larger than target node, go to left
                 if (!node.left) {
-                    node.left = new TernarySearchTreeNode<K, V>();
-                    node.left.segment = iter.currItem();
+                    node.left = new TernarySearchTreeNode<K, V>(iter.currItem());
                 }
                 path.push([Dir.Left, node]);
                 node = node.left;
@@ -307,8 +312,7 @@ export class TernarySearchTree<K, V extends NonNullable<any>> implements ITernar
             } else if (val < 0) {
                 // current node smaller than target node, go to right
                 if (!node.right) {
-                    node.right = new TernarySearchTreeNode<K, V>();
-                    node.right.segment = iter.currItem();
+                    node.right = new TernarySearchTreeNode<K, V>(iter.currItem());                
                 }
                 path.push([Dir.Right, node]);
                 node = node.right;
@@ -316,8 +320,7 @@ export class TernarySearchTree<K, V extends NonNullable<any>> implements ITernar
             } else if (iter.hasNext()) {
                 iter.next();
                 if (!node.mid) {
-                    node.mid = new TernarySearchTreeNode<K, V>();
-                    node.mid.segment = iter.currItem();
+                    node.mid = new TernarySearchTreeNode<K, V>(iter.currItem());                
                 }
                 path.push([Dir.Mid, node])
                 node = node.mid;
@@ -357,7 +360,7 @@ export class TernarySearchTree<K, V extends NonNullable<any>> implements ITernar
     }
  
     public findSubtr(key: K): V | undefined {
-        const iter = this._iter;
+        const iter = this._iter.reset(key);
         let node =  this._root;
         let candidate: V | undefined = undefined;
 
@@ -381,20 +384,23 @@ export class TernarySearchTree<K, V extends NonNullable<any>> implements ITernar
         return candidate;
      }
  
-    public forEach(callback: (key: K, value: V) => any): void {
+    public forEach(callback: (value: V, key: K) => any): void {
         for (const [key, value] of this) {
-            callback(key, value);
+            callback(value, key);
         }
     }
  
     *[Symbol.iterator](): IterableIterator<[K, V]> {
         yield* this._nodeIter(this._root);
     }
-
+    
+    public getRoot() {
+        return this._root;
+    }
     // [private methods]
 
     private _findNode(key: K, path?: [Dir, TernarySearchTreeNode<K, V>][]): TernarySearchTreeNode<K, V> | undefined {
-        const iter = this._iter;
+        const iter = this._iter.reset(key);
         let node =  this._root;
 
         while (node) {
@@ -410,6 +416,7 @@ export class TernarySearchTree<K, V extends NonNullable<any>> implements ITernar
                 break;
             }
         }
+
         return node;
     }
 
@@ -462,34 +469,35 @@ export class TernarySearchTree<K, V extends NonNullable<any>> implements ITernar
     
     private _avlBalance(path: [Dir, TernarySearchTreeNode<K, V>][]): void {
         // bottom-up update height and AVL balance
-        for (let i = path.length - 1; i >= 0; i++) {
+        for (let i = path.length - 1; i >= 0; i--) {
             const node = path[i]![1]!;
             
             node.updateNodeHeight();
             const bf = node.balanceFactor();
 
-                if (bf < 1 || bf > 1) {
-                // unbalanced
-                const d1 = path[i]![0];
-                let node1 = path[i]![1];
-                const d2 = path[i + 1]![0];
-                let node2 = path[i + 1]![1];
+                if (bf < -1 || bf > 1) {
 
-                if (d1 == Dir.Left && d2 == Dir.Left) {
-                    // left heavy, rotate right
-                    node1 = path[i]![1] = node1.rotateRight();
-                } else if (d1 == Dir.Right && d2 == Dir.Right) {
-                    // right heavy, rotate left
-                    node1 = path[i]![1] = node1.rotateLeft();
-                } else if (d1 == Dir.Right && d2 == Dir.Left) {
-                    node1.right = node2.rotateRight();
-                    node1 = path[i]![1] = node1.rotateLeft();
-                } else { // d1 == Dir.Left && d2 == Dir.Right
-                    node1.left = node2.rotateLeft();
-                    node1 = path[i]![1] = node1.rotateRight();
-                }
+                    // unbalanced
+                    const d1 = path[i]![0];
+                    let node1 = path[i]![1];
+                    const d2 = path[i + 1]![0];
+                    let node2 = path[i + 1]![1];
 
-                // correct the parent of node1
+                    if (d1 == Dir.Left && d2 == Dir.Left) {
+                        // left heavy, rotate right
+                        node1 = path[i]![1] = node1.rotateRight();
+                    } else if (d1 == Dir.Right && d2 == Dir.Right) {
+                        // right heavy, rotate left
+                        node1 = path[i]![1] = node1.rotateLeft();
+                    } else if (d1 == Dir.Right && d2 == Dir.Left) {
+                        node1.right = node2.rotateRight();
+                        node1 = path[i]![1] = node1.rotateLeft();
+                    } else { // d1 == Dir.Left && d2 == Dir.Right
+                        node1.left = node2.rotateLeft();
+                        node1 = path[i]![1] = node1.rotateRight();
+                    }
+
+                    // correct the parent of node1
                 if (i > 0) {
                     switch(path[i]![0]) {
                         case Dir.Left:
@@ -557,14 +565,14 @@ export class TernarySearchTree<K, V extends NonNullable<any>> implements ITernar
 
     private _dfsNodes(node: TernarySearchTreeNode<K, V> | undefined, nodeArr: [K, V][]): void {
         if (!node) {
-            return
+            return;
         }
 
         if (node.left) {
             this._dfsNodes(node.left, nodeArr);
         }
 
-        if (node.value) {
+        if (isNonNullable(node.value)) {
             nodeArr.push([node.key!, node.value]);
         }
 
@@ -576,5 +584,4 @@ export class TernarySearchTree<K, V extends NonNullable<any>> implements ITernar
             this._dfsNodes(node.right, nodeArr);
         }
     }
-
 }

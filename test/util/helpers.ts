@@ -115,7 +115,7 @@ export function generateTreeLike<TLeaf>(
  * @param root The given root of the n-ary tree.
  * @param getContent A function gets the content of the current node for printing.
  * @param hasChildren A function determines if the the current node has children.
- * @param getChildren A function returns the children of the current ndoe.
+ * @param getChildren A function returns the children of the current node.
  * 
  * @example
  * ```
