@@ -46,10 +46,14 @@ export interface IInstantiationService extends IServiceProvider {
 
     /**
      * @description Create a new instantiation service that inherits all the 
-     * current services. If the current instantiation service cannot find a
-     * service, it will go ask the parent instantiation service if the expecting
-     * service exist.
+     * current services.
      * @param collection A list of services for initialization.
+     * 
+     * @note If the current instantiation service cannot find a service, it will 
+     * go ask the parent instantiation service if the expecting service exist.
+     * @note The child instantiation service also has ability to overwrite the 
+     * existing services in the parent instantiation service without actual 
+     * replacing the services in the parent.
      */
     createChild(collection: ServiceCollection): IInstantiationService;
 
