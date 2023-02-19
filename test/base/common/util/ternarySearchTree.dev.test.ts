@@ -32,7 +32,7 @@ suite('ternarySearchTree-test', () => {
         iter.reset('hello');
         assert.strictEqual(iter.currItem(), 'h');
         assert.strictEqual(iter.hasNext(), true);
-    })
+    });
 
     function isbalanced(tree: TernarySearchTree<any, any>): boolean {
         const nodeBalanced = (node: TernarySearchTreeNode<any, any> | undefined): boolean => {
@@ -90,7 +90,6 @@ suite('ternarySearchTree-test', () => {
 			count++;
 		}
 		assert.strictEqual(map.size, count);
-        
     }
 
     test('set & get', () => {
@@ -124,9 +123,9 @@ suite('ternarySearchTree-test', () => {
 			['foob', 4],
 			['foobar', 2],
 		);
-    })
+    });
 
-    test('delete & cleanup', function () {
+    test('delete & cleanup', () => {
 		// normal delete
 		let tree = new TernarySearchTree<string, number>(new StringIterator());
 		tree.set('foo', 1);
@@ -155,4 +154,17 @@ suite('ternarySearchTree-test', () => {
 		tree.deleteSuperStr('fo');
 		assertTstDfs(tree, ['bar', 3]);
 	});
+
+    test('fill and clear', () => {
+        const tree = CreateTernarySearchTree.forStrings<number>();
+        const pairs: [string, number][] = [['foo', 0], ['bar', 1], ['bang', 2], ['bazz', 3]];
+        tree.fill(pairs);
+
+        for (const pair of pairs) {
+			assert.strictEqual(tree.get(pair[0]), pair[1]);
+		}
+
+        tree.clear();
+        assert.strictEqual(tree.getRoot(), undefined);
+    });
 })

@@ -1,3 +1,6 @@
+import { compareSubstring, compareSubstringIgnoreCase } from "src/base/common/file/glob";
+import { URI } from "src/base/common/file/uri";
+import { CharCode } from "src/base/common/util/char";
 import { IIterable } from "src/base/common/util/iterable";
 import { Random } from "src/base/common/util/random";
 import { isNonNullable } from "src/base/common/util/type";
@@ -71,6 +74,196 @@ export class StringIterator implements IKeyIterator<string> {
 
     public currItem(): string {
         return this._value[this._pos]!;
+    }
+}
+
+const enum UriIteratorState {
+	Scheme = 1, 
+    Authority = 2, 
+    Path = 3, 
+    Query = 4, 
+    Fragment = 5,
+}
+
+class __PathIterator implements IKeyIterator<string> {
+
+    private _from: number;
+    private _to: number;
+    private _valueLen: number;
+    private _value: string;
+
+    constructor(
+        private readonly _supportBackslashSplit: boolean = true,
+        private readonly _caseSensitive: boolean = true
+    ) {
+        this._from = 0;
+        this._to = 0;
+        this._value = '';
+        this._valueLen = 0;
+    }
+
+    public reset(value: string): this {
+        this._from = 0;
+        this._to = 0;
+        this._value = value;
+        this._valueLen = value.length;
+       
+        for (let pos = value.length - 1; pos >= 0; pos--, this._valueLen--) {
+            const currChar = this._value.charCodeAt(pos);
+            if (!(currChar === CharCode.Slash || (this._supportBackslashSplit && currChar === CharCode.Backslash))) {
+                break;
+            }
+        }
+
+        for (let pos = 0; pos < value.length; pos++, this._to++) {
+            const currChar = this._value.charCodeAt(pos);
+            if (!(currChar === CharCode.Slash || (this._supportBackslashSplit && currChar === CharCode.Backslash))) {
+                break;
+            }
+        }
+        
+        return this;
+    }
+
+    public next(): void {
+        this._from = this._to;
+
+        let startSlash = true;
+        while (this._to < this._valueLen) {
+            const currChar = this._value.charCodeAt(this._to);
+            if (currChar === CharCode.Slash || (this._supportBackslashSplit && currChar === CharCode.Backslash)) {
+                if (startSlash) {
+                    this._from++;
+                } else {
+                    break;
+                }
+            } else {
+                startSlash = false
+            }
+        }
+    }
+
+    public hasNext(): boolean {
+        return this._to < this._valueLen;
+    }
+
+    public cmp(input: string): number {
+        if (this._caseSensitive) {
+            return compareSubstring(input, this._value, 0, input.length, this._from, this._to);
+        } else {
+            return compareSubstringIgnoreCase(input, this._value, 0, input.length, this._from, this._to);
+        }
+    }
+
+    public currItem(): string {
+        return this._value.substring(this._from, this._to);
+    }
+}
+
+export class UriIterator implements IKeyIterator<URI> {
+
+    private _value: URI;
+    private _states: UriIteratorState[];
+    private _statesIdx: number;
+    private _pathIter?: __PathIterator;
+    
+
+    constructor(
+        private readonly _ignoreCase: boolean,
+    ) {
+        this._value = new URI('', '', '', '', '');
+        this._states = [];
+        this._statesIdx = 0;
+        this._pathIter = undefined;
+    }
+    
+    public reset(value: URI): this {
+        this._value = value;
+        this._states = [];
+        if (this._value.scheme) {
+            this._states.push(UriIteratorState.Scheme);
+        }
+        if (this._value.authority) {
+            this._states.push(UriIteratorState.Scheme);
+        }
+        if (this._value.path) {
+            this._pathIter = new __PathIterator(false, this._ignoreCase);
+            this._pathIter.reset(value.path);
+            if (this._pathIter.currItem()) {
+                this._states.push(UriIteratorState.Path);
+            }
+        }
+        if (this._value.query) {
+            this._states.push(UriIteratorState.Query);
+        }
+        if (this._value.fragment) {
+            this._states.push(UriIteratorState.Fragment);
+        }
+        this._statesIdx = 0;
+        return this;
+    }
+    
+    public cmp(input: string): number {
+        if (this._states[this._statesIdx] === UriIteratorState.Scheme) {
+			return compareSubstringIgnoreCase(input, this._value.scheme);
+		} 
+        
+        else if (this._states[this._statesIdx] === UriIteratorState.Authority) {
+			return compareSubstringIgnoreCase(input, this._value.authority);
+		} 
+        
+        else if (this._states[this._statesIdx] === UriIteratorState.Path) {
+			return this._pathIter!.cmp(input);
+		} 
+        
+        else if (this._states[this._statesIdx] === UriIteratorState.Query) {
+			return compareSubstring(input, this._value.query);
+		} 
+        
+        else if (this._states[this._statesIdx] === UriIteratorState.Fragment) {
+			return compareSubstring(input, this._value.fragment);
+		}
+        
+        throw new Error();
+    }
+
+    public currItem(): string {
+        if (this._states[this._statesIdx] === UriIteratorState.Scheme) {
+			return this._value.scheme;
+		} 
+        
+        else if (this._states[this._statesIdx] === UriIteratorState.Authority) {
+			return this._value.authority;
+		} 
+        
+        else if (this._states[this._statesIdx] === UriIteratorState.Path) {
+			return this._pathIter!.currItem();
+		} 
+        
+        else if (this._states[this._statesIdx] === UriIteratorState.Query) {
+			return this._value.query;
+		} 
+        
+        else if (this._states[this._statesIdx] === UriIteratorState.Fragment) {
+			return this._value.fragment;
+		}
+        
+        throw new Error();
+    }
+
+    public hasNext(): boolean {
+        if (this._states[this._statesIdx] === UriIteratorState.Path && this._pathIter!.hasNext()) {
+            return true;
+        }
+        return this._statesIdx < this._states.length - 1;
+    }
+
+    public next(): void {
+        if (this._states[this._statesIdx] === UriIteratorState.Path && this._pathIter!.hasNext()) {
+            this._pathIter!.next();
+        } else {
+            this._statesIdx += 1;
+        }
     }
 }
 
@@ -244,7 +437,9 @@ export namespace CreateTernarySearchTree {
         return new TernarySearchTree<string, E>(new StringIterator());
     }
 
-    // TODO: other iters
+    export function forURIs<E>(ignoreCase: boolean): TernarySearchTree<URI, E> {
+        return new TernarySearchTree<URI, E>(new UriIterator(ignoreCase));
+    }
 }
 
 /**
@@ -288,12 +483,10 @@ export class TernarySearchTree<K, V extends NonNullable<any>> implements ITernar
 
         if (!this._root) {
             this._root = new TernarySearchTreeNode<K, V>(iter.currItem());
-
         }
 
         // stores directions take by the path nodes to reach the target node
         const path: [Dir, TernarySearchTreeNode<K, V>][] = [];
-
         node = this._root;
 
         // find(or create based on the key) the target node to insert the value
@@ -354,7 +547,6 @@ export class TernarySearchTree<K, V extends NonNullable<any>> implements ITernar
         this._delete(key, false);
     }
  
-     // delete any superStr that has key as a substring
     public deleteSuperStr(key: K): void {
          this._delete(key, true);
     }
