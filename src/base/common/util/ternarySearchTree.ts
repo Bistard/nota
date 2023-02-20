@@ -433,12 +433,12 @@ export class TernarySearchTreeNode<K, V> {
  * create a ternary search tree structure for different types of keys.
  */
 export namespace CreateTernarySearchTree {
-    export function forStrings<V>(): TernarySearchTree<string, V> {
-        return new TernarySearchTree<string, V>(new StringIterator());
+    export function forStrings<V, Key extends string = string>(): TernarySearchTree<Key, V> {
+        return new TernarySearchTree<Key, V>(new StringIterator());
     }
 
-    export function forURIs<V>(ignoreCase: boolean): TernarySearchTree<URI, V> {
-        return new TernarySearchTree<URI, V>(new UriIterator(ignoreCase));
+    export function forURIs<V, Key extends URI = URI>(ignoreCase: boolean = false): TernarySearchTree<Key, V> {
+        return new TernarySearchTree<Key, V>(new UriIterator(ignoreCase));
     }
 }
 
