@@ -169,7 +169,7 @@ export class UriIterator implements IKeyIterator<URI> {
     
 
     constructor(
-        private readonly _ignoreCase: boolean,
+        private readonly _ignoreCase: boolean = false,
     ) {
         this._value = new URI('', '', '', '', '');
         this._states = [];
@@ -355,6 +355,11 @@ export interface ITernarySearchTree<K, V> extends IIterable<[K, V]> {
      * @param callback The function to visit every key-value pair.
      */
     forEach(callback: (value: V, key: K) => any): void;
+
+    /**
+     * @description Returns the root node of the tree.
+     */
+    getRoot(): TernarySearchTreeNode<K, V> | undefined;
 }
 
 /**
@@ -581,7 +586,7 @@ export class TernarySearchTree<K, V extends NonNullable<any>> implements ITernar
         yield* this._nodeIter(this._root);
     }
     
-    public getRoot() {
+    public getRoot(): TernarySearchTreeNode<K, V> | undefined {
         return this._root;
     }
 
