@@ -426,19 +426,14 @@ export class TernarySearchTreeNode<K, V> {
 /**
  * @namespace CreateTernarySearchTree includes a series of functions that 
  * create a ternary search tree structure for different types of keys.
- * 
- * Currently, it supports keys types: string, URI, and path(string).
- *  
- * Note: All functions require a key iterator to generate the ternary search
- * Tree.
  */
 export namespace CreateTernarySearchTree {
-    export function forStrings<E>(): TernarySearchTree<string, E> {
-        return new TernarySearchTree<string, E>(new StringIterator());
+    export function forStrings<V>(): TernarySearchTree<string, V> {
+        return new TernarySearchTree<string, V>(new StringIterator());
     }
 
-    export function forURIs<E>(ignoreCase: boolean): TernarySearchTree<URI, E> {
-        return new TernarySearchTree<URI, E>(new UriIterator(ignoreCase));
+    export function forURIs<V>(ignoreCase: boolean): TernarySearchTree<URI, V> {
+        return new TernarySearchTree<URI, V>(new UriIterator(ignoreCase));
     }
 }
 
@@ -589,6 +584,7 @@ export class TernarySearchTree<K, V extends NonNullable<any>> implements ITernar
     public getRoot() {
         return this._root;
     }
+
     // [private methods]
 
     private _findNode(key: K, path?: [Dir, TernarySearchTreeNode<K, V>][]): TernarySearchTreeNode<K, V> | undefined {
