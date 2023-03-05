@@ -1,19 +1,11 @@
 const CircularDependencyPlugin = require('circular-dependency-plugin');
-const path = require('path');
 const { IgnorePlugin } = require('webpack');
+const path = require('path');
+
+const cwd = process.cwd();
 
 // check nodejs requirement
-const requiredNodeJsVersion = '16.7.0'.split('.');
-const currNodeJsVersion = process.versions.node.split('.');
-for (let i = 0; i < currNodeJsVersion.length; i++) {
-    if (Number(currNodeJsVersion[i]) >= Number(requiredNodeJsVersion[i])) {
-        continue;
-    }
-
-    const err = new Error('Node.js version requires at least v16.7.0.');
-    err.stack = undefined;
-    throw err;
-}
+checkNodeJsRequirement();
 
 const ENV_MODE = process.env.NODE_ENV ?? 'development';
 const IS_DEV = ENV_MODE === 'development';
@@ -71,7 +63,7 @@ module.exports = [
         },
         output: {
             filename: '[name]-bundle.js',
-            path: path.resolve(__dirname, './dist')
+            path: path.resolve(cwd, './dist')
         },
     }),
     Object.assign({}, baseConfiguration, {
@@ -81,7 +73,7 @@ module.exports = [
         },
         output: {
             filename: '[name]-bundle.js',
-            path: path.resolve(__dirname, './dist')
+            path: path.resolve(cwd, './dist')
         },
     }),
     Object.assign({}, baseConfiguration, {
@@ -91,27 +83,40 @@ module.exports = [
         },
         output: {
             filename: '[name]-lookup-bundle.js',
-            path: path.resolve(__dirname, './dist')
+            path: path.resolve(cwd, './dist')
         },
     }),
 ];
 
-// configuration helpers
+// [configuration helpers]
+
+function checkNodeJsRequirement() {
+    const requiredNodeJsVersion = '16.7.0'.split('.');
+    const currNodeJsVersion = process.versions.node.split('.');
+    for (let i = 0; i < currNodeJsVersion.length; i++) {
+        if (Number(currNodeJsVersion[i]) >= Number(requiredNodeJsVersion[i])) {
+            continue;
+        }
+
+        const err = new Error('Node.js version requires at least v16.7.0.');
+        err.stack = undefined;
+        throw err;
+    }
+}
 
 function getModuleResolveAlias() {
     const alias = {
-        src: path.resolve(__dirname, 'src/'),
+        src: path.resolve(cwd, 'src/'),
         /**
          * Ensures testing utility code is only not forbidden when in develop 
          * mode.
          */
-        test: IS_DEV ? path.resolve(__dirname, 'test/') : undefined,
+        test: IS_DEV ? path.resolve(cwd, 'test/') : undefined,
     };
-
     return alias;
 }
 
-// plugins
+// [plugins]
 
 function getPlugins(opts) {
     const plugins = [...getOptionalPlugins()];
@@ -125,7 +130,7 @@ function getPlugins(opts) {
             {
                 exclude: /a\.js|node_modules/,
                 include: /src/,
-                cwd: process.cwd(),
+                cwd: cwd,
                 // `onStart` is called before the cycle detection starts
                 onStart({ _compilation }) {
                 console.log('start detecting webpack modules cycles');

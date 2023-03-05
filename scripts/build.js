@@ -15,7 +15,7 @@ parsingCLI();
 
 // spawn the child process
 const spawn = childProcess.spawn(
-    'webpack --config webpack.config.js', 
+    'webpack --config ./scripts/webpack.config.js', 
     [], 
     {
         env: process.env,
@@ -34,8 +34,8 @@ function parsingCLI() {
     const CLIArgv = utils.parseCLI();
     console.log(`${utils.getTime()} [Building arguments]`, CLIArgv);
     process.env.NODE_ENV = CLIArgv.NODE_ENV ?? 'development';
-    process.env.CIRCULAR = CLIArgv.circular ?? 'true';
-    process.env.WATCH_MODE = CLIArgv.watch;
+    process.env.CIRCULAR = CLIArgv.circular ?? CLIArgv.c ?? 'true';
+    process.env.WATCH_MODE = CLIArgv.watch ?? CLIArgv.w ?? 'false';
 }
 
 function wrapSpawn() {
