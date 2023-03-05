@@ -360,6 +360,11 @@ export interface ITernarySearchTree<K, V> extends IIterable<[K, V]> {
      * @description Returns the root node of the tree.
      */
     getRoot(): TernarySearchTreeNode<K, V> | undefined;
+
+    /**
+     * @description Returns the total number of values in the tree.
+     */
+    size(): number;
 }
 
 /**
@@ -415,7 +420,7 @@ export class TernarySearchTreeNode<K, V> {
         this.height = 1 + Math.max(this.leftHeight, this.rightHeight);
     }
 
-    public balanceFactor(): number {
+    public balanceFactor(): number { 
         return this.rightHeight - this.leftHeight;
     }
 
@@ -456,22 +461,25 @@ export class TernarySearchTree<K, V extends NonNullable<any>> implements ITernar
 
     private _root: TernarySearchTreeNode<K, V> | undefined;
     private _iter: IKeyIterator<K>;
+    private _size: number;
 
     // [constructor]
     
     constructor(keyIter: IKeyIterator<K>) {
         this._iter = keyIter;
+        this._size = 0; 
     }
 
     // [public methods]
 
     public clear(): void {
         this._root = undefined;
+        this._size = 0;
     }
 
     public fill(values: readonly [K, V][]): void {
         const arr = values.slice(0);
-        Random.shuffle(arr);
+        Random.shuffle(arr, 1000);
         for (const entry of arr) {
             this.set(entry[0], entry[1]);
         }
@@ -530,6 +538,10 @@ export class TernarySearchTree<K, V extends NonNullable<any>> implements ITernar
         // AVL balance
         this._avlBalance(path);
 
+        if (oldVal !== undefined) {
+            this._size++;
+        }
+
         return oldVal;
     }
 
@@ -540,7 +552,7 @@ export class TernarySearchTree<K, V extends NonNullable<any>> implements ITernar
 
     public has(key: K): boolean {
         const node = this._findNode(key);
-        return (node?.value === undefined);
+        return node?.value !== undefined;
     }
 
     public delete(key: K): void {
@@ -588,6 +600,10 @@ export class TernarySearchTree<K, V extends NonNullable<any>> implements ITernar
     
     public getRoot(): TernarySearchTreeNode<K, V> | undefined {
         return this._root;
+    }
+
+    public size(): number {
+        return this._size;
     }
 
     // [private methods]
@@ -642,11 +658,15 @@ export class TernarySearchTree<K, V extends NonNullable<any>> implements ITernar
 
         // delete all super string
         if (superStr) {
+            for (const _ of this._nodeIter(node)) {
+                this._size--;
+            }
             node.mid = undefined;
             node.left =  undefined;
             node.right = undefined;
             node.height = 1;
         } else {
+            this._size--;
             node.value = undefined;
             node.key = undefined;
         }
@@ -675,24 +695,24 @@ export class TernarySearchTree<K, V extends NonNullable<any>> implements ITernar
                     let node1 = path[i]![1];
                     const d2 = path[i + 1]![0];
                     let node2 = path[i + 1]![1];
-
-                    if (d1 == Dir.Left && d2 == Dir.Left) {
+                    
+                    if (d1 === Dir.Left && d2 === Dir.Left) {
                         // left heavy, rotate right
                         node1 = path[i]![1] = node1.rotateRight();
-                    } else if (d1 == Dir.Right && d2 == Dir.Right) {
+                    } else if (d1 === Dir.Right && d2 === Dir.Right) {
                         // right heavy, rotate left
                         node1 = path[i]![1] = node1.rotateLeft();
-                    } else if (d1 == Dir.Right && d2 == Dir.Left) {
+                    } else if (d1 === Dir.Right && d2 === Dir.Left) {
                         node1.right = node2.rotateRight();
                         node1 = path[i]![1] = node1.rotateLeft();
-                    } else { // d1 == Dir.Left && d2 == Dir.Right
+                    } else { // d1 === Dir.Left && d2 === Dir.Right
                         node1.left = node2.rotateLeft();
                         node1 = path[i]![1] = node1.rotateRight();
                     }
 
                     // correct the parent of node1
                 if (i > 0) {
-                    switch(path[i]![0]) {
+                    switch(path[i - 1]![0]) {
                         case Dir.Left:
                             path[i - 1]![1].left = node1;
                             break;
