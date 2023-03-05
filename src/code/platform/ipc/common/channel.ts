@@ -1,4 +1,5 @@
 import { Register } from "src/base/common/event";
+import { ProxyChannel } from "src/code/platform/ipc/common/proxy";
 
 /**
  * Built-in IPC channel names.
