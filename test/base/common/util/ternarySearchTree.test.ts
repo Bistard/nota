@@ -97,6 +97,38 @@ suite('ternarySearchTree-test', () => {
 
     test('URI-iterator', () => {
         // TODO
+        const iter = new UriIterator();
+        iter.reset(URI.fromFile('this'));
+
+        // while (iter.hasNext()) {
+        //     console.log(iter.currItem());
+        //     iter.next();
+        // }
+
+        assert.strictEqual(iter.currItem(), 't');
+        assert.strictEqual(iter.hasNext(), true);
+        assert.strictEqual(iter.cmp('t'), 0);
+
+        assert.ok(iter.cmp('a') < 0);
+        assert.ok(iter.cmp('z') > 0);
+        assert.strictEqual(iter.cmp('t'), 0);
+
+        iter.next();
+        assert.strictEqual(iter.currItem(), 'h');
+        assert.strictEqual(iter.hasNext(), true);
+        
+        iter.next();
+        assert.strictEqual(iter.hasNext(), true);
+        iter.next();
+        assert.strictEqual(iter.currItem(), 's');
+        assert.strictEqual(iter.hasNext(), false);
+        
+        iter.next()
+        assert.strictEqual(iter.currItem(), undefined);
+
+        iter.reset(URI.fromFile('hello'));
+        assert.strictEqual(iter.currItem(), 'h');
+        assert.strictEqual(iter.hasNext(), true);
     });
 
     function generateTree(value: PossibleKey): ITernarySearchTree<PossibleKey, number> {

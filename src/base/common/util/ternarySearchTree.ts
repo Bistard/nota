@@ -167,7 +167,6 @@ export class UriIterator implements IKeyIterator<URI> {
     private _statesIdx: number;
     private _pathIter?: __PathIterator;
     
-
     constructor(
         private readonly _ignoreCase: boolean = false,
     ) {
