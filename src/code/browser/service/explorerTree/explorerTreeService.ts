@@ -98,7 +98,11 @@ export class ExplorerTreeService extends Disposable implements IExplorerTreeServ
     // [public mehtods]
 
     public async init(container: HTMLElement, root: URI, mode?: TreeMode): Promise<void> {
-        const currTreeService = this._mode === TreeMode.Notebook ? this.notebookTreeService : this.classicTreeService;
+        const currTreeService: ITreeService<any> = (
+            (this._mode === TreeMode.Notebook) 
+                ? this.notebookTreeService
+                : this.classicTreeService
+        );
 
         // try to create the tree service
         try {
@@ -164,13 +168,13 @@ export class ExplorerTreeService extends Disposable implements IExplorerTreeServ
         this._onDidResourceChangeScheduler = new Scheduler(
             ExplorerTreeService.ON_RESOURCE_CHANGE_DELAY, 
             (events: ResourceChangeEvent[]) => {
-                if (!this._root || !this._currentTreeService) {
+                if (!root || !this._currentTreeService) {
                     return;
                 }
 
                 let affected = false;
                 for (const event of events) {
-                    if (event.affect(this._root)) {
+                    if (event.affect(root)) {
                         affected = true;
                         break;
                     }
