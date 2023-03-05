@@ -15,7 +15,7 @@ const utils = require('./utility');
  * @typedef {import('./configuration.js').ScriptConfiguration} ScriptConfiguration
  */
 
-const SCRIPT_CONFIG_PATH = './configuration.js';
+const SCRIPT_CONFIG_PATH = './scripts.config.js';
 
 const USAGE = `
 usage: npm run script (<command> | list | help) [--] [<argument>...]
