@@ -95,6 +95,10 @@ suite('ternarySearchTree-test', () => {
         assert.strictEqual(iter.hasNext(), true);
     });
 
+    test('URI-iterator', () => {
+        // TODO
+    });
+
     function generateTree(value: PossibleKey): ITernarySearchTree<PossibleKey, number> {
         let tree: ITernarySearchTree<PossibleKey, number>;
         if (URI.isURI(value)) {
@@ -107,7 +111,9 @@ suite('ternarySearchTree-test', () => {
         return tree;
     }
 
-    test('set & get', () => {
+    test('set & get & has', () => {
+
+        // TODO: `has` is not tested yet
 
         const testGeneric = function <Key extends PossibleKey>(foobar: Key, foobaz: Key, fooba: Key, foo: Key, bar: Key, foob: Key, bazz: Key): void {
             let tree = generateTree(foo);
@@ -146,6 +152,10 @@ suite('ternarySearchTree-test', () => {
         // FIX
         testGeneric(URI.fromFile('foobar'), URI.fromFile('foobaz'), URI.fromFile('fooba'), URI.fromFile('foo'), URI.fromFile('bar'), URI.fromFile('foob'), URI.fromFile('bazz'));
     });
+
+    // TODO: findSubtr
+
+    // TODO: size
 
     test('delete & cleanup', () => {
 
