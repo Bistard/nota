@@ -1,7 +1,11 @@
 // @ts-check
 
 /**
- * @typedef {Record<string, { command: string, description: string }>} ScriptConfiguration
+ * @typedef {Record<string, { 
+ *      command: string, 
+ *      description: string, 
+ *      options?: { flags: string[], descriptions: string[] }[]
+ * }>} ScriptConfiguration
  */
 
 /** 
@@ -11,7 +15,7 @@
 const configuration = {
     
     "run": {
-        command: "electron .",
+        command: "electron . --- --log=info",
         description: 'Run Nota.'
     },
 
@@ -22,7 +26,23 @@ const configuration = {
 
     "build": {
         command: "node ./scripts/build.js",
-        description: 'Build the Nota.'
+        description: 'Build the Nota.',
+        options: [
+            {
+                flags: ['--watch', '-w'],
+                descriptions: [
+                    'Turn on watch mode. This means that after the initial build, webpack will continue to watch for changes in any of the resolved files.',
+                    'default = false.',
+                ]
+            },
+            {
+                flags: ['--circular', '-c'], 
+                descriptions: [
+                    'Turn on the dependency circular check. It will start detecting any direct or indirect circular dependencies amoung all the used modules.',
+                    'default = true.',
+                ]
+            },
+        ]
     },
 
     "watch": {
@@ -32,11 +52,27 @@ const configuration = {
 
     "start": {
         command: "npm run script build && electron .",
-        description: 'Build nota and run Nota.'
+        description: 'Build nota and run Nota.',
+        options: [
+            {
+                flags: ['--log=<level>'],
+                descriptions: [
+                    'Sets the logging level of the application, the <level> can be either "trace", "debug", "info", "warn", "error", "fatal".',
+                    'default = info.',
+                ]
+            },
+            {
+                flags: ['--open-devtools'],
+                descriptions: [
+                    'Open a developer tool along with every window.',
+                    'default = false.',
+                ]
+            }
+        ]
     },
 
     "_start": {
-        command: "npm start --- --log=trace --open-devtools",
+        command: "npm run script start --- --log=trace --open-devtools",
         description: 'Build nota and run Nota in develop mode.'
     },
 

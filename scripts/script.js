@@ -12,7 +12,7 @@ const path = require("path");
 const utils = require('./utility');
 
 /**
- * @typedef {Record<string, { command: string, description: string }>} ScriptConfiguration
+ * @typedef {import('./configuration.js').ScriptConfiguration} ScriptConfiguration
  */
 
 const SCRIPT_CONFIG_PATH = './configuration.js';
@@ -73,9 +73,22 @@ function executeHelp() {
  */
 function executeList(configuration) {
     console.log(`${'[command]'.padStart(10, ' ').padEnd(13, ' ')}[description]`);
-    for (const key of Object.getOwnPropertyNames(configuration)) {
-        const { _command, description } = configuration[key];
-            console.log(`${key.padStart(10, ' ').padEnd(14, ' ')}${description}`);
+    
+    for (const [cmdName, config] of Object.entries(configuration)) {
+        const { _command, description, options } = config;
+        
+        console.log(`${cmdName.padStart(10, ' ').padEnd(14, ' ')}${description}`);
+        
+        if (!options) {
+            continue;
+        }
+        
+        for (const opt of options) {
+            console.log(`${''.padEnd(16, ' ')}${opt.flags.join(', ')}`);
+            for (const desc of opt.descriptions) {
+                console.log(`${''.padEnd(18, ' ')}${desc}`);
+            }
+        }
     }
 }
 
@@ -96,7 +109,7 @@ function executeScript(command, args, configuration) {
     const argsInString = args.join(' ');
     actualCommand += ' ' + argsInString;
 
-    console.log(`${utils.getTime()} Executing script: ${command}.`);
+    console.log(`${utils.getTime()} Executing script: ${command}`);
     console.log(`${utils.getTime()} Executing command: ${actualCommand}`);
     const proc = childProcess.spawn(
         actualCommand, 
@@ -105,20 +118,15 @@ function executeScript(command, args, configuration) {
             env: process.env,
             cwd: path.resolve(__dirname, '../'), // redirect the cwd to the root of nota
             shell: true,
+
+            // inherits the stdin / stdout / stderr
+            stdio: "inherit",
         },
     );
 
-    proc.stdout.on('data', (output) => {
-        process.stdout.write(output);
-    });
-      
-    proc.stderr.on('error', (error) => {
-        process.stderr.write(error);
-    });
-    
     proc.on('close', (code) => {
         if (code) {
-            process.stderr.write(`${utils.getTime(utils.c.FgRed)} script exits with error code ${code}.\n`);
+            process.stderr.write(`${utils.getTime(utils.c.FgRed)} The script '${command}' exits with error code ${code}.\n`);
             process.exit(code);
         } else {
             process.exit(0);
