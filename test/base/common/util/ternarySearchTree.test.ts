@@ -180,11 +180,6 @@ suite('ternarySearchTree-test', () => {
 
             tree.fill(fillData);
 
-            // FIX: DELETE once it got fixed
-            for (const node of tree) {
-                console.log(node);
-            }
-
             for (const pair of fillData) {
                 assert.strictEqual(tree.get(pair[0]), pair[1]);
             }
@@ -193,8 +188,6 @@ suite('ternarySearchTree-test', () => {
             assert.strictEqual(tree.getRoot(), undefined);
             // assert.strictEqual(tree.size(), 0); // TODO
         };
-
-        // FIX
         // string
         fillAndClearGeneric([['foo', 0], ['bar', 1], ['bang', 2], ['bazz', 3]]);
 
