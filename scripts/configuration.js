@@ -77,13 +77,18 @@ const configuration = {
     },
 
     "test": {
-        command: "mocha --ui tdd -r jsdom-global/register --config '.mocharc.jsonc' --timeout 10000",
-        description: 'Run all the unit test files that end with .test.ts which lies in the ./test directory.'
-    },
-
-    "_test": {
-        command: "mocha --ui tdd -r jsdom-global/register --config 'test/.mocharc.jsonc'",
-        description: 'Run all the unit test files that end with .dev.test.ts which lies in the ./test directory. Useful when completing a unfinished unit test file.'
+        command: "mocha --ui tdd -r jsdom-global/register --config './scripts/.mocharc.json' --timeout 10000",
+        description: 'Run all the unit tests stores in the files which end with .test.ts under the ./test directory.',
+        options: [
+            {
+                flags: ['(-g | --grep) <pattern>'],
+                descriptions: [
+                    'Run all the unit tests that match the regular expression <pattern>.',
+                    'For example, `npm run script test -- -g \'z\'` will match any unit tests that contain the letter `z`.',
+                    'Alternatively, to run a single suite or test, instead of writing `suite(\'suite-name\')`, write `suite.only(\'suite-name\')` instead.'
+                ]
+            }
+        ]
     },
 
     "benchmark": {
