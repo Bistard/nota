@@ -1,33 +1,31 @@
- /*---------------------------------------------------------------------------
-  *  importing .css might cause preformance issue, further research is needed.
-  *---------------------------------------------------------------------------*/
-@import "./common.css";
 
-@import "../base/browser/icon/icons.css";
-@import "../base/browser/basic/button/button.css";
-@import "../base/browser/basic/searchBar/searchBar.css";
-@import "../base/browser/basic/sash/sash.css";
-@import "../base/browser/basic/scrollbar/scrollbar.css";
-@import "../base/browser/secondary/widgetBar/WidgetBar.css";
-@import "../base/browser/secondary/contextMenu/contextMenu.css";
-@import "../base/browser/secondary/scrollableWidget/scrollableWidget.css";
-@import "../base/browser/secondary/listView/listView.css";
-@import "../base/browser/secondary/tree/tree.css";
-@import "../base/browser/secondary/splitView/splitView.css";
+@import './common.css';
 
-@import "../code/styles/workbench/sideBar/sideBar.css";
-@import "../code/styles/workbench/sideView/sideView.css";
-@import "../code/styles/workbench/sideView/explorer/explorerView.css";
-@import "../code/styles/workbench/sideView/explorer/explorerItem.css";
-@import "../code/styles/workbench/sideView/outline/outlineView.css";
-@import "../code/styles/workbench/workspace/workspace.css";
-@import "../code/styles/workbench/workspace/titleBar/titleBarView.css";
-@import "../code/styles/workbench/workspace/titleBar/windowBarView.css";
-@import "../code/styles/workbench/workspace/editor/editor.css";
+// @import '../base/browser/icon/icons.css';
+// @import '../base/browser/basic/button/button.css';
+// @import '../base/browser/basic/searchBar/searchBar.css';
+// @import '../base/browser/basic/sash/sash.css';
+// @import '../base/browser/basic/scrollbar/scrollbar.css';
+// @import '../base/browser/secondary/widgetBar/WidgetBar.css';
+// @import '../base/browser/secondary/contextMenu/contextMenu.css';
+// @import '../base/browser/secondary/scrollableWidget/scrollableWidget.css';
+// @import '../base/browser/secondary/listView/listView.css';
+// @import '../base/browser/secondary/tree/tree.css';
+// @import '../base/browser/secondary/splitView/splitView.css';
 
-@import "../editor/styles/index.css";
+@import '../code/styles/workbench/sideBar/sideBar.css';
+@import '../code/styles/workbench/sideView/sideView.css';
+@import '../code/styles/workbench/sideView/explorer/explorerView.css';
+@import '../code/styles/workbench/sideView/explorer/explorerItem.css';
+@import '../code/styles/workbench/sideView/outline/outlineView.css';
+@import '../code/styles/workbench/workspace/workspace.css';
+@import '../code/styles/workbench/workspace/titleBar/titleBarView.css';
+@import '../code/styles/workbench/workspace/titleBar/windowBarView.css';
+@import '../code/styles/workbench/workspace/editor/editor.css';
 
-@import "../code/browser/service/keyboard/media.css";
+@import '../editor/styles/index.css';
+
+@import '../code/browser/service/keyboard/media.css';
 
 @font-face {
     font-family: harmonyOS sans;

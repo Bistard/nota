@@ -1,3 +1,4 @@
+import "src/base/browser/secondary/splitView/splitView.scss";
 import { ISash, ISashEvent, Sash } from "src/base/browser/basic/sash/sash";
 import { ISplitViewItem, ISplitViewItemOpts, SplitViewItem } from "src/base/browser/secondary/splitView/splitViewItem";
 import { Disposable } from "src/base/common/dispose";
