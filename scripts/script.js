@@ -75,23 +75,23 @@ function executeHelp() {
  * @param {ScriptConfiguration} configuration 
  */
 function executeList(configuration) {
-    console.log(`${'[command]'.padStart(10, ' ').padEnd(13, ' ')}[description]`);
+    console.log(`${'[command]'.padStart(10, ' ')}`);
     
     for (const [cmdName, config] of Object.entries(configuration)) {
-        console.log();
         
         const { _command, description, options } = config;
         const coloredName = utils.color(utils.c.FgGreen, cmdName);
-        console.log(`${coloredName.padStart(20, ' ').padEnd(24, ' ')}${description}`);
+        console.log(coloredName);
+        console.log(description);
         
         if (!options) {
             continue;
         }
         
         for (const opt of options) {
-            console.log(`${''.padEnd(18, ' ')}${opt.flags.join(', ')}`);
+            console.log(`${''.padEnd(6, ' ')}${opt.flags.join(', ')}`);
             for (const desc of opt.descriptions) {
-                console.log(`${''.padEnd(22, ' ')}${desc}`);
+                console.log(`${''.padEnd(10, ' ')}${desc}`);
             }
         }
     }

@@ -16,17 +16,17 @@ const configuration = {
     
     "run": {
         command: "electron . --- --log=info",
-        description: 'Run Nota.'
+        description: 'Run nota.'
     },
 
     "_run": {
         command: "electron . --- --log=trace --open-devtools",
-        description: 'Run Nota in develop mode.'
+        description: 'Run nota in develop mode.'
     },
 
     "build": {
         command: "node ./scripts/build.js",
-        description: 'Build the Nota.',
+        description: 'Build the nota.',
         options: [
             {
                 flags: ['--watch', '-w'],
@@ -47,12 +47,12 @@ const configuration = {
 
     "watch": {
         command: "npm run script build -- --watch=true --circular=false",
-        description: 'Build the Nota and wait to rebuild by watching the change of the source directory.'
+        description: 'Build the nota and wait to rebuild by watching the change of the source directory.'
     },
 
     "start": {
         command: "npm run script build && electron .",
-        description: 'Build nota and run Nota.',
+        description: 'Build nota and run nota.',
         options: [
             {
                 flags: ['--log=<level>'],
@@ -73,19 +73,20 @@ const configuration = {
 
     "_start": {
         command: "npm run script start --- --log=trace --open-devtools",
-        description: 'Build nota and run Nota in develop mode.'
+        description: 'Build nota and run nota in develop mode.'
     },
 
     "test": {
         command: "mocha --ui tdd -r jsdom-global/register --config './scripts/.mocharc.json' --timeout 10000",
-        description: 'Run all the unit tests stores in the files which end with .test.ts under the ./test directory.',
+        description: 'Run all the unit tests stores in the files which end with .test.ts under the ./test directory.\n' +
+                      'If any of the tests or suites are marked as `only`, the command will only execute those.\n' +
+                      'e.g. Writing `suite.only(\'suite-name\', () => {})` in the source file.',
         options: [
             {
                 flags: ['(-g | --grep) <pattern>'],
                 descriptions: [
                     'Run all the unit tests that match the regular expression <pattern>.',
                     'For example, `npm run script test -- -g \'z\'` will match any unit tests that contain the letter `z`.',
-                    'Alternatively, to run a single suite or test, instead of writing `suite(\'suite-name\')`, write `suite.only(\'suite-name\')` instead.'
                 ]
             }
         ]
