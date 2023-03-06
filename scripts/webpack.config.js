@@ -1,4 +1,5 @@
 const CircularDependencyPlugin = require('circular-dependency-plugin');
+const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const { IgnorePlugin } = require('webpack');
 const path = require('path');
 
@@ -49,11 +50,11 @@ const baseConfiguration = {
                 test: /.node$/,
                 loader: 'node-loader',
             },
-            // // compiles SCSS to CSS
-            // {
-            //     test: /\.scss$/,
-            //     use: 'sass-loader',
-            // }
+            // compiles SCSS files to CSS files
+            {
+                test: /\.s[ac]ss$/,
+                use: [MiniCssExtractPlugin.loader, 'css-loader', 'sass-loader'],
+            },
         ]
     },
 
@@ -148,6 +149,17 @@ function getPlugins(opts) {
     
     const MAX_CYCLES = 3;
     let detectedCycleCount = 0;
+
+    /**
+     * mini-css-extract plugin
+     * 
+     * This plugin extracts CSS into separate files. It creates a CSS file per 
+     * JS file which contains CSS. It supports On-Demand-Loading of CSS and 
+     * SourceMaps.
+     */
+    plugins.push(new MiniCssExtractPlugin({
+        filename: 'index.css',
+    }));
 
     // circular dependency plugin
     if (opts && opts.circular) {
