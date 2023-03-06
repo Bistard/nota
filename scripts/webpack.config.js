@@ -180,7 +180,7 @@ class WebpackConfigurationProvider {
                     },
                     // compiles SCSS files to CSS files
                     {
-                        test: /\.s[ac]ss$/,
+                        test: /\.(css|scss|sass)$/,
                         use: [MiniCssExtractPlugin.loader, 'css-loader', 'sass-loader'],
                     },
                 ]
