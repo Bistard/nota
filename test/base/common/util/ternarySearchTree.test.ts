@@ -134,9 +134,9 @@ suite('ternarySearchTree-test', () => {
     function generateTree(value: PossibleKey): ITernarySearchTree<PossibleKey, number> {
         let tree: ITernarySearchTree<PossibleKey, number>;
         if (URI.isURI(value)) {
-            tree = CreateTernarySearchTree.forURIs<number, URI>();
+            tree = CreateTernarySearchTree.forUriKeys<number, URI>();
         } else if (isString(value)) {
-            tree = CreateTernarySearchTree.forStrings<number, string>();
+            tree = CreateTernarySearchTree.forStringKeys<number, string>();
         } else {
             throw new Error();
         }
@@ -209,7 +209,7 @@ suite('ternarySearchTree-test', () => {
             tree.set(foobar, 2);
             tree.set(bar, 3);
             tree.set(foobarbaz, 4);
-            tree.deleteSuperStr(foo);
+            tree.deleteSuperStrOf(foo);
             assertTstDfs(tree, [bar, 3], [foo, 1]);
 
             tree = generateTree(foo);
@@ -217,7 +217,7 @@ suite('ternarySearchTree-test', () => {
             tree.set(foobar, 2);
             tree.set(bar, 3);
             tree.set(foobarbaz, 4);
-            tree.deleteSuperStr(fo);
+            tree.deleteSuperStrOf(fo);
             assertTstDfs(tree, [bar, 3]);
         };
 

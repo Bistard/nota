@@ -183,7 +183,7 @@ export class UriIterator implements IKeyIterator<URI> {
             this._states.push(UriIteratorState.Scheme);
         }
         if (this._value.authority) {
-            this._states.push(UriIteratorState.Scheme);
+            this._states.push(UriIteratorState.Authority);
         }
         if (this._value.path) {
             this._pathIter = new __PathIterator(false, this._ignoreCase);
@@ -328,9 +328,9 @@ export interface ITernarySearchTree<K, V> extends IIterable<[K, V]> {
      * @example
      * Given two string 'cat' and 'cats' stored in the tree with their values 
      * equals to keys. 
-     * * deleteSuperStr('cat') will delete 'cats' but not deleting 'cat' itself. 
+     * * deleteSuperStrOf('cat') will delete 'cats' but not deleting 'cat' itself. 
      */
-    deleteSuperStr(key: K): void;
+    deleteSuperStrOf(key: K): void;
     
     /**
      * @description Find the longest substring of the `key` that has a value.
@@ -341,13 +341,13 @@ export interface ITernarySearchTree<K, V> extends IIterable<[K, V]> {
      * @example
      * Given two string 'cat' and 'cats' stored in the tree with their values 
      * equals to keys:
-     * * findSubtr('cat') returns 'cat'
-     * * findSubstr('cats') returns 'cats'
+     * * findSubStrOf('cat') returns 'cat'
+     * * findSubStrOf('cats') returns 'cats'
      * 
      * If 'cats' is input key that does not have a value:
-     * * findSubstr('cats') returns cat.
+     * * findSubStrOf('cats') returns cat.
      */
-    findSubtr(key: K): V | undefined;
+    findSubStrOf(key: K): V | undefined;
 
     /**
      * @description Iterate the whole tree with in-order.
@@ -437,11 +437,11 @@ export class TernarySearchTreeNode<K, V> {
  * create a ternary search tree structure for different types of keys.
  */
 export namespace CreateTernarySearchTree {
-    export function forStrings<V, K extends string = string>(): TernarySearchTree<K, V> {
+    export function forStringKeys<V, K extends string = string>(): TernarySearchTree<K, V> {
         return new TernarySearchTree<K, V>(new StringIterator());
     }
 
-    export function forURIs<V, K extends URI = URI>(ignoreCase: boolean = false): TernarySearchTree<K, V> {
+    export function forUriKeys<V, K extends URI = URI>(ignoreCase: boolean = false): TernarySearchTree<K, V> {
         return new TernarySearchTree<K, V>(new UriIterator(ignoreCase));
     }
 }
@@ -558,11 +558,11 @@ export class TernarySearchTree<K, V extends NonNullable<any>> implements ITernar
         this._delete(key, false);
     }
  
-    public deleteSuperStr(key: K): void {
+    public deleteSuperStrOf(key: K): void {
          this._delete(key, true);
     }
  
-    public findSubtr(key: K): V | undefined {
+    public findSubStrOf(key: K): V | undefined {
         const iter = this._iter.reset(key);
         let node =  this._root;
         let candidate: V | undefined = undefined;
