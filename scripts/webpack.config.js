@@ -13,25 +13,61 @@ const IS_WATCH = (process.env.WATCH_MODE == 'true');
 
 // The webpack base configuration for each entry
 const baseConfiguration = {
-    node: {
-        __dirname: true
-    },
+    
+    /**
+     * Tells webpack to use its built-in optimizations accordingly.
+     *      'development' | 'production' | 'none'
+     */
     mode: ENV_MODE,
+
+    /**
+     * The base directory, an absolute path, for resolving entry points and 
+     * loaders from the configuration.
+     */
+    context: cwd,
+
+    // Node.js options whether to polyfill or mock certain Node.js globals.
+    node: {
+        // The dirname of the input file relative to the `context`.
+        __dirname: true,
+    },
+
+    /**
+     * These options determine how the different types of modules within a 
+     * project will be treated.
+     */
     module: {
+
         rules: [
+            // compile TypeScript files into JavaScript files
             {
                 test: /\.tsx?$/,
                 use: 'ts-loader',
             },
+            // allows Nnode.js module to be used in the browser environment
             {
                 test: /.node$/,
                 loader: 'node-loader',
-            }
+            },
+            // // compiles SCSS to CSS
+            // {
+            //     test: /\.scss$/,
+            //     use: 'sass-loader',
+            // }
         ]
     },
+
+    // These options change how modules are resolved
     resolve: {
+        
+        // Create aliases to import or require modules.
+        alias: {
+            src: path.resolve(cwd, 'src/'),
+            // Ensure testing utility code is forbidden when in product mode
+            test: IS_DEV ? path.resolve(cwd, 'test/') : undefined,
+        },
+        
         extensions: ['.tsx', '.ts', '.js'],
-        alias: getModuleResolveAlias(),
     },
 
     // watch options
@@ -51,6 +87,7 @@ const baseConfiguration = {
     stats: 'normal',
     bail: !IS_WATCH,
 
+    // webpack extensions
     plugins: getPlugins({ circular: process.env.CIRCULAR === 'true' }),
 };
 
@@ -102,18 +139,6 @@ function checkNodeJsRequirement() {
         err.stack = undefined;
         throw err;
     }
-}
-
-function getModuleResolveAlias() {
-    const alias = {
-        src: path.resolve(cwd, 'src/'),
-        /**
-         * Ensures testing utility code is only not forbidden when in develop 
-         * mode.
-         */
-        test: IS_DEV ? path.resolve(cwd, 'test/') : undefined,
-    };
-    return alias;
 }
 
 // [plugins]
