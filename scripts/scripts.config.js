@@ -72,7 +72,7 @@ const configuration = {
     },
 
     "_start": {
-        command: "npm run script start --- --log=trace --open-devtools",
+        command: "npm run script start -- --log=trace --open-devtools",
         description: 'Build nota and run nota in develop mode.'
     },
 
