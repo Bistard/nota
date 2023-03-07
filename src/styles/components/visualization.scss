@@ -1,0 +1,6 @@
+
+@mixin text($selectable: text, $size: 10px) {
+    cursor: pointer;
+    size: $size;
+    user-select: $selectable;
+}

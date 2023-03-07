@@ -1,8 +1,14 @@
 
-@import './common.css';
+// [components]
+@import 'src/styles/components/animation.scss';
+@import 'src/styles/components/interaction.scss';
+@import 'src/styles/components/layout.scss';
+@import 'src/styles/components/visualization.scss';
+@import 'src/styles/components/color.scss';
 
-// @import '../base/browser/icon/icons.css';
-// @import '../base/browser/basic/button/button.css';
+// [settings]
+@import 'src/styles/settings/globals.scss';
+
 // @import '../base/browser/basic/searchBar/searchBar.css';
 // @import '../base/browser/basic/sash/sash.css';
 // @import '../base/browser/basic/scrollbar/scrollbar.css';
@@ -25,8 +31,6 @@
 
 @import '../editor/styles/index.css';
 
-@import '../code/browser/service/keyboard/media.css';
-
 @font-face {
     font-family: harmonyOS sans;
     src: url(../../assets/font/HarmonyOS_Sans/HarmonyOS_Sans_Light.ttf);
@@ -35,25 +39,6 @@
 @font-face {
     font-family: happy family;
     src: url(../../assets/font/happy_monkey/HappyMonkey-Regular.ttf);
-}
-
-body {
-    cursor: default;
-    margin: 0px;
-    padding: 0px;
-    font-size: 10pt;
-    background-color: white;
-    font-family: 'harmonyOS sans', 'Microsoft Yahei', '微软雅黑', 'Open Sans', 'Helvetica Neue', 'Helvetica', 'Arial', '나눔바른고딕', 'Nanum Barun Gothic', '맑은고딕', 'Malgun Gothic', sans-serif;
-    overflow: hidden;
-}
-
-img {
-    -webkit-user-drag: none;
-    -khtml-user-drag: none;
-    -moz-user-drag: none;
-    -o-user-drag: none;
-    user-drag: none;
-    user-select: none;
 }
 
 #workbench {
@@ -66,9 +51,4 @@ img {
     height:100vh;
     overflow: hidden;
     box-sizing: border-box;
-}
-
-*::selection {
-    text-shadow: none;
-    background: #b3d4fc;
 }
