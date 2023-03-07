@@ -1,5 +1,10 @@
+@use 'src/styles/components/interaction';
+
+$search-bar-background: var(--search-bar-background);
 
 .search-bar {
+    @include interaction.undraggable;
+
     position: absolute;
     margin: auto;
 
@@ -7,6 +12,7 @@
     width: 38vw;
     max-width: 600px;
     font-size: 12px;
+    background-color: $search-bar-background;
 
     display: flex;
     flex-direction: row;
@@ -16,29 +22,26 @@
     overflow: hidden;
     white-space: nowrap;
 
-    background-color: var(--search-bar-background);
     border: 1px solid transparent;
     border-radius: 12px;
     margin: 0 6px;
 
     cursor: pointer;
-    -webkit-app-region: no-drag;
-}
-
-.search-bar > .icon {
-    position: relative;
-    margin-left: 4px;
-    font-size: 10px;
-}
-
-.search-bar > .inner-text {
-    position: relative;
-    margin: auto;
     
-    font-size: 14px;
-    width: 80%;
+    & > .icon {
+        position: relative;
+        margin-left: 4px;
+        font-size: 10px;
+    }
 
-    text-align: center;
-    text-overflow: ellipsis;
+    & > .inner-text {
+        position: relative;
+        margin: auto;
+        
+        font-size: 14px;
+        width: 80%;
+    
+        text-align: center;
+        text-overflow: ellipsis;
+    }
 }
-

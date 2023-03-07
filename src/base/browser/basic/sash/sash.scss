@@ -3,27 +3,27 @@
     background-color: none;
     pointer-events: initial;
     user-select: none;
-}
 
-.sash.vertical {
-    cursor: ew-resize;
-	height: 100%;
-}
-
-.sash.horizontal {
-    cursor: ns-resize;
-	width: 100%;
-}
-
-.sash.hover {
-    background-color: gainsboro;
-}
-
-.sash.disable {
-    pointer-events: none;
-}
-
-.sash.visible {
-    background-color: black;
-    opacity: 0.05;
+    &.vertical {
+        cursor: ew-resize;
+        height: 100%;
+    }
+    
+    &.horizontal {
+        cursor: ns-resize;
+        width: 100%;
+    }
+    
+    &.hover {
+        background-color: gainsboro;
+    }
+    
+    &.disable {
+        pointer-events: none;
+    }
+    
+    &.visible {
+        background-color: black;
+        opacity: 0.05;
+    }
 }

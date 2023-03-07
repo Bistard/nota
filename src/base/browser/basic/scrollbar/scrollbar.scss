@@ -2,46 +2,46 @@
 .scroll-bar {
     z-index: 101;
     position: absolute;
-}
 
-.scroll-bar.visible {
-	opacity: 0.65;
-	transition: opacity 100ms linear;
-}
+    &.visible {
+        opacity: 0.65;
+        transition: opacity 100ms linear;
+    }
+    
+    &.invisible {
+        opacity: 0;
+        pointer-events: none;
+    }
+    
+    &.invisible.fade {
+        transition: opacity 600ms linear;
+    }
+    
+    & > .scroll-slider {
+        position: absolute;
+        background-color: #b8b8b8;
+        overflow: hidden;
+    }
+    
+    &.horizontal {
+        width: 100%;
+        bottom: 0px;
+    }
+    
+    &.horizontal > .scroll-slider {
+        height: 100%;
+    }
 
-.scroll-bar.invisible {
-	opacity: 0;
-	pointer-events: none;
-}
-
-.scroll-bar.invisible.fade {
-	transition: opacity 600ms linear;
-}
-
-.scroll-bar > .scroll-slider {
-    position: absolute;
-    background-color: #b8b8b8;
-    overflow: hidden;
-}
-
-.scroll-bar.horizontal {
-    width: 100%;
-    bottom: 0px;
-}
-
-.scroll-bar.horizontal > .scroll-slider {
-    height: 100%;
-}
-
-.scroll-slider.active {
-    opacity: 0.70;
-}
-
-.scroll-bar.vertical {
-    height: 100%;
-    right: 0px;
-}
-
-.scroll-bar.vertical > .scroll-slider {
-    width: 100%;
+    &.vertical {
+        height: 100%;
+        right: 0px;
+    }
+    
+    &.vertical > .scroll-slider {
+        width: 100%;
+    }
+    
+    .scroll-slider.active {
+        opacity: 0.70;
+    }
 }

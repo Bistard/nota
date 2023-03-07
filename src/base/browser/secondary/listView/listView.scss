@@ -1,3 +1,4 @@
+@use 'src/styles/components/interaction';
 
 .list-view {
     position: relative;
@@ -5,37 +6,35 @@
 	width: 100%;
 	white-space: nowrap;
 	outline: 0 !important;
-}
 
-.list-view.mouse-support {
-	user-select: none;
-	-webkit-user-select: none;
-	-ms-user-select: none;
-}
+	.list-view-container {
+		position: relative;
+		width: 100%;
+		height: 100%;
 
-.list-view.mouse-support .list-view-row {
-	cursor: pointer;
-	touch-action: none;
-}
+		& > .list-view-row {
+			position: absolute;
+			overflow: hidden;
+			width: 100%;
+		}
+	}
 
-.list-drag-image {
-	position: absolute;
-	display: inline-block;
-	background-color: rgb(211, 211, 211);
-	font-size: 12px;
-	padding: 1px 7px;
-	border-radius: 10px;
-	z-index: 1000;
-}
+	&.mouse-support {
+		@include interaction.unselectable;
+	}
 
-.list-view-container {
-	position: relative;
-	width: 100%;
-	height: 100%;
-}
+	&.mouse-support .list-view-row {
+		cursor: pointer;
+		touch-action: none;
+	}
 
-.list-view-container > .list-view-row {
-	position: absolute;
-	overflow: hidden;
-	width: 100%;
+	.list-drag-image {
+		position: absolute;
+		display: inline-block;
+		background-color: rgb(211, 211, 211);
+		font-size: 12px;
+		padding: 1px 7px;
+		border-radius: 10px;
+		z-index: 1000;
+	}
 }
