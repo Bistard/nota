@@ -1,3 +1,5 @@
+import 'src/code/browser/workbench/sideView/explorer/media/explorerItem.scss';
+import 'src/code/browser/workbench/sideView/explorer/media/explorerView.scss';
 import { Emitter } from 'src/base/common/event';
 import { IComponentService } from 'src/code/browser/service/component/componentService';
 import { Ii18nService } from 'src/code/platform/i18n/i18n';
@@ -234,7 +236,6 @@ export class ExplorerView extends SideView implements IExplorerViewService {
         const tag = document.createElement('div');
         tag.className = 'explorer-open-tag';
         tag.textContent = this.i18nService.trans(Section.Explorer, 'openDirectory');
-        tag.classList.add('vertical-center', 'funcText');
         view.appendChild(tag);
         
         return view;
