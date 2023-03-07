@@ -9,35 +9,5 @@
 // [settings]
 @import 'src/styles/settings/globals.scss';
 
-
-@import '../code/styles/workbench/sideBar/sideBar.css';
-@import '../code/styles/workbench/sideView/sideView.css';
-@import '../code/styles/workbench/sideView/outline/outlineView.css';
-@import '../code/styles/workbench/workspace/workspace.css';
-@import '../code/styles/workbench/workspace/titleBar/titleBarView.css';
-@import '../code/styles/workbench/workspace/titleBar/windowBarView.css';
-@import '../code/styles/workbench/workspace/editor/editor.css';
-
+// [editor]
 @import '../editor/styles/index.css';
-
-@font-face {
-    font-family: harmonyOS sans;
-    src: url(../../assets/font/HarmonyOS_Sans/HarmonyOS_Sans_Light.ttf);
-}
-
-@font-face {
-    font-family: happy family;
-    src: url(../../assets/font/happy_monkey/HappyMonkey-Regular.ttf);
-}
-
-#workbench {
-    position: absolute;
-
-    display: flex;
-    flex-direction: row;
-    flex-wrap: nowrap;
-    width:100vw;
-    height:100vh;
-    overflow: hidden;
-    box-sizing: border-box;
-}

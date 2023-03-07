@@ -1,3 +1,5 @@
+import 'src/code/browser/workbench/workspace/titleBar/media/windowBar.scss';
+
 import { Icons } from "src/base/browser/icon/icons";
 import { WidgetBar } from "src/base/browser/secondary/widgetBar/widgetBar";
 import { Orientation } from "src/base/browser/basic/dom";

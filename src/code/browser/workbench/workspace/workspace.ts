@@ -1,3 +1,4 @@
+import 'src/code/browser/workbench/workspace/media/workspace.scss';
 import { IComponentService } from "src/code/browser/service/component/componentService";
 import { Component, IComponent } from "src/code/browser/service/component/component";
 import { TitleBar } from "src/code/browser/workbench/workspace/titleBar/titleBar";

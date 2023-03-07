@@ -1,6 +1,16 @@
 @use 'src/styles/settings/constants' as const;
 @use 'src/styles/components/interaction';
 
+@font-face {
+    font-family: harmonyOS sans;
+    src: url(../../assets/font/HarmonyOS_Sans/HarmonyOS_Sans_Light.ttf);
+}
+
+@font-face {
+    font-family: happy family;
+    src: url(../../assets/font/happy_monkey/HappyMonkey-Regular.ttf);
+}
+
 body {
     cursor: default;
     margin: 0px;

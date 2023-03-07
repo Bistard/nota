@@ -1,3 +1,4 @@
+import 'src/code/browser/workbench/workspace/editor/media/editor.scss';
 import { URI } from "src/base/common/file/uri";
 import { IComponentService } from "src/code/browser/service/component/componentService";
 import { IThemeService } from "src/code/browser/service/theme/themeService";

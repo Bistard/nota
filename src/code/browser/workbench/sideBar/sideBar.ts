@@ -1,3 +1,4 @@
+import 'src/code/browser/workbench/sideBar/media/sideBar.scss';
 import { Component, IComponent } from 'src/code/browser/service/component/component';
 import { createService } from 'src/code/platform/instantiation/common/decorator';
 import { IComponentService } from 'src/code/browser/service/component/componentService';

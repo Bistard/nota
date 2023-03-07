@@ -1,5 +1,6 @@
+import 'src/code/browser/workbench/sideView/media/sideView.scss';
 import { Component, IComponent } from 'src/code/browser/service/component/component';
-import { Emitter, Register, RelayEmitter } from 'src/base/common/event';
+import { Emitter, Register } from 'src/base/common/event';
 import { createService } from 'src/code/platform/instantiation/common/decorator';
 import { IComponentService } from 'src/code/browser/service/component/componentService';
 import { IInstantiationService } from 'src/code/platform/instantiation/common/instantiation';
