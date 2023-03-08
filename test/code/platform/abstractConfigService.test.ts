@@ -8,7 +8,7 @@ import { DefaultConfigStorage } from 'src/code/platform/configuration/common/con
 import { FileService } from 'src/code/platform/files/common/fileService';
 import { DiskFileSystemProvider } from 'src/code/platform/files/node/diskFileSystemProvider';
 import { REGISTRANTS } from 'src/code/platform/registrant/common/registrant';
-import { NullLifecycleService, NullLogger } from 'test/utility';
+import { NullLifecycleService, NullLogger } from 'test/utils/utility';
 
 class TestDefaultConfigStorage extends DefaultConfigStorage {
     protected override createDefaultModel(): Record<PropertyKey, any> {

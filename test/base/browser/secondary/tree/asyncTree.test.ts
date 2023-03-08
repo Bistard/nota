@@ -1,6 +1,6 @@
 import * as assert from 'assert';
 import { AsyncTree } from 'src/base/browser/secondary/tree/asyncTree';
-import { generateTreeLike } from 'test/util/helpers';
+import { generateTreeLike } from 'test/utils/helpers';
 
 suite('AsyncTree-test', () => {
 
