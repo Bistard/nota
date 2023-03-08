@@ -12,7 +12,7 @@ const path = require("path");
 const utils = require('./utility');
 
 /**
- * @typedef {import('./configuration.js').ScriptConfiguration} ScriptConfiguration
+ * @typedef {import('./script.config.js').ScriptConfiguration} ScriptConfiguration
  */
 
 const SCRIPT_CONFIG_PATH = './script.config.js';
