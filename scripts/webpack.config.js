@@ -81,6 +81,9 @@ class WebpackPluginProvider {
     }
 }
 
+/**
+ * @description The general webpack configuration of the application compilation.
+ */
 class WebpackConfigurationProvider {
 
     #distPath = './dist';

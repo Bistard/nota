@@ -3,7 +3,8 @@ const WebpackBaseConfigurationProvider = require('./webpack/webpack.config.base'
 const nodeExternals = require('webpack-node-externals');
 
 /**
- * @description The application configuration for unit testing only.
+ * @description The webpack configuration of the application compilation only
+ * for unit testing.
  */
 class WebpackUnitTestConfigurationProvider {
 
