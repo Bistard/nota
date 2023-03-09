@@ -1,15 +1,13 @@
 const CircularDependencyPlugin = require('circular-dependency-plugin');
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
-const { IgnorePlugin } = require('webpack');
 const path = require('path');
+const WebpackBaseConfigurationProvider = require('./webpack/webpack.config.base');
 
 class WebpackPluginProvider {
 
     // [field]
 
-    /**
-     * @type {string} Current working directory 
-     */
+    /** @type {string} Current working directory */
     #cwd;
 
     // [constructor]
@@ -21,14 +19,13 @@ class WebpackPluginProvider {
     // [public methods]
 
     /**
-     * @param {Record<string, string> | undefined} opts 
-     * @returns 
+     * @param {{
+     *      circular?: boolean;
+     * } | undefined} opts 
      */
     getPlugins(opts) {
 
-        const plugins = [
-            ...this.#getOptionalPlugins(),
-        ];
+        const plugins = [];
         
         /**
          * mini-css-extract plugin
@@ -82,21 +79,6 @@ class WebpackPluginProvider {
         
         return plugins;
     }
-    
-    // [private methods]
-
-    #getOptionalPlugins() {
-        const plugins = [];
-    
-        // https://github.com/paulmillr/chokidar/issues/828
-        if (process.platform !== "darwin") {
-            plugins.push(
-                new IgnorePlugin({ resourceRegExp: /^fsevents$/, })
-            );
-        }
-    
-        return plugins;
-    }
 }
 
 class WebpackConfigurationProvider {
@@ -109,195 +91,116 @@ class WebpackConfigurationProvider {
 
     /** @type {string} environment mode */
     #envMode;
-    #isDevMode;
     #isWatchMode;
 
     constructor(cwd) {
         this.#cwd = cwd;
 
-        // check NodeJS version
-        this.#checkNodeJsRequirement();
-
         // init environment constant
         this.#envMode = process.env.NODE_ENV ?? 'development';
-        this.#isDevMode = this.#envMode === 'development';
         this.#isWatchMode = (process.env.WATCH_MODE == 'true');
     }
 
     // [public - configuration initialization]
 
-    initializeConfiguration() {
+    consturct() {
+        const baseProvider = new WebpackBaseConfigurationProvider();
+        baseProvider.checkNodeJsRequirement(this.#minNodeJsVer, process.versions.node);
+
+        // base configuration
+        const baseConfiguration = Object.assign(
+            {},
+            baseProvider.construct({
+                mode: this.#envMode,
+                cwd: this.#cwd,
+                watchMode: this.#isWatchMode,
+                plugins: (new WebpackPluginProvider()).getPlugins({ 
+                    circular: process.env.CIRCULAR === 'true', 
+                }),
+            }),
+        );
+        
+        // compiles SCSS files to CSS files
+        baseConfiguration.module.rules.push({
+            test: /\.(css|scss|sass)$/,
+            use: [
+                MiniCssExtractPlugin.loader, 
+                'css-loader', 
+                {
+                    loader: 'sass-loader',
+                    options: {
+                        sassOptions: {
+                            includePaths: [path.resolve(this.#cwd, 'src/')],
+                        }
+                    }
+                }
+            ],
+        });
+
         return [
-            this.#constructMainProcessConfiguration(),
-            this.#constructRendererProcessConfiguration(),
-            // this.#consturctLookupProcessConfiguration(),
+            this.#constructMainProcess(Object.assign({}, baseConfiguration)),
+            this.#constructRendererProcess(Object.assign({}, baseConfiguration)),
+            // this.#consturctLookupProcess(Object.assign({}, baseConfiguration)),
         ];
     }
 
     // [private - configuration construction]
 
-    #constructBaseConfiguration() {
-        
-        const pluginProvider = new WebpackPluginProvider(this.#cwd);
-
-        // The webpack base configuration for each entry
-        const baseConfiguration = {
-            
-            /**
-             * Tells webpack to use its built-in optimizations accordingly.
-             *      'development' | 'production' | 'none'
-             */
-            mode: this.#envMode,
-
-            /**
-             * The base directory, an absolute path, for resolving entry points and 
-             * loaders from the configuration.
-             */
-            context: this.#cwd,
-
-            // Node.js options whether to polyfill or mock certain Node.js globals.
-            node: {
-                // The dirname of the input file relative to the `context`.
-                __dirname: true,
-            },
-
-            /**
-             * These options determine how the different types of modules within a 
-             * project will be treated.
-             */
-            module: {
-
-                rules: [
-                    // compile TypeScript files into JavaScript files
-                    {
-                        test: /\.tsx?$/,
-                        use: 'ts-loader',
-                    },
-                    // allows Nnode.js module to be used in the browser environment
-                    {
-                        test: /.node$/,
-                        loader: 'node-loader',
-                    },
-                    // compiles SCSS files to CSS files
-                    {
-                        test: /\.(css|scss|sass)$/,
-                        use: [
-                            MiniCssExtractPlugin.loader, 
-                            'css-loader', 
-                            {
-                                loader: 'sass-loader',
-                                options: {
-                                    sassOptions: {
-                                        includePaths: [path.resolve(this.#cwd, 'src/')],
-                                    }
-                                }
-                            }
-                        ],
-                    },
-                ]
-            },
-
-            // These options change how modules are resolved
-            resolve: {
-                
-                // Create aliases to import or require modules.
-                alias: {
-                    src: path.resolve(this.#cwd, 'src/'),
-                    // Ensure testing utility code is forbidden when in product mode
-                    test: this.#isDevMode ? path.resolve(this.#cwd, 'test/') : undefined,
-                },
-                
-                extensions: ['.tsx', '.ts', '.js'],
-            },
-
-            // watch options
-            watch: this.#isWatchMode,
-            watchOptions: {
-                poll: 1000,            // check for changes in milliseconds.
-                aggregateTimeout: 500, // aggregates any changes during the period into one rebuild.
-                ignored: /node_modules/,
-            },
-
-            /**
-             * Source maps are used to display your original JavaScript while debugging, 
-             * which is a lot easier to look at than minified production code.
-             * See more choice here https://webpack.js.org/configuration/devtool/
-             */
-            devtool: this.#isDevMode ? 'eval-source-map' : 'source-map',
-            stats: 'normal',
-            bail: !this.#isWatchMode,
-
-            // webpack extensions
-            plugins: pluginProvider.getPlugins({ 
-                circular: process.env.CIRCULAR === 'true',
-            }),
-        };
-
-        return baseConfiguration;
-    }
-
-    #constructMainProcessConfiguration() {
+    #constructMainProcess(baseConfiguration) {
         const mainConfiguration = 
-            Object.assign({}, this.#constructBaseConfiguration(), {
-                target: 'electron-main',
-                entry: {
-                    main: './src/main.js',
+            Object.assign(
+                baseConfiguration, 
+                {
+                    target: 'electron-main',
+                    entry: {
+                        main: './src/main.js',
+                    },
+                    output: {
+                        filename: '[name]-bundle.js',
+                        path: path.resolve(this.#cwd, this.#distPath)
+                    },
                 },
-                output: {
-                    filename: '[name]-bundle.js',
-                    path: path.resolve(this.#cwd, this.#distPath)
-                },
-            });
+            );
         return mainConfiguration;
     }
 
-    #constructRendererProcessConfiguration() {
+    #constructRendererProcess(baseConfiguration) {
         const rendererConfiguration = 
-            Object.assign({}, this.#constructBaseConfiguration(), {
-                target: 'electron-renderer',
-                entry: {
-                    renderer: './src/code/browser/renderer.ts',
+            Object.assign(
+                baseConfiguration, 
+                {
+                    target: 'electron-renderer',
+                    entry: {
+                        renderer: './src/code/browser/renderer.ts',
+                    },
+                    output: {
+                        filename: '[name]-bundle.js',
+                        path: path.resolve(this.#cwd, this.#distPath)
+                    },
                 },
-                output: {
-                    filename: '[name]-bundle.js',
-                    path: path.resolve(this.#cwd, this.#distPath)
-                },
-            });
+            );
         return rendererConfiguration;
     }
 
-    #consturctLookupProcessConfiguration() {
+    #consturctLookupProcess(baseConfiguration) {
         const lookupConfiguraion = 
-            Object.assign({}, this.#constructBaseConfiguration(), {
-                target: 'electron-renderer',
-                entry: {
-                    renderer: './src/code/browser/lookup/browser.lookup.ts',
+            Object.assign(
+                baseConfiguration, 
+                {
+                    target: 'electron-renderer',
+                    entry: {
+                        renderer: './src/code/browser/lookup/browser.lookup.ts',
+                    },
+                    output: {
+                        filename: '[name]-lookup-bundle.js',
+                        path: path.resolve(this.#cwd, this.#distPath)
+                    },
                 },
-                output: {
-                    filename: '[name]-lookup-bundle.js',
-                    path: path.resolve(this.#cwd, this.#distPath)
-                },
-            });
+            );
         return lookupConfiguraion;
     }
-
-    // [private - helpers]
-
-    #checkNodeJsRequirement() {
-        const requiredNodeJsVersion = this.#minNodeJsVer.split('.');
-        const currNodeJsVersion = process.versions.node.split('.');
-        for (let i = 0; i < currNodeJsVersion.length; i++) {
-            if (Number(currNodeJsVersion[i]) >= Number(requiredNodeJsVersion[i])) {
-                continue;
-            }
-    
-            const err = new Error(`Node.js version requires at least v${this.#minNodeJsVer}.`);
-            err.stack = undefined;
-            throw err;
-        }
-    }
 }
-const provider = new WebpackConfigurationProvider(process.cwd());
 
 // entries
-module.exports = provider.initializeConfiguration();
+const provider = new WebpackConfigurationProvider(process.cwd());
+module.exports = provider.consturct();
