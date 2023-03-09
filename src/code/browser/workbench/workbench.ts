@@ -1,5 +1,4 @@
 import 'src/code/browser/workbench/media/workbench.scss';
-import { ContextMenuService, IContextMenuService } from 'src/code/browser/service/contextMenuService';
 import { IInstantiationService } from "src/code/platform/instantiation/common/instantiation";
 import { ServiceDescriptor } from "src/code/platform/instantiation/common/descriptor";
 import { IComponentService } from "src/code/browser/service/component/componentService";
@@ -64,9 +63,6 @@ export class Workbench extends WorkbenchLayout implements IWorkbenchService {
 
         // workbench-service
         this.instantiationService.register(IWorkbenchService, this);
-
-        // FIX: deprecated
-        this.instantiationService.register(IContextMenuService, new ServiceDescriptor(ContextMenuService));
     }
 
     /**

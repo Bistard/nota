@@ -30,12 +30,12 @@ export interface ISideBarButtonClickEvent {
     /**
      * The type of button is clicked.
      */
-    readonly type: SideType;
+    readonly type: string;
 
     /**
      * The previous type of button was clicked.
      */
-    readonly prevType: SideType;
+    readonly prevType: string;
 }
 
 /**
@@ -54,23 +54,6 @@ export interface ISideBarService extends IComponent {
      * @returns The required button. Returns undefined if it does not exists.
      */
     getButton(type: SideType): SideButton | undefined;
-
-}
-
-/** @deprecated */
-export interface ISideBarOptions {
-    options: [
-        isExplorerChecked: boolean,
-        isOutlineCheckd:   boolean,
-        isSearchChecked:   boolean,
-        isGitChecked:      boolean,
-    ];
-    id: [
-       explorerId: string,
-       outlineId: string,
-       searchId: string,
-       gitId: string,
-    ];
 }
 
 /**
