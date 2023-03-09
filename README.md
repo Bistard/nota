@@ -51,7 +51,7 @@ An open-sourced note-taking desktop application / markdown editor that provides 
 > * We will provide a few default themes. In addition, users may customize their own themes using plugins.
 
 ## 👁‍🗨Screenshots
-> * The current (2022.4.30) UI design is far away from GOOD.
+> * The current (2022.11.05) UI design is far away from GOOD.
 > 
 > * Since we haven't come up with a perfect UI design for *Nota*, we are still working on the foundation (backend) of the applications. That is why the screenshot has not been updated for a while.
 > * If you are good at software UI design, you are welcome to contact with me!
