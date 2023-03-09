@@ -56,7 +56,7 @@ An open-sourced note-taking desktop application / markdown editor that provides 
 > * Since we haven't come up with a perfect UI design for *Nota*, we are still working on the foundation (backend) of the applications. That is why the screenshot has not been updated for a while.
 > * If you are good at software UI design, you are welcome to contact with me!
 
-![screenshot](./doc/images/2022.1.16.png)
+![screenshot](./doc/images/2022.11.5.png)
 
 ## ✅Get Started
 How to run the application from the source code:
