@@ -84,7 +84,7 @@ class WebpackPluginProvider {
 /**
  * @description The general webpack configuration of the application compilation.
  */
-class WebpackConfigurationProvider {
+class WebpackConfigurationProvider extends WebpackBaseConfigurationProvider {
 
     #distPath = './dist';
     #minNodeJsVer = '16.7.0';
@@ -97,6 +97,7 @@ class WebpackConfigurationProvider {
     #isWatchMode;
 
     constructor(cwd) {
+        super();
         this.#cwd = cwd;
 
         // init environment constant
@@ -107,13 +108,12 @@ class WebpackConfigurationProvider {
     // [public - configuration initialization]
 
     consturct() {
-        const baseProvider = new WebpackBaseConfigurationProvider();
-        baseProvider.checkNodeJsRequirement(this.#minNodeJsVer, process.versions.node);
+        this.checkNodeJsRequirement(this.#minNodeJsVer, process.versions.node);
 
         // base configuration
         const baseConfiguration = Object.assign(
             {},
-            baseProvider.construct({
+            super.construct({
                 mode: this.#envMode,
                 cwd: this.#cwd,
                 watchMode: this.#isWatchMode,

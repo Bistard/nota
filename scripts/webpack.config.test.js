@@ -6,24 +6,24 @@ const nodeExternals = require('webpack-node-externals');
  * @description The webpack configuration of the application compilation only
  * for unit testing.
  */
-class WebpackUnitTestConfigurationProvider {
+class WebpackUnitTestConfigurationProvider extends WebpackBaseConfigurationProvider {
 
     /** @type {string} Current working directory */
     #cwd;
     #minNodeJsVer = '16.7.0';
 
     constructor(cwd) {
+        super();
         this.#cwd = cwd;
     }
 
     // [public - configuration initialization]
 
     construct() {
-        const baseProvider = new WebpackBaseConfigurationProvider();
-        baseProvider.checkNodeJsRequirement(this.#minNodeJsVer, process.versions.node);
+        this.checkNodeJsRequirement(this.#minNodeJsVer, process.versions.node);
 
         const testConfiguration = Object.assign(
-            baseProvider.construct({
+            super.construct({
                 
                 // only run in development mode
                 mode: 'development',
