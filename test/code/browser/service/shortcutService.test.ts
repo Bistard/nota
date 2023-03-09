@@ -14,7 +14,7 @@ import { FileService, IFileService } from 'src/code/platform/files/common/fileSe
 import { IInstantiationService, InstantiationService } from 'src/code/platform/instantiation/common/instantiation';
 import { ILifecycleService } from 'src/code/platform/lifecycle/browser/browserLifecycleService';
 import { REGISTRANTS } from 'src/code/platform/registrant/common/registrant';
-import { NullEnvironmentService, NullLifecycleService, NullLogger, TestKeyboardService } from 'test/utility';
+import { NullEnvironmentService, NullLifecycleService, NullLogger, TestKeyboardService } from 'test/utils/utility';
 
 suite('shortcutService-test', () => {
 

@@ -1,0 +1,35 @@
+
+.tree-list-row {
+	position: relative;
+    display: flex;
+	height: 100%;
+    align-items: center;
+		
+	& > .tree-list-indent {
+		text-align: right;
+		flex-shrink: 0;
+		width: 16px;
+		display: flex !important;
+		align-items: center;
+		justify-content: center;
+		transform: translateX(3px);
+
+		height: 100%;
+	}
+
+	& > .tree-list-content {
+		flex: 1;
+		height: 100%;
+		overflow: hidden;
+	}
+
+	& > .tree-list-indent {
+		&::before {
+			border-radius: 20px;
+		}
+
+		&.collapsed::before {
+			transform: rotate(-90deg);
+		}
+	}
+}

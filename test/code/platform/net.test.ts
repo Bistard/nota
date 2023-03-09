@@ -8,7 +8,7 @@ import { IChannel, IServerChannel } from 'src/code/platform/ipc/common/channel';
 import { ClientConnectEvent, ClientBase, ServerBase } from 'src/code/platform/ipc/common/net';
 import { IProtocol } from 'src/code/platform/ipc/common/protocol';
 import { ProxyChannel } from 'src/code/platform/ipc/common/proxy';
-import { NullLogger } from 'test/utility';
+import { NullLogger } from 'test/utils/utility';
 
 
 class QueueProtocol implements IProtocol {

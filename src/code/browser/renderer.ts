@@ -1,3 +1,4 @@
+import "src/styles/index.scss";
 import "src/code/browser/workbench/workspace/editor/editor";
 import { Workbench } from "src/code/browser/workbench/workbench";
 import { registerBrowserDefaultConfiguration } from "src/code/platform/configuration/browser/configuration.register";

@@ -1,3 +1,4 @@
+import "src/base/browser/secondary/listView/listView.scss";
 import { IListViewRow, ListViewCache } from "src/base/browser/secondary/listView/listCache";
 import { IListViewRenderer, ListItemRenderer, PipelineRenderer, RendererType } from "src/base/browser/secondary/listView/listRenderer";
 import { ScrollableWidget } from "src/base/browser/secondary/scrollableWidget/scrollableWidget";

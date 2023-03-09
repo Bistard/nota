@@ -1,3 +1,4 @@
+import "src/base/browser/basic/sash/sash.scss";
 import { AbstractSashController, HorizontalSashController, IAbstractSashController, VerticalSashController } from "src/base/browser/basic/sash/sashController";
 import { Disposable, DisposableManager } from "src/base/common/dispose";
 import { addDisposableListener, EventType, Orientation } from "src/base/browser/basic/dom";

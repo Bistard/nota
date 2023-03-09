@@ -1,3 +1,4 @@
+import "src/base/browser/secondary/widgetBar/widgetBar.scss";
 import { IWidget } from "src/base/browser/basic/widget";
 import { Disposable, disposeAll, IDisposable } from "src/base/common/dispose";
 import { addDisposableListener, DomUtility, EventType, Orientation } from "src/base/browser/basic/dom";

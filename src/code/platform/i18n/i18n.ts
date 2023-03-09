@@ -227,7 +227,7 @@ export class i18n implements Ii18nService {
         if (Array.isArray(interpolation)) {
             get = (key: string) => { 
                 const index = parseInt(key);
-                if (index === NaN) {
+                if (Number.isNaN(index)) {
                     throw new Error('i18n translation index variable should be number');
                 }
                 return interpolation[index]; 

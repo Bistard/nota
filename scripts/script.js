@@ -12,10 +12,10 @@ const path = require("path");
 const utils = require('./utility');
 
 /**
- * @typedef {import('./configuration.js').ScriptConfiguration} ScriptConfiguration
+ * @typedef {import('./script.config.js').ScriptConfiguration} ScriptConfiguration
  */
 
-const SCRIPT_CONFIG_PATH = './scripts.config.js';
+const SCRIPT_CONFIG_PATH = './script.config.js';
 
 const USAGE = `
 usage: npm run script (<command> | list | help) [--] [<argument>...]

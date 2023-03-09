@@ -1,0 +1,40 @@
+@use 'src/styles/components/interaction';
+
+.list-view {
+    position: relative;
+	height: 100%;
+	width: 100%;
+	white-space: nowrap;
+	outline: 0 !important;
+
+	.list-view-container {
+		position: relative;
+		width: 100%;
+		height: 100%;
+
+		& > .list-view-row {
+			position: absolute;
+			overflow: hidden;
+			width: 100%;
+		}
+	}
+
+	&.mouse-support {
+		@include interaction.unselectable;
+	}
+
+	&.mouse-support .list-view-row {
+		cursor: pointer;
+		touch-action: none;
+	}
+
+	.list-drag-image {
+		position: absolute;
+		display: inline-block;
+		background-color: rgb(211, 211, 211);
+		font-size: 12px;
+		padding: 1px 7px;
+		border-radius: 10px;
+		z-index: 1000;
+	}
+}

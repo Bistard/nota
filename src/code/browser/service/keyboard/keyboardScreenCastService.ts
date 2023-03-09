@@ -1,3 +1,4 @@
+import 'src/code/browser/service/keyboard/media.scss';
 import { VisibilityController } from "src/base/browser/basic/visibilityController";
 import { IDisposable } from "src/base/common/dispose";
 import { DomUtility } from "src/base/browser/basic/dom";
