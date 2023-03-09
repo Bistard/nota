@@ -140,19 +140,19 @@ export class ResourceChangeEvent {
         //     }  
         // }
 
-        if (typeFilter === undefined || addMatch) {
+        if (!typeFilter || addMatch) {
             if (this._added?.has(resource)) {
                 return true;
             }
         }
 
-        if (typeFilter === undefined || deleteMatch) {
-            if (this._deleted?.has(resource)) {
+        if (!typeFilter || deleteMatch) {
+            if (this._deleted?.findSubStrOf(resource)) {
                 return true;
             }
         }
 
-        if (typeFilter === undefined || updateMatch) {
+        if (!typeFilter || updateMatch) {
             if (this._updated?.has(resource)) {
                 return true;
             }
