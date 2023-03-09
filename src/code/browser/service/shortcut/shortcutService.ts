@@ -13,7 +13,8 @@ import { IBrowserEnvironmentService } from "src/code/platform/environment/common
 import { Emitter, Register } from "src/base/common/event";
 import { IContextService } from "src/code/platform/context/common/contextService";
 import { ICommandService } from "src/code/platform/command/common/commandService";
-import { ContextKeyDeserializer } from "src/code/platform/context/common/contextKeyExpr";
+import { ContextKeyDeserializer, ContextKeyExpr } from "src/code/platform/context/common/contextKeyExpr";
+import { errorToMessage } from "src/base/common/error";
 
 export const SHORTCUT_CONFIG_NAME = 'shortcut.config.json';
 export const IShortcutService = createService<IShortcutService>('shortcut-service');
@@ -157,10 +158,10 @@ export class ShortcutService extends Disposable implements IShortcutService {
             const keybindings: IShortcutConfiguration[] = [];
 
             for (const [hashcode, shortcuts] of keybindingRegistrations) {
-                const shortcutName = Shortcut.fromHashcode(hashcode).toString();
+                const name = Shortcut.fromHashcode(hashcode).toString();
                 for (const shortcut of shortcuts) {
                     keybindings.push({
-                        shortcut: shortcutName,
+                        shortcut: name,
                         commandID: shortcut.commandID,
                         when: shortcut.when?.serialize() ?? '',
                         weight: shortcut.weight,
@@ -182,38 +183,66 @@ export class ShortcutService extends Disposable implements IShortcutService {
 
     private async __readConfigurationFromDisk(): Promise<void> {
 
-        const exist = await this.fileService.exist(this._resource);
-        if (!exist) {
-            this.logService.debug(`shortcut configuration cannot found at ${URI.toString(this._resource)}`);
-            return;
-        } 
-        
-        // read shortcut configuration into memory
-        const configuration: IShortcutConfiguration[] = JSON.parse((await this.fileService.readFile(this._resource)).toString());
-        this.logService.debug(`shortcut configuration loaded at ${URI.toString(this._resource)}`);
-        
-        // loop each one and try to load it into memory
-        for (const { commandID, shortcut: shortcutName, when, weight } of configuration) {
+        try {
+
+            // check if the configuration exists
+            const exist = await this.fileService.exist(this._resource);
+            if (!exist) {
+                this.logService.debug(`shortcut configuration cannot found at ${URI.toString(this._resource)}`);
+                return;
+            } 
             
-            /**
-             * Checks if the shortcut read from the configuration that is 
-             * already registered.
-             */
-            const shortcut = Shortcut.fromString(shortcutName);
-            if (this._shortcutRegistrant.isRegistered(shortcut, commandID)) {
-                if (weight === ShortcutWeight.ExternalExtension) {
-                    this.logService.warn(`The shortcut '${shortcut}' that binds with the command '${commandID}' that is already registered`);
-                }
-                continue;
+            // read shortcut configuration into memory
+            const rawContent = (await this.fileService.readFile(this._resource)).toString();
+
+            // empty body
+            if (!rawContent.length) {
+                return;
             }
 
-            this._shortcutRegistrant.register({
-                commandID: commandID,
-                shortcut: shortcut,
-                when: ContextKeyDeserializer.deserialize(when),
-                weight: weight,
-                commandArgs: undefined, // review
-            });
+            // try to parse it
+            const configuration: IShortcutConfiguration[] = JSON.parse(rawContent);
+            this.logService.debug(`shortcut configuration loaded at ${URI.toString(this._resource)}`);
+            
+            // loop each one and try to load it into memory
+            for (const { commandID, shortcut: name, when, weight } of configuration) {
+                const shortcut = Shortcut.fromString(name);
+
+                /**
+                 * Checks if the shortcut read from the configuration that is 
+                 * already registered.
+                 */
+                if (this._shortcutRegistrant.isRegistered(shortcut, commandID)) {
+
+                    /**
+                     * Only log out for the external extension level to given 
+                     * the third party to have the chance to be notified.
+                     */
+                    if (weight === ShortcutWeight.ExternalExtension) {
+                        this.logService.info(`The shortcut '${commandID} (${name})' that binds with the command '${commandID}' that is already registered.`);
+                    }
+                    continue;
+                }
+
+                /**
+                 * Register the shortcut into the memory.
+                 */
+                try {
+                    const deserializedWhen = ContextKeyDeserializer.deserialize(when);
+                    this._shortcutRegistrant.register({
+                        commandID: commandID,
+                        shortcut: shortcut,
+                        when: deserializedWhen,
+                        weight: weight,
+                        commandArgs: undefined, // review
+                    });
+                } catch (err) {
+                    this.logService.warn(`The shortcut '${commandID} (${name})' failed to register.`);
+                    continue;
+                }
+            }
+        } catch (err) {
+            this.logService.error(`Failed to load the shortcut configuration at ${URI.toString(this._resource)}.`);
         }
     }
 }
