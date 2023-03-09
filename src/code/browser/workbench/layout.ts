@@ -9,7 +9,7 @@ import { IInstantiationService } from "src/code/platform/instantiation/common/in
 import { ISplitView, ISplitViewOpts, SplitView } from "src/base/browser/secondary/splitView/splitView";
 import { Priority } from "src/base/common/event";
 import { IConfigService } from "src/code/platform/configuration/common/abstractConfigService";
-import { ExplorerView } from "src/code/browser/workbench/sideView/explorer/explorer";
+import { ExplorerView } from "src/code/browser/workbench/contrib/explorer/explorer";
 
 /**
  * @description A base class for Workbench to create and manage the behaviour of

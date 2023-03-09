@@ -1,5 +1,5 @@
-import 'src/code/browser/workbench/sideView/explorer/media/explorerItem.scss';
-import 'src/code/browser/workbench/sideView/explorer/media/explorerView.scss';
+import 'src/code/browser/workbench/contrib/explorer/media/explorerItem.scss';
+import 'src/code/browser/workbench/contrib/explorer/media/explorerView.scss';
 import { Emitter } from 'src/base/common/event';
 import { IComponentService } from 'src/code/browser/service/component/componentService';
 import { Ii18nService } from 'src/code/platform/i18n/i18n';
@@ -24,7 +24,7 @@ import { VisibilityController } from 'src/base/browser/basic/visibilityControlle
 import { WidgetBar } from 'src/base/browser/secondary/widgetBar/widgetBar';
 import { Button } from 'src/base/browser/basic/button/button';
 import { RGBA } from 'src/base/common/color';
-import { ClassicOpenEvent, ExplorerViewID, IExplorerViewService } from 'src/code/browser/workbench/sideView/explorer/explorerService';
+import { ClassicOpenEvent, ExplorerViewID, IExplorerViewService } from 'src/code/browser/workbench/contrib/explorer/explorerService';
 import { IEditorService } from 'src/code/browser/workbench/workspace/editor/editorService';
 
 /**

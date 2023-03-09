@@ -10,7 +10,7 @@ import { registerSingleton } from "src/code/platform/instantiation/common/servic
 import { EditorWidget, IEditorWidget } from "src/editor/editorWidget";
 import { Mutable } from "src/base/common/util/type";
 import { ISideViewService } from "src/code/browser/workbench/sideView/sideView";
-import { ExplorerViewID, IExplorerViewService } from "src/code/browser/workbench/sideView/explorer/explorerService";
+import { ExplorerViewID, IExplorerViewService } from "src/code/browser/workbench/contrib/explorer/explorerService";
 import { IBrowserLifecycleService, ILifecycleService, LifecyclePhase } from "src/code/platform/lifecycle/browser/browserLifecycleService";
 import { ILogService } from "src/base/common/logger";
 import { IConfigService } from "src/code/platform/configuration/common/abstractConfigService";
