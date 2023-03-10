@@ -1,12 +1,33 @@
 import { Button, IButton, IButtonOptions } from "src/base/browser/basic/button/button";
-import { SideType } from "src/code/browser/workbench/sideBar/sideBar";
+
+export interface ISideButtonOptions extends IButtonOptions {
+    /**
+     * The string ID of the button.
+     */
+    readonly id: string;
+
+    /**
+     * If a primary button.
+     */
+    readonly isPrimary: boolean;
+
+    /**
+     * Callback for onDidClick event.
+     */
+    readonly onDidClick?: () => void;
+}
 
 export interface ISideButton extends IButton {
     
     /**
-     * The type of the button.
+     * The ID of the button.
      */
-    readonly type: SideType;
+    readonly id: string;
+
+    /**
+     * If a primary button.
+     */
+    readonly isPrimary: boolean;
 }
 
 /**
@@ -15,21 +36,28 @@ export interface ISideButton extends IButton {
  */
 export class SideButton extends Button implements ISideButton {
 
-    public readonly type: SideType;
+    public readonly id: string;
+    public readonly isPrimary: boolean;
+    declare protected readonly _opts: ISideButtonOptions;
 
-    constructor(type: SideType, opts?: IButtonOptions) {
+    constructor(opts: ISideButtonOptions) {
         super({
             ...opts,
             classes: [...(opts?.classes ?? []), 'side-button'],
         });
-        this.type = type;
+        this.id = opts.id;
+        this.isPrimary = opts.isPrimary;
     }
 
     protected override __registerListeners(): void {
         super.__registerListeners();
 
+        if (this._opts.onDidClick) {
+            this.__register(this.onDidClick(this._opts.onDidClick));
+        }
+
         this.__register(this.onHover(e => {
-            // TODO
+            // TODO: display id
         }));
     }
 }

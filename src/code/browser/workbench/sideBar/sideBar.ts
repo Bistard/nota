@@ -2,17 +2,16 @@ import 'src/code/browser/workbench/sideBar/media/sideBar.scss';
 import { Component, IComponent } from 'src/code/browser/service/component/component';
 import { createService } from 'src/code/platform/instantiation/common/decorator';
 import { IComponentService } from 'src/code/browser/service/component/componentService';
-import { SideButton } from 'src/code/browser/workbench/sideBar/sideBarButton';
+import { ISideButtonOptions, SideButton } from 'src/code/browser/workbench/sideBar/sideBarButton';
 import { WidgetBar } from 'src/base/browser/secondary/widgetBar/widgetBar';
 import { Orientation } from 'src/base/browser/basic/dom';
-import { Icons } from 'src/base/browser/icon/icons';
 import { Emitter, Register } from 'src/base/common/event';
 import { IThemeService } from 'src/code/browser/service/theme/themeService';
-import { Mutable } from 'src/base/common/util/type';
+import { ILogService } from 'src/base/common/logger';
 
 export const ISideBarService = createService<ISideBarService>('side-bar-service');
 
-export const enum SideType {
+export const enum SideButtonType {
     NONE = 'none',
     LOGO = 'logo',
 
@@ -28,14 +27,19 @@ export const enum SideType {
 export interface ISideBarButtonClickEvent {
     
     /**
-     * The type of button is clicked.
+     * The ID of button is clicked.
      */
-    readonly type: string;
+    readonly ID: string;
 
     /**
-     * The previous type of button was clicked.
+     * The previous ID of button was clicked.
      */
     readonly prevType: string;
+
+    /**
+     * If the button clicked is primary.
+     */
+    readonly isPrimary: boolean;
 }
 
 /**
@@ -49,11 +53,39 @@ export interface ISideBarService extends IComponent {
     readonly onDidClick: Register<ISideBarButtonClickEvent>;
 
     /**
-     * @description Returns a button by provided a buttion type.
-     * @param type The type of the required button.
+     * @description Returns a button by provided a buttion ID.
+     * @param ID The ID of the required button.
      * @returns The required button. Returns undefined if it does not exists.
      */
-    getButton(type: SideType): SideButton | undefined;
+    getButton(ID: string): SideButton | undefined;
+
+    /**
+     * @description Returns a primary button by provided a buttion ID.
+     * @param ID The ID of the required button.
+     * @returns The required button. Returns undefined if it does not exists.
+     */
+    getPrimaryButton(ID: string): SideButton | undefined;
+
+    /**
+     * @description Returns a secondary button by provided a buttion ID.
+     * @param ID The ID of the required button.
+     * @returns The required button. Returns undefined if it does not exists.
+     */
+    getSecondaryButton(ID: string): SideButton | undefined;
+
+    /**
+     * @description Register a new primary button.
+     * @param opts The options to construct the button.
+     * @returns A boolean indicates if the button has created.
+     */
+    registerPrimaryButton(opts: ISideButtonOptions): boolean;
+    
+    /**
+     * @description Register a new secondary button.
+     * @param opts The options to construct the button.
+     * @returns A boolean indicates if the button has created.
+     */
+    registerSecondaryButton(opts: ISideButtonOptions): boolean;
 }
 
 /**
@@ -67,10 +99,10 @@ export class SideBar extends Component implements ISideBarService {
     public static readonly WIDTH = 50;
 
     private readonly _logoButton!: SideButton;
-    private readonly _generalGroup!: WidgetBar<SideButton>;
-    private readonly _secondaryGroup!: WidgetBar<SideButton>;
+    private readonly _primary: WidgetBar<SideButton>;
+    private readonly _secondary: WidgetBar<SideButton>;
 
-    private _currButtonType = SideType.NONE;
+    private _currButtonType: string = SideButtonType.NONE;
 
     private readonly _onDidClick = this.__register(new Emitter<ISideBarButtonClickEvent>());
     public readonly onDidClick = this._onDidClick.registerListener;
@@ -80,14 +112,33 @@ export class SideBar extends Component implements ISideBarService {
     constructor(
         @IComponentService componentService: IComponentService,
         @IThemeService themeService: IThemeService,
+        @ILogService private readonly logService: ILogService,
     ) {
         super('side-bar', null, themeService, componentService);
+        this._primary = new WidgetBar(undefined, { orientation: Orientation.Vertical });
+        this._secondary = new WidgetBar(undefined, { orientation: Orientation.Vertical });
     }
 
     // [public method]
 
-    public getButton(type: SideType): SideButton | undefined {
-        return this._generalGroup.getItem(type);
+    public getButton(ID: string): SideButton | undefined {
+        return this.getPrimaryButton(ID) || this.getSecondaryButton(ID);
+    }
+
+    public getPrimaryButton(ID: string): SideButton | undefined {
+        return this._primary.getItem(ID);
+    }
+
+    public getSecondaryButton(ID: string): SideButton | undefined {
+        return this._secondary.getItem(ID);
+    }
+
+    public registerPrimaryButton(opts: ISideButtonOptions): boolean {
+        return this.__registerButton(opts, this._primary);
+    }
+
+    public registerSecondaryButton(opts: ISideButtonOptions): boolean {
+        return this.__registerButton(opts, this._secondary);
     }
 
     // [protected override method]
@@ -98,48 +149,46 @@ export class SideBar extends Component implements ISideBarService {
         const logo = this.__createLogo();
         
         // upper button group
-        const container1 = document.createElement('div');
-        container1.className = 'general-button-container';
-        (<Mutable<WidgetBar<SideButton>>>this._generalGroup) = this.__createGeneralButtonGroup(container1);
+        const primaryContainer = document.createElement('div');
+        primaryContainer.className = 'general-button-container';
+        this._primary.render(primaryContainer);
         
-
         // lower button group
-        const container2 = document.createElement('div');
-        container2.className = 'secondary-button-container';
-        (<Mutable<WidgetBar<SideButton>>>this._secondaryGroup) = this.__createSecondaryButtonGroup(container2);
-
+        const secondaryContainer = document.createElement('div');
+        secondaryContainer.className = 'secondary-button-container';
+        this._secondary.render(secondaryContainer);
+        
         this.element.appendChild(logo.element);
-        this.element.appendChild(container1);
-        this.element.appendChild(container2);
+        this.element.appendChild(primaryContainer);
+        this.element.appendChild(secondaryContainer);
 
-        this.__register(this._generalGroup);
-        this.__register(this._secondaryGroup);
+        this.__register(this._primary);
+        this.__register(this._secondary);
     }
 
     protected override _registerListeners(): void {
         
-        /**
-         * Register all the buttons click event.
-         */
-        this._generalGroup.items().forEach(item => {
-            item.onDidClick(() => {
-                this.__buttonClick(item.type);
-            });
-        })
+        // Register all the buttons click event.
+        this._primary.items().forEach(item => {
+            item.onDidClick(() => this.__buttonClick(item.id));
+        });
+        this._secondary.items().forEach(item => {
+            item.onDidClick(() => this.__buttonClick(item.id));
+        });
         
         // default with opening explorer view
-        this.__buttonClick(SideType.EXPLORER);
+        this.__buttonClick(SideButtonType.EXPLORER);
     }
 
     // [private helper method]
 
     /**
      * @description Invoked when the button is clicked.
-     * @param clickedType The type of buttion is clicked.
+     * @param clickedType The ID of buttion is clicked.
      * 
      * @note Method will fire `this._onDidClick`.
      */
-    private __buttonClick(buttonType: SideType): void {
+    private __buttonClick(buttonType: string): void {
 
         const button = this.getButton(buttonType)!;
         let previousType = this._currButtonType;
@@ -150,14 +199,14 @@ export class SideBar extends Component implements ISideBarService {
         }
         
         // none of button is focused, focus the button.
-        if (this._currButtonType === SideType.NONE) {
+        if (this._currButtonType === SideButtonType.NONE) {
             this._currButtonType = buttonType;
             button.element.classList.add('focus');
         } 
         
         // if the current focused button is clicked again, remove focus.
         else if (this._currButtonType === buttonType) {
-            this._currButtonType = SideType.NONE;
+            this._currButtonType = SideButtonType.NONE;
             button.element.classList.remove('focus');
         } 
         
@@ -172,13 +221,31 @@ export class SideBar extends Component implements ISideBarService {
 
         // fires event
         this._onDidClick.fire({
-            type: buttonType,
-            prevType: previousType
+            ID: buttonType,
+            prevType: previousType,
+            isPrimary: button.isPrimary,
         });
     }
 
+    private __registerButton(opts: ISideButtonOptions, widgetBar: WidgetBar<SideButton>): boolean {
+        const button = new SideButton(opts);
+        
+        if (widgetBar.hasItem(opts.id)) {
+            this.logService.warn(`Cannot register the side bar button with duplicate id: ${opts.id}.`);
+            return false;
+        }
+        
+        widgetBar.addItem({
+            id: opts.id,
+            item: button,
+            dispose: button.dispose,
+        });
+
+        return true;
+    }
+
     private __createLogo(): SideButton {
-        const logo = new SideButton(SideType.LOGO, { classes: ['logo'] });
+        const logo = new SideButton({ id: SideButtonType.LOGO, isPrimary: true, classes: ['logo'] });
         logo.render(document.createElement('div'));
 
         const text = document.createElement('div');
@@ -186,52 +253,5 @@ export class SideBar extends Component implements ISideBarService {
         logo.element.appendChild(text);
 
         return logo;
-    }
-
-    private __createGeneralButtonGroup(container: HTMLElement): WidgetBar<SideButton> {
-        
-        const widgetBar = new WidgetBar<SideButton>(container, {
-            orientation: Orientation.Vertical,
-            render: true,
-        });
-
-        [
-            {type: SideType.EXPLORER, icon: Icons.Folder},
-            {type: SideType.OUTLINE, icon: Icons.List},
-            {type: SideType.SEARCH, icon: Icons.Search},
-            {type: SideType.GIT, icon: Icons.CodeBranch},
-        ]
-        .forEach(({ type, icon }) => {
-            const button = new SideButton(type, { icon: icon });
-            widgetBar.addItem({
-                id: type, 
-                item: button,
-                dispose: button.dispose,
-            });
-        });
-
-        return widgetBar;
-    }
-
-    private __createSecondaryButtonGroup(container: HTMLElement): WidgetBar<SideButton> {
-        const widgetBar = new WidgetBar<SideButton>(container, {
-            orientation: Orientation.Vertical,
-            render: true,
-        });
-
-        [
-            {type: SideType.HELPER, icon: Icons.CommentQuestion},
-            {type: SideType.SETTINGS, icon: Icons.Settings},
-        ]
-        .forEach(({ type, icon }) => {
-            const button = new SideButton(type, {icon: icon});
-            widgetBar.addItem({
-                id: type, 
-                item: button,
-                dispose: button.dispose,
-            });
-        });
-
-        return widgetBar;
     }
 }

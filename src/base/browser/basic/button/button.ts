@@ -1,6 +1,6 @@
 import "src/base/browser/basic/button/button.scss";
 import { IWidget, Widget } from "src/base/browser/basic/widget";
-import { createIcon, getIconClass } from "src/base/browser/icon/iconRegistry";
+import { createIcon } from "src/base/browser/icon/iconRegistry";
 import { Icons } from "src/base/browser/icon/icons";
 import { Emitter, Register } from "src/base/common/event";
 
@@ -57,7 +57,7 @@ export class Button extends Widget implements IButton {
     // [field]
     
     private _enabled: boolean;
-    private readonly _opts?: IButtonOptions;
+    protected readonly _opts: IButtonOptions;
 
     // [event]
 
@@ -69,7 +69,7 @@ export class Button extends Widget implements IButton {
 
     // [constructor]
 
-    constructor(opts?: IButtonOptions) {
+    constructor(opts: IButtonOptions) {
         super();
         this._opts = opts;
         this._enabled = true;

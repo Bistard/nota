@@ -1,7 +1,7 @@
 import { addDisposableListener, DomUtility, EventType, Orientation } from "src/base/browser/basic/dom";
 import { IComponentService } from "src/code/browser/service/component/componentService";
 import { IThemeService } from "src/code/browser/service/theme/themeService";
-import { SideBar, ISideBarService, SideType } from "src/code/browser/workbench/sideBar/sideBar";
+import { SideBar, ISideBarService, SideButtonType } from "src/code/browser/workbench/sideBar/sideBar";
 import { ISideViewService, SideView } from "src/code/browser/workbench/sideView/sideView";
 import { Component } from "src/code/browser/service/component/component";
 import { IWorkspaceService } from "src/code/browser/workbench/workspace/workspace";
@@ -11,6 +11,7 @@ import { Priority } from "src/base/common/event";
 import { IConfigService } from "src/code/platform/configuration/common/abstractConfigService";
 import { ExplorerView } from "src/code/browser/workbench/contrib/explorer/explorer";
 import { ISplitViewItemOpts } from "src/base/browser/secondary/splitView/splitViewItem";
+import { Icons } from "src/base/browser/icon/icons";
 
 /**
  * @description A base class for Workbench to create and manage the behaviour of
@@ -52,13 +53,98 @@ export abstract class WorkbenchLayout extends Component {
     // [protected helper methods]
 
     protected __createLayout(): void {
+
+        // register side buttons
+        this.__registerSideBarButtons();
+
+        // combine the workbench layout at the last
+        this.__combineWorkbench();
+    }
+
+    protected __registerLayoutListeners(): void {
+        
+        // window resizing
+        this.__register(addDisposableListener(window, EventType.resize, () => {
+            this.layout();
+            this._splitView?.layout(this.dimension!.width, this.dimension!.height);
+        }));
+
+        /**
+         * Listens to each SideBar button click events and notifies the 
+         * sideView to swtich the view.
+         */
+        this.sideBarService.onDidClick(e => {
+            if (e.isPrimary) {
+                this.sideViewService.switchView(e.ID);
+            }
+        });
+    }
+
+    // [private helper functions]
+
+    private __registerSideViews(): void {
+        this.sideViewService.registerView(SideButtonType.EXPLORER, ExplorerView);
+    }
+
+    private __registerSideBarButtons(): void {
+        
+        /**
+         * primary button configurations
+         */
+        [
+            { 
+                id: SideButtonType.EXPLORER, 
+                icon: Icons.Folder,
+            },
+            { 
+                id: SideButtonType.OUTLINE, 
+                icon: Icons.List,
+            },
+            // { id: SideButtonType.SEARCH, icon: Icons.Search },
+            // { id: SideButtonType.GIT, icon: Icons.CodeBranch },
+        ]
+        .forEach(({ id, icon }) => {
+            this.sideBarService.registerPrimaryButton({
+                id: id,
+                icon: icon,
+                isPrimary: true,
+            });
+        });
+
+
+        /**
+         * secondary button configurations
+         */
+        [
+            { 
+                id: SideButtonType.HELPER, 
+                icon: Icons.CommentQuestion,
+            },
+            { 
+                id: SideButtonType.SETTINGS, 
+                icon: Icons.Settings,
+                onDidClick: () => {
+                    console.log('setting button clicked');
+                },
+            },
+        ]
+        .forEach(({ id, icon, onDidClick }) => {
+            this.sideBarService.registerSecondaryButton({
+                id: id,
+                icon: icon,
+                isPrimary: true,
+                onDidClick: onDidClick,
+            });
+        });
+    }
+
+    private __combineWorkbench(): void {
         
         const splitViewOpt = {
             orientation: Orientation.Horizontal,
             viewOpts: <ISplitViewItemOpts[]>[],
         } satisfies ISplitViewOpts;
 
-        // Constructs each component of the workbench.
         const configurations = [
             [this.sideBarService , SideBar.WIDTH , SideBar.WIDTH, SideBar.WIDTH , Priority.Low],
             [this.sideViewService, 100, SideView.WIDTH * 2, SideView.WIDTH, Priority.Normal],
@@ -85,30 +171,5 @@ export abstract class WorkbenchLayout extends Component {
         sash.enable = false;
         sash.visible = true;
         sash.size = 1;
-    }
-
-    protected __registerLayoutListeners(): void {
-        
-        // window resizing
-        this.__register(addDisposableListener(window, EventType.resize, () => {
-            this.layout();
-            this._splitView?.layout(this.dimension!.width, this.dimension!.height);
-        }));
-
-        /**
-         * Listens to each SideBar button click events and notifies the 
-         * sideView to swtich the view.
-         */
-        this.sideBarService.onDidClick(e => {
-            e.type
-            
-            this.sideViewService.switchView(e.type);
-        });
-    }
-
-    // [private helper functions]
-
-    private __registerSideViews(): void {
-        this.sideViewService.registerView(SideType.EXPLORER, ExplorerView);
     }
 }

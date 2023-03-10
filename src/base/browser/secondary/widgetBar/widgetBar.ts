@@ -49,6 +49,13 @@ export interface IWidgetBar<T extends IWidget> extends IDisposable {
     getItem(id: string): T | undefined;
     
     /**
+     * @description Determines if the widget item with the given id exists.
+     * @param id The id of the widget item.
+     * @returns If the item exists in the widget bar.
+     */
+    hasItem(id: string): boolean;
+
+    /**
      * @description Returns an array of the item.
      */
     items(): T[];
@@ -184,18 +191,18 @@ export class WidgetBar<T extends IWidget> extends Disposable implements IWidgetB
         // prevent native context menu on the viewElement
         this.__register(addDisposableListener(newViewElement, EventType.contextmenu, (e) => {
             e.preventDefault();
-        }))
+        }));
 
+        // index is not valid to be inserted, we insert at the end.
         if (index === undefined || index < 0 || index >= this._itemContainer.children.length) {
-            // index is not valid to be inserted, we insert at the end.
             this._itemContainer.appendChild(newViewElement);
             this._items.push(item);
-        } else {
-            // index is valid.
+        } 
+        // index is valid.
+        else {
             this._itemContainer.insertBefore(newViewElement, this._itemContainer.children[index]!);
             this._items.splice(index, 0, item);
         }
-
     }
 
     public removeItem(index: number): boolean {
@@ -214,6 +221,10 @@ export class WidgetBar<T extends IWidget> extends Disposable implements IWidgetB
 
     public getItem(id: string): T | undefined {
         return this._items.filter(item => item.id === id)[0]?.item;
+    }
+
+    public hasItem(id: string): boolean {
+        return !!this.getItem(id);
     }
 
     public items(): T[] {
