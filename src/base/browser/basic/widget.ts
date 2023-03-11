@@ -1,5 +1,5 @@
 import { Disposable, IDisposable } from "src/base/common/dispose";
-import { addDisposableListener, EventType } from "src/base/browser/basic/dom";
+import { addDisposableListener, BaseElement, EventType } from "src/base/browser/basic/dom";
 import { Mutable } from "src/base/common/util/type";
 
 export interface IWidget extends IDisposable {
@@ -45,7 +45,7 @@ export interface IWidget extends IDisposable {
  * @description Gives easy abilities to listen to the provided element specific 
  * event type.
  */
-export abstract class Widget extends Disposable implements IWidget {
+export abstract class Widget extends BaseElement implements IWidget {
     
     // [field]
     
@@ -70,83 +70,6 @@ export abstract class Widget extends Disposable implements IWidget {
 
     get rendered(): boolean {
         return this._rendered;
-    }
-
-    public onClick(element: HTMLElement, callback: (event: MouseEvent) => void): IDisposable {
-        return this.__register(addDisposableListener(element, EventType.click, (e: MouseEvent) => {
-            callback(e);
-        }));
-    }
-
-    public onDoubleclick(element: HTMLElement, callback: (event: MouseEvent) => void): IDisposable {
-        return this.__register(addDisposableListener(element, EventType.doubleclick, (e: MouseEvent) => {
-            callback(e);
-        }));
-    }
-    public onMouseover(element: HTMLElement, callback: (event: MouseEvent) => void): IDisposable {
-        return this.__register(addDisposableListener(element, EventType.mouseover, (e: MouseEvent) => {
-            callback(e);
-        }));
-    }
-
-    public onMouseenter(element: HTMLElement, callback: (event: MouseEvent) => void): IDisposable {
-        return this.__register(addDisposableListener(element, EventType.mouseenter, (e: MouseEvent) => {
-            callback(e);
-        }));
-    }
-
-    public onMouseout(element: HTMLElement, callback: (event: MouseEvent) => void): IDisposable {
-        return this.__register(addDisposableListener(element, EventType.mouseout, (e: MouseEvent) => {
-            callback(e);
-        }));
-    }
-
-    public onMousedown(element: HTMLElement, callback: (event: MouseEvent) => void): IDisposable {
-        return this.__register(addDisposableListener(element, EventType.mousedown, (e: MouseEvent) => {
-            callback(e);
-        }));
-    }
-
-    public onMouseup(element: HTMLElement, callback: (event: MouseEvent) => void): IDisposable {
-        return this.__register(addDisposableListener(element, EventType.mouseup, (e: MouseEvent) => {
-            callback(e);
-        }));
-    }
-
-    public onMousemove(element: HTMLElement, callback: (event: MouseEvent) => void): IDisposable {
-        return this.__register(addDisposableListener(element, EventType.mousemove, (e: MouseEvent) => {
-            callback(e);
-        }));
-    }
-
-    public onWheel(element: HTMLElement, callback: (event: WheelEvent) => void): IDisposable {
-        return this.__register(addDisposableListener(element, EventType.wheel, (e: WheelEvent) => {
-            callback(e);
-        }));
-    }
-
-    public onTouchstart(element: HTMLElement, callback: (event: TouchEvent) => void): IDisposable {
-        return this.__register(addDisposableListener(element, EventType.touchstart, (e: TouchEvent) => {
-            callback(e);
-        }));
-    }
-
-    public onTouchmove(element: HTMLElement, callback: (event: TouchEvent) => void): IDisposable {
-        return this.__register(addDisposableListener(element, EventType.touchmove, (e: TouchEvent) => {
-            callback(e);
-        }));
-    }
-
-    public onTouchend(element: HTMLElement, callback: (event: TouchEvent) => void): IDisposable {
-        return this.__register(addDisposableListener(element, EventType.touchend, (e: TouchEvent) => {
-            callback(e);
-        }));
-    }
-
-    public onTouchcancel(element: HTMLElement, callback: (event: TouchEvent) => void): IDisposable {
-        return this.__register(addDisposableListener(element, EventType.touchcancel, (e: TouchEvent) => {
-            callback(e);
-        }));
     }
 
     public render(element: HTMLElement): void {

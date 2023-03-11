@@ -1,7 +1,7 @@
 import { FastElement } from "src/base/browser/basic/fastElement";
 import { requestAtNextAnimationFrame } from "src/base/common/animation";
 import { HexColor } from "src/base/common/color";
-import { IDisposable, toDisposable } from "src/base/common/dispose";
+import { Disposable, IDisposable, toDisposable } from "src/base/common/dispose";
 import { Emitter, Register } from "src/base/common/event";
 import { Dimension } from "src/base/common/util/size";
 import { Pair } from "src/base/common/util/type";
@@ -488,4 +488,107 @@ export class DomEmitter<T> implements IDisposable {
         this.emitter.dispose();
         this.listener.dispose();
     }
+}
+
+/**
+ * @class Simple class that encapsulates DOM event-related methods.
+ */
+export class BaseElement extends Disposable {
+
+	constructor() {
+		super();
+	}
+
+	public onClick(element: HTMLElement, callback: (event: MouseEvent) => void): IDisposable {
+        return this.__register(addDisposableListener(element, EventType.click, (e: MouseEvent) => {
+            callback(e);
+        }));
+    }
+
+    public onDoubleclick(element: HTMLElement, callback: (event: MouseEvent) => void): IDisposable {
+        return this.__register(addDisposableListener(element, EventType.doubleclick, (e: MouseEvent) => {
+            callback(e);
+        }));
+    }
+    public onMouseover(element: HTMLElement, callback: (event: MouseEvent) => void): IDisposable {
+        return this.__register(addDisposableListener(element, EventType.mouseover, (e: MouseEvent) => {
+            callback(e);
+        }));
+    }
+
+    public onMouseenter(element: HTMLElement, callback: (event: MouseEvent) => void): IDisposable {
+        return this.__register(addDisposableListener(element, EventType.mouseenter, (e: MouseEvent) => {
+            callback(e);
+        }));
+    }
+
+    public onMouseout(element: HTMLElement, callback: (event: MouseEvent) => void): IDisposable {
+        return this.__register(addDisposableListener(element, EventType.mouseout, (e: MouseEvent) => {
+            callback(e);
+        }));
+    }
+
+    public onMousedown(element: HTMLElement, callback: (event: MouseEvent) => void): IDisposable {
+        return this.__register(addDisposableListener(element, EventType.mousedown, (e: MouseEvent) => {
+            callback(e);
+        }));
+    }
+
+    public onMouseup(element: HTMLElement, callback: (event: MouseEvent) => void): IDisposable {
+        return this.__register(addDisposableListener(element, EventType.mouseup, (e: MouseEvent) => {
+            callback(e);
+        }));
+    }
+
+    public onMousemove(element: HTMLElement, callback: (event: MouseEvent) => void): IDisposable {
+        return this.__register(addDisposableListener(element, EventType.mousemove, (e: MouseEvent) => {
+            callback(e);
+        }));
+    }
+
+    public onWheel(element: HTMLElement, callback: (event: WheelEvent) => void): IDisposable {
+        return this.__register(addDisposableListener(element, EventType.wheel, (e: WheelEvent) => {
+            callback(e);
+        }));
+    }
+
+    public onTouchstart(element: HTMLElement, callback: (event: TouchEvent) => void): IDisposable {
+        return this.__register(addDisposableListener(element, EventType.touchstart, (e: TouchEvent) => {
+            callback(e);
+        }));
+    }
+
+    public onTouchmove(element: HTMLElement, callback: (event: TouchEvent) => void): IDisposable {
+        return this.__register(addDisposableListener(element, EventType.touchmove, (e: TouchEvent) => {
+            callback(e);
+        }));
+    }
+
+    public onTouchend(element: HTMLElement, callback: (event: TouchEvent) => void): IDisposable {
+        return this.__register(addDisposableListener(element, EventType.touchend, (e: TouchEvent) => {
+            callback(e);
+        }));
+    }
+
+    public onTouchcancel(element: HTMLElement, callback: (event: TouchEvent) => void): IDisposable {
+        return this.__register(addDisposableListener(element, EventType.touchcancel, (e: TouchEvent) => {
+            callback(e);
+        }));
+    }
+}
+
+export interface EventLike {
+	preventDefault(): void;
+	stopPropagation(): void;
+}
+
+export class DomEventHandler {
+
+	public static stop<T extends EventLike>(event: T, stopBubble: boolean = false): T {
+		event.preventDefault();
+		if (stopBubble) {
+			event.stopPropagation();
+		}
+		return event;
+	}
 }

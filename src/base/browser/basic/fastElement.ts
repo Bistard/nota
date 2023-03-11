@@ -1,4 +1,4 @@
-import { DomStyle } from "src/base/browser/basic/dom";
+import { BaseElement, DomStyle } from "src/base/browser/basic/dom";
 import { isObject } from "src/base/common/util/type";
 
 /**
@@ -17,6 +17,10 @@ export interface IFastElement<T extends HTMLElement> {
     setPosition(value: DomStyle.Position): void;
     setDisplay(value: DomStyle.Display): void;
 
+    setFocus(): void;
+    setBlur(): void;
+    setTabIndex(value: number): void;
+
     setTop(value: number): void;
     setBottom(value: number): void;
     setLeft(value: number): void;
@@ -24,6 +28,8 @@ export interface IFastElement<T extends HTMLElement> {
 
     setClassName(value: string): void;
     toggleClassName(value: string): void;
+    addClassList(...values: string[]): void;
+    deleteClassList(...values: string[]): void;
 
     setFontSize(value: number): void;
     setFontWeight(value: DomStyle.FontWeight): void;
@@ -50,20 +56,18 @@ export interface IFastElement<T extends HTMLElement> {
  * 
  * @note The unit for number is always pixels.
  */
-export class FastElement<T extends HTMLElement> implements IFastElement<T> {
+export class FastElement<T extends HTMLElement> extends BaseElement implements IFastElement<T> {
 
     // [field]
 
     /** The actual {@link HTMLElement}. */
     public readonly element: T;
     
-     
     // Representing the DOM attributes of the wrapped HTMLElement. Initially are
     // sets to nothing:
     //     {@link number} -> -1
     //     {@link string} -> ''
     
-
     private _width: number = -1;
     private _height: number = -1;
 
@@ -73,6 +77,8 @@ export class FastElement<T extends HTMLElement> implements IFastElement<T> {
     private _position: DomStyle.Position | '' = '';
     private _display: DomStyle.Display | '' = '';
 
+    private _tabIndex: number = -1;
+    
     private _top: number = -1;
     private _bottom: number = -1;
     private _left: number = -1;
@@ -91,6 +97,7 @@ export class FastElement<T extends HTMLElement> implements IFastElement<T> {
     // [constructor]
 
     constructor(element: T) {
+        super();
         this.element = element;
     }
 
@@ -152,12 +159,20 @@ export class FastElement<T extends HTMLElement> implements IFastElement<T> {
         this.element.style.display = value;
     }
 
-    public setClassName(value: string): void {
-        if (this._className === value) {
+    public setFocus(): void {
+        this.element.focus();
+    }
+
+    public setBlur(): void {
+        this.element.blur();
+    }
+
+    public setTabIndex(value: number): void {
+        if (this._tabIndex === value) {
             return;
         }
-        this._className = value;
-        this.element.className = value;
+        this._tabIndex = value;
+        this.element.tabIndex = value;
     }
 
     public setTop(value: number): void {
@@ -192,9 +207,25 @@ export class FastElement<T extends HTMLElement> implements IFastElement<T> {
         this.element.style.right = `${value}px`;
     }
 
+    public setClassName(value: string): void {
+        if (this._className === value) {
+            return;
+        }
+        this._className = value;
+        this.element.className = value;
+    }
+
     public toggleClassName(value: string, force?: boolean): void {
         this.element.classList.toggle(value, force);
         this._className = value;
+    }
+
+    public addClassList(...values: string[]): void {
+        this.element.classList.add(...values);
+    }
+
+    public deleteClassList(...values: string[]): void {
+        this.element.classList.remove(...values);
     }
 
     public setFontSize(value: number): void {
