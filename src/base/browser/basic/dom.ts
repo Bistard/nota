@@ -490,10 +490,27 @@ export class DomEmitter<T> implements IDisposable {
     }
 }
 
+export interface IBaseElement extends IDisposable {
+	
+	onClick(element: HTMLElement, callback: (event: MouseEvent) => void): IDisposable;
+    onDoubleclick(element: HTMLElement, callback: (event: MouseEvent) => void): IDisposable;
+    onMouseover(element: HTMLElement, callback: (event: MouseEvent) => void): IDisposable;
+    onMouseenter(element: HTMLElement, callback: (event: MouseEvent) => void): IDisposable;
+    onMouseout(element: HTMLElement, callback: (event: MouseEvent) => void): IDisposable;
+    onMousedown(element: HTMLElement, callback: (event: MouseEvent) => void): IDisposable;    
+    onMouseup(element: HTMLElement, callback: (event: MouseEvent) => void): IDisposable;
+    onMousemove(element: HTMLElement, callback: (event: MouseEvent) => void): IDisposable;
+    onWheel(element: HTMLElement, callback: (event: WheelEvent) => void): IDisposable;
+    onTouchstart(element: HTMLElement, callback: (event: TouchEvent) => void): IDisposable;
+    onTouchmove(element: HTMLElement, callback: (event: TouchEvent) => void): IDisposable;
+    onTouchend(element: HTMLElement, callback: (event: TouchEvent) => void): IDisposable;
+    onTouchcancel(element: HTMLElement, callback: (event: TouchEvent) => void): IDisposable;
+}
+
 /**
  * @class Simple class that encapsulates DOM event-related methods.
  */
-export class BaseElement extends Disposable {
+export class BaseElement extends Disposable implements IBaseElement {
 
 	constructor() {
 		super();

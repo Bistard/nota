@@ -1,4 +1,5 @@
-import { BaseElement, DomStyle } from "src/base/browser/basic/dom";
+import { addDisposableListener, DomStyle, EventType } from "src/base/browser/basic/dom";
+import { Disposable, IDisposable } from "src/base/common/dispose";
 import { isObject } from "src/base/common/util/type";
 
 /**
@@ -44,6 +45,20 @@ export interface IFastElement<T extends HTMLElement> {
 
 	appendChild(child: IFastElement<T> | T): void;
 	removeChild(child: IFastElement<T> | T): void;
+
+    onClick(callback: (event: MouseEvent) => void): IDisposable;
+    onDoubleclick(callback: (event: MouseEvent) => void): IDisposable;
+    onMouseover(callback: (event: MouseEvent) => void): IDisposable;
+    onMouseenter(callback: (event: MouseEvent) => void): IDisposable;
+    onMouseout(callback: (event: MouseEvent) => void): IDisposable;
+    onMousedown(callback: (event: MouseEvent) => void): IDisposable;    
+    onMouseup(callback: (event: MouseEvent) => void): IDisposable;
+    onMousemove(callback: (event: MouseEvent) => void): IDisposable;
+    onWheel(callback: (event: WheelEvent) => void): IDisposable;
+    onTouchstart(callback: (event: TouchEvent) => void): IDisposable;
+    onTouchmove(callback: (event: TouchEvent) => void): IDisposable;
+    onTouchend(callback: (event: TouchEvent) => void): IDisposable;
+    onTouchcancel(callback: (event: TouchEvent) => void): IDisposable;
 }
 
 /**
@@ -56,7 +71,7 @@ export interface IFastElement<T extends HTMLElement> {
  * 
  * @note The unit for number is always pixels.
  */
-export class FastElement<T extends HTMLElement> extends BaseElement implements IFastElement<T> {
+export class FastElement<T extends HTMLElement> extends Disposable implements IFastElement<T> {
 
     // [field]
 
@@ -299,6 +314,88 @@ export class FastElement<T extends HTMLElement> extends BaseElement implements I
             this.element.removeChild(child);
         }
 	}
+
+    public onClick(callback: (event: MouseEvent) => void): IDisposable {
+        return this.__register(addDisposableListener(this.element, EventType.click, (e: MouseEvent) => {
+            callback(e);
+        }));
+    }
+
+    public onDoubleclick(callback: (event: MouseEvent) => void): IDisposable {
+        return this.__register(addDisposableListener(this.element, EventType.doubleclick, (e: MouseEvent) => {
+            callback(e);
+        }));
+    }
+    public onMouseover(callback: (event: MouseEvent) => void): IDisposable {
+        return this.__register(addDisposableListener(this.element, EventType.mouseover, (e: MouseEvent) => {
+            callback(e);
+        }));
+    }
+
+    public onMouseenter(callback: (event: MouseEvent) => void): IDisposable {
+        return this.__register(addDisposableListener(this.element, EventType.mouseenter, (e: MouseEvent) => {
+            callback(e);
+        }));
+    }
+
+    public onMouseout(callback: (event: MouseEvent) => void): IDisposable {
+        return this.__register(addDisposableListener(this.element, EventType.mouseout, (e: MouseEvent) => {
+            callback(e);
+        }));
+    }
+
+    public onMousedown(callback: (event: MouseEvent) => void): IDisposable {
+        return this.__register(addDisposableListener(this.element, EventType.mousedown, (e: MouseEvent) => {
+            callback(e);
+        }));
+    }
+
+    public onMouseup(callback: (event: MouseEvent) => void): IDisposable {
+        return this.__register(addDisposableListener(this.element, EventType.mouseup, (e: MouseEvent) => {
+            callback(e);
+        }));
+    }
+
+    public onMousemove(callback: (event: MouseEvent) => void): IDisposable {
+        return this.__register(addDisposableListener(this.element, EventType.mousemove, (e: MouseEvent) => {
+            callback(e);
+        }));
+    }
+
+    public onWheel(callback: (event: WheelEvent) => void): IDisposable {
+        return this.__register(addDisposableListener(this.element, EventType.wheel, (e: WheelEvent) => {
+            callback(e);
+        }));
+    }
+
+    public onTouchstart(callback: (event: TouchEvent) => void): IDisposable {
+        return this.__register(addDisposableListener(this.element, EventType.touchstart, (e: TouchEvent) => {
+            callback(e);
+        }));
+    }
+
+    public onTouchmove(callback: (event: TouchEvent) => void): IDisposable {
+        return this.__register(addDisposableListener(this.element, EventType.touchmove, (e: TouchEvent) => {
+            callback(e);
+        }));
+    }
+
+    public onTouchend(callback: (event: TouchEvent) => void): IDisposable {
+        return this.__register(addDisposableListener(this.element, EventType.touchend, (e: TouchEvent) => {
+            callback(e);
+        }));
+    }
+
+    public onTouchcancel(callback: (event: TouchEvent) => void): IDisposable {
+        return this.__register(addDisposableListener(this.element, EventType.touchcancel, (e: TouchEvent) => {
+            callback(e);
+        }));
+    }
+
+    public override dispose(): void {
+        this.element.remove();
+        super.dispose();
+    }
 }
 
 export function isFastElement<T extends HTMLElement>(obj: unknown): obj is IFastElement<T> {
