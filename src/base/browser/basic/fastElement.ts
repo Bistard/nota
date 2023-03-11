@@ -59,6 +59,7 @@ export interface IFastElement<T extends HTMLElement> {
     onTouchmove(callback: (event: TouchEvent) => void): IDisposable;
     onTouchend(callback: (event: TouchEvent) => void): IDisposable;
     onTouchcancel(callback: (event: TouchEvent) => void): IDisposable;
+    onContextmenu(callback: (event: MouseEvent) => void): IDisposable;
 }
 
 /**
@@ -388,6 +389,12 @@ export class FastElement<T extends HTMLElement> extends Disposable implements IF
 
     public onTouchcancel(callback: (event: TouchEvent) => void): IDisposable {
         return this.__register(addDisposableListener(this.element, EventType.touchcancel, (e: TouchEvent) => {
+            callback(e);
+        }));
+    }
+
+    public onContextmenu(callback: (event: MouseEvent) => void): IDisposable {
+        return this.__register(addDisposableListener(this.element, EventType.contextmenu, (e: MouseEvent) => {
             callback(e);
         }));
     }

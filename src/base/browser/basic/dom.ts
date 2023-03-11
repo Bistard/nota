@@ -498,6 +498,7 @@ export interface IBaseElement extends IDisposable {
     onTouchmove(element: HTMLElement, callback: (event: TouchEvent) => void): IDisposable;
     onTouchend(element: HTMLElement, callback: (event: TouchEvent) => void): IDisposable;
     onTouchcancel(element: HTMLElement, callback: (event: TouchEvent) => void): IDisposable;
+	onContextmenu(element: HTMLElement, callback: (event: MouseEvent) => void): IDisposable;
 }
 
 /**
@@ -582,6 +583,12 @@ export class BaseElement extends Disposable implements IBaseElement {
 
     public onTouchcancel(element: HTMLElement, callback: (event: TouchEvent) => void): IDisposable {
         return this.__register(addDisposableListener(element, EventType.touchcancel, (e: TouchEvent) => {
+            callback(e);
+        }));
+    }
+
+	public onContextmenu(element: HTMLElement, callback: (event: MouseEvent) => void): IDisposable {
+        return this.__register(addDisposableListener(element, EventType.contextmenu, (e: MouseEvent) => {
             callback(e);
         }));
     }
