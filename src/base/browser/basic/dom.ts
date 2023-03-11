@@ -287,13 +287,6 @@ export namespace DomUtility
 		];
 	}
 
-	/**
-	 * @description Determines if the given event is mouse right click.
-	 */
-	export function isMouseRightClick(event: UIEvent): boolean {
-		return event instanceof MouseEvent && event.button === 2;
-	}
-
 	// [method - type]
 
 	/**
@@ -599,13 +592,35 @@ export interface EventLike {
 	stopPropagation(): void;
 }
 
-export class DomEventHandler {
+export namespace DomEventHandler {
 
-	public static stop<T extends EventLike>(event: T, stopBubble: boolean = false): T {
+	export function stop<T extends EventLike>(event: T, stopBubble: boolean = false): T {
 		event.preventDefault();
 		if (stopBubble) {
 			event.stopPropagation();
 		}
 		return event;
+	}
+
+	export function isLeftClick(event: MouseEvent): boolean {
+		return event.button === 0;
+	}
+
+	export function isMiddleClick(event: MouseEvent): boolean {
+		return event.button === 1;
+	}
+
+	export function isRightClick(event: MouseEvent): boolean {
+		return event.button === 2;
+	}
+
+	// typically the browser back button
+	export function isFourthClick(event: MouseEvent): boolean {
+		return event.button === 3;
+	}
+
+	// typically the browser forward button
+	export function isFifthClick(event: MouseEvent): boolean {
+		return event.button === 4;
 	}
 }

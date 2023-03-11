@@ -1,4 +1,4 @@
-import { DomUtility } from "src/base/browser/basic/dom";
+import { DomEventHandler, DomUtility } from "src/base/browser/basic/dom";
 import { IListMouseEvent, IListTouchEvent, IListWidget, IListWidgetOpts } from "src/base/browser/secondary/listWidget/listWidget";
 import { DisposableManager, IDisposable } from "src/base/common/dispose";
 import { IS_MAC } from "src/base/common/platform";
@@ -85,7 +85,7 @@ export class ListWidgetMouseController<T> implements IDisposable {
         // normal click
         this._view.setAnchor(toFocused);
         this._view.setFocus(toFocused);
-        if (DomUtility.isMouseRightClick(e.browserEvent) === false) {
+        if (DomEventHandler.isRightClick(e.browserEvent) === false) {
             this._view.setSelections([toFocused]);
         }
     }
