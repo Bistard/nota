@@ -1,4 +1,4 @@
-import { Disposable, IDisposable } from "src/base/common/dispose";
+import { IDisposable } from "src/base/common/dispose";
 import { Emitter, Register } from "src/base/common/event";
 
 export interface ICancellable {
