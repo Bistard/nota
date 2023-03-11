@@ -29,7 +29,7 @@ export interface IFastElement<T extends HTMLElement> {
     setClassName(value: string): void;
     toggleClassName(value: string): void;
     addClassList(...values: string[]): void;
-    deleteClassList(...values: string[]): void;
+    removeClassList(...values: string[]): void;
 
     setFontSize(value: number): void;
     setFontWeight(value: DomStyle.FontWeight): void;
@@ -224,7 +224,7 @@ export class FastElement<T extends HTMLElement> extends BaseElement implements I
         this.element.classList.add(...values);
     }
 
-    public deleteClassList(...values: string[]): void {
+    public removeClassList(...values: string[]): void {
         this.element.classList.remove(...values);
     }
 
