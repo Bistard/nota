@@ -141,6 +141,7 @@ export class ResourceChangeEvent {
         // }
 
         if (!typeFilter || addMatch) {
+            
             if (this._added?.has(resource)) {
                 return true;
             }
