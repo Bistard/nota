@@ -88,6 +88,12 @@ const configuration = {
                     'Run all the unit tests that match the regular expression <pattern>.',
                     'For example, `npm run script test -- -g \'z\'` will match any unit tests that contain the letter `z`.',
                 ]
+            },
+            {
+                flags: ['--watch'],
+                descriptions: [
+                    'Build the nota and wait to rebuild by watching the change of the source directory.',
+                ],
             }
         ]
     },
