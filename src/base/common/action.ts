@@ -1,6 +1,6 @@
 import { Disposable, IDisposable } from "src/base/common/dispose";
 import { Emitter, Register } from "src/base/common/event";
-import { isNullable, isNumber, Mutable } from "src/base/common/util/type";
+import { isNullable, isNumber, isString, Mutable } from "src/base/common/util/type";
 
 export interface IAction extends IDisposable {
     /** 
@@ -22,7 +22,7 @@ export interface IAction extends IDisposable {
      * Try to run the action if enabled.
      * @param args The arguments passed for the action.
      */
-    run(args: any): void;
+    run(args?: any): void;
 }
 
 export interface IActionOptions {
@@ -74,16 +74,21 @@ export interface IActionList<IItem extends IActionListItem> extends IDisposable 
     onDidInsert: Register<IItem[]>;
     
     run(index: number): void;
+    run(id: string): void;
     run(action: IAction): void;
 
     get(index: number): IAction | undefined;
+    get(id: string): IAction | undefined;
+    
+    has(id: string): boolean;
     has(action: IAction): boolean;
     
     insert(action: IAction[], index?: number): void;
     insert(action: IAction, index?: number): void;
     
-    delete(action: IAction): boolean;
     delete(index: number): boolean;
+    delete(id: string): boolean;
+    delete(action: IAction): boolean;
 
     size(): number;
     empty(): boolean;
@@ -174,28 +179,48 @@ export abstract class ActionList<IItem extends IActionListItem> extends Disposab
 
     public run(index: number): void;
     public run(action: IAction): void;
-    public run(arg: IAction | number): void {
+    public run(id: string): void;
+    public run(arg: IAction | number | string): void {
         if (isNumber(arg)) {
             const item = this._items[arg];
             if (item) {
                 item.run(this._contextProvider());
             }
         }
+        else {
+            const id = isString(arg) ? arg : arg.id;
+            this.get(id)?.run(this._contextProvider());
+        }
     }
 
-    public get(index: number): IAction | undefined {
-        return this._items[index]?.action;
+    public get(index: number): IAction | undefined;
+    public get(id: string): IAction | undefined;
+    public get(arg: number | string): IAction | undefined {
+        if (isNumber(arg)) {
+            return this._items[arg]?.action;
+        }
+        for (const curr of this._items) {
+            if (curr.action.id === arg) {
+                return curr.action;
+            }
+        }
+        return undefined;
     }
     
-    public has(action: IAction): boolean {
+    public has(id: string): boolean;
+    public has(action: IAction): boolean;
+    public has(arg: IAction | string): boolean {
+        const id = isString(arg) ? arg : arg.id;
         for (const curr of this._items) {
-            if (curr.action.id === action.id) {
+            if (curr.action.id === id) {
                 return true;
             }
         }
         return false;
     }
 
+    public insert(arg: IAction, index?: number): void;
+    public insert(arg: IAction[], index?: number): void;
     public insert(arg: IAction | IAction[], index?: number): void {
         const actions = Array.isArray(arg) ? [...arg] : [arg];
         const items: IItem[] = [];
@@ -220,17 +245,19 @@ export abstract class ActionList<IItem extends IActionListItem> extends Disposab
         this._onDidInsert.fire(items);
     }
 
-    public delete(action: IAction): boolean;
     public delete(index: number): boolean;
-    public delete(arg: IAction | number): boolean {
+    public delete(id: string): boolean;
+    public delete(action: IAction): boolean;
+    public delete(arg: IAction | number | string): boolean {
         if (isNumber(arg)) {
             const deleted = this._items.splice(arg, 1);
             return !!deleted.length;
         }
 
+        const id = isString(arg) ? arg : arg.id;
         for (let i = 0; i < this._items.length; i++) {
             const item = this._items[i]!;
-            if (item.action.id === arg.id) {
+            if (item.action.id === id) {
                 this._items.splice(i, 1);
                 return true;
             }
