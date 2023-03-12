@@ -592,6 +592,7 @@ export class TernarySearchTree<K, V extends NonNullable<any>> implements ITernar
         return candidate;
     }
 
+    // TODO: Test Case
     public findSuperStrOf(key: K): IterableIterator<[K, V]> | undefined {
         const node = this._findNode(key);
         if (!node || !node.mid) {
@@ -623,7 +624,7 @@ export class TernarySearchTree<K, V extends NonNullable<any>> implements ITernar
 
     // [private methods]
 
-    private _findNode(key: K, path?: [Dir, TernarySearchTreeNode<K, V>][]): TernarySearchTreeNode<K, V> | undefined {
+    private _findNode(key: K): TernarySearchTreeNode<K, V> | undefined {
         const iter = this._iter.reset(key);
         let node =  this._root;
 

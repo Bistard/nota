@@ -141,8 +141,10 @@ export class ResourceChangeEvent {
         // }
 
         if (!typeFilter || addMatch) {
-            
             if (this._added?.has(resource)) {
+                return true;
+            }
+            if (searchChildren && this._added?.findSuperStrOf(resource)) {
                 return true;
             }
         }
@@ -151,10 +153,16 @@ export class ResourceChangeEvent {
             if (this._deleted?.findSubStrOf(resource)) {
                 return true;
             }
+            if (searchChildren && this._deleted?.findSuperStrOf(resource)) {
+                return true;
+            }
         }
 
         if (!typeFilter || updateMatch) {
             if (this._updated?.has(resource)) {
+                return true;
+            }
+            if (searchChildren && this._updated?.findSuperStrOf(resource)) {
                 return true;
             }
         }
