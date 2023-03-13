@@ -32,6 +32,18 @@ class WebpackUnitTestConfigurationProvider extends WebpackBaseConfigurationProvi
             {
                 // make sure running in nodejs environment
                 target: 'node',
+
+                /**
+                 * The top-level output key contains a set of options instructing 
+                 * webpack on how and where it should output your bundles, assets, 
+                 * and anything else you bundle or load with webpack.
+                 * 
+                 * @note The following are neccessary for debugging purpose.
+                 */
+                output: {
+                    devtoolModuleFilenameTemplate: 'webpack://[absolute-resource-path]',
+                    devtoolFallbackModuleFilenameTemplate: 'webpack://[absolute-resource-path]?[hash]'
+                },
             },
         );
 

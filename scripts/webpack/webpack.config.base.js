@@ -67,8 +67,8 @@ class WebpackBaseConfigurationProvider {
             mode: option.mode,
 
             /**
-             * The base directory, an absolute path, for resolving entry points and 
-             * loaders from the configuration.
+             * The base directory, an absolute path, for resolving entry points 
+             * and loaders from the configuration.
              */
             context: option.cwd,
 
@@ -111,7 +111,9 @@ class WebpackBaseConfigurationProvider {
                 extensions: ['.tsx', '.ts', '.js'],
             },
 
-            // watch options
+            /**
+             * watch options
+             */
             watch: option.watchMode,
             watchOptions: {
                 poll: 1000,            // check for changes in milliseconds.
@@ -122,13 +124,33 @@ class WebpackBaseConfigurationProvider {
             /**
              * Source maps are used to display your original JavaScript while debugging, 
              * which is a lot easier to look at than minified production code.
-             * See more choice here https://webpack.js.org/configuration/devtool/
+             * 
+             * See more choice here:
+             * {@link https://webpack.js.org/configuration/devtool/}
              */
             devtool: isDevMode ? 'eval-source-map' : 'source-map',
+            
+            /**
+             * The `stats` option lets you precisely control what bundle 
+             * information gets displayed. This can be a nice middle ground if 
+             * you don't want to use `quiet` or `noInfo` because you want some 
+             * bundle information, but not all of it.
+             * 
+             * {@link https://webpack.js.org/configuration/stats/}
+             */
             stats: 'normal',
+
+            /**
+             * Fail out on the first error instead of tolerating it. 
+             * 
+             * @note Avoid using `bail` option in watch mode, as it will force 
+             * webpack to exit as soon as possible when an error is found.
+             */
             bail: !option.watchMode,
 
-            // webpack extensions
+            /**
+             * webpack extensions
+             */
             plugins: option.plugins ?? [],
         };
 

@@ -1,11 +1,9 @@
-import { isParentOf } from "src/base/common/file/glob";
 import { URI } from "src/base/common/file/uri";
 import { CreateTernarySearchTree, TernarySearchTree } from "src/base/common/util/ternarySearchTree";
 import { IResourceChangeEvent, ResourceChangeType } from "src/code/platform/files/node/watcher";
 import { IReviverRegistrant } from "src/code/platform/ipc/common/revive";
 import { REGISTRANTS } from "src/code/platform/registrant/common/registrant";
 import { IRawResourceChangeEvent } from "src/code/platform/files/node/watcher";
-import { type } from "process";
 
 /**
  * @class A wrapper class over the raw {@link IResourceChangeEvent}. It provides 
@@ -140,20 +138,29 @@ export class ResourceChangeEvent {
         //     }  
         // }
 
-        if (typeFilter === undefined || addMatch) {
+        if (!typeFilter || addMatch) {
             if (this._added?.has(resource)) {
                 return true;
             }
-        }
-
-        if (typeFilter === undefined || deleteMatch) {
-            if (this._deleted?.has(resource)) {
+            if (searchChildren && this._added?.findSuperStrOf(resource)) {
                 return true;
             }
         }
 
-        if (typeFilter === undefined || updateMatch) {
+        if (!typeFilter || deleteMatch) {
+            if (this._deleted?.findSubStrOf(resource)) {
+                return true;
+            }
+            if (searchChildren && this._deleted?.findSuperStrOf(resource)) {
+                return true;
+            }
+        }
+
+        if (!typeFilter || updateMatch) {
             if (this._updated?.has(resource)) {
+                return true;
+            }
+            if (searchChildren && this._updated?.findSuperStrOf(resource)) {
                 return true;
             }
         }

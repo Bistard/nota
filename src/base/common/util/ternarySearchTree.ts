@@ -121,25 +121,26 @@ class __PathIterator implements IKeyIterator<string> {
                 break;
             }
         }
-        
+        this.next();
         return this;
     }
 
     public next(): void {
         this._from = this._to;
 
-        let startSlash = true;
+        let sepSlash = true;
         while (this._to < this._valueLen) {
             const currChar = this._value.charCodeAt(this._to);
             if (currChar === CharCode.Slash || (this._supportBackslashSplit && currChar === CharCode.Backslash)) {
-                if (startSlash) {
+                if (sepSlash) {
                     this._from++;
                 } else {
                     break;
                 }
             } else {
-                startSlash = false
+                sepSlash = false
             }
+            this._to++;
         }
     }
 
@@ -349,6 +350,9 @@ export interface ITernarySearchTree<K, V> extends IIterable<[K, V]> {
      */
     findSubStrOf(key: K): V | undefined;
 
+    // TODO: 
+    findSuperStrOf(key: K): IterableIterator<[K, V]> | undefined;
+
     /**
      * @description Iterate the whole tree with in-order.
      * @param callback The function to visit every key-value pair.
@@ -478,6 +482,7 @@ export class TernarySearchTree<K, V extends NonNullable<any>> implements ITernar
 
     public fill(values: readonly [K, V][]): void {
         const arr = values.slice(0);
+        // TODO: for testing only
         Random.shuffle(arr, 1000);
         for (const entry of arr) {
             this.set(entry[0], entry[1]);
@@ -537,7 +542,7 @@ export class TernarySearchTree<K, V extends NonNullable<any>> implements ITernar
         // AVL balance
         this._avlBalance(path);
 
-        if (oldVal !== undefined) {
+        if (oldVal === undefined) {
             this._size++;
         }
 
@@ -585,7 +590,17 @@ export class TernarySearchTree<K, V extends NonNullable<any>> implements ITernar
             return node.value;
         }
         return candidate;
-     }
+    }
+
+    // TODO: Test Case
+    public findSuperStrOf(key: K): IterableIterator<[K, V]> | undefined {
+        const node = this._findNode(key);
+        if (!node || !node.mid) {
+            return undefined;
+        }
+
+        return this._nodeIter(node.mid);
+    }
  
     public forEach(callback: (value: V, key: K) => any): void {
         for (const [key, value] of this) {
@@ -605,9 +620,11 @@ export class TernarySearchTree<K, V extends NonNullable<any>> implements ITernar
         return this._size;
     }
 
+
+
     // [private methods]
 
-    private _findNode(key: K, path?: [Dir, TernarySearchTreeNode<K, V>][]): TernarySearchTreeNode<K, V> | undefined {
+    private _findNode(key: K): TernarySearchTreeNode<K, V> | undefined {
         const iter = this._iter.reset(key);
         let node =  this._root;
 
@@ -657,13 +674,12 @@ export class TernarySearchTree<K, V extends NonNullable<any>> implements ITernar
 
         // delete all super string
         if (superStr) {
-            for (const _ of this._nodeIter(node)) {
-                this._size--;
+            if (node.mid) {
+                for (const _ of this._nodeIter(node)) {
+                    this._size--;
+                }
             }
             node.mid = undefined;
-            node.left =  undefined;
-            node.right = undefined;
-            node.height = 1;
         } else {
             this._size--;
             node.value = undefined;
