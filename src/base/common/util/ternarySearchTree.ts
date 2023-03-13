@@ -542,7 +542,7 @@ export class TernarySearchTree<K, V extends NonNullable<any>> implements ITernar
         // AVL balance
         this._avlBalance(path);
 
-        if (oldVal !== undefined) {
+        if (oldVal === undefined) {
             this._size++;
         }
 
@@ -674,13 +674,12 @@ export class TernarySearchTree<K, V extends NonNullable<any>> implements ITernar
 
         // delete all super string
         if (superStr) {
-            for (const _ of this._nodeIter(node)) {
-                this._size--;
+            if (node.mid) {
+                for (const _ of this._nodeIter(node)) {
+                    this._size--;
+                }
             }
             node.mid = undefined;
-            node.left =  undefined;
-            node.right = undefined;
-            node.height = 1;
         } else {
             this._size--;
             node.value = undefined;

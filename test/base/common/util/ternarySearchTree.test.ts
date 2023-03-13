@@ -28,9 +28,9 @@ suite('ternarySearchTree-test', () => {
         let i = 0;
 
     	// iterator not tested yet, just confirming input
-        for (const [key, value] of items) {
+        for (const [key, value] of tree) {
             const expected = items[i++];
-            assert.ok(expected);
+            assert.ok(expected, "expected does not exsited ...");
             assert.strictEqual(key, expected[0]);
             assert.strictEqual(value, expected[1]);
         }
@@ -213,7 +213,6 @@ suite('ternarySearchTree-test', () => {
     // TODO: size
 
     test('delete & cleanup', () => {
-
         const testGeneric = function <Key extends PossibleKey>(foo: Key, foobar: Key, bar: Key, foobarbaz: Key, fo: Key): void {
             // normal delete
             let tree = generateTree(foo);
