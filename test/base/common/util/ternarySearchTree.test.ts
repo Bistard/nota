@@ -28,9 +28,9 @@ suite('ternarySearchTree-test', () => {
         let i = 0;
 
     	// iterator not tested yet, just confirming input
-        for (const [key, value] of items) {
+        for (const [key, value] of tree) {
             const expected = items[i++];
-            assert.ok(expected);
+            assert.ok(expected, "expected does not exsited ...");
             assert.strictEqual(key, expected[0]);
             assert.strictEqual(value, expected[1]);
         }
@@ -97,39 +97,63 @@ suite('ternarySearchTree-test', () => {
 
     test('URI-iterator', () => {
         // TODO
-        const iter = new UriIterator();
-        iter.reset(URI.fromFile('this'));
+        const iter = new UriIterator(false);
+		iter.reset(URI.parse('file:///usr/bin/file.txt'));
 
-        // while (iter.hasNext()) {
-        //     console.log(iter.currItem());
-        //     iter.next();
-        // }
+		assert.strictEqual(iter.currItem(), 'file');
+		// assert.strictEqual(iter.cmp('FILE'), 0);
+		assert.strictEqual(iter.cmp('file'), 0);
+		assert.strictEqual(iter.hasNext(), true);
+		iter.next();
 
-        assert.strictEqual(iter.currItem(), 't');
-        assert.strictEqual(iter.hasNext(), true);
-        assert.strictEqual(iter.cmp('t'), 0);
+		assert.strictEqual(iter.currItem(), 'usr');
+		assert.strictEqual(iter.hasNext(), true);
+		iter.next();
 
-        assert.ok(iter.cmp('a') < 0);
-        assert.ok(iter.cmp('z') > 0);
-        assert.strictEqual(iter.cmp('t'), 0);
+		assert.strictEqual(iter.currItem(), 'bin');
+		assert.strictEqual(iter.hasNext(), true);
+		iter.next();
 
-        iter.next();
-        assert.strictEqual(iter.currItem(), 'h');
-        assert.strictEqual(iter.hasNext(), true);
-        
-        iter.next();
-        assert.strictEqual(iter.hasNext(), true);
-        iter.next();
-        assert.strictEqual(iter.currItem(), 's');
-        assert.strictEqual(iter.hasNext(), false);
-        
-        iter.next()
-        assert.strictEqual(iter.currItem(), undefined);
+		assert.strictEqual(iter.currItem(), 'file.txt');
+		assert.strictEqual(iter.hasNext(), false);
 
-        iter.reset(URI.fromFile('hello'));
-        assert.strictEqual(iter.currItem(), 'h');
-        assert.strictEqual(iter.hasNext(), true);
-    });
+
+		iter.reset(URI.parse('file://share/usr/bin/file.txt?foo'));
+
+		// scheme
+		assert.strictEqual(iter.currItem(), 'file');
+		// assert.strictEqual(iter.cmp('FILE'), 0);
+		assert.strictEqual(iter.cmp('file'), 0);
+		assert.strictEqual(iter.hasNext(), true);
+		iter.next();
+
+		// authority
+		assert.strictEqual(iter.currItem(), 'share');
+		assert.strictEqual(iter.cmp('SHARe'), 0);
+		assert.strictEqual(iter.hasNext(), true);
+		iter.next();
+
+		// path
+		assert.strictEqual(iter.currItem(), 'usr');
+		assert.strictEqual(iter.hasNext(), true);
+		iter.next();
+
+		// path
+		assert.strictEqual(iter.currItem(), 'bin');
+		assert.strictEqual(iter.hasNext(), true);
+		iter.next();
+
+		// path
+		assert.strictEqual(iter.currItem(), 'file.txt');
+		assert.strictEqual(iter.hasNext(), true);
+		iter.next();
+
+		// query
+		assert.strictEqual(iter.currItem(), 'foo');
+		assert.strictEqual(iter.cmp('z') > 0, true);
+		assert.strictEqual(iter.cmp('a') < 0, true);
+		assert.strictEqual(iter.hasNext(), false);
+    })
 
     function generateTree(value: PossibleKey): ITernarySearchTree<PossibleKey, number> {
         let tree: ITernarySearchTree<PossibleKey, number>;
@@ -181,7 +205,6 @@ suite('ternarySearchTree-test', () => {
         };
 
         testGeneric('foobar', 'foobaz', 'fooba', 'foo', 'bar', 'foob', 'bazz');
-        // FIX
         testGeneric(URI.fromFile('foobar'), URI.fromFile('foobaz'), URI.fromFile('fooba'), URI.fromFile('foo'), URI.fromFile('bar'), URI.fromFile('foob'), URI.fromFile('bazz'));
     });
 
@@ -190,7 +213,6 @@ suite('ternarySearchTree-test', () => {
     // TODO: size
 
     test('delete & cleanup', () => {
-
         const testGeneric = function <Key extends PossibleKey>(foo: Key, foobar: Key, bar: Key, foobarbaz: Key, fo: Key): void {
             // normal delete
             let tree = generateTree(foo);
