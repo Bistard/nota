@@ -19,7 +19,6 @@ export namespace DomStyle {
 	export type FontWeight = 'normal' | 'lighter' | 'bold' | 'bolder' | 'initial' | 'inherit' | '100' | '200' | '300' | '400' | '500' | '600' | '700' | '800' | '900';
 	export type Visibility = 'visible' | 'hidden' | 'collapse' | 'initial' | 'inherit';
 	export type Color<T extends string> = HexColor<T>;
-
 }
 
 /**
@@ -101,16 +100,6 @@ export function addDisposableListener<T extends keyof GlobalEventHandlersEventMa
 		domNode.removeEventListener(eventType, callback as any);
 		disposed = true;
 	});
-}
-
-/**
- * @description Generates a string representation for HTML <span> label to display 
- * text.
- * @param text The text to be displeyed.
- * @returns The string representation of a <span> label.
- */
-export function formatSpan(text: string): string {
-	return `<span>${text}</span>`;
 }
 
 export type IStyleDisposable = IDisposable & {
