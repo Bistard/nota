@@ -375,7 +375,7 @@ export namespace DomUtility
 		 * provided potential ancestor node.
 		 * @returns A boolean value if it is indeed an ancestor.
 		 */
-		export function isAncestor(child?: Node, potentialAncestor?: Node): boolean {
+		export function isAncestor(potentialAncestor: Node, child?: Node): boolean {
 			while (child) {
 				if (child === potentialAncestor) {
 					return true;
