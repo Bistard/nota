@@ -1,11 +1,11 @@
-import { addDisposableListener, DomStyle, EventType } from "src/base/browser/basic/dom";
+import { addDisposableListener, DomStyle, EventType, IDomEvent } from "src/base/browser/basic/dom";
 import { Disposable, IDisposable } from "src/base/common/dispose";
 import { isObject } from "src/base/common/util/type";
 
 /**
  * The interface only for {@link FastElement}.
  */
-export interface IFastElement<T extends HTMLElement> {
+export interface IFastElement<T extends HTMLElement> extends IDomEvent<false> {
 
     readonly element: T;
 
@@ -45,24 +45,6 @@ export interface IFastElement<T extends HTMLElement> {
 
 	appendChild(child: IFastElement<T> | T): void;
 	removeChild(child: IFastElement<T> | T): void;
-
-    onClick(callback: (event: MouseEvent) => void): IDisposable;
-    onDoubleclick(callback: (event: MouseEvent) => void): IDisposable;
-    onMouseover(callback: (event: MouseEvent) => void): IDisposable;
-    onMouseout(callback: (event: MouseEvent) => void): IDisposable;
-    onMouseenter(callback: (event: MouseEvent) => void): IDisposable;
-    onMouseleave(callback: (event: MouseEvent) => void): IDisposable;
-    onMousedown(callback: (event: MouseEvent) => void): IDisposable;    
-    onMouseup(callback: (event: MouseEvent) => void): IDisposable;
-    onMousemove(callback: (event: MouseEvent) => void): IDisposable;
-    onWheel(callback: (event: WheelEvent) => void): IDisposable;
-    onTouchstart(callback: (event: TouchEvent) => void): IDisposable;
-    onTouchmove(callback: (event: TouchEvent) => void): IDisposable;
-    onTouchend(callback: (event: TouchEvent) => void): IDisposable;
-    onTouchcancel(callback: (event: TouchEvent) => void): IDisposable;
-    onContextmenu(callback: (event: MouseEvent) => void): IDisposable;
-    onFocusin(callback: (event: FocusEvent) => void): IDisposable;
-	onFocusout(callback: (event: FocusEvent) => void): IDisposable;
 }
 
 /**

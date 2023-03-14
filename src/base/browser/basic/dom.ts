@@ -487,25 +487,102 @@ export class DomEmitter<T> implements IDisposable {
     }
 }
 
-export interface IBaseElement extends IDisposable {
+/**
+ * Provides a list of DOM event APIs.
+ */
+export interface IDomEvent<IfUseElement extends boolean> {
 	
-	onClick(element: HTMLElement, callback: (event: MouseEvent) => void): IDisposable;
-    onDoubleclick(element: HTMLElement, callback: (event: MouseEvent) => void): IDisposable;
-    onMouseover(element: HTMLElement, callback: (event: MouseEvent) => void): IDisposable;
-    onMouseout(element: HTMLElement, callback: (event: MouseEvent) => void): IDisposable;
-    onMouseenter(element: HTMLElement, callback: (event: MouseEvent) => void): IDisposable;
-    onMouseleave(element: HTMLElement, callback: (event: MouseEvent) => void): IDisposable;
-	onMousedown(element: HTMLElement, callback: (event: MouseEvent) => void): IDisposable;    
-    onMouseup(element: HTMLElement, callback: (event: MouseEvent) => void): IDisposable;
-    onMousemove(element: HTMLElement, callback: (event: MouseEvent) => void): IDisposable;
-    onWheel(element: HTMLElement, callback: (event: WheelEvent) => void): IDisposable;
-    onTouchstart(element: HTMLElement, callback: (event: TouchEvent) => void): IDisposable;
-    onTouchmove(element: HTMLElement, callback: (event: TouchEvent) => void): IDisposable;
-    onTouchend(element: HTMLElement, callback: (event: TouchEvent) => void): IDisposable;
-    onTouchcancel(element: HTMLElement, callback: (event: TouchEvent) => void): IDisposable;
-	onContextmenu(element: HTMLElement, callback: (event: MouseEvent) => void): IDisposable;
-	onFocusin(element: HTMLElement, callback: (event: FocusEvent) => void): IDisposable;
-	onFocusout(element: HTMLElement, callback: (event: FocusEvent) => void): IDisposable;
+	onClick: IfUseElement extends true
+		? (element: HTMLElement, callback: (event: MouseEvent) => void) => IDisposable
+		: (callback: (event: MouseEvent) => void) => IDisposable
+	;
+    
+	onDoubleclick: IfUseElement extends true
+		? (element: HTMLElement, callback: (event: MouseEvent) => void) => IDisposable
+		: (callback: (event: MouseEvent) => void) => IDisposable
+	;
+    
+	onMouseover: IfUseElement extends true
+		? (element: HTMLElement, callback: (event: MouseEvent) => void) => IDisposable
+		: (callback: (event: MouseEvent) => void) => IDisposable
+	;
+    
+	onMouseout: IfUseElement extends true
+		? (element: HTMLElement, callback: (event: MouseEvent) => void) => IDisposable
+		: (callback: (event: MouseEvent) => void) => IDisposable
+	;
+    
+	onMouseenter: IfUseElement extends true
+		? (element: HTMLElement, callback: (event: MouseEvent) => void) => IDisposable
+		: (callback: (event: MouseEvent) => void) => IDisposable
+	;
+    
+	onMouseleave: IfUseElement extends true
+		? (element: HTMLElement, callback: (event: MouseEvent) => void) => IDisposable
+		: (callback: (event: MouseEvent) => void) => IDisposable
+	;
+	
+	onMousedown: IfUseElement extends true
+		? (element: HTMLElement, callback: (event: MouseEvent) => void) => IDisposable
+		: (callback: (event: MouseEvent) => void) => IDisposable
+	;
+    
+	onMouseup: IfUseElement extends true
+		? (element: HTMLElement, callback: (event: MouseEvent) => void) => IDisposable
+		: (callback: (event: MouseEvent) => void) => IDisposable
+	;
+    
+	onMousemove: IfUseElement extends true
+		? (element: HTMLElement, callback: (event: MouseEvent) => void) => IDisposable
+		: (callback: (event: MouseEvent) => void) => IDisposable
+	;
+    
+	onWheel: IfUseElement extends true
+		? (element: HTMLElement, callback: (event: WheelEvent) => void) => IDisposable
+		: (callback: (event: WheelEvent) => void) => IDisposable
+	;
+    
+	onTouchstart: IfUseElement extends true
+		? (element: HTMLElement, callback: (event: TouchEvent) => void) => IDisposable
+		: (callback: (event: TouchEvent) => void) => IDisposable
+	;
+    
+	onTouchmove: IfUseElement extends true
+		? (element: HTMLElement, callback: (event: TouchEvent) => void) => IDisposable
+		: (callback: (event: TouchEvent) => void) => IDisposable
+	;
+    
+	onTouchend: IfUseElement extends true
+		? (element: HTMLElement, callback: (event: TouchEvent) => void) => IDisposable
+		: (callback: (event: TouchEvent) => void) => IDisposable
+	;
+    
+	onTouchcancel: IfUseElement extends true
+		? (element: HTMLElement, callback: (event: TouchEvent) => void) => IDisposable
+		: (callback: (event: TouchEvent) => void) => IDisposable
+	;
+	
+	onContextmenu: IfUseElement extends true
+		? (element: HTMLElement, callback: (event: MouseEvent) => void) => IDisposable
+		: (callback: (event: MouseEvent) => void) => IDisposable
+	;
+	
+	onFocusin: IfUseElement extends true
+		? (element: HTMLElement, callback: (event: FocusEvent) => void) => IDisposable
+		: (callback: (event: FocusEvent) => void) => IDisposable
+	;
+	
+	onFocusout: IfUseElement extends true
+		? (element: HTMLElement, callback: (event: FocusEvent) => void) => IDisposable
+		: (callback: (event: FocusEvent) => void) => IDisposable
+	;
+}
+
+/**
+ * An interface only for {@link BaseElement}.
+ */
+export interface IBaseElement extends IDomEvent<true>, IDisposable {
+	// empty
 }
 
 /**
