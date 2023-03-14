@@ -328,6 +328,18 @@ export namespace DomUtility
 		}
 
 		/**
+		 * @description Determines if the given object is an instance of
+		 * {@link HTMLElement}.
+		 * @param o The given object.
+		 */
+		export function isHTMLElement(o: any): o is HTMLElement {
+			if (typeof HTMLElement === 'object') {
+				return o instanceof HTMLElement;
+			}
+			return o && typeof o === 'object' && o.nodeType === 1 && typeof o.nodeName === 'string';
+		}
+
+		/**
 		 * @description Determines if the given node is in the dom tree.
 		 */
 		export function ifInDomTree(node: Node): boolean {
