@@ -340,7 +340,7 @@ export class ListWidgetDragAndDropController<T> implements IDisposable {
 
     private __setScrollAnimationOnEdge(event: DragEvent): void {
         if (!this._scrollAnimationOnEdgeDisposable) {
-            const top = DomUtility.getViewportTop(this._view.DOMElement);
+            const top = DomUtility.Attrs.getViewportTop(this._view.DOMElement);
             this._scrollAnimationOnEdgeDisposable = requestAnimate(() => this.__animationOnEdge(top));
         }
         this._scrollAnimationMouseTop = event.pageY;

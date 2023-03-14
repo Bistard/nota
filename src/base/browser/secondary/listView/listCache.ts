@@ -87,7 +87,7 @@ export class ListViewCache implements IDisposable {
      * @param row The row about to be released.
      */
     public release(row: IListViewRow): void {
-        DomUtility.removeNodeFromParent(row.dom);
+        DomUtility.Elements.removeNodeFromParent(row.dom);
         const cache = this.__getCache(row.type);
         cache.push(row);
     }

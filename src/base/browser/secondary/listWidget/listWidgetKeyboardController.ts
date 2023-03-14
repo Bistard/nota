@@ -34,7 +34,7 @@ export class ListWidgetKeyboardController<T> extends Disposable implements IDisp
     // [private getter]
 
     @memoize 
-    protected get onKeydown(): Register<IStandardKeyboardEvent> { return Event.filter(this._view.onKeydown, e => !DomUtility.isInputElement(e.target as HTMLElement)); }
+    protected get onKeydown(): Register<IStandardKeyboardEvent> { return Event.filter(this._view.onKeydown, e => !DomUtility.Elements.isInputElement(e.target as HTMLElement)); }
 
     // [private helper methods]
 

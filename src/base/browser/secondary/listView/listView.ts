@@ -448,7 +448,7 @@ export class ListView<T> extends Disposable implements ISpliceable<T>, IListView
 
     public layout(height?: number): void {
 
-        height = height ?? DomUtility.getContentHeight(this.element);
+        height = height ?? DomUtility.Attrs.getContentHeight(this.element);
         this.scrollable.setViewportSize(height);
 
     }

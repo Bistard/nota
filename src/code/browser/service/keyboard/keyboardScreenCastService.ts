@@ -107,7 +107,7 @@ export class KeyboardScreenCastService implements IKeyboardScreenCastService {
         }
 
         if (this._container) {
-            DomUtility.removeNodeFromParent(this._container);
+            DomUtility.Elements.removeNodeFromParent(this._container);
             this._container.remove();
             this._container = undefined;
             this._tagContainer = undefined;
@@ -172,7 +172,7 @@ export class KeyboardScreenCastService implements IKeyboardScreenCastService {
 
     private __flushKeypress(): void {
         if (this._tagContainer) {
-            DomUtility.clearChildrenNodes(this._tagContainer);
+            DomUtility.Elements.clearChildrenNodes(this._tagContainer);
         }
         this._prevEvent = undefined;
         this._childrenCount = 0;

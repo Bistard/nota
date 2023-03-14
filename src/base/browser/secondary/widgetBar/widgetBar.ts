@@ -243,7 +243,7 @@ export class WidgetBar<T extends IWidget> extends Disposable implements IWidgetB
     public clear(): number {
         disposeAll(this._items);
         this._items = [];
-        return DomUtility.clearChildrenNodes(this._itemContainer);
+        return DomUtility.Elements.clearChildrenNodes(this._itemContainer);
     }
 
     public size(): number {

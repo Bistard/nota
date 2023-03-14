@@ -135,300 +135,326 @@ export function createStyleInCSS(element: HTMLElement): IStyleDisposable {
  * @description A uitility namespace that contains all the helper functions 
  * relates to DOM.
  * 
- * @warn The size-related methods does NOT work for IE8 browser, see 
- * 	https://stackoverflow.com/questions/5227909/how-to-get-an-elements-padding-value-using-javascript AND
- * 	https://developer.mozilla.org/en-US/docs/Web/API/Window/getComputedStyle
+ * {@link DomUtility.Attrs}
+ * {@link DomUtility.Positions}
+ * {@link DomUtility.Elements}
+ * {@link DomUtility.Modifiers}
  * 
- * @warn If the HTMLElement has not been added into the DOM tree, some methods
+ * @warn If the HTMLElement has not been added into the DOM tree, some methods 
  * under the namespace will NOT work properly.
  */
 export namespace DomUtility
 {
 
 	/**
-	 * A template function to get the resired CSS property from a given element.
-	 * @param element The HTMLElement.
-	 * @param property The CSS properpty name.
-	 * @returns The numerated resired property.
-	 * 
-	 * @warn If property cannot be convert to numerated form, -1 will be returned.
+	 * @warn The size-related methods does NOT work for IE8 browser, see 
+ 	 * 	https://stackoverflow.com/questions/5227909/how-to-get-an-elements-padding-value-using-javascript AND
+ 	 * 	https://developer.mozilla.org/en-US/docs/Web/API/Window/getComputedStyle
 	 */
-	function __getPropertyValue(element: HTMLElement, property: string): number {
-		let computedStyle: CSSStyleDeclaration = getComputedStyle(element);
-		let value = computedStyle.getPropertyValue(property);
-		return parseFloat(value) || 0;
-	}
-
-	// [method - padding]
-
-	export function getPaddingTop(element: HTMLElement): number {
-		return __getPropertyValue(element, 'padding-top');
-	}
-
-	export function getPaddingBottom(element: HTMLElement): number {
-		return __getPropertyValue(element, 'padding-bottom');
-	}
-
-	export function getPaddingLeft(element: HTMLElement): number {
-		return __getPropertyValue(element, 'padding-left');
-	}
-
-	export function getPaddingRight(element: HTMLElement): number {
-		return __getPropertyValue(element, 'padding-right');
-	}
-
-	// [method - border]
-
-	export function getBorderTop(element: HTMLElement): number {
-		return __getPropertyValue(element, 'border-top-width');
-	}
-
-	export function getBorderBottom(element: HTMLElement): number {
-		return __getPropertyValue(element, 'border-bottom-width');
-	}
-
-	export function getBorderLeft(element: HTMLElement): number {
-		return __getPropertyValue(element, 'border-left-width');
-	}
-
-	export function getBorderRight(element: HTMLElement): number {
-		return __getPropertyValue(element, 'border-right-width');
-	}
-
-	// [method - margin]
-
-	export function getMarginTop(element: HTMLElement): number {
-		return __getPropertyValue(element, 'margin-top');
-	}
-
-	export function getMarginBottom(element: HTMLElement): number {
-		return __getPropertyValue(element, 'margin-bottom');
-	}
-
-	export function getMarginLeft(element: HTMLElement): number {
-		return __getPropertyValue(element, 'margin-left');
-	}
-
-	export function getMarginRight(element: HTMLElement): number {
-		return __getPropertyValue(element, 'margin-right');
-	}
-
-	// [method - content]
-
-	/**
-	 * @description Get the height of the content excluding padding and border.
-	 * @param element The HTMLElement.
-	 * @note If the element is NOT in the DOM tree, the behaviour is undefined.
-	 */
-	export function getContentHeight(element: HTMLElement): number {
-		const padding = getPaddingTop(element) + getPaddingBottom(element);
-		const border  = getBorderTop(element) + getBorderBottom(element);
-		return element.offsetHeight - padding - border;
-	}
-
-	/**
-	 * @description Get the width of the content excluding padding and border.
-	 * @param element The HTMLElement.
-	 * @note If the element is NOT in the DOM tree, the behaviour is undefined.
-	 */
-	export function getContentWidth(element: HTMLElement): number {
-		const padding = getPaddingLeft(element) + getPaddingRight(element);
-		const border  = getBorderLeft(element) + getBorderRight(element);
-		return element.offsetWidth - padding - border;
-	}
-
-	/**
-	 * @description Get element top position relatives to the viewport.
-	 * @param element The HTMLElement.
-	 */
-	export function getViewportTop(element: HTMLElement): number {
-		const box = element.getBoundingClientRect();
-		const scrollTop = window.pageYOffset || DocElement.scrollTop || BODY.scrollTop;
-		const clientTop = DocElement.clientTop || BODY.clientTop || 0;
-		const top  = box.top +  scrollTop - clientTop;
-		return Math.round(top);
-	}
-
-	/**
-	 * @description Get element left position relatives to the viewport.
-	 * @param element The HTMLElement.
-	 */
-	export function getViewportLeft(element: HTMLElement): number {
-		const box = element.getBoundingClientRect();
-		const scrollLeft = window.pageXOffset || DocElement.scrollLeft || BODY.scrollLeft;
-		const clientLeft = DocElement.clientLeft || BODY.clientLeft || 0;
-		const left = box.left + scrollLeft - clientLeft;
-		return Math.round(left);
-	}
-
-	// [method - click]
-
-	/**
-	 * @description Returns the relative click coordinates to the target element.
-	 * @param event The {@link MouseEvent}.
-	 * @param target The {@link EventTarget} we are relative with
-	 */
-	export function getRelativeClick(event: MouseEvent, target?: EventTarget): Pair<number, number> {
-		let element = (target ?? event.currentTarget) as HTMLElement | null;
-		if (element === null) {
-			throw new Error('invalid event target');
+	export namespace Attrs {
+		/**
+		 * A template function to get the resired CSS property from a given element.
+		 * @param element The HTMLElement.
+		 * @param property The CSS properpty name.
+		 * @returns The numerated resired property.
+		 * 
+		 * @warn If property cannot be convert to numerated form, -1 will be returned.
+		 */
+		function __getPropertyValue(element: HTMLElement, property: string): number {
+			let computedStyle: CSSStyleDeclaration = getComputedStyle(element);
+			let value = computedStyle.getPropertyValue(property);
+			return parseFloat(value) || 0;
 		}
-		let box: DOMRect = element.getBoundingClientRect();
-		return [
-			event.clientX - box.left,
-			event.clientY - box.top
-		];
-	}
 
-	// [method - type]
+		// [method - padding]
 
-	/**
-	 * @description Check if the given HTMLElement is considered as a input type.
-	 */
-	export function isInputElement(target: HTMLElement): boolean {
-		return target.tagName === 'INPUT' || target.tagName === 'TEXTAREA';
-	}
-
-	// [method - DOM]
-
-	/**
-	 * @description Determines if the given node is in the dom tree.
-	 */
-	export function ifInDomTree(node: Node): boolean {
-		return node.isConnected;
-	}
-
-	/**
-	 * @description Clears all the children DOM nodes from a provided node.
-	 * @param node The parent DOM node.
-	 * @returns The number of cleared nodes.
-	 */
-	export function clearChildrenNodes(node: HTMLElement): number {
-		let cnt = 0;
-		while (node.firstChild) {
-			node.firstChild.remove();
-			cnt++;
+		export function getPaddingTop(element: HTMLElement): number {
+			return __getPropertyValue(element, 'padding-top');
 		}
-		return cnt;
-	}
 
-	/**
-	 * @description Removes the given node from its parent in DOM tree.
-	 * @param node The given DOMElement.
-	 */
-	export function removeNodeFromParent(node: HTMLElement): void {
-		if (node.parentElement) {
-			node.parentElement.removeChild(node);
+		export function getPaddingBottom(element: HTMLElement): number {
+			return __getPropertyValue(element, 'padding-bottom');
+		}
+
+		export function getPaddingLeft(element: HTMLElement): number {
+			return __getPropertyValue(element, 'padding-left');
+		}
+
+		export function getPaddingRight(element: HTMLElement): number {
+			return __getPropertyValue(element, 'padding-right');
+		}
+
+		// [method - border]
+
+		export function getBorderTop(element: HTMLElement): number {
+			return __getPropertyValue(element, 'border-top-width');
+		}
+
+		export function getBorderBottom(element: HTMLElement): number {
+			return __getPropertyValue(element, 'border-bottom-width');
+		}
+
+		export function getBorderLeft(element: HTMLElement): number {
+			return __getPropertyValue(element, 'border-left-width');
+		}
+
+		export function getBorderRight(element: HTMLElement): number {
+			return __getPropertyValue(element, 'border-right-width');
+		}
+
+		// [method - margin]
+
+		export function getMarginTop(element: HTMLElement): number {
+			return __getPropertyValue(element, 'margin-top');
+		}
+
+		export function getMarginBottom(element: HTMLElement): number {
+			return __getPropertyValue(element, 'margin-bottom');
+		}
+
+		export function getMarginLeft(element: HTMLElement): number {
+			return __getPropertyValue(element, 'margin-left');
+		}
+
+		export function getMarginRight(element: HTMLElement): number {
+			return __getPropertyValue(element, 'margin-right');
+		}
+
+		// [method - content]
+
+		/**
+		 * @description Get the height of the content excluding padding and border.
+		 * @param element The HTMLElement.
+		 * @note If the element is NOT in the DOM tree, the behaviour is undefined.
+		 */
+		export function getContentHeight(element: HTMLElement): number {
+			const padding = getPaddingTop(element) + getPaddingBottom(element);
+			const border  = getBorderTop(element) + getBorderBottom(element);
+			return element.offsetHeight - padding - border;
+		}
+
+		/**
+		 * @description Get the width of the content excluding padding and border.
+		 * @param element The HTMLElement.
+		 * @note If the element is NOT in the DOM tree, the behaviour is undefined.
+		 */
+		export function getContentWidth(element: HTMLElement): number {
+			const padding = getPaddingLeft(element) + getPaddingRight(element);
+			const border  = getBorderLeft(element) + getBorderRight(element);
+			return element.offsetWidth - padding - border;
+		}
+
+		/**
+		 * @description Get element top position relatives to the viewport.
+		 * @param element The HTMLElement.
+		 */
+		export function getViewportTop(element: HTMLElement): number {
+			const box = element.getBoundingClientRect();
+			const scrollTop = window.pageYOffset || DocElement.scrollTop || BODY.scrollTop;
+			const clientTop = DocElement.clientTop || BODY.clientTop || 0;
+			const top  = box.top +  scrollTop - clientTop;
+			return Math.round(top);
+		}
+
+		/**
+		 * @description Get element left position relatives to the viewport.
+		 * @param element The HTMLElement.
+		 */
+		export function getViewportLeft(element: HTMLElement): number {
+			const box = element.getBoundingClientRect();
+			const scrollLeft = window.pageXOffset || DocElement.scrollLeft || BODY.scrollLeft;
+			const clientLeft = DocElement.clientLeft || BODY.clientLeft || 0;
+			const left = box.left + scrollLeft - clientLeft;
+			return Math.round(left);
 		}
 	}
 
-	/**
-	 * @description Returns the current focused element in the DOM tree.
-	 * @returns The element or undefined when not found.
-	 */
-	export function getActiveElement(): Element | undefined {
-		let currElement = document.activeElement;
-		while (currElement?.shadowRoot) {
-			currElement = currElement.shadowRoot.activeElement;
+	export namespace Positions {
+		
+		/**
+		 * @description Returns the relative click coordinates to the target element.
+		 * @param event The {@link MouseEvent}.
+		 * @param target The {@link EventTarget} we are relative with
+		 */
+		export function getRelativeClick(event: MouseEvent, target?: EventTarget): Pair<number, number> {
+			let element = (target ?? event.currentTarget) as HTMLElement | null;
+			if (element === null) {
+				throw new Error('invalid event target');
+			}
+			let box: DOMRect = element.getBoundingClientRect();
+			return [
+				event.clientX - box.left,
+				event.clientY - box.top
+			];
 		}
-		return currElement ?? undefined;
+
+		/**
+		 * @description Returns the dimension of the provided element.
+		 */
+		export function getClientDimension(element: HTMLElement): Dimension {
+			// Try with DOM clientWidth / clientHeight
+			if (element !== BODY) {
+				return new Dimension(element.clientWidth, element.clientHeight);
+			}
+
+			// Try innerWidth / innerHeight
+			if (window.innerWidth && window.innerHeight) {
+				return new Dimension(window.innerWidth, window.innerHeight);
+			}
+
+			// Try with BODY.clientWidth / BODY.clientHeight
+			if (BODY && BODY.clientWidth && BODY.clientHeight) {
+				return new Dimension(BODY.clientWidth, BODY.clientHeight);
+			}
+
+			// Try with DocElement.clientWidth / DocElement.clientHeight
+			if (DocElement && DocElement.clientWidth && DocElement.clientHeight) {
+				return new Dimension(DocElement.clientWidth, DocElement.clientHeight);
+			}
+
+			throw new Error('Unable to figure out browser width and height');
+		}
 	}
 
-	/**
-	 * @description Returns the dimension of the provided element.
-	 */
-	export function getClientDimension(element: HTMLElement): Dimension {
-		// Try with DOM clientWidth / clientHeight
-		if (element !== BODY) {
-			return new Dimension(element.clientWidth, element.clientHeight);
+	export namespace Elements {
+		
+		/**
+		 * @description Check if the given HTMLElement is considered as a input type.
+		 */
+		export function isInputElement(target: HTMLElement): boolean {
+			return target.tagName === 'INPUT' || target.tagName === 'TEXTAREA';
 		}
 
-		// Try innerWidth / innerHeight
-		if (window.innerWidth && window.innerHeight) {
-			return new Dimension(window.innerWidth, window.innerHeight);
+		/**
+		 * @description Determines if the given node is in the dom tree.
+		 */
+		export function ifInDomTree(node: Node): boolean {
+			return node.isConnected;
 		}
 
-		// Try with BODY.clientWidth / BODY.clientHeight
-		if (BODY && BODY.clientWidth && BODY.clientHeight) {
-			return new Dimension(BODY.clientWidth, BODY.clientHeight);
+		/**
+		 * @description Clears all the children DOM nodes from a provided node.
+		 * @param node The parent DOM node.
+		 * @returns The number of cleared nodes.
+		 */
+		export function clearChildrenNodes(node: HTMLElement): number {
+			let cnt = 0;
+			while (node.firstChild) {
+				node.firstChild.remove();
+				cnt++;
+			}
+			return cnt;
+		}
+		
+		/**
+		 * @description Removes the given node from its parent in DOM tree.
+		 * @param node The given DOMElement.
+		 */
+		export function removeNodeFromParent(node: HTMLElement): void {
+			if (node.parentElement) {
+				node.parentElement.removeChild(node);
+			}
 		}
 
-		// Try with DocElement.clientWidth / DocElement.clientHeight
-		if (DocElement && DocElement.clientWidth && DocElement.clientHeight) {
-			return new Dimension(DocElement.clientWidth, DocElement.clientHeight);
+		/**
+		 * @description Returns the current focused element in the DOM tree.
+		 * @returns The element or undefined when not found.
+		 */
+		export function getActiveElement(): Element | undefined {
+			let currElement = document.activeElement;
+			while (currElement?.shadowRoot) {
+				currElement = currElement.shadowRoot.activeElement;
+			}
+			return currElement ?? undefined;
 		}
 
-		throw new Error('Unable to figure out browser width and height');
+		/**
+		 * @description Check if the given node is a child node from the 
+		 * provided potential ancestor node.
+		 * @returns A boolean value if it is indeed an ancestor.
+		 */
+		export function isAncestor(child?: Node, potentialAncestor?: Node): boolean {
+			while (child) {
+				if (child === potentialAncestor) {
+					return true;
+				}
+				child = child.parentNode ?? undefined;
+			}
+			return false;
+		}
 	}
 
-	export function setSize(element: HTMLElement, width: number | undefined, height: number | undefined): void {
-		if (typeof width === 'number') {
-			element.style.width = `${width}px`;
+	export namespace Modifiers {
+		
+		export function setSize(element: HTMLElement, width: number | undefined, height: number | undefined): void {
+			if (typeof width === 'number') {
+				element.style.width = `${width}px`;
+			}
+		
+			if (typeof height === 'number') {
+				element.style.height = `${height}px`;
+			}
 		}
 	
-		if (typeof height === 'number') {
-			element.style.height = `${height}px`;
-		}
-	}
-
-	export function setPosition(
-		element: HTMLElement, 
-		top: number | undefined, right: number | undefined, 
-		bottom: number | undefined, left: number | undefined, 
-		position: 'static' | 'absolute' | 'fixed' | 'relative' | 'sticky' | 'initial' | 'inherit',
-	): void {
-		if (typeof top === 'number') {
-			element.style.top = `${top}px`;
-		}
-	
-		if (typeof right === 'number') {
-			element.style.right = `${right}px`;
-		}
-	
-		if (typeof bottom === 'number') {
-			element.style.bottom = `${bottom}px`;
-		}
-	
-		if (typeof left === 'number') {
-			element.style.left = `${left}px`;
+		export function setPosition(
+			element: HTMLElement, 
+			top: number | undefined, right: number | undefined, 
+			bottom: number | undefined, left: number | undefined, 
+			position: 'static' | 'absolute' | 'fixed' | 'relative' | 'sticky' | 'initial' | 'inherit',
+		): void {
+			if (typeof top === 'number') {
+				element.style.top = `${top}px`;
+			}
+		
+			if (typeof right === 'number') {
+				element.style.right = `${right}px`;
+			}
+		
+			if (typeof bottom === 'number') {
+				element.style.bottom = `${bottom}px`;
+			}
+		
+			if (typeof left === 'number') {
+				element.style.left = `${left}px`;
+			}
+		
+			element.style.position = position;
 		}
 	
-		element.style.position = position;
-	}
-
-	export function setFastSize<T extends HTMLElement>(element: FastElement<T>, width: number | undefined, height: number | undefined): void {
-		if (typeof width === 'number') {
-			element.setWidth(width);
+		export function setFastSize<T extends HTMLElement>(element: FastElement<T>, width: number | undefined, height: number | undefined): void {
+			if (typeof width === 'number') {
+				element.setWidth(width);
+			}
+		
+			if (typeof height === 'number') {
+				element.setHeight(height);
+			}
 		}
 	
-		if (typeof height === 'number') {
-			element.setHeight(height);
+		export function setFastPosition<T extends HTMLElement>(
+			element: FastElement<T>, 
+			top: number | undefined, right: number | undefined, 
+			bottom: number | undefined, left: number | undefined, 
+			position: 'static' | 'absolute' | 'fixed' | 'relative' | 'sticky' | 'initial' | 'inherit',
+		): void {
+			if (typeof top === 'number') {
+				element.setTop(top);
+			}
+		
+			if (typeof right === 'number') {
+				element.setRight(right);
+			}
+		
+			if (typeof bottom === 'number') {
+				element.setBottom(bottom);
+			}
+		
+			if (typeof left === 'number') {
+				element.setLeft(left);
+			}
+		
+			element.setPosition(position);
 		}
-	}
-
-	export function setFastPosition<T extends HTMLElement>(
-		element: FastElement<T>, 
-		top: number | undefined, right: number | undefined, 
-		bottom: number | undefined, left: number | undefined, 
-		position: 'static' | 'absolute' | 'fixed' | 'relative' | 'sticky' | 'initial' | 'inherit',
-	): void {
-		if (typeof top === 'number') {
-			element.setTop(top);
-		}
-	
-		if (typeof right === 'number') {
-			element.setRight(right);
-		}
-	
-		if (typeof bottom === 'number') {
-			element.setBottom(bottom);
-		}
-	
-		if (typeof left === 'number') {
-			element.setLeft(left);
-		}
-	
-		element.setPosition(position);
 	}
 }
 

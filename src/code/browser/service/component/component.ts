@@ -259,7 +259,7 @@ export abstract class Component extends Themable implements IComponent {
 
         // If no dimensions provided, we default to layout to fit to parent.
         if (typeof width === 'undefined' && typeof height === 'undefined') {
-            this._dimension = DomUtility.getClientDimension(this._parent);
+            this._dimension = DomUtility.Positions.getClientDimension(this._parent);
             this._element.setWidth(this._dimension.width);
             this._element.setHeight(this._dimension.height);
         }

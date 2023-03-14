@@ -48,7 +48,7 @@ export class ListWidgetMouseController<T> implements IDisposable {
     // [protect methods]
 
     protected __ifSupported(e: IListMouseEvent<T>): boolean {
-        if (DomUtility.isInputElement(e.browserEvent.target as HTMLElement)) {
+        if (DomUtility.Elements.isInputElement(e.browserEvent.target as HTMLElement)) {
             return false;
         }
         return true;
@@ -119,7 +119,7 @@ export class ListWidgetMouseController<T> implements IDisposable {
      */
     private __onMouseDown(e: IListMouseEvent<T> | IListTouchEvent<T>): void {
         // prevent double focus
-        if (DomUtility.getActiveElement() !== e.browserEvent.target) {
+        if (DomUtility.Elements.getActiveElement() !== e.browserEvent.target) {
 			this._view.setDomFocus();
 		}
     }
