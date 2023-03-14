@@ -1,12 +1,11 @@
-import 'src/code/browser/workbench/workspace/titleBar/media/windowBar.scss';
-
+import 'src/code/browser/workbench/parts/workspace/titleBar/media/windowBar.scss';
 import { Icons } from "src/base/browser/icon/icons";
 import { WidgetBar } from "src/base/browser/secondary/widgetBar/widgetBar";
 import { Orientation } from "src/base/browser/basic/dom";
 import { IComponentService } from "src/code/browser/service/component/componentService";
 import { IThemeService } from "src/code/browser/service/theme/themeService";
 import { Component } from "src/code/browser/service/component/component";
-import { WindowButton } from "src/code/browser/workbench/workspace/titleBar/windowButton";
+import { WindowButton } from "src/code/browser/workbench/parts/workspace/titleBar/windowButton";
 import { IHostService } from "src/code/platform/host/common/hostService";
 
 export class WindowBar extends Component {

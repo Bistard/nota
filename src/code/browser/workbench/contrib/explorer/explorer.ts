@@ -18,14 +18,14 @@ import { StatusKey } from 'src/code/platform/status/common/status';
 import { DisposableManager } from 'src/base/common/dispose';
 import { createIcon } from 'src/base/browser/icon/iconRegistry';
 import { Icons } from 'src/base/browser/icon/icons';
-import { SideViewTitlePart } from 'src/code/browser/workbench/sideView/sideViewTitle';
-import { SideView } from 'src/code/browser/workbench/sideView/sideView';
+import { SideViewTitlePart } from 'src/code/browser/workbench/parts/sideView/sideViewTitle';
+import { SideView } from 'src/code/browser/workbench/parts/sideView/sideView';
 import { VisibilityController } from 'src/base/browser/basic/visibilityController';
 import { WidgetBar } from 'src/base/browser/secondary/widgetBar/widgetBar';
 import { Button } from 'src/base/browser/basic/button/button';
 import { RGBA } from 'src/base/common/color';
 import { ClassicOpenEvent, ExplorerViewID, IExplorerViewService } from 'src/code/browser/workbench/contrib/explorer/explorerService';
-import { IEditorService } from 'src/code/browser/workbench/workspace/editor/editorService';
+import { IEditorService } from 'src/code/browser/workbench/parts/workspace/editor/editorService';
 
 /**
  * @class TODO: complete comments

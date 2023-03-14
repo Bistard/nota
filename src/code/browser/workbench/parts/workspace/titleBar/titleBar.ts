@@ -1,6 +1,6 @@
-import 'src/code/browser/workbench/workspace/titleBar/media/titleBar.scss';
+import 'src/code/browser/workbench/parts/workspace/titleBar/media/titleBar.scss';
 import { Component } from 'src/code/browser/service/component/component';
-import { WindowBar } from 'src/code/browser/workbench/workspace/titleBar/windowBar';
+import { WindowBar } from 'src/code/browser/workbench/parts/workspace/titleBar/windowBar';
 import { IComponentService } from 'src/code/browser/service/component/componentService';
 import { IInstantiationService } from 'src/code/platform/instantiation/common/instantiation';
 import { IThemeService } from 'src/code/browser/service/theme/themeService';

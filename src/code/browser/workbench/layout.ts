@@ -1,10 +1,10 @@
 import { addDisposableListener, DomUtility, EventType, Orientation } from "src/base/browser/basic/dom";
 import { IComponentService } from "src/code/browser/service/component/componentService";
 import { IThemeService } from "src/code/browser/service/theme/themeService";
-import { SideBar, ISideBarService, SideButtonType } from "src/code/browser/workbench/sideBar/sideBar";
-import { ISideViewService, SideView } from "src/code/browser/workbench/sideView/sideView";
+import { SideBar, ISideBarService, SideButtonType } from "src/code/browser/workbench/parts/sideBar/sideBar";
+import { ISideViewService, SideView } from "src/code/browser/workbench/parts/sideView/sideView";
 import { Component } from "src/code/browser/service/component/component";
-import { IWorkspaceService } from "src/code/browser/workbench/workspace/workspace";
+import { IWorkspaceService } from "src/code/browser/workbench/parts/workspace/workspace";
 import { IInstantiationService } from "src/code/platform/instantiation/common/instantiation";
 import { ISplitView, ISplitViewOpts, SplitView } from "src/base/browser/secondary/splitView/splitView";
 import { Priority } from "src/base/common/event";

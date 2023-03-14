@@ -1,4 +1,4 @@
-import 'src/code/browser/workbench/sideView/media/sideView.scss';
+import 'src/code/browser/workbench/parts/sideView/media/sideView.scss';
 import { Component, IComponent } from 'src/code/browser/service/component/component';
 import { Emitter, Register } from 'src/base/common/event';
 import { createService } from 'src/code/platform/instantiation/common/decorator';
@@ -7,7 +7,7 @@ import { IInstantiationService } from 'src/code/platform/instantiation/common/in
 import { IThemeService } from 'src/code/browser/service/theme/themeService';
 import { Constructor, Mutable } from 'src/base/common/util/type';
 import { ILogService } from 'src/base/common/logger';
-import { SideViewTitlePart } from 'src/code/browser/workbench/sideView/sideViewTitle';
+import { SideViewTitlePart } from 'src/code/browser/workbench/parts/sideView/sideViewTitle';
 
 export const ISideViewService = createService<ISideViewService>('side-view-service');
 

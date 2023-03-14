@@ -1,8 +1,8 @@
-import 'src/code/browser/workbench/sideBar/media/sideBar.scss';
+import 'src/code/browser/workbench/parts/sideBar/media/sideBar.scss';
 import { Component, IComponent } from 'src/code/browser/service/component/component';
 import { createService } from 'src/code/platform/instantiation/common/decorator';
 import { IComponentService } from 'src/code/browser/service/component/componentService';
-import { ISideButtonOptions, SideButton } from 'src/code/browser/workbench/sideBar/sideBarButton';
+import { ISideButtonOptions, SideButton } from 'src/code/browser/workbench/parts/sideBar/sideBarButton';
 import { WidgetBar } from 'src/base/browser/secondary/widgetBar/widgetBar';
 import { Orientation } from 'src/base/browser/basic/dom';
 import { Emitter, Register } from 'src/base/common/event';

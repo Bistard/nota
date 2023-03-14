@@ -1,4 +1,4 @@
-import { IEditorService } from "src/code/browser/workbench/workspace/editor/editorService";
+import { IEditorService } from "src/code/browser/workbench/parts/workspace/editor/editorService";
 import { Command } from "src/code/platform/command/common/command";
 import { IServiceProvider } from "src/code/platform/instantiation/common/instantiation";
 import { ProseEditorView } from "src/editor/common/proseMirror";
