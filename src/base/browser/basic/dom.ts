@@ -32,8 +32,9 @@ export const enum EventType {
 	click = 'click',
 	contextmenu = 'contextmenu',
 	mouseover = 'mouseover',
-	mouseenter = 'mouseenter',
 	mouseout = 'mouseout',
+	mouseenter = 'mouseenter',
+	mouseleave = 'mouseleave',
 	mousedown = 'mousedown',
 	mouseup = 'mouseup',
 	mousemove = 'mousemove',
@@ -488,9 +489,10 @@ export interface IBaseElement extends IDisposable {
 	onClick(element: HTMLElement, callback: (event: MouseEvent) => void): IDisposable;
     onDoubleclick(element: HTMLElement, callback: (event: MouseEvent) => void): IDisposable;
     onMouseover(element: HTMLElement, callback: (event: MouseEvent) => void): IDisposable;
-    onMouseenter(element: HTMLElement, callback: (event: MouseEvent) => void): IDisposable;
     onMouseout(element: HTMLElement, callback: (event: MouseEvent) => void): IDisposable;
-    onMousedown(element: HTMLElement, callback: (event: MouseEvent) => void): IDisposable;    
+    onMouseenter(element: HTMLElement, callback: (event: MouseEvent) => void): IDisposable;
+    onMouseleave(element: HTMLElement, callback: (event: MouseEvent) => void): IDisposable;
+	onMousedown(element: HTMLElement, callback: (event: MouseEvent) => void): IDisposable;    
     onMouseup(element: HTMLElement, callback: (event: MouseEvent) => void): IDisposable;
     onMousemove(element: HTMLElement, callback: (event: MouseEvent) => void): IDisposable;
     onWheel(element: HTMLElement, callback: (event: WheelEvent) => void): IDisposable;
@@ -521,8 +523,15 @@ export class BaseElement extends Disposable implements IBaseElement {
             callback(e);
         }));
     }
+
     public onMouseover(element: HTMLElement, callback: (event: MouseEvent) => void): IDisposable {
         return this.__register(addDisposableListener(element, EventType.mouseover, (e: MouseEvent) => {
+            callback(e);
+        }));
+    }
+
+	public onMouseout(element: HTMLElement, callback: (event: MouseEvent) => void): IDisposable {
+        return this.__register(addDisposableListener(element, EventType.mouseout, (e: MouseEvent) => {
             callback(e);
         }));
     }
@@ -533,8 +542,8 @@ export class BaseElement extends Disposable implements IBaseElement {
         }));
     }
 
-    public onMouseout(element: HTMLElement, callback: (event: MouseEvent) => void): IDisposable {
-        return this.__register(addDisposableListener(element, EventType.mouseout, (e: MouseEvent) => {
+	public onMouseleave(element: HTMLElement, callback: (event: MouseEvent) => void): IDisposable {
+        return this.__register(addDisposableListener(element, EventType.mouseleave, (e: MouseEvent) => {
             callback(e);
         }));
     }

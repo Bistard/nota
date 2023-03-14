@@ -49,8 +49,9 @@ export interface IFastElement<T extends HTMLElement> {
     onClick(callback: (event: MouseEvent) => void): IDisposable;
     onDoubleclick(callback: (event: MouseEvent) => void): IDisposable;
     onMouseover(callback: (event: MouseEvent) => void): IDisposable;
-    onMouseenter(callback: (event: MouseEvent) => void): IDisposable;
     onMouseout(callback: (event: MouseEvent) => void): IDisposable;
+    onMouseenter(callback: (event: MouseEvent) => void): IDisposable;
+    onMouseleave(callback: (event: MouseEvent) => void): IDisposable;
     onMousedown(callback: (event: MouseEvent) => void): IDisposable;    
     onMouseup(callback: (event: MouseEvent) => void): IDisposable;
     onMousemove(callback: (event: MouseEvent) => void): IDisposable;
@@ -327,8 +328,15 @@ export class FastElement<T extends HTMLElement> extends Disposable implements IF
             callback(e);
         }));
     }
+
     public onMouseover(callback: (event: MouseEvent) => void): IDisposable {
         return this.__register(addDisposableListener(this.element, EventType.mouseover, (e: MouseEvent) => {
+            callback(e);
+        }));
+    }
+
+    public onMouseout(callback: (event: MouseEvent) => void): IDisposable {
+        return this.__register(addDisposableListener(this.element, EventType.mouseout, (e: MouseEvent) => {
             callback(e);
         }));
     }
@@ -339,8 +347,8 @@ export class FastElement<T extends HTMLElement> extends Disposable implements IF
         }));
     }
 
-    public onMouseout(callback: (event: MouseEvent) => void): IDisposable {
-        return this.__register(addDisposableListener(this.element, EventType.mouseout, (e: MouseEvent) => {
+    public onMouseleave(callback: (event: MouseEvent) => void): IDisposable {
+        return this.__register(addDisposableListener(this.element, EventType.mouseleave, (e: MouseEvent) => {
             callback(e);
         }));
     }
