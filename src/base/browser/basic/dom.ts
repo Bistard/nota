@@ -323,6 +323,18 @@ export namespace DomUtility
 	}
 
 	/**
+	 * @description Returns the current focused element in the DOM tree.
+	 * @returns The element or undefined when not found.
+	 */
+	export function getActiveElement(): Element | undefined {
+		let currElement = document.activeElement;
+		while (currElement?.shadowRoot) {
+			currElement = currElement.shadowRoot.activeElement;
+		}
+		return currElement ?? undefined;
+	}
+
+	/**
 	 * @description Returns the dimension of the provided element.
 	 */
 	export function getClientDimension(element: HTMLElement): Dimension {
