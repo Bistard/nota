@@ -23,6 +23,8 @@ export namespace DomStyle {
 
 /**
  * @readonly A enumeration of all HTMLElement event types.
+ * 
+ * {@link https://developer.mozilla.org/en-US/docs/Web/API/Element}
  */
 export const enum EventType {
 
@@ -49,12 +51,12 @@ export const enum EventType {
 	keyup = 'keyup',
 	keypress = 'keypress',
 
-	focus = 'focus',
-	blur = 'blur',
 	resize = 'resize',
 
 	focusin = 'focusin',
 	focusout = 'focusout',
+	focus = 'focus',
+	blur = 'blur',
 
 	drag = 'drag',
 	dragstart = 'dragstart',
@@ -515,91 +517,187 @@ export class DomEmitter<T> implements IDisposable {
 }
 
 /**
- * Provides a list of DOM event APIs.
+ * Provides a list of DOM element event APIs.
  */
 export interface IDomEvent<IfUseElement extends boolean> {
 	
+	/**
+	 * Fired when a pointing device button (e.g., a mouse's primary button) is 
+	 * pressed and released on a single element.
+	 */
 	onClick: IfUseElement extends true
 		? (element: HTMLElement, callback: (event: MouseEvent) => void) => IDisposable
 		: (callback: (event: MouseEvent) => void) => IDisposable
 	;
     
+	/**
+	 * Fired when a pointing device button (e.g., a mouse's primary button) is 
+	 * clicked twice on a single element.
+	 */
 	onDoubleclick: IfUseElement extends true
 		? (element: HTMLElement, callback: (event: MouseEvent) => void) => IDisposable
 		: (callback: (event: MouseEvent) => void) => IDisposable
 	;
     
+	/**
+	 * Fired when a pointing device is moved onto the element to which the 
+	 * listener is attached or onto one of its children.
+	 */
 	onMouseover: IfUseElement extends true
 		? (element: HTMLElement, callback: (event: MouseEvent) => void) => IDisposable
 		: (callback: (event: MouseEvent) => void) => IDisposable
 	;
     
+	/**
+	 * Fired when a pointing device (usually a mouse) is moved off the element 
+	 * to which the listener is attached or off one of its children.
+	 */
 	onMouseout: IfUseElement extends true
 		? (element: HTMLElement, callback: (event: MouseEvent) => void) => IDisposable
 		: (callback: (event: MouseEvent) => void) => IDisposable
 	;
     
+	/**
+	 * Fired when a pointing device (usually a mouse) is moved over the element 
+	 * that has the listener attached.
+	 */
 	onMouseenter: IfUseElement extends true
 		? (element: HTMLElement, callback: (event: MouseEvent) => void) => IDisposable
 		: (callback: (event: MouseEvent) => void) => IDisposable
 	;
     
+	/**
+	 * Fired when the pointer of a pointing device (usually a mouse) is moved 
+	 * out of an element that has the listener attached to it.
+	 */
 	onMouseleave: IfUseElement extends true
 		? (element: HTMLElement, callback: (event: MouseEvent) => void) => IDisposable
 		: (callback: (event: MouseEvent) => void) => IDisposable
 	;
 	
+	/**
+	 * Fired when a pointing device button is pressed on an element.
+	 */
 	onMousedown: IfUseElement extends true
 		? (element: HTMLElement, callback: (event: MouseEvent) => void) => IDisposable
 		: (callback: (event: MouseEvent) => void) => IDisposable
 	;
     
+	/**
+	 * Fired when a pointing device button is released on an element.
+	 */
 	onMouseup: IfUseElement extends true
 		? (element: HTMLElement, callback: (event: MouseEvent) => void) => IDisposable
 		: (callback: (event: MouseEvent) => void) => IDisposable
 	;
     
+	/**
+	 * Fired when a pointing device (usually a mouse) is moved while over an 
+	 * element.
+	 */
 	onMousemove: IfUseElement extends true
 		? (element: HTMLElement, callback: (event: MouseEvent) => void) => IDisposable
 		: (callback: (event: MouseEvent) => void) => IDisposable
 	;
     
+	/**
+	 * The `wheel` event fires when the user rotates a wheel button on a 
+	 * pointing device (typically a mouse).
+	 */
 	onWheel: IfUseElement extends true
 		? (element: HTMLElement, callback: (event: WheelEvent) => void) => IDisposable
 		: (callback: (event: WheelEvent) => void) => IDisposable
 	;
     
+	/**
+	 * The `touchstart` event is fired when one or more touch points are placed 
+	 * on the touch surface.
+	 */
 	onTouchstart: IfUseElement extends true
 		? (element: HTMLElement, callback: (event: TouchEvent) => void) => IDisposable
 		: (callback: (event: TouchEvent) => void) => IDisposable
 	;
     
+	/**
+	 * The `touchmove` event is fired when one or more touch points are moved 
+	 * along the touch surface.
+	 */
 	onTouchmove: IfUseElement extends true
 		? (element: HTMLElement, callback: (event: TouchEvent) => void) => IDisposable
 		: (callback: (event: TouchEvent) => void) => IDisposable
 	;
     
+	/**
+	 * The `touchend` event fires when one or more touch points are removed from 
+	 * the touch surface.
+	 */
 	onTouchend: IfUseElement extends true
 		? (element: HTMLElement, callback: (event: TouchEvent) => void) => IDisposable
 		: (callback: (event: TouchEvent) => void) => IDisposable
 	;
     
+	/**
+	 * The `touchcancel` event is fired when one or more touch points have been 
+	 * disrupted in an implementation-specific manner (for example, too many 
+	 * touch points are created).
+	 */
 	onTouchcancel: IfUseElement extends true
 		? (element: HTMLElement, callback: (event: TouchEvent) => void) => IDisposable
 		: (callback: (event: TouchEvent) => void) => IDisposable
 	;
 	
+	/**
+	 * The `contextmenu` event fires when the user attempts to open a context 
+	 * menu. This event is typically triggered by clicking the right mouse 
+	 * button, or by pressing the context menu key.
+	 * 
+	 * In the latter case, the context menu is displayed at the bottom left of 
+	 * the focused element, unless the element is a tree, in which case the 
+	 * context menu is displayed at the bottom left of the current row.
+	 * 
+	 * Any right-click event that is not disabled (by calling the event's 
+	 * preventDefault() method) will result in a `contextmenu` event being fired 
+	 * at the targeted element.
+	 */
 	onContextmenu: IfUseElement extends true
 		? (element: HTMLElement, callback: (event: MouseEvent) => void) => IDisposable
 		: (callback: (event: MouseEvent) => void) => IDisposable
 	;
 	
+	/**
+	 * The `focusin` event fires when an element has received focus, after the 
+	 * `focus` event. The two events differ in that `focusin` bubbles, while 
+	 * `focus` does not.
+	 */
 	onFocusin: IfUseElement extends true
 		? (element: HTMLElement, callback: (event: FocusEvent) => void) => IDisposable
 		: (callback: (event: FocusEvent) => void) => IDisposable
 	;
 	
+	/**
+	 * The `focusout` event fires when an element has lost focus, after the 
+	 * `blur` event. The two events differ in that `focusout` bubbles, while 
+	 * `blur` does not.
+	 */
 	onFocusout: IfUseElement extends true
+		? (element: HTMLElement, callback: (event: FocusEvent) => void) => IDisposable
+		: (callback: (event: FocusEvent) => void) => IDisposable
+	;
+
+	/**
+	 * The `focus` event fires when an element has received focus. The event 
+	 * does not bubble, but the related `focusin` event that follows does bubble.
+	 */
+	onFocus: IfUseElement extends true
+		? (element: HTMLElement, callback: (event: FocusEvent) => void) => IDisposable
+		: (callback: (event: FocusEvent) => void) => IDisposable
+	;
+
+	/**
+	 * The `blur` event fires when an element has lost focus. The event does not 
+	 * bubble, but the related `focusout` event that follows does bubble.
+	 */
+	onBlur: IfUseElement extends true
 		? (element: HTMLElement, callback: (event: FocusEvent) => void) => IDisposable
 		: (callback: (event: FocusEvent) => void) => IDisposable
 	;
@@ -719,6 +817,18 @@ export class BaseElement extends Disposable implements IBaseElement {
 
 	public onFocusout(element: HTMLElement, callback: (event: FocusEvent) => void): IDisposable {
         return this.__register(addDisposableListener(element, EventType.focusout, (e: FocusEvent) => {
+            callback(e);
+        }));
+    }
+
+	public onFocus(element: HTMLElement, callback: (event: FocusEvent) => void): IDisposable {
+        return this.__register(addDisposableListener(element, EventType.focus, (e: FocusEvent) => {
+            callback(e);
+        }));
+    }
+
+	public onBlur(element: HTMLElement, callback: (event: FocusEvent) => void): IDisposable {
+        return this.__register(addDisposableListener(element, EventType.blur, (e: FocusEvent) => {
             callback(e);
         }));
     }

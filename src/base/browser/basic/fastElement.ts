@@ -403,6 +403,18 @@ export class FastElement<T extends HTMLElement> extends Disposable implements IF
         }));
     }
 
+    public onFocus(callback: (event: FocusEvent) => void): IDisposable {
+        return this.__register(addDisposableListener(this.element, EventType.focus, (e: FocusEvent) => {
+            callback(e);
+        }));
+    }
+
+	public onBlur(callback: (event: FocusEvent) => void): IDisposable {
+        return this.__register(addDisposableListener(this.element, EventType.blur, (e: FocusEvent) => {
+            callback(e);
+        }));
+    }
+
     public override dispose(): void {
         this.element.remove();
         super.dispose();
