@@ -54,6 +54,9 @@ export const enum EventType {
 	blur = 'blur',
 	resize = 'resize',
 
+	focusin = 'focusin',
+	focusout = 'focusout',
+
 	drag = 'drag',
 	dragstart = 'dragstart',
 	dragend = 'dragend',
@@ -501,6 +504,8 @@ export interface IBaseElement extends IDisposable {
     onTouchend(element: HTMLElement, callback: (event: TouchEvent) => void): IDisposable;
     onTouchcancel(element: HTMLElement, callback: (event: TouchEvent) => void): IDisposable;
 	onContextmenu(element: HTMLElement, callback: (event: MouseEvent) => void): IDisposable;
+	onFocusin(element: HTMLElement, callback: (event: FocusEvent) => void): IDisposable;
+	onFocusout(element: HTMLElement, callback: (event: FocusEvent) => void): IDisposable;
 }
 
 /**
@@ -598,6 +603,18 @@ export class BaseElement extends Disposable implements IBaseElement {
 
 	public onContextmenu(element: HTMLElement, callback: (event: MouseEvent) => void): IDisposable {
         return this.__register(addDisposableListener(element, EventType.contextmenu, (e: MouseEvent) => {
+            callback(e);
+        }));
+    }
+
+	public onFocusin(element: HTMLElement, callback: (event: FocusEvent) => void): IDisposable {
+        return this.__register(addDisposableListener(element, EventType.focusin, (e: FocusEvent) => {
+            callback(e);
+        }));
+    }
+
+	public onFocusout(element: HTMLElement, callback: (event: FocusEvent) => void): IDisposable {
+        return this.__register(addDisposableListener(element, EventType.focusout, (e: FocusEvent) => {
             callback(e);
         }));
     }
