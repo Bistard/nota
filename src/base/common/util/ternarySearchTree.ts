@@ -320,8 +320,8 @@ export interface ITernarySearchTree<K, V> extends IIterable<[K, V]> {
     delete(key: K): void;
 
     /**
-     * @description Delete any values with given key that which contains the 
-     * key as the superstring.
+     * @description Delete any values that contain the given key as the 
+     * superstring.
      * @param key A key to search its corresponding value.
      * @complexity O(logn + k), n: number of nodes
      *                          k: length of key
@@ -350,7 +350,12 @@ export interface ITernarySearchTree<K, V> extends IIterable<[K, V]> {
      */
     findSubStrOf(key: K): V | undefined;
 
-    // TODO: 
+    /**
+     * @description Find any values that contain the given key as the 
+     * superstring.
+     * @param key A key to search its corresponding value.
+     * @return An iterator to loop over all the values.
+     */
     findSuperStrOf(key: K): IterableIterator<[K, V]> | undefined;
 
     /**
@@ -482,8 +487,7 @@ export class TernarySearchTree<K, V extends NonNullable<any>> implements ITernar
 
     public fill(values: readonly [K, V][]): void {
         const arr = values.slice(0);
-        // TODO: for testing only
-        Random.shuffle(arr, 1000);
+        Random.shuffle(arr);
         for (const entry of arr) {
             this.set(entry[0], entry[1]);
         }
@@ -592,7 +596,6 @@ export class TernarySearchTree<K, V extends NonNullable<any>> implements ITernar
         return candidate;
     }
 
-    // TODO: Test Case
     public findSuperStrOf(key: K): IterableIterator<[K, V]> | undefined {
         const node = this._findNode(key);
         if (!node || !node.mid) {
