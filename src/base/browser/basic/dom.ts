@@ -1,5 +1,4 @@
 import { FastElement } from "src/base/browser/basic/fastElement";
-import { requestAtNextAnimationFrame } from "src/base/common/animation";
 import { HexColor } from "src/base/common/color";
 import { Disposable, IDisposable, toDisposable } from "src/base/common/dispose";
 import { Emitter, Register } from "src/base/common/event";
@@ -131,6 +130,21 @@ export function createStyleInCSS(element: HTMLElement): IStyleDisposable {
 		dispose: () => element.removeChild(style),
 		style: style,
 	};
+}
+
+/**
+ * @description Check if the web envrionment (DOM content) has been loaded.
+ * @returns A promise that will fullfilled when everything is loaded.
+ */
+export function waitDomToBeLoad(): Promise<unknown> {
+	return new Promise<unknown>(resolve => {
+		const readyState = document.readyState;
+		if (readyState === 'complete' || (document && BODY !== null)) {
+			resolve(undefined);
+		} else {
+			window.addEventListener('DOMContentLoaded', resolve, false);
+		}
+	});
 }
 
 /**
@@ -347,30 +361,6 @@ export namespace DomUtility
 		}
 
 		/**
-		 * @description Clears all the children DOM nodes from a provided node.
-		 * @param node The parent DOM node.
-		 * @returns The number of cleared nodes.
-		 */
-		export function clearChildrenNodes(node: HTMLElement): number {
-			let cnt = 0;
-			while (node.firstChild) {
-				node.firstChild.remove();
-				cnt++;
-			}
-			return cnt;
-		}
-		
-		/**
-		 * @description Removes the given node from its parent in DOM tree.
-		 * @param node The given DOMElement.
-		 */
-		export function removeNodeFromParent(node: HTMLElement): void {
-			if (node.parentElement) {
-				node.parentElement.removeChild(node);
-			}
-		}
-
-		/**
 		 * @description Returns the current focused element in the DOM tree.
 		 * @returns The element or undefined when not found.
 		 */
@@ -400,6 +390,16 @@ export namespace DomUtility
 
 	export namespace Modifiers {
 		
+		export function show(element: HTMLElement): void {
+			element.style.display = '';
+			element.removeAttribute('aria-hidden');
+		}
+
+		export function hide(element: HTMLElement): void {
+			element.style.display = 'none';
+			element.setAttribute('aria-hidden', 'true');
+		}
+
 		export function setSize(element: HTMLElement, width: number | undefined, height: number | undefined): void {
 			if (typeof width === 'number') {
 				element.style.width = `${width}px`;
@@ -469,39 +469,31 @@ export namespace DomUtility
 		
 			element.setPosition(position);
 		}
-	}
-}
 
-/**
- * @description Check if the web envrionment (DOM content) has been loaded.
- * @returns A promise that will fullfilled when everything is loaded.
- */
-export function waitDomToBeLoad(): Promise<unknown> {
-	return new Promise<unknown>(resolve => {
-		const readyState = document.readyState;
-		if (readyState === 'complete' || (document && BODY !== null)) {
-			resolve(undefined);
-		} else {
-			window.addEventListener('DOMContentLoaded', resolve, false);
+		/**
+		 * @description Clears all the children DOM nodes from a provided node.
+		 * @param node The parent DOM node.
+		 * @returns The number of cleared nodes.
+		 */
+		export function clearChildrenNodes(node: HTMLElement): number {
+			let cnt = 0;
+			while (node.firstChild) {
+				node.firstChild.remove();
+				cnt++;
+			}
+			return cnt;
 		}
-	});
-}
-
-/**
- * @description Continue requesting at next animation frame on the provided 
- * callback and returns a diposable to stop it.
- * @param animateFn The animation callback.
- */
-export function requestAnimate(animateFn: () => void): IDisposable {
-	let animateDisposable: IDisposable;
-
-	const animation = () => {
-		animateFn();
-		animateDisposable = requestAtNextAnimationFrame(animation);
-	};
-
-	animateDisposable = requestAtNextAnimationFrame(animation);
-	return animateDisposable;
+		
+		/**
+		 * @description Removes the given node from its parent in DOM tree.
+		 * @param node The given DOMElement.
+		 */
+		export function removeNodeFromParent(node: HTMLElement): void {
+			if (node.parentElement) {
+				node.parentElement.removeChild(node);
+			}
+		}
+	}
 }
 
 /**
@@ -510,16 +502,16 @@ export function requestAnimate(animateFn: () => void): IDisposable {
  */
 export class DomEmitter<T> implements IDisposable {
 
-    private emitter: Emitter<T>;
-    private listener: IDisposable;
-
-    get registerListener(): Register<T> {
-        return this.emitter.registerListener;
-    }
+    private readonly emitter: Emitter<T>;
+    private readonly listener: IDisposable;
 
     constructor(element: EventTarget, type: EventType) {
         this.emitter = new Emitter();
-        this.listener = addDisposableListener(element, type as any, (e: Event) => this.emitter.fire(e as any));
+        this.listener = addDisposableListener(element, <any>type, (e) => this.emitter.fire(e));
+    }
+
+	get registerListener(): Register<T> {
+        return this.emitter.registerListener;
     }
 
     public dispose(): void {
