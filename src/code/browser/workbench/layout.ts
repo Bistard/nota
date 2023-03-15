@@ -9,7 +9,8 @@ import { IInstantiationService } from "src/code/platform/instantiation/common/in
 import { ISplitView, ISplitViewOpts, SplitView } from "src/base/browser/secondary/splitView/splitView";
 import { Priority } from "src/base/common/event";
 import { IConfigService } from "src/code/platform/configuration/common/abstractConfigService";
-import { ExplorerView } from "src/code/browser/workbench/sideView/explorer/explorer";
+import { ExplorerView } from "src/code/browser/workbench/contrib/explorer/explorer";
+import { ISplitViewItemOpts } from "src/base/browser/secondary/splitView/splitViewItem";
 
 /**
  * @description A base class for Workbench to create and manage the behaviour of
@@ -52,10 +53,10 @@ export abstract class WorkbenchLayout extends Component {
 
     protected __createLayout(): void {
         
-        const splitViewOpt: ISplitViewOpts = {
+        const splitViewOpt = {
             orientation: Orientation.Horizontal,
-            viewOpts: [],
-        };
+            viewOpts: <ISplitViewItemOpts[]>[],
+        } satisfies ISplitViewOpts;
 
         // Constructs each component of the workbench.
         const configurations = [
@@ -67,7 +68,7 @@ export abstract class WorkbenchLayout extends Component {
         for (const [component, minSize, maxSize, initSize, priority] of configurations) {
             component.create(this);
             component.registerListeners();
-            splitViewOpt.viewOpts!.push({
+            splitViewOpt.viewOpts.push({
                 element: component.element.element, 
                 minimumSize: minSize,
                 maximumSize: maxSize,
@@ -99,6 +100,8 @@ export abstract class WorkbenchLayout extends Component {
          * sideView to swtich the view.
          */
         this.sideBarService.onDidClick(e => {
+            e.type
+            
             this.sideViewService.switchView(e.type);
         });
     }

@@ -1,3 +1,4 @@
+import "src/base/browser/basic/searchbar/searchbar.scss";
 import { IWidget, Widget } from "src/base/browser/basic/widget";
 import { createIcon } from "src/base/browser/icon/iconRegistry";
 import { Icons } from "src/base/browser/icon/icons";

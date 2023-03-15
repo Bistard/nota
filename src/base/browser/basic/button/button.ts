@@ -1,3 +1,4 @@
+import "src/base/browser/basic/button/button.scss";
 import { IWidget, Widget } from "src/base/browser/basic/widget";
 import { createIcon, getIconClass } from "src/base/browser/icon/iconRegistry";
 import { Icons } from "src/base/browser/icon/icons";

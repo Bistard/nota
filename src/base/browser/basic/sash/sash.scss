@@ -1,0 +1,29 @@
+.sash {
+    position: absolute;
+    background-color: none;
+    pointer-events: initial;
+    user-select: none;
+
+    &.vertical {
+        cursor: ew-resize;
+        height: 100%;
+    }
+    
+    &.horizontal {
+        cursor: ns-resize;
+        width: 100%;
+    }
+    
+    &.hover {
+        background-color: gainsboro;
+    }
+    
+    &.disable {
+        pointer-events: none;
+    }
+    
+    &.visible {
+        background-color: black;
+        opacity: 0.05;
+    }
+}

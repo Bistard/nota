@@ -499,14 +499,18 @@ var Tokenizer = /*#__PURE__*/function () {
 		}
 	};
 	_proto.blockquote = function blockquote(src) {
-		var cap = this.rules.block.blockquote.exec(src);
+		const cap = this.rules.block.blockquote.exec(src);
 		if (cap) {
-			var text = cap[0].replace(/^ *>[ \t]?/gm, '');
+			const text = cap[0].replace(/^ *>[ \t]?/gm, '');
+			const top = this.lexer.state.top;
+			this.lexer.state.top = true;
+			const tokens = this.lexer.blockTokens(text);
+			this.lexer.state.top = top;
 			return {
 				type: 'blockquote',
 				raw: cap[0],
-				tokens: this.lexer.blockTokens(text, []),
-				text: text
+				tokens,
+				text
 			};
 		}
 	};

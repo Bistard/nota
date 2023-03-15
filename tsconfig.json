@@ -5,7 +5,7 @@
   "include": [
     "src/**/*", 
     "test/**/*",
-    "test/util/**/*",
+    "test/utils/**/*",
     "./node_modules/prosemirror-view/**/*",
     "./node_modules/prosemirror-model/**/*",
     "./node_modules/prosemirror-state/**/*",

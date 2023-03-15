@@ -56,7 +56,7 @@
 
 	const wrappedIpcRenderer = (function wrapIpcRendererAPI() {
 		return {
-			 send(channel, ...args) {
+			send(channel, ...args) {
 				if (validate(channel)) {
 					ipcRenderer.send(channel, ...args);
 				}

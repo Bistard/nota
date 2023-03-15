@@ -31,35 +31,39 @@ export interface IInstantiationService extends IServiceProvider {
     /**
      * @description Register a service either using an instance or the 
      * ServiceDescriptor for delaying instantiation.
-     * 
-     * @param serviceIdentifier decorator to the service which is created by createService()
-     * @param instanceOrDescriptor instance or ServiceDescriptor of the service
+     * @param serviceIdentifier decorator to the service which is created by `createService()`.
+     * @param instanceOrDescriptor instance or ServiceDescriptor of the service.
      */
     register<T>(serviceIdentifier: ServiceIdentifier<T>, instanceOrDescriptor: T | ServiceDescriptor<T>): void;
 
     /**
      * @description Passing into a constructor or a ServiceDescriptor<any> to 
      * create an instance.
-     * 
-     * @param ctorOrDescriptor constructor or ServiceDescriptor of the service
-     * @param rest all the arguments for that service
+     * @param ctorOrDescriptor constructor or ServiceDescriptor of the service.
+     * @param rest all the arguments for that service.
      */
     createInstance<Ctor extends Constructor<any>, T extends InstanceType<Ctor>>(ctorOrDescriptor: Ctor | ServiceDescriptor<Ctor>, ...rest: any[]): T;
 
     /**
      * @description Create a new instantiation service that inherits all the 
-     * current services
-     * @param collection 
+     * current services.
+     * @param collection A list of services for initialization.
+     * 
+     * @note If the current instantiation service cannot find a service, it will 
+     * go ask the parent instantiation service if the expecting service exist.
+     * @note The child instantiation service also has ability to overwrite the 
+     * existing services in the parent instantiation service without actual 
+     * replacing the services in the parent.
      */
     createChild(collection: ServiceCollection): IInstantiationService;
 
     /**
      * @description Invokes a callback function with a {@link IServiceProvider}
      * which will get or create a service.
-     * @param cb The callback function.
+     * @param callback The callback function.
      * @param args The arguments for creating the requesting service.
      */
-    getOrCreateService1<T, R extends any[]>(cb: (provider: IServiceProvider, ...args: R) => T, ...args: R): T;
+    getOrCreateService1<T, R extends any[]>(callback: (provider: IServiceProvider, ...args: R) => T, ...args: R): T;
 }
 
 export class InstantiationService implements IInstantiationService {
@@ -108,7 +112,7 @@ export class InstantiationService implements IInstantiationService {
         return service;
     }
 
-    public getOrCreateService1<T, R extends any[]>(cb: (provider: IServiceProvider, ...args: R) => T, ...args: R): T {
+    public getOrCreateService1<T, R extends any[]>(callback: (provider: IServiceProvider, ...args: R) => T, ...args: R): T {
         const provider: IServiceProvider = {
             getService: <T>(serviceIdentifier: ServiceIdentifier<T>) => {
                 const service = this.serviceCollections.get(serviceIdentifier);
@@ -126,7 +130,7 @@ export class InstantiationService implements IInstantiationService {
             }
         };
 
-        return cb(provider, ...args);
+        return callback(provider, ...args);
     }
 
     public createInstance(

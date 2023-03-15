@@ -6,10 +6,10 @@ import { IEditorModel } from "src/editor/common/model";
 import { ProseNode } from "src/editor/common/proseMirror";
 import { EditorSchema } from "src/editor/viewModel/schema";
 
-export const enum EditorRenderType {
-    Plain = 'plain',
-    Split = 'split',
-    Rich = 'rich',
+export const enum EditorType {
+    Plain = 'plain-text',
+    Split = 'split-view',
+    Rich = 'rich-text',
 }
 
 export interface IEditorViewModel extends Disposable {
@@ -17,7 +17,7 @@ export interface IEditorViewModel extends Disposable {
     /**
      * The current rendering mode of the view.
      */
-    readonly renderMode: EditorRenderType;
+    readonly renderMode: EditorType;
 
     readonly model: IEditorModel;
 
@@ -25,13 +25,10 @@ export interface IEditorViewModel extends Disposable {
      * Fires when a log is about happen.
      */
     readonly onLog: Register<ILogEvent<string | Error>>;
-
     readonly onRender: Register<IRenderEvent>;
-
-    readonly onDidChangeRenderMode: Register<EditorRenderType>;
+    readonly onDidRenderModeChange: Register<EditorType>;
 
     getSchema(): EditorSchema;
-
     getExtensions(): IEditorExtension[];
 
     /**
@@ -45,9 +42,9 @@ export interface IEditorViewModelOptions {
 
     /**
      * Determines how the editor is about to render the view.
-     * @default EditorRenderType.Rich
+     * @default EditorType.Rich
      */
-    mode?: EditorRenderType;
+    mode?: EditorType;
 
     /**
      * If enables code-block highlight functionality.
@@ -73,7 +70,7 @@ export interface IRenderPlainEvent {
     /**
      * The target displaying type for the view.
      */
-    readonly type: EditorRenderType.Plain;
+    readonly type: EditorType.Plain;
 
     /**
      * The plain text for rendering.
@@ -86,7 +83,7 @@ export interface IRenderSplitEvent {
     /**
      * The target displaying type for the view.
      */
-    readonly type: EditorRenderType.Split;
+    readonly type: EditorType.Split;
 
     /**
      * The plain text for rendering.
@@ -103,7 +100,7 @@ export interface IRenderRichEvent {
     /**
      * The target displaying type for the view.
      */
-    readonly type: EditorRenderType.Rich;
+    readonly type: EditorType.Rich;
 
     /**
      * The parsed document that is used for user displaying.
@@ -112,11 +109,11 @@ export interface IRenderRichEvent {
 }
 
 export function isRenderPlainEvent(event: any): event is IRenderPlainEvent {
-    return event.type === EditorRenderType.Plain;
+    return event.type === EditorType.Plain;
 }
 export function isRenderSplitEvent(event: any): event is IRenderSplitEvent {
-    return event.type === EditorRenderType.Split;
+    return event.type === EditorType.Split;
 }
 export function isRenderRichEvent(event: any): event is IRenderRichEvent {
-    return event.type === EditorRenderType.Rich;
+    return event.type === EditorType.Rich;
 }

@@ -53,4 +53,29 @@ export namespace Random {
     export function maybe(probability: number): boolean {
         return Math.random() <= probability;
     }
+
+    /**
+     * @description Shuffles an array with Fisher-Yates Algorithm.
+     * @param array An array to be shuffled.
+     * @param seed A given seed.
+     */
+    export function shuffle<T>(array: T[], seed?: number): void {
+        let rand: () => number;
+        if (typeof seed === 'number') {
+            let localSeed = seed;
+            rand = () => {
+                const x = Math.sin(localSeed++) * 179426549;
+                return x - Math.floor(x);
+            }
+        } else {
+            rand =  Math.random;
+        }
+
+        for (let i = array.length - 1; i > 0; i -= 1) {
+            const j = Math.floor(rand() * (i + 1));
+            const temp = array[i];
+            array[i] = array[j]!;
+            array[j] = temp!;
+        }
+    }
 }

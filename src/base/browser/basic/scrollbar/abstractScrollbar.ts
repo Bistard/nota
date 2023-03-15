@@ -1,3 +1,4 @@
+import "src/base/browser/basic/scrollbar/scrollbar.scss";
 import { VisibilityController } from "src/base/browser/basic/visibilityController";
 import { IWidget, Widget } from "src/base/browser/basic/widget";
 import { IDisposable } from "src/base/common/dispose";

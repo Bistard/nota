@@ -1,3 +1,4 @@
+import "src/base/browser/secondary/scrollableWidget/scrollableWidget.scss";
 import { AbstractScrollbar, ScrollBarHost } from "src/base/browser/basic/scrollbar/abstractScrollbar";
 import { HorizontalScrollbar } from "src/base/browser/basic/scrollbar/horizontalScrollbar";
 import { VerticalScrollbar } from "src/base/browser/basic/scrollbar/verticalScrollbar";

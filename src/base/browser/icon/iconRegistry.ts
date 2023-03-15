@@ -1,3 +1,4 @@
+import "src/base/browser/icon/icons.css";
 import { Icons } from "src/base/browser/icon/icons";
 import { Pair } from "src/base/common/util/type";
 

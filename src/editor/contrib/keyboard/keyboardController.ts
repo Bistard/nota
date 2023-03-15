@@ -1,29 +1,24 @@
-import { ICommandService } from "src/code/platform/command/common/commandService";
+import { Keyboard } from "src/base/common/keyboard";
+import { CommandService, ICommandService } from "src/code/platform/command/common/commandService";
+import { IInstantiationService } from "src/code/platform/instantiation/common/instantiation";
 import { REGISTRANTS } from "src/code/platform/registrant/common/registrant";
-import { EditorCommandsEnum } from "src/editor/common/command/command.register";
-import { IEditorCommandEvent } from "src/editor/common/command/editorCommand";
 import { EditorExtension } from "src/editor/common/extension/editorExtension";
 import { IEditorExtensionRegistrant } from "src/editor/common/extension/editorExtensionRegistrant";
 import { IEditorWidget } from "src/editor/editorWidget";
 
 export class KeyboardController extends EditorExtension {
 
+    // [field]
+
     // [constructor]
 
     constructor(
         private readonly editor: IEditorWidget,
-        @ICommandService private readonly commandService: ICommandService,
+        @IInstantiationService instantiationService: IInstantiationService,
+        @ICommandService CommandService: ICommandService,
     ) {
         super();
         
-        this.onKeydown(event => {
-            // FIX
-            this.commandService.executeCommand(EditorCommandsEnum.deleteCurrentSelection, <IEditorCommandEvent>{
-                state: event.view.state,
-                dispatch: event.view.dispatch,
-                view: event.view,
-            });
-        });
     }
 
     // [public methods]

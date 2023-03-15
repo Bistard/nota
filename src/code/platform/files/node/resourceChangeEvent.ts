@@ -1,8 +1,9 @@
-import { isParentOf } from "src/base/common/file/glob";
 import { URI } from "src/base/common/file/uri";
+import { CreateTernarySearchTree, TernarySearchTree } from "src/base/common/util/ternarySearchTree";
 import { IResourceChangeEvent, ResourceChangeType } from "src/code/platform/files/node/watcher";
 import { IReviverRegistrant } from "src/code/platform/ipc/common/revive";
 import { REGISTRANTS } from "src/code/platform/registrant/common/registrant";
+import { IRawResourceChangeEvent } from "src/code/platform/files/node/watcher";
 
 /**
  * @class A wrapper class over the raw {@link IResourceChangeEvent}. It provides 
@@ -10,12 +11,42 @@ import { REGISTRANTS } from "src/code/platform/registrant/common/registrant";
  */
 export class ResourceChangeEvent {
 
+    // [field]
+    private readonly _added: TernarySearchTree<URI, IRawResourceChangeEvent> | undefined =  undefined;
+    private readonly _deleted: TernarySearchTree<URI, IRawResourceChangeEvent> | undefined = undefined;
+    private readonly _updated: TernarySearchTree<URI, IRawResourceChangeEvent> | undefined =  undefined;
+
     // [constructor]
 
     constructor(
-        private readonly rawEvent: IResourceChangeEvent,
+        private readonly rawEvent: IResourceChangeEvent, ignoreCase?: boolean
     ) {
+        const entriesByType = new Map<ResourceChangeType, [URI, IRawResourceChangeEvent][]>();
 
+        for (const change of rawEvent.events) {
+            const entry = entriesByType.get(change.type);
+            if (entry) {
+                entry.push([URI.fromFile(change.resource), change]);
+            } else {
+                entriesByType.set(change.type, [[URI.fromFile(change.resource), change]]);
+            }
+        }
+
+        for (const [type, event] of entriesByType) {
+            switch(type) {
+                case ResourceChangeType.ADDED:
+                    this._added = CreateTernarySearchTree.forUriKeys<IRawResourceChangeEvent>(ignoreCase ? ignoreCase : false);
+                    this._added.fill(event);
+                    break;
+                case ResourceChangeType.DELETED:
+                    this._deleted = CreateTernarySearchTree.forUriKeys<IRawResourceChangeEvent>(ignoreCase ? ignoreCase : false);
+                    this._deleted.fill(event);
+                    break;
+                case ResourceChangeType.UPDATED:
+                    this._updated = CreateTernarySearchTree.forUriKeys<IRawResourceChangeEvent>(ignoreCase ? ignoreCase : false);
+                    this._updated.fill(event);
+            }
+        }
     }
 
     // [public methods]
@@ -73,39 +104,64 @@ export class ResourceChangeEvent {
             return false;
         }
 
-        let anyMatchType = false;
-        if (!typeFilter || !typeFilter.length) {
-            anyMatchType = true;
-        } 
-        else {
+        let addMatch = false;
+        let deleteMatch = false;
+        let updateMatch = false;
+
+        if (typeFilter && typeFilter.length) {  
             for (const type of typeFilter) {
                 if (type === ResourceChangeType.ADDED && this.rawEvent.anyAdded) {
-                    anyMatchType = true;
+                    addMatch = true;
                 } else if (type === ResourceChangeType.DELETED && this.rawEvent.anyDeleted) {
-                    anyMatchType = true;
+                    deleteMatch = true;
                 } else if (type === ResourceChangeType.UPDATED && this.rawEvent.anyUpdated) {
-                    anyMatchType = true;
+                    updateMatch = true;
                 }
             }
-        }
-
-        // no matching types
-        if (!anyMatchType) {
-            return false;
+            if (!(addMatch || deleteMatch || updateMatch)) {
+                return false;
+            }
         }
 
         // TODO: pref - use TenarySearchTree for optimization
-        if (searchChildren) {
-            for (const raw of this.rawEvent.events) {
-                if (isParentOf(raw.resource, URI.toFsPath(resource))) {
-                    return true;
-                }
+        // if (searchChildren) {
+        //     for (const raw of this.rawEvent.events) {
+        //         if (isParentOf(raw.resource, URI.toFsPath(resource))) {
+        //             return true;
+        //         }
+        //     }
+        // } else {
+        //     for (const raw of this.rawEvent.events) {
+        //         if (raw.resource === URI.toFsPath(resource)) {
+        //             return true;
+        //         }
+        //     }  
+        // }
+
+        if (!typeFilter || addMatch) {
+            if (this._added?.has(resource)) {
+                return true;
             }
-        } else {
-            for (const raw of this.rawEvent.events) {
-                if (raw.resource === URI.toFsPath(resource)) {
-                    return true;
-                }
+            if (searchChildren && this._added?.findSuperStrOf(resource)) {
+                return true;
+            }
+        }
+
+        if (!typeFilter || deleteMatch) {
+            if (this._deleted?.findSubStrOf(resource)) {
+                return true;
+            }
+            if (searchChildren && this._deleted?.findSuperStrOf(resource)) {
+                return true;
+            }
+        }
+
+        if (!typeFilter || updateMatch) {
+            if (this._updated?.has(resource)) {
+                return true;
+            }
+            if (searchChildren && this._updated?.findSuperStrOf(resource)) {
+                return true;
             }
         }
 

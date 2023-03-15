@@ -1,0 +1,13 @@
+
+// [components]
+@import 'src/styles/components/animation.scss';
+@import 'src/styles/components/interaction.scss';
+@import 'src/styles/components/layout.scss';
+@import 'src/styles/components/visualization.scss';
+@import 'src/styles/components/color.scss';
+
+// [settings]
+@import 'src/styles/settings/globals.scss';
+
+// [editor]
+@import '../editor/styles/index.css';
