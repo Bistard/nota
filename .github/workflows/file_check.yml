@@ -22,6 +22,7 @@ jobs:
         files=$(find "$search_directory" -type f -name "$file_extension")
         
         for file in $files; do
+          echo "checking file: $file"
           if grep -q -E "$disallowed_words" "$file"; then
             echo "Disallowed word(s) found in file: $file"
             grep -n -E "$disallowed_words" "$file"
