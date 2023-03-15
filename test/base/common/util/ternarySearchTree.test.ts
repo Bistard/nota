@@ -1,16 +1,6 @@
 import * as assert from 'assert';
 import { URI } from 'src/base/common/file/uri';
-import { Random } from 'src/base/common/util/random';
 import { CreateTernarySearchTree, ITernarySearchTree, StringIterator, TernarySearchTree, TernarySearchTreeNode, UriIterator } from 'src/base/common/util/ternarySearchTree';
-
-const originalClass: any = TernarySearchTree;
-originalClass.prototype.fill = function fill(values: readonly any[]): void {
-	const arr = values.slice(0);
-	Random.shuffle(arr, 0); // set the seed
-	for (const entry of arr) {
-		this.set(entry[0], entry[1]);
-	}
-}
 
 suite('ternarySearchTree-test', () => {
     
@@ -37,7 +27,7 @@ suite('ternarySearchTree-test', () => {
     	// iterator not tested yet, just confirming input
         for (const [key, value] of tree) {
             const expected = items[i++];
-            assert.ok(expected, "expected does not exsited ...");
+            assert.ok(expected);
             assert.strictEqual(key, expected[0]);
             assert.strictEqual(value, expected[1]);
         }
@@ -144,6 +134,8 @@ suite('ternarySearchTree-test', () => {
 		test('fill & clear', () => {
 				const input: [string, number][] = [['foo', 0], ['bar', 1], ['bang', 2], ['bazz', 3]];
 				let tree = CreateTernarySearchTree.forStringKeys();
+				tree.seed = 0;
+
 				tree.fill(input);
 				for (const [key, value] of input) {
 					assert.strictEqual(tree.get(key), value);
@@ -261,6 +253,8 @@ suite('ternarySearchTree-test', () => {
 	
 		test('size', () => {
 			let tree = CreateTernarySearchTree.forStringKeys();
+			tree.seed = 0;
+
 			tree.fill([['foo', 0], ['bar', 1], ['bang', 2], ['bazz', 3]]);
 	
 			tree.set('foobar', 3);

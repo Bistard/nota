@@ -471,14 +471,21 @@ export class TernarySearchTree<K, V extends NonNullable<any>> implements ITernar
     private _iter: IKeyIterator<K>;
     private _size: number;
 
+    private _seed?: number;
+
     // [constructor]
     
-    constructor(keyIter: IKeyIterator<K>) {
+    constructor(keyIter: IKeyIterator<K>, seed?: number) {
         this._iter = keyIter;
         this._size = 0; 
+        this._seed = seed;
     }
 
     // [public methods]
+
+    set seed(val: number | undefined) {
+        this._seed = val;
+    }
 
     public clear(): void {
         this._root = undefined;
@@ -487,7 +494,7 @@ export class TernarySearchTree<K, V extends NonNullable<any>> implements ITernar
 
     public fill(values: readonly [K, V][]): void {
         const arr = values.slice(0);
-        Random.shuffle(arr);
+        Random.shuffle(arr, this._seed);
         for (const entry of arr) {
             this.set(entry[0], entry[1]);
         }
