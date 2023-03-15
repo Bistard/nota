@@ -1,0 +1,34 @@
+name: Check for Disallowed Actions
+on:
+  push:
+    branches:
+      - '**'
+
+jobs:
+  check_disallowed_words:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+      name: Check out repository code
+
+    - name: Check out repository code
+      run: |
+        disallowed_words="suite.only\|test.only"
+        file_extension="*.test.ts"
+        search_directory="test/"
+        
+        error_count=0
+        files=$(find "$search_directory" -type f -name "$file_extension")
+        
+        for file in $files; do
+          if grep -q -E "$disallowed_words" "$file"; then
+            echo "Disallowed word(s) found in file: $file"
+            grep -n -E "$disallowed_words" "$file"
+            error_count=$((error_count + 1))
+          fi
+        done
+
+        if [ $error_count -gt 0 ]; then
+          exit 1
+        fi
