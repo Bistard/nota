@@ -14,7 +14,6 @@ export const TestDirName = 'tests';
 export const TestPath = join(tmpdir(), NotaName, TestDirName);
 export const TestURI = URI.fromFile(TestPath);
 
-
 export class NullLifecycleService extends AbstractLifecycleService<number, number> {
 
     constructor() {
