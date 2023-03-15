@@ -2,7 +2,7 @@ import * as assert from 'assert';
 import { URI } from 'src/base/common/file/uri';
 import { CreateTernarySearchTree, ITernarySearchTree, StringIterator, TernarySearchTree, TernarySearchTreeNode, UriIterator } from 'src/base/common/util/ternarySearchTree';
 
-suite('ternarySearchTree-test', () => {
+suite.only('ternarySearchTree-test', () => {
     
     function isbalanced(tree: ITernarySearchTree<any, any>): boolean {
         const nodeBalanced = (node: TernarySearchTreeNode<any, any> | undefined): boolean => {
