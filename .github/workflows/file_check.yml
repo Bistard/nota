@@ -14,9 +14,11 @@ jobs:
 
     - name: Check out repository code
       run: |
-        disallowed_words="suite.only\|test.only"
+        disallowed_words='suite.only\|test.only'
         file_extension="*.test.ts"
         search_directory="test/"
+
+        echo "checking disallowed words among files with extension $file_extension under $search_directory"
         
         error_count=0
         files=$(find "$search_directory" -type f -name "$file_extension")
