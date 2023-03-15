@@ -187,7 +187,7 @@ export class UriIterator implements IKeyIterator<URI> {
             this._states.push(UriIteratorState.Authority);
         }
         if (this._value.path) {
-            this._pathIter = new __PathIterator(false, this._ignoreCase);
+            this._pathIter = new __PathIterator(false, !this._ignoreCase);
             this._pathIter.reset(value.path);
             if (this._pathIter.currItem()) {
                 this._states.push(UriIteratorState.Path);
@@ -703,44 +703,44 @@ export class TernarySearchTree<K, V extends NonNullable<any>> implements ITernar
             node.updateNodeHeight();
             const bf = node.balanceFactor();
 
-                if (bf < -1 || bf > 1) {
+            if (bf > 1) {
+				// right heavy
+				if (node.right!.balanceFactor() >= 0) {
+					// right, right -> rotate left
+					path[i]![1] = node.rotateLeft();
+				} else {
+					// right, left -> rotate right then left
+					node.right = node.right!.rotateRight();
+					path[i]![1] = node.rotateLeft();
+				}
 
-                    // unbalanced
-                    const d1 = path[i]![0];
-                    let node1 = path[i]![1];
-                    const d2 = path[i + 1]![0];
-                    let node2 = path[i + 1]![1];
-                    
-                    if (d1 === Dir.Left && d2 === Dir.Left) {
-                        // left heavy, rotate right
-                        node1 = path[i]![1] = node1.rotateRight();
-                    } else if (d1 === Dir.Right && d2 === Dir.Right) {
-                        // right heavy, rotate left
-                        node1 = path[i]![1] = node1.rotateLeft();
-                    } else if (d1 === Dir.Right && d2 === Dir.Left) {
-                        node1.right = node2.rotateRight();
-                        node1 = path[i]![1] = node1.rotateLeft();
-                    } else { // d1 === Dir.Left && d2 === Dir.Right
-                        node1.left = node2.rotateLeft();
-                        node1 = path[i]![1] = node1.rotateRight();
-                    }
+			} else if (bf < -1) {
+				// left heavy
+				if (node.left!.balanceFactor() <= 0) {
+					// left, left -> rotate right
+					path[i]![1] = node.rotateRight();
+				} else {
+					// left, right -> rotate left then right
+					node.left = node.left!.rotateLeft();
+					path[i]![1] = node.rotateRight();
+				}
+			}
 
-                    // correct the parent of node1
-                if (i > 0) {
-                    switch(path[i - 1]![0]) {
-                        case Dir.Left:
-                            path[i - 1]![1].left = node1;
-                            break;
-                        case Dir.Right:
-                            path[i - 1]![1].right = node1;
-                            break;
-                        case Dir.Mid:
-                            path[i - 1]![1].mid = node1;
-                            break;
-                    }
-                } else {
-                    this._root = node1;
+            // correct the parent of node
+            if (i > 0) {
+                switch(path[i - 1]![0]) {
+                    case Dir.Left:
+                        path[i - 1]![1].left = path[i]![1];
+                        break;
+                    case Dir.Right:
+                        path[i - 1]![1].right = path[i]![1];
+                        break;
+                    case Dir.Mid:
+                        path[i - 1]![1].mid = path[i]![1];
+                        break;
                 }
+            } else {
+                this._root = path[i]![1];
             }
         }
     }
@@ -755,7 +755,7 @@ export class TernarySearchTree<K, V extends NonNullable<any>> implements ITernar
     private _bstRemoveNode(node: TernarySearchTreeNode<K, V>, path: [Dir, TernarySearchTreeNode<K, V>][]): void {
         if (node.left && node.right) {
             const leftest = this._leftest(node.right);
-            if (leftest) {
+            if (leftest.key) {
                 const { key, value, segment } = leftest;
                 this._delete(leftest.key!, false);
                 node.key = key;

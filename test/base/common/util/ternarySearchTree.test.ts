@@ -5,7 +5,7 @@ import { isString } from 'src/base/common/util/type';
 
 type PossibleKey = string | URI;
 
-suite('ternarySearchTree-test', () => {
+suite.only('ternarySearchTree-test', () => {
     
     function isbalanced(tree: ITernarySearchTree<any, any>): boolean {
         const nodeBalanced = (node: TernarySearchTreeNode<any, any> | undefined): boolean => {
@@ -22,7 +22,7 @@ suite('ternarySearchTree-test', () => {
     }
 
     // Note: items must be in order. 
-    function assertTstDfs<Key extends PossibleKey, E>(tree: ITernarySearchTree<Key, E>, ...items: [Key, E][]) {
+    function assertTstDfs<E>(tree: ITernarySearchTree<string, E>, ...items: [string, E][]) {
         assert.ok(isbalanced(tree), 'TST is not balanced');
 
         let i = 0;
@@ -37,20 +37,22 @@ suite('ternarySearchTree-test', () => {
 
         assert.strictEqual(i, items.length);
 
-        const map = new Map<Key, E>();
+        const map = new Map<string, E>();
 
         for (const [key, value] of items) {
             map.set(key, value);
         }
 
         // get
-        map.forEach((value: E, key: Key): void => {
+        map.forEach((value: E, key: string): void => {
+            assert.ok(tree.has(key));
             assert.strictEqual(value, tree.get(key));
         })
 
         // foreach and iterator
         let count = 0;
-        tree.forEach((value: E, key: Key): void => {
+        tree.forEach((value: E, key: string): void => {
+            assert.ok(tree.has(key));
             assert.strictEqual(value, map.get(key));
             count++;
         });
@@ -155,120 +157,288 @@ suite('ternarySearchTree-test', () => {
 		assert.strictEqual(iter.hasNext(), false);
     })
 
-    function generateTree(value: PossibleKey): ITernarySearchTree<PossibleKey, number> {
-        let tree: ITernarySearchTree<PossibleKey, number>;
-        if (URI.isURI(value)) {
-            tree = CreateTernarySearchTree.forUriKeys<number, URI>();
-        } else if (isString(value)) {
-            tree = CreateTernarySearchTree.forStringKeys<number, string>();
-        } else {
-            throw new Error();
-        }
-        return tree;
-    }
+    test('TST (String) - set & get & has', () => {
 
-    test('set & get & has', () => {
+        // get and has are tested in assertTstDfs function
+        let tree = CreateTernarySearchTree.forStringKeys<number>();
+		tree.set('foobar', 1);
+		tree.set('foobaz', 2);
 
-        // TODO: `has` is not tested yet
+		assertTstDfs(tree, ['foobar', 1], ['foobaz', 2]); // longer
 
-        const testGeneric = function <Key extends PossibleKey>(foobar: Key, foobaz: Key, fooba: Key, foo: Key, bar: Key, foob: Key, bazz: Key): void {
-            let tree = generateTree(foo);
+		tree = CreateTernarySearchTree.forStringKeys<number>();
+		tree.set('foobar', 1);
+		tree.set('fooba', 2);
+		assertTstDfs(tree, ['fooba', 2], ['foobar', 1]); // shorter
 
-            tree.set(foobar, 0);
-            tree.set(foobaz, 1);
-            assertTstDfs(tree, [foobar, 0], [foobaz, 1]); // same length
+		tree = CreateTernarySearchTree.forStringKeys<number>();
+		tree.set('foo', 1);
+		tree.set('foo', 2);
+		assertTstDfs(tree, ['foo', 2]);
 
-            tree = generateTree(foo);
-            tree.set(foobar, 1);
-            tree.set(fooba, 2);
-            assertTstDfs(tree, [fooba, 2], [foobar, 1]); // shorter
+		tree = CreateTernarySearchTree.forStringKeys<number>();
+		tree.set('foo', 1);
+		tree.set('foobar', 2);
+		tree.set('bar', 3);
+		tree.set('foob', 4);
+		tree.set('bazz', 5);
 
-            tree = generateTree(foo);
-            tree.set(foo, 1);
-            tree.set(foo, 2);
-            assertTstDfs(tree, [foo, 2]);
-
-            tree = generateTree(foo);
-            tree.set(foo, 1);
-            tree.set(foobar, 2);
-            tree.set(bar, 3);
-            tree.set(foob, 4);
-            tree.set(bazz, 5);
-
-            assertTstDfs(tree,
-                [bar, 3],
-                [bazz, 5],
-                [foo, 1],
-                [foob, 4],
-                [foobar, 2],
-            );
-        };
-
-        testGeneric('foobar', 'foobaz', 'fooba', 'foo', 'bar', 'foob', 'bazz');
-        testGeneric(URI.fromFile('foobar'), URI.fromFile('foobaz'), URI.fromFile('fooba'), URI.fromFile('foo'), URI.fromFile('bar'), URI.fromFile('foob'), URI.fromFile('bazz'));
+		assertTstDfs(tree,
+			['bar', 3],
+			['bazz', 5],
+			['foo', 1],
+			['foob', 4],
+			['foobar', 2],
+		);
+        
     });
 
     // TODO: findSubtr
 
     // TODO: size
 
-    test('delete & cleanup', () => {
-        const testGeneric = function <Key extends PossibleKey>(foo: Key, foobar: Key, bar: Key, foobarbaz: Key, fo: Key): void {
-            // normal delete
-            let tree = generateTree(foo);
-            tree.set(foo, 1);
-            tree.set(foobar, 2);
-            tree.set(bar, 3);
-            assertTstDfs(tree, [bar, 3], [foo, 1], [foobar, 2]);
-            tree.delete(foo);
-            assertTstDfs(tree, [bar, 3], [foobar, 2]);
-            tree.delete(foobar);
-            assertTstDfs(tree, [bar, 3]);
-
-            // superstr-delete
-            tree = generateTree(foo);
-            tree.set(foo, 1);
-            tree.set(foobar, 2);
-            tree.set(bar, 3);
-            tree.set(foobarbaz, 4);
-            tree.deleteSuperStrOf(foo);
-            assertTstDfs(tree, [bar, 3], [foo, 1]);
-
-            tree = generateTree(foo);
-            tree.set(foo, 1);
-            tree.set(foobar, 2);
-            tree.set(bar, 3);
-            tree.set(foobarbaz, 4);
-            tree.deleteSuperStrOf(fo);
-            assertTstDfs(tree, [bar, 3]);
-        };
-
-		testGeneric('foo', 'foobar', 'bar', 'foobarbaz', 'fo');
-        // FIX
-        testGeneric(URI.fromFile('foo'), URI.fromFile('foobar'), URI.fromFile('bar'), URI.fromFile('foobarbaz'), URI.fromFile('fo'));
-	});
-
-    test('fill and clear', () => {
-
-        const fillAndClearGeneric = function (fillData: readonly [PossibleKey, number][]): void {
-            if (!fillData.length) {
-                return;
-            }
-            
-            let tree = generateTree(fillData[0]![0]!);
-            tree.fill(fillData);
-
-            for (const pair of fillData) {
-                assert.strictEqual(tree.get(pair[0]), pair[1]);
+    test('TST - fill & clear', () => {
+            const input: [string, number][] = [['foo', 0], ['bar', 1], ['bang', 2], ['bazz', 3]];
+            let tree = CreateTernarySearchTree.forStringKeys();
+            tree.fill(input);
+            for (const [key, value] of input) {
+                assert.strictEqual(tree.get(key), value);
             }
 
             tree.clear();
             assert.strictEqual(tree.getRoot(), undefined);
             assert.strictEqual(tree.size(), 0);
-        };
-        
-        fillAndClearGeneric([['foo', 0], ['bar', 1], ['bang', 2], ['bazz', 3]]);
-        // FIX
-        fillAndClearGeneric([[URI.fromFile('foo'), 0], [URI.fromFile('bar'), 1], [URI.fromFile('bang'), 2], [URI.fromFile('bazz'), 3]]);
+
     });
+
+    test('TST (String) - delete', () => {
+
+        let tree = new TernarySearchTree<string, number>(new StringIterator());
+		tree.set('foo', 1);
+		tree.set('foobar', 2);
+		tree.set('bar', 3);
+		assertTstDfs(tree, ['bar', 3], ['foo', 1], ['foobar', 2]);
+		tree.delete('foo');
+		assertTstDfs(tree, ['bar', 3], ['foobar', 2]);
+		tree.delete('foobar');
+		assertTstDfs(tree, ['bar', 3]);
+
+		// superstr-delete
+		tree = new TernarySearchTree<string, number>(new StringIterator());
+		tree.set('foo', 1);
+		tree.set('foobar', 2);
+		tree.set('bar', 3);
+		tree.set('foobarbaz', 4);
+		tree.deleteSuperStrOf('foo');
+		assertTstDfs(tree, ['bar', 3], ['foo', 1]);
+
+		tree = new TernarySearchTree<string, number>(new StringIterator());
+		tree.set('foo', 1);
+		tree.set('foobar', 2);
+		tree.set('bar', 3);
+		tree.set('foobarbaz', 4);
+		tree.deleteSuperStrOf('fo');
+		assertTstDfs(tree, ['bar', 3]);
+
+        tree = new TernarySearchTree<string, number>(new StringIterator());
+		tree.set('foo', 1);
+		tree.set('foobar', 2);
+		tree.set('bar', 3);
+		tree.deleteSuperStrOf('f');
+		assertTstDfs(tree, ['bar', 3]);
+
+        // bst delete
+        tree = new TernarySearchTree<string, number>(new StringIterator());
+        tree.set('d', 1);
+		assertTstDfs(tree, ['d', 1]);
+		tree.delete('d');
+		assertTstDfs(tree);
+
+		// delete node with two element
+		tree.clear();
+		tree.set('d', 1);
+		tree.set('b', 1);
+		tree.set('f', 1);
+		assertTstDfs(tree, ['b', 1], ['d', 1], ['f', 1]);
+		tree.delete('d');
+		assertTstDfs(tree, ['b', 1], ['f', 1]);
+
+		// single child node
+		tree.clear();
+		tree.set('d', 1);
+		tree.set('b', 1);
+		tree.set('f', 1);
+		tree.set('e', 1);
+		assertTstDfs(tree, ['b', 1], ['d', 1], ['e', 1], ['f', 1]);
+		tree.delete('f');
+		assertTstDfs(tree, ['b', 1], ['d', 1], ['e', 1]);
+
+        // delete after avl-balance
+		tree.clear();
+		tree.set('d', 1);
+		tree.set('b', 1);
+		tree.set('f', 1);
+		tree.set('e', 1);
+		tree.set('z', 1);
+		assertTstDfs(tree, ['b', 1], ['d', 1], ['e', 1], ['f', 1], ['z', 1]);
+        debugger;
+		// right, right
+		tree.delete('b');
+		assertTstDfs(tree, ['d', 1], ['e', 1], ['f', 1], ['z', 1]);
+
+		tree.clear();
+		tree.set('d', 1);
+		tree.set('c', 1);
+		tree.set('f', 1);
+		tree.set('a', 1);
+		tree.set('b', 1);
+		assertTstDfs(tree, ['a', 1], ['b', 1], ['c', 1], ['d', 1], ['f', 1]);
+
+		// left, left
+		tree.delete('f');
+		assertTstDfs(tree, ['a', 1], ['b', 1], ['c', 1], ['d', 1]);
+
+		// mid
+		tree.clear();
+		tree.set('a', 1);
+		tree.set('ad', 1);
+		tree.set('ab', 1);
+		tree.set('af', 1);
+		tree.set('ae', 1);
+		tree.set('az', 1);
+		assertTstDfs(tree, ['a', 1], ['ab', 1], ['ad', 1], ['ae', 1], ['af', 1], ['az', 1]);
+
+		tree.delete('ab');
+		assertTstDfs(tree, ['a', 1], ['ad', 1], ['ae', 1], ['af', 1], ['az', 1]);
+
+		tree.delete('a');
+		assertTstDfs(tree, ['ad', 1], ['ae', 1], ['af', 1], ['az', 1]);
+	});
+
+    test('size', () => {
+        let tree = CreateTernarySearchTree.forStringKeys();
+        tree.fill([['foo', 0], ['bar', 1], ['bang', 2], ['bazz', 3]]);
+
+        tree.set('foobar', 3);
+        tree.set('foobar', 10);
+        assert.strictEqual(tree.size(), 5);
+        tree.delete('bar');
+        assert.strictEqual(tree.size(), 4);
+        tree.deleteSuperStrOf('f');
+        assert.strictEqual(tree.size(), 2);
+        tree.clear();
+        assert.strictEqual(tree.size(), 0);
+    })
+
+    test('TST (String) - find longest substring', function () {
+
+		const tree = CreateTernarySearchTree.forStringKeys<number>();
+		tree.set('foo', 1);
+		tree.set('foobar', 2);
+		tree.set('foobaz', 3);
+
+		assert.strictEqual(tree.findSubStrOf('f'), undefined);
+		assert.strictEqual(tree.findSubStrOf('z'), undefined);
+		assert.strictEqual(tree.findSubStrOf('foo'), 1);
+		assert.strictEqual(tree.findSubStrOf('fooö'), 1);
+		assert.strictEqual(tree.findSubStrOf('fooba'), 1);
+		assert.strictEqual(tree.findSubStrOf('foobarr'), 2);
+		assert.strictEqual(tree.findSubStrOf('foobazrr'), 3);
+	});
+
+    test('TST (URI) - set & get', function () {
+
+		let tree = new TernarySearchTree<URI, number>(new UriIterator(false));
+		tree.set(URI.parse('http://foo.bar/user/foo/bar'), 1);
+		tree.set(URI.parse('http://foo.bar/user/foo?query'), 2);
+		tree.set(URI.parse('http://foo.bar/user/foo?QUERY'), 3);
+		tree.set(URI.parse('http://foo.bar/user/foo/flip/flop'), 3);
+
+		assert.strictEqual(tree.get(URI.parse('http://foo.bar/foo')), undefined);
+		assert.strictEqual(tree.get(URI.parse('http://foo.bar/user')), undefined);
+		assert.strictEqual(tree.get(URI.parse('http://foo.bar/user/foo/bar')), 1);
+		assert.strictEqual(tree.get(URI.parse('http://foo.bar/user/foo?query')), 2);
+		assert.strictEqual(tree.get(URI.parse('http://foo.bar/user/foo?Query')), undefined);
+		assert.strictEqual(tree.get(URI.parse('http://foo.bar/user/foo?QUERY')), 3);
+		assert.strictEqual(tree.get(URI.parse('http://foo.bar/user/foo/bar/boo')), undefined);
+
+        // casing
+        tree = new TernarySearchTree<URI, number>(new UriIterator(true));
+		tree.set(URI.parse('http://foo.bar/user/foo/bar'), 1);
+		assert.strictEqual(tree.get(URI.parse('http://foo.bar/USER/foo/bar')), 1);
+
+		tree.set(URI.parse('foo://foo.bar/user/foo/bar'), 1);
+		assert.strictEqual(tree.get(URI.parse('foo://foo.bar/USER/foo/bar')), 1);
+	});
+
+    test('TST (URI) - find longest substring', function () {
+		const tree = new TernarySearchTree<URI, number>(new UriIterator(false));
+
+		tree.set(URI.fromFile('/user/foo/bar'), 1);
+		tree.set(URI.fromFile('/user/foo'), 2);
+		tree.set(URI.fromFile('/user/foo/flip/flop'), 3);
+
+		assert.strictEqual(tree.findSubStrOf(URI.fromFile('/user/bar')), undefined);
+		assert.strictEqual(tree.findSubStrOf(URI.fromFile('/user/foo')), 2);
+		assert.strictEqual(tree.findSubStrOf(URI.fromFile('/user/foo/ba')), 2);
+		assert.strictEqual(tree.findSubStrOf(URI.fromFile('/user/foo/far/boo')), 2);
+		assert.strictEqual(tree.findSubStrOf(URI.fromFile('/user/foo/bar')), 1);
+		assert.strictEqual(tree.findSubStrOf(URI.fromFile('/user/foo/bar/far/boo')), 1);
+	});
+
+    test('TST (URI) - find superstr', function () {
+
+		const map = new TernarySearchTree<URI, number>(new UriIterator(false));
+		map.set(URI.fromFile('/user/foo/bar'), 1);
+		map.set(URI.fromFile('/user/foo'), 2);
+		map.set(URI.fromFile('/user/foo/flip/flop'), 3);
+		map.set(URI.fromFile('/usr/foo'), 4);
+
+		let item: IteratorResult<[URI, number]>;
+		let iter = map.findSuperStrOf(URI.fromFile('/user'))!;
+
+		item = iter.next();
+		assert.strictEqual(item.value[1], 2);
+		assert.strictEqual(item.done, false);
+		item = iter.next();
+		assert.strictEqual(item.value[1], 1);
+		assert.strictEqual(item.done, false);
+		item = iter.next();
+		assert.strictEqual(item.value[1], 3);
+		assert.strictEqual(item.done, false);
+		item = iter.next();
+		assert.strictEqual(item.value, undefined);
+		assert.strictEqual(item.done, true);
+
+		iter = map.findSuperStrOf(URI.fromFile('/usr'))!;
+		item = iter.next();
+		assert.strictEqual(item.value[1], 4);
+		assert.strictEqual(item.done, false);
+
+		item = iter.next();
+		assert.strictEqual(item.value, undefined);
+		assert.strictEqual(item.done, true);
+
+		iter = map.findSuperStrOf(URI.fromFile('/'))!;
+		item = iter.next();
+		assert.strictEqual(item.value[1], 2);
+		assert.strictEqual(item.done, false);
+		item = iter.next();
+		assert.strictEqual(item.value[1], 1);
+		assert.strictEqual(item.done, false);
+		item = iter.next();
+		assert.strictEqual(item.value[1], 3);
+		assert.strictEqual(item.done, false);
+		item = iter.next();
+		assert.strictEqual(item.value[1], 4);
+		assert.strictEqual(item.done, false);
+		item = iter.next();
+		assert.strictEqual(item.value, undefined);
+		assert.strictEqual(item.done, true);
+
+		assert.strictEqual(map.findSuperStrOf(URI.fromFile('/not')), undefined);
+		assert.strictEqual(map.findSuperStrOf(URI.fromFile('/us')), undefined);
+		assert.strictEqual(map.findSuperStrOf(URI.fromFile('/usrr')), undefined);
+		assert.strictEqual(map.findSuperStrOf(URI.fromFile('/userr')), undefined);
+	});
 })
