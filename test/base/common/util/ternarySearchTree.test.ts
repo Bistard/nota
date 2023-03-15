@@ -67,7 +67,7 @@ suite.only('ternarySearchTree-test', () => {
 		assert.strictEqual(map.size, count);
     }
 
-    test('string-iterator', () => {
+    test('String-iterator', () => {
         const iter = new StringIterator();
         iter.reset('this');
         
@@ -193,10 +193,6 @@ suite.only('ternarySearchTree-test', () => {
         
     });
 
-    // TODO: findSubtr
-
-    // TODO: size
-
     test('TST - fill & clear', () => {
             const input: [string, number][] = [['foo', 0], ['bar', 1], ['bang', 2], ['bazz', 3]];
             let tree = CreateTernarySearchTree.forStringKeys();
@@ -315,7 +311,7 @@ suite.only('ternarySearchTree-test', () => {
 		assertTstDfs(tree, ['ad', 1], ['ae', 1], ['af', 1], ['az', 1]);
 	});
 
-    test('size', () => {
+    test('TST - size', () => {
         let tree = CreateTernarySearchTree.forStringKeys();
         tree.fill([['foo', 0], ['bar', 1], ['bang', 2], ['bazz', 3]]);
 
@@ -388,14 +384,14 @@ suite.only('ternarySearchTree-test', () => {
 
     test('TST (URI) - find superstr', function () {
 
-		const map = new TernarySearchTree<URI, number>(new UriIterator(false));
-		map.set(URI.fromFile('/user/foo/bar'), 1);
-		map.set(URI.fromFile('/user/foo'), 2);
-		map.set(URI.fromFile('/user/foo/flip/flop'), 3);
-		map.set(URI.fromFile('/usr/foo'), 4);
+		const tree = new TernarySearchTree<URI, number>(new UriIterator(false));
+		tree.set(URI.fromFile('/user/foo/bar'), 1);
+		tree.set(URI.fromFile('/user/foo'), 2);
+		tree.set(URI.fromFile('/user/foo/flip/flop'), 3);
+		tree.set(URI.fromFile('/usr/foo'), 4);
 
 		let item: IteratorResult<[URI, number]>;
-		let iter = map.findSuperStrOf(URI.fromFile('/user'))!;
+		let iter = tree.findSuperStrOf(URI.fromFile('/user'))!;
 
 		item = iter.next();
 		assert.strictEqual(item.value[1], 2);
@@ -410,7 +406,7 @@ suite.only('ternarySearchTree-test', () => {
 		assert.strictEqual(item.value, undefined);
 		assert.strictEqual(item.done, true);
 
-		iter = map.findSuperStrOf(URI.fromFile('/usr'))!;
+		iter = tree.findSuperStrOf(URI.fromFile('/usr'))!;
 		item = iter.next();
 		assert.strictEqual(item.value[1], 4);
 		assert.strictEqual(item.done, false);
@@ -419,7 +415,7 @@ suite.only('ternarySearchTree-test', () => {
 		assert.strictEqual(item.value, undefined);
 		assert.strictEqual(item.done, true);
 
-		iter = map.findSuperStrOf(URI.fromFile('/'))!;
+		iter = tree.findSuperStrOf(URI.fromFile('/'))!;
 		item = iter.next();
 		assert.strictEqual(item.value[1], 2);
 		assert.strictEqual(item.done, false);
@@ -436,9 +432,9 @@ suite.only('ternarySearchTree-test', () => {
 		assert.strictEqual(item.value, undefined);
 		assert.strictEqual(item.done, true);
 
-		assert.strictEqual(map.findSuperStrOf(URI.fromFile('/not')), undefined);
-		assert.strictEqual(map.findSuperStrOf(URI.fromFile('/us')), undefined);
-		assert.strictEqual(map.findSuperStrOf(URI.fromFile('/usrr')), undefined);
-		assert.strictEqual(map.findSuperStrOf(URI.fromFile('/userr')), undefined);
+		assert.strictEqual(tree.findSuperStrOf(URI.fromFile('/not')), undefined);
+		assert.strictEqual(tree.findSuperStrOf(URI.fromFile('/us')), undefined);
+		assert.strictEqual(tree.findSuperStrOf(URI.fromFile('/usrr')), undefined);
+		assert.strictEqual(tree.findSuperStrOf(URI.fromFile('/userr')), undefined);
 	});
 })
