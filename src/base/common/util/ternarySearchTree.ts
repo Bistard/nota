@@ -623,8 +623,6 @@ export class TernarySearchTree<K, V extends NonNullable<any>> implements ITernar
         return this._size;
     }
 
-
-
     // [private methods]
 
     private _findNode(key: K): TernarySearchTreeNode<K, V> | undefined {

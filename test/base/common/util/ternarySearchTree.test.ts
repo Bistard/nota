@@ -1,8 +1,18 @@
 import * as assert from 'assert';
 import { URI } from 'src/base/common/file/uri';
+import { Random } from 'src/base/common/util/random';
 import { CreateTernarySearchTree, ITernarySearchTree, StringIterator, TernarySearchTree, TernarySearchTreeNode, UriIterator } from 'src/base/common/util/ternarySearchTree';
 
-suite('ternarySearchTree-test', () => {
+const originalClass: any = TernarySearchTree;
+originalClass.prototype.fill = function fill(values: readonly any[]): void {
+	const arr = values.slice(0);
+	Random.shuffle(arr, 0); // set the seed
+	for (const entry of arr) {
+		this.set(entry[0], entry[1]);
+	}
+}
+
+suite.only('ternarySearchTree-test', () => {
     
     function isbalanced(tree: ITernarySearchTree<any, any>): boolean {
         const nodeBalanced = (node: TernarySearchTreeNode<any, any> | undefined): boolean => {
