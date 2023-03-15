@@ -12,7 +12,7 @@ originalClass.prototype.fill = function fill(values: readonly any[]): void {
 	}
 }
 
-suite.only('ternarySearchTree-test', () => {
+suite('ternarySearchTree-test', () => {
     
     function isbalanced(tree: ITernarySearchTree<any, any>): boolean {
         const nodeBalanced = (node: TernarySearchTreeNode<any, any> | undefined): boolean => {
