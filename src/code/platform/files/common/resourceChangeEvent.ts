@@ -1,8 +1,6 @@
 import { URI } from "src/base/common/file/uri";
 import { CreateTernarySearchTree, TernarySearchTree } from "src/base/common/util/ternarySearchTree";
 import { IRawResourceChangeEvent, IRawResourceChangeEvents, ResourceChangeType } from "src/code/platform/files/common/watcher";
-import { IReviverRegistrant } from "src/code/platform/ipc/common/revive";
-import { REGISTRANTS } from "src/code/platform/registrant/common/registrant";
 
 /**
  * An interface only for {@link ResourceChangeEvent}.
@@ -31,8 +29,10 @@ export interface IResourceChangeEvent {
 }
 
 /**
- * @class A wrapper class over the raw {@link IRawResourceChangeEvents}. It provides 
- * convenient APIs to look up for changes in resources more cheaper.
+ * @class A wrapper class over the raw {@link IRawResourceChangeEvents}. It 
+ * provides convenient APIs to look up for changes in resources more cheaper.
+ * 
+ * @note Using ternary search tree to speed up the lookup time.
  */
 export class ResourceChangeEvent implements IResourceChangeEvent {
 
@@ -88,21 +88,6 @@ export class ResourceChangeEvent implements IResourceChangeEvent {
 
     public affect(resource: URI, typeFilter?: ResourceChangeType[], isDirectory?: boolean): boolean {
         return this.__search(resource, true, typeFilter, isDirectory);
-    }
-
-    // [static public methods]
-
-    public static revive(obj: any): ResourceChangeEvent {
-        if (!obj) {
-			return obj;
-		}
-
-		if (obj instanceof ResourceChangeEvent) {
-			return obj;
-		}
-
-		const uri = reviverRegistrant.revive<ResourceChangeEvent>(obj);
-		return uri;
     }
 
     // [private helper methods]
@@ -169,11 +154,3 @@ export class ResourceChangeEvent implements IResourceChangeEvent {
     }
 
 }
-
-const reviverRegistrant = REGISTRANTS.get(IReviverRegistrant);
-reviverRegistrant.registerPrototype(ResourceChangeEvent, (obj: Object) => {
-    if (obj.hasOwnProperty('rawEvent')) {
-        return true;
-    }
-    return false;
-});

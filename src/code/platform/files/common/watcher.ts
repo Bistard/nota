@@ -65,6 +65,9 @@ export interface IRawResourceChangeEvents {
     /**
      * @description Wraps the current raw events into {@link IResourceChangeEvent}
      * which can provide more functionalities.
+     * 
+     * @note Since building into {@link IResourceChangeEvent} is time consuming,
+     * thus the client decide wether to wrap or not based on their needs.
      */
     wrap(ignoreCase?: boolean): IResourceChangeEvent;
 
