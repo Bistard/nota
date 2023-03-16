@@ -45,7 +45,8 @@ export class ResourceChangeEvent implements IResourceChangeEvent {
     // [constructor]
 
     constructor(
-        private readonly rawEvent: IRawResourceChangeEvents, ignoreCase?: boolean
+        private readonly rawEvent: IRawResourceChangeEvents, 
+        ignoreCase?: boolean,
     ) {
         const entriesByType = new Map<ResourceChangeType, [URI, IRawResourceChangeEvent][]>();
 

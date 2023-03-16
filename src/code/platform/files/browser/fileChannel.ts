@@ -44,7 +44,7 @@ export class BrowserFileChannel extends Disposable implements IFileService {
             } 
             this._onDidResourceChange.fire({
                 ...event,
-                wrap: function () { return new ResourceChangeEvent(this); }
+                wrap: function (ignoreCase?: boolean) { return new ResourceChangeEvent(this, ignoreCase); }
             });
         }));
 

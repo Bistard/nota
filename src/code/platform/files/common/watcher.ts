@@ -66,7 +66,7 @@ export interface IRawResourceChangeEvents {
      * @description Wraps the current raw events into {@link IResourceChangeEvent}
      * which can provide more functionalities.
      */
-    wrap(): IResourceChangeEvent;
+    wrap(ignoreCase?: boolean): IResourceChangeEvent;
 
     /**
      * The raw changed event array.

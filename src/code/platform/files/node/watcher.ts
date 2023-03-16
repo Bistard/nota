@@ -236,7 +236,7 @@ export class WatchInstance implements IWatchInstance {
             const changes = coalescer.coalesce();
             if (changes.length) {
                 this._onDidChange({
-                    wrap: function () { return new ResourceChangeEvent(this); },
+                    wrap: function (ignoreCase?: boolean) { return new ResourceChangeEvent(this, ignoreCase); },
                     events: changes,
                     anyAdded: this._anyAdded,
                     anyDeleted: this._anyDeleted,
