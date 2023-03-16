@@ -9,7 +9,7 @@ import { ILogService } from "src/base/common/logger";
 import { Iterable } from "src/base/common/util/iterable";
 import { Mutable } from "src/base/common/util/type";
 import { readFileIntoStream, readFileIntoStreamAsync } from "src/base/node/io";
-import { ResourceChangeEvent } from "src/code/platform/files/node/resourceChangeEvent";
+import { ResourceChangeEvent } from "src/code/platform/files/common/resourceChangeEvent";
 import { createService } from "src/code/platform/instantiation/common/decorator";
 
 export const IFileService = createService<IFileService>('file-service');

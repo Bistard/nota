@@ -8,9 +8,10 @@ import { URI } from "src/base/common/file/uri";
 import { retry } from "src/base/common/util/async";
 import { FileService } from "src/code/platform/files/common/fileService";
 import { fileExists, FileMode, readFileIntoStream } from "src/base/node/io";
-import { IRawResourceChangeEvents, IWatcher, Watcher } from "src/code/platform/files/node/watcher";
+import { Watcher } from "src/code/platform/files/node/watcher";
 import { ILogService } from "src/base/common/logger";
 import { Emitter } from "src/base/common/event";
+import { IRawResourceChangeEvents, IWatcher } from "src/code/platform/files/common/watcher";
 
 export class DiskFileSystemProvider extends Disposable implements 
     IFileSystemProviderWithFileReadWrite, 

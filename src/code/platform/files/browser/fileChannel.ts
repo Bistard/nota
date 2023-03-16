@@ -8,7 +8,7 @@ import { URI } from "src/base/common/file/uri";
 import { Mutable } from "src/base/common/util/type";
 import { IFileService } from "src/code/platform/files/common/fileService";
 import { FileCommand, ReadableStreamDataFlowType } from "src/code/platform/files/electron/mainFileChannel";
-import { ResourceChangeEvent } from "src/code/platform/files/node/resourceChangeEvent";
+import { ResourceChangeEvent } from "src/code/platform/files/common/resourceChangeEvent";
 import { IIpcService } from "src/code/platform/ipc/browser/ipcService";
 import { IChannel, IpcChannel } from "src/code/platform/ipc/common/channel";
 

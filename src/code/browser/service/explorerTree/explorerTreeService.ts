@@ -10,7 +10,7 @@ import { INotebookTreeService, NotebookTreeService } from "src/code/browser/serv
 import { IConfigService } from "src/code/platform/configuration/common/abstractConfigService";
 import { BuiltInConfigScope } from "src/code/platform/configuration/common/configRegistrant";
 import { IFileService } from "src/code/platform/files/common/fileService";
-import { ResourceChangeEvent } from "src/code/platform/files/node/resourceChangeEvent";
+import { ResourceChangeEvent } from "src/code/platform/files/common/resourceChangeEvent";
 import { createService } from "src/code/platform/instantiation/common/decorator";
 import { IInstantiationService } from "src/code/platform/instantiation/common/instantiation";
 

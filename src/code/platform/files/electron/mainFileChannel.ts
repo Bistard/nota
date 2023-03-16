@@ -7,7 +7,7 @@ import { Schemas, URI } from "src/base/common/file/uri";
 import { ILogService } from "src/base/common/logger";
 import { CancellationToken } from "src/base/common/util/cacellation";
 import { IFileService } from "src/code/platform/files/common/fileService";
-import { ResourceChangeEvent } from "src/code/platform/files/node/resourceChangeEvent";
+import { ResourceChangeEvent } from "src/code/platform/files/common/resourceChangeEvent";
 import { IServerChannel } from "src/code/platform/ipc/common/channel";
 
 /** @internal */

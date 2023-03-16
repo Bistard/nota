@@ -2,8 +2,8 @@ import * as assert from 'assert';
 import { join } from 'src/base/common/file/path';
 import { URI } from 'src/base/common/file/uri';
 import { IS_WINDOWS } from 'src/base/common/platform';
-import { ResourceChangeEvent } from 'src/code/platform/files/node/resourceChangeEvent';
-import { IRawResourceChangeEvents, ResourceChangeType } from 'src/code/platform/files/node/watcher';
+import { IRawResourceChangeEvents, ResourceChangeType } from 'src/code/platform/files/common/watcher';
+import { ResourceChangeEvent } from 'src/code/platform/files/common/resourceChangeEvent';
 
 function toPath(this: Mocha.Suite, path: string): string {
 	if (IS_WINDOWS) {
