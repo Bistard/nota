@@ -10,7 +10,7 @@ import { INotebookTreeService, NotebookTreeService } from "src/code/browser/serv
 import { IConfigService } from "src/code/platform/configuration/common/abstractConfigService";
 import { BuiltInConfigScope } from "src/code/platform/configuration/common/configRegistrant";
 import { IFileService } from "src/code/platform/files/common/fileService";
-import { ResourceChangeEvent } from "src/code/platform/files/node/resourceChangeEvent";
+import { ResourceChangeEvents } from "src/code/platform/files/node/resourceChangeEvent";
 import { createService } from "src/code/platform/instantiation/common/decorator";
 import { IInstantiationService } from "src/code/platform/instantiation/common/instantiation";
 
@@ -51,7 +51,7 @@ export class ExplorerTreeService extends Disposable implements IExplorerTreeServ
 
     private _currTreeDisposable?: IDisposable;
     private _currentTreeService?: ITreeService<unknown>;
-    private _onDidResourceChangeScheduler?: IScheduler<ResourceChangeEvent>;
+    private _onDidResourceChangeScheduler?: IScheduler<ResourceChangeEvents>;
 
     private static readonly ON_RESOURCE_CHANGE_DELAY = 100;
 
@@ -167,7 +167,7 @@ export class ExplorerTreeService extends Disposable implements IExplorerTreeServ
         // on did resource change callback
         this._onDidResourceChangeScheduler = new Scheduler(
             ExplorerTreeService.ON_RESOURCE_CHANGE_DELAY, 
-            (events: ResourceChangeEvent[]) => {
+            (events: ResourceChangeEvents[]) => {
                 if (!root || !this._currentTreeService) {
                     return;
                 }

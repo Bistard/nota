@@ -1,17 +1,44 @@
 import { URI } from "src/base/common/file/uri";
 import { CreateTernarySearchTree, TernarySearchTree } from "src/base/common/util/ternarySearchTree";
-import { IResourceChangeEvent, ResourceChangeType } from "src/code/platform/files/node/watcher";
+import { IRawResourceChangeEvents, ResourceChangeType } from "src/code/platform/files/node/watcher";
 import { IReviverRegistrant } from "src/code/platform/ipc/common/revive";
 import { REGISTRANTS } from "src/code/platform/registrant/common/registrant";
 import { IRawResourceChangeEvent } from "src/code/platform/files/node/watcher";
 
 /**
- * @class A wrapper class over the raw {@link IResourceChangeEvent}. It provides 
+ * An interface only for {@link ResourceChangeEvents}.
+ */
+export interface IResourceChangeEvents {
+
+    /**
+     * @description Check if the given resource finds an exact match in the 
+     * changing events.
+     * @param resource The given resource.
+     * @param typeFilter The desired types for lookup. If not provided it will
+     *                   match any types.
+     * @param isDirectory A suggestion for faster lookup.
+     */
+    match(resource: URI, typeFilter?: ResourceChangeType[], isDirectory?: boolean): boolean;
+
+    /**
+     * @description Check if the given resource finds an exact match or find a 
+     * child of the resource in the changing events.
+     * @param resource The given resource.
+     * @param typeFilter The desired types for lookup. If not provided it will
+     *                   match any types.
+     * @param isDirectory A suggestion for faster lookup.
+     */
+    affect(resource: URI, typeFilter?: ResourceChangeType[], isDirectory?: boolean): boolean;
+}
+
+/**
+ * @class A wrapper class over the raw {@link IRawResourceChangeEvents}. It provides 
  * convenient APIs to look up for changes in resources more cheaper.
  */
-export class ResourceChangeEvent {
+export class ResourceChangeEvents implements IResourceChangeEvents {
 
     // [field]
+    
     private readonly _added: TernarySearchTree<URI, IRawResourceChangeEvent> | undefined =  undefined;
     private readonly _deleted: TernarySearchTree<URI, IRawResourceChangeEvent> | undefined = undefined;
     private readonly _updated: TernarySearchTree<URI, IRawResourceChangeEvent> | undefined =  undefined;
@@ -19,7 +46,7 @@ export class ResourceChangeEvent {
     // [constructor]
 
     constructor(
-        private readonly rawEvent: IResourceChangeEvent, ignoreCase?: boolean
+        private readonly rawEvent: IRawResourceChangeEvents, ignoreCase?: boolean
     ) {
         const entriesByType = new Map<ResourceChangeType, [URI, IRawResourceChangeEvent][]>();
 
@@ -51,42 +78,26 @@ export class ResourceChangeEvent {
 
     // [public methods]
 
-    /**
-     * @description Check if the given resource finds an exact match in the 
-     * changing events.
-     * @param resource The given resource.
-     * @param typeFilter The desired types for lookup. If not provided it will
-     *                   match any types.
-     * @param isDirectory A suggestion for faster lookup.
-     */
     public match(resource: URI, typeFilter?: ResourceChangeType[], isDirectory?: boolean): boolean {
         return this.__search(resource, false, typeFilter, isDirectory);
     }
 
-    /**
-     * @description Check if the given resource finds an exact match or find a 
-     * child of the resource in the changing events.
-     * @param resource The given resource.
-     * @param typeFilter The desired types for lookup. If not provided it will
-     *                   match any types.
-     * @param isDirectory A suggestion for faster lookup.
-     */
     public affect(resource: URI, typeFilter?: ResourceChangeType[], isDirectory?: boolean): boolean {
         return this.__search(resource, true, typeFilter, isDirectory);
     }
 
     // [static public methods]
 
-    public static revive(obj: any): ResourceChangeEvent {
+    public static revive(obj: any): ResourceChangeEvents {
         if (!obj) {
 			return obj;
 		}
 
-		if (obj instanceof ResourceChangeEvent) {
+		if (obj instanceof ResourceChangeEvents) {
 			return obj;
 		}
 
-		const uri = reviverRegistrant.revive<ResourceChangeEvent>(obj);
+		const uri = reviverRegistrant.revive<ResourceChangeEvents>(obj);
 		return uri;
     }
 
@@ -171,7 +182,7 @@ export class ResourceChangeEvent {
 }
 
 const reviverRegistrant = REGISTRANTS.get(IReviverRegistrant);
-reviverRegistrant.registerPrototype(ResourceChangeEvent, (obj: Object) => {
+reviverRegistrant.registerPrototype(ResourceChangeEvents, (obj: Object) => {
     if (obj.hasOwnProperty('rawEvent')) {
         return true;
     }

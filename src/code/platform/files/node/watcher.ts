@@ -39,7 +39,7 @@ export interface IWatcher {
     /**
      * Fires when the resources are either added, deleted or updated.
      */
-    readonly onDidChange: Register<IResourceChangeEvent>;
+    readonly onDidChange: Register<IRawResourceChangeEvents>;
 
     /**
      * Fires when the watcher is closed.
@@ -75,7 +75,7 @@ export class Watcher extends Disposable implements IWatcher {
 
     // [event]
 
-    private readonly _onDidChange = this.__register(new Emitter<IResourceChangeEvent>());
+    private readonly _onDidChange = this.__register(new Emitter<IRawResourceChangeEvents>());
     public readonly onDidChange = this._onDidChange.registerListener;
     
     private readonly _onDidClose = this.__register(new Emitter<URI>());
@@ -128,7 +128,8 @@ export class Watcher extends Disposable implements IWatcher {
     }
 }
 
-export interface IResourceChangeEvent {
+export interface IRawResourceChangeEvents {
+    
     /**
      * The raw changed event array.
      */
@@ -170,7 +171,8 @@ export const enum ResourceChangeType {
 }
 
 export interface IRawResourceChangeEvent {
-	/**
+	
+    /**
 	 * The changed resource path.
 	 */
 	readonly resource: string;
@@ -232,14 +234,14 @@ export class WatchInstance implements IWatchInstance {
     private _watcher?: chokidar.FSWatcher;
 
     private readonly _request: IWatchRequest;
-    private readonly _onDidChange: (event: IResourceChangeEvent) => void;
+    private readonly _onDidChange: (event: IRawResourceChangeEvents) => void;
 
     // [constructor]
 
     constructor(
         private readonly logService: ILogService | undefined,
         request: IWatchRequest,
-        onDidChange: (event: IResourceChangeEvent) => void,
+        onDidChange: (event: IRawResourceChangeEvents) => void,
     ) {
         this._request = request;
         (<Mutable<RegExp[]>>this._request.exclude) = ifOrDefault(this._request.exclude, []);

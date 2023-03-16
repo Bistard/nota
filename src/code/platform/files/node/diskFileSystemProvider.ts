@@ -8,7 +8,7 @@ import { URI } from "src/base/common/file/uri";
 import { retry } from "src/base/common/util/async";
 import { FileService } from "src/code/platform/files/common/fileService";
 import { fileExists, FileMode, readFileIntoStream } from "src/base/node/io";
-import { IResourceChangeEvent, IWatcher, Watcher } from "src/code/platform/files/node/watcher";
+import { IRawResourceChangeEvents, IWatcher, Watcher } from "src/code/platform/files/node/watcher";
 import { ILogService } from "src/base/common/logger";
 import { Emitter } from "src/base/common/event";
 
@@ -19,7 +19,7 @@ export class DiskFileSystemProvider extends Disposable implements
 {
     // [event]
 
-    private readonly _onDidResourceChange = this.__register(new Emitter<IResourceChangeEvent>());
+    private readonly _onDidResourceChange = this.__register(new Emitter<IRawResourceChangeEvents>());
     public readonly onDidResourceChange = this._onDidResourceChange.registerListener;
 
     private readonly _onDidResourceClose = this.__register(new Emitter<URI>());

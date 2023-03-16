@@ -8,7 +8,7 @@ import { URI } from "src/base/common/file/uri";
 import { Mutable } from "src/base/common/util/type";
 import { IFileService } from "src/code/platform/files/common/fileService";
 import { FileCommand, ReadableStreamDataFlowType } from "src/code/platform/files/electron/mainFileChannel";
-import { ResourceChangeEvent } from "src/code/platform/files/node/resourceChangeEvent";
+import { ResourceChangeEvents } from "src/code/platform/files/node/resourceChangeEvent";
 import { IIpcService } from "src/code/platform/ipc/browser/ipcService";
 import { IChannel, IpcChannel } from "src/code/platform/ipc/common/channel";
 
@@ -16,7 +16,7 @@ export class BrowserFileChannel extends Disposable implements IFileService {
 
     // [event]
 
-    private readonly _onDidResourceChange = this.__register(new Emitter<ResourceChangeEvent>());
+    private readonly _onDidResourceChange = this.__register(new Emitter<ResourceChangeEvents>());
     public  readonly onDidResourceChange = this._onDidResourceChange.registerListener;
 
     // TODO
@@ -37,11 +37,11 @@ export class BrowserFileChannel extends Disposable implements IFileService {
         super();
         this._channel = ipcService.getChannel(IpcChannel.DiskFile);
 
-        this.__register(this._channel.registerListener<ResourceChangeEvent>(FileCommand.onDidResourceChange)(event => {
+        this.__register(this._channel.registerListener<ResourceChangeEvents>(FileCommand.onDidResourceChange)(event => {
             if (event instanceof Error) {
                 throw event;
             } 
-            this._onDidResourceChange.fire(ResourceChangeEvent.revive(event));
+            this._onDidResourceChange.fire(ResourceChangeEvents.revive(event));
         }));
 
         this.__register(this._channel.registerListener<URI>(FileCommand.onDidResourceClose)(event => {

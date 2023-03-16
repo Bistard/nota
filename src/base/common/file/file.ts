@@ -2,7 +2,7 @@ import { IDisposable } from "src/base/common/dispose";
 import { Register } from "src/base/common/event";
 import { IReadableStreamEvent } from "src/base/common/file/stream";
 import { URI } from "src/base/common/file/uri";
-import { IResourceChangeEvent } from "src/code/platform/files/node/watcher";
+import { IRawResourceChangeEvents } from "src/code/platform/files/node/watcher";
 
 export const enum ByteSize {
 	KB = 1024,
@@ -72,7 +72,7 @@ export interface IResolvedFileStat extends IFileStat {
 export interface IFileSystemProvider {
 
 	readonly capabilities: FileSystemProviderCapability;
-	readonly onDidResourceChange: Register<IResourceChangeEvent>;
+	readonly onDidResourceChange: Register<IRawResourceChangeEvents>;
 	readonly onDidResourceClose: Register<URI>;
 	
 	watch(uri: URI, opts?: IWatchOptions): IDisposable;
