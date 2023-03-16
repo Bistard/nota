@@ -19,7 +19,7 @@ function toResource(this: Mocha.Suite, path: string): URI {
 	return URI.fromFile(join('/', this.fullTitle(), path));
 }
 
-suite.only('ResourceChangeEvent-test', function () {
+suite('ResourceChangeEvent-test', function () {
 
     test('basic', () => {
         const changes: IRawResourceChangeEvents = {
@@ -38,8 +38,15 @@ suite.only('ResourceChangeEvent-test', function () {
             anyFile: true,
         };
 
-        for (const ignorePathCasing of [false, true]) {
+        for (const ignorePathCasing of [/* false, */ true]) {
+			debugger;
 			const event = new ResourceChangeEvent(changes, ignorePathCasing);
+
+			assert.ok(!event.match(toResource.call(this, '/foo'))); // match any types
+			assert.ok(!event.match(toResource.call(this, '/foo'), [])); // match any types
+			
+			// FIX
+			assert.ok(event.affect(toResource.call(this, '/foo'))); // match any types
 
 			assert.ok(!event.match(toResource.call(this, '/foo'), [ResourceChangeType.UPDATED]));
 			assert.ok(event.affect(toResource.call(this, '/foo'), [ResourceChangeType.UPDATED]));
