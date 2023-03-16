@@ -83,4 +83,45 @@ suite('ResourceChangeEvent-test', function () {
 		}
     });
 
+	test('supports multiple changes on file tree', () => {
+		for (const type of [ResourceChangeType.ADDED, ResourceChangeType.UPDATED, ResourceChangeType.DELETED]) {
+			const changes: IRawResourceChangeEvents = {
+				events: [
+					{ resource: toPath.call(this, '/foo/bar/updated.txt'), type },
+					{ resource: toPath.call(this, '/foo/bar/otherupdated.txt'), type },
+					{ resource: toPath.call(this, '/foo/bar'), type },
+					{ resource: toPath.call(this, '/foo'), type },
+					{ resource: toPath.call(this, '/bar'), type },
+					{ resource: toPath.call(this, '/bar/foo'), type },
+					{ resource: toPath.call(this, '/bar/foo/updated.txt'), type },
+					{ resource: toPath.call(this, '/bar/foo/otherupdated.txt'), type }
+				],
+				anyAdded: type === ResourceChangeType.ADDED,
+				anyDeleted: type === ResourceChangeType.DELETED,
+				anyUpdated: type === ResourceChangeType.UPDATED,
+				anyDirectory: true,
+				anyFile: true,
+				wrap: function () { return new ResourceChangeEvent(this); }
+			};
+
+			for (const ignorePathCasing of [false, true]) {
+				const event = new ResourceChangeEvent(changes, ignorePathCasing);
+
+				for (const change of changes.events) {
+					assert.ok(event.match(URI.fromFile(change.resource), [type]));
+					assert.ok(event.affect(URI.fromFile(change.resource), [type]));
+				}
+
+				assert.ok(event.affect(toResource.call(this, '/foo'), [type]));
+				assert.ok(event.affect(toResource.call(this, '/bar'), [type]));
+				assert.ok(event.affect(toResource.call(this, '/'), [type]));
+				assert.ok(!event.affect(toResource.call(this, '/foobar'), [type]));
+
+				assert.ok(!event.match(toResource.call(this, '/some/foo/bar'), [type]));
+				assert.ok(!event.affect(toResource.call(this, '/some/foo/bar'), [type]));
+				assert.ok(!event.match(toResource.call(this, '/some/bar'), [type]));
+				assert.ok(!event.affect(toResource.call(this, '/some/bar'), [type]));
+			}
+		}
+	});
 });
