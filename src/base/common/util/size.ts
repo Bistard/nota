@@ -4,8 +4,13 @@ export interface IMeasureable {
 }
 
 export interface IDimension {
-    width: number;
-    height: number;
+    readonly width: number;
+    readonly height: number;
+}
+
+export interface IDomPosition extends IDimension {
+	readonly top: number;
+	readonly left: number;
 }
 
 export class Dimension implements IDimension {

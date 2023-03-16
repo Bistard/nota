@@ -2,7 +2,7 @@ import { FastElement } from "src/base/browser/basic/fastElement";
 import { HexColor } from "src/base/common/color";
 import { Disposable, IDisposable, toDisposable } from "src/base/common/dispose";
 import { Emitter, Register } from "src/base/common/event";
-import { Dimension } from "src/base/common/util/size";
+import { Dimension, IDomPosition } from "src/base/common/util/size";
 import { Pair } from "src/base/common/util/type";
 
 const BODY = document.body;
@@ -239,6 +239,26 @@ export namespace DomUtility
 		// [method - content]
 
 		/**
+		 * @description Get element total width (including, padding, borders 
+		 * and margins).
+		 * @param element The HTMLElement.
+		 */
+		export function getTotalWidth(element: HTMLElement): number {
+			const margin = getMarginLeft(element) + getMarginRight(element);
+			return element.offsetWidth + margin;
+		}
+		
+		/**
+		 * @description Get element total height (including, padding, borders 
+		 * and margins).
+		 * @param element The HTMLElement.
+		 */
+		export function getTotalHeight(element: HTMLElement): number {
+			const margin = getMarginTop(element) + getMarginBottom(element);
+			return element.offsetHeight + margin;
+		}
+
+		/**
 		 * @description Get the height of the content excluding padding and border.
 		 * @param element The HTMLElement.
 		 * @note If the element is NOT in the DOM tree, the behaviour is undefined.
@@ -288,9 +308,30 @@ export namespace DomUtility
 	export namespace Positions {
 		
 		/**
-		 * @description Returns the relative click coordinates to the target element.
+		 * @description Calculates the position and dimensions of an DOM element 
+		 * relative to the entire web page, taking into account any scrolling 
+		 * that has occurred.
+		 * @param node The given DOM element.
+		 * @returns A dom position.
+		 */
+		export function getNodePagePosition(node: HTMLElement): IDomPosition {
+			const box: DOMRect = node.getBoundingClientRect();
+			return {
+				left: box.left + window.scrollX,
+				top: box.top + window.scrollY,
+				width: box.width,
+				height: box.height,
+			};
+		}
+
+		/**
+		 * @description calculates the x and y coordinates of a mouse click 
+		 * event relative to the provided target element.
 		 * @param event The {@link MouseEvent}.
-		 * @param target The {@link EventTarget} we are relative with
+		 * @param target The {@link EventTarget} we are relative with.
+		 * 
+		 * @throws An exception will be thrown when there is no target element
+		 * 		   detected.
 		 */
 		export function getRelativeClick(event: MouseEvent, target?: EventTarget): Pair<number, number> {
 			let element = (target ?? event.currentTarget) as HTMLElement | null;
@@ -306,6 +347,8 @@ export namespace DomUtility
 
 		/**
 		 * @description Returns the dimension of the provided element.
+		 * @throws An exception will be thrown when it cannot figure the width
+		 * 		   and height in the current environment.
 		 */
 		export function getClientDimension(element: HTMLElement): Dimension {
 			// Try with DOM clientWidth / clientHeight

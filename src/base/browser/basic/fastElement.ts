@@ -21,6 +21,7 @@ export interface IFastElement<T extends HTMLElement> extends IDomEvent<false> {
     setFocus(): void;
     setBlur(): void;
     setTabIndex(value: number): void;
+    setZIndex(value: number): void;
 
     setTop(value: number): void;
     setBottom(value: number): void;
@@ -79,6 +80,7 @@ export class FastElement<T extends HTMLElement> extends Disposable implements IF
     private _display: DomStyle.Display | '' = '';
 
     private _tabIndex: number = -1;
+    private _zIndex: number = -1;
     
     private _top: number = -1;
     private _bottom: number = -1;
@@ -174,6 +176,14 @@ export class FastElement<T extends HTMLElement> extends Disposable implements IF
         }
         this._tabIndex = value;
         this.element.tabIndex = value;
+    }
+
+    public setZIndex(value: number): void {
+        if (this._zIndex === value) {
+            return;
+        }
+        this._zIndex = value;
+        this.element.style.zIndex = `${value}`;
     }
 
     public setTop(value: number): void {
