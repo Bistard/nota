@@ -9,6 +9,7 @@ import { IS_LINUX } from 'src/base/common/platform';
 import { isParentOf } from 'src/base/common/file/glob';
 import { Disposable, IDisposable, toDisposable } from 'src/base/common/dispose';
 import { IRawResourceChangeEvent, IRawResourceChangeEvents, IWatcher, IWatchInstance, IWatchRequest, ResourceChangeType } from 'src/code/platform/files/common/watcher';
+import { ResourceChangeEvent } from 'src/code/platform/files/common/resourceChangeEvent';
 
 /**
  * @class A `Watcher` can watch on resources on the disk filesystem. Check more
@@ -235,6 +236,7 @@ export class WatchInstance implements IWatchInstance {
             const changes = coalescer.coalesce();
             if (changes.length) {
                 this._onDidChange({
+                    wrap: function () { return new ResourceChangeEvent(this); },
                     events: changes,
                     anyAdded: this._anyAdded,
                     anyDeleted: this._anyDeleted,

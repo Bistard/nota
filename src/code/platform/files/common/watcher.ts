@@ -1,6 +1,7 @@
 import { IDisposable } from "src/base/common/dispose";
 import { Register } from "src/base/common/event";
 import { URI } from "src/base/common/file/uri";
+import { IResourceChangeEvent } from "src/code/platform/files/common/resourceChangeEvent";
 
 /**
  * A watch request for {@link Watcher}.
@@ -61,6 +62,12 @@ export interface IWatcher {
 
 export interface IRawResourceChangeEvents {
     
+    /**
+     * @description Wraps the current raw events into {@link IResourceChangeEvent}
+     * which can provide more functionalities.
+     */
+    wrap(): IResourceChangeEvent;
+
     /**
      * The raw changed event array.
      */

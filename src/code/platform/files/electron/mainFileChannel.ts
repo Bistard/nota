@@ -7,7 +7,7 @@ import { Schemas, URI } from "src/base/common/file/uri";
 import { ILogService } from "src/base/common/logger";
 import { CancellationToken } from "src/base/common/util/cacellation";
 import { IFileService } from "src/code/platform/files/common/fileService";
-import { ResourceChangeEvent } from "src/code/platform/files/common/resourceChangeEvent";
+import { IRawResourceChangeEvents } from "src/code/platform/files/common/watcher";
 import { IServerChannel } from "src/code/platform/ipc/common/channel";
 
 /** @internal */
@@ -186,7 +186,7 @@ export class MainFileChannel implements IServerChannel {
         }
     }
 
-    private __onDidResourceChange(): Register<ResourceChangeEvent> {
+    private __onDidResourceChange(): Register<IRawResourceChangeEvents> {
         return this.fileService.onDidResourceChange;
     }
 
