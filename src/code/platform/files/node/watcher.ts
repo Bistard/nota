@@ -8,63 +8,8 @@ import { ifOrDefault, Mutable } from 'src/base/common/util/type';
 import { IS_LINUX } from 'src/base/common/platform';
 import { isParentOf } from 'src/base/common/file/glob';
 import { Disposable, IDisposable, toDisposable } from 'src/base/common/dispose';
-
-/**
- * A watch request for {@link Watcher}.
- */
-export interface IWatchRequest {
-    /**
-     * The URI of the resource to be watched.
-     */
-    readonly resource: URI;
-    
-    /**
-     * In non-recursive mode, if the resource is a file, it is the only resource 
-     * to be watched. If the resource is a directory, its direct children will 
-     * only be watched.
-     */
-    readonly recursive?: boolean;
-    
-    /**
-     * Rules to exclude the specific resources.
-     */
-    readonly exclude?: RegExp[];
-}
-
-/**
- * An interface only for {@link Watcher}.
- */
-export interface IWatcher {
-    
-    /**
-     * Fires when the resources are either added, deleted or updated.
-     */
-    readonly onDidChange: Register<IResourceChangeEvent>;
-
-    /**
-     * Fires when the watcher is closed.
-     */
-    readonly onDidClose: Register<URI>;
-
-    /**
-     * @description Watch the provided resources and fires the event once these
-     * resources are either added, deleted or updated.
-     * @param request The provided request for watching.
-     * @returns A disposable to close the current watch request.
-     */
-    watch(request: IWatchRequest): IDisposable;
-    
-    /**
-     * @description Closes all the current watchings asynchronously.
-     */
-    close(): Promise<any>;
-
-    /**
-     * @description Disposes all the registered listeners and closes all the
-     * current watchings asynchronously.
-     */
-    dispose(): void;
-}
+import { IRawResourceChangeEvent, IRawResourceChangeEvents, IWatcher, IWatchInstance, IWatchRequest, ResourceChangeType } from 'src/code/platform/files/common/watcher';
+import { ResourceChangeEvent } from 'src/code/platform/files/common/resourceChangeEvent';
 
 /**
  * @class A `Watcher` can watch on resources on the disk filesystem. Check more
@@ -75,7 +20,7 @@ export class Watcher extends Disposable implements IWatcher {
 
     // [event]
 
-    private readonly _onDidChange = this.__register(new Emitter<IResourceChangeEvent>());
+    private readonly _onDidChange = this.__register(new Emitter<IRawResourceChangeEvents>());
     public readonly onDidChange = this._onDidChange.registerListener;
     
     private readonly _onDidClose = this.__register(new Emitter<URI>());
@@ -128,74 +73,7 @@ export class Watcher extends Disposable implements IWatcher {
     }
 }
 
-export interface IResourceChangeEvent {
-    /**
-     * The raw changed event array.
-     */
-    readonly events: readonly IRawResourceChangeEvent[];
 
-    /**
-     * If any event added.
-     */
-    readonly anyAdded: boolean;
-
-    /**
-     * If any event deleted.
-     */
-    readonly anyDeleted: boolean;
-
-    /**
-     * If any event updated.
-     */
-    readonly anyUpdated: boolean;
-
-    /**
-     * If any added or updated events is directory.
-     */
-    readonly anyDirectory: boolean;
-
-    /**
-     * If any added or updated events is file.
-     */
-    readonly anyFile: boolean;
-}
-
-/**
- * Possible changes that can occur to resource (directory / file).
- */
-export const enum ResourceChangeType {
-	UPDATED,
-	ADDED,
-	DELETED
-}
-
-export interface IRawResourceChangeEvent {
-	/**
-	 * The changed resource path.
-	 */
-	readonly resource: string;
-
-	/**
-	 * If the changed resource is directory. Undefined when the resource is 
-	 * deleted.
-	 */
-	readonly isDirectory?: boolean;
-
-	/**
-	 * The type of change that occurred to the resource.
-	 */
-	readonly type: ResourceChangeType;
-}
-
-/**
- * An interface only for {@link WatchInstance}.
- */
-export interface IWatchInstance {
-    
-    readonly request: IWatchRequest;
-    watch(): void;
-    close(): Promise<URI | undefined>;
-}
 
 /**
  * @class A `WatchInstance` starts to watch the request on the given filesystem
@@ -232,14 +110,14 @@ export class WatchInstance implements IWatchInstance {
     private _watcher?: chokidar.FSWatcher;
 
     private readonly _request: IWatchRequest;
-    private readonly _onDidChange: (event: IResourceChangeEvent) => void;
+    private readonly _onDidChange: (event: IRawResourceChangeEvents) => void;
 
     // [constructor]
 
     constructor(
         private readonly logService: ILogService | undefined,
         request: IWatchRequest,
-        onDidChange: (event: IResourceChangeEvent) => void,
+        onDidChange: (event: IRawResourceChangeEvents) => void,
     ) {
         this._request = request;
         (<Mutable<RegExp[]>>this._request.exclude) = ifOrDefault(this._request.exclude, []);
@@ -358,6 +236,7 @@ export class WatchInstance implements IWatchInstance {
             const changes = coalescer.coalesce();
             if (changes.length) {
                 this._onDidChange({
+                    wrap: function (ignoreCase?: boolean) { return new ResourceChangeEvent(this, ignoreCase); },
                     events: changes,
                     anyAdded: this._anyAdded,
                     anyDeleted: this._anyDeleted,

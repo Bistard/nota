@@ -9,7 +9,7 @@ import { ILogService } from "src/base/common/logger";
 import { Iterable } from "src/base/common/util/iterable";
 import { Mutable } from "src/base/common/util/type";
 import { readFileIntoStream, readFileIntoStreamAsync } from "src/base/node/io";
-import { ResourceChangeEvent } from "src/code/platform/files/node/resourceChangeEvent";
+import { IRawResourceChangeEvents } from "src/code/platform/files/common/watcher";
 import { createService } from "src/code/platform/instantiation/common/decorator";
 
 export const IFileService = createService<IFileService>('file-service');
@@ -19,7 +19,7 @@ export interface IFileService extends IDisposable {
     /**
      * Fires when the watched resources are either added, deleted or updated.
      */
-    readonly onDidResourceChange: Register<ResourceChangeEvent>;
+    readonly onDidResourceChange: Register<IRawResourceChangeEvents>;
 
     /**
      * Fires when any watched resource is closed.
@@ -118,7 +118,7 @@ export class FileService extends Disposable implements IFileService {
 
     // [event]
 
-    private readonly _onDidResourceChange = this.__register(new Emitter<ResourceChangeEvent>());
+    private readonly _onDidResourceChange = this.__register(new Emitter<IRawResourceChangeEvents>());
 	readonly onDidResourceChange = this._onDidResourceChange.registerListener;
 
     private readonly _onDidResourceClose = this.__register(new Emitter<URI>());
@@ -149,7 +149,7 @@ export class FileService extends Disposable implements IFileService {
     public registerProvider(scheme: string, provider: IFileSystemProvider): void {
         this._providers.set(scheme, provider);
 
-        this.__register(provider.onDidResourceChange(e => this._onDidResourceChange.fire(new ResourceChangeEvent(e))));
+        this.__register(provider.onDidResourceChange(e => this._onDidResourceChange.fire(e)));
         this.__register(provider.onDidResourceClose(uri => {
             this.logService.trace('Main#FileService# stop watching on ' + URI.toString(uri));
             
