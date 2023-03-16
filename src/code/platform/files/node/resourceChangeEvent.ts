@@ -6,9 +6,9 @@ import { REGISTRANTS } from "src/code/platform/registrant/common/registrant";
 import { IRawResourceChangeEvent } from "src/code/platform/files/node/watcher";
 
 /**
- * An interface only for {@link ResourceChangeEvents}.
+ * An interface only for {@link ResourceChangeEvent}.
  */
-export interface IResourceChangeEvents {
+export interface IResourceChangeEvent {
 
     /**
      * @description Check if the given resource finds an exact match in the 
@@ -35,7 +35,7 @@ export interface IResourceChangeEvents {
  * @class A wrapper class over the raw {@link IRawResourceChangeEvents}. It provides 
  * convenient APIs to look up for changes in resources more cheaper.
  */
-export class ResourceChangeEvents implements IResourceChangeEvents {
+export class ResourceChangeEvent implements IResourceChangeEvent {
 
     // [field]
     
@@ -88,16 +88,16 @@ export class ResourceChangeEvents implements IResourceChangeEvents {
 
     // [static public methods]
 
-    public static revive(obj: any): ResourceChangeEvents {
+    public static revive(obj: any): ResourceChangeEvent {
         if (!obj) {
 			return obj;
 		}
 
-		if (obj instanceof ResourceChangeEvents) {
+		if (obj instanceof ResourceChangeEvent) {
 			return obj;
 		}
 
-		const uri = reviverRegistrant.revive<ResourceChangeEvents>(obj);
+		const uri = reviverRegistrant.revive<ResourceChangeEvent>(obj);
 		return uri;
     }
 
@@ -182,7 +182,7 @@ export class ResourceChangeEvents implements IResourceChangeEvents {
 }
 
 const reviverRegistrant = REGISTRANTS.get(IReviverRegistrant);
-reviverRegistrant.registerPrototype(ResourceChangeEvents, (obj: Object) => {
+reviverRegistrant.registerPrototype(ResourceChangeEvent, (obj: Object) => {
     if (obj.hasOwnProperty('rawEvent')) {
         return true;
     }

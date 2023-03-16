@@ -2,7 +2,7 @@ import * as assert from 'assert';
 import { join } from 'src/base/common/file/path';
 import { URI } from 'src/base/common/file/uri';
 import { IS_WINDOWS } from 'src/base/common/platform';
-import { ResourceChangeEvents } from 'src/code/platform/files/node/resourceChangeEvent';
+import { ResourceChangeEvent } from 'src/code/platform/files/node/resourceChangeEvent';
 import { IRawResourceChangeEvents, ResourceChangeType } from 'src/code/platform/files/node/watcher';
 
 function toPath(this: Mocha.Suite, path: string): string {
@@ -19,7 +19,7 @@ function toResource(this: Mocha.Suite, path: string): URI {
 	return URI.fromFile(join('/', this.fullTitle(), path));
 }
 
-suite.only('ResourceChangeEvents-test', function () {
+suite.only('ResourceChangeEvent-test', function () {
 
     test('basic', () => {
         const changes: IRawResourceChangeEvents = {
@@ -39,7 +39,7 @@ suite.only('ResourceChangeEvents-test', function () {
         };
 
         for (const ignorePathCasing of [false, true]) {
-			const event = new ResourceChangeEvents(changes, ignorePathCasing);
+			const event = new ResourceChangeEvent(changes, ignorePathCasing);
 
 			assert.ok(!event.match(toResource.call(this, '/foo'), [ResourceChangeType.UPDATED]));
 			assert.ok(event.affect(toResource.call(this, '/foo'), [ResourceChangeType.UPDATED]));
