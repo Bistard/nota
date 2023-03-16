@@ -39,9 +39,9 @@ export class ResourceChangeEvent implements IResourceChangeEvent {
 
     // [field]
     
-    private readonly _added: TernarySearchTree<URI, IRawResourceChangeEvent> | undefined =  undefined;
-    private readonly _deleted: TernarySearchTree<URI, IRawResourceChangeEvent> | undefined = undefined;
-    private readonly _updated: TernarySearchTree<URI, IRawResourceChangeEvent> | undefined =  undefined;
+    private readonly _added?: TernarySearchTree<URI, IRawResourceChangeEvent>;
+    private readonly _deleted?: TernarySearchTree<URI, IRawResourceChangeEvent>;
+    private readonly _updated?: TernarySearchTree<URI, IRawResourceChangeEvent>;
 
     // [constructor]
 
@@ -50,28 +50,32 @@ export class ResourceChangeEvent implements IResourceChangeEvent {
     ) {
         const entriesByType = new Map<ResourceChangeType, [URI, IRawResourceChangeEvent][]>();
 
+        // put all the raw events into categories using map
         for (const change of rawEvent.events) {
-            const entry = entriesByType.get(change.type);
-            if (entry) {
-                entry.push([URI.fromFile(change.resource), change]);
-            } else {
-                entriesByType.set(change.type, [[URI.fromFile(change.resource), change]]);
+            
+            let entry = entriesByType.get(change.type);
+            if (!entry) {
+                entry = [];
+                entriesByType.set(change.type, entry);
             }
+
+            entry.push([URI.fromFile(change.resource), change]);
         }
 
-        for (const [type, event] of entriesByType) {
+        // building ternary search tree by different categories
+        for (const [type, events] of entriesByType) {
             switch(type) {
                 case ResourceChangeType.ADDED:
-                    this._added = CreateTernarySearchTree.forUriKeys<IRawResourceChangeEvent>(ignoreCase ? ignoreCase : false);
-                    this._added.fill(event);
+                    this._added = CreateTernarySearchTree.forUriKeys<IRawResourceChangeEvent>(ignoreCase ?? false);
+                    this._added.fill(events);
                     break;
                 case ResourceChangeType.DELETED:
-                    this._deleted = CreateTernarySearchTree.forUriKeys<IRawResourceChangeEvent>(ignoreCase ? ignoreCase : false);
-                    this._deleted.fill(event);
+                    this._deleted = CreateTernarySearchTree.forUriKeys<IRawResourceChangeEvent>(ignoreCase ?? false);
+                    this._deleted.fill(events);
                     break;
                 case ResourceChangeType.UPDATED:
-                    this._updated = CreateTernarySearchTree.forUriKeys<IRawResourceChangeEvent>(ignoreCase ? ignoreCase : false);
-                    this._updated.fill(event);
+                    this._updated = CreateTernarySearchTree.forUriKeys<IRawResourceChangeEvent>(ignoreCase ?? false);
+                    this._updated.fill(events);
             }
         }
     }
@@ -106,50 +110,44 @@ export class ResourceChangeEvent implements IResourceChangeEvent {
     private __search(resource: URI, searchChildren: boolean, typeFilter?: ResourceChangeType[], isDirectory?: boolean): boolean {
         
         // look up for directory but no directories changes
-        if (isDirectory === true && !this.rawEvent.anyDirectory) {
+        if (isDirectory && !this.rawEvent.anyDirectory) {
             return false;
         }
 
         // look up for file but no files changes
-        if (isDirectory === false && !this.rawEvent.anyFile) {
+        if (!isDirectory && !this.rawEvent.anyFile) {
             return false;
         }
 
         let addMatch = false;
         let deleteMatch = false;
         let updateMatch = false;
+        let anyMatch = false;
 
-        if (typeFilter && typeFilter.length) {  
-            for (const type of typeFilter) {
-                if (type === ResourceChangeType.ADDED && this.rawEvent.anyAdded) {
-                    addMatch = true;
-                } else if (type === ResourceChangeType.DELETED && this.rawEvent.anyDeleted) {
-                    deleteMatch = true;
-                } else if (type === ResourceChangeType.UPDATED && this.rawEvent.anyUpdated) {
-                    updateMatch = true;
-                }
-            }
-            if (!(addMatch || deleteMatch || updateMatch)) {
-                return false;
+        if (!typeFilter || typeFilter.length === 0) {
+            anyMatch = true;
+        }
+        
+        for (const type of typeFilter ?? []) {
+            if (type === ResourceChangeType.ADDED && this.rawEvent.anyAdded) {
+                addMatch = true;
+            } else if (type === ResourceChangeType.DELETED && this.rawEvent.anyDeleted) {
+                deleteMatch = true;
+            } else if (type === ResourceChangeType.UPDATED && this.rawEvent.anyUpdated) {
+                updateMatch = true;
             }
         }
+        
+        anyMatch ||= addMatch;
+        anyMatch ||= deleteMatch;
+        anyMatch ||= updateMatch;
 
-        // TODO: pref - use TenarySearchTree for optimization
-        // if (searchChildren) {
-        //     for (const raw of this.rawEvent.events) {
-        //         if (isParentOf(raw.resource, URI.toFsPath(resource))) {
-        //             return true;
-        //         }
-        //     }
-        // } else {
-        //     for (const raw of this.rawEvent.events) {
-        //         if (raw.resource === URI.toFsPath(resource)) {
-        //             return true;
-        //         }
-        //     }  
-        // }
+        // not matching any change types
+        if (!anyMatch) {
+            return false;
+        }
 
-        if (!typeFilter || addMatch) {
+        if (anyMatch || addMatch) {
             if (this._added?.has(resource)) {
                 return true;
             }
@@ -158,7 +156,7 @@ export class ResourceChangeEvent implements IResourceChangeEvent {
             }
         }
 
-        if (!typeFilter || deleteMatch) {
+        if (anyMatch || deleteMatch) {
             if (this._deleted?.findSubStrOf(resource)) {
                 return true;
             }
@@ -167,7 +165,7 @@ export class ResourceChangeEvent implements IResourceChangeEvent {
             }
         }
 
-        if (!typeFilter || updateMatch) {
+        if (anyMatch || updateMatch) {
             if (this._updated?.has(resource)) {
                 return true;
             }
