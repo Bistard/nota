@@ -23,6 +23,7 @@ suite('ResourceChangeEvent-test', function () {
 
     test('basic', () => {
         const changes: IRawResourceChangeEvents = {
+			wrap: undefined!,
             events: [
                 { resource: toPath.call(this, '/foo/updated.txt'), type: ResourceChangeType.UPDATED },
                 { resource: toPath.call(this, '/foo/otherupdated.txt'), type: ResourceChangeType.UPDATED },
@@ -38,14 +39,12 @@ suite('ResourceChangeEvent-test', function () {
             anyFile: true,
         };
 
-        for (const ignorePathCasing of [/* false, */ true]) {
-			debugger;
+        for (const ignorePathCasing of [false, true]) {
+			
 			const event = new ResourceChangeEvent(changes, ignorePathCasing);
 
 			assert.ok(!event.match(toResource.call(this, '/foo'))); // match any types
 			assert.ok(!event.match(toResource.call(this, '/foo'), [])); // match any types
-			
-			// FIX
 			assert.ok(event.affect(toResource.call(this, '/foo'))); // match any types
 
 			assert.ok(!event.match(toResource.call(this, '/foo'), [ResourceChangeType.UPDATED]));
@@ -55,6 +54,8 @@ suite('ResourceChangeEvent-test', function () {
 			assert.ok(event.match(toResource.call(this, '/foo/updated.txt'), [ResourceChangeType.UPDATED, ResourceChangeType.ADDED]));
 			assert.ok(event.affect(toResource.call(this, '/foo/updated.txt'), [ResourceChangeType.UPDATED, ResourceChangeType.ADDED]));
 			assert.ok(event.match(toResource.call(this, '/foo/updated.txt'), [ResourceChangeType.UPDATED, ResourceChangeType.ADDED, ResourceChangeType.DELETED]));
+			debugger;
+			// Fix
 			assert.ok(!event.match(toResource.call(this, '/foo/updated.txt'), [ResourceChangeType.ADDED, ResourceChangeType.DELETED]));
 			assert.ok(!event.match(toResource.call(this, '/foo/updated.txt'), [ResourceChangeType.ADDED]));
 			assert.ok(!event.match(toResource.call(this, '/foo/updated.txt'), [ResourceChangeType.DELETED]));

@@ -108,46 +108,46 @@ export class ResourceChangeEvent implements IResourceChangeEvent {
     // [private helper methods]
 
     private __search(resource: URI, searchChildren: boolean, typeFilter?: ResourceChangeType[], isDirectory?: boolean): boolean {
-        
+
         // look up for directory but no directories changes
-        if (isDirectory && !this.rawEvent.anyDirectory) {
+        if (isDirectory === true && !this.rawEvent.anyDirectory) {
             return false;
         }
 
         // look up for file but no files changes
-        if (!isDirectory && !this.rawEvent.anyFile) {
+        if (isDirectory === false && !this.rawEvent.anyFile) {
             return false;
         }
 
         let addMatch = false;
         let deleteMatch = false;
         let updateMatch = false;
-        let anyMatch = false;
 
-        if (!typeFilter || typeFilter.length === 0) {
-            anyMatch = true;
-        }
-        
-        for (const type of typeFilter ?? []) {
-            if (type === ResourceChangeType.ADDED && this.rawEvent.anyAdded) {
-                addMatch = true;
-            } else if (type === ResourceChangeType.DELETED && this.rawEvent.anyDeleted) {
-                deleteMatch = true;
-            } else if (type === ResourceChangeType.UPDATED && this.rawEvent.anyUpdated) {
-                updateMatch = true;
+        if (typeFilter && typeFilter.length) {  
+            for (const type of typeFilter) {
+                if (type === ResourceChangeType.ADDED && this.rawEvent.anyAdded) {
+                    addMatch = true;
+                } else if (type === ResourceChangeType.DELETED && this.rawEvent.anyDeleted) {
+                    deleteMatch = true;
+                } else if (type === ResourceChangeType.UPDATED && this.rawEvent.anyUpdated) {
+                    updateMatch = true;
+                }
+            }
+            if (!(addMatch || deleteMatch || updateMatch)) {
+                return false;
             }
         }
         
-        anyMatch ||= addMatch;
-        anyMatch ||= deleteMatch;
-        anyMatch ||= updateMatch;
-
-        // not matching any change types
-        if (!anyMatch) {
-            return false;
+        if (!typeFilter || updateMatch) {
+            if (this._updated?.has(resource)) {
+                return true;
+            }
+            if (searchChildren && this._updated?.findSuperStrOf(resource)) {
+                return true;
+            }
         }
 
-        if (anyMatch || addMatch) {
+        if (!typeFilter || addMatch) {
             if (this._added?.has(resource)) {
                 return true;
             }
@@ -156,20 +156,11 @@ export class ResourceChangeEvent implements IResourceChangeEvent {
             }
         }
 
-        if (anyMatch || deleteMatch) {
+        if (!typeFilter || deleteMatch) {
             if (this._deleted?.findSubStrOf(resource)) {
                 return true;
             }
             if (searchChildren && this._deleted?.findSuperStrOf(resource)) {
-                return true;
-            }
-        }
-
-        if (anyMatch || updateMatch) {
-            if (this._updated?.has(resource)) {
-                return true;
-            }
-            if (searchChildren && this._updated?.findSuperStrOf(resource)) {
                 return true;
             }
         }
