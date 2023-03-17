@@ -8,7 +8,7 @@ export interface IDimension {
     readonly height: number;
 }
 
-export interface IDomPosition extends IDimension {
+export interface IDomBox extends IDimension {
 	readonly top: number;
 	readonly left: number;
 }
