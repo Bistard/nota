@@ -2,7 +2,7 @@ import { FastElement } from "src/base/browser/basic/fastElement";
 import { HexColor } from "src/base/common/color";
 import { Disposable, IDisposable, toDisposable } from "src/base/common/dispose";
 import { Emitter, Register } from "src/base/common/event";
-import { Dimension, IDomPosition } from "src/base/common/util/size";
+import { Dimension, IDomBox } from "src/base/common/util/size";
 import { Pair } from "src/base/common/util/type";
 
 const BODY = document.body;
@@ -314,7 +314,7 @@ export namespace DomUtility
 		 * @param node The given DOM element.
 		 * @returns A dom position.
 		 */
-		export function getNodePagePosition(node: HTMLElement): IDomPosition {
+		export function getNodePagePosition(node: HTMLElement): IDomBox {
 			const box: DOMRect = node.getBoundingClientRect();
 			return {
 				left: box.left + window.scrollX,
