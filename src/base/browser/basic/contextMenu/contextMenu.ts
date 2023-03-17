@@ -1,4 +1,4 @@
-import "src/base/browser/basic/contextMenu/contextMenu.scss";
+// import "src/base/browser/basic/contextMenu/contextMenu.scss";
 import { addDisposableListener, DomUtility, EventType } from "src/base/browser/basic/dom";
 import { FastElement } from "src/base/browser/basic/fastElement";
 import { Disposable, DisposableManager, IDisposable } from "src/base/common/dispose";
