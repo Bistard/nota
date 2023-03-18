@@ -23,6 +23,11 @@ export interface IMenuAction extends IAction {
     readonly type: MenuItemType;
 
     /**
+     * A class name to customize the style of the corresponding item in the menu.
+     */
+    readonly extraClassName: string;
+
+    /**
      * If the action is checked.
      */
     checked?: boolean;
@@ -34,8 +39,31 @@ export interface IMenuAction extends IAction {
 }
 
 export interface IMenuActionOptions extends IActionOptions {
+    
+    /**
+     * If the menu is checked.
+     */
     readonly checked?: boolean;
+
+    /**
+     * If the menu action has a shortcut.
+     */
     readonly shortcut?: Shortcut;
+
+    /**
+     * A optional class name to customize the style of the corresponding item in
+     * the menu.
+     */
+    readonly extraClassName?: string;
+}
+
+export interface ISubmenuActionOptions extends Omit<IActionOptions, 'callback'> {
+    
+    /**
+     * A optional class name to customize the style of the corresponding item in
+     * the menu.
+     */
+    readonly extraClassName?: string;
 }
 
 class __BaseMenuAction extends Action implements IMenuAction {
@@ -46,6 +74,8 @@ class __BaseMenuAction extends Action implements IMenuAction {
     public checked?: boolean;
     public shortcut?: Shortcut;
 
+    public readonly extraClassName: string;
+
     // [constructor]
 
     constructor(type: MenuItemType, opts: IMenuActionOptions) {
@@ -53,6 +83,7 @@ class __BaseMenuAction extends Action implements IMenuAction {
         this.type = type;
         this.checked = opts.checked;
         this.shortcut = opts.shortcut;
+        this.extraClassName = opts.extraClassName ?? '';
     }
 }
 
@@ -74,18 +105,19 @@ export class SubmenuAction extends __BaseMenuAction {
 
     // [constructor]
 
-    constructor(actions: IMenuAction[], opts: IMenuActionOptions) {
-        super(MenuItemType.Submenu, opts);
+    constructor(actions: IMenuAction[], opts: ISubmenuActionOptions) {
+        super(MenuItemType.Submenu, { ...opts, callback: noop, });
         this.actions = actions;
     }
 }
 
-export class MenuSeperatorAction extends Action {
+export class MenuSeperatorAction extends Action implements IMenuAction {
     
     // [fields]
 
     public static readonly instance = new MenuSeperatorAction();
     public readonly type = MenuItemType.Seperator;
+    public readonly extraClassName = '';
 
     // [constructor]
 
@@ -142,6 +174,7 @@ export abstract class AbstractMenuItem extends ActionListItem implements IMenuIt
         this._contextProvider = contextProvider;
 
         this.element = this.__register(new FastElement(document.createElement('div')));
+        this.element.setClassName(action.extraClassName);
     }
 
     // [public methods]
@@ -209,7 +242,7 @@ export abstract class AbstractMenuItem extends ActionListItem implements IMenuIt
 
         // remove 'active' properly
         [this.element.onMouseup, this.element.onMouseout].forEach(onEvent => {
-			onEvent((e) => {
+			onEvent.bind(this, (e) => {
                 DomEventHandler.stop(e, true);
                 this.element.removeClassList('active');
             });

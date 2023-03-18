@@ -181,15 +181,18 @@ export abstract class ActionList<IItem extends IActionListItem> extends Disposab
     public run(action: IAction): void;
     public run(id: string): void;
     public run(arg: IAction | number | string): void {
+        const ctx = this._contextProvider();
+        
         if (isNumber(arg)) {
             const item = this._items[arg];
             if (item) {
-                item.run(this._contextProvider());
+                item.run(ctx);
             }
         }
+        
         else {
             const id = isString(arg) ? arg : arg.id;
-            this.get(id)?.run(this._contextProvider());
+            this.get(id)?.run(ctx);
         }
     }
 

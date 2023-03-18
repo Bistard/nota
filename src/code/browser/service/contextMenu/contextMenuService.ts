@@ -1,7 +1,7 @@
 import { ContextMenu, IContextMenu, IContextMenuDelegate, IContextMenuDelegateBase } from "src/base/browser/basic/contextMenu/contextMenu";
 import { DomUtility } from "src/base/browser/basic/dom";
 import { IMenu, Menu } from "src/base/browser/basic/menu/menu";
-import { IAction } from "src/base/common/action";
+import { IMenuAction } from "src/base/browser/basic/menu/menuItem";
 import { Disposable } from "src/base/common/dispose";
 import { ILayoutService } from "src/code/browser/service/layout/layoutService";
 import { createService } from "src/code/platform/instantiation/common/decorator";
@@ -17,7 +17,7 @@ export interface IContextMenuServiceDelegate extends IContextMenuDelegateBase {
     /**
      * @description A list of actions for each context menu item.
      */
-    getActions(): IAction[];
+    getActions(): IMenuAction[];
 
     /**
      * @description Returns the running context for all the actions.

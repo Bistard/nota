@@ -1,6 +1,6 @@
 import "src/base/browser/basic/menu/menu.scss";
-import { AbstractMenuItem, MenuAction, MenuItemType, MenuSeperatorItem, SingleMenuItem, SubmenuItem } from "src/base/browser/basic/menu/menuItem";
-import { ActionList, IAction, IActionList } from "src/base/common/action";
+import { AbstractMenuItem, IMenuAction, MenuAction, MenuItemType, MenuSeperatorItem, SingleMenuItem, SubmenuItem } from "src/base/browser/basic/menu/menuItem";
+import { ActionList, IActionList } from "src/base/common/action";
 
 /**
  * An inteface only for {@link Menu}.
@@ -17,7 +17,7 @@ export interface IMenuOptions {
     /**
      * Initial actions for the menu construction.
      */
-    readonly actions?: IAction[];
+    readonly actions: IMenuAction[];
 
     /**
      * The current context (about the target) of the menu.
@@ -26,7 +26,11 @@ export interface IMenuOptions {
 }
 
 /**
- * @class // TODO
+ * @class A {@link Menu} is build on top of {@link ActionList}, provides a 
+ * UI-related component that represents a 'menu list'. Each item in the list is
+ * has a functionality {@link IMenuAction}.
+ * 
+ * A {@link Menu} provides various types of item and can be found at {@link MenuItemType}.
  */
 export class Menu extends ActionList<AbstractMenuItem> implements IMenu {
 
