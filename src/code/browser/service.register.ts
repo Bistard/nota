@@ -12,6 +12,7 @@ import { SideViewService, ISideViewService } from 'src/code/browser/workbench/pa
 import { ExplorerTreeService, IExplorerTreeService } from 'src/code/browser/service/explorerTree/explorerTreeService';
 import { ContextService, IContextService } from 'src/code/platform/context/common/contextService';
 import { ContextMenuService, IContextMenuService } from "src/code/browser/service/contextMenu/contextMenuService";
+import { ILayoutService, LayoutService } from "src/code/browser/service/layout/layoutService";
 
 /*******************************************************************************
  * Registraion for desktop browser-side non-important microservices.
@@ -28,6 +29,7 @@ export function rendererServiceRegistrations(): void {
     registerSingleton(ICommandService, new ServiceDescriptor(CommandService));
 
     // User Interface
+    registerSingleton(ILayoutService, new ServiceDescriptor(LayoutService));
     registerSingleton(ISideBarService, new ServiceDescriptor(SideBar));
     registerSingleton(IWorkspaceService, new ServiceDescriptor(WorkspaceComponent));
     registerSingleton(ISideViewService, new ServiceDescriptor(SideViewService));
