@@ -1,3 +1,4 @@
+import "src/base/browser/basic/menu/menu.scss";
 import { AbstractMenuItem, MenuAction, MenuItemType, MenuSeperatorItem, SingleMenuItem, SubmenuItem } from "src/base/browser/basic/menu/menuItem";
 import { ActionList, IAction, IActionList } from "src/base/common/action";
 

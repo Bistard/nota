@@ -12,6 +12,9 @@ import { IConfigService } from "src/code/platform/configuration/common/abstractC
 import { ExplorerView } from "src/code/browser/workbench/contrib/explorer/explorer";
 import { ISplitViewItemOpts } from "src/base/browser/secondary/splitView/splitViewItem";
 import { Icons } from "src/base/browser/icon/icons";
+import { IContextMenuService } from "src/code/browser/service/contextMenu/contextMenuService";
+import { ILayoutService } from "src/code/browser/service/layout/layoutService";
+import { Action } from "src/base/common/action";
 
 /**
  * @description A base class for Workbench to create and manage the behaviour of
@@ -26,7 +29,7 @@ export abstract class WorkbenchLayout extends Component {
     // [constructor]
     
     constructor(
-        parent: HTMLElement,
+        @ILayoutService protected readonly layoutService: ILayoutService,
         protected readonly instantiationService: IInstantiationService,
         @IComponentService componentService: IComponentService,
         @IThemeService themeService: IThemeService,
@@ -34,8 +37,9 @@ export abstract class WorkbenchLayout extends Component {
         @ISideViewService protected readonly sideViewService: ISideViewService,
         @IWorkspaceService protected readonly workspaceService: IWorkspaceService,
         @IConfigService protected readonly configService: IConfigService,
+        @IContextMenuService protected readonly contextMenuService: IContextMenuService,
     ) {
-        super('workbench', parent, themeService, componentService);
+        super('workbench', layoutService.parentContainer, themeService, componentService);
 
         this.__registerSideViews();
     }
@@ -55,10 +59,11 @@ export abstract class WorkbenchLayout extends Component {
     protected __createLayout(): void {
 
         // register side buttons
-        this.__registerSideBarButtons();
+        const sideBarBuilder = new SideBarBuilder(this.sideBarService, this.contextMenuService);
+        sideBarBuilder.registerButtons();
 
-        // combine the workbench layout at the last
-        this.__combineWorkbench();
+        // assembly the workbench layout
+        this.__assemblyWorkbenchParts();
     }
 
     protected __registerLayoutListeners(): void {
@@ -86,59 +91,7 @@ export abstract class WorkbenchLayout extends Component {
         this.sideViewService.registerView(SideButtonType.EXPLORER, ExplorerView);
     }
 
-    private __registerSideBarButtons(): void {
-        
-        /**
-         * primary button configurations
-         */
-        [
-            { 
-                id: SideButtonType.EXPLORER, 
-                icon: Icons.Folder,
-            },
-            { 
-                id: SideButtonType.OUTLINE, 
-                icon: Icons.List,
-            },
-            // { id: SideButtonType.SEARCH, icon: Icons.Search },
-            // { id: SideButtonType.GIT, icon: Icons.CodeBranch },
-        ]
-        .forEach(({ id, icon }) => {
-            this.sideBarService.registerPrimaryButton({
-                id: id,
-                icon: icon,
-                isPrimary: true,
-            });
-        });
-
-
-        /**
-         * secondary button configurations
-         */
-        [
-            { 
-                id: SideButtonType.HELPER, 
-                icon: Icons.CommentQuestion,
-            },
-            { 
-                id: SideButtonType.SETTINGS, 
-                icon: Icons.Settings,
-                onDidClick: () => {
-                    console.log('setting button clicked');
-                },
-            },
-        ]
-        .forEach(({ id, icon, onDidClick }) => {
-            this.sideBarService.registerSecondaryButton({
-                id: id,
-                icon: icon,
-                isPrimary: true,
-                onDidClick: onDidClick,
-            });
-        });
-    }
-
-    private __combineWorkbench(): void {
+    private __assemblyWorkbenchParts(): void {
         
         const splitViewOpt = {
             orientation: Orientation.Horizontal,
@@ -171,5 +124,100 @@ export abstract class WorkbenchLayout extends Component {
         sash.enable = false;
         sash.visible = true;
         sash.size = 1;
+    }
+}
+
+class SideBarBuilder {
+
+    constructor(
+        private readonly sideBarService: ISideBarService,
+        private readonly contextMenuService: IContextMenuService,
+    ) {
+    }
+
+    public registerButtons(): void {
+        
+        /**
+         * primary button configurations
+         */
+        [
+            { 
+                id: SideButtonType.EXPLORER, 
+                icon: Icons.Folder,
+            },
+            { 
+                id: SideButtonType.OUTLINE, 
+                icon: Icons.List,
+            },
+            // TODO
+            // { id: SideButtonType.SEARCH, icon: Icons.Search },
+            // { id: SideButtonType.GIT, icon: Icons.CodeBranch },
+        ]
+        .forEach(({ id, icon }) => {
+            this.sideBarService.registerPrimaryButton({
+                id: id,
+                icon: icon,
+                isPrimary: true,
+            });
+        });
+
+
+        /**
+         * secondary button configurations
+         */
+        [
+            { 
+                id: SideButtonType.HELPER, 
+                icon: Icons.CommentQuestion,
+            },
+            { 
+                id: SideButtonType.SETTINGS, 
+                icon: Icons.Settings,
+                onDidClick: () => {
+                    this.contextMenuService.showContextMenu({
+                        getAnchor: this.__getButtonElement(SideButtonType.SETTINGS).bind(this),
+                        getActions: () => {
+                            return [
+                                // TEST
+                                new Action({
+                                    callback: () => console.log('action executed'),
+                                    enabled: true,
+                                    id: 'testing action',
+                                    tip: 'testing action tip',
+                                })
+                            ];
+                        },
+                        getContext: () => {
+                            return undefined;
+                        },
+                        horizontalPosition: undefined,
+                        primaryAlignment: undefined,
+                        verticalPosition: undefined,
+                    });
+                },
+            },
+        ]
+        .forEach(({ id, icon, onDidClick }) => {
+            this.sideBarService.registerSecondaryButton({
+                id: id,
+                icon: icon,
+                isPrimary: true,
+                onDidClick: onDidClick,
+            });
+        });
+    }
+
+    private __getButtonElement(buttonType: SideButtonType): () => HTMLElement {
+        let element: HTMLElement | undefined;
+        return () => {
+            if (!element) {
+                const button = this.sideBarService.getButton(buttonType);
+                if (!button) {
+                    throw new Error(`Cannot find side bar button with id: ${buttonType}`);
+                }
+                element = button.element;
+            }
+            return element;
+        };
     }
 }

@@ -16,6 +16,8 @@ import { IContextKey } from 'src/code/platform/context/common/contextKey';
 import { IS_LINUX, IS_MAC, IS_WINDOWS } from 'src/base/common/platform';
 import { IBrowserLifecycleService, ILifecycleService, LifecyclePhase } from 'src/code/platform/lifecycle/browser/browserLifecycleService';
 import { IBrowserEnvironmentService, IEnvironmentService } from 'src/code/platform/environment/common/environment';
+import { IContextMenuService } from 'src/code/browser/service/contextMenu/contextMenuService';
+import { ILayoutService } from 'src/code/browser/service/layout/layoutService';
 
 /**
  * @class Workbench represents all the Components in the web browser.
@@ -29,7 +31,7 @@ export class Workbench extends WorkbenchLayout implements IWorkbenchService {
     // [constructor]
 
     constructor(
-        parent: HTMLElement,
+        @ILayoutService layoutService: ILayoutService,
         @IInstantiationService instantiationService: IInstantiationService,
         @IConfigService configService: IConfigService,
         @IComponentService componentService: IComponentService,
@@ -38,8 +40,9 @@ export class Workbench extends WorkbenchLayout implements IWorkbenchService {
         @ISideViewService sideViewService: ISideViewService,
         @IWorkspaceService workspaceService: IWorkspaceService,
         @ILifecycleService private readonly lifecycleService: IBrowserLifecycleService,
+        @IContextMenuService contextMenuService: IContextMenuService,
     ) {
-        super(parent, instantiationService, componentService, themeService, sideBarService, sideViewService, workspaceService, configService);
+        super(layoutService, instantiationService, componentService, themeService, sideBarService, sideViewService, workspaceService, configService, contextMenuService);
     }
 
     // [public methods]

@@ -1,28 +1,47 @@
-import { ContextMenu, IContextMenu, IContextMenuDelegate } from "src/base/browser/basic/contextMenu/contextMenu";
+import { ContextMenu, IContextMenu, IContextMenuDelegate, IContextMenuDelegateBase } from "src/base/browser/basic/contextMenu/contextMenu";
 import { DomUtility } from "src/base/browser/basic/dom";
+import { IMenu, Menu } from "src/base/browser/basic/menu/menu";
 import { IAction } from "src/base/common/action";
 import { Disposable } from "src/base/common/dispose";
-import { IWorkbenchService } from "src/code/browser/service/workbench/workbenchService";
+import { ILayoutService } from "src/code/browser/service/layout/layoutService";
 import { createService } from "src/code/platform/instantiation/common/decorator";
 
 export const IContextMenuService = createService<IContextMenuService>('context-menu-service');
 
 /**
- * // TODO
+ * A delegate to provide external data dn functionalities to help to show a 
+ * context menu.
  */
-export interface IContextMenuServiceDelegate extends IContextMenuDelegate {
+export interface IContextMenuServiceDelegate extends IContextMenuDelegateBase {
     
     /**
-     * @description
+     * @description A list of actions for each context menu item.
      */
     getActions(): IAction[];
+
+    /**
+     * @description Returns the running context for all the actions.
+     */
+    getContext(): unknown;
+
+    /**
+     * @description Allow the client to customize the style of the context menu.
+     */
+    getContextMenuClassName?(): string;
 }
 
 /**
  * An interface only for {@link ContextMenuService}.
  */
 export interface IContextMenuService {
-    showContextMenu(delegate: IContextMenuDelegate): void;
+    
+    /**
+     * @description Shows up a context menu.
+     * @param delegate The delegate to provide external functionalities.
+     * @param container The container that contains the context menu. If not
+     *                  provided, it will be positioned under the workbench.
+     */
+    showContextMenu(delegate: IContextMenuServiceDelegate, container?: HTMLElement): void;
 }
 
 /**
@@ -39,14 +58,13 @@ export class ContextMenuService extends Disposable implements IContextMenuServic
     private _currContextMenuContainer?: HTMLElement;
     private readonly _defaultContainer: HTMLElement;
 
-
     // [constructor]
 
     constructor(
-        @IWorkbenchService private readonly workbenchService: IWorkbenchService,
+        @ILayoutService private readonly layoutService: ILayoutService,
     ) {
         super();
-        this._defaultContainer = this.workbenchService.element.element;
+        this._defaultContainer = this.layoutService.parentContainer;
         this._currContextMenuContainer = this._defaultContainer;
         this._contextMenu = new ContextMenu(this._currContextMenuContainer);
     }
@@ -70,9 +88,39 @@ export class ContextMenuService extends Disposable implements IContextMenuServic
             this._contextMenu.setContainer(focusElement);
         }
 
-        this._contextMenu.show(delegate); // TODO: predefined delegate behaviour
+        // show up a context menu
+        this._contextMenu.show(this.__createShowContextMenuDelegate(delegate));
     }
 
     // [private methods]
 
+    private __createShowContextMenuDelegate(delegate: IContextMenuServiceDelegate): IContextMenuDelegate {
+        let menu: IMenu | undefined;
+
+        return {
+            getAnchor: () => delegate.getAnchor(),
+            
+            render: (container: HTMLElement) => {
+                console.log('delegate: render'); // TEST
+
+                const menuClassName = delegate.getContextMenuClassName?.() ?? '';
+                if (menuClassName) {
+                    container.classList.add(menuClassName);
+                }
+
+                menu = new Menu(container, {
+                    context: delegate.getContext(),
+                    actions: delegate.getActions(),
+                });
+
+                // TODO: onDidBlur / onDidCancel
+
+                return Disposable.NONE;
+            },
+
+            onBeforeDestroy: () => {
+                console.log('delegate: on before destroy'); // TEST
+            },
+        };
+    }
 }

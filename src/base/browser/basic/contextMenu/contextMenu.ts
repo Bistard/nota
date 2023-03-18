@@ -63,16 +63,12 @@ const enum AnchorMode {
     Avoid,
 }
 
-/**
- * // TODO
- */
-export interface IContextMenuDelegate {
-    
+export interface IContextMenuDelegateBase {
     /**
      * @description The delegate returns an anchor for the context menu to build
      * the coordinates when rendering.
      */
-    readonly anchor: HTMLElement | IAnchor;
+    getAnchor(): HTMLElement | IAnchor;
 
     /**
      * Determines the primary axis of positioning (either vertical or horizontal) 
@@ -94,12 +90,20 @@ export interface IContextMenuDelegate {
      * @default AnchorHorizontalPosition.Below
      */
     readonly verticalPosition?: AnchorVerticalPosition;
+}
 
+/**
+ * A delegate to provide external data and functionalities to help to show the
+ * context menu.
+ */
+export interface IContextMenuDelegate extends IContextMenuDelegateBase {
+    
     /**
      * @description The delegate decides how to render the content of the 
      * context menu.
      * @param container The container contains all the rendered results by the
      *                  delegate.
+     * @returns Returns a disposable to be disposed when destroyed.
      */
     render(container: HTMLElement): IDisposable | undefined;
 
@@ -128,6 +132,16 @@ export interface IContextMenu extends IDisposable {
      * @note If not under any container, this will not show up.
      */
     show(delegate: IContextMenuDelegate): void;
+
+    /**
+     * @description Destroys the current context menu if presented.
+     */
+    destroy(): void;
+
+    /**
+     * @description Is the context menu is visible (un-destroyed).
+     */
+    visible(): boolean;
 }
 
 /**
@@ -194,7 +208,7 @@ export class ContextMenu extends Disposable implements IContextMenu {
             disposables.register(
                 addDisposableListener(this._element.element, EventType.click, (e) => {
                     if (!DomUtility.Elements.isAncestor(this._element.element, <Node>e.target)) {
-                        this.hide();
+                        this.destroy();
                     }
                 })
             );
@@ -212,7 +226,7 @@ export class ContextMenu extends Disposable implements IContextMenu {
 
         // destroy the current context menu if already visible
         if (this.visible()) {
-            this.hide();
+            this.destroy();
         }
 
         // cleans the previous rendered result
@@ -229,7 +243,7 @@ export class ContextMenu extends Disposable implements IContextMenu {
         this.__layout(delegate);
     }
 
-    public hide(): void {
+    public destroy(): void {
         const oldDelegate = this._currDelegate;
         this._currDelegate = undefined;
 
@@ -475,7 +489,7 @@ export class ContextMenu extends Disposable implements IContextMenu {
     private __getAnchorBox(delegate: IContextMenuDelegate): IDomBox {
         
         let box: IDomBox;
-        const anchor = delegate.anchor;
+        const anchor = delegate.getAnchor();
 
         // if the anchor is an node, we find the dimension of it.
         if (DomUtility.Elements.isHTMLElement(anchor)) {

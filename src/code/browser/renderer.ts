@@ -69,7 +69,7 @@ class RendererInstance extends Disposable {
             ]);
 
             // create workbench UI
-            const workbench = instantiaionService.createInstance(Workbench, document.body);
+            const workbench = instantiaionService.createInstance(Workbench);
             workbench.init();
 
             // browser monitor
