@@ -164,6 +164,7 @@ export abstract class AbstractMenuItem extends ActionListItem implements IMenuIt
 
     // [fields]
 
+    declare public readonly action: IMenuAction;
     public readonly element: FastElement<HTMLElement>;
     protected readonly _contextProvider: IContextProvider;
 
@@ -172,10 +173,7 @@ export abstract class AbstractMenuItem extends ActionListItem implements IMenuIt
     constructor(action: IMenuAction, contextProvider: IContextProvider) {
         super(action);
         this._contextProvider = contextProvider;
-
         this.element = this.__register(new FastElement(document.createElement('div')));
-        this.element.setClassName(action.extraClassName);
-        this.element.toggleClassName('disabled', !action.enabled);
     }
 
     // [public methods]
@@ -214,19 +212,21 @@ export abstract class AbstractMenuItem extends ActionListItem implements IMenuIt
      * @description Override for additional rendering purpose.
      */
     protected __render(): void {
-        this.element.setClassName('base-item');
-
-        // prevent default context menu event on each menu item
-        this.__register(this.element.onContextmenu(e => {
-            DomEventHandler.stop(e, true);
-        }));
+        this.element.addClassList('base-item');
+        this.element.addClassList(this.action.extraClassName);
+        this.element.toggleClassName('disabled', !this.action.enabled);
     }
 
     /**
      * @description Override for additional listeners.
      */
     protected __registerListeners(): void {
-        
+
+        // prevent default context menu event on each menu item
+        this.__register(this.element.onContextmenu(e => {
+            DomEventHandler.stop(e, true);
+        }));
+
         // add 'active' properly
         this.element.onMousedown(e => {
             DomEventHandler.stop(e, true);
@@ -248,7 +248,7 @@ export abstract class AbstractMenuItem extends ActionListItem implements IMenuIt
 
         // remove 'active' properly
         [this.element.onMouseup, this.element.onMouseout].forEach(onEvent => {
-			onEvent.bind(this, (e) => {
+			onEvent.call(this.element, (e) => {
                 DomEventHandler.stop(e, true);
                 this.element.removeClassList('active');
             });
