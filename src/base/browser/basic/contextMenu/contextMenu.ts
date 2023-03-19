@@ -178,7 +178,7 @@ export class ContextMenu extends Disposable implements IContextMenu {
 
     constructor(container: HTMLElement) {
         super();
-        this._element = new FastElement(document.createElement('div'));
+        this._element = this.__register(new FastElement(document.createElement('div')));
         this._element.setClassName(ContextMenu.CLASS_NAME);
         this._element.setPosition('absolute');
 

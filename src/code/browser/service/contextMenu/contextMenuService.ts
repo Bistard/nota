@@ -1,8 +1,8 @@
 import { ContextMenu, IContextMenu, IContextMenuDelegate, IContextMenuDelegateBase } from "src/base/browser/basic/contextMenu/contextMenu";
-import { DomUtility } from "src/base/browser/basic/dom";
+import { addDisposableListener, DomEmitter, DomEventHandler, DomUtility, EventType } from "src/base/browser/basic/dom";
 import { IMenu, Menu } from "src/base/browser/basic/menu/menu";
 import { IMenuAction } from "src/base/browser/basic/menu/menuItem";
-import { Disposable } from "src/base/common/dispose";
+import { Disposable, DisposableManager } from "src/base/common/dispose";
 import { ILayoutService } from "src/code/browser/service/layout/layoutService";
 import { createService } from "src/code/platform/instantiation/common/decorator";
 
@@ -101,21 +101,56 @@ export class ContextMenuService extends Disposable implements IContextMenuServic
             getAnchor: () => delegate.getAnchor(),
             
             render: (container: HTMLElement) => {
-                console.log('delegate: render'); // TEST
-
+                const menuDisposables = new DisposableManager();
+                
                 const menuClassName = delegate.getContextMenuClassName?.() ?? '';
                 if (menuClassName) {
                     container.classList.add(menuClassName);
                 }
 
-                menu = new Menu(container, {
-                    context: delegate.getContext(),
-                    actions: delegate.getActions(),
+                // menu construction
+                menu = menuDisposables.register(
+                    new Menu(container, {
+                        context: delegate.getContext(),
+                        actions: delegate.getActions(),
+                    })
+                );
+
+                // context menu destroy event
+                [
+                    menu.onDidBlur,
+                    menu.onDidClose,
+                    new DomEmitter(window, EventType.blur).registerListener,
+                ]
+                .forEach(onEvent => {
+                    menuDisposables.register(
+                        onEvent.call(menu, () => this._contextMenu.destroy())
+                    );
                 });
 
-                // TODO: onDidBlur / onDidCancel
+                // mousedown destroy event
+                menuDisposables.register(addDisposableListener(window, EventType.mousedown, (e) => {
+                    if (e.defaultPrevented) {
+                        return;
+                    }
 
-                return Disposable.NONE;
+                    /**
+                     * We are likely creating a context menu, let the context 
+                     * menu service to destroy it.
+                     */
+                    if (DomEventHandler.isRightClick(e)) {
+                        return;
+                    }
+
+                    // clicking the child element will not destroy the view.
+                    if (DomUtility.Elements.isAncestor(container, <HTMLElement | undefined>e.target)) {
+                        return;
+                    }
+
+                    this._contextMenu.destroy();
+                }));
+
+                return menuDisposables;
             },
 
             onBeforeDestroy: () => {

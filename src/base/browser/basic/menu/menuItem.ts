@@ -175,6 +175,7 @@ export abstract class AbstractMenuItem extends ActionListItem implements IMenuIt
 
         this.element = this.__register(new FastElement(document.createElement('div')));
         this.element.setClassName(action.extraClassName);
+        this.element.toggleClassName('disabled', !action.enabled);
     }
 
     // [public methods]
@@ -214,6 +215,11 @@ export abstract class AbstractMenuItem extends ActionListItem implements IMenuIt
      */
     protected __render(): void {
         this.element.setClassName('base-item');
+
+        // prevent default context menu event on each menu item
+        this.__register(this.element.onContextmenu(e => {
+            DomEventHandler.stop(e, true);
+        }));
     }
 
     /**

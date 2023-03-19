@@ -1,12 +1,25 @@
 import "src/base/browser/basic/menu/menu.scss";
+import { FocusTracker } from "src/base/browser/basic/focusTracker";
 import { AbstractMenuItem, IMenuAction, MenuAction, MenuItemType, MenuSeperatorItem, SingleMenuItem, SubmenuItem } from "src/base/browser/basic/menu/menuItem";
 import { ActionList, IActionList } from "src/base/common/action";
+import { addDisposableListener, DomUtility, EventType } from "src/base/browser/basic/dom";
+import { Emitter, Register } from "src/base/common/event";
+import { createStandardKeyboardEvent, KeyCode } from "src/base/common/keyboard";
 
 /**
  * An inteface only for {@link Menu}.
  */
 export interface IMenu extends IActionList<AbstractMenuItem> {
 
+    /**
+     * Fires when the menu is blured.
+     */
+    readonly onDidBlur: Register<void>;
+
+    /**
+     * Fires when the menu is closed.
+     */
+    readonly onDidClose: Register<void>;
 }
 
 /**
@@ -31,6 +44,8 @@ export interface IMenuOptions {
  * has a functionality {@link IMenuAction}.
  * 
  * A {@link Menu} provides various types of item and can be found at {@link MenuItemType}.
+ * 
+ * // TODO: add focus functionality
  */
 export class Menu extends ActionList<AbstractMenuItem> implements IMenu {
 
@@ -40,7 +55,17 @@ export class Menu extends ActionList<AbstractMenuItem> implements IMenu {
     declare protected readonly _items: AbstractMenuItem[];
     private readonly _context: unknown;
 
+    private readonly _focusTracker: FocusTracker;
+
     private _submenu?: IMenu;
+
+    // [events]
+
+    private readonly _onDidBlur = this.__register(new Emitter<void>());
+    public readonly onDidBlur = this._onDidBlur.registerListener;
+
+    private readonly _onDidClose = this.__register(new Emitter<void>());
+    public readonly onDidClose = this._onDidClose.registerListener;
 
     // [constructor]
 
@@ -54,16 +79,8 @@ export class Menu extends ActionList<AbstractMenuItem> implements IMenu {
         this._element.className = 'menu';
         this._submenu = undefined;
 
-        /**
-         * Renders the item after every insertion.
-         */
-        this.onDidInsert(items => {
-            const fragment = <HTMLElement><unknown>document.createDocumentFragment();
-            for (const item of items) {
-                item.render(fragment);
-            }
-            this._element.appendChild(fragment);
-        });
+        this._focusTracker = this.__register(new FocusTracker(this._element, true));
+        this.__registerListeners();
 
         // construct menu for the first time
         this.insert(opts.actions ?? []);
@@ -71,7 +88,7 @@ export class Menu extends ActionList<AbstractMenuItem> implements IMenu {
         // actual render
         container.appendChild(this._element);
     }
-
+    
     // [public methods]
 
     public override dispose(): void {
@@ -96,6 +113,93 @@ export class Menu extends ActionList<AbstractMenuItem> implements IMenu {
         else {
             return new SingleMenuItem(action, this._contextProvider);
         }
+    }
+
+    // [private helper methods]
+
+    private __registerListeners(): void {
+        
+        /**
+         * Renders the item after every insertion operation.
+         */
+        this.onDidInsert(items => {
+            const fragment = <HTMLElement><unknown>document.createDocumentFragment();
+            for (const item of items) {
+                item.render(fragment);
+            }
+            this._element.appendChild(fragment);
+        });
+
+        /**
+         * Blur event
+         */
+        this._focusTracker.onDidBlur(() => {
+            const activeNode = DomUtility.Elements.getActiveElement();
+            
+            /**
+             * There can be situations where the blur event is fired for the 
+             * current node, but the new active element is a child element 
+             * within the current node.
+             */
+            if (!(activeNode === this._element || !DomUtility.Elements.isAncestor(this._element, activeNode))) {
+                return;
+            }
+
+            this._onDidBlur.fire();
+        });
+
+        /**
+         * Keydown event
+         */
+        this.__register(addDisposableListener(this._element, EventType.keydown, (e) => {
+            const event = createStandardKeyboardEvent(e);
+            
+            switch (event.key) {
+                case KeyCode.Escape: {
+                    this._onDidClose.fire();
+                    break;
+                }
+        
+                case KeyCode.Home: {
+                    
+                    break;
+                }
+
+                case KeyCode.End: {
+                    
+                    break;
+                }
+
+                case KeyCode.Home: {
+                    
+                    break;
+                }
+
+                case KeyCode.UpArrow: {
+                    
+                    break;
+                }
+                
+                case KeyCode.DownArrow: {
+                    
+                    break;
+                }
+
+                default:
+                    break;
+            }
+
+
+        }));
+
+        /**
+         * Keyup event
+         */
+        this.__register(addDisposableListener(this._element, EventType.keyup, (e) => {
+            const event = createStandardKeyboardEvent(e);
+
+            // TODO
+        }));
     }
 
     // [private helper methods - submenu]
