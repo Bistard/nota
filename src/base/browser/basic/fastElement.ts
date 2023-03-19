@@ -228,7 +228,6 @@ export class FastElement<T extends HTMLElement> extends Disposable implements IF
 
     public toggleClassName(value: string, force?: boolean): void {
         this.element.classList.toggle(value, force);
-        this._className = value;
     }
 
     public addClassList(...values: string[]): void {
