@@ -9,6 +9,12 @@ import { createService } from "src/code/platform/instantiation/common/decorator"
 export const IContextMenuService = createService<IContextMenuService>('context-menu-service');
 
 /**
+ * Enable this setting to prevent any external actions from closing the context 
+ * menu.
+ */
+const DEBUG_MODE: boolean = true;
+
+/**
  * A delegate to provide external data dn functionalities to help to show a 
  * context menu.
  */
@@ -42,6 +48,11 @@ export interface IContextMenuService {
      *                  provided, it will be positioned under the workbench.
      */
     showContextMenu(delegate: IContextMenuServiceDelegate, container?: HTMLElement): void;
+
+    /**
+     * @description Destroy the current context menu if existed.
+     */
+    destroyContextMenu(): void;
 }
 
 /**
@@ -82,6 +93,7 @@ export class ContextMenuService extends Disposable implements IContextMenuServic
             container ?? DomUtility.Elements.getActiveElement()
         );
 
+        // have to render first (add into a container)
         if (!focusElement) {
             this._contextMenu.setContainer(this._defaultContainer);
         } else {
@@ -90,6 +102,10 @@ export class ContextMenuService extends Disposable implements IContextMenuServic
 
         // show up a context menu
         this._contextMenu.show(this.__createShowContextMenuDelegate(delegate));
+    }
+
+    public destroyContextMenu(): void {
+        this._contextMenu.destroy();
     }
 
     // [private methods]
@@ -102,7 +118,7 @@ export class ContextMenuService extends Disposable implements IContextMenuServic
             
             render: (container: HTMLElement) => {
                 const menuDisposables = new DisposableManager();
-                
+
                 const menuClassName = delegate.getContextMenuClassName?.() ?? '';
                 if (menuClassName) {
                     container.classList.add(menuClassName);
@@ -115,6 +131,10 @@ export class ContextMenuService extends Disposable implements IContextMenuServic
                         actions: delegate.getActions(),
                     })
                 );
+
+                if (DEBUG_MODE) {
+                    return menuDisposables;
+                }
 
                 // context menu destroy event
                 [
@@ -154,7 +174,8 @@ export class ContextMenuService extends Disposable implements IContextMenuServic
             },
 
             onBeforeDestroy: () => {
-                console.log('delegate: on before destroy'); // TEST
+                // TEST
+                console.log('delegate: on before destroy');
             },
         };
     }
