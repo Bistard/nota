@@ -1,3 +1,4 @@
+@use 'src/styles/settings/constants' as const;
 
 .keyboard-screen-cast {
     position: absolute;
@@ -7,6 +8,7 @@
     height: 100px;
     line-height: 80px;
 
+    z-index: const.$z-index-high;
     display: flex;
     flex-direction: row;
 
