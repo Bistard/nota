@@ -174,6 +174,10 @@ export abstract class AbstractMenuItem extends ActionListItem implements IMenuIt
         super(action);
         this._contextProvider = contextProvider;
         this.element = this.__register(new FastElement(document.createElement('div')));
+        /**
+         * Rendering and event registrations should be done in `__render` and
+         * `__registerListeners` respectively.
+         */
     }
 
     // [public methods]
