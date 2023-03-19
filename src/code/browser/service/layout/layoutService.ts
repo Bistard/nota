@@ -2,6 +2,9 @@ import { createService } from "src/code/platform/instantiation/common/decorator"
 
 export const ILayoutService = createService<ILayoutService>('layout-service');
 
+/**
+ * Interface only for {@link LayoutService}.
+ */
 export interface ILayoutService {
 
     /**

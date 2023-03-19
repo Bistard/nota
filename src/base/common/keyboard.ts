@@ -121,7 +121,6 @@ export interface IStandardKeyboardEvent {
 
     preventDefault(): void;
     stopPropagation(): void;
-
 }
 
 /**
@@ -152,7 +151,7 @@ export function createStandardKeyboardEvent(event: KeyboardEvent): IStandardKeyb
                 event.stopPropagation();
             }
         }
-    }
+    };
 }
 
 /**
