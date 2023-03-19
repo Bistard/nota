@@ -1,16 +1,45 @@
 
 .menu {
 
+    height: 100%;
+    width: 100%;
+    
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 1;
+    
+    margin: 0 auto;
+    padding: 0;
+    align-items: center;
+    white-space: nowrap;
+    overflow: hidden;
+
     & > .base-item {
 
+        display: block;
+        position: relative;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+
+        &.disabled {
+            cursor: default;
+        }
     }
 
     & > .seperator {
-
+        width: 1px;
+        height: 16px;
+        margin: 5px 4px !important;
+        cursor: default;
+        min-width: 1px;
+        padding: 0;
+        
+        background-color: #bbb;
     }
 
     & > .menu-item {
-
+        
     }
 
     & > .submenu-item {

@@ -1,4 +1,4 @@
-// import "src/base/browser/basic/contextMenu/contextMenu.scss";
+import "src/base/browser/basic/contextMenu/contextMenu.scss";
 import { addDisposableListener, DomUtility, EventType } from "src/base/browser/basic/dom";
 import { FastElement } from "src/base/browser/basic/fastElement";
 import { Disposable, DisposableManager, IDisposable } from "src/base/common/dispose";
@@ -270,7 +270,6 @@ export class ContextMenu extends Disposable implements IContextMenu {
         this._element.setClassName(ContextMenu.CLASS_NAME);
         this._element.setTop(0);
 		this._element.setLeft(0);
-		this._element.setZIndex(999);
     }
 
     private __layout(delegate: IContextMenuDelegate): void {
