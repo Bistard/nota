@@ -6,6 +6,7 @@ import { Disposable, DisposableManager } from "src/base/common/dispose";
 import { ILayoutService } from "src/code/browser/service/layout/layoutService";
 import { createService } from "src/code/platform/instantiation/common/decorator";
 import { isCancellationError } from "src/base/common/error";
+import { INotificationService } from "src/code/browser/service/notification/notificationService";
 
 export const IContextMenuService = createService<IContextMenuService>('context-menu-service');
 
@@ -74,6 +75,7 @@ export class ContextMenuService extends Disposable implements IContextMenuServic
 
     constructor(
         @ILayoutService private readonly layoutService: ILayoutService,
+        @INotificationService private readonly notificationService: INotificationService,
     ) {
         super();
         this._defaultContainer = this.layoutService.parentContainer;
@@ -198,7 +200,7 @@ export class ContextMenuService extends Disposable implements IContextMenuServic
 
     private __onDidActionRun(event: IMenuActionRunEvent): void {
         if (event.error && !isCancellationError(event.error)) {
-            // TODO: tell the error to the notification service
+            this.notificationService.error(event.error);
         }
     }
 }

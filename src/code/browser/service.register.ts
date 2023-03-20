@@ -13,6 +13,7 @@ import { ExplorerTreeService, IExplorerTreeService } from 'src/code/browser/serv
 import { ContextService, IContextService } from 'src/code/platform/context/common/contextService';
 import { ContextMenuService, IContextMenuService } from "src/code/browser/service/contextMenu/contextMenuService";
 import { ILayoutService, LayoutService } from "src/code/browser/service/layout/layoutService";
+import { INotificationService, NotificationService } from "src/code/browser/service/notification/notificationService";
 
 /*******************************************************************************
  * Registraion for desktop browser-side non-important microservices.
@@ -40,6 +41,7 @@ export function rendererServiceRegistrations(): void {
 
     // utilities && tools
     registerSingleton(IContextService, new ServiceDescriptor(ContextService));
+    registerSingleton(INotificationService, new ServiceDescriptor(NotificationService)); // TODO: notificationService
     // TODO: performanceService
     // TODO: folderTreeService
     // TODO: notebookTreeService
