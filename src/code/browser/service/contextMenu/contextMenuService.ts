@@ -174,7 +174,7 @@ export class ContextMenuService extends Disposable implements IContextMenuServic
             },
 
             onFocus: () => {
-                menu?.onFocus();
+                (<any>menu)._element.focus();
             },
 
             onBeforeDestroy: () => {

@@ -66,7 +66,7 @@ export class Menu extends ActionList<AbstractMenuItem> implements IMenu {
     private readonly _context: unknown;
 
     private readonly _focusTracker: FocusTracker;
-    private _currFocusedItem: number; // index
+    private _currFocusedIndex: number; // index
 
     private _submenu?: IMenu;
 
@@ -90,7 +90,7 @@ export class Menu extends ActionList<AbstractMenuItem> implements IMenu {
         this._element.className = 'menu';
         
         this._submenu = undefined;
-        this._currFocusedItem = -1;
+        this._currFocusedIndex = -1;
 
         this._focusTracker = this.__register(new FocusTracker(this._element, true));
         this.__registerListeners();
@@ -110,7 +110,7 @@ export class Menu extends ActionList<AbstractMenuItem> implements IMenu {
             index = 0;
         }
 
-        if (index === this._currFocusedItem) {
+        if (index === this._currFocusedIndex) {
             return;
         }
 
@@ -166,8 +166,8 @@ export class Menu extends ActionList<AbstractMenuItem> implements IMenu {
             this._element.appendChild(fragment);
             
             // re-focus
-            if (this._currFocusedItem !== - 1) {
-                this.onFocus(this._currFocusedItem);
+            if (this._currFocusedIndex !== - 1) {
+                this.onFocus(this._currFocusedIndex);
             }
         });
 
@@ -186,7 +186,7 @@ export class Menu extends ActionList<AbstractMenuItem> implements IMenu {
                 return;
             }
 
-            this._currFocusedItem = -1;
+            this._currFocusedIndex = -1;
             this._onDidBlur.fire();
         });
 
@@ -213,16 +213,17 @@ export class Menu extends ActionList<AbstractMenuItem> implements IMenu {
                 }
 
                 case KeyCode.UpArrow: {
-                    
+                    this.__focusPrevious();
                     break;
                 }
                 
                 case KeyCode.DownArrow: {
-                    
+                    this.__focusNext();
                     break;
                 }
 
                 default:
+                    // TODO: trigger item event
                     break;
             }
 
@@ -238,6 +239,39 @@ export class Menu extends ActionList<AbstractMenuItem> implements IMenu {
         }));
     }
 
+    private __focusPrevious(): void {
+        this.__focusByOffset(-1);
+    }
+
+    private __focusNext(): void {
+        this.__focusByOffset(1);
+    }
+
+    private __focusByOffset(offset: -1 | 1): void {
+        if (this._items.length === 0) {
+            return;
+        }
+        
+        if (this._currFocusedIndex === -1) {
+            this.__focusItemAt(0);
+            return;
+        }
+
+        if (this._currFocusedIndex === 0 && this._items.length === 1) {
+            return;
+        }
+
+        let actualIndex = this._currFocusedIndex;
+        let actualItem: AbstractMenuItem;
+        do {
+            actualIndex = ((actualIndex + offset) + this._items.length) % this._items.length;
+            actualItem = this._items[actualIndex]!;
+        } 
+        while (!actualItem.action.enabled);
+
+        this.__focusItemAt(actualIndex);
+    }
+
     private __focusItemAt(newIndex: number): void {
         const item = this._items[newIndex];
         if (!item) {
@@ -245,7 +279,7 @@ export class Menu extends ActionList<AbstractMenuItem> implements IMenu {
             return;
         }
 
-        this._currFocusedItem = newIndex;
+        this._currFocusedIndex = newIndex;
         item.focus();
     }
     
