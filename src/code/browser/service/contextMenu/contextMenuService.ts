@@ -58,7 +58,9 @@ export interface IContextMenuService {
 }
 
 /**
- * @class // TODO
+ * @class A context menu service provides functionality to pop up a context menu 
+ * by providing a {@link IContextMenuServiceDelegate} to define how the context 
+ * menu should be constructed and rendered.
  */
 export class ContextMenuService extends Disposable implements IContextMenuService {
 
