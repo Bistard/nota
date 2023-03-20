@@ -1,6 +1,5 @@
 
 .menu {
-
     height: 100%;
     width: 100%;
     
@@ -15,16 +14,26 @@
     overflow: hidden;
 
     & > .base-item {
-
         display: block;
         position: relative;
         align-items: center;
         justify-content: center;
         cursor: pointer;
 
+        margin-left: 4px;
+        margin-right: 4px;
+
         &.disabled {
             cursor: default;
         }
+    }
+
+    & > .base-item:first-child {
+        margin-top: 4px;
+    }
+
+    & > .base-item:last-child {
+        margin-bottom: 4px;
     }
 
     & > .seperator {

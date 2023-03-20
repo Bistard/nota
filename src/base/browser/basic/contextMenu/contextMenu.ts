@@ -111,6 +111,11 @@ export interface IContextMenuDelegate extends IContextMenuDelegateBase {
      * @description Invokes before the context menu gets destoryed (hidden).
      */
     onBeforeDestroy(): void;
+
+    /**
+     * @description Invokes when the context menu is focused.
+     */
+    onFocus?(): void;
 }
 
 /**
@@ -240,7 +245,10 @@ export class ContextMenu extends Disposable implements IContextMenu {
         this._currRenderContentDisposables = this._currDelegate.render(this._element.element) || Disposable.NONE;
 
         // layout the context menu
-        this.__layout(delegate);
+        this.__layout(this._currDelegate);
+
+        // focus the context menu after created
+        this._currDelegate.onFocus?.();
     }
 
     public destroy(): void {

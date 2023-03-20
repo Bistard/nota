@@ -5,6 +5,7 @@ import { ActionList, IActionList } from "src/base/common/action";
 import { addDisposableListener, DomUtility, EventType } from "src/base/browser/basic/dom";
 import { Emitter, Register } from "src/base/common/event";
 import { createStandardKeyboardEvent, KeyCode } from "src/base/common/keyboard";
+import { isNullable } from "src/base/common/util/type";
 
 /**
  * An inteface only for {@link Menu}.
@@ -20,6 +21,15 @@ export interface IMenu extends IActionList<AbstractMenuItem> {
      * Fires when the menu is closed.
      */
     readonly onDidClose: Register<void>;
+    
+    /**
+     * @description Focus the item at the given index.
+     * @param index The index of the item to be focused. If not provided, focus
+     *              the first one.
+     * 
+     * @note The index will be recalculated to avoid the unenabled items.
+     */
+    onFocus(index?: number): void;
 }
 
 /**
@@ -56,6 +66,7 @@ export class Menu extends ActionList<AbstractMenuItem> implements IMenu {
     private readonly _context: unknown;
 
     private readonly _focusTracker: FocusTracker;
+    private _currFocusedItem: number; // index
 
     private _submenu?: IMenu;
 
@@ -77,7 +88,9 @@ export class Menu extends ActionList<AbstractMenuItem> implements IMenu {
         this._context = opts.context;
         this._element = document.createElement('div');
         this._element.className = 'menu';
+        
         this._submenu = undefined;
+        this._currFocusedItem = -1;
 
         this._focusTracker = this.__register(new FocusTracker(this._element, true));
         this.__registerListeners();
@@ -90,6 +103,29 @@ export class Menu extends ActionList<AbstractMenuItem> implements IMenu {
     }
     
     // [public methods]
+
+    public onFocus(index?: number): void {
+        
+        if (isNullable(index)) {
+            index = 0;
+        }
+
+        if (index === this._currFocusedItem) {
+            return;
+        }
+
+        if (index < 0 || index >= this._items.length) {
+            return;
+        }
+
+        let actualIndex = 0;
+        while (index !== 0) {
+            index--;
+            actualIndex++;
+        }
+
+        this.__focusItemAt(actualIndex);
+    }
 
     public override dispose(): void {
         super.dispose();
@@ -128,6 +164,11 @@ export class Menu extends ActionList<AbstractMenuItem> implements IMenu {
                 item.render(fragment);
             }
             this._element.appendChild(fragment);
+            
+            // re-focus
+            if (this._currFocusedItem !== - 1) {
+                this.onFocus(this._currFocusedItem);
+            }
         });
 
         /**
@@ -145,6 +186,7 @@ export class Menu extends ActionList<AbstractMenuItem> implements IMenu {
                 return;
             }
 
+            this._currFocusedItem = -1;
             this._onDidBlur.fire();
         });
 
@@ -153,7 +195,7 @@ export class Menu extends ActionList<AbstractMenuItem> implements IMenu {
          */
         this.__register(addDisposableListener(this._element, EventType.keydown, (e) => {
             const event = createStandardKeyboardEvent(e);
-            
+
             switch (event.key) {
                 case KeyCode.Escape: {
                     this._onDidClose.fire();
@@ -161,17 +203,12 @@ export class Menu extends ActionList<AbstractMenuItem> implements IMenu {
                 }
         
                 case KeyCode.Home: {
-                    
+                    this.onFocus(0);
                     break;
                 }
 
                 case KeyCode.End: {
-                    
-                    break;
-                }
-
-                case KeyCode.Home: {
-                    
+                    this.onFocus(this._items.length - 1);
                     break;
                 }
 
@@ -197,11 +234,21 @@ export class Menu extends ActionList<AbstractMenuItem> implements IMenu {
          */
         this.__register(addDisposableListener(this._element, EventType.keyup, (e) => {
             const event = createStandardKeyboardEvent(e);
-
             // TODO
         }));
     }
 
+    private __focusItemAt(newIndex: number): void {
+        const item = this._items[newIndex];
+        if (!item) {
+            this._element.focus({ preventScroll: true });
+            return;
+        }
+
+        this._currFocusedItem = newIndex;
+        item.focus();
+    }
+    
     // [private helper methods - submenu]
 
     private __closeCurrSubmenu(): void {

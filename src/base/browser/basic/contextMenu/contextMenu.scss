@@ -8,13 +8,12 @@
     overflow: hidden;
 
     border-radius: 4px;
-    background-color: #c3c3c3;
+    background-color: #e4e4e4;
+    box-shadow: 5px 0px 20px 0px #e2e2e2;
 
     & .base-item {
-
         min-width: 100px;
         width: 150px;
         height: 30px;
-        background-color: rgb(225, 225, 225);
     }
 }

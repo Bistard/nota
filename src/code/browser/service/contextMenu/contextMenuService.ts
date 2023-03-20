@@ -12,7 +12,7 @@ export const IContextMenuService = createService<IContextMenuService>('context-m
  * Enable this setting to prevent any external actions from closing the context 
  * menu.
  */
-const DEBUG_MODE: boolean = true;
+const DEBUG_MODE: boolean = false;
 
 /**
  * A delegate to provide external data dn functionalities to help to show a 
@@ -171,6 +171,10 @@ export class ContextMenuService extends Disposable implements IContextMenuServic
                 }));
 
                 return menuDisposables;
+            },
+
+            onFocus: () => {
+                menu?.onFocus();
             },
 
             onBeforeDestroy: () => {

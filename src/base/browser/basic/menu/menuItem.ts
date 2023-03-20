@@ -25,7 +25,7 @@ export interface IMenuAction extends IAction {
     /**
      * A class name to customize the style of the corresponding item in the menu.
      */
-    readonly extraClassName: string;
+    readonly extraClassName?: string;
 
     /**
      * If the action is checked.
@@ -117,7 +117,7 @@ export class MenuSeperatorAction extends Action implements IMenuAction {
 
     public static readonly instance = new MenuSeperatorAction();
     public readonly type = MenuItemType.Seperator;
-    public readonly extraClassName = '';
+    public readonly extraClassName = 'seperator';
 
     // [constructor]
 
@@ -217,7 +217,9 @@ export abstract class AbstractMenuItem extends ActionListItem implements IMenuIt
      */
     protected __render(): void {
         this.element.addClassList('base-item');
-        this.element.addClassList(this.action.extraClassName);
+        if (this.action.extraClassName) {
+            this.element.addClassList(this.action.extraClassName);
+        }
         this.element.toggleClassName('disabled', !this.action.enabled);
     }
 

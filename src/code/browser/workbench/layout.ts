@@ -14,7 +14,7 @@ import { ISplitViewItemOpts } from "src/base/browser/secondary/splitView/splitVi
 import { Icons } from "src/base/browser/icon/icons";
 import { IContextMenuService } from "src/code/browser/service/contextMenu/contextMenuService";
 import { ILayoutService } from "src/code/browser/service/layout/layoutService";
-import { SingleMenuAction } from "src/base/browser/basic/menu/menuItem";
+import { MenuSeperatorAction, SingleMenuAction } from "src/base/browser/basic/menu/menuItem";
 
 /**
  * @description A base class for Workbench to create and manage the behaviour of
@@ -184,7 +184,30 @@ class SideBarBuilder {
                                     enabled: true,
                                     id: 'testing action',
                                     tip: 'testing action tip',
-                                })
+                                    extraClassName: 'action1',
+                                }),
+                                MenuSeperatorAction.instance,
+                                new SingleMenuAction({
+                                    callback: () => console.log('action 2 executed'),
+                                    enabled: true,
+                                    id: 'testing action 2',
+                                    tip: 'testing action 2 tip',
+                                    extraClassName: 'action2',
+                                }),
+                                new SingleMenuAction({
+                                    callback: () => console.log('action 3 executed'),
+                                    enabled: true,
+                                    id: 'testing action 3',
+                                    tip: 'testing action 3 tip',
+                                    extraClassName: 'action3',
+                                }),
+                                new SingleMenuAction({
+                                    callback: () => console.log('action 4 executed'),
+                                    enabled: true,
+                                    id: 'testing action 4',
+                                    tip: 'testing action 4 tip',
+                                    extraClassName: 'action4',
+                                }),
                             ];
                         },
                         getContext: () => {
