@@ -67,7 +67,7 @@ export class ContextMenuService extends Disposable implements IContextMenuServic
     private readonly _contextMenu: IContextMenu;
     
     // The current container of the context menu.
-    private _currContextMenuContainer?: HTMLElement;
+    private _currContainer?: HTMLElement;
     private readonly _defaultContainer: HTMLElement;
 
     // [constructor]
@@ -77,8 +77,8 @@ export class ContextMenuService extends Disposable implements IContextMenuServic
     ) {
         super();
         this._defaultContainer = this.layoutService.parentContainer;
-        this._currContextMenuContainer = this._defaultContainer;
-        this._contextMenu = new ContextMenu(this._currContextMenuContainer);
+        this._currContainer = this._defaultContainer;
+        this._contextMenu = new ContextMenu(this._currContainer);
     }
 
     // [public methods]
