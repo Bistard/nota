@@ -1,6 +1,6 @@
 import { DomEventHandler, DomEventLike, DomUtility } from "src/base/browser/basic/dom";
 import { FastElement } from "src/base/browser/basic/fastElement";
-import { Action, ActionListItem, IAction, IActionListItem, IActionOptions, IContextProvider } from "src/base/common/action";
+import { Action, ActionListItem, IAction, IActionListItem, IActionOptions } from "src/base/common/action";
 import { Emitter } from "src/base/common/event";
 import { Shortcut } from "src/base/common/keyboard";
 import { noop } from "src/base/common/performance";
@@ -166,13 +166,13 @@ export abstract class AbstractMenuItem extends ActionListItem implements IMenuIt
 
     declare public readonly action: IMenuAction;
     public readonly element: FastElement<HTMLElement>;
-    protected readonly _contextProvider: IContextProvider;
+    private readonly _actionRunner: (action: IMenuAction) => void;
 
     // [constructor]
 
-    constructor(action: IMenuAction, contextProvider: IContextProvider) {
+    constructor(action: IMenuAction, actionRunner: (action: IMenuAction) => void) {
         super(action);
-        this._contextProvider = contextProvider;
+        this._actionRunner = actionRunner;
         this.element = this.__register(new FastElement(document.createElement('div')));
         /**
          * Rendering and event registrations should be done in `__render` and
@@ -190,7 +190,7 @@ export abstract class AbstractMenuItem extends ActionListItem implements IMenuIt
 
     public onClick(event: DomEventLike): void {
         DomEventHandler.stop(event, true);
-        this.action.run(this._contextProvider());
+        this._actionRunner(this.action);
     }
 
     public focus(): void {
@@ -283,8 +283,8 @@ export abstract class AbstractMenuItem extends ActionListItem implements IMenuIt
  */
 export class MenuSeperatorItem extends AbstractMenuItem {
     
-    constructor(action: IMenuAction, contextProvider: IContextProvider) {
-        super(action, contextProvider);
+    constructor(action: IMenuAction, actionRunner: (action: IMenuAction) => void) {
+        super(action, actionRunner);
     }
 
     protected override __render(): void {
@@ -303,8 +303,8 @@ export class MenuSeperatorItem extends AbstractMenuItem {
  */
 export class SingleMenuItem extends AbstractMenuItem {
     
-    constructor(action: IMenuAction, contextProvider: IContextProvider) {
-        super(action, contextProvider);
+    constructor(action: IMenuAction, actionRunner: (action: IMenuAction) => void) {
+        super(action, actionRunner);
     }
 
     protected override __render(): void {
@@ -343,8 +343,8 @@ export class SubmenuItem extends AbstractMenuItem {
 
     // [constructor]
 
-    constructor(action: SubmenuAction, contextProvider: IContextProvider, ) {
-        super(action, contextProvider);
+    constructor(action: SubmenuAction, actionRunner: (action: IMenuAction) => void) {
+        super(action, actionRunner);
         
         // scheduling initializaiton
         {

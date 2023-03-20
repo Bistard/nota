@@ -1,17 +1,24 @@
 import "src/base/browser/basic/menu/menu.scss";
 import { FocusTracker } from "src/base/browser/basic/focusTracker";
 import { AbstractMenuItem, IMenuAction, MenuAction, MenuItemType, MenuSeperatorItem, SingleMenuItem, SubmenuItem } from "src/base/browser/basic/menu/menuItem";
-import { ActionList, IActionList } from "src/base/common/action";
+import { ActionList, IActionList, IActionRunEvent } from "src/base/common/action";
 import { addDisposableListener, DomUtility, EventType } from "src/base/browser/basic/dom";
 import { Emitter, Register } from "src/base/common/event";
 import { createStandardKeyboardEvent, IStandardKeyboardEvent, KeyCode } from "src/base/common/keyboard";
 import { isNullable } from "src/base/common/util/type";
+
+export interface IMenuActionRunEvent extends IActionRunEvent {
+    readonly action: IMenuAction;
+}
 
 /**
  * An inteface only for {@link Menu}.
  */
 export interface IMenu extends IActionList<AbstractMenuItem> {
 
+    readonly onBeforeRun: Register<IMenuActionRunEvent>;
+    readonly onDidRun: Register<IMenuActionRunEvent>;
+    
     /**
      * Fires when the menu is blured.
      */
@@ -25,7 +32,8 @@ export interface IMenu extends IActionList<AbstractMenuItem> {
     /**
      * @description Focus the item at the given index.
      * @param index The index of the item to be focused. If not provided, focus
-     *              the first one.
+     *              the first one. If index equals -1, only focus the entire 
+     *              menu.
      * 
      * @note The index will be recalculated to avoid the unenabled items.
      */
@@ -85,6 +93,9 @@ export class Menu extends ActionList<AbstractMenuItem> implements IMenu {
     private readonly _onDidClose = this.__register(new Emitter<void>());
     public readonly onDidClose = this._onDidClose.registerListener;
 
+    declare public readonly onBeforeRun: Register<IMenuActionRunEvent>;
+    declare public readonly onDidRun: Register<IMenuActionRunEvent>;
+
     // [constructor]
 
     constructor(container: HTMLElement, opts: IMenuOptions) {
@@ -118,6 +129,11 @@ export class Menu extends ActionList<AbstractMenuItem> implements IMenu {
             index = 0;
         }
 
+        if (index === -1) {
+            this._element.focus();
+            return;
+        }
+
         if (index === this._currFocusedIndex) {
             return;
         }
@@ -144,18 +160,18 @@ export class Menu extends ActionList<AbstractMenuItem> implements IMenu {
     protected override createItemImpl(action: MenuAction): AbstractMenuItem {
         
         if (action.type === MenuItemType.Seperator) {
-            return new MenuSeperatorItem(action, this._contextProvider);
+            return new MenuSeperatorItem(action, this.run.bind(this));
         }
 
         else if (action.type === MenuItemType.Submenu) {
-            const submenuItem = new SubmenuItem(action, this._contextProvider);
+            const submenuItem = new SubmenuItem(action, this.run.bind(this));
             this.__register(submenuItem.oncloseCurrSubmenu(() => this.__closeCurrSubmenu()));
             this.__register(submenuItem.onOpenNewSubmenu(() => this.__openNewSubmenu()));
             return submenuItem;
         }
 
         else {
-            return new SingleMenuItem(action, this._contextProvider);
+            return new SingleMenuItem(action, this.run.bind(this));
         }
     }
 

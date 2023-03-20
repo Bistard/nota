@@ -22,7 +22,7 @@ export interface IAction extends IDisposable {
      * Try to run the action if enabled.
      * @param args The arguments passed for the action.
      */
-    run(args?: any): void;
+    run(args?: any): unknown;
 }
 
 export interface IActionOptions {
@@ -67,12 +67,19 @@ export class Action implements IAction {
     }
 }
 
+export interface IActionRunEvent {
+    readonly action: IAction;
+    readonly error?: Error;
+}
+
 /**
  * An interface only for {@link ActionList}.
  */
 export interface IActionList<IItem extends IActionListItem> extends IDisposable {
     onDidInsert: Register<IItem[]>;
-    
+    onBeforeRun: Register<IActionRunEvent>;
+    onDidRun: Register<IActionRunEvent>;
+
     run(index: number): void;
     run(id: string): void;
     run(action: IAction): void;
@@ -166,6 +173,12 @@ export abstract class ActionList<IItem extends IActionListItem> extends Disposab
     private readonly _onDidInsert = this.__register(new Emitter<IItem[]>());
     public readonly onDidInsert = this._onDidInsert.registerListener;
 
+    private readonly _onBeforeRun = this.__register(new Emitter<IActionRunEvent>());
+    public readonly onBeforeRun = this._onBeforeRun.registerListener;
+
+    private readonly _onDidRun = this.__register(new Emitter<IActionRunEvent>());
+    public readonly onDidRun = this._onDidRun.registerListener;
+    
     // [constructor]
 
     constructor(opts: IActionListOptions) {
@@ -183,17 +196,33 @@ export abstract class ActionList<IItem extends IActionListItem> extends Disposab
     public run(arg: IAction | number | string): void {
         const ctx = this._contextProvider();
         
+        let action: IAction | undefined;
+
         if (isNumber(arg)) {
-            const item = this._items[arg];
-            if (item) {
-                item.run(ctx);
-            }
+            action = this._items[arg]?.action;
         }
         
         else {
             const id = isString(arg) ? arg : arg.id;
-            this.get(id)?.run(ctx);
+            action = this.get(id);
         }
+
+        if (!action) {
+            return;
+        }
+
+        (async () => {
+            this._onBeforeRun.fire({ action: action });
+            
+            let err: Error | undefined;
+            try {
+                await action.run(ctx);
+            } catch (err: any) {
+                err = err;
+            }
+
+            this._onDidRun.fire({ action: action, error: err });
+        })();
     }
 
     public get(index: number): IAction | undefined;

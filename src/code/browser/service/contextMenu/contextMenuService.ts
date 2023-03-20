@@ -1,10 +1,11 @@
 import { ContextMenu, IContextMenu, IContextMenuDelegate, IContextMenuDelegateBase } from "src/base/browser/basic/contextMenu/contextMenu";
 import { addDisposableListener, DomEmitter, DomEventHandler, DomUtility, EventType } from "src/base/browser/basic/dom";
-import { IMenu, Menu } from "src/base/browser/basic/menu/menu";
-import { IMenuAction } from "src/base/browser/basic/menu/menuItem";
+import { IMenu, IMenuActionRunEvent, Menu } from "src/base/browser/basic/menu/menu";
+import { IMenuAction, MenuItemType } from "src/base/browser/basic/menu/menuItem";
 import { Disposable, DisposableManager } from "src/base/common/dispose";
 import { ILayoutService } from "src/code/browser/service/layout/layoutService";
 import { createService } from "src/code/platform/instantiation/common/decorator";
+import { isCancellationError } from "src/base/common/error";
 
 export const IContextMenuService = createService<IContextMenuService>('context-menu-service');
 
@@ -170,11 +171,16 @@ export class ContextMenuService extends Disposable implements IContextMenuServic
                     this._contextMenu.destroy();
                 }));
 
+                // running action events
+                menuDisposables.register(menu.onBeforeRun(this.__onBeforeActionRun, undefined, this));
+                menuDisposables.register(menu.onDidRun(this.__onDidActionRun, undefined, this));
+
                 return menuDisposables;
             },
 
             onFocus: () => {
-                (<any>menu)._element.focus();
+                // only focus the entire menu
+                menu?.onFocus(-1);
             },
 
             onBeforeDestroy: () => {
@@ -182,5 +188,17 @@ export class ContextMenuService extends Disposable implements IContextMenuServic
                 console.log('delegate: on before destroy');
             },
         };
+    }
+
+    private __onBeforeActionRun(event: IMenuActionRunEvent): void {
+        if (event.action.type !== MenuItemType.Submenu) {
+            this._contextMenu.destroy();
+        }
+    }
+
+    private __onDidActionRun(event: IMenuActionRunEvent): void {
+        if (event.error && !isCancellationError(event.error)) {
+            // TODO: tell the error to the notification service
+        }
     }
 }
