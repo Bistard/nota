@@ -1,7 +1,6 @@
 import { DomEventHandler, DomEventLike, DomUtility } from "src/base/browser/basic/dom";
 import { FastElement } from "src/base/browser/basic/fastElement";
 import { Action, ActionListItem, IAction, IActionListItem, IActionOptions } from "src/base/common/action";
-import { Emitter } from "src/base/common/event";
 import { Shortcut } from "src/base/common/keyboard";
 import { noop } from "src/base/common/performance";
 import { IS_MAC } from "src/base/common/platform";
@@ -317,6 +316,11 @@ export class SingleMenuItem extends AbstractMenuItem {
     }
 }
 
+export interface ISubmenuDelegate {
+    closeCurrSubmenu(): void;
+    openNewSubmenu(): void;
+}
+
 /**
  * @class A {@link SubmenuItem} provides no action functionality, instead, 
  * displays a list of actions in a submenu.
@@ -332,25 +336,19 @@ export class SubmenuItem extends AbstractMenuItem {
 
     private readonly _showScheduler: UnbufferedScheduler<void>;
     private readonly _hideScheduler: UnbufferedScheduler<void>;
-
-    // [evemts]
-
-    private readonly _oncloseCurrSubmenu = this.__register(new Emitter<void>());
-    public readonly oncloseCurrSubmenu = this._oncloseCurrSubmenu.registerListener;
-    
-    private readonly _onOpenNewSubmenu = this.__register(new Emitter<void>());
-    public readonly onOpenNewSubmenu = this._onOpenNewSubmenu.registerListener;
+    private readonly _delegate: ISubmenuDelegate;
 
     // [constructor]
 
-    constructor(action: SubmenuAction, actionRunner: (action: IMenuAction) => void) {
+    constructor(action: SubmenuAction, actionRunner: (action: IMenuAction) => void, delegate: ISubmenuDelegate) {
         super(action, actionRunner);
-        
+        this._delegate = delegate;
+
         // scheduling initializaiton
         {
             this._showScheduler = new UnbufferedScheduler(SubmenuItem.SHOW_DEPLAY, () => {
-                this._oncloseCurrSubmenu.fire();
-                this._onOpenNewSubmenu.fire();
+                this._delegate.closeCurrSubmenu();
+                this._delegate.openNewSubmenu();
             });
     
             this._hideScheduler = new UnbufferedScheduler(SubmenuItem.HIDE_DEPLAY, () => {
@@ -359,7 +357,7 @@ export class SubmenuItem extends AbstractMenuItem {
                 if (DomUtility.Elements.isAncestor(this.element.element, blurNode)) {
                     return;
                 }
-                this._oncloseCurrSubmenu.fire();
+                this._delegate.closeCurrSubmenu();
             });
 
             this.__register(this._showScheduler);
@@ -370,17 +368,17 @@ export class SubmenuItem extends AbstractMenuItem {
     // [public methods]
 
     public override run(context: unknown): void {
-        this._oncloseCurrSubmenu.fire();
-        this._onOpenNewSubmenu.fire();
+        this._delegate.closeCurrSubmenu();
+        this._delegate.openNewSubmenu();
     }
 
     /**
      * @description Instead of running an action, open a submenu instead.
      */
     public override onClick(event: DomEventLike): void {
-        DomEventHandler.stop(event);
-        this._oncloseCurrSubmenu.fire();
-        this._onOpenNewSubmenu.fire();
+        DomEventHandler.stop(event, true);
+        this._delegate.closeCurrSubmenu();
+        this._delegate.openNewSubmenu();
     }
 
     public override dispose(): void {
