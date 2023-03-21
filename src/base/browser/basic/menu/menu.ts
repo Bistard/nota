@@ -1,7 +1,7 @@
 import "src/base/browser/basic/menu/menu.scss";
 import { FocusTracker } from "src/base/browser/basic/focusTracker";
-import { AbstractMenuItem, IMenuAction, MenuAction, MenuItemType, MenuSeperatorItem, SingleMenuItem, SubmenuItem } from "src/base/browser/basic/menu/menuItem";
-import { ActionList, IActionList, IActionRunEvent } from "src/base/common/action";
+import { AbstractMenuItem, IMenuAction, IMenuItem, MenuAction, MenuItemType, MenuSeperatorItem, SingleMenuItem, SubmenuItem } from "src/base/browser/basic/menu/menuItem";
+import { ActionList, IAction, IActionList, IActionListItem, IActionListOptions, IActionRunEvent } from "src/base/common/action";
 import { addDisposableListener, DomUtility, EventType } from "src/base/browser/basic/dom";
 import { Emitter, Register } from "src/base/common/event";
 import { createStandardKeyboardEvent, IStandardKeyboardEvent, KeyCode } from "src/base/common/keyboard";
@@ -12,9 +12,9 @@ export interface IMenuActionRunEvent extends IActionRunEvent {
 }
 
 /**
- * An inteface only for {@link Menu}.
+ * An inteface only for {@link BaseMenu}.
  */
-export interface IMenu extends IActionList<AbstractMenuItem> {
+export interface IMenu extends IActionList<IMenuItem> {
 
     readonly element: HTMLElement;
 
@@ -50,19 +50,14 @@ export interface IMenu extends IActionList<AbstractMenuItem> {
 }
 
 /**
- * Interface for {@link Menu} construction.
+ * Interface for {@link BaseMenu} construction.
  */
-export interface IMenuOptions {
+export interface IMenuOptions extends IActionListOptions<IMenuItem> {
     
     /**
      * Initial actions for the menu construction.
      */
     readonly actions: IMenuAction[];
-
-    /**
-     * The current context (about the target) of the menu.
-     */
-    readonly context: unknown;
 
     /**
      * A list of possible trigger keys to determine which keys can execute the 
@@ -73,26 +68,24 @@ export interface IMenuOptions {
 }
 
 /**
- * @class A {@link Menu} is build on top of {@link ActionList}, provides a 
+ * @class A {@link BaseMenu} is build on top of {@link ActionList}, provides a 
  * UI-related component that represents a 'menu list'. Each item in the list is
  * has a functionality {@link IMenuAction}.
  * 
- * A {@link Menu} provides various types of item and can be found at {@link MenuItemType}.
+ * A {@link BaseMenu} provides various types of item and can be found at {@link MenuItemType}.
  */
-export class Menu extends ActionList<AbstractMenuItem> implements IMenu {
+export abstract class BaseMenu extends ActionList<IMenuItem> implements IMenu {
 
     // [fields]
 
     private readonly _element: HTMLElement;
-    declare protected readonly _items: AbstractMenuItem[];
-    private readonly _context: unknown;
-
+    declare protected readonly _items: IMenuItem[];
+    
     private readonly _focusTracker: FocusTracker;
     private _currFocusedIndex: number; // index
 
+    /** an array of key pressings to trigger the current focused item. */
     private readonly _triggerKeys: KeyCode[];
-
-    private _submenu?: IMenu;
 
     // [events]
 
@@ -108,15 +101,11 @@ export class Menu extends ActionList<AbstractMenuItem> implements IMenu {
     // [constructor]
 
     constructor(container: HTMLElement, opts: IMenuOptions) {
-        super({
-            contextProvider: () => this._context,
-        });
+        super(opts);
 
-        this._context = opts.context;
         this._element = document.createElement('div');
         this._element.className = 'menu';
         
-        this._submenu = undefined;
         this._currFocusedIndex = -1;
         this._triggerKeys = opts.triggerKeys ?? [KeyCode.Enter, KeyCode.Space];
 
@@ -166,26 +155,6 @@ export class Menu extends ActionList<AbstractMenuItem> implements IMenu {
 
     public override dispose(): void {
         super.dispose();
-    }
-
-    // [protected override methods]
-
-    protected override createItemImpl(action: MenuAction): AbstractMenuItem {
-        
-        if (action.type === MenuItemType.Seperator) {
-            return new MenuSeperatorItem(action, this.run.bind(this));
-        }
-
-        else if (action.type === MenuItemType.Submenu) {
-            const submenuItem = new SubmenuItem(action, this.run.bind(this));
-            this.__register(submenuItem.oncloseCurrSubmenu(() => this.__closeCurrSubmenu()));
-            this.__register(submenuItem.onOpenNewSubmenu(() => this.__openNewSubmenu()));
-            return submenuItem;
-        }
-
-        else {
-            return new SingleMenuItem(action, this.run.bind(this));
-        }
     }
 
     // [private helper methods]
@@ -304,7 +273,7 @@ export class Menu extends ActionList<AbstractMenuItem> implements IMenu {
         }
 
         let actualIndex = this._currFocusedIndex;
-        let actualItem: AbstractMenuItem;
+        let actualItem: IMenuItem;
         do {
             actualIndex = ((actualIndex + offset) + this._items.length) % this._items.length;
             actualItem = this._items[actualIndex]!;
@@ -332,20 +301,4 @@ export class Menu extends ActionList<AbstractMenuItem> implements IMenu {
     private __isTriggerKeys(event: IStandardKeyboardEvent): boolean {
         return this._triggerKeys.findIndex(key => key === event.key) !== -1;
     }
-    
-    // [private helper methods - submenu]
-
-    private __closeCurrSubmenu(): void {
-        if (!this._submenu) {
-            return;
-        }
-
-        this._submenu.dispose();
-        this._submenu = undefined;
-    }
-
-    private __openNewSubmenu(): void {
-        // TODO
-    }
 }
-

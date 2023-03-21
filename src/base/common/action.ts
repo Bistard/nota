@@ -76,6 +76,7 @@ export interface IActionRunEvent {
  * An interface only for {@link ActionList}.
  */
 export interface IActionList<IItem extends IActionListItem> extends IDisposable {
+    
     onDidInsert: Register<IItem[]>;
     onBeforeRun: Register<IActionRunEvent>;
     onDidRun: Register<IActionRunEvent>;
@@ -83,19 +84,24 @@ export interface IActionList<IItem extends IActionListItem> extends IDisposable 
     run(index: number): void;
     run(id: string): void;
     run(action: IAction): void;
+    run(arg: IAction | number | string): void;
 
     get(index: number): IAction | undefined;
     get(id: string): IAction | undefined;
+    get(arg: number | string): IAction | undefined;
     
     has(id: string): boolean;
     has(action: IAction): boolean;
+    has(arg: IAction | string): boolean;
     
     insert(action: IAction[], index?: number): void;
     insert(action: IAction, index?: number): void;
+    insert(arg: IAction | IAction[], index?: number): void;
     
     delete(index: number): boolean;
     delete(id: string): boolean;
     delete(action: IAction): boolean;
+    delete(arg: IAction | number | string): boolean;
 
     size(): number;
     empty(): boolean;
@@ -134,17 +140,21 @@ export class ActionListItem extends Disposable implements IActionListItem {
     }
 }
 
+/**
+ * Retrieve the latest context.
+ */
 export interface IContextProvider {
-    /**
-     * Retrieve the latest context.
-     */
     (): unknown;
+}
+
+export interface IActionItemProvider<IItem extends IActionListItem> {
+    (action: IAction): IItem | undefined;
 }
 
 /**
  * Construction options for {@link ActionList}.
  */
-export interface IActionListOptions {
+export interface IActionListOptions<IItem extends IActionListItem> {
     
     /**
      * A callback that always return the latest context of the current 
@@ -152,6 +162,13 @@ export interface IActionListOptions {
      * the stored {@link IActionListItem}s.
      */
     readonly contextProvider: IContextProvider;
+
+    /**
+     * A provider that defines how to construct an action item.
+     * @param action An action for construction.
+     * @returns A created item or undefined if the provider cannot handle it.
+     */
+    readonly actionItemProvider?: IActionItemProvider<IItem>;
 }
 
 /**
@@ -166,7 +183,8 @@ export abstract class ActionList<IItem extends IActionListItem> extends Disposab
     // [fields]
 
     protected readonly _items: IItem[];
-    protected readonly _contextProvider: () => unknown;
+    protected readonly _contextProvider: IContextProvider;
+    private readonly _itemProvider: IActionItemProvider<IItem>;
 
     // [event]
 
@@ -181,10 +199,14 @@ export abstract class ActionList<IItem extends IActionListItem> extends Disposab
     
     // [constructor]
 
-    constructor(opts: IActionListOptions) {
+    constructor(opts: IActionListOptions<IItem>) {
         super();
         this._items = [];
         this._contextProvider = opts.contextProvider;
+        if (!opts.actionItemProvider) {
+            throw new Error('No action item provider is provided');
+        }
+        this._itemProvider = opts.actionItemProvider;
         // note: do not access the context at the construction stage
     }
 
@@ -258,7 +280,11 @@ export abstract class ActionList<IItem extends IActionListItem> extends Disposab
         const items: IItem[] = [];
 
         for (const action of actions) {
-            const item = this.createItemImpl(action);
+            const item = this._itemProvider(action);
+            if (!item) {
+                throw new Error(`Action list cannot create item with action id '${action.id}'`);
+            }
+
             items.push(item);
         
             if (isNullable(index)) {
@@ -311,18 +337,4 @@ export abstract class ActionList<IItem extends IActionListItem> extends Disposab
         this._items.forEach(item => item.dispose());
         (<Mutable<IItem[]>>this._items) = [];
     }
-
-    // [protected override method]
-
-    /**
-     * @description Depends on the given {@link IAction}, the inheritance 
-     * decides how to construct {@link IItem}.
-     * 
-     * @note Should be implemented by the inheritance.
-     * @note The newly created item running environment will be automatically 
-     * bind to the current context.
-     * @param action The given action.
-     * @returns A newly created item.
-     */
-    protected abstract createItemImpl(action: IAction): IItem;
 }
