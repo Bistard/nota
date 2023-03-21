@@ -16,7 +16,16 @@ export interface IMenuActionRunEvent extends IActionRunEvent {
  */
 export interface IMenu extends IActionList<AbstractMenuItem> {
 
+    readonly element: HTMLElement;
+
+    /**
+     * Fires when any menu actions before gets actually run.
+     */
     readonly onBeforeRun: Register<IMenuActionRunEvent>;
+    
+    /**
+     * Fires when any menu actions run completed.
+     */
     readonly onDidRun: Register<IMenuActionRunEvent>;
     
     /**
@@ -122,6 +131,10 @@ export class Menu extends ActionList<AbstractMenuItem> implements IMenu {
     }
     
     // [public methods]
+
+    get element(): HTMLElement {
+        return this._element;
+    }
 
     public onFocus(index?: number): void {
         
