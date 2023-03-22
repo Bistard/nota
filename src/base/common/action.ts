@@ -280,11 +280,11 @@ export abstract class ActionList<IItem extends IActionListItem> extends Disposab
         const items: IItem[] = [];
 
         for (const action of actions) {
+            
             const item = this._itemProvider(action);
             if (!item) {
                 throw new Error(`Action list cannot create item with action id '${action.id}'`);
             }
-
             items.push(item);
         
             if (isNullable(index)) {

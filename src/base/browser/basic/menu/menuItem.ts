@@ -65,41 +65,38 @@ export interface ISubmenuActionOptions extends Omit<IActionOptions, 'callback'> 
     readonly extraClassName?: string;
 }
 
-class __BaseMenuAction extends Action implements IMenuAction {
+class __BaseMenuAction<TType extends MenuItemType> extends Action implements IMenuAction {
 
     // [fields]
 
-    public readonly type: MenuItemType;
+    public readonly type: TType;
     public checked?: boolean;
     public shortcut?: Shortcut;
 
-    public readonly extraClassName: string;
+    public readonly extraClassName?: string;
 
     // [constructor]
 
-    constructor(type: MenuItemType, opts: IMenuActionOptions) {
+    constructor(type: TType, opts: IMenuActionOptions) {
         super(opts);
         this.type = type;
         this.checked = opts.checked;
         this.shortcut = opts.shortcut;
-        this.extraClassName = opts.extraClassName ?? '';
+        this.extraClassName = opts.extraClassName;
     }
 }
 
-export class SingleMenuAction extends __BaseMenuAction {
-    
-    declare public readonly type: MenuItemType.General;
+export class SingleMenuAction extends __BaseMenuAction<MenuItemType.General> {
 
     constructor(opts: IMenuActionOptions) {
         super(MenuItemType.General, opts);
     }
 }
 
-export class SubmenuAction extends __BaseMenuAction {
+export class SubmenuAction extends __BaseMenuAction<MenuItemType.Submenu> {
 
     // [fields]
 
-    declare public readonly type: MenuItemType.Submenu;
     public readonly actions: IMenuAction[];
 
     // [constructor]
@@ -110,18 +107,20 @@ export class SubmenuAction extends __BaseMenuAction {
     }
 }
 
-export class MenuSeperatorAction extends Action implements IMenuAction {
+export class MenuSeperatorAction extends __BaseMenuAction<MenuItemType.Seperator> {
     
     // [fields]
 
     public static readonly instance = new MenuSeperatorAction();
-    public readonly type = MenuItemType.Seperator;
-    public readonly extraClassName = 'seperator';
-
+    
     // [constructor]
 
     private constructor() {
-        super({ id: 'seperator', callback: noop, enabled: false });
+        super(MenuItemType.Seperator, {
+            callback: noop,
+            enabled: false,
+            id: 'seperator',
+        });
     }
 }
 
@@ -134,6 +133,12 @@ export interface IMenuItem extends IActionListItem {
      * The corresponding element of the item.
      */
     readonly element: FastElement<HTMLElement>;
+
+    /**
+     * The callback function when the item is about to run. Should be set by the
+     * externals.
+     */
+    actionRunner?: (action: IMenuAction) => void;
 
     /**
      * @description Renders the item into the parent.
@@ -165,18 +170,27 @@ export abstract class AbstractMenuItem extends ActionListItem implements IMenuIt
 
     declare public readonly action: IMenuAction;
     public readonly element: FastElement<HTMLElement>;
-    private readonly _actionRunner: (action: IMenuAction) => void;
+    private _actionRunner?: (action: IMenuAction) => void;
 
     // [constructor]
 
-    constructor(action: IMenuAction, actionRunner: (action: IMenuAction) => void) {
+    constructor(action: IMenuAction) {
         super(action);
-        this._actionRunner = actionRunner;
         this.element = this.__register(new FastElement(document.createElement('div')));
         /**
          * Rendering and event registrations should be done in `__render` and
          * `__registerListeners` respectively.
          */
+    }
+
+    // [setter]
+
+    get actionRunner(): ((action: IMenuAction) => void) | undefined {
+        return this._actionRunner;
+    }
+
+    set actionRunner(runner: ((action: IMenuAction) => void) | undefined) {
+        this._actionRunner = runner;
     }
 
     // [public methods]
@@ -189,7 +203,7 @@ export abstract class AbstractMenuItem extends ActionListItem implements IMenuIt
 
     public onClick(event: DomEventLike): void {
         DomEventHandler.stop(event, true);
-        this._actionRunner(this.action);
+        this._actionRunner?.(this.action);
     }
 
     public focus(): void {
@@ -282,8 +296,8 @@ export abstract class AbstractMenuItem extends ActionListItem implements IMenuIt
  */
 export class MenuSeperatorItem extends AbstractMenuItem {
     
-    constructor(action: IMenuAction, actionRunner: (action: IMenuAction) => void) {
-        super(action, actionRunner);
+    constructor(action: IMenuAction) {
+        super(action);
     }
 
     protected override __render(): void {
@@ -302,8 +316,8 @@ export class MenuSeperatorItem extends AbstractMenuItem {
  */
 export class SingleMenuItem extends AbstractMenuItem {
     
-    constructor(action: IMenuAction, actionRunner: (action: IMenuAction) => void) {
-        super(action, actionRunner);
+    constructor(action: IMenuAction) {
+        super(action);
     }
 
     protected override __render(): void {
@@ -340,8 +354,8 @@ export class SubmenuItem extends AbstractMenuItem {
 
     // [constructor]
 
-    constructor(action: SubmenuAction, actionRunner: (action: IMenuAction) => void, delegate: ISubmenuDelegate) {
-        super(action, actionRunner);
+    constructor(action: SubmenuAction, delegate: ISubmenuDelegate) {
+        super(action);
         this._delegate = delegate;
 
         // scheduling initializaiton

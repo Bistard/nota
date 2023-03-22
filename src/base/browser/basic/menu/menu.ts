@@ -69,10 +69,11 @@ export interface IMenuOptions extends IActionListOptions<IMenuItem> {
 
 /**
  * @class A {@link BaseMenu} is build on top of {@link ActionList}, provides a 
- * UI-related component that represents a 'menu list'. Each item in the list is
- * has a functionality {@link IMenuAction}.
+ * UI-related component that represents a 'menu list'. Each {@link IMenuAction} 
+ * will be bind to a UI-related item named {@link IMenuItem}.
  * 
- * A {@link BaseMenu} provides various types of item and can be found at {@link MenuItemType}.
+ * @note The {@link BaseMenu} do not handle the concrete construction of each
+ * {@link IMenuItem}. Instead, the inheritance should handle it.
  */
 export abstract class BaseMenu extends ActionList<IMenuItem> implements IMenu {
 
@@ -108,12 +109,12 @@ export abstract class BaseMenu extends ActionList<IMenuItem> implements IMenu {
         
         this._currFocusedIndex = -1;
         this._triggerKeys = opts.triggerKeys ?? [KeyCode.Enter, KeyCode.Space];
-
         this._focusTracker = this.__register(new FocusTracker(this._element, true));
+        
         this.__registerListeners();
 
         // construct menu for the first time
-        this.insert(opts.actions ?? []);
+        this.insert(opts.actions ?? []); // FIX
 
         // actual render
         container.appendChild(this._element);
@@ -167,12 +168,16 @@ export abstract class BaseMenu extends ActionList<IMenuItem> implements IMenu {
         this.onDidInsert(items => {
             const fragment = <HTMLElement><unknown>document.createDocumentFragment();
             for (const item of items) {
+                // bind the item runnning environment to the action list
+                item.actionRunner = this.run.bind(this);
+                
+                // render the item
                 item.render(fragment);
             }
             this._element.appendChild(fragment);
             
             // re-focus
-            if (this._currFocusedIndex !== - 1) {
+            if (this._currFocusedIndex !== -1) {
                 this.onFocus(this._currFocusedIndex);
             }
         });
