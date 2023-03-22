@@ -186,7 +186,7 @@ export class ContextMenuService extends Disposable implements IContextMenuServic
 
             onFocus: () => {
                 // only focus the entire menu
-                menu?.onFocus(-1);
+                menu?.focus(-1);
             },
 
             onBeforeDestroy: () => {

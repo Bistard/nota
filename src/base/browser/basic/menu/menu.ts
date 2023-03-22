@@ -39,20 +39,20 @@ export interface IMenu extends IActionList<IMenuAction, IMenuItem> {
     readonly onDidClose: Register<void>;
     
     /**
+     * @description Builds the menu.
+     * @param actions The list of actions for building.
+     * @throws An exception will be thrown if the menu was already built.
+     */
+    build(actions: IMenuAction[]): void;
+
+    /**
      * @description Focus the item at the given index.
      * @param index The index of the item to be focused. If not provided, focus
      *              the first one. If index equals -1, only focus the entire 
      *              menu.
-     * 
      * @note The index will be recalculated to avoid the unenabled items.
      */
-    onFocus(index?: number): void;
-
-    /**
-     * @description // TODO
-     * @param actions 
-     */
-    build(actions: IMenuAction[]): void;
+    focus(index?: number): void;
 }
 
 /**
@@ -134,7 +134,7 @@ export abstract class BaseMenu extends ActionList<IMenuAction, IMenuItem> implem
         this._built = true;
     }
 
-    public onFocus(index?: number): void {
+    public focus(index?: number): void {
         
         if (isNullable(index)) {
             index = 0;
@@ -186,7 +186,7 @@ export abstract class BaseMenu extends ActionList<IMenuAction, IMenuItem> implem
             
             // re-focus
             if (this._currFocusedIndex !== -1) {
-                this.onFocus(this._currFocusedIndex);
+                this.focus(this._currFocusedIndex);
             }
         });
 
@@ -222,11 +222,11 @@ export abstract class BaseMenu extends ActionList<IMenuAction, IMenuItem> implem
                     break;
                 }
                 case KeyCode.Home: {
-                    this.onFocus(0);
+                    this.focus(0);
                     break;
                 }
                 case KeyCode.End: {
-                    this.onFocus(this._items.length - 1);
+                    this.focus(this._items.length - 1);
                     break;
                 }
                 case KeyCode.UpArrow: {
@@ -377,8 +377,8 @@ export abstract class MenuDecorator implements IMenu {
         this._menu.addActionItemProvider(provider);
     }
 
-    public onFocus(index?: number | undefined): void {
-        this._menu.onFocus(index);
+    public focus(index?: number | undefined): void {
+        this._menu.focus(index);
     }
 
     public run(index: number): void;
