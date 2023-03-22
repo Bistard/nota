@@ -180,7 +180,7 @@ export interface IActionListOptions<TAction extends IAction, TItem extends IActi
      * constructing an action item, the {@link ActionList} will loop over every 
      * provider until the action item can be constructed from one of them.
      */
-    readonly actionItemProviders: IActionItemProvider<TAction, TItem>[];
+    readonly actionItemProviders?: IActionItemProvider<TAction, TItem>[];
 }
 
 /**
@@ -215,7 +215,7 @@ export abstract class ActionList<TAction extends IAction, TItem extends IActionL
         super();
         this._items = [];
         this._contextProvider = opts.contextProvider;
-        this._itemProviders = [...opts.actionItemProviders];
+        this._itemProviders = [...(opts.actionItemProviders ?? [])];
         // note: do not access the context at the construction stage
     }
 

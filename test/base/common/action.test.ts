@@ -5,11 +5,8 @@ suite('action-test', () => {
 
     class TestItem extends ActionListItem implements IActionListItem {}
 
-    class ConcreteActionList extends ActionList<TestItem> {
+    class ConcreteActionList extends ActionList<IAction, TestItem> {
 
-        protected createItemImpl(action: IAction): TestItem {
-            return new TestItem(action);
-        }
     }
 
     test('action', () => {
@@ -35,6 +32,11 @@ suite('action-test', () => {
     test('action-list', () => {
         const list = new ConcreteActionList({
             contextProvider: () => 2,
+            actionItemProviders: [
+                (action) => {
+                    return new TestItem(action);
+                }
+            ]
         });
 
         assert.strictEqual(list.empty(), true);
