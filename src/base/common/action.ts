@@ -1,5 +1,6 @@
 import { Disposable, IDisposable } from "src/base/common/dispose";
 import { Emitter, Register } from "src/base/common/event";
+import { Arrays } from "src/base/common/util/array";
 import { isNullable, isNumber, isString, Mutable } from "src/base/common/util/type";
 
 export interface IAction extends IDisposable {
@@ -75,9 +76,9 @@ export interface IActionRunEvent {
 /**
  * An interface only for {@link ActionList}.
  */
-export interface IActionList<IItem extends IActionListItem> extends IDisposable {
+export interface IActionList<TAction extends IAction, TItem extends IActionListItem> extends IDisposable {
     
-    onDidInsert: Register<IItem[]>;
+    onDidInsert: Register<TItem[]>;
     onBeforeRun: Register<IActionRunEvent>;
     onDidRun: Register<IActionRunEvent>;
 
@@ -105,6 +106,13 @@ export interface IActionList<IItem extends IActionListItem> extends IDisposable 
 
     size(): number;
     empty(): boolean;
+
+    /**
+     * @description Add a new action item provider to construct the actions.
+     * @note When constructing items, the latest added {@link IActionItemProvider} 
+     * will be tried first.
+     */
+    addActionItemProvider(provider: IActionItemProvider<TAction, TItem>): void;
 }
 
 /**
@@ -147,14 +155,18 @@ export interface IContextProvider {
     (): unknown;
 }
 
-export interface IActionItemProvider<IItem extends IActionListItem> {
-    (action: IAction): IItem | undefined;
+/**
+ * If the provider cannot construct an item for the given action, returns 
+ * undefined.
+ */
+export interface IActionItemProvider<TAction extends IAction, TItem extends IActionListItem> {
+    (action: TAction): TItem | undefined;
 }
 
 /**
  * Construction options for {@link ActionList}.
  */
-export interface IActionListOptions<IItem extends IActionListItem> {
+export interface IActionListOptions<TAction extends IAction, TItem extends IActionListItem> {
     
     /**
      * A callback that always return the latest context of the current 
@@ -164,31 +176,31 @@ export interface IActionListOptions<IItem extends IActionListItem> {
     readonly contextProvider: IContextProvider;
 
     /**
-     * A provider that defines how to construct an action item.
-     * @param action An action for construction.
-     * @returns A created item or undefined if the provider cannot handle it.
+     * A list of providers that defines how to construct an action item. When
+     * constructing an action item, the {@link ActionList} will loop over every 
+     * provider until the action item can be constructed from one of them.
      */
-    readonly actionItemProvider?: IActionItemProvider<IItem>;
+    readonly actionItemProviders: IActionItemProvider<TAction, TItem>[];
 }
 
 /**
  * @class An abstraction container that contains a list of {@link IAction}s 
- * using wrapper {@link IItem}.
+ * using wrapper {@link TItem}.
  * 
  * @note The client may run the given {@link IAction} by given certain context.
- * @note The {@link IItem} shares the same lifetime as the action list.
+ * @note The {@link TItem} shares the same lifetime as the action list.
  */
-export abstract class ActionList<IItem extends IActionListItem> extends Disposable implements IActionList<IItem> {
+export abstract class ActionList<TAction extends IAction, TItem extends IActionListItem> extends Disposable implements IActionList<TAction, TItem> {
 
     // [fields]
 
-    protected readonly _items: IItem[];
+    protected readonly _items: TItem[];
     protected readonly _contextProvider: IContextProvider;
-    private readonly _itemProvider: IActionItemProvider<IItem>;
+    private readonly _itemProviders: IActionItemProvider<TAction, TItem>[];
 
     // [event]
 
-    private readonly _onDidInsert = this.__register(new Emitter<IItem[]>());
+    private readonly _onDidInsert = this.__register(new Emitter<TItem[]>());
     public readonly onDidInsert = this._onDidInsert.registerListener;
 
     private readonly _onBeforeRun = this.__register(new Emitter<IActionRunEvent>());
@@ -199,18 +211,19 @@ export abstract class ActionList<IItem extends IActionListItem> extends Disposab
     
     // [constructor]
 
-    constructor(opts: IActionListOptions<IItem>) {
+    constructor(opts: IActionListOptions<TAction, TItem>) {
         super();
         this._items = [];
         this._contextProvider = opts.contextProvider;
-        if (!opts.actionItemProvider) {
-            throw new Error('No action item provider is provided');
-        }
-        this._itemProvider = opts.actionItemProvider;
+        this._itemProviders = [...opts.actionItemProviders];
         // note: do not access the context at the construction stage
     }
 
     // [public methods]
+
+    public addActionItemProvider(provider: IActionItemProvider<TAction, TItem>): void {
+        this._itemProviders.push(provider);
+    }
 
     public run(index: number): void;
     public run(action: IAction): void;
@@ -273,18 +286,28 @@ export abstract class ActionList<IItem extends IActionListItem> extends Disposab
         return false;
     }
 
-    public insert(arg: IAction, index?: number): void;
-    public insert(arg: IAction[], index?: number): void;
-    public insert(arg: IAction | IAction[], index?: number): void {
+    public insert(arg: TAction, index?: number): void;
+    public insert(arg: TAction[], index?: number): void;
+    public insert(arg: TAction | TAction[], index?: number): void {
         const actions = Array.isArray(arg) ? [...arg] : [arg];
-        const items: IItem[] = [];
+        const items: TItem[] = [];
 
         for (const action of actions) {
+            let item: TItem | undefined;
+
+            Arrays.reverseIterate(this._itemProviders, (provider) => {
+                item = provider(action);
+                if (item) {
+                    return true;
+                }
+
+                return false;
+            });
             
-            const item = this._itemProvider(action);
             if (!item) {
                 throw new Error(`Action list cannot create item with action id '${action.id}'`);
             }
+
             items.push(item);
         
             if (isNullable(index)) {
@@ -335,6 +358,6 @@ export abstract class ActionList<IItem extends IActionListItem> extends Disposab
     public override dispose(): void {
         super.dispose();
         this._items.forEach(item => item.dispose());
-        (<Mutable<IItem[]>>this._items) = [];
+        (<Mutable<TItem[]>>this._items) = [];
     }
 }

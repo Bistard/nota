@@ -1,7 +1,7 @@
 import "src/base/browser/basic/menu/menu.scss";
 import { FocusTracker } from "src/base/browser/basic/focusTracker";
 import { AbstractMenuItem, IMenuAction, IMenuItem, MenuAction, MenuItemType, MenuSeperatorItem, SingleMenuItem, SubmenuItem } from "src/base/browser/basic/menu/menuItem";
-import { ActionList, IAction, IActionList, IActionListItem, IActionListOptions, IActionRunEvent } from "src/base/common/action";
+import { ActionList, IAction, IActionItemProvider, IActionList, IActionListItem, IActionListOptions, IActionRunEvent } from "src/base/common/action";
 import { addDisposableListener, DomUtility, EventType } from "src/base/browser/basic/dom";
 import { Emitter, Register } from "src/base/common/event";
 import { createStandardKeyboardEvent, IStandardKeyboardEvent, KeyCode } from "src/base/common/keyboard";
@@ -14,7 +14,7 @@ export interface IMenuActionRunEvent extends IActionRunEvent {
 /**
  * An inteface only for {@link BaseMenu}.
  */
-export interface IMenu extends IActionList<IMenuItem> {
+export interface IMenu extends IActionList<IMenuAction, IMenuItem> {
 
     readonly element: HTMLElement;
 
@@ -52,7 +52,7 @@ export interface IMenu extends IActionList<IMenuItem> {
 /**
  * Interface for {@link BaseMenu} construction.
  */
-export interface IMenuOptions extends IActionListOptions<IMenuItem> {
+export interface IMenuOptions extends IActionListOptions<IMenuAction, IMenuItem> {
     
     /**
      * Initial actions for the menu construction.
@@ -75,7 +75,7 @@ export interface IMenuOptions extends IActionListOptions<IMenuItem> {
  * @note The {@link BaseMenu} do not handle the concrete construction of each
  * {@link IMenuItem}. Instead, the inheritance should handle it.
  */
-export abstract class BaseMenu extends ActionList<IMenuItem> implements IMenu {
+export abstract class BaseMenu extends ActionList<IMenuAction, IMenuItem> implements IMenu {
 
     // [fields]
 
@@ -114,7 +114,7 @@ export abstract class BaseMenu extends ActionList<IMenuItem> implements IMenu {
         this.__registerListeners();
 
         // construct menu for the first time
-        this.insert(opts.actions ?? []); // FIX
+        this.insert(opts.actions ?? []);
 
         // actual render
         container.appendChild(this._element);
@@ -305,5 +305,112 @@ export abstract class BaseMenu extends ActionList<IMenuItem> implements IMenu {
 
     private __isTriggerKeys(event: IStandardKeyboardEvent): boolean {
         return this._triggerKeys.findIndex(key => key === event.key) !== -1;
+    }
+}
+
+/**
+ * @class A basic implementation over {@link BaseMenu}. It only provides two
+ * concrete item implementations.
+ */
+export class Menu extends BaseMenu {
+
+    constructor(container: HTMLElement, opts: IMenuOptions) {
+        super(container, opts);
+
+        this.addActionItemProvider((action: IMenuAction) => {
+            if (action.type === MenuItemType.Seperator) {
+                return new MenuSeperatorItem(action);
+            }
+    
+            else if (action.type === MenuItemType.General) {
+                return new SingleMenuItem(action);
+            }
+    
+            return undefined;
+        });
+    }
+}
+
+export abstract class MenuDecorator implements IMenu {
+
+    // [fields]
+
+    protected readonly _menu: IMenu;
+
+    // [events]
+
+    public readonly onDidInsert: Register<IMenuItem[]>;
+    public readonly onBeforeRun: Register<IMenuActionRunEvent>;
+    public readonly onDidRun: Register<IMenuActionRunEvent>;
+    public readonly onDidBlur: Register<void>;
+    public readonly onDidClose: Register<void>;
+
+    // [constructor]
+
+    constructor(menu: IMenu) {
+        this._menu = menu;
+        this.onDidInsert = this._menu.onDidInsert;
+        this.onBeforeRun = this._menu.onBeforeRun;
+        this.onDidRun = this._menu.onDidRun;
+        this.onDidBlur = this._menu.onDidBlur;
+        this.onDidClose = this._menu.onDidClose;
+    }
+
+    // [public methods]
+
+    get element(): HTMLElement {
+        return this._menu.element;
+    }
+
+    public addActionItemProvider(provider: IActionItemProvider<IMenuAction, IMenuItem>): void {
+        this._menu.addActionItemProvider(provider);
+    }
+
+    public onFocus(index?: number | undefined): void {
+        this._menu.onFocus(index);
+    }
+
+    public run(index: number): void;
+    public run(action: IAction): void;
+    public run(id: string): void;
+    public run(arg: IAction | number | string): void {
+        this._menu.run(arg);
+    }
+
+    public get(index: number): IAction | undefined;
+    public get(id: string): IAction | undefined;
+    public get(arg: string | number): IAction | undefined {    
+        return this._menu.get(arg);
+    }
+
+    public has(id: string): boolean;
+    public has(action: IAction): boolean;
+    public has(arg: string | IAction): boolean {
+        return this._menu.has(arg);
+    }
+
+    public insert(action: IAction[], index?: number | undefined): void;
+    public insert(action: IAction, index?: number | undefined): void;
+    public insert(arg: IAction | IAction[], index?: number | undefined): void {
+        this._menu.insert(arg, index);
+    }
+
+    public delete(index: number): boolean;
+    public delete(id: string): boolean;
+    public delete(action: IAction): boolean;
+    public delete(arg: string | number | IAction): boolean {
+        return this._menu.delete(arg);
+    }
+
+    public empty(): boolean {
+        return this._menu.empty();
+    }
+
+    public size(): number {
+        return this._menu.size();
+    }
+
+    public dispose(): void {
+        this._menu.dispose();
     }
 }
