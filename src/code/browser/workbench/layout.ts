@@ -182,7 +182,7 @@ class SideBarBuilder {
                                 new SingleMenuAction({
                                     callback: () => console.log('action 1 executed'),
                                     enabled: true,
-                                    id: 'testing action ',
+                                    id: 'testing action 1',
                                     tip: 'testing action 1 tip',
                                     extraClassName: 'action1',
                                 }),

@@ -133,9 +133,11 @@ export class ContextMenuService extends Disposable implements IContextMenuServic
                 menu = menuDisposables.register(
                     new Menu(container, {
                         contextProvider: () => delegate.getContext(),
-                        actions: delegate.getActions(),
                     })
                 );
+
+                // build menu
+                menu.build(delegate.getActions());
 
                 if (DEBUG_MODE) {
                     return menuDisposables;

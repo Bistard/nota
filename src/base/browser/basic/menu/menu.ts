@@ -47,6 +47,12 @@ export interface IMenu extends IActionList<IMenuAction, IMenuItem> {
      * @note The index will be recalculated to avoid the unenabled items.
      */
     onFocus(index?: number): void;
+
+    /**
+     * @description // TODO
+     * @param actions 
+     */
+    build(actions: IMenuAction[]): void;
 }
 
 /**
@@ -54,11 +60,6 @@ export interface IMenu extends IActionList<IMenuAction, IMenuItem> {
  */
 export interface IMenuOptions extends IActionListOptions<IMenuAction, IMenuItem> {
     
-    /**
-     * Initial actions for the menu construction.
-     */
-    readonly actions: IMenuAction[];
-
     /**
      * A list of possible trigger keys to determine which keys can execute the 
      * current focused item.
@@ -84,6 +85,8 @@ export abstract class BaseMenu extends ActionList<IMenuAction, IMenuItem> implem
     
     private readonly _focusTracker: FocusTracker;
     private _currFocusedIndex: number; // index
+
+    private _built = false;
 
     /** an array of key pressings to trigger the current focused item. */
     private readonly _triggerKeys: KeyCode[];
@@ -113,9 +116,6 @@ export abstract class BaseMenu extends ActionList<IMenuAction, IMenuItem> implem
         
         this.__registerListeners();
 
-        // construct menu for the first time
-        this.insert(opts.actions ?? []);
-
         // actual render
         container.appendChild(this._element);
     }
@@ -124,6 +124,14 @@ export abstract class BaseMenu extends ActionList<IMenuAction, IMenuItem> implem
 
     get element(): HTMLElement {
         return this._element;
+    }
+
+    public build(actions: IMenuAction[]): void {
+        if (this._built) {
+            throw new Error('Menu cannot build twice.');
+        }
+        this.insert(actions);
+        this._built = true;
     }
 
     public onFocus(index?: number): void {
@@ -316,7 +324,6 @@ export class Menu extends BaseMenu {
 
     constructor(container: HTMLElement, opts: IMenuOptions) {
         super(container, opts);
-
         this.addActionItemProvider((action: IMenuAction) => {
             if (action.type === MenuItemType.Seperator) {
                 return new MenuSeperatorItem(action);
@@ -360,6 +367,10 @@ export abstract class MenuDecorator implements IMenu {
 
     get element(): HTMLElement {
         return this._menu.element;
+    }
+
+    public build(actions: IMenuAction[]): void {
+        this._menu.build(actions);
     }
 
     public addActionItemProvider(provider: IActionItemProvider<IMenuAction, IMenuItem>): void {
@@ -412,5 +423,43 @@ export abstract class MenuDecorator implements IMenu {
 
     public dispose(): void {
         this._menu.dispose();
+    }
+}
+
+/**
+ * @class // TODO
+ */
+export class MenuWithSubmenu extends MenuDecorator {
+
+    // [field]
+
+    private _submenu?: IMenu;
+
+    // [constructor]
+
+    constructor(menu: IMenu) {
+        super(menu);
+        this._menu.addActionItemProvider((action: IMenuAction) => {
+            if (action.type === MenuItemType.Submenu) {
+                return new SubmenuItem(action, {
+                    closeCurrSubmenu: this.__closeCurrSubmenu.bind(this),
+                    openNewSubmenu: this.__openNewSubmenu.bind(this),
+                });
+            }
+            return undefined;
+        });
+    }
+
+    private __closeCurrSubmenu(): void {
+        if (!this._submenu) {
+            return;
+        }
+
+        this._submenu.dispose();
+        this._submenu = undefined;
+    }
+
+    private __openNewSubmenu(): void {
+        // TODO
     }
 }

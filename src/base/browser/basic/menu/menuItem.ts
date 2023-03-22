@@ -354,7 +354,7 @@ export class SubmenuItem extends AbstractMenuItem {
 
     // [constructor]
 
-    constructor(action: SubmenuAction, delegate: ISubmenuDelegate) {
+    constructor(action: IMenuAction, delegate: ISubmenuDelegate) {
         super(action);
         this._delegate = delegate;
 
