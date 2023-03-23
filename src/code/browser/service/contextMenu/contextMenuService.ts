@@ -1,6 +1,6 @@
 import { ContextMenu, IContextMenu, IContextMenuDelegate, IContextMenuDelegateBase } from "src/base/browser/basic/contextMenu/contextMenu";
 import { addDisposableListener, DomEmitter, DomEventHandler, DomUtility, EventType } from "src/base/browser/basic/dom";
-import { IMenu, IMenuActionRunEvent, Menu } from "src/base/browser/basic/menu/menu";
+import { IMenu, IMenuActionRunEvent, Menu, MenuWithSubmenu } from "src/base/browser/basic/menu/menu";
 import { IMenuAction, MenuItemType } from "src/base/browser/basic/menu/menuItem";
 import { Disposable, DisposableManager } from "src/base/common/dispose";
 import { ILayoutService } from "src/code/browser/service/layout/layoutService";
@@ -131,14 +131,20 @@ export class ContextMenuService extends Disposable implements IContextMenuServic
 
                 // menu construction
                 menu = menuDisposables.register(
-                    new Menu(container, {
-                        contextProvider: () => delegate.getContext(),
-                    })
+                    new MenuWithSubmenu(
+                        new Menu(container, {
+                            contextProvider: () => delegate.getContext(),
+                        })
+                    )
                 );
 
                 // build menu
                 menu.build(delegate.getActions());
 
+                /**
+                 * If on debug mode, we do not wish to destroy the context menu 
+                 * automatically.
+                 */
                 if (DEBUG_MODE) {
                     return menuDisposables;
                 }

@@ -14,7 +14,7 @@ import { ISplitViewItemOpts } from "src/base/browser/secondary/splitView/splitVi
 import { Icons } from "src/base/browser/icon/icons";
 import { IContextMenuService } from "src/code/browser/service/contextMenu/contextMenuService";
 import { ILayoutService } from "src/code/browser/service/layout/layoutService";
-import { MenuSeperatorAction, SingleMenuAction } from "src/base/browser/basic/menu/menuItem";
+import { MenuSeperatorAction, SingleMenuAction, SubmenuAction } from "src/base/browser/basic/menu/menuItem";
 
 /**
  * @description A base class for Workbench to create and manage the behaviour of
@@ -204,6 +204,12 @@ class SideBarBuilder {
                                 MenuSeperatorAction.instance,
                                 new SingleMenuAction({
                                     callback: () => console.log('action 4 executed'),
+                                    enabled: true,
+                                    id: 'testing action 4',
+                                    tip: 'testing action 4 tip',
+                                    extraClassName: 'action4',
+                                }),
+                                new SubmenuAction([], {
                                     enabled: true,
                                     id: 'testing action 4',
                                     tip: 'testing action 4 tip',

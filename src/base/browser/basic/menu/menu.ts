@@ -427,18 +427,21 @@ export abstract class MenuDecorator implements IMenu {
 }
 
 /**
- * @class // TODO
+ * @class With additionals to {@link Menu}, the class supports to construct a
+ * submenu also with interface {@link IMenu}.
  */
 export class MenuWithSubmenu extends MenuDecorator {
 
     // [field]
 
+    private _submenuContainer?: HTMLElement;
     private _submenu?: IMenu;
 
     // [constructor]
 
     constructor(menu: IMenu) {
         super(menu);
+
         this._menu.addActionItemProvider((action: IMenuAction) => {
             if (action.type === MenuItemType.Submenu) {
                 return new SubmenuItem(action, {
@@ -450,6 +453,18 @@ export class MenuWithSubmenu extends MenuDecorator {
         });
     }
 
+    // [public methods]
+
+    public override dispose(): void {
+        super.dispose();
+        if (this._submenu) {
+            this._submenu.dispose();
+            this._submenu = undefined;
+        }
+    }
+
+    // [private helper methods]
+
     private __closeCurrSubmenu(): void {
         if (!this._submenu) {
             return;
@@ -460,6 +475,15 @@ export class MenuWithSubmenu extends MenuDecorator {
     }
 
     private __openNewSubmenu(): void {
-        // TODO
+        
+        /**
+         * If there is already a submenu, we simply focus it instead of recreate 
+         * it.
+         */
+        if (this._submenu) {
+            this._submenu.focus(-1);
+            return;
+        }
+
     }
 }
