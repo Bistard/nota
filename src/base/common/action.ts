@@ -73,9 +73,6 @@ export interface IActionRunEvent {
     readonly error?: Error;
 }
 
-
-// hello world
-
 /**
  * An interface only for {@link ActionList}.
  */
