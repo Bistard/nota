@@ -1,8 +1,8 @@
-import { ContextMenu, IContextMenu, IContextMenuDelegate, IContextMenuDelegateBase } from "src/base/browser/basic/contextMenu/contextMenu";
+import { ContextMenu, IAnchor, IContextMenu, IContextMenuDelegate, IContextMenuDelegateBase } from "src/base/browser/basic/contextMenu/contextMenu";
 import { addDisposableListener, DomEmitter, DomEventHandler, DomUtility, EventType } from "src/base/browser/basic/dom";
 import { IMenu, IMenuActionRunEvent, Menu, MenuWithSubmenu } from "src/base/browser/basic/menu/menu";
 import { IMenuAction, MenuItemType } from "src/base/browser/basic/menu/menuItem";
-import { Disposable, DisposableManager } from "src/base/common/dispose";
+import { Disposable, DisposableManager, IDisposable } from "src/base/common/dispose";
 import { ILayoutService } from "src/code/browser/service/layout/layoutService";
 import { createService } from "src/code/platform/instantiation/common/decorator";
 import { isCancellationError } from "src/base/common/error";
@@ -106,7 +106,14 @@ export class ContextMenuService extends Disposable implements IContextMenuServic
         }
 
         // show up a context menu
-        this._contextMenu.show(this.__createShowContextMenuDelegate(delegate));
+        this._contextMenu.show(
+            new __ContextMenuDelegate(
+                delegate, 
+                this._contextMenu, 
+                this.__onBeforeActionRun.bind(this), 
+                this.__onDidActionRun.bind(this)
+            ),
+        );
     }
 
     public destroyContextMenu(): void {
@@ -114,93 +121,6 @@ export class ContextMenuService extends Disposable implements IContextMenuServic
     }
 
     // [private methods]
-
-    private __createShowContextMenuDelegate(delegate: IContextMenuServiceDelegate): IContextMenuDelegate {
-        let menu: IMenu | undefined;
-
-        return {
-            getAnchor: () => delegate.getAnchor(),
-            
-            render: (container: HTMLElement) => {
-                const menuDisposables = new DisposableManager();
-
-                const menuClassName = delegate.getContextMenuClassName?.() ?? '';
-                if (menuClassName) {
-                    container.classList.add(menuClassName);
-                }
-
-                // menu construction
-                menu = menuDisposables.register(
-                    new MenuWithSubmenu(
-                        new Menu(container, {
-                            contextProvider: () => delegate.getContext(),
-                        })
-                    )
-                );
-
-                // build menu
-                menu.build(delegate.getActions());
-
-                /**
-                 * If on debug mode, we do not wish to destroy the context menu 
-                 * automatically.
-                 */
-                if (DEBUG_MODE) {
-                    return menuDisposables;
-                }
-
-                // context menu destroy event
-                [
-                    menu.onDidBlur,
-                    menu.onDidClose,
-                    new DomEmitter(window, EventType.blur).registerListener,
-                ]
-                .forEach(onEvent => {
-                    menuDisposables.register(
-                        onEvent.call(menu, () => this._contextMenu.destroy())
-                    );
-                });
-
-                // mousedown destroy event
-                menuDisposables.register(addDisposableListener(window, EventType.mousedown, (e) => {
-                    if (e.defaultPrevented) {
-                        return;
-                    }
-
-                    /**
-                     * We are likely creating a context menu, let the context 
-                     * menu service to destroy it.
-                     */
-                    if (DomEventHandler.isRightClick(e)) {
-                        return;
-                    }
-
-                    // clicking the child element will not destroy the view.
-                    if (DomUtility.Elements.isAncestor(container, <HTMLElement | undefined>e.target)) {
-                        return;
-                    }
-
-                    this._contextMenu.destroy();
-                }));
-
-                // running action events
-                menuDisposables.register(menu.onBeforeRun(this.__onBeforeActionRun, undefined, this));
-                menuDisposables.register(menu.onDidRun(this.__onDidActionRun, undefined, this));
-
-                return menuDisposables;
-            },
-
-            onFocus: () => {
-                // only focus the entire menu
-                menu?.focus(-1);
-            },
-
-            onBeforeDestroy: () => {
-                // TEST
-                console.log('delegate: on before destroy');
-            },
-        };
-    }
 
     private __onBeforeActionRun(event: IMenuActionRunEvent): void {
         if (event.action.type !== MenuItemType.Submenu) {
@@ -212,5 +132,119 @@ export class ContextMenuService extends Disposable implements IContextMenuServic
         if (event.error && !isCancellationError(event.error)) {
             this.notificationService.error(event.error);
         }
+    }
+}
+
+class __ContextMenuDelegate implements IContextMenuDelegate {
+
+    // [fields]
+
+    private _menu?: IMenu;
+    private readonly _delegate: IContextMenuServiceDelegate;
+    private readonly _contextMenu: IContextMenu;
+    private _onBeforeActionRun: (event: IMenuActionRunEvent) => void;
+    private _onDidActionRun: (event: IMenuActionRunEvent) => void;
+
+    // [constructor]
+
+    constructor(
+        delegate: IContextMenuServiceDelegate,
+        contextMenu: IContextMenu,
+        onBeforeActionRun: (event: IMenuActionRunEvent) => void,
+        onDidActionRun: (event: IMenuActionRunEvent) => void,
+        ) {
+        this._menu = undefined;
+        this._delegate = delegate;
+        this._contextMenu = contextMenu;
+        this._onBeforeActionRun = onBeforeActionRun;
+        this._onDidActionRun = onDidActionRun;
+    }
+
+    // [public methods]
+
+    public getAnchor(): HTMLElement | IAnchor {
+        return this._delegate.getAnchor();
+    }
+
+    public render(container: HTMLElement): IDisposable {
+        const menuDisposables = new DisposableManager();
+        const delegate = this._delegate;
+        const contextMenu = this._contextMenu;
+
+        const menuClassName = delegate.getContextMenuClassName?.() ?? '';
+        if (menuClassName) {
+            container.classList.add(menuClassName);
+        }
+
+        // menu construction
+        this._menu = menuDisposables.register(
+            new MenuWithSubmenu(
+                new Menu(container, {
+                    contextProvider: () => delegate.getContext(),
+                })
+            )
+        );
+        const menu = this._menu;
+
+        // build menu
+        menu.build(delegate.getActions());
+
+        /**
+         * If on debug mode, we do not wish to destroy the context menu 
+         * automatically.
+         */
+        if (DEBUG_MODE) {
+            return menuDisposables;
+        }
+
+        // context menu destroy event
+        [
+            menu.onDidBlur,
+            menu.onDidClose,
+            new DomEmitter(window, EventType.blur).registerListener,
+        ]
+        .forEach(onEvent => {
+            menuDisposables.register(
+                onEvent.call(menu, () => contextMenu.destroy())
+            );
+        });
+
+        // mousedown destroy event
+        menuDisposables.register(addDisposableListener(window, EventType.mousedown, (e) => {
+            if (e.defaultPrevented) {
+                return;
+            }
+
+            /**
+             * We are likely creating a context menu, let the context 
+             * menu service to destroy it.
+             */
+            if (DomEventHandler.isRightClick(e)) {
+                return;
+            }
+
+            // clicking the child element will not destroy the view.
+            if (DomUtility.Elements.isAncestor(container, <HTMLElement | undefined>e.target)) {
+                return;
+            }
+
+            contextMenu.destroy();
+        }));
+
+        // running action events
+        menuDisposables.register(menu.onBeforeRun(this._onBeforeActionRun, undefined, this));
+        menuDisposables.register(menu.onDidRun(this._onDidActionRun, undefined, this));
+
+        return menuDisposables;
+    }
+
+    public onFocus(): void {
+        // only focus the entire menu
+        this._menu?.focus(-1);
+    }
+
+    public onBeforeDestroy(): void {
+        // TEST
+        console.log('delegate: on before destroy');
     }
 }
