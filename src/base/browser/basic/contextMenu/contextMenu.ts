@@ -3,7 +3,7 @@ import { addDisposableListener, DomUtility, EventType } from "src/base/browser/b
 import { FastElement } from "src/base/browser/basic/fastElement";
 import { Disposable, DisposableManager, IDisposable } from "src/base/common/dispose";
 import { Range } from "src/base/common/range";
-import { IDomBox } from "src/base/common/util/size";
+import { IDomBox, IPosition } from "src/base/common/util/size";
 
 export interface IAnchor {
     readonly x: number;
@@ -150,12 +150,10 @@ export interface IContextMenu extends IDisposable {
 }
 
 /**
- * @class A {@link ContextMenu} can be placed under a given container. Then can
- * be shown under that container through the rendering method provided by a
- * {@link IContextMenuDelegate}.
- * 
- * @note The rendering process is abstracted out through a delegator. Usually
- * is rendered based on {@link Menu}.
+ * @class A {@link ContextMenu} can be placed under a given container for later
+ * rendering. The rendering implementation of a {@link ContextMenu} is 
+ * abstracted out as a {@link IContextMenuDelegate}. Usually is rendered based 
+ * on {@link IMenu}.
  * 
  * @note When showing a {@link ContextMenu}, the position of the view will be
  * adjusted due to the anchor position and the viewport size to ensure the view 
@@ -171,9 +169,13 @@ export class ContextMenu extends Disposable implements IContextMenu {
 
     // [fields]
 
+    /** The HTMLElement that contains the whole context menu view */
     private readonly _element: FastElement<HTMLElement>;
     
+    /** The container which contains the context menu */
     private _currContainer?: HTMLElement;
+
+    /** The delegate that handles external business logics */
     private _currDelegate?: IContextMenuDelegate;
     
     private _currContainerDisposables: IDisposable = Disposable.NONE;
@@ -290,14 +292,14 @@ export class ContextMenu extends Disposable implements IContextMenu {
             return;
         }
         
-        const [top, left] = this.__calculateViewPosition(delegate);
+        const {top, left } = this.__calculateViewPosition(delegate);
 
         const containerPos = DomUtility.Positions.getNodePagePosition(this._currContainer);
         this._element.setTop(top - containerPos.top);
         this._element.setLeft(left - containerPos.left);
     }
 
-    private __calculateViewPosition(delegate: IContextMenuDelegate): [number, number] {
+    private __calculateViewPosition(delegate: IContextMenuDelegate): IPosition {
         let top: number;
         let left: number;
 
@@ -393,7 +395,7 @@ export class ContextMenu extends Disposable implements IContextMenu {
             top = window.pageYOffset + this.__adjustOneAxisPosition(window.innerHeight, elementHeight, verticalAnchor);
         }
 
-        return [top, left];
+        return { top, left };
     }
 
     /**
