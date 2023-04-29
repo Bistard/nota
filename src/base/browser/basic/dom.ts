@@ -66,12 +66,14 @@ export const enum EventType {
 	drop = 'drop',
 }
 
-/**
- * @readonly Either displaying vertically or horizontally.
- */
 export const enum Orientation {
     Horizontal,
     Vertical
+}
+
+export const enum Direction {
+	Left,
+	Right,
 }
 
 /**
