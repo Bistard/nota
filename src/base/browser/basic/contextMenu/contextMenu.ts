@@ -1,6 +1,7 @@
 import "src/base/browser/basic/contextMenu/contextMenu.scss";
 import { addDisposableListener, DomUtility, EventType } from "src/base/browser/basic/dom";
 import { FastElement } from "src/base/browser/basic/fastElement";
+import { AnchorAbstractPosition, AnchorMode, calcViewPositionAlongAxis, IAnchorBox } from "src/base/browser/basic/view";
 import { Disposable, DisposableManager, IDisposable } from "src/base/common/dispose";
 import { Range } from "src/base/common/range";
 import { IDomBox, IPosition } from "src/base/common/util/size";
@@ -37,30 +38,6 @@ export const enum AnchorHorizontalPosition {
 export const enum AnchorVerticalPosition {
     Above,
     Below,
-}
-
-const enum AnchorAbstractPosition {
-    Before,
-    After,
-}
-
-interface IAnchorBox {
-    readonly offset: number;
-	readonly size: number;
-	readonly direction: AnchorAbstractPosition;
-	readonly mode: AnchorMode;
-}
-
-const enum AnchorMode {
-    /**
-     * Aligned with the anchor element.
-     */
-    Align,
-    
-    /**
-     * Positioned to avoid overlapping the anchor element.
-     */
-    Avoid,
 }
 
 export interface IContextMenuDelegateBase {
@@ -322,7 +299,7 @@ export class ContextMenu extends Disposable implements IContextMenu {
                 direction: verticalPos === AnchorVerticalPosition.Below ? AnchorAbstractPosition.Before : AnchorAbstractPosition.After,
                 mode: currMode,
             };
-            top = window.scrollY + this.__adjustOneAxisPosition(window.innerHeight, elementHeight, verticalAnchor);
+            top = window.scrollY + calcViewPositionAlongAxis(window.innerHeight, elementHeight, verticalAnchor);
 
             /**
              * If the element intersects vertically with anchor, we must 
@@ -350,7 +327,7 @@ export class ContextMenu extends Disposable implements IContextMenu {
                 direction: horizontalPos === AnchorHorizontalPosition.Left ? AnchorAbstractPosition.Before : AnchorAbstractPosition.After,
                 mode: currMode,
             };
-            left = this.__adjustOneAxisPosition(window.innerWidth, elementWidth, horizontalAnchor);
+            left = calcViewPositionAlongAxis(window.innerWidth, elementWidth, horizontalAnchor);
         }
 
         // consider the horizontal placement first
@@ -364,7 +341,7 @@ export class ContextMenu extends Disposable implements IContextMenu {
                 direction: horizontalPos === AnchorHorizontalPosition.Left ? AnchorAbstractPosition.Before : AnchorAbstractPosition.After,
                 mode: currMode,
             };
-            left = this.__adjustOneAxisPosition(window.innerWidth, elementWidth, horizontalAnchor);
+            left = calcViewPositionAlongAxis(window.innerWidth, elementWidth, horizontalAnchor);
             
             /**
              * If the element intersects horizontally with anchor, we must 
@@ -392,107 +369,10 @@ export class ContextMenu extends Disposable implements IContextMenu {
                 direction: verticalPos === AnchorVerticalPosition.Below ? AnchorAbstractPosition.Before : AnchorAbstractPosition.After,
                 mode: currMode,
             };
-            top = window.pageYOffset + this.__adjustOneAxisPosition(window.innerHeight, elementHeight, verticalAnchor);
+            top = window.pageYOffset + calcViewPositionAlongAxis(window.innerHeight, elementHeight, verticalAnchor);
         }
 
         return { top, left };
-    }
-
-    /**
-     * @description Aims to position the context menu optimally based on the 
-     * available space.
-     * @param viewportSize The view port size (width or height).
-     * @param viewSize The view size (width or height).
-     * @param anchorBox Geometry about the anchor.
-     * @returns A number where to position the context menu based on the assumed 
-     *          axis.
-     */
-    private __adjustOneAxisPosition(viewportSize: number, viewSize: number, anchorBox: IAnchorBox): number {
-        
-        /**
-         * represents the avaliable position boundary along the given axis after 
-         * the anchor element.
-         */
-        const afterAnchorPositionBoundary = (
-            
-            anchorBox.mode === AnchorMode.Align
-            
-            /**
-             * Align: the after boundary is at the beginning of the anchor 
-             * element, and the view will be aligned with the beginning of the 
-             * anchor.
-             */
-             ? anchorBox.offset
-
-            /**
-             * Avoid: the after boundary is at the end of the anchor element, 
-             * and the view will be positioned after the anchor element to avoid 
-             * overlapping.
-             */
-             : anchorBox.offset + anchorBox.size
-        );
-
-        /**
-         * represents the avaliable position boundary along the given axis 
-         * before the anchor element.
-         */
-        const beforeAnchorPositionBoundary = 
-            
-            (anchorBox.mode === AnchorMode.Align
-            
-            /**
-             * Align: the before boundary is at the end of the anchor element,
-             * and the view will be aligned with the end of the anchor.
-             */
-             ? anchorBox.offset + anchorBox.size
-            
-            /**
-             * Avoid: the before boundary is at the beginning of the anchor
-             * element, and the view will be positioned before the beginning of
-             * the anchor element to avoid overlapping.
-             */
-             : anchorBox.offset
-        );
-        
-        
-        /**
-         * Attempts to position the view before the anchor element along with
-         * the given axis.
-         */
-        if (anchorBox.direction === AnchorAbstractPosition.Before) {
-            
-            // happy case, lay it out after the anchor.
-            if (viewSize + afterAnchorPositionBoundary <= viewportSize) {
-                return afterAnchorPositionBoundary;
-            }
-    
-            // ok case, lay it out before the anchor.
-            if (viewSize <= beforeAnchorPositionBoundary) {
-                return beforeAnchorPositionBoundary - viewSize;
-            }
-    
-            // sad case, lay it over the anchor.
-            return Math.max(viewportSize - viewSize, 0);
-        }
-
-        /**
-         * Attempts to position the view after the anchor element along with
-         * the given axis.
-         */
-        else {
-            // happy case, lay it out before the anchor.
-            if (viewSize <= beforeAnchorPositionBoundary) {
-                return beforeAnchorPositionBoundary - viewSize;
-            }
-    
-            // ok case, lay it out after the anchor.
-            if (viewSize <= viewportSize - afterAnchorPositionBoundary) {
-                return afterAnchorPositionBoundary;
-            }
-    
-            // sad case, lay it over the anchor.
-            return 0;
-        }
     }
 
     private __getAnchorBox(delegate: IContextMenuDelegate): IDomBox {
