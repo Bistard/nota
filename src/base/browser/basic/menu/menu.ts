@@ -608,7 +608,7 @@ export class MenuWithSubmenu extends MenuDecorator {
     }
 
     private __submenuEventRegistration(): void {
-        if (!this._submenuContainer) {
+        if (!this._submenuContainer || !this._submenu) {
             return;
         }
 
@@ -635,7 +635,7 @@ export class MenuWithSubmenu extends MenuDecorator {
         }));
 
         // on-did-close
-        this._submenuDisposables.register(this._menu.onDidClose(() => {
+        this._submenuDisposables.register(this._submenu.onDidClose(() => {
             this._menu.focus();
             this.__closeCurrSubmenu();
         }));
