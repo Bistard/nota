@@ -374,6 +374,16 @@ export namespace DomUtility
 
 			throw new Error('Unable to figure out browser width and height');
 		}
+
+		export function isInViewport(element: HTMLElement): boolean {
+			const rect = element.getBoundingClientRect();
+			return (
+				rect.top >= 0 &&
+				rect.left >= 0 &&
+				rect.bottom <= (window.innerHeight || document.documentElement.clientHeight) &&
+				rect.right <= (window.innerWidth || document.documentElement.clientWidth)
+			);
+		}
 	}
 
 	export namespace Elements {

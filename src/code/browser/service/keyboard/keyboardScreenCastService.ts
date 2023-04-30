@@ -34,19 +34,11 @@ export class KeyboardScreenCastService implements IKeyboardScreenCastService {
 
     // [field]
 
-    // TODO: use a smarter way
-    public static readonly MAX_CHILDREN = 14;
-
     private _active: boolean;
-    
     private _container?: HTMLElement;
     private _tagContainer?: HTMLElement;
-    
-    private _childrenCount: number;
     private _prevEvent?: IStandardKeyboardEvent;
-
     private _visibilityController: VisibilityController;
-
     private _keydownListener?: IDisposable;
     private _timer?: IntervalTimer;
 
@@ -57,7 +49,6 @@ export class KeyboardScreenCastService implements IKeyboardScreenCastService {
         @ILayoutService private readonly layoutService: ILayoutService,
     ) {
         this._visibilityController = new VisibilityController('visible', 'invisible', 'fade');
-        this._childrenCount = 0;
         this._active = false;
     }
 
@@ -84,7 +75,6 @@ export class KeyboardScreenCastService implements IKeyboardScreenCastService {
             this.layoutService.parentContainer.appendChild(this._container);
 
             this._timer = new IntervalTimer();
-            this._childrenCount = 0;
         }
 
         // events
@@ -92,13 +82,9 @@ export class KeyboardScreenCastService implements IKeyboardScreenCastService {
             this._keydownListener = this.keyboardService.onKeydown(event => {
                 if (this.__ifAllowNewTag(event)) {
                     
-                    if (this._childrenCount > KeyboardScreenCastService.MAX_CHILDREN) {
+                    if (this.__excessMaxTags() || Keyboard.isEventModifier(event)) {
                         this.__flushKeypress();
                     } 
-                    
-                    else if (Keyboard.isEventModifier(event)) {
-                        this.__flushKeypress();
-                    }
                     
                     this.__appendTag(event);
                     this._prevEvent = event;
@@ -130,7 +116,6 @@ export class KeyboardScreenCastService implements IKeyboardScreenCastService {
         this._timer?.dispose();
         this._timer = undefined;
 
-        this._childrenCount = 0;
         this._active = false;
     }
 
@@ -151,7 +136,23 @@ export class KeyboardScreenCastService implements IKeyboardScreenCastService {
         return true;
     }
 
+    private __excessMaxTags(): boolean {
+        if (!this._tagContainer) {
+            return true;
+        }
+
+        const lastTag = this._tagContainer.lastChild;
+        if (!lastTag) {
+            return false;
+        }
+
+        return !DomUtility.Positions.isInViewport(<HTMLElement>lastTag);
+    }
+
     private __appendTag(event: IStandardKeyboardEvent): void {
+        if (!this._tagContainer) {
+            return;
+        }
         
         const tag = document.createElement('div');
         tag.className = 'tag';
@@ -160,9 +161,7 @@ export class KeyboardScreenCastService implements IKeyboardScreenCastService {
         span.textContent = Keyboard.eventToString(event);
         
         tag.appendChild(span);
-        this._tagContainer!.appendChild(tag);
-
-        this._childrenCount++;
+        this._tagContainer.appendChild(tag);
     }
 
     private __resetTimer(ms: number = 1000): void {
@@ -181,6 +180,5 @@ export class KeyboardScreenCastService implements IKeyboardScreenCastService {
             DomUtility.Modifiers.clearChildrenNodes(this._tagContainer);
         }
         this._prevEvent = undefined;
-        this._childrenCount = 0;
     }
 }
