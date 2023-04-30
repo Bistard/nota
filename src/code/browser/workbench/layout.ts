@@ -15,6 +15,7 @@ import { Icons } from "src/base/browser/icon/icons";
 import { IContextMenuService } from "src/code/browser/service/contextMenu/contextMenuService";
 import { ILayoutService } from "src/code/browser/service/layout/layoutService";
 import { MenuSeperatorAction, SingleMenuAction, SubmenuAction } from "src/base/browser/basic/menu/menuItem";
+import { KeyCode, Shortcut } from "src/base/common/keyboard";
 
 /**
  * @description A base class for Workbench to create and manage the behaviour of
@@ -182,69 +183,72 @@ class SideBarBuilder {
                                 new SingleMenuAction({
                                     callback: () => console.log('action 1 executed'),
                                     enabled: true,
-                                    id: 'testing action 1',
-                                    tip: 'testing action 1 tip',
+                                    id: 'simple action 1',
+                                    tip: 'simple action 1 tip',
                                     extraClassName: 'action1',
+                                    shortcut: new Shortcut(true, false, false, false, KeyCode.KeyA),
                                 }),
                                 MenuSeperatorAction.instance,
                                 new SingleMenuAction({
                                     callback: () => console.log('action 2 executed'),
                                     enabled: true,
-                                    id: 'testing action 2',
-                                    tip: 'testing action 2 tip',
+                                    id: 'simple action 2',
+                                    tip: 'simple action 2 tip',
                                     extraClassName: 'action2',
+                                    shortcut: new Shortcut(true, false, false, true, KeyCode.KeyD),
                                 }),
                                 new SingleMenuAction({
                                     callback: () => console.log('action 3 executed'),
                                     enabled: true,
-                                    id: 'testing action 3',
-                                    tip: 'testing action 3 tip',
+                                    id: 'simple action 3',
+                                    tip: 'simple action 3 tip',
                                     extraClassName: 'action3',
                                 }),
                                 MenuSeperatorAction.instance,
                                 new SingleMenuAction({
                                     callback: () => console.log('action 4 executed'),
                                     enabled: true,
-                                    id: 'testing action 4',
-                                    tip: 'testing action 4 tip',
+                                    id: 'simple action 4',
+                                    tip: 'simple action 4 tip',
                                     extraClassName: 'action4',
+                                    shortcut: new Shortcut(false, false, false, false, KeyCode.F12),
                                 }),
                                 new SubmenuAction(
                                     [
                                         new SingleMenuAction({
                                             callback: () => console.log('action 6 executed'),
                                             enabled: true,
-                                            id: 'testing action 6',
-                                            tip: 'testing action 6 tip',
+                                            id: 'simple action 6',
+                                            tip: 'simple action 6 tip',
                                             extraClassName: 'action6',
                                         }),
                                         MenuSeperatorAction.instance,
                                         new SingleMenuAction({
                                             callback: () => console.log('action 7 executed'),
                                             enabled: true,
-                                            id: 'testing action 7',
-                                            tip: 'testing action 7 tip',
+                                            id: 'simple action 7',
+                                            tip: 'simple action 7 tip',
                                             extraClassName: 'action7',
                                         }),
                                         new SingleMenuAction({
                                             callback: () => console.log('action 8 executed'),
                                             enabled: true,
-                                            id: 'testing action 8',
-                                            tip: 'testing action 8 tip',
+                                            id: 'simple action 8',
+                                            tip: 'simple action 8 tip',
                                             extraClassName: 'action8',
                                         }),
                                         MenuSeperatorAction.instance,
                                         new SingleMenuAction({
                                             callback: () => console.log('action 9 executed'),
                                             enabled: true,
-                                            id: 'testing action 9',
-                                            tip: 'testing action 9 tip',
+                                            id: 'simple action 9',
+                                            tip: 'simple action 9 tip',
                                             extraClassName: 'action9',
                                         }),
                                     ], {
                                     enabled: true,
-                                    id: 'testing action 5',
-                                    tip: 'testing action 5 tip',
+                                    id: 'submenu 5',
+                                    tip: 'submenu 5 tip',
                                     extraClassName: 'action5',
                                 }),
                             ];

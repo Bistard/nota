@@ -1,5 +1,7 @@
 import { DomEventHandler, DomEventLike, DomUtility } from "src/base/browser/basic/dom";
 import { FastElement } from "src/base/browser/basic/fastElement";
+import { createIcon } from "src/base/browser/icon/iconRegistry";
+import { Icons } from "src/base/browser/icon/icons";
 import { Action, ActionListItem, IAction, IActionListItem, IActionOptions } from "src/base/common/action";
 import { IDisposable } from "src/base/common/dispose";
 import { KeyCode, Shortcut, createStandardKeyboardEvent } from "src/base/common/keyboard";
@@ -333,7 +335,27 @@ export class SingleMenuItem extends AbstractMenuItem {
 
     protected override __render(): void {
         super.__render();
-        this.element.addClassList('menu-item');
+
+        const itemContainer = document.createElement('div');
+        itemContainer.className = ('menu-item');
+
+        const name = document.createElement('span');
+        name.className = 'menu-item-name';
+        name.textContent = this.action.id;
+
+        let shortcut: HTMLElement | undefined;
+        if (this.action.shortcut) {
+            shortcut = document.createElement('span');
+            shortcut.className = 'menu-item-shortcut';
+            shortcut.textContent = this.action.shortcut.toString();
+        }
+
+        itemContainer.appendChild(name);
+        if (shortcut) {
+            itemContainer.appendChild(shortcut);
+        }
+
+        this.element.appendChild(itemContainer);
     }
 
     protected override __registerListeners(): void {
@@ -371,7 +393,7 @@ export class SubmenuItem extends AbstractMenuItem {
         super(action);
         this._delegate = delegate;
 
-        // scheduling initializaiton
+        // scheduling initialization
         {
             this._showScheduler = new UnbufferedScheduler(SubmenuItem.SHOW_DEPLAY, () => {
                 this._delegate.closeCurrSubmenu();
@@ -415,13 +437,27 @@ export class SubmenuItem extends AbstractMenuItem {
 
     protected override __render(): void {
         super.__render();
-        this.element.addClassList('submenu-item');
+        
+        const itemContainer = document.createElement('div');
+        itemContainer.className = ('menu-item');
+
+        const name = document.createElement('span');
+        name.className = 'menu-item-name';
+        name.textContent = this.action.id;
+
+        const arrow = createIcon(Icons.AngleDown, ['submenu-item-arrow']);
+        
+        itemContainer.appendChild(name);
+        itemContainer.appendChild(arrow);
+        this.element.appendChild(itemContainer);
     }
 
     protected override __registerListeners(): void {
         
         // keep the default behaviours too.
         super.__registerListeners();
+
+        // FIX: hover event seems has bug
 
         // When mouse leaves the current item, cancel the show-up.
         this.element.onMouseenter(e => {
