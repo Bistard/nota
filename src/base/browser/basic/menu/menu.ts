@@ -1,11 +1,15 @@
 import "src/base/browser/basic/menu/menu.scss";
 import { FocusTracker } from "src/base/browser/basic/focusTracker";
-import { AbstractMenuItem, IMenuAction, IMenuItem, MenuAction, MenuItemType, MenuSeperatorItem, SingleMenuItem, SubmenuItem } from "src/base/browser/basic/menu/menuItem";
-import { ActionList, IAction, IActionItemProvider, IActionList, IActionListItem, IActionListOptions, IActionRunEvent } from "src/base/common/action";
-import { addDisposableListener, DomUtility, EventType } from "src/base/browser/basic/dom";
+import { IMenuAction, IMenuItem, MenuItemType, MenuSeperatorItem, SingleMenuItem, SubmenuAction, SubmenuItem } from "src/base/browser/basic/menu/menuItem";
+import { ActionList, IAction, IActionItemProvider, IActionList, IActionListOptions, IActionRunEvent } from "src/base/common/action";
+import { addDisposableListener, Direction, DomEventHandler, DomUtility, EventType } from "src/base/browser/basic/dom";
 import { Emitter, Register } from "src/base/common/event";
 import { createStandardKeyboardEvent, IStandardKeyboardEvent, KeyCode } from "src/base/common/keyboard";
-import { isNullable } from "src/base/common/util/type";
+import { Mutable, isNullable } from "src/base/common/util/type";
+import { Dimension, IDimension, IDomBox, IPosition } from "src/base/common/util/size";
+import { AnchorMode, calcViewPositionAlongAxis } from "src/base/browser/basic/view";
+import { AnchorAbstractPosition } from "src/base/browser/basic/view";
+import { DisposableManager } from "src/base/common/dispose";
 
 export interface IMenuActionRunEvent extends IActionRunEvent {
     readonly action: IMenuAction;
@@ -16,6 +20,9 @@ export interface IMenuActionRunEvent extends IActionRunEvent {
  */
 export interface IMenu extends IActionList<IMenuAction, IMenuItem> {
 
+    /**
+     * The HTMLElement of the {@link IMenu}.
+     */
     readonly element: HTMLElement;
 
     /**
@@ -53,6 +60,11 @@ export interface IMenu extends IActionList<IMenuAction, IMenuItem> {
      * @note The index will be recalculated to avoid the unenabled items.
      */
     focus(index?: number): void;
+
+    /**
+     * @description Returns the current context of the {@link IMenu}.
+     */
+    getContext(): unknown;
 }
 
 /**
@@ -79,6 +91,8 @@ export interface IMenuOptions extends IActionListOptions<IMenuAction, IMenuItem>
 export abstract class BaseMenu extends ActionList<IMenuAction, IMenuItem> implements IMenu {
 
     // [fields]
+
+    public static readonly CLASS_NAME = 'menu';
 
     private readonly _element: HTMLElement;
     declare protected readonly _items: IMenuItem[];
@@ -108,7 +122,7 @@ export abstract class BaseMenu extends ActionList<IMenuAction, IMenuItem> implem
         super(opts);
 
         this._element = document.createElement('div');
-        this._element.className = 'menu';
+        this._element.className = BaseMenu.CLASS_NAME;
         
         this._currFocusedIndex = -1;
         this._triggerKeys = opts.triggerKeys ?? [KeyCode.Enter, KeyCode.Space];
@@ -124,6 +138,10 @@ export abstract class BaseMenu extends ActionList<IMenuAction, IMenuItem> implem
 
     get element(): HTMLElement {
         return this._element;
+    }
+
+    public getContext(): unknown {
+        return this._contextProvider();
     }
 
     public build(actions: IMenuAction[]): void {
@@ -369,6 +387,10 @@ export abstract class MenuDecorator implements IMenu {
         return this._menu.element;
     }
 
+    public getContext(): unknown {
+        return this._menu.getContext();
+    }
+
     public build(actions: IMenuAction[]): void {
         this._menu.build(actions);
     }
@@ -436,6 +458,7 @@ export class MenuWithSubmenu extends MenuDecorator {
 
     private _submenuContainer?: HTMLElement;
     private _submenu?: IMenu;
+    private _submenuDisposables = new DisposableManager();
 
     // [constructor]
 
@@ -444,10 +467,16 @@ export class MenuWithSubmenu extends MenuDecorator {
 
         this._menu.addActionItemProvider((action: IMenuAction) => {
             if (action.type === MenuItemType.Submenu) {
-                return new SubmenuItem(action, {
+                
+                const item = new SubmenuItem(<SubmenuAction>action, {
                     closeCurrSubmenu: this.__closeCurrSubmenu.bind(this),
                     openNewSubmenu: this.__openNewSubmenu.bind(this),
                 });
+
+                // bind the item-run to the action-run.
+                (<SubmenuAction>action).onRun = item.run.bind(item);
+
+                return item;
             }
             return undefined;
         });
@@ -466,15 +495,16 @@ export class MenuWithSubmenu extends MenuDecorator {
     // [private helper methods]
 
     private __closeCurrSubmenu(): void {
-        if (!this._submenu) {
-            return;
-        }
-
-        this._submenu.dispose();
+        this._submenu?.dispose();
         this._submenu = undefined;
+
+        this._submenuContainer?.remove();
+        this._submenuContainer = undefined;
+        this._submenuDisposables.dispose();
+        this._submenuDisposables = new DisposableManager();
     }
 
-    private __openNewSubmenu(): void {
+    private __openNewSubmenu(anchor: HTMLElement, actions: IMenuAction[]): void {
         
         /**
          * If there is already a submenu, we simply focus it instead of recreate 
@@ -485,5 +515,129 @@ export class MenuWithSubmenu extends MenuDecorator {
             return;
         }
 
+        this.__constructSubmenu(anchor, actions);
+        this.__submenuEventRegistration();
+    }
+
+    private __constructSubmenu(anchor: HTMLElement, actions: IMenuAction[]): void {
+        const submenuContainer = document.createElement('div');
+        anchor.appendChild(submenuContainer);
+        const parentMenuTop = parseFloat(this.element.style.paddingTop || '0') || 0;
+
+        // init submenu style
+        {
+            submenuContainer.classList.add('context-menu');
+            submenuContainer.style.position = 'fixed';
+            submenuContainer.style.zIndex = '0';
+            submenuContainer.style.top = '0px';
+            submenuContainer.style.left = '0px';
+        }
+        
+        this._submenuContainer = submenuContainer;
+
+        /**
+         * // FIX: shouldn't use decorator pattern. Instead, we should encapsulate
+         * the entire business logic into the `MenuItem`.
+         */
+        this._submenu = new MenuWithSubmenu(new Menu(this._submenuContainer, {
+            contextProvider: this._menu.getContext.bind(this._menu),
+        }));
+
+        this._submenu.build(actions);
+        this._submenu.focus();
+
+        const rawAnchorBox = anchor.getBoundingClientRect();
+        const anchorBox = {
+            /**
+             * The inner top of the submenu row to the parent menu.
+             */
+            top: rawAnchorBox.top - parentMenuTop,
+            left: rawAnchorBox.left,
+            height: rawAnchorBox.height + 2 * parentMenuTop,
+            width: rawAnchorBox.width,
+        };
+        
+        const submenuBox = submenuContainer.getBoundingClientRect();
+        const { top, left } = this.__calculateSubmenuPosition(
+            Dimension.create(submenuBox),
+            anchorBox,
+            Direction.Right,
+        );
+
+        this._submenuContainer.style.left = `${left - submenuBox.left}px`;
+        this._submenuContainer.style.top = `${top - submenuBox.top}px`;
+    }
+
+    private __calculateSubmenuPosition(submenu: IDimension, entry: IDomBox, expandDir: Direction): IPosition {
+        let top = 0;
+        let left = 0;
+
+        const win = {
+            width: window.innerWidth,
+            height: window.innerHeight,
+        };
+
+        left = calcViewPositionAlongAxis(win.width, submenu.width, {
+            direction: expandDir === Direction.Right ? AnchorAbstractPosition.Before : AnchorAbstractPosition.After, 
+            offset: entry.left, 
+            size: entry.width,
+            mode: AnchorMode.Avoid,
+        });
+
+        if (left >= entry.left && left < entry.left + entry.width) {
+			if (entry.left + 10 + submenu.width <= win.width) {
+				left = entry.left + 10;
+			}
+
+			(<Mutable<number>>entry.top) += 10;
+			(<Mutable<number>>entry.height) = 0;
+		}
+
+        top = calcViewPositionAlongAxis(win.height, submenu.height, { 
+            direction: AnchorAbstractPosition.Before, 
+            offset: entry.top, 
+            size: 0,
+            mode: AnchorMode.Avoid,
+        });
+
+		if (top + submenu.height === entry.top && top + entry.height + submenu.height <= win.height) {
+			top += entry.height;
+		}
+
+        return { top, left };
+    }
+
+    private __submenuEventRegistration(): void {
+        if (!this._submenuContainer) {
+            return;
+        }
+
+        // key-down
+        this._submenuDisposables.register(addDisposableListener(this._submenuContainer, EventType.keydown, (e) => {
+            const event = createStandardKeyboardEvent(e);
+
+            // left-arrow
+            if (event.key === KeyCode.LeftArrow) {
+                DomEventHandler.stop(event, true);
+            }
+        }));
+
+        // key-up
+        this._submenuDisposables.register(addDisposableListener(this._submenuContainer, EventType.keyup, (e) => {
+            const event = createStandardKeyboardEvent(e);
+            
+            // left-arrow
+            if (event.key === KeyCode.LeftArrow) {
+                DomEventHandler.stop(event, true);
+                this._menu.focus();
+                this.__closeCurrSubmenu();
+            }
+        }));
+
+        // on-did-close
+        this._submenuDisposables.register(this._menu.onDidClose(() => {
+            this._menu.focus();
+            this.__closeCurrSubmenu();
+        }));
     }
 }

@@ -11,8 +11,8 @@ import { INotificationService } from "src/code/browser/service/notification/noti
 export const IContextMenuService = createService<IContextMenuService>('context-menu-service');
 
 /**
- * Enable this setting to prevent any external actions from closing the context 
- * menu.
+ * @test Enable this setting to prevent any external actions from closing the 
+ * context menu.
  */
 const DEBUG_MODE: boolean = false;
 

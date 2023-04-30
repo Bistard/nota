@@ -1,6 +1,7 @@
 import { DomEventHandler, DomEventLike, DomUtility } from "src/base/browser/basic/dom";
 import { FastElement } from "src/base/browser/basic/fastElement";
 import { Action, ActionListItem, IAction, IActionListItem, IActionOptions } from "src/base/common/action";
+import { IDisposable } from "src/base/common/dispose";
 import { Shortcut } from "src/base/common/keyboard";
 import { noop } from "src/base/common/performance";
 import { IS_MAC } from "src/base/common/platform";
@@ -98,12 +99,22 @@ export class SubmenuAction extends __BaseMenuAction<MenuItemType.Submenu> {
     // [fields]
 
     public readonly actions: IMenuAction[];
+    private _onRun?: () => void;
 
     // [constructor]
 
     constructor(actions: IMenuAction[], opts: ISubmenuActionOptions) {
-        super(MenuItemType.Submenu, { ...opts, callback: noop, });
+        super(
+            MenuItemType.Submenu, 
+            { ...opts, callback: () => this._onRun?.(), },
+        );
         this.actions = actions;
+    }
+
+    // [public methods]
+
+    set onRun(fn: () => void) {
+        this._onRun = fn;
     }
 }
 
@@ -127,7 +138,7 @@ export class MenuSeperatorAction extends __BaseMenuAction<MenuItemType.Seperator
 /**
  * Interface for {@link AbstractMenuItem} and its inheritance.
  */
-export interface IMenuItem extends IActionListItem {
+export interface IMenuItem extends IActionListItem, IDisposable {
     
     /**
      * The corresponding element of the item.
@@ -332,7 +343,7 @@ export class SingleMenuItem extends AbstractMenuItem {
 
 export interface ISubmenuDelegate {
     closeCurrSubmenu(): void;
-    openNewSubmenu(): void;
+    openNewSubmenu(anchor: HTMLElement, actions: IMenuAction[]): void;
 }
 
 /**
@@ -348,13 +359,15 @@ export class SubmenuItem extends AbstractMenuItem {
 
     // [field]
 
+    declare public readonly action: SubmenuAction;
+
     private readonly _showScheduler: UnbufferedScheduler<void>;
     private readonly _hideScheduler: UnbufferedScheduler<void>;
     private readonly _delegate: ISubmenuDelegate;
 
     // [constructor]
 
-    constructor(action: IMenuAction, delegate: ISubmenuDelegate) {
+    constructor(action: SubmenuAction, delegate: ISubmenuDelegate) {
         super(action);
         this._delegate = delegate;
 
@@ -362,7 +375,7 @@ export class SubmenuItem extends AbstractMenuItem {
         {
             this._showScheduler = new UnbufferedScheduler(SubmenuItem.SHOW_DEPLAY, () => {
                 this._delegate.closeCurrSubmenu();
-                this._delegate.openNewSubmenu();
+                this._delegate.openNewSubmenu(this.element.element, this.action.actions);
             });
     
             this._hideScheduler = new UnbufferedScheduler(SubmenuItem.HIDE_DEPLAY, () => {
@@ -381,9 +394,8 @@ export class SubmenuItem extends AbstractMenuItem {
 
     // [public methods]
 
-    public override run(context: unknown): void {
-        this._delegate.closeCurrSubmenu();
-        this._delegate.openNewSubmenu();
+    public override run(context?: unknown): void {
+        this._showScheduler.schedule(undefined, 0);
     }
 
     /**
@@ -391,8 +403,7 @@ export class SubmenuItem extends AbstractMenuItem {
      */
     public override onClick(event: DomEventLike): void {
         DomEventHandler.stop(event, true);
-        this._delegate.closeCurrSubmenu();
-        this._delegate.openNewSubmenu();
+        this._showScheduler.schedule(undefined, 0);
     }
 
     public override dispose(): void {
@@ -408,25 +419,27 @@ export class SubmenuItem extends AbstractMenuItem {
     }
 
     protected override __registerListeners(): void {
+        
+        // keep the default behaviours too.
         super.__registerListeners();
 
         // When mouse leaves the current item, cancel the show-up.
-        this.__register(this.element.onMouseenter(e => {
+        this.element.onMouseenter(e => {
             this._showScheduler.schedule();
-        }));
+        });
 
         // When mouse leaves the current item, cancel the show-up.
-        this.__register(this.element.onMouseleave(e => {
+        this.element.onMouseleave(e => {
             this._showScheduler.cancel();
-        }));
+        });
 
         // When the current item loses focus, schedules a hiding task.
-        this.__register(this.element.onFocusout(e => {
+        this.element.onFocusout(e => {
             const blurNode = DomUtility.Elements.getActiveElement();
             if (DomUtility.Elements.isAncestor(this.element.element, blurNode)) {
                 this._hideScheduler.schedule();
             }
-        }));
+        });
     }
 
     // [private helper methods]

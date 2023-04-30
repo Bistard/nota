@@ -26,6 +26,10 @@ export class Dimension implements IDimension {
 		public height: number,
 	) { }
 
+	public static create(other: IDimension): Dimension {
+		return new Dimension(other.width, other.height);
+	}
+
 	public with(width: number = this.width, height: number = this.height): Dimension {
 		if (width !== this.width || height !== this.height) {
 			return new Dimension(width, height);
