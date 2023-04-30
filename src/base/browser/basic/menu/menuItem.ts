@@ -2,7 +2,7 @@ import { DomEventHandler, DomEventLike, DomUtility } from "src/base/browser/basi
 import { FastElement } from "src/base/browser/basic/fastElement";
 import { Action, ActionListItem, IAction, IActionListItem, IActionOptions } from "src/base/common/action";
 import { IDisposable } from "src/base/common/dispose";
-import { Shortcut } from "src/base/common/keyboard";
+import { KeyCode, Shortcut, createStandardKeyboardEvent } from "src/base/common/keyboard";
 import { noop } from "src/base/common/performance";
 import { IS_MAC } from "src/base/common/platform";
 import { UnbufferedScheduler } from "src/base/common/util/async";
@@ -439,6 +439,27 @@ export class SubmenuItem extends AbstractMenuItem {
             if (DomUtility.Elements.isAncestor(this.element.element, blurNode)) {
                 this._hideScheduler.schedule();
             }
+        });
+
+        // capture right arrow to open the submenu
+        this.element.onKeydown(e => {
+            if (DomUtility.Elements.getActiveElement() !== this.element.element) {
+                return;
+            }
+            
+            const event = createStandardKeyboardEvent(e);
+            if (event.key === KeyCode.RightArrow) {
+				DomEventHandler.stop(event, true);
+			}
+        });
+
+        // try to open the submenu when right arrowing
+        this.element.onKeyup(e => {
+            const event = createStandardKeyboardEvent(e);
+            if (event.key === KeyCode.RightArrow) {
+				DomEventHandler.stop(event, true);
+                this._showScheduler.schedule(undefined, 0);
+			}
         });
     }
 
