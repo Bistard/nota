@@ -209,11 +209,43 @@ class SideBarBuilder {
                                     tip: 'testing action 4 tip',
                                     extraClassName: 'action4',
                                 }),
-                                new SubmenuAction([], {
+                                new SubmenuAction(
+                                    [
+                                        new SingleMenuAction({
+                                            callback: () => console.log('action 6 executed'),
+                                            enabled: true,
+                                            id: 'testing action 6',
+                                            tip: 'testing action 6 tip',
+                                            extraClassName: 'action1',
+                                        }),
+                                        MenuSeperatorAction.instance,
+                                        new SingleMenuAction({
+                                            callback: () => console.log('action 6 executed'),
+                                            enabled: true,
+                                            id: 'testing action 6',
+                                            tip: 'testing action 6 tip',
+                                            extraClassName: 'action2',
+                                        }),
+                                        new SingleMenuAction({
+                                            callback: () => console.log('action 7 executed'),
+                                            enabled: true,
+                                            id: 'testing action 7',
+                                            tip: 'testing action 7 tip',
+                                            extraClassName: 'action3',
+                                        }),
+                                        MenuSeperatorAction.instance,
+                                        new SingleMenuAction({
+                                            callback: () => console.log('action 8 executed'),
+                                            enabled: true,
+                                            id: 'testing action 8',
+                                            tip: 'testing action 8 tip',
+                                            extraClassName: 'action4',
+                                        }),
+                                    ], {
                                     enabled: true,
-                                    id: 'testing action 4',
-                                    tip: 'testing action 4 tip',
-                                    extraClassName: 'action4',
+                                    id: 'testing action 5',
+                                    tip: 'testing action 5 tip',
+                                    extraClassName: 'action5',
                                 }),
                             ];
                         },
