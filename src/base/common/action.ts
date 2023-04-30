@@ -181,6 +181,12 @@ export interface IActionListOptions<TAction extends IAction, TItem extends IActi
      * provider until the action item can be constructed from one of them.
      */
     readonly actionItemProviders?: IActionItemProvider<TAction, TItem>[];
+
+    /**
+     * Optional {@link ActionRunner} that provided by the client. Able to share 
+     * {@link IActionRunEvent}s across different {@link ActionList}s.
+     */
+    readonly actionRunner?: ActionRunner;
 }
 
 /**
@@ -196,19 +202,18 @@ export abstract class ActionList<TAction extends IAction, TItem extends IActionL
 
     protected readonly _items: TItem[];
     protected readonly _contextProvider: IContextProvider;
+    protected readonly _actionRunner: ActionRunner;
+    
     private readonly _itemProviders: IActionItemProvider<TAction, TItem>[];
-
+    
     // [event]
 
     private readonly _onDidInsert = this.__register(new Emitter<TItem[]>());
     public readonly onDidInsert = this._onDidInsert.registerListener;
-
-    private readonly _onBeforeRun = this.__register(new Emitter<IActionRunEvent>());
-    public readonly onBeforeRun = this._onBeforeRun.registerListener;
-
-    private readonly _onDidRun = this.__register(new Emitter<IActionRunEvent>());
-    public readonly onDidRun = this._onDidRun.registerListener;
     
+    public readonly onBeforeRun: Register<IActionRunEvent>;
+    public readonly onDidRun: Register<IActionRunEvent>;
+
     // [constructor]
 
     constructor(opts: IActionListOptions<TAction, TItem>) {
@@ -216,7 +221,12 @@ export abstract class ActionList<TAction extends IAction, TItem extends IActionL
         this._items = [];
         this._contextProvider = opts.contextProvider;
         this._itemProviders = [...(opts.actionItemProviders ?? [])];
-        // note: do not access the context at the construction stage
+        
+        this._actionRunner = opts.actionRunner ?? new ActionRunner();
+        this.onBeforeRun = this._actionRunner.onBeforeRun;
+        this.onDidRun = this._actionRunner.onDidRun;
+        
+        // WARN: do not access the context at the construction stage
     }
 
     // [public methods]
@@ -247,16 +257,7 @@ export abstract class ActionList<TAction extends IAction, TItem extends IActionL
         }
 
         (async () => {
-            this._onBeforeRun.fire({ action: action });
-            
-            let err: Error | undefined;
-            try {
-                await action.run(ctx);
-            } catch (err: any) {
-                err = err;
-            }
-
-            this._onDidRun.fire({ action: action, error: err });
+            this._actionRunner.run(action, ctx);
         })();
     }
 
@@ -359,5 +360,41 @@ export abstract class ActionList<TAction extends IAction, TItem extends IActionL
         super.dispose();
         this._items.forEach(item => item.dispose());
         (<Mutable<TItem[]>>this._items) = [];
+    }
+}
+
+/**
+ * @class A very simple wrapper class that wraps {@link IActionRunEvent}s. This
+ * enables sharing the {@link IActionRunEvent} across multiple {@link IActionList}s.
+ */
+export class ActionRunner extends Disposable {
+
+    // [event]
+
+    private readonly _onBeforeRun = this.__register(new Emitter<IActionRunEvent>());
+    public readonly onBeforeRun = this._onBeforeRun.registerListener;
+
+    private readonly _onDidRun = this.__register(new Emitter<IActionRunEvent>());
+    public readonly onDidRun = this._onDidRun.registerListener;
+
+    // [constructor]
+
+    constructor() {
+        super();
+    }
+
+    // [public method]
+
+    public async run(action: IAction, context: unknown): Promise<void> {
+        this._onBeforeRun.fire({ action: action });
+            
+        let err: Error | undefined;
+        try {
+            await action.run(context);
+        } catch (err: any) {
+            err = err;
+        }
+
+        this._onDidRun.fire({ action: action, error: err });
     }
 }

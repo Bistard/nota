@@ -1,7 +1,7 @@
 import "src/base/browser/basic/menu/menu.scss";
 import { FocusTracker } from "src/base/browser/basic/focusTracker";
 import { IMenuAction, IMenuItem, MenuItemType, MenuSeperatorItem, SingleMenuItem, SubmenuAction, SubmenuItem } from "src/base/browser/basic/menu/menuItem";
-import { ActionList, IAction, IActionItemProvider, IActionList, IActionListOptions, IActionRunEvent } from "src/base/common/action";
+import { ActionList, ActionRunner, IAction, IActionItemProvider, IActionList, IActionListOptions, IActionRunEvent } from "src/base/common/action";
 import { addDisposableListener, Direction, DomEventHandler, DomUtility, EventType } from "src/base/browser/basic/dom";
 import { Emitter, Register } from "src/base/common/event";
 import { createStandardKeyboardEvent, IStandardKeyboardEvent, KeyCode } from "src/base/common/keyboard";
@@ -9,7 +9,7 @@ import { Mutable, isNullable } from "src/base/common/util/type";
 import { Dimension, IDimension, IDomBox, IPosition } from "src/base/common/util/size";
 import { AnchorMode, calcViewPositionAlongAxis } from "src/base/browser/basic/view";
 import { AnchorAbstractPosition } from "src/base/browser/basic/view";
-import { DisposableManager } from "src/base/common/dispose";
+import { DisposableManager, IDisposable } from "src/base/common/dispose";
 
 export interface IMenuActionRunEvent extends IActionRunEvent {
     readonly action: IMenuAction;
@@ -24,6 +24,11 @@ export interface IMenu extends IActionList<IMenuAction, IMenuItem> {
      * The HTMLElement of the {@link IMenu}.
      */
     readonly element: HTMLElement;
+
+    /**
+     * The {@link ActionRunner} of the {@link IMenu}.
+     */
+    readonly actionRunner: ActionRunner;
 
     /**
      * Fires when any menu actions before gets actually run.
@@ -138,6 +143,10 @@ export abstract class BaseMenu extends ActionList<IMenuAction, IMenuItem> implem
 
     get element(): HTMLElement {
         return this._element;
+    }
+
+    get actionRunner(): ActionRunner {
+        return this._actionRunner;
     }
 
     public getContext(): unknown {
@@ -387,6 +396,10 @@ export abstract class MenuDecorator implements IMenu {
         return this._menu.element;
     }
 
+    get actionRunner(): ActionRunner {
+        return this._menu.actionRunner;
+    }
+
     public getContext(): unknown {
         return this._menu.getContext();
     }
@@ -458,12 +471,13 @@ export class MenuWithSubmenu extends MenuDecorator {
 
     private _submenuContainer?: HTMLElement;
     private _submenu?: IMenu;
-    private _submenuDisposables = new DisposableManager();
+    private _submenuDisposables: DisposableManager;
 
     // [constructor]
 
     constructor(menu: IMenu) {
         super(menu);
+        this._submenuDisposables = new DisposableManager();
 
         this._menu.addActionItemProvider((action: IMenuAction) => {
             if (action.type === MenuItemType.Submenu) {
@@ -521,10 +535,9 @@ export class MenuWithSubmenu extends MenuDecorator {
 
     private __constructSubmenu(anchor: HTMLElement, actions: IMenuAction[]): void {
         const submenuContainer = document.createElement('div');
+        this._submenuContainer = submenuContainer;
+        
         anchor.appendChild(submenuContainer);
-        const parentMenuTop = parseFloat(this.element.style.paddingTop || '0') || 0;
-
-        // init submenu style
         {
             submenuContainer.classList.add('context-menu');
             submenuContainer.style.position = 'fixed';
@@ -532,17 +545,15 @@ export class MenuWithSubmenu extends MenuDecorator {
             submenuContainer.style.top = '0px';
             submenuContainer.style.left = '0px';
         }
+        const parentMenuTop = parseFloat(this.element.style.paddingTop || '0') || 0;
+
+        this._submenu = new MenuWithSubmenu(
+            new Menu(this._submenuContainer, {
+                contextProvider: this._menu.getContext.bind(this._menu),
+                actionRunner: this._menu.actionRunner, /** shares the same {@link IActionRunEvent} */
+            })
+        );
         
-        this._submenuContainer = submenuContainer;
-
-        /**
-         * // FIX: shouldn't use decorator pattern. Instead, we should encapsulate
-         * the entire business logic into the `MenuItem`.
-         */
-        this._submenu = new MenuWithSubmenu(new Menu(this._submenuContainer, {
-            contextProvider: this._menu.getContext.bind(this._menu),
-        }));
-
         this._submenu.build(actions);
         this._submenu.focus();
 
