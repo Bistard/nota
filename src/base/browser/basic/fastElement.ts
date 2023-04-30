@@ -424,6 +424,18 @@ export class FastElement<T extends HTMLElement> extends Disposable implements IF
         }));
     }
 
+    public onKeydown(callback: (event: KeyboardEvent) => void): IDisposable {
+		return this.__register(addDisposableListener(this.element, EventType.keydown, (e: KeyboardEvent) => {
+            callback(e);
+        }));
+	}
+
+	public onKeyup(callback: (event: KeyboardEvent) => void): IDisposable {
+		return this.__register(addDisposableListener(this.element, EventType.keyup, (e: KeyboardEvent) => {
+            callback(e);
+        }));
+	}
+
     public override dispose(): void {
         this.element.remove();
         super.dispose();

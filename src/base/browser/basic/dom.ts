@@ -750,6 +750,24 @@ export interface IDomEvent<IfUseElement extends boolean> {
 		? (element: HTMLElement, callback: (event: FocusEvent) => void) => IDisposable
 		: (callback: (event: FocusEvent) => void) => IDisposable
 	;
+
+	/**
+	 * The `keydown` event is fired when a key is pressed. The event is fired 
+	 * for all keys, regardless of whether they produce a character value.
+	 */
+	onKeydown: IfUseElement extends	true
+		? (element: HTMLElement, callback: (event: KeyboardEvent) => void) => IDisposable
+		: (callback: (event: KeyboardEvent) => void) => IDisposable
+	;
+	
+	/**
+	 * The `keyup` event is fired when a key is released. The event is fired 
+	 * for all keys, regardless of whether they produce a character value.
+	 */
+	onKeyup: IfUseElement extends true
+		? (element: HTMLElement, callback: (event: KeyboardEvent) => void) => IDisposable
+		: (callback: (event: KeyboardEvent) => void) => IDisposable
+	;
 }
 
 /**
@@ -881,6 +899,18 @@ export class BaseElement extends Disposable implements IBaseElement {
             callback(e);
         }));
     }
+
+	public onKeydown(element: HTMLElement, callback: (event: KeyboardEvent) => void): IDisposable {
+		return this.__register(addDisposableListener(element, EventType.keydown, (e: KeyboardEvent) => {
+            callback(e);
+        }));
+	}
+
+	public onKeyup(element: HTMLElement, callback: (event: KeyboardEvent) => void): IDisposable {
+		return this.__register(addDisposableListener(element, EventType.keyup, (e: KeyboardEvent) => {
+            callback(e);
+        }));
+	}
 }
 
 export interface DomEventLike {
