@@ -6,6 +6,7 @@ import { IStandardKeyboardEvent, Keyboard } from "src/base/common/keyboard";
 import { IntervalTimer } from "src/base/common/util/timer";
 import { IKeyboardService } from "src/code/browser/service/keyboard/keyboardService";
 import { createService } from "src/code/platform/instantiation/common/decorator";
+import { ILayoutService } from 'src/code/browser/service/layout/layoutService';
 
 export const IKeyboardScreenCastService = createService<IKeyboardScreenCastService>('keyboard-screencast-service');
 
@@ -33,9 +34,10 @@ export class KeyboardScreenCastService implements IKeyboardScreenCastService {
 
     // [field]
 
+    // TODO: use a smarter way
     public static readonly MAX_CHILDREN = 14;
 
-    private _active: boolean = false;
+    private _active: boolean;
     
     private _container?: HTMLElement;
     private _tagContainer?: HTMLElement;
@@ -52,9 +54,11 @@ export class KeyboardScreenCastService implements IKeyboardScreenCastService {
     
     constructor(
         @IKeyboardService private readonly keyboardService: IKeyboardService,
+        @ILayoutService private readonly layoutService: ILayoutService,
     ) {
         this._visibilityController = new VisibilityController('visible', 'invisible', 'fade');
         this._childrenCount = 0;
+        this._active = false;
     }
 
     // [public methods]
@@ -65,44 +69,50 @@ export class KeyboardScreenCastService implements IKeyboardScreenCastService {
             return;
         }
         
-        this._container = document.createElement('div');
-        this._container.className = 'keyboard-screen-cast';
-        
-        this._visibilityController.setDomNode(this._container);
-        this._visibilityController.setVisibility(false);
+        // rendering
+        {
+            this._container = document.createElement('div');
+            this._container.className = 'keyboard-screen-cast';
+            
+            this._visibilityController.setDomNode(this._container);
+            this._visibilityController.setVisibility(false);
 
-        this._tagContainer = document.createElement('div');
-        this._tagContainer.className = 'container';
+            this._tagContainer = document.createElement('div');
+            this._tagContainer.className = 'container';
 
-        this._container.appendChild(this._tagContainer);
-        document.body.appendChild(this._container);
+            this._container.appendChild(this._tagContainer);
+            this.layoutService.parentContainer.appendChild(this._container);
 
-        this._keydownListener = this.keyboardService.onKeydown(event => {
-            if (this.__ifAllowNewTag(event)) {
-                
-                if (this._childrenCount > KeyboardScreenCastService.MAX_CHILDREN) {
-                    this.__flushKeypress();
-                } 
-                
-                else if (Keyboard.isEventModifier(event)) {
-                    this.__flushKeypress();
+            this._timer = new IntervalTimer();
+            this._childrenCount = 0;
+        }
+
+        // events
+        {
+            this._keydownListener = this.keyboardService.onKeydown(event => {
+                if (this.__ifAllowNewTag(event)) {
+                    
+                    if (this._childrenCount > KeyboardScreenCastService.MAX_CHILDREN) {
+                        this.__flushKeypress();
+                    } 
+                    
+                    else if (Keyboard.isEventModifier(event)) {
+                        this.__flushKeypress();
+                    }
+                    
+                    this.__appendTag(event);
+                    this._prevEvent = event;
                 }
-                
-                this.__appendTag(event);
-                this._prevEvent = event;
-            }
-            this._visibilityController.setVisibility(true);
-            this.__resetTimer();
-        });
+                this._visibilityController.setVisibility(true);
+                this.__resetTimer();
+            });
+        }
 
-        this._timer = new IntervalTimer();
-        this._childrenCount = 0;
-        
         this._active = true;
     }
 
     public dispose(): void {
-        if (this._active === false) {
+        if (!this._active) {
             return;
         }
 
@@ -111,18 +121,14 @@ export class KeyboardScreenCastService implements IKeyboardScreenCastService {
             this._container.remove();
             this._container = undefined;
             this._tagContainer = undefined;
-            this._visibilityController.setDomNode(undefined as unknown as any);
+            this._visibilityController.setDomNode(undefined);
         }
         
-        if (this._keydownListener) {
-            this._keydownListener.dispose();
-            this._keydownListener = undefined;
-        }
+        this._keydownListener?.dispose();
+        this._keydownListener = undefined;
 
-        if (this._timer) {
-            this._timer.dispose();
-            this._timer = undefined;
-        }
+        this._timer?.dispose();
+        this._timer = undefined;
 
         this._childrenCount = 0;
         this._active = false;
@@ -137,7 +143,7 @@ export class KeyboardScreenCastService implements IKeyboardScreenCastService {
             return true;
         }
 
-        // pressing modifier twice, but we only display modifer for once
+        // pressing modifier twice, but we only display modifer for once.
         if (Keyboard.sameEvent(this._prevEvent, event) && Keyboard.isEventModifier(event)) {
             return false;
         }
@@ -177,5 +183,4 @@ export class KeyboardScreenCastService implements IKeyboardScreenCastService {
         this._prevEvent = undefined;
         this._childrenCount = 0;
     }
-
 }

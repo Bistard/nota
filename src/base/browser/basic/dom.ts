@@ -81,14 +81,13 @@ export const enum Direction {
  * listener to the target with the provided callback. The function returns a 
  * disposable to remove the listener.
  * 
- * @param domNode The target to be listening.
+ * @param node The target to be listening.
  * @param eventType The event type.
  * @param callback The callback function when the event happens.
  * @returns A disposable to remove the listener from the target.
  */
-export function addDisposableListener<T extends keyof GlobalEventHandlersEventMap>(domNode: EventTarget, eventType: T, callback: (event: GlobalEventHandlersEventMap[T]) => void): IDisposable {
-	domNode.addEventListener(eventType, callback as any);
-
+export function addDisposableListener<T extends keyof GlobalEventHandlersEventMap>(node: EventTarget, eventType: T, callback: (event: GlobalEventHandlersEventMap[T]) => void, useCapture: boolean = false): IDisposable {
+	node.addEventListener(eventType, <any>callback, { capture: useCapture });
 	let disposed = false;
 
 	return toDisposable(() => {
@@ -96,11 +95,11 @@ export function addDisposableListener<T extends keyof GlobalEventHandlersEventMa
 			return;
 		}
 
-		if (!domNode) {
+		if (!node) {
 			return;
 		}
 
-		domNode.removeEventListener(eventType, callback as any);
+		node.removeEventListener(eventType, <any>callback);
 		disposed = true;
 	});
 }
@@ -550,9 +549,9 @@ export class DomEmitter<T> implements IDisposable {
     private readonly emitter: Emitter<T>;
     private readonly listener: IDisposable;
 
-    constructor(element: EventTarget, type: EventType) {
+    constructor(element: EventTarget, type: EventType, useCapture: boolean = false) {
         this.emitter = new Emitter();
-        this.listener = addDisposableListener(element, <any>type, (e) => this.emitter.fire(e));
+        this.listener = addDisposableListener(element, <any>type, (e) => this.emitter.fire(e), useCapture);
     }
 
 	get registerListener(): Register<T> {

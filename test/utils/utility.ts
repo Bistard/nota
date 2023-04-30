@@ -58,23 +58,27 @@ export class NullContextService extends ContextService {}
 
 export class TestKeyboardService implements IKeyboardService {
 
-    private emitter: Emitter<IStandardKeyboardEvent> = new Emitter();
+    private readonly _emitter: Emitter<IStandardKeyboardEvent> = new Emitter();
 
     constructor() {}
 
     public fire(event: IStandardKeyboardEvent): void {
-        this.emitter.fire(event);
+        this._emitter.fire(event);
     }
 
     get onKeydown(): Register<IStandardKeyboardEvent> {
-        return this.emitter.registerListener;
+        return this._emitter.registerListener;
     }
     
     get onKeyup(): Register<IStandardKeyboardEvent> {
-        return this.emitter.registerListener;
+        return this._emitter.registerListener;
+    }
+
+    get onKeypress(): Register<IStandardKeyboardEvent> {
+        return this._emitter.registerListener;
     }
 
     dispose(): void {
-        this.emitter.dispose();
+        this._emitter.dispose();
     }
 }

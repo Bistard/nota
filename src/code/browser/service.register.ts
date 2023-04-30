@@ -2,7 +2,7 @@ import { ServiceDescriptor } from "src/code/platform/instantiation/common/descri
 import { registerSingleton } from "src/code/platform/instantiation/common/serviceCollection";
 import { CommandService, ICommandService } from "src/code/platform/command/common/commandService";
 import { IKeyboardScreenCastService, KeyboardScreenCastService } from "src/code/browser/service/keyboard/keyboardScreenCastService";
-import { IKeyboardService, keyboardService } from "src/code/browser/service/keyboard/keyboardService";
+import { IKeyboardService, KeyboardService } from "src/code/browser/service/keyboard/keyboardService";
 import { BrowserDialogService, IDialogService } from 'src/code/platform/dialog/browser/browserDialogService';
 import { IShortcutService, ShortcutService } from 'src/code/browser/service/shortcut/shortcutService';
 import { IThemeService, ThemeService } from 'src/code/browser/service/theme/themeService';
@@ -25,7 +25,7 @@ export function rendererServiceRegistrations(): void {
     registerSingleton(IDialogService, new ServiceDescriptor(BrowserDialogService));
 
     // registration
-    registerSingleton(IKeyboardService, new ServiceDescriptor(keyboardService));
+    registerSingleton(IKeyboardService, new ServiceDescriptor(KeyboardService));
     registerSingleton(IShortcutService, new ServiceDescriptor(ShortcutService));
     registerSingleton(ICommandService, new ServiceDescriptor(CommandService));
 
