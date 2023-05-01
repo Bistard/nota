@@ -66,11 +66,10 @@ suite('menu-test', () => {
         assert.strictEqual(cnt, 1);
         menu.run('action2');
         assert.strictEqual(cnt, 3);
-
-        // TODO: submenu
     });
 
-    test('submeun', () => {
+    // TODO: submenu
+    test('submenu', () => {
         test('menu', () => {
 
             /**

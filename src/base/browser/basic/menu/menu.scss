@@ -14,6 +14,10 @@
     white-space: nowrap;
     overflow: hidden;
 
+    &:focus {
+        outline: none;
+    }
+
     & > .base-item {
         display: block;
         position: relative;
@@ -50,8 +54,7 @@
 
     & .menu-item {
         width: auto;
-        height: 100%;
-
+        
         margin-left: 5%;
         margin-right: 5%;
 
@@ -64,7 +67,16 @@
             position: absolute;
             @include visualization.text(none, 10pt, center);
         }
-    
+
+        &:focus {
+            outline: none;
+            background-color: burlywood;
+        }
+
+        &.disabled {
+
+        }
+
         & > .menu-item-name {
             left: 0px;
         }

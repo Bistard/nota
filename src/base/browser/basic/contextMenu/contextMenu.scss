@@ -16,4 +16,8 @@
         width: auto;
         height: 30px;
     }
+
+    &:focus {
+        outline: none;
+    }
 }

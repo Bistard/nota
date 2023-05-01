@@ -103,7 +103,7 @@ export abstract class BaseMenu extends ActionList<IMenuAction, IMenuItem> implem
     declare protected readonly _items: IMenuItem[];
     
     private readonly _focusTracker: FocusTracker;
-    private _currFocusedIndex: number; // index
+    private _currFocusedIndex: number; // index, -1 means no focused items.
 
     private _built = false;
 
@@ -180,6 +180,7 @@ export abstract class BaseMenu extends ActionList<IMenuAction, IMenuItem> implem
             return;
         }
 
+        // REVIEW: what is this?
         let actualIndex = 0;
         while (index !== 0) {
             index--;
@@ -212,7 +213,7 @@ export abstract class BaseMenu extends ActionList<IMenuAction, IMenuItem> implem
             this._element.appendChild(fragment);
             
             // re-focus
-            if (this._currFocusedIndex !== -1) {
+            if (this.__hasAnyFocused()) {
                 this.focus(this._currFocusedIndex);
             }
         });
@@ -329,6 +330,9 @@ export abstract class BaseMenu extends ActionList<IMenuAction, IMenuItem> implem
             this._element.focus({ preventScroll: true });
             return;
         }
+        
+        const prevFocusItem = this._items[this._currFocusedIndex];
+        prevFocusItem?.blur();
 
         this._currFocusedIndex = newIndex;
         item.focus();
@@ -509,6 +513,7 @@ export class MenuWithSubmenu extends MenuDecorator {
     // [private helper methods]
 
     private __closeCurrSubmenu(): void {
+        
         this._submenu?.dispose();
         this._submenu = undefined;
 
@@ -516,6 +521,9 @@ export class MenuWithSubmenu extends MenuDecorator {
         this._submenuContainer = undefined;
         this._submenuDisposables.dispose();
         this._submenuDisposables = new DisposableManager();
+
+        // refocus the parent menu
+        this._menu.focus(-1);
     }
 
     private __openNewSubmenu(anchor: HTMLElement, actions: IMenuAction[]): void {
@@ -547,10 +555,12 @@ export class MenuWithSubmenu extends MenuDecorator {
         }
         const parentMenuTop = parseFloat(this.element.style.paddingTop || '0') || 0;
 
+        // TODO: abstract out
         this._submenu = new MenuWithSubmenu(
             new Menu(this._submenuContainer, {
                 contextProvider: this._menu.getContext.bind(this._menu),
-                actionRunner: this._menu.actionRunner, /** shares the same {@link IActionRunEvent} */
+                /** shares the same {@link IActionRunEvent} */
+                actionRunner: this._menu.actionRunner,
             })
         );
         
@@ -640,14 +650,12 @@ export class MenuWithSubmenu extends MenuDecorator {
             // left-arrow
             if (event.key === KeyCode.LeftArrow) {
                 DomEventHandler.stop(event, true);
-                this._menu.focus();
                 this.__closeCurrSubmenu();
             }
         }));
 
         // on-did-close
         this._submenuDisposables.register(this._submenu.onDidClose(() => {
-            this._menu.focus();
             this.__closeCurrSubmenu();
         }));
     }

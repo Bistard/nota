@@ -222,18 +222,15 @@ export abstract class AbstractMenuItem extends ActionListItem implements IMenuIt
     public focus(): void {
         this.element.setTabIndex(0);
         this.element.setFocus();
-        this.element.addClassList('focused');
     }
 
     public blur(): void {
         this.element.setTabIndex(1);
         this.element.setBlur();
-        this.element.removeClassList('focused');
     }
 
     public override dispose(): void {
         super.dispose();
-        this.element.dispose();
     }
     
     // [private helper methods]
@@ -255,9 +252,14 @@ export abstract class AbstractMenuItem extends ActionListItem implements IMenuIt
     protected __registerListeners(): void {
 
         // prevent default context menu event on each menu item
-        this.__register(this.element.onContextmenu(e => {
+        this.element.onContextmenu(e => {
             DomEventHandler.stop(e, true);
-        }));
+        });
+
+        // FIX: hover does not trigger create submenu
+        this.element.onMouseenter(() => {
+            this.focus();
+        });
 
         // add 'active' properly
         this.element.onMousedown(e => {
@@ -336,8 +338,7 @@ export class SingleMenuItem extends AbstractMenuItem {
     protected override __render(): void {
         super.__render();
 
-        const itemContainer = document.createElement('div');
-        itemContainer.className = ('menu-item');
+        this.element.addClassList('menu-item');
 
         const name = document.createElement('span');
         name.className = 'menu-item-name';
@@ -350,12 +351,10 @@ export class SingleMenuItem extends AbstractMenuItem {
             shortcut.textContent = this.action.shortcut.toString();
         }
 
-        itemContainer.appendChild(name);
+        this.element.appendChild(name);
         if (shortcut) {
-            itemContainer.appendChild(shortcut);
+            this.element.appendChild(shortcut);
         }
-
-        this.element.appendChild(itemContainer);
     }
 
     protected override __registerListeners(): void {
@@ -399,11 +398,10 @@ export class SubmenuItem extends AbstractMenuItem {
                 this._delegate.closeCurrSubmenu();
                 this._delegate.openNewSubmenu(this.element.element, this.action.actions);
             });
-    
+
             this._hideScheduler = new UnbufferedScheduler(SubmenuItem.HIDE_DEPLAY, () => {
-                // no hiding tasks when focusing on the submenu
-                const blurNode = DomUtility.Elements.getActiveElement();
-                if (DomUtility.Elements.isAncestor(this.element.element, blurNode)) {
+                const active = DomUtility.Elements.getActiveElement();
+                if (!DomUtility.Elements.isAncestor(this.element.element, active)) {
                     return;
                 }
                 this._delegate.closeCurrSubmenu();
@@ -438,8 +436,7 @@ export class SubmenuItem extends AbstractMenuItem {
     protected override __render(): void {
         super.__render();
         
-        const itemContainer = document.createElement('div');
-        itemContainer.className = ('menu-item');
+        this.element.addClassList('menu-item');
 
         const name = document.createElement('span');
         name.className = 'menu-item-name';
@@ -447,9 +444,8 @@ export class SubmenuItem extends AbstractMenuItem {
 
         const arrow = createIcon(Icons.AngleDown, ['submenu-item-arrow']);
         
-        itemContainer.appendChild(name);
-        itemContainer.appendChild(arrow);
-        this.element.appendChild(itemContainer);
+        this.element.appendChild(name);
+        this.element.appendChild(arrow);
     }
 
     protected override __registerListeners(): void {
@@ -457,22 +453,35 @@ export class SubmenuItem extends AbstractMenuItem {
         // keep the default behaviours too.
         super.__registerListeners();
 
+        // TODO: mouse-over item focus
+        // TODO: mouse-over item on submenu will also focus the submenu item
         // FIX: hover event seems has bug
+        // FIX: right-arrow in submenu seems will re-focus the submenu
 
         // When mouse leaves the current item, cancel the show-up.
-        this.element.onMouseenter(e => {
-            this._showScheduler.schedule();
+        this.element.onMouseenter(() => {
+            console.log('mouse-enter');
+            this._hideScheduler.cancel();
+            const active = DomUtility.Elements.getActiveElement();
+            if (!DomUtility.Elements.isAncestor(this.element.element, active)) {
+                this._showScheduler.schedule();
+            }
         });
 
         // When mouse leaves the current item, cancel the show-up.
-        this.element.onMouseleave(e => {
+        this.element.onMouseleave(() => {
+            console.log('mouse-leave');
             this._showScheduler.cancel();
+            this._hideScheduler.schedule();
         });
 
         // When the current item loses focus, schedules a hiding task.
-        this.element.onFocusout(e => {
-            const blurNode = DomUtility.Elements.getActiveElement();
-            if (DomUtility.Elements.isAncestor(this.element.element, blurNode)) {
+        this.element.onFocusout(() => {
+            console.log('focus-out');
+            const active = DomUtility.Elements.getActiveElement();
+            console.log('active:', active);
+            console.log('this.element:', this.element.element);
+            if (!DomUtility.Elements.isAncestor(this.element.element, active)) {
                 this._hideScheduler.schedule();
             }
         });
