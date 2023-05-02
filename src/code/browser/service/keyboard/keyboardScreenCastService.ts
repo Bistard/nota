@@ -146,7 +146,9 @@ export class KeyboardScreenCastService implements IKeyboardScreenCastService {
             return false;
         }
 
-        return !DomUtility.Positions.isInViewport(<HTMLElement>lastTag);
+        const rect = (<HTMLElement>lastTag).getBoundingClientRect();
+        const rightSpace = window.innerWidth - rect.right;
+        return rightSpace < 150;
     }
 
     private __appendTag(event: IStandardKeyboardEvent): void {
