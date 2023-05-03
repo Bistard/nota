@@ -181,7 +181,7 @@ class __ContextMenuDelegate implements IContextMenuDelegate {
             new MenuWithSubmenu(
                 new Menu(container, {
                     contextProvider: () => delegate.getContext(),
-                })
+                }),
             )
         );
         const menu = this._menu;

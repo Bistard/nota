@@ -5,7 +5,7 @@ import { ActionList, ActionRunner, IAction, IActionItemProvider, IActionList, IA
 import { addDisposableListener, Direction, DomEventHandler, DomUtility, EventType } from "src/base/browser/basic/dom";
 import { Emitter, Register } from "src/base/common/event";
 import { createStandardKeyboardEvent, IStandardKeyboardEvent, KeyCode } from "src/base/common/keyboard";
-import { Mutable, isNullable } from "src/base/common/util/type";
+import { Constructor, Mutable, isNullable } from "src/base/common/util/type";
 import { Dimension, IDimension, IDomBox, IPosition } from "src/base/common/util/size";
 import { AnchorMode, calcViewPositionAlongAxis } from "src/base/browser/basic/view";
 import { AnchorAbstractPosition } from "src/base/browser/basic/view";
@@ -507,14 +507,17 @@ export class MenuWithSubmenu extends MenuDecorator {
 
     // [field]
 
+    private readonly _submenuCtor: Constructor<MenuDecorator>;
+
     private _submenuContainer?: FastElement<HTMLElement>;
     private _submenu?: IMenu;
     private _submenuDisposables: DisposableManager;
 
     // [constructor]
 
-    constructor(menu: IMenu) {
+    constructor(menu: IMenu, submenuCtor: Constructor<MenuDecorator> = MenuWithSubmenu) {
         super(menu);
+        this._submenuCtor = submenuCtor;
         this._submenuDisposables = new DisposableManager();
 
         this._menu.addActionItemProvider((action: IMenuAction) => {
@@ -589,7 +592,7 @@ export class MenuWithSubmenu extends MenuDecorator {
         const parentMenuTop = parseFloat(this.element.style.paddingTop || '0') || 0;
 
         // TODO: abstract out
-        this._submenu = new MenuWithSubmenu(
+        this._submenu = new this._submenuCtor(
             new Menu(this._submenuContainer.element, {
                 contextProvider: this._menu.getContext.bind(this._menu),
                 /** shares the same {@link IActionRunEvent} */
