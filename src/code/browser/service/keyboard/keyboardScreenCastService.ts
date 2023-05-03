@@ -1,7 +1,7 @@
 import 'src/code/browser/service/keyboard/media.scss';
 import { VisibilityController } from "src/base/browser/basic/visibilityController";
 import { IDisposable } from "src/base/common/dispose";
-import { DomUtility } from "src/base/browser/basic/dom";
+import { DomEventHandler, DomUtility, EventType, addDisposableListener } from "src/base/browser/basic/dom";
 import { IStandardKeyboardEvent, Keyboard } from "src/base/common/keyboard";
 import { IntervalTimer } from "src/base/common/util/timer";
 import { IKeyboardService } from "src/code/browser/service/keyboard/keyboardService";
@@ -40,6 +40,7 @@ export class KeyboardScreenCastService implements IKeyboardScreenCastService {
     private _prevEvent?: IStandardKeyboardEvent;
     private _visibilityController: VisibilityController;
     private _keydownListener?: IDisposable;
+    private _rippleListener?: IDisposable;
     private _timer?: IntervalTimer;
 
     // [constructor]
@@ -79,6 +80,7 @@ export class KeyboardScreenCastService implements IKeyboardScreenCastService {
 
         // events
         {
+            // keydown
             this._keydownListener = this.keyboardService.onKeydown(event => {
                 if (this.__ifAllowNewTag(event)) {
                     
@@ -91,6 +93,15 @@ export class KeyboardScreenCastService implements IKeyboardScreenCastService {
                 }
                 this._visibilityController.setVisibility(true);
                 this.__resetTimer();
+            });
+
+            // mouseclick
+            this._rippleListener = addDisposableListener(this.layoutService.parentContainer, EventType.click, (e) => {
+                if (!DomEventHandler.isLeftClick(e)) {
+                    return;
+                }
+
+                this.__createRippleEffect(e);
             });
         }
 
@@ -113,6 +124,9 @@ export class KeyboardScreenCastService implements IKeyboardScreenCastService {
         this._keydownListener?.dispose();
         this._keydownListener = undefined;
 
+        this._rippleListener?.dispose();
+        this._rippleListener = undefined;
+        
         this._timer?.dispose();
         this._timer = undefined;
 
@@ -182,5 +196,16 @@ export class KeyboardScreenCastService implements IKeyboardScreenCastService {
             DomUtility.Modifiers.clearChildrenNodes(this._tagContainer);
         }
         this._prevEvent = undefined;
+    }
+
+    private __createRippleEffect(event: MouseEvent): void {
+        const ripple = document.createElement('div');
+        ripple.className = 'ripple';
+        ripple.style.left = `${event.clientX}px`;
+        ripple.style.top = `${event.clientY}px`;
+        
+        const container = this.layoutService.parentContainer;
+        container.appendChild(ripple);
+        setTimeout(() => container.removeChild(ripple), 300);
     }
 }
