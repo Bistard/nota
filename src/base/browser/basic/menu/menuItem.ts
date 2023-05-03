@@ -191,19 +191,27 @@ export abstract class AbstractMenuItem extends ActionListItem implements IMenuIt
     public readonly element: FastElement<HTMLElement>;
     private _actionRunner?: (action: IMenuAction) => void;
 
-    protected _onMouseover: boolean;
+    protected _mouseover: boolean;
 
     // [event]
 
     private readonly _onDidHover = this.__register(new Emitter<boolean>());
     public readonly onDidHover = this._onDidHover.registerListener;
 
+    // [internal event]
+
+    private readonly _onMouseover = this.__register(new Emitter<void>());
+    protected readonly onMouseover = this._onMouseover.registerListener;
+
+    private readonly _onMouseleave = this.__register(new Emitter<void>());
+    protected readonly onMouseleave = this._onMouseleave.registerListener;
+
     // [constructor]
 
     constructor(action: IMenuAction) {
         super(action);
         this.element = this.__register(new FastElement(document.createElement('div')));
-        this._onMouseover = false;
+        this._mouseover = false;
 
         /**
          * Rendering and event registrations should be done in `__render` and
@@ -275,15 +283,23 @@ export abstract class AbstractMenuItem extends ActionListItem implements IMenuIt
 
         // hovering effect
         this.element.onMouseover(() => {
-            if (!this._onMouseover) {
-                this._onMouseover = true;
-                this._onDidHover.fire(true);
+            if (!this._mouseover) {
+                this._onMouseover.fire();
+                this._mouseover = true;
             }
+        });
+
+        this.onMouseover(() => {
+            this._onDidHover.fire(true);
         });
 
         // hovering effect
         this.element.onMouseleave(() => {
-            this._onMouseover = false;
+            this._mouseover = false;
+            this._onMouseleave.fire();
+        });
+
+        this.onMouseleave(() => {
             this._onDidHover.fire(false);
         });
 
@@ -418,17 +434,12 @@ export class SubmenuItem extends AbstractMenuItem {
     private readonly _hideScheduler: UnbufferedScheduler<void>;
     private readonly _delegate: ISubmenuDelegate;
 
-    // some shit code, but works :)
-    // TODO: refactor
-    private _onMouseover2 = false;
-
     // [constructor]
 
     constructor(action: SubmenuAction, delegate: ISubmenuDelegate) {
         super(action);
         this._delegate = delegate;
-        this._onMouseover = false;
-
+        
         // scheduling initialization
         {
             this._showScheduler = new UnbufferedScheduler(SubmenuItem.SHOW_DEPLAY, () => {
@@ -441,7 +452,7 @@ export class SubmenuItem extends AbstractMenuItem {
                 if (this._delegate.isSubmenuActive() || !DomUtility.Elements.isAncestor(this.element.element, active)) {
                     this._delegate.closeCurrSubmenu();
                     this._delegate.focusParentMenu();
-                    this._onMouseover2 = false;
+                    this._mouseover = false;
                 }
             });
 
@@ -491,16 +502,14 @@ export class SubmenuItem extends AbstractMenuItem {
         // keep the default behaviours too
         super.__registerListeners();
 
-        this.element.onMouseover(() => {
-            if (!this._onMouseover2 || !this._delegate.isSubmenuActive()) {
-                this._onMouseover2 = true;
+        this.onMouseover(() => {
+            if (!this._mouseover || !this._delegate.isSubmenuActive()) {
                 this._hideScheduler.cancel();
                 this._showScheduler.schedule();
             }
         });
 
-        this.element.onMouseleave(() => {
-            this._onMouseover2 = false;
+        this.onMouseleave(() => {
             this._showScheduler.cancel();
             this._hideScheduler.schedule();
         });
