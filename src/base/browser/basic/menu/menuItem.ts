@@ -1,9 +1,10 @@
-import { DomEventHandler, DomEventLike, DomUtility } from "src/base/browser/basic/dom";
+import { DomEventHandler, DomUtility } from "src/base/browser/basic/dom";
 import { FastElement } from "src/base/browser/basic/fastElement";
 import { createIcon } from "src/base/browser/icon/iconRegistry";
 import { Icons } from "src/base/browser/icon/icons";
 import { Action, ActionListItem, IAction, IActionListItem, IActionOptions } from "src/base/common/action";
 import { IDisposable } from "src/base/common/dispose";
+import { Emitter, Register } from "src/base/common/event";
 import { KeyCode, Shortcut, createStandardKeyboardEvent } from "src/base/common/keyboard";
 import { noop } from "src/base/common/performance";
 import { IS_MAC } from "src/base/common/platform";
@@ -148,6 +149,11 @@ export interface IMenuItem extends IActionListItem, IDisposable {
     readonly element: FastElement<HTMLElement>;
 
     /**
+     * Fires when the {@link IMenuItem} is mouse-hovered or not.
+     */
+    readonly onDidHover: Register<boolean>;
+
+    /**
      * The callback function when the item is about to run. Should be set by the
      * externals.
      */
@@ -185,11 +191,20 @@ export abstract class AbstractMenuItem extends ActionListItem implements IMenuIt
     public readonly element: FastElement<HTMLElement>;
     private _actionRunner?: (action: IMenuAction) => void;
 
+    protected _onMouseover: boolean;
+
+    // [event]
+
+    private readonly _onDidHover = this.__register(new Emitter<boolean>());
+    public readonly onDidHover = this._onDidHover.registerListener;
+
     // [constructor]
 
     constructor(action: IMenuAction) {
         super(action);
         this.element = this.__register(new FastElement(document.createElement('div')));
+        this._onMouseover = false;
+
         /**
          * Rendering and event registrations should be done in `__render` and
          * `__registerListeners` respectively.
@@ -214,7 +229,7 @@ export abstract class AbstractMenuItem extends ActionListItem implements IMenuIt
         parent.appendChild(this.element.element);
     }
 
-    public onClick(event: DomEventLike): void {
+    public onClick(event: MouseEvent): void {
         DomEventHandler.stop(event, true);
         this._actionRunner?.(this.action);
     }
@@ -222,11 +237,13 @@ export abstract class AbstractMenuItem extends ActionListItem implements IMenuIt
     public focus(): void {
         this.element.setTabIndex(0);
         this.element.setFocus();
+        this.element.addClassList('focused');
     }
 
     public blur(): void {
         this.element.setTabIndex(1);
         this.element.setBlur();
+        this.element.removeClassList('focused');
     }
 
     public override dispose(): void {
@@ -256,9 +273,18 @@ export abstract class AbstractMenuItem extends ActionListItem implements IMenuIt
             DomEventHandler.stop(e, true);
         });
 
-        // FIX: hover does not trigger create submenu
-        this.element.onMouseenter(() => {
-            this.focus();
+        // hovering effect
+        this.element.onMouseover(() => {
+            if (!this._onMouseover) {
+                this._onMouseover = true;
+                this._onDidHover.fire(true);
+            }
+        });
+
+        // hovering effect
+        this.element.onMouseleave(() => {
+            this._onMouseover = false;
+            this._onDidHover.fire(false);
         });
 
         // add 'active' properly
@@ -315,6 +341,10 @@ export class MenuSeperatorItem extends AbstractMenuItem {
         super(action);
     }
 
+    public override onClick(event: MouseEvent): void {
+        // noop
+    }
+
     protected override __render(): void {
         super.__render();
         this.element.addClassList('seperator');
@@ -365,6 +395,8 @@ export class SingleMenuItem extends AbstractMenuItem {
 export interface ISubmenuDelegate {
     closeCurrSubmenu(): void;
     openNewSubmenu(anchor: HTMLElement, actions: IMenuAction[]): void;
+    isSubmenuActive(): boolean;
+    focusParentMenu(): void;
 }
 
 /**
@@ -386,11 +418,16 @@ export class SubmenuItem extends AbstractMenuItem {
     private readonly _hideScheduler: UnbufferedScheduler<void>;
     private readonly _delegate: ISubmenuDelegate;
 
+    // some shit code, but works :)
+    // TODO: refactor
+    private _onMouseover2 = false;
+
     // [constructor]
 
     constructor(action: SubmenuAction, delegate: ISubmenuDelegate) {
         super(action);
         this._delegate = delegate;
+        this._onMouseover = false;
 
         // scheduling initialization
         {
@@ -401,10 +438,11 @@ export class SubmenuItem extends AbstractMenuItem {
 
             this._hideScheduler = new UnbufferedScheduler(SubmenuItem.HIDE_DEPLAY, () => {
                 const active = DomUtility.Elements.getActiveElement();
-                if (!DomUtility.Elements.isAncestor(this.element.element, active)) {
-                    return;
+                if (this._delegate.isSubmenuActive() || !DomUtility.Elements.isAncestor(this.element.element, active)) {
+                    this._delegate.closeCurrSubmenu();
+                    this._delegate.focusParentMenu();
+                    this._onMouseover2 = false;
                 }
-                this._delegate.closeCurrSubmenu();
             });
 
             this.__register(this._showScheduler);
@@ -421,7 +459,7 @@ export class SubmenuItem extends AbstractMenuItem {
     /**
      * @description Instead of running an action, open a submenu instead.
      */
-    public override onClick(event: DomEventLike): void {
+    public override onClick(event: MouseEvent): void {
         DomEventHandler.stop(event, true);
         this._showScheduler.schedule(undefined, 0);
     }
@@ -450,48 +488,25 @@ export class SubmenuItem extends AbstractMenuItem {
 
     protected override __registerListeners(): void {
         
-        // keep the default behaviours too.
+        // keep the default behaviours too
         super.__registerListeners();
 
-        // TODO: mouse-over item focus
-        // TODO: mouse-over item on submenu will also focus the submenu item
-        // FIX: hover event seems has bug
-        // FIX: right-arrow in submenu seems will re-focus the submenu
-
-        // When mouse leaves the current item, cancel the show-up.
-        this.element.onMouseenter(() => {
-            console.log('mouse-enter');
-            this._hideScheduler.cancel();
-            const active = DomUtility.Elements.getActiveElement();
-            if (!DomUtility.Elements.isAncestor(this.element.element, active)) {
+        this.element.onMouseover(() => {
+            if (!this._onMouseover2 || !this._delegate.isSubmenuActive()) {
+                this._onMouseover2 = true;
+                this._hideScheduler.cancel();
                 this._showScheduler.schedule();
             }
         });
 
-        // When mouse leaves the current item, cancel the show-up.
         this.element.onMouseleave(() => {
-            console.log('mouse-leave');
+            this._onMouseover2 = false;
             this._showScheduler.cancel();
             this._hideScheduler.schedule();
         });
 
-        // When the current item loses focus, schedules a hiding task.
-        this.element.onFocusout(() => {
-            console.log('focus-out');
-            const active = DomUtility.Elements.getActiveElement();
-            console.log('active:', active);
-            console.log('this.element:', this.element.element);
-            if (!DomUtility.Elements.isAncestor(this.element.element, active)) {
-                this._hideScheduler.schedule();
-            }
-        });
-
         // capture right arrow to open the submenu
         this.element.onKeydown(e => {
-            if (DomUtility.Elements.getActiveElement() !== this.element.element) {
-                return;
-            }
-            
             const event = createStandardKeyboardEvent(e);
             if (event.key === KeyCode.RightArrow) {
 				DomEventHandler.stop(event, true);
@@ -503,7 +518,10 @@ export class SubmenuItem extends AbstractMenuItem {
             const event = createStandardKeyboardEvent(e);
             if (event.key === KeyCode.RightArrow) {
 				DomEventHandler.stop(event, true);
-                this._showScheduler.schedule(undefined, 0);
+                // prevent double openning
+                if (!this._delegate.isSubmenuActive()) {
+                    this._showScheduler.schedule(undefined, 0);
+                }
 			}
         });
     }

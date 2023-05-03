@@ -68,13 +68,12 @@
             @include visualization.text(none, 10pt, center);
         }
 
-        &:focus {
-            outline: none;
+        &.focused {
             background-color: burlywood;
         }
 
         &.disabled {
-
+            // TODO
         }
 
         & > .menu-item-name {

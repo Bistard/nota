@@ -9,7 +9,8 @@ import { Mutable, isNullable } from "src/base/common/util/type";
 import { Dimension, IDimension, IDomBox, IPosition } from "src/base/common/util/size";
 import { AnchorMode, calcViewPositionAlongAxis } from "src/base/browser/basic/view";
 import { AnchorAbstractPosition } from "src/base/browser/basic/view";
-import { DisposableManager, IDisposable } from "src/base/common/dispose";
+import { DisposableManager } from "src/base/common/dispose";
+import { FastElement } from "src/base/browser/basic/fastElement";
 
 export interface IMenuActionRunEvent extends IActionRunEvent {
     readonly action: IMenuAction;
@@ -62,9 +63,19 @@ export interface IMenu extends IActionList<IMenuAction, IMenuItem> {
      * @param index The index of the item to be focused. If not provided, focus
      *              the first one. If index equals -1, only focus the entire 
      *              menu.
-     * @note The index will be recalculated to avoid the unenabled items.
+     * @note The index will NOT be recalculated to avoid the unenabled items.
      */
     focus(index?: number): void;
+
+    /**
+     * @description If the menu has any focused item.
+     */
+    anyFocused(): boolean;
+
+    /**
+     * @description The index of the current focused item, -1 means none.
+     */
+    getCurrFocusIndex(): number;
 
     /**
      * @description Returns the current context of the {@link IMenu}.
@@ -168,11 +179,8 @@ export abstract class BaseMenu extends ActionList<IMenuAction, IMenuItem> implem
         }
 
         if (index === -1) {
+            this.__unfocusTheCurrentItem();
             this._element.focus();
-            return;
-        }
-
-        if (index === this._currFocusedIndex) {
             return;
         }
 
@@ -180,14 +188,15 @@ export abstract class BaseMenu extends ActionList<IMenuAction, IMenuItem> implem
             return;
         }
 
-        // REVIEW: what is this?
-        let actualIndex = 0;
-        while (index !== 0) {
-            index--;
-            actualIndex++;
-        }
+        this.__focusItemAt(index);
+    }
 
-        this.__focusItemAt(actualIndex);
+    public anyFocused(): boolean {
+        return this.__hasAnyFocused();
+    }
+
+    public getCurrFocusIndex(): number {
+        return this._currFocusedIndex;
     }
 
     public override dispose(): void {
@@ -202,19 +211,31 @@ export abstract class BaseMenu extends ActionList<IMenuAction, IMenuItem> implem
          * Renders the item after every insertion operation.
          */
         this.onDidInsert(items => {
+            
             const fragment = <HTMLElement><unknown>document.createDocumentFragment();
-            for (const item of items) {
+            items.forEach((item, index) => {
                 // bind the item runnning environment to the action list
                 item.actionRunner = this.run.bind(this);
                 
                 // render the item
                 item.render(fragment);
-            }
+
+                // focus when hovering
+                this.__register(item.onDidHover(hovered => {
+                    if (hovered && item.action.enabled) {
+                        this.focus(index);
+                    } else {
+                        this.focus(-1);
+                    }
+                }));
+            });
+            
+            // rendering the whole fragment at once for performance
             this._element.appendChild(fragment);
             
             // re-focus
             if (this.__hasAnyFocused()) {
-                this.focus(this._currFocusedIndex);
+                this.focus(this.getCurrFocusIndex());
             }
         });
 
@@ -331,8 +352,7 @@ export abstract class BaseMenu extends ActionList<IMenuAction, IMenuItem> implem
             return;
         }
         
-        const prevFocusItem = this._items[this._currFocusedIndex];
-        prevFocusItem?.blur();
+        this.__unfocusTheCurrentItem();
 
         this._currFocusedIndex = newIndex;
         item.focus();
@@ -340,6 +360,12 @@ export abstract class BaseMenu extends ActionList<IMenuAction, IMenuItem> implem
 
     private __hasAnyFocused(): boolean {
         return this._currFocusedIndex !== -1;
+    }
+
+    private __unfocusTheCurrentItem(): void {
+        const prevFocusItem = this._items[this._currFocusedIndex];
+        prevFocusItem?.blur();
+        this._currFocusedIndex = -1;
     }
 
     private __isTriggerKeys(event: IStandardKeyboardEvent): boolean {
@@ -420,6 +446,14 @@ export abstract class MenuDecorator implements IMenu {
         this._menu.focus(index);
     }
 
+    public anyFocused(): boolean {
+        return this._menu.anyFocused();
+    }
+
+    public getCurrFocusIndex(): number {
+        return this._menu.getCurrFocusIndex();
+    }
+
     public run(index: number): void;
     public run(action: IAction): void;
     public run(id: string): void;
@@ -473,7 +507,7 @@ export class MenuWithSubmenu extends MenuDecorator {
 
     // [field]
 
-    private _submenuContainer?: HTMLElement;
+    private _submenuContainer?: FastElement<HTMLElement>;
     private _submenu?: IMenu;
     private _submenuDisposables: DisposableManager;
 
@@ -489,6 +523,8 @@ export class MenuWithSubmenu extends MenuDecorator {
                 const item = new SubmenuItem(<SubmenuAction>action, {
                     closeCurrSubmenu: this.__closeCurrSubmenu.bind(this),
                     openNewSubmenu: this.__openNewSubmenu.bind(this),
+                    isSubmenuActive: () => !!this._submenu,
+                    focusParentMenu: this.__focusParentMenu.bind(this),
                 });
 
                 // bind the item-run to the action-run.
@@ -517,13 +553,10 @@ export class MenuWithSubmenu extends MenuDecorator {
         this._submenu?.dispose();
         this._submenu = undefined;
 
-        this._submenuContainer?.remove();
+        this._submenuContainer?.dispose();
         this._submenuContainer = undefined;
         this._submenuDisposables.dispose();
         this._submenuDisposables = new DisposableManager();
-
-        // refocus the parent menu
-        this._menu.focus(-1);
     }
 
     private __openNewSubmenu(anchor: HTMLElement, actions: IMenuAction[]): void {
@@ -542,22 +575,22 @@ export class MenuWithSubmenu extends MenuDecorator {
     }
 
     private __constructSubmenu(anchor: HTMLElement, actions: IMenuAction[]): void {
-        const submenuContainer = document.createElement('div');
+        const submenuContainer = new FastElement(document.createElement('div'));
         this._submenuContainer = submenuContainer;
         
-        anchor.appendChild(submenuContainer);
+        anchor.appendChild(submenuContainer.element);
         {
-            submenuContainer.classList.add('context-menu');
-            submenuContainer.style.position = 'fixed';
-            submenuContainer.style.zIndex = '0';
-            submenuContainer.style.top = '0px';
-            submenuContainer.style.left = '0px';
+            submenuContainer.addClassList('context-menu');
+            submenuContainer.setPosition('fixed');
+            submenuContainer.setZIndex(0);
+            submenuContainer.setTop(0);
+            submenuContainer.setLeft(0);
         }
         const parentMenuTop = parseFloat(this.element.style.paddingTop || '0') || 0;
 
         // TODO: abstract out
         this._submenu = new MenuWithSubmenu(
-            new Menu(this._submenuContainer, {
+            new Menu(this._submenuContainer.element, {
                 contextProvider: this._menu.getContext.bind(this._menu),
                 /** shares the same {@link IActionRunEvent} */
                 actionRunner: this._menu.actionRunner,
@@ -565,8 +598,8 @@ export class MenuWithSubmenu extends MenuDecorator {
         );
         
         this._submenu.build(actions);
-        this._submenu.focus();
-
+        this._submenu.focus(-1);
+        
         const rawAnchorBox = anchor.getBoundingClientRect();
         const anchorBox = {
             /**
@@ -578,15 +611,15 @@ export class MenuWithSubmenu extends MenuDecorator {
             width: rawAnchorBox.width,
         };
         
-        const submenuBox = submenuContainer.getBoundingClientRect();
+        const submenuBox = submenuContainer.element.getBoundingClientRect();
         const { top, left } = this.__calculateSubmenuPosition(
             Dimension.create(submenuBox),
             anchorBox,
             Direction.Right,
         );
 
-        this._submenuContainer.style.left = `${left - submenuBox.left}px`;
-        this._submenuContainer.style.top = `${top - submenuBox.top}px`;
+        this._submenuContainer.setLeft(left - submenuBox.left);
+        this._submenuContainer.setTop(top - submenuBox.top);
     }
 
     private __calculateSubmenuPosition(submenu: IDimension, entry: IDomBox, expandDir: Direction): IPosition {
@@ -634,29 +667,49 @@ export class MenuWithSubmenu extends MenuDecorator {
         }
 
         // key-down
-        this._submenuDisposables.register(addDisposableListener(this._submenuContainer, EventType.keydown, (e) => {
+        this._submenuContainer.onKeydown((e) => {
             const event = createStandardKeyboardEvent(e);
 
             // left-arrow
             if (event.key === KeyCode.LeftArrow) {
                 DomEventHandler.stop(event, true);
             }
-        }));
+        });
 
         // key-up
-        this._submenuDisposables.register(addDisposableListener(this._submenuContainer, EventType.keyup, (e) => {
+        this._submenuContainer.onKeyup((e) => {
             const event = createStandardKeyboardEvent(e);
             
             // left-arrow
             if (event.key === KeyCode.LeftArrow) {
                 DomEventHandler.stop(event, true);
                 this.__closeCurrSubmenu();
+                this.__focusParentMenu();
             }
-        }));
+        });
 
         // on-did-close
         this._submenuDisposables.register(this._submenu.onDidClose(() => {
             this.__closeCurrSubmenu();
         }));
+    }
+
+    private __focusParentMenu(): void {
+        
+        /**
+         * When focusing the parent menu making sure there is no exisitng 
+         * focused item.
+         */
+        if (!this._menu.anyFocused()) {
+            this._menu.focus(-1);
+        } 
+        /**
+         * If there is, refocus the one to make sure the item is actually 
+         * focused in the dom tree but in just in memory.
+         */
+        else {
+            const currFocus = this._menu.getCurrFocusIndex();
+            this._menu.focus(currFocus);
+        }
     }
 }
