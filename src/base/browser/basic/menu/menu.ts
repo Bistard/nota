@@ -591,11 +591,10 @@ export class MenuWithSubmenu extends MenuDecorator {
         }
         const parentMenuTop = parseFloat(this.element.style.paddingTop || '0') || 0;
 
-        // TODO: abstract out
         this._submenu = new this._submenuCtor(
             new Menu(this._submenuContainer.element, {
                 contextProvider: this._menu.getContext.bind(this._menu),
-                /** shares the same {@link IActionRunEvent} */
+                /** shares the same {@link IActionRunEvent} with the parent menu */
                 actionRunner: this._menu.actionRunner,
             })
         );
