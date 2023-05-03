@@ -191,7 +191,7 @@ class SideBarBuilder {
                                 MenuSeperatorAction.instance,
                                 new SingleMenuAction({
                                     callback: () => console.log('action 2 executed'),
-                                    enabled: true,
+                                    enabled: false,
                                     id: 'simple action 2',
                                     tip: 'simple action 2 tip',
                                     extraClassName: 'action2',

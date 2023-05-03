@@ -302,7 +302,13 @@ export abstract class BaseMenu extends ActionList<IMenuAction, IMenuItem> implem
          */
         this.__register(addDisposableListener(this._element, EventType.keyup, (e) => {
             const event = createStandardKeyboardEvent(e);
+            const item = this._items[this._currFocusedIndex];
             
+            // not enabled
+            if (!item?.action.enabled) {
+                return;
+            }
+
             // try to run the current focused item
             if (this.__isTriggerKeys(event) && this.__hasAnyFocused()) {
                 this.run(this._currFocusedIndex);

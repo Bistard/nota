@@ -233,7 +233,9 @@ export abstract class AbstractMenuItem extends ActionListItem implements IMenuIt
 
     public render(parent: HTMLElement): void {
         this.__render();
-        this.__registerListeners();
+        if (this.action.enabled) {
+            this.__registerListeners();
+        }
         parent.appendChild(this.element.element);
     }
 
@@ -306,14 +308,14 @@ export abstract class AbstractMenuItem extends ActionListItem implements IMenuIt
         // add 'active' properly
         this.element.onMousedown(e => {
             DomEventHandler.stop(e, true);
-            if (this.action.enabled && DomEventHandler.isLeftClick(e)) {
+            if (DomEventHandler.isLeftClick(e)) {
                 this.element.addClassList('active');
             }
         });
 
         // handle click event
         this.element.onClick(e => {
-            DomEventHandler.stop(e, true);
+            DomEventHandler.stop(e, true);            
             this.onClick(e);
         });
 

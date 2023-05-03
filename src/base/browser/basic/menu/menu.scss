@@ -29,6 +29,7 @@
         margin-right: 4px;
 
         &.disabled {
+            color: #bbb;
             cursor: default;
         }
     }
@@ -62,7 +63,7 @@
         flex-direction: row;
         align-items: center;
         white-space: nowrap;
-
+        
         & > * {
             position: absolute;
             @include visualization.text(none, 10pt, center);
@@ -70,10 +71,6 @@
 
         &.focused {
             background-color: burlywood;
-        }
-
-        &.disabled {
-            // TODO
         }
 
         & > .menu-item-name {
