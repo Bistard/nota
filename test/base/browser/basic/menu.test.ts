@@ -71,14 +71,6 @@ suite('menu-test', () => {
     test('submenu', () => {
         test('menu', () => {
 
-            /**
-             * - action1
-             * - seperator
-             * - submenu1
-             *      - action2
-             *      - seperator
-             *      - action3
-             */
             const menu = new MenuWithSubmenu(
                 new Menu(document.body, {
                     contextProvider: () => 1,
