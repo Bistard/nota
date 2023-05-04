@@ -1,3 +1,4 @@
+@use 'src/styles/settings/constants' as const;
 
 .keyboard-screen-cast {
     position: absolute;
@@ -7,6 +8,7 @@
     height: 100px;
     line-height: 80px;
 
+    z-index: const.$z-index-high;
     display: flex;
     flex-direction: row;
 
@@ -53,5 +55,30 @@
     & > .container > .tag > span {
         height: 100%;
         margin: auto 12px;
+    }
+}
+
+.ripple {
+    position: absolute;
+    border-radius: 50%;
+    background: rgb(208, 131, 16);
+    width: 40px;
+    height: 40px;
+    pointer-events: none;
+    animation: rippleEffect 0.3s linear forwards;
+}
+
+@keyframes rippleEffect {
+    0% {
+        width: 0;
+        height: 0;
+        opacity: 1;
+        transform: translate(-50%, -50%);
+    }
+    100% {
+        width: 40px;
+        height: 40px;
+        opacity: 0;
+        transform: translate(-50%, -50%);
     }
 }

@@ -7,7 +7,7 @@
 
     // [fields]
 
-    private _dom: HTMLElement | undefined;
+    private _dom?: HTMLElement;
     private _visibleClass: string;
     private _invisibleClass: string;
     private _fadeClass?: string;
@@ -33,7 +33,7 @@
      * @description Sets the DOM element controlled by the controller.
      * @param dom The DOM element.
      */
-    public setDomNode(dom: HTMLElement): void {
+    public setDomNode(dom?: HTMLElement): void {
         this._dom = dom;
         if (this._dom && this._fadeClass) {
             this.toggleFade(true);
@@ -68,6 +68,10 @@
     // [private helper methods]
 
     private __refreshVisibility(): void {
+        if (!this._dom) {
+            return;
+        }
+
         if (this._visible) {
             this.__show();
         } else {

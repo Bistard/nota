@@ -151,7 +151,7 @@ export class ListItemRenderer<T> implements IListViewRenderer<T, HTMLElement> {
 	}
 
 	public update(item: T, index: number, data: HTMLElement, size: number): void {
-		if (DomUtility.getContentHeight(data) !== size) {
+		if (DomUtility.Attrs.getContentHeight(data) !== size) {
 			data.style.height = size + 'px';
 		}
 	}

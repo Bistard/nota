@@ -1,11 +1,12 @@
 import 'src/code/browser/service/keyboard/media.scss';
 import { VisibilityController } from "src/base/browser/basic/visibilityController";
 import { IDisposable } from "src/base/common/dispose";
-import { DomUtility } from "src/base/browser/basic/dom";
+import { DomEventHandler, DomUtility, EventType, addDisposableListener } from "src/base/browser/basic/dom";
 import { IStandardKeyboardEvent, Keyboard } from "src/base/common/keyboard";
 import { IntervalTimer } from "src/base/common/util/timer";
 import { IKeyboardService } from "src/code/browser/service/keyboard/keyboardService";
 import { createService } from "src/code/platform/instantiation/common/decorator";
+import { ILayoutService } from 'src/code/browser/service/layout/layoutService';
 
 export const IKeyboardScreenCastService = createService<IKeyboardScreenCastService>('keyboard-screencast-service');
 
@@ -33,28 +34,23 @@ export class KeyboardScreenCastService implements IKeyboardScreenCastService {
 
     // [field]
 
-    public static readonly MAX_CHILDREN = 14;
-
-    private _active: boolean = false;
-    
+    private _active: boolean;
     private _container?: HTMLElement;
     private _tagContainer?: HTMLElement;
-    
-    private _childrenCount: number;
     private _prevEvent?: IStandardKeyboardEvent;
-
     private _visibilityController: VisibilityController;
-
     private _keydownListener?: IDisposable;
+    private _rippleListener?: IDisposable;
     private _timer?: IntervalTimer;
 
     // [constructor]
     
     constructor(
         @IKeyboardService private readonly keyboardService: IKeyboardService,
+        @ILayoutService private readonly layoutService: ILayoutService,
     ) {
         this._visibilityController = new VisibilityController('visible', 'invisible', 'fade');
-        this._childrenCount = 0;
+        this._active = false;
     }
 
     // [public methods]
@@ -65,66 +61,75 @@ export class KeyboardScreenCastService implements IKeyboardScreenCastService {
             return;
         }
         
-        this._container = document.createElement('div');
-        this._container.className = 'keyboard-screen-cast';
-        
-        this._visibilityController.setDomNode(this._container);
-        this._visibilityController.setVisibility(false);
+        // rendering
+        {
+            this._container = document.createElement('div');
+            this._container.className = 'keyboard-screen-cast';
+            
+            this._visibilityController.setDomNode(this._container);
+            this._visibilityController.setVisibility(false);
 
-        this._tagContainer = document.createElement('div');
-        this._tagContainer.className = 'container';
+            this._tagContainer = document.createElement('div');
+            this._tagContainer.className = 'container';
 
-        this._container.appendChild(this._tagContainer);
-        document.body.appendChild(this._container);
+            this._container.appendChild(this._tagContainer);
+            this.layoutService.parentContainer.appendChild(this._container);
 
-        this._keydownListener = this.keyboardService.onKeydown(event => {
-            if (this.__ifAllowNewTag(event)) {
-                
-                if (this._childrenCount > KeyboardScreenCastService.MAX_CHILDREN) {
-                    this.__flushKeypress();
-                } 
-                
-                else if (Keyboard.isEventModifier(event)) {
-                    this.__flushKeypress();
+            this._timer = new IntervalTimer();
+        }
+
+        // events
+        {
+            // keydown
+            this._keydownListener = this.keyboardService.onKeydown(event => {
+                if (this.__ifAllowNewTag(event)) {
+                    
+                    if (this.__excessMaxTags() || Keyboard.isEventModifier(event)) {
+                        this.__flushKeypress();
+                    } 
+                    
+                    this.__appendTag(event);
+                    this._prevEvent = event;
                 }
-                
-                this.__appendTag(event);
-                this._prevEvent = event;
-            }
-            this._visibilityController.setVisibility(true);
-            this.__resetTimer();
-        });
+                this._visibilityController.setVisibility(true);
+                this.__resetTimer();
+            });
 
-        this._timer = new IntervalTimer();
-        this._childrenCount = 0;
-        
+            // mouseclick
+            this._rippleListener = addDisposableListener(this.layoutService.parentContainer, EventType.click, (e) => {
+                if (!DomEventHandler.isLeftClick(e)) {
+                    return;
+                }
+
+                this.__createRippleEffect(e);
+            });
+        }
+
         this._active = true;
     }
 
     public dispose(): void {
-        if (this._active === false) {
+        if (!this._active) {
             return;
         }
 
         if (this._container) {
-            DomUtility.removeNodeFromParent(this._container);
+            DomUtility.Modifiers.removeNodeFromParent(this._container);
             this._container.remove();
             this._container = undefined;
             this._tagContainer = undefined;
-            this._visibilityController.setDomNode(undefined as unknown as any);
+            this._visibilityController.setDomNode(undefined);
         }
         
-        if (this._keydownListener) {
-            this._keydownListener.dispose();
-            this._keydownListener = undefined;
-        }
+        this._keydownListener?.dispose();
+        this._keydownListener = undefined;
 
-        if (this._timer) {
-            this._timer.dispose();
-            this._timer = undefined;
-        }
+        this._rippleListener?.dispose();
+        this._rippleListener = undefined;
+        
+        this._timer?.dispose();
+        this._timer = undefined;
 
-        this._childrenCount = 0;
         this._active = false;
     }
 
@@ -137,7 +142,7 @@ export class KeyboardScreenCastService implements IKeyboardScreenCastService {
             return true;
         }
 
-        // pressing modifier twice, but we only display modifer for once
+        // pressing modifier twice, but we only display modifer for once.
         if (Keyboard.sameEvent(this._prevEvent, event) && Keyboard.isEventModifier(event)) {
             return false;
         }
@@ -145,7 +150,25 @@ export class KeyboardScreenCastService implements IKeyboardScreenCastService {
         return true;
     }
 
+    private __excessMaxTags(): boolean {
+        if (!this._tagContainer) {
+            return true;
+        }
+
+        const lastTag = this._tagContainer.lastChild;
+        if (!lastTag) {
+            return false;
+        }
+
+        const rect = (<HTMLElement>lastTag).getBoundingClientRect();
+        const rightSpace = window.innerWidth - rect.right;
+        return rightSpace < 150;
+    }
+
     private __appendTag(event: IStandardKeyboardEvent): void {
+        if (!this._tagContainer) {
+            return;
+        }
         
         const tag = document.createElement('div');
         tag.className = 'tag';
@@ -154,9 +177,7 @@ export class KeyboardScreenCastService implements IKeyboardScreenCastService {
         span.textContent = Keyboard.eventToString(event);
         
         tag.appendChild(span);
-        this._tagContainer!.appendChild(tag);
-
-        this._childrenCount++;
+        this._tagContainer.appendChild(tag);
     }
 
     private __resetTimer(ms: number = 1000): void {
@@ -172,10 +193,19 @@ export class KeyboardScreenCastService implements IKeyboardScreenCastService {
 
     private __flushKeypress(): void {
         if (this._tagContainer) {
-            DomUtility.clearChildrenNodes(this._tagContainer);
+            DomUtility.Modifiers.clearChildrenNodes(this._tagContainer);
         }
         this._prevEvent = undefined;
-        this._childrenCount = 0;
     }
 
+    private __createRippleEffect(event: MouseEvent): void {
+        const ripple = document.createElement('div');
+        ripple.className = 'ripple';
+        ripple.style.left = `${event.clientX}px`;
+        ripple.style.top = `${event.clientY}px`;
+        
+        const container = this.layoutService.parentContainer;
+        container.appendChild(ripple);
+        setTimeout(() => container.removeChild(ripple), 300);
+    }
 }

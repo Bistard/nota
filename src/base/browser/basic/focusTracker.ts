@@ -41,6 +41,10 @@ export class FocusTracker implements IFocusTracker, IDisposable {
 
 	// [constructor]
 
+	/**
+	 * @param element The element to track.
+	 * @param focusable If the element should be focusable when constructed.
+	 */
 	constructor(element: HTMLElement, focusable: boolean) {
 
 		this._element = element;

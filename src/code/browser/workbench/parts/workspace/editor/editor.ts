@@ -1,4 +1,4 @@
-import 'src/code/browser/workbench/workspace/editor/media/editor.scss';
+import 'src/code/browser/workbench/parts/workspace/editor/media/editor.scss';
 import { URI } from "src/base/common/file/uri";
 import { IComponentService } from "src/code/browser/service/component/componentService";
 import { IThemeService } from "src/code/browser/service/theme/themeService";
@@ -9,7 +9,7 @@ import { IInstantiationService } from "src/code/platform/instantiation/common/in
 import { registerSingleton } from "src/code/platform/instantiation/common/serviceCollection";
 import { EditorWidget, IEditorWidget } from "src/editor/editorWidget";
 import { Mutable } from "src/base/common/util/type";
-import { ISideViewService } from "src/code/browser/workbench/sideView/sideView";
+import { ISideViewService } from "src/code/browser/workbench/parts/sideView/sideView";
 import { ExplorerViewID, IExplorerViewService } from "src/code/browser/workbench/contrib/explorer/explorerService";
 import { IBrowserLifecycleService, ILifecycleService, LifecyclePhase } from "src/code/platform/lifecycle/browser/browserLifecycleService";
 import { ILogService } from "src/base/common/logger";
@@ -17,7 +17,7 @@ import { IConfigService } from "src/code/platform/configuration/common/abstractC
 import { BuiltInConfigScope } from "src/code/platform/configuration/common/configRegistrant";
 import { IEditorWidgetOptions } from "src/editor/common/configuration/editorConfiguration";
 import { deepCopy } from "src/base/common/util/object";
-import { IEditorService } from "src/code/browser/workbench/workspace/editor/editorService";
+import { IEditorService } from "src/code/browser/workbench/parts/workspace/editor/editorService";
 
 export class Editor extends Component implements IEditorService {
 

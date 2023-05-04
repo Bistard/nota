@@ -1,7 +1,7 @@
 import * as assert from 'assert';
 import { ExpectedError, isCancellationError, isExpectedError } from 'src/base/common/error';
 import { Emitter } from 'src/base/common/event';
-import { AsyncRunner, Blocker, CancellablePromise, Debouncer, delayFor, EventBlocker, MicrotaskDelay, PromiseTimeout, retry, Scheduler, ThrottleDebouncer, Throttler } from 'src/base/common/util/async';
+import { AsyncRunner, Blocker, CancellablePromise, Debouncer, delayFor, EventBlocker, MicrotaskDelay, PromiseTimeout, retry, Scheduler, ThrottleDebouncer, Throttler, UnbufferedScheduler } from 'src/base/common/util/async';
 import { repeat } from 'src/base/common/util/timer';
 
 suite('async-test', () => {
@@ -50,6 +50,38 @@ suite('async-test', () => {
 		repeat(10, () => scheduler.schedule(1));
 		await delayFor(10, () => {
 			assert.strictEqual(cnt, 10);
+		});
+
+		// cancellation
+		const scheduler2 = new Scheduler<number>(0, e => {
+			cnt += e.reduce((prev, curr) => prev += curr);
+		});
+		repeat(10, () => scheduler2.schedule(1));
+		scheduler2.cancel();
+		await delayFor(10, () => {
+			assert.strictEqual(cnt, 10);
+		});
+	});
+
+	test('UnbufferedScheduler', async () => {
+		let cnt = 0;
+		const scheduler = new UnbufferedScheduler<number>(0, e => {
+			cnt += e;
+		});
+		repeat(10, () => scheduler.schedule(1));
+		await delayFor(10, () => {
+			assert.strictEqual(cnt, 1);
+		});
+
+		// cancellation
+
+		const scheduler2 = new UnbufferedScheduler<number>(0, e => {
+			cnt += e;
+		});
+		repeat(10, () => scheduler2.schedule(1));
+		scheduler2.cancel();
+		await delayFor(10, () => {
+			assert.strictEqual(cnt, 1);
 		});
 	});
 

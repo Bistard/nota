@@ -3,6 +3,7 @@ import { DomEmitter, EventType } from "src/base/browser/basic/dom";
 import { createService } from "src/code/platform/instantiation/common/decorator";
 import { Event, Register } from "src/base/common/event";
 import { createStandardKeyboardEvent, IStandardKeyboardEvent } from "src/base/common/keyboard";
+import { ILayoutService } from "src/code/browser/service/layout/layoutService";
 
 export const IKeyboardService = createService<IKeyboardService>('keyboard-service');
 
@@ -11,14 +12,19 @@ export interface IKeyboardService {
     dispose(): void;
 
     /**
-     * Fires when keydown happens.
+     * Fires when key down happens in the current window.
      */
     onKeydown: Register<IStandardKeyboardEvent>;
     
     /**
-     * Fires when keyup happens.
+     * Fires when key up happens in the current window.
      */
     onKeyup: Register<IStandardKeyboardEvent>;
+
+    /**
+     * Fires when key press happens in the current window.
+     */
+    onKeypress: Register<IStandardKeyboardEvent>;
 }
 
 /**
@@ -28,20 +34,36 @@ export interface IKeyboardService {
  * The reason to convert the events is mainly due to different operating system 
  * may have different keycode with the same key pressed.
  */
-export class keyboardService implements IDisposable, IKeyboardService {
+export class KeyboardService implements IDisposable, IKeyboardService {
+
+    // [field]
 
     private readonly disposables: DisposableManager;
 
-    private readonly _onKeydown = new DomEmitter<KeyboardEvent>(window, EventType.keydown);
-    public readonly onKeydown = Event.map<KeyboardEvent, IStandardKeyboardEvent>(this._onKeydown.registerListener, e => createStandardKeyboardEvent(e));
+    // [event]
+    
+    public readonly onKeydown: Register<IStandardKeyboardEvent>;
+    public readonly onKeyup: Register<IStandardKeyboardEvent>;
+    public readonly onKeypress: Register<IStandardKeyboardEvent>;
 
-    private readonly _onKeyup = new DomEmitter<KeyboardEvent>(window, EventType.keyup);
-    public readonly onKeyup = Event.map<KeyboardEvent, IStandardKeyboardEvent>(this._onKeyup.registerListener, e => createStandardKeyboardEvent(e));
+    // [constructor]
 
-    constructor() {
+    constructor(
+        @ILayoutService layoutService: ILayoutService,
+    ) {
         this.disposables = new DisposableManager();
-        this.disposables.register(this._onKeydown);
-        this.disposables.register(this._onKeyup);
+
+        const onKeydown = new DomEmitter<KeyboardEvent>(layoutService.parentContainer, EventType.keydown, true);
+        const onKeyup = new DomEmitter<KeyboardEvent>(layoutService.parentContainer, EventType.keyup, true);
+        const onKeypress = new DomEmitter<KeyboardEvent>(layoutService.parentContainer, EventType.keypress, true);
+
+        this.onKeydown = Event.map(onKeydown.registerListener, e => createStandardKeyboardEvent(e));
+        this.onKeyup = Event.map(onKeyup.registerListener, e => createStandardKeyboardEvent(e));
+        this.onKeypress = Event.map(onKeypress.registerListener, e => createStandardKeyboardEvent(e));
+
+        this.disposables.register(onKeydown);
+        this.disposables.register(onKeyup);
+        this.disposables.register(onKeypress);
     }
 
     public dispose(): void {

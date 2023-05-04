@@ -146,9 +146,9 @@ export class SplitView extends Disposable implements ISplitView {
         this.viewContainer.className = 'view-container';
 
         if (this._orientation === Orientation.Horizontal) {
-            this._size = DomUtility.getContentWidth(container);
+            this._size = DomUtility.Attrs.getContentWidth(container);
         } else {
-            this._size = DomUtility.getContentHeight(container);
+            this._size = DomUtility.Attrs.getContentHeight(container);
         }
         
 

@@ -15,7 +15,7 @@ suite('array-test', () => {
     test('reverseIterate', () => {
         const arr = [1, 2, 3, 4, 5];
         const newArr: number[] = [];
-        Arrays.reverseIterate(arr, (ele) => newArr.push(ele));
+        Arrays.reverseIterate(arr, (ele) => { newArr.push(ele); });
         assert.deepStrictEqual(newArr, arr.reverse());
     });
 

@@ -28,7 +28,7 @@ class WebpackBasePluginProvider {
 
 /**
  * @description A base configuration for the webpack compilation of the whole 
- * program. To
+ * program.
  */
 class WebpackBaseConfigurationProvider {
 

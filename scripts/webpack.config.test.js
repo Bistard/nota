@@ -33,6 +33,8 @@ class WebpackUnitTestConfigurationProvider extends WebpackBaseConfigurationProvi
                 // make sure running in nodejs environment
                 target: 'node',
 
+                devtool: 'eval-source-map',
+
                 /**
                  * The top-level output key contains a set of options instructing 
                  * webpack on how and where it should output your bundles, assets, 
@@ -42,7 +44,6 @@ class WebpackUnitTestConfigurationProvider extends WebpackBaseConfigurationProvi
                  */
                 output: {
                     devtoolModuleFilenameTemplate: 'webpack://[absolute-resource-path]',
-                    devtoolFallbackModuleFilenameTemplate: 'webpack://[absolute-resource-path]?[hash]'
                 },
             },
         );

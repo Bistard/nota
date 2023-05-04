@@ -1,4 +1,4 @@
-import { DomUtility } from "src/base/browser/basic/dom";
+import { DomEventHandler, DomUtility } from "src/base/browser/basic/dom";
 import { IListMouseEvent, IListTouchEvent, IListWidget, IListWidgetOpts } from "src/base/browser/secondary/listWidget/listWidget";
 import { DisposableManager, IDisposable } from "src/base/common/dispose";
 import { IS_MAC } from "src/base/common/platform";
@@ -48,7 +48,7 @@ export class ListWidgetMouseController<T> implements IDisposable {
     // [protect methods]
 
     protected __ifSupported(e: IListMouseEvent<T>): boolean {
-        if (DomUtility.isInputElement(e.browserEvent.target as HTMLElement)) {
+        if (DomUtility.Elements.isInputElement(e.browserEvent.target as HTMLElement)) {
             return false;
         }
         return true;
@@ -85,7 +85,7 @@ export class ListWidgetMouseController<T> implements IDisposable {
         // normal click
         this._view.setAnchor(toFocused);
         this._view.setFocus(toFocused);
-        if (DomUtility.isMouseRightClick(e.browserEvent) === false) {
+        if (DomEventHandler.isRightClick(e.browserEvent) === false) {
             this._view.setSelections([toFocused]);
         }
     }
@@ -119,7 +119,7 @@ export class ListWidgetMouseController<T> implements IDisposable {
      */
     private __onMouseDown(e: IListMouseEvent<T> | IListTouchEvent<T>): void {
         // prevent double focus
-        if (document.activeElement !== e.browserEvent.target) {
+        if (DomUtility.Elements.getActiveElement() !== e.browserEvent.target) {
 			this._view.setDomFocus();
 		}
     }

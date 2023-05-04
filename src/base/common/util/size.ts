@@ -4,8 +4,17 @@ export interface IMeasureable {
 }
 
 export interface IDimension {
-    width: number;
-    height: number;
+    readonly width: number;
+    readonly height: number;
+}
+
+export interface IPosition {
+	readonly top: number;
+	readonly left: number;
+}
+
+export interface IDomBox extends IDimension, IPosition {
+	// empty
 }
 
 export class Dimension implements IDimension {
@@ -16,6 +25,10 @@ export class Dimension implements IDimension {
 		public width: number,
 		public height: number,
 	) { }
+
+	public static create(other: IDimension): Dimension {
+		return new Dimension(other.width, other.height);
+	}
 
 	public with(width: number = this.width, height: number = this.height): Dimension {
 		if (width !== this.width || height !== this.height) {
