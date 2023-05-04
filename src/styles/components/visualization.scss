@@ -1,0 +1,6 @@
+
+@mixin text($selectable: text, $size: 10pt, $align: center) {
+    font-size: $size;
+    user-select: $selectable;
+    text-align: $align;
+}

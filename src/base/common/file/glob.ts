@@ -27,6 +27,19 @@ export function isParentOf(path: string, candidate: string, ignoreCase?: boolean
 	return path.indexOf(candidate) === 0;
 }
 
+/**
+ * @description Compare the substrings of a and b, ignore the case of the string,
+ * i.e. A and a are considered equal.
+ * return a negative number if the substring of a is smaller, 
+ * return a positive number if the substring of b is smaller,
+ * return 0 if the substring of a and substring of b is equal.
+ * @param a The first full string.
+ * @param b The second full string.
+ * @param aStart The index of the start of a's substring in a.
+ * @param aEnd The index of the end of a's substring in a.
+ * @param bStart The index of the start of b's substring in b.
+ * @param bEnd The index of the end of b's substring in b.
+ */
 export function compareSubstringIgnoreCase(a: string, b: string, aStart: number = 0, aEnd: number = a.length, bStart: number = 0, bEnd: number = b.length): number {
 
 	for (; aStart < aEnd && bStart < bEnd; aStart++, bStart++) {
@@ -73,6 +86,18 @@ export function compareSubstringIgnoreCase(a: string, b: string, aStart: number 
 	return 0;
 }
 
+/**
+ * @description Compare the substrings of a and b, 
+ * return a negative number if the substring of a is smaller, 
+ * return a positive number if the substring of b is smaller,
+ * return 0 if the substring of a and substring of b is equal.
+ * @param a The first full string.
+ * @param b The second full string.
+ * @param aStart The index of the start of a's substring in a.
+ * @param aEnd The index of the end of a's substring in a.
+ * @param bStart The index of the start of b's substring in b.
+ * @param bEnd The index of the end of b's substring in b.
+ */
 export function compareSubstring(a: string, b: string, aStart: number = 0, aEnd: number = a.length, bStart: number = 0, bEnd: number = b.length): number {
 	for (; aStart < aEnd && bStart < bEnd; aStart++, bStart++) {
 		const codeA = a.charCodeAt(aStart);

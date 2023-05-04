@@ -49,3 +49,20 @@ export const requestAtNextAnimationFrame = (callback: FrameRequestCallback): IDi
 const __cancelAnimationFrame = (handle: number): void => {
     window.cancelAnimationFrame(handle);
 }
+
+/**
+ * @description Continue requesting at next animation frame on the provided 
+ * callback and returns a diposable to stop it.
+ * @param animateFn The animation callback.
+ */
+export function requestAnimate(animateFn: () => void): IDisposable {
+	let animateDisposable: IDisposable;
+
+	const animation = () => {
+		animateFn();
+		animateDisposable = requestAtNextAnimationFrame(animation);
+	};
+
+	animateDisposable = requestAtNextAnimationFrame(animation);
+	return animateDisposable;
+}

@@ -1,3 +1,4 @@
+import "src/base/browser/secondary/listView/listView.scss";
 import { IListViewRow, ListViewCache } from "src/base/browser/secondary/listView/listCache";
 import { IListViewRenderer, ListItemRenderer, PipelineRenderer, RendererType } from "src/base/browser/secondary/listView/listRenderer";
 import { ScrollableWidget } from "src/base/browser/secondary/scrollableWidget/scrollableWidget";
@@ -447,7 +448,7 @@ export class ListView<T> extends Disposable implements ISpliceable<T>, IListView
 
     public layout(height?: number): void {
 
-        height = height ?? DomUtility.getContentHeight(this.element);
+        height = height ?? DomUtility.Attrs.getContentHeight(this.element);
         this.scrollable.setViewportSize(height);
 
     }

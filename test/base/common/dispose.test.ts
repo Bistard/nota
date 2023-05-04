@@ -40,6 +40,26 @@ suite('dispose-test', () => {
 		assert.ok(disposable2.isDisposed());
 	});
 
+	test('dispose recursively', () => {
+		const disposable = new DisposableManager();
+		
+		const disposable2 = new Disposable();
+		const disposable3 = new DisposableManager();
+
+		disposable.register(disposable2);
+		disposable.register(disposable3);
+
+		const disposable4 = new Disposable();
+		disposable3.register(disposable4);
+
+		disposable.dispose();
+
+		assert.ok(disposable.disposed);
+		assert.ok(disposable2.isDisposed());
+		assert.ok(disposable3.disposed);
+		assert.ok(disposable4.isDisposed());
+	});
+
     test('dispose array should rethrow composite error if multiple entries throw on dispose', () => {
 		const disposedValues = new Set<number>();
 

@@ -1,0 +1,24 @@
+
+.widget-bar {
+    white-space: nowrap;
+	height: 100%;
+
+	& > .widget-item-container {
+		display: flex; /* Default is displaying horizontal bar */
+		justify-content: space-between;
+		
+		margin: 0 auto;
+		padding: 0;
+		height: 100%;
+		width: 100%;
+		align-items: center;
+
+		& > .widget-item {
+			display: block;
+			align-items: center;
+			justify-content: center;
+			cursor: pointer;
+			position: relative;  /* DO NOT REMOVE */
+		}
+	}
+}

@@ -1,6 +1,5 @@
-import { ContextMenuService, IContextMenuService } from 'src/code/browser/service/contextMenuService';
+import 'src/code/browser/workbench/media/workbench.scss';
 import { IInstantiationService } from "src/code/platform/instantiation/common/instantiation";
-import { ServiceDescriptor } from "src/code/platform/instantiation/common/descriptor";
 import { IComponentService } from "src/code/browser/service/component/componentService";
 import { WorkbenchLayout } from "src/code/browser/workbench/layout";
 import { IWorkbenchService } from "src/code/browser/service/workbench/workbenchService";
@@ -8,15 +7,17 @@ import { IKeyboardScreenCastService } from "src/code/browser/service/keyboard/ke
 import { IConfigService } from "src/code/platform/configuration/common/abstractConfigService";
 import { BuiltInConfigScope } from "src/code/platform/configuration/common/configRegistrant";
 import { IThemeService } from "src/code/browser/service/theme/themeService";
-import { ISideBarService } from "src/code/browser/workbench/sideBar/sideBar";
-import { ISideViewService } from "src/code/browser/workbench/sideView/sideView";
-import { IWorkspaceService } from "src/code/browser/workbench/workspace/workspace";
+import { ISideBarService } from "src/code/browser/workbench/parts/sideBar/sideBar";
+import { ISideViewService } from "src/code/browser/workbench/parts/sideView/sideView";
+import { IWorkspaceService } from "src/code/browser/workbench/parts/workspace/workspace";
 import { Disposable } from 'src/base/common/dispose';
 import { IContextService } from 'src/code/platform/context/common/contextService';
 import { IContextKey } from 'src/code/platform/context/common/contextKey';
 import { IS_LINUX, IS_MAC, IS_WINDOWS } from 'src/base/common/platform';
 import { IBrowserLifecycleService, ILifecycleService, LifecyclePhase } from 'src/code/platform/lifecycle/browser/browserLifecycleService';
 import { IBrowserEnvironmentService, IEnvironmentService } from 'src/code/platform/environment/common/environment';
+import { IContextMenuService } from 'src/code/browser/service/contextMenu/contextMenuService';
+import { ILayoutService } from 'src/code/browser/service/layout/layoutService';
 
 /**
  * @class Workbench represents all the Components in the web browser.
@@ -30,7 +31,7 @@ export class Workbench extends WorkbenchLayout implements IWorkbenchService {
     // [constructor]
 
     constructor(
-        parent: HTMLElement,
+        @ILayoutService layoutService: ILayoutService,
         @IInstantiationService instantiationService: IInstantiationService,
         @IConfigService configService: IConfigService,
         @IComponentService componentService: IComponentService,
@@ -39,8 +40,9 @@ export class Workbench extends WorkbenchLayout implements IWorkbenchService {
         @ISideViewService sideViewService: ISideViewService,
         @IWorkspaceService workspaceService: IWorkspaceService,
         @ILifecycleService private readonly lifecycleService: IBrowserLifecycleService,
+        @IContextMenuService contextMenuService: IContextMenuService,
     ) {
-        super(parent, instantiationService, componentService, themeService, sideBarService, sideViewService, workspaceService, configService);
+        super(layoutService, instantiationService, componentService, themeService, sideBarService, sideViewService, workspaceService, configService, contextMenuService);
     }
 
     // [public methods]
@@ -63,9 +65,6 @@ export class Workbench extends WorkbenchLayout implements IWorkbenchService {
 
         // workbench-service
         this.instantiationService.register(IWorkbenchService, this);
-
-        // FIX: deprecated
-        this.instantiationService.register(IContextMenuService, new ServiceDescriptor(ContextMenuService));
     }
 
     /**

@@ -4,7 +4,7 @@ import { CommandService, ICommandService } from 'src/code/platform/command/commo
 import { createService } from 'src/code/platform/instantiation/common/decorator';
 import { IInstantiationService, InstantiationService, IServiceProvider } from 'src/code/platform/instantiation/common/instantiation';
 import { REGISTRANTS } from 'src/code/platform/registrant/common/registrant';
-import { NullLogger } from 'test/utility';
+import { NullLogger } from 'test/utils/utility';
 
 interface ITestService {
     num: number;

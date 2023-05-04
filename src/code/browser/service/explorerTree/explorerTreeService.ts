@@ -10,7 +10,7 @@ import { INotebookTreeService, NotebookTreeService } from "src/code/browser/serv
 import { IConfigService } from "src/code/platform/configuration/common/abstractConfigService";
 import { BuiltInConfigScope } from "src/code/platform/configuration/common/configRegistrant";
 import { IFileService } from "src/code/platform/files/common/fileService";
-import { ResourceChangeEvent } from "src/code/platform/files/node/resourceChangeEvent";
+import { IResourceChangeEvent, ResourceChangeEvent } from "src/code/platform/files/common/resourceChangeEvent";
 import { createService } from "src/code/platform/instantiation/common/decorator";
 import { IInstantiationService } from "src/code/platform/instantiation/common/instantiation";
 
@@ -51,7 +51,7 @@ export class ExplorerTreeService extends Disposable implements IExplorerTreeServ
 
     private _currTreeDisposable?: IDisposable;
     private _currentTreeService?: ITreeService<unknown>;
-    private _onDidResourceChangeScheduler?: IScheduler<ResourceChangeEvent>;
+    private _onDidResourceChangeScheduler?: IScheduler<IResourceChangeEvent>;
 
     private static readonly ON_RESOURCE_CHANGE_DELAY = 100;
 
@@ -98,7 +98,11 @@ export class ExplorerTreeService extends Disposable implements IExplorerTreeServ
     // [public mehtods]
 
     public async init(container: HTMLElement, root: URI, mode?: TreeMode): Promise<void> {
-        const currTreeService = this._mode === TreeMode.Notebook ? this.notebookTreeService : this.classicTreeService;
+        const currTreeService: ITreeService<any> = (
+            (this._mode === TreeMode.Notebook) 
+                ? this.notebookTreeService
+                : this.classicTreeService
+        );
 
         // try to create the tree service
         try {
@@ -164,13 +168,13 @@ export class ExplorerTreeService extends Disposable implements IExplorerTreeServ
         this._onDidResourceChangeScheduler = new Scheduler(
             ExplorerTreeService.ON_RESOURCE_CHANGE_DELAY, 
             (events: ResourceChangeEvent[]) => {
-                if (!this._root || !this._currentTreeService) {
+                if (!root || !this._currentTreeService) {
                     return;
                 }
 
                 let affected = false;
                 for (const event of events) {
-                    if (event.affect(this._root)) {
+                    if (event.affect(root)) {
                         affected = true;
                         break;
                     }
@@ -185,7 +189,7 @@ export class ExplorerTreeService extends Disposable implements IExplorerTreeServ
         disposables.register(this._onDidResourceChangeScheduler);
         disposables.register(this.fileService.watch(root, { recursive: true }));
         disposables.register(this.fileService.onDidResourceChange(e => {
-            this._onDidResourceChangeScheduler?.schedule(e);
+            this._onDidResourceChangeScheduler?.schedule(e.wrap());
         }));
     }
 }

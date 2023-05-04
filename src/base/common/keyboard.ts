@@ -121,7 +121,6 @@ export interface IStandardKeyboardEvent {
 
     preventDefault(): void;
     stopPropagation(): void;
-
 }
 
 /**
@@ -152,7 +151,7 @@ export function createStandardKeyboardEvent(event: KeyboardEvent): IStandardKeyb
                 event.stopPropagation();
             }
         }
-    }
+    };
 }
 
 /**
@@ -398,10 +397,10 @@ for (const [keycode, keycodeNum, keycodeStr] of <[number, number, string][]>
     [KeyCode.PageDown,      34, 'PageDown'],
     [KeyCode.Delete,        46, 'Delete'],
     [KeyCode.End,           35, 'End'],
-    [KeyCode.RightArrow,    39, 'RightArrow'],
-    [KeyCode.LeftArrow,     37, 'LeftArrow'],
-    [KeyCode.DownArrow,     40, 'DownArrow'],
-    [KeyCode.UpArrow,       38, 'UpArrow'],
+    [KeyCode.RightArrow,    39, '→'],
+    [KeyCode.LeftArrow,     37, '←'],
+    [KeyCode.DownArrow,     40, '↓'],
+    [KeyCode.UpArrow,       38, '↑'],
     [KeyCode.NumLock,      144, 'NumLock'],
     [KeyCode.ContextMenu,   93, 'ContextMenu'],
 ]) {

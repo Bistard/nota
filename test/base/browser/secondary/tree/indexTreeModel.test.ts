@@ -3,7 +3,7 @@ import { ISpliceable } from 'src/base/common/range';
 import { FlexIndexTreeModel, IndexTreeModel } from 'src/base/browser/secondary/tree/indexTreeModel';
 import { ITreeFilterProvider, ITreeFilterResult } from 'src/base/browser/secondary/tree/treeFilter';
 import { IFlexNode, ITreeNode } from 'src/base/browser/secondary/tree/tree';
-import { dfs } from 'test/util/helpers';
+import { dfs } from 'test/utils/helpers';
 
 suite('indexTreeModel-test', () => {
 

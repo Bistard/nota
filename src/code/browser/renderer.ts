@@ -1,4 +1,5 @@
-import "src/code/browser/workbench/workspace/editor/editor";
+import "src/styles/index.scss";
+import "src/code/browser/workbench/parts/workspace/editor/editor";
 import { Workbench } from "src/code/browser/workbench/workbench";
 import { registerBrowserDefaultConfiguration } from "src/code/platform/configuration/browser/configuration.register";
 import { rendererServiceRegistrations } from "src/code/browser/service.register";
@@ -68,7 +69,7 @@ class RendererInstance extends Disposable {
             ]);
 
             // create workbench UI
-            const workbench = instantiaionService.createInstance(Workbench, document.body);
+            const workbench = instantiaionService.createInstance(Workbench);
             workbench.init();
 
             // browser monitor

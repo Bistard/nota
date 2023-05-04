@@ -1,10 +1,11 @@
-import { DomStyle } from "src/base/browser/basic/dom";
+import { addDisposableListener, DomStyle, EventType, IDomEvent } from "src/base/browser/basic/dom";
+import { Disposable, IDisposable } from "src/base/common/dispose";
 import { isObject } from "src/base/common/util/type";
 
 /**
  * The interface only for {@link FastElement}.
  */
-export interface IFastElement<T extends HTMLElement> {
+export interface IFastElement<T extends HTMLElement> extends IDomEvent<false> {
 
     readonly element: T;
 
@@ -17,6 +18,11 @@ export interface IFastElement<T extends HTMLElement> {
     setPosition(value: DomStyle.Position): void;
     setDisplay(value: DomStyle.Display): void;
 
+    setFocus(): void;
+    setBlur(): void;
+    setTabIndex(value: number): void;
+    setZIndex(value: number): void;
+
     setTop(value: number): void;
     setBottom(value: number): void;
     setLeft(value: number): void;
@@ -24,6 +30,8 @@ export interface IFastElement<T extends HTMLElement> {
 
     setClassName(value: string): void;
     toggleClassName(value: string): void;
+    addClassList(...values: string[]): void;
+    removeClassList(...values: string[]): void;
 
     setFontSize(value: number): void;
     setFontWeight(value: DomStyle.FontWeight): void;
@@ -50,20 +58,18 @@ export interface IFastElement<T extends HTMLElement> {
  * 
  * @note The unit for number is always pixels.
  */
-export class FastElement<T extends HTMLElement> implements IFastElement<T> {
+export class FastElement<T extends HTMLElement> extends Disposable implements IFastElement<T> {
 
     // [field]
 
     /** The actual {@link HTMLElement}. */
     public readonly element: T;
     
-     
     // Representing the DOM attributes of the wrapped HTMLElement. Initially are
     // sets to nothing:
     //     {@link number} -> -1
     //     {@link string} -> ''
     
-
     private _width: number = -1;
     private _height: number = -1;
 
@@ -73,6 +79,9 @@ export class FastElement<T extends HTMLElement> implements IFastElement<T> {
     private _position: DomStyle.Position | '' = '';
     private _display: DomStyle.Display | '' = '';
 
+    private _tabIndex: number = -1;
+    private _zIndex: number = -1;
+    
     private _top: number = -1;
     private _bottom: number = -1;
     private _left: number = -1;
@@ -91,6 +100,7 @@ export class FastElement<T extends HTMLElement> implements IFastElement<T> {
     // [constructor]
 
     constructor(element: T) {
+        super();
         this.element = element;
     }
 
@@ -152,12 +162,28 @@ export class FastElement<T extends HTMLElement> implements IFastElement<T> {
         this.element.style.display = value;
     }
 
-    public setClassName(value: string): void {
-        if (this._className === value) {
+    public setFocus(): void {
+        this.element.focus();
+    }
+
+    public setBlur(): void {
+        this.element.blur();
+    }
+
+    public setTabIndex(value: number): void {
+        if (this._tabIndex === value) {
             return;
         }
-        this._className = value;
-        this.element.className = value;
+        this._tabIndex = value;
+        this.element.tabIndex = value;
+    }
+
+    public setZIndex(value: number): void {
+        if (this._zIndex === value) {
+            return;
+        }
+        this._zIndex = value;
+        this.element.style.zIndex = `${value}`;
     }
 
     public setTop(value: number): void {
@@ -192,9 +218,24 @@ export class FastElement<T extends HTMLElement> implements IFastElement<T> {
         this.element.style.right = `${value}px`;
     }
 
+    public setClassName(value: string): void {
+        if (this._className === value) {
+            return;
+        }
+        this._className = value;
+        this.element.className = value;
+    }
+
     public toggleClassName(value: string, force?: boolean): void {
         this.element.classList.toggle(value, force);
-        this._className = value;
+    }
+
+    public addClassList(...values: string[]): void {
+        this.element.classList.add(...values);
+    }
+
+    public removeClassList(...values: string[]): void {
+        this.element.classList.remove(...values);
     }
 
     public setFontSize(value: number): void {
@@ -268,6 +309,137 @@ export class FastElement<T extends HTMLElement> implements IFastElement<T> {
             this.element.removeChild(child);
         }
 	}
+
+    public onClick(callback: (event: MouseEvent) => void): IDisposable {
+        return this.__register(addDisposableListener(this.element, EventType.click, (e: MouseEvent) => {
+            callback(e);
+        }));
+    }
+
+    public onDoubleclick(callback: (event: MouseEvent) => void): IDisposable {
+        return this.__register(addDisposableListener(this.element, EventType.doubleclick, (e: MouseEvent) => {
+            callback(e);
+        }));
+    }
+
+    public onMouseover(callback: (event: MouseEvent) => void): IDisposable {
+        return this.__register(addDisposableListener(this.element, EventType.mouseover, (e: MouseEvent) => {
+            callback(e);
+        }));
+    }
+
+    public onMouseout(callback: (event: MouseEvent) => void): IDisposable {
+        return this.__register(addDisposableListener(this.element, EventType.mouseout, (e: MouseEvent) => {
+            callback(e);
+        }));
+    }
+
+    public onMouseenter(callback: (event: MouseEvent) => void): IDisposable {
+        return this.__register(addDisposableListener(this.element, EventType.mouseenter, (e: MouseEvent) => {
+            callback(e);
+        }));
+    }
+
+    public onMouseleave(callback: (event: MouseEvent) => void): IDisposable {
+        return this.__register(addDisposableListener(this.element, EventType.mouseleave, (e: MouseEvent) => {
+            callback(e);
+        }));
+    }
+
+    public onMousedown(callback: (event: MouseEvent) => void): IDisposable {
+        return this.__register(addDisposableListener(this.element, EventType.mousedown, (e: MouseEvent) => {
+            callback(e);
+        }));
+    }
+
+    public onMouseup(callback: (event: MouseEvent) => void): IDisposable {
+        return this.__register(addDisposableListener(this.element, EventType.mouseup, (e: MouseEvent) => {
+            callback(e);
+        }));
+    }
+
+    public onMousemove(callback: (event: MouseEvent) => void): IDisposable {
+        return this.__register(addDisposableListener(this.element, EventType.mousemove, (e: MouseEvent) => {
+            callback(e);
+        }));
+    }
+
+    public onWheel(callback: (event: WheelEvent) => void): IDisposable {
+        return this.__register(addDisposableListener(this.element, EventType.wheel, (e: WheelEvent) => {
+            callback(e);
+        }));
+    }
+
+    public onTouchstart(callback: (event: TouchEvent) => void): IDisposable {
+        return this.__register(addDisposableListener(this.element, EventType.touchstart, (e: TouchEvent) => {
+            callback(e);
+        }));
+    }
+
+    public onTouchmove(callback: (event: TouchEvent) => void): IDisposable {
+        return this.__register(addDisposableListener(this.element, EventType.touchmove, (e: TouchEvent) => {
+            callback(e);
+        }));
+    }
+
+    public onTouchend(callback: (event: TouchEvent) => void): IDisposable {
+        return this.__register(addDisposableListener(this.element, EventType.touchend, (e: TouchEvent) => {
+            callback(e);
+        }));
+    }
+
+    public onTouchcancel(callback: (event: TouchEvent) => void): IDisposable {
+        return this.__register(addDisposableListener(this.element, EventType.touchcancel, (e: TouchEvent) => {
+            callback(e);
+        }));
+    }
+
+    public onContextmenu(callback: (event: MouseEvent) => void): IDisposable {
+        return this.__register(addDisposableListener(this.element, EventType.contextmenu, (e: MouseEvent) => {
+            callback(e);
+        }));
+    }
+
+    public onFocusin(callback: (event: FocusEvent) => void): IDisposable {
+        return this.__register(addDisposableListener(this.element, EventType.focusin, (e: FocusEvent) => {
+            callback(e);
+        }));
+    }
+
+	public onFocusout(callback: (event: FocusEvent) => void): IDisposable {
+        return this.__register(addDisposableListener(this.element, EventType.focusout, (e: FocusEvent) => {
+            callback(e);
+        }));
+    }
+
+    public onFocus(callback: (event: FocusEvent) => void): IDisposable {
+        return this.__register(addDisposableListener(this.element, EventType.focus, (e: FocusEvent) => {
+            callback(e);
+        }));
+    }
+
+	public onBlur(callback: (event: FocusEvent) => void): IDisposable {
+        return this.__register(addDisposableListener(this.element, EventType.blur, (e: FocusEvent) => {
+            callback(e);
+        }));
+    }
+
+    public onKeydown(callback: (event: KeyboardEvent) => void): IDisposable {
+		return this.__register(addDisposableListener(this.element, EventType.keydown, (e: KeyboardEvent) => {
+            callback(e);
+        }));
+	}
+
+	public onKeyup(callback: (event: KeyboardEvent) => void): IDisposable {
+		return this.__register(addDisposableListener(this.element, EventType.keyup, (e: KeyboardEvent) => {
+            callback(e);
+        }));
+	}
+
+    public override dispose(): void {
+        this.element.remove();
+        super.dispose();
+    }
 }
 
 export function isFastElement<T extends HTMLElement>(obj: unknown): obj is IFastElement<T> {

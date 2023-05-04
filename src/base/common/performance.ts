@@ -40,3 +40,7 @@ export function getPerf(): PerfMark[] {
     }
     return marks;
 }
+
+export function noop(): void {
+    // noop
+}

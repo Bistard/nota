@@ -12,16 +12,19 @@ const path = require("path");
 const utils = require('./utility');
 
 /**
- * @typedef {Record<string, { command: string, description: string }>} ScriptConfiguration
+ * @typedef {import('./script.config.js').ScriptConfiguration} ScriptConfiguration
  */
 
-const SCRIPT_CONFIG_PATH = './configuration.js';
+const SCRIPT_CONFIG_PATH = './script.config.js';
 
 const USAGE = `
 usage: npm run script (<command> | list | help) [--] [<argument>...]
+    
+    Run 'npm run script list' to see all the valid srcipts.
+
     eg. npm run script help
         npm run script list
-        npm run script start -- -arg1 --arg2=arg3
+        npm run script start -- -a --arg1 --arg2=arg3
 `;
 const HELP_STRING = `To see a list of valid scripts, run:
     npm run script help
@@ -58,7 +61,7 @@ const INVALID_SCRIPT_COMMAND = `Invalid script command format. Please follow: ${
 function validateCLI(args) {
     const command = args[0];
     if (!command) {
-        console.log(INVALID_SCRIPT_COMMAND);
+        process.stderr.write(`${utils.getTime(utils.c.FgRed)} ${INVALID_SCRIPT_COMMAND}`);
         process.exit(1);
     }
     return [command, args.slice(1)];
@@ -72,10 +75,25 @@ function executeHelp() {
  * @param {ScriptConfiguration} configuration 
  */
 function executeList(configuration) {
-    console.log(`${'[command]'.padStart(10, ' ').padEnd(13, ' ')}[description]`);
-    for (const key of Object.getOwnPropertyNames(configuration)) {
-        const { _command, description } = configuration[key];
-            console.log(`${key.padStart(10, ' ').padEnd(14, ' ')}${description}`);
+    console.log(`${'[command]'.padStart(10, ' ')}`);
+    
+    for (const [cmdName, config] of Object.entries(configuration)) {
+        
+        const { _command, description, options } = config;
+        const coloredName = utils.color(utils.c.FgGreen, cmdName);
+        console.log(coloredName);
+        console.log(description);
+        
+        if (!options) {
+            continue;
+        }
+        
+        for (const opt of options) {
+            console.log(`${''.padEnd(6, ' ')}${opt.flags.join(', ')}`);
+            for (const desc of opt.descriptions) {
+                console.log(`${''.padEnd(10, ' ')}${desc}`);
+            }
+        }
     }
 }
 
@@ -96,7 +114,7 @@ function executeScript(command, args, configuration) {
     const argsInString = args.join(' ');
     actualCommand += ' ' + argsInString;
 
-    console.log(`${utils.getTime()} Executing script: ${command}.`);
+    console.log(`${utils.getTime()} Executing script: ${command}`);
     console.log(`${utils.getTime()} Executing command: ${actualCommand}`);
     const proc = childProcess.spawn(
         actualCommand, 
@@ -105,20 +123,15 @@ function executeScript(command, args, configuration) {
             env: process.env,
             cwd: path.resolve(__dirname, '../'), // redirect the cwd to the root of nota
             shell: true,
+
+            // inherits the stdin / stdout / stderr
+            stdio: "inherit",
         },
     );
 
-    proc.stdout.on('data', (output) => {
-        process.stdout.write(output);
-    });
-      
-    proc.stderr.on('error', (error) => {
-        process.stderr.write(error);
-    });
-    
     proc.on('close', (code) => {
         if (code) {
-            process.stderr.write(`${utils.getTime(utils.c.FgRed)} script exits with error code ${code}.\n`);
+            process.stderr.write(`${utils.getTime(utils.c.FgRed)} The script '${command}' exits with error code ${code}.\n`);
             process.exit(code);
         } else {
             process.exit(0);

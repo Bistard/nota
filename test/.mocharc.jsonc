@@ -1,7 +1,0 @@
-// Mocha configuration that only runs the *.dev.test.ts files. Used in a script 
-// named '_test' to run the tests in development.
-{
-    "extension": ["ts", "js"],
-    "spec": "test/**/*.dev.test.ts",
-    "require": "ts-node/register"
-}

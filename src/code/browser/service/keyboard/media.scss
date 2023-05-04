@@ -1,0 +1,84 @@
+@use 'src/styles/settings/constants' as const;
+
+.keyboard-screen-cast {
+    position: absolute;
+    bottom: 10vh;
+    
+    width: 100vw;
+    height: 100px;
+    line-height: 80px;
+
+    z-index: const.$z-index-high;
+    display: flex;
+    flex-direction: row;
+
+    pointer-events: none;
+
+    &.visible {
+        background-color: rgba(0, 0, 0, 0.192);
+        transition: opacity 300ms linear;
+    }
+    
+    &.invisible {
+        pointer-events: none;
+        opacity: 0%;
+    }
+    
+    & > .container {
+        height: 90%;
+        width: auto;
+        margin: auto;
+    
+        align-content: center;
+        user-select: none;
+    
+        display: flex;
+        flex-direction: row;
+    }
+    
+    & > .container > .tag {
+        height: auto;
+        width: auto;
+    
+        font-size: 50px;
+        font-weight: bold;
+        color: white;
+    
+        margin: 5px;
+    
+        background-color: rgba(0, 0, 0, 0.137);
+        border-radius: 10px;
+    
+        box-shadow: 2px 2px rgba(49, 49, 49, 0.397);
+    }
+    
+    & > .container > .tag > span {
+        height: 100%;
+        margin: auto 12px;
+    }
+}
+
+.ripple {
+    position: absolute;
+    border-radius: 50%;
+    background: rgb(208, 131, 16);
+    width: 40px;
+    height: 40px;
+    pointer-events: none;
+    animation: rippleEffect 0.3s linear forwards;
+}
+
+@keyframes rippleEffect {
+    0% {
+        width: 0;
+        height: 0;
+        opacity: 1;
+        transform: translate(-50%, -50%);
+    }
+    100% {
+        width: 40px;
+        height: 40px;
+        opacity: 0;
+        transform: translate(-50%, -50%);
+    }
+}

@@ -1,3 +1,4 @@
+import "src/base/browser/secondary/splitView/splitView.scss";
 import { ISash, ISashEvent, Sash } from "src/base/browser/basic/sash/sash";
 import { ISplitViewItem, ISplitViewItemOpts, SplitViewItem } from "src/base/browser/secondary/splitView/splitViewItem";
 import { Disposable } from "src/base/common/dispose";
@@ -145,9 +146,9 @@ export class SplitView extends Disposable implements ISplitView {
         this.viewContainer.className = 'view-container';
 
         if (this._orientation === Orientation.Horizontal) {
-            this._size = DomUtility.getContentWidth(container);
+            this._size = DomUtility.Attrs.getContentWidth(container);
         } else {
-            this._size = DomUtility.getContentHeight(container);
+            this._size = DomUtility.Attrs.getContentHeight(container);
         }
         
 

@@ -1,8 +1,9 @@
 import { Disposable, IDisposable } from "src/base/common/dispose";
 import { CancellationError } from "src/base/common/error";
 import { Emitter, Register } from "src/base/common/event";
+import { noop } from "src/base/common/performance";
 import { CancellationToken, ICancellable } from "src/base/common/util/cacellation";
-import { isNumber } from "src/base/common/util/type";
+import { isNullable, isNumber } from "src/base/common/util/type";
 
 /**
  * {@link CancellablePromise}
@@ -12,6 +13,7 @@ import { isNumber } from "src/base/common/util/type";
  * {@link AsyncRunner}
  * {@link AsyncQueue}
  * {@link Scheduler}
+ * {@link UnbufferedScheduler}
  * {@link Throttler}
  * {@link Debouncer}
  * {@link ThrottleDebouncer}
@@ -494,7 +496,7 @@ export class Scheduler<T> implements IScheduler<T> {
 	private _eventBuffer: T[] = [];
 	private _fn: (event: T[]) => void;
 	private _delay: number;
-	private _timeoutToken?: NodeJS.Timeout;
+	private _token?: NodeJS.Timeout;
 
 	constructor(delay: number, fn: (event: T[]) => void) {
 		this._fn = fn;
@@ -504,7 +506,7 @@ export class Scheduler<T> implements IScheduler<T> {
 	public schedule(event: T, clearBuffer: boolean = false, delay: number = this._delay): void {
 		this.cancel(clearBuffer);
 		this._eventBuffer.push(event);
-		this._timeoutToken = setTimeout(() => {
+		this._token = setTimeout(() => {
 			const buffer = this._eventBuffer;
 			this._eventBuffer = [];
 			this._fn(buffer);
@@ -523,20 +525,95 @@ export class Scheduler<T> implements IScheduler<T> {
 			this._eventBuffer = [];
 		}
 
-		if (this._timeoutToken) {
-			clearTimeout(this._timeoutToken);
+		if (!isNullable(this._token)) {
+			clearTimeout(this._token);
+			this._token = undefined;
 			return true;
 		}
 		return false;
 	}
 
 	public isScheduled(): boolean {
-		return !(this._timeoutToken === undefined);
+		return !(this._token === undefined);
 	}
 
 	public dispose(): void {
 		this.cancel(true);
-		this._fn = () => {};
+		this._fn = noop;
+	}
+}
+
+/**
+ * An interface only for {@link UnbufferedScheduler}.
+ */
+export interface IUnbufferedScheduler<T> extends IDisposable {
+	
+	/**
+	 * @description Schedules the callback with the given delay and fires an 
+	 * event to the callback, if a new scheduling happens before the previous
+	 * scheduling, the previous scheduled event will be forget.
+	 * @param event Pass the event as the parameter to the callback.
+	 * @param delay Defaults to the delay option passed into the constructor.
+	 */
+	schedule(event: T, delay?: number): void;
+
+	/**
+	 * @description Determines if there is a scheduled execution.
+	 */
+	isScheduled(): boolean;
+
+	/**
+	 * @description Cancels the current scheduled execution if has any and 
+	 * returns a boolean specifies whether the cancelation successed.
+	 */
+	cancel(): boolean;
+}
+
+/**
+ * @class The only difference compares to {@link Scheduler} is that, it does not
+ * store the previous scheduled events into buffer. Only one event will be 
+ * scheduled at a time.
+ */
+export class UnbufferedScheduler<T> implements IUnbufferedScheduler<T> {
+
+	// [fields]
+
+	private _callback: (event: T) => void;
+	private readonly  _delay: number;
+	private _token?: NodeJS.Timeout;
+
+	// [constructor]
+
+	constructor(delay: number, fn: (event: T) => void) {
+		this._callback = fn;
+		this._delay = delay;
+	}
+
+	// [public methods]
+
+	public schedule(event: T, delay: number | undefined = this._delay): void {
+		this.cancel();
+		this._token = setTimeout(() => {
+			this._callback(event);
+		}, delay);
+	}
+
+	public isScheduled(): boolean {
+		return !(this._token === undefined);
+	}
+
+	public cancel(): boolean {
+		if (!isNullable(this._token)) {
+			clearTimeout(this._token);
+			this._token = undefined;
+			return true;
+		}
+		return false;
+	}
+
+	public dispose(): void {
+		this.cancel();
+		this._callback = noop;
 	}
 }
 
