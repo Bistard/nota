@@ -252,7 +252,7 @@ export abstract class ActionList<TAction extends IAction, TItem extends IActionL
             action = this.get(id);
         }
 
-        if (!action) {
+        if (!action || !action.enabled) {
             return;
         }
 
