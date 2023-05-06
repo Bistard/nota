@@ -14,6 +14,8 @@ import { ISplitViewItemOpts } from "src/base/browser/secondary/splitView/splitVi
 import { Icons } from "src/base/browser/icon/icons";
 import { IContextMenuService } from "src/code/browser/service/contextMenu/contextMenuService";
 import { ILayoutService } from "src/code/browser/service/layout/layoutService";
+import { CheckMenuAction, MenuSeperatorAction, SimpleMenuAction, SubmenuAction } from "src/base/browser/basic/menu/menuItem";
+import { KeyCode, Shortcut } from "src/base/common/keyboard";
 
 /**
  * @description A base class for Workbench to create and manage the behaviour of
@@ -177,7 +179,82 @@ class SideBarBuilder {
                         getAnchor: this.__getButtonElement(SideButtonType.SETTINGS).bind(this),
                         // TODO
                         getActions: () => {
-                            return [];
+                            return [
+                                new SimpleMenuAction({
+                                    callback: () => {},
+                                    enabled: true,
+                                    id: 'simple action 1',
+                                    tip: 'simple action 1 tip',
+                                    extraClassName: 'action1',
+                                    shortcut: new Shortcut(true, false, false, false, KeyCode.KeyA),
+                                }),
+                                MenuSeperatorAction.instance,
+                                new CheckMenuAction({
+                                    onChecked: (checked) => {
+                                        console.log('checked:', checked);
+                                    },
+                                    checked: true,
+                                    enabled: true,
+                                    id: 'simple action 2',
+                                    tip: 'simple action 2 tip',
+                                    extraClassName: 'action2',
+                                    shortcut: new Shortcut(true, false, false, true, KeyCode.KeyD),
+                                }),
+                                new SimpleMenuAction({
+                                    callback: () => console.log('action 3 executed'),
+                                    enabled: false,
+                                    id: 'simple action 3',
+                                    tip: 'simple action 3 tip',
+                                    extraClassName: 'action3',
+                                }),
+                                MenuSeperatorAction.instance,
+                                new SimpleMenuAction({
+                                    callback: () => console.log('action 4 executed'),
+                                    enabled: true,
+                                    id: 'simple action 4',
+                                    tip: 'simple action 4 tip',
+                                    extraClassName: 'action4',
+                                    shortcut: new Shortcut(false, false, false, false, KeyCode.F12),
+                                }),
+                                new SubmenuAction(
+                                    [
+                                        new SimpleMenuAction({
+                                            callback: () => console.log('action 6 executed'),
+                                            enabled: true,
+                                            id: 'simple action 6',
+                                            tip: 'simple action 6 tip',
+                                            extraClassName: 'action6',
+                                        }),
+                                        MenuSeperatorAction.instance,
+                                        new SimpleMenuAction({
+                                            callback: () => console.log('action 7 executed'),
+                                            enabled: true,
+                                            id: 'simple action 7',
+                                            tip: 'simple action 7 tip',
+                                            extraClassName: 'action7',
+                                        }),
+                                        new SimpleMenuAction({
+                                            callback: () => console.log('action 8 executed'),
+                                            enabled: true,
+                                            id: 'simple action 8',
+                                            tip: 'simple action 8 tip',
+                                            extraClassName: 'action8',
+                                        }),
+                                        MenuSeperatorAction.instance,
+                                        new SimpleMenuAction({
+                                            callback: () => console.log('action 9 executed'),
+                                            enabled: true,
+                                            id: 'simple action 9',
+                                            tip: 'simple action 9 tip',
+                                            extraClassName: 'action9',
+                                        }),
+                                    ], {
+                                    enabled: true,
+                                    id: 'submenu 5',
+                                    tip: 'submenu 5 tip',
+                                    extraClassName: 'action5',
+                                }),
+                            ];
                         },
                         getContext: () => {
                             return undefined;

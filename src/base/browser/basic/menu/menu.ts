@@ -1,6 +1,6 @@
 import "src/base/browser/basic/menu/menu.scss";
 import { FocusTracker } from "src/base/browser/basic/focusTracker";
-import { IMenuAction, IMenuItem, MenuItemType, MenuSeperatorItem, SingleMenuItem, SubmenuAction, SubmenuItem } from "src/base/browser/basic/menu/menuItem";
+import { CheckMenuItem, IMenuAction, IMenuItem, MenuAction, MenuItemType, MenuSeperatorItem, SimpleMenuItem, SubmenuAction, SubmenuItem } from "src/base/browser/basic/menu/menuItem";
 import { ActionList, ActionRunner, IAction, IActionItemProvider, IActionList, IActionListOptions, IActionRunEvent } from "src/base/common/action";
 import { addDisposableListener, Direction, DomEventHandler, DomUtility, EventType } from "src/base/browser/basic/dom";
 import { Emitter, Register } from "src/base/common/event";
@@ -11,6 +11,7 @@ import { AnchorMode, calcViewPositionAlongAxis } from "src/base/browser/basic/vi
 import { AnchorAbstractPosition } from "src/base/browser/basic/view";
 import { DisposableManager } from "src/base/common/dispose";
 import { FastElement } from "src/base/browser/basic/fastElement";
+import { RGBA } from "src/base/common/color";
 
 export interface IMenuActionRunEvent extends IActionRunEvent {
     readonly action: IMenuAction;
@@ -19,7 +20,7 @@ export interface IMenuActionRunEvent extends IActionRunEvent {
 /**
  * An inteface only for {@link BaseMenu}.
  */
-export interface IMenu extends IActionList<IMenuAction, IMenuItem> {
+export interface IMenu extends IActionList<MenuAction, IMenuItem> {
 
     /**
      * The HTMLElement of the {@link IMenu}.
@@ -104,7 +105,7 @@ export interface IMenuOptions extends IActionListOptions<IMenuAction, IMenuItem>
  * @note The {@link BaseMenu} do not handle the concrete construction of each
  * {@link IMenuItem}. Instead, the inheritance should handle it.
  */
-export abstract class BaseMenu extends ActionList<IMenuAction, IMenuItem> implements IMenu {
+export abstract class BaseMenu extends ActionList<MenuAction, IMenuItem> implements IMenu {
 
     // [fields]
 
@@ -140,6 +141,11 @@ export abstract class BaseMenu extends ActionList<IMenuAction, IMenuItem> implem
         this._element = document.createElement('div');
         this._element.className = BaseMenu.CLASS_NAME;
         
+        {
+            this._element.style.setProperty('--menu-item-height', '30px');
+            this._element.style.setProperty('--menu-item-focus-background-color', (new RGBA(100, 200, 100).toString()));
+        }
+
         this._currFocusedIndex = -1;
         this._triggerKeys = opts.triggerKeys ?? [KeyCode.Enter, KeyCode.Space];
         this._focusTracker = this.__register(new FocusTracker(this._element, true));
@@ -164,7 +170,7 @@ export abstract class BaseMenu extends ActionList<IMenuAction, IMenuItem> implem
         return this._contextProvider();
     }
 
-    public build(actions: IMenuAction[]): void {
+    public build(actions: MenuAction[]): void {
         if (this._built) {
             throw new Error('Menu cannot build twice.');
         }
@@ -387,13 +393,17 @@ export class Menu extends BaseMenu {
 
     constructor(container: HTMLElement, opts: IMenuOptions) {
         super(container, opts);
-        this.addActionItemProvider((action: IMenuAction) => {
+        this.addActionItemProvider((action: MenuAction) => {
             if (action.type === MenuItemType.Seperator) {
                 return new MenuSeperatorItem(action);
             }
     
             else if (action.type === MenuItemType.General) {
-                return new SingleMenuItem(action);
+                return new SimpleMenuItem(action);
+            }
+
+            else if (action.type === MenuItemType.Check) {
+                return new CheckMenuItem(action);
             }
     
             return undefined;
@@ -440,11 +450,11 @@ export abstract class MenuDecorator implements IMenu {
         return this._menu.getContext();
     }
 
-    public build(actions: IMenuAction[]): void {
+    public build(actions: MenuAction[]): void {
         this._menu.build(actions);
     }
 
-    public addActionItemProvider(provider: IActionItemProvider<IMenuAction, IMenuItem>): void {
+    public addActionItemProvider(provider: IActionItemProvider<MenuAction, IMenuItem>): void {
         this._menu.addActionItemProvider(provider);
     }
 
@@ -526,10 +536,10 @@ export class MenuWithSubmenu extends MenuDecorator {
         this._submenuCtor = submenuCtor;
         this._submenuDisposables = new DisposableManager();
 
-        this._menu.addActionItemProvider((action: IMenuAction) => {
+        this._menu.addActionItemProvider((action: MenuAction) => {
             if (action.type === MenuItemType.Submenu) {
                 
-                const item = new SubmenuItem(<SubmenuAction>action, {
+                const item = new SubmenuItem(action, {
                     closeCurrSubmenu: this.__closeCurrSubmenu.bind(this),
                     openNewSubmenu: this.__openNewSubmenu.bind(this),
                     isSubmenuActive: () => !!this._submenu,

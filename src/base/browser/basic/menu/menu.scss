@@ -1,89 +1,87 @@
 @use 'src/styles/components/visualization';
 
+$menu-item-height: var(--menu-item-height);
+$menu-item-focus-background-color: var(--menu-item-focus-background-color);
+
 .menu {
     height: 100%;
-    width: 100%;
+    width: auto;
     
     display: flex;
     flex-direction: column;
-    flex-shrink: 1;
     
-    margin: 0 auto;
-    padding: 0;
     align-items: center;
-    white-space: nowrap;
-    overflow: hidden;
-
+    
     &:focus {
         outline: none;
     }
 
     & > .base-item {
-        display: block;
-        position: relative;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
+        @include visualization.text(none, 10pt, center);
 
-        margin-left: 4px;
-        margin-right: 4px;
+        position: relative;
+        cursor: pointer;
+        
+        height: $menu-item-height;
+        width: 100%;
+        
+        border-radius: 4px;
+        box-sizing: border-box;
+
+        &:focus {
+            outline: none;
+        }
 
         &.disabled {
             color: #bbb;
             cursor: default;
         }
-    }
 
-    & > .base-item:first-child {
-        margin-top: 4px;
-    }
-
-    & > .base-item:last-child {
-        margin-bottom: 4px;
+        display: grid;
+        grid-template-columns: $menu-item-height auto $menu-item-height;
+        
+        & > .left-part, .content, .right-part {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            white-space: nowrap;
+            box-sizing: border-box;
+        }
     }
 
     & > .seperator {
-        width: 1px;
-        height: 16px;
-        margin: 5px 4px !important;
-        cursor: default;
-        min-width: 1px;
-        padding: 0;
-        
-        background-color: #bbb;
+        height: 1px;
+        width: 100%;
+        margin-top: 4px;
+        margin-bottom: 4px;
+        background-color: #bbbbbb;
     }
 
-    & .menu-item {
-        width: auto;
+    & > .menu-item {
         
-        margin-left: 5%;
-        margin-right: 5%;
-
-        display: flex;
-        flex-direction: row;
-        align-items: center;
-        white-space: nowrap;
-        
-        & > * {
-            position: absolute;
-            @include visualization.text(none, 10pt, center);
-        }
-
         &.focused {
-            background-color: burlywood;
+            background-color: $menu-item-focus-background-color;
         }
 
-        & > .menu-item-name {
-            left: 0px;
-        }
-    
-        & > .menu-item-shortcut {
-            right: 0px;
+        & > .left-part {
+            & > .checked {
+                // TODO
+            }
         }
 
-        & > .submenu-item-arrow {
-            right: 0px;
-            font-size: 10px;
+        & > .content {
+            justify-content: space-between;
+
+            // the ones after the name
+            & > .menu-item-name ~ * {
+                margin-left: 30px;
+            }
+        }
+
+        & > .right-part {
+            & > .submenu-item-arrow {
+                font-size: 10px;
+            }
         }
     }
 }

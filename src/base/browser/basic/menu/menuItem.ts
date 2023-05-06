@@ -10,12 +10,13 @@ import { noop } from "src/base/common/performance";
 import { IS_MAC } from "src/base/common/platform";
 import { UnbufferedScheduler } from "src/base/common/util/async";
 
-export type MenuAction = SingleMenuAction | SubmenuAction | MenuSeperatorAction;
+export type MenuAction = SimpleMenuAction | SubmenuAction | MenuSeperatorAction | CheckMenuAction;
 
 export const enum MenuItemType {
     General,
     Seperator,
     Submenu,
+    Check,
 }
 
 export interface IMenuAction extends IAction {
@@ -44,11 +45,6 @@ export interface IMenuAction extends IAction {
 export interface IMenuActionOptions extends IActionOptions {
     
     /**
-     * If the menu is checked.
-     */
-    readonly checked?: boolean;
-
-    /**
      * If the menu action has a shortcut.
      */
     readonly shortcut?: Shortcut;
@@ -58,6 +54,19 @@ export interface IMenuActionOptions extends IActionOptions {
      * the menu.
      */
     readonly extraClassName?: string;
+}
+
+export interface ICheckMenuActionOptions extends Omit<IMenuActionOptions, 'callback'> {
+    
+    /**
+     * If the menu is checked.
+     */
+    readonly checked: boolean;
+
+    /**
+     * Invokes whenever the menu action is checked or not.
+     */
+    readonly onChecked: (checked: boolean) => void;
 }
 
 export interface ISubmenuActionOptions extends Omit<IActionOptions, 'callback'> {
@@ -74,7 +83,6 @@ class __BaseMenuAction<TType extends MenuItemType> extends Action implements IMe
     // [fields]
 
     public readonly type: TType;
-    public checked?: boolean;
     public shortcut?: Shortcut;
 
     public readonly extraClassName?: string;
@@ -84,16 +92,52 @@ class __BaseMenuAction<TType extends MenuItemType> extends Action implements IMe
     constructor(type: TType, opts: IMenuActionOptions) {
         super(opts);
         this.type = type;
-        this.checked = opts.checked;
         this.shortcut = opts.shortcut;
         this.extraClassName = opts.extraClassName;
     }
 }
 
-export class SingleMenuAction extends __BaseMenuAction<MenuItemType.General> {
+export class SimpleMenuAction extends __BaseMenuAction<MenuItemType.General> {
 
     constructor(opts: IMenuActionOptions) {
         super(MenuItemType.General, opts);
+    }
+}
+
+export class MenuSeperatorAction extends __BaseMenuAction<MenuItemType.Seperator> {
+    
+    // [fields]
+
+    public static readonly instance = new MenuSeperatorAction();
+    
+    // [constructor]
+
+    private constructor() {
+        super(MenuItemType.Seperator, {
+            callback: noop,
+            enabled: false,
+            id: 'seperator',
+        });
+    }
+}
+
+export class CheckMenuAction extends __BaseMenuAction<MenuItemType.Check> {
+
+    // [fields]
+
+    public checked: boolean;
+
+    // [constructor]
+
+    constructor(opts: ICheckMenuActionOptions) {
+        super(MenuItemType.Check, {
+            ...opts,
+            callback: () => {
+                this.checked = !this.checked;
+                opts.onChecked(this.checked);
+            },
+        });
+        this.checked = opts.checked;
     }
 }
 
@@ -118,23 +162,6 @@ export class SubmenuAction extends __BaseMenuAction<MenuItemType.Submenu> {
 
     set onRun(fn: () => void) {
         this._onRun = fn;
-    }
-}
-
-export class MenuSeperatorAction extends __BaseMenuAction<MenuItemType.Seperator> {
-    
-    // [fields]
-
-    public static readonly instance = new MenuSeperatorAction();
-    
-    // [constructor]
-
-    private constructor() {
-        super(MenuItemType.Seperator, {
-            callback: noop,
-            enabled: false,
-            id: 'seperator',
-        });
     }
 }
 
@@ -179,6 +206,12 @@ export interface IMenuItem extends IActionListItem, IDisposable {
     blur(): void;
 }
 
+type RenderObject = {
+    readonly leftPart: HTMLElement;
+    readonly content: HTMLElement;
+    readonly rightPart: HTMLElement;
+}
+
 /**
  * @class The {@link AbstractMenuItem} pre-defines a series of event listeners 
  * on the HTMLElement.
@@ -188,9 +221,10 @@ export abstract class AbstractMenuItem extends ActionListItem implements IMenuIt
     // [fields]
 
     declare public readonly action: IMenuAction;
-    public readonly element: FastElement<HTMLElement>;
     private _actionRunner?: (action: IMenuAction) => void;
 
+    public readonly element: FastElement<HTMLElement>;
+    
     protected _mouseover: boolean;
 
     // [event]
@@ -265,12 +299,30 @@ export abstract class AbstractMenuItem extends ActionListItem implements IMenuIt
     /**
      * @description Override for additional rendering purpose.
      */
-    protected __render(): void {
+    protected __render(): RenderObject {
         this.element.addClassList('base-item');
         if (this.action.extraClassName) {
             this.element.addClassList(this.action.extraClassName);
         }
         this.element.toggleClassName('disabled', !this.action.enabled);
+
+        // left-part
+        const leftPart = document.createElement('div');
+        leftPart.className = 'left-part';
+
+        // content-part
+        const content = document.createElement('div');
+        content.className = 'content';
+        
+        // right-part
+        const rightPart = document.createElement('div');
+        rightPart.className = 'right-part';
+
+        this.element.appendChild(leftPart);
+        this.element.appendChild(content);
+        this.element.appendChild(rightPart);
+
+        return { leftPart, content, rightPart };
     }
 
     /**
@@ -363,9 +415,10 @@ export class MenuSeperatorItem extends AbstractMenuItem {
         // noop
     }
 
-    protected override __render(): void {
-        super.__render();
+    protected override __render(): RenderObject {
+        const container = super.__render();
         this.element.addClassList('seperator');
+        return container;
     }
 
     protected override __registerListeners(): void {
@@ -374,17 +427,17 @@ export class MenuSeperatorItem extends AbstractMenuItem {
 }
 
 /**
- * @class {@link SingleMenuItem} provides a general functionality as a menu item
+ * @class {@link SimpleMenuItem} provides a general functionality as a menu item
  * that can response to user click.
  */
-export class SingleMenuItem extends AbstractMenuItem {
+export class SimpleMenuItem extends AbstractMenuItem {
     
     constructor(action: IMenuAction) {
         super(action);
     }
 
-    protected override __render(): void {
-        super.__render();
+    protected override __render(): RenderObject {
+        const container = super.__render();
 
         this.element.addClassList('menu-item');
 
@@ -399,14 +452,48 @@ export class SingleMenuItem extends AbstractMenuItem {
             shortcut.textContent = this.action.shortcut.toString();
         }
 
-        this.element.appendChild(name);
+        container.content.appendChild(name);
         if (shortcut) {
-            this.element.appendChild(shortcut);
+            container.content.appendChild(shortcut);
         }
+
+        return container;
     }
 
     protected override __registerListeners(): void {
         super.__registerListeners();
+    }
+}
+
+export class CheckMenuItem extends SimpleMenuItem {
+
+    // [fields]
+
+    // [constructor]
+
+    constructor(action: CheckMenuAction) {
+        super(action);
+    }
+
+    // [public methods]
+
+    protected override __render(): RenderObject {
+        const container = super.__render();
+
+        if (!this.action.checked) {
+            return container;
+        }
+
+        // TODO: render selected part
+        // const checkedIcon = 
+
+        return container;
+    }
+
+    protected override __registerListeners(): void {
+        super.__registerListeners();
+
+        // TODO: onClick event
     }
 }
 
@@ -484,8 +571,8 @@ export class SubmenuItem extends AbstractMenuItem {
 
     // [protected override methods]
 
-    protected override __render(): void {
-        super.__render();
+    protected override __render(): RenderObject {
+        const container = super.__render();
         
         this.element.addClassList('menu-item');
 
@@ -493,10 +580,13 @@ export class SubmenuItem extends AbstractMenuItem {
         name.className = 'menu-item-name';
         name.textContent = this.action.id;
 
+        // TODO: wrong icon, switch to AngleRight.
         const arrow = createIcon(Icons.AngleDown, ['submenu-item-arrow']);
         
-        this.element.appendChild(name);
-        this.element.appendChild(arrow);
+        container.content.appendChild(name);
+        container.rightPart.appendChild(arrow);
+
+        return container;
     }
 
     protected override __registerListeners(): void {
