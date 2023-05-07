@@ -578,7 +578,6 @@ export class SubmenuItem extends AbstractMenuItem {
         name.className = 'menu-item-name';
         name.textContent = this.action.id;
 
-        // TODO: wrong icon, switch to AngleRight.
         const arrow = createIcon(Icons.AngleRight, ['submenu-item-arrow']);
         
         container.content.appendChild(name);
