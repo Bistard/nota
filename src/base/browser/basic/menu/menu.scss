@@ -64,8 +64,8 @@ $menu-item-focus-background-color: var(--menu-item-focus-background-color);
         }
 
         & > .left-part {
-            & > .checked {
-                // TODO
+            & > .submenu-item-check {
+                font-size: 10px;
             }
         }
 

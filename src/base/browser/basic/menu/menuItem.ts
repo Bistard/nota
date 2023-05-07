@@ -484,16 +484,14 @@ export class CheckMenuItem extends SimpleMenuItem {
             return container;
         }
 
-        // TODO: render selected part
-        // const checkedIcon = 
+        const checkIcon = createIcon(Icons.Check, ['submenu-item-check']);
+        container.leftPart.appendChild(checkIcon);
 
         return container;
     }
 
     protected override __registerListeners(): void {
         super.__registerListeners();
-
-        // TODO: onClick event
     }
 }
 
@@ -581,7 +579,7 @@ export class SubmenuItem extends AbstractMenuItem {
         name.textContent = this.action.id;
 
         // TODO: wrong icon, switch to AngleRight.
-        const arrow = createIcon(Icons.AngleDown, ['submenu-item-arrow']);
+        const arrow = createIcon(Icons.AngleRight, ['submenu-item-arrow']);
         
         container.content.appendChild(name);
         container.rightPart.appendChild(arrow);

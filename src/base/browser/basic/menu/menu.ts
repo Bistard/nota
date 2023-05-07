@@ -141,6 +141,7 @@ export abstract class BaseMenu extends ActionList<MenuAction, IMenuItem> impleme
         this._element = document.createElement('div');
         this._element.className = BaseMenu.CLASS_NAME;
         
+        // TODO: move into ThemeService
         {
             this._element.style.setProperty('--menu-item-height', '30px');
             this._element.style.setProperty('--menu-item-focus-background-color', (new RGBA(100, 200, 100).toString()));
