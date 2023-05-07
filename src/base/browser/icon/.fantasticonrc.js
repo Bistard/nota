@@ -3,8 +3,6 @@
  * font icons using `fantasticon`.
  */
 
-console.log(process.env.outputDir);
-
 const configuration = {
     inputDir: process.env.inputDir,     // (required) eg. 'assets/svg'
     outputDir: process.env.outputDir,   // (required) eg. 'src/base/browser/icon'

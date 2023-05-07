@@ -1,5 +1,7 @@
 // @ts-check
 
+const { options } = require("benchmark");
+
 /**
  * @typedef {Record<string, { 
  *      command: string, 
@@ -78,8 +80,7 @@ const configuration = {
 
     "test": {
         command: "mochapack --webpack-config ./scripts/webpack.config.test.js \"test/**/*.test.ts\" --ui tdd -r jsdom-global/register --timeout 10000",
-        description: 'Run all the unit tests stores in the files which end with .test.ts under the ./test directory.\n' +
-                      'If any of the tests or suites are marked as `only`, the command will only execute those.\n' +
+        description: 'Run all the unit tests stores in the files which end with .test.ts under the ./test directory. If any of the tests or suites are marked as `only`, the command will only execute those.\n' +
                       'e.g. Writing `suite.only(\'suite-name\', () => {})` in the source file.',
         options: [
             {
@@ -105,7 +106,22 @@ const configuration = {
 
     "_gen-icons": {
         command: "node ./scripts/icon.js",
-        description: 'Regenerate the icon files.'
+        description: 'The script will try to remove all the prefix of every svg files that are downloaded from the website, and regenerate the icon from svg into font file using `fantasticon`.\n' +
+                     'Icon library: https://www.flaticon.com/uicons/interface-icons',
+        options: [
+            {
+                flags: ['--force'],
+                descriptions: [
+                    'Force the script to regenerate icon files even there is no changes or missing target files.',
+                ]
+            },
+            {
+                flags: ['--extra=NewIconName1|NewIconName2'],
+                descriptions: [
+                    'A way to manually add extra icons even the code section does not use it yet. The caller should provide a list of icon file names seperated by \'|\'. Each name should be in Hanguarian Notation except that the first character should also be capitalized.'
+                ]
+            }
+        ]
     },
 }
 

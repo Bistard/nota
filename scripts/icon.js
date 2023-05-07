@@ -25,13 +25,13 @@ const utils = require("./utility");
  * should also be capitalized.
  *      --extra=NewIconName1|NewIconName2
  */
-run();
 
+run();
 
 async function run() {
     console.log(`${utils.getTime(utils.c.FgGreen)} Running icon.js.`);
 
-    const srcRoot = './assets/svg';
+    const srcRoot = './assets/src-svg';
     const outputRoot = './src/base/browser/icon';
     const codeRoot = './src';
 
@@ -40,13 +40,15 @@ async function run() {
     console.log(`${utils.getTime()} [script arguments]`, CLIArgv);
     const force = (CLIArgv.force == 'true');
     const extraIcons = CLIArgv.extra?.split(':') ?? [];
-    console.log(extraIcons);
     
     /**
-     * Either force to regenerate files or, check if any prefix need to remove 
-     * or any missing target icon files.
+     * Either:
+     *      - force to regenerate files, 
+     *      - any extra icons is required,
+     *      - check if any prefix need to remove,
+     *      - any missing target icon files.
      */
-    const needed = force || (extraIcons.length > 0) || await checkIfRegenerate(outputRoot);
+    const needed = force || (extraIcons.length > 0) || await checkIfRegenerate(srcRoot, outputRoot);
     if (!needed) {
         return;
     }
@@ -62,16 +64,19 @@ async function run() {
 //#region helper functions
 
 /**
+ * @param {string} srcRoot The root path of the resource of the icons.
  * @param {string} outputRoot The root path for the generated files.
  */
-async function checkIfRegenerate(outputRoot) {
+async function checkIfRegenerate(srcRoot, outputRoot) {
+    
     let count = 0;
     const getName = (name) => {
         const parts = name.split('-');
 
         /**
-         * Since the prefix has a form of `xx-xx-name.svg`. Instead of using `-` 
-         * as a seperator, we use the Hungarian Notation.
+         * Since the prefix of each svg file has a form of `xx-xx-name.svg`. 
+         * Instead of using `-` as a seperator, we replace it with the Hungarian
+         * Notation.
          */
         if (parts.length >= 3) {
             const removedParts = parts.slice(2);
@@ -93,8 +98,7 @@ async function checkIfRegenerate(outputRoot) {
     await (async function removePrefix() {
         console.log(`${utils.getTime()} Removing prefix...`);
 
-        const root = './assets/svg';
-        const files = await fs.promises.readdir(root, { withFileTypes: true });
+        const files = await fs.promises.readdir(srcRoot, { withFileTypes: true });
         for (const file of files) {
             
             if (!file.isFile()) {
@@ -108,7 +112,7 @@ async function checkIfRegenerate(outputRoot) {
                 continue;
             }
 
-            await fs.promises.rename(path.resolve(root, oldName), path.resolve(root, newName));
+            await fs.promises.rename(path.resolve(srcRoot, oldName), path.resolve(srcRoot, newName));
             count++;
         }
     })();
@@ -149,15 +153,16 @@ async function checkIfRegenerate(outputRoot) {
  * @param {string} outputRoot The root path for the generated files.
  */
 async function generateIcons(srcRoot, outputRoot) {
+    console.log(`${utils.getTime()} Start creating Icon Font at ${srcRoot} using Fantasticon...`);
 
     let resolve;
     const promise = new Promise((res, rej) => { resolve = res; });
     process.env.inputDir = srcRoot;
     process.env.outputDir = outputRoot;
 
-    const configPath = outputRoot + '/.fantasticonrc.js';
+    const configPath = path.join(outputRoot, '.fantasticonrc.js');
     const spawn = childProcess.spawn(
-        `fantasticon -utils.c ${configPath}`, 
+        `fantasticon -c ${configPath}`, 
         [], 
         {
             env: process.env,
@@ -198,7 +203,7 @@ async function generateIcons(srcRoot, outputRoot) {
  * @param {string} outputRoot The root directory of the files.
  */
 async function repair(outputRoot) {
-    console.log(`${utils.getTime(utils.c.FgGreen)} start fixing generated icon files....`);
+    console.log(`${utils.getTime(utils.c.FgGreen)} start fixing generated Icon Fonts at ${outputRoot}....`);
 
     const fixFileName = 'icons.ts';
     const expectedFirstLine = 'export enum Icons {';
@@ -247,48 +252,36 @@ async function repair(outputRoot) {
  * for usage.
  */
 async function reduceUnusedIcons(srcRoot, codeRoot, outputRoot, extraIcons) {
-    console.log(`${utils.getTime(utils.c.FgGreen)} Start removing unsed icons...`);
+    
+    console.log(`${utils.getTime(utils.c.FgGreen)} Start removing unused icons...`);
+    const svgRoot = path.resolve(srcRoot, './../svg');
 
-    // create a temporary directory to store all the used icon svg
-    const tempRoot = path.resolve(srcRoot, 'temp');
-    try {
-        await fs.promises.rm(tempRoot, { force: true, recursive: true });
-    } catch {}
-    await fs.promises.mkdir(tempRoot);
-
+    // clean up
+    // TODO: clean up unused icons
 
     // scans the used icons and copy each used icon file into the temporary root path
-    await scanUsedIcons(srcRoot, codeRoot, tempRoot, extraIcons);
+    await scanUsedIcons(srcRoot, codeRoot, svgRoot, extraIcons);
 
-
-    // regenerate icons from the tempRoot
-    console.log(`${utils.getTime()} Start creating icon files...`);
-    await generateIcons(tempRoot, outputRoot);
-    console.log(`${utils.getTime(utils.c.FgGreen)} Creation finished.`);
-
-
+    // regenerate icons from the svgRoot
+    await generateIcons(svgRoot, outputRoot);
+    console.log(`${utils.getTime(utils.c.FgGreen)} Creation of Font Icon finished.`);
+    
     // repair generated typescript file
     await repair(outputRoot);
-
-    
-    // clean up
-    console.log(`${utils.getTime()} Cleanning temporary icon files....`);
-    await fs.promises.rm(tempRoot, {force: true, recursive: true});
-    console.log(`${utils.getTime(utils.c.FgGreen)} Cleanning finished.`);
 }
 
 /**
  * @param {string} srcRoot The root path of the resource of the icons.
  * @param {string} codeRoot The root path of the resource of the entire code section.
- * @param {string} tempRoot The temporary root path of the resource of the icons.
+ * @param {string} outputRoot The output path of the required resource of the icons.
  * @param {string[]} extraIcons An array of string that contains the extra icons.
  */
-async function scanUsedIcons(srcRoot, codeRoot, tempRoot, extraIcons) {
+async function scanUsedIcons(srcRoot, codeRoot, outputRoot, extraIcons) {
     
     /**
-     * Finds out all the icons first. These icon names should has a hanguarain 
-     * notaion. Such as xxxYyyZzz or xxx. We need to convert them to XxxYyyZzz 
-     * or Xxx.
+     * Finds out all the possible icon names first. These icon names should has 
+     * a hanguarain notaion. Such as xxxYyyZzz or xxx. We need to convert them 
+     * to XxxYyyZzz or Xxx.
      */
     const allIcons = 
         (await fs.promises.readdir(srcRoot, { withFileTypes: true }))
@@ -296,7 +289,7 @@ async function scanUsedIcons(srcRoot, codeRoot, tempRoot, extraIcons) {
         .map(target => path.parse(target.name).name)
         .map(name => utils.setCharAt(name, 0, name[0].toUpperCase()))
     ;
-    console.log(`${utils.getTime()} There are total of ${allIcons.length} of valid icons.`);
+    console.log(`${utils.getTime()} There are total of ${allIcons.length} of valid icon files found at ${srcRoot}.`);
     
     /**
      * Create the regular expression based on all the icons we have.
@@ -306,13 +299,16 @@ async function scanUsedIcons(srcRoot, codeRoot, tempRoot, extraIcons) {
     const regexp = new RegExp(`\\bIcons\\.(${allIcons.join('|')})\\b`, 'g');
     const usedIcons = new Set();
     
-    // put any extra icons first if provided
+    // put extra icons first if provided any
     for (const extraIcon of extraIcons) {
         usedIcons.add(extraIcon);
     }
 
-    // callback for every directory
-    console.log(`${utils.getTime()} Start scanning repository at '${codeRoot}'...`);
+    /**
+     * callback for every directory, iterate every files in the `codeRoot` and
+     * searching for any using
+     */
+    console.log(`${utils.getTime()} Start scanning repository at '${codeRoot}' for used icons...`);
     const scan = async (parentPath) => {
         const targets = await fs.promises.readdir(parentPath, { withFileTypes: true });
         
@@ -332,26 +328,32 @@ async function scanUsedIcons(srcRoot, codeRoot, tempRoot, extraIcons) {
             }
         }
     };
+    
     await scan(codeRoot);
-    console.log(`${utils.getTime()} Scanning ended.`);
-    console.log(`${utils.getTime()} Detected total of ${usedIcons.size} of used icons in the code section.`);
+    console.log(`${utils.getTime()} Detected total of ${usedIcons.size} of already used icons at the repository ${codeRoot}.`);
     
     /**
-     * Loop all the icons again and copy all the used icons into the temp 
+     * Loop all the icons again and copy all the used icons into the output 
      * directory.
      */
+    await copyUsedIconsForTracking(srcRoot, outputRoot, allIcons, usedIcons);
+}
+
+async function copyUsedIconsForTracking(srcRoot, outputRoot, allIcons, usedIcons) {
+    
+    console.log(`${utils.getTime()} Copying total of ${usedIcons.size} of already used icons into ${outputRoot}...`);
+    
     for (const icon of allIcons) {
         if (usedIcons.has(icon)) {
             lowerCaseIcon = utils.setCharAt(icon, 0, icon[0].toLowerCase()) + '.svg';
-            await fs.promises.copyFile(path.resolve(srcRoot, lowerCaseIcon), path.resolve(tempRoot, lowerCaseIcon));
+            await fs.promises.copyFile(path.resolve(srcRoot, lowerCaseIcon), path.resolve(outputRoot, lowerCaseIcon));
             usedIcons.delete(icon);
         }
     }
 
+    process.stdout.write(`${utils.getTime(utils.c.FgRed)} Detected total of ${usedIcons.size} of untracked icons.\n`);
     if (usedIcons.size > 0) {
-        process.stdout.write(`${utils.getTime(utils.c.FgRed)} Detected total of ${usedIcons.size} of icons that did not found the source svg files. These are: `);
-        process.stdout.write(Array.from(usedIcons.values()).join(','));
-        process.stdout.write('.\n');
+        process.stdout.write('They are: ' + Array.from(usedIcons.values()).join(',') + '.\n');
     }
 }
 
