@@ -6,4 +6,4 @@
 /.obsidian
 
 /assets/svg/src
-/src/**/*.woff2
+/**/*.woff2
