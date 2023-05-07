@@ -1,6 +1,7 @@
 const path = require("path");
 const fs = require('fs');
 const minimist = require("minimist");
+const childProcess = require("child_process");
 
 const _perfRecord = [];
 
@@ -104,6 +105,27 @@ const utils = new (class UtilCollection {
         } catch {
             return true;
         }
+    }
+
+    async spawnChildProcess(command, args, opts) {
+        return new Promise((res, rej) => {
+            const proc = childProcess.spawn(command, args ?? [], opts ?? {});
+            
+            proc.on('close', (code) => {
+                let fail = false;
+                
+                if (code) {
+                    fail = true;
+                    process.stdout.write(`${utils.getTime(utils.c.FgRed)} child process exited with error code ${code}`);
+                }
+                
+                if (fail) {
+                    rej(code);
+                } else {
+                    res(0);
+                }
+            });
+        });
     }
 });
 
