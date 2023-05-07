@@ -203,39 +203,58 @@ async function generateIcons(srcRoot, outputRoot) {
  * @param {string} outputRoot The root directory of the files.
  */
 async function repair(outputRoot) {
-    console.log(`${utils.getTime(utils.c.FgGreen)} start fixing generated Icon Fonts at ${outputRoot}....`);
+    console.log(`${utils.getTime(utils.c.FgGreen)} start fixing the generated Icon Fonts at ${outputRoot}...`);
 
-    const fixFileName = 'icons.ts';
-    const expectedFirstLine = 'export enum Icons {';
-    const revisedFirstLine = 'export const enum Icons {';
-    const filePath = path.resolve(outputRoot, fixFileName);
+    // icons.ts
+    {
+        const fileName = 'icons.ts';
+        const expectedFirstLine = 'export enum Icons {';
+        const revisedFirstLine = 'export const enum Icons {';
+        const filePath = path.resolve(outputRoot, fileName);
+        
+        console.log(`${utils.getTime(utils.c.FgGreen)} start fixing the generated file ${fileName}...`);
 
-    const content = (await fs.promises.readFile(filePath)).toString();
-    
-    let firstLine = '';
-    let i;
-    for (i = 0; i < content.length; i++) {
-        const c = content[i];
-        if (c == '\n' || c == '\r') {
-            break;
+        const content = (await fs.promises.readFile(filePath)).toString();
+        
+        let firstLine = '';
+        let i;
+        for (i = 0; i < content.length; i++) {
+            const c = content[i];
+            if (c == '\n' || c == '\r') {
+                break;
+            }
+            firstLine += c;
         }
-        firstLine += c;
+
+        // if the first line is not what we expected, we do nothing.
+        console.log(`${utils.getTime()} The first line of ${fileName} is '${firstLine}'.`);
+        if (firstLine !== expectedFirstLine) {
+            console.log(`${utils.getTime()} The first line is not the same as '${expectedFirstLine}' as expected. Thus we fix nothing for safety purpose.`);
+            return;
+        }
+
+        console.log(`${utils.getTime()} The first line will be replace by '${revisedFirstLine}'`);
+        while (content[i] == '\n' || content[i] == '\r') {
+            i++;
+        }
+
+        const newContent = revisedFirstLine + '\n' + content.substring(i, undefined);
+        await fs.promises.writeFile(filePath, newContent);
     }
 
-    // if the first line is not what we expected, we do nothing.
-    console.log(`${utils.getTime()} The first line of ${fixFileName} is '${firstLine}'.`);
-    if (firstLine !== expectedFirstLine) {
-        console.log(`${utils.getTime()} The first line is not the same as '${expectedFirstLine}' as expected. Thus we fix nothing for safety purpose.`);
-        return;
+    // icons.css
+    {
+        const fileName = 'icons.css';
+        const filePath = path.resolve(outputRoot, fileName);
+        const content = (await fs.promises.readFile(filePath)).toString();
+        
+        console.log(`${utils.getTime(utils.c.FgGreen)} start fixing the generated file ${fileName}...`);
+        
+        const regexp = /(url\("\.\/icons\.woff2)\?[^"]+/;
+        const newContent = content.replace(regexp, '$1');
+        
+        await fs.promises.writeFile(filePath, newContent);
     }
-
-    console.log(`${utils.getTime()} The first line will be replace by '${revisedFirstLine}'`);
-    while (content[i] == '\n' || content[i] == '\r') {
-        i++;
-    }
-
-    const newContent = revisedFirstLine + '\n' + content.substring(i, undefined);
-    await fs.promises.writeFile(filePath, newContent);
 
     console.log(`${utils.getTime(utils.c.FgGreen)} Fix successfully.`);
 }
@@ -317,7 +336,7 @@ async function scanUsedIcons(srcRoot, codeRoot, outputRoot, extraIcons) {
             
             if (target.isFile()) {
                 const content = (await fs.promises.readFile(currPath)).toString();
-                let result = content.matchAll(regexp);
+                const result = content.matchAll(regexp);
                 for (const res of result) {
                     const usedIcon = res[1];
                     usedIcons.add(usedIcon);
