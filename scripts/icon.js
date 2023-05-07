@@ -98,7 +98,14 @@ async function checkIfRegenerate(srcRoot, outputRoot) {
     await (async function removePrefix() {
         console.log(`${utils.getTime()} Removing prefix...`);
 
-        const files = await fs.promises.readdir(srcRoot, { withFileTypes: true });
+        let files;
+        try {
+            files = await fs.promises.readdir(srcRoot, { withFileTypes: true });
+        } catch (err) {
+            console.log(`${utils.getTime()} ${srcRoot} not found.`);
+            return;
+        }
+
         for (const file of files) {
             
             if (!file.isFile()) {
