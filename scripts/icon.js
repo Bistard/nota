@@ -31,9 +31,9 @@ run();
 async function run() {
     console.log(`${utils.getTime(utils.c.FgGreen)} Running icon.js.`);
 
-    const srcRoot = './assets/src-svg';
-    const outputRoot = './src/base/browser/icon';
-    const codeRoot = './src';
+    const srcRoot = path.resolve('./assets/src-svg');
+    const outputRoot = path.resolve('./src/base/browser/icon');
+    const codeRoot = path.resolve('./src');
 
     // command line argument
     const CLIArgv = minimist(process.argv.slice(2));
@@ -67,37 +67,39 @@ async function run() {
  * @param {string} srcRoot The root path of the resource of the icons.
  * @param {string} outputRoot The root path for the generated files.
  */
-async function checkIfRegenerate(srcRoot, outputRoot) {
-    
+async function checkIfRegenerate(srcRoot, outputRoot) {    
     let count = 0;
-    const getName = (name) => {
-        const parts = name.split('-');
-
-        /**
-         * Since the prefix of each svg file has a form of `xx-xx-name.svg`. 
-         * Instead of using `-` as a seperator, we replace it with the Hungarian
-         * Notation.
-         */
-        if (parts.length >= 3) {
-            const removedParts = parts.slice(2);
-            
-            // hungarian
-            if (removedParts.length > 1) {
-                for (let i = 1; i < removedParts.length; i++) {
-                    removedParts[i] = utils.setCharAt(removedParts[i], 0, removedParts[i][0].toUpperCase());
-                }
-            }
-
-            return removedParts.join('');
-        }
-
-        // no prefix is detected.
-        return parts.join('');
-    };
-
+    
     await (async function removePrefix() {
         console.log(`${utils.getTime()} Removing prefix...`);
 
+        const getName = (name) => {
+            const parts = name.split('-');
+    
+            /**
+             * Since the prefix of each svg file has a form of `xx-xx-name.svg`. 
+             * Instead of using `-` as a seperator, we replace it with the Hungarian
+             * Notation.
+             */
+            if (parts.length >= 3) {
+                const removedParts = parts.slice(2);
+                
+                // hungarian
+                if (removedParts.length > 1) {
+                    for (let i = 1; i < removedParts.length; i++) {
+                        removedParts[i] = utils.setCharAt(removedParts[i], 0, removedParts[i][0].toUpperCase());
+                    }
+                }
+    
+                return removedParts.join('');
+            }
+    
+            // no prefix is detected.
+            return parts.join('');
+        };
+
+        
+        // try to find original svg files from srcRoot.
         let files;
         try {
             files = await fs.promises.readdir(srcRoot, { withFileTypes: true });
@@ -106,6 +108,7 @@ async function checkIfRegenerate(srcRoot, outputRoot) {
             return;
         }
 
+        // loop all the found svg files and replace the names with the Hungarian Notation
         for (const file of files) {
             
             if (!file.isFile()) {
@@ -309,12 +312,17 @@ async function scanUsedIcons(srcRoot, codeRoot, outputRoot, extraIcons) {
      * a hanguarain notaion. Such as xxxYyyZzz or xxx. We need to convert them 
      * to XxxYyyZzz or Xxx.
      */
-    const allIcons = 
-        (await fs.promises.readdir(srcRoot, { withFileTypes: true }))
-        .filter(target => target.isFile())
-        .map(target => path.parse(target.name).name)
-        .map(name => utils.setCharAt(name, 0, name[0].toUpperCase()))
-    ;
+    let allIcons = [];
+    try {
+        allIcons = 
+            (await fs.promises.readdir(srcRoot, { withFileTypes: true }))
+            .filter(target => target.isFile())
+            .map(target => path.parse(target.name).name)
+            .map(name => utils.setCharAt(name, 0, name[0].toUpperCase()))
+        ;
+    } catch (err) {
+        // srcRoot does not exists, we ignore it.
+    }
     console.log(`${utils.getTime()} There are total of ${allIcons.length} of valid icon files found at ${srcRoot}.`);
     
     /**
