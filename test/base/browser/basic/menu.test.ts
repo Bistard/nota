@@ -1,9 +1,9 @@
 import * as assert from 'assert';
 import { Menu, MenuWithSubmenu } from 'src/base/browser/basic/menu/menu';
-import { MenuSeperatorAction, SimpleMenuAction, SubmenuAction } from 'src/base/browser/basic/menu/menuItem';
+import { CheckMenuAction, MenuSeperatorAction, SimpleMenuAction, SubmenuAction } from 'src/base/browser/basic/menu/menuItem';
 import { KeyCode, Shortcut } from 'src/base/common/keyboard';
 
-suite('menu-test', () => {
+suite.only('menu-test', () => {
 
     test('menu', () => {
 
@@ -165,6 +165,60 @@ suite('menu-test', () => {
             menu.run('simple action 2');
             assert.strictEqual(cnt, 1);
         });
+    });
+
+    test('disable menu item', () => {
+        const menu = new MenuWithSubmenu(
+            new Menu(document.body, {
+                contextProvider: () => 1,
+                actionItemProviders: [],
+            })
+        );
+
+        let pressed = false;
+        menu.build([
+            new SimpleMenuAction({
+                callback: () => {
+                    pressed = true;
+                },
+                enabled: false,
+                id: 'action 1',
+            })
+        ]);
+
+        menu.run('action 1');
+        assert.strictEqual(pressed, false);
+    });
+
+    test('check menu item', () => {
+        const menu = new MenuWithSubmenu(
+            new Menu(document.body, {
+                contextProvider: () => 1,
+                actionItemProviders: [],
+            })
+        );
+
+        let checked = false;
+
+        menu.build([
+            new CheckMenuAction({
+                checked: false,
+                enabled: true,
+                id: 'check action 1',
+                onChecked: (ifChecked) => {
+                    checked = ifChecked;
+                },
+            })
+        ]);
+
+        menu.run('check action 1');
+        assert.strictEqual(checked, true);
+
+        menu.run('check action 1');
+        assert.strictEqual(checked, false);
+
+        menu.run('check action 1');
+        assert.strictEqual(checked, true);
     });
 
 });
