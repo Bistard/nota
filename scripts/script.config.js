@@ -1,10 +1,9 @@
 // @ts-check
 
-const { options } = require("benchmark");
-
 /**
  * @typedef {Record<string, { 
  *      command: string, 
+ *      commandDescription?: string,
  *      description: string, 
  *      options?: { flags: string[], descriptions: string[] }[]
  * }>} ScriptConfiguration
@@ -106,9 +105,22 @@ const configuration = {
 
     "_gen-icons": {
         command: "node ./scripts/icon.js",
-        description: 'The script will try to remove all the prefix of every svg files that are downloaded from the website, and regenerate the icon from svg into font file using `fantasticon`.\n' +
-                     'Icon library: https://www.flaticon.com/uicons/interface-icons',
+        commandDescription: "_gen-icons <path>",
+        description: 'The script will try to remove all the prefix of every svg files that are located at <path>, and generate the icon font from svg files using `fantasticon`.\n' +
+                     'The svg files are downloaded at: https://www.flaticon.com/uicons/interface-icons',
         options: [
+            {
+                flags: ['<path>'],
+                descriptions: [
+                    'The path locates the original svg files.'
+                ]
+            },
+            {
+                flags: ['--removePrefix'],
+                descriptions: [
+                    'Given a path to the directory that stores the original svg files and remove the prefix names.',
+                ]
+            },
             {
                 flags: ['--force'],
                 descriptions: [

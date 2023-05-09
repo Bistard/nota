@@ -80,7 +80,7 @@ function executeList(configuration) {
     for (const [cmdName, config] of Object.entries(configuration)) {
         
         const { _command, description, options } = config;
-        const coloredName = utils.color(utils.c.FgGreen, cmdName);
+        const coloredName = utils.color(utils.c.FgGreen, config.commandDescription ?? cmdName);
         console.log(coloredName);
         console.log(description);
         
