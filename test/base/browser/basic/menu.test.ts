@@ -3,7 +3,7 @@ import { Menu, MenuWithSubmenu } from 'src/base/browser/basic/menu/menu';
 import { CheckMenuAction, MenuSeperatorAction, SimpleMenuAction, SubmenuAction } from 'src/base/browser/basic/menu/menuItem';
 import { KeyCode, Shortcut } from 'src/base/common/keyboard';
 
-suite.only('menu-test', () => {
+suite('menu-test', () => {
 
     test('menu', () => {
 
