@@ -3,7 +3,7 @@
  * font icons using `fantasticon`.
  */
 
-const configuration = {
+module.exports = {
     inputDir: process.env.inputDir,     // (required) eg. 'assets/svg'
     outputDir: process.env.outputDir,   // (required) eg. 'src/base/browser/icon'
     fontTypes: [/* 'ttf', 'woff', */ 'woff2'],
@@ -28,5 +28,3 @@ const configuration = {
         }
     },
 };
-
-module.exports = configuration;

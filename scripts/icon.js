@@ -4,76 +4,100 @@ const path = require("path");
 const fs = require('fs');
 const utils = require("./utility");
 
-/**
- * @description
- * The script is to remove all the prefix of every svg files that are downloaded 
- * from the website and regenerate the icon from svg into font file using 
- * `fantasticon`.
- * 
- * @note Icon library: https://www.flaticon.com/uicons/interface-icons
- * 
- * @option
- * The options of the script are listed below:
- * 
- * I. Force the script to regenerate icon files even there is no changes or 
- * missing target files.
- *      --force=true
- * 
- * II.  A way to manually add extra icons even the code section does not use it 
- * yet. The caller should provide a list of icon file names seperated by '|'. 
- * Each name should be in Hanguarian Notation except that the first character 
- * should also be capitalized.
- *      --extra=NewIconName1|NewIconName2
- */
 
+
+// script execution
 run();
 
-async function run() {
-    console.log(`${utils.getTime(utils.c.FgGreen)} Running icon.js.`);
 
-    const srcRoot = path.resolve('./assets/src-svg');
-    const outputRoot = path.resolve('./src/base/browser/icon');
-    const codeRoot = path.resolve('./src');
+async function run() {
+    console.log(`${utils.getTime(utils.c.FgGreen)} Running 'icon.js'.`);
+
+    const srcSvgRoot = './assets/svg';
+    const outputRoot = './src/base/browser/icon';
+    const codeRoot = './src';
 
     // command line argument
     const CLIArgv = minimist(process.argv.slice(2));
     console.log(`${utils.getTime()} [script arguments]`, CLIArgv);
-    const force = (CLIArgv.force == 'true');
-    const extraIcons = CLIArgv.extra?.split(':') ?? [];
+    
+    // obtain original svg file directory path
+    const originalSvgRoot = path.resolve(CLIArgv._[0] || './assets/src-svg');
+    if (!path.isAbsolute(originalSvgRoot)) {
+        console.error(`${utils.getTime(utils.c.FgRed)} Missing argument <path>.`);
+        process.exit(1);
+    }
+
+    // remove prefix given the path
+    if (CLIArgv.removePrefix) {
+        await removePrefix(originalSvgRoot);
+        return;
+    }
     
     /**
      * Either:
      *      - force to regenerate files, 
      *      - any extra icons is required,
-     *      - check if any prefix need to remove,
      *      - any missing target icon files.
      */
-    const needed = force || (extraIcons.length > 0) || await checkIfRegenerate(srcRoot, outputRoot);
-    if (!needed) {
+    const force = (CLIArgv.force == 'true' || CLIArgv.force === true || CLIArgv.f === true);
+    const extraIcons = CLIArgv.extra?.split(':') ?? [];
+    const required = force || (extraIcons.length > 0) || await checkIfMissingTargetFiles(outputRoot);
+    if (!required) {
         return;
     }
+    
+    // scans all the valid icons
+    const allValidIcons = await obtainAllValidIcons(originalSvgRoot);
+    
+    // scans all the required icons
+    const requiredIcons = await scanCodeForRequiredIcons(codeRoot, allValidIcons, extraIcons);
 
-    /**
-     * To avoid generate the entire icon libraries, we need to scan the entire
-     * code section and regenerate the icon files that does not contain any 
-     * unused icons.
-     */
-    await reduceUnusedIcons(srcRoot, codeRoot, outputRoot, extraIcons);
+    // TODO: clean up 'srcSvgRoot' for unrequired icons
+    
+    // copy required svg icon files into srcSvgRoot
+    await copyRequiredIcons(originalSvgRoot, srcSvgRoot, allValidIcons, requiredIcons);
+
+    // regenerate icon font
+    await generateIconFont(srcSvgRoot, outputRoot).then(() => console.log(`${utils.getTime(utils.c.FgGreen)} Creation of Font Icon finished.`));
+    
+    // repair generated typescript file
+    await repair(outputRoot);
+
+    console.log(`${utils.getTime(utils.c.FgGreen)} 'icon.js' completed.`);
 };
 
-//#region helper functions
+async function checkIfMissingTargetFiles(outputRoot) {
+    let missingFiles = [];
 
-/**
- * @param {string} srcRoot The root path of the resource of the icons.
- * @param {string} outputRoot The root path for the generated files.
- */
-async function checkIfRegenerate(srcRoot, outputRoot) {    
+    const checkList = [
+        'icons.css',
+        'icons.ts',
+        'icons.woff2'
+    ];
+
+    for (const name of checkList) {
+        if (await utils.ifMissingFile(outputRoot, name)) {
+            missingFiles.push(name);
+        }
+    }
+    
+    if (missingFiles.length == 0) {
+        console.log(`${utils.getTime()} There is no missing icon files.`);
+        return false;
+    }
+
+    console.log(`${utils.getTime()} There are missing icon files: ${missingFiles.join(', ')}.`);
+    return true;
+}
+
+async function removePrefix(srcRoot) {    
     let count = 0;
     
     await (async function removePrefix() {
-        console.log(`${utils.getTime()} Removing prefix...`);
+        console.log(`${utils.getTime()} Removing prefix at ${srcRoot}...`);
 
-        const getName = (name) => {
+        const convertNameToHungarian = (name) => {
             const parts = name.split('-');
     
             /**
@@ -116,7 +140,7 @@ async function checkIfRegenerate(srcRoot, outputRoot) {
             }
 
             const oldName = file.name;
-            const newName = getName(file.name);
+            const newName = convertNameToHungarian(file.name);
 
             if (oldName === newName) {
                 continue;
@@ -127,43 +151,101 @@ async function checkIfRegenerate(srcRoot, outputRoot) {
         }
     })();
 
-    if (count > 0) {
-        console.log(`${utils.getTime()} Total of ${count} files of prefix has been removed.`);
-    }
-    else {
-        console.log(`${utils.getTime()} There is no prefix to be removed.`);
-        
-        let missingFiles = [];
-
-        const checkList = [
-            'icons.css',
-            'icons.ts',
-            'icons.woff2'
-        ];
-
-        for (const name of checkList) {
-            if (await utils.ifMissingFile(outputRoot, name)) {
-                missingFiles.push(name);
-            }
-        }
-        
-        if (missingFiles.length == 0) {
-            console.log(`${utils.getTime()} There is no missing icon files.`);
-            return false;
-        }
-
-        console.log(`${utils.getTime()} There are missing icon files: ${missingFiles.join(', ')}.`);
-    }
-
+    console.log(`${utils.getTime()} Total of ${count} files of prefix has been removed.`);
     return true;
 };
 
-/**
- * @param {string} srcRoot The root path of the resource of the icons.
- * @param {string} outputRoot The root path for the generated files.
- */
-async function generateIcons(srcRoot, outputRoot) {
-    console.log(`${utils.getTime()} Start creating Icon Font at ${srcRoot} using Fantasticon...`);
+async function obtainAllValidIcons(svgRoot) {
+    console.log(`${utils.getTime()} Scanning valid icon files at '${svgRoot}'...`);
+    /**
+     * Finds out all the possible icon names first. These icon names should has 
+     * a hanguarain notaion. Such as xxxYyyZzz or xxx. We need to convert them 
+     * to XxxYyyZzz or Xxx.
+     */
+    let allValidIcons = [];
+    try {
+        allValidIcons = 
+            (await fs.promises.readdir(svgRoot, { withFileTypes: true }))
+            .filter(target => target.isFile())
+            .map(target => path.parse(target.name).name)
+            .map(name => utils.setCharAt(name, 0, name[0].toUpperCase()))
+        ;
+    } catch (err) {
+        // svgRoot does not exists, we ignore it.
+    }
+    console.log(`${utils.getTime()} There are total of ${allValidIcons.length} of valid icon files found at '${svgRoot}'.`);
+
+    return allValidIcons;
+}
+
+async function scanCodeForRequiredIcons(codeRoot, allValidIcons, extraIcons) {
+    
+    console.log(`${utils.getTime()} Start scanning repository at '${codeRoot}' for required icons...`);
+
+    /**
+     * Create the regular expression based on all the icons we have.
+     * Then we read through the entire code section to store all the icons that
+     * are used.
+     */
+    const regexp = new RegExp(`\\bIcons\\.(${allValidIcons.join('|')})\\b`, 'g');
+    const requiredIcons = new Set();
+    
+    // put extra icons first if provided any
+    for (const extraIcon of extraIcons) {
+        requiredIcons.add(extraIcon);
+    }
+
+    /**
+     * callback for every directory, iterate every files in the `codeRoot` and
+     * searching for any using
+     */
+    const scan = async (parentPath) => {
+        const targets = await fs.promises.readdir(parentPath, { withFileTypes: true });
+        
+        for (const target of targets) {
+            const currPath = path.resolve(parentPath, target.name);
+            
+            if (target.isFile()) {
+                const content = (await fs.promises.readFile(currPath)).toString();
+                const result = content.matchAll(regexp);
+                for (const res of result) {
+                    const usedIcon = res[1];
+                    requiredIcons.add(usedIcon);
+                }
+            }
+            else {
+                await scan(currPath);
+            }
+        }
+    };
+    
+    await scan(codeRoot);
+    console.log(`${utils.getTime()} Detected total of ${requiredIcons.size} of required icons at the repository '${codeRoot}'.`);
+
+    return requiredIcons;
+}
+
+async function copyRequiredIcons(srcRoot, outputRoot, allValidIcons, requiredIcons) {
+    console.log(`${utils.getTime()} Trying to copy a total of ${requiredIcons.size} of required icons from '${srcRoot}' into '${outputRoot}'...`);
+    
+    for (const validIcon of allValidIcons) {
+        if (requiredIcons.has(validIcon)) {
+            lowerCaseIcon = utils.setCharAt(validIcon, 0, validIcon[0].toLowerCase()) + '.svg';
+            await fs.promises.copyFile(path.resolve(srcRoot, lowerCaseIcon), path.resolve(outputRoot, lowerCaseIcon));
+            requiredIcons.delete(validIcon);
+        }
+    }
+
+    if (requiredIcons.size > 0) {
+        process.stdout.write(`${utils.getTime(utils.c.FgRed)} Detected total of ${requiredIcons.size} of not founded icons.\n`);
+        process.stdout.write('They are: ' + Array.from(requiredIcons.values()).join(',') + '.\n');
+    } else {
+        console.log(`${utils.getTime()} All required icons are founded the corresponding original svg files.`);
+    }
+}
+
+async function generateIconFont(srcRoot, outputRoot) {
+    console.log(`${utils.getTime()} Start creating Icon Font at '${srcRoot}' using Fantasticon...`);
 
     let resolve;
     const promise = new Promise((res, rej) => { resolve = res; });
@@ -190,39 +272,26 @@ async function generateIcons(srcRoot, outputRoot) {
     });
     
     spawn.on('close', (code) => {
-        let fail = false;
-        
         if (code) {
-            fail = true;
-            console.log(`${utils.getTime(utils.c.FgRed)} child process exited with code ${code}`);
-        } else {
-            console.log(`${utils.getTime(utils.c.FgGreen)} Building success`);
-        }
-
-        if (fail) {
             process.exit(code);
         }
-
         resolve();
     });
 
     return promise;
 };
 
-/**
- * @param {string} outputRoot The root directory of the files.
- */
 async function repair(outputRoot) {
-    console.log(`${utils.getTime(utils.c.FgGreen)} start fixing the generated Icon Fonts at ${outputRoot}...`);
+    console.log(`${utils.getTime(utils.c.FgGreen)} start fixing the generated Icon Fonts at '${outputRoot}'...`);
 
     // icons.ts
-    {
+    await (async function fixIconTs() {
         const fileName = 'icons.ts';
         const expectedFirstLine = 'export enum Icons {';
         const revisedFirstLine = 'export const enum Icons {';
         const filePath = path.resolve(outputRoot, fileName);
         
-        console.log(`${utils.getTime(utils.c.FgGreen)} start fixing the generated file ${fileName}...`);
+        console.log(`${utils.getTime(utils.c.FgGreen)} start fixing the generated file '${fileName}'...`);
 
         const content = (await fs.promises.readFile(filePath)).toString();
         
@@ -250,10 +319,10 @@ async function repair(outputRoot) {
 
         const newContent = revisedFirstLine + '\n' + content.substring(i, undefined);
         await fs.promises.writeFile(filePath, newContent);
-    }
+    })();
 
     // icons.css
-    {
+    await (async function fixIconCss() {
         const fileName = 'icons.css';
         const filePath = path.resolve(outputRoot, fileName);
         const content = (await fs.promises.readFile(filePath)).toString();
@@ -264,131 +333,7 @@ async function repair(outputRoot) {
         const newContent = content.replace(regexp, '$1');
         
         await fs.promises.writeFile(filePath, newContent);
-    }
+    })();
 
     console.log(`${utils.getTime(utils.c.FgGreen)} Fix successfully.`);
 }
-
-// #endregion
-
-//#region reduceUnusedIcons
-
-/**
- * @param {string} srcRoot The root path of the resource of the icons.
- * @param {string} codeRoot The root path of the resource of the entire code section.
- * @param {string} outputRoot The root path for the generated files.
- * @param {string[]} extraIcons An array of string that contains the extra icons.
- * for usage.
- */
-async function reduceUnusedIcons(srcRoot, codeRoot, outputRoot, extraIcons) {
-    
-    console.log(`${utils.getTime(utils.c.FgGreen)} Start removing unused icons...`);
-    const svgRoot = path.resolve(srcRoot, './../svg');
-
-    // clean up
-    // TODO: clean up unused icons
-
-    // scans the used icons and copy each used icon file into the temporary root path
-    await scanUsedIcons(srcRoot, codeRoot, svgRoot, extraIcons);
-
-    // regenerate icons from the svgRoot
-    await generateIcons(svgRoot, outputRoot);
-    console.log(`${utils.getTime(utils.c.FgGreen)} Creation of Font Icon finished.`);
-    
-    // repair generated typescript file
-    await repair(outputRoot);
-}
-
-/**
- * @param {string} srcRoot The root path of the resource of the icons.
- * @param {string} codeRoot The root path of the resource of the entire code section.
- * @param {string} outputRoot The output path of the required resource of the icons.
- * @param {string[]} extraIcons An array of string that contains the extra icons.
- */
-async function scanUsedIcons(srcRoot, codeRoot, outputRoot, extraIcons) {
-    
-    /**
-     * Finds out all the possible icon names first. These icon names should has 
-     * a hanguarain notaion. Such as xxxYyyZzz or xxx. We need to convert them 
-     * to XxxYyyZzz or Xxx.
-     */
-    let allIcons = [];
-    try {
-        allIcons = 
-            (await fs.promises.readdir(srcRoot, { withFileTypes: true }))
-            .filter(target => target.isFile())
-            .map(target => path.parse(target.name).name)
-            .map(name => utils.setCharAt(name, 0, name[0].toUpperCase()))
-        ;
-    } catch (err) {
-        // srcRoot does not exists, we ignore it.
-    }
-    console.log(`${utils.getTime()} There are total of ${allIcons.length} of valid icon files found at ${srcRoot}.`);
-    
-    /**
-     * Create the regular expression based on all the icons we have.
-     * Then we read through the entire code section to store all the icons that
-     * are used.
-     */
-    const regexp = new RegExp(`\\bIcons\\.(${allIcons.join('|')})\\b`, 'g');
-    const usedIcons = new Set();
-    
-    // put extra icons first if provided any
-    for (const extraIcon of extraIcons) {
-        usedIcons.add(extraIcon);
-    }
-
-    /**
-     * callback for every directory, iterate every files in the `codeRoot` and
-     * searching for any using
-     */
-    console.log(`${utils.getTime()} Start scanning repository at '${codeRoot}' for used icons...`);
-    const scan = async (parentPath) => {
-        const targets = await fs.promises.readdir(parentPath, { withFileTypes: true });
-        
-        for (const target of targets) {
-            const currPath = path.resolve(parentPath, target.name);
-            
-            if (target.isFile()) {
-                const content = (await fs.promises.readFile(currPath)).toString();
-                const result = content.matchAll(regexp);
-                for (const res of result) {
-                    const usedIcon = res[1];
-                    usedIcons.add(usedIcon);
-                }
-            }
-            else {
-                await scan(currPath);
-            }
-        }
-    };
-    
-    await scan(codeRoot);
-    console.log(`${utils.getTime()} Detected total of ${usedIcons.size} of already used icons at the repository ${codeRoot}.`);
-    
-    /**
-     * Loop all the icons again and copy all the used icons into the output 
-     * directory.
-     */
-    await copyUsedIconsForTracking(srcRoot, outputRoot, allIcons, usedIcons);
-}
-
-async function copyUsedIconsForTracking(srcRoot, outputRoot, allIcons, usedIcons) {
-    
-    console.log(`${utils.getTime()} Copying total of ${usedIcons.size} of already used icons into ${outputRoot}...`);
-    
-    for (const icon of allIcons) {
-        if (usedIcons.has(icon)) {
-            lowerCaseIcon = utils.setCharAt(icon, 0, icon[0].toLowerCase()) + '.svg';
-            await fs.promises.copyFile(path.resolve(srcRoot, lowerCaseIcon), path.resolve(outputRoot, lowerCaseIcon));
-            usedIcons.delete(icon);
-        }
-    }
-
-    process.stdout.write(`${utils.getTime(utils.c.FgRed)} Detected total of ${usedIcons.size} of untracked icons.\n`);
-    if (usedIcons.size > 0) {
-        process.stdout.write('They are: ' + Array.from(usedIcons.values()).join(',') + '.\n');
-    }
-}
-
-//#endregion

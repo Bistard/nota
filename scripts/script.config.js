@@ -105,14 +105,14 @@ const configuration = {
 
     "_gen-icons": {
         command: "node ./scripts/icon.js",
-        commandDescription: "_gen-icons <path>",
+        commandDescription: "_gen-icons [path]",
         description: 'The script will try to remove all the prefix of every svg files that are located at <path>, and generate the icon font from svg files using `fantasticon`.\n' +
                      'The svg files are downloaded at: https://www.flaticon.com/uicons/interface-icons',
         options: [
             {
-                flags: ['<path>'],
+                flags: ['[path]'],
                 descriptions: [
-                    'The path locates the original svg files.'
+                    'The path points to the original svg files. Example: "./assets/src-svg"'
                 ]
             },
             {
@@ -122,7 +122,7 @@ const configuration = {
                 ]
             },
             {
-                flags: ['--force'],
+                flags: ['--force', '-f'],
                 descriptions: [
                     'Force the script to regenerate icon files even there is no changes or missing target files.',
                 ]
