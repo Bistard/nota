@@ -228,8 +228,8 @@ export abstract class BaseMenu extends ActionList<MenuAction, IMenuItem> impleme
                 item.render(fragment);
 
                 // focus when hovering
-                this.__register(item.onDidHover(hovered => {
-                    if (hovered && item.action.enabled) {
+                this.__register(item.onDidHover(e => {
+                    if (e.hovering && item.action.enabled) {
                         this.focus(index);
                     } else {
                         this.focus(-1);

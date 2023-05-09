@@ -178,7 +178,7 @@ export interface IMenuItem extends IActionListItem, IDisposable {
     /**
      * Fires when the {@link IMenuItem} is mouse-hovered or not.
      */
-    readonly onDidHover: Register<boolean>;
+    readonly onDidHover: Register<HoverEvent>;
 
     /**
      * The callback function when the item is about to run. Should be set by the
@@ -212,6 +212,11 @@ type RenderObject = {
     readonly rightPart: HTMLElement;
 }
 
+export interface HoverEvent {
+    readonly event: MouseEvent;
+    readonly hovering: boolean;
+}
+
 /**
  * @class The {@link AbstractMenuItem} pre-defines a series of event listeners 
  * on the HTMLElement.
@@ -229,15 +234,15 @@ export abstract class AbstractMenuItem extends ActionListItem implements IMenuIt
 
     // [event]
 
-    private readonly _onDidHover = this.__register(new Emitter<boolean>());
+    private readonly _onDidHover = this.__register(new Emitter<HoverEvent>());
     public readonly onDidHover = this._onDidHover.registerListener;
 
     // [internal event]
 
-    private readonly _onMouseover = this.__register(new Emitter<void>());
+    private readonly _onMouseover = this.__register(new Emitter<MouseEvent>());
     protected readonly onMouseover = this._onMouseover.registerListener;
 
-    private readonly _onMouseleave = this.__register(new Emitter<void>());
+    private readonly _onMouseleave = this.__register(new Emitter<MouseEvent>());
     protected readonly onMouseleave = this._onMouseleave.registerListener;
 
     // [constructor]
@@ -335,26 +340,28 @@ export abstract class AbstractMenuItem extends ActionListItem implements IMenuIt
             DomEventHandler.stop(e, true);
         });
 
-        // hovering effect
-        this.element.onMouseover(() => {
+        // mouseout event
+        this.element.onMouseover((e) => {
             if (!this._mouseover) {
-                this._onMouseover.fire();
+                this._onMouseover.fire(e);
                 this._mouseover = true;
             }
         });
 
-        this.onMouseover(() => {
-            this._onDidHover.fire(true);
-        });
-
-        // hovering effect
-        this.element.onMouseleave(() => {
+        // mouseleave event
+        this.element.onMouseleave((e) => {
             this._mouseover = false;
-            this._onMouseleave.fire();
+            this._onMouseleave.fire(e);
         });
 
-        this.onMouseleave(() => {
-            this._onDidHover.fire(false);
+        // hovering effect (mouseover)
+        this.onMouseover((e) => {
+            this._onDidHover.fire({ event: e, hovering: true });
+        });
+
+        // hovering effect (mouseleave)
+        this.onMouseleave((e) => {
+            this._onDidHover.fire({ event: e, hovering: false });
         });
 
         // add 'active' properly
