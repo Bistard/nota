@@ -1,4 +1,4 @@
-import { ContextMenu, IAnchor, IContextMenu, IContextMenuDelegate, IContextMenuDelegateBase } from "src/base/browser/basic/contextMenu/contextMenu";
+import { ContextMenuView, IAnchor, IContextMenu, IContextMenuDelegate, IContextMenuDelegateBase } from "src/base/browser/basic/contextMenu/contextMenu";
 import { addDisposableListener, DomEmitter, DomEventHandler, DomUtility, EventType } from "src/base/browser/basic/dom";
 import { IMenu, IMenuActionRunEvent, Menu, MenuWithSubmenu } from "src/base/browser/basic/menu/menu";
 import { IMenuAction, MenuItemType } from "src/base/browser/basic/menu/menuItem";
@@ -82,7 +82,7 @@ export class ContextMenuService extends Disposable implements IContextMenuServic
         super();
         this._defaultContainer = this.layoutService.parentContainer;
         this._currContainer = this._defaultContainer;
-        this._contextMenu = new ContextMenu(this._currContainer);
+        this._contextMenu = new ContextMenuView(this._currContainer);
     }
 
     // [public methods]

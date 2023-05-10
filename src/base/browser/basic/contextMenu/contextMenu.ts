@@ -96,7 +96,7 @@ export interface IContextMenuDelegate extends IContextMenuDelegateBase {
 }
 
 /**
- * An interface only for {@link ContextMenu}.
+ * An interface only for {@link ContextMenuView}.
  */
 export interface IContextMenu extends IDisposable {
     
@@ -127,18 +127,18 @@ export interface IContextMenu extends IDisposable {
 }
 
 /**
- * @class A {@link ContextMenu} can be placed under a given container for later
- * rendering. The rendering implementation of a {@link ContextMenu} is 
+ * @class A {@link ContextMenuView} can be placed under a given container for 
+ * later rendering. The rendering implementation of a {@link ContextMenuView} is 
  * abstracted out as a {@link IContextMenuDelegate}. Usually is rendered based 
  * on {@link IMenu}.
  * 
- * @note When showing a {@link ContextMenu}, the position of the view will be
- * adjusted due to the anchor position and the viewport size to ensure the view 
- * is properly fit in and overlap avoided.
+ * @note When showing a {@link ContextMenuView}, the position of the view will 
+ * be adjusted due to the anchor position and the viewport size to ensure the 
+ * view is properly fit in and overlap avoided.
  * 
  * @note The default position type is 'absolute'.
  */
-export class ContextMenu extends Disposable implements IContextMenu {
+export class ContextMenuView extends Disposable implements IContextMenu {
 
     // [constants]
 
@@ -163,7 +163,7 @@ export class ContextMenu extends Disposable implements IContextMenu {
     constructor(container: HTMLElement) {
         super();
         this._element = this.__register(new FastElement(document.createElement('div')));
-        this._element.setClassName(ContextMenu.CLASS_NAME);
+        this._element.setClassName(ContextMenuView.CLASS_NAME);
         this._element.setPosition('absolute');
 
         DomUtility.Modifiers.hide(this._element.element);
@@ -254,7 +254,7 @@ export class ContextMenu extends Disposable implements IContextMenu {
 
     private __resetViewAttrs(): void {
         DomUtility.Modifiers.clearChildrenNodes(this._element.element);
-        this._element.setClassName(ContextMenu.CLASS_NAME);
+        this._element.setClassName(ContextMenuView.CLASS_NAME);
         this._element.setTop(0);
 		this._element.setLeft(0);
     }

@@ -5,4 +5,5 @@
 /.nota
 /.obsidian
 
-/assets/svg
+/assets/src-svg
+/**/*.woff2

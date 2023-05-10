@@ -1,27 +1,9 @@
 @use 'src/styles/settings/constants' as const;
     
 .context-menu {
-    
     z-index: const.$z-index-medium;
-    height: auto;
-    width: auto;
-    overflow: hidden;
-
+    
     border-radius: 4px;
     background-color: #e4e4e4;
     box-shadow: 5px 0px 10px 0px #e2e2e2;
-
-    & .base-item {
-        min-width: 200px;
-        width: auto;
-        height: 30px;
-
-        &:focus {
-            outline: none;
-        }
-    }
-
-    &:focus {
-        outline: none;
-    }
 }
