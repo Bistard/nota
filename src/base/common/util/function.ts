@@ -4,11 +4,11 @@
  *  If called more than once, it throws an error.
  * @param fn The function to be wrapped, ensuring it is only executed once.
  */
-function executeOnce<T extends Function>(fn: T): T {
+export function executeOnce<T extends Function>(fn: T): T {
     let executed = false;
     return <any>(function (this: any, ...args: any[]) {
         if (executed) {
-            throw new Error('The function can only be executed once.');
+            throw new Error(`The function '${fn}' can only be executed once.`);
         }
         executed = true;
         return fn.apply(this, args);
