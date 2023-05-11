@@ -8,7 +8,7 @@ import { isAbsoluteURI, URI } from "src/base/common/file/uri";
 import { ILogService } from "src/base/common/logger";
 import { Iterable } from "src/base/common/util/iterable";
 import { Mutable } from "src/base/common/util/type";
-import { readFileIntoStream, readFileIntoStreamAsync } from "src/base/node/io";
+import { readFileIntoStream, readFileIntoStreamAsync } from "src/base/common/file/io";
 import { IRawResourceChangeEvents } from "src/code/platform/files/common/watcher";
 import { createService } from "src/code/platform/instantiation/common/decorator";
 
