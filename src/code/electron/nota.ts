@@ -9,7 +9,6 @@ import { ServiceDescriptor } from "src/code/platform/instantiation/common/descri
 import { IInstantiationService, IServiceProvider } from "src/code/platform/instantiation/common/instantiation";
 import { ServiceCollection } from "src/code/platform/instantiation/common/serviceCollection";
 import { IEnvironmentService, IMainEnvironmentService } from "src/code/platform/environment/common/environment";
-import { IpcServer } from "src/code/platform/ipc/browser/ipc";
 import { IpcChannel } from "src/code/platform/ipc/common/channel";
 import { ProxyChannel } from "src/code/platform/ipc/common/proxy";
 import { IMainLifecycleService, LifecyclePhase } from "src/code/platform/lifecycle/electron/mainLifecycleService";
@@ -27,6 +26,7 @@ import { DEFAULT_HTML } from "src/code/platform/window/common/window";
 import { URI } from "src/base/common/file/uri";
 import { MainFileChannel } from "src/code/platform/files/electron/mainFileChannel";
 import { UUID } from "src/base/common/util/string";
+import { IpcServer } from "src/code/platform/ipc/electron/ipcServer";
 
 /**
  * An interface only for {@link NotaInstance}
