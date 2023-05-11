@@ -4,7 +4,7 @@ import { DataBuffer } from "src/base/common/file/buffer";
 import { ipcRenderer } from "src/code/platform/electron/browser/global";
 import { IpcChannel } from "src/code/platform/ipc/common/channel";
 import { ClientBase } from "src/code/platform/ipc/common/net";
-import { Protocol } from "src/code/platform/ipc/common/protocol";
+import { IpcProtocol } from "src/code/platform/ipc/common/protocol";
 
 /**
  * @class An implementation of {@link ClientBase} that wraps the {@link ipcRenderer}
@@ -30,17 +30,22 @@ export class IpcClient extends ClientBase {
 
     // [private helper methods]
 
-    private static __createProtocol(): Protocol {
+    private static __createProtocol(): IpcProtocol {
         /**
          * We register a channel listener on {@link IpcChannel.DataChannel} into
          * our own {@link ipcRenderer} and every time we receive data we wrap it 
          * with data buffer.
          */
-        const nodeEmitter = new NodeEventEmitter<DataBuffer>(ipcRenderer, IpcChannel.DataChannel, (event, data) => {
-            return DataBuffer.wrap(data);
-        });
+        const nodeEmitter = new NodeEventEmitter<DataBuffer>(
+            ipcRenderer, 
+            IpcChannel.DataChannel, 
+            (event, data) => {
+                console.log(data instanceof Uint8Array);
+                return DataBuffer.wrap(data);
+            },
+        );
 
         IpcClient._disposable.register(nodeEmitter);
-        return new Protocol(ipcRenderer, nodeEmitter.registerListener);
+        return new IpcProtocol(ipcRenderer, nodeEmitter.registerListener);
     }
 }

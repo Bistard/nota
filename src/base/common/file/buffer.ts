@@ -1,5 +1,4 @@
 
-declare const Buffer: any;
 const hasBuffer: boolean = typeof Buffer !== 'undefined';
 
 /**
@@ -8,14 +7,19 @@ const hasBuffer: boolean = typeof Buffer !== 'undefined';
  */
 export class DataBuffer {
 
+    // [fields]
+
     public readonly buffer: Uint8Array;
     public readonly bufferLength: number;
 
-    /** @internal */
+    // [private constructor]
+
     private constructor(buffer: Uint8Array) {
         this.buffer = buffer;
         this.bufferLength = this.buffer.length;
     }
+    
+    // [public static method]
 
     /**
      * @description allocates and returns a new DataBuffer to hold given byte 
@@ -95,11 +99,13 @@ export class DataBuffer {
         }
     }
 
+    // [public methods]
+
     public slice(start?: number, end?: number): DataBuffer {
 		// IMPORTANT: use subarray instead of slice because TypedArray#slice
 		// creates shallow copy and NodeBuffer#slice doesn't. The use of subarray
 		// ensures the same, performance, behaviour.
-		return new DataBuffer(this.buffer.subarray(start, end));
+        return new DataBuffer(this.buffer.subarray(start, end));
 	}
 
     /** 
@@ -114,11 +120,21 @@ export class DataBuffer {
      * @description Sets (writes) a value or an array of values to this buffer 
      * starting from the given offset.
      */
-	public set(arrayLike: DataBuffer | Uint8Array, offset?: number): void {
+	public set(arrayLike: DataBuffer | Uint8Array | ArrayBuffer | ArrayBufferView, offset?: number): void {
 		if (arrayLike instanceof DataBuffer) {
 			this.buffer.set(arrayLike.buffer, offset);
-		} else {
+		} 
+        else if (arrayLike instanceof Uint8Array) {
 			this.buffer.set(arrayLike, offset);
+		}
+        else if (arrayLike instanceof ArrayBuffer) {
+			this.buffer.set(new Uint8Array(arrayLike), offset);
+		} 
+        else if (ArrayBuffer.isView(arrayLike)) {
+			this.buffer.set(new Uint8Array(arrayLike.buffer, arrayLike.byteOffset, arrayLike.byteLength), offset);
+		} 
+        else {
+			throw new Error('DataBuffer: cannot identify the raw buffer.');
 		}
 	}
 

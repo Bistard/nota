@@ -5,9 +5,11 @@ import { ILogService } from "src/base/common/logger";
 import { ITask } from "src/base/common/util/async";
 import { If, Pair } from "src/base/common/util/type";
 import { ChannelType, IChannel, IServerChannel } from "src/code/platform/ipc/common/channel";
-import { IProtocol } from "src/code/platform/ipc/common/protocol";
+import { IIpcProtocol } from "src/code/platform/ipc/common/protocol";
 
 // #region Type Declaration
+
+const hasBuffer: boolean = typeof Buffer !== 'undefined';
 
 /**
  * Data types are allowed to be transfered between {@link ClientBase} and 
@@ -88,7 +90,7 @@ class DataSerializer {
     }
 
     public serialize<IsClient, IsBody>(data: SerializeType<IsClient, IsBody>): void {
-                
+
         if (typeof data === 'undefined') {
             this._writer.write(DataSerializer._8BitType.Undef);
         } 
@@ -98,7 +100,7 @@ class DataSerializer {
             this._writer.write(this.__write32BitSize(buffer.bufferLength));
             this._writer.write(buffer);
         } 
-        else if (Buffer.isBuffer(data)) {
+        else if (hasBuffer && Buffer.isBuffer(data)) {
             const buffer = DataBuffer.wrap(data);
             this._writer.write(DataSerializer._8BitType.Buf);
             this._writer.write(this.__write32BitSize(buffer.bufferLength));
@@ -224,7 +226,7 @@ export interface IChannelClient {
 }
 
 /**
- * @class A channel client relies on the given {@link IProtocol}, it integrates
+ * @class A channel client relies on the given {@link IIpcProtocol}, it integrates
  * two things: 
  *      1. Get the corresponding channel and can manually send command through 
  *          the protocol. It returns a promise that resolves with the 
@@ -238,7 +240,7 @@ export class ChannelClient extends Disposable implements IChannelClient {
 
     // [field]
 
-    private readonly _protocol: IProtocol<DataBuffer>;
+    private readonly _protocol: IIpcProtocol;
 
     /** A auto increment ID to identify each different request. */
     private _requestID = 0;
@@ -254,7 +256,7 @@ export class ChannelClient extends Disposable implements IChannelClient {
 
     // [constructor]
 
-    constructor(protocol: IProtocol<DataBuffer>) {
+    constructor(protocol: IIpcProtocol) {
         super();
         this._protocol = protocol;
         this.__register(protocol.onData(data => this.__onResponse(data)));
@@ -395,6 +397,13 @@ export class ChannelClient extends Disposable implements IChannelClient {
     }
 
     private __deserializeResponse(buffer: DataBuffer): Pair<IResponseHeader, any> {
+        // FIX
+        // REVIEW: buffer (DataBuffer) wraps another DataBuffer that contains a Uint8Array
+        console.log('(1) dataBuffer passed into BufferDeserializer:', buffer);
+        // console.log('Uint8Array:', buffer.buffer);
+        // console.log('Uint8Array method:', buffer.buffer.subarray);
+        // console.log('real Uint8Array:', new Uint8Array());
+        // console.log('real Uint8Array method:', new Uint8Array().subarray);
         const deserializer = new BufferDeserializer(buffer);
         const header = deserializer.deserialize<true, false>();
         const body = deserializer.deserialize<true, true>();
@@ -414,7 +423,7 @@ export interface IChannelServer {
 }
 
 /**
- * @class A channel server relies on the given {@link IProtocol}, it integrates
+ * @class A channel server relies on the given {@link IIpcProtocol}, it integrates
  * two things: 
  *      1. Register a channel and starts listening to the client request.
  *      2. Send response back to the client when the request is done by the 
@@ -427,7 +436,7 @@ export class ChannelServer extends Disposable implements IChannelServer {
     
     // [field]
 
-    private readonly _protocol: IProtocol<DataBuffer>;
+    private readonly _protocol: IIpcProtocol;
     /** 
      * An identifier to give the {@link IServerChannel} a chance to know which 
      * channel server is accessing.
@@ -438,7 +447,7 @@ export class ChannelServer extends Disposable implements IChannelServer {
 
     // [constructor]
 
-    constructor(protocol: IProtocol<DataBuffer>, id: string) {
+    constructor(protocol: IIpcProtocol, id: string) {
         super();
         this._protocol = protocol;
         this._id = id;
@@ -593,7 +602,7 @@ export interface IConnection {
 
 export interface ClientConnectEvent {
     readonly clientID: number | string;
-    readonly protocol: IProtocol;
+    readonly protocol: IIpcProtocol;
     onClientDisconnect: Register<void>;
 }
 
@@ -639,7 +648,7 @@ export class ServerBase extends Disposable implements IChannelServer {
                  * the client in the body part of the request (empty header).
                  */
                 const deserializer = new BufferDeserializer(data);
-                const clientID = deserializer.deserialize<false, true>() as string;
+                const clientID = <string>deserializer.deserialize<false, true>();
 
                 // create the corresponding channel.
                 const channelServer = new ChannelServer(protocol, clientID);
@@ -697,7 +706,7 @@ export class ClientBase implements IDisposable, IChannelClient {
 
     // [constructor]
 
-    constructor(protocol: IProtocol<DataBuffer>, id: string, connect: ITask<void>) {
+    constructor(protocol: IIpcProtocol, id: string, connect: ITask<void>) {
         connect();
 
         /**

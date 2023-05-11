@@ -5,7 +5,7 @@ import { DataBuffer } from "src/base/common/file/buffer";
 import { ILogService } from "src/base/common/logger";
 import { IpcChannel } from "src/code/platform/ipc/common/channel";
 import { ClientConnectEvent, ServerBase } from "src/code/platform/ipc/common/net";
-import { Protocol } from "src/code/platform/ipc/common/protocol";
+import { IpcProtocol } from "src/code/platform/ipc/common/protocol";
 import { SafeIpcMain } from "src/code/platform/ipc/electron/safeIpcMain";
 
 /**
@@ -47,9 +47,7 @@ export class IpcServer extends ServerBase {
             const clientID = client.id;
             
             const handle = IpcServer._activedClients.get(clientID);
-            if (handle) {
-                handle.dispose();
-            }
+            handle?.dispose();
 
             const onClientReconnect = new Emitter<void>();
             IpcServer._activedClients.set(clientID, toDisposable(() => {
@@ -65,7 +63,7 @@ export class IpcServer extends ServerBase {
             IpcServer._disposable.register(onDisconnectDisposable);
             return {
                 clientID: clientID,
-                protocol: new Protocol(client, onDataRegister),
+                protocol: new IpcProtocol(client, onDataRegister),
                 onClientDisconnect: Event.any([onDisconnect.registerListener, onClientReconnect.registerListener]),
             };
         });
@@ -78,9 +76,11 @@ interface IIpcEvent {
 }
 
 function scopedOnDataEvent(eventName: string, filterID: number): [IDisposable, Register<DataBuffer>] {
-	const onDataEmitter = new NodeEventEmitter<IIpcEvent>(SafeIpcMain.instance, eventName, (event, data) => {
-        return ({ event, data });
-    });
+	const onDataEmitter = new NodeEventEmitter<IIpcEvent>(
+        SafeIpcMain.instance, 
+        eventName, 
+        (event, data) => ({ event, data }),
+    );
 	const onDataFromID = Event.filter(onDataEmitter.registerListener, ({ event }) => {
         return event.sender.id === filterID;
     });

@@ -10,38 +10,40 @@ export interface ISender {
  * A protocol is a set of rules for formatting and processing data. Essentially, 
  * it allows connected devices to communicate with each other, regardless of any 
  * differences in their internal processes, structure or design.
- * 
- * T: sending / receiving data type.
  */
-export interface IProtocol<T = DataBuffer> {
+export interface IIpcProtocol {
     /**
      * A register function that registers a callback to receive data from the 
      * other sides.
      */
-    readonly onData: Register<T>;
+    readonly onData: Register<DataBuffer>;
 
     /**
      * Defines a way to send the data.
-     * @param data The data to send with type T.
+     * @param data The data to be send.
      */
-    send(data: T): void;
+    send(data: DataBuffer): void;
 }
 
 /**
- * @class Used here for communication between different electron processes.
+ * @class Used here for communication between different electron processes such
+ * as IpcRenderer and IpcMain.
+ * 
+ * @note The only valid data for transfering is {@link DataBuffer}. 
+ * @note The actual data type being transfered using IPC is {@link Uint8Array}.
  */
-export class Protocol<T = DataBuffer> {
+export class IpcProtocol {
 
     private readonly sender: ISender;
-    public readonly onData: Register<T>;
+    public readonly onData: Register<DataBuffer>;
 
-    constructor(sender: ISender, onData: Register<T>) {
+    constructor(sender: ISender, onData: Register<DataBuffer>) {
         this.sender = sender;
         this.onData = onData;
     }
 
-    public send(message: T): void {
-        this.sender.send(IpcChannel.DataChannel, message);
+    public send(message: DataBuffer): void {
+        this.sender.send(IpcChannel.DataChannel, message.buffer);
     }
 
     public disconnect(): void {
