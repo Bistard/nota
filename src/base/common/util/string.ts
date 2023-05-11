@@ -71,4 +71,4 @@ export namespace Strings {
     }
 }
 
-
+export type UUID = string;

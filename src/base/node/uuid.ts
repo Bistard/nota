@@ -1,4 +1,5 @@
 import * as crypto from 'crypto';
+import { UUID } from 'src/base/common/util/string';
 
 /*******************************************************************************
  * A universally unique identifier ({@link UUID}) is a 128-bit label used for 
@@ -11,8 +12,6 @@ import * as crypto from 'crypto';
  * While the probability that a UUID will be duplicated is not zero, it is close 
  * enough to zero to be negligible.
  ******************************************************************************/
-
-export type UUID = string;
 
 /**
  * @description Generates a {@link UUID}.
