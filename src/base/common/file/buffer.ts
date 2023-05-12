@@ -1,7 +1,6 @@
-
 const hasBuffer: boolean = typeof Buffer !== 'undefined';
-let textEncoder: TextEncoder | undefined = undefined;
-let textDecoder: TextDecoder | undefined = undefined;
+const textEncoder = new TextEncoder();
+const textDecoder = new TextDecoder();
 
 /**
  * @class A class to simulate a real buffer which provides the functionality to
@@ -28,11 +27,13 @@ export class DataBuffer {
      * size of data.
      */
     public static alloc(byteSize: number): DataBuffer {
-        if (hasBuffer) {
-            return new DataBuffer(Buffer.allocUnsafe(byteSize));
-        }
-        return new DataBuffer(new Uint8Array(byteSize));
+        return DataBuffer.__alloc(byteSize);
     }
+
+    private static __alloc = 
+        hasBuffer 
+        ? (byteSize: number) => new DataBuffer(Buffer.allocUnsafe(byteSize))
+        : (byteSize: number) => new DataBuffer(new Uint8Array(byteSize));
 
     /**
      * @description concatenates given array of DataBuffer into one single 
@@ -90,15 +91,13 @@ export class DataBuffer {
      * @description Construct a DataBuffer from a given string.
      */
     public static fromString(content: string): DataBuffer {
-        if (hasBuffer) {
-            return new DataBuffer(Buffer.from(content));
-        } else {
-            if (!textEncoder) {
-                textEncoder = new TextEncoder();
-            }
-            return new DataBuffer(textEncoder.encode(content));
-        }
+        return DataBuffer.__fromString(content);
     }
+
+    private static __fromString = 
+        hasBuffer
+        ? (content: string) => new DataBuffer(Buffer.from(content))
+        : (content: string) => new DataBuffer(textEncoder.encode(content));
 
     // [public methods]
 
@@ -114,14 +113,13 @@ export class DataBuffer {
      * @example DataBuffer.fromString('Hello').toString() => 'Hello'
      */
     public toString(): string {
-        if (hasBuffer) {
-            return this.buffer.toString();
-        }
-        if (!textDecoder) {
-            textDecoder = new TextDecoder();
-        }
-        return textDecoder.decode(this.buffer);
+        return DataBuffer.__toString(this.buffer);
     }
+
+    private static __toString = 
+        hasBuffer
+        ? (buffer: Uint8Array) => buffer.toString()
+        : (buffer: Uint8Array) => textDecoder.decode(buffer);
 
     /**
      * @description Sets (writes) a value or an array of values to this buffer 
