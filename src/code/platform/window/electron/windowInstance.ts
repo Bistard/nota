@@ -157,7 +157,9 @@ export class WindowInstance extends Disposable implements IWindowInstance {
             y: displayOpts.y,
             minHeight:  displayOpts.minHeight ?? WindowMinimumState.height,
             minWidth: displayOpts.minWidth ?? WindowMinimumState.wdith,
-            webPreferences: {
+            webPreferences: {                
+                preload: resolve(join(__dirname, 'preload.js')),
+
                 /**
                  * Node.js is only available in main / preload process.
                  * Node.js us also be available in the renderer process.
@@ -166,12 +168,6 @@ export class WindowInstance extends Disposable implements IWindowInstance {
                  * Absolute path needed.
                  */
                 nodeIntegration: false,
-                preload: resolve(join(__dirname, 'preload.js')),
-                /**
-                 * Pass any arguments use the following pattern:
-                 *      --ArgName=argInString
-                 */
-                additionalArguments: [`--${ArgumentKey.configuration}=${this._configurationIpcAccessible.resource}`],
                 
                 /**
                  * Context Isolation is a feature that ensures that both 
@@ -187,6 +183,13 @@ export class WindowInstance extends Disposable implements IWindowInstance {
                  * object than the website would have access to.
                  */
                 contextIsolation: true,
+
+                /**
+                 * Pass any arguments use the following pattern:
+                 *      --ArgName=argInString
+                 */
+                additionalArguments: [`--${ArgumentKey.configuration}=${this._configurationIpcAccessible.resource}`],
+                
                 spellcheck: false,
                 enableWebSQL: false,
                 backgroundThrottling: false,
