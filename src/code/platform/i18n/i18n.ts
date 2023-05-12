@@ -1,6 +1,5 @@
 import { Emitter, Register } from "src/base/common/event";
 import { URI } from "src/base/common/file/uri";
-import * as path from "src/base/common/file/path";
 import { IFileService } from "src/code/platform/files/common/fileService";
 import { isObject } from "src/base/common/util/type";
 import { Section } from "src/code/platform/section";
@@ -17,13 +16,13 @@ const DefaultExtension = '.json';
 const DefaultLocalesPrefix = '{';
 const DefaultLocalesSuffix = '}';
 
-export type LanguageType = 
+export type LanguageType = (
     'en' |      // English
     'zh-cn' |   // Chinese (Simplified)
     'zh-tw'     // Chinese (Traditional)
-;
+);
 
-type Ii18nSection = { [key: string]: string }
+type Ii18nSection = { [key: string]: string };
 
 export interface Ii18nOpts {
 
