@@ -1,6 +1,6 @@
-
-declare const Buffer: any;
 const hasBuffer: boolean = typeof Buffer !== 'undefined';
+const textEncoder = new TextEncoder();
+const textDecoder = new TextDecoder();
 
 /**
  * @class A class to simulate a real buffer which provides the functionality to
@@ -8,25 +8,32 @@ const hasBuffer: boolean = typeof Buffer !== 'undefined';
  */
 export class DataBuffer {
 
+    // [fields]
+
     public readonly buffer: Uint8Array;
     public readonly bufferLength: number;
 
-    /** @internal */
+    // [private constructor]
+
     private constructor(buffer: Uint8Array) {
         this.buffer = buffer;
         this.bufferLength = this.buffer.length;
     }
+    
+    // [public static method]
 
     /**
      * @description allocates and returns a new DataBuffer to hold given byte 
      * size of data.
      */
     public static alloc(byteSize: number): DataBuffer {
-        if (hasBuffer) {
-            return new DataBuffer(Buffer.allocUnsafe(byteSize));
-        }
-        return new DataBuffer(new Uint8Array(byteSize));
+        return DataBuffer.__alloc(byteSize);
     }
+
+    private static __alloc = 
+        hasBuffer 
+        ? (byteSize: number) => new DataBuffer(Buffer.allocUnsafe(byteSize))
+        : (byteSize: number) => new DataBuffer(new Uint8Array(byteSize));
 
     /**
      * @description concatenates given array of DataBuffer into one single 
@@ -80,26 +87,25 @@ export class DataBuffer {
         return newBuffer;
     }
 
-    private static _textEncoder?: TextEncoder;
     /**
      * @description Construct a DataBuffer from a given string.
      */
     public static fromString(content: string): DataBuffer {
-        if (hasBuffer) {
-            return new DataBuffer(Buffer.from(content));
-        } else {
-            if (!DataBuffer._textEncoder) {
-                DataBuffer._textEncoder = new TextEncoder();
-            }
-            return new DataBuffer(DataBuffer._textEncoder.encode(content));
-        }
+        return DataBuffer.__fromString(content);
     }
+
+    private static __fromString = 
+        hasBuffer
+        ? (content: string) => new DataBuffer(Buffer.from(content))
+        : (content: string) => new DataBuffer(textEncoder.encode(content));
+
+    // [public methods]
 
     public slice(start?: number, end?: number): DataBuffer {
 		// IMPORTANT: use subarray instead of slice because TypedArray#slice
 		// creates shallow copy and NodeBuffer#slice doesn't. The use of subarray
 		// ensures the same, performance, behaviour.
-		return new DataBuffer(this.buffer.subarray(start, end));
+        return new DataBuffer(this.buffer.subarray(start, end));
 	}
 
     /** 
@@ -107,18 +113,33 @@ export class DataBuffer {
      * @example DataBuffer.fromString('Hello').toString() => 'Hello'
      */
     public toString(): string {
-        return this.buffer.toString();
+        return DataBuffer.__toString(this.buffer);
     }
+
+    private static __toString = 
+        hasBuffer
+        ? (buffer: Uint8Array) => buffer.toString()
+        : (buffer: Uint8Array) => textDecoder.decode(buffer);
 
     /**
      * @description Sets (writes) a value or an array of values to this buffer 
      * starting from the given offset.
      */
-	public set(arrayLike: DataBuffer | Uint8Array, offset?: number): void {
+	public set(arrayLike: DataBuffer | Uint8Array | ArrayBuffer | ArrayBufferView, offset?: number): void {
 		if (arrayLike instanceof DataBuffer) {
 			this.buffer.set(arrayLike.buffer, offset);
-		} else {
+		} 
+        else if (arrayLike instanceof Uint8Array) {
 			this.buffer.set(arrayLike, offset);
+		}
+        else if (arrayLike instanceof ArrayBuffer) {
+			this.buffer.set(new Uint8Array(arrayLike), offset);
+		} 
+        else if (ArrayBuffer.isView(arrayLike)) {
+			this.buffer.set(new Uint8Array(arrayLike.buffer, arrayLike.byteOffset, arrayLike.byteLength), offset);
+		} 
+        else {
+			throw new Error('DataBuffer: cannot identify the raw buffer.');
 		}
 	}
 

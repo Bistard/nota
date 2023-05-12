@@ -85,7 +85,7 @@ const safeProcess = (function () {
         };
     }
 
-    return process;
+    return _process;
 })();
 
 /**

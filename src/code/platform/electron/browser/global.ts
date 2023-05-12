@@ -1,4 +1,5 @@
 import { IpcRenderer } from "electron";
+import { executeOnce } from "src/base/common/util/function";
 import { Mutable } from "src/base/common/util/type";
 import { ISandboxProcess } from "src/code/platform/electron/common/electronType";
 import { IWindowConfiguration } from "src/code/platform/window/common/window";
@@ -25,11 +26,11 @@ import { IWindowConfiguration } from "src/code/platform/window/common/window";
  */
 
 /**
- * An alias for {@link window} or {@link global} if window is undefined.
+ * An alias for {@link self} or {@link global} if window is undefined.
  */
 export const GLOBAL: any = (
-    typeof window === 'object' ? 
-        window : 
+    typeof self === 'object' ? 
+        self : 
         (typeof global === 'object' ? 
             global : 
             {}
@@ -44,12 +45,12 @@ export const windowConfiguration: IWindowConfiguration = <any>{};
  * @description Once renderer process starts, we need to retrieve the APIs that
  * are exposed through the `preload.js`.
  */
-export function initExposedElectronAPIs(): void {
-    if (typeof window === 'object') {
-        GLOBAL.nota = (<any>window).nota;
+export const initExposedElectronAPIs = executeOnce(function () {
+    if (typeof GLOBAL === 'object') {
+        (<Mutable<IpcRenderer>>ipcRenderer) = GLOBAL.nota.ipcRenderer;
+        (<Mutable<ISandboxProcess>>process) = GLOBAL.nota.process;
+        (<Mutable<IWindowConfiguration>>windowConfiguration) = GLOBAL.nota.windowConfiguration;
+    } else {
+        throw new Error('Cannot init exposed electron APIs');
     }
-
-    (<Mutable<IpcRenderer>>ipcRenderer) = GLOBAL.nota.ipcRenderer;
-    (<Mutable<ISandboxProcess>>process) = GLOBAL.nota.process;
-    (<Mutable<IWindowConfiguration>>windowConfiguration) = GLOBAL.nota.windowConfiguration;
-}
+});

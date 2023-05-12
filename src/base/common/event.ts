@@ -462,13 +462,14 @@ export class NodeEventEmitter<T> implements IDisposable {
 
     private _emitter: Emitter<T>;
 
-    constructor(emitter: INodeEventEmitter, channel: string, dataWrapper?: (...args: any[]) => T) {
-        if (!dataWrapper) {
-            dataWrapper = (data) => data;
-        }
-        const onData = (...args: any[]) => this._emitter.fire(dataWrapper!(...args));
-        const onFirstAdd = () => emitter.on(channel, onData);
-		const onLastRemove = () => emitter.removeListener(channel, onData);
+    constructor(
+        nodeEmitter: INodeEventEmitter, 
+        channel: string, 
+        dataWrapper: (...args: any[]) => T = (data) => data,
+    ) {
+        const onData = (...args: any[]) => this._emitter.fire(dataWrapper(...args));
+        const onFirstAdd = () => nodeEmitter.on(channel, onData);
+		const onLastRemove = () => nodeEmitter.removeListener(channel, onData);
         this._emitter = new Emitter({ 
             onFirstListenerAdd: onFirstAdd, 
             onLastListenerRemoved: onLastRemove });

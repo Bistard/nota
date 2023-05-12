@@ -3,50 +3,10 @@ import { DisposableManager, IDisposable, toDisposable } from "src/base/common/di
 import { Emitter, Event, NodeEventEmitter, Register, SignalEmitter } from "src/base/common/event";
 import { DataBuffer } from "src/base/common/file/buffer";
 import { ILogService } from "src/base/common/logger";
-import { ipcRenderer } from "src/code/platform/electron/browser/global";
 import { IpcChannel } from "src/code/platform/ipc/common/channel";
-import { ClientBase, ClientConnectEvent, ServerBase } from "src/code/platform/ipc/common/net";
-import { Protocol } from "src/code/platform/ipc/common/protocol";
+import { ClientConnectEvent, ServerBase } from "src/code/platform/ipc/common/net";
+import { IpcProtocol } from "src/code/platform/ipc/common/protocol";
 import { SafeIpcMain } from "src/code/platform/ipc/electron/safeIpcMain";
-
-/**
- * @class An implementation of {@link ClientBase} that wraps the {@link ipcRenderer}
- * as the protocol communication.
- * @note Should be used in renderer process side.
- */
-export class IpcClient extends ClientBase {
-
-    // [field]
-
-    private static _disposable = new DisposableManager();
-
-    // [constructor]
-
-    constructor(id: string) {
-        super(IpcClient.__createProtocol(), id, () => ipcRenderer.send(IpcChannel.Connect));
-    }
-
-    public override dispose(): void {
-        IpcClient._disposable.dispose();
-        super.dispose();
-    }
-
-    // [private helper methods]
-
-    private static __createProtocol(): Protocol {
-        /**
-         * We register a channel listener on {@link IpcChannel.DataChannel} into
-         * our own {@link ipcRenderer} and every time we receive data we wrap it 
-         * with data buffer.
-         */
-        const nodeEmitter = new NodeEventEmitter<DataBuffer>(ipcRenderer, IpcChannel.DataChannel, (event, data) => {
-            return DataBuffer.wrap(data);
-        });
-
-        IpcClient._disposable.register(nodeEmitter);
-        return new Protocol(ipcRenderer, nodeEmitter.registerListener);
-    }
-}
 
 /**
  * @class An implementation of {@link ServerBase} that wraps the {@link SafeIpcMain}
@@ -87,9 +47,7 @@ export class IpcServer extends ServerBase {
             const clientID = client.id;
             
             const handle = IpcServer._activedClients.get(clientID);
-            if (handle) {
-                handle.dispose();
-            }
+            handle?.dispose();
 
             const onClientReconnect = new Emitter<void>();
             IpcServer._activedClients.set(clientID, toDisposable(() => {
@@ -105,7 +63,7 @@ export class IpcServer extends ServerBase {
             IpcServer._disposable.register(onDisconnectDisposable);
             return {
                 clientID: clientID,
-                protocol: new Protocol(client, onDataRegister),
+                protocol: new IpcProtocol(client, onDataRegister),
                 onClientDisconnect: Event.any([onDisconnect.registerListener, onClientReconnect.registerListener]),
             };
         });
@@ -118,9 +76,11 @@ interface IIpcEvent {
 }
 
 function scopedOnDataEvent(eventName: string, filterID: number): [IDisposable, Register<DataBuffer>] {
-	const onDataEmitter = new NodeEventEmitter<IIpcEvent>(SafeIpcMain.instance, eventName, (event, data) => {
-        return ({ event, data });
-    });
+	const onDataEmitter = new NodeEventEmitter<IIpcEvent>(
+        SafeIpcMain.instance, 
+        eventName, 
+        (event, data) => ({ event, data }),
+    );
 	const onDataFromID = Event.filter(onDataEmitter.registerListener, ({ event }) => {
         return event.sender.id === filterID;
     });

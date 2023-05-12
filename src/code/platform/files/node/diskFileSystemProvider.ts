@@ -7,11 +7,12 @@ import { IReadableStreamEvent, newWriteableStream } from "src/base/common/file/s
 import { URI } from "src/base/common/file/uri";
 import { retry } from "src/base/common/util/async";
 import { FileService } from "src/code/platform/files/common/fileService";
-import { fileExists, FileMode, readFileIntoStream } from "src/base/node/io";
+import { fileExists, FileMode } from "src/base/node/io";
 import { Watcher } from "src/code/platform/files/node/watcher";
 import { ILogService } from "src/base/common/logger";
 import { Emitter } from "src/base/common/event";
 import { IRawResourceChangeEvents, IWatcher } from "src/code/platform/files/common/watcher";
+import { readFileIntoStream } from "src/base/common/file/io";
 
 export class DiskFileSystemProvider extends Disposable implements 
     IFileSystemProviderWithFileReadWrite, 

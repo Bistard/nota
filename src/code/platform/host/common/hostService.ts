@@ -1,9 +1,7 @@
 import { OpenDialogOptions } from "electron";
 import { IDisposable } from "src/base/common/dispose";
 import { Register } from "src/base/common/event";
-import { getUUID } from "src/base/node/uuid";
 import { createService } from "src/code/platform/instantiation/common/decorator";
-import { SafeIpcMain } from "src/code/platform/ipc/electron/safeIpcMain";
 import { StatusKey } from "src/code/platform/status/common/status";
 
 export const IHostService = createService<IHostService>('host-service');
@@ -66,30 +64,4 @@ export interface IIpcAccessible<T> extends IDisposable {
      * Make the resource unaccessible.
      */
     dispose(): void;
-}
-
-/**
- * @description A helper function to help renderer process can have access to
- * and only to the specified data by invoking `ipcRenderer.invoke(resource)`.
- * @returns a {@link IIpcAccessible} object.
- * @note Can only be invoked in main process and pass the resource to the 
- * renderer process.
- */
-export function createIpcAccessible<T>(): IIpcAccessible<T> {
-    let data: T;
-    let disposed = false;
-    const resource = `nota:${getUUID()}`;
-    SafeIpcMain.instance.handle(resource, async () => data);
-
-    return {
-        resource: resource,
-        updateData: (newData: T) => data = newData,
-        dispose: () => {
-            if (disposed) {
-                return;
-            }
-            SafeIpcMain.instance.removeHandler(resource);
-            disposed = true;
-        },
-    };
 }

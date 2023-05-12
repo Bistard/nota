@@ -3,13 +3,12 @@ import { Disposable } from "src/base/common/dispose";
 import { ErrorHandler } from "src/base/common/error";
 import { Event } from "src/base/common/event";
 import { ILogService } from "src/base/common/logger";
-import { getUUID, UUID } from "src/base/node/uuid";
+import { getUUID } from "src/base/node/uuid";
 import { IFileService } from "src/code/platform/files/common/fileService";
 import { ServiceDescriptor } from "src/code/platform/instantiation/common/descriptor";
 import { IInstantiationService, IServiceProvider } from "src/code/platform/instantiation/common/instantiation";
 import { ServiceCollection } from "src/code/platform/instantiation/common/serviceCollection";
 import { IEnvironmentService, IMainEnvironmentService } from "src/code/platform/environment/common/environment";
-import { IpcServer } from "src/code/platform/ipc/browser/ipc";
 import { IpcChannel } from "src/code/platform/ipc/common/channel";
 import { ProxyChannel } from "src/code/platform/ipc/common/proxy";
 import { IMainLifecycleService, LifecyclePhase } from "src/code/platform/lifecycle/electron/mainLifecycleService";
@@ -26,6 +25,8 @@ import { IHostService } from "src/code/platform/host/common/hostService";
 import { DEFAULT_HTML } from "src/code/platform/window/common/window";
 import { URI } from "src/base/common/file/uri";
 import { MainFileChannel } from "src/code/platform/files/electron/mainFileChannel";
+import { UUID } from "src/base/common/util/string";
+import { IpcServer } from "src/code/platform/ipc/electron/ipcServer";
 
 /**
  * An interface only for {@link NotaInstance}

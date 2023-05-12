@@ -2,7 +2,6 @@ import { Disposable } from "src/base/common/dispose";
 import { Emitter, Event, Register } from "src/base/common/event";
 import { ILogService } from "src/base/common/logger";
 import { isNumber, Mutable } from "src/base/common/util/type";
-import { UUID } from "src/base/node/uuid";
 import { IFileService } from "src/code/platform/files/common/fileService";
 import { createService } from "src/code/platform/instantiation/common/decorator";
 import { IInstantiationService } from "src/code/platform/instantiation/common/instantiation";
@@ -11,6 +10,7 @@ import { IMainLifecycleService } from "src/code/platform/lifecycle/electron/main
 import { ToOpenType, IUriToOpenConfiguration, IWindowConfiguration, IWindowCreationOptions } from "src/code/platform/window/common/window";
 import { IWindowInstance, WindowInstance } from "src/code/platform/window/electron/windowInstance";
 import { URI } from "src/base/common/file/uri";
+import { UUID } from "src/base/common/util/string";
 
 export const IMainWindowService = createService<IMainWindowService>('main-window-service');
 

@@ -3,15 +3,14 @@ import { Emitter, Event, Register } from 'src/base/common/event';
 import { DataBuffer } from 'src/base/common/file/buffer';
 import { URI } from 'src/base/common/file/uri';
 import { delayFor } from 'src/base/common/util/async';
-import { mockType } from 'src/base/common/util/type';
 import { IChannel, IServerChannel } from 'src/code/platform/ipc/common/channel';
 import { ClientConnectEvent, ClientBase, ServerBase } from 'src/code/platform/ipc/common/net';
-import { IProtocol } from 'src/code/platform/ipc/common/protocol';
+import { IIpcProtocol } from 'src/code/platform/ipc/common/protocol';
 import { ProxyChannel } from 'src/code/platform/ipc/common/proxy';
 import { NullLogger } from 'test/utils/utility';
 
 
-class QueueProtocol implements IProtocol {
+class QueueProtocol implements IIpcProtocol {
 
 	private buffering = true;
 	private buffers: DataBuffer[] = [];
@@ -45,7 +44,7 @@ class QueueProtocol implements IProtocol {
 	}
 }
 
-function createProtocolPair(): [IProtocol, IProtocol] {
+function createProtocolPair(): [IIpcProtocol, IIpcProtocol] {
 	const one = new QueueProtocol();
 	const other = new QueueProtocol();
 	one.other = other;
@@ -59,7 +58,7 @@ class TestIPCClient extends ClientBase {
 	private readonly _onDidDisconnect = new Emitter<void>();
 	readonly onDidDisconnect = this._onDidDisconnect.registerListener;
 
-	constructor(protocol: IProtocol, id: string) {
+	constructor(protocol: IIpcProtocol, id: string) {
 		super(protocol, id, () => {});
 	}
 
@@ -286,7 +285,7 @@ suite('IPC-test', function () {
 			server.registerChannel(TestChannelId, ProxyChannel.wrapService(service));
 
 			client = testServer.createConnection('client1');
-			ipcService = mockType(ProxyChannel.unwrapChannel(client.getChannel(TestChannelId)));
+			ipcService = ProxyChannel.unwrapChannel(client.getChannel(TestChannelId));
 		});
 
 		teardown(function () {

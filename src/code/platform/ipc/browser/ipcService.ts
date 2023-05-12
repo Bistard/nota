@@ -1,6 +1,6 @@
 import { IDisposable } from "src/base/common/dispose";
 import { createService } from "src/code/platform/instantiation/common/decorator";
-import { IpcClient } from "src/code/platform/ipc/browser/ipc";
+import { IpcClient } from "src/code/platform/ipc/browser/ipcClient";
 import { ChannelType, IChannel } from "src/code/platform/ipc/common/channel";
 
 export const IIpcService = createService<IIpcService>('ipc-service');

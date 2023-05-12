@@ -12,6 +12,9 @@ $menu-item-focus-background-color: var(--menu-item-focus-background-color);
     
     align-items: center;
     
+    border: 1px solid #bbb;
+    border-radius: 4px;
+
     &:focus {
         outline: none;
     }

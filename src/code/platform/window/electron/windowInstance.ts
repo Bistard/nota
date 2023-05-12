@@ -9,7 +9,35 @@ import { IEnvironmentService, IMainEnvironmentService } from "src/code/platform/
 import { IMainLifecycleService } from "src/code/platform/lifecycle/electron/mainLifecycleService";
 import { defaultDisplayState, IWindowConfiguration, IWindowDisplayOpts, WindowDisplayMode, WindowMinimumState, IWindowCreationOptions, ArgumentKey, DEFAULT_HTML } from "src/code/platform/window/common/window";
 import { IpcChannel } from "src/code/platform/ipc/common/channel";
-import { createIpcAccessible, IIpcAccessible } from "src/code/platform/host/common/hostService";
+import { IIpcAccessible } from "src/code/platform/host/common/hostService";
+import { getUUID } from "src/base/node/uuid";
+import { SafeIpcMain } from "src/code/platform/ipc/electron/safeIpcMain";
+
+/**
+ * @description A helper function to help renderer process can have access to
+ * and only to the specified data by invoking `ipcRenderer.invoke(resource)`.
+ * @returns a {@link IIpcAccessible} object.
+ * @note Can only be invoked in main process and pass the resource to the 
+ * renderer process.
+ */
+function createIpcAccessible<T>(): IIpcAccessible<T> {
+    let data: T;
+    let disposed = false;
+    const resource = `nota:${getUUID()}`;
+    SafeIpcMain.instance.handle(resource, async () => data);
+
+    return {
+        resource: resource,
+        updateData: (newData: T) => data = newData,
+        dispose: () => {
+            if (disposed) {
+                return;
+            }
+            SafeIpcMain.instance.removeHandler(resource);
+            disposed = true;
+        },
+    };
+}
 
 /**
  * An interface only for {@link WindowInstance}.
@@ -129,7 +157,9 @@ export class WindowInstance extends Disposable implements IWindowInstance {
             y: displayOpts.y,
             minHeight:  displayOpts.minHeight ?? WindowMinimumState.height,
             minWidth: displayOpts.minWidth ?? WindowMinimumState.wdith,
-            webPreferences: {
+            webPreferences: {                
+                preload: resolve(join(__dirname, 'preload.js')),
+
                 /**
                  * Node.js is only available in main / preload process.
                  * Node.js us also be available in the renderer process.
@@ -137,13 +167,7 @@ export class WindowInstance extends Disposable implements IWindowInstance {
                  * 
                  * Absolute path needed.
                  */
-                nodeIntegration: true,
-                preload: resolve(join(__dirname, 'preload.js')),
-                /**
-                 * Pass any arguments use the following pattern:
-                 *      --ArgName=argInString
-                 */
-                additionalArguments: [`--${ArgumentKey.configuration}=${this._configurationIpcAccessible.resource}`],
+                nodeIntegration: false,
                 
                 /**
                  * Context Isolation is a feature that ensures that both 
@@ -158,7 +182,14 @@ export class WindowInstance extends Disposable implements IWindowInstance {
                  * preload script has access to is actually a different 
                  * object than the website would have access to.
                  */
-                contextIsolation: false,
+                contextIsolation: true,
+
+                /**
+                 * Pass any arguments use the following pattern:
+                 *      --ArgName=argInString
+                 */
+                additionalArguments: [`--${ArgumentKey.configuration}=${this._configurationIpcAccessible.resource}`],
+                
                 spellcheck: false,
                 enableWebSQL: false,
                 backgroundThrottling: false,

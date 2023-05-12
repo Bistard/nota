@@ -7,7 +7,10 @@ import { AbstractLogger, ILogService } from "src/base/common/logger";
 import { IKeyboardService } from "src/code/browser/service/keyboard/keyboardService";
 import { ContextService } from "src/code/platform/context/common/contextService";
 import { DiskEnvironmentService } from "src/code/platform/environment/common/diskEnvironmentService";
+import { IBrowserEnvironmentService, IEnvironmentService } from "src/code/platform/environment/common/environment";
 import { AbstractLifecycleService } from "src/code/platform/lifecycle/common/abstractLifecycleService";
+import { IWindowConfiguration } from "src/code/platform/window/common/window";
+import { nullObject } from "test/utils/helpers";
 
 export const NotaName = 'nota';
 export const TestDirName = 'tests';
@@ -26,7 +29,7 @@ export class NullLifecycleService extends AbstractLifecycleService<number, numbe
     }
 }
 
-export class NullEnvironmentService extends DiskEnvironmentService {
+export class NullEnvironmentService extends DiskEnvironmentService implements IEnvironmentService {
     constructor() {
         super({
                 _: [],
@@ -38,6 +41,33 @@ export class NullEnvironmentService extends DiskEnvironmentService {
             userHomePath: '',
             },
         );
+    }
+}
+
+export class NullBrowserEnvironmentService extends DiskEnvironmentService implements IBrowserEnvironmentService {
+
+    constructor() {
+        super({
+            _: []
+        }, {
+            appRootPath: '',
+            isPackaged: false,
+            tmpDirPath: '',
+            userDataPath: '',
+            userHomePath: '',
+        });
+    }
+    
+    get machineID(): string {
+        return '';
+    }
+
+    get windowID(): number {
+        return NaN;
+    }
+
+    get configuration(): IWindowConfiguration {
+        return nullObject();
     }
 }
 
