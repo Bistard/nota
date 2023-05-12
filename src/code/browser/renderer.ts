@@ -145,12 +145,27 @@ class RendererInstance extends Disposable {
         instantiationService.register(IComponentService, new ServiceDescriptor(ComponentService));
 
         // i18n-service
-        // REVIEW: late initialization
-        const i18nOption: Ii18nOpts = {
-            language: configService.get<LanguageType>(BuiltInConfigScope.User, 'workbench.language'),
-            localeOpts: {}
-        };
-        const i18nService = new i18n(i18nOption, fileService, logService);
+        // instantiationService.register(Ii18nService, 
+        //     new ServiceDescriptor(
+        //         i18n, 
+        //         [
+        //             <Ii18nOpts>{
+        //                 language: configService.get<LanguageType>(BuiltInConfigScope.User, 'workbench.language'),
+        //                 localeOpts: {},
+        //             },
+        //         ]
+        //     )
+        // );
+        
+        const i18nService = new i18n(
+            <Ii18nOpts>{
+                language: configService.get<LanguageType>(BuiltInConfigScope.User, 'workbench.language'),
+                localeOpts: {},
+            }, 
+            fileService, 
+            logService,
+            environmentService,
+        );
         instantiationService.register(Ii18nService, i18nService);
 
         // singleton initializations

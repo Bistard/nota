@@ -39,10 +39,7 @@ export class IpcClient extends ClientBase {
         const nodeEmitter = new NodeEventEmitter<DataBuffer>(
             ipcRenderer, 
             IpcChannel.DataChannel, 
-            (event, data) => {
-                console.log(data instanceof Uint8Array);
-                return DataBuffer.wrap(data);
-            },
+            (event, data) => DataBuffer.wrap(data),
         );
 
         IpcClient._disposable.register(nodeEmitter);

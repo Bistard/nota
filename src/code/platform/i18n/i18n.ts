@@ -6,6 +6,7 @@ import { isObject } from "src/base/common/util/type";
 import { Section } from "src/code/platform/section";
 import { createService } from "src/code/platform/instantiation/common/decorator";
 import { ILogService } from "src/base/common/logger";
+import { IBrowserEnvironmentService } from "src/code/platform/environment/common/environment";
 
 export const Ii18nService = createService<Ii18nService>('i18n-service');
 
@@ -34,9 +35,9 @@ export interface Ii18nOpts {
 
     /**
      * The absolute path for reading all locales.
-     *  - defaults to {@link DefaultLocalesPath}
+     *  - defaults to `APP_ROOT/{@link DefaultLocalesPath}`
      */
-    readonly directory?: string;
+    readonly directory?: URI;
 
     /**
      * Watch for changes in JSON files to reload locale on updates.
@@ -131,15 +132,15 @@ export class i18n implements Ii18nService {
     // [Attributes]
 
     /* the actual javascript object to store the locale */
-    protected _model: { [key: string]: Ii18nSection } = Object.create(null);
+    protected readonly _model: { [key: string]: Ii18nSection } = Object.create(null);
 
     /* the current display language */
-    protected _language: LanguageType | undefined;
+    protected _language: LanguageType;
 
     /* the absolute directory path to locales */
-    protected _path: string;
+    protected readonly _path: URI;
 
-    protected _autoReload: boolean;
+    protected readonly _autoReload: boolean;
 
     protected _extension: string;
 
@@ -148,9 +149,6 @@ export class i18n implements Ii18nService {
     protected _suffix: string;
 
     get language(): LanguageType {
-        if (this._language === undefined) {
-            return 'en';
-        }
         return this._language;
     }
 
@@ -168,10 +166,11 @@ export class i18n implements Ii18nService {
         opts: Ii18nOpts,
         @IFileService private readonly fileService: IFileService,
         @ILogService private readonly logService: ILogService,
+        @IBrowserEnvironmentService private readonly environmentService: IBrowserEnvironmentService,
     ) {
         // i18n related
         this._language   = opts.language   || DefaultLanguage;
-        this._path       = opts.directory  || path.resolve(DefaultLocalesPath);
+        this._path       = opts.directory  || URI.join(this.environmentService.appRootPath, DefaultLocalesPath);
         this._autoReload = opts.autoReload || false;
         
         // locales related
@@ -187,8 +186,7 @@ export class i18n implements Ii18nService {
     }
 
     public async init(): Promise<void> {
-        // read current language settings into program
-        const uri = URI.fromFile(path.join(this._path, this._language + this._extension));
+        const uri = URI.join(this._path, this.language + this._extension);
         await this.__readLocale(uri);
     }
 
@@ -196,9 +194,9 @@ export class i18n implements Ii18nService {
         this._language = lang;
 
         if (opts) {
-            this._extension = opts.extension || this._extension;
-            this._prefix = opts.prefix || this._prefix;
-            this._suffix = opts.suffix || this._suffix;
+            this._extension = opts.extension ?? this._extension;
+            this._prefix = opts.prefix ?? this._prefix;
+            this._suffix = opts.suffix ?? this._suffix;
         }
 
         this._onDidChange.fire();
@@ -228,7 +226,7 @@ export class i18n implements Ii18nService {
             get = (key: string) => { 
                 const index = parseInt(key);
                 if (Number.isNaN(index)) {
-                    throw new Error('i18n translation index variable should be number');
+                    throw new Error('i18n translation index variable should be number.');
                 }
                 return interpolation[index]; 
             }
@@ -290,6 +288,7 @@ export class i18n implements Ii18nService {
     }
 
     public async reloadLocale(): Promise<void> {
+        // TODO
         throw new Error('does not support reload locale yet.');
     }
 
@@ -310,7 +309,6 @@ export class i18n implements Ii18nService {
             const jsonObject: Object = JSON.parse(buffer.toString());
             Object.assign(this._model, jsonObject);
         } catch (err) {
-            // TODO: logService and pops up notification window
             this.logService.error(`Cannot read locale at ${URI.toString(uri)}`);
             throw err;
         }

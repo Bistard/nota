@@ -1,5 +1,7 @@
 
 const hasBuffer: boolean = typeof Buffer !== 'undefined';
+let textEncoder: TextEncoder | undefined = undefined;
+let textDecoder: TextDecoder | undefined = undefined;
 
 /**
  * @class A class to simulate a real buffer which provides the functionality to
@@ -84,7 +86,6 @@ export class DataBuffer {
         return newBuffer;
     }
 
-    private static _textEncoder?: TextEncoder;
     /**
      * @description Construct a DataBuffer from a given string.
      */
@@ -92,10 +93,10 @@ export class DataBuffer {
         if (hasBuffer) {
             return new DataBuffer(Buffer.from(content));
         } else {
-            if (!DataBuffer._textEncoder) {
-                DataBuffer._textEncoder = new TextEncoder();
+            if (!textEncoder) {
+                textEncoder = new TextEncoder();
             }
-            return new DataBuffer(DataBuffer._textEncoder.encode(content));
+            return new DataBuffer(textEncoder.encode(content));
         }
     }
 
@@ -113,7 +114,13 @@ export class DataBuffer {
      * @example DataBuffer.fromString('Hello').toString() => 'Hello'
      */
     public toString(): string {
-        return this.buffer.toString();
+        if (hasBuffer) {
+            return this.buffer.toString();
+        }
+        if (!textDecoder) {
+            textDecoder = new TextDecoder();
+        }
+        return textDecoder.decode(this.buffer);
     }
 
     /**

@@ -1,4 +1,4 @@
-import { Disposable, IDisposable, toDisposable } from "src/base/common/dispose";
+import { Disposable, IDisposable } from "src/base/common/dispose";
 import { Emitter, Event, Register } from "src/base/common/event";
 import { BufferReader, BufferWriter, DataBuffer } from "src/base/common/file/buffer";
 import { ILogService } from "src/base/common/logger";
@@ -397,13 +397,6 @@ export class ChannelClient extends Disposable implements IChannelClient {
     }
 
     private __deserializeResponse(buffer: DataBuffer): Pair<IResponseHeader, any> {
-        // FIX
-        // REVIEW: buffer (DataBuffer) wraps another DataBuffer that contains a Uint8Array
-        console.log('(1) dataBuffer passed into BufferDeserializer:', buffer);
-        // console.log('Uint8Array:', buffer.buffer);
-        // console.log('Uint8Array method:', buffer.buffer.subarray);
-        // console.log('real Uint8Array:', new Uint8Array());
-        // console.log('real Uint8Array method:', new Uint8Array().subarray);
         const deserializer = new BufferDeserializer(buffer);
         const header = deserializer.deserialize<true, false>();
         const body = deserializer.deserialize<true, true>();

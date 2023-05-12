@@ -69,21 +69,18 @@
 			on(channel, listener) {
 				if (validate(channel)) {
 					ipcRenderer.on(channel, listener);
-
 					return this;
 				}
 			},
 			once(channel, listener) {
 				if (validate(channel)) {
 					ipcRenderer.once(channel, listener);
-
 					return this;
 				}
 			},
 			removeListener(channel, listener) {
 				if (validate(channel)) {
 					ipcRenderer.removeListener(channel, listener);
-
 					return this;
 				}
 			}
@@ -142,11 +139,10 @@
 		windowConfiguration: configuration,
 	};
 
-	if (process.contextIsolated) {
+	if (process.contextIsolated === true) {
 		contextBridge.exposeInMainWorld('nota', exposedAPIs);
 	} else {
 		window.nota = exposedAPIs;
 	}
-
 })();
 
