@@ -1,7 +1,6 @@
 import 'src/code/browser/workbench/parts/workspace/editor/media/editor.scss';
 import { URI } from "src/base/common/file/uri";
 import { IComponentService } from "src/code/browser/service/component/componentService";
-import { IThemeService } from "src/code/browser/service/theme/themeService";
 import { Component,  } from "src/code/browser/service/component/component";
 import { IFileService } from "src/code/platform/files/common/fileService";
 import { ServiceDescriptor } from "src/code/platform/instantiation/common/descriptor";
@@ -18,6 +17,7 @@ import { BuiltInConfigScope } from "src/code/platform/configuration/common/confi
 import { IEditorWidgetOptions } from "src/editor/common/configuration/editorConfiguration";
 import { deepCopy } from "src/base/common/util/object";
 import { IEditorService } from "src/code/browser/workbench/parts/workspace/editor/editorService";
+import { IThemeService } from 'src/code/browser/service/theme/themeService';
 
 export class Editor extends Component implements IEditorService {
 

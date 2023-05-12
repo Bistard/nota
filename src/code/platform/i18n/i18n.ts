@@ -11,16 +11,16 @@ export const Ii18nService = createService<Ii18nService>('i18n-service');
 
 /* the default path where to read locales. */
 const DefaultLocalesPath = 'assets/locales';
-const DefaultLanguage = 'en';
+const DefaultLanguage = LanguageType.en;
 const DefaultExtension = '.json';
 const DefaultLocalesPrefix = '{';
 const DefaultLocalesSuffix = '}';
 
-export type LanguageType = (
-    'en' |      // English
-    'zh-cn' |   // Chinese (Simplified)
-    'zh-tw'     // Chinese (Traditional)
-);
+export const enum LanguageType {
+    ['en']    = 'en',      // English
+    ['zh-cn'] ='zh-cn',    // Chinese (Simplified)
+    ['zh-tw'] = 'zh-tw',   // Chinese (Traditional)
+};
 
 type Ii18nSection = { [key: string]: string };
 

@@ -63,6 +63,7 @@ class ConfigEmitter<T extends IScopeConfigChangeEvent> {
  * A base interface for all config-service.
  */
 export interface IConfigService extends IDisposable {
+    
     /**
      * Fires when any of the configuration is changed.
      */

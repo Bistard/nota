@@ -2,7 +2,6 @@ import { IDisposable } from "src/base/common/dispose";
 import { Register } from "src/base/common/event";
 import { URI } from "src/base/common/file/uri";
 import { ILogService } from "src/base/common/logger";
-import { DeepReadonly, Mutable } from "src/base/common/util/type";
 import { ConfigModel, IConfigModel } from "src/code/platform/configuration/common/configModel";
 import { BuiltInConfigScope, ConfigScope, ExtensionConfigScope, IConfigRegistrant, IScopeConfigChangeEvent } from "src/code/platform/configuration/common/configRegistrant";
 import { ConfigStorage, IConfigStorage } from "src/code/platform/configuration/common/configStorage";
@@ -13,7 +12,7 @@ import { REGISTRANTS } from "src/code/platform/registrant/common/registrant";
  * An option interface for constructing a {@link ConfigCollection}.
  */
 export interface ConfigCollectionOpts {
-    resourceProvider: (scope: ConfigScope) => URI,
+    resourceProvider: (scope: ConfigScope) => URI;
     readonly builtIn?: BuiltInConfigScope[];
     readonly extension?: ExtensionConfigScope[];
 }
@@ -84,7 +83,7 @@ export class ConfigCollection implements IConfigCollection, IDisposable {
 
     // [field]
 
-    private readonly _registrant: IConfigRegistrant = REGISTRANTS.get(IConfigRegistrant);
+    private readonly _registrant = REGISTRANTS.get(IConfigRegistrant);
     
     private readonly _configurations: Map<BuiltInConfigScope, IConfigModel>;
     private readonly _extensionConfigurations: Map<ExtensionConfigScope, IConfigModel>;

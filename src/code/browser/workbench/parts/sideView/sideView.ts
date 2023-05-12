@@ -4,10 +4,10 @@ import { Emitter, Register } from 'src/base/common/event';
 import { createService } from 'src/code/platform/instantiation/common/decorator';
 import { IComponentService } from 'src/code/browser/service/component/componentService';
 import { IInstantiationService } from 'src/code/platform/instantiation/common/instantiation';
-import { IThemeService } from 'src/code/browser/service/theme/themeService';
 import { Constructor, Mutable } from 'src/base/common/util/type';
 import { ILogService } from 'src/base/common/logger';
 import { SideViewTitlePart } from 'src/code/browser/workbench/parts/sideView/sideViewTitle';
+import { IThemeService } from 'src/code/browser/service/theme/themeService';
 
 export const ISideViewService = createService<ISideViewService>('side-view-service');
 

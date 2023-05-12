@@ -5,7 +5,6 @@ import { IKeyboardScreenCastService, KeyboardScreenCastService } from "src/code/
 import { IKeyboardService, KeyboardService } from "src/code/browser/service/keyboard/keyboardService";
 import { BrowserDialogService, IDialogService } from 'src/code/platform/dialog/browser/browserDialogService';
 import { IShortcutService, ShortcutService } from 'src/code/browser/service/shortcut/shortcutService';
-import { IThemeService, ThemeService } from 'src/code/browser/service/theme/themeService';
 import { SideBar, ISideBarService } from 'src/code/browser/workbench/parts/sideBar/sideBar';
 import { IWorkspaceService, WorkspaceComponent } from 'src/code/browser/workbench/parts/workspace/workspace';
 import { SideViewService, ISideViewService } from 'src/code/browser/workbench/parts/sideView/sideView';
@@ -14,6 +13,7 @@ import { ContextService, IContextService } from 'src/code/platform/context/commo
 import { ContextMenuService, IContextMenuService } from "src/code/browser/service/contextMenu/contextMenuService";
 import { ILayoutService, LayoutService } from "src/code/browser/service/layout/layoutService";
 import { INotificationService, NotificationService } from "src/code/browser/service/notification/notificationService";
+import { IThemeService, ThemeService } from "src/code/browser/service/theme/themeService";
 
 /*******************************************************************************
  * Registraion for desktop browser-side non-important microservices.
@@ -35,7 +35,7 @@ export function rendererServiceRegistrations(): void {
     registerSingleton(IWorkspaceService, new ServiceDescriptor(WorkspaceComponent));
     registerSingleton(ISideViewService, new ServiceDescriptor(SideViewService));
     registerSingleton(IKeyboardScreenCastService, new ServiceDescriptor(KeyboardScreenCastService));
-    registerSingleton(IThemeService, new ServiceDescriptor(ThemeService)); // TODO: themeService
+    registerSingleton(IThemeService, new ServiceDescriptor(ThemeService));
     registerSingleton(IExplorerTreeService, new ServiceDescriptor(ExplorerTreeService));
     registerSingleton(IContextMenuService, new ServiceDescriptor(ContextMenuService));
 

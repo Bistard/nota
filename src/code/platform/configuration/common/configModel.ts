@@ -24,7 +24,7 @@ export interface IConfigModel extends IConfigStorage {
 
 /**
  * @class A wrapper class on {@link ConfigStorage} except providing a resource
- * path for updating to the latest configuration by inboking `this.init()`.
+ * path for updating to the latest configuration by invoking `this.init()`.
  */
 export class ConfigModel extends Disposable implements IConfigModel {
 
@@ -89,7 +89,7 @@ export class ConfigModel extends Disposable implements IConfigModel {
             await this.fileService.createFile(this._resource, DataBuffer.fromString(serialized));
             this.logService.info(`Configuration saved at ${URI.toString(this.resource)}.`);
         } catch (error: any) {
-            this.logService.error(`Cofniguration failed writing at ${URI.toString(this.resource)}.`);
+            this.logService.error(`Configuration failed writing at ${URI.toString(this.resource)}.`);
             throw error;
         }
     }

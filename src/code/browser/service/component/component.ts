@@ -4,8 +4,8 @@ import { Emitter, Register } from "src/base/common/event";
 import { Dimension, IDimension } from "src/base/common/util/size";
 import { IComponentService } from "src/code/browser/service/component/componentService";
 import { Themable } from "src/code/browser/service/theme/theme";
-import { IThemeService } from "src/code/browser/service/theme/themeService";
 import { FocusTracker } from "src/base/browser/basic/focusTracker";
+import { IThemeService } from "src/code/browser/service/theme/themeService";
 
 export interface ICreateable {
     create(): void;
@@ -176,10 +176,11 @@ export abstract class Component extends Themable implements IComponent {
      * HTMLElement from the provided parentComponent when creating. Otherwise 
      * defaults to `document.body`.
      */
-    constructor(id: string, 
-                parentElement: HTMLElement | null,
-                themeService: IThemeService,
-                componentService: IComponentService,
+    constructor(
+        id: string, 
+        parentElement: HTMLElement | null,
+        themeService: IThemeService,
+        componentService: IComponentService,
     ) {
         super(themeService);
 
@@ -227,7 +228,7 @@ export abstract class Component extends Themable implements IComponent {
 
     // [protected override method]
 
-    protected override updateStyles(): void { /** noop */ }
+    protected override __updateStyles(): void { /** noop */ }
 
     // [public method]
 

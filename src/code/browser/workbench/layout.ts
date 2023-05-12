@@ -1,6 +1,5 @@
 import { addDisposableListener, DomUtility, EventType, Orientation } from "src/base/browser/basic/dom";
 import { IComponentService } from "src/code/browser/service/component/componentService";
-import { IThemeService } from "src/code/browser/service/theme/themeService";
 import { SideBar, ISideBarService, SideButtonType } from "src/code/browser/workbench/parts/sideBar/sideBar";
 import { ISideViewService, SideView } from "src/code/browser/workbench/parts/sideView/sideView";
 import { Component } from "src/code/browser/service/component/component";
@@ -17,6 +16,7 @@ import { ILayoutService } from "src/code/browser/service/layout/layoutService";
 import { CheckMenuAction, MenuSeperatorAction, SimpleMenuAction, SubmenuAction } from "src/base/browser/basic/menu/menuItem";
 import { KeyCode, Shortcut } from "src/base/common/keyboard";
 import { BuiltInConfigScope } from "src/code/platform/configuration/common/configRegistrant";
+import { IThemeService } from "src/code/browser/service/theme/themeService";
 
 /**
  * @description A base class for Workbench to create and manage the behaviour of

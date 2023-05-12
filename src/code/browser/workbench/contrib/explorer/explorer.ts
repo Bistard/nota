@@ -6,7 +6,6 @@ import { Ii18nService } from 'src/code/platform/i18n/i18n';
 import { Section } from 'src/code/platform/section';
 import { addDisposableListener, EventType, Orientation } from 'src/base/browser/basic/dom';
 import { IBrowserDialogService, IDialogService } from 'src/code/platform/dialog/browser/browserDialogService';
-import { IThemeService } from 'src/code/browser/service/theme/themeService';
 import { ILogService } from 'src/base/common/logger';
 import { IWorkbenchService } from 'src/code/browser/service/workbench/workbenchService';
 import { IBrowserLifecycleService, ILifecycleService } from 'src/code/platform/lifecycle/browser/browserLifecycleService';
@@ -26,6 +25,7 @@ import { Button } from 'src/base/browser/basic/button/button';
 import { RGBA } from 'src/base/common/color';
 import { ClassicOpenEvent, ExplorerViewID, IExplorerViewService } from 'src/code/browser/workbench/contrib/explorer/explorerService';
 import { IEditorService } from 'src/code/browser/workbench/parts/workspace/editor/editorService';
+import { IThemeService } from 'src/code/browser/service/theme/themeService';
 
 /**
  * @class TODO: complete comments

@@ -3,9 +3,9 @@ import { Component } from 'src/code/browser/service/component/component';
 import { WindowBar } from 'src/code/browser/workbench/parts/workspace/titleBar/windowBar';
 import { IComponentService } from 'src/code/browser/service/component/componentService';
 import { IInstantiationService } from 'src/code/platform/instantiation/common/instantiation';
-import { IThemeService } from 'src/code/browser/service/theme/themeService';
 import { SearchBar } from 'src/base/browser/basic/searchbar/searchbar';
 import { Icons } from 'src/base/browser/icon/icons';
+import { IThemeService } from 'src/code/browser/service/theme/themeService';
 
 /**
  * @class TitleBar stores and handles all the titleBar and functionBar 

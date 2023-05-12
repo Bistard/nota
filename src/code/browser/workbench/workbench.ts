@@ -6,7 +6,6 @@ import { IWorkbenchService } from "src/code/browser/service/workbench/workbenchS
 import { IKeyboardScreenCastService } from "src/code/browser/service/keyboard/keyboardScreenCastService";
 import { IConfigService } from "src/code/platform/configuration/common/abstractConfigService";
 import { BuiltInConfigScope } from "src/code/platform/configuration/common/configRegistrant";
-import { IThemeService } from "src/code/browser/service/theme/themeService";
 import { ISideBarService } from "src/code/browser/workbench/parts/sideBar/sideBar";
 import { ISideViewService } from "src/code/browser/workbench/parts/sideView/sideView";
 import { IWorkspaceService } from "src/code/browser/workbench/parts/workspace/workspace";
@@ -18,6 +17,7 @@ import { IBrowserLifecycleService, ILifecycleService, LifecyclePhase } from 'src
 import { IBrowserEnvironmentService, IEnvironmentService } from 'src/code/platform/environment/common/environment';
 import { IContextMenuService } from 'src/code/browser/service/contextMenu/contextMenuService';
 import { ILayoutService } from 'src/code/browser/service/layout/layoutService';
+import { IThemeService } from 'src/code/browser/service/theme/themeService';
 
 /**
  * @class Workbench represents all the Components in the web browser.

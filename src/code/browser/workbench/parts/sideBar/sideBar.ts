@@ -6,8 +6,8 @@ import { ISideButtonOptions, SideButton } from 'src/code/browser/workbench/parts
 import { WidgetBar } from 'src/base/browser/secondary/widgetBar/widgetBar';
 import { Orientation } from 'src/base/browser/basic/dom';
 import { Emitter, Register } from 'src/base/common/event';
-import { IThemeService } from 'src/code/browser/service/theme/themeService';
 import { ILogService } from 'src/base/common/logger';
+import { IThemeService } from 'src/code/browser/service/theme/themeService';
 
 export const ISideBarService = createService<ISideBarService>('side-bar-service');
 

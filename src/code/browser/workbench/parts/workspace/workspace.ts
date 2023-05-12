@@ -4,8 +4,8 @@ import { Component, IComponent } from "src/code/browser/service/component/compon
 import { TitleBar } from "src/code/browser/workbench/parts/workspace/titleBar/titleBar";
 import { createService } from "src/code/platform/instantiation/common/decorator";
 import { IInstantiationService } from "src/code/platform/instantiation/common/instantiation";
-import { IThemeService } from "src/code/browser/service/theme/themeService";
 import { IEditorService } from "src/code/browser/workbench/parts/workspace/editor/editorService";
+import { IThemeService } from "src/code/browser/service/theme/themeService";
 
 export const IWorkspaceService = createService<IWorkspaceService>('workspace-service');
 
