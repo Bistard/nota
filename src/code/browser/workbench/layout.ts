@@ -15,7 +15,6 @@ import { IContextMenuService } from "src/code/browser/service/contextMenu/contex
 import { ILayoutService } from "src/code/browser/service/layout/layoutService";
 import { CheckMenuAction, MenuSeperatorAction, SimpleMenuAction, SubmenuAction } from "src/base/browser/basic/menu/menuItem";
 import { KeyCode, Shortcut } from "src/base/common/keyboard";
-import { BuiltInConfigScope } from "src/code/platform/configuration/common/configRegistrant";
 import { IThemeService } from "src/code/browser/service/theme/themeService";
 
 /**

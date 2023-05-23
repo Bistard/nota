@@ -207,11 +207,11 @@ async function scanCodeForRequiredIcons(codeRoot, extraIcons) {
             }
 
             const content = (await fs.promises.readFile(currPath)).toString();
-            const result = content.matchAll(regexp);
-            for (const res of result) {
-                const usedIcon = res[1];
-                requiredIcons.add(usedIcon);
-                console.log(`${utils.getTime()} Found required icon at ${currPath}: '${usedIcon}'.`);
+            const result = content.match(regexp);
+            for (const usedIcon of result ?? []) {
+                const iconName = usedIcon.split('.')[1];
+                requiredIcons.add(iconName);
+                console.log(`${utils.getTime()} Found required icon at ${currPath}: '${iconName}'.`);
             }
         }
     };
