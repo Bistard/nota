@@ -51,7 +51,7 @@ async function run() {
     const allValidIcons = await obtainAllValidIcons(originalSvgRoot);
     
     // scans all the required icons
-    const requiredIcons = await scanCodeForRequiredIcons(codeRoot, allValidIcons, extraIcons);
+    const requiredIcons = await scanCodeForRequiredIcons(codeRoot, extraIcons);
 
     // clean up 'srcSvgRoot' for unrequired icons
     await cleanupUnrequiredIcons(srcSvgRoot, requiredIcons);
@@ -179,16 +179,11 @@ async function obtainAllValidIcons(svgRoot) {
     return allValidIcons;
 }
 
-async function scanCodeForRequiredIcons(codeRoot, allValidIcons, extraIcons) {
+async function scanCodeForRequiredIcons(codeRoot, extraIcons) {
     
     console.log(`${utils.getTime()} Start scanning repository at '${codeRoot}' for required icons...`);
 
-    /**
-     * Create the regular expression based on all the icons we have.
-     * Then we read through the entire code section to store all the icons that
-     * are used.
-     */
-    const regexp = new RegExp(`\\bIcons\\.(${allValidIcons.join('|')})\\b`, 'g');
+    const regexp = new RegExp(`Icons\\.\\w+`, 'g');
     const requiredIcons = new Set();
     
     // put extra icons first if provided any
@@ -206,16 +201,17 @@ async function scanCodeForRequiredIcons(codeRoot, allValidIcons, extraIcons) {
         for (const target of targets) {
             const currPath = path.resolve(parentPath, target.name);
             
-            if (target.isFile()) {
-                const content = (await fs.promises.readFile(currPath)).toString();
-                const result = content.matchAll(regexp);
-                for (const res of result) {
-                    const usedIcon = res[1];
-                    requiredIcons.add(usedIcon);
-                }
-            }
-            else {
+            if (!target.isFile()) {
                 await scan(currPath);
+                continue;
+            }
+
+            const content = (await fs.promises.readFile(currPath)).toString();
+            const result = content.matchAll(regexp);
+            for (const res of result) {
+                const usedIcon = res[1];
+                requiredIcons.add(usedIcon);
+                console.log(`${utils.getTime()} Found required icon at ${currPath}: '${usedIcon}'.`);
             }
         }
     };
@@ -241,7 +237,7 @@ async function cleanupUnrequiredIcons(srcSvgRoot, requiredIcons) {
         
         // if not a target file, we notify it.
         if (!existedIcon.isFile() || path.extname(existedIcon.name) !== '.svg') {
-            process.stdout.write(`${utils.getTime(utils.c.FgYellow)} Unexpected target founded at ${srcSvgRoot}: '${existedIcon.name}'.`);
+            console.log(`${utils.getTime(utils.c.FgYellow)} Unexpected target founded at ${srcSvgRoot}: '${existedIcon.name}'.`);
             continue;
         }
 
@@ -250,7 +246,7 @@ async function cleanupUnrequiredIcons(srcSvgRoot, requiredIcons) {
 
         // target file, but not required, we delete it.
         if (!requiredIcons.has(upperRawName)) {
-            process.stdout.write(`${utils.getTime(utils.c.FgYellow)} Deleting unrequired icon file founded at ${srcSvgRoot}: '${existedIcon.name}'...`);
+            console.log(`${utils.getTime(utils.c.FgYellow)} Deleting unrequired icon file founded at ${srcSvgRoot}: '${existedIcon.name}'...`);
             await fs.promises.rm(path.resolve(srcSvgRoot, existedIcon.name));
             continue;
         }
