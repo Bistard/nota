@@ -5,6 +5,7 @@ export interface IBrowserHostService extends IHostService {
     maximizeWindow(): Promise<void>;
     minimizeWindow(): Promise<void>;
     unmaximizeWindow(): Promise<void>;
+    toggleMaximizeWindow(): Promise<void>;
     toggleFullScreenWindow(): Promise<void>;
     closeWindow(): Promise<void>;
 }
