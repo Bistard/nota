@@ -53,7 +53,8 @@ async function run() {
     // scans all the required icons
     const requiredIcons = await scanCodeForRequiredIcons(codeRoot, allValidIcons, extraIcons);
 
-    // TODO: clean up 'srcSvgRoot' for unrequired icons
+    // clean up 'srcSvgRoot' for unrequired icons
+    await cleanupUnrequiredIcons(srcSvgRoot, requiredIcons);
     
     // copy required svg icon files into srcSvgRoot
     await copyRequiredIcons(originalSvgRoot, srcSvgRoot, allValidIcons, requiredIcons);
@@ -197,7 +198,7 @@ async function scanCodeForRequiredIcons(codeRoot, allValidIcons, extraIcons) {
 
     /**
      * callback for every directory, iterate every files in the `codeRoot` and
-     * searching for any using
+     * searching for any using icon names.
      */
     const scan = async (parentPath) => {
         const targets = await fs.promises.readdir(parentPath, { withFileTypes: true });
@@ -223,6 +224,37 @@ async function scanCodeForRequiredIcons(codeRoot, allValidIcons, extraIcons) {
     console.log(`${utils.getTime()} Detected total of ${requiredIcons.size} of required icons at the repository '${codeRoot}'.`);
 
     return requiredIcons;
+}
+
+async function cleanupUnrequiredIcons(srcSvgRoot, requiredIcons) {
+
+    // make sure `srcSvgRoot` exists
+    const missingDir = await utils.ifMissingFile(srcSvgRoot, '');
+    if (missingDir) {
+        await fs.promises.mkdir(srcSvgRoot, { recursive: true });
+        return;
+    }
+
+    // check existed `srcSvgRoot`, if contains any unrequired icons, we remove it.
+    const existedIcons = await fs.promises.readdir(srcSvgRoot, { withFileTypes: true });
+    for (const existedIcon of existedIcons) {
+        
+        // if not a target file, we notify it.
+        if (!existedIcon.isFile() || path.extname(existedIcon.name) !== '.svg') {
+            process.stdout.write(`${utils.getTime(utils.c.FgYellow)} Unexpected target founded at ${srcSvgRoot}: '${existedIcon.name}'.`);
+            continue;
+        }
+
+        const rawName = path.parse(existedIcon.name).name; // without extension
+        const upperRawName = utils.setCharAt(rawName, 0, rawName[0].toUpperCase());
+
+        // target file, but not required, we delete it.
+        if (!requiredIcons.has(upperRawName)) {
+            process.stdout.write(`${utils.getTime(utils.c.FgYellow)} Deleting unrequired icon file founded at ${srcSvgRoot}: '${existedIcon.name}'...`);
+            await fs.promises.rm(path.resolve(srcSvgRoot, existedIcon.name));
+            continue;
+        }
+    }
 }
 
 async function copyRequiredIcons(srcRoot, outputRoot, allValidIcons, requiredIcons) {
