@@ -9,19 +9,39 @@ export const IConfigRegistrant = createRegistrant<IConfigRegistrant>(RegistrantT
 
 // TODO
 export const enum BuiltInConfigScope {
-    Test = 'Test',
+    
+    /**
+     * The scope exclusive to program modifications.
+     */
     Application = 'Application',
+    
+    /**
+     * The scope permitting both program and user modifications.
+     */
     User = 'User',
+
+    /**
+     * The scope allowing program, user, and third-party modifications.
+     */
     Extension = 'Extension',
+
+    /**
+     * The scope exclusive to unit testing modifications.
+     */
+    Test = 'Test',
 }
-export type ExtensionConfigScope = unknown; // REVIEW: decision for later
+
+export type ExtensionConfigScope = unknown; // TODO: decision for later
 export type ConfigScope = BuiltInConfigScope | ExtensionConfigScope;
 
 /**
  * Configuration change event type that tells the scope of the configuration.
  */
 export interface IScopeConfigChangeEvent extends IConfigChangeEvent {
-    /** The scope of the changed configuration. */
+    
+    /** 
+     * The scope of the changed configuration. 
+     */
     readonly scope: ConfigScope;
 }
 

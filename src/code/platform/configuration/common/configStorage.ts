@@ -4,7 +4,10 @@ import { deepCopy } from "src/base/common/util/object";
 import { isObject } from "src/base/common/util/type";
 
 export interface IConfigChangeEvent {
-    /** The section of the changed configuration. */
+    
+    /** 
+     * The section of the changed configuration. 
+     */
     readonly sections: string[];
 }
 

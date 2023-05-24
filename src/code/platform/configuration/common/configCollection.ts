@@ -167,7 +167,7 @@ export class ConfigCollection implements IConfigCollection, IDisposable {
             allConfiguration.set(type, configuration.model);
         }
 
-        // REVIEW: extension inspect
+        // TODO: extension inspect
         // for (const [type, configuration] of this._extensionConfigurations) {
         //     allConfiguration.set(type, configuration.model);
         // }
