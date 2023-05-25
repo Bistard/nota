@@ -1,3 +1,4 @@
+import { Pair } from "src/base/common/util/type";
 
 /**
  * {@link IJsonNodeSchema} is a type used to represent a schema of JSON data. It 
@@ -13,6 +14,9 @@
  * 
  * Similarly for 'array' and 'object', there are properties to describe the 
  * items in the array and the properties of the object respectively.
+ * 
+ * When you plan to extend the {@link IJsonNodeSchema} to add additional 
+ * requirements, remember to inherit the base class {@link IJsonNodeSchemaValidator}.
  * 
  * ## The Schema Example
  * ```ts
@@ -55,8 +59,8 @@
  * ```
  */
 export type IJsonNodeSchema = (
-    IJsonNodeSchemaForBoolean |
     IJsonNodeSchemaForNull |
+    IJsonNodeSchemaForBoolean |
     IJsonNodeSchemaForNumber |
     IJsonNodeSchemaForString |
     IJsonNodeSchemaForArray |
@@ -78,25 +82,41 @@ interface IJsonNodeSchemaBase<TDataType extends DataType>  {
 
     /** The default value of the current schema node. */
     default?: any;
+
+    /** If the schema is deprecated. */
+    deprecated?: boolean;
 }
 
-interface IJsonNodeSchemaForBoolean extends IJsonNodeSchemaBase<'boolean'> {}
-
 interface IJsonNodeSchemaForNull extends IJsonNodeSchemaBase<'null'> {}
+
+interface IJsonNodeSchemaForBoolean extends IJsonNodeSchemaBase<'boolean'> {
+    
+    /** Default ones if the value is not provided. */
+    default?: boolean;
+}
 
 interface IJsonNodeSchemaForNumber extends IJsonNodeSchemaBase<'number'> {
 
     /** If only supports integer. */
     integer?: boolean;
 
+    /** Default ones if the value is not provided. */
+    default?: number;
+
     /** The minimum value requirement. */
     minimum?: number;
     
     /** The maximum value requirement. */
     maximum?: number;
+
+    /** Provider a list of ranges to describe the valid number values. */
+    ranges?: Pair<number, number>[];
 }
 
 interface IJsonNodeSchemaForString extends IJsonNodeSchemaBase<'string'> {
+
+    /** Default ones if the value is not provided. */
+    default?: string;
 
     /** The minimum length of the string. */
     minLength?: number;
@@ -139,4 +159,27 @@ interface IJsonNodeSchemaForObject extends IJsonNodeSchemaBase<'object'> {
 
     /** The optional properties. */
     optionals?: string[];
+}
+
+export class IJsonNodeSchemaValidator {
+
+    private readonly _schema: IJsonNodeSchema;
+
+    constructor(schema: IJsonNodeSchema) {
+        this._schema = schema;
+    }
+
+    /**
+     * @description Validates the provided data against the schema. Currently, 
+     * it only checks if the schema is deprecated, in which case it returns 
+     * `true`.
+     * @param data The data to be validated.
+     * @returns A boolean indicating whether the data Satisfies to the schema.
+     */
+    public validate(data: any): boolean {
+        if (this._schema.deprecated) {
+            return true;
+        }
+        return false;
+    }
 }
