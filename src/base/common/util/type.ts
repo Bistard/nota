@@ -32,12 +32,52 @@ export type If<C, T, F> = C extends boolean ? (C extends true ? T : F) : never;
 /**
  * Determines if the given type T is truthy.
  */
-export type IsTrue<T> = T extends '' | [] | false | 0 ? false : T extends {} ? keyof T extends never ? false :  true : false;
+export type IsTruthy<T> = T extends '' | [] | false | 0 ? false : T extends {} ? keyof T extends never ? false :  true : false;
+
+/**
+ * Negate a boolean type.
+ */
+export type Negate<T> = T extends boolean ? (T extends true ? false : true) : never;
+
+/**
+ * Determines if the given type T is string.
+ */
+export type IsString<T> = T extends string ? true : false;
+
+/**
+ * Determines if the given type T is number.
+ */
+export type IsNumber<T> = T extends number ? true : false;
+
+/**
+ * Determines if the given type T is boolean.
+ */
+export type IsBoolean<T> = T extends boolean ? true : false;
+
+/**
+ * Determines if the given type T is null.
+ */
+export type IsNull<T> = T extends null ? true : false;
+
+/**
+ * Determines if the given type T is an array.
+ */
+export type IsArray<T> = T extends any[] ? true : false;
+
+/**
+ * Determines if the given type T is an object.
+ */
+export type IsObject<T> = T extends Record<string, any> ? true : false;
+
+/**
+ * Determines if the given two types T and U are equal.
+ */
+export type AreEqual<T, U> = T extends U ? (U extends T ? true : false) : false;
 
 /**
  * Determines if the given array contains any truthy values.
  */
-export type AnyOf<T extends readonly any[]> = T extends [infer F, ...infer Rest] ?  IsTrue<F> extends true ? true : AnyOf<Rest> : IsTrue<T[0]>;
+export type AnyOf<T extends readonly any[]> = T extends [infer F, ...infer Rest] ?  IsTruthy<F> extends true ? true : AnyOf<Rest> : IsTruthy<T[0]>;
 
 /**
  * Push any type into the end of the array.
