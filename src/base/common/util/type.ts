@@ -121,7 +121,8 @@ export type MapTypes<T, R extends { from: any; to: any }> = {
 };
 
 /**
- * Wraps all the return types from all the function properties with a {@link Promise}.
+ * Given an object, for every return types of the function property, wraps with 
+ * a {@link Promise}.
  * @note Ignores the return types that are already promises.
  */
 export type Promisify<T> = { 
@@ -142,7 +143,7 @@ export type SplitString<S extends string, D extends string> =
     S extends `${infer T}${D}${infer U}` ? [T, ...SplitString<U, D>] : [S];
 
 /**
- * A general compare function.
+ * A general compare function template. Returns a number to indicate the result.
  */
 export type CompareFn<T> = (a: T, b: T) => number;
 
