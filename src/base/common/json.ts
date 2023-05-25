@@ -16,7 +16,7 @@ import { Pair } from "src/base/common/util/type";
  * items in the array and the properties of the object respectively.
  * 
  * When you plan to extend the {@link IJsonNodeSchema} to add additional 
- * requirements, remember to inherit the base class {@link IJsonNodeSchemaValidator}.
+ * requirements, remember to inherit the base class {@link JsonNodeSchemaValidator}.
  * 
  * ## The Schema Example
  * ```ts
@@ -45,7 +45,7 @@ import { Pair } from "src/base/common/util/type";
  * ```
  * ## The valid JSON Data
  * ```ts
- * {
+ * let userData = {
  *     "name": "John Doe",
  *     "age": 30,
  *     "email": "john@example.com",
@@ -56,6 +56,19 @@ import { Pair } from "src/base/common/util/type";
  *     },
  *     "hobbies": ["Reading", "Traveling", "Swimming"]
  * }
+ * ```
+ * 
+ * ## Customized Validator
+ * ```ts
+ * class UserSchemaValidator extends JsonNodeSchemaValidator {
+ *     public override validate(data: any): boolean {
+ *         // ...
+ *     }
+ * }
+ * 
+ * const validator = new UserSchemaValidator(userSchema);
+ * validator.validate(userData); // true
+ * validator.validate({}); // false
  * ```
  */
 export type IJsonNodeSchema = (
@@ -72,19 +85,19 @@ type DataType = 'string' | 'number' | 'boolean' | 'null' | 'array' | 'object';
 interface IJsonNodeSchemaBase<TDataType extends DataType>  {
     
     /** The data type of the current schema node. */
-    type: TDataType;
+    readonly type: TDataType;
 
     /** The identifier of the schema node. */
-    id?: string;
+    readonly id?: string;
 
     /** The description of the schema node. */
-    description?: string;
+    readonly description?: string;
 
     /** The default value of the current schema node. */
-    default?: any;
+    readonly default?: any;
 
     /** If the schema is deprecated. */
-    deprecated?: boolean;
+    readonly deprecated?: boolean;
 }
 
 interface IJsonNodeSchemaForNull extends IJsonNodeSchemaBase<'null'> {}
@@ -92,76 +105,76 @@ interface IJsonNodeSchemaForNull extends IJsonNodeSchemaBase<'null'> {}
 interface IJsonNodeSchemaForBoolean extends IJsonNodeSchemaBase<'boolean'> {
     
     /** Default ones if the value is not provided. */
-    default?: boolean;
+    readonly default?: boolean;
 }
 
 interface IJsonNodeSchemaForNumber extends IJsonNodeSchemaBase<'number'> {
 
     /** If only supports integer. */
-    integer?: boolean;
+    readonly integer?: boolean;
 
     /** Default ones if the value is not provided. */
-    default?: number;
+    readonly default?: number;
 
     /** The minimum value requirement. */
-    minimum?: number;
+    readonly minimum?: number;
     
     /** The maximum value requirement. */
-    maximum?: number;
+    readonly maximum?: number;
 
     /** Provider a list of ranges to describe the valid number values. */
-    ranges?: Pair<number, number>[];
+    readonly ranges?: Pair<number, number>[];
 }
 
 interface IJsonNodeSchemaForString extends IJsonNodeSchemaBase<'string'> {
 
     /** Default ones if the value is not provided. */
-    default?: string;
+    readonly default?: string;
 
     /** The minimum length of the string. */
-    minLength?: number;
+    readonly minLength?: number;
 
     /** The maximum length of the string. */
-    maxLength?: number;
+    readonly maxLength?: number;
 
     /** The predefined format of the string. Example: 'email', 'phone number', 'post adress' etc. */
-    format?: string;
+    readonly format?: string;
 }
 
 interface IJsonNodeSchemaForArray extends IJsonNodeSchemaBase<'array'> {
 
     /** The items of the array. */
-    items?: IJsonNodeSchema | IJsonNodeSchema[];
+    readonly items?: IJsonNodeSchema | IJsonNodeSchema[];
 
     /** The minimum number of items required. */
-    minItems?: number;
+    readonly minItems?: number;
 
     /** The maximum number of items required. */
-	maxItems?: number;
+	readonly maxItems?: number;
 
     /** If the items in the array should be unique. */
-	uniqueItems?: boolean;
+	readonly uniqueItems?: boolean;
 }
 
 interface IJsonNodeSchemaForObject extends IJsonNodeSchemaBase<'object'> {
     
     /** The properties of the schema node. */
-    properties?: Record<string, IJsonNodeSchema>;
+    readonly properties?: Record<string, IJsonNodeSchema>;
 
     /** The minimum number of properties required. */
-    minProperties?: number;
+    readonly minProperties?: number;
 
     /** The maximum number of properties required. */
-    maxProperties?: number;
+    readonly maxProperties?: number;
 
     /** The required properties. */
-    required?: string[];
+    readonly required?: string[];
 
     /** The optional properties. */
-    optionals?: string[];
+    readonly optionals?: string[];
 }
 
-export class IJsonNodeSchemaValidator {
+export class JsonNodeSchemaValidator {
 
     private readonly _schema: IJsonNodeSchema;
 
