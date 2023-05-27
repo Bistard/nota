@@ -99,6 +99,18 @@ interface IJsonNodeSchemaBase<TDataType extends DataType>  {
 
     /** If the schema is deprecated. */
     deprecated?: boolean;
+
+    /** An message for shown when the data is deprecated. */
+    deprecatedMessage?: string;
+
+    /** An message for shown when the data is not validated. */
+    errorMessage?: string;
+
+    /** When provided, the node will act like a list of choices (dropdown menu etc). */
+    enum?: string[];
+
+    /** When provided, each description serves the corresponding enum. */
+    enumDescription?: string[];
 }
 
 interface IJsonNodeSchemaForNull extends IJsonNodeSchemaBase<'null'> {}
@@ -140,6 +152,9 @@ interface IJsonNodeSchemaForString extends IJsonNodeSchemaBase<'string'> {
 
     /** The predefined format of the string. Example: 'email', 'phone number', 'post adress' etc. */
     format?: string;
+
+    /** Regular expression to match the valid string. */
+    regexp?: string;
 }
 
 interface IJsonNodeSchemaForArray extends IJsonNodeSchemaBase<'array'> {
@@ -162,6 +177,9 @@ interface IJsonNodeSchemaForObject extends IJsonNodeSchemaBase<'object'> {
     /** The properties of the schema node. */
     properties?: Record<string, IJsonNodeSchema>;
 
+    /** If allow the schema node to have extra properties that are not listed in the required. */
+    additionalProperties?: true;
+
     /** The minimum number of properties required. */
     minProperties?: number;
 
@@ -177,11 +195,7 @@ interface IJsonNodeSchemaForObject extends IJsonNodeSchemaBase<'object'> {
 
 export class JsonNodeSchemaValidator {
 
-    private _schema: IJsonNodeSchema;
-
-    constructor(schema: IJsonNodeSchema) {
-        this._schema = schema;
-    }
+    constructor(private readonly schema: IJsonNodeSchema) {}
 
     /**
      * @description Validates the provided data against the schema. Currently, 
@@ -191,16 +205,9 @@ export class JsonNodeSchemaValidator {
      * @returns A boolean indicating whether the data Satisfies to the schema.
      */
     public validate(data: any): boolean {
-        if (this._schema.deprecated) {
+        if (this.schema.deprecated) {
             return true;
         }
         return false;
-    }
-
-    public defaultValidate(data: any): boolean {
-
-        // TODO
-
-        return true;
     }
 }
