@@ -19,46 +19,6 @@ export const DEFAULT_CONFIG_NAME = 'user.config.json';
 export const USER_CONFIG_NAME = DEFAULT_CONFIG_NAME;
 export const APP_CONFIG_NAME = 'nota.config.json';
 
-export interface ConfigRegister<ConfigType> {
-    (scope: ConfigScope, section: string, listener: Listener<DeepReadonly<ConfigType>>, disposables?: IDisposable[], thisObject?: any): IDisposable;
-}
-
-class ConfigEmitter<T extends IScopeConfigChangeEvent> {
-
-    private _orginRegister: Register<T>;
-    private _myRegister?: ConfigRegister<DeepReadonly<any>>;
-
-    constructor(register: Register<T>, private readonly _collection: IConfigCollection) {
-        this._orginRegister = register;
-    }
-
-    get registerListener() {
-        if (!this._myRegister) {
-            this._myRegister = <ConfigType, >(scope: ConfigScope, section: string, listener: Listener<ConfigType>, disposables?: IDisposable[], thisObject?: any) => {
-                const disposable = this._orginRegister(e => this.__onDidChange(e, scope, section, listener), disposables, thisObject);
-                return disposable;
-            };
-        }
-
-        return this._myRegister;
-    }
-
-    private __onDidChange<ConfigType>(e: T, scope: ConfigScope, section: string, listener: Listener<ConfigType>): void {
-        if (e.scope === scope) {
-            /**
-             * Either the whole configuration of that scope is changed OR
-             * The parent of the section is changed.
-             */
-            if (e.sections.length === 0
-                || Arrays.matchAny(e.sections, [section], (changes, desired) => desired.startsWith(changes))
-            ) {
-                const configuration = this._collection.get<ConfigType>(scope, section);
-                listener(configuration);
-            }
-        }
-    }
-}
-
 /**
  * A base interface for all config-service.
  */
@@ -91,8 +51,7 @@ export interface IConfigService extends IDisposable {
      * @param defaultVal If not found, provided defaultVal will be returned.
      * @note If section is not provided, the whole configuration will be 
      * returned.
-     * @warn `undefined` will be returned if not found and defaultVal is not 
-     * provided.
+     * @warn An exception will be thrown if the section is invalid.
      */
     get<T>(scope: ConfigScope, section: string | undefined, defaultVal?: T): DeepReadonly<T>;
     
@@ -161,7 +120,10 @@ export class AbstractConfigService extends Disposable implements IConfigService 
         try {
             return this._collection.get(scope, section);
         } catch {
-            return defaultVal ?? undefined!;
+            if (defaultVal) {
+                return <DeepReadonly<T>>defaultVal;
+            }
+            throw new Error('The section')
         }
     }
 
@@ -199,5 +161,41 @@ export class AbstractConfigService extends Disposable implements IConfigService 
             }
         }
     }
+}
 
+interface ConfigRegister<ConfigType> {
+    (scope: ConfigScope, section: string, listener: Listener<DeepReadonly<ConfigType>>, disposables?: IDisposable[], thisObject?: any): IDisposable;
+}
+
+class ConfigEmitter<T extends IScopeConfigChangeEvent> {
+
+    private _orginRegister: Register<T>;
+    private _myRegister?: ConfigRegister<DeepReadonly<any>>;
+
+    constructor(register: Register<T>, private readonly _collection: IConfigCollection) {
+        this._orginRegister = register;
+    }
+
+    get registerListener() {
+        if (!this._myRegister) {
+            this._myRegister = <ConfigType>(scope: ConfigScope, section: string, listener: Listener<ConfigType>, disposables?: IDisposable[], thisObject?: any) => {
+                const disposable = this._orginRegister(e => this.__onDidChange(e, scope, section, listener), disposables, thisObject);
+                return disposable;
+            };
+        }
+        return this._myRegister;
+    }
+
+    private __onDidChange<ConfigType>(e: T, scope: ConfigScope, section: string, listener: Listener<ConfigType>): void {
+        if (e.scope === scope) {
+            /**
+             * Either the whole configuration of that scope is changed OR the 
+             * parent of the section is changed.
+             */
+            if (Arrays.matchAny(e.sections, [section], (changes, desired) => desired.startsWith(changes)) || e.sections.length === 0) {
+                const configuration = this._collection.get<ConfigType>(scope, section);
+                listener(configuration);
+            }
+        }
+    }
 }
