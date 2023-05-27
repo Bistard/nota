@@ -1,6 +1,6 @@
 import * as assert from 'assert';
 import { Dictionary } from 'src/base/common/util/type';
-import { BuiltInConfigScope, ConfigScope, IConfigRegistrant } from 'src/code/platform/configuration/common/configRegistrant';
+import { BuiltInConfigScope, ConfigScope, IConfigurationRegistrant } from 'src/code/platform/configuration/common/configRegistrant';
 import { DefaultConfigStorage } from 'src/code/platform/configuration/common/configStorage';
 import { REGISTRANTS } from 'src/code/platform/registrant/common/registrant';
 
@@ -23,9 +23,9 @@ class TestDefaultConfigStorage extends DefaultConfigStorage {
 
 suite('configRegistrant-test', () => {
 
-    let registrant: IConfigRegistrant;
+    let registrant: IConfigurationRegistrant;
     setup(() => {
-        registrant = REGISTRANTS.get(IConfigRegistrant);
+        registrant = REGISTRANTS.get(IConfigurationRegistrant);
     });
 
     test('onDidChange', () => {

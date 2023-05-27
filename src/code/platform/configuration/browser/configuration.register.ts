@@ -1,6 +1,6 @@
 import { TreeMode } from "src/code/browser/service/explorerTree/treeService";
 import { ColorThemeType } from "src/code/browser/service/theme/themeConfiguration";
-import { BuiltInConfigScope, IConfigRegistrant } from "src/code/platform/configuration/common/configRegistrant";
+import { BuiltInConfigScope, IConfigurationRegistrant } from "src/code/platform/configuration/common/configRegistrant";
 import { DefaultConfigStorage } from "src/code/platform/configuration/common/configStorage";
 import { LanguageType } from "src/code/platform/i18n/i18n";
 import { REGISTRANTS } from "src/code/platform/registrant/common/registrant";
@@ -29,6 +29,6 @@ class DefaultUserConfiguration extends DefaultConfigStorage {
 }
 
 export function registerBrowserDefaultConfiguration(): void {
-    const Registrant = REGISTRANTS.get(IConfigRegistrant);
+    const Registrant = REGISTRANTS.get(IConfigurationRegistrant);
     Registrant.registerDefaultBuiltIn(BuiltInConfigScope.User, new DefaultUserConfiguration());
 }

@@ -4,7 +4,7 @@ import { Arrays } from "src/base/common/util/array";
 import { Dictionary } from "src/base/common/util/type";
 import { createRegistrant, RegistrantType } from "src/code/platform/registrant/common/registrant";
 
-export const IConfigRegistrant = createRegistrant<IConfigRegistrant>(RegistrantType.Configuration);
+export const IConfigurationRegistrant = createRegistrant<IConfigurationRegistrant>(RegistrantType.Configuration);
 
 export type IConfigurationSchema = IJsonSchema & {
 
@@ -56,9 +56,9 @@ export interface IRawConfigChangeEvent {
 }
 
 /**
- * An interface only for {@link ConfigRegistrant}.
+ * An interface only for {@link ConfigurationRegistrant}.
  */
-export interface IConfigRegistrant {
+export interface IConfigurationRegistrant {
     
     /**
      * This event fires whenever a set of configurations has changed.
@@ -95,14 +95,14 @@ export interface IConfigRegistrant {
 
 
 /**
- * @class The {@link ConfigRegistrant} class is responsible for managing the 
+ * @class The {@link ConfigurationRegistrant} class is responsible for managing the 
  * registration of schema of configurations, but it doesn't directly handle the 
  * updating of configuration values. 
  * 
  * The actual values of configurations are managed by {@link ConfigurationService}.
  */
-@IConfigRegistrant
-class ConfigRegistrant implements IConfigRegistrant {
+@IConfigurationRegistrant
+class ConfigurationRegistrant implements IConfigurationRegistrant {
 
     // [event]
 

@@ -4,7 +4,7 @@ import { Schemas, URI } from 'src/base/common/file/uri';
 import { Dictionary } from 'src/base/common/util/type';
 import { AbstractConfigService } from 'src/code/platform/configuration/common/abstractConfigService';
 import { ConfigCollection } from 'src/code/platform/configuration/common/configCollection';
-import { BuiltInConfigScope, IConfigRegistrant } from 'src/code/platform/configuration/common/configRegistrant';
+import { BuiltInConfigScope, IConfigurationRegistrant } from 'src/code/platform/configuration/common/configRegistrant';
 import { DefaultConfigStorage } from 'src/code/platform/configuration/common/configStorage';
 import { FileService } from 'src/code/platform/files/common/fileService';
 import { DiskFileSystemProvider } from 'src/code/platform/files/node/diskFileSystemProvider';
@@ -31,7 +31,7 @@ class TestDefaultConfigStorage extends DefaultConfigStorage {
 suite('abstract-config-service-test', () => {
 
     const TestScope: BuiltInConfigScope = <any>'abstractConfigService-test-scope';
-    const registrant = REGISTRANTS.get(IConfigRegistrant);
+    const registrant = REGISTRANTS.get(IConfigurationRegistrant);
 
     const storage = new TestDefaultConfigStorage();
     registrant.registerDefaultBuiltIn(TestScope, storage);

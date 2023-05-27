@@ -3,7 +3,7 @@ import { Register } from "src/base/common/event";
 import { URI } from "src/base/common/file/uri";
 import { ILogService } from "src/base/common/logger";
 import { ConfigModel, IConfigModel } from "src/code/platform/configuration/common/configModel";
-import { BuiltInConfigScope, ConfigScope, ExtensionConfigScope, IConfigRegistrant, IScopeConfigChangeEvent } from "src/code/platform/configuration/common/configRegistrant";
+import { BuiltInConfigScope, ConfigScope, ExtensionConfigScope, IConfigurationRegistrant, IScopeConfigChangeEvent } from "src/code/platform/configuration/common/configRegistrant";
 import { ConfigStorage, IConfigStorage } from "src/code/platform/configuration/common/configStorage";
 import { IFileService } from "src/code/platform/files/common/fileService";
 import { REGISTRANTS } from "src/code/platform/registrant/common/registrant";
@@ -29,7 +29,7 @@ export interface IConfigCollection extends IDisposable {
     
     /**
      * @description Initialize all the registered configurations in 
-     * {@link IConfigRegistrant} with the updatest resource from the disk.
+     * {@link IConfigurationRegistrant} with the updatest resource from the disk.
      */
     init(): Promise<void>;
 
@@ -89,7 +89,7 @@ export class ConfigCollection implements IConfigCollection, IDisposable {
 
     // [field]
 
-    private readonly _registrant = REGISTRANTS.get(IConfigRegistrant);
+    private readonly _registrant = REGISTRANTS.get(IConfigurationRegistrant);
     
     private readonly _configurations: Map<BuiltInConfigScope, IConfigModel>;
     private readonly _extensionConfigurations: Map<ExtensionConfigScope, IConfigModel>;

@@ -31,7 +31,7 @@ export interface IConfigService extends IDisposable {
     
     /**
      * @description Initialize all the registered configurations in 
-     * {@link IConfigRegistrant} with the updatest resource from the disk.
+     * {@link IConfigurationRegistrant} with the updatest resource from the disk.
      */
     init(logLevel?: LogLevel): Promise<void>;
 

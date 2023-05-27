@@ -1,5 +1,5 @@
 import { Dictionary } from "src/base/common/util/type";
-import { BuiltInConfigScope, IConfigRegistrant } from "src/code/platform/configuration/common/configRegistrant";
+import { BuiltInConfigScope, IConfigurationRegistrant } from "src/code/platform/configuration/common/configRegistrant";
 import { DefaultConfigStorage } from "src/code/platform/configuration/common/configStorage";
 import { REGISTRANTS } from "src/code/platform/registrant/common/registrant";
 
@@ -12,6 +12,6 @@ class DefaultApplicationConfiguration extends DefaultConfigStorage {
 }
 
 (function registerMainDefaultConfiguration() {
-    const Registrant = REGISTRANTS.get(IConfigRegistrant);
+    const Registrant = REGISTRANTS.get(IConfigurationRegistrant);
     Registrant.registerDefaultBuiltIn(BuiltInConfigScope.Application, new DefaultApplicationConfiguration());
 })();
