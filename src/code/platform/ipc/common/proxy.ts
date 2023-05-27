@@ -1,5 +1,6 @@
 import { Register } from "src/base/common/event";
 import { CharCode } from "src/base/common/util/char";
+import { Dictionary } from "src/base/common/util/type";
 import { IChannel, IServerChannel } from "src/code/platform/ipc/common/channel";
 import { IReviverRegistrant } from "src/code/platform/ipc/common/revive";
 import { REGISTRANTS } from "src/code/platform/registrant/common/registrant";
@@ -16,7 +17,7 @@ export namespace ProxyChannel {
     const reviverRegistrant = REGISTRANTS.get(IReviverRegistrant);
 
     export function wrapService(service: unknown, opts?: WrapServiceOpt): IServerChannel {
-        const object = service as Record<string, unknown>;
+        const object = <Dictionary<string, unknown>>service;
         const eventRegisters = new Map<string, Register<unknown>>();
         const enableRevivier = opts?.enableRevivier ?? true;
 

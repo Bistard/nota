@@ -1,7 +1,7 @@
-import { Pair } from "src/base/common/util/type";
+import { Dictionary, Pair } from "src/base/common/util/type";
 
 /**
- * {@link IJsonNodeSchema} is a type used to represent a schema of JSON data. It 
+ * {@link IJsonSchema} is a type used to represent a schema of JSON data. It 
  * allows for describing the structure of JSON data in a type-safe way. 
  * Depending on the 'type' property, which can be 'string', 'number', 'boolean', 
  * 'null', 'array', or 'object'.
@@ -15,7 +15,7 @@ import { Pair } from "src/base/common/util/type";
  * Similarly for 'array' and 'object', there are properties to describe the 
  * items in the array and the properties of the object respectively.
  * 
- * When you plan to extend the {@link IJsonNodeSchema} to add additional 
+ * When you plan to extend the {@link IJsonSchema} to add additional 
  * requirements, remember to inherit the base class {@link JsonNodeSchemaValidator}
  * as a new validator.
  * 
@@ -72,7 +72,7 @@ import { Pair } from "src/base/common/util/type";
  * validator.validate({}); // false
  * ```
  */
-export type IJsonNodeSchema = (
+export type IJsonSchema = (
     IJsonNodeSchemaForNull |
     IJsonNodeSchemaForBoolean |
     IJsonNodeSchemaForNumber |
@@ -83,7 +83,7 @@ export type IJsonNodeSchema = (
 
 type DataType = 'string' | 'number' | 'boolean' | 'null' | 'array' | 'object';
 
-interface IJsonNodeSchemaBase<TDataType extends DataType>  {
+interface IJsonSchemaBase<TDataType extends DataType>  {
     
     /** The data type of the current schema node. */
     type: TDataType;
@@ -107,21 +107,21 @@ interface IJsonNodeSchemaBase<TDataType extends DataType>  {
     errorMessage?: string;
 
     /** When provided, the node will act like a list of choices (dropdown menu etc). */
-    enum?: string[];
+    enumItem?: string[];
 
     /** When provided, each description serves the corresponding enum. */
-    enumDescription?: string[];
+    enumItemDescription?: string[];
 }
 
-interface IJsonNodeSchemaForNull extends IJsonNodeSchemaBase<'null'> {}
+interface IJsonNodeSchemaForNull extends IJsonSchemaBase<'null'> {}
 
-interface IJsonNodeSchemaForBoolean extends IJsonNodeSchemaBase<'boolean'> {
+interface IJsonNodeSchemaForBoolean extends IJsonSchemaBase<'boolean'> {
     
     /** Default ones if the value is not provided. */
     default?: boolean;
 }
 
-interface IJsonNodeSchemaForNumber extends IJsonNodeSchemaBase<'number'> {
+interface IJsonNodeSchemaForNumber extends IJsonSchemaBase<'number'> {
 
     /** If only supports integer. */
     integer?: boolean;
@@ -139,7 +139,7 @@ interface IJsonNodeSchemaForNumber extends IJsonNodeSchemaBase<'number'> {
     ranges?: Pair<number, number>[];
 }
 
-interface IJsonNodeSchemaForString extends IJsonNodeSchemaBase<'string'> {
+interface IJsonNodeSchemaForString extends IJsonSchemaBase<'string'> {
 
     /** Default ones if the value is not provided. */
     default?: string;
@@ -157,10 +157,10 @@ interface IJsonNodeSchemaForString extends IJsonNodeSchemaBase<'string'> {
     regexp?: string;
 }
 
-interface IJsonNodeSchemaForArray extends IJsonNodeSchemaBase<'array'> {
+interface IJsonNodeSchemaForArray extends IJsonSchemaBase<'array'> {
 
     /** The items of the array. */
-    items?: IJsonNodeSchema | IJsonNodeSchema[];
+    items?: IJsonSchema | IJsonSchema[];
 
     /** The minimum number of items required. */
     minItems?: number;
@@ -172,10 +172,10 @@ interface IJsonNodeSchemaForArray extends IJsonNodeSchemaBase<'array'> {
 	uniqueItems?: boolean;
 }
 
-interface IJsonNodeSchemaForObject extends IJsonNodeSchemaBase<'object'> {
+interface IJsonNodeSchemaForObject extends IJsonSchemaBase<'object'> {
     
     /** The properties of the schema node. */
-    properties?: Record<string, IJsonNodeSchema>;
+    properties?: Dictionary<string, IJsonSchema>;
 
     /** If allow the schema node to have extra properties that are not listed in the required. */
     additionalProperties?: true;
@@ -195,7 +195,7 @@ interface IJsonNodeSchemaForObject extends IJsonNodeSchemaBase<'object'> {
 
 export class JsonNodeSchemaValidator {
 
-    constructor(private readonly schema: IJsonNodeSchema) {}
+    constructor(private readonly schema: IJsonSchema) {}
 
     /**
      * @description Validates the provided data against the schema. Currently, 

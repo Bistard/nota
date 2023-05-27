@@ -1,7 +1,7 @@
 import { Disposable, IDisposable } from "src/base/common/dispose";
 import { Emitter, Register } from "src/base/common/event";
 import { deepCopy } from "src/base/common/util/object";
-import { isObject } from "src/base/common/util/type";
+import { Dictionary, isObject } from "src/base/common/util/type";
 
 export interface IConfigChangeEvent {
     
@@ -329,7 +329,7 @@ export abstract class DefaultConfigStorage implements IConfigStorage {
 
     // [protected override method]
 
-    protected abstract createDefaultModel(): Record<PropertyKey, any>;
+    protected abstract createDefaultModel(): Dictionary<PropertyKey, any>;
 
     // [public wrapper methods]
 
@@ -387,8 +387,8 @@ export abstract class DefaultConfigStorage implements IConfigStorage {
  * // arr => ['path1.path2', 'path3']
  * ```
  */
-function getModelSections(model: Record<PropertyKey, any>, sections: string[]): void {
-    const __handler = (model: Record<PropertyKey, any>, section: string, sections: string[]): boolean => {
+function getModelSections(model: Dictionary<PropertyKey, any>, sections: string[]): void {
+    const __handler = (model: Dictionary<PropertyKey, any>, section: string, sections: string[]): boolean => {
         let reachBottom = true;
         
         for (const propName of Object.keys(model)) {

@@ -1,6 +1,7 @@
 import * as assert from 'assert';
 import { after } from 'mocha';
 import { Schemas, URI } from 'src/base/common/file/uri';
+import { Dictionary } from 'src/base/common/util/type';
 import { AbstractConfigService } from 'src/code/platform/configuration/common/abstractConfigService';
 import { ConfigCollection } from 'src/code/platform/configuration/common/configCollection';
 import { BuiltInConfigScope, IConfigRegistrant } from 'src/code/platform/configuration/common/configRegistrant';
@@ -11,7 +12,7 @@ import { REGISTRANTS } from 'src/code/platform/registrant/common/registrant';
 import { NullLifecycleService, NullLogger } from 'test/utils/utility';
 
 class TestDefaultConfigStorage extends DefaultConfigStorage {
-    protected override createDefaultModel(): Record<PropertyKey, any> {
+    protected override createDefaultModel(): Dictionary<PropertyKey, any> {
         return {
             'path1': {
                 a: undefined,

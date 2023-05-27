@@ -9,6 +9,21 @@ export type Pair<T, R> = Tuple<2, [T, R]>;
 export type Triple<T, R, S> = Tuple<3, [T, R, S]>;
 
 /**
+ * A dictionary (alias for `Record<K, V>`).
+ */
+export type Dictionary<K extends string | number | symbol, V> = Record<K, V>;
+
+/**
+ * A string dictionary (alias for `Record<string, V>`).
+ */
+export type StringDictionary<V> = Record<string, V>;
+
+/**
+ * A string dictionary (alias for `Record<number, V>`).
+ */
+export type NumberDictionary<V> = Record<number, V>;
+
+/**
  * Represents a tuple.
  */
 export type Tuple<Size extends number, Arr extends Readonly<unknown[]>> = Arr['length'] extends Size ? Size extends Arr['length'] ? Arr : never : never;
@@ -71,7 +86,7 @@ export type IsArray<T> = T extends any[] ? true : false;
 /**
  * Determines if the given type T is an object.
  */
-export type IsObject<T> = T extends Record<string, any> ? true : false;
+export type IsObject<T> = T extends Dictionary<string, any> ? true : false;
 
 /**
  * Determines if the given two types T and U are equal.

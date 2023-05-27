@@ -1,10 +1,11 @@
 import * as assert from 'assert';
+import { Dictionary } from 'src/base/common/util/type';
 import { BuiltInConfigScope, ConfigScope, IConfigRegistrant } from 'src/code/platform/configuration/common/configRegistrant';
 import { DefaultConfigStorage } from 'src/code/platform/configuration/common/configStorage';
 import { REGISTRANTS } from 'src/code/platform/registrant/common/registrant';
 
 class TestDefaultConfigStorage extends DefaultConfigStorage {
-    protected override createDefaultModel(): Record<PropertyKey, any> {
+    protected override createDefaultModel(): Dictionary<PropertyKey, any> {
         return {
             'path1': {
                 a: undefined,

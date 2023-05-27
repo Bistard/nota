@@ -1,7 +1,7 @@
 import { DataBuffer } from "src/base/common/file/buffer";
 import { FileOperationError } from "src/base/common/file/file";
 import { URI } from "src/base/common/file/uri";
-import { ifOrDefault } from "src/base/common/util/type";
+import { Dictionary, ifOrDefault } from "src/base/common/util/type";
 import { IFileService } from "src/code/platform/files/common/fileService";
 
 /**
@@ -109,7 +109,7 @@ export class DiskStorage implements IDiskStorage {
 
     // [field]
 
-    private _storage: Record<PropertyKey, Omit<any, 'null'>> = Object.create(null);
+    private _storage: Dictionary<PropertyKey, Omit<any, 'null'>> = Object.create(null);
     private _lastSaveStorage: string = '';
     private _operating?: Promise<void>;
     
