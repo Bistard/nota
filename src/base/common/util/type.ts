@@ -4,25 +4,29 @@ export type AlphabetInStringLow = 'a' | 'b' | 'c' | 'd' | 'e' | 'f' | 'g' | 'h' 
 export type AlphabetInStringCap = 'A' | 'B' | 'C' | 'D' | 'E' | 'F' | 'G' | 'H' | 'I' | 'J' | 'K' | 'L' | 'M' | 'N' | 'O' | 'P' | 'Q' | 'R' | 'S' | 'T' | 'U' | 'V' | 'W' | 'X' | 'Y' | 'Z';
 export type AlphabetInString = AlphabetInStringCap | AlphabetInStringLow;
 
-/**
- * Check the tuple size matches the given size.
- */
-export type Tuple<Size extends number, Arr extends Readonly<unknown[]>> = Arr['length'] extends Size ? Size extends Arr['length'] ? Arr : never : never;
 export type Single<T> = Tuple<1, [T]>;
 export type Pair<T, R> = Tuple<2, [T, R]>;
 export type Triple<T, R, S> = Tuple<3, [T, R, S]>;
 
 /**
- * Make all the properties mutable (remove readonly).
+ * Represents a tuple.
  */
-export type Mutable<Immutable> = {
-    -readonly [P in keyof Immutable]: Immutable[P]
-}
+export type Tuple<Size extends number, Arr extends Readonly<unknown[]>> = Arr['length'] extends Size ? Size extends Arr['length'] ? Arr : never : never;
 
 /**
  * Represents a constructor of a class with type T.
  */
 export type Constructor<T> = new (...args: any[]) => T;
+
+/**
+ * A general compare function template. Returns a number to indicate the result.
+ */
+export type CompareFn<T> = (a: T, b: T) => number;
+
+/**
+ * More narrows than {@link NonNullable}, it only removes `undefined`.
+ */
+export type NonUndefined = {} | null;
 
 /**
  * Accepts condition C, a truthy return type T, and a falsy return type F.
@@ -82,17 +86,17 @@ export type AnyOf<T extends readonly any[]> = T extends [infer F, ...infer Rest]
 /**
  * Push any type into the end of the array.
  */
-export type Push<T extends any[], V> = [...T, V];
+export type Push<Arr extends any[], V> = [...Arr, V];
 
 /**
  * Pop the end of the array (require non empty).
  */
-export type Pop<T extends any[]> = T extends [...infer Rest, any] ? [Rest] : never;
+export type Pop<Arr extends any[]> = Arr extends [...infer Rest, any] ? [Rest] : never;
 
 /**
  * Concatenate two arrays.
  */
-export type Concat<T extends any[], U extends any[]> = [...T, ...U];
+export type ConcatArray<T extends any[], U extends any[]> = [...T, ...U];
 
 /**
  * Represents T or Array of T or Array of Array of T...
@@ -100,13 +104,43 @@ export type Concat<T extends any[], U extends any[]> = [...T, ...U];
 export type NestedArray<T> = (T | NestedArray<T>)[];
 
 /**
+ * built-in type: {@link Readonly}.
+ */
+
+/**
  * make every parameter of an object and its sub-objects recursively as readonly.
  */
-export type DeepReadonly<T> = {
-    readonly [TKey in keyof T]: T[TKey] extends Function 
-      ? T[TKey] 
-      : DeepReadonly<T[TKey]>
-};
+export type DeepReadonly<Mutable> =
+    Mutable extends Function
+        ? Mutable
+        : Mutable extends (infer R)[]
+            ? ReadonlyArray<DeepReadonly<R>>
+            : Mutable extends ReadonlyArray<infer R>
+                ? ReadonlyArray<DeepReadonly<R>>
+                : Mutable extends object
+                    ? { readonly [P in keyof Mutable]: DeepReadonly<Mutable[P]> }
+                    : Mutable;
+
+/**
+ * Make all the properties mutable (remove readonly).
+ */
+export type Mutable<Immutable> = {
+    -readonly [P in keyof Immutable]: Immutable[P]
+}
+
+/**
+ * Make all the properties mutable recursively (remove readonly).
+ */
+export type DeepMutable<Immutable> = {
+    -readonly [TKey in keyof Immutable]: 
+        Immutable[TKey] extends (infer R)[] 
+            ? DeepMutable<R>[] 
+            : Immutable[TKey] extends ReadonlyArray<infer R> 
+                ? DeepMutable<R>[] 
+                : Immutable[TKey] extends object 
+                    ? DeepMutable<Immutable[TKey]> 
+                    : Immutable[TKey];
+}
 
 /**
  * Given a type T, maps each property with type `from` to type `to` that are
@@ -141,16 +175,6 @@ export type SplitString<S extends string, D extends string> =
     string extends S ? string[] :
     S extends '' ? [] :
     S extends `${infer T}${D}${infer U}` ? [T, ...SplitString<U, D>] : [S];
-
-/**
- * A general compare function template. Returns a number to indicate the result.
- */
-export type CompareFn<T> = (a: T, b: T) => number;
-
-/**
- * More narrows than {@link NonNullable}, it only removes `undefined`.
- */
-export type NonUndefined = {} | null;
 
 /**
  * @description Mocks the given value's type.
