@@ -1,8 +1,8 @@
 import * as assert from 'assert';
-import { deepCopy, mixin } from 'src/base/common/util/object';
-import { nullObject } from 'test/utils/helpers';
+import { deepCopy, deepFreeze, mixin } from 'src/base/common/util/object';
+import { nullObject, shouldThrow } from 'test/utils/helpers';
 
-suite('object-test', () => {
+suite.only('object-test', () => {
 
     test('mixin', () => {
         // no overwrite
@@ -78,6 +78,23 @@ suite('object-test', () => {
         assert.deepStrictEqual(copy2, arr);
         arr.length = 0;
         assert.deepStrictEqual(copy2, getArr());
+    });
+
+    test('deepFreeze', () => {
+        const obj = {
+            prop1: 5,
+            prop2: true,
+            prop3: 'hello',
+            prop4: ['world', 3.14],
+        };
+        
+        deepFreeze(obj);
+
+        shouldThrow(() => obj.prop1 = 4 );
+        shouldThrow(() => obj.prop2 = false );
+        shouldThrow(() => obj.prop3 = 'world' );
+        shouldThrow(() => obj.prop4[0] = 'hello' );
+        shouldThrow(() => obj.prop4[1] = 2.7 );
     });
 
     test('nullObject', () => {

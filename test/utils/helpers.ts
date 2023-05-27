@@ -30,13 +30,33 @@ export function print(id: number, message: any): void {
 /**
  * @description Returns a useless but simple object except that whatever you do 
  * to it will not throw any errors.
- * @note Testing purpose only.
  */
 export function nullObject(): any {
     return new Proxy({}, {
         get: () => nullObject,
 		set: () => true,
     });
+}
+
+/**
+ * @description Executes a function and throws an error if the function does not 
+ * throw an exception.
+ * @param fn - The function to be tested for exception throwing.
+ * @throws Will throw an error if the function does not throw an exception.
+ */
+export function shouldThrow(fn: () => void): void {
+    let noThrow = false;
+    
+    try {
+        fn();
+        noThrow = true;
+    } catch (err) {
+        // noop
+    }
+
+    if (noThrow) {
+        throw new Error(`The function "${fn}" should throws an exception.`);
+    }
 }
 
 /**

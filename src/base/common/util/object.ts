@@ -1,4 +1,4 @@
-import { isObject } from "src/base/common/util/type";
+import { DeepReadonly, isObject, isPrimitive } from "src/base/common/util/type";
 
 /**
  * Copies all properties of source into destination. The optional parameter 
@@ -119,3 +119,29 @@ export function deepCopy<T extends object | []>(obj: T): T {
 	return copy;
 }
 
+/**
+ * @description Deep freezes an object or an array.
+ * @note When an array is deep freezed, its element are also deep freezed.
+ */
+export function deepFreeze<T extends object | []>(obj: T): DeepReadonly<T> {
+
+	// array handling
+	if (Array.isArray(obj)) {
+		for (const element of obj) {
+			deepFreeze(element);
+		}
+		return <DeepReadonly<T>>Object.freeze(obj);
+	}
+
+	// object handling
+	else {
+		Object.getOwnPropertyNames(obj).forEach((propName) => {
+			const prop = obj[propName];
+			if (!isPrimitive(prop)) {
+				deepFreeze(prop);
+			}
+		});
+
+		return <DeepReadonly<T>>Object.freeze(obj);
+	}
+}

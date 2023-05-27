@@ -270,7 +270,7 @@ export function isPromise(obj: any): obj is Promise<any> {
         typeof obj.catch === 'function' &&
         typeof obj.finally === 'function'
     ) {
-      return true;
+        return true;
     }
     return false;
 }
