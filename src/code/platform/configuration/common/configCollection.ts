@@ -42,11 +42,17 @@ export interface IConfigCollection extends IDisposable {
 
     /**
      * @description Get specific configuration with the given scope.
+     * @throws — An exception will be thrown if the section is invalid.
+     * @note If section is not provided, the whole configuration will be 
+     * returned.
      */
     get<T>(scope: ConfigScope, section: string | undefined): T;
 
     /**
      * @description Set specific configuration with the given scope.
+     * @throws — An exception will be thrown if the section is invalid.
+     * @note If section is not provided, the whole configuration will be 
+     * returned.
      */
     set(scope: ConfigScope, section: string | null, configuration: any): void;
 
