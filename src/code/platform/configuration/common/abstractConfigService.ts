@@ -119,11 +119,11 @@ export class AbstractConfigService extends Disposable implements IConfigService 
     public get<T>(scope: unknown, section: string | undefined, defaultVal?: T): DeepReadonly<T> {
         try {
             return this._collection.get(scope, section);
-        } catch {
+        } catch (err) {
             if (defaultVal) {
                 return <DeepReadonly<T>>defaultVal;
             }
-            throw new Error('The section')
+            throw err;
         }
     }
 
