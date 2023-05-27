@@ -1,14 +1,35 @@
-import { IDisposable } from "src/base/common/dispose";
-import { ErrorHandler } from "src/base/common/error";
-import { Register, SignalEmitter } from "src/base/common/event";
-import { DeepReadonly } from "src/base/common/util/type";
-import { IConfigChangeEvent, IConfigStorage } from "src/code/platform/configuration/common/configStorage";
+import { Emitter, Register, SignalEmitter } from "src/base/common/event";
+import { IJsonSchema } from "src/base/common/json";
+import { Arrays } from "src/base/common/util/array";
+import { Dictionary } from "src/base/common/util/type";
 import { createRegistrant, RegistrantType } from "src/code/platform/registrant/common/registrant";
 
 export const IConfigRegistrant = createRegistrant<IConfigRegistrant>(RegistrantType.Configuration);
 
-// TODO
-export const enum BuiltInConfigScope {
+export type IConfigurationSchema = IJsonSchema & {
+
+    scope?: ConfigurationScope;
+}
+
+export interface IConfigurationUnit {
+
+    /**
+     * The identifier of the configuration.
+     */
+    readonly id: string;
+
+    /**
+     * The description of the configuration.
+     */
+    readonly description?: string;
+
+    /**
+     * The configuration schemas.
+     */
+    readonly properties: Dictionary<string, IConfigurationSchema>;
+}
+
+export const enum ConfigurationScope {
     
     /**
      * The scope exclusive to program modifications.
@@ -24,144 +45,220 @@ export const enum BuiltInConfigScope {
      * The scope allowing program, user, and third-party modifications.
      */
     Extension = 'Extension',
-
-    /**
-     * The scope exclusive to unit testing modifications.
-     */
-    Test = 'Test',
 }
 
-export type ExtensionConfigScope = unknown; // TODO: decision for later
-export type ConfigScope = BuiltInConfigScope | ExtensionConfigScope;
-
-/**
- * Configuration change event type that tells the scope of the configuration.
- */
-export interface IScopeConfigChangeEvent extends IConfigChangeEvent {
+export interface IRawConfigChangeEvent {
     
-    /** 
-     * The scope of the changed configuration. 
+    /**
+     * Unique names of the configurations that are changed.
      */
-    readonly scope: ConfigScope;
+    readonly properties: ReadonlySet<string>;
 }
 
 /**
  * An interface only for {@link ConfigRegistrant}.
  */
 export interface IConfigRegistrant {
+    
     /**
-     * Fires whenever a configuration has changed.
+     * This event fires whenever a set of configurations has changed.
      */
-    readonly onDidChange: Register<IScopeConfigChangeEvent>;
+    readonly onDidConfigurationChange: Register<IRawConfigChangeEvent>;
 
-    // TODO
-    registerDefaultBuiltIn(scope: BuiltInConfigScope, config: IConfigStorage): void;
-    getDefaultBuiltIn(scope: BuiltInConfigScope): DeepReadonly<IConfigStorage>;
-    unregisterDefaultBuiltIn(scope: BuiltInConfigScope): boolean;
+    /**
+     * @description Registers default configuration(s).
+     */
+    registerConfigurations(configuration: IConfigurationUnit | IConfigurationUnit[]): void;
 
-    registerDefaultExtension(scope: ExtensionConfigScope, config: IConfigStorage): void;
-    getDefaultExtension(scope: ExtensionConfigScope): DeepReadonly<IConfigStorage>;
-    unregisterDefaultExtension(scope: ExtensionConfigScope): boolean;
+    /**
+     * @description Unregisters default configuration(s).
+     */
+    unregisterConfigurations(configuration: IConfigurationUnit | IConfigurationUnit[]): void;
 
-    getAllDefaultExtensions(): [ExtensionConfigScope, DeepReadonly<IConfigStorage>][];
+    /**
+     * @description Updates the existing set of default configurations by adding 
+     * and removing configurations.
+     */
+    updateConfigurations(configurations: { add: IConfigurationUnit[], remove: IConfigurationUnit[] }): void;
+
+    /**
+     * @description Returns all the registered configurations.
+     */
+    getConfigurations(): IConfigurationUnit[];
+
+    /**
+     * Returns all the configuration schemas.
+     * @returns {Dictionary<string, IConfigurationSchema>} A dictionary containing all the configuration schemas.
+     */
+    getConfigurationSchemas(): Dictionary<string, IConfigurationSchema>;
 }
 
+
 /**
- * // TODO
+ * @class The {@link ConfigRegistrant} class is responsible for managing the 
+ * registration of schema of configurations, but it doesn't directly handle the 
+ * updating of configuration values. 
+ * 
+ * The actual values of configurations are managed by {@link ConfigurationService}.
  */
 @IConfigRegistrant
 class ConfigRegistrant implements IConfigRegistrant {
 
     // [event]
 
-    private readonly _onDidChange: SignalEmitter<IConfigChangeEvent, IScopeConfigChangeEvent>;
-    get onDidChange() { return this._onDidChange.registerListener; }
+    private readonly _onDidConfigurationChange = new Emitter<IRawConfigChangeEvent>();
+    public readonly onDidConfigurationChange = this._onDidConfigurationChange.registerListener;
     
     // [field]
 
-    private readonly _defaultBuiltIns = new Map<BuiltInConfigScope, IConfigStorage>();
-    private readonly _defaultExtensions = new Map<ExtensionConfigScope, IConfigStorage>();
-    private readonly _onDidChangeDisposables = new Map<ConfigScope, IDisposable>();
+    private readonly _registeredUnits: IConfigurationUnit[];
+    
+    private readonly _allConfigurations: Dictionary<string, IConfigurationSchema>;
+    private readonly _applicationScopedConfigurations: Dictionary<string, IConfigurationSchema>;
+    private readonly _userScopedConfigurations: Dictionary<string, IConfigurationSchema>;
+    private readonly _extensionScopedConfigurations: Dictionary<string, IConfigurationSchema>;
 
     // [constructor]
 
     constructor() {
-        this._onDidChange = new SignalEmitter([], undefined!);
+        this._onDidConfigurationChange = new SignalEmitter([], undefined!);
+
+        this._registeredUnits = [];
+        this._allConfigurations = {};
+        this._applicationScopedConfigurations = {};
+        this._userScopedConfigurations = {};
+        this._extensionScopedConfigurations = {};
     }
 
     // [public methods]
 
-    public registerDefaultBuiltIn(scope: BuiltInConfigScope, config: IConfigStorage): void {
-        const existed = this._defaultBuiltIns.get(scope);
-        if (existed) {
-            ErrorHandler.onUnexpectedError(new Error(`default configuraion with scope '${scope}' is already registered.`));
-            return;
-        }
+    public registerConfigurations(configurations: IConfigurationUnit | IConfigurationUnit[]): void {
+        const registered = new Set<string>();
         
-        this._defaultBuiltIns.set(scope, config);
-        const unregister = this._onDidChange.add(config.onDidChange, event => {
-            return {
-                ...event,
-                scope: scope,
-            };
-        });
-        this._onDidChangeDisposables.set(scope, unregister);
-    }
-
-    public getDefaultBuiltIn(scope: BuiltInConfigScope): DeepReadonly<IConfigStorage> {
-        const config = this._defaultBuiltIns.get(scope);
-        if (!config) {
-            ErrorHandler.onUnexpectedError(new Error(`default built-in configuration with scope '${scope}' not found`));
-            return undefined!;
+        if (!Array.isArray(configurations)) {
+            configurations = [configurations];
         }
-        return config;
-    }
 
-    public unregisterDefaultBuiltIn(scope: BuiltInConfigScope): boolean {
-        const unregister = this._onDidChangeDisposables.get(scope);
-        unregister?.dispose();
-
-        const config = this._defaultBuiltIns.get(scope);
-        config?.dispose();
-        
-        return this._defaultBuiltIns.delete(scope);
-    }
-
-    public registerDefaultExtension(scope: ExtensionConfigScope, config: IConfigStorage): void {
-        const existed = this._defaultExtensions.get(scope);
-        if (existed) {
-            throw new Error(`default configuraion with scope '${scope}' is already registered.`);
+        for (const configuration of configurations) {
+            this.__registerConfiguration(configuration, registered, true);
         }
-        
-        this._defaultExtensions.set(scope, config);
-        const unregister = this._onDidChange.add(config.onDidChange, event => {
-            return {
-                ...event,
-                scope: scope,
-            };
-        });
-        this._onDidChangeDisposables.set(scope, unregister);
+
+        this._onDidConfigurationChange.fire({ properties: registered });
     }
 
-    public getDefaultExtension(scope: ExtensionConfigScope): DeepReadonly<IConfigStorage> {
-        const config = this._defaultExtensions.get(scope);
-        if (!config) {
-            throw new Error(`default exntension configuration with scope '${scope}' not found`);
+    public unregisterConfigurations(configurations: IConfigurationUnit | IConfigurationUnit[]): void {
+        const unregistered = new Set<string>();
+
+        if (!Array.isArray(configurations)) {
+            configurations = [configurations];
         }
-        return config;
+
+        for (const configuration of configurations) {
+            this.__unregisterConfiguration(configuration, unregistered);
+        }
+
+        this._onDidConfigurationChange.fire({ properties: unregistered });
     }
 
-    public unregisterDefaultExtension(scope: ExtensionConfigScope): boolean {
-        const unregister = this._onDidChangeDisposables.get(scope);
-        unregister?.dispose();
+    public updateConfigurations({ add, remove }: { add: IConfigurationUnit[]; remove: IConfigurationUnit[]; }): void {
+        const changed = new Set<string>();
 
-        const config = this._defaultExtensions.get(scope);
-        config?.dispose();
+        for (const rm of remove) {
+            this.__unregisterConfiguration(rm, changed);
+        }
+
+        for (const ad of add) {
+            this.__registerConfiguration(ad, changed, false);
+        }
+
+        this._onDidConfigurationChange.fire({ properties: changed });
+    }
+
+    public getConfigurations(): IConfigurationUnit[] {
+        return this._registeredUnits;
+    }
+
+    public getConfigurationSchemas(): Dictionary<string, IConfigurationSchema> {
+        return this._allConfigurations;
+    }
+
+    // [private helper methods]
+
+    private __registerConfiguration(configuration: IConfigurationUnit, bucket: Set<string>, validate: boolean = true): void {
+        this.__validateAndRegisterConfiguration(configuration, bucket, validate);
+        this._registeredUnits.push(configuration);
+        this.__registerScopedConfiguration(configuration);
+    }
+
+    private __validateAndRegisterConfiguration(configuration: IConfigurationUnit, bucket: Set<string>, validate: boolean): void {
+        const schemas = configuration.properties;
+        for (const key in schemas) {
+            const schema = schemas[key]!;
+
+            // invalidate schema, should not be registered.
+            if (validate && this.__validateSchema(schema) === false) {
+                delete schemas[key];
+                continue;
+            }
+
+            // actual register
+            this._allConfigurations[key] = schema;
+            bucket.add(key);
+        }
+    }
+
+    private __registerScopedConfiguration(configuration: IConfigurationUnit): void {
+        const schemas = configuration.properties;
+        if (schemas) {
+            for (const key in schemas) {
+                const schema = schemas[key]!;
+                this.__registerScopedSchema(key, schema);
+            }
+        }
+    }
+
+    private __registerScopedSchema(key: string, schema: IConfigurationSchema): void {
+        switch (schema.scope) {
+			case ConfigurationScope.Application:
+				this._applicationScopedConfigurations[key] = schema;
+				break;
+			case ConfigurationScope.User:
+				this._userScopedConfigurations[key] = schema;
+				break;
+			case ConfigurationScope.Extension:
+				this._extensionScopedConfigurations[key] = schema;
+				break;
+		}
+    }
+
+    private __unregisterScopedSchema(key: string, scope?: ConfigurationScope): void {
+        switch (scope) {
+			case ConfigurationScope.Application:
+				delete this._applicationScopedConfigurations[key];
+				break;
+			case ConfigurationScope.User:
+				delete this._userScopedConfigurations[key];
+				break;
+			case ConfigurationScope.Extension:
+				delete this._extensionScopedConfigurations[key];
+				break;
+		}
+    }
+
+    private __validateSchema(schema: IConfigurationSchema): boolean {
+        // noop for now
+        return true;
+    }
+
+    private __unregisterConfiguration(configuration: IConfigurationUnit, bucket: Set<string>): void {
+        const schemas = configuration.properties;
         
-        return this._defaultExtensions.delete(scope);
-    }
+        for (const key in schemas) {
+            delete this._allConfigurations[key];
+            this.__unregisterScopedSchema(key, configuration.properties[key]?.scope);
+            bucket.add(key);
+        }
 
-    public getAllDefaultExtensions(): [ExtensionConfigScope, DeepReadonly<IConfigStorage>][] {
-        return Array.from(this._defaultExtensions.entries());
+        Arrays.remove(this._registeredUnits, configuration);
     }
 }
