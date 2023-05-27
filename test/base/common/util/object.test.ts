@@ -2,7 +2,7 @@ import * as assert from 'assert';
 import { deepCopy, deepFreeze, mixin } from 'src/base/common/util/object';
 import { nullObject, shouldThrow } from 'test/utils/helpers';
 
-suite.only('object-test', () => {
+suite('object-test', () => {
 
     test('mixin', () => {
         // no overwrite
