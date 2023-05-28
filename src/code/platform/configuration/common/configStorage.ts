@@ -196,7 +196,7 @@ export class ConfigStorage extends Disposable implements IConfigStorage {
                 currModel = currModel[sec];
                 continue;
             }
-            throw new Error(`cannot get configuration section at: ${section}`);
+            throw new Error(`cannot get configuration section at '${section}'`);
         }
 
         return currModel;
@@ -258,7 +258,7 @@ export class ConfigStorage extends Disposable implements IConfigStorage {
                         break;
                     }
                 default:
-                    throw new Error(`cannot add configuration section at ${section}`);
+                    throw new Error(`cannot add configuration section at '${section}'`);
             }
             currModel = curr;
         }
@@ -266,7 +266,7 @@ export class ConfigStorage extends Disposable implements IConfigStorage {
         if (currModel && typeof currModel === 'object') {
             currModel[lastSection] = configuration;
         } else {
-            throw new Error(`cannot add configuration section at ${section}`);
+            throw new Error(`cannot add configuration section at '${section}'`);
         }
     }
 
