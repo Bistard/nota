@@ -1,4 +1,4 @@
-import { Emitter, Register, SignalEmitter } from "src/base/common/event";
+import { Emitter, Register } from "src/base/common/event";
 import { IJsonSchema } from "src/base/common/json";
 import { Arrays } from "src/base/common/util/array";
 import { Dictionary } from "src/base/common/util/type";
