@@ -30,8 +30,7 @@ import { IpcChannel } from "src/code/platform/ipc/common/channel";
 import { IHostService } from "src/code/platform/host/common/hostService";
 import { IBrowserHostService } from "src/code/platform/host/browser/browserHostService";
 import { BrowserLifecycleService, ILifecycleService } from "src/code/platform/lifecycle/browser/browserLifecycleService";
-import { i18n, Ii18nOpts, Ii18nService, LanguageType } from "src/code/platform/i18n/i18n";
-import { BuiltInConfigScope } from "src/code/platform/configuration/common/configRegistrant";
+import { i18n, Ii18nOpts, Ii18nService, LanguageType } from "src/code/platform/i18n/common/i18n";
 import { BrowserInstance } from "src/code/browser/browser";
 
 /**
