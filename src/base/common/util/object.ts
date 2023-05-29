@@ -1,4 +1,4 @@
-import { DeepReadonly, isObject, isPrimitive } from "src/base/common/util/type";
+import { DeepReadonly, isNullable, isObject, isPrimitive } from "src/base/common/util/type";
 
 /**
  * Copies all properties of source into destination. The optional parameter 
@@ -144,4 +144,73 @@ export function deepFreeze<T extends object | []>(obj: T): DeepReadonly<T> {
 
 		return <DeepReadonly<T>>Object.freeze(obj);
 	}
+}
+
+/**
+ * @description This function performs a deep comparison between two values to 
+ * determine if they are equivalent. It compares the types, structure, and 
+ * individual values in the input.
+ * 
+ * @example
+ * const obj1 = { a: 1, b: { c: 2 }};
+ * const obj2 = { a: 1, b: { c: 2 }};
+ * console.log(equals(obj1, obj2)); // true
+ */
+export function strictEquals(one: any, other: any): boolean {
+	if (one === other) {
+		return true;
+	}
+
+	if (isNullable(one) || isNullable(other)) {
+		return false;
+	}
+	
+	if (typeof one !== typeof other) {
+		return false;
+	}
+	
+	if (typeof one !== 'object') {
+		return false;
+	}
+	
+	if ((Array.isArray(one)) !== (Array.isArray(other))) {
+		return false;
+	}
+
+	if (Array.isArray(one)) {
+		if (one.length !== other.length) {
+			return false;
+		}
+		for (let i = 0; i < one.length; i++) {
+			if (!strictEquals(one[i], other[i])) {
+				return false;
+			}
+		}
+	} 
+
+	else {
+		const oneKeys: string[] = [];
+		for (const key in one) {
+			oneKeys.push(key);
+		}
+		
+		oneKeys.sort();
+		const otherKeys: string[] = [];
+		for (const key in other) {
+			otherKeys.push(key);
+		}
+		
+		otherKeys.sort();
+		if (!strictEquals(oneKeys, otherKeys)) {
+			return false;
+		}
+
+		for (let i = 0; i < oneKeys.length; i++) {
+			if (!strictEquals(one[oneKeys[i]!], other[oneKeys[i]!])) {
+				return false;
+			}
+		}
+	}
+
+	return true;
 }
