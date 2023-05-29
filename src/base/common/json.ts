@@ -118,17 +118,15 @@ interface IJsonSchemaForNull extends IJsonSchemaBase<'null'> {}
 
 interface IJsonSchemaForBoolean extends IJsonSchemaBase<'boolean'> {
     
-    /** Default ones if the value is not provided. */
     default: boolean;
 }
 
 interface IJsonSchemaForNumber extends IJsonSchemaBase<'number'> {
 
+    default: number;
+
     /** If only supports integer. */
     integer?: boolean;
-
-    /** Default ones if the value is not provided. */
-    default: number;
 
     /** The minimum value requirement. */
     minimum?: number;
@@ -142,7 +140,6 @@ interface IJsonSchemaForNumber extends IJsonSchemaBase<'number'> {
 
 interface IJsonSchemaForString extends IJsonSchemaBase<'string'> {
 
-    /** Default ones if the value is not provided. */
     default: string;
 
     /** The minimum length of the string. */
@@ -160,6 +157,8 @@ interface IJsonSchemaForString extends IJsonSchemaBase<'string'> {
 
 interface IJsonSchemaForArray extends IJsonSchemaBase<'array'> {
 
+    default: any[];
+
     /** The items of the array. */
     items?: IJsonSchema | IJsonSchema[];
 
@@ -175,6 +174,8 @@ interface IJsonSchemaForArray extends IJsonSchemaBase<'array'> {
 
 interface IJsonSchemaForObject extends IJsonSchemaBase<'object'> {
     
+    default: object;
+
     /** The properties of the schema node. */
     properties?: Dictionary<string, IJsonSchema>;
 
