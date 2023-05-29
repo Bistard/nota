@@ -1,5 +1,5 @@
 import * as assert from 'assert';
-import { Arrays, Deque, Queue, Stack } from 'src/base/common/util/array';
+import { Arrays, Deque, PriorityQueue, Queue, Stack } from 'src/base/common/util/array';
 import { isNumber } from 'src/base/common/util/type';
 
 suite('array-test', () => {
@@ -317,5 +317,67 @@ suite('queue-test', () => {
         q.popFront();
         assert.strictEqual(q.empty(), true);
         assert.strictEqual(q.size(), 0);
+    });
+});
+
+suite.only('priority-queue-test', () => {
+    
+    test('basic', () => {
+        const pq = new PriorityQueue<number>((a, b) => b - a);
+        
+        pq.enqueue(5);
+        pq.enqueue(3);
+        pq.enqueue(7);
+        
+        assert.strictEqual(pq.size(), 3);
+        assert.strictEqual(pq.peek(), 7);
+        assert.strictEqual(pq.dequeue(), 7);
+        assert.strictEqual(pq.peek(), 5);
+        assert.strictEqual(pq.isEmpty(), false);
+        assert.strictEqual(pq.dequeue(), 5);
+        assert.strictEqual(pq.dequeue(), 3);
+        assert.strictEqual(pq.isEmpty(), true);
+    });
+
+    test('customized compare', () => {
+        const pq = new PriorityQueue<string>((a, b) => b.length - a.length);
+        
+        pq.enqueue("apple");
+        pq.enqueue("banana");
+        pq.enqueue("pear");
+
+        assert.strictEqual(pq.size(), 3);
+        assert.strictEqual(pq.peek(), "banana");
+        assert.strictEqual(pq.dequeue(), "banana");
+        assert.strictEqual(pq.peek(), "apple");
+        assert.strictEqual(pq.isEmpty(), false);
+        assert.strictEqual(pq.dequeue(), "apple");
+        assert.strictEqual(pq.dequeue(), "pear");
+        assert.strictEqual(pq.isEmpty(), true);
+    });
+
+    test('iterator', () => {
+        const pq = new PriorityQueue<number>((a, b) => b - a);
+        
+        pq.enqueue(1);
+        pq.enqueue(2);
+        pq.enqueue(3);
+
+        const values = Array.from(pq);
+        assert.deepStrictEqual(values, [3, 2, 1]);
+    });
+
+    test('edge cases', () => {
+        const pq = new PriorityQueue<number>((a, b) => b - a);
+        
+        assert.strictEqual(pq.peek(), undefined);
+        assert.strictEqual(pq.dequeue(), undefined);
+
+        pq.enqueue(1);
+        assert.strictEqual(pq.peek(), 1);
+        assert.strictEqual(pq.dequeue(), 1);
+        
+        assert.strictEqual(pq.peek(), undefined);
+        assert.strictEqual(pq.dequeue(), undefined);
     });
 });
