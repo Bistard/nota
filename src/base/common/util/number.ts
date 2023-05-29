@@ -9,7 +9,7 @@ export namespace Numbers {
      * @param num The given number.
      */
     export function isDecimal(num: number): boolean {
-        return num % 1 !== 0;
+        return !Number.isInteger(num);
     }
 
     /**

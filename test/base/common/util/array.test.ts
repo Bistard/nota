@@ -12,6 +12,12 @@ suite('array-test', () => {
         assert.deepStrictEqual(Arrays.remove(arr, 5), [2, 3, 4]);
     });
 
+    test('fill', () => {
+        assert.deepStrictEqual(Arrays.fill('hello', 0), []);
+        assert.deepStrictEqual(Arrays.fill('hello', 1), ['hello']);
+        assert.deepStrictEqual(Arrays.fill('hello', 5), ['hello', 'hello', 'hello', 'hello', 'hello']);
+    });
+
     test('reverseIterate', () => {
         const arr = [1, 2, 3, 4, 5];
         const newArr: number[] = [];

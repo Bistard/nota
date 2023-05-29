@@ -14,6 +14,15 @@ export namespace Arrays {
     }
 
     /**
+     * @description Fills an array with data with n times.
+     * @param data The data to be filled.
+     * @param size The size of the array.
+     */
+    export function fill<T>(data: T, size: number): T[] {
+        return Array(size).fill(data);
+    }
+
+    /**
      * @description Returns a new elements of an array that removed all the 
      * falsy elements.
      * @param array The given array.
