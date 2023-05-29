@@ -320,7 +320,7 @@ suite('queue-test', () => {
     });
 });
 
-suite.only('priority-queue-test', () => {
+suite('priority-queue-test', () => {
     
     test('basic', () => {
         const pq = new PriorityQueue<number>((a, b) => b - a);

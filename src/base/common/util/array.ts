@@ -1,5 +1,6 @@
+import { IDisposable } from "src/base/common/dispose";
 import { IIterable } from "src/base/common/util/iterable";
-import { CompareFn, NonUndefined } from "src/base/common/util/type";
+import { CompareFn, Mutable, NonUndefined } from "src/base/common/util/type";
 
 /**
  * @namespace Array A series of helper functions that relates to array.
@@ -363,7 +364,7 @@ export namespace Arrays {
 /**
  * Interface for {@link IDeque}.
  */
-export interface IDeque<T> extends IIterable<T> {
+export interface IDeque<T> extends IIterable<T>, IDisposable {
     size(): number;
     empty(): boolean;
     
@@ -498,6 +499,10 @@ export class Deque<T> implements IDeque<T> {
         return removed;
     }
 
+    public dispose(): void {
+        this.clear();
+    }
+
     *[Symbol.iterator](): Iterator<T> {
 		let idx = 0;
         while (idx < this.size()) {
@@ -510,7 +515,7 @@ export class Deque<T> implements IDeque<T> {
 /**
  * Interface for {@link Stack}.
  */
-export interface IStack<T> extends IIterable<T> {
+export interface IStack<T> extends IIterable<T>, IDisposable {
     size(): number;
     empty(): boolean;
     top(): T;
@@ -551,6 +556,10 @@ export class Stack<T> implements IStack<T> {
         this._deque.clear();
     }
 
+    public dispose(): void {
+        this.clear();
+    }
+
     *[Symbol.iterator](): Iterator<T> {
 		let idx = 0;
         while (idx < this.size()) {
@@ -563,7 +572,7 @@ export class Stack<T> implements IStack<T> {
 /**
  * Interface only for {@link Queue}.
  */
-export interface IQueue<T> extends IIterable<T> {
+export interface IQueue<T> extends IIterable<T>, IDisposable {
     size(): number;
     empty(): boolean;
     front(): T;
@@ -609,6 +618,10 @@ export class Queue<T> implements IQueue<T> {
         this._deque.clear();
     }
 
+    public dispose(): void {
+        this.clear();
+    }
+
     *[Symbol.iterator](): Iterator<T> {
 		let idx = 0;
         while (idx < this.size()) {
@@ -618,7 +631,7 @@ export class Queue<T> implements IQueue<T> {
 	}
 }
 
-export interface IPriorityQueue<T> extends IIterable<T> {
+export interface IPriorityQueue<T> extends IIterable<T>, IDisposable {
 	
 	/**
      * @description Adds an element to the queue.
@@ -757,6 +770,11 @@ export class PriorityQueue<T> implements IPriorityQueue<T> {
             this._heap[swapIdx] = element;
             index = swapIdx;
         }
+    }
+
+    public dispose(): void {
+        (<Mutable<T[]>>this._heap) = [];
+        this._count = 0;
     }
 
 	*[Symbol.iterator](): Iterator<T> {

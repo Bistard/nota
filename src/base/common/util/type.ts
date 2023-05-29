@@ -170,6 +170,10 @@ export type MapTypes<T, R extends { from: any; to: any }> = {
 };
 
 /**
+ * built-in type: {@link Awaited} to unpack the return type from a Promise.
+ */
+
+/**
  * Given an object, for every return types of the function property, wraps with 
  * a {@link Promise}.
  * @note Ignores the return types that are already promises.
