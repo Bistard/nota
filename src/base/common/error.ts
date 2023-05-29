@@ -189,12 +189,15 @@ function stackToMessage(stack: any): string {
  * @param defaultValue The default value to return in case of error.
  * @param fn The function to execute.
  * @param onError The error handler function to call when an error occurs.
+ * @param onFinally The function to call after everything happens.
  */
-export function tryOrDefault<T>(defaultValue: T, fn: () => T, onError?: (err: any) => void): T {
+export function tryOrDefault<T>(defaultValue: T, fn: () => T, onError?: (err: any) => void, onFinally?: () => void): T {
     try {
         return fn();
     } catch (err) {
         onError?.(err);
         return defaultValue;
+    } finally {
+        onFinally?.();
     }
 }
