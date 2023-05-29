@@ -10,6 +10,7 @@ import { IRawConfigurationChangeEvent, IConfigurationRegistrant, IConfigurationS
 import { ConfigStorage, IConfigStorage } from "src/code/platform/configuration/common/configStorage";
 import { IFileService } from "src/code/platform/files/common/fileService";
 import { REGISTRANTS } from "src/code/platform/registrant/common/registrant";
+import { IComposedConfiguration, IConfigurationCompareResult } from "src/code/platform/configuration/common/configuration";
 
 const Registrant = REGISTRANTS.get(IConfigurationRegistrant);
 
@@ -208,17 +209,6 @@ export class UserConfigurationValidator implements IDisposable {
 
         return validated;
     }
-}
-
-export interface IComposedConfiguration {
-    default: IConfigStorage;
-    user: IConfigStorage;
-}
-
-export interface IConfigurationCompareResult {
-    added: string[];
-    deleted: string[];
-    changed: string[];
 }
 
 class ConfigurationHubBase {
