@@ -1,34 +1,32 @@
-import { TreeMode } from "src/code/browser/service/explorerTree/treeService";
 import { ColorThemeType } from "src/code/browser/service/theme/themeConfiguration";
-import { BuiltInConfigScope, IConfigurationRegistrant } from "src/code/platform/configuration/common/configRegistrant";
-import { DefaultConfigStorage } from "src/code/platform/configuration/common/configStorage";
-import { LanguageType } from "src/code/platform/i18n/i18n";
+import { IConfigurationRegistrant } from "src/code/platform/configuration/common/configurationRegistrant";
+import { LanguageType } from "src/code/platform/i18n/common/i18n";
 import { REGISTRANTS } from "src/code/platform/registrant/common/registrant";
 
-class DefaultUserConfiguration extends DefaultConfigStorage {
-    protected createDefaultModel(): Record<PropertyKey, any> {
-        return {
-            'workbench': {
-                language: LanguageType.en,
-                colorTheme: ColorThemeType.Light,
-                keyboardScreenCast: false,
-            },
-            'sideView': {
-                default: 'explorer',
-                'explorer': {
-                    mode: TreeMode.Classic,
-                    exclude: ['^\\..*'] as string[],
-                    include: [''] as string[],
-                },
-                'outline': {},
-                'search': {},
-            },
-            'editor': {}, // the editor configuration is defined in `editorConfiguration.ts`
-        };
-    }
+export const enum WorkbenchConfiguration {
+    TextLanguage = 'workbench.language',
+    ColorTheme = 'workbench.colorTheme',
+    KeyboardScreenCast = 'workbench.keyboardScreenCast',
 }
 
-export function registerBrowserDefaultConfiguration(): void {
-    const Registrant = REGISTRANTS.get(IConfigurationRegistrant);
-    Registrant.registerDefaultBuiltIn(BuiltInConfigScope.User, new DefaultUserConfiguration());
-}
+const Registrant = REGISTRANTS.get(IConfigurationRegistrant);
+
+Registrant.registerConfigurations({
+    id: 'workbench',
+    properties: {
+        [WorkbenchConfiguration.TextLanguage]: {
+            type: 'string',
+            enumItem: [LanguageType.en, LanguageType["zh-cn"], LanguageType["zh-tw"]],
+            default: LanguageType.en,
+        },
+        [WorkbenchConfiguration.ColorTheme]: {
+            type: 'string',
+            enumItem: [ColorThemeType.Light, ColorThemeType.Dark],
+            default: ColorThemeType.Light,
+        },
+        [WorkbenchConfiguration.KeyboardScreenCast]: {
+            type: 'boolean',
+            default: false,
+        },
+    },
+});
