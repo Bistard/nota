@@ -1,6 +1,6 @@
 import * as assert from 'assert';
 import { Event } from 'src/base/common/event';
-import { IConfigurationRegistrant, IConfigurationUnit } from 'src/code/platform/configuration/common/configRegistrant';
+import { IConfigurationRegistrant, IConfigurationUnit } from 'src/code/platform/configuration/common/configurationRegistrant';
 import { REGISTRANTS } from 'src/code/platform/registrant/common/registrant';
 
 const enum TestConfiguration {
@@ -9,7 +9,7 @@ const enum TestConfiguration {
     Three = 'configuration.test.three',
 }
 
-suite('configRegistrant-test', () => {
+suite('configurationRegistrant-test', () => {
 
     const registrant: IConfigurationRegistrant = REGISTRANTS.get(IConfigurationRegistrant);
     
