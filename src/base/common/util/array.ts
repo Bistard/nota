@@ -1,5 +1,5 @@
 import { IIterable } from "src/base/common/util/iterable";
-import { NonUndefined } from "src/base/common/util/type";
+import { CompareFn, NonUndefined } from "src/base/common/util/type";
 
 /**
  * @namespace Array A series of helper functions that relates to array.
@@ -614,6 +614,154 @@ export class Queue<T> implements IQueue<T> {
         while (idx < this.size()) {
 			yield this._deque.at(idx);
 			idx += 1;
+		}
+	}
+}
+
+export interface IPriorityQueue<T> extends IIterable<T> {
+	
+	/**
+     * @description Adds an element to the queue.
+     * @param element - The element to add.
+     */
+	enqueue(element: T): void;
+		
+	/**
+	 * @description Removes and returns the highest-priority element.
+	 * @returns The highest-priority element or undefined if the queue is empty.
+	 */
+	dequeue(): T | undefined;
+
+	/**
+	 * @description Returns the highest-priority element without removing it.
+	 * @returns The highest-priority element or undefined if the queue is empty.
+	 */
+	peek(): T | undefined;
+
+	/**
+	 * @description Returns the number of elements in the queue.
+	 * @returns The number of elements in the queue.
+	 */
+	size(): number;
+
+	/**
+	 * @description Checks if the queue is empty.
+	 * @returns True if the queue is empty, false otherwise.
+	 */
+	isEmpty(): boolean;
+}
+
+export class PriorityQueue<T> implements IPriorityQueue<T> {
+	
+	// [fields]
+
+    private readonly _heap: T[] = [];
+    private _count: number = 0;
+    private readonly comparator: CompareFn<T>;
+
+	// [constructor]
+
+    constructor(comparator: CompareFn<T>) {
+        this.comparator = comparator;
+    }
+
+	// [public methods]
+    
+    public enqueue(element: T): void {
+        this._heap[this._count] = element;
+        this._count++;
+        this.shiftUp();
+    }
+    
+    public dequeue(): T | undefined {
+        if (this.isEmpty()) {
+            return undefined;
+        }
+        
+		let item = this._heap[0];
+        this._heap[0] = this._heap[this._count - 1]!;
+        this._heap.pop();
+        
+		this._count--;
+        this.shiftDown();
+
+        return item;
+    }
+    
+    public peek(): T | undefined {
+        if (this.isEmpty()) {
+            return undefined;
+        }
+        return this._heap[0];
+    }
+    
+    public size(): number {
+        return this._count;
+    }
+    
+    public isEmpty(): boolean {
+        return this._count === 0;
+    }
+    
+    private shiftUp(): void {
+        let index = this._count - 1;
+        while (index > 0) {
+            let item = this._heap[index]!;
+            let parentIdx = Math.floor((index - 1) / 2);
+            let parent = this._heap[parentIdx]!;
+            
+			if (this.comparator(item, parent) >= 0) {
+                break;
+            }
+            
+			this._heap[index] = parent;
+            this._heap[parentIdx] = item;
+            index = parentIdx;
+        }
+    }
+
+    private shiftDown(): void {
+        let index = 0;
+        const length = this.size();
+        const element = this._heap[0]!;
+
+        while (true) {
+            let leftChildIdx = 2 * index + 1;
+            let rightChildIdx = 2 * index + 2;
+            
+            let swapIdx: number | null = null;
+
+            if (leftChildIdx < length) {
+                const leftChild = this._heap[leftChildIdx]!;
+                if (this.comparator(leftChild, element) < 0) {
+                    swapIdx = leftChildIdx;
+                }
+            }
+            
+			if (rightChildIdx < length) {
+				const leftChild = this._heap[leftChildIdx]!;
+                const rightChild = this._heap[rightChildIdx]!;
+                if (
+                    (swapIdx === null && this.comparator(rightChild, element) < 0) || 
+                    (swapIdx !== null && this.comparator(rightChild, leftChild) < 0)
+                ) {
+                    swapIdx = rightChildIdx;
+                }
+            }
+
+            if (swapIdx === null) {
+                break;
+            }
+
+            this._heap[index] = this._heap[swapIdx]!;
+            this._heap[swapIdx] = element;
+            index = swapIdx;
+        }
+    }
+
+	*[Symbol.iterator](): Iterator<T> {
+		while (!this.isEmpty()) {
+			yield this.dequeue()!;
 		}
 	}
 }
