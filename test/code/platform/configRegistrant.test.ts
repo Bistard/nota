@@ -1,50 +1,85 @@
 import * as assert from 'assert';
-import { Dictionary } from 'src/base/common/util/type';
-import { BuiltInConfigScope, ConfigScope, IConfigurationRegistrant } from 'src/code/platform/configuration/common/configRegistrant';
-import { DefaultConfigStorage } from 'src/code/platform/configuration/common/configStorage';
+import { Event } from 'src/base/common/event';
+import { IConfigurationRegistrant, IConfigurationUnit } from 'src/code/platform/configuration/common/configRegistrant';
 import { REGISTRANTS } from 'src/code/platform/registrant/common/registrant';
 
-class TestDefaultConfigStorage extends DefaultConfigStorage {
-    protected override createDefaultModel(): Dictionary<PropertyKey, any> {
-        return {
-            'path1': {
-                a: undefined,
-                b: null,
-                c: 'hello',
-                'path3': {},
-            },
-            'path2': {
-                'path4': 100,
-            },
-            'hello': 'world',
-        };
-    }
+const enum TestConfiguration {
+    One = 'configuration.test.one',
+    Two = 'configuration.test.two',
+    Three = 'configuration.test.three',
 }
 
 suite('configRegistrant-test', () => {
 
-    let registrant: IConfigurationRegistrant;
-    setup(() => {
-        registrant = REGISTRANTS.get(IConfigurationRegistrant);
-    });
+    const registrant: IConfigurationRegistrant = REGISTRANTS.get(IConfigurationRegistrant);
+    
+    const unit1: IConfigurationUnit = {
+        id: 'configuration.test',
+        properties: {
+            [TestConfiguration.One]: {
+                type: 'number',
+                default: 0,
+                minimum: 0,
+            },
+            [TestConfiguration.Two]: {
+                type: 'string',
+                default: 'hello world',
+            },
+        }
+    };
 
-    test('onDidChange', () => {
-        const storage = new TestDefaultConfigStorage();
-        registrant.registerDefaultBuiltIn(BuiltInConfigScope.Test, storage);
-        let scope: ConfigScope;
-        let sections: string[] = [];
-        registrant.onDidChange(event => {
-            scope = event.scope;
-            sections = event.sections;
+    const unit2: IConfigurationUnit = {
+        id: 'configuration.test.test',
+        properties: {
+            [TestConfiguration.Three]: {
+                type: 'boolean',
+                default: true,
+            },
+        }
+    }; 
+
+    test('registerConfiguration', () => {
+        
+        // register unit1
+        Event.once(registrant.onDidConfigurationChange)(e => {
+            assert.ok(e.properties.has(TestConfiguration.One));
+            assert.ok(e.properties.has(TestConfiguration.Two));
         });
 
-        storage.delete('path2.path4');
-        assert.strictEqual(scope, BuiltInConfigScope.Test);
-        assert.deepStrictEqual(sections, ['path2.path4']);
+        registrant.registerConfigurations(unit1);
+        assert.strictEqual(unit1, registrant.getConfigurations()[0]);
 
-        storage.delete('path1');
-        assert.strictEqual(scope, BuiltInConfigScope.Test);
-        assert.deepStrictEqual(sections, ['path1']);
+        // register unit2
+        Event.once(registrant.onDidConfigurationChange)(e => {
+            assert.ok(e.properties.has(TestConfiguration.Three));
+        });
+
+        registrant.registerConfigurations(unit2);
+        assert.strictEqual(unit2, registrant.getConfigurations()[1]);
     });
 
+    test('unregisterConfiguration', () => {
+        
+        // unregister unit1
+        Event.once(registrant.onDidConfigurationChange)(e => {
+            assert.ok(e.properties.has(TestConfiguration.One));
+            assert.ok(e.properties.has(TestConfiguration.Two));
+        });
+        
+        registrant.unregisterConfigurations(unit1);
+        assert.strictEqual(unit2, registrant.getConfigurations()[0]);
+    });
+
+    test('updateConfigurations', () => {
+        
+        // register unit1 and unregister unit2
+        Event.once(registrant.onDidConfigurationChange)(e => {
+            assert.ok(e.properties.has(TestConfiguration.One));
+            assert.ok(e.properties.has(TestConfiguration.Two));
+            assert.ok(e.properties.has(TestConfiguration.Three));
+        });
+        
+        registrant.updateConfigurations({ add: [unit1], remove: [unit2] });
+        assert.strictEqual(unit1, registrant.getConfigurations()[0]);
+    });
 });
