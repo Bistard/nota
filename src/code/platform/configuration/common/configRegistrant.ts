@@ -47,12 +47,20 @@ export const enum ConfigurationScope {
     Extension = 'Extension',
 }
 
-export interface IRawConfigChangeEvent {
+export interface IRawSetConfigurationChangeEvent {
     
     /**
      * Unique names of the configurations that are changed.
      */
     readonly properties: ReadonlySet<string>;
+}
+
+export interface IRawConfigurationChangeEvent {
+    
+    /**
+     * Names of the configurations that are changed.
+     */
+    readonly properties: string[];
 }
 
 /**
@@ -63,7 +71,7 @@ export interface IConfigurationRegistrant {
     /**
      * This event fires whenever a set of configurations has changed.
      */
-    readonly onDidConfigurationChange: Register<IRawConfigChangeEvent>;
+    readonly onDidConfigurationChange: Register<IRawSetConfigurationChangeEvent>;
 
     /**
      * @description Registers default configuration(s).
@@ -74,6 +82,10 @@ export interface IConfigurationRegistrant {
      * @description Unregisters default configuration(s).
      */
     unregisterConfigurations(configuration: IConfigurationUnit | IConfigurationUnit[]): void;
+
+    // TODO: registerOverrideConfiguration()
+    // TODO: unregisterOverrideConfiguration()
+    // TODO: getOverrideConfigurations()
 
     /**
      * @description Updates the existing set of default configurations by adding 
@@ -106,7 +118,7 @@ class ConfigurationRegistrant implements IConfigurationRegistrant {
 
     // [event]
 
-    private readonly _onDidConfigurationChange = new Emitter<IRawConfigChangeEvent>();
+    private readonly _onDidConfigurationChange = new Emitter<IRawSetConfigurationChangeEvent>();
     public readonly onDidConfigurationChange = this._onDidConfigurationChange.registerListener;
     
     // [field]
@@ -121,8 +133,6 @@ class ConfigurationRegistrant implements IConfigurationRegistrant {
     // [constructor]
 
     constructor() {
-        this._onDidConfigurationChange = new SignalEmitter([], undefined!);
-
         this._registeredUnits = [];
         this._allConfigurations = {};
         this._applicationScopedConfigurations = {};
