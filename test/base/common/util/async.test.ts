@@ -3,6 +3,7 @@ import { ExpectedError, isCancellationError, isExpectedError } from 'src/base/co
 import { Emitter } from 'src/base/common/event';
 import { AsyncRunner, Blocker, CancellablePromise, Debouncer, delayFor, EventBlocker, MicrotaskDelay, PromiseTimeout, retry, Scheduler, ThrottleDebouncer, Throttler, UnbufferedScheduler } from 'src/base/common/util/async';
 import { repeat } from 'src/base/common/util/timer';
+import { FakeAsync } from 'test/utils/async';
 
 suite('async-test', () => {
 
@@ -465,5 +466,40 @@ suite('async-test', () => {
 		finally {
 			assert.ok(isCancelled);
 		}
+	});
+});
+
+suite.only('async-test (helpers)', () => {
+
+	suite('FakeAsync', () => {
+		
+		test('fake the function execution when fake timers are enabled', async () => {
+			let fakeElapsedTime: number = undefined!;
+			
+			const elapseTarget = 5000;
+			const fn = async () => { 
+				const fakeStartTime = Date.now();
+				setTimeout(() => {
+					const fakeEndTime = Date.now();
+					fakeElapsedTime = fakeEndTime - fakeStartTime;
+				}, elapseTarget);
+			};
+
+			const realStartTime = Date.now();
+			await FakeAsync.run(fn);
+			const realEndTime = Date.now();
+			
+			/**
+			 * In the perspective of a callback function, it should passed 
+			 * {@link elapseTarget} of time.
+			 */
+			assert.strictEqual(fakeElapsedTime, elapseTarget, 'function should elapsed in exact of the given time.');
+			
+			/**
+			 * Since we're using a fake timer, 'fn' should be called almost 
+			 * immediately.
+			 */
+			assert.ok((realEndTime - realStartTime) < 20, "Function was not called immediately with fake timer.");
+		});
 	});
 });
