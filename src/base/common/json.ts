@@ -1,4 +1,5 @@
-import { Dictionary, Pair } from "src/base/common/util/type";
+import { tryOrDefault } from "src/base/common/error";
+import { Dictionary, Mutable, NonUndefined, Pair, isNumber, isObject, isString } from "src/base/common/util/type";
 
 /**
  * {@link IJsonSchema} is a type used to represent a schema of JSON data. It 
@@ -73,12 +74,12 @@ import { Dictionary, Pair } from "src/base/common/util/type";
  * ```
  */
 export type IJsonSchema = (
-    IJsonNodeSchemaForNull |
-    IJsonNodeSchemaForBoolean |
-    IJsonNodeSchemaForNumber |
-    IJsonNodeSchemaForString |
-    IJsonNodeSchemaForArray |
-    IJsonNodeSchemaForObject
+    IJsonSchemaForNull |
+    IJsonSchemaForBoolean |
+    IJsonSchemaForNumber |
+    IJsonSchemaForString |
+    IJsonSchemaForArray |
+    IJsonSchemaForObject
 );
 
 type DataType = 'string' | 'number' | 'boolean' | 'null' | 'array' | 'object';
@@ -95,7 +96,7 @@ interface IJsonSchemaBase<TDataType extends DataType>  {
     description?: string;
 
     /** The default value of the current schema node. */
-    default?: any;
+    default: NonUndefined;
 
     /** If the schema is deprecated. */
     deprecated?: boolean;
@@ -113,21 +114,21 @@ interface IJsonSchemaBase<TDataType extends DataType>  {
     enumItemDescription?: string[];
 }
 
-interface IJsonNodeSchemaForNull extends IJsonSchemaBase<'null'> {}
+interface IJsonSchemaForNull extends IJsonSchemaBase<'null'> {}
 
-interface IJsonNodeSchemaForBoolean extends IJsonSchemaBase<'boolean'> {
+interface IJsonSchemaForBoolean extends IJsonSchemaBase<'boolean'> {
     
     /** Default ones if the value is not provided. */
-    default?: boolean;
+    default: boolean;
 }
 
-interface IJsonNodeSchemaForNumber extends IJsonSchemaBase<'number'> {
+interface IJsonSchemaForNumber extends IJsonSchemaBase<'number'> {
 
     /** If only supports integer. */
     integer?: boolean;
 
     /** Default ones if the value is not provided. */
-    default?: number;
+    default: number;
 
     /** The minimum value requirement. */
     minimum?: number;
@@ -139,10 +140,10 @@ interface IJsonNodeSchemaForNumber extends IJsonSchemaBase<'number'> {
     ranges?: Pair<number, number>[];
 }
 
-interface IJsonNodeSchemaForString extends IJsonSchemaBase<'string'> {
+interface IJsonSchemaForString extends IJsonSchemaBase<'string'> {
 
     /** Default ones if the value is not provided. */
-    default?: string;
+    default: string;
 
     /** The minimum length of the string. */
     minLength?: number;
@@ -157,7 +158,7 @@ interface IJsonNodeSchemaForString extends IJsonSchemaBase<'string'> {
     regexp?: string;
 }
 
-interface IJsonNodeSchemaForArray extends IJsonSchemaBase<'array'> {
+interface IJsonSchemaForArray extends IJsonSchemaBase<'array'> {
 
     /** The items of the array. */
     items?: IJsonSchema | IJsonSchema[];
@@ -172,13 +173,10 @@ interface IJsonNodeSchemaForArray extends IJsonSchemaBase<'array'> {
 	uniqueItems?: boolean;
 }
 
-interface IJsonNodeSchemaForObject extends IJsonSchemaBase<'object'> {
+interface IJsonSchemaForObject extends IJsonSchemaBase<'object'> {
     
     /** The properties of the schema node. */
     properties?: Dictionary<string, IJsonSchema>;
-
-    /** If allow the schema node to have extra properties that are not listed in the required. */
-    additionalProperties?: true;
 
     /** The minimum number of properties required. */
     minProperties?: number;
@@ -189,25 +187,150 @@ interface IJsonNodeSchemaForObject extends IJsonSchemaBase<'object'> {
     /** The required properties. */
     required?: string[];
 
-    /** The optional properties. */
-    optionals?: string[];
+    /** If allow the schema node to have extra properties that are not listed in the required. */
+    additionalProperties?: true;
 }
 
-export class JsonNodeSchemaValidator {
+export interface IJsonSchemaValidateResult {
+    
+    /** If the data is valid. */
+    readonly valid: boolean;
 
-    constructor(private readonly schema: IJsonSchema) {}
+    /** An error message will be given if the data is invalid. */
+    readonly errorMessage?: string;
+
+    /** A message will be given if the data should be deprecated. */
+    readonly deprecatedMessage?: string;
+
+    /** If the data is 'undefined', the default will be set to {@link IJsonSchema.default}. */
+    readonly default?: NonUndefined;
+}
+
+export class JsonSchemaValidator {
 
     /**
      * @description Validates the provided data against the schema. Currently, 
      * it only checks if the schema is deprecated, in which case it returns 
      * `true`.
      * @param data The data to be validated.
-     * @returns A boolean indicating whether the data Satisfies to the schema.
+     * @param schema The schema for validation.
      */
-    public validate(data: any): boolean {
-        if (this.schema.deprecated) {
-            return true;
+    public static validate(data: any, schema: IJsonSchema): IJsonSchemaValidateResult {
+        const result: Mutable<IJsonSchemaValidateResult> = { valid: true };
+        this.__validate(data, schema, result);
+        return result;
+    }
+
+    private static __validate(data: any, schema: IJsonSchema, result: Mutable<IJsonSchemaValidateResult>): void {
+        if (schema.deprecated === true) {
+            result.valid = false;
+            result.deprecatedMessage = schema.deprecatedMessage ?? schema.errorMessage;
+            return;
         }
-        return false;
+
+        if (typeof data === 'undefined') {
+            result.valid = true;
+            result.default = schema.default;
+            return;
+        }
+    
+        switch (schema.type) {
+            case 'null': {
+                return this.__setValid(data === null, result, schema);
+            }
+            
+            case 'boolean': {
+                return this.__setValid(typeof data === 'boolean', result, schema);
+            }
+            
+            case 'number': {
+                if (!isNumber(data)) {
+                    return this.__setValid(false, result, schema);
+                }
+
+                const isInteger = schema.integer ? Number.isInteger(data) : true;
+                const inRange = (schema.minimum ? data >= schema.minimum : true) && 
+                                (schema.maximum ? data <= schema.maximum : true);
+
+                return this.__setValid(isInteger && inRange, result, schema);
+            }
+            
+            case 'string': {
+                if (!isString(data)) {
+                    return this.__setValid(false, result, schema);
+                }
+
+                const withinLength = (schema.minLength ? data.length >= schema.minLength : true) && 
+                                     (schema.maxLength ? data.length <= schema.maxLength : true);
+                const matchesFormat = schema.format ? new RegExp(schema.format).test(data) : true;
+                const matchRegExp = tryOrDefault(
+                    !schema.regexp,
+                    () => {
+                        const regexp = new RegExp(schema.regexp!);
+                        return regexp.test(data);
+                    },
+                );
+
+                if (schema.format) {
+                    throw new Error('Does not support yet.');
+                }
+
+                return this.__setValid(withinLength && matchesFormat && matchRegExp, result, schema);
+            }
+            
+            case 'array': {
+                if (!Array.isArray(data)) {
+                    return this.__setValid(false, result, schema);
+                }
+
+                const withinItemCount = (schema.minItems ? data.length >= schema.minItems : true) && 
+                                        (schema.maxItems ? data.length <= schema.maxItems : true);
+                const itemsUnique = schema.uniqueItems ? (new Set(data)).size === data.length : true;
+                const itemsValid = schema.items ? data.every((item, idx) => this.validate(item, Array.isArray(schema.items) ? schema.items[idx]! : schema.items!)) : true;
+
+                return this.__setValid(withinItemCount && itemsUnique && itemsValid, result, schema);
+            }
+            
+            case 'object':
+                if (!isObject(data)) {
+                    return this.__setValid(false, result, schema);
+                }
+
+                const propertyKeys = Object.keys(data);
+                const schemaKeys = schema.properties ? Object.keys(schema.properties) : [];
+
+                // Checking the minimum and maximum properties
+                if ((schema.minProperties && propertyKeys.length < schema.minProperties) || 
+                    (schema.maxProperties && propertyKeys.length > schema.maxProperties)) 
+                {
+                    return this.__setValid(false, result, schema);
+                }
+
+                // Ensuring no additional properties are present if 'additionalProperties' is not set
+                if (!schema.additionalProperties) {
+                    if (!schemaKeys.every(key => propertyKeys.includes(key))) {
+                        return this.__setValid(false, result, schema);
+                    }
+                }
+
+                // Ensuring all required properties are present
+                if (schema.required && !schema.required.every(key => propertyKeys.includes(key))) {
+                    return this.__setValid(false, result, schema);
+                }
+
+                // Checking each property against its schema
+                if (schema.properties && !schemaKeys.every(key => this.validate(data[key], schema.properties![key]!))) {
+                    return this.__setValid(false, result, schema);
+                }
+
+                return;
+        }
+    }
+
+    private static __setValid(valid: boolean, result: Mutable<IJsonSchemaValidateResult>, schema: IJsonSchema): void {
+        result.valid = valid;
+        if (!result.valid) {
+            result.errorMessage = schema.errorMessage;
+        }
     }
 }
