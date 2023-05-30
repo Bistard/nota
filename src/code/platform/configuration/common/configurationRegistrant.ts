@@ -63,6 +63,19 @@ export interface IRawConfigurationChangeEvent {
     readonly properties: string[];
 }
 
+export interface IConfigurationRegisterErrorEvent {
+
+    /**
+     * The error message.
+     */
+    readonly message: string;
+
+    /**
+     * The error schema.
+     */
+    readonly schema: IConfigurationSchema;
+}
+
 /**
  * An interface only for {@link ConfigurationRegistrant}.
  */
@@ -72,6 +85,11 @@ export interface IConfigurationRegistrant {
      * This event fires whenever a set of configurations has changed.
      */
     readonly onDidConfigurationChange: Register<IRawSetConfigurationChangeEvent>;
+
+    /**
+     * The event fires whenever a set of registrations encounters error.
+     */
+    readonly onErrorRegistration: Register<IConfigurationRegisterErrorEvent>;
 
     /**
      * @description Registers default configuration(s).
@@ -96,7 +114,7 @@ export interface IConfigurationRegistrant {
     /**
      * @description Returns all the registered configurations.
      */
-    getConfigurations(): IConfigurationUnit[];
+    getConfigurationUnits(): IConfigurationUnit[];
 
     /**
      * Returns all the configuration schemas.
@@ -121,6 +139,9 @@ class ConfigurationRegistrant implements IConfigurationRegistrant {
     private readonly _onDidConfigurationChange = new Emitter<IRawSetConfigurationChangeEvent>();
     public readonly onDidConfigurationChange = this._onDidConfigurationChange.registerListener;
     
+    private readonly _onErrorRegistration = new Emitter<IConfigurationRegisterErrorEvent>();
+    public readonly onErrorRegistration = this._onErrorRegistration.registerListener;
+
     // [field]
 
     private readonly _registeredUnits: IConfigurationUnit[];
@@ -147,6 +168,10 @@ class ConfigurationRegistrant implements IConfigurationRegistrant {
         
         if (!Array.isArray(configurations)) {
             configurations = [configurations];
+        }
+
+        if (Arrays.matchAny(this._registeredUnits, configurations, (registered, toBeRegistered) => registered === toBeRegistered)) {
+            throw new Error('Cannot register configuration unit that is already registered.');
         }
 
         for (const configuration of configurations) {
@@ -184,7 +209,7 @@ class ConfigurationRegistrant implements IConfigurationRegistrant {
         this._onDidConfigurationChange.fire({ properties: changed });
     }
 
-    public getConfigurations(): IConfigurationUnit[] {
+    public getConfigurationUnits(): IConfigurationUnit[] {
         return this._registeredUnits;
     }
 
@@ -206,9 +231,13 @@ class ConfigurationRegistrant implements IConfigurationRegistrant {
             const schema = schemas[key]!;
 
             // invalidate schema, should not be registered.
-            if (validate && this.__validateSchema(schema) === false) {
-                delete schemas[key];
-                continue;
+            if (validate) {
+                const validateMessage = this.__validateRegistration(key, schema);
+                if (validateMessage) {
+                    delete schemas[key];
+                    this._onErrorRegistration.fire({ message: validateMessage, schema: schema });
+                    continue;
+                }
             }
 
             // actual register
@@ -255,9 +284,19 @@ class ConfigurationRegistrant implements IConfigurationRegistrant {
 		}
     }
 
-    private __validateSchema(schema: IConfigurationSchema): boolean {
-        // noop for now
-        return true;
+    private __validateRegistration(key: string, schema: IConfigurationSchema): string {
+        
+        // cannot register an empty property
+        if (!key.trim()) {
+            return 'Cannot register an empty property';
+        }
+
+        // cannot register duplicate properties
+        if (this.getConfigurationSchemas()[key] !== undefined) {
+            return `Cannot register the schema with id '${schema.id ?? '[unknown]'}', the property name '${key}' is already registered.`;
+        }
+
+        return '';
     }
 
     private __unregisterConfiguration(configuration: IConfigurationUnit, bucket: Set<string>): void {

@@ -47,7 +47,7 @@ suite('configurationRegistrant-test', () => {
         });
 
         registrant.registerConfigurations(unit1);
-        assert.strictEqual(unit1, registrant.getConfigurations()[0]);
+        assert.strictEqual(unit1, registrant.getConfigurationUnits()[0]);
 
         // register unit2
         Event.once(registrant.onDidConfigurationChange)(e => {
@@ -55,7 +55,14 @@ suite('configurationRegistrant-test', () => {
         });
 
         registrant.registerConfigurations(unit2);
-        assert.strictEqual(unit2, registrant.getConfigurations()[1]);
+        assert.strictEqual(unit2, registrant.getConfigurationUnits()[1]);
+    });
+
+    test('registerConfiguration - duplicate registration', () => {
+        try {
+            registrant.registerConfigurations(unit1);
+        } catch {}
+        assert.strictEqual(registrant.getConfigurationUnits().length, 2);
     });
 
     test('unregisterConfiguration', () => {
@@ -67,7 +74,7 @@ suite('configurationRegistrant-test', () => {
         });
         
         registrant.unregisterConfigurations(unit1);
-        assert.strictEqual(unit2, registrant.getConfigurations()[0]);
+        assert.strictEqual(unit2, registrant.getConfigurationUnits()[0]);
     });
 
     test('updateConfigurations', () => {
@@ -80,6 +87,6 @@ suite('configurationRegistrant-test', () => {
         });
         
         registrant.updateConfigurations({ add: [unit1], remove: [unit2] });
-        assert.strictEqual(unit1, registrant.getConfigurations()[0]);
+        assert.strictEqual(unit1, registrant.getConfigurationUnits()[0]);
     });
 });

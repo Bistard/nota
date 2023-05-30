@@ -96,7 +96,7 @@ interface IJsonSchemaBase<TDataType extends DataType>  {
     description?: string;
 
     /** The default value of the current schema node. */
-    default: NonUndefined;
+    default?: NonUndefined;
 
     /** If the schema is deprecated. */
     deprecated?: boolean;
@@ -114,17 +114,17 @@ interface IJsonSchemaBase<TDataType extends DataType>  {
     enumItemDescription?: string[];
 }
 
-interface IJsonSchemaForNull extends IJsonSchemaBase<'null'> {
-    default: never;
+interface IJsonSchemaForNull extends Omit<IJsonSchemaBase<'null'>, 'default'> {
+    default?: never;
 }
 
 interface IJsonSchemaForBoolean extends IJsonSchemaBase<'boolean'> {
-    default: boolean;
+    default?: boolean;
 }
 
 interface IJsonSchemaForNumber extends IJsonSchemaBase<'number'> {
 
-    default: number;
+    default?: number;
 
     /** If only supports integer. */
     integer?: boolean;
@@ -141,7 +141,7 @@ interface IJsonSchemaForNumber extends IJsonSchemaBase<'number'> {
 
 interface IJsonSchemaForString extends IJsonSchemaBase<'string'> {
 
-    default: string;
+    default?: string;
 
     /** The minimum length of the string. */
     minLength?: number;
@@ -158,7 +158,7 @@ interface IJsonSchemaForString extends IJsonSchemaBase<'string'> {
 
 interface IJsonSchemaForArray extends IJsonSchemaBase<'array'> {
 
-    default: any[];
+    default?: any[];
 
     /** The items of the array. */
     items?: IJsonSchema | IJsonSchema[];
@@ -175,7 +175,7 @@ interface IJsonSchemaForArray extends IJsonSchemaBase<'array'> {
 
 interface IJsonSchemaForObject extends IJsonSchemaBase<'object'> {
     
-    default: object;
+    default?: object;
 
     /** The properties of the schema node. */
     properties?: Dictionary<string, IJsonSchema>;

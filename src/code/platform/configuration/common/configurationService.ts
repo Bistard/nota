@@ -4,10 +4,11 @@ import { Emitter, Register } from "src/base/common/event";
 import { URI } from "src/base/common/file/uri";
 import { ILogService } from "src/base/common/logger";
 import { UnbufferedScheduler } from "src/base/common/util/async";
-import { IRawConfigurationChangeEvent } from "src/code/platform/configuration/common/configurationRegistrant";
+import { IConfigurationRegistrant, IRawConfigurationChangeEvent } from "src/code/platform/configuration/common/configurationRegistrant";
 import { ConfigurationHub, ConfigurationType, DefaultConfiguration, UserConfiguration } from "src/code/platform/configuration/common/configurationHub";
 import { IFileService } from "src/code/platform/files/common/fileService";
 import { createService } from "src/code/platform/instantiation/common/decorator";
+import { REGISTRANTS } from "src/code/platform/registrant/common/registrant";
 
 export const IConfigurationService = createService<IConfigurationService>('configuration-service');
 
@@ -27,6 +28,8 @@ export interface IConfigurationService extends IDisposable {
 export class MainConfigurationService extends Disposable implements IConfigurationService {
 
     // [fields]
+
+    private readonly _registrant = REGISTRANTS.get(IConfigurationRegistrant);
 
     private readonly _defaultConfiguration: DefaultConfiguration;
     private readonly _userConfiguration: UserConfiguration;
@@ -69,6 +72,9 @@ export class MainConfigurationService extends Disposable implements IConfigurati
                     this.__onUserConfigurationChange();
                 },
             ));
+
+            // catch configuration registration errors and log out
+            this.__register(this._registrant.onErrorRegistration(e => logService.warn(`The configuration registration fails: ${JSON.stringify(e)}.`)));
         }
     }
 
