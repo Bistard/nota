@@ -171,7 +171,7 @@ class ConfigurationRegistrant implements IConfigurationRegistrant {
         }
 
         if (Arrays.matchAny(this._registeredUnits, configurations, (registered, toBeRegistered) => registered === toBeRegistered)) {
-            throw new Error('Cannot register configuration unit that is already registered.');
+            throw new Error('ConfigurationRegistrant - Cannot register configuration unit that is already registered.');
         }
 
         for (const configuration of configurations) {
