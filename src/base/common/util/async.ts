@@ -503,9 +503,14 @@ export class Scheduler<T> implements IScheduler<T> {
 		this._delay = delay;
 	}
 
-	public schedule(event: T, clearBuffer: boolean = false, delay: number = this._delay): void {
+	public schedule(event: T | T[], clearBuffer: boolean = false, delay: number = this._delay): void {
 		this.cancel(clearBuffer);
-		this._eventBuffer.push(event);
+		
+		if (!Array.isArray(event)) {
+			event = [event];
+		}
+		this._eventBuffer.push(...event);
+
 		this._token = setTimeout(() => {
 			const buffer = this._eventBuffer;
 			this._eventBuffer = [];

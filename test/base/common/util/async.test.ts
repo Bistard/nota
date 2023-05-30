@@ -469,7 +469,7 @@ suite('async-test', () => {
 	});
 });
 
-suite.only('async-test (helpers)', () => {
+suite('async-test (helpers)', () => {
 
 	suite('FakeAsync', () => {
 		
