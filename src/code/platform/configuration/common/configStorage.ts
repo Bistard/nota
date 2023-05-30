@@ -100,7 +100,7 @@ export class ConfigStorage extends Disposable implements IConfigStorage {
     ) {
         super();
         this._sections = sections ?? [];
-        this._model = model ?? Object.create(null);
+        this._model = model ?? Object.create({});
 
         // auto update sections
         if (this._sections.length === 0 && Object.keys(this._model).length !== 0) {
@@ -251,7 +251,7 @@ export class ConfigStorage extends Disposable implements IConfigStorage {
             let curr = currModel[subSection];
             switch (typeof curr) {
                 case 'undefined':
-                    curr = currModel[subSection] = Object.create(null);
+                    curr = currModel[subSection] = Object.create({});
                     break;
                 case 'object':
                     if (curr !== null) {
