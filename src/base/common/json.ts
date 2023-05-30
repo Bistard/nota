@@ -114,10 +114,11 @@ interface IJsonSchemaBase<TDataType extends DataType>  {
     enumItemDescription?: string[];
 }
 
-interface IJsonSchemaForNull extends IJsonSchemaBase<'null'> {}
+interface IJsonSchemaForNull extends IJsonSchemaBase<'null'> {
+    default: never;
+}
 
 interface IJsonSchemaForBoolean extends IJsonSchemaBase<'boolean'> {
-    
     default: boolean;
 }
 
