@@ -59,8 +59,10 @@ export class DiskFileSystemProvider extends Disposable implements
             const path = URI.toFsPath(uri);
             return await fs.promises.readFile(path);
         } 
-        
-        catch (err) {
+        catch (err: any) {
+            if (err.code === 'ENOENT') {
+                throw new FileSystemProviderError('File does not exist', FileOperationErrorType.FILE_NOT_FOUND);
+            }
             throw err;
         }
     }
@@ -285,7 +287,10 @@ export class DiskFileSystemProvider extends Disposable implements
             };
         } 
         
-        catch (err) {
+        catch (err: any) {
+            if (err.code === 'ENOENT') {
+                throw new FileSystemProviderError('File does not exist', FileOperationErrorType.FILE_NOT_FOUND);
+            }
             throw err;
         }
     }

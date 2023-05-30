@@ -1,7 +1,6 @@
 import * as assert from 'assert';
 import { IStandardKeyboardEvent, KeyCode, Shortcut } from 'src/base/common/keyboard';
 import { ILogService } from 'src/base/common/logger';
-import { mockType } from 'src/base/common/util/type';
 import { IKeyboardService } from 'src/code/browser/service/keyboard/keyboardService';
 import { ShortcutWeight } from 'src/code/browser/service/shortcut/shortcutRegistrant';
 import { ShortcutService } from 'src/code/browser/service/shortcut/shortcutService';
