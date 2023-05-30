@@ -32,7 +32,8 @@ export class DefaultConfiguration extends Disposable implements IConfiguration {
     // [fields]
 
     private _storage: IConfigStorage;
-    
+    private _initialized: boolean;
+
     // [events]
 
     private readonly _onDidConfigurationChange = this.__register(new Emitter<IRawConfigurationChangeEvent>());
@@ -43,6 +44,7 @@ export class DefaultConfiguration extends Disposable implements IConfiguration {
     constructor() {
         super();
         this._storage = new ConfigStorage(); // TODO: register?
+        this._initialized = false;
     }
 
     // [public methods]
@@ -52,6 +54,10 @@ export class DefaultConfiguration extends Disposable implements IConfiguration {
     }
 
     public init(): void {
+        if (this._initialized) {
+            throw new Error('Cannot initialize DefaultConfiguration twice.');
+        }
+        this._initialized = true;
         this.__resetConfigurations();
         this.__register(Registrant.onDidConfigurationChange(e => this.__onRegistrantConfigurationChange(e)));
     }
@@ -82,7 +88,6 @@ export class DefaultConfiguration extends Disposable implements IConfiguration {
 
     private __onRegistrantConfigurationChange(e: IRawSetConfigurationChangeEvent): void {
         const properties = Array.from(e.properties);
-        
         this.__updateConfigurations(properties, Registrant.getConfigurationSchemas());
         this._onDidConfigurationChange.fire({ properties: properties });
     }
@@ -91,6 +96,8 @@ export class DefaultConfiguration extends Disposable implements IConfiguration {
 export class UserConfiguration extends Disposable implements IConfiguration {
     
     // [fields]
+
+    private _initialized: boolean;
 
     private readonly _userResource: URI;
     private readonly _validator: UserConfigurationValidator;
@@ -110,6 +117,7 @@ export class UserConfiguration extends Disposable implements IConfiguration {
         private readonly logService: ILogService,
     ) {
         super();
+        this._initialized = false;
         
         this._userResource = userResource;
         this._configuration = new ConfigStorage();
@@ -135,6 +143,10 @@ export class UserConfiguration extends Disposable implements IConfiguration {
     }
 
     public async init(): Promise<void> {
+        if (this._initialized) {
+            throw new Error('Cannot initialize DefaultConfiguration twice.');
+        }
+        this._initialized = true;
         return this.__loadConfiguration();
     }
 
