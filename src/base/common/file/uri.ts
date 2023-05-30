@@ -90,9 +90,8 @@ export class URI implements IURI {
     }
 
     /**
-	 * Creates a new URI from a string, e.g. `http://www.msft.com/some/path`,
+	 * @description Creates a new URI from a string, e.g. `http://www.msft.com/some/path`,
 	 * `file:///usr/home`, or `scheme:with/path`.
-	 *
 	 * @param value A string which represents an URI (see `URI#toString`).
 	 */
 	public static parse(value: string): URI {
@@ -109,6 +108,9 @@ export class URI implements IURI {
 		);
 	}
 
+	/**
+	 * @description Check if a given object is an instance of `URI`.
+	 */
     public static isURI(obj: any): obj is URI {
 		if (obj instanceof URI) {
 			return true;
@@ -124,20 +126,9 @@ export class URI implements IURI {
 			&& typeof (<URI>obj).toString === 'function';
 	}
 
-	public static revive(obj: any): URI {
-		if (!obj) {
-			return obj;
-		}
-
-		if (obj instanceof URI) {
-			return obj;
-		}
-
-		const uri = reviverRegistrant.revive<URI>(obj);
-		return uri;
-	}
-
-	/** @description Compute `fsPath` for the given uri. */
+	/**
+	 * @description Compute the file system path for the given URI. 
+	 */
 	public static toFsPath(uri: URI, keepDriveLetterCasing: boolean = true): string {
 
 		let value: string;
@@ -166,25 +157,25 @@ export class URI implements IURI {
 	}
 
 	/**
-	 * Creates a new URI from a file system path, e.g. `c:\my\files`,
+	 * @description Creates a new URI from a file system path, e.g. `c:\my\files`,
 	 * `/usr/home`, or `\\server\share\some\path`.
-	 *
-	 * The *difference* between `URI#parse` and `URI#fromFile` is that the latter treats the argument
-	 * as path, not as stringified-uri. E.g. `URI.fromFile(path)` is **not the same as**
-	 * `URI.parse('file://' + path)` because the path might contain characters that are
-	 * interpreted (# and ?). See the following sample:
-	 * ```ts
-		const good = URI.file('/coding/c#/project1');
-		good.scheme === 'file';
-		good.path === '/coding/c#/project1';
-		good.fragment === '';
-		const bad = URI.parse('file://' + '/coding/c#/project1');
-		bad.scheme === 'file';
-		bad.path === '/coding/c'; // path is now broken
-		bad.fragment === '/project1';
-		```
-	 *
 	 * @param path A file system path (see `URI#fsPath`)
+	 *
+	 * The *difference* between `URI#parse` and `URI#fromFile` is that the latter 
+	 * treats the argument as path, not as stringified-uri. E.g. `URI.fromFile(path)` 
+	 * is **not the same as** `URI.parse('file://' + path)` because the path 
+	 * might contain characters that are interpreted (# and ?). See the 
+	 * following sample:
+	 * ```ts
+	 * const good = URI.file('/coding/c#/project1');
+	 * good.scheme === 'file';
+	 * good.path === '/coding/c#/project1';
+	 * good.fragment === '';
+	 * const bad = URI.parse('file://' + '/coding/c#/project1');
+	 * bad.scheme === 'file';
+	 * bad.path === '/coding/c'; // path is now broken
+	 * bad.fragment === '/project1';
+	 * ```
 	 */
 	public static fromFile(path: string): URI {
 
@@ -213,23 +204,131 @@ export class URI implements IURI {
 		return new URI('file', authority, path, _empty, _empty);
 	}
 
+	/**
+	 * @description Join a URI with one or more string paths.
+	 */
 	public static join(uri: URI, ...path: string[]): URI {
-		return URI.fromFile(paths.join(URI.toFsPath(uri), ...path));
+		if (path.length === 0) {
+			return uri;
+		}
+		const joinedPath = paths.join(URI.toFsPath(uri), ...path);
+		const normalizedPath = joinedPath.replace(/\\/g, '/');
+		return URI.fromFile(normalizedPath);
 	}
 
 	/**
-	 * Creates a string representation for this URI. It's guaranteed that calling
-	 * `URI.parse` with the result of this function creates an URI which is equal
-	 * to this URI.
-	 *
+	 * @description Creates a string representation for this URI. It's 
+	 * guaranteed that calling `URI.parse` with the result of this function 
+	 * creates an URI which is equal to this URI.
+	 * @param skipEncoding Do not encode the result, default is `true`
+	 * 
 	 * * The result shall *not* be used for display purposes but for externalization or transport.
 	 * * The result will be encoded using the percentage encoding and encoding happens mostly
 	 * ignore the scheme-specific encoding rules.
-	 *
-	 * @param skipEncoding Do not encode the result, default is `true`
 	 */
 	public static toString(uri: URI, skipEncoding: boolean = true): string {
 		return _toString(uri, skipEncoding);
+	}
+
+	/**
+	 * @description Return the last part of a URI path.
+	 */
+	public static basename(uri: URI): string {
+		return paths.posix.basename(uri.path);
+	}
+
+	/**
+	 * @description Return the extension of the URI path.
+	 */
+	public static extname(uri: URI): string {
+		return paths.posix.extname(uri.path);
+	}
+
+	/**
+	 * @description Return the directory of the URI path.
+	 */
+	public static dirname(uri: URI): URI {
+		if (uri.path.length === 0) {
+			return uri;
+		}
+		
+		let dirname: string;
+		
+		if (uri.scheme === Schemas.FILE) {
+			dirname = URI.fromFile(paths.dirname(URI.toFsPath(uri))).path;
+		} 
+		else {
+			dirname = paths.posix.dirname(uri.path);
+			if (uri.authority && dirname.length && dirname.charCodeAt(0) !== CharCode.Slash) {
+				console.error(`dirname("${uri.toString})) resulted in a relative path`);
+				dirname = '/'; // If a URI contains an authority component, then the path component must either be empty or begin with a CharCode.Slash ("/") character
+			}
+		}
+
+		return URI.with(uri, { path: dirname });
+	}
+
+	/**
+	 * @description Creates a new URI by merging the given changes into the given URI.
+	 */
+	public static with(uri: IURI, change: Partial<IURI>): URI {
+
+		if (!change) {
+			return uri;
+		}
+
+		let { scheme, authority, path, query, fragment } = change;
+		if (scheme === undefined) {
+			scheme = uri.scheme;
+		} else if (scheme === null) {
+			scheme = _empty;
+		}
+		if (authority === undefined) {
+			authority = uri.authority;
+		} else if (authority === null) {
+			authority = _empty;
+		}
+		if (path === undefined) {
+			path = uri.path;
+		} else if (path === null) {
+			path = _empty;
+		}
+		if (query === undefined) {
+			query = uri.query;
+		} else if (query === null) {
+			query = _empty;
+		}
+		if (fragment === undefined) {
+			fragment = uri.fragment;
+		} else if (fragment === null) {
+			fragment = _empty;
+		}
+
+		if (scheme === uri.scheme
+			&& authority === uri.authority
+			&& path === uri.path
+			&& query === uri.query
+			&& fragment === uri.fragment) {
+			return uri;
+		}
+
+		return new URI(scheme, authority, path, query, fragment);
+	}
+
+	/**
+	 * @description Revive a serialized URI.
+	 */
+	public static revive(obj: any): URI {
+		if (!obj) {
+			return obj;
+		}
+
+		if (obj instanceof URI) {
+			return obj;
+		}
+
+		const uri = reviverRegistrant.revive<URI>(obj);
+		return uri;
 	}
 }
 
