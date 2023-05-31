@@ -189,7 +189,6 @@ class ConfigurationRegistrant implements IConfigurationRegistrant {
             this.__registerConfiguration(configuration, registered, true);
         }
 
-        console.log('register');
         this._onDidConfigurationChange.fire({ properties: registered });
     }
 
