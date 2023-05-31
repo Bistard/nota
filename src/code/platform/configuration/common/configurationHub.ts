@@ -4,7 +4,7 @@ import { Emitter, Event } from "src/base/common/event";
 import { URI } from "src/base/common/file/uri";
 import { IJsonSchemaValidateResult, JsonSchemaValidator } from "src/base/common/json";
 import { ILogService } from "src/base/common/logger";
-import { strictEquals } from "src/base/common/util/object";
+import { mixin, strictEquals } from "src/base/common/util/object";
 import { Dictionary } from "src/base/common/util/type";
 import { IRawConfigurationChangeEvent, IConfigurationRegistrant, IConfigurationSchema, IRawSetConfigurationChangeEvent } from "src/code/platform/configuration/common/configurationRegistrant";
 import { ConfigStorage, IConfigStorage } from "src/code/platform/configuration/common/configStorage";
@@ -43,7 +43,7 @@ export class DefaultConfiguration extends Disposable implements IConfiguration {
 
     constructor() {
         super();
-        this._storage = new ConfigStorage(); // TODO: register?
+        this._storage = this.__register(new ConfigStorage());
         this._initialized = false;
     }
 
@@ -74,22 +74,24 @@ export class DefaultConfiguration extends Disposable implements IConfiguration {
         this.__updateConfigurations(Object.keys(schemas), schemas);
     }
     
+    private __onRegistrantConfigurationChange(e: IRawSetConfigurationChangeEvent): void {
+        const properties = Array.from(e.properties);
+        this.__updateConfigurations(properties, Registrant.getConfigurationSchemas());
+        this._onDidConfigurationChange.fire({ properties: properties });
+    }
+
     private __updateConfigurations(keys: string[], schemas: Dictionary<string, IConfigurationSchema>): void {
         for (const key of keys) {
             const schema = schemas[key];
             
             if (schema) {
-                this._storage.set(key, schema.default);
+                // Make sure do not override the original value.
+                const originalValue = tryOrDefault(undefined, () => this._storage.get(key));
+                this._storage.set(key, mixin(originalValue, schema.default, true));
             } else {
                 this._storage.delete(key);
             }
         }
-    }
-
-    private __onRegistrantConfigurationChange(e: IRawSetConfigurationChangeEvent): void {
-        const properties = Array.from(e.properties);
-        this.__updateConfigurations(properties, Registrant.getConfigurationSchemas());
-        this._onDidConfigurationChange.fire({ properties: properties });
     }
 }
 

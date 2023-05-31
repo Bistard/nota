@@ -263,7 +263,7 @@ export class ConfigStorage extends Disposable implements IConfigStorage {
             currModel = curr;
         }
 
-        if (currModel && typeof currModel === 'object') {
+        if (isObject(currModel)) {
             currModel[lastSection] = configuration;
         } else {
             throw new Error(`cannot add configuration section at '${section}'`);
