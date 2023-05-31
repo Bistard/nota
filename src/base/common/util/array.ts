@@ -311,12 +311,12 @@ export namespace Arrays {
 
     /**
      * @description If the given array includes any values that matches any of 
-     * your provided values.
+     * the provided values.
      * @param array The given array.
      * @param values The provided values.
      * @param match A compare function.
      */
-    export function matchAny<T>(array: ReadonlyArray<T>, values: T[], match: (arrValue: T, yourValue: T) => boolean): boolean {
+    export function matchAny<T>(array: ReadonlyArray<T>, values: T[], match: (arrValue: T, yourValue: T) => boolean = (arrVal, yourVal) => arrVal === yourVal): boolean {
         for (const yourValue of values) {
             for (const arrValue of array) {
                 if (match(arrValue, yourValue)) {
@@ -325,6 +325,29 @@ export namespace Arrays {
             }
         }
         return false;
+    }
+
+    /**
+     * @description Whether the given array matches all values from the provided 
+     * array.
+     * @param array The given array.
+     * @param values The provided values.
+     * @param match A compare function.
+     */
+    export function matchAll<T>(array: ReadonlyArray<T>, values: T[], match: (arrValue: T, yourValue: T) => boolean = (arrVal, yourVal) => arrVal === yourVal): boolean {
+        for (const yourValue of values) {
+            let matched =  false;
+            for (const arrValue of array) {
+                if (match(arrValue, yourValue)) {
+                    matched = true;
+                    break;
+                }
+            }
+            if (!matched) {
+                return false;
+            }
+        }
+        return true;
     }
 
     /**

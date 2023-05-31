@@ -120,6 +120,43 @@ suite('array-test', () => {
         assert.strictEqual(Arrays.matchAny(['path1.path3'], ['path1.path2'], cmp1), false);
     });
 
+    test('matchAll', () => {
+        let array: any[] = [1, 2, 3, 4, 5];
+        let values: any[] = [1, 2, 3];
+        let result = Arrays.matchAll(array, values);
+        assert.strictEqual(result, true);
+
+        array = [];
+        values = [];
+        result = Arrays.matchAll(array, values);
+        assert.strictEqual(result, true);
+
+        array = [1, 2, 3, 4, 5];
+        values = [];
+        result = Arrays.matchAll(array, values);
+        assert.strictEqual(result, true);
+
+        array = [1, 2, 3, 4, 5];
+        values = [1, 2, 6];
+        result = Arrays.matchAll(array, values);
+        assert.strictEqual(result, false);
+
+        array = ['apple', 'banana', 'cherry'];
+        values = ['banana', 'cherry'];
+        result = Arrays.matchAll(array, values);
+        assert.strictEqual(result, true);
+
+        array = ['apple', 'banana', 'cherry'];
+        values = ['apple', 'banana'];
+        result = Arrays.matchAll(array, values);
+        assert.strictEqual(result, true);
+
+        array = ['apple', 'banana', 'cherry'];
+        values = ['apple', 'banana', 'pear'];
+        result = Arrays.matchAll(array, values);
+        assert.strictEqual(result, false);
+    });
+
     test('binarySearch', () => {
         
         function bs (arr: number[], expect: number, expectResult: boolean) {
