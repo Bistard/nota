@@ -83,16 +83,27 @@ export interface IConfigurationRegistrant {
     
     /**
      * This event fires whenever a set of configurations has changed.
+     * 
+     * @note When registering an array of {@link IConfigurationUnit}, this event 
+     * will only fires once.
      */
     readonly onDidConfigurationChange: Register<IRawSetConfigurationChangeEvent>;
 
     /**
-     * The event fires whenever a set of registrations encounters error.
+     * The event fires whenever a key of from the incoming {@link IConfigurationUnit}
+     * encounters an error.
+     * 
+     * @note The key from that unit will be omitted, but the unit will still
+     * be registered.
      */
     readonly onErrorRegistration: Register<IConfigurationRegisterErrorEvent>;
 
     /**
      * @description Registers default configuration(s).
+     * 
+     * @note Might modify the provided configuration unit.
+     * @note Any keys that encounters an error when registering will be removed.
+     * But the unit will still be registered.
      */
     registerConfigurations(configuration: IConfigurationUnit | IConfigurationUnit[]): void;
 
@@ -112,7 +123,7 @@ export interface IConfigurationRegistrant {
     updateConfigurations(configurations: { add: IConfigurationUnit[], remove: IConfigurationUnit[] }): void;
 
     /**
-     * @description Returns all the registered configurations.
+     * @description Returns all the registered configuration units.
      */
     getConfigurationUnits(): IConfigurationUnit[];
 
@@ -178,6 +189,7 @@ class ConfigurationRegistrant implements IConfigurationRegistrant {
             this.__registerConfiguration(configuration, registered, true);
         }
 
+        console.log('register');
         this._onDidConfigurationChange.fire({ properties: registered });
     }
 
