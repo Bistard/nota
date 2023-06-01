@@ -33,6 +33,19 @@ suite.only('json-test', function () {
                 result = JsonSchemaValidator.validate('hello world hello world', schema2);
                 assert.ok(!result.valid);
             });
+
+            test('String with enum', function () {
+                const schema: IJsonSchema = { type: 'string', enum: ['one', 'two', 'three'] };
+
+                let result = JsonSchemaValidator.validate('one', schema);
+                assert.ok(result.valid);
+
+                result = JsonSchemaValidator.validate('two', schema);
+                assert.ok(result.valid);
+
+                result = JsonSchemaValidator.validate('hello world', schema);
+                assert.ok(!result.valid);
+            });
         });
 
         suite('number', () => {

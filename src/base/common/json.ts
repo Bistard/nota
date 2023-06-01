@@ -107,12 +107,6 @@ interface IJsonSchemaBase<TDataType extends DataType>  {
 
     /** An message for shown when the data is not validated. */
     errorMessage?: string;
-
-    /** When provided, the node will act like a list of choices (dropdown menu etc). */
-    enum?: string[];
-
-    /** When provided, each description serves the corresponding enum. */
-    enumDescription?: string[];
 }
 
 interface IJsonSchemaForNull extends Omit<IJsonSchemaBase<'null'>, 'default'> {
@@ -155,6 +149,12 @@ interface IJsonSchemaForString extends IJsonSchemaBase<'string'> {
 
     /** Regular expression to match the valid string. */
     regexp?: string;
+
+    /** When provided, the string can only be one of the enum value. */
+    enum?: string[];
+
+    /** When provided, each description serves the corresponding enum. */
+    enumDescription?: string[];
 }
 
 interface IJsonSchemaForArray extends IJsonSchemaBase<'array'> {
@@ -274,7 +274,12 @@ export class JsonSchemaValidator {
                     },
                 );
 
-                // todo: enum
+                if (schema.enum) {
+                    // make sure default is one of the enum
+                    if (!schema.enum.includes(data)) {
+                        return this.__setValid(false, result, schema);
+                    }
+                }
 
                 if (schema.format) {
                     throw new Error('Does not support yet.');
