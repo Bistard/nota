@@ -1,4 +1,5 @@
 import { tryOrDefault } from "src/base/common/error";
+import { Arrays } from "src/base/common/util/array";
 import { Dictionary, Mutable, NonUndefined, Pair, isNumber, isObject, isString } from "src/base/common/util/type";
 
 /**
@@ -108,10 +109,10 @@ interface IJsonSchemaBase<TDataType extends DataType>  {
     errorMessage?: string;
 
     /** When provided, the node will act like a list of choices (dropdown menu etc). */
-    enumItem?: string[];
+    enum?: string[];
 
     /** When provided, each description serves the corresponding enum. */
-    enumItemDescription?: string[];
+    enumDescription?: string[];
 }
 
 interface IJsonSchemaForNull extends Omit<IJsonSchemaBase<'null'>, 'default'> {
@@ -127,7 +128,7 @@ interface IJsonSchemaForNumber extends IJsonSchemaBase<'number'> {
     default?: number;
 
     /** If only supports integer. */
-    integer?: boolean;
+    integer?: true;
 
     /** The minimum value requirement. */
     minimum?: number;
@@ -190,7 +191,7 @@ interface IJsonSchemaForObject extends IJsonSchemaBase<'object'> {
     required?: string[];
 
     /** If allow the schema node to have extra properties that are not listed in the required. */
-    additionalProperties?: true;
+    additionalProperties?: boolean;
 }
 
 export interface IJsonSchemaValidateResult {
@@ -273,6 +274,8 @@ export class JsonSchemaValidator {
                     },
                 );
 
+                // todo: enum
+
                 if (schema.format) {
                     throw new Error('Does not support yet.');
                 }
@@ -309,10 +312,9 @@ export class JsonSchemaValidator {
                 }
 
                 // Ensuring no additional properties are present if 'additionalProperties' is not set
-                if (!schema.additionalProperties) {
-                    if (!schemaKeys.every(key => propertyKeys.includes(key))) {
-                        return this.__setValid(false, result, schema);
-                    }
+                const additionalKeys = Arrays.relativeComplement(schema.required ?? [], propertyKeys);
+                if (!schema.additionalProperties && additionalKeys.length > 0) {
+                    return this.__setValid(false, result, schema);
                 }
 
                 // Ensuring all required properties are present
