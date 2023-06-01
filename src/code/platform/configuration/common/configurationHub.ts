@@ -1,6 +1,6 @@
 import { Disposable, IDisposable } from "src/base/common/dispose";
 import { tryOrDefault } from "src/base/common/error";
-import { Emitter, Event } from "src/base/common/event";
+import { Emitter, Event, Register } from "src/base/common/event";
 import { URI } from "src/base/common/file/uri";
 import { IJsonSchemaValidateResult, JsonSchemaValidator } from "src/base/common/json";
 import { ILogService } from "src/base/common/logger";
@@ -23,8 +23,16 @@ export const enum ConfigurationType {
     User,
 }
 
-export interface IConfiguration {
-    // TODO
+/**
+ * // TODO
+ */
+export interface IConfiguration extends IDisposable {
+    
+    readonly onDidConfigurationChange: Register<any>;
+
+    getConfiguration(): IConfigStorage;
+    init(): void | Promise<void>;
+    reload(): void | Promise<void>;
 }
 
 export class DefaultConfiguration extends Disposable implements IConfiguration {
@@ -49,7 +57,7 @@ export class DefaultConfiguration extends Disposable implements IConfiguration {
 
     // [public methods]
 
-    get configuration(): IConfigStorage {
+    public getConfiguration(): IConfigStorage {
         return this._storage;
     }
 
@@ -58,36 +66,39 @@ export class DefaultConfiguration extends Disposable implements IConfiguration {
             throw new Error('Cannot initialize DefaultConfiguration twice.');
         }
         this._initialized = true;
-        this.__resetConfigurations();
+        this.__resetDefaultConfigurations();
         this.__register(Registrant.onDidConfigurationChange(e => this.__onRegistrantConfigurationChange(e)));
     }
 
     public reload(): void {
-        this.__resetConfigurations();
+        this.__resetDefaultConfigurations();
     }
 
     // [private helper methods]
 
-    private __resetConfigurations(): void {
+    private __resetDefaultConfigurations(): void {
         this._storage = new ConfigStorage();
         const schemas = Registrant.getConfigurationSchemas();
-        this.__updateConfigurations(Object.keys(schemas), schemas);
+        this.__updateDefaultConfigurations(Object.keys(schemas), schemas);
     }
     
     private __onRegistrantConfigurationChange(e: IRawSetConfigurationChangeEvent): void {
         const properties = Array.from(e.properties);
-        this.__updateConfigurations(properties, Registrant.getConfigurationSchemas());
+        this.__updateDefaultConfigurations(properties, Registrant.getConfigurationSchemas());
         this._onDidConfigurationChange.fire({ properties: properties });
     }
 
-    private __updateConfigurations(keys: string[], schemas: Dictionary<string, IConfigurationSchema>): void {
+    private __updateDefaultConfigurations(keys: string[], schemas: Dictionary<string, IConfigurationSchema>): void {
         for (const key of keys) {
             const schema = schemas[key];
             
             if (schema) {
-                // Make sure do not override the original value.
+                /** Make sure do not override the original value. */
                 const originalValue = tryOrDefault(undefined, () => this._storage.get(key));
-                this._storage.set(key, mixin(originalValue, schema.default, true));
+
+                /** Set default value for 'null'. */
+                const newValue = mixin(originalValue, schema.type === 'null' ? null : schema.default, true);
+                this._storage.set(key, newValue);
             } else {
                 this._storage.delete(key);
             }
@@ -140,7 +151,7 @@ export class UserConfiguration extends Disposable implements IConfiguration {
 
     // [public methods]
 
-    get configuration(): IConfigStorage {
+    public getConfiguration(): IConfigStorage {
         return this._configuration;
     }
 
