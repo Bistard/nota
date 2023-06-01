@@ -1,4 +1,5 @@
 import * as assert from 'assert';
+import { after, before } from 'mocha';
 import { Event } from 'src/base/common/event';
 import { IConfigurationRegistrant, IConfigurationUnit } from 'src/code/platform/configuration/common/configurationRegistrant';
 import { REGISTRANTS } from 'src/code/platform/registrant/common/registrant';
@@ -37,6 +38,14 @@ suite('configurationRegistrant-test', () => {
             },
         }
     }; 
+
+    before(() => {
+        registrant.unregisterConfigurations(registrant.getConfigurationUnits());
+    });
+
+    after(() => {
+        registrant.unregisterConfigurations(registrant.getConfigurationUnits());
+    });
 
     test('registerConfiguration', () => {
         
