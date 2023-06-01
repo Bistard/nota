@@ -16,12 +16,12 @@ Registrant.registerConfigurations({
     properties: {
         [WorkbenchConfiguration.TextLanguage]: {
             type: 'string',
-            enumItem: [LanguageType.en, LanguageType["zh-cn"], LanguageType["zh-tw"]],
+            enum: [LanguageType.en, LanguageType["zh-cn"], LanguageType["zh-tw"]],
             default: LanguageType.en,
         },
         [WorkbenchConfiguration.ColorTheme]: {
             type: 'string',
-            enumItem: [ColorThemeType.Light, ColorThemeType.Dark],
+            enum: [ColorThemeType.Light, ColorThemeType.Dark],
             default: ColorThemeType.Light,
         },
         [WorkbenchConfiguration.KeyboardScreenCast]: {
