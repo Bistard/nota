@@ -217,7 +217,7 @@ export interface IOverwriteFileOptions {
 	 * Set to `true` to overwrite a file if it exists. Will
 	 * throw an error otherwise if the file does exist.
 	 */
-	 readonly overwrite: boolean;
+	 readonly overwrite?: boolean;
 }
 
 export interface ICreateFileOptions extends Partial<IOverwriteFileOptions> {}

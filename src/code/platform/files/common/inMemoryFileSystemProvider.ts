@@ -39,6 +39,10 @@ class Directory implements IFileStat {
 	}
 }
 
+export interface IInMemoryFileSystemProviderOptions {
+	readonly throwWhenNotSupport?: boolean;
+}
+
 export class InMemoryFileSystemProvider extends Disposable implements
     IFileSystemProviderWithFileReadWrite
 {
@@ -47,6 +51,8 @@ export class InMemoryFileSystemProvider extends Disposable implements
 
     public readonly capabilities: FileSystemProviderCapability = FileSystemProviderCapability.FileReadWrite;
     private readonly _root = new Directory('');
+
+	private readonly _options: IInMemoryFileSystemProviderOptions;
 
     // [event]
 
@@ -60,8 +66,10 @@ export class InMemoryFileSystemProvider extends Disposable implements
 
     // [constructor]
 
-    constructor() {
+    constructor(options?: IInMemoryFileSystemProviderOptions) {
         super();
+		this._options = options ?? { throwWhenNotSupport: true, };
+
         this._onDidResourceChangeScheduler = new Scheduler(5, (rawEvents) => {
             
             let anyDirectory = false, anyFiles = false, anyAdded = false, anyDeleted = false, anyUpdated = false;
@@ -87,7 +95,11 @@ export class InMemoryFileSystemProvider extends Disposable implements
     // [public methods]
 
 	public watch(uri: URI, opts?: IWatchOptions): IDisposable {
-        throw new Error('InMemoryDiskSystemProvider does not support "watch".');
+        if (this._options.throwWhenNotSupport) {
+			throw new Error('InMemoryDiskSystemProvider does not support "watch".');
+		} else {
+			return Disposable.NONE;
+		}
     }
 
 	public async stat(uri: URI): Promise<IFileStat> {

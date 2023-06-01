@@ -100,13 +100,13 @@ export class MainConfigurationService extends Disposable implements IConfigurati
     // [private helper methods]
 
     private __onDefaultConfigurationChange({ properties }: IRawConfigurationChangeEvent): void {
-        const current = this._defaultConfiguration.configuration;
+        const current = this._defaultConfiguration.getConfiguration();
         const change = this._configurationHub.compareAndUpdateConfiguration(ConfigurationType.Default, current, properties);
         this.__onConfigurationChange(change, ConfigurationType.Default);
     }
 
     private __onUserConfigurationChange(): void {
-        const current = this._userConfiguration.configuration;
+        const current = this._userConfiguration.getConfiguration();
         const change = this._configurationHub.compareAndUpdateConfiguration(ConfigurationType.Default, current, undefined);
         this.__onConfigurationChange(change, ConfigurationType.User);
     }
@@ -118,8 +118,8 @@ export class MainConfigurationService extends Disposable implements IConfigurati
 
     private __reloadConfigurationHub(): ConfigurationHub {
         return new ConfigurationHub(
-            this._defaultConfiguration.configuration, 
-            this._userConfiguration.configuration,
+            this._defaultConfiguration.getConfiguration(),
+            this._userConfiguration.getConfiguration(),
         );
     }
 }
