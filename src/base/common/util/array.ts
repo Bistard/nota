@@ -93,11 +93,14 @@ export namespace Arrays {
 
     /**
      * @description Determines if the content of the given two arrays are equal.
+     * The order does matter.
      * @param array1 The given 1st array.
      * @param array2 The given 2nd array.
      * @param cmp The compare function.
+     * 
+     * @note If you need to deep compare elements, pass `strictEquals` as cmp.
      */
-    export function equals<T>(array1: ReadonlyArray<T>, array2: ReadonlyArray<T>, cmp: (a: T, b: T) => boolean = (a, b) => a === b): boolean {
+    export function exactEquals<T>(array1: ReadonlyArray<T>, array2: ReadonlyArray<T>, cmp: (a: T, b: T) => boolean = (a, b) => a === b): boolean {
         if (array1 === array2) {
             return true;
         }

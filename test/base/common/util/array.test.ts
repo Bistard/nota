@@ -40,14 +40,14 @@ suite('array-test', () => {
         assert.deepStrictEqual(Arrays.insert([3, 3, 3, 9], 6), [3, 3, 3, 6, 9]);
     });
 
-    test('equals', () => {
+    test('exactEquals', () => {
         const ref = [1, 2, 3];
-        assert.strictEqual(Arrays.equals([], []), true);
-        assert.strictEqual(Arrays.equals(ref, ref), true);
-        assert.strictEqual(Arrays.equals(ref, [1, 2, 3, 4]), false);
-        assert.strictEqual(Arrays.equals([1, 2, 3], [1, 2, 3, 4]), false);
-        assert.strictEqual(Arrays.equals([1, 2, 3, 4], [1, 2, 3, 4]), true);
-        assert.strictEqual(Arrays.equals([1, 2, 3, 4], [4, 3, 2, 1]), false);
+        assert.strictEqual(Arrays.exactEquals([], []), true);
+        assert.strictEqual(Arrays.exactEquals(ref, ref), true);
+        assert.strictEqual(Arrays.exactEquals(ref, [1, 2, 3, 4]), false);
+        assert.strictEqual(Arrays.exactEquals([1, 2, 3], [1, 2, 3, 4]), false);
+        assert.strictEqual(Arrays.exactEquals([1, 2, 3, 4], [1, 2, 3, 4]), true);
+        assert.strictEqual(Arrays.exactEquals([1, 2, 3, 4], [4, 3, 2, 1]), false);
     });
 
     test('range', () => {
