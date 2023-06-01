@@ -2,9 +2,41 @@ import * as assert from 'assert';
 import { IJsonSchema, IJsonSchemaValidateResult, JsonSchemaValidator } from 'src/base/common/json';
 import { deepCopy } from 'src/base/common/util/object';
 
-suite.only('json-test', function () {
+suite('json-test', function () {
 
     suite('JsonSchemaValidator-test', () => {
+
+        suite('basics', () => {
+            
+            test('errorMessage', () => {
+                const schema: IJsonSchema = { type: 'string', regexp: '^[a-z]+$', errorMessage: 'The string must be valid 26 characters' };
+
+                let result = JsonSchemaValidator.validate('testing123', schema);
+                assert.ok(!result.valid);
+                assert.strictEqual(result.errorMessage, 'The string must be valid 26 characters');
+                
+                result = JsonSchemaValidator.validate('testing', schema);
+                assert.ok(result.valid);
+                assert.strictEqual(result.errorMessage, undefined);
+            });
+
+            test('deprecatedMessage', () => {
+                const schema: IJsonSchema = { type: 'string', regexp: '^[a-z]+$', deprecatedMessage: 'The setting is deprecated', deprecated: true };
+                
+                let result = JsonSchemaValidator.validate('Testing', schema);
+                assert.ok(!result.valid);
+                assert.strictEqual(result.deprecatedMessage, 'The setting is deprecated');
+            });
+
+            test('default value if data is not provided', () => {
+                const schema: IJsonSchema = { type: 'string', regexp: '^[a-z]+$', default: 'testing', errorMessage: 'The string must be valid 26 characters' };
+                
+                let result = JsonSchemaValidator.validate(undefined, schema);
+                assert.ok(!result.valid);
+                assert.strictEqual(result.errorMessage, 'The string must be valid 26 characters');
+                assert.strictEqual(result.default, 'testing');
+            });
+        });
 
         suite('string', () => {
             const schema1: IJsonSchema = { type: 'string', regexp: '^[a-z]+$' };

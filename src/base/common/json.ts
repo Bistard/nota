@@ -205,7 +205,7 @@ export interface IJsonSchemaValidateResult {
     /** A message will be given if the data should be deprecated. */
     readonly deprecatedMessage?: string;
 
-    /** If the data is 'undefined', the default will be set to {@link IJsonSchema.default}. */
+    /** If an error happens, the default will be set to {@link IJsonSchema.default}. */
     readonly default?: NonUndefined;
 }
 
@@ -227,14 +227,12 @@ export class JsonSchemaValidator {
     private static __validate(data: any, schema: IJsonSchema, result: Mutable<IJsonSchemaValidateResult>): void {
         if (schema.deprecated === true) {
             result.valid = false;
-            result.deprecatedMessage = schema.deprecatedMessage ?? schema.errorMessage;
+            result.deprecatedMessage = schema.deprecatedMessage;
             return;
         }
 
         if (typeof data === 'undefined') {
-            result.valid = true;
-            result.default = schema.default;
-            return;
+            return this.__setValid(false, result, schema);
         }
     
         switch (schema.type) {
@@ -340,6 +338,7 @@ export class JsonSchemaValidator {
         result.valid = valid;
         if (!result.valid) {
             result.errorMessage = schema.errorMessage;
+            result.default = schema.default;
         }
     }
 }
