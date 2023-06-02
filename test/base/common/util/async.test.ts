@@ -153,7 +153,7 @@ suite('async-test', () => {
     });
 
     suite('throttler', () => {
-        test('sync task', async function () {
+        test('sync task', async () => {
 			let count = 0;
 			const factory = () => Promise.resolve(++count);
 
@@ -168,7 +168,7 @@ suite('async-test', () => {
 			]).then(() => assert.strictEqual(count, 2));
 		});
 
-		test('async task', () => {
+		test('async task', async () => {
 			let count = 0;
 			const factory = () => delayFor(0).then(() => ++count);
 
@@ -306,7 +306,7 @@ suite('async-test', () => {
 			return p;
 		});
 
-		test('cancel should cancel all calls to queue', function () {
+		test('cancel should cancel all calls to queue', async () => {
 			let count = 0;
 			const factory = () => {
 				return Promise.resolve(++count);
