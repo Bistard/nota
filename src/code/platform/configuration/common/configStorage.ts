@@ -20,7 +20,7 @@ export interface IConfigStorage extends IDisposable {
     readonly sections: string[];
     
     /** Get the actual data model of the storage. */
-    readonly model: any;
+    readonly model: object;
 
     /** Fires when any of the configuration is changed. */
     readonly onDidChange: Register<IConfigChangeEvent>;
@@ -90,13 +90,13 @@ export class ConfigStorage extends Disposable implements IConfigStorage {
     // [field]
 
     private _sections: string[];
-    private _model: any;
+    private _model: object;
 
     // [constructor]
 
     constructor(
         sections?: string[],
-        model?: any,
+        model?: object,
     ) {
         super();
         this._sections = sections ?? [];
@@ -104,7 +104,7 @@ export class ConfigStorage extends Disposable implements IConfigStorage {
 
         // auto update sections
         if (this._sections.length === 0 && Object.keys(this._model).length !== 0) {
-            getModelSections(this._sections, this._model);
+            getModelSections(this._model, this._sections);
         }
     }
 
@@ -114,7 +114,7 @@ export class ConfigStorage extends Disposable implements IConfigStorage {
         return this._sections;
     }
 
-    get model(): any {
+    get model(): object {
         return this._model;
     }
 
@@ -122,7 +122,7 @@ export class ConfigStorage extends Disposable implements IConfigStorage {
         if (section) {
             return this.__getBySection(section);
         }
-        return this._model;
+        return <T>this._model;
     }
 
     public set(section: string | null, configuration: any): void {
@@ -199,7 +199,7 @@ export class ConfigStorage extends Disposable implements IConfigStorage {
             throw new Error(`cannot get configuration section at '${section}'`);
         }
 
-        return currModel;
+        return <T>currModel;
     }
 
     private __addSections(newSection: string): void {
@@ -387,8 +387,8 @@ export abstract class DefaultConfigStorage implements IConfigStorage {
  * // arr => ['path1.path2', 'path3']
  * ```
  */
-function getModelSections(model: Dictionary<PropertyKey, any>, sections: string[]): void {
-    const __handler = (model: Dictionary<PropertyKey, any>, section: string, sections: string[]): boolean => {
+function getModelSections(model: Readonly<Dictionary<PropertyKey, any>>, sections: string[]): void {
+    const __handler = (model: Readonly<Dictionary<PropertyKey, any>>, section: string, sections: string[]): boolean => {
         let reachBottom = true;
         
         for (const propName of Object.keys(model)) {
