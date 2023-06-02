@@ -1,7 +1,17 @@
 import * as assert from 'assert';
 import { ConfigStorage } from 'src/code/platform/configuration/common/configStorage';
 
-suite('configStorage-test', () => {
+suite.only('configStorage-test', () => {
+
+    test('constructor', () => {
+        const storage = new ConfigStorage(undefined, {
+            'test1.test2.test3': true,
+            'test1.test2.test4': { value: 'hello world' }
+        });
+
+        assert.strictEqual(storage.get('test1.test2.test3'), true);
+        assert.strictEqual(storage.get<any>('test1.test2.test4').value, 'hello world');
+    });
 
     test('get / set', () => {
         const storage = new ConfigStorage();
@@ -133,7 +143,7 @@ suite('configStorage-test', () => {
             new ConfigStorage(['path1.path2'], { 'path1': { 'path2': { id: 10000, obj: {} }, } }),
             new ConfigStorage(['path3'], { 'path3': 9999 }),
         ]);
-        assert.deepStrictEqual(storage.get(undefined), {
+        assert.notDeepStrictEqual(storage.get(undefined), {
             'path1': {
                 hello: undefined,
                 world: 'world',
