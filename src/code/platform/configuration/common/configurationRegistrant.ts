@@ -1,7 +1,7 @@
 import { Emitter, Register } from "src/base/common/event";
 import { IJsonSchema } from "src/base/common/json";
 import { Arrays } from "src/base/common/util/array";
-import { Dictionary } from "src/base/common/util/type";
+import { Dictionary, isObject } from "src/base/common/util/type";
 import { createRegistrant, RegistrantType } from "src/code/platform/registrant/common/registrant";
 
 export const IConfigurationRegistrant = createRegistrant<IConfigurationRegistrant>(RegistrantType.Configuration);
@@ -189,7 +189,9 @@ class ConfigurationRegistrant implements IConfigurationRegistrant {
             this.__registerConfiguration(configuration, registered, true);
         }
 
-        this._onDidConfigurationChange.fire({ properties: registered });
+        if (registered.size > 0) {
+            this._onDidConfigurationChange.fire({ properties: registered });
+        }
     }
 
     public unregisterConfigurations(configurations: IConfigurationUnit | IConfigurationUnit[]): void {
@@ -203,7 +205,9 @@ class ConfigurationRegistrant implements IConfigurationRegistrant {
             this.__unregisterConfiguration(configuration, unregistered);
         }
 
-        this._onDidConfigurationChange.fire({ properties: unregistered });
+        if (unregistered.size > 0) {
+            this._onDidConfigurationChange.fire({ properties: unregistered });
+        }
     }
 
     public updateConfigurations({ add, remove }: { add: IConfigurationUnit[]; remove: IConfigurationUnit[]; }): void {
@@ -217,7 +221,9 @@ class ConfigurationRegistrant implements IConfigurationRegistrant {
             this.__registerConfiguration(ad, changed, false);
         }
 
-        this._onDidConfigurationChange.fire({ properties: changed });
+        if (changed.size > 0) {
+            this._onDidConfigurationChange.fire({ properties: changed });
+        }
     }
 
     public getConfigurationUnits(): IConfigurationUnit[] {
@@ -305,6 +311,74 @@ class ConfigurationRegistrant implements IConfigurationRegistrant {
         // cannot register duplicate properties
         if (this.getConfigurationSchemas()[key] !== undefined) {
             return `Cannot register the schema with id '${schema.id ?? '[unknown]'}', the property name '${key}' is already registered.`;
+        }
+
+        // type check: defaule value
+        const defaultTypeCheck = (schema: IConfigurationSchema): string => {
+
+            // ignore: null or default value not provided
+            if (schema.type === 'null' || schema.default === undefined) {
+                schema.default = undefined;
+                return '';
+            }
+
+            if (schema.default instanceof RegExp || schema.default instanceof Date) {
+                return `The type of the default value cannot be RegExp or Date.`;
+            }
+
+            const defaultType = typeof schema.default;
+
+            // wrong match
+            if (['bigint', 'function', 'symbol'].includes(defaultType)) {
+                return `The type of the default value '${defaultType}' does not match the schema type '${schema.type}'.`;
+            }
+
+            // match: array and object
+            if (defaultType === 'object') {
+                if (!((schema.type === 'array' && Array.isArray(schema.default)) || (schema.type === 'object' && isObject(schema.default)))) {
+                    return `The type of the default value '${defaultType}' does not match the schema type '${schema.type}'.`;
+                }
+            }
+
+            // match: number, string, boolean
+            else if (defaultType !== schema.type) {
+                return `The type of the default value '${defaultType}' does not match the schema type '${schema.type}'.`;
+            }
+
+            // recursive match: object
+            if (schema.type === 'object' && schema.properties) {
+                for (const child of Object.values(schema.properties)) {
+                    const errorMessage = defaultTypeCheck(child);
+                    if (errorMessage) {
+                        return errorMessage;
+                    }
+                }
+            }
+
+            // recursive match: array
+            else if (schema.type === 'array') {
+                if (!schema.items) {
+                    return '';
+                }
+                
+                if (!Array.isArray(schema.items)) {
+                    return defaultTypeCheck(schema.items);
+                }
+                
+                for (const child of schema.items) {
+                    const errorMessage = defaultTypeCheck(child);
+                    if (errorMessage) {
+                        return errorMessage;
+                    }
+                }
+            }
+
+            return '';
+        }
+
+        const errorMessage = defaultTypeCheck(schema);
+        if (errorMessage) {
+            return errorMessage;
         }
 
         return '';
