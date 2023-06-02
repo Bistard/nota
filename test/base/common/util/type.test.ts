@@ -1,6 +1,6 @@
 import * as assert from 'assert';
 import { LinkedList } from 'src/base/common/util/linkedList';
-import { isEmptyObject, isIterable, isNumber, isObject, isPrimitive, isPromise } from 'src/base/common/util/type';
+import { AlphabetInString, AlphabetInStringCap, AlphabetInStringLow, AnyOf, AreEqual, CompareFn, ConcatArray, Constructor, DeepMutable, DeepReadonly, Dictionary, DightInString, IsArray, IsBoolean, IsNull, IsNumber, IsObject, IsString, IsTruthy, MapTypes, Mutable, Negate, NestedArray, NonUndefined, NulltoUndefined, NumberDictionary, Pair, Pop, Promisify, Push, Single, SplitString, StringDictionary, Triple, ifOrDefault, isBoolean, isEmptyObject, isIterable, isNonNullable, isNullable, isNumber, isObject, isPrimitive, isPromise } from 'src/base/common/util/type';
 
 suite('type-test', () => {
 
@@ -24,6 +24,11 @@ suite('type-test', () => {
         assert.strictEqual(isPrimitive(new RegExp('')), false);
         assert.strictEqual(isPrimitive(() => {}), false);
         assert.strictEqual(isPrimitive(function () {}), false);
+        assert.strictEqual(isPrimitive(3), true);
+        assert.strictEqual(isPrimitive('abc'), true);
+        assert.strictEqual(isPrimitive({}), false);
+        assert.strictEqual(isPrimitive(null), true);
+        assert.strictEqual(isPrimitive(undefined), true);
     });
 
     test('isNumber', () => {
@@ -35,6 +40,12 @@ suite('type-test', () => {
         assert.strictEqual(isNumber(1), true);
         assert.strictEqual(isNumber(-1), true);
         assert.strictEqual(isNumber(9999), true);
+    });
+
+    test('isBoolean function', () => {
+        assert.strictEqual(isBoolean(true), true);
+        assert.strictEqual(isBoolean(false), true);
+        assert.strictEqual(isBoolean('true'), false);
     });
 
     test('isObject', () => {
@@ -58,6 +69,8 @@ suite('type-test', () => {
         assert.strictEqual(isIterable(new LinkedList()), true);
         assert.strictEqual(isIterable([]), true);
         assert.strictEqual(isIterable({}), false);
+        assert.strictEqual(isIterable([1, 2, 3]), true);
+        assert.strictEqual(isIterable('Hello'), true);
     });
 
     test('isPromise', () => {
@@ -65,5 +78,30 @@ suite('type-test', () => {
         assert.strictEqual(isPromise(new Promise(() => {})), true);
         assert.strictEqual(isPromise({ then: () => {} }), false);
         assert.strictEqual(isPromise({ then() {}, catch() {}, finally() {} }), true);
+    });
+
+    test('isNullable', () => {
+        assert.strictEqual(isNullable(null), true);
+        assert.strictEqual(isNullable(undefined), true);
+        assert.strictEqual(isNullable(''), false);
+        assert.strictEqual(isNullable(0), false);
+    });
+
+    test('isNonNullable', () => {
+        assert.strictEqual(isNonNullable(null), false);
+        assert.strictEqual(isNonNullable(undefined), false);
+        assert.strictEqual(isNonNullable(''), true);
+        assert.strictEqual(isNonNullable(0), true);
+    });
+
+    test('NulltoUndefined', () => {
+        assert.strictEqual(NulltoUndefined(null), undefined);
+        assert.strictEqual(NulltoUndefined('null'), 'null');
+    });
+
+    test('ifOrDefault', () => {
+        assert.strictEqual(ifOrDefault<string>(undefined!, 'default'), 'default');
+        assert.strictEqual(ifOrDefault<string>(null!, 'default'), 'default');
+        assert.strictEqual(ifOrDefault<string>('value', 'default'), 'value');
     });
 });

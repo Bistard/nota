@@ -106,7 +106,7 @@ export type Push<Arr extends any[], V> = [...Arr, V];
 /**
  * Pop the end of the array (require non empty).
  */
-export type Pop<Arr extends any[]> = Arr extends [...infer Rest, any] ? [Rest] : never;
+export type Pop<Arr extends any[]> = Arr extends [...infer Rest, any] ? Rest : never;
 
 /**
  * Concatenate two arrays.
