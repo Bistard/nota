@@ -138,10 +138,8 @@ export class UserConfiguration extends Disposable implements IConfiguration {
         
         // register listeners
         {
-            this.__register(this._validator.onUnknownConfiguration(unknownKey => this.logService.warn(`Cannot identify the configuration: '${unknownKey}' a '${URI.toString(this._userResource)}'`)));
-            this.__register(this._validator.onInvalidConfiguration(result => {
-                // TODO
-            }));
+            this.__register(this._validator.onUnknownConfiguration(unknownKey => this.logService.warn(`[UserConfiguration] Cannot identify the configuration: '${unknownKey}' from the source '${URI.toString(this._userResource)}'.`)));
+            this.__register(this._validator.onInvalidConfiguration(result => this.logService.warn(`[UserConfiguration] encounter invalid configuration: ${result}.`)));
 
             // configuration updation
             this.__register(this.fileService.watch(userResource));
@@ -179,7 +177,7 @@ export class UserConfiguration extends Disposable implements IConfiguration {
         );
         
         const validated = this._validator.validate(unvalidated);
-        this._configuration = new ConfigStorage(undefined, validated);
+        this._configuration = new ConfigStorage(Object.keys(validated), validated);
     }
 }
 

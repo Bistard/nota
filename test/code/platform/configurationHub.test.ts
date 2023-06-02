@@ -1,5 +1,6 @@
 import * as assert from 'assert';
 import { after, afterEach, before, beforeEach } from 'mocha';
+import { tryOrDefault } from 'src/base/common/error';
 import { DataBuffer } from 'src/base/common/file/buffer';
 import { URI } from 'src/base/common/file/uri';
 import { Arrays } from 'src/base/common/util/array';
@@ -10,6 +11,7 @@ import { FileService, IFileService } from 'src/code/platform/files/common/fileSe
 import { InMemoryFileSystemProvider } from 'src/code/platform/files/common/inMemoryFileSystemProvider';
 import { ConsoleLogger } from 'src/code/platform/logger/common/consoleLoggerService';
 import { REGISTRANTS } from 'src/code/platform/registrant/common/registrant';
+import { NullLogger } from 'test/utils/utility';
 
 process.on('warning', e => console.warn(e.stack)); // TODO
 
@@ -167,4 +169,86 @@ suite('DefaultConfiguration-test', () => {
         assert.deepEqual(newModel, newReloadModel);
         assert.deepEqual(newSections, newReloadSections);
     });
+});
+
+suite.only('user-configuration-test', () => {
+
+    let configuration: UserConfiguration;
+    let fileService: IFileService;
+    const baseURI = URI.parse('file:///testFile');
+
+    before(async () => {
+        Registrant.unregisterConfigurations(Registrant.getConfigurationUnits()); // refresh
+        Registrant.registerConfigurations(unit1);
+
+        fileService = new FileService(new ConsoleLogger());
+        fileService.registerProvider('file', new InMemoryFileSystemProvider({ throwWhenNotSupport: false, }));
+    });
+
+    after(() => {
+        Registrant.unregisterConfigurations(Registrant.getConfigurationUnits()); // refresh
+    });
+    
+    /**
+     * Create a new {@link UserConfiguration} every time.
+     */
+    beforeEach(() => {
+        configuration = new UserConfiguration(baseURI, fileService, new NullLogger());
+    });
+
+    afterEach(() => {});
+
+    test('constructor test', () => {
+        const configuration = new UserConfiguration(baseURI, fileService, new NullLogger());
+        assert.deepEqual(configuration.getConfiguration().model, Object.create({}));
+    });
+
+    test('init test', async () => {
+        const jsonUserConfiguration = DataBuffer.fromString(JSON.stringify({
+            [TestConfiguration.One]: 10,
+            [TestConfiguration.Two]: 'bad world',
+        }));
+        await fileService.writeFile(baseURI, jsonUserConfiguration, { create: true, overwrite: true, });
+
+        await configuration.init();
+        // console.log(configuration.getConfiguration().model);
+
+        assert.strictEqual(configuration.getConfiguration().get(TestConfiguration.One), 10);
+        assert.strictEqual(configuration.getConfiguration().get(TestConfiguration.Two), 'bad world');
+    });
+
+    test('init test - reading user configuration with missing properties', async () => {
+        const jsonUserConfiguration = DataBuffer.fromString(JSON.stringify({
+            [TestConfiguration.One]: undefined,
+            [TestConfiguration.Two]: undefined,
+        }));
+        await fileService.writeFile(baseURI, jsonUserConfiguration, { create: true, overwrite: true, });
+
+        await configuration.init();
+        // console.log(configuration.getConfiguration().model);
+
+        assert.strictEqual(tryOrDefault(undefined, () => configuration.getConfiguration().get(TestConfiguration.One)), undefined);
+        assert.strictEqual(tryOrDefault(undefined, () => configuration.getConfiguration().get(TestConfiguration.Two)), undefined);
+    });
+
+    test('double init test - prevent double initialization', () => {
+        try {
+            configuration.init();
+            assert.fail();
+        } catch {
+            assert.ok(true);
+        }
+    });
+
+    test('on configuration change test', () => {
+        assert.ok('The unit test can not be tested here since InMemoryFileSystemProvider does not support watch thus there is no way to update the configuration');
+    });
+
+    test('reload test - should reset configurations', () => {
+        assert.ok('The unit test can not be tested here since InMemoryFileSystemProvider does not support watch thus there is no way to update the configuration');
+    });
+});
+
+suite('ConfigurationHub-test', async () => {
+
 });
