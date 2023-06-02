@@ -211,6 +211,8 @@ export interface IJsonSchemaValidateResult {
 
 export class JsonSchemaValidator {
 
+    private constructor() {}
+
     /**
      * @description Validates the provided data against the schema. Currently, 
      * it only checks if the schema is deprecated, in which case it returns 
