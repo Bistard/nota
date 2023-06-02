@@ -1,4 +1,3 @@
-import 'src/code/electron/registrant';
 import { app, dialog } from 'electron';
 import { createServer, Server } from 'net';
 import { mkdir } from 'fs/promises';
@@ -21,10 +20,9 @@ import { IMainLifecycleService, MainLifecycleService } from 'src/code/platform/l
 import { IMainStatusService, MainStatusService } from 'src/code/platform/status/electron/mainStatusService';
 import { ICLIArguments } from 'src/code/platform/environment/common/argument';
 import { ProcessKey } from 'src/base/common/process';
-import { MainConfigService } from 'src/code/platform/configuration/electron/mainConfigService';
 import { getFormatCurrTimeStamp } from 'src/base/common/date';
-import { IConfigService } from 'src/code/platform/configuration/common/abstractConfigService';
 import { EventBlocker } from 'src/base/common/util/async';
+import { IConfigurationService, MainConfigurationService } from 'src/code/platform/configuration/common/configurationService';
 
 interface IMainProcess {
     start(argv: ICLIArguments): Promise<void>;
@@ -43,7 +41,7 @@ const nota = new class extends class MainProcess implements IMainProcess {
     private readonly instantiationService!: IInstantiationService;
     private readonly environmentService!: IMainEnvironmentService;
     private readonly fileService!: IFileService;
-    private readonly mainConfigService!: IConfigService;
+    private readonly configurationService!: IConfigurationService;
     private readonly logService!: ILogService;
     private readonly lifecycleService!: IMainLifecycleService;
     private readonly statusService!: IMainStatusService;
@@ -151,8 +149,8 @@ const nota = new class extends class MainProcess implements IMainProcess {
         instantiationService.register(IMainLifecycleService, lifecycleService);
 
         // main-configuration-service
-        const mainConfigService = new MainConfigService(environmentService, fileService, logService, lifecycleService);
-        instantiationService.register(IConfigService, mainConfigService);
+        const configurationService = new MainConfigurationService(environmentService.appConfigurationPath, fileService, logService);
+        instantiationService.register(IConfigurationService, configurationService);
 
         // status-service
         const statusService = new MainStatusService(fileService, logService, environmentService, lifecycleService);
@@ -161,7 +159,7 @@ const nota = new class extends class MainProcess implements IMainProcess {
         (this.instantiationService as any) = instantiationService;
         (this.environmentService as any) = environmentService;
         (this.fileService as any) = fileService;
-        (this.mainConfigService as any) = mainConfigService;
+        (this.configurationService as any) = configurationService;
         (this.logService as any) = logService;
         (this.lifecycleService as any) = lifecycleService;
         (this.statusService as any) = statusService;
@@ -186,7 +184,7 @@ const nota = new class extends class MainProcess implements IMainProcess {
             ].map(path => mkdir(URI.toFsPath(path), { recursive: true }))),
 
             this.statusService.init(),
-            this.mainConfigService.init(this.environmentService.logLevel),
+            this.configurationService.init(),
         ]);
     }
 
