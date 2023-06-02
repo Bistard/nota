@@ -96,7 +96,7 @@ export function iterPropEnumerable(obj: any, fn: (propName: string, index: numbe
  */
 export function deepCopy<T extends object | []>(obj: T): T {
 	
-	// ensure `null` does not count and other weird stuff
+	// return for nullity and non-object
 	if (!obj || typeof obj !== 'object') {
 		return obj;
 	}
