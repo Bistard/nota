@@ -100,11 +100,11 @@ export class ConfigStorage extends Disposable implements IConfigStorage {
     ) {
         super();
         this._sections = sections ?? [];
-        this._model = model ?? Object.create({});
-
+        this._model = toConfigurationModel(model ?? Object.create({}), (msg) => console.warn(msg));
+        
         // auto update sections
         if (this._sections.length === 0 && Object.keys(this._model).length !== 0) {
-            getModelSections(this._model, this._sections);
+            getConfigurationModelSections(this._model, this._sections);
         }
     }
 
@@ -129,12 +129,12 @@ export class ConfigStorage extends Disposable implements IConfigStorage {
         const sections: string[] = [];
         
         if (section === null) {
-            getModelSections(configuration, sections);
+            getConfigurationModelSections(configuration, sections);
             this._model = configuration;
         } else {
             sections.push(section);
             this.__addSections(section);
-            this.__addToModel(section, configuration);
+            addToConfigurationModel(this._model, section, configuration, (msg) => console.log(msg));
         }
         
         this._onDidChange.fire({
@@ -242,34 +242,6 @@ export class ConfigStorage extends Disposable implements IConfigStorage {
         return successed;
     }
 
-    private __addToModel(section: string, configuration: any): void {
-        const sections = section.split('.');
-        const lastSection = sections.pop()!;
-
-        let currModel = this._model;
-        for (const subSection of sections) {
-            let curr = currModel[subSection];
-            switch (typeof curr) {
-                case 'undefined':
-                    curr = currModel[subSection] = Object.create({});
-                    break;
-                case 'object':
-                    if (curr !== null) {
-                        break;
-                    }
-                default:
-                    throw new Error(`cannot add configuration section at '${section}'`);
-            }
-            currModel = curr;
-        }
-
-        if (isObject(currModel)) {
-            currModel[lastSection] = configuration;
-        } else {
-            throw new Error(`cannot add configuration section at '${section}'`);
-        }
-    }
-
     private __deleteFromModel(section: string): boolean {
         const sections = section.split('.');
         const lastSection = sections.pop()!;
@@ -307,6 +279,78 @@ export class ConfigStorage extends Disposable implements IConfigStorage {
 }
 
 /**
+ * @description Convert a raw configuration object to a configuration model.
+ * Each key in the raw object represents a configuration section. Nested 
+ * sections are denoted by using dot notation. This function will throw an error 
+ * if it encounters a section that is not an object.
+ *
+ * @param raw The raw configuration object to be converted.
+ * @param onError Callback function for error handling.
+ * @returns The resulting configuration model.
+ *
+ * @example
+ * const raw = { 'section.subSection': 'value' };
+ * const onError = console.error;
+ * const model = toConfigurationModel(raw, onError);
+ * console.log(model); // model: { section: { subSection: 'value' } }
+ */
+function toConfigurationModel(raw: object, onError: (msg: string) => void): object {
+    const obj = Object.create({});
+    for (const key in raw) {
+        addToConfigurationModel(obj, key, raw[key], onError);
+    }
+    return obj;
+}
+
+/**
+ * @description Add a configuration to a given model at the specified section.
+ * The section parameter can use dot notation to specify nested sections. This 
+ * function will throw an error if it attempts to add a configuration to a 
+ * section that is not an object.
+ *
+ * @param model The configuration model to which the configuration will be added.
+ * @param section The section in the model where the configuration will be added.
+ * @param configuration The configuration to be added.
+ * @param onError Callback function for error handling.
+ * 
+ * @example
+ * const model = { section: {} };
+ * const section = 'section.subSection';
+ * const configuration = 'value';
+ * const onError = console.error;
+ * addToConfigurationModel(model, section, configuration, onError);
+ * console.log(model); // model: { section: { subSection: 'value' } }
+ */
+function addToConfigurationModel(model: object, section: string, configuration: any, onError: (msg: string) => void): void {
+    const sections = section.split('.');
+    const lastSection = sections.pop()!;
+
+    let currModel = model;
+    for (const subSection of sections) {
+        let curr = currModel[subSection];
+        switch (typeof curr) {
+            case 'undefined':
+                curr = currModel[subSection] = Object.create({});
+                break;
+            case 'object':
+                if (curr !== null) {
+                    break;
+                }
+            default:
+                onError(`cannot add configuration '${configuration}' at section '${section}' with current configuration: ${curr}`);
+                return;
+        }
+        currModel = curr;
+    }
+
+    if (isObject(currModel)) {
+        currModel[lastSection] = configuration;
+    } else {
+        onError(`cannot add configuration '${configuration}' at section '${section}' with current configuration: ${currModel}`);
+    }
+}
+
+/**
  * @description Given a provided model, generates every section split by `.`
  * that directs to the deepest non-object property.
  * @param model The provided model object.
@@ -314,7 +358,7 @@ export class ConfigStorage extends Disposable implements IConfigStorage {
  * @example 
  * ```js
  * const arr = [];
- * getModelSections({
+ * getConfigurationModelSections({
  *     path1: {
  *         path2: 'hello'
  *     },
@@ -323,7 +367,7 @@ export class ConfigStorage extends Disposable implements IConfigStorage {
  * // arr => ['path1.path2', 'path3']
  * ```
  */
-function getModelSections(model: Readonly<Dictionary<PropertyKey, any>>, sections: string[]): void {
+function getConfigurationModelSections(model: Readonly<Dictionary<PropertyKey, any>>, sections: string[]): void {
     const __handler = (model: Readonly<Dictionary<PropertyKey, any>>, section: string, sections: string[]): boolean => {
         let reachBottom = true;
         
