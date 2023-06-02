@@ -146,7 +146,7 @@ suite.only('configurationRegistrant-test', () => {
             errorSchemas.set(e.schema.type, e.message);
         });
 
-        registrant.onDidConfigurationChange(e => {
+        const dispoable = registrant.onDidConfigurationChange(e => {
             assert.fail('Should never fire');
         });
         
@@ -158,6 +158,8 @@ suite.only('configurationRegistrant-test', () => {
         assert.strictEqual(errorSchemas.get('array'), "The type of the default value 'object' does not match the schema type 'array'.");
         assert.strictEqual(errorSchemas.get('object'), "The type of the default value 'object' does not match the schema type 'object'.");
         registrant.unregisterConfigurations(invalidUnit);
+
+        dispoable.dispose();
     });
 
     test('unregisterConfiguration', () => {
