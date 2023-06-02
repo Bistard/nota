@@ -199,14 +199,14 @@ export interface IJsonSchemaValidateResult {
     /** If the data is valid. */
     readonly valid: boolean;
 
+    /** The schema will be given if it is invalid. */
+    readonly schema?: IJsonSchema;
+
     /** An error message will be given if the data is invalid. */
     readonly errorMessage?: string;
 
     /** A message will be given if the data should be deprecated. */
     readonly deprecatedMessage?: string;
-
-    /** If an error happens, the default will be set to {@link IJsonSchema.default}. */
-    readonly default?: NonUndefined;
 }
 
 export class JsonSchemaValidator {
@@ -337,8 +337,8 @@ export class JsonSchemaValidator {
     private static __setValid(valid: boolean, result: Mutable<IJsonSchemaValidateResult>, schema: IJsonSchema): void {
         result.valid = valid;
         if (!result.valid) {
+            result.schema = schema;
             result.errorMessage = schema.errorMessage;
-            result.default = schema.default;
         }
     }
 }

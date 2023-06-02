@@ -34,7 +34,7 @@ suite('json-test', function () {
                 let result = JsonSchemaValidator.validate(undefined, schema);
                 assert.ok(!result.valid);
                 assert.strictEqual(result.errorMessage, 'The string must be valid 26 characters');
-                assert.strictEqual(result.default, 'testing');
+                assert.strictEqual(result.schema?.default, 'testing');
             });
         });
 
