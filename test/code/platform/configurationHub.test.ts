@@ -5,15 +5,14 @@ import { DataBuffer } from 'src/base/common/file/buffer';
 import { URI } from 'src/base/common/file/uri';
 import { Arrays } from 'src/base/common/util/array';
 import { deepCopy } from 'src/base/common/util/object';
-import { DefaultConfiguration, UserConfiguration } from 'src/code/platform/configuration/common/configurationHub';
+import { ConfigStorage } from 'src/code/platform/configuration/common/configStorage';
+import { ConfigurationHub, ConfigurationType, DefaultConfiguration, UserConfiguration } from 'src/code/platform/configuration/common/configurationHub';
 import { IConfigurationRegistrant, IConfigurationUnit } from 'src/code/platform/configuration/common/configurationRegistrant';
 import { FileService, IFileService } from 'src/code/platform/files/common/fileService';
 import { InMemoryFileSystemProvider } from 'src/code/platform/files/common/inMemoryFileSystemProvider';
 import { ConsoleLogger } from 'src/code/platform/logger/common/consoleLoggerService';
 import { REGISTRANTS } from 'src/code/platform/registrant/common/registrant';
 import { NullLogger } from 'test/utils/utility';
-
-process.on('warning', e => console.warn(e.stack)); // TODO
 
 const enum TestConfiguration {
     One = 'configuration.test.one',
@@ -171,7 +170,7 @@ suite('DefaultConfiguration-test', () => {
     });
 });
 
-suite.only('user-configuration-test', () => {
+suite('user-configuration-test', () => {
 
     let configuration: UserConfiguration;
     let fileService: IFileService;
@@ -249,6 +248,57 @@ suite.only('user-configuration-test', () => {
     });
 });
 
-suite('ConfigurationHub-test', async () => {
+suite('ConfigurationHub-test', () => {
 
+    test('get - method should return the value of the given key', () => {
+        const defaultConfig = new ConfigStorage();
+        defaultConfig.set('testKey', 'defaultValue');
+        const userConfig = new ConfigStorage();
+        userConfig.set('testKey', 'userValue');
+        const hub = new ConfigurationHub(defaultConfig, userConfig);
+
+        assert.strictEqual(hub.get('testKey'), 'userValue');
+    });
+
+    test('setInMemory / deleteInMemory - method should set value for the given key', () => {
+        const defaultConfig = new ConfigStorage();
+        defaultConfig.set('testKey', 'defaultValue');
+        const userConfig = new ConfigStorage();
+        const hub = new ConfigurationHub(defaultConfig, userConfig);
+        
+        hub.setInMemory('testKey', 'newValue');
+        assert.strictEqual(hub.get('testKey'), 'newValue');
+
+        hub.deleteInMemory('testKey');
+        assert.strictEqual(hub.get('testKey'), 'defaultValue');
+    });
+
+    test('updateConfiguration() method should update configuration', () => {
+        const defaultConfig = new ConfigStorage();
+        const userConfig = new ConfigStorage();
+        userConfig.set('testKey', 'userValue');
+        const hub = new ConfigurationHub(defaultConfig, userConfig);
+
+        const newDefaultConfig = new ConfigStorage();
+        newDefaultConfig.set('testKey', 'newDefaultValue');
+        hub.updateConfiguration(ConfigurationType.Default, newDefaultConfig);
+        assert.strictEqual(hub.get('testKey'), 'userValue');
+        
+        hub.updateConfiguration(ConfigurationType.User, new ConfigStorage());
+        assert.strictEqual(hub.get('testKey'), 'newDefaultValue');
+    });
+
+    test('compareAndUpdateConfiguration() method should update configuration and return changed keys', () => {
+        const defaultConfig = new ConfigStorage();
+        const userConfig = new ConfigStorage();
+        userConfig.set('testKey', 'userValue');
+        const hub = new ConfigurationHub(defaultConfig, userConfig);
+
+        const newUserConfig = new ConfigStorage();
+        newUserConfig.set('testKey', 'newUserValue');
+        const { properties } = hub.compareAndUpdateConfiguration(ConfigurationType.User, newUserConfig);
+        
+        assert.strictEqual(hub.get('testKey'), 'newUserValue');
+        assert.deepStrictEqual(properties, ['testKey']);
+    });
 });

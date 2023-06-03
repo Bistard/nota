@@ -337,8 +337,8 @@ class ConfigurationHubBase {
  */
 export interface IConfigurationHub {
     get<T>(section: string | undefined): DeepReadonly<T>;
-    set(section: string, value: any): void;
-    delete(section: string): void;
+    setInMemory(section: string, value: any): void;
+    deleteInMemory(section: string): void;
     inspect(): IComposedConfiguration;
     updateConfiguration(type: ConfigurationType, newConfiguration: IConfigStorage): void;
     compareAndUpdateConfiguration(type: ConfigurationType, newConfiguration: IConfigStorage, changedKeys: string[] | undefined): IRawConfigurationChangeEvent;
@@ -363,7 +363,7 @@ export class ConfigurationHub extends ConfigurationHubBase implements IConfigura
         return configuration.get(section);
     }
 
-    public set(section: string, value: any): void {
+    public setInMemory(section: string, value: any): void {
         if (value === undefined) {
             this._memoryConfiguration.delete(section);
         } else {
@@ -372,7 +372,7 @@ export class ConfigurationHub extends ConfigurationHubBase implements IConfigura
         this.__dropComposedConfiguration();
     }
 
-    public delete(section: string): void {
-        this.set(section, undefined);
+    public deleteInMemory(section: string): void {
+        this.setInMemory(section, undefined);
     }
 }

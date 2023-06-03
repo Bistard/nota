@@ -19,6 +19,8 @@ export interface IConfigurationService extends IDisposable {
     readonly onDidConfigurationChange: Register<IConfigurationChangeEvent>;
     init(): Promise<void>;
     get<T>(section: string | undefined, defaultValue?: T): DeepReadonly<T>; // FIX: should not provide 'defaultValue'.
+    
+    // FIX: those two should not be supported
     set(section: string, value: any): void;
     delete(section: string): void;
 }
@@ -91,11 +93,11 @@ export class MainConfigurationService extends Disposable implements IConfigurati
     }
 
     public set(section: string, value: any): void {
-        this._configurationHub.set(section, value);
+        this._configurationHub.setInMemory(section, value);
     }
 
     public delete(section: string): void {
-        this._configurationHub.delete(section);
+        this._configurationHub.deleteInMemory(section);
     }
 
     // [private helper methods]
