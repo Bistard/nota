@@ -170,7 +170,7 @@ suite('DefaultConfiguration-test', () => {
     });
 });
 
-suite('user-configuration-test', () => {
+suite('UserConfiguration-test', () => {
 
     let configuration: UserConfiguration;
     let fileService: IFileService;
@@ -180,7 +180,7 @@ suite('user-configuration-test', () => {
         Registrant.unregisterConfigurations(Registrant.getConfigurationUnits()); // refresh
         Registrant.registerConfigurations(unit1);
 
-        fileService = new FileService(new ConsoleLogger());
+        fileService = new FileService(new NullLogger());
         fileService.registerProvider('file', new InMemoryFileSystemProvider({ throwWhenNotSupport: false, }));
     });
 

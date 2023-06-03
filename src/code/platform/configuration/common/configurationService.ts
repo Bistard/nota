@@ -1,29 +1,15 @@
-import { Disposable, IDisposable } from "src/base/common/dispose";
+import { Disposable } from "src/base/common/dispose";
 import { tryOrDefault } from "src/base/common/error";
-import { Emitter, Register } from "src/base/common/event";
+import { Emitter } from "src/base/common/event";
 import { URI } from "src/base/common/file/uri";
 import { ILogService } from "src/base/common/logger";
 import { UnbufferedScheduler } from "src/base/common/util/async";
 import { IConfigurationRegistrant, IRawConfigurationChangeEvent } from "src/code/platform/configuration/common/configurationRegistrant";
 import { ConfigurationHub, ConfigurationType, DefaultConfiguration, UserConfiguration } from "src/code/platform/configuration/common/configurationHub";
 import { IFileService } from "src/code/platform/files/common/fileService";
-import { createService } from "src/code/platform/instantiation/common/decorator";
 import { REGISTRANTS } from "src/code/platform/registrant/common/registrant";
 import { DeepReadonly } from "src/base/common/util/type";
-
-export const IConfigurationService = createService<IConfigurationService>('configuration-service');
-
-// TODO
-export interface IConfigurationService extends IDisposable {
-
-    readonly onDidConfigurationChange: Register<IConfigurationChangeEvent>;
-    init(): Promise<void>;
-    get<T>(section: string | undefined, defaultValue?: T): DeepReadonly<T>; // FIX: should not provide 'defaultValue'.
-    
-    // FIX: those two should not be supported
-    set(section: string, value: any): void;
-    delete(section: string): void;
-}
+import { IConfigurationService } from "src/code/platform/configuration/common/configuration";
 
 /**
  * @class // TODO
