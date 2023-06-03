@@ -5,18 +5,57 @@ import { IConfigurationStorage } from "src/code/platform/configuration/common/co
 import { IConfigurationChangeEvent } from "src/code/platform/configuration/common/configurationService";
 import { createService } from "src/code/platform/instantiation/common/decorator";
 
+/**
+ * A {@link Section} refers to a string composed of multiple substrings linked 
+ * together by the period ('.') symbol.
+ * @example 
+ * 'workspace.notebook.ifAutoSave'
+ * 'path1.path2.path3'
+ * 'root'
+ */
+export type Section = string;
+
 export const IConfigurationService = createService<IConfigurationService>('configuration-service');
 
-// TODO
 export interface IConfigurationService extends IDisposable {
 
+    /**
+     * Fires whenever the configuraion has changed.
+     */
     readonly onDidConfigurationChange: Register<IConfigurationChangeEvent>;
-    init(): Promise<void>;
-    get<T>(section: string | undefined, defaultValue?: T): DeepReadonly<T>; // FIX: should not provide 'defaultValue'.
     
-    // FIX: those two should not be supported
-    set(section: string, value: any): void;
-    delete(section: string): void;
+    /**
+     * Initialize the configuration service.
+     */
+    init(): Promise<void>;
+
+    /**
+     * @description Get the configuration by the given section.
+     * @param section The {@link Section} string of the required configuration.
+     * 
+     * @throws An exception will be thrown if the section is invalid.
+     * @note If section is not provided, the whole configuration will be returned.
+     * @note You may not change the value of the return value directly. Use set 
+     * instead.
+     */
+    get<T>(section: Section | undefined, defaultValue?: T): DeepReadonly<T>; // FIX: should not provide 'defaultValue' API
+    
+    /**
+     * @description Set the configuration by the given value under the provided 
+     * section.
+     * @param section The {@link Section} string of the required configuration.
+     * @param value The new value of the configuration.
+     * 
+     * @throws An exception will be thrown if the section is invalid.
+     * @note If section is null, it overries the entire configuration.
+     */
+    set(section: Section, value: any): void;
+
+    /**
+     * @description Delete the configuration under the provided section.
+     * @param section The {@link Section} string of the required configuration.
+     */
+    delete(section: Section): void;
 }
 
 export const NOTA_DIR_NAME = '.nota';
@@ -30,7 +69,7 @@ export interface IComposedConfiguration {
 }
 
 export interface IConfigurationCompareResult {
-    added: string[];
-    deleted: string[];
-    changed: string[];
+    added: Section[];
+    deleted: Section[];
+    changed: Section[];
 }

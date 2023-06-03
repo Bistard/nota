@@ -10,7 +10,7 @@ import { IRawConfigurationChangeEvent, IConfigurationRegistrant, IConfigurationS
 import { ConfigurationStorage, IConfigurationStorage } from "src/code/platform/configuration/common/configurationStorage";
 import { IFileService } from "src/code/platform/files/common/fileService";
 import { REGISTRANTS } from "src/code/platform/registrant/common/registrant";
-import { IComposedConfiguration, IConfigurationCompareResult } from "src/code/platform/configuration/common/configuration";
+import { IComposedConfiguration, IConfigurationCompareResult, Section } from "src/code/platform/configuration/common/configuration";
 
 const Registrant = REGISTRANTS.get(IConfigurationRegistrant);
 
@@ -272,7 +272,7 @@ class ConfigurationHubBase {
         this.__dropComposedConfiguration();
     }
 
-    public compareAndUpdateConfiguration(type: ConfigurationType, newConfiguration: IConfigurationStorage, changedKeys?: string[]): IRawConfigurationChangeEvent {
+    public compareAndUpdateConfiguration(type: ConfigurationType, newConfiguration: IConfigurationStorage, changedKeys?: Section[]): IRawConfigurationChangeEvent {
         
         // If we do not know what keys are changed, we need to find them by ourself.
         if (!changedKeys) {
@@ -336,12 +336,12 @@ class ConfigurationHubBase {
  * // TODO
  */
 export interface IConfigurationHub {
-    get<T>(section: string | undefined): DeepReadonly<T>;
-    setInMemory(section: string, value: any): void;
-    deleteInMemory(section: string): void;
+    get<T>(section: Section | undefined): DeepReadonly<T>;
+    setInMemory(section: Section, value: any): void;
+    deleteInMemory(section: Section): void;
     inspect(): IComposedConfiguration;
     updateConfiguration(type: ConfigurationType, newConfiguration: IConfigurationStorage): void;
-    compareAndUpdateConfiguration(type: ConfigurationType, newConfiguration: IConfigurationStorage, changedKeys: string[] | undefined): IRawConfigurationChangeEvent;
+    compareAndUpdateConfiguration(type: ConfigurationType, newConfiguration: IConfigurationStorage, changedKeys: Section[] | undefined): IRawConfigurationChangeEvent;
 }
 
 export class ConfigurationHub extends ConfigurationHubBase implements IConfigurationHub {

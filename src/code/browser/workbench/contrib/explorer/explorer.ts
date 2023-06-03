@@ -2,7 +2,7 @@ import 'src/code/browser/workbench/contrib/explorer/media/explorerItem.scss';
 import 'src/code/browser/workbench/contrib/explorer/media/explorerView.scss';
 import { Emitter } from 'src/base/common/event';
 import { IComponentService } from 'src/code/browser/service/component/componentService';
-import { Ii18nService } from 'src/code/platform/i18n/i18n';
+import { Ii18nService } from 'src/code/platform/i18n/common/i18n';
 import { Section } from 'src/code/platform/section';
 import { addDisposableListener, EventType, Orientation } from 'src/base/browser/basic/dom';
 import { IBrowserDialogService, IDialogService } from 'src/code/platform/dialog/browser/browserDialogService';

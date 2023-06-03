@@ -9,7 +9,7 @@ import { ConfigurationHub, ConfigurationType, DefaultConfiguration, UserConfigur
 import { IFileService } from "src/code/platform/files/common/fileService";
 import { REGISTRANTS } from "src/code/platform/registrant/common/registrant";
 import { DeepReadonly } from "src/base/common/util/type";
-import { IConfigurationService } from "src/code/platform/configuration/common/configuration";
+import { IConfigurationService, Section } from "src/code/platform/configuration/common/configuration";
 
 /**
  * @class // TODO
@@ -74,15 +74,15 @@ export class MainConfigurationService extends Disposable implements IConfigurati
         this._configurationHub = this.__reloadConfigurationHub();
     }
 
-    public get<T>(section: string | undefined, defaultValue?: T): DeepReadonly<T> {
+    public get<T>(section: Section | undefined, defaultValue?: T): DeepReadonly<T> {
         return tryOrDefault<any>(defaultValue ?? undefined!, () => this._configurationHub.get(section));
     }
 
-    public set(section: string, value: any): void {
+    public set(section: Section, value: any): void {
         throw new Error('[MainConfigurationService] does not support `set`.');
     }
 
-    public delete(section: string): void {
+    public delete(section: Section): void {
         throw new Error('[MainConfigurationService] does not support `Delete`.');
     }
 
@@ -115,15 +115,15 @@ export class MainConfigurationService extends Disposable implements IConfigurati
 
 export interface IConfigurationChangeEvent {
     readonly type: ConfigurationType;
-    readonly properties: Set<string>;
-    affect(section: string): boolean;
+    readonly properties: Set<Section>;
+    affect(section: Section): boolean;
 }
 
 export class ConfigurationChangeEvent implements IConfigurationChangeEvent {
 
     // [fields]
 
-    readonly properties = new Set<string>();
+    readonly properties = new Set<Section>();
 
     // [constructor]
 
@@ -138,7 +138,7 @@ export class ConfigurationChangeEvent implements IConfigurationChangeEvent {
 
     // [public methods]
 
-    public affect(section: string): boolean {
+    public affect(section: Section): boolean {
         for (const key of this.properties) {
             if (section.startsWith(key)) {
                 return true;

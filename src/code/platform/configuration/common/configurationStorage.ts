@@ -2,13 +2,14 @@ import { Disposable, IDisposable } from "src/base/common/dispose";
 import { Emitter, Register } from "src/base/common/event";
 import { deepCopy } from "src/base/common/util/object";
 import { DeepReadonly, Dictionary, isObject } from "src/base/common/util/type";
+import { Section } from "src/code/platform/configuration/common/configuration";
 
 export interface IConfigurationStorageChangeEvent {
     
     /** 
      * The section of the changed configuration. 
      */
-    readonly sections: string[];
+    readonly sections: Section[];
 }
 
 /**
@@ -17,7 +18,7 @@ export interface IConfigurationStorageChangeEvent {
 export interface IConfigurationStorage extends IDisposable {
 
     /** Get all the sections of the storage. Section are seperated by (`.`). */
-    readonly sections: string[];
+    readonly sections: Section[];
     
     /** Get the actual data model of the storage. */
     readonly model: DeepReadonly<object>;
@@ -35,22 +36,23 @@ export interface IConfigurationStorage extends IDisposable {
      * @note You may not change the value of the return value directly. Use `set`
      * instead.
      */
-    get<T>(section: string | undefined): DeepReadonly<T>;
+    get<T>(section: Section | undefined): DeepReadonly<T>;
 
     /**
      * @description Set configuration at given section.
-     * @param section see {@link ConfigurationStorage}. If section is null, it overries
-     *                the entire configuration.
+     * @param section see {@link ConfigurationStorage}. 
+     * 
      * @throws An exception will be thrown if the section is invalid.
+     * @note If section is null, it overries the entire configuration.
      */
-    set(section: string | null, configuration: any): void;
+    set(section: Section | null, configuration: any): void;
 
     /**
      * @description Delete configuration at given section.
      * @param section see {@link ConfigurationStorage}.
      * @returns A boolean indicates if the operation successed.
      */
-    delete(section: string): boolean;
+    delete(section: Section): boolean;
 
     /**
      * @description Merge the provided storages data into the current storage.
@@ -97,13 +99,13 @@ export class ConfigurationStorage extends Disposable implements IConfigurationSt
 
     // [field]
 
-    private _sections: string[];
+    private _sections: Section[];
     private _model: object;
 
     // [constructor]
 
     constructor(
-        sections?: string[],
+        sections?: Section[],
         model?: object,
     ) {
         super();
@@ -118,7 +120,7 @@ export class ConfigurationStorage extends Disposable implements IConfigurationSt
 
     // [public methods]
 
-    get sections(): string[] {
+    get sections(): Section[] {
         return this._sections;
     }
 
@@ -126,15 +128,15 @@ export class ConfigurationStorage extends Disposable implements IConfigurationSt
         return this._model;
     }
 
-    public get<T>(section: string | undefined): DeepReadonly<T> {
+    public get<T>(section: Section | undefined): DeepReadonly<T> {
         if (section) {
             return this.__getBySection(section);
         }
         return <DeepReadonly<T>>this._model;
     }
 
-    public set(section: string | null, configuration: any): void {
-        const sections: string[] = [];
+    public set(section: Section | null, configuration: any): void {
+        const sections: Section[] = [];
         
         if (section === null) {
             getConfigurationModelSections(configuration, sections);
@@ -150,7 +152,7 @@ export class ConfigurationStorage extends Disposable implements IConfigurationSt
         });
     }
 
-    public delete(section: string): boolean {
+    public delete(section: Section): boolean {
         if (this.__deleteSections(section)) {
             this.__deleteFromModel(section);
             
@@ -167,7 +169,7 @@ export class ConfigurationStorage extends Disposable implements IConfigurationSt
     }
 
     public merge(others: IConfigurationStorage | IConfigurationStorage[]): void {
-        const sections: string[] = [];
+        const sections: Section[] = [];
         if (!Array.isArray(others)) {
             others = [others];
         }
@@ -198,7 +200,7 @@ export class ConfigurationStorage extends Disposable implements IConfigurationSt
 
     // [private helper methods]
 
-    private __getBySection<T>(section: string): T {
+    private __getBySection<T>(section: Section): T {
         const sections = section.split('.');
         
         let currModel = this._model;
@@ -213,7 +215,7 @@ export class ConfigurationStorage extends Disposable implements IConfigurationSt
         return <T>currModel;
     }
 
-    private __addSections(newSection: string): void {
+    private __addSections(newSection: Section): void {
         for (let i = 0; i < this._sections.length; i++) {
             const existedSection = this._sections[i]!;
             if (newSection.indexOf(existedSection) === 0) {
@@ -226,9 +228,9 @@ export class ConfigurationStorage extends Disposable implements IConfigurationSt
         this._sections.push(newSection);
     }
 
-    private __deleteSections(deleteSection: string): boolean {
+    private __deleteSections(deleteSection: Section): boolean {
         let successed = false;
-        const truncated: string[] = [];
+        const truncated: Section[] = [];
 
         const newSections = this._sections.filter((currSection) => {
             if (currSection.startsWith(deleteSection)) {
@@ -253,7 +255,7 @@ export class ConfigurationStorage extends Disposable implements IConfigurationSt
         return successed;
     }
 
-    private __deleteFromModel(section: string): boolean {
+    private __deleteFromModel(section: Section): boolean {
         const sections = section.split('.');
         const lastSection = sections.pop()!;
 
@@ -332,7 +334,7 @@ function toConfigurationModel(raw: object, onError: (msg: string) => void): obje
  * addToConfigurationModel(model, section, configuration, onError);
  * console.log(model); // model: { section: { subSection: 'value' } }
  */
-function addToConfigurationModel(model: object, section: string, configuration: any, onError: (msg: string) => void): void {
+function addToConfigurationModel(model: object, section: Section, configuration: any, onError: (msg: string) => void): void {
     const sections = section.split('.');
     const lastSection = sections.pop()!;
 
@@ -378,8 +380,8 @@ function addToConfigurationModel(model: object, section: string, configuration: 
  * // arr => ['path1.path2', 'path3']
  * ```
  */
-function getConfigurationModelSections(model: Readonly<Dictionary<PropertyKey, any>>, sections: string[]): void {
-    const __handler = (model: Readonly<Dictionary<PropertyKey, any>>, section: string, sections: string[]): boolean => {
+function getConfigurationModelSections(model: Readonly<Dictionary<PropertyKey, any>>, sections: Section[]): void {
+    const __handler = (model: Readonly<Dictionary<PropertyKey, any>>, section: Section, sections: Section[]): boolean => {
         let reachBottom = true;
         
         for (const propName of Object.keys(model)) {

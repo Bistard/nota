@@ -22,7 +22,8 @@ import { ICLIArguments } from 'src/code/platform/environment/common/argument';
 import { ProcessKey } from 'src/base/common/process';
 import { getFormatCurrTimeStamp } from 'src/base/common/date';
 import { EventBlocker } from 'src/base/common/util/async';
-import { IConfigurationService, MainConfigurationService } from 'src/code/platform/configuration/common/configurationService';
+import { MainConfigurationService } from 'src/code/platform/configuration/common/configurationService';
+import { IConfigurationService } from 'src/code/platform/configuration/common/configuration';
 
 interface IMainProcess {
     start(argv: ICLIArguments): Promise<void>;

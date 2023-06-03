@@ -7,8 +7,8 @@ import { createService } from "src/code/platform/instantiation/common/decorator"
 import { IEnvironmentService, IMainEnvironmentService } from "src/code/platform/environment/common/environment";
 import { DiskStorage, IDiskStorage } from "src/code/platform/files/common/diskStorage";
 import { IMainLifecycleService } from "src/code/platform/lifecycle/electron/mainLifecycleService";
-import { NOTA_DIR_NAME } from "src/code/platform/configuration/common/abstractConfigService";
 import { StatusKey } from "src/code/platform/status/common/status";
+import { NOTA_DIR_NAME } from "src/code/platform/configuration/common/configuration";
 
 export const IMainStatusService = createService<IMainStatusService>('status-service');
 
