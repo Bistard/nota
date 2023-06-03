@@ -53,7 +53,7 @@ export interface IConfigStorage extends IDisposable {
      * @description Merge the provided storages data into the current storage.
      * The overlapped sections will be override by the incoming ones.
      */
-    merge(others: IConfigStorage[]): void;
+    merge(others: IConfigStorage | IConfigStorage[]): void;
 
     /**
      * @description Check if the current storage contains any configurations.
@@ -134,7 +134,7 @@ export class ConfigStorage extends Disposable implements IConfigStorage {
         } else {
             sections.push(section);
             this.__addSections(section);
-            addToConfigurationModel(this._model, section, configuration, (msg) => console.log(msg));
+            addToConfigurationModel(this._model, section, configuration, (msg) => console.warn(msg));
         }
         
         this._onDidChange.fire({
@@ -158,8 +158,11 @@ export class ConfigStorage extends Disposable implements IConfigStorage {
         return this._sections.length === 0 && Object.keys(this._model).length === 0;
     }
 
-    public merge(others: IConfigStorage[]): void {
+    public merge(others: IConfigStorage | IConfigStorage[]): void {
         const sections: string[] = [];
+        if (!Array.isArray(others)) {
+            others = [others];
+        }
         
         for (const other of others) {
             if (other.isEmpty()) {
@@ -172,7 +175,7 @@ export class ConfigStorage extends Disposable implements IConfigStorage {
                 sections.push(newSection);
             }
 
-            // merge model data
+            // merge model
             this.__mergeModelFrom(this._model, other.model);
         }
 
@@ -269,7 +272,7 @@ export class ConfigStorage extends Disposable implements IConfigStorage {
         for (const key of Object.keys(source)) {
 			if (key in destination) {
 				if (isObject(destination[key]) && isObject(source[key])) {
-					this.__mergeModelFrom(destination[key]!, source[key]!);
+					this.__mergeModelFrom(destination[key], source[key]);
 					continue;
 				}
 			}
