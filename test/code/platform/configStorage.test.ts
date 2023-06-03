@@ -1,10 +1,10 @@
 import * as assert from 'assert';
-import { ConfigStorage } from 'src/code/platform/configuration/common/configStorage';
+import { ConfigurationStorage } from 'src/code/platform/configuration/common/configurationStorage';
 
 suite('configStorage-test', () => {
 
     test('constructor', () => {
-        const storage = new ConfigStorage(undefined, {
+        const storage = new ConfigurationStorage(undefined, {
             'test1.test2.test3': true,
             'test1.test2.test4': { value: 'hello world' }
         });
@@ -14,7 +14,7 @@ suite('configStorage-test', () => {
     });
 
     test('get / set - basics', () => {
-        const storage = new ConfigStorage();
+        const storage = new ConfigurationStorage();
         assert.strictEqual(storage.isEmpty(), true);
 
         storage.set('path1', {
@@ -61,7 +61,7 @@ suite('configStorage-test', () => {
     });
 
     test('set - for a key that has no sections and not defined', () => {
-		const testObject = new ConfigStorage(['a.b'], { 'a': { 'b': 1 } });
+		const testObject = new ConfigurationStorage(['a.b'], { 'a': { 'b': 1 } });
 
 		testObject.set('f', 1);
 
@@ -70,7 +70,7 @@ suite('configStorage-test', () => {
 	});
 
 	test('set - for a key that has no sections and defined', () => {
-		const testObject = new ConfigStorage(['a.b', 'f'], { 'a': { 'b': 1 }, 'f': 1 });
+		const testObject = new ConfigurationStorage(['a.b', 'f'], { 'a': { 'b': 1 }, 'f': 1 });
 
 		testObject.set('f', 3);
 
@@ -79,7 +79,7 @@ suite('configStorage-test', () => {
 	});
 
 	test('set - for a key that has sections and not defined', () => {
-		const testObject = new ConfigStorage(['a.b', 'f'], { 'a': { 'b': 1 }, 'f': 1 });
+		const testObject = new ConfigurationStorage(['a.b', 'f'], { 'a': { 'b': 1 }, 'f': 1 });
 
 		testObject.set('b.c', 1);
 
@@ -93,7 +93,7 @@ suite('configStorage-test', () => {
 	});
 
 	test('set - for a key that has sections and defined', () => {
-		const testObject = new ConfigStorage(['a.b', 'b.c', 'f'], { 'a': { 'b': 1 }, 'b': { 'c': 1 }, 'f': 1 });
+		const testObject = new ConfigurationStorage(['a.b', 'b.c', 'f'], { 'a': { 'b': 1 }, 'b': { 'c': 1 }, 'f': 1 });
 
 		testObject.set('b.c', 3);
 
@@ -102,7 +102,7 @@ suite('configStorage-test', () => {
 	});
 
 	test('set - for a key that has sections and sub section not defined', () => {
-		const testObject = new ConfigStorage(['a.b', 'f'], { 'a': { 'b': 1 }, 'f': 1 });
+		const testObject = new ConfigurationStorage(['a.b', 'f'], { 'a': { 'b': 1 }, 'f': 1 });
 
 		testObject.set('a.c', 1);
 
@@ -111,7 +111,7 @@ suite('configStorage-test', () => {
 	});
 
 	test('set - for a key that has sections and sub section defined', () => {
-		const testObject = new ConfigStorage(['a.b', 'a.c', 'f'], { 'a': { 'b': 1, 'c': 1 }, 'f': 1 });
+		const testObject = new ConfigurationStorage(['a.b', 'a.c', 'f'], { 'a': { 'b': 1, 'c': 1 }, 'f': 1 });
 
 		testObject.set('a.c', 3);
 
@@ -120,7 +120,7 @@ suite('configStorage-test', () => {
 	});
 
 	test('set - for a key that has sections and last section is added', () => {
-		const testObject = new ConfigStorage(['a.b', 'f'], { 'a': { 'b': {} }, 'f': 1 });
+		const testObject = new ConfigurationStorage(['a.b', 'f'], { 'a': { 'b': {} }, 'f': 1 });
 
 		testObject.set('a.b.c', 1);
 
@@ -129,7 +129,7 @@ suite('configStorage-test', () => {
 	});
 
     test('delete - basics', () => {
-        const storage = new ConfigStorage(['path1.path2'], {
+        const storage = new ConfigurationStorage(['path1.path2'], {
             'path1': {
                 hello: 'hello',
                 world: null,
@@ -168,7 +168,7 @@ suite('configStorage-test', () => {
     });
 
     test('delete - delete the whole model', () => {
-        const storage = new ConfigStorage(['path1.path2'], {
+        const storage = new ConfigurationStorage(['path1.path2'], {
             'path1': {
                 hello: 'hello',
                 world: null,
@@ -199,7 +199,7 @@ suite('configStorage-test', () => {
     });
 
     test('delete - remove a non existing key', () => {
-		const testObject = new ConfigStorage(['a.b'], { 'a': { 'b': 2 } });
+		const testObject = new ConfigurationStorage(['a.b'], { 'a': { 'b': 2 } });
 
 		testObject.delete('a.b.c');
 
@@ -208,7 +208,7 @@ suite('configStorage-test', () => {
 	});
 
 	test('delete - remove a single segmented key', () => {
-		const testObject = new ConfigStorage(['a'], { 'a': 1 });
+		const testObject = new ConfigurationStorage(['a'], { 'a': 1 });
 
 		testObject.delete('a');
 
@@ -217,7 +217,7 @@ suite('configStorage-test', () => {
 	});
 
 	test('delete - remove a multi segmented key', () => {
-		const testObject = new ConfigStorage(['a.b'], { 'a': { 'b': 1 } });
+		const testObject = new ConfigurationStorage(['a.b'], { 'a': { 'b': 1 } });
 
 		testObject.delete('a.b');
 
@@ -226,7 +226,7 @@ suite('configStorage-test', () => {
 	});
 
     test('merge', () => {
-        const storage = new ConfigStorage(['path1'], {
+        const storage = new ConfigurationStorage(['path1'], {
             'path1': {
                 hello: 'hello',
                 world: null
@@ -247,24 +247,24 @@ suite('configStorage-test', () => {
 
         // basics
         storage.merge([
-            new ConfigStorage(['path1'], { 'path1': { hello: undefined, world: 'world', } }),
-            new ConfigStorage(['path1.path2'], { 'path1': { 'path2': { id: 10000, obj: {} }, } }),
-            new ConfigStorage(['path3'], { 'path3': 9999 }),
+            new ConfigurationStorage(['path1'], { 'path1': { hello: undefined, world: 'world', } }),
+            new ConfigurationStorage(['path1.path2'], { 'path1': { 'path2': { id: 10000, obj: {} }, } }),
+            new ConfigurationStorage(['path3'], { 'path3': 9999 }),
         ]);
         assert.notDeepStrictEqual(storage.get(undefined), afterMerge);
 
         // merge empty storage
-        storage.merge(new ConfigStorage(undefined, undefined));
+        storage.merge(new ConfigurationStorage(undefined, undefined));
         assert.notDeepStrictEqual(storage.get(undefined), afterMerge);
 
         // non-empty storage but empty model
-        storage.merge(new ConfigStorage(['path1'], undefined));
+        storage.merge(new ConfigurationStorage(['path1'], undefined));
         assert.notDeepStrictEqual(storage.get(undefined), afterMerge);
     });
 
     test('simple merge', () => {
-		const base = new ConfigStorage(['a', 'b'], { 'a': 1, 'b': 2 });
-		const add = new ConfigStorage(['a', 'c'], { 'a': 3, 'c': 4 });
+		const base = new ConfigurationStorage(['a', 'b'], { 'a': 1, 'b': 2 });
+		const add = new ConfigurationStorage(['a', 'c'], { 'a': 3, 'c': 4 });
 		const result = base.clone();
         result.merge(add);
 
@@ -273,8 +273,8 @@ suite('configStorage-test', () => {
 	});
 
 	test('recursive merge', () => {
-		const base = new ConfigStorage(['a.b'], { 'a': { 'b': 1 } });
-		const add = new ConfigStorage(['a.b'], { 'a': { 'b': 2 } });
+		const base = new ConfigurationStorage(['a.b'], { 'a': { 'b': 1 } });
+		const add = new ConfigurationStorage(['a.b'], { 'a': { 'b': 2 } });
 		const result = base.clone();
         result.merge(add);
 
@@ -284,7 +284,7 @@ suite('configStorage-test', () => {
 	});
 
     test('onDidChange', () => {
-        const storage = new ConfigStorage(['path1'], {
+        const storage = new ConfigurationStorage(['path1'], {
             'path1': {
                 hello: 'hello',
                 world: null
@@ -314,12 +314,12 @@ suite('configStorage-test', () => {
             result: true,
         });
         storage.merge([
-            new ConfigStorage(['path1.path2'], {
+            new ConfigurationStorage(['path1.path2'], {
                 id: 1000,
                 obj: {},
                 'hello': 'world',
             }),
-            new ConfigStorage(['path1.path4'], {
+            new ConfigurationStorage(['path1.path4'], {
                 f: 99,
                 g: {},
                 h: 'h',

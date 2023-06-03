@@ -79,11 +79,11 @@ export class MainConfigurationService extends Disposable implements IConfigurati
     }
 
     public set(section: string, value: any): void {
-        this._configurationHub.setInMemory(section, value);
+        throw new Error('[MainConfigurationService] does not support `set`.');
     }
 
     public delete(section: string): void {
-        this._configurationHub.deleteInMemory(section);
+        throw new Error('[MainConfigurationService] does not support `Delete`.');
     }
 
     // [private helper methods]

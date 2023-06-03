@@ -1,7 +1,7 @@
 import { IDisposable } from "src/base/common/dispose";
 import { Register } from "src/base/common/event";
 import { DeepReadonly } from "src/base/common/util/type";
-import { IConfigStorage } from "src/code/platform/configuration/common/configStorage";
+import { IConfigurationStorage } from "src/code/platform/configuration/common/configurationStorage";
 import { IConfigurationChangeEvent } from "src/code/platform/configuration/common/configurationService";
 import { createService } from "src/code/platform/instantiation/common/decorator";
 
@@ -25,8 +25,8 @@ export const USER_CONFIG_NAME = DEFAULT_CONFIG_NAME;
 export const APP_CONFIG_NAME = 'nota.config.json';
 
 export interface IComposedConfiguration {
-    default: IConfigStorage;
-    user: IConfigStorage;
+    default: IConfigurationStorage;
+    user: IConfigurationStorage;
 }
 
 export interface IConfigurationCompareResult {

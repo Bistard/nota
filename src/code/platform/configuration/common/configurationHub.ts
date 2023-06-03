@@ -7,7 +7,7 @@ import { ILogService } from "src/base/common/logger";
 import { mixin, strictEquals } from "src/base/common/util/object";
 import { DeepReadonly, Dictionary } from "src/base/common/util/type";
 import { IRawConfigurationChangeEvent, IConfigurationRegistrant, IConfigurationSchema, IRawSetConfigurationChangeEvent } from "src/code/platform/configuration/common/configurationRegistrant";
-import { ConfigStorage, IConfigStorage } from "src/code/platform/configuration/common/configStorage";
+import { ConfigurationStorage, IConfigurationStorage } from "src/code/platform/configuration/common/configurationStorage";
 import { IFileService } from "src/code/platform/files/common/fileService";
 import { REGISTRANTS } from "src/code/platform/registrant/common/registrant";
 import { IComposedConfiguration, IConfigurationCompareResult } from "src/code/platform/configuration/common/configuration";
@@ -30,7 +30,7 @@ export interface IConfiguration extends IDisposable {
     
     readonly onDidConfigurationChange: Register<any>;
 
-    getConfiguration(): IConfigStorage;
+    getConfiguration(): IConfigurationStorage;
     init(): void | Promise<void>;
     reload(): void | Promise<void>;
 }
@@ -39,7 +39,7 @@ export class DefaultConfiguration extends Disposable implements IConfiguration {
 
     // [fields]
 
-    private _storage: IConfigStorage;
+    private _storage: IConfigurationStorage;
     private _initialized: boolean;
 
     // [events]
@@ -51,13 +51,13 @@ export class DefaultConfiguration extends Disposable implements IConfiguration {
 
     constructor() {
         super();
-        this._storage = this.__register(new ConfigStorage());
+        this._storage = this.__register(new ConfigurationStorage());
         this._initialized = false;
     }
 
     // [public methods]
 
-    public getConfiguration(): IConfigStorage {
+    public getConfiguration(): IConfigurationStorage {
         return this._storage;
     }
 
@@ -77,7 +77,7 @@ export class DefaultConfiguration extends Disposable implements IConfiguration {
     // [private helper methods]
 
     private __resetDefaultConfigurations(): void {
-        this._storage = new ConfigStorage();
+        this._storage = new ConfigurationStorage();
         const schemas = Registrant.getConfigurationSchemas();
         this.__updateDefaultConfigurations(Object.keys(schemas), schemas);
     }
@@ -115,7 +115,7 @@ export class UserConfiguration extends Disposable implements IConfiguration {
     private readonly _userResource: URI;
     private readonly _validator: UserConfigurationValidator;
     
-    private _configuration: IConfigStorage;
+    private _configuration: IConfigurationStorage;
 
     // [event]
 
@@ -133,7 +133,7 @@ export class UserConfiguration extends Disposable implements IConfiguration {
         this._initialized = false;
         
         this._userResource = userResource;
-        this._configuration = new ConfigStorage();
+        this._configuration = new ConfigurationStorage();
         this._validator = this.__register(new UserConfigurationValidator());
         
         // register listeners
@@ -149,7 +149,7 @@ export class UserConfiguration extends Disposable implements IConfiguration {
 
     // [public methods]
 
-    public getConfiguration(): IConfigStorage {
+    public getConfiguration(): IConfigurationStorage {
         return this._configuration;
     }
 
@@ -177,7 +177,7 @@ export class UserConfiguration extends Disposable implements IConfiguration {
         );
         
         const validated = this._validator.validate(unvalidated);
-        this._configuration = new ConfigStorage(Object.keys(validated), validated);
+        this._configuration = new ConfigurationStorage(Object.keys(validated), validated);
     }
 }
 
@@ -238,15 +238,15 @@ class ConfigurationHubBase {
 
     // [fields]
 
-    private _composedConfiguration?: IConfigStorage;
+    private _composedConfiguration?: IConfigurationStorage;
     private readonly _configurationMapping: Dictionary<ConfigurationType, string>;
 
     // [constructor]
 
     constructor(
-        protected _defaultConfiguration: IConfigStorage,
-        protected _userConfiguration: IConfigStorage,
-        protected _memoryConfiguration: IConfigStorage = new ConfigStorage(),
+        protected _defaultConfiguration: IConfigurationStorage,
+        protected _userConfiguration: IConfigurationStorage,
+        protected _memoryConfiguration: IConfigurationStorage = new ConfigurationStorage(),
     ) {
         this._composedConfiguration = undefined;
         this._configurationMapping = {
@@ -266,13 +266,13 @@ class ConfigurationHubBase {
 
     // [public update methods]
 
-    public updateConfiguration(type: ConfigurationType, newConfiguration: IConfigStorage): void {
+    public updateConfiguration(type: ConfigurationType, newConfiguration: IConfigurationStorage): void {
         const configuration = this.__getConfigurationWithType(type);
         this[configuration] = newConfiguration;
         this.__dropComposedConfiguration();
     }
 
-    public compareAndUpdateConfiguration(type: ConfigurationType, newConfiguration: IConfigStorage, changedKeys?: string[]): IRawConfigurationChangeEvent {
+    public compareAndUpdateConfiguration(type: ConfigurationType, newConfiguration: IConfigurationStorage, changedKeys?: string[]): IRawConfigurationChangeEvent {
         
         // If we do not know what keys are changed, we need to find them by ourself.
         if (!changedKeys) {
@@ -287,7 +287,7 @@ class ConfigurationHubBase {
 
     // [protected helper methods]
 
-    protected __getComposedConfiguration(): IConfigStorage {
+    protected __getComposedConfiguration(): IConfigurationStorage {
         if (!this._composedConfiguration) {
             (this._composedConfiguration = this._defaultConfiguration.clone()).merge([this._userConfiguration, this._memoryConfiguration]);
         }
@@ -308,7 +308,7 @@ class ConfigurationHubBase {
         return configuration;
     }
 
-    private __compareConfiguration(oldConfiguration: IConfigStorage, newConfiguration: IConfigStorage): IConfigurationCompareResult {
+    private __compareConfiguration(oldConfiguration: IConfigurationStorage, newConfiguration: IConfigurationStorage): IConfigurationCompareResult {
         const { sections: oldKeys } = oldConfiguration;
         const { sections: newKeys } = newConfiguration;
         
@@ -340,8 +340,8 @@ export interface IConfigurationHub {
     setInMemory(section: string, value: any): void;
     deleteInMemory(section: string): void;
     inspect(): IComposedConfiguration;
-    updateConfiguration(type: ConfigurationType, newConfiguration: IConfigStorage): void;
-    compareAndUpdateConfiguration(type: ConfigurationType, newConfiguration: IConfigStorage, changedKeys: string[] | undefined): IRawConfigurationChangeEvent;
+    updateConfiguration(type: ConfigurationType, newConfiguration: IConfigurationStorage): void;
+    compareAndUpdateConfiguration(type: ConfigurationType, newConfiguration: IConfigurationStorage, changedKeys: string[] | undefined): IRawConfigurationChangeEvent;
 }
 
 export class ConfigurationHub extends ConfigurationHubBase implements IConfigurationHub {
@@ -349,9 +349,9 @@ export class ConfigurationHub extends ConfigurationHubBase implements IConfigura
     // [constructor]
 
     constructor(
-        defaultConfiguration: IConfigStorage,
-        userConfiguration: IConfigStorage,
-        memoryConfiguration: IConfigStorage = new ConfigStorage(),
+        defaultConfiguration: IConfigurationStorage,
+        userConfiguration: IConfigurationStorage,
+        memoryConfiguration: IConfigurationStorage = new ConfigurationStorage(),
     ) {
         super(defaultConfiguration, userConfiguration, memoryConfiguration);
     }

@@ -12,9 +12,9 @@ export interface IConfigurationStorageChangeEvent {
 }
 
 /**
- * An interface only for {@link ConfigStorage}.
+ * An interface only for {@link ConfigurationStorage}.
  */
-export interface IConfigStorage extends IDisposable {
+export interface IConfigurationStorage extends IDisposable {
 
     /** Get all the sections of the storage. Section are seperated by (`.`). */
     readonly sections: string[];
@@ -27,7 +27,7 @@ export interface IConfigStorage extends IDisposable {
 
     /**
      * @description Get configuration at given section.
-     * @param section see {@link ConfigStorage}.
+     * @param section see {@link ConfigurationStorage}.
      * 
      * @throws An exception will be thrown if the section is invalid.
      * @note If section is not provided, the whole configuration will be 
@@ -39,7 +39,7 @@ export interface IConfigStorage extends IDisposable {
 
     /**
      * @description Set configuration at given section.
-     * @param section see {@link ConfigStorage}. If section is null, it overries
+     * @param section see {@link ConfigurationStorage}. If section is null, it overries
      *                the entire configuration.
      * @throws An exception will be thrown if the section is invalid.
      */
@@ -47,7 +47,7 @@ export interface IConfigStorage extends IDisposable {
 
     /**
      * @description Delete configuration at given section.
-     * @param section see {@link ConfigStorage}.
+     * @param section see {@link ConfigurationStorage}.
      * @returns A boolean indicates if the operation successed.
      */
     delete(section: string): boolean;
@@ -56,7 +56,7 @@ export interface IConfigStorage extends IDisposable {
      * @description Merge the provided storages data into the current storage.
      * The overlapped sections will be override by the incoming ones.
      */
-    merge(others: IConfigStorage | IConfigStorage[]): void;
+    merge(others: IConfigurationStorage | IConfigurationStorage[]): void;
 
     /**
      * @description Check if the current storage contains any configurations.
@@ -66,12 +66,12 @@ export interface IConfigStorage extends IDisposable {
     /**
      * @description Returns a deep copy of the current storage.
      */
-    clone(): ConfigStorage;
+    clone(): ConfigurationStorage;
 }
 
 /**
- * @class A base class for configuration storage purpose. You may set / get
- * configuration using sections under `.` as seperator.
+ * @class A base class for configuration in-memory storage purpose. You may set 
+ * / get configuration using sections under `.` as seperator.
  * @example section example: 'workspace.notebook.ifAutoSave'.
  * 
  * @note When storing sections, say initially we have `path1` as the only 
@@ -80,7 +80,7 @@ export interface IConfigStorage extends IDisposable {
  * every possible section that start with any of the existed sections will also 
  * be considered as valid sections.
  * @example
- * const storage = new ConfigStorage(['a.b.c'], { a: { b: { c: 'hello world' } } });
+ * const storage = new ConfigurationStorage(['a.b.c'], { a: { b: { c: 'hello world' } } });
  * // sections like `a`, `a.b` are also valid sections.
  * 
  * @note When deleting a section, say `path1.path2`, storage will only delete
@@ -88,7 +88,7 @@ export interface IConfigStorage extends IDisposable {
  * will not be touched. If deleting `path1`, the section `path1.path2` will also
  * be deleted.
  */
-export class ConfigStorage extends Disposable implements IConfigStorage {
+export class ConfigurationStorage extends Disposable implements IConfigurationStorage {
 
     // [event]
 
@@ -166,7 +166,7 @@ export class ConfigStorage extends Disposable implements IConfigStorage {
         return this._sections.length === 0 && Object.keys(this._model).length === 0;
     }
 
-    public merge(others: IConfigStorage | IConfigStorage[]): void {
+    public merge(others: IConfigurationStorage | IConfigurationStorage[]): void {
         const sections: string[] = [];
         if (!Array.isArray(others)) {
             others = [others];
@@ -192,8 +192,8 @@ export class ConfigStorage extends Disposable implements IConfigStorage {
         });
     }
 
-    public clone(): ConfigStorage {
-        return new ConfigStorage([...this._sections], deepCopy(this._model));
+    public clone(): ConfigurationStorage {
+        return new ConfigurationStorage([...this._sections], deepCopy(this._model));
     }
 
     // [private helper methods]
