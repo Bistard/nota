@@ -1,7 +1,7 @@
 import * as assert from 'assert';
 import { ConfigStorage } from 'src/code/platform/configuration/common/configStorage';
 
-suite.only('configStorage-test', () => {
+suite('configStorage-test', () => {
 
     test('constructor', () => {
         const storage = new ConfigStorage(undefined, {
