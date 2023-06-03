@@ -9,6 +9,7 @@ import { ConfigurationHub, ConfigurationType, DefaultConfiguration, UserConfigur
 import { IFileService } from "src/code/platform/files/common/fileService";
 import { createService } from "src/code/platform/instantiation/common/decorator";
 import { REGISTRANTS } from "src/code/platform/registrant/common/registrant";
+import { DeepReadonly } from "src/base/common/util/type";
 
 export const IConfigurationService = createService<IConfigurationService>('configuration-service');
 
@@ -17,7 +18,7 @@ export interface IConfigurationService extends IDisposable {
 
     readonly onDidConfigurationChange: Register<IConfigurationChangeEvent>;
     init(): Promise<void>;
-    get<T>(section: string | undefined, defaultValue?: T): T; // FIX: should not provide 'defaultValue'.
+    get<T>(section: string | undefined, defaultValue?: T): DeepReadonly<T>; // FIX: should not provide 'defaultValue'.
     set(section: string, value: any): void;
     delete(section: string): void;
 }
@@ -85,8 +86,8 @@ export class MainConfigurationService extends Disposable implements IConfigurati
         this._configurationHub = this.__reloadConfigurationHub();
     }
 
-    public get<T>(section: string | undefined, defaultValue?: T): T {
-        return tryOrDefault(defaultValue ?? undefined!, () => this._configurationHub.get(section));
+    public get<T>(section: string | undefined, defaultValue?: T): DeepReadonly<T> {
+        return tryOrDefault<any>(defaultValue ?? undefined!, () => this._configurationHub.get(section));
     }
 
     public set(section: string, value: any): void {

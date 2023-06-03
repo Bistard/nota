@@ -1,9 +1,9 @@
 import { Disposable, IDisposable } from "src/base/common/dispose";
 import { Emitter, Register } from "src/base/common/event";
 import { deepCopy } from "src/base/common/util/object";
-import { Dictionary, isObject } from "src/base/common/util/type";
+import { DeepReadonly, Dictionary, isObject } from "src/base/common/util/type";
 
-export interface IConfigChangeEvent {
+export interface IConfigurationStorageChangeEvent {
     
     /** 
      * The section of the changed configuration. 
@@ -16,23 +16,26 @@ export interface IConfigChangeEvent {
  */
 export interface IConfigStorage extends IDisposable {
 
-    /** Get all the sections of the storage. Section are seperated by `.` */
+    /** Get all the sections of the storage. Section are seperated by (`.`). */
     readonly sections: string[];
     
     /** Get the actual data model of the storage. */
-    readonly model: object;
+    readonly model: DeepReadonly<object>;
 
     /** Fires when any of the configuration is changed. */
-    readonly onDidChange: Register<IConfigChangeEvent>;
+    readonly onDidChange: Register<IConfigurationStorageChangeEvent>;
 
     /**
      * @description Get configuration at given section.
      * @param section see {@link ConfigStorage}.
+     * 
      * @throws An exception will be thrown if the section is invalid.
      * @note If section is not provided, the whole configuration will be 
      * returned.
+     * @note You may not change the value of the return value directly. Use `set`
+     * instead.
      */
-    get<T>(section: string | undefined): T;
+    get<T>(section: string | undefined): DeepReadonly<T>;
 
     /**
      * @description Set configuration at given section.
@@ -73,7 +76,12 @@ export interface IConfigStorage extends IDisposable {
  * 
  * @note When storing sections, say initially we have `path1` as the only 
  * section. When setting a value to new a section `path1.path2`, the storage
- * will combine them into one single section named `path1.path2`.
+ * will combine them into one single section named `path1.path2`. That means, 
+ * every possible section that start with any of the existed sections will also 
+ * be considered as valid sections.
+ * @example
+ * const storage = new ConfigStorage(['a.b.c'], { a: { b: { c: 'hello world' } } });
+ * // sections like `a`, `a.b` are also valid sections.
  * 
  * @note When deleting a section, say `path1.path2`, storage will only delete
  * the actual object at that specific path, the other parts of section `path1` 
@@ -84,7 +92,7 @@ export class ConfigStorage extends Disposable implements IConfigStorage {
 
     // [event]
 
-    private readonly _onDidChange = this.__register(new Emitter<IConfigChangeEvent>());
+    private readonly _onDidChange = this.__register(new Emitter<IConfigurationStorageChangeEvent>());
     public readonly onDidChange = this._onDidChange.registerListener;
 
     // [field]
@@ -114,15 +122,15 @@ export class ConfigStorage extends Disposable implements IConfigStorage {
         return this._sections;
     }
 
-    get model(): object {
+    get model(): DeepReadonly<object> {
         return this._model;
     }
 
-    public get<T>(section: string | undefined): T {
+    public get<T>(section: string | undefined): DeepReadonly<T> {
         if (section) {
             return this.__getBySection(section);
         }
-        return <T>this._model;
+        return <DeepReadonly<T>>this._model;
     }
 
     public set(section: string | null, configuration: any): void {

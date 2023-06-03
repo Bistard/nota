@@ -5,7 +5,7 @@ import { URI } from "src/base/common/file/uri";
 import { IJsonSchemaValidateResult, JsonSchemaValidator } from "src/base/common/json";
 import { ILogService } from "src/base/common/logger";
 import { mixin, strictEquals } from "src/base/common/util/object";
-import { Dictionary } from "src/base/common/util/type";
+import { DeepReadonly, Dictionary } from "src/base/common/util/type";
 import { IRawConfigurationChangeEvent, IConfigurationRegistrant, IConfigurationSchema, IRawSetConfigurationChangeEvent } from "src/code/platform/configuration/common/configurationRegistrant";
 import { ConfigStorage, IConfigStorage } from "src/code/platform/configuration/common/configStorage";
 import { IFileService } from "src/code/platform/files/common/fileService";
@@ -181,7 +181,7 @@ export class UserConfiguration extends Disposable implements IConfiguration {
     }
 }
 
-export class UserConfigurationValidator implements IDisposable {
+class UserConfigurationValidator implements IDisposable {
 
     // [fields]
 
@@ -272,7 +272,7 @@ class ConfigurationHubBase {
         this.__dropComposedConfiguration();
     }
 
-    public compareAndUpdateConfiguration(type: ConfigurationType, newConfiguration: IConfigStorage, changedKeys: string[] | undefined): IRawConfigurationChangeEvent {
+    public compareAndUpdateConfiguration(type: ConfigurationType, newConfiguration: IConfigStorage, changedKeys?: string[]): IRawConfigurationChangeEvent {
         
         // If we do not know what keys are changed, we need to find them by ourself.
         if (!changedKeys) {
@@ -336,7 +336,7 @@ class ConfigurationHubBase {
  * // TODO
  */
 export interface IConfigurationHub {
-    get<T>(section: string | undefined): T;
+    get<T>(section: string | undefined): DeepReadonly<T>;
     set(section: string, value: any): void;
     delete(section: string): void;
     inspect(): IComposedConfiguration;
@@ -358,7 +358,7 @@ export class ConfigurationHub extends ConfigurationHubBase implements IConfigura
 
     // [public methods]
 
-    public get<T>(section: string | undefined): T {
+    public get<T>(section: string | undefined): DeepReadonly<T> {
         const configuration = this.__getComposedConfiguration();
         return configuration.get(section);
     }
