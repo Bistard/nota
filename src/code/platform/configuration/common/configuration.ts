@@ -32,8 +32,11 @@ export interface IConfigurationService extends IDisposable {
     /**
      * @description Get the configuration by the given section.
      * @param section The {@link Section} string of the required configuration.
+     * @param defaultValue Default value will be returned if the section is not 
+     * provided.
      * 
-     * @throws An exception will be thrown if the section is invalid.
+     * @throws An `undefined` will be returned if the section is invalid and the 
+     * default is not provided.
      * @note If section is not provided, the whole configuration will be returned.
      * @note You may not change the value of the return value directly. Use `set` 
      * instead.
@@ -106,6 +109,7 @@ export interface IConfigurationModule<TType extends ConfigurationModuleType, TOn
 
     /**
      * @description Initializes the configuration.
+     * @note This method should not invoke `onDidConfigurationChange`.
      */
     init(): void | Promise<void>;
 
