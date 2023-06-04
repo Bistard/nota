@@ -190,6 +190,8 @@ function stackToMessage(stack: any): string {
  * @param fn The function to execute.
  * @param onError The error handler function to call when an error occurs.
  * @param onFinally The function to call after everything happens.
+ * 
+ * @note Does not support async callback.
  */
 export function tryOrDefault<T>(defaultValue: T, fn: () => T, onError?: (err: any) => void, onFinally?: () => void): T {
     try {
