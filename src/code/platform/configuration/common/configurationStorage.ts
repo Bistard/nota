@@ -17,13 +17,19 @@ export interface IConfigurationStorageChangeEvent {
  */
 export interface IConfigurationStorage extends IDisposable {
 
-    /** Get all the sections of the storage. Section are seperated by (`.`). */
+    /** 
+     * Get all the sections of the storage. Section are seperated by (`.`). 
+     */
     readonly sections: Section[];
     
-    /** Get the actual data model of the storage. */
+    /** 
+     * Get the actual data model of the storage. 
+     */
     readonly model: DeepReadonly<object>;
 
-    /** Fires when any of the configuration is changed. */
+    /** 
+     * Fires when any of the configuration is changed. 
+     */
     readonly onDidChange: Register<IConfigurationStorageChangeEvent>;
 
     /**

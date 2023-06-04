@@ -35,7 +35,7 @@ export interface IConfigurationService extends IDisposable {
      * 
      * @throws An exception will be thrown if the section is invalid.
      * @note If section is not provided, the whole configuration will be returned.
-     * @note You may not change the value of the return value directly. Use set 
+     * @note You may not change the value of the return value directly. Use `set` 
      * instead.
      */
     get<T>(section: Section | undefined, defaultValue?: T): DeepReadonly<T>; // FIX: should not provide 'defaultValue' API
@@ -72,4 +72,45 @@ export interface IConfigurationCompareResult {
     added: Section[];
     deleted: Section[];
     changed: Section[];
+}
+
+/**
+ * A list of different types of configurations that are stored inside 
+ * {@link ConfigurationHub}.
+ */
+export const enum ConfigurationModuleType {
+    Default = 1,
+    User,
+}
+
+/**
+ * A {@link IConfigurationModule} signifies a model that encompasses certain 
+ * specific configuration aspects.
+ * 
+ * @note Double initialization will throw an exception.
+ * @note The model does not support direct configuraiton modifications.
+ */
+export interface IConfigurationModule<TType extends ConfigurationModuleType, TOnChangeEvent> extends IDisposable {
+    
+    readonly type: TType;
+
+    /**
+     * Fires when the configuration chanages.
+     */
+    readonly onDidConfigurationChange: Register<TOnChangeEvent>;
+
+    /**
+     * @description Returns the configuration.
+     */
+    getConfiguration(): IConfigurationStorage;
+
+    /**
+     * @description Initializes the configuration.
+     */
+    init(): void | Promise<void>;
+
+    /**
+     * @description Reloads the configuration.
+     */
+    reload(): void | Promise<void>;
 }

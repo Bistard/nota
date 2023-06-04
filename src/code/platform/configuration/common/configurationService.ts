@@ -5,11 +5,11 @@ import { URI } from "src/base/common/file/uri";
 import { ILogService } from "src/base/common/logger";
 import { UnbufferedScheduler } from "src/base/common/util/async";
 import { IConfigurationRegistrant, IRawConfigurationChangeEvent } from "src/code/platform/configuration/common/configurationRegistrant";
-import { ConfigurationHub, ConfigurationType, DefaultConfiguration, UserConfiguration } from "src/code/platform/configuration/common/configurationHub";
+import { ConfigurationHub, DefaultConfiguration, UserConfiguration } from "src/code/platform/configuration/common/configurationHub";
 import { IFileService } from "src/code/platform/files/common/fileService";
 import { REGISTRANTS } from "src/code/platform/registrant/common/registrant";
 import { DeepReadonly } from "src/base/common/util/type";
-import { IConfigurationService, Section } from "src/code/platform/configuration/common/configuration";
+import { ConfigurationModuleType, IConfigurationService, Section } from "src/code/platform/configuration/common/configuration";
 
 /**
  * @class // TODO
@@ -90,17 +90,17 @@ export class MainConfigurationService extends Disposable implements IConfigurati
 
     private __onDefaultConfigurationChange({ properties }: IRawConfigurationChangeEvent): void {
         const current = this._defaultConfiguration.getConfiguration();
-        const change = this._configurationHub.compareAndUpdateConfiguration(ConfigurationType.Default, current, properties);
-        this.__onConfigurationChange(change, ConfigurationType.Default);
+        const change = this._configurationHub.compareAndUpdateConfiguration(ConfigurationModuleType.Default, current, properties);
+        this.__onConfigurationChange(change, ConfigurationModuleType.Default);
     }
 
     private __onUserConfigurationChange(): void {
         const current = this._userConfiguration.getConfiguration();
-        const change = this._configurationHub.compareAndUpdateConfiguration(ConfigurationType.Default, current, undefined);
-        this.__onConfigurationChange(change, ConfigurationType.User);
+        const change = this._configurationHub.compareAndUpdateConfiguration(ConfigurationModuleType.Default, current, undefined);
+        this.__onConfigurationChange(change, ConfigurationModuleType.User);
     }
 
-    private __onConfigurationChange(change: IRawConfigurationChangeEvent, type: ConfigurationType): void {
+    private __onConfigurationChange(change: IRawConfigurationChangeEvent, type: ConfigurationModuleType): void {
         const event = new ConfigurationChangeEvent(change, type);
         this._onDidConfigurationChange.fire(event);
     }
@@ -114,7 +114,7 @@ export class MainConfigurationService extends Disposable implements IConfigurati
 }
 
 export interface IConfigurationChangeEvent {
-    readonly type: ConfigurationType;
+    readonly type: ConfigurationModuleType;
     readonly properties: Set<Section>;
     affect(section: Section): boolean;
 }
@@ -129,7 +129,7 @@ export class ConfigurationChangeEvent implements IConfigurationChangeEvent {
 
     constructor(
         change: IRawConfigurationChangeEvent,
-        public readonly type: ConfigurationType,
+        public readonly type: ConfigurationModuleType,
     ) {
         for (const key of change.properties) {
 			this.properties.add(key);

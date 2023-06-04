@@ -1,6 +1,6 @@
 import { Disposable, IDisposable } from "src/base/common/dispose";
 import { tryOrDefault } from "src/base/common/error";
-import { Emitter, Event, Register } from "src/base/common/event";
+import { Emitter, Event } from "src/base/common/event";
 import { URI } from "src/base/common/file/uri";
 import { IJsonSchemaValidateResult, JsonSchemaValidator } from "src/base/common/json";
 import { ILogService } from "src/base/common/logger";
@@ -10,34 +10,25 @@ import { IRawConfigurationChangeEvent, IConfigurationRegistrant, IConfigurationS
 import { ConfigurationStorage, IConfigurationStorage } from "src/code/platform/configuration/common/configurationStorage";
 import { IFileService } from "src/code/platform/files/common/fileService";
 import { REGISTRANTS } from "src/code/platform/registrant/common/registrant";
-import { IComposedConfiguration, IConfigurationCompareResult, Section } from "src/code/platform/configuration/common/configuration";
+import { ConfigurationModuleType, IComposedConfiguration, IConfigurationCompareResult, IConfigurationModule, Section } from "src/code/platform/configuration/common/configuration";
 
 const Registrant = REGISTRANTS.get(IConfigurationRegistrant);
 
 /**
- * A list of different types of configurations that are stored inside 
- * {@link ConfigurationHub}.
+ * @class A {@link DefaultConfiguration} is a class representing the default 
+ * configuration of the application. It derives the default configurations from
+ * the {@link IConfigurationRegistrant}.
+ * 
+ * @note Has type {@link ConfigurationModuleType.Default}.
+ * @note After the initialization of the module, it will automatically keep 
+ * itself updated in response to any changes in the schema registrations of 
+ * {@link IConfigurationRegistrant}. 
  */
-export const enum ConfigurationType {
-    Default = 1,
-    User,
-}
-
-/**
- * // TODO
- */
-export interface IConfiguration extends IDisposable {
-    
-    readonly onDidConfigurationChange: Register<any>;
-
-    getConfiguration(): IConfigurationStorage;
-    init(): void | Promise<void>;
-    reload(): void | Promise<void>;
-}
-
-export class DefaultConfiguration extends Disposable implements IConfiguration {
+export class DefaultConfiguration extends Disposable implements IConfigurationModule<ConfigurationModuleType.Default, IRawConfigurationChangeEvent> {
 
     // [fields]
+
+    public readonly type = ConfigurationModuleType.Default;
 
     private _storage: IConfigurationStorage;
     private _initialized: boolean;
@@ -106,9 +97,21 @@ export class DefaultConfiguration extends Disposable implements IConfiguration {
     }
 }
 
-export class UserConfiguration extends Disposable implements IConfiguration {
+/**
+ * @class A {@link UserConfiguration} represents the user configuration that 
+ * will be treated as overrides to {@link DefaultConfiguration}. It obtains the
+ * configuration by reading files from the disk.
+ * 
+ * @note Has type {@link ConfigurationModuleType.User}.
+ * @note After the initialization of the module, it will automatically keep 
+ * itself updated in response to any changes in the schema registrations of 
+ * {@link IConfigurationRegistrant}. 
+ */
+export class UserConfiguration extends Disposable implements IConfigurationModule<ConfigurationModuleType.User, void> {
     
     // [fields]
+
+    public readonly type = ConfigurationModuleType.User;
 
     private _initialized: boolean;
 
@@ -239,7 +242,7 @@ class ConfigurationHubBase {
     // [fields]
 
     private _composedConfiguration?: IConfigurationStorage;
-    private readonly _configurationMapping: Dictionary<ConfigurationType, string>;
+    private readonly _configurationMapping: Dictionary<ConfigurationModuleType, string>;
 
     // [constructor]
 
@@ -250,8 +253,8 @@ class ConfigurationHubBase {
     ) {
         this._composedConfiguration = undefined;
         this._configurationMapping = {
-            [ConfigurationType.Default]: '_defaultConfiguration',
-            [ConfigurationType.User]: '_userConfiguration',
+            [ConfigurationModuleType.Default]: '_defaultConfiguration',
+            [ConfigurationModuleType.User]: '_userConfiguration',
         };
     }
 
@@ -266,13 +269,13 @@ class ConfigurationHubBase {
 
     // [public update methods]
 
-    public updateConfiguration(type: ConfigurationType, newConfiguration: IConfigurationStorage): void {
+    public updateConfiguration(type: ConfigurationModuleType, newConfiguration: IConfigurationStorage): void {
         const configuration = this.__getConfigurationWithType(type);
         this[configuration] = newConfiguration;
         this.__dropComposedConfiguration();
     }
 
-    public compareAndUpdateConfiguration(type: ConfigurationType, newConfiguration: IConfigurationStorage, changedKeys?: Section[]): IRawConfigurationChangeEvent {
+    public compareAndUpdateConfiguration(type: ConfigurationModuleType, newConfiguration: IConfigurationStorage, changedKeys?: Section[]): IRawConfigurationChangeEvent {
         
         // If we do not know what keys are changed, we need to find them by ourself.
         if (!changedKeys) {
@@ -300,7 +303,7 @@ class ConfigurationHubBase {
 
     // [private helper methods]
 
-    private __getConfigurationWithType(type: ConfigurationType): string {
+    private __getConfigurationWithType(type: ConfigurationModuleType): string {
         const configuration = this._configurationMapping[type];
         if (!configuration) {
             throw new Error(`Cannot find configuration with type '${type}'.`);
@@ -333,17 +336,52 @@ class ConfigurationHubBase {
 
 /**
  * An interface only for {@link ConfigurationHub}.
- * // TODO
  */
 export interface IConfigurationHub {
+
+    /**
+     * @description Fetch the configuration at the given {@link Section}.
+     * @param section The provided {@link Section} of the configuration.
+     * @returns A read-only configuration.
+     * 
+     * @throws An exception will be thrown if the section is invalid.
+     * @note If section is not provided, the whole configuration will be returned.
+     * @note Direct modifications to the return value are not permitted. Utilize 
+     * `set` instead.
+     */
     get<T>(section: Section | undefined): DeepReadonly<T>;
+
     setInMemory(section: Section, value: any): void;
     deleteInMemory(section: Section): void;
+    
     inspect(): IComposedConfiguration;
-    updateConfiguration(type: ConfigurationType, newConfiguration: IConfigurationStorage): void;
-    compareAndUpdateConfiguration(type: ConfigurationType, newConfiguration: IConfigurationStorage, changedKeys: Section[] | undefined): IRawConfigurationChangeEvent;
+
+    /**
+     * @description Replace the reference to a {@link IConfigurationStorage} 
+     * with a new one based on the specified module type.
+     * @param type The type of the module that needs to be updated.
+     * @param newConfiguration The reference to the new configuration.
+     */
+    updateConfiguration(type: ConfigurationModuleType, newConfiguration: IConfigurationStorage): void;
+
+    /**
+     * @description An enhanced version of {@link updateConfiguration} that 
+     * compares the existing and new configuration modules and returns the 
+     * comparison result.
+     * @param type The type of the module that needs to be updated.
+     * @param newConfiguration The new configuration reference.
+     * @param changedKeys This parameter is provided if the client already knows 
+     * the comparison result.
+     */
+    compareAndUpdateConfiguration(type: ConfigurationModuleType, newConfiguration: IConfigurationStorage, changedKeys: Section[] | undefined): IRawConfigurationChangeEvent;
 }
 
+/**
+ * @class A {@link ConfigurationHub} serves as the unified command center for a 
+ * variety of configuration modules.  It encapsulates a collection of references 
+ * to {@link IConfigurationStorage} instances. The hub provides convenient APIs 
+ * for retrieving and modifying configurations across all configuration modules.
+ */
 export class ConfigurationHub extends ConfigurationHubBase implements IConfigurationHub {
 
     // [constructor]

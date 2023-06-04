@@ -6,12 +6,13 @@ import { URI } from 'src/base/common/file/uri';
 import { Arrays } from 'src/base/common/util/array';
 import { deepCopy } from 'src/base/common/util/object';
 import { ConfigurationStorage } from 'src/code/platform/configuration/common/configurationStorage';
-import { ConfigurationHub, ConfigurationType, DefaultConfiguration, UserConfiguration } from 'src/code/platform/configuration/common/configurationHub';
+import { ConfigurationHub, DefaultConfiguration, UserConfiguration } from 'src/code/platform/configuration/common/configurationHub';
 import { IConfigurationRegistrant, IConfigurationUnit } from 'src/code/platform/configuration/common/configurationRegistrant';
 import { FileService, IFileService } from 'src/code/platform/files/common/fileService';
 import { InMemoryFileSystemProvider } from 'src/code/platform/files/common/inMemoryFileSystemProvider';
 import { REGISTRANTS } from 'src/code/platform/registrant/common/registrant';
 import { NullLogger } from 'test/utils/utility';
+import { ConfigurationModuleType } from 'src/code/platform/configuration/common/configuration';
 
 suite('ConfigurationHub-test (common)', () => {
     const enum TestConfiguration {
@@ -281,10 +282,10 @@ suite('ConfigurationHub-test (common)', () => {
     
             const newDefaultConfig = new ConfigurationStorage();
             newDefaultConfig.set('testKey', 'newDefaultValue');
-            hub.updateConfiguration(ConfigurationType.Default, newDefaultConfig);
+            hub.updateConfiguration(ConfigurationModuleType.Default, newDefaultConfig);
             assert.strictEqual(hub.get('testKey'), 'userValue');
             
-            hub.updateConfiguration(ConfigurationType.User, new ConfigurationStorage());
+            hub.updateConfiguration(ConfigurationModuleType.User, new ConfigurationStorage());
             assert.strictEqual(hub.get('testKey'), 'newDefaultValue');
         });
     
@@ -296,7 +297,7 @@ suite('ConfigurationHub-test (common)', () => {
     
             const newUserConfig = new ConfigurationStorage();
             newUserConfig.set('testKey', 'newUserValue');
-            const { properties } = hub.compareAndUpdateConfiguration(ConfigurationType.User, newUserConfig);
+            const { properties } = hub.compareAndUpdateConfiguration(ConfigurationModuleType.User, newUserConfig);
             
             assert.strictEqual(hub.get('testKey'), 'newUserValue');
             assert.deepStrictEqual(properties, ['testKey']);
