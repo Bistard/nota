@@ -11,6 +11,7 @@ import { ConfigurationStorage, IConfigurationStorage } from "src/code/platform/c
 import { IFileService } from "src/code/platform/files/common/fileService";
 import { REGISTRANTS } from "src/code/platform/registrant/common/registrant";
 import { ConfigurationModuleType, IComposedConfiguration, IConfigurationCompareResult, IConfigurationModule, Section } from "src/code/platform/configuration/common/configuration";
+import { UnbufferedScheduler } from "src/base/common/util/async";
 
 const Registrant = REGISTRANTS.get(IConfigurationRegistrant);
 
@@ -146,7 +147,14 @@ export class UserConfiguration extends Disposable implements IConfigurationModul
 
             // configuration updation
             this.__register(this.fileService.watch(userResource));
-            Event.filter(this.fileService.onDidResourceChange, e => e.wrap().match(userResource))(() => this._onDidConfigurationChange.fire());
+            Event.filter(this.fileService.onDidResourceChange, e => e.wrap().match(userResource))(() => reloadScheduler.schedule());
+            const reloadScheduler = this.__register(new UnbufferedScheduler<void>(
+                100, // wait for a moment to avoid excessive reloading
+                async () => {
+                    await this.reload();
+                    this._onDidConfigurationChange.fire();
+                },
+            ));
         }
     }
 
@@ -237,7 +245,31 @@ class UserConfigurationValidator implements IDisposable {
     }
 }
 
-class ConfigurationHubBase {
+interface IConfigurationHubBase {
+    
+    inspect(): IComposedConfiguration;
+
+    /**
+     * @description Replace the reference to a {@link IConfigurationStorage} 
+     * with a new one based on the specified module type.
+     * @param type The type of the module that needs to be updated.
+     * @param newConfiguration The reference to the new configuration.
+     */
+    updateConfiguration(type: ConfigurationModuleType, newConfiguration: IConfigurationStorage): void;
+
+    /**
+     * @description An enhanced version of '{@link updateConfiguration}' that 
+     * compares the existing and new configuration modules and returns the 
+     * comparison result.
+     * @param type The type of the module that needs to be updated.
+     * @param newConfiguration The new configuration reference.
+     * @param changedKeys This parameter is provided if the client already knows 
+     * the comparison result.
+     */
+    compareAndUpdateConfiguration(type: ConfigurationModuleType, newConfiguration: IConfigurationStorage, changedKeys: Section[] | undefined): IRawConfigurationChangeEvent;
+}
+
+class ConfigurationHubBase implements IConfigurationHubBase {
 
     // [fields]
 
@@ -337,7 +369,7 @@ class ConfigurationHubBase {
 /**
  * An interface only for {@link ConfigurationHub}.
  */
-export interface IConfigurationHub {
+export interface IConfigurationHub extends IConfigurationHubBase {
 
     /**
      * @description Fetch the configuration at the given {@link Section}.
@@ -353,27 +385,6 @@ export interface IConfigurationHub {
 
     setInMemory(section: Section, value: any): void;
     deleteInMemory(section: Section): void;
-    
-    inspect(): IComposedConfiguration;
-
-    /**
-     * @description Replace the reference to a {@link IConfigurationStorage} 
-     * with a new one based on the specified module type.
-     * @param type The type of the module that needs to be updated.
-     * @param newConfiguration The reference to the new configuration.
-     */
-    updateConfiguration(type: ConfigurationModuleType, newConfiguration: IConfigurationStorage): void;
-
-    /**
-     * @description An enhanced version of {@link updateConfiguration} that 
-     * compares the existing and new configuration modules and returns the 
-     * comparison result.
-     * @param type The type of the module that needs to be updated.
-     * @param newConfiguration The new configuration reference.
-     * @param changedKeys This parameter is provided if the client already knows 
-     * the comparison result.
-     */
-    compareAndUpdateConfiguration(type: ConfigurationModuleType, newConfiguration: IConfigurationStorage, changedKeys: Section[] | undefined): IRawConfigurationChangeEvent;
 }
 
 /**

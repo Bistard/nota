@@ -53,14 +53,7 @@ export class MainConfigurationService extends Disposable implements IConfigurati
             this.__register(this._defaultConfiguration.onDidConfigurationChange(e => this.__onDefaultConfigurationChange(e)));
 
             // user configuration reload
-            this.__register(this._userConfiguration.onDidConfigurationChange(e => userScheduler.schedule()));
-            const userScheduler = this.__register(new UnbufferedScheduler<void>(
-                100, // wait for a moment to avoid excessive reloading
-                async () => {
-                    await this._userConfiguration.reload();
-                    this.__onUserConfigurationChange();
-                },
-            ));
+            this.__register(this._userConfiguration.onDidConfigurationChange(() => this.__onUserConfigurationChange()));
 
             // catch configuration registration errors and log out
             this.__register(this._registrant.onErrorRegistration(e => logService.warn(`The configuration registration fails: ${JSON.stringify(e)}.`)));
