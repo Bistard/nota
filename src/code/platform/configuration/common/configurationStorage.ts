@@ -218,6 +218,10 @@ export class ConfigurationStorage extends Disposable implements IConfigurationSt
             throw new Error(`cannot get configuration section at '${section}'`);
         }
 
+        if (currModel === undefined) {
+            throw new Error(`cannot get configuration section at '${section}'`);
+        }
+
         return <T>currModel;
     }
 

@@ -60,6 +60,14 @@ suite('configStorage-test', () => {
         });
     });
 
+    test('get - throws error when the section is invalid', () => {
+        const emptyStorage = new ConfigurationStorage();
+        assert.throws(() => emptyStorage.get('path1'), 'should throws an error since the section is invalid.');
+        
+        const storage = new ConfigurationStorage(['a.b'], { 'a': { 'b': 1 } });
+        assert.strictEqual(storage.get('a.b'), 1);
+    });
+
     test('set - for a key that has no sections and not defined', () => {
 		const testObject = new ConfigurationStorage(['a.b'], { 'a': { 'b': 1 } });
 
