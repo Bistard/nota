@@ -5,7 +5,7 @@ const path = require('path');
 (async function () {
 
     const cliArgs = process.argv.slice(2);
-    const configurationPath = './scripts/test/mochapack.json';
+    const configurationPath = './scripts/tests/mochapack.json';
     const command = await buildCommandFromConfiguration('mochapack', cliArgs, configurationPath);
 
     console.log(`Executing command: ${command}`);

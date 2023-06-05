@@ -1,6 +1,6 @@
 {
     "clear-terminal": true,
-    "webpack-config": "./scripts/webpack.config.test.js",
+    "webpack-config": "./scripts/tests/webpack.config.test.js",
     "glob": "\"*.test.ts\" ./test/",
     "recursive": true,
     "ui": "tdd",

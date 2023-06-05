@@ -78,7 +78,7 @@ const configuration = {
     },
 
     "test": {
-        command: "node ./scripts/test/mochaRunner.js",
+        command: "node ./scripts/tests/mochaRunner.js",
         description: 'Run all the unit tests stores in the files which end with .test.ts under the ./test directory. If any of the tests or suites are marked as `only`, the command will only execute those.\n' +
                       'e.g. Writing `suite.only(\'suite-name\', () => {})` in the source file.',
         options: [
