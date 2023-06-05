@@ -1,5 +1,5 @@
 const path = require('path');
-const WebpackBaseConfigurationProvider = require('./webpack/webpack.config.base');
+const WebpackBaseConfigurationProvider = require('../webpack/webpack.config.base');
 const nodeExternals = require('webpack-node-externals');
 
 /**
