@@ -1,4 +1,4 @@
-import { Disposable, IDisposable } from "src/base/common/dispose";
+import { Disposable, IDisposable, toDisposable } from "src/base/common/dispose";
 import { Emitter } from "src/base/common/event";
 import { FileOperationErrorType, FileSystemProviderCapability, FileSystemProviderError, FileType, IDeleteFileOptions, IFileStat, IOverwriteFileOptions, IWatchOptions, IWriteFileOptions } from "src/base/common/file/file";
 import { IFileSystemProviderWithFileReadWrite } from "src/base/common/file/file";
@@ -50,9 +50,9 @@ export class InMemoryFileSystemProvider extends Disposable implements
     // [fields]
 
     public readonly capabilities: FileSystemProviderCapability = FileSystemProviderCapability.FileReadWrite;
-    private readonly _root = new Directory('');
-
-	private readonly _options: IInMemoryFileSystemProviderOptions;
+    
+	private readonly _root = new Directory('');
+	private readonly _watchers = new Map<string, IDisposable>();
 
     // [event]
 
@@ -66,9 +66,8 @@ export class InMemoryFileSystemProvider extends Disposable implements
 
     // [constructor]
 
-    constructor(options?: IInMemoryFileSystemProviderOptions) {
+    constructor() {
         super();
-		this._options = options ?? { throwWhenNotSupport: true, };
 
         this._onDidResourceChangeScheduler = new Scheduler(5, (rawEvents) => {
             
@@ -94,12 +93,26 @@ export class InMemoryFileSystemProvider extends Disposable implements
 
     // [public methods]
 
+	/**
+	 * @note Does not support recursive watching.
+	 */
 	public watch(uri: URI, opts?: IWatchOptions): IDisposable {
-        if (this._options.throwWhenNotSupport) {
-			throw new Error('InMemoryDiskSystemProvider does not support "watch".');
-		} else {
-			return Disposable.NONE;
+        if (opts) {
+			throw new Error('[InMemoryFileSystemProvider] does not provide options for `watch`.');
 		}
+		
+		const path = URI.toString(uri);
+
+        if (this._watchers.has(path)) {
+            throw new Error(`Already watching path ${path}`);
+        }
+
+        const watcher = toDisposable(() => {
+			this._watchers.delete(path);
+		});
+        this._watchers.set(path, watcher);
+
+        return watcher;
     }
 
 	public async stat(uri: URI): Promise<IFileStat> {
@@ -121,10 +134,7 @@ export class InMemoryFileSystemProvider extends Disposable implements
 		parent.modifyTime = Date.now();
 		parent.byteSize += 1;
 
-        this._onDidResourceChangeScheduler.schedule([
-            { type: ResourceChangeType.UPDATED, resource: URI.toString(dirName) }, 
-            { type: ResourceChangeType.ADDED, resource: URI.toString(uri) },
-        ]);
+		this.__triggerWatchers(uri, [ResourceChangeType.ADDED, ResourceChangeType.UPDATED], false);
     }
 
 	public async readdir(uri: URI): Promise<[string, FileType][]> {
@@ -139,16 +149,16 @@ export class InMemoryFileSystemProvider extends Disposable implements
         const dirName = URI.dirname(uri);
 		
         const parent = this.__lookupDirectory(dirName, false);
-		if (parent.entries.has(baseName)) {
-			parent.entries.delete(baseName);
-			parent.modifyTime = Date.now();
-			parent.byteSize -= 1;
-
-			this._onDidResourceChangeScheduler.schedule([
-                { type: ResourceChangeType.UPDATED, resource: URI.toString(dirName) }, 
-                { type: ResourceChangeType.DELETED, resource: URI.toString(uri) },
-            ]);
+		if (!parent.entries.has(baseName)) {
+			return;
 		}
+		const target = parent.entries.get(baseName)!;
+
+		parent.entries.delete(baseName);
+		parent.modifyTime = Date.now();
+		parent.byteSize -= 1;
+
+		this.__triggerWatchers(uri, [ResourceChangeType.UPDATED, ResourceChangeType.DELETED], target.type === FileType.FILE);
     }
 
 	public async rename(from: URI, to: URI, opts: IOverwriteFileOptions): Promise<void> {
@@ -166,10 +176,9 @@ export class InMemoryFileSystemProvider extends Disposable implements
 		entry.name = newName;
 		newParent.entries.set(newName, entry);
 
-		this._onDidResourceChangeScheduler.schedule([
-			{ type: ResourceChangeType.DELETED, resource: URI.toString(from) },
-			{ type: ResourceChangeType.ADDED, resource: URI.toString(to) },
-        ]);
+		const isFile = entry.type === FileType.FILE;
+		this.__triggerWatchers(from, ResourceChangeType.DELETED, isFile);
+		this.__triggerWatchers(to, ResourceChangeType.ADDED, isFile);
     }
 
     public async readFile(uri: URI): Promise<Uint8Array> {
@@ -200,15 +209,22 @@ export class InMemoryFileSystemProvider extends Disposable implements
 		if (!entry) {
 			entry = new File(basename);
 			parent.entries.set(basename, entry);
-			this._onDidResourceChangeScheduler.schedule({ type: ResourceChangeType.ADDED, resource: URI.toString(uri) });
+			this.__triggerWatchers(uri, ResourceChangeType.ADDED, true);
 		}
 
 		entry.modifyTime = Date.now();
 		entry.byteSize = content.byteLength;
 		entry.data = content;
 
-		this._onDidResourceChangeScheduler.schedule({ type: ResourceChangeType.UPDATED, resource: URI.toString(uri) });
+		this.__triggerWatchers(uri, ResourceChangeType.UPDATED, true);
     }
+
+	public override dispose(): void {
+		super.dispose();
+		for (const [path, disposable] of this._watchers) {
+			disposable.dispose();
+		}
+	}
 
     // [private helper methods]
 
@@ -256,4 +272,26 @@ export class InMemoryFileSystemProvider extends Disposable implements
 		}
 		throw new FileSystemProviderError('file is a directory', FileOperationErrorType.FILE_IS_DIRECTORY);
 	}
+
+	private __triggerWatchers(uri: URI, types: ResourceChangeType | ResourceChangeType[], isFile: boolean): void {
+        const path = URI.toString(uri);
+		if (!this._watchers.has(path)) {
+			return;
+		}
+		
+		if (!Array.isArray(types)) {
+			types = [types];
+		}
+
+		let rawEvents: IRawResourceChangeEvent[] = [];
+		for (const type of types) {
+			rawEvents.push({
+				resource: path, 
+				type: type,
+				isDirectory: !isFile,
+			});
+		}
+
+		this._onDidResourceChangeScheduler.schedule(rawEvents);
+    }
 }
