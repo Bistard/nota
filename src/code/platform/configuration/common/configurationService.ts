@@ -3,7 +3,6 @@ import { tryOrDefault } from "src/base/common/error";
 import { Emitter } from "src/base/common/event";
 import { URI } from "src/base/common/file/uri";
 import { ILogService } from "src/base/common/logger";
-import { UnbufferedScheduler } from "src/base/common/util/async";
 import { IConfigurationRegistrant, IRawConfigurationChangeEvent } from "src/code/platform/configuration/common/configurationRegistrant";
 import { ConfigurationHub, DefaultConfiguration, UserConfiguration } from "src/code/platform/configuration/common/configurationHub";
 import { IFileService } from "src/code/platform/files/common/fileService";
@@ -106,10 +105,34 @@ export class MainConfigurationService extends Disposable implements IConfigurati
     }
 }
 
+/**
+ * An interface only for {@link ConfigurationChangeEvent}.
+ */
 export interface IConfigurationChangeEvent {
+    
+    /**
+     * The type of configuration module that has changed.
+     */
     readonly type: ConfigurationModuleType;
+    
+    /**
+     * The changed configuration property keys.
+     */
     readonly properties: Set<Section>;
+    
+    /**
+     * @description Check if the given section finds an exact match in the 
+     * changing events.
+     * @param section The given section.
+     */
     affect(section: Section): boolean;
+
+    /**
+     * @description Check if the given section finds an exact match or find a 
+     * child of the section in the changing events.
+     * @param section The given section.
+     */
+    match(section: Section): boolean;
 }
 
 export class ConfigurationChangeEvent implements IConfigurationChangeEvent {
@@ -121,7 +144,7 @@ export class ConfigurationChangeEvent implements IConfigurationChangeEvent {
     // [constructor]
 
     constructor(
-        change: IRawConfigurationChangeEvent,
+        private readonly change: IRawConfigurationChangeEvent,
         public readonly type: ConfigurationModuleType,
     ) {
         for (const key of change.properties) {
@@ -132,11 +155,15 @@ export class ConfigurationChangeEvent implements IConfigurationChangeEvent {
     // [public methods]
 
     public affect(section: Section): boolean {
-        for (const key of this.properties) {
+        for (const key of this.change.properties) {
             if (section.startsWith(key)) {
                 return true;
             }
         }
         return false;
+    }
+
+    public match(section: Section): boolean {
+        return this.properties.has(section);
     }
 }
