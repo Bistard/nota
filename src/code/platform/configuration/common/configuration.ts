@@ -78,8 +78,7 @@ export interface IConfigurationCompareResult {
 }
 
 /**
- * A list of different types of configurations that are stored inside 
- * {@link ConfigurationHub}.
+ * A list of different types of {@link IConfigurationModule}.
  */
 export const enum ConfigurationModuleType {
     Default = 1,
