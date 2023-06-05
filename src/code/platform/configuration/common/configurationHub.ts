@@ -147,10 +147,15 @@ export class UserConfiguration extends Disposable implements IConfigurationModul
 
             // configuration updation
             this.__register(this.fileService.watch(userResource));
-            Event.filter(this.fileService.onDidResourceChange, e => e.wrap().match(userResource))(() => reloadScheduler.schedule());
+            Event.filter(this.fileService.onDidResourceChange, e => e.wrap().match(userResource))(() => {
+                console.log('[UserConfiguration] onDidResourceChange fires'); // REVIEW
+                reloadScheduler.schedule();
+            });
+
             const reloadScheduler = this.__register(new UnbufferedScheduler<void>(
                 100, // wait for a moment to avoid excessive reloading
                 async () => {
+                    console.log('reload'); // REVIEW
                     await this.reload();
                     this._onDidConfigurationChange.fire();
                 },

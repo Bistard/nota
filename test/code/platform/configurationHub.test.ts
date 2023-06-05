@@ -13,6 +13,8 @@ import { InMemoryFileSystemProvider } from 'src/code/platform/files/common/inMem
 import { REGISTRANTS } from 'src/code/platform/registrant/common/registrant';
 import { NullLogger } from 'test/utils/utility';
 import { ConfigurationModuleType } from 'src/code/platform/configuration/common/configuration';
+import { FakeAsync } from 'test/utils/async';
+import { Event } from 'src/base/common/event';
 
 suite('ConfigurationHub-test (common)', () => {
     const enum TestConfiguration {
@@ -171,7 +173,7 @@ suite('ConfigurationHub-test (common)', () => {
         });
     });
     
-    suite('UserConfiguration-test', () => {
+    suite.only('UserConfiguration-test', () => {
     
         let configuration: UserConfiguration;
         let fileService: IFileService;
@@ -231,22 +233,35 @@ suite('ConfigurationHub-test (common)', () => {
             assert.strictEqual(tryOrDefault(undefined, () => configuration.getConfiguration().get(TestConfiguration.Two)), undefined);
         });
     
-        test('double init test - prevent double initialization', () => {
+        test('double init test - prevent double initialization', async () => {
             try {
-                configuration.init();
+                await configuration.init();
                 assert.fail();
             } catch {
                 assert.ok(true);
             }
         });
     
-        test('on configuration change test', () => {
-            assert.ok('The unit test can not be tested here since InMemoryFileSystemProvider does not support watch thus there is no way to update the configuration');
-        });
-    
-        test('reload test - should reset configurations', () => {
-            assert.ok('The unit test can not be tested here since InMemoryFileSystemProvider does not support watch thus there is no way to update the configuration');
-        });
+        test('on configuration change test - the source user configuration file has changed', () => FakeAsync.run(async () => {
+            const stopWatch = fileService.watch(baseURI);
+            await configuration.init();
+
+            assert.throws(() => configuration.getConfiguration().get(TestConfiguration.One));
+            assert.throws(() => configuration.getConfiguration().get(TestConfiguration.Two));
+
+            const jsonUserConfiguration = DataBuffer.fromString(JSON.stringify({
+                [TestConfiguration.One]: 10,
+                [TestConfiguration.Two]: 'hello world',
+            }));
+            await fileService.writeFile(baseURI, jsonUserConfiguration, { create: true, overwrite: true, });
+
+            await Event.toPromise(configuration.onDidConfigurationChange).then(() => {
+                assert.strictEqual(configuration.getConfiguration().get(TestConfiguration.One), 10);
+                assert.strictEqual(configuration.getConfiguration().get(TestConfiguration.Two), 'hello world');
+            });
+            
+            stopWatch.dispose();
+        }));
     });
     
     suite('ConfigurationHub-test', () => {
