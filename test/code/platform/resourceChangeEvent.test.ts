@@ -14,14 +14,15 @@ function toPath(this: Mocha.Suite, path: string): string {
 
 function toResource(this: Mocha.Suite, path: string): URI {
 	if (IS_WINDOWS) {
-		return URI.fromFile(join('C:\\', this.fullTitle(), path));
+		return URI.parse(join('C:\\', this.fullTitle(), path));
 	}
-	return URI.fromFile(join('/', this.fullTitle(), path));
+	return URI.parse(join('/', this.fullTitle(), path));
 }
 
 suite('ResourceChangeEvent-test', function () {
 
     test('basic', () => {
+		debugger;
         const changes: IRawResourceChangeEvents = {
 			wrap: undefined!,
             events: [
@@ -108,8 +109,8 @@ suite('ResourceChangeEvent-test', function () {
 				const event = new ResourceChangeEvent(changes, ignorePathCasing);
 
 				for (const change of changes.events) {
-					assert.ok(event.match(URI.fromFile(change.resource), [type]));
-					assert.ok(event.affect(URI.fromFile(change.resource), [type]));
+					assert.ok(event.match(URI.parse(change.resource), [type]));
+					assert.ok(event.affect(URI.parse(change.resource), [type]));
 				}
 
 				assert.ok(event.affect(toResource.call(this, '/foo'), [type]));

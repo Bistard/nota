@@ -59,7 +59,7 @@ export class ResourceChangeEvent implements IResourceChangeEvent {
                 entriesByType.set(change.type, entry);
             }
 
-            entry.push([URI.fromFile(change.resource), change]);
+            entry.push([URI.parse(change.resource), change]);
         }
 
         // building ternary search tree by different categories
