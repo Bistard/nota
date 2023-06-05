@@ -1,0 +1,9 @@
+{
+    "clear-terminal": true,
+    "webpack-config": "./scripts/webpack.config.test.js",
+    "glob": "\"*.test.ts\" ./test/",
+    "recursive": true,
+    "ui": "tdd",
+    "require": "jsdom-global/register",
+    "timeout": "10000"
+}
