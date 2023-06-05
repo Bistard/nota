@@ -13,7 +13,7 @@ import { REGISTRANTS } from "src/code/platform/registrant/common/registrant";
 import { FakeAsync } from 'test/utils/async';
 import { NullLogger } from "test/utils/utility";
 
-suite.only('MainConfiguratioService-test', () => {
+suite('MainConfiguratioService-test', () => {
 
     const Registrant = REGISTRANTS.get(IConfigurationRegistrant);
 

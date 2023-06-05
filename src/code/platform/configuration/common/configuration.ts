@@ -83,6 +83,7 @@ export interface IConfigurationCompareResult {
 export const enum ConfigurationModuleType {
     Default = 1,
     User,
+    Memory,
 }
 
 /**

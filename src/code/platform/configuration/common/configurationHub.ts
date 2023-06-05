@@ -288,6 +288,7 @@ class ConfigurationHubBase implements IConfigurationHubBase {
         this._configurationMapping = {
             [ConfigurationModuleType.Default]: '_defaultConfiguration',
             [ConfigurationModuleType.User]: '_userConfiguration',
+            [ConfigurationModuleType.Memory]: '_memoryConfiguration',
         };
     }
 
