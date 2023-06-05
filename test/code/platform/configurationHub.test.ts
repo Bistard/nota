@@ -205,7 +205,7 @@ suite('ConfigurationHub-test (common)', () => {
             assert.deepEqual(configuration.getConfiguration().model, Object.create({}));
         });
     
-        test('init test', async () => {
+        test('init test - basics', async () => {
             const jsonUserConfiguration = DataBuffer.fromString(JSON.stringify({
                 [TestConfiguration.One]: 10,
                 [TestConfiguration.Two]: 'bad world',
@@ -242,7 +242,7 @@ suite('ConfigurationHub-test (common)', () => {
             }
         });
     
-        test('on configuration change test - the source user configuration file has changed', () => FakeAsync.run(async () => {
+        test('onDidConfigurationChange - the source user configuration file has changed', () => FakeAsync.run(async () => {
             const stopWatch = fileService.watch(baseURI);
             await configuration.init();
 
