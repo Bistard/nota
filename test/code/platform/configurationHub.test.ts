@@ -173,7 +173,7 @@ suite('ConfigurationHub-test (common)', () => {
         });
     });
     
-    suite.only('UserConfiguration-test', () => {
+    suite('UserConfiguration-test', () => {
     
         let configuration: UserConfiguration;
         let fileService: IFileService;
@@ -205,7 +205,7 @@ suite('ConfigurationHub-test (common)', () => {
             assert.deepEqual(configuration.getConfiguration().model, Object.create({}));
         });
     
-        test('init test - basics', async () => {
+        test('init test - basics', () => FakeAsync.run(async () => {
             const jsonUserConfiguration = DataBuffer.fromString(JSON.stringify({
                 [TestConfiguration.One]: 10,
                 [TestConfiguration.Two]: 'bad world',
@@ -217,9 +217,9 @@ suite('ConfigurationHub-test (common)', () => {
     
             assert.strictEqual(configuration.getConfiguration().get(TestConfiguration.One), 10);
             assert.strictEqual(configuration.getConfiguration().get(TestConfiguration.Two), 'bad world');
-        });
+        }));
     
-        test('init test - reading user configuration with missing properties', async () => {
+        test('init test - reading user configuration with missing properties', () => FakeAsync.run(async () => {
             const jsonUserConfiguration = DataBuffer.fromString(JSON.stringify({
                 [TestConfiguration.One]: undefined,
                 [TestConfiguration.Two]: undefined,
@@ -231,16 +231,16 @@ suite('ConfigurationHub-test (common)', () => {
     
             assert.strictEqual(tryOrDefault(undefined, () => configuration.getConfiguration().get(TestConfiguration.One)), undefined);
             assert.strictEqual(tryOrDefault(undefined, () => configuration.getConfiguration().get(TestConfiguration.Two)), undefined);
-        });
+        }));
     
-        test('double init test - prevent double initialization', async () => {
+        test('double init test - prevent double initialization', () => FakeAsync.run(async () => {
             try {
                 await configuration.init();
                 assert.fail();
             } catch {
                 assert.ok(true);
             }
-        });
+        }));
     
         test('onDidConfigurationChange - the source user configuration file has changed', () => FakeAsync.run(async () => {
             const stopWatch = fileService.watch(baseURI);
