@@ -182,7 +182,7 @@ suite('ConfigurationHub-test (common)', () => {
             Registrant.registerConfigurations(unit1);
     
             fileService = new FileService(new NullLogger());
-            fileService.registerProvider('file', new InMemoryFileSystemProvider({ throwWhenNotSupport: false, }));
+            fileService.registerProvider('file', new InMemoryFileSystemProvider());
         });
     
         after(() => {

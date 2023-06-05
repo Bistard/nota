@@ -1,9 +1,9 @@
 import * as assert from 'assert';
+import { Event } from 'src/base/common/event';
+import { DataBuffer } from 'src/base/common/file/buffer';
 import { FileOperationErrorType, FileType } from "src/base/common/file/file";
 import { URI } from "src/base/common/file/uri";
-import { delayFor } from 'src/base/common/util/async';
 import { InMemoryFileSystemProvider } from 'src/code/platform/files/common/inMemoryFileSystemProvider';
-import { ResourceChangeType } from 'src/code/platform/files/common/watcher';
 
 suite('InMemoryFileSystemProvider-test', () => {
     
@@ -17,18 +17,10 @@ suite('InMemoryFileSystemProvider-test', () => {
     });
 
     test('create new file', async () => {
-        let eventTriggered = false;
-
-        provider.onDidResourceChange((e) => {
-            eventTriggered = true;
-            assert.ok(e.events.some(event => event.type === ResourceChangeType.ADDED && event.resource === URI.toString(fileURI)));
-        });
-
         await provider.writeFile(fileURI, new Uint8Array(), { create: true, overwrite: false });
 
         const stat = await provider.stat(fileURI);
         assert.strictEqual(stat.type, FileType.FILE);
-        await delayFor(5, () => assert.ok(eventTriggered));
     });
 
     test('write and read file', async () => {
@@ -36,17 +28,10 @@ suite('InMemoryFileSystemProvider-test', () => {
         await provider.writeFile(fileURI, writeContent, { create: true, overwrite: true });
 
         const readContent = await provider.readFile(fileURI);
-
         assert.deepStrictEqual(readContent, writeContent);
     });
 
     test('delete file', async () => {
-        let eventTriggered = false;
-        provider.onDidResourceChange((e) => {
-            eventTriggered = true;
-            assert.ok(e.events.some(event => event.type === ResourceChangeType.DELETED && event.resource === URI.toString(fileURI)));
-        });
-
         await provider.writeFile(fileURI, new Uint8Array(), { create: true, overwrite: false });
         await provider.delete(fileURI, { recursive: false });
 
@@ -55,18 +40,9 @@ suite('InMemoryFileSystemProvider-test', () => {
         } catch (e: any) {
             assert.ok(e.code === FileOperationErrorType.FILE_NOT_FOUND);
         }
-
-        await delayFor(5, () => assert.ok(eventTriggered));
     });
 
     test('rename file', async () => {
-        let eventTriggered = false;
-        provider.onDidResourceChange((e) => {
-            eventTriggered = true;
-            assert.ok(e.events.some(event => event.type === ResourceChangeType.DELETED && event.resource === URI.toString(fileURI)));
-            assert.ok(e.events.some(event => event.type === ResourceChangeType.ADDED && event.resource === URI.toString(renamedFileURI)));
-        });
-
         await provider.writeFile(fileURI, new Uint8Array(), { create: true, overwrite: false });
         await provider.rename(fileURI, renamedFileURI, { overwrite: false });
 
@@ -78,20 +54,54 @@ suite('InMemoryFileSystemProvider-test', () => {
 
         const stat = await provider.stat(renamedFileURI);
         assert.strictEqual(stat.type, FileType.FILE);
-        await delayFor(5, () => assert.ok(eventTriggered));
     });
 
     test('create new directory', async () => {
-        let eventTriggered = false;
-        provider.onDidResourceChange((e) => {
-            eventTriggered = true;
-            assert.ok(e.events.some(event => event.type === ResourceChangeType.ADDED && event.resource === URI.toString(directoryURI)));
-        });
-
         await provider.mkdir(directoryURI);
 
         const stat = await provider.stat(directoryURI);
         assert.strictEqual(stat.type, FileType.DIRECTORY);
-        await delayFor(5, () => assert.ok(eventTriggered));
+    });
+
+    test('watch - file', async () => {
+        const driURI = URI.parse('file:///dir1');
+        const fileURI = URI.join(driURI, 'file1');
+
+        await provider.mkdir(driURI);
+        const disposable = provider.watch(fileURI);
+        const onChange = Event.toPromise(provider.onDidResourceChange);
+        
+        await provider.writeFile(fileURI, DataBuffer.fromString('hello world').buffer, { create: true });
+
+        await onChange.then(e => {
+            for (const raw of e.events) {
+                assert.strictEqual(raw.resource, URI.toString(fileURI));
+            }
+            assert.ok(e.anyAdded);
+            assert.ok(e.anyUpdated);
+            assert.ok(e.anyFile);
+            assert.ok(!e.anyDirectory);
+        });
+        disposable.dispose();
+    });
+
+    test('watch - directory', async () => {
+        const driURI = URI.parse('file:///dir1');
+
+        const disposable = provider.watch(driURI);
+        const onChange = Event.toPromise(provider.onDidResourceChange);
+        
+        await provider.mkdir(driURI);
+
+        await onChange.then(e => {
+            for (const raw of e.events) {
+                assert.strictEqual(raw.resource, URI.toString(driURI));
+            }
+            assert.ok(e.anyAdded);
+            assert.ok(e.anyUpdated);
+            assert.ok(!e.anyFile);
+            assert.ok(e.anyDirectory);
+        });
+        disposable.dispose();
     });
 });
