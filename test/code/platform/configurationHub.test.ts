@@ -112,7 +112,7 @@ suite('ConfigurationHub-test (common)', () => {
         test('init test - first time initialization', () => {
             assert.strictEqual(configuration.getConfiguration().get(TestConfiguration.One), 5);
             assert.strictEqual(configuration.getConfiguration().get(TestConfiguration.Two), 'hello world');
-            assert.strictEqual(configuration.getConfiguration().get(TestConfiguration.Three), undefined);
+            assert.throws(() => configuration.getConfiguration().get(TestConfiguration.Three));
         });
     
         test('double init test - prevent double initialization', () => {
@@ -140,7 +140,7 @@ suite('ConfigurationHub-test (common)', () => {
     
             assert.strictEqual(configuration.getConfiguration().get(TestConfiguration.Three), true);
             assert.strictEqual(configuration.getConfiguration().get(TestConfiguration.Four1), null);
-            assert.strictEqual(configuration.getConfiguration().get(TestConfiguration.Four2), undefined);
+            assert.throws(() => configuration.getConfiguration().get(TestConfiguration.Four2));
             // assert.strictEqual(configuration.getConfiguration().get(TestConfiguration.Five), undefined);
             
             assert.strictEqual(fired, 1);
