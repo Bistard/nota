@@ -54,7 +54,7 @@ suite('ResourceChangeEvent-test', function () {
 			assert.ok(event.match(toResource.call(this, '/foo/updated.txt'), [ResourceChangeType.UPDATED, ResourceChangeType.ADDED]));
 			assert.ok(event.affect(toResource.call(this, '/foo/updated.txt'), [ResourceChangeType.UPDATED, ResourceChangeType.ADDED]));
 			assert.ok(event.match(toResource.call(this, '/foo/updated.txt'), [ResourceChangeType.UPDATED, ResourceChangeType.ADDED, ResourceChangeType.DELETED]));
-			debugger;
+
 			// Fix
 			assert.ok(!event.match(toResource.call(this, '/foo/updated.txt'), [ResourceChangeType.ADDED, ResourceChangeType.DELETED]));
 			assert.ok(!event.match(toResource.call(this, '/foo/updated.txt'), [ResourceChangeType.ADDED]));
