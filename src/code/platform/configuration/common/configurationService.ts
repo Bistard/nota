@@ -89,7 +89,7 @@ export class MainConfigurationService extends Disposable implements IConfigurati
 
     private __onUserConfigurationChange(): void {
         const current = this._userConfiguration.getConfiguration();
-        const change = this._configurationHub.compareAndUpdateConfiguration(ConfigurationModuleType.Default, current, undefined);
+        const change = this._configurationHub.compareAndUpdateConfiguration(ConfigurationModuleType.User, current, undefined);
         this.__onConfigurationChange(change, ConfigurationModuleType.User);
     }
 
