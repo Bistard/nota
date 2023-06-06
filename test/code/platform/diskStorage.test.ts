@@ -1,26 +1,26 @@
 import * as assert from 'assert';
 import * as fs from 'fs';
-import { afterEach, setup } from 'mocha';
+import { after, afterEach, before } from 'mocha';
 import { join } from 'src/base/common/file/path';
 import { Schemas, URI } from 'src/base/common/file/uri';
-import { ILogService } from 'src/base/common/logger';
 import { DiskFileSystemProvider } from 'src/code/platform/files/node/diskFileSystemProvider';
 import { FileService, IFileService } from 'src/code/platform/files/common/fileService';
 import { DiskStorage } from 'src/code/platform/files/common/diskStorage';
 import { TestPath, NullLogger } from 'test/utils/utility';
 
-suite('storage-test', () => {
+suite.only('storage-test', () => {
 
-    let dir = join(TestPath, 'storage');
-    let path = join(dir, 'storage.json');
+    let dir: string;
+    let path: string;
     let fileService: IFileService;
-    let logService: ILogService;
     
-    setup(() => {
+    before(() => {
+        dir = join(TestPath, 'storage');
+        path = join(dir, 'storage.json');
+
         fs.mkdirSync(dir, { recursive: true });
         fs.writeFileSync(path, '');
-        logService = new NullLogger();
-        fileService = new FileService(logService);
+        fileService = new FileService(new NullLogger());
         fileService.registerProvider(Schemas.FILE, new DiskFileSystemProvider());
     });
 
@@ -28,7 +28,7 @@ suite('storage-test', () => {
         fs.writeFileSync(path, '');
     });
 
-    teardown(() => {
+    after(() => {
         fileService.dispose();
         fs.rmSync(dir, { recursive: true });
     });
