@@ -27,16 +27,3 @@ async function cleanTestDirectory() {
         await fs.promises.rmdir(TestPath, { maxRetries: 3, retryDelay: 100 });
     }
 }
-
-export const mochaHooks = {
-    
-    beforeAll(done: Mocha.Done) {
-        console.log('before all');
-        done();
-    },
-  
-    afterAll(done: Mocha.Done) {
-        console.log('after all');
-        done();
-    },
-};
