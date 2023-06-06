@@ -86,6 +86,15 @@ export const enum ConfigurationModuleType {
     Memory,
 }
 
+export function ConfigurationModuleTypeToString(type: ConfigurationModuleType): string {
+    switch (type) {
+        case ConfigurationModuleType.Default: return 'Default';
+        case ConfigurationModuleType.User: return 'User';
+        case ConfigurationModuleType.Memory: return 'Memory';
+        default: return 'Unknown';
+    }
+}
+
 /**
  * A {@link IConfigurationModule} signifies a model that encompasses certain 
  * specific configuration aspects.

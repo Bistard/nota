@@ -8,7 +8,7 @@ import { ConfigurationHub, DefaultConfiguration, UserConfiguration } from "src/c
 import { IFileService } from "src/code/platform/files/common/fileService";
 import { REGISTRANTS } from "src/code/platform/registrant/common/registrant";
 import { DeepReadonly } from "src/base/common/util/type";
-import { ConfigurationModuleType, IConfigurationService, Section } from "src/code/platform/configuration/common/configuration";
+import { ConfigurationModuleType, ConfigurationModuleTypeToString, IConfigurationService, Section } from "src/code/platform/configuration/common/configuration";
 
 /**
  * @class // TODO
@@ -16,6 +16,9 @@ import { ConfigurationModuleType, IConfigurationService, Section } from "src/cod
 export class MainConfigurationService extends Disposable implements IConfigurationService {
 
     // [fields]
+
+    private _initialized: boolean;
+    private readonly _userResource: URI;
 
     private readonly _registrant = REGISTRANTS.get(IConfigurationRegistrant);
 
@@ -34,12 +37,14 @@ export class MainConfigurationService extends Disposable implements IConfigurati
     constructor(
         userResource: URI,
         @IFileService fileService: IFileService,
-        @ILogService logService: ILogService,
+        @ILogService private readonly logService: ILogService,
     ) {
         super();
 
         // initialization
         {
+            this._initialized = false;
+            this._userResource = userResource;
             this._defaultConfiguration = new DefaultConfiguration();
             this._userConfiguration = new UserConfiguration(userResource, fileService, logService);
             
@@ -62,8 +67,17 @@ export class MainConfigurationService extends Disposable implements IConfigurati
     // [public methods]
 
     public async init(): Promise<void> {
+        if (this._initialized) {
+            throw new Error(`[MainConfigurationService] cannot be initialized twice.`);
+        }
+        this._initialized = true;
+
+        this.logService.trace(`[MainConfigurationService] initializing at resource URI '${this._userResource}'...`);
+
         await Promise.all([this._defaultConfiguration.init(), this._userConfiguration.init()]);
         this._configurationHub = this.__reloadConfigurationHub();
+
+        this.logService.trace(`[MainConfigurationService] initialized.`);
     }
 
     public get<T>(section: Section | undefined, defaultValue?: T): DeepReadonly<T> {
@@ -93,6 +107,7 @@ export class MainConfigurationService extends Disposable implements IConfigurati
     }
 
     private __onConfigurationChange(change: IRawConfigurationChangeEvent, type: ConfigurationModuleType): void {
+        this.logService.trace(`[MainConfigurationService] onConfigurationChange with type '${ConfigurationModuleTypeToString(type)}'.`);
         const event = new ConfigurationChangeEvent(change, type);
         this._onDidConfigurationChange.fire(event);
     }
