@@ -40,9 +40,9 @@ const trueGlobalAsync = {
  */
 export namespace FakeAsync {
 
-    export async function run(fn: () => Promise<any>, enable?: boolean): Promise<void> {
+    export async function run(fn: () => Promise<any>, options?: IFakeSyncOptions): Promise<void> {
     
-        enable = enable ?? true;
+        const enable = options?.enable ?? true;
         if (!enable) {
             return fn();
         }
@@ -68,6 +68,9 @@ export namespace FakeAsync {
              */
             await fn();
         } 
+        catch (err) {
+            onAnyError(err);
+        }
         finally {
             
             /**
@@ -75,7 +78,11 @@ export namespace FakeAsync {
              */
             try {
                 await fakeExecutor.cleanup();
-            } finally {
+            } 
+            catch (err) {
+                onAnyError(err);
+            }
+            finally {
                 fakeExecutor.dispose();
                 
                 /**
@@ -84,7 +91,21 @@ export namespace FakeAsync {
                 FakeGlobalAsync.disableFakeAsync();
             }
         }
+
+        function onAnyError(err: any): void {
+            if (options?.onError === true) {
+                console.log(err);
+            } 
+            else if (options?.onError) {
+                options.onError(err);
+            }
+        }
     }
+}
+
+export interface IFakeSyncOptions {
+    readonly enable?: boolean;
+    readonly onError?: boolean | ((err: any) => void);
 }
 
 interface ITask {
