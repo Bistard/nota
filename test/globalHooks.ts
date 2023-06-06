@@ -24,6 +24,6 @@ import { fileExists } from "src/base/node/io";
 
 async function cleanTestDirectory() {
     if (fileExists(TestPath)) {
-        await fs.promises.rmdir(TestPath, { maxRetries: 3, retryDelay: 100 });
+        await fs.promises.rm(TestPath, { maxRetries: 3, retryDelay: 100, force: true, recursive: true });
     }
 }
