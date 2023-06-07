@@ -237,7 +237,7 @@ export function isBoolean(obj: any): obj is boolean {
  * @description If the given value is an object in general speaking (does not
  * count as `array`, `null`, {@link RegExp} or {@link Date}).
  */
-export function isObject(obj: any): obj is any {
+export function isObject<T>(obj: T): obj is NonNullable<T> {
     return typeof obj === "object"
         && obj !== null
         && !Array.isArray(obj)
