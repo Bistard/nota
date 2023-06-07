@@ -501,8 +501,8 @@ export class FileService extends Disposable implements IFileService {
         while (true) {
             try {
                 // try to find a directory that exists
-                let stat: IFileStat = await provider.stat(URI.fromFile(path));
-                    
+                let stat = await provider.stat(URI.fromFile(path));
+
                 // not a directory
                 if ((stat.type & FileType.DIRECTORY) === 0) {
                     throw new FileOperationError('undable to create directory that already exists but is not a directory', FileOperationErrorType.FILE_IS_DIRECTORY);

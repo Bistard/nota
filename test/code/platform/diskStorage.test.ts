@@ -10,31 +10,31 @@ import { TestPath, NullLogger } from 'test/utils/utility';
 
 suite.only('storage-test', () => {
 
-    let dir: string;
-    let path: string;
+    let dir: URI;
+    let path: URI;
     let fileService: IFileService;
     
     before(() => {
-        dir = join(TestPath, 'storage');
-        path = join(dir, 'storage.json');
+        dir = URI.parse(join(TestPath, 'storage'));
+        path = URI.join(dir, 'storage.json');
 
-        fs.mkdirSync(dir, { recursive: true });
-        fs.writeFileSync(path, '');
+        fs.mkdirSync(URI.toFsPath(dir), { recursive: true });
+        fs.writeFileSync(URI.toFsPath(path), '');
         fileService = new FileService(new NullLogger());
         fileService.registerProvider(Schemas.FILE, new DiskFileSystemProvider());
     });
 
     afterEach(() => {
-        fs.writeFileSync(path, '');
+        fs.writeFileSync(URI.toFsPath(path), '');
     });
 
     after(() => {
         fileService.dispose();
-        fs.rmSync(dir, { recursive: true });
+        fs.rmSync(URI.toFsPath(dir), { recursive: true });
     });
 
     test('basic - set / get / has', async () => {
-        const storage = new DiskStorage(URI.fromFile(path), true, fileService);
+        const storage = new DiskStorage(URI.fromFile(URI.toFsPath(path)), true, fileService);
         await storage.init();
 
         storage.set('key1', 'value1');
@@ -64,7 +64,7 @@ suite.only('storage-test', () => {
     });
 
     test('used before init', async () => {
-        const storage = new DiskStorage(URI.fromFile(path), true, fileService);
+        const storage = new DiskStorage(URI.fromFile(URI.toFsPath(path)), true, fileService);
 
 		storage.set('key1', 'value1');
 		storage.delete('key2');
@@ -79,7 +79,7 @@ suite.only('storage-test', () => {
     });
 
     test('used after close', async () => {
-        const storage = new DiskStorage(URI.fromFile(path), true, fileService);
+        const storage = new DiskStorage(URI.fromFile(URI.toFsPath(path)), true, fileService);
 		await storage.init();
 
 		storage.set('key1', 'value1');
@@ -91,7 +91,7 @@ suite.only('storage-test', () => {
 
 		storage.set('key5', 'marker');
 
-		const contents = fs.readFileSync(path).toString();
+		const contents = fs.readFileSync(URI.toFsPath(path)).toString();
 		assert.ok(contents.includes('value1'));
 		assert.ok(!contents.includes('marker'));
 
@@ -99,7 +99,7 @@ suite.only('storage-test', () => {
     });
 
     test('Closed before init', async () => {
-		const storage = new DiskStorage(URI.fromFile(path), true, fileService);
+		const storage = new DiskStorage(URI.fromFile(URI.toFsPath(path)), true, fileService);
 
 		storage.set('key1', 'value1');
 		storage.set('key2', 'value2');
@@ -108,12 +108,12 @@ suite.only('storage-test', () => {
 
 		await storage.close();
 
-		const contents = fs.readFileSync(path).toString();
+		const contents = fs.readFileSync(URI.toFsPath(path)).toString();
 		assert.strictEqual(contents.length, 0);
 	});
 
     test('re-init', async () => {
-		const storage = new DiskStorage(URI.fromFile(path), true, fileService);
+		const storage = new DiskStorage(URI.fromFile(URI.toFsPath(path)), true, fileService);
         await storage.init();
 
         await storage.close();
@@ -129,7 +129,7 @@ suite.only('storage-test', () => {
 	});
 
     test('non-sync saving', async () => {
-        const storage = new DiskStorage(URI.fromFile(path), false, fileService);
+        const storage = new DiskStorage(URI.fromFile(URI.toFsPath(path)), false, fileService);
         await storage.init();
 
         storage.set('key1', 'value1');
@@ -137,17 +137,17 @@ suite.only('storage-test', () => {
 		storage.set('key3', 'value3');
 		storage.set('key4', 'value4');
 
-        let contents = fs.readFileSync(path).toString();
+        let contents = fs.readFileSync(URI.toFsPath(path)).toString();
 		assert.strictEqual(contents.length, 0);
 
         await storage.close();
 
-		contents = fs.readFileSync(path).toString();
+		contents = fs.readFileSync(URI.toFsPath(path)).toString();
 		assert.strictEqual(contents.length > 0, true);
     });
 
     test('manually saving', async () => {
-        const storage = new DiskStorage(URI.fromFile(path), false, fileService);
+        const storage = new DiskStorage(URI.fromFile(URI.toFsPath(path)), false, fileService);
         await storage.init();
 
         storage.set('key1', 'value1');
@@ -157,12 +157,12 @@ suite.only('storage-test', () => {
 
         await storage.save();
 
-        let contents = fs.readFileSync(path).toString();
+        let contents = fs.readFileSync(URI.toFsPath(path)).toString();
 		assert.strictEqual(contents.length > 0, true);
     });
 
     test('sync saving', async () => {
-        const storage = new DiskStorage(URI.fromFile(path), true, fileService);
+        const storage = new DiskStorage(URI.fromFile(URI.toFsPath(path)), true, fileService);
         await storage.init();
 
         await storage.set('key1', 'value1');
@@ -170,7 +170,7 @@ suite.only('storage-test', () => {
 		await storage.set('key3', 'value3');
 		await storage.set('key4', 'value4');
 
-        let contents = fs.readFileSync(path).toString();
+        let contents = fs.readFileSync(URI.toFsPath(path)).toString();
 		assert.strictEqual(contents.length > 0, true);
     });
 });

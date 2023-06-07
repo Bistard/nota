@@ -34,11 +34,11 @@ export class NullEnvironmentService extends DiskEnvironmentService implements IE
         super({
                 _: [],
             }, {
-            appRootPath: '',
+            appRootPath: 'temp/',
             isPackaged: false,
-            tmpDirPath: '',
-            userDataPath: '',
-            userHomePath: '',
+            tmpDirPath: 'temp/',
+            userDataPath: 'temp/',
+            userHomePath: 'temp/',
             },
         );
     }
@@ -50,16 +50,16 @@ export class NullBrowserEnvironmentService extends DiskEnvironmentService implem
         super({
             _: []
         }, {
-            appRootPath: '',
+            appRootPath: 'temp/',
             isPackaged: false,
-            tmpDirPath: '',
-            userDataPath: '',
-            userHomePath: '',
+            tmpDirPath: 'temp/',
+            userDataPath: 'temp/',
+            userHomePath: 'temp/',
         });
     }
     
     get machineID(): string {
-        return '';
+        return 'unknown';
     }
 
     get windowID(): number {
