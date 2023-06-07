@@ -1,4 +1,5 @@
 import * as fs from 'fs';
+import * as os from 'os';
 import { after } from "mocha";
 import { TestPath } from "test/utils/utility";
 import { fileExists } from "src/base/node/io";
@@ -8,7 +9,7 @@ import { fileExists } from "src/base/node/io";
  */
 
 (() => {
-    console.log(`[Global Hooks] Global hooks are attached.`);
+    console.log(`[Global Hooks] Global hooks are attached on the environment '${os.platform()}'.`);
 
     /**
      * cleanup after all the unit tests are finished.
