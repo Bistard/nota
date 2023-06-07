@@ -264,7 +264,7 @@ export class URI implements IURI {
 		let dirname: string;
 		
 		if (uri.scheme === Schemas.FILE) {
-			dirname = URI.fromFile(paths.dirname(URI.toFsPath(uri))).path;
+			dirname = URI.fromFile(paths.dirname(URI.toFsPath(uri, true))).path;
 		} 
 		else {
 			dirname = paths.posix.dirname(uri.path);
@@ -298,31 +298,11 @@ export class URI implements IURI {
 		}
 
 		let { scheme, authority, path, query, fragment } = change;
-		if (scheme === undefined) {
-			scheme = uri.scheme;
-		} else if (scheme === null) {
-			scheme = _empty;
-		}
-		if (authority === undefined) {
-			authority = uri.authority;
-		} else if (authority === null) {
-			authority = _empty;
-		}
-		if (path === undefined) {
-			path = uri.path;
-		} else if (path === null) {
-			path = _empty;
-		}
-		if (query === undefined) {
-			query = uri.query;
-		} else if (query === null) {
-			query = _empty;
-		}
-		if (fragment === undefined) {
-			fragment = uri.fragment;
-		} else if (fragment === null) {
-			fragment = _empty;
-		}
+		scheme = scheme === undefined ? uri.scheme : (scheme === null ? _empty : scheme);
+		authority = authority === undefined ? uri.authority : (authority === null ? _empty : authority);
+		path = path === undefined ? uri.path : (path === null ? _empty : path);
+		query = query === undefined ? uri.query : (query === null ? _empty : query);
+		fragment = fragment === undefined ? uri.fragment : (fragment === null ? _empty : fragment);
 
 		if (scheme === uri.scheme
 			&& authority === uri.authority
