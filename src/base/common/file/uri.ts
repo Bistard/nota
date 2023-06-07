@@ -129,30 +129,37 @@ export class URI implements IURI {
 	 * @description Compute the file system path for the given URI. 
 	 */
 	public static toFsPath(uri: URI, keepDriveLetterCasing: boolean = false): string {
-
-		let value: string;
+		let path: string;
+		
+		// file path
 		if (uri.authority && uri.path.length > 1 && uri.scheme === Schemas.FILE) {
 			// unc path: file://shares/c$/far/boo
-			value = `//${uri.authority}${uri.path}`;
-		} else if (
+			path = `//${uri.authority}${uri.path}`;
+		} 
+		
+		else if (
 			uri.path.charCodeAt(0) === CharCode.Slash
 			&& (uri.path.charCodeAt(1) >= CharCode.A && uri.path.charCodeAt(1) <= CharCode.Z || uri.path.charCodeAt(1) >= CharCode.a && uri.path.charCodeAt(1) <= CharCode.z)
 			&& uri.path.charCodeAt(2) === CharCode.Colon
 		) {
 			if (!keepDriveLetterCasing) {
 				// windows drive letter: file:///c:/far/boo
-				value = uri.path[1]!.toLowerCase() + uri.path.substr(2);
+				path = uri.path[1]!.toLowerCase() + uri.path.substr(2);
 			} else {
-				value = uri.path.substr(1);
+				path = uri.path.substr(1);
 			}
-		} else {
-			// other path
-			value = uri.path;
+		} 
+		
+		// other path
+		else {
+			path = uri.path;
 		}
+
 		if (IS_WINDOWS) {
-			value = value.replace(/\//g, '\\');
+			path = path.replace(/\//g, '\\');
 		}
-		return value;
+		
+		return path;
 	}
 
 	/**
