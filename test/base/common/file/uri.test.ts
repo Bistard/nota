@@ -290,14 +290,13 @@ suite('URI-test', () => {
 		assert.strictEqual(URI.toString(URI.from({ scheme: 'http', authority: 'www.EXAMPLE.com', path: '/my/path' })), 'http://www.example.com/my/path');
 		assert.strictEqual(URI.toString(URI.from({ scheme: 'http', authority: '', path: 'my/path' })), 'http:/my/path');
 		assert.strictEqual(URI.toString(URI.from({ scheme: 'http', authority: '', path: '/my/path' })), 'http:/my/path');
-		//http://example.com/#test=true
-		assert.strictEqual(URI.toString(URI.from({ scheme: 'http', authority: 'example.com', path: '/', query: 'test=true' })), 'http://example.com/?test%3Dtrue');
-		assert.strictEqual(URI.toString(URI.from({ scheme: 'http', authority: 'example.com', path: '/', query: '', fragment: 'test=true' })), 'http://example.com/#test%3Dtrue');
+		assert.strictEqual(URI.toString(URI.from({ scheme: 'http', authority: 'example.com', path: '/', query: 'variable=true' })), 'http://example.com/?variable%3Dtrue');
+		assert.strictEqual(URI.toString(URI.from({ scheme: 'http', authority: 'example.com', path: '/', query: '', fragment: 'variable=true' })), 'http://example.com/#variable%3Dtrue');
 	});
 
 	test('toString - (http when encode=FALSE)', () => {
-		assert.strictEqual(URI.toString(URI.from({ scheme: 'http', authority: 'example.com', path: '/', query: 'test=true' }), true), 'http://example.com/?test=true');
-		assert.strictEqual(URI.toString(URI.from({ scheme: 'http', authority: 'example.com', path: '/', query: '', fragment: 'test=true' }), true), 'http://example.com/#test=true');
+		assert.strictEqual(URI.toString(URI.from({ scheme: 'http', authority: 'example.com', path: '/', query: 'variable=true' }), true), 'http://example.com/?variable=true');
+		assert.strictEqual(URI.toString(URI.from({ scheme: 'http', authority: 'example.com', path: '/', query: '', fragment: 'variable=true' }), true), 'http://example.com/#variable=true');
 		assert.strictEqual(URI.toString(URI.from({ scheme: 'http', path: '/api/files/test.me', query: 't=1234' }), true), 'http:/api/files/test.me?t=1234');
 
 		const value = URI.parse('file://shares/pröjects/c%23/#l12');
@@ -369,9 +368,9 @@ suite('URI-test', () => {
         assert.strictEqual(URI.basename(multiDotUri), 'file.name.ext');
     });
 
-	test('basename - more (windows)', () => {
+	test('basename - more (windows)', function () {
 		if (!IS_WINDOWS) {
-			return;
+			this.skip();
 		}
 		assert.strictEqual(URI.basename(URI.fromFile('c:\\some\\file\\test.txt')), 'test.txt');
 		assert.strictEqual(URI.basename(URI.fromFile('c:\\some\\file')), 'file');
@@ -379,9 +378,9 @@ suite('URI-test', () => {
 		assert.strictEqual(URI.basename(URI.fromFile('C:\\some\\file\\')), 'file');
 	});
 
-	test('basename - more (posix)', () => {
+	test('basename - more (posix)', function () {
 		if (IS_WINDOWS) {
-			return;
+			this.skip();
 		}
 		assert.strictEqual(URI.basename(URI.fromFile('/some/file/test.txt')), 'test.txt');
 		assert.strictEqual(URI.basename(URI.fromFile('/some/file/')), 'file');
@@ -427,9 +426,9 @@ suite('URI-test', () => {
         assert.strictEqual(rootDirUri.path, '/c:/');
     });
 
-	test('dirname - more (windows)', () => {
+	test('dirname - more (windows)', function () {
 		if (!IS_WINDOWS) {
-			return;
+			this.skip();
 		}
 
 		assert.strictEqual(URI.toString(URI.dirname(URI.fromFile('c:\\some\\file\\test.txt'))), 'file:///c%3A/some/file');
@@ -440,9 +439,9 @@ suite('URI-test', () => {
 		assert.strictEqual(URI.toString(URI.dirname(URI.fromFile('c:\\'))), 'file:///c%3A/');
 	});
 
-	test('dirname - more (posix)', () => {
+	test('dirname - more (posix)', function () {
 		if (IS_WINDOWS) {
-			return;
+			this.skip();
 		}
 
 		assert.strictEqual(URI.toString(URI.dirname(URI.fromFile('/some/file/test.txt'))), 'file:///some/file');
@@ -538,7 +537,7 @@ suite('URI-test', () => {
 		test('file://monacotools1/certificates/SSL/', IS_WINDOWS ? '\\\\monacotools1\\certificates\\SSL\\' : '//monacotools1/certificates/SSL/');
 	});
 
-    test('class URI cannot represent relative file paths', function () { // FIX
+    test('class URI cannot represent relative file paths', function () {
 
 		assert.strictEqual(URI.fromFile('/foo/bar').path, '/foo/bar');
 		assert.strictEqual(URI.fromFile('foo/bar').path, '/foo/bar');
@@ -577,7 +576,7 @@ suite('URI-test', () => {
 		assertJoined(('file:///foo/bar'), 'bazz', 'file:///foo/bar/bazz', false);
 
 		// "auto-path" scheme
-		assertJoined(('file:'), 'bazz', 'file:///bazz'); // FIX
+		assertJoined(('file:'), 'bazz', 'file:///bazz');
 		assertJoined(('http://domain'), 'bazz', 'http://domain/bazz');
 		assertJoined(('https://domain'), 'bazz', 'https://domain/bazz');
 		assertJoined(('http:'), 'bazz', 'http:/bazz', false);
