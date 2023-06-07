@@ -53,16 +53,12 @@ export interface IURI {
 	 * fragment is the 'fragment' part of 'http://www.msft.com/some/path?query#fragment'.
 	 */
 	readonly fragment: string;
-
-    /**
-     * returns a single string form of the URI
-     */
-    toString(): string;
 }
 
 export const enum Schemas {
 	FILE = 'file',
-	HTTP = 'http'
+	HTTP = 'http',
+	HTTPS = 'https',
 }
 
 const _empty = '';
@@ -81,12 +77,14 @@ export class URI implements IURI {
 
 	// [constructor]
 
-	constructor(scheme: string, authority: string, path: string, query: string, fragment: string) {
-        this.scheme = scheme;
-        this.authority = authority;
-        this.path = path;
-        this.query = query;
-        this.fragment = fragment;
+	constructor(scheme: string, authority?: string, path?: string, query?: string, fragment?: string, strict = false) {
+        this.scheme = __schemeFix(scheme, strict);
+		this.authority = authority || _empty;
+		this.path = __referenceResolution(this.scheme, path || _empty);
+		this.query = query || _empty;
+		this.fragment = fragment || _empty;
+
+		__validateUri(this, strict);
     }
 
     /**
@@ -115,9 +113,11 @@ export class URI implements IURI {
 		if (obj instanceof URI) {
 			return true;
 		}
+		
 		if (!obj) {
 			return false;
 		}
+
 		return typeof (<URI>obj).authority === 'string'
 			&& typeof (<URI>obj).fragment === 'string'
 			&& typeof (<URI>obj).path === 'string'
@@ -128,12 +128,12 @@ export class URI implements IURI {
 	/**
 	 * @description Compute the file system path for the given URI. 
 	 */
-	public static toFsPath(uri: URI, keepDriveLetterCasing: boolean = true): string {
+	public static toFsPath(uri: URI, keepDriveLetterCasing: boolean = false): string {
 
 		let value: string;
 		if (uri.authority && uri.path.length > 1 && uri.scheme === Schemas.FILE) {
 			// unc path: file://shares/c$/far/boo
-			value = `${uri.authority}${uri.path}`;
+			value = `//${uri.authority}${uri.path}`;
 		} else if (
 			uri.path.charCodeAt(0) === CharCode.Slash
 			&& (uri.path.charCodeAt(1) >= CharCode.A && uri.path.charCodeAt(1) <= CharCode.Z || uri.path.charCodeAt(1) >= CharCode.a && uri.path.charCodeAt(1) <= CharCode.z)
@@ -277,10 +277,21 @@ export class URI implements IURI {
 		return URI.with(uri, { path: dirname });
 	}
 
+	public static from(components: Partial<IURI> & { scheme: string }, strict?: boolean): URI {
+		return new URI(
+			components.scheme,
+			components.authority,
+			components.path,
+			components.query,
+			components.fragment,
+			strict,
+		);
+	}
+
 	/**
 	 * @description Creates a new URI by merging the given changes into the given URI.
 	 */
-	public static with(uri: IURI, change: Partial<IURI>): URI {
+	public static with(uri: IURI, change: { scheme?: string; authority?: string | null; path?: string | null; query?: string | null; fragment?: string | null }): URI {
 
 		if (!change) {
 			return uri;
@@ -555,4 +566,71 @@ function __toString(uri: URI, skipEncoding: boolean): string {
 
 export function isAbsoluteURI(uri: URI): boolean {
 	return !!uri.path && uri.path[0] !== '.';
+}
+
+const _schemePattern = /^\w[\w\d+.-]*$/;
+const _singleSlashStart = /^\//;
+const _doubleSlashStart = /^\/\//;
+
+function __validateUri(ret: URI, _strict?: boolean): void {
+
+	// scheme, must be set
+	if (!ret.scheme && _strict) {
+		throw new Error(`[UriError]: Scheme is missing: {scheme: "", authority: "${ret.authority}", path: "${ret.path}", query: "${ret.query}", fragment: "${ret.fragment}"}`);
+	}
+
+	// scheme, https://tools.ietf.org/html/rfc3986#section-3.1
+	// ALPHA *( ALPHA / DIGIT / "+" / "-" / "." )
+	if (ret.scheme && !_schemePattern.test(ret.scheme)) {
+		throw new Error('[UriError]: Scheme contains illegal characters.');
+	}
+
+	// path, http://tools.ietf.org/html/rfc3986#section-3.3
+	// If a URI contains an authority component, then the path component
+	// must either be empty or begin with a slash ("/") character.  If a URI
+	// does not contain an authority component, then the path cannot begin
+	// with two slash characters ("//").
+	if (ret.path) {
+		if (ret.authority) {
+			if (!_singleSlashStart.test(ret.path)) {
+				throw new Error('[UriError]: If a URI contains an authority component, then the path component must either be empty or begin with a slash ("/") character');
+			}
+		} else {
+			if (_doubleSlashStart.test(ret.path)) {
+				throw new Error('[UriError]: If a URI does not contain an authority component, then the path cannot begin with two slash characters ("//")');
+			}
+		}
+	}
+}
+
+// for a while we allowed uris *without* schemes and this is the migration
+// for them, e.g. an uri without scheme and without strict-mode warns and falls
+// back to the file-scheme. that should cause the least carnage and still be a
+// clear warning
+function __schemeFix(scheme: string, _strict: boolean): string {
+	if (!scheme && !_strict) {
+		return Schemas.FILE;
+	}
+	return scheme;
+}
+
+// implements a bit of https://tools.ietf.org/html/rfc3986#section-5
+function __referenceResolution(scheme: string, path: string): string {
+
+	// the slash-character is our 'default base' as we don't
+	// support constructing URIs relative to other URIs. This
+	// also means that we alter and potentially break paths.
+	// see https://tools.ietf.org/html/rfc3986#section-5.1.4
+	switch (scheme) {
+		case Schemas.HTTPS:
+		case Schemas.HTTP:
+		case Schemas.FILE:
+			if (!path) {
+				path = _slash;
+			} else if (path[0] !== _slash) {
+				path = _slash + path;
+			}
+			break;
+	}
+	return path;
 }
