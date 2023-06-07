@@ -122,8 +122,7 @@ export class URI implements IURI {
 			&& typeof (<URI>obj).fragment === 'string'
 			&& typeof (<URI>obj).path === 'string'
 			&& typeof (<URI>obj).query === 'string'
-			&& typeof (<URI>obj).scheme === 'string'
-			&& typeof (<URI>obj).toString === 'function';
+			&& typeof (<URI>obj).scheme === 'string';
 	}
 
 	/**
