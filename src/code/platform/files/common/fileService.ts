@@ -496,12 +496,12 @@ export class FileService extends Disposable implements IFileService {
     private async __mkdirRecursive(provider: IFileSystemProvider, dir: URI): Promise<void> {
         
         const dirWaitToBeCreate: string[] = [];
-        let path = URI.toFsPath(dir); // remove the file name
+        let path = dir;
         
         while (true) {
             try {
                 // try to find a directory that exists
-                let stat = await provider.stat(URI.fromFile(path));
+                let stat = await provider.stat(path);
 
                 // not a directory
                 if ((stat.type & FileType.DIRECTORY) === 0) {
@@ -513,18 +513,18 @@ export class FileService extends Disposable implements IFileService {
 
             } catch (err) {
                 // we reaches a not existed directory, we remember it.
-                dirWaitToBeCreate.push(basename(path));
-                path = dirname(path);
+                dirWaitToBeCreate.push(URI.basename(path));
+                path = URI.dirname(path);
             }
         }
 
         for (let i = dirWaitToBeCreate.length - 1; i >= 0; i--) {
-            path = join(path, dirWaitToBeCreate[i]!);
+            path = URI.join(path, dirWaitToBeCreate[i]!);
 
             try {
-                await provider.mkdir(URI.fromFile(path));
+                await provider.mkdir(path);
             } catch (err) {
-                throw new FileOperationError(`cannot make directory '${path}'`, FileOperationErrorType.UNKNOWN, err);
+                throw new FileOperationError(`cannot make directory '${URI.toString(path, true)}'`, FileOperationErrorType.UNKNOWN, err);
             }
         }
     }
