@@ -132,9 +132,9 @@ export class URI implements IURI {
 	public static toFsPath(uri: URI, keepDriveLetterCasing: boolean = true): string {
 
 		let value: string;
-		if (uri.authority && uri.path.length > 1 && uri.scheme === 'file') {
+		if (uri.authority && uri.path.length > 1 && uri.scheme === Schemas.FILE) {
 			// unc path: file://shares/c$/far/boo
-			value = `${uri.authority}${uri.path}`;
+			value = `//${uri.authority}${uri.path}`;
 		} else if (
 			uri.path.charCodeAt(0) === CharCode.Slash
 			&& (uri.path.charCodeAt(1) >= CharCode.A && uri.path.charCodeAt(1) <= CharCode.Z || uri.path.charCodeAt(1) >= CharCode.a && uri.path.charCodeAt(1) <= CharCode.z)
@@ -201,7 +201,7 @@ export class URI implements IURI {
 			}
 		}
 
-		return new URI('file', authority, path, _empty, _empty);
+		return new URI(Schemas.FILE, authority, path, _empty, _empty);
 	}
 
 	/**
@@ -226,7 +226,7 @@ export class URI implements IURI {
 	 * * The result will be encoded using the percentage encoding and encoding happens mostly
 	 * ignore the scheme-specific encoding rules.
 	 */
-	public static toString(uri: URI, skipEncoding: boolean = true): string {
+	public static toString(uri: URI, skipEncoding: boolean = false): string {
 		return _toString(uri, skipEncoding);
 	}
 
@@ -395,12 +395,12 @@ const encodeTable: { [ch: number]: string } = {
 	[CharCode.Space]: '%20',
 };
 
-function encodeURIComponentFast(uriComponent: string, allowSlash: boolean): string {
+function encodeURIComponentFast(uri: string, isPath: boolean, isAuthority: boolean): string {
 	let res: string | undefined = undefined;
 	let nativeEncodePos = -1;
 
-	for (let pos = 0; pos < uriComponent.length; pos++) {
-		const code = uriComponent.charCodeAt(pos);
+	for (let pos = 0; pos < uri.length; pos++) {
+		const code = uri.charCodeAt(pos);
 
 		// unreserved characters: https://tools.ietf.org/html/rfc3986#section-2.3
 		if (
@@ -411,22 +411,25 @@ function encodeURIComponentFast(uriComponent: string, allowSlash: boolean): stri
 			|| code === CharCode.Period
 			|| code === CharCode.Underline
 			|| code === CharCode.Tilde
-			|| (allowSlash && code === CharCode.Slash)
+			|| (isPath && code === CharCode.Slash)
+			|| (isAuthority && code === CharCode.OpenSquareBracket)
+			|| (isAuthority && code === CharCode.CloseSquareBracket)
+			|| (isAuthority && code === CharCode.Colon)
 		) {
 			// check if we are delaying native encode
 			if (nativeEncodePos !== -1) {
-				res += encodeURIComponent(uriComponent.substring(nativeEncodePos, pos));
+				res += encodeURIComponent(uri.substring(nativeEncodePos, pos));
 				nativeEncodePos = -1;
 			}
 			// check if we write into a new string (by default we try to return the param)
 			if (res !== undefined) {
-				res += uriComponent.charAt(pos);
+				res += uri.charAt(pos);
 			}
 
 		} else {
 			// encoding needed, we need to allocate a new string
 			if (res === undefined) {
-				res = uriComponent.substr(0, pos);
+				res = uri.substr(0, pos);
 			}
 
 			// check with default table first
@@ -435,7 +438,7 @@ function encodeURIComponentFast(uriComponent: string, allowSlash: boolean): stri
 
 				// check if we are delaying native encode
 				if (nativeEncodePos !== -1) {
-					res += encodeURIComponent(uriComponent.substring(nativeEncodePos, pos));
+					res += encodeURIComponent(uri.substring(nativeEncodePos, pos));
 					nativeEncodePos = -1;
 				}
 
@@ -450,10 +453,10 @@ function encodeURIComponentFast(uriComponent: string, allowSlash: boolean): stri
 	}
 
 	if (nativeEncodePos !== -1) {
-		res += encodeURIComponent(uriComponent.substring(nativeEncodePos));
+		res += encodeURIComponent(uri.substring(nativeEncodePos));
 	}
 
-	return res !== undefined ? res : uriComponent;
+	return res !== undefined ? res : uri;
 }
 
 function encodeURIComponentMinimal(path: string): string {
@@ -484,7 +487,7 @@ function _toString(uri: URI, skipEncoding: boolean): string {
 		res += scheme;
 		res += ':';
 	}
-	if (authority || scheme === 'file') {
+	if (authority || scheme === Schemas.FILE) {
 		res += _slash;
 		res += _slash;
 	}
@@ -496,22 +499,22 @@ function _toString(uri: URI, skipEncoding: boolean): string {
 			authority = authority.substr(idx + 1);
 			idx = userinfo.indexOf(':');
 			if (idx === -1) {
-				res += encoder(userinfo, false);
+				res += encoder(userinfo, false, false);
 			} else {
 				// <user>:<pass>@<auth>
-				res += encoder(userinfo.substr(0, idx), false);
+				res += encoder(userinfo.substr(0, idx), false, false);
 				res += ':';
-				res += encoder(userinfo.substr(idx + 1), false);
+				res += encoder(userinfo.substr(idx + 1), false, true);
 			}
 			res += '@';
 		}
 		authority = authority.toLowerCase();
 		idx = authority.indexOf(':');
 		if (idx === -1) {
-			res += encoder(authority, false);
+			res += encoder(authority, false, true);
 		} else {
 			// <auth>:<port>
-			res += encoder(authority.substr(0, idx), false);
+			res += encoder(authority.substr(0, idx), false, true);
 			res += authority.substr(idx);
 		}
 	}
@@ -529,15 +532,15 @@ function _toString(uri: URI, skipEncoding: boolean): string {
 			}
 		}
 		// encode the rest of the path
-		res += encoder(path, true);
+		res += encoder(path, true, false);
 	}
 	if (query) {
 		res += '?';
-		res += encoder(query, false);
+		res += encoder(query, false, false);
 	}
 	if (fragment) {
 		res += '#';
-		res += !skipEncoding ? encodeURIComponentFast(fragment, false) : fragment;
+		res += !skipEncoding ? encodeURIComponentFast(fragment, false, false) : fragment;
 	}
 	return res;
 }
