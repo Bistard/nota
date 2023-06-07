@@ -112,6 +112,14 @@ export class DisposableManager implements IDisposable {
 	}
 }
 
+/**
+ * A reference to an object, it makes sure the object won't be garbage-collected
+ * once I still own it.
+ */
+export interface IReference<T> extends IDisposable {
+	readonly object: T;
+}
+
 /*******************************************************************************
  * Helper Functions
  ******************************************************************************/
