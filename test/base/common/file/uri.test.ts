@@ -315,7 +315,7 @@ suite('URI-test', () => {
 		assert.strictEqual(uri2.fragment, uri3.fragment);
 	});
 
-    test('with, identity', () => {
+    test('with - identity', () => {
 		const uri = URI.parse('foo:bar/path');
 
 		let uri2 = URI.with(uri, null!);
@@ -328,7 +328,7 @@ suite('URI-test', () => {
 		assert.ok(uri === uri2);
 	});
 
-	test('with, changes', () => {
+	test('with - changes', () => {
         assert.strictEqual(URI.toString(URI.with(URI.parse('before:some/file/path'), { scheme: 'after' })), 'after:some/file/path');
         assert.strictEqual(URI.toString(URI.with(URI.from({ scheme: 's' }), { scheme: 'http', path: '/api/files/test.me', query: 't=1234' })), 'http:/api/files/test.me?t%3D1234');
         assert.strictEqual(URI.toString(URI.with(URI.from({ scheme: 's' }), { scheme: 'http', authority: '', path: '/api/files/test.me', query: 't=1234', fragment: '' })), 'http:/api/files/test.me?t%3D1234');
@@ -338,7 +338,7 @@ suite('URI-test', () => {
         assert.strictEqual(URI.toString(URI.with(URI.from({ scheme: 's' }), { scheme: 'boo', authority: '', path: '/api/files/test.me', query: 't=1234', fragment: '' })), 'boo:/api/files/test.me?t%3D1234');
     });
     
-    test('with, remove components #8465', () => {
+    test('with - remove components #8465', () => {
         assert.strictEqual(URI.toString(URI.with(URI.parse('scheme://authority/path'), { authority: '' })), 'scheme:/path');
         assert.strictEqual(URI.toString(URI.with(URI.with(URI.parse('scheme:/path'), { authority: 'authority' }), { authority: '' })), 'scheme:/path');
         assert.strictEqual(URI.toString(URI.with(URI.with(URI.parse('scheme:/path'), { authority: 'authority' }), { authority: null })), 'scheme:/path');
@@ -348,7 +348,7 @@ suite('URI-test', () => {
         assert.strictEqual(URI.toString(URI.with(URI.parse('scheme:/path'), { authority: null })), 'scheme:/path');
     });
 
-	test('with, validation', () => {
+	test('with - validation', () => {
 		const uri = URI.parse('foo:bar/path');
 		assert.throws(() => URI.with(uri, { scheme: 'fai:l' }));
 		assert.throws(() => URI.with(uri, { scheme: 'fäil' }));
@@ -356,7 +356,7 @@ suite('URI-test', () => {
 		assert.throws(() => URI.with(uri, { path: '//fail' }));
 	});
 
-    test('basename', () => {
+    test('basename - basics', () => {
         const uri = URI.parse('file:///c:/test/dir/file.txt');
         assert.strictEqual(URI.basename(uri), 'file.txt');
 
@@ -369,7 +369,36 @@ suite('URI-test', () => {
         assert.strictEqual(URI.basename(multiDotUri), 'file.name.ext');
     });
 
-    test('extname', () => {
+	test('basename - more (windows)', () => {
+		if (!IS_WINDOWS) {
+			return;
+		}
+		assert.strictEqual(URI.basename(URI.fromFile('c:\\some\\file\\test.txt')), 'test.txt');
+		assert.strictEqual(URI.basename(URI.fromFile('c:\\some\\file')), 'file');
+		assert.strictEqual(URI.basename(URI.fromFile('c:\\some\\file\\')), 'file');
+		assert.strictEqual(URI.basename(URI.fromFile('C:\\some\\file\\')), 'file');
+	});
+
+	test('basename - more (posix)', () => {
+		if (IS_WINDOWS) {
+			return;
+		}
+		assert.strictEqual(URI.basename(URI.fromFile('/some/file/test.txt')), 'test.txt');
+		assert.strictEqual(URI.basename(URI.fromFile('/some/file/')), 'file');
+		assert.strictEqual(URI.basename(URI.fromFile('/some/file')), 'file');
+		assert.strictEqual(URI.basename(URI.fromFile('/some')), 'some');
+	});
+
+	test('basename - more (URI)', () => {
+		assert.strictEqual(URI.basename(URI.parse('foo://a/some/file/test.txt')), 'test.txt');
+		assert.strictEqual(URI.basename(URI.parse('foo://a/some/file/')), 'file');
+		assert.strictEqual(URI.basename(URI.parse('foo://a/some/file')), 'file');
+		assert.strictEqual(URI.basename(URI.parse('foo://a/some')), 'some');
+		assert.strictEqual(URI.basename(URI.parse('foo://a/')), '');
+		assert.strictEqual(URI.basename(URI.parse('foo://a')), '');
+	});
+
+    test('extname - basics', () => {
         const uri = URI.parse('file:///c:/test/dir/file.txt');
         assert.strictEqual(URI.extname(uri), '.txt');
 
@@ -382,7 +411,7 @@ suite('URI-test', () => {
         assert.strictEqual(URI.extname(multiDotUri), '.ext');
     });
 
-    test('dirname', () => {
+    test('dirname - basics', () => {
         const uri = URI.parse('file:///c:/test/dir/file.txt');
         const dirUri = URI.dirname(uri);
         assert.strictEqual(dirUri.path, '/c:/test/dir');
@@ -397,6 +426,43 @@ suite('URI-test', () => {
         const rootDirUri = URI.dirname(rootUri);
         assert.strictEqual(rootDirUri.path, '/c:/');
     });
+
+	test('dirname - more (windows)', () => {
+		if (!IS_WINDOWS) {
+			return;
+		}
+
+		assert.strictEqual(URI.toString(URI.dirname(URI.fromFile('c:\\some\\file\\test.txt'))), 'file:///c%3A/some/file');
+		assert.strictEqual(URI.toString(URI.dirname(URI.fromFile('c:\\some\\file'))), 'file:///c%3A/some');
+		assert.strictEqual(URI.toString(URI.dirname(URI.fromFile('c:\\some\\file\\'))), 'file:///c%3A/some');
+		assert.strictEqual(URI.toString(URI.dirname(URI.fromFile('c:\\some'))), 'file:///c%3A/');
+		assert.strictEqual(URI.toString(URI.dirname(URI.fromFile('C:\\some'))), 'file:///c%3A/');
+		assert.strictEqual(URI.toString(URI.dirname(URI.fromFile('c:\\'))), 'file:///c%3A/');
+	});
+
+	test('dirname - more (posix)', () => {
+		if (IS_WINDOWS) {
+			return;
+		}
+
+		assert.strictEqual(URI.toString(URI.dirname(URI.fromFile('/some/file/test.txt'))), 'file:///some/file');
+		assert.strictEqual(URI.toString(URI.dirname(URI.fromFile('/some/file/'))), 'file:///some');
+		assert.strictEqual(URI.toString(URI.dirname(URI.fromFile('/some/file'))), 'file:///some');
+	});
+
+	test('dirname - more (URI)', () => {
+		assert.strictEqual(URI.toString(URI.dirname(URI.parse('foo://a/some/file/test.txt'))), 'foo://a/some/file');
+		assert.strictEqual(URI.toString(URI.dirname(URI.parse('foo://a/some/file/'))), 'foo://a/some');
+		assert.strictEqual(URI.toString(URI.dirname(URI.parse('foo://a/some/file'))), 'foo://a/some');
+		assert.strictEqual(URI.toString(URI.dirname(URI.parse('foo://a/some'))), 'foo://a/');
+		assert.strictEqual(URI.toString(URI.dirname(URI.parse('foo://a/'))), 'foo://a/');
+		assert.strictEqual(URI.toString(URI.dirname(URI.parse('foo://a'))), 'foo://a');
+
+		// does not explode (https://github.com/microsoft/vscode/issues/41987)
+		URI.dirname(URI.from({ scheme: 'file', authority: '/users/someone/portal.h' }));
+
+		assert.strictEqual(URI.toString(URI.dirname(URI.parse('foo://a/b/c?q'))), 'foo://a/b?q');
+	});
 
     test('revive', () => {
         const obj = { scheme: 'http', authority: 'host', path: '/parts', query: 'query', fragment: 'fragment' };
@@ -552,6 +618,40 @@ suite('URI-test', () => {
 
 		//https://github.com/microsoft/vscode/issues/93831
 		assertJoined('file:///c:/foo/bar', './other/foo.img', 'file:///c:/foo/bar/other/foo.img', false);
+	});
+
+	test('join - more', () => {
+		if (IS_WINDOWS) {
+			assert.strictEqual(URI.toString(URI.join(URI.fromFile('c:\\foo\\bar'), '/file.js')), 'file:///c%3A/foo/bar/file.js');
+			assert.strictEqual(URI.toString(URI.join(URI.fromFile('c:\\foo\\bar\\'), 'file.js')), 'file:///c%3A/foo/bar/file.js');
+			assert.strictEqual(URI.toString(URI.join(URI.fromFile('c:\\foo\\bar\\'), '/file.js')), 'file:///c%3A/foo/bar/file.js');
+			assert.strictEqual(URI.toString(URI.join(URI.fromFile('c:\\'), '/file.js')), 'file:///c%3A/file.js');
+			assert.strictEqual(URI.toString(URI.join(URI.fromFile('c:\\'), 'bar/file.js')), 'file:///c%3A/bar/file.js');
+			assert.strictEqual(URI.toString(URI.join(URI.fromFile('c:\\foo'), './file.js')), 'file:///c%3A/foo/file.js');
+			assert.strictEqual(URI.toString(URI.join(URI.fromFile('c:\\foo'), '/./file.js')), 'file:///c%3A/foo/file.js');
+			assert.strictEqual(URI.toString(URI.join(URI.fromFile('C:\\foo'), '../file.js')), 'file:///c%3A/file.js');
+			assert.strictEqual(URI.toString(URI.join(URI.fromFile('C:\\foo\\.'), '../file.js')), 'file:///c%3A/file.js');
+		} else {
+			assert.strictEqual(URI.toString(URI.join(URI.fromFile('/foo/bar'), '/file.js')), 'file:///foo/bar/file.js');
+			assert.strictEqual(URI.toString(URI.join(URI.fromFile('/foo/bar'), 'file.js')), 'file:///foo/bar/file.js');
+			assert.strictEqual(URI.toString(URI.join(URI.fromFile('/foo/bar/'), '/file.js')), 'file:///foo/bar/file.js');
+			assert.strictEqual(URI.toString(URI.join(URI.fromFile('/'), '/file.js')), 'file:///file.js');
+			assert.strictEqual(URI.toString(URI.join(URI.fromFile('/foo/bar'), './file.js')), 'file:///foo/bar/file.js');
+			assert.strictEqual(URI.toString(URI.join(URI.fromFile('/foo/bar'), '/./file.js')), 'file:///foo/bar/file.js');
+			assert.strictEqual(URI.toString(URI.join(URI.fromFile('/foo/bar'), '../file.js')), 'file:///foo/file.js');
+		}
+		assert.strictEqual(URI.toString(URI.join(URI.parse('foo://a/foo/bar'))), 'foo://a/foo/bar');
+		assert.strictEqual(URI.toString(URI.join(URI.parse('foo://a/foo/bar'), '/file.js')), 'foo://a/foo/bar/file.js');
+		assert.strictEqual(URI.toString(URI.join(URI.parse('foo://a/foo/bar'), 'file.js')), 'foo://a/foo/bar/file.js');
+		assert.strictEqual(URI.toString(URI.join(URI.parse('foo://a/foo/bar/'), '/file.js')), 'foo://a/foo/bar/file.js');
+		assert.strictEqual(URI.toString(URI.join(URI.parse('foo://a/'), '/file.js')), 'foo://a/file.js');
+		assert.strictEqual(URI.toString(URI.join(URI.parse('foo://a/foo/bar/'), './file.js')), 'foo://a/foo/bar/file.js');
+		assert.strictEqual(URI.toString(URI.join(URI.parse('foo://a/foo/bar/'), '/./file.js')), 'foo://a/foo/bar/file.js');
+		assert.strictEqual(URI.toString(URI.join(URI.parse('foo://a/foo/bar/'), '../file.js')), 'foo://a/foo/file.js');
+
+		assert.strictEqual(
+			URI.toString(URI.join(URI.from({ scheme: 'myScheme', authority: 'authority', path: '/path', query: 'query', fragment: 'fragment' }), '/file.js')),
+			'myScheme://authority/path/file.js?query#fragment');
 	});
 
     test('URI.toString() wrongly encode IPv6 literals', function () {
