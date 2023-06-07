@@ -22,7 +22,6 @@ function toResource(this: Mocha.Suite, path: string): URI {
 suite('ResourceChangeEvent-test', function () {
 
     test('basic', () => {
-		debugger;
         const changes: IRawResourceChangeEvents = {
 			wrap: undefined!,
             events: [
