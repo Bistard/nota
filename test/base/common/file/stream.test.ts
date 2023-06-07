@@ -10,7 +10,7 @@ suite('stream-test', () => {
 		assert.strictEqual((await streamToBuffer(stream)).toString(), content);
 	});
 
-    test('bufferWriteableStream - basics (no error)', async () => {
+    test('bufferWriteableStream - basics (no error)', () => {
 		const stream = newWriteableBufferStream();
 
 		let chunks: DataBuffer[] = [];
@@ -38,7 +38,7 @@ suite('stream-test', () => {
 		assert.strictEqual(errors.length, 0);
 	});
 
-    test('bufferWriteableStream - basics (error)', async () => {
+    test('bufferWriteableStream - basics (error)', () => {
 		const stream = newWriteableBufferStream();
 
 		let chunks: DataBuffer[] = [];
@@ -66,7 +66,7 @@ suite('stream-test', () => {
 		assert.strictEqual(errors.length, 1);
 	});
 
-    test('bufferWriteableStream - buffers data when no listener', async () => {
+    test('bufferWriteableStream - buffers data when no listener', () => {
 		const stream = newWriteableBufferStream();
 
 		stream.write(DataBuffer.fromString('Hello'));
@@ -93,7 +93,7 @@ suite('stream-test', () => {
 		assert.strictEqual(errors.length, 0);
 	});
 
-	test('bufferWriteableStream - buffers errors when no listener', async () => {
+	test('bufferWriteableStream - buffers errors when no listener', () => {
 		const stream = newWriteableBufferStream();
 
 		stream.write(DataBuffer.fromString('Hello'));
@@ -122,7 +122,7 @@ suite('stream-test', () => {
 		assert.strictEqual(errors.length, 1);
 	});
 
-	test('bufferWriteableStream - buffers end when no listener', async () => {
+	test('bufferWriteableStream - buffers end when no listener', () => {
 		const stream = newWriteableBufferStream();
 
 		stream.write(DataBuffer.fromString('Hello'));
@@ -149,7 +149,7 @@ suite('stream-test', () => {
 		assert.strictEqual(errors.length, 0);
 	});
 
-	test('bufferWriteableStream - nothing happens after end()', async () => {
+	test('bufferWriteableStream - nothing happens after end()', () => {
 		const stream = newWriteableBufferStream();
 
 		let chunks: DataBuffer[] = [];
@@ -188,7 +188,7 @@ suite('stream-test', () => {
 		assert.strictEqual(chunks[1]!.toString(), 'World');
 	});
 
-	test('bufferWriteableStream - pause/resume (simple)', async () => {
+	test('bufferWriteableStream - pause/resume (simple)', () => {
 		const stream = newWriteableBufferStream();
 
 		let chunks: DataBuffer[] = [];
@@ -223,7 +223,7 @@ suite('stream-test', () => {
 		assert.strictEqual(errors.length, 0);
 	});
 
-	test('bufferWriteableStream - pause/resume (pause after first write)', async () => {
+	test('bufferWriteableStream - pause/resume (pause after first write)', () => {
 		const stream = newWriteableBufferStream();
 
 		let chunks: DataBuffer[] = [];
@@ -261,7 +261,7 @@ suite('stream-test', () => {
 		assert.strictEqual(errors.length, 0);
 	});
 
-	test('bufferWriteableStream - pause/resume (error)', async () => {
+	test('bufferWriteableStream - pause/resume (error)', () => {
 		const stream = newWriteableBufferStream();
 
 		let chunks: DataBuffer[] = [];
@@ -297,7 +297,7 @@ suite('stream-test', () => {
 		assert.strictEqual(errors.length, 1);
 	});
 
-	test('bufferWriteableStream - destroy', async () => {
+	test('bufferWriteableStream - destroy', () => {
 		const stream = newWriteableBufferStream();
 
 		let chunks: DataBuffer[] = [];
@@ -503,6 +503,4 @@ suite('stream-test', () => {
 		assert.strictEqual(listener1Called, true);
 		assert.strictEqual(listener2Called, true);
 	});
-
-
 });
