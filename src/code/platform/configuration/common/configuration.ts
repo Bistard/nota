@@ -52,13 +52,15 @@ export interface IConfigurationService extends IDisposable {
      * @throws An exception will be thrown if the section is invalid.
      * @note If section is null, it overries the entire configuration.
      */
-    set(section: Section, value: any): void;
+    set(section: Section, value: any): Promise<void>;
 
     /**
      * @description Delete the configuration under the provided section.
      * @param section The {@link Section} string of the required configuration.
+     * 
+     * @throws An exception will be thrown if the section is invalid.
      */
-    delete(section: Section): void;
+    delete(section: Section): Promise<void>;
 }
 
 export const NOTA_DIR_NAME = '.nota';

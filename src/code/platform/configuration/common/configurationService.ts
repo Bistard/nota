@@ -84,12 +84,12 @@ export class MainConfigurationService extends Disposable implements IConfigurati
         return tryOrDefault<any>(defaultValue ?? undefined!, () => this._configurationHub.get(section));
     }
 
-    public set(section: Section, value: any): void {
-        throw new Error('[MainConfigurationService] does not support `set`.');
+    public set(section: Section, value: any): Promise<void> {
+        return Promise.reject(new Error('[MainConfigurationService] does not support `set`.'));
     }
 
-    public delete(section: Section): void {
-        throw new Error('[MainConfigurationService] does not support `Delete`.');
+    public delete(section: Section): Promise<void> {
+        return Promise.reject(new Error('[MainConfigurationService] does not support `Delete`.'));
     }
 
     // [private helper methods]
