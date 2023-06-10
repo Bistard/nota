@@ -1,4 +1,4 @@
-const { app } = require('electron');
+const { app, Menu } = require('electron');
 const minimist = require('minimist');
 const { perf } = require('src/base/common/performance');
 const { parseCLIArgv } = require('src/code/platform/environment/common/argument');
@@ -6,18 +6,39 @@ const { parseCLIArgv } = require('src/code/platform/environment/common/argument'
 /**
  * The real first entry of the main process. It does not responsible for any 
  * business handling of the application, instead of just doing some preparation.
- * 
+ */
+
+/**
  * @typedef {import("./code/platform/environment/common/argument").ICLIArguments} ICLIArguments
  */
 
-/** @type ICLIArguments */
-const CLIArgv = minimist(parseCLIArgv(app.isPackaged));
 
-app.whenReady().then(() => run());
+(function main() {
+    
+    /** 
+     * Parse command arguments.
+     * @type ICLIArguments 
+     */
+    const CLIArgv = minimist(parseCLIArgv(app.isPackaged));
 
-function run() {
-    perf('main bundle loading start');
-    const nota = require('./code/electron/main');
-    perf('main bundle loading end');
-    nota.default.start(CLIArgv);
-}
+    /**
+     * Enables full sandbox mode on the app. This means that all renderers will 
+     * be launched sandboxed, regardless of the value of the sandbox flag in 
+     * WebPreferences.
+     * @note This method can only be called before app is ready.
+     */
+    app.enableSandbox();
+
+    /**
+     * Runs the program when ready.
+     */
+    app.whenReady()
+    .then(() => (function run() 
+        {
+            perf('main bundle loading start');
+            const nota = require('./code/electron/main');
+            perf('main bundle loading end');
+            nota.default.start(CLIArgv);
+        }
+    )());
+})();
