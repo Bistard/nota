@@ -54,11 +54,7 @@ export class Editor extends Component implements IEditorService {
             throw new Error('editor service is currently not created');
         }
         
-        let uri = source;
-        if (!URI.isURI(uri)) {
-            uri = URI.fromFile(<string>source);
-        }
-        
+        const uri = URI.isURI(source) ? source : URI.fromFile(source);
         this._editorWidget.open(uri);
     }
 
