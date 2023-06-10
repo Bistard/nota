@@ -120,10 +120,6 @@ export interface IReference<T> extends IDisposable {
 	readonly object: T;
 }
 
-/*******************************************************************************
- * Helper Functions
- ******************************************************************************/
-
 export type IterableDisposable<T extends IDisposable> = IterableIterator<T> | Array<T>;
 
 export class MultiDisposeError extends Error {
@@ -161,4 +157,54 @@ export function toDisposable(fn: () => any): IDisposable {
 	return {
 		dispose: fn
 	};
+}
+
+/**
+ * @class A disposable object that automatically cleans up its internal object 
+ * upon disposal. This ensures that when the disposable value is changed, the 
+ * previously held disposable is disposed of.
+ */
+export class SelfCleaningWrapper<T extends IDisposable> implements IDisposable {
+
+	// [fields]
+
+	private _object?: T;
+	private _disposed: boolean;
+
+	// [constructor]
+
+	constructor(object?: T) {
+		this._object = object ?? undefined;
+		this._disposed = false;
+	}
+
+	// [public methods]
+
+	public setObject(object: T): void {
+		if (this._disposed || this._object === object) {
+			return;
+		}
+
+		this._object?.dispose();
+		this._object = object;
+	}
+
+	public getObject(): T | undefined {
+		return this._object;
+	}
+
+	public detach(): T | undefined {
+		const obj = this._object;
+		this._object = undefined;
+		return obj;
+	}
+
+	public dispose(): void {
+		if (this._disposed) {
+			return;
+		}
+		this._disposed = true;
+		this._object?.dispose();
+		this._object = undefined;
+	}
 }
