@@ -1,5 +1,5 @@
 import * as assert from 'assert';
-import { Disposable, DisposableManager, disposeAll, MultiDisposeError, SelfCleaningWrapper, toDisposable } from 'src/base/common/dispose';
+import { Disposable, DisposableManager, disposeAll, MultiDisposeError, AutoDisposableWrapper, toDisposable } from 'src/base/common/dispose';
 
 suite('dispose-test', () => {
 
@@ -129,13 +129,13 @@ suite('DisposableManager-test', () => {
 		assert.strictEqual((thrownError as MultiDisposeError).errors[1].message, 'I am error 2');
 	});
 
-	test('SelfCleaningWrapper', () => {
+	test('AutoDisposableWrapper', () => {
 
 		const obj1 = new Disposable();
 		const obj2 = new Disposable();
 		const obj3 = new Disposable();
 
-		const wrapper = new SelfCleaningWrapper();
+		const wrapper = new AutoDisposableWrapper();
 		wrapper.setObject(obj1);
 		
 		assert.ok(!obj1.isDisposed());
@@ -164,5 +164,29 @@ suite('DisposableManager-test', () => {
 		wrapper.dispose();
 
 		assert.ok(obj3.isDisposed());
+	});
+
+	test('AutoDisposableWrapper - binding children to the current object', () => {
+
+		const obj1 = new Disposable();
+		const obj2 = new Disposable();
+		const child1 = new Disposable();
+		const child2 = new Disposable();
+
+		const wrapper = new AutoDisposableWrapper();
+		wrapper.setObject(obj1);
+		wrapper.setChildren(child1);
+		wrapper.setChildren(child2);
+		
+		assert.ok(!obj1.isDisposed());
+		assert.ok(!child1.isDisposed());
+		assert.ok(!child2.isDisposed());
+
+		wrapper.setObject(obj2);
+
+		assert.ok(obj1.isDisposed());
+		assert.ok(!obj2.isDisposed());
+		assert.ok(child1.isDisposed());
+		assert.ok(child2.isDisposed());
 	});
 });

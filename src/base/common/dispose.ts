@@ -163,18 +163,23 @@ export function toDisposable(fn: () => any): IDisposable {
  * @class A disposable object that automatically cleans up its internal object 
  * upon disposal. This ensures that when the disposable value is changed, the 
  * previously held disposable is disposed of.
+ * 
+ * @note You may also binding disposable children to the current object, those
+ * children will be disposed along with the current object.
  */
-export class SelfCleaningWrapper<T extends IDisposable> implements IDisposable {
+export class AutoDisposableWrapper<T extends IDisposable> implements IDisposable {
 
 	// [fields]
 
 	private _object?: T;
+	private readonly _children: IDisposable[];
 	private _disposed: boolean;
 
 	// [constructor]
 
-	constructor(object?: T) {
+	constructor(object?: T, children?: IDisposable[]) {
 		this._object = object ?? undefined;
+		this._children = children ?? [];
 		this._disposed = false;
 	}
 
@@ -187,6 +192,8 @@ export class SelfCleaningWrapper<T extends IDisposable> implements IDisposable {
 
 		this._object?.dispose();
 		this._object = object;
+		
+		this.__cleanChildren();
 	}
 
 	public getObject(): T {
@@ -196,9 +203,24 @@ export class SelfCleaningWrapper<T extends IDisposable> implements IDisposable {
 		return this._object;
 	}
 
+	public setChildren(children: Disposable | Disposable[]): void {
+		if (!this._object) {
+			throw new Error('[SelfCleaningWrapper] cannot bind children to no objects.');
+		}
+		
+		if (!Array.isArray(children)) {
+			children = [children];
+		}
+
+		this._children.push(...children);
+	}
+
 	public detach(): T | undefined {
 		const obj = this._object;
 		this._object = undefined;
+
+		this._children.length = 0;
+		
 		return obj;
 	}
 
@@ -207,7 +229,17 @@ export class SelfCleaningWrapper<T extends IDisposable> implements IDisposable {
 			return;
 		}
 		this._disposed = true;
+		
 		this._object?.dispose();
 		this._object = undefined;
+		
+		this.__cleanChildren();
+	}
+
+	// [private helper methods]
+
+	private __cleanChildren(): void {
+		disposeAll(this._children);
+		this._children.length = 0;
 	}
 }
