@@ -136,7 +136,7 @@ suite('DisposableManager-test', () => {
 		const obj3 = new Disposable();
 
 		const wrapper = new AutoDisposableWrapper();
-		wrapper.setObject(obj1);
+		wrapper.set(obj1);
 		
 		assert.ok(!obj1.isDisposed());
 		assert.ok(!obj2.isDisposed());
@@ -146,17 +146,17 @@ suite('DisposableManager-test', () => {
 		assert.ok(!obj1.isDisposed());
 		assert.ok(!obj2.isDisposed());
 
-		wrapper.setObject(obj1);
+		wrapper.set(obj1);
 
 		assert.ok(!obj1.isDisposed());
 		assert.ok(!obj2.isDisposed());
 
-		wrapper.setObject(obj2);
+		wrapper.set(obj2);
 
 		assert.ok(obj1.isDisposed());
 		assert.ok(!obj2.isDisposed());
 
-		wrapper.setObject(obj3);
+		wrapper.set(obj3);
 
 		assert.ok(obj1.isDisposed());
 		assert.ok(obj2.isDisposed());
@@ -174,15 +174,15 @@ suite('DisposableManager-test', () => {
 		const child2 = new Disposable();
 
 		const wrapper = new AutoDisposableWrapper();
-		wrapper.setObject(obj1);
-		wrapper.setChildren(child1);
-		wrapper.setChildren(child2);
+		wrapper.set(obj1);
+		wrapper.register(child1);
+		wrapper.register(child2);
 		
 		assert.ok(!obj1.isDisposed());
 		assert.ok(!child1.isDisposed());
 		assert.ok(!child2.isDisposed());
 
-		wrapper.setObject(obj2);
+		wrapper.set(obj2);
 
 		assert.ok(obj1.isDisposed());
 		assert.ok(!obj2.isDisposed());

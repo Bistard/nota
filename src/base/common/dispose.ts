@@ -164,7 +164,7 @@ export function toDisposable(fn: () => any): IDisposable {
  * upon disposal. This ensures that when the disposable value is changed, the 
  * previously held disposable is disposed of.
  * 
- * @note You may also binding disposable children to the current object, those
+ * @note You may also register disposable children to the current object, those
  * children will be disposed along with the current object.
  */
 export class AutoDisposableWrapper<T extends IDisposable> implements IDisposable {
@@ -185,7 +185,7 @@ export class AutoDisposableWrapper<T extends IDisposable> implements IDisposable
 
 	// [public methods]
 
-	public setObject(object: T): void {
+	public set(object: T): void {
 		if (this._disposed || this._object === object) {
 			return;
 		}
@@ -196,14 +196,14 @@ export class AutoDisposableWrapper<T extends IDisposable> implements IDisposable
 		this.__cleanChildren();
 	}
 
-	public getObject(): T {
+	public get(): T {
 		if (!this._object) {
 			throw new Error('[SelfCleaningWrapper] no wrapping object.');
 		}
 		return this._object;
 	}
 
-	public setChildren(children: Disposable | Disposable[]): void {
+	public register(children: Disposable | Disposable[]): void {
 		if (!this._object) {
 			throw new Error('[SelfCleaningWrapper] cannot bind children to no objects.');
 		}
