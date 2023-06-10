@@ -189,7 +189,10 @@ export class SelfCleaningWrapper<T extends IDisposable> implements IDisposable {
 		this._object = object;
 	}
 
-	public getObject(): T | undefined {
+	public getObject(): T {
+		if (!this._object) {
+			throw new Error('[SelfCleaningWrapper] no wrapping object.');
+		}
 		return this._object;
 	}
 
