@@ -72,7 +72,7 @@ export class MainConfigurationService extends Disposable implements IConfigurati
         }
         this._initialized = true;
 
-        this.logService.trace(`[MainConfigurationService] initializing at resource URI '${this._userResource}'...`);
+        this.logService.trace(`[MainConfigurationService] initializing at resource URI '${URI.toString(this._userResource)}'...`);
 
         await Promise.all([this._defaultConfiguration.init(), this._userConfiguration.init()]);
         this._configurationHub = this.__reloadConfigurationHub();

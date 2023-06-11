@@ -257,7 +257,7 @@ const nota = new class extends class MainProcess implements IMainProcess {
         dialog.showMessageBoxSync({
             title: 'nota',
             message: 'Unable to write to directories',
-            detail: Strings.format('{0}\n\n Please make sure the following directories are writeable: \n\n{1}', [error.toString(), dir.join('\n')]),
+            detail: Strings.format('{0}\n\nPlease make sure the following directories are writeable: \n\n{1}', [error.toString?.() ?? error, dir.join('\n')]),
             type: 'warning',
             buttons: ['close'],
         });
