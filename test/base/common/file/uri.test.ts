@@ -2,8 +2,14 @@ import * as assert from 'assert';
 import { URI } from 'src/base/common/file/uri';
 import { IS_WINDOWS } from 'src/base/common/platform';
 
+
 suite('URI-test', () => {
-    
+
+	const oldToString = URI.toString;
+	URI.toString = function (uri: URI, skipEncoding: boolean = false): string {
+		return oldToString(uri, skipEncoding);
+	};
+
     const testStr1 = 'foo://example.com:8042/over/there?name=ferret#nose';
     const testStr2 = 'urn:example:animal:ferret:nose';
     const testStr3 = 'file://d:/dev/nota/src/code/common/service/test/file.test.txt';

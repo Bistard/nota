@@ -242,7 +242,7 @@ export class URI implements IURI {
 	 * * The result will be encoded using the percentage encoding and encoding happens mostly
 	 * ignore the scheme-specific encoding rules.
 	 */
-	public static toString(uri: URI, skipEncoding: boolean = false): string {
+	public static toString(uri: URI, skipEncoding: boolean = true): string {
 		return __toString(uri, skipEncoding);
 	}
 
