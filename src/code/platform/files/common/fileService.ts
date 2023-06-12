@@ -674,7 +674,7 @@ export class FileService extends Disposable implements IFileService {
         if (!stat) {
             throw new FileOperationError('target URI does not exist', FileOperationErrorType.FILE_INVALID_PATH);
         } else if (stat.type & FileType.DIRECTORY) {
-            throw new FileOperationError('cannot read a directory', FileOperationErrorType.FILE_IS_DIRECTORY);
+            throw new FileOperationError('unable to read file which is actually a directory', FileOperationErrorType.FILE_IS_DIRECTORY);
         }
 
         this.__validateReadLimit(stat.byteSize, opts);
