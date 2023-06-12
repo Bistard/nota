@@ -178,11 +178,15 @@ const nota = new class extends class MainProcess implements IMainProcess {
              * all the necessary directories first. We need to ensure each one 
              * is created successfully.
              */
-            Promise.all([
+            Promise.all(
+            [
                 this.environmentService.logPath,
                 this.environmentService.appConfigurationPath,
                 this.environmentService.userDataPath,
-            ].map(path => mkdir(URI.toFsPath(path), { recursive: true }))),
+            ]
+            .map(path => {
+                return mkdir(URI.toFsPath(path), { recursive: true });
+            })),
 
             this.statusService.init(),
             this.configurationService.init(),
