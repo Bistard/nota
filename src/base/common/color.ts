@@ -3,6 +3,56 @@ import { CharCode } from "src/base/common/util/char";
 import { Numbers } from "src/base/common/util/number";
 import { DightInString } from "src/base/common/util/type";
 
+/**
+ * ANSI escape color codes for foreground color.
+ */
+export const enum ASNIForegroundColor {
+    Black = '\x1b[30m',
+    Red = '\x1b[31m',
+    Green = '\x1b[32m',
+    Yellow = '\x1b[33m',
+    Blue = '\x1b[34m',
+    Magenta = '\x1b[35m',
+    Cyan = '\x1b[36m',
+    White = '\x1b[37m',
+    Reset = '\x1b[39m'
+}
+
+/**
+ * ANSI escape color codes for background color.
+ */
+export const enum ASNIBackgroundColor {
+    Black = '\x1b[40m',
+    Red = '\x1b[41m',
+    Green = '\x1b[42m',
+    Yellow = '\x1b[43m',
+    Blue = '\x1b[44m',
+    Magenta = '\x1b[45m',
+    Cyan = '\x1b[46m',
+    White = '\x1b[47m',
+    Reset = '\x1b[49m'
+}
+
+export type ANSIColor = ASNIForegroundColor | ASNIBackgroundColor;
+
+/**
+ * @description Sets the ANSI foreground and background colors for a given 
+ * string of text.
+ * 
+ * @param text - The text to be colored.
+ * @param fgColor - The ANSI foreground color code to set for the text.
+ * @param bgColor - The ANSI background color code to set for the text.
+ * @returns - The text string prefixed with ANSI color codes and suffixed with a 
+ * reset color code.
+ *
+ * @example
+ * const coloredText = setANSIColor("This is a colored message.", ASNIForegroundColor.Red, ASNIBackgroundColor.White);
+ * console.log(coloredText); // Prints the message in red color with white background in the console.
+ */
+export function setANSIColor(text: string, fgColor: ASNIForegroundColor, bgColor: ASNIBackgroundColor): string {
+	return `${fgColor}${bgColor}${text}\x1b[0m`;
+}
+
 export type LowerHexLetter = 'a' | 'b' | 'c' | 'd' | 'e' | 'f';
 export type UpperHexLetter = 'A' | 'B' | 'C' | 'D' | 'E' | 'F';
 export type HexDigit = LowerHexLetter | UpperHexLetter | DightInString;
