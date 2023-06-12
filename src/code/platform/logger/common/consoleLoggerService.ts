@@ -1,3 +1,4 @@
+import { ASNIForegroundColor, setANSIColor } from "src/base/common/color";
 import { getCurrTimeStamp } from "src/base/common/date";
 import { AbstractLogger, DEFAULT_LOG_LEVEL, ILogger, LogLevel } from "src/base/common/logger";
 
@@ -22,7 +23,7 @@ export class ConsoleLogger extends AbstractLogger implements ILogger {
     public trace(message: string, ...args: any[]): void {
 		if (this.getLevel() <= LogLevel.TRACE) {
 			if (this._ifUseColors) {
-				console.log(`\x1b[90m[TRACE] [${getCurrTimeStamp()}]\x1b[0m`, message, ...args);
+				console.log(setANSIColor(`[TRACE] [${getCurrTimeStamp()}]`, { fgColor: ASNIForegroundColor.LightGray }), message, ...args);
 			} else {
 				console.log(`[TRACE] [${getCurrTimeStamp()}]`, message, ...args);
 			}
@@ -32,7 +33,7 @@ export class ConsoleLogger extends AbstractLogger implements ILogger {
 	public debug(message: string, ...args: any[]): void {
 		if (this.getLevel() <= LogLevel.DEBUG) {
             if (this._ifUseColors) {
-				console.log(`\x1b[90m[DEBUG] [${getCurrTimeStamp()}]\x1b[0m`, message, ...args);
+				console.log(setANSIColor(`[DEBUG] [${getCurrTimeStamp()}]`, { fgColor: ASNIForegroundColor.LightGray }), message, ...args);
 			} else {
 				console.log(`[DEBUG] [${getCurrTimeStamp()}]`, message, ...args);
 			}
@@ -42,9 +43,9 @@ export class ConsoleLogger extends AbstractLogger implements ILogger {
 	public info(message: string, ...args: any[]): void {
 		if (this.getLevel() <= LogLevel.INFO) {
 			if (this._ifUseColors) {
-				console.log(`\x1b[90m[INFO] [${getCurrTimeStamp()}]\x1b[0m`, message, ...args);
+				console.log(setANSIColor(`[INFO]  [${getCurrTimeStamp()}]`, { fgColor: ASNIForegroundColor.LightGray }), message, ...args);
 			} else {
-				console.log(`[INFO] [${getCurrTimeStamp()}]`, message, ...args);
+				console.log(`[INFO]  [${getCurrTimeStamp()}]`, message, ...args);
 			}
 		}
 	}
@@ -52,9 +53,9 @@ export class ConsoleLogger extends AbstractLogger implements ILogger {
 	public warn(message: string | Error, ...args: any[]): void {
 		if (this.getLevel() <= LogLevel.WARN) {
 			if (this._ifUseColors) {
-				console.warn(`\x1b[93m[WARN] [${getCurrTimeStamp()}]\x1b[0m`, message, ...args);
+				console.warn(setANSIColor(`[WARN]  [${getCurrTimeStamp()}]`, { fgColor: ASNIForegroundColor.LightYellow }), message, ...args);
 			} else {
-				console.warn(`[WARN] [${getCurrTimeStamp()}]`, message, ...args);
+				console.warn(`[WARN]  [${getCurrTimeStamp()}]`, message, ...args);
 			}
 		}
 	}
@@ -62,7 +63,7 @@ export class ConsoleLogger extends AbstractLogger implements ILogger {
 	public error(message: string, ...args: any[]): void {
 		if (this.getLevel() <= LogLevel.ERROR) {
 			if (this._ifUseColors) {
-				console.error(`\x1b[91m[ERROR] [${getCurrTimeStamp()}]\x1b[0m`, message, ...args);
+				console.error(setANSIColor(`[ERROR] [${getCurrTimeStamp()}]`, { fgColor: ASNIForegroundColor.LightRed }), message, ...args);
 			} else {
 				console.error(`[ERROR] [${getCurrTimeStamp()}]`, message, ...args);
 			}
@@ -72,7 +73,7 @@ export class ConsoleLogger extends AbstractLogger implements ILogger {
 	public fatal(message: string, ...args: any[]): void {
 		if (this.getLevel() <= LogLevel.FATAL) {
 			if (this._ifUseColors) {
-				console.error(`\x1b[35m[FATAL] [${getCurrTimeStamp()}]\x1b[0m`, message, ...args);
+				console.error(setANSIColor(`[FATAL] [${getCurrTimeStamp()}]`, { fgColor: ASNIForegroundColor.Magenta }), message, ...args);
 			} else {
 				console.error(`[FATAL] [${getCurrTimeStamp()}]`, message, ...args);
 			}

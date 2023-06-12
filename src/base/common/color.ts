@@ -7,7 +7,8 @@ import { DightInString } from "src/base/common/util/type";
  * ANSI escape color codes for foreground color.
  */
 export const enum ASNIForegroundColor {
-    Black = '\x1b[30m',
+    Reset = '\x1b[39m',
+	Black = '\x1b[30m',
     Red = '\x1b[31m',
     Green = '\x1b[32m',
     Yellow = '\x1b[33m',
@@ -15,14 +16,22 @@ export const enum ASNIForegroundColor {
     Magenta = '\x1b[35m',
     Cyan = '\x1b[36m',
     White = '\x1b[37m',
-    Reset = '\x1b[39m'
+	LightGray = '\x1b[90m',
+    LightRed = '\x1b[91m',
+    LightGreen = '\x1b[92m',
+    LightYellow = '\x1b[93m',
+    LightBlue = '\x1b[94m',
+    LightMagenta = '\x1b[95m',
+    LightCyan = '\x1b[96m',
+    LightWhite = '\x1b[97m',
 }
 
 /**
  * ANSI escape color codes for background color.
  */
 export const enum ASNIBackgroundColor {
-    Black = '\x1b[40m',
+    Reset = '\x1b[49m',
+	Black = '\x1b[40m',
     Red = '\x1b[41m',
     Green = '\x1b[42m',
     Yellow = '\x1b[43m',
@@ -30,7 +39,14 @@ export const enum ASNIBackgroundColor {
     Magenta = '\x1b[45m',
     Cyan = '\x1b[46m',
     White = '\x1b[47m',
-    Reset = '\x1b[49m'
+    LightGray = '\x1b[100m',
+    LightRed = '\x1b[101m',
+    LightGreen = '\x1b[102m',
+    LightYellow = '\x1b[103m',
+    LightBlue = '\x1b[104m',
+    LightMagenta = '\x1b[105m',
+    LightCyan = '\x1b[106m',
+    LightWhite = '\x1b[107m',
 }
 
 export type ANSIColor = ASNIForegroundColor | ASNIBackgroundColor;
@@ -49,8 +65,8 @@ export type ANSIColor = ASNIForegroundColor | ASNIBackgroundColor;
  * const coloredText = setANSIColor("This is a colored message.", ASNIForegroundColor.Red, ASNIBackgroundColor.White);
  * console.log(coloredText); // Prints the message in red color with white background in the console.
  */
-export function setANSIColor(text: string, fgColor: ASNIForegroundColor, bgColor: ASNIBackgroundColor): string {
-	return `${fgColor}${bgColor}${text}\x1b[0m`;
+export function setANSIColor(text: string, colors: { fgColor?: ASNIForegroundColor, bgColor?: ASNIBackgroundColor }): string {
+	return `${colors.fgColor ?? ''}${colors.bgColor ?? ''}${text}\x1b[0m`;
 }
 
 export type LowerHexLetter = 'a' | 'b' | 'c' | 'd' | 'e' | 'f';
