@@ -1,7 +1,7 @@
 import { getCurrTimeStamp } from "src/base/common/date";
 import { DataBuffer } from "src/base/common/file/buffer";
 import { ByteSize, FileOperationError, FileOperationErrorType } from "src/base/common/file/file";
-import { basename, join, parse, ParsedPath } from "src/base/common/file/path";
+import { basename, join, parse } from "src/base/common/file/path";
 import { URI } from "src/base/common/file/uri";
 import { AbstractLogger, ILogger, ILoggerOpts, LogLevel, parseLogLevel } from "src/base/common/logger";
 import { AsyncQueue, Blocker } from "src/base/common/util/async";
@@ -33,8 +33,8 @@ export class FileLogger extends AbstractLogger implements ILogger {
     private readonly _description: string;
     private readonly _uri: URI;
     private readonly _queue: AsyncQueue<void>;
+    private readonly _initializing: Blocker<void>;
 
-    private _initPromise?: Promise<void>;
     private _backupCnt: number;
     private _backupExt: string;
     private readonly _noFormatter: boolean;
@@ -53,21 +53,25 @@ export class FileLogger extends AbstractLogger implements ILogger {
         this._uri = uri;
 
         this._queue = new AsyncQueue();
+        this._initializing = new Blocker();
+
         this._backupCnt = 1;
         this._backupExt = '';
         this._noFormatter = noFormatter;
 
-        this._initPromise = new Promise(async (resolve, reject) => {
+        const intialize = async () => {
             try {
                 await this.fileService.createFile(uri, DataBuffer.alloc(0), { overwrite: false });
             } catch (error) {
                 // only ignores when the file already exists
                 if ((<FileOperationError>error).code !== FileOperationErrorType.FILE_EXISTS) {
-                    reject(error);
+                    this._initializing.reject(error);
                 }
             }
-            resolve();  
-        });
+            this._initializing.resolve();  
+        };
+
+        intialize();
     }
 
     // [public methods]
@@ -137,12 +141,12 @@ export class FileLogger extends AbstractLogger implements ILogger {
      */
     private __log(level: LogLevel, message: string): void {
         
+        /**
+         * Queue the log asynchronously.
+         */
         this._queue.queue(async () => {
             
-            if (this._initPromise) {
-                await this._initPromise;
-                this._initPromise = undefined;
-            }
+            await this._initializing.waiting();
 
             if (this._noFormatter === false) {
                 message = `[${getCurrTimeStamp()}] [${this._description}] [${parseLogLevel(level)}] ${message}\n`;
@@ -157,13 +161,12 @@ export class FileLogger extends AbstractLogger implements ILogger {
             content += message;
             await this.fileService.writeFile(this._uri, DataBuffer.fromString(content), { create: false, overwrite: true, unlock: true });
         })
-
         /**
          * If pass the error into the `ErrorHandler`, the error will eventually
          * re-enter this code section since the program will log the error and
          * causes circular calling.
          * 
-         * The best way I can think of is to console.error out the error.
+         * The best way I can think of is to `console.error` out the error.
          */
         .catch(err => {
             console.error(err);
@@ -177,7 +180,7 @@ export class FileLogger extends AbstractLogger implements ILogger {
         }
         
         const oldURI = URI.toFsPath(this._uri);
-        const result = parse(oldURI) as ParsedPath;
+        const result = parse(oldURI);
         const newURI = URI.fromFile(join(result.dir, `${result.name}${this._backupExt}_${this._backupCnt}${result.ext}`));
         
         this._backupCnt++;

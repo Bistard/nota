@@ -39,8 +39,8 @@ export abstract class AbstractLoggerService extends Disposable implements ILogge
     // [field]
 
     /** determines the log level of the created logger. */
-    private _level: LogLevel;
-    private _loggers: Map<string, ILogger>;
+    private readonly _level: LogLevel;
+    private readonly _loggers: Map<string, ILogger>;
 
     // [constructor]
 
