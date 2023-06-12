@@ -12,6 +12,7 @@ import { IFileService } from "src/code/platform/files/common/fileService";
 import { REGISTRANTS } from "src/code/platform/registrant/common/registrant";
 import { ConfigurationModuleType, IComposedConfiguration, IConfigurationCompareResult, IConfigurationModule, Section } from "src/code/platform/configuration/common/configuration";
 import { UnbufferedScheduler } from "src/base/common/util/async";
+import { errorToMessage } from "src/base/common/error";
 
 const Registrant = REGISTRANTS.get(IConfigurationRegistrant);
 
@@ -142,7 +143,7 @@ export class UserConfiguration extends Disposable implements IConfigurationModul
         
         // register listeners
         {
-            this.__register(this._validator.onUnknownConfiguration(unknownKey => this.logService.warn(`[UserConfiguration] Cannot identify the configuration: '${unknownKey}' from the source '${URI.toString(this._userResource)}'.`)));
+            this.__register(this._validator.onUnknownConfiguration(unknownKey => this.logService.warn(`[UserConfiguration] Cannot identify the configuration: '${unknownKey}' from the source '${URI.toString(this._userResource, true)}'.`)));
             this.__register(this._validator.onInvalidConfiguration(result => this.logService.warn(`[UserConfiguration] encounter invalid configuration: ${result}.`)));
 
             // configuration updation
@@ -180,12 +181,18 @@ export class UserConfiguration extends Disposable implements IConfigurationModul
     // [private helper methods]
 
     private async __loadConfiguration(): Promise<void> {
-        const raw = (await this.fileService.readFile(this._userResource)).toString();
+        
+        let raw: string;
+        try {
+            raw = (await this.fileService.readFile(this._userResource)).toString();
+        } catch (err) {
+            throw new Error(`[UserConfiguration] Cannot load configuration at '${URI.toString(this._userResource, true)}'.\nThe cause is: ${errorToMessage(err)}`);
+        }
 
         const unvalidated = tryOrDefault<object>(
             {}, 
             () => JSON.parse(raw), 
-            () => this.logService.error(`Cannot initialize user configuration at '${URI.toString(this._userResource)}'`),
+            () => this.logService.error(`Cannot initialize user configuration at '${URI.toString(this._userResource, true)}'`),
         );
         
         const validated = this._validator.validate(unvalidated);

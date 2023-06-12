@@ -8,7 +8,7 @@ import { ConfigurationHub, DefaultConfiguration, UserConfiguration } from "src/c
 import { IFileService } from "src/code/platform/files/common/fileService";
 import { REGISTRANTS } from "src/code/platform/registrant/common/registrant";
 import { DeepReadonly } from "src/base/common/util/type";
-import { ConfigurationModuleType, ConfigurationModuleTypeToString, IConfigurationService, Section } from "src/code/platform/configuration/common/configuration";
+import { APP_CONFIG_NAME, ConfigurationModuleType, ConfigurationModuleTypeToString, IConfigurationService, Section } from "src/code/platform/configuration/common/configuration";
 
 /**
  * @class // TODO
@@ -17,11 +17,11 @@ export class MainConfigurationService extends Disposable implements IConfigurati
 
     // [fields]
 
-    private _initialized: boolean;
-    private readonly _userResource: URI;
-
     private readonly _registrant = REGISTRANTS.get(IConfigurationRegistrant);
 
+    private _initialized: boolean;
+    private readonly _configurationPath: URI;
+    
     private readonly _defaultConfiguration: DefaultConfiguration;
     private readonly _userConfiguration: UserConfiguration;
 
@@ -35,7 +35,7 @@ export class MainConfigurationService extends Disposable implements IConfigurati
     // [constructor]
 
     constructor(
-        userResource: URI,
+        appConfigurationPath: URI,
         @IFileService fileService: IFileService,
         @ILogService private readonly logService: ILogService,
     ) {
@@ -44,9 +44,10 @@ export class MainConfigurationService extends Disposable implements IConfigurati
         // initialization
         {
             this._initialized = false;
-            this._userResource = userResource;
+            this._configurationPath = appConfigurationPath;
+            
             this._defaultConfiguration = new DefaultConfiguration();
-            this._userConfiguration = new UserConfiguration(userResource, fileService, logService);
+            this._userConfiguration = new UserConfiguration(URI.join(appConfigurationPath, APP_CONFIG_NAME), fileService, logService);
             
             this._configurationHub = this.__reloadConfigurationHub();
         }
@@ -72,7 +73,7 @@ export class MainConfigurationService extends Disposable implements IConfigurati
         }
         this._initialized = true;
 
-        this.logService.trace(`[MainConfigurationService] initializing at resource URI '${URI.toString(this._userResource)}'...`);
+        this.logService.trace(`[MainConfigurationService] initializing at configuration path'${URI.toString(this._configurationPath, true)}'...`);
 
         await Promise.all([this._defaultConfiguration.init(), this._userConfiguration.init()]);
         this._configurationHub = this.__reloadConfigurationHub();

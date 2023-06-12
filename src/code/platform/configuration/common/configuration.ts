@@ -41,7 +41,7 @@ export interface IConfigurationService extends IDisposable {
      * @note You may not change the value of the return value directly. Use `set` 
      * instead.
      */
-    get<T>(section: Section | undefined, defaultValue?: T): DeepReadonly<T>; // FIX: should not provide 'defaultValue' API
+    get<T>(section: Section | undefined, defaultValue?: T): DeepReadonly<T>;
     
     /**
      * @description Set the configuration by the given value under the provided 
@@ -64,7 +64,10 @@ export interface IConfigurationService extends IDisposable {
 }
 
 export const NOTA_DIR_NAME = '.nota';
+
+/** @deprecated */
 export const DEFAULT_CONFIG_NAME = 'user.config.json';
+/** @deprecated */
 export const USER_CONFIG_NAME = DEFAULT_CONFIG_NAME;
 export const APP_CONFIG_NAME = 'nota.config.json';
 
