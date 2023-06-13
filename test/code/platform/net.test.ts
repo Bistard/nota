@@ -1,4 +1,5 @@
 import * as assert from 'assert';
+import { after, before } from 'mocha';
 import { Emitter, Event, Register } from 'src/base/common/event';
 import { DataBuffer } from 'src/base/common/file/buffer';
 import { URI } from 'src/base/common/file/uri';
@@ -220,7 +221,7 @@ suite('IPC-test', function () {
 		let service: TestService;
 		let ipcService: ITestService;
 
-		setup(function () {
+		before(function () {
 			service = new TestService();
 			const testServer = new TestIPCServer();
 			server = testServer;
@@ -229,7 +230,7 @@ suite('IPC-test', function () {
 			ipcService = new TestChannelClient(client.getChannel(TestChannelId));
 		});
 
-		teardown(function () {
+		after(function () {
 			client.dispose();
 			server.dispose();
 		});
@@ -277,7 +278,7 @@ suite('IPC-test', function () {
 		let service: TestService;
 		let ipcService: ITestService;
 
-		setup(function () {
+		before(function () {
 			service = new TestService();
 			const testServer = new TestIPCServer();
 			server = testServer;
@@ -288,7 +289,7 @@ suite('IPC-test', function () {
 			ipcService = ProxyChannel.unwrapChannel(client.getChannel(TestChannelId));
 		});
 
-		teardown(function () {
+		after(function () {
 			client.dispose();
 			server.dispose();
 		});
