@@ -301,7 +301,7 @@ export function isPromise(obj: any): obj is Promise<any> {
  * @param defaultValue provided default value which cannot be `undefined`.
  * @returns the default value.
  * 
- * @note Alternatively, you may use `(value ?? defaultValue)` instead.
+ * @deprecated Alternatively, you may use `(value ?? defaultValue)` instead.
  */
 export function ifOrDefault<T>(value: T, defaultValue: NonNullable<T>): NonNullable<T> {
     if (typeof value === 'undefined' || value === null) {

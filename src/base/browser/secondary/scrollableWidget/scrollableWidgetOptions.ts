@@ -1,5 +1,3 @@
-import { ifOrDefault } from "src/base/common/util/type";
-
 export const enum ScrollbarType { 
     vertical,
     horizontal
@@ -54,10 +52,10 @@ export interface IScrollableWidgetOpts extends Required<IScrollableWidgetExtensi
  */
 export function resolveScrollableWidgetExtensionOpts(opts: IScrollableWidgetExtensionOpts): IScrollableWidgetOpts {
     return {
-        scrollbarType:                   ifOrDefault(opts.scrollbarType, ScrollbarType.vertical),
-        scrollSensibility:               ifOrDefault(opts.scrollSensibility, 1),
-        mouseWheelFastScrollSensibility: ifOrDefault(opts.mouseWheelFastScrollSensibility, 5),
-        reverseMouseWheelDirection:      ifOrDefault(opts.reverseMouseWheelDirection, false),
-        touchSupport:                    ifOrDefault(opts.touchSupport, true),
+        scrollbarType:                   opts.scrollbarType ?? ScrollbarType.vertical,
+        scrollSensibility:               opts.scrollSensibility ?? 1,
+        mouseWheelFastScrollSensibility: opts.mouseWheelFastScrollSensibility ?? 5,
+        reverseMouseWheelDirection:      opts.reverseMouseWheelDirection ?? false,
+        touchSupport:                    opts.touchSupport ?? true,
     };
 }

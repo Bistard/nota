@@ -12,7 +12,6 @@ import { IListItemProvider } from "src/base/browser/secondary/listView/listItemP
 import { memoize } from "src/base/common/memoization";
 import { FocusTracker } from "src/base/browser/basic/focusTracker";
 import { IList } from "src/base/browser/secondary/listView/list";
-import { ifOrDefault } from "src/base/common/util/type";
 
 /**
  * The consturtor options for {@link ListView}.
@@ -380,7 +379,7 @@ export class ListView<T> extends Disposable implements ISpliceable<T>, IListView
             mouseWheelFastScrollSensibility: opts.fastScrollSensitivity,
             reverseMouseWheelDirection: opts.reverseMouseWheelDirection,
             scrollbarType: ScrollbarType.vertical,
-            touchSupport: ifOrDefault(opts.touchSupport, true),
+            touchSupport: opts.touchSupport ?? true,
         });
         this.scrollableWidget.render(this.element);
         this.scrollableWidget.onDidScroll((e: IScrollEvent) => {
