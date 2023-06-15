@@ -68,6 +68,7 @@ export interface IListViewOpts<T> {
 /**
  * The type of items are stored in {@link IListView}. The item will be rendered
  * by the renderers which has the same type.
+ * @deprecated
  */
 export type ListItemType = RendererType;
 

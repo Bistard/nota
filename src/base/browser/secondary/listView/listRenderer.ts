@@ -3,6 +3,7 @@ import { DomUtility } from "src/base/browser/basic/dom";
 
 /**
  * The type of renderers used in {@link IListView}.
+ * @deprecated
  */
 // TODO: Remove this feature, may just use a regular string
 export const enum RendererType {
