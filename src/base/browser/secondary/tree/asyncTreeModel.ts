@@ -80,8 +80,8 @@ export class AsyncTreeModel<T, TFilter> extends FlexMultiTreeModel<T, TFilter> i
         }
 
         /**
-         * The node is already collapsed, we should do nothing since there is
-         * to refresh after we forgot the old children.
+         * The node is already collapsed, we should do nothing since there is no
+         * need to refresh. We will forget the children next time.
          */
         if (node.collapsed) {
             return;
