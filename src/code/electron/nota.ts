@@ -29,7 +29,7 @@ import { UUID } from "src/base/common/util/string";
 import { IpcServer } from "src/code/platform/ipc/electron/ipcServer";
 
 /**
- * An interface only for {@link NotaInstance}
+ * An interface only for {@link ApplicationInstance}
  */
 export interface INotaInstance {
     run(): Promise<void>;
@@ -39,7 +39,7 @@ export interface INotaInstance {
  * @class The main class of the application. It handles the core business of the 
  * application.
  */
-export class NotaInstance extends Disposable implements INotaInstance {
+export class ApplicationInstance extends Disposable implements INotaInstance {
 
     // [fields]
 
@@ -109,7 +109,7 @@ export class NotaInstance extends Disposable implements INotaInstance {
     }
 
     private async createServices(machineID: UUID): Promise<IInstantiationService> {
-        this.logService.trace('Main#NotaInstance#registerSerices');
+        this.logService.trace('Main#ApplicationInstance#registerSerices');
 
         // instantiation-service (child)
         const appInstantiationService = this.mainInstantiationService.createChild(new ServiceCollection());
