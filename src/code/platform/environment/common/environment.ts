@@ -118,6 +118,11 @@ export interface IDiskEnvironmentService extends IEnvironmentService {
      * @example C:/Users/user_name/AppData/Roaming/nota
      */
     readonly userDataPath: URI;
+
+    /**
+     * The product profile path for 'product.json'.
+     */
+    readonly productProfilePath: URI;
 }
 
 /**

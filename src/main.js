@@ -42,9 +42,9 @@ const { parseCLIArgv } = require('src/code/platform/environment/common/argument'
     .then(() => (function run() 
         {
             perf('main bundle loading start');
-            const nota = require('./code/electron/main');
+            const application = require('./code/electron/main');
             perf('main bundle loading end');
-            nota.default.start(CLIArgv);
+            application.default.start(CLIArgv);
         }
     )());
 })();

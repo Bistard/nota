@@ -1,16 +1,20 @@
 import { getCurrTimeStamp } from "src/base/common/date";
-import { join } from "src/base/common/file/path";
+import { join, resolve } from "src/base/common/file/path";
 import { URI } from "src/base/common/file/uri";
 import { ILogService, LogLevel, parseToLogLevel } from "src/base/common/logger";
 import { memoize } from "src/base/common/memoization";
-import { MapTypes } from "src/base/common/util/type";
+import { MapTypes, isString } from "src/base/common/util/type";
 import { NOTA_DIR_NAME } from "src/code/platform/configuration/common/configuration";
 import { ICLIArguments } from "src/code/platform/environment/common/argument";
 import { ApplicationMode, getAllEnvironments, IDiskEnvironmentService, IEnvironmentOpts } from "src/code/platform/environment/common/environment";
 
 export class DiskEnvironmentService implements IDiskEnvironmentService {
 
+    // [fields]
+
     private readonly opts: MapTypes<IEnvironmentOpts, { from: string | URI, to: string }>;
+
+    // [constructor]
 
     constructor(
         private readonly CLIArgv: ICLIArguments,
@@ -19,12 +23,14 @@ export class DiskEnvironmentService implements IDiskEnvironmentService {
     ) {
         this.opts = {
             isPackaged: opts.isPackaged,
-            appRootPath: (typeof opts.appRootPath === 'string') ? opts.appRootPath : URI.toFsPath(opts.appRootPath),
-            userDataPath: (typeof opts.userDataPath === 'string') ? opts.userDataPath : URI.toFsPath(opts.userDataPath),
-            userHomePath: (typeof opts.userHomePath === 'string') ? opts.userHomePath : URI.toFsPath(opts.userHomePath),
-            tmpDirPath: (typeof opts.tmpDirPath === 'string') ? opts.tmpDirPath : URI.toFsPath(opts.tmpDirPath),
+            appRootPath: isString(opts.appRootPath) ? opts.appRootPath : URI.toFsPath(opts.appRootPath),
+            userDataPath: isString(opts.userDataPath) ? opts.userDataPath : URI.toFsPath(opts.userDataPath),
+            userHomePath: isString(opts.userHomePath) ? opts.userHomePath : URI.toFsPath(opts.userHomePath),
+            tmpDirPath: isString(opts.tmpDirPath) ? opts.tmpDirPath : URI.toFsPath(opts.tmpDirPath),
         };
     }
+
+    // [public methods]
 
     get CLIArguments(): ICLIArguments { return this.CLIArgv; }
 
@@ -36,25 +42,30 @@ export class DiskEnvironmentService implements IDiskEnvironmentService {
     get logLevel(): LogLevel { return parseToLogLevel(this.CLIArgv['log']); }
 
     @memoize
-    get userHomePath(): URI { return URI.fromFile(this.opts.userHomePath!); }
+    get userHomePath(): URI { return URI.fromFile(this.opts.userHomePath); }
 
     @memoize
-    get tmpDirPath(): URI { return URI.fromFile(this.opts.tmpDirPath!); }
+    get tmpDirPath(): URI { return URI.fromFile(this.opts.tmpDirPath); }
 
     @memoize
-    get appRootPath(): URI { return URI.fromFile(this.opts.appRootPath!); }
+    get appRootPath(): URI { return URI.fromFile(this.opts.appRootPath); }
 
     @memoize
     get logPath(): URI { 
         const date = getCurrTimeStamp().split(' ')[0]!;
-        return URI.fromFile(join(this.opts.appRootPath!, NOTA_DIR_NAME, 'log', date));
+        return URI.fromFile(join(this.opts.appRootPath, NOTA_DIR_NAME, 'log', date));
     }
 
     @memoize
-    get appConfigurationPath(): URI { return URI.fromFile(join(this.opts.appRootPath!, NOTA_DIR_NAME)); }
+    get appConfigurationPath(): URI { return URI.fromFile(join(this.opts.appRootPath, NOTA_DIR_NAME)); }
 
     @memoize
-    get userDataPath(): URI { return URI.fromFile(this.opts.userDataPath!); }
+    get userDataPath(): URI { return URI.fromFile(this.opts.userDataPath); }
+
+    @memoize
+    get productProfilePath(): URI { return URI.fromFile(resolve(this.opts.appRootPath, 'product.json')); }
+
+    // [private helper methods]
 
     protected inspect(): void {
         this.logService?.trace(`Main#Environment loaded:\n${getAllEnvironments(this).map(enviro => `\t${enviro}`).join('\n')}`);

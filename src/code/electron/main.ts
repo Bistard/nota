@@ -24,6 +24,7 @@ import { getFormatCurrTimeStamp } from 'src/base/common/date';
 import { EventBlocker } from 'src/base/common/util/async';
 import { MainConfigurationService } from 'src/code/platform/configuration/common/configurationService';
 import { IConfigurationService } from 'src/code/platform/configuration/common/configuration';
+import { IProductService, ProductService } from 'src/code/platform/product/common/productService';
 
 interface IMainProcess {
     start(argv: ICLIArguments): Promise<void>;
@@ -42,6 +43,7 @@ const nota = new class extends class MainProcess implements IMainProcess {
     private readonly instantiationService!: IInstantiationService;
     private readonly environmentService!: IMainEnvironmentService;
     private readonly fileService!: IFileService;
+    private readonly productService!: IProductService;
     private readonly configurationService!: IConfigurationService;
     private readonly logService!: ILogService;
     private readonly lifecycleService!: IMainLifecycleService;
@@ -145,6 +147,10 @@ const nota = new class extends class MainProcess implements IMainProcess {
         ]);
         logService.setLogger(pipelineLogger);
 
+        // product-service
+        const productService = new ProductService(fileService);
+        instantiationService.register(IProductService, productService);
+
         // life-cycle-service
         const lifecycleService = new MainLifecycleService(logService);
         instantiationService.register(IMainLifecycleService, lifecycleService);
@@ -157,13 +163,14 @@ const nota = new class extends class MainProcess implements IMainProcess {
         const statusService = new MainStatusService(fileService, logService, environmentService, lifecycleService);
         instantiationService.register(IMainStatusService, statusService);
 
-        (this.instantiationService as any) = instantiationService;
-        (this.environmentService as any) = environmentService;
-        (this.fileService as any) = fileService;
-        (this.configurationService as any) = configurationService;
-        (this.logService as any) = logService;
-        (this.lifecycleService as any) = lifecycleService;
-        (this.statusService as any) = statusService;
+        (<any>this.instantiationService) = instantiationService;
+        (<any>this.environmentService) = environmentService;
+        (<any>this.fileService) = fileService;
+        (<any>this.productService) = productService;
+        (<any>this.configurationService) = configurationService;
+        (<any>this.logService) = logService;
+        (<any>this.lifecycleService) = lifecycleService;
+        (<any>this.statusService) = statusService;
     }
     
     /**
@@ -188,6 +195,7 @@ const nota = new class extends class MainProcess implements IMainProcess {
                 return mkdir(URI.toFsPath(path), { recursive: true });
             })),
 
+            this.productService.init(this.environmentService.productProfilePath),
             this.statusService.init(),
             this.configurationService.init(),
         ]);
