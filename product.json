@@ -1,0 +1,8 @@
+{
+    "projectName": "nota",
+    "applicationName": "nota",
+    "description": "A cross-platform markdown note-taking application",
+    
+    "version": "0.0.1",
+    "license": "MIT"
+}
