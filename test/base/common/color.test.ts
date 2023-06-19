@@ -1,11 +1,28 @@
 import * as assert from 'assert';
-import { RGBA } from 'src/base/common/color';
+import { HexColor, RGBA } from 'src/base/common/color';
+import { AreEqual } from 'src/base/common/util/type';
 
 suite('color-test', () => {
 
     function checkColor(color: RGBA, r: number, g: number, b: number, a: number = 1): boolean {
         return color.r === r && color.g === g && color.b === b && color.a === a;
     }
+
+    test('HexColor - type infer', () => {
+        let res: boolean;
+
+        // Valid HexColor tests
+        res = true satisfies AreEqual<HexColor<'#abc'>, '#abc'>;
+        res = true satisfies AreEqual<HexColor<'#abcdef'>, '#abcdef'>;
+
+        // Invalid HexColor tests
+        res = true satisfies AreEqual<HexColor<''>, never>;
+        res = true satisfies AreEqual<HexColor<'#'>, never>;
+        res = true satisfies AreEqual<HexColor<'#a'>, never>;
+        res = true satisfies AreEqual<HexColor<'#ab'>, never>;
+        res = true satisfies AreEqual<HexColor<'#abcdefg'>, never>;
+        res = true satisfies AreEqual<HexColor<'#abcdeg'>, never>;
+    });
 
     test('RGBA - ctor', () => {
         let color = new RGBA(255, 255, 255);
