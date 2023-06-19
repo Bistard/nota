@@ -119,7 +119,7 @@ export class FileService extends Disposable implements IFileService {
     // [event]
 
     private readonly _onDidResourceChange = this.__register(new Emitter<IRawResourceChangeEvents>());
-	readonly onDidResourceChange = this._onDidResourceChange.registerListener;
+	public readonly onDidResourceChange = this._onDidResourceChange.registerListener;
 
     private readonly _onDidResourceClose = this.__register(new Emitter<URI>());
     public readonly onDidResourceClose = this._onDidResourceClose.registerListener;
