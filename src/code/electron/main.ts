@@ -36,7 +36,7 @@ interface IMainProcess {
  *      1. Initializations on core microservices of the application.
  *      2. Important disk directory preparation.
  */
-const nota = new class extends class MainProcess implements IMainProcess {
+const main = new class extends class MainProcess implements IMainProcess {
 
     // [field]
 
@@ -205,10 +205,10 @@ const nota = new class extends class MainProcess implements IMainProcess {
 
         try {
             /**
-             * Each nota application will try to listen to the same socket file
-             * or pipe. If an error is catched with code `EADDRINUSE`, it means 
-             * there is already an application is running, we should terminate 
-             * since we only accept one single application.
+             * Every newly opened application will try to listen to the same 
+             * socket file or pipe. If an error is catched with code `EADDRINUSE`, 
+             * it means there is already an application is running, we should 
+             * terminate since we only accept one single application.
              */
             const server = await new Promise<Server>((resolve, reject) => {
                 const tcpServer = createServer();
@@ -227,7 +227,7 @@ const nota = new class extends class MainProcess implements IMainProcess {
                 throw error;
             }
 
-            // there is a running nota application, we stop the current application.
+            // there is a running application, we stop the current application.
             throw new ExpectedError('There is an application running, we are terminating...');
         }
 
@@ -267,7 +267,7 @@ const nota = new class extends class MainProcess implements IMainProcess {
         ];
 
         dialog.showMessageBoxSync({
-            title: 'nota',
+            title: this.productService.profile.applicationName,
             message: 'Unable to write to directories',
             detail: Strings.format('{0}\n\nPlease make sure the following directories are writeable: \n\n{1}', [error.toString?.() ?? error, dir.join('\n')]),
             type: 'warning',
@@ -286,4 +286,4 @@ const nota = new class extends class MainProcess implements IMainProcess {
     }
 } {}; /** @readonly ❤hello, world!❤ */
 
-export default nota;
+export default main;
