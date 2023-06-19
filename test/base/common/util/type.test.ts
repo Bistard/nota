@@ -110,70 +110,65 @@ suite('typescript-types-test', () => {
 
     test('DightInString type', () => {
         const digit: DightInString = '5';
-        assert.ok(digit);
     });
 
     test('AlphabetInStringLow type', () => {
         const char: AlphabetInStringLow = 'g';
-        assert.ok(char);
     });
 
     test('AlphabetInStringCap type', () => {
         const char: AlphabetInStringCap = 'G';
-        assert.ok(char);
     });
 
     test('AlphabetInString type', () => {
         const char: AlphabetInString = 'A';
         const char2: AlphabetInString = 'a';
-        assert.ok(char);
-        assert.ok(char2);
     });
 
     test('NonUndefined type', () => {
         const obj: NonUndefined = {};
-        assert.ok(obj);
     });
 
     test('Negate type', () => {
         type False = Negate<true>;
+        const f: False = false;
         type True = Negate<false>;
-        assert.ok(true);
+        const t: True = true;
     });
 
     test('AnyOf type', () => {
         type True = AnyOf<[0, "", null, 5]>;
         type False = AnyOf<[0, "", null]>;
-        let t: True = true;
-        let f: False = false;
+        const t: True = true;
+        const f: False = false;
     });
 
     test('Push type', () => {
         type FourNumbers = Push<[1, 2, 3], 4>;
-        let arr: FourNumbers = [1, 2, 3, 4];
+        const arr: FourNumbers = [1, 2, 3, 4];
     });
     
     test('Pop type', () => {
         type ThreeNumbers = Pop<[1, 2, 3, 4]>;
-        let arr: ThreeNumbers = [1, 2, 3];
+        const arr: ThreeNumbers = [1, 2, 3];
     });
     
     test('DeepReadonly type', () => {
         type ReadOnlyObject = DeepReadonly<{ a: number, b: { c: string } }>;
-        let obj: ReadOnlyObject = { a: 1, b: { c: "string" } };
+        const obj: ReadOnlyObject = { a: 1, b: { c: "string" } };
         // no counter example as modifying would be a compile error
     });
     
     test('DeepMutable type', () => {
         type MutableObject = DeepMutable<{ readonly a: number, readonly b: { readonly c: string } }>;
-        let obj: MutableObject = { a: 1, b: { c: "string" } };
+        const obj: MutableObject = { a: 1, b: { c: "string" } };
         obj.a = 2; // this should pass
         obj.b.c = "another string"; // this should pass
     });
     
     test('SplitString type', () => {
         type ABCArray = SplitString<"A,B,C", ",">;
-        let arr: ABCArray = ["A", "B", "C"];
+        const arr: ABCArray = ["A", "B", "C"];
         // let notArr: ABCArray = ["A", "B", "C", "D"]; // This should fail
     });
 

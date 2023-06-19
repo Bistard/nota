@@ -91,7 +91,7 @@ export type IsObject<T> = T extends Dictionary<string, any> ? true : false;
 /**
  * Determines if the given two types T and U are equal.
  */
-export type AreEqual<T, U> = T extends U ? (U extends T ? true : false) : false;
+export type AreEqual<T, U> = [T, U] extends [never, never] ? true : (T extends U ? (U extends T ? true : false) : false);
 
 /**
  * Determines if the given array contains any truthy values.
