@@ -68,7 +68,7 @@ export class MainWindowService extends Disposable implements IMainWindowService 
         @ILogService private readonly logService: ILogService,
         @IFileService private readonly fileService: IFileService,
         @IMainLifecycleService private readonly lifecycleService: IMainLifecycleService,
-        @IEnvironmentService private readonly environmentMainService: IMainEnvironmentService,
+        @IEnvironmentService private readonly mainEnvironmentService: IMainEnvironmentService,
     ) {
         super();
         this.registerListeners();
@@ -140,16 +140,16 @@ export class MainWindowService extends Disposable implements IMainWindowService 
          */
         const configuration: IWindowConfiguration = {
             /** {@link ICLIArguments} */
-            _:               opts._                ?? this.environmentMainService.CLIArguments._,
-            log:             opts.log              ?? this.environmentMainService.CLIArguments.log,
-            'open-devtools': opts['open-devtools'] ?? this.environmentMainService.CLIArguments['open-devtools'],
+            _:               opts._                ?? this.mainEnvironmentService.CLIArguments._,
+            log:             opts.log              ?? this.mainEnvironmentService.CLIArguments.log,
+            'open-devtools': opts['open-devtools'] ?? this.mainEnvironmentService.CLIArguments['open-devtools'],
             
             /** {@link IEnvironmentOpts} */
-            isPackaged:   opts.isPackaged   ?? this.environmentMainService.isPackaged,
-            appRootPath:  opts.appRootPath  ?? this.environmentMainService.appRootPath,
-            tmpDirPath:   opts.tmpDirPath   ?? this.environmentMainService.tmpDirPath,
-            userDataPath: opts.userDataPath ?? this.environmentMainService.userDataPath,
-            userHomePath: opts.userHomePath ?? this.environmentMainService.userHomePath,
+            isPackaged:   opts.isPackaged   ?? this.mainEnvironmentService.isPackaged,
+            appRootPath:  opts.appRootPath  ?? this.mainEnvironmentService.appRootPath,
+            tmpDirPath:   opts.tmpDirPath   ?? this.mainEnvironmentService.tmpDirPath,
+            userDataPath: opts.userDataPath ?? this.mainEnvironmentService.userDataPath,
+            userHomePath: opts.userHomePath ?? this.mainEnvironmentService.userHomePath,
 
             // window configuration
             machineID: this.machineID,
