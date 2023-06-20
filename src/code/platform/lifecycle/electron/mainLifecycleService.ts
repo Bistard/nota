@@ -77,6 +77,8 @@ export class MainLifecycleService extends AbstractLifecycleService<LifecyclePhas
 
     // [field]
 
+    _microserviceIdentifier: undefined;
+
     /** prevent calling `this.quit()` twice. */
     private _pendingQuitBlocker?: Blocker<void>;
 

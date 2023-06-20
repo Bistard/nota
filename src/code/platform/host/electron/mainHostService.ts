@@ -43,6 +43,8 @@ export interface IMainHostService extends IHostService, IDisposable {
  */
 export class MainHostService extends Disposable implements IMainHostService {
 
+    _microserviceIdentifier: undefined;
+
     // [event]
     
     private readonly _onDidMaximizeWindow = this.__register(new NodeEventEmitter(app, IpcChannel.WindowMaximized, (_e, window: BrowserWindow) => window.id));

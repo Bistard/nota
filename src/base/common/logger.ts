@@ -1,6 +1,6 @@
 import { Disposable } from "src/base/common/dispose";
 import { Emitter, Register } from "src/base/common/event";
-import { createService } from "src/code/platform/instantiation/common/decorator";
+import { IMicroService, createService } from "src/code/platform/instantiation/common/decorator";
 import { IInstantiationService } from "src/code/platform/instantiation/common/instantiation";
 
 export const ILogService = createService<ILogService>('log-service');
@@ -98,6 +98,7 @@ export interface IAbstractLogger extends Disposable {
  */
 export abstract class AbstractLogger extends Disposable implements IAbstractLogger {
     
+    _microserviceIdentifier: undefined;
     private _level!: LogLevel;
     
     private readonly _emitter = this.__register(new Emitter<LogLevel>());
@@ -147,7 +148,7 @@ export interface ILogger extends IAbstractLogger {
 /** 
  * Alias for a {@link ILogger}. May be registered into a {@link IInstantiationService}.
  */
-export interface ILogService extends ILogger {};
+export interface ILogService extends ILogger, IMicroService {};
 
 /**
  * An option for constructing {@link ILogger}.

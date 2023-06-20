@@ -1,7 +1,7 @@
 import 'src/code/browser/workbench/parts/sideView/media/sideView.scss';
 import { Component, IComponent } from 'src/code/browser/service/component/component';
 import { Emitter, Register } from 'src/base/common/event';
-import { createService } from 'src/code/platform/instantiation/common/decorator';
+import { IMicroService, createService } from 'src/code/platform/instantiation/common/decorator';
 import { IComponentService } from 'src/code/browser/service/component/componentService';
 import { IInstantiationService } from 'src/code/platform/instantiation/common/instantiation';
 import { Constructor, Mutable } from 'src/base/common/util/type';
@@ -27,7 +27,7 @@ export interface ISideViewChangeEvent {
 /**
  * An interface only for {@link SideViewService}.
  */
-export interface ISideViewService extends IComponent {
+export interface ISideViewService extends IComponent, IMicroService {
 
     /** 
      * Events fired when the current side view has changed. 
@@ -78,6 +78,8 @@ export interface ISideViewService extends IComponent {
  * also a {@link Component}.
  */
 export class SideViewService extends Component implements ISideViewService {
+
+    _microserviceIdentifier: undefined;
 
     // [field]
 

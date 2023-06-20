@@ -15,6 +15,8 @@ import { ResourceChangeEvent } from "src/code/platform/files/common/resourceChan
 
 export class BrowserFileChannel extends Disposable implements IFileService {
 
+    _microserviceIdentifier: undefined;
+
     // [event]
 
     private readonly _onDidResourceChange = this.__register(new Emitter<IRawResourceChangeEvents>());

@@ -1,9 +1,9 @@
-import { createService } from "src/code/platform/instantiation/common/decorator";
+import { IMicroService, createService } from "src/code/platform/instantiation/common/decorator";
 import { IComponent } from "src/code/browser/service/component/component";
 
 export const IComponentService = createService<IComponentService>('component-service');
 
-export interface IComponentService {
+export interface IComponentService extends IMicroService {
     register(component: IComponent, force?: boolean): void;
     unregister(component: IComponent | string): void;
     get(id: string): IComponent | null;
@@ -14,6 +14,8 @@ export interface IComponentService {
  * @class This service is used to store and track all the registered Component.
  */
 export class ComponentService {
+
+    _microserviceIdentifier: undefined;
 
     private readonly _componentMap: Map<string, IComponent>;
 

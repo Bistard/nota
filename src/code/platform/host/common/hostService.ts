@@ -1,6 +1,6 @@
 import { IDisposable } from "src/base/common/dispose";
 import { Register } from "src/base/common/event";
-import { createService } from "src/code/platform/instantiation/common/decorator";
+import { IMicroService, createService } from "src/code/platform/instantiation/common/decorator";
 import { StatusKey } from "src/code/platform/status/common/status";
 
 export const IHostService = createService<IHostService>('host-service');
@@ -8,7 +8,7 @@ export const IHostService = createService<IHostService>('host-service');
 /**
  * SHOULD ONLY contains promise methods or event registrations.
  */
-export interface IHostService {
+export interface IHostService extends IMicroService {
     
     // window-instance
     readonly onDidMaximizeWindow: Register<number>;

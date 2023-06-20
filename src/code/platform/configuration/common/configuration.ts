@@ -3,7 +3,7 @@ import { Register } from "src/base/common/event";
 import { DeepReadonly } from "src/base/common/util/type";
 import { IConfigurationStorage } from "src/code/platform/configuration/common/configurationStorage";
 import { IConfigurationChangeEvent } from "src/code/platform/configuration/common/configurationService";
-import { createService } from "src/code/platform/instantiation/common/decorator";
+import { IMicroService, createService } from "src/code/platform/instantiation/common/decorator";
 
 /**
  * A {@link Section} refers to a string composed of multiple substrings linked 
@@ -17,7 +17,7 @@ export type Section = string;
 
 export const IConfigurationService = createService<IConfigurationService>('configuration-service');
 
-export interface IConfigurationService extends IDisposable {
+export interface IConfigurationService extends IDisposable, IMicroService {
 
     /**
      * Fires whenever the configuraion has changed.

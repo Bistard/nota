@@ -2,12 +2,12 @@ import { Disposable } from "src/base/common/dispose";
 import { Emitter, Register } from "src/base/common/event";
 import { IColorTheme } from "src/code/browser/service/theme/theme";
 import { ThemeConfiguration } from "src/code/browser/service/theme/themeConfiguration";
-import { IConfigService } from "src/code/platform/configuration/common/abstractConfigService";
-import { createService } from "src/code/platform/instantiation/common/decorator";
+import { IConfigurationService } from "src/code/platform/configuration/common/configuration";
+import { IMicroService, createService } from "src/code/platform/instantiation/common/decorator";
 
 export const IThemeService = createService<IThemeService>('theme-service');
 
-export interface IThemeService {
+export interface IThemeService extends IMicroService {
     
     readonly onDidChangeTheme: Register<IColorTheme>;
     
@@ -15,6 +15,8 @@ export interface IThemeService {
 }
 
 export class ThemeService extends Disposable implements IThemeService {
+
+    _microserviceIdentifier: undefined;
 
     // [event]
 
@@ -28,12 +30,12 @@ export class ThemeService extends Disposable implements IThemeService {
     // [constructor]
 
     constructor(
-        @IConfigService private readonly configService: IConfigService,
+        @IConfigurationService private readonly configurationService: IConfigurationService,
     ) {
         super();
 
         // TODO: read configuration about theme
-        const themeConfig = new ThemeConfiguration(configService);
+        const themeConfiguraion = new ThemeConfiguration(configurationService);
 
         // TODO: get theme data based on the configuration
 

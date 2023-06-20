@@ -3,7 +3,7 @@ import { join } from "src/base/common/file/path";
 import { URI } from "src/base/common/file/uri";
 import { ILogService } from "src/base/common/logger";
 import { IFileService } from "src/code/platform/files/common/fileService";
-import { createService } from "src/code/platform/instantiation/common/decorator";
+import { IMicroService, createService } from "src/code/platform/instantiation/common/decorator";
 import { IEnvironmentService, IMainEnvironmentService } from "src/code/platform/environment/common/environment";
 import { DiskStorage, IDiskStorage } from "src/code/platform/files/common/diskStorage";
 import { IMainLifecycleService } from "src/code/platform/lifecycle/electron/mainLifecycleService";
@@ -17,7 +17,7 @@ export const IMainStatusService = createService<IMainStatusService>('status-serv
  * wrapper of a {@link IDiskStorage}. You may check the more detailed document
  * from there.
  */
-export interface IMainStatusService extends Disposable {
+export interface IMainStatusService extends Disposable, IMicroService {
     set<T>(key: StatusKey, val: T): Promise<void>;
     setLot<T>(items: readonly { key: StatusKey, val: T }[]): Promise<void>;
     get<T>(key: StatusKey, defaultVal?: T): T | undefined;
@@ -49,6 +49,8 @@ export interface IMainStatusService extends Disposable {
  * 
  */
 export class MainStatusService extends Disposable implements IMainStatusService {
+
+    _microserviceIdentifier: undefined;
 
     // [field]
 

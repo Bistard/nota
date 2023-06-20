@@ -10,8 +10,10 @@ import { ApplicationMode, getAllEnvironments, IDiskEnvironmentService, IEnvironm
 
 export class DiskEnvironmentService implements IDiskEnvironmentService {
 
+    _microserviceIdentifier: undefined;
+    
     // [fields]
-
+    
     private readonly opts: MapTypes<IEnvironmentOpts, { from: string | URI, to: string }>;
 
     // [constructor]

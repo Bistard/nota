@@ -24,6 +24,8 @@ import { IThemeService } from 'src/code/browser/service/theme/themeService';
  */
 export class Workbench extends WorkbenchLayout implements IWorkbenchService {
 
+    _microserviceIdentifier: undefined;
+
     // [field]
 
     private _contextManager?: WorkbenchContextManager;

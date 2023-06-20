@@ -15,6 +15,8 @@ import { APP_CONFIG_NAME, ConfigurationModuleType, ConfigurationModuleTypeToStri
  */
 export class MainConfigurationService extends Disposable implements IConfigurationService {
 
+    _microserviceIdentifier: undefined;
+
     // [fields]
 
     private readonly _registrant = REGISTRANTS.get(IConfigurationRegistrant);

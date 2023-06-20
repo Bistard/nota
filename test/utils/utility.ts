@@ -19,6 +19,8 @@ export const TestURI = URI.fromFile(TestPath);
 
 export class NullLifecycleService extends AbstractLifecycleService<number, number> {
 
+    _microserviceIdentifier: undefined;
+
     constructor() {
         super('Test', 0, () => '', new NullLogger());
     }
@@ -87,6 +89,8 @@ export class NullLogger extends AbstractLogger implements ILogService {
 export class NullContextService extends ContextService {}
 
 export class TestKeyboardService implements IKeyboardService {
+
+    _microserviceIdentifier: undefined;
 
     private readonly _emitter: Emitter<IStandardKeyboardEvent> = new Emitter();
 

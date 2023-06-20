@@ -1,6 +1,6 @@
 import 'src/code/browser/workbench/parts/sideBar/media/sideBar.scss';
 import { Component, IComponent } from 'src/code/browser/service/component/component';
-import { createService } from 'src/code/platform/instantiation/common/decorator';
+import { IMicroService, createService } from 'src/code/platform/instantiation/common/decorator';
 import { IComponentService } from 'src/code/browser/service/component/componentService';
 import { ISideButtonOptions, SideButton } from 'src/code/browser/workbench/parts/sideBar/sideBarButton';
 import { WidgetBar } from 'src/base/browser/secondary/widgetBar/widgetBar';
@@ -45,7 +45,7 @@ export interface ISideBarButtonClickEvent {
 /**
  * An interface only for {@link SideBar}.
  */
-export interface ISideBarService extends IComponent {
+export interface ISideBarService extends IComponent, IMicroService {
     
     /**
      * Events fired when the button is clicked.
@@ -93,6 +93,8 @@ export interface ISideBarService extends IComponent {
  * transition between each button and display coressponding view.
  */
 export class SideBar extends Component implements ISideBarService {
+
+    _microserviceIdentifier: undefined;
 
     // [field]
 
