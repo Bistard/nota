@@ -51,7 +51,7 @@ export class Editor extends Component implements IEditorService {
     public openSource(source: URI | string): void {
         
         if (!this._editorWidget) {
-            throw new Error('editor service is currently not created');
+            throw new Error(`[Editor] Cannot open ${URI.isURI(source) ? URI.toString(source) : source} - service is currently not created.`);
         }
         
         const uri = URI.isURI(source) ? source : URI.fromFile(source);
