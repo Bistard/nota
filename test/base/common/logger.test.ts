@@ -24,29 +24,29 @@ suite('logger', () => {
         assert.strictEqual(output, 'hello world!');
     });
 
-    test('PipelineLogger', () => {
+    test('PipelineLogger', async () => {
 
         const logs1: string[] = [];
         const logs2: string[] = [];
 
         class TestLogger1 extends AbstractLogger implements ILogger {
             trace(message: string, ...args: any[]): void {
-                logs1.splice(1, 0, 'log1 - trace');
+                logs1.splice(0, 0, 'log1 - trace');
             }
             debug(message: string, ...args: any[]): void {
-                logs1.splice(1, 0, 'log1 - debug');
+                logs1.splice(0, 0, 'log1 - debug');
             }
             info(message: string, ...args: any[]): void {
-                logs1.splice(1, 0, 'log1 - info');
+                logs1.splice(0, 0, 'log1 - info');
             }
             warn(message: string, ...args: any[]): void {
-                logs1.splice(1, 0, 'log1 - warn');
+                logs1.splice(0, 0, 'log1 - warn');
             }
             error(message: string | Error, ...args: any[]): void {
-                logs1.splice(1, 0, 'log1 - error');
+                logs1.splice(0, 0, 'log1 - error');
             }
             fatal(message: string | Error, ...args: any[]): void {
-                logs1.splice(1, 0, 'log1 - fatal');
+                logs1.splice(0, 0, 'log1 - fatal');
             }
             async flush(): Promise<void> {
                 logs1.length = 0;
@@ -55,22 +55,22 @@ suite('logger', () => {
 
         class TestLogger2 extends AbstractLogger implements ILogger {
             trace(message: string, ...args: any[]): void {
-                logs2.splice(1, 0, 'log2 - trace');
+                logs2.splice(0, 0, 'log2 - trace');
             }
             debug(message: string, ...args: any[]): void {
-                logs2.splice(1, 0, 'log2 - debug');
+                logs2.splice(0, 0, 'log2 - debug');
             }
             info(message: string, ...args: any[]): void {
-                logs2.splice(1, 0, 'log2 - info');
+                logs2.splice(0, 0, 'log2 - info');
             }
             warn(message: string, ...args: any[]): void {
-                logs2.splice(1, 0, 'log2 - warn');
+                logs2.splice(0, 0, 'log2 - warn');
             }
             error(message: string | Error, ...args: any[]): void {
-                logs2.splice(1, 0, 'log2 - error');
+                logs2.splice(0, 0, 'log2 - error');
             }
             fatal(message: string | Error, ...args: any[]): void {
-                logs2.splice(1, 0, 'log2 - fatal');
+                logs2.splice(0, 0, 'log2 - fatal');
             }
             async flush(): Promise<void> {
                 logs2.length = 0;
@@ -104,9 +104,8 @@ suite('logger', () => {
         assert.strictEqual(logs1[0], 'log1 - fatal');
         assert.strictEqual(logs2[0], 'log2 - fatal');
 
-        pipeline.flush();
+        await pipeline.flush();
 
-        pipeline.error('');
         assert.strictEqual(logs1.length, 0);
         assert.strictEqual(logs2.length, 0);
     });
