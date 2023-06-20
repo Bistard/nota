@@ -1,46 +1,50 @@
 import * as assert from 'assert';
-import { createService } from 'src/code/platform/instantiation/common/decorator';
+import { IMicroService, createService } from 'src/code/platform/instantiation/common/decorator';
 import { ServiceDescriptor } from 'src/code/platform/instantiation/common/descriptor';
 import { InstantiationService } from 'src/code/platform/instantiation/common/instantiation';
 import { ServiceCollection } from 'src/code/platform/instantiation/common/serviceCollection';
 
 const IService1 = createService<IService1>('service1');
 
-interface IService1 {
+interface IService1 extends IMicroService {
 	c: number;
 }
 
 class Service1 implements IService1 {
+	_microserviceIdentifier: undefined;
 	c = 1;
 }
 
 const IService2 = createService<IService2>('service2');
 
-interface IService2 {
+interface IService2 extends IMicroService {
 	d: boolean;
 }
 
 class Service2 implements IService2 {
+	_microserviceIdentifier: undefined;
 	d = true;
 }
 
 const IService3 = createService<IService3>('service3');
 
-interface IService3 {
+interface IService3 extends IMicroService {
 	s: string;
 }
 
 class Service3 implements IService3 {
+	_microserviceIdentifier: undefined;
 	s = 'farboo';
 }
 
 const IDependentService = createService<IDependentService>('dependentService');
 
-interface IDependentService {
+interface IDependentService extends IMicroService {
 	name: string;
 }
 
 class DependentService implements IDependentService {
+	_microserviceIdentifier: undefined;
 	constructor(@IService1 service: IService1) {
 		assert.strictEqual(service.c, 1);
 	}
@@ -106,12 +110,13 @@ abstract class DependentBaseService extends DependentVeryBaseService {
 
 const IDependentServiceTarget3 = createService<IDependentServiceTarget3>('dependent-service-target-3');
 
-interface IDependentServiceTarget3 {
+interface IDependentServiceTarget3 extends IMicroService {
 	base: boolean;
 }
 
 // workbench
 class DependentServiceTarget3 extends DependentBaseService implements IDependentServiceTarget3 {
+	_microserviceIdentifier: undefined;
 	constructor(@IDependentService d: IDependentService, @IService1 s: IService1) {
 		super(d, s, true);
 		assert.ok(d);
@@ -124,12 +129,11 @@ class DependentServiceTarget3 extends DependentBaseService implements IDependent
 
 const IDependentServiceTarget4 = createService<IDependentServiceTarget4>('dependent-service-target-4');
 
-interface IDependentServiceTarget4 {
-
-}
+interface IDependentServiceTarget4 extends IMicroService {}
 
 // shortcutService
 class DependentServiceTarget4 implements IDependentServiceTarget4 {
+	_microserviceIdentifier: undefined;
 	constructor(@IDependentServiceTarget3 d: IDependentServiceTarget3) {
 		assert.ok(d);
 		assert.strictEqual(d.base, true);
