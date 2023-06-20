@@ -29,7 +29,7 @@ export interface ServiceIdentifier<T> {
  * @param index index of the parameter
  * @param optional // TODO:
  */
-function storeServiceDependency(target: Function, id: Function, index: number, optional: boolean): void {
+function __storeServiceDependency(target: Function, id: Function, index: number, optional: boolean): void {
     // mark the dependencies on the target (the class which to be decorated)
 	if ((target as any)[_ServiceUtil.DI_TARGET] === target) {
 		(target as any)[_ServiceUtil.DI_DEPENDENCIES].push({ id, index, optional });
@@ -40,10 +40,9 @@ function storeServiceDependency(target: Function, id: Function, index: number, o
 }
 
 /**
- * @description The 'ONLY' valid way to create a 'ServiceIdentifier<T>'.
- * 
- * @param serviceId unique name of the service
- * @returns {ServiceIdentifier<T>} the coressponing serviceIdentifier to the given service
+ * @description The 'ONLY' valid way to create a {@link ServiceIdentifier<T>}.
+ * @param serviceId unique name of the service.
+ * @returns A corresponding {@link ServiceIdentifier<T>} to the given service.
  */
 export function createService<T>(serviceId: string): ServiceIdentifier<T> {
 
@@ -62,7 +61,7 @@ export function createService<T>(serviceId: string): ServiceIdentifier<T> {
         if (arguments.length !== 3) {
             throw new Error('@IServiceName-decorator can only be used to decorate a parameter.');
         }
-        storeServiceDependency(target, serviceIdentifier, index, false);
+        __storeServiceDependency(target, serviceIdentifier, index, false);
     };
 
     serviceIdentifier.toString = () => serviceId;
@@ -73,4 +72,12 @@ export function createService<T>(serviceId: string): ServiceIdentifier<T> {
 
 export function refineDecorator<T1, T extends T1>(serviceIdentifier: ServiceIdentifier<T1>): ServiceIdentifier<T> {
 	return <ServiceIdentifier<T>>serviceIdentifier;
+}
+
+/**
+ * The purpose of this field can be to identify whether the class is used within 
+ * a microservice architecture at compile time.
+ */
+export interface IMicroService {
+    _microserviceIdentifier: undefined;
 }

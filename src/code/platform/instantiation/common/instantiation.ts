@@ -1,5 +1,5 @@
 import { Constructor } from "src/base/common/util/type";
-import { createService, ServiceIdentifier, _ServiceUtil } from "src/code/platform/instantiation/common/decorator";
+import { createService, ServiceIdentifier, _ServiceUtil, IMicroService } from "src/code/platform/instantiation/common/decorator";
 import { Graph, Node } from "src/code/platform/instantiation/common/dependencyGraph";
 import { ServiceDescriptor } from "src/code/platform/instantiation/common/descriptor";
 import { IdleValue } from "src/code/platform/instantiation/common/idle";
@@ -24,7 +24,21 @@ export interface IServiceProvider {
     getOrCreateService<T>(serviceIdentifier: ServiceIdentifier<T>): T;
 }
 
-export interface IInstantiationService extends IServiceProvider {
+/**
+ * Given a list of arguments as a tuple, attempt to extract the leading, 
+ * non-service arguments to their own tuple.
+ */
+type GetLeadingNonServiceArgs<TArgs extends any[]> =
+    TArgs extends [] 
+        ? [] 
+        : TArgs extends [...infer TFirst, IMicroService] 
+            ? GetLeadingNonServiceArgs<TFirst>
+            : TArgs;
+
+/**
+ * An interface only for {@link InstantiationService}.
+ */
+export interface IInstantiationService extends IServiceProvider, IMicroService {
     
     readonly serviceCollections: ServiceCollection;
 
@@ -42,7 +56,7 @@ export interface IInstantiationService extends IServiceProvider {
      * @param ctorOrDescriptor constructor or ServiceDescriptor of the service.
      * @param rest all the arguments for that service.
      */
-    createInstance<Ctor extends Constructor<any>, T extends InstanceType<Ctor>>(ctorOrDescriptor: Ctor | ServiceDescriptor<Ctor>, ...rest: any[]): T;
+    createInstance<Ctor extends Constructor<any>, T extends InstanceType<Ctor>>(ctorOrDescriptor: Ctor | ServiceDescriptor<Ctor>, ...rest: GetLeadingNonServiceArgs<ConstructorParameters<Ctor>>): T;
 
     /**
      * @description Create a new instantiation service that inherits all the 
@@ -68,6 +82,8 @@ export interface IInstantiationService extends IServiceProvider {
 
 export class InstantiationService implements IInstantiationService {
 
+    _microserviceIdentifier: undefined;
+    
     // [fields]
 
     public readonly serviceCollections: ServiceCollection;
@@ -133,10 +149,8 @@ export class InstantiationService implements IInstantiationService {
         return callback(provider, ...args);
     }
 
-    public createInstance(
-        ctorOrDescriptor: any | ServiceDescriptor<any>, 
-        ...rest: any[]): any 
-    {
+    public createInstance<Ctor extends Constructor<any>, T extends InstanceType<Ctor>>(ctorOrDescriptor: Ctor | ServiceDescriptor<Ctor>, ...rest: GetLeadingNonServiceArgs<ConstructorParameters<Ctor>>): T;
+    public createInstance(ctorOrDescriptor: any | ServiceDescriptor<any>, ...rest: any[]): any {
         let res: any;
         if (ctorOrDescriptor instanceof ServiceDescriptor) {
             res = this._createInstance(ctorOrDescriptor.ctor, ctorOrDescriptor.arguments.concat(rest));
