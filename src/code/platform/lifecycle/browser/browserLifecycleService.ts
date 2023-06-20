@@ -31,8 +31,6 @@ export const enum QuitReason {
 
 export class BrowserLifecycleService extends AbstractLifecycleService<LifecyclePhase, QuitReason> {
     
-    _microserviceIdentifier: undefined;
-
     // [field]
 
     private _ongoingQuitPromise?: Promise<void>;

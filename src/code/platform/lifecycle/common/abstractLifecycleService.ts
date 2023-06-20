@@ -7,6 +7,8 @@ import { IBeforeQuitEvent } from "src/code/platform/lifecycle/electron/mainLifec
 
 export abstract class AbstractLifecycleService<Phase extends number, QuitReason extends number> extends Disposable implements ILifecycleService<Phase, QuitReason> {
 
+    _microserviceIdentifier: undefined;
+
     // [field]
 
     private _phase: Phase;

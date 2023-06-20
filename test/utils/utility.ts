@@ -19,8 +19,6 @@ export const TestURI = URI.fromFile(TestPath);
 
 export class NullLifecycleService extends AbstractLifecycleService<number, number> {
 
-    _microserviceIdentifier: undefined;
-
     constructor() {
         super('Test', 0, () => '', new NullLogger());
     }

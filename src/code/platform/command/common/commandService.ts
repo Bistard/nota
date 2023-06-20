@@ -3,7 +3,7 @@ import { errorToMessage } from "src/base/common/error";
 import { Emitter, Register } from "src/base/common/event";
 import { ILogService } from "src/base/common/logger";
 import { ICommandEvent, ICommandRegistrant } from "src/code/platform/command/common/commandRegistrant";
-import { createService } from "src/code/platform/instantiation/common/decorator";
+import { IMicroService, createService } from "src/code/platform/instantiation/common/decorator";
 import { IInstantiationService } from "src/code/platform/instantiation/common/instantiation";
 import { REGISTRANTS } from "src/code/platform/registrant/common/registrant";
 
@@ -12,7 +12,7 @@ export const ICommandService = createService<ICommandService>('command-service')
 /**
  * An interface only for {@link CommandService}.
  */
-export interface ICommandService {
+export interface ICommandService extends IMicroService {
 
     /**
      * Fires when a command is executed successfully.
@@ -36,6 +36,8 @@ export interface ICommandService {
  */
 export class CommandService extends Disposable implements ICommandService {
     
+    _microserviceIdentifier: undefined;
+
     // [field]
 
     private readonly _registrant: ICommandRegistrant = REGISTRANTS.get(ICommandRegistrant);
