@@ -3,7 +3,7 @@ import { URI } from "src/base/common/file/uri";
 import { IFileService } from "src/code/platform/files/common/fileService";
 import { isObject } from "src/base/common/util/type";
 import { Section } from "src/code/platform/section";
-import { createService } from "src/code/platform/instantiation/common/decorator";
+import { IMicroService, createService } from "src/code/platform/instantiation/common/decorator";
 import { ILogService } from "src/base/common/logger";
 import { IBrowserEnvironmentService } from "src/code/platform/environment/common/environment";
 
@@ -72,7 +72,7 @@ export interface ILocaleOpts {
 
 }
 
-export interface Ii18nService {
+export interface Ii18nService extends IMicroService {
 
     readonly language: LanguageType;
 
@@ -128,7 +128,9 @@ export interface Ii18nService {
  */
 export class i18n implements Ii18nService {
 
-    // [Attributes]
+    _microserviceIdentifier: undefined;
+
+    // [Fields]
 
     /* the actual javascript object to store the locale */
     protected readonly _model: { [key: string]: Ii18nSection } = Object.create(null);
@@ -153,9 +155,6 @@ export class i18n implements Ii18nService {
 
     // [Events]
 
-    /**
-     * Fires when the language has been reset.
-     */
     private readonly _onDidChange = new Emitter<void>();
     public readonly onDidChange = this._onDidChange.registerListener;
 

@@ -1,12 +1,12 @@
 import * as assert from 'assert';
 import { ICommandExecutor, ICommandRegistrant } from 'src/code/platform/command/common/commandRegistrant';
 import { CommandService, ICommandService } from 'src/code/platform/command/common/commandService';
-import { createService } from 'src/code/platform/instantiation/common/decorator';
+import { IMicroService, createService } from 'src/code/platform/instantiation/common/decorator';
 import { IInstantiationService, InstantiationService, IServiceProvider } from 'src/code/platform/instantiation/common/instantiation';
 import { REGISTRANTS } from 'src/code/platform/registrant/common/registrant';
 import { NullLogger } from 'test/utils/utility';
 
-interface ITestService {
+interface ITestService extends IMicroService {
     num: number;
 
     foo(arg: number): number;
@@ -14,6 +14,7 @@ interface ITestService {
 
 class TestService implements ITestService {
 
+    _microserviceIdentifier: undefined;
     public num = 1;
     
     public foo(arg: number): number {

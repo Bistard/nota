@@ -3,9 +3,7 @@ export namespace _ServiceUtil {
     export const DI_TARGET = '$DI$tartget';
     export const DI_DEPENDENCIES = '$DI$dependencies';
 
-    export function getServiceDependencies(ctor: any)
-        : { id: ServiceIdentifier<any>, index: number, optional: boolean }[]
-    {
+    export function getServiceDependencies(ctor: any): { id: ServiceIdentifier<any>, index: number, optional: boolean }[] {
         return ctor[DI_DEPENDENCIES] || [];
     }
 }
@@ -31,11 +29,12 @@ export interface ServiceIdentifier<T> {
  */
 function __storeServiceDependency(target: Function, id: Function, index: number, optional: boolean): void {
     // mark the dependencies on the target (the class which to be decorated)
-	if ((target as any)[_ServiceUtil.DI_TARGET] === target) {
-		(target as any)[_ServiceUtil.DI_DEPENDENCIES].push({ id, index, optional });
-	} else {
-		(target as any)[_ServiceUtil.DI_DEPENDENCIES] = [{ id, index, optional }];
-		(target as any)[_ServiceUtil.DI_TARGET] = target;
+	if (target[_ServiceUtil.DI_TARGET] === target) {
+		target[_ServiceUtil.DI_DEPENDENCIES].push({ id, index, optional });
+	} 
+    else {
+		target[_ServiceUtil.DI_DEPENDENCIES] = [{ id, index, optional }];
+		target[_ServiceUtil.DI_TARGET] = target;
 	}
 }
 
@@ -59,7 +58,7 @@ export function createService<T>(serviceId: string): ServiceIdentifier<T> {
      */
     const serviceIdentifier = <any>function (target: Function, key: string, index: number): any {
         if (arguments.length !== 3) {
-            throw new Error('@IServiceName-decorator can only be used to decorate a parameter.');
+            throw new Error(`[createService] decorator can only be used to decorate a parameter: ${target}`);
         }
         __storeServiceDependency(target, serviceIdentifier, index, false);
     };

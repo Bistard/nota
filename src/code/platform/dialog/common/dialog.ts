@@ -1,5 +1,6 @@
+import { IMicroService } from "src/code/platform/instantiation/common/decorator";
 
-export interface IDialogService {
+export interface IDialogService extends IMicroService {
     showOpenDialog(opts: Electron.OpenDialogOptions, window?: Electron.BrowserWindow): Promise<Electron.OpenDialogReturnValue>;
     showSaveDialog(opts: Electron.SaveDialogOptions, window?: Electron.BrowserWindow): Promise<Electron.SaveDialogReturnValue>;
     showMessageBox(opts: Electron.MessageBoxOptions, window?: Electron.BrowserWindow): Promise<Electron.MessageBoxReturnValue>;

@@ -44,7 +44,17 @@ export interface IEnvironmentOpts {
 }
 
 export const enum ApplicationMode {
+    
+    /**
+     * Represents the development mode. It is usually used during software 
+     * development and testing.
+     */
     DEVELOP,
+
+    /**
+     * Represents the release or production mode. It is used when the 
+     * application is ready for end users.
+     */
     RELEASE,
 }
 

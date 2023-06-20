@@ -248,10 +248,11 @@ suite('instantiationService-test', () => {
 		service.createInstance(DependentServiceTarget5);
 	});
 
-	interface ICreateOnlyOnceClass {}
+	interface ICreateOnlyOnceClass extends IMicroService {}
 
 	class CreateOnlyOnceClass implements ICreateOnlyOnceClass {
-		
+
+		_microserviceIdentifier: undefined;
 		public static cnt = 0;
 		
 		constructor() {

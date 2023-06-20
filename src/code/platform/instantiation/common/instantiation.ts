@@ -48,7 +48,7 @@ export interface IInstantiationService extends IServiceProvider, IMicroService {
      * @param serviceIdentifier decorator to the service which is created by `createService()`.
      * @param instanceOrDescriptor instance or ServiceDescriptor of the service.
      */
-    register<T>(serviceIdentifier: ServiceIdentifier<T>, instanceOrDescriptor: T | ServiceDescriptor<T>): void;
+    register<T extends IMicroService>(serviceIdentifier: ServiceIdentifier<T>, instanceOrDescriptor: T | ServiceDescriptor<T>): void;
 
     /**
      * @description Passing into a constructor or a ServiceDescriptor<any> to 
@@ -100,7 +100,7 @@ export class InstantiationService implements IInstantiationService {
 
     // [public methods]
 
-    public register<T>(
+    public register<T extends IMicroService>(
         serviceIdentifier: ServiceIdentifier<T>, 
         instanceOrDescriptor: T | ServiceDescriptor<T>): void 
     {

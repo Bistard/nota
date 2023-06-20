@@ -3,7 +3,7 @@ import { Emitter, Event, Register } from "src/base/common/event";
 import { ILogService } from "src/base/common/logger";
 import { isNumber, Mutable } from "src/base/common/util/type";
 import { IFileService } from "src/code/platform/files/common/fileService";
-import { createService } from "src/code/platform/instantiation/common/decorator";
+import { IMicroService, createService } from "src/code/platform/instantiation/common/decorator";
 import { IInstantiationService } from "src/code/platform/instantiation/common/instantiation";
 import { IEnvironmentService, IMainEnvironmentService } from "src/code/platform/environment/common/environment";
 import { IMainLifecycleService } from "src/code/platform/lifecycle/electron/mainLifecycleService";
@@ -17,7 +17,7 @@ export const IMainWindowService = createService<IMainWindowService>('main-window
 /**
  * An interface only for {@link MainWindowService}.
  */
-export interface IMainWindowService extends Disposable {
+export interface IMainWindowService extends Disposable, IMicroService {
     
     readonly onDidOpenWindow: Register<IWindowInstance>;
 
@@ -47,6 +47,8 @@ export interface IMainWindowService extends Disposable {
  * {@link IWindowInstance}.
  */
 export class MainWindowService extends Disposable implements IMainWindowService {
+
+    _microserviceIdentifier: undefined;
 
     // [fields]
 
