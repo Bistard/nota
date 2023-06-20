@@ -28,11 +28,11 @@ export interface IServiceProvider {
  * Given a list of arguments as a tuple, attempt to extract the leading, 
  * non-service arguments to their own tuple.
  */
-type GetLeadingNonServiceArgs<TArgs extends any[]> =
+type NonServiceArguments<TArgs extends any[]> =
     TArgs extends [] 
         ? [] 
         : TArgs extends [...infer TFirst, IMicroService] 
-            ? GetLeadingNonServiceArgs<TFirst>
+            ? NonServiceArguments<TFirst>
             : TArgs;
 
 /**
@@ -56,7 +56,7 @@ export interface IInstantiationService extends IServiceProvider, IMicroService {
      * @param ctorOrDescriptor constructor or ServiceDescriptor of the service.
      * @param rest all the arguments for that service.
      */
-    createInstance<Ctor extends Constructor<any>, T extends InstanceType<Ctor>>(ctorOrDescriptor: Ctor | ServiceDescriptor<Ctor>, ...rest: GetLeadingNonServiceArgs<ConstructorParameters<Ctor>>): T;
+    createInstance<Ctor extends Constructor<any>, T extends InstanceType<Ctor>>(ctorOrDescriptor: Ctor | ServiceDescriptor<Ctor>, ...rest: NonServiceArguments<ConstructorParameters<Ctor>>): T;
 
     /**
      * @description Create a new instantiation service that inherits all the 
@@ -149,7 +149,7 @@ export class InstantiationService implements IInstantiationService {
         return callback(provider, ...args);
     }
 
-    public createInstance<Ctor extends Constructor<any>, T extends InstanceType<Ctor>>(ctorOrDescriptor: Ctor | ServiceDescriptor<Ctor>, ...rest: GetLeadingNonServiceArgs<ConstructorParameters<Ctor>>): T;
+    public createInstance<Ctor extends Constructor<any>, T extends InstanceType<Ctor>>(ctorOrDescriptor: Ctor | ServiceDescriptor<Ctor>, ...rest: NonServiceArguments<ConstructorParameters<Ctor>>): T;
     public createInstance(ctorOrDescriptor: any | ServiceDescriptor<any>, ...rest: any[]): any {
         let res: any;
         if (ctorOrDescriptor instanceof ServiceDescriptor) {
