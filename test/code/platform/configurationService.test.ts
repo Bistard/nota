@@ -11,7 +11,7 @@ import { FileService } from "src/code/platform/files/common/fileService";
 import { InMemoryFileSystemProvider } from "src/code/platform/files/common/inMemoryFileSystemProvider";
 import { REGISTRANTS } from "src/code/platform/registrant/common/registrant";
 import { FakeAsync } from 'test/utils/async';
-import { NullLogger } from "test/utils/utility";
+import { NullLogger } from "test/utils/testService";
 
 suite('ConfiguratioService-test', () => {
 

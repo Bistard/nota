@@ -3,7 +3,7 @@ import * as assert from 'assert';
 import { FileSystemProviderError, FileOperationErrorType, FileType } from 'src/base/common/file/file';
 import { URI } from 'src/base/common/file/uri';
 import { DiskFileSystemProvider } from 'src/code/platform/files/node/diskFileSystemProvider';
-import { TestURI } from 'test/utils/utility';
+import { TestURI } from 'test/utils/testService';
 import { afterEach, beforeEach } from 'mocha';
 
 suite('DiskFileSystemProvider-test', () => {

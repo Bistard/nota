@@ -1,7 +1,7 @@
 import * as fs from 'fs';
 import * as os from 'os';
 import { after } from "mocha";
-import { TestPath } from "test/utils/utility";
+import { TestPath } from "test/utils/testService";
 import { fileExists } from "src/base/node/io";
 
 /**

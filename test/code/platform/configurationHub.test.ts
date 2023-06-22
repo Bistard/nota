@@ -11,7 +11,7 @@ import { IConfigurationRegistrant, IConfigurationUnit } from 'src/code/platform/
 import { FileService, IFileService } from 'src/code/platform/files/common/fileService';
 import { InMemoryFileSystemProvider } from 'src/code/platform/files/common/inMemoryFileSystemProvider';
 import { REGISTRANTS } from 'src/code/platform/registrant/common/registrant';
-import { NullLogger } from 'test/utils/utility';
+import { NullLogger } from 'test/utils/testService';
 import { ConfigurationModuleType } from 'src/code/platform/configuration/common/configuration';
 import { FakeAsync } from 'test/utils/async';
 import { Event } from 'src/base/common/event';

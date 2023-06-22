@@ -4,7 +4,7 @@ import { CommandService, ICommandService } from 'src/code/platform/command/commo
 import { IMicroService, createService } from 'src/code/platform/instantiation/common/decorator';
 import { IInstantiationService, InstantiationService, IServiceProvider } from 'src/code/platform/instantiation/common/instantiation';
 import { REGISTRANTS } from 'src/code/platform/registrant/common/registrant';
-import { NullLogger } from 'test/utils/utility';
+import { NullLogger } from 'test/utils/testService';
 
 interface ITestService extends IMicroService {
     num: number;

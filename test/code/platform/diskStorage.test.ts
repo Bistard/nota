@@ -4,7 +4,7 @@ import { join } from 'src/base/common/file/path';
 import { Schemas, URI } from 'src/base/common/file/uri';
 import { FileService, IFileService } from 'src/code/platform/files/common/fileService';
 import { DiskStorage } from 'src/code/platform/files/common/diskStorage';
-import { NullLogger } from 'test/utils/utility';
+import { NullLogger } from 'test/utils/testService';
 import { InMemoryFileSystemProvider } from 'src/code/platform/files/common/inMemoryFileSystemProvider';
 import { DataBuffer } from 'src/base/common/file/buffer';
 import { FakeAsync } from 'test/utils/async';
