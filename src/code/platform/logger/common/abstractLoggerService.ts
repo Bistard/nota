@@ -1,6 +1,7 @@
 import { Disposable } from "src/base/common/dispose";
 import { URI } from "src/base/common/file/uri";
 import { DEFAULT_LOG_LEVEL, ILogger, ILoggerOpts, LogLevel } from "src/base/common/logger";
+import { ResourceMap } from "src/base/common/util/map";
 import { IMicroService, createService } from "src/code/platform/instantiation/common/decorator";
 
 export const ILoggerService = createService<ILoggerService>('logger-service');
@@ -42,14 +43,14 @@ export abstract class AbstractLoggerService<TLogger extends ILogger> extends Dis
 
     /** determines the log level of the created logger. */
     private readonly _level: LogLevel;
-    private readonly _loggers: Map<string, ILogger>;
+    private readonly _loggers: ResourceMap<ILogger>;
 
     // [constructor]
 
     constructor(level: LogLevel = DEFAULT_LOG_LEVEL) {
         super();
         this._level = level;
-        this._loggers = new Map();
+        this._loggers = new ResourceMap();
     }
 
     // [abstract method]
@@ -65,12 +66,12 @@ export abstract class AbstractLoggerService<TLogger extends ILogger> extends Dis
             oldLogger.dispose();
         }
 
-        this._loggers.set(URI.toString(uri), newLogger);
+        this._loggers.set(uri, newLogger);
         return newLogger;
     }
 
     public getLogger(uri: URI): ILogger | undefined {
-        return this._loggers.get(URI.toString(uri));
+        return this._loggers.get(uri);
     } 
 
     public override dispose(): void {
