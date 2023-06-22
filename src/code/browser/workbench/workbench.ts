@@ -28,7 +28,7 @@ export class Workbench extends WorkbenchLayout implements IWorkbenchService {
 
     // [field]
 
-    private _contextManager?: WorkbenchContextManager;
+    private _contextHub?: WorkbenchContextHub;
 
     // [constructor]
 
@@ -89,8 +89,8 @@ export class Workbench extends WorkbenchLayout implements IWorkbenchService {
 
         // initialize all the context keys only when the application is ready
         this.lifecycleService.when(LifecyclePhase.Ready).then(() => {
-            this._contextManager = this.instantiationService.createInstance(WorkbenchContextManager);
-            this.__register(this._contextManager);
+            this._contextHub = this.instantiationService.createInstance(WorkbenchContextHub);
+            this.__register(this._contextHub);
         });
     }
 
@@ -123,7 +123,7 @@ export class Workbench extends WorkbenchLayout implements IWorkbenchService {
     }
 }
 
-export class WorkbenchContextManager extends Disposable {
+export class WorkbenchContextHub extends Disposable {
 
     // [context - platform]
 
