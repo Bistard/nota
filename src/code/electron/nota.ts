@@ -97,7 +97,7 @@ export class ApplicationInstance extends Disposable implements INotaInstance {
         ErrorHandler.setUnexpectedErrorExternalCallback(err => this.__onUnexpectedError(err));
         
         app.on('open-file', (event, path) => {
-            this.logService.trace('main#app#open-file#', path);
+            this.logService.trace(`[ApplicationInstance] open-file - ${path}`);
             // REVIEW
         });
 

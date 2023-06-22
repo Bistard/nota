@@ -60,10 +60,10 @@ export class MainDialogService implements IMainDialogService {
             let dialogResult: Electron.OpenDialogReturnValue;
 
             if (window) {
-                this.logService.trace(`Main#DialogService#showing open dialog with window ID: ${window.id}...`);
+                this.logService.trace(`[MainDialogService] showing open dialog with window ID: ${window.id}...`);
                 dialogResult = await dialog.showOpenDialog(window, opts);
             } else {
-                this.logService.trace(`Main#DialogService#showing open dialog...`);
+                this.logService.trace(`[MainDialogService] showing open dialog...`);
                 dialogResult = await dialog.showOpenDialog(opts);
             }
 
@@ -77,10 +77,10 @@ export class MainDialogService implements IMainDialogService {
         return this.__getDialogQueue<Electron.SaveDialogReturnValue>(window).queue(async () => {
             let dialogResult: Electron.SaveDialogReturnValue;
             if (window) {
-                this.logService.trace(`Main#DialogService#showing save dialog with window ID: ${window.id}...`);
+                this.logService.trace(`[MainDialogService] showing save dialog with window ID: ${window.id}...`);
                 dialogResult = await dialog.showSaveDialog(window, opts);
             } else {
-                this.logService.trace(`Main#DialogService#showing save dialog...`);
+                this.logService.trace(`[MainDialogService] showing save dialog...`);
                 dialogResult = await dialog.showSaveDialog(opts);
             }
 
@@ -91,10 +91,10 @@ export class MainDialogService implements IMainDialogService {
     public async showMessageBox(opts: Electron.MessageBoxOptions, window?: BrowserWindow): Promise<Electron.MessageBoxReturnValue> {
         return this.__getDialogQueue<Electron.MessageBoxReturnValue>(window).queue(async () => {
 			if (window) {
-                this.logService.trace(`Main#DialogService#showing message dialog with window ID: ${window.id}...`);
+                this.logService.trace(`[MainDialogService] showing message dialog with window ID: ${window.id}...`);
 				return dialog.showMessageBox(window, opts);
 			}
-            this.logService.trace(`Main#DialogService#showing message dialog...`);
+            this.logService.trace(`[MainDialogService] showing message dialog...`);
 			return dialog.showMessageBox(opts);
 		});
     }

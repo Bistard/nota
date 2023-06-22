@@ -203,7 +203,7 @@ export class EditorWidget extends Disposable implements IEditorWidgetFriendship 
             return;
         }
         
-        this.logService.trace(`EditorWidget#Reading file '${basename(URI.toString(model.source))}'`);
+        this.logService.trace(`[EditorWidget] Reading file '${basename(URI.toString(model.source))}'`);
         
         this._model = model;
         this._viewModel = this.instantiationService.createInstance(
