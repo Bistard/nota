@@ -34,7 +34,7 @@ export interface ILoggerService extends Disposable, IMicroService {
  * @class The base class for each {@link ILoggerService}. The default log level
  * is {@link DEFAULT_LOG_LEVEL}.
  */
-export abstract class AbstractLoggerService extends Disposable implements ILoggerService {
+export abstract class AbstractLoggerService<TLogger extends ILogger> extends Disposable implements ILoggerService {
 
     _microserviceIdentifier: undefined;
 
@@ -54,11 +54,11 @@ export abstract class AbstractLoggerService extends Disposable implements ILogge
 
     // [abstract method]
 
-    protected abstract __doCreateLogger(uri: URI, level: LogLevel, opts: ILoggerOpts): ILogger;
+    protected abstract __doCreateLogger(uri: URI, level: LogLevel, opts: ILoggerOpts): TLogger;
 
     // [public methods]
 
-    public createLogger(uri: URI, opts: ILoggerOpts): ILogger {
+    public createLogger(uri: URI, opts: ILoggerOpts): TLogger {
         const newLogger = this.__doCreateLogger(uri, opts.alwaysLog ? LogLevel.TRACE : this._level, opts);
         const oldLogger = this.getLogger(uri);
         if (oldLogger) {

@@ -23,10 +23,15 @@ const enum LoggerCommand {
 // TODO: sync log level with main process
 export class MainLoggerChannel implements IServerChannel {
 
-    // [field / constructor]
+    // [field]
 
     private readonly _loggers = new Map<string, ILogger>();
-    constructor(private readonly loggerService: ILoggerService) {}
+
+    // [constructor]
+
+    constructor(
+        private readonly loggerService: ILoggerService,
+    ) {}
 
     // [public methods]
 
@@ -64,7 +69,7 @@ export class MainLoggerChannel implements IServerChannel {
 /**
  * @class A {@link ILoggerService} on browser-side.
  */
-export class BrowserLoggerChannel extends AbstractLoggerService {
+export class BrowserLoggerChannel extends AbstractLoggerService<__BrowserLogger> {
 
     private readonly _channel: IChannel;
 
@@ -73,7 +78,7 @@ export class BrowserLoggerChannel extends AbstractLoggerService {
         this._channel = ipcService.getChannel(IpcChannel.Logger);
     }
 
-    protected override __doCreateLogger(uri: URI, level: LogLevel, opts: ILoggerOpts): ILogger {
+    protected override __doCreateLogger(uri: URI, level: LogLevel, opts: ILoggerOpts): __BrowserLogger {
         return new __BrowserLogger(this._channel, uri, level, opts);
     }
 }
