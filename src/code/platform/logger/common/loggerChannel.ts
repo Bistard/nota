@@ -58,7 +58,7 @@ export class MainLoggerChannel implements IServerChannel {
     private async __log(path: URI, messages: { level: LogLevel, message: (string | Error), args: any[] }[]): Promise<any> {
         const logger = this._loggers.get(URI.toString(path));
         if (!logger) {
-            throw new Error(`Logger not found: ${URI.toString(path)}`);
+            throw new Error(`[MainLoggerChannel] logger not found: '${URI.toString(path)}'`);
         }
         for (const { level, message, args } of messages) {
             defaultLog(logger, level, message, args);
@@ -120,6 +120,6 @@ class __BrowserLogger extends BufferLogger implements ILogger {
 
     protected override __flushBuffer(): void {
         this.channel.callCommand(LoggerCommand.Log, [this.path, this._buffer]);
-        this._buffer = [];
+        this._buffer.length = 0; // REVIEW
     }
 }

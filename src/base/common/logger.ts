@@ -275,7 +275,7 @@ export class PipelineLogger extends AbstractLogger implements ILogService {
  */
 export class BufferLogger extends AbstractLogger implements ILogService {
 
-    protected _buffer: { level: LogLevel, message: (string | Error), args: any[] }[] = [];
+    protected readonly _buffer: { level: LogLevel, message: (string | Error), args: any[] }[] = [];
     private _logger?: ILogger;
 
     constructor() {
@@ -333,7 +333,7 @@ export class BufferLogger extends AbstractLogger implements ILogService {
         for (const { level, message, args } of this._buffer) {
             defaultLog(this._logger!, level, message, args);
         }
-        this._buffer = [];
+        this._buffer.length = 0;
     }
 }
 
