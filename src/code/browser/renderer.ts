@@ -33,6 +33,7 @@ import { BrowserInstance } from "src/code/browser/browser";
 import { IConfigurationService } from "src/code/platform/configuration/common/configuration";
 import { ConfigurationService } from "src/code/platform/configuration/common/configurationService";
 import { WorkbenchConfiguration } from "src/code/browser/configuration.register";
+import { IProductService, ProductService } from "src/code/platform/product/common/productService";
 
 /**
  * @class This is the main entry of the renderer process.
@@ -105,7 +106,7 @@ const renderer = new class extends class RendererInstance extends Disposable {
         // environment-service
         const environmentService = new BrowserEnvironmentService(logService);
         instantiationService.register(IBrowserEnvironmentService, environmentService);
-        
+
         // ipc-service
         const ipcService = new IpcService(environmentService.windowID);
         instantiationService.register(IIpcService, ipcService);
@@ -138,6 +139,10 @@ const renderer = new class extends class RendererInstance extends Disposable {
         const fileService = new BrowserFileChannel(ipcService);
         instantiationService.register(IFileService, fileService);
  
+        // product-service
+        const productService = new ProductService(fileService);
+        instantiationService.register(IProductService, productService);
+
         // configuration-service
         const configuraionService = new ConfigurationService(environmentService.appConfigurationPath, fileService, logService);
         instantiationService.register(IConfigurationService, configuraionService);
@@ -168,11 +173,14 @@ const renderer = new class extends class RendererInstance extends Disposable {
 
     private async initServices(instantiaionService: IInstantiationService): Promise<any> {
         const configuraionService = instantiaionService.getService(IConfigurationService);
+        const environmentService = instantiaionService.getService(IBrowserEnvironmentService);
         const i18nService = instantiaionService.getService(Ii18nService);
+        const productService = instantiaionService.getService(IProductService);
 
         return Promise.all<any>([
             configuraionService.init(),
             i18nService.init(),
+            productService.init(environmentService.productProfilePath),
         ]);
     }
 

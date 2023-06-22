@@ -89,8 +89,6 @@ const main = new class extends class MainProcess implements IMainProcess {
                 throw error;
             }
 
-            console.log('[Main]:', this.configurationService.get(''));
-
             // application run
             {
                 Event.once(this.lifecycleService.onWillQuit)(e => {
