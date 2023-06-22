@@ -8,6 +8,15 @@ import { CompareFn, Mutable, NonUndefined } from "src/base/common/util/type";
 export namespace Arrays {
 
     /**
+     * @description Clear an array.
+     * @returns A reference to the same array.
+     */
+    export function clear<T>(array: T[]): T[] {
+        array.length = 0;
+        return array;
+    }
+
+    /**
      * @description Whether the given value exsits in the given array.
      */
     export function exist<T>(array: ReadonlyArray<T>, value: T): boolean {

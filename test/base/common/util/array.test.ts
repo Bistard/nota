@@ -4,6 +4,12 @@ import { isNumber } from 'src/base/common/util/type';
 
 suite('array-test', () => {
 
+    test('clear', () => {
+        assert.strictEqual(Arrays.clear([]).length, 0);
+        assert.strictEqual(Arrays.clear([1, 2, 3]).length, 0);
+        assert.strictEqual(Arrays.clear([[], 1, 2, 3, 'abc', [true, false, { value: null }]]).length, 0);
+    });
+
     test('remove', () => {
         const arr = [1, 1, 2, 3, 4, 5];
         assert.deepStrictEqual(Arrays.remove(arr, 1), [1, 2, 3, 4, 5]);
