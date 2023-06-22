@@ -13,7 +13,7 @@ import { APP_CONFIG_NAME, ConfigurationModuleType, ConfigurationModuleTypeToStri
 /**
  * @class // TODO
  */
-export class MainConfigurationService extends Disposable implements IConfigurationService {
+export class ConfigurationService extends Disposable implements IConfigurationService {
 
     _microserviceIdentifier: undefined;
 
@@ -71,16 +71,16 @@ export class MainConfigurationService extends Disposable implements IConfigurati
 
     public async init(): Promise<void> {
         if (this._initialized) {
-            throw new Error(`[MainConfigurationService] cannot be initialized twice.`);
+            throw new Error(`[ConfigurationService] cannot be initialized twice.`);
         }
         this._initialized = true;
 
-        this.logService.trace(`[MainConfigurationService] initializing at configuration path'${URI.toString(this._configurationPath, true)}'...`);
+        this.logService.trace(`[ConfigurationService] initializing at configuration path'${URI.toString(this._configurationPath, true)}'...`);
 
         await Promise.all([this._defaultConfiguration.init(), this._userConfiguration.init()]);
         this._configurationHub = this.__reloadConfigurationHub();
 
-        this.logService.trace(`[MainConfigurationService] initialized.`);
+        this.logService.trace(`[ConfigurationService] initialized.`);
     }
 
     public get<T>(section: Section | undefined, defaultValue?: T): DeepReadonly<T> {
@@ -88,11 +88,11 @@ export class MainConfigurationService extends Disposable implements IConfigurati
     }
 
     public set(section: Section, value: any): Promise<void> {
-        return Promise.reject(new Error('[MainConfigurationService] does not support `set`.'));
+        return Promise.reject(new Error('[ConfigurationService] does not support `set`.'));
     }
 
     public delete(section: Section): Promise<void> {
-        return Promise.reject(new Error('[MainConfigurationService] does not support `Delete`.'));
+        return Promise.reject(new Error('[ConfigurationService] does not support `Delete`.'));
     }
 
     // [private helper methods]
@@ -110,7 +110,7 @@ export class MainConfigurationService extends Disposable implements IConfigurati
     }
 
     private __onConfigurationChange(change: IRawConfigurationChangeEvent, type: ConfigurationModuleType): void {
-        this.logService.trace(`[MainConfigurationService] onConfigurationChange with type '${ConfigurationModuleTypeToString(type)}'.`);
+        this.logService.trace(`[ConfigurationService] onConfigurationChange with type '${ConfigurationModuleTypeToString(type)}'.`);
         const event = new ConfigurationChangeEvent(change, type);
         this._onDidConfigurationChange.fire(event);
     }

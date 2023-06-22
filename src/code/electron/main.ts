@@ -1,3 +1,4 @@
+import 'src/code/common/common.register';
 import { app, dialog } from 'electron';
 import { createServer, Server } from 'net';
 import { mkdir } from 'fs/promises';
@@ -22,7 +23,7 @@ import { ICLIArguments } from 'src/code/platform/environment/common/argument';
 import { ProcessKey } from 'src/base/common/process';
 import { getFormatCurrTimeStamp } from 'src/base/common/date';
 import { EventBlocker } from 'src/base/common/util/async';
-import { MainConfigurationService } from 'src/code/platform/configuration/common/configurationService';
+import { ConfigurationService } from 'src/code/platform/configuration/common/configurationService';
 import { IConfigurationService } from 'src/code/platform/configuration/common/configuration';
 import { IProductService, ProductService } from 'src/code/platform/product/common/productService';
 
@@ -87,7 +88,9 @@ const main = new class extends class MainProcess implements IMainProcess {
                 this.__showDirectoryErrorDialog(error);
                 throw error;
             }
-            
+
+            console.log('[Main]:', this.configurationService.get(''));
+
             // application run
             {
                 Event.once(this.lifecycleService.onWillQuit)(e => {
@@ -156,7 +159,7 @@ const main = new class extends class MainProcess implements IMainProcess {
         instantiationService.register(IMainLifecycleService, lifecycleService);
 
         // main-configuration-service
-        const configurationService = new MainConfigurationService(environmentService.appConfigurationPath, fileService, logService);
+        const configurationService = new ConfigurationService(environmentService.appConfigurationPath, fileService, logService);
         instantiationService.register(IConfigurationService, configurationService);
 
         // status-service
