@@ -153,7 +153,7 @@ export class FileService extends Disposable implements IFileService {
 
         this.__register(provider.onDidResourceChange(e => this._onDidResourceChange.fire(e)));
         this.__register(provider.onDidResourceClose(uri => {
-            this.logService.trace('Main#FileService# stop watching on ' + URI.toString(uri));
+            this.logService.trace('[FileService] stop watching on ' + URI.toString(uri));
             
             this._activeWatchers.delete(uri);
             this._onDidResourceClose.fire(uri);
@@ -295,11 +295,11 @@ export class FileService extends Disposable implements IFileService {
 
     public watch(uri: URI, opts?: IWatchOptions): IDisposable {
         if (this._activeWatchers.has(uri)) {
-            this.logService.warn('file service - duplicate watching on the same resource', URI.toString(uri));
+            this.logService.warn('[FileService] duplicate watching on the same resource', URI.toString(uri));
             return Disposable.NONE;
         }
         
-        this.logService.trace('Main#FileService#watch()#Watching on ' + URI.toString(uri) + '...');
+        this.logService.trace(`[FileService] Watching on '${URI.toString(uri)}'`);
         
         const provider = this.__getProvider(uri);
         const disposable = provider.watch(uri, opts);

@@ -113,7 +113,7 @@ export class MainStatusService extends Disposable implements IMainStatusService 
     public async init(): Promise<void> {
         try {
             await this._storage.init();
-            this.logService.trace(`Main#StatusService#initialized at ${URI.toString(this._storage.resource)}.`);
+            this.logService.trace(`[MainStatusService] initialized at '${URI.toString(this._storage.resource)}'`);
         } catch (error: any) {
             this.logService.error(error);
             throw error;
@@ -130,7 +130,7 @@ export class MainStatusService extends Disposable implements IMainStatusService 
     }
 
     private registerListeners(): void {
-        this.logService.trace(`Main#MainStatusService#registerListeners()`);
+        this.logService.trace(`[MainStatusService] registerListeners()`);
         this.lifecycleService.onWillQuit((e) => e.join(this.close()));
     }
 }
