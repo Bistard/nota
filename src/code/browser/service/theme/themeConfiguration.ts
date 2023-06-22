@@ -1,9 +1,9 @@
-import { IConfigService } from "src/code/platform/configuration/common/abstractConfigService";
-import { BuiltInConfigScope } from "src/code/platform/configuration/common/configRegistrant";
+import { IConfigurationService } from "src/code/platform/configuration/common/configuration";
 
 // TODO
 export const enum ColorThemeType {
     Light = 'light',
+    Dark = 'dark',
 }
 
 export const enum ThemeConfigSection {
@@ -16,9 +16,9 @@ export const enum ThemeConfigSection {
  */
 export class ThemeConfiguration {
 
-    constructor(private readonly configService: IConfigService) {}
+    constructor(private readonly configurationService: IConfigurationService) {}
 
-    public getColorTheme(): string {
-        return this.configService.get<string>(BuiltInConfigScope.User, ThemeConfigSection.ColorTheme);
-    }
+    // public getColorTheme(): string {
+    //     return this.configurationService.get<string>(BuiltInConfigScope.User, ThemeConfigSection.ColorTheme);
+    // }
 }

@@ -7,10 +7,10 @@ import { ClassicOpenEvent } from "src/code/browser/service/classicTree/classicTr
 import { ClassicTreeService, IClassicTreeService } from "src/code/browser/service/classicTree/classicTreeService";
 import { ITreeService, TreeMode } from "src/code/browser/service/explorerTree/treeService";
 import { INotebookTreeService, NotebookTreeService } from "src/code/browser/service/notebookTree/notebookTreeService";
-import { IConfigService } from "src/code/platform/configuration/common/abstractConfigService";
-import { BuiltInConfigScope } from "src/code/platform/configuration/common/configRegistrant";
+import { SideViewConfiguration } from "src/code/browser/workbench/parts/sideView/configuration.register";
+import { IConfigurationService } from "src/code/platform/configuration/common/configuration";
 import { IFileService } from "src/code/platform/files/common/fileService";
-import { IResourceChangeEvent, ResourceChangeEvent } from "src/code/platform/files/common/resourceChangeEvent";
+import { IResourceChangeEvent } from "src/code/platform/files/common/resourceChangeEvent";
 import { createService } from "src/code/platform/instantiation/common/decorator";
 import { IInstantiationService } from "src/code/platform/instantiation/common/instantiation";
 
@@ -59,12 +59,12 @@ export class ExplorerTreeService extends Disposable implements IExplorerTreeServ
 
     constructor(
         @IFileService private readonly fileService: IFileService,
-        @IConfigService configService: IConfigService,
+        @IConfigurationService configurationService: IConfigurationService,
         @IInstantiationService instantiationService: IInstantiationService,
     ) {
         super();
         this._root = undefined;
-        this._mode = configService.get<TreeMode>(BuiltInConfigScope.User, 'sideView.explorer.mode') ?? TreeMode.Notebook;
+        this._mode = configurationService.get<TreeMode>(SideViewConfiguration.ExplorerViewMode, TreeMode.Classic);
         this.classicTreeService = instantiationService.createInstance(ClassicTreeService);
         this.notebookTreeService = instantiationService.createInstance(NotebookTreeService);
         this.__register(this.classicTreeService);
@@ -167,7 +167,7 @@ export class ExplorerTreeService extends Disposable implements IExplorerTreeServ
         // on did resource change callback
         this._onDidResourceChangeScheduler = new Scheduler(
             ExplorerTreeService.ON_RESOURCE_CHANGE_DELAY, 
-            (events: ResourceChangeEvent[]) => {
+            (events: IResourceChangeEvent[]) => {
                 if (!root || !this._currentTreeService) {
                     return;
                 }

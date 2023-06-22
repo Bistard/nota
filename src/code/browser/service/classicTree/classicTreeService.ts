@@ -8,10 +8,10 @@ import { Disposable } from "src/base/common/dispose";
 import { ClassicItemProvider, ClassicRenderer } from "src/code/browser/service/classicTree/classicRenderer";
 import { ClassicDragAndDropProvider } from "src/code/browser/service/classicTree/classicDragAndDrop";
 import { ILogService } from "src/base/common/logger";
-import { IConfigService } from "src/code/platform/configuration/common/abstractConfigService";
-import { BuiltInConfigScope } from "src/code/platform/configuration/common/configRegistrant";
 import { FuzzyScore, IFilterOpts } from "src/base/common/fuzzy";
 import { ClassicFilter } from "src/code/browser/service/classicTree/classicFilter";
+import { IConfigurationService } from "src/code/platform/configuration/common/configuration";
+import { SideViewConfiguration } from "src/code/browser/workbench/parts/sideView/configuration.register";
 
 export interface IClassicTreeService extends ITreeService<ClassicItem> {
 
@@ -35,7 +35,7 @@ export class ClassicTreeService extends Disposable implements IClassicTreeServic
     // [constructor]
 
     constructor(
-        @IConfigService private readonly configService: IConfigService,
+        @IConfigurationService private readonly configurationService: IConfigurationService,
         @ILogService private readonly logService: ILogService,
         @IFileService private readonly fileService: IFileService,
     ) {
@@ -61,8 +61,8 @@ export class ClassicTreeService extends Disposable implements IClassicTreeServic
     public async init(container: HTMLElement, root: URI): Promise<void> {
         try {
             const filterOpts: IFilterOpts = {
-                exclude: this.configService.get<string[]>(BuiltInConfigScope.User, 'sideView.explorer.exclude', []).map(s => new RegExp(s)),
-                include: this.configService.get<string[]>(BuiltInConfigScope.User, 'sideView.explorer.include', []).map(s => new RegExp(s)),
+                exclude: this.configurationService.get<string[]>(SideViewConfiguration.ExplorerViewExclude, []).map(s => new RegExp(s)),
+                include: this.configurationService.get<string[]>(SideViewConfiguration.ExplorerViewInclude, []).map(s => new RegExp(s)),
             };
 
             // resolve the root of the directory first
