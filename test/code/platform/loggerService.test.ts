@@ -2,11 +2,16 @@ import * as assert from 'assert';
 import { setup } from 'mocha';
 import { Schemas, URI } from 'src/base/common/file/uri';
 import { LogLevel, parseToLogLevel } from 'src/base/common/logger';
+import { delayFor } from 'src/base/common/util/async';
 import { FileService, IFileService } from 'src/code/platform/files/common/fileService';
 import { InMemoryFileSystemProvider } from 'src/code/platform/files/common/inMemoryFileSystemProvider';
 import { IInstantiationService, InstantiationService } from 'src/code/platform/instantiation/common/instantiation';
+import { IpcChannel } from 'src/code/platform/ipc/common/channel';
+import { IpcServer } from 'src/code/platform/ipc/electron/ipcServer';
+import { ILoggerService } from 'src/code/platform/logger/common/abstractLoggerService';
 import { FileLoggerService } from 'src/code/platform/logger/common/fileLoggerService';
-import { NullLogger } from 'test/utils/utility';
+import { BrowserLoggerChannel, MainLoggerChannel } from 'src/code/platform/logger/common/loggerChannel';
+import { NullLogger, TestIPC } from 'test/utils/testService';
 
 suite.only('LoggerService', () => {
 
@@ -89,6 +94,56 @@ suite.only('LoggerService', () => {
     
             await logger.fatal('again');
             await assertLastLineLogMessage(LogLevel.FATAL, 'again');
+        });
+    });
+
+    suite('MainLoggerChannel & BrowserLoggerChannel', async () => {
+
+        let instantiationService: IInstantiationService;
+        let fileService: IFileService;
+        
+        let loggerService: FileLoggerService;
+        let browserLoggerService: ILoggerService;
+        let assertLastLineLogMessage: (actualLogLevel: LogLevel, message: string) => Promise<void>;
+
+        let server: IpcServer;
+
+        setup(async () => {
+            instantiationService = new InstantiationService();
+
+            fileService = new FileService(new NullLogger());
+            fileService.registerProvider(Schemas.FILE, new InMemoryFileSystemProvider());
+            instantiationService.register(IFileService, fileService);
+            loggerService = new FileLoggerService(LogLevel.INFO, instantiationService);
+
+            const testServer = new TestIPC.IpcServer();
+			server = testServer;
+			server.registerChannel(IpcChannel.Logger, new MainLoggerChannel(loggerService));
+			
+            const client = testServer.createConnection('client1');
+            browserLoggerService = new BrowserLoggerChannel(client.getChannel(IpcChannel.Logger), LogLevel.INFO);
+			
+            assertLastLineLogMessage = createAssertLogMessage(fileService, URI.fromFile('base/test.log'), LogLevel.INFO);
+        });
+
+        test('basics', async () => {
+            
+            // consturct logger from client side
+            const browserLogger = browserLoggerService.createLogger(URI.fromFile('base'), { name: 'test.log' });
+            await delayFor(0);
+            assert.ok(await fileService.exist(URI.fromFile('base/test.log')));
+            const mainLogger = loggerService.getLogger(URI.fromFile('base'));
+            assert.ok(mainLogger);
+
+            // log from client side
+            browserLogger.info('hello world');
+            await delayFor(0);
+            await assertLastLineLogMessage(LogLevel.INFO, 'hello world');
+
+            // ignore log from client side
+            browserLogger.trace('hello world again');
+            await delayFor(0);
+            await assertLastLineLogMessage(LogLevel.INFO, 'hello world');
         });
     });
 });

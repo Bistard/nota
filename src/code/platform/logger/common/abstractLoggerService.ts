@@ -22,6 +22,7 @@ export interface ILoggerService extends Disposable, IMicroService {
 
     /**
      * @description Get an existed {@link ILogger} if any.
+     * @param uri The linked {@link URI} for the logger.
      */
     getLogger(uri: URI): ILogger | undefined;
 

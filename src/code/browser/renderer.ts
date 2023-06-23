@@ -120,7 +120,7 @@ const renderer = new class extends class RendererInstance extends Disposable {
         instantiationService.register(ILifecycleService, lifecycleService);
 
         // file-logger-service
-        const loggerService = new BrowserLoggerChannel(ipcService, environmentService.logLevel);
+        const loggerService = new BrowserLoggerChannel(ipcService.getChannel(IpcChannel.Logger), environmentService.logLevel);
         instantiationService.register(ILoggerService, loggerService);
 
         // logger
@@ -129,7 +129,7 @@ const renderer = new class extends class RendererInstance extends Disposable {
             new ConsoleLogger(environmentService.mode === ApplicationMode.DEVELOP ? environmentService.logLevel : LogLevel.WARN),
             // file-logger
             loggerService.createLogger(environmentService.logPath, { 
-                name: `wind-${environmentService.windowID}-${getFormatCurrTimeStamp()}.txt`,
+                name: `window-${environmentService.windowID}-${getFormatCurrTimeStamp()}.txt`,
                 description: `renderer`,
             }),
         ]);
