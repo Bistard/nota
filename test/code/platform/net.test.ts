@@ -5,94 +5,9 @@ import { DataBuffer } from 'src/base/common/file/buffer';
 import { URI } from 'src/base/common/file/uri';
 import { delayFor } from 'src/base/common/util/async';
 import { IChannel, IServerChannel } from 'src/code/platform/ipc/common/channel';
-import { ClientConnectEvent, ClientBase, ServerBase } from 'src/code/platform/ipc/common/net';
-import { IIpcProtocol } from 'src/code/platform/ipc/common/protocol';
+import { ClientBase, ServerBase } from 'src/code/platform/ipc/common/net';
 import { ProxyChannel } from 'src/code/platform/ipc/common/proxy';
-import { NullLogger } from 'test/utils/testService';
-
-
-class QueueProtocol implements IIpcProtocol {
-
-	private buffering = true;
-	private buffers: DataBuffer[] = [];
-
-	private readonly _onMessage = new Emitter<DataBuffer>({
-		onFirstListenerDidAdd: () => {
-			for (const buffer of this.buffers) {
-				this._onMessage.fire(buffer);
-			}
-			this.buffers = [];
-			this.buffering = false;
-		},
-		onLastListenerRemoved: () => {
-			this.buffering = true;
-		}
-	});
-
-	readonly onData = this._onMessage.registerListener;
-	other!: QueueProtocol;
-
-	send(buffer: DataBuffer): void {
-		this.other.receive(buffer);
-	}
-
-	protected receive(buffer: DataBuffer): void {
-		if (this.buffering) {
-			this.buffers.push(buffer);
-		} else {
-			this._onMessage.fire(buffer);
-		}
-	}
-}
-
-function createProtocolPair(): [IIpcProtocol, IIpcProtocol] {
-	const one = new QueueProtocol();
-	const other = new QueueProtocol();
-	one.other = other;
-	other.other = one;
-
-	return [one, other];
-}
-
-class TestIPCClient extends ClientBase {
-
-	private readonly _onDidDisconnect = new Emitter<void>();
-	readonly onDidDisconnect = this._onDidDisconnect.registerListener;
-
-	constructor(protocol: IIpcProtocol, id: string) {
-		super(protocol, id, () => {});
-	}
-
-	public override dispose(): void {
-        
-		this._onDidDisconnect.fire();
-		super.dispose();
-	}
-}
-
-class TestIPCServer extends ServerBase {
-
-	private readonly onDidClientConnect: Emitter<ClientConnectEvent>;
-
-	constructor() {
-		const onDidClientConnect = new Emitter<ClientConnectEvent>();
-		super(onDidClientConnect.registerListener, new NullLogger());
-		this.onDidClientConnect = onDidClientConnect;
-	}
-
-	createConnection(id: string): ClientBase {
-		const [pc, ps] = createProtocolPair();
-		const client = new TestIPCClient(pc, id);
-
-		this.onDidClientConnect.fire({
-			clientID: id,
-			protocol: ps,
-			onClientDisconnect: client.onDidDisconnect
-		});
-
-		return client;
-	}
-}
+import { TestIPC } from 'test/utils/testService';
 
 const TestChannelId = 'testchannel';
 
@@ -142,7 +57,7 @@ class TestService implements ITestService {
 	}
 }
 
-class TestChannel implements IServerChannel {
+class TestServerChannel implements IServerChannel {
 
 	constructor(private service: ITestService) { }
 
@@ -164,7 +79,7 @@ class TestChannel implements IServerChannel {
 	}
 }
 
-class TestChannelClient implements ITestService {
+class TestClientChannel implements ITestService {
 
 	get onPong(): Register<string> {
 		return this.channel.registerListener('onPong');
@@ -200,7 +115,7 @@ class TestChannelClient implements ITestService {
 suite('IPC-test', function () {
 
 	test('createProtocolPair', async function () {
-		const [clientProtocol, serverProtocol] = createProtocolPair();
+		const [clientProtocol, serverProtocol] = TestIPC.__createProtocolPair();
 
 		const b1 = DataBuffer.alloc(0);
 		clientProtocol.send(b1);
@@ -223,11 +138,11 @@ suite('IPC-test', function () {
 
 		before(function () {
 			service = new TestService();
-			const testServer = new TestIPCServer();
+			const testServer = new TestIPC.IpcServer();
 			server = testServer;
-			server.registerChannel(TestChannelId, new TestChannel(service));
+			server.registerChannel(TestChannelId, new TestServerChannel(service));
 			client = testServer.createConnection('client1');
-			ipcService = new TestChannelClient(client.getChannel(TestChannelId));
+			ipcService = new TestClientChannel(client.getChannel(TestChannelId));
 		});
 
 		after(function () {
@@ -280,7 +195,7 @@ suite('IPC-test', function () {
 
 		before(function () {
 			service = new TestService();
-			const testServer = new TestIPCServer();
+			const testServer = new TestIPC.IpcServer();
 			server = testServer;
 
 			server.registerChannel(TestChannelId, ProxyChannel.wrapService(service));
@@ -334,18 +249,18 @@ suite('IPC-test', function () {
 	suite('one to many', function () {
 		test('all clients get pinged', async function () {
 			const service = new TestService();
-			const channel = new TestChannel(service);
-			const server = new TestIPCServer();
+			const channel = new TestServerChannel(service);
+			const server = new TestIPC.IpcServer();
 			server.registerChannel('channel', channel);
 
 			let client1GotPinged = false;
 			const client1 = server.createConnection('client1');
-			const ipcService1 = new TestChannelClient(client1.getChannel('channel'));
+			const ipcService1 = new TestClientChannel(client1.getChannel('channel'));
 			ipcService1.onPong(() => client1GotPinged = true);
 
 			let client2GotPinged = false;
 			const client2 = server.createConnection('client2');
-			const ipcService2 = new TestChannelClient(client2.getChannel('channel'));
+			const ipcService2 = new TestClientChannel(client2.getChannel('channel'));
 			ipcService2.onPong(() => client2GotPinged = true);
 
 			await delayFor(1);
@@ -366,12 +281,12 @@ suite('IPC-test', function () {
 
 	// 	// 	const client1 = server.createConnection('client1');
 	// 	// 	const clientService1 = new TestService();
-	// 	// 	const clientChannel1 = new TestChannel(clientService1);
+	// 	// 	const clientChannel1 = new TestServerChannel(clientService1);
 	// 	// 	client1.registerChannel('channel', clientChannel1);
 
 	// 	// 	const pings: string[] = [];
 	// 	// 	const channel = server.getChannel('channel', () => true);
-	// 	// 	const service = new TestChannelClient(channel);
+	// 	// 	const service = new TestClientChannel(channel);
 	// 	// 	service.onPong(msg => pings.push(msg));
 
 	// 	// 	await delayFor(1);
@@ -382,7 +297,7 @@ suite('IPC-test', function () {
 
 	// 	// 	const client2 = server.createConnection('client2');
 	// 	// 	const clientService2 = new TestService();
-	// 	// 	const clientChannel2 = new TestChannel(clientService2);
+	// 	// 	const clientChannel2 = new TestServerChannel(clientService2);
 	// 	// 	client2.registerChannel('channel', clientChannel2);
 
 	// 	// 	await delayFor(1);

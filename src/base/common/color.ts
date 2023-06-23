@@ -65,8 +65,8 @@ export type ANSIColor = ASNIForegroundColor | ASNIBackgroundColor;
  * const coloredText = setANSIColor("This is a colored message.", ASNIForegroundColor.Red, ASNIBackgroundColor.White);
  * console.log(coloredText); // Prints the message in red color with white background in the console.
  */
-export function setANSIColor(text: string, colors: { fgColor?: ASNIForegroundColor, bgColor?: ASNIBackgroundColor }): string {
-	return `${colors.fgColor ?? ''}${colors.bgColor ?? ''}${text}\x1b[0m`;
+export function setANSIColor(text: string, colors?: { fgColor?: ASNIForegroundColor, bgColor?: ASNIBackgroundColor }): string {
+	return `${colors?.fgColor ?? ''}${colors?.bgColor ?? ''}${text}\x1b[0m`;
 }
 
 export type LowerHexLetter = 'a' | 'b' | 'c' | 'd' | 'e' | 'f';
