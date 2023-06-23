@@ -37,7 +37,9 @@ export class MainDialogService implements IMainDialogService {
 
     // [constructor]
 
-    constructor(@ILogService private readonly logService: ILogService) {}
+    constructor(
+        @ILogService private readonly logService: ILogService,
+    ) {}
 
     // [public methods]
 
