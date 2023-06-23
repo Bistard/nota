@@ -72,7 +72,7 @@ export interface IConfigurationUpdateOptions {
     /**
      * Your target module for updation.
      */
-    readonly module: ConfigurationModuleType;
+    readonly type: ConfigurationModuleType;
 }
 
 export const NOTA_DIR_NAME = '.nota';
