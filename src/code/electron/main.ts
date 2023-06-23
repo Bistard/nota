@@ -23,9 +23,9 @@ import { ICLIArguments } from 'src/code/platform/environment/common/argument';
 import { ProcessKey } from 'src/base/common/process';
 import { getFormatCurrTimeStamp } from 'src/base/common/date';
 import { EventBlocker } from 'src/base/common/util/async';
-import { ConfigurationService } from 'src/code/platform/configuration/common/configurationService';
 import { IConfigurationService } from 'src/code/platform/configuration/common/configuration';
 import { IProductService, ProductService } from 'src/code/platform/product/common/productService';
+import { MainConfigurationService } from 'src/code/platform/configuration/electron/mainConfigurationService';
 
 interface IMainProcess {
     start(argv: ICLIArguments): Promise<void>;
@@ -157,7 +157,7 @@ const main = new class extends class MainProcess implements IMainProcess {
         instantiationService.register(IMainLifecycleService, lifecycleService);
 
         // main-configuration-service
-        const configurationService = new ConfigurationService(environmentService.appConfigurationPath, fileService, logService);
+        const configurationService = new MainConfigurationService(environmentService.appConfigurationPath, fileService, logService);
         instantiationService.register(IConfigurationService, configurationService);
 
         // status-service

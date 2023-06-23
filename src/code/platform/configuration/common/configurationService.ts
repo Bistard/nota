@@ -8,30 +8,27 @@ import { ConfigurationHub, DefaultConfiguration, UserConfiguration } from "src/c
 import { IFileService } from "src/code/platform/files/common/fileService";
 import { REGISTRANTS } from "src/code/platform/registrant/common/registrant";
 import { DeepReadonly } from "src/base/common/util/type";
-import { APP_CONFIG_NAME, ConfigurationModuleType, ConfigurationModuleTypeToString, IConfigurationService, Section } from "src/code/platform/configuration/common/configuration";
+import { APP_CONFIG_NAME, ConfigurationModuleType, ConfigurationModuleTypeToString, IConfigurationService, IConfigurationUpdateOptions, Section } from "src/code/platform/configuration/common/configuration";
 
-/**
- * @class // TODO
- */
-export class ConfigurationService extends Disposable implements IConfigurationService {
+export abstract class AbstractConfigurationService extends Disposable implements IConfigurationService {
 
     _microserviceIdentifier: undefined;
 
     // [fields]
 
-    private readonly _registrant = REGISTRANTS.get(IConfigurationRegistrant);
+    protected readonly _registrant = REGISTRANTS.get(IConfigurationRegistrant);
 
-    private _initialized: boolean;
-    private readonly _configurationPath: URI;
+    protected _initialized: boolean;
+    protected readonly _configurationPath: URI;
     
-    private readonly _defaultConfiguration: DefaultConfiguration;
-    private readonly _userConfiguration: UserConfiguration;
+    protected readonly _defaultConfiguration: DefaultConfiguration;
+    protected readonly _userConfiguration: UserConfiguration;
 
-    private _configurationHub: ConfigurationHub;
+    protected _configurationHub: ConfigurationHub;
 
     // [event]
 
-    private readonly _onDidConfigurationChange = this.__register(new Emitter<IConfigurationChangeEvent>());
+    protected readonly _onDidConfigurationChange = this.__register(new Emitter<IConfigurationChangeEvent>());
     public readonly onDidConfigurationChange = this._onDidConfigurationChange.registerListener;
 
     // [constructor]
@@ -39,7 +36,7 @@ export class ConfigurationService extends Disposable implements IConfigurationSe
     constructor(
         appConfigurationPath: URI,
         @IFileService fileService: IFileService,
-        @ILogService private readonly logService: ILogService,
+        @ILogService protected readonly logService: ILogService,
     ) {
         super();
 
@@ -87,13 +84,12 @@ export class ConfigurationService extends Disposable implements IConfigurationSe
         return tryOrDefault<any>(defaultValue ?? undefined!, () => this._configurationHub.get(section));
     }
 
-    public set(section: Section, value: any): Promise<void> {
-        return Promise.reject(new Error('[ConfigurationService] does not support `set`.'));
-    }
+    public abstract set(section: Section, value: any): Promise<void>;
+    public abstract set(section: Section, value: any, options: IConfigurationUpdateOptions): Promise<void>;
+    public abstract set(section: Section, value: any, options?: IConfigurationUpdateOptions): Promise<void>;
 
-    public delete(section: Section): Promise<void> {
-        return Promise.reject(new Error('[ConfigurationService] does not support `Delete`.'));
-    }
+    public abstract delete(section: Section): Promise<void>;
+    public abstract delete(section: Section, options?: IConfigurationUpdateOptions): Promise<void>;
 
     // [private helper methods]
 

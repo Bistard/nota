@@ -31,9 +31,9 @@ import { BrowserLifecycleService, ILifecycleService } from "src/code/platform/li
 import { i18n, Ii18nOpts, Ii18nService, LanguageType } from "src/code/platform/i18n/common/i18n";
 import { BrowserInstance } from "src/code/browser/browser";
 import { IConfigurationService } from "src/code/platform/configuration/common/configuration";
-import { ConfigurationService } from "src/code/platform/configuration/common/configurationService";
 import { WorkbenchConfiguration } from "src/code/browser/configuration.register";
 import { IProductService, ProductService } from "src/code/platform/product/common/productService";
+import { BrowserConfigurationService } from "src/code/platform/configuration/browser/browserConfigurationService";
 
 /**
  * @class This is the main entry of the renderer process.
@@ -144,7 +144,7 @@ const renderer = new class extends class RendererInstance extends Disposable {
         instantiationService.register(IProductService, productService);
 
         // configuration-service
-        const configuraionService = new ConfigurationService(environmentService.appConfigurationPath, fileService, logService);
+        const configuraionService = new BrowserConfigurationService(environmentService.appConfigurationPath, fileService, logService);
         instantiationService.register(IConfigurationService, configuraionService);
         
         // component-service
