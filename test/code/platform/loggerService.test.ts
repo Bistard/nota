@@ -13,7 +13,7 @@ import { FileLoggerService } from 'src/code/platform/logger/common/fileLoggerSer
 import { BrowserLoggerChannel, MainLoggerChannel } from 'src/code/platform/logger/common/loggerChannel';
 import { NullLogger, TestIPC } from 'test/utils/testService';
 
-suite.only('LoggerService', () => {
+suite('LoggerService', () => {
 
     function splitLogString(log: string): string[] {
         let parts: string[] = [];
