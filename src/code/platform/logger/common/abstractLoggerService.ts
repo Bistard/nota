@@ -50,7 +50,7 @@ export abstract class AbstractLoggerService<TLogger extends ILogger> extends Dis
     constructor(level: LogLevel = DEFAULT_LOG_LEVEL) {
         super();
         this._level = level;
-        this._loggers = new ResourceMap();
+        this._loggers = this.__register(new ResourceMap());
     }
 
     // [abstract method]
