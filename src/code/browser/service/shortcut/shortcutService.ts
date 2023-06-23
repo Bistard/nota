@@ -4,7 +4,7 @@ import { URI } from "src/base/common/file/uri";
 import { Shortcut, ShortcutHash } from "src/base/common/keyboard";
 import { IKeyboardService } from "src/code/browser/service/keyboard/keyboardService";
 import { IFileService } from "src/code/platform/files/common/fileService";
-import { IMicroService, createService } from "src/code/platform/instantiation/common/decorator";
+import { IService, createService } from "src/code/platform/instantiation/common/decorator";
 import { ILogService } from "src/base/common/logger";
 import { IBrowserLifecycleService, ILifecycleService, LifecyclePhase } from "src/code/platform/lifecycle/browser/browserLifecycleService";
 import { IShortcutItem, IShortcutRegistrant, IShortcutRegistration, IShortcutWithCommandRegistration, ShortcutWeight } from "src/code/browser/service/shortcut/shortcutRegistrant";
@@ -45,7 +45,7 @@ interface IShortcutConfiguration {
 /**
  * An interface only for {@link ShortcutService}.
  */
-export interface IShortcutService extends Disposable, IShortcutRegistrant, IMicroService {
+export interface IShortcutService extends Disposable, IShortcutRegistrant, IService {
     
     /**
      * Fires when one of the registered shortcut is pressed.
@@ -60,7 +60,7 @@ export interface IShortcutService extends Disposable, IShortcutRegistrant, IMicr
 
 export class ShortcutService extends Disposable implements IShortcutService {
 
-    _microserviceIdentifier: undefined;
+    _serviceMarker: undefined;
 
     // [event]
 

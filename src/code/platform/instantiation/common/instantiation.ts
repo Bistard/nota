@@ -1,5 +1,5 @@
 import { Constructor } from "src/base/common/util/type";
-import { createService, ServiceIdentifier, _ServiceUtil, IMicroService } from "src/code/platform/instantiation/common/decorator";
+import { createService, ServiceIdentifier, _ServiceUtil, IService } from "src/code/platform/instantiation/common/decorator";
 import { Graph, Node } from "src/code/platform/instantiation/common/dependencyGraph";
 import { ServiceDescriptor } from "src/code/platform/instantiation/common/descriptor";
 import { IdleValue } from "src/code/platform/instantiation/common/idle";
@@ -31,14 +31,14 @@ export interface IServiceProvider {
 type NonServiceArguments<TArgs extends any[]> =
     TArgs extends [] 
         ? [] 
-        : TArgs extends [...infer TFirst, IMicroService] 
+        : TArgs extends [...infer TFirst, IService] 
             ? NonServiceArguments<TFirst>
             : TArgs;
 
 /**
  * An interface only for {@link InstantiationService}.
  */
-export interface IInstantiationService extends IServiceProvider, IMicroService {
+export interface IInstantiationService extends IServiceProvider, IService {
     
     readonly serviceCollections: ServiceCollection;
 
@@ -48,7 +48,7 @@ export interface IInstantiationService extends IServiceProvider, IMicroService {
      * @param serviceIdentifier decorator to the service which is created by `createService()`.
      * @param instanceOrDescriptor instance or ServiceDescriptor of the service.
      */
-    register<T extends IMicroService>(serviceIdentifier: ServiceIdentifier<T>, instanceOrDescriptor: T | ServiceDescriptor<T>): void;
+    register<T extends IService>(serviceIdentifier: ServiceIdentifier<T>, instanceOrDescriptor: T | ServiceDescriptor<T>): void;
 
     /**
      * @description Passing into a constructor or a ServiceDescriptor<any> to 
@@ -82,7 +82,7 @@ export interface IInstantiationService extends IServiceProvider, IMicroService {
 
 export class InstantiationService implements IInstantiationService {
 
-    _microserviceIdentifier: undefined;
+    _serviceMarker: undefined;
     
     // [fields]
 
@@ -100,7 +100,7 @@ export class InstantiationService implements IInstantiationService {
 
     // [public methods]
 
-    public register<T extends IMicroService>(
+    public register<T extends IService>(
         serviceIdentifier: ServiceIdentifier<T>, 
         instanceOrDescriptor: T | ServiceDescriptor<T>): void 
     {

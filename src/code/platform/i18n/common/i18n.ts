@@ -3,7 +3,7 @@ import { URI } from "src/base/common/file/uri";
 import { IFileService } from "src/code/platform/files/common/fileService";
 import { isObject } from "src/base/common/util/type";
 import { Section } from "src/code/platform/section";
-import { IMicroService, createService } from "src/code/platform/instantiation/common/decorator";
+import { IService, createService } from "src/code/platform/instantiation/common/decorator";
 import { ILogService } from "src/base/common/logger";
 import { IBrowserEnvironmentService } from "src/code/platform/environment/common/environment";
 
@@ -72,7 +72,7 @@ export interface ILocaleOpts {
 
 }
 
-export interface Ii18nService extends IMicroService {
+export interface Ii18nService extends IService {
 
     readonly language: LanguageType;
 
@@ -128,7 +128,7 @@ export interface Ii18nService extends IMicroService {
  */
 export class i18n implements Ii18nService {
 
-    _microserviceIdentifier: undefined;
+    _serviceMarker: undefined;
 
     // [Fields]
 

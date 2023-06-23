@@ -25,7 +25,7 @@ import { SideViewConfiguration } from 'src/code/browser/workbench/parts/sideView
  */
 export class Workbench extends WorkbenchLayout implements IWorkbenchService {
 
-    _microserviceIdentifier: undefined;
+    _serviceMarker: undefined;
 
     // [field]
 

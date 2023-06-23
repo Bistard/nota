@@ -10,11 +10,11 @@ import { Iterable } from "src/base/common/util/iterable";
 import { Mutable } from "src/base/common/util/type";
 import { readFileIntoStream, readFileIntoStreamAsync } from "src/base/common/file/io";
 import { IRawResourceChangeEvents } from "src/code/platform/files/common/watcher";
-import { IMicroService, createService } from "src/code/platform/instantiation/common/decorator";
+import { IService, createService } from "src/code/platform/instantiation/common/decorator";
 
 export const IFileService = createService<IFileService>('file-service');
 
-export interface IFileService extends IDisposable, IMicroService {
+export interface IFileService extends IDisposable, IService {
     
     /**
      * Fires when the watched resources are either added, deleted or updated.
@@ -116,7 +116,7 @@ export interface IFileService extends IDisposable, IMicroService {
  */
 export class FileService extends Disposable implements IFileService {
 
-    _microserviceIdentifier: undefined;
+    _serviceMarker: undefined;
 
     // [event]
 

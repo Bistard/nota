@@ -2,14 +2,14 @@
 import { IComponentService } from "src/code/browser/service/component/componentService";
 import { Component, IComponent } from "src/code/browser/service/component/component";
 import { TitleBar } from "src/code/browser/workbench/parts/workspace/titleBar/titleBar";
-import { IMicroService, createService } from "src/code/platform/instantiation/common/decorator";
+import { IService, createService } from "src/code/platform/instantiation/common/decorator";
 import { IInstantiationService } from "src/code/platform/instantiation/common/instantiation";
 import { IEditorService } from "src/code/browser/workbench/parts/workspace/editor/editorService";
 import { IThemeService } from "src/code/browser/service/theme/themeService";
 
 export const IWorkspaceService = createService<IWorkspaceService>('workspace-service');
 
-export interface IWorkspaceService extends IComponent, IMicroService {
+export interface IWorkspaceService extends IComponent, IService {
 
 }
 
@@ -18,7 +18,7 @@ export interface IWorkspaceService extends IComponent, IMicroService {
  */
 export class WorkspaceComponent extends Component implements IWorkspaceService {
 
-    _microserviceIdentifier: undefined;
+    _serviceMarker: undefined;
 
     // [field]
 

@@ -75,8 +75,10 @@ export function refineDecorator<T1, T extends T1>(serviceIdentifier: ServiceIden
 
 /**
  * The purpose of this field can be to identify whether the class is used within 
- * a microservice architecture at compile time.
+ * a microservice architecture at compile time. 
+ * @note Every microservice should implement this interface.
+ * @note No runtime cost. Used by InstantiationService.
  */
-export interface IMicroService {
-    _microserviceIdentifier: undefined;
+export interface IService {
+    _serviceMarker: undefined;
 }

@@ -4,7 +4,7 @@ import { IMenu, IMenuActionRunEvent, Menu, MenuWithSubmenu } from "src/base/brow
 import { IMenuAction, MenuItemType } from "src/base/browser/basic/menu/menuItem";
 import { Disposable, DisposableManager, IDisposable } from "src/base/common/dispose";
 import { ILayoutService } from "src/code/browser/service/layout/layoutService";
-import { IMicroService, createService } from "src/code/platform/instantiation/common/decorator";
+import { IService, createService } from "src/code/platform/instantiation/common/decorator";
 import { isCancellationError } from "src/base/common/error";
 import { INotificationService } from "src/code/browser/service/notification/notificationService";
 
@@ -41,7 +41,7 @@ export interface IContextMenuServiceDelegate extends IContextMenuDelegateBase {
 /**
  * An interface only for {@link ContextMenuService}.
  */
-export interface IContextMenuService extends IMicroService {
+export interface IContextMenuService extends IService {
     
     /**
      * @description Shows up a context menu.
@@ -64,7 +64,7 @@ export interface IContextMenuService extends IMicroService {
  */
 export class ContextMenuService extends Disposable implements IContextMenuService {
 
-    _microserviceIdentifier: undefined;
+    _serviceMarker: undefined;
 
     // [fields]
 

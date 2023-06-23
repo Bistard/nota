@@ -2,7 +2,7 @@ import { Disposable } from "src/base/common/dispose";
 import { URI } from "src/base/common/file/uri";
 import { DEFAULT_LOG_LEVEL, ILogger, ILoggerOpts, LogLevel } from "src/base/common/logger";
 import { ResourceMap } from "src/base/common/util/map";
-import { IMicroService, createService } from "src/code/platform/instantiation/common/decorator";
+import { IService, createService } from "src/code/platform/instantiation/common/decorator";
 
 export const ILoggerService = createService<ILoggerService>('logger-service');
 
@@ -10,7 +10,7 @@ export const ILoggerService = createService<ILoggerService>('logger-service');
  * A {@link ILoggerService} provides ability to create or get {@link ILogger}
  * which has the actual ability to log messages.
  */
-export interface ILoggerService extends Disposable, IMicroService {
+export interface ILoggerService extends Disposable, IService {
 
     /**
      * @description Create a new {@link ILogger}. It overrides the previous 
@@ -38,7 +38,7 @@ export interface ILoggerService extends Disposable, IMicroService {
  */
 export abstract class AbstractLoggerService<TLogger extends ILogger> extends Disposable implements ILoggerService {
 
-    _microserviceIdentifier: undefined;
+    _serviceMarker: undefined;
 
     // [field]
 

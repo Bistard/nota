@@ -3,11 +3,11 @@ import { Emitter, Register } from "src/base/common/event";
 import { IColorTheme } from "src/code/browser/service/theme/theme";
 import { ThemeConfiguration } from "src/code/browser/service/theme/themeConfiguration";
 import { IConfigurationService } from "src/code/platform/configuration/common/configuration";
-import { IMicroService, createService } from "src/code/platform/instantiation/common/decorator";
+import { IService, createService } from "src/code/platform/instantiation/common/decorator";
 
 export const IThemeService = createService<IThemeService>('theme-service');
 
-export interface IThemeService extends IMicroService {
+export interface IThemeService extends IService {
     
     readonly onDidChangeTheme: Register<IColorTheme>;
     
@@ -16,7 +16,7 @@ export interface IThemeService extends IMicroService {
 
 export class ThemeService extends Disposable implements IThemeService {
 
-    _microserviceIdentifier: undefined;
+    _serviceMarker: undefined;
 
     // [event]
 

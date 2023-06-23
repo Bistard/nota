@@ -2,19 +2,19 @@ import { errorToMessage } from "src/base/common/error";
 import { URI } from "src/base/common/file/uri";
 import { JsonSchemaValidator } from "src/base/common/json";
 import { IFileService } from "src/code/platform/files/common/fileService";
-import { IMicroService, createService } from "src/code/platform/instantiation/common/decorator";
+import { IService, createService } from "src/code/platform/instantiation/common/decorator";
 import { IProductProfile, productProfileSchema } from "src/code/platform/product/common/product";
 
 export const IProductService = createService<IProductService>('product-service');
 
-export interface IProductService extends IMicroService {
+export interface IProductService extends IService {
     readonly profile: IProductProfile;
     init(productURI: URI): Promise<void>;
 }
 
 export class ProductService implements IProductService {
 
-    _microserviceIdentifier: undefined;
+    _serviceMarker: undefined;
 
     // [fields]
 

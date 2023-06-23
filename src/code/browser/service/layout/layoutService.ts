@@ -1,11 +1,11 @@
-import { IMicroService, createService } from "src/code/platform/instantiation/common/decorator";
+import { IService, createService } from "src/code/platform/instantiation/common/decorator";
 
 export const ILayoutService = createService<ILayoutService>('layout-service');
 
 /**
  * Interface only for {@link LayoutService}.
  */
-export interface ILayoutService extends IMicroService {
+export interface ILayoutService extends IService {
 
     /**
      * The parent container that will contains all the browser HTMLElements.
@@ -15,7 +15,7 @@ export interface ILayoutService extends IMicroService {
 
 export class LayoutService implements ILayoutService {
 
-    _microserviceIdentifier: undefined;
+    _serviceMarker: undefined;
 
     // [field]
 

@@ -23,7 +23,7 @@ type ElectronDialogReturnType = Electron.MessageBoxReturnValue | Electron.SaveDi
  */
 export class MainDialogService implements IMainDialogService {
 
-    _microserviceIdentifier: undefined;
+    _serviceMarker: undefined;
 
     // [field]
 
