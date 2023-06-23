@@ -2,7 +2,7 @@ import { IDisposable } from "src/base/common/dispose";
 import { Register } from "src/base/common/event";
 import { DeepReadonly } from "src/base/common/util/type";
 import { IConfigurationStorage } from "src/code/platform/configuration/common/configurationStorage";
-import { IConfigurationChangeEvent } from "src/code/platform/configuration/common/configurationService";
+import { IConfigurationChangeEvent } from "src/code/platform/configuration/common/abstractConfigurationService";
 import { IService, createService } from "src/code/platform/instantiation/common/decorator";
 
 /**

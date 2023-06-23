@@ -1,5 +1,5 @@
 import { IConfigurationUpdateOptions, Section } from "src/code/platform/configuration/common/configuration";
-import { AbstractConfigurationService } from "src/code/platform/configuration/common/configurationService";
+import { AbstractConfigurationService } from "src/code/platform/configuration/common/abstractConfigurationService";
 
 export class MainConfigurationService extends AbstractConfigurationService {
 

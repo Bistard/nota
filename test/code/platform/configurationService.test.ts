@@ -6,7 +6,7 @@ import { URI } from "src/base/common/file/uri";
 import { ILogService } from "src/base/common/logger";
 import { ConfigurationModuleType } from 'src/code/platform/configuration/common/configuration';
 import { IConfigurationRegistrant } from "src/code/platform/configuration/common/configurationRegistrant";
-import { ConfigurationChangeEvent } from "src/code/platform/configuration/common/configurationService";
+import { ConfigurationChangeEvent } from "src/code/platform/configuration/common/abstractConfigurationService";
 import { MainConfigurationService } from 'src/code/platform/configuration/electron/mainConfigurationService';
 import { FileService } from "src/code/platform/files/common/fileService";
 import { InMemoryFileSystemProvider } from "src/code/platform/files/common/inMemoryFileSystemProvider";

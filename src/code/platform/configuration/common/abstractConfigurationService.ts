@@ -84,6 +84,8 @@ export abstract class AbstractConfigurationService extends Disposable implements
         return tryOrDefault<any>(defaultValue ?? undefined!, () => this._configurationHub.get(section));
     }
 
+    // [public abstract methods]
+
     public abstract set(section: Section, value: any): Promise<void>;
     public abstract set(section: Section, value: any, options: IConfigurationUpdateOptions): Promise<void>;
     public abstract set(section: Section, value: any, options?: IConfigurationUpdateOptions): Promise<void>;
@@ -105,8 +107,8 @@ export abstract class AbstractConfigurationService extends Disposable implements
         this.__onConfigurationChange(change, ConfigurationModuleType.User);
     }
 
-    private __onConfigurationChange(change: IRawConfigurationChangeEvent, type: ConfigurationModuleType): void {
-        this.logService.trace(`[ConfigurationService] onConfigurationChange with type '${ConfigurationModuleTypeToString(type)}'.`);
+    protected __onConfigurationChange(change: IRawConfigurationChangeEvent, type: ConfigurationModuleType): void {
+        this.logService.trace(`[ConfigurationService] [onConfigurationChange] [type-${ConfigurationModuleTypeToString(type)}]`);
         const event = new ConfigurationChangeEvent(change, type);
         this._onDidConfigurationChange.fire(event);
     }

@@ -1,5 +1,5 @@
 import { ConfigurationModuleType, IConfigurationUpdateOptions, Section } from "src/code/platform/configuration/common/configuration";
-import { AbstractConfigurationService } from "src/code/platform/configuration/common/configurationService";
+import { AbstractConfigurationService } from "src/code/platform/configuration/common/abstractConfigurationService";
 
 export class BrowserConfigurationService extends AbstractConfigurationService {
 
@@ -26,7 +26,7 @@ export class BrowserConfigurationService extends AbstractConfigurationService {
 		}
 
 		if (module === ConfigurationModuleType.Memory) {
-			this._configurationHub.setInMemory(section, value);
+            this._configurationHub.setInMemory(section, value);
             // TODO: trigger configuration change event
 			return;
 		}
