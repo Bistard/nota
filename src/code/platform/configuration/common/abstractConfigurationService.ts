@@ -7,7 +7,7 @@ import { IConfigurationRegistrant, IRawConfigurationChangeEvent } from "src/code
 import { ConfigurationHub, DefaultConfiguration, UserConfiguration } from "src/code/platform/configuration/common/configurationHub";
 import { IFileService } from "src/code/platform/files/common/fileService";
 import { REGISTRANTS } from "src/code/platform/registrant/common/registrant";
-import { DeepReadonly } from "src/base/common/util/type";
+import { DeepReadonly, Mutable } from "src/base/common/util/type";
 import { APP_CONFIG_NAME, ConfigurationModuleType, ConfigurationModuleTypeToString, IConfigurationService, IConfigurationUpdateOptions, Section } from "src/code/platform/configuration/common/configuration";
 
 export abstract class AbstractConfigurationService extends Disposable implements IConfigurationService {
@@ -24,7 +24,7 @@ export abstract class AbstractConfigurationService extends Disposable implements
     protected readonly _defaultConfiguration: DefaultConfiguration;
     protected readonly _userConfiguration: UserConfiguration;
 
-    protected _configurationHub: ConfigurationHub;
+    protected readonly _configurationHub: ConfigurationHub;
 
     // [event]
 
@@ -75,7 +75,7 @@ export abstract class AbstractConfigurationService extends Disposable implements
         this.logService.trace(`[ConfigurationService] initializing at configuration path'${URI.toString(this._configurationPath, true)}'...`);
 
         await Promise.all([this._defaultConfiguration.init(), this._userConfiguration.init()]);
-        this._configurationHub = this.__reloadConfigurationHub();
+        (<Mutable<ConfigurationHub>>this._configurationHub) = this.__reloadConfigurationHub();
 
         this.logService.trace(`[ConfigurationService] initialized.`);
     }
