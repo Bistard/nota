@@ -1,5 +1,5 @@
 import { Constructor } from "src/base/common/util/type";
-import { createService, ServiceIdentifier, _ServiceUtil } from "src/code/platform/instantiation/common/decorator";
+import { createService, ServiceIdentifier, _ServiceUtil, IService } from "src/code/platform/instantiation/common/decorator";
 import { Graph, Node } from "src/code/platform/instantiation/common/dependencyGraph";
 import { ServiceDescriptor } from "src/code/platform/instantiation/common/descriptor";
 import { IdleValue } from "src/code/platform/instantiation/common/idle";
@@ -24,7 +24,21 @@ export interface IServiceProvider {
     getOrCreateService<T>(serviceIdentifier: ServiceIdentifier<T>): T;
 }
 
-export interface IInstantiationService extends IServiceProvider {
+/**
+ * Given a list of arguments as a tuple, attempt to extract the leading, 
+ * non-service arguments to their own tuple.
+ */
+type NonServiceArguments<TArgs extends any[]> =
+    TArgs extends [] 
+        ? [] 
+        : TArgs extends [...infer TFirst, IService] 
+            ? NonServiceArguments<TFirst>
+            : TArgs;
+
+/**
+ * An interface only for {@link InstantiationService}.
+ */
+export interface IInstantiationService extends IServiceProvider, IService {
     
     readonly serviceCollections: ServiceCollection;
 
@@ -34,7 +48,7 @@ export interface IInstantiationService extends IServiceProvider {
      * @param serviceIdentifier decorator to the service which is created by `createService()`.
      * @param instanceOrDescriptor instance or ServiceDescriptor of the service.
      */
-    register<T>(serviceIdentifier: ServiceIdentifier<T>, instanceOrDescriptor: T | ServiceDescriptor<T>): void;
+    register<T extends IService>(serviceIdentifier: ServiceIdentifier<T>, instanceOrDescriptor: T | ServiceDescriptor<T>): void;
 
     /**
      * @description Passing into a constructor or a ServiceDescriptor<any> to 
@@ -42,7 +56,7 @@ export interface IInstantiationService extends IServiceProvider {
      * @param ctorOrDescriptor constructor or ServiceDescriptor of the service.
      * @param rest all the arguments for that service.
      */
-    createInstance<Ctor extends Constructor<any>, T extends InstanceType<Ctor>>(ctorOrDescriptor: Ctor | ServiceDescriptor<Ctor>, ...rest: any[]): T;
+    createInstance<Ctor extends Constructor<any>, T extends InstanceType<Ctor>>(ctorOrDescriptor: Ctor | ServiceDescriptor<Ctor>, ...rest: NonServiceArguments<ConstructorParameters<Ctor>>): T;
 
     /**
      * @description Create a new instantiation service that inherits all the 
@@ -68,6 +82,8 @@ export interface IInstantiationService extends IServiceProvider {
 
 export class InstantiationService implements IInstantiationService {
 
+    _serviceMarker: undefined;
+    
     // [fields]
 
     public readonly serviceCollections: ServiceCollection;
@@ -84,7 +100,7 @@ export class InstantiationService implements IInstantiationService {
 
     // [public methods]
 
-    public register<T>(
+    public register<T extends IService>(
         serviceIdentifier: ServiceIdentifier<T>, 
         instanceOrDescriptor: T | ServiceDescriptor<T>): void 
     {
@@ -133,10 +149,8 @@ export class InstantiationService implements IInstantiationService {
         return callback(provider, ...args);
     }
 
-    public createInstance(
-        ctorOrDescriptor: any | ServiceDescriptor<any>, 
-        ...rest: any[]): any 
-    {
+    public createInstance<Ctor extends Constructor<any>, T extends InstanceType<Ctor>>(ctorOrDescriptor: Ctor | ServiceDescriptor<Ctor>, ...rest: NonServiceArguments<ConstructorParameters<Ctor>>): T;
+    public createInstance(ctorOrDescriptor: any | ServiceDescriptor<any>, ...rest: any[]): any {
         let res: any;
         if (ctorOrDescriptor instanceof ServiceDescriptor) {
             res = this._createInstance(ctorOrDescriptor.ctor, ctorOrDescriptor.arguments.concat(rest));

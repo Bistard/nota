@@ -2,7 +2,7 @@ import { Iterable } from "src/base/common/util/iterable";
 import { isObject } from "src/base/common/util/type";
 
 /**
- * @namespace Strings A collection of functions that relates to {@link string}.
+ * @namespace Strings A collection of functions that relates to string types.
  */
 export namespace Strings {
 
@@ -71,4 +71,7 @@ export namespace Strings {
     }
 }
 
+/**
+ * (U)niversal (U)nique (ID)entifier.
+ */
 export type UUID = string;

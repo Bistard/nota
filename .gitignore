@@ -1,9 +1,9 @@
 /node_modules
-/.vscode
 /dist
-/.VSCodeCounter
+
 /.nota
-/.obsidian
+/.vscode
+/.VSCodeCounter
 
 /assets/src-svg
 /**/*.woff2

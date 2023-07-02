@@ -1,8 +1,14 @@
 import * as assert from 'assert';
-import { Arrays, Deque, Queue, Stack } from 'src/base/common/util/array';
+import { Arrays, Deque, PriorityQueue, Queue, Stack } from 'src/base/common/util/array';
 import { isNumber } from 'src/base/common/util/type';
 
 suite('array-test', () => {
+
+    test('clear', () => {
+        assert.strictEqual(Arrays.clear([]).length, 0);
+        assert.strictEqual(Arrays.clear([1, 2, 3]).length, 0);
+        assert.strictEqual(Arrays.clear([[], 1, 2, 3, 'abc', [true, false, { value: null }]]).length, 0);
+    });
 
     test('remove', () => {
         const arr = [1, 1, 2, 3, 4, 5];
@@ -10,6 +16,12 @@ suite('array-test', () => {
         assert.deepStrictEqual(Arrays.remove(arr, 1), [2, 3, 4, 5]);
         assert.deepStrictEqual(Arrays.remove(arr, 1), [2, 3, 4, 5]);
         assert.deepStrictEqual(Arrays.remove(arr, 5), [2, 3, 4]);
+    });
+
+    test('fill', () => {
+        assert.deepStrictEqual(Arrays.fill('hello', 0), []);
+        assert.deepStrictEqual(Arrays.fill('hello', 1), ['hello']);
+        assert.deepStrictEqual(Arrays.fill('hello', 5), ['hello', 'hello', 'hello', 'hello', 'hello']);
     });
 
     test('reverseIterate', () => {
@@ -34,14 +46,14 @@ suite('array-test', () => {
         assert.deepStrictEqual(Arrays.insert([3, 3, 3, 9], 6), [3, 3, 3, 6, 9]);
     });
 
-    test('equals', () => {
+    test('exactEquals', () => {
         const ref = [1, 2, 3];
-        assert.strictEqual(Arrays.equals([], []), true);
-        assert.strictEqual(Arrays.equals(ref, ref), true);
-        assert.strictEqual(Arrays.equals(ref, [1, 2, 3, 4]), false);
-        assert.strictEqual(Arrays.equals([1, 2, 3], [1, 2, 3, 4]), false);
-        assert.strictEqual(Arrays.equals([1, 2, 3, 4], [1, 2, 3, 4]), true);
-        assert.strictEqual(Arrays.equals([1, 2, 3, 4], [4, 3, 2, 1]), false);
+        assert.strictEqual(Arrays.exactEquals([], []), true);
+        assert.strictEqual(Arrays.exactEquals(ref, ref), true);
+        assert.strictEqual(Arrays.exactEquals(ref, [1, 2, 3, 4]), false);
+        assert.strictEqual(Arrays.exactEquals([1, 2, 3], [1, 2, 3, 4]), false);
+        assert.strictEqual(Arrays.exactEquals([1, 2, 3, 4], [1, 2, 3, 4]), true);
+        assert.strictEqual(Arrays.exactEquals([1, 2, 3, 4], [4, 3, 2, 1]), false);
     });
 
     test('range', () => {
@@ -112,6 +124,43 @@ suite('array-test', () => {
         assert.strictEqual(Arrays.matchAny(['path1.path2'], ['path1.path2'], cmp1), true);
         assert.strictEqual(Arrays.matchAny(['path1'], ['path1.path2'], cmp1), true);
         assert.strictEqual(Arrays.matchAny(['path1.path3'], ['path1.path2'], cmp1), false);
+    });
+
+    test('matchAll', () => {
+        let array: any[] = [1, 2, 3, 4, 5];
+        let values: any[] = [1, 2, 3];
+        let result = Arrays.matchAll(array, values);
+        assert.strictEqual(result, true);
+
+        array = [];
+        values = [];
+        result = Arrays.matchAll(array, values);
+        assert.strictEqual(result, true);
+
+        array = [1, 2, 3, 4, 5];
+        values = [];
+        result = Arrays.matchAll(array, values);
+        assert.strictEqual(result, true);
+
+        array = [1, 2, 3, 4, 5];
+        values = [1, 2, 6];
+        result = Arrays.matchAll(array, values);
+        assert.strictEqual(result, false);
+
+        array = ['apple', 'banana', 'cherry'];
+        values = ['banana', 'cherry'];
+        result = Arrays.matchAll(array, values);
+        assert.strictEqual(result, true);
+
+        array = ['apple', 'banana', 'cherry'];
+        values = ['apple', 'banana'];
+        result = Arrays.matchAll(array, values);
+        assert.strictEqual(result, true);
+
+        array = ['apple', 'banana', 'cherry'];
+        values = ['apple', 'banana', 'pear'];
+        result = Arrays.matchAll(array, values);
+        assert.strictEqual(result, false);
     });
 
     test('binarySearch', () => {
@@ -311,5 +360,67 @@ suite('queue-test', () => {
         q.popFront();
         assert.strictEqual(q.empty(), true);
         assert.strictEqual(q.size(), 0);
+    });
+});
+
+suite('priority-queue-test', () => {
+    
+    test('basic', () => {
+        const pq = new PriorityQueue<number>((a, b) => b - a);
+        
+        pq.enqueue(5);
+        pq.enqueue(3);
+        pq.enqueue(7);
+        
+        assert.strictEqual(pq.size(), 3);
+        assert.strictEqual(pq.peek(), 7);
+        assert.strictEqual(pq.dequeue(), 7);
+        assert.strictEqual(pq.peek(), 5);
+        assert.strictEqual(pq.isEmpty(), false);
+        assert.strictEqual(pq.dequeue(), 5);
+        assert.strictEqual(pq.dequeue(), 3);
+        assert.strictEqual(pq.isEmpty(), true);
+    });
+
+    test('customized compare', () => {
+        const pq = new PriorityQueue<string>((a, b) => b.length - a.length);
+        
+        pq.enqueue("apple");
+        pq.enqueue("banana");
+        pq.enqueue("pear");
+
+        assert.strictEqual(pq.size(), 3);
+        assert.strictEqual(pq.peek(), "banana");
+        assert.strictEqual(pq.dequeue(), "banana");
+        assert.strictEqual(pq.peek(), "apple");
+        assert.strictEqual(pq.isEmpty(), false);
+        assert.strictEqual(pq.dequeue(), "apple");
+        assert.strictEqual(pq.dequeue(), "pear");
+        assert.strictEqual(pq.isEmpty(), true);
+    });
+
+    test('iterator', () => {
+        const pq = new PriorityQueue<number>((a, b) => b - a);
+        
+        pq.enqueue(1);
+        pq.enqueue(2);
+        pq.enqueue(3);
+
+        const values = Array.from(pq);
+        assert.deepStrictEqual(values, [3, 2, 1]);
+    });
+
+    test('edge cases', () => {
+        const pq = new PriorityQueue<number>((a, b) => b - a);
+        
+        assert.strictEqual(pq.peek(), undefined);
+        assert.strictEqual(pq.dequeue(), undefined);
+
+        pq.enqueue(1);
+        assert.strictEqual(pq.peek(), 1);
+        assert.strictEqual(pq.dequeue(), 1);
+        
+        assert.strictEqual(pq.peek(), undefined);
+        assert.strictEqual(pq.dequeue(), undefined);
     });
 });

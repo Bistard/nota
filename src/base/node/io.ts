@@ -13,7 +13,7 @@ export const FileMode = {
  
     /** @readonly Constant for fs.access(). File is visible to the calling process. */
     visible: fs.constants.F_OK,
- }
+}
 
 /**
  * @description Check the existance of the file in the given path.

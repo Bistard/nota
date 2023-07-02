@@ -560,10 +560,7 @@ export class MenuWithSubmenu extends MenuDecorator {
 
     public override dispose(): void {
         super.dispose();
-        if (this._submenu) {
-            this._submenu.dispose();
-            this._submenu = undefined;
-        }
+        this.__closeCurrSubmenu();
     }
 
     // [private helper methods]

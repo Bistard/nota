@@ -1,7 +1,7 @@
 import { URI } from "src/base/common/file/uri";
 import { LogLevel } from "src/base/common/logger";
 import { iterProp } from "src/base/common/util/object";
-import { createService, refineDecorator } from "src/code/platform/instantiation/common/decorator";
+import { IService, createService, refineDecorator } from "src/code/platform/instantiation/common/decorator";
 import { ICLIArguments } from "src/code/platform/environment/common/argument";
 import { IWindowConfiguration } from "src/code/platform/window/common/window";
 import { isObject } from "src/base/common/util/type";
@@ -44,7 +44,17 @@ export interface IEnvironmentOpts {
 }
 
 export const enum ApplicationMode {
+    
+    /**
+     * Represents the development mode. It is usually used during software 
+     * development and testing.
+     */
     DEVELOP,
+
+    /**
+     * Represents the release or production mode. It is used when the 
+     * application is ready for end users.
+     */
     RELEASE,
 }
 
@@ -57,7 +67,7 @@ export const enum ApplicationMode {
  * @note If a different specific environment is required you need to extend this
  * interface as a base interface.
  */
-export interface IEnvironmentService {
+export interface IEnvironmentService extends IService {
     
     /**
      * The application mode.
@@ -91,6 +101,7 @@ export interface IEnvironmentService {
  * Electron.
  */
 export interface IDiskEnvironmentService extends IEnvironmentService {
+    
     /**
      * The arguments from command line interface.
      */
@@ -118,6 +129,11 @@ export interface IDiskEnvironmentService extends IEnvironmentService {
      * @example C:/Users/user_name/AppData/Roaming/nota
      */
     readonly userDataPath: URI;
+
+    /**
+     * The product profile path for 'product.json'.
+     */
+    readonly productProfilePath: URI;
 }
 
 /**

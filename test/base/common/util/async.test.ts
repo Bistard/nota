@@ -3,19 +3,20 @@ import { ExpectedError, isCancellationError, isExpectedError } from 'src/base/co
 import { Emitter } from 'src/base/common/event';
 import { AsyncRunner, Blocker, CancellablePromise, Debouncer, delayFor, EventBlocker, MicrotaskDelay, PromiseTimeout, retry, Scheduler, ThrottleDebouncer, Throttler, UnbufferedScheduler } from 'src/base/common/util/async';
 import { repeat } from 'src/base/common/util/timer';
+import { FakeAsync } from 'test/utils/async';
 
 suite('async-test', () => {
 
-    test('Blocker', async () => {
+    test('Blocker', () => FakeAsync.run(async () => {
         const blocker = new Blocker<boolean>();
 
         delayFor(0, () => blocker.resolve(true));
 
         const result = await blocker.waiting();
         assert.strictEqual(result, true);
-    });
+    }));
 
-	test('EventBlocker', async () => {
+	test('EventBlocker', () => FakeAsync.run(async () => {
 		const emitter = new Emitter<void>();
 		
 		const blocker = new EventBlocker(emitter.registerListener);
@@ -28,9 +29,9 @@ suite('async-test', () => {
 		await neverResolve.waiting()
 		.then(() => assert.fail())
 		.catch(() => { /** success */ });
-	});
+	}));
 
-	test('PromiseTimeout', async () => {
+	test('PromiseTimeout', () => FakeAsync.run(async () => {
 		let promise = Promise.resolve();
 		let timeout = new PromiseTimeout(promise, 0);
 		let result = await timeout.waiting();
@@ -40,30 +41,31 @@ suite('async-test', () => {
 		timeout = new PromiseTimeout(promise, 0);
 		result = await timeout.waiting();
 		assert.strictEqual(result, false);
-	});
+	}));
 
-	test('Scheduler', async () => {
+	test('Scheduler', () => FakeAsync.run(async () => {
 		let cnt = 0;
 		const scheduler = new Scheduler<number>(0, e => {
-			cnt += e.reduce((prev, curr) => prev += curr);
+			cnt += e.reduce((prev, curr) => prev += curr, 0);
 		});
 		repeat(10, () => scheduler.schedule(1));
-		await delayFor(10, () => {
+		await delayFor(100, () => {
 			assert.strictEqual(cnt, 10);
 		});
 
 		// cancellation
 		const scheduler2 = new Scheduler<number>(0, e => {
-			cnt += e.reduce((prev, curr) => prev += curr);
+			cnt += e.reduce((prev, curr) => prev += curr, 0);
 		});
 		repeat(10, () => scheduler2.schedule(1));
+		
 		scheduler2.cancel();
-		await delayFor(10, () => {
+		await delayFor(100, () => {
 			assert.strictEqual(cnt, 10);
 		});
-	});
+	}));
 
-	test('UnbufferedScheduler', async () => {
+	test('UnbufferedScheduler', () => FakeAsync.run(async () => {
 		let cnt = 0;
 		const scheduler = new UnbufferedScheduler<number>(0, e => {
 			cnt += e;
@@ -83,11 +85,11 @@ suite('async-test', () => {
 		await delayFor(10, () => {
 			assert.strictEqual(cnt, 1);
 		});
-	});
+	}));
 
     suite('AsyncRunner', () => {
 
-        test('basic - sync', async () => {
+        test('basic - sync', () => FakeAsync.run(async () => {
             let count = 0;
             const executor = new AsyncRunner<void>(2);
             const getNum = () => () => {
@@ -98,9 +100,9 @@ suite('async-test', () => {
             const promises = [executor.queue(getNum()), executor.queue(getNum()), executor.queue(getNum()), executor.queue(getNum()), executor.queue(getNum())];
             await Promise.all(promises);
             assert.strictEqual(count, 5);
-        });
+        }));
     
-        test('basic - async', async () => {
+        test('basic - async', () => FakeAsync.run(async () => {
             let count = 0;
             const executor = new AsyncRunner<void>(2);
             const getNum = () => async () => {
@@ -110,9 +112,9 @@ suite('async-test', () => {
             const promises = [executor.queue(getNum()), executor.queue(getNum()), executor.queue(getNum()), executor.queue(getNum()), executor.queue(getNum())];
             await Promise.all(promises);
             assert.strictEqual(count, 5);
-        });
+        }));
     
-        test('pause / resume', async () => {
+        test('pause / resume', () => FakeAsync.run(async () => {
             let count = 0;
             const executor = new AsyncRunner<void>(2);
             const getNum = () => async () => {
@@ -125,9 +127,9 @@ suite('async-test', () => {
             await Promise.all(promises);
     
             assert.strictEqual(count, 5);
-        });
+        }));
 
-		test('onDidFlush', async () => {
+		test('onDidFlush', () => FakeAsync.run(async () => {
 			let count = 0;
 			const executor = new AsyncRunner<void>(2);
 			const blocker = new EventBlocker(executor.onDidFlush);
@@ -138,9 +140,9 @@ suite('async-test', () => {
 
 			await blocker.waiting();
 			assert.strictEqual(count, 5);
-		});
+		}));
 
-		test('waitNext', async () => {
+		test('waitNext', () => FakeAsync.run(async () => {
 			let count = 0;
 			const executor = new AsyncRunner<void>(2);
 			
@@ -148,11 +150,11 @@ suite('async-test', () => {
 			
 			await executor.waitNext();
 			assert.strictEqual(count, 1);
-		});
+		}));
     });
 
     suite('throttler', () => {
-        test('sync task', async function () {
+        test('sync task', () => FakeAsync.run(async () => {
 			let count = 0;
 			const factory = () => Promise.resolve(++count);
 
@@ -165,9 +167,9 @@ suite('async-test', () => {
 				throttler.queue(factory).then((result) => { assert.strictEqual(result, 2); }),
 				throttler.queue(factory).then((result) => { assert.strictEqual(result, 2); })
 			]).then(() => assert.strictEqual(count, 2));
-		});
+		}));
 
-		test('async task', () => {
+		test('async task', () => FakeAsync.run(async () => {
 			let count = 0;
 			const factory = () => delayFor(0).then(() => ++count);
 
@@ -188,9 +190,9 @@ suite('async-test', () => {
 					throttler.queue(factory).then((result) => { assert.strictEqual(result, 4); })
 				]);
 			});
-		});
+		}));
 
-		test('last factory should be the one getting called', function () {
+		test('last factory should be the one getting called', () => FakeAsync.run(async function () {
 			const factoryFactory = (n: number) => async () => {
 				return delayFor(0).then(() => n);
 			};
@@ -204,12 +206,12 @@ suite('async-test', () => {
 			promises.push(throttler.queue(factoryFactory(3)).then((n) => { assert.strictEqual(n, 3); }));
 
 			return Promise.all(promises);
-		});
+		}));
     });
 
     suite('debouncer', function () {
 
-		test('simple', async () => {
+		test('simple', () => FakeAsync.run(async () => {
 			let count = 0;
 			const factory = () => {
 				return Promise.resolve(++count);
@@ -232,9 +234,9 @@ suite('async-test', () => {
 			return Promise.all(promises).then(() => {
 				assert.ok(!delayer.onSchedule());
 			});
-		});
+		}));
 
-		test('microtask delay simple', async () => {
+		test('microtask delay simple', () => FakeAsync.run(async () => {
 			let count = 0;
 			const factory = () => {
 				return Promise.resolve(++count);
@@ -257,7 +259,7 @@ suite('async-test', () => {
 			return Promise.all(promises).then(() => {
 				assert.ok(!delayer.onSchedule());
 			});
-		});
+		}));
 
 		test('simple cancel', function () {
 			let count = 0;
@@ -305,7 +307,7 @@ suite('async-test', () => {
 			return p;
 		});
 
-		test('cancel should cancel all calls to queue', function () {
+		test('cancel should cancel all calls to queue', () => FakeAsync.run(async () => {
 			let count = 0;
 			const factory = () => {
 				return Promise.resolve(++count);
@@ -330,7 +332,7 @@ suite('async-test', () => {
 			return Promise.all(promises).then(() => {
 				assert.ok(!delayer.onSchedule());
 			});
-		});
+		}));
 
 		test('queue, cancel, then queue again', function () {
 			let count = 0;
@@ -409,30 +411,30 @@ suite('async-test', () => {
 
     suite('throttleDebouncer', () => {
 
-        test('simple', async () => {
+        test('simple', () => FakeAsync.run(async () => {
             let cnt = 0;
             const task = () => cnt++;
             const throttleDebouncer = new ThrottleDebouncer<void>(0);
             throttleDebouncer.queue(async () => { if (!cnt) { task(); } else { throw ''; } }, 0);
             throttleDebouncer.queue(async () => { if (cnt === 1) { task(); } else { throw ''; } }, 0);
             throttleDebouncer.queue(async () => { if (cnt === 2) { task(); } else { throw ''; } }, 0);
-        });
+        }));
 
-        test('promise should resolve if disposed', async () => {
+        test('promise should resolve if disposed', () => FakeAsync.run(async () => {
             const throttleDebouncer = new ThrottleDebouncer<void>(100);
             const promise = throttleDebouncer.queue(async () => { }, 0);
             throttleDebouncer.dispose();
 
             try {
                 await promise;
-                assert.fail(void 0);
+                assert.fail();
             } catch (err) {
                 assert.ok(1);
             }
-        });
+        }));
     });
 
-	test('CancellablePromise - cancel', async () => {
+	test('CancellablePromise - cancel', () => FakeAsync.run(async () => {
 		const promise = new CancellablePromise(async (token) => {
 			token.cancel();
 		});
@@ -448,9 +450,9 @@ suite('async-test', () => {
 		}
 		
 		assert.fail('should not reach');
-	});
+	}));
 
-	test('CancellablePromise - await cancel', async () => {
+	test('CancellablePromise - await cancel', () => FakeAsync.run(async () => {
 		const number = await new CancellablePromise(async (token) => 5);
 		assert.strictEqual(number, 5);
 
@@ -465,5 +467,40 @@ suite('async-test', () => {
 		finally {
 			assert.ok(isCancelled);
 		}
+	}));
+});
+
+suite('async-test (helpers)', () => {
+
+	suite('FakeAsync', () => {
+		
+		test('fake the function execution when fake timers are enabled', async () => {
+			let fakeElapsedTime: number = undefined!;
+			
+			const elapseTarget = 5000;
+			const fn = async () => { 
+				const fakeStartTime = Date.now();
+				setTimeout(() => {
+					const fakeEndTime = Date.now();
+					fakeElapsedTime = fakeEndTime - fakeStartTime;
+				}, elapseTarget);
+			};
+
+			const realStartTime = Date.now();
+			await FakeAsync.run(fn);
+			const realEndTime = Date.now();
+			
+			/**
+			 * In the perspective of a callback function, it should passed 
+			 * {@link elapseTarget} of time.
+			 */
+			assert.strictEqual(fakeElapsedTime, elapseTarget, 'function should elapsed in exact of the given time.');
+			
+			/**
+			 * Since we're using a fake timer, 'fn' should be called almost 
+			 * immediately.
+			 */
+			assert.ok((realEndTime - realStartTime) < 20, "Function was not called immediately with fake timer.");
+		});
 	});
 });

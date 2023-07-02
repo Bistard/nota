@@ -1,7 +1,8 @@
 import { Register } from "src/base/common/event";
+import { IService } from "src/code/platform/instantiation/common/decorator";
 import { IBeforeQuitEvent } from "src/code/platform/lifecycle/electron/mainLifecycleService";
 
-export interface ILifecycleService<Phase extends number, Reason extends number> {
+export interface ILifecycleService<Phase extends number, Reason extends number> extends IService {
 
     /**
      * Fires before the application / window decided to quit.

@@ -114,7 +114,7 @@ function executeScript(command, args, configuration) {
     const argsInString = args.join(' ');
     actualCommand += ' ' + argsInString;
 
-    console.log(`${utils.getTime()} Executing script: ${command}`);
+    console.log(`${utils.getTime()} Executing script: ${utils.c.BgWhite}${utils.c.FgBlack}${command}\x1b[0m`);
     console.log(`${utils.getTime()} Executing command: ${actualCommand}`);
     const proc = childProcess.spawn(
         actualCommand, 

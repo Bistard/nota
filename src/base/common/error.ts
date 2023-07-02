@@ -181,3 +181,25 @@ function stackToMessage(stack: any): string {
         return stack;
     }
 }
+
+/**
+ * @description Executes the given function and returns its result. If an error 
+ * occurs during execution, it calls the provided error handler and returns a 
+ * default value.
+ * @param defaultValue The default value to return in case of error.
+ * @param fn The function to execute.
+ * @param onError The error handler function to call when an error occurs.
+ * @param onFinally The function to call after everything happens.
+ * 
+ * @note Does not support async callback.
+ */
+export function tryOrDefault<T>(defaultValue: T, fn: () => T, onError?: (err: any) => void, onFinally?: () => void): T {
+    try {
+        return fn();
+    } catch (err) {
+        onError?.(err);
+        return defaultValue;
+    } finally {
+        onFinally?.();
+    }
+}

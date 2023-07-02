@@ -1,13 +1,13 @@
 import 'src/code/browser/workbench/parts/sideBar/media/sideBar.scss';
 import { Component, IComponent } from 'src/code/browser/service/component/component';
-import { createService } from 'src/code/platform/instantiation/common/decorator';
+import { IService, createService } from 'src/code/platform/instantiation/common/decorator';
 import { IComponentService } from 'src/code/browser/service/component/componentService';
 import { ISideButtonOptions, SideButton } from 'src/code/browser/workbench/parts/sideBar/sideBarButton';
 import { WidgetBar } from 'src/base/browser/secondary/widgetBar/widgetBar';
 import { Orientation } from 'src/base/browser/basic/dom';
 import { Emitter, Register } from 'src/base/common/event';
-import { IThemeService } from 'src/code/browser/service/theme/themeService';
 import { ILogService } from 'src/base/common/logger';
+import { IThemeService } from 'src/code/browser/service/theme/themeService';
 
 export const ISideBarService = createService<ISideBarService>('side-bar-service');
 
@@ -45,7 +45,7 @@ export interface ISideBarButtonClickEvent {
 /**
  * An interface only for {@link SideBar}.
  */
-export interface ISideBarService extends IComponent {
+export interface ISideBarService extends IComponent, IService {
     
     /**
      * Events fired when the button is clicked.
@@ -93,6 +93,8 @@ export interface ISideBarService extends IComponent {
  * transition between each button and display coressponding view.
  */
 export class SideBar extends Component implements ISideBarService {
+
+    _serviceMarker: undefined;
 
     // [field]
 

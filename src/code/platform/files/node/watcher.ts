@@ -197,7 +197,7 @@ export class WatchInstance implements IWatchInstance {
                 throw error;
             })
             .on('ready', () => {
-                this.logService?.trace(`Filesystem watcher on ${resource} is ready.`);
+                this.logService?.trace(`[WatchInstance] filesystem watcher is ready on: '${resource}'`);
             });
             
             return watcher;
@@ -235,15 +235,7 @@ export class WatchInstance implements IWatchInstance {
             
             const changes = coalescer.coalesce();
             if (changes.length) {
-                this._onDidChange({
-                    wrap: function (ignoreCase?: boolean) { return new ResourceChangeEvent(this, ignoreCase); },
-                    events: changes,
-                    anyAdded: this._anyAdded,
-                    anyDeleted: this._anyDeleted,
-                    anyUpdated: this._anyUpdated,
-                    anyDirectory: this._anyDirectory,
-                    anyFile: this._anyFiles,
-                });
+                this._onDidChange(createRawResourceChangeEvents(changes, this._anyAdded, this._anyDeleted, this._anyUpdated, this._anyDirectory, this._anyFiles));
                 this.__clearMetadata();
             }
         })
@@ -258,6 +250,18 @@ export class WatchInstance implements IWatchInstance {
         this._anyUpdated = false;
         this._anyDeleted = false;
     }
+}
+
+export function createRawResourceChangeEvents(changes: IRawResourceChangeEvent[], anyAdded: boolean, anyDeleted: boolean, anyUpdated: boolean, anyDirectory: boolean, anyFile: boolean): IRawResourceChangeEvents {
+    return {
+        wrap: function (ignoreCase?: boolean) { return new ResourceChangeEvent(this, ignoreCase); },
+        events: changes,
+        anyAdded: anyAdded,
+        anyDeleted: anyDeleted,
+        anyUpdated: anyUpdated,
+        anyDirectory: anyDirectory,
+        anyFile: anyFile,
+    };
 }
 
 /**

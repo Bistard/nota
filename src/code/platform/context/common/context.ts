@@ -1,3 +1,4 @@
+import { Dictionary } from "src/base/common/util/type";
 
 export interface IReadonlyContext {
     getValue<T>(key: string): T | undefined;
@@ -16,7 +17,7 @@ export class Context implements IContext {
 
     // [field]
 
-    private readonly _context: Record<string, any>;
+    private readonly _context: Dictionary<string, any>;
 
     // [constructor]
 

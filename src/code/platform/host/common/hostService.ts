@@ -1,7 +1,6 @@
-import { OpenDialogOptions } from "electron";
 import { IDisposable } from "src/base/common/dispose";
 import { Register } from "src/base/common/event";
-import { createService } from "src/code/platform/instantiation/common/decorator";
+import { IService, createService } from "src/code/platform/instantiation/common/decorator";
 import { StatusKey } from "src/code/platform/status/common/status";
 
 export const IHostService = createService<IHostService>('host-service');
@@ -9,7 +8,7 @@ export const IHostService = createService<IHostService>('host-service');
 /**
  * SHOULD ONLY contains promise methods or event registrations.
  */
-export interface IHostService {
+export interface IHostService extends IService {
     
     // window-instance
     readonly onDidMaximizeWindow: Register<number>;
@@ -31,9 +30,9 @@ export interface IHostService {
     showOpenDialog(opts: Electron.OpenDialogOptions, id?: number): Promise<Electron.OpenDialogReturnValue>;
     showSaveDialog(opts: Electron.SaveDialogOptions, id?: number): Promise<Electron.SaveDialogReturnValue>;
     showMessageBox(opts: Electron.MessageBoxOptions, id?: number): Promise<Electron.MessageBoxReturnValue>;
-    openFileDialogAndOpen(opts: OpenDialogOptions, id?: number): Promise<void>;
-    openDirectoryDialogAndOpen(opts: OpenDialogOptions, id?: number): Promise<void>;
-    openFileOrDirectoryDialogAndOpen(opts: OpenDialogOptions, id?: number): Promise<void>;
+    openFileDialogAndOpen(opts: Electron.OpenDialogOptions, id?: number): Promise<void>;
+    openDirectoryDialogAndOpen(opts: Electron.OpenDialogOptions, id?: number): Promise<void>;
+    openFileOrDirectoryDialogAndOpen(opts: Electron.OpenDialogOptions, id?: number): Promise<void>;
 
     // dev-tools
     openDevTools(options?: Electron.OpenDevToolsOptions, id?: number): Promise<void>;

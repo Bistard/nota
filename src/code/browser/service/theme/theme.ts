@@ -1,16 +1,13 @@
 import { RGBA } from "src/base/common/color";
 import { Disposable } from "src/base/common/dispose";
+import { ColorThemeType } from "src/code/browser/service/theme/themeConfiguration";
 import { IThemeService } from "src/code/browser/service/theme/themeService";
 
-export const enum ThemeType {
-    Classic = 'Classic',
-}
-
-export interface ITheme {
+export interface IColorTheme {
     /**
      * The name of the theme.
      */
-    readonly name: ThemeType;
+    readonly name: ColorThemeType;
 
     getColor(id: string, useDefault?: boolean): RGBA;
 }
@@ -20,25 +17,25 @@ export interface ITheme {
  */
 export abstract class Themable extends Disposable {
 
-    private _theme: ITheme;
+    private _theme: IColorTheme;
     protected readonly themeService: IThemeService;
 
     constructor(themeService: IThemeService) {
         super();
         this.themeService = themeService;
         this._theme = this.themeService.getTheme();
-        this.__register(themeService.onDidChangeTheme(newTheme => this.onThemeChange(newTheme)));
+        this.__register(themeService.onDidChangeTheme(newTheme => this.__onThemeChange(newTheme)));
     }
 
     protected get theme() {
         return this._theme;
     }
 
-    protected onThemeChange(newTheme: ITheme): void {
+    protected __onThemeChange(newTheme: IColorTheme): void {
         this._theme = newTheme;
-        this.updateStyles();
+        this.__updateStyles();
     }
 
-    protected abstract updateStyles(): void;
+    protected abstract __updateStyles(): void;
 }
 

@@ -10,11 +10,11 @@ import { Iterable } from "src/base/common/util/iterable";
 import { Mutable } from "src/base/common/util/type";
 import { readFileIntoStream, readFileIntoStreamAsync } from "src/base/common/file/io";
 import { IRawResourceChangeEvents } from "src/code/platform/files/common/watcher";
-import { createService } from "src/code/platform/instantiation/common/decorator";
+import { IService, createService } from "src/code/platform/instantiation/common/decorator";
 
 export const IFileService = createService<IFileService>('file-service');
 
-export interface IFileService extends IDisposable {
+export interface IFileService extends IDisposable, IService {
     
     /**
      * Fires when the watched resources are either added, deleted or updated.
@@ -116,10 +116,12 @@ export interface IFileService extends IDisposable {
  */
 export class FileService extends Disposable implements IFileService {
 
+    _serviceMarker: undefined;
+
     // [event]
 
     private readonly _onDidResourceChange = this.__register(new Emitter<IRawResourceChangeEvents>());
-	readonly onDidResourceChange = this._onDidResourceChange.registerListener;
+	public readonly onDidResourceChange = this._onDidResourceChange.registerListener;
 
     private readonly _onDidResourceClose = this.__register(new Emitter<URI>());
     public readonly onDidResourceClose = this._onDidResourceClose.registerListener;
@@ -151,7 +153,7 @@ export class FileService extends Disposable implements IFileService {
 
         this.__register(provider.onDidResourceChange(e => this._onDidResourceChange.fire(e)));
         this.__register(provider.onDidResourceClose(uri => {
-            this.logService.trace('Main#FileService# stop watching on ' + URI.toString(uri));
+            this.logService.trace('[FileService] stop watching on ' + URI.toString(uri));
             
             this._activeWatchers.delete(uri);
             this._onDidResourceClose.fire(uri);
@@ -293,11 +295,11 @@ export class FileService extends Disposable implements IFileService {
 
     public watch(uri: URI, opts?: IWatchOptions): IDisposable {
         if (this._activeWatchers.has(uri)) {
-            this.logService.warn('file service - duplicate watching on the same resource', URI.toString(uri));
+            this.logService.warn('[FileService] duplicate watching on the same resource', URI.toString(uri));
             return Disposable.NONE;
         }
         
-        this.logService.trace('Main#FileService#watch()#Watching on ' + URI.toString(uri) + '...');
+        this.logService.trace(`[FileService] Watching on '${URI.toString(uri)}'`);
         
         const provider = this.__getProvider(uri);
         const disposable = provider.watch(uri, opts);
@@ -496,13 +498,13 @@ export class FileService extends Disposable implements IFileService {
     private async __mkdirRecursive(provider: IFileSystemProvider, dir: URI): Promise<void> {
         
         const dirWaitToBeCreate: string[] = [];
-        let path = URI.toFsPath(dir); // remove the file name
+        let path = dir;
         
         while (true) {
             try {
                 // try to find a directory that exists
-                let stat: IFileStat = await provider.stat(URI.fromFile(path));
-                    
+                let stat = await provider.stat(path);
+
                 // not a directory
                 if ((stat.type & FileType.DIRECTORY) === 0) {
                     throw new FileOperationError('undable to create directory that already exists but is not a directory', FileOperationErrorType.FILE_IS_DIRECTORY);
@@ -513,18 +515,18 @@ export class FileService extends Disposable implements IFileService {
 
             } catch (err) {
                 // we reaches a not existed directory, we remember it.
-                dirWaitToBeCreate.push(basename(path));
-                path = dirname(path);
+                dirWaitToBeCreate.push(URI.basename(path));
+                path = URI.dirname(path);
             }
         }
 
         for (let i = dirWaitToBeCreate.length - 1; i >= 0; i--) {
-            path = join(path, dirWaitToBeCreate[i]!);
+            path = URI.join(path, dirWaitToBeCreate[i]!);
 
             try {
-                await provider.mkdir(URI.fromFile(path));
+                await provider.mkdir(path);
             } catch (err) {
-                throw new FileOperationError(`cannot make directory '${path}'`, FileOperationErrorType.UNKNOWN, err);
+                throw new FileOperationError(`cannot make directory '${URI.toString(path, true)}'`, FileOperationErrorType.UNKNOWN, err);
             }
         }
     }
@@ -674,7 +676,7 @@ export class FileService extends Disposable implements IFileService {
         if (!stat) {
             throw new FileOperationError('target URI does not exist', FileOperationErrorType.FILE_INVALID_PATH);
         } else if (stat.type & FileType.DIRECTORY) {
-            throw new FileOperationError('cannot read a directory', FileOperationErrorType.FILE_IS_DIRECTORY);
+            throw new FileOperationError('unable to read file which is actually a directory', FileOperationErrorType.FILE_IS_DIRECTORY);
         }
 
         this.__validateReadLimit(stat.byteSize, opts);

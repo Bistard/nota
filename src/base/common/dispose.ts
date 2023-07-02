@@ -112,9 +112,13 @@ export class DisposableManager implements IDisposable {
 	}
 }
 
-/*******************************************************************************
- * Helper Functions
- ******************************************************************************/
+/**
+ * A reference to an object, it makes sure the object won't be garbage-collected
+ * once I still own it.
+ */
+export interface IReference<T> extends IDisposable {
+	readonly object: T;
+}
 
 export type IterableDisposable<T extends IDisposable> = IterableIterator<T> | Array<T>;
 
@@ -153,4 +157,89 @@ export function toDisposable(fn: () => any): IDisposable {
 	return {
 		dispose: fn
 	};
+}
+
+/**
+ * @class A disposable object that automatically cleans up its internal object 
+ * upon disposal. This ensures that when the disposable value is changed, the 
+ * previously held disposable is disposed of.
+ * 
+ * @note You may also register disposable children to the current object, those
+ * children will be disposed along with the current object.
+ */
+export class AutoDisposableWrapper<T extends IDisposable> implements IDisposable {
+
+	// [fields]
+
+	private _object?: T;
+	private readonly _children: IDisposable[];
+	private _disposed: boolean;
+
+	// [constructor]
+
+	constructor(object?: T, children?: IDisposable[]) {
+		this._object = object ?? undefined;
+		this._children = children ?? [];
+		this._disposed = false;
+	}
+
+	// [public methods]
+
+	public set(object: T): void {
+		if (this._disposed || this._object === object) {
+			return;
+		}
+
+		this._object?.dispose();
+		this._object = object;
+		
+		this.__cleanChildren();
+	}
+
+	public get(): T {
+		if (!this._object) {
+			throw new Error('[SelfCleaningWrapper] no wrapping object.');
+		}
+		return this._object;
+	}
+
+	public register(children: Disposable | Disposable[]): void {
+		if (!this._object) {
+			throw new Error('[SelfCleaningWrapper] cannot bind children to no objects.');
+		}
+		
+		if (!Array.isArray(children)) {
+			children = [children];
+		}
+
+		this._children.push(...children);
+	}
+
+	public detach(): T | undefined {
+		const obj = this._object;
+		this._object = undefined;
+
+		this._children.length = 0;
+		
+		return obj;
+	}
+
+	public dispose(): void {
+		if (this._disposed) {
+			return;
+		}
+		this._disposed = true;
+		
+		this._object?.dispose();
+		this._object = undefined;
+		
+		this.__cleanChildren();
+	}
+
+	// [private helper methods]
+
+	private __cleanChildren(): void {
+		disposeAll(this._children);
+		this._children.length = 0;
+	}
 }

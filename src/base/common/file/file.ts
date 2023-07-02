@@ -187,7 +187,7 @@ export interface IOpenFileOptions {
 	 * have. A file that is write locked will throw an error for any
 	 * attempt to write to unless `unlock: true` is provided.
 	 */
-	 readonly unlock: boolean;
+	 readonly unlock?: boolean;
 }
 
 export interface IReadFileOptions {
@@ -217,7 +217,7 @@ export interface IOverwriteFileOptions {
 	 * Set to `true` to overwrite a file if it exists. Will
 	 * throw an error otherwise if the file does exist.
 	 */
-	 readonly overwrite: boolean;
+	 readonly overwrite?: boolean;
 }
 
 export interface ICreateFileOptions extends Partial<IOverwriteFileOptions> {}
@@ -234,7 +234,7 @@ export interface IWriteFileOptions extends IOverwriteFileOptions {
 	 * have. A file that is write locked will throw an error for any
 	 * attempt to write to unless `unlock: true` is provided.
 	 */
-	readonly unlock: boolean;
+	readonly unlock?: boolean;
 }
 
 export interface IDeleteFileOptions {
@@ -295,6 +295,7 @@ export const enum FileOperationErrorType {
 	FILE_EXISTS,
 	FILE_NOT_FOUND,
 	FILE_IS_DIRECTORY,
+	FILE_IS_NOT_DIRECTORY,
 	FILE_INVALID_PATH,
 	FILE_READONLY,
 	UNKNOWN,
@@ -307,6 +308,7 @@ function convertFileOperationErrorToString(type: FileOperationErrorType): string
 		case FileOperationErrorType.FILE_EXISTS: return 'FILE_EXISTS';
 		case FileOperationErrorType.FILE_NOT_FOUND: return 'FILE_NOT_FOUND';
 		case FileOperationErrorType.FILE_IS_DIRECTORY: return 'FILE_IS_DIRECTORY';
+		case FileOperationErrorType.FILE_IS_NOT_DIRECTORY: return 'FILE_IS_NOT_DIRECTORY';
 		case FileOperationErrorType.FILE_INVALID_PATH: return 'FILE_INVALID_PATH';
 		case FileOperationErrorType.FILE_READONLY: return 'FILE_READONLY';
 		case FileOperationErrorType.UNKNOWN: return 'UNKNOWN';

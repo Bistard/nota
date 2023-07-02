@@ -1,8 +1,7 @@
 import { Register } from "src/base/common/event";
 import { URI } from "src/base/common/file/uri";
 import { BufferLogger, defaultLog, ILogger, ILoggerOpts, LogLevel } from "src/base/common/logger";
-import { IIpcService } from "src/code/platform/ipc/browser/ipcService";
-import { IChannel, IpcChannel, IServerChannel } from "src/code/platform/ipc/common/channel";
+import { IChannel, IServerChannel } from "src/code/platform/ipc/common/channel";
 import { AbstractLoggerService, ILoggerService } from "src/code/platform/logger/common/abstractLoggerService";
 
 const enum LoggerCommand {
@@ -23,10 +22,11 @@ const enum LoggerCommand {
 // TODO: sync log level with main process
 export class MainLoggerChannel implements IServerChannel {
 
-    // [field / constructor]
+    // [constructor]
 
-    private readonly _loggers = new Map<string, ILogger>();
-    constructor(private readonly loggerService: ILoggerService) {}
+    constructor(
+        private readonly loggerService: ILoggerService,
+    ) {}
 
     // [public methods]
 
@@ -46,15 +46,15 @@ export class MainLoggerChannel implements IServerChannel {
     // [private helper methods]
 
     private async __createLogger(path: URI, opts: ILoggerOpts): Promise<any> {
-        const actualLogger = this.loggerService.createLogger(path, opts);
-        this._loggers.set(URI.toString(path), actualLogger);
+        this.loggerService.createLogger(path, opts);
     }
     
     private async __log(path: URI, messages: { level: LogLevel, message: (string | Error), args: any[] }[]): Promise<any> {
-        const logger = this._loggers.get(URI.toString(path));
+        const logger = this.loggerService.getLogger(path);
         if (!logger) {
-            throw new Error(`Logger not found: ${URI.toString(path)}`);
+            throw new Error(`[MainLoggerChannel] logger not found: '${URI.toString(path)}'`);
         }
+
         for (const { level, message, args } of messages) {
             defaultLog(logger, level, message, args);
         }
@@ -64,16 +64,16 @@ export class MainLoggerChannel implements IServerChannel {
 /**
  * @class A {@link ILoggerService} on browser-side.
  */
-export class BrowserLoggerChannel extends AbstractLoggerService {
+export class BrowserLoggerChannel extends AbstractLoggerService<__BrowserLogger> {
 
     private readonly _channel: IChannel;
 
-    constructor(ipcService: IIpcService, level: LogLevel) {
+    constructor(channel: IChannel, level: LogLevel) {
         super(level);
-        this._channel = ipcService.getChannel(IpcChannel.Logger);
+        this._channel = channel;
     }
 
-    protected override __doCreateLogger(uri: URI, level: LogLevel, opts: ILoggerOpts): ILogger {
+    protected override __doCreateLogger(uri: URI, level: LogLevel, opts: ILoggerOpts): __BrowserLogger {
         return new __BrowserLogger(this._channel, uri, level, opts);
     }
 }
@@ -93,6 +93,10 @@ class __BrowserLogger extends BufferLogger implements ILogger {
         super();
         this.setLevel(level);
 
+        /**
+         * {@link __BrowserLogger} will request creating a logger in the main
+         * process immediately.
+         */
         channel.callCommand(LoggerCommand.CreateLogger, [path, opts])
         .then(() => {
             /**
@@ -114,7 +118,11 @@ class __BrowserLogger extends BufferLogger implements ILogger {
     }
 
     protected override __flushBuffer(): void {
+        if (!this._buffer.length) {
+            return;
+        }
+        
         this.channel.callCommand(LoggerCommand.Log, [this.path, this._buffer]);
-        this._buffer = [];
+        this._buffer.length = 0;
     }
 }

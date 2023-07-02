@@ -4,7 +4,7 @@ import { URI } from "src/base/common/file/uri";
 import { Shortcut, ShortcutHash } from "src/base/common/keyboard";
 import { IKeyboardService } from "src/code/browser/service/keyboard/keyboardService";
 import { IFileService } from "src/code/platform/files/common/fileService";
-import { createService } from "src/code/platform/instantiation/common/decorator";
+import { IService, createService } from "src/code/platform/instantiation/common/decorator";
 import { ILogService } from "src/base/common/logger";
 import { IBrowserLifecycleService, ILifecycleService, LifecyclePhase } from "src/code/platform/lifecycle/browser/browserLifecycleService";
 import { IShortcutItem, IShortcutRegistrant, IShortcutRegistration, IShortcutWithCommandRegistration, ShortcutWeight } from "src/code/browser/service/shortcut/shortcutRegistrant";
@@ -13,8 +13,7 @@ import { IBrowserEnvironmentService } from "src/code/platform/environment/common
 import { Emitter, Register } from "src/base/common/event";
 import { IContextService } from "src/code/platform/context/common/contextService";
 import { ICommandService } from "src/code/platform/command/common/commandService";
-import { ContextKeyDeserializer, ContextKeyExpr } from "src/code/platform/context/common/contextKeyExpr";
-import { errorToMessage } from "src/base/common/error";
+import { ContextKeyDeserializer } from "src/code/platform/context/common/contextKeyExpr";
 
 export const SHORTCUT_CONFIG_NAME = 'shortcut.config.json';
 export const IShortcutService = createService<IShortcutService>('shortcut-service');
@@ -46,7 +45,7 @@ interface IShortcutConfiguration {
 /**
  * An interface only for {@link ShortcutService}.
  */
-export interface IShortcutService extends Disposable, IShortcutRegistrant {
+export interface IShortcutService extends Disposable, IShortcutRegistrant, IService {
     
     /**
      * Fires when one of the registered shortcut is pressed.
@@ -60,6 +59,8 @@ export interface IShortcutService extends Disposable, IShortcutRegistrant {
 }
 
 export class ShortcutService extends Disposable implements IShortcutService {
+
+    _serviceMarker: undefined;
 
     // [event]
 

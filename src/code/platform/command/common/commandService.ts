@@ -3,7 +3,7 @@ import { errorToMessage } from "src/base/common/error";
 import { Emitter, Register } from "src/base/common/event";
 import { ILogService } from "src/base/common/logger";
 import { ICommandEvent, ICommandRegistrant } from "src/code/platform/command/common/commandRegistrant";
-import { createService } from "src/code/platform/instantiation/common/decorator";
+import { IService, createService } from "src/code/platform/instantiation/common/decorator";
 import { IInstantiationService } from "src/code/platform/instantiation/common/instantiation";
 import { REGISTRANTS } from "src/code/platform/registrant/common/registrant";
 
@@ -12,7 +12,7 @@ export const ICommandService = createService<ICommandService>('command-service')
 /**
  * An interface only for {@link CommandService}.
  */
-export interface ICommandService {
+export interface ICommandService extends IService {
 
     /**
      * Fires when a command is executed successfully.
@@ -36,6 +36,8 @@ export interface ICommandService {
  */
 export class CommandService extends Disposable implements ICommandService {
     
+    _serviceMarker: undefined;
+
     // [field]
 
     private readonly _registrant: ICommandRegistrant = REGISTRANTS.get(ICommandRegistrant);
@@ -64,11 +66,11 @@ export class CommandService extends Disposable implements ICommandService {
         try {
             const result = command.command(this.instantiationService, ...args);
             this._onDidExecuteCommand.fire({ commandID: id, args: args });
-            this.logService.trace(`Command service executed the command '${id}'`);
+            this.logService.trace(`[CommandService] executed the command '${id}'`);
             return Promise.resolve(<T>result);
         } 
         catch (error) {
-            this.logService.error(`Command service encounters an error with command '${id}': ${errorToMessage(error)}`);
+            this.logService.error(`[CommandService] encounters an error with command '${id}': ${errorToMessage(error)}`);
             return Promise.reject();
         }
     }

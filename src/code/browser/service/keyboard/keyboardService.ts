@@ -1,13 +1,13 @@
 import { DisposableManager, IDisposable } from "src/base/common/dispose";
 import { DomEmitter, EventType } from "src/base/browser/basic/dom";
-import { createService } from "src/code/platform/instantiation/common/decorator";
+import { IService, createService } from "src/code/platform/instantiation/common/decorator";
 import { Event, Register } from "src/base/common/event";
 import { createStandardKeyboardEvent, IStandardKeyboardEvent } from "src/base/common/keyboard";
 import { ILayoutService } from "src/code/browser/service/layout/layoutService";
 
 export const IKeyboardService = createService<IKeyboardService>('keyboard-service');
 
-export interface IKeyboardService {
+export interface IKeyboardService extends IService {
     
     dispose(): void;
 
@@ -35,6 +35,8 @@ export interface IKeyboardService {
  * may have different keycode with the same key pressed.
  */
 export class KeyboardService implements IDisposable, IKeyboardService {
+
+    _serviceMarker: undefined;
 
     // [field]
 

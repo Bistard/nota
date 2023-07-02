@@ -1,9 +1,9 @@
 import * as assert from 'assert';
 import { Mutable } from 'src/base/common/util/type';
 import { FileService, IFileService } from 'src/code/platform/files/common/fileService';
-import { i18n } from 'src/code/platform/i18n/i18n';
+import { i18n } from 'src/code/platform/i18n/common/i18n';
 import { Section } from 'src/code/platform/section';
-import { NullBrowserEnvironmentService, NullEnvironmentService, NullLogger } from 'test/utils/utility';
+import { NullBrowserEnvironmentService, NullEnvironmentService, NullLogger } from 'test/utils/testService';
 
 class i18nTest extends i18n {
 

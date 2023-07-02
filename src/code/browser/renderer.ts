@@ -1,7 +1,7 @@
 import "src/styles/index.scss";
+import "src/code/common/common.register";
 import "src/code/browser/workbench/parts/workspace/editor/editor";
 import { Workbench } from "src/code/browser/workbench/workbench";
-import { registerBrowserDefaultConfiguration } from "src/code/platform/configuration/browser/configuration.register";
 import { rendererServiceRegistrations } from "src/code/browser/service.register";
 import { workbenchShortcutRegistrations } from "src/code/browser/service/workbench/shortcut.register";
 import { workbenchCommandRegistrations } from "src/code/browser/service/workbench/command.register";
@@ -23,32 +23,32 @@ import { ErrorHandler } from "src/base/common/error";
 import { ApplicationMode, IBrowserEnvironmentService } from "src/code/platform/environment/common/environment";
 import { ConsoleLogger } from "src/code/platform/logger/common/consoleLoggerService";
 import { getFormatCurrTimeStamp } from "src/base/common/date";
-import { IConfigService } from "src/code/platform/configuration/common/abstractConfigService";
-import { BrowserConfigService } from "src/code/platform/configuration/browser/browserConfigService";
 import { ProxyChannel } from "src/code/platform/ipc/common/proxy";
 import { IpcChannel } from "src/code/platform/ipc/common/channel";
 import { IHostService } from "src/code/platform/host/common/hostService";
 import { IBrowserHostService } from "src/code/platform/host/browser/browserHostService";
 import { BrowserLifecycleService, ILifecycleService } from "src/code/platform/lifecycle/browser/browserLifecycleService";
-import { i18n, Ii18nOpts, Ii18nService, LanguageType } from "src/code/platform/i18n/i18n";
-import { BuiltInConfigScope } from "src/code/platform/configuration/common/configRegistrant";
+import { i18n, Ii18nOpts, Ii18nService, LanguageType } from "src/code/platform/i18n/common/i18n";
 import { BrowserInstance } from "src/code/browser/browser";
+import { IConfigurationService } from "src/code/platform/configuration/common/configuration";
+import { WorkbenchConfiguration } from "src/code/browser/configuration.register";
+import { IProductService, ProductService } from "src/code/platform/product/common/productService";
+import { BrowserConfigurationService } from "src/code/platform/configuration/browser/browserConfigurationService";
 
 /**
  * @class This is the main entry of the renderer process.
  */
-class RendererInstance extends Disposable {
+const renderer = new class extends class RendererInstance extends Disposable {
 
     // [constructor]
 
     constructor() {
         super();
-        this.run();
     }
-    
-    // [private methods]
 
-    private async run(): Promise<void> {
+    // [public method]
+
+    public async run(): Promise<void> {
         ErrorHandler.setUnexpectedErrorExternalCallback((error: any) => console.error(error));
 
         let instantiaionService: IInstantiationService | undefined;
@@ -88,6 +88,8 @@ class RendererInstance extends Disposable {
         }
     }
 
+    // [private methods]
+
     private createCoreServices(): IInstantiationService {
         
         // instantiation-service (Dependency Injection)
@@ -104,7 +106,7 @@ class RendererInstance extends Disposable {
         // environment-service
         const environmentService = new BrowserEnvironmentService(logService);
         instantiationService.register(IBrowserEnvironmentService, environmentService);
-        
+
         // ipc-service
         const ipcService = new IpcService(environmentService.windowID);
         instantiationService.register(IIpcService, ipcService);
@@ -118,7 +120,7 @@ class RendererInstance extends Disposable {
         instantiationService.register(ILifecycleService, lifecycleService);
 
         // file-logger-service
-        const loggerService = new BrowserLoggerChannel(ipcService, environmentService.logLevel);
+        const loggerService = new BrowserLoggerChannel(ipcService.getChannel(IpcChannel.Logger), environmentService.logLevel);
         instantiationService.register(ILoggerService, loggerService);
 
         // logger
@@ -127,7 +129,7 @@ class RendererInstance extends Disposable {
             new ConsoleLogger(environmentService.mode === ApplicationMode.DEVELOP ? environmentService.logLevel : LogLevel.WARN),
             // file-logger
             loggerService.createLogger(environmentService.logPath, { 
-                name: `wind-${environmentService.windowID}-${getFormatCurrTimeStamp()}.txt`,
+                name: `window-${environmentService.windowID}-${getFormatCurrTimeStamp()}.txt`,
                 description: `renderer`,
             }),
         ]);
@@ -137,9 +139,13 @@ class RendererInstance extends Disposable {
         const fileService = new BrowserFileChannel(ipcService);
         instantiationService.register(IFileService, fileService);
  
-        // browser-configuration-service
-        const configService = new BrowserConfigService(environmentService, fileService, logService, lifecycleService);
-        instantiationService.register(IConfigService, configService);
+        // product-service
+        const productService = new ProductService(fileService);
+        instantiationService.register(IProductService, productService);
+
+        // configuration-service
+        const configuraionService = new BrowserConfigurationService(environmentService.appConfigurationPath, fileService, logService);
+        instantiationService.register(IConfigurationService, configuraionService);
         
         // component-service
         instantiationService.register(IComponentService, new ServiceDescriptor(ComponentService));
@@ -148,7 +154,7 @@ class RendererInstance extends Disposable {
         // REVIEW: try late initialization
         const i18nService = new i18n(
             <Ii18nOpts>{
-                language: configService.get<LanguageType>(BuiltInConfigScope.User, 'workbench.language'),
+                language: configuraionService.get<LanguageType>(WorkbenchConfiguration.DisplayLanguage), // FIX: get before init
                 localeOpts: {},
             }, 
             fileService, 
@@ -166,22 +172,24 @@ class RendererInstance extends Disposable {
     }
 
     private async initServices(instantiaionService: IInstantiationService): Promise<any> {
-        const environmentService = instantiaionService.getService(IBrowserEnvironmentService)
-        const configService = instantiaionService.getService(IConfigService);
+        const configuraionService = instantiaionService.getService(IConfigurationService);
+        const environmentService = instantiaionService.getService(IBrowserEnvironmentService);
         const i18nService = instantiaionService.getService(Ii18nService);
+        const productService = instantiaionService.getService(IProductService);
 
         return Promise.all<any>([
-            configService.init(environmentService.logLevel),
+            configuraionService.init(),
             i18nService.init(),
+            productService.init(environmentService.productProfilePath),
         ]);
     }
 
     private initRegistrations(): void {
         rendererServiceRegistrations();
-        registerBrowserDefaultConfiguration();
         workbenchShortcutRegistrations();
         workbenchCommandRegistrations();
     }
-}
+} 
+{};
 
-new RendererInstance();
+renderer.run();

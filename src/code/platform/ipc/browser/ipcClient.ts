@@ -20,7 +20,8 @@ export class IpcClient extends ClientBase {
     // [constructor]
 
     constructor(id: string) {
-        super(IpcClient.__createProtocol(), id, () => ipcRenderer.send(IpcChannel.Connect));
+        const onConnect = () => ipcRenderer.send(IpcChannel.Connect);
+        super(IpcClient.__createProtocol(), id, onConnect);
     }
 
     public override dispose(): void {

@@ -12,7 +12,6 @@ import { IListItemProvider } from "src/base/browser/secondary/listView/listItemP
 import { memoize } from "src/base/common/memoization";
 import { FocusTracker } from "src/base/browser/basic/focusTracker";
 import { IList } from "src/base/browser/secondary/listView/list";
-import { ifOrDefault } from "src/base/common/util/type";
 
 /**
  * The consturtor options for {@link ListView}.
@@ -69,6 +68,7 @@ export interface IListViewOpts<T> {
 /**
  * The type of items are stored in {@link IListView}. The item will be rendered
  * by the renderers which has the same type.
+ * @deprecated
  */
 export type ListItemType = RendererType;
 
@@ -375,13 +375,16 @@ export class ListView<T> extends Disposable implements ISpliceable<T>, IListView
         
         this.scrollable = new Scrollable(opts.scrollbarSize ? opts.scrollbarSize : 10, 0, 0, 0);
         
-        this.scrollableWidget = new ScrollableWidget(this.scrollable, {
-            scrollSensibility: opts.mouseWheelScrollSensitivity,
-            mouseWheelFastScrollSensibility: opts.fastScrollSensitivity,
-            reverseMouseWheelDirection: opts.reverseMouseWheelDirection,
-            scrollbarType: ScrollbarType.vertical,
-            touchSupport: ifOrDefault(opts.touchSupport, true),
-        });
+        this.scrollableWidget = new ScrollableWidget(
+            this.scrollable, 
+            {
+                scrollSensibility: opts.mouseWheelScrollSensitivity,
+                mouseWheelFastScrollSensibility: opts.fastScrollSensitivity,
+                reverseMouseWheelDirection: opts.reverseMouseWheelDirection,
+                scrollbarType: ScrollbarType.vertical,
+                touchSupport: opts.touchSupport ?? true,
+            },
+        );
         this.scrollableWidget.render(this.element);
         this.scrollableWidget.onDidScroll((e: IScrollEvent) => {
             this.__onDidScroll(e.scrollPosition, e.viewportSize);

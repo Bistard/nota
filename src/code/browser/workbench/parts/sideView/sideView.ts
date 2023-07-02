@@ -1,13 +1,13 @@
 import 'src/code/browser/workbench/parts/sideView/media/sideView.scss';
 import { Component, IComponent } from 'src/code/browser/service/component/component';
 import { Emitter, Register } from 'src/base/common/event';
-import { createService } from 'src/code/platform/instantiation/common/decorator';
+import { IService, createService } from 'src/code/platform/instantiation/common/decorator';
 import { IComponentService } from 'src/code/browser/service/component/componentService';
 import { IInstantiationService } from 'src/code/platform/instantiation/common/instantiation';
-import { IThemeService } from 'src/code/browser/service/theme/themeService';
 import { Constructor, Mutable } from 'src/base/common/util/type';
 import { ILogService } from 'src/base/common/logger';
 import { SideViewTitlePart } from 'src/code/browser/workbench/parts/sideView/sideViewTitle';
+import { IThemeService } from 'src/code/browser/service/theme/themeService';
 
 export const ISideViewService = createService<ISideViewService>('side-view-service');
 
@@ -27,7 +27,7 @@ export interface ISideViewChangeEvent {
 /**
  * An interface only for {@link SideViewService}.
  */
-export interface ISideViewService extends IComponent {
+export interface ISideViewService extends IComponent, IService {
 
     /** 
      * Events fired when the current side view has changed. 
@@ -79,6 +79,8 @@ export interface ISideViewService extends IComponent {
  */
 export class SideViewService extends Component implements ISideViewService {
 
+    _serviceMarker: undefined;
+
     // [field]
 
     /** The id of the current displaying view. */
@@ -109,10 +111,10 @@ export class SideViewService extends Component implements ISideViewService {
     // [public method]
 
     public registerView(id: string, viewCtor: Constructor<ISideView>): void {
-        this.logService.trace(`sideViewService#registers a view with id ${id}`);
+        this.logService.trace(`[SideViewService] registers a view with id ${id}`);
 
         if (this.hasComponent(id)) {
-            this.logService.warn(`The side view with id ${id} is already registered.`);
+            this.logService.warn(`The side view with id ${id} is already registered`);
             return;
         }
 
@@ -160,7 +162,7 @@ export class SideViewService extends Component implements ISideViewService {
     public switchView(id: string): void {
         const view = this.__getOrConstructView(id);
         if (!view) {
-            this.logService.warn(`SideViewService -- Cannot switch to view with ID: ${id}.`);
+            this.logService.warn(`[SideViewService] Cannot switch to view with ID: ${id}`);
             return;
         }
         this.__switchView(view);

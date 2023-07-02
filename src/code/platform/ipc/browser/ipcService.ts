@@ -1,11 +1,11 @@
 import { IDisposable } from "src/base/common/dispose";
-import { createService } from "src/code/platform/instantiation/common/decorator";
+import { IService, createService } from "src/code/platform/instantiation/common/decorator";
 import { IpcClient } from "src/code/platform/ipc/browser/ipcClient";
 import { ChannelType, IChannel } from "src/code/platform/ipc/common/channel";
 
 export const IIpcService = createService<IIpcService>('ipc-service');
 
-export interface IIpcService extends IDisposable {
+export interface IIpcService extends IDisposable, IService {
     getChannel(channel: ChannelType): IChannel;
 }
 
@@ -16,6 +16,8 @@ export interface IIpcService extends IDisposable {
  * A wrapper of {@link IpcClient}.
  */
 export class IpcService implements IIpcService {
+
+    _serviceMarker: undefined;
 
     private readonly connection: IpcClient;
 

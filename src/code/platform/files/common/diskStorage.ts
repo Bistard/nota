@@ -1,7 +1,7 @@
 import { DataBuffer } from "src/base/common/file/buffer";
-import { FileOperationError } from "src/base/common/file/file";
+import { FileOperationError, FileOperationErrorType } from "src/base/common/file/file";
 import { URI } from "src/base/common/file/uri";
-import { ifOrDefault } from "src/base/common/util/type";
+import { Dictionary, ifOrDefault } from "src/base/common/util/type";
 import { IFileService } from "src/code/platform/files/common/fileService";
 
 /**
@@ -109,7 +109,7 @@ export class DiskStorage implements IDiskStorage {
 
     // [field]
 
-    private _storage: Record<PropertyKey, Omit<any, 'null'>> = Object.create(null);
+    private _storage: Dictionary<PropertyKey, Omit<any, 'null'>> = Object.create(null);
     private _lastSaveStorage: string = '';
     private _operating?: Promise<void>;
     
@@ -215,26 +215,24 @@ export class DiskStorage implements IDiskStorage {
     // [private helper methods]
 
     private async __init(): Promise<void> {
-        // reading work
+        // try to read the storage
         try {
             this._lastSaveStorage = (await this.fileService.readFile(this.path)).toString();
             if (this._lastSaveStorage.length) {
                 this._storage = JSON.parse(this._lastSaveStorage);
             }
             return;
-        } catch (error) {
-            const errorCode = (<FileOperationError>error).operation;
-            // REVIEW
-            // if (errorCode === undefined || errorCode !== FileOperationErrorType.FILE_NOT_FOUND) {
-            //     throw error;
-            // }
+        } catch (err) {
+            if (err instanceof FileOperationError && err.code !== FileOperationErrorType.FILE_NOT_FOUND) {
+                throw err;
+            }
         }
 
         // file does not exist, try to create one and re-initialize.
         try {
             await this.fileService.writeFile(this.path, DataBuffer.alloc(0), { create: true, overwrite: false, unlock: false });
-        } catch (error) {
-            throw error;
+        } catch (err) {
+            throw err;
         }
 
         return this.__init();
@@ -260,8 +258,8 @@ export class DiskStorage implements IDiskStorage {
         try {
             this._operating = this.fileService.writeFile(this.path, DataBuffer.fromString(serialized), { create: false, overwrite: true, unlock: false });
             this._lastSaveStorage = serialized;
-        } catch (error) {
-            throw error;
+        } catch (err) {
+            throw err;
         }
 
         return this._operating;

@@ -99,6 +99,10 @@
             transition: 0.1s;
             @include layout.vertical-center;
             @include visualization.text(none, 10pt, center);
+
+            &:hover {
+                cursor: pointer;
+            }
         }
         
         &:hover > .explorer-open-tag {

@@ -4,9 +4,6 @@ import { IComponentService } from "src/code/browser/service/component/componentS
 import { WorkbenchLayout } from "src/code/browser/workbench/layout";
 import { IWorkbenchService } from "src/code/browser/service/workbench/workbenchService";
 import { IKeyboardScreenCastService } from "src/code/browser/service/keyboard/keyboardScreenCastService";
-import { IConfigService } from "src/code/platform/configuration/common/abstractConfigService";
-import { BuiltInConfigScope } from "src/code/platform/configuration/common/configRegistrant";
-import { IThemeService } from "src/code/browser/service/theme/themeService";
 import { ISideBarService } from "src/code/browser/workbench/parts/sideBar/sideBar";
 import { ISideViewService } from "src/code/browser/workbench/parts/sideView/sideView";
 import { IWorkspaceService } from "src/code/browser/workbench/parts/workspace/workspace";
@@ -18,22 +15,28 @@ import { IBrowserLifecycleService, ILifecycleService, LifecyclePhase } from 'src
 import { IBrowserEnvironmentService, IEnvironmentService } from 'src/code/platform/environment/common/environment';
 import { IContextMenuService } from 'src/code/browser/service/contextMenu/contextMenuService';
 import { ILayoutService } from 'src/code/browser/service/layout/layoutService';
+import { IThemeService } from 'src/code/browser/service/theme/themeService';
+import { IConfigurationService } from 'src/code/platform/configuration/common/configuration';
+import { WorkbenchConfiguration } from 'src/code/browser/configuration.register';
+import { SideViewConfiguration } from 'src/code/browser/workbench/parts/sideView/configuration.register';
 
 /**
  * @class Workbench represents all the Components in the web browser.
  */
 export class Workbench extends WorkbenchLayout implements IWorkbenchService {
 
+    _serviceMarker: undefined;
+
     // [field]
 
-    private _contextManager?: WorkbenchContextManager;
+    private _contextHub?: WorkbenchContextHub;
 
     // [constructor]
 
     constructor(
         @ILayoutService layoutService: ILayoutService,
         @IInstantiationService instantiationService: IInstantiationService,
-        @IConfigService configService: IConfigService,
+        @IConfigurationService configurationService: IConfigurationService,
         @IComponentService componentService: IComponentService,
         @IThemeService themeService: IThemeService,
         @ISideBarService sideBarService: ISideBarService,
@@ -42,7 +45,7 @@ export class Workbench extends WorkbenchLayout implements IWorkbenchService {
         @ILifecycleService private readonly lifecycleService: IBrowserLifecycleService,
         @IContextMenuService contextMenuService: IContextMenuService,
     ) {
-        super(layoutService, instantiationService, componentService, themeService, sideBarService, sideViewService, workspaceService, configService, contextMenuService);
+        super(layoutService, instantiationService, componentService, themeService, sideBarService, sideViewService, workspaceService, configurationService, contextMenuService);
     }
 
     // [public methods]
@@ -74,7 +77,7 @@ export class Workbench extends WorkbenchLayout implements IWorkbenchService {
         this.__createLayout();
 
         // open the side view with default one
-        const defaultView = this.configService.get<string>(BuiltInConfigScope.User, 'sideView.default', 'explorer');
+        const defaultView = this.configurationService.get<string>(SideViewConfiguration.DefaultSideView, 'explorer');
         this.sideViewService.switchView(defaultView);
     }
 
@@ -87,8 +90,8 @@ export class Workbench extends WorkbenchLayout implements IWorkbenchService {
 
         // initialize all the context keys only when the application is ready
         this.lifecycleService.when(LifecyclePhase.Ready).then(() => {
-            this._contextManager = this.instantiationService.createInstance(WorkbenchContextManager);
-            this.__register(this._contextManager);
+            this._contextHub = this.instantiationService.createInstance(WorkbenchContextHub);
+            this.__register(this._contextHub);
         });
     }
 
@@ -102,7 +105,7 @@ export class Workbench extends WorkbenchLayout implements IWorkbenchService {
     }
 
     private __registerGlobalConfigurationChange(): void {
-        const ifEnabled = this.configService.get<boolean>(BuiltInConfigScope.User, 'workbench.keyboardScreenCast');
+        const ifEnabled = this.configurationService.get<boolean>(WorkbenchConfiguration.KeyboardScreenCast);
         
         let screenCastService: IKeyboardScreenCastService;
 
@@ -111,17 +114,20 @@ export class Workbench extends WorkbenchLayout implements IWorkbenchService {
             screenCastService.start();
         }
 
-        this.configService.onDidChange<boolean>(BuiltInConfigScope.User, 'workbench.keyboardScreenCast', ifEnabled => {
-            if (ifEnabled) {
-                screenCastService.start();
-            } else {
-                screenCastService.dispose();
+        this.configurationService.onDidConfigurationChange(e => {
+            if (e.affect(WorkbenchConfiguration.KeyboardScreenCast)) {
+                const ifEnabled = this.configurationService.get(WorkbenchConfiguration.KeyboardScreenCast);
+                if (ifEnabled) {
+                    screenCastService.start();
+                } else {
+                    screenCastService.dispose();
+                }
             }
         });
     }
 }
 
-export class WorkbenchContextManager extends Disposable {
+export class WorkbenchContextHub extends Disposable {
 
     // [context - platform]
 

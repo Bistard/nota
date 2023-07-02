@@ -1,4 +1,4 @@
-import 'src/code/electron/registrant';
+import 'src/code/common/common.register';
 import { app, dialog } from 'electron';
 import { createServer, Server } from 'net';
 import { mkdir } from 'fs/promises';
@@ -14,17 +14,18 @@ import { ServiceCollection } from 'src/code/platform/instantiation/common/servic
 import { ILoggerService } from 'src/code/platform/logger/common/abstractLoggerService';
 import { ConsoleLogger } from 'src/code/platform/logger/common/consoleLoggerService';
 import { FileLoggerService } from 'src/code/platform/logger/common/fileLoggerService';
-import { NotaInstance } from 'src/code/electron/nota';
+import { ApplicationInstance } from 'src/code/electron/nota';
 import { ApplicationMode, IEnvironmentOpts, IEnvironmentService, IMainEnvironmentService } from 'src/code/platform/environment/common/environment';
 import { MainEnvironmentService } from 'src/code/platform/environment/electron/mainEnvironmentService';
 import { IMainLifecycleService, MainLifecycleService } from 'src/code/platform/lifecycle/electron/mainLifecycleService';
 import { IMainStatusService, MainStatusService } from 'src/code/platform/status/electron/mainStatusService';
 import { ICLIArguments } from 'src/code/platform/environment/common/argument';
 import { ProcessKey } from 'src/base/common/process';
-import { MainConfigService } from 'src/code/platform/configuration/electron/mainConfigService';
 import { getFormatCurrTimeStamp } from 'src/base/common/date';
-import { IConfigService } from 'src/code/platform/configuration/common/abstractConfigService';
 import { EventBlocker } from 'src/base/common/util/async';
+import { IConfigurationService } from 'src/code/platform/configuration/common/configuration';
+import { IProductService, ProductService } from 'src/code/platform/product/common/productService';
+import { MainConfigurationService } from 'src/code/platform/configuration/electron/mainConfigurationService';
 
 interface IMainProcess {
     start(argv: ICLIArguments): Promise<void>;
@@ -36,14 +37,15 @@ interface IMainProcess {
  *      1. Initializations on core microservices of the application.
  *      2. Important disk directory preparation.
  */
-const nota = new class extends class MainProcess implements IMainProcess {
+const main = new class extends class MainProcess implements IMainProcess {
 
     // [field]
 
     private readonly instantiationService!: IInstantiationService;
     private readonly environmentService!: IMainEnvironmentService;
     private readonly fileService!: IFileService;
-    private readonly mainConfigService!: IConfigService;
+    private readonly productService!: IProductService;
+    private readonly configurationService!: IConfigurationService;
     private readonly logService!: ILogService;
     private readonly lifecycleService!: IMainLifecycleService;
     private readonly statusService!: IMainStatusService;
@@ -86,7 +88,7 @@ const nota = new class extends class MainProcess implements IMainProcess {
                 this.__showDirectoryErrorDialog(error);
                 throw error;
             }
-            
+
             // application run
             {
                 Event.once(this.lifecycleService.onWillQuit)(e => {
@@ -100,7 +102,7 @@ const nota = new class extends class MainProcess implements IMainProcess {
                 
                 await this.resolveSingleApplication();
     
-                const instance = this.instantiationService.createInstance(NotaInstance);
+                const instance = this.instantiationService.createInstance(ApplicationInstance);
                 await instance.run();
             }
         } 
@@ -146,25 +148,30 @@ const nota = new class extends class MainProcess implements IMainProcess {
         ]);
         logService.setLogger(pipelineLogger);
 
+        // product-service
+        const productService = new ProductService(fileService);
+        instantiationService.register(IProductService, productService);
+
         // life-cycle-service
         const lifecycleService = new MainLifecycleService(logService);
         instantiationService.register(IMainLifecycleService, lifecycleService);
 
         // main-configuration-service
-        const mainConfigService = new MainConfigService(environmentService, fileService, logService, lifecycleService);
-        instantiationService.register(IConfigService, mainConfigService);
+        const configurationService = new MainConfigurationService(environmentService.appConfigurationPath, fileService, logService);
+        instantiationService.register(IConfigurationService, configurationService);
 
         // status-service
         const statusService = new MainStatusService(fileService, logService, environmentService, lifecycleService);
         instantiationService.register(IMainStatusService, statusService);
 
-        (this.instantiationService as any) = instantiationService;
-        (this.environmentService as any) = environmentService;
-        (this.fileService as any) = fileService;
-        (this.mainConfigService as any) = mainConfigService;
-        (this.logService as any) = logService;
-        (this.lifecycleService as any) = lifecycleService;
-        (this.statusService as any) = statusService;
+        (<any>this.instantiationService) = instantiationService;
+        (<any>this.environmentService) = environmentService;
+        (<any>this.fileService) = fileService;
+        (<any>this.productService) = productService;
+        (<any>this.configurationService) = configurationService;
+        (<any>this.logService) = logService;
+        (<any>this.lifecycleService) = lifecycleService;
+        (<any>this.statusService) = statusService;
     }
     
     /**
@@ -179,14 +186,19 @@ const nota = new class extends class MainProcess implements IMainProcess {
              * all the necessary directories first. We need to ensure each one 
              * is created successfully.
              */
-            Promise.all([
+            Promise.all(
+            [
                 this.environmentService.logPath,
                 this.environmentService.appConfigurationPath,
                 this.environmentService.userDataPath,
-            ].map(path => mkdir(URI.toFsPath(path), { recursive: true }))),
+            ]
+            .map(path => {
+                return mkdir(URI.toFsPath(path), { recursive: true });
+            })),
 
+            this.productService.init(this.environmentService.productProfilePath),
             this.statusService.init(),
-            this.mainConfigService.init(this.environmentService.logLevel),
+            this.configurationService.init(),
         ]);
     }
 
@@ -194,10 +206,10 @@ const nota = new class extends class MainProcess implements IMainProcess {
 
         try {
             /**
-             * Each nota application will try to listen to the same socket file
-             * or pipe. If an error is catched with code `EADDRINUSE`, it means 
-             * there is already an application is running, we should terminate 
-             * since we only accept one single application.
+             * Every newly opened application will try to listen to the same 
+             * socket file or pipe. If an error is catched with code `EADDRINUSE`, 
+             * it means there is already an application is running, we should 
+             * terminate since we only accept one single application.
              */
             const server = await new Promise<Server>((resolve, reject) => {
                 const tcpServer = createServer();
@@ -216,7 +228,7 @@ const nota = new class extends class MainProcess implements IMainProcess {
                 throw error;
             }
 
-            // there is a running nota application, we stop the current application.
+            // there is a running application, we stop the current application.
             throw new ExpectedError('There is an application running, we are terminating...');
         }
 
@@ -256,9 +268,9 @@ const nota = new class extends class MainProcess implements IMainProcess {
         ];
 
         dialog.showMessageBoxSync({
-            title: 'nota',
+            title: this.productService.profile.applicationName,
             message: 'Unable to write to directories',
-            detail: Strings.format('{0}\n\n Please make sure the following directories are writeable: \n\n{1}', [error.toString(), dir.join('\n')]),
+            detail: Strings.format('{0}\n\nPlease make sure the following directories are writeable: \n\n{1}', [error.toString?.() ?? error, dir.join('\n')]),
             type: 'warning',
             buttons: ['close'],
         });
@@ -275,4 +287,4 @@ const nota = new class extends class MainProcess implements IMainProcess {
     }
 } {}; /** @readonly ❤hello, world!❤ */
 
-export default nota;
+export default main;

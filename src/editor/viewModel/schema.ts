@@ -1,3 +1,4 @@
+import { Dictionary } from "src/base/common/util/type";
 import { ProseMark, ProseMarkSpec, ProseMarkType, ProseNodeSpec, ProseNodeType, ProseSchema, ProseTextNode } from "src/editor/common/proseMirror";
 import { DocumentNodeProvider } from "src/editor/viewModel/parser/documentNode";
 
@@ -24,8 +25,8 @@ export class EditorSchema extends ProseSchema<string, string> {
 export class MarkdownSchema extends EditorSchema  {
 
 	constructor(nodeProvider: DocumentNodeProvider) {
-		const nodeSpec: Record<string, ProseNodeSpec> = { [TOP_NODE_NAME]: <ProseNodeSpec>{ content: 'block+' } };
-		const markSpec: Record<string, ProseMarkSpec> = {};
+		const nodeSpec: Dictionary<string, ProseNodeSpec> = { [TOP_NODE_NAME]: <ProseNodeSpec>{ content: 'block+' } };
+		const markSpec: Dictionary<string, ProseMarkSpec> = {};
 		
 		const nodes = nodeProvider.getRegisteredNodes();
 		for (const node of nodes) {

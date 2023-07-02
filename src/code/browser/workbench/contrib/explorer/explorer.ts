@@ -2,11 +2,10 @@ import 'src/code/browser/workbench/contrib/explorer/media/explorerItem.scss';
 import 'src/code/browser/workbench/contrib/explorer/media/explorerView.scss';
 import { Emitter } from 'src/base/common/event';
 import { IComponentService } from 'src/code/browser/service/component/componentService';
-import { Ii18nService } from 'src/code/platform/i18n/i18n';
+import { Ii18nService } from 'src/code/platform/i18n/common/i18n';
 import { Section } from 'src/code/platform/section';
 import { addDisposableListener, EventType, Orientation } from 'src/base/browser/basic/dom';
 import { IBrowserDialogService, IDialogService } from 'src/code/platform/dialog/browser/browserDialogService';
-import { IThemeService } from 'src/code/browser/service/theme/themeService';
 import { ILogService } from 'src/base/common/logger';
 import { IWorkbenchService } from 'src/code/browser/service/workbench/workbenchService';
 import { IBrowserLifecycleService, ILifecycleService } from 'src/code/platform/lifecycle/browser/browserLifecycleService';
@@ -26,6 +25,8 @@ import { Button } from 'src/base/browser/basic/button/button';
 import { RGBA } from 'src/base/common/color';
 import { ClassicOpenEvent, ExplorerViewID, IExplorerViewService } from 'src/code/browser/workbench/contrib/explorer/explorerService';
 import { IEditorService } from 'src/code/browser/workbench/parts/workspace/editor/editorService';
+import { IThemeService } from 'src/code/browser/service/theme/themeService';
+import { errorToMessage } from 'src/base/common/error';
 
 /**
  * @class TODO: complete comments
@@ -89,7 +90,7 @@ export class ExplorerView extends SideView implements IExplorerViewService {
     public async open(root: URI): Promise<void> {
         
         if (this.explorerTreeService.isOpened) {
-            this.logService.warn(`Explorer view is already opened at ${URI.toString(this.explorerTreeService.root!)}`);
+            this.logService.warn(`[ExplorerView] view is already opened at '${URI.toString(this.explorerTreeService.root!), true}'`);
             return;
         }
 
@@ -215,10 +216,10 @@ export class ExplorerView extends SideView implements IExplorerViewService {
          * If the initialization fails, we capture it and replace it with an
          * empty view.
          */
-        catch (_error) {
-            container = this.__createEmptyView();
+        catch (error) {
             success = false;
-            this.logService.error(`Explorer view cannot open the given path at ${URI.toString(path)}.`);
+            container = this.__createEmptyView();
+            this.logService.error(`[ExplorerView] cannot open the view at given path '${URI.toString(path, true)}': ${errorToMessage(error)}`);
         }
         
         return [container, success];

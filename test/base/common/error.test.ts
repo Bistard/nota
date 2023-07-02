@@ -1,5 +1,5 @@
 import * as assert from 'assert';
-import { ErrorHandler } from 'src/base/common/error';
+import { ErrorHandler, tryOrDefault } from 'src/base/common/error';
 
 suite('error-test', () => {
     
@@ -38,5 +38,10 @@ suite('error-test', () => {
         ErrorHandler.onUnexpectedExternalError(undefined);
         
         assert.strictEqual(hit, -1);
+    });
+
+    test('tryOrDefault', () => {
+        assert.strictEqual(tryOrDefault('bad world', () => 'hello world'), 'hello world');
+        assert.strictEqual(tryOrDefault('bad world', () => { throw new Error(); }), 'bad world');
     });
 });

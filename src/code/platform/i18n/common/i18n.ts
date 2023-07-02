@@ -3,7 +3,7 @@ import { URI } from "src/base/common/file/uri";
 import { IFileService } from "src/code/platform/files/common/fileService";
 import { isObject } from "src/base/common/util/type";
 import { Section } from "src/code/platform/section";
-import { createService } from "src/code/platform/instantiation/common/decorator";
+import { IService, createService } from "src/code/platform/instantiation/common/decorator";
 import { ILogService } from "src/base/common/logger";
 import { IBrowserEnvironmentService } from "src/code/platform/environment/common/environment";
 
@@ -11,16 +11,16 @@ export const Ii18nService = createService<Ii18nService>('i18n-service');
 
 /* the default path where to read locales. */
 const DefaultLocalesPath = 'assets/locales';
-const DefaultLanguage = 'en';
+const DefaultLanguage = LanguageType.en;
 const DefaultExtension = '.json';
 const DefaultLocalesPrefix = '{';
 const DefaultLocalesSuffix = '}';
 
-export type LanguageType = (
-    'en' |      // English
-    'zh-cn' |   // Chinese (Simplified)
-    'zh-tw'     // Chinese (Traditional)
-);
+export const enum LanguageType {
+    ['en']    = 'en',      // English
+    ['zh-cn'] ='zh-cn',    // Chinese (Simplified)
+    ['zh-tw'] = 'zh-tw',   // Chinese (Traditional)
+};
 
 type Ii18nSection = { [key: string]: string };
 
@@ -72,7 +72,7 @@ export interface ILocaleOpts {
 
 }
 
-export interface Ii18nService {
+export interface Ii18nService extends IService {
 
     readonly language: LanguageType;
 
@@ -128,7 +128,9 @@ export interface Ii18nService {
  */
 export class i18n implements Ii18nService {
 
-    // [Attributes]
+    _serviceMarker: undefined;
+
+    // [Fields]
 
     /* the actual javascript object to store the locale */
     protected readonly _model: { [key: string]: Ii18nSection } = Object.create(null);
@@ -153,9 +155,6 @@ export class i18n implements Ii18nService {
 
     // [Events]
 
-    /**
-     * Fires when the language has been reset.
-     */
     private readonly _onDidChange = new Emitter<void>();
     public readonly onDidChange = this._onDidChange.registerListener;
 

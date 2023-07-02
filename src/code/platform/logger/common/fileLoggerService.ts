@@ -1,7 +1,7 @@
 import { getCurrTimeStamp } from "src/base/common/date";
 import { DataBuffer } from "src/base/common/file/buffer";
 import { ByteSize, FileOperationError, FileOperationErrorType } from "src/base/common/file/file";
-import { basename, join, parse, ParsedPath } from "src/base/common/file/path";
+import { basename, join, parse } from "src/base/common/file/path";
 import { URI } from "src/base/common/file/uri";
 import { AbstractLogger, ILogger, ILoggerOpts, LogLevel, parseLogLevel } from "src/base/common/logger";
 import { AsyncQueue, Blocker } from "src/base/common/util/async";
@@ -9,6 +9,32 @@ import { Strings } from "src/base/common/util/string";
 import { IFileService } from "src/code/platform/files/common/fileService";
 import { IInstantiationService } from "src/code/platform/instantiation/common/instantiation";
 import { AbstractLoggerService } from "src/code/platform/logger/common/abstractLoggerService";
+
+/**
+ * @class The logger service that able to create a {@link FileLogger} which has
+ * ability to write messages into disk.
+ */
+export class FileLoggerService extends AbstractLoggerService<FileLogger> {
+
+    constructor(
+        level: LogLevel,
+        @IInstantiationService private readonly instantiationService: IInstantiationService,
+    ) {
+        super(level);
+    }
+
+    protected override __doCreateLogger(uri: URI, level: LogLevel, opts: ILoggerOpts): FileLogger {
+        const name = opts.name ?? basename(URI.toString(uri));
+        const logger = this.instantiationService.createInstance(
+            FileLogger,
+            URI.join(uri, name),
+            opts.description ?? opts.name ?? 'No Description',
+            level,
+            opts.noFormatter ?? false
+        );
+        return logger;
+    }
+}
 
 export const MAX_LOG_SIZE = 5 * ByteSize.MB;
 
@@ -33,8 +59,8 @@ export class FileLogger extends AbstractLogger implements ILogger {
     private readonly _description: string;
     private readonly _uri: URI;
     private readonly _queue: AsyncQueue<void>;
+    private readonly _initializing: Blocker<void>;
 
-    private _initPromise?: Promise<void>;
     private _backupCnt: number;
     private _backupExt: string;
     private readonly _noFormatter: boolean;
@@ -53,67 +79,75 @@ export class FileLogger extends AbstractLogger implements ILogger {
         this._uri = uri;
 
         this._queue = new AsyncQueue();
+        this._initializing = new Blocker();
+
         this._backupCnt = 1;
         this._backupExt = '';
         this._noFormatter = noFormatter;
 
-        this._initPromise = new Promise(async (resolve, reject) => {
+        const intialize = async () => {
             try {
                 await this.fileService.createFile(uri, DataBuffer.alloc(0), { overwrite: false });
             } catch (error) {
                 // only ignores when the file already exists
                 if ((<FileOperationError>error).code !== FileOperationErrorType.FILE_EXISTS) {
-                    reject(error);
+                    this._initializing.reject(error);
                 }
             }
-            resolve();  
-        });
+            this._initializing.resolve();  
+        };
+
+        intialize();
     }
 
     // [public methods]
 
-    public trace(message: string, ...args: any[]): void {
+    public async waitInitialize(): Promise<void> {
+        return this._initializing.waiting();
+    }
+
+    public async trace(message: string, ...args: any[]): Promise<void> {
         if (this.getLevel() <= LogLevel.TRACE) {
-			this.__log(LogLevel.TRACE, Strings.stringify(message, ...args));
+			return this.__log(LogLevel.TRACE, Strings.stringify(message, ...args));
 		}
     }
 
-    public debug(message: string, ...args: any[]): void {
+    public async debug(message: string, ...args: any[]): Promise<void> {
         if (this.getLevel() <= LogLevel.DEBUG) {
-			this.__log(LogLevel.DEBUG, Strings.stringify(message, ...args));
+			return this.__log(LogLevel.DEBUG, Strings.stringify(message, ...args));
 		}
     }
 
-    public info(message: string, ...args: any[]): void {
+    public async info(message: string, ...args: any[]): Promise<void> {
         if (this.getLevel() <= LogLevel.INFO) {
-			this.__log(LogLevel.INFO, Strings.stringify(message, ...args));
+			return this.__log(LogLevel.INFO, Strings.stringify(message, ...args));
 		}
     }
 
-    public warn(message: string, ...args: any[]): void {
+    public async warn(message: string, ...args: any[]): Promise<void> {
         if (this.getLevel() <= LogLevel.WARN) {
-			this.__log(LogLevel.WARN, Strings.stringify(message, ...args));
+			return this.__log(LogLevel.WARN, Strings.stringify(message, ...args));
 		}
     }
 
-    public error(message: string | Error, ...args: any[]): void {
+    public async error(message: string | Error, ...args: any[]): Promise<void> {
         if (this.getLevel() <= LogLevel.ERROR) {
 			if (message instanceof Error) {
 				message = message.stack!;
-				this.__log(LogLevel.ERROR, Strings.stringify(message, ...args));
+				return this.__log(LogLevel.ERROR, Strings.stringify(message, ...args));
 			} else {
-				this.__log(LogLevel.ERROR, Strings.stringify(message, ...args));
+				return this.__log(LogLevel.ERROR, Strings.stringify(message, ...args));
 			}
 		}
     }
 
-    public fatal(message: string | Error, ...args: any[]): void {
+    public async fatal(message: string | Error, ...args: any[]): Promise<void> {
         if (this.getLevel() <= LogLevel.FATAL) {
 			if (message instanceof Error) {
 				message = message.stack!;
-				this.__log(LogLevel.FATAL, Strings.stringify(message, ...args));
+				return this.__log(LogLevel.FATAL, Strings.stringify(message, ...args));
 			} else {
-				this.__log(LogLevel.FATAL, Strings.stringify(message, ...args));
+				return this.__log(LogLevel.FATAL, Strings.stringify(message, ...args));
 			}
 		}
     }
@@ -135,14 +169,12 @@ export class FileLogger extends AbstractLogger implements ILogger {
      * @param level The level of the message.
      * @param message The raw message in string.
      */
-    private __log(level: LogLevel, message: string): void {
+    private async __log(level: LogLevel, message: string): Promise<void> {
         
-        this._queue.queue(async () => {
+        // Queue the log asynchronously
+        return this._queue.queue(async () => {
             
-            if (this._initPromise) {
-                await this._initPromise;
-                this._initPromise = undefined;
-            }
+            await this._initializing.waiting();
 
             if (this._noFormatter === false) {
                 message = `[${getCurrTimeStamp()}] [${this._description}] [${parseLogLevel(level)}] ${message}\n`;
@@ -157,13 +189,12 @@ export class FileLogger extends AbstractLogger implements ILogger {
             content += message;
             await this.fileService.writeFile(this._uri, DataBuffer.fromString(content), { create: false, overwrite: true, unlock: true });
         })
-
         /**
          * If pass the error into the `ErrorHandler`, the error will eventually
          * re-enter this code section since the program will log the error and
          * causes circular calling.
          * 
-         * The best way I can think of is to console.error out the error.
+         * The best way I can think of is to `console.error` out the error.
          */
         .catch(err => {
             console.error(err);
@@ -177,37 +208,10 @@ export class FileLogger extends AbstractLogger implements ILogger {
         }
         
         const oldURI = URI.toFsPath(this._uri);
-        const result = parse(oldURI) as ParsedPath;
+        const result = parse(oldURI);
         const newURI = URI.fromFile(join(result.dir, `${result.name}${this._backupExt}_${this._backupCnt}${result.ext}`));
         
         this._backupCnt++;
         return newURI;
     }
-}
-
-/**
- * @class The logger service that able to create a {@link FileLogger} which has
- * ability to write messages into disk.
- */
-export class FileLoggerService extends AbstractLoggerService {
-
-    constructor(
-        level: LogLevel,
-        @IInstantiationService private readonly instantiationService: IInstantiationService,
-    ) {
-        super(level);
-    }
-
-    protected override __doCreateLogger(uri: URI, level: LogLevel, opts: ILoggerOpts): ILogger {
-        const name = opts.name ?? basename(URI.toString(uri));
-        const logger = this.instantiationService.createInstance(
-            FileLogger,
-            URI.fromFile(join(URI.toFsPath(uri), name)),
-            opts.description ?? opts.name ?? 'No Description',
-            level,
-            opts.noFormatter ?? false
-        );
-        return logger;
-    }
-
 }

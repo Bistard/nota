@@ -31,7 +31,7 @@
     "circular-dependency-plugin": "^5.2.2",
     "cross-env": "^7.0.3",
     "css-loader": "^6.7.3",
-    "electron": "^20.1.1",
+    "electron": "^22.3.10",
     "fantasticon": "^1.2.3",
     "jsdom": "19.0.0",
     "jsdom-global": "3.0.2",

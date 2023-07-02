@@ -1,4 +1,4 @@
-import { isObject } from "src/base/common/util/type";
+import { DeepReadonly, isNullable, isObject, isPrimitive } from "src/base/common/util/type";
 
 /**
  * Copies all properties of source into destination. The optional parameter 
@@ -96,7 +96,7 @@ export function iterPropEnumerable(obj: any, fn: (propName: string, index: numbe
  */
 export function deepCopy<T extends object | []>(obj: T): T {
 	
-	// ensure `null` does not count and other weird stuff
+	// return for nullity and non-object
 	if (!obj || typeof obj !== 'object') {
 		return obj;
 	}
@@ -119,3 +119,98 @@ export function deepCopy<T extends object | []>(obj: T): T {
 	return copy;
 }
 
+/**
+ * @description Deep freezes an object or an array.
+ * @note When an array is deep freezed, its element are also deep freezed.
+ */
+export function deepFreeze<T extends object | []>(obj: T): DeepReadonly<T> {
+
+	// array handling
+	if (Array.isArray(obj)) {
+		for (const element of obj) {
+			deepFreeze(element);
+		}
+		return <DeepReadonly<T>>Object.freeze(obj);
+	}
+
+	// object handling
+	else {
+		Object.getOwnPropertyNames(obj).forEach((propName) => {
+			const prop = obj[propName];
+			if (!isPrimitive(prop)) {
+				deepFreeze(prop);
+			}
+		});
+
+		return <DeepReadonly<T>>Object.freeze(obj);
+	}
+}
+
+/**
+ * @description This function performs a deep comparison between two values to 
+ * determine if they are equivalent. It compares the types, structure, and 
+ * individual values in the input.
+ * 
+ * @example
+ * const obj1 = { a: 1, b: { c: 2 }};
+ * const obj2 = { a: 1, b: { c: 2 }};
+ * console.log(equals(obj1, obj2)); // true
+ */
+export function strictEquals(one: any, other: any): boolean {
+	if (one === other) {
+		return true;
+	}
+
+	if (isNullable(one) || isNullable(other)) {
+		return false;
+	}
+	
+	if (typeof one !== typeof other) {
+		return false;
+	}
+	
+	if (typeof one !== 'object') {
+		return false;
+	}
+	
+	if ((Array.isArray(one)) !== (Array.isArray(other))) {
+		return false;
+	}
+
+	if (Array.isArray(one)) {
+		if (one.length !== other.length) {
+			return false;
+		}
+		for (let i = 0; i < one.length; i++) {
+			if (!strictEquals(one[i], other[i])) {
+				return false;
+			}
+		}
+	} 
+
+	else {
+		const oneKeys: string[] = [];
+		for (const key in one) {
+			oneKeys.push(key);
+		}
+		
+		oneKeys.sort();
+		const otherKeys: string[] = [];
+		for (const key in other) {
+			otherKeys.push(key);
+		}
+		
+		otherKeys.sort();
+		if (!strictEquals(oneKeys, otherKeys)) {
+			return false;
+		}
+
+		for (let i = 0; i < oneKeys.length; i++) {
+			if (!strictEquals(one[oneKeys[i]!], other[oneKeys[i]!])) {
+				return false;
+			}
+		}
+	}
+
+	return true;
+}

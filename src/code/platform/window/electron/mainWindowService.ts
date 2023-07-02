@@ -3,7 +3,7 @@ import { Emitter, Event, Register } from "src/base/common/event";
 import { ILogService } from "src/base/common/logger";
 import { isNumber, Mutable } from "src/base/common/util/type";
 import { IFileService } from "src/code/platform/files/common/fileService";
-import { createService } from "src/code/platform/instantiation/common/decorator";
+import { IService, createService } from "src/code/platform/instantiation/common/decorator";
 import { IInstantiationService } from "src/code/platform/instantiation/common/instantiation";
 import { IEnvironmentService, IMainEnvironmentService } from "src/code/platform/environment/common/environment";
 import { IMainLifecycleService } from "src/code/platform/lifecycle/electron/mainLifecycleService";
@@ -17,7 +17,7 @@ export const IMainWindowService = createService<IMainWindowService>('main-window
 /**
  * An interface only for {@link MainWindowService}.
  */
-export interface IMainWindowService extends Disposable {
+export interface IMainWindowService extends Disposable, IService {
     
     readonly onDidOpenWindow: Register<IWindowInstance>;
 
@@ -48,6 +48,8 @@ export interface IMainWindowService extends Disposable {
  */
 export class MainWindowService extends Disposable implements IMainWindowService {
 
+    _serviceMarker: undefined;
+
     // [fields]
 
     private readonly _windows: IWindowInstance[] = [];
@@ -68,7 +70,7 @@ export class MainWindowService extends Disposable implements IMainWindowService 
         @ILogService private readonly logService: ILogService,
         @IFileService private readonly fileService: IFileService,
         @IMainLifecycleService private readonly lifecycleService: IMainLifecycleService,
-        @IEnvironmentService private readonly environmentMainService: IMainEnvironmentService,
+        @IEnvironmentService private readonly mainEnvironmentService: IMainEnvironmentService,
     ) {
         super();
         this.registerListeners();
@@ -96,18 +98,18 @@ export class MainWindowService extends Disposable implements IMainWindowService 
     }
 
     public open(options: IWindowCreationOptions): IWindowInstance {
-        this.logService.trace('Main#mainWindowService#trying to open a window...');
+        this.logService.trace('[MainWindowService] trying to open a window...');
 
         const newWindow = this.doOpen(options);
         
-        this.logService.trace('Main#mainWindowService#window opened');
+        this.logService.trace('[MainWindowService] window opened');
         return newWindow;
     }
 
     // [private methods]
 
     private registerListeners(): void {
-        this.logService.trace(`Main#MainWindowService#registerListeners()`);
+        this.logService.trace(`[MainWindowService] registerListeners()`);
         // noop
     }
 
@@ -140,16 +142,16 @@ export class MainWindowService extends Disposable implements IMainWindowService 
          */
         const configuration: IWindowConfiguration = {
             /** {@link ICLIArguments} */
-            _:               opts._                ?? this.environmentMainService.CLIArguments._,
-            log:             opts.log              ?? this.environmentMainService.CLIArguments.log,
-            'open-devtools': opts['open-devtools'] ?? this.environmentMainService.CLIArguments['open-devtools'],
+            _:               opts._                ?? this.mainEnvironmentService.CLIArguments._,
+            log:             opts.log              ?? this.mainEnvironmentService.CLIArguments.log,
+            'open-devtools': opts['open-devtools'] ?? this.mainEnvironmentService.CLIArguments['open-devtools'],
             
             /** {@link IEnvironmentOpts} */
-            isPackaged:   opts.isPackaged   ?? this.environmentMainService.isPackaged,
-            appRootPath:  opts.appRootPath  ?? this.environmentMainService.appRootPath,
-            tmpDirPath:   opts.tmpDirPath   ?? this.environmentMainService.tmpDirPath,
-            userDataPath: opts.userDataPath ?? this.environmentMainService.userDataPath,
-            userHomePath: opts.userHomePath ?? this.environmentMainService.userHomePath,
+            isPackaged:   opts.isPackaged   ?? this.mainEnvironmentService.isPackaged,
+            appRootPath:  opts.appRootPath  ?? this.mainEnvironmentService.appRootPath,
+            tmpDirPath:   opts.tmpDirPath   ?? this.mainEnvironmentService.tmpDirPath,
+            userDataPath: opts.userDataPath ?? this.mainEnvironmentService.userDataPath,
+            userHomePath: opts.userHomePath ?? this.mainEnvironmentService.userHomePath,
 
             // window configuration
             machineID: this.machineID,
@@ -170,7 +172,7 @@ export class MainWindowService extends Disposable implements IMainWindowService 
     // [private helper methods]
 
     private __openInNewWindow(options: IWindowCreationOptions, configuration: IWindowConfiguration): IWindowInstance {
-        this.logService.trace('Main#MainWindowService#openInNewWindow');
+        this.logService.trace('[MainWindowService] openInNewWindow');
         
         const newWindow = this.instantiationService.createInstance(
             WindowInstance,

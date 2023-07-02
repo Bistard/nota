@@ -1,40 +1,42 @@
 import * as assert from 'assert';
-import * as fs from 'fs';
-import { afterEach, setup } from 'mocha';
+import { after, afterEach, before } from 'mocha';
 import { join } from 'src/base/common/file/path';
 import { Schemas, URI } from 'src/base/common/file/uri';
-import { ILogService } from 'src/base/common/logger';
-import { DiskFileSystemProvider } from 'src/code/platform/files/node/diskFileSystemProvider';
 import { FileService, IFileService } from 'src/code/platform/files/common/fileService';
 import { DiskStorage } from 'src/code/platform/files/common/diskStorage';
-import { TestPath, NullLogger } from 'test/utils/utility';
+import { NullLogger } from 'test/utils/testService';
+import { InMemoryFileSystemProvider } from 'src/code/platform/files/common/inMemoryFileSystemProvider';
+import { DataBuffer } from 'src/base/common/file/buffer';
+import { FakeAsync } from 'test/utils/async';
 
 suite('storage-test', () => {
 
-    let dir = join(TestPath, 'storage');
-    let path = join(dir, 'storage.json');
+    let dir: URI;
+    let path: URI;
     let fileService: IFileService;
-    let logService: ILogService;
     
-    setup(() => {
-        fs.mkdirSync(dir, { recursive: true });
-        fs.writeFileSync(path, '');
-        logService = new NullLogger();
-        fileService = new FileService(logService);
-        fileService.registerProvider(Schemas.FILE, new DiskFileSystemProvider());
-    });
+    before(() => FakeAsync.run(async () => {
+        dir = URI.fromFile(join('temp', 'storage'));
+        path = URI.join(dir, 'storage.json');
 
-    afterEach(() => {
-        fs.writeFileSync(path, '');
-    });
+        fileService = new FileService(new NullLogger());
+        fileService.registerProvider(Schemas.FILE, new InMemoryFileSystemProvider());
 
-    teardown(() => {
+        await fileService.createDir(dir);
+        await fileService.createFile(path);
+    }));
+
+    afterEach(() => FakeAsync.run(async () => {
+        await fileService.writeFile(path, DataBuffer.fromString(''), { create: false });
+    }));
+
+    after(() => FakeAsync.run(async () => {
+        await fileService.delete(dir, { recursive: true });
         fileService.dispose();
-        fs.rmSync(dir, { recursive: true });
-    });
+    }));
 
-    test('basic - set / get / has', async () => {
-        const storage = new DiskStorage(URI.fromFile(path), true, fileService);
+    test('basic - set / get / has', () => FakeAsync.run(async () => {
+        const storage = new DiskStorage(path, true, fileService);
         await storage.init();
 
         storage.set('key1', 'value1');
@@ -61,10 +63,10 @@ suite('storage-test', () => {
         assert.strictEqual(storage.has('key5'), true);
         assert.strictEqual(storage.has('key6'), false);
         assert.strictEqual(storage.has('key7'), false);
-    });
+    }));
 
-    test('used before init', async () => {
-        const storage = new DiskStorage(URI.fromFile(path), true, fileService);
+    test('used before init', () => FakeAsync.run(async () => {
+        const storage = new DiskStorage(path, true, fileService);
 
 		storage.set('key1', 'value1');
 		storage.delete('key2');
@@ -76,10 +78,10 @@ suite('storage-test', () => {
 
 		assert.strictEqual(storage.get('key1'), 'value1');
 		assert.strictEqual(storage.get('key2'), undefined);
-    });
+    }));
 
-    test('used after close', async () => {
-        const storage = new DiskStorage(URI.fromFile(path), true, fileService);
+    test('used after close', () => FakeAsync.run(async () => {
+        const storage = new DiskStorage(path, true, fileService);
 		await storage.init();
 
 		storage.set('key1', 'value1');
@@ -91,15 +93,15 @@ suite('storage-test', () => {
 
 		storage.set('key5', 'marker');
 
-		const contents = fs.readFileSync(path).toString();
+		const contents = (await fileService.readFile(path)).toString();
 		assert.ok(contents.includes('value1'));
 		assert.ok(!contents.includes('marker'));
 
 		await storage.close();
-    });
+    }));
 
-    test('Closed before init', async () => {
-		const storage = new DiskStorage(URI.fromFile(path), true, fileService);
+    test('Closed before init', () => FakeAsync.run(async () => {
+		const storage = new DiskStorage(path, true, fileService);
 
 		storage.set('key1', 'value1');
 		storage.set('key2', 'value2');
@@ -108,12 +110,12 @@ suite('storage-test', () => {
 
 		await storage.close();
 
-		const contents = fs.readFileSync(path).toString();
+		const contents = (await fileService.readFile(path)).toString();
 		assert.strictEqual(contents.length, 0);
-	});
+	}));
 
-    test('re-init', async () => {
-		const storage = new DiskStorage(URI.fromFile(path), true, fileService);
+    test('re-init', () => FakeAsync.run(async () => {
+		const storage = new DiskStorage(path, true, fileService);
         await storage.init();
 
         await storage.close();
@@ -126,10 +128,10 @@ suite('storage-test', () => {
         await storage.init();
 
         assert.deepStrictEqual(storage.getLot(['key1', 'key2', 'key3', 'key4']), [undefined, undefined, undefined, undefined]);
-	});
+	}));
 
-    test('non-sync saving', async () => {
-        const storage = new DiskStorage(URI.fromFile(path), false, fileService);
+    test('non-sync saving', () => FakeAsync.run(async () => {
+        const storage = new DiskStorage(path, false, fileService);
         await storage.init();
 
         storage.set('key1', 'value1');
@@ -137,17 +139,17 @@ suite('storage-test', () => {
 		storage.set('key3', 'value3');
 		storage.set('key4', 'value4');
 
-        let contents = fs.readFileSync(path).toString();
+        let contents = (await fileService.readFile(path)).toString();
 		assert.strictEqual(contents.length, 0);
 
         await storage.close();
 
-		contents = fs.readFileSync(path).toString();
+		contents = (await fileService.readFile(path)).toString();
 		assert.strictEqual(contents.length > 0, true);
-    });
+    }));
 
-    test('manually saving', async () => {
-        const storage = new DiskStorage(URI.fromFile(path), false, fileService);
+    test('manually saving', () => FakeAsync.run(async () => {
+        const storage = new DiskStorage(path, false, fileService);
         await storage.init();
 
         storage.set('key1', 'value1');
@@ -157,12 +159,12 @@ suite('storage-test', () => {
 
         await storage.save();
 
-        let contents = fs.readFileSync(path).toString();
+        let contents = (await fileService.readFile(path)).toString();
 		assert.strictEqual(contents.length > 0, true);
-    });
+    }));
 
-    test('sync saving', async () => {
-        const storage = new DiskStorage(URI.fromFile(path), true, fileService);
+    test('sync saving', () => FakeAsync.run(async () => {
+        const storage = new DiskStorage(path, true, fileService);
         await storage.init();
 
         await storage.set('key1', 'value1');
@@ -170,7 +172,7 @@ suite('storage-test', () => {
 		await storage.set('key3', 'value3');
 		await storage.set('key4', 'value4');
 
-        let contents = fs.readFileSync(path).toString();
+        let contents = (await fileService.readFile(path)).toString();
 		assert.strictEqual(contents.length > 0, true);
-    });
+    }));
 });

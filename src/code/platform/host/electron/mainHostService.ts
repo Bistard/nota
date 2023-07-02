@@ -15,12 +15,35 @@ import { IWindowInstance } from "src/code/platform/window/electron/windowInstanc
 /**
  * An interface only for {@link MainHostService}.
  */
-export interface IMainHostService extends IHostService, IDisposable {}
+export interface IMainHostService extends IHostService, IDisposable {
+    // noop
+}
 
-/**
- * @class // TODO
+/** 
+ * @class MainHostService is a key class in Electron's main process, designed to 
+ * handle window-instance related events, window service tasks, dialog service 
+ * tasks, dev-tool operations and application status updates.
+ * 
+ * In terms of event handling, MainHostService listens for events such as:
+ * - Window maximization
+ * - Window minimization
+ * - Window focus
+ * - Window blur
+ * - Window opening
+ * 
+ * Additionally, this class provides methods to manipulate window instances 
+ * including focusing, maximizing, minimizing, unmaximizing, toggling fullscreen 
+ * mode, closing the window, and even manipulating the DevTools.
+ * 
+ * The class also facilitates dialog services, enabling functionalities such as 
+ * showing open, save, or message box dialogs.
+ * 
+ * Finally, MainHostService can also handle the application status by setting, 
+ * bulk setting, and deleting status keys and values.
  */
 export class MainHostService extends Disposable implements IMainHostService {
+
+    _serviceMarker: undefined;
 
     // [event]
     

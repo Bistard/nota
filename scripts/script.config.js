@@ -78,7 +78,7 @@ const configuration = {
     },
 
     "test": {
-        command: "mochapack --webpack-config ./scripts/webpack.config.test.js \"test/**/*.test.ts\" --ui tdd -r jsdom-global/register --timeout 10000",
+        command: "node ./scripts/tests/mochaRunner.js",
         description: 'Run all the unit tests stores in the files which end with .test.ts under the ./test directory. If any of the tests or suites are marked as `only`, the command will only execute those.\n' +
                       'e.g. Writing `suite.only(\'suite-name\', () => {})` in the source file.',
         options: [

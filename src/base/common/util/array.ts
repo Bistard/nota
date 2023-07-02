@@ -1,5 +1,6 @@
+import { IDisposable } from "src/base/common/dispose";
 import { IIterable } from "src/base/common/util/iterable";
-import { NonUndefined } from "src/base/common/util/type";
+import { CompareFn, Mutable, NonUndefined } from "src/base/common/util/type";
 
 /**
  * @namespace Array A series of helper functions that relates to array.
@@ -7,10 +8,28 @@ import { NonUndefined } from "src/base/common/util/type";
 export namespace Arrays {
 
     /**
+     * @description Clear an array.
+     * @returns A reference to the same array.
+     */
+    export function clear<T>(array: T[]): T[] {
+        array.length = 0;
+        return array;
+    }
+
+    /**
      * @description Whether the given value exsits in the given array.
      */
     export function exist<T>(array: ReadonlyArray<T>, value: T): boolean {
         return array.indexOf(value) >= 0;
+    }
+
+    /**
+     * @description Fills an array with data with n times.
+     * @param data The data to be filled.
+     * @param size The size of the array.
+     */
+    export function fill<T>(data: T, size: number): T[] {
+        return Array(size).fill(data);
     }
 
     /**
@@ -83,11 +102,14 @@ export namespace Arrays {
 
     /**
      * @description Determines if the content of the given two arrays are equal.
+     * The order does matter.
      * @param array1 The given 1st array.
      * @param array2 The given 2nd array.
      * @param cmp The compare function.
+     * 
+     * @note If you need to deep compare elements, pass `strictEquals` as cmp.
      */
-    export function equals<T>(array1: ReadonlyArray<T>, array2: ReadonlyArray<T>, cmp: (a: T, b: T) => boolean = (a, b) => a === b): boolean {
+    export function exactEquals<T>(array1: ReadonlyArray<T>, array2: ReadonlyArray<T>, cmp: (a: T, b: T) => boolean = (a, b) => a === b): boolean {
         if (array1 === array2) {
             return true;
         }
@@ -301,12 +323,12 @@ export namespace Arrays {
 
     /**
      * @description If the given array includes any values that matches any of 
-     * your provided values.
+     * the provided values.
      * @param array The given array.
      * @param values The provided values.
      * @param match A compare function.
      */
-    export function matchAny<T>(array: ReadonlyArray<T>, values: T[], match: (arrValue: T, yourValue: T) => boolean): boolean {
+    export function matchAny<T>(array: ReadonlyArray<T>, values: T[], match: (arrValue: T, yourValue: T) => boolean = (arrVal, yourVal) => arrVal === yourVal): boolean {
         for (const yourValue of values) {
             for (const arrValue of array) {
                 if (match(arrValue, yourValue)) {
@@ -315,6 +337,29 @@ export namespace Arrays {
             }
         }
         return false;
+    }
+
+    /**
+     * @description Whether the given array matches all values from the provided 
+     * array.
+     * @param array The given array.
+     * @param values The provided values.
+     * @param match A compare function.
+     */
+    export function matchAll<T>(array: ReadonlyArray<T>, values: T[], match: (arrValue: T, yourValue: T) => boolean = (arrVal, yourVal) => arrVal === yourVal): boolean {
+        for (const yourValue of values) {
+            let matched =  false;
+            for (const arrValue of array) {
+                if (match(arrValue, yourValue)) {
+                    matched = true;
+                    break;
+                }
+            }
+            if (!matched) {
+                return false;
+            }
+        }
+        return true;
     }
 
     /**
@@ -354,7 +399,7 @@ export namespace Arrays {
 /**
  * Interface for {@link IDeque}.
  */
-export interface IDeque<T> extends IIterable<T> {
+export interface IDeque<T> extends IIterable<T>, IDisposable {
     size(): number;
     empty(): boolean;
     
@@ -489,6 +534,10 @@ export class Deque<T> implements IDeque<T> {
         return removed;
     }
 
+    public dispose(): void {
+        this.clear();
+    }
+
     *[Symbol.iterator](): Iterator<T> {
 		let idx = 0;
         while (idx < this.size()) {
@@ -501,7 +550,7 @@ export class Deque<T> implements IDeque<T> {
 /**
  * Interface for {@link Stack}.
  */
-export interface IStack<T> extends IIterable<T> {
+export interface IStack<T> extends IIterable<T>, IDisposable {
     size(): number;
     empty(): boolean;
     top(): T;
@@ -542,6 +591,10 @@ export class Stack<T> implements IStack<T> {
         this._deque.clear();
     }
 
+    public dispose(): void {
+        this.clear();
+    }
+
     *[Symbol.iterator](): Iterator<T> {
 		let idx = 0;
         while (idx < this.size()) {
@@ -554,7 +607,7 @@ export class Stack<T> implements IStack<T> {
 /**
  * Interface only for {@link Queue}.
  */
-export interface IQueue<T> extends IIterable<T> {
+export interface IQueue<T> extends IIterable<T>, IDisposable {
     size(): number;
     empty(): boolean;
     front(): T;
@@ -600,11 +653,168 @@ export class Queue<T> implements IQueue<T> {
         this._deque.clear();
     }
 
+    public dispose(): void {
+        this.clear();
+    }
+
     *[Symbol.iterator](): Iterator<T> {
 		let idx = 0;
         while (idx < this.size()) {
 			yield this._deque.at(idx);
 			idx += 1;
+		}
+	}
+}
+
+export interface IPriorityQueue<T> extends IIterable<T>, IDisposable {
+	
+	/**
+     * @description Adds an element to the queue.
+     * @param element - The element to add.
+     */
+	enqueue(element: T): void;
+		
+	/**
+	 * @description Removes and returns the highest-priority element.
+	 * @returns The highest-priority element or undefined if the queue is empty.
+	 */
+	dequeue(): T | undefined;
+
+	/**
+	 * @description Returns the highest-priority element without removing it.
+	 * @returns The highest-priority element or undefined if the queue is empty.
+	 */
+	peek(): T | undefined;
+
+	/**
+	 * @description Returns the number of elements in the queue.
+	 * @returns The number of elements in the queue.
+	 */
+	size(): number;
+
+	/**
+	 * @description Checks if the queue is empty.
+	 * @returns True if the queue is empty, false otherwise.
+	 */
+	isEmpty(): boolean;
+}
+
+export class PriorityQueue<T> implements IPriorityQueue<T> {
+	
+	// [fields]
+
+    private readonly _heap: T[] = [];
+    private _count: number = 0;
+    private readonly comparator: CompareFn<T>;
+
+	// [constructor]
+
+    constructor(comparator: CompareFn<T>) {
+        this.comparator = comparator;
+    }
+
+	// [public methods]
+    
+    public enqueue(element: T): void {
+        this._heap[this._count] = element;
+        this._count++;
+        this.shiftUp();
+    }
+    
+    public dequeue(): T | undefined {
+        if (this.isEmpty()) {
+            return undefined;
+        }
+        
+		let item = this._heap[0];
+        this._heap[0] = this._heap[this._count - 1]!;
+        this._heap.pop();
+        
+		this._count--;
+        this.shiftDown();
+
+        return item;
+    }
+    
+    public peek(): T | undefined {
+        if (this.isEmpty()) {
+            return undefined;
+        }
+        return this._heap[0];
+    }
+    
+    public size(): number {
+        return this._count;
+    }
+    
+    public isEmpty(): boolean {
+        return this._count === 0;
+    }
+    
+    private shiftUp(): void {
+        let index = this._count - 1;
+        while (index > 0) {
+            let item = this._heap[index]!;
+            let parentIdx = Math.floor((index - 1) / 2);
+            let parent = this._heap[parentIdx]!;
+            
+			if (this.comparator(item, parent) >= 0) {
+                break;
+            }
+            
+			this._heap[index] = parent;
+            this._heap[parentIdx] = item;
+            index = parentIdx;
+        }
+    }
+
+    private shiftDown(): void {
+        let index = 0;
+        const length = this.size();
+        const element = this._heap[0]!;
+
+        while (true) {
+            let leftChildIdx = 2 * index + 1;
+            let rightChildIdx = 2 * index + 2;
+            
+            let swapIdx: number | null = null;
+
+            if (leftChildIdx < length) {
+                const leftChild = this._heap[leftChildIdx]!;
+                if (this.comparator(leftChild, element) < 0) {
+                    swapIdx = leftChildIdx;
+                }
+            }
+            
+			if (rightChildIdx < length) {
+				const leftChild = this._heap[leftChildIdx]!;
+                const rightChild = this._heap[rightChildIdx]!;
+                if (
+                    (swapIdx === null && this.comparator(rightChild, element) < 0) || 
+                    (swapIdx !== null && this.comparator(rightChild, leftChild) < 0)
+                ) {
+                    swapIdx = rightChildIdx;
+                }
+            }
+
+            if (swapIdx === null) {
+                break;
+            }
+
+            this._heap[index] = this._heap[swapIdx]!;
+            this._heap[swapIdx] = element;
+            index = swapIdx;
+        }
+    }
+
+    public dispose(): void {
+        (<Mutable<T[]>>this._heap) = [];
+        this._count = 0;
+    }
+
+	*[Symbol.iterator](): Iterator<T> {
+		while (!this.isEmpty()) {
+			yield this.dequeue()!;
 		}
 	}
 }

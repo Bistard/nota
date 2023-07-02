@@ -1,4 +1,5 @@
 import { INodeProcess } from "src/base/common/process";
+import { isObject } from "src/base/common/util/type";
 import { GLOBAL } from "src/code/platform/electron/browser/global";
 
 interface INavigator {
@@ -39,12 +40,13 @@ export const [IS_WINDOWS, IS_MAC, IS_LINUX, PLATFORM]
     // Web environment
     if (typeof navigator === 'object' && !isElectronRenderer) {
         userAgent = navigator.userAgent;
-        isWin = userAgent.indexOf('Windows') >= 0;
+        isWin = userAgent.indexOf('Windows') >= 0 
+             || userAgent.indexOf('win32') >= 0; // for Mocha env check: see issue #170
         isMac = userAgent.indexOf('Macintosh') >= 0;
         isLinux = userAgent.indexOf('Linux') >= 0;
     }
     // Native environment
-    else if (typeof nodeProcess === 'object') {
+    else if (isObject(nodeProcess)) {
         isWin = (nodeProcess.platform === 'win32');
         isMac = (nodeProcess.platform === 'darwin');
         isLinux = (nodeProcess.platform === 'linux');
