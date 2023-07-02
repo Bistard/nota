@@ -165,13 +165,13 @@ class WebpackBaseConfigurationProvider {
         const requiredNodeJsVersion = minNodeVersion.split('.');
         const currNodeJsVersion = currVersion.split('.');
         for (let i = 0; i < currNodeJsVersion.length; i++) {
-            if (Number(currNodeJsVersion[i]) >= Number(requiredNodeJsVersion[i])) {
-                continue;
+            if (Number(currNodeJsVersion[i]) > Number(requiredNodeJsVersion[i])) {
+                return;
+            } else if (Number(currNodeJsVersion[i]) < Number(requiredNodeJsVersion[i])) {
+                const err = new Error(`Node.js version requires at least v${minNodeVersion}.`);
+                err.stack = undefined;
+                throw err;
             }
-    
-            const err = new Error(`Node.js version requires at least v${minNodeVersion}.`);
-            err.stack = undefined;
-            throw err;
         }
     }
 }
