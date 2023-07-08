@@ -1,6 +1,6 @@
 const childProcess = require("child_process");
 const path = require("path");
-const utils = require("./utility");
+const utils = require("../utility");
 
 (async () => {
     
@@ -8,8 +8,10 @@ const utils = require("./utility");
     utils.perf('build');
     console.log(`${utils.getTime(utils.c.FgGreen)} Building...`);
 
+    const rootDir = path.resolve(__dirname, '../../');
+
     // compile necessary binary files before actual building
-    await compileFontIcons();
+    await compileFontIcons(rootDir);
 
     // wrap spawn so that we may print message properly
     const oldSpawn = childProcess.spawn;
@@ -20,11 +22,11 @@ const utils = require("./utility");
 
     // spawn the child process
     const spawn = childProcess.spawn(
-        'webpack --config ./scripts/webpack.config.js', 
+        'webpack --config ./scripts/build/webpack.config.js', 
         [], 
         {
             env: process.env,
-            cwd: path.resolve(__dirname, '../'),
+            cwd: rootDir,
             shell: true,
         },
     );
@@ -35,12 +37,14 @@ const utils = require("./utility");
 
     // #region helper functions
 
-    async function compileFontIcons() {
+    async function compileFontIcons(rootDir) {
         console.log(`${utils.getTime()} Compiling font icons...`);
+        
         try {
-            await utils.spawnChildProcess('node ./scripts/icon.js', [], {
+            const iconScriptPath = path.join(rootDir, './scripts/icon.js');
+            await utils.spawnChildProcess(`node ${iconScriptPath}`, [], {
                 env: process.env,
-                cwd: path.resolve(__dirname, '../'),
+                cwd: rootDir,
                 shell: true,
                 stdio: "inherit",
             });
