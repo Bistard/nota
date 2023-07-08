@@ -276,7 +276,7 @@ export function NulltoUndefined<T>(obj: T | null): T | undefined {
  * given generic type.
  */
  export function isIterable<T>(obj: unknown): obj is Iterable<T> {
-	return !!obj && typeof (obj as any)[Symbol.iterator] === 'function';
+	return !!obj && typeof (obj)[Symbol.iterator] === 'function';
 }
 
 /**

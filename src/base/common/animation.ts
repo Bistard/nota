@@ -33,9 +33,9 @@ const _simulateRequestAnimationFrame = (callback: Function) => setTimeout(() => 
  */
 export const requestAtNextAnimationFrame = (callback: FrameRequestCallback): IDisposable => {
     let doRequestAnimationFrame = window.requestAnimationFrame ||
-        (window as any).mozRequestAnimationFrame || 
-        (window as any).webkitRequestAnimationFrame ||
-        (window as any).msRequestAnimationFrame ||
+        (<any>window).mozRequestAnimationFrame || 
+        (<any>window).webkitRequestAnimationFrame ||
+        (<any>window).msRequestAnimationFrame ||
         _simulateRequestAnimationFrame;
     
     const token = doRequestAnimationFrame.call(window, callback);

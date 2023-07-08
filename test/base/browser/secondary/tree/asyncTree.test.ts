@@ -324,7 +324,7 @@ suite('AsyncTree-test', () => {
                 },
                 collapsedByDefault: false,
                 childrenProvider: {
-                    getChildren: (item) => Array.isArray(item) ? item : [] as any,
+                    getChildren: (item) => Array.isArray(item) ? item : [],
                     hasChildren: (item) => Array.isArray(item),
                     collapseByDefault: () => false,
                 },
