@@ -8,7 +8,7 @@ const utils = require("../utility");
     utils.perf('build');
     console.log(`${utils.getTime(utils.c.FgGreen)} Building...`);
 
-    const rootDir = path.resolve(__dirname, '../../');
+    const rootDir = process.cwd();
 
     // compile necessary binary files before actual building
     await compileFontIcons(rootDir);
@@ -41,7 +41,7 @@ const utils = require("../utility");
         console.log(`${utils.getTime()} Compiling font icons...`);
         
         try {
-            const iconScriptPath = path.join(rootDir, './scripts/icon.js');
+            const iconScriptPath = path.join(rootDir, './scripts/icons/icon.js');
             await utils.spawnChildProcess(`node ${iconScriptPath}`, [], {
                 env: process.env,
                 cwd: rootDir,
