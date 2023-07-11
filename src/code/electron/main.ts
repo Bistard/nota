@@ -14,7 +14,7 @@ import { ServiceCollection } from 'src/code/platform/instantiation/common/servic
 import { ILoggerService } from 'src/code/platform/logger/common/abstractLoggerService';
 import { ConsoleLogger } from 'src/code/platform/logger/common/consoleLoggerService';
 import { FileLoggerService } from 'src/code/platform/logger/common/fileLoggerService';
-import { ApplicationInstance } from 'src/code/electron/nota';
+import { ApplicationInstance } from 'src/code/electron/app';
 import { ApplicationMode, IEnvironmentOpts, IEnvironmentService, IMainEnvironmentService } from 'src/code/platform/environment/common/environment';
 import { MainEnvironmentService } from 'src/code/platform/environment/electron/mainEnvironmentService';
 import { IMainLifecycleService, MainLifecycleService } from 'src/code/platform/lifecycle/electron/mainLifecycleService';
