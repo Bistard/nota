@@ -5,7 +5,7 @@ import { ILogService } from "src/base/common/logger";
 import { ITask } from "src/base/common/util/async";
 import { If, Pair } from "src/base/common/util/type";
 import { ChannelType, IChannel, IServerChannel } from "src/code/platform/ipc/common/channel";
-import { IIpcProtocol } from "src/code/platform/ipc/common/protocol";
+import { IProtocol } from "src/code/platform/ipc/common/protocol";
 
 // #region Type Declaration
 
@@ -226,7 +226,7 @@ export interface IChannelClient {
 }
 
 /**
- * @class A channel client relies on the given {@link IIpcProtocol}, it integrates
+ * @class A channel client relies on the given {@link IProtocol}, it integrates
  * two things: 
  *      1. Get the corresponding channel and can manually send command through 
  *          the protocol. It returns a promise that resolves with the 
@@ -240,7 +240,7 @@ export class ChannelClient extends Disposable implements IChannelClient {
 
     // [field]
 
-    private readonly _protocol: IIpcProtocol;
+    private readonly _protocol: IProtocol;
 
     /** A auto increment ID to identify each different request. */
     private _requestID = 0;
@@ -256,7 +256,7 @@ export class ChannelClient extends Disposable implements IChannelClient {
 
     // [constructor]
 
-    constructor(protocol: IIpcProtocol) {
+    constructor(protocol: IProtocol) {
         super();
         this._protocol = protocol;
         this.__register(protocol.onData(data => this.__onResponse(data)));
@@ -416,7 +416,7 @@ export interface IChannelServer {
 }
 
 /**
- * @class A channel server relies on the given {@link IIpcProtocol}, it integrates
+ * @class A channel server relies on the given {@link IProtocol}, it integrates
  * two things: 
  *      1. Register a channel and starts listening to the client request.
  *      2. Send response back to the client when the request is done by the 
@@ -429,7 +429,7 @@ export class ChannelServer extends Disposable implements IChannelServer {
     
     // [field]
 
-    private readonly _protocol: IIpcProtocol;
+    private readonly _protocol: IProtocol;
     /** 
      * An identifier to give the {@link IServerChannel} a chance to know which 
      * channel server is accessing.
@@ -440,7 +440,7 @@ export class ChannelServer extends Disposable implements IChannelServer {
 
     // [constructor]
 
-    constructor(protocol: IIpcProtocol, id: string) {
+    constructor(protocol: IProtocol, id: string) {
         super();
         this._protocol = protocol;
         this._id = id;
@@ -595,7 +595,7 @@ export interface IConnection {
 
 export interface ClientConnectEvent {
     readonly clientID: number | string;
-    readonly protocol: IIpcProtocol;
+    readonly protocol: IProtocol;
     onClientDisconnect: Register<void>;
 }
 
@@ -699,7 +699,7 @@ export class ClientBase implements IDisposable, IChannelClient {
 
     // [constructor]
 
-    constructor(protocol: IIpcProtocol, id: string, connect: ITask<void>) {
+    constructor(protocol: IProtocol, id: string, connect: ITask<void>) {
         connect();
 
         /**
