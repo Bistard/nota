@@ -1,7 +1,7 @@
 import { URI } from "src/base/common/file/uri";
 import { LogLevel } from "src/base/common/logger";
 import { iterProp } from "src/base/common/util/object";
-import { IMicroService, createService, refineDecorator } from "src/code/platform/instantiation/common/decorator";
+import { IService, createService, refineDecorator } from "src/code/platform/instantiation/common/decorator";
 import { ICLIArguments } from "src/code/platform/environment/common/argument";
 import { IWindowConfiguration } from "src/code/platform/window/common/window";
 import { isObject } from "src/base/common/util/type";
@@ -67,7 +67,7 @@ export const enum ApplicationMode {
  * @note If a different specific environment is required you need to extend this
  * interface as a base interface.
  */
-export interface IEnvironmentService extends IMicroService {
+export interface IEnvironmentService extends IService {
     
     /**
      * The application mode.

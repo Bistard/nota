@@ -2,8 +2,8 @@ import { IDisposable } from "src/base/common/dispose";
 import { Register } from "src/base/common/event";
 import { DeepReadonly } from "src/base/common/util/type";
 import { IConfigurationStorage } from "src/code/platform/configuration/common/configurationStorage";
-import { IConfigurationChangeEvent } from "src/code/platform/configuration/common/configurationService";
-import { IMicroService, createService } from "src/code/platform/instantiation/common/decorator";
+import { IConfigurationChangeEvent } from "src/code/platform/configuration/common/abstractConfigurationService";
+import { IService, createService } from "src/code/platform/instantiation/common/decorator";
 
 /**
  * A {@link Section} refers to a string composed of multiple substrings linked 
@@ -17,7 +17,7 @@ export type Section = string;
 
 export const IConfigurationService = createService<IConfigurationService>('configuration-service');
 
-export interface IConfigurationService extends IDisposable, IMicroService {
+export interface IConfigurationService extends IDisposable, IService {
 
     /**
      * Fires whenever the configuraion has changed.
@@ -48,19 +48,31 @@ export interface IConfigurationService extends IDisposable, IMicroService {
      * section.
      * @param section The {@link Section} string of the required configuration.
      * @param value The new value of the configuration.
+     * @param options The options for updation.
      * 
      * @throws An exception will be thrown if the section is invalid.
      * @note If section is null, it overries the entire configuration.
      */
     set(section: Section, value: any): Promise<void>;
+    set(section: Section, value: any, options: IConfigurationUpdateOptions): Promise<void>;
 
     /**
      * @description Delete the configuration under the provided section.
      * @param section The {@link Section} string of the required configuration.
+     * @param options The options for updation.
      * 
      * @throws An exception will be thrown if the section is invalid.
      */
     delete(section: Section): Promise<void>;
+    delete(section: Section, options: IConfigurationUpdateOptions): Promise<void>;
+}
+
+export interface IConfigurationUpdateOptions {
+
+    /**
+     * Your target module for updation.
+     */
+    readonly type: ConfigurationModuleType;
 }
 
 export const NOTA_DIR_NAME = '.nota';

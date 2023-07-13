@@ -416,12 +416,12 @@ export class ConfigurationHub extends ConfigurationHubBase implements IConfigura
 
     // [public methods]
 
-    public get<T>(section: string | undefined): DeepReadonly<T> {
+    public get<T>(section: Section | undefined): DeepReadonly<T> {
         const configuration = this.__getComposedConfiguration();
         return configuration.get(section);
     }
 
-    public setInMemory(section: string, value: any): void {
+    public setInMemory(section: Section, value: any): void {
         if (value === undefined) {
             this._memoryConfiguration.delete(section);
         } else {
@@ -430,7 +430,7 @@ export class ConfigurationHub extends ConfigurationHubBase implements IConfigura
         this.__dropComposedConfiguration();
     }
 
-    public deleteInMemory(section: string): void {
+    public deleteInMemory(section: Section): void {
         this.setInMemory(section, undefined);
     }
 }

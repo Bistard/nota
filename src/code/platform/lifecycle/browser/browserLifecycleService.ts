@@ -41,15 +41,15 @@ export class BrowserLifecycleService extends AbstractLifecycleService<LifecycleP
         @ILogService logService: ILogService,
         @IHostService private readonly hostService: IBrowserHostService,
     ) {
-        super('window', LifecyclePhase.Starting, parsePhaseToString, logService);
+        super('Browser', LifecyclePhase.Starting, parsePhaseToString, logService);
     }
 
     // [public methods]
 
     public override async quit(): Promise<void> {
-        this.logService.trace('Renderer#LifecycleService#quit');
+        this.logService.trace('[BrowserLifecycleService] quit');
 
-        this.logService.trace('Renderer#LifecycleService#beforeQuit');
+        this.logService.trace('[BrowserLifecycleService] beforeQuit');
         this._onBeforeQuit.fire();
 
         await this.__fireWillQuit();
@@ -66,7 +66,7 @@ export class BrowserLifecycleService extends AbstractLifecycleService<LifecycleP
         }
 
         // notify all listeners
-        this.logService.trace('Renderer#LifecycleService#willQuit');
+        this.logService.trace('[BrowserLifecycleService] willQuit');
         const participants: Promise<void>[] = [];
         this._onWillQuit.fire({
             reason: QuitReason.Quit,
@@ -76,7 +76,7 @@ export class BrowserLifecycleService extends AbstractLifecycleService<LifecycleP
         this._ongoingQuitPromise = (async () => {
             // we need to ensure all the participants have completed their jobs.
             try {
-                this.logService.trace('Renderer#LifecycleService#willQuit#AllSettling');
+                this.logService.trace('[BrowserLifecycleService] willQuit AllSettled on-going...');
                 await Promise.allSettled(participants);
             } catch (error: any) {
                 this.logService.error(error);

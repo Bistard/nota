@@ -11,7 +11,7 @@ export interface ISender {
  * it allows connected devices to communicate with each other, regardless of any 
  * differences in their internal processes, structure or design.
  */
-export interface IIpcProtocol {
+export interface IProtocol {
     /**
      * A register function that registers a callback to receive data from the 
      * other sides.
@@ -32,7 +32,7 @@ export interface IIpcProtocol {
  * @note The only valid data for transfering is {@link DataBuffer}. 
  * @note The actual data type being transfered using IPC is {@link Uint8Array}.
  */
-export class IpcProtocol {
+export class IpcProtocol implements IProtocol {
 
     private readonly sender: ISender;
     public readonly onData: Register<DataBuffer>;

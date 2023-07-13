@@ -7,7 +7,6 @@ import { IWorkspaceService } from "src/code/browser/workbench/parts/workspace/wo
 import { IInstantiationService } from "src/code/platform/instantiation/common/instantiation";
 import { ISplitView, ISplitViewOpts, SplitView } from "src/base/browser/secondary/splitView/splitView";
 import { Priority } from "src/base/common/event";
-import { IConfigService } from "src/code/platform/configuration/common/abstractConfigService";
 import { ExplorerView } from "src/code/browser/workbench/contrib/explorer/explorer";
 import { ISplitViewItemOpts } from "src/base/browser/secondary/splitView/splitViewItem";
 import { Icons } from "src/base/browser/icon/icons";
@@ -16,6 +15,7 @@ import { ILayoutService } from "src/code/browser/service/layout/layoutService";
 import { CheckMenuAction, MenuSeperatorAction, SimpleMenuAction, SubmenuAction } from "src/base/browser/basic/menu/menuItem";
 import { KeyCode, Shortcut } from "src/base/common/keyboard";
 import { IThemeService } from "src/code/browser/service/theme/themeService";
+import { IConfigurationService } from "src/code/platform/configuration/common/configuration";
 
 /**
  * @description A base class for Workbench to create and manage the behaviour of
@@ -37,7 +37,7 @@ export abstract class WorkbenchLayout extends Component {
         @ISideBarService protected readonly sideBarService: ISideBarService,
         @ISideViewService protected readonly sideViewService: ISideViewService,
         @IWorkspaceService protected readonly workspaceService: IWorkspaceService,
-        @IConfigService protected readonly configService: IConfigService,
+        @IConfigurationService protected readonly configurationService: IConfigurationService,
         @IContextMenuService protected readonly contextMenuService: IContextMenuService,
     ) {
         super('workbench', layoutService.parentContainer, themeService, componentService);

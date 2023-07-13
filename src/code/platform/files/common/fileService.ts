@@ -10,11 +10,11 @@ import { Iterable } from "src/base/common/util/iterable";
 import { Mutable } from "src/base/common/util/type";
 import { readFileIntoStream, readFileIntoStreamAsync } from "src/base/common/file/io";
 import { IRawResourceChangeEvents } from "src/code/platform/files/common/watcher";
-import { IMicroService, createService } from "src/code/platform/instantiation/common/decorator";
+import { IService, createService } from "src/code/platform/instantiation/common/decorator";
 
 export const IFileService = createService<IFileService>('file-service');
 
-export interface IFileService extends IDisposable, IMicroService {
+export interface IFileService extends IDisposable, IService {
     
     /**
      * Fires when the watched resources are either added, deleted or updated.
@@ -116,7 +116,7 @@ export interface IFileService extends IDisposable, IMicroService {
  */
 export class FileService extends Disposable implements IFileService {
 
-    _microserviceIdentifier: undefined;
+    _serviceMarker: undefined;
 
     // [event]
 
@@ -153,7 +153,7 @@ export class FileService extends Disposable implements IFileService {
 
         this.__register(provider.onDidResourceChange(e => this._onDidResourceChange.fire(e)));
         this.__register(provider.onDidResourceClose(uri => {
-            this.logService.trace('Main#FileService# stop watching on ' + URI.toString(uri));
+            this.logService.trace('[FileService] stop watching on ' + URI.toString(uri));
             
             this._activeWatchers.delete(uri);
             this._onDidResourceClose.fire(uri);
@@ -295,11 +295,11 @@ export class FileService extends Disposable implements IFileService {
 
     public watch(uri: URI, opts?: IWatchOptions): IDisposable {
         if (this._activeWatchers.has(uri)) {
-            this.logService.warn('file service - duplicate watching on the same resource', URI.toString(uri));
+            this.logService.warn('[FileService] duplicate watching on the same resource', URI.toString(uri));
             return Disposable.NONE;
         }
         
-        this.logService.trace('Main#FileService#watch()#Watching on ' + URI.toString(uri) + '...');
+        this.logService.trace(`[FileService] Watching on '${URI.toString(uri)}'`);
         
         const provider = this.__getProvider(uri);
         const disposable = provider.watch(uri, opts);

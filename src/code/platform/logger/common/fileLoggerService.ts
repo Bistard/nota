@@ -10,6 +10,32 @@ import { IFileService } from "src/code/platform/files/common/fileService";
 import { IInstantiationService } from "src/code/platform/instantiation/common/instantiation";
 import { AbstractLoggerService } from "src/code/platform/logger/common/abstractLoggerService";
 
+/**
+ * @class The logger service that able to create a {@link FileLogger} which has
+ * ability to write messages into disk.
+ */
+export class FileLoggerService extends AbstractLoggerService<FileLogger> {
+
+    constructor(
+        level: LogLevel,
+        @IInstantiationService private readonly instantiationService: IInstantiationService,
+    ) {
+        super(level);
+    }
+
+    protected override __doCreateLogger(uri: URI, level: LogLevel, opts: ILoggerOpts): FileLogger {
+        const name = opts.name ?? basename(URI.toString(uri));
+        const logger = this.instantiationService.createInstance(
+            FileLogger,
+            URI.join(uri, name),
+            opts.description ?? opts.name ?? 'No Description',
+            level,
+            opts.noFormatter ?? false
+        );
+        return logger;
+    }
+}
+
 export const MAX_LOG_SIZE = 5 * ByteSize.MB;
 
 /**
@@ -76,48 +102,52 @@ export class FileLogger extends AbstractLogger implements ILogger {
 
     // [public methods]
 
-    public trace(message: string, ...args: any[]): void {
+    public async waitInitialize(): Promise<void> {
+        return this._initializing.waiting();
+    }
+
+    public async trace(message: string, ...args: any[]): Promise<void> {
         if (this.getLevel() <= LogLevel.TRACE) {
-			this.__log(LogLevel.TRACE, Strings.stringify(message, ...args));
+			return this.__log(LogLevel.TRACE, Strings.stringify(message, ...args));
 		}
     }
 
-    public debug(message: string, ...args: any[]): void {
+    public async debug(message: string, ...args: any[]): Promise<void> {
         if (this.getLevel() <= LogLevel.DEBUG) {
-			this.__log(LogLevel.DEBUG, Strings.stringify(message, ...args));
+			return this.__log(LogLevel.DEBUG, Strings.stringify(message, ...args));
 		}
     }
 
-    public info(message: string, ...args: any[]): void {
+    public async info(message: string, ...args: any[]): Promise<void> {
         if (this.getLevel() <= LogLevel.INFO) {
-			this.__log(LogLevel.INFO, Strings.stringify(message, ...args));
+			return this.__log(LogLevel.INFO, Strings.stringify(message, ...args));
 		}
     }
 
-    public warn(message: string, ...args: any[]): void {
+    public async warn(message: string, ...args: any[]): Promise<void> {
         if (this.getLevel() <= LogLevel.WARN) {
-			this.__log(LogLevel.WARN, Strings.stringify(message, ...args));
+			return this.__log(LogLevel.WARN, Strings.stringify(message, ...args));
 		}
     }
 
-    public error(message: string | Error, ...args: any[]): void {
+    public async error(message: string | Error, ...args: any[]): Promise<void> {
         if (this.getLevel() <= LogLevel.ERROR) {
 			if (message instanceof Error) {
 				message = message.stack!;
-				this.__log(LogLevel.ERROR, Strings.stringify(message, ...args));
+				return this.__log(LogLevel.ERROR, Strings.stringify(message, ...args));
 			} else {
-				this.__log(LogLevel.ERROR, Strings.stringify(message, ...args));
+				return this.__log(LogLevel.ERROR, Strings.stringify(message, ...args));
 			}
 		}
     }
 
-    public fatal(message: string | Error, ...args: any[]): void {
+    public async fatal(message: string | Error, ...args: any[]): Promise<void> {
         if (this.getLevel() <= LogLevel.FATAL) {
 			if (message instanceof Error) {
 				message = message.stack!;
-				this.__log(LogLevel.FATAL, Strings.stringify(message, ...args));
+				return this.__log(LogLevel.FATAL, Strings.stringify(message, ...args));
 			} else {
-				this.__log(LogLevel.FATAL, Strings.stringify(message, ...args));
+				return this.__log(LogLevel.FATAL, Strings.stringify(message, ...args));
 			}
 		}
     }
@@ -139,12 +169,10 @@ export class FileLogger extends AbstractLogger implements ILogger {
      * @param level The level of the message.
      * @param message The raw message in string.
      */
-    private __log(level: LogLevel, message: string): void {
+    private async __log(level: LogLevel, message: string): Promise<void> {
         
-        /**
-         * Queue the log asynchronously.
-         */
-        this._queue.queue(async () => {
+        // Queue the log asynchronously
+        return this._queue.queue(async () => {
             
             await this._initializing.waiting();
 
@@ -186,31 +214,4 @@ export class FileLogger extends AbstractLogger implements ILogger {
         this._backupCnt++;
         return newURI;
     }
-}
-
-/**
- * @class The logger service that able to create a {@link FileLogger} which has
- * ability to write messages into disk.
- */
-export class FileLoggerService extends AbstractLoggerService {
-
-    constructor(
-        level: LogLevel,
-        @IInstantiationService private readonly instantiationService: IInstantiationService,
-    ) {
-        super(level);
-    }
-
-    protected override __doCreateLogger(uri: URI, level: LogLevel, opts: ILoggerOpts): ILogger {
-        const name = opts.name ?? basename(URI.toString(uri));
-        const logger = this.instantiationService.createInstance(
-            FileLogger,
-            URI.join(uri, name),
-            opts.description ?? opts.name ?? 'No Description',
-            level,
-            opts.noFormatter ?? false
-        );
-        return logger;
-    }
-
 }

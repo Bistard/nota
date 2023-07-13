@@ -26,7 +26,7 @@ const configuration = {
     },
 
     "build": {
-        command: "node ./scripts/build.js",
+        command: "node ./scripts/build/build.js",
         description: 'Build the nota.',
         options: [
             {

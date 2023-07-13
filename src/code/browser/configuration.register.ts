@@ -4,7 +4,7 @@ import { LanguageType } from "src/code/platform/i18n/common/i18n";
 import { REGISTRANTS } from "src/code/platform/registrant/common/registrant";
 
 export const enum WorkbenchConfiguration {
-    TextLanguage = 'workbench.language',
+    DisplayLanguage = 'workbench.language',
     ColorTheme = 'workbench.colorTheme',
     KeyboardScreenCast = 'workbench.keyboardScreenCast',
 }
@@ -14,7 +14,7 @@ const Registrant = REGISTRANTS.get(IConfigurationRegistrant);
 Registrant.registerConfigurations({
     id: 'workbench',
     properties: {
-        [WorkbenchConfiguration.TextLanguage]: {
+        [WorkbenchConfiguration.DisplayLanguage]: {
             type: 'string',
             enum: [LanguageType.en, LanguageType["zh-cn"], LanguageType["zh-tw"]],
             default: LanguageType.en,
@@ -26,7 +26,7 @@ Registrant.registerConfigurations({
         },
         [WorkbenchConfiguration.KeyboardScreenCast]: {
             type: 'boolean',
-            default: false,
+            default: true,
         },
     },
 });

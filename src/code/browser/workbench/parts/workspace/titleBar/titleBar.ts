@@ -6,6 +6,7 @@ import { IInstantiationService } from 'src/code/platform/instantiation/common/in
 import { SearchBar } from 'src/base/browser/basic/searchbar/searchbar';
 import { Icons } from 'src/base/browser/icon/icons';
 import { IThemeService } from 'src/code/browser/service/theme/themeService';
+import { IProductService } from 'src/code/platform/product/common/productService';
 
 /**
  * @class TitleBar stores and handles all the titleBar and functionBar 
@@ -19,6 +20,7 @@ export class TitleBar extends Component {
         @IComponentService componentService: IComponentService,
         @IInstantiationService private readonly instantiationService: IInstantiationService,
         @IThemeService themeService: IThemeService,
+        @IProductService private readonly productService: IProductService,
     ) {
         super('title-bar', null, themeService, componentService);
     }
@@ -49,7 +51,7 @@ export class TitleBar extends Component {
         // search bar
         const searchBar = new SearchBar({
             icon: Icons.Search,
-            placeHolder: 'nota',
+            placeHolder: this.productService.profile.applicationName,
         });
         searchBar.render(document.createElement('div'));
         utilityBar.appendChild(searchBar.element);

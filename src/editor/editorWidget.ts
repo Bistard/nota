@@ -8,8 +8,6 @@ import { basename } from "src/base/common/file/path";
 import { URI } from "src/base/common/file/uri";
 import { defaultLog, ILogService } from "src/base/common/logger";
 import { isNonNullable } from "src/base/common/util/type";
-import { IConfigService } from "src/code/platform/configuration/common/abstractConfigService";
-import { BuiltInConfigScope } from "src/code/platform/configuration/common/configRegistrant";
 import { IInstantiationService } from "src/code/platform/instantiation/common/instantiation";
 import { IBrowserLifecycleService, ILifecycleService } from "src/code/platform/lifecycle/browser/browserLifecycleService";
 import { REGISTRANTS } from "src/code/platform/registrant/common/registrant";
@@ -25,6 +23,7 @@ import { EditorViewModel } from "src/editor/viewModel/editorViewModel";
 import { IContextService } from "src/code/platform/context/common/contextService";
 import { IContextKey } from "src/code/platform/context/common/contextKey";
 import { IEditorEventBroadcaster, IOnBeforeRenderEvent, IOnClickEvent, IOnDidClickEvent, IOnDidDoubleClickEvent, IOnDidTripleClickEvent, IOnDoubleClickEvent, IOnDropEvent, IOnKeydownEvent, IOnKeypressEvent, IOnPasteEvent, IOnTextInputEvent, IOnTripleClickEvent } from "src/editor/common/eventBroadcaster";
+import { IConfigurationService } from "src/code/platform/configuration/common/configuration";
 
 /**
  * An interface only for {@link EditorWidget}.
@@ -132,7 +131,7 @@ export class EditorWidget extends Disposable implements IEditorWidgetFriendship 
         @ILogService private readonly logService: ILogService,
         @IInstantiationService private readonly instantiationService: IInstantiationService,
         @ILifecycleService private readonly lifecycleService: IBrowserLifecycleService,
-        @IConfigService private readonly configService: IConfigService,
+        @IConfigurationService private readonly configurationService: IConfigurationService,
         @IContextService contextService: IContextService,
     ) {
         super();
@@ -204,7 +203,7 @@ export class EditorWidget extends Disposable implements IEditorWidgetFriendship 
             return;
         }
         
-        this.logService.trace(`EditorWidget#Reading file '${basename(URI.toString(model.source))}'`);
+        this.logService.trace(`[EditorWidget] Reading file '${basename(URI.toString(model.source))}'`);
         
         this._model = model;
         this._viewModel = this.instantiationService.createInstance(
@@ -237,9 +236,11 @@ export class EditorWidget extends Disposable implements IEditorWidgetFriendship 
     private __registerListeners(): void {
         this.__register(this.lifecycleService.onBeforeQuit(() => this.__saveEditorOptions()));
 
-        this.__register(this.configService.onDidChange<IEditorWidgetOptions>(BuiltInConfigScope.User, 'editor', (newOption) => {
-            console.log('[on did change config]', newOption); // TEST
-            this.__updateOptions(this._options, newOption);
+        this.__register(this.configurationService.onDidConfigurationChange(e => {
+            if (e.affect('editor')) {
+                const newOption = this.configurationService.get<IEditorWidgetOptions>('editor');
+                this.__updateOptions(this._options, newOption);
+            }
         }));
     }
 
@@ -261,13 +262,12 @@ export class EditorWidget extends Disposable implements IEditorWidgetFriendship 
     }
 
     private __saveEditorOptions(): void {
-
         let option: IEditorWidgetOptions = {};
         for (const [key, value] of Object.entries(this._options)) {
             option[key] = value.value;
         }
 
-        this.configService.set(BuiltInConfigScope.User, 'editor', option);
+        this.configurationService.set('editor', option);
     }
 
     private __registerMVVMListeners(model: IEditorModel, viewModel: IEditorViewModel, view: IEditorView): IDisposable {

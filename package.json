@@ -6,7 +6,6 @@
   "type": "commonjs",
   "private": true,
   "scripts": {
-    "nota": "node ./scripts/script.js",
     "script": "node ./scripts/script.js"
   },
   "repository": {

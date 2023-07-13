@@ -1,3 +1,4 @@
+import 'src/code/common/common.register';
 import { app, dialog } from 'electron';
 import { createServer, Server } from 'net';
 import { mkdir } from 'fs/promises';
@@ -13,7 +14,7 @@ import { ServiceCollection } from 'src/code/platform/instantiation/common/servic
 import { ILoggerService } from 'src/code/platform/logger/common/abstractLoggerService';
 import { ConsoleLogger } from 'src/code/platform/logger/common/consoleLoggerService';
 import { FileLoggerService } from 'src/code/platform/logger/common/fileLoggerService';
-import { ApplicationInstance } from 'src/code/electron/nota';
+import { ApplicationInstance } from 'src/code/electron/app';
 import { ApplicationMode, IEnvironmentOpts, IEnvironmentService, IMainEnvironmentService } from 'src/code/platform/environment/common/environment';
 import { MainEnvironmentService } from 'src/code/platform/environment/electron/mainEnvironmentService';
 import { IMainLifecycleService, MainLifecycleService } from 'src/code/platform/lifecycle/electron/mainLifecycleService';
@@ -22,9 +23,9 @@ import { ICLIArguments } from 'src/code/platform/environment/common/argument';
 import { ProcessKey } from 'src/base/common/process';
 import { getFormatCurrTimeStamp } from 'src/base/common/date';
 import { EventBlocker } from 'src/base/common/util/async';
-import { MainConfigurationService } from 'src/code/platform/configuration/common/configurationService';
 import { IConfigurationService } from 'src/code/platform/configuration/common/configuration';
 import { IProductService, ProductService } from 'src/code/platform/product/common/productService';
+import { MainConfigurationService } from 'src/code/platform/configuration/electron/mainConfigurationService';
 
 interface IMainProcess {
     start(argv: ICLIArguments): Promise<void>;
@@ -87,7 +88,7 @@ const main = new class extends class MainProcess implements IMainProcess {
                 this.__showDirectoryErrorDialog(error);
                 throw error;
             }
-            
+
             // application run
             {
                 Event.once(this.lifecycleService.onWillQuit)(e => {

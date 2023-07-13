@@ -12,6 +12,7 @@ import { IpcChannel } from "src/code/platform/ipc/common/channel";
 import { IIpcAccessible } from "src/code/platform/host/common/hostService";
 import { getUUID } from "src/base/node/uuid";
 import { SafeIpcMain } from "src/code/platform/ipc/electron/safeIpcMain";
+import { IProductService } from "src/code/platform/product/common/productService";
 
 /**
  * @description A helper function to help renderer process can have access to
@@ -90,6 +91,7 @@ export class WindowInstance extends Disposable implements IWindowInstance {
     constructor(
         private readonly configuration: IWindowConfiguration,
         private readonly creationConfig: IWindowCreationOptions,
+        @IProductService private readonly productService: IProductService,
         @ILogService private readonly logService: ILogService,
 		@IEnvironmentService private readonly environmentService: IMainEnvironmentService,
         @IFileService private readonly fileService: IFileService,
@@ -121,7 +123,7 @@ export class WindowInstance extends Disposable implements IWindowInstance {
     // [public methods]
 
     public load(configuration: IWindowConfiguration): Promise<void> {
-        this.logService.trace(`Main#WindowInstance#ID-${this._id}#loading...`);
+        this.logService.trace(`[WindowInstance] [ID-${this._id}] loading...`);
         
         this._configurationIpcAccessible.updateData(configuration);
 
@@ -145,12 +147,12 @@ export class WindowInstance extends Disposable implements IWindowInstance {
     // [private methods]
 
     private doCreateWindow(displayOpts: IWindowDisplayOpts): BrowserWindow {
-        this.logService.trace('Main#WindowInstance#creating window...');
+        this.logService.trace('[WindowInstance] creating window...');
 
         const ifMaxOrFullscreen = (displayOpts.mode === WindowDisplayMode.Fullscreen) || (displayOpts.mode === WindowDisplayMode.Maximized);
         
         const browserOption: BrowserWindowConstructorOptions = {
-            title: 'nota',
+            title: this.productService.profile.applicationName,
             height: displayOpts.height,
             width: displayOpts.width,
             x: displayOpts.x,
@@ -217,15 +219,15 @@ export class WindowInstance extends Disposable implements IWindowInstance {
             window.show();
         }
 
-        this.logService.trace('Main#WindowInstance#window created with id:', window.id);
+        this.logService.trace(`[WindowInstance] window created with id '${window.id}'`);
         return window;
     }
 
     private registerListeners(): void {
-        this.logService.trace(`Main#WindowInstance#ID-${this._id}#registerListeners()`);
+        this.logService.trace(`[WindowInstance] [ID-${this._id}] registerListeners()`);
 
         this._window.webContents.on('did-finish-load', () => {
-            this.logService.trace(`Main#WindowInstance#ID-${this._id}#load successed.`);
+            this.logService.trace(`[WindowInstance] [ID-${this._id}] load successed`);
             this._window.show();
         });
 

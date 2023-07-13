@@ -1,6 +1,6 @@
 import { app } from "electron";
 import { Disposable } from "src/base/common/dispose";
-import { ErrorHandler } from "src/base/common/error";
+import { ErrorHandler, errorToMessage } from "src/base/common/error";
 import { Event } from "src/base/common/event";
 import { ILogService } from "src/base/common/logger";
 import { getUUID } from "src/base/node/uuid";
@@ -62,7 +62,7 @@ export class ApplicationInstance extends Disposable implements INotaInstance {
     // [public methods]
 
     public async run(): Promise<void> {
-        this.logService.debug(`nota starting at ${this.environmentService.appRootPath}...`);
+        this.logService.debug(`application starting at '${URI.toString(this.environmentService.appRootPath)}'...`);
 
         // machine ID
         const machineID = this.__getMachineID();
@@ -87,7 +87,7 @@ export class ApplicationInstance extends Disposable implements INotaInstance {
     // [private methods]
 
     private registerListeners(): void {
-        this.logService.trace(`Main#Nota#registerListeners()`);
+        this.logService.trace(`[ApplicationInstance] registerListenering...`);
 
         Event.once(this.lifecycleService.onWillQuit)(() => this.dispose());
 
@@ -97,7 +97,7 @@ export class ApplicationInstance extends Disposable implements INotaInstance {
         ErrorHandler.setUnexpectedErrorExternalCallback(err => this.__onUnexpectedError(err));
         
         app.on('open-file', (event, path) => {
-            this.logService.trace('main#app#open-file#', path);
+            this.logService.trace(`[ApplicationInstance] open-file - ${path}`);
             // REVIEW
         });
 
@@ -109,7 +109,7 @@ export class ApplicationInstance extends Disposable implements INotaInstance {
     }
 
     private async createServices(machineID: UUID): Promise<IInstantiationService> {
-        this.logService.trace('Main#ApplicationInstance#registerSerices');
+        this.logService.trace('[ApplicationInstance] creating services...');
 
         // instantiation-service (child)
         const appInstantiationService = this.mainInstantiationService.createChild(new ServiceCollection());
@@ -208,9 +208,6 @@ export class ApplicationInstance extends Disposable implements INotaInstance {
     }
 
     private __onUnexpectedError(error: any): void {
-        this.logService.error(`[uncought exception]: ${error}`);
-        if (error && error.stack) {
-            this.logService.error(error.stack);
-        }
+        this.logService.error(`[ApplicationInstance] [uncought exception] ${errorToMessage(error)}`);
     }
 }

@@ -10,7 +10,7 @@ import { ApplicationMode, getAllEnvironments, IDiskEnvironmentService, IEnvironm
 
 export class DiskEnvironmentService implements IDiskEnvironmentService {
 
-    _microserviceIdentifier: undefined;
+    _serviceMarker: undefined;
     
     // [fields]
     
@@ -70,6 +70,7 @@ export class DiskEnvironmentService implements IDiskEnvironmentService {
     // [private helper methods]
 
     protected inspect(): void {
-        this.logService?.trace(`Main#Environment loaded:\n${getAllEnvironments(this).map(enviro => `\t${enviro}`).join('\n')}`);
+        const environments = JSON.stringify(getAllEnvironments(this), null, 4);
+        this.logService?.trace(`[DiskEnvironmentService] loaded:\n${environments}`);
     }
 }

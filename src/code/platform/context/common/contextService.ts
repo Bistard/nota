@@ -4,14 +4,14 @@ import { NonUndefined } from "src/base/common/util/type";
 import { Context, IContext, IReadonlyContext } from "src/code/platform/context/common/context";
 import { ContextKey, IContextKey } from "src/code/platform/context/common/contextKey";
 import { ContextKeyExpr } from "src/code/platform/context/common/contextKeyExpr";
-import { IMicroService, createService } from "src/code/platform/instantiation/common/decorator";
+import { IService, createService } from "src/code/platform/instantiation/common/decorator";
 
 export const IContextService = createService<IContextService>('context-service');
 
 /**
  * An interface only for {@link ContextService}.
  */
-export interface IContextService extends IDisposable, IMicroService {
+export interface IContextService extends IDisposable, IService {
     
     /**
      * Fires when the binded context has changed.
@@ -68,7 +68,7 @@ export interface IContextChangeEvent {
 
 export class ContextService extends Disposable implements IContextServiceFriendship {
 
-    _microserviceIdentifier: undefined;
+    _serviceMarker: undefined;
 
     // [field]
 

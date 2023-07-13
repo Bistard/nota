@@ -7,31 +7,28 @@ import { IConfigurationRegistrant, IRawConfigurationChangeEvent } from "src/code
 import { ConfigurationHub, DefaultConfiguration, UserConfiguration } from "src/code/platform/configuration/common/configurationHub";
 import { IFileService } from "src/code/platform/files/common/fileService";
 import { REGISTRANTS } from "src/code/platform/registrant/common/registrant";
-import { DeepReadonly } from "src/base/common/util/type";
-import { APP_CONFIG_NAME, ConfigurationModuleType, ConfigurationModuleTypeToString, IConfigurationService, Section } from "src/code/platform/configuration/common/configuration";
+import { DeepReadonly, Mutable } from "src/base/common/util/type";
+import { APP_CONFIG_NAME, ConfigurationModuleType, ConfigurationModuleTypeToString, IConfigurationService, IConfigurationUpdateOptions, Section } from "src/code/platform/configuration/common/configuration";
 
-/**
- * @class // TODO
- */
-export class MainConfigurationService extends Disposable implements IConfigurationService {
+export abstract class AbstractConfigurationService extends Disposable implements IConfigurationService {
 
-    _microserviceIdentifier: undefined;
+    _serviceMarker: undefined;
 
     // [fields]
 
-    private readonly _registrant = REGISTRANTS.get(IConfigurationRegistrant);
+    protected readonly _registrant = REGISTRANTS.get(IConfigurationRegistrant);
 
-    private _initialized: boolean;
-    private readonly _configurationPath: URI;
+    protected _initialized: boolean;
+    protected readonly _configurationPath: URI;
     
-    private readonly _defaultConfiguration: DefaultConfiguration;
-    private readonly _userConfiguration: UserConfiguration;
+    protected readonly _defaultConfiguration: DefaultConfiguration;
+    protected readonly _userConfiguration: UserConfiguration;
 
-    private _configurationHub: ConfigurationHub;
+    protected readonly _configurationHub: ConfigurationHub;
 
     // [event]
 
-    private readonly _onDidConfigurationChange = this.__register(new Emitter<IConfigurationChangeEvent>());
+    protected readonly _onDidConfigurationChange = this.__register(new Emitter<IConfigurationChangeEvent>());
     public readonly onDidConfigurationChange = this._onDidConfigurationChange.registerListener;
 
     // [constructor]
@@ -39,7 +36,7 @@ export class MainConfigurationService extends Disposable implements IConfigurati
     constructor(
         appConfigurationPath: URI,
         @IFileService fileService: IFileService,
-        @ILogService private readonly logService: ILogService,
+        @ILogService protected readonly logService: ILogService,
     ) {
         super();
 
@@ -71,29 +68,30 @@ export class MainConfigurationService extends Disposable implements IConfigurati
 
     public async init(): Promise<void> {
         if (this._initialized) {
-            throw new Error(`[MainConfigurationService] cannot be initialized twice.`);
+            throw new Error(`[ConfigurationService] cannot be initialized twice.`);
         }
         this._initialized = true;
 
-        this.logService.trace(`[MainConfigurationService] initializing at configuration path'${URI.toString(this._configurationPath, true)}'...`);
+        this.logService.trace(`[ConfigurationService] initializing at configuration path'${URI.toString(this._configurationPath, true)}'...`);
 
         await Promise.all([this._defaultConfiguration.init(), this._userConfiguration.init()]);
-        this._configurationHub = this.__reloadConfigurationHub();
+        (<Mutable<ConfigurationHub>>this._configurationHub) = this.__reloadConfigurationHub();
 
-        this.logService.trace(`[MainConfigurationService] initialized.`);
+        this.logService.trace(`[ConfigurationService] initialized.`);
     }
 
     public get<T>(section: Section | undefined, defaultValue?: T): DeepReadonly<T> {
         return tryOrDefault<any>(defaultValue ?? undefined!, () => this._configurationHub.get(section));
     }
 
-    public set(section: Section, value: any): Promise<void> {
-        return Promise.reject(new Error('[MainConfigurationService] does not support `set`.'));
-    }
+    // [public abstract methods]
 
-    public delete(section: Section): Promise<void> {
-        return Promise.reject(new Error('[MainConfigurationService] does not support `Delete`.'));
-    }
+    public abstract set(section: Section, value: any): Promise<void>;
+    public abstract set(section: Section, value: any, options: IConfigurationUpdateOptions): Promise<void>;
+    public abstract set(section: Section, value: any, options?: IConfigurationUpdateOptions): Promise<void>;
+
+    public abstract delete(section: Section): Promise<void>;
+    public abstract delete(section: Section, options?: IConfigurationUpdateOptions): Promise<void>;
 
     // [private helper methods]
 
@@ -109,8 +107,8 @@ export class MainConfigurationService extends Disposable implements IConfigurati
         this.__onConfigurationChange(change, ConfigurationModuleType.User);
     }
 
-    private __onConfigurationChange(change: IRawConfigurationChangeEvent, type: ConfigurationModuleType): void {
-        this.logService.trace(`[MainConfigurationService] onConfigurationChange with type '${ConfigurationModuleTypeToString(type)}'.`);
+    protected __onConfigurationChange(change: IRawConfigurationChangeEvent, type: ConfigurationModuleType): void {
+        this.logService.trace(`[ConfigurationService] [onConfigurationChange] [type-${ConfigurationModuleTypeToString(type)}]`);
         const event = new ConfigurationChangeEvent(change, type);
         this._onDidConfigurationChange.fire(event);
     }

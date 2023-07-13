@@ -1,6 +1,6 @@
 import { Disposable } from "src/base/common/dispose";
 import { Emitter, Register } from "src/base/common/event";
-import { IMicroService, createService } from "src/code/platform/instantiation/common/decorator";
+import { IService, createService } from "src/code/platform/instantiation/common/decorator";
 import { IInstantiationService } from "src/code/platform/instantiation/common/instantiation";
 
 export const ILogService = createService<ILogService>('log-service');
@@ -98,7 +98,7 @@ export interface IAbstractLogger extends Disposable {
  */
 export abstract class AbstractLogger extends Disposable implements IAbstractLogger {
     
-    _microserviceIdentifier: undefined;
+    _serviceMarker: undefined;
     private _level!: LogLevel;
     
     private readonly _emitter = this.__register(new Emitter<LogLevel>());
@@ -148,7 +148,7 @@ export interface ILogger extends IAbstractLogger {
 /** 
  * Alias for a {@link ILogger}. May be registered into a {@link IInstantiationService}.
  */
-export interface ILogService extends ILogger, IMicroService {};
+export interface ILogService extends ILogger, IService {};
 
 /**
  * An option for constructing {@link ILogger}.
@@ -275,7 +275,7 @@ export class PipelineLogger extends AbstractLogger implements ILogService {
  */
 export class BufferLogger extends AbstractLogger implements ILogService {
 
-    protected _buffer: { level: LogLevel, message: (string | Error), args: any[] }[] = [];
+    protected readonly _buffer: { level: LogLevel, message: (string | Error), args: any[] }[] = [];
     private _logger?: ILogger;
 
     constructor() {
@@ -333,7 +333,7 @@ export class BufferLogger extends AbstractLogger implements ILogService {
         for (const { level, message, args } of this._buffer) {
             defaultLog(this._logger!, level, message, args);
         }
-        this._buffer = [];
+        this._buffer.length = 0;
     }
 }
 

@@ -3,7 +3,7 @@ import { Emitter, Event, Register } from "src/base/common/event";
 import { ILogService } from "src/base/common/logger";
 import { isNumber, Mutable } from "src/base/common/util/type";
 import { IFileService } from "src/code/platform/files/common/fileService";
-import { IMicroService, createService } from "src/code/platform/instantiation/common/decorator";
+import { IService, createService } from "src/code/platform/instantiation/common/decorator";
 import { IInstantiationService } from "src/code/platform/instantiation/common/instantiation";
 import { IEnvironmentService, IMainEnvironmentService } from "src/code/platform/environment/common/environment";
 import { IMainLifecycleService } from "src/code/platform/lifecycle/electron/mainLifecycleService";
@@ -17,7 +17,7 @@ export const IMainWindowService = createService<IMainWindowService>('main-window
 /**
  * An interface only for {@link MainWindowService}.
  */
-export interface IMainWindowService extends Disposable, IMicroService {
+export interface IMainWindowService extends Disposable, IService {
     
     readonly onDidOpenWindow: Register<IWindowInstance>;
 
@@ -48,7 +48,7 @@ export interface IMainWindowService extends Disposable, IMicroService {
  */
 export class MainWindowService extends Disposable implements IMainWindowService {
 
-    _microserviceIdentifier: undefined;
+    _serviceMarker: undefined;
 
     // [fields]
 
@@ -98,18 +98,18 @@ export class MainWindowService extends Disposable implements IMainWindowService 
     }
 
     public open(options: IWindowCreationOptions): IWindowInstance {
-        this.logService.trace('Main#mainWindowService#trying to open a window...');
+        this.logService.trace('[MainWindowService] trying to open a window...');
 
         const newWindow = this.doOpen(options);
         
-        this.logService.trace('Main#mainWindowService#window opened');
+        this.logService.trace('[MainWindowService] window opened');
         return newWindow;
     }
 
     // [private methods]
 
     private registerListeners(): void {
-        this.logService.trace(`Main#MainWindowService#registerListeners()`);
+        this.logService.trace(`[MainWindowService] registerListeners()`);
         // noop
     }
 
@@ -172,7 +172,7 @@ export class MainWindowService extends Disposable implements IMainWindowService 
     // [private helper methods]
 
     private __openInNewWindow(options: IWindowCreationOptions, configuration: IWindowConfiguration): IWindowInstance {
-        this.logService.trace('Main#MainWindowService#openInNewWindow');
+        this.logService.trace('[MainWindowService] openInNewWindow');
         
         const newWindow = this.instantiationService.createInstance(
             WindowInstance,

@@ -101,17 +101,17 @@ export class MainLifecycleService extends AbstractLifecycleService<LifecyclePhas
             return this._pendingQuitBlocker.waiting();
         }
         
-        this.logService.trace('Main#LifecycleService#quit()');
+        this.logService.trace('[MainLifecycleService] quit()');
         this._pendingQuitBlocker = new Blocker<void>();
         
-        this.logService.trace('Main#LifecycleService#app.quit()');
+        this.logService.trace('[MainLifecycleService] app.quit()');
         app.quit();
 
         return this._pendingQuitBlocker.waiting();
     }
 
     public async kill(exitcode: number = 1): Promise<void> {
-        this.logService.trace('Main#LifecycleService#kill()');
+        this.logService.trace('[MainLifecycleService] kill()');
 
         // Give the other services a chance to be notified and complete their job.
         await this.__fireOnBeforeQuit(QuitReason.Kill);
@@ -149,7 +149,7 @@ export class MainLifecycleService extends AbstractLifecycleService<LifecyclePhas
      *      - app.once('will-quit').
      */
     private __registerListeners(): void {
-        this.logService.trace(`Main#LifecycleService#registerListeners()`);
+        this.logService.trace(`[MainLifecycleService] registerListeners()`);
         
         let onWindowAllClosed: () => void;
         let onBeforeQuitAnyWindows: () => void;
@@ -163,14 +163,14 @@ export class MainLifecycleService extends AbstractLifecycleService<LifecyclePhas
          * which will not be prevented and will quit normally.
          */
         app.once('will-quit', (event: Electron.Event) => {
-            this.logService.trace('Main#LifecycleService#app.once("will-quit")');
+            this.logService.trace('[MainLifecycleService] app.once("will-quit")');
 
             // Prevent the quit until the promise was resolved
 			event.preventDefault();
 
 			this.__fireOnBeforeQuit(QuitReason.Quit)
             .finally(() => {
-                this.logService.trace('Main#LifecycleService#application is about to quiting...');
+                this.logService.trace('[MainLifecycleService] application is about to quiting...');
 
                 if (this._pendingQuitBlocker) {
                     this._pendingQuitBlocker.resolve();
@@ -197,7 +197,7 @@ export class MainLifecycleService extends AbstractLifecycleService<LifecyclePhas
          * 'window-all-closed' will not emit.
          */
         onWindowAllClosed = () => {
-            this.logService.trace('Main#LifecycleService#app.addListener("window-all-closed")');
+            this.logService.trace('[MainLifecycleService] app.addListener("window-all-closed")');
             // mac: only quit when requested
             if (IS_MAC && this._requestQuit) {
                 app.quit();
@@ -218,10 +218,10 @@ export class MainLifecycleService extends AbstractLifecycleService<LifecyclePhas
                 return;
             }
 
-            this.logService.trace('Main#LifecycleService#app.addListener("before-quit")');
+            this.logService.trace('[MainLifecycleService] app.addListener("before-quit")');
             this._requestQuit = true;
             
-            this.logService.trace('Main#LifecycleService#onBeforeQuit.fire()')
+            this.logService.trace('[MainLifecycleService] onBeforeQuit.fire()')
             this._onBeforeQuit.fire();
 
             /**

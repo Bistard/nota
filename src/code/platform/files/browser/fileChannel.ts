@@ -15,7 +15,7 @@ import { ResourceChangeEvent } from "src/code/platform/files/common/resourceChan
 
 export class BrowserFileChannel extends Disposable implements IFileService {
 
-    _microserviceIdentifier: undefined;
+    _serviceMarker: undefined;
 
     // [event]
 
