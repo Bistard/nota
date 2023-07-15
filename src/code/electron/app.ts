@@ -1,4 +1,4 @@
-import { app } from "electron";
+import * as electron from "electron";
 import { Disposable } from "src/base/common/dispose";
 import { ErrorHandler, errorToMessage } from "src/base/common/error";
 import { Event } from "src/base/common/event";
@@ -71,7 +71,7 @@ export class ApplicationInstance extends Disposable implements INotaInstance {
         // application service initialization
         const appInstantiationService = await this.createServices(machineID);
 
-        // IPC main process server
+        // create IPC server in the main process
         const ipcServer = this.__register(new IpcServer(this.logService));
 
         // IPC channel initialization
@@ -96,12 +96,12 @@ export class ApplicationInstance extends Disposable implements INotaInstance {
 		process.on('unhandledRejection', reason => ErrorHandler.onUnexpectedError(reason));
         ErrorHandler.setUnexpectedErrorExternalCallback(err => this.__onUnexpectedError(err));
         
-        app.on('open-file', (event, path) => {
+        electron.app.on('open-file', (event, path) => {
             this.logService.trace(`[ApplicationInstance] open-file - ${path}`);
             // REVIEW
         });
 
-        app.on('new-window-for-tab', () => {
+        electron.app.on('new-window-for-tab', () => {
             // REVIEW
 			// this.mainWindowService?.open();
 		});

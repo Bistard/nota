@@ -1,4 +1,4 @@
-import { app, BrowserWindow, BrowserWindowConstructorOptions } from "electron";
+import * as electron from "electron";
 import { Disposable } from "src/base/common/dispose";
 import { Emitter, Register } from "src/base/common/event";
 import { join, resolve } from "src/base/common/file/path";
@@ -47,7 +47,7 @@ export interface IWindowInstance extends Disposable {
     
     readonly id: number;
 
-    readonly browserWindow: BrowserWindow;
+    readonly browserWindow: electron.BrowserWindow;
 
     readonly onDidLoad: Register<void>;
     
@@ -77,7 +77,7 @@ export class WindowInstance extends Disposable implements IWindowInstance {
 
     // [field]
 
-    private readonly _window: BrowserWindow;
+    private readonly _window: electron.BrowserWindow;
     private readonly _id: number;
 
     /**
@@ -104,7 +104,7 @@ export class WindowInstance extends Disposable implements IWindowInstance {
         this._id = this._window.id;
 
         if (this.environmentService.CLIArguments['open-devtools'] === true) {
-            this._window!.webContents.openDevTools({ mode: 'detach', activate: true });
+            this._window.webContents.openDevTools({ mode: 'detach', activate: true });
         }
 
         this.registerListeners();
@@ -116,7 +116,7 @@ export class WindowInstance extends Disposable implements IWindowInstance {
         return this._id;
     }
 
-    get browserWindow(): BrowserWindow {
+    get browserWindow(): electron.BrowserWindow {
         return this._window;
     }
 
@@ -146,12 +146,11 @@ export class WindowInstance extends Disposable implements IWindowInstance {
 
     // [private methods]
 
-    private doCreateWindow(displayOpts: IWindowDisplayOpts): BrowserWindow {
+    private doCreateWindow(displayOpts: IWindowDisplayOpts): electron.BrowserWindow {
         this.logService.trace('[WindowInstance] creating window...');
 
         const ifMaxOrFullscreen = (displayOpts.mode === WindowDisplayMode.Fullscreen) || (displayOpts.mode === WindowDisplayMode.Maximized);
-        
-        const browserOption: BrowserWindowConstructorOptions = {
+        const browserOption: electron.BrowserWindowConstructorOptions = {
             title: this.productService.profile.applicationName,
             height: displayOpts.height,
             width: displayOpts.width,
@@ -205,7 +204,8 @@ export class WindowInstance extends Disposable implements IWindowInstance {
             browserOption.frame = false;
         }
 
-        const window = new BrowserWindow(browserOption);
+        // window construction
+        const window = new electron.BrowserWindow(browserOption);
 
         // removes default menu and shortcuts like reload and developer-tool.
         window.setMenu(null);
@@ -238,19 +238,19 @@ export class WindowInstance extends Disposable implements IWindowInstance {
 		});
         
         this._window.on('focus', (e: Event) => {
-            app.emit(IpcChannel.WindowFocused, e, this._window);
+            electron.app.emit(IpcChannel.WindowFocused, e, this._window);
         });
 
         this._window.on('blur', (e: Event) => {
-            app.emit(IpcChannel.WindowBlured, e, this._window);
+            electron.app.emit(IpcChannel.WindowBlured, e, this._window);
         });
 
         this._window.on('maximize', (e: Event) => {
-			app.emit(IpcChannel.WindowMaximized, e, this._window);
+			electron.app.emit(IpcChannel.WindowMaximized, e, this._window);
 		});
 
 		this._window.on('unmaximize', (e: Event) => {
-			app.emit(IpcChannel.WindowUnmaximized, e, this._window);
+			electron.app.emit(IpcChannel.WindowUnmaximized, e, this._window);
 		});
 
         this._window.webContents.on('did-finish-load', () => {
