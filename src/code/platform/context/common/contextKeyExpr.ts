@@ -1151,7 +1151,7 @@ export namespace ContextKeyDeserializer {
 			return ContextKeySmallerExpr.create(key!.trim(), value!.trim());
 		}
 
-		if (/^\!\s*/.test(serialized)) {
+		if (/^!\s*/.test(serialized)) {
             return ContextKeyNotExpr.create(serialized.substring(1).trim());
 		}
 
