@@ -298,6 +298,7 @@ export const enum FileOperationErrorType {
 	FILE_IS_NOT_DIRECTORY,
 	FILE_INVALID_PATH,
 	FILE_READONLY,
+	NO_PERMISSIONS,
 	UNKNOWN,
 }
 
