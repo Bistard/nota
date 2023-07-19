@@ -1,10 +1,11 @@
 import { IDisposable, toDisposable } from "src/base/common/dispose";
+import { Callable } from "src/base/common/util/type";
 
 /**
  * when the current enviroment is too old to support `requestAnimationFrame`, we 
  * try to simulate it (not perfect though).
  */
-const _simulateRequestAnimationFrame = (callback: Function) => setTimeout(() => callback(), 0);
+const _simulateRequestAnimationFrame = (callback: Callable<[], void>) => setTimeout(() => callback(), 0);
 
 /**
  * @readonly Traditionally to create an animation in JavaScript, we relied on 

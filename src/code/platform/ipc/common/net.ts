@@ -265,19 +265,18 @@ export class ChannelClient extends Disposable implements IChannelClient {
     // [public methods]
 
     public getChannel(channel: ChannelType): IChannel {
-        const that = this;
         return {
-            callCommand<T>(command: string, arg?: any): Promise<T> {
-                if (that.isDisposed()) {
+            callCommand: <T>(command: string, arg?: any): Promise<T> => {
+                if (this.isDisposed()) {
                     return Promise.reject('channel is already disposed');
                 }
-                return that.__requestCommand(channel, command, arg);
+                return this.__requestCommand(channel, command, arg);
             },
-            registerListener<T>(event: string, arg?: any): Register<T> {
-                if (that.isDisposed()) {
+            registerListener: <T>(event: string, arg?: any): Register<T> => {
+                if (this.isDisposed()) {
                     return Event.NONE;
                 }
-                return that.__requestEvent(channel, event, arg);
+                return this.__requestEvent(channel, event, arg);
             },
         };
     }
@@ -299,7 +298,7 @@ export class ChannelClient extends Disposable implements IChannelClient {
         switch (type) {
             case ResponseType.EventFire:
             case ResponseType.PromiseReject:
-            case ResponseType.PromiseResolve:
+            case ResponseType.PromiseResolve: {
                 const callback = this._onResponseCallback.get(requestID);
                 callback?.({
                     type: type,
@@ -307,6 +306,7 @@ export class ChannelClient extends Disposable implements IChannelClient {
                     dataOrError: rawData,
                 });
                 return;
+            }
         }
     }
 
@@ -558,9 +558,10 @@ export class ChannelServer extends Disposable implements IChannelServer {
         switch (response.type) {
             case ResponseType.EventFire:
             case ResponseType.PromiseResolve:
-            case ResponseType.PromiseReject:
+            case ResponseType.PromiseReject: {
                 const buffer = this.__serializeResponse([response.type, response.requestID], response.dataOrError);
                 this._protocol.send(buffer);
+            }
         }
         return;
     }

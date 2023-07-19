@@ -241,7 +241,7 @@ namespace FakeGlobalAsync {
         }
     
         for (const prop in OriginalDate) {
-            if (OriginalDate.hasOwnProperty(prop)) {
+            if (Object.prototype.hasOwnProperty.call(OriginalDate, prop)) {
                 FakeDateConstructor[prop] = OriginalDate[prop];
             }
         }

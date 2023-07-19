@@ -301,7 +301,7 @@ export class JsonSchemaValidator {
                 return this.__setValid(withinItemCount && itemsUnique && itemsValid, result, schema);
             }
             
-            case 'object':
+            case 'object': {
                 if (!isObject(data)) {
                     return this.__setValid(false, result, schema);
                 }
@@ -333,6 +333,7 @@ export class JsonSchemaValidator {
                 }
 
                 return;
+            }
         }
     }
 

@@ -489,7 +489,9 @@ function __toString(uri: URI, skipEncoding: boolean): string {
 	const encoder = !skipEncoding ? encodeURIComponentFast : encodeURIComponentMinimal;
 
 	let res = '';
-	let { scheme, authority, path, query, fragment } = uri;
+	let { authority, path } = uri;
+	const { scheme, query, fragment } = uri;
+	
 	if (scheme) {
 		res += scheme;
 		res += ':';

@@ -6,6 +6,7 @@
 
 import { ProcessMemoryInfo } from "electron";
 import { INodeProcess, IProcessEnvironment } from "src/base/common/process";
+import { Callable } from "src/base/common/util/type";
 
 /**
  * @link https://electronjs.org/docs/api/structures/ipc-renderer-event
@@ -153,7 +154,7 @@ export interface ISandboxProcess extends INodeProcess {
 	/**
 	 * A listener on the process. Only a small subset of listener types are allowed.
 	 */
-	on: (type: string, callback: Function) => void;
+	on: (type: string, callback: Callable<any[], any>) => void;
 
 	/**
 	 * The current working directory of the process.

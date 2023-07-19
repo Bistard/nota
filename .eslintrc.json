@@ -36,12 +36,12 @@
     "rules": {
         
         "no-empty": "off",
+        "no-constant-condition": "off",
         "no-useless-catch": "warn",
 
         "@typescript-eslint/no-explicit-any": "off",
         "@typescript-eslint/no-extra-non-null-assertion": "off",
         "@typescript-eslint/no-var-requires": "off",
-        "@typescript-eslint/no-constant-condition": "off",
         
         // REVIEW: should be considered to turn on
         "@typescript-eslint/no-namespace": "off",

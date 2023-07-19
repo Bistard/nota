@@ -44,7 +44,7 @@ export interface IReadableStream<T> extends IReadableStreamEvent<T> {
 	destroy(): void;
 
 	/** Allows to remove a listener that was previously added. */
-	removeListener(event: string, callback: Function): void;
+	removeListener(event: string, callback: () => void): void;
 }
 
 export interface IWriteableStream<T> extends IReadableStream<T> {
@@ -133,7 +133,7 @@ export class WriteableStream<T> implements IWriteableStream<T> {
 		end: [] as { (): void }[]
 	};
 
-    private readonly pendingWritePromises: Function[] = [];
+    private readonly pendingWritePromises: (() => void)[] = [];
     
     constructor(concatenater: IConcatenater<T>, highWaterMark?: number) {
         this.concatenater = concatenater;
@@ -152,7 +152,7 @@ export class WriteableStream<T> implements IWriteableStream<T> {
 
         // flowing: directly send data to the listeners 
         if (this.state.flowing) {
-         	this._fireData(data);
+			this._fireData(data);
             return;
 		}
         
@@ -245,7 +245,7 @@ export class WriteableStream<T> implements IWriteableStream<T> {
 		}
     }
 
-	public removeListener(event: string, listener: Function): void {
+	public removeListener(event: string, listener: () => void): void {
 		if (this.state.destroyed) {
 			return;
 		}
@@ -306,11 +306,11 @@ export class WriteableStream<T> implements IWriteableStream<T> {
      * Listening to stream event
      **************************************************************************/
 
-     public on(event: 'data', listener: (data: T) => void): void;
-     public on(event: 'error', listener: (err: Error) => void): void;
-     public on(event: 'end', listener: () => void): void;
-     public on(event: 'data' | 'error' | 'end', listener: (_arg?: any) => void): void 
-	 {
+	public on(event: 'data', listener: (data: T) => void): void;
+	public on(event: 'error', listener: (err: Error) => void): void;
+	public on(event: 'end', listener: () => void): void;
+	public on(event: 'data' | 'error' | 'end', listener: (_arg?: any) => void): void {
+		
         if (this.state.destroyed) {
 			return;
 		}
@@ -346,16 +346,14 @@ export class WriteableStream<T> implements IWriteableStream<T> {
 				}
                 
                 return;
-
 		}
-
-     }
+	}
      
     /***************************************************************************
      * Direct Manipulation on data/error/end
      **************************************************************************/
 
-     private _flowData(): void {
+	private _flowData(): void {
 		if (this.buffer.data.length) {
 			const entireDataBuffer = this.concatenater(this.buffer.data);
 
@@ -433,7 +431,7 @@ export function transformStream<Original, Transformed>(
  * @description Helper to fully read a T stream into a T or consuming a stream 
  * fully, awaiting all the events without caring about the data.
  */
-export function streamToBuffer<T>(stream: IReadableStream<DataBuffer>): Promise<DataBuffer> {
+export function streamToBuffer(stream: IReadableStream<DataBuffer>): Promise<DataBuffer> {
     return consumeStream(stream, chunks => DataBuffer.concat(chunks));
 }
 

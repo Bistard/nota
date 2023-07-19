@@ -1,4 +1,4 @@
-import { isEmptyObject } from "src/base/common/util/type";
+import { Callable, isEmptyObject } from "src/base/common/util/type";
 
 export interface IStringDictionary<T> {
     [key: string]: T;
@@ -6,7 +6,7 @@ export interface IStringDictionary<T> {
 
 export function forEach<T>(
     target: IStringDictionary<T>, 
-    callback: (entry: {key: string, value: T}, remove: Function) => any): void 
+    callback: Callable<[{ key: string, value: T }, Callable], any>): void 
 {
     for (const key in target) {
         if (Object.prototype.hasOwnProperty.call(target, key)) {

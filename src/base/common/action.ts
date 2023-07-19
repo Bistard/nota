@@ -1,7 +1,7 @@
 import { Disposable, IDisposable } from "src/base/common/dispose";
 import { Emitter, Register } from "src/base/common/event";
 import { Arrays } from "src/base/common/util/array";
-import { isNullable, isNumber, isString, Mutable } from "src/base/common/util/type";
+import { Callable, isNullable, isNumber, isString, Mutable } from "src/base/common/util/type";
 
 export interface IAction extends IDisposable {
     /** 
@@ -30,7 +30,7 @@ export interface IActionOptions {
     readonly id: string;
     readonly enabled: boolean;
     readonly tip?: string;
-    readonly callback: Function;
+    readonly callback: Callable<any[], any>;
 }
 
 /**
@@ -45,7 +45,7 @@ export class Action implements IAction {
     public readonly tip?: string;
     public enabled: boolean;
     
-    private readonly _callback: Function;
+    private readonly _callback: Callable<any[], any>;
     
     // [constructor]
 

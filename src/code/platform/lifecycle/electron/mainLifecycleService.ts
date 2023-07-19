@@ -151,8 +151,8 @@ export class MainLifecycleService extends AbstractLifecycleService<LifecyclePhas
     private __registerListeners(): void {
         this.logService.trace(`[MainLifecycleService] registerListeners()`);
         
-        let onWindowAllClosed: () => void;
-        let onBeforeQuitAnyWindows: () => void;
+        let onWindowAllClosed: () => void = undefined!;
+        let onBeforeQuitAnyWindows: () => void = undefined!;
 
         /**
          * Once {@link app.quit} is invoked, electron will emit 'before-quit' 

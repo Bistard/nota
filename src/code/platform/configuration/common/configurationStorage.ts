@@ -356,12 +356,12 @@ function addToConfigurationModel(model: object, section: Section, configuration:
                 curr = currModel[subSection] = Object.create({});
                 break;
             case 'object':
-                if (curr !== null) {
-                    break;
+                if (curr === null) {
+                    return onError(`cannot add configuration '${configuration}' at section '${section}' with current configuration: ${curr}`);
                 }
+                break;
             default:
-                onError(`cannot add configuration '${configuration}' at section '${section}' with current configuration: ${curr}`);
-                return;
+                return onError(`cannot add configuration '${configuration}' at section '${section}' with current configuration: ${curr}`);
         }
         currModel = curr;
     }

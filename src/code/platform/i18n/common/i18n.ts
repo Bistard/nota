@@ -303,12 +303,12 @@ export class i18n implements Ii18nService {
      *  eg. ../../en-US.json
      */
     private async __readLocale(uri: URI): Promise<void> {
-
         try {
             const buffer = await this.fileService.readFile(uri);
-            const jsonObject: Object = JSON.parse(buffer.toString());
+            const jsonObject = JSON.parse(buffer.toString());
             Object.assign(this._model, jsonObject);
-        } catch (err) {
+        } 
+        catch (err) {
             this.logService.error(`Cannot read locale at ${URI.toString(uri)}`);
             throw err;
         }
