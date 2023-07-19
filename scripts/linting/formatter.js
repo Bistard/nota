@@ -1,6 +1,6 @@
 module.exports = function (results) {
-    
-    // Sort results by the presence of errors (file with errors stay at the bottom)
+
+    // sort results by the presence of errors (files with errors stay at the bottom)
     const sortedResults = results.sort((a, b) => {
         if (a.errorCount > 0 && b.errorCount === 0) {
             return 1;
@@ -25,10 +25,14 @@ module.exports = function (results) {
             messages.forEach(message => {
                 const { line, column, ruleId, message: description } = message;
                 const messageType = message.severity === 1 ? '\x1b[33mWarning\x1b[0m' : '\x1b[31mError\x1b[0m';
-                
-                output += `\x1b[2mLine ${line}, Column ${column}\x1b[0m `;
-                output += `\x1b[1m${messageType}:\x1b[0m ${description} `;
-                output += `\x1b[2m${ruleId}\x1b[0m`;
+
+                const lineColumn = `${line}:${column}`;
+                const formattedMessage = `${messageType.padEnd(18)} ${description}`;
+                const formattedRuleId = ruleId;
+
+                output += `\x1b[2m${lineColumn.padEnd(10)}\x1b[0m`;
+                output += `\x1b[1m${formattedMessage.padEnd(80)}\x1b[0m`;
+                output += `\x1b[2m${formattedRuleId}\x1b[0m`;
                 output += '\n';
             });
         }
