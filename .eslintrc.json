@@ -35,6 +35,9 @@
 
     "rules": {
         
+        "no-empty": "off",
+        "no-useless-catch": "warn",
+
         "@typescript-eslint/no-explicit-any": "off",
         "@typescript-eslint/no-extra-non-null-assertion": "off",
         "@typescript-eslint/no-var-requires": "off",
@@ -43,11 +46,13 @@
         // REVIEW: should be considered to turn on
         "@typescript-eslint/no-namespace": "off",
         
-        "@typescript-eslint/ban-types": ["error", {
-            "types": {
-                "{}": false
+        "@typescript-eslint/ban-types": [
+            "error", {
+                "types": {
+                    "{}": false
+                }
             }
-        }],
+        ],
         
         "@typescript-eslint/no-unused-vars": "warn",
         "@typescript-eslint/no-empty-interface": "warn",
