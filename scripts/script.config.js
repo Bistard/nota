@@ -99,7 +99,7 @@ const configuration = {
     },
 
     "lint": {
-        command: 'eslint .',
+        command: 'eslint . --format=./scripts/linting/formatter.js',
         description: 'The eslint . command runs the ESLint tool on all JavaScript and TypeScript files in the current directory and subdirectories, checking for and reporting any coding errors or stylistic issues based on your configuration rules.'
     },
 
