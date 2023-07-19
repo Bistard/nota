@@ -7,5 +7,6 @@
 
 **/src/**/marked.js
 **/src/**/*.d.ts
+**/src/**/preload.js
 
 **/test/**/*.test.ts
