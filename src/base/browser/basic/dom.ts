@@ -177,7 +177,7 @@ export namespace DomUtility
 		 * 
 		 * @warn If property cannot be convert to numerated form, -1 will be returned.
 		 */
-		function __getPropertyValue(element: HTMLElement, property: string): number {
+		const __getPropertyValue = function (element: HTMLElement, property: string): number {
 			const computedStyle: CSSStyleDeclaration = getComputedStyle(element);
 			const value = computedStyle.getPropertyValue(property);
 			return parseFloat(value) || 0;

@@ -144,7 +144,7 @@ namespace FakeGlobalAsync {
 
     // [private helper methods]
 
-    function __setCustomizedTimeout() {
+    const __setCustomizedTimeout = function (): void {
         globalThis.setTimeout = <any>((handler: TimerHandler, timeout: number = 0) => {
             if (isString(handler)) {
                 throw new Error('String handler args should not be used and are not supported');
@@ -169,7 +169,7 @@ namespace FakeGlobalAsync {
         };
     }
 
-    function __setCustomizedInterval(): void {
+    const __setCustomizedInterval = function (): void {
         globalThis.setInterval = <any>((handler: TimerHandler, interval: number) => {
             if (isString(handler)) {
                 throw new Error('String handler args should not be used and are not supported');
@@ -217,7 +217,7 @@ namespace FakeGlobalAsync {
         };
     }
 
-    function __setCustomizedDate(): void {
+    const __setCustomizedDate = function (): void {
         const OriginalDate = trueGlobalAsync.Date;
     
         function FakeDateConstructor(this: any, ...args: any): Date | string {

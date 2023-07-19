@@ -238,7 +238,7 @@ namespace UriToOpenResolver {
 
     // [private helper methods]
 
-    function __parseURI(uri: URI): { resource: string, type: ToOpenType, gotoLine?: number, fail?: boolean } {
+    const __parseURI = function (uri: URI): { resource: string, type: ToOpenType, gotoLine?: number, fail?: boolean } {
         const sections = URI.toFsPath(uri).split('|');
         
         const resource = sections[0];

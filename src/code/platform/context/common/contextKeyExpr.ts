@@ -1098,17 +1098,17 @@ export namespace ContextKeyDeserializer {
         return deserializeOR(serialized);
     }
 
-    function deserializeOR(serialized: string): ContextKeyExpr {
+    const deserializeOR = function (serialized: string): ContextKeyExpr {
         const expressions = serialized.split('||');
         return ContextKeyOrExpr.create(expressions.map(expr => deserializeAND(expr)), true);
     }
 
-    function deserializeAND(serialized: string): ContextKeyExpr {
+    const deserializeAND = function (serialized: string): ContextKeyExpr {
         const expressions = serialized.split('&&');
         return ContextKeyAndExpr.create(expressions.map(expr => __deserialize(expr)));
     }
     
-    function __deserialize(serialized: string): ContextKeyExpr {
+    const __deserialize = function (serialized: string): ContextKeyExpr {
         serialized = serialized.trim();
 
         if (serialized.indexOf('!=') >= 0) {
@@ -1158,7 +1158,7 @@ export namespace ContextKeyDeserializer {
 		return ContextKeyHasExpr.create(serialized);
     }
 
-    function __deserializeValue(serialized: string): any {
+    const __deserializeValue = function (serialized: string): any {
         serialized = serialized.trim();
 
         const value = constants.get(serialized);
@@ -1174,7 +1174,7 @@ export namespace ContextKeyDeserializer {
 		return serialized;
     }
 
-    function __deserializeRegexValue(serialized: string): RegExp {
+    const __deserializeRegexValue = function (serialized: string): RegExp {
         if (!serialized || serialized.trim().length === 0) {
             console.warn('missing regexp-value for =~-expression');
 			return new RegExp('');
