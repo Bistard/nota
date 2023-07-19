@@ -1,4 +1,4 @@
-name: Lint
+name: Linting
 on: [push]
 jobs:
   run-linter:
@@ -9,9 +9,7 @@ jobs:
         uses: actions/setup-node@v2
         with:
           node-version: 16.x
-      - name: Install ESLint dependencies
-        run: |
-          cd .github/linting
-          npm install
+      - name: Install dependencies
+        run: npm install
       - name: Run ESLint
         run: npx eslint .
