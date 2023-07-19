@@ -13,10 +13,10 @@
     // tells ESLint to use the given package to parse the source files
     "parser": "@typescript-eslint/parser",
     
-    // parserOptions: {
-    //     project: true,
-    //     tsconfigRootDir: __dirname,
-    // },
+    "parserOptions": {
+        "project": true,
+        "tsconfigRootDir": "__dirname"
+    },
 
     /**
      * Tells ESLint to load the given packages as a plugin, this allows us to 
@@ -30,7 +30,7 @@
     "extends": [
         "eslint:recommended",                    // ESLint's inbuilt "recommended" config - https://github.com/typescript-eslint/typescript-eslint/blob/main/packages/eslint-plugin/src/configs/recommended.ts
         "plugin:@typescript-eslint/recommended"  // ESLint's inbuilt "recommended" config - TypeScript-specific
-        // 'plugin:@typescript-eslint/recommended-type-checked',
+        // "plugin:@typescript-eslint/recommended-type-checked"
     ],
 
     "rules": {
@@ -42,8 +42,6 @@
         "@typescript-eslint/no-explicit-any": "off",
         "@typescript-eslint/no-extra-non-null-assertion": "off",
         "@typescript-eslint/no-var-requires": "off",
-        
-        // REVIEW: should be considered to turn on
         "@typescript-eslint/no-namespace": "off",
         
         "@typescript-eslint/ban-types": [
