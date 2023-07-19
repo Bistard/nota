@@ -391,8 +391,8 @@ export class ActionRunner extends Disposable {
         let err: Error | undefined;
         try {
             await action.run(context);
-        } catch (err: any) {
-            err = err;
+        } catch (error: any) {
+            err = error;
         }
 
         this._onDidRun.fire({ action: action, error: err });

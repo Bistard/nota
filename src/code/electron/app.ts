@@ -79,7 +79,7 @@ export class ApplicationInstance extends Disposable implements INotaInstance {
 
         // open first window
         this.openFirstWindow(appInstantiationService);
-        
+
         // post work
         this.afterFirstWindow(appInstantiationService);
     }
@@ -93,9 +93,9 @@ export class ApplicationInstance extends Disposable implements INotaInstance {
 
         // interept unexpected errors so that the error will not go back to `main.ts`
         process.on('uncaughtException', err => ErrorHandler.onUnexpectedError(err));
-		process.on('unhandledRejection', reason => ErrorHandler.onUnexpectedError(reason));
+        process.on('unhandledRejection', reason => ErrorHandler.onUnexpectedError(reason));
         ErrorHandler.setUnexpectedErrorExternalCallback(err => this.__onUnexpectedError(err));
-        
+
         electron.app.on('open-file', (event, path) => {
             this.logService.trace(`[ApplicationInstance] open-file - ${path}`);
             // REVIEW
@@ -103,8 +103,8 @@ export class ApplicationInstance extends Disposable implements INotaInstance {
 
         electron.app.on('new-window-for-tab', () => {
             // REVIEW
-			// this.mainWindowService?.open();
-		});
+            // this.mainWindowService?.open();
+        });
 
     }
 
@@ -157,7 +157,7 @@ export class ApplicationInstance extends Disposable implements INotaInstance {
 
     private openFirstWindow(provider: IServiceProvider): IWindowInstance {
         const mainWindowService = provider.getOrCreateService(IMainWindowService);
-        
+
         // life-cycle-service: READY
         this.lifecycleService.setPhase(LifecyclePhase.Ready);
 
@@ -174,7 +174,7 @@ export class ApplicationInstance extends Disposable implements INotaInstance {
                 lookupPaletteService.disable();
             }
         });
-        
+
         // retrieve last saved opened window status
         const uriToOpen: URI[] = [];
         const uri = this.statusService.get<string>(StatusKey.LastOpenedWorkspace);

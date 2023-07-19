@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 import * as chokidar from 'chokidar';
-import { Emitter, Register } from 'src/base/common/event';
+import { Emitter } from 'src/base/common/event';
 import { URI } from 'src/base/common/file/uri';
 import { ILogService } from 'src/base/common/logger';
 import { ThrottleDebouncer } from 'src/base/common/util/async';
@@ -239,7 +239,7 @@ export class WatchInstance implements IWatchInstance {
                 this.__clearMetadata();
             }
         })
-        .catch( () => {} ); /** ignores error from the debouncer when closing */
+        .catch(); /** ignores error from the debouncer when closing */
     }
 
     private __clearMetadata(): void {

@@ -905,7 +905,7 @@ export class ListView<T> extends Disposable implements ISpliceable<T>, IListView
             for (let i = range.start; i < range.end; i++) {
                 this.removeItemInDOM(i);
             }
-        };
+        }
 
         /**
          * find the rest items that was not rendered, inserting new items in DOM 

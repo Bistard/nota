@@ -228,9 +228,11 @@ export class i18n implements Ii18nService {
                 }
                 return interpolation[index]; 
             }
-        } else if (isObject(interpolation)) {
+        } 
+        else if (isObject(interpolation)) {
             get = (key: string) => { return interpolation[key]; }
-        } else {
+        } 
+        else {
             throw new Error('invalid type of interpolation, either an array of strings nor object.');
         }
 

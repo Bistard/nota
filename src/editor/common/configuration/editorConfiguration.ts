@@ -94,7 +94,7 @@ export const enum EditorOptionEnum {
     mode,
     codeblockHighlight,
     ignoreHTML,
-};
+}
 
 /**
  * The actual editor options that initially sets with all default values.
