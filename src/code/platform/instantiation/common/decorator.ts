@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/ban-types */
+
 export namespace _ServiceUtil {
     export const serviceIdentifiers = new Map<string, ServiceIdentifier<any>>();
     export const DI_TARGET = '$DI$tartget';

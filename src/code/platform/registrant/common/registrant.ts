@@ -34,7 +34,7 @@ const _registarnts = new Map<IRegistrantIdentifier<any>, any>();
  * @note `Registrant` can only be accessed through {@link REGISTRANTS}.
  */
 export function createRegistrant<T>(registrantID: RegistrantType, ...args: any[]): IRegistrantIdentifier<T> {
-    let registrantIdentifier = _identifiers.get(registrantID);
+    const registrantIdentifier = _identifiers.get(registrantID);
     
     if (registrantIdentifier) {
         return registrantIdentifier;

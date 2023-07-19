@@ -304,7 +304,7 @@ export abstract class SideView extends Component implements ISideView {
 
     protected __createTitlePart(): SideViewTitlePart {
         return new SideViewTitlePart();
-    };
+    }
 
     protected _createContent(): void {
         (<Mutable<SideViewTitlePart>>this._titlePart) = this.__createTitlePart();

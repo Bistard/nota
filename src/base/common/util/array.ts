@@ -726,7 +726,7 @@ export class PriorityQueue<T> implements IPriorityQueue<T> {
             return undefined;
         }
         
-		let item = this._heap[0];
+		const item = this._heap[0];
         this._heap[0] = this._heap[this._count - 1]!;
         this._heap.pop();
         
@@ -754,9 +754,9 @@ export class PriorityQueue<T> implements IPriorityQueue<T> {
     private shiftUp(): void {
         let index = this._count - 1;
         while (index > 0) {
-            let item = this._heap[index]!;
-            let parentIdx = Math.floor((index - 1) / 2);
-            let parent = this._heap[parentIdx]!;
+            const item = this._heap[index]!;
+            const parentIdx = Math.floor((index - 1) / 2);
+            const parent = this._heap[parentIdx]!;
             
 			if (this.comparator(item, parent) >= 0) {
                 break;
@@ -774,8 +774,8 @@ export class PriorityQueue<T> implements IPriorityQueue<T> {
         const element = this._heap[0]!;
 
         while (true) {
-            let leftChildIdx = 2 * index + 1;
-            let rightChildIdx = 2 * index + 2;
+            const leftChildIdx = 2 * index + 1;
+            const rightChildIdx = 2 * index + 2;
             
             let swapIdx: number | null = null;
 

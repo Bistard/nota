@@ -170,10 +170,10 @@ export class InstantiationService implements IInstantiationService {
         ctor: any, 
         args: any[] = []): T 
     {
-        let serviceDependencies = _ServiceUtil.getServiceDependencies(ctor).sort((a, b) => a.index  - b.index);
-        let servicesArgs: any[] = [];
+        const serviceDependencies = _ServiceUtil.getServiceDependencies(ctor).sort((a, b) => a.index  - b.index);
+        const servicesArgs: any[] = [];
         for (const dependency of serviceDependencies) {
-            let service: any = this._getOrCreateDependencyInstance(dependency.id);
+            const service: any = this._getOrCreateDependencyInstance(dependency.id);
             if (!service && !dependency.optional) {
 				throw new Error(`[createInstance] ${ctor.name} depends on UNKNOWN service ${dependency.id}.`);
 			}
@@ -186,7 +186,7 @@ export class InstantiationService implements IInstantiationService {
     }
 
     private _getOrCreateDependencyInstance<T>(id: ServiceIdentifier<T>): T {
-        let instanceOrDesc = this._getServiceInstanceOrDescriptor(id);
+        const instanceOrDesc = this._getServiceInstanceOrDescriptor(id);
         if (instanceOrDesc instanceof ServiceDescriptor) {
             return this._safeCreateAndCacheServiceInstance(id, instanceOrDesc);
         } else {
@@ -339,7 +339,7 @@ export class InstantiationService implements IInstantiationService {
 					if (key in target) {
 						return target[key];
 					}
-					let obj = idle.getValue();
+					const obj = idle.getValue();
 					let prop = obj[key];
 					if (typeof prop !== 'function') {
 						return prop;

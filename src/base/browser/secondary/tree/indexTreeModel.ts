@@ -338,7 +338,7 @@ abstract class IndexTreeModelBase<T, TFilter> implements IIndexTreeModelBase<T, 
             }
         }
 
-        let prevFilteredCount = ((node.depth > 0) ? 1 : 0) + filtered.length;
+        const prevFilteredCount = ((node.depth > 0) ? 1 : 0) + filtered.length;
         let anyChildNeedExpand = false;
         
         // filter each child
@@ -404,7 +404,7 @@ abstract class IndexTreeModelBase<T, TFilter> implements IIndexTreeModelBase<T, 
     private __hasNode(location: readonly number[], node: ITreeNode<T, TFilter> = this._root): boolean 
     {
         for (let i = 0; i < location.length; i++) {
-            let index = location[i]!;
+            const index = location[i]!;
             
             if (index < 0 || index >= node.children.length) {
                 return false;
@@ -429,7 +429,7 @@ abstract class IndexTreeModelBase<T, TFilter> implements IIndexTreeModelBase<T, 
     private __getNode(location: readonly number[], node: ITreeNode<T, TFilter> = this._root): ITreeNode<T, TFilter> | undefined 
     {
         for (let i = 0; i < location.length; i++) {
-            let index = location[i]!;
+            const index = location[i]!;
             
             if (index < 0 || index >= node.children.length) {
                 return undefined;

@@ -11,4 +11,4 @@ export function hash(s: string): number {
         h = (h << 5) - h + s.charCodeAt(--i) | 0;
     }
     return h; 
-};
+}

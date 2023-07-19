@@ -20,7 +20,7 @@ export class TextBuffer implements ITextBuffer {
         let crlf = 0;
 
         let i = 0;
-        let strlen = string.length;
+        const strlen = string.length;
         let c: number;
         for (i = 0; i < strlen; i++) {
             c = string.charCodeAt(i);

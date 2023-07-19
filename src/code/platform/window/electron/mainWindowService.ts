@@ -115,7 +115,7 @@ export class MainWindowService extends Disposable implements IMainWindowService 
 
     private doOpen(opts: IWindowCreationOptions): IWindowInstance {
         
-        let window: IWindowInstance;
+        let window: IWindowInstance = undefined!;
 
         // get openning URIs configuration
         let uriToOpenConfiguration: IUriToOpenConfiguration = Object.create(null);
@@ -238,7 +238,7 @@ namespace UriToOpenResolver {
 
     // [private helper methods]
 
-    function __parseURI(uri: URI): { resource: string, type: ToOpenType, gotoLine?: number, fail?: boolean } {
+    const __parseURI = function (uri: URI): { resource: string, type: ToOpenType, gotoLine?: number, fail?: boolean } {
         const sections = URI.toFsPath(uri).split('|');
         
         const resource = sections[0];
@@ -264,5 +264,4 @@ namespace UriToOpenResolver {
             fail: fail,
         }
     }
-
 }

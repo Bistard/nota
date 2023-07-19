@@ -943,6 +943,9 @@ class ContextKeyGreaterExpr extends ContextKeyExprBase<ContextKeyExprType.Greate
     }
 
     public evaluate(context: IReadonlyContext): boolean {
+        if (typeof this.value === 'string') {
+			return false;
+		}
         return (parseFloat(<any>context.getValue(this.key))) > this.value;
     }
 
@@ -984,6 +987,9 @@ class ContextKeyGreaterEqualExpr extends ContextKeyExprBase<ContextKeyExprType.G
     }
 
     public evaluate(context: IReadonlyContext): boolean {
+        if (typeof this.value === 'string') {
+			return false;
+		}
         return (parseFloat(<any>context.getValue(this.key))) >= this.value;
     }
 
@@ -1025,6 +1031,9 @@ class ContextKeySmallerExpr extends ContextKeyExprBase<ContextKeyExprType.Smalle
     }
 
     public evaluate(context: IReadonlyContext): boolean {
+        if (typeof this.value === 'string') {
+			return false;
+		}
         return (parseFloat(<any>context.getValue(this.key))) < this.value;
     }
 
@@ -1066,6 +1075,9 @@ class ContextKeySmallerEqualExpr extends ContextKeyExprBase<ContextKeyExprType.S
     }
 
     public evaluate(context: IReadonlyContext): boolean {
+        if (typeof this.value === 'string') {
+			return false;
+		}
         return (parseFloat(<any>context.getValue(this.key))) <= this.value;
     }
 
@@ -1093,21 +1105,22 @@ class ContextKeySmallerEqualExpr extends ContextKeyExprBase<ContextKeyExprType.S
 }
 
 export namespace ContextKeyDeserializer {
+    
     export function deserialize(serialized: string): ContextKeyExpr {
         return deserializeOR(serialized);
     }
 
-    function deserializeOR(serialized: string): ContextKeyExpr {
+    const deserializeOR = function (serialized: string): ContextKeyExpr {
         const expressions = serialized.split('||');
         return ContextKeyOrExpr.create(expressions.map(expr => deserializeAND(expr)), true);
     }
 
-    function deserializeAND(serialized: string): ContextKeyExpr {
+    const deserializeAND = function (serialized: string): ContextKeyExpr {
         const expressions = serialized.split('&&');
         return ContextKeyAndExpr.create(expressions.map(expr => __deserialize(expr)));
     }
     
-    function __deserialize(serialized: string): ContextKeyExpr {
+    const __deserialize = function (serialized: string): ContextKeyExpr {
         serialized = serialized.trim();
 
         if (serialized.indexOf('!=') >= 0) {
@@ -1150,14 +1163,14 @@ export namespace ContextKeyDeserializer {
 			return ContextKeySmallerExpr.create(key!.trim(), value!.trim());
 		}
 
-		if (/^\!\s*/.test(serialized)) {
+		if (/^!\s*/.test(serialized)) {
             return ContextKeyNotExpr.create(serialized.substring(1).trim());
 		}
 
 		return ContextKeyHasExpr.create(serialized);
     }
 
-    function __deserializeValue(serialized: string): any {
+    const __deserializeValue = function (serialized: string): any {
         serialized = serialized.trim();
 
         const value = constants.get(serialized);
@@ -1173,7 +1186,7 @@ export namespace ContextKeyDeserializer {
 		return serialized;
     }
 
-    function __deserializeRegexValue(serialized: string): RegExp {
+    const __deserializeRegexValue = function (serialized: string): RegExp {
         if (!serialized || serialized.trim().length === 0) {
             console.warn('missing regexp-value for =~-expression');
 			return new RegExp('');

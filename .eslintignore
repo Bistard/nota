@@ -1,0 +1,12 @@
+**/node_modules/**
+
+**/benchmark/**/*.js
+**/scripts/**/*.js
+
+**/dist/**/*.js
+
+**/src/**/marked.js
+**/src/**/*.d.ts
+**/src/**/preload.js
+
+**/test/**/*.test.ts

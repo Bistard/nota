@@ -44,13 +44,13 @@ function createIpcAccessible<T>(): IIpcAccessible<T> {
  * An interface only for {@link WindowInstance}.
  */
 export interface IWindowInstance extends Disposable {
-    
+
     readonly id: number;
 
     readonly browserWindow: electron.BrowserWindow;
 
     readonly onDidLoad: Register<void>;
-    
+
     readonly onDidClose: Register<void>;
 
     load(configuration: IWindowConfiguration): Promise<void>;
@@ -93,7 +93,7 @@ export class WindowInstance extends Disposable implements IWindowInstance {
         private readonly creationConfig: IWindowCreationOptions,
         @IProductService private readonly productService: IProductService,
         @ILogService private readonly logService: ILogService,
-		@IEnvironmentService private readonly environmentService: IMainEnvironmentService,
+        @IEnvironmentService private readonly environmentService: IMainEnvironmentService,
         @IFileService private readonly fileService: IFileService,
         @IMainLifecycleService private readonly lifecycleService: IMainLifecycleService,
     ) {
@@ -112,7 +112,7 @@ export class WindowInstance extends Disposable implements IWindowInstance {
 
     // [getter / setter]
 
-    get id(): number { 
+    get id(): number {
         return this._id;
     }
 
@@ -124,14 +124,14 @@ export class WindowInstance extends Disposable implements IWindowInstance {
 
     public load(configuration: IWindowConfiguration): Promise<void> {
         this.logService.trace(`[WindowInstance] [ID-${this._id}] loading...`);
-        
+
         this._configurationIpcAccessible.updateData(configuration);
 
         return this._window.loadFile(this.creationConfig.loadFile ?? DEFAULT_HTML);
     }
 
     public toggleFullScreen(force?: boolean): void {
-        
+
     }
 
     public close(): void {
@@ -156,9 +156,9 @@ export class WindowInstance extends Disposable implements IWindowInstance {
             width: displayOpts.width,
             x: displayOpts.x,
             y: displayOpts.y,
-            minHeight:  displayOpts.minHeight ?? WindowMinimumState.height,
+            minHeight: displayOpts.minHeight ?? WindowMinimumState.height,
             minWidth: displayOpts.minWidth ?? WindowMinimumState.wdith,
-            webPreferences: {                
+            webPreferences: {
                 preload: resolve(join(__dirname, 'preload.js')),
 
                 /**
@@ -169,7 +169,7 @@ export class WindowInstance extends Disposable implements IWindowInstance {
                  * Absolute path needed.
                  */
                 nodeIntegration: false,
-                
+
                 /**
                  * Context Isolation is a feature that ensures that both 
                  * your preload scripts and Electron's internal logic run in 
@@ -190,7 +190,7 @@ export class WindowInstance extends Disposable implements IWindowInstance {
                  *      --ArgName=argInString
                  */
                 additionalArguments: [`--${ArgumentKey.configuration}=${this._configurationIpcAccessible.resource}`],
-                
+
                 spellcheck: false,
                 enableWebSQL: false,
                 backgroundThrottling: false,
@@ -214,7 +214,7 @@ export class WindowInstance extends Disposable implements IWindowInstance {
             window.maximize();
             if (displayOpts.mode === WindowDisplayMode.Fullscreen) {
                 window.setSimpleFullScreen(true);
-		        window.webContents.focus();
+                window.webContents.focus();
             }
             window.show();
         }
@@ -234,9 +234,9 @@ export class WindowInstance extends Disposable implements IWindowInstance {
         // window closed
         this._window.on('closed', () => {
             this._onDidClose.fire();
-			this.dispose();
-		});
-        
+            this.dispose();
+        });
+
         this._window.on('focus', (e: Event) => {
             electron.app.emit(IpcChannel.WindowFocused, e, this._window);
         });
@@ -246,16 +246,16 @@ export class WindowInstance extends Disposable implements IWindowInstance {
         });
 
         this._window.on('maximize', (e: Event) => {
-			electron.app.emit(IpcChannel.WindowMaximized, e, this._window);
-		});
+            electron.app.emit(IpcChannel.WindowMaximized, e, this._window);
+        });
 
-		this._window.on('unmaximize', (e: Event) => {
-			electron.app.emit(IpcChannel.WindowUnmaximized, e, this._window);
-		});
+        this._window.on('unmaximize', (e: Event) => {
+            electron.app.emit(IpcChannel.WindowUnmaximized, e, this._window);
+        });
 
         this._window.webContents.on('did-finish-load', () => {
             this._onDidLoad.fire();
-		});
+        });
     }
 
     // [private helper methods]

@@ -6,4 +6,4 @@
 export const enum StatusKey {
     MachineIdKey = 'machineID',
     LastOpenedWorkspace = 'LastOpenedWorkspace',
-};
+}

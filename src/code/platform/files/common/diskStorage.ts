@@ -154,7 +154,7 @@ export class DiskStorage implements IDiskStorage {
     }
 
     public getLot<K extends PropertyKey = PropertyKey, V = any>(keys: K[], defaultVal: V[] = []): (V | undefined)[] {
-        let result: (V | undefined)[] = [];
+        const result: (V | undefined)[] = [];
         
         let i = 0;
         for (i = 0; i < keys.length; i++) {
@@ -166,17 +166,16 @@ export class DiskStorage implements IDiskStorage {
     }
 
     public async delete<K extends PropertyKey = PropertyKey>(key: K): Promise<boolean> {
-        if (this._storage[key] !== undefined) {
-            (<any>this._storage[key]) = undefined;
-            if (this.sync) {
-                return new Promise(async (resolve) => {
-                    await this.__save();
-                    resolve(true);
-                });
-            }
-            return true;
+        if (this._storage[key] === undefined) {
+            return false;
         }
-        return false;
+        
+        this._storage[key] = undefined!;
+        if (this.sync) {
+            await this.__save();
+        }
+
+        return true;
     }
 
     public has<K extends PropertyKey = PropertyKey>(key: K): boolean {
@@ -231,7 +230,8 @@ export class DiskStorage implements IDiskStorage {
         // file does not exist, try to create one and re-initialize.
         try {
             await this.fileService.writeFile(this.path, DataBuffer.alloc(0), { create: true, overwrite: false, unlock: false });
-        } catch (err) {
+        } 
+        catch (err) {
             throw err;
         }
 
@@ -258,7 +258,8 @@ export class DiskStorage implements IDiskStorage {
         try {
             this._operating = this.fileService.writeFile(this.path, DataBuffer.fromString(serialized), { create: false, overwrite: true, unlock: false });
             this._lastSaveStorage = serialized;
-        } catch (err) {
+        } 
+        catch (err) {
             throw err;
         }
 

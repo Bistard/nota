@@ -340,12 +340,12 @@ export class URI implements IURI {
 }
 
 const reviverRegistrant = REGISTRANTS.get(IReviverRegistrant);
-reviverRegistrant.registerPrototype(URI, (obj: Object) => {
-	if (obj.hasOwnProperty('scheme') && 
-		obj.hasOwnProperty('authority') && 
-		obj.hasOwnProperty('path') && 
-		obj.hasOwnProperty('query') && 
-		obj.hasOwnProperty('fragment')
+reviverRegistrant.registerPrototype(URI, (obj: unknown) => {
+	if (Object.prototype.hasOwnProperty.call(obj, 'scheme') && 
+		Object.prototype.hasOwnProperty.call(obj, 'authority') && 
+		Object.prototype.hasOwnProperty.call(obj, 'path') && 
+		Object.prototype.hasOwnProperty.call(obj, 'query') && 
+		Object.prototype.hasOwnProperty.call(obj, 'fragment')
 	) {
 		return true;
 	}
@@ -489,7 +489,9 @@ function __toString(uri: URI, skipEncoding: boolean): string {
 	const encoder = !skipEncoding ? encodeURIComponentFast : encodeURIComponentMinimal;
 
 	let res = '';
-	let { scheme, authority, path, query, fragment } = uri;
+	let { authority, path } = uri;
+	const { scheme, query, fragment } = uri;
+	
 	if (scheme) {
 		res += scheme;
 		res += ':';

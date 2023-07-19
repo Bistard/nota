@@ -283,7 +283,7 @@ export class InMemoryFileSystemProvider extends Disposable implements
 			types = [types];
 		}
 
-		let rawEvents: IRawResourceChangeEvent[] = [];
+		const rawEvents: IRawResourceChangeEvent[] = [];
 		for (const type of types) {
 			rawEvents.push({
 				resource: path, 

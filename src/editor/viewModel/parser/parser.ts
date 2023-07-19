@@ -319,7 +319,7 @@ class DocumentParseState implements IDocumentParseState, IDisposable {
         if (!mergable(previous, textNode)) {
             active.children.push(textNode);
             return;
-        };
+        }
 
         if (!previous.text || !textNode.text) {
             active.children[lastIdx] = (previous.text) ? previous : textNode;

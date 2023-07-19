@@ -1,0 +1,63 @@
+/** 
+ * eslint environment configuration
+ */
+{
+    
+    // indicates this is the root directory
+    "root": true,
+    
+    "env": {
+        "node": true // configure ESLint for Node.js
+    },
+
+    // tells ESLint to use the given package to parse the source files
+    "parser": "@typescript-eslint/parser",
+    
+    "parserOptions": {
+        "project": true,
+        "tsconfigRootDir": "__dirname"
+    },
+
+    /**
+     * Tells ESLint to load the given packages as a plugin, this allows us to 
+     * use typescript-eslint's rules within the codebase.
+     */
+    "plugins": [
+        "@typescript-eslint"
+    ],
+
+    // tells ESLint that this configuration extends the given configurations
+    "extends": [
+        "eslint:recommended",                    // ESLint's inbuilt "recommended" config - https://github.com/typescript-eslint/typescript-eslint/blob/main/packages/eslint-plugin/src/configs/recommended.ts
+        "plugin:@typescript-eslint/recommended"  // ESLint's inbuilt "recommended" config - TypeScript-specific
+        // "plugin:@typescript-eslint/recommended-type-checked"
+    ],
+
+    "rules": {
+        
+        "no-empty": "off",
+        "no-constant-condition": "off",
+        "no-useless-catch": "warn",
+
+        "@typescript-eslint/no-explicit-any": "off",
+        "@typescript-eslint/no-extra-non-null-assertion": "off",
+        "@typescript-eslint/no-var-requires": "off",
+        "@typescript-eslint/no-namespace": "off",
+        
+        "@typescript-eslint/ban-types": [
+            "error", {
+                "types": {
+                    "{}": false
+                }
+            }
+        ],
+        
+        "@typescript-eslint/no-unused-vars": "warn",
+        "@typescript-eslint/no-empty-interface": "warn",
+        "@typescript-eslint/no-empty-function": "warn"
+    },
+
+    "overrides": [
+
+    ]
+}
