@@ -943,6 +943,9 @@ class ContextKeyGreaterExpr extends ContextKeyExprBase<ContextKeyExprType.Greate
     }
 
     public evaluate(context: IReadonlyContext): boolean {
+        if (typeof this.value === 'string') {
+			return false;
+		}
         return (parseFloat(<any>context.getValue(this.key))) > this.value;
     }
 
@@ -984,6 +987,9 @@ class ContextKeyGreaterEqualExpr extends ContextKeyExprBase<ContextKeyExprType.G
     }
 
     public evaluate(context: IReadonlyContext): boolean {
+        if (typeof this.value === 'string') {
+			return false;
+		}
         return (parseFloat(<any>context.getValue(this.key))) >= this.value;
     }
 
@@ -1025,6 +1031,9 @@ class ContextKeySmallerExpr extends ContextKeyExprBase<ContextKeyExprType.Smalle
     }
 
     public evaluate(context: IReadonlyContext): boolean {
+        if (typeof this.value === 'string') {
+			return false;
+		}
         return (parseFloat(<any>context.getValue(this.key))) < this.value;
     }
 
@@ -1066,6 +1075,9 @@ class ContextKeySmallerEqualExpr extends ContextKeyExprBase<ContextKeyExprType.S
     }
 
     public evaluate(context: IReadonlyContext): boolean {
+        if (typeof this.value === 'string') {
+			return false;
+		}
         return (parseFloat(<any>context.getValue(this.key))) <= this.value;
     }
 
