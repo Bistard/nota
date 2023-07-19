@@ -1,5 +1,6 @@
 import { ErrorHandler } from "src/base/common/error";
 import { DataBuffer } from "src/base/common/file/buffer";
+import { Callable } from "src/base/common/util/type";
 
 export interface IReadable<T> {
 	read(): T | undefined;
@@ -44,7 +45,7 @@ export interface IReadableStream<T> extends IReadableStreamEvent<T> {
 	destroy(): void;
 
 	/** Allows to remove a listener that was previously added. */
-	removeListener(event: string, callback: () => void): void;
+	removeListener(event: string, callback: Callable<any[], any>): void;
 }
 
 export interface IWriteableStream<T> extends IReadableStream<T> {
@@ -245,7 +246,7 @@ export class WriteableStream<T> implements IWriteableStream<T> {
 		}
     }
 
-	public removeListener(event: string, listener: () => void): void {
+	public removeListener(event: string, listener: Callable<any[], any>): void {
 		if (this.state.destroyed) {
 			return;
 		}
