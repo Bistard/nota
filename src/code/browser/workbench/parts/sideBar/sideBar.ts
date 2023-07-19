@@ -193,7 +193,7 @@ export class SideBar extends Component implements ISideBarService {
     private __buttonClick(buttonType: string): void {
 
         const button = this.getButton(buttonType)!;
-        let previousType = this._currButtonType;
+        const previousType = this._currButtonType;
 
         // has not been rendered yet.
         if (button.element === undefined) {

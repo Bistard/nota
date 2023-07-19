@@ -340,12 +340,12 @@ export class URI implements IURI {
 }
 
 const reviverRegistrant = REGISTRANTS.get(IReviverRegistrant);
-reviverRegistrant.registerPrototype(URI, (obj: Object) => {
-	if (obj.hasOwnProperty('scheme') && 
-		obj.hasOwnProperty('authority') && 
-		obj.hasOwnProperty('path') && 
-		obj.hasOwnProperty('query') && 
-		obj.hasOwnProperty('fragment')
+reviverRegistrant.registerPrototype(URI, (obj: unknown) => {
+	if (Object.prototype.hasOwnProperty.call(obj, 'scheme') && 
+		Object.prototype.hasOwnProperty.call(obj, 'authority') && 
+		Object.prototype.hasOwnProperty.call(obj, 'path') && 
+		Object.prototype.hasOwnProperty.call(obj, 'query') && 
+		Object.prototype.hasOwnProperty.call(obj, 'fragment')
 	) {
 		return true;
 	}

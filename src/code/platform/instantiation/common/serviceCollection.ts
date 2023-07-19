@@ -7,7 +7,7 @@ export class ServiceCollection {
     private readonly _services: Map<ServiceIdentifier<any>, any> = new Map();
 
     constructor(...services: [ServiceIdentifier<any>, any][]) {
-        for (let [id, service] of services) {
+        for (const [id, service] of services) {
             this.set(id, service);
         }
     }

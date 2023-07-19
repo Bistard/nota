@@ -280,7 +280,7 @@ export class PieceTable implements IPieceTable {
         
         let bufferIndex = 1;
         let i = 0;
-        let strlen = chunks.length;
+        const strlen = chunks.length;
         let node = NULL_NODE;
         for (i = 0; i < strlen; i++) {
             const { buffer, linestart } = chunks[i]!;
@@ -324,7 +324,7 @@ export class PieceTable implements IPieceTable {
         if (this._root === NULL_NODE) {
             const pieces = this.__createNewPieces(text);
             let node = NULL_NODE;
-            for (let piece of pieces) {
+            for (const piece of pieces) {
                 node = this.__insertAsSuccessor(node, piece);
             }
         }
@@ -1109,8 +1109,7 @@ export class PieceTable implements IPieceTable {
      * @description Deletes all the {@link PieceNode}s from the tree.
      */
     private __deleteNodes(nodes: PieceNode[]): void {
-        let i = 0, length = nodes.length;
-        for (i = 0; i < length; i++) {
+        for (let i = 0; i < nodes.length; i++) {
             this.__deleteNode(nodes[i]!);
         }
     }

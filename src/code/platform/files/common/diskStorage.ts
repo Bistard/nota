@@ -154,7 +154,7 @@ export class DiskStorage implements IDiskStorage {
     }
 
     public getLot<K extends PropertyKey = PropertyKey, V = any>(keys: K[], defaultVal: V[] = []): (V | undefined)[] {
-        let result: (V | undefined)[] = [];
+        const result: (V | undefined)[] = [];
         
         let i = 0;
         for (i = 0; i < keys.length; i++) {

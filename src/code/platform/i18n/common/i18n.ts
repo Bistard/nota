@@ -20,7 +20,7 @@ export const enum LanguageType {
     ['en']    = 'en',      // English
     ['zh-cn'] ='zh-cn',    // Chinese (Simplified)
     ['zh-tw'] = 'zh-tw',   // Chinese (Traditional)
-};
+}
 
 type Ii18nSection = { [key: string]: string };
 

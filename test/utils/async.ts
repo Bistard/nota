@@ -180,7 +180,7 @@ namespace FakeGlobalAsync {
         
             let disposed = false;
         
-            function onSchedule(): void {
+            const onSchedule = function () {
                 const thisIterCount = iterCount++;
                 
                 _onTask.fire({
@@ -188,7 +188,7 @@ namespace FakeGlobalAsync {
                     run: () => {
                         if (!disposed) {
                             onSchedule();
-                            (<Function>handler)();
+                            handler();
                         }
                     },
                     source: {

@@ -262,7 +262,7 @@ export class EditorWidget extends Disposable implements IEditorWidgetFriendship 
     }
 
     private __saveEditorOptions(): void {
-        let option: IEditorWidgetOptions = {};
+        const option: IEditorWidgetOptions = {};
         for (const [key, value] of Object.entries(this._options)) {
             option[key] = value.value;
         }

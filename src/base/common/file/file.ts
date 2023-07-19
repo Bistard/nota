@@ -180,14 +180,14 @@ export interface IOpenFileOptions {
 	 * false: file should be opened for reading.
 	 * true:file should be opened for reading and writing.
 	 */
-	 readonly create: boolean;
+	readonly create: boolean;
 
 	/**
 	 * Set to `true` to try to remove any write locks the file might
 	 * have. A file that is write locked will throw an error for any
 	 * attempt to write to unless `unlock: true` is provided.
 	 */
-	 readonly unlock?: boolean;
+	readonly unlock?: boolean;
 }
 
 export interface IReadFileOptions {
@@ -217,7 +217,7 @@ export interface IOverwriteFileOptions {
 	 * Set to `true` to overwrite a file if it exists. Will
 	 * throw an error otherwise if the file does exist.
 	 */
-	 readonly overwrite?: boolean;
+	readonly overwrite?: boolean;
 }
 
 export interface ICreateFileOptions extends Partial<IOverwriteFileOptions> {}
@@ -229,7 +229,7 @@ export interface IWriteFileOptions extends IOverwriteFileOptions {
 	 */
 	readonly create: boolean;
 
-	 /**
+	/**
 	 * Set to `true` to try to remove any write locks the file might
 	 * have. A file that is write locked will throw an error for any
 	 * attempt to write to unless `unlock: true` is provided.
@@ -243,14 +243,14 @@ export interface IDeleteFileOptions {
 	 * only applies to folders and can lead to an error unless provided
 	 * if the folder is not empty.
 	 */
-	 readonly recursive?: boolean;
+	readonly recursive?: boolean;
 
-	 /**
-	  * Set to `true` to attempt to move the file to trash
-	  * instead of deleting it permanently from disk. This
-	  * option maybe not be supported on all providers.
-	  */
-	 readonly useTrash?: boolean;
+	/**
+	 * Set to `true` to attempt to move the file to trash
+	 * instead of deleting it permanently from disk. This
+	 * option maybe not be supported on all providers.
+	 */
+	readonly useTrash?: boolean;
 }
 
 export interface ICreateReadStreamOptions extends IReadFileOptions {

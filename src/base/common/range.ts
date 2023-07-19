@@ -143,7 +143,7 @@ export namespace Range {
 	export function listIntersection(range: IRange, rangeLists: IRangeList[]): IRangeList[] {
 		const intersects: IRangeList[] = [];
 
-		for (let list of rangeLists) {
+		for (const list of rangeLists) {
 			const intersect = Range.intersection(range, list.range);
 
 			if (Range.empty(intersect)) {
@@ -168,7 +168,7 @@ export namespace Range {
 		const flatten: IRangeList[] = [];
 		let prevList: IRangeList | null = null;
 
-		for (let list of lists) {
+		for (const list of lists) {
 			const start = list.range.start;
 			const end = list.range.end;
 			const size = list.size;
@@ -228,7 +228,6 @@ export class RangeTable {
 		if (len === 0) {
 			return 0;
 		}
-
 		return this._list[len - 1]!.range.end;
 	}
 
@@ -283,7 +282,7 @@ export class RangeTable {
 		let index = 0;
 		let size = 0;
 
-		for (let list of this._list) {
+		for (const list of this._list) {
 			const count = list.range.end - list.range.start;
 			const nextSize = size + (count * list.size);
 
@@ -321,7 +320,7 @@ export class RangeTable {
 		let position = 0;
 		let count = 0;
 
-		for (let list of this._list) {
+		for (const list of this._list) {
 			const listCount = list.range.end - list.range.start;
 			const nextCount = count + listCount;
 
