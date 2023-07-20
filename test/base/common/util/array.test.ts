@@ -176,7 +176,7 @@ suite('array-test', () => {
                 }
             };
             assert.strictEqual(isNumber(Arrays.binarySearch(arr, match)), expectResult, `array: [${arr}], searchFor: ${expect}, expectResult: ${expectResult}`);
-        };
+        }
 
         function bsArr(arr: number[]) {
             if (arr.length === 0) {
@@ -191,7 +191,7 @@ suite('array-test', () => {
                 const existed = !(arr.indexOf(num) === -1);
                 bs(arr, num, existed);
             }
-        };
+        }
 
         bsArr([]);
         bsArr([1]);
@@ -210,7 +210,7 @@ suite('deque-test', () => {
             arr.push(ele);
         }
         return arr;
-    }
+    };
 
     test('constructor', () => {
         const deq = new Deque<number>([1, 2, 3]);

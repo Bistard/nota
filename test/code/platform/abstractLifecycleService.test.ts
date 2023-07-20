@@ -21,13 +21,13 @@ suite('abstract-lifecycle-service-test', () => {
         public override async quit(): Promise<void> {
             this.isQuit = true;
         }
-    };
+    }
 
     test('setPhase / when', async () => {
 
         const service = new TestLifecycleService();
 
-        let currPhase: TestPhase[] = [];
+        const currPhase: TestPhase[] = [];
         service.when(TestPhase.Phase1).then(() => currPhase.push(TestPhase.Phase1));
 
         service.setPhase(TestPhase.Phase1);

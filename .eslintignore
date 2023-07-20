@@ -5,8 +5,5 @@
 
 **/dist/**/*.js
 
-**/src/**/marked.js
+**/src/**/*.js
 **/src/**/*.d.ts
-**/src/**/preload.js
-
-**/test/**/*.test.ts

@@ -41,7 +41,7 @@ suite('color-test', () => {
     });
 
     test('RGBA - toString', () => {
-        let color = new RGBA(255, 125, 30, 0.5);
+        const color = new RGBA(255, 125, 30, 0.5);
         assert.strictEqual(color.toString(), 'rgb(255,125,30,0.5)');
     });
 

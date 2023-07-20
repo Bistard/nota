@@ -8,7 +8,7 @@ import { Scrollable } from 'src/base/common/scrollable';
 
 suite('Scrollable-test', () => {
 	test('inflates slider size', () => {
-		let actual = new Scrollable(14, 339, 42423, 32787);
+		const actual = new Scrollable(14, 339, 42423, 32787);
 
 		assert.strictEqual(actual.getScrollPosition(), 32787);
 		assert.strictEqual(actual.getViewportSize(), 339);

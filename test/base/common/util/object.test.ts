@@ -65,7 +65,7 @@ suite('object-test', () => {
 
         const getArr = () => {
             return [1, 2, [3, 4, [5, [6, [], [7, [8]]]]], 9];
-        }
+        };
         
         const obj = getObj();
         const copy1 = deepCopy(obj);

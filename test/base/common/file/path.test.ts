@@ -150,6 +150,7 @@ suite('path-test (Node Implementation)', () => {
 			}
 			test[0].forEach((join: any) => {
 				test[1].forEach((test: any) => {
+					// eslint-disable-next-line prefer-spread
 					const actual = join.apply(null, test[0]);
 					const expected = test[1];
 					// For non-Windows specific tests with the Windows join(), we need to try
@@ -395,9 +396,10 @@ suite('path-test (Node Implementation)', () => {
 		];
 		resolveTests.forEach((test) => {
 			const resolve = test[0];
-			//@ts-expect-error
+			//@ts-expect-error: TBD
 			test[1].forEach((test) => {
-				//@ts-expect-error
+				//@ts-expect-error: TBD
+				// eslint-disable-next-line prefer-spread
 				const actual = resolve.apply(null, test[0]);
 				let actualAlt;
 				const os = resolve === path.win32.resolve ? 'win32' : 'posix';
@@ -572,9 +574,9 @@ suite('path-test (Node Implementation)', () => {
 		];
 		relativeTests.forEach((test) => {
 			const relative = test[0];
-			//@ts-expect-error
+			//@ts-expect-error: TBD
 			test[1].forEach((test) => {
-				//@ts-expect-error
+				//@ts-expect-error: TBD
 				const actual = relative(test[0], test[1]);
 				const expected = test[2];
 				const os = relative === path.win32.relative ? 'win32' : 'posix';

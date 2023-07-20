@@ -23,7 +23,7 @@ suite('json-test', function () {
             test('deprecatedMessage', () => {
                 const schema: IJsonSchema = { type: 'string', regexp: '^[a-z]+$', deprecatedMessage: 'The setting is deprecated', deprecated: true };
                 
-                let result = JsonSchemaValidator.validate('Testing', schema);
+                const result = JsonSchemaValidator.validate('Testing', schema);
                 assert.ok(!result.valid);
                 assert.strictEqual(result.deprecatedMessage, 'The setting is deprecated');
             });
@@ -31,7 +31,7 @@ suite('json-test', function () {
             test('default value if data is not provided', () => {
                 const schema: IJsonSchema = { type: 'string', regexp: '^[a-z]+$', default: 'testing', errorMessage: 'The string must be valid 26 characters' };
                 
-                let result = JsonSchemaValidator.validate(undefined, schema);
+                const result = JsonSchemaValidator.validate(undefined, schema);
                 assert.ok(!result.valid);
                 assert.strictEqual(result.errorMessage, 'The string must be valid 26 characters');
                 assert.strictEqual(result.schema?.default, 'testing');
@@ -51,7 +51,7 @@ suite('json-test', function () {
             });
     
             test('Null value in string field', function () {
-                let result = JsonSchemaValidator.validate(null, schema1);
+                const result = JsonSchemaValidator.validate(null, schema1);
                 assert.ok(!result.valid);
             });
 
@@ -129,12 +129,12 @@ suite('json-test', function () {
             });
 
             test('String instead of boolean', function () {
-                let result = JsonSchemaValidator.validate("true", schema);
+                const result = JsonSchemaValidator.validate("true", schema);
                 assert.ok(!result.valid);
             });
     
             test('Number instead of boolean', function () {
-                let result = JsonSchemaValidator.validate(1, schema);
+                const result = JsonSchemaValidator.validate(1, schema);
                 assert.ok(!result.valid);
             });
         });
@@ -143,17 +143,17 @@ suite('json-test', function () {
             const schema: IJsonSchema = { type: 'null' };
     
             test('basics', function () {
-                let result = JsonSchemaValidator.validate(null, schema);
+                const result = JsonSchemaValidator.validate(null, schema);
                 assert.ok(result.valid);
             });
 
             test('Zero instead of null', function () {
-                let result = JsonSchemaValidator.validate(0, schema);
+                const result = JsonSchemaValidator.validate(0, schema);
                 assert.ok(!result.valid);
             });
     
             test('Empty string instead of null', function () {
-                let result = JsonSchemaValidator.validate('', schema);
+                const result = JsonSchemaValidator.validate('', schema);
                 assert.ok(!result.valid);
             });
         });
@@ -239,12 +239,12 @@ suite('json-test', function () {
             schema3.maxProperties = 5;
     
             test('Object with null value in nullable field', function () {
-                let result = JsonSchemaValidator.validate({ name: 'John', age: null }, schema1);
+                const result = JsonSchemaValidator.validate({ name: 'John', age: null }, schema1);
                 assert.ok(!result.valid);
             });
     
             test('Object with missing non-required field', function () {
-                let result = JsonSchemaValidator.validate({ name: 'John' }, schema1);
+                const result = JsonSchemaValidator.validate({ name: 'John' }, schema1);
                 assert.ok(result.valid);
             });
     
@@ -301,7 +301,7 @@ suite('json-test', function () {
                 const schema = deepCopy(baseSchema);
                 schema.additionalProperties = true;
 
-                let result = JsonSchemaValidator.validate({ name: 'John', age: 25, extra: 'extra' }, schema);
+                const result = JsonSchemaValidator.validate({ name: 'John', age: 25, extra: 'extra' }, schema);
                 assert.ok(result.valid);
             });
             

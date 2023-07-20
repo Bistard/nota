@@ -13,7 +13,7 @@ suite('stream-test', () => {
     test('bufferWriteableStream - basics (no error)', () => {
 		const stream = newWriteableBufferStream();
 
-		let chunks: DataBuffer[] = [];
+		const chunks: DataBuffer[] = [];
 		stream.on('data', data => {
 			chunks.push(data);
 		});
@@ -23,7 +23,7 @@ suite('stream-test', () => {
 			ended = true;
 		});
 
-		let errors: Error[] = [];
+		const errors: Error[] = [];
 		stream.on('error', error => {
 			errors.push(error);
 		});
@@ -41,7 +41,7 @@ suite('stream-test', () => {
     test('bufferWriteableStream - basics (error)', () => {
 		const stream = newWriteableBufferStream();
 
-		let chunks: DataBuffer[] = [];
+		const chunks: DataBuffer[] = [];
 		stream.on('data', data => {
 			chunks.push(data);
 		});
@@ -51,7 +51,7 @@ suite('stream-test', () => {
 			ended = true;
 		});
 
-		let errors: Error[] = [];
+		const errors: Error[] = [];
 		stream.on('error', error => {
 			errors.push(error);
 		});
@@ -72,7 +72,7 @@ suite('stream-test', () => {
 		stream.write(DataBuffer.fromString('Hello'));
 		stream.end(DataBuffer.fromString('World'));
 
-		let chunks: DataBuffer[] = [];
+		const chunks: DataBuffer[] = [];
 		stream.on('data', data => {
 			chunks.push(data);
 		});
@@ -82,7 +82,7 @@ suite('stream-test', () => {
 			ended = true;
 		});
 
-		let errors: Error[] = [];
+		const errors: Error[] = [];
 		stream.on('error', error => {
 			errors.push(error);
 		});
@@ -99,12 +99,12 @@ suite('stream-test', () => {
 		stream.write(DataBuffer.fromString('Hello'));
 		stream.error(new Error());
 
-		let chunks: DataBuffer[] = [];
+		const chunks: DataBuffer[] = [];
 		stream.on('data', data => {
 			chunks.push(data);
 		});
 
-		let errors: Error[] = [];
+		const errors: Error[] = [];
 		stream.on('error', error => {
 			errors.push(error);
 		});
@@ -133,12 +133,12 @@ suite('stream-test', () => {
 			ended = true;
 		});
 
-		let chunks: DataBuffer[] = [];
+		const chunks: DataBuffer[] = [];
 		stream.on('data', data => {
 			chunks.push(data);
 		});
 
-		let errors: Error[] = [];
+		const errors: Error[] = [];
 		stream.on('error', error => {
 			errors.push(error);
 		});
@@ -152,7 +152,7 @@ suite('stream-test', () => {
 	test('bufferWriteableStream - nothing happens after end()', () => {
 		const stream = newWriteableBufferStream();
 
-		let chunks: DataBuffer[] = [];
+		const chunks: DataBuffer[] = [];
 		stream.on('data', data => {
 			chunks.push(data);
 		});
@@ -191,7 +191,7 @@ suite('stream-test', () => {
 	test('bufferWriteableStream - pause/resume (simple)', () => {
 		const stream = newWriteableBufferStream();
 
-		let chunks: DataBuffer[] = [];
+		const chunks: DataBuffer[] = [];
 		stream.on('data', data => {
 			chunks.push(data);
 		});
@@ -201,7 +201,7 @@ suite('stream-test', () => {
 			ended = true;
 		});
 
-		let errors: Error[] = [];
+		const errors: Error[] = [];
 		stream.on('error', error => {
 			errors.push(error);
 		});
@@ -226,7 +226,7 @@ suite('stream-test', () => {
 	test('bufferWriteableStream - pause/resume (pause after first write)', () => {
 		const stream = newWriteableBufferStream();
 
-		let chunks: DataBuffer[] = [];
+		const chunks: DataBuffer[] = [];
 		stream.on('data', data => {
 			chunks.push(data);
 		});
@@ -236,7 +236,7 @@ suite('stream-test', () => {
 			ended = true;
 		});
 
-		let errors: Error[] = [];
+		const errors: Error[] = [];
 		stream.on('error', error => {
 			errors.push(error);
 		});
@@ -264,7 +264,7 @@ suite('stream-test', () => {
 	test('bufferWriteableStream - pause/resume (error)', () => {
 		const stream = newWriteableBufferStream();
 
-		let chunks: DataBuffer[] = [];
+		const chunks: DataBuffer[] = [];
 		stream.on('data', data => {
 			chunks.push(data);
 		});
@@ -274,7 +274,7 @@ suite('stream-test', () => {
 			ended = true;
 		});
 
-		let errors: Error[] = [];
+		const errors: Error[] = [];
 		stream.on('error', error => {
 			errors.push(error);
 		});
@@ -300,7 +300,7 @@ suite('stream-test', () => {
 	test('bufferWriteableStream - destroy', () => {
 		const stream = newWriteableBufferStream();
 
-		let chunks: DataBuffer[] = [];
+		const chunks: DataBuffer[] = [];
 		stream.on('data', data => {
 			chunks.push(data);
 		});
@@ -310,7 +310,7 @@ suite('stream-test', () => {
 			ended = true;
 		});
 
-		let errors: Error[] = [];
+		const errors: Error[] = [];
 		stream.on('error', error => {
 			errors.push(error);
 		});

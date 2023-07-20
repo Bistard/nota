@@ -32,7 +32,7 @@ suite('command-test', () => {
     const executor: ICommandExecutor = (provider: IServiceProvider, num: number): number => {
         const testService = provider.getOrCreateService(ITestService);
         return testService.foo(num);
-    } 
+    }; 
 
     setup(() => {
         instantiationService = new InstantiationService();
@@ -60,6 +60,6 @@ suite('command-test', () => {
         const result = await commandService.executeCommand<number>(id, 100); 
         assert.strictEqual(100, testService.num);
         assert.strictEqual(100, result);
-    })
+    });
     
 });

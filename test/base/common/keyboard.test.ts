@@ -98,7 +98,7 @@ suite('keyboard-test', () => {
                 const hashcode = shortcut.toHashcode();
                 const converted = Shortcut.fromHashcode(hashcode, PLATFORM);
                 assert.ok(converted.equal(shortcut));
-            }
+            };
 
             testHash(new Shortcut(false, false, false, false, KeyCode.Digit9));
             testHash(new Shortcut(true, false, false, false, KeyCode.Digit6));

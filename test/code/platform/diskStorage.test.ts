@@ -159,7 +159,7 @@ suite('storage-test', () => {
 
         await storage.save();
 
-        let contents = (await fileService.readFile(path)).toString();
+        const contents = (await fileService.readFile(path)).toString();
 		assert.strictEqual(contents.length > 0, true);
     }));
 
@@ -172,7 +172,7 @@ suite('storage-test', () => {
 		await storage.set('key3', 'value3');
 		await storage.set('key4', 'value4');
 
-        let contents = (await fileService.readFile(path)).toString();
+        const contents = (await fileService.readFile(path)).toString();
 		assert.strictEqual(contents.length > 0, true);
     }));
 });
