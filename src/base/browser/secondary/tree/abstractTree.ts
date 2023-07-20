@@ -115,7 +115,7 @@ class TreeTrait<T> {
 
     public get(): T[] {
         if (!this._nodesDataCache) {
-            let cache: T[] = [];
+            const cache: T[] = [];
             this._nodes.forEach(node => cache.push(node.data));
             this._nodesDataCache = cache;
         }

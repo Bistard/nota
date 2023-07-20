@@ -138,7 +138,7 @@ suite('AsyncTree-test', () => {
         assert.strictEqual(node3.visible, true);
         assert.strictEqual(node3.children.length, 2);
         
-        let node8 = tree.getNode(8);
+        const node8 = tree.getNode(8);
         assert.strictEqual(node8.data, 8);
         assert.strictEqual(node8.depth, 2);
         assert.strictEqual(node8.collapsible, true);
@@ -147,7 +147,7 @@ suite('AsyncTree-test', () => {
         assert.strictEqual(node8.visible, true);
         assert.strictEqual(node8.children.length, 4);
 
-        let node9 = tree.getNode(9);
+        const node9 = tree.getNode(9);
         assert.strictEqual(node9.data, 9);
         assert.strictEqual(node9.depth, 3);
         assert.strictEqual(node9.collapsible, false);
@@ -156,7 +156,7 @@ suite('AsyncTree-test', () => {
         assert.strictEqual(node9.visible, true);
         assert.strictEqual(node9.children.length, 0);
         
-        let node10 = tree.getNode(10);
+        const node10 = tree.getNode(10);
         assert.strictEqual(node10.data, 10);
         assert.strictEqual(node10.depth, 3);
         assert.strictEqual(node10.collapsible, false);
@@ -165,7 +165,7 @@ suite('AsyncTree-test', () => {
         assert.strictEqual(node10.visible, true);
         assert.strictEqual(node10.children.length, 0);
 
-        let node11 = tree.getNode(11);
+        const node11 = tree.getNode(11);
         assert.strictEqual(node11.data, 11);
         assert.strictEqual(node11.depth, 3);
         assert.strictEqual(node11.collapsible, false);
@@ -174,7 +174,7 @@ suite('AsyncTree-test', () => {
         assert.strictEqual(node11.visible, true);
         assert.strictEqual(node11.children.length, 0);
 
-        let node12 = tree.getNode(12);
+        const node12 = tree.getNode(12);
         assert.strictEqual(node12.data, 12);
         assert.strictEqual(node12.depth, 3);
         assert.strictEqual(node12.collapsible, false);
@@ -190,7 +190,7 @@ suite('AsyncTree-test', () => {
 
         assert.strictEqual(tree.size(), 10);
 
-        let node1 = tree.getNode(1);
+        const node1 = tree.getNode(1);
         assert.strictEqual(node1.data, 1);
         assert.strictEqual(node1.depth, 1);
         assert.strictEqual(node1.collapsible, false);
@@ -324,7 +324,7 @@ suite('AsyncTree-test', () => {
                 },
                 collapsedByDefault: false,
                 childrenProvider: {
-                    getChildren: (item) => Array.isArray(item) ? item : [] as any,
+                    getChildren: (item) => Array.isArray(item) ? item : [],
                     hasChildren: (item) => Array.isArray(item),
                     collapseByDefault: () => false,
                 },

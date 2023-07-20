@@ -14,7 +14,7 @@ suite('ternarySearchTree-test', () => {
                 return false;
             }
             return nodeBalanced(node.left) && nodeBalanced(node.right);
-        }
+        };
         return nodeBalanced(tree.getRoot());
     }
 
@@ -24,7 +24,7 @@ suite('ternarySearchTree-test', () => {
 
         let i = 0;
 
-    	// iterator not tested yet, just confirming input
+		// iterator not tested yet, just confirming input
         for (const [key, value] of tree) {
             const expected = items[i++];
             assert.ok(expected);
@@ -44,7 +44,7 @@ suite('ternarySearchTree-test', () => {
         map.forEach((value: E, key: string): void => {
             assert.ok(tree.has(key));
             assert.strictEqual(value, tree.get(key));
-        })
+        });
 
         // foreach and iterator
         let count = 0;
@@ -88,7 +88,7 @@ suite('ternarySearchTree-test', () => {
 			assert.strictEqual(iter.currItem(), 's');
 			assert.strictEqual(iter.hasNext(), false);
 			
-			iter.next()
+			iter.next();
 			assert.strictEqual(iter.currItem(), undefined);
 	
 			iter.reset('hello');
@@ -237,7 +237,7 @@ suite('ternarySearchTree-test', () => {
 
 		test('fill & clear', () => {
 			const input: [string, number][] = [['foo', 0], ['bar', 1], ['bang', 2], ['bazz', 3]];
-			let tree = CreateTernarySearchTree.forStringKeys();
+			const tree = CreateTernarySearchTree.forStringKeys();
 			tree.seed = 0;
 
 			tree.fill(input);
@@ -251,7 +251,7 @@ suite('ternarySearchTree-test', () => {
 		});
 	
 		test('size', () => {
-			let tree = CreateTernarySearchTree.forStringKeys();
+			const tree = CreateTernarySearchTree.forStringKeys();
 			tree.seed = 0;
 
 			tree.fill([['foo', 0], ['bar', 1], ['bang', 2], ['bazz', 3]]);
@@ -265,7 +265,7 @@ suite('ternarySearchTree-test', () => {
 			assert.strictEqual(tree.size(), 2);
 			tree.clear();
 			assert.strictEqual(tree.size(), 0);
-		})
+		});
 	
 		test('findSubStrOf', function () {
 	
@@ -380,7 +380,7 @@ suite('ternarySearchTree-test', () => {
 		});
 
 		test('delete', () => {
-			let tree = new TernarySearchTree<URI, number>(new UriIterator(false));
+			const tree = new TernarySearchTree<URI, number>(new UriIterator(false));
 			tree.set(URI.parse('http://foo.bar/user/foo/bar'), 1);
 			tree.set(URI.parse('http://foo.bar/user/foo?query'), 2);
 			tree.set(URI.parse('http://foo.bar/user/foo?QUERY'), 3);
@@ -394,7 +394,7 @@ suite('ternarySearchTree-test', () => {
 		});
 	
 		test('fill & clear', () => {
-			let tree = new TernarySearchTree<URI, number>(new UriIterator(false));
+			const tree = new TernarySearchTree<URI, number>(new UriIterator(false));
 			tree.seed = 0;
 			tree.fill([
 				[URI.parse('http://foo.bar/user/foo/bar'), 1],
@@ -415,7 +415,7 @@ suite('ternarySearchTree-test', () => {
 		});
 
 		test('size', () => {
-			let tree = CreateTernarySearchTree.forUriKeys();
+			const tree = CreateTernarySearchTree.forUriKeys();
 			tree.seed = 0;
 
 			tree.fill([
@@ -507,4 +507,4 @@ suite('ternarySearchTree-test', () => {
 			assert.strictEqual(tree.findSuperStrOf(URI.fromFile('/userr')), undefined);
 		});
 	});
-})
+});

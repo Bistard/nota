@@ -44,6 +44,24 @@ export type CompareFn<T> = (a: T, b: T) => number;
 export type NonUndefined = {} | null;
 
 /**
+ * This is a generic utility type that describes a callable function.
+ * @template TArguments - An array tuple type representing the expected types of the function's arguments.
+ *                        The default is `void[]`, which means the function takes no arguments.
+ * @template TReturnType - The expected return type of the function.
+ *                         The default is `void`, which means the function does not return anything.
+ *
+ * @example
+ * const log: Callable<[message: string]> = message => console.log(message);
+ * log("Hello, World!");  // Correct usage
+ * log(42);  // Type Error: number is not assignable to string
+ *
+ * const add: Callable<[number, number], number> = (a, b) => a + b;
+ * add(1, 2);  // 3
+ * add("1", "2");  // Type Error: string is not assignable to number
+ */
+export type Callable<TArguments extends unknown[] = void[], TReturnType = void> = (...args: TArguments) => TReturnType;
+
+/**
  * Accepts condition C, a truthy return type T, and a falsy return type F.
  */
 export type If<C, T, F> = C extends boolean ? (C extends true ? T : F) : never;
@@ -126,7 +144,7 @@ export type NestedArray<T> = (T | NestedArray<T>)[];
  * make every parameter of an object and its sub-objects recursively as readonly.
  */
 export type DeepReadonly<Mutable> =
-    Mutable extends Function
+    Mutable extends Callable<any[], any>
         ? Mutable
         : Mutable extends (infer R)[]
             ? ReadonlyArray<DeepReadonly<R>>
@@ -141,7 +159,7 @@ export type DeepReadonly<Mutable> =
  */
 export type Mutable<Immutable> = {
     -readonly [P in keyof Immutable]: Immutable[P]
-}
+};
 
 /**
  * Make all the properties mutable recursively (remove readonly).
@@ -155,7 +173,7 @@ export type DeepMutable<Immutable> = {
                 : Immutable[TKey] extends object 
                     ? DeepMutable<Immutable[TKey]> 
                     : Immutable[TKey];
-}
+};
 
 /**
  * Given a type T, maps each property with type `from` to type `to` that are
@@ -276,7 +294,7 @@ export function NulltoUndefined<T>(obj: T | null): T | undefined {
  * given generic type.
  */
  export function isIterable<T>(obj: unknown): obj is Iterable<T> {
-	return !!obj && typeof (obj as any)[Symbol.iterator] === 'function';
+	return !!obj && typeof (obj)[Symbol.iterator] === 'function';
 }
 
 /**

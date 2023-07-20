@@ -233,7 +233,7 @@ class AsyncMultiTree<T, TFilter> extends FlexMultiTree<T, TFilter> {
             return this.collapse(node, recursive);
         } else {
             return this.expand(node, recursive);
-        };
+        }
     }
 }
 

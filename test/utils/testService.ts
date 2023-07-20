@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-empty-function */
 import { tmpdir } from "os";
 import { Emitter, Register } from "src/base/common/event";
 import { DataBuffer } from "src/base/common/file/buffer";
@@ -10,7 +12,7 @@ import { ContextService } from "src/code/platform/context/common/contextService"
 import { DiskEnvironmentService } from "src/code/platform/environment/common/diskEnvironmentService";
 import { IBrowserEnvironmentService, IEnvironmentService } from "src/code/platform/environment/common/environment";
 import { ClientBase, ClientConnectEvent, ServerBase } from "src/code/platform/ipc/common/net";
-import { IIpcProtocol } from "src/code/platform/ipc/common/protocol";
+import { IProtocol } from "src/code/platform/ipc/common/protocol";
 import { AbstractLifecycleService } from "src/code/platform/lifecycle/common/abstractLifecycleService";
 import { IWindowConfiguration } from "src/code/platform/window/common/window";
 import { nullObject } from "test/utils/helpers";
@@ -52,7 +54,7 @@ export namespace TestIPC {
         private readonly _onDidDisconnect = new Emitter<void>();
         readonly onDidDisconnect = this._onDidDisconnect.registerListener;
     
-        constructor(protocol: IIpcProtocol, id: string) {
+        constructor(protocol: IProtocol, id: string) {
             super(protocol, id, () => {});
         }
     
@@ -63,7 +65,7 @@ export namespace TestIPC {
         }
     }
     
-    class QueueProtocol implements IIpcProtocol {
+    class QueueProtocol implements IProtocol {
 
         // [event]
     
@@ -105,7 +107,7 @@ export namespace TestIPC {
     /**
      * @internal
      */
-    export function __createProtocolPair(): [IIpcProtocol, IIpcProtocol] {
+    export function __createProtocolPair(): [IProtocol, IProtocol] {
         const one = new QueueProtocol();
         const other = new QueueProtocol();
         one.other = other;

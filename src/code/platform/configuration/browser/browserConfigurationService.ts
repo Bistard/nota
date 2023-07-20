@@ -1,7 +1,27 @@
 import { ConfigurationModuleType, IConfigurationUpdateOptions, Section } from "src/code/platform/configuration/common/configuration";
 import { AbstractConfigurationService } from "src/code/platform/configuration/common/abstractConfigurationService";
+import { URI } from "src/base/common/file/uri";
+import { IFileService } from "src/code/platform/files/common/fileService";
+import { ILogService } from "src/base/common/logger";
+import { Disposable } from "src/base/common/dispose";
+import { Queue } from "src/base/common/util/array";
 
 export class BrowserConfigurationService extends AbstractConfigurationService {
+
+    // [fields]
+
+    private readonly _configurationEditing: ConfigurationEditing;
+
+    // [constructor]
+
+    constructor(
+        appConfigurationPath: URI,
+        @IFileService fileService: IFileService,
+        @ILogService logService: ILogService,
+    ) {
+        super(appConfigurationPath, fileService, logService);
+        this._configurationEditing = new ConfigurationEditing();
+    }
 
     // [public methods]
 
@@ -32,8 +52,30 @@ export class BrowserConfigurationService extends AbstractConfigurationService {
 		}
 
         if (module === ConfigurationModuleType.User) {
-            // TODO
+
+            // TODO: trigger configuration change event
             return;
         }
     }
+
+    private __onConfigurationPartialChange(): void {
+
+    }
+}
+
+class ConfigurationEditing extends Disposable {
+
+    // [fields]
+
+    private readonly _queue: Queue<void>;
+
+    // [constructor]
+
+    constructor() {
+        super();
+        this._queue = new Queue();
+    }
+
+    // [public methods]
+
 }

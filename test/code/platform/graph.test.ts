@@ -44,7 +44,7 @@ suite('dependency-graph-test', () => {
 		graph.insertEdge('1', '3');
 		graph.insertEdge('3', '4');
 
-		let roots = graph.roots();
+		const roots = graph.roots();
 		assert.strictEqual(roots.length, 2);
 		assert.ok(['2', '4'].every(n => roots.some(node => node.data === n)));
 	});

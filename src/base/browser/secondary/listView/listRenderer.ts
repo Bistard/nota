@@ -15,7 +15,7 @@ export const enum RendererType {
 	MarkdownPlainText, // TODO
 	MarkdownHeading,  /** {@link HeadingRenderer} */
 	
-};
+}
 
 /**
  * A very basic type of metadata that may be used in the renderers relates to 

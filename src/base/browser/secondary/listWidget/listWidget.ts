@@ -234,7 +234,7 @@ export interface IListWidget<T> extends IList<T>, IDisposable {
 /**
  * The consturtor options for {@link ListWidget}.
  */
-export interface IListWidgetOpts<T> extends IListViewOpts<T> {
+export interface IListWidgetOpts<T> extends IListViewOpts {
     
     /**
      * A provider that has ability to provide Drag and Drop Support (dnd).
@@ -624,7 +624,7 @@ export class ListWidget<T> extends Disposable implements IListWidget<T> {
             ...event,
             position: { x: e.pageX + 1, y: e.pageY },
             target: isNumber(event.actualIndex) ? NulltoUndefined(this.view.getHTMLElement(event.actualIndex)) : undefined,
-        }
+        };
     }
 
     private __createContextmenuRegister(): Register<IListContextmenuEvent<T>> {

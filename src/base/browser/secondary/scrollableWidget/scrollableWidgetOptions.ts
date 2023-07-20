@@ -40,9 +40,7 @@ export interface IScrollableWidgetExtensionOpts {
     touchSupport?: boolean;
 }
 
-export interface IScrollableWidgetOpts extends Required<IScrollableWidgetExtensionOpts> {
-    // nothing
-}
+export type IScrollableWidgetOpts = Required<IScrollableWidgetExtensionOpts>;
 
 /**
  * @description Resolves the given possible incompleted option into a complete 

@@ -63,7 +63,7 @@ export const enum LogLevel {
      * crash in any seconds.
      */
     FATAL = 5
-}; 
+} 
 
 export interface ILoggable {
     log(message: string, ...args: any[]): void;
@@ -148,7 +148,7 @@ export interface ILogger extends IAbstractLogger {
 /** 
  * Alias for a {@link ILogger}. May be registered into a {@link IInstantiationService}.
  */
-export interface ILogService extends ILogger, IService {};
+export interface ILogService extends ILogger, IService {}
 
 /**
  * An option for constructing {@link ILogger}.

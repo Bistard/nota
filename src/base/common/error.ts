@@ -8,7 +8,7 @@ type IErrorListener = IErrorCallback;
 /**
  * @internal
  * @class An unexposed singleton that manages all the unexpected errors that are
- * caught by the {@link ErrorHandler.onUnexpectedError()}.
+ * caught by the {@link ErrorHandler.onUnexpectedError}.
  * 
  * {@link _ErrorRegistrant} cannot be accessed directly. All the functionalites 
  * can be found in a wrapper namespace {@link ErrorHandler}.
@@ -21,7 +21,7 @@ const _ErrorRegistrant = new class extends class ErrorRegistrant {
     // [field]
 
     private _unexpectedErrorExternalCallback: IErrorCallback;
-    private _listeners: IErrorListener[] = [];
+    private readonly _listeners: IErrorListener[] = [];
 
     // [constructor]
 

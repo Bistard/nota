@@ -503,7 +503,7 @@ export class FileService extends Disposable implements IFileService {
         while (true) {
             try {
                 // try to find a directory that exists
-                let stat = await provider.stat(path);
+                const stat = await provider.stat(path);
 
                 // not a directory
                 if ((stat.type & FileType.DIRECTORY) === 0) {

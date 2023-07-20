@@ -1,4 +1,4 @@
-import { app } from "electron";
+import * as electron from "electron";
 import { Disposable } from "src/base/common/dispose";
 import { ErrorHandler, errorToMessage } from "src/base/common/error";
 import { Event } from "src/base/common/event";
@@ -71,7 +71,7 @@ export class ApplicationInstance extends Disposable implements INotaInstance {
         // application service initialization
         const appInstantiationService = await this.createServices(machineID);
 
-        // IPC main process server
+        // create IPC server in the main process
         const ipcServer = this.__register(new IpcServer(this.logService));
 
         // IPC channel initialization
@@ -79,7 +79,7 @@ export class ApplicationInstance extends Disposable implements INotaInstance {
 
         // open first window
         this.openFirstWindow(appInstantiationService);
-        
+
         // post work
         this.afterFirstWindow(appInstantiationService);
     }
@@ -93,18 +93,18 @@ export class ApplicationInstance extends Disposable implements INotaInstance {
 
         // interept unexpected errors so that the error will not go back to `main.ts`
         process.on('uncaughtException', err => ErrorHandler.onUnexpectedError(err));
-		process.on('unhandledRejection', reason => ErrorHandler.onUnexpectedError(reason));
+        process.on('unhandledRejection', reason => ErrorHandler.onUnexpectedError(reason));
         ErrorHandler.setUnexpectedErrorExternalCallback(err => this.__onUnexpectedError(err));
-        
-        app.on('open-file', (event, path) => {
+
+        electron.app.on('open-file', (event, path) => {
             this.logService.trace(`[ApplicationInstance] open-file - ${path}`);
             // REVIEW
         });
 
-        app.on('new-window-for-tab', () => {
+        electron.app.on('new-window-for-tab', () => {
             // REVIEW
-			// this.mainWindowService?.open();
-		});
+            // this.mainWindowService?.open();
+        });
 
     }
 
@@ -157,7 +157,7 @@ export class ApplicationInstance extends Disposable implements INotaInstance {
 
     private openFirstWindow(provider: IServiceProvider): IWindowInstance {
         const mainWindowService = provider.getOrCreateService(IMainWindowService);
-        
+
         // life-cycle-service: READY
         this.lifecycleService.setPhase(LifecyclePhase.Ready);
 
@@ -174,7 +174,7 @@ export class ApplicationInstance extends Disposable implements INotaInstance {
                 lookupPaletteService.disable();
             }
         });
-        
+
         // retrieve last saved opened window status
         const uriToOpen: URI[] = [];
         const uri = this.statusService.get<string>(StatusKey.LastOpenedWorkspace);

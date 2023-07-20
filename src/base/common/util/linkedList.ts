@@ -102,7 +102,7 @@ export class LinkedList<T> {
     private _size: number = 0;
 
     constructor(...elements: T[]) {
-        for (let data of elements) {
+        for (const data of elements) {
             this.push_back(data);
         }
     }

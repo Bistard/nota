@@ -1,0 +1,78 @@
+/** 
+ * eslint environment configuration
+ */
+{
+    
+    // indicates this is the root directory
+    "root": true,
+    
+    "env": {
+        "node": true // configure ESLint for Node.js
+    },
+
+    // tells ESLint to use the given package to parse the source files
+    "parser": "@typescript-eslint/parser",
+    
+    "parserOptions": {
+        "project": true,
+        "tsconfigRootDir": "__dirname"
+    },
+
+    /**
+     * Tells ESLint to load the given packages as a plugin, this allows us to 
+     * use typescript-eslint's rules within the codebase.
+     */
+    "plugins": [
+        "@typescript-eslint",
+        "local"
+    ],
+
+    // tells ESLint that this configuration extends the given configurations
+    "extends": [
+        "eslint:recommended",                    // ESLint's inbuilt "recommended" config - https://github.com/typescript-eslint/typescript-eslint/blob/main/packages/eslint-plugin/src/configs/recommended.ts
+        "plugin:@typescript-eslint/recommended"  // ESLint's inbuilt "recommended" config - TypeScript-specific
+        // "plugin:@typescript-eslint/recommended-type-checked"
+    ],
+
+    "rules": {
+        
+        "semi": "off",
+        "@typescript-eslint/semi": "error",
+
+        "no-empty": "off",
+        "no-constant-condition": "off",
+        "no-useless-catch": "warn", // could be 'off'
+
+        "@typescript-eslint/no-explicit-any": "off",
+        "@typescript-eslint/no-extra-non-null-assertion": "off",
+        "@typescript-eslint/no-var-requires": "off",
+        "@typescript-eslint/no-namespace": "off",
+        
+        "@typescript-eslint/ban-types": [
+            "error", {
+                "types": {
+                    "{}": false
+                }
+            }
+        ],
+        
+        "@typescript-eslint/no-unused-vars": "off", // could be 'warn'
+        "@typescript-eslint/no-empty-interface": "off", // could be 'warn'
+        "@typescript-eslint/no-empty-function": "off" // could be 'warn'
+    },
+
+    "overrides": [
+        {
+            "files": [
+                "**/test/**/*.test.ts"
+            ],
+            "rules": {
+                "local/test-code-no-only": "error",
+
+                "@typescript-eslint/no-unused-vars": "off",
+                "@typescript-eslint/no-empty-interface": "off",
+                "@typescript-eslint/no-empty-function": "off"
+            }
+        }
+    ]
+}

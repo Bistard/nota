@@ -9,7 +9,7 @@ export const IConfigurationRegistrant = createRegistrant<IConfigurationRegistran
 export type IConfigurationSchema = IJsonSchema & {
 
     scope?: ConfigurationScope;
-}
+};
 
 export interface IConfigurationUnit {
 
@@ -374,7 +374,7 @@ class ConfigurationRegistrant implements IConfigurationRegistrant {
             }
 
             return '';
-        }
+        };
 
         const errorMessage = defaultTypeCheck(schema);
         if (errorMessage) {

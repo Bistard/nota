@@ -1,4 +1,4 @@
-import { Button, IButtonOptions } from "src/base/browser/basic/button/button"
+import { Button, IButtonOptions } from "src/base/browser/basic/button/button";
 
 export interface IWindowButtonOptions extends IButtonOptions {
 

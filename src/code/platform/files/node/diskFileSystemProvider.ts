@@ -13,6 +13,7 @@ import { ILogService } from "src/base/common/logger";
 import { Emitter } from "src/base/common/event";
 import { IRawResourceChangeEvents, IWatcher } from "src/code/platform/files/common/watcher";
 import { readFileIntoStream } from "src/base/common/file/io";
+import { errorToMessage } from "src/base/common/error";
 
 export class DiskFileSystemProvider extends Disposable implements 
     IFileSystemProviderWithFileReadWrite, 
@@ -98,7 +99,7 @@ export class DiskFileSystemProvider extends Disposable implements
         } 
         
         catch (error) {
-            throw error;
+            throw this.__toError(error);
         }
         
         finally {
@@ -154,7 +155,7 @@ export class DiskFileSystemProvider extends Disposable implements
         } 
         
         catch (err) {
-            throw err;
+            throw this.__toError(err);
         }
     }
 	
@@ -162,7 +163,7 @@ export class DiskFileSystemProvider extends Disposable implements
         try {
             fs.closeSync(fd);
         } catch (err) {
-            throw err;
+            throw this.__toError(err);
         }
     }
 	
@@ -176,7 +177,7 @@ export class DiskFileSystemProvider extends Disposable implements
             return bytesRead;
 
         } catch (err) {
-            throw err;
+            throw this.__toError(err);
         }
     }
 
@@ -220,7 +221,7 @@ export class DiskFileSystemProvider extends Disposable implements
         } 
         
         catch (err) {
-            throw err;
+            throw this.__toError(err);
         }
     }
 
@@ -228,7 +229,7 @@ export class DiskFileSystemProvider extends Disposable implements
         try {
             await fs.promises.mkdir(URI.toFsPath(uri), { recursive: true });
         } catch (err) {
-            throw err;
+            throw this.__toError(err);
         }
     }
 
@@ -242,7 +243,7 @@ export class DiskFileSystemProvider extends Disposable implements
                 await fs.promises.unlink(path);
             }
         } catch (err) {
-            throw err;
+            throw this.__toError(err);
         }
     }
 
@@ -260,7 +261,7 @@ export class DiskFileSystemProvider extends Disposable implements
             }
             await fs.promises.rename(fromPath, toPath);
         } catch (err) {
-            throw err;
+            throw this.__toError(err);
         }
     }
 
@@ -287,11 +288,8 @@ export class DiskFileSystemProvider extends Disposable implements
             };
         } 
         
-        catch (err: any) {
-            if (err.code === 'ENOENT') {
-                throw new FileSystemProviderError('File does not exist', FileOperationErrorType.FILE_NOT_FOUND);
-            }
-            throw err;
+        catch (err) {
+            throw this.__toError(err);
         }
     }
 
@@ -325,7 +323,7 @@ export class DiskFileSystemProvider extends Disposable implements
         } 
         
         catch (err) {
-            throw err;
+            throw this.__toError(err);
         }
     }
 
@@ -370,8 +368,43 @@ export class DiskFileSystemProvider extends Disposable implements
 		} 
         
         catch (error) {
-			throw error;
+			throw this.__toError(error);
 		} 
+    }
+
+    private __toError(error: any): FileSystemProviderError {
         
+        if (error instanceof FileSystemProviderError) {
+			return error;
+		}
+
+		let result: Error | string = error;
+		let code: FileOperationErrorType;
+		switch (error.code) {
+			case 'ENOENT':
+				code = FileOperationErrorType.FILE_NOT_FOUND;
+				break;
+			case 'EISDIR':
+				code = FileOperationErrorType.FILE_IS_DIRECTORY;
+				break;
+			case 'ENOTDIR':
+				code = FileOperationErrorType.FILE_IS_NOT_DIRECTORY;
+				break;
+			case 'EEXIST':
+				code = FileOperationErrorType.FILE_EXISTS;
+				break;
+			case 'EPERM':
+			case 'EACCES':
+				code = FileOperationErrorType.NO_PERMISSIONS;
+				break;
+			case 'ERR_UNC_HOST_NOT_ALLOWED':
+				result = `${error.message}. Please update the 'security.allowedUNCHosts' setting if you want to allow this host.`;
+				code = FileOperationErrorType.UNKNOWN;
+				break;
+			default:
+				code = FileOperationErrorType.UNKNOWN;
+		}
+
+        return new FileSystemProviderError(errorToMessage(result), code);
     }
 }

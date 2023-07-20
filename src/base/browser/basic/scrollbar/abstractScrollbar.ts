@@ -1,7 +1,7 @@
 import "src/base/browser/basic/scrollbar/scrollbar.scss";
 import { VisibilityController } from "src/base/browser/basic/visibilityController";
 import { IWidget, Widget } from "src/base/browser/basic/widget";
-import { IDisposable } from "src/base/common/dispose";
+import { Disposable, IDisposable } from "src/base/common/dispose";
 import { Emitter, Register } from "src/base/common/event";
 import { MouseClick } from "src/base/common/keyboard";
 import { IScrollEvent, Scrollable } from "src/base/common/scrollable";
@@ -254,8 +254,8 @@ export abstract class AbstractScrollbar extends Widget {
             currMousePosition = this.__getMousePosition(e);
         };
 
-        let mouseoverDisposable: IDisposable;
-        let onClickDisposable: IDisposable;
+        let mouseoverDisposable: IDisposable = Disposable.NONE;
+        let onClickDisposable: IDisposable = Disposable.NONE;
 
         // oncick listener
         const onClick = () => {
@@ -267,7 +267,7 @@ export abstract class AbstractScrollbar extends Widget {
 
             // tell the host we finish the drag motion
             this._host.onSliderDragStop();
-        }
+        };
 
         // starts register listeners
         mouseoverDisposable = this.onMousemove(document.documentElement, onMousemove);

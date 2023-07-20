@@ -16,7 +16,7 @@ import { NullLogger, TestIPC } from 'test/utils/testService';
 suite('LoggerService', () => {
 
     function splitLogString(log: string): string[] {
-        let parts: string[] = [];
+        const parts: string[] = [];
         let temp = "";
 
         for (let i = 0; i < log.length; i++) {
@@ -32,9 +32,9 @@ suite('LoggerService', () => {
         }
 
         // Get the message part after the last ']' 
-        let lastBracketPosition = log.lastIndexOf(']');
+        const lastBracketPosition = log.lastIndexOf(']');
         if (lastBracketPosition !== -1 && lastBracketPosition < log.length - 1) {
-            let customMessage = log.slice(lastBracketPosition + 1).trim();
+            const customMessage = log.slice(lastBracketPosition + 1).trim();
             if (customMessage.length > 0) {
                 parts.push(customMessage);
             }

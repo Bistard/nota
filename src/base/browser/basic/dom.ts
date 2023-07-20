@@ -106,7 +106,7 @@ export function addDisposableListener<T extends keyof GlobalEventHandlersEventMa
 
 export type IStyleDisposable = IDisposable & {
 	readonly style: HTMLStyleElement;
-}
+};
 
 /**
  * Generates a {@link HTMLStyleElement} and appends to the given {@link HTMLElement}.
@@ -177,11 +177,11 @@ export namespace DomUtility
 		 * 
 		 * @warn If property cannot be convert to numerated form, -1 will be returned.
 		 */
-		function __getPropertyValue(element: HTMLElement, property: string): number {
-			let computedStyle: CSSStyleDeclaration = getComputedStyle(element);
-			let value = computedStyle.getPropertyValue(property);
+		const __getPropertyValue = function (element: HTMLElement, property: string): number {
+			const computedStyle: CSSStyleDeclaration = getComputedStyle(element);
+			const value = computedStyle.getPropertyValue(property);
 			return parseFloat(value) || 0;
-		}
+		};
 
 		// [method - padding]
 
@@ -335,11 +335,11 @@ export namespace DomUtility
 		 * 		   detected.
 		 */
 		export function getRelativeClick(event: MouseEvent, target?: EventTarget): Pair<number, number> {
-			let element = (target ?? event.currentTarget) as HTMLElement | null;
+			const element = (target ?? event.currentTarget) as HTMLElement | null;
 			if (element === null) {
 				throw new Error('invalid event target');
 			}
-			let box: DOMRect = element.getBoundingClientRect();
+			const box: DOMRect = element.getBoundingClientRect();
 			return [
 				event.clientX - box.left,
 				event.clientY - box.top

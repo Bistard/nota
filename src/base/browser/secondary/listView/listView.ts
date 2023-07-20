@@ -16,7 +16,7 @@ import { IList } from "src/base/browser/secondary/listView/list";
 /**
  * The consturtor options for {@link ListView}.
  */
-export interface IListViewOpts<T> {
+export interface IListViewOpts {
     /**
      * When constructing the view, decide whether to layout the view immediately.
      * `layout` meanning to update the size of the view and causes rerendering.
@@ -352,7 +352,7 @@ export class ListView<T> extends Disposable implements ISpliceable<T>, IListView
         container: HTMLElement, 
         renderers: IListViewRenderer<any, any>[], 
         itemProvider: IListItemProvider<T>,
-        opts: IListViewOpts<T>
+        opts: IListViewOpts
     ) {
         super();
 
@@ -394,7 +394,7 @@ export class ListView<T> extends Disposable implements ISpliceable<T>, IListView
         renderers = renderers.map(renderer => new PipelineRenderer(renderer.type, [new ListItemRenderer(), renderer]));
 
         this.renderers = new Map();
-        for (let renderer of renderers) {
+        for (const renderer of renderers) {
             this.renderers.set(renderer.type, renderer);
         }
 
@@ -519,9 +519,11 @@ export class ListView<T> extends Disposable implements ISpliceable<T>, IListView
 
         try {
             this.__splice(index, deleteCount, items);
-        } catch (err) {
+        } 
+        catch (err) {
             throw err;
-        } finally {
+        } 
+        finally {
             this._splicing = false;
         }
     }
@@ -905,7 +907,7 @@ export class ListView<T> extends Disposable implements ISpliceable<T>, IListView
             for (let i = range.start; i < range.end; i++) {
                 this.removeItemInDOM(i);
             }
-        };
+        }
 
         /**
          * find the rest items that was not rendered, inserting new items in DOM 

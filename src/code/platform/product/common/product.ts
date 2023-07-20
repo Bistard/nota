@@ -23,4 +23,4 @@ export const productProfileSchema: IJsonSchema = {
         license: { type: 'string' },
     },
     required: ['projectName', 'applicationName', 'description', 'version', 'license'],
-}
+};

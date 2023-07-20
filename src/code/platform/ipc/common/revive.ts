@@ -3,7 +3,7 @@ import { createRegistrant, RegistrantType } from "src/code/platform/registrant/c
 
 export const IReviverRegistrant = createRegistrant<IReviverRegistrant>(RegistrantType.Reviver);
 
-export type PrototypeMatcher = (obj: Object) => boolean;
+export type PrototypeMatcher = (obj: object) => boolean;
 
 /**
  * An interface only for {@link ReviverRegistrant}.

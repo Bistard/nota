@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/ban-types */
 
 /**
  * @description A helper decorator to implement `Memoization`. Used to speed up 
@@ -33,13 +34,17 @@ export function memoize(target: any, propertyKey: string, descriptor: PropertyDe
 	const propName = `$memoize$${propertyKey}`;
 	descriptor[type] = function (...args: any[]): any {
 
-		if (this.hasOwnProperty(propName) === false) {
-			Object.defineProperty(this, propName, {
-				configurable: false,
-				enumerable: false,
-				writable: false,
-				value: func.apply(this, args) // we save the result for speeding up
-			} as PropertyDescriptor);
+		if (Object.prototype.hasOwnProperty.call(this, propName) === false) {
+			Object.defineProperty(
+				this, 
+				propName, 
+				<PropertyDescriptor>{
+					configurable: false,
+					enumerable: false,
+					writable: false,
+					value: func.apply(this, args) // we save the result for speeding up
+				},
+			);
 		}
 
 		return this[propName];

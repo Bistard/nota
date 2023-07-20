@@ -144,7 +144,7 @@ namespace FakeGlobalAsync {
 
     // [private helper methods]
 
-    function __setCustomizedTimeout() {
+    const __setCustomizedTimeout = function (): void {
         globalThis.setTimeout = <any>((handler: TimerHandler, timeout: number = 0) => {
             if (isString(handler)) {
                 throw new Error('String handler args should not be used and are not supported');
@@ -167,9 +167,9 @@ namespace FakeGlobalAsync {
                 trueGlobalAsync.clearTimeout(timeoutId);
             }
         };
-    }
+    };
 
-    function __setCustomizedInterval(): void {
+    const __setCustomizedInterval = function (): void {
         globalThis.setInterval = <any>((handler: TimerHandler, interval: number) => {
             if (isString(handler)) {
                 throw new Error('String handler args should not be used and are not supported');
@@ -180,7 +180,7 @@ namespace FakeGlobalAsync {
         
             let disposed = false;
         
-            function onSchedule(): void {
+            const onSchedule = function () {
                 const thisIterCount = iterCount++;
                 
                 _onTask.fire({
@@ -188,7 +188,7 @@ namespace FakeGlobalAsync {
                     run: () => {
                         if (!disposed) {
                             onSchedule();
-                            (<Function>handler)();
+                            handler();
                         }
                     },
                     source: {
@@ -196,7 +196,7 @@ namespace FakeGlobalAsync {
                         stackTrace,
                     },
                 });
-            }
+            };
         
             onSchedule();
         
@@ -215,9 +215,9 @@ namespace FakeGlobalAsync {
                 trueGlobalAsync.clearInterval(timeoutId);
             }
         };
-    }
+    };
 
-    function __setCustomizedDate(): void {
+    const __setCustomizedDate = function (): void {
         const OriginalDate = trueGlobalAsync.Date;
     
         function FakeDateConstructor(this: any, ...args: any): Date | string {
@@ -241,7 +241,7 @@ namespace FakeGlobalAsync {
         }
     
         for (const prop in OriginalDate) {
-            if (OriginalDate.hasOwnProperty(prop)) {
+            if (Object.prototype.hasOwnProperty.call(OriginalDate, prop)) {
                 FakeDateConstructor[prop] = OriginalDate[prop];
             }
         }
@@ -261,7 +261,7 @@ namespace FakeGlobalAsync {
     
         // set
         globalThis.Date = <DateConstructor>FakeDateConstructor;
-    }
+    };
     
 }
 

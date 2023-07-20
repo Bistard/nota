@@ -17,11 +17,11 @@ export function mixin<T>(destination: any, source: any, overwrite: boolean = tru
 				if (overwrite) {
 
 					// see prototype-polluting https://github.com/Bistard/nota/issues/129
-					if (source.hasOwnProperty(propName) === false) {
+					if (Object.prototype.hasOwnProperty.call(source, propName) === false) {
 						return;
 					}
 
-					if (destination.hasOwnProperty(propName) 
+					if (Object.prototype.hasOwnProperty.call(destination, propName) 
 						&& isObject(destination[propName]) 
 						&& isObject(source[propName])
 					) {
@@ -65,7 +65,7 @@ export function iterProp(obj: any, fn: (propName: string, index: number) => any,
 		for (const propName of Object.getOwnPropertyNames(prototype)) {
 			fn(propName, idx++);
 		}
-	}
+	};
 
 	__handler(Object.getPrototypeOf(obj), fn, recursiveLevel);
 }

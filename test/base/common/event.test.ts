@@ -194,7 +194,7 @@ suite('event-test', () => {
         const emitter = new PauseableEmitter<void>();
 
         let cnt = 0;
-        const listener = () => { cnt++ };
+        const listener = () => { cnt++; };
         emitter.registerListener(listener);
 
         emitter.fire();
@@ -221,7 +221,7 @@ suite('event-test', () => {
         const emitter = new DelayableEmitter<number>();
 
         let cnt = 0;
-        const listener = (e: number) => cnt++;;
+        const listener = (e: number) => cnt++;
         emitter.registerListener(listener);
 
         emitter.fire(cnt);

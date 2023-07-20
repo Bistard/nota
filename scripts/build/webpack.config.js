@@ -1,7 +1,7 @@
 const CircularDependencyPlugin = require('circular-dependency-plugin');
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const path = require('path');
-const WebpackBaseConfigurationProvider = require('./webpack/webpack.config.base');
+const WebpackBaseConfigurationProvider = require('../webpack/webpack.config.base');
 
 class WebpackPluginProvider {
 

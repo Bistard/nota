@@ -1,3 +1,4 @@
+import { Constructor } from "src/base/common/util/type";
 
 export class ServiceDescriptor<T> {
     public readonly ctor: any;
@@ -5,7 +6,7 @@ export class ServiceDescriptor<T> {
     public readonly supportsDelayedInstantiation: boolean;
     
 	constructor(
-        ctor: new (...args: any[]) => T, 
+        ctor: Constructor<T>, 
         args: any[] = [], 
         supportsDelayedInstantiation: boolean = false
     ) {

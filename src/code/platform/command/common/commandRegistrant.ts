@@ -95,7 +95,7 @@ class CommandRegistrant implements ICommandRegistrant {
             this._commands.set(id, cmd);
         }
         
-        let unregister = toDisposable(() => {
+        const unregister = toDisposable(() => {
             this._commands.delete(id);
         });
         return unregister;

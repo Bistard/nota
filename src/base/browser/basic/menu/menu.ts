@@ -1,6 +1,6 @@
 import "src/base/browser/basic/menu/menu.scss";
 import { FocusTracker } from "src/base/browser/basic/focusTracker";
-import { CheckMenuItem, IMenuAction, IMenuItem, MenuAction, MenuItemType, MenuSeperatorItem, SimpleMenuItem, SubmenuAction, SubmenuItem } from "src/base/browser/basic/menu/menuItem";
+import { CheckMenuItem, IMenuAction, IMenuItem, MenuAction, MenuItemType, MenuSeperatorItem, SimpleMenuItem, SubmenuItem } from "src/base/browser/basic/menu/menuItem";
 import { ActionList, ActionRunner, IAction, IActionItemProvider, IActionList, IActionListOptions, IActionRunEvent } from "src/base/common/action";
 import { addDisposableListener, Direction, DomEventHandler, DomUtility, EventType } from "src/base/browser/basic/dom";
 import { Emitter, Register } from "src/base/common/event";
@@ -548,7 +548,7 @@ export class MenuWithSubmenu extends MenuDecorator {
                 });
 
                 // bind the item-run to the action-run.
-                (<SubmenuAction>action).onRun = item.run.bind(item);
+                action.onRun = item.run.bind(item);
 
                 return item;
             }

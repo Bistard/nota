@@ -115,7 +115,7 @@ export abstract class WorkbenchLayout extends Component {
                 initSize: initSize,
                 priority: priority,
             });
-        };
+        }
 
         // construct the split-view
         this._splitView = new SplitView(this.element.element, splitViewOpt);

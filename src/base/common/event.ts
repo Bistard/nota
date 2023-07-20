@@ -2,6 +2,7 @@ import { LinkedList } from "src/base/common/util/linkedList";
 import { Disposable, DisposableManager, disposeAll, IDisposable, toDisposable } from "src/base/common/dispose";
 import { ErrorHandler } from "src/base/common/error";
 import { ITask } from "src/base/common/util/async";
+import { Callable } from "src/base/common/util/type";
 
 /*******************************************************************************
  * This file contains a series event emitters and related tools for communications 
@@ -444,8 +445,8 @@ export class RelayEmitter<T> implements IDisposable {
 }
 
 export interface INodeEventEmitter {
-    on(eventName: string | symbol, listener: Function): any;
-    removeListener(eventName: string | symbol, listener: Function): any;
+    on(eventName: string | symbol, listener: Callable<[], void>): any;
+    removeListener(eventName: string | symbol, listener: Callable<[], void>): any;
 }
 
 /**

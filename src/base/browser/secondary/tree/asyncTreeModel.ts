@@ -182,7 +182,7 @@ export class AsyncTreeModel<T, TFilter> extends FlexMultiTreeModel<T, TFilter> i
      * @param node The provided async tree node.
      */
     private async __getChildren(node: IAsyncNode<T, TFilter>): Promise<T[]> {
-        let refreshing = this._statFetching.get(node);
+        const refreshing = this._statFetching.get(node);
 
         // since the node is already fetching, we do nothing and return the same promise.
         if (refreshing) {

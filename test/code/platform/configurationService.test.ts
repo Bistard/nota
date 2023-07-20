@@ -147,7 +147,7 @@ suite('MainConfiguratioService-test', () => {
         const service = new MainConfigurationService(userConfigURI, fileService, logService);
         await service.init();
 
-        let result = service.get('section');
+        const result = service.get('section');
         assert.strictEqual(result, 'user value');
 
         await fileService.writeFile(userConfigURI, DataBuffer.fromString(JSON.stringify({})), { create: false });

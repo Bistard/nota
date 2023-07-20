@@ -91,13 +91,13 @@ export namespace ProxyChannel {
         }));
     }
 
-    function __guessIfEventRegister(proName: string): boolean {
+    const __guessIfEventRegister = function (proName: string): boolean {
         return (proName[0] === 'o' 
             && proName[1] === 'n' 
             && CharCode.A <= proName.charCodeAt(2) 
             && proName.charCodeAt(2) <= CharCode.Z
         );
-    }
+    };
     
     export interface WrapServiceOpt {
         /**

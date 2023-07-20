@@ -162,7 +162,7 @@ export class SideViewService extends Component implements ISideViewService {
     public switchView(id: string): void {
         const view = this.__getOrConstructView(id);
         if (!view) {
-            this.logService.warn(`[SideViewService] Cannot switch to view with ID: ${id}`);
+            this.logService.warn(`Cannot switch to view with ID: ${id}`);
             return;
         }
         this.__switchView(view);
@@ -304,7 +304,7 @@ export abstract class SideView extends Component implements ISideView {
 
     protected __createTitlePart(): SideViewTitlePart {
         return new SideViewTitlePart();
-    };
+    }
 
     protected _createContent(): void {
         (<Mutable<SideViewTitlePart>>this._titlePart) = this.__createTitlePart();

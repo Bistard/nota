@@ -1,6 +1,6 @@
 import 'src/code/common/common.register';
-import { app, dialog } from 'electron';
-import { createServer, Server } from 'net';
+import * as electron from 'electron';
+import * as net from 'net';
 import { mkdir } from 'fs/promises';
 import { ErrorHandler, ExpectedError, isExpectedError } from 'src/base/common/error';
 import { Event } from 'src/base/common/event';
@@ -14,7 +14,7 @@ import { ServiceCollection } from 'src/code/platform/instantiation/common/servic
 import { ILoggerService } from 'src/code/platform/logger/common/abstractLoggerService';
 import { ConsoleLogger } from 'src/code/platform/logger/common/consoleLoggerService';
 import { FileLoggerService } from 'src/code/platform/logger/common/fileLoggerService';
-import { ApplicationInstance } from 'src/code/electron/nota';
+import { ApplicationInstance } from 'src/code/electron/app';
 import { ApplicationMode, IEnvironmentOpts, IEnvironmentService, IMainEnvironmentService } from 'src/code/platform/environment/common/environment';
 import { MainEnvironmentService } from 'src/code/platform/environment/electron/mainEnvironmentService';
 import { IMainLifecycleService, MainLifecycleService } from 'src/code/platform/lifecycle/electron/mainLifecycleService';
@@ -64,16 +64,17 @@ const main = new class extends class MainProcess implements IMainProcess {
             await this.run();
         } catch (unexpectedError: any) {
             console.error(unexpectedError.message ?? 'unknown error message');
-            app.exit(1);
+            electron.app.exit(1);
         }
     }
 
     // [private methods]
 
     private async run(): Promise<void> {
+        
         /**
-         * No error tolerance at this stage since all the work here are 
-         * necessary for the future works.
+         * No error tolerance at this stage since all the work here is 
+         * necessary for future works.
          */
 
         // core service construction / registration
@@ -118,8 +119,7 @@ const main = new class extends class MainProcess implements IMainProcess {
     private createCoreServices(): void {
 
         // dependency injection (DI)
-        const serviceCollection = new ServiceCollection();
-        const instantiationService = new InstantiationService(serviceCollection);
+        const instantiationService = new InstantiationService(new ServiceCollection(), undefined);
         instantiationService.register(IInstantiationService, instantiationService);
         
         // log-service
@@ -211,8 +211,8 @@ const main = new class extends class MainProcess implements IMainProcess {
              * it means there is already an application is running, we should 
              * terminate since we only accept one single application.
              */
-            const server = await new Promise<Server>((resolve, reject) => {
-                const tcpServer = createServer();
+            const server = await new Promise<net.Server>((resolve, reject) => {
+                const tcpServer = net.createServer();
                 tcpServer.on('error', reject);
                 tcpServer.listen(this.environmentService.mainIpcHandle, () => {
                     tcpServer.removeListener('error', reject);
@@ -267,7 +267,7 @@ const main = new class extends class MainProcess implements IMainProcess {
             URI.toFsPath(this.environmentService.logPath),
         ];
 
-        dialog.showMessageBoxSync({
+        electron.dialog.showMessageBoxSync({
             title: this.productService.profile.applicationName,
             message: 'Unable to write to directories',
             detail: Strings.format('{0}\n\nPlease make sure the following directories are writeable: \n\n{1}', [error.toString?.() ?? error, dir.join('\n')]),
@@ -278,11 +278,11 @@ const main = new class extends class MainProcess implements IMainProcess {
 
     private __getEnvInfo(): IEnvironmentOpts {
         return {
-            isPackaged: app.isPackaged,
-            userHomePath: app.getPath('home'),
-            tmpDirPath: app.getPath('temp'),
-            appRootPath: app.getAppPath(),
-            userDataPath: app.getPath('userData'),
+            isPackaged: electron.app.isPackaged,
+            userHomePath: electron.app.getPath('home'),
+            tmpDirPath: electron.app.getPath('temp'),
+            appRootPath: electron.app.getAppPath(),
+            userDataPath: electron.app.getPath('userData'),
         };
     }
 } {}; /** @readonly ❤hello, world!❤ */

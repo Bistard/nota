@@ -115,7 +115,7 @@ export class MainWindowService extends Disposable implements IMainWindowService 
 
     private doOpen(opts: IWindowCreationOptions): IWindowInstance {
         
-        let window: IWindowInstance;
+        let window: IWindowInstance = undefined!;
 
         // get openning URIs configuration
         let uriToOpenConfiguration: IUriToOpenConfiguration = Object.create(null);
@@ -196,6 +196,7 @@ export class MainWindowService extends Disposable implements IMainWindowService 
 }
 
 namespace UriToOpenResolver {
+    
     /**
      * @description Given an array of URIs, resolves the ones that follow the
      * following parsing rule.
@@ -238,7 +239,7 @@ namespace UriToOpenResolver {
 
     // [private helper methods]
 
-    function __parseURI(uri: URI): { resource: string, type: ToOpenType, gotoLine?: number, fail?: boolean } {
+    const __parseURI = function (uri: URI): { resource: string, type: ToOpenType, gotoLine?: number, fail?: boolean } {
         const sections = URI.toFsPath(uri).split('|');
         
         const resource = sections[0];
@@ -262,7 +263,6 @@ namespace UriToOpenResolver {
             type: isDir | isFile,
             gotoLine: gotoLine,
             fail: fail,
-        }
-    }
-
+        };
+    };
 }

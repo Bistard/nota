@@ -60,7 +60,7 @@ export class BrowserFileChannel extends Disposable implements IFileService {
         this.__register(this._channel.registerListener<void | Error>(FileCommand.onDidAllResourceClosed)(error => {
             if (error) {
                 throw error;
-            };
+            }
             this._onDidAllResourceClosed.fire();
         }));
     }

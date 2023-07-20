@@ -26,7 +26,7 @@ const configuration = {
     },
 
     "build": {
-        command: "node ./scripts/build.js",
+        command: "node ./scripts/build/build.js",
         description: 'Build the nota.',
         options: [
             {
@@ -94,6 +94,19 @@ const configuration = {
                 descriptions: [
                     'Build the nota and wait to rebuild by watching the change of the source directory.',
                 ],
+            }
+        ]
+    },
+
+    "lint": {
+        command: 'eslint . --format=./scripts/linting/formatter.js',
+        description: 'The eslint . command runs the ESLint tool on all JavaScript and TypeScript files in the current directory and subdirectories, checking for and reporting any coding errors or stylistic issues based on your configuration rules.',
+        options: [
+            {
+                flags: ['--fix'],
+                descriptions: [
+                    'Automatically fixes problems that can be fixed without any risk.'
+                ]
             }
         ]
     },

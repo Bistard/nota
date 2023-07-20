@@ -20,7 +20,7 @@ export const enum LanguageType {
     ['en']    = 'en',      // English
     ['zh-cn'] ='zh-cn',    // Chinese (Simplified)
     ['zh-tw'] = 'zh-tw',   // Chinese (Traditional)
-};
+}
 
 type Ii18nSection = { [key: string]: string };
 
@@ -227,10 +227,12 @@ export class i18n implements Ii18nService {
                     throw new Error('i18n translation index variable should be number.');
                 }
                 return interpolation[index]; 
-            }
-        } else if (isObject(interpolation)) {
-            get = (key: string) => { return interpolation[key]; }
-        } else {
+            };
+        } 
+        else if (isObject(interpolation)) {
+            get = (key: string) => { return interpolation[key]; };
+        } 
+        else {
             throw new Error('invalid type of interpolation, either an array of strings nor object.');
         }
 
@@ -301,12 +303,12 @@ export class i18n implements Ii18nService {
      *  eg. ../../en-US.json
      */
     private async __readLocale(uri: URI): Promise<void> {
-
         try {
             const buffer = await this.fileService.readFile(uri);
-            const jsonObject: Object = JSON.parse(buffer.toString());
+            const jsonObject = JSON.parse(buffer.toString());
             Object.assign(this._model, jsonObject);
-        } catch (err) {
+        } 
+        catch (err) {
             this.logService.error(`Cannot read locale at ${URI.toString(uri)}`);
             throw err;
         }

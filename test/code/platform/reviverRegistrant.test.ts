@@ -21,15 +21,15 @@ suite('reviver-registrant-test', () => {
     const registrant = REGISTRANTS.get(IReviverRegistrant);
     
     test('registerPrototype', () => {
-        registrant.registerPrototype(BasePrototype1, (obj: Object) => {
-            if (obj.hasOwnProperty('baseField1')) {
+        registrant.registerPrototype(BasePrototype1, (obj: object) => {
+            if (Object.prototype.hasOwnProperty.call(obj, 'baseField1')) {
                 return true;
             }
             return false;
         });
     
-        registrant.registerPrototype(BasePrototype2, (obj: Object) => {
-            if (obj.hasOwnProperty('baseField2')) {
+        registrant.registerPrototype(BasePrototype2, (obj: object) => {
+            if (Object.prototype.hasOwnProperty.call(obj, 'baseField2')) {
                 return true;
             }
             return false;

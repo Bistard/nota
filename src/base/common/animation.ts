@@ -1,10 +1,11 @@
 import { IDisposable, toDisposable } from "src/base/common/dispose";
+import { Callable } from "src/base/common/util/type";
 
 /**
  * when the current enviroment is too old to support `requestAnimationFrame`, we 
  * try to simulate it (not perfect though).
  */
-const _simulateRequestAnimationFrame = (callback: Function) => setTimeout(() => callback(), 0);
+const _simulateRequestAnimationFrame = (callback: Callable<[], void>) => setTimeout(() => callback(), 0);
 
 /**
  * @readonly Traditionally to create an animation in JavaScript, we relied on 
@@ -32,15 +33,15 @@ const _simulateRequestAnimationFrame = (callback: Function) => setTimeout(() => 
  * by using `.call()`.
  */
 export const requestAtNextAnimationFrame = (callback: FrameRequestCallback): IDisposable => {
-    let doRequestAnimationFrame = window.requestAnimationFrame ||
-        (window as any).mozRequestAnimationFrame || 
-        (window as any).webkitRequestAnimationFrame ||
-        (window as any).msRequestAnimationFrame ||
+    const doRequestAnimationFrame = window.requestAnimationFrame ||
+        (<any>window).mozRequestAnimationFrame || 
+        (<any>window).webkitRequestAnimationFrame ||
+        (<any>window).msRequestAnimationFrame ||
         _simulateRequestAnimationFrame;
     
     const token = doRequestAnimationFrame.call(window, callback);
     return toDisposable(() => __cancelAnimationFrame(token));
-}
+};
  
  /**
   * @readonly The method may be passed into a handle which is returned when the 
@@ -48,7 +49,7 @@ export const requestAtNextAnimationFrame = (callback: FrameRequestCallback): IDi
   */
 const __cancelAnimationFrame = (handle: number): void => {
     window.cancelAnimationFrame(handle);
-}
+};
 
 /**
  * @description Continue requesting at next animation frame on the provided 

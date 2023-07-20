@@ -40,43 +40,43 @@ namespace PieceTableTester {
         assertValidTree(T);
     }
 
-    function assertValidTree(T: IPieceTable): void {
+    const assertValidTree = function (T: IPieceTable): void {
         if (T.root === NULL_NODE) {
             return;
         }
         assert.strictEqual(T.root.color, RBColor.BLACK);
         assert.strictEqual(blackDepth(T.root.left), blackDepth(T.root.right));
         assertValidNode(T.root);
-    }
+    };
 
-    function assertValidNode(n: IPieceNode): { size: number; lf_cnt: number } {
+    const assertValidNode = function (n: IPieceNode): { size: number; lf_cnt: number } {
         if (n === NULL_NODE) {
             return { size: 0, lf_cnt: 0 };
         }
 
-        let l = n.left;
-        let r = n.right;
+        const l = n.left;
+        const r = n.right;
 
         if (n.color === RBColor.RED) {
             assert.strictEqual(l.color, RBColor.BLACK);
             assert.strictEqual(r.color, RBColor.BLACK);
         }
 
-        let actualLeft = assertValidNode(l);
+        const actualLeft = assertValidNode(l);
         assert.strictEqual(actualLeft.lf_cnt, n.leftSubtreelfCount);
         assert.strictEqual(actualLeft.size, n.leftSubtreeBufferLength);
-        let actualRight = assertValidNode(r);
+        const actualRight = assertValidNode(r);
 
         return { size: n.leftSubtreeBufferLength + n.piece.pieceLength + actualRight.size, lf_cnt: n.leftSubtreelfCount + n.piece.lfCount + actualRight.lf_cnt };
-    }
+    };
 
-    function blackDepth(n: IPieceNode): number {
+    const blackDepth = function (n: IPieceNode): number {
         if (n === NULL_NODE) {
             return 1;
         }
         assert.strictEqual(blackDepth(n.left), blackDepth(n.right));
         return (n.color === RBColor.BLACK ? 1 : 0) + blackDepth(n.left);
-    }
+    };
 
     export function printTree(table: IPieceTable, title?: string): void {
         const length = depth(table.root);
@@ -108,7 +108,7 @@ namespace PieceTableTester {
         process.stdout.write('\n');
     }
 
-    function printNode(table: IPieceTable, node: IPieceNode, depth: number): void {
+    const printNode = function (table: IPieceTable, node: IPieceNode, depth: number): void {
         
         if (node === NULL_NODE) {
             return;
@@ -129,15 +129,14 @@ namespace PieceTableTester {
         process.stdout.write(content + '\n');
         printNode(table, node.left, depth + 1);
         printNode(table, node.right, depth + 1);
-    }
+    };
 
-    function depth(n: IPieceNode): number {
+    const depth = function (n: IPieceNode): number {
         if (n === NULL_NODE) {
             return 1;
         }
         return Math.max(depth(n.left), depth(n.right)) + 1;
-    }
-
+    };
 }
 
 suite('PieceTable-test - content APIs', () => {
@@ -493,7 +492,7 @@ suite('PieceTable-test - content APIs', () => {
         PieceTableTester.assertPieceTable(table);
 
 
-        let surrogates = '😁';
+        const surrogates = '😁';
 
         table = buildPieceTable(['Hello\nW', 'orld😁', '\r\n'], false);
         assert.deepStrictEqual(table.getContent(), ['Hello', 'World😁', '']);
@@ -697,7 +696,7 @@ suite('PieceTable-test - content APIs', () => {
         PieceTableTester.assertPieceTable(table);
 
 
-        let surrogates = '😁';
+        const surrogates = '😁';
 
         table = buildPieceTable(['Hello\nW', 'orld😁', '\r\n'], true, EndOfLineType.CRLF, true);
         assert.deepStrictEqual(table.getContent(), ['Hello', 'World😁', '']);
@@ -760,7 +759,7 @@ suite('PieceTable-test - content APIs', () => {
     });
 
     test('line - basic', () => {
-        let table = buildPieceTable(['Hello\r\n', 'World.\nMy name is Chris\r\n', 'I started this project \r', 'when I was first year in university.'], false);
+        const table = buildPieceTable(['Hello\r\n', 'World.\nMy name is Chris\r\n', 'I started this project \r', 'when I was first year in university.'], false);
         assert.strictEqual(table.getLine(0), 'Hello');
         assert.strictEqual(table.getLine(1), 'World.');
         assert.strictEqual(table.getLine(2), 'My name is Chris');
@@ -777,7 +776,7 @@ suite('PieceTable-test - content APIs', () => {
     });
 
     test('line - piece end with no linefeed', () => {
-        let table = buildPieceTable(['Hello ', 'World.\nMy name is Chris\r\n', 'I started this project \n', 'when I was first year in university.\r\n'], false);
+        const table = buildPieceTable(['Hello ', 'World.\nMy name is Chris\r\n', 'I started this project \n', 'when I was first year in university.\r\n'], false);
         assert.strictEqual(table.getLine(0), 'Hello World.');
         assert.strictEqual(table.getLine(1), 'My name is Chris');
         assert.strictEqual(table.getLine(2), 'I started this project ');
@@ -794,8 +793,8 @@ suite('PieceTable-test - content APIs', () => {
     });
 
     test('line - long text', () => {
-        let surrogates = '😁';
-        let table = buildPieceTable(['Hello ', 'World.\nMy name is Chris\r\n', 'I started this project \n', 'when I was first year in university.\r\nI wish whoever\r', ' read this line of code\r\n', 'take care of yourself' + surrogates.charAt(0), surrogates.charAt(1) + ' and have a \n', 'nice day!\n'], false);
+        const surrogates = '😁';
+        const table = buildPieceTable(['Hello ', 'World.\nMy name is Chris\r\n', 'I started this project \n', 'when I was first year in university.\r\nI wish whoever\r', ' read this line of code\r\n', 'take care of yourself' + surrogates.charAt(0), surrogates.charAt(1) + ' and have a \n', 'nice day!\n'], false);
         assert.strictEqual(table.getLine(0), 'Hello World.');
         assert.strictEqual(table.getLine(1), 'My name is Chris');
         assert.strictEqual(table.getLine(2), 'I started this project ');
@@ -833,10 +832,10 @@ suite('PieceTable-test - content APIs', () => {
         }
         assert.strictEqual(table.getLineCount(), lineInfo.length);
 
-    }
+    };
 
     test('getOffsetAt / getPostionAt / getLineLength', () => {
-        let surrogates = '😁';
+        const surrogates = '😁';
         let table = buildPieceTable(['Hello ', 'World.\nMy name is Chris\r\n', 'I started this project \n', 'when I was first year in university.\r\nI wish whoever\r', ' read this line of code\r\n', 'take care of yourself' + surrogates.charAt(0), surrogates.charAt(1) + ' and have a \n', 'nice day!\n'], false);
         assert.deepStrictEqual(table.getPositionAt(table.getOffsetAt(0, 0)), new EditorPosition(0, 0));
         assert.deepStrictEqual(table.getPositionAt(table.getOffsetAt(1, 0)), new EditorPosition(1, 0));
@@ -883,7 +882,7 @@ suite('PieceTable-test - content APIs', () => {
 
     test('getCharcodeByOffset/Line', () => {
         const text = ['Hello\n', 'World\r\n', '', '\nasdqwe', 'as', '\n\n', '\r', 'asd', 'cc', '\n', 'a', '\r\n'];
-        let table = buildPieceTable(text, false);
+        const table = buildPieceTable(text, false);
         getCharcodeCheck(table);
         PieceTableTester.assertPieceTable(table);
 
@@ -894,7 +893,7 @@ suite('PieceTable-test - content APIs', () => {
 suite('PieceTable-test - insert / delete', () => {
    
     test('basic insert / delete', () => {
-		let table = buildPieceTable([
+		const table = buildPieceTable([
 			'This is a document with some text.'
 		]);
 
@@ -914,7 +913,7 @@ suite('PieceTable-test - insert / delete', () => {
 	});
 
 	test('more inserts', () => {
-		let table = buildPieceTable(['']);
+		const table = buildPieceTable(['']);
 
 		table.insertAt(0, 'AAA');
 		assert.strictEqual(table.getRawContent(), 'AAA');
@@ -929,7 +928,7 @@ suite('PieceTable-test - insert / delete', () => {
 
     test('insert 1', () => {
 		let str = '';
-		let table = buildPieceTable(['']);
+		const table = buildPieceTable(['']);
 		table.insertAt(0, 'ceLPHmFzvCtFeHkCBej ');
 		str = str.substring(0, 0) + 'ceLPHmFzvCtFeHkCBej ' + str.substring(0);
 		assert.strictEqual(table.getRawContent(), str);
@@ -947,7 +946,7 @@ suite('PieceTable-test - insert / delete', () => {
 
     test('insert 2', () => {
 		let str = '';
-		let table = buildPieceTable(['']);
+		const table = buildPieceTable(['']);
 		table.insertAt(0, 'VgPG ');
 		str = str.substring(0, 0) + 'VgPG ' + str.substring(0);
 		table.insertAt(2, 'DdWF ');
@@ -965,7 +964,7 @@ suite('PieceTable-test - insert / delete', () => {
 
 	test('insert 3', () => {
 		let str = '';
-		let table = buildPieceTable(['']);
+		const table = buildPieceTable(['']);
 		table.insertAt(0, 'gYSz');
 		str = str.substring(0, 0) + 'gYSz' + str.substring(0);
 		assert.strictEqual(table.getRawContent(), str);
@@ -985,7 +984,7 @@ suite('PieceTable-test - insert / delete', () => {
 	});
 
     test('more deletes', () => {
-		let table = buildPieceTable(['012345678']);
+		const table = buildPieceTable(['012345678']);
 		table.deleteAt(8, 1);
 		assert.strictEqual(table.getRawContent(), '01234567');
 		table.deleteAt(0, 1);
@@ -1001,7 +1000,7 @@ suite('PieceTable-test - insert / delete', () => {
 
     test('delete 1', () => {
 		let str = '';
-		let table = buildPieceTable(['']);
+		const table = buildPieceTable(['']);
 
 		table.insertAt(0, 'vfb');
 		str = str.substring(0, 0) + 'vfb' + str.substring(0);
@@ -1034,7 +1033,7 @@ suite('PieceTable-test - insert / delete', () => {
 
 	test('delete 2', () => {
 		let str = '';
-		let table = buildPieceTable(['']);
+		const table = buildPieceTable(['']);
 
 		table.insertAt(0, 'IDT');
 		str = str.substring(0, 0) + 'IDT' + str.substring(0);
@@ -1060,7 +1059,7 @@ suite('PieceTable-test - insert / delete', () => {
 
 	test('delete 3', () => {
 		let str = '';
-		let table = buildPieceTable(['']);
+		const table = buildPieceTable(['']);
 		table.insertAt(0, 'PqM');
 		str = str.substring(0, 0) + 'PqM' + str.substring(0);
 		table.deleteAt(1, 2);
@@ -1093,7 +1092,7 @@ suite('PieceTable-test - insert / delete', () => {
 
     test('insert/delete \\r bug 1', () => {
 		let str = 'a';
-		let table = buildPieceTable(['a']);
+		const table = buildPieceTable(['a']);
 		table.deleteAt(0, 1);
 		str = str.substring(0, 0) + str.substring(0 + 1);
 		table.insertAt(0, '\r\r\n\n');
@@ -1119,7 +1118,7 @@ suite('PieceTable-test - insert / delete', () => {
 
 	test('insert/delete \\r bug 2', () => {
 		let str = 'a';
-		let table = buildPieceTable(['a']);
+		const table = buildPieceTable(['a']);
 		table.insertAt(1, '\naa\r');
 		str = str.substring(0, 1) + '\naa\r' + str.substring(1);
 		table.deleteAt(0, 4);
@@ -1147,7 +1146,7 @@ suite('PieceTable-test - insert / delete', () => {
 
 	test('insert/delete \\r bug 3', () => {
 		let str = 'a';
-		let table = buildPieceTable(['a']);
+		const table = buildPieceTable(['a']);
 		table.insertAt(0, '\r\na\r');
 		str = str.substring(0, 0) + '\r\na\r' + str.substring(0);
 		table.deleteAt(2, 3);
@@ -1176,7 +1175,7 @@ suite('PieceTable-test - insert / delete', () => {
 
 	test('insert/delete \\r bug 4', () => {
 		let str = 'a';
-		let table = buildPieceTable(['a']);
+		const table = buildPieceTable(['a']);
 		table.deleteAt(0, 1);
 		str = str.substring(0, 0) + str.substring(0 + 1);
 		table.insertAt(0, '\naaa');
@@ -1204,7 +1203,7 @@ suite('PieceTable-test - insert / delete', () => {
 
 	test('insert/delete \\r bug 5', () => {
 		let str = '';
-		let table = buildPieceTable(['']);
+		const table = buildPieceTable(['']);
 		
         table.insertAt(0, '\n\n\n\r');
 		str = str.substring(0, 0) + '\n\n\n\r' + str.substring(0);
@@ -1248,7 +1247,7 @@ suite('PieceTable-test - insert / delete', () => {
 const splitLines = (str: string) => str.split(/\r\n|\r|\n/);
 
 const testLinesContent = function (str: string, table: IPieceTable) {
-	let lines = str.split(/\r\n|\r|\n/);
+	const lines = str.split(/\r\n|\r|\n/);
 	assert.strictEqual(table.getLineCount(), lines.length);
 	assert.strictEqual(table.getRawContent(), str);
 	for (let i = 0; i < lines.length; i++) {
@@ -1261,7 +1260,7 @@ const testLinesContent = function (str: string, table: IPieceTable) {
 suite('PieceTable-test - CRLF', () => {
 
     test('delete CR in CRLF 1', () => {
-		let table = buildPieceTable([''], false);
+		const table = buildPieceTable([''], false);
 		table.insertAt(0, 'a\r\nb');
 		table.deleteAt(0, 2);
 
@@ -1270,7 +1269,7 @@ suite('PieceTable-test - CRLF', () => {
 	});
 
 	test('delete CR in CRLF 2', () => {
-		let table = buildPieceTable([''], false);
+		const table = buildPieceTable([''], false);
 		table.insertAt(0, 'a\r\nb');
 		table.deleteAt(2, 2);
 
@@ -1280,7 +1279,7 @@ suite('PieceTable-test - CRLF', () => {
 
 	test('CRLF 1', () => {
 		let str = '';
-		let table = buildPieceTable([''], false);
+		const table = buildPieceTable([''], false);
 		table.insertAt(0, '\n\n\r\r');
 		str = str.substring(0, 0) + '\n\n\r\r' + str.substring(0);
 		table.insertAt(1, '\r\n\r\n');
@@ -1290,14 +1289,14 @@ suite('PieceTable-test - CRLF', () => {
 		table.deleteAt(2, 3);
 		str = str.substring(0, 2) + str.substring(2 + 3);
 
-		let lines = str.split(/\r\n|\r|\n/);
+		const lines = str.split(/\r\n|\r|\n/);
 		assert.strictEqual(table.getLineCount(), lines.length);
 		PieceTableTester.assertPieceTable(table);
 	});
 
 	test('CRLF 2', () => {
 		let str = '';
-		let table = buildPieceTable([''], false);
+		const table = buildPieceTable([''], false);
 
 		table.insertAt(0, '\n\r\n\r');
 		str = str.substring(0, 0) + '\n\r\n\r' + str.substring(0);
@@ -1306,14 +1305,14 @@ suite('PieceTable-test - CRLF', () => {
 		table.deleteAt(4, 1);
 		str = str.substring(0, 4) + str.substring(4 + 1);
 
-		let lines = str.split(/\r\n|\r|\n/);
+		const lines = str.split(/\r\n|\r|\n/);
 		assert.strictEqual(table.getLineCount(), lines.length);
 		PieceTableTester.assertPieceTable(table);
 	});
 
 	test('CRLF 3', () => {
 		let str = '';
-		let table = buildPieceTable([''], false);
+		const table = buildPieceTable([''], false);
 
 		table.insertAt(0, '\n\n\n\r');
 		str = str.substring(0, 0) + '\n\n\n\r' + str.substring(0);
@@ -1328,14 +1327,14 @@ suite('PieceTable-test - CRLF', () => {
 		table.insertAt(3, '\r\r\r\n');
 		str = str.substring(0, 3) + '\r\r\r\n' + str.substring(3);
 
-		let lines = str.split(/\r\n|\r|\n/);
+		const lines = str.split(/\r\n|\r|\n/);
 		assert.strictEqual(table.getLineCount(), lines.length);
 		PieceTableTester.assertPieceTable(table);
 	});
 
 	test('CRLF 4', () => {
 		let str = '';
-		let table = buildPieceTable([''], false);
+		const table = buildPieceTable([''], false);
 
 		table.insertAt(0, '\n\n\n\n');
         str = str.substring(0, 0) + '\n\n\n\n' + str.substring(0);
@@ -1363,7 +1362,7 @@ suite('PieceTable-test - CRLF', () => {
 
 	test('CRLF 5', () => {
 		let str = '';
-		let table = buildPieceTable([''], false);
+		const table = buildPieceTable([''], false);
 
 		table.insertAt(0, '\n\n\n\n');
 		str = str.substring(0, 0) + '\n\n\n\n' + str.substring(0);
@@ -1407,7 +1406,7 @@ suite('PieceTable-test - CRLF', () => {
 
 	test('CRLF 6', () => {
 		let str = '';
-		let table = buildPieceTable([''], false);
+		const table = buildPieceTable([''], false);
 
 		table.insertAt(0, '\n\r\r\n');
 		str = str.substring(0, 0) + '\n\r\r\n' + str.substring(0);
@@ -1432,7 +1431,7 @@ suite('PieceTable-test - CRLF', () => {
 	
 	test('CRLF 7', () => {
 		let str = '';
-		let table = buildPieceTable([''], false);
+		const table = buildPieceTable([''], false);
 
 		table.insertAt(0, '\r\r\n\n');
 		str = str.substring(0, 0) + '\r\r\n\n' + str.substring(0);
@@ -1448,7 +1447,7 @@ suite('PieceTable-test - CRLF', () => {
 
     test('CRLF 8', () => {
 		let str = '';
-		let table = buildPieceTable([''], false);
+		const table = buildPieceTable([''], false);
 
 		table.insertAt(0, '\r\n\n\r');
 		str = str.substring(0, 0) + '\r\n\n\r' + str.substring(0);
@@ -1472,7 +1471,7 @@ suite('PieceTable-test - CRLF', () => {
 
 	test('CRLF 9', () => {
 		let str = '';
-		let table = buildPieceTable([''], false);
+		const table = buildPieceTable([''], false);
 
 		table.insertAt(0, 'qneW');
 		str = str.substring(0, 0) + 'qneW' + str.substring(0);
@@ -1500,7 +1499,7 @@ suite('PieceTable-test - CRLF', () => {
 
 	test('CRLF 10', () => {
 		let str = '';
-		let table = buildPieceTable([''], false);
+		const table = buildPieceTable([''], false);
 
 		table.insertAt(0, '\n\n\n\n');
 		str = str.substring(0, 0) + '\n\n\n\n' + str.substring(0);
@@ -1520,14 +1519,14 @@ suite('PieceTable-test - CRLF', () => {
 	});
 
 	test('delete CR in CRLF 1', () => {
-		let table = buildPieceTable(['a\r\nb'], false);
+		const table = buildPieceTable(['a\r\nb'], false);
 		table.deleteAt(2, 2);
 		assert.strictEqual(table.getLineCount(), 2);
 		PieceTableTester.assertPieceTable(table);
 	});
 
 	test('delete CR in CRLF 2', () => {
-		let table = buildPieceTable(['a\r\nb']);
+		const table = buildPieceTable(['a\r\nb']);
 		table.deleteAt(0, 2);
 
 		assert.strictEqual(table.getLineCount(), 2);
@@ -1536,7 +1535,7 @@ suite('PieceTable-test - CRLF', () => {
 
 	test('CRLF new 1', () => {
 		let str = '\n\n\r\r';
-		let table = buildPieceTable(['\n\n\r\r'], false);
+		const table = buildPieceTable(['\n\n\r\r'], false);
 		table.insertAt(1, '\r\n\r\n');
 		str = str.substring(0, 1) + '\r\n\r\n' + str.substring(1);
 		table.deleteAt(5, 3);
@@ -1544,28 +1543,28 @@ suite('PieceTable-test - CRLF', () => {
 		table.deleteAt(2, 3);
 		str = str.substring(0, 2) + str.substring(2 + 3);
 
-		let lines = splitLines(str);
+		const lines = splitLines(str);
 		assert.strictEqual(table.getLineCount(), lines.length);
 		PieceTableTester.assertPieceTable(table);
 	});
 
 	test('CRLF new 2', () => {
 		let str = '\n\r\n\r';
-		let table = buildPieceTable(['\n\r\n\r'], false);
+		const table = buildPieceTable(['\n\r\n\r'], false);
 
 		table.insertAt(2, '\n\r\r\r');
 		str = str.substring(0, 2) + '\n\r\r\r' + str.substring(2);
 		table.deleteAt(4, 1);
 		str = str.substring(0, 4) + str.substring(4 + 1);
 
-		let lines = splitLines(str);
+		const lines = splitLines(str);
 		assert.strictEqual(table.getLineCount(), lines.length);
 		PieceTableTester.assertPieceTable(table);
 	});
 
 	test('CRLF new 3', () => {
 		let str = '\n\n\n\r';
-		let table = buildPieceTable(['\n\n\n\r'], false);
+		const table = buildPieceTable(['\n\n\n\r'], false);
 
 		table.deleteAt(2, 2);
 		str = str.substring(0, 2) + str.substring(2 + 2);
@@ -1578,14 +1577,14 @@ suite('PieceTable-test - CRLF', () => {
 		table.insertAt(3, '\r\r\r\n');
 		str = str.substring(0, 3) + '\r\r\r\n' + str.substring(3);
 
-		let lines = splitLines(str);
+		const lines = splitLines(str);
 		assert.strictEqual(table.getLineCount(), lines.length);
 		PieceTableTester.assertPieceTable(table);
 	});
 
 	test('CRLF new 4', () => {
 		let str = '\n\n\n\n';
-		let table = buildPieceTable(['\n\n\n\n'], false);
+		const table = buildPieceTable(['\n\n\n\n'], false);
 
 		table.deleteAt(3, 1);
 		str = str.substring(0, 3) + str.substring(3 + 1);
@@ -1602,7 +1601,7 @@ suite('PieceTable-test - CRLF', () => {
 
 	test('CRLF new 5', () => {
 		let str = '\n\n\n\n';
-		let table = buildPieceTable(['\n\n\n\n'], false);
+		const table = buildPieceTable(['\n\n\n\n'], false);
 
 		table.deleteAt(3, 1);
 		str = str.substring(0, 3) + str.substring(3 + 1);
@@ -1627,7 +1626,7 @@ suite('PieceTable-test - CRLF', () => {
 
 	test('CRLF new 6', () => {
 		let str = '\n\r\r\n';
-		let table = buildPieceTable(['\n\r\r\n'], false);
+		const table = buildPieceTable(['\n\r\r\n'], false);
 
 		table.insertAt(4, '\r\n\n\r');
 		str = str.substring(0, 4) + '\r\n\n\r' + str.substring(4);
@@ -1650,7 +1649,7 @@ suite('PieceTable-test - CRLF', () => {
 
 	test('CRLF new 7', () => {
 		let str = '\r\n\n\r';
-		let table = buildPieceTable(['\r\n\n\r'], false);
+		const table = buildPieceTable(['\r\n\n\r'], false);
 
 		table.deleteAt(1, 0);
 		str = str.substring(0, 1) + str.substring(1 + 0);
@@ -1665,7 +1664,7 @@ suite('PieceTable-test - CRLF', () => {
 
 	test('CRLF new 8', () => {
 		let str = '\r\r\n\n';
-		let table = buildPieceTable(['\r\r\n\n'], false);
+		const table = buildPieceTable(['\r\r\n\n'], false);
 
 		table.insertAt(4, '\r\n\n\r');
 		str = str.substring(0, 4) + '\r\n\n\r' + str.substring(4);
@@ -1679,7 +1678,7 @@ suite('PieceTable-test - CRLF', () => {
 
 	test('CRLF new 9', () => {
 		let str = 'qneW';
-		let table = buildPieceTable(['qneW'], false);
+		const table = buildPieceTable(['qneW'], false);
 
 		table.insertAt(0, 'YhIl');
 		str = str.substring(0, 0) + 'YhIl' + str.substring(0);
@@ -1698,7 +1697,7 @@ suite('PieceTable-test - CRLF', () => {
 
 	test('CRLF new 10', () => {
 		let str = '\n\n\n\n';
-		let table = buildPieceTable(['\n\n\n\n'], false);
+		const table = buildPieceTable(['\n\n\n\n'], false);
 
 		table.insertAt(3, '\n\r\n\r');
 		str = str.substring(0, 3) + '\n\r\n\r' + str.substring(3);
@@ -1716,7 +1715,7 @@ suite('PieceTable-test - CRLF', () => {
 	});
 
 	test('CRLF new 11', () => {
-		let table = buildPieceTable(['\n\r\r\n\n\n\r\n\r'], false);
+		const table = buildPieceTable(['\n\r\r\n\n\n\r\n\r'], false);
 		let str = '\n\r\r\n\n\n\r\n\r';
 		table.deleteAt(0, 2);
 		str = str.substring(0, 0) + str.substring(0 + 2);
@@ -1731,7 +1730,7 @@ suite('PieceTable-test - CRLF', () => {
 	});
 
 	test('CRLF new 12', () => {
-		let table = buildPieceTable([
+		const table = buildPieceTable([
 			'\n\r\n\n\n\r\n\r\n\r\r\n\n\n\r\r\n\r\n'
 		], false);
 		let str = '\n\r\n\n\n\r\n\r\n\r\r\n\n\n\r\r\n\r\n';
@@ -1752,7 +1751,7 @@ suite('PieceTable-test - CRLF', () => {
 	});
 
 	test('CRLF new 13', () => {
-		let table = buildPieceTable(['\r\n\n\n\n\n\n\r\n'], false);
+		const table = buildPieceTable(['\r\n\n\n\n\n\n\r\n'], false);
 		let str = '\r\n\n\n\n\n\n\r\n';
 		table.insertAt(4, '\n\n\r\n\r\r\n\n\r');
 		str = str.substring(0, 4) + '\n\n\r\n\r\r\n\n\r' + str.substring(4);
@@ -1769,7 +1768,7 @@ suite('PieceTable-test - CRLF', () => {
 	});
 
 	test('CRLF new 14', () => {
-		let table = buildPieceTable(['\n\r\n\r'], false);
+		const table = buildPieceTable(['\n\r\n\r'], false);
 		let str = '\n\r\n\r';
 		table.insertAt(4, '\n\n\r\n');
 		str = str.substring(0, 4) + '\n\n\r\n' + str.substring(4);
@@ -1782,7 +1781,7 @@ suite('PieceTable-test - CRLF', () => {
 	});
 
 	test('CRLF new 15', function () {
-		let table = buildPieceTable([''], false);
+		const table = buildPieceTable([''], false);
 		let str = '';
 
 		table.insertAt(0, 'WUZ\nXVZY\n');
@@ -1818,22 +1817,22 @@ suite('PieceTable-test - random', () => {
 
 	test('random insert / delete', () => {
 		let str = '';
-		let table = buildPieceTable([str], false);
+		const table = buildPieceTable([str], false);
 
 		// let output = '';
 		for (let i = 0; i < 1000; i++) {
 			if (Math.random() < 0.6) {
 				// random insert
-				let text = Random.string(100);
-				let pos = Random.int(str.length + 1);
+				const text = Random.string(100);
+				const pos = Random.int(str.length + 1);
 				table.insertAt(pos, text);
 				str = str.substring(0, pos) + text + str.substring(pos);
 				// output += `table.insertAt(${pos}, '${text.replace(/\n/g, '\\n').replace(/\r/g, '\\r')}');\n`;
 				// output += `str = str.substring(0, ${pos}) + '${text.replace(/\n/g, '\\n').replace(/\r/g, '\\r')}' + str.substring(${pos});\n`;
 			} else {
 				// random delete
-				let pos = Random.int(str.length);
-				let length = Math.min(
+				const pos = Random.int(str.length);
+				const length = Math.min(
 					str.length - pos,
 					Math.floor(Math.random() * 10)
 				);
@@ -1853,25 +1852,25 @@ suite('PieceTable-test - random', () => {
 
 	test('random chunks', () => {
 		
-		let chunks: string[] = [];
+		const chunks: string[] = [];
 		for (let i = 0; i < 5; i++) {
 			chunks.push(Random.string(1000));
 		}
 
-		let table = buildPieceTable(chunks, false);
+		const table = buildPieceTable(chunks, false);
 		let str = chunks.join('');
 
 		for (let i = 0; i < 1000; i++) {
 			if (Math.random() < 0.6) {
 				// insert
-				let text = Random.string(100);
-				let pos = Random.int(str.length + 1);
+				const text = Random.string(100);
+				const pos = Random.int(str.length + 1);
 				table.insertAt(pos, text);
 				str = str.substring(0, pos) + text + str.substring(pos);
 			} else {
 				// delete
-				let pos = Random.int(str.length);
-				let length = Math.min(
+				const pos = Random.int(str.length);
+				const length = Math.min(
 					str.length - pos,
 					Math.floor(Math.random() * 10)
 				);
@@ -1886,23 +1885,23 @@ suite('PieceTable-test - random', () => {
 	});
 
 	test('random chunks 2', () => {
-		let chunks: string[] = [];
+		const chunks: string[] = [];
 		chunks.push(Random.string(1000));
 
-		let table = buildPieceTable(chunks, false);
+		const table = buildPieceTable(chunks, false);
 		let str = chunks.join('');
 
 		for (let i = 0; i < 50; i++) {
 			if (Math.random() < 0.6) {
 				// insert
-				let text = Random.string(30);
-				let pos = Random.int(str.length + 1);
+				const text = Random.string(30);
+				const pos = Random.int(str.length + 1);
 				table.insertAt(pos, text);
 				str = str.substring(0, pos) + text + str.substring(pos);
 			} else {
 				// delete
-				let pos = Random.int(str.length);
-				let length = Math.min(
+				const pos = Random.int(str.length);
+				const length = Math.min(
 					str.length - pos,
 					Math.floor(Math.random() * 10)
 				);

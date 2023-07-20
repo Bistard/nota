@@ -210,7 +210,7 @@ type RenderObject = {
     readonly leftPart: HTMLElement;
     readonly content: HTMLElement;
     readonly rightPart: HTMLElement;
-}
+};
 
 export interface HoverEvent {
     readonly event: MouseEvent;
