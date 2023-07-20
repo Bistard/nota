@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-empty-function */
 import { tmpdir } from "os";
 import { Emitter, Register } from "src/base/common/event";
 import { DataBuffer } from "src/base/common/file/buffer";
