@@ -41,7 +41,7 @@ export const requestAtNextAnimationFrame = (callback: FrameRequestCallback): IDi
     
     const token = doRequestAnimationFrame.call(window, callback);
     return toDisposable(() => __cancelAnimationFrame(token));
-}
+};
  
  /**
   * @readonly The method may be passed into a handle which is returned when the 
@@ -49,7 +49,7 @@ export const requestAtNextAnimationFrame = (callback: FrameRequestCallback): IDi
   */
 const __cancelAnimationFrame = (handle: number): void => {
     window.cancelAnimationFrame(handle);
-}
+};
 
 /**
  * @description Continue requesting at next animation frame on the provided 

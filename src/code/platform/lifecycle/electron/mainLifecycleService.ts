@@ -221,7 +221,7 @@ export class MainLifecycleService extends AbstractLifecycleService<LifecyclePhas
             this.logService.trace('[MainLifecycleService] app.addListener("before-quit")');
             this._requestQuit = true;
             
-            this.logService.trace('[MainLifecycleService] onBeforeQuit.fire()')
+            this.logService.trace('[MainLifecycleService] onBeforeQuit.fire()');
             this._onBeforeQuit.fire();
 
             /**

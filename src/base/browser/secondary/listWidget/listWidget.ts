@@ -624,7 +624,7 @@ export class ListWidget<T> extends Disposable implements IListWidget<T> {
             ...event,
             position: { x: e.pageX + 1, y: e.pageY },
             target: isNumber(event.actualIndex) ? NulltoUndefined(this.view.getHTMLElement(event.actualIndex)) : undefined,
-        }
+        };
     }
 
     private __createContextmenuRegister(): Register<IListContextmenuEvent<T>> {

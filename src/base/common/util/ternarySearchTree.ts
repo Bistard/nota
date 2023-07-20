@@ -57,7 +57,7 @@ export class StringIterator implements IKeyIterator<string> {
     }
 
     public hasNext(): boolean {
-        return this._pos < (this._value.length - 1)
+        return this._pos < (this._value.length - 1);
     }
 
     public reset(value: string): this {
@@ -138,7 +138,7 @@ class __PathIterator implements IKeyIterator<string> {
                     break;
                 }
             } else {
-                sepSlash = false
+                sepSlash = false;
             }
             this._to++;
         }
@@ -538,7 +538,7 @@ export class TernarySearchTree<K, V extends NonNullable<any>> implements ITernar
                 if (!node.mid) {
                     node.mid = new TernarySearchTreeNode<K, V>(iter.currItem());                
                 }
-                path.push([Dir.Mid, node])
+                path.push([Dir.Mid, node]);
                 node = node.mid;
             } else {
                 break;

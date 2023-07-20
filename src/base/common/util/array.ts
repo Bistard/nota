@@ -174,7 +174,7 @@ export namespace Arrays {
 
             union.push(value);
             visited.add(value);
-        }
+        };
 
         array1.forEach(item => each(item));
         array2.forEach(item => each(item));

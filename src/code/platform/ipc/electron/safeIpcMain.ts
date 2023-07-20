@@ -98,7 +98,7 @@ export class SafeIpcMain implements ISafeIpcMain {
             if (this.__validate(channel)) {
                 listener(event, ...args);
             }
-        }
+        };
 
         this._listeners.set(listener, wrappedCallback);
         UnsafeIpcMain.on(channel, wrappedCallback);

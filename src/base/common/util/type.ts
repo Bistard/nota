@@ -159,7 +159,7 @@ export type DeepReadonly<Mutable> =
  */
 export type Mutable<Immutable> = {
     -readonly [P in keyof Immutable]: Immutable[P]
-}
+};
 
 /**
  * Make all the properties mutable recursively (remove readonly).
@@ -173,7 +173,7 @@ export type DeepMutable<Immutable> = {
                 : Immutable[TKey] extends object 
                     ? DeepMutable<Immutable[TKey]> 
                     : Immutable[TKey];
-}
+};
 
 /**
  * Given a type T, maps each property with type `from` to type `to` that are

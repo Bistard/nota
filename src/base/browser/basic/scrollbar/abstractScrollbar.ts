@@ -267,7 +267,7 @@ export abstract class AbstractScrollbar extends Widget {
 
             // tell the host we finish the drag motion
             this._host.onSliderDragStop();
-        }
+        };
 
         // starts register listeners
         mouseoverDisposable = this.onMousemove(document.documentElement, onMousemove);

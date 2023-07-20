@@ -167,7 +167,7 @@ namespace FakeGlobalAsync {
                 trueGlobalAsync.clearTimeout(timeoutId);
             }
         };
-    }
+    };
 
     const __setCustomizedInterval = function (): void {
         globalThis.setInterval = <any>((handler: TimerHandler, interval: number) => {
@@ -196,7 +196,7 @@ namespace FakeGlobalAsync {
                         stackTrace,
                     },
                 });
-            }
+            };
         
             onSchedule();
         
@@ -215,7 +215,7 @@ namespace FakeGlobalAsync {
                 trueGlobalAsync.clearInterval(timeoutId);
             }
         };
-    }
+    };
 
     const __setCustomizedDate = function (): void {
         const OriginalDate = trueGlobalAsync.Date;
@@ -261,7 +261,7 @@ namespace FakeGlobalAsync {
     
         // set
         globalThis.Date = <DateConstructor>FakeDateConstructor;
-    }
+    };
     
 }
 

@@ -186,7 +186,7 @@ abstract class MultiTreeModelBase<T, TFilter> implements IMultiTreeModelBase<T, 
             if (opts.onDidCreateNode) {
                 opts.onDidCreateNode(node);
             }
-        }
+        };
 
         const onDidDeleteNode = (node: ITreeNode<T, TFilter>): void => {
             // avoid root
@@ -203,7 +203,7 @@ abstract class MultiTreeModelBase<T, TFilter> implements IMultiTreeModelBase<T, 
                     opts.onDidDeleteNode(node);
                 }
             }
-        }
+        };
 
         return {
             onDidCreateNode,

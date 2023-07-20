@@ -66,7 +66,7 @@ export namespace Random {
             rand = () => {
                 const x = Math.sin(localSeed++) * 179426549;
                 return x - Math.floor(x);
-            }
+            };
         } else {
             rand =  Math.random;
         }

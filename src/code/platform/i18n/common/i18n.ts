@@ -227,10 +227,10 @@ export class i18n implements Ii18nService {
                     throw new Error('i18n translation index variable should be number.');
                 }
                 return interpolation[index]; 
-            }
+            };
         } 
         else if (isObject(interpolation)) {
-            get = (key: string) => { return interpolation[key]; }
+            get = (key: string) => { return interpolation[key]; };
         } 
         else {
             throw new Error('invalid type of interpolation, either an array of strings nor object.');

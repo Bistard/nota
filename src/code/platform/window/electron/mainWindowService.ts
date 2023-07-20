@@ -196,6 +196,7 @@ export class MainWindowService extends Disposable implements IMainWindowService 
 }
 
 namespace UriToOpenResolver {
+    
     /**
      * @description Given an array of URIs, resolves the ones that follow the
      * following parsing rule.
@@ -262,6 +263,6 @@ namespace UriToOpenResolver {
             type: isDir | isFile,
             gotoLine: gotoLine,
             fail: fail,
-        }
-    }
+        };
+    };
 }

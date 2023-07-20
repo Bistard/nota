@@ -196,7 +196,7 @@ export function printNaryTreeLike<TNode>(
                 __print(child, prefix + '└─', true);
             }
         }
-    }
+    };
 
     __print(root, '', false);
 }

@@ -1113,12 +1113,12 @@ export namespace ContextKeyDeserializer {
     const deserializeOR = function (serialized: string): ContextKeyExpr {
         const expressions = serialized.split('||');
         return ContextKeyOrExpr.create(expressions.map(expr => deserializeAND(expr)), true);
-    }
+    };
 
     const deserializeAND = function (serialized: string): ContextKeyExpr {
         const expressions = serialized.split('&&');
         return ContextKeyAndExpr.create(expressions.map(expr => __deserialize(expr)));
-    }
+    };
     
     const __deserialize = function (serialized: string): ContextKeyExpr {
         serialized = serialized.trim();
@@ -1168,7 +1168,7 @@ export namespace ContextKeyDeserializer {
 		}
 
 		return ContextKeyHasExpr.create(serialized);
-    }
+    };
 
     const __deserializeValue = function (serialized: string): any {
         serialized = serialized.trim();
@@ -1184,7 +1184,7 @@ export namespace ContextKeyDeserializer {
 		}
 
 		return serialized;
-    }
+    };
 
     const __deserializeRegexValue = function (serialized: string): RegExp {
         if (!serialized || serialized.trim().length === 0) {
@@ -1207,5 +1207,5 @@ export namespace ContextKeyDeserializer {
             console.warn(`bad regexp-value '${serialized}', parse error: ${e}`);
 			return new RegExp('');
 		}
-    }
+    };
 }

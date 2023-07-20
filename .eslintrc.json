@@ -1,7 +1,7 @@
 /** 
  * eslint environment configuration
  */
-{
+ {
     
     // indicates this is the root directory
     "root": true,
@@ -35,6 +35,9 @@
 
     "rules": {
         
+        "semi": "off",
+        "@typescript-eslint/semi": "error",
+
         "no-empty": "off",
         "no-constant-condition": "off",
         "no-useless-catch": "warn",

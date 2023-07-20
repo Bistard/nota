@@ -65,7 +65,7 @@ export function iterProp(obj: any, fn: (propName: string, index: number) => any,
 		for (const propName of Object.getOwnPropertyNames(prototype)) {
 			fn(propName, idx++);
 		}
-	}
+	};
 
 	__handler(Object.getPrototypeOf(obj), fn, recursiveLevel);
 }

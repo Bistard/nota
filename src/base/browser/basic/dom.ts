@@ -106,7 +106,7 @@ export function addDisposableListener<T extends keyof GlobalEventHandlersEventMa
 
 export type IStyleDisposable = IDisposable & {
 	readonly style: HTMLStyleElement;
-}
+};
 
 /**
  * Generates a {@link HTMLStyleElement} and appends to the given {@link HTMLElement}.
@@ -181,7 +181,7 @@ export namespace DomUtility
 			const computedStyle: CSSStyleDeclaration = getComputedStyle(element);
 			const value = computedStyle.getPropertyValue(property);
 			return parseFloat(value) || 0;
-		}
+		};
 
 		// [method - padding]
 

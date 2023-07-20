@@ -254,7 +254,7 @@ export class RangeTable {
 
 		// selects all the items after the splice.
 		const after: IRangeList[] = Range.listIntersection({start: index + deleteCount, end: Number.POSITIVE_INFINITY}, this._list);
-		after.map(list => { list.range = Range.shift(list.range, items.length - deleteCount) });
+		after.map(list => { list.range = Range.shift(list.range, items.length - deleteCount); });
 
 		// generates a collection of items in IRangeList[] form.
 		const insertion: IRangeList[] = items.map((item, i) => ({

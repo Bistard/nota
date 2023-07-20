@@ -142,9 +142,9 @@ const enum ResponseType {
     PromiseReject,
 }
 
-type IEventFireResponse      = { type: ResponseType.EventFire;      requestID: number; dataOrError: any; }
-type IPromiseResolveResponse = { type: ResponseType.PromiseResolve; requestID: number; dataOrError: any; }
-type IPromiseRejectResponse  = { type: ResponseType.PromiseReject;  requestID: number; dataOrError: Error; }
+type IEventFireResponse      = { type: ResponseType.EventFire;      requestID: number; dataOrError: any; };
+type IPromiseResolveResponse = { type: ResponseType.PromiseResolve; requestID: number; dataOrError: any; };
+type IPromiseRejectResponse  = { type: ResponseType.PromiseReject;  requestID: number; dataOrError: Error; };
 type IResponse = IEventFireResponse | IPromiseRejectResponse | IPromiseResolveResponse;
 
 type IEventFireHeader =      [ResponseType.EventFire,      number];

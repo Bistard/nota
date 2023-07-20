@@ -26,7 +26,7 @@ export interface ICommandRegistrationSchema extends Omit<ICommandSchema, 'overwr
 
 export type CommandImplementation = {
     (provider: IServiceProvider, ...args: any[]): boolean | Promise<boolean>;
-}
+};
 
 /**
  * An interface only for {@link Command}.

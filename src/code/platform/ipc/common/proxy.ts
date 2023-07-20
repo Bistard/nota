@@ -97,7 +97,7 @@ export namespace ProxyChannel {
             && CharCode.A <= proName.charCodeAt(2) 
             && proName.charCodeAt(2) <= CharCode.Z
         );
-    }
+    };
     
     export interface WrapServiceOpt {
         /**
