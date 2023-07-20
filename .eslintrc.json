@@ -23,7 +23,8 @@
      * use typescript-eslint's rules within the codebase.
      */
     "plugins": [
-        "@typescript-eslint"
+        "@typescript-eslint",
+        "local"
     ],
 
     // tells ESLint that this configuration extends the given configurations
@@ -40,7 +41,7 @@
 
         "no-empty": "off",
         "no-constant-condition": "off",
-        "no-useless-catch": "warn",
+        "no-useless-catch": "warn", // could be 'off'
 
         "@typescript-eslint/no-explicit-any": "off",
         "@typescript-eslint/no-extra-non-null-assertion": "off",
@@ -55,12 +56,23 @@
             }
         ],
         
-        "@typescript-eslint/no-unused-vars": "warn",
-        "@typescript-eslint/no-empty-interface": "warn",
-        "@typescript-eslint/no-empty-function": "warn"
+        "@typescript-eslint/no-unused-vars": "off", // could be 'warn'
+        "@typescript-eslint/no-empty-interface": "off", // could be 'warn'
+        "@typescript-eslint/no-empty-function": "off" // could be 'warn'
     },
 
     "overrides": [
+        {
+            "files": [
+                "**/test/**/*.test.ts"
+            ],
+            "rules": {
+                "local/test-code-no-only": "error",
 
+                "@typescript-eslint/no-unused-vars": "off",
+                "@typescript-eslint/no-empty-interface": "off",
+                "@typescript-eslint/no-empty-function": "off"
+            }
+        }
     ]
 }
