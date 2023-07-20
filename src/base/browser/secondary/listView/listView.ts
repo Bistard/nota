@@ -16,7 +16,7 @@ import { IList } from "src/base/browser/secondary/listView/list";
 /**
  * The consturtor options for {@link ListView}.
  */
-export interface IListViewOpts<T> {
+export interface IListViewOpts {
     /**
      * When constructing the view, decide whether to layout the view immediately.
      * `layout` meanning to update the size of the view and causes rerendering.
@@ -352,7 +352,7 @@ export class ListView<T> extends Disposable implements ISpliceable<T>, IListView
         container: HTMLElement, 
         renderers: IListViewRenderer<any, any>[], 
         itemProvider: IListItemProvider<T>,
-        opts: IListViewOpts<T>
+        opts: IListViewOpts
     ) {
         super();
 
