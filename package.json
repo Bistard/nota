@@ -5,7 +5,11 @@
   "main": "./dist/main-bundle.js",
   "type": "commonjs",
   "private": true,
+  "_moduleAliases": {
+    "eslint-plugin-local": "./scripts/linting/eslint-plugin-local"
+  },
   "scripts": {
+    "postinstall": "link-module-alias",
     "script": "node ./scripts/script.js"
   },
   "repository": {
@@ -37,6 +41,7 @@
     "fantasticon": "^1.2.3",
     "jsdom": "19.0.0",
     "jsdom-global": "3.0.2",
+    "link-module-alias": "^1.2.0",
     "mini-css-extract-plugin": "^2.7.2",
     "minimist": "^1.2.6",
     "mocha": "^9.1.3",
