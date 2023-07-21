@@ -3,10 +3,10 @@ import { VisibilityController } from "src/base/browser/basic/visibilityControlle
 import { IDisposable } from "src/base/common/dispose";
 import { DomEventHandler, DomUtility, EventType, addDisposableListener } from "src/base/browser/basic/dom";
 import { IStandardKeyboardEvent, Keyboard } from "src/base/common/keyboard";
-import { IntervalTimer } from "src/base/common/util/timer";
 import { IKeyboardService } from "src/workbench/services/keyboard/keyboardService";
 import { createService } from "src/platform/instantiation/common/decorator";
 import { ILayoutService } from 'src/workbench/services/layout/layoutService';
+import { IntervalTimer } from 'src/base/common/util/async';
 
 export const IKeyboardScreenCastService = createService<IKeyboardScreenCastService>('keyboard-screencast-service');
 
@@ -187,6 +187,7 @@ export class KeyboardScreenCastService implements IKeyboardScreenCastService {
     }
 
     private __onTimeup(): void {
+        console.log('on time up');
         this.__flushKeypress();
         this._visibilityController.setVisibility(false);
     }

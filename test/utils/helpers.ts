@@ -1,5 +1,5 @@
+import { repeat } from "src/base/common/util/async";
 import { Random } from "src/base/common/util/random";
-import { repeat } from "src/base/common/util/timer";
 import { NestedArray } from "src/base/common/util/type";
 
 let _hitCount = 0;
