@@ -182,12 +182,11 @@ export class KeyboardScreenCastService implements IKeyboardScreenCastService {
 
     private __resetTimer(ms: number = 1000): void {
         if (this._timer) {
-            this._timer.set(() => this.__onTimeup(), ms);
+            this._timer.set(ms, () => this.__onTimeup());
         }
     }
 
     private __onTimeup(): void {
-        console.log('on time up');
         this.__flushKeypress();
         this._visibilityController.setVisibility(false);
     }

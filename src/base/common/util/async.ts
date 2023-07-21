@@ -896,10 +896,10 @@ export class IntervalTimer implements IDisposable {
      * @description Sets the timer with a new callback and interval duration. If 
 	 * 				the timer is currently active, it will be cancelled before 
 	 * 				being set.
+	 * @param ms The interval duration in milliseconds.
      * @param callback The callback function to be run at each interval.
-     * @param ms The interval duration in milliseconds.
      */
-    public set(callback: () => void, ms: number): void {
+    public set(ms: number, callback: () => void): void {
         this.cancel();
         this._handle = setInterval(() => callback(), ms);
     }
