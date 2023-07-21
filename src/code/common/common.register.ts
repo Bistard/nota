@@ -6,4 +6,4 @@
 
 // configuration register
 import 'src/code/browser/configuration.register';
-import 'src/code/browser/workbench/parts/sideView/configuration.register';
+import 'src/workbench/parts/sideView/configuration.register';

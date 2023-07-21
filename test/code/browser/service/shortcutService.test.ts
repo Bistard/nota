@@ -1,9 +1,9 @@
 import * as assert from 'assert';
 import { IStandardKeyboardEvent, KeyCode, Shortcut } from 'src/base/common/keyboard';
 import { ILogService } from 'src/base/common/logger';
-import { IKeyboardService } from 'src/code/browser/service/keyboard/keyboardService';
-import { ShortcutWeight } from 'src/code/browser/service/shortcut/shortcutRegistrant';
-import { ShortcutService } from 'src/code/browser/service/shortcut/shortcutService';
+import { IKeyboardService } from 'src/workbench/service/keyboard/keyboardService';
+import { ShortcutWeight } from 'src/workbench/service/shortcut/shortcutRegistrant';
+import { ShortcutService } from 'src/workbench/service/shortcut/shortcutService';
 import { ICommandRegistrant } from 'src/platform/command/common/commandRegistrant';
 import { CommandService, ICommandService } from 'src/platform/command/common/commandService';
 import { CreateContextKeyExpr } from 'src/platform/context/common/contextKeyExpr';

@@ -1,6 +1,6 @@
 import { AllSelection } from "prosemirror-state";
 import { KeyCode, Shortcut } from "src/base/common/keyboard";
-import { ShortcutWeight } from "src/code/browser/service/shortcut/shortcutRegistrant";
+import { ShortcutWeight } from "src/workbench/service/shortcut/shortcutRegistrant";
 import { IServiceProvider } from "src/platform/instantiation/common/instantiation";
 import { EditorViewCommand } from "src/editor/common/command/editorCommand";
 import { EditorContextKeys } from "src/editor/common/editorContextKeys";

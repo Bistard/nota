@@ -1,4 +1,4 @@
-import { IShortcutRegistrant, IShortcutRegistration } from "src/code/browser/service/shortcut/shortcutRegistrant";
+import { IShortcutRegistrant, IShortcutRegistration } from "src/workbench/service/shortcut/shortcutRegistrant";
 import { ICommandRegistrant, ICommandSchema } from "src/platform/command/common/commandRegistrant";
 import { ContextKeyExpr, CreateContextKeyExpr } from "src/platform/context/common/contextKeyExpr";
 import { IContextService } from "src/platform/context/common/contextService";

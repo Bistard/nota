@@ -7,7 +7,7 @@ import { join } from "src/base/common/file/path";
 import { URI } from "src/base/common/file/uri";
 import { IStandardKeyboardEvent } from "src/base/common/keyboard";
 import { AbstractLogger, ILogService } from "src/base/common/logger";
-import { IKeyboardService } from "src/code/browser/service/keyboard/keyboardService";
+import { IKeyboardService } from "src/workbench/service/keyboard/keyboardService";
 import { ContextService } from "src/platform/context/common/contextService";
 import { DiskEnvironmentService } from "src/platform/environment/common/diskEnvironmentService";
 import { IBrowserEnvironmentService, IEnvironmentService } from "src/platform/environment/common/environment";

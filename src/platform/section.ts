@@ -7,11 +7,11 @@
  */
 export const enum Section {
 
-    SideBar = 'src/code/browser/workbench/sideBar',
-    
-    SideView = 'src/code/browser/workbench/sideView',
-    Explorer = 'src/code/browser/workbench/sideView/explorer',
+    SideBar = 'src/workbench/sideBar',
 
-    Editor = 'src/code/browser/workbench/editor',
+    SideView = 'src/workbench/sideView',
+    Explorer = 'src/workbench/sideView/explorer',
+
+    Editor = 'src/workbench/editor',
 
 }
