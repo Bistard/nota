@@ -7,7 +7,7 @@ import { DiskStorage } from 'src/platform/files/common/diskStorage';
 import { NullLogger } from 'test/utils/testService';
 import { InMemoryFileSystemProvider } from 'src/platform/files/common/inMemoryFileSystemProvider';
 import { DataBuffer } from 'src/base/common/file/buffer';
-import { FakeAsync } from 'test/utils/async';
+import { FakeAsync } from 'test/utils/fakeAsync';
 
 suite('storage-test', () => {
 

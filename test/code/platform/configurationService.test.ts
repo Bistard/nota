@@ -11,7 +11,7 @@ import { MainConfigurationService } from 'src/platform/configuration/electron/ma
 import { FileService } from "src/platform/files/common/fileService";
 import { InMemoryFileSystemProvider } from "src/platform/files/common/inMemoryFileSystemProvider";
 import { REGISTRANTS } from "src/platform/registrant/common/registrant";
-import { FakeAsync } from 'test/utils/async';
+import { FakeAsync } from 'test/utils/fakeAsync';
 import { NullLogger } from "test/utils/testService";
 
 suite('MainConfiguratioService-test', () => {

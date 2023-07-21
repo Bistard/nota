@@ -13,7 +13,7 @@ import { InMemoryFileSystemProvider } from 'src/platform/files/common/inMemoryFi
 import { REGISTRANTS } from 'src/platform/registrant/common/registrant';
 import { NullLogger } from 'test/utils/testService';
 import { ConfigurationModuleType } from 'src/platform/configuration/common/configuration';
-import { FakeAsync } from 'test/utils/async';
+import { FakeAsync } from 'test/utils/fakeAsync';
 import { Event } from 'src/base/common/event';
 
 suite('ConfigurationHub-test (common)', () => {

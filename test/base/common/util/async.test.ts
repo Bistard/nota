@@ -3,7 +3,7 @@ import { ExpectedError, isCancellationError, isExpectedError } from 'src/base/co
 import { Emitter } from 'src/base/common/event';
 import { AsyncRunner, Blocker, CancellablePromise, Debouncer, delayFor, EventBlocker, MicrotaskDelay, PromiseTimeout, retry, Scheduler, ThrottleDebouncer, Throttler, UnbufferedScheduler } from 'src/base/common/util/async';
 import { repeat } from 'src/base/common/util/timer';
-import { FakeAsync } from 'test/utils/async';
+import { FakeAsync } from 'test/utils/fakeAsync';
 
 suite('async-test', () => {
 

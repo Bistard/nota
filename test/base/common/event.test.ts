@@ -2,7 +2,7 @@ import * as assert from 'assert';
 import { IDisposable } from 'src/base/common/dispose';
 import { ErrorHandler } from 'src/base/common/error';
 import { AsyncEmitter, DelayableEmitter, Emitter, Event, PauseableEmitter, RelayEmitter, SignalEmitter } from 'src/base/common/event';
-import { FakeAsync } from 'test/utils/async';
+import { FakeAsync } from 'test/utils/fakeAsync';
 
 suite('event-test', () => {
 
