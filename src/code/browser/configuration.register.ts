@@ -1,4 +1,4 @@
-import { ColorThemeType } from "src/workbench/service/theme/themeConfiguration";
+import { ColorThemeType } from "src/workbench/services/theme/themeConfiguration";
 import { IConfigurationRegistrant } from "src/platform/configuration/common/configurationRegistrant";
 import { LanguageType } from "src/platform/i18n/common/i18n";
 import { REGISTRANTS } from "src/platform/registrant/common/registrant";

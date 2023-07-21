@@ -4,8 +4,8 @@ import { FuzzyScore } from "src/base/common/fuzzy";
 import { Arrays } from "src/base/common/util/array";
 import { Scheduler } from "src/base/common/util/async";
 import { Mutable } from "src/base/common/util/type";
-import { ClassicItem } from "src/workbench/service/classicTree/classicItem";
-import { IClassicTree } from "src/workbench/service/classicTree/classicTree";
+import { ClassicItem } from "src/workbench/services/classicTree/classicItem";
+import { IClassicTree } from "src/workbench/services/classicTree/classicTree";
 import { IFileService } from "src/platform/files/common/fileService";
 
 /**

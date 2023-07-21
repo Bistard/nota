@@ -1,11 +1,11 @@
 // import 'src/workbench/parts/workspace/media/workspace.scss';
-import { IComponentService } from "src/workbench/service/component/componentService";
-import { Component, IComponent } from "src/workbench/service/component/component";
+import { IComponentService } from "src/workbench/services/component/componentService";
+import { Component, IComponent } from "src/workbench/services/component/component";
 import { TitleBar } from "src/workbench/parts/workspace/titleBar/titleBar";
 import { IService, createService } from "src/platform/instantiation/common/decorator";
 import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
 import { IEditorService } from "src/workbench/parts/workspace/editor/editorService";
-import { IThemeService } from "src/workbench/service/theme/themeService";
+import { IThemeService } from "src/workbench/services/theme/themeService";
 
 export const IWorkspaceService = createService<IWorkspaceService>('workspace-service');
 

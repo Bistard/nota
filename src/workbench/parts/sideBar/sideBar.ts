@@ -1,13 +1,13 @@
 import 'src/workbench/parts/sideBar/media/sideBar.scss';
-import { Component, IComponent } from 'src/workbench/service/component/component';
+import { Component, IComponent } from 'src/workbench/services/component/component';
 import { IService, createService } from 'src/platform/instantiation/common/decorator';
-import { IComponentService } from 'src/workbench/service/component/componentService';
+import { IComponentService } from 'src/workbench/services/component/componentService';
 import { ISideButtonOptions, SideButton } from 'src/workbench/parts/sideBar/sideBarButton';
 import { WidgetBar } from 'src/base/browser/secondary/widgetBar/widgetBar';
 import { Orientation } from 'src/base/browser/basic/dom';
 import { Emitter, Register } from 'src/base/common/event';
 import { ILogService } from 'src/base/common/logger';
-import { IThemeService } from 'src/workbench/service/theme/themeService';
+import { IThemeService } from 'src/workbench/services/theme/themeService';
 
 export const ISideBarService = createService<ISideBarService>('side-bar-service');
 

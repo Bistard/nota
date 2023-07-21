@@ -1,11 +1,11 @@
 import 'src/workbench/parts/workspace/titleBar/media/titleBar.scss';
-import { Component } from 'src/workbench/service/component/component';
+import { Component } from 'src/workbench/services/component/component';
 import { WindowBar } from 'src/workbench/parts/workspace/titleBar/windowBar';
-import { IComponentService } from 'src/workbench/service/component/componentService';
+import { IComponentService } from 'src/workbench/services/component/componentService';
 import { IInstantiationService } from 'src/platform/instantiation/common/instantiation';
 import { SearchBar } from 'src/base/browser/basic/searchbar/searchbar';
 import { Icons } from 'src/base/browser/icon/icons';
-import { IThemeService } from 'src/workbench/service/theme/themeService';
+import { IThemeService } from 'src/workbench/services/theme/themeService';
 import { IProductService } from 'src/platform/product/common/productService';
 
 /**

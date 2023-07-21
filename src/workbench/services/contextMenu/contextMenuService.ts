@@ -3,10 +3,10 @@ import { addDisposableListener, DomEmitter, DomEventHandler, DomUtility, EventTy
 import { IMenu, IMenuActionRunEvent, Menu, MenuWithSubmenu } from "src/base/browser/basic/menu/menu";
 import { IMenuAction, MenuItemType } from "src/base/browser/basic/menu/menuItem";
 import { Disposable, DisposableManager, IDisposable } from "src/base/common/dispose";
-import { ILayoutService } from "src/workbench/service/layout/layoutService";
+import { ILayoutService } from "src/workbench/services/layout/layoutService";
 import { IService, createService } from "src/platform/instantiation/common/decorator";
 import { isCancellationError } from "src/base/common/error";
-import { INotificationService } from "src/workbench/service/notification/notificationService";
+import { INotificationService } from "src/workbench/services/notification/notificationService";
 
 export const IContextMenuService = createService<IContextMenuService>('context-menu-service');
 

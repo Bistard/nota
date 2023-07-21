@@ -1,12 +1,12 @@
-import 'src/workbench/service/keyboard/media.scss';
+import 'src/workbench/services/keyboard/media.scss';
 import { VisibilityController } from "src/base/browser/basic/visibilityController";
 import { IDisposable } from "src/base/common/dispose";
 import { DomEventHandler, DomUtility, EventType, addDisposableListener } from "src/base/browser/basic/dom";
 import { IStandardKeyboardEvent, Keyboard } from "src/base/common/keyboard";
 import { IntervalTimer } from "src/base/common/util/timer";
-import { IKeyboardService } from "src/workbench/service/keyboard/keyboardService";
+import { IKeyboardService } from "src/workbench/services/keyboard/keyboardService";
 import { createService } from "src/platform/instantiation/common/decorator";
-import { ILayoutService } from 'src/workbench/service/layout/layoutService';
+import { ILayoutService } from 'src/workbench/services/layout/layoutService';
 
 export const IKeyboardScreenCastService = createService<IKeyboardScreenCastService>('keyboard-screencast-service');
 

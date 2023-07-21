@@ -1,4 +1,4 @@
-import { TreeMode } from "src/workbench/service/explorerTree/treeService";
+import { TreeMode } from "src/workbench/services/explorerTree/treeService";
 import { IConfigurationRegistrant } from "src/platform/configuration/common/configurationRegistrant";
 import { REGISTRANTS } from "src/platform/registrant/common/registrant";
 

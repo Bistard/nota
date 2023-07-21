@@ -3,7 +3,7 @@ import { DomEmitter, EventType } from "src/base/browser/basic/dom";
 import { IService, createService } from "src/platform/instantiation/common/decorator";
 import { Event, Register } from "src/base/common/event";
 import { createStandardKeyboardEvent, IStandardKeyboardEvent } from "src/base/common/keyboard";
-import { ILayoutService } from "src/workbench/service/layout/layoutService";
+import { ILayoutService } from "src/workbench/services/layout/layoutService";
 
 export const IKeyboardService = createService<IKeyboardService>('keyboard-service');
 

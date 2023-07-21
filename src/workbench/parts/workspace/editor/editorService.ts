@@ -1,5 +1,5 @@
 import { URI } from "src/base/common/file/uri";
-import { IComponent } from "src/workbench/service/component/component";
+import { IComponent } from "src/workbench/services/component/component";
 import { createService } from "src/platform/instantiation/common/decorator";
 import { IEditorWidget } from "src/editor/editorWidget";
 

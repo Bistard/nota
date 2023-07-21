@@ -1,7 +1,7 @@
 import { RGBA } from "src/base/common/color";
 import { Disposable } from "src/base/common/dispose";
-import { ColorThemeType } from "src/workbench/service/theme/themeConfiguration";
-import { IThemeService } from "src/workbench/service/theme/themeService";
+import { ColorThemeType } from "src/workbench/services/theme/themeConfiguration";
+import { IThemeService } from "src/workbench/services/theme/themeService";
 
 export interface IColorTheme {
     /**

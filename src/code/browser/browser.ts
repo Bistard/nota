@@ -1,5 +1,5 @@
 import { ILogService } from "src/base/common/logger";
-import { IShortcutService } from "src/workbench/service/shortcut/shortcutService";
+import { IShortcutService } from "src/workbench/services/shortcut/shortcutService";
 import { IFileService } from "src/platform/files/common/fileService";
 import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
 import { IBrowserLifecycleService, ILifecycleService, LifecyclePhase } from "src/platform/lifecycle/browser/browserLifecycleService";

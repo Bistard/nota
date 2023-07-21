@@ -1,7 +1,7 @@
 import { Disposable } from "src/base/common/dispose";
 import { Emitter, Register } from "src/base/common/event";
-import { IColorTheme } from "src/workbench/service/theme/theme";
-import { ThemeConfiguration } from "src/workbench/service/theme/themeConfiguration";
+import { IColorTheme } from "src/workbench/services/theme/theme";
+import { ThemeConfiguration } from "src/workbench/services/theme/themeConfiguration";
 import { IConfigurationService } from "src/platform/configuration/common/configuration";
 import { IService, createService } from "src/platform/instantiation/common/decorator";
 

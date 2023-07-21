@@ -5,7 +5,7 @@ import { ITreeMouseEvent, ITreeNode } from "src/base/browser/secondary/tree/tree
 import { ITreeListRenderer } from "src/base/browser/secondary/tree/treeListRenderer";
 import { Emitter, Register } from "src/base/common/event";
 import { IStandardKeyboardEvent } from "src/base/common/keyboard";
-import { ClassicItem } from "src/workbench/service/classicTree/classicItem";
+import { ClassicItem } from "src/workbench/services/classicTree/classicItem";
 
 export interface ClassicOpenEvent<T extends ClassicItem> {
     readonly item: T;

@@ -2,10 +2,10 @@ import { FastElement } from "src/base/browser/basic/fastElement";
 import { DomUtility } from "src/base/browser/basic/dom";
 import { Emitter, Register } from "src/base/common/event";
 import { Dimension, IDimension } from "src/base/common/util/size";
-import { IComponentService } from "src/workbench/service/component/componentService";
-import { Themable } from "src/workbench/service/theme/theme";
+import { IComponentService } from "src/workbench/services/component/componentService";
+import { Themable } from "src/workbench/services/theme/theme";
 import { FocusTracker } from "src/base/browser/basic/focusTracker";
-import { IThemeService } from "src/workbench/service/theme/themeService";
+import { IThemeService } from "src/workbench/services/theme/themeService";
 
 export interface ICreateable {
     create(): void;

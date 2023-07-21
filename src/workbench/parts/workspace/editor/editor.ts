@@ -1,7 +1,7 @@
 import 'src/workbench/parts/workspace/editor/media/editor.scss';
 import { URI } from "src/base/common/file/uri";
-import { IComponentService } from "src/workbench/service/component/componentService";
-import { Component, } from "src/workbench/service/component/component";
+import { IComponentService } from "src/workbench/services/component/componentService";
+import { Component, } from "src/workbench/services/component/component";
 import { IFileService } from "src/platform/files/common/fileService";
 import { ServiceDescriptor } from "src/platform/instantiation/common/descriptor";
 import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
@@ -14,7 +14,7 @@ import { ILogService } from "src/base/common/logger";
 import { IEditorWidgetOptions } from "src/editor/common/configuration/editorConfiguration";
 import { deepCopy } from "src/base/common/util/object";
 import { IEditorService } from "src/workbench/parts/workspace/editor/editorService";
-import { IThemeService } from 'src/workbench/service/theme/themeService';
+import { IThemeService } from 'src/workbench/services/theme/themeService';
 import { IConfigurationService } from 'src/platform/configuration/common/configuration';
 
 export class Editor extends Component implements IEditorService {

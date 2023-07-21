@@ -1,8 +1,8 @@
 import { addDisposableListener, DomUtility, EventType, Orientation } from "src/base/browser/basic/dom";
-import { IComponentService } from "src/workbench/service/component/componentService";
+import { IComponentService } from "src/workbench/services/component/componentService";
 import { SideBar, ISideBarService, SideButtonType } from "src/workbench/parts/sideBar/sideBar";
 import { ISideViewService, SideView } from "src/workbench/parts/sideView/sideView";
-import { Component } from "src/workbench/service/component/component";
+import { Component } from "src/workbench/services/component/component";
 import { IWorkspaceService } from "src/workbench/parts/workspace/workspace";
 import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
 import { ISplitView, ISplitViewOpts, SplitView } from "src/base/browser/secondary/splitView/splitView";
@@ -10,11 +10,11 @@ import { Priority } from "src/base/common/event";
 import { ExplorerView } from "src/workbench/contrib/explorer/explorer";
 import { ISplitViewItemOpts } from "src/base/browser/secondary/splitView/splitViewItem";
 import { Icons } from "src/base/browser/icon/icons";
-import { IContextMenuService } from "src/workbench/service/contextMenu/contextMenuService";
-import { ILayoutService } from "src/workbench/service/layout/layoutService";
+import { IContextMenuService } from "src/workbench/services/contextMenu/contextMenuService";
+import { ILayoutService } from "src/workbench/services/layout/layoutService";
 import { CheckMenuAction, MenuSeperatorAction, SimpleMenuAction, SubmenuAction } from "src/base/browser/basic/menu/menuItem";
 import { KeyCode, Shortcut } from "src/base/common/keyboard";
-import { IThemeService } from "src/workbench/service/theme/themeService";
+import { IThemeService } from "src/workbench/services/theme/themeService";
 import { IConfigurationService } from "src/platform/configuration/common/configuration";
 
 /**

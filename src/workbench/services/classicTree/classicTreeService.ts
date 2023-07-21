@@ -1,15 +1,15 @@
 import { Register } from "src/base/common/event";
 import { URI } from "src/base/common/file/uri";
-import { ClassicOpenEvent, ClassicTree, IClassicTree } from "src/workbench/service/classicTree/classicTree";
+import { ClassicOpenEvent, ClassicTree, IClassicTree } from "src/workbench/services/classicTree/classicTree";
 import { IFileService } from "src/platform/files/common/fileService";
-import { ClassicChildrenProvider, ClassicItem } from "src/workbench/service/classicTree/classicItem";
-import { ITreeService } from "src/workbench/service/explorerTree/treeService";
+import { ClassicChildrenProvider, ClassicItem } from "src/workbench/services/classicTree/classicItem";
+import { ITreeService } from "src/workbench/services/explorerTree/treeService";
 import { Disposable } from "src/base/common/dispose";
-import { ClassicItemProvider, ClassicRenderer } from "src/workbench/service/classicTree/classicRenderer";
-import { ClassicDragAndDropProvider } from "src/workbench/service/classicTree/classicDragAndDrop";
+import { ClassicItemProvider, ClassicRenderer } from "src/workbench/services/classicTree/classicRenderer";
+import { ClassicDragAndDropProvider } from "src/workbench/services/classicTree/classicDragAndDrop";
 import { ILogService } from "src/base/common/logger";
 import { FuzzyScore, IFilterOpts } from "src/base/common/fuzzy";
-import { ClassicFilter } from "src/workbench/service/classicTree/classicFilter";
+import { ClassicFilter } from "src/workbench/services/classicTree/classicFilter";
 import { IConfigurationService } from "src/platform/configuration/common/configuration";
 import { SideViewConfiguration } from "src/workbench/parts/sideView/configuration.register";
 

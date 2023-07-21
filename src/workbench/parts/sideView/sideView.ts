@@ -1,13 +1,13 @@
 import 'src/workbench/parts/sideView/media/sideView.scss';
-import { Component, IComponent } from 'src/workbench/service/component/component';
+import { Component, IComponent } from 'src/workbench/services/component/component';
 import { Emitter, Register } from 'src/base/common/event';
 import { IService, createService } from 'src/platform/instantiation/common/decorator';
-import { IComponentService } from 'src/workbench/service/component/componentService';
+import { IComponentService } from 'src/workbench/services/component/componentService';
 import { IInstantiationService } from 'src/platform/instantiation/common/instantiation';
 import { Constructor, Mutable } from 'src/base/common/util/type';
 import { ILogService } from 'src/base/common/logger';
 import { SideViewTitlePart } from 'src/workbench/parts/sideView/sideViewTitle';
-import { IThemeService } from 'src/workbench/service/theme/themeService';
+import { IThemeService } from 'src/workbench/services/theme/themeService';
 
 export const ISideViewService = createService<ISideViewService>('side-view-service');
 

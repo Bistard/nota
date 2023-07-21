@@ -1,16 +1,16 @@
 import 'src/workbench/contrib/explorer/media/explorerItem.scss';
 import 'src/workbench/contrib/explorer/media/explorerView.scss';
 import { Emitter } from 'src/base/common/event';
-import { IComponentService } from 'src/workbench/service/component/componentService';
+import { IComponentService } from 'src/workbench/services/component/componentService';
 import { Ii18nService } from 'src/platform/i18n/common/i18n';
 import { Section } from 'src/platform/section';
 import { addDisposableListener, EventType, Orientation } from 'src/base/browser/basic/dom';
 import { IBrowserDialogService, IDialogService } from 'src/platform/dialog/browser/browserDialogService';
 import { ILogService } from 'src/base/common/logger';
-import { IWorkbenchService } from 'src/workbench/service/workbench/workbenchService';
+import { IWorkbenchService } from 'src/workbench/services/workbench/workbenchService';
 import { IBrowserLifecycleService, ILifecycleService } from 'src/platform/lifecycle/browser/browserLifecycleService';
 import { IBrowserEnvironmentService } from 'src/platform/environment/common/environment';
-import { IExplorerTreeService } from 'src/workbench/service/explorerTree/explorerTreeService';
+import { IExplorerTreeService } from 'src/workbench/services/explorerTree/explorerTreeService';
 import { URI } from 'src/base/common/file/uri';
 import { IHostService } from 'src/platform/host/common/hostService';
 import { StatusKey } from 'src/platform/status/common/status';
@@ -25,7 +25,7 @@ import { Button } from 'src/base/browser/basic/button/button';
 import { RGBA } from 'src/base/common/color';
 import { ClassicOpenEvent, ExplorerViewID, IExplorerViewService } from 'src/workbench/contrib/explorer/explorerService';
 import { IEditorService } from 'src/workbench/parts/workspace/editor/editorService';
-import { IThemeService } from 'src/workbench/service/theme/themeService';
+import { IThemeService } from 'src/workbench/services/theme/themeService';
 import { errorToMessage } from 'src/base/common/error';
 
 /**

@@ -1,5 +1,5 @@
 import { IService, createService } from "src/platform/instantiation/common/decorator";
-import { IComponent } from "src/workbench/service/component/component";
+import { IComponent } from "src/workbench/services/component/component";
 
 export const IComponentService = createService<IComponentService>('component-service');
 

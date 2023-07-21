@@ -1,7 +1,7 @@
 import { KeyCode, Shortcut } from "src/base/common/keyboard";
-import { IShortcutRegistrant, ShortcutWeight } from "src/workbench/service/shortcut/shortcutRegistrant";
-import { WorkbenchCommands } from "src/workbench/service/workbench/command.register";
-import { WorkbenchContextKey } from "src/workbench/service/workbench/workbenchContextKeys";
+import { IShortcutRegistrant, ShortcutWeight } from "src/workbench/services/shortcut/shortcutRegistrant";
+import { WorkbenchCommands } from "src/workbench/services/workbench/command.register";
+import { WorkbenchContextKey } from "src/workbench/services/workbench/workbenchContextKeys";
 import { REGISTRANTS } from "src/platform/registrant/common/registrant";
 
 export function workbenchShortcutRegistrations() {

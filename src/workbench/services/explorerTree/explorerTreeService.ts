@@ -2,11 +2,11 @@ import { Disposable, DisposableManager, IDisposable } from "src/base/common/disp
 import { RelayEmitter } from "src/base/common/event";
 import { URI } from "src/base/common/file/uri";
 import { IScheduler, Scheduler } from "src/base/common/util/async";
-import { ClassicItem } from "src/workbench/service/classicTree/classicItem";
-import { ClassicOpenEvent } from "src/workbench/service/classicTree/classicTree";
-import { ClassicTreeService, IClassicTreeService } from "src/workbench/service/classicTree/classicTreeService";
-import { ITreeService, TreeMode } from "src/workbench/service/explorerTree/treeService";
-import { INotebookTreeService, NotebookTreeService } from "src/workbench/service/notebookTree/notebookTreeService";
+import { ClassicItem } from "src/workbench/services/classicTree/classicItem";
+import { ClassicOpenEvent } from "src/workbench/services/classicTree/classicTree";
+import { ClassicTreeService, IClassicTreeService } from "src/workbench/services/classicTree/classicTreeService";
+import { ITreeService, TreeMode } from "src/workbench/services/explorerTree/treeService";
+import { INotebookTreeService, NotebookTreeService } from "src/workbench/services/notebookTree/notebookTreeService";
 import { SideViewConfiguration } from "src/workbench/parts/sideView/configuration.register";
 import { IConfigurationService } from "src/platform/configuration/common/configuration";
 import { IFileService } from "src/platform/files/common/fileService";
