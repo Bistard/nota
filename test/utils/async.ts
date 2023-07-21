@@ -36,7 +36,9 @@ const trueGlobalAsync = {
  *        console.log(`Elapsed time: ${Date.now() - startTime}`);
  *    }, 5000);
  * });
- * // the message "Elapsed time: 5000" will be logged immediately, even though the timeout was set to 5000 milliseconds.
+ * // the message "Elapsed time: 5000" will be logged immediately, even though 
+ * // the timeout was set to 5000 milliseconds. This is because we faked the 
+ * // asynchronous process.
  */
 export namespace FakeAsync {
 
