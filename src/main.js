@@ -39,11 +39,12 @@ const { parseCLIArgv } = require('src/platform/environment/common/argument');
      * Runs the program when ready.
      */
     app.whenReady()
-        .then(() => (function run() {
-            perf('main bundle loading start');
-            const application = require('./code/electron/main');
-            perf('main bundle loading end');
-            application.default.start(CLIArgv);
-        }
-        )());
+        .then(
+            function run() {
+                perf('main bundle loading start');
+                const application = require('./code/electron/main');
+                perf('main bundle loading end');
+                application.default.start(CLIArgv);
+            } ()
+        );
 })();
