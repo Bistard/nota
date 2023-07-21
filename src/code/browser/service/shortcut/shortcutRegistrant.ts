@@ -1,10 +1,10 @@
 import { Disposable, IDisposable, toDisposable } from "src/base/common/dispose";
 import { Shortcut, ShortcutHash } from "src/base/common/keyboard";
 import { isNumber } from "src/base/common/util/type";
-import { ICommandRegistrant } from "src/code/platform/command/common/commandRegistrant";
-import { ContextKeyExpr } from "src/code/platform/context/common/contextKeyExpr";
-import { IServiceProvider } from "src/code/platform/instantiation/common/instantiation";
-import { createRegistrant, REGISTRANTS, RegistrantType } from "src/code/platform/registrant/common/registrant";
+import { ICommandRegistrant } from "src/platform/command/common/commandRegistrant";
+import { ContextKeyExpr } from "src/platform/context/common/contextKeyExpr";
+import { IServiceProvider } from "src/platform/instantiation/common/instantiation";
+import { createRegistrant, REGISTRANTS, RegistrantType } from "src/platform/registrant/common/registrant";
 
 export const IShortcutRegistrant = createRegistrant<IShortcutRegistrant>(RegistrantType.Shortcut);
 
@@ -12,10 +12,10 @@ export const IShortcutRegistrant = createRegistrant<IShortcutRegistrant>(Registr
  * The less the number is, the higher the priority of the shortcut is.
  */
 export const enum ShortcutWeight {
-    Core              = 0,
-    Editor            = 100,
-    workbench         = 200,
-    BuiltInExtension  = 300,
+    Core = 0,
+    Editor = 100,
+    workbench = 200,
+    BuiltInExtension = 300,
     ExternalExtension = 400,
 }
 
@@ -64,7 +64,7 @@ export interface IShortcutRegistration extends IShortcutBase {
  * will be registered into the {@link ICommandRegistrant}.
  */
 export interface IShortcutWithCommandRegistration extends IShortcutRegistration {
-    
+
     /**
      * The command to be executed when the shortcut is invoked. The arguments 
      * will be provided by the shortcut registration.
@@ -100,14 +100,14 @@ interface IShortcutItems {
  * An interface only for {@link ShortcutRegistrant}.
  */
 export interface IShortcutRegistrant {
-    
+
     /**
      * @description Register a {@link Shortcut}.
      * @param registration The shortcut registration information.
      * @returns A disposable to unregister the shortcut itself.
      */
     register(registration: IShortcutRegistration): IDisposable;
-    
+
     /**
      * @description Except a general registration, you may also register a 
      * shortcut alongs with a new command which will be also registered into
@@ -186,7 +186,7 @@ class ShortcutRegistrant implements IShortcutRegistrant {
         if (items.commands.has(commandID)) {
             throw new Error(`There exists a command with ID '${commandID}' that is already registered`);
         }
-        
+
         // registere the shortcut
         const ID = ShortcutRegistrant._shortcutID++;
         items.shortcuts.push({
@@ -212,11 +212,11 @@ class ShortcutRegistrant implements IShortcutRegistrant {
     public registerWithCommand(registration: IShortcutWithCommandRegistration): IDisposable {
         const unregister = this.register(registration);
         this._commandRegistrant.registerCommand(
-            { 
-                id: registration.commandID, 
-                description: registration.description, 
-                overwrite: registration.overwrite 
-            }, 
+            {
+                id: registration.commandID,
+                description: registration.description,
+                overwrite: registration.overwrite
+            },
             registration.command,
         );
         return unregister;
@@ -246,7 +246,7 @@ class ShortcutRegistrant implements IShortcutRegistrant {
         }
         return map;
     }
-    
+
     // [private helper methods]
 
 }

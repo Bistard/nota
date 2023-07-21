@@ -3,10 +3,10 @@ import { Event } from 'src/base/common/event';
 import { DataBuffer } from 'src/base/common/file/buffer';
 import { FileOperationErrorType, FileType } from "src/base/common/file/file";
 import { URI } from "src/base/common/file/uri";
-import { InMemoryFileSystemProvider } from 'src/code/platform/files/common/inMemoryFileSystemProvider';
+import { InMemoryFileSystemProvider } from 'src/platform/files/common/inMemoryFileSystemProvider';
 
 suite('InMemoryFileSystemProvider-test', () => {
-    
+
     let provider: InMemoryFileSystemProvider;
     const fileURI = URI.parse('file:///testFile');
     const directoryURI = URI.parse('file:///testDirectory');
@@ -70,7 +70,7 @@ suite('InMemoryFileSystemProvider-test', () => {
         await provider.mkdir(driURI);
         const disposable = provider.watch(fileURI);
         const onChange = Event.toPromise(provider.onDidResourceChange);
-        
+
         await provider.writeFile(fileURI, DataBuffer.fromString('hello world').buffer, { create: true });
 
         await onChange.then(e => {
@@ -90,7 +90,7 @@ suite('InMemoryFileSystemProvider-test', () => {
 
         const disposable = provider.watch(driURI);
         const onChange = Event.toPromise(provider.onDidResourceChange);
-        
+
         await provider.mkdir(driURI);
 
         await onChange.then(e => {

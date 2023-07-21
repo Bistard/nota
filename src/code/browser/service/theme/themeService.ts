@@ -2,15 +2,15 @@ import { Disposable } from "src/base/common/dispose";
 import { Emitter, Register } from "src/base/common/event";
 import { IColorTheme } from "src/code/browser/service/theme/theme";
 import { ThemeConfiguration } from "src/code/browser/service/theme/themeConfiguration";
-import { IConfigurationService } from "src/code/platform/configuration/common/configuration";
-import { IService, createService } from "src/code/platform/instantiation/common/decorator";
+import { IConfigurationService } from "src/platform/configuration/common/configuration";
+import { IService, createService } from "src/platform/instantiation/common/decorator";
 
 export const IThemeService = createService<IThemeService>('theme-service');
 
 export interface IThemeService extends IService {
-    
+
     readonly onDidChangeTheme: Register<IColorTheme>;
-    
+
     getTheme(): IColorTheme;
 }
 

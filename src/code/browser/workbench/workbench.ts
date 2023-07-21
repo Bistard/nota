@@ -1,5 +1,5 @@
 import 'src/code/browser/workbench/media/workbench.scss';
-import { IInstantiationService } from "src/code/platform/instantiation/common/instantiation";
+import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
 import { IComponentService } from "src/code/browser/service/component/componentService";
 import { WorkbenchLayout } from "src/code/browser/workbench/layout";
 import { IWorkbenchService } from "src/code/browser/service/workbench/workbenchService";
@@ -8,15 +8,15 @@ import { ISideBarService } from "src/code/browser/workbench/parts/sideBar/sideBa
 import { ISideViewService } from "src/code/browser/workbench/parts/sideView/sideView";
 import { IWorkspaceService } from "src/code/browser/workbench/parts/workspace/workspace";
 import { Disposable } from 'src/base/common/dispose';
-import { IContextService } from 'src/code/platform/context/common/contextService';
-import { IContextKey } from 'src/code/platform/context/common/contextKey';
+import { IContextService } from 'src/platform/context/common/contextService';
+import { IContextKey } from 'src/platform/context/common/contextKey';
 import { IS_LINUX, IS_MAC, IS_WINDOWS } from 'src/base/common/platform';
-import { IBrowserLifecycleService, ILifecycleService, LifecyclePhase } from 'src/code/platform/lifecycle/browser/browserLifecycleService';
-import { IBrowserEnvironmentService, IEnvironmentService } from 'src/code/platform/environment/common/environment';
+import { IBrowserLifecycleService, ILifecycleService, LifecyclePhase } from 'src/platform/lifecycle/browser/browserLifecycleService';
+import { IBrowserEnvironmentService, IEnvironmentService } from 'src/platform/environment/common/environment';
 import { IContextMenuService } from 'src/code/browser/service/contextMenu/contextMenuService';
 import { ILayoutService } from 'src/code/browser/service/layout/layoutService';
 import { IThemeService } from 'src/code/browser/service/theme/themeService';
-import { IConfigurationService } from 'src/code/platform/configuration/common/configuration';
+import { IConfigurationService } from 'src/platform/configuration/common/configuration';
 import { WorkbenchConfiguration } from 'src/code/browser/configuration.register';
 import { SideViewConfiguration } from 'src/code/browser/workbench/parts/sideView/configuration.register';
 
@@ -53,7 +53,7 @@ export class Workbench extends WorkbenchLayout implements IWorkbenchService {
     public init(): void {
         // initialization services
         this.initServices();
-        
+
         // create each UI part of the workbench
         this.create();
 
@@ -106,7 +106,7 @@ export class Workbench extends WorkbenchLayout implements IWorkbenchService {
 
     private __registerGlobalConfigurationChange(): void {
         const ifEnabled = this.configurationService.get<boolean>(WorkbenchConfiguration.KeyboardScreenCast);
-        
+
         let screenCastService: IKeyboardScreenCastService;
 
         if (ifEnabled) {

@@ -2,18 +2,18 @@ import 'src/code/browser/workbench/parts/workspace/titleBar/media/titleBar.scss'
 import { Component } from 'src/code/browser/service/component/component';
 import { WindowBar } from 'src/code/browser/workbench/parts/workspace/titleBar/windowBar';
 import { IComponentService } from 'src/code/browser/service/component/componentService';
-import { IInstantiationService } from 'src/code/platform/instantiation/common/instantiation';
+import { IInstantiationService } from 'src/platform/instantiation/common/instantiation';
 import { SearchBar } from 'src/base/browser/basic/searchbar/searchbar';
 import { Icons } from 'src/base/browser/icon/icons';
 import { IThemeService } from 'src/code/browser/service/theme/themeService';
-import { IProductService } from 'src/code/platform/product/common/productService';
+import { IProductService } from 'src/platform/product/common/productService';
 
 /**
  * @class TitleBar stores and handles all the titleBar and functionBar 
  * relevant business. 
  */
 export class TitleBar extends Component {
-    
+
     private windowBar!: WindowBar;
 
     constructor(
@@ -26,18 +26,18 @@ export class TitleBar extends Component {
     }
 
     protected override _createContent(): void {
-        
+
         // utility bar
         const utilityBar = this.__createUtilityBar();
         this.element.appendChild(utilityBar);
-        
+
         // window bar
         this.windowBar = this.instantiationService.createInstance(WindowBar);
         this.windowBar.create(this);
     }
 
     protected override _registerListeners(): void {
-        
+
         // component registration
         this.windowBar.registerListeners();
     }
@@ -47,7 +47,7 @@ export class TitleBar extends Component {
     private __createUtilityBar(): HTMLElement {
         const utilityBar = document.createElement('div');
         utilityBar.className = 'utility-bar';
-        
+
         // search bar
         const searchBar = new SearchBar({
             icon: Icons.Search,

@@ -1,9 +1,9 @@
 import 'src/code/browser/workbench/parts/sideView/media/sideView.scss';
 import { Component, IComponent } from 'src/code/browser/service/component/component';
 import { Emitter, Register } from 'src/base/common/event';
-import { IService, createService } from 'src/code/platform/instantiation/common/decorator';
+import { IService, createService } from 'src/platform/instantiation/common/decorator';
 import { IComponentService } from 'src/code/browser/service/component/componentService';
-import { IInstantiationService } from 'src/code/platform/instantiation/common/instantiation';
+import { IInstantiationService } from 'src/platform/instantiation/common/instantiation';
 import { Constructor, Mutable } from 'src/base/common/util/type';
 import { ILogService } from 'src/base/common/logger';
 import { SideViewTitlePart } from 'src/code/browser/workbench/parts/sideView/sideViewTitle';
@@ -93,9 +93,9 @@ export class SideViewService extends Component implements ISideViewService {
 
     // [event]
 
-    private readonly _onDidViewChange = this.__register( new Emitter<ISideViewChangeEvent>() );
+    private readonly _onDidViewChange = this.__register(new Emitter<ISideViewChangeEvent>());
     public readonly onDidViewChange = this._onDidViewChange.registerListener;
-    
+
     // [constructor]
 
     constructor(
@@ -122,7 +122,7 @@ export class SideViewService extends Component implements ISideViewService {
     }
 
     public unregisterView(id: string): boolean {
-        
+
         /**
          * If the view is never constructed, we simply delete the registered 
          * constructor.
@@ -174,7 +174,7 @@ export class SideViewService extends Component implements ISideViewService {
         }
         this._onDidViewChange.fire({ id: undefined, view: undefined });
     }
- 
+
     public getView<T extends ISideView>(id: string): T | undefined {
         const view = this.getComponent<T>(id);
         if (view) {
@@ -189,7 +189,7 @@ export class SideViewService extends Component implements ISideViewService {
         const newView = this.__getOrConstructView<T>(id);
         return newView;
     }
- 
+
     public currView<T extends ISideView>(): T | undefined {
         if (this._currView) {
             return this.getComponent<T>(this._currView);
@@ -207,7 +207,7 @@ export class SideViewService extends Component implements ISideViewService {
         this.element.appendChild(this._viewContainer);
     }
 
-    protected _registerListeners(): void {}
+    protected _registerListeners(): void { }
 
     // [private helper methods]
 
@@ -216,7 +216,7 @@ export class SideViewService extends Component implements ISideViewService {
         if (view) {
             return view;
         }
-        
+
         const viewOrCtor = this._viewCtors.get(id);
         if (!viewOrCtor) {
             return undefined;
@@ -228,7 +228,7 @@ export class SideViewService extends Component implements ISideViewService {
         newView.create();
         newView.registerListeners();
         this.registerComponent(newView);
-        
+
         return newView as T;
     }
 
@@ -245,7 +245,7 @@ export class SideViewService extends Component implements ISideViewService {
         // load the new view
         this._viewContainer.appendChild(view.element.element);
         this._currView = view.id;
-        
+
         this._onDidViewChange.fire({ id: view.id, view: view });
     }
 
@@ -253,7 +253,7 @@ export class SideViewService extends Component implements ISideViewService {
         if (!this._viewContainer) {
             return;
         }
-        
+
         const currView = this.getComponent<ISideView>(id)!;
         this._viewContainer.removeChild(currView.element.element);
         this._currView = undefined;
@@ -310,7 +310,7 @@ export abstract class SideView extends Component implements ISideView {
         (<Mutable<SideViewTitlePart>>this._titlePart) = this.__createTitlePart();
     }
 
-    protected _registerListeners(): void {}
+    protected _registerListeners(): void { }
 
     // [private methods]
 }

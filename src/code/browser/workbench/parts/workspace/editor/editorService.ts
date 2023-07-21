@@ -1,6 +1,6 @@
 import { URI } from "src/base/common/file/uri";
 import { IComponent } from "src/code/browser/service/component/component";
-import { createService } from "src/code/platform/instantiation/common/decorator";
+import { createService } from "src/platform/instantiation/common/decorator";
 import { IEditorWidget } from "src/editor/editorWidget";
 
 export const IEditorService = createService<IEditorService>('editor-service');

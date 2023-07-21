@@ -2,8 +2,8 @@ import * as assert from 'assert';
 import { join } from 'src/base/common/file/path';
 import { URI } from 'src/base/common/file/uri';
 import { IS_WINDOWS } from 'src/base/common/platform';
-import { IRawResourceChangeEvents, ResourceChangeType } from 'src/code/platform/files/common/watcher';
-import { ResourceChangeEvent } from 'src/code/platform/files/common/resourceChangeEvent';
+import { IRawResourceChangeEvents, ResourceChangeType } from 'src/platform/files/common/watcher';
+import { ResourceChangeEvent } from 'src/platform/files/common/resourceChangeEvent';
 
 function toPath(this: Mocha.Suite, path: string): string {
 	if (IS_WINDOWS) {
@@ -21,26 +21,26 @@ function toResource(this: Mocha.Suite, path: string): URI {
 
 suite('ResourceChangeEvent-test', function () {
 
-    test('basic', () => {
-        const changes: IRawResourceChangeEvents = {
+	test('basic', () => {
+		const changes: IRawResourceChangeEvents = {
 			wrap: undefined!,
-            events: [
-                { resource: toPath.call(this, '/foo/updated.txt'), type: ResourceChangeType.UPDATED },
-                { resource: toPath.call(this, '/foo/otherupdated.txt'), type: ResourceChangeType.UPDATED },
-                { resource: toPath.call(this, '/added.txt'), type: ResourceChangeType.ADDED },
-                { resource: toPath.call(this, '/bar/deleted.txt'), type: ResourceChangeType.DELETED },
-                { resource: toPath.call(this, '/bar/folder'), type: ResourceChangeType.DELETED },
-                { resource: toPath.call(this, '/BAR/FOLDER'), type: ResourceChangeType.DELETED }
-            ],
-            anyAdded: true,
-            anyDeleted: true,
-            anyUpdated: true,
-            anyDirectory: true,
-            anyFile: true,
-        };
+			events: [
+				{ resource: toPath.call(this, '/foo/updated.txt'), type: ResourceChangeType.UPDATED },
+				{ resource: toPath.call(this, '/foo/otherupdated.txt'), type: ResourceChangeType.UPDATED },
+				{ resource: toPath.call(this, '/added.txt'), type: ResourceChangeType.ADDED },
+				{ resource: toPath.call(this, '/bar/deleted.txt'), type: ResourceChangeType.DELETED },
+				{ resource: toPath.call(this, '/bar/folder'), type: ResourceChangeType.DELETED },
+				{ resource: toPath.call(this, '/BAR/FOLDER'), type: ResourceChangeType.DELETED }
+			],
+			anyAdded: true,
+			anyDeleted: true,
+			anyUpdated: true,
+			anyDirectory: true,
+			anyFile: true,
+		};
 
-        for (const ignorePathCasing of [false, true]) {
-			
+		for (const ignorePathCasing of [false, true]) {
+
 			const event = new ResourceChangeEvent(changes, ignorePathCasing);
 
 			assert.ok(!event.match(toResource.call(this, '/foo'))); // match any types
@@ -81,7 +81,7 @@ suite('ResourceChangeEvent-test', function () {
 			}
 			assert.ok(!event.match(toResource.call(this, '/bar/folder2/somefile'), [ResourceChangeType.DELETED]));
 		}
-    });
+	});
 
 	test('supports multiple changes on file tree', () => {
 		for (const type of [ResourceChangeType.ADDED, ResourceChangeType.UPDATED, ResourceChangeType.DELETED]) {

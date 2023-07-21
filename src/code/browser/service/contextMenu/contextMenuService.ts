@@ -4,7 +4,7 @@ import { IMenu, IMenuActionRunEvent, Menu, MenuWithSubmenu } from "src/base/brow
 import { IMenuAction, MenuItemType } from "src/base/browser/basic/menu/menuItem";
 import { Disposable, DisposableManager, IDisposable } from "src/base/common/dispose";
 import { ILayoutService } from "src/code/browser/service/layout/layoutService";
-import { IService, createService } from "src/code/platform/instantiation/common/decorator";
+import { IService, createService } from "src/platform/instantiation/common/decorator";
 import { isCancellationError } from "src/base/common/error";
 import { INotificationService } from "src/code/browser/service/notification/notificationService";
 
@@ -21,7 +21,7 @@ const DEBUG_MODE: boolean = false;
  * context menu.
  */
 export interface IContextMenuServiceDelegate extends IContextMenuDelegateBase {
-    
+
     /**
      * @description A list of actions for each context menu item.
      */
@@ -42,7 +42,7 @@ export interface IContextMenuServiceDelegate extends IContextMenuDelegateBase {
  * An interface only for {@link ContextMenuService}.
  */
 export interface IContextMenuService extends IService {
-    
+
     /**
      * @description Shows up a context menu.
      * @param delegate The delegate to provide external functionalities.
@@ -70,7 +70,7 @@ export class ContextMenuService extends Disposable implements IContextMenuServic
 
     // singleton
     private readonly _contextMenu: IContextMenu;
-    
+
     // The current container of the context menu.
     private _currContainer?: HTMLElement;
     private readonly _defaultContainer: HTMLElement;
@@ -90,7 +90,7 @@ export class ContextMenuService extends Disposable implements IContextMenuServic
     // [public methods]
 
     public showContextMenu(delegate: IContextMenuServiceDelegate, container?: HTMLElement): void {
-        
+
         // since the delegate provies no actions, we render nothing.
         if (delegate.getActions().length === 0) {
             return;
@@ -110,9 +110,9 @@ export class ContextMenuService extends Disposable implements IContextMenuServic
         // show up a context menu
         this._contextMenu.show(
             new __ContextMenuDelegate(
-                delegate, 
-                this._contextMenu, 
-                this.__onBeforeActionRun.bind(this), 
+                delegate,
+                this._contextMenu,
+                this.__onBeforeActionRun.bind(this),
                 this.__onDidActionRun.bind(this)
             ),
         );
@@ -154,7 +154,7 @@ class __ContextMenuDelegate implements IContextMenuDelegate {
         contextMenu: IContextMenu,
         onBeforeActionRun: (event: IMenuActionRunEvent) => void,
         onDidActionRun: (event: IMenuActionRunEvent) => void,
-        ) {
+    ) {
         this._menu = undefined;
         this._delegate = delegate;
         this._contextMenu = contextMenu;
@@ -205,11 +205,11 @@ class __ContextMenuDelegate implements IContextMenuDelegate {
             menu.onDidClose,
             new DomEmitter(window, EventType.blur).registerListener,
         ]
-        .forEach(onEvent => {
-            menuDisposables.register(
-                onEvent.call(menu, () => contextMenu.destroy())
-            );
-        });
+            .forEach(onEvent => {
+                menuDisposables.register(
+                    onEvent.call(menu, () => contextMenu.destroy())
+                );
+            });
 
         // mousedown destroy event
         menuDisposables.register(addDisposableListener(window, EventType.mousedown, (e) => {

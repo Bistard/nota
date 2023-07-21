@@ -1,6 +1,6 @@
 import { TreeMode } from "src/code/browser/service/explorerTree/treeService";
-import { IConfigurationRegistrant } from "src/code/platform/configuration/common/configurationRegistrant";
-import { REGISTRANTS } from "src/code/platform/registrant/common/registrant";
+import { IConfigurationRegistrant } from "src/platform/configuration/common/configurationRegistrant";
+import { REGISTRANTS } from "src/platform/registrant/common/registrant";
 
 export const enum SideViewConfiguration {
     DefaultSideView = 'sideView.defaultView',

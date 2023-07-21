@@ -2,8 +2,8 @@
 import { IComponentService } from "src/code/browser/service/component/componentService";
 import { Component, IComponent } from "src/code/browser/service/component/component";
 import { TitleBar } from "src/code/browser/workbench/parts/workspace/titleBar/titleBar";
-import { IService, createService } from "src/code/platform/instantiation/common/decorator";
-import { IInstantiationService } from "src/code/platform/instantiation/common/instantiation";
+import { IService, createService } from "src/platform/instantiation/common/decorator";
+import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
 import { IEditorService } from "src/code/browser/workbench/parts/workspace/editor/editorService";
 import { IThemeService } from "src/code/browser/service/theme/themeService";
 

@@ -4,7 +4,7 @@ import { URI } from "src/base/common/file/uri";
 import { IFilterOpts, isFiltered } from "src/base/common/fuzzy";
 import { ILogService } from "src/base/common/logger";
 import { CompareFn, isPromise, Mutable } from "src/base/common/util/type";
-import { IFileService } from "src/code/platform/files/common/fileService";
+import { IFileService } from "src/platform/files/common/fileService";
 
 /**
  * An interface only for {@link ClassicItem}.
@@ -40,33 +40,33 @@ export interface IClassicItem {
 
     /**
      * @description Is the current item a {@link FileType.DIRECTORY}.
-	 * @complexity O(1)
+     * @complexity O(1)
      */
     isDirectory(): boolean;
 
     /**
      * @description Is the current item a {@link FileType.FILE}.
-	 * @complexity O(1)
+     * @complexity O(1)
      */
     isFile(): boolean;
 
     /**
      * @description Is the current item has ever update its children before.
-	 * @complexity O(1)
+     * @complexity O(1)
      */
     isChildrenResolved(): boolean;
 
     /**
      * @description If the current item is capable having children. Note that
      * it does not prove the item must has at least one child.
-	 * @complexity O(1)
+     * @complexity O(1)
      */
     hasChildren(): boolean;
 
-	/**
-	 * @description Refreshing (fetching) the basic children stat of the current 
+    /**
+     * @description Refreshing (fetching) the basic children stat of the current 
      * item.
-	 * @param fileService The given {@link IFileService} for fetching the 
+     * @param fileService The given {@link IFileService} for fetching the 
      * children of the current item.
      * @param filters Providing filter options during the resolution process can 
      * prevent unnecessary performance loss compares to we filter the result 
@@ -75,13 +75,13 @@ export interface IClassicItem {
      * @cimplexity 
      * - O(1): if already resolved.
      * - O(n): number of children is the file system.
-	 */
-	refreshChildren(fileService: IFileService, filters?: IFilterOpts, cmpFn?: CompareFn<ClassicItem>): void | Promise<void>;
+     */
+    refreshChildren(fileService: IFileService, filters?: IFilterOpts, cmpFn?: CompareFn<ClassicItem>): void | Promise<void>;
 
-	/**
-	 * @description Forgets all the children of the current item.
-	 */
-	forgetChildren(): void;
+    /**
+     * @description Forgets all the children of the current item.
+     */
+    forgetChildren(): void;
 }
 
 /**
@@ -133,7 +133,7 @@ export class ClassicItem implements IClassicItem {
                 this._children.push(new ClassicItem(child, this));
             }
         }
-        
+
         if (cmpFn) {
             this._children.sort(cmpFn);
         }
@@ -180,9 +180,9 @@ export class ClassicItem implements IClassicItem {
         return this.isDirectory();
     }
 
-	public refreshChildren(fileService: IFileService, filters?: IFilterOpts, cmpFn?: CompareFn<ClassicItem>): void | Promise<void> {
+    public refreshChildren(fileService: IFileService, filters?: IFilterOpts, cmpFn?: CompareFn<ClassicItem>): void | Promise<void> {
         const promise = (async () => {
-            
+
             /**
              * Only refresh the children from the disk if this is not resolved
              * before.
@@ -191,12 +191,12 @@ export class ClassicItem implements IClassicItem {
                 console.log('[item] resolving children'); // TEST
                 try {
                     const updatedStat = await fileService.stat(
-                        this._stat.uri, { 
-                            resolveChildren: true,
-                        },
+                        this._stat.uri, {
+                        resolveChildren: true,
+                    },
                     );
                     this._stat = updatedStat;
-                } 
+                }
                 catch (error) {
                     throw error;
                 }
@@ -215,13 +215,13 @@ export class ClassicItem implements IClassicItem {
         })();
 
         return promise;
-	}
+    }
 
-	public forgetChildren(): void {
+    public forgetChildren(): void {
         this._children = [];
         this._isResolved = false;
         (<Mutable<typeof this._stat.children>>this._stat.children) = undefined;
-	}
+    }
 }
 
 /**
@@ -232,12 +232,12 @@ export class ClassicChildrenProvider implements IChildrenProvider<ClassicItem> {
 
     // [constructor]
 
-	constructor(
+    constructor(
         private readonly logService: ILogService,
-		private readonly fileService: IFileService,
+        private readonly fileService: IFileService,
         private readonly filterOpts?: IFilterOpts,
         private readonly cmpFn: CompareFn<ClassicItem> = defaultCompareFn,
-	) {}
+    ) { }
 
     // [public methods]
 
@@ -251,24 +251,24 @@ export class ClassicChildrenProvider implements IChildrenProvider<ClassicItem> {
      * @param data The provided {@link ClassicItem}.
      */
     public getChildren(data: ClassicItem): ClassicItem[] | Promise<ClassicItem[]> {
-        
+
         // refresh the children recursively
         const refreshPromise = data.refreshChildren(this.fileService, this.filterOpts, this.cmpFn);
 
         // the provided item's children are already resolved, we simply return it.
         if (!isPromise(refreshPromise)) {
             return data.children;
-        } 
-        
+        }
+
         // the provided item's children never resolved, we wait until it resolved.
         const promise = refreshPromise
-        .then(() => { 
-            return data.children;
-        })
-        .catch((error: any) => {
-            this.logService.error(error);
-            return [];
-        });
+            .then(() => {
+                return data.children;
+            })
+            .catch((error: any) => {
+                this.logService.error(error);
+                return [];
+            });
 
         return promise;
     }

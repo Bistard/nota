@@ -5,35 +5,35 @@ import { Workbench } from "src/code/browser/workbench/workbench";
 import { rendererServiceRegistrations } from "src/code/browser/service.register";
 import { workbenchShortcutRegistrations } from "src/code/browser/service/workbench/shortcut.register";
 import { workbenchCommandRegistrations } from "src/code/browser/service/workbench/command.register";
-import { IInstantiationService, InstantiationService } from "src/code/platform/instantiation/common/instantiation";
-import { getSingletonServiceDescriptors, ServiceCollection } from "src/code/platform/instantiation/common/serviceCollection";
+import { IInstantiationService, InstantiationService } from "src/platform/instantiation/common/instantiation";
+import { getSingletonServiceDescriptors, ServiceCollection } from "src/platform/instantiation/common/serviceCollection";
 import { waitDomToBeLoad } from "src/base/browser/basic/dom";
 import { ComponentService, IComponentService } from "src/code/browser/service/component/componentService";
 import { Disposable } from "src/base/common/dispose";
-import { ServiceDescriptor } from "src/code/platform/instantiation/common/descriptor";
-import { initExposedElectronAPIs } from "src/code/platform/electron/browser/global";
-import { IIpcService, IpcService } from "src/code/platform/ipc/browser/ipcService";
-import { BrowserLoggerChannel } from "src/code/platform/logger/common/loggerChannel";
+import { ServiceDescriptor } from "src/platform/instantiation/common/descriptor";
+import { initExposedElectronAPIs } from "src/platform/electron/browser/global";
+import { IIpcService, IpcService } from "src/platform/ipc/browser/ipcService";
+import { BrowserLoggerChannel } from "src/platform/logger/common/loggerChannel";
 import { BufferLogger, ILogService, LogLevel, PipelineLogger } from "src/base/common/logger";
-import { ILoggerService } from "src/code/platform/logger/common/abstractLoggerService";
-import { IFileService } from "src/code/platform/files/common/fileService";
-import { BrowserEnvironmentService } from "src/code/platform/environment/browser/browserEnvironmentService";
-import { BrowserFileChannel } from "src/code/platform/files/browser/fileChannel";
+import { ILoggerService } from "src/platform/logger/common/abstractLoggerService";
+import { IFileService } from "src/platform/files/common/fileService";
+import { BrowserEnvironmentService } from "src/platform/environment/browser/browserEnvironmentService";
+import { BrowserFileChannel } from "src/platform/files/browser/fileChannel";
 import { ErrorHandler } from "src/base/common/error";
-import { ApplicationMode, IBrowserEnvironmentService } from "src/code/platform/environment/common/environment";
-import { ConsoleLogger } from "src/code/platform/logger/common/consoleLoggerService";
+import { ApplicationMode, IBrowserEnvironmentService } from "src/platform/environment/common/environment";
+import { ConsoleLogger } from "src/platform/logger/common/consoleLoggerService";
 import { getFormatCurrTimeStamp } from "src/base/common/date";
-import { ProxyChannel } from "src/code/platform/ipc/common/proxy";
-import { IpcChannel } from "src/code/platform/ipc/common/channel";
-import { IHostService } from "src/code/platform/host/common/hostService";
-import { IBrowserHostService } from "src/code/platform/host/browser/browserHostService";
-import { BrowserLifecycleService, ILifecycleService } from "src/code/platform/lifecycle/browser/browserLifecycleService";
-import { i18n, Ii18nOpts, Ii18nService, LanguageType } from "src/code/platform/i18n/common/i18n";
+import { ProxyChannel } from "src/platform/ipc/common/proxy";
+import { IpcChannel } from "src/platform/ipc/common/channel";
+import { IHostService } from "src/platform/host/common/hostService";
+import { IBrowserHostService } from "src/platform/host/browser/browserHostService";
+import { BrowserLifecycleService, ILifecycleService } from "src/platform/lifecycle/browser/browserLifecycleService";
+import { i18n, Ii18nOpts, Ii18nService, LanguageType } from "src/platform/i18n/common/i18n";
 import { BrowserInstance } from "src/code/browser/browser";
-import { IConfigurationService } from "src/code/platform/configuration/common/configuration";
+import { IConfigurationService } from "src/platform/configuration/common/configuration";
 import { WorkbenchConfiguration } from "src/code/browser/configuration.register";
-import { IProductService, ProductService } from "src/code/platform/product/common/productService";
-import { BrowserConfigurationService } from "src/code/platform/configuration/browser/browserConfigurationService";
+import { IProductService, ProductService } from "src/platform/product/common/productService";
+import { BrowserConfigurationService } from "src/platform/configuration/browser/browserConfigurationService";
 
 /**
  * @class This is the main entry of the renderer process.
@@ -75,14 +75,14 @@ const renderer = new class extends class RendererInstance extends Disposable {
             // browser monitor
             const browser = instantiaionService.createInstance(BrowserInstance);
             browser.init();
-        } 
+        }
         catch (error: any) {
             // try to log out the error message
             if (instantiaionService) {
                 try {
                     const logService = instantiaionService.getService(ILogService);
                     logService.error(error);
-                } catch {}
+                } catch { }
             }
             ErrorHandler.onUnexpectedError(error);
         }
@@ -91,7 +91,7 @@ const renderer = new class extends class RendererInstance extends Disposable {
     // [private methods]
 
     private createCoreServices(): IInstantiationService {
-        
+
         // instantiation-service (Dependency Injection)
         const serviceCollection = new ServiceCollection();
         const instantiationService = new InstantiationService(serviceCollection);
@@ -128,17 +128,17 @@ const renderer = new class extends class RendererInstance extends Disposable {
             // console-logger
             new ConsoleLogger(environmentService.mode === ApplicationMode.DEVELOP ? environmentService.logLevel : LogLevel.WARN),
             // file-logger
-            loggerService.createLogger(environmentService.logPath, { 
+            loggerService.createLogger(environmentService.logPath, {
                 name: `window-${environmentService.windowID}-${getFormatCurrTimeStamp()}.txt`,
                 description: `renderer`,
             }),
         ]);
         logService.setLogger(logger);
-        
+
         // file-service
         const fileService = new BrowserFileChannel(ipcService);
         instantiationService.register(IFileService, fileService);
- 
+
         // product-service
         const productService = new ProductService(fileService);
         instantiationService.register(IProductService, productService);
@@ -146,7 +146,7 @@ const renderer = new class extends class RendererInstance extends Disposable {
         // configuration-service
         const configuraionService = new BrowserConfigurationService(environmentService.appConfigurationPath, fileService, logService);
         instantiationService.register(IConfigurationService, configuraionService);
-        
+
         // component-service
         instantiationService.register(IComponentService, new ServiceDescriptor(ComponentService));
 
@@ -156,8 +156,8 @@ const renderer = new class extends class RendererInstance extends Disposable {
             <Ii18nOpts>{
                 language: configuraionService.get<LanguageType>(WorkbenchConfiguration.DisplayLanguage), // FIX: get before init
                 localeOpts: {},
-            }, 
-            fileService, 
+            },
+            fileService,
             logService,
             environmentService,
         );
@@ -165,8 +165,8 @@ const renderer = new class extends class RendererInstance extends Disposable {
 
         // singleton initializations
         for (const [serviceIdentifer, serviceDescriptor] of getSingletonServiceDescriptors()) {
-			instantiationService.register(serviceIdentifer, serviceDescriptor);
-		}
+            instantiationService.register(serviceIdentifer, serviceDescriptor);
+        }
 
         return instantiationService;
     }
@@ -189,7 +189,7 @@ const renderer = new class extends class RendererInstance extends Disposable {
         workbenchShortcutRegistrations();
         workbenchCommandRegistrations();
     }
-} 
-{};
+}
+{ };
 
 renderer.run();

@@ -1,5 +1,5 @@
 import * as assert from 'assert';
-import { ContextKeyDeserializer, ContextKeyExpr, CreateContextKeyExpr } from 'src/code/platform/context/common/contextKeyExpr';
+import { ContextKeyDeserializer, ContextKeyExpr, CreateContextKeyExpr } from 'src/platform/context/common/contextKeyExpr';
 
 function createContext(ctx: any) {
 	return {
@@ -72,7 +72,7 @@ suite('context-key-expression-test', () => {
 			'c': '5',
 			'd': 'd'
 		});
-		
+
 		function testExpression(expr: string, expected: boolean): void {
 			const rules = ContextKeyDeserializer.deserialize(expr);
 			assert.strictEqual(rules.evaluate(context), expected, expr);

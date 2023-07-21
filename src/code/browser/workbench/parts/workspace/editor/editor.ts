@@ -1,21 +1,21 @@
 import 'src/code/browser/workbench/parts/workspace/editor/media/editor.scss';
 import { URI } from "src/base/common/file/uri";
 import { IComponentService } from "src/code/browser/service/component/componentService";
-import { Component,  } from "src/code/browser/service/component/component";
-import { IFileService } from "src/code/platform/files/common/fileService";
-import { ServiceDescriptor } from "src/code/platform/instantiation/common/descriptor";
-import { IInstantiationService } from "src/code/platform/instantiation/common/instantiation";
-import { registerSingleton } from "src/code/platform/instantiation/common/serviceCollection";
+import { Component, } from "src/code/browser/service/component/component";
+import { IFileService } from "src/platform/files/common/fileService";
+import { ServiceDescriptor } from "src/platform/instantiation/common/descriptor";
+import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
+import { registerSingleton } from "src/platform/instantiation/common/serviceCollection";
 import { EditorWidget, IEditorWidget } from "src/editor/editorWidget";
 import { ISideViewService } from "src/code/browser/workbench/parts/sideView/sideView";
 import { ExplorerViewID, IExplorerViewService } from "src/code/browser/workbench/contrib/explorer/explorerService";
-import { IBrowserLifecycleService, ILifecycleService, LifecyclePhase } from "src/code/platform/lifecycle/browser/browserLifecycleService";
+import { IBrowserLifecycleService, ILifecycleService, LifecyclePhase } from "src/platform/lifecycle/browser/browserLifecycleService";
 import { ILogService } from "src/base/common/logger";
 import { IEditorWidgetOptions } from "src/editor/common/configuration/editorConfiguration";
 import { deepCopy } from "src/base/common/util/object";
 import { IEditorService } from "src/code/browser/workbench/parts/workspace/editor/editorService";
 import { IThemeService } from 'src/code/browser/service/theme/themeService';
-import { IConfigurationService } from 'src/code/platform/configuration/common/configuration';
+import { IConfigurationService } from 'src/platform/configuration/common/configuration';
 
 export class Editor extends Component implements IEditorService {
 
@@ -48,11 +48,11 @@ export class Editor extends Component implements IEditorService {
     // [public methods]
 
     public openSource(source: URI | string): void {
-        
+
         if (!this._editorWidget) {
             throw new Error(`[Editor] Cannot open ${URI.isURI(source) ? URI.toString(source) : source} - service is currently not created.`);
         }
-        
+
         const uri = URI.isURI(source) ? source : URI.fromFile(source);
         this._editorWidget.open(uri);
     }
@@ -62,7 +62,7 @@ export class Editor extends Component implements IEditorService {
     protected override async _createContent(): Promise<void> {
 
         await this.lifecycleService.when(LifecyclePhase.Ready);
-            
+
         const options = <IEditorWidgetOptions>deepCopy(this.configurationService.get('editor', {}));
 
         // building options

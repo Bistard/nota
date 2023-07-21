@@ -4,7 +4,7 @@ import { SideBar, ISideBarService, SideButtonType } from "src/code/browser/workb
 import { ISideViewService, SideView } from "src/code/browser/workbench/parts/sideView/sideView";
 import { Component } from "src/code/browser/service/component/component";
 import { IWorkspaceService } from "src/code/browser/workbench/parts/workspace/workspace";
-import { IInstantiationService } from "src/code/platform/instantiation/common/instantiation";
+import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
 import { ISplitView, ISplitViewOpts, SplitView } from "src/base/browser/secondary/splitView/splitView";
 import { Priority } from "src/base/common/event";
 import { ExplorerView } from "src/code/browser/workbench/contrib/explorer/explorer";
@@ -15,7 +15,7 @@ import { ILayoutService } from "src/code/browser/service/layout/layoutService";
 import { CheckMenuAction, MenuSeperatorAction, SimpleMenuAction, SubmenuAction } from "src/base/browser/basic/menu/menuItem";
 import { KeyCode, Shortcut } from "src/base/common/keyboard";
 import { IThemeService } from "src/code/browser/service/theme/themeService";
-import { IConfigurationService } from "src/code/platform/configuration/common/configuration";
+import { IConfigurationService } from "src/platform/configuration/common/configuration";
 
 /**
  * @description A base class for Workbench to create and manage the behaviour of
@@ -28,7 +28,7 @@ export abstract class WorkbenchLayout extends Component {
     private _splitView: ISplitView | undefined;
 
     // [constructor]
-    
+
     constructor(
         @ILayoutService protected readonly layoutService: ILayoutService,
         protected readonly instantiationService: IInstantiationService,
@@ -68,7 +68,7 @@ export abstract class WorkbenchLayout extends Component {
     }
 
     protected __registerLayoutListeners(): void {
-        
+
         // window resizing
         this.__register(addDisposableListener(window, EventType.resize, () => {
             this.layout();
@@ -93,23 +93,23 @@ export abstract class WorkbenchLayout extends Component {
     }
 
     private __assemblyWorkbenchParts(): void {
-        
+
         const splitViewOpt = {
             orientation: Orientation.Horizontal,
             viewOpts: <ISplitViewItemOpts[]>[],
         } satisfies ISplitViewOpts;
 
         const configurations = [
-            [this.sideBarService , SideBar.WIDTH , SideBar.WIDTH, SideBar.WIDTH , Priority.Low],
+            [this.sideBarService, SideBar.WIDTH, SideBar.WIDTH, SideBar.WIDTH, Priority.Low],
             [this.sideViewService, 100, SideView.WIDTH * 2, SideView.WIDTH, Priority.Normal],
-            [this.workspaceService , 0, Number.POSITIVE_INFINITY, 0, Priority.High],
+            [this.workspaceService, 0, Number.POSITIVE_INFINITY, 0, Priority.High],
         ] as const;
-        
+
         for (const [component, minSize, maxSize, initSize, priority] of configurations) {
             component.create(this);
             component.registerListeners();
             splitViewOpt.viewOpts.push({
-                element: component.element.element, 
+                element: component.element.element,
                 minimumSize: minSize,
                 maximumSize: maxSize,
                 initSize: initSize,
@@ -137,42 +137,42 @@ class SideBarBuilder {
     }
 
     public registerButtons(): void {
-        
+
         /**
          * primary button configurations
          */
         [
-            { 
-                id: SideButtonType.EXPLORER, 
+            {
+                id: SideButtonType.EXPLORER,
                 icon: Icons.Folder,
             },
-            { 
-                id: SideButtonType.OUTLINE, 
+            {
+                id: SideButtonType.OUTLINE,
                 icon: Icons.List,
             },
             // TODO
             // { id: SideButtonType.SEARCH, icon: Icons.Search },
             // { id: SideButtonType.GIT, icon: Icons.CodeBranch },
         ]
-        .forEach(({ id, icon }) => {
-            this.sideBarService.registerPrimaryButton({
-                id: id,
-                icon: icon,
-                isPrimary: true,
+            .forEach(({ id, icon }) => {
+                this.sideBarService.registerPrimaryButton({
+                    id: id,
+                    icon: icon,
+                    isPrimary: true,
+                });
             });
-        });
 
 
         /**
          * secondary button configurations
          */
         [
-            { 
-                id: SideButtonType.HELPER, 
+            {
+                id: SideButtonType.HELPER,
                 icon: Icons.CommentQuestion,
             },
-            { 
-                id: SideButtonType.SETTINGS, 
+            {
+                id: SideButtonType.SETTINGS,
                 icon: Icons.Settings,
                 onDidClick: () => {
                     this.contextMenuService.showContextMenu({
@@ -181,7 +181,7 @@ class SideBarBuilder {
                         getActions: () => {
                             return [
                                 new SimpleMenuAction({
-                                    callback: () => {},
+                                    callback: () => { },
                                     enabled: true,
                                     id: 'simple action 1',
                                     tip: 'simple action 1 tip',
@@ -266,14 +266,14 @@ class SideBarBuilder {
                 },
             },
         ]
-        .forEach(({ id, icon, onDidClick }) => {
-            this.sideBarService.registerSecondaryButton({
-                id: id,
-                icon: icon,
-                isPrimary: true,
-                onDidClick: onDidClick,
+            .forEach(({ id, icon, onDidClick }) => {
+                this.sideBarService.registerSecondaryButton({
+                    id: id,
+                    icon: icon,
+                    isPrimary: true,
+                    onDidClick: onDidClick,
+                });
             });
-        });
     }
 
     private __getButtonElement(buttonType: SideButtonType): () => HTMLElement {

@@ -1,7 +1,7 @@
 import { Disposable } from "src/base/common/dispose";
 import { Emitter, Register } from "src/base/common/event";
-import { IService, createService } from "src/code/platform/instantiation/common/decorator";
-import { IInstantiationService } from "src/code/platform/instantiation/common/instantiation";
+import { IService, createService } from "src/platform/instantiation/common/decorator";
+import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
 
 export const ILogService = createService<ILogService>('log-service');
 export const DEFAULT_LOG_LEVEL = LogLevel.INFO;
@@ -39,15 +39,15 @@ export const enum LogLevel {
      * INFO log level should be purely informative and not looking into them on 
      * a regular basis should not result in missing any important informations.
      */
-    INFO  = 2,
-    
+    INFO = 2,
+
     /**
      * The log level that indicates some unexpected things happened somewhere in 
      * the application that might disturb one of the functionality. But that 
      * does not mean that the application failed. The WARN level should be used 
      * in situations that are unexpected, but the code may still the work.
      */
-    WARN  = 3,
+    WARN = 3,
 
     /**
      * The log level should be used when the application hits an issue that 
@@ -63,7 +63,7 @@ export const enum LogLevel {
      * crash in any seconds.
      */
     FATAL = 5
-} 
+}
 
 export interface ILoggable {
     log(message: string, ...args: any[]): void;
@@ -97,10 +97,10 @@ export interface IAbstractLogger extends Disposable {
  * @default level {@link DEFAULT_LOG_LEVEL}.
  */
 export abstract class AbstractLogger extends Disposable implements IAbstractLogger {
-    
+
     _serviceMarker: undefined;
     private _level!: LogLevel;
-    
+
     private readonly _emitter = this.__register(new Emitter<LogLevel>());
     public readonly onDidChangeLevel = this._emitter.registerListener;
 
@@ -129,7 +129,7 @@ export abstract class AbstractLogger extends Disposable implements IAbstractLogg
  * @note Any logging level BELOW the current level will be ignored.
  */
 export interface ILogger extends IAbstractLogger {
-    
+
     /**
      * @description Provides a collections of logging ways.
      * @param message The message for logging.
@@ -137,18 +137,18 @@ export interface ILogger extends IAbstractLogger {
      *             and spliting by spaces.
      */
     trace(message: string, ...args: any[]): void;
-	debug(message: string, ...args: any[]): void;
-	info(message: string, ...args: any[]): void;
-	warn(message: string, ...args: any[]): void;
-	error(message: string | Error, ...args: any[]): void;
-	fatal(message: string | Error, ...args: any[]): void;
+    debug(message: string, ...args: any[]): void;
+    info(message: string, ...args: any[]): void;
+    warn(message: string, ...args: any[]): void;
+    error(message: string | Error, ...args: any[]): void;
+    fatal(message: string | Error, ...args: any[]): void;
     flush(): Promise<void>;
 }
 
 /** 
  * Alias for a {@link ILogger}. May be registered into a {@link IInstantiationService}.
  */
-export interface ILogService extends ILogger, IService {}
+export interface ILogService extends ILogger, IService { }
 
 /**
  * An option for constructing {@link ILogger}.
@@ -191,7 +191,7 @@ export function parseToLogLevel(str?: string): LogLevel {
     if (!str) {
         return LogLevel.INFO;
     }
-    
+
     switch (str.toUpperCase()) {
         case 'FATAL': return LogLevel.FATAL;
         case 'ERROR': return LogLevel.ERROR;
@@ -227,38 +227,38 @@ export class PipelineLogger extends AbstractLogger implements ILogService {
 
     public trace(message: string, ...args: any[]): void {
         for (const logger of this._loggers) {
-			logger.trace(message, ...args);
-		}
+            logger.trace(message, ...args);
+        }
     }
 
     public debug(message: string, ...args: any[]): void {
         for (const logger of this._loggers) {
-			logger.debug(message, ...args);
-		}
+            logger.debug(message, ...args);
+        }
     }
 
     public info(message: string, ...args: any[]): void {
         for (const logger of this._loggers) {
-			logger.info(message, ...args);
-		}
+            logger.info(message, ...args);
+        }
     }
 
     public warn(message: string, ...args: any[]): void {
         for (const logger of this._loggers) {
-			logger.warn(message, ...args);
-		}
+            logger.warn(message, ...args);
+        }
     }
 
     public error(message: string | Error, ...args: any[]): void {
         for (const logger of this._loggers) {
-			logger.error(message, ...args);
-		}
+            logger.error(message, ...args);
+        }
     }
 
     public fatal(message: string | Error, ...args: any[]): void {
         for (const logger of this._loggers) {
-			logger.fatal(message, ...args);
-		}
+            logger.fatal(message, ...args);
+        }
     }
 
     public async flush(): Promise<void> {
@@ -275,7 +275,7 @@ export class PipelineLogger extends AbstractLogger implements ILogService {
  */
 export class BufferLogger extends AbstractLogger implements ILogService {
 
-    protected readonly _buffer: { level: LogLevel, message: (string | Error), args: any[] }[] = [];
+    protected readonly _buffer: { level: LogLevel, message: (string | Error), args: any[]; }[] = [];
     private _logger?: ILogger;
 
     constructor() {
@@ -344,19 +344,19 @@ export function defaultLog(logger: ILogger, level: LogLevel, message: string | E
         case LogLevel.TRACE:
             logger.trace(<any>message, ...args);
             break;
-        case LogLevel.DEBUG: 
+        case LogLevel.DEBUG:
             logger.debug(<any>message, ...args);
             break;
-        case LogLevel.INFO: 
+        case LogLevel.INFO:
             logger.info(<any>message, ...args);
             break;
-        case LogLevel.WARN: 
+        case LogLevel.WARN:
             logger.warn(<any>message, ...args);
             break;
-        case LogLevel.ERROR: 
+        case LogLevel.ERROR:
             logger.error(<any>message, ...args);
             break;
-        case LogLevel.FATAL: 
+        case LogLevel.FATAL:
             logger.fatal(<any>message, ...args);
             break;
     }

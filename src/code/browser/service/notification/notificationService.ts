@@ -1,5 +1,5 @@
 import { Disposable, IDisposable } from "src/base/common/dispose";
-import { createService } from "src/code/platform/instantiation/common/decorator";
+import { createService } from "src/platform/instantiation/common/decorator";
 
 export const INotificationService = createService<INotificationService>('notification-service');
 

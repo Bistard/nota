@@ -1,4 +1,4 @@
-import { IService, createService } from "src/code/platform/instantiation/common/decorator";
+import { IService, createService } from "src/platform/instantiation/common/decorator";
 import { IComponent } from "src/code/browser/service/component/component";
 
 export const IComponentService = createService<IComponentService>('component-service');

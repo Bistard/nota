@@ -6,7 +6,7 @@ import { Scheduler } from "src/base/common/util/async";
 import { Mutable } from "src/base/common/util/type";
 import { ClassicItem } from "src/code/browser/service/classicTree/classicItem";
 import { IClassicTree } from "src/code/browser/service/classicTree/classicTree";
-import { IFileService } from "src/code/platform/files/common/fileService";
+import { IFileService } from "src/platform/files/common/fileService";
 
 /**
  * @class A type of {@link IListDragAndDropProvider} to support drag and drop
@@ -17,9 +17,9 @@ export class ClassicDragAndDropProvider implements IListDragAndDropProvider<Clas
     // [field]
 
     private readonly _tree!: IClassicTree<ClassicItem, FuzzyScore>;
-    
+
     private static readonly EXPAND_DELAY = 300;
-    private readonly _delayExpand: Scheduler<{ item: ClassicItem, index: number }>;
+    private readonly _delayExpand: Scheduler<{ item: ClassicItem, index: number; }>;
     /**
      * When dragging over an item, this array is a temporary place to store the 
      * hoving subtree items. Used for unselecting them when the drag is over.
@@ -82,7 +82,7 @@ export class ClassicDragAndDropProvider implements IListDragAndDropProvider<Clas
     }
 
     public onDragLeave(event: DragEvent, currentDragItems: ClassicItem[], targetOver?: ClassicItem, targetIndex?: number): void {
-        
+
         /**
          * Since the leaving target is not the tree. That means the user is 
          * dragging from outside.
@@ -90,7 +90,7 @@ export class ClassicDragAndDropProvider implements IListDragAndDropProvider<Clas
         if (event.target !== this._tree.DOMElement) {
             return;
         }
-        
+
         if (!targetOver || !targetIndex) {
             this.__removeDragSelections();
             this._delayExpand.cancel(true);
@@ -108,16 +108,16 @@ export class ClassicDragAndDropProvider implements IListDragAndDropProvider<Clas
     }
 
     public onDragDrop(event: DragEvent, currentDragItems: ClassicItem[], targetOver?: ClassicItem | undefined, targetIndex?: number | undefined): void {
-        
+
         // dropping target is invalid
         if (!targetOver || !targetIndex) {
             return;
         }
-        
+
         // expand immediately
         this._delayExpand.cancel(true);
         this._tree.expand(targetOver);
-        
+
         this.__removeDragSelections();
     }
 
@@ -140,7 +140,7 @@ export class ClassicDragAndDropProvider implements IListDragAndDropProvider<Clas
         }
 
         console.log('[removed drag selections]');
-        
+
         const currSelections = this._tree.getSelections();
         const updatedSelections = Arrays.relativeComplement(this._dragSelections, currSelections);
 

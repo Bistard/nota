@@ -1,6 +1,6 @@
 import { DisposableManager, IDisposable } from "src/base/common/dispose";
 import { DomEmitter, EventType } from "src/base/browser/basic/dom";
-import { IService, createService } from "src/code/platform/instantiation/common/decorator";
+import { IService, createService } from "src/platform/instantiation/common/decorator";
 import { Event, Register } from "src/base/common/event";
 import { createStandardKeyboardEvent, IStandardKeyboardEvent } from "src/base/common/keyboard";
 import { ILayoutService } from "src/code/browser/service/layout/layoutService";
@@ -8,14 +8,14 @@ import { ILayoutService } from "src/code/browser/service/layout/layoutService";
 export const IKeyboardService = createService<IKeyboardService>('keyboard-service');
 
 export interface IKeyboardService extends IService {
-    
+
     dispose(): void;
 
     /**
      * Fires when key down happens in the current window.
      */
     onKeydown: Register<IStandardKeyboardEvent>;
-    
+
     /**
      * Fires when key up happens in the current window.
      */
@@ -43,7 +43,7 @@ export class KeyboardService implements IDisposable, IKeyboardService {
     private readonly disposables: DisposableManager;
 
     // [event]
-    
+
     public readonly onKeydown: Register<IStandardKeyboardEvent>;
     public readonly onKeyup: Register<IStandardKeyboardEvent>;
     public readonly onKeypress: Register<IStandardKeyboardEvent>;

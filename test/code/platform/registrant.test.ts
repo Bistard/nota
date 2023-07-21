@@ -1,5 +1,5 @@
 import * as assert from 'assert';
-import { createRegistrant, REGISTRANTS, RegistrantType } from 'src/code/platform/registrant/common/registrant';
+import { createRegistrant, REGISTRANTS, RegistrantType } from 'src/platform/registrant/common/registrant';
 
 const INullRegistrant = createRegistrant<INullRegistrant>(RegistrantType.Test, true);
 
@@ -9,7 +9,7 @@ interface INullRegistrant {
 
 @INullRegistrant
 class NullRegistrant implements INullRegistrant {
-    
+
     private readonly _value: boolean;
 
     constructor(value: boolean) {

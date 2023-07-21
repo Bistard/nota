@@ -5,7 +5,7 @@ import { Orientation } from "src/base/browser/basic/dom";
 import { IComponentService } from "src/code/browser/service/component/componentService";
 import { Component } from "src/code/browser/service/component/component";
 import { WindowButton } from "src/code/browser/workbench/parts/workspace/titleBar/windowButton";
-import { IHostService } from "src/code/platform/host/common/hostService";
+import { IHostService } from "src/platform/host/common/hostService";
 import { IThemeService } from 'src/code/browser/service/theme/themeService';
 
 export class WindowBar extends Component {
@@ -22,51 +22,51 @@ export class WindowBar extends Component {
     }
 
     protected override _createContent(): void {
-        
+
         this._widgetBar = this.__register(this.__createWidgetBar(this.element.element));
-        
+
     }
 
     protected __createWidgetBar(container: HTMLElement): WidgetBar<WindowButton> {
-        
+
         // constructs a new widgetBar
         const widgetBar = new WidgetBar<WindowButton>(container, {
             orientation: Orientation.Horizontal,
             render: true,
         });
-        
+
         // creates all the window buttons
         [
-            {id: 'dropdown-btn', icon: Icons.AngleDown, classes: [], fn: () => {} },
-            {id: 'min-btn', icon: Icons.Minuss, classes: [], fn: () => this.hostService.minimizeWindow()},
-            {id: 'max-btn', icon: Icons.Square, classes: [], fn: () => this.hostService.toggleMaximizeWindow()},
-            {id: 'close-btn', icon: Icons.Cross, classes: ['closeToggleBtn'], fn: () => this.hostService.closeWindow()},
+            { id: 'dropdown-btn', icon: Icons.AngleDown, classes: [], fn: () => { } },
+            { id: 'min-btn', icon: Icons.Minuss, classes: [], fn: () => this.hostService.minimizeWindow() },
+            { id: 'max-btn', icon: Icons.Square, classes: [], fn: () => this.hostService.toggleMaximizeWindow() },
+            { id: 'close-btn', icon: Icons.Cross, classes: ['closeToggleBtn'], fn: () => this.hostService.closeWindow() },
         ]
-        .forEach(( { id, icon, classes, fn } ) => {
-            const button = new WindowButton({
-                icon: icon, 
-                classes: classes, 
-            });
-            button.onDidClick(fn);
+            .forEach(({ id, icon, classes, fn }) => {
+                const button = new WindowButton({
+                    icon: icon,
+                    classes: classes,
+                });
+                button.onDidClick(fn);
 
-            widgetBar.addItem({
-                id: id,
-                item: button,
-                dispose: button.dispose
+                widgetBar.addItem({
+                    id: id,
+                    item: button,
+                    dispose: button.dispose
+                });
             });
-        });
 
         return widgetBar;
     }
 
     protected override _registerListeners(): void {
-        
+
         this.hostService.onDidMaximizeWindow(() => {
             this.changeMaxResBtn(true);
         });
-        
+
         this.hostService.onDidUnmaximizeWindow(() => {
-            this.changeMaxResBtn(false); 
+            this.changeMaxResBtn(false);
         });
     }
 

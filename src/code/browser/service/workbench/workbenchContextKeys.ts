@@ -1,4 +1,4 @@
-import { CreateContextKeyExpr } from "src/code/platform/context/common/contextKeyExpr";
+import { CreateContextKeyExpr } from "src/platform/context/common/contextKeyExpr";
 
 export namespace WorkbenchContextKey {
 

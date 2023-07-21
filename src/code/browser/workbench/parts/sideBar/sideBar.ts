@@ -1,6 +1,6 @@
 import 'src/code/browser/workbench/parts/sideBar/media/sideBar.scss';
 import { Component, IComponent } from 'src/code/browser/service/component/component';
-import { IService, createService } from 'src/code/platform/instantiation/common/decorator';
+import { IService, createService } from 'src/platform/instantiation/common/decorator';
 import { IComponentService } from 'src/code/browser/service/component/componentService';
 import { ISideButtonOptions, SideButton } from 'src/code/browser/workbench/parts/sideBar/sideBarButton';
 import { WidgetBar } from 'src/base/browser/secondary/widgetBar/widgetBar';
@@ -25,7 +25,7 @@ export const enum SideButtonType {
 }
 
 export interface ISideBarButtonClickEvent {
-    
+
     /**
      * The ID of button is clicked.
      */
@@ -46,7 +46,7 @@ export interface ISideBarButtonClickEvent {
  * An interface only for {@link SideBar}.
  */
 export interface ISideBarService extends IComponent, IService {
-    
+
     /**
      * Events fired when the button is clicked.
      */
@@ -79,7 +79,7 @@ export interface ISideBarService extends IComponent, IService {
      * @returns A boolean indicates if the button has created.
      */
     registerPrimaryButton(opts: ISideButtonOptions): boolean;
-    
+
     /**
      * @description Register a new secondary button.
      * @param opts The options to construct the button.
@@ -146,20 +146,20 @@ export class SideBar extends Component implements ISideBarService {
     // [protected override method]
 
     protected override _createContent(): void {
-        
+
         // logo
         const logo = this.__createLogo();
-        
+
         // upper button group
         const primaryContainer = document.createElement('div');
         primaryContainer.className = 'general-button-container';
         this._primary.render(primaryContainer);
-        
+
         // lower button group
         const secondaryContainer = document.createElement('div');
         secondaryContainer.className = 'secondary-button-container';
         this._secondary.render(secondaryContainer);
-        
+
         this.element.appendChild(logo.element);
         this.element.appendChild(primaryContainer);
         this.element.appendChild(secondaryContainer);
@@ -169,7 +169,7 @@ export class SideBar extends Component implements ISideBarService {
     }
 
     protected override _registerListeners(): void {
-        
+
         // Register all the buttons click event.
         this._primary.items().forEach(item => {
             item.onDidClick(() => this.__buttonClick(item.id));
@@ -177,7 +177,7 @@ export class SideBar extends Component implements ISideBarService {
         this._secondary.items().forEach(item => {
             item.onDidClick(() => this.__buttonClick(item.id));
         });
-        
+
         // default with opening explorer view
         this.__buttonClick(SideButtonType.EXPLORER);
     }
@@ -199,24 +199,24 @@ export class SideBar extends Component implements ISideBarService {
         if (button.element === undefined) {
             return;
         }
-        
+
         // none of button is focused, focus the button.
         if (this._currButtonType === SideButtonType.NONE) {
             this._currButtonType = buttonType;
             button.element.classList.add('focus');
-        } 
-        
+        }
+
         // if the current focused button is clicked again, remove focus.
         else if (this._currButtonType === buttonType) {
             this._currButtonType = SideButtonType.NONE;
             button.element.classList.remove('focus');
-        } 
-        
+        }
+
         // other button is clicked, focus the new button.
         else {
             const prevButton = this.getButton(this._currButtonType)!;
             prevButton.element!.classList.remove('focus');
-            
+
             this._currButtonType = buttonType;
             button.element.classList.add('focus');
         }
@@ -231,12 +231,12 @@ export class SideBar extends Component implements ISideBarService {
 
     private __registerButton(opts: ISideButtonOptions, widgetBar: WidgetBar<SideButton>): boolean {
         const button = new SideButton(opts);
-        
+
         if (widgetBar.hasItem(opts.id)) {
             this.logService.warn(`Cannot register the side bar button with duplicate id: ${opts.id}.`);
             return false;
         }
-        
+
         widgetBar.addItem({
             id: opts.id,
             item: button,

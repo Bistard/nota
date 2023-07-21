@@ -1,4 +1,4 @@
-import { IConfigurationService } from "src/code/platform/configuration/common/configuration";
+import { IConfigurationService } from "src/platform/configuration/common/configuration";
 
 // TODO
 export const enum ColorThemeType {
@@ -16,7 +16,7 @@ export const enum ThemeConfigSection {
  */
 export class ThemeConfiguration {
 
-    constructor(private readonly configurationService: IConfigurationService) {}
+    constructor(private readonly configurationService: IConfigurationService) { }
 
     // public getColorTheme(): string {
     //     return this.configurationService.get<string>(BuiltInConfigScope.User, ThemeConfigSection.ColorTheme);

@@ -2,18 +2,18 @@ import 'src/code/browser/workbench/contrib/explorer/media/explorerItem.scss';
 import 'src/code/browser/workbench/contrib/explorer/media/explorerView.scss';
 import { Emitter } from 'src/base/common/event';
 import { IComponentService } from 'src/code/browser/service/component/componentService';
-import { Ii18nService } from 'src/code/platform/i18n/common/i18n';
-import { Section } from 'src/code/platform/section';
+import { Ii18nService } from 'src/platform/i18n/common/i18n';
+import { Section } from 'src/platform/section';
 import { addDisposableListener, EventType, Orientation } from 'src/base/browser/basic/dom';
-import { IBrowserDialogService, IDialogService } from 'src/code/platform/dialog/browser/browserDialogService';
+import { IBrowserDialogService, IDialogService } from 'src/platform/dialog/browser/browserDialogService';
 import { ILogService } from 'src/base/common/logger';
 import { IWorkbenchService } from 'src/code/browser/service/workbench/workbenchService';
-import { IBrowserLifecycleService, ILifecycleService } from 'src/code/platform/lifecycle/browser/browserLifecycleService';
-import { IBrowserEnvironmentService } from 'src/code/platform/environment/common/environment';
+import { IBrowserLifecycleService, ILifecycleService } from 'src/platform/lifecycle/browser/browserLifecycleService';
+import { IBrowserEnvironmentService } from 'src/platform/environment/common/environment';
 import { IExplorerTreeService } from 'src/code/browser/service/explorerTree/explorerTreeService';
 import { URI } from 'src/base/common/file/uri';
-import { IHostService } from 'src/code/platform/host/common/hostService';
-import { StatusKey } from 'src/code/platform/status/common/status';
+import { IHostService } from 'src/platform/host/common/hostService';
+import { StatusKey } from 'src/platform/status/common/status';
 import { DisposableManager } from 'src/base/common/dispose';
 import { createIcon } from 'src/base/browser/icon/iconRegistry';
 import { Icons } from 'src/base/browser/icon/icons';
@@ -88,7 +88,7 @@ export class ExplorerView extends SideView implements IExplorerViewService {
     // [public method]
 
     public async open(root: URI): Promise<void> {
-        
+
         if (this.explorerTreeService.isOpened) {
             this.logService.warn(`[ExplorerView] view is already opened at '${URI.toString(this.explorerTreeService.root!), true}'`);
             return;
@@ -99,7 +99,7 @@ export class ExplorerView extends SideView implements IExplorerViewService {
 
         // try to open the view at the given root
         const [view, success] = await this.__tryOpen(root);
-        
+
         // load the given view as the current view
         this.__loadCurrentView(view, !success);
 
@@ -152,7 +152,7 @@ export class ExplorerView extends SideView implements IExplorerViewService {
 
     protected override _registerListeners(): void {
         super._registerListeners();
-        
+
         /**
          * No need to register listeners initially, since `__loadCurrentView` 
          * will do for us internally.
@@ -211,7 +211,7 @@ export class ExplorerView extends SideView implements IExplorerViewService {
         try {
             await this.explorerTreeService.init(container, path);
             this._onDidOpen.fire({ path: path });
-        } 
+        }
         /**
          * If the initialization fails, we capture it and replace it with an
          * empty view.
@@ -221,24 +221,24 @@ export class ExplorerView extends SideView implements IExplorerViewService {
             container = this.__createEmptyView();
             this.logService.error(`[ExplorerView] cannot open the view at given path '${URI.toString(path, true)}': ${errorToMessage(error)}`);
         }
-        
+
         return [container, success];
     }
 
     // [private UI helper methods]
 
     private __createEmptyView(): HTMLElement {
-        
+
         // the view
         const view = document.createElement('div');
         view.className = 'empty-explorer-container';
-        
+
         // the tag
         const tag = document.createElement('div');
         tag.className = 'explorer-open-tag';
         tag.textContent = this.i18nService.trans(Section.Explorer, 'openDirectory');
         view.appendChild(tag);
-        
+
         return view;
     }
 
@@ -269,13 +269,13 @@ export class ExplorerView extends SideView implements IExplorerViewService {
         disposables.register(
             addDisposableListener(tag, EventType.click, () => {
                 this.dialogService.openDirectoryDialog({ title: 'open a directory' })
-                .then(path => {
-                    if (path.length > 0) {
-                        this.open(URI.fromFile(path.at(-1)!));
-                    }
-                });
+                    .then(path => {
+                        if (path.length > 0) {
+                            this.open(URI.fromFile(path.at(-1)!));
+                        }
+                    });
             }
-        ));
+            ));
     }
 
     private __registerNonEmptyViewListeners(view: HTMLElement): void {
@@ -313,7 +313,7 @@ export class Toolbar {
     // [constructor]
 
     constructor() {
-        
+
         this._element = document.createElement('div');
         this._element.className = 'toolbar';
 
@@ -324,29 +324,29 @@ export class Toolbar {
             render: false,
         });
         [
-            {id: 'new-file', icon: Icons.AddDocument, classes: [], fn: () => {} },
-            {id: 'new-directory', icon: Icons.AddFolder, classes: [], fn: () => {}},
-            {id: 'collapse-all', icon: Icons.FolderMinus, classes: [], fn: () => {}},
+            { id: 'new-file', icon: Icons.AddDocument, classes: [], fn: () => { } },
+            { id: 'new-directory', icon: Icons.AddFolder, classes: [], fn: () => { } },
+            { id: 'collapse-all', icon: Icons.FolderMinus, classes: [], fn: () => { } },
         ]
-        .forEach(( { id, icon, classes, fn } ) => {
-            const button = new Button({
-                icon: icon, 
-                classes: classes, 
+            .forEach(({ id, icon, classes, fn }) => {
+                const button = new Button({
+                    icon: icon,
+                    classes: classes,
+                });
+
+                button.onDidClick(fn);
+                this._buttons.addItem({
+                    id: id,
+                    item: button,
+                    dispose: button.dispose,
+                });
             });
-            
-            button.onDidClick(fn);
-            this._buttons.addItem({
-                id: id,
-                item: button,
-                dispose: button.dispose,
-            });
-        });
     }
 
     // [public methods]
 
     public render(parent: HTMLElement): void {
-        
+
         this._visibilityController.setVisibility(false);
 
         // toolbar container
@@ -395,10 +395,10 @@ export class ExplorerTitlePart extends SideViewTitlePart {
         rightContainer.className = 'right-part';
         // menu dots
         const menuDots = createIcon(Icons.MenuDots);
-        
+
         leftContainer.append(topText);
         leftContainer.append(dropdownIcon);
-        
+
         rightContainer.append(menuDots);
 
         this.element.appendChild(leftContainer);

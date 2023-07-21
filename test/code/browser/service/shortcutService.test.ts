@@ -4,21 +4,21 @@ import { ILogService } from 'src/base/common/logger';
 import { IKeyboardService } from 'src/code/browser/service/keyboard/keyboardService';
 import { ShortcutWeight } from 'src/code/browser/service/shortcut/shortcutRegistrant';
 import { ShortcutService } from 'src/code/browser/service/shortcut/shortcutService';
-import { ICommandRegistrant } from 'src/code/platform/command/common/commandRegistrant';
-import { CommandService, ICommandService } from 'src/code/platform/command/common/commandService';
-import { CreateContextKeyExpr } from 'src/code/platform/context/common/contextKeyExpr';
-import { ContextService, IContextService } from 'src/code/platform/context/common/contextService';
-import { IEnvironmentService } from 'src/code/platform/environment/common/environment';
-import { FileService, IFileService } from 'src/code/platform/files/common/fileService';
-import { IInstantiationService, InstantiationService } from 'src/code/platform/instantiation/common/instantiation';
-import { ILifecycleService } from 'src/code/platform/lifecycle/browser/browserLifecycleService';
-import { REGISTRANTS } from 'src/code/platform/registrant/common/registrant';
+import { ICommandRegistrant } from 'src/platform/command/common/commandRegistrant';
+import { CommandService, ICommandService } from 'src/platform/command/common/commandService';
+import { CreateContextKeyExpr } from 'src/platform/context/common/contextKeyExpr';
+import { ContextService, IContextService } from 'src/platform/context/common/contextService';
+import { IEnvironmentService } from 'src/platform/environment/common/environment';
+import { FileService, IFileService } from 'src/platform/files/common/fileService';
+import { IInstantiationService, InstantiationService } from 'src/platform/instantiation/common/instantiation';
+import { ILifecycleService } from 'src/platform/lifecycle/browser/browserLifecycleService';
+import { REGISTRANTS } from 'src/platform/registrant/common/registrant';
 import { NullEnvironmentService, NullLifecycleService, NullLogger, TestKeyboardService } from 'test/utils/testService';
 
 suite('shortcutService-test', () => {
 
     let keyboardService!: TestKeyboardService;
-    let shortcutService!: ShortcutService; 
+    let shortcutService!: ShortcutService;
     let contextService!: ContextService;
 
     setup(() => {
@@ -38,7 +38,7 @@ suite('shortcutService-test', () => {
         DI.register(ICommandService, commandService);
         DI.register(ILifecycleService, new NullLifecycleService());
         DI.register(IEnvironmentService, new NullEnvironmentService());
-        
+
         shortcutService = DI.createInstance(ShortcutService);
     });
 
@@ -51,20 +51,20 @@ suite('shortcutService-test', () => {
             key: shortcut.key,
             browserEvent: null as unknown as KeyboardEvent,
             target: null as unknown as HTMLElement,
-            preventDefault: () => {},
-            stopPropagation: () => {},
+            preventDefault: () => { },
+            stopPropagation: () => { },
         };
     }
 
     test('register and unregister', () => {
-        
+
         let pressed = 0;
         const commandRegistrant = REGISTRANTS.get(ICommandRegistrant);
         commandRegistrant.registerCommand({ id: 'test-shortcut' }, () => pressed++);
 
         const shortcut = new Shortcut(true, false, false, false, KeyCode.Space);
         const precondition = CreateContextKeyExpr.Equal('value', true);
-        
+
         const unregister = shortcutService.register({
             shortcut: shortcut,
             when: precondition,

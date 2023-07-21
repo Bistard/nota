@@ -1,5 +1,5 @@
 import { IS_MAC, IS_WINDOWS } from "src/base/common/platform";
-import { GLOBAL } from "src/code/platform/electron/browser/global";
+import { GLOBAL } from "src/platform/electron/browser/global";
 
 export const enum ProcessKey {
     PID = 'NOTA_PID',
@@ -11,14 +11,14 @@ export const enum ProcessKey {
  * differently.
  */
 export interface INodeProcess {
-	readonly platform: string;
-	readonly arch: string;
-	readonly env: IProcessEnvironment;
-	readonly versions?: {
-		readonly electron?: string;
-	};
-	readonly type?: string;
-	readonly cwd: () => string;
+    readonly platform: string;
+    readonly arch: string;
+    readonly env: IProcessEnvironment;
+    readonly versions?: {
+        readonly electron?: string;
+    };
+    readonly type?: string;
+    readonly cwd: () => string;
 }
 
 /**
@@ -45,11 +45,11 @@ export interface INodeProcess {
  * @note On Windows operating systems, environment variables are case-insensitive.
  */
 export interface IProcessEnvironment {
-	readonly [key: string]: string | undefined;
+    readonly [key: string]: string | undefined;
 }
 
 declare const process: INodeProcess;
-type ISafeProcess = Omit<INodeProcess, 'arch'> & { arch: string | undefined };
+type ISafeProcess = Omit<INodeProcess, 'arch'> & { arch: string | undefined; };
 
 const safeProcess = (function () {
     let _process: ISafeProcess;
@@ -98,5 +98,5 @@ export namespace SafeProcess {
     export const env = safeProcess.env;
     /** @note In web, `arch` is `undefined`. */
     export const arch = safeProcess.arch;
-    export const platform = safeProcess.platform;    
+    export const platform = safeProcess.platform;
 }

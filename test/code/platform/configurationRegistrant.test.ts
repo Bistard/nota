@@ -1,8 +1,8 @@
 import * as assert from 'assert';
 import { afterEach } from 'mocha';
 import { Event } from 'src/base/common/event';
-import { IConfigurationRegistrant, IConfigurationUnit } from 'src/code/platform/configuration/common/configurationRegistrant';
-import { REGISTRANTS } from 'src/code/platform/registrant/common/registrant';
+import { IConfigurationRegistrant, IConfigurationUnit } from 'src/platform/configuration/common/configurationRegistrant';
+import { REGISTRANTS } from 'src/platform/registrant/common/registrant';
 
 const enum TestConfiguration {
     One = 'configuration.test.one',
@@ -13,7 +13,7 @@ const enum TestConfiguration {
 suite('configurationRegistrant-test', () => {
 
     const registrant: IConfigurationRegistrant = REGISTRANTS.get(IConfigurationRegistrant);
-    
+
     const unit1: IConfigurationUnit = {
         id: 'configuration.test',
         properties: {
@@ -37,14 +37,14 @@ suite('configurationRegistrant-test', () => {
                 default: true,
             },
         }
-    }; 
+    };
 
     afterEach(() => {
         registrant.unregisterConfigurations(registrant.getConfigurationUnits());
     });
 
     test('registerConfiguration', () => {
-        
+
         // register unit1
         Event.once(registrant.onDidConfigurationChange)(e => {
             assert.ok(e.properties.has(TestConfiguration.One));
@@ -66,14 +66,14 @@ suite('configurationRegistrant-test', () => {
     test('registerConfiguration - duplicate registration', () => {
         try {
             registrant.registerConfigurations(unit1);
-        } catch {}
+        } catch { }
         assert.strictEqual(registrant.getConfigurationUnits().length, 2);
     });
 
     test('registerConfiguration - valid schema registration', () => {
         const path = 'invalid.schema.registration';
-        
-        const validUnit: IConfigurationUnit = { 
+
+        const validUnit: IConfigurationUnit = {
             id: 'test',
             properties: {
                 [`${path}0`]: {
@@ -113,8 +113,8 @@ suite('configurationRegistrant-test', () => {
 
     test('registerConfiguration & onErrorRegistration - invalid schema registration', () => {
         const path = 'invalid.schema.registration';
-        
-        const invalidUnit: IConfigurationUnit = { 
+
+        const invalidUnit: IConfigurationUnit = {
             id: 'test',
             properties: {
                 [`${path}2`]: {
@@ -149,7 +149,7 @@ suite('configurationRegistrant-test', () => {
         const dispoable = registrant.onDidConfigurationChange(e => {
             assert.fail('Should never fire');
         });
-        
+
         registrant.registerConfigurations(invalidUnit);
         assert.notDeepStrictEqual(invalidUnit.properties, Object.create({}));
         assert.strictEqual(errorSchemas.get('boolean'), "The type of the default value 'string' does not match the schema type 'boolean'.");
@@ -163,7 +163,7 @@ suite('configurationRegistrant-test', () => {
     });
 
     test('unregisterConfiguration', () => {
-        
+
         registrant.registerConfigurations(unit1);
         registrant.registerConfigurations(unit2);
 
@@ -172,13 +172,13 @@ suite('configurationRegistrant-test', () => {
             assert.ok(e.properties.has(TestConfiguration.One));
             assert.ok(e.properties.has(TestConfiguration.Two));
         });
-        
+
         registrant.unregisterConfigurations(unit1);
         assert.strictEqual(unit2, registrant.getConfigurationUnits()[0]);
     });
 
     test('updateConfigurations', () => {
-        
+
         registrant.registerConfigurations(unit2);
 
         // register unit1 and unregister unit2
@@ -187,20 +187,20 @@ suite('configurationRegistrant-test', () => {
             assert.ok(e.properties.has(TestConfiguration.Two));
             assert.ok(e.properties.has(TestConfiguration.Three));
         });
-        
+
         registrant.updateConfigurations({ add: [unit1], remove: [unit2] });
         assert.strictEqual(unit1, registrant.getConfigurationUnits()[0]);
     });
 
     test('updateConfigurations (remove non-existed properties will still fire onDidConfigurationChange', () => {
-        
+
         // register unit1 and unregister unit2
         Event.once(registrant.onDidConfigurationChange)(e => {
             assert.ok(e.properties.has(TestConfiguration.One));
             assert.ok(e.properties.has(TestConfiguration.Two));
             assert.ok(e.properties.has(TestConfiguration.Three));
         });
-        
+
         registrant.updateConfigurations({ add: [unit1], remove: [unit2] });
         assert.strictEqual(unit1, registrant.getConfigurationUnits()[0]);
     });

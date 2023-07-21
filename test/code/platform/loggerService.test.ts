@@ -3,14 +3,14 @@ import { setup } from 'mocha';
 import { Schemas, URI } from 'src/base/common/file/uri';
 import { LogLevel, parseToLogLevel } from 'src/base/common/logger';
 import { delayFor } from 'src/base/common/util/async';
-import { FileService, IFileService } from 'src/code/platform/files/common/fileService';
-import { InMemoryFileSystemProvider } from 'src/code/platform/files/common/inMemoryFileSystemProvider';
-import { IInstantiationService, InstantiationService } from 'src/code/platform/instantiation/common/instantiation';
-import { IpcChannel } from 'src/code/platform/ipc/common/channel';
-import { IpcServer } from 'src/code/platform/ipc/electron/ipcServer';
-import { ILoggerService } from 'src/code/platform/logger/common/abstractLoggerService';
-import { FileLoggerService } from 'src/code/platform/logger/common/fileLoggerService';
-import { BrowserLoggerChannel, MainLoggerChannel } from 'src/code/platform/logger/common/loggerChannel';
+import { FileService, IFileService } from 'src/platform/files/common/fileService';
+import { InMemoryFileSystemProvider } from 'src/platform/files/common/inMemoryFileSystemProvider';
+import { IInstantiationService, InstantiationService } from 'src/platform/instantiation/common/instantiation';
+import { IpcChannel } from 'src/platform/ipc/common/channel';
+import { IpcServer } from 'src/platform/ipc/electron/ipcServer';
+import { ILoggerService } from 'src/platform/logger/common/abstractLoggerService';
+import { FileLoggerService } from 'src/platform/logger/common/fileLoggerService';
+import { BrowserLoggerChannel, MainLoggerChannel } from 'src/platform/logger/common/loggerChannel';
 import { NullLogger, TestIPC } from 'test/utils/testService';
 
 suite('LoggerService', () => {
@@ -47,7 +47,7 @@ suite('LoggerService', () => {
 
         return async (actualLogLevel: LogLevel, message: string): Promise<void> => {
             const raw = (await fileService.readFile(uri)).toString();
-            const line  = raw.split('\n').slice(-2, -1)[0]!; // retrieve the last line
+            const line = raw.split('\n').slice(-2, -1)[0]!; // retrieve the last line
 
             const [loggerName, contentLevel, contentMessage] = splitLogString(line).slice(1, undefined); // remove the timestamp
             assert.strictEqual(loggerName, URI.basename(uri));
@@ -57,7 +57,7 @@ suite('LoggerService', () => {
     }
 
     suite('FileLoggerService', async function () {
-        
+
         let instantiationService: IInstantiationService;
         let fileService: IFileService;
         let loggerService: FileLoggerService;
@@ -85,13 +85,13 @@ suite('LoggerService', () => {
 
             await logger.trace('world');
             await assertLastLineLogMessage(LogLevel.INFO, 'hello');
-    
+
             await logger.debug('world');
             await assertLastLineLogMessage(LogLevel.INFO, 'hello');
 
             await logger.warn('world');
             await assertLastLineLogMessage(LogLevel.WARN, 'world');
-    
+
             await logger.fatal('again');
             await assertLastLineLogMessage(LogLevel.FATAL, 'again');
         });
@@ -101,7 +101,7 @@ suite('LoggerService', () => {
 
         let instantiationService: IInstantiationService;
         let fileService: IFileService;
-        
+
         let loggerService: FileLoggerService;
         let browserLoggerService: ILoggerService;
         let assertLastLineLogMessage: (actualLogLevel: LogLevel, message: string) => Promise<void>;
@@ -117,17 +117,17 @@ suite('LoggerService', () => {
             loggerService = new FileLoggerService(LogLevel.INFO, instantiationService);
 
             const testServer = new TestIPC.IpcServer();
-			server = testServer;
-			server.registerChannel(IpcChannel.Logger, new MainLoggerChannel(loggerService));
-			
+            server = testServer;
+            server.registerChannel(IpcChannel.Logger, new MainLoggerChannel(loggerService));
+
             const client = testServer.createConnection('client1');
             browserLoggerService = new BrowserLoggerChannel(client.getChannel(IpcChannel.Logger), LogLevel.INFO);
-			
+
             assertLastLineLogMessage = createAssertLogMessage(fileService, URI.fromFile('base/test.log'), LogLevel.INFO);
         });
 
         test('basics', async () => {
-            
+
             // consturct logger from client side
             const browserLogger = browserLoggerService.createLogger(URI.fromFile('base'), { name: 'test.log' });
             await delayFor(0);

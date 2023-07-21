@@ -5,7 +5,7 @@ import { DomEventHandler, DomUtility, EventType, addDisposableListener } from "s
 import { IStandardKeyboardEvent, Keyboard } from "src/base/common/keyboard";
 import { IntervalTimer } from "src/base/common/util/timer";
 import { IKeyboardService } from "src/code/browser/service/keyboard/keyboardService";
-import { createService } from "src/code/platform/instantiation/common/decorator";
+import { createService } from "src/platform/instantiation/common/decorator";
 import { ILayoutService } from 'src/code/browser/service/layout/layoutService';
 
 export const IKeyboardScreenCastService = createService<IKeyboardScreenCastService>('keyboard-screencast-service');
@@ -44,7 +44,7 @@ export class KeyboardScreenCastService implements IKeyboardScreenCastService {
     private _timer?: IntervalTimer;
 
     // [constructor]
-    
+
     constructor(
         @IKeyboardService private readonly keyboardService: IKeyboardService,
         @ILayoutService private readonly layoutService: ILayoutService,
@@ -56,16 +56,16 @@ export class KeyboardScreenCastService implements IKeyboardScreenCastService {
     // [public methods]
 
     public start(): void {
-        
+
         if (this._active) {
             return;
         }
-        
+
         // rendering
         {
             this._container = document.createElement('div');
             this._container.className = 'keyboard-screen-cast';
-            
+
             this._visibilityController.setDomNode(this._container);
             this._visibilityController.setVisibility(false);
 
@@ -83,11 +83,11 @@ export class KeyboardScreenCastService implements IKeyboardScreenCastService {
             // keydown
             this._keydownListener = this.keyboardService.onKeydown(event => {
                 if (this.__ifAllowNewTag(event)) {
-                    
+
                     if (this.__excessMaxTags() || Keyboard.isEventModifier(event)) {
                         this.__flushKeypress();
-                    } 
-                    
+                    }
+
                     this.__appendTag(event);
                     this._prevEvent = event;
                 }
@@ -120,13 +120,13 @@ export class KeyboardScreenCastService implements IKeyboardScreenCastService {
             this._tagContainer = undefined;
             this._visibilityController.setDomNode(undefined);
         }
-        
+
         this._keydownListener?.dispose();
         this._keydownListener = undefined;
 
         this._rippleListener?.dispose();
         this._rippleListener = undefined;
-        
+
         this._timer?.dispose();
         this._timer = undefined;
 
@@ -146,7 +146,7 @@ export class KeyboardScreenCastService implements IKeyboardScreenCastService {
         if (Keyboard.sameEvent(this._prevEvent, event) && Keyboard.isEventModifier(event)) {
             return false;
         }
-        
+
         return true;
     }
 
@@ -169,13 +169,13 @@ export class KeyboardScreenCastService implements IKeyboardScreenCastService {
         if (!this._tagContainer) {
             return;
         }
-        
+
         const tag = document.createElement('div');
         tag.className = 'tag';
-    
+
         const span = document.createElement('span');
         span.textContent = Keyboard.eventToString(event);
-        
+
         tag.appendChild(span);
         this._tagContainer.appendChild(tag);
     }
@@ -203,7 +203,7 @@ export class KeyboardScreenCastService implements IKeyboardScreenCastService {
         ripple.className = 'ripple';
         ripple.style.left = `${event.clientX}px`;
         ripple.style.top = `${event.clientY}px`;
-        
+
         const container = this.layoutService.parentContainer;
         container.appendChild(ripple);
         setTimeout(() => container.removeChild(ripple), 300);

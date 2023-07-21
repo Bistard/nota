@@ -4,13 +4,13 @@ import { Event } from 'src/base/common/event';
 import { DataBuffer } from 'src/base/common/file/buffer';
 import { URI } from "src/base/common/file/uri";
 import { ILogService } from "src/base/common/logger";
-import { ConfigurationModuleType } from 'src/code/platform/configuration/common/configuration';
-import { IConfigurationRegistrant } from "src/code/platform/configuration/common/configurationRegistrant";
-import { ConfigurationChangeEvent } from "src/code/platform/configuration/common/abstractConfigurationService";
-import { MainConfigurationService } from 'src/code/platform/configuration/electron/mainConfigurationService';
-import { FileService } from "src/code/platform/files/common/fileService";
-import { InMemoryFileSystemProvider } from "src/code/platform/files/common/inMemoryFileSystemProvider";
-import { REGISTRANTS } from "src/code/platform/registrant/common/registrant";
+import { ConfigurationModuleType } from 'src/platform/configuration/common/configuration';
+import { IConfigurationRegistrant } from "src/platform/configuration/common/configurationRegistrant";
+import { ConfigurationChangeEvent } from "src/platform/configuration/common/abstractConfigurationService";
+import { MainConfigurationService } from 'src/platform/configuration/electron/mainConfigurationService';
+import { FileService } from "src/platform/files/common/fileService";
+import { InMemoryFileSystemProvider } from "src/platform/files/common/inMemoryFileSystemProvider";
+import { REGISTRANTS } from "src/platform/registrant/common/registrant";
 import { FakeAsync } from 'test/utils/async';
 import { NullLogger } from "test/utils/testService";
 
@@ -53,10 +53,10 @@ suite('MainConfiguratioService-test', () => {
 
     test('get before Initialization - Should get undefined before initialization', () => FakeAsync.run(async () => {
         const service = new MainConfigurationService(userConfigURI, fileService, logService);
-        
+
         let result = service.get('section');
         assert.strictEqual(result, undefined);
-        
+
         await service.init();
 
         result = service.get('section');
@@ -66,7 +66,7 @@ suite('MainConfiguratioService-test', () => {
     test('get - Should get user value', () => FakeAsync.run(async () => {
         const service = new MainConfigurationService(userConfigURI, fileService, logService);
         await service.init();
-    
+
         const result = service.get('section');
         assert.strictEqual(result, 'user value');
     }));
@@ -77,7 +77,7 @@ suite('MainConfiguratioService-test', () => {
 
         let result = service.get('section');
         assert.strictEqual(result, undefined);
-        
+
         await service.init();
 
         result = service.get('section');
@@ -89,7 +89,7 @@ suite('MainConfiguratioService-test', () => {
     test('get - Should return default value when section does not exist', () => FakeAsync.run(async () => {
         const service = new MainConfigurationService(userConfigURI, fileService, logService);
         await service.init();
-        
+
         const result = service.get('nonExistingSection', "default");
         assert.strictEqual(result, "default");
     }));
@@ -137,7 +137,7 @@ suite('MainConfiguratioService-test', () => {
 
         result = service.get('section1');
         assert.strictEqual(result, 'default2 value');
-        
+
         assert.ok(fired);
         disposable.dispose();
         await reloadUserConfiguration();
@@ -161,11 +161,11 @@ suite('MainConfiguratioService-test', () => {
     }));
 
     suite('ConfigurationChangeEvent', () => {
-        
+
         test('Should correctly initialize and check `affect` / `match` method', () => {
             const changeEvent = new ConfigurationChangeEvent({ properties: ["section1.section2"] }, ConfigurationModuleType.Default);
             assert.ok(changeEvent);
-        
+
             assert.strictEqual(changeEvent.affect("section1"), false);
             assert.strictEqual(changeEvent.affect("section1.section2"), true);
             assert.strictEqual(changeEvent.affect("section1.section2.section3"), true);
