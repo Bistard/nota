@@ -36,6 +36,8 @@ interface IMainProcess {
  * two things:
  *      1. Initializations on core microservices of the application.
  *      2. Important disk directory preparation.
+ *      3. Ensuring that this process is the only one running. If not, it 
+ *         terminates as expected.
  */
 const main = new class extends class MainProcess implements IMainProcess {
 
@@ -63,7 +65,7 @@ const main = new class extends class MainProcess implements IMainProcess {
             ErrorHandler.setUnexpectedErrorExternalCallback(err => console.error(err));
             await this.run();
         } catch (unexpectedError: any) {
-            console.error(unexpectedError.message ?? 'unknown error message');
+            console.error(unexpectedError, unexpectedError.message ?? 'unknown error message');
             electron.app.exit(1);
         }
     }
