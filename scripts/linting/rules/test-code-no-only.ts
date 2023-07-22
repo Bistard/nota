@@ -14,7 +14,7 @@ export = new class TestCodeNoOnly implements eslint.Rule.RuleModule {
             ['MemberExpression[object.name=/^(test|suite)$/][property.name="only"]']: (node: any) => {
                 return context.report({
                     node,
-                    message: '`only` is a dev-time tool and CANNOT be pushed.'
+                    message: '`only` is a dev-time tool and CANNOT be pushed'
                 });
             }
         };
