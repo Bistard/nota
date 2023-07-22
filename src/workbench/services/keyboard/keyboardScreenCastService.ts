@@ -6,7 +6,7 @@ import { IStandardKeyboardEvent, Keyboard } from "src/base/common/keyboard";
 import { IKeyboardService } from "src/workbench/services/keyboard/keyboardService";
 import { createService } from "src/platform/instantiation/common/decorator";
 import { ILayoutService } from 'src/workbench/services/layout/layoutService';
-import { IntervalTimer } from 'src/base/common/util/async';
+import { IntervalTimer, Scheduler } from 'src/base/common/util/async';
 
 export const IKeyboardScreenCastService = createService<IKeyboardScreenCastService>('keyboard-screencast-service');
 
@@ -41,7 +41,7 @@ export class KeyboardScreenCastService implements IKeyboardScreenCastService {
     private _visibilityController: VisibilityController;
     private _keydownListener?: IDisposable;
     private _rippleListener?: IDisposable;
-    private _timer?: IntervalTimer;
+    private _flushKeyScheduler?: Scheduler<void>;
 
     // [constructor]
 
@@ -75,7 +75,7 @@ export class KeyboardScreenCastService implements IKeyboardScreenCastService {
             this._container.appendChild(this._tagContainer);
             this.layoutService.parentContainer.appendChild(this._container);
 
-            this._timer = new IntervalTimer();
+            this._flushKeyScheduler = new Scheduler(1000, () => this.__onTimeup());
         }
 
         // events
@@ -92,7 +92,7 @@ export class KeyboardScreenCastService implements IKeyboardScreenCastService {
                     this._prevEvent = event;
                 }
                 this._visibilityController.setVisibility(true);
-                this.__resetTimer();
+                this._flushKeyScheduler?.schedule();
             });
 
             // mouseclick
@@ -127,8 +127,8 @@ export class KeyboardScreenCastService implements IKeyboardScreenCastService {
         this._rippleListener?.dispose();
         this._rippleListener = undefined;
 
-        this._timer?.dispose();
-        this._timer = undefined;
+        this._flushKeyScheduler?.dispose();
+        this._flushKeyScheduler = undefined;
 
         this._active = false;
     }
@@ -180,13 +180,8 @@ export class KeyboardScreenCastService implements IKeyboardScreenCastService {
         this._tagContainer.appendChild(tag);
     }
 
-    private __resetTimer(ms: number = 1000): void {
-        if (this._timer) {
-            this._timer.set(ms, () => this.__onTimeup());
-        }
-    }
-
     private __onTimeup(): void {
+        console.log('hello');
         this.__flushKeypress();
         this._visibilityController.setVisibility(false);
     }
