@@ -382,6 +382,21 @@ suite('priority-queue-test', () => {
         assert.strictEqual(pq.isEmpty(), true);
     });
 
+    test('remove', () => {
+        const queue = new PriorityQueue<number>((a, b) => a - b);
+        queue.enqueue(1);
+        queue.enqueue(2);
+        queue.enqueue(2);
+        queue.enqueue(3);
+
+        assert.equal(queue.size(), 4);
+        queue.remove(2);
+        assert.equal(queue.size(), 2);
+        
+        assert.strictEqual(queue.dequeue(), 1);
+        assert.strictEqual(queue.dequeue(), 3);
+    });
+
     test('customized compare', () => {
         const pq = new PriorityQueue<string>((a, b) => b.length - a.length);
         
