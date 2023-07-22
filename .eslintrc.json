@@ -67,6 +67,7 @@
                 "**/test/**/*.test.ts"
             ],
             "rules": {
+                "local/test-code-detect-skip": "warn",
                 "local/test-code-no-only": "error",
 
                 "@typescript-eslint/no-unused-vars": "off",

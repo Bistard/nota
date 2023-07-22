@@ -5,7 +5,7 @@ export = new class TestCodeNoOnly implements eslint.Rule.RuleModule {
     
     public readonly meta: eslint.Rule.RuleMetaData = {
         docs: {
-            description: 'Make sure' // TODO
+            description: 'The purpose of this rule is to prevent the use of `only` methods in test or suite blocks, which is used in testing frameworks Mocha.'
         }
     };
     
